@@ -12,7 +12,7 @@ namespace Funny
             var tokens = Tokenizer.ToTokens(text);
             var flow = new TokenFlow(tokens);
             var eq = new Parser().Parse(flow);
-            return ExpressionReader.Interpritate(eq.First());
+            return ExpressionReader.Interpritate(eq);
         }
 
     }

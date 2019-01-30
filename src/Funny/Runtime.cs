@@ -7,20 +7,14 @@ namespace Funny
 {
     public class Runtime
     {
-        private readonly string _name;
-        private IExpressionNode Node;
-        
-
         public string[] Variables => _variables.Keys.ToArray();
 
-        private Dictionary<string, VariableExpressionNode> _variables;
-        private Dictionary<string, IExpressionNode> _equatations 
-            = new Dictionary<string, IExpressionNode>();
-
-        public Runtime(string name, IExpressionNode node, Dictionary<string, VariableExpressionNode> variables)
+        private readonly Equatation[] _equatations;
+        private readonly Dictionary<string, VariableExpressionNode> _variables;
+        
+        public Runtime(Equatation[] equatations, Dictionary<string, VariableExpressionNode> variables)
         {
-            _name = name;
-            Node = node;
+            _equatations = equatations;
             _variables = variables;
         }
 
@@ -35,8 +29,13 @@ namespace Funny
                 else
                     throw new ArgumentException(value.Name);
             }
-            var val = Node.Calc();
-            return new CalculationResult(new []{Variable.New(_name, val), });
+            
+            var ans = new Variable[_equatations.Length];
+            for (int i = 0; i < _equatations.Length; i++)
+            {
+                ans[i] = Variable.New(_equatations[i].Id, _equatations[i].Expression.Calc());
+            }
+            return new CalculationResult(ans);
         }
     }
 }

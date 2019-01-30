@@ -4,43 +4,51 @@ using System.Linq;
 
 namespace Funny.Take2
 {
+    public class Equatation
+    {
+        public string Id;
+        public IExpressionNode Expression;
+    }
     public class ExpressionReader
     {
-        private readonly LexNode _node;
-        private IExpressionNode _expressionNode; 
+        private readonly IEnumerable<LexEquatation> _lexEquatations;
         
         private Dictionary<string, VariableExpressionNode> _variables 
             = new Dictionary<string, VariableExpressionNode>();
+        private Dictionary<string, Equatation> _equatations 
+            = new Dictionary<string, Equatation>();
         
-        public static Runtime Interpritate(LexEquatation equatation)
+        public static Runtime Interpritate(IEnumerable<LexEquatation> equatations)
         {
-            var ans = new ExpressionReader(equatation.Expression);
+            var ans = new ExpressionReader(equatations);
             ans.Interpritate();
-            return new Runtime(equatation.Id, ans._expressionNode, ans._variables);
+            return new Runtime(ans._equatations.Values.ToArray(),  ans._variables);
         }
-        private ExpressionReader(LexNode node)
+        private ExpressionReader(IEnumerable<LexEquatation> lexEquatations)
         {
-            _node = node;
+            _lexEquatations = lexEquatations;
         }
 
         private void Interpritate()
         {
-            this._expressionNode = InterpritateNode(_node);
+            foreach (var equatation in _lexEquatations)
+            {
+                var expression = InterpritateNode(equatation.Expression);
+                _equatations.Add(equatation.Id.ToLower(), new Equatation
+                {
+                    Expression = expression,
+                    Id = equatation.Id,
+                });
+            }
         }
         private IExpressionNode InterpritateNode(LexNode node)
         {
             if (node.Op.Is((TokType.Id)))
-            {
-                var varName = node.Op.Value.ToLower();
-                if (_variables.ContainsKey(varName))
-                    return _variables[varName];
-                var res =  new VariableExpressionNode(node.Op.Value);
-                _variables.Add(varName, res);
-                return res;
-            }
+                return GetOrAddVariableNode(node.Op.Value);
 
             if(node.Op.Is(TokType.Uint))
                 return new ValueExpressionNode(int.Parse(node.Op.Value));
+            
             Func<double, double, double> op = null;
             switch (node.Op.Type)
             {
@@ -79,9 +87,15 @@ namespace Funny.Take2
             
             return new OpExpressionNode(leftExpr, rightExpr, op);
         }
-        
-        
-        
+
+        private IExpressionNode GetOrAddVariableNode(string varName)
+        {
+            var lower = varName.ToLower();
+            if (_variables.ContainsKey(lower))
+                return _variables[lower];
+            var res = new VariableExpressionNode(lower);
+            _variables.Add(lower, res);
+            return res;
+        }
     }
-    
 }

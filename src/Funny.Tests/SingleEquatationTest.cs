@@ -4,7 +4,7 @@ using NUnit.Framework;
 namespace Funny.Tests
 {
     [TestFixture]
-    public class SingleEquatationsTest
+    public class SingleEquatationTest
     {
         [TestCase("y = 2",2)]
         [TestCase("y = 2*3",6)]
@@ -23,7 +23,7 @@ namespace Funny.Tests
         [TestCase("y = -2*(-4+2)",4)]
         [TestCase("y = -(-(-1))",-1)]
         [TestCase("y = -(-1)",1)]
-        public void Constant(string expr, double expected)
+        public void ConstantEquatation(string expr, double expected)
         {
             var runtime = Interpriter.BuildOrThrow(expr);
             var res = runtime.Calculate();
@@ -41,7 +41,7 @@ namespace Funny.Tests
         [TestCase("z = (x + 4/x)",2,4)]
         [TestCase("y = -x ",0.3,-0.3)]
         [TestCase("y = -(-(-x))",2,-2)]
-        public void SingleVariable(string expr, double arg, double expected)
+        public void SingleVariableEquatation(string expr, double arg, double expected)
         {
             var runtime = Interpriter.BuildOrThrow(expr);
             var res = runtime.Calculate(Variable.New("x",arg));
@@ -53,7 +53,7 @@ namespace Funny.Tests
         [TestCase("y = 2*x1*x2",3,6, 36)]
         [TestCase("y = x1*4/x2",2,2,4)]
         [TestCase("y = (x1+x2)/4",2,2,1)]
-        public void TwoVariables(string expr, double arg1, double arg2, double expected)
+        public void TwoVariablesEquatation(string expr, double arg1, double arg2, double expected)
         {
             var runtime = Interpriter.BuildOrThrow(expr);
             var res = runtime.Calculate(
