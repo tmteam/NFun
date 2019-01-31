@@ -97,5 +97,18 @@ namespace Funny.Tests
 
             Assert.AreEqual(expected, res.Results.First().Value);
         }
+        
+        
+        [TestCase("y = 1", new string[0])]        
+        [TestCase("y = x", new []{"x"})]
+        [TestCase("y = x/2",new []{"x"})]
+        [TestCase("y = in1/2+ in2",new []{"in1","in2"})]
+        [TestCase("y = in1/2 + (in2*in3)",new []{"in1","in2", "in3"})]
+        public void InputVarablesListIsCorrect(string expr, string[] inputNames)
+        {
+            var runtime = Interpriter.BuildOrThrow(expr);
+            CollectionAssert.AreEquivalent(inputNames, runtime.Variables);
+        }
+
     }
 }
