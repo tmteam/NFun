@@ -1,5 +1,7 @@
 using System.Linq;
-using Funny.Take2;
+using Funny.Interpritation;
+using Funny.Runtime;
+using Funny.Tokenization;
 using NUnit.Framework;
 
 namespace Funny.Tests

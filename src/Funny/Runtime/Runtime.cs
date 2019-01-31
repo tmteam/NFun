@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Funny.Take2;
+using Funny.Interpritation;
 
-namespace Funny
+namespace Funny.Runtime
 {
     public class Runtime
     {

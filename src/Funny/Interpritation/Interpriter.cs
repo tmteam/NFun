@@ -1,13 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Funny.Take2;
+using Funny.Parsing;
+using Funny.Tokenization;
 
-namespace Funny
+namespace Funny.Interpritation
 {
     public class Interpriter
     {
-        public static Runtime BuildOrThrow(string text)
+        public static Runtime.Runtime BuildOrThrow(string text)
         {
             var tokens = Tokenizer.ToTokens(text);
             var flow = new TokenFlow(tokens);

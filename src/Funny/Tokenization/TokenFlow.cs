@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Funny.Take2
+namespace Funny.Tokenization
 {
     public class TokenFlow
     {

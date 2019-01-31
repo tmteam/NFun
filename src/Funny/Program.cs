@@ -4,7 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
-using Funny.Take2;
+using Funny.Interpritation;
+using Funny.Parsing;
+using Funny.Runtime;
+using Funny.Tokenization;
 
 namespace Funny
 {

@@ -1,6 +1,4 @@
-using System.Collections.Generic;
-
-namespace Funny.Take2
+namespace Funny.Tokenization
 {
     
     public class Tok

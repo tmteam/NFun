@@ -1,6 +1,6 @@
 using System;
 
-namespace Funny
+namespace Funny.Runtime
 {
     public class CalculationResult
     {

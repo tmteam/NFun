@@ -1,4 +1,4 @@
-namespace Funny
+namespace Funny.Runtime
 {
     public struct Variable
     {

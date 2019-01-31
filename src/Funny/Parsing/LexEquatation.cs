@@ -1,4 +1,4 @@
-namespace Funny.Take2
+namespace Funny.Parsing
 {
     public class LexEquatation
     {
@@ -8,7 +8,7 @@ namespace Funny.Take2
             Expression = expression;
         }
 
-        public string Id { get; set; }
-        public LexNode Expression { get; set; }
+        public string Id { get; }
+        public LexNode Expression { get; }
     }
 }

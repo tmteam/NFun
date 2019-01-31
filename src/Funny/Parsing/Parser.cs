@@ -1,6 +1,7 @@
 using System.Collections.Generic;
+using Funny.Tokenization;
 
-namespace Funny.Take2
+namespace Funny.Parsing
 {
     public class Parser
     {

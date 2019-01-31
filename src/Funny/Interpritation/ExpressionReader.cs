@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Funny.Parsing;
+using Funny.Tokenization;
 
-namespace Funny.Take2
+namespace Funny.Interpritation
 {
     public class Equatation
     {
@@ -18,11 +20,11 @@ namespace Funny.Take2
         private Dictionary<string, Equatation> _equatations 
             = new Dictionary<string, Equatation>();
         
-        public static Runtime Interpritate(IEnumerable<LexEquatation> equatations)
+        public static Runtime.Runtime Interpritate(IEnumerable<LexEquatation> equatations)
         {
             var ans = new ExpressionReader(equatations);
             ans.Interpritate();
-            return new Runtime(ans._equatations.Values.ToArray(),  ans._variables);
+            return new Runtime.Runtime(ans._equatations.Values.ToArray(),  ans._variables);
         }
         private ExpressionReader(IEnumerable<LexEquatation> lexEquatations)
         {

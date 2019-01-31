@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
+using Funny.Tokenization;
 
-namespace Funny.Take2
+namespace Funny.Parsing
 {
     public class LexNode
     {

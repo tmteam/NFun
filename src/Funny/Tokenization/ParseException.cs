@@ -1,6 +1,6 @@
 using System;
 
-namespace Funny.Take2
+namespace Funny.Tokenization
 {
     public class ParseException : Exception
     {
