@@ -19,7 +19,7 @@ namespace Funny
             
             var tokens = Tokenizer.ToTokens(ex);
             var flow = new TokenFlow(tokens);
-            var eq = new Parser().Parse(flow);
+            var eq = new Parser(flow).Parse();
             var res = runtime.Calculate(Variable.New("x", 3));
             
             Console.WriteLine("Res: "+ res);
@@ -72,7 +72,7 @@ namespace Funny
             Console.WriteLine();
 
             var flow = new TokenFlow(tokens);
-            var eq = new Parser().Parse(flow);
+            var eq = new Parser(flow).Parse();
             foreach (var equatation in eq)
             {
                 Console.WriteLine($"{equatation.Id}={equatation.Expression}");

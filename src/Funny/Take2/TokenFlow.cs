@@ -55,5 +55,12 @@ namespace Funny.Take2
             CurrentPos++;
             return Current;
         }
+
+        public bool IsPrevious(TokType tokType)
+        {
+            if (CurrentPos <= 0)
+                return false;
+            return _tokens[CurrentPos - 1].Type == tokType;
+        }
     }
 }

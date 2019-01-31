@@ -20,7 +20,6 @@ namespace Funny.Tests
 
                 Assert.AreEqual("z", res.Results[1].Name);
                 Assert.AreEqual(expectedZ, res.Results[1].Value);
-
             });
         }
         
@@ -41,5 +40,6 @@ namespace Funny.Tests
 
             });        
         }
+
     }
 }

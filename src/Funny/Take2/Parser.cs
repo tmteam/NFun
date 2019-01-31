@@ -4,101 +4,110 @@ namespace Funny.Take2
 {
     public class Parser
     {
-        public List<LexEquatation> Parse(TokenFlow flow)
+        private readonly TokenFlow _flow;
+
+        public Parser(TokenFlow flow)
+        {
+            this._flow = flow;
+        }
+        public List<LexEquatation> Parse()
         {
             var res = new List<LexEquatation>();
 
             while (true)
             {
-                if (flow.IsDone || flow.IsCurrent(TokType.Eof))
+                if (_flow.IsDone || _flow.IsCurrent(TokType.Eof))
                     return res;
                
-                if(!flow.IsCurrent(TokType.Id))
+                if(!_flow.IsCurrent(TokType.Id))
                     throw new ParseException("Starts with no id");
 
-                var id = flow.Current.Value;
+                var id = _flow.Current.Value;
 
-                flow.MoveNext();
-                if(!flow.IsCurrent(TokType.Equal))
+                _flow.MoveNext();
+                if(!_flow.IsCurrent(TokType.Equal))
                     throw new ParseException("has no =");
-                flow.MoveNext();
+                _flow.MoveNext();
                
-                var exNode = ReadExpression(flow);
+                var exNode = ReadExpression();
                 res.Add(new LexEquatation(id, exNode));
             }
 
             return res;
         }
         //Чтение атомарного значения (число, id или выражение в скобках)
-        LexNode ReadAtomicOrNull(TokenFlow flow)
+        LexNode ReadAtomicOrNull()
         {
             //Если минус то читаем дальше и заворачиваем в умножение на 1
-            if (flow.IsCurrent(TokType.Minus))
+            if (_flow.IsCurrent(TokType.Minus))
             {
-                flow.MoveNext();
-                var nextNode = ReadAtomicOrNull(flow);
+                if(_flow.IsPrevious(TokType.Minus))
+                    throw new ParseException("minus duplicates");
+                    
+                _flow.MoveNext();
+                var nextNode = ReadAtomicOrNull();
                 if(nextNode==null)
                     throw new ParseException("minus without next val");
-                var valueNegativeOne = new LexNode(Tok.New(TokType.Uint, "-1", flow.CurrentPos));
-                return new LexNode(Tok.New(TokType.Mult, flow.CurrentPos), 
+                var valueNegativeOne = new LexNode(Tok.New(TokType.Uint, "-1", _flow.CurrentPos));
+                return new LexNode(Tok.New(TokType.Mult, _flow.CurrentPos), 
                     valueNegativeOne,nextNode);
             }
-            if (flow.IsCurrent(TokType.Uint) || flow.IsCurrent(TokType.Id))
+            if (_flow.IsCurrent(TokType.Uint) || _flow.IsCurrent(TokType.Id))
             {
-                var ans = new LexNode(flow.Current);
-                flow.MoveNext();
+                var ans = new LexNode(_flow.Current);
+                _flow.MoveNext();
                 return ans;
             }
             
-            if (flow.IsCurrent(TokType.Obr))
-                return  ReadBrackedExpression(flow);
+            if (_flow.IsCurrent(TokType.Obr))
+                return  ReadBrackedExpression();
             return null;
         }
         //Чтение высокоуровневой операции (атомарное значение или их умножение, степень, деление)
-        LexNode ReadHiPriorityVal(TokenFlow flow)
+        LexNode ReadHiPriorityVal()
         {
-            var node = ReadAtomicOrNull(flow);
+            var node = ReadAtomicOrNull();
             if (node == null)
                 return null;
 
-            if (flow.IsCurrent(TokType.Mult)
-                || flow.IsCurrent(TokType.Div)
-                || flow.IsCurrent(TokType.Pow))
+            if (_flow.IsCurrent(TokType.Mult)
+                || _flow.IsCurrent(TokType.Div)
+                || _flow.IsCurrent(TokType.Pow))
             {
-                var op = flow.Current;
-                flow.MoveNext();
-                var nextVal = ReadHiPriorityVal(flow);
+                var op = _flow.Current;
+                _flow.MoveNext();
+                var nextVal = ReadHiPriorityVal();
                 if (nextVal == null)
-                    throw new ParseException($"{flow.Current.Type} without \'b\' arg");
+                    throw new ParseException($"{_flow.Current.Type} without \'b\' arg");
                 return new LexNode(op, node, nextVal);
             }
             
             return node;
         }
         
-        LexNode ReadExpression(TokenFlow flow)
+        LexNode ReadExpression()
         {
-            var node = ReadHiPriorityVal(flow);
+            var node = ReadHiPriorityVal();
             
-            if (  flow.IsDone 
-                  || flow.IsCurrent(TokType.Eof) 
-                  || flow.IsCurrent(TokType.Cbr))
+            if (  _flow.IsDone 
+                  || _flow.IsCurrent(TokType.Eof) 
+                  || _flow.IsCurrent(TokType.Cbr))
                 return node;
           
-            var hasNewLine = SkipNewLines(flow);
+            var hasNewLine = SkipNewLines();
 
-            if (hasNewLine && flow.IsCurrent(TokType.Abc))
+            if (hasNewLine && _flow.IsCurrent(TokType.Abc))
                     return node;
             
             
-            if (  flow.IsCurrent(TokType.Plus)
-                ||flow.IsCurrent(TokType.Minus))
+            if (  _flow.IsCurrent(TokType.Plus)
+                ||_flow.IsCurrent(TokType.Minus))
             {
-                var op = flow.Current;
+                var op = _flow.Current;
                 if (node == null)
                     throw new ParseException($"{op.Type} without \'a\' arg");
-                flow.MoveNext();
-                var nextVal = ReadExpression(flow);
+                _flow.MoveNext();
+                var nextVal = ReadExpression();
                 if (nextVal == null)
                     throw new ParseException($"{op.Type} without \'b\' arg");
                 node = new LexNode(op, node, nextVal);
@@ -106,34 +115,34 @@ namespace Funny.Take2
             return node;
         }
 
-        private static bool SkipNewLines(TokenFlow flow)
+        private bool SkipNewLines()
         {
             bool hasNewLine = false;
-            while (flow.IsCurrent(TokType.NewLine))
+            while (_flow.IsCurrent(TokType.NewLine))
             {
                 hasNewLine = true;
-                flow.MoveNext();
+                _flow.MoveNext();
             }
 
             return hasNewLine;
         }
 
 
-        private LexNode ReadBrackedExpression(TokenFlow flow)
+        private LexNode ReadBrackedExpression()
         {
-            flow.MoveNext();
+            _flow.MoveNext();
             
-            var node = ReadExpression(flow);
+            var node = ReadExpression();
 
-            if(flow.IsDone)
+            if(_flow.IsDone)
                 throw new ParseException("No cbr. End.");
 
             if (node == null)
-                throw new ParseException("No expr. \"" + flow.Current + "\" instead");
+                throw new ParseException("No expr. \"" + _flow.Current + "\" instead");
 
-            if (!flow.IsCurrent(TokType.Cbr))
+            if (!_flow.IsCurrent(TokType.Cbr))
                 throw new ParseException("No cbr");
-            flow.MoveNext();
+            _flow.MoveNext();
             return node;
         }
     }

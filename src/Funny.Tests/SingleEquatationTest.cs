@@ -76,7 +76,11 @@ namespace Funny.Tests
         [TestCase("y = *2a")]
         [TestCase("y = =a")]
         [TestCase("y = x+2+ 3 + 4 +")]
-        public void ObviouslyFail(string expr) =>
+        [TestCase("y = \"")]
+        [TestCase("y = -")]
+        [TestCase("y = ~")]
+        [TestCase("~y=3")]
+        public void ObviouslyFails(string expr) =>
             Assert.Throws<ParseException>(
                 ()=> Interpriter.BuildOrThrow(expr));
 
