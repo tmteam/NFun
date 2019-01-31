@@ -90,16 +90,17 @@ namespace Funny.Take2
             if (hasNewLine && flow.IsCurrent(TokType.Abc))
                     return node;
             
+            
             if (  flow.IsCurrent(TokType.Plus)
                 ||flow.IsCurrent(TokType.Minus))
             {
-                if (node == null)
-                    throw new ParseException($"{flow.Current.Type} without \'a\' arg");
                 var op = flow.Current;
+                if (node == null)
+                    throw new ParseException($"{op.Type} without \'a\' arg");
                 flow.MoveNext();
                 var nextVal = ReadExpression(flow);
                 if (nextVal == null)
-                    throw new ParseException($"{flow.Current.Type} without \'b\' arg");
+                    throw new ParseException($"{op.Type} without \'b\' arg");
                 node = new LexNode(op, node, nextVal);
             }
             return node;
@@ -121,9 +122,15 @@ namespace Funny.Take2
         private LexNode ReadBrackedExpression(TokenFlow flow)
         {
             flow.MoveNext();
+            
             var node = ReadExpression(flow);
+
             if(flow.IsDone)
                 throw new ParseException("No cbr. End.");
+
+            if (node == null)
+                throw new ParseException("No expr. \"" + flow.Current + "\" instead");
+
             if (!flow.IsCurrent(TokType.Cbr))
                 throw new ParseException("No cbr");
             flow.MoveNext();

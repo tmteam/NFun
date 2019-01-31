@@ -1,4 +1,5 @@
 using System.Linq;
+using Funny.Take2;
 using NUnit.Framework;
 
 namespace Funny.Tests
@@ -48,7 +49,37 @@ namespace Funny.Tests
             Assert.AreEqual(1, res.Results.Length);
             Assert.AreEqual(expected, res.Results.First().Value);
         }
-        
+
+        [TestCase("y = ()")]
+        [TestCase("y = )")]
+        [TestCase("y = )*2")]
+        [TestCase("y = )2")]
+        [TestCase("y = (")]
+        [TestCase("y = (*2")]
+        [TestCase("y = (2")]
+        [TestCase("y = ((2)")]
+        [TestCase("y = 2)")]
+        [TestCase("y = 2++")]
+        [TestCase("y = ++2")]
+        [TestCase("y = 2--")]
+        [TestCase("y = --2")]
+        [TestCase("y = 2a")]
+        [TestCase("y = =a")]
+        [TestCase("y = 2+ 3 + 4 +")]
+        [TestCase("y = x()")]
+        [TestCase("y = x*((2)")]
+        [TestCase("y = 2*x)")]
+        [TestCase("y = 2++x")]
+        [TestCase("y = x++2")]
+        [TestCase("y = 2--x")]
+        [TestCase("y = x--2")]
+        [TestCase("y = *2a")]
+        [TestCase("y = =a")]
+        [TestCase("y = x+2+ 3 + 4 +")]
+        public void ObviouslyFail(string expr) =>
+            Assert.Throws<ParseException>(
+                ()=> Interpriter.BuildOrThrow(expr));
+
         [TestCase("y = x1+x2",2,3,5)]
         [TestCase("y = 2*x1*x2",3,6, 36)]
         [TestCase("y = x1*4/x2",2,2,4)]
