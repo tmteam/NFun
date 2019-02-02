@@ -80,9 +80,10 @@ namespace Funny.Parsing
                 return null;
             
             _flow.SkipNewLines();
-            if (_flow.IsCurrent(TokType.Mult)
+            if (   _flow.IsCurrent(TokType.Mult)
                 || _flow.IsCurrent(TokType.Div)
-                || _flow.IsCurrent(TokType.Pow))
+                || _flow.IsCurrent(TokType.Pow)
+                || _flow.IsCurrent(TokType.Rema))
             {
                 var op = _flow.Current;
                 _flow.MoveNext();

@@ -41,15 +41,23 @@ namespace Funny.Tests
         [TestCase("y = 4- x",3,1)]
         [TestCase("y = x- x",3,0)]
         [TestCase("y = 4+ x",3,7)]
-        [TestCase("z = (x + 4/x)",2,4)]
+        [TestCase("y = (x + 4/x)",2,4)]
+        [TestCase("y = x^3", 2,8)]
+        [TestCase("y = x%3", 2,2)]
+        [TestCase("y = x%4", 5,1)]
+        [TestCase("y = x%-4", 5,1)]
+        [TestCase("y = x%4", -5,-1)]
+        [TestCase("y = x%-4", -5,-1)]
+        [TestCase("y = x%4", -5,-1)]
+        [TestCase("y = x%2", -5.2,-1.2)]
+        [TestCase("y = 5%x", 2.2,0.6)]
         [TestCase("y = -x ",0.3,-0.3)]
         [TestCase("y = -(-(-x))",2,-2)]
         public void SingleVariableEquatation(string expr, double arg, double expected)
         {
             var runtime = Interpriter.BuildOrThrow(expr);
-            var res = runtime.Calculate(Var.New("x",arg));
-            Assert.AreEqual(1, res.Results.Length);
-            Assert.AreEqual(expected, res.Results.First().Value);
+            runtime.Calculate(Var.New("x",arg))
+                .AssertReturns(0.00001, Var.New("y", expected));
         }
 
         [TestCase("y = ()")]
@@ -65,6 +73,10 @@ namespace Funny.Tests
         [TestCase("y = ++2")]
         [TestCase("y = 2--")]
         [TestCase("y = --2")]
+        [TestCase("y = 2^^")]
+        [TestCase("y = ^^2")]
+        [TestCase("y = 2%%")]
+        [TestCase("y = %%2")]
         [TestCase("y = 2a")]
         [TestCase("y = =a")]
         [TestCase("y = 2+ 3 + 4 +")]

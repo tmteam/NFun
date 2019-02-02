@@ -20,8 +20,6 @@ namespace Funny.Tests
                     Var.New("z", expectedZ));
         }
         
-        
-        
         [TestCase("y = x\r z=3",2, 2,3)]
         [TestCase("y = x/2\r z=2*x",2, 1,4)]
         public void TwinEquatationsWithSingleVariable(string expr, double x, double expectedY, double expectedZ)
@@ -43,7 +41,6 @@ namespace Funny.Tests
             var runtime = Interpriter.BuildOrThrow(expr);
             CollectionAssert.AreEquivalent(inputNames, runtime.Variables);
         }
-
         
         [TestCase("y = 1\r z=y", new string[0])]        
         [TestCase("y = x\r z=y", new []{"x"})]
@@ -68,6 +65,7 @@ namespace Funny.Tests
                     Var.New("y", expectedY),
                     Var.New("z", expectedZ));
         }
+        
         [TestCase("o1 = 1\r o2=o1\r o3 = 0", 1, 1, 0)]
         [TestCase("o1 = 1\r o2 = o1+1\r o3=2*o1*o2",1, 2, 4)]
         [TestCase("o1 = 1\r o2 = o3\n o3 = 2",1, 2, 2)]
@@ -81,6 +79,7 @@ namespace Funny.Tests
                     Var.New("o2", o2),
                     Var.New("o3", o3));
         }
+        
         [TestCase(2,"o1 = x\r o2=o1\r o3 = 0", 2, 2, 0)]
         [TestCase(2,"o1 = x/2\r o2 = o1+1\r o3=2*o1*o2",1, 2, 4)]
         [TestCase(2,"o1 = x/2\r o2 = o3\n o3 = x",1, 2, 2)]
@@ -93,6 +92,7 @@ namespace Funny.Tests
                     Var.New("o2", o2),
                     Var.New("o3", o3));
         }
+        
         [Test]
         public void ComplexDependentConstantsEquatations_CalculatesCorrect()
         {

@@ -10,10 +10,11 @@ namespace Funny.Tokenization
             {'*', TokType.Mult},
             {'+', TokType.Plus},
             {'-', TokType.Minus},
+            {'%', TokType.Rema},
+            {'^', TokType.Pow},
             {'(', TokType.Obr},
             {')', TokType.Cbr},
             {'=', TokType.Equal},
-
         };
         
         public Tok TryReadNext(string str, int position)

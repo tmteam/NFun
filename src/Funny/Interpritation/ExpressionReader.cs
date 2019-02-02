@@ -20,9 +20,7 @@ namespace Funny.Interpritation
         {
             var ans = new ExpressionReader(lexEquatations);
             ans.Interpritate();
-
             var result = OrderEquatationsOrThrow(lexEquatations, ans);
-
             return new Runtime.Runtime(result,  ans._variables);
         }
 
@@ -108,6 +106,9 @@ namespace Funny.Interpritation
                 case TokType.Pow:
                     op = Math.Pow; 
                     break;
+                case TokType.Rema:
+                    op = (a,b)=> a%b; 
+                    break;
                 case TokType.Equal:
                     op = (a, b) => a == b? 1:0;
                     break;
@@ -142,12 +143,6 @@ namespace Funny.Interpritation
             }
             res.AddEquatationNum(equatationNum);
             return res;
-        }
-
-
-        private void DFSRecursionChecker(Equatation[] equatations, VariableExpressionNode[] variables)
-        {
-            
         }
     }
 }

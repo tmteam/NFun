@@ -45,7 +45,14 @@ namespace Funny.Tokenization
         Plus,
         Minus,
         Div,
+        /// <summary>
+        /// Division reminder "%"
+        /// </summary>
+        Rema,
         Mult,
+        /// <summary>
+        /// Pow "^"
+        /// </summary>
         Pow,
         Obr,
         Cbr,
