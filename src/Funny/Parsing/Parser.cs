@@ -57,11 +57,11 @@ namespace Funny.Parsing
                 var nextNode = ReadAtomicOrNull();
                 if(nextNode==null)
                     throw new ParseException("minus without next val");
-                var valueNegativeOne = new LexNode(Tok.New(TokType.Uint, "-1", _flow.CurrentPos));
+                var valueNegativeOne = new LexNode(Tok.New(TokType.Number, "-1", _flow.CurrentPos));
                 return new LexNode(Tok.New(TokType.Mult, _flow.CurrentPos), 
                     valueNegativeOne,nextNode);
             }
-            if (_flow.IsCurrent(TokType.Uint) || _flow.IsCurrent(TokType.Id))
+            if (_flow.IsCurrent(TokType.Number) || _flow.IsCurrent(TokType.Id))
             {
                 var ans = new LexNode(_flow.Current);
                 _flow.MoveNext();

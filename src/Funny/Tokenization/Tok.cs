@@ -25,7 +25,7 @@ namespace Funny.Tokenization
         {
             if(Type== TokType.Id)    
                 return $"\"{Value}\"";
-            if (Type == TokType.Uint)
+            if (Type == TokType.Number)
                 return $"'{Value}'";
             if (Value == null || Value.Length==1)
                 return Type.ToString();
@@ -41,7 +41,7 @@ namespace Funny.Tokenization
         If,
         Else,
         Then,
-        Uint,
+        Number,
         Plus,
         Minus,
         Div,

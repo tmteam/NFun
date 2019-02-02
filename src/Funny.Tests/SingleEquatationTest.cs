@@ -3,6 +3,7 @@ using Funny.Interpritation;
 using Funny.Runtime;
 using Funny.Tokenization;
 using NUnit.Framework;
+using NUnit.Framework.Interfaces;
 
 namespace Funny.Tests
 {
@@ -26,6 +27,16 @@ namespace Funny.Tests
         [TestCase("y = -2*(-4+2)",4)]
         [TestCase("y = -(-(-1))",-1)]
         [TestCase("y = -(-1)",1)]
+        [TestCase("y = 0.2",0.2)]
+        [TestCase("y = 11.222  ",11.222)]
+        [TestCase("y = 11_11  ",1111)]
+        [TestCase("y = 1.1_11  ",1.111)]
+        [TestCase("y = 0xfF  ",255)]
+        [TestCase("y = 0x00_Ff  ",255)]
+        [TestCase("y = 0b001  ",1)]
+        [TestCase("y = 0b11  ",3)]
+        [TestCase("y = 0x_1",1)]
+
         public void ConstantEquatation(string expr, double expected)
         {
             var runtime = Interpriter.BuildOrThrow(expr);
@@ -53,6 +64,7 @@ namespace Funny.Tests
         [TestCase("y = 5%x", 2.2,0.6)]
         [TestCase("y = -x ",0.3,-0.3)]
         [TestCase("y = -(-(-x))",2,-2)]
+        [TestCase("y = x/0.2",1,5)]
         public void SingleVariableEquatation(string expr, double arg, double expected)
         {
             var runtime = Interpriter.BuildOrThrow(expr);
@@ -94,6 +106,14 @@ namespace Funny.Tests
         [TestCase("y = -")]
         [TestCase("y = ~")]
         [TestCase("~y=3")]
+        [TestCase("y = 0x")]
+        [TestCase("y = 0..2")]
+        [TestCase("y = .2")]
+        [TestCase("y = 0bx2")]
+        [TestCase("y = 02.")]
+        [TestCase("y = 0x2.3")]
+        [TestCase("y = 0x99GG")]
+        [TestCase("y = 0bFF")]
         public void ObviouslyFails(string expr) =>
             Assert.Throws<ParseException>(
                 ()=> Interpriter.BuildOrThrow(expr));
@@ -106,8 +126,8 @@ namespace Funny.Tests
         {
             var runtime = Interpriter.BuildOrThrow(expr);
             var res = runtime.Calculate(
-                Var.New("x1",arg1),
-                Var.New("x2",arg2));
+                Var.New("x1", arg1),
+                Var.New("x2", arg2));
 
             Assert.AreEqual(expected, res.Results.First().Value);
         }

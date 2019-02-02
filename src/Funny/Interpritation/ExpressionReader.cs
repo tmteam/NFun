@@ -57,7 +57,6 @@ namespace Funny.Interpritation
                 var element = ans._equatations.Values.ElementAt(index);
                 result.Add(element);
             }
-
             return result.ToArray();
         }
 
@@ -85,9 +84,32 @@ namespace Funny.Interpritation
             if (node.Op.Is((TokType.Id)))
                 return GetOrAddVariableNode(node.Op.Value, equatationNum);
 
-            if(node.Op.Is(TokType.Uint))
-                return new ValueExpressionNode(int.Parse(node.Op.Value));
-            
+            if (node.Op.Is(TokType.Number))
+            {
+                var val = node.Op.Value;
+                try
+                {
+                    if (val.Length > 2)
+                    {
+                        val = val.Replace("_", null);
+                    
+                        if(val[1]=='b')
+                            return new ValueExpressionNode(Convert.ToInt32(val.Substring(2), 2));
+                        if(val[1]=='x')                        
+                            return new ValueExpressionNode(Convert.ToInt32(val, 16));
+                    }
+
+                    if (val.EndsWith('.'))
+                        throw new FormatException();
+                    return new ValueExpressionNode(double.Parse(val));
+                }
+                catch (FormatException e)
+                {
+                    throw new ParseException("Cannot parse number \""+ node.Op.Value+"\"");
+                }
+                
+            }
+
             Func<double, double, double> op = null;
             switch (node.Op.Type)
             {
