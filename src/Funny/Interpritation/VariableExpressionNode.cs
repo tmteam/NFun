@@ -16,6 +16,16 @@ namespace Funny.Interpritation
         public IEnumerable<IExpressionNode> Children {
             get { yield break;}
         }
+
+        public HashSet<string> usedInOutputs = new HashSet<string>();
+        
+        public void AddEquatationName(string val)
+        {
+            val = val.ToLower();
+            if (!usedInOutputs.Contains(val))
+                usedInOutputs.Add(val);
+        }
+        
         public double Calc() => _value;
     }
 }

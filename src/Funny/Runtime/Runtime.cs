@@ -18,7 +18,6 @@ namespace Funny.Runtime
             _variables = variables;
         }
 
-
         public CalculationResult Calculate(params Variable[] variables)
         {
             foreach (var value in variables)

@@ -6,25 +6,29 @@ using Funny.Tokenization;
 
 namespace Funny.Interpritation
 {
-    public class Equatation
-    {
-        public string Id;
-        public IExpressionNode Expression;
-    }
     public class ExpressionReader
     {
         private readonly IEnumerable<LexEquatation> _lexEquatations;
         
-        private Dictionary<string, VariableExpressionNode> _variables 
+        private readonly Dictionary<string, VariableExpressionNode> _variables 
             = new Dictionary<string, VariableExpressionNode>();
+        
         private Dictionary<string, Equatation> _equatations 
             = new Dictionary<string, Equatation>();
         
-        public static Runtime.Runtime Interpritate(IEnumerable<LexEquatation> equatations)
+        public static Runtime.Runtime Interpritate(IEnumerable<LexEquatation> lexEquatations)
         {
-            var ans = new ExpressionReader(equatations);
+            var ans = new ExpressionReader(lexEquatations);
             ans.Interpritate();
-            return new Runtime.Runtime(ans._equatations.Values.ToArray(),  ans._variables);
+            //now we need to build map of dependencies
+            var variables = ans._variables.Values;
+
+            //some of the variables are input, and some are inputs reusing
+           // GraphTools.SortTopology(variables.ToArray());
+            
+            var equatations = ans._equatations.Values.ToArray();
+
+            return new Runtime.Runtime(equatations,  ans._variables);
         }
         private ExpressionReader(IEnumerable<LexEquatation> lexEquatations)
         {
@@ -35,7 +39,7 @@ namespace Funny.Interpritation
         {
             foreach (var equatation in _lexEquatations)
             {
-                var expression = InterpritateNode(equatation.Expression);
+                var expression = InterpritateNode(equatation.Expression, equatation);
                 _equatations.Add(equatation.Id.ToLower(), new Equatation
                 {
                     Expression = expression,
@@ -43,10 +47,10 @@ namespace Funny.Interpritation
                 });
             }
         }
-        private IExpressionNode InterpritateNode(LexNode node)
+        private IExpressionNode InterpritateNode(LexNode node, LexEquatation equatation)
         {
             if (node.Op.Is((TokType.Id)))
-                return GetOrAddVariableNode(node.Op.Value);
+                return GetOrAddVariableNode(node.Op.Value, equatation);
 
             if(node.Op.Is(TokType.Uint))
                 return new ValueExpressionNode(int.Parse(node.Op.Value));
@@ -84,20 +88,31 @@ namespace Funny.Interpritation
             if(right==null)
                 throw new ParseException("b node is missing");
 
-            var leftExpr = InterpritateNode(left);
-            var rightExpr = InterpritateNode(right);
+            var leftExpr = InterpritateNode(left,equatation);
+            var rightExpr = InterpritateNode(right,equatation);
             
             return new OpExpressionNode(leftExpr, rightExpr, op);
         }
 
-        private IExpressionNode GetOrAddVariableNode(string varName)
+        private IExpressionNode GetOrAddVariableNode(string varName, LexEquatation equatation)
         {
             var lower = varName.ToLower();
+            VariableExpressionNode res;
+            
             if (_variables.ContainsKey(lower))
-                return _variables[lower];
-            var res = new VariableExpressionNode(lower);
-            _variables.Add(lower, res);
+                res= _variables[lower];
+            else {
+                res = new VariableExpressionNode(lower);
+                _variables.Add(lower, res);            
+            }
+            res.AddEquatationName(equatation.Id);
             return res;
+        }
+
+
+        private void DFSRecursionChecker(Equatation[] equatations, VariableExpressionNode[] variables)
+        {
+            
         }
     }
 }
