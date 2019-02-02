@@ -6,12 +6,16 @@ namespace Funny.Interpritation
 {
     public struct TopologySortResults
     {
-        public readonly int[] Order;
+        /// <summary>
+        /// Topological sort order if has no cycle
+        /// First cycle route otherwise
+        /// </summary>
+        public readonly int[] NodeNames;
         public readonly bool HasCycle;
 
-        public TopologySortResults(int[] order, bool hasCycle)
+        public TopologySortResults(int[] nodeNames, bool hasCycle)
         {
-            Order = order;
+            NodeNames = nodeNames;
             HasCycle = hasCycle;
         }
     }
@@ -19,11 +23,11 @@ namespace Funny.Interpritation
     {
 
         /// <summary>
-        /// Gets topology sorted in form of indexes [childrenNodeName -> parentsNodeNames[]]
+        /// Gets topology sorted in form of indexes [ParentNodeName -> []ChildrenNames]
         /// O(N)
-        /// Circular dependencies means parsing failures
+        /// If Circular dependencies found -  returns circle route insead of sorted order
         /// </summary>
-        /// <returns>topology sorted node indexes from source to drain. nodeNames[]</returns>
+        /// <returns>topology sorted node indexes from source to drain or first cycle route</returns>
         public static TopologySortResults SortTopology(int[][] graph) 
             => new TopologySort(graph).Sort();
 

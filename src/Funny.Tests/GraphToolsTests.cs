@@ -179,16 +179,16 @@ namespace Funny.Tests
         private void AssertHasCycle(int[] cycle, TopologySortResults actual)
         {
             Assert.IsTrue(actual.HasCycle , "Cycle not found");
-            CollectionAssert.AreEqual(cycle ,actual.Order, 
-                $"expected: {ArrayToString(cycle)} but was: {ArrayToString(actual.Order)}");
+            CollectionAssert.AreEqual(cycle ,actual.NodeNames, 
+                $"expected: {ArrayToString(cycle)} but was: {ArrayToString(actual.NodeNames)}");
     
         }
         
         private void AssertHasRoute(int[] expected, TopologySortResults actual)
         {
             Assert.IsFalse(actual.HasCycle, "Order not found");
-            CollectionAssert.AreEqual(expected,actual.Order, 
-                $"expected: {ArrayToString(expected)} but was: {ArrayToString(actual.Order)}");
+            CollectionAssert.AreEqual(expected,actual.NodeNames, 
+                $"expected: {ArrayToString(expected)} but was: {ArrayToString(actual.NodeNames)}");
 
         }
     }
