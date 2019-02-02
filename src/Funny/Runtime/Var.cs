@@ -1,13 +1,13 @@
 namespace Funny.Runtime
 {
-    public struct Variable
+    public struct Var
     {
-        public static Variable New(string name, double value) 
-            => new Variable(name, value);
+        public static Var New(string name, double value) 
+            => new Var(name, value);
         public readonly string Name;
         public readonly double Value;
 
-        public Variable(string name, double value)
+        public Var(string name, double value)
         {
             Name = name;
             Value = value;

@@ -47,7 +47,7 @@ namespace Funny.Tests
         public void SingleVariableEquatation(string expr, double arg, double expected)
         {
             var runtime = Interpriter.BuildOrThrow(expr);
-            var res = runtime.Calculate(Variable.New("x",arg));
+            var res = runtime.Calculate(Var.New("x",arg));
             Assert.AreEqual(1, res.Results.Length);
             Assert.AreEqual(expected, res.Results.First().Value);
         }
@@ -94,8 +94,8 @@ namespace Funny.Tests
         {
             var runtime = Interpriter.BuildOrThrow(expr);
             var res = runtime.Calculate(
-                Variable.New("x1",arg1),
-                Variable.New("x2",arg2));
+                Var.New("x1",arg1),
+                Var.New("x2",arg2));
 
             Assert.AreEqual(expected, res.Results.First().Value);
         }

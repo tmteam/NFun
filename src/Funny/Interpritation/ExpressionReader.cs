@@ -16,20 +16,53 @@ namespace Funny.Interpritation
         private Dictionary<string, Equatation> _equatations 
             = new Dictionary<string, Equatation>();
         
-        public static Runtime.Runtime Interpritate(IEnumerable<LexEquatation> lexEquatations)
+        public static Runtime.Runtime Interpritate(List<LexEquatation> lexEquatations)
         {
             var ans = new ExpressionReader(lexEquatations);
             ans.Interpritate();
-            //now we need to build map of dependencies
-            var variables = ans._variables.Values;
 
-            //some of the variables are input, and some are inputs reusing
-           // GraphTools.SortTopology(variables.ToArray());
-            
-            var equatations = ans._equatations.Values.ToArray();
+            var result = OrderEquatationsOrThrow(lexEquatations, ans);
 
-            return new Runtime.Runtime(equatations,  ans._variables);
+            return new Runtime.Runtime(result,  ans._variables);
         }
+
+        private static Equatation[] OrderEquatationsOrThrow(List<LexEquatation> lexEquatations, ExpressionReader ans)
+        {
+            //now build dependencies map
+            int[][] dependencyGraph = new int[lexEquatations.Count][];
+
+            for (int i = 0; i < lexEquatations.Count; i++)
+            {
+                if (ans._variables.TryGetValue(lexEquatations[i].Id.ToLower(), out var outvar))
+                {
+                    outvar.IsOutput = true;
+                    ans._equatations.Values.ElementAt(i).ReusingWithOtherEquatations = true;
+                    
+                    dependencyGraph[i] = outvar.usedInOutputs.ToArray();
+                }
+                else
+                    dependencyGraph[i] = Array.Empty<int>();
+            }
+
+            var sortResults = GraphTools.SortTopology(dependencyGraph);
+            if (sortResults.HasCycle)
+                throw new ParseException("Cycle dependencies: "
+                                         + string.Join(',', sortResults.NodeNames));
+
+            //Equatations calculation order
+            var result = new List<Equatation>(dependencyGraph.Length);
+            //applying sort order to equatations
+            for (int i = 0; i < sortResults.NodeNames.Length; i++)
+            {
+                //order is reversed:
+                var index =  sortResults.NodeNames[sortResults.NodeNames.Length - i-1];
+                var element = ans._equatations.Values.ElementAt(index);
+                result.Add(element);
+            }
+
+            return result.ToArray();
+        }
+
         private ExpressionReader(IEnumerable<LexEquatation> lexEquatations)
         {
             _lexEquatations = lexEquatations;
@@ -37,20 +70,22 @@ namespace Funny.Interpritation
 
         private void Interpritate()
         {
+            int equatationNum = 0;
             foreach (var equatation in _lexEquatations)
             {
-                var expression = InterpritateNode(equatation.Expression, equatation);
+                var expression = InterpritateNode(equatation.Expression, equatationNum);
                 _equatations.Add(equatation.Id.ToLower(), new Equatation
                 {
                     Expression = expression,
                     Id = equatation.Id,
                 });
+                equatationNum++;
             }
         }
-        private IExpressionNode InterpritateNode(LexNode node, LexEquatation equatation)
+        private IExpressionNode InterpritateNode(LexNode node, int equatationNum)
         {
             if (node.Op.Is((TokType.Id)))
-                return GetOrAddVariableNode(node.Op.Value, equatation);
+                return GetOrAddVariableNode(node.Op.Value, equatationNum);
 
             if(node.Op.Is(TokType.Uint))
                 return new ValueExpressionNode(int.Parse(node.Op.Value));
@@ -88,13 +123,13 @@ namespace Funny.Interpritation
             if(right==null)
                 throw new ParseException("b node is missing");
 
-            var leftExpr = InterpritateNode(left,equatation);
-            var rightExpr = InterpritateNode(right,equatation);
+            var leftExpr = InterpritateNode(left,equatationNum);
+            var rightExpr = InterpritateNode(right,equatationNum);
             
             return new OpExpressionNode(leftExpr, rightExpr, op);
         }
 
-        private IExpressionNode GetOrAddVariableNode(string varName, LexEquatation equatation)
+        private IExpressionNode GetOrAddVariableNode(string varName, int equatationNum)
         {
             var lower = varName.ToLower();
             VariableExpressionNode res;
@@ -105,7 +140,7 @@ namespace Funny.Interpritation
                 res = new VariableExpressionNode(lower);
                 _variables.Add(lower, res);            
             }
-            res.AddEquatationName(equatation.Id);
+            res.AddEquatationNum(equatationNum);
             return res;
         }
 

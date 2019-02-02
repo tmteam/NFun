@@ -7,7 +7,10 @@ namespace Funny.Runtime
 {
     public class Runtime
     {
-        public string[] Variables => _variables.Keys.ToArray();
+        public string[] Variables => _variables
+            .Where(v=>!v.Value.IsOutput)
+            .Select(v=>v.Key)
+            .ToArray();
 
         private readonly Equatation[] _equatations;
         private readonly Dictionary<string, VariableExpressionNode> _variables;
@@ -18,9 +21,9 @@ namespace Funny.Runtime
             _variables = variables;
         }
 
-        public CalculationResult Calculate(params Variable[] variables)
+        public CalculationResult Calculate(params Var[] vars)
         {
-            foreach (var value in variables)
+            foreach (var value in vars)
             {
                 var varName = value.Name;
                 if (_variables.TryGetValue(varName, out var varNode))
@@ -29,10 +32,13 @@ namespace Funny.Runtime
                     throw new ArgumentException(value.Name);
             }
             
-            var ans = new Variable[_equatations.Length];
+            var ans = new Var[_equatations.Length];
             for (int i = 0; i < _equatations.Length; i++)
             {
-                ans[i] = Variable.New(_equatations[i].Id, _equatations[i].Expression.Calc());
+                var e = _equatations[i];
+                ans[i] = Var.New(e.Id, e.Expression.Calc());
+                if (e.ReusingWithOtherEquatations)
+                    _variables[e.Id.ToLower()].SetValue(ans[i].Value);
             }
             return new CalculationResult(ans);
         }

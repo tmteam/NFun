@@ -4,12 +4,12 @@ namespace Funny.Runtime
 {
     public class CalculationResult
     {
-        public CalculationResult(Variable[] results)
+        public CalculationResult(Var[] results)
         {
             Results = results;
         }
 
-        public Variable[] Results { get; }
+        public Var[] Results { get; }
 
         public double GetResultOf(string name)
         {

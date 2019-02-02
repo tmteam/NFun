@@ -1,6 +1,7 @@
 using System.Linq;
 using Funny.Interpritation;
 using Funny.Runtime;
+using Funny.Tokenization;
 using NUnit.Framework;
 
 namespace Funny.Tests
@@ -14,15 +15,9 @@ namespace Funny.Tests
         {
             var runtime = Interpriter.BuildOrThrow(expr);
             var res = runtime.Calculate();
-            Assert.AreEqual(2, res.Results.Length);
-            Assert.Multiple(() =>
-            {
-                Assert.AreEqual("y", res.Results[0].Name);
-                Assert.AreEqual(expectedY, res.Results[0].Value);
-
-                Assert.AreEqual("z", res.Results[1].Name);
-                Assert.AreEqual(expectedZ, res.Results[1].Value);
-            });
+            AssertHas(res,
+                Var.New("y", expectedY),
+                Var.New("z", expectedZ));
         }
         
         
@@ -32,17 +27,10 @@ namespace Funny.Tests
         public void TwinEquatationsWithSingleVariable(string expr, double x, double expectedY, double expectedZ)
         {
             var runtime = Interpriter.BuildOrThrow(expr);
-            var res = runtime.Calculate(Variable.New("x", x));
-            Assert.AreEqual(2, res.Results.Length);
-            Assert.Multiple(() =>
-            {
-                Assert.AreEqual("y", res.Results[0].Name);
-                Assert.AreEqual(expectedY, res.Results[0].Value);
-
-                Assert.AreEqual("z", res.Results[1].Name);
-                Assert.AreEqual(expectedZ, res.Results[1].Value);
-
-            });        
+            var res = runtime.Calculate(Var.New("x", x));
+            AssertHas(res,
+                Var.New("y", expectedY),
+                Var.New("z", expectedZ));        
         }
         
         [TestCase("y = 1\r z=2", new string[0])]        
@@ -69,22 +57,85 @@ namespace Funny.Tests
             CollectionAssert.AreEquivalent(inputNames, runtime.Variables);
         }
         
-        [TestCase("y = x\r z=y",2, 2, 2)]
-        [TestCase("y = x/2\r z=2*y",2, 1,2)]
-        [TestCase("y = x/2\r z=2*y+x",2, 1,4)]
-        public void TwinDependentEquatationsWithSingleVariable_CalculatesCorrect(string expr, double x, double expectedY, double expectedZ)
+        [TestCase(2, "y = x\r z=y",         2,2)]
+        [TestCase(2, "y = x/2\r z=2*y",     1,2)]
+        [TestCase(2, "y = x/2\r z=2*y+x",   1,4)]
+        public void TwinDependentEquatationsWithSingleVariable_CalculatesCorrect(double x, string expr,  double expectedY, double expectedZ)
         {
             var runtime = Interpriter.BuildOrThrow(expr);
-            var res = runtime.Calculate(Variable.New("x", x));
-            Assert.AreEqual(2, res.Results.Length);
+            var res = runtime.Calculate(Var.New("x", x));
+            AssertHas(res,
+                Var.New("y", expectedY),
+                Var.New("z", expectedZ));
+        }
+        [TestCase("o1 = 1\r o2=o1\r o3 = 0", 1, 1, 0)]
+        [TestCase("o1 = 1\r o2 = o1+1\r o3=2*o1*o2",1, 2, 4)]
+        [TestCase("o1 = 1\r o2 = o3\n o3 = 2",1, 2, 2)]
+        [TestCase("o1 = o2*2\r o2 = o3*2\n o3 = 2",8, 4, 2)]
+        public void ThreeDependentConstantEquatations_CalculatesCorrect(string expr,  double o1, double o2, double o3)
+        {
+            var runtime = Interpriter.BuildOrThrow(expr);
+            var res = runtime.Calculate();
+            AssertHas(res,
+                Var.New("o1", o1),
+                Var.New("o2", o2),
+                Var.New("o3", o3));
+        }
+        [TestCase(2,"o1 = x\r o2=o1\r o3 = 0", 2, 2, 0)]
+        [TestCase(2,"o1 = x/2\r o2 = o1+1\r o3=2*o1*o2",1, 2, 4)]
+        [TestCase(2,"o1 = x/2\r o2 = o3\n o3 = x",1, 2, 2)]
+        public void ThreeDependentEquatationsWithSingleVariable_CalculatesCorrect(double x,string expr,  double o1, double o2, double o3)
+        {
+            var runtime = Interpriter.BuildOrThrow(expr);
+            var res = runtime.Calculate(Var.New("x", x));
+            AssertHas(res,
+                Var.New("o1", o1),
+                Var.New("o2", o2),
+                Var.New("o3", o3));
+        }
+        [Test]
+        public void ComplexDependentConstantEquatations_CalculatesCorrect()
+        {
+            var runtime = Interpriter.BuildOrThrow(
+                @"o1 = 1
+                  o2 = o1*2
+                  o3 = o2*2
+                  o4 = o1/2
+                  o5 = 0
+                  o6 = o4+o3");
+            var res = runtime.Calculate();
+            AssertHas(res,
+                Var.New("o1", 1),
+                Var.New("o2", 2),
+                Var.New("o3", 4),
+                Var.New("o4", 0.5),
+                Var.New("o5", 0),
+                Var.New("o6", 4.5));
+        }
+        
+        [TestCase("o1 = o2\r o2=o1")]
+        [TestCase("o1 = o3\r o2 = o1\r o3 = o2")]
+        [TestCase("o0 = 3\r o1 = o3+o0\r o2 = o1\r o3 = o2")]
+        public void ObviouslyFails(string expr)
+        {
+            Assert.Throws<ParseException>(()=> Interpriter.BuildOrThrow(expr));
+        }
+        private void AssertHas(CalculationResult result, params Var[] vars)
+        {
+            Assert.AreEqual(vars.Length, result.Results.Length);
             Assert.Multiple(() =>
             {
-                Assert.AreEqual("y", res.Results[0].Name);
-                Assert.AreEqual(expectedY, res.Results[0].Value);
-
-                Assert.AreEqual("z", res.Results[1].Name);
-                Assert.AreEqual(expectedZ, res.Results[1].Value);
-            });        
+                foreach (var variable in vars)
+                {
+                    AssertHas(result, variable.Name, variable.Value);
+                }
+            });
+        }
+        private void AssertHas(CalculationResult result, string name, double value)
+        {
+            var res = result.Results.FirstOrDefault(r => r.Name == name);
+            Assert.IsNotNull(res, $"variable {name} not found");
+            Assert.AreEqual(value, res.Value,$"var \"{name}\" expected: {value}, but was: {res.Value}");
         }
 
     }
