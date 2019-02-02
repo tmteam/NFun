@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace Funny.Interpritation
 {
@@ -22,17 +24,16 @@ namespace Funny.Interpritation
         /// Circular dependencies means parsing failures
         /// </summary>
         /// <returns>topology sorted node indexes from source to drain. nodeNames[]</returns>
-        public static TopologySortResults SortTopology(int[][] graph)
-        {
-            var res =  new TopologySort(graph).Sort();
-            return new TopologySortResults(res, false);
-        }
+        public static TopologySortResults SortTopology(int[][] graph) 
+            => new TopologySort(graph).Sort();
 
         class TopologySort
         {
             private readonly int[][] _graph;
             private readonly NodeState[] _nodeStates;
             private readonly int[] _route;
+            private Queue<int> _cycleRoute = new Queue<int>();
+
             private int _processedCount = 0;
             public TopologySort(int[][] graph)
             {
@@ -41,15 +42,14 @@ namespace Funny.Interpritation
                 _route= new int[graph.Length];
             }
 
-            public int[] Sort()
+            public TopologySortResults Sort()
             {
                 for (int i = 0; i < _graph.Length; i++)
                 {
                     if (!RecSort(i))
-                        return null;
+                        return new TopologySortResults(_cycleRoute.ToArray(), true);
                 }
-
-                return _route;
+                return new TopologySortResults(_route, false);
             }
             private bool RecSort(int node)
             {
@@ -58,11 +58,20 @@ namespace Funny.Interpritation
                     case NodeState.Checked:
                         return true;
                     case NodeState.Checking:
-                        return false;
+                    {
+                        return false;                        
+                    }
                     default:
                         _nodeStates[node] = NodeState.Checking;
                         for (int child = 0; child < _graph[node].Length; child++)
-                            RecSort(_graph[node][child]);
+                        {
+                            if (!RecSort(_graph[node][child]))
+                            {
+                                _cycleRoute.Enqueue(_graph[node][child]);
+                                return false;
+                            }
+                        }
+
                         _nodeStates[node] = NodeState.Checked;
 
                         _route[_processedCount] = node;

@@ -7,16 +7,71 @@ namespace Funny.Tests
     public class GraphToolsTests
     {
         [Test]
+        public void OneNodeCycle()
+        {
+            var graph = new[]
+            {
+                From(0),
+            };
+            var res = GraphTools.SortTopology(graph);
+            AssertHasCycle(new []{0}, res);
+        }
+        
+        [Test]
+        public void TwoNodesCycle()
+        {
+            var graph = new[]
+            {
+                From(1),
+                From(0),
+            };
+            var res = GraphTools.SortTopology(graph);
+            AssertHasCycle(new []{0,1}, res);
+        }
+        [Test]
+        public void ThreeNodesCycle()
+        {
+            var graph = new[]
+            {
+                From(3),
+                From(0),
+                From(1),
+                From(2),
+            };
+            var res = GraphTools.SortTopology(graph);
+            AssertHasCycle(new []{0,1,2,3}, res);
+        }
+        
+        [Test]
+        public void ComplexNodesCycle()
+        {
+            //         |<------|
+            //0->1->2->|3->4->5|->6
+            var graph = new[]
+            {
+                NoParents,
+                From(0),
+                From(1),
+                From(2,5), //cycle here
+                From(3),
+                From(4),
+                From(5),
+                From(6),
+            };
+            var res = GraphTools.SortTopology(graph);
+            AssertHasCycle(new []{3,4,5}, res);
+        }
+        [Test]
         public void TwoNodesGraphSorting()
         {
             //1->0
             var graph = new[]
             {
-                new[] {1},
-                new int[0]
+                From(1),
+                NoParents
             };
             var res = GraphTools.SortTopology(graph);
-            AssertEquals(new[]{1,0}, res);
+            AssertHasRoute(new[]{1,0}, res);
         }
         [Test]
         public void ThreeNodesInLineSorting()
@@ -24,12 +79,12 @@ namespace Funny.Tests
             //2->1->0
             var graph = new[]
             {
-                new[] {1},
-                new[] {2},
-                new int[0]
+                From(1),
+                From(2),
+                NoParents
             };
             var res = GraphTools.SortTopology(graph);
-            AssertEquals(new[]{2,1,0}, res);
+            AssertHasRoute(new[]{2,1,0}, res);
         }
         [Test]
         public void ThreeNodesInLineRevertSorting()
@@ -42,7 +97,7 @@ namespace Funny.Tests
                 From(1)
             };
             var res = GraphTools.SortTopology(graph);
-            AssertEquals(new[]{0,1,2}, res);
+            AssertHasRoute(new[]{0,1,2}, res);
         }
         [Test]
         public void ComplexGraphSorting()
@@ -60,7 +115,7 @@ namespace Funny.Tests
                 From(5,3),
             };
             var res = GraphTools.SortTopology(graph);
-            AssertEquals(new[]{1,4,5,3,6,0,2}, res);
+            AssertHasRoute(new[]{1,4,5,3,6,0,2}, res);
         }
         [Test]
         public void SeveralComplexGraphSorting()
@@ -72,7 +127,7 @@ namespace Funny.Tests
             graph[0] = From(1, 4, 6);
             graph[1] = NoParents;
             graph[2] = From(0);
-            graph[3]=    NoParents;
+            graph[3]=  NoParents;
             graph[4] = NoParents;
             graph[5] = NoParents;
             graph[6] = From(5, 3);
@@ -92,7 +147,7 @@ namespace Funny.Tests
             graph[16] = From(15);
             
             var res = GraphTools.SortTopology(graph);
-            AssertEquals(new[]
+            AssertHasRoute(new[]
             {
                 1,4,5,3,6,0,2,  
                 9,11,12,8,10,13,7, 
@@ -112,7 +167,7 @@ namespace Funny.Tests
                 new int[0]
             };
             var res = GraphTools.SortTopology(graph);
-            AssertEquals(new[]{0,1,2}, res);
+            AssertHasRoute(new[]{0,1,2}, res);
         }
         private int[] NoParents => new int[0];
         private int[] From(params int[] routes) => routes;
@@ -121,9 +176,17 @@ namespace Funny.Tests
             return $"[{string.Join(',', arr)}]";
         }
 
-        private void AssertEquals(int[] expected, TopologySortResults actual)
+        private void AssertHasCycle(int[] cycle, TopologySortResults actual)
         {
-            Assert.IsFalse(actual.HasCycle);
+            Assert.IsTrue(actual.HasCycle , "Cycle not found");
+            CollectionAssert.AreEqual(cycle ,actual.Order, 
+                $"expected: {ArrayToString(cycle)} but was: {ArrayToString(actual.Order)}");
+    
+        }
+        
+        private void AssertHasRoute(int[] expected, TopologySortResults actual)
+        {
+            Assert.IsFalse(actual.HasCycle, "Order not found");
             CollectionAssert.AreEqual(expected,actual.Order, 
                 $"expected: {ArrayToString(expected)} but was: {ArrayToString(actual.Order)}");
 
