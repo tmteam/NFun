@@ -32,13 +32,13 @@ namespace Funny.Interpritation
         {
             private readonly int[][] _graph;
             private readonly NodeState[] _nodeStates;
-            private readonly int[] _results;
+            private readonly int[] _route;
             private int _processedCount = 0;
             public TopologySort(int[][] graph)
             {
                 _graph = graph;
                 _nodeStates= new NodeState[graph.Length];
-                _results= new int[graph.Length];
+                _route= new int[graph.Length];
             }
 
             public int[] Sort()
@@ -49,23 +49,26 @@ namespace Funny.Interpritation
                         return null;
                 }
 
-                return _results;
+                return _route;
             }
             private bool RecSort(int node)
             {
-                if (_nodeStates[node]== NodeState.Checked)
-                    return true;
-                if (_nodeStates[node]== NodeState.Checking)
-                    return false;
-            
-                _nodeStates[node] = NodeState.Checking;
-                for (int child = 0; child < _graph[child].Length; child++)
-                    RecSort(child);
-                
-                _nodeStates[node] = NodeState.Checked;
-                _results[_processedCount] = node;
-                _processedCount++;
-                return true;
+                switch (_nodeStates[node])
+                {
+                    case NodeState.Checked:
+                        return true;
+                    case NodeState.Checking:
+                        return false;
+                    default:
+                        _nodeStates[node] = NodeState.Checking;
+                        for (int child = 0; child < _graph[node].Length; child++)
+                            RecSort(_graph[node][child]);
+                        _nodeStates[node] = NodeState.Checked;
+
+                        _route[_processedCount] = node;
+                        _processedCount++;
+                        return true;
+                }
             }
 
             enum NodeState
