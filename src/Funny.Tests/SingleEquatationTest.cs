@@ -99,8 +99,7 @@ namespace Funny.Tests
 
             Assert.AreEqual(expected, res.Results.First().Value);
         }
-        
-        
+     
         [TestCase("y = 1", new string[0])]        
         [TestCase("y = x", new []{"x"})]
         [TestCase("y = x/2",new []{"x"})]

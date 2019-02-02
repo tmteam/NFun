@@ -15,7 +15,19 @@ namespace Funny.Tokenization
         public bool IsLast => _tokens.Length <= CurrentPos + 1;
         public bool IsDone => _tokens.Length <= CurrentPos;
         public Tok Current => IsDone ? null : _tokens[CurrentPos];
-        
+
+        public bool SkipNewLines()
+        {
+            bool result = false;
+            while (!IsDone && IsCurrent(TokType.NewLine))
+            {
+                MoveNext();
+                result = true;
+            }
+
+            return result;
+        }
+
         public bool IsCurrent(TokType type) 
             => Current?.Type == type;
 

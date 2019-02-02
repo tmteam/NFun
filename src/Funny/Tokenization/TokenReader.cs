@@ -21,7 +21,7 @@ namespace Funny.Tokenization
             if(position>=str.Length)
                 return Tok.New(TokType.Eof, position);
             var current = str[position];
-            if (current == ' ')
+            if (current == ' ' || current == '\t')
                 return TryReadNext(str, position + 1);
 
             if(current== 0)

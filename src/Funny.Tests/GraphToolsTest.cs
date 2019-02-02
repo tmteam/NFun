@@ -4,7 +4,7 @@ using NUnit.Framework;
 namespace Funny.Tests
 {
     [TestFixture]
-    public class GraphToolsTests
+    public class GraphToolsTest
     {
         [Test]
         public void OneNodeCycle()

@@ -17,19 +17,26 @@ namespace Funny.Parsing
 
             while (true)
             {
+                _flow.SkipNewLines();
+                
                 if (_flow.IsDone || _flow.IsCurrent(TokType.Eof))
                     return res;
-               
+
+                
                 if(!_flow.IsCurrent(TokType.Id))
                     throw new ParseException("Starts with no id");
 
                 var id = _flow.Current.Value;
 
                 _flow.MoveNext();
+                _flow.SkipNewLines();
+
                 if(!_flow.IsCurrent(TokType.Equal))
                     throw new ParseException("has no =");
-                _flow.MoveNext();
-               
+
+                 _flow.MoveNext();
+                 _flow.SkipNewLines();
+
                 var exNode = ReadExpression();
                 res.Add(new LexEquatation(id, exNode));
             }
@@ -39,6 +46,7 @@ namespace Funny.Parsing
         //Чтение атомарного значения (число, id или выражение в скобках)
         LexNode ReadAtomicOrNull()
         {
+            _flow.SkipNewLines();
             //Если минус то читаем дальше и заворачиваем в умножение на 1
             if (_flow.IsCurrent(TokType.Minus))
             {
@@ -70,7 +78,8 @@ namespace Funny.Parsing
             var node = ReadAtomicOrNull();
             if (node == null)
                 return null;
-
+            
+            _flow.SkipNewLines();
             if (_flow.IsCurrent(TokType.Mult)
                 || _flow.IsCurrent(TokType.Div)
                 || _flow.IsCurrent(TokType.Pow))
@@ -94,9 +103,9 @@ namespace Funny.Parsing
                   || _flow.IsCurrent(TokType.Eof) 
                   || _flow.IsCurrent(TokType.Cbr))
                 return node;
-          
-            var hasNewLine = SkipNewLines();
 
+            //Check for next equatation
+            var hasNewLine = _flow.SkipNewLines();
             if (hasNewLine && _flow.IsCurrent(TokType.Abc))
                     return node;
             
@@ -116,19 +125,7 @@ namespace Funny.Parsing
             return node;
         }
 
-        private bool SkipNewLines()
-        {
-            bool hasNewLine = false;
-            while (_flow.IsCurrent(TokType.NewLine))
-            {
-                hasNewLine = true;
-                _flow.MoveNext();
-            }
-
-            return hasNewLine;
-        }
-
-
+        
         private LexNode ReadBrackedExpression()
         {
             _flow.MoveNext();

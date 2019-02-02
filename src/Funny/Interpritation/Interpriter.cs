@@ -12,6 +12,5 @@ namespace Funny.Interpritation
             var eq = new Parser(flow).Parse();
             return ExpressionReader.Interpritate(eq);
         }
-
     }
 }
