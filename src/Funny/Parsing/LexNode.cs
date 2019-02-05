@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Funny.Tokenization;
@@ -6,24 +7,81 @@ namespace Funny.Parsing
 {
     public class LexNode
     {
-        public LexNode(Tok token, params LexNode[] children)
+        private static LexNodeType TokToNode(TokType tok)
         {
-            ChildrenNode = children;
-            Op = token;
-        }
+            switch (tok)
+            {
+                case TokType.Number:
+                    return LexNodeType.Number;
+                case TokType.Plus:
+                    return LexNodeType.Plus;
+                case TokType.Minus:
+                    return LexNodeType.Minus;
+                case TokType.Div:
+                    return LexNodeType.Div;
+                case TokType.Rema:
+                    return LexNodeType.Rema;
+                case TokType.Mult:
+                    return LexNodeType.Mult;
+                case TokType.Pow:
+                    return LexNodeType.Pow;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(tok), tok, null);
+            }
+        } 
+        public static LexNode Op(TokType type, LexNode leftChild, LexNode rightChild) 
+            => new LexNode(TokToNode(type), "", leftChild, rightChild);
 
-        public Tok Op { get; }
+        public static LexNode Op(LexNodeType type, LexNode leftChild, LexNode rightChild) 
+            => new LexNode(type, "", leftChild, rightChild);
+
+        public static LexNode Var(string name) 
+            => new LexNode(LexNodeType.Var, name);
+
+        public static LexNode Fun(string name, LexNode[] children) 
+            => new LexNode(LexNodeType.Fun, name,children);
+        public static LexNode Num(string val)
+            => new LexNode(LexNodeType.Number, val);
+        public  LexNode(LexNodeType type, string value,params LexNode[] children)
+        {
+            Type = type;
+            Value = value;
+            Children = children;
+        }
+        public LexNodeType Type { get; }
+        public string Value { get; }
 
         public int Finish { get; set; }
-        public  IEnumerable<LexNode> ChildrenNode { get; }
+        public  IEnumerable<LexNode> Children { get; }
+        private string typename => Type.ToString() + (string.IsNullOrWhiteSpace(Value) ? "" : " " + Value);
+        public bool Is(LexNodeType type) => Type == type;
         public override string ToString()
         {
-            if(!ChildrenNode.Any())
-                return Op.ToString();
+            if(!Children.Any())
+                return typename;
             else
             {
-                return $"{Op}( {string.Join(',', ChildrenNode.Select(c => c.ToString()))})";
+                return $"{typename}( {string.Join(',', Children.Select(c => c.ToString()))})";
             }
         }
+    }
+
+    public enum LexNodeType
+    {
+        Number,
+        Plus,
+        Minus,
+        Div,
+        /// <summary>
+        /// Division reminder "%"
+        /// </summary>
+        Rema,
+        Mult,
+        /// <summary>
+        /// Pow "^"
+        /// </summary>
+        Pow,
+        Var,
+        Fun,
     }
 }

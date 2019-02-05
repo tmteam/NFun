@@ -1,3 +1,4 @@
+using Funny.BuiltInFunctions;
 using Funny.Parsing;
 using Funny.Tokenization;
 
@@ -10,7 +11,12 @@ namespace Funny.Interpritation
             var tokens = Tokenizer.ToTokens(text);
             var flow = new TokenFlow(tokens);
             var eq = new Parser(flow).Parse();
-            return ExpressionReader.Interpritate(eq);
+            var functions = new FunctionBase[]
+            {
+                new AbsFunction(),
+                new AddFunction(),
+            };
+            return ExpressionReader.Interpritate(eq, functions);
         }
     }
 }

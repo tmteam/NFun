@@ -60,6 +60,10 @@ namespace Funny.Tokenization
         Id,
         Equal,
         Eof,
+        /// <summary>
+        /// ',' symbol
+        /// </summary>
+        Sep,
         NotAToken
     }
     

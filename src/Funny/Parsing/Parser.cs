@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.IO.Pipes;
+using System.Linq;
 using Funny.Tokenization;
 
 namespace Funny.Parsing
@@ -56,21 +58,56 @@ namespace Funny.Parsing
                 var nextNode = ReadAtomicOrNull();
                 if(nextNode==null)
                     throw new ParseException("minus without next val");
-                var valueNegativeOne = new LexNode(Tok.New(TokType.Number, "-1", _flow.CurrentPos));
-                return new LexNode(Tok.New(TokType.Mult, _flow.CurrentPos), 
-                    valueNegativeOne,nextNode);
+                return LexNode.Op(LexNodeType.Mult, LexNode.Num("-1"),nextNode);
             }
-            if (_flow.IsCurrent(TokType.Number) || _flow.IsCurrent(TokType.Id))
+            
+            if (_flow.IsCurrent(TokType.Number))
             {
-                var ans = new LexNode(_flow.Current);
+                var ans = LexNode.Num(_flow.Current.Value);;
                 _flow.MoveNext();
                 return ans;
+            }
+
+            if (_flow.IsCurrent(TokType.Id))
+            {
+                var headToken = _flow.Current;
+                _flow.MoveNext();
+                
+                if (!_flow.IsCurrent(TokType.Obr))
+                    return LexNode.Var(headToken.Value);
+                
+                return ReadFunction(headToken);
             }
             
             if (_flow.IsCurrent(TokType.Obr))
                 return  ReadBrackedExpression();
             return null;
         }
+
+        private LexNode ReadFunction(Tok id)
+        {
+            var arguments = new List<LexNode>();
+            while (true)
+            {
+                if (_flow.IsCurrent(TokType.Cbr))
+                {
+                    _flow.MoveNext();
+                    return LexNode.Fun(id.Value, arguments.ToArray());
+                }
+
+                if (arguments.Any())
+                {
+                    if (!_flow.IsCurrent(TokType.Sep))
+                        throw new ParseException("\",\" or \")\" expected");
+                    _flow.MoveNext();
+                }
+
+                var arg = ReadExpression();
+                arguments.Add(arg);
+                _flow.MoveNext();
+            }
+        }
+
         //Чтение высокоуровневой операции (атомарное значение или их умножение, степень, деление)
         LexNode ReadHiPriorityVal()
         {
@@ -89,7 +126,7 @@ namespace Funny.Parsing
                 var nextVal = ReadHiPriorityVal();
                 if (nextVal == null)
                     throw new ParseException($"{_flow.Current.Type} without \'b\' arg");
-                return new LexNode(op, node, nextVal);
+                return LexNode.Op(op.Type, node, nextVal);
             }
             
             return node;
@@ -120,7 +157,7 @@ namespace Funny.Parsing
                 var nextVal = ReadExpression();
                 if (nextVal == null)
                     throw new ParseException($"{op.Type} without \'b\' arg");
-                node = new LexNode(op, node, nextVal);
+                node = LexNode.Op(op.Type, node, nextVal);
             }
             return node;
         }

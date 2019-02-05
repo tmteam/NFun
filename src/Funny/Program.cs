@@ -87,9 +87,8 @@ namespace Funny
 
         private static void PrintNode(LexNode n, int offset)
         {
-            StringBuilder sb = new StringBuilder();
-            PrintLnWithOffset(n.Op.ToString(), offset);
-            foreach (var node in n.ChildrenNode)
+            PrintLnWithOffset(n.ToString(), offset);
+            foreach (var node in n.Children)
             {
                 PrintNode(node,offset+1);
             }

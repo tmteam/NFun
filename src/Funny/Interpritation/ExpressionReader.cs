@@ -9,16 +9,21 @@ namespace Funny.Interpritation
     public class ExpressionReader
     {
         private readonly IEnumerable<LexEquatation> _lexEquatations;
-        
+        private readonly Dictionary<string, FunctionBase> _predefinedfunctions;
+
         private readonly Dictionary<string, VariableExpressionNode> _variables 
             = new Dictionary<string, VariableExpressionNode>();
         
         private readonly Dictionary<string, Equatation> _equatations 
             = new Dictionary<string, Equatation>();
         
-        public static Runtime.Runtime Interpritate(List<LexEquatation> lexEquatations)
+        public static Runtime.Runtime Interpritate(
+            List<LexEquatation> lexEquatations, 
+            IEnumerable<FunctionBase> predefinedfunctions)
         {
-            var ans = new ExpressionReader(lexEquatations);
+            var funDic = predefinedfunctions.ToDictionary((f) => f.Name.ToLower());
+            
+            var ans = new ExpressionReader(lexEquatations, funDic);
             ans.Interpritate();
             var result = OrderEquatationsOrThrow(lexEquatations, ans);
             return new Runtime.Runtime(result,  ans._variables);
@@ -60,9 +65,11 @@ namespace Funny.Interpritation
             return result.ToArray();
         }
 
-        private ExpressionReader(IEnumerable<LexEquatation> lexEquatations)
+        private ExpressionReader(IEnumerable<LexEquatation> lexEquatations,
+            Dictionary<string, FunctionBase> predefinedfunctions)
         {
             _lexEquatations = lexEquatations;
+            _predefinedfunctions = predefinedfunctions;
         }
 
         private void Interpritate()
@@ -70,7 +77,7 @@ namespace Funny.Interpritation
             int equatationNum = 0;
             foreach (var equatation in _lexEquatations)
             {
-                var expression = InterpritateNode(equatation.Expression, equatationNum);
+                var expression = ReadNode(equatation.Expression, equatationNum);
                 _equatations.Add(equatation.Id.ToLower(), new Equatation
                 {
                     Expression = expression,
@@ -79,14 +86,16 @@ namespace Funny.Interpritation
                 equatationNum++;
             }
         }
-        private IExpressionNode InterpritateNode(LexNode node, int equatationNum)
+        private IExpressionNode ReadNode(LexNode node, int equatationNum)
         {
-            if (node.Op.Is((TokType.Id)))
-                return GetOrAddVariableNode(node.Op.Value, equatationNum);
-
-            if (node.Op.Is(TokType.Number))
+            if (node.Is(LexNodeType.Var))
+                    return GetOrAddVariableNode(node.Value, equatationNum);
+            if(node.Is(LexNodeType.Fun))
+                return GetFunNode(node, equatationNum);
+            
+            if (node.Is(LexNodeType.Number))
             {
-                var val = node.Op.Value;
+                var val = node.Value;
                 try
                 {
                     if (val.Length > 2)
@@ -105,51 +114,60 @@ namespace Funny.Interpritation
                 }
                 catch (FormatException e)
                 {
-                    throw new ParseException("Cannot parse number \""+ node.Op.Value+"\"");
+                    throw new ParseException("Cannot parse number \""+ node.Value+"\"");
                 }
                 
             }
 
             Func<double, double, double> op = null;
-            switch (node.Op.Type)
+            switch (node.Type)
             {
-                case TokType.Plus:
+                case LexNodeType.Plus:
                     op = (a, b) => a + b;
                     break;
-                case TokType.Minus:
+                case LexNodeType.Minus:
                     op = (a, b) => a - b;
                      break;
-                case TokType.Div:
+                case LexNodeType.Div:
                     op = (a, b) => a / b;
                     break;
-                case TokType.Mult:
+                case LexNodeType.Mult:
                     op = (a, b) => a * b;
                     break;
-                case TokType.Pow:
+                case LexNodeType.Pow:
                     op = Math.Pow; 
                     break;
-                case TokType.Rema:
+                case LexNodeType.Rema:
                     op = (a,b)=> a%b; 
-                    break;
-                case TokType.Equal:
-                    op = (a, b) => a == b? 1:0;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
 
-            var left =node.ChildrenNode.ElementAtOrDefault(0);
+            var left =node.Children.ElementAtOrDefault(0);
             if(left==null)
-                throw new ParseException("a node is missing");
+                throw new ParseException("\"a\" node is missing");
 
-            var right = node.ChildrenNode.ElementAtOrDefault(1);
+            var right = node.Children.ElementAtOrDefault(1);
             if(right==null)
-                throw new ParseException("b node is missing");
+                throw new ParseException("\"b\" node is missing");
 
-            var leftExpr = InterpritateNode(left,equatationNum);
-            var rightExpr = InterpritateNode(right,equatationNum);
+            var leftExpr = ReadNode(left,equatationNum);
+            var rightExpr = ReadNode(right,equatationNum);
             
             return new OpExpressionNode(leftExpr, rightExpr, op);
+        }
+
+        private IExpressionNode GetFunNode(LexNode node, int equatationNum)
+        {
+            var id = node.Value.ToLower();
+            if(!_predefinedfunctions.ContainsKey(id))
+                throw new ParseException($"Function \"{id}\" is not defined");
+            var fun = _predefinedfunctions[id];
+            var children = node.Children.Select(c => ReadNode(c, equatationNum)).ToArray();
+            if(children.Length!= fun.ArgsCount)
+                throw new ParseException($"Args count of function \"{id}\" is wrong. Expected: {fun.ArgsCount} but was {children.Length}");
+            return new FunExpressionNode(fun, children);
         }
 
         private IExpressionNode GetOrAddVariableNode(string varName, int equatationNum)
