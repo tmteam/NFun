@@ -6,6 +6,7 @@ namespace Funny.Tokenization
     {
         private readonly Dictionary<char, TokType> _symbols = new Dictionary<char, TokType>
         {
+            {',', TokType.Sep},
             {'/', TokType.Div},
             {'*', TokType.Mult},
             {'+', TokType.Plus},

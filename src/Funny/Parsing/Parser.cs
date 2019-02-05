@@ -86,6 +86,7 @@ namespace Funny.Parsing
 
         private LexNode ReadFunction(Tok id)
         {
+            _flow.MoveNext();//skip Obr
             var arguments = new List<LexNode>();
             while (true)
             {
@@ -104,7 +105,6 @@ namespace Funny.Parsing
 
                 var arg = ReadExpression();
                 arguments.Add(arg);
-                _flow.MoveNext();
             }
         }
 
