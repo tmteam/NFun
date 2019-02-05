@@ -15,6 +15,10 @@ namespace Funny.Interpritation
             {
                 new AbsFunction(),
                 new AddFunction(),
+                new SinFunction(), 
+                new CosFunction(), 
+                new EFunction(), 
+                new PiFunction(), 
             };
             return ExpressionReader.Interpritate(eq, functions);
         }
