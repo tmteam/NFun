@@ -6,5 +6,6 @@ namespace Funny.Interpritation
     {
         IEnumerable<IExpressionNode> Children { get; }
         double Calc();
+        
     }
 }

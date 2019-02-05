@@ -41,7 +41,6 @@ namespace Funny.Parsing
                 res.Add(new LexEquatation(id, exNode));
             }
 
-            return res;
         }
         //Чтение атомарного значения (число, id или выражение в скобках)
         LexNode ReadAtomicOrNull()

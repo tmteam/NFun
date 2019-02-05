@@ -13,7 +13,7 @@ namespace Funny.Interpritation
         private readonly Dictionary<string, VariableExpressionNode> _variables 
             = new Dictionary<string, VariableExpressionNode>();
         
-        private Dictionary<string, Equatation> _equatations 
+        private readonly Dictionary<string, Equatation> _equatations 
             = new Dictionary<string, Equatation>();
         
         public static Runtime.Runtime Interpritate(List<LexEquatation> lexEquatations)
