@@ -33,7 +33,7 @@ namespace Funny.Parsing
                 _flow.MoveNext();
                 _flow.SkipNewLines();
 
-                if(!_flow.IsCurrent(TokType.Equal))
+                if(!_flow.IsCurrent(TokType.Def))
                     throw new ParseException("has no =");
 
                  _flow.MoveNext();

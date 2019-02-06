@@ -1,6 +1,5 @@
 namespace Funny.Tokenization
 {
-    
     public class Tok
     {
          Tok(TokType type,string value,int finish)
@@ -58,13 +57,29 @@ namespace Funny.Tokenization
         Cbr,
         Abc,
         Id,
+        /// <summary>
+        /// =
+        /// </summary>
+        Def,
+        
         Equal,
+        NotEqual,
+        And,
+        Or,
+        Xor,
+        Not,
+        Less,
+        More,
+        LessOrEqual,
+        MoreOrEqual,
+        
         Eof,
         /// <summary>
         /// ',' symbol
         /// </summary>
         Sep,
-        NotAToken
+        NotAToken,
+        
     }
     
 }
