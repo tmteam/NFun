@@ -36,7 +36,7 @@ namespace Funny.Tests
         [TestCase("y = 0b001  ",1)]
         [TestCase("y = 0b11  ",3)]
         [TestCase("y = 0x_1",1)]
-
+      
         public void ConstantEquatation(string expr, double expected)
         {
             var runtime = Interpriter.BuildOrThrow(expr);
@@ -44,7 +44,54 @@ namespace Funny.Tests
             Assert.AreEqual(1, res.Results.Length);
             Assert.AreEqual(expected, res.Results.First().Value);
         }
-        
+
+        [TestCase("y = 1==1",1)]
+        [TestCase("y = 1==0",0)]
+        [TestCase("y = 1<>0",1)]
+        [TestCase("y = 0<>1",1)]
+        [TestCase("y = 5<>5",0)]
+        [TestCase("y = 5>5", 0)]
+        [TestCase("y = 5>3", 1)]
+        [TestCase("y = 5>6", 0)]
+        [TestCase("y = 5>=5", 1)]
+        [TestCase("y = 5>=3", 1)]
+        [TestCase("y = 5>=6", 0)]
+        [TestCase("y = 5<=5", 1)]
+        [TestCase("y = 5<=3", 0)]
+        [TestCase("y = 5<=6", 1)]
+        [TestCase("y = 1 AND 1", 1)]
+        [TestCase("y = 1 AND 0", 0)]
+        [TestCase("y = 0 AND 0", 0)]
+        [TestCase("y = 1 OR 1", 1)]
+        [TestCase("y = 1 OR 0", 1)]
+        [TestCase("y = 0 OR 0", 0)]
+        [TestCase("y = 1 XOR 1", 0)]
+        [TestCase("y = 1 XOR 0", 1)]
+        [TestCase("y = 0 XOR 0", 0)]
+
+        public void DiscreeteConstantEquataion(string expr, double expected)
+        {
+            var runtime = Interpriter.BuildOrThrow(expr);
+            var res = runtime.Calculate();
+            Assert.AreEqual(expected, res.Results.First().Value);
+        }
+        [TestCase("y = 0==1 AND 0",  "y=(0==1)AND 0")]
+        [TestCase("y = 1 OR 0 AND 0","y = 1 OR(0 AND 0)")]
+        [TestCase("y = 1 OR 0 AND 0","y = 1 OR(0 AND 0)")]
+        [TestCase("y = 1 OR 0 AND 0","y = 1 OR(0 AND 0)")]
+        [TestCase("y = 1 OR 0 AND 0","y = 1 OR(0 AND 0)")]
+        [TestCase("y = 1<>1 OR 0",  "y=(1<>1)OR 0")]
+        [TestCase("y = 1<>0 OR 0",  "y=(1<>0)OR 0")]
+        public void DiscreeteConstantEquataionPriorities(string actualExpr, string expectedExpr)
+        {
+            var act = Interpriter.BuildOrThrow(actualExpr).Calculate().GetResultOf("y");
+            
+            Interpriter
+                .BuildOrThrow(expectedExpr)
+                .Calculate()
+                .AssertReturns(Var.New("y", act));
+        }
+       
         [TestCase("y = x",2,2)]
         [TestCase("y = 2*x",3,6)]
         [TestCase("y = 4/x",2,2)]

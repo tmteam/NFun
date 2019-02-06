@@ -10,7 +10,7 @@ namespace Funny.Tests
         [TestCase("1",       TokType.Number)]
         [TestCase("x+1",     TokType.Id, TokType.Plus,         TokType.Number)]
         [TestCase("x and y", TokType.Id, TokType.And,          TokType.Id)]
-        [TestCase("x or y",  TokType.Id, TokType.Or,          TokType.Id)]
+        [TestCase("x or y",  TokType.Id, TokType.Or,           TokType.Id)]
         [TestCase("x xor y", TokType.Id, TokType.Xor,          TokType.Id)]
         [TestCase("x <> y",  TokType.Id, TokType.NotEqual,     TokType.Id)]
         [TestCase("x < y",   TokType.Id, TokType.Less,         TokType.Id)]
@@ -20,7 +20,6 @@ namespace Funny.Tests
         [TestCase("x == y",  TokType.Id, TokType.Equal,        TokType.Id)]
         [TestCase("x^y",     TokType.Id, TokType.Pow,          TokType.Id)]
         [TestCase("x=y",     TokType.Id, TokType.Def,          TokType.Id)]
-
         public void TestTokinization(string exp, params TokType[] expected)
         {
              var tokens =  Tokenizer
