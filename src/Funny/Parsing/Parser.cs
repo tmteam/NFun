@@ -45,7 +45,7 @@ namespace Funny.Parsing
 
         }
         //Чтение атомарного значения (число, id или выражение в скобках)
-        LexNode ReadZeroPriorityOrNull()
+        private LexNode ReadZeroPriorityOrNull()
         {
             _flow.SkipNewLines();
             //Если минус то читаем дальше и заворачиваем в умножение на 1
@@ -61,22 +61,15 @@ namespace Funny.Parsing
                 return LexNode.Op(LexNodeType.Mult, LexNode.Num("-1"),nextNode);
             }
             
-            if (_flow.IsCurrent(TokType.Number))
-            {
-                var ans = LexNode.Num(_flow.Current.Value);;
-                _flow.MoveNext();
-                return ans;
-            }
+            if (MoveIf(TokType.Number, out var val))
+                return LexNode.Num(val.Value);;
 
-            if (_flow.IsCurrent(TokType.Id))
-            {
-                var headToken = _flow.Current;
-                _flow.MoveNext();
+            if (MoveIf(TokType.Id, out var headToken)){
                 
-                if (!_flow.IsCurrent(TokType.Obr))
+                if (_flow.IsCurrent(TokType.Obr))
+                    return ReadFunction(headToken);
+                else
                     return LexNode.Var(headToken.Value);
-                
-                return ReadFunction(headToken);
             }
             
             if (_flow.IsCurrent(TokType.Obr))
@@ -91,20 +84,14 @@ namespace Funny.Parsing
             var ifThenNodes = new List<LexNode>();
             do
             {
-                if (!_flow.IsCurrent(TokType.If))
-                    throw new ParseException($"\"if\" is missing but was {_flow.Current}");
-                _flow.MoveNext(); //skip if
+                MoveIfOrThrow(TokType.If);
                 var condition = ReadExpression();
-                if (!_flow.IsCurrent(TokType.Then))
-                    throw new ParseException($"\"then\" is missing but was {_flow.Current}");
-                _flow.MoveNext();
+                MoveIfOrThrow(TokType.Then);
                 var thanResult = ReadExpression();
                 ifThenNodes.Add(LexNode.IfThen(condition, thanResult));
             } while (!_flow.IsCurrent(TokType.Else));
             
-            if(!_flow.IsCurrent(TokType.Else))
-                throw new ParseException($"\"else\" is missing but was {_flow.Current}");
-            _flow.MoveNext();//skip else
+            MoveIfOrThrow(TokType.Else);
             var elseResult = ReadExpression();
             return LexNode.IfElse(ifThenNodes, elseResult);
         }
@@ -115,18 +102,11 @@ namespace Funny.Parsing
             var arguments = new List<LexNode>();
             while (true)
             {
-                if (_flow.IsCurrent(TokType.Cbr))
-                {
-                    _flow.MoveNext();
+                if (MoveIf(TokType.Cbr, out _))
                     return LexNode.Fun(id.Value, arguments.ToArray());
-                }
 
                 if (arguments.Any())
-                {
-                    if (!_flow.IsCurrent(TokType.Sep))
-                        throw new ParseException("\",\" or \")\" expected");
-                    _flow.MoveNext();
-                }
+                    MoveIfOrThrow(TokType.Sep,"\",\" or \")\" expected");
 
                 var arg = ReadExpression();
                 arguments.Add(arg);
@@ -203,16 +183,37 @@ namespace Funny.Parsing
             
             var node = ReadExpression();
 
-            if(_flow.IsDone)
-                throw new ParseException("No cbr. End.");
-
             if (node == null)
                 throw new ParseException("No expr. \"" + _flow.Current + "\" instead");
-
-            if (!_flow.IsCurrent(TokType.Cbr))
-                throw new ParseException("No cbr");
-            _flow.MoveNext();
+          
+            MoveIfOrThrow(TokType.Cbr);
             return node;
+        }
+
+        private bool MoveIf(TokType tokType, out Tok tok)
+        {
+            if (_flow.IsCurrent(tokType))
+            {
+                tok = _flow.Current;
+                _flow.MoveNext();
+                return true;
+            }
+            tok = null;
+            return false;
+        }
+        private void MoveIfOrThrow(TokType tokType)
+        {
+            if(!_flow.IsCurrent(tokType))
+                throw new ParseException($"\"{tokType}\" is missing but was {_flow.Current?.ToString()??"nothing"}");
+            _flow.MoveNext();
+
+        }
+        private void MoveIfOrThrow(TokType tokType, string error)
+        {
+            if(!_flow.IsCurrent(tokType))
+                throw new ParseException(error);
+            _flow.MoveNext();
+
         }
     }
 }
