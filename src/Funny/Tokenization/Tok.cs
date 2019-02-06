@@ -2,12 +2,15 @@ namespace Funny.Tokenization
 {
     public class Tok
     {
+        
          Tok(TokType type,string value,int finish)
         {
             Value = value;
             Finish = finish;
             Type = type;
         }
+
+         
         public static Tok New(TokType type, int finish)
             => new Tok(type,"",finish);
 

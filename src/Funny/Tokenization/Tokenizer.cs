@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace Funny.Tokenization
 {
-    class Tokenizer
+    public class Tokenizer
     {
         public static IEnumerable<Tok> ToTokens(string input)
         {
@@ -29,7 +29,6 @@ namespace Funny.Tokenization
             {'^', TokType.Pow},
             {'(', TokType.Obr},
             {')', TokType.Cbr},
-            {'=', TokType.Def},
         };
         
         private readonly Dictionary<string, TokType> _keywords = new Dictionary<string, TokType>
@@ -65,7 +64,7 @@ namespace Funny.Tokenization
                 for (; start < str.Length && (IsLetter(str[start]) || IsDigit(str[start])); start++);
 
                 var id = str.Substring(position, start - position);
-                //Is id a keyword
+                //is id a keyword
                 if(_keywords.ContainsKey(id))
                     return Tok.New(_keywords[id], id, start);
                 else
@@ -80,31 +79,31 @@ namespace Funny.Tokenization
 
         private static Tok TryReadUncommonSpecialSymbols(string str, int position, char current)
         {
-            char? next = position < str.Length - 1 ? str[position + 1] : (char?) null;
-            if (current == '>')
+            char? next = position < str.Length - 1 
+                    ? str[position + 1] 
+                    : (char?) null;
+            
+            switch (current)
             {
-                if (next.HasValue && next == '=')
-                    return  Tok.New(TokType.MoreOrEqual, position + 1);
-                else
-                    return Tok.New(TokType.More, position);
+                case '>' when next == '=':
+                    return  Tok.New(TokType.MoreOrEqual, position + 2);
+                case '>':
+                    return Tok.New(TokType.More, position + 1);
+                case '<' when  next == '=':
+                    return Tok.New(TokType.LessOrEqual, position + 2);
+                
+                case '<' when next == '>':
+                    return Tok.New(TokType.NotEqual, position+2);
+                case '<':
+                    return Tok.New(TokType.Less, position+1);
+                
+                case '=' when next == '=':
+                    return Tok.New(TokType.Equal, position + 2);
+                case '=':
+                    return Tok.New(TokType.Def, position + 1);
+                default:
+                    return null;
             }
-
-            if (current == '<')
-            {
-                if (next.HasValue && next == '=')
-                    return Tok.New(TokType.LessOrEqual, position + 1);
-                else if (next.HasValue && next == '>')
-                    return Tok.New(TokType.NotEqual, position);
-                else
-                    return Tok.New(TokType.Less, position);
-            }
-
-            if (current == '=' && next.HasValue && next.Value == '=')
-            {
-                return Tok.New(TokType.Equal, position);
-            }
-
-            return null;
         }
 
 
