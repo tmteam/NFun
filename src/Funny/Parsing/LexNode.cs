@@ -47,12 +47,15 @@ namespace Funny.Parsing
                     throw new ArgumentOutOfRangeException(nameof(tok), tok, null);
             }
         } 
+        public static LexNode IfElse(IEnumerable<LexNode> ifThenNodes, LexNode elseResult) 
+            => new LexNode(LexNodeType.IfThanElse,null, ifThenNodes.Append(elseResult).ToArray());
         public static LexNode Op(TokType type, LexNode leftChild, LexNode rightChild) 
             => new LexNode(TokToNode(type), "", leftChild, rightChild);
 
         public static LexNode Op(LexNodeType type, LexNode leftChild, LexNode rightChild) 
             => new LexNode(type, "", leftChild, rightChild);
-
+        public static LexNode IfThen(LexNode condition, LexNode expression)
+            => new LexNode(LexNodeType.IfThen, null, condition, expression);
         public static LexNode Var(string name) 
             => new LexNode(LexNodeType.Var, name);
 
@@ -78,10 +81,10 @@ namespace Funny.Parsing
             if(!Children.Any())
                 return typename;
             else
-            {
                 return $"{typename}( {string.Join(',', Children.Select(c => c.ToString()))})";
-            }
         }
+
+        
     }
 
     public enum LexNodeType
@@ -109,6 +112,8 @@ namespace Funny.Parsing
         Less,
         LessOrEqual,
         More,
-        MoreOrEqual
+        MoreOrEqual,
+        IfThen,
+        IfThanElse
     }
 }

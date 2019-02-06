@@ -24,7 +24,11 @@ namespace Funny.Tests
         [TestCase("o = a == b",TokType.Id, TokType.Def, TokType.Id, TokType.Equal,TokType.Id)]
         [TestCase("o = a + b",    TokType.Id, TokType.Def, TokType.Id, TokType.Plus,TokType.Id)]
         [TestCase("o = a <> b",TokType.Id, TokType.Def, TokType.Id, TokType.NotEqual,TokType.Id)]
-
+        [TestCase("o = if a>b then 1 else x",
+                                TokType.Id, TokType.Def, 
+                                TokType.If, TokType.Id, TokType.More, TokType.Id, 
+                                TokType.Then, TokType.Number, 
+                                TokType.Else, TokType.Id)]
         public void TestTokinization(string exp, params TokType[] expected)
         {
              var tokens =  Tokenizer

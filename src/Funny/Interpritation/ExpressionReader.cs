@@ -88,38 +88,17 @@ namespace Funny.Interpritation
         }
         private IExpressionNode ReadNode(LexNode node, int equatationNum)
         {
-            if (node.Is(LexNodeType.Var))
+            if(node.Is(LexNodeType.Var))
                     return GetOrAddVariableNode(node.Value, equatationNum);
             if(node.Is(LexNodeType.Fun))
                 return GetFunNode(node, equatationNum);
+            if(node.Is(LexNodeType.IfThanElse))
+                return GetIfThanElseNode(node, equatationNum);
+            if(node.Is(LexNodeType.Number))
+                return GetValueNode(node);
             
-            if (node.Is(LexNodeType.Number))
-            {
-                var val = node.Value;
-                try
-                {
-                    if (val.Length > 2)
-                    {
-                        val = val.Replace("_", null);
-                    
-                        if(val[1]=='b')
-                            return new ValueExpressionNode(Convert.ToInt32(val.Substring(2), 2));
-                        if(val[1]=='x')                        
-                            return new ValueExpressionNode(Convert.ToInt32(val, 16));
-                    }
+            var op = GetOpFunc(node.Type);
 
-                    if (val.EndsWith('.'))
-                        throw new FormatException();
-                    return new ValueExpressionNode(double.Parse(val));
-                }
-                catch (FormatException e)
-                {
-                    throw new ParseException("Cannot parse number \""+ node.Value+"\"");
-                }
-                
-            }
-
-            var op = GetOpNode(node);
 
             var left =node.Children.ElementAtOrDefault(0);
             if(left==null)
@@ -131,14 +110,53 @@ namespace Funny.Interpritation
 
             var leftExpr = ReadNode(left,equatationNum);
             var rightExpr = ReadNode(right,equatationNum);
-            
+
             return new OpExpressionNode(leftExpr, rightExpr, op);
         }
 
-        private static Func<double, double, double> GetOpNode(LexNode node)
+        private IExpressionNode GetIfThanElseNode(LexNode node, int equatationNum)
+        {
+            var ifNodes = new List<IfCaseExpressionNode>();
+            foreach (var ifNode in node.Children.Where(c => c.Is(LexNodeType.IfThen)))
+            {
+                var condition = ReadNode(ifNode.Children.First(),equatationNum);
+                var expr = ReadNode(ifNode.Children.Last(), equatationNum);
+                ifNodes.Add(new IfCaseExpressionNode(condition, expr));
+            }
+
+            var elseNode = ReadNode(node.Children.Last(), equatationNum);
+            return new IfThanElseExpressionNode(ifNodes.ToArray(), elseNode);
+        }
+
+        private static IExpressionNode GetValueNode(LexNode node)
+        {
+            var val = node.Value;
+            try
+            {
+                if (val.Length > 2)
+                {
+                    val = val.Replace("_", null);
+
+                    if (val[1] == 'b')
+                        return new ValueExpressionNode(Convert.ToInt32(val.Substring(2), 2));
+                    if (val[1] == 'x')
+                        return new ValueExpressionNode(Convert.ToInt32(val, 16));
+                }
+
+                if (val.EndsWith('.'))
+                    throw new FormatException();
+                return new ValueExpressionNode(double.Parse(val));
+            }
+            catch (FormatException e)
+            {
+                throw new ParseException("Cannot parse number \"" + node.Value + "\"");
+            }
+        }
+
+        private static Func<double, double, double> GetOpFunc(LexNodeType type)
         {
             Func<double, double, double> op = null;
-            switch (node.Type)
+            switch (type)
             {
                 case LexNodeType.Plus:
                     return (a, b) => a + b;

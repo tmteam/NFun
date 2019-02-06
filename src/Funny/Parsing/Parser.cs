@@ -45,7 +45,7 @@ namespace Funny.Parsing
 
         }
         //Чтение атомарного значения (число, id или выражение в скобках)
-        LexNode ReadAtomicOrNull()
+        LexNode ReadZeroPriorityOrNull()
         {
             _flow.SkipNewLines();
             //Если минус то читаем дальше и заворачиваем в умножение на 1
@@ -55,7 +55,7 @@ namespace Funny.Parsing
                     throw new ParseException("minus duplicates");
                     
                 _flow.MoveNext();
-                var nextNode = ReadAtomicOrNull();
+                var nextNode = ReadZeroPriorityOrNull();
                 if(nextNode==null)
                     throw new ParseException("minus without next val");
                 return LexNode.Op(LexNodeType.Mult, LexNode.Num("-1"),nextNode);
@@ -81,7 +81,32 @@ namespace Funny.Parsing
             
             if (_flow.IsCurrent(TokType.Obr))
                 return  ReadBrackedExpression();
+            if (_flow.IsCurrent(TokType.If))
+                return ReadIfElse();
             return null;
+        }
+
+        private LexNode ReadIfElse()
+        {
+            var ifThenNodes = new List<LexNode>();
+            do
+            {
+                if (!_flow.IsCurrent(TokType.If))
+                    throw new ParseException($"\"if\" is missing but was {_flow.Current}");
+                _flow.MoveNext(); //skip if
+                var condition = ReadExpression();
+                if (!_flow.IsCurrent(TokType.Then))
+                    throw new ParseException($"\"then\" is missing but was {_flow.Current}");
+                _flow.MoveNext();
+                var thanResult = ReadExpression();
+                ifThenNodes.Add(LexNode.IfThen(condition, thanResult));
+            } while (!_flow.IsCurrent(TokType.Else));
+            
+            if(!_flow.IsCurrent(TokType.Else))
+                throw new ParseException($"\"else\" is missing but was {_flow.Current}");
+            _flow.MoveNext();//skip else
+            var elseResult = ReadExpression();
+            return LexNode.IfElse(ifThenNodes, elseResult);
         }
 
         private LexNode ReadFunction(Tok id)
@@ -111,7 +136,7 @@ namespace Funny.Parsing
         //Чтение высокоуровневой операции (атомарное значение или их умножение, степень, деление)
         LexNode ReadHiPriorityVal()
         {
-            var node = ReadAtomicOrNull();
+            var node = ReadZeroPriorityOrNull();
             if (node == null)
                 return null;
             

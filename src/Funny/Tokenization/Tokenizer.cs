@@ -37,6 +37,9 @@ namespace Funny.Tokenization
             {"or", TokType.Or},
             {"xor", TokType.Xor},
             {"not", TokType.Not},
+            {"if", TokType.If},
+            {"then", TokType.Then},
+            {"else", TokType.Else},
         };
         
         public Tok TryReadNext(string str, int position)
