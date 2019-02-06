@@ -25,6 +25,24 @@ namespace Funny.Parsing
                     return LexNodeType.Mult;
                 case TokType.Pow:
                     return LexNodeType.Pow;
+                case TokType.Equal:
+                    return LexNodeType.Equal;
+                case TokType.NotEqual:
+                    return LexNodeType.NotEqual;
+                case TokType.And:
+                    return LexNodeType.And;
+                case TokType.Or:
+                    return LexNodeType.Or;
+                case TokType.Xor:
+                    return LexNodeType.Xor;
+                case TokType.Less:
+                    return LexNodeType.Less;
+                case TokType.More:
+                    return LexNodeType.More;
+                case TokType.LessOrEqual:
+                    return LexNodeType.LessOrEqual;
+                case TokType.MoreOrEqual:
+                    return LexNodeType.MoreOrEqual;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(tok), tok, null);
             }
@@ -83,5 +101,14 @@ namespace Funny.Parsing
         Pow,
         Var,
         Fun,
+        And,
+        Or,
+        Xor,
+        Equal,
+        NotEqual,
+        Less,
+        LessOrEqual,
+        More,
+        MoreOrEqual
     }
 }

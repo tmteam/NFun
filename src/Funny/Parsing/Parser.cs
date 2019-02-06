@@ -119,7 +119,13 @@ namespace Funny.Parsing
             if (   _flow.IsCurrent(TokType.Mult)
                 || _flow.IsCurrent(TokType.Div)
                 || _flow.IsCurrent(TokType.Pow)
-                || _flow.IsCurrent(TokType.Rema))
+                || _flow.IsCurrent(TokType.Rema)
+                || _flow.IsCurrent(TokType.Equal)
+                || _flow.IsCurrent(TokType.NotEqual)
+                || _flow.IsCurrent(TokType.More)
+                || _flow.IsCurrent(TokType.Less)
+                || _flow.IsCurrent(TokType.MoreOrEqual)
+                || _flow.IsCurrent(TokType.LessOrEqual))
             {
                 var op = _flow.Current;
                 _flow.MoveNext();
@@ -148,7 +154,10 @@ namespace Funny.Parsing
             
             
             if (  _flow.IsCurrent(TokType.Plus)
-                ||_flow.IsCurrent(TokType.Minus))
+                ||_flow.IsCurrent(TokType.Minus)
+                ||_flow.IsCurrent(TokType.And)
+                ||_flow.IsCurrent(TokType.Or)
+                ||_flow.IsCurrent(TokType.Xor))
             {
                 var op = _flow.Current;
                 if (node == null)

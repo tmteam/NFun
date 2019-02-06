@@ -119,30 +119,7 @@ namespace Funny.Interpritation
                 
             }
 
-            Func<double, double, double> op = null;
-            switch (node.Type)
-            {
-                case LexNodeType.Plus:
-                    op = (a, b) => a + b;
-                    break;
-                case LexNodeType.Minus:
-                    op = (a, b) => a - b;
-                     break;
-                case LexNodeType.Div:
-                    op = (a, b) => a / b;
-                    break;
-                case LexNodeType.Mult:
-                    op = (a, b) => a * b;
-                    break;
-                case LexNodeType.Pow:
-                    op = Math.Pow; 
-                    break;
-                case LexNodeType.Rema:
-                    op = (a,b)=> a%b; 
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+            var op = GetOpNode(node);
 
             var left =node.Children.ElementAtOrDefault(0);
             if(left==null)
@@ -156,6 +133,48 @@ namespace Funny.Interpritation
             var rightExpr = ReadNode(right,equatationNum);
             
             return new OpExpressionNode(leftExpr, rightExpr, op);
+        }
+
+        private static Func<double, double, double> GetOpNode(LexNode node)
+        {
+            Func<double, double, double> op = null;
+            switch (node.Type)
+            {
+                case LexNodeType.Plus:
+                    return (a, b) => a + b;
+                case LexNodeType.Minus:
+                    return (a, b) => a - b;
+                case LexNodeType.Div:
+                    return (a, b) => a / b;
+                case LexNodeType.Mult:
+                    return (a, b) => a * b;
+                case LexNodeType.Pow:
+                    return  Math.Pow;
+                case LexNodeType.Rema:
+                    return (a, b) => a % b;
+                case LexNodeType.And:
+                    return (a, b) => (a != 0 && b != 0) ? 1 : 0;
+                case LexNodeType.Or:
+                    return (a, b) => (a != 0 || b != 0) ? 1 : 0;                   
+                case LexNodeType.Xor:
+                    return (a, b) => ((a != 0) != (b != 0)) ? 1 : 0;
+                case LexNodeType.Equal:
+                    return (a, b) => (a == b) ? 1 : 0;                    
+                case LexNodeType.NotEqual:
+                    return (a, b) => (a != b) ? 1 : 0;                    
+                case LexNodeType.Less:
+                    return (a, b) => (a < b) ? 1 : 0;                   
+                case LexNodeType.LessOrEqual:
+                    return (a, b) => (a <= b) ? 1 : 0;                    
+                case LexNodeType.More:
+                    return (a, b) => (a > b) ? 1 : 0;                    
+                case LexNodeType.MoreOrEqual:
+                    return (a, b) => (a >= b) ? 1 : 0;                  
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            return op;
         }
 
         private IExpressionNode GetFunNode(LexNode node, int equatationNum)
