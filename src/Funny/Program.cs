@@ -15,6 +15,7 @@ namespace Funny
     {
         static void Main(string[] args)
         {
+            var y = 4 / 2 * 2;
             var ex = "y1 = (1+3)*7+2*(x+1)";
             PrintParsing(ex);
 
@@ -99,7 +100,7 @@ namespace Funny
             StringBuilder sb = new StringBuilder();
             sb.Append(new string('.', offset*2));
             sb.Append(msg+Environment.NewLine);
-           Console.Write(sb.ToString());
+            Console.Write(sb.ToString());
         }
     }
 

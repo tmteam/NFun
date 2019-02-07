@@ -71,6 +71,7 @@ namespace Funny.Tests
         [TestCase("y = 4/2^3",  "y = 4/(2^3)")]
         [TestCase("y = 2^3+4",  "y = (2^3)+4")]
         [TestCase("y = 4+2^3",  "y = 4+(2^3)")]
+        
         public void ArithmeticPriorities(string actualExpr, string expectedExpr)
         {
             var expected = Interpriter.BuildOrThrow(expectedExpr).Calculate().GetResultOf("y");

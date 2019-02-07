@@ -37,7 +37,7 @@ namespace Funny.Tokenization
 
     }
 
-    public enum TokType
+    public enum TokType: int
     {
         NewLine,
         If,
