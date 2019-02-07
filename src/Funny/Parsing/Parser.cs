@@ -86,13 +86,19 @@ namespace Funny.Parsing
             {
                 MoveIfOrThrow(TokType.If);
                 var condition = ReadExpression();
+                if(condition==null)
+                    throw new ParseException("condition expression is missing");
                 MoveIfOrThrow(TokType.Then);
-                var thanResult = ReadExpression();
-                ifThenNodes.Add(LexNode.IfThen(condition, thanResult));
+                var thenResult = ReadExpression();
+                if(thenResult==null)
+                    throw new ParseException("then expression is missing");
+                ifThenNodes.Add(LexNode.IfThen(condition, thenResult));
             } while (!_flow.IsCurrent(TokType.Else));
             
             MoveIfOrThrow(TokType.Else);
             var elseResult = ReadExpression();
+            if(elseResult == null)
+                throw new ParseException("else expression is missing");
             return LexNode.IfElse(ifThenNodes, elseResult);
         }
 
