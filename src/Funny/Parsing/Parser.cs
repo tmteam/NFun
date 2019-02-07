@@ -42,7 +42,6 @@ namespace Funny.Parsing
                 
                 if (_flow.IsDone || _flow.IsCurrent(TokType.Eof))
                     return res;
-
                 
                 if(!_flow.IsCurrent(TokType.Id))
                     throw new ParseException("Starts with no id");
@@ -63,11 +62,11 @@ namespace Funny.Parsing
             }
 
         }
-        //Чтение атомарного значения (num, -num, id, fun, if, (expr))
+        //ReadZeroPriority operation (num, -num, id, fun, if, (...))
         private LexNode ReadAtomicOrNull()
         {
             _flow.SkipNewLines();
-            //Если минус то читаем дальше и заворачиваем в умножение на 1
+            //-num turns to (-1 * num)
             if (_flow.IsCurrent(TokType.Minus))
             {
                 if(_flow.IsPrevious(TokType.Minus))
@@ -98,102 +97,63 @@ namespace Funny.Parsing
             return null;
         }
 
-        LexNode ReadNext(byte maxPriority)
+        LexNode ReadNext(int priority)
         {
-            if (maxPriority == 0)
+            //HELL IS HERE
+            
+            //Lower priority is the special case
+            if (priority == 0)
                 return ReadAtomicOrNull();
             
-            var node = ReadNext((byte)(maxPriority-1));
-            if (node == null)
-                return null;
-
-
+            //starting with left Node
+            var leftNode = ReadNext(priority-1);
+            
+            //building the syntax tree
             while (true)
             {
                 _flow.SkipNewLines();
+                //if flow is done than current node is everything we got
+                // example:
+                // 1*2+3 {return whole expression }
                 if (_flow.IsDone)
-                    return node;
-
-                var currentType = _flow.Current.Type;
-                if (!_priorities.TryGetValue(currentType, out var opPriority))
-                    return node;
-            
-                if (opPriority > maxPriority)
-                    return node;
+                    return leftNode;
+                
+                var currentOp = _flow.Current.Type;
+                //if current token is not an operation
+                //than expression is done
+                //example:
+                // 1*2 \r{return expression} y=...
+                if (!_priorities.TryGetValue(currentOp, out var opPriority))
+                    return leftNode;
+                //if op has higher priority us
+                //than expression is done
+                // example:
+                //2*3{stops here}-1
+                if (opPriority > priority)
+                    return leftNode;
                 
                 _flow.MoveNext();
-                var next = ReadNext((byte)(maxPriority-1));
-                if(next==null)
-                    throw new ParseException($"{currentType} without \'b\' arg");
-                node = LexNode.Op(currentType, node, next);
+                var rightNode = ReadNext(priority-1);
+                if(rightNode==null)
+                    throw new ParseException($"{currentOp} without right arg");
+                //building the tree from the left
+                leftNode = LexNode.Op(currentOp, leftNode, rightNode);
+                //trace:
+                //ReadNext(priority: 3 ) // *,/,%,AND
+                //0: {start} 4/2*5+1
+                //1: {l:4} /2*5+1
+                //2: {l:4}{op:/} 2*5+1
+                //3: {l:4}{op:/}{r:2} *5+1
+                //4: {l:(4/2)} *5+1
+                //5: {l:(4/2)}{op:*}5+1
+                //6: {l:(4/2)}{op:*}{r:5}+1
+                //7: {l:((4/2)*5)}{op:+} 1
+                //8: '+' priority is higter than 3: return l:((4/2)*5)
             }
-            /*
-            _flow.MoveNext();
-            var nextVal = ReadNext(maxPriority);
-            if (nextVal == null)
-                throw new ParseException($"{currentType} without \'b\' arg");
-            return LexNode.Op(currentType, node, nextVal); */
-        }
-        //Чтение высокоуровневой операции (атомарное значение или их умножение, степень, деление)
-        LexNode ReadPriority1()
-        {
-            var node = ReadAtomicOrNull();
-            if (node == null)
-                return null;
-            
-            _flow.SkipNewLines();
-            if (   _flow.IsCurrent(TokType.Mult)
-                || _flow.IsCurrent(TokType.Div)
-                || _flow.IsCurrent(TokType.Pow)
-                || _flow.IsCurrent(TokType.Rema)
-                || _flow.IsCurrent(TokType.Equal)
-                || _flow.IsCurrent(TokType.NotEqual)
-                || _flow.IsCurrent(TokType.More)
-                || _flow.IsCurrent(TokType.Less)
-                || _flow.IsCurrent(TokType.MoreOrEqual)
-                || _flow.IsCurrent(TokType.LessOrEqual))
-            {
-                var op = _flow.Current;
-                _flow.MoveNext();
-                var nextVal = ReadPriority1();
-                if (nextVal == null)
-                    throw new ParseException($"{_flow.Current.Type} without \'b\' arg");
-                return LexNode.Op(op.Type, node, nextVal);
-            }
-            
-            return node;
         }
 
-        LexNode ReadPriority2()
-        {
-            var node = ReadPriority1();
-            if (node == null)
-                return null;
-
-            _flow.SkipNewLines();
-            if (   _flow.IsCurrent(TokType.Plus)
-                || _flow.IsCurrent(TokType.Minus)
-                || _flow.IsCurrent(TokType.And)
-                || _flow.IsCurrent(TokType.Or)
-                || _flow.IsCurrent(TokType.Xor))
-
-            {
-                var op = _flow.Current;
-                _flow.MoveNext();
-                var nextVal = ReadPriority2();
-                if (nextVal == null)
-                    throw new ParseException($"{_flow.Current?.Type} without \'b\' arg");
-                return LexNode.Op(op.Type, node, nextVal);
-            }
-
-            return node;
-        }
-
-        LexNode ReadExpression()
-        {
-            return ReadNext(4);
-            //return ReadPriority2();
-        }
+        LexNode ReadExpression() 
+            => ReadNext(4);
 
         #region  read concreete
 
@@ -252,9 +212,6 @@ namespace Funny.Parsing
         #endregion
 
         #region  tools
-
-        
-
 
         private bool MoveIf(TokType tokType, out Tok tok)
         {
