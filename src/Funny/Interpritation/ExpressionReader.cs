@@ -18,7 +18,7 @@ namespace Funny.Interpritation
             = new Dictionary<string, Equatation>();
         
         public static Runtime.Runtime Interpritate(
-            List<LexEquatation> lexEquatations, 
+            LexEquatation[] lexEquatations, 
             IEnumerable<FunctionBase> predefinedfunctions)
         {
             var funDic = predefinedfunctions.ToDictionary((f) => f.Name.ToLower());
@@ -29,12 +29,12 @@ namespace Funny.Interpritation
             return new Runtime.Runtime(result,  ans._variables);
         }
 
-        private static Equatation[] OrderEquatationsOrThrow(List<LexEquatation> lexEquatations, ExpressionReader ans)
+        private static Equatation[] OrderEquatationsOrThrow(LexEquatation[] lexEquatations, ExpressionReader ans)
         {
             //now build dependencies map
-            int[][] dependencyGraph = new int[lexEquatations.Count][];
+            int[][] dependencyGraph = new int[lexEquatations.Length][];
 
-            for (int i = 0; i < lexEquatations.Count; i++)
+            for (int i = 0; i < lexEquatations.Length; i++)
             {
                 if (ans._variables.TryGetValue(lexEquatations[i].Id.ToLower(), out var outvar))
                 {

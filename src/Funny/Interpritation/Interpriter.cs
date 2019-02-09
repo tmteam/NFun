@@ -10,7 +10,7 @@ namespace Funny.Interpritation
         {
             var tokens = Tokenizer.ToTokens(text);
             var flow = new TokenFlow(tokens);
-            var eq = new Parser(flow).Parse();
+            var eq =    Parser.Parse(flow);
             var functions = new FunctionBase[]
             {
                 new AbsFunction(),
@@ -20,7 +20,7 @@ namespace Funny.Interpritation
                 new EFunction(), 
                 new PiFunction(), 
             };
-            return ExpressionReader.Interpritate(eq, functions);
+            return ExpressionReader.Interpritate(eq.Equatations, functions);
         }
     }
 }

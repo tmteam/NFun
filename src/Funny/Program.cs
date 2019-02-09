@@ -23,7 +23,7 @@ namespace Funny
             
             var tokens = Tokenizer.ToTokens(ex);
             var flow = new TokenFlow(tokens);
-            var eq = new Parser(flow).Parse();
+            var eq =  Parser.Parse(flow).Equatations;
             var res = runtime.Calculate(Var.New("x", 3));
             
             Console.WriteLine("Res: "+ res);
@@ -76,14 +76,14 @@ namespace Funny
             Console.WriteLine();
 
             var flow = new TokenFlow(tokens);
-            var eq = new Parser(flow).Parse();
-            foreach (var equatation in eq)
+            var eq = Parser.Parse(flow);
+            foreach (var equatation in eq.Equatations)
             {
                 Console.WriteLine($"{equatation.Id}={equatation.Expression}");
                 PrintNode(equatation.Expression,1);
             }
             
-            Console.WriteLine("Eq countL " + eq.Count);
+            Console.WriteLine("Eq countL " + eq.Equatations.Length);
         }
 
         private static void PrintNode(LexNode n, int offset)

@@ -1,244 +1,79 @@
+using System;
 using System.Collections.Generic;
 using System.IO.Pipes;
 using System.Linq;
+using System.Linq.Expressions;
 using Funny.Tokenization;
 
 namespace Funny.Parsing
 {
-    public class Parser
+    public static class Parser
     {
-        private readonly TokenFlow _flow;
-
-        private static readonly Dictionary<TokType, byte> _priorities 
-            = new Dictionary<TokType, byte>()
+        public static LexTree Parse(TokenFlow flow)
         {
-            {TokType.Equal,       1},
-            {TokType.NotEqual,    1},
-            {TokType.More,        1},
-            {TokType.Less,        1},
-            {TokType.MoreOrEqual, 1},
-            {TokType.LessOrEqual, 1},
-            {TokType.Pow,         2},
-            {TokType.Mult,        3},
-            {TokType.Div,         3},
-            {TokType.Rema,        3},
-            {TokType.And,         3},
-            {TokType.Plus,        4},
-            {TokType.Minus,       4},
-            {TokType.Or,          4},
-            {TokType.Xor,         4}
-        };
-        public Parser(TokenFlow flow)
-        {
-            this._flow = flow;
-        }
-        public List<LexEquatation> Parse()
-        {
-            var res = new List<LexEquatation>();
-
+            var reader = new LexNodeReader(flow);
+            var equatations = new List<LexEquatation>();
+            var funs = new List<UserFunDef>();
             while (true)
             {
-                _flow.SkipNewLines();
+                flow.SkipNewLines();
+
+                if (flow.IsDone || flow.IsCurrent(TokType.Eof))
+                    break;
                 
-                if (_flow.IsDone || _flow.IsCurrent(TokType.Eof))
-                    return res;
+                var id = reader.MoveIfOrThrow(TokType.Id).Value;
+                flow.SkipNewLines();
                 
-                if(!_flow.IsCurrent(TokType.Id))
-                    throw new ParseException("Starts with no id");
+                if (flow.IsCurrent(TokType.Def))
+                {
+                    flow.MoveNext();
+                    equatations.Add(ReadEquatation(flow, reader, id));
+                }
+                else if (flow.IsCurrent(TokType.Obr))
+                {
+                    flow.MoveNext();
+                    funs.Add(ReadUserFunction(flow, reader, id));
 
-                var id = _flow.Current.Value;
-
-                _flow.MoveNext();
-                _flow.SkipNewLines();
-
-                if(!_flow.IsCurrent(TokType.Def))
+                }
+                else
                     throw new ParseException("has no =");
 
-                 _flow.MoveNext();
-                 _flow.SkipNewLines();
-
-                var exNode = ReadExpression();
-                res.Add(new LexEquatation(id, exNode));
             }
 
-        }
-        //ReadZeroPriority operation (num, -num, id, fun, if, (...))
-        private LexNode ReadAtomicOrNull()
-        {
-            _flow.SkipNewLines();
-            //-num turns to (-1 * num)
-            if (_flow.IsCurrent(TokType.Minus))
+
+            return new LexTree
             {
-                if(_flow.IsPrevious(TokType.Minus))
-                    throw new ParseException("minus duplicates");
-                    
-                _flow.MoveNext();
-                var nextNode = ReadAtomicOrNull();
-                if(nextNode==null)
-                    throw new ParseException("minus without next val");
-                return LexNode.Op(LexNodeType.Mult, LexNode.Num("-1"),nextNode);
-            }
-            
-            if (MoveIf(TokType.Number, out var val))
-                return LexNode.Num(val.Value);;
-
-            if (MoveIf(TokType.Id, out var headToken)){
-                
-                if (_flow.IsCurrent(TokType.Obr))
-                    return ReadFunction(headToken);
-                else
-                    return LexNode.Var(headToken.Value);
-            }
-            
-            if (_flow.IsCurrent(TokType.Obr))
-                return  ReadBrackedExpression();
-            if (_flow.IsCurrent(TokType.If))
-                return ReadIfElse();
-            return null;
+                UserFuns = funs.ToArray(),
+                Equatations = equatations.ToArray()
+            };
         }
 
-        LexNode ReadNext(int priority)
+        private static UserFunDef ReadUserFunction(TokenFlow flow, LexNodeReader reader, string id)
         {
-            //HELL IS HERE
-            
-            //Lower priority is the special case
-            if (priority == 0)
-                return ReadAtomicOrNull();
-            
-            //starting with left Node
-            var leftNode = ReadNext(priority-1);
-            
-            //building the syntax tree
+            var arguments = new List<string>();
             while (true)
             {
-                _flow.SkipNewLines();
-                //if flow is done than current node is everything we got
-                // example:
-                // 1*2+3 {return whole expression }
-                if (_flow.IsDone)
-                    return leftNode;
-                
-                var currentOp = _flow.Current.Type;
-                //if current token is not an operation
-                //than expression is done
-                //example:
-                // 1*2 \r{return expression} y=...
-                if (!_priorities.TryGetValue(currentOp, out var opPriority))
-                    return leftNode;
-                //if op has higher priority us
-                //than expression is done
-                // example:
-                //2*3{stops here}-1
-                if (opPriority > priority)
-                    return leftNode;
-                
-                _flow.MoveNext();
-                var rightNode = ReadNext(priority-1);
-                if(rightNode==null)
-                    throw new ParseException($"{currentOp} without right arg");
-                //building the tree from the left
-                leftNode = LexNode.Op(currentOp, leftNode, rightNode);
-                //trace:
-                //ReadNext(priority: 3 ) // *,/,%,AND
-                //0: {start} 4/2*5+1
-                //1: {l:4} /2*5+1
-                //2: {l:4}{op:/} 2*5+1
-                //3: {l:4}{op:/}{r:2} *5+1
-                //4: {l:(4/2)} *5+1
-                //5: {l:(4/2)}{op:*}5+1
-                //6: {l:(4/2)}{op:*}{r:5}+1
-                //7: {l:((4/2)*5)}{op:+} 1
-                //8: '+' priority is higter than 3: return l:((4/2)*5)
-            }
-        }
-
-        LexNode ReadExpression() 
-            => ReadNext(4);
-
-        #region  read concreete
-
-        private LexNode ReadBrackedExpression()
-        {
-            _flow.MoveNext();
-            
-            var node = ReadExpression();
-
-            if (node == null)
-                throw new ParseException("No expr. \"" + _flow.Current + "\" instead");
-          
-            MoveIfOrThrow(TokType.Cbr);
-            return node;
-        }
-         
-        private LexNode ReadIfElse()
-        {
-            var ifThenNodes = new List<LexNode>();
-            do
-            {
-                MoveIfOrThrow(TokType.If);
-                var condition = ReadExpression();
-                if(condition==null)
-                    throw new ParseException("condition expression is missing");
-                MoveIfOrThrow(TokType.Then);
-                var thenResult = ReadExpression();
-                if(thenResult==null)
-                    throw new ParseException("then expression is missing");
-                ifThenNodes.Add(LexNode.IfThen(condition, thenResult));
-            } while (!_flow.IsCurrent(TokType.Else));
-            
-            MoveIfOrThrow(TokType.Else);
-            var elseResult = ReadExpression();
-            if(elseResult == null)
-                throw new ParseException("else expression is missing");
-            return LexNode.IfElse(ifThenNodes, elseResult);
-        }
-
-        private LexNode ReadFunction(Tok id)
-        {
-            _flow.MoveNext();//skip Obr
-            var arguments = new List<LexNode>();
-            while (true)
-            {
-                if (MoveIf(TokType.Cbr, out _))
-                    return LexNode.Fun(id.Value, arguments.ToArray());
-
+                if (reader.MoveIf(TokType.Cbr, out _))
+                    break;
                 if (arguments.Any())
-                    MoveIfOrThrow(TokType.Sep,"\",\" or \")\" expected");
-
-                var arg = ReadExpression();
-                arguments.Add(arg);
+                    reader.MoveIfOrThrow(TokType.Sep, "\",\" or \")\" expected");
+                var argId = reader.MoveIfOrThrow(TokType.Id, "Argument name expected");
+                arguments.Add(argId.Value);
             }
+            flow.SkipNewLines();
+            reader.MoveIfOrThrow(TokType.Def, "\'=\' expected");
+            var expression =reader.ReadExpression();
+            
+            return new UserFunDef{Args = arguments.ToArray(), Id= id, Node = expression};
         }
-        #endregion
 
-        #region  tools
 
-        private bool MoveIf(TokType tokType, out Tok tok)
+        private static LexEquatation ReadEquatation(TokenFlow flow, LexNodeReader reader, string id)
         {
-            if (_flow.IsCurrent(tokType))
-            {
-                tok = _flow.Current;
-                _flow.MoveNext();
-                return true;
-            }
-            tok = null;
-            return false;
-        }
-        private void MoveIfOrThrow(TokType tokType)
-        {
-            if(!_flow.IsCurrent(tokType))
-                throw new ParseException($"\"{tokType}\" is missing but was {_flow.Current?.ToString()??"nothing"}");
-            _flow.MoveNext();
+            flow.SkipNewLines();
 
+            var exNode = reader.ReadExpression();
+            return new LexEquatation(id, exNode);
         }
-        private void MoveIfOrThrow(TokType tokType, string error)
-        {
-            if(!_flow.IsCurrent(tokType))
-                throw new ParseException(error);
-            _flow.MoveNext();
-
-        }
-        #endregion
-
     }
 }

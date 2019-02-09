@@ -4,6 +4,9 @@ namespace Funny.Tokenization
 {
     public class Tokenizer
     {
+        public static TokenFlow ToFlow(string input) 
+            => new TokenFlow(ToTokens(input));
+
         public static IEnumerable<Tok> ToTokens(string input)
         {
             var reader = new Tokenizer();
