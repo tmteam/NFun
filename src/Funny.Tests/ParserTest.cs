@@ -10,9 +10,9 @@ namespace Funny.Tests
     public class ParserTest
     {
         [TestCase("y = 1+x", "1+x")]
-        [TestCase("y = 1")]
+        [TestCase("y = 1","1")]
         [TestCase("y = x+z*(x-z)", "x+z*(x-z)")]
-        public void SingleEquatationParserTest(string text, string expectedExpr, params string[] variables)
+        public void SingleEquatationParsingTest(string text, string expectedExpr, params string[] variables)
         {
             var parsed   = Parser.Parse(Tokenizer.ToFlow(text));
 
@@ -28,7 +28,7 @@ namespace Funny.Tests
         [TestCase("y(x) = 1+x", "1+x", "x")]
         [TestCase("y() = 1", "1")]
         [TestCase("y(x,z) = x+z*(x-z)", "x+z*(x-z)","x","z")]
-        public void SingleFunParserTest(string text, string expectedExpr, params string[] variables)
+        public void SingleFunctionParsingTest(string text, string expectedExpr, params string[] variables)
         {
             var eq   = Parser.Parse(Tokenizer.ToFlow(text));
 
@@ -43,7 +43,7 @@ namespace Funny.Tests
         }
 
         [Test]
-        public void ComplexTextTest()
+        public void ComplexParsingTest()
         {
             var text = @"
                     max(x,y) = if x>y then x else y
@@ -60,11 +60,11 @@ namespace Funny.Tests
                 Assert.AreEqual(2, eq.Equatations.Length);
             });
             
-            var maxf = eq.UserFuns.SingleOrDefault(f => f.Id == "max");
-            var max3f = eq.UserFuns.SingleOrDefault(f => f.Id == "max3");
+            var maxf = eq.UserFuns.Single(f => f.Id == "max");
+            var max3f = eq.UserFuns.Single(f => f.Id == "max3");
 
-            var y1equatation = eq.Equatations.SingleOrDefault(e => e.Id == "y1");
-            var y2equatation = eq.Equatations.SingleOrDefault(e => e.Id == "y2");
+            var y1equatation = eq.Equatations.Single(e => e.Id == "y1");
+            var y2equatation = eq.Equatations.Single(e => e.Id == "y2");
             
             AssertParsed(maxf,"if x>y then x else y", "x","y" );
             AssertParsed(max3f,"max(x,max(y,z))", "x","y","z" );
