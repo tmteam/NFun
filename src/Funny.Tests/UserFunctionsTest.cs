@@ -76,5 +76,13 @@ namespace Funny.Tests
             var runtime = Interpreter.BuildOrThrow(text);
             runtime.Calculate(Var.New("x",x)).AssertReturns(0.00001, Var.New("y", y));    
         }
+        [TestCase("y = raise(1)\r raise(x) = raise(x)")]
+        [TestCase("y = f(1)\r f(x) = g(x) \r g(x) = f(x)")]
+        [TestCase("y = f(1)\r f(x) = g(x) \r g(x) = l(x)\r l(x) = f(x)")]
+        public void StackOverflow_throws_FunStackOverflow(string text)
+        {
+            Assert.Throws<FunStackoverflowException>(
+                () => Interpreter.BuildOrThrow(text).Calculate());
+        }
     }
 }
