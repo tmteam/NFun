@@ -13,8 +13,37 @@ namespace Funny
 {
     class Program
     {
+        /*
+        @"fibrec(n, iter, p1,p2) =
+                          if n <iter then fibrec(n, iter+1, p1+p2, p1)
+                          else p1+p2  
+                    
+                   fib(n) = if n<3 then 1 else fibrec(n,2,1,1)
+                   y = fib(x)";*/
+        
+        static int fibrec(int n, int iter, int p1, int p2)
+        {
+            if (n > iter) return fibrec(n, iter + 1, p1 + p2, p1);
+            else return p1 + p2;
+        }
+
+        static int fib(int n)
+        {
+            if (n < 3) return 1;
+            else return fibrec(n-1, 2, 1, 1);
+        }
+        
         static void Main(string[] args)
         {
+            fib(6);
+            for (int i = 0; i < 10; i++)
+            {
+                Console.WriteLine($"{i}: {fib(i)}");
+            }
+            Console.ReadLine();
+
+            
+            
             var y = 4 / 2 * 2;
             var ex = "y1 = (1+3)*7+2*(x+1)";
             PrintParsing(ex);

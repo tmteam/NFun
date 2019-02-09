@@ -76,10 +76,12 @@ namespace Funny.Interpritation
         private void Interpritate()
         {
             foreach (var userFun in _lexTree.UserFuns)
-            {
-                var fun = InterpritateFun(userFun);
-                _functions.Add(userFun.Id, fun);
+                _functions.Add(userFun.Id, GetFunctionPrototype(userFun));
 
+            foreach (var userFun in _lexTree.UserFuns)
+            {
+                var prototype = _functions[userFun.Id];
+                ((FunctionPrototype)prototype).SetActual(GetFunction(userFun));
             }
 
             int equatationNum = 0;
@@ -97,7 +99,10 @@ namespace Funny.Interpritation
             }
         }
 
-        private UserFunction InterpritateFun(UserFunDef lexFunction)
+        private FunctionPrototype GetFunctionPrototype(UserFunDef lexFunction) 
+            => new FunctionPrototype(lexFunction.Id, lexFunction.Args.Length);
+
+        private UserFunction GetFunction(UserFunDef lexFunction)
         {
             var vars = new Dictionary<string, VariableExpressionNode>();
             var reader = new SingleExpressionReader(_functions, vars);

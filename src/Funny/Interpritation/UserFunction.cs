@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Funny.Interpritation
 {
@@ -17,16 +18,30 @@ namespace Funny.Interpritation
             _expression = expression;
         }
 
+        readonly Stack<double[]> recursiveArgsStack  = new Stack<double[]>();       
         public override double Calc(double[] args)
         {
-            if(args.Length!= _variables.Length)
-                throw new ArgumentException();
-            
+            try
+            {
+                recursiveArgsStack.Push(args);
+                if(args.Length!= _variables.Length)
+                    throw new ArgumentException();
+                SetVariables(args);
+                return  _expression.Calc();
+            }
+            finally
+            {
+                //restore variables
+                recursiveArgsStack.Pop();
+                if(recursiveArgsStack.TryPeek(out var previousArgs))
+                    SetVariables(previousArgs);
+            }
+        }
+
+        private void SetVariables(double[] args)
+        {
             for (int i = 0; i < args.Length; i++)
                 _variables[i].SetValue(args[i]);
-
-            var res =  _expression.Calc();
-            return res;    
         }
     }
 }
