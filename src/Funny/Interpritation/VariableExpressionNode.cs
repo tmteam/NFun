@@ -26,5 +26,11 @@ namespace Funny.Interpritation
         }
         
         public double Calc() => _value;
+        private static int _count = 0;
+        private readonly int uid = _count++;
+        public override string ToString()
+        {
+            return Name+": "+ _value+" uid: "+uid;
+        }
     }
 }

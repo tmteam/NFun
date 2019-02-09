@@ -40,12 +40,12 @@ namespace Funny.Tests
             Assert.Multiple(()=>{
                 foreach (var inputs in allCombinations)
                 {
-                    var actual = Interpriter
+                    var actual = Interpreter
                         .BuildOrThrow(actualExpr)
                         .Calculate(inputs)
                         .GetResultOf("y");
 
-                    var expected = Interpriter
+                    var expected = Interpreter
                         .BuildOrThrow(expectedExpr)
                         .Calculate(inputs)
                         .GetResultOf("y");
@@ -74,9 +74,9 @@ namespace Funny.Tests
         
         public void ArithmeticPriorities(string actualExpr, string expectedExpr)
         {
-            var expected = Interpriter.BuildOrThrow(expectedExpr).Calculate().GetResultOf("y");
+            var expected = Interpreter.BuildOrThrow(expectedExpr).Calculate().GetResultOf("y");
             
-            Interpriter
+            Interpreter
                 .BuildOrThrow(actualExpr)
                 .Calculate()
                 .AssertReturns(Var.New("y", expected));

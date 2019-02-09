@@ -39,7 +39,7 @@ namespace Funny.Tests
         [TestCase("y = 0x_1",1)]
         public void ConstantEquatation(string expr, double expected)
         {
-            var runtime = Interpriter.BuildOrThrow(expr);
+            var runtime = Interpreter.BuildOrThrow(expr);
             var res = runtime.Calculate();
             Assert.AreEqual(1, res.Results.Length);
             Assert.AreEqual(expected, res.Results.First().Value);
@@ -70,7 +70,7 @@ namespace Funny.Tests
         [TestCase("y = 0 xor 0", 0)]
         public void DiscreeteConstantEquataion(string expr, double expected)
         {
-            var runtime = Interpriter.BuildOrThrow(expr);
+            var runtime = Interpreter.BuildOrThrow(expr);
             var res = runtime.Calculate();
             Assert.AreEqual(expected, res.Results.First().Value);
         }
@@ -98,7 +98,7 @@ namespace Funny.Tests
         [TestCase("y = x/0.2",1,5)]
         public void SingleVariableEquatation(string expr, double arg, double expected)
         {
-            var runtime = Interpriter.BuildOrThrow(expr);
+            var runtime = Interpreter.BuildOrThrow(expr);
             runtime.Calculate(Var.New("x",arg))
                 .AssertReturns(0.00001, Var.New("y", expected));
         }
@@ -147,7 +147,7 @@ namespace Funny.Tests
         [TestCase("y = 0bFF")]
         public void ObviouslyFails(string expr) =>
             Assert.Throws<ParseException>(
-                ()=> Interpriter.BuildOrThrow(expr));
+                ()=> Interpreter.BuildOrThrow(expr));
 
         [TestCase("y = x1+x2",2,3,5)]
         [TestCase("y = 2*x1*x2",3,6, 36)]
@@ -155,7 +155,7 @@ namespace Funny.Tests
         [TestCase("y = (x1+x2)/4",2,2,1)]
         public void TwoVariablesEquatation(string expr, double arg1, double arg2, double expected)
         {
-            var runtime = Interpriter.BuildOrThrow(expr);
+            var runtime = Interpreter.BuildOrThrow(expr);
             var res = runtime.Calculate(
                 Var.New("x1", arg1),
                 Var.New("x2", arg2));
@@ -170,7 +170,7 @@ namespace Funny.Tests
         [TestCase("y = in1/2 + (in2*in3)",new []{"in1","in2", "in3"})]
         public void InputVarablesListIsCorrect(string expr, string[] inputNames)
         {
-            var runtime = Interpriter.BuildOrThrow(expr);
+            var runtime = Interpreter.BuildOrThrow(expr);
             CollectionAssert.AreEquivalent(inputNames, runtime.Variables);
         }
 

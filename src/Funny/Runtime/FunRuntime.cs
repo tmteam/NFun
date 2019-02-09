@@ -5,7 +5,7 @@ using Funny.Interpritation;
 
 namespace Funny.Runtime
 {
-    public class Runtime
+    public class FunRuntime
     {
         public string[] Variables => _variables
             .Where(v=>!v.Value.IsOutput)
@@ -15,7 +15,7 @@ namespace Funny.Runtime
         private readonly Equatation[] _equatations;
         private readonly Dictionary<string, VariableExpressionNode> _variables;
         
-        public Runtime(Equatation[] equatations, Dictionary<string, VariableExpressionNode> variables)
+        public FunRuntime(Equatation[] equatations, Dictionary<string, VariableExpressionNode> variables)
         {
             _equatations = equatations;
             _variables = variables;

@@ -20,7 +20,7 @@ namespace Funny.Tests
 
         public void ConstantEquatationWithPredefinedFunction(string expr, double expected)
         {
-            var runtime = Interpriter.BuildOrThrow(expr);
+            var runtime = Interpreter.BuildOrThrow(expr);
             runtime.Calculate()
                 .AssertReturns(0.00001, Var.New("y", expected));
         }
@@ -34,7 +34,7 @@ namespace Funny.Tests
         
         public void EquatationWithPredefinedFunction(string expr, double arg, double expected)
         {
-            var runtime = Interpriter.BuildOrThrow(expr);
+            var runtime = Interpreter.BuildOrThrow(expr);
             runtime.Calculate(Var.New("x", arg))
                 .AssertReturns(0.00001, Var.New("y", expected));
         }
@@ -52,7 +52,7 @@ namespace Funny.Tests
         [TestCase("y = add(1,2,3)")]
         public void ObviouslyFails(string expr) =>
             Assert.Throws<ParseException>(
-                ()=> Interpriter.BuildOrThrow(expr));
+                ()=> Interpreter.BuildOrThrow(expr));
         
     }
 }

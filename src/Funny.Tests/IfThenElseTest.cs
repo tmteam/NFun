@@ -35,7 +35,7 @@ namespace Funny.Tests
                         else 8 	
                     else if x2 == 4 then 9 
                          else 10";
-            var runtime = Interpriter.BuildOrThrow(expr);
+            var runtime = Interpreter.BuildOrThrow(expr);
                
             runtime.Calculate(
                     Var.New("x1",x1),
@@ -53,7 +53,7 @@ namespace Funny.Tests
         [TestCase("y = if 1>2 then 10\r if 1<2 then -10\r else 0", -10)]
         public void ConstantEquatation(string expr, double expected)
         {
-            var runtime = Interpriter.BuildOrThrow(expr);
+            var runtime = Interpreter.BuildOrThrow(expr);
             var res = runtime.Calculate();
             Assert.AreEqual(1, res.Results.Length);
             Assert.AreEqual(expected, res.Results.First().Value);
@@ -75,6 +75,6 @@ namespace Funny.Tests
         [TestCase("y = else then 3")]
         public void ObviouslyFails(string expr) =>
             Assert.Throws<ParseException>(
-                ()=> Interpriter.BuildOrThrow(expr));
+                ()=> Interpreter.BuildOrThrow(expr));
     }
 }

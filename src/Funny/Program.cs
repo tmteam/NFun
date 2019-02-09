@@ -19,7 +19,7 @@ namespace Funny
             var ex = "y1 = (1+3)*7+2*(x+1)";
             PrintParsing(ex);
 
-            var runtime = Interpriter.BuildOrThrow(ex);
+            var runtime = Interpreter.BuildOrThrow(ex);
             
             var tokens = Tokenizer.ToTokens(ex);
             var flow = new TokenFlow(tokens);
