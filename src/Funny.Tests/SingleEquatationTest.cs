@@ -39,6 +39,7 @@ namespace Funny.Tests
         [TestCase("y = 0x_1",1)]
         public void ConstantEquatation(string expr, double expected)
         {
+            
             var runtime = Interpreter.BuildOrThrow(expr);
             var res = runtime.Calculate();
             Assert.AreEqual(1, res.Results.Length);

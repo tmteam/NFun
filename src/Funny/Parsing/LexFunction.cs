@@ -1,6 +1,6 @@
 namespace Funny.Parsing
 {
-    public class UserFunDef
+    public class LexFunction
     {
         public string Id;
         public string[] Args;

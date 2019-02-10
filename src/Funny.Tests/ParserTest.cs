@@ -73,7 +73,7 @@ namespace Funny.Tests
 
         }
         
-        private void AssertParsed(UserFunDef fun,string expectedExpr, params string[] variables)
+        private void AssertParsed(LexFunction fun,string expectedExpr, params string[] variables)
         {
             Assert.Multiple(() =>
             {

@@ -5,7 +5,7 @@ using Funny.Tokenization;
 
 namespace Funny
 {
-    public class Interpreter
+    public static class Interpreter
     {
         public static Runtime.FunRuntime BuildOrThrow(string text)
         {

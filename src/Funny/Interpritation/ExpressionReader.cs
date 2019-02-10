@@ -99,10 +99,10 @@ namespace Funny.Interpritation
             }
         }
 
-        private FunctionPrototype GetFunctionPrototype(UserFunDef lexFunction) 
+        private FunctionPrototype GetFunctionPrototype(LexFunction lexFunction) 
             => new FunctionPrototype(lexFunction.Id, lexFunction.Args.Length);
 
-        private UserFunction GetFunction(UserFunDef lexFunction)
+        private UserFunction GetFunction(LexFunction lexFunction)
         {
             var vars = new Dictionary<string, VariableExpressionNode>();
             var reader = new SingleExpressionReader(_functions, vars);

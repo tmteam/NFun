@@ -13,14 +13,14 @@ namespace Funny.Parsing
         {
             var reader = new LexNodeReader(flow);
             var equatations = new List<LexEquatation>();
-            var funs = new List<UserFunDef>();
+            var funs = new List<LexFunction>();
             while (true)
             {
                 flow.SkipNewLines();
 
                 if (flow.IsDone || flow.IsCurrent(TokType.Eof))
                     break;
-                
+
                 var id = reader.MoveIfOrThrow(TokType.Id).Value;
                 flow.SkipNewLines();
                 
@@ -48,7 +48,7 @@ namespace Funny.Parsing
             };
         }
 
-        private static UserFunDef ReadUserFunction(TokenFlow flow, LexNodeReader reader, string id)
+        private static LexFunction ReadUserFunction(TokenFlow flow, LexNodeReader reader, string id)
         {
             var arguments = new List<string>();
             while (true)
@@ -64,7 +64,7 @@ namespace Funny.Parsing
             reader.MoveIfOrThrow(TokType.Def, "\'=\' expected");
             var expression =reader.ReadExpression();
             
-            return new UserFunDef{Args = arguments.ToArray(), Id= id, Node = expression};
+            return new LexFunction{Args = arguments.ToArray(), Id= id, Node = expression};
         }
 
 

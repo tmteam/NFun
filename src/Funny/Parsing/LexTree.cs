@@ -2,7 +2,7 @@ namespace Funny.Parsing
 {
     public class LexTree
     {
-        public UserFunDef[] UserFuns;
+        public LexFunction[] UserFuns;
         public LexEquatation[] Equatations;
     }
 }

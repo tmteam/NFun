@@ -65,17 +65,8 @@ namespace Funny.Tokenization
             if (IsSpecial(current) is TokType symbol )
                 return Tok.New(symbol, current.ToString(), position+1);
 
-            if (IsLetter(current)){
-                int start = position;
-                for (; start < str.Length && (IsLetter(str[start]) || IsDigit(str[start])); start++);
-
-                var id = str.Substring(position, start - position);
-                //is id a keyword
-                if(_keywords.ContainsKey(id))
-                    return Tok.New(_keywords[id], id, start);
-                else
-                    return Tok.New(TokType.Id,id , start);
-            }
+            if (IsLetter(current))
+                return ReadIdOrKeyword(str, position);
 
             if (TryReadUncommonSpecialSymbols(str, position, current) is Tok tok) 
                 return tok;
@@ -83,11 +74,25 @@ namespace Funny.Tokenization
             return Tok.New(TokType.NotAToken, null, position+1);
         }
 
+        private Tok ReadIdOrKeyword(string str, int position)
+        {
+            int start = position;
+            for (; start < str.Length && (IsLetter(str[start]) || IsDigit(str[start])); start++) ;
+            
+            var word = str.Substring(position, start - position);
+            //is id a keyword
+            if (_keywords.ContainsKey(word))
+                return Tok.New(_keywords[word], word, start);
+            else
+                return Tok.New(TokType.Id, word, start);
+        }
+
         private static Tok TryReadUncommonSpecialSymbols(string str, int position, char current)
         {
             char? next = position < str.Length - 1 
                     ? str[position + 1] 
                     : (char?) null;
+            
             
             switch (current)
             {
@@ -97,7 +102,6 @@ namespace Funny.Tokenization
                     return Tok.New(TokType.More, position + 1);
                 case '<' when  next == '=':
                     return Tok.New(TokType.LessOrEqual, position + 2);
-                
                 case '<' when next == '>':
                     return Tok.New(TokType.NotEqual, position+2);
                 case '<':
