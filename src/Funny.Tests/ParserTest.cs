@@ -83,7 +83,7 @@ namespace Funny.Tests
         }
         private void AssertParsed(LexNode node,string expectedExpr)
         {
-            var expectedExpression = new LexNodeReader(Tokenizer.ToFlow(expectedExpr)).ReadExpression();
+            var expectedExpression = new LexNodeReader(Tokenizer.ToFlow(expectedExpr)).ReadExpressionOrNull();
             AssertEquals(expectedExpression, node);
         }
 

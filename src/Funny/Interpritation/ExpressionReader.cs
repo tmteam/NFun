@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Funny.Parsing;
 using Funny.Runtime;
 using Funny.Tokenization;
@@ -107,8 +108,20 @@ namespace Funny.Interpritation
             var vars = new Dictionary<string, VariableExpressionNode>();
             var reader = new SingleExpressionReader(_functions, vars);
             var expression = reader.ReadNode(lexFunction.Node, 0);
-            //todo: compare input names and variables
+            CheckForUnknownVariables(lexFunction.Args, vars);
             return new UserFunction(lexFunction.Id, vars.Values.ToArray(), expression);
+        }
+
+        private static void CheckForUnknownVariables(string[] args, Dictionary<string, VariableExpressionNode> vars)
+        {
+            var unknownVariables = vars.Values.Select(v => v.Name).Except(args);
+            if (unknownVariables.Any())
+            {
+                if (unknownVariables.Count() == 1)
+                    throw new ParseException($"Unknown variable \"{unknownVariables.First()}\"");
+                else
+                    throw new ParseException($"Unknown variables \"{string.Join(", ", unknownVariables)}\"");
+            }
         }
     }
 }

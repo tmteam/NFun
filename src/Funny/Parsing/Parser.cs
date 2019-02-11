@@ -62,8 +62,9 @@ namespace Funny.Parsing
             }
             flow.SkipNewLines();
             reader.MoveIfOrThrow(TokType.Def, "\'=\' expected");
-            var expression =reader.ReadExpression();
-            
+            var expression =reader.ReadExpressionOrNull();
+            if(expression==null)
+                throw new ParseException("Function contains no body");
             return new LexFunction{Args = arguments.ToArray(), Id= id, Node = expression};
         }
 
@@ -72,7 +73,7 @@ namespace Funny.Parsing
         {
             flow.SkipNewLines();
 
-            var exNode = reader.ReadExpression();
+            var exNode = reader.ReadExpressionOrNull();
             return new LexEquatation(id, exNode);
         }
     }

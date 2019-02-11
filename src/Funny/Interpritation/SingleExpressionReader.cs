@@ -11,6 +11,8 @@ namespace Funny.Interpritation
         private readonly Dictionary<string, FunctionBase> _predefinedfunctions;
         private readonly Dictionary<string, VariableExpressionNode> _variables;
 
+        public IEnumerable<VariableExpressionNode> Variables => _variables.Values;
+
         public SingleExpressionReader(
             Dictionary<string, FunctionBase> predefinedfunctions, 
             Dictionary<string, VariableExpressionNode> variables)

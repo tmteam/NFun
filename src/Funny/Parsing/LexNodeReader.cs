@@ -33,7 +33,7 @@ namespace Funny.Parsing
             this._flow = flow;
         }
 
-        public LexNode ReadExpression()
+        public LexNode ReadExpressionOrNull()
             => ReadNext(4);
 
         //ReadZeroPriority operation (num, -num, id, fun, if, (...))
@@ -135,7 +135,7 @@ namespace Funny.Parsing
         {
             _flow.MoveNext();
 
-            var node = ReadExpression();
+            var node = ReadExpressionOrNull();
 
             if (node == null)
                 throw new ParseException("No expr. \"" + _flow.Current + "\" instead");
@@ -150,18 +150,18 @@ namespace Funny.Parsing
             do
             {
                 MoveIfOrThrow(TokType.If);
-                var condition = ReadExpression();
+                var condition = ReadExpressionOrNull();
                 if (condition == null)
                     throw new ParseException("condition expression is missing");
                 MoveIfOrThrow(TokType.Then);
-                var thenResult = ReadExpression();
+                var thenResult = ReadExpressionOrNull();
                 if (thenResult == null)
                     throw new ParseException("then expression is missing");
                 ifThenNodes.Add(LexNode.IfThen(condition, thenResult));
             } while (!_flow.IsCurrent(TokType.Else));
 
             MoveIfOrThrow(TokType.Else);
-            var elseResult = ReadExpression();
+            var elseResult = ReadExpressionOrNull();
             if (elseResult == null)
                 throw new ParseException("else expression is missing");
             return LexNode.IfElse(ifThenNodes, elseResult);
@@ -179,7 +179,7 @@ namespace Funny.Parsing
                 if (arguments.Any())
                     MoveIfOrThrow(TokType.Sep, "\",\" or \")\" expected");
 
-                var arg = ReadExpression();
+                var arg = ReadExpressionOrNull();
                 arguments.Add(arg);
             }
         }

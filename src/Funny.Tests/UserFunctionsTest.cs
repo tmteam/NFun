@@ -1,5 +1,6 @@
 using System;
 using Funny.Runtime;
+using Funny.Tokenization;
 using NUnit.Framework;
 
 namespace Funny.Tests
@@ -84,5 +85,29 @@ namespace Funny.Tests
             Assert.Throws<FunStackoverflowException>(
                 () => Interpreter.BuildOrThrow(text).Calculate());
         }
+
+        [TestCase("y(1)=1")]
+        [TestCase("y(x,y=1")]
+        [TestCase("y(x y)=1")]
+        [TestCase("y(x, l) x+l")]
+        [TestCase("y(x,  l) ==x+l")]
+        [TestCase("y(x, l)) =x+l")]
+        [TestCase("1y(x, l) =x+l")]
+        [TestCase("(y(x, l)) =x+l")]
+        [TestCase("(y(x, l)) =x+g(c)=12")]
+        [TestCase("y(x, l) = y(x)")]
+        [TestCase("y(x, l) = y(1,2")]
+        [TestCase("y(x, l) = (1,2)")]
+        [TestCase("y(, l) = 1")]
+        [TestCase("y(x, (l)) = 1")]
+        [TestCase("y((x)) = x*2")]
+        [TestCase("y(,) = 2")]
+        [TestCase("y(x) = 2*z")]
+        [TestCase("y(x) = 2*y")]
+        [TestCase("y(x)=")]
+        [TestCase("y(x)-1")]
+        public void ObviousFails(string expr) =>
+            Assert.Throws<ParseException>(
+                ()=> Interpreter.BuildOrThrow(expr));
     }
 }
