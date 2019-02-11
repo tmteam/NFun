@@ -93,7 +93,6 @@ namespace Funny.Tokenization
                     ? str[position + 1] 
                     : (char?) null;
             
-            
             switch (current)
             {
                 case '>' when next == '=':
@@ -106,7 +105,6 @@ namespace Funny.Tokenization
                     return Tok.New(TokType.NotEqual, position+2);
                 case '<':
                     return Tok.New(TokType.Less, position+1);
-                
                 case '=' when next == '=':
                     return Tok.New(TokType.Equal, position + 2);
                 case '=':
@@ -116,13 +114,12 @@ namespace Funny.Tokenization
             }
         }
 
-
         private TokType? IsSpecial(char val) =>
             _symbols.ContainsKey(val) ? _symbols[val] : (TokType?)null;
         
         private bool IsLetter(char val) =>val == '_' ||  (val >= 'a' && val <= 'z');
+
         private bool IsDigit(char val) => val >= '0' && val <= '9';
-        
         
         private Tok ReadNumber(string str, int position)
         {
@@ -158,7 +155,6 @@ namespace Funny.Tokenization
                     hasOneDot = true;
                     continue;
                 }
-
                 
                 break;
             }

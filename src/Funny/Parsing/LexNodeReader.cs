@@ -61,7 +61,7 @@ namespace Funny.Parsing
             {
 
                 if (_flow.IsCurrent(TokType.Obr))
-                    return ReadFunction(headToken);
+                    return ReadFunctionCall(headToken);
                 else
                     return LexNode.Var(headToken.Value);
             }
@@ -69,7 +69,7 @@ namespace Funny.Parsing
             if (_flow.IsCurrent(TokType.Obr))
                 return ReadBrackedExpression();
             if (_flow.IsCurrent(TokType.If))
-                return ReadIfElse();
+                return ReadIfThenElse();
             return null;
         }
 
@@ -144,7 +144,7 @@ namespace Funny.Parsing
             return node;
         }
 
-        private LexNode ReadIfElse()
+        private LexNode ReadIfThenElse()
         {
             var ifThenNodes = new List<LexNode>();
             do
@@ -167,7 +167,7 @@ namespace Funny.Parsing
             return LexNode.IfElse(ifThenNodes, elseResult);
         }
 
-        private LexNode ReadFunction(Tok id)
+        private LexNode ReadFunctionCall(Tok id)
         {
             _flow.MoveNext(); //skip Obr
             var arguments = new List<LexNode>();
@@ -205,10 +205,10 @@ namespace Funny.Parsing
         {
             var cur = _flow.Current;
             if(cur==null)
-                throw new ParseException($"\"{tokType}\" is missing but was nothing");
+                throw new ParseException($"\"{tokType}\" is missing");
 
             if (!cur.Is(tokType))
-                throw new ParseException($"\"{tokType}\" is missing but was {_flow.Current}");
+                throw new ParseException($"\"{tokType}\" is missing but was \"{_flow.Current}\"");
             
             _flow.MoveNext();
             return cur;

@@ -33,13 +33,10 @@ namespace Funny.Parsing
                 {
                     flow.MoveNext();
                     funs.Add(ReadUserFunction(flow, reader, id));
-
                 }
                 else
                     throw new ParseException("has no =");
-
             }
-
 
             return new LexTree
             {
