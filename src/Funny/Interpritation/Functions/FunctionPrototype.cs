@@ -1,4 +1,5 @@
 using System;
+using Funny.Runtime;
 
 namespace Funny.Interpritation
 {
@@ -13,6 +14,9 @@ namespace Funny.Interpritation
         {
             _function = function;
         }
+
+        public override VarType CalcType() => VarType.NumberType;
+
         public override double Calc(double[] args)
         {
             if(_function== null)

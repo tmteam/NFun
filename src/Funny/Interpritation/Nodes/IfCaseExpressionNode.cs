@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Funny.Runtime;
 
 namespace Funny.Interpritation
 {
@@ -9,6 +10,9 @@ namespace Funny.Interpritation
 
         public IfCaseExpressionNode(IExpressionNode condition, IExpressionNode result)
         {
+            if(condition.Type!= VarType.BoolType)
+                throw new UpTypeCastParseException("if Condition has to be boolean but was "+ condition.Type);
+            
             _condition = condition;
             _result = result;
         }
@@ -22,8 +26,10 @@ namespace Funny.Interpritation
             }
         }
 
-        public bool IsSatisfied() => _condition.Calc() != 0;
-        public double Calc() 
+        public bool IsSatisfied() => (bool)_condition.Calc();
+        public object Calc() 
             => _result.Calc();
+        public VarType Type => _result.Type;
+
     }
 }

@@ -36,7 +36,7 @@ namespace Funny.Runtime
             for (int i = 0; i < _equatations.Length; i++)
             {
                 var e = _equatations[i];
-                ans[i] = Var.New(e.Id, e.Expression.Calc());
+                ans[i] = new Var(e.Id, e.Expression.Calc(), e.Expression.Type);
                 if (e.ReusingWithOtherEquatations)
                     _variables[e.Id.ToLower()].SetValue(ans[i].Value);
             }

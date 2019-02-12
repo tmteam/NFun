@@ -38,10 +38,10 @@ namespace Funny.Tests
             var runtime = Interpreter.BuildOrThrow(expr);
                
             runtime.Calculate(
-                    Var.New("x1",x1),
-                    Var.New("x2",x2), 
-                    Var.New("x3",x3))
-                .AssertReturns(Var.New("y", expected));
+                    Var.Number("x1",x1),
+                    Var.Number("x2",x2), 
+                    Var.Number("x3",x3))
+                .AssertReturns(Var.Number("y", expected));
         }
         
         [TestCase("y = if 1<2 then 10 else -10", 10)]

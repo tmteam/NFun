@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Funny.Runtime;
 
 namespace Funny.Interpritation
 {
@@ -15,7 +16,10 @@ namespace Funny.Interpritation
             Children = _args;
         }
         public IEnumerable<IExpressionNode> Children { get; }
-        public double Calc() 
-            => _fun.Calc(_args.Select(a => a.Calc()).ToArray());
+        public object Calc() 
+            => _fun.Calc(_args.Select(a => a.Calc()).Cast<double>().ToArray());
+        
+        public VarType Type => VarType.NumberType;
+
     }
 }

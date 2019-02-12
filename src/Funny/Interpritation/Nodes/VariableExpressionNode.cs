@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Funny.Runtime;
 
 namespace Funny.Interpritation
 {
@@ -17,6 +18,8 @@ namespace Funny.Interpritation
             get { yield break;}
         }
 
+        public VarType Type => VarType.NumberType;
+
         public HashSet<int> usedInOutputs = new HashSet<int>();
         public bool IsOutput { get; set; } = false;
         public void AddEquatationNum(int num)
@@ -25,7 +28,7 @@ namespace Funny.Interpritation
                 usedInOutputs.Add(num);
         }
         
-        public double Calc() => _value;
+        public object Calc() => _value;
         private static int _count = 0;
         private readonly int uid = _count++;
         public override string ToString()

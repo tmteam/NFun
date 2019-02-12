@@ -1,0 +1,9 @@
+namespace Funny.Runtime
+{
+    public enum VarType
+    {
+        BoolType = 1,
+        IntType = 2,
+        NumberType = 3,
+    }
+}

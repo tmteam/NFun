@@ -22,7 +22,7 @@ namespace Funny.Tests
         {
             var runtime = Interpreter.BuildOrThrow(expr);
             runtime.Calculate()
-                .AssertReturns(0.00001, Var.New("y", expected));
+                .AssertReturns(0.00001, Var.Number("y", expected));
         }
         
         [TestCase("y = abs(x)",1,1)]
@@ -35,8 +35,8 @@ namespace Funny.Tests
         public void EquatationWithPredefinedFunction(string expr, double arg, double expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
-            runtime.Calculate(Var.New("x", arg))
-                .AssertReturns(0.00001, Var.New("y", expected));
+            runtime.Calculate(Var.Number("x", arg))
+                .AssertReturns(0.00001, Var.Number("y", expected));
         }
         [TestCase("y = pi(")]
         [TestCase("y = pi(1)")]

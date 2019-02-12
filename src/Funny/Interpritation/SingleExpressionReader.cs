@@ -30,7 +30,7 @@ namespace Funny.Interpritation
                 return GetIfThanElseNode(node, equatationNum);
             if(node.Is(LexNodeType.Number))
                 return GetValueNode(node);
-            if (_ops.ContainsKey(node.Type))
+            if (DefaultOperations.IsDefault(node.Type))
                 return GetOpNode(node, equatationNum);
             
             throw new ArgumentException($"Unknown lexnode type {node.Type}");
@@ -54,7 +54,6 @@ namespace Funny.Interpritation
         
         private IExpressionNode GetOpNode(LexNode node, int equatationNum)
         {
-            var op = _ops[node.Type];
             var left = node.Children.ElementAtOrDefault(0);
             if (left == null)
                 throw new ParseException("\"a\" node is missing");
@@ -66,7 +65,7 @@ namespace Funny.Interpritation
             var leftExpr = ReadNode(left, equatationNum);
             var rightExpr = ReadNode(right, equatationNum);
             
-            return new OpExpressionNode(leftExpr, rightExpr, op);
+            return DefaultOperations.GetOp(node.Type, leftExpr, rightExpr);            
         }
 
         private IExpressionNode GetIfThanElseNode(LexNode node, int equatationNum)
@@ -108,25 +107,7 @@ namespace Funny.Interpritation
             }
         }
 
-        private static Dictionary<LexNodeType, Func<double, double, double>> _ops =
-            new Dictionary<LexNodeType, Func<double, double, double>>()
-            {
-                {LexNodeType.Plus,(a, b) => a + b},
-                {LexNodeType.Minus,(a, b) => a - b},
-                {LexNodeType.Div,(a, b) => a / b},
-                {LexNodeType.Mult,(a, b) => a * b},
-                {LexNodeType.Pow,Math.Pow},
-                {LexNodeType.Rema,(a, b) => a % b},
-                {LexNodeType.And,(a, b) => (a != 0 && b != 0) ? 1 : 0},
-                {LexNodeType.Or,(a, b) => (a != 0 || b != 0) ? 1 : 0},        
-                {LexNodeType.Xor,(a, b) => ((a != 0) != (b != 0)) ? 1 : 0},
-                {LexNodeType.Equal, (a, b) => (a == b) ? 1 : 0},                    
-                {LexNodeType.NotEqual,(a, b) => (a != b) ? 1 : 0},                    
-                {LexNodeType.Less,(a, b) => (a < b) ? 1 : 0},                   
-                {LexNodeType.LessOrEqual,(a, b) => (a <= b) ? 1 : 0},                    
-                {LexNodeType.More,(a, b) => (a > b) ? 1 : 0},                    
-                {LexNodeType.MoreOrEqual,(a, b) => (a >= b) ? 1 : 0},                  
-            };
+
         private IExpressionNode GetFunNode(LexNode node, int equatationNum)
         {
             var id = node.Value.ToLower();

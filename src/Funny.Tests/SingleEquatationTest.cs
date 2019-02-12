@@ -100,8 +100,8 @@ namespace Funny.Tests
         public void SingleVariableEquatation(string expr, double arg, double expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
-            runtime.Calculate(Var.New("x",arg))
-                .AssertReturns(0.00001, Var.New("y", expected));
+            runtime.Calculate(Var.Number("x",arg))
+                .AssertReturns(0.00001, Var.Number("y", expected));
         }
 
         [TestCase("y = ()")]
@@ -158,8 +158,8 @@ namespace Funny.Tests
         {
             var runtime = Interpreter.BuildOrThrow(expr);
             var res = runtime.Calculate(
-                Var.New("x1", arg1),
-                Var.New("x2", arg2));
+                Var.Number("x1", arg1),
+                Var.Number("x2", arg2));
 
             Assert.AreEqual(expected, res.Results.First().Value);
         }

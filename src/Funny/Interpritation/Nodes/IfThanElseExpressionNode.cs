@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Funny.Runtime;
 
 namespace Funny.Interpritation
 {
@@ -16,7 +17,7 @@ namespace Funny.Interpritation
 
         public IEnumerable<IExpressionNode> Children 
             => _ifCaseNodes.Append(_elseNode);
-        public double Calc()
+        public object Calc()
         {
             foreach (var ifCase in _ifCaseNodes)
             {
@@ -26,5 +27,7 @@ namespace Funny.Interpritation
 
             return _elseNode.Calc();
         }
+        public VarType Type => VarType.NumberType;
+
     }
 }

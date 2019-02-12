@@ -20,7 +20,10 @@ namespace Funny.Interpritation
         }
 
         readonly Stack<double[]> _recursiveArgsStack  
-            = new Stack<double[]>();       
+            = new Stack<double[]>();
+
+        public override VarType CalcType() => VarType.NumberType;
+
         public override double Calc(double[] args)
         {
             try
@@ -33,7 +36,7 @@ namespace Funny.Interpritation
                     throw new ArgumentException();
                 SetVariables(args);
                 
-                return _expression.Calc();
+                return (double)_expression.Calc();
             }
             finally
             {

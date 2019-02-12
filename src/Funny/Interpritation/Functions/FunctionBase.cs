@@ -1,3 +1,5 @@
+using Funny.Runtime;
+
 namespace Funny.Interpritation
 {
     public abstract class FunctionBase
@@ -11,6 +13,7 @@ namespace Funny.Interpritation
             ArgsCount = argsCount;
         }
 
+        public abstract VarType CalcType();
         public abstract double Calc(double[] args);
     }
 }

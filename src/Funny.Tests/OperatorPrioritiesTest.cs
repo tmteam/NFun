@@ -8,23 +8,23 @@ namespace Funny.Tests
     [TestFixture]
     public class OperatorPrioritiesTest
     {
-        [TestCase("y=x1 and x2 ==  x3","y=x1 and (x2==x3)")]
-        [TestCase("y=x1 ==  x2 and x3","y=(x1==x2) and x3")]
+        [TestCase("y=(x1<>0) and (x2<>0) ==  (x3<>0)","y=(x1<>0) and ((x2<>0)==(x3<>0))")]
+        [TestCase("y=(x1<>0) ==  (x2<>0) and (x3<>0)","y=((x1<>0)==(x2<>0)) and (x3<>0)")]
 
-        [TestCase("y=x1 and x2 or  x3","y=(x1 and x2) or x3")]
-        [TestCase("y=x1 or  x2 and x3","y=x1 or (x2 and x3)")]
+        [TestCase("y=(x1<>0) and (x2<>0) or  (x3<>0)","y=((x1<>0) and (x2<>0)) or (x3<>0)")]
+        [TestCase("y=(x1<>0) or  (x2<>0) and (x3<>0)","y=(x1<>0) or ((x2<>0) and (x3<>0))")]
         
-        [TestCase("y=x1  <> x2  or x3","y=(x1<>x2) or x3")]
-        [TestCase("y=x1  or x2  <> x3","y=x1 or (x2<>x3)")]
+        [TestCase("y=(x1<>0)  <> (x2<>0)  or (x3<>0)","y=((x1<>0)<>(x2<>0)) or (x3<>0)")]
+        [TestCase("y=(x1<>0)  or (x2<>0)  <> (x3<>0)","y=(x1<>0) or ((x2<>0)<>(x3<>0))")]
 
-        [TestCase("y=x1  <> x2 and x3","y=(x1<>x2) and x3")]
-        [TestCase("y=x1 and x2  <> x3","y=x1 and (x2<>x3)")]
+        [TestCase("y=(x1<>0)  <> (x2<>0) and (x3<>0)","y=((x1<>0)<>(x2<>0)) and (x3<>0)")]
+        [TestCase("y=(x1<>0) and (x2<>0)  <> (x3<>0)","y=(x1<>0) and ((x2<>0)<>(x3<>0))")]
 
-        [TestCase("y=x1  == x2 or  x3","y=(x1==x2) or  x3")]
-        [TestCase("y=x1  or x2  == x3","y=x1  or (x2==x3)")]
+        [TestCase("y=(x1<>0)  == (x2<>0) or  (x3<>0)","y=((x1<>0)==(x2<>0)) or  (x3<>0)")]
+        [TestCase("y=(x1<>0)  or (x2<>0)  == (x3<>0)","y=(x1<>0)  or ((x2<>0)==(x3<>0))")]
         
-        [TestCase("y=x1  == x2 <>  x3","y=(x1==x2) <>  x3")]
-        [TestCase("y=x1  <> x2  == x3","y=(x1<>x2)  == x3")]
+        [TestCase("y=(x1<>0)  == (x2<>0) <>  (x3<>0)","y=((x1<>0)==(x2<>0)) <>  (x3<>0)")]
+        [TestCase("y=(x1<>0)  <> (x2<>0)  == (x3<>0)","y=((x1<>0)<>(x2<>0))  == (x3<>0)")]
 
         public void DiscreetePriorities(string actualExpr, string expectedExpr)
         {
@@ -33,9 +33,9 @@ namespace Funny.Tests
             foreach (var x2 in new[] {0, 1})
             foreach (var x3 in new[] {0, 1})
                 allCombinations.Add(new[]{
-                    Var.New("x1",x1),
-                    Var.New("x2",x2),
-                    Var.New("x3",x3)});
+                    Var.Number("x1",x1),
+                    Var.Number("x2",x2),
+                    Var.Number("x3",x3)});
 
             Assert.Multiple(()=>{
                 foreach (var inputs in allCombinations)
@@ -79,7 +79,7 @@ namespace Funny.Tests
             Interpreter
                 .BuildOrThrow(actualExpr)
                 .Calculate()
-                .AssertReturns(Var.New("y", expected));
+                .AssertReturns(Var.Number("y", expected));
         }
         
     }

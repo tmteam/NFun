@@ -26,7 +26,7 @@ namespace Funny.Interpritation
             var funDic = predefinedFunctions.ToDictionary((f) => f.Name.ToLower());
             var ans = new ExpressionReader(lexTree, funDic);
             ans.Interpritate();
-
+            
             var result = OrderEquatationsOrThrow(lexTree.Equatations, ans);
             return new FunRuntime(result,  ans._variables);
         }
