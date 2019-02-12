@@ -36,13 +36,15 @@ namespace Funny.Tokenization
         
         private readonly Dictionary<string, TokType> _keywords = new Dictionary<string, TokType>
         {
-            {"and", TokType.And},
-            {"or", TokType.Or},
-            {"xor", TokType.Xor},
-            {"not", TokType.Not},
-            {"if", TokType.If},
-            {"then", TokType.Then},
-            {"else", TokType.Else},
+            {"and",   TokType.And},
+            {"or",    TokType.Or},
+            {"xor",   TokType.Xor},
+            {"not",   TokType.Not},
+            {"if",    TokType.If},
+            {"then",  TokType.Then},
+            {"else",  TokType.Else},
+            {"true",  TokType.True},
+            {"false", TokType.False},
         };
         
         public Tok TryReadNext(string str, int position)

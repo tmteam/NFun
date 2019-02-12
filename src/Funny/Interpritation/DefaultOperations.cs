@@ -98,7 +98,7 @@ namespace Funny.Interpritation
                 case LexNodeType.And:
                     return GetBooleanOpOrThrow(type, left, right, (a, b) => a && b);
                 case LexNodeType.Or:
-                    return GetBooleanOpOrThrow(type, left, right, (a, b) => a && b);
+                    return GetBooleanOpOrThrow(type, left, right, (a, b) => a || b);
                 case LexNodeType.Xor:
                     return GetBooleanOpOrThrow(type, left, right, (a, b) =>  a != b);
                 case LexNodeType.Equal:

@@ -89,6 +89,11 @@ namespace Funny.Interpritation
             {
                 if (val.Length > 2)
                 {
+                    if(val == "true")
+                        return new ValueExpressionNode(true);
+                    if(val == "false")
+                        return new ValueExpressionNode(false);
+                    
                     val = val.Replace("_", null);
 
                     if (val[1] == 'b')

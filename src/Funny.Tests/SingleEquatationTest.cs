@@ -48,6 +48,8 @@ namespace Funny.Tests
 
         [TestCase("y = 1==1",1)]
         [TestCase("y = 1==0",0)]
+        [TestCase("y = true==true",1)]
+        [TestCase("y = true==false",0)]
         [TestCase("y = 1<>0",1)]
         [TestCase("y = 0<>1",1)]
         [TestCase("y = 5<>5",0)]
@@ -60,15 +62,15 @@ namespace Funny.Tests
         [TestCase("y = 5<=5", 1)]
         [TestCase("y = 5<=3", 0)]
         [TestCase("y = 5<=6", 1)]
-        [TestCase("y = 1 and 1", 1)]
-        [TestCase("y = 1 and 0", 0)]
-        [TestCase("y = 0 and 0", 0)]
-        [TestCase("y = 1 or 1", 1)]
-        [TestCase("y = 1 or 0", 1)]
-        [TestCase("y = 0 or 0", 0)]
-        [TestCase("y = 1 xor 1", 0)]
-        [TestCase("y = 1 xor 0", 1)]
-        [TestCase("y = 0 xor 0", 0)]
+        [TestCase("y = true and true", 1)]
+        [TestCase("y = true and false", 0)]
+        [TestCase("y = false and false", 0)]
+        [TestCase("y = true or true", 1)]
+        [TestCase("y = true or false", 1)]
+        [TestCase("y = false or false", 0)]
+        [TestCase("y = true xor true", 0)]
+        [TestCase("y = true xor false", 1)]
+        [TestCase("y = false xor false", 0)]
         public void DiscreeteConstantEquataion(string expr, double expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);

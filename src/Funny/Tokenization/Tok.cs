@@ -82,7 +82,9 @@ namespace Funny.Tokenization
         /// </summary>
         Sep,
         NotAToken,
-        
+
+        True,
+        False
     }
     
 }

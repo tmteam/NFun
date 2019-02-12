@@ -53,6 +53,10 @@ namespace Funny.Parsing
                 return LexNode.Op(LexNodeType.Mult, LexNode.Num("-1"), nextNode);
             }
 
+            if (MoveIf(TokType.True, out var trueTok))
+                return LexNode.Num(trueTok.Value);
+            if (MoveIf(TokType.False, out var falseTok))
+                return LexNode.Num(falseTok.Value);
             if (MoveIf(TokType.Number, out var val))
                 return LexNode.Num(val.Value);
             ;
