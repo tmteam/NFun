@@ -46,36 +46,36 @@ namespace Funny.Tests
             Assert.AreEqual(expected, res.Results.First().Value);
         }
 
-        [TestCase("y = 1==1",1)]
-        [TestCase("y = 1==0",0)]
-        [TestCase("y = true==true",1)]
-        [TestCase("y = true==false",0)]
-        [TestCase("y = 1<>0",1)]
-        [TestCase("y = 0<>1",1)]
-        [TestCase("y = 5<>5",0)]
-        [TestCase("y = 5>5", 0)]
-        [TestCase("y = 5>3", 1)]
-        [TestCase("y = 5>6", 0)]
-        [TestCase("y = 5>=5", 1)]
-        [TestCase("y = 5>=3", 1)]
-        [TestCase("y = 5>=6", 0)]
-        [TestCase("y = 5<=5", 1)]
-        [TestCase("y = 5<=3", 0)]
-        [TestCase("y = 5<=6", 1)]
-        [TestCase("y = true and true", 1)]
-        [TestCase("y = true and false", 0)]
-        [TestCase("y = false and false", 0)]
-        [TestCase("y = true or true", 1)]
-        [TestCase("y = true or false", 1)]
-        [TestCase("y = false or false", 0)]
-        [TestCase("y = true xor true", 0)]
-        [TestCase("y = true xor false", 1)]
-        [TestCase("y = false xor false", 0)]
-        public void DiscreeteConstantEquataion(string expr, double expected)
+        [TestCase("y = 1==1",true)]
+        [TestCase("y = 1==0",false)]
+        [TestCase("y = true==true",true)]
+        [TestCase("y = true==false",false)]
+        [TestCase("y = 1<>0",true)]
+        [TestCase("y = 0<>1",true)]
+        [TestCase("y = 5<>5",false)]
+        [TestCase("y = 5>5", false)]
+        [TestCase("y = 5>3", true)]
+        [TestCase("y = 5>6", false)]
+        [TestCase("y = 5>=5", true)]
+        [TestCase("y = 5>=3", true)]
+        [TestCase("y = 5>=6", false)]
+        [TestCase("y = 5<=5", true)]
+        [TestCase("y = 5<=3", false)]
+        [TestCase("y = 5<=6", true)]
+        [TestCase("y = true and true", true)]
+        [TestCase("y = true and false", false)]
+        [TestCase("y = false and false", false)]
+        [TestCase("y = true or true", true)]
+        [TestCase("y = true or false", true)]
+        [TestCase("y = false or false", false)]
+        [TestCase("y = true xor true", false)]
+        [TestCase("y = true xor false", true)]
+        [TestCase("y = false xor false", false)]
+        public void DiscreeteConstantEquataion(string expr, bool expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
-            var res = runtime.Calculate();
-            Assert.AreEqual(expected, res.Results.First().Value);
+            runtime.Calculate()
+                .AssertReturns(new Var("y", expected, VarType.BoolType));
         }
         
 
@@ -102,8 +102,8 @@ namespace Funny.Tests
         public void SingleVariableEquatation(string expr, double arg, double expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
-            runtime.Calculate(Var.Number("x",arg))
-                .AssertReturns(0.00001, Var.Number("y", expected));
+            runtime.Calculate(Var.New("x",arg))
+                .AssertReturns(0.00001, Var.New("y", expected));
         }
 
         [TestCase("y = ()")]
@@ -160,8 +160,8 @@ namespace Funny.Tests
         {
             var runtime = Interpreter.BuildOrThrow(expr);
             var res = runtime.Calculate(
-                Var.Number("x1", arg1),
-                Var.Number("x2", arg2));
+                Var.New("x1", arg1),
+                Var.New("x2", arg2));
 
             Assert.AreEqual(expected, res.Results.First().Value);
         }

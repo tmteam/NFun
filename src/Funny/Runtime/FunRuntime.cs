@@ -27,7 +27,7 @@ namespace Funny.Runtime
             {
                 var varName = value.Name;
                 if (_variables.TryGetValue(varName, out var varNode))
-                    varNode.SetValue(value.Value);
+                    varNode.SetValue(Convert.ToDouble(value.Value));
                 else
                     throw new ArgumentException(value.Name);
             }
@@ -38,7 +38,7 @@ namespace Funny.Runtime
                 var e = _equatations[i];
                 ans[i] = new Var(e.Id, e.Expression.Calc(), e.Expression.Type);
                 if (e.ReusingWithOtherEquatations)
-                    _variables[e.Id.ToLower()].SetValue(ans[i].Value);
+                    _variables[e.Id.ToLower()].SetValue(Convert.ToDouble(ans[i].Value));
             }
             return new CalculationResult(ans);
         }

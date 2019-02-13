@@ -15,14 +15,14 @@ namespace Funny.Tests
                 @"
                 
                 y = 1");
-            runtime.Calculate().AssertReturns(Var.Number("y",1));
+            runtime.Calculate().AssertReturns(Var.New("y",1));
         }
         
         [Test]
         public void SeveralLinesAfterуEqual_Calculates()
         {
             var runtime = Interpreter.BuildOrThrow("y =\r\r 1");
-            runtime.Calculate().AssertReturns(Var.Number("y",1));
+            runtime.Calculate().AssertReturns(Var.New("y",1));
         }
         
         [TestCase("y = \r1",1)]
@@ -37,10 +37,10 @@ namespace Funny.Tests
         [TestCase("y = (2+3\r)",5)]
         [TestCase("y = \r(\r2\r+\r3\r)*(\r3\r)",15)]
 
-        public void SeveralLinesBetweenNodes_Calculates(string expr, double expected)
+        public void SeveralLinesBetweenNodes_Calculates(string expr, int expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
-            runtime.Calculate().AssertReturns(Var.Number("y",expected));
+            runtime.Calculate().AssertReturns(Var.New("y",expected));
         }
         
         [Test]
@@ -50,7 +50,7 @@ namespace Funny.Tests
                 @"y = 1
 
                 ");
-            runtime.Calculate().AssertReturns(Var.Number("y",1));
+            runtime.Calculate().AssertReturns(Var.New("y",1));
         }
         
         [Test]
@@ -65,14 +65,14 @@ namespace Funny.Tests
                     1
 
                 ");
-            runtime.Calculate().AssertReturns(Var.Number("y",1));
+            runtime.Calculate().AssertReturns(Var.New("y",1));
         }
         
         [Test]
         public void TabulationEverywhere_Calculates()
         {
             var runtime = Interpreter.BuildOrThrow("\t\ty\t\t=\t\t1\t\t");
-            runtime.Calculate().AssertReturns(Var.Number("y",1));
+            runtime.Calculate().AssertReturns(Var.New("y",1));
         }
         
         /* TODO: Is it an error?

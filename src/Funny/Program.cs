@@ -53,7 +53,7 @@ namespace Funny
             var tokens = Tokenizer.ToTokens(ex);
             var flow = new TokenFlow(tokens);
             var eq =  Parser.Parse(flow).Equatations;
-            var res = runtime.Calculate(Var.Number("x", 3));
+            var res = runtime.Calculate(Var.New("x", 3));
             
             Console.WriteLine("Res: "+ res);
             Console.ReadLine();

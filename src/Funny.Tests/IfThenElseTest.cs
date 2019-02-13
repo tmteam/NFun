@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Funny.Interpritation;
 using Funny.Runtime;
@@ -19,7 +20,7 @@ namespace Funny.Tests
         [TestCase(3,9,0,8)]
         [TestCase(9,4,0,9)]
         [TestCase(9,9,0,10)]
-        public void NestedIfThenElse(double x1, double x2, double x3, double expected)
+        public void NestedIfThenElse(double x1, double x2, double x3, int expected)
         {
             var expr = @"
                 y = if x1 == 1 then 1 
@@ -38,10 +39,10 @@ namespace Funny.Tests
             var runtime = Interpreter.BuildOrThrow(expr);
                
             runtime.Calculate(
-                    Var.Number("x1",x1),
-                    Var.Number("x2",x2), 
-                    Var.Number("x3",x3))
-                .AssertReturns(Var.Number("y", expected));
+                    Var.New("x1",Convert.ToDouble(x1)),
+                    Var.New("x2",Convert.ToDouble(x2)), 
+                    Var.New("x3",Convert.ToDouble(x3)))
+                .AssertReturns(Var.New("y", expected));
         }
         
         [TestCase("y = if 1<2 then 10 else -10", 10)]
@@ -51,7 +52,17 @@ namespace Funny.Tests
         [TestCase("y = if 2==1 then 10\r else -10", -10)]
         [TestCase("y = if 2<1 then 10 if 2>1 then -10 else 0", -10)]
         [TestCase("y = if 1>2 then 10\r if 1<2 then -10\r else 0", -10)]
-        public void ConstantEquatation(string expr, double expected)
+        public void ConstantIntEquatation(string expr, int expected)
+        {
+            var runtime = Interpreter.BuildOrThrow(expr);
+            var res = runtime.Calculate();
+            Assert.AreEqual(1, res.Results.Length);
+            Assert.AreEqual(expected, res.Results.First().Value);
+        }
+        [TestCase("y = if 1<2 then true else false", true)]
+        [TestCase("y = if true then true else false", true)]
+        [TestCase("y = if true then true if false then false else true", true)]
+        public void ConstantBoolEquatation(string expr, bool expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
             var res = runtime.Calculate();
@@ -59,13 +70,28 @@ namespace Funny.Tests
             Assert.AreEqual(expected, res.Results.First().Value);
         }
         
+        [TestCase("y = if 1<2 then 10 else -10.0", 10.0)]
+        [TestCase("y = if 1>2 then -10.0 else 10", 10.0)]
+        [TestCase("y = if 2>1 then 10.0 else -10.0", 10.0)]
+        [TestCase("y = if 2>1 then 10.0\r else -10.0", 10.0)]
+        [TestCase("y = if 2==1 then 10.0\r else -10", -10.0)]
+        [TestCase("y = if 2<1 then 10.0 if 2>1 then -10.0 else 0", -10.0)]
+        [TestCase("y = if 1>2 then 10.0\r if 1<2 then -10.0\r else 0.0", -10.0)]
+        public void ConstantRealEquatation(string expr, double expected)
+        {
+            var runtime = Interpreter.BuildOrThrow(expr);
+            var res = runtime.Calculate();
+            Assert.AreEqual(1, res.Results.Length);
+            Assert.AreEqual(expected, res.Results.First().Value);
+        }
+        
+        [TestCase("y = if then 3 else 4")]
         [TestCase("y = if then 3")]
         [TestCase("y = if 1>0 then 3")]
         [TestCase("y = if (1>0) 3")]
         [TestCase("y = if (1>0) then 3 else")]
         [TestCase("y = if (1>0) then else 4")]
         [TestCase("y = if (1>0) then 2 if then 3 else 4")]
-        [TestCase("y = if then 3 else 4")]
         [TestCase("y = if (1>0) then 3 then 5")]
         [TestCase("y = if (1>0) then then 5")]
         [TestCase("y = if else 3")]
@@ -73,8 +99,15 @@ namespace Funny.Tests
         [TestCase("y = if 1>0 then if 2>0 then 2 else 3")]
         [TestCase("y = then 3")]
         [TestCase("y = else then 3")]
-        public void ObviouslyFails(string expr) =>
+        public void ObviouslyFailsOnParsing(string expr) =>
             Assert.Throws<ParseException>(
+                ()=> Interpreter.BuildOrThrow(expr));
+        
+        [TestCase("y = if 2>1 then 3 else true")]
+        [TestCase("y = if 2>1 then 3 if 2<1 then true else 1")]
+        [TestCase("y = if 2>1 then false if 2<1 then true else 1")]
+        public void ObviouslyFailsOnOuputCast(string expr) =>
+            Assert.Throws<OutpuCastParseException>(
                 ()=> Interpreter.BuildOrThrow(expr));
     }
 }

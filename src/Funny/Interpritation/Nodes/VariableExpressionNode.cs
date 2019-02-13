@@ -13,6 +13,7 @@ namespace Funny.Interpritation
         }
         
         private double _value;
+        
         public void SetValue(double value) => _value = value;
         public IEnumerable<IExpressionNode> Children {
             get { yield break;}

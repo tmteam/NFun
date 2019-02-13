@@ -33,9 +33,9 @@ namespace Funny.Tests
             foreach (var x2 in new[] {0, 1})
             foreach (var x3 in new[] {0, 1})
                 allCombinations.Add(new[]{
-                    Var.Number("x1",x1),
-                    Var.Number("x2",x2),
-                    Var.Number("x3",x3)});
+                    Var.New("x1",x1),
+                    Var.New("x2",x2),
+                    Var.New("x3",x3)});
 
             Assert.Multiple(()=>{
                 foreach (var inputs in allCombinations)
@@ -50,7 +50,7 @@ namespace Funny.Tests
                         .Calculate(inputs)
                         .GetResultOf("y");
 
-                    if (actual != expected)
+                    if (!actual.Equals(expected))
                         Assert.Fail($"On x1={inputs[0].Value} x2={inputs[1].Value} x3={inputs[2].Value}\r" +
                                     $"Eq: {actualExpr}\r" +
                                     $"Expected: {expected}\r" +
@@ -74,12 +74,12 @@ namespace Funny.Tests
         
         public void ArithmeticPriorities(string actualExpr, string expectedExpr)
         {
-            var expected = Interpreter.BuildOrThrow(expectedExpr).Calculate().GetResultOf("y");
+            var expected = Interpreter.BuildOrThrow(expectedExpr).Calculate().Get("y");
             
             Interpreter
                 .BuildOrThrow(actualExpr)
                 .Calculate()
-                .AssertReturns(Var.Number("y", expected));
+                .AssertReturns(new Var("y", expected.Value, expected.Type));
         }
         
     }

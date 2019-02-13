@@ -11,7 +11,7 @@ namespace Funny.Interpritation
         public IfCaseExpressionNode(IExpressionNode condition, IExpressionNode result)
         {
             if(condition.Type!= VarType.BoolType)
-                throw new UpTypeCastParseException("if Condition has to be boolean but was "+ condition.Type);
+                throw new OutpuCastParseException("if Condition has to be boolean but was "+ condition.Type);
             
             _condition = condition;
             _result = result;

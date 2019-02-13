@@ -12,18 +12,25 @@ namespace Funny.Tests
             Assert.Multiple(() =>
             {
                 foreach (var variable in vars) 
-                    AssertHas(result, variable.Name, variable.Value, delta);
+                    AssertHas(result, variable, delta);
             });
         }
         public static void AssertReturns(this CalculationResult result,  params Var[] vars)
         {
             AssertReturns(result,0, vars);
         }
-        public static void AssertHas(this CalculationResult result, string name, double value, double delta = 0)
+        public static void AssertHas(this CalculationResult result, Var variable, double delta = 0)
         {
-            var res = result.Results.FirstOrDefault(r => r.Name == name);
-            Assert.IsNotNull(res, $"variable {name} not found");
-            Assert.AreEqual (value, res.Value, delta, $"var \"{name}\" expected: {value}, but was: {res.Value}");
+            var res = result.Results.FirstOrDefault(r => r.Name == variable.Name);
+            Assert.IsNotNull(res, $"Variable \"{variable.Name}\" not found");
+            Assert.AreEqual(res.Type, variable.Type, $"Variable \"{variable.Name}\" has wrong type");
+            
+            if(variable.Type== VarType.NumberType)
+                Assert.AreEqual ((double)variable.Value, (double)res.Value, delta, 
+                    $"Var \"{variable}\" expected: {variable.Value}, but was: {res.Value}");
+            else
+                Assert.AreEqual(variable.Value, res.Value, 
+                    $"Var \"{variable}\" expected: {variable.Value}, but was: {res.Value}");
         }
     }
 }

@@ -16,14 +16,14 @@ namespace Funny.Tests
         public void ConstantEquatation_NonRecursiveFunction(string expr, double expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
-            runtime.Calculate().AssertReturns(0.00001, Var.Number("y", expected));
+            runtime.Calculate().AssertReturns(0.00001, Var.New("y", expected));
         }
 
         [TestCase("plus3(a,b,c) = plus(a,b)+c \r plus(a,b) = a+b  \r y = plus3(16,4,2)",22)]
         public void ConstantEquatation_ReversedImplementationsOfFunctions(string expr, double expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
-            runtime.Calculate().AssertReturns(0.00001, Var.Number("y", expected));
+            runtime.Calculate().AssertReturns(0.00001, Var.New("y", expected));
         }
         
         
@@ -34,7 +34,7 @@ namespace Funny.Tests
         public void ConstantEquatation_RecFunctions(string expr, double expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
-            runtime.Calculate().AssertReturns(0.00001, Var.Number("y", expected));
+            runtime.Calculate().AssertReturns(0.00001, Var.New("y", expected));
         }
         [TestCase(1,1)]
         [TestCase(2,1)]
@@ -56,7 +56,7 @@ namespace Funny.Tests
                    fib(n) = if n<3 then 1 else fibrec(n-1,2,1,1)
                    y = fib(x)";
             var runtime = Interpreter.BuildOrThrow(text);
-                runtime.Calculate(Var.Number("x",x)).AssertReturns(0.00001, Var.Number("y", y));    
+                runtime.Calculate(Var.New("x",x)).AssertReturns(0.00001, Var.New("y", y));    
         }
         
         [TestCase(1,1)]
@@ -75,7 +75,7 @@ namespace Funny.Tests
                    fib(n) = if n<3 then 1 else fib(n-1)+fib(n-2)
                    y = fib(x)";
             var runtime = Interpreter.BuildOrThrow(text);
-            runtime.Calculate(Var.Number("x",x)).AssertReturns(0.00001, Var.Number("y", y));    
+            runtime.Calculate(Var.New("x",x)).AssertReturns(0.00001, Var.New("y", y));    
         }
         [TestCase("y = raise(1)\r raise(x) = raise(x)")]
         [TestCase("y = f(1)\r f(x) = g(x) \r g(x) = f(x)")]

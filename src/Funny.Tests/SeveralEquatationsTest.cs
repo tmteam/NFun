@@ -16,8 +16,8 @@ namespace Funny.Tests
             var runtime = Interpreter.BuildOrThrow(expr);
             runtime.Calculate()
                 .AssertReturns(
-                    Var.Number("y", expectedY),
-                    Var.Number("z", expectedZ));
+                    Var.New("y", expectedY),
+                    Var.New("z", expectedZ));
         }
         
         [TestCase("y = x\r z=3",2, 2,3)]
@@ -25,10 +25,10 @@ namespace Funny.Tests
         public void TwinEquatationsWithSingleVariable(string expr, double x, double expectedY, double expectedZ)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
-            runtime.Calculate(Var.Number("x", x))
+            runtime.Calculate(Var.New("x", x))
                 .AssertReturns(
-                    Var.Number("y", expectedY),
-                    Var.Number("z", expectedZ));        
+                    Var.New("y", expectedY),
+                    Var.New("z", expectedZ));        
         }
         
         [TestCase("y = 1\r z=2", new string[0])]        
@@ -60,10 +60,10 @@ namespace Funny.Tests
         public void TwinDependentEquatationsWithSingleVariable_CalculatesCorrect(double x, string expr,  double expectedY, double expectedZ)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
-            runtime.Calculate(Var.Number("x", x))
+            runtime.Calculate(Var.New("x", x))
                 .AssertReturns(
-                    Var.Number("y", expectedY),
-                    Var.Number("z", expectedZ));
+                    Var.New("y", expectedY),
+                    Var.New("z", expectedZ));
         }
         
         [TestCase("o1 = 1\r o2=o1\r o3 = 0", 1, 1, 0)]
@@ -75,9 +75,9 @@ namespace Funny.Tests
             var runtime = Interpreter.BuildOrThrow(expr);
             runtime.Calculate()
                 .AssertReturns(
-                    Var.Number("o1", o1),
-                    Var.Number("o2", o2),
-                    Var.Number("o3", o3));
+                    Var.New("o1", o1),
+                    Var.New("o2", o2),
+                    Var.New("o3", o3));
         }
         
         [TestCase(2,"o1 = x\r o2=o1\r o3 = 0", 2, 2, 0)]
@@ -86,11 +86,11 @@ namespace Funny.Tests
         public void ThreeDependentEquatationsWithSingleVariable_CalculatesCorrect(double x,string expr,  double o1, double o2, double o3)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
-            runtime.Calculate(Var.Number("x", x))
+            runtime.Calculate(Var.New("x", x))
                 .AssertReturns(
-                    Var.Number("o1", o1),
-                    Var.Number("o2", o2),
-                    Var.Number("o3", o3));
+                    Var.New("o1", o1),
+                    Var.New("o2", o2),
+                    Var.New("o3", o3));
         }
         
         [Test]
@@ -106,12 +106,12 @@ namespace Funny.Tests
             
             runtime.Calculate()
                 .AssertReturns(
-                    Var.Number("o1", 1),
-                    Var.Number("o2", 2),
-                    Var.Number("o3", 4),
-                    Var.Number("o4", 0.5),
-                    Var.Number("o5", 0),
-                    Var.Number("o6", 4.5));
+                    Var.New("o1", 1),
+                    Var.New("o2", 2),
+                    Var.New("o3", 4),
+                    Var.New("o4", 0.5),
+                    Var.New("o5", 0),
+                    Var.New("o6", 4.5));
         }
         
         [TestCase("o1 = o2\r o2=o1")]

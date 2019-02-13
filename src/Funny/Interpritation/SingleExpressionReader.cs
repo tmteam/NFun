@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Funny.Interpritation.Nodes;
 using Funny.Parsing;
 using Funny.Tokenization;
 
@@ -30,7 +31,7 @@ namespace Funny.Interpritation
                 return GetIfThanElseNode(node, equatationNum);
             if(node.Is(LexNodeType.Number))
                 return GetValueNode(node);
-            if (DefaultOperations.IsDefault(node.Type))
+            if (StandartOperations.IsDefault(node.Type))
                 return GetOpNode(node, equatationNum);
             
             throw new ArgumentException($"Unknown lexnode type {node.Type}");
@@ -65,7 +66,7 @@ namespace Funny.Interpritation
             var leftExpr = ReadNode(left, equatationNum);
             var rightExpr = ReadNode(right, equatationNum);
             
-            return DefaultOperations.GetOp(node.Type, leftExpr, rightExpr);            
+            return StandartOperations.GetOp(node.Type, leftExpr, rightExpr);            
         }
 
         private IExpressionNode GetIfThanElseNode(LexNode node, int equatationNum)
@@ -102,9 +103,14 @@ namespace Funny.Interpritation
                         return new ValueExpressionNode(Convert.ToInt32(val, 16));
                 }
 
-                if (val.EndsWith('.'))
-                    throw new FormatException();
-                return new ValueExpressionNode(double.Parse(val));
+                if (val.Contains('.'))
+                {
+                    if (val.EndsWith('.'))
+                        throw new FormatException();
+                    return new ValueExpressionNode(double.Parse(val));
+                }
+
+                return new ValueExpressionNode(int.Parse(val));
             }
             catch (FormatException e)
             {
