@@ -55,10 +55,15 @@ namespace Funny.Tests
             CollectionAssert.AreEquivalent(inputNames, runtime.Variables);
         }
 
+        [TestCase("y = z\r z=1.0",       1.0,1.0)]
+        [TestCase("y = 1.0\r z=y",       1.0,1.0)]
+        [TestCase("y = 1\r z=y/2",       1,0.5)]
+        [TestCase("y = true\r z=y",       true,true)]
+        [TestCase("y = z\r z=true",       true,true)]
         [TestCase("y = z\r z=1",         1,1)]
         [TestCase("y = 1\r z=y",         1,1)]
         [TestCase("y = 1\r z=y*2",       1,2)]
-        public void TwinDependentConstantEquatations_CalculatesCorrect(string expr,  double expectedY, double expectedZ)
+        public void TwinDependentConstantEquatations_CalculatesCorrect(string expr,  object expectedY, object expectedZ)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
             runtime.Calculate()
@@ -94,10 +99,10 @@ namespace Funny.Tests
                     Var.New("o3", o3));
         }
         
-        [TestCase(2,"o1 = x\r o2=o1\r o3 = 0", 2, 2, 0)]
-        [TestCase(2,"o1 = x/2\r o2 = o1+1\r o3=2*o1*o2",1, 2, 4)]
-        [TestCase(2,"o1 = x/2\r o2 = o3\n o3 = x",1, 2, 2)]
-        public void ThreeDependentEquatationsWithSingleVariable_CalculatesCorrect(double x,string expr,  double o1, double o2, double o3)
+        [TestCase(2,"o1 = x\r o2=o1\r o3 = 0", 2.0, 2.0, 0)]
+        [TestCase(2,"o1 = x/2\r o2 = o1+1\r o3=2*o1*o2",1.0, 2.0, 4.0)]
+        [TestCase(2,"o1 = x/2\r o2 = o3\n o3 = x",1.0, 2.0, 2.0)]
+        public void ThreeDependentEquatationsWithSingleVariable_CalculatesCorrect(double x,string expr,  object o1, object o2, object o3)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
             runtime.Calculate(Var.New("x", x))

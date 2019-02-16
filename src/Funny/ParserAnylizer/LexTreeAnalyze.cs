@@ -14,8 +14,9 @@ namespace Funny.ParserAnylizer
             var vars = SearchVariables(lexEquatations);
             foreach (var lexEquatation in lexEquatations)
             {
-                if (vars.ContainsKey(lexEquatation.Id))
-                    vars[lexEquatation.Id].IsOutput = true;
+                if (!vars.ContainsKey(lexEquatation.Id))
+                    vars[lexEquatation.Id] = new LexVarAnalytics(lexEquatation.Id);
+                vars[lexEquatation.Id].IsOutput = true;
             }
             return new LexTreeAnalyze()
             {

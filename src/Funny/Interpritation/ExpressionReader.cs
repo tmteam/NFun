@@ -38,43 +38,6 @@ namespace Funny.Interpritation
                 equatations: ans._equatations.Values.ToArray(),  
                 variables:   ans._variables);
         }
-/*
-        private static Equatation[] OrderEquatationsOrThrow(LexEquatation[] lexEquatations, ExpressionReader ans)
-        {
-            //now build dependencies map
-            int[][] dependencyGraph = new int[lexEquatations.Length][];
-
-            for (int i = 0; i < lexEquatations.Length; i++)
-            {
-                if (ans._variables.TryGetValue(lexEquatations[i].Id.ToLower(), out var outvar))
-                {
-                    outvar.IsOutput = true;
-                    ans._equatations.Values.ElementAt(i).ReusingWithOtherEquatations = true;
-                    
-                    dependencyGraph[i] = outvar.usedInOutputs.ToArray();
-                }
-                else
-                    dependencyGraph[i] = Array.Empty<int>();
-            }
-
-            var sortResults = GraphTools.SortTopology(dependencyGraph);
-            if (sortResults.HasCycle)
-                throw new ParseException("Cycle dependencies: "
-                                         + string.Join(',', sortResults.NodeNames));
-
-            //Equatations calculation order
-            var result = new List<Equatation>(dependencyGraph.Length);
-            //applying sort order to equatations
-            for (int i = 0; i < sortResults.NodeNames.Length; i++)
-            {
-                //order is reversed:
-                var index =  sortResults.NodeNames[sortResults.NodeNames.Length - i-1];
-                var element = ans._equatations.Values.ElementAt(index);
-                result.Add(element);
-            }
-            return result.ToArray();
-        }
-*/
 
         private ExpressionReader(
             LexTreeAnalyze analytics, 
@@ -110,6 +73,9 @@ namespace Funny.Interpritation
                 var reader = new SingleExpressionReader(_functions, _variables);
                     
                 var expression = reader.ReadNode(equatation.Equatation.Expression, equatationNum);
+                //ReplaceInputType
+                if (_variables.ContainsKey(equatation.Equatation.Id))
+                    _variables[equatation.Equatation.Id].SetType(expression.Type);
                 _equatations.Add(equatation.Equatation.Id.ToLower(), new Equatation
                 {
                     Expression = expression,

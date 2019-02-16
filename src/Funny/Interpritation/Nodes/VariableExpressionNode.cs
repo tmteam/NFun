@@ -13,29 +13,30 @@ namespace Funny.Interpritation
             Name = name;
         }
         
-        private double _value;
+        private object _value;
+        public void SetValue(object value) => _value = value;
         
-        public void SetValue(double value) => _value = value;
         public IEnumerable<IExpressionNode> Children {
             get { yield break;}
         }
 
-        public VarType Type => VarType.NumberType;
+        public VarType Type { get; private set; } = VarType.NumberType;
 
-        public HashSet<int> usedInOutputs = new HashSet<int>();
         public bool IsOutput { get; set; } = false;
-        public void AddEquatationNum(int num)
-        {
-            if (!usedInOutputs.Contains(num))
-                usedInOutputs.Add(num);
-        }
         
         public object Calc() => _value;
         private static int _count = 0;
         private readonly int uid = _count++;
+        
         public override string ToString()
         {
             return Name+": "+ _value+" uid: "+uid;
+        }
+
+        public void SetType(VarType expressionType)
+        {
+            Type = expressionType;
+            _value = null;
         }
     }
 }
