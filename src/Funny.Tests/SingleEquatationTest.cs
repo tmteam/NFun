@@ -9,7 +9,7 @@ using NUnit.Framework.Interfaces;
 namespace Funny.Tests
 {
     [TestFixture]
-    public class SingleEquatationTest
+    public class SingleEquationTest
     {
         [TestCase("y = 2",2)]
         [TestCase("y = 2*3",6)]
@@ -37,7 +37,7 @@ namespace Funny.Tests
         [TestCase("y = 0b001  ",1)]
         [TestCase("y = 0b11  ",3)]
         [TestCase("y = 0x_1",1)]
-        public void ConstantEquatation(string expr, double expected)
+        public void ConstantEquation(string expr, double expected)
         {
             
             var runtime = Interpreter.BuildOrThrow(expr);
@@ -99,7 +99,7 @@ namespace Funny.Tests
         [TestCase("y = -x ",0.3,-0.3)]
         [TestCase("y = -(-(-x))",2,-2)]
         [TestCase("y = x/0.2",1,5)]
-        public void SingleVariableEquatation(string expr, double arg, double expected)
+        public void SingleVariableEquation(string expr, double arg, double expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
             runtime.Calculate(Var.New("x",arg))
@@ -156,7 +156,7 @@ namespace Funny.Tests
         [TestCase("y = 2*x1*x2",3,6, 36)]
         [TestCase("y = x1*4/x2",2,2,4)]
         [TestCase("y = (x1+x2)/4",2,2,1)]
-        public void TwoVariablesEquatation(string expr, double arg1, double arg2, double expected)
+        public void TwoVariablesEquation(string expr, double arg1, double arg2, double expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
             var res = runtime.Calculate(

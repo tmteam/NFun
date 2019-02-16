@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Funny.Interpritation.Nodes;
 using Funny.Parsing;
-using Funny.Tokenization;
 
 namespace Funny.Interpritation
 {
@@ -11,9 +10,6 @@ namespace Funny.Interpritation
     {
         private readonly Dictionary<string, FunctionBase> _predefinedfunctions;
         private readonly Dictionary<string, VariableExpressionNode> _variables;
-
-        public IEnumerable<VariableExpressionNode> Variables => _variables.Values;
-
         public SingleExpressionReader(
             Dictionary<string, FunctionBase> predefinedfunctions, 
             Dictionary<string, VariableExpressionNode> variables)
@@ -22,18 +18,18 @@ namespace Funny.Interpritation
             _variables = variables;
         }
 
-        public  IExpressionNode ReadNode(LexNode node, int equatationNum)
+        public  IExpressionNode ReadNode(LexNode node)
         {
             if(node.Is(LexNodeType.Var))
                 return GetOrAddVariableNode(node);
             if(node.Is(LexNodeType.Fun))
-                return GetFunNode(node, equatationNum);
+                return GetFunNode(node);
             if(node.Is(LexNodeType.IfThanElse))
-                return GetIfThanElseNode(node, equatationNum);
+                return GetIfThanElseNode(node);
             if(node.Is(LexNodeType.Number))
                 return GetValueNode(node);
             if (StandartOperations.IsDefaultOp(node.Type))
-                return GetOpNode(node, equatationNum);
+                return GetOpNode(node);
             
             throw new ArgumentException($"Unknown lexnode type {node.Type}");
         }
@@ -53,7 +49,7 @@ namespace Funny.Interpritation
         }
         
         
-        private IExpressionNode GetOpNode(LexNode node, int equatationNum)
+        private IExpressionNode GetOpNode(LexNode node)
         {
             var left = node.Children.ElementAtOrDefault(0);
             if (left == null)
@@ -63,23 +59,23 @@ namespace Funny.Interpritation
             if (right == null)
                 throw new ParseException("\"b\" node is missing");
 
-            var leftExpr = ReadNode(left, equatationNum);
-            var rightExpr = ReadNode(right, equatationNum);
+            var leftExpr = ReadNode(left);
+            var rightExpr = ReadNode(right);
             
             return StandartOperations.GetOp(node.Type, leftExpr, rightExpr);            
         }
 
-        private IExpressionNode GetIfThanElseNode(LexNode node, int equatationNum)
+        private IExpressionNode GetIfThanElseNode(LexNode node)
         {
             var ifNodes = new List<IfCaseExpressionNode>();
             foreach (var ifNode in node.Children.Where(c => c.Is(LexNodeType.IfThen)))
             {
-                var condition = ReadNode(ifNode.Children.First(),equatationNum);
-                var expr = ReadNode(ifNode.Children.Last(), equatationNum);
+                var condition = ReadNode(ifNode.Children.First());
+                var expr = ReadNode(ifNode.Children.Last());
                 ifNodes.Add(new IfCaseExpressionNode(condition, expr));
             }
 
-            var elseNode = ReadNode(node.Children.Last(), equatationNum);
+            var elseNode = ReadNode(node.Children.Last());
             return new IfThanElseExpressionNode(ifNodes.ToArray(), elseNode);
         }
 
@@ -119,13 +115,13 @@ namespace Funny.Interpritation
         }
 
 
-        private IExpressionNode GetFunNode(LexNode node, int equatationNum)
+        private IExpressionNode GetFunNode(LexNode node)
         {
             var id = node.Value.ToLower();
             if(!_predefinedfunctions.ContainsKey(id))
                 throw new ParseException($"Function \"{id}\" is not defined");
             var fun = _predefinedfunctions[id];
-            var children = node.Children.Select(c => ReadNode(c, equatationNum)).ToArray();
+            var children = node.Children.Select(c => ReadNode(c)).ToArray();
             if(children.Length!= fun.ArgsCount)
                 throw new ParseException($"Args count of function \"{id}\" is wrong. Expected: {fun.ArgsCount} but was {children.Length}");
             return new FunExpressionNode(fun, children);

@@ -1,8 +1,8 @@
 namespace Funny.Parsing
 {
-    public class LexEquatation
+    public class LexEquation
     {
-        public LexEquatation(string id, LexNode expression)
+        public LexEquation(string id, LexNode expression)
         {
             Id = id;
             Expression = expression;

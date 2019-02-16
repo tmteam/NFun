@@ -6,10 +6,10 @@ using NUnit.Framework;
 namespace Funny.Tests
 {
     [TestFixture]
-    public class EquatationsFormattingTest
+    public class EquationsFormattingTest
     {
         [Test]
-        public void SeveralLinesBeforeSingleEquatation_Calculates()
+        public void SeveralLinesBeforeSingleEquation_Calculates()
         {
             var runtime = Interpreter.BuildOrThrow(
                 @"
@@ -44,7 +44,7 @@ namespace Funny.Tests
         }
         
         [Test]
-        public void SeveralLinesAfterSingleEquatation_Calculates()
+        public void SeveralLinesAfterSingleEquation_Calculates()
         {
             var runtime = Interpreter.BuildOrThrow(
                 @"y = 1
@@ -77,7 +77,7 @@ namespace Funny.Tests
         
         /* TODO: Is it an error?
         [Test]
-        public void TwoEquatationsOnOneLineFails()
+        public void TwoEquationsOnOneLineFails()
         {
             Assert.Throws<ParseException>(()=> Interpriter.BuildOrThrow("y=1 z=5"));
         }*/

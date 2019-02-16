@@ -13,21 +13,21 @@ namespace Funny.Runtime
 
         public Var Get(string name)
         {
-            foreach (var equatationResult in Results)
+            foreach (var EquationResult in Results)
             {
-                if (String.Equals(equatationResult.Name, name, 
+                if (String.Equals(EquationResult.Name, name, 
                     StringComparison.CurrentCultureIgnoreCase))
-                    return equatationResult;
+                    return EquationResult;
             }
             throw new ArgumentException(name);
         }
         public object GetResultOf(string name)
         {
-            foreach (var equatationResult in Results)
+            foreach (var EquationResult in Results)
             {
-                if (String.Equals(equatationResult.Name, name, 
+                if (String.Equals(EquationResult.Name, name, 
                     StringComparison.CurrentCultureIgnoreCase))
-                    return equatationResult.Value;
+                    return EquationResult.Value;
             }
             throw new ArgumentException(name);
         }

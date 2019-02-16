@@ -5,7 +5,6 @@ namespace Funny.Interpritation.Nodes
 {
     public interface IExpressionNode
     {
-        IEnumerable<IExpressionNode> Children { get; }
         VarType Type { get; }
         
         object Calc();

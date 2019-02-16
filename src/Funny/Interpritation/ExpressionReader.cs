@@ -19,8 +19,7 @@ namespace Funny.Interpritation
         private readonly Dictionary<string, VariableExpressionNode> _variables 
             = new Dictionary<string, VariableExpressionNode>();
         
-        private readonly Dictionary<string, Equatation> _equatations 
-            = new Dictionary<string, Equatation>();
+        private readonly List<Equation> _equations = new List<Equation>();
         
         public static FunRuntime Interpritate(
             LexTree lexTree, 
@@ -35,7 +34,7 @@ namespace Funny.Interpritation
             ans.Interpritate();
             
             return new FunRuntime(
-                equatations: ans._equatations.Values.ToArray(),  
+                equations: ans._equations,  
                 variables:   ans._variables);
         }
 
@@ -49,10 +48,12 @@ namespace Funny.Interpritation
             _functions = functions;
             foreach (var variablesWithProperty in analytics.AllVariables)
             {
-                _variables.Add(variablesWithProperty.Id,new VariableExpressionNode(variablesWithProperty.Id)
-                {
-                    IsOutput =  variablesWithProperty.IsOutput
-                });
+                _variables.Add(
+                    variablesWithProperty.Id,
+                    new VariableExpressionNode(variablesWithProperty.Id)
+                    {
+                        IsOutput =  variablesWithProperty.IsOutput
+                    });
             }
         }
 
@@ -67,22 +68,20 @@ namespace Funny.Interpritation
                 ((FunctionPrototype)prototype).SetActual(GetFunction(userFun));
             }
 
-            int equatationNum = 0;
-            foreach (var equatation in _analytics.OrderedEquatations)
+            foreach (var equation in _analytics.OrderedEquations)
             {
                 var reader = new SingleExpressionReader(_functions, _variables);
                     
-                var expression = reader.ReadNode(equatation.Equatation.Expression, equatationNum);
+                var expression = reader.ReadNode(equation.Equation.Expression);
                 //ReplaceInputType
-                if (_variables.ContainsKey(equatation.Equatation.Id))
-                    _variables[equatation.Equatation.Id].SetType(expression.Type);
-                _equatations.Add(equatation.Equatation.Id.ToLower(), new Equatation
+                if (_variables.ContainsKey(equation.Equation.Id))
+                    _variables[equation.Equation.Id].SetType(expression.Type);
+                _equations.Add(new Equation
                 {
                     Expression = expression,
-                    Id = equatation.Equatation.Id,
-                    ReusingWithOtherEquatations = equatation.UsedInOtherEquatations
+                    Id = equation.Equation.Id,
+                    ReusingWithOtherEquations = equation.UsedInOtherEquations
                 });
-                equatationNum++;
             }
         }
 
@@ -93,7 +92,7 @@ namespace Funny.Interpritation
         {
             var vars = new Dictionary<string, VariableExpressionNode>();
             var reader = new SingleExpressionReader(_functions, vars);
-            var expression = reader.ReadNode(lexFunction.Node, 0);
+            var expression = reader.ReadNode(lexFunction.Node);
             CheckForUnknownVariables(lexFunction.Args, vars);
             return new UserFunction(lexFunction.Id, vars.Values.ToArray(), expression);
         }

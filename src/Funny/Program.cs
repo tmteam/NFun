@@ -106,10 +106,10 @@ namespace Funny
 
             var flow = new TokenFlow(tokens);
             var eq = Parser.Parse(flow);
-            foreach (var equatation in eq.Equations)
+            foreach (var equation in eq.Equations)
             {
-                Console.WriteLine($"{equatation.Id}={equatation.Expression}");
-                PrintNode(equatation.Expression,1);
+                Console.WriteLine($"{equation.Id}={equation.Expression}");
+                PrintNode(equation.Expression,1);
             }
             
             Console.WriteLine("Eq countL " + eq.Equations.Length);
@@ -126,7 +126,7 @@ namespace Funny
         }
         private static void PrintLnWithOffset(string msg, int offset)
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
             sb.Append(new string('.', offset*2));
             sb.Append(msg+Environment.NewLine);
             Console.Write(sb.ToString());

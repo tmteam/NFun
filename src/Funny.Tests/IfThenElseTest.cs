@@ -52,7 +52,7 @@ namespace Funny.Tests
         [TestCase("y = if 2==1 then 10\r else -10", -10)]
         [TestCase("y = if 2<1 then 10 if 2>1 then -10 else 0", -10)]
         [TestCase("y = if 1>2 then 10\r if 1<2 then -10\r else 0", -10)]
-        public void ConstantIntEquatation(string expr, int expected)
+        public void ConstantIntEquation(string expr, int expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
             var res = runtime.Calculate();
@@ -62,7 +62,7 @@ namespace Funny.Tests
         [TestCase("y = if 1<2 then true else false", true)]
         [TestCase("y = if true then true else false", true)]
         [TestCase("y = if true then true if false then false else true", true)]
-        public void ConstantBoolEquatation(string expr, bool expected)
+        public void ConstantBoolEquation(string expr, bool expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
             var res = runtime.Calculate();
@@ -77,7 +77,7 @@ namespace Funny.Tests
         [TestCase("y = if 2==1 then 10.0\r else -10", -10.0)]
         [TestCase("y = if 2<1 then 10.0 if 2>1 then -10.0 else 0", -10.0)]
         [TestCase("y = if 1>2 then 10.0\r if 1<2 then -10.0\r else 0.0", -10.0)]
-        public void ConstantRealEquatation(string expr, double expected)
+        public void ConstantRealEquation(string expr, double expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
             var res = runtime.Calculate();
@@ -109,5 +109,7 @@ namespace Funny.Tests
         public void ObviouslyFailsOnOuputCast(string expr) =>
             Assert.Throws<OutpuCastParseException>(
                 ()=> Interpreter.BuildOrThrow(expr));
+        
+        
     }
 }

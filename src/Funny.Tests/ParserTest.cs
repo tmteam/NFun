@@ -12,17 +12,17 @@ namespace Funny.Tests
         [TestCase("y = 1+x", "1+x")]
         [TestCase("y = 1","1")]
         [TestCase("y = x+z*(x-z)", "x+z*(x-z)")]
-        public void SingleEquatationParsingTest(string text, string expectedExpr, params string[] variables)
+        public void SingleEquationParsingTest(string text, string expectedExpr, params string[] variables)
         {
             var parsed   = Parser.Parse(Tokenizer.ToFlow(text));
 
             Assert.AreEqual(1, parsed.Equations.Length);
-            var equatation = parsed.Equations.First();
+            var Equation = parsed.Equations.First();
             
             Assert.Multiple(() =>
             {
-                Assert.AreEqual("y", equatation.Id);
-                AssertParsed(equatation.Expression, expectedExpr);
+                Assert.AreEqual("y", Equation.Id);
+                AssertParsed(Equation.Expression, expectedExpr);
             });
         }
         [TestCase("y(x) = 1+x", "1+x", "x")]
@@ -63,13 +63,13 @@ namespace Funny.Tests
             var maxf = eq.UserFuns.Single(f => f.Id == "max");
             var max3f = eq.UserFuns.Single(f => f.Id == "max3");
 
-            var y1equatation = eq.Equations.Single(e => e.Id == "y1");
-            var y2equatation = eq.Equations.Single(e => e.Id == "y2");
+            var y1Equation = eq.Equations.Single(e => e.Id == "y1");
+            var y2Equation = eq.Equations.Single(e => e.Id == "y2");
             
             AssertParsed(maxf,"if x>y then x else y", "x","y" );
             AssertParsed(max3f,"max(x,max(y,z))", "x","y","z" );
-            AssertParsed(y1equatation.Expression,  "max3(x,y,z)");
-            AssertParsed(y2equatation.Expression,  "max(x,y)+1");
+            AssertParsed(y1Equation.Expression,  "max3(x,y,z)");
+            AssertParsed(y2Equation.Expression,  "max(x,y)+1");
 
         }
         

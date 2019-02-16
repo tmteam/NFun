@@ -18,7 +18,7 @@ namespace Funny.Tests
         [TestCase("y = pi()",Math.PI)]
         [TestCase("y = e()",Math.E)]
 
-        public void ConstantEquatationWithPredefinedFunction(string expr, double expected)
+        public void ConstantEquationWithPredefinedFunction(string expr, double expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
             runtime.Calculate()
@@ -32,7 +32,7 @@ namespace Funny.Tests
         [TestCase("y = add(add(x,x),add(x,x))",1,4)]
         [TestCase("y = abs(x-4)",1,3)]
         
-        public void EquatationWithPredefinedFunction(string expr, double arg, double expected)
+        public void EquationWithPredefinedFunction(string expr, double arg, double expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
             runtime.Calculate(Var.New("x", arg))

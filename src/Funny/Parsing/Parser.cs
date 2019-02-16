@@ -12,7 +12,7 @@ namespace Funny.Parsing
         public static LexTree Parse(TokenFlow flow)
         {
             var reader = new LexNodeReader(flow);
-            var equatations = new List<LexEquatation>();
+            var equations = new List<LexEquation>();
             var funs = new List<LexFunction>();
             while (true)
             {
@@ -27,7 +27,7 @@ namespace Funny.Parsing
                 if (flow.IsCurrent(TokType.Def))
                 {
                     flow.MoveNext();
-                    equatations.Add(ReadEquatation(flow, reader, id));
+                    equations.Add(ReadEquation(flow, reader, id));
                 }
                 else if (flow.IsCurrent(TokType.Obr))
                 {
@@ -41,7 +41,7 @@ namespace Funny.Parsing
             return new LexTree
             {
                 UserFuns = funs.ToArray(),
-                Equations = equatations.ToArray()
+                Equations = equations.ToArray()
             };
         }
 
@@ -66,12 +66,12 @@ namespace Funny.Parsing
         }
 
 
-        private static LexEquatation ReadEquatation(TokenFlow flow, LexNodeReader reader, string id)
+        private static LexEquation ReadEquation(TokenFlow flow, LexNodeReader reader, string id)
         {
             flow.SkipNewLines();
 
             var exNode = reader.ReadExpressionOrNull();
-            return new LexEquatation(id, exNode);
+            return new LexEquation(id, exNode);
         }
     }
 }

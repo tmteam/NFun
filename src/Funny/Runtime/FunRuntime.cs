@@ -12,12 +12,12 @@ namespace Funny.Runtime
             .Select(v=>v.Key)
             .ToArray();
 
-        private readonly Equatation[] _equatations;
+        private readonly IList<Equation> _equations;
         private readonly Dictionary<string, VariableExpressionNode> _variables;
         
-        public FunRuntime(Equatation[] equatations, Dictionary<string, VariableExpressionNode> variables)
+        public FunRuntime(IList<Equation> equations, Dictionary<string, VariableExpressionNode> variables)
         {
-            _equatations = equatations;
+            _equations = equations;
             _variables = variables;
         }
 
@@ -32,12 +32,12 @@ namespace Funny.Runtime
                     throw new ArgumentException(value.Name);
             }
             
-            var ans = new Var[_equatations.Length];
-            for (int i = 0; i < _equatations.Length; i++)
+            var ans = new Var[_equations.Count];
+            for (int i = 0; i < _equations.Count; i++)
             {
-                var e = _equatations[i];
+                var e = _equations[i];
                 ans[i] = new Var(e.Id, e.Expression.Calc(), e.Expression.Type);
-                if (e.ReusingWithOtherEquatations)
+                if (e.ReusingWithOtherEquations)
                     _variables[e.Id].SetValue(ans[i].Value);
             }
             return new CalculationResult(ans);
