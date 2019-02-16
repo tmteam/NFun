@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Funny.Interpritation.Functions;
+using Funny.ParserAnylizer;
 using Funny.Parsing;
 using Funny.Runtime;
 using Funny.Tokenization;
@@ -10,7 +12,8 @@ namespace Funny.Interpritation
 {
     public class ExpressionReader
     {
-        private readonly LexTree _lexTree;
+        private readonly LexTreeAnalyze _analytics;
+        private readonly LexFunction[] _lexTreeUserFuns;
         private readonly Dictionary<string, FunctionBase> _functions;
 
         private readonly Dictionary<string, VariableExpressionNode> _variables 
@@ -24,13 +27,18 @@ namespace Funny.Interpritation
             IEnumerable<FunctionBase> predefinedFunctions)
         {
             var funDic = predefinedFunctions.ToDictionary((f) => f.Name.ToLower());
-            var ans = new ExpressionReader(lexTree, funDic);
+            var analyze = LexTreeAnlyzer.Analyze(lexTree.Equations);
+            var ans = new ExpressionReader(
+                analyze,
+                lexTree.UserFuns,
+                funDic);
             ans.Interpritate();
             
-            var result = OrderEquatationsOrThrow(lexTree.Equatations, ans);
-            return new FunRuntime(result,  ans._variables);
+            return new FunRuntime(
+                equatations: ans._equatations.Values.ToArray(),  
+                variables:   ans._variables);
         }
-
+/*
         private static Equatation[] OrderEquatationsOrThrow(LexEquatation[] lexEquatations, ExpressionReader ans)
         {
             //now build dependencies map
@@ -66,35 +74,47 @@ namespace Funny.Interpritation
             }
             return result.ToArray();
         }
+*/
 
-        private ExpressionReader(LexTree lexTree,
+        private ExpressionReader(
+            LexTreeAnalyze analytics, 
+            LexFunction[] lexTreeUserFuns, 
             Dictionary<string, FunctionBase> functions)
         {
-            _lexTree = lexTree;
+            _analytics = analytics;
+            _lexTreeUserFuns = lexTreeUserFuns;
             _functions = functions;
+            foreach (var variablesWithProperty in analytics.AllVariables)
+            {
+                _variables.Add(variablesWithProperty.Id,new VariableExpressionNode(variablesWithProperty.Id)
+                {
+                    IsOutput =  variablesWithProperty.IsOutput
+                });
+            }
         }
-        
+
         private void Interpritate()
         {
-            foreach (var userFun in _lexTree.UserFuns)
+            foreach (var userFun in _lexTreeUserFuns)
                 _functions.Add(userFun.Id, GetFunctionPrototype(userFun));
 
-            foreach (var userFun in _lexTree.UserFuns)
+            foreach (var userFun in _lexTreeUserFuns)
             {
                 var prototype = _functions[userFun.Id];
                 ((FunctionPrototype)prototype).SetActual(GetFunction(userFun));
             }
 
             int equatationNum = 0;
-            foreach (var equatation in _lexTree.Equatations)
+            foreach (var equatation in _analytics.OrderedEquatations)
             {
                 var reader = new SingleExpressionReader(_functions, _variables);
                     
-                var expression = reader.ReadNode(equatation.Expression, equatationNum);
-                _equatations.Add(equatation.Id.ToLower(), new Equatation
+                var expression = reader.ReadNode(equatation.Equatation.Expression, equatationNum);
+                _equatations.Add(equatation.Equatation.Id.ToLower(), new Equatation
                 {
                     Expression = expression,
-                    Id = equatation.Id,
+                    Id = equatation.Equatation.Id,
+                    ReusingWithOtherEquatations = equatation.UsedInOtherEquatations
                 });
                 equatationNum++;
             }

@@ -7,13 +7,13 @@ namespace Funny.Interpritation
         public string Name { get; }
         public int ArgsCount { get; }
 
-        protected FunctionBase(string name, int argsCount)
+        protected FunctionBase(string name, int argsCount, VarType type)
         {
             Name = name;
             ArgsCount = argsCount;
+            Type = type;
         }
-
-        public abstract VarType CalcType();
-        public abstract double Calc(double[] args);
+        public VarType Type { get; }
+        public abstract object Calc(double[] args);
     }
 }

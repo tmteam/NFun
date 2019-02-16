@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Funny.Interpritation.Nodes;
 using Funny.Runtime;
 
 namespace Funny.Interpritation
@@ -13,7 +14,7 @@ namespace Funny.Interpritation
             string name, 
             VariableExpressionNode[] variables, 
             IExpressionNode expression) 
-            : base(name, variables.Length)
+            : base(name, variables.Length, expression.Type)
         {
             _variables = variables;
             _expression = expression;
@@ -22,9 +23,8 @@ namespace Funny.Interpritation
         readonly Stack<double[]> _recursiveArgsStack  
             = new Stack<double[]>();
 
-        public override VarType CalcType() => VarType.NumberType;
 
-        public override double Calc(double[] args)
+        public override object Calc(double[] args)
         {
             try
             {
@@ -36,16 +36,14 @@ namespace Funny.Interpritation
                     throw new ArgumentException();
                 SetVariables(args);
                 
-                return (double)_expression.Calc();
+                return _expression.Calc();
             }
             finally
             {
                 //restore variables
                 _recursiveArgsStack.Pop();
                 if (_recursiveArgsStack.TryPeek(out var previousArgs))
-                {
                     SetVariables(previousArgs);
-                }
             }
         }
 

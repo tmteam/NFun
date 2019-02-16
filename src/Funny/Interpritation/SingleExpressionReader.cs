@@ -21,25 +21,26 @@ namespace Funny.Interpritation
             _predefinedfunctions = predefinedfunctions;
             _variables = variables;
         }
+
         public  IExpressionNode ReadNode(LexNode node, int equatationNum)
         {
             if(node.Is(LexNodeType.Var))
-                return GetOrAddVariableNode(node.Value, equatationNum);
+                return GetOrAddVariableNode(node);
             if(node.Is(LexNodeType.Fun))
                 return GetFunNode(node, equatationNum);
             if(node.Is(LexNodeType.IfThanElse))
                 return GetIfThanElseNode(node, equatationNum);
             if(node.Is(LexNodeType.Number))
                 return GetValueNode(node);
-            if (StandartOperations.IsDefault(node.Type))
+            if (StandartOperations.IsDefaultOp(node.Type))
                 return GetOpNode(node, equatationNum);
             
             throw new ArgumentException($"Unknown lexnode type {node.Type}");
         }
         
-        private IExpressionNode GetOrAddVariableNode(string varName, int equatationNum)
+        private IExpressionNode GetOrAddVariableNode(LexNode varName)
         {
-            var lower = varName.ToLower();
+            var lower = varName.Value;
             VariableExpressionNode res;
             
             if (_variables.ContainsKey(lower))
@@ -48,7 +49,6 @@ namespace Funny.Interpritation
                 res = new VariableExpressionNode(lower);
                 _variables.Add(lower, res);            
             }
-            res.AddEquatationNum(equatationNum);
             return res;
         }
         

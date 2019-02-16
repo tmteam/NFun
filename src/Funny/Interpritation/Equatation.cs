@@ -1,3 +1,5 @@
+using Funny.Interpritation.Nodes;
+
 namespace Funny.Interpritation
 {
     public class Equatation

@@ -41,7 +41,7 @@ namespace Funny.Parsing
             return new LexTree
             {
                 UserFuns = funs.ToArray(),
-                Equatations = equatations.ToArray()
+                Equations = equatations.ToArray()
             };
         }
 

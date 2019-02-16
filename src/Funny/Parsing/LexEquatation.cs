@@ -7,7 +7,6 @@ namespace Funny.Parsing
             Id = id;
             Expression = expression;
         }
-
         public string Id { get; }
         public LexNode Expression { get; }
     }

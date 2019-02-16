@@ -1,11 +1,11 @@
 using System;
 using Funny.Runtime;
 
-namespace Funny.Interpritation
+namespace Funny.Interpritation.Functions
 {
     public class FunctionPrototype: FunctionBase
     {
-        public FunctionPrototype(string name, int argsCount) : base(name, argsCount)
+        public FunctionPrototype(string name, int argsCount) : base(name, argsCount, VarType.NumberType)
         {
         }
 
@@ -13,11 +13,11 @@ namespace Funny.Interpritation
         public void SetActual(FunctionBase function)
         {
             _function = function;
+            if(_function.Type!= this.Type)
+                throw new OutpuCastParseException($"{_function.Type} is not supported as output fun parameter");
         }
 
-        public override VarType CalcType() => VarType.NumberType;
-
-        public override double Calc(double[] args)
+        public override object Calc(double[] args)
         {
             if(_function== null)
             throw new InvalidOperationException("Function prototype cannot be called");

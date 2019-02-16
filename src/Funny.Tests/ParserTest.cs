@@ -16,8 +16,8 @@ namespace Funny.Tests
         {
             var parsed   = Parser.Parse(Tokenizer.ToFlow(text));
 
-            Assert.AreEqual(1, parsed.Equatations.Length);
-            var equatation = parsed.Equatations.First();
+            Assert.AreEqual(1, parsed.Equations.Length);
+            var equatation = parsed.Equations.First();
             
             Assert.Multiple(() =>
             {
@@ -57,14 +57,14 @@ namespace Funny.Tests
             Assert.Multiple(()=>
             {
                 Assert.AreEqual(2, eq.UserFuns.Length);
-                Assert.AreEqual(2, eq.Equatations.Length);
+                Assert.AreEqual(2, eq.Equations.Length);
             });
             
             var maxf = eq.UserFuns.Single(f => f.Id == "max");
             var max3f = eq.UserFuns.Single(f => f.Id == "max3");
 
-            var y1equatation = eq.Equatations.Single(e => e.Id == "y1");
-            var y2equatation = eq.Equatations.Single(e => e.Id == "y2");
+            var y1equatation = eq.Equations.Single(e => e.Id == "y1");
+            var y2equatation = eq.Equations.Single(e => e.Id == "y2");
             
             AssertParsed(maxf,"if x>y then x else y", "x","y" );
             AssertParsed(max3f,"max(x,max(y,z))", "x","y","z" );

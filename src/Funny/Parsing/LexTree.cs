@@ -3,6 +3,6 @@ namespace Funny.Parsing
     public class LexTree
     {
         public LexFunction[] UserFuns;
-        public LexEquatation[] Equatations;
+        public LexEquatation[] Equations;
     }
 }

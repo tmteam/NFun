@@ -38,7 +38,7 @@ namespace Funny.Runtime
                 var e = _equatations[i];
                 ans[i] = new Var(e.Id, e.Expression.Calc(), e.Expression.Type);
                 if (e.ReusingWithOtherEquatations)
-                    _variables[e.Id.ToLower()].SetValue(Convert.ToDouble(ans[i].Value));
+                    _variables[e.Id].SetValue(Convert.ToDouble(ans[i].Value));
             }
             return new CalculationResult(ans);
         }

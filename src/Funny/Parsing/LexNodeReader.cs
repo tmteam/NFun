@@ -59,11 +59,9 @@ namespace Funny.Parsing
                 return LexNode.Num(falseTok.Value);
             if (MoveIf(TokType.Number, out var val))
                 return LexNode.Num(val.Value);
-            ;
-
+            
             if (MoveIf(TokType.Id, out var headToken))
             {
-
                 if (_flow.IsCurrent(TokType.Obr))
                     return ReadFunctionCall(headToken);
                 else

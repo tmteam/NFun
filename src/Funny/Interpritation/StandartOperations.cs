@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Funny.Interpritation.Nodes;
 using Funny.Parsing;
 using Funny.Runtime;
 
@@ -221,7 +222,7 @@ namespace Funny.Interpritation
             return new OpExpressionNodeOfT<bool, bool, bool>(left, right,op);
         }
 
-        public static bool IsDefault(LexNodeType type) => _ops.ContainsKey(type);
+        public static bool IsDefaultOp(LexNodeType type) => _ops.ContainsKey(type);
         private static Dictionary<LexNodeType, Func<double, double, double>> _ops =
             new Dictionary<LexNodeType, Func<double, double, double>>()
             {

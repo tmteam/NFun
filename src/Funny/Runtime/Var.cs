@@ -3,8 +3,17 @@ using System;
 namespace Funny.Runtime
 {
     public struct Var {
-        
-        
+
+        public static Var New(string name, object value)
+        {
+            if (value is int i)
+                return New(name, i);
+            if (value is double d)
+                return New(name, d);
+            if (value is bool b)
+                return New(name, b);
+            throw new ArgumentException($"Type {value.GetType()} is not supported");
+        }
         public static Var New(string name, bool value) 
             => new Var(name, value, VarType.BoolType);
         public static Var New(string name, int value) 
@@ -20,6 +29,11 @@ namespace Funny.Runtime
             Name = name;
             Value = value;
             Type = type;
+        }
+
+        public override string ToString()
+        {
+            return $"{Name}: {Value} of type {Type}";
         }
     }
 }

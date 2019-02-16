@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Funny.Runtime;
 using NUnit.Framework;
@@ -11,8 +12,11 @@ namespace Funny.Tests
             Assert.AreEqual(vars.Length, result.Results.Length);
             Assert.Multiple(() =>
             {
-                foreach (var variable in vars) 
+                foreach (var variable in vars)
+                {
+                    Console.WriteLine("Passing: "+variable);
                     AssertHas(result, variable, delta);
+                }
             });
         }
         public static void AssertReturns(this CalculationResult result,  params Var[] vars)
@@ -23,7 +27,7 @@ namespace Funny.Tests
         {
             var res = result.Results.FirstOrDefault(r => r.Name == variable.Name);
             Assert.IsNotNull(res, $"Variable \"{variable.Name}\" not found");
-            Assert.AreEqual(res.Type, variable.Type, $"Variable \"{variable.Name}\" has wrong type");
+            Assert.AreEqual(variable.Type, res.Type,  $"Variable \"{variable.Name}\" has wrong type");
             
             if(variable.Type== VarType.NumberType)
                 Assert.AreEqual ((double)variable.Value, (double)res.Value, delta, 
