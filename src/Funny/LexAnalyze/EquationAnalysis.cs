@@ -1,8 +1,8 @@
 using Funny.Parsing;
 
-namespace Funny.ParserAnylizer
+namespace Funny.LexAnalyze
 {
-    public class LexEquationAnalytics
+    public class EquationAnalysis
     {
         public LexEquation Equation;
         public bool UsedInOtherEquations;

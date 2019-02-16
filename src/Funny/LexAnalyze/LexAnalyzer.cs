@@ -4,26 +4,26 @@ using System.Linq;
 using Funny.Interpritation;
 using Funny.Parsing;
 
-namespace Funny.ParserAnylizer
+namespace Funny.LexAnalyze
 {
-    public static class LexTreeAnlyzer
+    public static class LexAnalyzer
     {
-        public static LexTreeAnalyze Analyze(LexEquation[] lexEquations)
+        public static TreeAnalysis Analyze(LexEquation[] lexEquations)
         {
             var vars = SearchVariables(lexEquations);
-            return new LexTreeAnalyze()
+            return new TreeAnalysis()
             {
                 AllVariables = vars.Values,
                 OrderedEquations = OrderEquationsOrThrow(lexEquations, vars)
             };
         }
         
-        public static Dictionary<string, LexVarAnalytics> SearchVariables(LexEquation[] lexEquations)
+        public static Dictionary<string, VarAnalysis> SearchVariables(LexEquation[] lexEquations)
         {
-            var vars = new Dictionary<string, LexVarAnalytics>();
+            var vars = new Dictionary<string, VarAnalysis>();
             foreach (var lexEquation in lexEquations)
             {
-                vars.Add( lexEquation.Id, new LexVarAnalytics(lexEquation.Id, true));
+                vars.Add( lexEquation.Id, new VarAnalysis(lexEquation.Id, true));
             }
             for (var i = 0; i < lexEquations.Length; i++)
             {
@@ -33,7 +33,7 @@ namespace Funny.ParserAnylizer
                 foreach (var variableNode in  varNodes)
                 {
                     if(!vars.ContainsKey(variableNode.Value))
-                        vars.Add(variableNode.Value, new LexVarAnalytics(variableNode.Value));
+                        vars.Add(variableNode.Value, new VarAnalysis(variableNode.Value));
 
                     vars[variableNode.Value].UsedInOutputs.Add(i);
                 }
@@ -52,15 +52,15 @@ namespace Funny.ParserAnylizer
             }
         }
         
-        public static  LexEquationAnalytics[] OrderEquationsOrThrow(LexEquation[] lexEquations, Dictionary<string,LexVarAnalytics> vars)
+        public static  EquationAnalysis[] OrderEquationsOrThrow(LexEquation[] lexEquations, Dictionary<string,VarAnalysis> vars)
         {
             //now build dependencies map
-            var result =  new LexEquationAnalytics[lexEquations.Length];
+            var result =  new EquationAnalysis[lexEquations.Length];
             int[][] dependencyGraph = new int[lexEquations.Length][];
 
             for (int i = 0; i < lexEquations.Length; i++)
             {
-                result[i] = new LexEquationAnalytics();
+                result[i] = new EquationAnalysis();
                 if (vars.TryGetValue(lexEquations[i].Id, out var outvar))
                 {
                     outvar.IsOutput = true;
@@ -89,11 +89,5 @@ namespace Funny.ParserAnylizer
             return result;
         }
         
-    }
-
-    public class LexTreeAnalyze
-    {
-        public LexEquationAnalytics[] OrderedEquations;
-        public IEnumerable<LexVarAnalytics> AllVariables;
     }
 }

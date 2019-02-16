@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Funny.Interpritation.Functions;
-using Funny.ParserAnylizer;
+using Funny.LexAnalyze;
 using Funny.Parsing;
 using Funny.Runtime;
 using Funny.Tokenization;
@@ -12,7 +12,7 @@ namespace Funny.Interpritation
 {
     public class ExpressionReader
     {
-        private readonly LexTreeAnalyze _analytics;
+        private readonly TreeAnalysis _treeAnalysis;
         private readonly LexFunction[] _lexTreeUserFuns;
         private readonly Dictionary<string, FunctionBase> _functions;
 
@@ -26,9 +26,9 @@ namespace Funny.Interpritation
             IEnumerable<FunctionBase> predefinedFunctions)
         {
             var funDic = predefinedFunctions.ToDictionary((f) => f.Name.ToLower());
-            var analyze = LexTreeAnlyzer.Analyze(lexTree.Equations);
+            var analysis = LexAnalyzer.Analyze(lexTree.Equations);
             var ans = new ExpressionReader(
-                analyze,
+                analysis,
                 lexTree.UserFuns,
                 funDic);
             ans.Interpritate();
@@ -39,14 +39,14 @@ namespace Funny.Interpritation
         }
 
         private ExpressionReader(
-            LexTreeAnalyze analytics, 
+            TreeAnalysis treeAnalysis, 
             LexFunction[] lexTreeUserFuns, 
             Dictionary<string, FunctionBase> functions)
         {
-            _analytics = analytics;
+            _treeAnalysis = treeAnalysis;
             _lexTreeUserFuns = lexTreeUserFuns;
             _functions = functions;
-            foreach (var variablesWithProperty in analytics.AllVariables)
+            foreach (var variablesWithProperty in treeAnalysis.AllVariables)
             {
                 _variables.Add(
                     variablesWithProperty.Id,
@@ -68,7 +68,7 @@ namespace Funny.Interpritation
                 ((FunctionPrototype)prototype).SetActual(GetFunction(userFun));
             }
 
-            foreach (var equation in _analytics.OrderedEquations)
+            foreach (var equation in _treeAnalysis.OrderedEquations)
             {
                 var reader = new SingleExpressionReader(_functions, _variables);
                     
