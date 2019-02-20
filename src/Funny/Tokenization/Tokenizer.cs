@@ -73,8 +73,13 @@ namespace Funny.Tokenization
             if (TryReadUncommonSpecialSymbols(str, position, current) is Tok tok) 
                 return tok;
 
+            if (IsQuote(current))
+                return ReadText(str, position);
+
             return Tok.New(TokType.NotAToken, null, position+1);
         }
+
+        
 
         private Tok ReadIdOrKeyword(string str, int position)
         {
@@ -122,12 +127,26 @@ namespace Funny.Tokenization
         private bool IsLetter(char val) =>val == '_' ||  (val >= 'a' && val <= 'z');
 
         private bool IsDigit(char val) => val >= '0' && val <= '9';
+
+        private bool IsQuote(char val) => val == '\'' || val == '\"';
+
+        private Tok ReadText(string str, int position)
+        {
+            
+            for (var i = position+1; i < str.Length; i++)
+            {
+                if(IsQuote(str[i]))
+                    return Tok.New(TokType.Text, str.Substring(position+1, i - position-1), i+1);
+            }
+            return Tok.New(TokType.NotAToken, str.Length);
+        }
         
         private Tok ReadNumber(string str, int position)
         {
-            int i = position;
             bool hasOneDot = false;
             bool hasTypeSpecifier = false;
+            
+            int i = position;
             for (; i < str.Length; i++)
             {
                 if (IsDigit(str[i])) 

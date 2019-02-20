@@ -58,9 +58,12 @@ namespace Funny.Parsing
             => new LexNode(LexNodeType.IfThen, null, condition, expression);
         public static LexNode Var(string name) 
             => new LexNode(LexNodeType.Var, name);
-
+            
         public static LexNode Fun(string name, LexNode[] children) 
             => new LexNode(LexNodeType.Fun, name,children);
+        
+        public static LexNode Text(string val)
+            => new LexNode(LexNodeType.Text, val);
         public static LexNode Num(string val)
             => new LexNode(LexNodeType.Number, val);
         public  LexNode(LexNodeType type, string value,params LexNode[] children)
@@ -114,6 +117,7 @@ namespace Funny.Parsing
         More,
         MoreOrEqual,
         IfThen,
-        IfThanElse
+        IfThanElse,
+        Text
     }
 }

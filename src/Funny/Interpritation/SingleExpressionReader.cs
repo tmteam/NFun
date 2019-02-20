@@ -28,12 +28,15 @@ namespace Funny.Interpritation
                 return GetIfThanElseNode(node);
             if(node.Is(LexNodeType.Number))
                 return GetValueNode(node);
+            if (node.Is(LexNodeType.Text))
+                return GetTextValueNode(node);
             if (StandartOperations.IsDefaultOp(node.Type))
                 return GetOpNode(node);
             
             throw new ArgumentException($"Unknown lexnode type {node.Type}");
         }
-        
+
+
         private IExpressionNode GetOrAddVariableNode(LexNode varName)
         {
             var lower = varName.Value;
@@ -78,6 +81,8 @@ namespace Funny.Interpritation
             var elseNode = ReadNode(node.Children.Last());
             return new IfThanElseExpressionNode(ifNodes.ToArray(), elseNode);
         }
+
+        private static IExpressionNode GetTextValueNode(LexNode node) => new ValueExpressionNode(node.Value);
 
         private static IExpressionNode GetValueNode(LexNode node)
         {

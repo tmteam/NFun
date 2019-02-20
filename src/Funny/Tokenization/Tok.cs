@@ -47,6 +47,7 @@ namespace Funny.Tokenization
         Plus,
         Minus,
         Div,
+        
         /// <summary>
         /// Division reminder "%"
         /// </summary>
@@ -81,6 +82,7 @@ namespace Funny.Tokenization
         /// ',' symbol
         /// </summary>
         Sep,
+        Text,
         NotAToken,
 
         True,

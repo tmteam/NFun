@@ -29,6 +29,8 @@ namespace Funny.Tests
                                 TokType.If, TokType.Id, TokType.More, TokType.Id, 
                                 TokType.Then, TokType.Number, 
                                 TokType.Else, TokType.Id)]
+        [TestCase("o = 'hiWorld'", TokType.Id, TokType.Def, TokType.Text)]
+        [TestCase("o = ''+'hiWorld'", TokType.Id, TokType.Def, TokType.Text, TokType.Plus, TokType.Text)]
         public void TestTokinization(string exp, params TokType[] expected)
         {
              var tokens =  Tokenizer
@@ -41,18 +43,4 @@ namespace Funny.Tests
         
     }
 
-    public static class Tt
-    {
-        
-        public static Tok Id(string val)
-            => Tok.New(TokType.Id, val,0);
-
-        public static Tok Num(string val)
-            => Tok.New(TokType.Number,val,0);
-        public static Tok Plus()
-            => Tok.New(TokType.Plus,0);
-        public static Tok Minus()
-            => Tok.New(TokType.Minus,0);
-
-    }
 }

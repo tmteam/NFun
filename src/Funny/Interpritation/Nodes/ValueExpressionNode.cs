@@ -1,13 +1,17 @@
 using System.Collections.Generic;
-using Funny.Interpritation.Nodes;
 using Funny.Runtime;
 
-namespace Funny.Interpritation
+namespace Funny.Interpritation.Nodes
 {
     public class ValueExpressionNode: IExpressionNode
     {
         private readonly object _value;
 
+        public ValueExpressionNode(string value)
+        {
+            Type = VarType.TextType;
+            _value = value;
+        }
         public ValueExpressionNode(bool value)
         {
             Type = VarType.BoolType;
@@ -26,9 +30,6 @@ namespace Funny.Interpritation
 
         public VarType Type { get; }
 
-        public IEnumerable<IExpressionNode> Children {
-            get { yield break;}
-        }
         public object Calc() => _value;
     }
 }

@@ -67,7 +67,7 @@ namespace Funny.Interpritation
                 var prototype = _functions[userFun.Id];
                 ((FunctionPrototype)prototype).SetActual(GetFunction(userFun));
             }
-
+            
             foreach (var equation in _treeAnalysis.OrderedEquations)
             {
                 var reader = new SingleExpressionReader(_functions, _variables);

@@ -34,7 +34,7 @@ namespace Funny.Tests
         [TestCase("y = 0b001  ",VarType.IntType)]
         [TestCase("y = 0b11  ",VarType.IntType)]
         [TestCase("y = 0x_1",VarType.IntType)]
-
+        
         [TestCase("y = 1==1",VarType.BoolType)]
         [TestCase("y = 1==0",VarType.BoolType)]
         [TestCase("y = true==true",VarType.BoolType)]
@@ -51,6 +51,15 @@ namespace Funny.Tests
         [TestCase("y = true or true", VarType.BoolType)]
         [TestCase("y = true xor true", VarType.BoolType)]
 
+        [TestCase("y=\"\"", VarType.TextType)]
+        [TestCase("y=''", VarType.TextType)]
+        [TestCase("y='hi world'", VarType.TextType)]
+        [TestCase("y='hi world'+5", VarType.TextType)]
+        [TestCase("y='hi world'+true", VarType.TextType)]
+        [TestCase("y='hi world'+true+5", VarType.TextType)]
+        [TestCase("y=''+true+5", VarType.TextType)]
+        [TestCase("y='hi'+'world'", VarType.TextType)]
+
         public void SingleEquation_OutputTypeCalculatesCorrect(string expr, VarType type)
         {
             
@@ -59,7 +68,7 @@ namespace Funny.Tests
             Assert.AreEqual(1, res.Results.Length);
             Assert.AreEqual(type, res.Results.First().Type);
         }
-
+        
         [TestCase("y = 1\rz=2",VarType.IntType, VarType.IntType)]
         [TestCase("y = 2.0\rz=2",VarType.NumberType, VarType.IntType)]
         [TestCase("y = true\rz=false",VarType.BoolType, VarType.BoolType)]
@@ -82,6 +91,10 @@ namespace Funny.Tests
 
         [TestCase("y = 2.0\rz=y>1",VarType.NumberType, VarType.BoolType)]
         [TestCase("y = z>1\rz=2.0",VarType.BoolType, VarType.NumberType)]
+        [TestCase("y = 'hi'\rz=y",VarType.TextType, VarType.TextType)]
+        [TestCase("y = 'hi'\rz=y+ 'lala'",VarType.TextType, VarType.TextType)]
+        [TestCase("y = true\rz='lala'+y",VarType.BoolType, VarType.TextType)]
+
         public void TwinEquations_OutputTypesCalculateCorrect(string expr, VarType ytype,VarType ztype)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
@@ -91,5 +104,12 @@ namespace Funny.Tests
             var z = res.Get("z");
             Assert.AreEqual(z.Type,ztype,"z");
         }
+        
+        
+        [TestCase("y=5+'hi'")]
+        public void ObviouslyFails(string expr) =>
+            Assert.Throws<OutpuCastParseException>(
+                ()=> Interpreter.BuildOrThrow(expr));
+
     }
 }

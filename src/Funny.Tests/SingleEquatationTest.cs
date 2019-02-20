@@ -37,7 +37,7 @@ namespace Funny.Tests
         [TestCase("y = 0b001  ",1)]
         [TestCase("y = 0b11  ",3)]
         [TestCase("y = 0x_1",1)]
-        public void ConstantEquation(string expr, double expected)
+        public void SingleConstantEquation(string expr, object expected)
         {
             
             var runtime = Interpreter.BuildOrThrow(expr);
@@ -45,7 +45,26 @@ namespace Funny.Tests
             Assert.AreEqual(1, res.Results.Length);
             Assert.AreEqual(expected, res.Results.First().Value);
         }
-
+        
+        [TestCase("y = ''", "")]
+        [TestCase("y = 'hi'", "hi")]
+        [TestCase("y = 'World'", "World")]
+        [TestCase("y = 'hi'+5", "hi5")]
+        [TestCase("y = ''+10", "10")]
+        [TestCase("y = ''+true", "True")]
+        [TestCase("y = 'hi'+5+true", "hi5True")]
+        [TestCase("y = 'hi'+' '+'world'", "hi world")]
+        public void TextConstantEquation(string expr, string expected)
+        {
+            
+            var runtime = Interpreter.BuildOrThrow(expr);
+            var res = runtime.Calculate();
+            Assert.AreEqual(1, res.Results.Length);
+            Assert.AreEqual(expected, res.Results.First().Value);
+        }
+        
+        [TestCase("y = true", true)]
+        [TestCase("y = false", false)]
         [TestCase("y = 1==1",true)]
         [TestCase("y = 1==0",false)]
         [TestCase("y = true==true",true)]
@@ -137,6 +156,8 @@ namespace Funny.Tests
         [TestCase("y = =a")]
         [TestCase("y = x+2+ 3 + 4 +")]
         [TestCase("y = \"")]
+        [TestCase("y = '")]
+        [TestCase("y = (")]
         [TestCase("y = -")]
         [TestCase("y = ~")]
         [TestCase("~y=3")]
@@ -148,6 +169,9 @@ namespace Funny.Tests
         [TestCase("y = 0x2.3")]
         [TestCase("y = 0x99GG")]
         [TestCase("y = 0bFF")]
+        [TestCase("y='hell")]
+        [TestCase("y=hell'")]
+        [TestCase("y='")]
         public void ObviouslyFails(string expr) =>
             Assert.Throws<ParseException>(
                 ()=> Interpreter.BuildOrThrow(expr));

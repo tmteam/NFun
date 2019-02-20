@@ -52,14 +52,15 @@ namespace Funny.Parsing
                     throw new ParseException("minus without next val");
                 return LexNode.Op(LexNodeType.Mult, LexNode.Num("-1"), nextNode);
             }
-
+            
             if (MoveIf(TokType.True, out var trueTok))
                 return LexNode.Num(trueTok.Value);
             if (MoveIf(TokType.False, out var falseTok))
                 return LexNode.Num(falseTok.Value);
             if (MoveIf(TokType.Number, out var val))
                 return LexNode.Num(val.Value);
-            
+            if (MoveIf(TokType.Text, out var txt))
+                return LexNode.Text(txt.Value);
             if (MoveIf(TokType.Id, out var headToken))
             {
                 if (_flow.IsCurrent(TokType.Obr))
@@ -82,7 +83,7 @@ namespace Funny.Parsing
             //Lower priority is the special case
             if (priority == 0)
                 return ReadAtomicOrNull();
-
+            
             //starting with left Node
             var leftNode = ReadNext(priority - 1);
 

@@ -23,6 +23,8 @@ namespace Funny.Interpritation
                             return new OpExpressionNodeOfT<int,double,double>(left,right, (l, r) => l + r);
                         case VarType.IntType when right.Type == VarType.IntType:
                             return new OpExpressionNodeOfT<int,int,int>(left,right, (l, r) => l + r);
+                        case VarType.TextType:
+                            return new OpExpressionNodeOfT<string, object,string>(left,right, (l,r)=> l+r);
                         default:
                             throw new OutpuCastParseException($"\"{type}\" cast error. Left operand is {left.Type} and right is {right.Type}");
                     }

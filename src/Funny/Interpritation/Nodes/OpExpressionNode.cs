@@ -46,6 +46,8 @@ namespace Funny.Interpritation
                 Type = VarType.IntType;
             else if (typeof(TOut) == typeof(double))
                 Type = VarType.NumberType;
+            else if (typeof(TOut) == typeof(string))
+                Type = VarType.TextType;
             else
                 throw new ArgumentException();
             _a = a;
