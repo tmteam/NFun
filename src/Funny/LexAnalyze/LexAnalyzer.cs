@@ -8,13 +8,13 @@ namespace Funny.LexAnalyze
 {
     public static class LexAnalyzer
     {
-        public static TreeAnalysis Analyze(LexEquation[] lexEquations)
+        public static TreeAnalysis Analyze(LexTree tree)
         {
-            var vars = SearchVariables(lexEquations);
+            var vars = SearchVariables(tree.Equations);
             return new TreeAnalysis()
             {
                 AllVariables = vars.Values,
-                OrderedEquations = OrderEquationsOrThrow(lexEquations, vars)
+                OrderedEquations = OrderEquationsOrThrow(tree.Equations, vars)
             };
         }
         

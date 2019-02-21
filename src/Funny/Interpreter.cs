@@ -1,5 +1,6 @@
 using Funny.BuiltInFunctions;
 using Funny.Interpritation;
+using Funny.Interpritation.Functions;
 using Funny.Parsing;
 using Funny.Tokenization;
 

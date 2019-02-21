@@ -6,28 +6,29 @@ namespace Funny.Tests
 {
     public class TypizationTest
     {
+        
         [TestCase("y = 2",VarType.IntType)]
         [TestCase("y = 2*3",VarType.IntType)]
         [TestCase("y = 2^3",VarType.IntType)]
         [TestCase("y = 2%3",VarType.IntType)]
 
-        [TestCase("y = 4/3",VarType.NumberType)]
+        [TestCase("y = 4/3",VarType.RealType)]
         [TestCase("y = 4- 3",VarType.IntType)]
         [TestCase("y = 4+ 3",VarType.IntType)]
-        [TestCase("z = 1 + 4/3 + 3 +2*3 -1", VarType.NumberType)]
+        [TestCase("z = 1 + 4/3 + 3 +2*3 -1", VarType.RealType)]
         [TestCase("y = -2*-4",VarType.IntType)]
         [TestCase("y = -2*(-4+2)",VarType.IntType)]
         [TestCase("y = -(-(-1))",VarType.IntType)]
 
-        [TestCase("y = 0.2",VarType.NumberType)]
-        [TestCase("y = 1.1_11  ",VarType.NumberType)]
-        [TestCase("y = 4*0.2",VarType.NumberType)]
-        [TestCase("y = 4/0.2",VarType.NumberType)]
-        [TestCase("y = 4/0.2",VarType.NumberType)]
-        [TestCase("y = 2^0.3",VarType.NumberType)]
-        [TestCase("y = 0.2^2",VarType.NumberType)]
-        [TestCase("y = 0.2%2",VarType.NumberType)]
-        [TestCase("y = 3%0.2",VarType.NumberType)]
+        [TestCase("y = 0.2",VarType.RealType)]
+        [TestCase("y = 1.1_11  ",VarType.RealType)]
+        [TestCase("y = 4*0.2",VarType.RealType)]
+        [TestCase("y = 4/0.2",VarType.RealType)]
+        [TestCase("y = 4/0.2",VarType.RealType)]
+        [TestCase("y = 2^0.3",VarType.RealType)]
+        [TestCase("y = 0.2^2",VarType.RealType)]
+        [TestCase("y = 0.2%2",VarType.RealType)]
+        [TestCase("y = 3%0.2",VarType.RealType)]
 
         [TestCase("y = 0xfF  ",VarType.IntType)]
         [TestCase("y = 0x00_Ff  ",VarType.IntType)]
@@ -59,7 +60,6 @@ namespace Funny.Tests
         [TestCase("y='hi world'+true+5", VarType.TextType)]
         [TestCase("y=''+true+5", VarType.TextType)]
         [TestCase("y='hi'+'world'", VarType.TextType)]
-
         public void SingleEquation_OutputTypeCalculatesCorrect(string expr, VarType type)
         {
             
@@ -70,17 +70,17 @@ namespace Funny.Tests
         }
         
         [TestCase("y = 1\rz=2",VarType.IntType, VarType.IntType)]
-        [TestCase("y = 2.0\rz=2",VarType.NumberType, VarType.IntType)]
+        [TestCase("y = 2.0\rz=2",VarType.RealType, VarType.IntType)]
         [TestCase("y = true\rz=false",VarType.BoolType, VarType.BoolType)]
 
         [TestCase("y = 1\rz=y",VarType.IntType, VarType.IntType)]
         [TestCase("y = z\rz=2",VarType.IntType, VarType.IntType)]
 
-        [TestCase("y = z/2\rz=2",VarType.NumberType, VarType.IntType)]
-        [TestCase("y = 2\rz=y/2",VarType.IntType, VarType.NumberType)]
+        [TestCase("y = z/2\rz=2",VarType.RealType, VarType.IntType)]
+        [TestCase("y = 2\rz=y/2",VarType.IntType, VarType.RealType)]
 
-        [TestCase("y = 2.0\rz=y",VarType.NumberType, VarType.NumberType)]
-        [TestCase("y = z\rz=2.0",VarType.NumberType, VarType.NumberType)]
+        [TestCase("y = 2.0\rz=y",VarType.RealType, VarType.RealType)]
+        [TestCase("y = z\rz=2.0",VarType.RealType, VarType.RealType)]
 
         [TestCase("y = true\rz=y",VarType.BoolType, VarType.BoolType)]
         [TestCase("y = z\rz=true",VarType.BoolType, VarType.BoolType)]
@@ -89,8 +89,8 @@ namespace Funny.Tests
         [TestCase("y = 2\rz=y>1",VarType.IntType, VarType.BoolType)]
         [TestCase("y = z>1\rz=2",VarType.BoolType, VarType.IntType)]
 
-        [TestCase("y = 2.0\rz=y>1",VarType.NumberType, VarType.BoolType)]
-        [TestCase("y = z>1\rz=2.0",VarType.BoolType, VarType.NumberType)]
+        [TestCase("y = 2.0\rz=y>1",VarType.RealType, VarType.BoolType)]
+        [TestCase("y = z>1\rz=2.0",VarType.BoolType, VarType.RealType)]
         [TestCase("y = 'hi'\rz=y",VarType.TextType, VarType.TextType)]
         [TestCase("y = 'hi'\rz=y+ 'lala'",VarType.TextType, VarType.TextType)]
         [TestCase("y = true\rz='lala'+y",VarType.BoolType, VarType.TextType)]
@@ -105,11 +105,24 @@ namespace Funny.Tests
             Assert.AreEqual(z.Type,ztype,"z");
         }
         
-        
         [TestCase("y=5+'hi'")]
         public void ObviouslyFails(string expr) =>
             Assert.Throws<OutpuCastParseException>(
                 ()=> Interpreter.BuildOrThrow(expr));
+        
+        
+        [TestCase(1.0, "x:real\r y= x+1", 2.0)]        
+        [TestCase(1,    "x:int\r y= x+1", 2)]        
+        [TestCase("1", "x:text\r y= x+1", "11")]        
+        [TestCase(true, "x:bool\r y= x and true", true)]        
 
+        public void SingleConstantEquation(object x,  string expr, object y)
+        {
+            var runtime = Interpreter.BuildOrThrow(expr);
+            var res = runtime.Calculate(Var.New("x", x));
+            Assert.AreEqual(1, res.Results.Length);
+            Assert.AreEqual(y, res.Results.First().Value);
+        }
+        
     }
 }

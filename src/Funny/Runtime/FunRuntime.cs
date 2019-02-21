@@ -27,7 +27,7 @@ namespace Funny.Runtime
             {
                 var varName = value.Name;
                 if (_variables.TryGetValue(varName, out var varNode))
-                    varNode.SetValue(Convert.ToDouble(value.Value));
+                    varNode.SetConvertedValue(value.Value);
                 else
                     throw new ArgumentException(value.Name);
             }

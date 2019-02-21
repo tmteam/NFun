@@ -5,7 +5,7 @@ namespace Funny.Interpritation.Functions
 {
     public class FunctionPrototype: FunctionBase
     {
-        public FunctionPrototype(string name, int argsCount) : base(name, argsCount, VarType.NumberType)
+        public FunctionPrototype(string name, int argsCount) : base(name, argsCount, VarType.RealType)
         {
         }
 
@@ -13,7 +13,8 @@ namespace Funny.Interpritation.Functions
         public void SetActual(FunctionBase function)
         {
             _function = function;
-            if(_function.Type!= this.Type)
+            
+            if(Type!= function.Type)
                 throw new OutpuCastParseException($"{_function.Type} is not supported as output fun parameter");
         }
 

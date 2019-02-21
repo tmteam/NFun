@@ -15,11 +15,11 @@ namespace Funny.Interpritation
                 case LexNodeType.Plus:
                     switch (left.Type)
                     {
-                        case VarType.NumberType when right.Type == VarType.NumberType:
+                        case VarType.RealType when right.Type == VarType.RealType:
                             return new OpExpressionNodeOfT<double,double,double>(left,right, (l, r) => l + r);
-                        case VarType.NumberType when right.Type == VarType.IntType:
+                        case VarType.RealType when right.Type == VarType.IntType:
                             return new OpExpressionNodeOfT<double,int,double>(left,right, (l, r) => l + r);
-                        case VarType.IntType when right.Type == VarType.NumberType:
+                        case VarType.IntType when right.Type == VarType.RealType:
                             return new OpExpressionNodeOfT<int,double,double>(left,right, (l, r) => l + r);
                         case VarType.IntType when right.Type == VarType.IntType:
                             return new OpExpressionNodeOfT<int,int,int>(left,right, (l, r) => l + r);
@@ -31,11 +31,11 @@ namespace Funny.Interpritation
                 case LexNodeType.Minus:
                     switch (left.Type)
                     {
-                        case VarType.NumberType when right.Type == VarType.NumberType:
+                        case VarType.RealType when right.Type == VarType.RealType:
                             return new OpExpressionNodeOfT<double,double,double>(left,right, (l, r) => l - r);
-                        case VarType.NumberType when right.Type == VarType.IntType:
+                        case VarType.RealType when right.Type == VarType.IntType:
                             return new OpExpressionNodeOfT<double,int,double>(left,right, (l, r) => l - r);
-                        case VarType.IntType when right.Type == VarType.NumberType:
+                        case VarType.IntType when right.Type == VarType.RealType:
                             return new OpExpressionNodeOfT<int,double,double>(left,right, (l, r) => l - r);
                         case VarType.IntType when right.Type == VarType.IntType:
                             return new OpExpressionNodeOfT<int,int,int>(left,right, (l, r) => l - r);
@@ -45,11 +45,11 @@ namespace Funny.Interpritation
                 case LexNodeType.Div:
                     switch (left.Type)
                     {
-                        case VarType.NumberType when right.Type == VarType.NumberType:
+                        case VarType.RealType when right.Type == VarType.RealType:
                             return new OpExpressionNodeOfT<double,double,double>(left,right, (l, r) => l/r);
-                        case VarType.NumberType when right.Type == VarType.IntType:
+                        case VarType.RealType when right.Type == VarType.IntType:
                             return new OpExpressionNodeOfT<double,int,double>(left,right, (l, r) => l/(double)r);
-                        case VarType.IntType when right.Type == VarType.NumberType:
+                        case VarType.IntType when right.Type == VarType.RealType:
                             return new OpExpressionNodeOfT<int,double,double>(left,right, (l, r) => l/r);
                         case VarType.IntType when right.Type == VarType.IntType:
                             return new OpExpressionNodeOfT<int,int,double>(left,right, (l, r) => l/(double)r);
@@ -59,11 +59,11 @@ namespace Funny.Interpritation
                 case LexNodeType.Rema:
                     switch (left.Type)
                     {
-                        case VarType.NumberType when right.Type == VarType.NumberType:
+                        case VarType.RealType when right.Type == VarType.RealType:
                             return new OpExpressionNodeOfT<double,double,double>(left,right, (l, r) => l%r);
-                        case VarType.NumberType when right.Type == VarType.IntType:
+                        case VarType.RealType when right.Type == VarType.IntType:
                             return new OpExpressionNodeOfT<double,int,double>(left,right, (l, r) => l%r);
-                        case VarType.IntType when right.Type == VarType.NumberType:
+                        case VarType.IntType when right.Type == VarType.RealType:
                             return new OpExpressionNodeOfT<int,double,double>(left,right, (l, r) => l%r);
                         case VarType.IntType when right.Type == VarType.IntType:
                             return new OpExpressionNodeOfT<int,int,int>(left,right, (l, r) => l%r);
@@ -73,11 +73,11 @@ namespace Funny.Interpritation
                 case LexNodeType.Mult:
                     switch (left.Type)
                     {
-                        case VarType.NumberType when right.Type == VarType.NumberType:
+                        case VarType.RealType when right.Type == VarType.RealType:
                             return new OpExpressionNodeOfT<double,double,double>(left,right, (l, r) => l*r);
-                        case VarType.NumberType when right.Type == VarType.IntType:
+                        case VarType.RealType when right.Type == VarType.IntType:
                             return new OpExpressionNodeOfT<double,int,double>(left,right, (l, r) => l*r);
-                        case VarType.IntType when right.Type == VarType.NumberType:
+                        case VarType.IntType when right.Type == VarType.RealType:
                             return new OpExpressionNodeOfT<int,double,double>(left,right, (l, r) => l*r);
                         case VarType.IntType when right.Type == VarType.IntType:
                             return new OpExpressionNodeOfT<int,int,int>(left,right, (l, r) => l*r);
@@ -87,11 +87,11 @@ namespace Funny.Interpritation
                 case LexNodeType.Pow:
                     switch (left.Type)
                     {
-                        case VarType.NumberType when right.Type == VarType.NumberType:
+                        case VarType.RealType when right.Type == VarType.RealType:
                             return new OpExpressionNodeOfT<double,double,double>(left,right, Math.Pow);
-                        case VarType.NumberType when right.Type == VarType.IntType:
+                        case VarType.RealType when right.Type == VarType.IntType:
                             return new OpExpressionNodeOfT<double,int,double>(left,right, (l, r) => Math.Pow(l, r));
-                        case VarType.IntType when right.Type == VarType.NumberType:
+                        case VarType.IntType when right.Type == VarType.RealType:
                             return new OpExpressionNodeOfT<int,double,double>(left,right, (l, r) => Math.Pow(l, r));
                         case VarType.IntType when right.Type == VarType.IntType:
                             return new OpExpressionNodeOfT<int,int,int>(left,right, (l, r) => (int)Math.Pow(l, r));
@@ -107,19 +107,19 @@ namespace Funny.Interpritation
                 case LexNodeType.Equal:
                     switch (left.Type)
                     {
-                        case VarType.NumberType when right.Type == VarType.NumberType:
+                        case VarType.RealType when right.Type == VarType.RealType:
                             return new OpExpressionNodeOfT<double,double,bool>(left,right, (l,r)=> l==r);
-                        case VarType.NumberType when right.Type == VarType.IntType:
+                        case VarType.RealType when right.Type == VarType.IntType:
                             return new OpExpressionNodeOfT<double,int,bool>(left,right, (l,r)=> l==r);
-                        case VarType.NumberType when right.Type == VarType.BoolType:
+                        case VarType.RealType when right.Type == VarType.BoolType:
                             return new OpExpressionNodeOfT<double,bool,bool>(left,right, (l,r)=> l!=0 == r);
-                        case VarType.IntType when right.Type == VarType.NumberType:
+                        case VarType.IntType when right.Type == VarType.RealType:
                             return new OpExpressionNodeOfT<int,double,bool>(left,right, (l,r)=> l==r);
                         case VarType.IntType when right.Type == VarType.IntType:
                             return new OpExpressionNodeOfT<int,int,bool>(left,right, (l,r)=> l==r);
                         case VarType.IntType when right.Type == VarType.BoolType:
                             return new OpExpressionNodeOfT<int,bool,bool>(left,right, (l,r)=> l!=0 == r);
-                        case VarType.BoolType when right.Type == VarType.NumberType:
+                        case VarType.BoolType when right.Type == VarType.RealType:
                             return new OpExpressionNodeOfT<bool,double,bool>(left,right, (l,r)=> l == (r!=0));
                         case VarType.BoolType when right.Type == VarType.IntType:
                             return new OpExpressionNodeOfT<bool,int,bool>(left,right, (l,r)=> l == (r!=0));
@@ -133,19 +133,19 @@ namespace Funny.Interpritation
                 case LexNodeType.NotEqual:
                     switch (left.Type)
                     {
-                        case VarType.NumberType when right.Type == VarType.NumberType:
+                        case VarType.RealType when right.Type == VarType.RealType:
                             return new OpExpressionNodeOfT<double,double,bool>(left,right, (l,r)=> l!=r);
-                        case VarType.NumberType when right.Type == VarType.IntType:
+                        case VarType.RealType when right.Type == VarType.IntType:
                             return new OpExpressionNodeOfT<double,int,bool>(left,right, (l,r)=> l!=r);
-                        case VarType.NumberType when right.Type == VarType.BoolType:
+                        case VarType.RealType when right.Type == VarType.BoolType:
                             return new OpExpressionNodeOfT<double,bool,bool>(left,right, (l,r)=> l!=0 != r);
-                        case VarType.IntType when right.Type == VarType.NumberType:
+                        case VarType.IntType when right.Type == VarType.RealType:
                             return new OpExpressionNodeOfT<int,double,bool>(left,right, (l,r)=> l!=r);
                         case VarType.IntType when right.Type == VarType.IntType:
                             return new OpExpressionNodeOfT<int,int,bool>(left,right, (l,r)=> l!=r);
                         case VarType.IntType when right.Type == VarType.BoolType:
                             return new OpExpressionNodeOfT<int,bool,bool>(left,right, (l,r)=> l!=0 != r);
-                        case VarType.BoolType when right.Type == VarType.NumberType:
+                        case VarType.BoolType when right.Type == VarType.RealType:
                             return new OpExpressionNodeOfT<bool,double,bool>(left,right, (l,r)=> l != (r!=0));
                         case VarType.BoolType when right.Type == VarType.IntType:
                             return new OpExpressionNodeOfT<bool,int,bool>(left,right, (l,r)=> l != (r!=0));
@@ -158,11 +158,11 @@ namespace Funny.Interpritation
                 case LexNodeType.Less:
                     switch (left.Type)
                     {
-                        case VarType.NumberType when right.Type == VarType.NumberType:
+                        case VarType.RealType when right.Type == VarType.RealType:
                             return new OpExpressionNodeOfT<double,double,bool>(left,right, (l,r)=> l<r);
-                        case VarType.NumberType when right.Type == VarType.IntType:
+                        case VarType.RealType when right.Type == VarType.IntType:
                             return new OpExpressionNodeOfT<double,int,bool>(left,right, (l,r)=> l<r);
-                        case VarType.IntType when right.Type == VarType.NumberType:
+                        case VarType.IntType when right.Type == VarType.RealType:
                             return new OpExpressionNodeOfT<int,double,bool>(left,right, (l,r)=> l<r);
                         case VarType.IntType when right.Type == VarType.IntType:
                             return new OpExpressionNodeOfT<int,int,bool>(left,right, (l,r)=> l<r);
@@ -172,11 +172,11 @@ namespace Funny.Interpritation
                 case LexNodeType.LessOrEqual:
                     switch (left.Type)
                     {
-                        case VarType.NumberType when right.Type == VarType.NumberType:
+                        case VarType.RealType when right.Type == VarType.RealType:
                             return new OpExpressionNodeOfT<double,double,bool>(left,right, (l,r)=> l<=r);
-                        case VarType.NumberType when right.Type == VarType.IntType:
+                        case VarType.RealType when right.Type == VarType.IntType:
                             return new OpExpressionNodeOfT<double,int,bool>(left,right, (l,r)=> l<=r);
-                        case VarType.IntType when right.Type == VarType.NumberType:
+                        case VarType.IntType when right.Type == VarType.RealType:
                             return new OpExpressionNodeOfT<int,double,bool>(left,right, (l,r)=> l<=r);
                         case VarType.IntType when right.Type == VarType.IntType:
                             return new OpExpressionNodeOfT<int,int,bool>(left,right, (l,r)=> l<=r);
@@ -186,11 +186,11 @@ namespace Funny.Interpritation
                 case LexNodeType.More:
                     switch (left.Type)
                     {
-                        case VarType.NumberType when right.Type == VarType.NumberType:
+                        case VarType.RealType when right.Type == VarType.RealType:
                             return new OpExpressionNodeOfT<double,double,bool>(left,right, (l,r)=> l>r);
-                        case VarType.NumberType when right.Type == VarType.IntType:
+                        case VarType.RealType when right.Type == VarType.IntType:
                             return new OpExpressionNodeOfT<double,int,bool>(left,right, (l,r)=> l>r);
-                        case VarType.IntType when right.Type == VarType.NumberType:
+                        case VarType.IntType when right.Type == VarType.RealType:
                             return new OpExpressionNodeOfT<int,double,bool>(left,right, (l,r)=> l>r);
                         case VarType.IntType when right.Type == VarType.IntType:
                             return new OpExpressionNodeOfT<int,int,bool>(left,right, (l,r)=> l>r);
@@ -200,11 +200,11 @@ namespace Funny.Interpritation
                 case LexNodeType.MoreOrEqual:
                     switch (left.Type)
                     {
-                        case VarType.NumberType when right.Type == VarType.NumberType:
+                        case VarType.RealType when right.Type == VarType.RealType:
                             return new OpExpressionNodeOfT<double,double,bool>(left,right, (l,r)=> l>=r);
-                        case VarType.NumberType when right.Type == VarType.IntType:
+                        case VarType.RealType when right.Type == VarType.IntType:
                             return new OpExpressionNodeOfT<double,int,bool>(left,right, (l,r)=> l>=r);
-                        case VarType.IntType when right.Type == VarType.NumberType:
+                        case VarType.IntType when right.Type == VarType.RealType:
                             return new OpExpressionNodeOfT<int,double,bool>(left,right, (l,r)=> l>=r);
                         case VarType.IntType when right.Type == VarType.IntType:
                             return new OpExpressionNodeOfT<int,int,bool>(left,right, (l,r)=> l>=r);

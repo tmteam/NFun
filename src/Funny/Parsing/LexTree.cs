@@ -4,5 +4,6 @@ namespace Funny.Parsing
     {
         public LexFunction[] UserFuns;
         public LexEquation[] Equations;
+        public VariableTypeSpecification[] VarSpecifications;
     }
 }

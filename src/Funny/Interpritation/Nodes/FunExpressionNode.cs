@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Funny.Interpritation.Functions;
 using Funny.Runtime;
 
 namespace Funny.Interpritation.Nodes
@@ -16,7 +17,7 @@ namespace Funny.Interpritation.Nodes
             _args = args;
             foreach (var node in args)
             {
-                if (node.Type != VarType.IntType && node.Type != VarType.NumberType)
+                if (node.Type != VarType.IntType && node.Type != VarType.RealType)
                     throw new OutpuCastParseException("Input variables have to be number or int types");
             }
 

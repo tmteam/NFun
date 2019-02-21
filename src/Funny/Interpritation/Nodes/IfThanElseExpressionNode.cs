@@ -23,7 +23,7 @@ namespace Funny.Interpritation.Nodes
                 case VarType.IntType:
                     caster = o => o;
                     break;
-                case VarType.NumberType:
+                case VarType.RealType:
                     caster = o => Convert.ToDouble(o);
                     break;
                 default:
@@ -64,7 +64,7 @@ namespace Funny.Interpritation.Nodes
                     case VarType.IntType:
                         hasInt = true;
                         break;
-                    case VarType.NumberType:
+                    case VarType.RealType:
                         hasReal = true;
                         break;
                     default:
@@ -80,7 +80,7 @@ namespace Funny.Interpritation.Nodes
             }
 
             if (hasReal)
-                return VarType.NumberType;
+                return VarType.RealType;
             if (hasInt)
                 return VarType.IntType;
             

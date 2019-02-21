@@ -26,11 +26,13 @@ namespace Funny.Interpritation
             IEnumerable<FunctionBase> predefinedFunctions)
         {
             var funDic = predefinedFunctions.ToDictionary((f) => f.Name.ToLower());
-            var analysis = LexAnalyzer.Analyze(lexTree.Equations);
+            var analysis = LexAnalyzer.Analyze(lexTree);
             var ans = new ExpressionReader(
                 analysis,
                 lexTree.UserFuns,
-                funDic);
+                funDic,
+                lexTree.VarSpecifications);
+            
             ans.Interpritate();
             
             return new FunRuntime(
@@ -41,7 +43,8 @@ namespace Funny.Interpritation
         private ExpressionReader(
             TreeAnalysis treeAnalysis, 
             LexFunction[] lexTreeUserFuns, 
-            Dictionary<string, FunctionBase> functions)
+            Dictionary<string, FunctionBase> functions, 
+            VariableTypeSpecification[] vars)
         {
             _treeAnalysis = treeAnalysis;
             _lexTreeUserFuns = lexTreeUserFuns;
@@ -54,6 +57,12 @@ namespace Funny.Interpritation
                     {
                         IsOutput =  variablesWithProperty.IsOutput
                     });
+            }
+
+            foreach (var variableTypeSpecification in vars)
+            {
+                if (_variables.ContainsKey(variableTypeSpecification.Id)) ;
+                    _variables[variableTypeSpecification.Id].SetType(variableTypeSpecification.Type);
             }
         }
 

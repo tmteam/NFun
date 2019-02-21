@@ -12,6 +12,8 @@ namespace Funny.Runtime
                 return New(name, d);
             if (value is bool b)
                 return New(name, b);
+            if (value is string s)
+                return New(name, s);
             throw new ArgumentException($"Type {value.GetType()} is not supported");
         }
         public static Var New(string name, bool value) 
@@ -19,7 +21,7 @@ namespace Funny.Runtime
         public static Var New(string name, int value) 
             => new Var(name, value, VarType.IntType);
         public static Var New(string name, double value) 
-            => new Var(name, value, VarType.NumberType);
+            => new Var(name, value, VarType.RealType);
       
         public readonly string Name;
         public readonly object Value;

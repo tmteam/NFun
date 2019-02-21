@@ -31,6 +31,10 @@ namespace Funny.Tests
                                 TokType.Else, TokType.Id)]
         [TestCase("o = 'hiWorld'", TokType.Id, TokType.Def, TokType.Text)]
         [TestCase("o = ''+'hiWorld'", TokType.Id, TokType.Def, TokType.Text, TokType.Plus, TokType.Text)]
+        [TestCase("x:real", TokType.Id, TokType.Is, TokType.RealType)]
+        [TestCase("x:int", TokType.Id, TokType.Is, TokType.IntType)]
+        [TestCase("x:text", TokType.Id, TokType.Is, TokType.TextType)]
+        [TestCase("x:bool", TokType.Id, TokType.Is, TokType.BoolType)]
         public void TestTokinization(string exp, params TokType[] expected)
         {
              var tokens =  Tokenizer

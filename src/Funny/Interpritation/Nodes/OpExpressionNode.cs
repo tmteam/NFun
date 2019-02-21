@@ -25,7 +25,7 @@ namespace Funny.Interpritation
                 yield return _b;
             }
         }
-        public VarType Type => VarType.NumberType;
+        public VarType Type => VarType.RealType;
 
         public object Calc() => _op((double)_a.Calc(), (double)_b.Calc());
     }
@@ -45,7 +45,7 @@ namespace Funny.Interpritation
             else if (typeof(TOut) == typeof(Int32))
                 Type = VarType.IntType;
             else if (typeof(TOut) == typeof(double))
-                Type = VarType.NumberType;
+                Type = VarType.RealType;
             else if (typeof(TOut) == typeof(string))
                 Type = VarType.TextType;
             else

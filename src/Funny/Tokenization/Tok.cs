@@ -9,7 +9,6 @@ namespace Funny.Tokenization
             Finish = finish;
             Type = type;
         }
-
          
         public static Tok New(TokType type, int finish)
             => new Tok(type,"",finish);
@@ -86,7 +85,13 @@ namespace Funny.Tokenization
         NotAToken,
 
         True,
-        False
+        False,
+        Is,
+        
+        TextType,
+        IntType,
+        RealType,
+        BoolType,
     }
     
 }

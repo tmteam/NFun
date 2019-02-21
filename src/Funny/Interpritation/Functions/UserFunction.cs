@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Funny.Interpritation.Functions;
 using Funny.Interpritation.Nodes;
 using Funny.Runtime;
 

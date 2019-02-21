@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Funny.Interpritation.Functions;
 using Funny.Interpritation.Nodes;
 using Funny.Parsing;
 

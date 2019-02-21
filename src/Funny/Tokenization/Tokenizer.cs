@@ -32,6 +32,7 @@ namespace Funny.Tokenization
             {'^', TokType.Pow},
             {'(', TokType.Obr},
             {')', TokType.Cbr},
+            {':',TokType.Is}
         };
         
         private readonly Dictionary<string, TokType> _keywords = new Dictionary<string, TokType>
@@ -45,6 +46,10 @@ namespace Funny.Tokenization
             {"else",  TokType.Else},
             {"true",  TokType.True},
             {"false", TokType.False},
+            {"text", TokType.TextType},
+            {"bool", TokType.BoolType},
+            {"real", TokType.RealType},
+            {"int", TokType.IntType},
         };
         
         public Tok TryReadNext(string str, int position)

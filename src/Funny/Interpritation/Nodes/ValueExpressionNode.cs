@@ -24,7 +24,7 @@ namespace Funny.Interpritation.Nodes
         }
         public ValueExpressionNode(double value)
         {
-            Type = VarType.NumberType;
+            Type = VarType.RealType;
             _value = value;
         }
 

@@ -4,7 +4,7 @@ namespace Funny.Runtime
     {
         BoolType = 1,
         IntType = 2,
-        NumberType = 3,
+        RealType = 3,
         TextType = 4,
     }
 }

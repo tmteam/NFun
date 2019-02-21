@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Funny.Interpritation.Nodes;
 using Funny.Runtime;
@@ -20,7 +21,7 @@ namespace Funny.Interpritation
             get { yield break;}
         }
 
-        public VarType Type { get; private set; } = VarType.NumberType;
+        public VarType Type { get; private set; } = VarType.RealType;
 
         public bool IsOutput { get; set; } = false;
         
@@ -28,15 +29,33 @@ namespace Funny.Interpritation
         private static int _count = 0;
         private readonly int uid = _count++;
         
-        public override string ToString()
-        {
-            return Name+": "+ _value+" uid: "+uid;
-        }
+        public override string ToString() => $"{Name}: {_value} uid: {uid}";
 
         public void SetType(VarType expressionType)
         {
             Type = expressionType;
             _value = null;
+        }
+
+        public void SetConvertedValue(object valueValue)
+        {
+            switch (Type)
+            {
+                case VarType.BoolType:
+                    _value = Convert.ToBoolean(valueValue);
+                    break;
+                case VarType.IntType:
+                    _value = Convert.ToInt32(valueValue);
+                    break;
+                case VarType.RealType:
+                    _value = Convert.ToDouble(valueValue);
+                    break;
+                case VarType.TextType:
+                    _value = valueValue?.ToString()??"";
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
     }
 }
