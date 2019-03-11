@@ -5,20 +5,28 @@ using NUnit.Framework;
 
 namespace Funny.Tests
 {
+    [TestFixture]
     public class CustomFunctionsTest
     {
+        [Test]
+        public void TestOfTheTest()
+        {
+            Assert.Pass();
+        }
         [TestCase("myor(a:bool, b:bool):bool = a or b \r y = myor(true,false)",true)]
         [TestCase("mysum(a:int, b:int):int = a + b \r    y = mysum(1,2)",3)]
         [TestCase("mysum(a:real, b:real):real = a + b \r y = mysum(1,2)",3.0)]
         [TestCase("mysum(a:int, b:real):real = a + b \r  y = mysum(1,2)",3.0)]
         [TestCase("mysum(a:int, b:real):real = a + b \r  y = mysum(1,2.0)",3.0)]
         [TestCase("mysum(a:real, b:int):real = a + b \r  y = mysum(1,2)",3.0)]
+        [TestCase("myconcat(a:text, b:text):text = a + b \r  y = myconcat(\"my\",\"test\")","mytest")]
+        [TestCase("myconcat(a:text, b:text):text = a + b \r  y = myconcat(1,\"test\")","1test")]
+        [TestCase("myconcat(a:text, b:text):text = a + b \r  y = myconcat(1,2)","12")]
         public void TypedConstantEquation_NonRecursiveFunction(string expr, object expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
             runtime.Calculate().AssertReturns(Var.New("y", expected));
         }
-        
         
         
         [TestCase("inc(a) = a+1.0\r y = inc(2.0)",3.0)]

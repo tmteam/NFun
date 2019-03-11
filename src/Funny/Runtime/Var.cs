@@ -22,7 +22,9 @@ namespace Funny.Runtime
             => new Var(name, value, VarType.IntType);
         public static Var New(string name, double value) 
             => new Var(name, value, VarType.RealType);
-      
+        public static Var New(string name, string value) 
+            => new Var(name, value, VarType.TextType);
+
         public readonly string Name;
         public readonly object Value;
         public readonly VarType Type;
