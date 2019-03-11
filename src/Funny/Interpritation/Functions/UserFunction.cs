@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Funny.Interpritation.Functions;
 using Funny.Interpritation.Nodes;
 using Funny.Runtime;
@@ -15,17 +16,20 @@ namespace Funny.Interpritation
             string name, 
             VariableExpressionNode[] variables, 
             IExpressionNode expression) 
-            : base(name, variables.Length, expression.Type)
+            : base(
+                name, 
+                expression.Type,
+                variables.Select(v=>v.Type).ToArray())
         {
             _variables = variables;
             _expression = expression;
         }
 
-        readonly Stack<double[]> _recursiveArgsStack  
-            = new Stack<double[]>();
+        readonly Stack<object[]> _recursiveArgsStack  
+            = new Stack<object[]>();
 
 
-        public override object Calc(double[] args)
+        public override object Calc(object[] args)
         {
             try
             {
@@ -48,7 +52,7 @@ namespace Funny.Interpritation
             }
         }
 
-        private void SetVariables(double[] args)
+        private void SetVariables(object[] args)
         {
             for (int i = 0; i < args.Length; i++)
                 _variables[i].SetValue(args[i]);

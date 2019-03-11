@@ -5,9 +5,23 @@ using NUnit.Framework;
 
 namespace Funny.Tests
 {
-    [TestFixture]
-    public class UserFunctionsTest
+    public class CustomFunctionsTest
     {
+        [TestCase("myor(a:bool, b:bool):bool = a or b \r y = myor(true,false)",true)]
+        [TestCase("mysum(a:int, b:int):int = a + b \r    y = mysum(1,2)",3)]
+        [TestCase("mysum(a:real, b:real):real = a + b \r y = mysum(1,2)",3.0)]
+        [TestCase("mysum(a:int, b:real):real = a + b \r  y = mysum(1,2)",3.0)]
+        [TestCase("mysum(a:int, b:real):real = a + b \r  y = mysum(1,2.0)",3.0)]
+        [TestCase("mysum(a:real, b:int):real = a + b \r  y = mysum(1,2)",3.0)]
+        public void TypedConstantEquation_NonRecursiveFunction(string expr, object expected)
+        {
+            var runtime = Interpreter.BuildOrThrow(expr);
+            runtime.Calculate().AssertReturns(Var.New("y", expected));
+        }
+        
+        
+        
+        [TestCase("inc(a) = a+1.0\r y = inc(2.0)",3.0)]
         [TestCase("inc(a) = a+1\r y = inc(2)",3)]
         [TestCase("inc(y) = y+1\r y = inc(2)",3)]
         [TestCase("mult(a,b) = a*b \r y = mult(3,4)+1",13)]
@@ -36,6 +50,7 @@ namespace Funny.Tests
             var runtime = Interpreter.BuildOrThrow(expr);
             runtime.Calculate().AssertReturns(0.00001, Var.New("y", expected));
         }
+        
         [TestCase(1,1)]
         [TestCase(2,1)]
         [TestCase(3,2)]
@@ -45,7 +60,6 @@ namespace Funny.Tests
         [TestCase(7,13)]
         [TestCase(8,21)]
         [TestCase(9,34)]
-
         public void ClassicRecFibonachi(double x, double y)
         {
             string text =

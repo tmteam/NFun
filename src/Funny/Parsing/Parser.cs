@@ -8,18 +8,6 @@ using Funny.Tokenization;
 
 namespace Funny.Parsing
 {
-    public class VariableTypeSpecification
-    {
-        public readonly string Id;
-        public readonly VarType Type;
-
-        public VariableTypeSpecification(string id, VarType type)
-        {
-            Id = id;
-            Type = type;
-        }
-    }
-    
     public static class Parser
     {
         public static LexTree Parse(TokenFlow flow)
@@ -27,7 +15,7 @@ namespace Funny.Parsing
             var reader = new LexNodeReader(flow);
             var equations = new List<LexEquation>();
             var funs = new List<LexFunction>();
-            var varSpecifications = new List<VariableTypeSpecification>();
+            var varSpecifications = new List<VariableInfo>();
             while (true)
             {
                 flow.SkipNewLines();
@@ -35,7 +23,7 @@ namespace Funny.Parsing
                 if (flow.IsDone || flow.IsCurrent(TokType.Eof))
                     break;
 
-                var id = reader.MoveIfOrThrow(TokType.Id).Value;
+                var id = flow.MoveIfOrThrow(TokType.Id).Value;
                 flow.SkipNewLines();
                 
                 
@@ -66,48 +54,68 @@ namespace Funny.Parsing
             };
         }
 
-        private static VariableTypeSpecification ReadVarSpecification(TokenFlow flow, string id)
+        private static VarType ReadType(TokenFlow flow)
+        {
+            if (flow.MoveIf(TokType.Is, out _))
+                return ReadVarType(flow);
+            else
+                return VarType.RealType;
+        }
+        private static VariableInfo ReadVarSpecification(TokenFlow flow, string id) 
+            => new VariableInfo(id, ReadVarType(flow));
+
+        private static VarType ReadVarType(TokenFlow flow)
         {
             var cur = flow.Current;
             switch (cur.Type)
             {
                 case TokType.IntType:
                     flow.MoveNext();
-                    return new VariableTypeSpecification(id, VarType.IntType);
+                    return  VarType.IntType;
                 case TokType.RealType:
                     flow.MoveNext();
-                    return new VariableTypeSpecification(id, VarType.RealType);
+                    return  VarType.RealType;
                 case TokType.BoolType:
                     flow.MoveNext();
-                    return new VariableTypeSpecification(id, VarType.BoolType);
+                    return  VarType.BoolType;
                 case TokType.TextType:
                     flow.MoveNext();
-                    return new VariableTypeSpecification(id, VarType.TextType);
-                
+                    return  VarType.TextType;
             }
             throw new ParseException("Expected: type, but was "+ cur.Type);
         }
-
+        
         private static LexFunction ReadUserFunction(TokenFlow flow, LexNodeReader reader, string id)
         {
-            var arguments = new List<string>();
+            var arguments = new List<VariableInfo>();
             while (true)
             {
-                if (reader.MoveIf(TokType.Cbr, out _))
+                if (flow.MoveIf(TokType.Cbr, out _))
                     break;
+                
                 if (arguments.Any())
-                    reader.MoveIfOrThrow(TokType.Sep, "\",\" or \")\" expected");
-                var argId = reader.MoveIfOrThrow(TokType.Id, "Argument name expected");
-                arguments.Add(argId.Value);
+                    flow.MoveIfOrThrow(TokType.Sep, "\",\" or \")\" expected");
+                var argId = flow.MoveIfOrThrow(TokType.Id, "Argument name expected");
+
+                var type =  ReadType(flow);
+                arguments.Add(new VariableInfo(argId.Value, type));
             }
+
+            var outputType = ReadType(flow);
             flow.SkipNewLines();
-            reader.MoveIfOrThrow(TokType.Def, "\'=\' expected");
+            flow.MoveIfOrThrow(TokType.Def, "\'=\' expected");
             var expression =reader.ReadExpressionOrNull();
             if(expression==null)
                 throw new ParseException("Function contains no body");
-            return new LexFunction{Args = arguments.ToArray(), Id= id, Node = expression};
+            
+            return new LexFunction
+            {
+                Args = arguments.ToArray(), 
+                Id= id, 
+                Node = expression, 
+                OutputType = outputType
+            };
         }
-
 
         private static LexEquation ReadEquation(TokenFlow flow, LexNodeReader reader, string id)
         {

@@ -127,10 +127,28 @@ namespace Funny.Interpritation
             if(!_predefinedfunctions.ContainsKey(id))
                 throw new ParseException($"Function \"{id}\" is not defined");
             var fun = _predefinedfunctions[id];
-            var children = node.Children.Select(c => ReadNode(c)).ToArray();
-            if(children.Length!= fun.ArgsCount)
-                throw new ParseException($"Args count of function \"{id}\" is wrong. Expected: {fun.ArgsCount} but was {children.Length}");
-            return new FunExpressionNode(fun, children);
+            var i = 0;
+            
+            var children= new List<IExpressionNode>();
+            foreach (var argLexNode in node.Children)
+            {
+                if(fun.ArgsCount<=i)
+                    throw new ParseException($"Args count of function \"{id}\" is wrong. Expected: {fun.ArgsCount} but was {node.Children.Count()}");
+                var argNode = ReadNode(argLexNode);
+                var fromType = argNode.Type;
+                var toType = fun.ArgTypes[i];
+                if (fromType != toType)
+                {
+                    var converter = CastExpressionNode.GetConverterOrThrow(fromType, toType);
+                    argNode = new CastExpressionNode(argNode, toType, converter);
+                }
+                children.Add(argNode);
+                i++;
+            }
+            if(i<fun.ArgsCount)
+                    throw new ParseException($"Args count of function \"{id}\" is wrong. Expected: {fun.ArgsCount} but was {node.Children.Count()}");
+
+            return new FunExpressionNode(fun, children.ToArray());
         }
 
     }

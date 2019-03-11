@@ -9,31 +9,31 @@ namespace Funny.Interpritation.Nodes
     public class FunExpressionNode : IExpressionNode
     {
         private readonly FunctionBase _fun;
-        private readonly IExpressionNode[] _args;
+        private readonly IExpressionNode[] _argsNodes;
 
-        public FunExpressionNode(FunctionBase fun, IExpressionNode[] args)
+        public FunExpressionNode(FunctionBase fun, IExpressionNode[] argsNodes)
         {
             _fun = fun;
-            _args = args;
-            foreach (var node in args)
+            _argsNodes = argsNodes;
+            /*foreach (var node in argsNodes)
             {
                 if (node.Type != VarType.IntType && node.Type != VarType.RealType)
                     throw new OutpuCastParseException("Input variables have to be number or int types");
-            }
+            }*/
 
-            Children = _args;
+            Children = _argsNodes;
         }
 
         public IEnumerable<IExpressionNode> Children { get; }
 
         public object Calc()
         {
-            var doubleArgs = _args
-                .Select(a => Convert.ToDouble(a.Calc()))
+            var argValues = _argsNodes
+                .Select(a => a.Calc())
                 .ToArray();
-            return _fun.Calc(doubleArgs);
+            return _fun.Calc(argValues);
         }
 
-        public VarType Type => _fun.Type;
+        public VarType Type => _fun.OutputType;
     }
 }

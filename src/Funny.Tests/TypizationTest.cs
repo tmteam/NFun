@@ -6,7 +6,11 @@ namespace Funny.Tests
 {
     public class TypizationTest
     {
-        
+        [Test]
+        public void VoidTest()
+        {
+            Assert.Pass();
+        }
         [TestCase("y = 2",VarType.IntType)]
         [TestCase("y = 2*3",VarType.IntType)]
         [TestCase("y = 2^3",VarType.IntType)]

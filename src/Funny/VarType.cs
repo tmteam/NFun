@@ -1,4 +1,4 @@
-namespace Funny.Runtime
+namespace Funny
 {
     public enum VarType
     {

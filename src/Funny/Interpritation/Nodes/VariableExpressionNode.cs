@@ -9,8 +9,9 @@ namespace Funny.Interpritation
     {
         public string Name { get; }
 
-        public VariableExpressionNode(string name)
+        public VariableExpressionNode(string name, VarType type = VarType.RealType)
         {
+            Type = type;
             Name = name;
         }
         
@@ -21,7 +22,7 @@ namespace Funny.Interpritation
             get { yield break;}
         }
 
-        public VarType Type { get; private set; } = VarType.RealType;
+        public VarType Type { get; private set; } 
 
         public bool IsOutput { get; set; } = false;
         

@@ -8,7 +8,7 @@ namespace Funny.Parsing
     {
         private readonly TokenFlow _flow;
 
-        private static readonly Dictionary<TokType, byte> _priorities
+        private static readonly Dictionary<TokType, byte> Priorities
             = new Dictionary<TokType, byte>()
             {
                 {TokType.Equal, 1},
@@ -53,15 +53,15 @@ namespace Funny.Parsing
                 return LexNode.Op(LexNodeType.Mult, LexNode.Num("-1"), nextNode);
             }
             
-            if (MoveIf(TokType.True, out var trueTok))
+            if (_flow.MoveIf(TokType.True, out var trueTok))
                 return LexNode.Num(trueTok.Value);
-            if (MoveIf(TokType.False, out var falseTok))
+            if (_flow.MoveIf(TokType.False, out var falseTok))
                 return LexNode.Num(falseTok.Value);
-            if (MoveIf(TokType.Number, out var val))
+            if (_flow.MoveIf(TokType.Number, out var val))
                 return LexNode.Num(val.Value);
-            if (MoveIf(TokType.Text, out var txt))
+            if (_flow.MoveIf(TokType.Text, out var txt))
                 return LexNode.Text(txt.Value);
-            if (MoveIf(TokType.Id, out var headToken))
+            if (_flow.MoveIf(TokType.Id, out var headToken))
             {
                 if (_flow.IsCurrent(TokType.Obr))
                     return ReadFunctionCall(headToken);
@@ -102,7 +102,7 @@ namespace Funny.Parsing
                 //than expression is done
                 //example:
                 // 1*2 \r{return expression} y=...
-                if (!_priorities.TryGetValue(currentOp, out var opPriority))
+                if (!Priorities.TryGetValue(currentOp, out var opPriority))
                     return leftNode;
                 //if op has higher priority us
                 //than expression is done
@@ -143,7 +143,7 @@ namespace Funny.Parsing
             if (node == null)
                 throw new ParseException("No expr. \"" + _flow.Current + "\" instead");
 
-            MoveIfOrThrow(TokType.Cbr);
+            _flow.MoveIfOrThrow(TokType.Cbr);
             return node;
         }
 
@@ -152,18 +152,18 @@ namespace Funny.Parsing
             var ifThenNodes = new List<LexNode>();
             do
             {
-                MoveIfOrThrow(TokType.If);
+                _flow.MoveIfOrThrow(TokType.If);
                 var condition = ReadExpressionOrNull();
                 if (condition == null)
                     throw new ParseException("condition expression is missing");
-                MoveIfOrThrow(TokType.Then);
+                _flow.MoveIfOrThrow(TokType.Then);
                 var thenResult = ReadExpressionOrNull();
                 if (thenResult == null)
                     throw new ParseException("then expression is missing");
                 ifThenNodes.Add(LexNode.IfThen(condition, thenResult));
             } while (!_flow.IsCurrent(TokType.Else));
 
-            MoveIfOrThrow(TokType.Else);
+            _flow.MoveIfOrThrow(TokType.Else);
             var elseResult = ReadExpressionOrNull();
             if (elseResult == null)
                 throw new ParseException("else expression is missing");
@@ -176,11 +176,11 @@ namespace Funny.Parsing
             var arguments = new List<LexNode>();
             while (true)
             {
-                if (MoveIf(TokType.Cbr, out _))
+                if (_flow.MoveIf(TokType.Cbr, out _))
                     return LexNode.Fun(id.Value, arguments.ToArray());
 
                 if (arguments.Any())
-                    MoveIfOrThrow(TokType.Sep, "\",\" or \")\" expected");
+                    _flow.MoveIfOrThrow(TokType.Sep, "\",\" or \")\" expected");
 
                 var arg = ReadExpressionOrNull();
                 arguments.Add(arg);
@@ -189,44 +189,7 @@ namespace Funny.Parsing
 
         #endregion
 
-        #region  tools
-
-        public bool MoveIf(TokType tokType, out Tok tok)
-        {
-            if (_flow.IsCurrent(tokType))
-            {
-                tok = _flow.Current;
-                _flow.MoveNext();
-                return true;
-            }
-
-            tok = null;
-            return false;
-        }
-
-        public Tok MoveIfOrThrow(TokType tokType)
-        {
-            var cur = _flow.Current;
-            if(cur==null)
-                throw new ParseException($"\"{tokType}\" is missing");
-
-            if (!cur.Is(tokType))
-                throw new ParseException($"\"{tokType}\" is missing but was \"{_flow.Current}\"");
-            
-            _flow.MoveNext();
-            return cur;
-        }
-
-        public Tok MoveIfOrThrow(TokType tokType, string error)
-        {
-            var cur = _flow.Current;
-            if (cur?.Is(tokType)!= true)
-                throw new ParseException(error);
-            _flow.MoveNext();
-            return cur;
-        }
-
-        #endregion
+   
 
     }
 }

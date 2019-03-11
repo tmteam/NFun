@@ -44,7 +44,7 @@ namespace Funny.Interpritation
             TreeAnalysis treeAnalysis, 
             LexFunction[] lexTreeUserFuns, 
             Dictionary<string, FunctionBase> functions, 
-            VariableTypeSpecification[] vars)
+            VariableInfo[] vars)
         {
             _treeAnalysis = treeAnalysis;
             _lexTreeUserFuns = lexTreeUserFuns;
@@ -95,14 +95,18 @@ namespace Funny.Interpritation
         }
 
         private FunctionPrototype GetFunctionPrototype(LexFunction lexFunction) 
-            => new FunctionPrototype(lexFunction.Id, lexFunction.Args.Length);
+            => new FunctionPrototype(lexFunction.Id, lexFunction.OutputType,lexFunction.Args.Select(a=>a.Type).ToArray());
 
         private UserFunction GetFunction(LexFunction lexFunction)
         {
+            
             var vars = new Dictionary<string, VariableExpressionNode>();
+            foreach (var arg in lexFunction.Args) {
+                vars.Add(arg.Id, new VariableExpressionNode(arg.Id, arg.Type));
+            }
             var reader = new SingleExpressionReader(_functions, vars);
             var expression = reader.ReadNode(lexFunction.Node);
-            CheckForUnknownVariables(lexFunction.Args, vars);
+            CheckForUnknownVariables(lexFunction.Args.Select(a=>a.Id).ToArray(), vars);
             return new UserFunction(lexFunction.Id, vars.Values.ToArray(), expression);
         }
 

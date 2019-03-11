@@ -7,45 +7,49 @@ namespace Funny.BuiltInFunctions
 {
     public class AddFunction: FunctionBase
     {
-        public AddFunction() : base("add", 2,VarType.RealType){}
-        public override object Calc(double[] args) => args[0] + args[1];
+        public AddFunction() : base("add", VarType.RealType,VarType.RealType,VarType.RealType){}
+        public override object Calc(object[] args) => Convert.ToDouble(args[0]) + Convert.ToDouble(args[1]);
     }
 
     public class AbsFunction : FunctionBase
     {
-        public AbsFunction() : base("abs", 1,VarType.RealType){}
-        public override object Calc(double[] args) => args[0] > 0 ? args[0] : -args[0];
+        public AbsFunction() : base("abs", VarType.RealType,VarType.RealType){}
+        public override object Calc(object[] args)
+        {
+            var val = Convert.ToDouble(args[0]);
+            return val > 0 ? val : -val;
+        }
     }
 
     public class CosFunction : FunctionBase
     {
-        public CosFunction() : base("cos", 1, VarType.RealType){}
+        public CosFunction() : base("cos", VarType.RealType, VarType.RealType){}
 
-        public override object Calc(double[] args) => Math.Cos(args[0]);
+        public override object Calc(object[] args) => Math.Cos(Convert.ToDouble(args[0]));
     }
     public class SinFunction : FunctionBase
     {
-        public SinFunction() : base("sin", 1,VarType.RealType){}
+        public SinFunction() : base("sin", VarType.RealType,VarType.RealType){}
 
-        public override object Calc(double[] args) => Math.Sin(args[0]);
+        public override object Calc(object[] args) => Math.Sin(Convert.ToDouble(args[0]));
     }
     public class TanFunction : FunctionBase
     {
-        public TanFunction() : base("tan", 1,VarType.RealType){}
+        public TanFunction() : base("tan", VarType.RealType,VarType.RealType){}
 
-        public override object Calc(double[] args) => Math.Tan(args[0]);
+        public override object Calc(object[] args) => Math.Tan(Convert.ToDouble(args[0]));
     }
     
     public class PiFunction : FunctionBase
     {
-        public PiFunction() : base("pi", 0,VarType.RealType){}
+        public PiFunction() : base("pi", VarType.RealType){}
 
-        public override object Calc(double[] args) => Math.PI;
+        public override object Calc(object[] args) => Math.PI;
     }
     public class EFunction : FunctionBase
     {
-        public EFunction() : base("e", 0, VarType.RealType){}
-        public override object Calc(double[] args) => Math.E;
+        public EFunction() : base("e",  VarType.RealType){}
+        public override object Calc(object[] args) => Math.E;
     }
     
 }

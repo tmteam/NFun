@@ -6,14 +6,15 @@ namespace Funny.Interpritation.Functions
     {
         public string Name { get; }
         public int ArgsCount { get; }
-        
-        protected FunctionBase(string name, int argsCount, VarType type)
+        public VarType[] ArgTypes { get; }
+        protected FunctionBase(string name,  VarType outputType, params VarType[] argTypes)
         {
             Name = name;
-            ArgsCount = argsCount;
-            Type = type;
+            ArgTypes = argTypes;
+            ArgsCount = ArgTypes.Length;
+            OutputType = outputType;
         }
-        public VarType Type { get; }
-        public abstract object Calc(double[] args);
+        public VarType OutputType { get; }
+        public abstract object Calc(object[] args);
     }
 }
