@@ -110,6 +110,8 @@ namespace Funny.Tests
         }
         
         [TestCase("y=5+'hi'")]
+        [TestCase("x:foo\r y= x and true")]        
+        [TestCase("x::foo\r y= x and true")]        
         public void ObviouslyFails(string expr) =>
             Assert.Throws<OutpuCastParseException>(
                 ()=> Interpreter.BuildOrThrow(expr));
@@ -119,14 +121,12 @@ namespace Funny.Tests
         [TestCase(1,    "x:int\r y= x+1", 2)]        
         [TestCase("1", "x:text\r y= x+1", "11")]        
         [TestCase(true, "x:bool\r y= x and true", true)]        
-
-        public void SingleConstantEquation(object x,  string expr, object y)
+        public void SingleInputTypedEquation(object x,  string expr, object y)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
             var res = runtime.Calculate(Var.New("x", x));
             Assert.AreEqual(1, res.Results.Length);
             Assert.AreEqual(y, res.Results.First().Value);
         }
-        
     }
 }

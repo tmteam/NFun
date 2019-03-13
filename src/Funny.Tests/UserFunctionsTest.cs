@@ -22,6 +22,7 @@ namespace Funny.Tests
         [TestCase("myconcat(a:text, b:text):text = a + b \r  y = myconcat(\"my\",\"test\")","mytest")]
         [TestCase("myconcat(a:text, b:text):text = a + b \r  y = myconcat(1,\"test\")","1test")]
         [TestCase("myconcat(a:text, b:text):text = a + b \r  y = myconcat(1,2)","12")]
+        [TestCase("myconcat(a:text, b):text = a + b \r  y = myconcat(1,2.5)","12.5")]
         public void TypedConstantEquation_NonRecursiveFunction(string expr, object expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
@@ -99,6 +100,21 @@ namespace Funny.Tests
             var runtime = Interpreter.BuildOrThrow(text);
             runtime.Calculate(Var.New("x",x)).AssertReturns(0.00001, Var.New("y", y));    
         }
+        [TestCase(1,1)]
+        [TestCase(3,2)]
+        [TestCase(6,8)]
+        [TestCase(9,34)]
+        public void PrimitiveRecFibonachi_Typed(int x, int y)
+        {
+            string text =
+                @"  
+                   fib(n:int):int = if n<3 then 1 else fib(n-1)+fib(n-2)
+                   x:int
+                   y = fib(x)";
+            var runtime = Interpreter.BuildOrThrow(text);
+            runtime.Calculate(Var.New("x",x)).AssertReturns(Var.New("y", y));    
+        }
+        
         [TestCase("y = raise(1)\r raise(x) = raise(x)")]
         [TestCase("y = f(1)\r f(x) = g(x) \r g(x) = f(x)")]
         [TestCase("y = f(1)\r f(x) = g(x) \r g(x) = l(x)\r l(x) = f(x)")]
@@ -128,8 +144,22 @@ namespace Funny.Tests
         [TestCase("y(x) = 2*y")]
         [TestCase("y(x)=")]
         [TestCase("y(x)-1")]
-        public void ObviousFails(string expr) =>
-            Assert.Throws<ParseException>(
-                ()=> Interpreter.BuildOrThrow(expr));
+        [TestCase("y:int(x)-1")]
+        [TestCase("y(x):foo=x")]
+        [TestCase("y(x:foo)=x")]
+        [TestCase("y(x:int)= x+\"vasa\"")]
+        [TestCase("y(x):real= \"vasa\"")]
+        [TestCase("y(x:int)= x+1\n out = y(\"test\")")]
+        public void ObviousFails(string expr)
+        {
+            try
+            {
+                Interpreter.BuildOrThrow(expr);
+            }
+            catch (Exception e)
+            {
+                Assert.IsInstanceOf<ParseException>(e);
+            }
+        }
     }
 }
