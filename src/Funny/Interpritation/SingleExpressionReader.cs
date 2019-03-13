@@ -31,12 +31,13 @@ namespace Funny.Interpritation
                 return GetValueNode(node);
             if (node.Is(LexNodeType.Text))
                 return GetTextValueNode(node);
+            if(node.Is(LexNodeType.ArrayInit))
+                return GetArrayNode(node);    
             if (StandartOperations.IsDefaultOp(node.Type))
                 return GetOpNode(node);
             
             throw new ArgumentException($"Unknown lexnode type {node.Type}");
         }
-
 
         private IExpressionNode GetOrAddVariableNode(LexNode varName)
         {
@@ -68,7 +69,12 @@ namespace Funny.Interpritation
             
             return StandartOperations.GetOp(node.Type, leftExpr, rightExpr);            
         }
-
+        
+        private IExpressionNode GetArrayNode(LexNode node)
+        {
+            var nodes = node.Children.Select(ReadNode).ToArray();
+            return new ArrayExpressionNode(nodes);
+        }
         private IExpressionNode GetIfThanElseNode(LexNode node)
         {
             var ifNodes = new List<IfCaseExpressionNode>();
@@ -83,7 +89,8 @@ namespace Funny.Interpritation
             return new IfThanElseExpressionNode(ifNodes.ToArray(), elseNode);
         }
 
-        private static IExpressionNode GetTextValueNode(LexNode node) => new ValueExpressionNode(node.Value);
+        private static IExpressionNode GetTextValueNode(LexNode node) 
+            => new ValueExpressionNode(node.Value);
 
         private static IExpressionNode GetValueNode(LexNode node)
         {

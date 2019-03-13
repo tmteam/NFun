@@ -6,5 +6,6 @@ namespace Funny
         IntType = 2,
         RealType = 3,
         TextType = 4,
+        Array = 5,
     }
 }

@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using Funny.Interpritation.Nodes;
-using Funny.Runtime;
 
-namespace Funny.Interpritation
+namespace Funny.Interpritation.Nodes
 {
     public  class OpExpressionNode : IExpressionNode
     {

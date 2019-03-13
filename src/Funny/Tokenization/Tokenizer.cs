@@ -32,7 +32,9 @@ namespace Funny.Tokenization
             {'^', TokType.Pow},
             {'(', TokType.Obr},
             {')', TokType.Cbr},
-            {':',TokType.Is}
+            {':', TokType.Is},
+            {'[', TokType.ArrOBr},
+            {']', TokType.ArrCBr},
         };
         
         private readonly Dictionary<string, TokType> _keywords = new Dictionary<string, TokType>
@@ -83,8 +85,6 @@ namespace Funny.Tokenization
 
             return Tok.New(TokType.NotAToken, null, position+1);
         }
-
-        
 
         private Tok ReadIdOrKeyword(string str, int position)
         {
@@ -181,7 +181,6 @@ namespace Funny.Tokenization
                     hasOneDot = true;
                     continue;
                 }
-                
                 break;
             }
             return Tok.New(TokType.Number, str.Substring(position, i - position), i);

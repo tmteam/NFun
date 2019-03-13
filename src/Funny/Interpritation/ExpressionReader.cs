@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Funny.Interpritation.Functions;
+using Funny.Interpritation.Nodes;
 using Funny.LexAnalyze;
 using Funny.Parsing;
 using Funny.Runtime;

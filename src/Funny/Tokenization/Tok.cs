@@ -46,7 +46,6 @@ namespace Funny.Tokenization
         Plus,
         Minus,
         Div,
-        
         /// <summary>
         /// Division reminder "%"
         /// </summary>
@@ -56,9 +55,26 @@ namespace Funny.Tokenization
         /// Pow "^"
         /// </summary>
         Pow,
+        /// <summary>
+        /// (
+        /// </summary>
         Obr,
+        /// <summary>
+        /// )
+        /// </summary>
         Cbr,
-        Abc,
+        /// <summary>
+        ///  [ 
+        /// </summary>
+        ArrOBr,
+        /// <summary>
+        ///  ] 
+        /// </summary>
+        ArrCBr,
+        /// <summary>
+        /// ::
+        /// </summary>
+        ArrUnite,
         Id,
         /// <summary>
         /// =

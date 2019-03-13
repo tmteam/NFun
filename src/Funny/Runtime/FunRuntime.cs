@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Funny.Interpritation;
+using Funny.Interpritation.Nodes;
 
 namespace Funny.Runtime
 {

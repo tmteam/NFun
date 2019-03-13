@@ -73,8 +73,12 @@ namespace Funny.Parsing
                 return ReadBrackedExpression();
             if (_flow.IsCurrent(TokType.If))
                 return ReadIfThenElse();
+            if (_flow.IsCurrent(TokType.ArrOBr))
+                return ReadInitializeArray();
             return null;
         }
+
+      
 
         LexNode ReadNext(int priority)
         {
@@ -133,7 +137,23 @@ namespace Funny.Parsing
 
 
         #region  read concreete
+        private LexNode ReadInitializeArray()
+        {
+            _flow.MoveIfOrThrow(TokType.ArrOBr);
+            
+            var arguments = new List<LexNode>();
+            while (true)
+            {
+                if (_flow.MoveIf(TokType.ArrCBr, out _))
+                    return LexNode.Array(arguments.ToArray());
 
+                if (arguments.Any())
+                    _flow.MoveIfOrThrow(TokType.Sep, @""","" or ""]"" expected");
+
+                var arg = ReadExpressionOrNull();
+                arguments.Add(arg);
+            }
+        }
         private LexNode ReadBrackedExpression()
         {
             _flow.MoveNext();
