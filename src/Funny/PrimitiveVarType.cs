@@ -22,6 +22,10 @@ namespace Funny
             }
         }
 
+        public static VarType PrimitiveOf(PrimitiveVarType primitiveType)
+        {
+            return new VarType() {BaseType = primitiveType};
+        }
         public static VarType  BoolType => new VarType(){BaseType = PrimitiveVarType.BoolType};
         public static VarType  IntType => new VarType(){BaseType = PrimitiveVarType.IntType};
         public static VarType  RealType => new VarType(){BaseType = PrimitiveVarType.RealType};

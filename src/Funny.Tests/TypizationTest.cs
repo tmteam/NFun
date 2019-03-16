@@ -70,7 +70,7 @@ namespace Funny.Tests
             var runtime = Interpreter.BuildOrThrow(expr);
             var res = runtime.Calculate();
             Assert.AreEqual(1, res.Results.Length);
-            Assert.AreEqual(type, res.Results.First().Type);
+            Assert.AreEqual(VarType.PrimitiveOf(type), res.Results.First().Type);
         }
         
         [TestCase("y = 1\rz=2",PrimitiveVarType.IntType, PrimitiveVarType.IntType)]
@@ -104,9 +104,9 @@ namespace Funny.Tests
             var runtime = Interpreter.BuildOrThrow(expr);
             var res = runtime.Calculate();
             var y = res.Get("y");
-            Assert.AreEqual(y.Type,ytype,"y");
+            Assert.AreEqual(y.Type,VarType.PrimitiveOf(ytype),"y");
             var z = res.Get("z");
-            Assert.AreEqual(z.Type,ztype,"z");
+            Assert.AreEqual(z.Type,VarType.PrimitiveOf(ztype),"z");
         }
         
         [TestCase("y=5+'hi'")]
