@@ -1,4 +1,3 @@
-using System.Linq;
 using Funny.Runtime;
 using NUnit.Framework;
 

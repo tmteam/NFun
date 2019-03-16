@@ -64,7 +64,7 @@ namespace Funny.Interpritation
             if (_variables.ContainsKey(lower))
                 res= _variables[lower];
             else {
-                res = new VariableExpressionNode(lower);
+                res = new VariableExpressionNode(lower, VarType.RealType);
                 _variables.Add(lower, res);            
             }
             return res;

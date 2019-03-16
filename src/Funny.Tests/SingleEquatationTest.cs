@@ -1,10 +1,6 @@
-using System.Collections.Generic;
 using System.Linq;
-using Funny.Interpritation;
 using Funny.Runtime;
-using Funny.Tokenization;
 using NUnit.Framework;
-using NUnit.Framework.Interfaces;
 
 namespace Funny.Tests
 {

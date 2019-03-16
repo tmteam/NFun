@@ -7,7 +7,7 @@ namespace Funny.Interpritation.Nodes
     {
         public string Name { get; }
 
-        public VariableExpressionNode(string name, VarType type = VarType.RealType)
+        public VariableExpressionNode(string name, VarType type)
         {
             Type = type;
             Name = name;
@@ -38,18 +38,18 @@ namespace Funny.Interpritation.Nodes
 
         public void SetConvertedValue(object valueValue)
         {
-            switch (Type)
+            switch (Type.BaseType)
             {
-                case VarType.BoolType:
+                case PrimitiveVarType.BoolType:
                     _value = Convert.ToBoolean(valueValue);
                     break;
-                case VarType.IntType:
+                case PrimitiveVarType.IntType:
                     _value = Convert.ToInt32(valueValue);
                     break;
-                case VarType.RealType:
+                case PrimitiveVarType.RealType:
                     _value = Convert.ToDouble(valueValue);
                     break;
-                case VarType.TextType:
+                case PrimitiveVarType.TextType:
                     _value = valueValue?.ToString()??"";
                     break;
                 default:

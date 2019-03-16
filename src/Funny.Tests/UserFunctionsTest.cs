@@ -1,6 +1,5 @@
 using System;
 using Funny.Runtime;
-using Funny.Tokenization;
 using NUnit.Framework;
 
 namespace Funny.Tests

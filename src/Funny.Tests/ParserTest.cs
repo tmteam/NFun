@@ -1,4 +1,3 @@
-using System.IO.Pipes;
 using System.Linq;
 using Funny.Parsing;
 using Funny.Tokenization;

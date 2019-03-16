@@ -18,7 +18,7 @@ namespace Funny.Interpritation.Nodes
         }
 
         public VarType Type 
-            => VarType.Array;
+            => VarType.ArrayOf(VarType.RealType);
         public object Calc() 
             => _elements.Select(e => (double) e.Calc()).ToArray();
     }

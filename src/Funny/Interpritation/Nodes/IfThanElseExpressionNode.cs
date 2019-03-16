@@ -15,15 +15,15 @@ namespace Funny.Interpritation.Nodes
             _ifCaseNodes = ifCaseNodes;
             _elseNode = elseNode;
             Type = GetUpTypeConverion(ifCaseNodes.Select(c => c.Type).Append(elseNode.Type));
-            switch (Type)
+            switch (Type.BaseType)
             {
-                case VarType.BoolType:
+                case PrimitiveVarType.BoolType:
                     caster = o => o;
                     break;
-                case VarType.IntType:
+                case PrimitiveVarType.IntType:
                     caster = o => o;
                     break;
-                case VarType.RealType:
+                case PrimitiveVarType.RealType:
                     caster = o => Convert.ToDouble(o);
                     break;
                 default:
@@ -31,8 +31,6 @@ namespace Funny.Interpritation.Nodes
             }
         }
 
-        public IEnumerable<IExpressionNode> Children 
-            => _ifCaseNodes.Append(_elseNode);
         public object Calc()
         {
             
@@ -56,15 +54,15 @@ namespace Funny.Interpritation.Nodes
 
             foreach (var varType in types)
             {
-                switch (varType)
+                switch (varType.BaseType)
                 {
-                    case VarType.BoolType:
+                    case PrimitiveVarType.BoolType:
                         hasBool = true;
                         break;
-                    case VarType.IntType:
+                    case PrimitiveVarType.IntType:
                         hasInt = true;
                         break;
-                    case VarType.RealType:
+                    case PrimitiveVarType.RealType:
                         hasReal = true;
                         break;
                     default:

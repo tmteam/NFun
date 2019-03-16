@@ -17,12 +17,7 @@ namespace Funny.Interpritation.Nodes
             _b = b;
             _op = op;
         }
-        public IEnumerable<IExpressionNode> Children {
-            get { 
-                yield return _a;
-                yield return _b;
-            }
-        }
+        
         public VarType Type => VarType.RealType;
 
         public object Calc() => _op((double)_a.Calc(), (double)_b.Calc());

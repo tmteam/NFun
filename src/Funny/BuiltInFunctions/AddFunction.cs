@@ -35,7 +35,7 @@ namespace Funny.BuiltInFunctions
     }
     public class TanFunction : FunctionBase
     {
-        public TanFunction() : base("tan", VarType.RealType,VarType.RealType){}
+        public TanFunction() : base("tan", VarType.RealType, VarType.RealType){}
 
         public override object Calc(object[] args) => Math.Tan(Convert.ToDouble(args[0]));
     }

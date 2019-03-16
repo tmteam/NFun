@@ -6,7 +6,7 @@ namespace Funny.Interpritation.Functions
 {
     public class FunctionPrototype: FunctionBase
     {
-        public FunctionPrototype(string name, VarType outputType,VarType[] argTypes) : base(name,  outputType, argTypes)
+        public FunctionPrototype(string name, VarType outputType, VarType[] argTypes) : base(name,  outputType, argTypes)
         {
         }
 

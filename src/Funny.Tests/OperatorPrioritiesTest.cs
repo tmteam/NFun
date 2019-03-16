@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using Funny.Interpritation;
 using Funny.Runtime;
 using NUnit.Framework;
 

@@ -9,14 +9,14 @@ namespace Funny.Interpritation.Nodes
 
         public UniteArraysExpressionNode(IExpressionNode nodeA, IExpressionNode nodeB)
         {
-            if(nodeA.Type!= VarType.Array)
+            if(nodeA.Type.BaseType!= PrimitiveVarType.Array)
                 throw new ParseException("left node is not an array");
-            if(nodeB.Type!= VarType.Array)
+            if(nodeB.Type.BaseType!= PrimitiveVarType.Array)
                 throw new ParseException("right node is not an array");
             _nodeA = nodeA;
             _nodeB = nodeB;
         }
-        public VarType Type => VarType.Array;
+        public VarType Type => VarType.ArrayOf(VarType.RealType);
         public object Calc()
         {
             var a = (double[])_nodeA.Calc();

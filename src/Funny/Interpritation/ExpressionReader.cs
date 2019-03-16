@@ -54,7 +54,7 @@ namespace Funny.Interpritation
             {
                 _variables.Add(
                     variablesWithProperty.Id,
-                    new VariableExpressionNode(variablesWithProperty.Id)
+                    new VariableExpressionNode(variablesWithProperty.Id, VarType.RealType)
                     {
                         IsOutput =  variablesWithProperty.IsOutput
                     });
