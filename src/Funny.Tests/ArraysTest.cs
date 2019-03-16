@@ -18,7 +18,7 @@ namespace Funny.Tests
         [TestCase("y = [1.0]==[1.0]", true)]
         [TestCase("y = [1.0,2.0]==[1.0,2.0]", true)]
         [TestCase("y = [1.0,2.0]==([1.0]::[2.0])", true)]
-
+        
         public void ConstantArrayTest(string expr, object expected)
         {
             Interpreter.BuildOrThrow(expr).Calculate().AssertReturns(Var.New("y", expected));
@@ -27,7 +27,8 @@ namespace Funny.Tests
         [TestCase("y = [a,b] a = 2.0 \r b=3.0 \r ", new[]{2.0,3.0})]
         [TestCase("y = [a+1,b+2] a = 2.0 \r b=3.0 \r ", new[]{3.0,5.0})]
         [TestCase("y = [a*0,b*0] a = 2.0 \r b=3.0 \r ", new[]{0.0,0.0})]
-
+        [TestCase("y = if a then [1.0] else [2.0, 3.0] \r a = true  ", new[]{1.0})]
+        [TestCase("y = if a then [1.0] else [2.0, 3.0] \r a = false  ", new[]{2.0,3.0})]
         public void ConstantCalculableArrayTest(string expr, object expected)
         {
             Interpreter.BuildOrThrow(expr).Calculate().AssertHas(Var.New("y", expected));

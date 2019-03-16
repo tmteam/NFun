@@ -26,6 +26,9 @@ namespace Funny.Interpritation.Nodes
                 case PrimitiveVarType.RealType:
                     caster = o => Convert.ToDouble(o);
                     break;
+                case PrimitiveVarType.Array:
+                    caster = o => o;
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -51,7 +54,7 @@ namespace Funny.Interpritation.Nodes
             bool hasInt = false;
             bool hasReal = false;
             bool hasBool = false;
-
+            bool hasArray = false;
             foreach (var varType in types)
             {
                 switch (varType.BaseType)
@@ -65,11 +68,21 @@ namespace Funny.Interpritation.Nodes
                     case PrimitiveVarType.RealType:
                         hasReal = true;
                         break;
+                    case PrimitiveVarType.Array:
+                        hasArray = true;
+                        break;
+                        ;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
             }
 
+            if (hasArray)
+            {
+                if(hasInt|| hasBool || hasReal)
+                    throw new OutpuCastParseException("Cannot convert array type to primitive");
+                return VarType.ArrayOf(VarType.RealType);
+            }
             if (hasBool)
             {
                 if(hasInt||hasReal)
