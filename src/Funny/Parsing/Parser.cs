@@ -67,24 +67,18 @@ namespace Funny.Parsing
         private static VarType ReadVarType(TokenFlow flow)
         {
             var cur = flow.Current;
-            switch (cur.Type)
+            var readType = GetVarByToken(cur);
+            flow.MoveNext();
+            if (flow.IsCurrent(TokType.ArrOBr))
             {
-                case TokType.IntType:
-                    flow.MoveNext();
-                    return  VarType.IntType;
-                case TokType.RealType:
-                    flow.MoveNext();
-                    return  VarType.RealType;
-                case TokType.BoolType:
-                    flow.MoveNext();
-                    return  VarType.BoolType;
-                case TokType.TextType:
-                    flow.MoveNext();
-                    return  VarType.TextType;
+                flow.MoveNext();
+                flow.MoveIfOrThrow(TokType.ArrCBr);
+                return VarType.ArrayOf(readType);                
             }
-            throw new ParseException("Expected: type, but was "+ cur.Type);
+            return readType;
         }
-        
+
+
         private static LexFunction ReadUserFunction(TokenFlow flow, LexNodeReader reader, string id)
         {
             var arguments = new List<VariableInfo>();
@@ -125,6 +119,23 @@ namespace Funny.Parsing
             if(exNode==null)
                 throw new ParseException("Epxression is wrong");
             return new LexEquation(id, exNode);
+        }
+        
+        private static VarType GetVarByToken(Tok tokType)
+        {
+            switch (tokType.Type)
+            {
+                case TokType.IntType:
+                    return  VarType.IntType;
+                case TokType.RealType:
+                    return  VarType.RealType;
+                case TokType.BoolType:
+                    return  VarType.BoolType;
+                case TokType.TextType:
+                    return  VarType.TextType;
+            }
+            throw new ParseException($"Expected: type, but was {tokType}");
+
         }
     }
 }

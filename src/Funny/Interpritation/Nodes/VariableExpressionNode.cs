@@ -52,6 +52,9 @@ namespace Funny.Interpritation.Nodes
                 case PrimitiveVarType.TextType:
                     _value = valueValue?.ToString()??"";
                     break;
+                case PrimitiveVarType.Array:
+                    _value = (double[]) valueValue;
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
