@@ -22,6 +22,8 @@ namespace Funny.Tests
         [TestCase("myconcat(a:text, b:text):text = a + b \r  y = myconcat(1,\"test\")","1test")]
         [TestCase("myconcat(a:text, b:text):text = a + b \r  y = myconcat(1,2)","12")]
         [TestCase("myconcat(a:text, b):text = a + b \r  y = myconcat(1,2.5)","12.5")]
+        [TestCase("arr(a:real[]):real[] = a    \r  y = arr([1.0,2.0])",new[]{1.0,2.0})]
+        [TestCase("arr(a:real[]):real[] = a::a \r  y = arr([1.0,2.0])",new[]{1.0,2.0,1.0,2.0})]
         public void TypedConstantEquation_NonRecursiveFunction(string expr, object expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
@@ -149,6 +151,10 @@ namespace Funny.Tests
         [TestCase("y(x:int)= x+\"vasa\"")]
         [TestCase("y(x):real= \"vasa\"")]
         [TestCase("y(x:int)= x+1\n out = y(\"test\")")]
+        [TestCase("y(x:real[)= x")]
+        [TestCase("y(x:real])= x")]
+        [TestCase("y(x):real]= x")]
+        [TestCase("y(x):real[= x")]
         public void ObviousFails(string expr)
         {
             try
