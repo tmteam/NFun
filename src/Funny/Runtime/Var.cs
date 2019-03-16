@@ -15,6 +15,8 @@ namespace Funny.Runtime
                 return New(name, b);
             if (value is string s)
                 return New(name, s);
+            if (value is double[] arrd)
+                return New(name, arrd);
             throw new ArgumentException($"Type {value.GetType()} is not supported");
         }
         public static Var New(string name, bool value) 

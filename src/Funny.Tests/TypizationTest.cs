@@ -110,12 +110,17 @@ namespace Funny.Tests
         }
         
         [TestCase("y=5+'hi'")]
-        [TestCase("x:foo\r y= x and true")]        
-        [TestCase("x::foo\r y= x and true")]        
-        public void ObviouslyFails(string expr) =>
+        public void ObviouslyFailsWithOutputCast(string expr) =>
             Assert.Throws<OutpuCastParseException>(
                 ()=> Interpreter.BuildOrThrow(expr));
         
+        
+        [TestCase("x:foo\r y= x and true")]        
+        [TestCase("x::foo\r y= x and true")]        
+        public void ObviouslyFailsWithParse(string expr) =>
+            Assert.Throws<ParseException>(
+                ()=> Interpreter.BuildOrThrow(expr));
+
         
         [TestCase(1.0, "x:real\r y= x+1", 2.0)]        
         [TestCase(1,    "x:int\r y= x+1", 2)]        

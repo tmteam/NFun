@@ -32,7 +32,6 @@ namespace Funny.Tokenization
             {'^', TokType.Pow},
             {'(', TokType.Obr},
             {')', TokType.Cbr},
-            {':', TokType.Is},
             {'[', TokType.ArrOBr},
             {']', TokType.ArrCBr},
         };
@@ -107,6 +106,10 @@ namespace Funny.Tokenization
             
             switch (current)
             {
+                case ':' when  next == ':':
+                    return Tok.New(TokType.ArrUnite, position+2);
+                case ':' :
+                    return Tok.New(TokType.IsTypeOf, position+1);
                 case '>' when next == '=':
                     return  Tok.New(TokType.MoreOrEqual, position + 2);
                 case '>':

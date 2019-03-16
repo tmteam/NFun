@@ -39,6 +39,8 @@ namespace Funny.Parsing
                     return LexNodeType.Less;
                 case TokType.More:
                     return LexNodeType.More;
+                case TokType.ArrUnite:
+                    return LexNodeType.ArrayUnite;
                 case TokType.LessOrEqual:
                     return LexNodeType.LessOrEqual;
                 case TokType.MoreOrEqual:
@@ -68,7 +70,7 @@ namespace Funny.Parsing
             => new LexNode(LexNodeType.Number, val);
         public static LexNode Array(LexNode[] elements)
             => new LexNode(LexNodeType.ArrayInit,null, elements);
-
+        
         public  LexNode(LexNodeType type, string value,params LexNode[] children)
         {
             Type = type;
@@ -124,5 +126,6 @@ namespace Funny.Parsing
         IfThanElse,
         Text,
         ArrayInit,
+        ArrayUnite,
     }
 }

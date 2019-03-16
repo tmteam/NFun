@@ -37,7 +37,7 @@ namespace Funny.Parsing
                     flow.MoveNext();
                     funs.Add(ReadUserFunction(flow, reader, id));
                 }
-                else if(flow.IsCurrent(TokType.Is))
+                else if(flow.IsCurrent(TokType.IsTypeOf))
                 {
                     flow.MoveNext();
                     varSpecifications.Add(ReadVarSpecification(flow, id));
@@ -56,7 +56,7 @@ namespace Funny.Parsing
 
         private static VarType ReadType(TokenFlow flow)
         {
-            if (flow.MoveIf(TokType.Is, out _))
+            if (flow.MoveIf(TokType.IsTypeOf, out _))
                 return ReadVarType(flow);
             else
                 return VarType.RealType;
@@ -122,6 +122,8 @@ namespace Funny.Parsing
             flow.SkipNewLines();
 
             var exNode = reader.ReadExpressionOrNull();
+            if(exNode==null)
+                throw new ParseException("Epxression is wrong");
             return new LexEquation(id, exNode);
         }
     }

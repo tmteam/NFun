@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Funny.Interpritation.Nodes;
 using Funny.Parsing;
 using Funny.Runtime;
@@ -125,8 +126,8 @@ namespace Funny.Interpritation
                             return new OpExpressionNodeOfT<bool,int,bool>(left,right, (l,r)=> l == (r!=0));
                         case VarType.BoolType when right.Type == VarType.BoolType:
                             return new OpExpressionNodeOfT<bool,bool,bool>(left,right, (l,r)=> l == r);
-
-                        
+                        case VarType.Array when right.Type== VarType.Array:
+                            return new OpExpressionNodeOfT<double[],double[],bool>(left,right, (l,r)=> l.SequenceEqual(r));
                         default:
                             throw new OutpuCastParseException($"\"{type}\" cast error. Left operand is {left.Type} and right is {right.Type}");
                     }
@@ -151,7 +152,8 @@ namespace Funny.Interpritation
                             return new OpExpressionNodeOfT<bool,int,bool>(left,right, (l,r)=> l != (r!=0));
                         case VarType.BoolType when right.Type == VarType.BoolType:
                             return new OpExpressionNodeOfT<bool,bool,bool>(left,right, (l,r)=> l!=r);
-
+                        case VarType.Array when right.Type== VarType.Array:
+                            return new OpExpressionNodeOfT<double[],double[],bool>(left,right, (l,r)=> !l.SequenceEqual(r));
                         default:
                             throw new OutpuCastParseException($"\"{type}\" cast error. Left operand is {left.Type} and right is {right.Type}");
                     }              

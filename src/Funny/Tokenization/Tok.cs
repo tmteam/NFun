@@ -102,7 +102,7 @@ namespace Funny.Tokenization
 
         True,
         False,
-        Is,
+        IsTypeOf,
         
         TextType,
         IntType,

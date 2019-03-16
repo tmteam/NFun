@@ -32,11 +32,28 @@ namespace Funny.Interpritation
             if (node.Is(LexNodeType.Text))
                 return GetTextValueNode(node);
             if(node.Is(LexNodeType.ArrayInit))
-                return GetArrayNode(node);    
+                return GetArrayNode(node);
+            if (node.Is(LexNodeType.ArrayUnite))
+                return GetUniteArrayNode(node);
             if (StandartOperations.IsDefaultOp(node.Type))
                 return GetOpNode(node);
             
             throw new ArgumentException($"Unknown lexnode type {node.Type}");
+        }
+
+        private IExpressionNode GetUniteArrayNode(LexNode node)
+        {
+            var left = node.Children.ElementAtOrDefault(0);
+            if (left == null)
+                throw new ParseException("\"a\" node is missing");
+
+            var right = node.Children.ElementAtOrDefault(1);
+            if (right == null)
+                throw new ParseException("\"b\" node is missing");
+
+            var leftExpr = ReadNode(left);
+            var rightExpr = ReadNode(right);
+            return new UniteArraysExpressionNode(leftExpr,rightExpr);
         }
 
         private IExpressionNode GetOrAddVariableNode(LexNode varName)

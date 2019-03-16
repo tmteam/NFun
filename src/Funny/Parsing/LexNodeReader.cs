@@ -11,6 +11,7 @@ namespace Funny.Parsing
         private static readonly Dictionary<TokType, byte> Priorities
             = new Dictionary<TokType, byte>()
             {
+                {TokType.ArrUnite,0},
                 {TokType.Equal, 1},
                 {TokType.NotEqual, 1},
                 {TokType.More, 1},
@@ -25,7 +26,7 @@ namespace Funny.Parsing
                 {TokType.Plus, 4},
                 {TokType.Minus, 4},
                 {TokType.Or, 4},
-                {TokType.Xor, 4}
+                {TokType.Xor, 4},
             };
 
         public LexNodeReader(TokenFlow flow)
@@ -82,8 +83,6 @@ namespace Funny.Parsing
 
         LexNode ReadNext(int priority)
         {
-            //HELL IS HERE
-
             //Lower priority is the special case
             if (priority == 0)
                 return ReadAtomicOrNull();
@@ -114,8 +113,11 @@ namespace Funny.Parsing
                 //2*3{stops here}-1
                 if (opPriority > priority)
                     return leftNode;
-
+                if (leftNode == null)
+                    throw new ParseException($"{currentOp} without left arg");
+                
                 _flow.MoveNext();
+                
                 var rightNode = ReadNext(priority - 1);
                 if (rightNode == null)
                     throw new ParseException($"{currentOp} without right arg");
@@ -151,6 +153,8 @@ namespace Funny.Parsing
                     _flow.MoveIfOrThrow(TokType.Sep, @""","" or ""]"" expected");
 
                 var arg = ReadExpressionOrNull();
+                if(arg==null)
+                    throw new ParseException("Expression expected");
                 arguments.Add(arg);
             }
         }
@@ -192,8 +196,9 @@ namespace Funny.Parsing
 
         private LexNode ReadFunctionCall(Tok id)
         {
-            _flow.MoveNext(); //skip Obr
+            _flow.MoveIfOrThrow(TokType.Obr);
             var arguments = new List<LexNode>();
+
             while (true)
             {
                 if (_flow.MoveIf(TokType.Cbr, out _))
@@ -203,6 +208,8 @@ namespace Funny.Parsing
                     _flow.MoveIfOrThrow(TokType.Sep, "\",\" or \")\" expected");
 
                 var arg = ReadExpressionOrNull();
+                if(arg==null)
+                    throw new ParseException("Expression expected");
                 arguments.Add(arg);
             }
         }
