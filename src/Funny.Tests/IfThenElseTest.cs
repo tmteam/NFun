@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using Funny.Runtime;
+using Funny.Types;
 using NUnit.Framework;
 
 namespace Funny.Tests

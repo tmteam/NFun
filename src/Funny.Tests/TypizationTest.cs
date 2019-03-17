@@ -1,5 +1,6 @@
 using System.Linq;
 using Funny.Runtime;
+using Funny.Types;
 using NUnit.Framework;
 
 namespace Funny.Tests
@@ -11,59 +12,59 @@ namespace Funny.Tests
         {
             Assert.Pass();
         }
-        [TestCase("y = 2",PrimitiveVarType.IntType)]
-        [TestCase("y = 2*3",PrimitiveVarType.IntType)]
-        [TestCase("y = 2^3",PrimitiveVarType.IntType)]
-        [TestCase("y = 2%3",PrimitiveVarType.IntType)]
+        [TestCase("y = 2",PrimitiveVarType.Int)]
+        [TestCase("y = 2*3",PrimitiveVarType.Int)]
+        [TestCase("y = 2^3",PrimitiveVarType.Int)]
+        [TestCase("y = 2%3",PrimitiveVarType.Int)]
 
-        [TestCase("y = 4/3",PrimitiveVarType.RealType)]
-        [TestCase("y = 4- 3",PrimitiveVarType.IntType)]
-        [TestCase("y = 4+ 3",PrimitiveVarType.IntType)]
-        [TestCase("z = 1 + 4/3 + 3 +2*3 -1", PrimitiveVarType.RealType)]
-        [TestCase("y = -2*-4",PrimitiveVarType.IntType)]
-        [TestCase("y = -2*(-4+2)",PrimitiveVarType.IntType)]
-        [TestCase("y = -(-(-1))",PrimitiveVarType.IntType)]
+        [TestCase("y = 4/3",PrimitiveVarType.Real)]
+        [TestCase("y = 4- 3",PrimitiveVarType.Int)]
+        [TestCase("y = 4+ 3",PrimitiveVarType.Int)]
+        [TestCase("z = 1 + 4/3 + 3 +2*3 -1", PrimitiveVarType.Real)]
+        [TestCase("y = -2*-4",PrimitiveVarType.Int)]
+        [TestCase("y = -2*(-4+2)",PrimitiveVarType.Int)]
+        [TestCase("y = -(-(-1))",PrimitiveVarType.Int)]
 
-        [TestCase("y = 0.2",PrimitiveVarType.RealType)]
-        [TestCase("y = 1.1_11  ",PrimitiveVarType.RealType)]
-        [TestCase("y = 4*0.2",PrimitiveVarType.RealType)]
-        [TestCase("y = 4/0.2",PrimitiveVarType.RealType)]
-        [TestCase("y = 4/0.2",PrimitiveVarType.RealType)]
-        [TestCase("y = 2^0.3",PrimitiveVarType.RealType)]
-        [TestCase("y = 0.2^2",PrimitiveVarType.RealType)]
-        [TestCase("y = 0.2%2",PrimitiveVarType.RealType)]
-        [TestCase("y = 3%0.2",PrimitiveVarType.RealType)]
+        [TestCase("y = 0.2",PrimitiveVarType.Real)]
+        [TestCase("y = 1.1_11  ",PrimitiveVarType.Real)]
+        [TestCase("y = 4*0.2",PrimitiveVarType.Real)]
+        [TestCase("y = 4/0.2",PrimitiveVarType.Real)]
+        [TestCase("y = 4/0.2",PrimitiveVarType.Real)]
+        [TestCase("y = 2^0.3",PrimitiveVarType.Real)]
+        [TestCase("y = 0.2^2",PrimitiveVarType.Real)]
+        [TestCase("y = 0.2%2",PrimitiveVarType.Real)]
+        [TestCase("y = 3%0.2",PrimitiveVarType.Real)]
 
-        [TestCase("y = 0xfF  ",PrimitiveVarType.IntType)]
-        [TestCase("y = 0x00_Ff  ",PrimitiveVarType.IntType)]
-        [TestCase("y = 0b001  ",PrimitiveVarType.IntType)]
-        [TestCase("y = 0b11  ",PrimitiveVarType.IntType)]
-        [TestCase("y = 0x_1",PrimitiveVarType.IntType)]
+        [TestCase("y = 0xfF  ",PrimitiveVarType.Int)]
+        [TestCase("y = 0x00_Ff  ",PrimitiveVarType.Int)]
+        [TestCase("y = 0b001  ",PrimitiveVarType.Int)]
+        [TestCase("y = 0b11  ",PrimitiveVarType.Int)]
+        [TestCase("y = 0x_1",PrimitiveVarType.Int)]
         
-        [TestCase("y = 1==1",PrimitiveVarType.BoolType)]
-        [TestCase("y = 1==0",PrimitiveVarType.BoolType)]
-        [TestCase("y = true==true",PrimitiveVarType.BoolType)]
-        [TestCase("y = 1<>0",PrimitiveVarType.BoolType)]
-        [TestCase("y = 0<>1",PrimitiveVarType.BoolType)]
-        [TestCase("y = 5<>5",PrimitiveVarType.BoolType)]
-        [TestCase("y = 5>3", PrimitiveVarType.BoolType)]
-        [TestCase("y = 5>6", PrimitiveVarType.BoolType)]
-        [TestCase("y = 5>=3", PrimitiveVarType.BoolType)]
-        [TestCase("y = 5>=6", PrimitiveVarType.BoolType)]
-        [TestCase("y = 5<=5", PrimitiveVarType.BoolType)]
-        [TestCase("y = 5<=3", PrimitiveVarType.BoolType)]
-        [TestCase("y = true and true", PrimitiveVarType.BoolType)]
-        [TestCase("y = true or true", PrimitiveVarType.BoolType)]
-        [TestCase("y = true xor true", PrimitiveVarType.BoolType)]
+        [TestCase("y = 1==1",PrimitiveVarType.Bool)]
+        [TestCase("y = 1==0",PrimitiveVarType.Bool)]
+        [TestCase("y = true==true",PrimitiveVarType.Bool)]
+        [TestCase("y = 1<>0",PrimitiveVarType.Bool)]
+        [TestCase("y = 0<>1",PrimitiveVarType.Bool)]
+        [TestCase("y = 5<>5",PrimitiveVarType.Bool)]
+        [TestCase("y = 5>3", PrimitiveVarType.Bool)]
+        [TestCase("y = 5>6", PrimitiveVarType.Bool)]
+        [TestCase("y = 5>=3", PrimitiveVarType.Bool)]
+        [TestCase("y = 5>=6", PrimitiveVarType.Bool)]
+        [TestCase("y = 5<=5", PrimitiveVarType.Bool)]
+        [TestCase("y = 5<=3", PrimitiveVarType.Bool)]
+        [TestCase("y = true and true", PrimitiveVarType.Bool)]
+        [TestCase("y = true or true", PrimitiveVarType.Bool)]
+        [TestCase("y = true xor true", PrimitiveVarType.Bool)]
 
-        [TestCase("y=\"\"", PrimitiveVarType.TextType)]
-        [TestCase("y=''", PrimitiveVarType.TextType)]
-        [TestCase("y='hi world'", PrimitiveVarType.TextType)]
-        [TestCase("y='hi world'+5", PrimitiveVarType.TextType)]
-        [TestCase("y='hi world'+true", PrimitiveVarType.TextType)]
-        [TestCase("y='hi world'+true+5", PrimitiveVarType.TextType)]
-        [TestCase("y=''+true+5", PrimitiveVarType.TextType)]
-        [TestCase("y='hi'+'world'", PrimitiveVarType.TextType)]
+        [TestCase("y=\"\"", PrimitiveVarType.Text)]
+        [TestCase("y=''", PrimitiveVarType.Text)]
+        [TestCase("y='hi world'", PrimitiveVarType.Text)]
+        [TestCase("y='hi world'+5", PrimitiveVarType.Text)]
+        [TestCase("y='hi world'+true", PrimitiveVarType.Text)]
+        [TestCase("y='hi world'+true+5", PrimitiveVarType.Text)]
+        [TestCase("y=''+true+5", PrimitiveVarType.Text)]
+        [TestCase("y='hi'+'world'", PrimitiveVarType.Text)]
         public void SingleEquation_OutputTypeCalculatesCorrect(string expr, PrimitiveVarType type)
         {
             
@@ -73,31 +74,31 @@ namespace Funny.Tests
             Assert.AreEqual(VarType.PrimitiveOf(type), res.Results.First().Type);
         }
         
-        [TestCase("y = 1\rz=2",PrimitiveVarType.IntType, PrimitiveVarType.IntType)]
-        [TestCase("y = 2.0\rz=2",PrimitiveVarType.RealType, PrimitiveVarType.IntType)]
-        [TestCase("y = true\rz=false",PrimitiveVarType.BoolType, PrimitiveVarType.BoolType)]
+        [TestCase("y = 1\rz=2",PrimitiveVarType.Int, PrimitiveVarType.Int)]
+        [TestCase("y = 2.0\rz=2",PrimitiveVarType.Real, PrimitiveVarType.Int)]
+        [TestCase("y = true\rz=false",PrimitiveVarType.Bool, PrimitiveVarType.Bool)]
 
-        [TestCase("y = 1\rz=y",PrimitiveVarType.IntType, PrimitiveVarType.IntType)]
-        [TestCase("y = z\rz=2",PrimitiveVarType.IntType, PrimitiveVarType.IntType)]
+        [TestCase("y = 1\rz=y",PrimitiveVarType.Int, PrimitiveVarType.Int)]
+        [TestCase("y = z\rz=2",PrimitiveVarType.Int, PrimitiveVarType.Int)]
 
-        [TestCase("y = z/2\rz=2",PrimitiveVarType.RealType, PrimitiveVarType.IntType)]
-        [TestCase("y = 2\rz=y/2",PrimitiveVarType.IntType, PrimitiveVarType.RealType)]
+        [TestCase("y = z/2\rz=2",PrimitiveVarType.Real, PrimitiveVarType.Int)]
+        [TestCase("y = 2\rz=y/2",PrimitiveVarType.Int, PrimitiveVarType.Real)]
 
-        [TestCase("y = 2.0\rz=y",PrimitiveVarType.RealType, PrimitiveVarType.RealType)]
-        [TestCase("y = z\rz=2.0",PrimitiveVarType.RealType, PrimitiveVarType.RealType)]
+        [TestCase("y = 2.0\rz=y",PrimitiveVarType.Real, PrimitiveVarType.Real)]
+        [TestCase("y = z\rz=2.0",PrimitiveVarType.Real, PrimitiveVarType.Real)]
 
-        [TestCase("y = true\rz=y",PrimitiveVarType.BoolType, PrimitiveVarType.BoolType)]
-        [TestCase("y = z\rz=true",PrimitiveVarType.BoolType, PrimitiveVarType.BoolType)]
+        [TestCase("y = true\rz=y",PrimitiveVarType.Bool, PrimitiveVarType.Bool)]
+        [TestCase("y = z\rz=true",PrimitiveVarType.Bool, PrimitiveVarType.Bool)]
 
         
-        [TestCase("y = 2\rz=y>1",PrimitiveVarType.IntType, PrimitiveVarType.BoolType)]
-        [TestCase("y = z>1\rz=2",PrimitiveVarType.BoolType, PrimitiveVarType.IntType)]
+        [TestCase("y = 2\rz=y>1",PrimitiveVarType.Int, PrimitiveVarType.Bool)]
+        [TestCase("y = z>1\rz=2",PrimitiveVarType.Bool, PrimitiveVarType.Int)]
 
-        [TestCase("y = 2.0\rz=y>1",PrimitiveVarType.RealType, PrimitiveVarType.BoolType)]
-        [TestCase("y = z>1\rz=2.0",PrimitiveVarType.BoolType, PrimitiveVarType.RealType)]
-        [TestCase("y = 'hi'\rz=y",PrimitiveVarType.TextType, PrimitiveVarType.TextType)]
-        [TestCase("y = 'hi'\rz=y+ 'lala'",PrimitiveVarType.TextType, PrimitiveVarType.TextType)]
-        [TestCase("y = true\rz='lala'+y",PrimitiveVarType.BoolType, PrimitiveVarType.TextType)]
+        [TestCase("y = 2.0\rz=y>1",PrimitiveVarType.Real, PrimitiveVarType.Bool)]
+        [TestCase("y = z>1\rz=2.0",PrimitiveVarType.Bool, PrimitiveVarType.Real)]
+        [TestCase("y = 'hi'\rz=y",PrimitiveVarType.Text, PrimitiveVarType.Text)]
+        [TestCase("y = 'hi'\rz=y+ 'lala'",PrimitiveVarType.Text, PrimitiveVarType.Text)]
+        [TestCase("y = true\rz='lala'+y",PrimitiveVarType.Bool, PrimitiveVarType.Text)]
 
         public void TwinEquations_OutputTypesCalculateCorrect(string expr, PrimitiveVarType ytype,PrimitiveVarType ztype)
         {
@@ -117,11 +118,16 @@ namespace Funny.Tests
         [TestCase("x:foo\r y= x and true")]        
         [TestCase("x::foo\r y= x and true")]       
         [TestCase("x:real[\r y= x")]        
+        [TestCase("x:foo[]\r y= x")]        
         [TestCase("x:real]\r y= x")]        
         public void ObviouslyFailsWithParse(string expr) =>
             Assert.Throws<ParseException>(
                 ()=> Interpreter.BuildOrThrow(expr));
-
+        
+        [TestCase(new []{1,2},    "x:int[]\r y= x", new []{1,2})]        
+        [TestCase(new []{1,2},    "x:int[]\r y= x::x", new []{1,2,1,2})]
+        [TestCase(new []{"1","2"},    "x:text[]\r y= x", new []{"1","2"})]        
+        [TestCase(new []{"1","2"},    "x:text[]\r y= x::x", new []{"1","2","1","2"})]
         [TestCase(new []{1.0,2.0},    "x:real[]\r y= x", new []{1.0,2.0})]        
         [TestCase(new []{1.0,2.0},    "x:real[]\r y= x::x", new []{1.0,2.0,1.0,2.0})]        
         [TestCase(1.0, "x:real\r y= x+1", 2.0)]        

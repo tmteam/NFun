@@ -8,6 +8,7 @@ using Funny.LexAnalyze;
 using Funny.Parsing;
 using Funny.Runtime;
 using Funny.Tokenization;
+using Funny.Types;
 
 namespace Funny.Interpritation
 {

@@ -8,6 +8,7 @@ using Funny.Interpritation;
 using Funny.Parsing;
 using Funny.Runtime;
 using Funny.Tokenization;
+using Funny.Types;
 
 namespace Funny
 {

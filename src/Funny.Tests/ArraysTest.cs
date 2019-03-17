@@ -1,4 +1,5 @@
 using Funny.Runtime;
+using Funny.Types;
 using NUnit.Framework;
 
 namespace Funny.Tests
@@ -11,11 +12,16 @@ namespace Funny.Tests
         [TestCase("y = []", new double[0])]
         [TestCase("y = [1.0,2.0]::[3.0,4.0]", new []{1.0,2.0,3.0,4.0})]
         [TestCase("y = ([1.0]::[2.0])::[3.0,4.0]", new []{1.0,2.0,3.0,4.0})]
-        
+        [TestCase("y = [1,2,3]", new[]{1,2,3})]
+        [TestCase("y = ['a','b','c']", new[]{"a","b","c"})]
         [TestCase("y = [1.0]==[]", false)]
         [TestCase("y = [1.0]==[2.0]", false)]
+        [TestCase("y = [1.0,2.0,3.0]==[1,2,3]", true)]
+        [TestCase("y = [1.0]<>[2.0]", true)]
         [TestCase("y = []==[]", true)]
+        [TestCase("y = []<>[]", false)]
         [TestCase("y = [1.0]==[1.0]", true)]
+        [TestCase("y = [1.0]<>[1.0]", false)]
         [TestCase("y = [1.0,2.0]==[1.0,2.0]", true)]
         [TestCase("y = [1.0,2.0]==([1.0]::[2.0])", true)]
         

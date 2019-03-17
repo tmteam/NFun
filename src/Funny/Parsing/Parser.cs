@@ -5,6 +5,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using Funny.Runtime;
 using Funny.Tokenization;
+using Funny.Types;
 
 namespace Funny.Parsing
 {

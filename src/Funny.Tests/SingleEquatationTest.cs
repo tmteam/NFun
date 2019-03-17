@@ -1,5 +1,6 @@
 using System.Linq;
 using Funny.Runtime;
+using Funny.Types;
 using NUnit.Framework;
 
 namespace Funny.Tests
@@ -61,6 +62,10 @@ namespace Funny.Tests
         
         [TestCase("y = true", true)]
         [TestCase("y = false", false)]
+        [TestCase("y = 1==1.0",true)]
+        [TestCase("y = 0==0.0",true)]
+        [TestCase("y = 0<>0.5",true)]
+        [TestCase("y = 0<>0.0",false)]
         [TestCase("y = 1==1",true)]
         [TestCase("y = 1==0",false)]
         [TestCase("y = true==true",true)]

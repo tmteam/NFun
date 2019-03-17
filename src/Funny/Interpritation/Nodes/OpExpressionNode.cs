@@ -1,27 +1,9 @@
 using System;
 using System.Collections.Generic;
+using Funny.Types;
 
 namespace Funny.Interpritation.Nodes
 {
-    public  class OpExpressionNode : IExpressionNode
-    {
-        private readonly IExpressionNode _a;
-        private readonly IExpressionNode _b;
-        private readonly Func<double, double, double> _op;
-        public OpExpressionNode(
-            IExpressionNode a, 
-            IExpressionNode b, 
-            Func<double,double,double> op)
-        {
-            _a = a;
-            _b = b;
-            _op = op;
-        }
-        
-        public VarType Type => VarType.RealType;
-
-        public object Calc() => _op((double)_a.Calc(), (double)_b.Calc());
-    }
     public  class OpExpressionNodeOfT<Tleft,TRight, TOut> : IExpressionNode
     {
         private readonly IExpressionNode _a;
@@ -47,12 +29,7 @@ namespace Funny.Interpritation.Nodes
             _b = b;
             _op = op;
         }
-        public IEnumerable<IExpressionNode> Children {
-            get { 
-                yield return _a;
-                yield return _b;
-            }
-        }
+
         public VarType Type { get; }
 
         public object Calc()

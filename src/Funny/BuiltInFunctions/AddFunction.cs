@@ -2,6 +2,7 @@ using System;
 using Funny.Interpritation;
 using Funny.Interpritation.Functions;
 using Funny.Runtime;
+using Funny.Types;
 
 namespace Funny.BuiltInFunctions
 {

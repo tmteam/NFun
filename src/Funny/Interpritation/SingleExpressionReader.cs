@@ -4,6 +4,7 @@ using System.Linq;
 using Funny.Interpritation.Functions;
 using Funny.Interpritation.Nodes;
 using Funny.Parsing;
+using Funny.Types;
 
 namespace Funny.Interpritation
 {

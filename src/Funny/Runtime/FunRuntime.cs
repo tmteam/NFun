@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Funny.Interpritation;
 using Funny.Interpritation.Nodes;
+using Funny.Types;
 
 namespace Funny.Runtime
 {
@@ -35,7 +36,7 @@ namespace Funny.Runtime
             
             var ans = new Var[_equations.Count];
             for (int i = 0; i < _equations.Count; i++)
-            {
+            { 
                 var e = _equations[i];
                 ans[i] = new Var(e.Id, e.Expression.Calc(), e.Expression.Type);
                 if (e.ReusingWithOtherEquations)

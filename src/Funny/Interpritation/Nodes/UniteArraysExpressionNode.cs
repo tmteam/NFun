@@ -1,4 +1,8 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
+using Funny.Types;
 
 namespace Funny.Interpritation.Nodes
 {
@@ -6,22 +10,29 @@ namespace Funny.Interpritation.Nodes
     {
         private readonly IExpressionNode _nodeA;
         private readonly IExpressionNode _nodeB;
+        private Func<IEnumerable<object>, IEnumerable> _caster;
 
         public UniteArraysExpressionNode(IExpressionNode nodeA, IExpressionNode nodeB)
         {
-            if(nodeA.Type.BaseType!= PrimitiveVarType.Array)
+            if(nodeA.Type.BaseType!= PrimitiveVarType.ArrayOf)
                 throw new ParseException("left node is not an array");
-            if(nodeB.Type.BaseType!= PrimitiveVarType.Array)
+            if(nodeB.Type.BaseType!= PrimitiveVarType.ArrayOf)
                 throw new ParseException("right node is not an array");
             _nodeA = nodeA;
             _nodeB = nodeB;
+            var subtype = _nodeA.Type.ArrayTypeSpecification.VarType;
+            if(_nodeB.Type.ArrayTypeSpecification.VarType!= subtype)
+                throw new ParseException("array types should be same");
+            Type = VarType.ArrayOf(subtype);
+            _caster = Type.ArrayTypeSpecification.VarType.GetArrayCaster();
+            
         }
-        public VarType Type => VarType.ArrayOf(VarType.RealType);
+        public VarType Type { get; }
         public object Calc()
         {
-            var a = (double[])_nodeA.Calc();
-            var b = (double[])_nodeB.Calc();
-            return a.Concat(b).ToArray();
+            var a = _nodeA.Calc() as IEnumerable;
+            var b = _nodeB.Calc() as IEnumerable;
+            return a.Cast<object>().Concat(b.Cast<object>()).ToArray();
         }
     }
 }

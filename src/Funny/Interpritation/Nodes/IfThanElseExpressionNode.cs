@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Funny.Runtime;
+using Funny.Types;
 
 namespace Funny.Interpritation.Nodes
 {
@@ -17,16 +18,16 @@ namespace Funny.Interpritation.Nodes
             Type = GetUpTypeConverion(ifCaseNodes.Select(c => c.Type).Append(elseNode.Type));
             switch (Type.BaseType)
             {
-                case PrimitiveVarType.BoolType:
+                case PrimitiveVarType.Bool:
                     caster = o => o;
                     break;
-                case PrimitiveVarType.IntType:
+                case PrimitiveVarType.Int:
                     caster = o => o;
                     break;
-                case PrimitiveVarType.RealType:
+                case PrimitiveVarType.Real:
                     caster = o => Convert.ToDouble(o);
                     break;
-                case PrimitiveVarType.Array:
+                case PrimitiveVarType.ArrayOf:
                     caster = o => o;
                     break;
                 default:
@@ -59,16 +60,16 @@ namespace Funny.Interpritation.Nodes
             {
                 switch (varType.BaseType)
                 {
-                    case PrimitiveVarType.BoolType:
+                    case PrimitiveVarType.Bool:
                         hasBool = true;
                         break;
-                    case PrimitiveVarType.IntType:
+                    case PrimitiveVarType.Int:
                         hasInt = true;
                         break;
-                    case PrimitiveVarType.RealType:
+                    case PrimitiveVarType.Real:
                         hasReal = true;
                         break;
-                    case PrimitiveVarType.Array:
+                    case PrimitiveVarType.ArrayOf:
                         hasArray = true;
                         break;
                         ;

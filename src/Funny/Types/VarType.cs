@@ -1,16 +1,5 @@
-using Funny.Runtime;
-
-namespace Funny
+namespace Funny.Types
 {
-    public class AdditionalTypeSpecification
-    {
-        public readonly VarType VarType;
-
-        public AdditionalTypeSpecification(VarType varType)
-        {
-            VarType = varType;
-        }
-    }
     public struct VarType
     {
         
@@ -26,13 +15,13 @@ namespace Funny
         {
             return new VarType() {BaseType = primitiveType};
         }
-        public static VarType  BoolType => new VarType(){BaseType = PrimitiveVarType.BoolType};
-        public static VarType  IntType => new VarType(){BaseType = PrimitiveVarType.IntType};
-        public static VarType  RealType => new VarType(){BaseType = PrimitiveVarType.RealType};
-        public static VarType  TextType => new VarType(){BaseType = PrimitiveVarType.TextType};
+        public static VarType  BoolType => new VarType(){BaseType = PrimitiveVarType.Bool};
+        public static VarType  IntType => new VarType(){BaseType = PrimitiveVarType.Int};
+        public static VarType  RealType => new VarType(){BaseType = PrimitiveVarType.Real};
+        public static VarType  TextType => new VarType(){BaseType = PrimitiveVarType.Text};
         public static VarType  ArrayOf(VarType type) => new VarType()
         {
-            BaseType = PrimitiveVarType.Array,
+            BaseType = PrimitiveVarType.ArrayOf,
             ArrayTypeSpecification = new AdditionalTypeSpecification(type)
         };
         
@@ -60,28 +49,17 @@ namespace Funny
         {
             if (obj.BaseType != BaseType)
                 return false;
-            if (BaseType == PrimitiveVarType.Array)
+            if (BaseType == PrimitiveVarType.ArrayOf)
                 return ArrayTypeSpecification.VarType.Equals(obj.ArrayTypeSpecification.VarType);
             return true;
         }
+
+        public override string ToString()
+        {
+            if (BaseType == PrimitiveVarType.ArrayOf)
+                return ArrayTypeSpecification.VarType.ToString() + "[]";
+            else
+                return BaseType.ToString();
+        }
     }
-    public enum PrimitiveVarType
-    {
-        BoolType = 1,
-        IntType = 2,
-        RealType = 3,
-        TextType = 4,
-        Array = 5,
-    }
-    
-    /*
-     * |Primitive
-     *     - bool
-     *     - int
-     *     - real
-     *     - text
-     * | array
-     *     - Type
-     * | Any
-     */
 }

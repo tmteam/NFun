@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Funny.Interpritation.Functions;
 using Funny.Runtime;
+using Funny.Types;
 
 namespace Funny.Interpritation.Nodes
 {
@@ -15,12 +16,6 @@ namespace Funny.Interpritation.Nodes
         {
             _fun = fun;
             _argsNodes = argsNodes;
-            /*foreach (var node in argsNodes)
-            {
-                if (node.Type != VarType.IntType && node.Type != VarType.RealType)
-                    throw new OutpuCastParseException("Input variables have to be number or int types");
-            }*/
-
             Children = _argsNodes;
         }
 

@@ -1,4 +1,5 @@
 using Funny.Runtime;
+using Funny.Types;
 
 namespace Funny.Parsing
 {

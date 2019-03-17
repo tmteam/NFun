@@ -1,6 +1,7 @@
 using System;
 using Funny.Parsing;
 using Funny.Runtime;
+using Funny.Types;
 
 namespace Funny.Interpritation.Functions
 {

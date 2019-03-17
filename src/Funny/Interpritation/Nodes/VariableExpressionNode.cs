@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Funny.Types;
 
 namespace Funny.Interpritation.Nodes
 {
@@ -40,20 +41,20 @@ namespace Funny.Interpritation.Nodes
         {
             switch (Type.BaseType)
             {
-                case PrimitiveVarType.BoolType:
+                case PrimitiveVarType.Bool:
                     _value = Convert.ToBoolean(valueValue);
                     break;
-                case PrimitiveVarType.IntType:
+                case PrimitiveVarType.Int:
                     _value = Convert.ToInt32(valueValue);
                     break;
-                case PrimitiveVarType.RealType:
+                case PrimitiveVarType.Real:
                     _value = Convert.ToDouble(valueValue);
                     break;
-                case PrimitiveVarType.TextType:
+                case PrimitiveVarType.Text:
                     _value = valueValue?.ToString()??"";
                     break;
-                case PrimitiveVarType.Array:
-                    _value = (double[]) valueValue;
+                case PrimitiveVarType.ArrayOf:
+                    _value = valueValue;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

@@ -1,5 +1,6 @@
 using System;
 using Funny.Runtime;
+using Funny.Types;
 using NUnit.Framework;
 
 namespace Funny.Tests
@@ -24,6 +25,8 @@ namespace Funny.Tests
         [TestCase("myconcat(a:text, b):text = a + b \r  y = myconcat(1,2.5)","12.5")]
         [TestCase("arr(a:real[]):real[] = a    \r  y = arr([1.0,2.0])",new[]{1.0,2.0})]
         [TestCase("arr(a:real[]):real[] = a::a \r  y = arr([1.0,2.0])",new[]{1.0,2.0,1.0,2.0})]
+        [TestCase("arr(a:int[]):int[] = a \r  y = arr([1,2])",new[]{1,2})]
+        [TestCase("arr(a:text[]):text[] = a::a \r  y = arr(['qwe','rty'])",new[]{"qwe","rty","qwe","rty"})]
         public void TypedConstantEquation_NonRecursiveFunction(string expr, object expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
@@ -152,6 +155,7 @@ namespace Funny.Tests
         [TestCase("y(x):real= \"vasa\"")]
         [TestCase("y(x:int)= x+1\n out = y(\"test\")")]
         [TestCase("y(x:real[)= x")]
+        [TestCase("y(x:foo[])= x")]
         [TestCase("y(x:real])= x")]
         [TestCase("y(x):real]= x")]
         [TestCase("y(x):real[= x")]
