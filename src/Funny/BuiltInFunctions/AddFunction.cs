@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using Funny.Interpritation;
 using Funny.Interpritation.Functions;
@@ -55,9 +56,14 @@ namespace Funny.BuiltInFunctions
         public override object Calc(object[] args) => Math.E;
     }
 
+    public class AverageFunction : FunctionBase
+    {
+        public AverageFunction(): base("avg", VarType.RealType, VarType.ArrayOf(VarType.RealType)){}
+        public override object Calc(object[] args) => (args[0] as IEnumerable).Cast<double>().Average();
+    }
     public class LengthFunction : FunctionBase
     {
-        public LengthFunction(): base("Length", VarType.IntType, VarType.ArrayOf(VarType.AnyType))
+        public LengthFunction(): base("length", VarType.IntType, VarType.ArrayOf(VarType.AnyType))
         {
             
         }

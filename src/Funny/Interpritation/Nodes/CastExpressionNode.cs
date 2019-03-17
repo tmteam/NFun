@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Linq;
 using Funny.Types;
 
 namespace Funny.Interpritation.Nodes
@@ -28,10 +30,13 @@ namespace Funny.Interpritation.Nodes
                 return o => o?.ToString() ?? "";
             if (to == VarType.AnyType)
                 return o => o;
-            if (from.BaseType == BaseVarType.ArrayOf)
+            if (from.BaseType == BaseVarType.ArrayOf && to.BaseType== BaseVarType.ArrayOf)
             {
                 if (to ==  VarType.ArrayOf(VarType.AnyType))
                     return o => o;
+                
+                var elementConverter = GetConverterOrThrow(from.ArrayTypeSpecification.VarType, to.ArrayTypeSpecification.VarType);
+                return o => ((IEnumerable) o).Cast<object>().Select(elementConverter);
             }    
             throw  new ParseException($"Cast {from}->{to} is unavailable");
         }

@@ -19,8 +19,9 @@ namespace Funny.Tests
         [TestCase("y = length([1,2,3])",3)]
         [TestCase("y = length([])",0)]
         [TestCase("y = length([1.0,2.0,3.0])",3)]
-        [TestCase("y = length([[1,2],[]])",2)]
-
+        [TestCase("y = length([[1,2],[3,4]])",2)]
+        [TestCase("y = avg([1,2,3])",2.0)]
+        [TestCase("y = avg([1.0,2.0,6.0])",3.0)]
         public void ConstantEquationWithPredefinedFunction(string expr, object expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
@@ -58,6 +59,8 @@ namespace Funny.Tests
         [TestCase("y = add(1)")]
         [TestCase("y = add 1")]
         [TestCase("y = add(1,2,3)")]
+        [TestCase("y = avg(['1','2','3'])")]
+
         public void ObviouslyFails(string expr) =>
             Assert.Throws<ParseException>(
                 ()=> Interpreter.BuildOrThrow(expr));

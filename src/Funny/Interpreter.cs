@@ -21,6 +21,7 @@ namespace Funny
                 new EFunction(), 
                 new PiFunction(),
                 new LengthFunction(),
+                new AverageFunction()
             };
             return ExpressionReader.Interpritate(lexTree, predefinedfunctions);
         }
