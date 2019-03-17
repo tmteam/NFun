@@ -10,7 +10,6 @@ namespace Funny.Interpritation.Nodes
     {
         private readonly IExpressionNode _nodeA;
         private readonly IExpressionNode _nodeB;
-        private Func<IEnumerable<object>, IEnumerable> _caster;
 
         public UniteArraysExpressionNode(IExpressionNode nodeA, IExpressionNode nodeB)
         {
@@ -24,7 +23,6 @@ namespace Funny.Interpritation.Nodes
             if(_nodeB.Type.ArrayTypeSpecification.VarType!= subtype)
                 throw new ParseException("array types should be same");
             Type = VarType.ArrayOf(subtype);
-            _caster = Type.ArrayTypeSpecification.VarType.GetArrayCaster();
             
         }
         public VarType Type { get; }

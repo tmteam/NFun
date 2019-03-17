@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -44,8 +45,6 @@ namespace Funny.Types
         public static Var New(string name, string value) 
             => new Var(name, value, VarType.TextType);
 
-        public static Var New(string name, double[] value)
-            => new Var(name, value, VarType.ArrayOf(VarType.RealType));
         public  static VarType ToVarType(Type t)
         {
             if (t == typeof(int))
@@ -56,6 +55,11 @@ namespace Funny.Types
                 return VarType.TextType;
             if (t == typeof(bool))
                 return VarType.BoolType;
+            if (t.IsArray)
+            {
+                var eType = t.GetElementType();
+                return VarType.ArrayOf(ToVarType(eType));
+            }
             throw new ArgumentException($"Type {t.Name} is not supported");
         }
         public readonly string Name;

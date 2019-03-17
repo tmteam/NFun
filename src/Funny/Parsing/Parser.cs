@@ -70,11 +70,12 @@ namespace Funny.Parsing
             var cur = flow.Current;
             var readType = GetVarByToken(cur);
             flow.MoveNext();
-            if (flow.IsCurrent(TokType.ArrOBr))
+
+            while (flow.IsCurrent(TokType.ArrOBr))
             {
                 flow.MoveNext();
                 flow.MoveIfOrThrow(TokType.ArrCBr);
-                return VarType.ArrayOf(readType);                
+                readType = VarType.ArrayOf(readType);
             }
             return readType;
         }

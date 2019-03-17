@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Funny.Runtime;
 using Funny.Types;
@@ -120,6 +121,10 @@ namespace Funny.Tests
         [TestCase("x:real[\r y= x")]        
         [TestCase("x:foo[]\r y= x")]        
         [TestCase("x:real]\r y= x")]        
+        [TestCase("x:real[][\r y= x")]        
+        [TestCase("x:real[]]\r y= x")]        
+        [TestCase("x:real[[]\r y= x")]        
+        [TestCase("x:real][]\r y= x")]        
         public void ObviouslyFailsWithParse(string expr) =>
             Assert.Throws<ParseException>(
                 ()=> Interpreter.BuildOrThrow(expr));
@@ -129,6 +134,7 @@ namespace Funny.Tests
         [TestCase(new []{"1","2"},    "x:text[]\r y= x", new []{"1","2"})]        
         [TestCase(new []{"1","2"},    "x:text[]\r y= x::x", new []{"1","2","1","2"})]
         [TestCase(new []{1.0,2.0},    "x:real[]\r y= x", new []{1.0,2.0})]        
+        
         [TestCase(new []{1.0,2.0},    "x:real[]\r y= x::x", new []{1.0,2.0,1.0,2.0})]        
         [TestCase(1.0, "x:real\r y= x+1", 2.0)]        
         [TestCase(1,    "x:int\r y= x+1", 2)]        
@@ -141,5 +147,6 @@ namespace Funny.Tests
             Assert.AreEqual(1, res.Results.Length);
             Assert.AreEqual(y, res.Results.First().Value);
         }
+        
     }
 }
