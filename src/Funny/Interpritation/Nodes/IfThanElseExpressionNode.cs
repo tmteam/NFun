@@ -18,16 +18,16 @@ namespace Funny.Interpritation.Nodes
             Type = GetUpTypeConverion(ifCaseNodes.Select(c => c.Type).Append(elseNode.Type));
             switch (Type.BaseType)
             {
-                case PrimitiveVarType.Bool:
+                case BaseVarType.Bool:
                     caster = o => o;
                     break;
-                case PrimitiveVarType.Int:
+                case BaseVarType.Int:
                     caster = o => o;
                     break;
-                case PrimitiveVarType.Real:
+                case BaseVarType.Real:
                     caster = o => Convert.ToDouble(o);
                     break;
-                case PrimitiveVarType.ArrayOf:
+                case BaseVarType.ArrayOf:
                     caster = o => o;
                     break;
                 default:
@@ -60,16 +60,16 @@ namespace Funny.Interpritation.Nodes
             {
                 switch (varType.BaseType)
                 {
-                    case PrimitiveVarType.Bool:
+                    case BaseVarType.Bool:
                         hasBool = true;
                         break;
-                    case PrimitiveVarType.Int:
+                    case BaseVarType.Int:
                         hasInt = true;
                         break;
-                    case PrimitiveVarType.Real:
+                    case BaseVarType.Real:
                         hasReal = true;
                         break;
-                    case PrimitiveVarType.ArrayOf:
+                    case BaseVarType.ArrayOf:
                         hasArray = true;
                         break;
                         ;

@@ -19,7 +19,8 @@ namespace Funny
                 new SinFunction(), 
                 new CosFunction(), 
                 new EFunction(), 
-                new PiFunction(), 
+                new PiFunction(),
+                new LengthFunction(),
             };
             return ExpressionReader.Interpritate(lexTree, predefinedfunctions);
         }

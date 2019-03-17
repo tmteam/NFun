@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Linq;
 using Funny.Interpritation;
 using Funny.Interpritation.Functions;
 using Funny.Runtime;
@@ -21,7 +23,7 @@ namespace Funny.BuiltInFunctions
             return val > 0 ? val : -val;
         }
     }
-
+        
     public class CosFunction : FunctionBase
     {
         public CosFunction() : base("cos", VarType.RealType, VarType.RealType){}
@@ -51,6 +53,17 @@ namespace Funny.BuiltInFunctions
     {
         public EFunction() : base("e",  VarType.RealType){}
         public override object Calc(object[] args) => Math.E;
+    }
+
+    public class LengthFunction : FunctionBase
+    {
+        public LengthFunction(): base("Length", VarType.IntType, VarType.ArrayOf(VarType.AnyType))
+        {
+            
+        }
+
+        public override object Calc(object[] args) 
+            => (args[0] as IEnumerable).Cast<object>().Count();
     }
     
 }

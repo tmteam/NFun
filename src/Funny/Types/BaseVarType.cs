@@ -5,28 +5,29 @@ using System.Linq;
 
 namespace Funny.Types
 {
-    public enum PrimitiveVarType
+    public enum BaseVarType
     {
         Bool = 1,
         Int = 2,
         Real = 3,
         Text = 4,
         ArrayOf = 5,
+        Any
     }
     public static class VarTypeExtensions{
         public static Func<IEnumerable<object>,IEnumerable> GetArrayCaster(this VarType type)
         {
             switch (type.BaseType)
             {
-                case PrimitiveVarType.Bool:
+                case BaseVarType.Bool:
                     return Enumerable.Cast<bool>;
-                case PrimitiveVarType.Int:
+                case BaseVarType.Int:
                     return Enumerable.Cast<int>;
-                case PrimitiveVarType.Real:
+                case BaseVarType.Real:
                     return Enumerable.Cast<double>;
-                case PrimitiveVarType.Text:
+                case BaseVarType.Text:
                     return Enumerable.Cast<string>;
-                case PrimitiveVarType.ArrayOf:
+                case BaseVarType.ArrayOf:
                     throw new ArgumentOutOfRangeException();
                 
                     break;

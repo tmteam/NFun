@@ -24,10 +24,15 @@ namespace Funny.Interpritation.Nodes
                 return o => o;
             if (from == VarType.IntType && to == VarType.RealType)
                 return o=>Convert.ToDouble(o);
-            
             if (to == VarType.TextType)
                 return o => o?.ToString() ?? "";
-                
+            if (to == VarType.AnyType)
+                return o => o;
+            if (from.BaseType == BaseVarType.ArrayOf)
+            {
+                if (to ==  VarType.ArrayOf(VarType.AnyType))
+                    return o => o;
+            }    
             throw  new ParseException($"Cast {from}->{to} is unavailable");
         }
     }

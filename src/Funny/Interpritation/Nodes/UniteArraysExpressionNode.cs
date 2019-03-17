@@ -13,9 +13,9 @@ namespace Funny.Interpritation.Nodes
 
         public UniteArraysExpressionNode(IExpressionNode nodeA, IExpressionNode nodeB)
         {
-            if(nodeA.Type.BaseType!= PrimitiveVarType.ArrayOf)
+            if(nodeA.Type.BaseType!= BaseVarType.ArrayOf)
                 throw new ParseException("left node is not an array");
-            if(nodeB.Type.BaseType!= PrimitiveVarType.ArrayOf)
+            if(nodeB.Type.BaseType!= BaseVarType.ArrayOf)
                 throw new ParseException("right node is not an array");
             _nodeA = nodeA;
             _nodeB = nodeB;

@@ -8,16 +8,20 @@ namespace Funny.Tests
     [TestFixture]
     public class PredefinedFunctionsTest
     {
-        [TestCase("y = abs(1)",1)]
-        [TestCase("y = abs(-1)",1)]
-        [TestCase("y = add(1,2)",3)]
-        [TestCase("y = add(add(1,2),add(3,4))",10)]
-        [TestCase("y = abs(1-4)",3)]
-        [TestCase("y = 15 - add(abs(1-4), 7)",5)]
+        [TestCase("y = abs(1)",1.0)]
+        [TestCase("y = abs(-1)",1.0)]
+        [TestCase("y = add(1,2)",3.0)]
+        [TestCase("y = add(add(1,2),add(3,4))",10.0)]
+        [TestCase("y = abs(1-4)",3.0)]
+        [TestCase("y = 15 - add(abs(1-4), 7)",5.0)]
         [TestCase("y = pi()",Math.PI)]
         [TestCase("y = e()",Math.E)]
+        [TestCase("y = length([1,2,3])",3)]
+        [TestCase("y = length([])",0)]
+        [TestCase("y = length([1.0,2.0,3.0])",3)]
+        [TestCase("y = length([[1,2],[]])",2)]
 
-        public void ConstantEquationWithPredefinedFunction(string expr, double expected)
+        public void ConstantEquationWithPredefinedFunction(string expr, object expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
             runtime.Calculate()

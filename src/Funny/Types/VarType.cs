@@ -10,23 +10,26 @@ namespace Funny.Types
                 return ((int) BaseType * 397) ^ (ArrayTypeSpecification != null ? ArrayTypeSpecification.GetHashCode() : 0);
             }
         }
-
-        public static VarType PrimitiveOf(PrimitiveVarType primitiveType)
+        public static VarType PrimitiveOf(BaseVarType baseType) => new VarType(baseType);
+        public static VarType  AnyType => new VarType(BaseVarType.Any);
+        public static VarType  BoolType => new VarType(BaseVarType.Bool);
+        public static VarType  IntType => new VarType(BaseVarType.Int);
+        public static VarType  RealType => new VarType(BaseVarType.Real);
+        public static VarType  TextType => new VarType(BaseVarType.Text);
+        public static VarType ArrayOf(VarType type) => new VarType(type);
+        public VarType(BaseVarType baseType)
         {
-            return new VarType() {BaseType = primitiveType};
+            BaseType = baseType;
+            ArrayTypeSpecification = null;
         }
-        public static VarType  BoolType => new VarType(){BaseType = PrimitiveVarType.Bool};
-        public static VarType  IntType => new VarType(){BaseType = PrimitiveVarType.Int};
-        public static VarType  RealType => new VarType(){BaseType = PrimitiveVarType.Real};
-        public static VarType  TextType => new VarType(){BaseType = PrimitiveVarType.Text};
-        public static VarType  ArrayOf(VarType type) => new VarType()
+        public VarType(VarType arrayElementType)
         {
-            BaseType = PrimitiveVarType.ArrayOf,
-            ArrayTypeSpecification = new AdditionalTypeSpecification(type)
-        };
+            BaseType = BaseVarType.ArrayOf;
+            ArrayTypeSpecification = new AdditionalTypeSpecification(arrayElementType);
+        }
         
-        public PrimitiveVarType BaseType;
-        public AdditionalTypeSpecification ArrayTypeSpecification;
+        public readonly BaseVarType BaseType;
+        public readonly AdditionalTypeSpecification ArrayTypeSpecification;
         public static bool operator== (VarType obj1, VarType obj2)
         {
             return obj1.Equals(obj2);
@@ -49,14 +52,14 @@ namespace Funny.Types
         {
             if (obj.BaseType != BaseType)
                 return false;
-            if (BaseType == PrimitiveVarType.ArrayOf)
+            if (BaseType == BaseVarType.ArrayOf)
                 return ArrayTypeSpecification.VarType.Equals(obj.ArrayTypeSpecification.VarType);
             return true;
         }
 
         public override string ToString()
         {
-            if (BaseType == PrimitiveVarType.ArrayOf)
+            if (BaseType == BaseVarType.ArrayOf)
                 return ArrayTypeSpecification.VarType.ToString() + "[]";
             else
                 return BaseType.ToString();

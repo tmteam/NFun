@@ -13,7 +13,8 @@ namespace Funny.Types
             var vartype = VarType.ArrayOf(baseType);
             return new Var(name, value.ToArray(), vartype);
         }
-        
+        public static Var NewAny(string name, object value)
+            => new Var(name, value, VarType.AnyType);
         public static Var New(string name, object value)
         {
             if (value is int i)
@@ -33,8 +34,8 @@ namespace Funny.Types
                 return New(name, arrStr);
             if (value is IEnumerable<bool> arrBool)
                 return New(name, arrBool);
-
-            throw new ArgumentException($"Type {value.GetType().Name} is not supported");
+            
+            return new Var(name, value, VarType.AnyType);
         }
         public static Var New(string name, bool value) 
             => new Var(name, value, VarType.BoolType);
@@ -65,6 +66,7 @@ namespace Funny.Types
         public readonly string Name;
         public readonly object Value;
         public readonly VarType Type;
+        
         public Var(string name, object value, VarType type)
         {
             Name = name;

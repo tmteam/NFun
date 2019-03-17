@@ -41,19 +41,19 @@ namespace Funny.Interpritation.Nodes
         {
             switch (Type.BaseType)
             {
-                case PrimitiveVarType.Bool:
+                case BaseVarType.Bool:
                     _value = Convert.ToBoolean(valueValue);
                     break;
-                case PrimitiveVarType.Int:
+                case BaseVarType.Int:
                     _value = Convert.ToInt32(valueValue);
                     break;
-                case PrimitiveVarType.Real:
+                case BaseVarType.Real:
                     _value = Convert.ToDouble(valueValue);
                     break;
-                case PrimitiveVarType.Text:
+                case BaseVarType.Text:
                     _value = valueValue?.ToString()??"";
                     break;
-                case PrimitiveVarType.ArrayOf:
+                case BaseVarType.ArrayOf:
                     _value = valueValue;
                     break;
                 default:
