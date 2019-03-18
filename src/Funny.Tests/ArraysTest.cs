@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +13,7 @@ namespace Funny.Tests
     {
         [TestCase("y = [1.0,1.2,2.4]", new[]{1.0,1.2, 2.4})]
         [TestCase("y = [1.0]", new[]{1.0})]
-        [TestCase("y = []", new double[0])]
+        [TestCase("y = []", new object[0])]
         [TestCase("y = [1.0,2.0]::[3.0,4.0]", new []{1.0,2.0,3.0,4.0})]
         [TestCase("y = ([1.0]::[2.0])::[3.0,4.0]", new []{1.0,2.0,3.0,4.0})]
         [TestCase("y = [1,2,3]", new[]{1,2,3})]

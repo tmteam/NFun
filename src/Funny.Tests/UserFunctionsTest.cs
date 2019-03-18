@@ -55,7 +55,7 @@ namespace Funny.Tests
         
         
         [TestCase(
-            "max3(a,b,c) =  max(max(a,b),c) \r max(a,b)= if a<b then b else a\r y = max3(16,32,2)",32)]
+            "max3(a,b,c) =  max2(max2(a,b),c) \r max2(a,b)= if a<b then b else a\r y = max3(16,32,2)",32)]
         [TestCase(
             "fact(a) = if a<2 then 1 else a*fact(a-1) \r y = fact(5)",5*4*3*2*1)]
         public void ConstantEquation_RecFunctions(string expr, double expected)
@@ -159,6 +159,7 @@ namespace Funny.Tests
         [TestCase("y(x:real])= x")]
         [TestCase("y(x):real]= x")]
         [TestCase("y(x):real[= x")]
+        [TestCase("a(x)=x\r a(y)=y\r")]
         public void ObviousFails(string expr)
         {
             try

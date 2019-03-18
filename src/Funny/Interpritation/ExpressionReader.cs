@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,11 +13,49 @@ using Funny.Types;
 
 namespace Funny.Interpritation
 {
+    public class FunctionsDictionary
+    {
+        private readonly Dictionary<string, List<FunctionBase>> _functions 
+            = new Dictionary<string, List<FunctionBase>>();
+        
+        public void Add(FunctionBase function)
+        {
+            if(!_functions.ContainsKey(function.Name))
+                _functions.Add(function.Name, new List<FunctionBase>());
+            _functions[function.Name].Add(function);            
+        }
+
+        public void AddOrReplace(FunctionBase function)
+        {
+            Add(function);
+        }
+        
+        public bool Contains(string name, VarType[] args) => GetOrNull(name, args) != null;
+        public FunctionBase GetOrNull(string name, params VarType[] args)
+        {
+            if (!_functions.TryGetValue(name, out var funs)) 
+                return null;
+
+            var filtered = funs.Where(f => f.ArgTypes.Length == args.Length).ToArray();
+            if (!filtered.Any())
+                return null;
+            else if (filtered.Length == 1)
+                return filtered.First();
+
+            filtered = filtered.Where(f => f.ArgTypes.SequenceEqual(args)).ToArray();
+            if (!filtered.Any())
+                return null;
+            if (filtered.Length == 1)
+                return filtered.First();
+
+            return null;
+        }
+    }
     public class ExpressionReader
     {
         private readonly TreeAnalysis _treeAnalysis;
         private readonly LexFunction[] _lexTreeUserFuns;
-        private readonly Dictionary<string, FunctionBase> _functions;
+        private readonly FunctionsDictionary _functions;
 
         private readonly Dictionary<string, VariableExpressionNode> _variables 
             = new Dictionary<string, VariableExpressionNode>();
@@ -27,12 +66,16 @@ namespace Funny.Interpritation
             LexTree lexTree, 
             IEnumerable<FunctionBase> predefinedFunctions)
         {
-            var funDic = predefinedFunctions.ToDictionary((f) => f.Name.ToLower());
+            var functions = new FunctionsDictionary();
+            foreach (var predefinedFunction in predefinedFunctions)
+                functions.Add(predefinedFunction);
+            
             var analysis = LexAnalyzer.Analyze(lexTree);
+            
             var ans = new ExpressionReader(
                 analysis,
                 lexTree.UserFuns,
-                funDic,
+                functions,
                 lexTree.VarSpecifications);
             
             ans.Interpritate();
@@ -45,7 +88,7 @@ namespace Funny.Interpritation
         private ExpressionReader(
             TreeAnalysis treeAnalysis, 
             LexFunction[] lexTreeUserFuns, 
-            Dictionary<string, FunctionBase> functions, 
+            FunctionsDictionary functions, 
             VariableInfo[] vars)
         {
             _treeAnalysis = treeAnalysis;
@@ -67,15 +110,16 @@ namespace Funny.Interpritation
                     _variables[variableTypeSpecification.Id].SetType(variableTypeSpecification.Type);
             }
         }
-
+        
         private void Interpritate()
         {
             foreach (var userFun in _lexTreeUserFuns)
-                _functions.Add(userFun.Id, GetFunctionPrototype(userFun));
+                _functions.AddOrReplace(GetFunctionPrototype(userFun));
 
             foreach (var userFun in _lexTreeUserFuns)
             {
-                var prototype = _functions[userFun.Id];
+                var prototype = _functions.GetOrNull(userFun.Id, userFun.Args.Select(a=>a.Type).ToArray());
+                
                 ((FunctionPrototype)prototype).SetActual(GetFunction(userFun));
             }
             

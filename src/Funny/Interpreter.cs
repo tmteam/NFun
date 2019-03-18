@@ -21,7 +21,11 @@ namespace Funny
                 new EFunction(), 
                 new PiFunction(),
                 new LengthFunction(),
-                new AverageFunction()
+                new AverageFunction(),
+                new MaxOfIntFunction(), 
+                new MaxOfRealFunction(), 
+                new MultiMaxIntFunction(), 
+                new MultiMaxRealFunction(), 
             };
             return ExpressionReader.Interpritate(lexTree, predefinedfunctions);
         }

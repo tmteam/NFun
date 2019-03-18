@@ -7,6 +7,12 @@ namespace Funny.Types
 {
     public struct Var {
 
+        public static Var New<T>(string name, T[] value)
+        {
+            var baseType = ToVarType(typeof(T));
+            var vartype = VarType.ArrayOf(baseType);
+            return new Var(name, value, vartype);
+        }
         public static Var New<T>(string name, IEnumerable<T> value)
         {
             var baseType = ToVarType(typeof(T));
@@ -34,7 +40,8 @@ namespace Funny.Types
                 return New(name, arrStr);
             if (value is IEnumerable<bool> arrBool)
                 return New(name, arrBool);
-            
+            if (value is IEnumerable<object> arrObj)
+                return New(name, arrObj);
             return new Var(name, value, VarType.AnyType);
         }
         public static Var New(string name, bool value) 

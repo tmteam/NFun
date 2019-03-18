@@ -10,13 +10,13 @@ namespace Funny.Interpritation
 {
     class SingleExpressionReader
     {
-        private readonly Dictionary<string, FunctionBase> _predefinedfunctions;
+        private readonly FunctionsDictionary _functions;
         private readonly Dictionary<string, VariableExpressionNode> _variables;
         public SingleExpressionReader(
-            Dictionary<string, FunctionBase> predefinedfunctions, 
+            FunctionsDictionary functions, 
             Dictionary<string, VariableExpressionNode> variables)
         {
-            _predefinedfunctions = predefinedfunctions;
+            _functions = functions;
             _variables = variables;
         }
 
@@ -149,31 +149,36 @@ namespace Funny.Interpritation
         private IExpressionNode GetFunNode(LexNode node)
         {
             var id = node.Value.ToLower();
-            if(!_predefinedfunctions.ContainsKey(id))
-                throw new ParseException($"Function \"{id}\" is not defined");
-            var fun = _predefinedfunctions[id];
-            var i = 0;
             
             var children= new List<IExpressionNode>();
+            var childrenTypes = new List<VarType>();
             foreach (var argLexNode in node.Children)
             {
-                if(fun.ArgsCount<=i)
-                    throw new ParseException($"Args count of function \"{id}\" is wrong. Expected: {fun.ArgsCount} but was {node.Children.Count()}");
                 var argNode = ReadNode(argLexNode);
+                children.Add(argNode);
+                childrenTypes.Add(argNode.Type);
+            }
+
+            var function = _functions.GetOrNull(id, childrenTypes.ToArray());
+            if (function == null)
+                throw new ParseException($"Function {id}({string.Join(", ", childrenTypes.ToArray())}) is not defined");
+            List<IExpressionNode> castedChildren = new List<IExpressionNode>();
+            var i = 0;            
+            foreach (var argNode in children)
+            {
+                var toType = function.ArgTypes[i];
                 var fromType = argNode.Type;
-                var toType = fun.ArgTypes[i];
+                var castedNode = argNode;
                 if (fromType != toType)
                 {
                     var converter = CastExpressionNode.GetConverterOrThrow(fromType, toType);
-                    argNode = new CastExpressionNode(argNode, toType, converter);
+                    castedNode = new CastExpressionNode(argNode, toType, converter);
                 }
-                children.Add(argNode);
+                castedChildren.Add(castedNode);
                 i++;
             }
-            if(i<fun.ArgsCount)
-                    throw new ParseException($"Args count of function \"{id}\" is wrong. Expected: {fun.ArgsCount} but was {node.Children.Count()}");
 
-            return new FunExpressionNode(fun, children.ToArray());
+            return new FunExpressionNode(function, castedChildren.ToArray());
         }
 
     }

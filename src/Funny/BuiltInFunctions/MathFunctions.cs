@@ -56,20 +56,25 @@ namespace Funny.BuiltInFunctions
         public override object Calc(object[] args) => Math.E;
     }
 
-    public class AverageFunction : FunctionBase
+    public class MaxOfIntFunction : FunctionBase
     {
-        public AverageFunction(): base("avg", VarType.RealType, VarType.ArrayOf(VarType.RealType)){}
-        public override object Calc(object[] args) => (args[0] as IEnumerable).Cast<double>().Average();
-    }
-    public class LengthFunction : FunctionBase
-    {
-        public LengthFunction(): base("length", VarType.IntType, VarType.ArrayOf(VarType.AnyType))
+        public MaxOfIntFunction() : base("max", VarType.IntType, VarType.IntType, VarType.IntType)
         {
-            
         }
 
         public override object Calc(object[] args) 
-            => (args[0] as IEnumerable).Cast<object>().Count();
+            => Math.Max((int) args[0], (int) args[1]);
     }
+    public class MaxOfRealFunction : FunctionBase
+    {
+        public MaxOfRealFunction () : base("max", VarType.RealType, VarType.RealType, VarType.RealType)
+        {
+        }
+
+        public override object Calc(object[] args) 
+            => Math.Max((int) args[0], (int) args[1]);
+    }
+
+  
     
 }
