@@ -46,6 +46,12 @@ namespace Funny.Tests
                      y = filter([11.0,20.0,1.0,2.0],rr)",new[]{11.0,20.0})]
         [TestCase( @"ii(x:int):bool = x>10
                      y = filter([11,20,1,2],ii)",new[]{11,20})]
+        [TestCase( @"ii(x:int):int = x*x
+                     y = map([1,2,3],ii)",new[]{1,4,9})]
+        [TestCase( @"ii(x:int):real = x/2
+                     y = map([1,2,3],ii)",new[]{0.5,1.0,1.5})]
+        [TestCase( @"ii(x:int):bool = x/2== x
+                     y = map([1,2,3],ii)",new[]{false, true,false})]
         public void HiOrderFunConstantEquatation(string expr, object expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);

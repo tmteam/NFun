@@ -42,6 +42,7 @@ namespace Funny
                 new ConcatGenericFunctionDefenition(),
                 new RepeatGenericFunctionDefenition(),
                 new FilterGenericFunctionDefenition(),
+                new MapGenericFunctionDefenition(),
             };
             return ExpressionReader.Interpritate(lexTree, predefinedfunctions, predefinedGenerics);
         }
