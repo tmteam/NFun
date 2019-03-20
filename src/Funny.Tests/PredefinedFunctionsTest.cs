@@ -47,12 +47,14 @@ namespace Funny.Tests
         [TestCase("y = take([1.0,2.0,3.0],20)",new []{1.0,2.0,3.0})]        
         [TestCase("y = take([1.0,2.0,3.0],0)",new double[0])]        
         [TestCase("y = skip([1,2,3,4,5],3)",new []{4,5})]        
+        [TestCase("y = skip(['1','2','3','4','5'],3)",new []{"4","5"})]        
         [TestCase("y = skip([1.0,2.0,3.0,4.0,5.0],4)",new []{5.0})]        
         [TestCase("y = skip([1.0,2.0,3.0],20)",new double[0])]        
         [TestCase("y = skip([1.0,2.0,3.0],0)",new []{1.0,2.0,3.0})]        
         [TestCase("y = repeat('abc',3)",new []{"abc","abc","abc"})]        
         [TestCase("y = repeat('abc',0)",new string[0])]        
         [TestCase("y = take(skip([1.0,2.0,3.0],1),1)",new []{2.0})]        
+        [TestCase("mypage(x:int[]):int[] = take(skip(x,1),1) \r y = mypage([1,2,3]) ",new []{2})]        
 
         public void ConstantEquationWithGenericPredefinedFunction(string expr, object expected)
         {
