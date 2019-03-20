@@ -59,13 +59,13 @@ namespace Funny.Interpritation
             _treeAnalysis = treeAnalysis;
             _lexTreeUserFuns = lexTreeUserFuns;
             _functions = functions;
-            foreach (var variablesWithProperty in treeAnalysis.AllVariables)
+            foreach (var variable in treeAnalysis.AllVariables)
             {
                 _variables.Add(
-                    variablesWithProperty.Id,
-                    new VariableExpressionNode(variablesWithProperty.Id, VarType.Real)
+                    variable.Id,
+                    new VariableExpressionNode(variable.Id, VarType.Real)
                     {
-                        IsOutput =  variablesWithProperty.IsOutput
+                        IsOutput =  variable.IsOutput
                     });
             }
 

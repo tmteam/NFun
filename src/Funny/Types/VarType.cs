@@ -19,17 +19,28 @@ namespace Funny.Types
         public static VarType  Text => new VarType(BaseVarType.Text);
         public static VarType ArrayOf(VarType type) => new VarType(type);
         
+        public static VarType Fun(VarType outputType, params VarType[]inputTypes)
+            => new VarType(output: outputType, inputs: inputTypes);
         public static VarType Generic(int genericId) => new VarType(genericId);
-        
+
+        private VarType(VarType output, VarType[] inputs)
+        {
+            this.FunTypeSpecification = new FunTypeSpecification(output, inputs);
+            BaseType = BaseVarType.Fun;
+            ArrayTypeSpecification = null;
+            GenericId = null;
+        }
         private VarType(int genericId)
         {
             BaseType = BaseVarType.Generic;
+            FunTypeSpecification = null;
             ArrayTypeSpecification = null;
             GenericId = genericId;
         }
         private VarType(BaseVarType baseType)
         {
             BaseType = baseType;
+            FunTypeSpecification = null;
             ArrayTypeSpecification = null;
             GenericId = null;
         }
@@ -37,13 +48,15 @@ namespace Funny.Types
         private VarType(VarType arrayElementType)
         {
             BaseType = BaseVarType.ArrayOf;
+            FunTypeSpecification = null;
             ArrayTypeSpecification = new AdditionalTypeSpecification(arrayElementType);
             GenericId = null;
         }
         
         public readonly BaseVarType BaseType;
         public readonly AdditionalTypeSpecification ArrayTypeSpecification;
-        private int? GenericId;
+        public readonly FunTypeSpecification FunTypeSpecification;
+        public readonly int? GenericId;
         public static bool operator== (VarType obj1, VarType obj2)
         {
             return obj1.Equals(obj2);

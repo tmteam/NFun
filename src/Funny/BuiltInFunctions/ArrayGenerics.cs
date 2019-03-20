@@ -5,6 +5,24 @@ using Funny.Types;
 
 namespace Funny.BuiltInFunctions
 {
+    public class FilterGenericFunctionDefenition : GenericFunctionBase
+    {
+        public FilterGenericFunctionDefenition() : base("filter", 
+            VarType.ArrayOf(VarType.Generic(0)),
+            VarType.ArrayOf(VarType.Generic(0)),
+            VarType.Fun(VarType.Bool, VarType.Generic(0)))
+        {
+        }
+
+        public override object Calc(object[] args)
+        {
+            var arr = (args[0] as IEnumerable).Cast<object>();
+            var filter = args[1] as FunctionBase;
+            
+            var res = arr.Where(a=>(bool)filter.Calc(new []{a})).ToArray();
+            return res; 
+        }
+    }
     
     public class RepeatGenericFunctionDefenition : GenericFunctionBase
     {

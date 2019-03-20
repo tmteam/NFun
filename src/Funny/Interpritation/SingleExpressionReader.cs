@@ -51,7 +51,7 @@ namespace Funny.Interpritation
             var right = node.Children.ElementAtOrDefault(1);
             if (right == null)
                 throw new ParseException("\"b\" node is missing");
-
+                
             var leftExpr = ReadNode(left);
             var rightExpr = ReadNode(right);
             return new UniteArraysExpressionNode(leftExpr,rightExpr);
@@ -60,15 +60,20 @@ namespace Funny.Interpritation
         private IExpressionNode GetOrAddVariableNode(LexNode varName)
         {
             var lower = varName.Value;
-            VariableExpressionNode res;
+            var funVars = _functions.Get(lower);
+            
+            if(funVars.Count>1)
+                throw new ParseException($"Unable to resolve function with name: {lower}");
+            if(funVars.Count==1)
+                return new FunVariableExpressionNode(funVars[0]);   
             
             if (_variables.ContainsKey(lower))
-                res= _variables[lower];
+                return _variables[lower];
             else {
-                res = new VariableExpressionNode(lower, VarType.Real);
-                _variables.Add(lower, res);            
+                var res = new VariableExpressionNode(lower, VarType.Real);
+                _variables.Add(lower, res);
+                return res;
             }
-            return res;
         }
         
         

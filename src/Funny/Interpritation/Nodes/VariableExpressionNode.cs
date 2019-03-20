@@ -17,9 +17,6 @@ namespace Funny.Interpritation.Nodes
         private object _value;
         public void SetValue(object value) => _value = value;
         
-        public IEnumerable<IExpressionNode> Children {
-            get { yield break;}
-        }
 
         public VarType Type { get; private set; } 
 
@@ -54,6 +51,7 @@ namespace Funny.Interpritation.Nodes
                     _value = valueValue?.ToString()??"";
                     break;
                 case BaseVarType.ArrayOf:
+                case BaseVarType.Any:
                     _value = valueValue;
                     break;
                 default:

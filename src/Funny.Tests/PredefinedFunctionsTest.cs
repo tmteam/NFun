@@ -40,7 +40,18 @@ namespace Funny.Tests
             runtime.Calculate()
                 .AssertReturns(0.00001, Var.New("y", expected));
         }
-        
+       
+
+        [TestCase( @"rr(x:real):bool = x>10
+                     y = filter([11.0,20.0,1.0,2.0],rr)",new[]{11.0,20.0})]
+        [TestCase( @"ii(x:int):bool = x>10
+                     y = filter([11,20,1,2],ii)",new[]{11,20})]
+        public void HiOrderFunConstantEquatation(string expr, object expected)
+        {
+            var runtime = Interpreter.BuildOrThrow(expr);
+            runtime.Calculate()
+                .AssertReturns(Var.New("y", expected));
+        }
         
         [TestCase("y = take([1,2,3,4,5],3)",new []{1,2,3})]        
         [TestCase("y = take([1.0,2.0,3.0,4.0,5.0],4)",new []{1.0,2.0,3.0,4.0})]        

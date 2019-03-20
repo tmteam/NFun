@@ -7,12 +7,13 @@ using Funny.Types;
 
 namespace Funny.BuiltInFunctions
 {
+    
     public class MedianRealFunction: FunctionBase{
         public MedianRealFunction() : base("median",VarType.Real, VarType.ArrayOf(VarType.Real))
         {
             
         }
-
+        
         public override object Calc(object[] args) 
             => GetMedian((args[0] as IEnumerable).Cast<double>());
         

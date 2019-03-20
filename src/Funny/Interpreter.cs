@@ -41,6 +41,7 @@ namespace Funny
                 new SkipGenericFunctionDefenition(),
                 new ConcatGenericFunctionDefenition(),
                 new RepeatGenericFunctionDefenition(),
+                new FilterGenericFunctionDefenition(),
             };
             return ExpressionReader.Interpritate(lexTree, predefinedfunctions, predefinedGenerics);
         }

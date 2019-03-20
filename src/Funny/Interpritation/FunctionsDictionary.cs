@@ -49,7 +49,13 @@ namespace Funny.Interpritation
                 return true;
             }
         }
-        
+
+        public IList<FunctionBase> Get(string name)
+        {
+            if (_functions.TryGetValue(name, out var res))
+                return res;
+            return new FunctionBase[0];
+        }
         public FunctionBase GetOrNull(string name, params VarType[] args)
         {
             //If there is no function with specified name
