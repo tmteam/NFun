@@ -25,24 +25,24 @@ namespace Funny.Tests.UnitTests
         [Test]
         public void TwoEqualArrayTypes_Equals_ReturnsTrue()
         {
-            var typeA = VarType.ArrayOf(VarType.IntType);
-            var typeB = VarType.ArrayOf(VarType.IntType);
+            var typeA = VarType.ArrayOf(VarType.Int);
+            var typeB = VarType.ArrayOf(VarType.Int);
             Assert.IsTrue(typeA== typeB);
         }
         
         [Test]
         public void TwoNotEqualArrayTypes_Equals_ReturnsFalse()
         {
-            var typeA = VarType.ArrayOf(VarType.IntType);
-            var typeB = VarType.ArrayOf(VarType.RealType);
+            var typeA = VarType.ArrayOf(VarType.Int);
+            var typeB = VarType.ArrayOf(VarType.Real);
             Assert.IsFalse(typeA== typeB);
         }
         
         [Test]
         public void ArrayAndPrimitiveTypes_Equals_ReturnsFalse()
         {
-            var typeA = VarType.ArrayOf(VarType.IntType);
-            var typeB = VarType.IntType;
+            var typeA = VarType.ArrayOf(VarType.Int);
+            var typeB = VarType.Int;
             Assert.IsFalse(typeA== typeB);
         }
 
@@ -50,16 +50,16 @@ namespace Funny.Tests.UnitTests
         [Test]
         public void TwoEqualArrayOfArrayTypes_Equals_ReturnsTrue()
         {
-            var typeA = VarType.ArrayOf(VarType.ArrayOf(VarType.IntType));
-            var typeB = VarType.ArrayOf(VarType.ArrayOf(VarType.IntType));
+            var typeA = VarType.ArrayOf(VarType.ArrayOf(VarType.Int));
+            var typeB = VarType.ArrayOf(VarType.ArrayOf(VarType.Int));
             Assert.IsTrue(typeA== typeB);
         }
         
         [Test]
         public void TwoNotEqualArrayOfArrayTypes_Equals_ReturnsTrue()
         {
-            var typeA = VarType.ArrayOf(VarType.ArrayOf(VarType.IntType));
-            var typeB = VarType.ArrayOf(VarType.ArrayOf(VarType.RealType));
+            var typeA = VarType.ArrayOf(VarType.ArrayOf(VarType.Int));
+            var typeB = VarType.ArrayOf(VarType.ArrayOf(VarType.Real));
             Assert.IsFalse(typeA== typeB);
         }
 

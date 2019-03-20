@@ -20,7 +20,7 @@ namespace Funny.Types
             return new Var(name, value.ToArray(), vartype);
         }
         public static Var NewAny(string name, object value)
-            => new Var(name, value, VarType.AnyType);
+            => new Var(name, value, VarType.Any);
         public static Var New(string name, object value)
         {
             if (value is int i)
@@ -42,29 +42,29 @@ namespace Funny.Types
                 return New(name, arrBool);
             if (value is IEnumerable<object> arrObj)
                 return New(name, arrObj);
-            return new Var(name, value, VarType.AnyType);
+            return new Var(name, value, VarType.Any);
         }
         public static Var New(string name, bool value) 
-            => new Var(name, value, VarType.BoolType);
+            => new Var(name, value, VarType.Bool);
         public static Var New(string name, int value) 
-            => new Var(name, value, VarType.IntType);
+            => new Var(name, value, VarType.Int);
         public static Var New(string name, double value) 
-            => new Var(name, value, VarType.RealType);
+            => new Var(name, value, VarType.Real);
         public static Var New(string name, string value) 
-            => new Var(name, value, VarType.TextType);
+            => new Var(name, value, VarType.Text);
 
         public  static VarType ToVarType(Type t)
         {
             if (t == typeof(object))
-                return VarType.AnyType;
+                return VarType.Any;
             if (t == typeof(int))
-                return VarType.IntType;
+                return VarType.Int;
             if (t == typeof(double))
-                return VarType.RealType;
+                return VarType.Real;
             if (t == typeof(string))
-                return VarType.TextType;
+                return VarType.Text;
             if (t == typeof(bool))
-                return VarType.BoolType;
+                return VarType.Bool;
             if (t.IsArray)
             {
                 var eType = t.GetElementType();

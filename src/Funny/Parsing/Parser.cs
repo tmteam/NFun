@@ -60,7 +60,7 @@ namespace Funny.Parsing
             if (flow.MoveIf(TokType.IsTypeOf, out _))
                 return ReadVarType(flow);
             else
-                return VarType.RealType;
+                return VarType.Real;
         }
         private static VariableInfo ReadVarSpecification(TokenFlow flow, string id) 
             => new VariableInfo(id, ReadVarType(flow));
@@ -128,15 +128,15 @@ namespace Funny.Parsing
             switch (tokType.Type)
             {
                 case TokType.IntType:
-                    return  VarType.IntType;
+                    return  VarType.Int;
                 case TokType.RealType:
-                    return  VarType.RealType;
+                    return  VarType.Real;
                 case TokType.BoolType:
-                    return  VarType.BoolType;
+                    return  VarType.Bool;
                 case TokType.TextType:
-                    return  VarType.TextType;
+                    return  VarType.Text;
                 case TokType.AnyType:
-                    return  VarType.AnyType;
+                    return  VarType.Any;
             }
             throw new ParseException($"Expected: type, but was {tokType}");
 

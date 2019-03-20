@@ -16,13 +16,13 @@ namespace Funny.Interpritation.Nodes
             Func<Tleft,TRight,TOut> op)
         {
             if (typeof(TOut) == typeof(bool))
-                Type = VarType.BoolType;
+                Type = VarType.Bool;
             else if (typeof(TOut) == typeof(Int32))
-                Type = VarType.IntType;
+                Type = VarType.Int;
             else if (typeof(TOut) == typeof(double))
-                Type = VarType.RealType;
+                Type = VarType.Real;
             else if (typeof(TOut) == typeof(string))
-                Type = VarType.TextType;
+                Type = VarType.Text;
             else
                 throw new ArgumentException();
             _a = a;

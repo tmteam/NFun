@@ -24,15 +24,15 @@ namespace Funny.Interpritation.Nodes
         {
             if (from == to)
                 return o => o;
-            if (from == VarType.IntType && to == VarType.RealType)
+            if (from == VarType.Int && to == VarType.Real)
                 return o=>Convert.ToDouble(o);
-            if (to == VarType.TextType)
+            if (to == VarType.Text)
                 return o => o?.ToString() ?? "";
-            if (to == VarType.AnyType)
+            if (to == VarType.Any)
                 return o => o;
             if (from.BaseType == BaseVarType.ArrayOf && to.BaseType== BaseVarType.ArrayOf)
             {
-                if (to ==  VarType.ArrayOf(VarType.AnyType))
+                if (to ==  VarType.ArrayOf(VarType.Any))
                     return o => o;
                 
                 var elementConverter = GetConverterOrThrow(from.ArrayTypeSpecification.VarType, to.ArrayTypeSpecification.VarType);

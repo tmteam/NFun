@@ -35,7 +35,14 @@ namespace Funny
                 new MedianIntFunction(), 
                 new MedianRealFunction(), 
             };
-            return ExpressionReader.Interpritate(lexTree, predefinedfunctions);
+            var predefinedGenerics = new GenericFunctionBase[]
+            {
+                new TakeGenericFunctionDefenition(),
+                new SkipGenericFunctionDefenition(),
+                new ConcatGenericFunctionDefenition(),
+                new RepeatGenericFunctionDefenition(),
+            };
+            return ExpressionReader.Interpritate(lexTree, predefinedfunctions, predefinedGenerics);
         }
     }
     

@@ -10,22 +10,22 @@ namespace Funny.Interpritation.Nodes
 
         public ValueExpressionNode(string value)
         {
-            Type = VarType.TextType;
+            Type = VarType.Text;
             _value = value;
         }
         public ValueExpressionNode(bool value)
         {
-            Type = VarType.BoolType;
+            Type = VarType.Bool;
             _value = value;
         }
         public ValueExpressionNode(int value)
         {
-            Type = VarType.IntType;
+            Type = VarType.Int;
             _value = value;
         }
         public ValueExpressionNode(double value)
         {
-            Type = VarType.RealType;
+            Type = VarType.Real;
             _value = value;
         }
 

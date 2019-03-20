@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using Funny.Runtime;
 using Funny.Types;
 
@@ -18,4 +20,6 @@ namespace Funny.Interpritation.Functions
         public VarType OutputType { get; }
         public abstract object Calc(object[] args);
     }
+        
+   
 }

@@ -30,7 +30,7 @@ namespace Funny.Tests
             Assert.IsNotNull(res, $"Variable \"{variable.Name}\" not found");
             Assert.AreEqual(variable.Type, res.Type,  $"Variable \"{variable.Name}\" has wrong type");
             
-            if(variable.Type== VarType.RealType)
+            if(variable.Type== VarType.Real)
                 Assert.AreEqual ((double)variable.Value, (double)res.Value, delta, 
                     $"Var \"{variable}\" expected: {variable.Value}, but was: {res.Value}");
             else

@@ -41,6 +41,26 @@ namespace Funny.Tests
                 .AssertReturns(0.00001, Var.New("y", expected));
         }
         
+        
+        [TestCase("y = take([1,2,3,4,5],3)",new []{1,2,3})]        
+        [TestCase("y = take([1.0,2.0,3.0,4.0,5.0],4)",new []{1.0,2.0,3.0,4.0})]        
+        [TestCase("y = take([1.0,2.0,3.0],20)",new []{1.0,2.0,3.0})]        
+        [TestCase("y = take([1.0,2.0,3.0],0)",new double[0])]        
+        [TestCase("y = skip([1,2,3,4,5],3)",new []{4,5})]        
+        [TestCase("y = skip([1.0,2.0,3.0,4.0,5.0],4)",new []{5.0})]        
+        [TestCase("y = skip([1.0,2.0,3.0],20)",new double[0])]        
+        [TestCase("y = skip([1.0,2.0,3.0],0)",new []{1.0,2.0,3.0})]        
+        [TestCase("y = repeat('abc',3)",new []{"abc","abc","abc"})]        
+        [TestCase("y = repeat('abc',0)",new string[0])]        
+        [TestCase("y = take(skip([1.0,2.0,3.0],1),1)",new []{2.0})]        
+
+        public void ConstantEquationWithGenericPredefinedFunction(string expr, object expected)
+        {
+            var runtime = Interpreter.BuildOrThrow(expr);
+            runtime.Calculate()
+                .AssertReturns(0.00001, Var.New("y", expected));
+        }
+        
         [TestCase("y = abs(x)",1,1)]
         [TestCase("y = abs(-x)",-1,1)]
         [TestCase("y = add(x,2)",1,3)]

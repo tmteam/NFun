@@ -11,13 +11,13 @@ namespace Funny.BuiltInFunctions
 {
     public class AddFunction: FunctionBase
     {
-        public AddFunction() : base("add", VarType.RealType,VarType.RealType,VarType.RealType){}
+        public AddFunction() : base("add", VarType.Real,VarType.Real,VarType.Real){}
         public override object Calc(object[] args) => Convert.ToDouble(args[0]) + Convert.ToDouble(args[1]);
     }
 
     public class AbsFunction : FunctionBase
     {
-        public AbsFunction() : base("abs", VarType.RealType,VarType.RealType){}
+        public AbsFunction() : base("abs", VarType.Real,VarType.Real){}
         public override object Calc(object[] args)
         {
             var val = Convert.ToDouble(args[0]);
@@ -27,38 +27,38 @@ namespace Funny.BuiltInFunctions
         
     public class CosFunction : FunctionBase
     {
-        public CosFunction() : base("cos", VarType.RealType, VarType.RealType){}
+        public CosFunction() : base("cos", VarType.Real, VarType.Real){}
 
         public override object Calc(object[] args) => Math.Cos(Convert.ToDouble(args[0]));
     }
     public class SinFunction : FunctionBase
     {
-        public SinFunction() : base("sin", VarType.RealType,VarType.RealType){}
+        public SinFunction() : base("sin", VarType.Real,VarType.Real){}
 
         public override object Calc(object[] args) => Math.Sin(Convert.ToDouble(args[0]));
     }
     public class TanFunction : FunctionBase
     {
-        public TanFunction() : base("tan", VarType.RealType, VarType.RealType){}
+        public TanFunction() : base("tan", VarType.Real, VarType.Real){}
 
         public override object Calc(object[] args) => Math.Tan(Convert.ToDouble(args[0]));
     }
     
     public class PiFunction : FunctionBase
     {
-        public PiFunction() : base("pi", VarType.RealType){}
+        public PiFunction() : base("pi", VarType.Real){}
 
         public override object Calc(object[] args) => Math.PI;
     }
     public class EFunction : FunctionBase
     {
-        public EFunction() : base("e",  VarType.RealType){}
+        public EFunction() : base("e",  VarType.Real){}
         public override object Calc(object[] args) => Math.E;
     }
 
     public class MaxOfIntFunction : FunctionBase
     {
-        public MaxOfIntFunction() : base("max", VarType.IntType, VarType.IntType, VarType.IntType)
+        public MaxOfIntFunction() : base("max", VarType.Int, VarType.Int, VarType.Int)
         {
         }
 
@@ -67,7 +67,7 @@ namespace Funny.BuiltInFunctions
     }
     public class MaxOfRealFunction : FunctionBase
     {
-        public MaxOfRealFunction () : base("max", VarType.RealType, VarType.RealType, VarType.RealType)
+        public MaxOfRealFunction () : base("max", VarType.Real, VarType.Real, VarType.Real)
         {
         }
 
@@ -77,7 +77,7 @@ namespace Funny.BuiltInFunctions
     
     public class MinOfIntFunction : FunctionBase
     {
-        public MinOfIntFunction() : base("min", VarType.IntType, VarType.IntType, VarType.IntType)
+        public MinOfIntFunction() : base("min", VarType.Int, VarType.Int, VarType.Int)
         {
         }
 
@@ -86,7 +86,7 @@ namespace Funny.BuiltInFunctions
     }
     public class MinOfRealFunction : FunctionBase
     {
-        public MinOfRealFunction () : base("min", VarType.RealType, VarType.RealType, VarType.RealType)
+        public MinOfRealFunction () : base("min", VarType.Real, VarType.Real, VarType.Real)
         {
         }
 

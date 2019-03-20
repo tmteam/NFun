@@ -10,7 +10,7 @@ namespace Funny.Interpritation.Nodes
 
         public IfCaseExpressionNode(IExpressionNode condition, IExpressionNode result)
         {
-            if(condition.Type!= VarType.BoolType)
+            if(condition.Type!= VarType.Bool)
                 throw new OutpuCastParseException("if Condition has to be boolean but was "+ condition.Type);
             
             _condition = condition;

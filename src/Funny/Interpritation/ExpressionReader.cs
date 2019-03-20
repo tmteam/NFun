@@ -25,13 +25,16 @@ namespace Funny.Interpritation
         private readonly List<Equation> _equations = new List<Equation>();
         
         public static FunRuntime Interpritate(
-            LexTree lexTree, 
-            IEnumerable<FunctionBase> predefinedFunctions)
+            LexTree lexTree,
+            IEnumerable<FunctionBase> predefinedFunctions, 
+            GenericFunctionBase[] predefinedGenerics)
         {
             var functions = new FunctionsDictionary();
             foreach (var predefinedFunction in predefinedFunctions)
                 functions.Add(predefinedFunction);
-            
+            foreach (var genericFunctionBase in predefinedGenerics)
+                functions.Add(genericFunctionBase);
+
             var analysis = LexAnalyzer.Analyze(lexTree);
             
             var ans = new ExpressionReader(
@@ -60,7 +63,7 @@ namespace Funny.Interpritation
             {
                 _variables.Add(
                     variablesWithProperty.Id,
-                    new VariableExpressionNode(variablesWithProperty.Id, VarType.RealType)
+                    new VariableExpressionNode(variablesWithProperty.Id, VarType.Real)
                     {
                         IsOutput =  variablesWithProperty.IsOutput
                     });

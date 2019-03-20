@@ -95,7 +95,7 @@ namespace Funny.Tests
         {
             var runtime = Interpreter.BuildOrThrow(expr);
             runtime.Calculate()
-                .AssertReturns(new Var("y", expected, VarType.BoolType));
+                .AssertReturns(new Var("y", expected, VarType.Bool));
         }
         
 

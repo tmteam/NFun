@@ -51,7 +51,7 @@ namespace Funny.Tests
             expected[1] = new[] {3, 4};
             expected[2] = new[] {5};
             
-            var expectedType = VarType.ArrayOf(VarType.ArrayOf(VarType.IntType));
+            var expectedType = VarType.ArrayOf(VarType.ArrayOf(VarType.Int));
             var expression = " y= [[1,2],[3,4],[5]]";
             
             var runtime = Interpreter.BuildOrThrow(expression);
@@ -67,7 +67,7 @@ namespace Funny.Tests
             expected[1] = new[] {3, 4};
             expected[2] = new[] {5};
             
-            var expectedType = VarType.ArrayOf(VarType.ArrayOf(VarType.IntType));
+            var expectedType = VarType.ArrayOf(VarType.ArrayOf(VarType.Int));
             var expression = " y= [[1,2],[3,4]]::[[5]]";
             
             var runtime = Interpreter.BuildOrThrow(expression);
@@ -83,7 +83,7 @@ namespace Funny.Tests
             x[1] = new[] {3, 4};
             x[2] = new[] {5};
             
-            var expectedType = VarType.ArrayOf(VarType.ArrayOf(VarType.IntType));
+            var expectedType = VarType.ArrayOf(VarType.ArrayOf(VarType.Int));
             var expectedOutput = x;
             var expression = "x:int[][]\r y= x";
             
@@ -100,7 +100,7 @@ namespace Funny.Tests
             x[1] = new[] {3, 4};
             x[2] = new[] {5};
             
-            var expectedType = VarType.ArrayOf(VarType.ArrayOf(VarType.IntType));
+            var expectedType = VarType.ArrayOf(VarType.ArrayOf(VarType.Int));
             var expectedOutput = new int[6][];
             expectedOutput[0] = new[] {1, 2};
             expectedOutput[1] = new[] {3, 4};

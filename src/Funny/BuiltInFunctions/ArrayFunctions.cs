@@ -8,7 +8,7 @@ using Funny.Types;
 namespace Funny.BuiltInFunctions
 {
     public class MedianRealFunction: FunctionBase{
-        public MedianRealFunction() : base("median",VarType.RealType, VarType.ArrayOf(VarType.RealType))
+        public MedianRealFunction() : base("median",VarType.Real, VarType.ArrayOf(VarType.Real))
         {
             
         }
@@ -32,7 +32,7 @@ namespace Funny.BuiltInFunctions
     }
     
     public class MedianIntFunction: FunctionBase{
-        public MedianIntFunction() : base("median",VarType.IntType, VarType.ArrayOf(VarType.IntType))
+        public MedianIntFunction() : base("median",VarType.Int, VarType.ArrayOf(VarType.Int))
         {
             
         }
@@ -55,7 +55,7 @@ namespace Funny.BuiltInFunctions
         }
     }
     public class MultiMinRealFunction: FunctionBase{
-        public MultiMinRealFunction() : base("min",VarType.RealType, VarType.ArrayOf(VarType.RealType))
+        public MultiMinRealFunction() : base("min",VarType.Real, VarType.ArrayOf(VarType.Real))
         {
             
         }
@@ -64,7 +64,7 @@ namespace Funny.BuiltInFunctions
             => (args[0] as IEnumerable).Cast<double>().Min();
     }
     public class MultiMinIntFunction: FunctionBase{
-        public MultiMinIntFunction() : base("min",VarType.IntType, VarType.ArrayOf(VarType.IntType))
+        public MultiMinIntFunction() : base("min",VarType.Int, VarType.ArrayOf(VarType.Int))
         {
             
         }
@@ -73,7 +73,7 @@ namespace Funny.BuiltInFunctions
             => (args[0] as IEnumerable).Cast<int>().Min();
     }
     public class MultiSumRealFunction: FunctionBase{
-        public MultiSumRealFunction() : base("sum",VarType.RealType, VarType.ArrayOf(VarType.RealType))
+        public MultiSumRealFunction() : base("sum",VarType.Real, VarType.ArrayOf(VarType.Real))
         {
             
         }
@@ -81,7 +81,7 @@ namespace Funny.BuiltInFunctions
             => (args[0] as IEnumerable).Cast<double>().Sum();
     }
     public class MultiSumIntFunction: FunctionBase{
-        public MultiSumIntFunction() : base("sum",VarType.IntType, VarType.ArrayOf(VarType.IntType))
+        public MultiSumIntFunction() : base("sum",VarType.Int, VarType.ArrayOf(VarType.Int))
         {
             
         }
@@ -90,7 +90,7 @@ namespace Funny.BuiltInFunctions
             => (args[0] as IEnumerable).Cast<int>().Sum();
     }
     public class MultiMaxRealFunction: FunctionBase{
-        public MultiMaxRealFunction() : base("max",VarType.RealType, VarType.ArrayOf(VarType.RealType))
+        public MultiMaxRealFunction() : base("max",VarType.Real, VarType.ArrayOf(VarType.Real))
         {
             
         }
@@ -99,7 +99,7 @@ namespace Funny.BuiltInFunctions
             => (args[0] as IEnumerable).Cast<double>().Max();
     }
     public class MultiMaxIntFunction: FunctionBase{
-        public MultiMaxIntFunction() : base("max",VarType.IntType, VarType.ArrayOf(VarType.IntType))
+        public MultiMaxIntFunction() : base("max",VarType.Int, VarType.ArrayOf(VarType.Int))
         {
             
         }
@@ -109,12 +109,12 @@ namespace Funny.BuiltInFunctions
     }
     public class AverageFunction : FunctionBase
     {
-        public AverageFunction(): base("avg", VarType.RealType, VarType.ArrayOf(VarType.RealType)){}
+        public AverageFunction(): base("avg", VarType.Real, VarType.ArrayOf(VarType.Real)){}
         public override object Calc(object[] args) => (args[0] as IEnumerable).Cast<double>().Average();
     }
     public class CountFunction : FunctionBase
     {
-        public CountFunction(): base("count", VarType.IntType, VarType.ArrayOf(VarType.AnyType))
+        public CountFunction(): base("count", VarType.Int, VarType.ArrayOf(VarType.Any))
         {
             
         }

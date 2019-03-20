@@ -82,19 +82,19 @@ namespace Funny.Interpritation.Nodes
             {
                 if(hasInt|| hasBool || hasReal)
                     throw new OutpuCastParseException("Cannot convert array type to primitive");
-                return VarType.ArrayOf(VarType.RealType);
+                return VarType.ArrayOf(VarType.Real);
             }
             if (hasBool)
             {
                 if(hasInt||hasReal)
                     throw new OutpuCastParseException("Cannot convert bool type to number type");
-                return VarType.BoolType;
+                return VarType.Bool;
             }
 
             if (hasReal)
-                return VarType.RealType;
+                return VarType.Real;
             if (hasInt)
-                return VarType.IntType;
+                return VarType.Int;
             
             throw new NotSupportedException("IfThenElse upcast for unknown types");
         }

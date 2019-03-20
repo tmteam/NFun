@@ -12,25 +12,38 @@ namespace Funny.Types
             }
         }
         public static VarType PrimitiveOf(BaseVarType baseType) => new VarType(baseType);
-        public static VarType  AnyType => new VarType(BaseVarType.Any);
-        public static VarType  BoolType => new VarType(BaseVarType.Bool);
-        public static VarType  IntType => new VarType(BaseVarType.Int);
-        public static VarType  RealType => new VarType(BaseVarType.Real);
-        public static VarType  TextType => new VarType(BaseVarType.Text);
+        public static VarType  Any => new VarType(BaseVarType.Any);
+        public static VarType  Bool => new VarType(BaseVarType.Bool);
+        public static VarType  Int => new VarType(BaseVarType.Int);
+        public static VarType  Real => new VarType(BaseVarType.Real);
+        public static VarType  Text => new VarType(BaseVarType.Text);
         public static VarType ArrayOf(VarType type) => new VarType(type);
-        public VarType(BaseVarType baseType)
+        
+        public static VarType Generic(int genericId) => new VarType(genericId);
+        
+        private VarType(int genericId)
+        {
+            BaseType = BaseVarType.Generic;
+            ArrayTypeSpecification = null;
+            GenericId = genericId;
+        }
+        private VarType(BaseVarType baseType)
         {
             BaseType = baseType;
             ArrayTypeSpecification = null;
+            GenericId = null;
         }
-        public VarType(VarType arrayElementType)
+
+        private VarType(VarType arrayElementType)
         {
             BaseType = BaseVarType.ArrayOf;
             ArrayTypeSpecification = new AdditionalTypeSpecification(arrayElementType);
+            GenericId = null;
         }
         
         public readonly BaseVarType BaseType;
         public readonly AdditionalTypeSpecification ArrayTypeSpecification;
+        private int? GenericId;
         public static bool operator== (VarType obj1, VarType obj2)
         {
             return obj1.Equals(obj2);
