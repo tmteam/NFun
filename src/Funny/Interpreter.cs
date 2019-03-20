@@ -20,12 +20,20 @@ namespace Funny
                 new CosFunction(), 
                 new EFunction(), 
                 new PiFunction(),
-                new LengthFunction(),
+                new CountFunction(),
                 new AverageFunction(),
                 new MaxOfIntFunction(), 
                 new MaxOfRealFunction(), 
+                new MinOfIntFunction(), 
+                new MinOfRealFunction(), 
                 new MultiMaxIntFunction(), 
-                new MultiMaxRealFunction(), 
+                new MultiMaxRealFunction(),
+                new MultiMinIntFunction(), 
+                new MultiMinRealFunction(),
+                new MultiSumIntFunction(), 
+                new MultiSumRealFunction(), 
+                new MedianIntFunction(), 
+                new MedianRealFunction(), 
             };
             return ExpressionReader.Interpritate(lexTree, predefinedfunctions);
         }

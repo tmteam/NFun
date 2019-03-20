@@ -74,6 +74,25 @@ namespace Funny.BuiltInFunctions
         public override object Calc(object[] args) 
             => Math.Max((double) args[0], (double) args[1]);
     }
+    
+    public class MinOfIntFunction : FunctionBase
+    {
+        public MinOfIntFunction() : base("min", VarType.IntType, VarType.IntType, VarType.IntType)
+        {
+        }
+
+        public override object Calc(object[] args) 
+            => Math.Min((int) args[0], (int) args[1]);
+    }
+    public class MinOfRealFunction : FunctionBase
+    {
+        public MinOfRealFunction () : base("min", VarType.RealType, VarType.RealType, VarType.RealType)
+        {
+        }
+
+        public override object Calc(object[] args) 
+            => Math.Min((double) args[0], (double) args[1]);
+    }
 
   
     
