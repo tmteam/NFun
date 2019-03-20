@@ -12,7 +12,7 @@ namespace Funny.BuiltInFunctions
         }
 
         public override object Calc(object[] args) 
-            => (args[0] as IEnumerable).Cast<int>().Max();
+            => (args[0] as IEnumerable).Cast<double>().Max();
     }
     public class MultiMaxIntFunction: FunctionBase{
         public MultiMaxIntFunction() : base("max",VarType.IntType, VarType.ArrayOf(VarType.IntType))

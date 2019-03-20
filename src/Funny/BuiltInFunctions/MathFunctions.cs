@@ -72,7 +72,7 @@ namespace Funny.BuiltInFunctions
         }
 
         public override object Calc(object[] args) 
-            => Math.Max((int) args[0], (int) args[1]);
+            => Math.Max((double) args[0], (double) args[1]);
     }
 
   

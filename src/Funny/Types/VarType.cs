@@ -1,8 +1,9 @@
+using System;
+
 namespace Funny.Types
 {
     public struct VarType
     {
-        
         public override int GetHashCode()
         {
             unchecked
@@ -46,7 +47,7 @@ namespace Funny.Types
             if (ReferenceEquals(null, obj)) return false;
             return obj is VarType other && Equals(other);
         }
-
+       
         // this is third one 'Equals'
         private bool Equals(VarType obj)
         {
@@ -63,6 +64,35 @@ namespace Funny.Types
                 return ArrayTypeSpecification.VarType.ToString() + "[]";
             else
                 return BaseType.ToString();
+        }
+        
+        public bool CanBeConverted(VarType to)
+            =>CanBeConvertedRec(this, to);
+
+        private static bool CanBeConvertedRec(VarType from,VarType to)
+        {
+            if (to == from)
+                return true;
+            switch (to.BaseType)
+            {
+                case BaseVarType.Any:
+                    return true;
+                case BaseVarType.Text:
+                    return true;
+                case BaseVarType.Bool:
+                    return false;
+                case BaseVarType.Int:
+                    return false;
+                case BaseVarType.Real:
+                    return from.BaseType== BaseVarType.Int;
+                case BaseVarType.ArrayOf:
+                    if (from.BaseType != BaseVarType.ArrayOf)
+                        return false;
+                    else
+                        return CanBeConvertedRec(from.ArrayTypeSpecification.VarType, to.ArrayTypeSpecification.VarType);
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
     }
 }

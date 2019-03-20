@@ -13,44 +13,6 @@ using Funny.Types;
 
 namespace Funny.Interpritation
 {
-    public class FunctionsDictionary
-    {
-        private readonly Dictionary<string, List<FunctionBase>> _functions 
-            = new Dictionary<string, List<FunctionBase>>();
-        
-        public void Add(FunctionBase function)
-        {
-            if(!_functions.ContainsKey(function.Name))
-                _functions.Add(function.Name, new List<FunctionBase>());
-            _functions[function.Name].Add(function);            
-        }
-
-        public void AddOrReplace(FunctionBase function)
-        {
-            Add(function);
-        }
-        
-        public bool Contains(string name, VarType[] args) => GetOrNull(name, args) != null;
-        public FunctionBase GetOrNull(string name, params VarType[] args)
-        {
-            if (!_functions.TryGetValue(name, out var funs)) 
-                return null;
-
-            var filtered = funs.Where(f => f.ArgTypes.Length == args.Length).ToArray();
-            if (!filtered.Any())
-                return null;
-            else if (filtered.Length == 1)
-                return filtered.First();
-
-            filtered = filtered.Where(f => f.ArgTypes.SequenceEqual(args)).ToArray();
-            if (!filtered.Any())
-                return null;
-            if (filtered.Length == 1)
-                return filtered.First();
-
-            return null;
-        }
-    }
     public class ExpressionReader
     {
         private readonly TreeAnalysis _treeAnalysis;
@@ -114,7 +76,11 @@ namespace Funny.Interpritation
         private void Interpritate()
         {
             foreach (var userFun in _lexTreeUserFuns)
-                _functions.AddOrReplace(GetFunctionPrototype(userFun));
+            {
+                var prototype = GetFunctionPrototype(userFun);
+                if (!_functions.Add(prototype))
+                    throw new ParseException($"Function {prototype} already exist");
+            }
 
             foreach (var userFun in _lexTreeUserFuns)
             {

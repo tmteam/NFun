@@ -26,14 +26,7 @@ namespace Funny.Tests
             var fun = dic.GetOrNull(new EFunction().Name, new VarType[0]);
             Assert.IsInstanceOf<EFunction>(fun);
         }
-        [Test]
-        public void AddOrReplaceFun_GetOrNull_returnsOne()
-        {
-            var sin = new SinFunction();
-            dic.AddOrReplace(sin);
-            var fun = dic.GetOrNull(sin.Name, sin.ArgTypes);
-            Assert.IsInstanceOf<SinFunction>(fun);
-        }
+        
         [Test]
         public void Empty_GetOrNull_returnsNull()
         {
@@ -63,7 +56,7 @@ namespace Funny.Tests
         {
             AddAllMaxFuns();
             var maxRealReal = dic.GetOrNull(maxId, VarType.RealType, VarType.RealType);
-            Assert.IsInstanceOf<MaxOfIntFunction>(maxRealReal, "Max real->real->real not found");
+            Assert.IsInstanceOf<MaxOfRealFunction>(maxRealReal, "Max real->real->real not found");
         }
 
         [Test]
@@ -79,7 +72,7 @@ namespace Funny.Tests
         {
             AddAllMaxFuns();
             var maxRealArr = dic.GetOrNull(maxId, VarType.ArrayOf(VarType.RealType));
-            Assert.IsInstanceOf<MaxOfIntFunction>(maxRealArr, "Max real[]->real not found");
+            Assert.IsInstanceOf<MultiMaxRealFunction>(maxRealArr, "Max real[]->real not found");
         }
         
         [Test]
@@ -91,18 +84,47 @@ namespace Funny.Tests
         }
 
         [Test]
-        public void HasSomeFun_AddOrReplaceSome_GetOrNullReturnsReplaced()
+        public void HasSomeFun_AddSome_returnsFalse()
         {
-            var origin = new FunMock("some", VarType.IntType, VarType.BoolType);
+            var origin    = new FunMock("some", VarType.IntType, VarType.BoolType);
             var overrided = new FunMock(origin.Name, VarType.AnyType, origin.ArgTypes);
 
             dic.Add(origin);
-            dic.AddOrReplace(overrided);
+            Assert.IsFalse( dic.Add(overrided));
+        }
+        [Test]
+        public void HasFunWithSingleArg_GetOrNullWithWrongTypeReturnsnull()
+        {
+            var origin = new FunMock("some", VarType.IntType, VarType.BoolType);
             
-            var fun = dic.GetOrNull(overrided.Name, overrided.ArgTypes);
-            Assert.AreEqual(overrided,fun);
+            dic.Add(origin);
+            
+            var fun = dic.GetOrNull(origin.Name, VarType.TextType);
+            Assert.IsNull(fun);
         }
         
+        [Test]
+        public void HasFunWithSingleArg_GetOrNullWithCast_ReturnsOne()
+        {
+            var origin = new FunMock("some", VarType.IntType, VarType.RealType);
+            
+            dic.Add(origin);
+            
+            var fun = dic.GetOrNull(origin.Name, VarType.IntType);
+            Assert.IsNotNull(fun);
+        }
+        [Test]
+        public void HasOverloadFuns_GetOrNull_ReturnsWithStrictCast()
+        {
+            var realFun = new FunMock("some", VarType.RealType, VarType.RealType);
+            var intFun = new FunMock("some", VarType.IntType, VarType.IntType);
+            
+            dic.Add(realFun);
+            dic.Add(intFun);
+            
+            var fun = dic.GetOrNull(intFun.Name, VarType.IntType);
+            Assert.AreEqual(intFun.OutputType, fun.OutputType);
+        }
         private void AddAllMaxFuns()
         {
             dic.Add(new MaxOfIntFunction());

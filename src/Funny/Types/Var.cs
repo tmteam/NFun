@@ -55,6 +55,8 @@ namespace Funny.Types
 
         public  static VarType ToVarType(Type t)
         {
+            if (t == typeof(object))
+                return VarType.AnyType;
             if (t == typeof(int))
                 return VarType.IntType;
             if (t == typeof(double))

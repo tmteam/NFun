@@ -34,19 +34,19 @@ namespace Funny.Tests
         }
         
         
-        [TestCase("inc(a) = a+1.0\r y = inc(2.0)",3.0)]
-        [TestCase("inc(a) = a+1\r y = inc(2)",3)]
-        [TestCase("inc(y) = y+1\r y = inc(2)",3)]
-        [TestCase("mult(a,b) = a*b \r y = mult(3,4)+1",13)]
-        [TestCase("div(a,b) = a/b  \r mult(a,b) = a*b         \r y = mult(3,4)+div(4,2)",14)]
-        [TestCase("div(a,b) = a/b  \r div3(a,b,c) = div(a,b)/c\r y = div3(16,4,2)",2)]
+        [TestCase("_inc(a) = a+1.0\r y = _inc(2.0)",3.0)]
+        [TestCase("_inc(a) = a+1\r y = _inc(2)",3)]
+        [TestCase("_inc(y) = y+1\r y = _inc(2)",3)]
+        [TestCase("mult2(a,b) = a*b \r y = mult2(3,4)+1",13)]
+        [TestCase("div2(a,b) = a/b  \r mult2(a,b) = a*b         \r y = mult2(3,4)+div2(4,2)",14)]
+        [TestCase("div2(a,b) = a/b  \r div3(a,b,c) = div2(a,b)/c\r y = div3(16,4,2)",2)]
         public void ConstantEquation_NonRecursiveFunction(string expr, double expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
             runtime.Calculate().AssertReturns(0.00001, Var.New("y", expected));
         }
 
-        [TestCase("plus3(a,b,c) = plus(a,b)+c \r plus(a,b) = a+b  \r y = plus3(16,4,2)",22)]
+        [TestCase("plus3(a,b,c) = plus2(a,b)+c \r plus2(a,b) = a+b  \r y = plus3(16,4,2)",22)]
         public void ConstantEquation_ReversedImplementationsOfFunctions(string expr, double expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
@@ -62,6 +62,29 @@ namespace Funny.Tests
         {
             var runtime = Interpreter.BuildOrThrow(expr);
             runtime.Calculate().AssertReturns(0.00001, Var.New("y", expected));
+        }
+        [Test]
+        public void SingleOverloadEquatation()
+        {
+            var text = @"
+                    mytostr(a:real):text    =  'real: '+a  
+                    mytostr(a:int):text     =  'int: '+a  
+                    mytostr(a:text):text    =  'text: '+a 
+                    mytostr(a:any):text     =  'any: '+a 
+                    mytostr(a:int[]):text   =  'int[]: '+a 
+            
+        r = mytostr(1.0)
+        i = mytostr(2)
+        t = mytostr('3')
+        arr = mytostr([1,2,3])    
+";
+            
+            var runtime = Interpreter.BuildOrThrow(text);
+            runtime.Calculate()
+                .AssertReturns(Var.New("r", "real: 1"),
+                               Var.New("i", "int: 2"),
+                               Var.New("t", "text: 3"),
+                               Var.New("arr", "int[]: [1,2,3]"));
         }
         
         [TestCase(1,1)]
@@ -146,7 +169,7 @@ namespace Funny.Tests
         [TestCase("y(,) = 2")]
         [TestCase("y(x) = 2*z")]
         [TestCase("y(x) = 2*y")]
-        [TestCase("y(x)=")]
+        [TestCase("y(x)=")]        
         [TestCase("y(x)-1")]
         [TestCase("y:int(x)-1")]
         [TestCase("y(x):foo=x")]

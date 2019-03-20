@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Funny.Interpritation.Nodes;
@@ -26,7 +27,17 @@ namespace Funny.Interpritation
                         case BaseVarType.Int when right.Type.BaseType == BaseVarType.Int:
                             return new OpExpressionNodeOfT<int,int,int>(left,right, (l, r) => l + r);
                         case BaseVarType.Text:
-                            return new OpExpressionNodeOfT<string, object,string>(left,right, (l,r)=> l+r);
+                            return new OpExpressionNodeOfT<string, object,string>(left,right, (l,r)=>
+                            {
+                                if (r is IEnumerable en && !(r is string))
+                                {
+                                    return l +'['+string.Join(',', en.Cast<object>()) + ']';
+                                }
+                                 else
+                                {
+                                   return l + r;
+                                }
+                            });
                         default:
                             throw new OutpuCastParseException($"\"{type}\" cast error. Left operand is {left.Type} and right is {right.Type}");
                     }

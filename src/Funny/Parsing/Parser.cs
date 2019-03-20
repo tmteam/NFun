@@ -135,6 +135,8 @@ namespace Funny.Parsing
                     return  VarType.BoolType;
                 case TokType.TextType:
                     return  VarType.TextType;
+                case TokType.AnyType:
+                    return  VarType.AnyType;
             }
             throw new ParseException($"Expected: type, but was {tokType}");
 
