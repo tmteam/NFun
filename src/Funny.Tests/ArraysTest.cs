@@ -28,7 +28,6 @@ namespace Funny.Tests
         [TestCase("y = [1.0]<>[1.0]", false)]
         [TestCase("y = [1.0,2.0]==[1.0,2.0]", true)]
         [TestCase("y = [1.0,2.0]==([1.0]::[2.0])", true)]
-        
         public void ConstantArrayTest(string expr, object expected)
         {
             Interpreter.BuildOrThrow(expr).Calculate().AssertReturns(Var.New("y", expected));

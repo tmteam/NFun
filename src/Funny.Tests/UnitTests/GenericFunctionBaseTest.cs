@@ -21,6 +21,7 @@ namespace Funny.Tests.UnitTests
                 CollectionAssert.AreEquivalent(new[]{VarType.Bool}, function.ArgTypes);
             });
         }
+        
         [Test]
         public void ReturnSelfFunction_ArrayType_ResultTypesAreCorrect()
         {
@@ -84,6 +85,7 @@ namespace Funny.Tests.UnitTests
                 CollectionAssert.AreEquivalent(new[]{VarType.ArrayOf(VarType.Bool), VarType.Int}, function.ArgTypes);
             });
         }
+        
         [Test]
         public void Take_ArrayType_ResultTypesAreCorrect()
         {

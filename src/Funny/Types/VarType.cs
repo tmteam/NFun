@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 
 namespace Funny.Types
 {
@@ -11,6 +12,7 @@ namespace Funny.Types
                 return ((int) BaseType * 397) ^ (ArrayTypeSpecification != null ? ArrayTypeSpecification.GetHashCode() : 0);
             }
         }
+        
         public static VarType Empty => new VarType();
         public static VarType PrimitiveOf(BaseVarType baseType) => new VarType(baseType);
         public static VarType  Any => new VarType(BaseVarType.Any);
@@ -115,13 +117,107 @@ namespace Funny.Types
                     return true;
             }
         }
+        
+        /// <summary>
+        /// Substitude concrete types to generic type defenition (if it is)
+        ///
+        /// Example:
+        /// generic:   Fun(T1, int)-> T0[];   solved: {int, text}
+        /// returns:   Fun(text,int)-> int[];
+        /// </summary>
+        public static VarType SubstituteConcreteTypes(VarType genericOrNot, VarType[] solvedTypes)
+        {
+            switch (genericOrNot.BaseType)
+            {
+                case BaseVarType.Empty:
+                case BaseVarType.Bool:
+                case BaseVarType.Int:
+                case BaseVarType.Real:
+                case BaseVarType.Text:
+                case BaseVarType.Any:
+                    return genericOrNot;
+                case BaseVarType.ArrayOf:
+                    return ArrayOf(SubstituteConcreteTypes(genericOrNot.ArrayTypeSpecification.VarType, solvedTypes));
+                case BaseVarType.Fun:
+                    var outputTypes = new VarType[genericOrNot.FunTypeSpecification.Inputs.Length];
+                    for (int i = 0; i < genericOrNot.FunTypeSpecification.Inputs.Length; i++)
+                        outputTypes[i] = SubstituteConcreteTypes(genericOrNot.FunTypeSpecification.Inputs[i], solvedTypes);
+                    return Fun(SubstituteConcreteTypes(genericOrNot.FunTypeSpecification.Output, solvedTypes), outputTypes);
+                case BaseVarType.Generic:
+                    return solvedTypes[genericOrNot.GenericId.Value];
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+        public static void SolveGenericTypes(VarType[] genericArguments, VarType genericType, VarType concreteType)
+        {
+            switch (genericType.BaseType)
+            {
+                case BaseVarType.Generic:
+                    var id = genericType.GenericId.Value;
+                    if (genericArguments[id].BaseType == BaseVarType.Empty)
+                        genericArguments[id] = concreteType;
+                    else if (genericArguments[id] != concreteType)
+                        throw new InvalidOperationException("inconsistence generic arguments");
+                    return;
+                case BaseVarType.ArrayOf when concreteType.BaseType!= BaseVarType.ArrayOf:
+                    throw new InvalidOperationException("Invalid generic argument");
+                case BaseVarType.ArrayOf:
+                    SolveGenericTypes(genericArguments, genericType.ArrayTypeSpecification.VarType, concreteType.ArrayTypeSpecification.VarType);
+                    return;
+                case BaseVarType.Fun when concreteType.BaseType!= BaseVarType.Fun:
+                    throw new InvalidOperationException("Invalid generic argument");
+                case BaseVarType.Fun:
+                {
+                    var genericFun = genericType.FunTypeSpecification;
+                    var concreteFun = concreteType.FunTypeSpecification;
+                    SolveGenericTypes(genericArguments, genericFun.Output, concreteFun.Output);
+                    for (int i = 0; i < concreteFun.Inputs.Length; i++)
+                        SolveGenericTypes(genericArguments, genericFun.Inputs[i], concreteFun.Inputs[i]);                    
+                    return;
+                }
+            }
+        }
 
+        public int? SearchMaxGenericTypeId() 
+        {
+            switch (BaseType)
+            {
+                case BaseVarType.Bool:
+                case BaseVarType.Int:
+                case BaseVarType.Real:
+                case BaseVarType.Text:
+                case BaseVarType.Any:
+                    return null;
+                case BaseVarType.ArrayOf:
+                    return ArrayTypeSpecification.VarType.SearchMaxGenericTypeId();
+                case BaseVarType.Fun:
+                    var iId = FunTypeSpecification.Inputs.Select(i => i.SearchMaxGenericTypeId()).Max();
+                    var oId = FunTypeSpecification.Output.SearchMaxGenericTypeId();
+                    if (!iId.HasValue)
+                        return oId;
+                    if (!oId.HasValue)
+                        return iId;
+                    return Math.Max(iId.Value, oId.Value);
+                case BaseVarType.Generic:
+                    return GenericId;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
         public override string ToString()
         {
-            if (BaseType == BaseVarType.ArrayOf)
-                return ArrayTypeSpecification.VarType.ToString() + "[]";
-            else
-                return BaseType.ToString();
+            switch (BaseType)
+            {
+                case BaseVarType.ArrayOf:
+                    return ArrayTypeSpecification.VarType + "[]";
+                case BaseVarType.Fun:
+                    return $"({string.Join(',', FunTypeSpecification.Inputs)})->{FunTypeSpecification.Output}";
+                case BaseVarType.Generic:
+                    return "T_" + GenericId;
+                default:
+                    return BaseType.ToString();
+            }
         }
         
         public bool CanBeConverted(VarType to)

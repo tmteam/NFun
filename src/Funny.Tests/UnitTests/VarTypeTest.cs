@@ -6,7 +6,14 @@ namespace Funny.Tests.UnitTests
     [TestFixture]
     public class VarTypeTest
     {
+        [Test]
+        public void Empty_BaseTypeEqualsEmpty()
+        {
+            var typeA = VarType.Empty;
+            Assert.AreEqual(BaseVarType.Empty, typeA.BaseType);
+        }
         #region Equals
+        
         [Test]
         public void TwoEqualPrimitiveTypes_Equals_ReturnsTrue()
         {
@@ -231,5 +238,123 @@ namespace Funny.Tests.UnitTests
         }
         
         #endregion
+        
+        [Test]
+        public void SolveGenericTypes_SingleTGenericType_SolvedTypeIsT()
+        {
+            //Solving  T
+            var solvingTypes =   new VarType[1];
+            var concrete = VarType.Int;
+            VarType.SolveGenericTypes(solvingTypes, VarType.Generic(0), concrete);
+            Assert.AreEqual(concrete, solvingTypes[0]);
+        }
+        
+        [Test]
+        public void SolveGenericTypes_ArrayOfT_SolvedTypeIsT()
+        {
+            //Solving  T[]
+            var solvingTypes =   new VarType[1];
+            var concrete = VarType.Int;
+            VarType.SolveGenericTypes(solvingTypes, 
+                VarType.ArrayOf(VarType.Generic(0)), 
+                VarType.ArrayOf(concrete));
+            Assert.AreEqual(concrete, solvingTypes[0]);
+        }
+        
+        [Test]
+        public void SolveGenericTypes_ArrayOfFunOfT_SolvedTypeIsT()
+        {
+            //Solving  Array of int SomeFun<T>(T)
+
+            var solvingTypes =   new VarType[1];
+            var concrete = VarType.Text;
+            
+            VarType.SolveGenericTypes(solvingTypes,
+                VarType.ArrayOf(VarType.Fun(VarType.Int, VarType.Generic(0))),
+                VarType.ArrayOf(VarType.Fun(VarType.Int, concrete))); 
+               
+            Assert.AreEqual(concrete, solvingTypes[0]);
+        }
+        
+        [Test]
+        public void SolveGenericTypes_ComplexGenericFunWith2GenericsType_AllTypesAreSolved()
+        {
+            //Solving  Array of   T0[] SomeFun<T0,T1>(T1, T1[])
+
+            var solvingTypes =   new VarType[2];
+            var concrete1 = VarType.Text;
+            var concrete2 = VarType.ArrayOf(VarType.Int);
+            VarType.SolveGenericTypes(solvingTypes,
+                VarType.Fun(VarType.ArrayOf(VarType.Generic(0)), VarType.Generic(1),VarType.ArrayOf(VarType.Generic(1))),
+                VarType.Fun(VarType.ArrayOf(concrete1), concrete2,VarType.ArrayOf(concrete2))
+                );
+
+            Assert.Multiple(() =>
+            {
+                Assert.AreEqual(concrete1, solvingTypes[0]);
+                Assert.AreEqual(concrete2, solvingTypes[1]);
+            });
+        }
+
+        [Test]
+        public void SubstituteConcreteTypes_NonGenericTyp_returnsSelf()
+        {
+            var someSolving = new[] {VarType.Int, VarType.ArrayOf(VarType.Text)};
+            var concreteTypes = new[]
+            {
+                VarType.Int,
+                VarType.Real,
+                VarType.ArrayOf(VarType.Int),
+                VarType.ArrayOf(VarType.ArrayOf(VarType.Text)),
+                VarType.Fun(VarType.ArrayOf(VarType.Int), VarType.ArrayOf(VarType.Text)),
+            };
+            foreach (var concreteType in concreteTypes)
+            {
+                var result = VarType.SubstituteConcreteTypes(concreteType, someSolving);
+                Assert.AreEqual(result,concreteType);    
+            }
+            
+        }
+        
+        [Test]
+        public void SubstituteConcreteTypes_PrimitiveGenericType_RetutnsConcrete()
+        {
+            var someSolving = new[] {VarType.Int, VarType.ArrayOf(VarType.Text)};
+            var genericType = VarType.Generic(0);
+            var expected = someSolving[0];
+            
+            var result = VarType.SubstituteConcreteTypes(genericType, someSolving);
+            Assert.AreEqual(expected, result);    
+            
+            
+        }
+        [Test]
+        public void SubstituteConcreteTypes_ComplexGenericType_RetutnsConcrete()
+        {
+            var someSolving = new[] {VarType.Int, VarType.ArrayOf(VarType.Text)};
+            // array of (T0[] fun<T0,T1>(double, T1, T0))
+            var genericType = VarType.ArrayOf(
+                VarType.Fun(
+                        VarType.ArrayOf(VarType.Generic(0)), 
+                        VarType.Real, VarType.Generic(1),VarType.Generic(0))); ;
+            var expected = VarType.ArrayOf(
+                VarType.Fun(
+                    VarType.ArrayOf(someSolving[0]), 
+                    VarType.Real, someSolving[1],someSolving[0]));
+            
+            var result = VarType.SubstituteConcreteTypes(genericType, someSolving);
+            Assert.AreEqual(expected, result);    
+        }
+        [Test]
+        public void SearchMaxGenericTypeId_ComplexGenericTypeWithThreeArgs_FindAll()
+        {
+            // array of (T0[] fun<T0,T1,T2>(double, T1, T0,T2))
+            var genericType = VarType.ArrayOf(
+                VarType.Fun(
+                    VarType.ArrayOf(VarType.Generic(0)), 
+                    VarType.Real, VarType.Generic(1),VarType.Generic(0), VarType.Generic(2)));
+            var maxCount = genericType.SearchMaxGenericTypeId();
+            Assert.AreEqual(2, maxCount);
+        }
     }
 }

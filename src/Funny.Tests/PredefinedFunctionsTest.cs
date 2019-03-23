@@ -50,8 +50,8 @@ namespace Funny.Tests
                      y = map([1,2,3],ii)",new[]{1,4,9})]
         [TestCase( @"ii(x:int):real = x/2
                      y = map([1,2,3],ii)",new[]{0.5,1.0,1.5})]
-        [TestCase( @"ii(x:int):bool = x/2== x
-                     y = map([1,2,3],ii)",new[]{false, true,false})]
+        [TestCase( @"isodd(x:int):bool = (x%2) == 0
+                     y = map([1,2,3],isodd)",new[]{false, true,false})]
         public void HiOrderFunConstantEquatation(string expr, object expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);

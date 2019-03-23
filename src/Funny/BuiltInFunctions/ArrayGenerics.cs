@@ -10,7 +10,7 @@ namespace Funny.BuiltInFunctions
         public MapGenericFunctionDefenition() : base("map", 
             VarType.ArrayOf(VarType.Generic(1)),
             VarType.ArrayOf(VarType.Generic(0)),
-            VarType.Fun(VarType.Bool, VarType.Generic(0)))
+            VarType.Fun(VarType.Generic(1), VarType.Generic(0)))
         {
         }
 

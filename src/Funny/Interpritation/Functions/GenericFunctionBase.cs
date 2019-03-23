@@ -1,20 +1,28 @@
 using System;
+using System.Linq;
 using Funny.Types;
 
 namespace Funny.Interpritation.Functions
 {
     public abstract class GenericFunctionBase
     {
+        private int _maxGenericId;
         public string Name { get; }
         public VarType[] ArgTypes { get; }
         
-        
         protected GenericFunctionBase(string name, VarType outputType, params VarType[] argTypes)
         {
+            
             Name = name;
             ArgTypes = argTypes;
             OutputType = outputType;
-                        
+            var maxGenericId  = argTypes
+                .Append(outputType)
+                .Max(i => i.SearchMaxGenericTypeId());
+            if(!maxGenericId.HasValue)
+                throw new InvalidOperationException($"Type {name} has wrong generic defenition");
+            
+            _maxGenericId = maxGenericId.Value;
         }
         
         public VarType OutputType { get; }
@@ -26,63 +34,22 @@ namespace Funny.Interpritation.Functions
             if (concreteArgTypes.Length != ArgTypes.Length)
                 return null;
             
-            VarType? genericArgType = null;
+            var solvingParams = new VarType[_maxGenericId+1];
+            
             for (int i = 0; i < ArgTypes.Length; i++)
+                VarType.SolveGenericTypes(solvingParams, ArgTypes[i], concreteArgTypes[i]);
+            foreach (var solvingParam in solvingParams)
             {
-                if (TryMakeGeneric(ArgTypes[i], concreteArgTypes[i], out var genericArg, out _))
-                {
-                    if (genericArgType.HasValue && genericArgType != genericArg)
-                        return null;
-                    genericArgType = genericArg;
-                }
-            }
-
-            if (genericArgType != null)
-            {
-                return new ConcreteGenericFunction(
-                    functionBase: this, 
-                    outputType: MakeConcrete(OutputType, genericArgType.Value), 
-                    argTypes: concreteArgTypes);
-            }
-
-            return null;
+                if(solvingParam.BaseType== BaseVarType.Empty)
+                    throw new InvalidOperationException($"Incorrect function defenition: ({string.Join(',', ArgTypes)}) -> {OutputType}). Not all generic types can be solved");
+            }     
+            return new ConcreteGenericFunction(
+                functionBase: this, 
+                outputType:  VarType.SubstituteConcreteTypes(OutputType, solvingParams), 
+                argTypes: concreteArgTypes);
         }
-
-        private static VarType MakeConcrete(VarType genericOrNot, VarType arg)
-        {
-            if (genericOrNot.BaseType == BaseVarType.Generic)
-                return arg;
-            if (genericOrNot.BaseType == BaseVarType.ArrayOf)
-            {
-                var elementType = MakeConcrete(genericOrNot.ArrayTypeSpecification.VarType, arg);
-                return VarType.ArrayOf(elementType);
-            }
-            return genericOrNot;
-        }
-        private static bool TryMakeGeneric(VarType genericTypeDefenition, VarType targetType,
-            out VarType genericValue, out VarType genericType)
-        {
-            if (genericTypeDefenition.BaseType == BaseVarType.Generic)
-            {
-                genericValue = targetType;
-                genericType = genericTypeDefenition;
-                return true;
-            }
-
-            if (genericTypeDefenition.BaseType == BaseVarType.ArrayOf)
-            {
-                if (targetType.BaseType == BaseVarType.ArrayOf)
-                {
-                    return TryMakeGeneric(
-                        genericTypeDefenition.ArrayTypeSpecification.VarType,
-                        targetType.ArrayTypeSpecification.VarType,
-                        out genericValue, out genericType);
-                }
-            }
-            genericValue = VarType.Empty;
-            genericType = VarType.Empty;
-            return false;
-        }
+     
+     
         class ConcreteGenericFunction: FunctionBase
         {
             private readonly GenericFunctionBase _functionBase;

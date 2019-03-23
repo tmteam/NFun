@@ -7,6 +7,7 @@ namespace Funny.Types
 {
     public enum BaseVarType
     {
+        Empty = 0,
         Bool =    1,
         Int =     2,
         Real =    3,
