@@ -107,6 +107,8 @@ namespace Funny.Tokenization
             
             switch (current)
             {
+                case '|' when  next == '>':
+                    return Tok.New(TokType.PipeForward, position+2);
                 case ':' when  next == ':':
                     return Tok.New(TokType.ArrUnite, position+2);
                 case ':' :

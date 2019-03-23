@@ -109,6 +109,10 @@ namespace Funny.Tokenization
         RealType,
         BoolType,
         AnyType,
+        /// <summary>
+        /// |>
+        /// </summary>
+        PipeForward,
     }
     
 }

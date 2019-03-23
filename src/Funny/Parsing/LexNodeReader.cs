@@ -27,6 +27,7 @@ namespace Funny.Parsing
                 {TokType.Minus, 4},
                 {TokType.Or, 4},
                 {TokType.Xor, 4},
+                {TokType.PipeForward,5},
             };
 
         public LexNodeReader(TokenFlow flow)
@@ -35,7 +36,7 @@ namespace Funny.Parsing
         }
 
         public LexNode ReadExpressionOrNull()
-            => ReadNext(4);
+            => ReadNext(5);
 
         //ReadZeroPriority operation (num, -num, id, fun, if, (...))
         private LexNode ReadAtomicOrNull()
@@ -113,6 +114,7 @@ namespace Funny.Parsing
                 //2*3{stops here}-1
                 if (opPriority > priority)
                     return leftNode;
+                
                 if (leftNode == null)
                     throw new ParseException($"{currentOp} without left arg");
                 

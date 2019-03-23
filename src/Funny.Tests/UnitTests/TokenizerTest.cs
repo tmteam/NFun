@@ -2,7 +2,7 @@ using System.Linq;
 using Funny.Tokenization;
 using NUnit.Framework;
 
-namespace Funny.Tests
+namespace Funny.Tests.UnitTests
 {
     [TestFixture]
     public class TokenizerTest
@@ -35,6 +35,11 @@ namespace Funny.Tests
         [TestCase("x:int", TokType.Id, TokType.IsTypeOf, TokType.IntType)]
         [TestCase("x:text", TokType.Id, TokType.IsTypeOf, TokType.TextType)]
         [TestCase("x:bool", TokType.Id, TokType.IsTypeOf, TokType.BoolType)]
+        [TestCase("x|>y",  TokType.Id, TokType.PipeForward, TokType.Id)] 
+        [TestCase("x|>y(1)|>z",  TokType.Id, 
+            TokType.PipeForward, TokType.Id, TokType.Obr, TokType.Number, TokType.Cbr,
+            TokType.PipeForward, TokType.Id)]
+
         public void TestTokinization(string exp, params TokType[] expected)
         {
              var tokens =  Tokenizer
