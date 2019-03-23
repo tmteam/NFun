@@ -96,7 +96,20 @@ namespace Funny.Tests.UnitTests
                 });
             Assert.IsTrue(typeA== typeB);
         }
-        #endregion
+        [Test]
+        public void TwoEqualGenerics_Equals_ReturnsTrue()
+        {
+            var typeA = VarType.Generic(1);
+            var typeB = VarType.Generic(1);
+            Assert.AreEqual(typeA, typeB);
+        }
+        [Test]
+        public void TwoDifferentGenerics_Equals_ReturnsFalse()
+        {
+            var typeA = VarType.Generic(1);
+            var typeB = VarType.Generic(2);
+            Assert.AreNotEqual(typeA, typeB);
+        }
         [Test]
         public void ArrayAndPrimitiveTypes_Equals_ReturnsFalse()
         {
@@ -121,7 +134,9 @@ namespace Funny.Tests.UnitTests
             var typeB = VarType.ArrayOf(VarType.ArrayOf(VarType.Real));
             Assert.IsFalse(typeA== typeB);
         }
-
+        #endregion
+        
+        #region CanBeConverted
         [TestCase(BaseVarType.Int, BaseVarType.Bool, false)]
         [TestCase(BaseVarType.Int, BaseVarType.Int, true)]
         [TestCase(BaseVarType.Int, BaseVarType.Real, true)]
@@ -215,6 +230,6 @@ namespace Funny.Tests.UnitTests
             Assert.AreEqual(canBeConverted, typeFrom.CanBeConverted(typeTo));
         }
         
-        
+        #endregion
     }
 }

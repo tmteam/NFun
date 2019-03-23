@@ -81,21 +81,39 @@ namespace Funny.Types
         {
             if (obj.BaseType != BaseType)
                 return false;
-            if (BaseType == BaseVarType.ArrayOf)
-                return ArrayTypeSpecification.VarType.Equals(obj.ArrayTypeSpecification.VarType);
-            if (BaseType == BaseVarType.Fun)
+            
+            switch (BaseType)
             {
-                if (!FunTypeSpecification.Output.Equals(obj.FunTypeSpecification.Output))
-                    return false;
-                for (int i = 0; i < FunTypeSpecification.Inputs.Length; i++)
+                case BaseVarType.Bool:
+                case BaseVarType.Int:
+                case BaseVarType.Real:
+                case BaseVarType.Text:
+                case BaseVarType.Any:
+                    return true;
+                case BaseVarType.ArrayOf:
+                    return ArrayTypeSpecification.VarType.Equals(obj.ArrayTypeSpecification.VarType);
+                case BaseVarType.Fun:
                 {
-                    if (!FunTypeSpecification.Inputs[i].Equals(obj.FunTypeSpecification.Inputs[i]))
+                    var funA = FunTypeSpecification;
+                    var funB = obj.FunTypeSpecification;
+                
+                    if (!funA.Output.Equals(funB.Output))
                         return false;
-                }
+                
+                    for (int i = 0; i < funA.Inputs.Length; i++)
+                    {
+                        if (!funA.Inputs[i].Equals(funB.Inputs[i]))
+                            return false;
+                    }
 
-                return true;
+                    return true;
+                }
+                
+                case BaseVarType.Generic:
+                    return GenericId== obj.GenericId;
+                default:
+                    return true;
             }
-            return true;
         }
 
         public override string ToString()
