@@ -14,7 +14,8 @@ namespace Funny
             var lexTree =    Parser.Parse(flow);
             var predefinedfunctions = new FunctionBase[]
             {
-                new AbsFunction(),
+                new AbsOfRealFunction(),
+                new AbsOfIntFunction(),
                 new AddFunction(),
                 new SinFunction(), 
                 new CosFunction(), 
@@ -33,7 +34,7 @@ namespace Funny
                 new MultiSumIntFunction(), 
                 new MultiSumRealFunction(), 
                 new MedianIntFunction(), 
-                new MedianRealFunction(), 
+                new MedianRealFunction() 
             };
             var predefinedGenerics = new GenericFunctionBase[]
             {

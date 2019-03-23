@@ -15,12 +15,21 @@ namespace Funny.BuiltInFunctions
         public override object Calc(object[] args) => Convert.ToDouble(args[0]) + Convert.ToDouble(args[1]);
     }
 
-    public class AbsFunction : FunctionBase
+    public class AbsOfRealFunction : FunctionBase
     {
-        public AbsFunction() : base("abs", VarType.Real,VarType.Real){}
+        public AbsOfRealFunction() : base("abs", VarType.Real,VarType.Real){}
         public override object Calc(object[] args)
         {
             var val = Convert.ToDouble(args[0]);
+            return val > 0 ? val : -val;
+        }
+    }
+    public class AbsOfIntFunction : FunctionBase
+    {
+        public AbsOfIntFunction() : base("abs", VarType.Int,VarType.Int){}
+        public override object Calc(object[] args)
+        {
+            var val = (int)(args[0]);
             return val > 0 ? val : -val;
         }
     }

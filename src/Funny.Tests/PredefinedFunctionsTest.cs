@@ -8,11 +8,13 @@ namespace Funny.Tests
     [TestFixture]
     public class PredefinedFunctionsTest
     {
-        [TestCase("y = abs(1)",1.0)]
-        [TestCase("y = abs(-1)",1.0)]
+        [TestCase("y = abs(1)",1)]
+        [TestCase("y = abs(-1)",1)]
+        [TestCase("y = abs(1.0)",1.0)]
+        [TestCase("y = abs(-1.0)",1.0)]
         [TestCase("y = add(1,2)",3.0)]
         [TestCase("y = add(add(1,2),add(3,4))",10.0)]
-        [TestCase("y = abs(1-4)",3.0)]
+        [TestCase("y = abs(1-4)",3)]
         [TestCase("y = 15 - add(abs(1-4), 7)",5.0)]
         [TestCase("y = pi()",Math.PI)]
         [TestCase("y = e()",Math.E)]

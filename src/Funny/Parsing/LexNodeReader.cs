@@ -80,7 +80,7 @@ namespace Funny.Parsing
             return null;
         }
 
-      
+
 
         LexNode ReadNext(int priority)
         {
@@ -108,6 +108,7 @@ namespace Funny.Parsing
                 // 1*2 \r{return expression} y=...
                 if (!Priorities.TryGetValue(currentOp, out var opPriority))
                     return leftNode;
+                
                 //if op has higher priority us
                 //than expression is done
                 // example:
@@ -118,24 +119,34 @@ namespace Funny.Parsing
                 if (leftNode == null)
                     throw new ParseException($"{currentOp} without left arg");
                 
-                _flow.MoveNext();
-                
-                var rightNode = ReadNext(priority - 1);
-                if (rightNode == null)
-                    throw new ParseException($"{currentOp} without right arg");
-                //building the tree from the left
-                leftNode = LexNode.Op(currentOp, leftNode, rightNode);
-                //trace:
-                //ReadNext(priority: 3 ) // *,/,%,AND
-                //0: {start} 4/2*5+1
-                //1: {l:4} /2*5+1
-                //2: {l:4}{op:/} 2*5+1
-                //3: {l:4}{op:/}{r:2} *5+1
-                //4: {l:(4/2)} *5+1
-                //5: {l:(4/2)}{op:*}5+1
-                //6: {l:(4/2)}{op:*}{r:5}+1
-                //7: {l:((4/2)*5)}{op:+} 1
-                //8: '+' priority is higter than 3: return l:((4/2)*5)
+                if (currentOp == TokType.PipeForward)
+                {
+                    _flow.MoveNext();
+                    var id = _flow.MoveIfOrThrow(TokType.Id,"function name expected");
+                    leftNode =  ReadFunctionCall(id, pipedVal: leftNode);       
+                }
+                else
+                {
+                    _flow.MoveNext();
+
+                    var rightNode = ReadNext(priority - 1);
+                    if (rightNode == null)
+                        throw new ParseException($"{currentOp} without right arg");
+
+                    //building the tree from the left
+                    leftNode = LexNode.Op(currentOp, leftNode, rightNode);
+                    //trace:
+                    //ReadNext(priority: 3 ) // *,/,%,AND
+                    //0: {start} 4/2*5+1
+                    //1: {l:4} /2*5+1
+                    //2: {l:4}{op:/} 2*5+1
+                    //3: {l:4}{op:/}{r:2} *5+1
+                    //4: {l:(4/2)} *5+1
+                    //5: {l:(4/2)}{op:*}5+1
+                    //6: {l:(4/2)}{op:*}{r:5}+1
+                    //7: {l:((4/2)*5)}{op:+} 1
+                    //8: '+' priority is higter than 3: return l:((4/2)*5)
+                }
             }
         }
 
@@ -196,22 +207,35 @@ namespace Funny.Parsing
             return LexNode.IfElse(ifThenNodes, elseResult);
         }
 
-        private LexNode ReadFunctionCall(Tok id)
+        private LexNode ReadFunctionCall(Tok id, LexNode pipedVal=null)
         {
-            _flow.MoveIfOrThrow(TokType.Obr);
-            var arguments = new List<LexNode>();
+            bool hasObr =_flow.MoveIf(TokType.Obr, out _);
 
+            if (!hasObr)
+            {
+                if (pipedVal != null) 
+                    return LexNode.Fun(id.Value, new[] {pipedVal});
+                else
+                    throw new ParseException("'(' expected, but was " + _flow.Current);
+            }
+
+            var arguments = new List<LexNode>();
+            if(pipedVal!=null)
+                arguments.Add(pipedVal);
+
+            var hasArgInBracket = false;            
             while (true)
             {
                 if (_flow.MoveIf(TokType.Cbr, out _))
                     return LexNode.Fun(id.Value, arguments.ToArray());
 
-                if (arguments.Any())
+                if (hasArgInBracket)
                     _flow.MoveIfOrThrow(TokType.Sep, "\",\" or \")\" expected");
 
                 var arg = ReadExpressionOrNull();
                 if(arg==null)
                     throw new ParseException("Expression expected");
+                hasArgInBracket = true;
                 arguments.Add(arg);
             }
         }
