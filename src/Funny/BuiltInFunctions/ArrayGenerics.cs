@@ -5,6 +5,25 @@ using Funny.Types;
 
 namespace Funny.BuiltInFunctions
 {
+    public class FoldGenericFunctionDefenition : GenericFunctionBase
+    {
+        public FoldGenericFunctionDefenition() : base("fold", 
+            VarType.Generic(0),
+            VarType.ArrayOf(VarType.Generic(0)),
+            VarType.Fun(VarType.Generic(0), VarType.Generic(0), VarType.Generic(0)))
+        {
+        }
+
+        public override object Calc(object[] args)
+        {
+            var arr = (args[0] as IEnumerable).Cast<object>();
+            var fold = args[1] as FunctionBase;
+            
+            var res = arr.Aggregate((a,b)=>fold.Calc(new []{a,b}));
+            return res; 
+        }
+    }
+
     public class MapGenericFunctionDefenition : GenericFunctionBase
     {
         public MapGenericFunctionDefenition() : base("map", 

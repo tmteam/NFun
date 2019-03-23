@@ -63,7 +63,7 @@ namespace Funny.Interpritation
             var funVars = _functions.Get(lower);
             
             if(funVars.Count>1)
-                throw new ParseException($"Unable to resolve function with name: {lower}");
+                throw new ParseException($"Ambiguous call of function with name: {lower}");
             if(funVars.Count==1)
                 return new FunVariableExpressionNode(funVars[0]);   
             

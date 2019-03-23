@@ -38,6 +38,7 @@ namespace Funny
             };
             var predefinedGenerics = new GenericFunctionBase[]
             {
+                new FoldGenericFunctionDefenition(),
                 new TakeGenericFunctionDefenition(),
                 new SkipGenericFunctionDefenition(),
                 new ConcatGenericFunctionDefenition(),
