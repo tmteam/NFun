@@ -6,6 +6,7 @@ namespace Funny.Tests.UnitTests
     [TestFixture]
     public class VarTypeTest
     {
+        #region Equals
         [Test]
         public void TwoEqualPrimitiveTypes_Equals_ReturnsTrue()
         {
@@ -38,6 +39,64 @@ namespace Funny.Tests.UnitTests
             Assert.IsFalse(typeA== typeB);
         }
         
+        [Test]
+        public void TwoEqualFunTypes_Equals_ReturnsTrue()
+        {
+            var typeA = VarType.Fun(VarType.Bool, VarType.Int);
+            var typeB = VarType.Fun(VarType.Bool, VarType.Int);
+            Assert.IsTrue(typeA== typeB);
+        }
+        
+        [Test]
+        public void TwoFunTypesWithDifferentInputs_Equals_ReturnsFalse()
+        {
+            var typeA = VarType.Fun(VarType.Bool, VarType.Int, VarType.Int);
+            var typeB = VarType.Fun(VarType.Bool, VarType.Text, VarType.Int);
+            Assert.IsFalse(typeA== typeB);
+        }
+        
+        
+        [Test]
+        public void TwoFunTypesWithDifferentOutputs_Equals_ReturnsFalse()
+        {
+            var typeA = VarType.Fun(VarType.Int, VarType.Text);
+            var typeB = VarType.Fun(VarType.Bool, VarType.Text);
+            Assert.IsFalse(typeA== typeB);
+        }
+        
+        
+        [Test]
+        public void TwoComplexHiOrderEqualFunTypes_Equals_ReturnsTrue()
+        {
+            var typeA = VarType.Fun(
+                outputType: VarType.ArrayOf(VarType.Fun(VarType.Int, VarType.Text)),
+                inputTypes: 
+                        new []{
+                            VarType.ArrayOf(VarType.Any),
+                            VarType.Fun(
+                                outputType: VarType.ArrayOf(VarType.Real), 
+                                inputTypes: VarType.Fun(
+                                                outputType: VarType.Fun(
+                                                                outputType: VarType.ArrayOf(VarType.Bool),
+                                                                inputTypes: VarType.Bool),
+                                                inputTypes: VarType.Text))
+                            });
+            var typeB = VarType.Fun(
+                outputType: VarType.ArrayOf(VarType.Fun(VarType.Int, VarType.Text)),
+                inputTypes: 
+                new []{
+                    VarType.ArrayOf(VarType.Any),
+                    VarType.Fun(
+                        outputType: VarType.ArrayOf(VarType.Real), 
+                        inputTypes: VarType.Fun(
+                            outputType: VarType.Fun(
+                                outputType: VarType.ArrayOf(VarType.Bool),
+                                inputTypes: VarType.Bool),
+                            inputTypes: VarType.Text))
+                });
+            Assert.IsTrue(typeA== typeB);
+        }
+        #endregion
         [Test]
         public void ArrayAndPrimitiveTypes_Equals_ReturnsFalse()
         {
@@ -155,5 +214,7 @@ namespace Funny.Tests.UnitTests
             var typeTo = VarType.PrimitiveOf(to);
             Assert.AreEqual(canBeConverted, typeFrom.CanBeConverted(typeTo));
         }
+        
+        
     }
 }

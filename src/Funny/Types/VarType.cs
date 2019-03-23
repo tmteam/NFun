@@ -11,6 +11,7 @@ namespace Funny.Types
                 return ((int) BaseType * 397) ^ (ArrayTypeSpecification != null ? ArrayTypeSpecification.GetHashCode() : 0);
             }
         }
+        public static VarType Empty => new VarType();
         public static VarType PrimitiveOf(BaseVarType baseType) => new VarType(baseType);
         public static VarType  Any => new VarType(BaseVarType.Any);
         public static VarType  Bool => new VarType(BaseVarType.Bool);
@@ -57,6 +58,7 @@ namespace Funny.Types
         public readonly AdditionalTypeSpecification ArrayTypeSpecification;
         public readonly FunTypeSpecification FunTypeSpecification;
         public readonly int? GenericId;
+        
         public static bool operator== (VarType obj1, VarType obj2)
         {
             return obj1.Equals(obj2);
@@ -81,6 +83,18 @@ namespace Funny.Types
                 return false;
             if (BaseType == BaseVarType.ArrayOf)
                 return ArrayTypeSpecification.VarType.Equals(obj.ArrayTypeSpecification.VarType);
+            if (BaseType == BaseVarType.Fun)
+            {
+                if (!FunTypeSpecification.Output.Equals(obj.FunTypeSpecification.Output))
+                    return false;
+                for (int i = 0; i < FunTypeSpecification.Inputs.Length; i++)
+                {
+                    if (!FunTypeSpecification.Inputs[i].Equals(obj.FunTypeSpecification.Inputs[i]))
+                        return false;
+                }
+
+                return true;
+            }
             return true;
         }
 

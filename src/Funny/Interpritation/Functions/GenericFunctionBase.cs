@@ -21,14 +21,15 @@ namespace Funny.Interpritation.Functions
         
         public abstract object Calc(object[] args);
 
-        public FunctionBase MakeConcreteOrNull(params VarType[] concreteArgTypes)
+        public FunctionBase CreateConcreteOrNull(params VarType[] concreteArgTypes)
         {
             if (concreteArgTypes.Length != ArgTypes.Length)
                 return null;
+            
             VarType? genericArgType = null;
             for (int i = 0; i < ArgTypes.Length; i++)
             {
-                if (TryMakeGeneric(ArgTypes[i], concreteArgTypes[i], out var genericArg))
+                if (TryMakeGeneric(ArgTypes[i], concreteArgTypes[i], out var genericArg, out _))
                 {
                     if (genericArgType.HasValue && genericArgType != genericArg)
                         return null;
@@ -59,28 +60,27 @@ namespace Funny.Interpritation.Functions
             return genericOrNot;
         }
         private static bool TryMakeGeneric(VarType genericTypeDefenition, VarType targetType,
-            out VarType genericArgument)
+            out VarType genericValue, out VarType genericType)
         {
             if (genericTypeDefenition.BaseType == BaseVarType.Generic)
             {
-                genericArgument = targetType;
+                genericValue = targetType;
+                genericType = genericTypeDefenition;
                 return true;
             }
 
             if (genericTypeDefenition.BaseType == BaseVarType.ArrayOf)
             {
-                if (targetType.BaseType != BaseVarType.ArrayOf)
+                if (targetType.BaseType == BaseVarType.ArrayOf)
                 {
-                    genericArgument = new VarType();
-                    return false;
+                    return TryMakeGeneric(
+                        genericTypeDefenition.ArrayTypeSpecification.VarType,
+                        targetType.ArrayTypeSpecification.VarType,
+                        out genericValue, out genericType);
                 }
-                return TryMakeGeneric(
-                    genericTypeDefenition.ArrayTypeSpecification.VarType, 
-                    targetType.ArrayTypeSpecification.VarType, 
-                    out genericArgument);
-                
             }
-            genericArgument = new VarType();
+            genericValue = VarType.Empty;
+            genericType = VarType.Empty;
             return false;
         }
         class ConcreteGenericFunction: FunctionBase

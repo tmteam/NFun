@@ -105,7 +105,7 @@ namespace Funny.Interpritation
             if (filtered.Length == 1)
             {
                 var candidate = filtered.First();
-                return candidate.MakeConcreteOrNull(args);
+                return candidate.CreateConcreteOrNull(args);
             }
             else
             {
