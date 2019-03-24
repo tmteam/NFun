@@ -44,7 +44,8 @@ namespace Funny.Tests
         }
        
         
-        [TestCase("y = [0,7,1,2,3] |> fold(max)", 7)]
+        //todo fun overloads
+        //[TestCase("y = [0,7,1,2,3] |> fold(max)", 7)]
         [TestCase("mysum(x:int, y:int):int = x+y \r" +
                   "y = [0,7,1,2,3] |> fold(mysum)", 13)]
         [TestCase( @"rr(x:real):bool = x>10
