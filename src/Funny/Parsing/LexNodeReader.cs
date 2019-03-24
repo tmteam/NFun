@@ -11,6 +11,7 @@ namespace Funny.Parsing
         private static readonly Dictionary<TokType, byte> Priorities
             = new Dictionary<TokType, byte>()
             {
+                {TokType.AnonymFun,0},
                 {TokType.ArrUnite,0},
                 {TokType.Equal, 1},
                 {TokType.NotEqual, 1},
@@ -77,6 +78,8 @@ namespace Funny.Parsing
                 return ReadIfThenElse();
             if (_flow.IsCurrent(TokType.ArrOBr))
                 return ReadInitializeArray();
+            
+                
             return null;
         }
 
@@ -124,6 +127,12 @@ namespace Funny.Parsing
                     _flow.MoveNext();
                     var id = _flow.MoveIfOrThrow(TokType.Id,"function name expected");
                     leftNode =  ReadFunctionCall(id, pipedVal: leftNode);       
+                }
+                else if (currentOp == TokType.AnonymFun)
+                {
+                    _flow.MoveNext();
+                    var body = ReadExpressionOrNull();       
+                    leftNode = LexNode.AnonymFun(leftNode, body);
                 }
                 else
                 {

@@ -113,6 +113,10 @@ namespace Funny.Tokenization
         /// |>
         /// </summary>
         PipeForward,
+        /// <summary>
+        /// =>
+        /// </summary>
+        AnonymFun
     }
     
 }

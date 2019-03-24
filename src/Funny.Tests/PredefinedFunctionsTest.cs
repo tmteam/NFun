@@ -64,6 +64,21 @@ namespace Funny.Tests
             runtime.Calculate()
                 .AssertReturns(Var.New("y", expected));
         }
+        [TestCase( @"y = filter([11,20,1,2], (i) => i>10)",new[]{11,20})]
+        [TestCase( @"y = [11.0,20.0,1.0,2.0]|>filter(i => i>10)",new[]{11.0,20.0})]
+
+        [TestCase( @"y = [11,20,1,2]|>filter(i => i>10)",new[]{11,20})]
+        [TestCase( @"y = [11,20,1,2]|>filter((i) => i>10)",new[]{11,20})]
+        [TestCase( @"y = map([1,2,3], i:int  =>i*i)",new[]{1,4,9})]
+        [TestCase( @"y = [1,2,3] |> map(i:int=>i*i)",new[]{1,4,9})]
+        [TestCase( @"y = [1,2,3] |> map(i=>i*i)",new[]{1,4,9})]
+        [TestCase( @"y = [1.0,2.0,3.0] |> map(i=>i*i)",new[]{1.0,4.0,9.0})]
+        public void AnonymousFunctions(string expr, object expected)
+        {
+            var runtime = Interpreter.BuildOrThrow(expr);
+            runtime.Calculate()
+                .AssertReturns(Var.New("y", expected));
+        }
         
         [TestCase("y = take([1,2,3,4,5],3)",new []{1,2,3})]        
         [TestCase("y = take([1.0,2.0,3.0,4.0,5.0],4)",new []{1.0,2.0,3.0,4.0})]        

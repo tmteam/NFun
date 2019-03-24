@@ -93,7 +93,8 @@ namespace Funny.Parsing
         }
 
 
-        
+        public static LexNode AnonymFun(LexNode defenition, LexNode body) 
+            => new LexNode(LexNodeType.AnonymFun, null, defenition, body);
     }
 
     public enum LexNodeType
@@ -127,5 +128,6 @@ namespace Funny.Parsing
         Text,
         ArrayInit,
         ArrayUnite,
+        AnonymFun,
     }
 }

@@ -36,10 +36,39 @@ namespace Funny.Interpritation
                 return GetArrayNode(node);
             if (node.Is(LexNodeType.ArrayUnite))
                 return GetUniteArrayNode(node);
+            if (node.Is(LexNodeType.AnonymFun))
+                return GetAnonymFun(node);
             if (StandartOperations.IsDefaultOp(node.Type))
                 return GetOpNode(node);
             
             throw new ArgumentException($"Unknown lexnode type {node.Type}");
+        }
+
+        private IExpressionNode GetAnonymFun(LexNode node)
+        {
+            var defenition = node.Children.ElementAtOrDefault(0);
+            if(defenition==null)
+                throw new ParseException("Anonymous fun defenition is missing");
+
+            var expression = node.Children.ElementAtOrDefault(1);
+            if(expression== null)
+                throw new ParseException("Anonymous fun body is missing");
+
+            
+            var variablesDictionary = new Dictionary<string, VariableExpressionNode>();
+            if (defenition.Type == LexNodeType.Var)
+            {
+                variablesDictionary.Add(defenition.Value, new VariableExpressionNode(defenition.Value, VarType.Real));
+            }
+            else
+            {
+                throw new ParseException("wrong defenition type "+ defenition.Type);
+            }
+            var scope = new SingleExpressionReader(_functions, variablesDictionary);
+            var expr = scope.ReadNode(expression);
+
+            var fun = new UserFunction("anonymous", variablesDictionary.Values.ToArray(), expr);
+            return new FunVariableExpressionNode(fun);
         }
 
         private IExpressionNode GetUniteArrayNode(LexNode node)

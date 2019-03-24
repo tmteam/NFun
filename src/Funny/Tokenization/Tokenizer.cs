@@ -125,6 +125,8 @@ namespace Funny.Tokenization
                     return Tok.New(TokType.Less, position+1);
                 case '=' when next == '=':
                     return Tok.New(TokType.Equal, position + 2);
+                case '=' when next == '>':
+                    return Tok.New(TokType.AnonymFun, position + 2);
                 case '=':
                     return Tok.New(TokType.Def, position + 1);
                 default:

@@ -7,6 +7,7 @@ using Funny.Runtime;
 
 namespace Funny.Interpritation
 {
+    
     public class UserFunction : FunctionBase
     {
         private readonly VariableExpressionNode[] _variables;
