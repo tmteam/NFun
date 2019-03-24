@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Funny.Tokenization;
+using Funny.Types;
 
 namespace Funny.Parsing
 {
@@ -70,13 +71,22 @@ namespace Funny.Parsing
             => new LexNode(LexNodeType.Number, val);
         public static LexNode Array(LexNode[] elements)
             => new LexNode(LexNodeType.ArrayInit,null, elements);
-        
+
+        public static LexNode Argument(string name, VarType type)
+        {
+            return new LexNode(LexNodeType.Argument, name)
+            {
+                AdditionalContent = type
+            };
+        }
         public  LexNode(LexNodeType type, string value,params LexNode[] children)
         {
             Type = type;
             Value = value;
             Children = children;
         }
+
+        public object AdditionalContent { get; private set; }
         public LexNodeType Type { get; }
         public string Value { get; }
 
@@ -129,5 +139,6 @@ namespace Funny.Parsing
         ArrayInit,
         ArrayUnite,
         AnonymFun,
+        Argument,
     }
 }

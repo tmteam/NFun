@@ -1,7 +1,41 @@
+using Funny.Types;
+
 namespace Funny.Tokenization
 {
     public static class TokenFlowExtensions
     {
+        private static VarType ToVarType(this Tok tokType)
+        {
+            switch (tokType.Type)
+            {
+                case TokType.IntType:
+                    return  VarType.Int;
+                case TokType.RealType:
+                    return  VarType.Real;
+                case TokType.BoolType:
+                    return  VarType.Bool;
+                case TokType.TextType:
+                    return  VarType.Text;
+                case TokType.AnyType:
+                    return  VarType.Any;
+            }
+            throw new ParseException($"Expected: type, but was {tokType}");
+
+        }
+        public static VarType ReadVarType(this TokenFlow flow)
+        {
+            var cur = flow.Current;
+            var readType = ToVarType(cur);
+            flow.MoveNext();
+
+            while (flow.IsCurrent(TokType.ArrOBr))
+            {
+                flow.MoveNext();
+                flow.MoveIfOrThrow(TokType.ArrCBr);
+                readType = VarType.ArrayOf(readType);
+            }
+            return readType;
+        }
         public static bool MoveIf(this TokenFlow flow, TokType tokType, out Tok tok)
         {
             if (flow.IsCurrent(tokType))

@@ -158,7 +158,8 @@ namespace Funny.Types
                     if (genericArguments[id].BaseType == BaseVarType.Empty)
                         genericArguments[id] = concreteType;
                     else if (genericArguments[id] != concreteType)
-                        throw new InvalidOperationException("inconsistence generic arguments");
+                        //type mismatch!
+                            throw new InvalidOperationException("inconsistence generic arguments");
                     return;
                 case BaseVarType.ArrayOf when concreteType.BaseType!= BaseVarType.ArrayOf:
                     throw new InvalidOperationException("Invalid generic argument");
@@ -220,7 +221,7 @@ namespace Funny.Types
             }
         }
         
-        public bool CanBeConverted(VarType to)
+        public bool CanBeConvertedTo(VarType to)
             =>CanBeConvertedRec(this, to);
 
         private static bool CanBeConvertedRec(VarType from,VarType to)

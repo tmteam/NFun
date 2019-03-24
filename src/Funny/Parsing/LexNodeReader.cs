@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
+using Funny.Interpritation.Nodes;
 using Funny.Tokenization;
+using Funny.Types;
 
 namespace Funny.Parsing
 {
@@ -68,6 +70,12 @@ namespace Funny.Parsing
             {
                 if (_flow.IsCurrent(TokType.Obr))
                     return ReadFunctionCall(headToken);
+                if (_flow.IsCurrent(TokType.IsTypeOf))
+                {
+                    _flow.MoveNext();
+                    var type = _flow.ReadVarType();
+                    return LexNode.Argument(headToken.Value, type);
+                }
                 else
                     return LexNode.Var(headToken.Value);
             }
@@ -134,6 +142,7 @@ namespace Funny.Parsing
                     var body = ReadExpressionOrNull();       
                     leftNode = LexNode.AnonymFun(leftNode, body);
                 }
+                
                 else
                 {
                     _flow.MoveNext();

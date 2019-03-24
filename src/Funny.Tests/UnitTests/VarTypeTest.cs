@@ -177,7 +177,7 @@ namespace Funny.Tests.UnitTests
         {
             var typeFrom = VarType.PrimitiveOf(from);
             var typeTo = VarType.PrimitiveOf(to);
-            Assert.AreEqual(canBeConverted, typeFrom.CanBeConverted(typeTo));
+            Assert.AreEqual(canBeConverted, typeFrom.CanBeConvertedTo(typeTo));
         }
         
         
@@ -214,7 +214,7 @@ namespace Funny.Tests.UnitTests
         {
             var typeFrom = VarType.ArrayOf(VarType.PrimitiveOf(from));
             var typeTo = VarType.ArrayOf(VarType.PrimitiveOf(to));
-            Assert.AreEqual(canBeConverted, typeFrom.CanBeConverted(typeTo));
+            Assert.AreEqual(canBeConverted, typeFrom.CanBeConvertedTo(typeTo));
         }
         
         [Test]
@@ -222,7 +222,7 @@ namespace Funny.Tests.UnitTests
         {
             var typeFrom = VarType.PrimitiveOf(BaseVarType.Int);
             var typeTo = VarType.ArrayOf(VarType.PrimitiveOf(BaseVarType.Int));
-            Assert.IsFalse(typeFrom.CanBeConverted(typeTo));
+            Assert.IsFalse(typeFrom.CanBeConvertedTo(typeTo));
         }
         
         [TestCase(BaseVarType.Bool, false)]
@@ -234,7 +234,7 @@ namespace Funny.Tests.UnitTests
         {
             var typeFrom = VarType.ArrayOf(VarType.PrimitiveOf(BaseVarType.Int));
             var typeTo = VarType.PrimitiveOf(to);
-            Assert.AreEqual(canBeConverted, typeFrom.CanBeConverted(typeTo));
+            Assert.AreEqual(canBeConverted, typeFrom.CanBeConvertedTo(typeTo));
         }
         
         #endregion

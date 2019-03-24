@@ -30,17 +30,16 @@ namespace Funny.Interpritation
                 return GetIfThanElseNode(node);
             if(node.Is(LexNodeType.Number))
                 return GetValueNode(node);
-            if (node.Is(LexNodeType.Text))
+            if(node.Is(LexNodeType.Text))
                 return GetTextValueNode(node);
             if(node.Is(LexNodeType.ArrayInit))
                 return GetArrayNode(node);
-            if (node.Is(LexNodeType.ArrayUnite))
+            if(node.Is(LexNodeType.ArrayUnite))
                 return GetUniteArrayNode(node);
-            if (node.Is(LexNodeType.AnonymFun))
+            if(node.Is(LexNodeType.AnonymFun))
                 return GetAnonymFun(node);
-            if (StandartOperations.IsDefaultOp(node.Type))
+            if(StandartOperations.IsDefaultOp(node.Type))
                 return GetOpNode(node);
-            
             throw new ArgumentException($"Unknown lexnode type {node.Type}");
         }
 
@@ -53,17 +52,15 @@ namespace Funny.Interpritation
             var expression = node.Children.ElementAtOrDefault(1);
             if(expression== null)
                 throw new ParseException("Anonymous fun body is missing");
-
             
             var variablesDictionary = new Dictionary<string, VariableExpressionNode>();
             if (defenition.Type == LexNodeType.Var)
-            {
                 variablesDictionary.Add(defenition.Value, new VariableExpressionNode(defenition.Value, VarType.Real));
-            }
+            else if(defenition.Type== LexNodeType.Argument)
+                variablesDictionary.Add(defenition.Value, new VariableExpressionNode(defenition.Value, (VarType)defenition.AdditionalContent));
             else
-            {
                 throw new ParseException("wrong defenition type "+ defenition.Type);
-            }
+
             var scope = new SingleExpressionReader(_functions, variablesDictionary);
             var expr = scope.ReadNode(expression);
 
@@ -104,7 +101,6 @@ namespace Funny.Interpritation
                 return res;
             }
         }
-        
         
         private IExpressionNode GetOpNode(LexNode node)
         {
@@ -179,7 +175,6 @@ namespace Funny.Interpritation
             }
         }
 
-
         private IExpressionNode GetFunNode(LexNode node)
         {
             var id = node.Value.ToLower();
@@ -196,7 +191,7 @@ namespace Funny.Interpritation
             var function = _functions.GetOrNull(id, childrenTypes.ToArray());
             if (function == null)
                 throw new ParseException($"Function {id}({string.Join(", ", childrenTypes.ToArray())}) is not defined");
-            List<IExpressionNode> castedChildren = new List<IExpressionNode>();
+            var castedChildren = new List<IExpressionNode>();
             var i = 0;            
             foreach (var argNode in children)
             {

@@ -40,9 +40,7 @@ namespace Funny.Interpritation
             }
 
             if (_functions[function.Name].Any(a => a.ArgTypes.SequenceEqual(function.ArgTypes)))
-            {
                 return false;
-            }
             else
             {
                 _functions[function.Name].Add(function);
@@ -122,7 +120,7 @@ namespace Funny.Interpritation
             {
                 if(from[i]== to[i])
                     continue;
-                if (!from[i].CanBeConverted(to[i]))
+                if (!from[i].CanBeConvertedTo(to[i]))
                     return false;
             }
 

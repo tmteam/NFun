@@ -27,7 +27,6 @@ namespace Funny.Parsing
                 var id = flow.MoveIfOrThrow(TokType.Id).Value;
                 flow.SkipNewLines();
                 
-                
                 if (flow.IsCurrent(TokType.Def))
                 {
                     flow.MoveNext();
@@ -58,28 +57,13 @@ namespace Funny.Parsing
         private static VarType ReadType(TokenFlow flow)
         {
             if (flow.MoveIf(TokType.IsTypeOf, out _))
-                return ReadVarType(flow);
+                return flow.ReadVarType();
             else
                 return VarType.Real;
         }
+        
         private static VariableInfo ReadVarSpecification(TokenFlow flow, string id) 
-            => new VariableInfo(id, ReadVarType(flow));
-
-        private static VarType ReadVarType(TokenFlow flow)
-        {
-            var cur = flow.Current;
-            var readType = GetVarByToken(cur);
-            flow.MoveNext();
-
-            while (flow.IsCurrent(TokType.ArrOBr))
-            {
-                flow.MoveNext();
-                flow.MoveIfOrThrow(TokType.ArrCBr);
-                readType = VarType.ArrayOf(readType);
-            }
-            return readType;
-        }
-
+            => new VariableInfo(id, flow.ReadVarType());
 
         private static LexFunction ReadUserFunction(TokenFlow flow, LexNodeReader reader, string id)
         {
@@ -121,25 +105,6 @@ namespace Funny.Parsing
             if(exNode==null)
                 throw new ParseException("Epxression is wrong");
             return new LexEquation(id, exNode);
-        }
-        
-        private static VarType GetVarByToken(Tok tokType)
-        {
-            switch (tokType.Type)
-            {
-                case TokType.IntType:
-                    return  VarType.Int;
-                case TokType.RealType:
-                    return  VarType.Real;
-                case TokType.BoolType:
-                    return  VarType.Bool;
-                case TokType.TextType:
-                    return  VarType.Text;
-                case TokType.AnyType:
-                    return  VarType.Any;
-            }
-            throw new ParseException($"Expected: type, but was {tokType}");
-
         }
     }
 }
