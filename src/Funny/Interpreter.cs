@@ -36,6 +36,9 @@ namespace Funny
                 new MedianIntFunction(), 
                 new MedianRealFunction(),
                 new AnyFunction(), 
+                new SortIntFunction(), 
+                new SortRealFunction(), 
+                new SortTextFunction(), 
             };
             var predefinedGenerics = new GenericFunctionBase[]
             {

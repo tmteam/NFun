@@ -38,7 +38,9 @@ namespace Funny.Tests
         [TestCase("y = median([1,-10,0])",0)]        
         [TestCase( "y = [1.0,2.0,3.0]|>any",true)]
         [TestCase( "y = any([])",false)]
-
+        [TestCase( "y = [4,3,5,1] |> sort",new []{1,3,4,5})]
+        [TestCase( "y = [4.0,3.0,5.0,1.0] |> sort",new []{1.0,3.0,4.0,5.0})]
+        [TestCase( "y = ['4.0','3.0','5.0','1.0'] |> sort",new []{"1.0","3.0","4.0","5.0"})]
         public void ConstantEquationWithPredefinedFunction(string expr, object expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);

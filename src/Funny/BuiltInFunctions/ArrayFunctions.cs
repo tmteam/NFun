@@ -108,7 +108,43 @@ namespace Funny.BuiltInFunctions
         public override object Calc(object[] args) 
             => (args[0] as IEnumerable).Cast<int>().Max();
     }
+
+    public class SortIntFunction : FunctionBase
+    {
+        public SortIntFunction() : base("sort", VarType.ArrayOf(VarType.Int), VarType.ArrayOf(VarType.Int)){}
+
+        public override object Calc(object[] args)
+        {
+            var arr = (args[0] as IEnumerable).Cast<int>().ToArray();
+            Array.Sort(arr);
+            return arr;
+        }
+    }
     
+    public class SortTextFunction : FunctionBase
+    {
+        public SortTextFunction() : base("sort", VarType.ArrayOf(VarType.Text), VarType.ArrayOf(VarType.Text)){}
+
+        public override object Calc(object[] args)
+        {
+            var arr = (args[0] as IEnumerable).Cast<string>().ToArray();
+            Array.Sort(arr, StringComparer.InvariantCulture);
+            return arr;
+        }
+    }
+    
+    public class SortRealFunction : FunctionBase
+    {
+        public SortRealFunction() : base("sort", VarType.ArrayOf(VarType.Real), VarType.ArrayOf(VarType.Real)){}
+
+        public override object Calc(object[] args)
+        {
+            var arr = (args[0] as IEnumerable).Cast<object>().ToArray();
+            Array.Sort(arr);
+            return arr;
+        }
+    }
+
     public class AverageFunction : FunctionBase
     {
         public AverageFunction(): base("avg", VarType.Real, VarType.ArrayOf(VarType.Real)){}
