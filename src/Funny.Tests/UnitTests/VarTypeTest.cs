@@ -245,7 +245,7 @@ namespace Funny.Tests.UnitTests
             //Solving  T
             var solvingTypes =   new VarType[1];
             var concrete = VarType.Int;
-            VarType.SolveGenericTypes(solvingTypes, VarType.Generic(0), concrete);
+            VarType.TrySolveGenericTypes(solvingTypes, VarType.Generic(0), concrete);
             Assert.AreEqual(concrete, solvingTypes[0]);
         }
         
@@ -255,7 +255,7 @@ namespace Funny.Tests.UnitTests
             //Solving  T[]
             var solvingTypes =   new VarType[1];
             var concrete = VarType.Int;
-            VarType.SolveGenericTypes(solvingTypes, 
+            VarType.TrySolveGenericTypes(solvingTypes, 
                 VarType.ArrayOf(VarType.Generic(0)), 
                 VarType.ArrayOf(concrete));
             Assert.AreEqual(concrete, solvingTypes[0]);
@@ -269,7 +269,7 @@ namespace Funny.Tests.UnitTests
             var solvingTypes =   new VarType[1];
             var concrete = VarType.Text;
             
-            VarType.SolveGenericTypes(solvingTypes,
+            VarType.TrySolveGenericTypes(solvingTypes,
                 VarType.ArrayOf(VarType.Fun(VarType.Int, VarType.Generic(0))),
                 VarType.ArrayOf(VarType.Fun(VarType.Int, concrete))); 
                
@@ -284,7 +284,7 @@ namespace Funny.Tests.UnitTests
             var solvingTypes =   new VarType[2];
             var concrete1 = VarType.Text;
             var concrete2 = VarType.ArrayOf(VarType.Int);
-            VarType.SolveGenericTypes(solvingTypes,
+            VarType.TrySolveGenericTypes(solvingTypes,
                 VarType.Fun(VarType.ArrayOf(VarType.Generic(0)), VarType.Generic(1),VarType.ArrayOf(VarType.Generic(1))),
                 VarType.Fun(VarType.ArrayOf(concrete1), concrete2,VarType.ArrayOf(concrete2))
                 );

@@ -40,7 +40,8 @@ namespace Funny.Interpritation
                 return GetAnonymFun(node);
             if(StandartOperations.IsDefaultOp(node.Type))
                 return GetOpNode(node);
-            throw new ArgumentException($"Unknown lexnode type {node.Type}");
+            
+            throw new ParseException($"{node} is not an expression");
         }
 
         private IExpressionNode GetAnonymFun(LexNode node)
@@ -54,20 +55,41 @@ namespace Funny.Interpritation
                 throw new ParseException("Anonymous fun body is missing");
             
             var variablesDictionary = new Dictionary<string, VariableExpressionNode>();
-            if (defenition.Type == LexNodeType.Var)
-                variablesDictionary.Add(defenition.Value, new VariableExpressionNode(defenition.Value, VarType.Real));
-            else if(defenition.Type== LexNodeType.Argument)
-                variablesDictionary.Add(defenition.Value, new VariableExpressionNode(defenition.Value, (VarType)defenition.AdditionalContent));
+            
+            if (defenition.Type == LexNodeType.ListOfExpressions)
+            {
+                foreach (var arg in defenition.Children)
+                {
+                    var varNode =  ConvertToVarNodeOrThrow(arg);
+                    variablesDictionary.Add(varNode.Name, varNode);
+                }
+            }
             else
-                throw new ParseException("wrong defenition type "+ defenition.Type);
+            {
+                var varNode =  ConvertToVarNodeOrThrow(defenition);
+                variablesDictionary.Add(varNode.Name, varNode);
+            }
 
+            var originVariables = variablesDictionary.Keys.ToArray();
             var scope = new SingleExpressionReader(_functions, variablesDictionary);
             var expr = scope.ReadNode(expression);
 
+            ExpressionHelper.CheckForUnknownVariables(originVariables, variablesDictionary);
+     
             var fun = new UserFunction("anonymous", variablesDictionary.Values.ToArray(), expr);
             return new FunVariableExpressionNode(fun);
         }
 
+        private VariableExpressionNode ConvertToVarNodeOrThrow(LexNode defenition)
+        {
+            if (defenition.Type == LexNodeType.Var)
+                return new VariableExpressionNode(defenition.Value, VarType.Real);
+            else if(defenition.Type== LexNodeType.Argument)
+                return new VariableExpressionNode(defenition.Value, (VarType)defenition.AdditionalContent);
+            else
+                throw new ParseException(defenition + " is  not valid fun arg");
+        }
+        
         private IExpressionNode GetUniteArrayNode(LexNode node)
         {
             var left = node.Children.ElementAtOrDefault(0);

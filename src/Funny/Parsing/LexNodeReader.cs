@@ -70,6 +70,7 @@ namespace Funny.Parsing
             {
                 if (_flow.IsCurrent(TokType.Obr))
                     return ReadFunctionCall(headToken);
+                
                 if (_flow.IsCurrent(TokType.IsTypeOf))
                 {
                     _flow.MoveNext();
@@ -81,17 +82,29 @@ namespace Funny.Parsing
             }
 
             if (_flow.IsCurrent(TokType.Obr))
-                return ReadBrackedExpression();
+                return ReadBrackedList();
             if (_flow.IsCurrent(TokType.If))
                 return ReadIfThenElse();
             if (_flow.IsCurrent(TokType.ArrOBr))
                 return ReadInitializeArray();
-            
-                
             return null;
         }
 
-
+        IList<LexNode> ReadNodeList()
+        {            
+            var list = new List<LexNode>();
+            do
+            {
+                var exp = ReadExpressionOrNull();
+                if (exp != null)
+                    list.Add(exp);
+                else if (list.Count > 0)
+                    throw new ParseException("Expression expected");
+                else
+                    break;
+            } while (_flow.MoveIf(TokType.Sep, out _));
+            return list;
+        }
 
         LexNode ReadNext(int priority)
         {
@@ -173,33 +186,21 @@ namespace Funny.Parsing
         private LexNode ReadInitializeArray()
         {
             _flow.MoveIfOrThrow(TokType.ArrOBr);
-            
-            var arguments = new List<LexNode>();
-            while (true)
-            {
-                if (_flow.MoveIf(TokType.ArrCBr, out _))
-                    return LexNode.Array(arguments.ToArray());
-
-                if (arguments.Any())
-                    _flow.MoveIfOrThrow(TokType.Sep, @""","" or ""]"" expected");
-
-                var arg = ReadExpressionOrNull();
-                if(arg==null)
-                    throw new ParseException("Expression expected");
-                arguments.Add(arg);
-            }
+            var list = ReadNodeList();
+            _flow.MoveIfOrThrow(TokType.ArrCBr);
+            return LexNode.Array(list.ToArray());
         }
-        private LexNode ReadBrackedExpression()
+        private LexNode ReadBrackedList()
         {
             _flow.MoveNext();
-
-            var node = ReadExpressionOrNull();
-
-            if (node == null)
+            var nodeList = ReadNodeList();
+            if (nodeList.Count==0)
                 throw new ParseException("No expr. \"" + _flow.Current + "\" instead");
-
             _flow.MoveIfOrThrow(TokType.Cbr);
-            return node;
+            if (nodeList.Count == 1)
+                return nodeList[0];
+            else
+                return LexNode.ListOf(nodeList.ToArray());
         }
 
         private LexNode ReadIfThenElse()
@@ -236,31 +237,12 @@ namespace Funny.Parsing
                 else
                     throw new ParseException("'(' expected, but was " + _flow.Current);
             }
-
-            var arguments = new List<LexNode>();
+            var arguments = ReadNodeList();
             if(pipedVal!=null)
-                arguments.Add(pipedVal);
-
-            var hasArgInBracket = false;            
-            while (true)
-            {
-                if (_flow.MoveIf(TokType.Cbr, out _))
-                    return LexNode.Fun(id.Value, arguments.ToArray());
-
-                if (hasArgInBracket)
-                    _flow.MoveIfOrThrow(TokType.Sep, "\",\" or \")\" expected");
-
-                var arg = ReadExpressionOrNull();
-                if(arg==null)
-                    throw new ParseException("Expression expected");
-                hasArgInBracket = true;
-                arguments.Add(arg);
-            }
+                arguments.Insert(0,pipedVal);
+            _flow.MoveIfOrThrow(TokType.Cbr, "\",\" or \")\" expected");
+            return LexNode.Fun(id.Value, arguments.ToArray());
         }
-
         #endregion
-
-   
-
     }
 }

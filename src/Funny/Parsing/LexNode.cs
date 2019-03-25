@@ -79,6 +79,10 @@ namespace Funny.Parsing
                 AdditionalContent = type
             };
         }
+
+        public static LexNode ListOf(LexNode[] elements) 
+            => new LexNode(LexNodeType.ListOfExpressions, null, elements);
+
         public  LexNode(LexNodeType type, string value,params LexNode[] children)
         {
             Type = type;
@@ -140,5 +144,6 @@ namespace Funny.Parsing
         ArrayUnite,
         AnonymFun,
         Argument,
+        ListOfExpressions,
     }
 }

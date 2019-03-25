@@ -75,6 +75,11 @@ namespace Funny.Tests
         [TestCase( @"y = [1,2,3] |> map(i:int=>i*i)",new[]{1,4,9})]
         //[TestCase( @"y = [1,2,3] |> map(i=>i*i)",new[]{1,4,9})]
         [TestCase( @"y = [1.0,2.0,3.0] |> map(i=>i*i)",new[]{1.0,4.0,9.0})]
+        [TestCase( @"y = [1.0,2.0,3.0] |> fold((i,j)=>i+j)",6.0)]
+        [TestCase( @"y = fold([1.0,2.0,3.0],(i,j)=>i+j)",6.0)]
+        [TestCase( @"y = [1,2,3] |> fold((i:int, j:int)=>i+j)",6)]
+        [TestCase( @"y = fold([1,2,3],(i:int, j:int)=>i+j)",6)]
+
         public void AnonymousFunctions(string expr, object expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
@@ -133,10 +138,27 @@ namespace Funny.Tests
         [TestCase("y = add(1)")]
         [TestCase("y = add 1")]
         [TestCase("y = add(1,2,3)")]
+        [TestCase("y = [1.0] |> fold(((i,j)=>i+j)")]
+        [TestCase("f(i,j,k) = 12.0 \r y = f(((1,2),3)=>i+j)")]
+        [TestCase("f((i,j),k) = 12.0 \r y = f(((1,2),3)=>i+j)")]
+        [TestCase("y = fold(((i,j),k)=>i+j)")]
+
         [TestCase("y = avg(['1','2','3'])")]
         [TestCase("y= max([])")]
         [TestCase("y= max(['a','b'])")]
         [TestCase("y= max('a','b')")]
+        [TestCase("y= max(1,2,3)")]
+        [TestCase("y= max(1,true)")]
+        [TestCase("y= max(1,(j)=>j)")]
+
+        [TestCase( @"y = [1.0,2.0,3.0] |> fold((i*2,j)=>i+j)")]
+        [TestCase( @"y = [1.0,2.0,3.0] |> fold((2,j)=>i+j)")]
+        [TestCase( @"y = [1.0,2.0,3.0] |> fold((j)=>i+j)")]
+        [TestCase( @"y = [1.0,2.0,3.0] |> fold((j)=>j)")]
+        [TestCase( @"y = [1.0,2.0,3.0] |> fold((i,j,k)=>i+j+k)")]
+        [TestCase( @"y = [1.0,2.0,3.0] |> fold((i,j)=>i+j+k)")]
+        [TestCase( @"y = [1.0,2.0,3.0] |> fold((i,j)=> k)")]
+
         public void ObviouslyFails(string expr) =>
             Assert.Throws<ParseException>(
                 ()=> Interpreter.BuildOrThrow(expr));

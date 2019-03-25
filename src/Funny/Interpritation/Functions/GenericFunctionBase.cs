@@ -35,9 +35,13 @@ namespace Funny.Interpritation.Functions
                 return null;
             
             var solvingParams = new VarType[_maxGenericId+1];
-            
+
             for (int i = 0; i < ArgTypes.Length; i++)
-                VarType.SolveGenericTypes(solvingParams, ArgTypes[i], concreteArgTypes[i]);
+            {
+                if (!VarType.TrySolveGenericTypes(solvingParams, ArgTypes[i], concreteArgTypes[i]))
+                    return null;
+            }
+
             foreach (var solvingParam in solvingParams)
             {
                 if(solvingParam.BaseType== BaseVarType.Empty)

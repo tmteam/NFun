@@ -132,6 +132,9 @@ namespace Funny.Tests
         }
 
         [TestCase("y = [")]
+        [TestCase("y = [,]")]
+        [TestCase("y = [,1.0]")]
+        [TestCase("y = [,,1.0]")]
         [TestCase("y = [1.0::")]
         [TestCase("y = [1.0::]")]
         [TestCase("y = [1.0]::]")]

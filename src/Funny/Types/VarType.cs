@@ -149,34 +149,49 @@ namespace Funny.Types
                     throw new ArgumentOutOfRangeException();
             }
         }
-        public static void SolveGenericTypes(VarType[] genericArguments, VarType genericType, VarType concreteType)
+        public static bool TrySolveGenericTypes(VarType[] genericArguments, VarType genericType, VarType concreteType)
         {
             switch (genericType.BaseType)
             {
                 case BaseVarType.Generic:
+                {
                     var id = genericType.GenericId.Value;
                     if (genericArguments[id].BaseType == BaseVarType.Empty)
+                    {
                         genericArguments[id] = concreteType;
+                    }
                     else if (genericArguments[id] != concreteType)
-                        //type mismatch!
-                            throw new InvalidOperationException("inconsistence generic arguments");
-                    return;
+                    {
+                        return false;
+                    }
+
+                    return true;
+                }
                 case BaseVarType.ArrayOf when concreteType.BaseType!= BaseVarType.ArrayOf:
                     throw new InvalidOperationException("Invalid generic argument");
                 case BaseVarType.ArrayOf:
-                    SolveGenericTypes(genericArguments, genericType.ArrayTypeSpecification.VarType, concreteType.ArrayTypeSpecification.VarType);
-                    return;
+                    TrySolveGenericTypes(genericArguments, genericType.ArrayTypeSpecification.VarType, concreteType.ArrayTypeSpecification.VarType);
+                    return true;
                 case BaseVarType.Fun when concreteType.BaseType!= BaseVarType.Fun:
                     throw new InvalidOperationException("Invalid generic argument");
                 case BaseVarType.Fun:
                 {
                     var genericFun = genericType.FunTypeSpecification;
                     var concreteFun = concreteType.FunTypeSpecification;
-                    SolveGenericTypes(genericArguments, genericFun.Output, concreteFun.Output);
+                    
+                    if (!TrySolveGenericTypes(genericArguments, genericFun.Output, concreteFun.Output))
+                        return false;
+                    if (concreteFun.Inputs.Length != genericFun.Inputs.Length)
+                        return false;    
                     for (int i = 0; i < concreteFun.Inputs.Length; i++)
-                        SolveGenericTypes(genericArguments, genericFun.Inputs[i], concreteFun.Inputs[i]);                    
-                    return;
+                    {
+                        if (!TrySolveGenericTypes(genericArguments, genericFun.Inputs[i], concreteFun.Inputs[i]))
+                            return false;
+                    }
+                    return true;
                 }
+                default:
+                    return true;
             }
         }
 
