@@ -86,7 +86,7 @@ namespace Funny.Tests.UnitTests
         public void HasSomeFun_AddSome_returnsFalse()
         {
             var origin    = new FunMock("some", VarType.Int, VarType.Bool);
-            var overrided = new FunMock(origin.Name, VarType.Any, origin.ArgTypes);
+            var overrided = new FunMock(origin.Name, VarType.Anything, origin.ArgTypes);
 
             dic.Add(origin);
             Assert.IsFalse( dic.Add(overrided));
@@ -151,7 +151,7 @@ namespace Funny.Tests.UnitTests
         [Test]
         public void HasOverloadsWithGenericArray_ConcreteNeedToBeCasted_GetOrNull_ReturnsGeneric()
         {
-            var concreteFun = new FunMock("some", VarType.Text, VarType.Any);
+            var concreteFun = new FunMock("some", VarType.Text, VarType.Anything);
             var genericFun = new GenericFunMock("some", VarType.Generic(0), VarType.ArrayOf(VarType.Generic(0)));
             dic.Add(concreteFun);
             dic.Add(genericFun);
@@ -162,7 +162,7 @@ namespace Funny.Tests.UnitTests
         [Test]
         public void HasOverloadsWithGenericArray_ConcreteNeedCovariantCast_GetOrNull_ReturnsGeneric()
         {
-            var concreteFun = new FunMock("some", VarType.Text, VarType.ArrayOf(VarType.Any));
+            var concreteFun = new FunMock("some", VarType.Text, VarType.ArrayOf(VarType.Anything));
             var genericFun = new GenericFunMock("some", VarType.Generic(0), VarType.ArrayOf(VarType.Generic(0)));
             dic.Add(concreteFun);
             dic.Add(genericFun);

@@ -15,7 +15,7 @@ namespace Funny.Types
         
         public static VarType Empty => new VarType();
         public static VarType PrimitiveOf(BaseVarType baseType) => new VarType(baseType);
-        public static VarType  Any => new VarType(BaseVarType.Any);
+        public static VarType  Anything => new VarType(BaseVarType.Any);
         public static VarType  Bool => new VarType(BaseVarType.Bool);
         public static VarType  Int => new VarType(BaseVarType.Int);
         public static VarType  Real => new VarType(BaseVarType.Real);

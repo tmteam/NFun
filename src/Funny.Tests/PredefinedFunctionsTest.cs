@@ -36,6 +36,9 @@ namespace Funny.Tests
         [TestCase("y = min(4,3)",3)]
         [TestCase("y = median([1.0,10.5,6.0])",6.0)]
         [TestCase("y = median([1,-10,0])",0)]        
+        [TestCase( "y = [1.0,2.0,3.0]|>any",true)]
+        [TestCase( "y = any([])",false)]
+
         public void ConstantEquationWithPredefinedFunction(string expr, object expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
@@ -58,6 +61,10 @@ namespace Funny.Tests
                      y = map([1,2,3],ii)",new[]{0.5,1.0,1.5})]
         [TestCase( @"isodd(x:int):bool = (x%2) == 0
                      y = map([1,2,3],isodd)",new[]{false, true,false})]
+        [TestCase( "y = [1.0,2.0,3.0]|>any((i)=> i == 1.0)",true)]
+        [TestCase( "y = [1.0,2.0,3.0]|>any((i)=> i == 0.0)",false)]
+        [TestCase( "y = [1.0,2.0,3.0]|>all((i)=> i >0)",true)]
+        [TestCase( "y = [1.0,2.0,3.0]|>all((i)=> i >1.0)",false)]
         public void HiOrderFunConstantEquatation(string expr, object expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
@@ -100,6 +107,9 @@ namespace Funny.Tests
         [TestCase("y = repeat('abc',0)",new string[0])]        
         [TestCase("y = take(skip([1.0,2.0,3.0],1),1)",new []{2.0})]        
         [TestCase("mypage(x:int[]):int[] = take(skip(x,1),1) \r y = mypage([1,2,3]) ",new []{2})]        
+        [TestCase("y = [1,2,3]|> reverse",new[]{3,2,1})]
+        [TestCase("y = [1,2,3]|> reverse |> reverse",new[]{1,2,3})]
+        [TestCase("y = []|> reverse",new object[0])]
 
         public void ConstantEquationWithGenericPredefinedFunction(string expr, object expected)
         {

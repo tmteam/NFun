@@ -16,8 +16,8 @@ namespace Funny.Tokenization
                     return  VarType.Bool;
                 case TokType.TextType:
                     return  VarType.Text;
-                case TokType.AnyType:
-                    return  VarType.Any;
+                case TokType.AnythingType:
+                    return  VarType.Anything;
             }
             throw new ParseException($"Expected: type, but was {tokType}");
 

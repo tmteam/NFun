@@ -12,7 +12,7 @@ namespace Funny.Interpritation.Nodes
         {
             _elements = elements;
             if (!elements.Any())
-                Type = VarType.ArrayOf(VarType.Any);
+                Type = VarType.ArrayOf(VarType.Anything);
             else
             {
                 var elementType = elements[0].Type;

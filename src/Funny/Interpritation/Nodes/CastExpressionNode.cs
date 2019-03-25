@@ -28,11 +28,11 @@ namespace Funny.Interpritation.Nodes
                 return o=>Convert.ToDouble(o);
             if (to == VarType.Text)
                 return o => o?.ToString() ?? "";
-            if (to == VarType.Any)
+            if (to == VarType.Anything)
                 return o => o;
             if (from.BaseType == BaseVarType.ArrayOf && to.BaseType== BaseVarType.ArrayOf)
             {
-                if (to ==  VarType.ArrayOf(VarType.Any))
+                if (to ==  VarType.ArrayOf(VarType.Anything))
                     return o => o;
                 
                 var elementConverter = GetConverterOrThrow(from.ArrayTypeSpecification.VarType, to.ArrayTypeSpecification.VarType);

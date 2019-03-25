@@ -34,7 +34,8 @@ namespace Funny
                 new MultiSumIntFunction(), 
                 new MultiSumRealFunction(), 
                 new MedianIntFunction(), 
-                new MedianRealFunction() 
+                new MedianRealFunction(),
+                new AnyFunction(), 
             };
             var predefinedGenerics = new GenericFunctionBase[]
             {
@@ -45,6 +46,9 @@ namespace Funny
                 new RepeatGenericFunctionDefenition(),
                 new FilterGenericFunctionDefenition(),
                 new MapGenericFunctionDefenition(),
+                new AllGenericFunctionDefenition(), 
+                new AnyGenericFunctionDefenition(), 
+                new ReverseGenericFunctionDefenition(),
             };
             return ExpressionReader.Interpritate(lexTree, predefinedfunctions, predefinedGenerics);
         }

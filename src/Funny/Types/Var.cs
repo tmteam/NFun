@@ -20,7 +20,7 @@ namespace Funny.Types
             return new Var(name, value.ToArray(), vartype);
         }
         public static Var NewAny(string name, object value)
-            => new Var(name, value, VarType.Any);
+            => new Var(name, value, VarType.Anything);
         public static Var New(string name, object value)
         {
             if (value is int i)
@@ -42,7 +42,7 @@ namespace Funny.Types
                 return New(name, arrBool);
             if (value is IEnumerable<object> arrObj)
                 return New(name, arrObj);
-            return new Var(name, value, VarType.Any);
+            return new Var(name, value, VarType.Anything);
         }
         public static Var New(string name, bool value) 
             => new Var(name, value, VarType.Bool);
@@ -56,7 +56,7 @@ namespace Funny.Types
         public  static VarType ToVarType(Type t)
         {
             if (t == typeof(object))
-                return VarType.Any;
+                return VarType.Anything;
             if (t == typeof(int))
                 return VarType.Int;
             if (t == typeof(double))

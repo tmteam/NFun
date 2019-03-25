@@ -70,7 +70,7 @@ namespace Funny.Tests
                     mytostr(a:real):text    =  'real: '+a  
                     mytostr(a:int):text     =  'int: '+a  
                     mytostr(a:text):text    =  'text: '+a 
-                    mytostr(a:any):text     =  'any: '+a 
+                    mytostr(a:anything):text=  'any: '+a 
                     mytostr(a:int[]):text   =  'int[]: '+a 
             
         r = mytostr(1.0)

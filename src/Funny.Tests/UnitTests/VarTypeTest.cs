@@ -79,7 +79,7 @@ namespace Funny.Tests.UnitTests
                 outputType: VarType.ArrayOf(VarType.Fun(VarType.Int, VarType.Text)),
                 inputTypes: 
                         new []{
-                            VarType.ArrayOf(VarType.Any),
+                            VarType.ArrayOf(VarType.Anything),
                             VarType.Fun(
                                 outputType: VarType.ArrayOf(VarType.Real), 
                                 inputTypes: VarType.Fun(
@@ -92,7 +92,7 @@ namespace Funny.Tests.UnitTests
                 outputType: VarType.ArrayOf(VarType.Fun(VarType.Int, VarType.Text)),
                 inputTypes: 
                 new []{
-                    VarType.ArrayOf(VarType.Any),
+                    VarType.ArrayOf(VarType.Anything),
                     VarType.Fun(
                         outputType: VarType.ArrayOf(VarType.Real), 
                         inputTypes: VarType.Fun(

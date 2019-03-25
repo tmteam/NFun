@@ -42,7 +42,40 @@ namespace Funny.BuiltInFunctions
             return res; 
         }
     }
+    public class AnyGenericFunctionDefenition : GenericFunctionBase
+    {
+        public AnyGenericFunctionDefenition() : base("any", 
+            VarType.Bool,
+            VarType.ArrayOf(VarType.Generic(0)),
+            VarType.Fun(VarType.Bool, VarType.Generic(0)))
+        {
+        }
 
+        public override object Calc(object[] args)
+        {
+            var arr = (args[0] as IEnumerable).Cast<object>();
+            var filter = args[1] as FunctionBase;
+
+            return arr.Any(a => (bool) filter.Calc(new[] {a}));
+        }
+    }
+    public class AllGenericFunctionDefenition : GenericFunctionBase
+    {
+        public AllGenericFunctionDefenition() : base("all", 
+            VarType.Bool,
+            VarType.ArrayOf(VarType.Generic(0)),
+            VarType.Fun(VarType.Bool, VarType.Generic(0)))
+        {
+        }
+
+        public override object Calc(object[] args)
+        {
+            var arr = (args[0] as IEnumerable).Cast<object>();
+            var filter = args[1] as FunctionBase;
+
+            return arr.All(a => (bool) filter.Calc(new[] {a}));
+        }
+    }
     public class FilterGenericFunctionDefenition : GenericFunctionBase
     {
         public FilterGenericFunctionDefenition() : base("filter", 
@@ -92,6 +125,21 @@ namespace Funny.BuiltInFunctions
             var arrRight = (args[1] as IEnumerable).Cast<object>();
 
             return arrLeft.Concat(arrRight);
+        }
+    }
+    
+    public class ReverseGenericFunctionDefenition: GenericFunctionBase
+    {
+        public ReverseGenericFunctionDefenition() : base("reverse", 
+            VarType.ArrayOf(VarType.Generic(0)), 
+            VarType.ArrayOf(VarType.Generic(0)))
+        {
+        }
+
+        public override object Calc(object[] args)
+        {
+            var arr = (args[0] as IEnumerable).Cast<object>();
+            return arr.Reverse().ToArray();
         }
     }
     public class TakeGenericFunctionDefenition: GenericFunctionBase

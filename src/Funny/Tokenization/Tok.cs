@@ -108,7 +108,7 @@ namespace Funny.Tokenization
         IntType,
         RealType,
         BoolType,
-        AnyType,
+        AnythingType,
         /// <summary>
         /// |>
         /// </summary>
