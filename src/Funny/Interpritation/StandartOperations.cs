@@ -30,13 +30,9 @@ namespace Funny.Interpritation
                             return new OpExpressionNodeOfT<string, object,string>(left,right, (l,r)=>
                             {
                                 if (r is IEnumerable en && !(r is string))
-                                {
                                     return l +'['+string.Join(',', en.Cast<object>()) + ']';
-                                }
                                  else
-                                {
                                    return l + r;
-                                }
                             });
                         default:
                             throw new OutpuCastParseException($"\"{type}\" cast error. Left operand is {left.Type} and right is {right.Type}");
@@ -119,6 +115,17 @@ namespace Funny.Interpritation
                     return GetBooleanOpOrThrow(type, left, right, (a, b) =>  a != b);
                 case LexNodeType.Equal:
                     return new EqualityExpressionNode(left,right, equal:true);
+                case LexNodeType.BitOr:
+                    return new OpExpressionNodeOfT<int,int,int>(left,right, (l,r)=> l | r);
+                case LexNodeType.BitAnd:
+                    return new OpExpressionNodeOfT<int,int,int>(left,right, (l,r)=> l & r);
+                case LexNodeType.BitXor:
+                    return new OpExpressionNodeOfT<int,int,int>(left,right, (l,r)=> l ^ r);
+                case LexNodeType.BitShiftLeft:
+                    return new OpExpressionNodeOfT<int,int,int>(left,right, (l,r)=> l << r);
+                case LexNodeType.BitShiftRight:
+                    return new OpExpressionNodeOfT<int,int,int>(left,right, (l,r)=> l >> r);
+
 /*
                     switch (left.Type.BaseType)
                     {
@@ -226,7 +233,31 @@ namespace Funny.Interpritation
             return new OpExpressionNodeOfT<bool, bool, bool>(left, right,op);
         }
 
-        public static bool IsDefaultOp(LexNodeType type) => _ops.ContainsKey(type);
+        public static bool IsDefaultOp(LexNodeType type) => ops.Contains(type);
+        private static HashSet<LexNodeType> ops = new HashSet<LexNodeType>
+        {
+            LexNodeType.Plus,
+            LexNodeType.Minus,
+            LexNodeType.Div, 
+            LexNodeType.Mult,
+            LexNodeType.Pow,
+            LexNodeType.Rema,
+            LexNodeType.And, 
+            LexNodeType.Or,
+            LexNodeType.Xor,
+            LexNodeType.Equal, 
+            LexNodeType.NotEqual,
+            LexNodeType.Less,
+            LexNodeType.LessOrEqual,
+            LexNodeType.More,
+            LexNodeType.MoreOrEqual,
+            LexNodeType.BitOr,
+            LexNodeType.BitAnd,
+            LexNodeType.BitXor,
+            LexNodeType.BitShiftLeft,
+            LexNodeType.BitShiftRight,
+        };
+
         private static Dictionary<LexNodeType, Func<double, double, double>> _ops =
             new Dictionary<LexNodeType, Func<double, double, double>>()
             {

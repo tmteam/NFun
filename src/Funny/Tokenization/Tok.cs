@@ -2,7 +2,6 @@ namespace Funny.Tokenization
 {
     public class Tok
     {
-        
          Tok(TokType type,string value,int finish)
         {
             Value = value;
@@ -75,6 +74,11 @@ namespace Funny.Tokenization
         /// ::
         /// </summary>
         ArrUnite,
+        BitOr,
+        BitAnd,
+        BitXor,
+        BitShiftLeft,
+        BitShiftRight,
         Id,
         /// <summary>
         /// =

@@ -46,6 +46,16 @@ namespace Funny.Parsing
                     return LexNodeType.LessOrEqual;
                 case TokType.MoreOrEqual:
                     return LexNodeType.MoreOrEqual;
+                case TokType.BitOr:
+                    return LexNodeType.BitOr;
+                case TokType.BitAnd:
+                    return LexNodeType.BitAnd;
+                case TokType.BitXor:
+                    return LexNodeType.BitXor;
+                case TokType.BitShiftLeft:
+                    return LexNodeType.BitShiftLeft;
+                case TokType.BitShiftRight:
+                    return LexNodeType.BitShiftRight;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(tok), tok, null);
             }
@@ -145,5 +155,10 @@ namespace Funny.Parsing
         AnonymFun,
         Argument,
         ListOfExpressions,
+        BitOr,
+        BitAnd,
+        BitXor,
+        BitShiftLeft,
+        BitShiftRight
     }
 }

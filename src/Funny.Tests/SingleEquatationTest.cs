@@ -34,9 +34,19 @@ namespace Funny.Tests
         [TestCase("y = 0b001  ",1)]
         [TestCase("y = 0b11  ",3)]
         [TestCase("y = 0x_1",1)]
-        public void SingleConstantEquation(string expr, object expected)
+        [TestCase("y = 1 & 1",1)]
+        [TestCase("y = 1 & 2",0)]
+        [TestCase("y = 1 & 3",1)]
+        [TestCase("y = 0 | 2",2)]
+        [TestCase("y = 1 | 2",3)]
+        [TestCase("y = 1 | 4",5)]
+        [TestCase("y = 1 ^ 0",1)]
+        [TestCase("y = 1 ^ 1",0)]
+        [TestCase("y = 1 ^ 1",0)]
+        [TestCase("y = 1 << 3",8)]
+        [TestCase("y = 8 >> 3",1)]
+        public void NumbersConstantEquation(string expr, object expected)
         {
-            
             var runtime = Interpreter.BuildOrThrow(expr);
             var res = runtime.Calculate();
             Assert.AreEqual(1, res.Results.Length);
@@ -107,7 +117,7 @@ namespace Funny.Tests
         [TestCase("y = x- x",3,0)]
         [TestCase("y = 4+ x",3,7)]
         [TestCase("y = (x + 4/x)",2,4)]
-        [TestCase("y = x^3", 2,8)]
+        [TestCase("y = x**3", 2,8)]
         [TestCase("y = x%3", 2,2)]
         [TestCase("y = x%4", 5,1)]
         [TestCase("y = x%-4", 5,1)]

@@ -18,7 +18,7 @@ namespace Funny.Tests.UnitTests
         [TestCase("x > y",   TokType.Id, TokType.More,         TokType.Id)]
         [TestCase("x >= y",  TokType.Id, TokType.MoreOrEqual,  TokType.Id)]
         [TestCase("x == y",  TokType.Id, TokType.Equal,        TokType.Id)]
-        [TestCase("x^y",     TokType.Id, TokType.Pow,          TokType.Id)]
+        [TestCase("x**y",     TokType.Id, TokType.Pow,          TokType.Id)]
         [TestCase("x=y",     TokType.Id, TokType.Def,          TokType.Id)]
         [TestCase("o = a and b",  TokType.Id, TokType.Def, TokType.Id, TokType.And,TokType.Id)]
         [TestCase("o = a == b",TokType.Id, TokType.Def, TokType.Id, TokType.Equal,TokType.Id)]

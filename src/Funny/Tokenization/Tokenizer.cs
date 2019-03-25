@@ -24,12 +24,12 @@ namespace Funny.Tokenization
         private readonly Dictionary<char, TokType> _symbols = new Dictionary<char, TokType>
         {
             {',', TokType.Sep},
+            {'&', TokType.BitAnd},
+            {'^', TokType.BitXor},
             {'/', TokType.Div},
-            {'*', TokType.Mult},
             {'+', TokType.Plus},
             {'-', TokType.Minus},
             {'%', TokType.Rema},
-            {'^', TokType.Pow},
             {'(', TokType.Obr},
             {')', TokType.Cbr},
             {'[', TokType.ArrOBr},
@@ -107,18 +107,28 @@ namespace Funny.Tokenization
             
             switch (current)
             {
+                case '*' when  next == '*':
+                    return Tok.New(TokType.Pow, position+2);
+                case '*' :
+                    return Tok.New(TokType.Mult, position+1);
                 case '|' when  next == '>':
                     return Tok.New(TokType.PipeForward, position+2);
+                case '|':
+                    return Tok.New(TokType.BitOr, position+1);
                 case ':' when  next == ':':
                     return Tok.New(TokType.ArrUnite, position+2);
                 case ':' :
                     return Tok.New(TokType.IsTypeOf, position+1);
                 case '>' when next == '=':
                     return  Tok.New(TokType.MoreOrEqual, position + 2);
+                case '>' when next == '>':
+                    return  Tok.New(TokType.BitShiftRight, position + 2);
                 case '>':
                     return Tok.New(TokType.More, position + 1);
                 case '<' when  next == '=':
                     return Tok.New(TokType.LessOrEqual, position + 2);
+                case '<' when  next == '<':
+                    return Tok.New(TokType.BitShiftLeft, position + 2);
                 case '<' when next == '>':
                     return Tok.New(TokType.NotEqual, position+2);
                 case '<':

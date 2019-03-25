@@ -15,7 +15,7 @@ namespace Funny.Tests
         }
         [TestCase("y = 2",BaseVarType.Int)]
         [TestCase("y = 2*3",BaseVarType.Int)]
-        [TestCase("y = 2^3",BaseVarType.Int)]
+        [TestCase("y = 2**3",BaseVarType.Int)]
         [TestCase("y = 2%3",BaseVarType.Int)]
 
         [TestCase("y = 4/3",BaseVarType.Real)]
@@ -31,8 +31,8 @@ namespace Funny.Tests
         [TestCase("y = 4*0.2",BaseVarType.Real)]
         [TestCase("y = 4/0.2",BaseVarType.Real)]
         [TestCase("y = 4/0.2",BaseVarType.Real)]
-        [TestCase("y = 2^0.3",BaseVarType.Real)]
-        [TestCase("y = 0.2^2",BaseVarType.Real)]
+        [TestCase("y = 2**0.3",BaseVarType.Real)]
+        [TestCase("y = 0.2**2",BaseVarType.Real)]
         [TestCase("y = 0.2%2",BaseVarType.Real)]
         [TestCase("y = 3%0.2",BaseVarType.Real)]
 
@@ -57,7 +57,6 @@ namespace Funny.Tests
         [TestCase("y = true and true", BaseVarType.Bool)]
         [TestCase("y = true or true", BaseVarType.Bool)]
         [TestCase("y = true xor true", BaseVarType.Bool)]
-
         [TestCase("y=\"\"", BaseVarType.Text)]
         [TestCase("y=''", BaseVarType.Text)]
         [TestCase("y='hi world'", BaseVarType.Text)]
@@ -66,6 +65,12 @@ namespace Funny.Tests
         [TestCase("y='hi world'+true+5", BaseVarType.Text)]
         [TestCase("y=''+true+5", BaseVarType.Text)]
         [TestCase("y='hi'+'world'", BaseVarType.Text)]
+        [TestCase("y = 1<<2", BaseVarType.Int)]
+        [TestCase("y = 8>>2", BaseVarType.Int)]
+        [TestCase("y = 3|2", BaseVarType.Int)]
+        [TestCase("y = 3^2", BaseVarType.Int)]
+        [TestCase("y = 4&2", BaseVarType.Int)]
+
         public void SingleEquation_OutputTypeCalculatesCorrect(string expr, BaseVarType type)
         {
             

@@ -30,6 +30,11 @@ namespace Funny.Parsing
                 {TokType.Minus, 4},
                 {TokType.Or, 4},
                 {TokType.Xor, 4},
+                {TokType.BitShiftLeft, 4},
+                {TokType.BitShiftRight, 4},
+                {TokType.BitAnd, 4},
+                {TokType.BitXor, 4},
+                {TokType.BitOr,  5},
                 {TokType.PipeForward,5},
             };
 

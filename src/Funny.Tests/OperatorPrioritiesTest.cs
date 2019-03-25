@@ -65,12 +65,12 @@ namespace Funny.Tests
         [TestCase("y = 4/2+1",  "y = (4/2)+1")]
         [TestCase("y = 5*4/2",  "y = (5*4)/2")]
         [TestCase("y = 4/2*5",  "y = (4/2)*5")]
-        [TestCase("y = 2^3*4",  "y = (2^3)*4")]
-        [TestCase("y = 4*2^3",  "y = 4*(2^3)")]
-        [TestCase("y = 2^3/4",  "y = (2^3)/4")]
-        [TestCase("y = 4/2^3",  "y = 4/(2^3)")]
-        [TestCase("y = 2^3+4",  "y = (2^3)+4")]
-        [TestCase("y = 4+2^3",  "y = 4+(2^3)")]
+        [TestCase("y = 2**3*4",  "y = (2**3)*4")]
+        [TestCase("y = 4*2**3",  "y = 4*(2**3)")]
+        [TestCase("y = 2**3/4",  "y = (2**3)/4")]
+        [TestCase("y = 4/2**3",  "y = 4/(2**3)")]
+        [TestCase("y = 2**3+4",  "y = (2**3)+4")]
+        [TestCase("y = 4+2**3",  "y = 4+(2**3)")]
         
         public void ArithmeticPriorities(string actualExpr, string expectedExpr)
         {
