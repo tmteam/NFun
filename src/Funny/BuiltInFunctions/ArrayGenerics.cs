@@ -1,10 +1,42 @@
+using System;
 using System.Collections;
 using System.Linq;
 using Funny.Interpritation.Functions;
+using Funny.Runtime;
 using Funny.Types;
 
 namespace Funny.BuiltInFunctions
 {
+    public class GetGenericFunctionDefenition : GenericFunctionBase
+    {
+        public const string Id = "get";
+        public GetGenericFunctionDefenition() : base(Id, 
+            VarType.Generic(0),
+            VarType.ArrayOf(VarType.Generic(0)),
+            VarType.Int)
+        {
+        }
+
+        public override object Calc(object[] args)
+        {
+            var index = (int)args[1];
+            if(index<0)
+                throw new FunRuntimeException("Argument out of range");
+                
+            if (args[0] is IList list)
+            {
+                if(list.Count<= index)
+                    throw new FunRuntimeException("Argument out of range");
+                return list[index];
+            }
+            
+            var arr = (args[0] as IEnumerable).Cast<Object>();
+            var res =  arr.ElementAtOrDefault(index);
+            if(res==null)
+                throw new FunRuntimeException("Argument out of range");
+            return res;
+        }
+    }
     public class FoldGenericFunctionDefenition : GenericFunctionBase
     {
         public FoldGenericFunctionDefenition() : base("fold", 

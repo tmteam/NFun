@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Funny.BuiltInFunctions;
 using Funny.Interpritation.Nodes;
 using Funny.Tokenization;
 using Funny.Types;
@@ -15,6 +16,7 @@ namespace Funny.Parsing
             {
                 {TokType.AnonymFun,0},
                 {TokType.ArrUnite,0},
+                {TokType.ArrOBr,0},
                 {TokType.Equal, 1},
                 {TokType.NotEqual, 1},
                 {TokType.More, 1},
@@ -114,7 +116,7 @@ namespace Funny.Parsing
                 // 1*2+3 {return whole expression }
                 if (_flow.IsDone)
                     return leftNode;
-
+                
                 var currentOp = _flow.Current.Type;
                 //if current token is not an operation
                 //than expression is done
@@ -132,8 +134,14 @@ namespace Funny.Parsing
                 
                 if (leftNode == null)
                     throw new FunParseException($"{currentOp} without left arg");
-                
-                if (currentOp == TokType.PipeForward)
+                if (currentOp == TokType.ArrOBr)
+                {
+                    _flow.MoveNext();
+                    var index = ReadExpressionOrNull();
+                    _flow.MoveIfOrThrow(TokType.ArrCBr);
+                    leftNode = LexNode.Fun(GetGenericFunctionDefenition.Id, new []{leftNode, index});
+                }
+                else if (currentOp == TokType.PipeForward)
                 {
                     _flow.MoveNext();
                     var id = _flow.MoveIfOrThrow(TokType.Id,"function name expected");

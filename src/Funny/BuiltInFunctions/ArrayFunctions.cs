@@ -90,6 +90,7 @@ namespace Funny.BuiltInFunctions
             return result;
         }
     }
+    
     public class MedianRealFunction: FunctionBase{
         public MedianRealFunction() : base("median",VarType.Real, VarType.ArrayOf(VarType.Real))
         {

@@ -42,10 +42,10 @@ namespace Funny
                 new RangeIntFunction(),
                 new RangeWithStepIntFunction(),
                 new RangeWithStepRealFunction(), 
-
             };
             var predefinedGenerics = new GenericFunctionBase[]
             {
+                new GetGenericFunctionDefenition(),
                 new FoldGenericFunctionDefenition(),
                 new TakeGenericFunctionDefenition(),
                 new SkipGenericFunctionDefenition(),
