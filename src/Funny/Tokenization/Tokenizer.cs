@@ -62,6 +62,13 @@ namespace Funny.Tokenization
             if (current == ' ' || current == '\t')
                 return TryReadNext(str, position + 1);
 
+            if (current == '/')
+            {
+                var newPosition = SkipComments(str, position);
+                if (newPosition != position)
+                    return TryReadNext(str, newPosition);
+            }
+
             if(current== 0)
                 return  Tok.New(TokType.Eof, "", position+1);
             
@@ -82,10 +89,37 @@ namespace Funny.Tokenization
 
             if (IsQuote(current))
                 return ReadText(str, position);
-
+            
             return Tok.New(TokType.NotAToken, null, position+1);
         }
-
+        private int SkipComments(string str, int position){
+            //int start = position;
+            if(str[position]!='/')
+                return position;
+            if(str.Length== position+1)
+                return position;
+            if (str[position + 1] == '/')
+            {
+                //singleLineComment
+                int index = position+2;
+                for (; index < str.Length && str[index] != '\r' && str[index] != '\n' ; index++) ;
+                return index;
+            }
+            else if(str[position+1]== '*')
+            {
+                //multiline comments
+                int index = position+2;
+                for (; index < str.Length; index++)
+                {
+                    if (str[index - 1] == '*' && str[index] == '/')
+                        return index + 1;
+                }
+                
+                throw new ParseException("Multiline comment not closed.  '*/' not found");
+            }
+            else
+                return position;
+        }
         private Tok ReadIdOrKeyword(string str, int position)
         {
             int start = position;
