@@ -20,11 +20,14 @@ namespace Funny.Tests
         [TestCase("y = [3.0..1.0..0.5]", new[]{3.0,2.5,2.0,1.5, 1.0})]
         [TestCase("y = [1..3..0.5]", new[]{1.0,1.5,2.0,2.5,3.0})]
         [TestCase("y = [1..1]", new[]{1})]
+
         [TestCase("y = [0..10][0]", new[]{0})]
         [TestCase("y = [0..10][10]", new[]{9})]
         [TestCase("y = [0..10][2:5]", new[]{2,3,4,5})]
         [TestCase("y = [0..10][:5]", new[]{0,1,2,3,4,5})]
         [TestCase("y = [0..10][5:]", new[]{5,6,7,8,9,10})]
+        [TestCase("y = ['a','b'][0]", new[]{"a"})]
+        [TestCase("y = ['a','b'][1]", new[]{"b"})]
         [TestCase("y = [1,2,3][:]", new[]{1,2,3})]
         [TestCase("y = [0..10][1:2:7]", new[]{1,3,5,7})]
         [TestCase("y = [0..10][1:2:]", new[]{1,3,5,7,9})]
@@ -181,6 +184,8 @@ namespace Funny.Tests
         [TestCase("y = [4..1..-2.0]")]
         [TestCase("y = [1..4..-2.0]")]
         [TestCase("y = [1..4..0]")]
+        [TestCase("y = [0..10][11]")]
+        [TestCase("y = ['a','b'][2]")]
         public void ObviouslyFailsOnRuntime(string expr) =>
             Assert.Throws<FunRuntimeException>(
                 ()=> Interpreter.BuildOrThrow(expr).Calculate());
