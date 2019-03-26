@@ -13,9 +13,9 @@ namespace Funny.Interpritation
             if (unknownVariables.Any())
             {
                 if (unknownVariables.Count() == 1)
-                    throw new ParseException($"Unknown variable \"{unknownVariables.First()}\"");
+                    throw new FunParseException($"Unknown variable \"{unknownVariables.First()}\"");
                 else
-                    throw new ParseException($"Unknown variables \"{string.Join(", ", unknownVariables)}\"");
+                    throw new FunParseException($"Unknown variables \"{string.Join(", ", unknownVariables)}\"");
             }
         }
     }

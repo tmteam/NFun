@@ -82,7 +82,7 @@ namespace Funny.Interpritation
             {
                 var prototype = GetFunctionPrototype(userFun);
                 if (!_functions.Add(prototype))
-                    throw new ParseException($"Function {prototype} already exist");
+                    throw new FunParseException($"Function {prototype} already exist");
             }
 
             foreach (var userFun in _lexTreeUserFuns)

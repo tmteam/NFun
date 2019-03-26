@@ -41,6 +41,10 @@ namespace Funny.Tests
         [TestCase( "y = [4,3,5,1] |> sort",new []{1,3,4,5})]
         [TestCase( "y = [4.0,3.0,5.0,1.0] |> sort",new []{1.0,3.0,4.0,5.0})]
         [TestCase( "y = ['4.0','3.0','5.0','1.0'] |> sort",new []{"1.0","3.0","4.0","5.0"})]
+        [TestCase("y = range(0,5)",new []{0,1,2,3,4,5})]
+        [TestCase("y = range(7,10)",new []{7,8,9,10})]
+        [TestCase("y = range(1,10,2)",new []{1,3,5,7,9})]
+
         public void ConstantEquationWithPredefinedFunction(string expr, object expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
@@ -172,7 +176,7 @@ namespace Funny.Tests
         [TestCase( @"y = [1.0,2.0,3.0] |> fold((i,j)=> k)")]
 
         public void ObviouslyFails(string expr) =>
-            Assert.Throws<ParseException>(
+            Assert.Throws<FunParseException>(
                 ()=> Interpreter.BuildOrThrow(expr));
         
     }

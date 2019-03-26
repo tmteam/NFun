@@ -54,12 +54,12 @@ namespace Funny.Parsing
             if (_flow.IsCurrent(TokType.Minus))
             {
                 if (_flow.IsPrevious(TokType.Minus))
-                    throw new ParseException("minus duplicates");
+                    throw new FunParseException("minus duplicates");
 
                 _flow.MoveNext();
                 var nextNode = ReadAtomicOrNull();
                 if (nextNode == null)
-                    throw new ParseException("minus without next val");
+                    throw new FunParseException("minus without next val");
                 return LexNode.Op(LexNodeType.Mult, LexNode.Num("-1"), nextNode);
             }
             
@@ -76,7 +76,7 @@ namespace Funny.Parsing
                 if (_flow.IsCurrent(TokType.Obr))
                     return ReadFunctionCall(headToken);
                 
-                if (_flow.IsCurrent(TokType.IsTypeOf))
+                if (_flow.IsCurrent(TokType.Сolon))
                 {
                     _flow.MoveNext();
                     var type = _flow.ReadVarType();
@@ -95,21 +95,6 @@ namespace Funny.Parsing
             return null;
         }
 
-        IList<LexNode> ReadNodeList()
-        {            
-            var list = new List<LexNode>();
-            do
-            {
-                var exp = ReadExpressionOrNull();
-                if (exp != null)
-                    list.Add(exp);
-                else if (list.Count > 0)
-                    throw new ParseException("Expression expected");
-                else
-                    break;
-            } while (_flow.MoveIf(TokType.Sep, out _));
-            return list;
-        }
 
         LexNode ReadNext(int priority)
         {
@@ -146,7 +131,7 @@ namespace Funny.Parsing
                     return leftNode;
                 
                 if (leftNode == null)
-                    throw new ParseException($"{currentOp} without left arg");
+                    throw new FunParseException($"{currentOp} without left arg");
                 
                 if (currentOp == TokType.PipeForward)
                 {
@@ -167,7 +152,7 @@ namespace Funny.Parsing
 
                     var rightNode = ReadNext(priority - 1);
                     if (rightNode == null)
-                        throw new ParseException($"{currentOp} without right arg");
+                        throw new FunParseException($"{currentOp} without right arg");
 
                     //building the tree from the left
                     leftNode = LexNode.Op(currentOp, leftNode, rightNode);
@@ -188,10 +173,50 @@ namespace Funny.Parsing
 
 
         #region  read concreete
+        IList<LexNode> ReadNodeList()
+        {            
+            var list = new List<LexNode>();
+            do
+            {
+                var exp = ReadExpressionOrNull();
+                if (exp != null)
+                    list.Add(exp);
+                else if (list.Count > 0)
+                    throw new FunParseException("Expression expected");
+                else
+                    break;
+            } while (_flow.MoveIf(TokType.Sep, out _));
+            return list;
+        }
+
         private LexNode ReadInitializeArray()
         {
             _flow.MoveIfOrThrow(TokType.ArrOBr);
             var list = ReadNodeList();
+            if (list.Count == 1 && _flow.MoveIf(TokType.TwoDots, out _))
+            {
+                var secondArg = ReadExpressionOrNull();
+                if (secondArg == null)
+                    throw new FunParseException("Expression expected, but was " + _flow.Current);
+                if (_flow.MoveIf(TokType.TwoDots, out _))
+                {
+                    var thirdArg = ReadExpressionOrNull();
+                    if (thirdArg == null)
+                        throw new FunParseException("Expression expected, but was " + _flow.Current);
+                    _flow.MoveIfOrThrow(TokType.ArrCBr);
+                    return LexNode.ProcArrayInit(
+                        start: list[0],
+                        step: secondArg,
+                        end: thirdArg);
+                }
+                else
+                {
+                    _flow.MoveIfOrThrow(TokType.ArrCBr);
+                    return LexNode.ProcArrayInit(
+                        start: list[0], 
+                        end: secondArg);
+                }
+            }
             _flow.MoveIfOrThrow(TokType.ArrCBr);
             return LexNode.Array(list.ToArray());
         }
@@ -200,7 +225,7 @@ namespace Funny.Parsing
             _flow.MoveNext();
             var nodeList = ReadNodeList();
             if (nodeList.Count==0)
-                throw new ParseException("No expr. \"" + _flow.Current + "\" instead");
+                throw new FunParseException("No expr. \"" + _flow.Current + "\" instead");
             _flow.MoveIfOrThrow(TokType.Cbr);
             if (nodeList.Count == 1)
                 return nodeList[0];
@@ -216,18 +241,18 @@ namespace Funny.Parsing
                 _flow.MoveIfOrThrow(TokType.If);
                 var condition = ReadExpressionOrNull();
                 if (condition == null)
-                    throw new ParseException("condition expression is missing");
+                    throw new FunParseException("condition expression is missing");
                 _flow.MoveIfOrThrow(TokType.Then);
                 var thenResult = ReadExpressionOrNull();
                 if (thenResult == null)
-                    throw new ParseException("then expression is missing");
+                    throw new FunParseException("then expression is missing");
                 ifThenNodes.Add(LexNode.IfThen(condition, thenResult));
             } while (!_flow.IsCurrent(TokType.Else));
 
             _flow.MoveIfOrThrow(TokType.Else);
             var elseResult = ReadExpressionOrNull();
             if (elseResult == null)
-                throw new ParseException("else expression is missing");
+                throw new FunParseException("else expression is missing");
             return LexNode.IfElse(ifThenNodes, elseResult);
         }
 
@@ -240,7 +265,7 @@ namespace Funny.Parsing
                 if (pipedVal != null) 
                     return LexNode.Fun(id.Value, new[] {pipedVal});
                 else
-                    throw new ParseException("'(' expected, but was " + _flow.Current);
+                    throw new FunParseException("'(' expected, but was " + _flow.Current);
             }
             var arguments = ReadNodeList();
             if(pipedVal!=null)

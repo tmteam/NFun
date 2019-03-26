@@ -66,7 +66,7 @@ namespace Funny.Tests
                     /*b*/z=/*c/ = true")]
         
         public void ObviouslyFails(string expr) =>
-            Assert.Throws<ParseException>(
+            Assert.Throws<FunParseException>(
                 ()=> Interpreter.BuildOrThrow(expr));
     }
 }

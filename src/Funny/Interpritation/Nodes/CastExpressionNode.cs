@@ -38,7 +38,7 @@ namespace Funny.Interpritation.Nodes
                 var elementConverter = GetConverterOrThrow(from.ArrayTypeSpecification.VarType, to.ArrayTypeSpecification.VarType);
                 return o => ((IEnumerable) o).Cast<object>().Select(elementConverter);
             }    
-            throw  new ParseException($"Cast {from}->{to} is unavailable");
+            throw  new FunParseException($"Cast {from}->{to} is unavailable");
         }
     }
 }

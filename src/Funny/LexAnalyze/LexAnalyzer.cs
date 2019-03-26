@@ -73,7 +73,7 @@ namespace Funny.LexAnalyze
 
             var sortResults = GraphTools.SortTopology(dependencyGraph);
             if (sortResults.HasCycle)
-                throw new ParseException("Cycle dependencies: "
+                throw new FunParseException("Cycle dependencies: "
                                          + string.Join(',', sortResults.NodeNames));
 
             //Equations calculation order

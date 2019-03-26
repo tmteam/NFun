@@ -31,14 +31,21 @@ namespace Funny.Tests.UnitTests
                                 TokType.Else, TokType.Id)]
         [TestCase("o = 'hiWorld'", TokType.Id, TokType.Def, TokType.Text)]
         [TestCase("o = ''+'hiWorld'", TokType.Id, TokType.Def, TokType.Text, TokType.Plus, TokType.Text)]
-        [TestCase("x:real", TokType.Id, TokType.IsTypeOf, TokType.RealType)]
-        [TestCase("x:int", TokType.Id, TokType.IsTypeOf, TokType.IntType)]
-        [TestCase("x:text", TokType.Id, TokType.IsTypeOf, TokType.TextType)]
-        [TestCase("x:bool", TokType.Id, TokType.IsTypeOf, TokType.BoolType)]
+        [TestCase("x:real", TokType.Id, TokType.Сolon, TokType.RealType)]
+        [TestCase("x:int", TokType.Id, TokType.Сolon, TokType.IntType)]
+        [TestCase("x:text", TokType.Id, TokType.Сolon, TokType.TextType)]
+        [TestCase("x:bool", TokType.Id, TokType.Сolon, TokType.BoolType)]
         [TestCase("x|>y",  TokType.Id, TokType.PipeForward, TokType.Id)] 
         [TestCase("x|>y(1)|>z",  TokType.Id, 
             TokType.PipeForward, TokType.Id, TokType.Obr, TokType.Number, TokType.Cbr,
             TokType.PipeForward, TokType.Id)]
+        [TestCase("[0..1]", TokType.ArrOBr, TokType.Number, TokType.TwoDots, TokType.Number, TokType.ArrCBr)]
+        [TestCase("[0..1..2]", 
+            TokType.ArrOBr, 
+            TokType.Number, TokType.TwoDots, TokType.Number,TokType.TwoDots, TokType.Number,
+            TokType.ArrCBr)]
+        [TestCase("0.", TokType.Number, TokType.NotAToken)]
+        [TestCase("0.1", TokType.Number)]
 
         public void TestTokinization(string exp, params TokType[] expected)
         {

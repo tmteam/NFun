@@ -115,7 +115,7 @@ namespace Funny.Tokenization
                         return index + 1;
                 }
                 
-                throw new ParseException("Multiline comment not closed.  '*/' not found");
+                throw new FunParseException("Multiline comment not closed.  '*/' not found");
             }
             else
                 return position;
@@ -152,7 +152,7 @@ namespace Funny.Tokenization
                 case ':' when  next == ':':
                     return Tok.New(TokType.ArrUnite, position+2);
                 case ':' :
-                    return Tok.New(TokType.IsTypeOf, position+1);
+                    return Tok.New(TokType.Сolon, position+1);
                 case '>' when next == '=':
                     return  Tok.New(TokType.MoreOrEqual, position + 2);
                 case '>' when next == '>':
@@ -173,6 +173,8 @@ namespace Funny.Tokenization
                     return Tok.New(TokType.AnonymFun, position + 2);
                 case '=':
                     return Tok.New(TokType.Def, position + 1);
+                case '.' when next=='.':
+                    return Tok.New(TokType.TwoDots, position+2);
                 default:
                     return null;
             }
@@ -200,42 +202,45 @@ namespace Funny.Tokenization
         
         private Tok ReadNumber(string str, int position)
         {
-            bool hasOneDot = false;
+            int dotPostition = -1;
             bool hasTypeSpecifier = false;
             
-            int i = position;
-            for (; i < str.Length; i++)
+            int index = position;
+            for (; index < str.Length; index++)
             {
-                if (IsDigit(str[i])) 
+                if (IsDigit(str[index])) 
                     continue;
                 
                 if (hasTypeSpecifier)
                 {
-                    if(str[i]>='a' && str[i] <='f' )
+                    if(str[index]>='a' && str[index] <='f' )
                         continue;
-                    if(str[i]>='A' && str[i] <='F' )
+                    if(str[index]>='A' && str[index] <='F' )
                         continue;
                 }
-                else if (i == position + 1 && str[position] == '0')
+                else if (index == position + 1 && str[position] == '0')
                 {
-                    if (str[i] == 'x' || str[i] == 'b')
+                    if (str[index] == 'x' || str[index] == 'b')
                     {
                         hasTypeSpecifier = true;
                         continue;
                     }
                 }
 
-                if(str[i]=='_')
+                if(str[index]=='_')
                     continue;
                 
-                if (!hasTypeSpecifier && str[i] == '.' && !hasOneDot)
+                if (!hasTypeSpecifier && str[index] == '.' && dotPostition==-1)
                 {
-                    hasOneDot = true;
+                    dotPostition = index;
                     continue;
                 }
                 break;
             }
-            return Tok.New(TokType.Number, str.Substring(position, i - position), i);
+            //if dot is last then we need to skip it
+            if(dotPostition==index-1)
+                return Tok.New(TokType.Number, str.Substring(position, index - position-1), index-1);
+            return Tok.New(TokType.Number, str.Substring(position, index - position), index);
         }
     }
 }

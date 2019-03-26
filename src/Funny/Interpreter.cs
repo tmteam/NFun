@@ -39,6 +39,10 @@ namespace Funny
                 new SortIntFunction(), 
                 new SortRealFunction(), 
                 new SortTextFunction(), 
+                new RangeIntFunction(),
+                new RangeWithStepIntFunction(),
+                new RangeWithStepRealFunction(), 
+
             };
             var predefinedGenerics = new GenericFunctionBase[]
             {

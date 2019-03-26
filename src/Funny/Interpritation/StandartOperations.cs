@@ -35,7 +35,7 @@ namespace Funny.Interpritation
                                    return l + r;
                             });
                         default:
-                            throw new OutpuCastParseException($"\"{type}\" cast error. Left operand is {left.Type} and right is {right.Type}");
+                            throw new OutpuCastFunParseException($"\"{type}\" cast error. Left operand is {left.Type} and right is {right.Type}");
                     }
                 case LexNodeType.Minus:
                     switch (left.Type.BaseType)
@@ -49,7 +49,7 @@ namespace Funny.Interpritation
                         case BaseVarType.Int when right.Type.BaseType == BaseVarType.Int:
                             return new OpExpressionNodeOfT<int,int,int>(left,right, (l, r) => l - r);
                         default:
-                            throw new OutpuCastParseException($"\"{type}\" cast error. Left operand is {left.Type} and right is {right.Type}");
+                            throw new OutpuCastFunParseException($"\"{type}\" cast error. Left operand is {left.Type} and right is {right.Type}");
                     }
                 case LexNodeType.Div:
                     switch (left.Type.BaseType)
@@ -63,7 +63,7 @@ namespace Funny.Interpritation
                         case BaseVarType.Int when right.Type.BaseType == BaseVarType.Int:
                             return new OpExpressionNodeOfT<int,int,double>(left,right, (l, r) => l/(double)r);
                         default:
-                            throw new OutpuCastParseException($"\"{type}\" cast error. Left operand is {left.Type} and right is {right.Type}");
+                            throw new OutpuCastFunParseException($"\"{type}\" cast error. Left operand is {left.Type} and right is {right.Type}");
                     }
                 case LexNodeType.Rema:
                     switch (left.Type.BaseType)
@@ -77,7 +77,7 @@ namespace Funny.Interpritation
                         case BaseVarType.Int when right.Type.BaseType == BaseVarType.Int:
                             return new OpExpressionNodeOfT<int,int,int>(left,right, (l, r) => l%r);
                         default:
-                            throw new OutpuCastParseException($"\"{type}\" cast error. Left operand is {left.Type} and right is {right.Type}");
+                            throw new OutpuCastFunParseException($"\"{type}\" cast error. Left operand is {left.Type} and right is {right.Type}");
                     }
                 case LexNodeType.Mult:
                     switch (left.Type.BaseType)
@@ -91,7 +91,7 @@ namespace Funny.Interpritation
                         case BaseVarType.Int when right.Type.BaseType == BaseVarType.Int:
                             return new OpExpressionNodeOfT<int,int,int>(left,right, (l, r) => l*r);
                         default:
-                            throw new OutpuCastParseException($"\"{type}\" cast error. Left operand is {left.Type} and right is {right.Type}");
+                            throw new OutpuCastFunParseException($"\"{type}\" cast error. Left operand is {left.Type} and right is {right.Type}");
                     }
                 case LexNodeType.Pow:
                     switch (left.Type.BaseType)
@@ -105,7 +105,7 @@ namespace Funny.Interpritation
                         case BaseVarType.Int when right.Type.BaseType == BaseVarType.Int:
                             return new OpExpressionNodeOfT<int,int,int>(left,right, (l, r) => (int)Math.Pow(l, r));
                         default:
-                            throw new OutpuCastParseException($"\"{type}\" cast error. Left operand is {left.Type} and right is {right.Type}");
+                            throw new OutpuCastFunParseException($"\"{type}\" cast error. Left operand is {left.Type} and right is {right.Type}");
                     }
                 case LexNodeType.And:
                     return GetBooleanOpOrThrow(type, left, right, (a, b) => a && b);
@@ -176,7 +176,7 @@ namespace Funny.Interpritation
                         case BaseVarType.Int when right.Type == VarType.Int:
                             return new OpExpressionNodeOfT<int,int,bool>(left,right, (l,r)=> l<r);
                         default:
-                            throw new OutpuCastParseException($"\"{type}\" cast error. Left operand is {left.Type} and right is {right.Type}");
+                            throw new OutpuCastFunParseException($"\"{type}\" cast error. Left operand is {left.Type} and right is {right.Type}");
                     }
                 case LexNodeType.LessOrEqual:
                     switch (left.Type.BaseType)
@@ -190,7 +190,7 @@ namespace Funny.Interpritation
                         case BaseVarType.Int when right.Type == VarType.Int:
                             return new OpExpressionNodeOfT<int,int,bool>(left,right, (l,r)=> l<=r);
                         default:
-                            throw new OutpuCastParseException($"\"{type}\" cast error. Left operand is {left.Type} and right is {right.Type}");
+                            throw new OutpuCastFunParseException($"\"{type}\" cast error. Left operand is {left.Type} and right is {right.Type}");
                     }     
                 case LexNodeType.More:
                     switch (left.Type.BaseType)
@@ -204,7 +204,7 @@ namespace Funny.Interpritation
                         case BaseVarType.Int when right.Type == VarType.Int:
                             return new OpExpressionNodeOfT<int,int,bool>(left,right, (l,r)=> l>r);
                         default:
-                            throw new OutpuCastParseException($"\"{type}\" cast error. Left operand is {left.Type} and right is {right.Type}");
+                            throw new OutpuCastFunParseException($"\"{type}\" cast error. Left operand is {left.Type} and right is {right.Type}");
                     }
                 case LexNodeType.MoreOrEqual:
                     switch (left.Type.BaseType)
@@ -218,7 +218,7 @@ namespace Funny.Interpritation
                         case BaseVarType.Int when right.Type == VarType.Int:
                             return new OpExpressionNodeOfT<int,int,bool>(left,right, (l,r)=> l>=r);
                         default:
-                            throw new OutpuCastParseException($"\"{type}\" cast error. Left operand is {left.Type} and right is {right.Type}");
+                            throw new OutpuCastFunParseException($"\"{type}\" cast error. Left operand is {left.Type} and right is {right.Type}");
                     }
                 default:
                     throw new ArgumentOutOfRangeException(nameof(type), type, null);
@@ -229,7 +229,7 @@ namespace Funny.Interpritation
         private static IExpressionNode GetBooleanOpOrThrow(LexNodeType type, IExpressionNode left, IExpressionNode right, Func<bool,bool,bool> op)
         {
             if (left.Type != VarType.Bool && right.Type != VarType.Bool)
-                throw new OutpuCastParseException($"\"{type}\" cast error. Left operand is {left.Type} and right is {right.Type}");
+                throw new OutpuCastFunParseException($"\"{type}\" cast error. Left operand is {left.Type} and right is {right.Type}");
             return new OpExpressionNodeOfT<bool, bool, bool>(left, right,op);
         }
 

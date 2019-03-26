@@ -106,8 +106,14 @@ namespace Funny.Tokenization
 
         True,
         False,
-        IsTypeOf,
-        
+        /// <summary>
+        /// ':'
+        /// </summary>
+        Сolon,
+        /// <summary>
+        /// '..'
+        /// </summary>
+        TwoDots,
         TextType,
         IntType,
         RealType,

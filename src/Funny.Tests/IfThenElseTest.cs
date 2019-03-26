@@ -99,14 +99,14 @@ namespace Funny.Tests
         [TestCase("y = then 3")]
         [TestCase("y = else then 3")]
         public void ObviouslyFailsOnParsing(string expr) =>
-            Assert.Throws<ParseException>(
+            Assert.Throws<FunParseException>(
                 ()=> Interpreter.BuildOrThrow(expr));
         
         [TestCase("y = if 2>1 then 3 else true")]
         [TestCase("y = if 2>1 then 3 if 2<1 then true else 1")]
         [TestCase("y = if 2>1 then false if 2<1 then true else 1")]
         public void ObviouslyFailsOnOuputCast(string expr) =>
-            Assert.Throws<OutpuCastParseException>(
+            Assert.Throws<OutpuCastFunParseException>(
                 ()=> Interpreter.BuildOrThrow(expr));
         
         

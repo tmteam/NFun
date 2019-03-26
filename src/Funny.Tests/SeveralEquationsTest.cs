@@ -141,7 +141,7 @@ namespace Funny.Tests
         [TestCase("o0 = 3\r o1 = o3+o0\r o2 = o1\r o3 = o2")]
         public void ObviouslyFails(string expr)
         {
-            Assert.Throws<ParseException>(()=> Interpreter.BuildOrThrow(expr));
+            Assert.Throws<FunParseException>(()=> Interpreter.BuildOrThrow(expr));
         }
        
 

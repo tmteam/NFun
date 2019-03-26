@@ -19,7 +19,7 @@ namespace Funny.Tokenization
                 case TokType.AnythingType:
                     return  VarType.Anything;
             }
-            throw new ParseException($"Expected: type, but was {tokType}");
+            throw new FunParseException($"Expected: type, but was {tokType}");
 
         }
         public static VarType ReadVarType(this TokenFlow flow)
@@ -53,10 +53,10 @@ namespace Funny.Tokenization
         {
             var cur = flow.Current;
             if(cur==null)
-                throw new ParseException($"\"{tokType}\" is missing");
+                throw new FunParseException($"\"{tokType}\" is missing");
 
             if (!cur.Is(tokType))
-                throw new ParseException($"\"{tokType}\" is missing but was \"{flow.Current}\"");
+                throw new FunParseException($"\"{tokType}\" is missing but was \"{flow.Current}\"");
             
             flow.MoveNext();
             return cur;
@@ -66,7 +66,7 @@ namespace Funny.Tokenization
         {
             var cur = flow.Current;
             if (cur?.Is(tokType)!= true)
-                throw new ParseException(error);
+                throw new FunParseException(error);
             flow.MoveNext();
             return cur;
         }

@@ -186,8 +186,10 @@ namespace Funny.Tests
         [TestCase("y='hell")]
         [TestCase("y=hell'")]
         [TestCase("y='")]
+        [TestCase("y=0.")]
+        [TestCase("y=0.*1")]
         public void ObviouslyFails(string expr) =>
-            Assert.Throws<ParseException>(
+            Assert.Throws<FunParseException>(
                 ()=> Interpreter.BuildOrThrow(expr));
 
         [TestCase("y = x1+x2",2,3,5)]

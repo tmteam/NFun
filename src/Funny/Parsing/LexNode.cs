@@ -82,6 +82,12 @@ namespace Funny.Parsing
         public static LexNode Array(LexNode[] elements)
             => new LexNode(LexNodeType.ArrayInit,null, elements);
 
+        public static LexNode ProcArrayInit(LexNode start, LexNode step, LexNode end)
+                =>new LexNode(LexNodeType.ProcArrayInit,null, start,step,end);
+
+        public static LexNode ProcArrayInit(LexNode start, LexNode end)
+            =>new LexNode(LexNodeType.ProcArrayInit,null, start, end);
+
         public static LexNode Argument(string name, VarType type)
         {
             return new LexNode(LexNodeType.Argument, name)
@@ -159,6 +165,7 @@ namespace Funny.Parsing
         BitAnd,
         BitXor,
         BitShiftLeft,
-        BitShiftRight
+        BitShiftRight,
+        ProcArrayInit
     }
 }

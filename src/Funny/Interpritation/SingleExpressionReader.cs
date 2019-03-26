@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Funny.BuiltInFunctions;
 using Funny.Interpritation.Functions;
 using Funny.Interpritation.Nodes;
 using Funny.Parsing;
@@ -34,6 +35,8 @@ namespace Funny.Interpritation
                 return GetTextValueNode(node);
             if(node.Is(LexNodeType.ArrayInit))
                 return GetArrayNode(node);
+            if(node.Is(LexNodeType.ProcArrayInit))
+                return GetProcedureArrayNode(node);
             if(node.Is(LexNodeType.ArrayUnite))
                 return GetUniteArrayNode(node);
             if(node.Is(LexNodeType.AnonymFun))
@@ -41,18 +44,18 @@ namespace Funny.Interpritation
             if(StandartOperations.IsDefaultOp(node.Type))
                 return GetOpNode(node);
             
-            throw new ParseException($"{node} is not an expression");
+            throw new FunParseException($"{node} is not an expression");
         }
 
         private IExpressionNode GetAnonymFun(LexNode node)
         {
             var defenition = node.Children.ElementAtOrDefault(0);
             if(defenition==null)
-                throw new ParseException("Anonymous fun defenition is missing");
+                throw new FunParseException("Anonymous fun defenition is missing");
 
             var expression = node.Children.ElementAtOrDefault(1);
             if(expression== null)
-                throw new ParseException("Anonymous fun body is missing");
+                throw new FunParseException("Anonymous fun body is missing");
             
             var variablesDictionary = new Dictionary<string, VariableExpressionNode>();
             
@@ -87,18 +90,18 @@ namespace Funny.Interpritation
             else if(defenition.Type== LexNodeType.Argument)
                 return new VariableExpressionNode(defenition.Value, (VarType)defenition.AdditionalContent);
             else
-                throw new ParseException(defenition + " is  not valid fun arg");
+                throw new FunParseException(defenition + " is  not valid fun arg");
         }
         
         private IExpressionNode GetUniteArrayNode(LexNode node)
         {
             var left = node.Children.ElementAtOrDefault(0);
             if (left == null)
-                throw new ParseException("\"a\" node is missing");
+                throw new FunParseException("\"a\" node is missing");
 
             var right = node.Children.ElementAtOrDefault(1);
             if (right == null)
-                throw new ParseException("\"b\" node is missing");
+                throw new FunParseException("\"b\" node is missing");
                 
             var leftExpr = ReadNode(left);
             var rightExpr = ReadNode(right);
@@ -111,7 +114,7 @@ namespace Funny.Interpritation
             var funVars = _functions.Get(lower);
             
             if(funVars.Count>1)
-                throw new ParseException($"Ambiguous call of function with name: {lower}");
+                throw new FunParseException($"Ambiguous call of function with name: {lower}");
             if(funVars.Count==1)
                 return new FunVariableExpressionNode(funVars[0]);   
             
@@ -128,11 +131,11 @@ namespace Funny.Interpritation
         {
             var left = node.Children.ElementAtOrDefault(0);
             if (left == null)
-                throw new ParseException("\"a\" node is missing");
+                throw new FunParseException("\"a\" node is missing");
 
             var right = node.Children.ElementAtOrDefault(1);
             if (right == null)
-                throw new ParseException("\"b\" node is missing");
+                throw new FunParseException("\"b\" node is missing");
 
             var leftExpr = ReadNode(left);
             var rightExpr = ReadNode(right);
@@ -140,6 +143,26 @@ namespace Funny.Interpritation
             return StandartOperations.GetOp(node.Type, leftExpr, rightExpr);            
         }
         
+        private IExpressionNode GetProcedureArrayNode(LexNode node)
+        {
+            var start = ReadNode(node.Children.ElementAt(0));
+            
+            var end = ReadNode(node.Children.ElementAt(1));
+            
+            var stepOrNull = node.Children.ElementAtOrDefault(2);
+
+            if (stepOrNull == null)
+                return new RangeIntFunction().CreateWithConvertionOrThrow(new[] {start, end});
+
+            var step = ReadNode(stepOrNull);
+            if(step.Type== VarType.Real)
+               return new RangeWithStepRealFunction().CreateWithConvertionOrThrow(new[] {start, end, step});
+            
+            if (step.Type!= VarType.Int)
+                throw new FunParseException("Array procedure initializator has to be int types only. Example: [1..5..2]");
+            
+            return new RangeWithStepIntFunction().CreateWithConvertionOrThrow(new[] {start, end, step});
+        }
         private IExpressionNode GetArrayNode(LexNode node)
         {
             var nodes = node.Children.Select(ReadNode).ToArray();
@@ -193,7 +216,7 @@ namespace Funny.Interpritation
             }
             catch (FormatException e)
             {
-                throw new ParseException("Cannot parse number \"" + node.Value + "\"");
+                throw new FunParseException("Cannot parse number \"" + node.Value + "\"");
             }
         }
 
@@ -212,24 +235,8 @@ namespace Funny.Interpritation
 
             var function = _functions.GetOrNull(id, childrenTypes.ToArray());
             if (function == null)
-                throw new ParseException($"Function {id}({string.Join(", ", childrenTypes.ToArray())}) is not defined");
-            var castedChildren = new List<IExpressionNode>();
-            var i = 0;            
-            foreach (var argNode in children)
-            {
-                var toType = function.ArgTypes[i];
-                var fromType = argNode.Type;
-                var castedNode = argNode;
-                if (fromType != toType)
-                {
-                    var converter = CastExpressionNode.GetConverterOrThrow(fromType, toType);
-                    castedNode = new CastExpressionNode(argNode, toType, converter);
-                }
-                castedChildren.Add(castedNode);
-                i++;
-            }
-
-            return new FunExpressionNode(function, castedChildren.ToArray());
+                throw new FunParseException($"Function {id}({string.Join(", ", childrenTypes.ToArray())}) is not defined");
+            return function.CreateWithConvertionOrThrow(children);
         }
 
     }

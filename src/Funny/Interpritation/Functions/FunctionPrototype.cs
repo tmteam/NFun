@@ -17,7 +17,7 @@ namespace Funny.Interpritation.Functions
             _function = function;
             
             if(OutputType!= function.OutputType)
-                throw new OutpuCastParseException($"{_function.OutputType} is not supported as output fun parameter");
+                throw new OutpuCastFunParseException($"{_function.OutputType} is not supported as output fun parameter");
         }
 
         public override object Calc(object[] args)

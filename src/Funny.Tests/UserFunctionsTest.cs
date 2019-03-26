@@ -194,7 +194,7 @@ namespace Funny.Tests
             }
             catch (Exception e)
             {
-                Assert.IsInstanceOf<ParseException>(e);
+                Assert.IsInstanceOf<FunParseException>(e);
             }
         }
     }

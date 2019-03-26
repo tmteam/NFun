@@ -11,6 +11,24 @@ namespace Funny.Tests
     [TestFixture]
     public class ArraysTest
     {
+        [TestCase("y = [1..4]", new[]{1,2,3,4})]
+        [TestCase("y = [4..1]", new[]{4,3,2,1})]
+        [TestCase("y = [1..7..2]", new[]{1,3,5,7})]
+        [TestCase("y = [7..1..2]", new[]{7,5,3,1})]
+        [TestCase("y = [1..8..2]", new[]{1,3,5,7})]
+        [TestCase("y = [1.0..3.0..0.5]", new[]{1.0,1.5,2.0,2.5,3.0})]
+        [TestCase("y = [3.0..1.0..0.5]", new[]{3.0,2.5,2.0,1.5, 1.0})]
+        [TestCase("y = [1..3..0.5]", new[]{1.0,1.5,2.0,2.5,3.0})]
+        [TestCase("y = [1..1]", new[]{1})]
+        [TestCase("y = [0..10][0]", new[]{0})]
+        [TestCase("y = [0..10][10]", new[]{9})]
+        [TestCase("y = [0..10][2:5]", new[]{2,3,4,5})]
+        [TestCase("y = [0..10][:5]", new[]{0,1,2,3,4,5})]
+        [TestCase("y = [0..10][5:]", new[]{5,6,7,8,9,10})]
+        [TestCase("y = [1,2,3][:]", new[]{1,2,3})]
+        [TestCase("y = [0..10][1:2:7]", new[]{1,3,5,7})]
+        [TestCase("y = [0..10][1:2:]", new[]{1,3,5,7,9})]
+        [TestCase("y = [0..10][:2:]", new[]{0,2,4,6,8,10})]
         [TestCase("y = [1.0,1.2,2.4]", new[]{1.0,1.2, 2.4})]
         [TestCase("y = [1.0]", new[]{1.0})]
         [TestCase("y = []", new object[0])]
@@ -144,8 +162,27 @@ namespace Funny.Tests
         [TestCase("y = ::[2.0]")]
         [TestCase("y = [2.0 3.0]")]
         [TestCase("y = [2.0,,3.0]")]
-        public void ObviouslyFails(string expr) =>
-            Assert.Throws<ParseException>(
+        [TestCase("y = [1.0..4]")]
+        [TestCase("y = ['1'..4]")]
+        [TestCase("y = ['1'..'4']")]
+        [TestCase("y = [1.0..4.0]")]
+        [TestCase("y = [1..7..]")]
+        [TestCase("y = [1....2]")]
+        [TestCase("y = [..2..2]")]
+        [TestCase("y = [1..4")]
+        [TestCase("y = [1..")]
+        public void ObviouslyFailsOnParse(string expr) =>
+            Assert.Throws<FunParseException>(
                 ()=> Interpreter.BuildOrThrow(expr));
+        [TestCase("y = [1..2..-2]")]
+        [TestCase("y = [1..2..0]")]
+        [TestCase("y = [4..1..-2]")]
+        [TestCase("y = [4..1..0]")]
+        [TestCase("y = [4..1..-2.0]")]
+        [TestCase("y = [1..4..-2.0]")]
+        [TestCase("y = [1..4..0]")]
+        public void ObviouslyFailsOnRuntime(string expr) =>
+            Assert.Throws<FunRuntimeException>(
+                ()=> Interpreter.BuildOrThrow(expr).Calculate());
     }
 }

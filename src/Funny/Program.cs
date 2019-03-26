@@ -85,7 +85,7 @@ namespace Funny
                     Console.WriteLine();
                     PrintParsing(example);
                 }
-                catch (ParseException e)
+                catch (FunParseException e)
                 {
                     Console.WriteLine("parse err: " + e.Message);
                 }

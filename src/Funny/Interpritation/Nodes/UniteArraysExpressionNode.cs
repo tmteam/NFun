@@ -14,14 +14,14 @@ namespace Funny.Interpritation.Nodes
         public UniteArraysExpressionNode(IExpressionNode nodeA, IExpressionNode nodeB)
         {
             if(nodeA.Type.BaseType!= BaseVarType.ArrayOf)
-                throw new ParseException("left node is not an array");
+                throw new FunParseException("left node is not an array");
             if(nodeB.Type.BaseType!= BaseVarType.ArrayOf)
-                throw new ParseException("right node is not an array");
+                throw new FunParseException("right node is not an array");
             _nodeA = nodeA;
             _nodeB = nodeB;
             var subtype = _nodeA.Type.ArrayTypeSpecification.VarType;
             if(_nodeB.Type.ArrayTypeSpecification.VarType!= subtype)
-                throw new ParseException("array types should be same");
+                throw new FunParseException("array types should be same");
             Type = VarType.ArrayOf(subtype);
             
         }

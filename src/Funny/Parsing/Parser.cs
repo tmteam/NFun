@@ -37,13 +37,13 @@ namespace Funny.Parsing
                     flow.MoveNext();
                     funs.Add(ReadUserFunction(flow, reader, id));
                 }
-                else if(flow.IsCurrent(TokType.IsTypeOf))
+                else if(flow.IsCurrent(TokType.Сolon))
                 {
                     flow.MoveNext();
                     varSpecifications.Add(ReadVarSpecification(flow, id));
                 }
                 else
-                    throw new ParseException("Unexpected token "+ flow.Current);
+                    throw new FunParseException("Unexpected token "+ flow.Current);
             }
 
             return new LexTree
@@ -56,7 +56,7 @@ namespace Funny.Parsing
 
         private static VarType ReadType(TokenFlow flow)
         {
-            if (flow.MoveIf(TokType.IsTypeOf, out _))
+            if (flow.MoveIf(TokType.Сolon, out _))
                 return flow.ReadVarType();
             else
                 return VarType.Real;
@@ -86,7 +86,7 @@ namespace Funny.Parsing
             flow.MoveIfOrThrow(TokType.Def, "\'=\' expected");
             var expression =reader.ReadExpressionOrNull();
             if(expression==null)
-                throw new ParseException("Function contains no body");
+                throw new FunParseException("Function contains no body");
             
             return new LexFunction
             {
@@ -103,7 +103,7 @@ namespace Funny.Parsing
 
             var exNode = reader.ReadExpressionOrNull();
             if(exNode==null)
-                throw new ParseException("Epxression is wrong");
+                throw new FunParseException("Epxression is wrong");
             return new LexEquation(id, exNode);
         }
     }
