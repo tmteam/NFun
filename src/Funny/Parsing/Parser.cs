@@ -37,7 +37,7 @@ namespace Funny.Parsing
                     flow.MoveNext();
                     funs.Add(ReadUserFunction(flow, reader, id));
                 }
-                else if(flow.IsCurrent(TokType.Сolon))
+                else if(flow.IsCurrent(TokType.Colon))
                 {
                     flow.MoveNext();
                     varSpecifications.Add(ReadVarSpecification(flow, id));
@@ -56,7 +56,7 @@ namespace Funny.Parsing
 
         private static VarType ReadType(TokenFlow flow)
         {
-            if (flow.MoveIf(TokType.Сolon, out _))
+            if (flow.MoveIf(TokType.Colon, out _))
                 return flow.ReadVarType();
             else
                 return VarType.Real;

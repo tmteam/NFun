@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using Funny.Interpritation.Functions;
 using Funny.Runtime;
@@ -7,6 +8,80 @@ using Funny.Types;
 
 namespace Funny.BuiltInFunctions
 {
+    public class SliceWithStepGenericFunctionDefenition : GenericFunctionBase
+    {
+        public const string Id = "slice";
+        public SliceWithStepGenericFunctionDefenition() : base(Id, 
+            VarType.ArrayOf(VarType.Generic(0)),
+            VarType.ArrayOf(VarType.Generic(0)),
+            VarType.Int,
+            VarType.Int,
+            VarType.Int)
+        {
+        }
+
+        public override object Calc(object[] args)
+        {
+            var start = (int)args[1];
+            if(start<0)
+                throw new FunRuntimeException("Argument out of range");
+            var end = (int)args[2];
+            if(end<0)
+                throw new FunRuntimeException("Argument out of range");
+            if(start>end)
+                throw new FunRuntimeException("Start cannot be more than end");
+            var step = (int) args[3];
+            if(step<0)
+                throw new FunRuntimeException("Argument out of range");
+            if (step == 0)
+                step = 1;
+            var enumerable = args[0] as IEnumerable;
+            var obj = new List<object>();
+            
+            int i = 0;
+            foreach (var val in enumerable) {
+                var actual = i - start;
+                if (actual>=0 &&  actual % step == 0)
+                {
+                    if(end==0 || end>= actual)
+                        obj.Add(val);
+                }
+                i++;
+            }
+            return obj;
+        }
+    }
+    
+    public class SliceGenericFunctionDefenition : GenericFunctionBase
+    {
+        public const string Id = "slice";
+        public SliceGenericFunctionDefenition() : base(Id, 
+            VarType.ArrayOf(VarType.Generic(0)),
+            VarType.ArrayOf(VarType.Generic(0)),
+            VarType.Int,
+            VarType.Int)
+        {
+        }
+
+        public override object Calc(object[] args)
+        {
+            var start = (int)args[1];
+            if(start<0)
+                throw new FunRuntimeException("Argument out of range");
+
+            var end = (int)args[2];
+            if(end<0)
+                throw new FunRuntimeException("Argument out of range");
+                
+            if(end!=0 && start>end)
+                throw new FunRuntimeException("Start cannot be more than end");
+       
+            var query = (args[0] as IEnumerable).Cast<Object>().Skip(start);
+            if (end != 0)
+                query = query.Take(end - start+1);
+            return query.ToArray();
+        }
+    }
     public class GetGenericFunctionDefenition : GenericFunctionBase
     {
         public const string Id = "get";

@@ -41,11 +41,14 @@ namespace Funny
                 new SortTextFunction(), 
                 new RangeIntFunction(),
                 new RangeWithStepIntFunction(),
-                new RangeWithStepRealFunction(), 
+                new RangeWithStepRealFunction(),
+                
             };
             var predefinedGenerics = new GenericFunctionBase[]
             {
                 new GetGenericFunctionDefenition(),
+                new SliceGenericFunctionDefenition(), 
+                new SliceWithStepGenericFunctionDefenition(), 
                 new FoldGenericFunctionDefenition(),
                 new TakeGenericFunctionDefenition(),
                 new SkipGenericFunctionDefenition(),

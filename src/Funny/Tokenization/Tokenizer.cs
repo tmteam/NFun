@@ -152,7 +152,7 @@ namespace Funny.Tokenization
                 case ':' when  next == ':':
                     return Tok.New(TokType.ArrUnite, position+2);
                 case ':' :
-                    return Tok.New(TokType.Сolon, position+1);
+                    return Tok.New(TokType.Colon, position+1);
                 case '>' when next == '=':
                     return  Tok.New(TokType.MoreOrEqual, position + 2);
                 case '>' when next == '>':

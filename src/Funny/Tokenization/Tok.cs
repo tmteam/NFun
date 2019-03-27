@@ -109,7 +109,7 @@ namespace Funny.Tokenization
         /// <summary>
         /// ':'
         /// </summary>
-        Сolon,
+        Colon,
         /// <summary>
         /// '..'
         /// </summary>

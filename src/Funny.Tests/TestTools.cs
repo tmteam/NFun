@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Linq;
 using Funny.Runtime;
 using Funny.Types;
@@ -35,7 +36,18 @@ namespace Funny.Tests
                     $"Var \"{variable}\" expected: {variable.Value}, but was: {res.Value}");
             else
                 Assert.AreEqual(variable.Value, res.Value, 
-                    $"Var \"{variable}\" expected: {variable.Value}, but was: {res.Value}");
+                    $"Var \"{variable}\" expected: {ToStringSmart(variable.Value)}, but was: {ToStringSmart(res.Value)}");
         }
+
+        private static string ToStringSmart(object v)
+        {
+            if (v is IEnumerable en)
+            {
+                return "{" + string.Join(',', en.Cast<object>().Select(ToStringSmart)) + "}";
+            }
+
+            return v.ToString();
+        }
+        
     }
 }

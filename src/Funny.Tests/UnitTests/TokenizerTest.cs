@@ -31,10 +31,10 @@ namespace Funny.Tests.UnitTests
                                 TokType.Else, TokType.Id)]
         [TestCase("o = 'hiWorld'", TokType.Id, TokType.Def, TokType.Text)]
         [TestCase("o = ''+'hiWorld'", TokType.Id, TokType.Def, TokType.Text, TokType.Plus, TokType.Text)]
-        [TestCase("x:real", TokType.Id, TokType.Сolon, TokType.RealType)]
-        [TestCase("x:int", TokType.Id, TokType.Сolon, TokType.IntType)]
-        [TestCase("x:text", TokType.Id, TokType.Сolon, TokType.TextType)]
-        [TestCase("x:bool", TokType.Id, TokType.Сolon, TokType.BoolType)]
+        [TestCase("x:real", TokType.Id, TokType.Colon, TokType.RealType)]
+        [TestCase("x:int", TokType.Id, TokType.Colon, TokType.IntType)]
+        [TestCase("x:text", TokType.Id, TokType.Colon, TokType.TextType)]
+        [TestCase("x:bool", TokType.Id, TokType.Colon, TokType.BoolType)]
         [TestCase("x|>y",  TokType.Id, TokType.PipeForward, TokType.Id)] 
         [TestCase("x|>y(1)|>z",  TokType.Id, 
             TokType.PipeForward, TokType.Id, TokType.Obr, TokType.Number, TokType.Cbr,

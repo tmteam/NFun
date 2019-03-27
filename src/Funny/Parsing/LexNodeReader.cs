@@ -78,7 +78,7 @@ namespace Funny.Parsing
                 if (_flow.IsCurrent(TokType.Obr))
                     return ReadFunctionCall(headToken);
                 
-                if (_flow.IsCurrent(TokType.Сolon))
+                if (_flow.IsCurrent(TokType.Colon))
                 {
                     _flow.MoveNext();
                     var type = _flow.ReadVarType();
@@ -136,10 +136,7 @@ namespace Funny.Parsing
                     throw new FunParseException($"{currentOp} without left arg");
                 if (currentOp == TokType.ArrOBr)
                 {
-                    _flow.MoveNext();
-                    var index = ReadExpressionOrNull();
-                    _flow.MoveIfOrThrow(TokType.ArrCBr);
-                    leftNode = LexNode.Fun(GetGenericFunctionDefenition.Id, new []{leftNode, index});
+                    leftNode = ReadArraySliceNode(leftNode);
                 }
                 else if (currentOp == TokType.PipeForward)
                 {
@@ -177,6 +174,48 @@ namespace Funny.Parsing
                     //8: '+' priority is higter than 3: return l:((4/2)*5)
                 }
             }
+        }
+
+        private LexNode ReadArraySliceNode(LexNode arrayNode)
+        {
+            _flow.MoveNext();
+            var index = ReadExpressionOrNull();
+            
+            if (!_flow.MoveIf(TokType.Colon, out _))
+            {
+                if (index == null)
+                    throw new FunParseException("Array index expected");
+                
+                _flow.MoveIfOrThrow(TokType.ArrCBr);
+                return LexNode.Fun(GetGenericFunctionDefenition.Id, new[] {arrayNode, index});
+            }
+            
+            index = index ?? LexNode.Num("0");
+            var end = ReadExpressionOrNull()?? LexNode.Num("0");
+            
+            if (!_flow.MoveIf(TokType.Colon, out _))
+            {
+                _flow.MoveIfOrThrow(TokType.ArrCBr);
+                return LexNode.Fun(SliceGenericFunctionDefenition.Id, new[]
+                {
+                    arrayNode, 
+                    index, 
+                    end
+                });
+            }
+            
+            var step = ReadExpressionOrNull();
+            _flow.MoveIfOrThrow(TokType.ArrCBr);
+            if(step==null)
+                return LexNode.Fun(SliceWithStepGenericFunctionDefenition.Id, new[]
+                {
+                    arrayNode, index, end
+                });
+            
+            return LexNode.Fun(SliceWithStepGenericFunctionDefenition.Id, new[]
+            {
+                arrayNode, index, end, step
+            });
         }
 
 
