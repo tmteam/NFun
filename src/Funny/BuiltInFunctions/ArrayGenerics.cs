@@ -10,8 +10,7 @@ namespace Funny.BuiltInFunctions
 {
     public class SliceWithStepGenericFunctionDefenition : GenericFunctionBase
     {
-        public const string Id = "slice";
-        public SliceWithStepGenericFunctionDefenition() : base(Id, 
+        public SliceWithStepGenericFunctionDefenition() : base(CoreFunNames.SliceName, 
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.Int,
@@ -54,8 +53,7 @@ namespace Funny.BuiltInFunctions
     
     public class SliceGenericFunctionDefenition : GenericFunctionBase
     {
-        public const string Id = "slice";
-        public SliceGenericFunctionDefenition() : base(Id, 
+        public SliceGenericFunctionDefenition() : base(CoreFunNames.SliceName, 
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.Int,
@@ -84,8 +82,8 @@ namespace Funny.BuiltInFunctions
     }
     public class GetGenericFunctionDefenition : GenericFunctionBase
     {
-        public const string Id = "get";
-        public GetGenericFunctionDefenition() : base(Id, 
+        
+        public GetGenericFunctionDefenition() : base(CoreFunNames.GetElementName, 
             VarType.Generic(0),
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.Int)
@@ -130,7 +128,22 @@ namespace Funny.BuiltInFunctions
             return res; 
         }
     }
+    public class AddArraysGenericFunctionDefenition : GenericFunctionBase
+    {
+        public AddArraysGenericFunctionDefenition() : base(CoreFunNames.AddName, 
+            VarType.ArrayOf(VarType.Generic(0)),
+            VarType.ArrayOf(VarType.Generic(0)),
+            VarType.ArrayOf(VarType.Generic(0)))
+        {
+        }
 
+        public override object Calc(object[] args)
+        {
+            var arr1 = (args[0] as IEnumerable).Cast<object>();
+            var arr2 = (args[0] as IEnumerable).Cast<object>();
+            return arr1.Concat(arr2).ToArray();
+        }
+    }
     public class MapGenericFunctionDefenition : GenericFunctionBase
     {
         public MapGenericFunctionDefenition() : base("map", 

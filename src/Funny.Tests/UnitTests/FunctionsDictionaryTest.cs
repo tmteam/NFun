@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Funny.BuiltInFunctions;
 using Funny.Interpritation;
 using Funny.Interpritation.Functions;
@@ -170,7 +171,19 @@ namespace Funny.Tests.UnitTests
             var fun = dic.GetOrNull(concreteFun.Name, VarType.ArrayOf(someConcreteType));
             Assert.AreEqual(someConcreteType, fun.OutputType);
         }
-        
+
+        [Test]
+        public void AddHasOverloadsForRealIntText_ArgsAreIntReal_ReturnsRealRealOverload()
+        {
+            dic.Add(new AddIntFunction());
+            dic.Add(new AddRealFunction());
+            dic.Add(new AddTextFunction());
+           
+            var fun = dic.GetOrNull(CoreFunNames.AddName, VarType.Int, VarType.Real);
+            Assert.IsNotNull(fun);
+            Assert.IsInstanceOf<AddRealFunction>(fun);
+            
+        }
         private void AddAllMaxFuns()
         {
             dic.Add(new MaxOfIntFunction());

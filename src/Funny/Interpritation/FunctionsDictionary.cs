@@ -81,14 +81,31 @@ namespace Funny.Interpritation
                 return CanBeConverted(args, candidate.ArgTypes) ? candidate : null;
             }
             
-            //Try to find castable function
-            var canBeConverted = filtered.Where(f => CanBeConverted(args, f.ArgTypes)).ToArray();
-            if (canBeConverted.Length != 1)
+            //Try to find most close of castable functions
+
+            
+            int maxCloseness = 0;
+            bool severalFunctionsWithSameCloseness = false;
+            FunctionBase winner = null;
+            foreach (var function in filtered)
+            {
+                var closeness = GetCloseness(args, function.ArgTypes);
+                if(closeness==0)
+                    continue;
+                else if (closeness > maxCloseness)
+                {
+                    winner = function;
+                    maxCloseness = closeness;
+                    severalFunctionsWithSameCloseness = false;
+                }
+                else if (closeness == maxCloseness)
+                    severalFunctionsWithSameCloseness = true;
+            }
+
+            if (severalFunctionsWithSameCloseness)
                 return null;
-            return canBeConverted[0];
+            return winner;
         }
-        
-        
         private FunctionBase GetOrNullGenerics(string name, params VarType[] args)
         {
             //If there is no function with specified name
@@ -109,6 +126,25 @@ namespace Funny.Interpritation
             {
                 return null;
             }
+        }
+        
+        
+        private int GetCloseness(VarType[] from, VarType[] to)
+        {
+            if (from.Length != to.Length)
+                return 0;
+            int closeness = 0;
+            for (int i = 0; i < from.Length; i++)
+            {
+                if (from[i] == to[i])
+                {
+                    closeness++;
+                }
+                if (!from[i].CanBeConvertedTo(to[i]))
+                    return 0;
+            }
+
+            return closeness;
         }
         
         private bool CanBeConverted(VarType[] from, VarType[] to)

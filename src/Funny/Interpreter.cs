@@ -16,7 +16,10 @@ namespace Funny
             {
                 new AbsOfRealFunction(),
                 new AbsOfIntFunction(),
-                new AddFunction(),
+                new AddRealFunction(),
+                new AddIntFunction(),
+                new AddTextFunction(), 
+
                 new SinFunction(), 
                 new CosFunction(), 
                 new EFunction(), 
@@ -46,6 +49,7 @@ namespace Funny
             };
             var predefinedGenerics = new GenericFunctionBase[]
             {
+                new AddArraysGenericFunctionDefenition(), 
                 new GetGenericFunctionDefenition(),
                 new SliceGenericFunctionDefenition(), 
                 new SliceWithStepGenericFunctionDefenition(), 

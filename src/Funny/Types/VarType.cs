@@ -168,12 +168,11 @@ namespace Funny.Types
                     return true;
                 }
                 case BaseVarType.ArrayOf when concreteType.BaseType!= BaseVarType.ArrayOf:
-                    throw new InvalidOperationException("Invalid generic argument");
+                    return false;
                 case BaseVarType.ArrayOf:
-                    TrySolveGenericTypes(genericArguments, genericType.ArrayTypeSpecification.VarType, concreteType.ArrayTypeSpecification.VarType);
-                    return true;
+                    return TrySolveGenericTypes(genericArguments, genericType.ArrayTypeSpecification.VarType, concreteType.ArrayTypeSpecification.VarType);
                 case BaseVarType.Fun when concreteType.BaseType!= BaseVarType.Fun:
-                    throw new InvalidOperationException("Invalid generic argument");
+                    return false;
                 case BaseVarType.Fun:
                 {
                     var genericFun = genericType.FunTypeSpecification;

@@ -9,12 +9,22 @@ using Funny.Types;
 
 namespace Funny.BuiltInFunctions
 {
-    public class AddFunction: FunctionBase
+    public class AddRealFunction: FunctionBase
     {
-        public AddFunction() : base("add", VarType.Real,VarType.Real,VarType.Real){}
+        public AddRealFunction() : base(CoreFunNames.AddName, VarType.Real,VarType.Real,VarType.Real){}
         public override object Calc(object[] args) => Convert.ToDouble(args[0]) + Convert.ToDouble(args[1]);
     }
-
+    public class AddIntFunction: FunctionBase
+    {
+        public AddIntFunction() : base(CoreFunNames.AddName, VarType.Int,VarType.Int,VarType.Int){}
+        public override object Calc(object[] args) => (int)args[0] + (int)args[1];
+    }
+    public class AddTextFunction: FunctionBase
+    {
+        public AddTextFunction() : base(CoreFunNames.AddName, VarType.Text,VarType.Anything,VarType.Text){}
+        public override object Calc(object[] args) => args[0].ToString() + args[1];
+    }            
+        
     public class AbsOfRealFunction : FunctionBase
     {
         public AbsOfRealFunction() : base("abs", VarType.Real,VarType.Real){}

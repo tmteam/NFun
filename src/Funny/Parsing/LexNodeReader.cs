@@ -187,7 +187,7 @@ namespace Funny.Parsing
                     throw new FunParseException("Array index expected");
                 
                 _flow.MoveIfOrThrow(TokType.ArrCBr);
-                return LexNode.Fun(GetGenericFunctionDefenition.Id, new[] {arrayNode, index});
+                return LexNode.Fun(CoreFunNames.GetElementName, new[] {arrayNode, index});
             }
             
             index = index ?? LexNode.Num("0");
@@ -196,7 +196,7 @@ namespace Funny.Parsing
             if (!_flow.MoveIf(TokType.Colon, out _))
             {
                 _flow.MoveIfOrThrow(TokType.ArrCBr);
-                return LexNode.Fun(SliceGenericFunctionDefenition.Id, new[]
+                return LexNode.Fun(CoreFunNames.SliceName, new[]
                 {
                     arrayNode, 
                     index, 
@@ -207,12 +207,12 @@ namespace Funny.Parsing
             var step = ReadExpressionOrNull();
             _flow.MoveIfOrThrow(TokType.ArrCBr);
             if(step==null)
-                return LexNode.Fun(SliceWithStepGenericFunctionDefenition.Id, new[]
+                return LexNode.Fun(CoreFunNames.SliceName, new[]
                 {
                     arrayNode, index, end
                 });
             
-            return LexNode.Fun(SliceWithStepGenericFunctionDefenition.Id, new[]
+            return LexNode.Fun(CoreFunNames.SliceName, new[]
             {
                 arrayNode, index, end, step
             });

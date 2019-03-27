@@ -12,10 +12,10 @@ namespace Funny.Tests
         [TestCase("y = abs(-1)",1)]
         [TestCase("y = abs(1.0)",1.0)]
         [TestCase("y = abs(-1.0)",1.0)]
-        [TestCase("y = add(1,2)",3.0)]
-        [TestCase("y = add(add(1,2),add(3,4))",10.0)]
+        [TestCase("y = add(1,2)",3)]
+        [TestCase("y = add(add(1,2),add(3,4))",10)]
         [TestCase("y = abs(1-4)",3)]
-        [TestCase("y = 15 - add(abs(1-4), 7)",5.0)]
+        [TestCase("y = 15 - add(abs(1-4), 7)",5)]
         [TestCase("y = pi()",Math.PI)]
         [TestCase("y = e()",Math.E)]
         [TestCase("y = count([1,2,3])",3)]
@@ -125,12 +125,12 @@ namespace Funny.Tests
                 .AssertReturns(0.00001, Var.New("y", expected));
         }
         
-        [TestCase("y = abs(x)",1,1)]
-        [TestCase("y = abs(-x)",-1,1)]
-        [TestCase("y = add(x,2)",1,3)]
-        [TestCase("y = add(1,x)",2,3)]
-        [TestCase("y = add(add(x,x),add(x,x))",1,4)]
-        [TestCase("y = abs(x-4)",1,3)]
+        [TestCase("y = abs(x)",1.0,1.0)]
+        [TestCase("y = abs(-x)",-1.0,1.0)]
+        [TestCase("y = add(x,2)",1.0,3.0)]
+        [TestCase("y = add(1,x)",2.0,3.0)]
+        [TestCase("y = add(add(x,x),add(x,x))",1.0,4.0)]
+        [TestCase("y = abs(x-4)",1.0,3.0)]
         public void EquationWithPredefinedFunction(string expr, double arg, double expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
