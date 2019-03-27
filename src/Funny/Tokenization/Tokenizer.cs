@@ -34,6 +34,7 @@ namespace Funny.Tokenization
             {')', TokType.Cbr},
             {'[', TokType.ArrOBr},
             {']', TokType.ArrCBr},
+            {':', TokType.Colon}
         };
         
         private readonly Dictionary<string, TokType> _keywords = new Dictionary<string, TokType>
@@ -149,10 +150,6 @@ namespace Funny.Tokenization
                     return Tok.New(TokType.PipeForward, position+2);
                 case '|':
                     return Tok.New(TokType.BitOr, position+1);
-                case ':' when  next == ':':
-                    return Tok.New(TokType.ArrUnite, position+2);
-                case ':' :
-                    return Tok.New(TokType.Colon, position+1);
                 case '>' when next == '=':
                     return  Tok.New(TokType.MoreOrEqual, position + 2);
                 case '>' when next == '>':

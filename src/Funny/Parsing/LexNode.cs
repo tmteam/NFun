@@ -40,8 +40,6 @@ namespace Funny.Parsing
                     return LexNodeType.Less;
                 case TokType.More:
                     return LexNodeType.More;
-                case TokType.ArrUnite:
-                    return LexNodeType.ArrayUnite;
                 case TokType.LessOrEqual:
                     return LexNodeType.LessOrEqual;
                 case TokType.MoreOrEqual:
@@ -157,7 +155,6 @@ namespace Funny.Parsing
         IfThanElse,
         Text,
         ArrayInit,
-        ArrayUnite,
         AnonymFun,
         Argument,
         ListOfExpressions,

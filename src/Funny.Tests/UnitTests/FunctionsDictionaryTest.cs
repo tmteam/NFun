@@ -171,7 +171,18 @@ namespace Funny.Tests.UnitTests
             var fun = dic.GetOrNull(concreteFun.Name, VarType.ArrayOf(someConcreteType));
             Assert.AreEqual(someConcreteType, fun.OutputType);
         }
-
+        [Test]
+        public void AddHasOverloadsForRealIntText_ArgsAreTextInt_ReturnsTextAnythingOverload()
+        {
+            dic.Add(new AddIntFunction());
+            dic.Add(new AddRealFunction());
+            dic.Add(new AddTextFunction());
+           
+            var fun = dic.GetOrNull(CoreFunNames.AddName,  VarType.Text,VarType.Int);
+            Assert.IsNotNull(fun);
+            Assert.IsInstanceOf<AddTextFunction>(fun);
+            
+        }
         [Test]
         public void AddHasOverloadsForRealIntText_ArgsAreIntReal_ReturnsRealRealOverload()
         {

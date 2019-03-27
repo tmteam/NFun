@@ -15,7 +15,6 @@ namespace Funny.Parsing
             = new Dictionary<TokType, byte>()
             {
                 {TokType.AnonymFun,0},
-                {TokType.ArrUnite,0},
                 {TokType.ArrOBr,0},
                 {TokType.Equal, 1},
                 {TokType.NotEqual, 1},
@@ -76,7 +75,7 @@ namespace Funny.Parsing
             if (_flow.MoveIf(TokType.Id, out var headToken))
             {
                 if (_flow.IsCurrent(TokType.Obr))
-                    return ReadFunctionCall(headToken);
+                    return ReadFunctionCall(headToken.Value);
                 
                 if (_flow.IsCurrent(TokType.Colon))
                 {
@@ -134,6 +133,7 @@ namespace Funny.Parsing
                 
                 if (leftNode == null)
                     throw new FunParseException($"{currentOp} without left arg");
+                
                 if (currentOp == TokType.ArrOBr)
                 {
                     leftNode = ReadArraySliceNode(leftNode);
@@ -142,7 +142,7 @@ namespace Funny.Parsing
                 {
                     _flow.MoveNext();
                     var id = _flow.MoveIfOrThrow(TokType.Id,"function name expected");
-                    leftNode =  ReadFunctionCall(id, pipedVal: leftNode);       
+                    leftNode =  ReadFunctionCall(id.Value, pipedVal: leftNode);       
                 }
                 else if (currentOp == TokType.AnonymFun)
                 {
@@ -158,9 +158,12 @@ namespace Funny.Parsing
                     var rightNode = ReadNext(priority - 1);
                     if (rightNode == null)
                         throw new FunParseException($"{currentOp} without right arg");
-
-                    //building the tree from the left
-                    leftNode = LexNode.Op(currentOp, leftNode, rightNode);
+                    
+                    //building the tree from the left                    
+                    if(currentOp== TokType.Plus)
+                        leftNode = LexNode.Fun(CoreFunNames.AddName,new[]{leftNode, rightNode});
+                    else
+                        leftNode = LexNode.Op(currentOp, leftNode, rightNode);
                     //trace:
                     //ReadNext(priority: 3 ) // *,/,%,AND
                     //0: {start} 4/2*5+1
@@ -303,14 +306,14 @@ namespace Funny.Parsing
             return LexNode.IfElse(ifThenNodes, elseResult);
         }
 
-        private LexNode ReadFunctionCall(Tok id, LexNode pipedVal=null)
+        private LexNode ReadFunctionCall(string name, LexNode pipedVal=null)
         {
             bool hasObr =_flow.MoveIf(TokType.Obr, out _);
 
             if (!hasObr)
             {
                 if (pipedVal != null) 
-                    return LexNode.Fun(id.Value, new[] {pipedVal});
+                    return LexNode.Fun(name, new[] {pipedVal});
                 else
                     throw new FunParseException("'(' expected, but was " + _flow.Current);
             }
@@ -318,7 +321,7 @@ namespace Funny.Parsing
             if(pipedVal!=null)
                 arguments.Insert(0,pipedVal);
             _flow.MoveIfOrThrow(TokType.Cbr, "\",\" or \")\" expected");
-            return LexNode.Fun(id.Value, arguments.ToArray());
+            return LexNode.Fun(name, arguments.ToArray());
         }
         #endregion
     }

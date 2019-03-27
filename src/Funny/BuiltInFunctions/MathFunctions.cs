@@ -21,8 +21,17 @@ namespace Funny.BuiltInFunctions
     }
     public class AddTextFunction: FunctionBase
     {
-        public AddTextFunction() : base(CoreFunNames.AddName, VarType.Text,VarType.Anything,VarType.Text){}
-        public override object Calc(object[] args) => args[0].ToString() + args[1];
+        public AddTextFunction() : base(CoreFunNames.AddName, 
+            VarType.Text,VarType.Text,VarType.Anything){}
+        public override object Calc(object[] args) => args[0].ToString() + ToStringSmart(args[1]);
+
+        private static string ToStringSmart(object o)
+        {
+            if (o is IEnumerable en && !(o is string))
+                return '['+string.Join(',', en.Cast<object>().Select(ToStringSmart)) + ']';
+            return o.ToString();
+        }
+        
     }            
         
     public class AbsOfRealFunction : FunctionBase

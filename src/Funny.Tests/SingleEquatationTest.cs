@@ -61,9 +61,10 @@ namespace Funny.Tests
         [TestCase("y = ''+true", "True")]
         [TestCase("y = 'hi'+5+true", "hi5True")]
         [TestCase("y = 'hi'+' '+'world'", "hi world")]
+        [TestCase("y = 'arr: '+ [1,2,3]", "arr: [1,2,3]")]
+        [TestCase("y = 'arr: '+ [[1,2],[3]]", "arr: [[1,2],[3]]")]
         public void TextConstantEquation(string expr, string expected)
         {
-            
             var runtime = Interpreter.BuildOrThrow(expr);
             var res = runtime.Calculate();
             Assert.AreEqual(1, res.Results.Length);

@@ -27,7 +27,7 @@ namespace Funny.BuiltInFunctions
             var end = (int)args[2];
             if(end<0)
                 throw new FunRuntimeException("Argument out of range");
-            if(start>end)
+            if(end!=0 && start>end)
                 throw new FunRuntimeException("Start cannot be more than end");
             var step = (int) args[3];
             if(step<0)
@@ -140,7 +140,7 @@ namespace Funny.BuiltInFunctions
         public override object Calc(object[] args)
         {
             var arr1 = (args[0] as IEnumerable).Cast<object>();
-            var arr2 = (args[0] as IEnumerable).Cast<object>();
+            var arr2 = (args[1] as IEnumerable).Cast<object>();
             return arr1.Concat(arr2).ToArray();
         }
     }

@@ -41,6 +41,8 @@ namespace Funny.Tests
 
         private static string ToStringSmart(object v)
         {
+            if (v is string)
+                return v.ToString();
             if (v is IEnumerable en)
             {
                 return "{" + string.Join(',', en.Cast<object>().Select(ToStringSmart)) + "}";

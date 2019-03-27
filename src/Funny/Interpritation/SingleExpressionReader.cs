@@ -37,8 +37,6 @@ namespace Funny.Interpritation
                 return GetArrayNode(node);
             if(node.Is(LexNodeType.ProcArrayInit))
                 return GetProcedureArrayNode(node);
-            if(node.Is(LexNodeType.ArrayUnite))
-                return GetUniteArrayNode(node);
             if(node.Is(LexNodeType.AnonymFun))
                 return GetAnonymFun(node);
             if(StandartOperations.IsDefaultOp(node.Type))
@@ -93,21 +91,6 @@ namespace Funny.Interpritation
                 throw new FunParseException(defenition + " is  not valid fun arg");
         }
         
-        private IExpressionNode GetUniteArrayNode(LexNode node)
-        {
-            var left = node.Children.ElementAtOrDefault(0);
-            if (left == null)
-                throw new FunParseException("\"a\" node is missing");
-
-            var right = node.Children.ElementAtOrDefault(1);
-            if (right == null)
-                throw new FunParseException("\"b\" node is missing");
-                
-            var leftExpr = ReadNode(left);
-            var rightExpr = ReadNode(right);
-            return new UniteArraysExpressionNode(leftExpr,rightExpr);
-        }
-
         private IExpressionNode GetOrAddVariableNode(LexNode varName)
         {
             var lower = varName.Value;
