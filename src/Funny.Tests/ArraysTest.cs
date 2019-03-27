@@ -42,7 +42,11 @@ namespace Funny.Tests
         [TestCase("y = [1.0]", new[]{1.0})]
         [TestCase("y = []", new object[0])]
         [TestCase("y = []+[]", new object[0])]
+        [TestCase("y = []-[]", new object[0])]
         [TestCase("y = [1.0,2.0]+[3.0,4.0]", new []{1.0,2.0,3.0,4.0})]
+        [TestCase("y = [1.0,2.0]-[3.0,4.0]", new []{1.0,2.0})]
+        [TestCase("y = [1.0,2.0,3.0]-[3.0,4.0]", new []{1.0,2.0})]
+
         [TestCase("y = ([1.0]+[2.0])+[3.0,4.0]", new []{1.0,2.0,3.0,4.0})]
         [TestCase("y = [1,2,3]", new[]{1,2,3})]
         [TestCase("y = ['a','b','c']", new[]{"a","b","c"})]
@@ -70,6 +74,16 @@ namespace Funny.Tests
         {
             Interpreter.BuildOrThrow(expr).Calculate().AssertHas(Var.New("y", expected));
         }
+        
+        [Test]
+        public void ExceptToDimArrayTest()
+        {
+            var expression = "y = [[1.0,2.0],[3.0,4.0]]-[[3.0,4.0],[1.0],[4.0]]";
+            var expected = new[] {new double[] {1.0, 2.0}};
+
+            Interpreter.BuildOrThrow(expression).Calculate().AssertReturns(Var.New("y", expected));
+        }
+        
         [Test]
         public void TwoDimConstatantTest()
         {

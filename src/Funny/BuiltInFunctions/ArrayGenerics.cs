@@ -144,6 +144,23 @@ namespace Funny.BuiltInFunctions
             return arr1.Concat(arr2).ToArray();
         }
     }
+    
+    public class SubstractArraysGenericFunctionDefenition : GenericFunctionBase
+    {
+        public SubstractArraysGenericFunctionDefenition() : base(CoreFunNames.SubstractName, 
+            VarType.ArrayOf(VarType.Generic(0)),
+            VarType.ArrayOf(VarType.Generic(0)),
+            VarType.ArrayOf(VarType.Generic(0)))
+        {
+        }
+
+        public override object Calc(object[] args)
+        {
+            var arr1 = (args[0] as IEnumerable).Cast<object>();
+            var arr2 = (args[1] as IEnumerable).Cast<object>();
+            return arr1.Except(arr2).ToArray();
+        }
+    }
     public class MapGenericFunctionDefenition : GenericFunctionBase
     {
         public MapGenericFunctionDefenition() : base("map", 

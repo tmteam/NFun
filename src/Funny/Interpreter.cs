@@ -45,6 +45,9 @@ namespace Funny
                 new RangeIntFunction(),
                 new RangeWithStepIntFunction(),
                 new RangeWithStepRealFunction(),
+                new SubstractIntFunction(), 
+                new SubstractRealFunction(), 
+
                 
             };
             var predefinedGenerics = new GenericFunctionBase[]
@@ -63,6 +66,7 @@ namespace Funny
                 new AllGenericFunctionDefenition(), 
                 new AnyGenericFunctionDefenition(), 
                 new ReverseGenericFunctionDefenition(),
+                new SubstractArraysGenericFunctionDefenition(), 
             };
             return ExpressionReader.Interpritate(lexTree, predefinedfunctions, predefinedGenerics);
         }

@@ -6,5 +6,6 @@ namespace Funny.BuiltInFunctions
         public const string RangeName = "range";
         public const string GetElementName = "get";
         public const string SliceName = "slice";
+        public const string SubstractName = "substract";
     }
 }

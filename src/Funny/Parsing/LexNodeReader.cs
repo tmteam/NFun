@@ -162,6 +162,8 @@ namespace Funny.Parsing
                     //building the tree from the left                    
                     if(currentOp== TokType.Plus)
                         leftNode = LexNode.Fun(CoreFunNames.AddName,new[]{leftNode, rightNode});
+                    else if(currentOp== TokType.Minus)
+                        leftNode = LexNode.Fun(CoreFunNames.SubstractName,new[]{leftNode, rightNode});
                     else
                         leftNode = LexNode.Op(currentOp, leftNode, rightNode);
                     //trace:

@@ -9,6 +9,16 @@ using Funny.Types;
 
 namespace Funny.BuiltInFunctions
 {
+    public class SubstractRealFunction: FunctionBase
+    {
+        public SubstractRealFunction() : base(CoreFunNames.SubstractName, VarType.Real,VarType.Real,VarType.Real){}
+        public override object Calc(object[] args) => Convert.ToDouble(args[0]) - Convert.ToDouble(args[1]);
+    }
+    public class SubstractIntFunction: FunctionBase
+    {
+        public SubstractIntFunction() : base(CoreFunNames.SubstractName, VarType.Int,VarType.Int,VarType.Int){}
+        public override object Calc(object[] args) => (int)args[0] - (int)args[1];
+    }
     public class AddRealFunction: FunctionBase
     {
         public AddRealFunction() : base(CoreFunNames.AddName, VarType.Real,VarType.Real,VarType.Real){}
