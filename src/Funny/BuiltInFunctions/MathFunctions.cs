@@ -10,6 +10,84 @@ using Funny.Types;
 namespace Funny.BuiltInFunctions
 {
     
+    public class AndFunction: FunctionBase
+    {
+        public AndFunction() : base(CoreFunNames.And, VarType.Bool,VarType.Bool,VarType.Bool){}
+        public override object Calc(object[] args) => (bool)args[0] && (bool)args[1];
+    }
+    public class OrFunction: FunctionBase
+    {
+        public OrFunction() : base(CoreFunNames.Or, VarType.Bool,VarType.Bool,VarType.Bool){}
+        public override object Calc(object[] args) => (bool)args[0] || (bool)args[1];
+    }
+    public class XorFunction: FunctionBase
+    {
+        public XorFunction() : base(CoreFunNames.Xor, VarType.Bool,VarType.Bool,VarType.Bool){}
+        public override object Calc(object[] args) =>  (bool)args[0] != (bool)args[1];
+    }
+    public class BitShiftLeftFunction: FunctionBase
+    {
+        public BitShiftLeftFunction() : base(CoreFunNames.BitShiftLeft, VarType.Int,VarType.Int,VarType.Int){}
+        public override object Calc(object[] args) => (int)args[0] << (int)args[1];
+    }
+    public class BitShiftRightFunction: FunctionBase
+    {
+        public BitShiftRightFunction() : base(CoreFunNames.BitShiftRight, VarType.Int,VarType.Int,VarType.Int){}
+        public override object Calc(object[] args) => (int)args[0] >> (int)args[1];
+    }
+
+    public class MoreIntFunction: FunctionBase
+    {
+        public MoreIntFunction() : base(CoreFunNames.More, VarType.Bool,VarType.Int,VarType.Int){}
+        public override object Calc(object[] args) => (int)args[0] > (int)args[1];
+    }
+    public class MoreOrEqualIntFunction: FunctionBase
+    {
+        public MoreOrEqualIntFunction() : base(CoreFunNames.MoreOrEqual, VarType.Bool,VarType.Int,VarType.Int){}
+        public override object Calc(object[] args) => (int)args[0] >= (int)args[1];
+    }
+    public class LessIntFunction: FunctionBase
+    {
+        public LessIntFunction() : base(CoreFunNames.Less, VarType.Bool,VarType.Int,VarType.Int){}
+        public override object Calc(object[] args) => (int)args[0] < (int)args[1];
+    }
+    public class LessOrEqualIntFunction: FunctionBase
+    {
+        public LessOrEqualIntFunction() : base(CoreFunNames.LessOrEqual, VarType.Bool,VarType.Int,VarType.Int){}
+        public override object Calc(object[] args) => (int)args[0] <= (int)args[1];
+    }
+    public class MoreRealFunction: FunctionBase
+    {
+        public MoreRealFunction() : base(CoreFunNames.More, VarType.Bool,VarType.Real,VarType.Real){}
+        public override object Calc(object[] args) => (double)args[0] > (double)args[1];
+    }
+    public class MoreOrEqualRealFunction: FunctionBase
+    {
+        public MoreOrEqualRealFunction() : base(CoreFunNames.MoreOrEqual, VarType.Bool,VarType.Real,VarType.Real){}
+        public override object Calc(object[] args) => (double)args[0] >= (double)args[1];
+    }
+    public class LessRealFunction: FunctionBase
+    {
+        public LessRealFunction() : base(CoreFunNames.Less, VarType.Bool,VarType.Real,VarType.Real){}
+        public override object Calc(object[] args) => (double)args[0] < (double)args[1];
+    }
+    public class LessOrEqualRealFunction: FunctionBase
+    {
+        public LessOrEqualRealFunction() : base(CoreFunNames.LessOrEqual, VarType.Bool,VarType.Real,VarType.Real){}
+        public override object Calc(object[] args) => (double)args[0] <= (double)args[1];
+    }
+
+    public class EqualFunction: FunctionBase
+    {
+        public EqualFunction() : base(CoreFunNames.Equal, VarType.Bool,VarType.Anything,VarType.Anything){}
+        public override object Calc(object[] args) => TypeHelper.AreEqual(args[0],args[1]);
+    }
+    public class NotEqualFunction: FunctionBase
+    {
+        public NotEqualFunction() : base(CoreFunNames.NotEqual, VarType.Bool,VarType.Anything,VarType.Anything){}
+        public override object Calc(object[] args) => !TypeHelper.AreEqual(args[0],args[1]);
+    }
+
     public class RemainderRealFunction: FunctionBase
     {
         public RemainderRealFunction() : base(CoreFunNames.Remainder, VarType.Real,VarType.Real,VarType.Real){}
@@ -26,7 +104,8 @@ namespace Funny.BuiltInFunctions
     public class PowRealFunction: FunctionBase
     {
         public PowRealFunction() : base(CoreFunNames.Pow, VarType.Real,VarType.Real,VarType.Real){}
-        public override object Calc(object[] args) => Math.Pow(Convert.ToDouble(args[0]), Convert.ToDouble(args[1]));
+        public override object Calc(object[] args) 
+            => Math.Pow(Convert.ToDouble(args[0]), Convert.ToDouble(args[1]));
     }
     
     public class DivideRealFunction: FunctionBase

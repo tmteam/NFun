@@ -8,63 +8,8 @@ namespace Funny.Parsing
 {
     public class LexNode
     {
-        private static LexNodeType TokToNode(TokType tok)
-        {
-            switch (tok)
-            {
-                case TokType.Number:
-                    return LexNodeType.Number;
-                case TokType.Plus:
-                    return LexNodeType.Plus;
-                case TokType.Minus:
-                    return LexNodeType.Minus;
-                case TokType.Div:
-                    return LexNodeType.Div;
-                case TokType.Rema:
-                    return LexNodeType.Rema;
-                case TokType.Mult:
-                    return LexNodeType.Mult;
-                case TokType.Pow:
-                    return LexNodeType.Pow;
-                case TokType.Equal:
-                    return LexNodeType.Equal;
-                case TokType.NotEqual:
-                    return LexNodeType.NotEqual;
-                case TokType.And:
-                    return LexNodeType.And;
-                case TokType.Or:
-                    return LexNodeType.Or;
-                case TokType.Xor:
-                    return LexNodeType.Xor;
-                case TokType.Less:
-                    return LexNodeType.Less;
-                case TokType.More:
-                    return LexNodeType.More;
-                case TokType.LessOrEqual:
-                    return LexNodeType.LessOrEqual;
-                case TokType.MoreOrEqual:
-                    return LexNodeType.MoreOrEqual;
-                case TokType.BitOr:
-                    return LexNodeType.BitOr;
-                case TokType.BitAnd:
-                    return LexNodeType.BitAnd;
-                case TokType.BitXor:
-                    return LexNodeType.BitXor;
-                case TokType.BitShiftLeft:
-                    return LexNodeType.BitShiftLeft;
-                case TokType.BitShiftRight:
-                    return LexNodeType.BitShiftRight;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(tok), tok, null);
-            }
-        } 
         public static LexNode IfElse(IEnumerable<LexNode> ifThenNodes, LexNode elseResult) 
             => new LexNode(LexNodeType.IfThanElse,null, ifThenNodes.Append(elseResult).ToArray());
-        public static LexNode Op(TokType type, LexNode leftChild, LexNode rightChild) 
-            => new LexNode(TokToNode(type), "", leftChild, rightChild);
-
-        public static LexNode Op(LexNodeType type, LexNode leftChild, LexNode rightChild) 
-            => new LexNode(type, "", leftChild, rightChild);
         public static LexNode IfThen(LexNode condition, LexNode expression)
             => new LexNode(LexNodeType.IfThen, null, condition, expression);
         public static LexNode Var(string name) 
@@ -128,29 +73,8 @@ namespace Funny.Parsing
     public enum LexNodeType
     {
         Number,
-        Plus,
-        Minus,
-        Div,
-        /// <summary>
-        /// Division reminder "%"
-        /// </summary>
-        Rema,
-        Mult,
-        /// <summary>
-        /// Pow "^"
-        /// </summary>
-        Pow,
         Var,
         Fun,
-        And,
-        Or,
-        Xor,
-        Equal,
-        NotEqual,
-        Less,
-        LessOrEqual,
-        More,
-        MoreOrEqual,
         IfThen,
         IfThanElse,
         Text,
@@ -158,11 +82,6 @@ namespace Funny.Parsing
         AnonymFun,
         Argument,
         ListOfExpressions,
-        BitOr,
-        BitAnd,
-        BitXor,
-        BitShiftLeft,
-        BitShiftRight,
         ProcArrayInit
     }
 }

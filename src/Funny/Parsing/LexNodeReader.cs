@@ -16,6 +16,7 @@ namespace Funny.Parsing
             {
                 {TokType.AnonymFun,0},
                 {TokType.ArrOBr,0},
+                {TokType.In,0},
                 {TokType.Equal, 1},
                 {TokType.NotEqual, 1},
                 {TokType.More, 1},
@@ -39,6 +40,37 @@ namespace Funny.Parsing
                 {TokType.PipeForward,5},
             };
 
+        private static readonly Dictionary<TokType, string> OperatorFunNames
+            = new Dictionary<TokType, string>()
+            {
+                {TokType.Plus,CoreFunNames.Add},
+                {TokType.Minus,CoreFunNames.Substract},
+                {TokType.Mult,CoreFunNames.Multiply},
+                {TokType.Div,CoreFunNames.Divide},
+                {TokType.Rema,CoreFunNames.Remainder},
+                {TokType.Pow,CoreFunNames.Pow},
+
+                {TokType.And,CoreFunNames.And},
+                {TokType.Or,CoreFunNames.Or},
+                {TokType.Xor,CoreFunNames.Xor},
+                
+                {TokType.BitAnd,CoreFunNames.BitAnd},
+                {TokType.BitOr,CoreFunNames.BitOr},
+                {TokType.BitXor,CoreFunNames.BitXor},
+                
+                {TokType.More,CoreFunNames.More},
+                {TokType.MoreOrEqual,CoreFunNames.MoreOrEqual},
+                {TokType.Less,CoreFunNames.Less},
+                {TokType.LessOrEqual,CoreFunNames.LessOrEqual},
+
+                {TokType.Equal,CoreFunNames.Equal},
+                {TokType.NotEqual,CoreFunNames.NotEqual},
+
+                {TokType.BitShiftLeft,CoreFunNames.BitShiftLeft},
+                {TokType.BitShiftRight,CoreFunNames.BitShiftRight},
+                
+                {TokType.In,CoreFunNames.In},
+            };
         public LexNodeReader(TokenFlow flow)
         {
             this._flow = flow;
@@ -61,7 +93,7 @@ namespace Funny.Parsing
                 var nextNode = ReadAtomicOrNull();
                 if (nextNode == null)
                     throw new FunParseException("minus without next val");
-                return LexNode.Op(LexNodeType.Mult, LexNode.Num("-1"), nextNode);
+                return LexNode.Fun(CoreFunNames.Multiply,new[]{LexNode.Num("-1"), nextNode});
             }
             
             if (_flow.MoveIf(TokType.True, out var trueTok))
@@ -160,25 +192,11 @@ namespace Funny.Parsing
                         throw new FunParseException($"{currentOp} without right arg");
                     
                     //building the tree from the left                    
-                    
-                    if(currentOp== TokType.Plus)
-                        leftNode = LexNode.Fun(CoreFunNames.Add,new[]{leftNode, rightNode});
-                    else if(currentOp== TokType.Minus)
-                        leftNode = LexNode.Fun(CoreFunNames.Substract,new[]{leftNode, rightNode});
-                    else if(currentOp== TokType.Mult)
-                        leftNode = LexNode.Fun(CoreFunNames.Multiply,new[]{leftNode, rightNode});
-                    else if(currentOp== TokType.Div)
-                        leftNode = LexNode.Fun(CoreFunNames.Divide,new[]{leftNode, rightNode});
-                    else if(currentOp== TokType.Rema)
-                        leftNode = LexNode.Fun(CoreFunNames.Remainder,new[]{leftNode, rightNode});
-                    else if(currentOp == TokType.BitAnd)
-                        leftNode = LexNode.Fun(CoreFunNames.BitAnd,new[]{leftNode, rightNode});
-                    else if(currentOp == TokType.BitOr)
-                        leftNode = LexNode.Fun(CoreFunNames.BitOr,new[]{leftNode, rightNode});
-                    else if(currentOp == TokType.BitXor)
-                        leftNode = LexNode.Fun(CoreFunNames.BitXor,new[]{leftNode, rightNode});
+
+                    if (OperatorFunNames.ContainsKey(currentOp))
+                        leftNode = LexNode.Fun(OperatorFunNames[currentOp],new[]{leftNode, rightNode});
                     else
-                        leftNode = LexNode.Op(currentOp, leftNode, rightNode);
+                        throw new FunParseException("Unknown operator \""+ currentOp+"\"");
                     //trace:
                     //ReadNext(priority: 3 ) // *,/,%,AND
                     //0: {start} 4/2*5+1

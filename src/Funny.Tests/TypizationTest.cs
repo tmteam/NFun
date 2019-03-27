@@ -15,7 +15,7 @@ namespace Funny.Tests
         }
         [TestCase("y = 2",BaseVarType.Int)]
         [TestCase("y = 2*3",BaseVarType.Int)]
-        [TestCase("y = 2**3",BaseVarType.Int)]
+        [TestCase("y = 2**3",BaseVarType.Real)]
         [TestCase("y = 2%3",BaseVarType.Int)]
 
         [TestCase("y = 4/3",BaseVarType.Real)]

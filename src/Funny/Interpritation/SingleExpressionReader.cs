@@ -39,8 +39,6 @@ namespace Funny.Interpritation
                 return GetProcedureArrayNode(node);
             if(node.Is(LexNodeType.AnonymFun))
                 return GetAnonymFun(node);
-            if(StandartOperations.IsDefaultOp(node.Type))
-                return GetOpNode(node);
             
             throw new FunParseException($"{node} is not an expression");
         }
@@ -108,22 +106,6 @@ namespace Funny.Interpritation
                 _variables.Add(lower, res);
                 return res;
             }
-        }
-        
-        private IExpressionNode GetOpNode(LexNode node)
-        {
-            var left = node.Children.ElementAtOrDefault(0);
-            if (left == null)
-                throw new FunParseException("\"a\" node is missing");
-
-            var right = node.Children.ElementAtOrDefault(1);
-            if (right == null)
-                throw new FunParseException("\"b\" node is missing");
-
-            var leftExpr = ReadNode(left);
-            var rightExpr = ReadNode(right);
-            
-            return StandartOperations.GetOp(node.Type, leftExpr, rightExpr);            
         }
         
         private IExpressionNode GetProcedureArrayNode(LexNode node)

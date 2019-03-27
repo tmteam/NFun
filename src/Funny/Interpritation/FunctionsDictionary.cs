@@ -117,15 +117,9 @@ namespace Funny.Interpritation
             if (!filtered.Any())
                 return null;
             
-            if (filtered.Length == 1)
-            {
-                var candidate = filtered.First();
-                return candidate.CreateConcreteOrNull(args);
-            }
-            else
-            {
-                return null;
-            }
+            return filtered
+                  .Select(f => f.CreateConcreteOrNull(args))
+                  .SingleOrDefault(f => f != null);
         }
         
         

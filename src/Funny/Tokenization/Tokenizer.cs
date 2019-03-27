@@ -53,6 +53,7 @@ namespace Funny.Tokenization
             {"real", TokType.RealType},
             {"int", TokType.IntType},
             {"anything", TokType.AnythingType},
+            {"in", TokType.In}
         };
         
         public Tok TryReadNext(string str, int position)

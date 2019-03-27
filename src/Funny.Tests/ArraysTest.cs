@@ -48,7 +48,7 @@ namespace Funny.Tests
         [TestCase("y = ['a','b'] * 1", new []{"a","b"})]
         [TestCase("y = 1 in [1,2,3]", true)]    
         [TestCase("y = 0 in [1,2,3]", false)]    
-        
+
         [TestCase("y = [2,1] in [1,2,3]", true)]    
         [TestCase("y = [1,5,2] in [1,2,3]", false)]    
 

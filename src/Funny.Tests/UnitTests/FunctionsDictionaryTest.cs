@@ -184,6 +184,44 @@ namespace Funny.Tests.UnitTests
             
         }
         [Test]
+        public void ContainsHasOverloads_ArgsAreAtomic_ReturnsAtomicOverload()
+        {
+            dic.Add(new IsInSingleGenericFunctionDefenition());
+            dic.Add(new IsInMultipleGenericFunctionDefenition());
+           
+            var fun = dic.GetOrNull(CoreFunNames.In,  VarType.Int,VarType.ArrayOf(VarType.Int));
+            Assert.IsNotNull(fun);
+            Assert.AreEqual(VarType.Int, fun.ArgTypes[0]);
+        }
+        [Test]
+        public void ContainsHasOverloads_ArgsAreArray_ReturnsArrayOverload()
+        {
+            dic.Add(new IsInSingleGenericFunctionDefenition());
+            dic.Add(new IsInMultipleGenericFunctionDefenition());
+           
+            var fun = dic.GetOrNull(CoreFunNames.In,  VarType.ArrayOf(VarType.Int),VarType.ArrayOf(VarType.Int));
+            Assert.IsNotNull(fun);
+            Assert.AreEqual(VarType.ArrayOf(VarType.Int), fun.ArgTypes[0]);
+        }
+        [Test]
+        public void ContainsHasOverloads_ArrayArgsAreInvalid_ReturnsNull()
+        {
+            dic.Add(new IsInSingleGenericFunctionDefenition());
+            dic.Add(new IsInMultipleGenericFunctionDefenition());
+           
+            var fun = dic.GetOrNull(CoreFunNames.In,  VarType.ArrayOf(VarType.Text),VarType.ArrayOf(VarType.Int));
+            Assert.IsNull(fun);
+        }
+        [Test]
+        public void ContainsWithoutOveloads_AtomicArgsAreInvalid_ReturnsNull()
+        {
+            dic.Add(new IsInSingleGenericFunctionDefenition());
+           
+            var fun = dic.GetOrNull(CoreFunNames.In,  VarType.Text,VarType.Int);
+            Assert.IsNull(fun);
+        }
+        
+        [Test]
         public void AddHasOverloadsForRealIntText_ArgsAreIntReal_ReturnsRealRealOverload()
         {
             dic.Add(new AddIntFunction());

@@ -8,6 +8,39 @@ using Funny.Types;
 
 namespace Funny.BuiltInFunctions
 {
+    public class IsInSingleGenericFunctionDefenition : GenericFunctionBase
+    {
+        public IsInSingleGenericFunctionDefenition() : base(CoreFunNames.In, 
+            VarType.Bool,
+            VarType.Generic(0), 
+            VarType.ArrayOf(VarType.Generic(0)))
+        {
+        }
+        public override object Calc(object[] args)
+        {
+            var val = args[0];
+            var arr = (args[1] as IEnumerable).Cast<object>();
+            return arr.Any(a => TypeHelper.AreEqual(a, val));
+        }
+    }
+    public class IsInMultipleGenericFunctionDefenition : GenericFunctionBase
+    {
+        public IsInMultipleGenericFunctionDefenition() : base(CoreFunNames.In, 
+            VarType.Bool,
+            VarType.ArrayOf(VarType.Generic(0)),
+            VarType.ArrayOf(VarType.Generic(0)))
+        {
+        }
+
+        public override object Calc(object[] args)
+        {
+            var arr1 = (args[0] as IEnumerable).Cast<object>();
+            var arr2 = (args[1] as IEnumerable).Cast<object>();
+            //Todo O(n^2)
+            return arr1.All(a=>arr2.Any(a2=>TypeHelper.AreEqual(a,a2)));
+        }
+    }
+
     public class SliceWithStepGenericFunctionDefenition : GenericFunctionBase
     {
         public SliceWithStepGenericFunctionDefenition() : base(CoreFunNames.SliceName, 

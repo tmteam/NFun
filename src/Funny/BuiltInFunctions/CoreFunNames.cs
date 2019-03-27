@@ -14,5 +14,17 @@ namespace Funny.BuiltInFunctions
         public const string Divide = "divide";
         public const string Pow = "pow";
         public const string Remainder = "remainder";
+        public const string And = "and";
+        public const string Or = "or";
+        public const string Xor = "xor";
+        public const string Equal = "equal";
+        public const string NotEqual = "notequal";
+        public const string Less = "less";
+        public const string LessOrEqual = "lessorequal";
+        public const string More = "more";
+        public const string MoreOrEqual = "moreorequal";
+        public const string BitShiftLeft = "bitshiftleft";
+        public const string In = "in";
+        public const string BitShiftRight = "bitshiftright";
     }
 }

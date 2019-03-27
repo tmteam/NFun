@@ -14,7 +14,21 @@ namespace Funny
             var lexTree =    Parser.Parse(flow);
             var predefinedfunctions = new FunctionBase[]
             {
-                
+                new AndFunction(), 
+                new OrFunction(), 
+                new XorFunction(), 
+                new EqualFunction(), 
+                new NotEqualFunction(), 
+                new LessIntFunction(), 
+                new LessRealFunction(), 
+                new LessOrEqualIntFunction(), 
+                new LessOrEqualRealFunction(), 
+                new MoreIntFunction(), 
+                new MoreRealFunction(), 
+                new MoreOrEqualIntFunction(), 
+                new MoreOrEqualRealFunction(), 
+                new BitShiftLeftFunction(), 
+                new BitShiftRightFunction(), 
                 new AbsOfRealFunction(),
                 new AbsOfIntFunction(),
                 new AddRealFunction(),
@@ -60,6 +74,8 @@ namespace Funny
             };
             var predefinedGenerics = new GenericFunctionBase[]
             {
+                new IsInSingleGenericFunctionDefenition(), 
+                new IsInMultipleGenericFunctionDefenition(), 
                 new MultiplyGenericFunctionDefenition(),
                 new UniqueGenericFunctionDefenition(), 
                 new UnionGenericFunctionDefenition(), 
