@@ -18,7 +18,10 @@ namespace Funny
                 new AbsOfIntFunction(),
                 new AddRealFunction(),
                 new AddIntFunction(),
-                new AddTextFunction(), 
+                new AddTextFunction(),
+                new SubstractIntFunction(), 
+                new SubstractRealFunction(), 
+                new AmpersantIntFunction(),
 
                 new SinFunction(), 
                 new CosFunction(), 
@@ -45,13 +48,12 @@ namespace Funny
                 new RangeIntFunction(),
                 new RangeWithStepIntFunction(),
                 new RangeWithStepRealFunction(),
-                new SubstractIntFunction(), 
-                new SubstractRealFunction(), 
-
-                
             };
             var predefinedGenerics = new GenericFunctionBase[]
             {
+                new AmpersantGenericFunctionDefenition(), 
+                new SubstractArraysGenericFunctionDefenition(), 
+
                 new AddArraysGenericFunctionDefenition(), 
                 new GetGenericFunctionDefenition(),
                 new SliceGenericFunctionDefenition(), 
@@ -66,7 +68,6 @@ namespace Funny
                 new AllGenericFunctionDefenition(), 
                 new AnyGenericFunctionDefenition(), 
                 new ReverseGenericFunctionDefenition(),
-                new SubstractArraysGenericFunctionDefenition(), 
             };
             return ExpressionReader.Interpritate(lexTree, predefinedfunctions, predefinedGenerics);
         }

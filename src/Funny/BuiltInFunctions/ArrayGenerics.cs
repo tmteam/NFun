@@ -128,6 +128,22 @@ namespace Funny.BuiltInFunctions
             return res; 
         }
     }
+    public class AmpersantGenericFunctionDefenition : GenericFunctionBase
+    {
+        public AmpersantGenericFunctionDefenition() : base(CoreFunNames.AmpersantName, 
+            VarType.ArrayOf(VarType.Generic(0)),
+            VarType.ArrayOf(VarType.Generic(0)),
+            VarType.ArrayOf(VarType.Generic(0)))
+        {
+        }
+
+        public override object Calc(object[] args)
+        {
+            var arr1 = (args[0] as IEnumerable).Cast<object>();
+            var arr2 = (args[1] as IEnumerable).Cast<object>();
+            return arr1.Intersect(arr2).ToArray();
+        }
+    }
     public class AddArraysGenericFunctionDefenition : GenericFunctionBase
     {
         public AddArraysGenericFunctionDefenition() : base(CoreFunNames.AddName, 

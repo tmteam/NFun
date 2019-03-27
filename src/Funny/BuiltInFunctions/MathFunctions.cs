@@ -19,6 +19,13 @@ namespace Funny.BuiltInFunctions
         public SubstractIntFunction() : base(CoreFunNames.SubstractName, VarType.Int,VarType.Int,VarType.Int){}
         public override object Calc(object[] args) => (int)args[0] - (int)args[1];
     }
+
+    public class AmpersantIntFunction: FunctionBase
+    {
+        public AmpersantIntFunction() : base(CoreFunNames.AmpersantName, VarType.Int,VarType.Int,VarType.Int){}
+        public override object Calc(object[] args) => (int)args[0] & (int)(args[1]);
+    }
+    
     public class AddRealFunction: FunctionBase
     {
         public AddRealFunction() : base(CoreFunNames.AddName, VarType.Real,VarType.Real,VarType.Real){}

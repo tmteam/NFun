@@ -164,6 +164,8 @@ namespace Funny.Parsing
                         leftNode = LexNode.Fun(CoreFunNames.AddName,new[]{leftNode, rightNode});
                     else if(currentOp== TokType.Minus)
                         leftNode = LexNode.Fun(CoreFunNames.SubstractName,new[]{leftNode, rightNode});
+                    else if(currentOp == TokType.BitAnd)
+                        leftNode = LexNode.Fun(CoreFunNames.AmpersantName,new[]{leftNode, rightNode});
                     else
                         leftNode = LexNode.Op(currentOp, leftNode, rightNode);
                     //trace:
