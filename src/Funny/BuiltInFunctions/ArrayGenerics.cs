@@ -110,6 +110,24 @@ namespace Funny.BuiltInFunctions
             return res;
         }
     }
+    public class MultiplyGenericFunctionDefenition : GenericFunctionBase
+    {
+        public MultiplyGenericFunctionDefenition() : base(CoreFunNames.Multiply, 
+            VarType.ArrayOf(VarType.Generic(0)),
+            VarType.ArrayOf(VarType.Generic(0)),
+            VarType.Int)
+        {
+        }
+
+        public override object Calc(object[] args)
+        {
+            var arr = (args[0] as IEnumerable).Cast<object>();
+            var factor = (int)args[1] ;
+            
+            var res = Enumerable.Repeat(arr,factor).SelectMany(a=>a).ToArray();
+            return res; 
+        }
+    }
     public class FoldGenericFunctionDefenition : GenericFunctionBase
     {
         public FoldGenericFunctionDefenition() : base("fold", 
@@ -128,9 +146,41 @@ namespace Funny.BuiltInFunctions
             return res; 
         }
     }
-    public class AmpersantGenericFunctionDefenition : GenericFunctionBase
+    public class UnionGenericFunctionDefenition : GenericFunctionBase
     {
-        public AmpersantGenericFunctionDefenition() : base(CoreFunNames.AmpersantName, 
+        public UnionGenericFunctionDefenition() : base(CoreFunNames.BitOr, 
+            VarType.ArrayOf(VarType.Generic(0)),
+            VarType.ArrayOf(VarType.Generic(0)),
+            VarType.ArrayOf(VarType.Generic(0)))
+        {
+        }
+
+        public override object Calc(object[] args)
+        {
+            var arr1 = (args[0] as IEnumerable).Cast<object>();
+            var arr2 = (args[1] as IEnumerable).Cast<object>();
+            return arr1.Union(arr2).ToArray();
+        }
+    }
+    public class UniqueGenericFunctionDefenition : GenericFunctionBase
+    {
+        public UniqueGenericFunctionDefenition() : base(CoreFunNames.BitXor, 
+            VarType.ArrayOf(VarType.Generic(0)),
+            VarType.ArrayOf(VarType.Generic(0)),
+            VarType.ArrayOf(VarType.Generic(0)))
+        {
+        }
+
+        public override object Calc(object[] args)
+        {
+            var arr1 = (args[0] as IEnumerable).Cast<object>();
+            var arr2 = (args[1] as IEnumerable).Cast<object>();
+            return arr1.Except(arr2).ToArray();
+        }
+    }
+    public class IntersectGenericFunctionDefenition : GenericFunctionBase
+    {
+        public IntersectGenericFunctionDefenition() : base(CoreFunNames.BitAnd, 
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)))
@@ -144,9 +194,9 @@ namespace Funny.BuiltInFunctions
             return arr1.Intersect(arr2).ToArray();
         }
     }
-    public class AddArraysGenericFunctionDefenition : GenericFunctionBase
+    public class ConcatArraysGenericFunctionDefenition : GenericFunctionBase
     {
-        public AddArraysGenericFunctionDefenition() : base(CoreFunNames.AddName, 
+        public ConcatArraysGenericFunctionDefenition() : base(CoreFunNames.Add, 
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)))
@@ -163,7 +213,7 @@ namespace Funny.BuiltInFunctions
     
     public class SubstractArraysGenericFunctionDefenition : GenericFunctionBase
     {
-        public SubstractArraysGenericFunctionDefenition() : base(CoreFunNames.SubstractName, 
+        public SubstractArraysGenericFunctionDefenition() : base(CoreFunNames.Substract, 
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)))

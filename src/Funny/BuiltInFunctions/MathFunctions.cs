@@ -9,36 +9,83 @@ using Funny.Types;
 
 namespace Funny.BuiltInFunctions
 {
+    
+    public class RemainderRealFunction: FunctionBase
+    {
+        public RemainderRealFunction() : base(CoreFunNames.Remainder, VarType.Real,VarType.Real,VarType.Real){}
+        public override object Calc(object[] args) => (double)args[0] % (double)args[1];
+    }
+    
+    public class RemainderIntFunction: FunctionBase
+    {
+        public RemainderIntFunction() : base(CoreFunNames.Remainder, VarType.Int,VarType.Int,VarType.Int){}
+        public override object Calc(object[] args) => (int)args[0] % (int)args[1];
+    }
+    
+        
+    public class PowRealFunction: FunctionBase
+    {
+        public PowRealFunction() : base(CoreFunNames.Pow, VarType.Real,VarType.Real,VarType.Real){}
+        public override object Calc(object[] args) => Math.Pow(Convert.ToDouble(args[0]), Convert.ToDouble(args[1]));
+    }
+    
+    public class DivideRealFunction: FunctionBase
+    {
+        public DivideRealFunction() : base(CoreFunNames.Divide, VarType.Real,VarType.Real,VarType.Real){}
+        public override object Calc(object[] args) => Convert.ToDouble(args[0]) / Convert.ToDouble(args[1]);
+    }
+    
+    public class MultiplyRealFunction: FunctionBase
+    {
+        public MultiplyRealFunction() : base(CoreFunNames.Multiply, VarType.Real,VarType.Real,VarType.Real){}
+        public override object Calc(object[] args) => Convert.ToDouble(args[0]) * Convert.ToDouble(args[1]);
+    }
+    public class MultiplyIntFunction: FunctionBase
+    {
+        public MultiplyIntFunction() : base(CoreFunNames.Multiply, VarType.Int,VarType.Int,VarType.Int){}
+        public override object Calc(object[] args) => (int)args[0] * (int)args[1];
+    }
     public class SubstractRealFunction: FunctionBase
     {
-        public SubstractRealFunction() : base(CoreFunNames.SubstractName, VarType.Real,VarType.Real,VarType.Real){}
+        public SubstractRealFunction() : base(CoreFunNames.Substract, VarType.Real,VarType.Real,VarType.Real){}
         public override object Calc(object[] args) => Convert.ToDouble(args[0]) - Convert.ToDouble(args[1]);
     }
     public class SubstractIntFunction: FunctionBase
     {
-        public SubstractIntFunction() : base(CoreFunNames.SubstractName, VarType.Int,VarType.Int,VarType.Int){}
+        public SubstractIntFunction() : base(CoreFunNames.Substract, VarType.Int,VarType.Int,VarType.Int){}
         public override object Calc(object[] args) => (int)args[0] - (int)args[1];
     }
-
-    public class AmpersantIntFunction: FunctionBase
+    public class BitOrIntFunction : FunctionBase
     {
-        public AmpersantIntFunction() : base(CoreFunNames.AmpersantName, VarType.Int,VarType.Int,VarType.Int){}
+        public BitOrIntFunction() : base(CoreFunNames.BitOr, VarType.Int,VarType.Int,VarType.Int){}
+        public override object Calc(object[] args) => (int)args[0] | (int)(args[1]);
+    }
+    
+    public class BitXorIntFunction : FunctionBase
+    {
+        public BitXorIntFunction() : base(CoreFunNames.BitXor, VarType.Int,VarType.Int,VarType.Int){}
+        public override object Calc(object[] args) => (int)args[0] ^ (int)args[1];
+    }
+    
+    public class BitAndIntFunction: FunctionBase
+    {
+        public BitAndIntFunction() : base(CoreFunNames.BitAnd, VarType.Int,VarType.Int,VarType.Int){}
         public override object Calc(object[] args) => (int)args[0] & (int)(args[1]);
     }
     
     public class AddRealFunction: FunctionBase
     {
-        public AddRealFunction() : base(CoreFunNames.AddName, VarType.Real,VarType.Real,VarType.Real){}
+        public AddRealFunction() : base(CoreFunNames.Add, VarType.Real,VarType.Real,VarType.Real){}
         public override object Calc(object[] args) => Convert.ToDouble(args[0]) + Convert.ToDouble(args[1]);
     }
     public class AddIntFunction: FunctionBase
     {
-        public AddIntFunction() : base(CoreFunNames.AddName, VarType.Int,VarType.Int,VarType.Int){}
+        public AddIntFunction() : base(CoreFunNames.Add, VarType.Int,VarType.Int,VarType.Int){}
         public override object Calc(object[] args) => (int)args[0] + (int)args[1];
     }
     public class AddTextFunction: FunctionBase
     {
-        public AddTextFunction() : base(CoreFunNames.AddName, 
+        public AddTextFunction() : base(CoreFunNames.Add, 
             VarType.Text,VarType.Text,VarType.Anything){}
         public override object Calc(object[] args) => args[0].ToString() + ToStringSmart(args[1]);
 

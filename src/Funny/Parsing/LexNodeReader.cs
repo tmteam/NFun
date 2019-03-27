@@ -160,12 +160,23 @@ namespace Funny.Parsing
                         throw new FunParseException($"{currentOp} without right arg");
                     
                     //building the tree from the left                    
+                    
                     if(currentOp== TokType.Plus)
-                        leftNode = LexNode.Fun(CoreFunNames.AddName,new[]{leftNode, rightNode});
+                        leftNode = LexNode.Fun(CoreFunNames.Add,new[]{leftNode, rightNode});
                     else if(currentOp== TokType.Minus)
-                        leftNode = LexNode.Fun(CoreFunNames.SubstractName,new[]{leftNode, rightNode});
+                        leftNode = LexNode.Fun(CoreFunNames.Substract,new[]{leftNode, rightNode});
+                    else if(currentOp== TokType.Mult)
+                        leftNode = LexNode.Fun(CoreFunNames.Multiply,new[]{leftNode, rightNode});
+                    else if(currentOp== TokType.Div)
+                        leftNode = LexNode.Fun(CoreFunNames.Divide,new[]{leftNode, rightNode});
+                    else if(currentOp== TokType.Rema)
+                        leftNode = LexNode.Fun(CoreFunNames.Remainder,new[]{leftNode, rightNode});
                     else if(currentOp == TokType.BitAnd)
-                        leftNode = LexNode.Fun(CoreFunNames.AmpersantName,new[]{leftNode, rightNode});
+                        leftNode = LexNode.Fun(CoreFunNames.BitAnd,new[]{leftNode, rightNode});
+                    else if(currentOp == TokType.BitOr)
+                        leftNode = LexNode.Fun(CoreFunNames.BitOr,new[]{leftNode, rightNode});
+                    else if(currentOp == TokType.BitXor)
+                        leftNode = LexNode.Fun(CoreFunNames.BitXor,new[]{leftNode, rightNode});
                     else
                         leftNode = LexNode.Op(currentOp, leftNode, rightNode);
                     //trace:

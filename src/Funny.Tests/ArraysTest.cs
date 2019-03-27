@@ -40,11 +40,32 @@ namespace Funny.Tests
         [TestCase("y = [0..10][:4:3]", new[]{0,3})]
         [TestCase("y = [1.0,1.2,2.4]", new[]{1.0,1.2, 2.4})]
         [TestCase("y = [1.0]", new[]{1.0})]
+        [TestCase("y = [1.0] * 3", new[]{1.0,1.0,1.0})]
+        [TestCase("y = [] * 3", new object[0])]
+        
+        [TestCase("y = ['a','b'] * 3", new []{"a","b","a","b","a","b"})]
+        [TestCase("y = ['a','b'] * 0", new string[0])]
+        [TestCase("y = ['a','b'] * 1", new []{"a","b"})]
+        [TestCase("y = 1 in [1,2,3]", true)]    
+        [TestCase("y = 0 in [1,2,3]", false)]    
+        
+        [TestCase("y = [2,1] in [1,2,3]", true)]    
+        [TestCase("y = [1,5,2] in [1,2,3]", false)]    
+
         [TestCase("y = []", new object[0])]
         [TestCase("y = []+[]", new object[0])]
         [TestCase("y = []-[]", new object[0])]
+        
         [TestCase("y = [1.0,2.0]+[3.0,4.0]", new []{1.0,2.0,3.0,4.0})]
         [TestCase("y = [1.0,2.0]-[3.0,4.0]", new []{1.0,2.0})]
+        [TestCase("y = [1.0,2.0]|[3.0,4.0]", new []{1.0,2.0,3.0,4.0})]
+        [TestCase("y = [1.0,2.0,3.0]|[3.0,4.0]", new []{1.0,2.0,3.0,4.0})]
+        [TestCase("y = []|[]", new object[0])]
+
+        [TestCase("y = [1.0,2.0]^[3.0,4.0]", new []{1.0,2.0,3.0,4.0})]
+        [TestCase("y = [1.0,2.0,3.0]^[3.0,4.0]", new []{1.0,2.0,4.0})]
+        [TestCase("y = [3.0,4.0]^[3.0,4.0]", new double[0])]
+
         [TestCase("y = [1.0,2.0,3.0]-[3.0,4.0]", new []{1.0,2.0})]
         [TestCase("y = [1.0,4.0,2.0,3.0] & [3.0,4.0]", new []{4.0,3.0})]
         [TestCase("y = [1.0,4.0,2.0,3.0,4.0] & [3.0,4.0]", new []{4.0,3.0,4.0})]

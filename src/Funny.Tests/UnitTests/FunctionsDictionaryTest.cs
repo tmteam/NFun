@@ -178,7 +178,7 @@ namespace Funny.Tests.UnitTests
             dic.Add(new AddRealFunction());
             dic.Add(new AddTextFunction());
            
-            var fun = dic.GetOrNull(CoreFunNames.AddName,  VarType.Text,VarType.Int);
+            var fun = dic.GetOrNull(CoreFunNames.Add,  VarType.Text,VarType.Int);
             Assert.IsNotNull(fun);
             Assert.IsInstanceOf<AddTextFunction>(fun);
             
@@ -190,7 +190,7 @@ namespace Funny.Tests.UnitTests
             dic.Add(new AddRealFunction());
             dic.Add(new AddTextFunction());
            
-            var fun = dic.GetOrNull(CoreFunNames.AddName, VarType.Int, VarType.Real);
+            var fun = dic.GetOrNull(CoreFunNames.Add, VarType.Int, VarType.Real);
             Assert.IsNotNull(fun);
             Assert.IsInstanceOf<AddRealFunction>(fun);
             
