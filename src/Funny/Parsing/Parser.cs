@@ -23,6 +23,7 @@ namespace Funny.Parsing
 
                 if (flow.IsDone || flow.IsCurrent(TokType.Eof))
                     break;
+                var startOfTheString = flow.IsStart || flow.IsPrevious(TokType.NewLine);
 
                 var e = reader.ReadExpressionOrNull();
                 if(e==null)
@@ -50,7 +51,7 @@ namespace Funny.Parsing
                 {
                     if (equations.Any())
                         throw new FunParseException("Unexpected expression " + e);
-                    if(!flow.IsStart && !flow.IsPrevious(TokType.NewLine) )
+                    if(!startOfTheString)
                         throw new FunParseException("Anonymous expression should start from new line" );
                     //anonymous
                     equations.Add(new LexEquation("out", e));
