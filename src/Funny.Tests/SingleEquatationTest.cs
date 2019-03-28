@@ -56,8 +56,9 @@ namespace Funny.Tests
         [TestCase("true",true)]
         [TestCase("2*3",6)]
         [TestCase("true == false",false)]
-        [TestCase("if 2<3 then true else false",false)]
+        [TestCase("if 2<3 then true else false",true)]
         [TestCase("y(x) = x*2 \r y(3.0) * y(4.0)",48.0)]
+        [TestCase("y(x) = x \r y(3.0)",3.0)]
         [TestCase("y(x) = x*2 \r y(3.0)  \r z(j) = j*j",6.0)]
         public void AnonymousExpressionConstantEquatation(string expr, object expected)
         {
@@ -150,15 +151,15 @@ namespace Funny.Tests
         }
         [TestCase("x",2.0,2.0)]
         [TestCase("x== 2.0",2.0,true)]
-        [TestCase("x:double \rx*3",2.0,6.0)]
+        [TestCase("x:real \rx*3",2.0,6.0)]
         [TestCase("x*3",2.0,6.0)]
         [TestCase("\rx*3",2.0,6.0)]
-        [TestCase("if x<3 then true else false",2.0,false)]
+        [TestCase("if x<3 then true else false",2.0,true)]
         [TestCase("y(x) = x*2 \r y(x) * y(4.0)",3.0, 48.0)]
         public void AnonymousExpressionSingleVariableEquatation(string expr, double arg, object expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
-            runtime.Calculate().AssertReturns(Var.New("out", expected));
+            runtime.Calculate(Var.New("x", arg)).AssertReturns(Var.New("out", expected));
         }
         [TestCase("y = ()")]
         [TestCase("y = )")]

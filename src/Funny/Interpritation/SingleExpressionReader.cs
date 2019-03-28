@@ -83,7 +83,7 @@ namespace Funny.Interpritation
         {
             if (defenition.Type == LexNodeType.Var)
                 return new VariableExpressionNode(defenition.Value, VarType.Real);
-            else if(defenition.Type== LexNodeType.Argument)
+            else if(defenition.Type== LexNodeType.TypedVar)
                 return new VariableExpressionNode(defenition.Value, (VarType)defenition.AdditionalContent);
             else
                 throw new FunParseException(defenition + " is  not valid fun arg");

@@ -24,26 +24,37 @@ namespace Funny.Parsing
                 if (flow.IsDone || flow.IsCurrent(TokType.Eof))
                     break;
 
-                var id = flow.MoveIfOrThrow(TokType.Id).Value;
-                flow.SkipNewLines();
-                
-                if (flow.IsCurrent(TokType.Def))
+                var e = reader.ReadExpressionOrNull();
+                if(e==null)
+                    throw new FunParseException("Unexpected token "+ flow.Current);
+                if(e.Is(LexNodeType.TypedVar))
                 {
-                    flow.MoveNext();
-                    equations.Add(ReadEquation(flow, reader, id));
+                    //Input typed var specification
+                    varSpecifications.Add(new VariableInfo(e.Value, (VarType)e.AdditionalContent));                        
                 }
-                else if (flow.IsCurrent(TokType.Obr))
+                else if (flow.IsCurrent(TokType.Def) || flow.IsCurrent(TokType.Colon))
                 {
-                    flow.MoveNext();
-                    funs.Add(ReadUserFunction(flow, reader, id));
-                }
-                else if(flow.IsCurrent(TokType.Colon))
-                {
-                    flow.MoveNext();
-                    varSpecifications.Add(ReadVarSpecification(flow, id));
+                    if (e.Is(LexNodeType.Var))
+                    {
+                        //equatation
+                        flow.MoveNext();
+                        equations.Add(ReadEquation(flow, reader, e.Value));
+                    }
+                    else if (e.Is(LexNodeType.Fun))
+                        //userFun
+                       funs.Add(ReadUserFunction(e, flow, reader));
+                    else
+                        throw  new FunParseException("Unexpected expression "+ e);
                 }
                 else
-                    throw new FunParseException("Unexpected token "+ flow.Current);
+                {
+                    if (equations.Any())
+                        throw new FunParseException("Unexpected expression " + e);
+                    if(!flow.IsStart && !flow.IsPrevious(TokType.NewLine) )
+                        throw new FunParseException("Anonymous expression should start from new line" );
+                    //anonymous
+                    equations.Add(new LexEquation("out", e));
+                }
             }
 
             return new LexTree
@@ -53,35 +64,25 @@ namespace Funny.Parsing
                 VarSpecifications = varSpecifications.ToArray(),
             };
         }
-
-        private static VarType ReadType(TokenFlow flow)
+       
+        private static LexFunction ReadUserFunction(LexNode headNode, TokenFlow flow, LexNodeReader reader)
         {
-            if (flow.MoveIf(TokType.Colon, out _))
-                return flow.ReadVarType();
-            else
-                return VarType.Real;
-        }
-        
-        private static VariableInfo ReadVarSpecification(TokenFlow flow, string id) 
-            => new VariableInfo(id, flow.ReadVarType());
-
-        private static LexFunction ReadUserFunction(TokenFlow flow, LexNodeReader reader, string id)
-        {
+            var id = headNode.Value;
+            
             var arguments = new List<VariableInfo>();
-            while (true)
+            foreach (var headNodeChild in headNode.Children)
             {
-                if (flow.MoveIf(TokType.Cbr, out _))
-                    break;
-                
-                if (arguments.Any())
-                    flow.MoveIfOrThrow(TokType.Sep, "\",\" or \")\" expected");
-                var argId = flow.MoveIfOrThrow(TokType.Id, "Argument name expected");
-
-                var type =  ReadType(flow);
-                arguments.Add(new VariableInfo(argId.Value, type));
+                if(headNodeChild.Value==null)
+                    throw new FunParseException("Invalid function argument");
+                arguments.Add(new VariableInfo(headNodeChild.Value, (VarType)(headNodeChild.AdditionalContent ?? VarType.Real)));
             }
 
-            var outputType = ReadType(flow);
+            VarType outputType;
+            if (flow.MoveIf(TokType.Colon, out _))
+                outputType = flow.ReadVarType();
+            else
+                outputType = VarType.Real;
+
             flow.SkipNewLines();
             flow.MoveIfOrThrow(TokType.Def, "\'=\' expected");
             var expression =reader.ReadExpressionOrNull();
@@ -96,7 +97,6 @@ namespace Funny.Parsing
                 OutputType = outputType
             };
         }
-
         private static LexEquation ReadEquation(TokenFlow flow, LexNodeReader reader, string id)
         {
             flow.SkipNewLines();

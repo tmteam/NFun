@@ -156,8 +156,7 @@ namespace Funny.Tests
         [TestCase("y = add 1")]
         [TestCase("y = add(1,2,3)")]
         [TestCase("y = [1.0] |> fold(((i,j)=>i+j)")]
-        [TestCase("f(i,j,k) = 12.0 \r y = f(((1,2),3)=>i+j)")]
-        [TestCase("f((i,j),k) = 12.0 \r y = f(((1,2),3)=>i+j)")]
+        
         [TestCase("y = fold(((i,j),k)=>i+j)")]
 
         [TestCase("y = avg(['1','2','3'])")]

@@ -33,7 +33,7 @@ namespace Funny.Parsing
 
         public static LexNode Argument(string name, VarType type)
         {
-            return new LexNode(LexNodeType.Argument, name)
+            return new LexNode(LexNodeType.TypedVar, name)
             {
                 AdditionalContent = type
             };
@@ -80,7 +80,7 @@ namespace Funny.Parsing
         Text,
         ArrayInit,
         AnonymFun,
-        Argument,
+        TypedVar,
         ListOfExpressions,
         ProcArrayInit
     }
