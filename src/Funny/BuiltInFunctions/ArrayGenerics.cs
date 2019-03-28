@@ -19,7 +19,7 @@ namespace Funny.BuiltInFunctions
         public override object Calc(object[] args)
         {
             var val = args[0];
-            var arr = (args[1] as IEnumerable).Cast<object>();
+            var arr = (FunArray)args[1];
             return arr.Any(a => TypeHelper.AreEqual(a, val));
         }
     }
@@ -34,8 +34,8 @@ namespace Funny.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arr1 = (args[0] as IEnumerable).Cast<object>();
-            var arr2 = (args[1] as IEnumerable).Cast<object>();
+            var arr1 = (FunArray)args[0];
+            var arr2 = (FunArray)args[1];
             //Todo O(n^2)
             return arr1.All(a=>arr2.Any(a2=>TypeHelper.AreEqual(a,a2)));
         }
@@ -67,20 +67,8 @@ namespace Funny.BuiltInFunctions
                 throw new FunRuntimeException("Argument out of range");
             if (step == 0)
                 step = 1;
-            var enumerable = args[0] as IEnumerable;
-            var obj = new List<object>();
-            
-            int i = 0;
-            foreach (var val in enumerable) {
-                var actual = i - start;
-                if (actual>=0 &&  actual % step == 0)
-                {
-                    if(end==0 || end>= actual)
-                        obj.Add(val);
-                }
-                i++;
-            }
-            return obj;
+            var arr = (FunArray)args[0];
+            return arr.Slice(start, end, step);
         }
     }
     
@@ -107,10 +95,8 @@ namespace Funny.BuiltInFunctions
             if(end!=0 && start>end)
                 throw new FunRuntimeException("Start cannot be more than end");
        
-            var query = (args[0] as IEnumerable).Cast<Object>().Skip(start);
-            if (end != 0)
-                query = query.Take(end - start+1);
-            return query.ToArray();
+            var arr = (FunArray)args[0];
+            return arr.Slice(start, end, null);
         }
     }
     public class GetGenericFunctionDefenition : GenericFunctionBase
@@ -129,15 +115,9 @@ namespace Funny.BuiltInFunctions
             if(index<0)
                 throw new FunRuntimeException("Argument out of range");
                 
-            if (args[0] is IList list)
-            {
-                if(list.Count<= index)
-                    throw new FunRuntimeException("Argument out of range");
-                return list[index];
-            }
+            var arr = (FunArray)args[0];
+            var res =arr.GetElementOrNull(index);
             
-            var arr = (args[0] as IEnumerable).Cast<Object>();
-            var res =  arr.ElementAtOrDefault(index);
             if(res==null)
                 throw new FunRuntimeException("Argument out of range");
             return res;
@@ -154,10 +134,10 @@ namespace Funny.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arr = (args[0] as IEnumerable).Cast<object>();
+            var arr = (FunArray)args[0];
             var factor = (int)args[1] ;
             
-            var res = Enumerable.Repeat(arr,factor).SelectMany(a=>a).ToArray();
+            var res = FunArray.By(Enumerable.Repeat(arr,factor).SelectMany(a=>a));
             return res; 
         }
     }
@@ -172,7 +152,7 @@ namespace Funny.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arr = (args[0] as IEnumerable).Cast<object>();
+            var arr = (FunArray)args[0];
             var fold = args[1] as FunctionBase;
             
             var res = arr.Aggregate((a,b)=>fold.Calc(new []{a,b}));
@@ -190,9 +170,9 @@ namespace Funny.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arr1 = (args[0] as IEnumerable).Cast<object>();
-            var arr2 = (args[1] as IEnumerable).Cast<object>();
-            return arr1.Union(arr2).ToArray();
+            var arr1 = (FunArray)args[0];
+            var arr2 = (FunArray)args[1];
+            return FunArray.By(arr1.Union(arr2));
         }
     }
     public class UniqueGenericFunctionDefenition : GenericFunctionBase
@@ -206,9 +186,9 @@ namespace Funny.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arr1 = (args[0] as IEnumerable).Cast<object>();
-            var arr2 = (args[1] as IEnumerable).Cast<object>();
-            return arr1.Except(arr2).ToArray();
+            var arr1 = (FunArray)args[0];
+            var arr2 = (FunArray)args[1];
+            return FunArray.By(arr1.Except(arr2).Concat(arr2.Except(arr1)));
         }
     }
     public class IntersectGenericFunctionDefenition : GenericFunctionBase
@@ -222,9 +202,9 @@ namespace Funny.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arr1 = (args[0] as IEnumerable).Cast<object>();
-            var arr2 = (args[1] as IEnumerable).Cast<object>();
-            return arr1.Intersect(arr2).ToArray();
+            var arr1 = (FunArray)args[0];
+            var arr2 = (FunArray)args[1];
+            return FunArray.By(arr1.Intersect(arr2));
         }
     }
     public class ConcatArraysGenericFunctionDefenition : GenericFunctionBase
@@ -238,9 +218,10 @@ namespace Funny.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arr1 = (args[0] as IEnumerable).Cast<object>();
-            var arr2 = (args[1] as IEnumerable).Cast<object>();
-            return arr1.Concat(arr2).ToArray();
+            var arr1 = (FunArray)args[0];
+            var arr2 = (FunArray)args[1];
+            var res = FunArray.By(arr1.Concat(arr2));
+            return res;
         }
     }
     
@@ -255,9 +236,9 @@ namespace Funny.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arr1 = (args[0] as IEnumerable).Cast<object>();
-            var arr2 = (args[1] as IEnumerable).Cast<object>();
-            return arr1.Except(arr2).ToArray();
+            var arr1 = (FunArray)args[0];
+            var arr2 = (FunArray)args[1];
+            return FunArray.By(arr1.Except(arr2));
         }
     }
     public class MapGenericFunctionDefenition : GenericFunctionBase
@@ -271,10 +252,10 @@ namespace Funny.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arr = (args[0] as IEnumerable).Cast<object>();
+            var arr = (FunArray)args[0];
             var map = args[1] as FunctionBase;
             
-            var res = arr.Select(a=>map.Calc(new []{a})).ToArray();
+            var res = FunArray.By(arr.Select(a=>map.Calc(new []{a})));
             return res; 
         }
     }
@@ -289,7 +270,7 @@ namespace Funny.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arr = (args[0] as IEnumerable).Cast<object>();
+            var arr = (FunArray)args[0];
             var filter = args[1] as FunctionBase;
 
             return arr.Any(a => (bool) filter.Calc(new[] {a}));
@@ -306,7 +287,7 @@ namespace Funny.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arr = (args[0] as IEnumerable).Cast<object>();
+            var arr = (FunArray)args[0];
             var filter = args[1] as FunctionBase;
 
             return arr.All(a => (bool) filter.Calc(new[] {a}));
@@ -323,11 +304,10 @@ namespace Funny.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arr = (args[0] as IEnumerable).Cast<object>();
+            var arr = (FunArray)args[0];
             var filter = args[1] as FunctionBase;
             
-            var res = arr.Where(a=>(bool)filter.Calc(new []{a})).ToArray();
-            return res; 
+            return FunArray.By(arr.Where(a=>(bool)filter.Calc(new []{a})));
         }
     }
     
@@ -343,7 +323,7 @@ namespace Funny.BuiltInFunctions
         public override object Calc(object[] args)
         {
             var first = args[0];
-            return Enumerable.Repeat(first, (int) args[1]);
+            return FunArray.By(Enumerable.Repeat(first, (int) args[1]));
         }
     }
     public class ConcatGenericFunctionDefenition: GenericFunctionBase
@@ -357,10 +337,10 @@ namespace Funny.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arrLeft = (args[0] as IEnumerable).Cast<object>();
-            var arrRight = (args[1] as IEnumerable).Cast<object>();
+            var arrLeft  = (FunArray) args[0];
+            var arrRight = (FunArray) args[1];
 
-            return arrLeft.Concat(arrRight);
+            return FunArray.By(arrLeft.Concat(arrRight));
         }
     }
     
@@ -374,8 +354,8 @@ namespace Funny.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arr = (args[0] as IEnumerable).Cast<object>();
-            return arr.Reverse().ToArray();
+            var arr  = (FunArray) args[0];
+            return FunArray.By(arr.Reverse());
         }
     }
     public class TakeGenericFunctionDefenition: GenericFunctionBase
@@ -389,7 +369,7 @@ namespace Funny.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            return (args[0] as IEnumerable).Cast<object>().Take((int) args[1]);
+            return ((FunArray)args[0]).Slice(null,(int) args[1]-1,1);
         }
     }
     
@@ -404,7 +384,7 @@ namespace Funny.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            return (args[0] as IEnumerable).Cast<object>().Skip((int) args[1]);
+            return ((FunArray)args[0]).Slice((int) args[1],null,1);
         }
     }
 

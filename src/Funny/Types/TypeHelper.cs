@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Linq;
+using Funny.Runtime;
 
 namespace Funny.Types
 {
@@ -7,23 +8,11 @@ namespace Funny.Types
     {
         public static bool AreEqual(object left, object right)
         {
-            if (left is IEnumerable le)
+            if (left is FunArray le)
             {
-                if (!(right is IEnumerable re))
+                if (!(right is FunArray re))
                     return false;
-
-                var leftEnumerator = le.GetEnumerator();
-                var rightEnumerator = re.GetEnumerator();
-
-                while (leftEnumerator.MoveNext())
-                {
-                    if (!rightEnumerator.MoveNext())
-                        return false;
-
-                    if (!AreEqual(leftEnumerator.Current, rightEnumerator.Current))
-                        return false;
-                }
-                return !rightEnumerator.MoveNext();
+                return le.IsEquivalent(re);
             }
 
             if (left.GetType() == right.GetType())

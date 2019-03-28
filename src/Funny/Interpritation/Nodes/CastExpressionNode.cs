@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Linq;
+using Funny.Runtime;
 using Funny.Types;
 
 namespace Funny.Interpritation.Nodes
@@ -36,7 +37,7 @@ namespace Funny.Interpritation.Nodes
                     return o => o;
                 
                 var elementConverter = GetConverterOrThrow(from.ArrayTypeSpecification.VarType, to.ArrayTypeSpecification.VarType);
-                return o => ((IEnumerable) o).Cast<object>().Select(elementConverter);
+                return o => FunArray.By(((FunArray) o).Select(elementConverter));
             }    
             throw  new FunParseException($"Cast {from}->{to} is unavailable");
         }

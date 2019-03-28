@@ -17,7 +17,6 @@ namespace Funny.BuiltInFunctions
         {
             
         }
-
         public override object Calc(object[] args)
         {
             var start = (int) args[0];
@@ -34,7 +33,7 @@ namespace Funny.BuiltInFunctions
                 for (int i = start; i >= end; i-= step)
                     result.Add(i);
 
-            return result;
+            return new FunArray(result.ToArray());
         }
             
     }
@@ -63,7 +62,7 @@ namespace Funny.BuiltInFunctions
                 for (var i = start; i >= end; i-= step)
                     result.Add(i);
 
-            return result;
+            return new FunArray(result.ToArray());
         }
             
     }
@@ -87,7 +86,7 @@ namespace Funny.BuiltInFunctions
             else
                 for (int i = start; i >= end; i -= 1)
                     result.Add(i);
-            return result;
+            return new FunArray(result.ToArray());
         }
     }
     
@@ -98,7 +97,7 @@ namespace Funny.BuiltInFunctions
         }
         
         public override object Calc(object[] args) 
-            => GetMedian((args[0] as IEnumerable).Cast<double>());
+            => GetMedian(((FunArray)args[0]).As<double>());
         
         public static double GetMedian(IEnumerable<double> source)
         {
@@ -122,7 +121,7 @@ namespace Funny.BuiltInFunctions
         }
 
         public override object Calc(object[] args) 
-            => GetMedian((args[0] as IEnumerable).Cast<int>());
+            => GetMedian(((FunArray)args[0]).As<int>());
         
         public static double GetMedian(IEnumerable<int> source)
         {
@@ -145,7 +144,7 @@ namespace Funny.BuiltInFunctions
         }
 
         public override object Calc(object[] args) 
-            => (args[0] as IEnumerable).Cast<double>().Min();
+            => ((FunArray)args[0]).As<double>().Min();
     }
     public class MultiMinIntFunction: FunctionBase{
         public MultiMinIntFunction() : base("min",VarType.Int, VarType.ArrayOf(VarType.Int))
@@ -154,7 +153,7 @@ namespace Funny.BuiltInFunctions
         }
 
         public override object Calc(object[] args) 
-            => (args[0] as IEnumerable).Cast<int>().Min();
+            => ((FunArray)args[0]).As<int>().Min();
     }
     public class MultiSumRealFunction: FunctionBase{
         public MultiSumRealFunction() : base("sum",VarType.Real, VarType.ArrayOf(VarType.Real))
@@ -162,7 +161,7 @@ namespace Funny.BuiltInFunctions
             
         }
         public override object Calc(object[] args) 
-            => (args[0] as IEnumerable).Cast<double>().Sum();
+            => ((FunArray)args[0]).As<double>().Sum();
     }
     public class MultiSumIntFunction: FunctionBase{
         public MultiSumIntFunction() : base("sum",VarType.Int, VarType.ArrayOf(VarType.Int))
@@ -171,7 +170,7 @@ namespace Funny.BuiltInFunctions
         }
 
         public override object Calc(object[] args) 
-            => (args[0] as IEnumerable).Cast<int>().Sum();
+            => ((FunArray)args[0]).As<int>().Sum();
     }
     public class MultiMaxRealFunction: FunctionBase{
         public MultiMaxRealFunction() : base("max",VarType.Real, VarType.ArrayOf(VarType.Real))
@@ -180,7 +179,7 @@ namespace Funny.BuiltInFunctions
         }
 
         public override object Calc(object[] args) 
-            => (args[0] as IEnumerable).Cast<double>().Max();
+            => ((FunArray)args[0]).As<double>().Max();
     }
     public class MultiMaxIntFunction: FunctionBase{
         public MultiMaxIntFunction() : base("max",VarType.Int, VarType.ArrayOf(VarType.Int))
@@ -189,7 +188,7 @@ namespace Funny.BuiltInFunctions
         }
 
         public override object Calc(object[] args) 
-            => (args[0] as IEnumerable).Cast<int>().Max();
+            => ((FunArray)args[0]).As<int>().Max();
     }
 
     public class SortIntFunction : FunctionBase
@@ -198,9 +197,9 @@ namespace Funny.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arr = (args[0] as IEnumerable).Cast<int>().ToArray();
+            var arr = ((FunArray)args[0]).As<int>().ToArray();
             Array.Sort(arr);
-            return arr;
+            return new FunArray(arr);
         }
     }
     
@@ -210,9 +209,9 @@ namespace Funny.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arr = (args[0] as IEnumerable).Cast<string>().ToArray();
+            var arr = ((FunArray)args[0]).As<string>().ToArray();
             Array.Sort(arr, StringComparer.InvariantCulture);
-            return arr;
+            return new FunArray(arr);
         }
     }
     
@@ -222,7 +221,7 @@ namespace Funny.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arr = (args[0] as IEnumerable).Cast<object>().ToArray();
+            var arr = ((FunArray)args[0]).As<double>().ToArray();
             Array.Sort(arr);
             return arr;
         }
@@ -231,7 +230,8 @@ namespace Funny.BuiltInFunctions
     public class AverageFunction : FunctionBase
     {
         public AverageFunction(): base("avg", VarType.Real, VarType.ArrayOf(VarType.Real)){}
-        public override object Calc(object[] args) => (args[0] as IEnumerable).Cast<double>().Average();
+        public override object Calc(object[] args) => 
+            ((FunArray)args[0]).As<double>().Average();
     }
     
     public class AnyFunction : FunctionBase
@@ -242,7 +242,7 @@ namespace Funny.BuiltInFunctions
         }
 
         public override object Calc(object[] args) 
-            => (args[0] as IEnumerable).Cast<object>().Any();
+            => ((FunArray)args[0]).Count>0;
     }
     
     public class CountFunction : FunctionBase
@@ -253,8 +253,6 @@ namespace Funny.BuiltInFunctions
         }
 
         public override object Calc(object[] args) 
-            => (args[0] as IEnumerable).Cast<object>().Count();
+            => ((FunArray)args[0]).Count;
     }
-    
-    
 }

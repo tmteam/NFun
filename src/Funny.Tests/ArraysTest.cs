@@ -68,7 +68,7 @@ namespace Funny.Tests
 
         [TestCase("y = [1.0,2.0,3.0]-[3.0,4.0]", new []{1.0,2.0})]
         [TestCase("y = [1.0,4.0,2.0,3.0] & [3.0,4.0]", new []{4.0,3.0})]
-        [TestCase("y = [1.0,4.0,2.0,3.0,4.0] & [3.0,4.0]", new []{4.0,3.0,4.0})]
+        [TestCase("y = [1.0,4.0,2.0,3.0,4.0] & [3.0,4.0]", new []{4.0,3.0})]
         [TestCase("y = ([1.0]+[2.0])+[3.0,4.0]", new []{1.0,2.0,3.0,4.0})]
         [TestCase("y = [1,2,3]", new[]{1,2,3})]
         [TestCase("y = ['a','b','c']", new[]{"a","b","c"})]
@@ -192,8 +192,8 @@ namespace Funny.Tests
         {
             for (int i = 0; i < expectedOutput.Length; i++)
             {
-                var enumerable = (res.Value as IEnumerable);
-                var array = enumerable.Cast<object>().ElementAt(i);
+                var enumerable = (FunArray)res.Value;
+                var array = enumerable.GetElementOrNull(i);
 
                 for (int j = 0; j < expectedOutput[i].Length; j++)
                 {

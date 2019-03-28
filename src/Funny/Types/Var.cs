@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Funny.Runtime;
 
 namespace Funny.Types
 {
@@ -11,16 +12,14 @@ namespace Funny.Types
         {
             var baseType = ToVarType(typeof(T));
             var vartype = VarType.ArrayOf(baseType);
-            return new Var(name, value, vartype);
+            return new Var(name, new FunArray(value), vartype);
         }
         public static Var New<T>(string name, IEnumerable<T> value)
         {
             var baseType = ToVarType(typeof(T));
             var vartype = VarType.ArrayOf(baseType);
-            return new Var(name, value.ToArray(), vartype);
+            return new Var(name, new FunArray(value.ToArray()), vartype);
         }
-        public static Var NewAny(string name, object value)
-            => new Var(name, value, VarType.Anything);
         public static Var New(string name, object value)
         {
             if (value is int i)

@@ -1,36 +1,50 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Funny.Types;
 
 namespace Funny.Runtime
 {
     public interface IFunArray: IEnumerable<object>
     {
-        VarType ElementType { get; }
         int Count { get; }
         IFunArray Slice(int? startIndex, int? endIndex, int? step);
         object GetElementOrNull(int index);
         bool IsEquivalent(IFunArray array);
+        
     }
     
     public class FunArray: IFunArray
     {
-        private readonly object[] _values;
-        public static FunArray Empty(VarType elementType) => new FunArray(new object[0], elementType);
-        public FunArray(object[] values, VarType elementType)
+        private readonly Array _values;
+        public static FunArray Empty => new FunArray(new object[0]);
+
+        public IEnumerable<T> As<T>()
+        {
+            foreach (var value in _values)
+            {
+                yield return (T) value;
+            }
+        }
+
+        public static FunArray By(IEnumerable<object> values)
+        {
+            return new FunArray(values.ToArray());
+        }
+        public FunArray(Array values)
         {
             _values = values;
-            ElementType = elementType;
             Count = _values.Length;
         }
-        public FunArray( VarType elementType, params FunArray[] values)
+        public FunArray(params FunArray[] values)
         {
             _values = values;
-            ElementType = elementType;
             Count = _values.Length;
         }
+        
 
         public IEnumerator<object> GetEnumerator()
         {
@@ -49,7 +63,7 @@ namespace Funny.Runtime
             
             var start = startIndex ?? 0;
             if(start > Count-1) 
-                return Empty(ElementType);
+                return Empty;
             
             var end = Count - 1;
             if(endIndex.HasValue)
@@ -66,36 +80,100 @@ namespace Funny.Runtime
                 var size = (int)Math.Floor((end - start) / (double)step)+1;
                 newArr = new object[size];
                 for (int i = start, index = 0; i <= end; i+= step.Value, index++)
-                    newArr[index] = _values[i];
+                    newArr[index] = _values.GetValue(i);
             }
-            return new FunArray(newArr, ElementType);
+            return new FunArray(newArr);
         }
 
         public object GetElementOrNull(int index)
         {
             if (index >= Count)
                 return null;
-            return _values[index];
+            return _values.GetValue(index);
         }
 
         public bool IsEquivalent(IFunArray array)
         {
             if (Count != array.Count)
                 return false;
-            if (ElementType != array.ElementType)
-                return false;
-            if (ElementType.BaseType == BaseVarType.ArrayOf)
+            if (Count == 0)
+                return true;
+            
+            if (GetElementOrNull(0) is IFunArray)
             {
                 for (int i = 0; i < Count; i++)
                 {
-                    if(!((IFunArray) array.GetElementOrNull(i)).IsEquivalent((IFunArray) _values[i]))
+                    var foreign = array.GetElementOrNull(i) ;
+                    var origin = GetElementOrNull(i) ;
+                    if (foreign is IFunArray f)
+                    {
+                        if (origin is IFunArray o)
+                        {
+                            if (!f.IsEquivalent(o))
+                                return false;
+                        }
+                        else return false;
+                    }
+                    else if (!foreign.Equals(origin))
                         return false;
                 }
                 return true;
             }
             else
-                return array.SequenceEqual(this);
+            {
+                for (int i = 0; i < Count; i++)
+                {
+                    if (!TypeHelper.AreEqual(GetElementOrNull(i), array.GetElementOrNull(i)))
+                        return false;
+                }
+                return true;
+            }
+        }
 
+        public override bool Equals(object obj)
+        {
+            if (obj is FunArray f)
+            {
+                return Equals(f);
+            }
+            return false;
+        }
+
+        protected bool Equals(FunArray other)
+        {
+            if (Count != other.Count)
+                return false;
+            for (int i = 0; i < _values.Length; i++)
+            {
+                if (!_values.GetValue(i).Equals(other._values.GetValue(i)))
+                    return false;
+            }
+            return true;
+        }
+
+        
+        private int _hash = 0;
+        [SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
+        public override int GetHashCode()
+        {
+            if (_hash != 0)
+                return _hash;
+            unchecked
+            {
+                
+                _hash = Count * 397;
+                foreach (var value in _values)
+                {
+                    _hash = (_hash * 397) ^ value.GetHashCode();
+                }
+                return _hash;
+            }
+        }
+
+
+        public override string ToString()
+        {
+            return "Arr["+String.Join(',', _values.Cast<object>())+"]" ;
         }
     }
 }

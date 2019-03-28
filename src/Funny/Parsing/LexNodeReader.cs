@@ -227,7 +227,7 @@ namespace Funny.Parsing
             }
             
             index = index ?? LexNode.Num("0");
-            var end = ReadExpressionOrNull()?? LexNode.Num("0");
+            var end = ReadExpressionOrNull()?? LexNode.Num(int.MaxValue.ToString());
             
             if (!_flow.MoveIf(TokType.Colon, out _))
             {

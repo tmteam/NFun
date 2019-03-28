@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Linq;
 using Funny.Runtime;
 using Funny.Types;
@@ -38,37 +39,37 @@ namespace Funny.Tests.UnitTests
         [TestCase(new int[0], null, null, null, new int[0])]
         public void IntArr_Slice_ReturnsExpected(int[] origin, int? start, int? end, int? step, int[] expected)
         {
-            var funOrigin = new FunArray(origin.Cast<Object>().ToArray(), VarType.Int);
-            var funExpected = new FunArray(expected.Cast<Object>().ToArray(), VarType.Int);
+            var funOrigin = new FunArray(origin);
+            var funExpected = new FunArray(expected);
             CollectionAssert.AreEquivalent(funExpected,funOrigin.Slice(start,end,step));
         }
         [Test]
         public void IntArr_Equialent_IsEquivalentReturnsTrue()
         {
-            var a1 = new FunArray(new object[] {1, 2, 3}, VarType.Int);
-            var a2 = new FunArray(new object[] {1, 2, 3}, VarType.Int);
+            var a1 = new FunArray(new [] {1, 2, 3});
+            var a2 = new FunArray(new [] {1, 2, 3});
             Assert.IsTrue(a1.IsEquivalent(a2));
         }
         [Test]
         public void IntArr_NotEquialent_IsEquivalentReturnsFalse()
         {
-            var a1 = new FunArray(new object[] {1, 2, 3}, VarType.Int);
-            var a2 = new FunArray(new object[] {1, 2}, VarType.Int);
+            var a1 = new FunArray(new [] {1, 2, 3});
+            var a2 = new FunArray(new [] {1, 2});
             Assert.IsFalse(a1.IsEquivalent(a2));
         }
         [Test]
         public void IntArr_BothEmpty_IsEquivalentReturnsTrue()
         {
-            var a1 = new FunArray(new object[0], VarType.Int);
-            var a2 = new FunArray(new object[0], VarType.Int);
+            var a1 = new FunArray(new object[0]);
+            var a2 = new FunArray(new object[0]);
             Assert.IsTrue(a1.IsEquivalent(a2));
         }
         
         [Test]
         public void IntArrOfArr_BothEmpty_IsEquivalentReturnsTrue()
         {
-            var a1 = new FunArray(new object[0], VarType.ArrayOf(VarType.Int));
-            var a2 = new FunArray(new object[0], VarType.ArrayOf(VarType.Int));
+            var a1 = new FunArray(new object[0]);
+            var a2 = new FunArray(new object[0]);
             Assert.IsTrue(a1.IsEquivalent(a2));
         }
         
@@ -76,15 +77,15 @@ namespace Funny.Tests.UnitTests
         public void IntArrOfArr_Equivalent_IsEquivalentReturnsTrue()
         {
 
-            var a1 = new FunArray(VarType.ArrayOf(VarType.Int),
-                new FunArray(new object[0], VarType.Int),
-                new FunArray(new object[] {1, 2}, VarType.Int),
-                new FunArray(new object[] {1, 2,3}, VarType.Int)
+            var a1 = new FunArray(
+                new FunArray(new object[0]),
+                new FunArray(new object[] {1, 2}),
+                new FunArray(new object[] {1, 2,3})
                 );
-            var a2 = new FunArray(VarType.ArrayOf(VarType.Int),
-                new FunArray(new object[0], VarType.Int),
-                new FunArray(new object[] {1, 2}, VarType.Int),
-                new FunArray(new object[] {1, 2,3}, VarType.Int)
+            var a2 = new FunArray(
+                new FunArray(new object[0]),
+                new FunArray(new object[] {1, 2}),
+                new FunArray(new object[] {1, 2,3})
             );
 
             Assert.IsTrue(a1.IsEquivalent(a2));
@@ -93,15 +94,15 @@ namespace Funny.Tests.UnitTests
         public void IntArrOfArr_NotEquivalent_IsEquivalentReturnsFalse()
         {
 
-            var a1 = new FunArray(VarType.ArrayOf(VarType.Int),
-                new FunArray(new object[0], VarType.Int),
-                new FunArray(new object[] {1, 2}, VarType.Int),
-                new FunArray(new object[] {1, 2,3}, VarType.Int)
+            var a1 = new FunArray(
+                new FunArray(new object[0]),
+                new FunArray(new object[] {1, 2}),
+                new FunArray(new object[] {1, 2,3})
             );
-            var a2 = new FunArray(VarType.ArrayOf(VarType.Int),
-                new FunArray(new object[0], VarType.Int),
-                new FunArray(new object[] {1, 2}, VarType.Int),
-                new FunArray(new object[] {1, 2}, VarType.Int)
+            var a2 = new FunArray(
+                new FunArray(new object[0]),
+                new FunArray(new object[] {1, 2}),
+                new FunArray(new object[] {1, 2})
             );
 
             Assert.IsFalse(a1.IsEquivalent(a2));
@@ -110,32 +111,59 @@ namespace Funny.Tests.UnitTests
         public void TextArrOfArr_Equivalent_IsEquivalentReturnsTrue()
         {
 
-            var a1 = new FunArray(VarType.ArrayOf(VarType.Text),
-                new FunArray(new object[0], VarType.Text),
-                new FunArray(new object[] {"1", "2"}, VarType.Text),
-                new FunArray(new object[] {"1", "2","3"}, VarType.Text)
+            var a1 = new FunArray(
+                new FunArray(new object[0]),
+                new FunArray(new object[] {"1", "2"}),
+                new FunArray(new object[] {"1", "2","3"})
             );
-            var a2 = new FunArray(VarType.ArrayOf(VarType.Text),
-                new FunArray(new object[0], VarType.Text),
-                new FunArray(new object[] {"1", "2"}, VarType.Text),
-                new FunArray(new object[] {"1", "2","3"}, VarType.Text)
+            var a2 = new FunArray(
+                new FunArray(new object[0]),
+                new FunArray(new object[] {"1", "2"}),
+                new FunArray(new object[] {"1", "2","3"})
             );
 
             Assert.IsTrue(a1.IsEquivalent(a2));
         }
+
+        [Test]
+        public void ExceptMultiDimensional()
+        {
+            var expression = "y = [[1.0,2.0],[3.0,4.0]]-[[3.0,4.0],[1.0],[4.0]]";
+            var a1 = new FunArray(
+                new FunArray(new[] {1.0, 2.0}),
+                new FunArray(new[] {3.0, 4.0}));
+            var a2 = new FunArray(
+                new FunArray(new[] {3.0, 4.0}),
+                new FunArray(new[] {1.0}),
+                new FunArray(new[] {4.0})
+                );
+            var res = a1.Except(a2).ToArray();
+            Assert.AreEqual(1,res.Length);
+            CollectionAssert.AreEquivalent(new[]{1.0,2.0}, ((IEnumerable)res[0]).Cast<object>());
+        }
+        [Test]
+        public void Equals_ItemsAreEqual_returnsTrue()
+        {
+            var a1 = new FunArray(new[] {1.0, 2.0});
+            var a2 = new FunArray(new[] {1.0, 2.0});
+            Assert.IsTrue(a1.Equals(a2));
+            Assert.IsTrue(a2.Equals(a1));
+            Assert.AreEqual(a1.GetHashCode(), a2.GetHashCode());
+        }
+        
         [Test]
         public void TextArrOfArr_NotEquivalent_IsEquivalentReturnsFalse()
         {
 
-            var a1 = new FunArray(VarType.ArrayOf(VarType.Text),
-                new FunArray(new object[0], VarType.Text),
-                new FunArray(new object[] {"1", "2"}, VarType.Text),
-                new FunArray(new object[] {"1", "2","3"}, VarType.Text)
+            var a1 = new FunArray(
+                new FunArray(new object[0]),
+                new FunArray(new object[] {"1", "2"}),
+                new FunArray(new object[] {"1", "2","3"})
             );
-            var a2 = new FunArray(VarType.ArrayOf(VarType.Text),
-                new FunArray(new object[]{"lalala"}, VarType.Text),
-                new FunArray(new object[] {"1", "2"}, VarType.Text),
-                new FunArray(new object[] {"1", "2","3"}, VarType.Text)
+            var a2 = new FunArray(
+                new FunArray(new object[]{"lalala"}),
+                new FunArray(new object[] {"1", "2"}),
+                new FunArray(new object[] {"1", "2","3"})
             );
 
             Assert.IsFalse(a1.IsEquivalent(a2));

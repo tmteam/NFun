@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Funny.Runtime;
 using Funny.Types;
 
 namespace Funny.Interpritation.Nodes
@@ -29,6 +30,6 @@ namespace Funny.Interpritation.Nodes
 
         public VarType Type { get; }
         public object Calc()
-            => _elements.Select(e => e.Calc());
+            => FunArray.By(_elements.Select(e => e.Calc()));
     }
 }
