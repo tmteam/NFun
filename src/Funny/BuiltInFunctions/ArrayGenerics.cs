@@ -123,6 +123,33 @@ namespace Funny.BuiltInFunctions
             return res;
         }
     }
+    public class SetGenericFunctionDefenition : GenericFunctionBase
+    {
+        
+        public SetGenericFunctionDefenition() : base("set", 
+            VarType.ArrayOf(VarType.Generic(0)),
+            VarType.ArrayOf(VarType.Generic(0)),
+            VarType.Int,
+            VarType.Generic(0))
+        {
+        }
+
+        public override object Calc(object[] args)
+        {
+            var arr = (FunArray)args[0];
+
+            var index = (int)args[1];
+            if(index<0)
+                throw new FunRuntimeException("Argument out of range");
+            if(index>arr.Count+1)
+                throw new FunRuntimeException("Argument out of range");
+            var val = (int)args[2];
+
+            var newArr = arr.ToArray();
+            newArr[index] = val;
+            return new FunArray(newArr);
+        }
+    }
     public class MultiplyGenericFunctionDefenition : GenericFunctionBase
     {
         public MultiplyGenericFunctionDefenition() : base(CoreFunNames.Multiply, 

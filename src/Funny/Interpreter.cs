@@ -83,6 +83,7 @@ namespace Funny
                 new SubstractArraysGenericFunctionDefenition(), 
 
                 new ConcatArraysGenericFunctionDefenition(), 
+                new SetGenericFunctionDefenition(),
                 new GetGenericFunctionDefenition(),
                 new SliceGenericFunctionDefenition(), 
                 new SliceWithStepGenericFunctionDefenition(), 

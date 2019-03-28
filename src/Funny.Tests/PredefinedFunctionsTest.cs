@@ -118,6 +118,7 @@ namespace Funny.Tests
         [TestCase("y = []|> reverse",new object[0])]
         [TestCase("y = [1,2,3]|>get(1)", 2)]
         [TestCase("y = [1,2,3]|>get(0)", 1)]
+        [TestCase("y = [1,2,3]|>set(1,42)", new[]{1,42,3})]
         public void ConstantEquationWithGenericPredefinedFunction(string expr, object expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
