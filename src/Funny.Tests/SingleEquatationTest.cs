@@ -52,6 +52,18 @@ namespace Funny.Tests
             Assert.AreEqual(1, res.Results.Length);
             Assert.AreEqual(expected, res.Results.First().Value);
         }
+        [TestCase("1",1)]
+        [TestCase("true",true)]
+        [TestCase("2*3",6)]
+        [TestCase("true == false",false)]
+        [TestCase("if 2<3 then true else false",false)]
+        [TestCase("y(x) = x*2 \r y(3.0) * y(4.0)",48.0)]
+        [TestCase("y(x) = x*2 \r y(3.0)  \r z(j) = j*j",6.0)]
+        public void AnonymousExpressionConstantEquatation(string expr, object expected)
+        {
+            var runtime = Interpreter.BuildOrThrow(expr);
+            runtime.Calculate().AssertReturns(Var.New("out", expected));
+        }
         
         [TestCase("y = ''", "")]
         [TestCase("y = 'hi'", "hi")]
@@ -136,7 +148,18 @@ namespace Funny.Tests
             runtime.Calculate(Var.New("x",arg))
                 .AssertReturns(0.00001, Var.New("y", expected));
         }
-
+        [TestCase("x",2.0,2.0)]
+        [TestCase("x== 2.0",2.0,true)]
+        [TestCase("x:double \rx*3",2.0,6.0)]
+        [TestCase("x*3",2.0,6.0)]
+        [TestCase("\rx*3",2.0,6.0)]
+        [TestCase("if x<3 then true else false",2.0,false)]
+        [TestCase("y(x) = x*2 \r y(x) * y(4.0)",3.0, 48.0)]
+        public void AnonymousExpressionSingleVariableEquatation(string expr, double arg, object expected)
+        {
+            var runtime = Interpreter.BuildOrThrow(expr);
+            runtime.Calculate().AssertReturns(Var.New("out", expected));
+        }
         [TestCase("y = ()")]
         [TestCase("y = )")]
         [TestCase("y = )*2")]
@@ -189,6 +212,10 @@ namespace Funny.Tests
         [TestCase("y='")]
         [TestCase("y=0.")]
         [TestCase("y=0.*1")]
+        [TestCase("1 2")]
+        [TestCase("1 \r2")]
+        [TestCase("x*2 \rx*3")]
+        [TestCase("=x*2")]
         public void ObviouslyFails(string expr) =>
             Assert.Throws<FunParseException>(
                 ()=> Interpreter.BuildOrThrow(expr));

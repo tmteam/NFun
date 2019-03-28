@@ -186,6 +186,7 @@ namespace Funny.Tests
         [TestCase("y(x):real]= x")]
         [TestCase("y(x):real[= x")]
         [TestCase("a(x)=x\r a(y)=y\r")]
+        [TestCase("(x)=x\r y = out(x)\r")]
         public void ObviousFails(string expr)
         {
             try
