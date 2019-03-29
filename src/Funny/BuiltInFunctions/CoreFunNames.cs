@@ -26,5 +26,6 @@ namespace Funny.BuiltInFunctions
         public const string BitShiftLeft = "bitshiftleft";
         public const string In = "in";
         public const string BitShiftRight = "bitshiftright";
+        public const string ArrConcat = "Concat";
     }
 }

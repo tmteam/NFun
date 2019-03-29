@@ -135,12 +135,12 @@ namespace Funny.Tests
                 ()=> Interpreter.BuildOrThrow(expr));
         
         [TestCase(new []{1,2},    "x:int[]\r y= x", new []{1,2})]        
-        [TestCase(new []{1,2},    "x:int[]\r y= x+x", new []{1,2,1,2})]
+        [TestCase(new []{1,2},    "x:int[]\r y= x@x", new []{1,2,1,2})]
         [TestCase(new []{"1","2"},    "x:text[]\r y= x", new []{"1","2"})]        
-        [TestCase(new []{"1","2"},    "x:text[]\r y= x+x", new []{"1","2","1","2"})]
+        [TestCase(new []{"1","2"},    "x:text[]\r y= x@x", new []{"1","2","1","2"})]
         [TestCase(new []{1.0,2.0},    "x:real[]\r y= x", new []{1.0,2.0})]        
         
-        [TestCase(new []{1.0,2.0},    "x:real[]\r y= x+x", new []{1.0,2.0,1.0,2.0})]        
+        [TestCase(new []{1.0,2.0},    "x:real[]\r y= x@x", new []{1.0,2.0,1.0,2.0})]        
         [TestCase(1.0, "x:real\r y= x+1", 2.0)]        
         [TestCase(1,    "x:int\r y= x+1", 2)]        
         [TestCase("1", "x:text\r y= x+1", "11")]        

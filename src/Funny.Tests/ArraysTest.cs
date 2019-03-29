@@ -53,10 +53,10 @@ namespace Funny.Tests
         [TestCase("y = [1,5,2] in [1,2,3]", false)]    
 
         [TestCase("y = []", new object[0])]
-        [TestCase("y = []+[]", new object[0])]
+        [TestCase("y = []@[]", new object[0])]
         [TestCase("y = []-[]", new object[0])]
         
-        [TestCase("y = [1.0,2.0]+[3.0,4.0]", new []{1.0,2.0,3.0,4.0})]
+        [TestCase("y = [1.0,2.0]@[3.0,4.0]", new []{1.0,2.0,3.0,4.0})]
         [TestCase("y = [1.0,2.0]-[3.0,4.0]", new []{1.0,2.0})]
         [TestCase("y = [1.0,2.0]|[3.0,4.0]", new []{1.0,2.0,3.0,4.0})]
         [TestCase("y = [1.0,2.0,3.0]|[3.0,4.0]", new []{1.0,2.0,3.0,4.0})]
@@ -69,7 +69,7 @@ namespace Funny.Tests
         [TestCase("y = [1.0,2.0,3.0]-[3.0,4.0]", new []{1.0,2.0})]
         [TestCase("y = [1.0,4.0,2.0,3.0] & [3.0,4.0]", new []{4.0,3.0})]
         [TestCase("y = [1.0,4.0,2.0,3.0,4.0] & [3.0,4.0]", new []{4.0,3.0})]
-        [TestCase("y = ([1.0]+[2.0])+[3.0,4.0]", new []{1.0,2.0,3.0,4.0})]
+        [TestCase("y = ([1.0]@[2.0])@[3.0,4.0]", new []{1.0,2.0,3.0,4.0})]
         [TestCase("y = [1,2,3]", new[]{1,2,3})]
         [TestCase("y = ['a','b','c']", new[]{"a","b","c"})]
         [TestCase("y = [1.0]==[]", false)]
@@ -81,7 +81,7 @@ namespace Funny.Tests
         [TestCase("y = [1.0]==[1.0]", true)]
         [TestCase("y = [1.0]<>[1.0]", false)]
         [TestCase("y = [1.0,2.0]==[1.0,2.0]", true)]
-        [TestCase("y = [1.0,2.0]==([1.0]+[2.0])", true)]
+        [TestCase("y = [1.0,2.0]==([1.0]@[2.0])", true)]
         public void ConstantArrayTest(string expr, object expected)
         {
             Interpreter.BuildOrThrow(expr).Calculate().AssertReturns(Var.New("y", expected));
@@ -139,7 +139,7 @@ namespace Funny.Tests
             expected[2] = new[] {5};
             
             var expectedType = VarType.ArrayOf(VarType.ArrayOf(VarType.Int));
-            var expression = " y= [[1,2],[3,4]]+[[5]]";
+            var expression = " y= [[1,2],[3,4]]@[[5]]";
             
             var runtime = Interpreter.BuildOrThrow(expression);
             var res = runtime.Calculate().Get("y");
@@ -180,7 +180,7 @@ namespace Funny.Tests
             expectedOutput[4] = new[] {3, 4};
             expectedOutput[5] = new[] {5};
 
-            var expression = "x:int[][]\r y= x+x";
+            var expression = "x:int[][]\r y= x@x";
             
             var runtime = Interpreter.BuildOrThrow(expression);
             var res = runtime.Calculate(Var.New("x", x)).Get("y");

@@ -70,6 +70,10 @@ namespace Funny.Tokenization
         ///  ] 
         /// </summary>
         ArrCBr,
+        /// <summary>
+        /// @
+        /// </summary>
+        ArrConcat,
         In,
         BitOr,
         BitAnd,

@@ -34,7 +34,8 @@ namespace Funny.Tokenization
             {')', TokType.Cbr},
             {'[', TokType.ArrOBr},
             {']', TokType.ArrCBr},
-            {':', TokType.Colon}
+            {':', TokType.Colon},
+            {'@', TokType.ArrConcat}
         };
         
         private readonly Dictionary<string, TokType> _keywords = new Dictionary<string, TokType>

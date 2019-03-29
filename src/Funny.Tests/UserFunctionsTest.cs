@@ -24,9 +24,9 @@ namespace Funny.Tests
         [TestCase("myconcat(a:text, b:text):text = a + b \r  y = myconcat(1,2)","12")]
         [TestCase("myconcat(a:text, b):text = a + b \r  y = myconcat(1,2.5)","12.5")]
         [TestCase("arr(a:real[]):real[] = a    \r  y = arr([1.0,2.0])",new[]{1.0,2.0})]
-        [TestCase("arr(a:real[]):real[] = a+a \r  y = arr([1.0,2.0])",new[]{1.0,2.0,1.0,2.0})]
+        [TestCase("arr(a:real[]):real[] = a@a \r  y = arr([1.0,2.0])",new[]{1.0,2.0,1.0,2.0})]
         [TestCase("arr(a:int[]):int[] = a \r  y = arr([1,2])",new[]{1,2})]
-        [TestCase("arr(a:text[]):text[] = a+a \r  y = arr(['qwe','rty'])",new[]{"qwe","rty","qwe","rty"})]
+        [TestCase("arr(a:text[]):text[] = a@a \r  y = arr(['qwe','rty'])",new[]{"qwe","rty","qwe","rty"})]
         public void TypedConstantEquation_NonRecursiveFunction(string expr, object expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);

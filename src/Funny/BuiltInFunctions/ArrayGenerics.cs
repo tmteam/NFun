@@ -236,7 +236,7 @@ namespace Funny.BuiltInFunctions
     }
     public class ConcatArraysGenericFunctionDefenition : GenericFunctionBase
     {
-        public ConcatArraysGenericFunctionDefenition() : base(CoreFunNames.Add, 
+        public ConcatArraysGenericFunctionDefenition() : base(CoreFunNames.ArrConcat, 
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)))

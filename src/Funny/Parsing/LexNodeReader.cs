@@ -28,6 +28,7 @@ namespace Funny.Parsing
                 {TokType.Div, 3},
                 {TokType.Rema, 3},
                 {TokType.And, 3},
+                {TokType.ArrConcat, 3},
                 {TokType.Plus, 4},
                 {TokType.Minus, 4},
                 {TokType.Or, 4},
@@ -68,7 +69,7 @@ namespace Funny.Parsing
 
                 {TokType.BitShiftLeft,CoreFunNames.BitShiftLeft},
                 {TokType.BitShiftRight,CoreFunNames.BitShiftRight},
-                
+                {TokType.ArrConcat, CoreFunNames.ArrConcat},
                 {TokType.In,CoreFunNames.In},
             };
         public LexNodeReader(TokenFlow flow)
