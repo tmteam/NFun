@@ -130,6 +130,13 @@ namespace Funny.Tests
         [TestCase("x:real[[]\r y= x")]        
         [TestCase("x:real][]\r y= x")]    
         [TestCase("y=5+'hi'")]
+        [TestCase("x:real \r y = [1..x][0]")]
+        [TestCase("x:real \r y = [x..10][0]")]
+        [TestCase("x:real \r y = [1..x..10][0]")]
+        [TestCase("x:real \r y = [1..10][x]")]
+        [TestCase("x:real \r y = [1..10][:x]")]
+        [TestCase("x:real \r y = [1..10][:x:]")]
+        [TestCase("x:real \r y = [1..10][::x]")]
         public void ObviouslyFailsWithParse(string expr) =>
             Assert.Throws<FunParseException>(
                 ()=> Interpreter.BuildOrThrow(expr));
@@ -144,7 +151,8 @@ namespace Funny.Tests
         [TestCase(1.0, "x:real\r y= x+1", 2.0)]        
         [TestCase(1,    "x:int\r y= x+1", 2)]        
         [TestCase("1", "x:text\r y= x+1", "11")]        
-        [TestCase(true, "x:bool\r y= x and true", true)]        
+        [TestCase(true, "x:bool\r y= x and true", true)]    
+
         public void SingleInputTypedEquation(object x,  string expr, object y)
         {
             var runtime = Interpreter.BuildOrThrow(expr);

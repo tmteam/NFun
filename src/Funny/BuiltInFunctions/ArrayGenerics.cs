@@ -101,7 +101,6 @@ namespace Funny.BuiltInFunctions
     }
     public class GetGenericFunctionDefenition : GenericFunctionBase
     {
-        
         public GetGenericFunctionDefenition() : base(CoreFunNames.GetElementName, 
             VarType.Generic(0),
             VarType.ArrayOf(VarType.Generic(0)),

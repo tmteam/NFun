@@ -190,7 +190,7 @@ namespace Funny.Types
                     return true;
                 }
                 default:
-                    return true;
+                    return concreteType.CanBeConvertedTo(genericType);
             }
         }
 

@@ -277,6 +277,16 @@ namespace Funny.Tests.UnitTests
         }
         
         [Test]
+        public void SolveGenericTypes_ConcreteRealToConcreteInt_ReturnsFalse()
+        {
+            //Solving  Array of int SomeFun<T>(T)
+
+            var result = VarType.TrySolveGenericTypes(new VarType[1],
+                genericType: VarType.Int, concreteType: VarType.Real);
+            Assert.IsFalse(result);
+        }
+        
+        [Test]
         public void SolveGenericTypes_ComplexGenericFunWith2GenericsType_AllTypesAreSolved()
         {
             //Solving  Array of   T0[] SomeFun<T0,T1>(T1, T1[])
