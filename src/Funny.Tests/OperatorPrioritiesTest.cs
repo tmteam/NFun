@@ -25,7 +25,9 @@ namespace Funny.Tests
         
         [TestCase("y=(x1<>0)  == (x2<>0) <>  (x3<>0)","y=((x1<>0)==(x2<>0)) <>  (x3<>0)")]
         [TestCase("y=(x1<>0)  <> (x2<>0)  == (x3<>0)","y=((x1<>0)<>(x2<>0))  == (x3<>0)")]
-
+        [TestCase("y = 8 * 3 > 2 * 100","y = (8 * 3 )> (2 * 100)")]
+        [TestCase("y = 1 + 8 * 3  > 2 * 100+4","y = (8 * 3 )> (2 * 100)")]
+        [TestCase("y = not 3*3>8", "y = not (3*3>8)")]
         public void DiscreetePriorities(string actualExpr, string expectedExpr)
         {
             var allCombinations = new List<Var[]>();

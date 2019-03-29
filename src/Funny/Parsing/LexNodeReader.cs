@@ -16,19 +16,23 @@ namespace Funny.Parsing
             {
                 {TokType.AnonymFun,0},
                 {TokType.ArrOBr,0},
-                {TokType.In,0},
+                
+                {TokType.In,1},
                 {TokType.Equal, 1},
                 {TokType.NotEqual, 1},
                 {TokType.More, 1},
                 {TokType.Less, 1},
                 {TokType.MoreOrEqual, 1},
                 {TokType.LessOrEqual, 1},
+                
                 {TokType.Pow, 2},
+                
                 {TokType.Mult, 3},
                 {TokType.Div, 3},
                 {TokType.Rema, 3},
                 {TokType.And, 3},
                 {TokType.ArrConcat, 3},
+                
                 {TokType.Plus, 4},
                 {TokType.Minus, 4},
                 {TokType.Or, 4},
@@ -37,6 +41,7 @@ namespace Funny.Parsing
                 {TokType.BitShiftRight, 4},
                 {TokType.BitAnd, 4},
                 {TokType.BitXor, 4},
+                
                 {TokType.BitOr,  5},
                 {TokType.PipeForward,5},
             };
@@ -74,7 +79,7 @@ namespace Funny.Parsing
             };
         public LexNodeReader(TokenFlow flow)
         {
-            this._flow = flow;
+            _flow = flow;
         }
 
         public LexNode ReadExpressionOrNull()
@@ -96,7 +101,14 @@ namespace Funny.Parsing
                     throw new FunParseException("minus without next val");
                 return LexNode.Fun(CoreFunNames.Multiply,new[]{LexNode.Num("-1"), nextNode});
             }
-            
+
+            if (_flow.MoveIf(TokType.Not, out _))
+            {
+                var node = ReadNext(1);
+                if(node==null)
+                    throw  new FunParseException("expected expression after 'not'");
+                return LexNode.Fun(CoreFunNames.Not, new []{node});
+            }
             if (_flow.MoveIf(TokType.True, out var trueTok))
                 return LexNode.Num(trueTok.Value);
             if (_flow.MoveIf(TokType.False, out var falseTok))

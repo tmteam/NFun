@@ -9,7 +9,11 @@ using Funny.Types;
 
 namespace Funny.BuiltInFunctions
 {
-    
+    public class InvertFunction : FunctionBase
+    {
+        public InvertFunction() : base(CoreFunNames.Not, VarType.Bool,VarType.Bool){}
+        public override object Calc(object[] args) => !(bool)args[0];
+    }
     public class AndFunction: FunctionBase
     {
         public AndFunction() : base(CoreFunNames.And, VarType.Bool,VarType.Bool,VarType.Bool){}

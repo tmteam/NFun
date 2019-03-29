@@ -14,6 +14,7 @@ namespace Funny
             var lexTree =    Parser.Parse(flow);
             var predefinedfunctions = new FunctionBase[]
             {
+                new InvertFunction(), 
                 new AndFunction(), 
                 new OrFunction(), 
                 new XorFunction(), 

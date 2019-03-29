@@ -115,6 +115,11 @@ namespace Funny.Tests
         [TestCase("y = true xor true", false)]
         [TestCase("y = true xor false", true)]
         [TestCase("y = false xor false", false)]
+        [TestCase("y = not true", false)]
+        [TestCase("y = not false", true)]
+
+        [TestCase("y = false or not false", true)]
+
         public void DiscreeteConstantEquataion(string expr, bool expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
