@@ -10,6 +10,7 @@ namespace Funny.BuiltInFunctions
         public const string Substract = "substract";
         public const string BitOr = "bitor";
         public const string BitXor = "bitxor";
+        public const string BitInverse = "bitinverse";
         public const string Multiply = "multiply";
         public const string Divide = "divide";
         public const string Pow = "pow";

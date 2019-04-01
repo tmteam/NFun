@@ -114,7 +114,6 @@ namespace Funny.Tests
         [TestCase("y = not 3*3>8", "y = not (3*3>8)")]
         [TestCase("y= [[1,2,3],[4,5,6]] [1] [1:1]","y = ([[1,2,3],[4,5,6]] [1])[1:1]")]
         [TestCase("y = not 3*3>8", "y = not (3*3>8)")]
-
         public void ConstantCalculationPriorities(string actualExpr, string expectedExpr)
         {
             var expected = Interpreter.BuildOrThrow(expectedExpr).Calculate().Get("y");

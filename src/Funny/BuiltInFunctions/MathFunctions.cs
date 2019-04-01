@@ -29,17 +29,7 @@ namespace Funny.BuiltInFunctions
         public XorFunction() : base(CoreFunNames.Xor, VarType.Bool,VarType.Bool,VarType.Bool){}
         public override object Calc(object[] args) =>  (bool)args[0] != (bool)args[1];
     }
-    public class BitShiftLeftFunction: FunctionBase
-    {
-        public BitShiftLeftFunction() : base(CoreFunNames.BitShiftLeft, VarType.Int,VarType.Int,VarType.Int){}
-        public override object Calc(object[] args) => (int)args[0] << (int)args[1];
-    }
-    public class BitShiftRightFunction: FunctionBase
-    {
-        public BitShiftRightFunction() : base(CoreFunNames.BitShiftRight, VarType.Int,VarType.Int,VarType.Int){}
-        public override object Calc(object[] args) => (int)args[0] >> (int)args[1];
-    }
-
+   
     public class MoreIntFunction: FunctionBase
     {
         public MoreIntFunction() : base(CoreFunNames.More, VarType.Bool,VarType.Int,VarType.Int){}
@@ -138,23 +128,7 @@ namespace Funny.BuiltInFunctions
         public SubstractIntFunction() : base(CoreFunNames.Substract, VarType.Int,VarType.Int,VarType.Int){}
         public override object Calc(object[] args) => (int)args[0] - (int)args[1];
     }
-    public class BitOrIntFunction : FunctionBase
-    {
-        public BitOrIntFunction() : base(CoreFunNames.BitOr, VarType.Int,VarType.Int,VarType.Int){}
-        public override object Calc(object[] args) => (int)args[0] | (int)(args[1]);
-    }
-    
-    public class BitXorIntFunction : FunctionBase
-    {
-        public BitXorIntFunction() : base(CoreFunNames.BitXor, VarType.Int,VarType.Int,VarType.Int){}
-        public override object Calc(object[] args) => (int)args[0] ^ (int)args[1];
-    }
-    
-    public class BitAndIntFunction: FunctionBase
-    {
-        public BitAndIntFunction() : base(CoreFunNames.BitAnd, VarType.Int,VarType.Int,VarType.Int){}
-        public override object Calc(object[] args) => (int)args[0] & (int)(args[1]);
-    }
+   
     
     public class AddRealFunction: FunctionBase
     {

@@ -45,6 +45,7 @@ namespace Funny.Tests
         [TestCase("y = 1 ^ 1",0)]
         [TestCase("y = 1 << 3",8)]
         [TestCase("y = 8 >> 3",1)]
+        [TestCase("y = ~0xFFFFFFFF",0)]
         public void NumbersConstantEquation(string expr, object expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);

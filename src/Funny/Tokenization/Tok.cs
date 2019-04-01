@@ -80,6 +80,7 @@ namespace Funny.Tokenization
         BitXor,
         BitShiftLeft,
         BitShiftRight,
+        BitInverse,
         Id,
         /// <summary>
         /// =

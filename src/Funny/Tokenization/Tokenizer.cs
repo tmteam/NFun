@@ -35,7 +35,8 @@ namespace Funny.Tokenization
             {'[', TokType.ArrOBr},
             {']', TokType.ArrCBr},
             {':', TokType.Colon},
-            {'@', TokType.ArrConcat}
+            {'@', TokType.ArrConcat},
+            {'~', TokType.BitInverse},
         };
         
         private readonly Dictionary<string, TokType> _keywords = new Dictionary<string, TokType>
@@ -235,6 +236,15 @@ namespace Funny.Tokenization
                     continue;
                 }
                 break;
+            }
+
+            if (index < str.Length)
+            {
+                if (IsLetter(str[index ]))
+                {
+                    var txtToken = ReadIdOrKeyword(str, index);
+                    return Tok.New(TokType.NotAToken, str.Substring(position,txtToken.Finish - position), txtToken.Finish);
+                }
             }
             //if dot is last then we need to skip it
             if(dotPostition==index-1)

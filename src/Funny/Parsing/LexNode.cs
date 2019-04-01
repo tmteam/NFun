@@ -15,6 +15,14 @@ namespace Funny.Parsing
         public static LexNode Var(string name) 
             => new LexNode(LexNodeType.Var, name);
             
+        public static LexNode OperatorFun(string name, LexNode[] children) 
+            => new LexNode(LexNodeType.Fun, name,children){AdditionalContent = true};
+
+        public static LexNode Bracket(LexNode node)
+        {
+            node.IsBracket = true;
+            return node;
+        }
         public static LexNode Fun(string name, LexNode[] children) 
             => new LexNode(LexNodeType.Fun, name,children);
         
@@ -48,7 +56,7 @@ namespace Funny.Parsing
             Value = value;
             Children = children;
         }
-
+        public bool IsBracket { get; private set; }
         public object AdditionalContent { get; private set; }
         public LexNodeType Type { get; }
         public string Value { get; }

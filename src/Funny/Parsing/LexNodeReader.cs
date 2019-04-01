@@ -127,15 +127,22 @@ namespace Funny.Parsing
                 var nextNode = ReadAtomicOrNull();
                 if (nextNode == null)
                     throw new FunParseException("minus without next val");
-                return LexNode.Fun(CoreFunNames.Multiply,new[]{LexNode.Num("-1"), nextNode});
+                return LexNode.OperatorFun(CoreFunNames.Multiply,new[]{LexNode.Num("-1"), nextNode});
             }
 
+            if (_flow.MoveIf(TokType.BitInverse, out _))
+            {
+                var node = ReadNext(1);
+                if(node==null)
+                    throw  new FunParseException("expected expression after '~'");
+                return LexNode.OperatorFun(CoreFunNames.BitInverse, new []{node});
+            }
             if (_flow.MoveIf(TokType.Not, out _))
             {
                 var node = ReadNext(5);
                 if(node==null)
                     throw  new FunParseException("expected expression after 'not'");
-                return LexNode.Fun(CoreFunNames.Not, new []{node});
+                return LexNode.OperatorFun(CoreFunNames.Not, new []{node});
             }
             if (_flow.MoveIf(TokType.True, out var trueTok))
                 return LexNode.Num(trueTok.Value);
@@ -161,7 +168,7 @@ namespace Funny.Parsing
             }
 
             if (_flow.IsCurrent(TokType.Obr))
-                return ReadBrackedList();
+                return LexNode.Bracket(ReadBrackedList());
             if (_flow.IsCurrent(TokType.If))
                 return ReadIfThenElse();
             if (_flow.IsCurrent(TokType.ArrOBr))
@@ -235,7 +242,7 @@ namespace Funny.Parsing
                     //building the tree from the left                    
 
                     if (OperatorFunNames.ContainsKey(currentOp))
-                        leftNode = LexNode.Fun(OperatorFunNames[currentOp],new[]{leftNode, rightNode});
+                        leftNode = LexNode.OperatorFun(OperatorFunNames[currentOp],new[]{leftNode, rightNode});
                     else
                         throw new FunParseException("Unknown operator \""+ currentOp+"\"");
                     //trace:
@@ -264,7 +271,7 @@ namespace Funny.Parsing
                     throw new FunParseException("Array index expected");
                 
                 _flow.MoveIfOrThrow(TokType.ArrCBr);
-                return LexNode.Fun(CoreFunNames.GetElementName, new[] {arrayNode, index});
+                return LexNode.OperatorFun(CoreFunNames.GetElementName, new[] {arrayNode, index});
             }
             
             index = index ?? LexNode.Num("0");
@@ -273,7 +280,7 @@ namespace Funny.Parsing
             if (!_flow.MoveIf(TokType.Colon, out _))
             {
                 _flow.MoveIfOrThrow(TokType.ArrCBr);
-                return LexNode.Fun(CoreFunNames.SliceName, new[]
+                return LexNode.OperatorFun(CoreFunNames.SliceName, new[]
                 {
                     arrayNode, 
                     index, 
@@ -284,12 +291,12 @@ namespace Funny.Parsing
             var step = ReadExpressionOrNull();
             _flow.MoveIfOrThrow(TokType.ArrCBr);
             if(step==null)
-                return LexNode.Fun(CoreFunNames.SliceName, new[]
+                return LexNode.OperatorFun(CoreFunNames.SliceName, new[]
                 {
                     arrayNode, index, end
                 });
             
-            return LexNode.Fun(CoreFunNames.SliceName, new[]
+            return LexNode.OperatorFun(CoreFunNames.SliceName, new[]
             {
                 arrayNode, index, end, step
             });

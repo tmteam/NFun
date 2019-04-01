@@ -167,7 +167,7 @@ namespace Funny.Tests
         [TestCase("y(x, l) = 1,2*3")]
         [TestCase("y(x, l) = 4*(1,2)")]
         [TestCase("y(, l) = 1")]
-        [TestCase("y(x, (l)) = 1")]
+        [TestCase("y(x, (l)) = 1.0")]
         [TestCase("y((x)) = x*2")]
         [TestCase("y(,) = 2")]
         [TestCase("y(x) = 2*z")]
@@ -178,8 +178,7 @@ namespace Funny.Tests
         [TestCase("y(x):foo=x")]
         [TestCase("y(x:foo)=x")]
         [TestCase("y(x:int)= x+\"vasa\"")]
-        [TestCase("y(x):real= \"vasa\"")]
-        [TestCase("y(x:int)= x+1\n out = y(\"test\")")]
+        [TestCase("y(x:int)= x+1.0\n out = y(\"test\")")]
         [TestCase("y(x:real[)= x")]
         [TestCase("y(x:foo[])= x")]
         [TestCase("y(x:real])= x")]
@@ -191,17 +190,14 @@ namespace Funny.Tests
         [TestCase("f((i,j),k) = 12.0 \r y = f(((1,2),3)=>i+j)")]
         [TestCase("f(x*2) = 12.0 \r y = f(3)")]
         [TestCase("f(x*2) = 12.0")]
-
-        public void ObviousFails(string expr)
-        {
-            try
-            {
-                Interpreter.BuildOrThrow(expr);
-            }
-            catch (Exception e)
-            {
-                Assert.IsInstanceOf<FunParseException>(e);
-            }
+        public void ObviousFails(string expr){
+            Assert.Throws<FunParseException>(()=>Interpreter.BuildOrThrow(expr));
         }
+        [TestCase("y(x):real= \"vasa\"")]
+
+        public void ObviousFailsWithTypeCast(string expr){
+            Assert.Throws<OutpuCastFunParseException>(()=>Interpreter.BuildOrThrow(expr));
+        }
+
     }
 }

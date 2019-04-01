@@ -46,16 +46,17 @@ namespace Funny.Tests.UnitTests
             TokType.ArrCBr)]
         [TestCase("0.", TokType.Number, TokType.NotAToken)]
         [TestCase("0.1", TokType.Number)]
-
+        [TestCase("1y = x", TokType.NotAToken, TokType.Def, TokType.Id)]
+        [TestCase("1y", TokType.NotAToken)]
+        [TestCase("1.y", TokType.NotAToken)]
         public void TestTokinization(string exp, params TokType[] expected)
         {
              var tokens =  Tokenizer
                  .ToTokens(exp)
                  .Select(s=>s.Type)
                  .ToArray();
-            CollectionAssert.AreEqual(expected,tokens);
+            CollectionAssert.AreEquivalent(expected,tokens);
         }
-        
         
     }
 

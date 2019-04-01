@@ -40,6 +40,7 @@ namespace Funny
                 new BitAndIntFunction(),
                 new BitOrIntFunction(),
                 new BitXorIntFunction(),
+                new BitInverseIntFunction(), 
                 new PowRealFunction(), 
                 new MultiplyIntFunction(), 
                 new MultiplyRealFunction(), 

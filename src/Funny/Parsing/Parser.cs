@@ -41,7 +41,8 @@ namespace Funny.Parsing
                         flow.MoveNext();
                         equations.Add(ReadEquation(flow, reader, e.Value));
                     }
-                    else if (e.Is(LexNodeType.Fun))
+                    //Todo Make operatorfun as separate node type
+                    else if (e.Is(LexNodeType.Fun) && e.AdditionalContent== null)
                         //userFun
                        funs.Add(ReadUserFunction(e, flow, reader));
                     else
@@ -69,12 +70,19 @@ namespace Funny.Parsing
         private static LexFunction ReadUserFunction(LexNode headNode, TokenFlow flow, LexNodeReader reader)
         {
             var id = headNode.Value;
-            
+            if(headNode.IsBracket)
+                throw new FunParseException("Unexpected brackets on function defenition "+ headNode.Value);
+
             var arguments = new List<VariableInfo>();
             foreach (var headNodeChild in headNode.Children)
             {
                 if(headNodeChild.Value==null)
                     throw new FunParseException("Invalid function argument");
+                if(headNodeChild.Type!= LexNodeType.Var && headNodeChild.Type!= LexNodeType.TypedVar)
+                    throw new FunParseException("Unexpected function argument "+ headNodeChild.Type);
+                if(headNodeChild.IsBracket)    
+                    throw new FunParseException("Unexpected brackets on function argument "+ headNodeChild.Type);
+
                 arguments.Add(new VariableInfo(headNodeChild.Value, (VarType)(headNodeChild.AdditionalContent ?? VarType.Real)));
             }
 
