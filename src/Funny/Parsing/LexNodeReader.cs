@@ -11,40 +11,68 @@ namespace Funny.Parsing
     {
         private readonly TokenFlow _flow;
 
-        private static readonly Dictionary<TokType, byte> Priorities
-            = new Dictionary<TokType, byte>()
+        static LexNodeReader()
+        {
+            var priorities = new List<TokType[]>();
+            priorities.Add(new []{TokType.AnonymFun,TokType.ArrOBr});
+            
+            priorities.Add(new[]{TokType.Pow});
+
+            priorities.Add( new []{
+                TokType.Mult,
+                TokType.Div,
+                TokType.Rema,
+            });
+            priorities.Add(new[]
             {
-                {TokType.AnonymFun,0},
-                {TokType.ArrOBr,0},
+                TokType.Plus,
+                TokType.Minus,
+                TokType.BitShiftLeft, 
+                TokType.BitShiftRight,
+                TokType.BitAnd, 
+                TokType.BitXor 
+            });
+            priorities.Add(new[]
+            {
+                TokType.In,
+                TokType.Equal,
+                TokType.NotEqual,
+                TokType.More,
+                TokType.Less,
+                TokType.MoreOrEqual,
+                TokType.LessOrEqual,
+            });
+            
+            priorities.Add( new []{
+               TokType.And,
+               TokType.ArrConcat
+            });
+            
+            priorities.Add( new [] {
+                    TokType.Or,
+                    TokType.Xor,
                 
-                {TokType.In,1},
-                {TokType.Equal, 1},
-                {TokType.NotEqual, 1},
-                {TokType.More, 1},
-                {TokType.Less, 1},
-                {TokType.MoreOrEqual, 1},
-                {TokType.LessOrEqual, 1},
-                
-                {TokType.Pow, 2},
-                
-                {TokType.Mult, 3},
-                {TokType.Div, 3},
-                {TokType.Rema, 3},
-                {TokType.And, 3},
-                {TokType.ArrConcat, 3},
-                
-                {TokType.Plus, 4},
-                {TokType.Minus, 4},
-                {TokType.Or, 4},
-                {TokType.Xor, 4},
-                {TokType.BitShiftLeft, 4},
-                {TokType.BitShiftRight, 4},
-                {TokType.BitAnd, 4},
-                {TokType.BitXor, 4},
-                
-                {TokType.BitOr,  5},
-                {TokType.PipeForward,5},
-            };
+                });
+            
+            priorities.Add(new[]
+            {
+                TokType.BitOr,  
+                TokType.PipeForward,
+            });
+            
+            for (byte i = 0; i < priorities.Count; i++)
+            {
+                foreach (var tokType in priorities[i])
+                    Priorities.Add(tokType, i);
+            }
+
+            maxPriority = priorities.Count - 1;
+        }
+
+        private readonly static int maxPriority;
+
+        private static readonly Dictionary<TokType, byte> Priorities
+            = new Dictionary<TokType, byte>();
 
         private static readonly Dictionary<TokType, string> OperatorFunNames
             = new Dictionary<TokType, string>()
@@ -83,7 +111,7 @@ namespace Funny.Parsing
         }
 
         public LexNode ReadExpressionOrNull()
-            => ReadNext(5);
+            => ReadNext(maxPriority);
 
         //ReadZeroPriority operation (num, -num, id, fun, if, (...))
         private LexNode ReadAtomicOrNull()
@@ -104,7 +132,7 @@ namespace Funny.Parsing
 
             if (_flow.MoveIf(TokType.Not, out _))
             {
-                var node = ReadNext(1);
+                var node = ReadNext(5);
                 if(node==null)
                     throw  new FunParseException("expected expression after 'not'");
                 return LexNode.Fun(CoreFunNames.Not, new []{node});
