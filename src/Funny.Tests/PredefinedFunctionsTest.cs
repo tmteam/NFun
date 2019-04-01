@@ -104,21 +104,52 @@ namespace Funny.Tests
         [TestCase("y = take([1.0,2.0,3.0,4.0,5.0],4)",new []{1.0,2.0,3.0,4.0})]        
         [TestCase("y = take([1.0,2.0,3.0],20)",new []{1.0,2.0,3.0})]        
         [TestCase("y = take([1.0,2.0,3.0],0)",new double[0])]        
+        [TestCase("y = take(skip([1.0,2.0,3.0],1),1)",new []{2.0})]        
+    
         [TestCase("y = skip([1,2,3,4,5],3)",new []{4,5})]        
         [TestCase("y = skip(['1','2','3','4','5'],3)",new []{"4","5"})]        
         [TestCase("y = skip([1.0,2.0,3.0,4.0,5.0],4)",new []{5.0})]        
         [TestCase("y = skip([1.0,2.0,3.0],20)",new double[0])]        
         [TestCase("y = skip([1.0,2.0,3.0],0)",new []{1.0,2.0,3.0})]        
+        
         [TestCase("y = repeat('abc',3)",new []{"abc","abc","abc"})]        
         [TestCase("y = repeat('abc',0)",new string[0])]        
-        [TestCase("y = take(skip([1.0,2.0,3.0],1),1)",new []{2.0})]        
+        
         [TestCase("mypage(x:int[]):int[] = take(skip(x,1),1) \r y = mypage([1,2,3]) ",new []{2})]        
+
         [TestCase("y = [1,2,3]|> reverse",new[]{3,2,1})]
         [TestCase("y = [1,2,3]|> reverse |> reverse",new[]{1,2,3})]
         [TestCase("y = []|> reverse",new object[0])]
+        
         [TestCase("y = [1,2,3]|>get(1)", 2)]
         [TestCase("y = [1,2,3]|>get(0)", 1)]
+        
         [TestCase("y = [1,2,3]|>set(1,42)", new[]{1,42,3})]
+        
+        [TestCase("y = [1.0] |> reiterate(3)", new[]{1.0,1.0,1.0})]
+        [TestCase("y = [] |> reiterate(3)", new object[0])]
+        [TestCase("y = ['a','b'] |> reiterate(3)", new []{"a","b","a","b","a","b"})]
+        [TestCase("y = ['a','b'] |> reiterate(0)", new string[0])]
+        [TestCase("y = ['a','b'] |> reiterate(1)", new []{"a","b"})]
+        
+        [TestCase("y = [1.0,2.0] |> unite([3.0,4.0])", new []{1.0,2.0,3.0,4.0})]
+        [TestCase("y = [1.0,2.0,3.0]|> unite([3.0,4.0])", new []{1.0,2.0,3.0,4.0})]
+
+        [TestCase("y = []|> intersect([])", new object[0])]
+        [TestCase("y = [1.0,4.0,2.0,3.0] |>intersect([3.0,4.0])", new []{4.0,3.0})]
+        [TestCase("y = [1.0,4.0,2.0,3.0,4.0] |>intersect([3.0,4.0])", new []{4.0,3.0})]
+        [TestCase("y = []|> unite([])", new object[0])]
+
+        [TestCase("y = [1.0,2.0]|>unique([3.0,4.0])", new []{1.0,2.0,3.0,4.0})]
+        [TestCase("y = [1.0,2.0,3.0]|>unique([3.0,4.0])", new []{1.0,2.0,4.0})]
+        [TestCase("y = [3.0,4.0]|>unique([3.0,4.0])", new double[0])]
+        [TestCase("y = []|>unique([])", new object[0])]
+
+        
+        [TestCase("y = []|> except([])", new object[0])]
+        [TestCase("y = [1.0,2.0] |> except([3.0,4.0])", new []{1.0,2.0})]
+        [TestCase("y = [1.0,2.0,3.0]|>except([3.0,4.0])", new []{1.0,2.0})]
+        
         public void ConstantEquationWithGenericPredefinedFunction(string expr, object expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);

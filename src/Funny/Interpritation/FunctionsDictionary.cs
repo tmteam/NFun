@@ -117,9 +117,12 @@ namespace Funny.Interpritation
             if (!filtered.Any())
                 return null;
             
-            return filtered
+            var res =  filtered
                   .Select(f => f.CreateConcreteOrNull(args))
-                  .SingleOrDefault(f => f != null);
+                  .Where(f => f != null);
+            if (res.Count() != 1)
+                return null;
+            return res.First();
         }
         
         

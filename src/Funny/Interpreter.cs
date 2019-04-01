@@ -78,9 +78,9 @@ namespace Funny
             {
                 new IsInSingleGenericFunctionDefenition(), 
                 new IsInMultipleGenericFunctionDefenition(), 
-                new MultiplyGenericFunctionDefenition(),
+                new ReiterateGenericFunctionDefenition(),
                 new UniqueGenericFunctionDefenition(), 
-                new UnionGenericFunctionDefenition(), 
+                new UniteGenericFunctionDefenition(), 
                 new IntersectGenericFunctionDefenition(), 
                 new SubstractArraysGenericFunctionDefenition(), 
 

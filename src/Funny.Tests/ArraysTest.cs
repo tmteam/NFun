@@ -40,12 +40,7 @@ namespace Funny.Tests
         [TestCase("y = [0..10][:4:3]", new[]{0,3})]
         [TestCase("y = [1.0,1.2,2.4]", new[]{1.0,1.2, 2.4})]
         [TestCase("y = [1.0]", new[]{1.0})]
-        [TestCase("y = [1.0] * 3", new[]{1.0,1.0,1.0})]
-        [TestCase("y = [] * 3", new object[0])]
         
-        [TestCase("y = ['a','b'] * 3", new []{"a","b","a","b","a","b"})]
-        [TestCase("y = ['a','b'] * 0", new string[0])]
-        [TestCase("y = ['a','b'] * 1", new []{"a","b"})]
         [TestCase("y = 1 in [1,2,3]", true)]    
         [TestCase("y = 0 in [1,2,3]", false)]    
         [TestCase("y = not 0 in [1,2,3]", true)]    
@@ -54,22 +49,9 @@ namespace Funny.Tests
         [TestCase("y = [1,5,2] in [1,2,3]", false)]    
 
         [TestCase("y = []", new object[0])]
-        [TestCase("y = []@[]", new object[0])]
-        [TestCase("y = []-[]", new object[0])]
+
         
         [TestCase("y = [1.0,2.0]@[3.0,4.0]", new []{1.0,2.0,3.0,4.0})]
-        [TestCase("y = [1.0,2.0]-[3.0,4.0]", new []{1.0,2.0})]
-        [TestCase("y = [1.0,2.0]|[3.0,4.0]", new []{1.0,2.0,3.0,4.0})]
-        [TestCase("y = [1.0,2.0,3.0]|[3.0,4.0]", new []{1.0,2.0,3.0,4.0})]
-        [TestCase("y = []|[]", new object[0])]
-
-        [TestCase("y = [1.0,2.0]^[3.0,4.0]", new []{1.0,2.0,3.0,4.0})]
-        [TestCase("y = [1.0,2.0,3.0]^[3.0,4.0]", new []{1.0,2.0,4.0})]
-        [TestCase("y = [3.0,4.0]^[3.0,4.0]", new double[0])]
-
-        [TestCase("y = [1.0,2.0,3.0]-[3.0,4.0]", new []{1.0,2.0})]
-        [TestCase("y = [1.0,4.0,2.0,3.0] & [3.0,4.0]", new []{4.0,3.0})]
-        [TestCase("y = [1.0,4.0,2.0,3.0,4.0] & [3.0,4.0]", new []{4.0,3.0})]
         [TestCase("y = ([1.0]@[2.0])@[3.0,4.0]", new []{1.0,2.0,3.0,4.0})]
         [TestCase("y = [1,2,3]", new[]{1,2,3})]
         [TestCase("y = ['a','b','c']", new[]{"a","b","c"})]
@@ -83,7 +65,9 @@ namespace Funny.Tests
         [TestCase("y = [1.0]<>[1.0]", false)]
         [TestCase("y = [1.0,2.0]==[1.0,2.0]", true)]
         [TestCase("y = [1.0,2.0]==([1.0]@[2.0])", true)]
-        public void ConstantArrayTest(string expr, object expected)
+        [TestCase("y = []@[]", new object[0])]
+
+        public void ConstantArrayOperatorsTest(string expr, object expected)
         {
             Interpreter.BuildOrThrow(expr).Calculate().AssertReturns(Var.New("y", expected));
         }
@@ -101,7 +85,7 @@ namespace Funny.Tests
         [Test]
         public void IntersectToDimArrayTest()
         {
-            var expression = "y = [[1.0,2.0],[3.0,4.0],[5.0]]&[[3.0,4.0],[1.0],[5.0],[4.0]]";
+            var expression = "y = [[1.0,2.0],[3.0,4.0],[5.0]] |> intersect ([[3.0,4.0],[1.0],[5.0],[4.0]])";
             var expected = new[] {new [] {3.0, 4.0},new[]{5.0}};
 
             Interpreter.BuildOrThrow(expression).Calculate().AssertReturns(Var.New("y", expected));
@@ -109,7 +93,7 @@ namespace Funny.Tests
         [Test]
         public void ExceptToDimArrayTest()
         {
-            var expression = "y = [[1.0,2.0],[3.0,4.0]]-[[3.0,4.0],[1.0],[4.0]]";
+            var expression = "y = [[1.0,2.0],[3.0,4.0]]|> except([[3.0,4.0],[1.0],[4.0]])";
             var expected = new[] {new [] {1.0, 2.0}};
 
             Interpreter.BuildOrThrow(expression).Calculate().AssertReturns(Var.New("y", expected));

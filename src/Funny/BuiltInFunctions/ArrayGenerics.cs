@@ -149,9 +149,9 @@ namespace Funny.BuiltInFunctions
             return new FunArray(newArr);
         }
     }
-    public class MultiplyGenericFunctionDefenition : GenericFunctionBase
+    public class ReiterateGenericFunctionDefenition : GenericFunctionBase
     {
-        public MultiplyGenericFunctionDefenition() : base(CoreFunNames.Multiply, 
+        public ReiterateGenericFunctionDefenition() : base("reiterate", 
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.Int)
@@ -185,9 +185,9 @@ namespace Funny.BuiltInFunctions
             return res; 
         }
     }
-    public class UnionGenericFunctionDefenition : GenericFunctionBase
+    public class UniteGenericFunctionDefenition : GenericFunctionBase
     {
-        public UnionGenericFunctionDefenition() : base(CoreFunNames.BitOr, 
+        public UniteGenericFunctionDefenition() : base("unite", 
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)))
@@ -203,7 +203,7 @@ namespace Funny.BuiltInFunctions
     }
     public class UniqueGenericFunctionDefenition : GenericFunctionBase
     {
-        public UniqueGenericFunctionDefenition() : base(CoreFunNames.BitXor, 
+        public UniqueGenericFunctionDefenition() : base("unique", 
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)))
@@ -219,7 +219,7 @@ namespace Funny.BuiltInFunctions
     }
     public class IntersectGenericFunctionDefenition : GenericFunctionBase
     {
-        public IntersectGenericFunctionDefenition() : base(CoreFunNames.BitAnd, 
+        public IntersectGenericFunctionDefenition() : base("intersect", 
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)))
@@ -253,7 +253,7 @@ namespace Funny.BuiltInFunctions
     
     public class SubstractArraysGenericFunctionDefenition : GenericFunctionBase
     {
-        public SubstractArraysGenericFunctionDefenition() : base(CoreFunNames.Substract, 
+        public SubstractArraysGenericFunctionDefenition() : base("except", 
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)))
@@ -369,7 +369,6 @@ namespace Funny.BuiltInFunctions
             return FunArray.By(arrLeft.Concat(arrRight));
         }
     }
-    
     public class ReverseGenericFunctionDefenition: GenericFunctionBase
     {
         public ReverseGenericFunctionDefenition() : base("reverse", 
@@ -398,7 +397,6 @@ namespace Funny.BuiltInFunctions
             return ((FunArray)args[0]).Slice(null,(int) args[1]-1,1);
         }
     }
-    
     public class SkipGenericFunctionDefenition: GenericFunctionBase
     {
         public SkipGenericFunctionDefenition() : base("skip", 
