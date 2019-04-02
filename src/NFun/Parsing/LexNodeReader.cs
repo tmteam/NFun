@@ -13,7 +13,12 @@ namespace NFun.Parsing
         static LexNodeReader()
         {
             var priorities = new List<TokType[]>();
-            priorities.Add(new []{TokType.AnonymFun,TokType.ArrOBr});
+            priorities.Add(new []
+            {
+                TokType.AnonymFun,
+                TokType.ArrOBr,
+                TokType.PipeForward,
+            });
             
             priorities.Add(new[]{TokType.Pow});
 
@@ -50,14 +55,8 @@ namespace NFun.Parsing
             priorities.Add( new [] {
                     TokType.Or,
                     TokType.Xor,
-                
+                    TokType.BitOr
                 });
-            
-            priorities.Add(new[]
-            {
-                TokType.BitOr,  
-                TokType.PipeForward,
-            });
             
             for (byte i = 0; i < priorities.Count; i++)
             {
