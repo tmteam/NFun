@@ -105,6 +105,13 @@ namespace NFun.BuiltInFunctions
         public override object Calc(object[] args) => Convert.ToDouble(args[0]) / Convert.ToDouble(args[1]);
     }
     
+    public class RoundRealFunction: FunctionBase
+    {
+        public RoundRealFunction(string name) : base(name, VarType.Int,VarType.Real){}
+        public override object Calc(object[] args) 
+            => (int)Math.Round(Convert.ToDouble(args[0]));
+    }
+    
     public class MultiplyRealFunction: FunctionBase
     {
         public MultiplyRealFunction() : base(CoreFunNames.Multiply, VarType.Real,VarType.Real,VarType.Real){}
@@ -126,21 +133,30 @@ namespace NFun.BuiltInFunctions
         public override object Calc(object[] args) => (int)args[0] - (int)args[1];
     }
    
-    
     public class AddRealFunction: FunctionBase
     {
-        public AddRealFunction() : base(CoreFunNames.Add, VarType.Real,VarType.Real,VarType.Real){}
+        public AddRealFunction(string name) : base(name, VarType.Real,VarType.Real,VarType.Real){}
+
+        public AddRealFunction() : this(CoreFunNames.Add){}
+
         public override object Calc(object[] args) => Convert.ToDouble(args[0]) + Convert.ToDouble(args[1]);
     }
     public class AddIntFunction: FunctionBase
     {
-        public AddIntFunction() : base(CoreFunNames.Add, VarType.Int,VarType.Int,VarType.Int){}
+        public AddIntFunction(string name) : base(name, VarType.Int, VarType.Int, VarType.Int)
+        {
+        }
+
+        public AddIntFunction() : this(CoreFunNames.Add){}
+
         public override object Calc(object[] args) => (int)args[0] + (int)args[1];
     }
     public class AddTextFunction: FunctionBase
     {
-        public AddTextFunction() : base(CoreFunNames.Add, 
+        public AddTextFunction(string name) : base(name, 
             VarType.Text,VarType.Text,VarType.Anything){}
+
+        public AddTextFunction() : this(CoreFunNames.Add){}
         public override object Calc(object[] args) => args[0].ToString() + ToStringSmart(args[1]);
 
         private static string ToStringSmart(object o)

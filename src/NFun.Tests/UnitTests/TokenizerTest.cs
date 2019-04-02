@@ -49,6 +49,10 @@ namespace Funny.Tests.UnitTests
         [TestCase("1y = x", TokType.NotAToken, TokType.Def, TokType.Id)]
         [TestCase("1y", TokType.NotAToken)]
         [TestCase("1.y", TokType.NotAToken)]
+        [TestCase("y = ['foo','bar']", TokType.Id, TokType.Def,
+            TokType.ArrOBr, 
+            TokType.Text, TokType.Sep, TokType.Text, 
+            TokType.ArrCBr)]
         public void TestTokinization(string exp, params TokType[] expected)
         {
              var tokens =  Tokenizer

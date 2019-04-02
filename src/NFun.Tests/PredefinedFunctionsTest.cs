@@ -13,10 +13,10 @@ namespace Funny.Tests
         [TestCase("y = abs(-1)",1)]
         [TestCase("y = abs(1.0)",1.0)]
         [TestCase("y = abs(-1.0)",1.0)]
-        [TestCase("y = add(1,2)",3)]
-        [TestCase("y = add(add(1,2),add(3,4))",10)]
+        [TestCase("y = sum(1,2)",3)]
+        [TestCase("y = sum(sum(1,2),sum(3,4))",10)]
         [TestCase("y = abs(1-4)",3)]
-        [TestCase("y = 15 - add(abs(1-4), 7)",5)]
+        [TestCase("y = 15 - sum(abs(1-4), 7)",5)]
         [TestCase("y = pi()",Math.PI)]
         [TestCase("y = e()",Math.E)]
         [TestCase("y = count([1,2,3])",3)]
@@ -160,9 +160,9 @@ namespace Funny.Tests
         
         [TestCase("y = abs(x)",1.0,1.0)]
         [TestCase("y = abs(-x)",-1.0,1.0)]
-        [TestCase("y = add(x,2)",1.0,3.0)]
-        [TestCase("y = add(1,x)",2.0,3.0)]
-        [TestCase("y = add(add(x,x),add(x,x))",1.0,4.0)]
+        [TestCase("y = sum(x,2)",1.0,3.0)]
+        [TestCase("y = sum(1,x)",2.0,3.0)]
+        [TestCase("y = sum(sum(x,x),sum(x,x))",1.0,4.0)]
         [TestCase("y = abs(x-4)",1.0,3.0)]
         public void EquationWithPredefinedFunction(string expr, double arg, double expected)
         {

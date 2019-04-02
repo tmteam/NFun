@@ -34,7 +34,7 @@ namespace NFun.Runtime
                 if (_variables.TryGetValue(varName, out var varNode))
                     varNode.SetConvertedValue(value.Value);
                 else
-                    throw new ArgumentException(value.Name);
+                    throw new ArgumentException($"unexpected input '{value.Name}'");
             }
             
             var ans = new Var[_equations.Count];

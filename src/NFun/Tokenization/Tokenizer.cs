@@ -188,11 +188,10 @@ namespace NFun.Tokenization
 
         private bool IsDigit(char val) => val >= '0' && val <= '9';
 
-        private bool IsQuote(char val) => val == '\'' || val == '\"';
+        private bool IsQuote(char val) => val == '\''|| val == '\"'; 
 
         private Tok ReadText(string str, int position)
         {
-            
             for (var i = position+1; i < str.Length; i++)
             {
                 if(IsQuote(str[i]))

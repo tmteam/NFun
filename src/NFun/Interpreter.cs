@@ -33,9 +33,16 @@ namespace NFun
                 new BitShiftRightFunction(), 
                 new AbsOfRealFunction(),
                 new AbsOfIntFunction(),
-                new AddRealFunction(),
-                new AddIntFunction(),
-                new AddTextFunction(),
+                
+                new AddRealFunction(CoreFunNames.Add),
+                new AddIntFunction(CoreFunNames.Add),
+                new AddTextFunction(CoreFunNames.Add),
+                
+                new AddRealFunction("sum"),
+                new AddIntFunction("sum"),
+                new AddTextFunction("concat"),
+
+                new RoundRealFunction("round"), 
                 new SubstractIntFunction(), 
                 new SubstractRealFunction(), 
                 new BitAndIntFunction(),
@@ -50,7 +57,8 @@ namespace NFun
                 new RemainderIntFunction(), 
                     
                 new SinFunction(), 
-                new CosFunction(), 
+                new CosFunction(),
+                new TanFunction(),
                 new EFunction(), 
                 new PiFunction(),
                 new CountFunction(),

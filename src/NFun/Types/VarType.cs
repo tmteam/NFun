@@ -236,7 +236,7 @@ namespace NFun.Types
         }
         
         public bool CanBeConvertedTo(VarType to)
-            =>CanBeConvertedRec(this, to);
+            => CanBeConvertedRec(this, to);
 
         private static bool CanBeConvertedRec(VarType from,VarType to)
         {

@@ -8,7 +8,7 @@ namespace Funny.Tests
     /// Confirmation of betta syntax document examples
     /// </summary>
     [TestFixture]
-    public class ManualConfirmationTests
+    public class SpecificationConfirmationTests
     {
         [TestCase(10.0, "y = x+1  //Суммирование", "y", 11.0)]
         [TestCase(10.0, "y = x-1  //Вычитание", "y", 9.0)]
@@ -20,9 +20,10 @@ namespace Funny.Tests
         [TestCase(10.0, "10*x +1", "out", 101.0)]
         [TestCase(0.0, "y = cos(x)", "y", 1.0)]
         [TestCase(0.0, "y = x|>cos()", "y", 1.0)]
-        [TestCase(0.0, "y = x |> cos() |> tg() |> abs()", "y", 1.0)]
-        [TestCase(0.0, "y = x|>cos|>tg|> abs", "y", 1.0)]
-        [TestCase(5.0, "y = x1|> sum(3)", "y", 8.0)]
+        [TestCase(0.0, "y = x|>cos", "y", 1.0)]
+        [TestCase(0.0, "y = x |> cos() |> tan() |> abs() |> round()", "y", 2)]
+        [TestCase(0.0, "y = x|>cos|>tan|> abs |> round", "y", 2)]
+        [TestCase(5.0, "y = x|> sum(3)", "y", 8.0)]
         [TestCase(1.0, "y = x == 0","y", false)]
         [TestCase(0.0, "x==0","out", true)]
         [TestCase(0.1, "y = x <> 0","y", true)]
@@ -52,7 +53,7 @@ y = 1+ 15 *  if x < 0 then -1
         [TestCase(1.0, 
 "y = 'value is ' + (if x < 0 then 'less than'"+
         "if x > 0 then 'more than'"+
-        "else 'equals to') + 'zero'","y", "value is more than zero")]
+        "else 'equals to') + ' zero'","y", "value is more than zero")]
         
         [TestCase(4.0, @"
    y =  if x ==1 then 'one'
@@ -67,17 +68,18 @@ y = 1+ 15 *  if x < 0 then -1
         if x > 9 then 'ten or more' 
         if x |> cos>0 then 'cos is positive' 
         else 'negative'","y", "four")]
+        
         [TestCase(3, @"
-tostring(x:int):text = x if == 0 then ‘zero’
-			if == 1 then ‘one’
-			if == 2 then ‘two’
-			else ‘not supported’ 
-i:int
-y = tostring(i)
-","y", "not supported")]
+tostring(v:int):text =
+            if v == 0 then 'zero'
+			if v == 1 then 'one'
+			if v == 2 then 'two'
+			else 'not supported' 
+x:int
+y = tostring(x)","y", "not supported")]
        // [TestCase(1.0, "","y", false)]
 
-        [TestCase(0.43,"y = ‘Welcome to fun. Version is ‘+ x+’. Next version is ’+ (x+1)"
+        [TestCase(0.43,"y = 'Welcome to fun. Version is '+ x+'. Next version is '+ (x+1)"
             , "y", "Welcome to fun. Version is 0.43. Next version is 1.43")]
 
         public void Real_SingleEquationWithSingleInput(object xVal, string expression, string outputName, object outputValue)
@@ -100,7 +102,7 @@ y = tostring(i)
         [TestCase("y = 123_321_000 //123321000 int","y",123321000)]
         [TestCase("y = 12_32_1.1 //12321.1, real","y",12321.1)]
         [TestCase("y = 0x123_321 //много, int","y",1192737)]
-        [TestCase("y = ‘string constant’", "y", "string constant")]
+        [TestCase("y = 'string constant'", "y", "string constant")]
         [TestCase("y = [1,2,3,4]//Int[]", "y", new []{1,2,3,4})]
         [TestCase("y = [1..4] //[1,2,3,4]", "y", new []{1,2,3,4})]
         [TestCase("y = [1..7..2]  //[1,3,5,7]", "y", new []{1,3,5,7})]
@@ -128,7 +130,7 @@ y = tostring(i)
         [TestCase("y = [0..6] |> set(3, 42) //[0,1,2,42,4,5,6]", "y", new []{0,1,2,42,4,5,6})]
         [TestCase("y = [] |> any // false", "y", false)]
         [TestCase("y = 1 |> repeat(3) // [1,1,1]", "y", new []{1,1,1})]
-        [TestCase("y = [‘foo’,’bar’]|>reiterate(3)//[‘foo’,’bar’,‘foo’,’bar’,‘foo’,’bar’] "
+        [TestCase("y = ['foo','bar']|>reiterate(3)//['foo','bar','foo','bar','foo','bar'] "
             , "y", new []{"foo","bar","foo","bar","foo","bar"})]
         [TestCase("y = [0..10][0]  //0", "y", 0)]
         [TestCase("y = [0..10][1]  //1", "y", 1)]
@@ -227,12 +229,12 @@ y4 = not(x1 and x2 or x3)
         [TestCase("y = a / b",BaseVarType.Real)]
         [TestCase("y = 0.0", BaseVarType.Real)]
         [TestCase("y = false //bool", BaseVarType.Bool)]
-        [TestCase("y = ‘hi’ //text", BaseVarType.Text)]
-        [TestCase("y = ‘hi’ + a //text", BaseVarType.Text)]
-        [TestCase("y = ‘hi’ + a //text", BaseVarType.Text)]
+        [TestCase("y = 'hi' //text", BaseVarType.Text)]
+        [TestCase("y = 'hi' + a //text", BaseVarType.Text)]
+        [TestCase("y = 'hi' + a //text", BaseVarType.Text)]
         [TestCase("y = [1,2,3]  //int[]", BaseVarType.ArrayOf)]
-        [TestCase("y = [‘1’,’2’,’3’]  //text[]", BaseVarType.ArrayOf)]
-        [TestCase("y = ‘hi ’+ u //text", BaseVarType.Text)]
+        [TestCase("y = ['1','2','3']  //text[]", BaseVarType.ArrayOf)]
+        [TestCase("y = 'hi '+ u //text", BaseVarType.Text)]
         public void Single_Equation_OutputTypeTest(string expression, BaseVarType primitiveType)
         {
             var runtime = Interpreter.BuildOrThrow(expression);
@@ -240,11 +242,5 @@ y4 = not(x1 and x2 or x3)
             var output = runtime.Outputs[0];
             Assert.AreEqual(primitiveType, output.Type.BaseType);
         }
-        
-        
-        
     }
-    
-    
-    
 }

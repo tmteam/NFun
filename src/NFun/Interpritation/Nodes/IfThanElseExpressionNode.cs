@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NFun.Runtime;
 using NFun.Types;
 
 namespace NFun.Interpritation.Nodes
@@ -8,93 +9,67 @@ namespace NFun.Interpritation.Nodes
     public class IfThanElseExpressionNode: IExpressionNode
     {
         private readonly IfCaseExpressionNode[] _ifCaseNodes;
+        private readonly IExpressionNode[] _ifCaseConvertedNodes;
         private readonly IExpressionNode _elseNode;
-        private Func<object, object> caster = null;
         public IfThanElseExpressionNode(IfCaseExpressionNode[] ifCaseNodes, IExpressionNode elseNode)
         {
             _ifCaseNodes = ifCaseNodes;
-            _elseNode = elseNode;
-            Type = GetUpTypeConverion(ifCaseNodes.Select(c => c.Type).Append(elseNode.Type));
-            switch (Type.BaseType)
+            _ifCaseConvertedNodes = new IExpressionNode[_ifCaseNodes.Length];
+            Type = GetMostCommonType(ifCaseNodes.Select(c => c.Type).Append(elseNode.Type));
+            if(Type.BaseType== BaseVarType.Empty)
+                throw new OutpuCastFunParseException("There are no common convertion for if  cases");
+            
+            for (var index = 0; index < ifCaseNodes.Length; index++)
             {
-                case BaseVarType.Bool:
-                    caster = o => o;
-                    break;
-                case BaseVarType.Int:
-                    caster = o => o;
-                    break;
-                case BaseVarType.Real:
-                    caster = o => Convert.ToDouble(o);
-                    break;
-                case BaseVarType.ArrayOf:
-                    caster = o => o;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
+                var ifCase = ifCaseNodes[index];
+                if (ifCase.Type != Type)
+                {
+                    _ifCaseConvertedNodes[index] = new CastExpressionNode(ifCase, Type,
+                        CastExpressionNode.GetConverterOrThrow(ifCase.Type, Type));
+                }
+                else
+                    _ifCaseConvertedNodes[index] = ifCase;
+            }
+
+            if (elseNode.Type != Type)
+            {
+                _elseNode = new CastExpressionNode(elseNode, Type, 
+                    CastExpressionNode.GetConverterOrThrow(elseNode.Type, Type));
+            }
+            else
+            {
+                _elseNode = elseNode;
             }
         }
 
         public object Calc()
         {
-            
-            foreach (var ifCase in _ifCaseNodes)
+            for (var index = 0; index < _ifCaseNodes.Length; index++)
             {
-                if (ifCase.IsSatisfied())
-                    return caster(ifCase.Calc());
+                if (_ifCaseNodes[index].IsSatisfied())
+                    return _ifCaseConvertedNodes[index].Calc(); //ifCase.Calc();
             }
-            
-            return caster(_elseNode.Calc());
+
+            return _elseNode.Calc(); //caster(_elseNode.Calc());
         }
         public VarType Type { get; }
 
 
-        VarType GetUpTypeConverion(IEnumerable<VarType> types)
+        VarType GetMostCommonType(IEnumerable<VarType> types)
         {
-            bool hasInt = false;
-            bool hasReal = false;
-            bool hasBool = false;
-            bool hasArray = false;
-            foreach (var varType in types)
-            {
-                switch (varType.BaseType)
-                {
-                    case BaseVarType.Bool:
-                        hasBool = true;
-                        break;
-                    case BaseVarType.Int:
-                        hasInt = true;
-                        break;
-                    case BaseVarType.Real:
-                        hasReal = true;
-                        break;
-                    case BaseVarType.ArrayOf:
-                        hasArray = true;
-                        break;
-                        ;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-            }
-
-            if (hasArray)
-            {
-                if(hasInt|| hasBool || hasReal)
-                    throw new OutpuCastFunParseException("Cannot convert array type to primitive");
-                return VarType.ArrayOf(VarType.Real);
-            }
-            if (hasBool)
-            {
-                if(hasInt||hasReal)
-                    throw new OutpuCastFunParseException("Cannot convert bool type to number type");
-                return VarType.Bool;
-            }
-
-            if (hasReal)
-                return VarType.Real;
-            if (hasInt)
-                return VarType.Int;
+            var mostCommon = types.First();
             
-            throw new NotSupportedException("IfThenElse upcast for unknown types");
+            foreach (var varType in types.Skip(1))
+            {
+                if (varType.CanBeConvertedTo(mostCommon))
+                  continue;
+                if (mostCommon.CanBeConvertedTo(varType))
+                    mostCommon = varType;
+                else
+                    return  VarType.Empty;
+            }
+            return mostCommon;
+           
         }
     }
 }

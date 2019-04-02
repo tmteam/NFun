@@ -3,8 +3,7 @@ namespace NFun.BuiltInFunctions
     public class CoreFunNames
     {
         public const string BitAnd = "bitand";
-        public const string Add = "add";
-        public const string RangeName = "range";
+        public const string Add = "+";
         public const string GetElementName = "get";
         public const string SliceName = "slice";
         public const string Substract = "substract";
@@ -27,7 +26,7 @@ namespace NFun.BuiltInFunctions
         public const string BitShiftLeft = "bitshiftleft";
         public const string In = "in";
         public const string BitShiftRight = "bitshiftright";
-        public const string ArrConcat = "concat";
+        public const string ArrConcat = "@";
         public const string Not = "invert";
     }
 }

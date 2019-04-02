@@ -69,6 +69,34 @@ namespace Funny.Tests
             Assert.AreEqual(1, res.Results.Length);
             Assert.AreEqual(expected, res.Results.First().Value);
         }
+
+       
+        [TestCase(@"
+if x == 0 then 'zero'
+else 'positive' ", 2, "positive")]
+        [TestCase(@"
+if x == 0 then [0]
+if x == 1 then [0,1]
+if x == 2 then [0,1,2]
+if x == 3 then [0,1,2,3]
+else [0,0,0] ", 2, new[]{0,1,2})]
+        [TestCase(@"
+if x == 0 then ['0']
+if x == 1 then ['0','1']
+if x == 2 then ['0','1','2']
+if x == 3 then ['0','1','2','3']
+else ['0','0','0'] ", 2, new[]{"0","1","2"})]
+        
+        [TestCase(@"
+if x == 0 then 'zero'
+if x == 1 then 'one'
+if x == 2 then 'two'
+else 'not supported' ", 2, "two")]
+        public void SingleVariableEquatation(string expression, int x, object expected)
+        {
+            Interpreter.BuildOrThrow(expression).Calculate(Var.New("x", x))
+                .AssertReturns(Var.New("out", expected));
+        }
         
         [TestCase("y = if 1<2 then 10 else -10.0", 10.0)]
         [TestCase("y = if 1>2 then -10.0 else 10", 10.0)]
