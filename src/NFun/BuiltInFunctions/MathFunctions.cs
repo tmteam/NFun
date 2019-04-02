@@ -157,7 +157,7 @@ namespace NFun.BuiltInFunctions
             VarType.Text,VarType.Text,VarType.Anything){}
 
         public AddTextFunction() : this(CoreFunNames.Add){}
-        public override object Calc(object[] args) => args[0].ToString() + ToStringSmart(args[1]);
+        public override object Calc(object[] args) => args[0] + ToStringSmart(args[1]);
 
         private static string ToStringSmart(object o)
         {

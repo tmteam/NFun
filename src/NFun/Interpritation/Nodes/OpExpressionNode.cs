@@ -3,16 +3,16 @@ using NFun.Types;
 
 namespace NFun.Interpritation.Nodes
 {
-    public  class OpExpressionNodeOfT<Tleft,TRight, TOut> : IExpressionNode
+    public  class OpExpressionNodeOfT<TLeft,TRight, TOut> : IExpressionNode
     {
         private readonly IExpressionNode _a;
         private readonly IExpressionNode _b;
-        private readonly Func<Tleft,TRight,TOut> _op;
+        private readonly Func<TLeft,TRight,TOut> _op;
         public OpExpressionNodeOfT(
             IExpressionNode a, 
             IExpressionNode b, 
             
-            Func<Tleft,TRight,TOut> op)
+            Func<TLeft,TRight,TOut> op)
         {
             if (typeof(TOut) == typeof(bool))
                 Type = VarType.Bool;
@@ -35,7 +35,7 @@ namespace NFun.Interpritation.Nodes
         {
             try
             {
-                return _op((Tleft) _a.Calc(), (TRight) _b.Calc());
+                return _op((TLeft) _a.Calc(), (TRight) _b.Calc());
             }
             catch (Exception e)
             {

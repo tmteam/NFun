@@ -14,10 +14,7 @@ namespace NFun.Interpritation.Nodes
         {
             _fun = fun;
             _argsNodes = argsNodes;
-            Children = _argsNodes;
         }
-
-        public IEnumerable<IExpressionNode> Children { get; }
 
         public object Calc()
         {

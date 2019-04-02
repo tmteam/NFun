@@ -107,7 +107,9 @@ namespace NFun.Tokenization
             {
                 //singleLineComment
                 int index = position+2;
-                for (; index < str.Length && str[index] != '\r' && str[index] != '\n' ; index++) ;
+                for (; index < str.Length && str[index] != '\r' && str[index] != '\n' ; index++)
+                {}
+
                 return index;
             }
             else if(str[position+1]== '*')
@@ -128,8 +130,9 @@ namespace NFun.Tokenization
         private Tok ReadIdOrKeyword(string str, int position)
         {
             int start = position;
-            for (; start < str.Length && (IsLetter(str[start]) || IsDigit(str[start])); start++) ;
-            
+            for (; start < str.Length && (IsLetter(str[start]) || IsDigit(str[start])); start++)
+            {}
+
             var word = str.Substring(position, start - position);
             //is id a keyword
             if (_keywords.ContainsKey(word))
@@ -246,7 +249,7 @@ namespace NFun.Tokenization
                     return Tok.New(TokType.NotAToken, str.Substring(position,txtToken.Finish - position), txtToken.Finish);
                 }
             }
-            //if dot is last then we need to skip it
+            //if dot is last then skip
             if(dotPostition==index-1)
                 return Tok.New(TokType.Number, str.Substring(position, index - position-1), index-1);
             return Tok.New(TokType.Number, str.Substring(position, index - position), index);

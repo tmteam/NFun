@@ -180,7 +180,7 @@ namespace NFun.Interpritation
 
                 return new ValueExpressionNode(int.Parse(val));
             }
-            catch (FormatException e)
+            catch (FormatException)
             {
                 throw new FunParseException("Cannot parse number \"" + node.Value + "\"");
             }

@@ -64,10 +64,10 @@ namespace NFun.Parsing
                     Priorities.Add(tokType, i);
             }
 
-            maxPriority = priorities.Count - 1;
+            MaxPriority = priorities.Count - 1;
         }
 
-        private readonly static int maxPriority;
+        private readonly static int MaxPriority;
 
         private static readonly Dictionary<TokType, byte> Priorities
             = new Dictionary<TokType, byte>();
@@ -109,7 +109,7 @@ namespace NFun.Parsing
         }
 
         public LexNode ReadExpressionOrNull()
-            => ReadNext(maxPriority);
+            => ReadNext(MaxPriority);
 
         //ReadZeroPriority operation (num, -num, id, fun, if, (...))
         private LexNode ReadAtomicOrNull()

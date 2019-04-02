@@ -41,7 +41,7 @@ namespace NFun.Parsing
                     //Todo Make operatorfun as separate node type
                     else if (e.Is(LexNodeType.Fun) && e.AdditionalContent== null)
                         //userFun
-                       funs.Add(ReadUserFunction(e, flow, reader));
+                        funs.Add(ReadUserFunction(e, flow, reader));
                     else
                         throw  new FunParseException("Unexpected expression "+ e);
                 }

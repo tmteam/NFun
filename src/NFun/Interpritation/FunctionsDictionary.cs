@@ -82,8 +82,6 @@ namespace NFun.Interpritation
             }
             
             //Try to find most close of castable functions
-
-            
             int maxCloseness = 0;
             bool severalFunctionsWithSameCloseness = false;
             FunctionBase winner = null;

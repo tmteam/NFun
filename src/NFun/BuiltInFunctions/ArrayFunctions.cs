@@ -109,7 +109,7 @@ namespace NFun.BuiltInFunctions
                 throw new InvalidOperationException("Empty collection");
             if (count % 2 == 0)
                 return temp[count / 2 - 1];
-                return temp[count / 2];
+            return temp[count / 2];
         }
     }
     

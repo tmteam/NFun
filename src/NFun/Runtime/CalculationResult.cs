@@ -14,21 +14,21 @@ namespace NFun.Runtime
 
         public Var Get(string name)
         {
-            foreach (var EquationResult in Results)
+            foreach (var equationResult in Results)
             {
-                if (String.Equals(EquationResult.Name, name, 
+                if (String.Equals(equationResult.Name, name, 
                     StringComparison.CurrentCultureIgnoreCase))
-                    return EquationResult;
+                    return equationResult;
             }
             throw new ArgumentException(name);
         }
         public object GetResultOf(string name)
         {
-            foreach (var EquationResult in Results)
+            foreach (var equationResult in Results)
             {
-                if (String.Equals(EquationResult.Name, name, 
+                if (String.Equals(equationResult.Name, name, 
                     StringComparison.CurrentCultureIgnoreCase))
-                    return EquationResult.Value;
+                    return equationResult.Value;
             }
             throw new ArgumentException(name);
         }

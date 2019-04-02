@@ -8,13 +8,11 @@ namespace NFun.Interpritation.Functions
     {
         
         public string Name { get; }
-        public int ArgsCount { get; }
         public VarType[] ArgTypes { get; }
         protected FunctionBase(string name,  VarType outputType, params VarType[] argTypes)
         {
             Name = name;
             ArgTypes = argTypes;
-            ArgsCount = ArgTypes.Length;
             OutputType = outputType;
         }
         public VarType OutputType { get; }

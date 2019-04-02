@@ -22,9 +22,9 @@ namespace NFun.Interpritation.Nodes
         
         public object Calc() => _value;
         private static int _count = 0;
-        private readonly int uid = _count++;
+        private readonly int _uid = _count++;
         
-        public override string ToString() => $"{Name}: {_value} uid: {uid}";
+        public override string ToString() => $"{Name}: {_value} uid: {_uid}";
 
         public void SetType(VarType expressionType)
         {

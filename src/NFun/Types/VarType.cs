@@ -28,7 +28,7 @@ namespace NFun.Types
 
         private VarType(VarType output, VarType[] inputs)
         {
-            this.FunTypeSpecification = new FunTypeSpecification(output, inputs);
+            FunTypeSpecification = new FunTypeSpecification(output, inputs);
             BaseType = BaseVarType.Fun;
             ArrayTypeSpecification = null;
             GenericId = null;

@@ -35,7 +35,7 @@ namespace NFun.Tokenization
 
     }
 
-    public enum TokType: int
+    public enum TokType
     {
         NewLine,
         If,

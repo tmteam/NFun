@@ -61,14 +61,14 @@ namespace NFun.Parsing
 
         public int Finish { get; set; }
         public  IEnumerable<LexNode> Children { get; }
-        private string typename => Type.ToString() + (string.IsNullOrWhiteSpace(Value) ? "" : " " + Value);
+        private string Typename => Type.ToString() + (string.IsNullOrWhiteSpace(Value) ? "" : " " + Value);
         public bool Is(LexNodeType type) => Type == type;
         public override string ToString()
         {
             if(!Children.Any())
-                return typename;
+                return Typename;
             else
-                return $"{typename}( {string.Join<string>(",", Children.Select(c => c.ToString()))})";
+                return $"{Typename}( {string.Join<string>(",", Children.Select(c => c.ToString()))})";
         }
 
 

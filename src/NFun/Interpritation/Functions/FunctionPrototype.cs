@@ -21,7 +21,7 @@ namespace NFun.Interpritation.Functions
         public override object Calc(object[] args)
         {
             if(_function== null)
-            throw new InvalidOperationException("Function prototype cannot be called");
+                throw new InvalidOperationException("Function prototype cannot be called");
             return _function.Calc(args);
         }
     }
