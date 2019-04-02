@@ -1,3 +1,4 @@
+using System.Linq;
 using NFun;
 using NFun.Runtime;
 using NFun.Types;
@@ -39,9 +40,10 @@ namespace Funny.Tests
         public void TwinEquations_inputVarablesListIsCorrect(string expr, string[] inputNames)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
-            CollectionAssert.AreEquivalent(inputNames, runtime.Variables);
+            var inputs = inputNames.Select(i => new VarInfo(false, VarType.Real, i)).ToArray();
+            CollectionAssert.AreEquivalent(inputs, runtime.Inputs);
         }
-        
+                    
         [TestCase("y = 1\r z=y", new string[0])]        
         [TestCase("y = x\r z=y", new []{"x"})]
         [TestCase("y = x/2\r z=2*y",new []{"x"})]
@@ -51,9 +53,11 @@ namespace Funny.Tests
         public void TwinDependentEquations_inputVarsListIsCorrect(string expr, string[] inputNames)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
-            CollectionAssert.AreEquivalent(inputNames, runtime.Variables);
+            var inputs = inputNames.Select(i => new VarInfo(false, VarType.Real, i)).ToArray();
+            CollectionAssert.AreEquivalent(inputs, runtime.Inputs);
         }
-
+            
+        
         [TestCase("y = z\r z=1.0",       1.0,1.0)]
         [TestCase("y = 1.0\r z=y",       1.0,1.0)]
         [TestCase("y = 1\r z=y/2",       1,0.5)]

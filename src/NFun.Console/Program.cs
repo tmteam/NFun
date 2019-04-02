@@ -42,8 +42,6 @@ namespace Funny
                 Console.WriteLine($"{i}: {fib(i)}");
             }
             Console.ReadLine();
-
-            
             
             //var y = 4 / 2 * 2;
             var ex = "y1 = (1+3)*7+2*(x+1)";
@@ -64,7 +62,7 @@ namespace Funny
         {
             var examples = new[]
             {
-                "y1=2",
+                "y1 = 2",
                 "y1 = 2*x",
                 "y1 = 2*x+1",
                 "y1 = 1+2*x",

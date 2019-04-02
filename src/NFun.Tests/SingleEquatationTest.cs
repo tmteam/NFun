@@ -250,9 +250,25 @@ namespace Funny.Tests
         public void InputVarablesListIsCorrect(string expr, string[] inputNames)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
-            CollectionAssert.AreEquivalent(inputNames, runtime.Variables);
+            var inputs = inputNames.Select(i => new VarInfo(false, VarType.Real, i)).ToArray();
+            
+            CollectionAssert.AreEquivalent(inputs, runtime.Inputs);
         }
 
+        [TestCase("1", "out", BaseVarType.Int)]        
+        [TestCase("1.0", "out", BaseVarType.Real)]        
+        [TestCase("true", "out", BaseVarType.Bool)]        
+        [TestCase("z = x", "z", BaseVarType.Real)]
+        [TestCase("y = x/2","y", BaseVarType.Real)]
+        [TestCase("x:bool \r z:bool \r y = x and z","y", BaseVarType.Bool)]
+        public void OutputVarablesListIsCorrect(string expr, string output, BaseVarType type)
+        {
+            var runtime = Interpreter.BuildOrThrow(expr);
+                        
+            CollectionAssert.AreEquivalent(
+                new[]{new VarInfo(true, VarType.PrimitiveOf(type), output)}, 
+                runtime.Outputs);
+        }
         
     }
 }

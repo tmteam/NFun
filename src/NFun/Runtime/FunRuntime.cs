@@ -9,10 +9,13 @@ namespace NFun.Runtime
 {
     public class FunRuntime
     {
-        public string[] Variables => _variables
-            .Where(v=>!v.Value.IsOutput)
-            .Select(v=>v.Key)
-            .ToArray();
+        public VarInfo[] Inputs => _variables
+            .Where(v => !v.Value.IsOutput)
+            .Select(s => new VarInfo(false,  s.Value.Type,s.Key)).ToArray();
+
+        public VarInfo[] Outputs => _variables
+            .Where(v => v.Value.IsOutput)
+            .Select(s => new VarInfo(true,  s.Value.Type,s.Key)).ToArray();
 
         private readonly IList<Equation> _equations;
         private readonly Dictionary<string, VariableExpressionNode> _variables;

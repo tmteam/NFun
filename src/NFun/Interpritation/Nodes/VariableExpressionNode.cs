@@ -15,7 +15,6 @@ namespace NFun.Interpritation.Nodes
         
         private object _value;
         public void SetValue(object value) => _value = value;
-        
 
         public VarType Type { get; private set; } 
 
