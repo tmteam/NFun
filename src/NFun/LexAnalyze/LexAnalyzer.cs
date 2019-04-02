@@ -4,6 +4,7 @@ using System.Linq;
 using NFun.Interpritation;
 using NFun.Parsing;
 using NFun.Runtime;
+using NFun.Types;
 
 namespace NFun.LexAnalyze
 {
@@ -12,7 +13,7 @@ namespace NFun.LexAnalyze
         public static TreeAnalysis Analyze(LexTree tree)
         {
             var vars = SearchVariables(tree.Equations);
-            return new TreeAnalysis()
+            return new TreeAnalysis
             {
                 AllVariables = vars.Values,
                 OrderedEquations = OrderEquationsOrThrow(tree.Equations, vars)
@@ -48,6 +49,10 @@ namespace NFun.LexAnalyze
                 yield return node;
             foreach (var nodeChild in node.Children)
             {
+                //todo Refactor it.
+                if(node.Is(LexNodeType.AnonymFun))
+                    continue;
+                
                 foreach (var lexNode in Dfs(nodeChild, condition))
                     yield return lexNode;
             }

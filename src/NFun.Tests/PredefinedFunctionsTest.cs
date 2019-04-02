@@ -100,7 +100,7 @@ namespace Funny.Tests
                 .AssertReturns(Var.New("y", expected));
         }
         [TestCase( "y = [x,2.0,3.0]|>all((x)=> x >1.0)",1.0, false)]
-        [TestCase( "x:bool \r y = x and [1.0,2.0,3.0]|>all((x)=> x >=1.0)",1.0, true)]
+        [TestCase( "x:bool \r y = x and ([1.0,2.0,3.0]|>all((x)=> x >=1.0))",1.0, true)]
         public void AnonymousFunctions_SingleArgumentEquation(string expr, double arg, object expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
