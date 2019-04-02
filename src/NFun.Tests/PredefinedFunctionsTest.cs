@@ -54,8 +54,11 @@ namespace Funny.Tests
         }
        
         
-        //todo fun overloads
+        //todo hi fun overloads selector
         //[TestCase("y = [0,7,1,2,3] |> fold(max)", 7)]
+        //[TestCase("y = [0,7,1,2,3] |> fold(sum)", 7)]
+        //[TestCase("y = [0.0,7.0,1.0,2.0,3.0] |> fold(sum)", 7.0)]
+
         [TestCase("mysum(x:int, y:int):int = x+y \r" +
                   "y = [0,7,1,2,3] |> fold(mysum)", 13)]
         [TestCase( @"rr(x:real):bool = x>10
@@ -68,39 +71,42 @@ namespace Funny.Tests
                      y = map([1,2,3],ii)",new[]{0.5,1.0,1.5})]
         [TestCase( @"isodd(x:int):bool = (x%2) == 0
                      y = map([1,2,3],isodd)",new[]{false, true,false})]
-        [TestCase( "y = [1.0,2.0,3.0]|>any((i)=> i == 1.0)",true)]
-        [TestCase( "y = [1.0,2.0,3.0]|>any((i)=> i == 0.0)",false)]
-        [TestCase( "y = [1.0,2.0,3.0]|>all((i)=> i >0)",true)]
-        [TestCase( "y = [1.0,2.0,3.0]|>all((i)=> i >1.0)",false)]
         public void HiOrderFunConstantEquatation(string expr, object expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
             runtime.Calculate()
                 .AssertReturns(Var.New("y", expected));
         }
-        //[TestCase( @"y = filter([11,20,1,2], (i) => i>10)",new[]{11,20})]
         [TestCase( @"y = [11.0,20.0,1.0,2.0]|>filter(i => i>10)",new[]{11.0,20.0})]
         [TestCase( @"y = [11.0,20.0,1.0,2.0]|>filter((i) => i>10)",new[]{11.0,20.0})]
         [TestCase( @"y = [11,20,1,2]|>filter((i:int) => i>10)",new[]{11,20})]
         [TestCase( @"y = [11,20,1,2]|>filter(i:int => i>10)",new[]{11,20})]
-        //[TestCase( @"y = [11,20,1,2]|>filter(i => i>10)",new[]{11,20})]
-        //[TestCase( @"y = [11,20,1,2]|>filter((i) => i>10)",new[]{11,20})]
         [TestCase( @"y = map([1,2,3], i:int  =>i*i)",new[]{1,4,9})]
         [TestCase( @"y = [1,2,3] |> map(i:int=>i*i)",new[]{1,4,9})]
-        //[TestCase( @"y = [1,2,3] |> map(i=>i*i)",new[]{1,4,9})]
         [TestCase( @"y = [1.0,2.0,3.0] |> map(i=>i*i)",new[]{1.0,4.0,9.0})]
         [TestCase( @"y = [1.0,2.0,3.0] |> fold((i,j)=>i+j)",6.0)]
         [TestCase( @"y = fold([1.0,2.0,3.0],(i,j)=>i+j)",6.0)]
         [TestCase( @"y = [1,2,3] |> fold((i:int, j:int)=>i+j)",6)]
         [TestCase( @"y = fold([1,2,3],(i:int, j:int)=>i+j)",6)]
-
-        public void AnonymousFunctions(string expr, object expected)
+        [TestCase( "y = [1.0,2.0,3.0]|>any((i)=> i == 1.0)",true)]
+        [TestCase( "y = [1.0,2.0,3.0]|>any((i)=> i == 0.0)",false)]
+        [TestCase( "y = [1.0,2.0,3.0]|>all((i)=> i >0)",true)]
+        [TestCase( "y = [1.0,2.0,3.0]|>all((i)=> i >1.0)",false)]
+        public void AnonymousFunctions_ConstantEquation(string expr, object expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
+            CollectionAssert.IsEmpty(runtime.Inputs,"Unexpected inputs on constant equations");
             runtime.Calculate()
                 .AssertReturns(Var.New("y", expected));
         }
-        
+        [TestCase( "y = [x,2.0,3.0]|>all((x)=> x >1.0)",1.0, false)]
+        [TestCase( "x:bool \r y = x and [1.0,2.0,3.0]|>all((x)=> x >=1.0)",1.0, true)]
+        public void AnonymousFunctions_SingleArgumentEquation(string expr, double arg, object expected)
+        {
+            var runtime = Interpreter.BuildOrThrow(expr);
+            runtime.Calculate(Var.New("x", arg))
+                .AssertReturns(0.00001, Var.New("y", expected));
+        }
         [TestCase("y = take([1,2,3,4,5],3)",new []{1,2,3})]        
         [TestCase("y = take([1.0,2.0,3.0,4.0,5.0],4)",new []{1.0,2.0,3.0,4.0})]        
         [TestCase("y = take([1.0,2.0,3.0],20)",new []{1.0,2.0,3.0})]        
