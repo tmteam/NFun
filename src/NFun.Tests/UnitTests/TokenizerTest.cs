@@ -35,8 +35,8 @@ namespace Funny.Tests.UnitTests
         [TestCase("x:int", TokType.Id, TokType.Colon, TokType.IntType)]
         [TestCase("x:text", TokType.Id, TokType.Colon, TokType.TextType)]
         [TestCase("x:bool", TokType.Id, TokType.Colon, TokType.BoolType)]
-        [TestCase("x|>y",  TokType.Id, TokType.PipeForward, TokType.Id)] 
-        [TestCase("x|>y(1)|>z",  TokType.Id, 
+        [TestCase("x.y",  TokType.Id, TokType.PipeForward, TokType.Id)] 
+        [TestCase("x.y(1).z",  TokType.Id, 
             TokType.PipeForward, TokType.Id, TokType.Obr, TokType.Number, TokType.Cbr,
             TokType.PipeForward, TokType.Id)]
         [TestCase("[0..1]", TokType.ArrOBr, TokType.Number, TokType.TwoDots, TokType.Number, TokType.ArrCBr)]
@@ -44,11 +44,12 @@ namespace Funny.Tests.UnitTests
             TokType.ArrOBr, 
             TokType.Number, TokType.TwoDots, TokType.Number,TokType.TwoDots, TokType.Number,
             TokType.ArrCBr)]
-        [TestCase("0.", TokType.Number, TokType.NotAToken)]
+        [TestCase("0.", TokType.Number, TokType.PipeForward)]
         [TestCase("0.1", TokType.Number)]
         [TestCase("1y = x", TokType.NotAToken, TokType.Def, TokType.Id)]
         [TestCase("1y", TokType.NotAToken)]
-        [TestCase("1.y", TokType.NotAToken)]
+        [TestCase("0.0f", TokType.NotAToken)] 
+
         [TestCase("y = ['foo','bar']", TokType.Id, TokType.Def,
             TokType.ArrOBr, 
             TokType.Text, TokType.Sep, TokType.Text, 
@@ -57,6 +58,9 @@ namespace Funny.Tests.UnitTests
         [TestCase(@"true#", TokType.True)]
         [TestCase(@"true #", TokType.True)]
         [TestCase(@"true #comment", TokType.True)]
+        [TestCase("0.fun()", 
+                TokType.Number, TokType.PipeForward, TokType.Id, TokType.Obr,TokType.Cbr)]
+        [TestCase("1.y", TokType.Number, TokType.PipeForward, TokType.Id)]
         public void TokenFlowIsCorrect_expectEof(string exp, params TokType[] expected)
         {
              var tokens =  Tokenizer

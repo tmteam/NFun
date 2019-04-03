@@ -25,6 +25,7 @@ namespace NFun.Tokenization
         
         private readonly Dictionary<char, TokType> _symbols = new Dictionary<char, TokType>
         {
+            {'|', TokType.BitOr},
             {',', TokType.Sep},
             {'&', TokType.BitAnd},
             {'^', TokType.BitXor},
@@ -76,8 +77,6 @@ namespace NFun.Tokenization
             
             if (current == ' ' || current == '\t')
                 return TryReadNext(str, position + 1);
-
-            
 
             if(current== 0)
                 return  Tok.New(TokType.Eof, "", position+1);
@@ -141,10 +140,6 @@ namespace NFun.Tokenization
                     return Tok.New(TokType.Pow, position+2);
                 case '*' :
                     return Tok.New(TokType.Mult, position+1);
-                case '|' when  next == '>':
-                    return Tok.New(TokType.PipeForward, position+2);
-                case '|':
-                    return Tok.New(TokType.BitOr, position+1);
                 case '>' when next == '=':
                     return  Tok.New(TokType.MoreOrEqual, position + 2);
                 case '>' when next == '>':
@@ -167,6 +162,8 @@ namespace NFun.Tokenization
                     return Tok.New(TokType.Def, position + 1);
                 case '.' when next=='.':
                     return Tok.New(TokType.TwoDots, position+2);
+                case '.':
+                    return Tok.New(TokType.PipeForward, position+1);
                 default:
                     return null;
             }
@@ -229,17 +226,15 @@ namespace NFun.Tokenization
                 break;
             }
 
-            if (index < str.Length)
-            {
-                if (IsLetter(str[index ]))
-                {
-                    var txtToken = ReadIdOrKeyword(str, index);
-                    return Tok.New(TokType.NotAToken, str.Substring(position,txtToken.Finish - position), txtToken.Finish);
-                }
-            }
+           
             //if dot is last then skip
             if(dotPostition==index-1)
                 return Tok.New(TokType.Number, str.Substring(position, index - position-1), index-1);
+            if (index < str.Length && IsLetter(str[index ]))
+            {
+                var txtToken = ReadIdOrKeyword(str, index);
+                return Tok.New(TokType.NotAToken, str.Substring(position,txtToken.Finish - position), txtToken.Finish);
+            }
             return Tok.New(TokType.Number, str.Substring(position, index - position), index);
         }
     }

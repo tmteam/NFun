@@ -122,7 +122,7 @@ namespace NFun.Tokenization
         BoolType,
         AnythingType,
         /// <summary>
-        /// |>
+        /// .
         /// </summary>
         PipeForward,
         /// <summary>

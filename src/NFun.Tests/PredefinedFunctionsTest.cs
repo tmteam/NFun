@@ -101,11 +101,11 @@ namespace Funny.Tests
         [TestCase("min(4,3)",3)]
         [TestCase("median([1.0,10.5,6.0])",6.0)]
         [TestCase("median([1,-10,0])",0)]        
-        [TestCase("[1.0,2.0,3.0]|>any",true)]
+        [TestCase("[1.0,2.0,3.0].any",true)]
         [TestCase("any([])",false)]
-        [TestCase("[4,3,5,1] |> sort",new []{1,3,4,5})]
-        [TestCase("[4.0,3.0,5.0,1.0] |> sort",new []{1.0,3.0,4.0,5.0})]
-        [TestCase("['4.0','3.0','5.0','1.0'] |> sort",new []{"1.0","3.0","4.0","5.0"})]
+        [TestCase("[4,3,5,1] . sort",new []{1,3,4,5})]
+        [TestCase("[4.0,3.0,5.0,1.0] . sort",new []{1.0,3.0,4.0,5.0})]
+        [TestCase("['4.0','3.0','5.0','1.0'] . sort",new []{"1.0","3.0","4.0","5.0"})]
         [TestCase("range(0,5)",new []{0,1,2,3,4,5})]
         [TestCase("range(7,10)",new []{7,8,9,10})]
         [TestCase("range(1,10,2)",new []{1,3,5,7,9})]
@@ -119,12 +119,12 @@ namespace Funny.Tests
        
         
         //todo hi fun overloads selector
-        //[TestCase("y = [0,7,1,2,3] |> fold(max)", 7)]
-        //[TestCase("y = [0,7,1,2,3] |> fold(sum)", 7)]
-        //[TestCase("y = [0.0,7.0,1.0,2.0,3.0] |> fold(sum)", 7.0)]
+        //[TestCase("y = [0,7,1,2,3] . fold(max)", 7)]
+        //[TestCase("y = [0,7,1,2,3] . fold(sum)", 7)]
+        //[TestCase("y = [0.0,7.0,1.0,2.0,3.0] . fold(sum)", 7.0)]
 
         [TestCase("mysum(x:int, y:int):int = x+y \r" +
-                  "y = [0,7,1,2,3] |> fold(mysum)", 13)]
+                  "y = [0,7,1,2,3] . fold(mysum)", 13)]
         [TestCase( @"rr(x:real):bool = x>10
                      y = filter([11.0,20.0,1.0,2.0],rr)",new[]{11.0,20.0})]
         [TestCase( @"ii(x:int):bool = x>10
@@ -141,21 +141,21 @@ namespace Funny.Tests
             runtime.Calculate()
                 .AssertReturns(Var.New("y", expected));
         }
-        [TestCase( @"y = [11.0,20.0,1.0,2.0]|>filter(i => i>10)",new[]{11.0,20.0})]
-        [TestCase( @"y = [11.0,20.0,1.0,2.0]|>filter((i) => i>10)",new[]{11.0,20.0})]
-        [TestCase( @"y = [11,20,1,2]|>filter((i:int) => i>10)",new[]{11,20})]
-        [TestCase( @"y = [11,20,1,2]|>filter(i:int => i>10)",new[]{11,20})]
+        [TestCase( @"y = [11.0,20.0,1.0,2.0].filter(i => i>10)",new[]{11.0,20.0})]
+        [TestCase( @"y = [11.0,20.0,1.0,2.0].filter((i) => i>10)",new[]{11.0,20.0})]
+        [TestCase( @"y = [11,20,1,2].filter((i:int) => i>10)",new[]{11,20})]
+        [TestCase( @"y = [11,20,1,2].filter(i:int => i>10)",new[]{11,20})]
         [TestCase( @"y = map([1,2,3], i:int  =>i*i)",new[]{1,4,9})]
-        [TestCase( @"y = [1,2,3] |> map(i:int=>i*i)",new[]{1,4,9})]
-        [TestCase( @"y = [1.0,2.0,3.0] |> map(i=>i*i)",new[]{1.0,4.0,9.0})]
-        [TestCase( @"y = [1.0,2.0,3.0] |> fold((i,j)=>i+j)",6.0)]
+        [TestCase( @"y = [1,2,3] . map(i:int=>i*i)",new[]{1,4,9})]
+        [TestCase( @"y = [1.0,2.0,3.0] . map(i=>i*i)",new[]{1.0,4.0,9.0})]
+        [TestCase( @"y = [1.0,2.0,3.0] . fold((i,j)=>i+j)",6.0)]
         [TestCase( @"y = fold([1.0,2.0,3.0],(i,j)=>i+j)",6.0)]
-        [TestCase( @"y = [1,2,3] |> fold((i:int, j:int)=>i+j)",6)]
+        [TestCase( @"y = [1,2,3] . fold((i:int, j:int)=>i+j)",6)]
         [TestCase( @"y = fold([1,2,3],(i:int, j:int)=>i+j)",6)]
-        [TestCase( "y = [1.0,2.0,3.0]|>any((i)=> i == 1.0)",true)]
-        [TestCase( "y = [1.0,2.0,3.0]|>any((i)=> i == 0.0)",false)]
-        [TestCase( "y = [1.0,2.0,3.0]|>all((i)=> i >0)",true)]
-        [TestCase( "y = [1.0,2.0,3.0]|>all((i)=> i >1.0)",false)]
+        [TestCase( "y = [1.0,2.0,3.0].any((i)=> i == 1.0)",true)]
+        [TestCase( "y = [1.0,2.0,3.0].any((i)=> i == 0.0)",false)]
+        [TestCase( "y = [1.0,2.0,3.0].all((i)=> i >0)",true)]
+        [TestCase( "y = [1.0,2.0,3.0].all((i)=> i >1.0)",false)]
         public void AnonymousFunctions_ConstantEquation(string expr, object expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
@@ -163,8 +163,8 @@ namespace Funny.Tests
             runtime.Calculate()
                 .AssertReturns(Var.New("y", expected));
         }
-        [TestCase( "y = [x,2.0,3.0]|>all((x)=> x >1.0)",1.0, false)]
-        [TestCase( "x:bool \r y = x and ([1.0,2.0,3.0]|>all((x)=> x >=1.0))",1.0, true)]
+        [TestCase( "y = [x,2.0,3.0].all((x)=> x >1.0)",1.0, false)]
+        [TestCase( "x:bool \r y = x and ([1.0,2.0,3.0].all((x)=> x >=1.0))",1.0, true)]
         public void AnonymousFunctions_SingleArgumentEquation(string expr, double arg, object expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
@@ -188,38 +188,38 @@ namespace Funny.Tests
         
         [TestCase("mypage(x:int[]):int[] = take(skip(x,1),1) \r y = mypage([1,2,3]) ",new []{2})]        
 
-        [TestCase("y = [1,2,3]|> reverse",new[]{3,2,1})]
-        [TestCase("y = [1,2,3]|> reverse |> reverse",new[]{1,2,3})]
-        [TestCase("y = []|> reverse",new object[0])]
+        [TestCase("y = [1,2,3]. reverse",new[]{3,2,1})]
+        [TestCase("y = [1,2,3]. reverse . reverse",new[]{1,2,3})]
+        [TestCase("y = []. reverse",new object[0])]
         
-        [TestCase("y = [1,2,3]|>get(1)", 2)]
-        [TestCase("y = [1,2,3]|>get(0)", 1)]
+        [TestCase("y = [1,2,3].get(1)", 2)]
+        [TestCase("y = [1,2,3].get(0)", 1)]
         
-        [TestCase("y = [1,2,3]|>set(1,42)", new[]{1,42,3})]
+        [TestCase("y = [1,2,3].set(1,42)", new[]{1,42,3})]
         
-        [TestCase("y = [1.0] |> reiterate(3)", new[]{1.0,1.0,1.0})]
-        [TestCase("y = [] |> reiterate(3)", new object[0])]
-        [TestCase("y = ['a','b'] |> reiterate(3)", new []{"a","b","a","b","a","b"})]
-        [TestCase("y = ['a','b'] |> reiterate(0)", new string[0])]
-        [TestCase("y = ['a','b'] |> reiterate(1)", new []{"a","b"})]
+        [TestCase("y = [1.0] . reiterate(3)", new[]{1.0,1.0,1.0})]
+        [TestCase("y = [] . reiterate(3)", new object[0])]
+        [TestCase("y = ['a','b'] . reiterate(3)", new []{"a","b","a","b","a","b"})]
+        [TestCase("y = ['a','b'] . reiterate(0)", new string[0])]
+        [TestCase("y = ['a','b'] . reiterate(1)", new []{"a","b"})]
         
-        [TestCase("y = [1.0,2.0] |> unite([3.0,4.0])", new []{1.0,2.0,3.0,4.0})]
-        [TestCase("y = [1.0,2.0,3.0]|> unite([3.0,4.0])", new []{1.0,2.0,3.0,4.0})]
+        [TestCase("y = [1.0,2.0] . unite([3.0,4.0])", new []{1.0,2.0,3.0,4.0})]
+        [TestCase("y = [1.0,2.0,3.0]. unite([3.0,4.0])", new []{1.0,2.0,3.0,4.0})]
 
-        [TestCase("y = []|> intersect([])", new object[0])]
-        [TestCase("y = [1.0,4.0,2.0,3.0] |>intersect([3.0,4.0])", new []{4.0,3.0})]
-        [TestCase("y = [1.0,4.0,2.0,3.0,4.0] |>intersect([3.0,4.0])", new []{4.0,3.0})]
-        [TestCase("y = []|> unite([])", new object[0])]
+        [TestCase("y = []. intersect([])", new object[0])]
+        [TestCase("y = [1.0,4.0,2.0,3.0] .intersect([3.0,4.0])", new []{4.0,3.0})]
+        [TestCase("y = [1.0,4.0,2.0,3.0,4.0] .intersect([3.0,4.0])", new []{4.0,3.0})]
+        [TestCase("y = []. unite([])", new object[0])]
 
-        [TestCase("y = [1.0,2.0]|>unique([3.0,4.0])", new []{1.0,2.0,3.0,4.0})]
-        [TestCase("y = [1.0,2.0,3.0]|>unique([3.0,4.0])", new []{1.0,2.0,4.0})]
-        [TestCase("y = [3.0,4.0]|>unique([3.0,4.0])", new double[0])]
-        [TestCase("y = []|>unique([])", new object[0])]
+        [TestCase("y = [1.0,2.0].unique([3.0,4.0])", new []{1.0,2.0,3.0,4.0})]
+        [TestCase("y = [1.0,2.0,3.0].unique([3.0,4.0])", new []{1.0,2.0,4.0})]
+        [TestCase("y = [3.0,4.0].unique([3.0,4.0])", new double[0])]
+        [TestCase("y = [].unique([])", new object[0])]
 
         
-        [TestCase("y = []|> except([])", new object[0])]
-        [TestCase("y = [1.0,2.0] |> except([3.0,4.0])", new []{1.0,2.0})]
-        [TestCase("y = [1.0,2.0,3.0]|>except([3.0,4.0])", new []{1.0,2.0})]
+        [TestCase("y = []. except([])", new object[0])]
+        [TestCase("y = [1.0,2.0] . except([3.0,4.0])", new []{1.0,2.0})]
+        [TestCase("y = [1.0,2.0,3.0].except([3.0,4.0])", new []{1.0,2.0})]
         
         public void ConstantEquationWithGenericPredefinedFunction(string expr, object expected)
         {
@@ -258,7 +258,7 @@ namespace Funny.Tests
         [TestCase("y = add(1)")]
         [TestCase("y = add 1")]
         [TestCase("y = add(1,2,3)")]
-        [TestCase("y = [1.0] |> fold(((i,j)=>i+j)")]
+        [TestCase("y = [1.0] . fold(((i,j)=>i+j)")]
         
         [TestCase("y = fold(((i,j),k)=>i+j)")]
 
@@ -270,13 +270,13 @@ namespace Funny.Tests
         [TestCase("y= max(1,true)")]
         [TestCase("y= max(1,(j)=>j)")]
 
-        [TestCase( @"y = [1.0,2.0,3.0] |> fold((i*2,j)=>i+j)")]
-        [TestCase( @"y = [1.0,2.0,3.0] |> fold((2,j)=>i+j)")]
-        [TestCase( @"y = [1.0,2.0,3.0] |> fold((j)=>i+j)")]
-        [TestCase( @"y = [1.0,2.0,3.0] |> fold((j)=>j)")]
-        [TestCase( @"y = [1.0,2.0,3.0] |> fold((i,j,k)=>i+j+k)")]
-        [TestCase( @"y = [1.0,2.0,3.0] |> fold((i,j)=>i+j+k)")]
-        [TestCase( @"y = [1.0,2.0,3.0] |> fold((i,j)=> k)")]
+        [TestCase( @"y = [1.0,2.0,3.0] . fold((i*2,j)=>i+j)")]
+        [TestCase( @"y = [1.0,2.0,3.0] . fold((2,j)=>i+j)")]
+        [TestCase( @"y = [1.0,2.0,3.0] . fold((j)=>i+j)")]
+        [TestCase( @"y = [1.0,2.0,3.0] . fold((j)=>j)")]
+        [TestCase( @"y = [1.0,2.0,3.0] . fold((i,j,k)=>i+j+k)")]
+        [TestCase( @"y = [1.0,2.0,3.0] . fold((i,j)=>i+j+k)")]
+        [TestCase( @"y = [1.0,2.0,3.0] . fold((i,j)=> k)")]
         public void ObviouslyFails(string expr) =>
             Assert.Throws<FunParseException>(
                 ()=> Interpreter.BuildOrThrow(expr));

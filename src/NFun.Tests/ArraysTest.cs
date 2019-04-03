@@ -82,7 +82,7 @@ namespace Funny.Tests
         [Test]
         public void IntersectToDimArrayTest()
         {
-            var expression = "y = [[1.0,2.0],[3.0,4.0],[5.0]] |> intersect ([[3.0,4.0],[1.0],[5.0],[4.0]])";
+            var expression = "y = [[1.0,2.0],[3.0,4.0],[5.0]] . intersect ([[3.0,4.0],[1.0],[5.0],[4.0]])";
             var expected = new[] {new [] {3.0, 4.0},new[]{5.0}};
 
             Interpreter.BuildOrThrow(expression).Calculate().AssertReturns(Var.New("y", expected));
@@ -90,7 +90,7 @@ namespace Funny.Tests
         [Test]
         public void ExceptToDimArrayTest()
         {
-            var expression = "y = [[1.0,2.0],[3.0,4.0]]|> except([[3.0,4.0],[1.0],[4.0]])";
+            var expression = "y = [[1.0,2.0],[3.0,4.0]]. except([[3.0,4.0],[1.0],[4.0]])";
             var expected = new[] {new [] {1.0, 2.0}};
 
             Interpreter.BuildOrThrow(expression).Calculate().AssertReturns(Var.New("y", expected));
