@@ -110,7 +110,6 @@ namespace NFun.Interpritation
 
         private UserFunction GetFunction(LexFunction lexFunction)
         {
-            
             var vars = new Dictionary<string, VariableExpressionNode>();
             foreach (var arg in lexFunction.Args) {
                 vars.Add(arg.Id, new VariableExpressionNode(arg.Id, arg.Type));

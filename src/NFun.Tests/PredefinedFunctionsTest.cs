@@ -9,48 +9,86 @@ namespace Funny.Tests
     [TestFixture]
     public class PredefinedFunctionsTest
     {
-        [TestCase("y = abs(1)",1)]
-        [TestCase("y = abs(-1)",1)]
-        [TestCase("y = abs(1.0)",1.0)]
-        [TestCase("y = abs(-1.0)",1.0)]
-        [TestCase("y = sum(1,2)",3)]
-        [TestCase("y = sum(sum(1,2),sum(3,4))",10)]
-        [TestCase("y = abs(1-4)",3)]
-        [TestCase("y = 15 - sum(abs(1-4), 7)",5)]
-        [TestCase("y = pi()",Math.PI)]
-        [TestCase("y = e()",Math.E)]
-        [TestCase("y = count([1,2,3])",3)]
-        [TestCase("y = count([])",0)]
-        [TestCase("y = count([1.0,2.0,3.0])",3)]
-        [TestCase("y = count([[1,2],[3,4]])",2)]
-        [TestCase("y = avg([1,2,3])",2.0)]
-        [TestCase("y = avg([1.0,2.0,6.0])",3.0)]
-        [TestCase("y = sum([1,2,3])",6)]
-        [TestCase("y = sum([1.0,2.5,6.0])",9.5)]
-        [TestCase("y = max([1.0,10.5,6.0])",10.5)]
-        [TestCase("y = max([1,-10,0])",1)]
-        [TestCase("y = max(1.0,3.4)",3.4)]
-        [TestCase("y = max(4,3)",4)]
-        [TestCase("y = min([1.0,10.5,6.0])",1.0)]
-        [TestCase("y = min([1,-10,0])",-10)]
-        [TestCase("y = min(1.0,3.4)",1.0)]
-        [TestCase("y = min(4,3)",3)]
-        [TestCase("y = median([1.0,10.5,6.0])",6.0)]
-        [TestCase("y = median([1,-10,0])",0)]        
-        [TestCase( "y = [1.0,2.0,3.0]|>any",true)]
-        [TestCase( "y = any([])",false)]
-        [TestCase( "y = [4,3,5,1] |> sort",new []{1,3,4,5})]
-        [TestCase( "y = [4.0,3.0,5.0,1.0] |> sort",new []{1.0,3.0,4.0,5.0})]
-        [TestCase( "y = ['4.0','3.0','5.0','1.0'] |> sort",new []{"1.0","3.0","4.0","5.0"})]
-        [TestCase("y = range(0,5)",new []{0,1,2,3,4,5})]
-        [TestCase("y = range(7,10)",new []{7,8,9,10})]
-        [TestCase("y = range(1,10,2)",new []{1,3,5,7,9})]
+        [TestCase("abs(1)",1)]
+        [TestCase("abs(-1)",1)]
+        [TestCase("abs(1.0)",1.0)]
+        [TestCase("abs(-1.0)",1.0)]
+        [TestCase("sum(1,2)",3)]
+        [TestCase("sum(sum(1,2),sum(3,4))",10)]
+        [TestCase("abs(1-4)",3)]
+        [TestCase("15 - sum(abs(1-4), 7)",5)]
+        [TestCase("pi()",Math.PI)]
+        [TestCase("e()",Math.E)]
+        
+        [TestCase("cos(0)", 1.0)]
+        [TestCase("sin(0)", 0.0)]
+        [TestCase("acos(1)", 0.0)]
+        [TestCase("asin(0)", 0.0)]
+        [TestCase("atan(0)", 0.0)]
+        [TestCase("tan(0)", 0.0)]
+
+        [TestCase("exp(0)", 1.0)] 
+
+        [TestCase("ceil(7.03)",  8)]
+        [TestCase("ceil(7.64)",  8)]
+        [TestCase("ceil(0.12)",  1)]
+        [TestCase("ceil(-0.12)", 0)]
+        [TestCase("ceil(-7.1)", -7)]
+        [TestCase("ceil(-7.6)", -7)]
+
+        [TestCase("log(1,10)", 0.0)]
+        [TestCase("log(1)", 0.0)]
+        [TestCase("log10(1)", 0.0)]
+
+        [TestCase("floor(7.03)",  7)]
+        [TestCase("floor(7.64)",  7)]
+        [TestCase("floor(0.12)",  0)]
+        [TestCase("floor(-0.12)", -1)]
+        [TestCase("floor(-7.1)", -8)]
+        [TestCase("floor(-7.6)", -8)]
+
+        [TestCase("round(1.66666,1)", 1.7)]
+        [TestCase("round(1.222,2)", 1.22)]
+        [TestCase("round(1.66666)", 2)]
+        [TestCase("round(1.2)", 1)]
+        
+        [TestCase("sign(-5)", -1)]
+        [TestCase("sign(-5.0)", -1)]
+        [TestCase("sign(5)", 1)]
+        [TestCase("sign(5.2)", 1)]
+
+        [TestCase("count([1,2,3])",3)]
+        [TestCase("count([])",0)]
+        [TestCase("count([1.0,2.0,3.0])",3)]
+        [TestCase("count([[1,2],[3,4]])",2)]
+        [TestCase("avg([1,2,3])",2.0)]
+        [TestCase("avg([1.0,2.0,6.0])",3.0)]
+        [TestCase("sum([1,2,3])",6)]
+        [TestCase("sum([1.0,2.5,6.0])",9.5)]
+        [TestCase("max([1.0,10.5,6.0])",10.5)]
+        [TestCase("max([1,-10,0])",1)]
+        [TestCase("max(1.0,3.4)",3.4)]
+        [TestCase("max(4,3)",4)]
+        [TestCase("min([1.0,10.5,6.0])",1.0)]
+        [TestCase("min([1,-10,0])",-10)]
+        [TestCase("min(1.0,3.4)",1.0)]
+        [TestCase("min(4,3)",3)]
+        [TestCase("median([1.0,10.5,6.0])",6.0)]
+        [TestCase("median([1,-10,0])",0)]        
+        [TestCase("[1.0,2.0,3.0]|>any",true)]
+        [TestCase("any([])",false)]
+        [TestCase("[4,3,5,1] |> sort",new []{1,3,4,5})]
+        [TestCase("[4.0,3.0,5.0,1.0] |> sort",new []{1.0,3.0,4.0,5.0})]
+        [TestCase("['4.0','3.0','5.0','1.0'] |> sort",new []{"1.0","3.0","4.0","5.0"})]
+        [TestCase("range(0,5)",new []{0,1,2,3,4,5})]
+        [TestCase("range(7,10)",new []{7,8,9,10})]
+        [TestCase("range(1,10,2)",new []{1,3,5,7,9})]
 
         public void ConstantEquationWithPredefinedFunction(string expr, object expected)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
             runtime.Calculate()
-                .AssertReturns(0.00001, Var.New("y", expected));
+                .AssertReturns(0.00001, Var.New("out", expected));
         }
        
         
@@ -213,7 +251,6 @@ namespace Funny.Tests
         [TestCase( @"y = [1.0,2.0,3.0] |> fold((i,j,k)=>i+j+k)")]
         [TestCase( @"y = [1.0,2.0,3.0] |> fold((i,j)=>i+j+k)")]
         [TestCase( @"y = [1.0,2.0,3.0] |> fold((i,j)=> k)")]
-
         public void ObviouslyFails(string expr) =>
             Assert.Throws<FunParseException>(
                 ()=> Interpreter.BuildOrThrow(expr));

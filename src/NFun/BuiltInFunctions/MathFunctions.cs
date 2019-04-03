@@ -105,12 +105,7 @@ namespace NFun.BuiltInFunctions
         public override object Calc(object[] args) => Convert.ToDouble(args[0]) / Convert.ToDouble(args[1]);
     }
     
-    public class RoundRealFunction: FunctionBase
-    {
-        public RoundRealFunction(string name) : base(name, VarType.Int,VarType.Real){}
-        public override object Calc(object[] args) 
-            => (int)Math.Round(Convert.ToDouble(args[0]));
-    }
+    
     
     public class MultiplyRealFunction: FunctionBase
     {
@@ -202,8 +197,80 @@ namespace NFun.BuiltInFunctions
     public class TanFunction : FunctionBase
     {
         public TanFunction() : base("tan", VarType.Real, VarType.Real){}
-
         public override object Calc(object[] args) => Math.Tan(Convert.ToDouble(args[0]));
+    }
+    
+    public class Atan2Function : FunctionBase
+    {
+        public Atan2Function () : base("atan2", VarType.Real, VarType.Real, VarType.Real){}
+        public override object Calc(object[] args) => Math.Atan2((double)args[0],(double)args[0]);
+    }
+    public class AtanFunction : FunctionBase
+    {
+        public AtanFunction () : base("atan", VarType.Real, VarType.Real){}
+        public override object Calc(object[] args) => Math.Atan((double)args[0]);
+    }
+    public class AsinFunction : FunctionBase
+    {
+        public AsinFunction () : base("asin", VarType.Real, VarType.Real){}
+        public override object Calc(object[] args) => Math.Asin((double)args[0]);
+    }
+    public class AcosFunction : FunctionBase
+    {
+        public AcosFunction () : base("acos", VarType.Real, VarType.Real){}
+        public override object Calc(object[] args) => Math.Acos((double)args[0]);
+    }
+    public class ExpFunction : FunctionBase
+    {
+        public ExpFunction () : base("exp", VarType.Real, VarType.Real){}
+        public override object Calc(object[] args) => Math.Exp((double)args[0]);
+    }
+    public class LogEFunction : FunctionBase
+    {
+        public LogEFunction () : base("log", VarType.Real, VarType.Real){}
+        public override object Calc(object[] args) => Math.Log((double)args[0]);
+    }
+    
+    public class LogFunction : FunctionBase
+    {
+        public LogFunction () : base("log", VarType.Real,VarType.Real, VarType.Real){}
+        public override object Calc(object[] args) => Math.Log((double)args[0],(double)args[1]);
+    }
+    
+    public class Log10Function : FunctionBase
+    {
+        public Log10Function () : base("log10", VarType.Real, VarType.Real){}
+        public override object Calc(object[] args) => Math.Log10((double)args[0]);
+    }
+    
+    public class FloorFunction : FunctionBase
+    {
+        public FloorFunction () : base("floor", VarType.Int, VarType.Real){}
+        public override object Calc(object[] args) => Convert.ToInt32(Math.Floor((double)args[0]));
+    }
+    
+    public class CeilFunction : FunctionBase
+    {
+        public CeilFunction () : base("ceil", VarType.Int, VarType.Real){}
+        public override object Calc(object[] args) => Convert.ToInt32(Math.Ceiling((double)args[0]));
+    }
+    public class RoundToIntFunction: FunctionBase
+    {
+        public RoundToIntFunction() : base("round", VarType.Int,VarType.Real){}
+        public override object Calc(object[] args) 
+            => (int)Math.Round(Convert.ToDouble(args[0]));
+    }
+    public class RoundToRealFunction: FunctionBase
+    {
+        public RoundToRealFunction() : base("round", VarType.Real,VarType.Real,VarType.Int){}
+        public override object Calc(object[] args) 
+            => Math.Round((double)args[0],(int)args[1]);
+    }
+    public class SignFunction: FunctionBase
+    {
+        public SignFunction() : base("sign", VarType.Int,VarType.Real){}
+        public override object Calc(object[] args) 
+            =>  Math.Sign((double)args[0]);
     }
     
     public class PiFunction : FunctionBase
