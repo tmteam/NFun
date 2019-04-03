@@ -53,15 +53,18 @@ namespace Funny.Tests.UnitTests
             TokType.ArrOBr, 
             TokType.Text, TokType.Sep, TokType.Text, 
             TokType.ArrCBr)]
-        public void TestTokinization(string exp, params TokType[] expected)
+        [TestCase(@"z = true#", TokType.Id, TokType.Def, TokType.True)]
+        [TestCase(@"true#", TokType.True)]
+        [TestCase(@"true #", TokType.True)]
+        [TestCase(@"true #comment", TokType.True)]
+        public void TokenFlowIsCorrect_expectEof(string exp, params TokType[] expected)
         {
              var tokens =  Tokenizer
                  .ToTokens(exp)
                  .Select(s=>s.Type)
-                 .ToArray();
-            CollectionAssert.AreEquivalent(expected,tokens);
+                 .ToArray(); 
+             //Add Eof at end of flow for test readability
+            CollectionAssert.AreEquivalent(expected.Append(TokType.Eof),tokens);
         }
-        
     }
-
 }

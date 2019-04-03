@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using NFun.Runtime;
 
@@ -11,7 +12,7 @@ namespace NFun.Tokenization
         public static IEnumerable<Tok> ToTokens(string input)
         {
             var reader = new Tokenizer();
-            for (int i = 0; i<input.Length; )
+            for (int i = 0; ;)
             {
                 var res = reader.TryReadNext(input, i);
                 yield return res;
@@ -37,7 +38,7 @@ namespace NFun.Tokenization
             {']', TokType.ArrCBr},
             {':', TokType.Colon},
             {'@', TokType.ArrConcat},
-            {'~', TokType.BitInverse},
+            {'~', TokType.BitInverse}
         };
         
         private readonly Dictionary<string, TokType> _keywords = new Dictionary<string, TokType>
@@ -63,16 +64,20 @@ namespace NFun.Tokenization
         {
             if(position>=str.Length)
                 return Tok.New(TokType.Eof, position);
+            
             var current = str[position];
+            if (current == '#')
+            {
+                var newPosition = SkipComments(str, position);
+                if (newPosition == position)
+                    newPosition++; 
+                return TryReadNext(str, newPosition);
+            }
+            
             if (current == ' ' || current == '\t')
                 return TryReadNext(str, position + 1);
 
-            if (current == '/')
-            {
-                var newPosition = SkipComments(str, position);
-                if (newPosition != position)
-                    return TryReadNext(str, newPosition);
-            }
+            
 
             if(current== 0)
                 return  Tok.New(TokType.Eof, "", position+1);
@@ -97,35 +102,18 @@ namespace NFun.Tokenization
             
             return Tok.New(TokType.NotAToken, null, position+1);
         }
+        
         private int SkipComments(string str, int position){
-            //int start = position;
-            if(str[position]!='/')
-                return position;
+            if(str[position]!='#')
+                throw new InvalidOperationException("'#' symbol expected");
             if(str.Length== position+1)
                 return position;
-            if (str[position + 1] == '/')
-            {
-                //singleLineComment
-                int index = position+2;
-                for (; index < str.Length && str[index] != '\r' && str[index] != '\n' ; index++)
-                {}
 
-                return index;
-            }
-            else if(str[position+1]== '*')
-            {
-                //multiline comments
-                int index = position+2;
-                for (; index < str.Length; index++)
-                {
-                    if (str[index - 1] == '*' && str[index] == '/')
-                        return index + 1;
-                }
-                
-                throw new FunParseException("Multiline comment not closed.  '*/' not found");
-            }
-            else
-                return position;
+            int index = position+2;
+            for (; index < str.Length && str[index] != '\r' && str[index] != '\n' ; index++)
+            {}
+            
+            return index;
         }
         private Tok ReadIdOrKeyword(string str, int position)
         {
