@@ -387,7 +387,8 @@ namespace NFun.Parsing
 
         private LexNode ReadFunctionCall(string name, LexNode pipedVal=null)
         {
-            bool hasObr =_flow.MoveIf(TokType.Obr, out _);
+            _flow.MoveIfOrThrow(TokType.Obr);
+            /*bool hasObr =_flow.MoveIf(TokType.Obr, out _);
 
             if (!hasObr)
             {
@@ -395,7 +396,7 @@ namespace NFun.Parsing
                     return LexNode.Fun(name, new[] {pipedVal});
                 else
                     throw new FunParseException("'(' expected, but was " + _flow.Current);
-            }
+            }*/
             var arguments = ReadNodeList();
             if(pipedVal!=null)
                 arguments.Insert(0,pipedVal);

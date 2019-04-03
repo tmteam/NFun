@@ -38,7 +38,7 @@ namespace NFun.Parsing
                         flow.MoveNext();
                         equations.Add(ReadEquation(flow, reader, e.Value));
                     }
-                    //Todo Make operatorfun as separate node type
+                    //Todo Make operator fun as separate node type
                     else if (e.Is(LexNodeType.Fun) && e.AdditionalContent== null)
                         //userFun
                         funs.Add(ReadUserFunction(e, flow, reader));

@@ -101,11 +101,11 @@ namespace Funny.Tests
         [TestCase("min(4,3)",3)]
         [TestCase("median([1.0,10.5,6.0])",6.0)]
         [TestCase("median([1,-10,0])",0)]        
-        [TestCase("[1.0,2.0,3.0].any",true)]
+        [TestCase("[1.0,2.0,3.0].any()",true)]
         [TestCase("any([])",false)]
-        [TestCase("[4,3,5,1] . sort",new []{1,3,4,5})]
-        [TestCase("[4.0,3.0,5.0,1.0] . sort",new []{1.0,3.0,4.0,5.0})]
-        [TestCase("['4.0','3.0','5.0','1.0'] . sort",new []{"1.0","3.0","4.0","5.0"})]
+        [TestCase("[4,3,5,1].sort()",new []{1,3,4,5})]
+        [TestCase("[4.0,3.0,5.0,1.0].sort()",new []{1.0,3.0,4.0,5.0})]
+        [TestCase("['4.0','3.0','5.0','1.0'].sort()",new []{"1.0","3.0","4.0","5.0"})]
         [TestCase("range(0,5)",new []{0,1,2,3,4,5})]
         [TestCase("range(7,10)",new []{7,8,9,10})]
         [TestCase("range(1,10,2)",new []{1,3,5,7,9})]
@@ -188,9 +188,9 @@ namespace Funny.Tests
         
         [TestCase("mypage(x:int[]):int[] = take(skip(x,1),1) \r y = mypage([1,2,3]) ",new []{2})]        
 
-        [TestCase("y = [1,2,3]. reverse",new[]{3,2,1})]
-        [TestCase("y = [1,2,3]. reverse . reverse",new[]{1,2,3})]
-        [TestCase("y = []. reverse",new object[0])]
+        [TestCase("y = [1,2,3]. reverse()",new[]{3,2,1})]
+        [TestCase("y = [1,2,3]. reverse() . reverse()",new[]{1,2,3})]
+        [TestCase("y = []. reverse()",new object[0])]
         
         [TestCase("y = [1,2,3].get(1)", 2)]
         [TestCase("y = [1,2,3].get(0)", 1)]

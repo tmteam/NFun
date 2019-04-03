@@ -20,10 +20,8 @@ namespace Funny.Tests
         [TestCase(10.0, "10*x +1", "out", 101.0)]
         [TestCase(0.0, "y = cos(x)", "y", 1.0)]
         [TestCase(0.0, "y = x.cos()", "y", 1.0)]
-        [TestCase(0.0, "y = x.cos", "y", 1.0)]
-        [TestCase(0.0, "y = x . cos() . tan() . abs() . round()", "y", 2)]
-        [TestCase(0.0, "y = x.cos.tan. abs . round", "y", 2)]
-        [TestCase(5.0, "y = x. sum(3)", "y", 8.0)]
+        [TestCase(0.0, "y = x.cos().tan() .abs() .round()", "y", 2)]
+        [TestCase(5.0, "y = x.sum(3)", "y", 8.0)]
         [TestCase(1.0, "y = x == 0","y", false)]
         [TestCase(0.0, "x==0","out", true)]
         [TestCase(0.1, "y = x <> 0","y", true)]
@@ -66,7 +64,7 @@ y = 1+ 15 *  if x < 0 then -1
         if x ==8 then 'eight'
         if x ==9 then 'nine'
         if x > 9 then 'ten or more' 
-        if x . cos>0 then 'cos is positive' 
+        if x.cos()>0 then 'cos is positive' 
         else 'negative'","y", "four")]
         
         [TestCase(3, @"
@@ -79,8 +77,8 @@ x:int
 y = tostring(x)","y", "not supported")]
        // [TestCase(1.0, "","y", false)]
 
-        [TestCase(0.43,"y = 'Welcome to fun. Version is '+ x+'. Next version is '+ (x+1)"
-            , "y", "Welcome to fun. Version is 0.43. Next version is 1.43")]
+        [TestCase(0.43,"y = 'Welcome to fun.Version is '+ x+'.Next version is '+ (x+1)"
+            , "y", "Welcome to fun.Version is 0.43.Next version is 1.43")]
 
         public void Real_SingleEquationWithSingleInput(object xVal, string expression, string outputName, object outputValue)
         {
@@ -112,24 +110,24 @@ y = tostring(x)","y", "not supported")]
         [TestCase("y = 1 in [1,2,3,4]# true", "y", true)]
         [TestCase("y = 0 in [1,2,3,4] # false", "y", false)]
         [TestCase("y = [1,2] in [1,2,3,4] # true", "y", true)]
-        [TestCase("y = [1,2,3,4] . intersect([3,4,5,6])  #[3,4]", "y", new []{3,4})]
-        [TestCase("y = [1,2,3,4] . except([3,4,5,6])  #[1,2]", "y", new []{1,2})]
-        [TestCase("y = [1,2,3,4] . unite([3,4,5,6])  #[1,2,3,4,5,6]", "y", new []{1,2,3,4,5,6})]
-        [TestCase("y = [1,2,3,4] . unique([3,4,5,6])  # [1,2,5,6]", "y", new []{1,2,5,6})]
-        [TestCase("y = [1,2,3,4] . take(2)  # [1,2]", "y", new []{1,2})]
-        [TestCase("y = [1,2,3,4] . skip(2)  # [3,4]", "y", new []{3,4})]
-        [TestCase("y = [1,2,3,4] . max  # 4", "y", 4)]
-        [TestCase("y = [1,2,3,4] . min  # 1", "y", 1)]
-        [TestCase("y = [1,2,3,4] . median  # 2", "y", 2)]
-        [TestCase("y = [1,2,3,4] . avg  # 2.5", "y", 2.5)]
-        [TestCase("y = [1,2,3,4] . sum  # 10", "y", 10)]
-        [TestCase("y = [1,2,3,4] . count # 4", "y", 4)]
-        [TestCase("y = [1,2,3,4] . any # true", "y", true)]
-        [TestCase("y = [3,1,2,3,4] . sort # [1,2,3,3,4]", "y", new []{1,2,3,3,4})]
-        [TestCase("y = [1,2,3,4] . reverse #[4,3,2,1]", "y", new []{4,3,2,1})]
-        [TestCase("y = [0..6] . set(3, 42) #[0,1,2,42,4,5,6]", "y", new []{0,1,2,42,4,5,6})]
-        [TestCase("y = [] . any # false", "y", false)]
-        [TestCase("y = 1 . repeat(3) # [1,1,1]", "y", new []{1,1,1})]
+        [TestCase("y = [1,2,3,4].intersect([3,4,5,6])  #[3,4]", "y", new []{3,4})]
+        [TestCase("y = [1,2,3,4].except([3,4,5,6])  #[1,2]", "y", new []{1,2})]
+        [TestCase("y = [1,2,3,4].unite([3,4,5,6])  #[1,2,3,4,5,6]", "y", new []{1,2,3,4,5,6})]
+        [TestCase("y = [1,2,3,4].unique([3,4,5,6])  # [1,2,5,6]", "y", new []{1,2,5,6})]
+        [TestCase("y = [1,2,3,4].take(2)  # [1,2]", "y", new []{1,2})]
+        [TestCase("y = [1,2,3,4].skip(2)  # [3,4]", "y", new []{3,4})]
+        [TestCase("y = [1,2,3,4].max()  # 4", "y", 4)]
+        [TestCase("y = [1,2,3,4].min()  # 1", "y", 1)]
+        [TestCase("y = [1,2,3,4].median()  # 2", "y", 2)]
+        [TestCase("y = [1,2,3,4].avg()  # 2.5", "y", 2.5)]
+        [TestCase("y = [1,2,3,4].sum()  # 10", "y", 10)]
+        [TestCase("y = [1,2,3,4].count() # 4", "y", 4)]
+        [TestCase("y = [1,2,3,4].any() # true", "y", true)]
+        [TestCase("y = [3,1,2,3,4].sort() # [1,2,3,3,4]", "y", new []{1,2,3,3,4})]
+        [TestCase("y = [1,2,3,4].reverse() #[4,3,2,1]", "y", new []{4,3,2,1})]
+        [TestCase("y = [0..6].set(3, 42) #[0,1,2,42,4,5,6]", "y", new []{0,1,2,42,4,5,6})]
+        [TestCase("y = [].any() # false", "y", false)]
+        [TestCase("y = 1.repeat(3) # [1,1,1]", "y", new []{1,1,1})]
         [TestCase("y = ['foo','bar'].reiterate(3)#['foo','bar','foo','bar','foo','bar'] "
             , "y", new []{"foo","bar","foo","bar","foo","bar"})]
         [TestCase("y = [0..10][0]  #0", "y", 0)]
@@ -140,8 +138,8 @@ y = tostring(x)","y", "not supported")]
         [TestCase("y = [1..4].map(i:int=> i/2)#[0.5,1.0,1.5,2.0]", "y", new []{0.5,1.0,1.5,2.0})]
         [TestCase("y = [1..4].any(i:int => i>0)#true", "y", true)]
         [TestCase("y = [1..4].all(i:int => i>2)#false", "y", false)]
-        [TestCase("y = [1..4].fold((i:int,j:int)=>i+j)# 10. Аналог sum", "y", 10)]
-        [TestCase("y = [1..4].fold((i:int,j:int)=>if i>j then i else j)#4. Аналог max", "y", 4)]
+        [TestCase("y = [1..4].fold((i:int,j:int)=>i+j)# 10.Аналог sum", "y", 10)]
+        [TestCase("y = [1..4].fold((i:int,j:int)=>if i>j then i else j)#4.Аналог max", "y", 4)]
         public void Constant(string expr, string ouputName, object val)
         {
             var runtime = Interpreter.BuildOrThrow(expr);
