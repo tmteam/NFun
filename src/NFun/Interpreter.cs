@@ -71,7 +71,17 @@ namespace NFun
                 new RoundToIntFunction(), 
                 new RoundToRealFunction(), 
                 new SignFunction(),
-                
+                new ToTextFunction(), 
+                new ToIntFromRealFunction(), 
+                new ToIntFromTextFunction(), 
+                new ToIntFromBytesFunction(),
+                new ToRealFromIntFunction(), 
+                new ToRealFromTextFunction(), 
+                new ToUtf8Function(), 
+                new ToUnicodeFunction(), 
+                new ToBytesFromIntFunction(), 
+                new ToBitsFromIntFunction(), 
+
                 new EFunction(), 
                 new PiFunction(),
                 new CountFunction(),

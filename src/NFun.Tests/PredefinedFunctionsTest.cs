@@ -26,8 +26,10 @@ namespace Funny.Tests
         [TestCase("asin(0)", 0.0)]
         [TestCase("atan(0)", 0.0)]
         [TestCase("tan(0)", 0.0)]
-
         [TestCase("exp(0)", 1.0)] 
+        [TestCase("log(1,10)", 0.0)]
+        [TestCase("log(1)", 0.0)]
+        [TestCase("log10(1)", 0.0)]
 
         [TestCase("ceil(7.03)",  8)]
         [TestCase("ceil(7.64)",  8)]
@@ -35,23 +37,47 @@ namespace Funny.Tests
         [TestCase("ceil(-0.12)", 0)]
         [TestCase("ceil(-7.1)", -7)]
         [TestCase("ceil(-7.6)", -7)]
-
-        [TestCase("log(1,10)", 0.0)]
-        [TestCase("log(1)", 0.0)]
-        [TestCase("log10(1)", 0.0)]
-
         [TestCase("floor(7.03)",  7)]
         [TestCase("floor(7.64)",  7)]
         [TestCase("floor(0.12)",  0)]
         [TestCase("floor(-0.12)", -1)]
         [TestCase("floor(-7.1)", -8)]
         [TestCase("floor(-7.6)", -8)]
-
         [TestCase("round(1.66666,1)", 1.7)]
         [TestCase("round(1.222,2)", 1.22)]
         [TestCase("round(1.66666)", 2)]
         [TestCase("round(1.2)", 1)]
-        
+
+        [TestCase("to_int(1.2)", 1)]
+        [TestCase("to_int('1')", 1)]
+        [TestCase("to_int('-123')", -123)]
+        [TestCase("to_int(-1.2)", -1)]
+        [TestCase("to_int([0x21,0x33,0x12])",1_192_737)]
+        [TestCase("to_int([0x21,0x33,0x12,0x00])",1_192_737)]
+        [TestCase("to_int([0x21,0x00,0x00,0x00])",0x21)]
+        [TestCase("to_int([0x21,0x00,0x00,0x00])",0x21)]
+        [TestCase("to_int([0x21])",0x21)]
+
+        [TestCase("to_real('1')", 1.0)]
+        [TestCase("to_real('1.1')", 1.1)]
+        [TestCase("to_real('-0.123')", -0.123)]
+        [TestCase("to_real(1)", 1.0)]
+        [TestCase("to_real(-1)", -1.0)]
+        [TestCase("to_text([1,2,3])", "[1,2,3]")]
+        [TestCase("to_text(-1)", "-1")]
+        [TestCase("to_text(-0.123)", "-0.123")]
+        [TestCase("to_bits(123)", new[]
+        {
+            true, true, false,true, true, true, true ,false,
+            false,false,false,false,false,false,false,false,
+            false,false,false,false,false,false,false,false,
+            false,false,false,false,false,false,false,false,
+        })]
+        [TestCase("to_bytes(123)", new[]{123,0,0,0})]
+        [TestCase("to_bytes(1_192_737)", new[]{0x21,0x33,0x12,0})]
+        [TestCase("to_unicode('hi there')", new[]{0x68,00,0x69,00,0x20,00,0x74,00,0x68,00,0x65,00,0x72,00,0x65,00})]
+        [TestCase("to_utf8('hi there')", new[]{0x68,0x69,0x20,0x74,0x68,0x65,0x72,0x65})]
+
         [TestCase("sign(-5)", -1)]
         [TestCase("sign(-5.0)", -1)]
         [TestCase("sign(5)", 1)]
