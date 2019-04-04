@@ -23,7 +23,7 @@ namespace NFun.Interpritation
         public static FunRuntime Interpritate(
             LexTree lexTree,
             IEnumerable<FunctionBase> predefinedFunctions, 
-            GenericFunctionBase[] predefinedGenerics)
+            IEnumerable<GenericFunctionBase> predefinedGenerics)
         {
             var functions = new FunctionsDictionary();
             foreach (var predefinedFunction in predefinedFunctions)

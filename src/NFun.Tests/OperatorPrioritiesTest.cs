@@ -41,13 +41,13 @@ namespace Funny.Tests
             Assert.Multiple(()=>{
                 foreach (var inputs in allCombinations)
                 {
-                    var actual = Interpreter
-                        .BuildOrThrow(actualExpr)
+                    var actual = Fun
+                        .BuildDefault(actualExpr)
                         .Calculate(inputs)
                         .GetResultOf("y");
 
-                    var expected = Interpreter
-                        .BuildOrThrow(expectedExpr)
+                    var expected = Fun
+                        .BuildDefault(expectedExpr)
                         .Calculate(inputs)
                         .GetResultOf("y");
 
@@ -77,13 +77,13 @@ namespace Funny.Tests
             Assert.Multiple(()=>{
                 foreach (var inputs in allCombinations)
                 {
-                    var actual = Interpreter
-                        .BuildOrThrow(actualExpr)
+                    var actual = Fun
+                        .BuildDefault(actualExpr)
                         .Calculate(inputs)
                         .GetResultOf("y");
 
-                    var expected = Interpreter
-                        .BuildOrThrow(expectedExpr)
+                    var expected = Fun
+                        .BuildDefault(expectedExpr)
                         .Calculate(inputs)
                         .GetResultOf("y");
 
@@ -116,10 +116,10 @@ namespace Funny.Tests
         [TestCase("y = not 3*3>8", "y = not (3*3>8)")]
         public void ConstantCalculationPriorities(string actualExpr, string expectedExpr)
         {
-            var expected = Interpreter.BuildOrThrow(expectedExpr).Calculate().Get("y");
+            var expected = Fun.BuildDefault(expectedExpr).Calculate().Get("y");
             
-            Interpreter
-                .BuildOrThrow(actualExpr)
+            Fun
+                .BuildDefault(actualExpr)
                 .Calculate()
                 .AssertReturns(new Var("y", expected.Value, expected.Type));
         }

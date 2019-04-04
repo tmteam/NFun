@@ -14,7 +14,7 @@ namespace Funny.Tests
         [TestCase("y = 2*3\r z= 1 + (1 + 4)/2 - (3 +2)*(3 -1)",6,-6.5)]
         public void TwinConstantEquations(string expr, object expectedY, object expectedZ)
         {
-            var runtime = Interpreter.BuildOrThrow(expr);
+            var runtime = Fun.BuildDefault(expr);
             runtime.Calculate()
                 .AssertReturns(
                     Var.New("y", expectedY),
@@ -25,7 +25,7 @@ namespace Funny.Tests
         [TestCase("y = x/2\r z=2*x",2, 1.0,4.0)]
         public void TwinEquationsWithSingleVariable(string expr, double x, object expectedY, object expectedZ)
         {
-            var runtime = Interpreter.BuildOrThrow(expr);
+            var runtime = Fun.BuildDefault(expr);
             runtime.Calculate(Var.New("x", x))
                 .AssertReturns(
                     Var.New("y", expectedY),
@@ -39,7 +39,7 @@ namespace Funny.Tests
         [TestCase("y = in1/2 + in2\r z=2 + in2",new []{"in1","in2"})]
         public void TwinEquations_inputVarablesListIsCorrect(string expr, string[] inputNames)
         {
-            var runtime = Interpreter.BuildOrThrow(expr);
+            var runtime = Fun.BuildDefault(expr);
             var inputs = inputNames.Select(i => new VarInfo(false, VarType.Real, i)).ToArray();
             CollectionAssert.AreEquivalent(inputs, runtime.Inputs);
         }
@@ -52,7 +52,7 @@ namespace Funny.Tests
         [TestCase("y = in1/2 + in2\r z=2*y + in2",new []{"in1","in2"})]
         public void TwinDependentEquations_inputVarsListIsCorrect(string expr, string[] inputNames)
         {
-            var runtime = Interpreter.BuildOrThrow(expr);
+            var runtime = Fun.BuildDefault(expr);
             var inputs = inputNames.Select(i => new VarInfo(false, VarType.Real, i)).ToArray();
             CollectionAssert.AreEquivalent(inputs, runtime.Inputs);
         }
@@ -68,7 +68,7 @@ namespace Funny.Tests
         [TestCase("y = 1\r z=y*2",       1,2)]
         public void TwinDependentConstantEquations_CalculatesCorrect(string expr,  object expectedY, object expectedZ)
         {
-            var runtime = Interpreter.BuildOrThrow(expr);
+            var runtime = Fun.BuildDefault(expr);
             runtime.Calculate()
                 .AssertReturns(
                     Var.New("y", expectedY),
@@ -81,7 +81,7 @@ namespace Funny.Tests
         [TestCase(2, "y = x/2\r z=2*y+x",   1,4)]
         public void TwinDependentEquationsWithSingleVariable_CalculatesCorrect(double x, string expr,  double expectedY, double expectedZ)
         {
-            var runtime = Interpreter.BuildOrThrow(expr);
+            var runtime = Fun.BuildDefault(expr);
             runtime.Calculate(Var.New("x", x))
                 .AssertReturns(
                     Var.New("y", expectedY),
@@ -94,7 +94,7 @@ namespace Funny.Tests
         [TestCase("o1 = o2*2\r o2 = o3*2\n o3 = 2",8, 4, 2)]
         public void ThreeDependentConstantEquations_CalculatesCorrect(string expr,  object o1, object o2, object o3)
         {
-            var runtime = Interpreter.BuildOrThrow(expr);
+            var runtime = Fun.BuildDefault(expr);
             runtime.Calculate()
                 .AssertReturns(
                     Var.New("o1", o1),
@@ -107,7 +107,7 @@ namespace Funny.Tests
         [TestCase(2,"o1 = x/2\r o2 = o3\n o3 = x",1.0, 2.0, 2.0)]
         public void ThreeDependentEquationsWithSingleVariable_CalculatesCorrect(double x,string expr,  object o1, object o2, object o3)
         {
-            var runtime = Interpreter.BuildOrThrow(expr);
+            var runtime = Fun.BuildDefault(expr);
             runtime.Calculate(Var.New("x", x))
                 .AssertReturns(
                     Var.New("o1", o1),
@@ -118,7 +118,7 @@ namespace Funny.Tests
         [Test]
         public void ComplexDependentConstantsEquations_CalculatesCorrect()
         {
-            var runtime = Interpreter.BuildOrThrow(
+            var runtime = Fun.BuildDefault(
                 @"o1 = 1
                   o2 = o1*2
                   o3 = o2*2
@@ -146,7 +146,7 @@ namespace Funny.Tests
         [TestCase("o0 = 3\r o1 = o3+o0\r o2 = o1\r o3 = o2")]
         public void ObviouslyFails(string expr)
         {
-            Assert.Throws<FunParseException>(()=> Interpreter.BuildOrThrow(expr));
+            Assert.Throws<FunParseException>(()=> Fun.BuildDefault(expr));
         }
        
 

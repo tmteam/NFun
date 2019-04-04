@@ -44,7 +44,7 @@ namespace Funny.Tests
         [TestCase( @"f(x:int):int = x*x y = 4.f() == f(4)",true)]
         public void ConstantTest(string expr, object expected)
         {
-            var runtime = Interpreter.BuildOrThrow(expr);
+            var runtime = Fun.BuildDefault(expr);
             runtime.Calculate()
                 .AssertReturns(Var.New("y", expected));
         }
@@ -65,7 +65,7 @@ namespace Funny.Tests
         {
             try
             {
-                Interpreter.BuildOrThrow(expr);
+                Fun.BuildDefault(expr);
                 Assert.Fail("No parse error");
             }
             catch (FunParseException e){}

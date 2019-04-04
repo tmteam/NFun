@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using NFun.BuiltInFunctions;
 using NFun.Interpritation;
 using NFun.Interpritation.Functions;
@@ -7,13 +9,67 @@ using NFun.Tokenization;
 
 namespace NFun
 {
-    public static class Interpreter
+    public  class Fun
     {
-        public static FunRuntime BuildOrThrow(string text)
+        private readonly string _text;
+
+        public static Fun Of(string text) => new Fun(text);
+
+        private Fun(string text)
         {
-            var flow = Tokenizer.ToFlow(text);
+            _text = text;
+        }
+
+        readonly List<FunctionBase> _functions = new List<FunctionBase>();
+        readonly List<GenericFunctionBase> _genericFunctions= new List<GenericFunctionBase>();
+        public Fun WithFunctions(params FunctionBase[] functions)
+        {
+            _functions.AddRange(functions);
+            return this;
+        }
+        public Fun WithFunctions(params GenericFunctionBase[] functions)
+        {
+            _genericFunctions.AddRange(functions);
+            return this;
+        }
+
+        public FunRuntime Build()
+        {
+            var flow = Tokenizer.ToFlow(_text);
             var lexTree =    Parser.Parse(flow);
-            var predefinedfunctions = new FunctionBase[]
+             
+            return ExpressionReader.Interpritate(lexTree, _functions.Concat(Fun.PredefinedFunctions), _genericFunctions.Concat(Fun.predefinedGenerics));
+        }
+        public static IEnumerable<FunctionBase> PredefinedFunctions => _predefinedFunctions;
+        public static IEnumerable<GenericFunctionBase> PredefinedGenericFunctions => predefinedGenerics;
+
+        internal static readonly GenericFunctionBase[] predefinedGenerics =
+        {
+            new IsInSingleGenericFunctionDefenition(), 
+            new IsInMultipleGenericFunctionDefenition(), 
+            new ReiterateGenericFunctionDefenition(),
+            new UniqueGenericFunctionDefenition(), 
+            new UniteGenericFunctionDefenition(), 
+            new IntersectGenericFunctionDefenition(), 
+            new SubstractArraysGenericFunctionDefenition(), 
+
+            new ConcatArraysGenericFunctionDefenition(), 
+            new SetGenericFunctionDefenition(),
+            new GetGenericFunctionDefenition(),
+            new SliceGenericFunctionDefenition(), 
+            new SliceWithStepGenericFunctionDefenition(), 
+            new FoldGenericFunctionDefenition(),
+            new TakeGenericFunctionDefenition(),
+            new SkipGenericFunctionDefenition(),
+            new ConcatGenericFunctionDefenition(),
+            new RepeatGenericFunctionDefenition(),
+            new FilterGenericFunctionDefenition(),
+            new MapGenericFunctionDefenition(),
+            new AllGenericFunctionDefenition(), 
+            new AnyGenericFunctionDefenition(), 
+            new ReverseGenericFunctionDefenition(),
+        };
+        internal static readonly FunctionBase[] _predefinedFunctions = 
             {
                 new InvertFunction(), 
                 new AndFunction(), 
@@ -106,34 +162,7 @@ namespace NFun
                 new RangeWithStepIntFunction(),
                 new RangeWithStepRealFunction(),
             };
-            var predefinedGenerics = new GenericFunctionBase[]
-            {
-                new IsInSingleGenericFunctionDefenition(), 
-                new IsInMultipleGenericFunctionDefenition(), 
-                new ReiterateGenericFunctionDefenition(),
-                new UniqueGenericFunctionDefenition(), 
-                new UniteGenericFunctionDefenition(), 
-                new IntersectGenericFunctionDefenition(), 
-                new SubstractArraysGenericFunctionDefenition(), 
-
-                new ConcatArraysGenericFunctionDefenition(), 
-                new SetGenericFunctionDefenition(),
-                new GetGenericFunctionDefenition(),
-                new SliceGenericFunctionDefenition(), 
-                new SliceWithStepGenericFunctionDefenition(), 
-                new FoldGenericFunctionDefenition(),
-                new TakeGenericFunctionDefenition(),
-                new SkipGenericFunctionDefenition(),
-                new ConcatGenericFunctionDefenition(),
-                new RepeatGenericFunctionDefenition(),
-                new FilterGenericFunctionDefenition(),
-                new MapGenericFunctionDefenition(),
-                new AllGenericFunctionDefenition(), 
-                new AnyGenericFunctionDefenition(), 
-                new ReverseGenericFunctionDefenition(),
-            };
-            return ExpressionReader.Interpritate(lexTree, predefinedfunctions, predefinedGenerics);
-        }
+        public static FunRuntime BuildDefault(string text)
+            => Fun.Of(text).Build();
     }
-    
 }

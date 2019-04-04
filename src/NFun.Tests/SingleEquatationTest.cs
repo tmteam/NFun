@@ -49,7 +49,7 @@ namespace Funny.Tests
         [TestCase("y = ~0xFFFFFFFF",0)]
         public void NumbersConstantEquation(string expr, object expected)
         {
-            var runtime = Interpreter.BuildOrThrow(expr);
+            var runtime = Fun.BuildDefault(expr);
             var res = runtime.Calculate();
             Assert.AreEqual(1, res.Results.Length);
             Assert.AreEqual(expected, res.Results.First().Value);
@@ -64,7 +64,7 @@ namespace Funny.Tests
         [TestCase("y(x) = x*2 \r y(3.0)  \r z(j) = j*j",6.0)]
         public void AnonymousExpressionConstantEquatation(string expr, object expected)
         {
-            var runtime = Interpreter.BuildOrThrow(expr);
+            var runtime = Fun.BuildDefault(expr);
             runtime.Calculate().AssertReturns(Var.New("out", expected));
         }
         
@@ -80,7 +80,7 @@ namespace Funny.Tests
         [TestCase("y = 'arr: '+ [[1,2],[3]]", "arr: [[1,2],[3]]")]
         public void TextConstantEquation(string expr, string expected)
         {
-            var runtime = Interpreter.BuildOrThrow(expr);
+            var runtime = Fun.BuildDefault(expr);
             var res = runtime.Calculate();
             Assert.AreEqual(1, res.Results.Length);
             Assert.AreEqual(expected, res.Results.First().Value);
@@ -124,7 +124,7 @@ namespace Funny.Tests
 
         public void DiscreeteConstantEquataion(string expr, bool expected)
         {
-            var runtime = Interpreter.BuildOrThrow(expr);
+            var runtime = Fun.BuildDefault(expr);
             runtime.Calculate()
                 .AssertReturns(new Var("y", expected, VarType.Bool));
         }
@@ -152,7 +152,7 @@ namespace Funny.Tests
         [TestCase("y = x/0.2",1,5)]
         public void SingleVariableEquation(string expr, double arg, double expected)
         {
-            var runtime = Interpreter.BuildOrThrow(expr);
+            var runtime = Fun.BuildDefault(expr);
             runtime.Calculate(Var.New("x",arg))
                 .AssertReturns(0.00001, Var.New("y", expected));
         }
@@ -165,7 +165,7 @@ namespace Funny.Tests
         [TestCase("y(x) = x*2 \r y(x) * y(4.0)",3.0, 48.0)]
         public void AnonymousExpressionSingleVariableEquatation(string expr, double arg, object expected)
         {
-            var runtime = Interpreter.BuildOrThrow(expr);
+            var runtime = Fun.BuildDefault(expr);
             runtime.Calculate(Var.New("x", arg)).AssertReturns(Var.New("out", expected));
         }
         [TestCase("y = ()")]
@@ -226,7 +226,7 @@ namespace Funny.Tests
         [TestCase("=x*2")]
         public void ObviouslyFails(string expr) =>
             Assert.Throws<FunParseException>(
-                ()=> Interpreter.BuildOrThrow(expr));
+                ()=> Fun.BuildDefault(expr));
 
         [TestCase("y = x1+x2",2,3,5)]
         [TestCase("y = 2*x1*x2",3,6, 36)]
@@ -234,7 +234,7 @@ namespace Funny.Tests
         [TestCase("y = (x1+x2)/4",2,2,1)]
         public void TwoVariablesEquation(string expr, double arg1, double arg2, double expected)
         {
-            var runtime = Interpreter.BuildOrThrow(expr);
+            var runtime = Fun.BuildDefault(expr);
             var res = runtime.Calculate(
                 Var.New("x1", arg1),
                 Var.New("x2", arg2));
@@ -249,7 +249,7 @@ namespace Funny.Tests
         [TestCase("y = in1/2 + (in2*in3)",new []{"in1","in2", "in3"})]
         public void InputVarablesListIsCorrect(string expr, string[] inputNames)
         {
-            var runtime = Interpreter.BuildOrThrow(expr);
+            var runtime = Fun.BuildDefault(expr);
             var inputs = inputNames.Select(i => new VarInfo(false, VarType.Real, i)).ToArray();
             
             CollectionAssert.AreEquivalent(inputs, runtime.Inputs);
@@ -263,7 +263,7 @@ namespace Funny.Tests
         [TestCase("x:bool \r z:bool \r y = x and z","y", BaseVarType.Bool)]
         public void OutputVarablesListIsCorrect(string expr, string output, BaseVarType type)
         {
-            var runtime = Interpreter.BuildOrThrow(expr);
+            var runtime = Fun.BuildDefault(expr);
                         
             CollectionAssert.AreEquivalent(
                 new[]{new VarInfo(true, VarType.PrimitiveOf(type), output)}, 
