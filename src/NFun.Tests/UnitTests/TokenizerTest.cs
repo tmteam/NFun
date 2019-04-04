@@ -12,7 +12,7 @@ namespace Funny.Tests.UnitTests
         [TestCase("x and y", TokType.Id, TokType.And,          TokType.Id)]
         [TestCase("x or y",  TokType.Id, TokType.Or,           TokType.Id)]
         [TestCase("x xor y", TokType.Id, TokType.Xor,          TokType.Id)]
-        [TestCase("x <> y",  TokType.Id, TokType.NotEqual,     TokType.Id)]
+        [TestCase("x != y",  TokType.Id, TokType.NotEqual,     TokType.Id)]
         [TestCase("x < y",   TokType.Id, TokType.Less,         TokType.Id)]
         [TestCase("x <= y",  TokType.Id, TokType.LessOrEqual,  TokType.Id)]
         [TestCase("x > y",   TokType.Id, TokType.More,         TokType.Id)]
@@ -23,7 +23,7 @@ namespace Funny.Tests.UnitTests
         [TestCase("o = a and b",  TokType.Id, TokType.Def, TokType.Id, TokType.And,TokType.Id)]
         [TestCase("o = a == b",TokType.Id, TokType.Def, TokType.Id, TokType.Equal,TokType.Id)]
         [TestCase("o = a + b",    TokType.Id, TokType.Def, TokType.Id, TokType.Plus,TokType.Id)]
-        [TestCase("o = a <> b",TokType.Id, TokType.Def, TokType.Id, TokType.NotEqual,TokType.Id)]
+        [TestCase("o = a != b",TokType.Id, TokType.Def, TokType.Id, TokType.NotEqual,TokType.Id)]
         [TestCase("o = if a>b then 1 else x",
                                 TokType.Id, TokType.Def, 
                                 TokType.If, TokType.Id, TokType.More, TokType.Id, 

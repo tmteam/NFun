@@ -150,8 +150,6 @@ namespace NFun.Tokenization
                     return Tok.New(TokType.LessOrEqual, position + 2);
                 case '<' when  next == '<':
                     return Tok.New(TokType.BitShiftLeft, position + 2);
-                case '<' when next == '>':
-                    return Tok.New(TokType.NotEqual, position+2);
                 case '<':
                     return Tok.New(TokType.Less, position+1);
                 case '=' when next == '=':
@@ -164,6 +162,8 @@ namespace NFun.Tokenization
                     return Tok.New(TokType.TwoDots, position+2);
                 case '.':
                     return Tok.New(TokType.PipeForward, position+1);
+                case '!' when next == '=':
+                    return Tok.New(TokType.NotEqual, position+2);
                 default:
                     return null;
             }

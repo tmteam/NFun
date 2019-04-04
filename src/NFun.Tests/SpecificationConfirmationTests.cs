@@ -24,7 +24,7 @@ namespace Funny.Tests
         [TestCase(5.0, "y = x.sum(3)", "y", 8.0)]
         [TestCase(1.0, "y = x == 0","y", false)]
         [TestCase(0.0, "x==0","out", true)]
-        [TestCase(0.1, "y = x <> 0","y", true)]
+        [TestCase(0.1, "y = x != 0","y", true)]
         [TestCase(1.0, "y = not (x == 0)","y", true)]
         [TestCase(1.0, "if x == 0 then 0 else 1","out", 1)]
         [TestCase(55.5, "y = if x < 0 then 0 else x","y", 55.5)]

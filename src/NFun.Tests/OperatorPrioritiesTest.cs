@@ -8,23 +8,23 @@ namespace Funny.Tests
     [TestFixture]
     public class OperatorPrioritiesTest
     {
-        [TestCase("y=(x1<>0) and (x2<>0) ==  (x3<>0)","y=(x1<>0) and ((x2<>0)==(x3<>0))")]
-        [TestCase("y=(x1<>0) ==  (x2<>0) and (x3<>0)","y=((x1<>0)==(x2<>0)) and (x3<>0)")]
+        [TestCase("y=(x1!=0) and (x2!=0) ==  (x3!=0)","y=(x1!=0) and ((x2!=0)==(x3!=0))")]
+        [TestCase("y=(x1!=0) ==  (x2!=0) and (x3!=0)","y=((x1!=0)==(x2!=0)) and (x3!=0)")]
 
-        [TestCase("y=(x1<>0) and (x2<>0) or  (x3<>0)","y=((x1<>0) and (x2<>0)) or (x3<>0)")]
-        [TestCase("y=(x1<>0) or  (x2<>0) and (x3<>0)","y=(x1<>0) or ((x2<>0) and (x3<>0))")]
+        [TestCase("y=(x1!=0) and (x2!=0) or  (x3!=0)","y=((x1!=0) and (x2!=0)) or (x3!=0)")]
+        [TestCase("y=(x1!=0) or  (x2!=0) and (x3!=0)","y=(x1!=0) or ((x2!=0) and (x3!=0))")]
         
-        [TestCase("y=(x1<>0)  <> (x2<>0)  or (x3<>0)","y=((x1<>0)<>(x2<>0)) or (x3<>0)")]
-        [TestCase("y=(x1<>0)  or (x2<>0)  <> (x3<>0)","y=(x1<>0) or ((x2<>0)<>(x3<>0))")]
+        [TestCase("y=(x1!=0)  != (x2!=0)  or (x3!=0)","y=((x1!=0)!=(x2!=0)) or (x3!=0)")]
+        [TestCase("y=(x1!=0)  or (x2!=0)  != (x3!=0)","y=(x1!=0) or ((x2!=0)!=(x3!=0))")]
 
-        [TestCase("y=(x1<>0)  <> (x2<>0) and (x3<>0)","y=((x1<>0)<>(x2<>0)) and (x3<>0)")]
-        [TestCase("y=(x1<>0) and (x2<>0)  <> (x3<>0)","y=(x1<>0) and ((x2<>0)<>(x3<>0))")]
+        [TestCase("y=(x1!=0)  != (x2!=0) and (x3!=0)","y=((x1!=0)!=(x2!=0)) and (x3!=0)")]
+        [TestCase("y=(x1!=0) and (x2!=0)  != (x3!=0)","y=(x1!=0) and ((x2!=0)!=(x3!=0))")]
 
-        [TestCase("y=(x1<>0)  == (x2<>0) or  (x3<>0)","y=((x1<>0)==(x2<>0)) or  (x3<>0)")]
-        [TestCase("y=(x1<>0)  or (x2<>0)  == (x3<>0)","y=(x1<>0)  or ((x2<>0)==(x3<>0))")]
+        [TestCase("y=(x1!=0)  == (x2!=0) or  (x3!=0)","y=((x1!=0)==(x2!=0)) or  (x3!=0)")]
+        [TestCase("y=(x1!=0)  or (x2!=0)  == (x3!=0)","y=(x1!=0)  or ((x2!=0)==(x3!=0))")]
         
-        [TestCase("y=(x1<>0)  == (x2<>0) <>  (x3<>0)","y=((x1<>0)==(x2<>0)) <>  (x3<>0)")]
-        [TestCase("y=(x1<>0)  <> (x2<>0)  == (x3<>0)","y=((x1<>0)<>(x2<>0))  == (x3<>0)")]
+        [TestCase("y=(x1!=0)  == (x2!=0) !=  (x3!=0)","y=((x1!=0)==(x2!=0)) !=  (x3!=0)")]
+        [TestCase("y=(x1!=0)  != (x2!=0)  == (x3!=0)","y=((x1!=0)!=(x2!=0))  == (x3!=0)")]
 
         
         public void DiscreetePriorities(string actualExpr, string expectedExpr)
