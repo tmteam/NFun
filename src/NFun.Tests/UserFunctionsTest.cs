@@ -30,7 +30,7 @@ namespace Funny.Tests
         [TestCase("arr(a:text[]):text[] = a@a \r  y = arr(['qwe','rty'])",new[]{"qwe","rty","qwe","rty"})]
         public void TypedConstantEquation_NonRecursiveFunction(string expr, object expected)
         {
-            var runtime = Fun.BuildDefault(expr);
+            var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate().AssertReturns(Var.New("y", expected));
         }
         
@@ -43,14 +43,14 @@ namespace Funny.Tests
         [TestCase("div2(a,b) = a/b  \r div3(a,b,c) = div2(a,b)/c\r y = div3(16,4,2)",2)]
         public void ConstantEquation_NonRecursiveFunction(string expr, double expected)
         {
-            var runtime = Fun.BuildDefault(expr);
+            var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate().AssertReturns(0.00001, Var.New("y", expected));
         }
 
         [TestCase("plus3(a,b,c) = plus2(a,b)+c \r plus2(a,b) = a+b  \r y = plus3(16,4,2)",22)]
         public void ConstantEquation_ReversedImplementationsOfFunctions(string expr, double expected)
         {
-            var runtime = Fun.BuildDefault(expr);
+            var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate().AssertReturns(0.00001, Var.New("y", expected));
         }
         
@@ -61,7 +61,7 @@ namespace Funny.Tests
             "fact(a) = if a<2 then 1 else a*fact(a-1) \r y = fact(5)",5*4*3*2*1)]
         public void ConstantEquation_RecFunctions(string expr, double expected)
         {
-            var runtime = Fun.BuildDefault(expr);
+            var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate().AssertReturns(0.00001, Var.New("y", expected));
         }
         [Test]
@@ -80,7 +80,7 @@ namespace Funny.Tests
         arr = mytostr([1,2,3])    
 ";
             
-            var runtime = Fun.BuildDefault(text);
+            var runtime = FunBuilder.BuildDefault(text);
             runtime.Calculate()
                 .AssertReturns(Var.New("r", "real: 1"),
                                Var.New("i", "int: 2"),
@@ -106,7 +106,7 @@ namespace Funny.Tests
                     
                    fib(n) = if n<3 then 1 else fibrec(n-1,2,1,1)
                    y = fib(x)";
-            var runtime = Fun.BuildDefault(text);
+            var runtime = FunBuilder.BuildDefault(text);
                 runtime.Calculate(Var.New("x",x)).AssertReturns(0.00001, Var.New("y", y));    
         }
         
@@ -125,7 +125,7 @@ namespace Funny.Tests
                 @"  
                    fib(n) = if n<3 then 1 else fib(n-1)+fib(n-2)
                    y = fib(x)";
-            var runtime = Fun.BuildDefault(text);
+            var runtime = FunBuilder.BuildDefault(text);
             runtime.Calculate(Var.New("x",x)).AssertReturns(0.00001, Var.New("y", y));    
         }
         [TestCase(1,1)]
@@ -139,7 +139,7 @@ namespace Funny.Tests
                    fib(n:int):int = if n<3 then 1 else fib(n-1)+fib(n-2)
                    x:int
                    y = fib(x)";
-            var runtime = Fun.BuildDefault(text);
+            var runtime = FunBuilder.BuildDefault(text);
             runtime.Calculate(Var.New("x",x)).AssertReturns(Var.New("y", y));    
         }
         
@@ -149,7 +149,7 @@ namespace Funny.Tests
         public void StackOverflow_throws_FunStackOverflow(string text)
         {
             Assert.Throws<FunStackoverflowException>(
-                () => Fun.BuildDefault(text).Calculate());
+                () => FunBuilder.BuildDefault(text).Calculate());
         }
 
         [TestCase("y(1)=1")]
@@ -192,12 +192,12 @@ namespace Funny.Tests
         [TestCase("f(x*2) = 12.0 \r y = f(3)")]
         [TestCase("f(x*2) = 12.0")]
         public void ObviousFails(string expr){
-            Assert.Throws<FunParseException>(()=>Fun.BuildDefault(expr));
+            Assert.Throws<FunParseException>(()=>FunBuilder.BuildDefault(expr));
         }
         [TestCase("y(x):real= \"vasa\"")]
 
         public void ObviousFailsWithTypeCast(string expr){
-            Assert.Throws<OutpuCastFunParseException>(()=>Fun.BuildDefault(expr));
+            Assert.Throws<OutpuCastFunParseException>(()=>FunBuilder.BuildDefault(expr));
         }
 
     }

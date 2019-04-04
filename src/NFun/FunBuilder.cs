@@ -9,25 +9,25 @@ using NFun.Tokenization;
 
 namespace NFun
 {
-    public  class Fun
+    public  class FunBuilder
     {
         private readonly string _text;
 
-        public static Fun Of(string text) => new Fun(text);
+        public static FunBuilder With(string text) => new FunBuilder(text);
 
-        private Fun(string text)
+        private FunBuilder(string text)
         {
             _text = text;
         }
 
         readonly List<FunctionBase> _functions = new List<FunctionBase>();
         readonly List<GenericFunctionBase> _genericFunctions= new List<GenericFunctionBase>();
-        public Fun WithFunctions(params FunctionBase[] functions)
+        public FunBuilder WithFunctions(params FunctionBase[] functions)
         {
             _functions.AddRange(functions);
             return this;
         }
-        public Fun WithFunctions(params GenericFunctionBase[] functions)
+        public FunBuilder WithFunctions(params GenericFunctionBase[] functions)
         {
             _genericFunctions.AddRange(functions);
             return this;
@@ -38,7 +38,7 @@ namespace NFun
             var flow = Tokenizer.ToFlow(_text);
             var lexTree =    Parser.Parse(flow);
              
-            return ExpressionReader.Interpritate(lexTree, _functions.Concat(Fun.PredefinedFunctions), _genericFunctions.Concat(Fun.predefinedGenerics));
+            return ExpressionReader.Interpritate(lexTree, _functions.Concat(FunBuilder.PredefinedFunctions), _genericFunctions.Concat(FunBuilder.predefinedGenerics));
         }
         public static IEnumerable<FunctionBase> PredefinedFunctions => _predefinedFunctions;
         public static IEnumerable<GenericFunctionBase> PredefinedGenericFunctions => predefinedGenerics;
@@ -163,6 +163,6 @@ namespace NFun
                 new RangeWithStepRealFunction(),
             };
         public static FunRuntime BuildDefault(string text)
-            => Fun.Of(text).Build();
+            => FunBuilder.With(text).Build();
     }
 }

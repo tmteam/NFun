@@ -82,7 +82,7 @@ y = tostring(x)","y", "not supported")]
 
         public void Real_SingleEquationWithSingleInput(object xVal, string expression, string outputName, object outputValue)
         {
-            var runtime = Fun.BuildDefault(expression);
+            var runtime = FunBuilder.BuildDefault(expression);
             Assert.AreEqual(1, runtime.Inputs.Length);
             Assert.AreEqual(1, runtime.Outputs.Length);
             runtime.Calculate(Var.New("x", xVal))
@@ -142,7 +142,7 @@ y = tostring(x)","y", "not supported")]
         [TestCase("y = [1..4].fold((i:int,j:int)=>if i>j then i else j)#4.Аналог max", "y", 4)]
         public void Constant(string expr, string ouputName, object val)
         {
-            var runtime = Fun.BuildDefault(expr);
+            var runtime = FunBuilder.BuildDefault(expr);
             Assert.AreEqual(0, runtime.Inputs.Length);
             Assert.AreEqual(1, runtime.Outputs.Length);
             runtime.Calculate()
@@ -161,7 +161,7 @@ x-
     10
 
 ";
-            var runtime = Fun.BuildDefault(expr);
+            var runtime = FunBuilder.BuildDefault(expr);
             Assert.AreEqual(1, runtime.Inputs.Length);
             Assert.AreEqual(1, runtime.Outputs.Length);
             runtime.Calculate(Var.New("x", 2.5))
@@ -175,7 +175,7 @@ x-
             var expr = @"
 sum = x1+x2
 dif = x1-x2";
-            var runtime = Fun.BuildDefault(expr);
+            var runtime = FunBuilder.BuildDefault(expr);
             Assert.AreEqual(2, runtime.Inputs.Length);
             Assert.AreEqual(2, runtime.Outputs.Length);
             runtime.Calculate(Var.New("x1",10.0),Var.New("x2",2.5))
@@ -188,7 +188,7 @@ dif = x1-x2";
 y1 = (-b + d**0.5) /2*a #Используется d
 d  = b**2 - 4*a*c
 y2 = (-b - d**0.5) /2*a #используется d";
-            var runtime = Fun.BuildDefault(expr);
+            var runtime = FunBuilder.BuildDefault(expr);
             Assert.AreEqual(3, runtime.Inputs.Length);
             Assert.AreEqual(3, runtime.Outputs.Length);
             runtime.Calculate(
@@ -211,7 +211,7 @@ y2 = x1 and true # == x1
 y3 = x1 == false 
 y4 = not(x1 and x2 or x3)
 ";
-            var runtime = Fun.BuildDefault(expr);
+            var runtime = FunBuilder.BuildDefault(expr);
             Assert.AreEqual(3, runtime.Inputs.Length);
             Assert.AreEqual(4, runtime.Outputs.Length);
             runtime.Calculate(
@@ -235,7 +235,7 @@ y4 = not(x1 and x2 or x3)
         [TestCase("y = 'hi '+ u #text", BaseVarType.Text)]
         public void Single_Equation_OutputTypeTest(string expression, BaseVarType primitiveType)
         {
-            var runtime = Fun.BuildDefault(expression);
+            var runtime = FunBuilder.BuildDefault(expression);
             Assert.AreEqual(1, runtime.Outputs.Length);
             var output = runtime.Outputs[0];
             Assert.AreEqual(primitiveType, output.Type.BaseType);

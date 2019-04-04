@@ -16,8 +16,8 @@ namespace Funny.Tests
         {
             string customName = "lenofstr";
             string arg = "some very good string";
-            var runtime = Fun
-                .Of($"y = {customName}('{arg}')")
+            var runtime = FunBuilder
+                .With($"y = {customName}('{arg}')")
                 .WithFunctions(
                 new FunctionMock(
                     args => ((string)args[0]).Length, 
@@ -35,15 +35,16 @@ namespace Funny.Tests
         public void CustomGenericFunction_EachSecond_WorksFine(string arg, object expected)
         {
             string customName = "each_second";
-            var runtime = Fun
-                .Of($"y = {customName}({arg})")
+            var runtime = FunBuilder
+                .With($"y = {customName}({arg})")
                 .WithFunctions(
                     new GenericFunctionMock(
                         args => FunArray.By(((FunArray) args[0])
                             .Where((_, i) => i % 2 == 0)), 
                         customName, 
                         VarType.ArrayOf(VarType.Generic(0)),
-                        VarType.ArrayOf(VarType.Generic(0)))).Build();
+                        VarType.ArrayOf(VarType.Generic(0))))
+                .Build();
             runtime.Calculate().AssertReturns(Var.New("y", expected));
         }
         

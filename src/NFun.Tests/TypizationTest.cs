@@ -75,7 +75,7 @@ namespace Funny.Tests
         public void SingleEquation_OutputTypeCalculatesCorrect(string expr, BaseVarType type)
         {
             
-            var runtime = Fun.BuildDefault(expr);
+            var runtime = FunBuilder.BuildDefault(expr);
             var res = runtime.Calculate();
             Assert.AreEqual(1, res.Results.Length);
             Assert.AreEqual(VarType.PrimitiveOf(type), res.Results.First().Type);
@@ -109,7 +109,7 @@ namespace Funny.Tests
 
         public void TwinEquations_OutputTypesCalculateCorrect(string expr, BaseVarType ytype,BaseVarType ztype)
         {
-            var runtime = Fun.BuildDefault(expr);
+            var runtime = FunBuilder.BuildDefault(expr);
             var res = runtime.Calculate();
             var y = res.Get("y");
             Assert.AreEqual(y.Type,VarType.PrimitiveOf(ytype),"y");
@@ -119,7 +119,7 @@ namespace Funny.Tests
         
         public void ObviouslyFailsWithOutputCast(string expr) =>
             Assert.Throws<OutpuCastFunParseException>(
-                ()=> Fun.BuildDefault(expr));
+                ()=> FunBuilder.BuildDefault(expr));
         
         [TestCase("x:foo\r y= x and true")]        
         [TestCase("x::foo\r y= x and true")]       
@@ -140,7 +140,7 @@ namespace Funny.Tests
         [TestCase("x:real \r y = [1..10][::x]")]
         public void ObviouslyFailsWithParse(string expr) =>
             Assert.Throws<FunParseException>(
-                ()=> Fun.BuildDefault(expr));
+                ()=> FunBuilder.BuildDefault(expr));
         
         [TestCase(new []{1,2},    "x:int[]\r y= x", new []{1,2})]        
         [TestCase(new []{1,2},    "x:int[]\r y= x@x", new []{1,2,1,2})]
@@ -156,7 +156,7 @@ namespace Funny.Tests
 
         public void SingleInputTypedEquation(object x,  string expr, object y)
         {
-            var runtime = Fun.BuildDefault(expr);
+            var runtime = FunBuilder.BuildDefault(expr);
             var res = runtime.Calculate(Var.New("x", x));
             Assert.AreEqual(1, res.Results.Length);
             Assert.AreEqual(y, res.Results.First().Value);

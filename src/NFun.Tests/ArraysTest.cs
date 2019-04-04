@@ -66,7 +66,7 @@ namespace Funny.Tests
 
         public void ConstantArrayOperatorsTest(string expr, object expected)
         {
-            Fun.BuildDefault(expr).Calculate().AssertReturns(Var.New("y", expected));
+            FunBuilder.BuildDefault(expr).Calculate().AssertReturns(Var.New("y", expected));
         }
         [TestCase("y = [1.0,a,b] a = 2.0 \r b=3.0 \r ", new[]{1.0,2.0,3.0})]
         [TestCase("y = [a,b] a = 2.0 \r b=3.0 \r ", new[]{2.0,3.0})]
@@ -76,7 +76,7 @@ namespace Funny.Tests
         [TestCase("y = if a then [1.0] else [2.0, 3.0] \r a = false  ", new[]{2.0,3.0})]
         public void ConstantCalculableArrayTest(string expr, object expected)
         {
-            Fun.BuildDefault(expr).Calculate().AssertHas(Var.New("y", expected));
+            FunBuilder.BuildDefault(expr).Calculate().AssertHas(Var.New("y", expected));
         }
         
         [Test]
@@ -85,7 +85,7 @@ namespace Funny.Tests
             var expression = "y = [[1.0,2.0],[3.0,4.0],[5.0]] . intersect ([[3.0,4.0],[1.0],[5.0],[4.0]])";
             var expected = new[] {new [] {3.0, 4.0},new[]{5.0}};
 
-            Fun.BuildDefault(expression).Calculate().AssertReturns(Var.New("y", expected));
+            FunBuilder.BuildDefault(expression).Calculate().AssertReturns(Var.New("y", expected));
         }
         [Test]
         public void ExceptToDimArrayTest()
@@ -93,7 +93,7 @@ namespace Funny.Tests
             var expression = "y = [[1.0,2.0],[3.0,4.0]]. except([[3.0,4.0],[1.0],[4.0]])";
             var expected = new[] {new [] {1.0, 2.0}};
 
-            Fun.BuildDefault(expression).Calculate().AssertReturns(Var.New("y", expected));
+            FunBuilder.BuildDefault(expression).Calculate().AssertReturns(Var.New("y", expected));
         }
         
         [Test]
@@ -107,7 +107,7 @@ namespace Funny.Tests
             var expectedType = VarType.ArrayOf(VarType.ArrayOf(VarType.Int));
             var expression = " y= [[1,2],[3,4],[5]]";
             
-            var runtime = Fun.BuildDefault(expression);
+            var runtime = FunBuilder.BuildDefault(expression);
             var res = runtime.Calculate().Get("y");
             Assert.AreEqual(expectedType, res.Type);
             AssertMultiDimentionalEquals(res, expected);
@@ -123,7 +123,7 @@ namespace Funny.Tests
             var expectedType = VarType.ArrayOf(VarType.ArrayOf(VarType.Int));
             var expression = " y= [[1,2],[3,4]]@[[5]]";
             
-            var runtime = Fun.BuildDefault(expression);
+            var runtime = FunBuilder.BuildDefault(expression);
             var res = runtime.Calculate().Get("y");
             Assert.AreEqual(expectedType, res.Type);
             AssertMultiDimentionalEquals(res, expected);
@@ -140,7 +140,7 @@ namespace Funny.Tests
             var expectedOutput = x;
             var expression = "x:int[][]\r y= x";
             
-            var runtime = Fun.BuildDefault(expression);
+            var runtime = FunBuilder.BuildDefault(expression);
             var res = runtime.Calculate(Var.New("x", x)).Get("y");
             Assert.AreEqual(expectedType, res.Type);
             AssertMultiDimentionalEquals(res, expectedOutput);
@@ -164,7 +164,7 @@ namespace Funny.Tests
 
             var expression = "x:int[][]\r y= x@x";
             
-            var runtime = Fun.BuildDefault(expression);
+            var runtime = FunBuilder.BuildDefault(expression);
             var res = runtime.Calculate(Var.New("x", x)).Get("y");
             Assert.AreEqual(expectedType, res.Type);
             AssertMultiDimentionalEquals(res, expectedOutput);
@@ -209,7 +209,7 @@ namespace Funny.Tests
         [TestCase("y = [1..")]
         public void ObviouslyFailsOnParse(string expr) =>
             Assert.Throws<FunParseException>(
-                ()=> Fun.BuildDefault(expr));
+                ()=> FunBuilder.BuildDefault(expr));
         [TestCase("y = [1..2..-2]")]
         [TestCase("y = [1..2..0]")]
         [TestCase("y = [4..1..-2]")]
@@ -221,6 +221,6 @@ namespace Funny.Tests
         [TestCase("y = ['a','b'][2]")]
         public void ObviouslyFailsOnRuntime(string expr) =>
             Assert.Throws<FunRuntimeException>(
-                ()=> Fun.BuildDefault(expr).Calculate());
+                ()=> FunBuilder.BuildDefault(expr).Calculate());
     }
 }

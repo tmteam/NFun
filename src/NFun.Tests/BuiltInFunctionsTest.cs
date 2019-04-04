@@ -112,7 +112,7 @@ namespace Funny.Tests
 
         public void ConstantEquationWithPredefinedFunction(string expr, object expected)
         {
-            var runtime = Fun.BuildDefault(expr);
+            var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate()
                 .AssertReturns(0.00001, Var.New("out", expected));
         }
@@ -137,7 +137,7 @@ namespace Funny.Tests
                      y = map([1,2,3],isodd)",new[]{false, true,false})]
         public void HiOrderFunConstantEquatation(string expr, object expected)
         {
-            var runtime = Fun.BuildDefault(expr);
+            var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate()
                 .AssertReturns(Var.New("y", expected));
         }
@@ -158,7 +158,7 @@ namespace Funny.Tests
         [TestCase( "y = [1.0,2.0,3.0].all((i)=> i >1.0)",false)]
         public void AnonymousFunctions_ConstantEquation(string expr, object expected)
         {
-            var runtime = Fun.BuildDefault(expr);
+            var runtime = FunBuilder.BuildDefault(expr);
             CollectionAssert.IsEmpty(runtime.Inputs,"Unexpected inputs on constant equations");
             runtime.Calculate()
                 .AssertReturns(Var.New("y", expected));
@@ -167,7 +167,7 @@ namespace Funny.Tests
         [TestCase( "x:bool \r y = x and ([1.0,2.0,3.0].all((x)=> x >=1.0))",1.0, true)]
         public void AnonymousFunctions_SingleArgumentEquation(string expr, double arg, object expected)
         {
-            var runtime = Fun.BuildDefault(expr);
+            var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate(Var.New("x", arg))
                 .AssertReturns(0.00001, Var.New("y", expected));
         }
@@ -223,7 +223,7 @@ namespace Funny.Tests
         
         public void ConstantEquationWithGenericPredefinedFunction(string expr, object expected)
         {
-            var runtime = Fun.BuildDefault(expr);
+            var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate()
                 .AssertReturns(0.00001, Var.New("y", expected));
         }
@@ -236,7 +236,7 @@ namespace Funny.Tests
         [TestCase("y = abs(x-4)",1.0,3.0)]
         public void EquationWithPredefinedFunction(string expr, double arg, double expected)
         {
-            var runtime = Fun.BuildDefault(expr);
+            var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate(Var.New("x", arg))
                 .AssertReturns(0.00001, Var.New("y", expected));
         }
@@ -279,7 +279,7 @@ namespace Funny.Tests
         [TestCase( @"y = [1.0,2.0,3.0] . fold((i,j)=> k)")]
         public void ObviouslyFails(string expr) =>
             Assert.Throws<FunParseException>(
-                ()=> Fun.BuildDefault(expr));
+                ()=> FunBuilder.BuildDefault(expr));
         
     }
 }

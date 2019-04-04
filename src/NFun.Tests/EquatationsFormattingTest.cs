@@ -10,7 +10,7 @@ namespace Funny.Tests
         [Test]
         public void SeveralLinesBeforeSingleEquation_Calculates()
         {
-            var runtime = Fun.BuildDefault(
+            var runtime = FunBuilder.BuildDefault(
                 @"
                 
                 y = 1");
@@ -20,7 +20,7 @@ namespace Funny.Tests
         [Test]
         public void SeveralLinesAfterуEqual_Calculates()
         {
-            var runtime = Fun.BuildDefault("y =\r\r 1");
+            var runtime = FunBuilder.BuildDefault("y =\r\r 1");
             runtime.Calculate().AssertReturns(Var.New("y",1));
         }
         
@@ -38,14 +38,14 @@ namespace Funny.Tests
 
         public void SeveralLinesBetweenNodes_Calculates(string expr, int expected)
         {
-            var runtime = Fun.BuildDefault(expr);
+            var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate().AssertReturns(Var.New("y",expected));
         }
         
         [Test]
         public void SeveralLinesAfterSingleEquation_Calculates()
         {
-            var runtime = Fun.BuildDefault(
+            var runtime = FunBuilder.BuildDefault(
                 @"y = 1
 
                 ");
@@ -55,7 +55,7 @@ namespace Funny.Tests
         [Test]
         public void SeveralLinesBetweenEveryStatement_Calculates()
         {
-            var runtime = Fun.BuildDefault(
+            var runtime = FunBuilder.BuildDefault(
                 @"
                     y 
                     
@@ -70,7 +70,7 @@ namespace Funny.Tests
         [Test]
         public void TabulationEverywhere_Calculates()
         {
-            var runtime = Fun.BuildDefault("\t\ty\t\t=\t\t1\t\t");
+            var runtime = FunBuilder.BuildDefault("\t\ty\t\t=\t\t1\t\t");
             runtime.Calculate().AssertReturns(Var.New("y",1));
         }
         

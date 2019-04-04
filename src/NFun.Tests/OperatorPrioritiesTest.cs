@@ -41,12 +41,12 @@ namespace Funny.Tests
             Assert.Multiple(()=>{
                 foreach (var inputs in allCombinations)
                 {
-                    var actual = Fun
+                    var actual = FunBuilder
                         .BuildDefault(actualExpr)
                         .Calculate(inputs)
                         .GetResultOf("y");
 
-                    var expected = Fun
+                    var expected = FunBuilder
                         .BuildDefault(expectedExpr)
                         .Calculate(inputs)
                         .GetResultOf("y");
@@ -77,12 +77,12 @@ namespace Funny.Tests
             Assert.Multiple(()=>{
                 foreach (var inputs in allCombinations)
                 {
-                    var actual = Fun
+                    var actual = FunBuilder
                         .BuildDefault(actualExpr)
                         .Calculate(inputs)
                         .GetResultOf("y");
 
-                    var expected = Fun
+                    var expected = FunBuilder
                         .BuildDefault(expectedExpr)
                         .Calculate(inputs)
                         .GetResultOf("y");
@@ -116,9 +116,9 @@ namespace Funny.Tests
         [TestCase("y = not 3*3>8", "y = not (3*3>8)")]
         public void ConstantCalculationPriorities(string actualExpr, string expectedExpr)
         {
-            var expected = Fun.BuildDefault(expectedExpr).Calculate().Get("y");
+            var expected = FunBuilder.BuildDefault(expectedExpr).Calculate().Get("y");
             
-            Fun
+            FunBuilder
                 .BuildDefault(actualExpr)
                 .Calculate()
                 .AssertReturns(new Var("y", expected.Value, expected.Type));

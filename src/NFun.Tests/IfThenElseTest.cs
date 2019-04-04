@@ -36,7 +36,7 @@ namespace Funny.Tests
                         else 8 	
                     else if x2 == 4 then 9 
                          else 10";
-            var runtime = Fun.BuildDefault(expr);
+            var runtime = FunBuilder.BuildDefault(expr);
                
             runtime.Calculate(
                     Var.New("x1",Convert.ToDouble(x1)),
@@ -54,7 +54,7 @@ namespace Funny.Tests
         [TestCase("y = if 1>2 then 10\r if 1<2 then -10\r else 0", -10)]
         public void ConstantIntEquation(string expr, int expected)
         {
-            var runtime = Fun.BuildDefault(expr);
+            var runtime = FunBuilder.BuildDefault(expr);
             var res = runtime.Calculate();
             Assert.AreEqual(1, res.Results.Length);
             Assert.AreEqual(expected, res.Results.First().Value);
@@ -64,7 +64,7 @@ namespace Funny.Tests
         [TestCase("y = if true then true if false then false else true", true)]
         public void ConstantBoolEquation(string expr, bool expected)
         {
-            var runtime = Fun.BuildDefault(expr);
+            var runtime = FunBuilder.BuildDefault(expr);
             var res = runtime.Calculate();
             Assert.AreEqual(1, res.Results.Length);
             Assert.AreEqual(expected, res.Results.First().Value);
@@ -94,7 +94,7 @@ if x == 2 then 'two'
 else 'not supported' ", 2, "two")]
         public void SingleVariableEquatation(string expression, int x, object expected)
         {
-            Fun.BuildDefault(expression).Calculate(Var.New("x", x))
+            FunBuilder.BuildDefault(expression).Calculate(Var.New("x", x))
                 .AssertReturns(Var.New("out", expected));
         }
         
@@ -107,7 +107,7 @@ else 'not supported' ", 2, "two")]
         [TestCase("y = if 1>2 then 10.0\r if 1<2 then -10.0\r else 0.0", -10.0)]
         public void ConstantRealEquation(string expr, double expected)
         {
-            var runtime = Fun.BuildDefault(expr);
+            var runtime = FunBuilder.BuildDefault(expr);
             var res = runtime.Calculate();
             Assert.AreEqual(1, res.Results.Length);
             Assert.AreEqual(expected, res.Results.First().Value);
@@ -129,14 +129,14 @@ else 'not supported' ", 2, "two")]
         [TestCase("y = else then 3")]
         public void ObviouslyFailsOnParsing(string expr) =>
             Assert.Throws<FunParseException>(
-                ()=> Fun.BuildDefault(expr));
+                ()=> FunBuilder.BuildDefault(expr));
         
         [TestCase("y = if 2>1 then 3 else true")]
         [TestCase("y = if 2>1 then 3 if 2<1 then true else 1")]
         [TestCase("y = if 2>1 then false if 2<1 then true else 1")]
         public void ObviouslyFailsOnOuputCast(string expr) =>
             Assert.Throws<OutpuCastFunParseException>(
-                ()=> Fun.BuildDefault(expr));
+                ()=> FunBuilder.BuildDefault(expr));
         
         
     }
