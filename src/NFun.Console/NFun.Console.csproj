@@ -10,4 +10,8 @@
       <PackageReference Include="NFun" Version="0.0.42" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\NFun\NFun.csproj" />
+    </ItemGroup>
+
 </Project>
