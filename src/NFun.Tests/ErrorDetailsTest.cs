@@ -14,7 +14,20 @@ namespace Funny.Tests
         [TestCase("y = x ","!"," z")]
         [TestCase("y = x + ","123z","")]
         [TestCase("y = ","add(x, y","")]
+        [TestCase("y = ","add(x, y,","")]
+        [TestCase("y = ","add(x, y z)","")]
+        [TestCase("y = ","add(x y z)","")]
+        [TestCase("y = ","add(x y)","")]
+
         [TestCase("y = ","somenotdefinedfunction(x, y)","")]
+        [TestCase("y = ","f(a","")]
+        [TestCase("","(","")]
+        [TestCase("","[1,2,3","")]
+        [TestCase("","[1,2,3,","")]
+        [TestCase("","[1,2,3 4]","")]
+        [TestCase("","[,]","")]
+        [TestCase("","[,2]","")]
+
         public void ErrorPosition(string beforeError, string errorBody, string afterError)
         {
             try
@@ -23,12 +36,18 @@ namespace Funny.Tests
                     .Build();
                 Assert.Fail("Exception was not raised");
             }
-            catch (FunParseException e)
+            catch (FunParseException e) when(e.Start!= -1)
             {
+                Console.WriteLine($"Parse: [FU{e.Code}] {e.Message} [{e.Start},{e.End}]");
                 int start = beforeError.Length;
-                int end = start + errorBody.Length;
-                Assert.AreEqual(start, e.Start);
-                Assert.AreEqual(end, e.End);
+                int end = start + errorBody.Length - 1;
+                if(e.Start>e.End)
+                    Assert.Fail("Start is greater than end");
+                Assert.Multiple(() =>
+                {
+                    Assert.AreEqual(start, e.Start, "start index");
+                    Assert.AreEqual(end, e.End, "end index");
+                });
             }
         }
     }

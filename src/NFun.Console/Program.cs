@@ -47,7 +47,26 @@ namespace Funny
                 }
                 catch (FunParseException e)
                 {
-                    Console.WriteLine($"Error: {e.Message} from {e.Start} to {e.End}");
+                    Console.BackgroundColor = ConsoleColor.Red;
+                    Console.ForegroundColor = ConsoleColor.White;
+                    Console.Write(" ERROR "+ e.Code +" ");
+                    Console.ResetColor();
+                    Console.WriteLine($" {e.Message} from {e.Start} to {e.End}");
+
+                    if (e.End != -1)
+                    {
+                        if (e.Start > 0)
+                            Console.Write(expression.Substring(0, e.Start - 1));
+
+                        Console.BackgroundColor = ConsoleColor.DarkRed;
+                        Console.ForegroundColor = ConsoleColor.White;
+
+                        Console.Write(expression.Substring(e.Start, e.End - e.Start + 1));
+                        Console.ResetColor();
+                        if(expression.Length>e.End)
+                            Console.Write(expression.Substring(e.End+1));
+                        Console.WriteLine();
+                    }
                 }
             }
         }

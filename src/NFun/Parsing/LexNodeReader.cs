@@ -236,7 +236,7 @@ namespace NFun.Parsing
 
                     var rightNode = ReadNext(priority - 1);
                     if (rightNode == null)
-                        throw ErrorFactory.RightBinaryArgumentIsMissing(opToken);
+                        throw ErrorFactory.RightBinaryArgumentIsMissing(leftNode, opToken);
                     
                     //building the tree from the left                    
                     if (OperatorFunNames.ContainsKey(opToken.Type))
@@ -314,9 +314,9 @@ namespace NFun.Parsing
         IList<LexNode> ReadNodeList()
         {
             var list = new List<LexNode>();
+            int start = _flow.Current.Start;
             do
             {
-                int start = _flow.Current.Start;
                 var exp = ReadExpressionOrNull();
                 if (exp != null)
                     list.Add(exp);

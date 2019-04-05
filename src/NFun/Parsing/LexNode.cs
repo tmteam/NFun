@@ -59,7 +59,6 @@ namespace NFun.Parsing
         public LexNodeType Type { get; }
         public string Value { get; }
 
-        public int Finish { get; set; }
         public  IEnumerable<LexNode> Children { get; }
         private string Typename => Type.ToString() + (string.IsNullOrWhiteSpace(Value) ? "" : " " + Value);
         public bool Is(LexNodeType type) => Type == type;

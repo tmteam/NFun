@@ -20,6 +20,8 @@ namespace NFun.Tokenization
         public string Value { get; }
         public TokType Type { get; }
         public int Finish { get;  }
+        public int FinishInString => Type == TokType.Eof ? Finish - 1 : Finish;
+
         public int Start => Finish - Value?.Length??0;
         
         public override string ToString()
