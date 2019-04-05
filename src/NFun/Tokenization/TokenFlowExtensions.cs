@@ -1,3 +1,4 @@
+using NFun.ParseErrors;
 using NFun.Runtime;
 using NFun.Types;
 
@@ -37,6 +38,16 @@ namespace NFun.Tokenization
             }
             return readType;
         }
+        
+        public static bool MoveIf(this TokenFlow flow, TokType tokType)
+        {
+            if (flow.IsCurrent(tokType))
+            {
+                flow.MoveNext();
+                return true;
+            }
+            return false;
+        }
         public static bool MoveIf(this TokenFlow flow, TokType tokType, out Tok tok)
         {
             if (flow.IsCurrent(tokType))
@@ -63,6 +74,14 @@ namespace NFun.Tokenization
             return cur;
         }
 
+        public static (bool,Tok) TryMoveIf(this TokenFlow flow, TokType tokType)
+        {
+            var cur = flow.Current;
+            if (cur?.Is(tokType) != true)
+                return (false, default(Tok));
+            flow.MoveNext();
+            return (true,cur);
+        }
         public static Tok MoveIfOrThrow(this TokenFlow flow, TokType tokType, string error)
         {
             var cur = flow.Current;

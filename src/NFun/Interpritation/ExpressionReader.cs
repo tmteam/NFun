@@ -3,6 +3,7 @@ using System.Linq;
 using NFun.Interpritation.Functions;
 using NFun.Interpritation.Nodes;
 using NFun.LexAnalyze;
+using NFun.ParseErrors;
 using NFun.Parsing;
 using NFun.Runtime;
 using NFun.Types;

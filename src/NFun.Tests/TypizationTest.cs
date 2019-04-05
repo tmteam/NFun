@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using NFun;
+using NFun.ParseErrors;
 using NFun.Runtime;
 using NFun.Types;
 using NUnit.Framework;
@@ -118,7 +119,7 @@ namespace Funny.Tests
         }
         
         public void ObviouslyFailsWithOutputCast(string expr) =>
-            Assert.Throws<OutpuCastFunParseException>(
+            Assert.Throws<OutputCastFunParseException>(
                 ()=> FunBuilder.BuildDefault(expr));
         
         [TestCase("x:foo\r y= x and true")]        

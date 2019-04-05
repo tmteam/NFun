@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using NFun;
+using NFun.ParseErrors;
 using NFun.Runtime;
 using NFun.Types;
 using NUnit.Framework;
@@ -135,7 +136,7 @@ else 'not supported' ", 2, "two")]
         [TestCase("y = if 2>1 then 3 if 2<1 then true else 1")]
         [TestCase("y = if 2>1 then false if 2<1 then true else 1")]
         public void ObviouslyFailsOnOuputCast(string expr) =>
-            Assert.Throws<OutpuCastFunParseException>(
+            Assert.Throws<OutputCastFunParseException>(
                 ()=> FunBuilder.BuildDefault(expr));
         
         

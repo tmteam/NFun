@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using NFun.BuiltInFunctions;
+using NFun.ParseErrors;
 using NFun.Runtime;
 using NFun.Tokenization;
 
@@ -67,7 +68,7 @@ namespace NFun.Parsing
             MaxPriority = priorities.Count - 1;
         }
 
-        private readonly static int MaxPriority;
+        private static readonly int MaxPriority;
 
         private static readonly Dictionary<TokType, byte> Priorities
             = new Dictionary<TokType, byte>();
@@ -119,27 +120,27 @@ namespace NFun.Parsing
             if (_flow.IsCurrent(TokType.Minus))
             {
                 if (_flow.IsPrevious(TokType.Minus))
-                    throw new FunParseException("minus duplicates");
+                    throw ErrorFactory.MinusDuplicates(_flow.Previous, _flow.Current);
 
                 _flow.MoveNext();
                 var nextNode = ReadAtomicOrNull();
                 if (nextNode == null)
-                    throw new FunParseException("minus without next val");
+                    throw ErrorFactory.UnaryArgumentIsMissing(_flow.Current);
                 return LexNode.OperatorFun(CoreFunNames.Multiply,new[]{LexNode.Num("-1"), nextNode});
             }
 
-            if (_flow.MoveIf(TokType.BitInverse, out _))
+            if (_flow.MoveIf(TokType.BitInverse))
             {
                 var node = ReadNext(1);
                 if(node==null)
-                    throw  new FunParseException("expected expression after '~'");
+                    throw ErrorFactory.UnaryArgumentIsMissing(_flow.Current);
                 return LexNode.OperatorFun(CoreFunNames.BitInverse, new []{node});
             }
-            if (_flow.MoveIf(TokType.Not, out _))
+            if (_flow.MoveIf(TokType.Not))
             {
                 var node = ReadNext(5);
                 if(node==null)
-                    throw  new FunParseException("expected expression after 'not'");
+                    throw ErrorFactory.UnaryArgumentIsMissing(_flow.Current);
                 return LexNode.OperatorFun(CoreFunNames.Not, new []{node});
             }
             if (_flow.MoveIf(TokType.True, out var trueTok))
@@ -153,7 +154,7 @@ namespace NFun.Parsing
             if (_flow.MoveIf(TokType.Id, out var headToken))
             {
                 if (_flow.IsCurrent(TokType.Obr))
-                    return ReadFunctionCall(headToken.Value);
+                    return ReadFunctionCall(headToken.Start, headToken.Value);
                 
                 if (_flow.IsCurrent(TokType.Colon))
                 {
@@ -166,7 +167,7 @@ namespace NFun.Parsing
             }
 
             if (_flow.IsCurrent(TokType.Obr))
-                return LexNode.Bracket(ReadBrackedList());
+                return LexNode.Bracket(ReadBrackedListOrNull());
             if (_flow.IsCurrent(TokType.If))
                 return ReadIfThenElse();
             if (_flow.IsCurrent(TokType.ArrOBr))
@@ -180,7 +181,7 @@ namespace NFun.Parsing
             //Lower priority is the special case
             if (priority == 0)
                 return ReadAtomicOrNull();
-            
+
             //starting with left Node
             var leftNode = ReadNext(priority - 1);
 
@@ -194,12 +195,12 @@ namespace NFun.Parsing
                 if (_flow.IsDone)
                     return leftNode;
                 
-                var currentOp = _flow.Current.Type;
+                var opToken = _flow.Current;
                 //if current token is not an operation
                 //than expression is done
                 //example:
                 // 1*2 \r{return expression} y=...
-                if (!Priorities.TryGetValue(currentOp, out var opPriority))
+                if (!Priorities.TryGetValue(opToken.Type, out var opPriority))
                     return leftNode;
                 
                 //if op has higher priority us
@@ -210,19 +211,19 @@ namespace NFun.Parsing
                     return leftNode;
                 
                 if (leftNode == null)
-                    throw new FunParseException($"{currentOp} without left arg");
+                    throw ErrorFactory.LeftBinaryArgumentIsMissing(opToken);
                 
-                if (currentOp == TokType.ArrOBr)
-                {
+                if (opToken.Type == TokType.ArrOBr)
                     leftNode = ReadArraySliceNode(leftNode);
-                }
-                else if (currentOp == TokType.PipeForward)
+                else if (opToken.Type == TokType.PipeForward)
                 {
                     _flow.MoveNext();
-                    var id = _flow.MoveIfOrThrow(TokType.Id,"function name expected");
-                    leftNode =  ReadFunctionCall(id.Value, pipedVal: leftNode);       
+                    var (res, id) = _flow.TryMoveIf(TokType.Id);
+                    if (!res)
+                        ErrorFactory.FunctionNameIsMissedAfterPipeForward(opToken);
+                    leftNode =  ReadFunctionCall(id.Start, id.Value, pipedVal: leftNode);       
                 }
-                else if (currentOp == TokType.AnonymFun)
+                else if (opToken.Type == TokType.AnonymFun)
                 {
                     _flow.MoveNext();
                     var body = ReadExpressionOrNull();       
@@ -235,14 +236,14 @@ namespace NFun.Parsing
 
                     var rightNode = ReadNext(priority - 1);
                     if (rightNode == null)
-                        throw new FunParseException($"{currentOp} without right arg");
+                        throw ErrorFactory.RightBinaryArgumentIsMissing(opToken);
                     
                     //building the tree from the left                    
-
-                    if (OperatorFunNames.ContainsKey(currentOp))
-                        leftNode = LexNode.OperatorFun(OperatorFunNames[currentOp],new[]{leftNode, rightNode});
+                    if (OperatorFunNames.ContainsKey(opToken.Type))
+                        leftNode = LexNode.OperatorFun(OperatorFunNames[opToken.Type],new[]{leftNode, rightNode});
                     else
-                        throw new FunParseException("Unknown operator \""+ currentOp+"\"");
+                        throw ErrorFactory.OperatorIsUnknown(opToken);
+
                     //trace:
                     //ReadNext(priority: 3 ) // *,/,%,AND
                     //0: {start} 4/2*5+1
@@ -260,15 +261,23 @@ namespace NFun.Parsing
 
         private LexNode ReadArraySliceNode(LexNode arrayNode)
         {
+            var openBraket = _flow.Current;
             _flow.MoveNext();
             var index = ReadExpressionOrNull();
             
             if (!_flow.MoveIf(TokType.Colon, out _))
             {
                 if (index == null)
-                    throw new FunParseException("Array index expected");
-                
-                _flow.MoveIfOrThrow(TokType.ArrCBr);
+                {
+                    var (res, closeBracket) = _flow.TryMoveIf(TokType.ArrCBr);
+                    if(res)
+                        throw ErrorFactory.ArrayIndexExpected(openBraket,closeBracket);
+                    else    
+                        throw ErrorFactory.ArrayIndexOrSliceExpected(openBraket);
+                }
+                if(!_flow.MoveIf(TokType.ArrCBr))
+                    throw ErrorFactory.ArrayIndexCbrMissed(openBraket,_flow.Current);
+                    
                 return LexNode.OperatorFun(CoreFunNames.GetElementName, new[] {arrayNode, index});
             }
             
@@ -277,7 +286,8 @@ namespace NFun.Parsing
             
             if (!_flow.MoveIf(TokType.Colon, out _))
             {
-                _flow.MoveIfOrThrow(TokType.ArrCBr);
+                if(!_flow.MoveIf(TokType.ArrCBr))
+                    throw ErrorFactory.ArraySliceCbrMissed(openBraket,_flow.Current, false);
                 return LexNode.OperatorFun(CoreFunNames.SliceName, new[]
                 {
                     arrayNode, 
@@ -287,15 +297,14 @@ namespace NFun.Parsing
             }
             
             var step = ReadExpressionOrNull();
-            _flow.MoveIfOrThrow(TokType.ArrCBr);
+            if(!_flow.MoveIf(TokType.ArrCBr))
+                throw ErrorFactory.ArraySliceCbrMissed(openBraket,_flow.Current, true);
             if(step==null)
-                return LexNode.OperatorFun(CoreFunNames.SliceName, new[]
-                {
+                return LexNode.OperatorFun(CoreFunNames.SliceName, new[] {
                     arrayNode, index, end
                 });
             
-            return LexNode.OperatorFun(CoreFunNames.SliceName, new[]
-            {
+            return LexNode.OperatorFun(CoreFunNames.SliceName, new[] {
                 arrayNode, index, end, step
             });
         }
@@ -303,15 +312,16 @@ namespace NFun.Parsing
 
         #region  read concreete
         IList<LexNode> ReadNodeList()
-        {            
+        {
             var list = new List<LexNode>();
             do
             {
+                int start = _flow.Current.Start;
                 var exp = ReadExpressionOrNull();
                 if (exp != null)
                     list.Add(exp);
                 else if (list.Count > 0)
-                    throw new FunParseException("Expression expected");
+                    throw ErrorFactory.BracketExpressionMissed(start, list, _flow.Current);
                 else
                     break;
             } while (_flow.MoveIf(TokType.Sep, out _));
@@ -320,19 +330,47 @@ namespace NFun.Parsing
 
         private LexNode ReadInitializeArray()
         {
-            _flow.MoveIfOrThrow(TokType.ArrOBr);
+            var openBracket = _flow.MoveIfOrThrow(TokType.ArrOBr);
             var list = ReadNodeList();
-            if (list.Count == 1 && _flow.MoveIf(TokType.TwoDots, out _))
+            if (list.Count == 1 && _flow.MoveIf(TokType.TwoDots, out var twoDots))
             {
                 var secondArg = ReadExpressionOrNull();
                 if (secondArg == null)
-                    throw new FunParseException("Expression expected, but was " + _flow.Current);
-                if (_flow.MoveIf(TokType.TwoDots, out _))
+                {
+                    var lastToken = twoDots;
+                    var missedVal = _flow.Current;
+                    if (_flow.Current.Is(TokType.ArrCBr)) {
+                        lastToken = _flow.Current;
+                        missedVal = default(Tok);
+                    }
+                    else if(_flow.Current.Is(TokType.TwoDots)) {
+                        lastToken = _flow.Current;
+                        missedVal = default(Tok);                        
+                    }
+                    throw ErrorFactory.ArrayInitializeSecondIndexMissed(
+                        openBracket, lastToken, missedVal);
+                }
+
+                if (_flow.MoveIf(TokType.TwoDots, out var secondTwoDots))
                 {
                     var thirdArg = ReadExpressionOrNull();
                     if (thirdArg == null)
-                        throw new FunParseException("Expression expected, but was " + _flow.Current);
-                    _flow.MoveIfOrThrow(TokType.ArrCBr);
+                    {
+                        var lastToken = secondTwoDots;
+                        var missedVal = _flow.Current;
+                        if (_flow.Current.Is(TokType.ArrCBr)) {
+                            lastToken = _flow.Current;
+                            missedVal = default(Tok);
+                        }
+                        else if(_flow.Current.Is(TokType.TwoDots)) {
+                            lastToken = _flow.Current;
+                            missedVal = default(Tok);                        
+                        }
+                        throw ErrorFactory.ArrayInitializeStepMissed(
+                            openBracket, lastToken, missedVal);
+                    }
+                    if (!_flow.MoveIf(TokType.ArrCBr))
+                        throw ErrorFactory.ArrayIntervalInitializeCbrMissed(openBracket, _flow.Current, true);
                     return LexNode.ProcArrayInit(
                         start: list[0],
                         step: secondArg,
@@ -340,22 +378,26 @@ namespace NFun.Parsing
                 }
                 else
                 {
-                    _flow.MoveIfOrThrow(TokType.ArrCBr);
+                    if (!_flow.MoveIf(TokType.ArrCBr))
+                        throw ErrorFactory.ArrayIntervalInitializeCbrMissed(openBracket, _flow.Current, false);
                     return LexNode.ProcArrayInit(
                         start: list[0], 
                         end: secondArg);
                 }
             }
-            _flow.MoveIfOrThrow(TokType.ArrCBr);
+            if (!_flow.MoveIf(TokType.ArrCBr))
+                throw ErrorFactory.ArrayEnumInitializeCbrMissed(openBracket, list, _flow.Current);
             return LexNode.Array(list.ToArray());
         }
-        private LexNode ReadBrackedList()
+        private LexNode ReadBrackedListOrNull()
         {
+            int start = _flow.Current.Start;
             _flow.MoveNext();
             var nodeList = ReadNodeList();
-            if (nodeList.Count==0)
-                throw new FunParseException("No expr. \"" + _flow.Current + "\" instead");
-            _flow.MoveIfOrThrow(TokType.Cbr);
+            if (nodeList.Count == 0)
+                throw ErrorFactory.BracketExpressionMissed(start, nodeList, _flow.Current);
+            if (!_flow.MoveIf(TokType.Cbr))
+                throw ErrorFactory.BracketExprCbrOrSeparatorMissed(start, nodeList, _flow.Current);
             if (nodeList.Count == 1)
                 return nodeList[0];
             else
@@ -365,42 +407,47 @@ namespace NFun.Parsing
         private LexNode ReadIfThenElse()
         {
             var ifThenNodes = new List<LexNode>();
+            int ifElseStart = _flow.Current.Start;
             do
             {
-                _flow.MoveIfOrThrow(TokType.If);
+                int conditionStart = _flow.Current.Start;
+                if(!_flow.MoveIf(TokType.If))
+                    throw ErrorFactory.IfKeywordIsMissing(ifElseStart, _flow.Current);
+
                 var condition = ReadExpressionOrNull();
                 if (condition == null)
-                    throw new FunParseException("condition expression is missing");
-                _flow.MoveIfOrThrow(TokType.Then);
+                    throw ErrorFactory.ConditionIsMissing(conditionStart, _flow.Current);
+                
+                if(!_flow.MoveIf(TokType.Then))
+                    throw ErrorFactory.ThenKeywordIsMissing(ifElseStart, _flow.Current);
+
                 var thenResult = ReadExpressionOrNull();
                 if (thenResult == null)
-                    throw new FunParseException("then expression is missing");
+                    throw ErrorFactory.ThanExpressionIsMissing(conditionStart, _flow.Current);
+
                 ifThenNodes.Add(LexNode.IfThen(condition, thenResult));
             } while (!_flow.IsCurrent(TokType.Else));
+            
+            if(!_flow.MoveIf(TokType.Else))
+                throw ErrorFactory.ElseKeywordIsMissing(ifElseStart, _flow.Current);
 
-            _flow.MoveIfOrThrow(TokType.Else);
             var elseResult = ReadExpressionOrNull();
             if (elseResult == null)
-                throw new FunParseException("else expression is missing");
+                throw ErrorFactory.ElseExpressionIsMissing(ifElseStart, _flow.Current);
+
             return LexNode.IfElse(ifThenNodes, elseResult);
         }
 
-        private LexNode ReadFunctionCall(string name, LexNode pipedVal=null)
+        private LexNode ReadFunctionCall(int funStart, string name, LexNode pipedVal=null)
         {
-            _flow.MoveIfOrThrow(TokType.Obr);
-            /*bool hasObr =_flow.MoveIf(TokType.Obr, out _);
+            if(!_flow.MoveIf(TokType.Obr))
+                throw ErrorFactory.FunctionCallObrMissed(funStart, name, _flow.Current, pipedVal);
 
-            if (!hasObr)
-            {
-                if (pipedVal != null) 
-                    return LexNode.Fun(name, new[] {pipedVal});
-                else
-                    throw new FunParseException("'(' expected, but was " + _flow.Current);
-            }*/
             var arguments = ReadNodeList();
             if(pipedVal!=null)
                 arguments.Insert(0,pipedVal);
-            _flow.MoveIfOrThrow(TokType.Cbr, "\",\" or \")\" expected");
+            if(!_flow.MoveIf(TokType.Cbr))
+                throw ErrorFactory.FunctionCallCbrOrSeparatorMissed(funStart, name, arguments, _flow.Current, pipedVal);
             return LexNode.Fun(name, arguments.ToArray());
         }
         #endregion

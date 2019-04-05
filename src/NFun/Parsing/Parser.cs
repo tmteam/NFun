@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using NFun.ParseErrors;
 using NFun.Runtime;
 using NFun.Tokenization;
 using NFun.Types;

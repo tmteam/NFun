@@ -20,6 +20,7 @@ namespace NFun.Tokenization
         public string Value { get; }
         public TokType Type { get; }
         public int Finish { get;  }
+        public int Start => Finish - Value?.Length??0;
         
         public override string ToString()
         {

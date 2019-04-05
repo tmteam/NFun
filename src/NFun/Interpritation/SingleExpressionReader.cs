@@ -4,6 +4,7 @@ using System.Linq;
 using NFun.BuiltInFunctions;
 using NFun.Interpritation.Functions;
 using NFun.Interpritation.Nodes;
+using NFun.ParseErrors;
 using NFun.Parsing;
 using NFun.Runtime;
 using NFun.Types;

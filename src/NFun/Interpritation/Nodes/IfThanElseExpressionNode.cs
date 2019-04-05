@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using NFun.ParseErrors;
 using NFun.Types;
 
 namespace NFun.Interpritation.Nodes
@@ -15,7 +16,7 @@ namespace NFun.Interpritation.Nodes
             _ifCaseConvertedNodes = new IExpressionNode[_ifCaseNodes.Length];
             Type = GetMostCommonType(ifCaseNodes.Select(c => c.Type).Append(elseNode.Type));
             if(Type.BaseType== BaseVarType.Empty)
-                throw new OutpuCastFunParseException("There are no common convertion for if  cases");
+                throw new OutputCastFunParseException("There are no common convertion for if  cases");
             
             for (var index = 0; index < ifCaseNodes.Length; index++)
             {

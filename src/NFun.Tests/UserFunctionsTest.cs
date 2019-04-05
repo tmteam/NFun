@@ -1,5 +1,6 @@
 using System;
 using NFun;
+using NFun.ParseErrors;
 using NFun.Runtime;
 using NFun.Types;
 using NUnit.Framework;
@@ -197,7 +198,7 @@ namespace Funny.Tests
         [TestCase("y(x):real= \"vasa\"")]
 
         public void ObviousFailsWithTypeCast(string expr){
-            Assert.Throws<OutpuCastFunParseException>(()=>FunBuilder.BuildDefault(expr));
+            Assert.Throws<OutputCastFunParseException>(()=>FunBuilder.BuildDefault(expr));
         }
 
     }

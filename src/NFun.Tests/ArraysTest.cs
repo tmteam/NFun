@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using NFun;
+using NFun.ParseErrors;
 using NFun.Runtime;
 using NFun.Types;
 using NUnit.Framework;

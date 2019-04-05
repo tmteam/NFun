@@ -1,4 +1,5 @@
 using System;
+using NFun.ParseErrors;
 using NFun.Types;
 
 namespace NFun.Interpritation.Functions
@@ -15,7 +16,7 @@ namespace NFun.Interpritation.Functions
             _function = function;
             
             if(OutputType!= function.OutputType)
-                throw new OutpuCastFunParseException($"{_function.OutputType} is not supported as output fun parameter");
+                throw new OutputCastFunParseException($"{_function.OutputType} is not supported as output fun parameter");
         }
 
         public override object Calc(object[] args)

@@ -1,5 +1,6 @@
 using System.Linq;
 using NFun;
+using NFun.ParseErrors;
 using NFun.Runtime;
 using NFun.Types;
 using NUnit.Framework;

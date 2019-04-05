@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NFun.Interpritation;
+using NFun.ParseErrors;
 using NFun.Parsing;
 using NFun.Runtime;
 
