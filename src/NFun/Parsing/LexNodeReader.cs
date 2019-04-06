@@ -218,8 +218,7 @@ namespace NFun.Parsing
                 else if (opToken.Type == TokType.PipeForward)
                 {
                     _flow.MoveNext();
-                    var (res, id) = _flow.TryMoveIf(TokType.Id);
-                    if (!res)
+                    if(!_flow.MoveIf(TokType.Id, out var id))
                         ErrorFactory.FunctionNameIsMissedAfterPipeForward(opToken);
                     leftNode =  ReadFunctionCall(id.Start, id.Value, pipedVal: leftNode);       
                 }
@@ -269,8 +268,7 @@ namespace NFun.Parsing
             {
                 if (index == null)
                 {
-                    var (res, closeBracket) = _flow.TryMoveIf(TokType.ArrCBr);
-                    if(res)
+                    if(_flow.MoveIf(TokType.ArrCBr, out var closeBracket))
                         throw ErrorFactory.ArrayIndexExpected(openBraket,closeBracket);
                     else    
                         throw ErrorFactory.ArrayIndexOrSliceExpected(openBraket);

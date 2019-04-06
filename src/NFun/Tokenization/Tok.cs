@@ -21,9 +21,10 @@ namespace NFun.Tokenization
         public TokType Type { get; }
         public int Finish { get;  }
         public int FinishInString => Type == TokType.Eof ? Finish - 1 : Finish;
-
-        public int Start => Finish - Value?.Length??0;
         
+        public int Start => Finish - Value?.Length??0;
+        public int StartInString => Type == TokType.Eof ? Start - 1 : Start;
+
         public override string ToString()
         {
             if(Type== TokType.Id)    
@@ -37,101 +38,4 @@ namespace NFun.Tokenization
         }
 
     }
-
-    public enum TokType
-    {
-        NewLine,
-        If,
-        Else,
-        Then,
-        Number,
-        Plus,
-        Minus,
-        Div,
-        /// <summary>
-        /// Division reminder "%"
-        /// </summary>
-        Rema,
-        Mult,
-        /// <summary>
-        /// Pow "^"
-        /// </summary>
-        Pow,
-        /// <summary>
-        /// (
-        /// </summary>
-        Obr,
-        /// <summary>
-        /// )
-        /// </summary>
-        Cbr,
-        /// <summary>
-        ///  [ 
-        /// </summary>
-        ArrOBr,
-        /// <summary>
-        ///  ] 
-        /// </summary>
-        ArrCBr,
-        /// <summary>
-        /// @
-        /// </summary>
-        ArrConcat,
-        In,
-        BitOr,
-        BitAnd,
-        BitXor,
-        BitShiftLeft,
-        BitShiftRight,
-        BitInverse,
-        Id,
-        /// <summary>
-        /// =
-        /// </summary>
-        Def,
-        
-        Equal,
-        NotEqual,
-        And,
-        Or,
-        Xor,
-        Not,
-        Less,
-        More,
-        LessOrEqual,
-        MoreOrEqual,
-        
-        Eof,
-        /// <summary>
-        /// ',' symbol
-        /// </summary>
-        Sep,
-        Text,
-        NotAToken,
-
-        True,
-        False,
-        /// <summary>
-        /// ':'
-        /// </summary>
-        Colon,
-        /// <summary>
-        /// '..'
-        /// </summary>
-        TwoDots,
-        TextType,
-        IntType,
-        RealType,
-        BoolType,
-        AnythingType,
-        /// <summary>
-        /// .
-        /// </summary>
-        PipeForward,
-        /// <summary>
-        /// =>
-        /// </summary>
-        AnonymFun
-    }
-    
 }

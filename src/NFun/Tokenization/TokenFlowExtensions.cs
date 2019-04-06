@@ -64,32 +64,25 @@ namespace NFun.Tokenization
         public static Tok MoveIfOrThrow(this TokenFlow flow, TokType tokType)
         {
             var cur = flow.Current;
-            if(cur==null)
-                throw new FunParseException($"\"{tokType}\" is missing");
+            if (cur == null)
+            {
+                var prev = flow.Previous;
+                if (prev == null)
+                    throw new FunParseException(000, $"\"{tokType}\" is missing at end of stream",
+                        -1,
+                        -1);
+                else
+                    throw new FunParseException(001, $"\"{tokType}\" is missing at end of stream",
+                        prev.StartInString, prev.FinishInString);
+            }
 
             if (!cur.Is(tokType))
-                throw new FunParseException($"\"{tokType}\" is missing but was \"{flow.Current}\"");
+                throw new FunParseException(002,
+                    $"\"{tokType}\" is missing but was \"{cur}\"",
+                    cur.StartInString, cur.FinishInString);
             
             flow.MoveNext();
             return cur;
         }
-
-        public static (bool,Tok) TryMoveIf(this TokenFlow flow, TokType tokType)
-        {
-            var cur = flow.Current;
-            if (cur?.Is(tokType) != true)
-                return (false, default(Tok));
-            flow.MoveNext();
-            return (true,cur);
-        }
-        public static Tok MoveIfOrThrow(this TokenFlow flow, TokType tokType, string error)
-        {
-            var cur = flow.Current;
-            if (cur?.Is(tokType)!= true)
-                throw new FunParseException(error);
-            flow.MoveNext();
-            return cur;
-        }
-
     }
 }

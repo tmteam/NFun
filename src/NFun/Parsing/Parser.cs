@@ -23,9 +23,10 @@ namespace NFun.Parsing
                     break;
                 var startOfTheString = flow.IsStart || flow.IsPrevious(TokType.NewLine);
 
+                var exprStart = flow.Current.StartInString;
                 var e = reader.ReadExpressionOrNull();
-                if(e==null)
-                    throw new FunParseException("Unexpected token "+ flow.Current);
+                if (e == null)
+                    throw ErrorFactory.UnknownValueAtStartOfExpression(exprStart, flow.Current);
                 if(e.Is(LexNodeType.TypedVar))
                 {
                     //Input typed var specification
@@ -40,18 +41,19 @@ namespace NFun.Parsing
                         equations.Add(ReadEquation(flow, reader, e.Value));
                     }
                     //Todo Make operator fun as separate node type
-                    else if (e.Is(LexNodeType.Fun) && e.AdditionalContent== null)
+                    else if (e.Is(LexNodeType.Fun) && e.AdditionalContent == null)
                         //userFun
-                        funs.Add(ReadUserFunction(e, flow, reader));
+                        funs.Add(ReadUserFunction(exprStart,e, flow, reader));
                     else
-                        throw  new FunParseException("Unexpected expression "+ e);
+                        throw ErrorFactory.ExpressionBeforeTheDefenition(exprStart, e, flow.Current);
                 }
                 else
                 {
                     if (equations.Any())
-                        throw new FunParseException("Unexpected expression " + e);
+                        throw ErrorFactory.OnlyOneAnonymousExpressionAllowed(exprStart, e, flow.Current);
                     if(!startOfTheString)
-                        throw new FunParseException("Anonymous expression should start from new line" );
+                        throw ErrorFactory.AnonymousExpressionHasToStartFromNewLine(exprStart, e, flow.Current);
+                        
                     //anonymous
                     equations.Add(new LexEquation("out", e));
                 }
@@ -65,21 +67,21 @@ namespace NFun.Parsing
             };
         }
        
-        private static LexFunction ReadUserFunction(LexNode headNode, TokenFlow flow, LexNodeReader reader)
+        private static LexFunction ReadUserFunction(int start, LexNode headNode, TokenFlow flow, LexNodeReader reader)
         {
             var id = headNode.Value;
-            if(headNode.IsBracket)
-                throw new FunParseException("Unexpected brackets on function defenition "+ headNode.Value);
+            if (headNode.IsBracket)
+                throw ErrorFactory.UnexpectedBracketsOnFunDefenition(start, headNode, flow.Current);
 
             var arguments = new List<VariableInfo>();
             foreach (var headNodeChild in headNode.Children)
             {
                 if(headNodeChild.Value==null)
-                    throw new FunParseException("Invalid function argument");
-                if(headNodeChild.Type!= LexNodeType.Var && headNodeChild.Type!= LexNodeType.TypedVar)
-                    throw new FunParseException("Unexpected function argument "+ headNodeChild.Type);
+                    throw ErrorFactory.WrongFunctionArgumentDefenition(start, headNode, headNodeChild, flow.Current);
+                if (headNodeChild.Type != LexNodeType.Var && headNodeChild.Type != LexNodeType.TypedVar)
+                    throw ErrorFactory.WrongFunctionArgumentDefenition(start, headNode, headNodeChild, flow.Current);
                 if(headNodeChild.IsBracket)    
-                    throw new FunParseException("Unexpected brackets on function argument "+ headNodeChild.Type);
+                    throw ErrorFactory.FunctionArgumentInBracketDefenition(start, headNode, headNodeChild, flow.Current);
 
                 arguments.Add(new VariableInfo(headNodeChild.Value, (VarType)(headNodeChild.AdditionalContent ?? VarType.Real)));
             }
@@ -91,10 +93,12 @@ namespace NFun.Parsing
                 outputType = VarType.Real;
 
             flow.SkipNewLines();
-            flow.MoveIfOrThrow(TokType.Def, "\'=\' expected");
+            if (!flow.MoveIf(TokType.Def))
+                throw ErrorFactory.FunDefTokenIsMissed(id, arguments, flow.Current);  
+
             var expression =reader.ReadExpressionOrNull();
             if(expression==null)
-                throw new FunParseException("Function contains no body");
+                throw ErrorFactory.FunExpressionIsMissed(id, arguments, flow.Current);  
             
             return new LexFunction
             {
@@ -107,10 +111,10 @@ namespace NFun.Parsing
         private static LexEquation ReadEquation(TokenFlow flow, LexNodeReader reader, string id)
         {
             flow.SkipNewLines();
-
+            var start = flow.CurrentPosition;
             var exNode = reader.ReadExpressionOrNull();
-            if(exNode==null)
-                throw new FunParseException("Epxression is wrong");
+            if (exNode == null)
+                throw ErrorFactory.VarExpressionIsMissed(start, id, flow.Current);
             return new LexEquation(id, exNode);
         }
     }

@@ -2,7 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Principal;
+using System.Text;
+using NFun.Interpritation.Nodes;
 using NFun.Parsing;
+using NFun.Runtime;
 using NFun.Tokenization;
 
 namespace NFun.ParseErrors
@@ -11,16 +14,16 @@ namespace NFun.ParseErrors
     {
         private static readonly string Nl = Environment.NewLine;
         public static Exception UnaryArgumentIsMissing(Tok operatorTok)
-            => throw new FunParseException(101, $"{TokenToString(operatorTok)} ???{Nl} right expression is missed{Nl} Example: {TokenToString(operatorTok)} a",operatorTok.Start, operatorTok.FinishInString);
+            => throw new FunParseException(101, $"{ToString(operatorTok)} ???{Nl} right expression is missed{Nl} Example: {ToString(operatorTok)} a",operatorTok.Start, operatorTok.FinishInString);
         public static Exception MinusDuplicates(Tok previousTok, Tok currentTok)
             => throw new FunParseException(104,$"'--' is not allowed",previousTok.Start, currentTok.FinishInString);
         public static Exception LeftBinaryArgumentIsMissing(Tok token)
-            => throw new FunParseException(107,$"expression is missed before '{TokenToString(token)}'",token.Start, token.FinishInString);
+            => throw new FunParseException(107,$"expression is missed before '{ToString(token)}'",token.Start, token.FinishInString);
         public static Exception RightBinaryArgumentIsMissing(LexNode leftNode, Tok token)
-            => throw new FunParseException(110,$"{ToString(leftNode)} {TokenToString(token)} ???. Right expression is missed{Nl} Example: {ToString(leftNode)} {TokenToString(token)} e",token.Start, token.FinishInString);
+            => throw new FunParseException(110,$"{ToString(leftNode)} {ToString(token)} ???. Right expression is missed{Nl} Example: {ToString(leftNode)} {ToString(token)} e",token.Start, token.FinishInString);
 
         public static Exception OperatorIsUnknown(Tok token)
-            => throw new FunParseException(113,$"operator '{TokenToString(token)}' is unknown",token.Start, token.FinishInString);
+            => throw new FunParseException(113,$"operator '{ToString(token)}' is unknown",token.Start, token.FinishInString);
 
         public static Exception FunctionNameIsMissedAfterPipeForward(Tok token)
             => throw new FunParseException(116,$"Function name expected after '.'{Nl} Example: [1,2].myFunction()",token.Start, token.FinishInString);
@@ -42,7 +45,7 @@ namespace NFun.ParseErrors
                     finish);
             else
                 return new FunParseException(128,
-                    $"'[x,..???]. Array hi bound expected but was {TokenToString(missedVal)}'{Nl} Example: a[1..2] or a[1..5..2]", start, finish);
+                    $"'[x,..???]. Array hi bound expected but was {ToString(missedVal)}'{Nl} Example: a[1..2] or a[1..5..2]", start, finish);
         }
         public static Exception ArrayInitializeStepMissed(Tok openBracket, Tok lastToken, Tok missedVal)
         {
@@ -54,7 +57,7 @@ namespace NFun.ParseErrors
                     finish);
             else
                 return new FunParseException(134,
-                    $"'[x..y..???]. Array step expected but was {TokenToString(missedVal)}'{Nl} Example: a[1..5..2]", start, finish);
+                    $"'[x..y..???]. Array step expected but was {ToString(missedVal)}'{Nl} Example: a[1..5..2]", start, finish);
         }
         
         public static Exception ArrayIntervalInitializeCbrMissed(Tok openBracket, Tok lastToken, bool hasStep)
@@ -173,7 +176,68 @@ namespace NFun.ParseErrors
                     throw new ArgumentOutOfRangeException();
             }
         }
-        private static string TokenToString(Tok tok)
+
+        public static Exception FunDefTokenIsMissed(string funName, List<VariableInfo> arguments, Tok actual)
+        {
+            return new FunParseException(201, $"{funName}({string.Join(",", arguments)}) ??? . '=' def symbol is skipped but was {ToString(actual)}{Nl}Example: {funName}({string.Join(",", arguments)}) = ...", 
+                actual.Start, actual.FinishInString);
+        }
+        public static Exception FunExpressionIsMissed(string funName, List<VariableInfo> arguments, Tok actual) 
+            => new FunParseException(204, $"{funName}({string.Join(",", arguments)}) = ??? . Function body is missed {Nl}Example: {funName}({string.Join(",", arguments)}) = #place your body here", 
+                actual.Start, actual.FinishInString);
+
+        public static Exception UnknownValueAtStartOfExpression(int exprStart, Tok flowCurrent) 
+            => new FunParseException(207,$"Unexpected symbol {ToString(flowCurrent)}. Equation, anonymous equation, function or type defenition expected.", exprStart, flowCurrent.FinishInString);
+        public static Exception ExpressionBeforeTheDefenition(int exprStart, LexNode expression, Tok flowCurrent)
+            => new FunParseException(210,$"Unexpected expression {ToString(expression)} before defenition. Equation, anonymous equation, function or type defenition expected.", exprStart, flowCurrent.FinishInString);
+
+        public static Exception AnonymousExpressionHasToStartFromNewLine(int exprStart, LexNode lexNode, Tok flowCurrent)
+            =>   throw new FunParseException(213,$"Anonymous equation should start from new line. {Nl}Example : y:int{Nl}y+1 #out = y:int+1", exprStart, flowCurrent.FinishInString);
+
+        public static Exception OnlyOneAnonymousExpressionAllowed(int exprStart, LexNode lexNode, Tok flowCurrent)
+            =>   throw new FunParseException(216,$"Only one anonymous equation allowed", exprStart, flowCurrent.FinishInString);
+        public static Exception UnexpectedBracketsOnFunDefenition(int start, LexNode headNode, Tok flowCurrent)
+            => new FunParseException(219, $"Unexpected brackets on function defenition ({headNode.Value}(...))=... {Nl}Example: {headNode.Value}(...)=...", start,  flowCurrent.StartInString);
+
+        public static Exception WrongFunctionArgumentDefenition(int start, LexNode headNode, LexNode headNodeChild,
+            Tok flowCurrent)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (var child in headNode.Children)
+            {
+                if (child == headNodeChild)
+                    sb.Append("???");
+                else if (child.Is(LexNodeType.Var))
+                    sb.Append(child.Value);
+                if (headNode.Children.Last() != child)
+                    sb.Append(",");
+            }
+            return new FunParseException(222,
+                    $"{headNode.Value}({sb}) = ... {Nl} Function argument is invalid. Variable name (with optional type) expected", 
+                 start, flowCurrent.FinishInString);
+        }
+        public static Exception FunctionArgumentInBracketDefenition(int start, LexNode headNode, LexNode headNodeChild,
+            Tok flowCurrent)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (var child in headNode.Children)
+            {
+                if (child == headNodeChild)
+                    sb.Append("(???)");
+                else if (child.Is(LexNodeType.Var))
+                    sb.Append(child.Value);
+                if (headNode.Children.Last() != child)
+                    sb.Append(",");
+            }
+            return new FunParseException(225,
+                $"{headNode.Value}({sb.ToString()}) = ... {Nl} Function argument is in bracket. Variable name (with optional type) without brackets expected", 
+                start, flowCurrent.FinishInString);
+        }
+
+        public static Exception VarExpressionIsMissed(int start, string id, Tok flowCurrent)
+            => new FunParseException(228, $"{id} = ??? . Equation body is missed {Nl}Example: {id} = {id}+1", 
+                start, flowCurrent.FinishInString);
+        private static string ToString(Tok tok)
         {
             if (!string.IsNullOrWhiteSpace(tok.Value))
                 return tok.Value;

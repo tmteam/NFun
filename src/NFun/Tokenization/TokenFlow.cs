@@ -33,7 +33,9 @@ namespace NFun.Tokenization
             => Current?.Type == type;
 
       
-        public Tok Peek => PeekNext((1));
+        public Tok Peek => PeekNext(1);
+        public int CurrentPosition => Current?.FinishInString ?? _tokens.LastOrDefault()?.FinishInString ?? 0;
+
         public Tok PeekNext(int offset)
         {
             if (_tokens.Length <= (_currentPos + offset + 1))
