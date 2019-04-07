@@ -20,7 +20,8 @@ namespace NFun.ParseErrors
         public static Exception LeftBinaryArgumentIsMissing(Tok token)
             => throw new FunParseException(107,$"expression is missed before '{ToString(token)}'",token.Start, token.FinishInString);
         public static Exception RightBinaryArgumentIsMissing(LexNode leftNode, Tok token)
-            => throw new FunParseException(110,$"{ToString(leftNode)} {ToString(token)} ???. Right expression is missed{Nl} Example: {ToString(leftNode)} {ToString(token)} e",token.Start, token.FinishInString);
+            => throw new FunParseException(110,$"{ToString(leftNode)} {ToString(token)} ???. Right expression is missed{Nl} Example: {ToString(leftNode)} {ToString(token)} e",
+                leftNode.Start, token.FinishInString);
 
         public static Exception OperatorIsUnknown(Tok token)
             => throw new FunParseException(113,$"operator '{ToString(token)}' is unknown",token.Start, token.FinishInString);
@@ -69,14 +70,12 @@ namespace NFun.ParseErrors
                 finish);
         }
         
-        public static Exception ArrayEnumInitializeCbrMissed(Tok openBracket, IList<LexNode> arguments,Tok lastToken)
+        public static Exception ArrayEnumInitializeCbrMissed(int start, int end, IList<LexNode> arguments)
         {
-            int start = openBracket.Start;
-            int finish = lastToken.FinishInString;
             var argumentsStub = CreateArgumentsStub(arguments);
             return new FunParseException(140,
                 $"[{argumentsStub} ??? <- ']' or ',' was missed{Nl} Example: [{argumentsStub}]", start,
-                finish);
+                end);
         }
 
      
@@ -93,33 +92,40 @@ namespace NFun.ParseErrors
             int start = openBracket.Start;
             int finish = lastToken.FinishInString;
             return new FunParseException(146,
-                $"a{(hasStep?"[x:y:step]":"[x:y]")} <- ']' was missed{Nl} Example: a[1:5:2]", start,
+                $"a{(hasStep?"[x:y:step]":"[x:y]")} <- ']' was missed{Nl} Example: a[1:5:2]", 
+                start,
                 finish);        
         }
-        public static Exception ConditionIsMissing(int conditionStart, Tok flowCurrent)
+        public static Exception ConditionIsMissing(int conditionStart, int end)
             => new FunParseException(149,
-                $"if ??? then{Nl} Condition expression is missing{Nl} Example: if a>b then ... ", conditionStart, flowCurrent.FinishInString);
+                $"if ??? then{Nl} Condition expression is missing{Nl} Example: if a>b then ... ", conditionStart, end);
         
-        public static Exception ThanExpressionIsMissing(int conditionStart, Tok flowCurrent)
-            => new FunParseException(152,$"if a then ???.  Expression is missing{Nl} Example: if a then a+1 ", conditionStart, flowCurrent.FinishInString);
+        public static Exception ThenExpressionIsMissing(int conditionStart, int end)
+            => new FunParseException(152,$"if a then ???.  Expression is missing{Nl} Example: if a then a+1 ", conditionStart, end);
 
-        public static Exception ElseKeywordIsMissing(int ifelseStart, Tok flowCurrent)
-            => new FunParseException(155,$"if a then b ???.  Else keyword is missing{Nl} Example: if a then b else c ", ifelseStart, flowCurrent.FinishInString);
+        public static Exception ElseKeywordIsMissing(int ifelseStart, int end)
+            => new FunParseException(155,$"if a then b ???.  Else keyword is missing{Nl} Example: if a then b else c ", ifelseStart, end);
 
-        public static Exception ElseExpressionIsMissing(int ifelseStart, Tok flowCurrent)
-            => new FunParseException(158,$"if a then b else ???.  Else expression is missing{Nl} Example: if a then b else c ", ifelseStart, flowCurrent.FinishInString);
+        public static Exception ElseExpressionIsMissing(int ifelseStart, int end)
+            => new FunParseException(158,$"if a then b else ???.  Else expression is missing{Nl} Example: if a then b else c ", ifelseStart, end);
 
-        public static Exception IfKeywordIsMissing(int ifelseStart, Tok flowCurrent)
-            => new FunParseException(161,$"if a then b (if) ...  'if' is missing{Nl} Example: if a then b if c then d else c ", ifelseStart, flowCurrent.FinishInString);
+        public static Exception IfKeywordIsMissing(int ifelseStart, int end)
+            => new FunParseException(161,$"if a then b (if) ...  'if' is missing{Nl} Example: if a then b if c then d else c ", ifelseStart, end);
 
-        public static Exception ThenKeywordIsMissing(int ifelseStart, Tok flowCurrent)
-            => new FunParseException(164,$"if a (then) b  ...  'then' is missing{Nl} Example: if a then b  else c ", ifelseStart, flowCurrent.FinishInString);
-        public static Exception FunctionCallObrMissed(int funStart, string name, Tok flowCurrent,LexNode pipedVal)
+        public static Exception ThenKeywordIsMissing(int ifelseStart, int end)
+            => new FunParseException(164,$"if a (then) b  ...  'then' is missing{Nl} Example: if a then b  else c ", ifelseStart, end);
+        public static Exception FunctionCallObrMissed(int funStart, string name, int position,LexNode pipedVal)
         {
             if(pipedVal==null)
-                return new FunParseException(167,$"{name}( ???. Close bracket ')' is missed{Nl} Example: {name}()", funStart, flowCurrent.FinishInString);
+                return new FunParseException(167,
+                    $"{name}( ???. Close bracket ')' is missed{Nl} Example: {name}()", 
+                    funStart, 
+                    position);
 
-            return new FunParseException(170,$"{ToString(pipedVal)}.{name}( ???. Close bracket ')' is missed{Nl} Example: {ToString(pipedVal)}.{name}() or {name}({ToString(pipedVal)})", funStart, flowCurrent.FinishInString);
+            return new FunParseException(170,
+                $"{ToString(pipedVal)}.{name}( ???. Close bracket ')' is missed{Nl} Example: {ToString(pipedVal)}.{name}() or {name}({ToString(pipedVal)})", 
+                funStart, 
+                position);
         }
 
         public static Exception FunctionCallCbrOrSeparatorMissed(int funStart, string name,  IList<LexNode> arguments, Tok current,LexNode pipedVal)
@@ -138,18 +144,18 @@ namespace NFun.ParseErrors
         }
 
 
-        public static Exception BracketExprCbrOrSeparatorMissed(int start, IList<LexNode> arguments, Tok current)
+        public static Exception BracketExprCbrOrSeparatorMissed(int start,int end,  IList<LexNode> arguments)
         {
             var argumentsStub = CreateArgumentsStub(arguments);
             return new FunParseException(179,$"({argumentsStub})<-??? {Nl}Close bracket ')' is missed{Nl} Example: ({argumentsStub})", 
-                start,current.FinishInString);
+                start,end);
         }
 
-        public static Exception BracketExpressionMissed(int start, IList<LexNode> arguments, Tok current)
+        public static Exception BracketExpressionMissed(int start, int end, IList<LexNode> arguments)
         {
              var argumentsStub = CreateArgumentsStub(arguments);
              return new FunParseException(182,$"({argumentsStub}???) {Nl}Expression inside the brackets is missed{Nl} Example: ({argumentsStub})", 
-                            start,current.FinishInString);
+                            start,end);
         }
         private static string CreateArgumentsStub(IList<LexNode> arguments)
         {
@@ -231,7 +237,7 @@ namespace NFun.ParseErrors
             }
             return new FunParseException(225,
                 $"{headNode.Value}({sb.ToString()}) = ... {Nl} Function argument is in bracket. Variable name (with optional type) without brackets expected", 
-                start, flowCurrent.FinishInString);
+                headNodeChild.Start, headNodeChild.Finish);
         }
 
         public static Exception VarExpressionIsMissed(int start, string id, Tok flowCurrent)

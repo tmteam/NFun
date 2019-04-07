@@ -111,7 +111,7 @@ namespace NFun.Parsing
         private static LexEquation ReadEquation(TokenFlow flow, LexNodeReader reader, string id)
         {
             flow.SkipNewLines();
-            var start = flow.CurrentPosition;
+            var start = flow.Position;
             var exNode = reader.ReadExpressionOrNull();
             if (exNode == null)
                 throw ErrorFactory.VarExpressionIsMissed(start, id, flow.Current);
