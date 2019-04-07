@@ -177,12 +177,12 @@ namespace NFun.Parsing
             }
             if (_flow.IsCurrent(TokType.Obr))
                 return ReadBrackedListOrNull();
-
-                //return ReadBrackedListOrNull();
             if (_flow.IsCurrent(TokType.If))
                 return ReadIfThenElse();
             if (_flow.IsCurrent(TokType.ArrOBr))
                 return ReadInitializeArray();
+            if (_flow.IsCurrent(TokType.NotAToken))
+                throw ErrorFactory.NotAToken(_flow.Current);
             return null;
         }
 
@@ -195,7 +195,6 @@ namespace NFun.Parsing
 
             //starting with left Node
             var leftNode = ReadNext(priority - 1);
-
 
             //building the syntax tree
             while (true)
@@ -231,7 +230,7 @@ namespace NFun.Parsing
                 {
                     _flow.MoveNext();
                     if(!_flow.MoveIf(TokType.Id, out var id))
-                        ErrorFactory.FunctionNameIsMissedAfterPipeForward(opToken);
+                        throw ErrorFactory.FunctionNameIsMissedAfterPipeForward(opToken);
                     leftNode =  ReadFunctionCall(id, leftNode);       
                 }
                 else if (opToken.Type == TokType.AnonymFun)

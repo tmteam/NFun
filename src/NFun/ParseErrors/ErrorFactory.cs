@@ -22,10 +22,13 @@ namespace NFun.ParseErrors
         public static Exception RightBinaryArgumentIsMissing(LexNode leftNode, Tok token)
             => throw new FunParseException(110,$"{ToString(leftNode)} {ToString(token)} ???. Right expression is missed{Nl} Example: {ToString(leftNode)} {ToString(token)} e",
                 leftNode.Start, token.Finish);
-
+        
         public static Exception OperatorIsUnknown(Tok token)
             => throw new FunParseException(113,$"operator '{ToString(token)}' is unknown",token.Start, token.Finish);
 
+        public static Exception NotAToken(Tok token)
+            => throw new FunParseException(114,$"'{token.Value}' is not valid fun element. What did you mean?", token.Start, token.Finish);
+        
         public static Exception FunctionNameIsMissedAfterPipeForward(Tok token)
             => throw new FunParseException(116,$"Function name expected after '.'{Nl} Example: [1,2].myFunction()",token.Start, token.Finish);
 
@@ -130,16 +133,15 @@ namespace NFun.ParseErrors
 
         public static Exception FunctionCallCbrOrSeparatorMissed(int funStart, string name,  IList<LexNode> arguments, Tok current,LexNode pipedVal)
         {
-
             if (pipedVal == null)
             {
                 var argumentsStub = CreateArgumentsStub(arguments);
-                return new FunParseException(173,$"{name}({argumentsStub} ???. Close bracket ')' is missed{Nl} Example: {name}({argumentsStub})", 
+                return new FunParseException(173,$"{name}({argumentsStub} ??? <- Close bracket ')' or separator ',' are missed{Nl} Example: {name}({argumentsStub})", 
                     funStart,current.Finish);
             }
 
             var pipedArgsStub = CreateArgumentsStub(arguments);
-            return new FunParseException(176,$"{ToString(pipedVal)}.{name}({pipedArgsStub} ??? <- ')' or ',' is missed{Nl} Example: {ToString(pipedVal)}.{name}({pipedArgsStub}) or {name}(x,{pipedArgsStub})", 
+            return new FunParseException(176,$"{ToString(pipedVal)}.{name}({pipedArgsStub} ??? <- Close bracket ')' or separator ',' are missed{Nl} Example: {ToString(pipedVal)}.{name}({pipedArgsStub}) or {name}(x,{pipedArgsStub})", 
                 funStart, current.Finish);
         }
 
@@ -163,34 +165,16 @@ namespace NFun.ParseErrors
             return argumentsStub;
         }
 
-        private static string ToString(LexNode node)
-        {
-            switch (node.Type)
-            {
-                case LexNodeType.Number: return node.Value;
-                case LexNodeType.Var: return node.Value;
-                case LexNodeType.Fun: return node.Value + "(...)";
-                case LexNodeType.IfThen: return "if...then...";
-                case LexNodeType.IfThanElse: return "if...then....else...";
-                case LexNodeType.Text: return $"\"{(node.Value.Length>20?(node.Value.Substring(17)+"..."):node.Value)}\"";
-                case LexNodeType.ArrayInit: return "[...]";
-                case LexNodeType.AnonymFun: return "(..)=>..";
-                case LexNodeType.TypedVar: return node.Value;
-                case LexNodeType.ListOfExpressions: return "(,)";
-                case LexNodeType.ProcArrayInit: return "[ .. ]";
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
-
+        
         public static Exception FunDefTokenIsMissed(string funName, List<VariableInfo> arguments, Tok actual)
         {
-            return new FunParseException(201, $"{funName}({string.Join(",", arguments)}) ??? . '=' def symbol is skipped but was {ToString(actual)}{Nl}Example: {funName}({string.Join(",", arguments)}) = ...", 
+            return new FunParseException(201, $"{Signature(funName, arguments)} ??? . '=' def symbol is skipped but was {ToString(actual)}{Nl}Example: {Signature(funName, arguments)} = ...", 
                 actual.Start, actual.Finish);
         }
-        public static Exception FunExpressionIsMissed(string funName, List<VariableInfo> arguments, Tok actual) 
-            => new FunParseException(204, $"{funName}({string.Join(",", arguments)}) = ??? . Function body is missed {Nl}Example: {funName}({string.Join(",", arguments)}) = #place your body here", 
-                actual.Start, actual.Finish);
+        public static Exception FunExpressionIsMissed(string funName, List<VariableInfo> arguments, Interval interval) 
+            => new FunParseException(204,
+                $"{Signature(funName, arguments)} = ??? . Function body is missed {Nl}Example: {Signature(funName, arguments)} = #place your body here", 
+                interval);
 
         public static Exception UnknownValueAtStartOfExpression(int exprStart, Tok flowCurrent) 
             => new FunParseException(207,$"Unexpected symbol {ToString(flowCurrent)}. Equation, anonymous equation, function or type defenition expected.", exprStart, flowCurrent.Finish);
@@ -221,7 +205,7 @@ namespace NFun.ParseErrors
             }
             return new FunParseException(222,
                     $"{headNode.Value}({sb}) = ... {Nl} Function argument is invalid. Variable name (with optional type) expected", 
-                 start, flowCurrent.Finish);
+                    headNodeChild.Interval);
         }
         public static Exception FunctionArgumentInBracketDefenition(int start, LexNode headNode, LexNode headNodeChild,
             Tok flowCurrent)
@@ -241,9 +225,35 @@ namespace NFun.ParseErrors
                 headNodeChild.Start, headNodeChild.Finish);
         }
 
+       
         public static Exception VarExpressionIsMissed(int start, string id, Tok flowCurrent)
             => new FunParseException(228, $"{id} = ??? . Equation body is missed {Nl}Example: {id} = {id}+1", 
                 start, flowCurrent.Finish);
+
+        private static string Signature(string funName, List<VariableInfo> arguments) 
+            => $"{funName}({Join(arguments)})";
+
+        private static string Join(List<VariableInfo> arguments) 
+            => string.Join(",", arguments);
+        private static string ToString(LexNode node)
+        {
+            switch (node.Type)
+            {
+                case LexNodeType.Number: return node.Value;
+                case LexNodeType.Var: return node.Value;
+                case LexNodeType.Fun: return node.Value + "(...)";
+                case LexNodeType.IfThen: return "if...then...";
+                case LexNodeType.IfThanElse: return "if...then....else...";
+                case LexNodeType.Text: return $"\"{(node.Value.Length>20?(node.Value.Substring(17)+"..."):node.Value)}\"";
+                case LexNodeType.ArrayInit: return "[...]";
+                case LexNodeType.AnonymFun: return "(..)=>..";
+                case LexNodeType.TypedVar: return node.Value;
+                case LexNodeType.ListOfExpressions: return "(,)";
+                case LexNodeType.ProcArrayInit: return "[ .. ]";
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
         private static string ToString(Tok tok)
         {
             if (!string.IsNullOrWhiteSpace(tok.Value))

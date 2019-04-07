@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using NFun.Tokenization;
 
 namespace NFun.ParseErrors
 {
@@ -9,6 +10,12 @@ namespace NFun.ParseErrors
         public int Start { get; }
         public int End { get; }
 
+        public FunParseException(int code, string message, Interval interval): base(message)
+        {
+            Code = code;
+            Start = interval.Start;
+            End = interval.Finish;
+        }
         public FunParseException(int code, string message, int start, int end): base(message)
         {
             Code = code;

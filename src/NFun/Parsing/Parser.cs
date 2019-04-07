@@ -93,13 +93,19 @@ namespace NFun.Parsing
                 outputType = VarType.Real;
 
             flow.SkipNewLines();
-            if (!flow.MoveIf(TokType.Def))
+            if (!flow.MoveIf(TokType.Def, out var def))
                 throw ErrorFactory.FunDefTokenIsMissed(id, arguments, flow.Current);  
 
             var expression =reader.ReadExpressionOrNull();
-            if(expression==null)
-                throw ErrorFactory.FunExpressionIsMissed(id, arguments, flow.Current);  
-            
+            if (expression == null)
+            {
+
+                int finish = flow.Peek?.Finish ?? flow.Position;
+                    
+                throw ErrorFactory.FunExpressionIsMissed(id, arguments, 
+                    new Interval(def.Start, finish));
+            }
+
             return new LexFunction
             {
                 Args = arguments.ToArray(), 

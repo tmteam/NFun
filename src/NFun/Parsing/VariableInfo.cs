@@ -12,5 +12,7 @@ namespace NFun.Parsing
             Id = id;
             Type = type;
         }
+
+        public override string ToString() => Id + ":" + Type;
     }
 }
