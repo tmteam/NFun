@@ -2,28 +2,27 @@ namespace NFun.Tokenization
 {
     public class Tok
     {
-         Tok(TokType type,string value,int finish)
+         Tok(TokType type,string value, Interval interval)
         {
             Value = value;
-            Finish = finish;
             Type = type;
+            Interval = interval;
         }
          
-        public static Tok New(TokType type, int finish)
-            => new Tok(type,"",finish);
+        public static Tok New(TokType type, int start, int finish)
+            => new Tok(type,"",new Interval(start,finish));
 
-        public static Tok New(TokType  type,  string value, int finish) 
-            => new Tok(type,value,finish);
+        public static Tok New(TokType  type,  string value,int start,  int finish) 
+            => new Tok(type,value,new Interval(start,finish));
 
         public bool Is(TokType type)
             => type == Type;
         public string Value { get; }
         public TokType Type { get; }
-        public int Finish { get;  }
-        public int FinishInString => Type == TokType.Eof ? Finish - 1 : Finish;
-        
-        public int Start => Finish - Value?.Length??0;
-        public int StartInString => Type == TokType.Eof ? Start - 1 : Start;
+        public Interval Interval { get; }
+        public int Finish => Interval.Finish;
+ 
+        public int Start => Interval.Start;
 
         public override string ToString()
         {

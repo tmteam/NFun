@@ -73,13 +73,13 @@ namespace NFun.Tokenization
                         -1);
                 else
                     throw new FunParseException(001, $"\"{tokType}\" is missing at end of stream",
-                        prev.StartInString, prev.FinishInString);
+                        prev.Start, prev.Finish);
             }
 
             if (!cur.Is(tokType))
                 throw new FunParseException(002,
                     $"\"{tokType}\" is missing but was \"{cur}\"",
-                    cur.StartInString, cur.FinishInString);
+                    cur.Start, cur.Finish);
             
             flow.MoveNext();
             return cur;

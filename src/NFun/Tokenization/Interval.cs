@@ -1,7 +1,14 @@
 namespace NFun.Tokenization
 {
-    public class Interval
+    public struct Interval
     {
-        
+        public readonly int Start;
+        public readonly int Finish;
+
+        public Interval(int start, int finish)
+        {
+            Start = start;
+            Finish = finish;
+        }
     }
 }

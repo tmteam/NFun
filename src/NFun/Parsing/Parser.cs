@@ -23,7 +23,7 @@ namespace NFun.Parsing
                     break;
                 var startOfTheString = flow.IsStart || flow.IsPrevious(TokType.NewLine);
 
-                var exprStart = flow.Current.StartInString;
+                var exprStart = flow.Current.Start;
                 var e = reader.ReadExpressionOrNull();
                 if (e == null)
                     throw ErrorFactory.UnknownValueAtStartOfExpression(exprStart, flow.Current);
@@ -71,7 +71,7 @@ namespace NFun.Parsing
         {
             var id = headNode.Value;
             if (headNode.IsBracket)
-                throw ErrorFactory.UnexpectedBracketsOnFunDefenition(start, headNode, flow.Current);
+                throw ErrorFactory.UnexpectedBracketsOnFunDefenition( headNode, start,flow.Previous.Finish);
 
             var arguments = new List<VariableInfo>();
             foreach (var headNodeChild in headNode.Children)

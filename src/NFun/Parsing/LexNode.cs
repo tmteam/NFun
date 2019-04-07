@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.SymbolStore;
 using System.Linq;
 using System.Security.Principal;
 using NFun.Tokenization;
@@ -14,11 +15,11 @@ namespace NFun.Parsing
         public static LexNode IfThen(LexNode condition, LexNode expression, int start, int end)
             => new LexNode(LexNodeType.IfThen, null, start, end, condition, expression);
         public static LexNode Var(Tok token) 
-            => new LexNode(LexNodeType.Var, token.Value, token.Start, token.Finish);
+            => new LexNode(LexNodeType.Var, token.Value, token.Interval);
         public static LexNode Text(Tok token)
-            => new LexNode(LexNodeType.Text, token.Value, token.Start, token.Finish);
+            => new LexNode(LexNodeType.Text, token.Value, token.Interval);
         public static LexNode Num(Tok token)
-            => new LexNode(LexNodeType.Number, token.Value, token.Start, token.Finish);
+            => new LexNode(LexNodeType.Number, token.Value, token.Interval);
         public static LexNode Num(string val, int start, int end)
             => new LexNode(LexNodeType.Number, val, start, end);
         public static LexNode ProcArrayInit(LexNode @from, LexNode step, LexNode to, int start, int end)
@@ -30,8 +31,8 @@ namespace NFun.Parsing
         public static LexNode Array(LexNode[] elements, int start, int end)
             => new LexNode(LexNodeType.ArrayInit,null,start, end,  elements);
 
-        public static LexNode ListOf(LexNode[] elements, int start, int end) 
-            => new LexNode(LexNodeType.ListOfExpressions, null, start, end, elements);
+        public static LexNode ListOf(LexNode[] elements, Interval interval, bool hasBrackets) 
+            => new LexNode(LexNodeType.ListOfExpressions, null, interval,  hasBrackets, elements);
         public static LexNode TypedVar(string name, VarType type, int start, int end)
         {
             return new LexNode(LexNodeType.TypedVar, name, start, end) {
@@ -52,20 +53,35 @@ namespace NFun.Parsing
       
         #endregion
 
+        public LexNode(LexNodeType type, string value, Interval interval, bool brackets, params LexNode[] children)
+        {
+            Type = type;
+            Value = value;
+            Interval = interval;
+            Children = children;
+            IsBracket = brackets;
+        }
+        public LexNode(LexNodeType type, string value, Interval interval, params LexNode[] children)
+        {
+            Type = type;
+            Value = value;
+            Interval = interval;
+            Children = children;
+        }
         private LexNode(LexNodeType type, string value, int start, int finish, params LexNode[] children)
         {
             Type = type;
             Value = value;
-            Start = start;
-            Finish = finish;
+            Interval = new Interval(start,finish);
             Children = children;
         }
-        public bool IsBracket { get; private set; }
+        public bool IsBracket { get; set; }
         public object AdditionalContent { get; private set; }
         public LexNodeType Type { get; }
         public string Value { get; }
-        public int Start { get;  }
-        public int Finish { get; }
+        public Interval Interval { get; set; }
+        public int Start => Interval.Start;
+        public int Finish => Interval.Finish;
         public  IEnumerable<LexNode> Children { get; }
         private string Typename => Type + (string.IsNullOrWhiteSpace(Value) ? "" : " " + Value);
         public bool Is(LexNodeType type) => Type == type;

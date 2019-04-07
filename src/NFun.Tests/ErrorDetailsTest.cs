@@ -39,6 +39,7 @@ namespace Funny.Tests
         [TestCase("y+1 \r","x+1","")]
         [TestCase("","(y(x, l))"," =x+g(c)=12")]
         [TestCase("","(y(x, l))"," =")]
+        [TestCase("","(y(x, l))"," =x+l")]
         [TestCase("y(","x*2",")= x")]
         [TestCase("y(","2",")= x")]
         [TestCase("y(","2",",x)= x")]
@@ -62,7 +63,7 @@ namespace Funny.Tests
             {
                 Console.WriteLine($"Parse: [FU{e.Code}] {e.Message} [{e.Start},{e.End}]");
                 int start = beforeError.Length;
-                int end = start + errorBody.Length - 1;
+                int end = start + errorBody.Length;
                 if(e.Start>e.End)
                     Assert.Fail("Start is greater than end");
                 Assert.Multiple(() =>

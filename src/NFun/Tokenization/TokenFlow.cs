@@ -34,7 +34,7 @@ namespace NFun.Tokenization
 
       
         public Tok Peek => PeekNext(1);
-        public int Position => Current?.StartInString?? _tokens.LastOrDefault()?.FinishInString?? 0;
+        public int Position => Current?.Start?? _tokens.LastOrDefault()?.Finish?? 0;
 
         public Tok PeekNext(int offset)
         {

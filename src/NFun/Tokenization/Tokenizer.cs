@@ -64,7 +64,7 @@ namespace NFun.Tokenization
         public Tok TryReadNext(string str, int position)
         {
             if(position>=str.Length)
-                return Tok.New(TokType.Eof, position);
+                return Tok.New(TokType.Eof, position,position);
             
             var current = str[position];
             if (current == '#')
@@ -79,16 +79,16 @@ namespace NFun.Tokenization
                 return TryReadNext(str, position + 1);
 
             if(current== 0)
-                return  Tok.New(TokType.Eof, "", position+1);
+                return  Tok.New(TokType.Eof, "", position,position);
             
             if (current == '\r' || current == '\n')
-                return Tok.New(TokType.NewLine, current.ToString(), position+1);
+                return Tok.New(TokType.NewLine, current.ToString(), position,position+1);
             
             if (IsDigit(current))
                 return ReadNumber(str, position);
             
             if (IsSpecial(current) is TokType symbol )
-                return Tok.New(symbol, current.ToString(), position+1);
+                return Tok.New(symbol, current.ToString(), position,position+1);
 
             if (IsLetter(current))
                 return ReadIdOrKeyword(str, position);
@@ -99,7 +99,7 @@ namespace NFun.Tokenization
             if (IsQuote(current))
                 return ReadText(str, position);
             
-            return Tok.New(TokType.NotAToken, null, position+1);
+            return Tok.New(TokType.NotAToken, current.ToString(), position,position+1);
         }
         
         private int SkipComments(string str, int position){
@@ -116,16 +116,16 @@ namespace NFun.Tokenization
         }
         private Tok ReadIdOrKeyword(string str, int position)
         {
-            int start = position;
-            for (; start < str.Length && (IsLetter(str[start]) || IsDigit(str[start])); start++)
+            int finish = position;
+            for (; finish < str.Length && (IsLetter(str[finish]) || IsDigit(str[finish])); finish++)
             {}
 
-            var word = str.Substring(position, start - position);
+            var word = str.Substring(position, finish - position);
             //is id a keyword
             if (_keywords.ContainsKey(word))
-                return Tok.New(_keywords[word], word, start);
+                return Tok.New(_keywords[word], word, position, finish);
             else
-                return Tok.New(TokType.Id, word, start);
+                return Tok.New(TokType.Id, word,position, finish);
         }
 
         private static Tok TryReadUncommonSpecialSymbols(string str, int position, char current)
@@ -137,33 +137,33 @@ namespace NFun.Tokenization
             switch (current)
             {
                 case '*' when  next == '*':
-                    return Tok.New(TokType.Pow, position+2);
+                    return Tok.New(TokType.Pow, position, position+2);
                 case '*' :
-                    return Tok.New(TokType.Mult, position+1);
+                    return Tok.New(TokType.Mult, position,position+1);
                 case '>' when next == '=':
-                    return  Tok.New(TokType.MoreOrEqual, position + 2);
+                    return  Tok.New(TokType.MoreOrEqual,position, position + 2);
                 case '>' when next == '>':
-                    return  Tok.New(TokType.BitShiftRight, position + 2);
+                    return  Tok.New(TokType.BitShiftRight,position, position + 2);
                 case '>':
-                    return Tok.New(TokType.More, position + 1);
+                    return Tok.New(TokType.More, position,position + 1);
                 case '<' when  next == '=':
-                    return Tok.New(TokType.LessOrEqual, position + 2);
+                    return Tok.New(TokType.LessOrEqual, position,position + 2);
                 case '<' when  next == '<':
-                    return Tok.New(TokType.BitShiftLeft, position + 2);
+                    return Tok.New(TokType.BitShiftLeft, position,position + 2);
                 case '<':
-                    return Tok.New(TokType.Less, position+1);
+                    return Tok.New(TokType.Less, position, position+1);
                 case '=' when next == '=':
-                    return Tok.New(TokType.Equal, position + 2);
+                    return Tok.New(TokType.Equal, position, position + 2);
                 case '=' when next == '>':
-                    return Tok.New(TokType.AnonymFun, position + 2);
+                    return Tok.New(TokType.AnonymFun, position,position + 2);
                 case '=':
-                    return Tok.New(TokType.Def, position + 1);
+                    return Tok.New(TokType.Def, position, position + 1);
                 case '.' when next=='.':
-                    return Tok.New(TokType.TwoDots, position+2);
+                    return Tok.New(TokType.TwoDots, position, position+2);
                 case '.':
-                    return Tok.New(TokType.PipeForward, position+1);
+                    return Tok.New(TokType.PipeForward, position, position+1);
                 case '!' when next == '=':
-                    return Tok.New(TokType.NotEqual, position+2);
+                    return Tok.New(TokType.NotEqual, position, position+2);
                 default:
                     return null;
             }
@@ -183,9 +183,10 @@ namespace NFun.Tokenization
             for (var i = position+1; i < str.Length; i++)
             {
                 if(IsQuote(str[i]))
-                    return Tok.New(TokType.Text, str.Substring(position+1, i - position-1), i+1);
+                    return Tok.New(TokType.Text, 
+                        str.Substring(position+1, i - position-1),position, i+1);
             }
-            return Tok.New(TokType.NotAToken, str.Length);
+            return Tok.New(TokType.NotAToken, position, str.Length);
         }
         
         private Tok ReadNumber(string str, int position)
@@ -225,17 +226,19 @@ namespace NFun.Tokenization
                 }
                 break;
             }
-
            
             //if dot is last then skip
             if(dotPostition==index-1)
-                return Tok.New(TokType.Number, str.Substring(position, index - position-1), index-1);
+                return Tok.New(TokType.Number, 
+                    str.Substring(position, index - position-1),position, index-1);
             if (index < str.Length && IsLetter(str[index ]))
             {
                 var txtToken = ReadIdOrKeyword(str, index);
-                return Tok.New(TokType.NotAToken, str.Substring(position,txtToken.Finish - position), txtToken.Finish);
+                return Tok.New(TokType.NotAToken, str.Substring(position,txtToken.Finish - position), 
+                    position,txtToken.Finish);
             }
-            return Tok.New(TokType.Number, str.Substring(position, index - position), index);
+            return Tok.New(TokType.Number, str.Substring(position, index - position), 
+                position, index);
         }
     }
 }

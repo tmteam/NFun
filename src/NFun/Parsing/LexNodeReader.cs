@@ -176,7 +176,9 @@ namespace NFun.Parsing
                     return LexNode.Var(headToken);
             }
             if (_flow.IsCurrent(TokType.Obr))
-                return LexNode.Bracket(ReadBrackedListOrNull());
+                return ReadBrackedListOrNull();
+
+                //return ReadBrackedListOrNull();
             if (_flow.IsCurrent(TokType.If))
                 return ReadIfThenElse();
             if (_flow.IsCurrent(TokType.ArrOBr))
@@ -418,10 +420,15 @@ namespace NFun.Parsing
                 throw ErrorFactory.BracketExpressionMissed(start, _flow.Position, nodeList);
             if (!_flow.MoveIf(TokType.Cbr, out var cbr))
                 throw ErrorFactory.BracketExprCbrOrSeparatorMissed(start, _flow.Position, nodeList);
+            var interval = new Interval(start, cbr.Finish);
             if (nodeList.Count == 1)
+            {
+                nodeList[0].Interval = interval;
+                nodeList[0].IsBracket = true;
                 return nodeList[0];
+            }
             else
-                return LexNode.ListOf(nodeList.ToArray(), start, cbr.Finish);
+                return LexNode.ListOf(nodeList.ToArray(), interval, true);
         }
 
         private LexNode ReadIfThenElse()
