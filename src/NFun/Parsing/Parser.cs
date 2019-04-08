@@ -49,8 +49,15 @@ namespace NFun.Parsing
                 }
                 else
                 {
+
                     if (equations.Any())
-                        throw ErrorFactory.OnlyOneAnonymousExpressionAllowed(exprStart, e, flow.Current);
+                    {
+                        if (startOfTheString && equations[0].Id=="out")
+                            throw ErrorFactory.OnlyOneAnonymousExpressionAllowed(exprStart, e, flow.Current);
+                        else
+                            throw ErrorFactory.UnexpectedExpression(e);
+                    }
+
                     if(!startOfTheString)
                         throw ErrorFactory.AnonymousExpressionHasToStartFromNewLine(exprStart, e, flow.Current);
                         

@@ -295,6 +295,7 @@ namespace NFun.ParseErrors
             => new FunParseException(219, $"Unexpected brackets on function defenition ({headNode.Value}(...))=... {Nl}Example: {headNode.Value}(...)=...", 
                 start, finish);
 
+        
         public static Exception WrongFunctionArgumentDefenition(int start, LexNode headNode, LexNode headNodeChild,
             Tok flowCurrent)
         {
@@ -334,6 +335,9 @@ namespace NFun.ParseErrors
         public static Exception VarExpressionIsMissed(int start, string id, Tok flowCurrent)
             => new FunParseException(228, $"{id} = ??? . Equation body is missed {Nl}Example: {id} = {id}+1", 
                 start, flowCurrent.Finish);
-
+        public static Exception UnexpectedExpression(LexNode lexNode)
+        {
+            return new FunParseException(200,$"Unexpected expression {ErrorsHelper.ToString(lexNode)}", lexNode.Interval);
+        }
     }
 }
