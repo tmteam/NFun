@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Principal;
 using System.Text;
 using NFun.Interpritation.Nodes;
+using NFun.LexAnalyze;
 using NFun.Parsing;
 using NFun.Runtime;
 using NFun.Tokenization;
@@ -348,5 +349,13 @@ namespace NFun.ParseErrors
             }
         }
         #endregion
+
+        public static Exception CycleEquatationDependencies(LexEquation[] result)
+        {
+            var expression = result.First().Expression;
+            return new FunParseException(401,"Cycle dependencies found: " 
+                                         + string.Join("->", result.Select(r=>r.Id)), 
+                expression.Interval);
+        }
     }
 }

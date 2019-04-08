@@ -15,7 +15,6 @@ namespace Funny.Tests
         [TestCase("s = x + ","123z","")]
         [TestCase("","(","")]
         [TestCase("y(x,y)","qwe"," x+y\r j = y(1,2)")]
-        
         [TestCase("j = y(1,2) \r y(x,a):","x"," +y")]
         [TestCase("j = y(1,2) \r y(x,b) ","=","")]
         [TestCase("j = y(1,2) \r y(x,c) ","= ","")]
@@ -41,7 +40,10 @@ namespace Funny.Tests
         [TestCase("f = ","*","")]
         [TestCase("y(x):","lalala"," = y")]
         [TestCase("y(x):","int[","= y")]
-
+        [TestCase("","out +1","")]
+        [TestCase("z = x+1 \r y = ","y +1","\rj = i+1")]
+        [TestCase("z = x+1 \r y = ","y","\rj = i+1")]
+        [TestCase("z(x) = x+1 \ry = ","y","\rj = z(i)")]
         public void ErrorPosition(string beforeError, string errorBody, string afterError)
         {
             AssertErrorPosition(beforeError, errorBody, afterError);

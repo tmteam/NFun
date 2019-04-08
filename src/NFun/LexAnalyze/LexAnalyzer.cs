@@ -78,10 +78,22 @@ namespace NFun.LexAnalyze
             }
 
             var sortResults = GraphTools.SortTopology(dependencyGraph);
-            if (sortResults.HasCycle)
-                throw new FunParseException("Cycle dependencies: "
-                                         + string.Join(",", sortResults.NodeNames));
 
+            if (sortResults.HasCycle)
+            {
+                var errorCycle = new List<LexEquation>();
+                //Equations calculation order
+                //applying sort order to Equations
+                for (int i = 0; i < sortResults.NodeNames.Length; i++)
+                {
+                    //order is reversed:
+                    var index =  sortResults.NodeNames[sortResults.NodeNames.Length - i-1];
+                    var element = lexEquations.ElementAt(index);
+                    errorCycle.Add(element);
+                }
+                throw ErrorFactory.CycleEquatationDependencies(errorCycle.ToArray());
+            }
+            
             //Equations calculation order
             //applying sort order to Equations
             for (int i = 0; i < sortResults.NodeNames.Length; i++)
