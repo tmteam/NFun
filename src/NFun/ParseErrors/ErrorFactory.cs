@@ -75,12 +75,11 @@ namespace NFun.ParseErrors
                 $"{(hasStep?"[x..y..step ???]":"[x..y ???]")}. ']' was missed'{Nl} Example: a[1..5..2]", start,
                 finish);
         }
-        public static Exception ArrayEnumInitializeError2(int openBracketTokenPos, TokenFlow flow)
+        public static Exception ArrayEnumInitializeError(int openBracketTokenPos, TokenFlow flow)
         {
             flow.Move(openBracketTokenPos);
             var obrStart = flow.Current.Start;
             flow.MoveIfOrThrow(TokType.ArrOBr);
-            
             
             var list = new List<LexNode>();
             int currentToken = flow.CurrentTokenPosition;
@@ -91,15 +90,16 @@ namespace NFun.ParseErrors
                     //[,] <-first element missed
                     if(!list.Any())
                         return new FunParseException(538,
-                            $"[, ..] <- element missed {Nl}Remove ',' or place element before it", 
+                            $"[ ??? , ..] <- First element missed {Nl}Remove ',' or place element before it", 
                             new Interval(flow.Current.Start, flow.Current.Finish));
 
-                    //[x,,y] <- element missed 
+                    //[x, ,y] <- element missed 
                     return new FunParseException(539,
-                            $"[, ..] <- element missed {Nl}Remove ',' or place element before it", 
+                            $"[{CreateArgumentsStub(list)},???, ..] <- element missed {Nl}Remove ',' or place element before it", 
                             new Interval(list.Last().Finish, flow.Current.Finish));
                                                 
                 }
+                
                 var exp = flow.ReadExpressionOrNull();
                 if (exp != null)
                     list.Add(exp);
@@ -107,7 +107,7 @@ namespace NFun.ParseErrors
                 {
                     flow.Move(currentToken);
                     //[x,y, {no or bad expression here} ...
-                    return ArrayEnumInitializeError(obrStart, list, flow);
+                    return SpecifyArrayInitError(list, flow);
                 }
                 currentToken = flow.CurrentTokenPosition;
             } while (flow.MoveIf(TokType.Sep));
@@ -133,62 +133,20 @@ namespace NFun.ParseErrors
                     new Interval(list.Last().Finish, nextExpression.Start));
             }
             
-            return ArrayEnumInitializeError(obrStart, list, flow);
+            //[x {some crappy crap here}]
+            return SpecifyArrayInitError(list, flow);
         }
-        public static Exception ArrayEnumInitializeError(int openBracketTokenPos, TokenFlow flow)
-        {
-            flow.Move(openBracketTokenPos);
-            var obrStart = flow.Current.Start;
-            var list = new List<LexNode>();
-            int currentToken = flow.CurrentTokenPosition;
-            do
-            {
-                var exp = flow.ReadExpressionOrNull();
-                if (exp != null)
-                    list.Add(exp);
-                if (exp == null && list.Any())
-                {
-                    flow.Move(currentToken);
-                    //[x,y, {no expression here} ...
-                    return ArrayEnumInitializeError(obrStart, list, flow);
-                }
-                currentToken = flow.CurrentTokenPosition;
-            } while (flow.MoveIf(TokType.Sep));
-            
-            
-            if (!flow.Current.Is(TokType.ArrCBr))
-                return ArrayEnumInitializeError(obrStart, list, flow);
-            else
-                return new FunParseException(14, "Wrong array defenition ", obrStart, flow.Current.Finish);
-        }
-        public static Exception ArrayEnumInitializeError(int obrStart, IList<LexNode> arguments, TokenFlow flow)
+
+        private static Exception SpecifyArrayInitError(IList<LexNode> arguments, TokenFlow flow)
         {
             var next = flow.Current;
-            if(!arguments.Any() && !next.Is(TokType.Sep)) 
-                // [ #and noting else 
-                return new FunParseException(140,
-                    $"[ <- unexpected array symbol{Nl} Did you mean array initialization [,], slice [::] or indexing [i]?", 
-                    new Interval(obrStart, obrStart+1));
-            
             int lastArgPosition = arguments.LastOrDefault()?.Finish ?? flow.Position;
-            int firstArgPostion = arguments.FirstOrDefault()?.Start?? obrStart;
 
             flow.SkipNewLines();
            
             var argumentsStub = CreateArgumentsStub(arguments);
             bool hasSeparator = next.Is(TokType.Sep);
             
-            if (!hasSeparator)
-            {
-                var nextExpression = flow.TryReadExpressionAndReturnBack();
-                if (nextExpression != null) { //next expression exists
-                    //[a b...
-                    //  ^ sep is missing
-                    return new FunParseException(141,
-                        $"[{argumentsStub}, ??? , ...  <- Seems like ',' is missing{Nl} Example: [{argumentsStub}, {ToString(nextExpression)} ...]",
-                        new Interval(lastArgPosition, nextExpression.Start));
-                }
-            }
             var hasAnyBeforeStop = flow.MoveUntilOneOfThe(
                 TokType.Sep, TokType.ArrCBr, TokType.ArrOBr, TokType.NewLine, TokType.NewLine, TokType.Eof)
                 .Any();
@@ -196,7 +154,7 @@ namespace NFun.ParseErrors
             if (hasSeparator)
             {
                 //[x,y, {someshit} , ... 
-                return new FunParseException(142,
+                return new FunParseException(544,
                     $"[{argumentsStub}, ??? , ...  <- Seems like array argument is invalid{Nl} Example: [{argumentsStub}, myArgument, ...]",
                     new Interval(next.Start, flow.Position));
             }
@@ -209,14 +167,14 @@ namespace NFun.ParseErrors
                 if (!hasAnyBeforeStop)
                 {
                     //[x,y {no ']' here}
-                    return new FunParseException(143,
+                    return new FunParseException(545,
                         $"[{argumentsStub} ??? <- Array close bracket ']' is missing{Nl} Example: [{argumentsStub}]",
                         new Interval(errorStart, flow.Position));
                 }   
                 //LastArgument is a part of error
                 var argumentsWithoutLastStub = CreateArgumentsStub(arguments.Take(arguments.Count-1));
 
-                return new FunParseException(144,
+                return new FunParseException(546,
                     $"[{argumentsWithoutLastStub} ??? ] <- Seems like array argument is invalid{Nl} Example: [{argumentsStub}, myArgument, ...]",
                     new Interval(arguments.Last().Start , flow.Position));
             }

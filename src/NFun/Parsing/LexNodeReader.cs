@@ -367,7 +367,7 @@ namespace NFun.Parsing
             
             if (!TryReadNodeList(out var list))
             {
-                throw ErrorFactory.ArrayEnumInitializeError2(startTokenNum, _flow);
+                throw ErrorFactory.ArrayEnumInitializeError(startTokenNum, _flow);
             }
             if (list.Count == 1 && _flow.MoveIf(TokType.TwoDots, out var twoDots))
             {
@@ -427,7 +427,7 @@ namespace NFun.Parsing
                 }
             }
             if (!_flow.MoveIf(TokType.ArrCBr,out var closeBr))
-                throw ErrorFactory.ArrayEnumInitializeError2(startTokenNum, _flow);
+                throw ErrorFactory.ArrayEnumInitializeError(startTokenNum, _flow);
             return LexNode.Array(list.ToArray(), openBracket.Start, closeBr.Finish);
         }
         private LexNode ReadBrackedListOrNull()
