@@ -7,9 +7,9 @@ namespace NFun.Tokenization
 {
     public static class TokenFlowExtensions
     {
-        private static VarType ToVarType(this Tok tokType)
+        private static VarType ToVarType(this Tok token)
         {
-            switch (tokType.Type)
+            switch (token.Type)
             {
                 case TokType.IntType:
                     return  VarType.Int;
@@ -22,8 +22,7 @@ namespace NFun.Tokenization
                 case TokType.AnythingType:
                     return  VarType.Anything;
             }
-            throw new FunParseException($"Expected: type, but was {tokType}");
-
+            throw ErrorFactory.TypeExpectedButWas(token);
         }
         public static VarType ReadVarType(this TokenFlow flow)
         {
@@ -34,7 +33,8 @@ namespace NFun.Tokenization
             while (flow.IsCurrent(TokType.ArrOBr))
             {
                 flow.MoveNext();
-                flow.MoveIfOrThrow(TokType.ArrCBr);
+                if (!flow.MoveIf(TokType.ArrCBr))
+                    throw ErrorFactory.ArrTypeCbrMissed(new Interval(cur.Start, flow.Current.Start));
                 readType = VarType.ArrayOf(readType);
             }
             return readType;

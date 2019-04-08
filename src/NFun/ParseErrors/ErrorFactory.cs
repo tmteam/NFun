@@ -12,6 +12,8 @@ namespace NFun.ParseErrors
 {
     public static class ErrorFactory
     {
+        #region 1xx lex node parsing
+
         private static readonly string Nl = Environment.NewLine;
         public static Exception UnaryArgumentIsMissing(Tok operatorTok)
             => throw new FunParseException(101, $"{ErrorsHelper.ToString(operatorTok)} ???{Nl} right expression is missed{Nl} Example: {ErrorsHelper.ToString(operatorTok)} a",
@@ -76,93 +78,7 @@ namespace NFun.ParseErrors
                 finish);
         }
         
-        public static Exception ArrayInitializeByListError(int openBracketTokenPos, TokenFlow flow)
-        {
-            var res = ErrorsHelper.GetExpressionListError(openBracketTokenPos, flow, TokType.ArrOBr, TokType.ArrCBr);
-            var list = res.Parsed;
-            var argStubs = ErrorsHelper.CreateArgumentsStub(list);
-            switch (res.Type)
-            {
-                case ExprListErrorType.FirstElementMissed:
-                    return new FunParseException(318,
-                        $"[ ??? , ..] <- First element missed {Nl}Remove ',' or place element before it", res.Interval);
-                case ExprListErrorType.ElementMissed:
-                    return new FunParseException(319,
-                        $"[{argStubs},???, ..] <- element missed {Nl}Remove ',' or place element before it", 
-                        res.Interval);
-                case ExprListErrorType.TotalyWrongDefenition:
-                    return new FunParseException(321, "Wrong array defenition ", res.Interval);
-                case ExprListErrorType.SingleOpenBracket:
-                    return new FunParseException(322,
-                        $"[ <- unexpected array symbol{Nl} Did you mean array initialization [,], slice [::] or indexing [i]?", 
-                        res.Interval);
-                case ExprListErrorType.SepIsMissing:
-                    return new FunParseException(323,
-                        $"[{argStubs}, ??? , ...  <- Seems like ',' is missing{Nl} Example: [{argStubs}, myArgument, ...]",
-                        res.Interval);
-                case ExprListErrorType.ArgumentIsInvalid:
-                    return new FunParseException(324,
-                        $"[{argStubs}, ??? , ...  <- Seems like array argument is invalid{Nl} Example: [{argStubs}, myArgument, ...]",
-                        res.Interval);
-                    break;
-                case ExprListErrorType.CloseBracketIsMissing:
-                    return new FunParseException(325,
-                        $"[{argStubs} ??? <- Array close bracket ']' is missing{Nl} Example: [{argStubs}]",
-                        res.Interval);
-                    break;
-                case ExprListErrorType.LastArgumentIsInvalid:
-                    return new FunParseException(326,
-                        $"[{ErrorsHelper.CreateArgumentsStub(list.Take(list.Length-1))} ??? ] <- Seems like array argument is invalid{Nl} Example: [{argStubs}, myArgument, ...]",
-                        res.Interval);
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
-
-        
-        public static Exception FunctionArgumentError(string id, int openBracketTokenPos, TokenFlow flow)
-        {
-            var res = ErrorsHelper.GetExpressionListError(openBracketTokenPos, flow, TokType.Obr, TokType.Cbr);
-            var list = res.Parsed;
-            var argStubs = ErrorsHelper.CreateArgumentsStub(list);
-            switch (res.Type)
-            {
-                case ExprListErrorType.FirstElementMissed:
-                    return new FunParseException(338,
-                        $"{id}( ??? , ..) <- First element missed {Nl}Remove ',' or place element before it", res.Interval);
-                case ExprListErrorType.ElementMissed:
-                    return new FunParseException(339,
-                        $"{id}({argStubs},???, ..) <- element missed {Nl}Remove ',' or place element before it", 
-                        res.Interval);
-                case ExprListErrorType.TotalyWrongDefenition:
-                    return new FunParseException(341, "Wrong function call", res.Interval);
-                case ExprListErrorType.SingleOpenBracket:
-                    return new FunParseException(342,
-                        $"( <- unexpected bracket{Nl} ?", 
-                        res.Interval);
-                case ExprListErrorType.SepIsMissing:
-                    return new FunParseException(343,
-                        $"{id}({argStubs}, ??? , ...  <- Seems like ',' is missing{Nl} Example: {id}({argStubs}, myArgument, ...)",
-                        res.Interval);
-                case ExprListErrorType.ArgumentIsInvalid:
-                    return new FunParseException(344,
-                        $"{id}({argStubs}, ??? , ...  <- Seems like function call argument is invalid{Nl} Example: {id}({argStubs}, myArgument, ...)",
-                        res.Interval);
-                    break;
-                case ExprListErrorType.CloseBracketIsMissing:
-                    return new FunParseException(345,
-                        $"{id}({argStubs}, ??? <- Close bracket ')' is missing{Nl} Example: {id}({argStubs})",
-                        res.Interval);
-                    break;
-                case ExprListErrorType.LastArgumentIsInvalid:
-                    return new FunParseException(346,
-                        $"{id}({ErrorsHelper.CreateArgumentsStub(list.Take(list.Length-1))} ??? ) <- Seems like call argument is invalid{Nl} Example: {id}({argStubs}, myArgument, ...)",
-                        res.Interval);
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
-
+       
         
         public static Exception ArrayIndexCbrMissed(Tok openBracket, Tok lastToken)
         {
@@ -214,63 +130,30 @@ namespace NFun.ParseErrors
                 position);
         }
 
+        public static Exception TypeExpectedButWas(Tok token) 
+            => new FunParseException(171, $"Expected: type, but was {ErrorsHelper.ToString(token)}", token.Interval);
 
-        public static Exception BracketExpressionListError(int openBracketTokenPos, TokenFlow flow)
-        {
-            var res = ErrorsHelper.GetExpressionListError(openBracketTokenPos, flow, TokType.Obr, TokType.Cbr);
-            var list = res.Parsed;
-            var argStubs = ErrorsHelper.CreateArgumentsStub(list);
-            switch (res.Type)
-            {
-                case ExprListErrorType.FirstElementMissed:
-                    return new FunParseException(368,
-                        $"( ??? , ..) <- First element missed {Nl}Remove ',' or place element before it", res.Interval);
-                case ExprListErrorType.ElementMissed:
-                    return new FunParseException(369,
-                        $"({argStubs},???, ..) <- element missed {Nl}Remove ',' or place element before it", 
-                        res.Interval);
-                case ExprListErrorType.TotalyWrongDefenition:
-                    return new FunParseException(371, "Wrong expression", res.Interval);
-                case ExprListErrorType.SingleOpenBracket:
-                    return new FunParseException(372,
-                        $"( <- unexpected bracket{Nl} ?", 
-                        res.Interval);
-                case ExprListErrorType.SepIsMissing:
-                    return new FunParseException(373,
-                        $"({argStubs}, ??? , ...  <- Seems like ',' is missing{Nl} Example: ({argStubs}, myArgument, ...)",
-                        res.Interval);
-                case ExprListErrorType.ArgumentIsInvalid:
-                    return new FunParseException(374,
-                        $"({argStubs}, ??? , ...  <- Seems like invalid expressions{Nl} Example: ({argStubs}, myArgument, ...)",
-                        res.Interval);
-                case ExprListErrorType.CloseBracketIsMissing:
-                    return new FunParseException(375,
-                        $"({argStubs}, ??? <- Close bracket ')' is missing{Nl} Example:({argStubs})",
-                        res.Interval);
-                case ExprListErrorType.LastArgumentIsInvalid:
-                    return new FunParseException(376,
-                        $"({ErrorsHelper.CreateArgumentsStub(list.Take(list.Length-1))} ??? ) <- Seems like invalid expression{Nl} Example: ({argStubs}, myArgument, ...)",
-                        res.Interval);
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
+        public static Exception ArrTypeCbrMissed(Interval interval)
+            => new FunParseException(174, $"']' is missed on array type", interval);
         
         public static Exception BracketExpressionMissed(int start, int end, IList<LexNode> arguments)
         {
-             var argumentsStub = ErrorsHelper.CreateArgumentsStub(arguments);
-             return new FunParseException(182,$"({argumentsStub}???) {Nl}Expression inside the brackets is missed{Nl} Example: ({argumentsStub})", 
-                            start,end);
+            var argumentsStub = ErrorsHelper.CreateArgumentsStub(arguments);
+            return new FunParseException(182,$"({argumentsStub}???) {Nl}Expression inside the brackets is missed{Nl} Example: ({argumentsStub})", 
+                start,end);
         }
-        
         public static Exception ExpressionListMissed(int start, int end, IList<LexNode> arguments)
         {
             var argumentsStub = ErrorsHelper.CreateArgumentsStub(arguments);
             return new FunParseException(183,$"({argumentsStub}???) {Nl}Expression inside the brackets is missed{Nl} Example: ({argumentsStub})", 
                 start,end);
         }
-      
+        #endregion
+
+        #region  2xx - hi level parsing
         
+        public static Exception UnexpectedExpression(LexNode lexNode) 
+            => new FunParseException(200,$"Unexpected expression {ErrorsHelper.ToString(lexNode)}", lexNode.Interval);
         public static Exception FunDefTokenIsMissed(string funName, List<VariableInfo> arguments, Tok actual)
         {
             return new FunParseException(201, $"{ErrorsHelper.Signature(funName, arguments)} ??? . '=' def symbol is skipped but was {ErrorsHelper.ToString(actual)}{Nl}Example: {ErrorsHelper.Signature(funName, arguments)} = ...", 
@@ -335,9 +218,135 @@ namespace NFun.ParseErrors
         public static Exception VarExpressionIsMissed(int start, string id, Tok flowCurrent)
             => new FunParseException(228, $"{id} = ??? . Equation body is missed {Nl}Example: {id} = {id}+1", 
                 start, flowCurrent.Finish);
-        public static Exception UnexpectedExpression(LexNode lexNode)
+       
+        #endregion
+
+        #region  3xx - errors of lists
+
+         public static Exception ArrayInitializeByListError(int openBracketTokenPos, TokenFlow flow)
         {
-            return new FunParseException(200,$"Unexpected expression {ErrorsHelper.ToString(lexNode)}", lexNode.Interval);
+            var res = ErrorsHelper.GetExpressionListError(openBracketTokenPos, flow, TokType.ArrOBr, TokType.ArrCBr);
+            var list = res.Parsed;
+            var argStubs = ErrorsHelper.CreateArgumentsStub(list);
+            switch (res.Type)
+            {
+                case ExprListErrorType.FirstElementMissed:
+                    return new FunParseException(318,
+                        $"[ ??? , ..] <- First element missed {Nl}Remove ',' or place element before it", res.Interval);
+                case ExprListErrorType.ElementMissed:
+                    return new FunParseException(319,
+                        $"[{argStubs},???, ..] <- element missed {Nl}Remove ',' or place element before it", 
+                        res.Interval);
+                case ExprListErrorType.TotalyWrongDefenition:
+                    return new FunParseException(321, "Wrong array defenition ", res.Interval);
+                case ExprListErrorType.SingleOpenBracket:
+                    return new FunParseException(322,
+                        $"[ <- unexpected array symbol{Nl} Did you mean array initialization [,], slice [::] or indexing [i]?", 
+                        res.Interval);
+                case ExprListErrorType.SepIsMissing:
+                    return new FunParseException(323,
+                        $"[{argStubs}, ??? , ...  <- Seems like ',' is missing{Nl} Example: [{argStubs}, myArgument, ...]",
+                        res.Interval);
+                case ExprListErrorType.ArgumentIsInvalid:
+                    return new FunParseException(324,
+                        $"[{argStubs}, ??? , ...  <- Seems like array argument is invalid{Nl} Example: [{argStubs}, myArgument, ...]",
+                        res.Interval);
+                case ExprListErrorType.CloseBracketIsMissing:
+                    return new FunParseException(325,
+                        $"[{argStubs} ??? <- Array close bracket ']' is missing{Nl} Example: [{argStubs}]",
+                        res.Interval);
+                case ExprListErrorType.LastArgumentIsInvalid:
+                    return new FunParseException(326,
+                        $"[{ErrorsHelper.CreateArgumentsStub(list.Take(list.Length-1))} ??? ] <- Seems like array argument is invalid{Nl} Example: [{argStubs}, myArgument, ...]",
+                        res.Interval);
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
+
+        
+        public static Exception FunctionArgumentError(string id, int openBracketTokenPos, TokenFlow flow)
+        {
+            var res = ErrorsHelper.GetExpressionListError(openBracketTokenPos, flow, TokType.Obr, TokType.Cbr);
+            var list = res.Parsed;
+            var argStubs = ErrorsHelper.CreateArgumentsStub(list);
+            switch (res.Type)
+            {
+                case ExprListErrorType.FirstElementMissed:
+                    return new FunParseException(338,
+                        $"{id}( ??? , ..) <- First element missed {Nl}Remove ',' or place element before it", res.Interval);
+                case ExprListErrorType.ElementMissed:
+                    return new FunParseException(339,
+                        $"{id}({argStubs},???, ..) <- element missed {Nl}Remove ',' or place element before it", 
+                        res.Interval);
+                case ExprListErrorType.TotalyWrongDefenition:
+                    return new FunParseException(341, "Wrong function call", res.Interval);
+                case ExprListErrorType.SingleOpenBracket:
+                    return new FunParseException(342,
+                        $"( <- unexpected bracket{Nl} ?", 
+                        res.Interval);
+                case ExprListErrorType.SepIsMissing:
+                    return new FunParseException(343,
+                        $"{id}({argStubs}, ??? , ...  <- Seems like ',' is missing{Nl} Example: {id}({argStubs}, myArgument, ...)",
+                        res.Interval);
+                case ExprListErrorType.ArgumentIsInvalid:
+                    return new FunParseException(344,
+                        $"{id}({argStubs}, ??? , ...  <- Seems like function call argument is invalid{Nl} Example: {id}({argStubs}, myArgument, ...)",
+                        res.Interval);
+                case ExprListErrorType.CloseBracketIsMissing:
+                    return new FunParseException(345,
+                        $"{id}({argStubs}, ??? <- Close bracket ')' is missing{Nl} Example: {id}({argStubs})",
+                        res.Interval);
+                case ExprListErrorType.LastArgumentIsInvalid:
+                    return new FunParseException(346,
+                        $"{id}({ErrorsHelper.CreateArgumentsStub(list.Take(list.Length-1))} ??? ) <- Seems like call argument is invalid{Nl} Example: {id}({argStubs}, myArgument, ...)",
+                        res.Interval);
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        
+        public static Exception BracketExpressionListError(int openBracketTokenPos, TokenFlow flow)
+        {
+            var res = ErrorsHelper.GetExpressionListError(openBracketTokenPos, flow, TokType.Obr, TokType.Cbr);
+            var list = res.Parsed;
+            var argStubs = ErrorsHelper.CreateArgumentsStub(list);
+            switch (res.Type)
+            {
+                case ExprListErrorType.FirstElementMissed:
+                    return new FunParseException(368,
+                        $"( ??? , ..) <- First element missed {Nl}Remove ',' or place element before it", res.Interval);
+                case ExprListErrorType.ElementMissed:
+                    return new FunParseException(369,
+                        $"({argStubs},???, ..) <- element missed {Nl}Remove ',' or place element before it", 
+                        res.Interval);
+                case ExprListErrorType.TotalyWrongDefenition:
+                    return new FunParseException(371, "Wrong expression", res.Interval);
+                case ExprListErrorType.SingleOpenBracket:
+                    return new FunParseException(372,
+                        $"( <- unexpected bracket{Nl} ?", 
+                        res.Interval);
+                case ExprListErrorType.SepIsMissing:
+                    return new FunParseException(373,
+                        $"({argStubs}, ??? , ...  <- Seems like ',' is missing{Nl} Example: ({argStubs}, myArgument, ...)",
+                        res.Interval);
+                case ExprListErrorType.ArgumentIsInvalid:
+                    return new FunParseException(374,
+                        $"({argStubs}, ??? , ...  <- Seems like invalid expressions{Nl} Example: ({argStubs}, myArgument, ...)",
+                        res.Interval);
+                case ExprListErrorType.CloseBracketIsMissing:
+                    return new FunParseException(375,
+                        $"({argStubs}, ??? <- Close bracket ')' is missing{Nl} Example:({argStubs})",
+                        res.Interval);
+                case ExprListErrorType.LastArgumentIsInvalid:
+                    return new FunParseException(376,
+                        $"({ErrorsHelper.CreateArgumentsStub(list.Take(list.Length-1))} ??? ) <- Seems like invalid expression{Nl} Example: ({argStubs}, myArgument, ...)",
+                        res.Interval);
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+        #endregion
     }
 }
