@@ -75,8 +75,93 @@ namespace NFun.ParseErrors
                 $"{(hasStep?"[x..y..step ???]":"[x..y ???]")}. ']' was missed'{Nl} Example: a[1..5..2]", start,
                 finish);
         }
+        public static Exception ArrayEnumInitializeError2(int openBracketTokenPos, TokenFlow flow)
+        {
+            flow.Move(openBracketTokenPos);
+            var obrStart = flow.Current.Start;
+            flow.MoveIfOrThrow(TokType.ArrOBr);
+            
+            
+            var list = new List<LexNode>();
+            int currentToken = flow.CurrentTokenPosition;
+            do
+            {
+                if (flow.IsCurrent(TokType.Sep))
+                {
+                    //[,] <-first element missed
+                    if(!list.Any())
+                        return new FunParseException(538,
+                            $"[, ..] <- element missed {Nl}Remove ',' or place element before it", 
+                            new Interval(flow.Current.Start, flow.Current.Finish));
 
-        public static Exception ArrayEnumInitializeCbrMissed(int obrStart, IList<LexNode> arguments, TokenFlow flow)
+                    //[x,,y] <- element missed 
+                    return new FunParseException(539,
+                            $"[, ..] <- element missed {Nl}Remove ',' or place element before it", 
+                            new Interval(list.Last().Finish, flow.Current.Finish));
+                                                
+                }
+                var exp = flow.ReadExpressionOrNull();
+                if (exp != null)
+                    list.Add(exp);
+                if (exp == null && list.Any())
+                {
+                    flow.Move(currentToken);
+                    //[x,y, {no or bad expression here} ...
+                    return ArrayEnumInitializeError(obrStart, list, flow);
+                }
+                currentToken = flow.CurrentTokenPosition;
+            } while (flow.MoveIf(TokType.Sep));
+
+            if (flow.Current.Is(TokType.ArrCBr))
+                //everything seems fine...
+                return new FunParseException(541, "Wrong array defenition ", obrStart, flow.Current.Finish);
+            
+            if (!list.Any())
+            {
+                return new FunParseException(542,
+                    $"[ <- unexpected array symbol{Nl} Did you mean array initialization [,], slice [::] or indexing [i]?", 
+                    new Interval(obrStart, obrStart+1));
+            }
+
+            var argumentsStub = CreateArgumentsStub(list);
+            var nextExpression = flow.TryReadExpressionAndReturnBack();
+            if (nextExpression != null)
+            {
+                //[x y] <- separator is missed
+                return new FunParseException(543,
+                    $"[{argumentsStub}, ??? , ...  <- Seems like ',' is missing{Nl} Example: [{argumentsStub}, {ToString(nextExpression)} ...]",
+                    new Interval(list.Last().Finish, nextExpression.Start));
+            }
+            
+            return ArrayEnumInitializeError(obrStart, list, flow);
+        }
+        public static Exception ArrayEnumInitializeError(int openBracketTokenPos, TokenFlow flow)
+        {
+            flow.Move(openBracketTokenPos);
+            var obrStart = flow.Current.Start;
+            var list = new List<LexNode>();
+            int currentToken = flow.CurrentTokenPosition;
+            do
+            {
+                var exp = flow.ReadExpressionOrNull();
+                if (exp != null)
+                    list.Add(exp);
+                if (exp == null && list.Any())
+                {
+                    flow.Move(currentToken);
+                    //[x,y, {no expression here} ...
+                    return ArrayEnumInitializeError(obrStart, list, flow);
+                }
+                currentToken = flow.CurrentTokenPosition;
+            } while (flow.MoveIf(TokType.Sep));
+            
+            
+            if (!flow.Current.Is(TokType.ArrCBr))
+                return ArrayEnumInitializeError(obrStart, list, flow);
+            else
+                return new FunParseException(14, "Wrong array defenition ", obrStart, flow.Current.Finish);
+        }
+        public static Exception ArrayEnumInitializeError(int obrStart, IList<LexNode> arguments, TokenFlow flow)
         {
             var next = flow.Current;
             if(!arguments.Any() && !next.Is(TokType.Sep)) 
@@ -93,22 +178,16 @@ namespace NFun.ParseErrors
             var argumentsStub = CreateArgumentsStub(arguments);
             bool hasSeparator = next.Is(TokType.Sep);
             
-            if (!hasSeparator) 
+            if (!hasSeparator)
             {
-                int lastFlowPosition = flow.CurrentTokenPosition;
-                try
-                {
-                    var nextExpression = new LexNodeReader(flow).ReadExpressionOrNull();
-                    if (nextExpression != null) { //next expression exists
-                        //[a b...
-                        //  ^ sep is missing
-                        return new FunParseException(141,
-                            $"[{argumentsStub}, ??? , ...  <- Seems like ',' is missing{Nl} Example: [{argumentsStub}, {ToString(nextExpression)} ...]",
-                            new Interval(lastArgPosition, nextExpression.Start));
-                    }
+                var nextExpression = flow.TryReadExpressionAndReturnBack();
+                if (nextExpression != null) { //next expression exists
+                    //[a b...
+                    //  ^ sep is missing
+                    return new FunParseException(141,
+                        $"[{argumentsStub}, ??? , ...  <- Seems like ',' is missing{Nl} Example: [{argumentsStub}, {ToString(nextExpression)} ...]",
+                        new Interval(lastArgPosition, nextExpression.Start));
                 }
-                catch (FunParseException){}
-                finally{flow.Move(lastFlowPosition);}
             }
             var hasAnyBeforeStop = flow.MoveUntilOneOfThe(
                 TokType.Sep, TokType.ArrCBr, TokType.ArrOBr, TokType.NewLine, TokType.NewLine, TokType.Eof)
@@ -220,6 +299,13 @@ namespace NFun.ParseErrors
              var argumentsStub = CreateArgumentsStub(arguments);
              return new FunParseException(182,$"({argumentsStub}???) {Nl}Expression inside the brackets is missed{Nl} Example: ({argumentsStub})", 
                             start,end);
+        }
+        
+        public static Exception ExpressionListMissed(int start, int end, IList<LexNode> arguments)
+        {
+            var argumentsStub = CreateArgumentsStub(arguments);
+            return new FunParseException(183,$"({argumentsStub}???) {Nl}Expression inside the brackets is missed{Nl} Example: ({argumentsStub})", 
+                start,end);
         }
         private static string CreateArgumentsStub(IEnumerable<LexNode> arguments)
         {

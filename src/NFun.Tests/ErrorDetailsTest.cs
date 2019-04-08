@@ -58,7 +58,7 @@ namespace Funny.Tests
         [TestCase("q=[1,2,3"," ","")]
         [TestCase("q=[1,2,3","  ","")]
         [TestCase("m=[1,2,3",",","")]
-        [TestCase("m=[1,2,3,",",","")]
+        [TestCase("m=[1,2,3",",,","")]
         [TestCase("m=[1,2,3",",","]")]
         [TestCase("m=[1,2,3"," ","4]")]
         [TestCase("m=[1,2,3,","123anc",",4]")]
@@ -70,7 +70,7 @@ namespace Funny.Tests
         [TestCase("s=[1,2",",,","3,4]")]
         [TestCase("s=[",",","]")]
         [TestCase("s=[",",","2]")]
-        [TestCase("s=[",",,","2]")]
+        [TestCase("s=[",",",",2]")]
         [TestCase("s=","[","")]
         public void InitializeArray_ErrorPosition(string beforeError, string errorBody, string afterError)
         {

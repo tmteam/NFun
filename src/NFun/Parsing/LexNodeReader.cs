@@ -328,6 +328,21 @@ namespace NFun.Parsing
 
 
         #region  read concreete
+        bool TryReadNodeList(out IList<LexNode> read)
+        {
+            read = new List<LexNode>();
+            do
+            {
+                var exp = ReadExpressionOrNull();
+                if (exp != null)
+                    read.Add(exp);
+                else if (read.Count > 0)
+                    return false;
+                else
+                    break;
+            } while (_flow.MoveIf(TokType.Sep, out _));
+            return true;
+        }
         IList<LexNode> ReadNodeList()
         {
             var list = new List<LexNode>();
@@ -338,7 +353,7 @@ namespace NFun.Parsing
                 if (exp != null)
                     list.Add(exp);
                 else if (list.Count > 0)
-                    throw ErrorFactory.BracketExpressionMissed(start, _flow.Position, list);
+                    throw ErrorFactory.ExpressionListMissed(start, _flow.Position, list);
                 else
                     break;
             } while (_flow.MoveIf(TokType.Sep, out _));
@@ -347,8 +362,13 @@ namespace NFun.Parsing
 
         private LexNode ReadInitializeArray()
         {
+            var startTokenNum = _flow.CurrentTokenPosition;
             var openBracket = _flow.MoveIfOrThrow(TokType.ArrOBr);
-            var list = ReadNodeList();
+            
+            if (!TryReadNodeList(out var list))
+            {
+                throw ErrorFactory.ArrayEnumInitializeError2(startTokenNum, _flow);
+            }
             if (list.Count == 1 && _flow.MoveIf(TokType.TwoDots, out var twoDots))
             {
                 var secondArg = ReadExpressionOrNull();
@@ -407,7 +427,7 @@ namespace NFun.Parsing
                 }
             }
             if (!_flow.MoveIf(TokType.ArrCBr,out var closeBr))
-                throw ErrorFactory.ArrayEnumInitializeCbrMissed(openBracket.Start, list, _flow);
+                throw ErrorFactory.ArrayEnumInitializeError2(startTokenNum, _flow);
             return LexNode.Array(list.ToArray(), openBracket.Start, closeBr.Finish);
         }
         private LexNode ReadBrackedListOrNull()
