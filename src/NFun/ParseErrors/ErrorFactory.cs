@@ -14,26 +14,29 @@ namespace NFun.ParseErrors
     {
         private static readonly string Nl = Environment.NewLine;
         public static Exception UnaryArgumentIsMissing(Tok operatorTok)
-            => throw new FunParseException(101, $"{ToString(operatorTok)} ???{Nl} right expression is missed{Nl} Example: {ToString(operatorTok)} a",operatorTok.Start, operatorTok.Finish);
+            => throw new FunParseException(101, $"{ToString(operatorTok)} ???{Nl} right expression is missed{Nl} Example: {ToString(operatorTok)} a",
+                operatorTok.Interval);
         public static Exception MinusDuplicates(Tok previousTok, Tok currentTok)
-            => throw new FunParseException(104,$"'--' is not allowed",previousTok.Start, currentTok.Finish);
+            => throw new FunParseException(104,$"'--' is not allowed",
+                previousTok.Start, currentTok.Finish);
         public static Exception LeftBinaryArgumentIsMissing(Tok token)
-            => throw new FunParseException(107,$"expression is missed before '{ToString(token)}'",token.Start, token.Finish);
-        public static Exception RightBinaryArgumentIsMissing(LexNode leftNode, Tok token)
-            => throw new FunParseException(110,$"{ToString(leftNode)} {ToString(token)} ???. Right expression is missed{Nl} Example: {ToString(leftNode)} {ToString(token)} e",
-                leftNode.Start, token.Finish);
+            => throw new FunParseException(107,$"expression is missed before '{ToString(token)}'",
+                token.Interval);
+        public static Exception RightBinaryArgumentIsMissing(LexNode leftNode, Tok @operator)
+            => throw new FunParseException(110,$"{ToString(leftNode)} {ToString(@operator)} ???. Right expression is missed{Nl} Example: {ToString(leftNode)} {ToString(@operator)} e",
+                leftNode.Start, @operator.Finish);
         
         public static Exception OperatorIsUnknown(Tok token)
-            => throw new FunParseException(113,$"operator '{ToString(token)}' is unknown",token.Start, token.Finish);
+            => throw new FunParseException(113,$"operator '{ToString(token)}' is unknown",token.Interval);
 
         public static Exception NotAToken(Tok token)
-            => throw new FunParseException(114,$"'{token.Value}' is not valid fun element. What did you mean?", token.Start, token.Finish);
+            => throw new FunParseException(114,$"'{token.Value}' is not valid fun element. What did you mean?", token.Interval);
         
         public static Exception FunctionNameIsMissedAfterPipeForward(Tok token)
-            => throw new FunParseException(116,$"Function name expected after '.'{Nl} Example: [1,2].myFunction()",token.Start, token.Finish);
+            => throw new FunParseException(116,$"Function name expected after '.'{Nl} Example: [1,2].myFunction()",token.Interval);
 
         public static Exception ArrayIndexOrSliceExpected(Tok openBraket)
-            => new FunParseException(119,$"Array index or slice expected after '['{Nl} Example: a[1] or a[1:3:2]",openBraket.Start,openBraket.Finish);
+            => new FunParseException(119,$"Array index or slice expected after '['{Nl} Example: a[1] or a[1:3:2]",openBraket.Interval);
 
         public static Exception ArrayIndexExpected(Tok openBraket, Tok closeBracket)
             =>  new FunParseException(122,$"Array index expected inside of '[]'{Nl} Example: a[1]",openBraket.Start,closeBracket.Finish);
@@ -72,22 +75,81 @@ namespace NFun.ParseErrors
                 $"{(hasStep?"[x..y..step ???]":"[x..y ???]")}. ']' was missed'{Nl} Example: a[1..5..2]", start,
                 finish);
         }
-        
-        public static Exception ArrayEnumInitializeCbrMissed(int start, int end, IList<LexNode> arguments)
+
+        public static Exception ArrayEnumInitializeCbrMissed(int obrStart, IList<LexNode> arguments, TokenFlow flow)
         {
+            var next = flow.Current;
+            if(!arguments.Any() && !next.Is(TokType.Sep)) 
+                // [ #and noting else 
+                return new FunParseException(140,
+                    $"[ <- unexpected array symbol{Nl} Did you mean array initialization [,], slice [::] or indexing [i]?", 
+                    new Interval(obrStart, obrStart+1));
+            
+            int lastArgPosition = arguments.LastOrDefault()?.Finish ?? flow.Position;
+            int firstArgPostion = arguments.FirstOrDefault()?.Start?? obrStart;
+
+            flow.SkipNewLines();
+           
             var argumentsStub = CreateArgumentsStub(arguments);
-            return new FunParseException(140,
-                $"[{argumentsStub} ??? <- ']' or ',' was missed{Nl} Example: [{argumentsStub}]", start,
-                end);
+            bool hasSeparator = next.Is(TokType.Sep);
+            
+            if (!hasSeparator) 
+            {
+                int lastFlowPosition = flow.CurrentTokenPosition;
+                try
+                {
+                    var nextExpression = new LexNodeReader(flow).ReadExpressionOrNull();
+                    if (nextExpression != null) { //next expression exists
+                        //[a b...
+                        //  ^ sep is missing
+                        return new FunParseException(141,
+                            $"[{argumentsStub}, ??? , ...  <- Seems like ',' is missing{Nl} Example: [{argumentsStub}, {ToString(nextExpression)} ...]",
+                            new Interval(lastArgPosition, nextExpression.Start));
+                    }
+                }
+                catch (FunParseException){}
+                finally{flow.Move(lastFlowPosition);}
+            }
+            var hasAnyBeforeStop = flow.MoveUntilOneOfThe(
+                TokType.Sep, TokType.ArrCBr, TokType.ArrOBr, TokType.NewLine, TokType.NewLine, TokType.Eof)
+                .Any();
+            
+            if (hasSeparator)
+            {
+                //[x,y, {someshit} , ... 
+                return new FunParseException(142,
+                    $"[{argumentsStub}, ??? , ...  <- Seems like array argument is invalid{Nl} Example: [{argumentsStub}, myArgument, ...]",
+                    new Interval(next.Start, flow.Position));
+            }
+            else
+            {
+                var errorStart = lastArgPosition;
+                if (flow.Position == errorStart)
+                    errorStart = arguments.Last().Start;
+                //[x, {y someshit} , ... 
+                if (!hasAnyBeforeStop)
+                {
+                    //[x,y {no ']' here}
+                    return new FunParseException(143,
+                        $"[{argumentsStub} ??? <- Array close bracket ']' is missing{Nl} Example: [{argumentsStub}]",
+                        new Interval(errorStart, flow.Position));
+                }   
+                //LastArgument is a part of error
+                var argumentsWithoutLastStub = CreateArgumentsStub(arguments.Take(arguments.Count-1));
+
+                return new FunParseException(144,
+                    $"[{argumentsWithoutLastStub} ??? ] <- Seems like array argument is invalid{Nl} Example: [{argumentsStub}, myArgument, ...]",
+                    new Interval(arguments.Last().Start , flow.Position));
+            }
         }
 
-     
+
         public static Exception ArrayIndexCbrMissed(Tok openBracket, Tok lastToken)
         {
             int start = openBracket.Start;
             int finish = lastToken.Finish;
-            return new FunParseException(143,
-                $"a[x ???. ']' was missed'{Nl} Example: a[1] or a[1:2] or a[1:5:2]", start,
+            return new FunParseException(145,
+                $"a[x ??? <- was missed ']'{Nl} Example: a[1] or a[1:2] or a[1:5:2]", start,
                 finish);        
         }
         public static Exception ArraySliceCbrMissed(Tok openBracket, Tok lastToken, bool hasStep)
@@ -159,7 +221,7 @@ namespace NFun.ParseErrors
              return new FunParseException(182,$"({argumentsStub}???) {Nl}Expression inside the brackets is missed{Nl} Example: ({argumentsStub})", 
                             start,end);
         }
-        private static string CreateArgumentsStub(IList<LexNode> arguments)
+        private static string CreateArgumentsStub(IEnumerable<LexNode> arguments)
         {
             var argumentsStub = string.Join(",", arguments.Select(ToString));
             return argumentsStub;

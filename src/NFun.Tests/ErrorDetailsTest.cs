@@ -22,12 +22,6 @@ namespace Funny.Tests
         [TestCase("k = ","some_not_defined_function(x1,x2 )","")]
         [TestCase("k = ","f(a","")]
         [TestCase("","(","")]
-        [TestCase("","[1,2,3","")]
-        [TestCase("","[1,2,3,","")]
-        [TestCase("","[1,2,3 4]","")]
-        [TestCase("h= ","[1,2,3 4]"," @ [5,6]")]
-        [TestCase("","[,]","")]
-        [TestCase("","[,2]","")]
         [TestCase("y(x,y)","qwe"," x+y\r j = y(1,2)")]
         [TestCase("j = y(1,2) \r y(x,z)","qwe"," x+y")]
         [TestCase("j = y(1,2) \r y(x,z)",":"," x+y")]
@@ -56,23 +50,58 @@ namespace Funny.Tests
         [TestCase("f = ","*","")]
         public void ErrorPosition(string beforeError, string errorBody, string afterError)
         {
+            AssertErrorPosition(beforeError, errorBody, afterError);
+        }
+        [TestCase("q=[1.0"," ","2.0]")]
+        [TestCase("q=[1,2,","3","")]
+        [TestCase("q=[1,2,3",",","")]
+        [TestCase("q=[1,2,3"," ","")]
+        [TestCase("q=[1,2,3","  ","")]
+        [TestCase("m=[1,2,3",",","")]
+        [TestCase("m=[1,2,3,",",","")]
+        [TestCase("m=[1,2,3",",","]")]
+        [TestCase("m=[1,2,3"," ","4]")]
+        [TestCase("m=[1,2,3,","123anc",",4]")]
+        [TestCase("m=[1,2,3,","123anc","]")]
+
+        [TestCase("m=[1,2,3,","y = 12",",4]")]
+        [TestCase("m=[1,2,3","   ","4] @ [5,6]")]
+        [TestCase("s=[1,2",", ,","3,4]")]
+        [TestCase("s=[1,2",",,","3,4]")]
+        [TestCase("s=[",",","]")]
+        [TestCase("s=[",",","2]")]
+        [TestCase("s=[",",,","2]")]
+        [TestCase("s=","[","")]
+        public void InitializeArray_ErrorPosition(string beforeError, string errorBody, string afterError)
+        {
+            AssertErrorPosition(beforeError, errorBody, afterError);
+        }
+        
+        private static void AssertErrorPosition(string beforeError, string errorBody, string afterError)
+        {
+            var value = beforeError + errorBody + afterError;
+            Console.WriteLine(value);
+
             try
             {
-                FunBuilder.With(beforeError + errorBody + afterError)
+                FunBuilder.With(value)
                     .Build();
                 Assert.Fail("Exception was not raised");
             }
-            catch (FunParseException e) when(e.Start!= -1)
+            catch (FunParseException e) when (e.Start != -1)
             {
                 Console.WriteLine($"Parse: [FU{e.Code}] {e.Message} [{e.Start},{e.End}]");
+                Console.WriteLine($"Error: [{e.Start},{e.End}]: '{e.Interval.SubString(value)}'");
+
                 int start = beforeError.Length;
                 int end = start + errorBody.Length;
-                if(e.Start>e.End)
-                    Assert.Fail("Start is greater than end");
+                
+                if (e.Start > e.End)
+                    Assert.Fail($"[FU{e.Code}] Start is greater than end");
                 Assert.Multiple(() =>
                 {
-                    Assert.AreEqual(start, e.Start, "start index");
-                    Assert.AreEqual(end, e.End, "end index");
+                    Assert.AreEqual(start, e.Start, $"[FU{e.Code}] Start index");
+                    Assert.AreEqual(end, e.End, $"[FU{e.Code}] End index");
                 });
             }
         }

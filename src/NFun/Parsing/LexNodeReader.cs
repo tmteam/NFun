@@ -407,7 +407,7 @@ namespace NFun.Parsing
                 }
             }
             if (!_flow.MoveIf(TokType.ArrCBr,out var closeBr))
-                throw ErrorFactory.ArrayEnumInitializeCbrMissed(openBracket.Start, _flow.Position, list);
+                throw ErrorFactory.ArrayEnumInitializeCbrMissed(openBracket.Start, list, _flow);
             return LexNode.Array(list.ToArray(), openBracket.Start, closeBr.Finish);
         }
         private LexNode ReadBrackedListOrNull()

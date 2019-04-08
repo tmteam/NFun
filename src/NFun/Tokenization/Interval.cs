@@ -1,3 +1,5 @@
+using System;
+
 namespace NFun.Tokenization
 {
     public struct Interval
@@ -9,6 +11,15 @@ namespace NFun.Tokenization
         {
             Start = start;
             Finish = finish;
+        }
+
+        public string SubString(string origin)
+        {
+            if(Finish==-1 || Start==-1)
+                return String.Empty;
+            if(Start>Finish)
+                return String.Empty;
+            return origin.Substring(Start, Finish - Start);
         }
     }
 }

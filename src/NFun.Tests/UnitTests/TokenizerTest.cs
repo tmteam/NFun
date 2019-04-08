@@ -105,6 +105,7 @@ namespace Funny.Tests.UnitTests
         [TestCase("0x00f", TokType.Number)]
         [TestCase("123.4312_1", TokType.Number)]
         [TestCase("false", TokType.False)]
+        [TestCase("123abc", TokType.NotAToken)]
         public void ToTokens_SingleTokenIsCorrectAndContainsCorrectBounds(string expression, TokType type)
             =>CheckSingleToken(expression,0,type,0, expression.Length);
         
