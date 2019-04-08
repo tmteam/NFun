@@ -49,22 +49,23 @@ namespace Funny
                 {
                     Console.BackgroundColor = ConsoleColor.Red;
                     Console.ForegroundColor = ConsoleColor.White;
-                    Console.Write(" ERROR "+ e.Code +" ");
+                    Console.Write(" ERROR [FU"+ e.Code +"] ");
+                    Console.Write($" {e.Message} ");
+
                     Console.ResetColor();
-                    Console.WriteLine($" {e.Message} from {e.Start} to {e.End}");
 
                     if (e.End != -1)
                     {
                         if (e.Start > 0)
-                            Console.Write(expression.Substring(0, e.Start - 1));
+                            Console.Write(expression.Substring(0, e.Start));
 
                         Console.BackgroundColor = ConsoleColor.DarkRed;
                         Console.ForegroundColor = ConsoleColor.White;
 
-                        Console.Write(expression.Substring(e.Start, e.End - e.Start + 1));
+                        Console.Write(e.Interval.SubString(expression));
                         Console.ResetColor();
-                        if(expression.Length>e.End)
-                            Console.Write(expression.Substring(e.End+1));
+                        if(expression.Length>=e.End)
+                            Console.Write(expression.Substring(e.End));
                         Console.WriteLine();
                     }
                 }
