@@ -41,19 +41,19 @@ namespace NFun.Interpritation
                 return GetProcedureArrayNode(node);
             if(node.Is(LexNodeType.AnonymFun))
                 return GetAnonymFun(node);
-            
-            throw new FunParseException($"{node} is not an expression");
+
+            throw ErrorFactory.NotAnExpression(node);
         }
 
         private IExpressionNode GetAnonymFun(LexNode node)
         {
             var defenition = node.Children.ElementAtOrDefault(0);
-            if(defenition==null)
-                throw new FunParseException("Anonymous fun defenition is missing");
+            if (defenition == null)
+                throw ErrorFactory.AnonymousFunDefenitionIsMissing(node);
 
             var expression = node.Children.ElementAtOrDefault(1);
             if(expression== null)
-                throw new FunParseException("Anonymous fun body is missing");
+                throw ErrorFactory.AnonymousFunBodyIsMissing(node);
             
             var variablesDictionary = new Dictionary<string, VariableExpressionNode>();
             
@@ -85,19 +85,19 @@ namespace NFun.Interpritation
         {
             if (defenition.Type == LexNodeType.Var)
                 return new VariableExpressionNode(defenition.Value, VarType.Real);
-            else if(defenition.Type== LexNodeType.TypedVar)
-                return new VariableExpressionNode(defenition.Value, (VarType)defenition.AdditionalContent);
+            else if (defenition.Type == LexNodeType.TypedVar)
+                return new VariableExpressionNode(defenition.Value, (VarType) defenition.AdditionalContent);
             else
-                throw new FunParseException(defenition + " is  not valid fun arg");
+                throw ErrorFactory.InvalidArgTypeDefenition(defenition);
         }
         
         private IExpressionNode GetOrAddVariableNode(LexNode varName)
         {
             var lower = varName.Value;
             var funVars = _functions.Get(lower);
-            
-            if(funVars.Count>1)
-                throw new FunParseException($"Ambiguous call of function with name: {lower}");
+
+            if (funVars.Count > 1)
+                throw ErrorFactory.AmbiguousCallOfFunction(funVars, varName);
             if(funVars.Count==1)
                 return new FunVariableExpressionNode(funVars[0]);   
             
@@ -126,7 +126,8 @@ namespace NFun.Interpritation
                return new RangeWithStepRealFunction().CreateWithConvertionOrThrow(new[] {start, end, step});
             
             if (step.Type!= VarType.Int)
-                throw new FunParseException("Array procedure initializator has to be int types only. Example: [1..5..2]");
+                throw ErrorFactory.ArrayInitializerTypeMismatch(step.Type, node);
+
             
             return new RangeWithStepIntFunction().CreateWithConvertionOrThrow(new[] {start, end, step});
         }
@@ -183,7 +184,7 @@ namespace NFun.Interpritation
             }
             catch (FormatException)
             {
-                throw new FunParseException("Cannot parse number \"" + node.Value + "\"");
+                throw ErrorFactory.CannotParseNumber(node);
             }
         }
 
@@ -202,7 +203,7 @@ namespace NFun.Interpritation
 
             var function = _functions.GetOrNull(id, childrenTypes.ToArray());
             if (function == null)
-                throw new FunParseException($"Function {id}({string.Join(", ", childrenTypes.ToArray())}) is not defined");
+                throw ErrorFactory.FunctionNotFound(node, children, _functions);
             return function.CreateWithConvertionOrThrow(children);
         }
 

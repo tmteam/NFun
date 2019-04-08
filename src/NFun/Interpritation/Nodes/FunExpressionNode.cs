@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using NFun.Interpritation.Functions;
 using NFun.Types;

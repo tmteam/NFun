@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Principal;
 using System.Text;
+using NFun.Interpritation;
+using NFun.Interpritation.Functions;
 using NFun.Interpritation.Nodes;
 using NFun.LexAnalyze;
 using NFun.Parsing;
 using NFun.Runtime;
 using NFun.Tokenization;
+using NFun.Types;
 
 namespace NFun.ParseErrors
 {
@@ -350,6 +353,8 @@ namespace NFun.ParseErrors
         }
         #endregion
 
+        #region 4xx - Interpritation exceptions
+
         public static Exception CycleEquatationDependencies(LexEquation[] result)
         {
             var expression = result.First().Expression;
@@ -357,5 +362,33 @@ namespace NFun.ParseErrors
                                          + string.Join("->", result.Select(r=>r.Id)), 
                 expression.Interval);
         }
+        
+        public static Exception ImpossibleCast(VarType from,VarType to, Interval interval)
+            => new FunParseException(406, $"Unable to cast from {from} to {to}", interval);
+        public static Exception NotAnExpression(LexNode node) 
+            => new FunParseException(403,$"{node} is not an expression", node.Interval);
+
+        public static Exception InvalidArgTypeDefenition(LexNode argumentNode) 
+            => new FunParseException(406, ErrorsHelper.ToString(argumentNode) + " is  not valid fun arg", argumentNode.Interval);
+
+        public static Exception AnonymousFunDefenitionIsMissing(LexNode node)
+            => new FunParseException(409, "Anonymous fun defenition is missing", node.Interval);
+
+        public static Exception AnonymousFunBodyIsMissing(LexNode node)
+            => new FunParseException(412, "Anonymous fun body is missing", node.Interval);
+
+        public static Exception AmbiguousCallOfFunction(IList<FunctionBase> funVars, LexNode varName)
+            => throw new FunParseException(415,$"Ambiguous call of function with name: {varName.Value}", varName.Interval);
+
+        public static Exception ArrayInitializerTypeMismatch(VarType stepType, LexNode node)
+            => throw new FunParseException(418,$"Array initializator step has to be int type only but was '{stepType}'. Example: [1..5..2]", node.Interval);
+
+        public static Exception CannotParseNumber(LexNode node)
+            => throw new FunParseException(421, $"Cannot parse number '{node.Value}'", node.Interval);
+
+        public static Exception FunctionNotFound(LexNode node, List<IExpressionNode> children, FunctionsDictionary functions)
+        => throw new FunParseException(424, $"Function {node.Value}({string.Join(", ", children.Select(c=>c.Type))}) is not defined", node.Interval);
+        #endregion
+
     }
 }

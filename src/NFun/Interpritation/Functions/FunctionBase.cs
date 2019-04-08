@@ -6,7 +6,6 @@ namespace NFun.Interpritation.Functions
 {
     public abstract class FunctionBase
     {
-        
         public string Name { get; }
         public VarType[] ArgTypes { get; }
         protected FunctionBase(string name,  VarType outputType, params VarType[] argTypes)

@@ -73,7 +73,6 @@ namespace Funny.Tests
         [TestCase("m=[1,2,3"," ","4]")]
         [TestCase("m=[1,2,3,","123anc",",4]")]
         [TestCase("m=[1,2,3,","123anc","]")]
-
         [TestCase("m=[1,2,3,","y = 12",",4]")]
         [TestCase("m=[1,2,3","   ","4] @ [5,6]")]
         [TestCase("s=[1,2",", ,","3,4]")]

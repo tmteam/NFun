@@ -326,7 +326,6 @@ namespace NFun.Parsing
             },openBraket.Start, _flow.Position);
         }
 
-
         #region  read concreete
         bool TryReadNodeList(out IList<LexNode> read)
         {
