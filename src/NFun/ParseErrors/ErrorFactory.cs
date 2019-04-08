@@ -14,20 +14,20 @@ namespace NFun.ParseErrors
     {
         private static readonly string Nl = Environment.NewLine;
         public static Exception UnaryArgumentIsMissing(Tok operatorTok)
-            => throw new FunParseException(101, $"{ToString(operatorTok)} ???{Nl} right expression is missed{Nl} Example: {ToString(operatorTok)} a",
+            => throw new FunParseException(101, $"{ErrorsHelper.ToString(operatorTok)} ???{Nl} right expression is missed{Nl} Example: {ErrorsHelper.ToString(operatorTok)} a",
                 operatorTok.Interval);
         public static Exception MinusDuplicates(Tok previousTok, Tok currentTok)
             => throw new FunParseException(104,$"'--' is not allowed",
                 previousTok.Start, currentTok.Finish);
         public static Exception LeftBinaryArgumentIsMissing(Tok token)
-            => throw new FunParseException(107,$"expression is missed before '{ToString(token)}'",
+            => throw new FunParseException(107,$"expression is missed before '{ErrorsHelper.ToString(token)}'",
                 token.Interval);
         public static Exception RightBinaryArgumentIsMissing(LexNode leftNode, Tok @operator)
-            => throw new FunParseException(110,$"{ToString(leftNode)} {ToString(@operator)} ???. Right expression is missed{Nl} Example: {ToString(leftNode)} {ToString(@operator)} e",
+            => throw new FunParseException(110,$"{ErrorsHelper.ToString(leftNode)} {ErrorsHelper.ToString(@operator)} ???. Right expression is missed{Nl} Example: {ErrorsHelper.ToString(leftNode)} {ErrorsHelper.ToString(@operator)} e",
                 leftNode.Start, @operator.Finish);
         
         public static Exception OperatorIsUnknown(Tok token)
-            => throw new FunParseException(113,$"operator '{ToString(token)}' is unknown",token.Interval);
+            => throw new FunParseException(113,$"operator '{ErrorsHelper.ToString(token)}' is unknown",token.Interval);
 
         public static Exception NotAToken(Tok token)
             => throw new FunParseException(114,$"'{token.Value}' is not valid fun element. What did you mean?", token.Interval);
@@ -52,7 +52,7 @@ namespace NFun.ParseErrors
                     finish);
             else
                 return new FunParseException(128,
-                    $"'[x,..???]. Array hi bound expected but was {ToString(missedVal)}'{Nl} Example: a[1..2] or a[1..5..2]", start, finish);
+                    $"'[x,..???]. Array hi bound expected but was {ErrorsHelper.ToString(missedVal)}'{Nl} Example: a[1..2] or a[1..5..2]", start, finish);
         }
         public static Exception ArrayInitializeStepMissed(Tok openBracket, Tok lastToken, Tok missedVal)
         {
@@ -64,7 +64,7 @@ namespace NFun.ParseErrors
                     finish);
             else
                 return new FunParseException(134,
-                    $"'[x..y..???]. Array step expected but was {ToString(missedVal)}'{Nl} Example: a[1..5..2]", start, finish);
+                    $"'[x..y..???]. Array step expected but was {ErrorsHelper.ToString(missedVal)}'{Nl} Example: a[1..5..2]", start, finish);
         }
         
         public static Exception ArrayIntervalInitializeCbrMissed(Tok openBracket, Tok lastToken, bool hasStep)
@@ -75,117 +75,100 @@ namespace NFun.ParseErrors
                 $"{(hasStep?"[x..y..step ???]":"[x..y ???]")}. ']' was missed'{Nl} Example: a[1..5..2]", start,
                 finish);
         }
-        public static Exception ArrayEnumInitializeError(int openBracketTokenPos, TokenFlow flow)
+        
+        public static Exception ArrayInitializeByListError(int openBracketTokenPos, TokenFlow flow)
         {
-            flow.Move(openBracketTokenPos);
-            var obrStart = flow.Current.Start;
-            flow.MoveIfOrThrow(TokType.ArrOBr);
-            
-            var list = new List<LexNode>();
-            int currentToken = flow.CurrentTokenPosition;
-            do
+            var res = ErrorsHelper.GetExpressionListError(openBracketTokenPos, flow, TokType.ArrOBr, TokType.ArrCBr);
+            var list = res.Parsed;
+            var argStubs = ErrorsHelper.CreateArgumentsStub(list);
+            switch (res.Type)
             {
-                if (flow.IsCurrent(TokType.Sep))
-                {
-                    //[,] <-first element missed
-                    if(!list.Any())
-                        return new FunParseException(538,
-                            $"[ ??? , ..] <- First element missed {Nl}Remove ',' or place element before it", 
-                            new Interval(flow.Current.Start, flow.Current.Finish));
-
-                    //[x, ,y] <- element missed 
-                    return new FunParseException(539,
-                            $"[{CreateArgumentsStub(list)},???, ..] <- element missed {Nl}Remove ',' or place element before it", 
-                            new Interval(list.Last().Finish, flow.Current.Finish));
-                                                
-                }
-                
-                var exp = flow.ReadExpressionOrNull();
-                if (exp != null)
-                    list.Add(exp);
-                if (exp == null && list.Any())
-                {
-                    flow.Move(currentToken);
-                    //[x,y, {no or bad expression here} ...
-                    return SpecifyArrayInitError(list, flow);
-                }
-                currentToken = flow.CurrentTokenPosition;
-            } while (flow.MoveIf(TokType.Sep));
-
-            if (flow.Current.Is(TokType.ArrCBr))
-                //everything seems fine...
-                return new FunParseException(541, "Wrong array defenition ", obrStart, flow.Current.Finish);
-            
-            if (!list.Any())
-            {
-                return new FunParseException(542,
-                    $"[ <- unexpected array symbol{Nl} Did you mean array initialization [,], slice [::] or indexing [i]?", 
-                    new Interval(obrStart, obrStart+1));
-            }
-
-            var argumentsStub = CreateArgumentsStub(list);
-            var nextExpression = flow.TryReadExpressionAndReturnBack();
-            if (nextExpression != null)
-            {
-                //[x y] <- separator is missed
-                return new FunParseException(543,
-                    $"[{argumentsStub}, ??? , ...  <- Seems like ',' is missing{Nl} Example: [{argumentsStub}, {ToString(nextExpression)} ...]",
-                    new Interval(list.Last().Finish, nextExpression.Start));
-            }
-            
-            //[x {some crappy crap here}]
-            return SpecifyArrayInitError(list, flow);
-        }
-
-        private static Exception SpecifyArrayInitError(IList<LexNode> arguments, TokenFlow flow)
-        {
-            var next = flow.Current;
-            int lastArgPosition = arguments.LastOrDefault()?.Finish ?? flow.Position;
-
-            flow.SkipNewLines();
-           
-            var argumentsStub = CreateArgumentsStub(arguments);
-            bool hasSeparator = next.Is(TokType.Sep);
-            
-            var hasAnyBeforeStop = flow.MoveUntilOneOfThe(
-                TokType.Sep, TokType.ArrCBr, TokType.ArrOBr, TokType.NewLine, TokType.NewLine, TokType.Eof)
-                .Any();
-            
-            if (hasSeparator)
-            {
-                //[x,y, {someshit} , ... 
-                return new FunParseException(544,
-                    $"[{argumentsStub}, ??? , ...  <- Seems like array argument is invalid{Nl} Example: [{argumentsStub}, myArgument, ...]",
-                    new Interval(next.Start, flow.Position));
-            }
-            else
-            {
-                var errorStart = lastArgPosition;
-                if (flow.Position == errorStart)
-                    errorStart = arguments.Last().Start;
-                //[x, {y someshit} , ... 
-                if (!hasAnyBeforeStop)
-                {
-                    //[x,y {no ']' here}
-                    return new FunParseException(545,
-                        $"[{argumentsStub} ??? <- Array close bracket ']' is missing{Nl} Example: [{argumentsStub}]",
-                        new Interval(errorStart, flow.Position));
-                }   
-                //LastArgument is a part of error
-                var argumentsWithoutLastStub = CreateArgumentsStub(arguments.Take(arguments.Count-1));
-
-                return new FunParseException(546,
-                    $"[{argumentsWithoutLastStub} ??? ] <- Seems like array argument is invalid{Nl} Example: [{argumentsStub}, myArgument, ...]",
-                    new Interval(arguments.Last().Start , flow.Position));
+                case ExprListErrorType.FirstElementMissed:
+                    return new FunParseException(318,
+                        $"[ ??? , ..] <- First element missed {Nl}Remove ',' or place element before it", res.Interval);
+                case ExprListErrorType.ElementMissed:
+                    return new FunParseException(319,
+                        $"[{argStubs},???, ..] <- element missed {Nl}Remove ',' or place element before it", 
+                        res.Interval);
+                case ExprListErrorType.TotalyWrongDefenition:
+                    return new FunParseException(321, "Wrong array defenition ", res.Interval);
+                case ExprListErrorType.SingleOpenBracket:
+                    return new FunParseException(322,
+                        $"[ <- unexpected array symbol{Nl} Did you mean array initialization [,], slice [::] or indexing [i]?", 
+                        res.Interval);
+                case ExprListErrorType.SepIsMissing:
+                    return new FunParseException(323,
+                        $"[{argStubs}, ??? , ...  <- Seems like ',' is missing{Nl} Example: [{argStubs}, myArgument, ...]",
+                        res.Interval);
+                case ExprListErrorType.ArgumentIsInvalid:
+                    return new FunParseException(324,
+                        $"[{argStubs}, ??? , ...  <- Seems like array argument is invalid{Nl} Example: [{argStubs}, myArgument, ...]",
+                        res.Interval);
+                    break;
+                case ExprListErrorType.CloseBracketIsMissing:
+                    return new FunParseException(325,
+                        $"[{argStubs} ??? <- Array close bracket ']' is missing{Nl} Example: [{argStubs}]",
+                        res.Interval);
+                    break;
+                case ExprListErrorType.LastArgumentIsInvalid:
+                    return new FunParseException(326,
+                        $"[{ErrorsHelper.CreateArgumentsStub(list.Take(list.Length-1))} ??? ] <- Seems like array argument is invalid{Nl} Example: [{argStubs}, myArgument, ...]",
+                        res.Interval);
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
         }
 
+        
+        public static Exception FunctionArgumentError(string id, int openBracketTokenPos, TokenFlow flow)
+        {
+            var res = ErrorsHelper.GetExpressionListError(openBracketTokenPos, flow, TokType.Obr, TokType.Cbr);
+            var list = res.Parsed;
+            var argStubs = ErrorsHelper.CreateArgumentsStub(list);
+            switch (res.Type)
+            {
+                case ExprListErrorType.FirstElementMissed:
+                    return new FunParseException(338,
+                        $"{id}( ??? , ..) <- First element missed {Nl}Remove ',' or place element before it", res.Interval);
+                case ExprListErrorType.ElementMissed:
+                    return new FunParseException(339,
+                        $"{id}({argStubs},???, ..) <- element missed {Nl}Remove ',' or place element before it", 
+                        res.Interval);
+                case ExprListErrorType.TotalyWrongDefenition:
+                    return new FunParseException(341, "Wrong function call", res.Interval);
+                case ExprListErrorType.SingleOpenBracket:
+                    return new FunParseException(342,
+                        $"( <- unexpected bracket{Nl} ?", 
+                        res.Interval);
+                case ExprListErrorType.SepIsMissing:
+                    return new FunParseException(343,
+                        $"{id}({argStubs}, ??? , ...  <- Seems like ',' is missing{Nl} Example: {id}({argStubs}, myArgument, ...)",
+                        res.Interval);
+                case ExprListErrorType.ArgumentIsInvalid:
+                    return new FunParseException(344,
+                        $"{id}({argStubs}, ??? , ...  <- Seems like function call argument is invalid{Nl} Example: {id}({argStubs}, myArgument, ...)",
+                        res.Interval);
+                    break;
+                case ExprListErrorType.CloseBracketIsMissing:
+                    return new FunParseException(345,
+                        $"{id}({argStubs}, ??? <- Close bracket ')' is missing{Nl} Example: {id}({argStubs})",
+                        res.Interval);
+                    break;
+                case ExprListErrorType.LastArgumentIsInvalid:
+                    return new FunParseException(346,
+                        $"{id}({ErrorsHelper.CreateArgumentsStub(list.Take(list.Length-1))} ??? ) <- Seems like call argument is invalid{Nl} Example: {id}({argStubs}, myArgument, ...)",
+                        res.Interval);
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
 
+        
         public static Exception ArrayIndexCbrMissed(Tok openBracket, Tok lastToken)
         {
             int start = openBracket.Start;
             int finish = lastToken.Finish;
-            return new FunParseException(145,
+            return new FunParseException(147,
                 $"a[x ??? <- was missed ']'{Nl} Example: a[1] or a[1:2] or a[1:5:2]", start,
                 finish);        
         }
@@ -193,7 +176,7 @@ namespace NFun.ParseErrors
         {
             int start = openBracket.Start;
             int finish = lastToken.Finish;
-            return new FunParseException(146,
+            return new FunParseException(148,
                 $"a{(hasStep?"[x:y:step]":"[x:y]")} <- ']' was missed{Nl} Example: a[1:5:2]", 
                 start,
                 finish);        
@@ -216,6 +199,7 @@ namespace NFun.ParseErrors
 
         public static Exception ThenKeywordIsMissing(int ifelseStart, int end)
             => new FunParseException(164,$"if a (then) b  ...  'then' is missing{Nl} Example: if a then b  else c ", ifelseStart, end);
+       
         public static Exception FunctionCallObrMissed(int funStart, string name, int position,LexNode pipedVal)
         {
             if(pipedVal==null)
@@ -225,67 +209,82 @@ namespace NFun.ParseErrors
                     position);
 
             return new FunParseException(170,
-                $"{ToString(pipedVal)}.{name}( ???. Close bracket ')' is missed{Nl} Example: {ToString(pipedVal)}.{name}() or {name}({ToString(pipedVal)})", 
+                $"{ErrorsHelper.ToString(pipedVal)}.{name}( ???. Close bracket ')' is missed{Nl} Example: {ErrorsHelper.ToString(pipedVal)}.{name}() or {name}({ErrorsHelper.ToString(pipedVal)})", 
                 funStart, 
                 position);
         }
 
-        public static Exception FunctionCallCbrOrSeparatorMissed(int funStart, string name,  IList<LexNode> arguments, Tok current,LexNode pipedVal)
+
+        public static Exception BracketExpressionListError(int openBracketTokenPos, TokenFlow flow)
         {
-            if (pipedVal == null)
+            var res = ErrorsHelper.GetExpressionListError(openBracketTokenPos, flow, TokType.Obr, TokType.Cbr);
+            var list = res.Parsed;
+            var argStubs = ErrorsHelper.CreateArgumentsStub(list);
+            switch (res.Type)
             {
-                var argumentsStub = CreateArgumentsStub(arguments);
-                return new FunParseException(173,$"{name}({argumentsStub} ??? <- Close bracket ')' or separator ',' are missed{Nl} Example: {name}({argumentsStub})", 
-                    funStart,current.Finish);
+                case ExprListErrorType.FirstElementMissed:
+                    return new FunParseException(368,
+                        $"( ??? , ..) <- First element missed {Nl}Remove ',' or place element before it", res.Interval);
+                case ExprListErrorType.ElementMissed:
+                    return new FunParseException(369,
+                        $"({argStubs},???, ..) <- element missed {Nl}Remove ',' or place element before it", 
+                        res.Interval);
+                case ExprListErrorType.TotalyWrongDefenition:
+                    return new FunParseException(371, "Wrong expression", res.Interval);
+                case ExprListErrorType.SingleOpenBracket:
+                    return new FunParseException(372,
+                        $"( <- unexpected bracket{Nl} ?", 
+                        res.Interval);
+                case ExprListErrorType.SepIsMissing:
+                    return new FunParseException(373,
+                        $"({argStubs}, ??? , ...  <- Seems like ',' is missing{Nl} Example: ({argStubs}, myArgument, ...)",
+                        res.Interval);
+                case ExprListErrorType.ArgumentIsInvalid:
+                    return new FunParseException(374,
+                        $"({argStubs}, ??? , ...  <- Seems like invalid expressions{Nl} Example: ({argStubs}, myArgument, ...)",
+                        res.Interval);
+                case ExprListErrorType.CloseBracketIsMissing:
+                    return new FunParseException(375,
+                        $"({argStubs}, ??? <- Close bracket ')' is missing{Nl} Example:({argStubs})",
+                        res.Interval);
+                case ExprListErrorType.LastArgumentIsInvalid:
+                    return new FunParseException(376,
+                        $"({ErrorsHelper.CreateArgumentsStub(list.Take(list.Length-1))} ??? ) <- Seems like invalid expression{Nl} Example: ({argStubs}, myArgument, ...)",
+                        res.Interval);
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
-
-            var pipedArgsStub = CreateArgumentsStub(arguments);
-            return new FunParseException(176,$"{ToString(pipedVal)}.{name}({pipedArgsStub} ??? <- Close bracket ')' or separator ',' are missed{Nl} Example: {ToString(pipedVal)}.{name}({pipedArgsStub}) or {name}(x,{pipedArgsStub})", 
-                funStart, current.Finish);
         }
-
-
-        public static Exception BracketExprCbrOrSeparatorMissed(int start,int end,  IList<LexNode> arguments)
-        {
-            var argumentsStub = CreateArgumentsStub(arguments);
-            return new FunParseException(179,$"({argumentsStub})<-??? {Nl}Close bracket ')' is missed{Nl} Example: ({argumentsStub})", 
-                start,end);
-        }
-
+        
         public static Exception BracketExpressionMissed(int start, int end, IList<LexNode> arguments)
         {
-             var argumentsStub = CreateArgumentsStub(arguments);
+             var argumentsStub = ErrorsHelper.CreateArgumentsStub(arguments);
              return new FunParseException(182,$"({argumentsStub}???) {Nl}Expression inside the brackets is missed{Nl} Example: ({argumentsStub})", 
                             start,end);
         }
         
         public static Exception ExpressionListMissed(int start, int end, IList<LexNode> arguments)
         {
-            var argumentsStub = CreateArgumentsStub(arguments);
+            var argumentsStub = ErrorsHelper.CreateArgumentsStub(arguments);
             return new FunParseException(183,$"({argumentsStub}???) {Nl}Expression inside the brackets is missed{Nl} Example: ({argumentsStub})", 
                 start,end);
         }
-        private static string CreateArgumentsStub(IEnumerable<LexNode> arguments)
-        {
-            var argumentsStub = string.Join(",", arguments.Select(ToString));
-            return argumentsStub;
-        }
-
+      
         
         public static Exception FunDefTokenIsMissed(string funName, List<VariableInfo> arguments, Tok actual)
         {
-            return new FunParseException(201, $"{Signature(funName, arguments)} ??? . '=' def symbol is skipped but was {ToString(actual)}{Nl}Example: {Signature(funName, arguments)} = ...", 
+            return new FunParseException(201, $"{ErrorsHelper.Signature(funName, arguments)} ??? . '=' def symbol is skipped but was {ErrorsHelper.ToString(actual)}{Nl}Example: {ErrorsHelper.Signature(funName, arguments)} = ...", 
                 actual.Start, actual.Finish);
         }
         public static Exception FunExpressionIsMissed(string funName, List<VariableInfo> arguments, Interval interval) 
             => new FunParseException(204,
-                $"{Signature(funName, arguments)} = ??? . Function body is missed {Nl}Example: {Signature(funName, arguments)} = #place your body here", 
+                $"{ErrorsHelper.Signature(funName, arguments)} = ??? . Function body is missed {Nl}Example: {ErrorsHelper.Signature(funName, arguments)} = #place your body here", 
                 interval);
 
         public static Exception UnknownValueAtStartOfExpression(int exprStart, Tok flowCurrent) 
-            => new FunParseException(207,$"Unexpected symbol {ToString(flowCurrent)}. Equation, anonymous equation, function or type defenition expected.", exprStart, flowCurrent.Finish);
+            => new FunParseException(207,$"Unexpected symbol {ErrorsHelper.ToString(flowCurrent)}. Equation, anonymous equation, function or type defenition expected.", exprStart, flowCurrent.Finish);
         public static Exception ExpressionBeforeTheDefenition(int exprStart, LexNode expression, Tok flowCurrent)
-            => new FunParseException(210,$"Unexpected expression {ToString(expression)} before defenition. Equation, anonymous equation, function or type defenition expected.", exprStart, flowCurrent.Finish);
+            => new FunParseException(210,$"Unexpected expression {ErrorsHelper.ToString(expression)} before defenition. Equation, anonymous equation, function or type defenition expected.", exprStart, flowCurrent.Finish);
 
         public static Exception AnonymousExpressionHasToStartFromNewLine(int exprStart, LexNode lexNode, Tok flowCurrent)
             =>   throw new FunParseException(213,$"Anonymous equation should start from new line. {Nl}Example : y:int{Nl}y+1 #out = y:int+1", exprStart, flowCurrent.Finish);
@@ -335,85 +334,6 @@ namespace NFun.ParseErrors
         public static Exception VarExpressionIsMissed(int start, string id, Tok flowCurrent)
             => new FunParseException(228, $"{id} = ??? . Equation body is missed {Nl}Example: {id} = {id}+1", 
                 start, flowCurrent.Finish);
-
-        private static string Signature(string funName, List<VariableInfo> arguments) 
-            => $"{funName}({Join(arguments)})";
-
-        private static string Join(List<VariableInfo> arguments) 
-            => string.Join(",", arguments);
-        private static string ToString(LexNode node)
-        {
-            switch (node.Type)
-            {
-                case LexNodeType.Number: return node.Value;
-                case LexNodeType.Var: return node.Value;
-                case LexNodeType.Fun: return node.Value + "(...)";
-                case LexNodeType.IfThen: return "if...then...";
-                case LexNodeType.IfThanElse: return "if...then....else...";
-                case LexNodeType.Text: return $"\"{(node.Value.Length>20?(node.Value.Substring(17)+"..."):node.Value)}\"";
-                case LexNodeType.ArrayInit: return "[...]";
-                case LexNodeType.AnonymFun: return "(..)=>..";
-                case LexNodeType.TypedVar: return node.Value;
-                case LexNodeType.ListOfExpressions: return "(,)";
-                case LexNodeType.ProcArrayInit: return "[ .. ]";
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
-        private static string ToString(Tok tok)
-        {
-            if (!string.IsNullOrWhiteSpace(tok.Value))
-                return tok.Value;
-            switch (tok.Type)
-            {
-                case TokType.If: return "if";
-                case TokType.Else:return "else";
-                case TokType.Then:return "then";
-                case TokType.Plus: return "+";
-                case TokType.Minus: return "-";
-                case TokType.Div: return "/";
-                case TokType.Rema: return "%";
-                case TokType.Mult: return "*";
-                case TokType.Pow: return "**";
-                case TokType.Obr: return "(";
-                case TokType.Cbr: return ")";
-                case TokType.ArrOBr: return "[";
-                case TokType.ArrCBr: return "]";
-                case TokType.ArrConcat: return "@";
-                case TokType.In: return "in";
-                case TokType.BitOr: return "|";
-                case TokType.BitAnd: return "&";
-                case TokType.BitXor: return "^";
-                case TokType.BitShiftLeft: return "<<";
-                case TokType.BitShiftRight: return ">>";
-                case TokType.BitInverse: return "~";
-                case TokType.Def: return "=";
-                case TokType.Equal: return "==";
-                case TokType.NotEqual: return "!=";
-                case TokType.And:return "and";
-                case TokType.Or:return "or";
-                case TokType.Xor:return "xor";
-                case TokType.Not:return "not";
-                case TokType.Less:return "<";
-                case TokType.More:return ">";
-                case TokType.LessOrEqual:return "<=";
-                case TokType.MoreOrEqual:return ">=";
-                case TokType.Sep:return ",";
-                case TokType.True:return "true";
-                case TokType.False:return "false";
-                case TokType.Colon:return ":";
-                case TokType.TwoDots:return "..";
-                case TokType.TextType:return "text";
-                case TokType.IntType:return "int";
-                case TokType.RealType:return "real";
-                case TokType.BoolType:return "bool";
-                case TokType.AnythingType:return "anything";
-                case TokType.PipeForward:return ".";
-                case TokType.AnonymFun:return "=>";
-                default:
-                    return tok.Type.ToString().ToLower();
-            }
-        }
 
     }
 }

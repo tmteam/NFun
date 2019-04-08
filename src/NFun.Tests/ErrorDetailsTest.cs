@@ -9,18 +9,10 @@ namespace Funny.Tests
     [TestFixture]
     public class ErrorDetailsTest
     {
-        [TestCase("s = x ","***"," z")]
+        [TestCase("s = x ","123abc"," z")]
         [TestCase("s = x ","!"," z")]
         [TestCase("s = x ","!"," z")]
         [TestCase("s = x + ","123z","")]
-        [TestCase("y = ","add(x, y","")]
-        [TestCase("y = ","add(x, y,","")]
-        [TestCase("y = ","add(x, y z)","")]
-        [TestCase("k = ","add(x y z)","")]
-        [TestCase("k = ","add(x y)","")]
-        [TestCase("k = ","some_cycled_function(x, y)","")]
-        [TestCase("k = ","some_not_defined_function(x1,x2 )","")]
-        [TestCase("k = ","f(a","")]
         [TestCase("","(","")]
         [TestCase("y(x,y)","qwe"," x+y\r j = y(1,2)")]
         [TestCase("j = y(1,2) \r y(x,z)","qwe"," x+y")]
@@ -49,6 +41,20 @@ namespace Funny.Tests
         [TestCase("f = ","","")]
         [TestCase("f = ","*","")]
         public void ErrorPosition(string beforeError, string errorBody, string afterError)
+        {
+            AssertErrorPosition(beforeError, errorBody, afterError);
+        }
+
+        [TestCase("y = add(x, ","y","")]
+        [TestCase("y = add(x, y",",","")]
+        [TestCase("y = add(x",", ,","y)")]
+        [TestCase("y = add(x, y"," ","z)")]
+        [TestCase("k = add(x"," ","y z)")]
+        [TestCase("k = add(x"," ","y)")]
+        [TestCase("k = ","some_cycled_function(x, y)","")]
+        [TestCase("k = ","some_not_defined_function(x1,x2 )","")]
+        [TestCase("k = f(","a","")]
+        public void FunctionCall_ErrorPostion(string beforeError, string errorBody, string afterError)
         {
             AssertErrorPosition(beforeError, errorBody, afterError);
         }

@@ -367,7 +367,7 @@ namespace NFun.Parsing
             
             if (!TryReadNodeList(out var list))
             {
-                throw ErrorFactory.ArrayEnumInitializeError(startTokenNum, _flow);
+                throw ErrorFactory.ArrayInitializeByListError(startTokenNum, _flow);
             }
             if (list.Count == 1 && _flow.MoveIf(TokType.TwoDots, out var twoDots))
             {
@@ -427,18 +427,19 @@ namespace NFun.Parsing
                 }
             }
             if (!_flow.MoveIf(TokType.ArrCBr,out var closeBr))
-                throw ErrorFactory.ArrayEnumInitializeError(startTokenNum, _flow);
+                throw ErrorFactory.ArrayInitializeByListError(startTokenNum, _flow);
             return LexNode.Array(list.ToArray(), openBracket.Start, closeBr.Finish);
         }
         private LexNode ReadBrackedListOrNull()
         {
             int start = _flow.Current.Start;
+            int obrId = _flow.CurrentTokenPosition;
             _flow.MoveNext();
             var nodeList = ReadNodeList();
             if (nodeList.Count == 0)
                 throw ErrorFactory.BracketExpressionMissed(start, _flow.Position, nodeList);
             if (!_flow.MoveIf(TokType.Cbr, out var cbr))
-                throw ErrorFactory.BracketExprCbrOrSeparatorMissed(start, _flow.Position, nodeList);
+                throw ErrorFactory.BracketExpressionListError(obrId, _flow);
             var interval = new Interval(start, cbr.Finish);
             if (nodeList.Count == 1)
             {
@@ -488,19 +489,19 @@ namespace NFun.Parsing
 
         private LexNode ReadFunctionCall(Tok head, LexNode pipedVal=null)
         {
+            var obrId = _flow.CurrentTokenPosition;
             var start = pipedVal?.Start ?? head.Start;
             if(!_flow.MoveIf(TokType.Obr))
                 throw ErrorFactory.FunctionCallObrMissed(
-                    start, 
-                    head.Value, 
-                    _flow.Position, 
-                    pipedVal);
+                    start, head.Value, _flow.Position, pipedVal);
 
-            var arguments = ReadNodeList();
+            if (!TryReadNodeList(out var arguments) 
+                || !_flow.MoveIf(TokType.Cbr, out var cbr))
+                throw ErrorFactory.FunctionArgumentError(head.Value, obrId, _flow);
+            
             if(pipedVal!=null)
                 arguments.Insert(0,pipedVal);
-            if(!_flow.MoveIf(TokType.Cbr, out var cbr))
-                throw ErrorFactory.FunctionCallCbrOrSeparatorMissed(start, head.Value, arguments, _flow.Current, pipedVal); 
+            
             return LexNode.FunCall(head.Value, arguments.ToArray(), start, cbr.Finish);
         }
         #endregion
