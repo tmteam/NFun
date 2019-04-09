@@ -11,7 +11,7 @@ namespace Funny.Tests
     {
         public static void AssertReturns(this CalculationResult result, double delta, params Var[] vars)
         {
-            Assert.AreEqual(vars.Length, result.Results.Length);
+            Assert.AreEqual(vars.Length, result.Results.Length,$"output variables mismatch: {string.Join(",", result.Results)}");
             Assert.Multiple(() =>
             {
                 foreach (var variable in vars)

@@ -49,12 +49,31 @@ namespace NFun.LexAnalyze
                 yield return node;
             foreach (var nodeChild in node.Children)
             {
-                //todo Refactor it.
-                if(node.Is(LexNodeType.AnonymFun))
-                    continue;
+                //todo Refactor it Remove LEx analizer at all.
+                //dirtiest hack
+                if (node.Is(LexNodeType.AnonymFun))
+                {
+                    var head = node.Children.FirstOrDefault();
+
+                    List<string> deniedNames = null;
                 
-                foreach (var lexNode in Dfs(nodeChild, condition))
-                    yield return lexNode;
+                    if (head.Is(LexNodeType.ListOfExpressions))
+                        deniedNames = head.Children.Select(c => c.Value).ToList();
+                    else 
+                        deniedNames = new List<string>() {head.Value};
+                    
+                    foreach (var lexNode in Dfs(nodeChild, condition))
+                    {
+                        if (lexNode.Is(LexNodeType.Var) && deniedNames.Contains(lexNode.Value))
+                            continue;
+                        yield return lexNode;
+                    }
+                }
+                else
+                {
+                    foreach (var lexNode in Dfs(nodeChild, condition))
+                        yield return lexNode;
+                }
             }
         }
         

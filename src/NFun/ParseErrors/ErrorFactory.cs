@@ -417,16 +417,17 @@ namespace NFun.ParseErrors
 
         public static Exception AnonymousFunctionArgumentDuplicates(FunArgumentExpressionNode argNode,LexNode funDefenition)
             => new FunParseException(448, $"'Argument name '{argNode.Name}' of anonymous fun duplicates ", funDefenition.Interval);
-        public static Exception VariousArrayElementTypes(IExpressionNode[] elements, int failureIndex)
-        {
+
+        public static Exception AnonymousFunctionArgumentConflictsWithOuterScope(FunArgumentExpressionNode argNode, LexNode funDefenition)
+            => new FunParseException(451, $"'Argument name '{argNode.Name}' of anonymous fun conflicts with outer scope variable. It is denied for your safety.", funDefenition.Interval);
+        public static Exception VariousArrayElementTypes(IExpressionNode[] elements, int failureIndex) {
             var firstType = elements[0].Type;
             var failureType = elements[failureIndex].Type;
-            return new FunParseException(451, $"'Not equal array element types: {firstType} and {failureType}",
+            return new FunParseException(454, $"'Not equal array element types: {firstType} and {failureType}",
                 new Interval(elements[failureIndex-1].Interval.Start, elements[failureIndex].Interval.Finish));
         }
         #endregion
 
-        
 
     }
 }

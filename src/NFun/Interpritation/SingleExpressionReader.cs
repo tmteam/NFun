@@ -55,31 +55,66 @@ namespace NFun.Interpritation
             if(expression== null)
                 throw ErrorFactory.AnonymousFunBodyIsMissing(node);
             
-            var anonymVariables = new VariableDictionary(); 
-
-            if (defenition.Type == LexNodeType.ListOfExpressions)
+            //Anonym fun arguments list
+            var argumentLexNodes = defenition.Type == LexNodeType.ListOfExpressions
+                //it can be comlex: (x1,x2,x3)=>...
+                ? defenition.Children
+                //or primitive x1 => ...
+                : new[] {defenition};
+            
+            //Prepare local variable scope
+            //Capture all outerscope variables
+            var localVariables = new VariableDictionary(_variables.GetAllSources());
+            
+            var arguments = new List<VariableSource>();
+            foreach (var arg in argumentLexNodes)
             {
-                foreach (var arg in defenition.Children)
-                {
-                    var varNode =  ConvertToArgumentNodeOrThrow(arg);
-                    if (!anonymVariables.TryAdd(new VariableSource(varNode.Name, varNode.Type)))
+                //Convert argument node
+                var varNode = ConvertToArgumentNodeOrThrow(arg);
+                var source = new VariableSource(varNode.Name, varNode.Type);
+                //collect argument
+                arguments.Add(source);
+                //add argument to local scope
+                if (!localVariables.TryAdd(source))
+                {   //Check for duplicated arg-names
+
+                    //If outer-scope contains the conflict variable name
+                    if (_variables.GetSource(varNode.Name) != null)
+                        throw ErrorFactory.AnonymousFunctionArgumentConflictsWithOuterScope(varNode, defenition);
+                    else //else it is duplicated arg name
                         throw ErrorFactory.AnonymousFunctionArgumentDuplicates(varNode, defenition);
                 }
             }
-            else
-            {
-                var varNode =  ConvertToArgumentNodeOrThrow(defenition);
-                anonymVariables.TryAdd(new VariableSource(varNode.Name, varNode.Type));
-            }
 
-            var originVariables = anonymVariables.GetAllSources().Select(s=>s.Name).ToArray();
-            var scope = new SingleExpressionReader(_functions, anonymVariables);
+            var originVariables = localVariables.GetAllSources().Select(s=>s.Name).ToArray();
+            var scope = new SingleExpressionReader(_functions, localVariables);
             var expr = scope.ReadNode(expression);
 
-            ExpressionHelper.CheckForUnknownVariables(originVariables, anonymVariables);
-     
-            var fun = new UserFunction("anonymous", anonymVariables.GetAllSources(), expr);
+            //New variables are new closured
+            var closured =  localVariables.GetAllUsages()
+                .Where(s => !originVariables.Contains(s.Source.Name))
+                .ToList();
+
+            //Add closured vars to outer-scope dictionary
+            foreach (var newVar in closured)
+                _variables.TryAdd(newVar); //add full usage info to allow analyze outer errors
+            
+            var fun = new UserFunction("anonymous", arguments.ToArray(), expr);
             return new FunVariableExpressionNode(fun, node.Interval);
+        }
+
+        private void AddArgumentToDictionaryOrThrow(LexNode arg, VariableDictionary anonymVariables, LexNode defenition)
+        {
+            var varNode = ConvertToArgumentNodeOrThrow(arg);
+            if (!anonymVariables.TryAdd(new VariableSource(varNode.Name, varNode.Type)))
+            {   //Check for duplicated arg-names
+
+                //If outer-scope contains the conflict variable name
+                if (_variables.GetSource(varNode.Name) != null)
+                    throw ErrorFactory.AnonymousFunctionArgumentConflictsWithOuterScope(varNode, defenition);
+                else //else it is duplicated arg name
+                    throw ErrorFactory.AnonymousFunctionArgumentDuplicates(varNode, defenition);
+            }
         }
 
         private FunArgumentExpressionNode ConvertToArgumentNodeOrThrow(LexNode node)

@@ -28,6 +28,14 @@ namespace NFun.Runtime
             _variables.Add(source.Name, new VariableUsages(source));
             return true;
         }
+        
+        public bool TryAdd(VariableUsages usages)
+        {
+            if (_variables.ContainsKey(usages.Source.Name))
+                return false;
+            _variables.Add(usages.Source.Name, usages);
+            return true;
+        }
             
         public VariableSource GetSource(string id)
         {

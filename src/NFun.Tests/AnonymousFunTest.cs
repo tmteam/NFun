@@ -1,3 +1,4 @@
+using System;
 using NFun;
 using NFun.ParseErrors;
 using NFun.Types;
@@ -33,8 +34,10 @@ namespace Funny.Tests
         }
         
         [TestCase( "y = [1.0,2.0,3.0].map((i)=> i*x1*x2)",3.0,4.0, new []{12.0,24.0,36.0})]
-        [TestCase( "x1:int\rx2:int\ry = [1,2,3].map((i)=> i*x1*x2)",3,4, new []{12,24,36})]
-        [TestCase( "y = [1.0,2.0,3.0].fold((i,j)=> i*x1 - j*x2)",2.0,3.0, 100.0)]
+        [TestCase( "x1:int\rx2:int\ry = [1,2,3].map((i:int)=> i*x1*x2)",3,4, new []{12,24,36})]
+        [TestCase( "y = [1.0,2.0,3.0].fold((i,j)=> i*x1 - j*x2)",2.0,3.0, -17.0)]
+        [TestCase( "y = [1.0,2.0,3.0].fold((i,j)=> i*x1 - j*x2)",3.0,4.0, -27.0)]
+        [TestCase( "y = [1.0,2.0,3.0].fold((i,j)=> i*x1 - j*x2)",0.0,0.0, 0.0)]
         public void AnonymousFunctions_TwoArgumentsEquation(string expr, double x1,double x2, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
@@ -46,15 +49,26 @@ namespace Funny.Tests
 
         [TestCase( "y = [1.0,2.0,3.0].all((i)=> i >x)",1.0, false)]
         [TestCase( "y = [1.0,2.0,3.0].map((i)=> i*x)",3.0, new []{3.0,6.0,9.0})]
-        [TestCase( "y = [x,2.0,3.0].all((x)=> x >1.0)",1.0, false)]
-       
         [TestCase( "y = [1.0,2.0,3.0].all((i)=> i >x)",1.0, false)]
-        [TestCase( "x:int\r y = [1,2,3].all((i)=> i >x)",1, false)]
+        [TestCase( "x:int\r y = [1,2,3].all((i:int)=> i >x)",1, false)]
+        [TestCase( @"y = [1.0,2.0,3.0].fold((i,j)=> x)",123.0, 123.0)]
+        [TestCase( @"y = [1.0,2.0,3.0].fold((i,j)=>i+j+x)",2.0,10.0)]
         public void AnonymousFunctions_SingleArgumentEquation(string expr, double arg, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate(Var.New("x", arg))
                 .AssertReturns(0.00001, Var.New("y", expected));
+        }
+        [TestCase( "z = x*2\r y = [1.0,2.0,3.0].map((i)=> i*z)",2.0, new[]{4.0,8.0, 12.0}, 4.0)]
+        [TestCase( " y = [1.0,2.0,3.0].map((i)=> i*z) \r z = x*2",1.0, new[]{2.0,4.0, 6.0}, 2.0)]
+        public void AnonymousFunctions_SingleArgument_twoEquations(string expr, double arg, object yExpected, object zExpected)
+        {
+            var runtime = FunBuilder.BuildDefault(expr);
+            runtime.Calculate(Var.New("x", arg))
+                .AssertReturns(0.00001, 
+                    Var.New("y", yExpected),
+                    Var.New("z", zExpected));
+
         }
         [TestCase("y = [1.0].fold(((i,j)=>i+j)")]
         [TestCase("y = fold(((i,j),k)=>i+j)")]
@@ -63,8 +77,6 @@ namespace Funny.Tests
         [TestCase( @"y = [1.0,2.0,3.0].fold((j)=>i+j)")]
         [TestCase( @"y = [1.0,2.0,3.0].fold((j)=>j)")]
         [TestCase( @"y = [1.0,2.0,3.0].fold((i,j,k)=>i+j+k)")]
-        [TestCase( @"y = [1.0,2.0,3.0].fold((i,j)=>i+j+k)")]
-        [TestCase( @"y = [1.0,2.0,3.0].fold((i,j)=> k)")]
         [TestCase( @"y = [1.0,2.0,3.0].fold((i)=>i)")]
         [TestCase("[1.0,2.0].map((i,i)=>i+1)")]
         [TestCase("[1.0,2.0].fold((i,i)=>i+1)")]
@@ -73,9 +85,12 @@ namespace Funny.Tests
         [TestCase( "x:bool \r y = x and ([1.0,2.0,3.0].all((x)=> x >=1.0))")]
         [TestCase( "y = [-x,-x,-x].all((x)=> x < 0.0)")]
         [TestCase( "z = [-x,-x,-x] \r  y = z.all((z)=> z < 0.0)")]
-        [TestCase( "z = x*2\r y = [1.0,2.0,3.0].all((i)=> i >z)")]
-        public void ObviouslyFailsOnParse(string expr) =>
-            Assert.Throws<FunParseException>(
-                ()=> FunBuilder.BuildDefault(expr));
+        [TestCase( "y = [x,2.0,3.0].all((x)=> x >1.0)")]
+        public void ObviouslyFailsOnParse(string expr)
+        {
+            var ex = Assert.Throws<FunParseException>(
+                () => FunBuilder.BuildDefault(expr));
+            Console.WriteLine($"Captured error: \r{ex}");
+        }
     }
 }

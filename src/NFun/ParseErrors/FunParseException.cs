@@ -20,10 +20,11 @@ namespace NFun.ParseErrors
         {
             Code = code;
             Interval = new Interval(start,end);
-        }   
-        public FunParseException(string message):base(message)
+        }
+
+        public override string ToString()
         {
-            Interval = new Interval(-1,-1);
+            return $"[FU{Code}] {base.ToString()}";
         }
     }
 }
