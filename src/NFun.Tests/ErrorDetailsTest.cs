@@ -52,11 +52,10 @@ namespace Funny.Tests
         [TestCase("x:bool\ry=","sin(x)","")]
         [TestCase("y(x:int):bool = ","if true then true else x","")]
         [TestCase("y(x) = ","z"," +x")]
-        [TestCase("y(x, ","x",")=x+1")]
-        [TestCase("y(x, ","x",",z)=x+1")]
-        [TestCase("[1.0,2.0].fold((i,","i",")=>i+1)")]
-        [TestCase("[1.0,2.0].map((i,", "i" ,")=>i+1)")]
-
+        [TestCase("","y(x,x)","=x+1")]
+        [TestCase("","y(x,x,z)","=x+1")]
+        [TestCase("[1.0,2.0].fold(","(i,i)","=>i+1)")]
+        [TestCase("[1.0,2.0].map(","(i,i)","=>i+1)")]
         public void ErrorPosition(string beforeError, string errorBody, string afterError)
         {
             AssertErrorPosition(beforeError, errorBody, afterError);

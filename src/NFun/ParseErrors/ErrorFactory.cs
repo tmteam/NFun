@@ -415,14 +415,18 @@ namespace NFun.ParseErrors
         public static Exception FunctionArgumentDuplicates(LexFunction lexFunction, VariableInfo lexFunctionArg) 
             => new FunParseException(445, $"'Argument name '{lexFunctionArg.Id}' duplicates at  {ErrorsHelper.Signature(lexFunction.Id, lexFunction.Args)} ", lexFunction.Head.Interval);
 
-        #endregion
-
+        public static Exception AnonymousFunctionArgumentDuplicates(FunArgumentExpressionNode argNode,LexNode funDefenition)
+            => new FunParseException(448, $"'Argument name '{argNode.Name}' of anonymous fun duplicates ", funDefenition.Interval);
         public static Exception VariousArrayElementTypes(IExpressionNode[] elements, int failureIndex)
         {
             var firstType = elements[0].Type;
             var failureType = elements[failureIndex].Type;
-            return new FunParseException(448, $"'Not equal array element types: {firstType} and {failureType}",
+            return new FunParseException(451, $"'Not equal array element types: {firstType} and {failureType}",
                 new Interval(elements[failureIndex-1].Interval.Start, elements[failureIndex].Interval.Finish));
         }
+        #endregion
+
+        
+
     }
 }

@@ -61,13 +61,14 @@ namespace NFun.Interpritation
             {
                 foreach (var arg in defenition.Children)
                 {
-                    var varNode =  ConvertToVarNodeOrThrow(arg);
-                    anonymVariables.TryAdd(new VariableSource(varNode.Name, varNode.Type));
+                    var varNode =  ConvertToArgumentNodeOrThrow(arg);
+                    if (!anonymVariables.TryAdd(new VariableSource(varNode.Name, varNode.Type)))
+                        throw ErrorFactory.AnonymousFunctionArgumentDuplicates(varNode, defenition);
                 }
             }
             else
             {
-                var varNode =  ConvertToVarNodeOrThrow(defenition);
+                var varNode =  ConvertToArgumentNodeOrThrow(defenition);
                 anonymVariables.TryAdd(new VariableSource(varNode.Name, varNode.Type));
             }
 
@@ -81,14 +82,14 @@ namespace NFun.Interpritation
             return new FunVariableExpressionNode(fun, node.Interval);
         }
 
-        private VariableExpressionNode__Old ConvertToVarNodeOrThrow(LexNode node)
+        private FunArgumentExpressionNode ConvertToArgumentNodeOrThrow(LexNode node)
         {
             if (node.Type == LexNodeType.Var)
-                return new VariableExpressionNode__Old(node.Value, VarType.Real, node.Interval);
-            else if (node.Type == LexNodeType.TypedVar)
-                return new VariableExpressionNode__Old(node.Value, (VarType) node.AdditionalContent, node.Interval);
-            else
-                throw ErrorFactory.InvalidArgTypeDefenition(node);
+                return new FunArgumentExpressionNode(node.Value, VarType.Real, node.Interval);
+            if (node.Type == LexNodeType.TypedVar)
+                return new FunArgumentExpressionNode(node.Value, (VarType) node.AdditionalContent, node.Interval);
+            
+            throw ErrorFactory.InvalidArgTypeDefenition(node);
         }
         
         private IExpressionNode GetOrAddVariableNode(LexNode varName)

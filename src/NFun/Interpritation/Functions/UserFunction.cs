@@ -6,7 +6,6 @@ using NFun.Runtime;
 
 namespace NFun.Interpritation.Functions
 {
-    
     public class UserFunction : FunctionBase
     {
         private readonly VariableSource[] _variables;
