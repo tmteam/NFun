@@ -9,12 +9,12 @@ namespace NFun.Interpritation.Functions
     
     public class UserFunction : FunctionBase
     {
-        private readonly VariableExpressionNode[] _variables;
+        private readonly VariableSource[] _variables;
         private readonly IExpressionNode _expression;
 
         public UserFunction(
             string name, 
-            VariableExpressionNode[] variables, 
+            VariableSource[] variables, 
             IExpressionNode expression) 
             : base(
                 name, 
@@ -58,7 +58,7 @@ namespace NFun.Interpritation.Functions
         private void SetVariables(object[] args)
         {
             for (int i = 0; i < args.Length; i++)
-                _variables[i].SetValue(args[i]);
+                _variables[i].Value=  args[i];
         }
     }
 }

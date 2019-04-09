@@ -51,6 +51,8 @@ namespace Funny.Tests
         [TestCase("y(x) = ","z"," + x")]
         [TestCase("x:bool\ry=","sin(x)","")]
         [TestCase("y(x:int):bool = ","if true then true else x","")]
+        [TestCase("[", "'1',2",",'3','4']")]
+        [TestCase("[ '0', ", "'1',2","]")]
         public void ErrorPosition(string beforeError, string errorBody, string afterError)
         {
             AssertErrorPosition(beforeError, errorBody, afterError);

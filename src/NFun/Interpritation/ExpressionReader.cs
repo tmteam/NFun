@@ -17,8 +17,7 @@ namespace NFun.Interpritation
         private readonly LexFunction[] _lexTreeUserFuns;
         private readonly FunctionsDictionary _functions;
 
-        private readonly Dictionary<string, VariableExpressionNode> _variables 
-            = new Dictionary<string, VariableExpressionNode>();
+        private readonly VariableDictionary _variables = new VariableDictionary();
         
         private readonly List<Equation> _equations = new List<Equation>();
         
@@ -57,20 +56,16 @@ namespace NFun.Interpritation
             _treeAnalysis = treeAnalysis;
             _lexTreeUserFuns = lexTreeUserFuns;
             _functions = functions;
+            
+            _variables = new VariableDictionary(vars.Select(v=> new VariableSource(v.Id){Type = v.Type}));
+            
             foreach (var variable in treeAnalysis.AllVariables)
             {
-                _variables.Add(
-                    variable.Id,
-                    new VariableExpressionNode(variable.Id, VarType.Real,Interval.Empty)
+                _variables.TryAdd( new VariableSource(variable.Id)
                     {
+                        Type = VarType.Real,
                         IsOutput =  variable.IsOutput
                     });
-            }
-
-            foreach (var variableTypeSpecification in vars)
-            {
-                if (_variables.ContainsKey(variableTypeSpecification.Id)) 
-                    _variables[variableTypeSpecification.Id].SetType(variableTypeSpecification.Type);
             }
         }
         
@@ -96,8 +91,7 @@ namespace NFun.Interpritation
                     
                 var expression = reader.ReadNode(equation.Equation.Expression);
                 //ReplaceInputType
-                if (_variables.ContainsKey(equation.Equation.Id))
-                    _variables[equation.Equation.Id].SetType(expression.Type);
+                _variables.GetSource(equation.Equation.Id).Type = expression.Type;
                 _equations.Add(new Equation
                 {
                     Expression = expression,
@@ -112,14 +106,14 @@ namespace NFun.Interpritation
 
         private UserFunction GetFunction(LexFunction lexFunction)
         {
-            var vars = new Dictionary<string, VariableExpressionNode>();
-            foreach (var arg in lexFunction.Args) {
-                vars.Add(arg.Id, new VariableExpressionNode(arg.Id, arg.Type, new Interval()));
-            }
+            var vars = new VariableDictionary(lexFunction.Args.Select(a=>new VariableSource(a)));
             var reader = new SingleExpressionReader(_functions, vars);
             var expression = reader.ReadNode(lexFunction.Node);
-            ExpressionHelper.CheckForUnknownVariables(lexFunction.Args.Select(a=>a.Id).ToArray(), vars);
-            return new UserFunction(lexFunction.Id, vars.Values.ToArray(), expression);
+            
+            ExpressionHelper.CheckForUnknownVariables(
+                lexFunction.Args.Select(a=>a.Id).ToArray(), vars);
+            
+            return new UserFunction(lexFunction.Id, vars.GetAllSources(), expression);
         }
 
         

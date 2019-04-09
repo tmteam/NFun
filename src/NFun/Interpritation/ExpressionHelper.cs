@@ -8,16 +8,15 @@ namespace NFun.Interpritation
 {
     public class ExpressionHelper
     {
-        public static void CheckForUnknownVariables(string[] originVariables, 
-            Dictionary<string, VariableExpressionNode> resultVariables)
+
+        public static void CheckForUnknownVariables(string[] originVariables, VariableDictionary resultVariables)
         {
-            var unknownVariables = resultVariables.Values.Select(v => v.Name).Except(originVariables);
+            var unknownVariables = resultVariables.GetAllUsages()
+                .Where(u=> !originVariables.Contains(u.Source.Name)).ToList();
             if (unknownVariables.Any())
             {
-                
-                throw ErrorFactory.UnknownVariables(resultVariables.Values.Where(v=>!originVariables.Contains(v.Name))); 
-                    
-            }
+                throw ErrorFactory.UnknownVariables(unknownVariables.SelectMany(u => u.Nodes));
+            }        
         }
     }
 }

@@ -7,5 +7,10 @@ namespace NFun.Runtime
     {
         public readonly VariableSource Source;
         public readonly LinkedList<VariableExpressionNode> Nodes = new LinkedList<VariableExpressionNode>();
+
+        public VariableUsages(VariableSource source)
+        {
+            Source = source;
+        }
     }
 }

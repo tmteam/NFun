@@ -1,14 +1,35 @@
 using System;
+using NFun.Runtime;
 using NFun.Tokenization;
 using NFun.Types;
 
 namespace NFun.Interpritation.Nodes
 {
-    public class VariableExpressionNode : IExpressionNode
+    public class VariableExpressionNode: IExpressionNode
+    {
+        private readonly VariableSource _source;
+        public string Name { get; }
+        public Interval Interval { get; }
+        public VariableExpressionNode(VariableSource source, Interval interval)
+        {
+            _source = source;
+            Interval = interval;
+        }
+
+        public VarType Type => _source.Type;
+
+        public bool IsOutput { get; set; } = false;
+        
+        public object Calc() => _source.Value;
+        private static int _count = 0;
+        private readonly int _uid = _count++;
+        public override string ToString() => $"{Name}: {_source.Value} uid: {_uid}";
+    }
+    public class VariableExpressionNode__Old : IExpressionNode
     {
         public string Name { get; }
         public Interval Interval { get; }
-        public VariableExpressionNode(string name, VarType type, Interval interval)
+        public VariableExpressionNode__Old(string name, VarType type, Interval interval)
         {
             Type = type;
             Interval = interval;

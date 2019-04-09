@@ -14,10 +14,10 @@ namespace NFun.Interpritation
     class SingleExpressionReader
     {
         private readonly FunctionsDictionary _functions;
-        private readonly Dictionary<string, VariableExpressionNode> _variables;
+        private readonly VariableDictionary _variables;
         public SingleExpressionReader(
             FunctionsDictionary functions, 
-            Dictionary<string, VariableExpressionNode> variables)
+            VariableDictionary variables)
         {
             _functions = functions;
             _variables = variables;
@@ -55,38 +55,44 @@ namespace NFun.Interpritation
             if(expression== null)
                 throw ErrorFactory.AnonymousFunBodyIsMissing(node);
             
-            var variablesDictionary = new Dictionary<string, VariableExpressionNode>();
-            
+            var anonymVariables = new VariableDictionary(); 
+
             if (defenition.Type == LexNodeType.ListOfExpressions)
             {
                 foreach (var arg in defenition.Children)
                 {
                     var varNode =  ConvertToVarNodeOrThrow(arg);
-                    variablesDictionary.Add(varNode.Name, varNode);
+                    anonymVariables.TryAdd(new VariableSource(varNode.Name)
+                    {
+                        Type = varNode.Type
+                    });
                 }
             }
             else
             {
                 var varNode =  ConvertToVarNodeOrThrow(defenition);
-                variablesDictionary.Add(varNode.Name, varNode);
+                anonymVariables.TryAdd(new VariableSource(varNode.Name)
+                {
+                    Type = varNode.Type
+                });
             }
 
-            var originVariables = variablesDictionary.Keys.ToArray();
-            var scope = new SingleExpressionReader(_functions, variablesDictionary);
+            var originVariables = anonymVariables.GetAllSources().Select(s=>s.Name).ToArray();
+            var scope = new SingleExpressionReader(_functions, anonymVariables);
             var expr = scope.ReadNode(expression);
 
-            ExpressionHelper.CheckForUnknownVariables(originVariables, variablesDictionary);
+            ExpressionHelper.CheckForUnknownVariables(originVariables, anonymVariables);
      
-            var fun = new UserFunction("anonymous", variablesDictionary.Values.ToArray(), expr);
+            var fun = new UserFunction("anonymous", anonymVariables.GetAllSources(), expr);
             return new FunVariableExpressionNode(fun, node.Interval);
         }
 
-        private VariableExpressionNode ConvertToVarNodeOrThrow(LexNode node)
+        private VariableExpressionNode__Old ConvertToVarNodeOrThrow(LexNode node)
         {
             if (node.Type == LexNodeType.Var)
-                return new VariableExpressionNode(node.Value, VarType.Real, node.Interval);
+                return new VariableExpressionNode__Old(node.Value, VarType.Real, node.Interval);
             else if (node.Type == LexNodeType.TypedVar)
-                return new VariableExpressionNode(node.Value, (VarType) node.AdditionalContent, node.Interval);
+                return new VariableExpressionNode__Old(node.Value, (VarType) node.AdditionalContent, node.Interval);
             else
                 throw ErrorFactory.InvalidArgTypeDefenition(node);
         }
@@ -95,19 +101,15 @@ namespace NFun.Interpritation
         {
             var lower = varName.Value;
             var funVars = _functions.Get(lower);
-
+            
             if (funVars.Count > 1)
                 throw ErrorFactory.AmbiguousCallOfFunction(funVars, varName);
-            if(funVars.Count==1)
-                return new FunVariableExpressionNode(funVars[0], varName.Interval);   
             
-            if (_variables.ContainsKey(lower))
-                return _variables[lower];
-            else {
-                var res = new VariableExpressionNode(lower, VarType.Real,varName.Interval);
-                _variables.Add(lower, res);
-                return res;
-            }
+            if(funVars.Count==1)
+                return new FunVariableExpressionNode(funVars[0], varName.Interval);
+
+            return _variables.CreateVarNode(varName);
+            
         }
         
         private IExpressionNode GetProcedureArrayNode(LexNode node)

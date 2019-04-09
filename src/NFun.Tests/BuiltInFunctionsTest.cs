@@ -271,13 +271,16 @@ namespace Funny.Tests
         [TestCase("y= max(1,true)")]
         [TestCase("y= max(1,(j)=>j)")]
 
-        [TestCase( @"y = [1.0,2.0,3.0] . fold((i*2,j)=>i+j)")]
-        [TestCase( @"y = [1.0,2.0,3.0] . fold((2,j)=>i+j)")]
-        [TestCase( @"y = [1.0,2.0,3.0] . fold((j)=>i+j)")]
-        [TestCase( @"y = [1.0,2.0,3.0] . fold((j)=>j)")]
-        [TestCase( @"y = [1.0,2.0,3.0] . fold((i,j,k)=>i+j+k)")]
-        [TestCase( @"y = [1.0,2.0,3.0] . fold((i,j)=>i+j+k)")]
-        [TestCase( @"y = [1.0,2.0,3.0] . fold((i,j)=> k)")]
+        [TestCase( @"y = [1.0,2.0,3.0].fold((i*2,j)=>i+j)")]
+        [TestCase( @"y = [1.0,2.0,3.0].fold((2,j)=>i+j)")]
+        [TestCase( @"y = [1.0,2.0,3.0].fold((j)=>i+j)")]
+        [TestCase( @"y = [1.0,2.0,3.0].fold((j)=>j)")]
+        [TestCase( @"y = [1.0,2.0,3.0].fold((i,j,k)=>i+j+k)")]
+        [TestCase( @"y = [1.0,2.0,3.0].fold((i,j)=>i+j+k)")]
+        [TestCase( @"y = [1.0,2.0,3.0].fold((i,j)=> k)")]
+        [TestCase( @"y = [1.0,2.0,3.0].fold((i)=>i)")]
+        [TestCase( @"y = [1.0,2.0,3.0].fold((i,i)=>i)")]
+
         public void ObviouslyFails(string expr) =>
             Assert.Throws<FunParseException>(
                 ()=> FunBuilder.BuildDefault(expr));

@@ -9,18 +9,18 @@ namespace NFun.Runtime
 {
     public class FunRuntime
     {
-        public VarInfo[] Inputs => _variables
-            .Where(v => !v.Value.IsOutput)
-            .Select(s => new VarInfo(false,  s.Value.Type,s.Key)).ToArray();
+        public VarInfo[] Inputs => _variables.GetAllSources()
+            .Where(v => !v.IsOutput)
+            .Select(s => new VarInfo(true,  s.Type,s.Name)).ToArray();
 
-        public VarInfo[] Outputs => _variables
-            .Where(v => v.Value.IsOutput)
-            .Select(s => new VarInfo(true,  s.Value.Type,s.Key)).ToArray();
+        public VarInfo[] Outputs => _variables.GetAllSources()
+            .Where(v => v.IsOutput)
+            .Select(s => new VarInfo(true,  s.Type,s.Name)).ToArray();
 
         private readonly IList<Equation> _equations;
-        private readonly Dictionary<string, VariableExpressionNode> _variables;
+        private readonly VariableDictionary _variables;
         
-        public FunRuntime(IList<Equation> equations, Dictionary<string, VariableExpressionNode> variables)
+        public FunRuntime(IList<Equation> equations, VariableDictionary variables)
         {
             _equations = equations;
             _variables = variables;
@@ -31,10 +31,10 @@ namespace NFun.Runtime
             foreach (var value in vars)
             {
                 var varName = value.Name;
-                if (_variables.TryGetValue(varName, out var varNode))
-                    varNode.SetConvertedValue(value.Value);
-                else
+                var source = _variables.GetSource(varName);
+                if(source==null)
                     throw new ArgumentException($"unexpected input '{value.Name}'");
+                source.SetConvertedValue(value.Value);
             }
             
             var ans = new Var[_equations.Count];
@@ -43,7 +43,7 @@ namespace NFun.Runtime
                 var e = _equations[i];
                 ans[i] = new Var(e.Id, e.Expression.Calc(), e.Expression.Type);
                 if (e.ReusingWithOtherEquations)
-                    _variables[e.Id].SetValue(ans[i].Value);
+                    _variables.GetSource(e.Id).Value = ans[i].Value;
             }
             return new CalculationResult(ans);
         }
