@@ -69,7 +69,7 @@ namespace Funny.Tests
                 FunBuilder.BuildDefault(expr);
                 Assert.Fail("No parse error");
             }
-            catch (FunParseException e){}
+            catch (FunParseException){}
         }
     }
 }
