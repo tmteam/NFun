@@ -208,8 +208,7 @@ namespace Funny.Tests
         [TestCase("y = [..2..2]")]
         [TestCase("y = [1..4")]
         [TestCase("y = [1..")]
-        [TestCase("[1.0,2.0].map((i,i)=>i+1)")]
-        [TestCase("[1.0,2.0].fold((i,i)=>i+1)")]
+        
         public void ObviouslyFailsOnParse(string expr) =>
             Assert.Throws<FunParseException>(
                 ()=> FunBuilder.BuildDefault(expr));
