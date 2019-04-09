@@ -1,4 +1,5 @@
 using System;
+using NFun.Tokenization;
 using NFun.Types;
 
 namespace NFun.Interpritation.Nodes
@@ -12,7 +13,7 @@ namespace NFun.Interpritation.Nodes
             IExpressionNode a, 
             IExpressionNode b, 
             
-            Func<TLeft,TRight,TOut> op)
+            Func<TLeft,TRight,TOut> op, Interval interval)
         {
             if (typeof(TOut) == typeof(bool))
                 Type = VarType.Bool;
@@ -27,10 +28,11 @@ namespace NFun.Interpritation.Nodes
             _a = a;
             _b = b;
             _op = op;
+            Interval = interval;
         }
 
         public VarType Type { get; }
-
+        public Interval Interval { get; }
         public object Calc()
         {
             try

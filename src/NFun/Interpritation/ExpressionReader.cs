@@ -6,6 +6,7 @@ using NFun.LexAnalyze;
 using NFun.ParseErrors;
 using NFun.Parsing;
 using NFun.Runtime;
+using NFun.Tokenization;
 using NFun.Types;
 
 namespace NFun.Interpritation
@@ -60,7 +61,7 @@ namespace NFun.Interpritation
             {
                 _variables.Add(
                     variable.Id,
-                    new VariableExpressionNode(variable.Id, VarType.Real)
+                    new VariableExpressionNode(variable.Id, VarType.Real,Interval.Empty)
                     {
                         IsOutput =  variable.IsOutput
                     });
@@ -79,14 +80,14 @@ namespace NFun.Interpritation
             {
                 var prototype = GetFunctionPrototype(userFun);
                 if (!_functions.Add(prototype))
-                    throw new FunParseException($"Function {prototype} already exist");
+                    throw ErrorFactory.FunctionAlreadyExist(userFun);
             }
 
             foreach (var userFun in _lexTreeUserFuns)
             {
                 var prototype = _functions.GetOrNull(userFun.Id, userFun.Args.Select(a=>a.Type).ToArray());
                 
-                ((FunctionPrototype)prototype).SetActual(GetFunction(userFun));
+                ((FunctionPrototype)prototype).SetActual(GetFunction(userFun), userFun.Head.Interval);
             }
             
             foreach (var equation in _treeAnalysis.OrderedEquations)
@@ -113,7 +114,7 @@ namespace NFun.Interpritation
         {
             var vars = new Dictionary<string, VariableExpressionNode>();
             foreach (var arg in lexFunction.Args) {
-                vars.Add(arg.Id, new VariableExpressionNode(arg.Id, arg.Type));
+                vars.Add(arg.Id, new VariableExpressionNode(arg.Id, arg.Type, new Interval()));
             }
             var reader = new SingleExpressionReader(_functions, vars);
             var expression = reader.ReadNode(lexFunction.Node);

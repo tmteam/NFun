@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using NFun.ParseErrors;
 using NFun.Runtime;
+using NFun.Tokenization;
 using NFun.Types;
 
 namespace NFun.Interpritation.Nodes
@@ -10,18 +11,19 @@ namespace NFun.Interpritation.Nodes
     {
         private readonly IExpressionNode _origin;
         private Func<object, object> _converter;
-        public CastExpressionNode(IExpressionNode origin, VarType targetType, Func<object, object> converter)
+        public CastExpressionNode(IExpressionNode origin, VarType targetType, Func<object, object> converter, Interval interval)
         {
             _origin = origin;
             Type = targetType;
             _converter = converter;
+            Interval = interval;
         }
-        
+        public Interval Interval { get; }
         public VarType Type { get; }
         public object Calc() 
             => _converter(_origin.Calc());
 
-        public static Func<object, object> GetConverterOrThrow(VarType from, VarType to)
+        public static Func<object, object> GetConverterOrThrow(VarType from, VarType to, Interval interval)
         {
             if (from == to)
                 return o => o;
@@ -36,10 +38,14 @@ namespace NFun.Interpritation.Nodes
                 if (to ==  VarType.ArrayOf(VarType.Anything))
                     return o => o;
                 
-                var elementConverter = GetConverterOrThrow(from.ArrayTypeSpecification.VarType, to.ArrayTypeSpecification.VarType);
+                var elementConverter = GetConverterOrThrow(
+                    from.ArrayTypeSpecification.VarType, 
+                    to.ArrayTypeSpecification.VarType, 
+                    interval);
                 return o => FunArray.By(((FunArray) o).Select(elementConverter));
-            }    
-            throw  new FunParseException($"Cast {from}->{to} is unavailable");
+            }
+
+            throw ErrorFactory.ImpossibleCast(from, to, interval);
         }
     }
 }

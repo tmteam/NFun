@@ -1,5 +1,6 @@
 using System;
 using NFun.ParseErrors;
+using NFun.Tokenization;
 using NFun.Types;
 
 namespace NFun.Interpritation.Functions
@@ -11,12 +12,12 @@ namespace NFun.Interpritation.Functions
         }
 
         private FunctionBase _function;
-        public void SetActual(FunctionBase function)
+        public void SetActual(FunctionBase function, Interval interval)
         {
             _function = function;
-            
-            if(OutputType!= function.OutputType)
-                throw new OutputCastFunParseException($"{_function.OutputType} is not supported as output fun parameter");
+
+            if (OutputType != function.OutputType)
+                throw ErrorFactory.InvalidOutputType(function, interval);
         }
 
         public override object Calc(object[] args)

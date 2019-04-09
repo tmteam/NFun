@@ -118,9 +118,6 @@ namespace Funny.Tests
             Assert.AreEqual(z.Type,VarType.PrimitiveOf(ztype),"z");
         }
         
-        public void ObviouslyFailsWithOutputCast(string expr) =>
-            Assert.Throws<OutputCastFunParseException>(
-                ()=> FunBuilder.BuildDefault(expr));
         
         [TestCase("x:foo\r y= x and true")]        
         [TestCase("x::foo\r y= x and true")]       

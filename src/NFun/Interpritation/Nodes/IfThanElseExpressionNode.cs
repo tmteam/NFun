@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using NFun.ParseErrors;
+using NFun.Tokenization;
 using NFun.Types;
 
 namespace NFun.Interpritation.Nodes
@@ -10,21 +11,24 @@ namespace NFun.Interpritation.Nodes
         private readonly IfCaseExpressionNode[] _ifCaseNodes;
         private readonly IExpressionNode[] _ifCaseConvertedNodes;
         private readonly IExpressionNode _elseNode;
-        public IfThanElseExpressionNode(IfCaseExpressionNode[] ifCaseNodes, IExpressionNode elseNode)
+        public IfThanElseExpressionNode(IfCaseExpressionNode[] ifCaseNodes, IExpressionNode elseNode, Interval interval)
         {
             _ifCaseNodes = ifCaseNodes;
+            Interval = interval;
             _ifCaseConvertedNodes = new IExpressionNode[_ifCaseNodes.Length];
             Type = GetMostCommonType(ifCaseNodes.Select(c => c.Type).Append(elseNode.Type));
-            if(Type.BaseType== BaseVarType.Empty)
-                throw new OutputCastFunParseException("There are no common convertion for if  cases");
+            if (Type.BaseType == BaseVarType.Empty)
+                throw ErrorFactory.NoCommonCast(ifCaseNodes.Append(elseNode));
             
+                
             for (var index = 0; index < ifCaseNodes.Length; index++)
             {
                 var ifCase = ifCaseNodes[index];
                 if (ifCase.Type != Type)
                 {
                     _ifCaseConvertedNodes[index] = new CastExpressionNode(ifCase, Type,
-                        CastExpressionNode.GetConverterOrThrow(ifCase.Type, Type));
+                        CastExpressionNode.GetConverterOrThrow(ifCase.Type, Type, ifCase.Interval)
+                        ,ifCase.Interval);
                 }
                 else
                     _ifCaseConvertedNodes[index] = ifCase;
@@ -33,7 +37,8 @@ namespace NFun.Interpritation.Nodes
             if (elseNode.Type != Type)
             {
                 _elseNode = new CastExpressionNode(elseNode, Type, 
-                    CastExpressionNode.GetConverterOrThrow(elseNode.Type, Type));
+                    CastExpressionNode.GetConverterOrThrow(elseNode.Type, Type, elseNode.Interval)
+                    , elseNode.Interval);
             }
             else
             {
@@ -52,12 +57,11 @@ namespace NFun.Interpritation.Nodes
             return _elseNode.Calc(); //caster(_elseNode.Calc());
         }
         public VarType Type { get; }
-
+        public Interval Interval { get; }
 
         VarType GetMostCommonType(IEnumerable<VarType> types)
         {
             var mostCommon = types.First();
-            
             foreach (var varType in types.Skip(1))
             {
                 if (varType.CanBeConvertedTo(mostCommon))

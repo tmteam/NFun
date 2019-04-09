@@ -388,6 +388,39 @@ namespace NFun.ParseErrors
 
         public static Exception FunctionNotFound(LexNode node, List<IExpressionNode> children, FunctionsDictionary functions)
         => throw new FunParseException(424, $"Function {node.Value}({string.Join(", ", children.Select(c=>c.Type))}) is not defined", node.Interval);
+
+        public static Exception UnknownVariables(IEnumerable<VariableExpressionNode> values)
+        {
+            if (values.Count() == 1)
+                throw new FunParseException(427,$"Unknown variable \"{values.First()}\"",values.First().Interval);
+
+            throw new FunParseException(430,$"Unknown variables \"{string.Join(", ", values)}\"",values.First().Interval);
+        }
+
+        public static Exception FunctionAlreadyExist(LexFunction userFun)
+        {
+            return new FunParseException(433,$"Function  {ErrorsHelper.Signature(userFun.Id, userFun.Args)} already exist", 
+                new Interval( userFun.Head.Interval.Start,userFun.Node.Interval.Finish));
+        }
+        
+
+        public static Exception NoCommonCast(IEnumerable<IExpressionNode> nodes)
+        {
+            return new FunParseException(436,
+                "There are no common convertion between types "+ string.Join(",", nodes.Select(n=>n.Type)), 
+                new Interval(nodes.Min(n=>n.Interval.Start),nodes.Max(n=>n.Interval.Finish)));
+        }
+
+        public static Exception IfConditionIsNotBool(IExpressionNode condition)
+        {
+            return new FunParseException(439,"if Condition has to be boolean but was "+ condition.Type, condition.Interval);
+        }
+
+        public static Exception InvalidOutputType(FunctionBase function, Interval interval)
+        {
+            return new FunParseException(442, $"'{function.OutputType}' is not supported as output parameter of {function.Name}()", interval);
+            
+        }
         #endregion
 
     }

@@ -14,10 +14,10 @@ namespace NFun.ParseErrors
             return argumentsStub;
         }
 
-        public static string Signature(string funName, List<VariableInfo> arguments) 
+        public static string Signature(string funName, IEnumerable<VariableInfo> arguments) 
             => $"{funName}({Join(arguments)})";
 
-        public static string Join(List<VariableInfo> arguments) 
+        public static string Join(IEnumerable<VariableInfo> arguments) 
             => string.Join(",", arguments);
         public  static string ToString(LexNode node)
         {

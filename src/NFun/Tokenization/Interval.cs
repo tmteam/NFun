@@ -4,6 +4,7 @@ namespace NFun.Tokenization
 {
     public struct Interval
     {
+        public static Interval Empty => new Interval(0,0);
         public readonly int Start;
         public readonly int Finish;
 

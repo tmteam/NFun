@@ -1,4 +1,5 @@
 using System;
+using NFun.Tokenization;
 using NFun.Types;
 
 namespace NFun.Interpritation.Nodes
@@ -6,10 +7,11 @@ namespace NFun.Interpritation.Nodes
     public class VariableExpressionNode : IExpressionNode
     {
         public string Name { get; }
-
-        public VariableExpressionNode(string name, VarType type)
+        public Interval Interval { get; }
+        public VariableExpressionNode(string name, VarType type, Interval interval)
         {
             Type = type;
+            Interval = interval;
             Name = name;
         }
         

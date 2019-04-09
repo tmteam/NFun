@@ -78,17 +78,17 @@ namespace NFun.Interpritation
             ExpressionHelper.CheckForUnknownVariables(originVariables, variablesDictionary);
      
             var fun = new UserFunction("anonymous", variablesDictionary.Values.ToArray(), expr);
-            return new FunVariableExpressionNode(fun);
+            return new FunVariableExpressionNode(fun, node.Interval);
         }
 
-        private VariableExpressionNode ConvertToVarNodeOrThrow(LexNode defenition)
+        private VariableExpressionNode ConvertToVarNodeOrThrow(LexNode node)
         {
-            if (defenition.Type == LexNodeType.Var)
-                return new VariableExpressionNode(defenition.Value, VarType.Real);
-            else if (defenition.Type == LexNodeType.TypedVar)
-                return new VariableExpressionNode(defenition.Value, (VarType) defenition.AdditionalContent);
+            if (node.Type == LexNodeType.Var)
+                return new VariableExpressionNode(node.Value, VarType.Real, node.Interval);
+            else if (node.Type == LexNodeType.TypedVar)
+                return new VariableExpressionNode(node.Value, (VarType) node.AdditionalContent, node.Interval);
             else
-                throw ErrorFactory.InvalidArgTypeDefenition(defenition);
+                throw ErrorFactory.InvalidArgTypeDefenition(node);
         }
         
         private IExpressionNode GetOrAddVariableNode(LexNode varName)
@@ -99,12 +99,12 @@ namespace NFun.Interpritation
             if (funVars.Count > 1)
                 throw ErrorFactory.AmbiguousCallOfFunction(funVars, varName);
             if(funVars.Count==1)
-                return new FunVariableExpressionNode(funVars[0]);   
+                return new FunVariableExpressionNode(funVars[0], varName.Interval);   
             
             if (_variables.ContainsKey(lower))
                 return _variables[lower];
             else {
-                var res = new VariableExpressionNode(lower, VarType.Real);
+                var res = new VariableExpressionNode(lower, VarType.Real,varName.Interval);
                 _variables.Add(lower, res);
                 return res;
             }
@@ -119,22 +119,22 @@ namespace NFun.Interpritation
             var stepOrNull = node.Children.ElementAtOrDefault(2);
 
             if (stepOrNull == null)
-                return new RangeIntFunction().CreateWithConvertionOrThrow(new[] {start, end});
+                return new RangeIntFunction().CreateWithConvertionOrThrow(new[] {start, end}, node.Interval);
 
             var step = ReadNode(stepOrNull);
             if(step.Type== VarType.Real)
-               return new RangeWithStepRealFunction().CreateWithConvertionOrThrow(new[] {start, end, step});
+               return new RangeWithStepRealFunction().CreateWithConvertionOrThrow(new[] {start, end, step},node.Interval);
             
             if (step.Type!= VarType.Int)
                 throw ErrorFactory.ArrayInitializerTypeMismatch(step.Type, node);
 
             
-            return new RangeWithStepIntFunction().CreateWithConvertionOrThrow(new[] {start, end, step});
+            return new RangeWithStepIntFunction().CreateWithConvertionOrThrow(new[] {start, end, step},node.Interval);
         }
         private IExpressionNode GetArrayNode(LexNode node)
         {
             var nodes = node.Children.Select(ReadNode).ToArray();
-            return new ArrayExpressionNode(nodes);
+            return new ArrayExpressionNode(nodes,node.Interval);
         }
         private IExpressionNode GetIfThanElseNode(LexNode node)
         {
@@ -143,15 +143,15 @@ namespace NFun.Interpritation
             {
                 var condition = ReadNode(ifNode.Children.First());
                 var expr = ReadNode(ifNode.Children.Last());
-                ifNodes.Add(new IfCaseExpressionNode(condition, expr));
+                ifNodes.Add(new IfCaseExpressionNode(condition, expr,node.Interval));
             }
 
             var elseNode = ReadNode(node.Children.Last());
-            return new IfThanElseExpressionNode(ifNodes.ToArray(), elseNode);
+            return new IfThanElseExpressionNode(ifNodes.ToArray(), elseNode,elseNode.Interval);
         }
 
         private static IExpressionNode GetTextValueNode(LexNode node) 
-            => new ValueExpressionNode(node.Value);
+            => new ValueExpressionNode(node.Value, node.Interval);
 
         private static IExpressionNode GetValueNode(LexNode node)
         {
@@ -161,26 +161,26 @@ namespace NFun.Interpritation
                 if (val.Length > 2)
                 {
                     if(val == "true")
-                        return new ValueExpressionNode(true);
+                        return new ValueExpressionNode(true, node.Interval);
                     if(val == "false")
-                        return new ValueExpressionNode(false);
+                        return new ValueExpressionNode(false,node.Interval);
                     
                     val = val.Replace("_", null);
 
                     if (val[1] == 'b')
-                        return new ValueExpressionNode(Convert.ToInt32(val.Substring(2), 2));
+                        return new ValueExpressionNode(Convert.ToInt32(val.Substring(2), 2),node.Interval);
                     if (val[1] == 'x')
-                        return new ValueExpressionNode(Convert.ToInt32(val, 16));
+                        return new ValueExpressionNode(Convert.ToInt32(val, 16),node.Interval);
                 }
 
                 if (val.Contains('.'))
                 {
                     if (val.EndsWith("."))
                         throw new FormatException();
-                    return new ValueExpressionNode(double.Parse(val));
+                    return new ValueExpressionNode(double.Parse(val),node.Interval);
                 }
 
-                return new ValueExpressionNode(int.Parse(val));
+                return new ValueExpressionNode(int.Parse(val),node.Interval);
             }
             catch (FormatException)
             {
@@ -204,7 +204,7 @@ namespace NFun.Interpritation
             var function = _functions.GetOrNull(id, childrenTypes.ToArray());
             if (function == null)
                 throw ErrorFactory.FunctionNotFound(node, children, _functions);
-            return function.CreateWithConvertionOrThrow(children);
+            return function.CreateWithConvertionOrThrow(children, node.Interval);
         }
 
     }

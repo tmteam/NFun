@@ -116,7 +116,7 @@ namespace NFun.Parsing
             return new LexFunction
             {
                 Args = arguments.ToArray(), 
-                Id= id, 
+                Head = headNode,
                 Node = expression, 
                 OutputType = outputType
             };

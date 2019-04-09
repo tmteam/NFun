@@ -1,3 +1,4 @@
+using NFun.Tokenization;
 using NFun.Types;
 
 namespace NFun.Parsing
@@ -9,7 +10,8 @@ namespace NFun.Parsing
             
         }
         public VarType OutputType;
-        public string Id;
+        public LexNode Head;
+        public string Id => Head.Value;
         public VariableInfo[] Args;
         public LexNode Node;
     }

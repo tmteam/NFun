@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using NFun.Interpritation.Nodes;
+using NFun.Tokenization;
 using NFun.Types;
 
 namespace NFun.Interpritation.Functions
@@ -17,7 +18,7 @@ namespace NFun.Interpritation.Functions
         public VarType OutputType { get; }
         public abstract object Calc(object[] args);
 
-        public IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children)
+        public IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children, Interval interval)
         {
             var castedChildren = new List<IExpressionNode>();
 
@@ -29,15 +30,15 @@ namespace NFun.Interpritation.Functions
                 var castedNode = argNode;
                 if (fromType != toType)
                 {
-                    var converter = CastExpressionNode.GetConverterOrThrow(fromType, toType);
-                    castedNode = new CastExpressionNode(argNode, toType, converter);
+                    var converter = CastExpressionNode.GetConverterOrThrow(fromType, toType, argNode.Interval);
+                    castedNode = new CastExpressionNode(argNode, toType, converter,argNode.Interval);
                 }
 
                 castedChildren.Add(castedNode);
                 i++;
             }
 
-            return new FunExpressionNode(this, castedChildren.ToArray());
+            return new FunExpressionNode(this, castedChildren.ToArray(),interval);
         }
     }
         

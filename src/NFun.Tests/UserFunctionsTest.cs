@@ -197,14 +197,9 @@ namespace Funny.Tests
         [TestCase("f((i,j),k) = 12.0 \r y = f(((1,2),3)=>i+j)")]
         [TestCase("f(x*2) = 12.0 \r y = f(3)")]
         [TestCase("f(x*2) = 12.0")]
+        [TestCase("y(x):real= \"vasa\"")]
         public void ObviousFails(string expr){
             Assert.Throws<FunParseException>(()=>FunBuilder.BuildDefault(expr));
         }
-        [TestCase("y(x):real= \"vasa\"")]
-
-        public void ObviousFailsWithTypeCast(string expr){
-            Assert.Throws<OutputCastFunParseException>(()=>FunBuilder.BuildDefault(expr));
-        }
-
     }
 }

@@ -14,10 +14,9 @@ namespace NFun.Interpritation
             var unknownVariables = resultVariables.Values.Select(v => v.Name).Except(originVariables);
             if (unknownVariables.Any())
             {
-                if (unknownVariables.Count() == 1)
-                    throw new FunParseException($"Unknown variable \"{unknownVariables.First()}\"");
-                else
-                    throw new FunParseException($"Unknown variables \"{string.Join(", ", unknownVariables)}\"");
+                
+                throw ErrorFactory.UnknownVariables(resultVariables.Values.Where(v=>!originVariables.Contains(v.Name))); 
+                    
             }
         }
     }

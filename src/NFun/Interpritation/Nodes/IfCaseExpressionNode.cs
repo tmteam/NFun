@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using NFun.ParseErrors;
+using NFun.Tokenization;
 using NFun.Types;
 
 namespace NFun.Interpritation.Nodes
@@ -9,13 +10,14 @@ namespace NFun.Interpritation.Nodes
         private readonly IExpressionNode _condition;
         private readonly IExpressionNode _result;
 
-        public IfCaseExpressionNode(IExpressionNode condition, IExpressionNode result)
+        public IfCaseExpressionNode(IExpressionNode condition, IExpressionNode result, Interval interval)
         {
-            if(condition.Type!= VarType.Bool)
-                throw new OutputCastFunParseException("if Condition has to be boolean but was "+ condition.Type);
+            if (condition.Type != VarType.Bool)
+                throw ErrorFactory.IfConditionIsNotBool(condition);
             
             _condition = condition;
             _result = result;
+            Interval = interval;
         }
 
         public IEnumerable<IExpressionNode> Children
@@ -31,6 +33,6 @@ namespace NFun.Interpritation.Nodes
         public object Calc() 
             => _result.Calc();
         public VarType Type => _result.Type;
-
+        public Interval Interval { get; }
     }
 }
