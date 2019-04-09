@@ -44,6 +44,13 @@ namespace Funny.Tests
         [TestCase("z = x+1 \r y = ","y +1","\rj = i+1")]
         [TestCase("z = x+1 \r y = ","y","\rj = i+1")]
         [TestCase("z(x) = x+1 \ry = ","y","\rj = z(i)")]
+        [TestCase("if ","1+2"," then 1 else 2")]
+        [TestCase("x:int[] \r y = x","[true and false]","")]
+        [TestCase("", "if true then 1 else true","")]
+        [TestCase("y(x) = x + ","z","")]
+        [TestCase("y(x) = ","z"," + x")]
+        [TestCase("x:bool\ry=","sin(x)","")]
+        [TestCase("y(x:int):bool = ","if true then true else x","")]
         public void ErrorPosition(string beforeError, string errorBody, string afterError)
         {
             AssertErrorPosition(beforeError, errorBody, afterError);
