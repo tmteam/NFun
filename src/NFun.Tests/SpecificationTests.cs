@@ -1,5 +1,6 @@
 using NFun;
 using NFun.ParseErrors;
+using NFun.Runtime;
 using NFun.Types;
 using NUnit.Framework;
 
@@ -251,6 +252,15 @@ y4 = not(x1 and x2 or x3)
         public void ObviousFails(string expr)
         {
             Assert.Throws<FunParseException>(() => FunBuilder.BuildDefault(expr));
+        }
+        
+        [TestCase(" y = to_int('string')")]
+        [TestCase(" y = to_real('string')")]
+        [TestCase(" y = [1,2,3][4]")]
+        public void ObviousFailsOnRuntime(string expr)
+        {
+            Assert.Throws<FunRuntimeException>(
+                () => FunBuilder.BuildDefault(expr).Calculate());
         }
     }
 }
