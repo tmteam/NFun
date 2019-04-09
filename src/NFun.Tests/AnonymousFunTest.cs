@@ -32,9 +32,7 @@ namespace Funny.Tests
             runtime.Calculate()
                 .AssertReturns(Var.New("y", expected));
         }
-        [TestCase( "y = [1.0,2.0,3.0].all((i)=> i >x)",1.0, false)]
-        [TestCase( "z = x*2\r y = [1.0,2.0,3.0].all((i)=> i >z)",0.5, false)]
-        [TestCase( "x:int\r y = [1,2,3].all((i)=> i >x)",1, false)]
+        
         [TestCase( "y = [1.0,2.0,3.0].map((i)=> i*x1*x2)",3.0,4.0, new []{12.0,24.0,36.0})]
         [TestCase( "x1:int\rx2:int\ry = [1,2,3].map((i)=> i*x1*x2)",3,4, new []{12,24,36})]
         [TestCase( "y = [1.0,2.0,3.0].fold((i,j)=> i*x1 - j*x2)",2.0,3.0, 100.0)]
@@ -51,6 +49,11 @@ namespace Funny.Tests
         [TestCase( "y = [1.0,2.0,3.0].map((i)=> i*x)",3.0, new []{3.0,6.0,9.0})]
         [TestCase( "y = [x,2.0,3.0].all((x)=> x >1.0)",1.0, false)]
         [TestCase( "x:bool \r y = x and ([1.0,2.0,3.0].all((x)=> x >=1.0))",1.0, true)]
+        [TestCase( "y = [-x,-x,-x].all((x)=> x < 0.0)",100.0, true)]
+        [TestCase( "z = [-x,-x,-x] \r  y = z.all((z)=> z < 0.0)",100.0, true)]
+        [TestCase( "y = [1.0,2.0,3.0].all((i)=> i >x)",1.0, false)]
+        [TestCase( "z = x*2\r y = [1.0,2.0,3.0].all((i)=> i >z)",0.5, false)]
+        [TestCase( "x:int\r y = [1,2,3].all((i)=> i >x)",1, false)]
         public void AnonymousFunctions_SingleArgumentEquation(string expr, double arg, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
