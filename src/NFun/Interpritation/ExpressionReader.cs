@@ -57,13 +57,12 @@ namespace NFun.Interpritation
             _lexTreeUserFuns = lexTreeUserFuns;
             _functions = functions;
             
-            _variables = new VariableDictionary(vars.Select(v=> new VariableSource(v.Id){Type = v.Type}));
+            _variables = new VariableDictionary(vars.Select(v=> new VariableSource(v.Id,v.Type)));
             
             foreach (var variable in treeAnalysis.AllVariables)
             {
-                _variables.TryAdd( new VariableSource(variable.Id)
+                _variables.TryAdd( new VariableSource(variable.Id, VarType.Real)
                     {
-                        Type = VarType.Real,
                         IsOutput =  variable.IsOutput
                     });
             }
@@ -106,7 +105,12 @@ namespace NFun.Interpritation
 
         private UserFunction GetFunction(LexFunction lexFunction)
         {
-            var vars = new VariableDictionary(lexFunction.Args.Select(a=>new VariableSource(a)));
+            var vars = new VariableDictionary();
+            foreach (var lexFunctionArg in lexFunction.Args)
+            {
+                if (!vars.TryAdd(new VariableSource(lexFunctionArg)))
+                    throw ErrorFactory.FunctionArgumentDuplicates(lexFunction, lexFunctionArg);
+            }
             var reader = new SingleExpressionReader(_functions, vars);
             var expression = reader.ReadNode(lexFunction.Node);
             

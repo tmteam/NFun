@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using NFun.ParseErrors;
 using NFun.Runtime;
 using NFun.Tokenization;
 using NFun.Types;
@@ -25,7 +26,7 @@ namespace NFun.Interpritation.Nodes
                 {
                     var iType = elements[i].Type;
                     if (iType != elementType)
-                        throw new NotImplementedException("Array contains different types");
+                        throw ErrorFactory.VariousArrayElementTypes(elements, i);
                 }
                 Type = VarType.ArrayOf(elementType);
             }

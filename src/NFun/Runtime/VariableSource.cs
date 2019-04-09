@@ -12,10 +12,18 @@ namespace NFun.Runtime
         {
             Name = info.Id;
             Type = info.Type;
+            IsOutput = false;
+        }
+        public VariableSource(string name, VarType type)
+        {
+            Name = name;
+            Type = type;
+            IsOutput = false;
         }
         public VariableSource(string name)
         {
             Name = name;
+            IsOutput = false;
         }
         public bool IsOutput { get; set; }
         public VarType Type { get; set; }

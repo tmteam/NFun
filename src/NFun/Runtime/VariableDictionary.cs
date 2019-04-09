@@ -43,8 +43,7 @@ namespace NFun.Runtime
             var name = varName.Value;
             if (!_variables.ContainsKey(name))
             {
-                var source = new VariableSource(name)
-                    {Type = VarType.Real};
+                var source = new VariableSource(name, VarType.Real);
                 _variables.Add(name, new VariableUsages(source));
             }
             var node = new VariableExpressionNode(_variables[name].Source,varName.Interval);

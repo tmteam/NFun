@@ -62,19 +62,13 @@ namespace NFun.Interpritation
                 foreach (var arg in defenition.Children)
                 {
                     var varNode =  ConvertToVarNodeOrThrow(arg);
-                    anonymVariables.TryAdd(new VariableSource(varNode.Name)
-                    {
-                        Type = varNode.Type
-                    });
+                    anonymVariables.TryAdd(new VariableSource(varNode.Name, varNode.Type));
                 }
             }
             else
             {
                 var varNode =  ConvertToVarNodeOrThrow(defenition);
-                anonymVariables.TryAdd(new VariableSource(varNode.Name)
-                {
-                    Type = varNode.Type
-                });
+                anonymVariables.TryAdd(new VariableSource(varNode.Name, varNode.Type));
             }
 
             var originVariables = anonymVariables.GetAllSources().Select(s=>s.Name).ToArray();

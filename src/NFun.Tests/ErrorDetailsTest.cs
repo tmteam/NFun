@@ -51,8 +51,12 @@ namespace Funny.Tests
         [TestCase("y(x) = ","z"," + x")]
         [TestCase("x:bool\ry=","sin(x)","")]
         [TestCase("y(x:int):bool = ","if true then true else x","")]
-        [TestCase("[", "'1',2",",'3','4']")]
-        [TestCase("[ '0', ", "'1',2","]")]
+        [TestCase("y(x) = ","z"," +x")]
+        [TestCase("y(x, ","x",")=x+1")]
+        [TestCase("y(x, ","x",",z)=x+1")]
+        [TestCase("[1.0,2.0].fold((i,","i",")=>i+1)")]
+        [TestCase("[1.0,2.0].map((i,","i",")=>i+1)")]
+
         public void ErrorPosition(string beforeError, string errorBody, string afterError)
         {
             AssertErrorPosition(beforeError, errorBody, afterError);
@@ -90,6 +94,8 @@ namespace Funny.Tests
         [TestCase("s=[",",","2]")]
         [TestCase("s=[",",",",2]")]
         [TestCase("s=","[","")]
+        [TestCase("[", "'1',2",",'3','4']")]
+        [TestCase("[ '0', ", "'1',2","]")]
         public void InitializeArray_ErrorPosition(string beforeError, string errorBody, string afterError)
         {
             AssertErrorPosition(beforeError, errorBody, afterError);
