@@ -355,7 +355,7 @@ namespace NFun.ParseErrors
 
         #region 4xx - Interpritation exceptions
 
-        public static Exception CycleEquatationDependencies(LexEquation[] result)
+        public static Exception CycleEquationDependencies(LexEquation[] result)
         {
             var expression = result.First().Expression;
             return new FunParseException(401,"Cycle dependencies found: " 

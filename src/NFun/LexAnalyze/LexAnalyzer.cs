@@ -110,7 +110,7 @@ namespace NFun.LexAnalyze
                     var element = lexEquations.ElementAt(index);
                     errorCycle.Add(element);
                 }
-                throw ErrorFactory.CycleEquatationDependencies(errorCycle.ToArray());
+                throw ErrorFactory.CycleEquationDependencies(errorCycle.ToArray());
             }
             
             //Equations calculation order

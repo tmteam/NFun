@@ -1,4 +1,5 @@
 using NFun;
+using NFun.ParseErrors;
 using NFun.Types;
 using NUnit.Framework;
 
@@ -8,7 +9,7 @@ namespace Funny.Tests
     // Confirmation of betta syntax document examples
     // </summary>
     [TestFixture]
-    public class SpecificationConfirmationTests
+    public class SpecificationTests
     {
         [TestCase(10.0, "y = x+1  #Суммирование", "y", 11.0)]
         [TestCase(10.0, "y = x-1  #Вычитание", "y", 9.0)]
@@ -76,10 +77,10 @@ tostring(v:int):text =
 x:int
 y = tostring(x)","y", "not supported")]
        // [TestCase(1.0, "","y", false)]
-
         [TestCase(0.43,"y = 'Welcome to fun.Version is '+ x+'.Next version is '+ (x+1)"
             , "y", "Welcome to fun.Version is 0.43.Next version is 1.43")]
-
+        [TestCase(2.5,"y = [1.0,2.0,3.0].filter(it => it<x).max()","y",2.0)]
+        [TestCase(2.5,"x:real \r y = [1.0,2.0,3.0].filter(it => it<x).max()","y",2.0)]
         public void Real_SingleEquationWithSingleInput(object xVal, string expression, string outputName, object outputValue)
         {
             var runtime = FunBuilder.BuildDefault(expression);
@@ -88,20 +89,22 @@ y = tostring(x)","y", "not supported")]
             runtime.Calculate(Var.New("x", xVal))
                 .AssertReturns(Var.New(outputName,outputValue));
         }
-        [TestCase("y = 1", "y", 1)]
-        [TestCase("y = 1", "y", 1)]
-        [TestCase("1", "out", 1)]
-        [TestCase("y = 1      #1, int","y",1)]
-        [TestCase("y = 0xf 	#15, int","y",15)]
-        [TestCase("y = 0b101  #5, int","y",5)]
-        [TestCase("y = 1.0    #1, real","y",1.0)]
-        [TestCase("y = 1.51   #1.51, real","y",1.51)]
-        [TestCase("y = 123_321 #123321 int","y",123321)]
-        [TestCase("y = 123_321_000 #123321000 int","y",123321000)]
-        [TestCase("y = 12_32_1.1 #12321.1, real","y",12321.1)]
-        [TestCase("y = 0x123_321 #много, int","y",1192737)]
-        [TestCase("y = 'string constant'", "y", "string constant")]
-        [TestCase("y = [1,2,3,4]#Int[]", "y", new []{1,2,3,4})]
+
+       [TestCase("y = 1", "y", 1)]
+       [TestCase("y = 1", "y", 1)]
+       [TestCase("1", "out", 1)]
+       [TestCase("y = 1      #1, int", "y", 1)]
+       [TestCase("y = 0xf 	#15, int", "y", 15)]
+       [TestCase("y = 0b101  #5, int", "y", 5)]
+       [TestCase("y = 1.0    #1, real", "y", 1.0)]
+       [TestCase("y = 1.51   #1.51, real", "y", 1.51)]
+       [TestCase("y = 123_321 #123321 int", "y", 123321)]
+       [TestCase("y = 123_321_000 #123321000 int", "y", 123321000)]
+       [TestCase("y = 12_32_1.1 #12321.1, real", "y", 12321.1)]
+       [TestCase("y = 0x123_321 #много, int", "y", 1192737)]
+       [TestCase("y = 'string constant'", "y", "string constant")]
+       [TestCase("y = ['a','b','foo']# ['a','b','foo'] type: text[]", new[] {"a","b","foo"})]
+       [TestCase("y = [1,2,3,4]#Int[]", "y", new []{1,2,3,4})]
         [TestCase("y = [1..4] #[1,2,3,4]", "y", new []{1,2,3,4})]
         [TestCase("y = [1..7..2]  #[1,3,5,7]", "y", new []{1,3,5,7})]
         [TestCase("y = [1..2.5..0.5]  #[1.0,1.5,2.0,2.5]", "y", new []{1.0,1.5,2.0,2.5})]
@@ -239,6 +242,15 @@ y4 = not(x1 and x2 or x3)
             Assert.AreEqual(1, runtime.Outputs.Length);
             var output = runtime.Outputs[0];
             Assert.AreEqual(primitiveType, output.Type.BaseType);
+        }
+
+
+       [TestCase(" y1 = [1,’2’,3,4]      # ошибка разбора")]
+       [TestCase(" y2 = [1,2.0,3,4]      # ошибка разбора")]
+       [TestCase(" x:real[] \r y = x.filter(x => x< 2 ) # ошибка разбора.")]
+        public void ObviousFails(string expr)
+        {
+            Assert.Throws<FunParseException>(() => FunBuilder.BuildDefault(expr));
         }
     }
 }
