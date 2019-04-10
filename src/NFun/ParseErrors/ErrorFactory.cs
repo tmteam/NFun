@@ -380,6 +380,9 @@ namespace NFun.ParseErrors
         public static Exception AmbiguousCallOfFunction(IList<FunctionBase> funVars, LexNode varName)
             => throw new FunParseException(415,$"Ambiguous call of function with name: {varName.Value}", varName.Interval);
 
+        public static Exception AmbiguousFunctionChoise(IList<FunctionBase> funVars, LexNode varName)
+            => throw new FunParseException(416,$"Several functions with name: {varName.Value} can be used in expression. Did you mean input variable instead of function?", varName.Interval);
+        
         public static Exception ArrayInitializerTypeMismatch(VarType stepType, LexNode node)
             => throw new FunParseException(418,$"Array initializator step has to be int type only but was '{stepType}'. Example: [1..5..2]", node.Interval);
 

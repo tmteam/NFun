@@ -120,7 +120,7 @@ namespace NFun.Interpritation
             {
                 var funVars = _functions.Get(lower);
                 if (funVars.Count > 1)
-                    throw ErrorFactory.AmbiguousCallOfFunction(funVars, varName);
+                    throw ErrorFactory.AmbiguousFunctionChoise(funVars, varName);
                 if (funVars.Count == 1)
                     return new FunVariableExpressionNode(funVars[0], varName.Interval);
             }
