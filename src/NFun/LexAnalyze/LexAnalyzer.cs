@@ -25,6 +25,9 @@ namespace NFun.LexAnalyze
             var vars = new Dictionary<string, VarAnalysis>();
             foreach (var lexEquation in lexEquations)
             {
+                if (vars.ContainsKey(lexEquation.Id))
+                   throw ErrorFactory.InputNameDuplicates(lexEquation.Id, lexEquation.Expression);
+                
                 vars.Add( lexEquation.Id, new VarAnalysis(lexEquation.Id, true));
             }
             for (var i = 0; i < lexEquations.Length; i++)

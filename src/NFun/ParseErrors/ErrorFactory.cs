@@ -217,12 +217,14 @@ namespace NFun.ParseErrors
                 $"{headNode.Value}({sb.ToString()}) = ... {Nl} Function argument is in bracket. Variable name (with optional type) without brackets expected", 
                 headNodeChild.Start, headNodeChild.Finish);
         }
-
-       
+        
         public static Exception VarExpressionIsMissed(int start, string id, Tok flowCurrent)
             => new FunParseException(228, $"{id} = ??? . Equation body is missed {Nl}Example: {id} = {id}+1", 
                 start, flowCurrent.Finish);
        
+        public static Exception InputNameDuplicates(string id, LexNode lexEquationExpression)
+            => new FunParseException(231, $"{id}<-  input name duplicates ", lexEquationExpression.Interval);
+
         #endregion
 
         #region  3xx - errors of lists
@@ -430,7 +432,5 @@ namespace NFun.ParseErrors
                 new Interval(elements[failureIndex-1].Interval.Start, elements[failureIndex].Interval.Finish));
         }
         #endregion
-
-
     }
 }
