@@ -170,7 +170,22 @@ namespace Funny.Tests
             Assert.AreEqual(expectedType, res.Type);
             AssertMultiDimentionalEquals(res, expectedOutput);
         }
-
+        [Test]
+        public void ArraysIntegrationTest()
+        {
+            var expr = @"
+x: int[]
+filt: int
+concat    = ([1,2,3,4] @ x )
+size      = concat.count()
+possum   = x.filter(i:int=>i>0).fold((i:int,j:int)=> i+j)
+filtrat   = x.filter(i:int=>i> filt) # filt - входная переменная
+";
+            var runtime = FunBuilder.BuildDefault(expr);
+            var res = runtime.Calculate(Var.New("x", new[]{5,6,7,8}),
+                Var.New("filt", 2)
+                );
+        }
         private static void AssertMultiDimentionalEquals(Var res, int[][] expectedOutput)
         {
             for (int i = 0; i < expectedOutput.Length; i++)

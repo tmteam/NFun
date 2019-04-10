@@ -59,7 +59,7 @@ namespace NFun.Interpritation
             
             _variables = new VariableDictionary(vars.Select(v=> new VariableSource(v.Id,v.Type)));
             
-            foreach (var variable in treeAnalysis.AllVariables)
+            foreach (var variable in treeAnalysis.AllVariables.Where(i=>i.IsOutput))
             {
                 _variables.TryAdd( new VariableSource(variable.Id, VarType.Real)
                     {

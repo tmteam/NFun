@@ -102,21 +102,7 @@ namespace NFun.Interpritation
             var fun = new UserFunction("anonymous", arguments.ToArray(), expr);
             return new FunVariableExpressionNode(fun, node.Interval);
         }
-
-        private void AddArgumentToDictionaryOrThrow(LexNode arg, VariableDictionary anonymVariables, LexNode defenition)
-        {
-            var varNode = ConvertToArgumentNodeOrThrow(arg);
-            if (!anonymVariables.TryAdd(new VariableSource(varNode.Name, varNode.Type)))
-            {   //Check for duplicated arg-names
-
-                //If outer-scope contains the conflict variable name
-                if (_variables.GetSource(varNode.Name) != null)
-                    throw ErrorFactory.AnonymousFunctionArgumentConflictsWithOuterScope(varNode, defenition);
-                else //else it is duplicated arg name
-                    throw ErrorFactory.AnonymousFunctionArgumentDuplicates(varNode, defenition);
-            }
-        }
-
+        
         private FunArgumentExpressionNode ConvertToArgumentNodeOrThrow(LexNode node)
         {
             if (node.Type == LexNodeType.Var)
@@ -130,16 +116,15 @@ namespace NFun.Interpritation
         private IExpressionNode GetOrAddVariableNode(LexNode varName)
         {
             var lower = varName.Value;
-            var funVars = _functions.Get(lower);
-            
-            if (funVars.Count > 1)
-                throw ErrorFactory.AmbiguousCallOfFunction(funVars, varName);
-            
-            if(funVars.Count==1)
-                return new FunVariableExpressionNode(funVars[0], varName.Interval);
-
+            if (_variables.GetSource(lower) == null)
+            {
+                var funVars = _functions.Get(lower);
+                if (funVars.Count > 1)
+                    throw ErrorFactory.AmbiguousCallOfFunction(funVars, varName);
+                if (funVars.Count == 1)
+                    return new FunVariableExpressionNode(funVars[0], varName.Interval);
+            }
             return _variables.CreateVarNode(varName);
-            
         }
         
         private IExpressionNode GetProcedureArrayNode(LexNode node)
@@ -238,6 +223,5 @@ namespace NFun.Interpritation
                 throw ErrorFactory.FunctionNotFound(node, children, _functions);
             return function.CreateWithConvertionOrThrow(children, node.Interval);
         }
-
     }
 }
