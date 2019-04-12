@@ -69,23 +69,6 @@ namespace Funny.Tests
             runtime.Calculate().AssertReturns(Var.New("out", expected));
         }
         
-        [TestCase("y = ''", "")]
-        [TestCase("y = 'hi'", "hi")]
-        [TestCase("y = 'World'", "World")]
-        [TestCase("y = 'hi'+5", "hi5")]
-        [TestCase("y = ''+10", "10")]
-        [TestCase("y = ''+true", "True")]
-        [TestCase("y = 'hi'+5+true", "hi5True")]
-        [TestCase("y = 'hi'+' '+'world'", "hi world")]
-        [TestCase("y = 'arr: '+ [1,2,3]", "arr: [1,2,3]")]
-        [TestCase("y = 'arr: '+ [[1,2],[3]]", "arr: [[1,2],[3]]")]
-        public void TextConstantEquation(string expr, string expected)
-        {
-            var runtime = FunBuilder.BuildDefault(expr);
-            var res = runtime.Calculate();
-            Assert.AreEqual(1, res.Results.Length);
-            Assert.AreEqual(expected, res.Results.First().Value);
-        }
         
         [TestCase("y = true", true)]
         [TestCase("y = false", false)]
@@ -203,7 +186,6 @@ namespace Funny.Tests
         [TestCase("y = =a")]
         [TestCase("y = x+2+ 3 + 4 +")]
         [TestCase("y = \"")]
-        [TestCase("y = '")]
         [TestCase("y = (")]
         [TestCase("y = -")]
         [TestCase("y = ~")]
@@ -216,9 +198,7 @@ namespace Funny.Tests
         [TestCase("y = 0x2.3")]
         [TestCase("y = 0x99GG")]
         [TestCase("y = 0bFF")]
-        [TestCase("y='hell")]
-        [TestCase("y=hell'")]
-        [TestCase("y='")]
+      
         [TestCase("y=0.")]
         [TestCase("y=0.*1")]
         [TestCase("1 2")]
