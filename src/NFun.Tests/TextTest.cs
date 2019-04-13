@@ -17,7 +17,6 @@ namespace Funny.Tests
         [TestCase("y = 'hi'+' '+'world'", "hi world")]
         [TestCase("y = 'arr: '+ [1,2,3]", "arr: [1,2,3]")]
         [TestCase("y = 'arr: '+ [[1,2],[3]]", "arr: [[1,2],[3]]")]
-        
         public void TextConstantEquation(string expr, string expected)
         {
             FunBuilder
