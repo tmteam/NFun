@@ -4,6 +4,7 @@ using NFun.ParseErrors;
 
 namespace NFun.Tokenization
 {
+    
     public static class QuotationReader
     {
         
@@ -12,9 +13,9 @@ namespace NFun.Tokenization
             var quoteSymbol = rawString[position];
             if(quoteSymbol!= '\'' && quoteSymbol!= '\"')
                 throw new InvalidOperationException("Current symbol is not \"open-quote\" symbol");
-            if(position==rawString.Length-1)
-                throw new FunParseException(555, $"Single '{quoteSymbol}' at end of string.", 
-                    position, position+1);
+            if (position == rawString.Length - 1)
+                throw ErrorFactory.QuoteAtEndOfString(quoteSymbol, position, position + 1);
+                
             
             StringBuilder sb = new StringBuilder();
             int lastNonEscaped = position+1;
@@ -38,8 +39,9 @@ namespace NFun.Tokenization
                 }
 
                 if (i == rawString.Length - 1)
-                    throw new FunParseException(556, $"Single '\\' at end of string.", i, i+1);
-
+                    throw ErrorFactory.BackSlashAtEndOfString(i, i + 1);
+                
+                
                 var next = rawString[i + 1];
                 char symbol;
                 switch (next)
@@ -52,18 +54,17 @@ namespace NFun.Tokenization
                     case 't': symbol = '\t'; break;
                     case 'f': symbol = '\f'; break;
                     case 'v': symbol = '\v'; break;
-                    default: 
-                        throw new FunParseException(557, $"Unknown escape sequence \\{next}", 
-                            i, i+2);
+                    default:
+                        throw ErrorFactory.UnknownEscapeSequence(next.ToString(), i, i 
                 }
                 sb.Append(symbol);
                 i++;
                 lastNonEscaped = i+1;
             }
-            if(closeQuotationPosition==0)
-                throw new FunParseException(558, $"Closing {quoteSymbol} is missed at end of string" , 
-                    position+1, i);
 
+            if (closeQuotationPosition == 0)
+                throw ErrorFactory.ClosingQuoteIsMissed(quoteSymbol, position + 1, i);
+            
             if (lastNonEscaped == position+1)
                 return (rawString.Substring(position + 1, i - position-1), i + 1);
             

@@ -33,7 +33,7 @@ namespace Funny.Tests
         [TestCase("y='\\f'","\f")]
         [TestCase("y='\\\"'","\"")]
         [TestCase("y='\\\\'","\\")]
-        [TestCase("y='e\\'","e'")]
+        [TestCase("y='e\\''","e'")]
         [TestCase("y='#\\r'","#\r")]
         [TestCase("y=' \\r\r'"," \r\r")]
         [TestCase("y='\\r\r'","\r\r")]
@@ -46,7 +46,7 @@ namespace Funny.Tests
         [TestCase("y=' \\r'"," \r")]
         [TestCase("y='\t \\n'","\t \n")]
         [TestCase("y='q\\tg'","q\tg")]
-        [TestCase("y='e\\\\mm\''","e\\mm'")]
+        [TestCase("y='e\\\\mm\\''","e\\mm'")]
         [TestCase("y=' \\r\r'"," \r\r")]
         [TestCase("y='\t \\n\n'","\t \n\n")]
         public void EscapedTest(string expr,string expected)

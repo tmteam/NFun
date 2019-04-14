@@ -61,11 +61,26 @@ namespace Funny.Tests
         [TestCase("foo(x) = x +1\r y=","foo*3","")]
         [TestCase("\r y=","foo*3"," \r foo(x) = x +1")]
         [TestCase("foo(x) = x +1\r ","foo*3"," ")]
+        
         public void ErrorPosition(string beforeError, string errorBody, string afterError)
         {
             AssertErrorPosition(beforeError, errorBody, afterError);
         }
-
+        [TestCase("y='", "something \\' some postfix", "")]
+        [TestCase("y='something", "\\ ", "else' some postfix")]
+        [TestCase("y='something", "\\e", "lse' some postfix")]
+        [TestCase("y='something \\\\", "\\e", "lse' some postfix")]
+        [TestCase("y='", "\\e", "lse' some postfix")]
+        [TestCase("y='", "\\' some postfix", "")]
+        [TestCase("y='", "\\G", "' some postfix")]
+        [TestCase("y='", "\\(", "' some postfix")]
+        [TestCase("y='\\\\", "\\(", "hi' some postfix")]
+        [TestCase("y='some text ","\\", "")]
+        [TestCase("y=","'","")]
+        public void Quotation_ErrorPosition(string beforeError, string errorBody, string afterError)
+        {
+            AssertErrorPosition(beforeError, errorBody, afterError);
+        }
         [TestCase("y = add(x, ","y","")]
         [TestCase("y = add(x, y",",","")]
         [TestCase("y = add(x",", ,","y)")]

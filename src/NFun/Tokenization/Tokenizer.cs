@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using NFun.ParseErrors;
 using NFun.Runtime;
 
 namespace NFun.Tokenization
@@ -178,15 +179,18 @@ namespace NFun.Tokenization
 
         private bool IsQuote(char val) => val == '\''|| val == '\"'; 
 
+        /// <exception cref="FunParseException"></exception>
         private Tok ReadText(string str, int position)
         {
-            for (var i = position+1; i < str.Length; i++)
+            var(result, endPosition) = QuotationReader.ReadQuatation(str, position);
+            return Tok.New(TokType.Text, result,position, endPosition);
+            /*for (var i = position+1; i < str.Length; i++)
             {
                 if(IsQuote(str[i]))
                     return Tok.New(TokType.Text, 
                         str.Substring(position+1, i - position-1),position, i+1);
             }
-            return Tok.New(TokType.NotAToken, position, str.Length);
+            return Tok.New(TokType.NotAToken, position, str.Length);*/
         }
         
         private Tok ReadNumber(string str, int position)
