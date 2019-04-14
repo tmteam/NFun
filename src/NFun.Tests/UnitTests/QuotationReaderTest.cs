@@ -1,8 +1,11 @@
+using System;
+using NFun.ParseErrors;
 using NFun.Tokenization;
 using NUnit.Framework;
 
 namespace Funny.Tests.UnitTests
 {
+    [TestOf(typeof(QuotationReader))]
     public class QuotationReaderTest
     {
         [TestCase("  \\\\","  \\")]
@@ -29,33 +32,51 @@ namespace Funny.Tests.UnitTests
         [TestCase(" \\r"," \r")]
         [TestCase("\t \\n","\t \n")]
         [TestCase("q\\tg","q\tg")]
-        [TestCase("e\\\\mm\'","e\\mm'")]
+        [TestCase("e\\\\mm\\'","e\\mm'")]
         [TestCase(" \\r\r"," \r\r")]
         [TestCase("\t \\n\n","\t \n\n")]
         public void TextIsCorrect_EscapedReplacedWell(string origin, string expected)
         {
-            var (parsed, error) =  QuotationReader.TryReplaceEscaped(origin);
-            Assert.AreEqual(Interval.Empty, error);
-            Assert.AreEqual(expected, parsed);
+            AssertStringParsed("", "", origin, expected);
+            AssertStringParsed("some prefix", "", origin, expected);
+            AssertStringParsed("", "some postfix", origin, expected);
+            AssertStringParsed("prefix", "postfix", origin, expected);
         }
-        [TestCase("something","\\","")]
-        [TestCase("something","\\","")]
-        [TestCase("something","\\ ","else")]
-        [TestCase("something","\\e","lse")]
-        [TestCase("something \\\\","\\e","lse")]
-        [TestCase("","\\e","lse")]
-        [TestCase("","\\","")]
-        [TestCase("","\\","")]
-        [TestCase("","\\G","")]
-        [TestCase("","\\(","")]
-        [TestCase("\\\\","\\(","hi")]
+        
+        private void AssertStringParsed(string prefix, string postfix, string quoted, string expected)
+        {
+            var str = $"'{quoted}'";
+            var (parsed, end) =  QuotationReader.ReadQuatation(
+                prefix+str+postfix, prefix.Length);
+            
+            Assert.AreEqual(expected, parsed);
+            Assert.AreEqual(str.Length+ prefix.Length, end);
+        }
 
+        [TestCase("'", "something \\' some postfix", "")]
+        [TestCase("'something", "\\ ", "else' some postfix")]
+        [TestCase("'something", "\\e", "lse' some postfix")]
+        [TestCase("'something \\\\", "\\e", "lse' some postfix")]
+        [TestCase("'", "\\e", "lse' some postfix")]
+        [TestCase("'", "\\' some postfix", "")]
+        [TestCase("'", "\\G", "' some postfix")]
+        [TestCase("'", "\\(", "' some postfix")]
+        [TestCase("'\\\\", "\\(", "hi' some postfix")]
+        [TestCase("'some text ","\\", "")]
+        [TestCase("","'","")]
         public void TextIsNotCorrect_ErrorIntervalAsExpected(string before, string error, string after)
         {
-            var (parsed, ierror) =  QuotationReader.TryReplaceEscaped(before+error+after);
-            Assert.AreEqual(new Interval(before.Length,before.Length+error.Length),
-                ierror);
-            Assert.IsNull(parsed);
+            var prefix = "some prefix ";
+            var str = prefix + before + error + after;
+            var ex = Assert.Throws<FunParseException>(() =>
+                QuotationReader.ReadQuatation(str, prefix.Length));
+            Console.WriteLine("Origin string to parse: "+ str);
+            Console.WriteLine("Parse error: [FU"+ ex.Code+"] "+ex.Message);
+            var foundError = ex.Interval.SubString(str);
+            Console.WriteLine($"Catched error string: \"{foundError}\"");
+            Assert.AreEqual(error, foundError);
         }
+
+       
     }
 }

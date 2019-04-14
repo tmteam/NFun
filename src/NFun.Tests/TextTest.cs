@@ -24,36 +24,45 @@ namespace Funny.Tests
                 .Calculate()
                 .AssertReturns(Var.New("y", expected));
         }
-        [TestCase("'\\t'","\t")]
-        [TestCase("'\\\"'","\"")]
-        [TestCase("'\\''","'")]
-        [TestCase("'\\r'","\r")]
-        [TestCase("'\\n'","\n")]
-        [TestCase("'\\\\'","\\")]
-        [TestCase("'q\\t'","q\t")]
-        [TestCase("'w\\\"'","w\"")]
-        [TestCase("'e\\''","e'")]
-        [TestCase("' \\r'"," \r")]
-        [TestCase("'\t \\n'","\t \n")]
-        [TestCase("'  \\\\'","  \\")]
-        [TestCase("'q\\tg'","q\tg")]
-        [TestCase("'w\\\\t'","w\t")]
-        [TestCase("'e\\mm''","emm'")]
-        [TestCase("' \\r\r'"," \r\r")]
-        [TestCase("'\t \\n\n'","\t \n\n")]
-        [TestCase("'  \\\\  '","  \\  ")]
+        [TestCase("y='  \\\\'","  \\")]
+        [TestCase("y='\\t'","\t")]
+        [TestCase("y='\\n'","\n")]
+        [TestCase("y='\\''","'")]
+        [TestCase("y='\\r'","\r")]
+        [TestCase("y='\\v'","\v")]
+        [TestCase("y='\\f'","\f")]
+        [TestCase("y='\\\"'","\"")]
+        [TestCase("y='\\\\'","\\")]
+        [TestCase("y='e\\'","e'")]
+        [TestCase("y='#\\r'","#\r")]
+        [TestCase("y=' \\r\r'"," \r\r")]
+        [TestCase("y='\\r\r'","\r\r")]
+        [TestCase("y='  \\\\  '","  \\  ")]
+        [TestCase("y='John: \\'fuck you!\\', he stops.'", "John: 'fuck you!', he stops.") ]
+        [TestCase("y='w\\t'","w\t")]
+        [TestCase("y='w\\\\\\t'","w\\\t")]
+        [TestCase("y='q\\t'","q\t")]
+        [TestCase("y='w\\\"'","w\"")]
+        [TestCase("y=' \\r'"," \r")]
+        [TestCase("y='\t \\n'","\t \n")]
+        [TestCase("y='q\\tg'","q\tg")]
+        [TestCase("y='e\\\\mm\''","e\\mm'")]
+        [TestCase("y=' \\r\r'"," \r\r")]
+        [TestCase("y='\t \\n\n'","\t \n\n")]
         public void EscapedTest(string expr,string expected)
         {
             FunBuilder
                 .BuildDefault(expr)
                 .Calculate()
-                .AssertReturns(Var.New("out", expected));
+                .AssertReturns(Var.New("y", expected));
         }
         [TestCase("y='hell")]
         [TestCase("y=hell'")]
         [TestCase("y='")]
         [TestCase("y = '")]
         [TestCase("'\\'")]
+        [TestCase("'some\\'")]
+        [TestCase("'\\GGG'")]
         [TestCase("'\\q'")]
         public void ObviousFails(string expr)
         {

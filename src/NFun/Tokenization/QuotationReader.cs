@@ -1,17 +1,34 @@
 using System;
 using System.Text;
+using NFun.ParseErrors;
 
 namespace NFun.Tokenization
 {
     public static class QuotationReader
     {
-        public static (string result, Interval error) TryReplaceEscaped(string rawString)
+        
+        public static (string result, int resultPosition) ReadQuatation(string rawString, int position)
         {
-            StringBuilder sb = new StringBuilder();
-            int lastNonEscaped = 0;
+            var quoteSymbol = rawString[position];
+            if(quoteSymbol!= '\'' && quoteSymbol!= '\"')
+                throw new InvalidOperationException("Current symbol is not \"open-quote\" symbol");
+            if(position==rawString.Length-1)
+                throw new FunParseException(555, $"Single '{quoteSymbol}' at end of string.", 
+                    position, position+1);
             
-            for (int i = 0; i < rawString.Length; i++)
+            StringBuilder sb = new StringBuilder();
+            int lastNonEscaped = position+1;
+
+            int i = lastNonEscaped;
+            int closeQuotationPosition = 0;
+            for (; i < rawString.Length; i++)
             {
+                if (rawString[i] == quoteSymbol)
+                {
+                    closeQuotationPosition = i;
+                    break;
+                }
+
                 if(rawString[i]!= '\\')
                     continue;
                 
@@ -21,56 +38,8 @@ namespace NFun.Tokenization
                 }
 
                 if (i == rawString.Length - 1)
-                    return (null, new Interval(i, i+1));
-                var next = rawString[i + 1];
-                char symbol;
-                switch (next)
-                {
-                    case '\\': symbol = '\\'; break;
-                    case 'n':  symbol = '\n'; break;
-                    case 'r':  symbol = '\r'; break;
-                    case '\'': symbol = '\''; break;
-                    case '"': symbol = '"'; break;
-                    case 't': symbol = '\t'; break;
-                    case 'f': symbol = '\f'; break;
-                    case 'v': symbol = '\v'; break;
-                         
-                    default: 
-                        return (null, new Interval(i, i+2));
-                }
-                sb.Append(symbol);
-                i++;
-                lastNonEscaped = i+1;
-            }
-            if (lastNonEscaped == 0)
-                return (rawString, Interval.Empty);
-            
-            if (lastNonEscaped <= rawString.Length-1)
-            {
-                var prev = rawString.Substring(lastNonEscaped);
-                sb.Append(prev);
-            }
-            return (sb.ToString(), Interval.Empty);
-        }
-        
-        
-        public static string ReplaceEscaped(string rawString)
-        {
-            StringBuilder sb = new StringBuilder();
-            int lastNonEscaped = 0;
-            
-            for (int i = 0; i < rawString.Length; i++)
-            {
-                if(rawString[i]!= '\\')
-                    continue;
-                
-                if (lastNonEscaped != i) {
-                    var prev = rawString.Substring(lastNonEscaped, i - lastNonEscaped);
-                    sb.Append(prev);
-                }
+                    throw new FunParseException(556, $"Single '\\' at end of string.", i, i+1);
 
-                if(i == rawString.Length-1)
-                    throw  new ArgumentException("unone escaped sequence");
                 var next = rawString[i + 1];
                 char symbol;
                 switch (next)
@@ -83,22 +52,27 @@ namespace NFun.Tokenization
                     case 't': symbol = '\t'; break;
                     case 'f': symbol = '\f'; break;
                     case 'v': symbol = '\v'; break;
-                         
-                    default: throw  new ArgumentException("not supported escaped sequence");
+                    default: 
+                        throw new FunParseException(557, $"Unknown escape sequence \\{next}", 
+                            i, i+2);
                 }
                 sb.Append(symbol);
                 i++;
                 lastNonEscaped = i+1;
             }
-            if (lastNonEscaped == 0)
-                return rawString;
+            if(closeQuotationPosition==0)
+                throw new FunParseException(558, $"Closing {quoteSymbol} is missed at end of string" , 
+                    position+1, i);
+
+            if (lastNonEscaped == position+1)
+                return (rawString.Substring(position + 1, i - position-1), i + 1);
             
             if (lastNonEscaped <= rawString.Length-1)
             {
-                var prev = rawString.Substring(lastNonEscaped);
+                var prev = rawString.Substring(lastNonEscaped,i - lastNonEscaped);
                 sb.Append(prev);
             }
-            return sb.ToString();
+            return (sb.ToString(), i+1);
         }
     }
 }
