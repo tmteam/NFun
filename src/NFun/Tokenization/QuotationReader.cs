@@ -4,10 +4,8 @@ using NFun.ParseErrors;
 
 namespace NFun.Tokenization
 {
-    
     public static class QuotationReader
     {
-        
         public static (string result, int resultPosition) ReadQuatation(string rawString, int position)
         {
             var quoteSymbol = rawString[position];
@@ -39,7 +37,7 @@ namespace NFun.Tokenization
                 }
 
                 if (i == rawString.Length - 1)
-                    throw ErrorFactory.BackSlashAtEndOfString(i, i + 1);
+                    throw ErrorFactory.BackslashAtEndOfString(i, i + 1);
                 
                 
                 var next = rawString[i + 1];
@@ -55,7 +53,7 @@ namespace NFun.Tokenization
                     case 'f': symbol = '\f'; break;
                     case 'v': symbol = '\v'; break;
                     default:
-                        throw ErrorFactory.UnknownEscapeSequence(next.ToString(), i, i 
+                        throw ErrorFactory.UnknownEscapeSequence(next.ToString(), i, i+2); 
                 }
                 sb.Append(symbol);
                 i++;

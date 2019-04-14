@@ -21,7 +21,7 @@ namespace NFun.ParseErrors
             new FunParseException(130, $"Single '{quoteSymbol}' at end of string.", 
                 start, end);
 
-        public static Exception BackSlashAtEndOfString(int start, int end) 
+        public static Exception BackslashAtEndOfString(int start, int end) 
             => new FunParseException(133, $"Single '\\' at end of string.", start, end);
 
         public static Exception UnknownEscapeSequence(string sequence, int start, int end) =>
