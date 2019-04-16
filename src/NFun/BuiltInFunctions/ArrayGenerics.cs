@@ -189,6 +189,20 @@ namespace NFun.BuiltInFunctions
             return res; 
         }
     }
+    public class FlatGenericFunctionDefenition : GenericFunctionBase
+    {
+        public FlatGenericFunctionDefenition() : base("flat", 
+            VarType.ArrayOf(VarType.Generic(0)),
+            VarType.ArrayOf(VarType.ArrayOf(VarType.Generic(0))))
+        {
+        }
+
+        public override object Calc(object[] args)
+        {
+            var arr = (FunArray)args[0];
+            return FunArray.By(arr.SelectMany(o => (FunArray) o));
+        }
+    }
     public class ReduceGenericFunctionDefenition : GenericFunctionBase
     {
         public ReduceGenericFunctionDefenition() : base("reduce", 

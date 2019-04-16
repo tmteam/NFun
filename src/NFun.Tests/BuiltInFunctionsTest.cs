@@ -111,7 +111,6 @@ namespace Funny.Tests
         [TestCase("range(0,5)",new []{0,1,2,3,4,5})]
         [TestCase("range(7,10)",new []{7,8,9,10})]
         [TestCase("range(1,10,2)",new []{1,3,5,7,9})]
-       
         public void ConstantEquationWithPredefinedFunction(string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
@@ -212,6 +211,13 @@ namespace Funny.Tests
         [TestCase("y = find([[1,2],[3,4],[5,6]], [3,5])", -1)]
         [TestCase("y = find(['la','LALA','pipi'], 'pipi')", 2)]
         [TestCase("y = find(['la','LALA','pipi'], 'pIpi')", -1)]
+        
+        [TestCase("y = [[1],[2,3],[4,5,6]].flat()", new []{1,2,3,4,5,6})]
+        [TestCase("y = [[1]][1:1].flat()", new int[0])]
+        [TestCase("y = [[1][1:1]].flat()", new int[0])]
+        [TestCase("y = flat([['1'],['2','3'],['4','5','6']])", new []{"1","2","3","4","5","6"})]
+        [TestCase("y = flat([['1']][1:1])", new string[0])]
+        [TestCase("y = flat([['1'][1:1]])", new string[0])]
 
         public void ConstantEquationWithGenericPredefinedFunction(string expr, object expected)
         {

@@ -67,6 +67,7 @@ namespace NFun
             new SkipGenericFunctionDefenition(),
             new RepeatGenericFunctionDefenition(),
             new FilterGenericFunctionDefenition(),
+            new FlatGenericFunctionDefenition(),
             new MapGenericFunctionDefenition(),
             new AllGenericFunctionDefenition(), 
             new AnyGenericFunctionDefenition(), 
