@@ -1,4 +1,5 @@
 using System;
+using System.Net.WebSockets;
 using NFun;
 using NFun.ParseErrors;
 using NFun.Runtime;
@@ -125,7 +126,7 @@ namespace Funny.Tests
         //[TestCase("y = [0.0,7.0,1.0,2.0,3.0] . fold(sum)", 7.0)]
 
         [TestCase("mysum(x:int, y:int):int = x+y \r" +
-                  "y = [0,7,1,2,3] . fold(mysum)", 13)]
+                  "y = [0,7,1,2,3].reduce(mysum)", 13)]
         [TestCase( @"rr(x:real):bool = x>10
                      y = filter([11.0,20.0,1.0,2.0],rr)",new[]{11.0,20.0})]
         [TestCase( @"ii(x:int):bool = x>10
@@ -136,6 +137,18 @@ namespace Funny.Tests
                      y = map([1,2,3],ii)",new[]{0.5,1.0,1.5})]
         [TestCase( @"isodd(x:int):bool = (x%2) == 0
                      y = map([1,2,3],isodd)",new[]{false, true,false})]
+        [TestCase( @"toS(t:text, x:int):text = t+x
+                     y = reduce([1,2,3], ':', toS)",":123")]
+        [TestCase( @"toS(t:text, x:int):text = t+x
+                     y = reduce([1], '', toS)","1")]
+        [TestCase( @"toS(t:text, x:int):text = t+x
+                     y = reduce([1][1:1], '', toS)","")]
+        [TestCase( @"toR(r:real, x:int):real = r+x
+                     y = reduce([1,2,3], 0.5, toR)",6.5)]
+        [TestCase( @"iSum(r:int, x:int):int = r+x
+                     y = reduce([1,2,3], iSum)",6)]
+        [TestCase( @"iSum(r:int, x:int):int = r+x
+                     y = reduce([100], iSum)",100)]
         public void HiOrderFunConstantEquatation(string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
@@ -240,6 +253,14 @@ namespace Funny.Tests
         public void ObviouslyFails(string expr) =>
             Assert.Throws<FunParseException>(
                 ()=> FunBuilder.BuildDefault(expr));
-        
+
+        [TestCase(@"iSum(r:int, x:int):int = r+x
+                     y = reduce([100][1:1], iSum)")]
+        public void FailsOnRuntime(string expr)
+        {
+            var runtime = FunBuilder.BuildDefault(expr);
+            Assert.Throws<FunRuntimeException>(
+                () => runtime.Calculate());
+        }
     }
 }

@@ -52,13 +52,14 @@ namespace NFun
             new UniteGenericFunctionDefenition(), 
             new IntersectGenericFunctionDefenition(), 
             new SubstractArraysGenericFunctionDefenition(), 
-
+            
             new ConcatArraysGenericFunctionDefenition(), 
             new SetGenericFunctionDefenition(),
             new GetGenericFunctionDefenition(),
             new SliceGenericFunctionDefenition(), 
             new SliceWithStepGenericFunctionDefenition(), 
-            new FoldGenericFunctionDefenition(),
+            new ReduceWithDefaultsGenericFunctionDefenition(),
+            new ReduceGenericFunctionDefenition(),
             new TakeGenericFunctionDefenition(),
             new SkipGenericFunctionDefenition(),
             new ConcatGenericFunctionDefenition(),

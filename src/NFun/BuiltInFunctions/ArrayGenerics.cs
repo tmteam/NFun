@@ -164,9 +164,9 @@ namespace NFun.BuiltInFunctions
             return res; 
         }
     }
-    public class FoldGenericFunctionDefenition : GenericFunctionBase
+    public class ReduceGenericFunctionDefenition : GenericFunctionBase
     {
-        public FoldGenericFunctionDefenition() : base("fold", 
+        public ReduceGenericFunctionDefenition() : base("reduce", 
             VarType.Generic(0),
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.Fun(VarType.Generic(0), VarType.Generic(0), VarType.Generic(0)))
@@ -176,9 +176,32 @@ namespace NFun.BuiltInFunctions
         public override object Calc(object[] args)
         {
             var arr = (FunArray)args[0];
+            if(arr.Count==0)
+                throw new FunRuntimeException("Input array is empty");
+            
             var fold = args[1] as FunctionBase;
             
             var res = arr.Aggregate((a,b)=>fold.Calc(new []{a,b}));
+            return res; 
+        }
+    }
+    public class ReduceWithDefaultsGenericFunctionDefenition : GenericFunctionBase
+    {
+        public ReduceWithDefaultsGenericFunctionDefenition() : base("reduce", 
+            VarType.Generic(1),
+            VarType.ArrayOf(VarType.Generic(0)),
+            VarType.Generic(1),
+            VarType.Fun(VarType.Generic(1), VarType.Generic(1), VarType.Generic(0)))
+        {
+        }
+
+        public override object Calc(object[] args)
+        {
+            var arr = (FunArray)args[0];
+            var defaultValue = args[1];
+            var fold = args[2] as FunctionBase;
+            
+            var res = arr.Aggregate(defaultValue, (a,b)=>fold.Calc(new []{a,b}));
             return res; 
         }
     }
