@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using NFun.Interpritation.Functions;
 using NFun.Runtime;
@@ -187,6 +188,29 @@ namespace NFun.BuiltInFunctions
             
             var res = FunArray.By(Enumerable.Repeat(arr,factor).SelectMany(a=>a));
             return res; 
+        }
+    }
+    public class ChunkGenericFunctionDefenition : GenericFunctionBase
+    {
+        public ChunkGenericFunctionDefenition() : base("chunk", 
+            VarType.ArrayOf(VarType.ArrayOf(VarType.Generic(0))),
+            VarType.ArrayOf(VarType.Generic(0)),
+            VarType.Int)
+        {
+        }
+
+        public override object Calc(object[] args)
+        {
+            var arr = (FunArray)args[0];
+            var chunkSize = (int) args[1];
+            if(chunkSize<=0)
+                throw new FunRuntimeException("Chunk size is "+chunkSize+". It has to be positive");
+
+            var res = arr
+                .Select((x, i) => new {Index = i, Value = x})
+                .GroupBy(x => x.Index / chunkSize)
+                .Select(x => FunArray.By(x.Select(v => v.Value)));
+            return FunArray.By(res);
         }
     }
     public class FlatGenericFunctionDefenition : GenericFunctionBase

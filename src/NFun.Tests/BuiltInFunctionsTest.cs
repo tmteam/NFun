@@ -111,13 +111,15 @@ namespace Funny.Tests
         [TestCase("range(0,5)",new []{0,1,2,3,4,5})]
         [TestCase("range(7,10)",new []{7,8,9,10})]
         [TestCase("range(1,10,2)",new []{1,3,5,7,9})]
+        
+    
         public void ConstantEquationWithPredefinedFunction(string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate()
                 .AssertReturns(0.00001, Var.New("out", expected));
         }
-       
+    
         
         //todo hi fun overloads selector
         //[TestCase("y = [0,7,1,2,3] . fold(max)", 7)]
@@ -219,6 +221,18 @@ namespace Funny.Tests
         [TestCase("y = flat([['1']][1:1])", new string[0])]
         [TestCase("y = flat([['1'][1:1]])", new string[0])]
 
+        [TestCase("y = [0..100].chunk(10)[0] == [0..9]",true)]
+        [TestCase("y = [0..100].chunk(10)[1] == [10..19]",true)]
+        [TestCase("y = [0..100].chunk(10)[9] == [90..99]",true)]
+        [TestCase("y = [0..100].chunk(10)[10] == [100]",true)]
+        [TestCase("y = [0..100].chunk(10)[0] == [0..2]",false)]
+        [TestCase("y = [0..100].chunk(10).flat() == [0..100]",true)]
+        [TestCase("y = [0..100].chunk(7).flat() == [0..100]",true)]
+        [TestCase("y = [0..100].chunk(1).flat() == [0..100]",true)]
+        [TestCase("y = [0..1].chunk(7).flat() == [0,1]",true)]
+        [TestCase("y = [0..1].chunk(7) == [[0,1]]",true)]
+        [TestCase("y = [0..6].chunk(2) == [[0,1],[2,3],[4,5],[6]]",true)]
+        [TestCase("y = [3..7].chunk(1) == [[3],[4],[5],[6],[7]]",true)]
         public void ConstantEquationWithGenericPredefinedFunction(string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
