@@ -46,7 +46,7 @@ namespace Funny.Tests.UnitTests
         private void AssertStringParsed(string prefix, string postfix, string quoted, string expected)
         {
             var str = $"'{quoted}'";
-            var (parsed, end) =  QuotationReader.ReadQuatation(
+            var (parsed, end) =  QuotationReader.ReadQuotation(
                 prefix+str+postfix, prefix.Length);
             
             Assert.AreEqual(expected, parsed);
@@ -69,7 +69,7 @@ namespace Funny.Tests.UnitTests
             var prefix = "some prefix ";
             var str = prefix + before + error + after;
             var ex = Assert.Throws<FunParseException>(() =>
-                QuotationReader.ReadQuatation(str, prefix.Length));
+                QuotationReader.ReadQuotation(str, prefix.Length));
             Console.WriteLine("Origin string to parse: "+ str);
             Console.WriteLine("Parse error: [FU"+ ex.Code+"] "+ex.Message);
             var foundError = ex.Interval.SubString(str);

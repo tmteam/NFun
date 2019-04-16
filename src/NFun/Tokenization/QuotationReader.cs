@@ -6,14 +6,13 @@ namespace NFun.Tokenization
 {
     public static class QuotationReader
     {
-        public static (string result, int resultPosition) ReadQuatation(string rawString, int position)
+        public static (string result, int resultPosition) ReadQuotation(string rawString, int position)
         {
             var quoteSymbol = rawString[position];
             if(quoteSymbol!= '\'' && quoteSymbol!= '\"')
                 throw new InvalidOperationException("Current symbol is not \"open-quote\" symbol");
             if (position == rawString.Length - 1)
                 throw ErrorFactory.QuoteAtEndOfString(quoteSymbol, position, position + 1);
-                
             
             StringBuilder sb = new StringBuilder();
             int lastNonEscaped = position+1;
@@ -38,7 +37,6 @@ namespace NFun.Tokenization
 
                 if (i == rawString.Length - 1)
                     throw ErrorFactory.BackslashAtEndOfString(i, i + 1);
-                
                 
                 var next = rawString[i + 1];
                 char symbol;

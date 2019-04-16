@@ -182,7 +182,7 @@ namespace NFun.Tokenization
         /// <exception cref="FunParseException"></exception>
         private Tok ReadText(string str, int position)
         {
-            var(result, endPosition) = QuotationReader.ReadQuatation(str, position);
+            var(result, endPosition) = QuotationReader.ReadQuotation(str, position);
             return Tok.New(TokType.Text, result,position, endPosition);
             /*for (var i = position+1; i < str.Length; i++)
             {
