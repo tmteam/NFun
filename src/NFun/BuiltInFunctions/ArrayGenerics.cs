@@ -96,6 +96,7 @@ namespace NFun.BuiltInFunctions
             return arr.Slice(start, end, null);
         }
     }
+    
     public class GetGenericFunctionDefenition : GenericFunctionBase
     {
         public GetGenericFunctionDefenition() : base(CoreFunNames.GetElementName, 
@@ -144,6 +145,30 @@ namespace NFun.BuiltInFunctions
             var newArr = arr.ToArray();
             newArr[index] = val;
             return new FunArray(newArr);
+        }
+    }
+
+    public class FindGenericFunctionDefenition : GenericFunctionBase
+    {
+        public FindGenericFunctionDefenition() : base("find", 
+            VarType.Int,
+            VarType.ArrayOf(VarType.Generic(0)),
+            VarType.Generic(0))
+        {
+        }
+
+        public override object Calc(object[] args)
+        {
+            var arr = (FunArray)args[0];
+            var factor = args[1] ;
+            int i = 0;
+            foreach (var element in arr)
+            {
+                if (element.Equals(factor))
+                    return i;
+                i++;
+            }
+            return -1;
         }
     }
     public class ReiterateGenericFunctionDefenition : GenericFunctionBase
@@ -255,7 +280,7 @@ namespace NFun.BuiltInFunctions
     }
     public class ConcatArraysGenericFunctionDefenition : GenericFunctionBase
     {
-        public ConcatArraysGenericFunctionDefenition() : base(CoreFunNames.ArrConcat, 
+        public ConcatArraysGenericFunctionDefenition(string name) : base(name, 
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)))
@@ -270,7 +295,7 @@ namespace NFun.BuiltInFunctions
             return res;
         }
     }
-    
+   
     public class SubstractArraysGenericFunctionDefenition : GenericFunctionBase
     {
         public SubstractArraysGenericFunctionDefenition() : base("except", 
@@ -372,23 +397,7 @@ namespace NFun.BuiltInFunctions
             return FunArray.By(Enumerable.Repeat(first, (int) args[1]));
         }
     }
-    public class ConcatGenericFunctionDefenition: GenericFunctionBase
-    {
-        public ConcatGenericFunctionDefenition() : base("concat", 
-            VarType.ArrayOf(VarType.Generic(0)), 
-            VarType.ArrayOf(VarType.Generic(0)), 
-            VarType.ArrayOf(VarType.Generic(0)))
-        {
-        }
-
-        public override object Calc(object[] args)
-        {
-            var arrLeft  = (FunArray) args[0];
-            var arrRight = (FunArray) args[1];
-
-            return FunArray.By(arrLeft.Concat(arrRight));
-        }
-    }
+    
     public class ReverseGenericFunctionDefenition: GenericFunctionBase
     {
         public ReverseGenericFunctionDefenition() : base("reverse", 
