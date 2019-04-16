@@ -113,18 +113,21 @@ namespace NFun.Interpritation
             throw ErrorFactory.InvalidArgTypeDefenition(node);
         }
         
-        private IExpressionNode GetOrAddVariableNode(LexNode varName)
+        private IExpressionNode GetOrAddVariableNode(LexNode varNode)
         {
-            var lower = varName.Value;
+            var lower = varNode.Value;
             if (_variables.GetSource(lower) == null)
             {
                 var funVars = _functions.Get(lower);
                 if (funVars.Count > 1)
-                    throw ErrorFactory.AmbiguousFunctionChoise(funVars, varName);
+                    throw ErrorFactory.AmbiguousFunctionChoise(funVars, varNode);
                 if (funVars.Count == 1)
-                    return new FunVariableExpressionNode(funVars[0], varName.Interval);
+                    return new FunVariableExpressionNode(funVars[0], varNode.Interval);
             }
-            return _variables.CreateVarNode(varName);
+            var node = _variables.CreateVarNode(varNode);
+            if(node.Source.Name!= varNode.Value)
+                throw ErrorFactory.InputNameWithDifferentCase(varNode.Value, varNode);
+            return node;
         }
         
         private IExpressionNode GetProcedureArrayNode(LexNode node)
@@ -207,7 +210,7 @@ namespace NFun.Interpritation
 
         private IExpressionNode GetFunNode(LexNode node)
         {
-            var id = node.Value.ToLower();
+            var id = node.Value;//.ToLower();
             
             var children= new List<IExpressionNode>();
             var childrenTypes = new List<VarType>();

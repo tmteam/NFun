@@ -25,10 +25,11 @@ namespace NFun.LexAnalyze
             var vars = new Dictionary<string, VarAnalysis>();
             foreach (var lexEquation in lexEquations)
             {
-                if (vars.ContainsKey(lexEquation.Id))
-                   throw ErrorFactory.InputNameDuplicates(lexEquation.Id, lexEquation.Expression);
+                var lower = lexEquation.Id.ToLower();
+                if (vars.ContainsKey(lower))
+                   throw ErrorFactory.OutputNameDuplicates(lexEquation.Id, lexEquation.Expression);
                 
-                vars.Add( lexEquation.Id, new VarAnalysis(lexEquation.Id, true));
+                vars.Add( lower, new VarAnalysis(lexEquation.Id, true));
             }
             for (var i = 0; i < lexEquations.Length; i++)
             {
@@ -37,10 +38,19 @@ namespace NFun.LexAnalyze
                 var varNodes = Dfs(treeEquation.Expression, node => node.Is(LexNodeType.Var));
                 foreach (var variableNode in  varNodes)
                 {
-                    if(!vars.ContainsKey(variableNode.Value))
-                        vars.Add(variableNode.Value, new VarAnalysis(variableNode.Value));
-
-                    vars[variableNode.Value].UsedInOutputs.Add(i);
+                    var lower = variableNode.Value.ToLower(); 
+                    
+                    if (vars.TryGetValue(lower, out var existed))
+                    {
+                        if(existed.Id!= variableNode.Value)
+                            throw ErrorFactory.InputNameWithDifferentCase(existed.Id, variableNode);
+                    }
+                    else
+                    {
+                        existed = new VarAnalysis(variableNode.Value);
+                        vars.Add(lower, existed);
+                    }
+                    existed.UsedInOutputs.Add(i);
                 }
             }
 

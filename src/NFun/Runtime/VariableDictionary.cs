@@ -17,38 +17,46 @@ namespace NFun.Runtime
         {
             foreach (var variableSource in sources)
             {
-                _variables.Add(variableSource.Name, new VariableUsages(variableSource));
+                _variables.Add(variableSource.Name.ToLower(), new VariableUsages(variableSource));
             }
         }
         
         public bool TryAdd(VariableSource source)
         {
-            if (_variables.ContainsKey(source.Name))
+            var lower = source.Name.ToLower();
+            if (_variables.ContainsKey(lower))
                 return false;
-            _variables.Add(source.Name, new VariableUsages(source));
+            _variables.Add(lower, new VariableUsages(source));
             return true;
         }
         
         public bool TryAdd(VariableUsages usages)
         {
-            if (_variables.ContainsKey(usages.Source.Name))
+            var lower = usages.Source.Name.ToLower();
+
+            if (_variables.ContainsKey(lower))
                 return false;
-            _variables.Add(usages.Source.Name, usages);
+            _variables.Add(lower, usages);
             return true;
         }
             
         public VariableSource GetSource(string id)
         {
-            if (_variables.TryGetValue(id, out var v))
-                return v.Source;
-            return null;
+            if (!_variables.TryGetValue(id.ToLower(), out var v)) 
+                return null;
+            
+            if (v.Source.Name != id)
+                return null;
+            
+            return v.Source;
         }
         
-        private Dictionary<string,VariableUsages> _variables = new Dictionary<string, VariableUsages>();
+        private readonly Dictionary<string,VariableUsages> _variables 
+            = new Dictionary<string, VariableUsages>();
         
-        public IExpressionNode CreateVarNode(LexNode varName)
+        public VariableExpressionNode CreateVarNode(LexNode varName)
         {
-            var name = varName.Value;
+            var name = varName.Value.ToLower();
             if (!_variables.ContainsKey(name))
             {
                 var source = new VariableSource(name, VarType.Real);

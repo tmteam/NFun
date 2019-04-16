@@ -173,7 +173,7 @@ namespace NFun.Tokenization
         private TokType? IsSpecial(char val) =>
             _symbols.ContainsKey(val) ? _symbols[val] : (TokType?)null;
         
-        private bool IsLetter(char val) =>val == '_' ||  (val >= 'a' && val <= 'z');
+        private bool IsLetter(char val) =>val == '_' ||  (val >= 'a' && val <= 'z') || (val >= 'A' && val <= 'Z');
 
         private bool IsDigit(char val) => val >= '0' && val <= '9';
 

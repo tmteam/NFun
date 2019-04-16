@@ -6,6 +6,7 @@ namespace NFun.Interpritation.Nodes
 {
     public class VariableExpressionNode: IExpressionNode
     {
+        public VariableSource Source => _source;
         private readonly VariableSource _source;
         public Interval Interval { get; }
         public VariableExpressionNode(VariableSource source, Interval interval)

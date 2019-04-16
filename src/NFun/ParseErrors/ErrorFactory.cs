@@ -239,8 +239,12 @@ namespace NFun.ParseErrors
             => new FunParseException(328, $"{id} = ??? . Equation body is missed {Nl}Example: {id} = {id}+1", 
                 start, flowCurrent.Finish);
        
-        public static Exception InputNameDuplicates(string id, LexNode lexEquationExpression)
-            => new FunParseException(331, $"{id}<-  input name duplicates ", lexEquationExpression.Interval);
+        public static Exception OutputNameDuplicates(string id, LexNode lexEquationExpression)
+            => new FunParseException(331, $"{id}<-  output name duplicates ", lexEquationExpression.Interval);
+
+        
+        public static Exception InputNameWithDifferentCase(string id, LexNode lexEquationExpression)
+            => new FunParseException(334, $"{lexEquationExpression.Value}<-  input name is same to name  {id}", lexEquationExpression.Interval);
 
         #endregion
 
@@ -406,16 +410,21 @@ namespace NFun.ParseErrors
             => throw new FunParseException(518,$"Array initializator step has to be int type only but was '{stepType}'. Example: [1..5..2]", node.Interval);
 
         public static Exception CannotParseNumber(LexNode node)
-            => throw new FunParseException(521, $"Cannot parse number '{node.Value}'", node.Interval);
+            => new FunParseException(521, $"Cannot parse number '{node.Value}'", node.Interval);
 
-        public static Exception FunctionNotFound(LexNode node, List<IExpressionNode> children, FunctionsDictionary functions)
-        => throw new FunParseException(524, $"Function {node.Value}({string.Join(", ", children.Select(c=>c.Type))}) is not defined", node.Interval);
+        public static Exception FunctionNotFound(LexNode node, List<IExpressionNode> children,
+            FunctionsDictionary functions)
+        {
+            return new FunParseException(524,
+                $"Function {node.Value}({string.Join(", ", children.Select(c => c.Type))}) is not defined",
+                node.Interval);
+        }
 
         public static Exception UnknownVariables(IEnumerable<VariableExpressionNode> values)
         {
             if (values.Count() == 1)
-                throw new FunParseException(527,$"Unknown variable \"{values.First()}\"",values.First().Interval);
-            throw new FunParseException(530,$"Unknown variables \"{string.Join(", ", values)}\"",values.First().Interval);
+                return new FunParseException(527,$"Unknown variable \"{values.First()}\"",values.First().Interval);
+            return new FunParseException(530,$"Unknown variables \"{string.Join(", ", values)}\"",values.First().Interval);
         }
 
         public static Exception FunctionAlreadyExist(LexFunction userFun) 

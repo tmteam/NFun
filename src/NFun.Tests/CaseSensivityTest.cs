@@ -19,9 +19,18 @@ namespace Funny.Tests
             runtime.Calculate().AssertReturns(Var.New("out", expected));
         }
         
+        [TestCase("y(X) = x \r y(3.0)")]
+        [TestCase("y(X,x) = x \r y(3.0,4.0)")]
+        [TestCase("y(z,x) = x+X \r y(3.0,4.0)")]
+        [TestCase("[1.0].fold((X,x)=>x)")]
         [TestCase("test = 2.0\r tESt = 3.0")]
         [TestCase("test = Sin(0.5)")]
         [TestCase("test = x * X")]
+        [TestCase("test = xin * xIn")]
+        [TestCase("x = X")]
+        [TestCase("x = X+ y")]
+        [TestCase("test = Test + tEst")]
+
         public void ObviouslyFails(string expr) =>
             Assert.Throws<FunParseException>(
                 ()=> FunBuilder.BuildDefault(expr));
