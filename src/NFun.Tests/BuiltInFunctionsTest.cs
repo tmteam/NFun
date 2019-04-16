@@ -281,6 +281,8 @@ namespace Funny.Tests
             Assert.Throws<FunParseException>(
                 ()=> FunBuilder.BuildDefault(expr));
 
+        [TestCase("y = [1..100].chunk(-1)")]
+        [TestCase("y = [1..100].chunk(0)")]
         [TestCase(@"iSum(r:int, x:int):int = r+x
                      y = reduce([100][1:1], iSum)")]
         public void FailsOnRuntime(string expr)
