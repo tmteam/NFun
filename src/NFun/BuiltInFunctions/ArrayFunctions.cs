@@ -18,9 +18,9 @@ namespace NFun.BuiltInFunctions
         }
         public override object Calc(object[] args)
         {
-            var start = (int) args[0];
-            var end = (int) args[1];
-            var step = (int) args[2];
+            var start = args.Get<int>(0);
+            var end = args.Get<int>(1);
+            var step = args.Get<int>(2);
             if(step<=0)
                 throw  new FunRuntimeException("Step has to be positive");
 
@@ -48,9 +48,9 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var start = (double) args[0];
-            var end = (double) args[1];
-            var step = (double) args[2];
+            var start = args.Get<double>(0);
+            var end = args.Get<double>(1);
+            var step = args.Get<double>(2);
             if(step<=0)
                 throw  new FunRuntimeException("Step has to be positive");
             var result = new List<double>();
@@ -75,8 +75,8 @@ namespace NFun.BuiltInFunctions
         public const string Id = "range";
         public override object Calc(object[] args)
         {
-            var start = (int) args[0];
-            var end = (int) args[1];
+            var start = args.Get<int>(0);
+            var end = args.Get<int>(1);
             var result = new List<int>();
 
             if (start < end)

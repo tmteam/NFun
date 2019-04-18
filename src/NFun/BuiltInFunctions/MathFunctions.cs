@@ -11,63 +11,63 @@ namespace NFun.BuiltInFunctions
     public class InvertFunction : FunctionBase
     {
         public InvertFunction() : base(CoreFunNames.Not, VarType.Bool,VarType.Bool){}
-        public override object Calc(object[] args) => !(bool)args[0];
+        public override object Calc(object[] args) => !args.Get<bool>(0);
     }
     public class AndFunction: FunctionBase
     {
         public AndFunction() : base(CoreFunNames.And, VarType.Bool,VarType.Bool,VarType.Bool){}
-        public override object Calc(object[] args) => (bool)args[0] && (bool)args[1];
+        public override object Calc(object[] args) => args.Get<bool>(0) && args.Get<bool>(1);
     }
     public class OrFunction: FunctionBase
     {
         public OrFunction() : base(CoreFunNames.Or, VarType.Bool,VarType.Bool,VarType.Bool){}
-        public override object Calc(object[] args) => (bool)args[0] || (bool)args[1];
+        public override object Calc(object[] args) => args.Get<bool>(0) || args.Get<bool>(1);
     }
     public class XorFunction: FunctionBase
     {
         public XorFunction() : base(CoreFunNames.Xor, VarType.Bool,VarType.Bool,VarType.Bool){}
-        public override object Calc(object[] args) =>  (bool)args[0] != (bool)args[1];
+        public override object Calc(object[] args) =>  args.Get<bool>(0) != args.Get<bool>(1);
     }
    
     public class MoreIntFunction: FunctionBase
     {
         public MoreIntFunction() : base(CoreFunNames.More, VarType.Bool,VarType.Int,VarType.Int){}
-        public override object Calc(object[] args) => (int)args[0] > (int)args[1];
+        public override object Calc(object[] args) => args.Get<int>(0) > args.Get<int>(1);
     }
     public class MoreOrEqualIntFunction: FunctionBase
     {
         public MoreOrEqualIntFunction() : base(CoreFunNames.MoreOrEqual, VarType.Bool,VarType.Int,VarType.Int){}
-        public override object Calc(object[] args) => (int)args[0] >= (int)args[1];
+        public override object Calc(object[] args) => args.Get<int>(0) >= args.Get<int>(1);
     }
     public class LessIntFunction: FunctionBase
     {
         public LessIntFunction() : base(CoreFunNames.Less, VarType.Bool,VarType.Int,VarType.Int){}
-        public override object Calc(object[] args) => (int)args[0] < (int)args[1];
+        public override object Calc(object[] args) => args.Get<int>(0) < args.Get<int>(1);
     }
     public class LessOrEqualIntFunction: FunctionBase
     {
         public LessOrEqualIntFunction() : base(CoreFunNames.LessOrEqual, VarType.Bool,VarType.Int,VarType.Int){}
-        public override object Calc(object[] args) => (int)args[0] <= (int)args[1];
+        public override object Calc(object[] args) => args.Get<int>(0) <= args.Get<int>(1);
     }
     public class MoreRealFunction: FunctionBase
     {
         public MoreRealFunction() : base(CoreFunNames.More, VarType.Bool,VarType.Real,VarType.Real){}
-        public override object Calc(object[] args) => (double)args[0] > (double)args[1];
+        public override object Calc(object[] args) => args.Get<double>(0) > args.Get<double>(1);
     }
     public class MoreOrEqualRealFunction: FunctionBase
     {
         public MoreOrEqualRealFunction() : base(CoreFunNames.MoreOrEqual, VarType.Bool,VarType.Real,VarType.Real){}
-        public override object Calc(object[] args) => (double)args[0] >= (double)args[1];
+        public override object Calc(object[] args) => args.Get<double>(0) >= args.Get<double>(1);
     }
     public class LessRealFunction: FunctionBase
     {
         public LessRealFunction() : base(CoreFunNames.Less, VarType.Bool,VarType.Real,VarType.Real){}
-        public override object Calc(object[] args) => (double)args[0] < (double)args[1];
+        public override object Calc(object[] args) => args.Get<double>(0) < args.Get<double>(1);
     }
     public class LessOrEqualRealFunction: FunctionBase
     {
         public LessOrEqualRealFunction() : base(CoreFunNames.LessOrEqual, VarType.Bool,VarType.Real,VarType.Real){}
-        public override object Calc(object[] args) => (double)args[0] <= (double)args[1];
+        public override object Calc(object[] args) => args.Get<double>(0) <= args.Get<double>(1);
     }
 
     public class EqualFunction: FunctionBase
@@ -84,13 +84,13 @@ namespace NFun.BuiltInFunctions
     public class RemainderRealFunction: FunctionBase
     {
         public RemainderRealFunction() : base(CoreFunNames.Remainder, VarType.Real,VarType.Real,VarType.Real){}
-        public override object Calc(object[] args) => (double)args[0] % (double)args[1];
+        public override object Calc(object[] args) => args.Get<double>(0) % args.Get<double>(1);
     }
     
     public class RemainderIntFunction: FunctionBase
     {
         public RemainderIntFunction() : base(CoreFunNames.Remainder, VarType.Int,VarType.Int,VarType.Int){}
-        public override object Calc(object[] args) => (int)args[0] % (int)args[1];
+        public override object Calc(object[] args) => args.Get<int>(0) % args.Get<int>(1);
     }
     
         
@@ -98,13 +98,13 @@ namespace NFun.BuiltInFunctions
     {
         public PowRealFunction() : base(CoreFunNames.Pow, VarType.Real,VarType.Real,VarType.Real){}
         public override object Calc(object[] args) 
-            => Math.Pow(Convert.ToDouble(args[0]), Convert.ToDouble(args[1]));
+            => Math.Pow(args.Get<double>(0), args.Get<double>(1));
     }
     
     public class DivideRealFunction: FunctionBase
     {
         public DivideRealFunction() : base(CoreFunNames.Divide, VarType.Real,VarType.Real,VarType.Real){}
-        public override object Calc(object[] args) => Convert.ToDouble(args[0]) / Convert.ToDouble(args[1]);
+        public override object Calc(object[] args) => args.Get<double>(0) / args.Get<double>(1);
     }
     
     
@@ -112,22 +112,22 @@ namespace NFun.BuiltInFunctions
     public class MultiplyRealFunction: FunctionBase
     {
         public MultiplyRealFunction() : base(CoreFunNames.Multiply, VarType.Real,VarType.Real,VarType.Real){}
-        public override object Calc(object[] args) => Convert.ToDouble(args[0]) * Convert.ToDouble(args[1]);
+        public override object Calc(object[] args) => args.Get<double>(0) * args.Get<double>(1);
     }
     public class MultiplyIntFunction: FunctionBase
     {
         public MultiplyIntFunction() : base(CoreFunNames.Multiply, VarType.Int,VarType.Int,VarType.Int){}
-        public override object Calc(object[] args) => (int)args[0] * (int)args[1];
+        public override object Calc(object[] args) => args.Get<int>(0) * args.Get<int>(1);
     }
     public class SubstractRealFunction: FunctionBase
     {
         public SubstractRealFunction() : base(CoreFunNames.Substract, VarType.Real,VarType.Real,VarType.Real){}
-        public override object Calc(object[] args) => Convert.ToDouble(args[0]) - Convert.ToDouble(args[1]);
+        public override object Calc(object[] args) => args.Get<double>(0) - args.Get<double>(1);
     }
     public class SubstractIntFunction: FunctionBase
     {
         public SubstractIntFunction() : base(CoreFunNames.Substract, VarType.Int,VarType.Int,VarType.Int){}
-        public override object Calc(object[] args) => (int)args[0] - (int)args[1];
+        public override object Calc(object[] args) => args.Get<int>(0) - args.Get<int>(1);
     }
    
     public class AddRealFunction: FunctionBase
@@ -136,7 +136,7 @@ namespace NFun.BuiltInFunctions
 
         public AddRealFunction() : this(CoreFunNames.Add){}
 
-        public override object Calc(object[] args) => Convert.ToDouble(args[0]) + Convert.ToDouble(args[1]);
+        public override object Calc(object[] args) => args.Get<double>(0) + args.Get<double>(1);
     }
     public class AddIntFunction: FunctionBase
     {
@@ -146,7 +146,7 @@ namespace NFun.BuiltInFunctions
 
         public AddIntFunction() : this(CoreFunNames.Add){}
 
-        public override object Calc(object[] args) => (int)args[0] + (int)args[1];
+        public override object Calc(object[] args) => args.Get<int>(0) + args.Get<int>(1);
     }
     public class AddTextFunction: FunctionBase
     {
@@ -170,7 +170,7 @@ namespace NFun.BuiltInFunctions
         public AbsOfRealFunction() : base("abs", VarType.Real,VarType.Real){}
         public override object Calc(object[] args)
         {
-            var val = Convert.ToDouble(args[0]);
+            var val = args.Get<double>(0);
             return val > 0 ? val : -val;
         }
     }
@@ -210,7 +210,7 @@ namespace NFun.BuiltInFunctions
         public override object Calc(object[] args)
         {
             try {
-                return Convert.ToInt32(args[0]);
+                return args.Get<int>(0);
             }
             catch (Exception e) {
                 throw new FunRuntimeException($"Number '{args[0]}' cannot be converted into int", e);
@@ -233,14 +233,14 @@ namespace NFun.BuiltInFunctions
     {
         public ToBitsFromIntFunction() : base("to_bits", VarType.ArrayOf(VarType.Bool), VarType.Int){}
         public override object Calc(object[] args) => FunArray.By(
-            new BitArray(BitConverter.GetBytes((int)args[0])).Cast<bool>().Cast<object>());
+            new BitArray(BitConverter.GetBytes(args.Get<int>(0))).Cast<bool>().Cast<object>());
     }
     public class ToBytesFromIntFunction : FunctionBase
     {
         public ToBytesFromIntFunction() 
             : base("to_bytes", VarType.ArrayOf(VarType.Int), VarType.Int){}
         public override object Calc(object[] args) => FunArray.By(
-            BitConverter.GetBytes((int)args[0]).Select(c=> (object)Convert.ToInt32(c)));
+            BitConverter.GetBytes(args.Get<int>(0)).Select(c=> (object)Convert.ToInt32(c)));
     }
     public class ToRealFromTextFunction : FunctionBase
     {
@@ -248,7 +248,7 @@ namespace NFun.BuiltInFunctions
         public override object Calc(object[] args)
         {
             try {
-                return Double.Parse((string) args[0]);
+                return Double.Parse(args.Get<string>(0));
             }
             catch (Exception e) {
                 throw new FunRuntimeException($"Text '{args[0]}' cannot be parsed into real", e);
@@ -258,7 +258,7 @@ namespace NFun.BuiltInFunctions
     public class ToRealFromIntFunction : FunctionBase
     {
         public ToRealFromIntFunction() : base("to_real", VarType.Real, VarType.Int){}
-        public override object Calc(object[] args) => Convert.ToDouble((int) args[0]);
+        public override object Calc(object[] args) => Convert.ToDouble(args.Get<int>(0));
     }
     public class ToTextFunction : FunctionBase
     {
@@ -279,7 +279,7 @@ namespace NFun.BuiltInFunctions
         public override object Calc(object[] args)
         {
             try {
-                return int.Parse((string) args[0]);
+                return int.Parse(args.Get<string>(0));
             }
             catch (Exception e) {
                 throw new FunRuntimeException($"Text '{args[0]}' cannot be parsed into int", e);
@@ -291,74 +291,74 @@ namespace NFun.BuiltInFunctions
     {
         public CosFunction() : base("cos", VarType.Real, VarType.Real){}
 
-        public override object Calc(object[] args) => Math.Cos(Convert.ToDouble(args[0]));
+        public override object Calc(object[] args) => Math.Cos(args.Get<double>(0));
     }
     public class SinFunction : FunctionBase
     {
         public SinFunction() : base("sin", VarType.Real,VarType.Real){}
 
-        public override object Calc(object[] args) => Math.Sin(Convert.ToDouble(args[0]));
+        public override object Calc(object[] args) => Math.Sin(args.Get<double>(0));
     }
     public class TanFunction : FunctionBase {
         public TanFunction() : base("tan", VarType.Real, VarType.Real){}
-        public override object Calc(object[] args) => Math.Tan(Convert.ToDouble(args[0]));
+        public override object Calc(object[] args) => Math.Tan(args.Get<double>(0));
     }
     
     public class Atan2Function : FunctionBase {
         public Atan2Function () : base("atan2", VarType.Real, VarType.Real, VarType.Real){}
-        public override object Calc(object[] args) => Math.Atan2((double)args[0],(double)args[0]);
+        public override object Calc(object[] args) => Math.Atan2(args.Get<double>(0),args.Get<double>(0));
     }
     public class AtanFunction : FunctionBase {
         public AtanFunction () : base("atan", VarType.Real, VarType.Real){}
-        public override object Calc(object[] args) => Math.Atan((double)args[0]);
+        public override object Calc(object[] args) => Math.Atan(args.Get<double>(0));
     }
     public class AsinFunction : FunctionBase {
         public AsinFunction () : base("asin", VarType.Real, VarType.Real){}
-        public override object Calc(object[] args) => Math.Asin((double)args[0]);
+        public override object Calc(object[] args) => Math.Asin(args.Get<double>(0));
     }
     public class AcosFunction : FunctionBase {
         public AcosFunction () : base("acos", VarType.Real, VarType.Real){}
-        public override object Calc(object[] args) => Math.Acos((double)args[0]);
+        public override object Calc(object[] args) => Math.Acos(args.Get<double>(0));
     }
     public class ExpFunction : FunctionBase {
         public ExpFunction () : base("exp", VarType.Real, VarType.Real){}
-        public override object Calc(object[] args) => Math.Exp((double)args[0]);
+        public override object Calc(object[] args) => Math.Exp(args.Get<double>(0));
     }
     public class LogEFunction : FunctionBase {
         public LogEFunction () : base("log", VarType.Real, VarType.Real){}
-        public override object Calc(object[] args) => Math.Log((double)args[0]);
+        public override object Calc(object[] args) => Math.Log(args.Get<double>(0));
     }
     
     public class LogFunction : FunctionBase {
         public LogFunction () : base("log", VarType.Real,VarType.Real, VarType.Real){}
-        public override object Calc(object[] args) => Math.Log((double)args[0],(double)args[1]);
+        public override object Calc(object[] args) => Math.Log(args.Get<double>(0),args.Get<double>(1));
     }
     
     public class Log10Function : FunctionBase {
         public Log10Function () : base("log10", VarType.Real, VarType.Real){}
-        public override object Calc(object[] args) => Math.Log10((double)args[0]);
+        public override object Calc(object[] args) => Math.Log10(args.Get<double>(0));
     }
     
     public class FloorFunction : FunctionBase {
         public FloorFunction () : base("floor", VarType.Int, VarType.Real){}
-        public override object Calc(object[] args) => Convert.ToInt32(Math.Floor((double)args[0]));
+        public override object Calc(object[] args) => Convert.ToInt32(Math.Floor(args.Get<double>(0)));
     }
     
     public class CeilFunction : FunctionBase {
         public CeilFunction () : base("ceil", VarType.Int, VarType.Real){}
-        public override object Calc(object[] args) => Convert.ToInt32(Math.Ceiling((double)args[0]));
+        public override object Calc(object[] args) => Convert.ToInt32(Math.Ceiling(args.Get<double>(0)));
     }
     public class RoundToIntFunction: FunctionBase {
         public RoundToIntFunction() : base("round", VarType.Int,VarType.Real){}
-        public override object Calc(object[] args) => (int)Math.Round(Convert.ToDouble(args[0]));
+        public override object Calc(object[] args) => (int)Math.Round(args.Get<double>(0));
     }
     public class RoundToRealFunction: FunctionBase {
         public RoundToRealFunction() : base("round", VarType.Real,VarType.Real,VarType.Int){}
-        public override object Calc(object[] args) => Math.Round((double)args[0],(int)args[1]);
+        public override object Calc(object[] args) => Math.Round(args.Get<double>(0),args.Get<int>(1));
     }
     public class SignFunction: FunctionBase {
         public SignFunction() : base("sign", VarType.Int,VarType.Real){}
-        public override object Calc(object[] args) =>  Math.Sign((double)args[0]);
+        public override object Calc(object[] args) =>  Math.Sign(args.Get<double>(0));
     }
     
     public class PiFunction : FunctionBase {
@@ -372,16 +372,16 @@ namespace NFun.BuiltInFunctions
 
     public class MaxOfIntFunction : FunctionBase {
         public MaxOfIntFunction() : base("max", VarType.Int, VarType.Int, VarType.Int) { }
-        public override object Calc(object[] args) => Math.Max((int) args[0], (int) args[1]);
+        public override object Calc(object[] args) => Math.Max(args.Get<int>(0), args.Get<int>(1));
     }
     public class MaxOfRealFunction : FunctionBase {
         public MaxOfRealFunction () : base("max", VarType.Real, VarType.Real, VarType.Real){}
-        public override object Calc(object[] args) => Math.Max((double) args[0], (double) args[1]);
+        public override object Calc(object[] args) => Math.Max(args.Get<double>(0), args.Get<double>(1));
     }
     
     public class MinOfIntFunction : FunctionBase {
         public MinOfIntFunction() : base("min", VarType.Int, VarType.Int, VarType.Int){}
-        public override object Calc(object[] args) => Math.Min((int) args[0], (int) args[1]);
+        public override object Calc(object[] args) => Math.Min(args.Get<int>(0), args.Get<int>(1));
     }
     public class MinOfRealFunction : FunctionBase
     {
@@ -390,7 +390,7 @@ namespace NFun.BuiltInFunctions
         }
 
         public override object Calc(object[] args) 
-            => Math.Min((double) args[0], (double) args[1]);
+            => Math.Min(args.Get<double>(0), args.Get<double>(1));
     }
 
   

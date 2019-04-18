@@ -4,6 +4,14 @@ namespace NFun.Types
 {
     public static class TypeHelper
     {
+        public static T Get<T>(this object[] arr, int index)
+        {
+            return (T)arr[index];
+        }
+        public static T To<T>(this object o)
+        {
+            return (T) o;
+        }
         public static bool AreEqual(object left, object right)
         {
             if (left is FunArray le)

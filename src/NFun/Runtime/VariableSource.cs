@@ -28,7 +28,7 @@ namespace NFun.Runtime
         public bool IsOutput { get; set; }
         public VarType Type { get; set; }
         public object Value { get; set; }
-        
+
         public void SetConvertedValue(object valueValue)
         {
             switch (Type.BaseType)
@@ -43,7 +43,7 @@ namespace NFun.Runtime
                     Value = Convert.ToDouble(valueValue);
                     break;
                 case BaseVarType.Text:
-                    Value = valueValue?.ToString()??"";
+                    Value = valueValue?.ToString() ?? "";
                     break;
                 case BaseVarType.ArrayOf:
                 case BaseVarType.Any:
@@ -52,11 +52,6 @@ namespace NFun.Runtime
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-        }
-
-        public void SetType(VarType type)
-        {
-            Type = type;
         }
     }
 }
