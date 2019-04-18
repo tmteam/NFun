@@ -6,10 +6,12 @@ namespace NFun.Types
     {
         public static T Get<T>(this object[] arr, int index)
         {
-            return (T)arr[index];
+            return arr[index].To<T>();
         }
         public static T To<T>(this object o)
         {
+            if (o is IFunConvertable f)
+                return f.GetOrThrowValue<T>();
             return (T) o;
         }
         public static bool AreEqual(object left, object right)

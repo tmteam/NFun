@@ -20,8 +20,13 @@ namespace NFun.Interpritation.Nodes
         }
         public Interval Interval { get; }
         public VarType Type { get; }
-        public object Calc() 
-            => _converter(_origin.Calc());
+        public object Calc()
+        {
+            var res = _origin.Calc();
+            if (res is IFunConvertable c && Type!= VarType.Anything)
+                return _converter(c.GetValue());
+            return _converter(res);
+        }
 
         public static Func<object, object> GetConverterOrThrow(VarType from, VarType to, Interval interval)
         {
@@ -42,7 +47,7 @@ namespace NFun.Interpritation.Nodes
                     from.ArrayTypeSpecification.VarType, 
                     to.ArrayTypeSpecification.VarType, 
                     interval);
-                return o => FunArray.By(((FunArray) o).Select(elementConverter));
+                return o => FunArray.By(((IFunArray) o).Select(elementConverter));
             }
 
             throw ErrorFactory.ImpossibleCast(from, to, interval);

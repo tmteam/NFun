@@ -13,7 +13,8 @@ namespace NFun.Runtime
         IFunArray Slice(int? startIndex, int? endIndex, int? step);
         object GetElementOrNull(int index);
         bool IsEquivalent(IFunArray array);
-        
+        IEnumerable<T> As<T>();
+
     }
     
     public class FunArray: IFunArray

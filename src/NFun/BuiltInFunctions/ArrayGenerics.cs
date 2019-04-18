@@ -17,7 +17,7 @@ namespace NFun.BuiltInFunctions
         public override object Calc(object[] args)
         {
             var val = args[0];
-            var arr = (FunArray)args[1];
+            var arr = (IFunArray)args[1];
             return arr.Any(a => TypeHelper.AreEqual(a, val));
         }
     }
@@ -32,8 +32,8 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arr1 = (FunArray)args[0];
-            var arr2 = (FunArray)args[1];
+            var arr1 = (IFunArray)args[0];
+            var arr2 = (IFunArray)args[1];
             //Todo O(n^2)
             return arr1.All(a=>arr2.Any(a2=>TypeHelper.AreEqual(a,a2)));
         }
@@ -65,7 +65,7 @@ namespace NFun.BuiltInFunctions
                 throw new FunRuntimeException("Argument out of range");
             if (step == 0)
                 step = 1;
-            var arr = (FunArray)args[0];
+            var arr = (IFunArray)args[0];
             return arr.Slice(start, end, step);
         }
     }
@@ -93,7 +93,7 @@ namespace NFun.BuiltInFunctions
             if(end!=0 && start>end)
                 throw new FunRuntimeException("Start cannot be more than end");
        
-            var arr = (FunArray)args[0];
+            var arr = (IFunArray)args[0];
             return arr.Slice(start, end, null);
         }
     }
@@ -113,7 +113,7 @@ namespace NFun.BuiltInFunctions
             if(index<0)
                 throw new FunRuntimeException("Argument out of range");
                 
-            var arr = (FunArray)args[0];
+            var arr = (IFunArray)args[0];
             var res =arr.GetElementOrNull(index);
             
             if(res==null)
@@ -134,7 +134,7 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arr = (FunArray)args[0];
+            var arr = (IFunArray)args[0];
 
             var index = args.Get<int>(1);
             if(index<0)
@@ -160,7 +160,7 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arr = (FunArray)args[0];
+            var arr = (IFunArray)args[0];
             var factor = args[1] ;
             int i = 0;
             foreach (var element in arr)
@@ -183,7 +183,7 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arr = (FunArray)args[0];
+            var arr = (IFunArray)args[0];
             var factor = args.Get<int>(1) ;
             
             var res = FunArray.By(Enumerable.Repeat(arr,factor).SelectMany(a=>a));
@@ -201,7 +201,7 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arr = (FunArray)args[0];
+            var arr = (IFunArray)args[0];
             var chunkSize = args.Get<int>(1);
             if(chunkSize<=0)
                 throw new FunRuntimeException("Chunk size is "+chunkSize+". It has to be positive");
@@ -223,8 +223,8 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arr = (FunArray)args[0];
-            return FunArray.By(arr.SelectMany(o => (FunArray) o));
+            var arr = (IFunArray)args[0];
+            return FunArray.By(arr.SelectMany(o => (IFunArray) o));
         }
     }
     public class ReduceGenericFunctionDefenition : GenericFunctionBase
@@ -238,7 +238,7 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arr = (FunArray)args[0];
+            var arr = (IFunArray)args[0];
             if(arr.Count==0)
                 throw new FunRuntimeException("Input array is empty");
             
@@ -260,7 +260,7 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arr = (FunArray)args[0];
+            var arr = (IFunArray)args[0];
             var defaultValue = args[1];
             var fold = args[2] as FunctionBase;
             
@@ -279,8 +279,8 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arr1 = (FunArray)args[0];
-            var arr2 = (FunArray)args[1];
+            var arr1 = (IFunArray)args[0];
+            var arr2 = (IFunArray)args[1];
             return FunArray.By(arr1.Union(arr2));
         }
     }
@@ -295,8 +295,8 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arr1 = (FunArray)args[0];
-            var arr2 = (FunArray)args[1];
+            var arr1 = (IFunArray)args[0];
+            var arr2 = (IFunArray)args[1];
             return FunArray.By(arr1.Except(arr2).Concat(arr2.Except(arr1)));
         }
     }
@@ -311,8 +311,8 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arr1 = (FunArray)args[0];
-            var arr2 = (FunArray)args[1];
+            var arr1 = (IFunArray)args[0];
+            var arr2 = (IFunArray)args[1];
             return FunArray.By(arr1.Intersect(arr2));
         }
     }
@@ -327,8 +327,8 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arr1 = (FunArray)args[0];
-            var arr2 = (FunArray)args[1];
+            var arr1 = (IFunArray)args[0];
+            var arr2 = (IFunArray)args[1];
             var res = FunArray.By(arr1.Concat(arr2));
             return res;
         }
@@ -345,8 +345,8 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arr1 = (FunArray)args[0];
-            var arr2 = (FunArray)args[1];
+            var arr1 = (IFunArray)args[0];
+            var arr2 = (IFunArray)args[1];
             return FunArray.By(arr1.Except(arr2));
         }
     }
@@ -361,7 +361,7 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arr = (FunArray)args[0];
+            var arr = (IFunArray)args[0];
             var map = args[1] as FunctionBase;
             
             var res = FunArray.By(arr.Select(a=>map.Calc(new []{a})));
@@ -379,7 +379,7 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arr = (FunArray)args[0];
+            var arr = (IFunArray)args[0];
             var filter = args[1] as FunctionBase;
 
             return arr.Any(a => (bool) filter.Calc(new[] {a}));
@@ -396,7 +396,7 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arr = (FunArray)args[0];
+            var arr = (IFunArray)args[0];
             var filter = args[1] as FunctionBase;
 
             return arr.All(a => (bool) filter.Calc(new[] {a}));
@@ -413,7 +413,7 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arr = (FunArray)args[0];
+            var arr = (IFunArray)args[0];
             var filter = args[1] as FunctionBase;
             
             return FunArray.By(arr.Where(a=>(bool)filter.Calc(new []{a})));
@@ -446,7 +446,7 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arr  = (FunArray) args[0];
+            var arr  = (IFunArray) args[0];
             return FunArray.By(arr.Reverse());
         }
     }
@@ -461,7 +461,7 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            return ((FunArray)args[0]).Slice(null,args.Get<int>(1)-1,1);
+            return ((IFunArray)args[0]).Slice(null,args.Get<int>(1)-1,1);
         }
     }
     public class SkipGenericFunctionDefenition: GenericFunctionBase
@@ -475,7 +475,7 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            return ((FunArray)args[0]).Slice(args.Get<int>(1),null,1);
+            return ((IFunArray)args[0]).Slice(args.Get<int>(1),null,1);
         }
     }
 

@@ -96,7 +96,7 @@ namespace NFun.BuiltInFunctions
         }
         
         public override object Calc(object[] args) 
-            => GetMedian(((FunArray)args[0]).As<double>());
+            => GetMedian(((IFunArray)args[0]).As<double>());
         
         public static double GetMedian(IEnumerable<double> source)
         {
@@ -120,7 +120,7 @@ namespace NFun.BuiltInFunctions
         }
 
         public override object Calc(object[] args) 
-            => GetMedian(((FunArray)args[0]).As<int>());
+            => GetMedian(((IFunArray)args[0]).As<int>());
         
         public static double GetMedian(IEnumerable<int> source)
         {
@@ -143,7 +143,7 @@ namespace NFun.BuiltInFunctions
         }
 
         public override object Calc(object[] args) 
-            => ((FunArray)args[0]).As<double>().Min();
+            => ((IFunArray)args[0]).As<double>().Min();
     }
     public class MultiMinIntFunction: FunctionBase{
         public MultiMinIntFunction() : base("min",VarType.Int, VarType.ArrayOf(VarType.Int))
@@ -152,7 +152,7 @@ namespace NFun.BuiltInFunctions
         }
 
         public override object Calc(object[] args) 
-            => ((FunArray)args[0]).As<int>().Min();
+            => ((IFunArray)args[0]).As<int>().Min();
     }
     public class MultiSumRealFunction: FunctionBase{
         public MultiSumRealFunction() : base("sum",VarType.Real, VarType.ArrayOf(VarType.Real))
@@ -160,7 +160,7 @@ namespace NFun.BuiltInFunctions
             
         }
         public override object Calc(object[] args) 
-            => ((FunArray)args[0]).As<double>().Sum();
+            => ((IFunArray)args[0]).As<double>().Sum();
     }
     public class MultiSumIntFunction: FunctionBase{
         public MultiSumIntFunction() : base("sum",VarType.Int, VarType.ArrayOf(VarType.Int))
@@ -169,7 +169,7 @@ namespace NFun.BuiltInFunctions
         }
 
         public override object Calc(object[] args) 
-            => ((FunArray)args[0]).As<int>().Sum();
+            => ((IFunArray)args[0]).As<int>().Sum();
     }
     public class MultiMaxRealFunction: FunctionBase{
         public MultiMaxRealFunction() : base("max",VarType.Real, VarType.ArrayOf(VarType.Real))
@@ -178,7 +178,7 @@ namespace NFun.BuiltInFunctions
         }
 
         public override object Calc(object[] args) 
-            => ((FunArray)args[0]).As<double>().Max();
+            => ((IFunArray)args[0]).As<double>().Max();
     }
     public class MultiMaxIntFunction: FunctionBase{
         public MultiMaxIntFunction() : base("max",VarType.Int, VarType.ArrayOf(VarType.Int))
@@ -187,7 +187,7 @@ namespace NFun.BuiltInFunctions
         }
 
         public override object Calc(object[] args) 
-            => ((FunArray)args[0]).As<int>().Max();
+            => ((IFunArray)args[0]).As<int>().Max();
     }
 
     public class SortIntFunction : FunctionBase
@@ -196,7 +196,7 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arr = ((FunArray)args[0]).As<int>().ToArray();
+            var arr = ((IFunArray)args[0]).As<int>().ToArray();
             Array.Sort(arr);
             return new FunArray(arr);
         }
@@ -208,7 +208,7 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arr = ((FunArray)args[0]).As<string>().ToArray();
+            var arr = ((IFunArray)args[0]).As<string>().ToArray();
             Array.Sort(arr, StringComparer.InvariantCulture);
             return new FunArray(arr);
         }
@@ -220,7 +220,7 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arr = ((FunArray)args[0]).As<double>().ToArray();
+            var arr = ((IFunArray)args[0]).As<double>().ToArray();
             Array.Sort(arr);
             return arr;
         }
@@ -230,7 +230,7 @@ namespace NFun.BuiltInFunctions
     {
         public AverageFunction(): base("avg", VarType.Real, VarType.ArrayOf(VarType.Real)){}
         public override object Calc(object[] args) => 
-            ((FunArray)args[0]).As<double>().Average();
+            ((IFunArray)args[0]).As<double>().Average();
     }
     
     public class AnyFunction : FunctionBase
@@ -241,7 +241,7 @@ namespace NFun.BuiltInFunctions
         }
 
         public override object Calc(object[] args) 
-            => ((FunArray)args[0]).Count>0;
+            => ((IFunArray)args[0]).Count>0;
     }
     
     public class CountFunction : FunctionBase
@@ -252,6 +252,6 @@ namespace NFun.BuiltInFunctions
         }
 
         public override object Calc(object[] args) 
-            => ((FunArray)args[0]).Count;
+            => ((IFunArray)args[0]).Count;
     }
 }

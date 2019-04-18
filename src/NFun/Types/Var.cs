@@ -17,7 +17,10 @@ namespace NFun.Types
         {
             var baseType = ToVarType(typeof(T));
             var vartype = VarType.ArrayOf(baseType);
-            return new Var(name, new FunArray(value.ToArray()), vartype);
+            if (value is IFunArray a)
+                return  new Var(name, a, vartype);
+            else
+                return new Var(name, new FunArray(value.ToArray()), vartype);
         }
         public static Var New(string name, object value)
         {

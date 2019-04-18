@@ -31,6 +31,13 @@ namespace NFun.Runtime
 
         public void SetConvertedValue(object valueValue)
         {
+            //Unboxing special value
+            if (valueValue is IFunConvertable c)
+            {
+                Value = c;
+                return;
+            }
+            
             switch (Type.BaseType)
             {
                 case BaseVarType.Bool:
