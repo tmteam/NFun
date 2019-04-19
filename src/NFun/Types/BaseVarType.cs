@@ -4,12 +4,13 @@ namespace NFun.Types
     {
         Empty = 0,
         Bool =    1,
-        Int =     2,
-        Real =    3,
-        Text =    4,
-        Any =5,
-        ArrayOf = 6,
-        Fun = 7,
-        Generic = 8,
+        Int32 =     2,
+        Int64 =    3,
+        Real =    4,
+        Text =    5,
+        Any =6,
+        ArrayOf = 7,
+        Fun = 8,
+        Generic = 9,
     }
 }

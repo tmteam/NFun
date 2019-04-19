@@ -11,8 +11,8 @@ namespace NFun.BuiltInFunctions
         public const string Id = "range";
 
         public RangeWithStepIntFunction() : base(Id,
-                VarType.ArrayOf(VarType.Int), 
-                VarType.Int,VarType.Int, VarType.Int)
+                VarType.ArrayOf(VarType.Int32), 
+                VarType.Int32,VarType.Int32, VarType.Int32)
         {
             
         }
@@ -67,7 +67,7 @@ namespace NFun.BuiltInFunctions
     }
 
     public class RangeIntFunction: FunctionBase{
-        public RangeIntFunction() : base(Id,VarType.ArrayOf(VarType.Int), VarType.Int, VarType.Int)
+        public RangeIntFunction() : base(Id,VarType.ArrayOf(VarType.Int32), VarType.Int32, VarType.Int32)
         {
             
         }
@@ -114,7 +114,7 @@ namespace NFun.BuiltInFunctions
     }
     
     public class MedianIntFunction: FunctionBase{
-        public MedianIntFunction() : base("median",VarType.Int, VarType.ArrayOf(VarType.Int))
+        public MedianIntFunction() : base("median",VarType.Int32, VarType.ArrayOf(VarType.Int32))
         {
             
         }
@@ -146,7 +146,7 @@ namespace NFun.BuiltInFunctions
             => ((IFunArray)args[0]).As<double>().Min();
     }
     public class MultiMinIntFunction: FunctionBase{
-        public MultiMinIntFunction() : base("min",VarType.Int, VarType.ArrayOf(VarType.Int))
+        public MultiMinIntFunction() : base("min",VarType.Int32, VarType.ArrayOf(VarType.Int32))
         {
             
         }
@@ -163,7 +163,7 @@ namespace NFun.BuiltInFunctions
             => ((IFunArray)args[0]).As<double>().Sum();
     }
     public class MultiSumIntFunction: FunctionBase{
-        public MultiSumIntFunction() : base("sum",VarType.Int, VarType.ArrayOf(VarType.Int))
+        public MultiSumIntFunction() : base("sum",VarType.Int32, VarType.ArrayOf(VarType.Int32))
         {
             
         }
@@ -181,7 +181,7 @@ namespace NFun.BuiltInFunctions
             => ((IFunArray)args[0]).As<double>().Max();
     }
     public class MultiMaxIntFunction: FunctionBase{
-        public MultiMaxIntFunction() : base("max",VarType.Int, VarType.ArrayOf(VarType.Int))
+        public MultiMaxIntFunction() : base("max",VarType.Int32, VarType.ArrayOf(VarType.Int32))
         {
             
         }
@@ -192,7 +192,7 @@ namespace NFun.BuiltInFunctions
 
     public class SortIntFunction : FunctionBase
     {
-        public SortIntFunction() : base("sort", VarType.ArrayOf(VarType.Int), VarType.ArrayOf(VarType.Int)){}
+        public SortIntFunction() : base("sort", VarType.ArrayOf(VarType.Int32), VarType.ArrayOf(VarType.Int32)){}
 
         public override object Calc(object[] args)
         {
@@ -246,7 +246,7 @@ namespace NFun.BuiltInFunctions
     
     public class CountFunction : FunctionBase
     {
-        public CountFunction(): base("count", VarType.Int, VarType.ArrayOf(VarType.Anything))
+        public CountFunction(): base("count", VarType.Int32, VarType.ArrayOf(VarType.Anything))
         {
             
         }

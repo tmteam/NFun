@@ -57,7 +57,9 @@ namespace NFun.Tokenization
             {"text", TokType.TextType},
             {"bool", TokType.BoolType},
             {"real", TokType.RealType},
-            {"int", TokType.IntType},
+            {"int", TokType.Int32Type},
+            {"int32", TokType.Int32Type},
+            {"int64", TokType.Int64Type},
             {"anything", TokType.AnythingType},
             {"in", TokType.In}
         };

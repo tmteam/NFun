@@ -82,7 +82,8 @@ namespace NFun.ParseErrors
                 case TokType.Colon:return ":";
                 case TokType.TwoDots:return "..";
                 case TokType.TextType:return "text";
-                case TokType.IntType:return "int";
+                case TokType.Int32Type:return "int32";
+                case TokType.Int64Type:return "int64";
                 case TokType.RealType:return "real";
                 case TokType.BoolType:return "bool";
                 case TokType.AnythingType:return "anything";

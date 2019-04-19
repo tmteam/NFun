@@ -126,7 +126,7 @@ namespace Funny.Tests
             var output =res.Results.Single();
             Assert.IsInstanceOf<PrimitiveWithAdditional>(output.Value);
             var typed = output.Value as PrimitiveWithAdditional;
-            Assert.AreEqual(VarType.Int, output.Type);
+            Assert.AreEqual(VarType.Int32, output.Type);
             Assert.AreEqual(1, typed.GetValue());
             Assert.AreEqual(36, typed.AdditionalContent);
         }
@@ -134,7 +134,7 @@ namespace Funny.Tests
 
     public class SetAdditionalFunMock : GenericFunctionBase
     {
-        public SetAdditionalFunMock() : base("setA", VarType.Generic(0), VarType.Generic(0),VarType.Int)
+        public SetAdditionalFunMock() : base("setA", VarType.Generic(0), VarType.Generic(0),VarType.Int32)
         {
             
         }
@@ -149,7 +149,7 @@ namespace Funny.Tests
     }
     public class GetAdditionalFunMock : FunctionBase
     {
-        public GetAdditionalFunMock() : base("getA", VarType.Int, VarType.Anything)
+        public GetAdditionalFunMock() : base("getA", VarType.Int32, VarType.Anything)
         {
             
         }

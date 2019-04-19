@@ -22,7 +22,7 @@ namespace Funny.Tests
                 new FunctionMock(
                     args => ((string)args[0]).Length, 
                     customName, 
-                    VarType.Int, 
+                    VarType.Int32, 
                     VarType.Text)).Build();
            
             runtime.Calculate().AssertReturns(Var.New("y", arg.Length));

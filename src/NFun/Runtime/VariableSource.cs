@@ -43,8 +43,11 @@ namespace NFun.Runtime
                 case BaseVarType.Bool:
                     Value = Convert.ToBoolean(valueValue);
                     break;
-                case BaseVarType.Int:
+                case BaseVarType.Int32:
                     Value = Convert.ToInt32(valueValue);
+                    break;
+                case BaseVarType.Int64:
+                    Value = Convert.ToInt64(valueValue);
                     break;
                 case BaseVarType.Real:
                     Value = Convert.ToDouble(valueValue);

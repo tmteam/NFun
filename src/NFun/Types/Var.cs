@@ -26,6 +26,8 @@ namespace NFun.Types
         {
             if (value is int i)
                 return New(name, i);
+            if(value is long l)
+                return New(name, l);
             if (value is double d)
                 return New(name, d);
             if (value is bool b)
@@ -35,6 +37,8 @@ namespace NFun.Types
             
             if (value is IEnumerable<double> arrDbl)
                 return New(name, arrDbl);
+            if (value is IEnumerable<long> arrLong)
+                return New(name, arrLong);
             if (value is IEnumerable<int> arrInt)
                 return New(name, arrInt);
             if (value is IEnumerable<string> arrStr)
@@ -48,7 +52,9 @@ namespace NFun.Types
         public static Var New(string name, bool value) 
             => new Var(name, value, VarType.Bool);
         public static Var New(string name, int value) 
-            => new Var(name, value, VarType.Int);
+            => new Var(name, value, VarType.Int32);
+        public static Var New(string name, long value) 
+            => new Var(name, value, VarType.Int64);
         public static Var New(string name, double value) 
             => new Var(name, value, VarType.Real);
         public static Var New(string name, string value) 
@@ -59,7 +65,9 @@ namespace NFun.Types
             if (t == typeof(object))
                 return VarType.Anything;
             if (t == typeof(int))
-                return VarType.Int;
+                return VarType.Int32;
+            if (t== typeof(long))    
+                return VarType.Int64;
             if (t == typeof(double))
                 return VarType.Real;
             if (t == typeof(string))

@@ -31,22 +31,22 @@ namespace NFun.BuiltInFunctions
    
     public class MoreIntFunction: FunctionBase
     {
-        public MoreIntFunction() : base(CoreFunNames.More, VarType.Bool,VarType.Int,VarType.Int){}
+        public MoreIntFunction() : base(CoreFunNames.More, VarType.Bool,VarType.Int32,VarType.Int32){}
         public override object Calc(object[] args) => args.Get<int>(0) > args.Get<int>(1);
     }
     public class MoreOrEqualIntFunction: FunctionBase
     {
-        public MoreOrEqualIntFunction() : base(CoreFunNames.MoreOrEqual, VarType.Bool,VarType.Int,VarType.Int){}
+        public MoreOrEqualIntFunction() : base(CoreFunNames.MoreOrEqual, VarType.Bool,VarType.Int32,VarType.Int32){}
         public override object Calc(object[] args) => args.Get<int>(0) >= args.Get<int>(1);
     }
     public class LessIntFunction: FunctionBase
     {
-        public LessIntFunction() : base(CoreFunNames.Less, VarType.Bool,VarType.Int,VarType.Int){}
+        public LessIntFunction() : base(CoreFunNames.Less, VarType.Bool,VarType.Int32,VarType.Int32){}
         public override object Calc(object[] args) => args.Get<int>(0) < args.Get<int>(1);
     }
     public class LessOrEqualIntFunction: FunctionBase
     {
-        public LessOrEqualIntFunction() : base(CoreFunNames.LessOrEqual, VarType.Bool,VarType.Int,VarType.Int){}
+        public LessOrEqualIntFunction() : base(CoreFunNames.LessOrEqual, VarType.Bool,VarType.Int32,VarType.Int32){}
         public override object Calc(object[] args) => args.Get<int>(0) <= args.Get<int>(1);
     }
     public class MoreRealFunction: FunctionBase
@@ -89,7 +89,7 @@ namespace NFun.BuiltInFunctions
     
     public class RemainderIntFunction: FunctionBase
     {
-        public RemainderIntFunction() : base(CoreFunNames.Remainder, VarType.Int,VarType.Int,VarType.Int){}
+        public RemainderIntFunction() : base(CoreFunNames.Remainder, VarType.Int32,VarType.Int32,VarType.Int32){}
         public override object Calc(object[] args) => args.Get<int>(0) % args.Get<int>(1);
     }
     
@@ -116,7 +116,7 @@ namespace NFun.BuiltInFunctions
     }
     public class MultiplyIntFunction: FunctionBase
     {
-        public MultiplyIntFunction() : base(CoreFunNames.Multiply, VarType.Int,VarType.Int,VarType.Int){}
+        public MultiplyIntFunction() : base(CoreFunNames.Multiply, VarType.Int32,VarType.Int32,VarType.Int32){}
         public override object Calc(object[] args) => args.Get<int>(0) * args.Get<int>(1);
     }
     public class SubstractRealFunction: FunctionBase
@@ -126,7 +126,7 @@ namespace NFun.BuiltInFunctions
     }
     public class SubstractIntFunction: FunctionBase
     {
-        public SubstractIntFunction() : base(CoreFunNames.Substract, VarType.Int,VarType.Int,VarType.Int){}
+        public SubstractIntFunction() : base(CoreFunNames.Substract, VarType.Int32,VarType.Int32,VarType.Int32){}
         public override object Calc(object[] args) => args.Get<int>(0) - args.Get<int>(1);
     }
    
@@ -140,7 +140,7 @@ namespace NFun.BuiltInFunctions
     }
     public class AddIntFunction: FunctionBase
     {
-        public AddIntFunction(string name) : base(name, VarType.Int, VarType.Int, VarType.Int)
+        public AddIntFunction(string name) : base(name, VarType.Int32, VarType.Int32, VarType.Int32)
         {
         }
 
@@ -176,7 +176,7 @@ namespace NFun.BuiltInFunctions
     }
     public class AbsOfIntFunction : FunctionBase
     {
-        public AbsOfIntFunction() : base("abs", VarType.Int,VarType.Int){}
+        public AbsOfIntFunction() : base("abs", VarType.Int32,VarType.Int32){}
         public override object Calc(object[] args)
         {
             var val = (int)(args[0]);
@@ -238,24 +238,24 @@ namespace NFun.BuiltInFunctions
     }
     
     public class FloorFunction : FunctionBase {
-        public FloorFunction () : base("floor", VarType.Int, VarType.Real){}
+        public FloorFunction () : base("floor", VarType.Int32, VarType.Real){}
         public override object Calc(object[] args) => Convert.ToInt32(Math.Floor(args.Get<double>(0)));
     }
     
     public class CeilFunction : FunctionBase {
-        public CeilFunction () : base("ceil", VarType.Int, VarType.Real){}
+        public CeilFunction () : base("ceil", VarType.Int32, VarType.Real){}
         public override object Calc(object[] args) => Convert.ToInt32(Math.Ceiling(args.Get<double>(0)));
     }
     public class RoundToIntFunction: FunctionBase {
-        public RoundToIntFunction() : base("round", VarType.Int,VarType.Real){}
+        public RoundToIntFunction() : base("round", VarType.Int32,VarType.Real){}
         public override object Calc(object[] args) => (int)Math.Round(args.Get<double>(0));
     }
     public class RoundToRealFunction: FunctionBase {
-        public RoundToRealFunction() : base("round", VarType.Real,VarType.Real,VarType.Int){}
+        public RoundToRealFunction() : base("round", VarType.Real,VarType.Real,VarType.Int32){}
         public override object Calc(object[] args) => Math.Round(args.Get<double>(0),args.Get<int>(1));
     }
     public class SignFunction: FunctionBase {
-        public SignFunction() : base("sign", VarType.Int,VarType.Real){}
+        public SignFunction() : base("sign", VarType.Int32,VarType.Real){}
         public override object Calc(object[] args) =>  Math.Sign(args.Get<double>(0));
     }
     
@@ -269,7 +269,7 @@ namespace NFun.BuiltInFunctions
     }
 
     public class MaxOfIntFunction : FunctionBase {
-        public MaxOfIntFunction() : base("max", VarType.Int, VarType.Int, VarType.Int) { }
+        public MaxOfIntFunction() : base("max", VarType.Int32, VarType.Int32, VarType.Int32) { }
         public override object Calc(object[] args) => Math.Max(args.Get<int>(0), args.Get<int>(1));
     }
     public class MaxOfRealFunction : FunctionBase {
@@ -278,7 +278,7 @@ namespace NFun.BuiltInFunctions
     }
     
     public class MinOfIntFunction : FunctionBase {
-        public MinOfIntFunction() : base("min", VarType.Int, VarType.Int, VarType.Int){}
+        public MinOfIntFunction() : base("min", VarType.Int32, VarType.Int32, VarType.Int32){}
         public override object Calc(object[] args) => Math.Min(args.Get<int>(0), args.Get<int>(1));
     }
     public class MinOfRealFunction : FunctionBase

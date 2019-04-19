@@ -38,7 +38,7 @@ namespace Funny.Tests.UnitTests
         public void HasMaxOfIntFun_GetOrNullWithCorrectArgs_returnsOne()
         {
             dic.Add(new MaxOfIntFunction());
-            var fun = dic.GetOrNull(new MaxOfIntFunction().Name, new[] {VarType.Int, VarType.Int});
+            var fun = dic.GetOrNull(new MaxOfIntFunction().Name, new[] {VarType.Int32, VarType.Int32});
             Assert.IsInstanceOf<MaxOfIntFunction>(fun);
         }
 
@@ -47,7 +47,7 @@ namespace Funny.Tests.UnitTests
         public void HasAllMaxFuns_GetOrNullWithIntArgs_returnsOne()
         {
             AddAllMaxFuns();
-            var maxIntInt = dic.GetOrNull(maxId, VarType.Int, VarType.Int);
+            var maxIntInt = dic.GetOrNull(maxId, VarType.Int32, VarType.Int32);
             Assert.IsInstanceOf<MaxOfIntFunction>(maxIntInt, "Max int->int->int not found");
         }
 
@@ -63,7 +63,7 @@ namespace Funny.Tests.UnitTests
         public void HasAllMaxFuns_GetOrNullWithIntArrArg_returnsOne()
         {
             AddAllMaxFuns();
-            var maxIntArr = dic.GetOrNull(maxId, VarType.ArrayOf(VarType.Int));
+            var maxIntArr = dic.GetOrNull(maxId, VarType.ArrayOf(VarType.Int32));
             Assert.IsInstanceOf<MultiMaxIntFunction>(maxIntArr, "Max int[]->int not found");
         }
 
@@ -86,7 +86,7 @@ namespace Funny.Tests.UnitTests
         [Test]
         public void HasSomeFun_AddSome_returnsFalse()
         {
-            var origin    = new FunMock("some", VarType.Int, VarType.Bool);
+            var origin    = new FunMock("some", VarType.Int32, VarType.Bool);
             var overrided = new FunMock(origin.Name, VarType.Anything, origin.ArgTypes);
 
             dic.Add(origin);
@@ -95,7 +95,7 @@ namespace Funny.Tests.UnitTests
         [Test]
         public void HasFunWithSingleArg_GetOrNullWithWrongTypeReturnsnull()
         {
-            var origin = new FunMock("some", VarType.Int, VarType.Bool);
+            var origin = new FunMock("some", VarType.Int32, VarType.Bool);
             
             dic.Add(origin);
             
@@ -106,23 +106,23 @@ namespace Funny.Tests.UnitTests
         [Test]
         public void HasFunWithSingleArg_GetOrNullWithCast_ReturnsOne()
         {
-            var origin = new FunMock("some", VarType.Int, VarType.Real);
+            var origin = new FunMock("some", VarType.Int32, VarType.Real);
             
             dic.Add(origin);
             
-            var fun = dic.GetOrNull(origin.Name, VarType.Int);
+            var fun = dic.GetOrNull(origin.Name, VarType.Int32);
             Assert.IsNotNull(fun);
         }
         [Test]
         public void HasOverloadFuns_GetOrNull_ReturnsWithStrictCast()
         {
             var realFun = new FunMock("some", VarType.Real, VarType.Real);
-            var intFun = new FunMock("some", VarType.Int, VarType.Int);
+            var intFun = new FunMock("some", VarType.Int32, VarType.Int32);
             
             dic.Add(realFun);
             dic.Add(intFun);
             
-            var fun = dic.GetOrNull(intFun.Name, VarType.Int);
+            var fun = dic.GetOrNull(intFun.Name, VarType.Int32);
             Assert.AreEqual(intFun.OutputType, fun.OutputType);
         }
         [Test]
@@ -133,7 +133,7 @@ namespace Funny.Tests.UnitTests
             dic.Add(concreteFun);
             dic.Add(genericFun);
             
-            var fun = dic.GetOrNull(concreteFun.Name, VarType.Int);
+            var fun = dic.GetOrNull(concreteFun.Name, VarType.Int32);
             Assert.AreEqual(VarType.Text, fun.OutputType);
         }
         
@@ -156,7 +156,7 @@ namespace Funny.Tests.UnitTests
             var genericFun = new GenericFunMock("some", VarType.Generic(0), VarType.ArrayOf(VarType.Generic(0)));
             dic.Add(concreteFun);
             dic.Add(genericFun);
-            var someConcreteType = VarType.Int;
+            var someConcreteType = VarType.Int32;
             var fun = dic.GetOrNull(concreteFun.Name, VarType.ArrayOf(someConcreteType));
             Assert.AreEqual(someConcreteType, fun.OutputType);
         }
@@ -167,7 +167,7 @@ namespace Funny.Tests.UnitTests
             var genericFun = new GenericFunMock("some", VarType.Generic(0), VarType.ArrayOf(VarType.Generic(0)));
             dic.Add(concreteFun);
             dic.Add(genericFun);
-            var someConcreteType = VarType.Int;
+            var someConcreteType = VarType.Int32;
             var fun = dic.GetOrNull(concreteFun.Name, VarType.ArrayOf(someConcreteType));
             Assert.AreEqual(someConcreteType, fun.OutputType);
         }
@@ -178,7 +178,7 @@ namespace Funny.Tests.UnitTests
             dic.Add(new AddRealFunction());
             dic.Add(new AddTextFunction());
            
-            var fun = dic.GetOrNull(CoreFunNames.Add,  VarType.Text,VarType.Int);
+            var fun = dic.GetOrNull(CoreFunNames.Add,  VarType.Text,VarType.Int32);
             Assert.IsNotNull(fun);
             Assert.IsInstanceOf<AddTextFunction>(fun);
             
@@ -189,9 +189,9 @@ namespace Funny.Tests.UnitTests
             dic.Add(new IsInSingleGenericFunctionDefenition());
             dic.Add(new IsInMultipleGenericFunctionDefenition());
            
-            var fun = dic.GetOrNull(CoreFunNames.In,  VarType.Int,VarType.ArrayOf(VarType.Int));
+            var fun = dic.GetOrNull(CoreFunNames.In,  VarType.Int32,VarType.ArrayOf(VarType.Int32));
             Assert.IsNotNull(fun);
-            Assert.AreEqual(VarType.Int, fun.ArgTypes[0]);
+            Assert.AreEqual(VarType.Int32, fun.ArgTypes[0]);
         }
         [Test]
         public void ContainsHasOverloads_ArgsAreArray_ReturnsArrayOverload()
@@ -199,9 +199,9 @@ namespace Funny.Tests.UnitTests
             dic.Add(new IsInSingleGenericFunctionDefenition());
             dic.Add(new IsInMultipleGenericFunctionDefenition());
            
-            var fun = dic.GetOrNull(CoreFunNames.In,  VarType.ArrayOf(VarType.Int),VarType.ArrayOf(VarType.Int));
+            var fun = dic.GetOrNull(CoreFunNames.In,  VarType.ArrayOf(VarType.Int32),VarType.ArrayOf(VarType.Int32));
             Assert.IsNotNull(fun);
-            Assert.AreEqual(VarType.ArrayOf(VarType.Int), fun.ArgTypes[0]);
+            Assert.AreEqual(VarType.ArrayOf(VarType.Int32), fun.ArgTypes[0]);
         }
         [Test]
         public void ContainsHasOverloads_ArrayArgsAreInvalid_ReturnsNull()
@@ -209,7 +209,7 @@ namespace Funny.Tests.UnitTests
             dic.Add(new IsInSingleGenericFunctionDefenition());
             dic.Add(new IsInMultipleGenericFunctionDefenition());
            
-            var fun = dic.GetOrNull(CoreFunNames.In,  VarType.ArrayOf(VarType.Text),VarType.ArrayOf(VarType.Int));
+            var fun = dic.GetOrNull(CoreFunNames.In,  VarType.ArrayOf(VarType.Text),VarType.ArrayOf(VarType.Int32));
             Assert.IsNull(fun);
         }
         [Test]
@@ -217,7 +217,7 @@ namespace Funny.Tests.UnitTests
         {
             dic.Add(new IsInSingleGenericFunctionDefenition());
            
-            var fun = dic.GetOrNull(CoreFunNames.In,  VarType.Text,VarType.Int);
+            var fun = dic.GetOrNull(CoreFunNames.In,  VarType.Text,VarType.Int32);
             Assert.IsNull(fun);
         }
         
@@ -228,7 +228,7 @@ namespace Funny.Tests.UnitTests
             dic.Add(new AddRealFunction());
             dic.Add(new AddTextFunction());
            
-            var fun = dic.GetOrNull(CoreFunNames.Add, VarType.Int, VarType.Real);
+            var fun = dic.GetOrNull(CoreFunNames.Add, VarType.Int32, VarType.Real);
             Assert.IsNotNull(fun);
             Assert.IsInstanceOf<AddRealFunction>(fun);
             

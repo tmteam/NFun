@@ -32,8 +32,12 @@ namespace NFun.Interpritation.Nodes
         {
             if (from == to)
                 return o => o;
-            if (from == VarType.Int && to == VarType.Real)
-                return o=>Convert.ToDouble(o);
+            if (@from == VarType.Int32)
+            {
+                if (to == VarType.Real) return o=>Convert.ToDouble(o);
+                if (to == VarType.Int64) return o => Convert.ToInt64(o);
+            }
+
             if (to == VarType.Text)
                 return o => o?.ToString() ?? "";
             if (to == VarType.Anything)

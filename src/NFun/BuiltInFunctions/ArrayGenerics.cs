@@ -44,9 +44,9 @@ namespace NFun.BuiltInFunctions
         public SliceWithStepGenericFunctionDefenition() : base(CoreFunNames.SliceName, 
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)),
-            VarType.Int,
-            VarType.Int,
-            VarType.Int)
+            VarType.Int32,
+            VarType.Int32,
+            VarType.Int32)
         {
         }
 
@@ -75,8 +75,8 @@ namespace NFun.BuiltInFunctions
         public SliceGenericFunctionDefenition() : base(CoreFunNames.SliceName, 
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)),
-            VarType.Int,
-            VarType.Int)
+            VarType.Int32,
+            VarType.Int32)
         {
         }
 
@@ -103,7 +103,7 @@ namespace NFun.BuiltInFunctions
         public GetGenericFunctionDefenition() : base(CoreFunNames.GetElementName, 
             VarType.Generic(0),
             VarType.ArrayOf(VarType.Generic(0)),
-            VarType.Int)
+            VarType.Int32)
         {
         }
 
@@ -127,7 +127,7 @@ namespace NFun.BuiltInFunctions
         public SetGenericFunctionDefenition() : base("set", 
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)),
-            VarType.Int,
+            VarType.Int32,
             VarType.Generic(0))
         {
         }
@@ -152,7 +152,7 @@ namespace NFun.BuiltInFunctions
     public class FindGenericFunctionDefenition : GenericFunctionBase
     {
         public FindGenericFunctionDefenition() : base("find", 
-            VarType.Int,
+            VarType.Int32,
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.Generic(0))
         {
@@ -177,7 +177,7 @@ namespace NFun.BuiltInFunctions
         public ReiterateGenericFunctionDefenition() : base("reiterate", 
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)),
-            VarType.Int)
+            VarType.Int32)
         {
         }
 
@@ -195,7 +195,7 @@ namespace NFun.BuiltInFunctions
         public ChunkGenericFunctionDefenition() : base("chunk", 
             VarType.ArrayOf(VarType.ArrayOf(VarType.Generic(0))),
             VarType.ArrayOf(VarType.Generic(0)),
-            VarType.Int)
+            VarType.Int32)
         {
         }
 
@@ -425,7 +425,7 @@ namespace NFun.BuiltInFunctions
         public RepeatGenericFunctionDefenition() : base("repeat",
             VarType.ArrayOf(VarType.Generic(0)), 
             VarType.Generic(0), 
-            VarType.Int)
+            VarType.Int32)
         {
         }
 
@@ -455,7 +455,7 @@ namespace NFun.BuiltInFunctions
         public TakeGenericFunctionDefenition() : base("take", 
             VarType.ArrayOf(VarType.Generic(0)), 
             VarType.ArrayOf(VarType.Generic(0)), 
-            VarType.Int)
+            VarType.Int32)
         {
         }
 
@@ -469,7 +469,7 @@ namespace NFun.BuiltInFunctions
         public SkipGenericFunctionDefenition() : base("skip", 
             VarType.ArrayOf(VarType.Generic(0)), 
             VarType.ArrayOf(VarType.Generic(0)), 
-            VarType.Int)
+            VarType.Int32)
         {
         }
 

@@ -145,7 +145,7 @@ namespace NFun.Interpritation
             if(step.Type== VarType.Real)
                return new RangeWithStepRealFunction().CreateWithConvertionOrThrow(new[] {start, end, step},node.Interval);
             
-            if (step.Type!= VarType.Int)
+            if (step.Type!= VarType.Int32)
                 throw ErrorFactory.ArrayInitializerTypeMismatch(step.Type, node);
 
             

@@ -21,7 +21,13 @@ namespace NFun.Interpritation.Nodes
         }
         public ValueExpressionNode(int value, Interval interval)
         {
-            Type = VarType.Int;
+            Type = VarType.Int32;
+            _value = value;
+            Interval = interval;
+        }
+        public ValueExpressionNode(long value, Interval interval)
+        {
+            Type = VarType.Int64;
             _value = value;
             Interval = interval;
         }

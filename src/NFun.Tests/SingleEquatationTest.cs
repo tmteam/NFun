@@ -236,7 +236,7 @@ namespace Funny.Tests
             CollectionAssert.AreEquivalent(inputs, runtime.Inputs);
         }
 
-        [TestCase("1", "out", BaseVarType.Int)]        
+        [TestCase("1", "out", BaseVarType.Int32)]        
         [TestCase("1.0", "out", BaseVarType.Real)]        
         [TestCase("true", "out", BaseVarType.Bool)]        
         [TestCase("z = x", "z", BaseVarType.Real)]

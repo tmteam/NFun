@@ -15,18 +15,18 @@ namespace Funny.Tests
         {
             Assert.Pass();
         }
-        [TestCase("y = 2",BaseVarType.Int)]
-        [TestCase("y = 2*3",BaseVarType.Int)]
+        [TestCase("y = 2",BaseVarType.Int32)]
+        [TestCase("y = 2*3",BaseVarType.Int32)]
         [TestCase("y = 2**3",BaseVarType.Real)]
-        [TestCase("y = 2%3",BaseVarType.Int)]
+        [TestCase("y = 2%3",BaseVarType.Int32)]
 
         [TestCase("y = 4/3",BaseVarType.Real)]
-        [TestCase("y = 4- 3",BaseVarType.Int)]
-        [TestCase("y = 4+ 3",BaseVarType.Int)]
+        [TestCase("y = 4- 3",BaseVarType.Int32)]
+        [TestCase("y = 4+ 3",BaseVarType.Int32)]
         [TestCase("z = 1 + 4/3 + 3 +2*3 -1", BaseVarType.Real)]
-        [TestCase("y = -2*-4",BaseVarType.Int)]
-        [TestCase("y = -2*(-4+2)",BaseVarType.Int)]
-        [TestCase("y = -(-(-1))",BaseVarType.Int)]
+        [TestCase("y = -2*-4",BaseVarType.Int32)]
+        [TestCase("y = -2*(-4+2)",BaseVarType.Int32)]
+        [TestCase("y = -(-(-1))",BaseVarType.Int32)]
 
         [TestCase("y = 0.2",BaseVarType.Real)]
         [TestCase("y = 1.1_11  ",BaseVarType.Real)]
@@ -38,11 +38,11 @@ namespace Funny.Tests
         [TestCase("y = 0.2%2",BaseVarType.Real)]
         [TestCase("y = 3%0.2",BaseVarType.Real)]
 
-        [TestCase("y = 0xfF  ",BaseVarType.Int)]
-        [TestCase("y = 0x00_Ff  ",BaseVarType.Int)]
-        [TestCase("y = 0b001  ",BaseVarType.Int)]
-        [TestCase("y = 0b11  ",BaseVarType.Int)]
-        [TestCase("y = 0x_1",BaseVarType.Int)]
+        [TestCase("y = 0xfF  ",BaseVarType.Int32)]
+        [TestCase("y = 0x00_Ff  ",BaseVarType.Int32)]
+        [TestCase("y = 0b001  ",BaseVarType.Int32)]
+        [TestCase("y = 0b11  ",BaseVarType.Int32)]
+        [TestCase("y = 0x_1",BaseVarType.Int32)]
         
         [TestCase("y = 1==1",BaseVarType.Bool)]
         [TestCase("y = 1==0",BaseVarType.Bool)]
@@ -67,11 +67,11 @@ namespace Funny.Tests
         [TestCase("y='hi world'+true+5", BaseVarType.Text)]
         [TestCase("y=''+true+5", BaseVarType.Text)]
         [TestCase("y='hi'+'world'", BaseVarType.Text)]
-        [TestCase("y = 1<<2", BaseVarType.Int)]
-        [TestCase("y = 8>>2", BaseVarType.Int)]
-        [TestCase("y = 3|2", BaseVarType.Int)]
-        [TestCase("y = 3^2", BaseVarType.Int)]
-        [TestCase("y = 4&2", BaseVarType.Int)]
+        [TestCase("y = 1<<2", BaseVarType.Int32)]
+        [TestCase("y = 8>>2", BaseVarType.Int32)]
+        [TestCase("y = 3|2", BaseVarType.Int32)]
+        [TestCase("y = 3^2", BaseVarType.Int32)]
+        [TestCase("y = 4&2", BaseVarType.Int32)]
 
         public void SingleEquation_OutputTypeCalculatesCorrect(string expr, BaseVarType type)
         {
@@ -82,15 +82,15 @@ namespace Funny.Tests
             Assert.AreEqual(VarType.PrimitiveOf(type), res.Results.First().Type);
         }
         
-        [TestCase("y = 1\rz=2",BaseVarType.Int, BaseVarType.Int)]
-        [TestCase("y = 2.0\rz=2",BaseVarType.Real, BaseVarType.Int)]
+        [TestCase("y = 1\rz=2",BaseVarType.Int32, BaseVarType.Int32)]
+        [TestCase("y = 2.0\rz=2",BaseVarType.Real, BaseVarType.Int32)]
         [TestCase("y = true\rz=false",BaseVarType.Bool, BaseVarType.Bool)]
 
-        [TestCase("y = 1\rz=y",BaseVarType.Int, BaseVarType.Int)]
-        [TestCase("y = z\rz=2",BaseVarType.Int, BaseVarType.Int)]
+        [TestCase("y = 1\rz=y",BaseVarType.Int32, BaseVarType.Int32)]
+        [TestCase("y = z\rz=2",BaseVarType.Int32, BaseVarType.Int32)]
 
-        [TestCase("y = z/2\rz=2",BaseVarType.Real, BaseVarType.Int)]
-        [TestCase("y = 2\rz=y/2",BaseVarType.Int, BaseVarType.Real)]
+        [TestCase("y = z/2\rz=2",BaseVarType.Real, BaseVarType.Int32)]
+        [TestCase("y = 2\rz=y/2",BaseVarType.Int32, BaseVarType.Real)]
 
         [TestCase("y = 2.0\rz=y",BaseVarType.Real, BaseVarType.Real)]
         [TestCase("y = z\rz=2.0",BaseVarType.Real, BaseVarType.Real)]
@@ -99,8 +99,8 @@ namespace Funny.Tests
         [TestCase("y = z\rz=true",BaseVarType.Bool, BaseVarType.Bool)]
 
         
-        [TestCase("y = 2\rz=y>1",BaseVarType.Int, BaseVarType.Bool)]
-        [TestCase("y = z>1\rz=2",BaseVarType.Bool, BaseVarType.Int)]
+        [TestCase("y = 2\rz=y>1",BaseVarType.Int32, BaseVarType.Bool)]
+        [TestCase("y = z>1\rz=2",BaseVarType.Bool, BaseVarType.Int32)]
 
         [TestCase("y = 2.0\rz=y>1",BaseVarType.Real, BaseVarType.Bool)]
         [TestCase("y = z>1\rz=2.0",BaseVarType.Bool, BaseVarType.Real)]
@@ -158,6 +158,21 @@ namespace Funny.Tests
             var res = runtime.Calculate(Var.New("x", x));
             Assert.AreEqual(1, res.Results.Length);
             Assert.AreEqual(y, res.Results.First().Value);
+        }
+
+        [TestCase("int", 1, BaseVarType.Int32)]
+        [TestCase("int32", 1, BaseVarType.Int32)]
+        [TestCase("int64", (long)1, BaseVarType.Int64)]
+        [TestCase("real",  1.0,BaseVarType.Real)]
+        [TestCase("text", "1",BaseVarType.Text)]
+        [TestCase("int[]", new []{1,2,3},BaseVarType.ArrayOf)]
+        [TestCase("int64[]", new long[]{1,2,3},BaseVarType.ArrayOf)]
+        public void OutputEqualsInput(string type, object expected, BaseVarType baseVarType)
+        {
+            var runtime = FunBuilder.BuildDefault($"x:{type}\r  y = x");
+            var res = runtime.Calculate(Var.New("x", expected));
+               res.AssertReturns(Var.New("y", expected));
+            Assert.AreEqual(baseVarType, res.Get("y").Type.BaseType);
         }
     }
 }

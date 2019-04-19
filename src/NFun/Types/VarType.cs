@@ -17,11 +17,11 @@ namespace NFun.Types
         public static VarType PrimitiveOf(BaseVarType baseType) => new VarType(baseType);
         public static VarType  Anything => new VarType(BaseVarType.Any);
         public static VarType  Bool => new VarType(BaseVarType.Bool);
-        public static VarType  Int => new VarType(BaseVarType.Int);
+        public static VarType  Int32 => new VarType(BaseVarType.Int32);
+        public static VarType  Int64 => new VarType(BaseVarType.Int64);
         public static VarType  Real => new VarType(BaseVarType.Real);
         public static VarType  Text => new VarType(BaseVarType.Text);
         public static VarType ArrayOf(VarType type) => new VarType(type);
-        
         public static VarType Fun(VarType outputType, params VarType[]inputTypes)
             => new VarType(output: outputType, inputs: inputTypes);
         public static VarType Generic(int genericId) => new VarType(genericId);
@@ -61,16 +61,12 @@ namespace NFun.Types
         public readonly FunTypeSpecification FunTypeSpecification;
         public readonly int? GenericId;
         
-        public static bool operator== (VarType obj1, VarType obj2)
-        {
-            return obj1.Equals(obj2);
-        }
+        public static bool operator== (VarType obj1, VarType obj2) 
+            => obj1.Equals(obj2);
 
         // this is second one '!='
-        public static bool operator!= (VarType obj1, VarType obj2)
-        {
-            return !obj1.Equals(obj2);
-        }
+        public static bool operator!= (VarType obj1, VarType obj2) 
+            => !obj1.Equals(obj2);
 
         public override bool Equals(object obj)
         {
@@ -87,7 +83,8 @@ namespace NFun.Types
             switch (BaseType)
             {
                 case BaseVarType.Bool:
-                case BaseVarType.Int:
+                case BaseVarType.Int32:
+                case BaseVarType.Int64:
                 case BaseVarType.Real:
                 case BaseVarType.Text:
                 case BaseVarType.Any:
@@ -131,7 +128,8 @@ namespace NFun.Types
             {
                 case BaseVarType.Empty:
                 case BaseVarType.Bool:
-                case BaseVarType.Int:
+                case BaseVarType.Int32:
+                case BaseVarType.Int64:
                 case BaseVarType.Real:
                 case BaseVarType.Text:
                 case BaseVarType.Any:
@@ -199,7 +197,8 @@ namespace NFun.Types
             switch (BaseType)
             {
                 case BaseVarType.Bool:
-                case BaseVarType.Int:
+                case BaseVarType.Int32:
+                case BaseVarType.Int64:
                 case BaseVarType.Real:
                 case BaseVarType.Text:
                 case BaseVarType.Any:
@@ -250,10 +249,12 @@ namespace NFun.Types
                     return true;
                 case BaseVarType.Bool:
                     return false;
-                case BaseVarType.Int:
+                case BaseVarType.Int32:
                     return false;
+                case BaseVarType.Int64:
+                    return from.BaseType == BaseVarType.Int32;
                 case BaseVarType.Real:
-                    return from.BaseType== BaseVarType.Int;
+                    return from.BaseType== BaseVarType.Int32;
                 case BaseVarType.ArrayOf:
                     if (from.BaseType != BaseVarType.ArrayOf)
                         return false;

@@ -18,7 +18,9 @@ namespace NFun.Interpritation.Nodes
             if (typeof(TOut) == typeof(bool))
                 Type = VarType.Bool;
             else if (typeof(TOut) == typeof(Int32))
-                Type = VarType.Int;
+                Type = VarType.Int32;
+            else if (typeof(TOut) == typeof(Int64))
+                Type = VarType.Int64;
             else if (typeof(TOut) == typeof(double))
                 Type = VarType.Real;
             else if (typeof(TOut) == typeof(string))
