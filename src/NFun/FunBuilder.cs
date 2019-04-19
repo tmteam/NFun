@@ -101,6 +101,7 @@ namespace NFun
                 
                 new AddRealFunction("sum"),
                 new AddIntFunction("sum"),
+                new AddInt64Function("sum"), 
                 new AddTextFunction("concat"),
 
                 new SubstractIntFunction(), 
@@ -148,8 +149,10 @@ namespace NFun
                 new CountFunction(),
                 new AverageFunction(),
                 new MaxOfIntFunction(), 
+                new MaxOfInt64Function(),
                 new MaxOfRealFunction(), 
                 new MinOfIntFunction(), 
+                new MinOfInt64Function(),
                 new MinOfRealFunction(), 
                 new MultiMaxIntFunction(), 
                 new MultiMaxRealFunction(),

@@ -84,7 +84,7 @@ namespace Funny.Tests
         [TestCase("sign(-5.0)", -1)]
         [TestCase("sign(5)", 1)]
         [TestCase("sign(5.2)", 1)]
-
+        [TestCase("min(0.5, 1)", 0.5)]
         [TestCase("count([1,2,3])",3)]
         [TestCase("count([])",0)]
         [TestCase("count([1.0,2.0,3.0])",3)]
@@ -111,13 +111,22 @@ namespace Funny.Tests
         [TestCase("range(0,5)",new []{0,1,2,3,4,5})]
         [TestCase("range(7,10)",new []{7,8,9,10})]
         [TestCase("range(1,10,2)",new []{1,3,5,7,9})]
-        
-    
         public void ConstantEquationWithPredefinedFunction(string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate()
                 .AssertReturns(0.00001, Var.New("out", expected));
+        }
+        
+        [TestCase((long)42, "x:int64\r y = x.sum(1)", (long)43)]
+        [TestCase((long)42, "x:int64\r y = max(1,x)", (long)42)]
+        [TestCase((long)42, "x:int64\r y = min(1,x)", (long)1)]
+        [TestCase((long)42, "x:int64\r y = min(100,x)", (long)42)]
+        public void SingleVariableEquation(object input, string expr, object expected)
+        {
+            var runtime = FunBuilder.BuildDefault(expr);
+            runtime.Calculate(Var.New("x", input))
+                .AssertReturns(Var.New("y", expected));
         }
     
         
@@ -157,6 +166,7 @@ namespace Funny.Tests
                 .AssertReturns(Var.New("y", expected));
         }
        
+        
         [TestCase("y = take([1,2,3,4,5],3)",new []{1,2,3})]        
         [TestCase("y = take([1.0,2.0,3.0,4.0,5.0],4)",new []{1.0,2.0,3.0,4.0})]        
         [TestCase("y = take([1.0,2.0,3.0],20)",new []{1.0,2.0,3.0})]        
