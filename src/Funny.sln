@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFun.Tests", "NFun.Tests\NF
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFun", "NFun\NFun.csproj", "{A9B5CF03-3CC0-4631-88C8-6BFB8AA4D88F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFun.ExprementalTests", "NFun.ExprementalTests\NFun.ExprementalTests.csproj", "{F7299307-9670-42E1-A9E6-287CCD60F228}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{A9B5CF03-3CC0-4631-88C8-6BFB8AA4D88F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A9B5CF03-3CC0-4631-88C8-6BFB8AA4D88F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A9B5CF03-3CC0-4631-88C8-6BFB8AA4D88F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F7299307-9670-42E1-A9E6-287CCD60F228}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F7299307-9670-42E1-A9E6-287CCD60F228}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F7299307-9670-42E1-A9E6-287CCD60F228}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F7299307-9670-42E1-A9E6-287CCD60F228}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
