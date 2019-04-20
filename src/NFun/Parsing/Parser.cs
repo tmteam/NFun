@@ -18,14 +18,14 @@ namespace NFun.Parsing
             while (true)
             {
                 flow.SkipNewLines();
-
                 if (flow.IsDone || flow.IsCurrent(TokType.Eof))
                     break;
-                var startOfTheString = flow.IsStart || flow.IsPrevious(TokType.NewLine);
                 VarAttribute[] attributes = new VarAttribute[0];
                 if (flow.IsCurrent(TokType.Attribute))
                     attributes = ReadAttributes(flow);
-                
+
+                var startOfTheString = flow.IsStart || flow.IsPrevious(TokType.NewLine);
+
                 var exprStart = flow.Current.Start;
                 var e = reader.ReadExpressionOrNull();
                 if (e == null)
@@ -85,9 +85,13 @@ namespace NFun.Parsing
 
         private static VarAttribute[] ReadAttributes(TokenFlow flow)
         {
+            bool newLine = flow.IsStart || flow.Previous.Is(TokType.NewLine);
             var ans = new List<VarAttribute>();
             while (flow.IsCurrent(TokType.Attribute))
             {
+                if (!newLine)
+                    throw ErrorFactory.NowNewLineBeforeAttribute(flow);
+
                 ans.Add(ReadAttribute(flow));
                 flow.SkipNewLines();
             }
@@ -103,19 +107,25 @@ namespace NFun.Parsing
             object val = null;
             if (flow.MoveIf(TokType.Obr))
             {
-                flow.MoveNext();
                 var next = flow.Current;
                 switch (next.Type)
                 {
                     case TokType.False:
+                        val = false;
+                        break;
                     case TokType.True:
+                        val = true;
+                        break;
                     case TokType.Number:
+                        val = TokenHelper.ToNumber(next.Value);
+                        break;
                     case TokType.Text:
                         val = next.Value;
                         break;
                     default:
                         throw ErrorFactory.ItIsNotCorrectAttributeValue(next);
                 }
+                flow.MoveNext();
                 if(!flow.MoveIf(TokType.Cbr))                
                     throw ErrorFactory.AttributeCbrMissed(start, flow);
             }

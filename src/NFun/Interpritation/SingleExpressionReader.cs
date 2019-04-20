@@ -7,6 +7,7 @@ using NFun.Interpritation.Nodes;
 using NFun.ParseErrors;
 using NFun.Parsing;
 using NFun.Runtime;
+using NFun.Tokenization;
 using NFun.Types;
 
 namespace NFun.Interpritation
@@ -178,29 +179,17 @@ namespace NFun.Interpritation
             var val = node.Value;
             try
             {
-                if (val.Length > 2)
-                {
-                    if(val == "true")
+                if (val.Length > 2) {
+                    if (val == "true")
                         return new ValueExpressionNode(true, node.Interval);
-                    if(val == "false")
-                        return new ValueExpressionNode(false,node.Interval);
-                    
-                    val = val.Replace("_", null);
-
-                    if (val[1] == 'b')
-                        return new ValueExpressionNode(Convert.ToInt32(val.Substring(2), 2),node.Interval);
-                    if (val[1] == 'x')
-                        return new ValueExpressionNode(Convert.ToInt32(val, 16),node.Interval);
+                    if (val == "false")
+                        return new ValueExpressionNode(false, node.Interval);
                 }
-
-                if (val.Contains('.'))
-                {
-                    if (val.EndsWith("."))
-                        throw new FormatException();
-                    return new ValueExpressionNode(double.Parse(val),node.Interval);
-                }
-
-                return new ValueExpressionNode(int.Parse(val),node.Interval);
+                var number = TokenHelper.ToNumber(val);
+                if(number is int inum)
+                    return new ValueExpressionNode(inum, node.Interval);
+                else 
+                    return new ValueExpressionNode((double)number, node.Interval);
             }
             catch (FormatException)
             {

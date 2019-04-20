@@ -189,7 +189,9 @@ namespace NFun.ParseErrors
         public static Exception NowNewLineAfterAttribute(int start, TokenFlow flow)
             => new FunParseException(298,$"Attribute needs new line after it.", 
                     start, flow.Current.Interval.Finish);
-        
+        public static Exception NowNewLineBeforeAttribute(TokenFlow flow)
+            => new FunParseException(299,$"Attribute has to start from new line.", 
+                flow.Current.Interval);
         #endregion
 
         #region  3xx - hi level parsing

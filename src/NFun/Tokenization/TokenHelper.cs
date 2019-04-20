@@ -1,12 +1,36 @@
 using System;
+using System.Linq;
 using NFun.ParseErrors;
 using NFun.Parsing;
 using NFun.Types;
 
 namespace NFun.Tokenization
 {
-    public static class TokenFlowExtensions
+    
+    public static class TokenHelper
     {
+        public static object ToNumber(string val)
+        {
+            val = val.Replace("_", null);
+
+            if (val.Length > 2)
+            {
+
+                if (val[1] == 'b')
+                    return Convert.ToInt32(val.Substring(2),2);
+                if (val[1] == 'x')
+                    return Convert.ToInt32(val, 16);
+            }
+
+            if (val.Contains('.'))
+            {
+                if (val.EndsWith("."))
+                    throw new FormatException();
+                return double.Parse(val);
+            }
+
+            return int.Parse(val);
+        }
         private static VarType ToVarType(this Tok token)
         {
             switch (token.Type)
