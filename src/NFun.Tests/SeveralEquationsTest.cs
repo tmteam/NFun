@@ -117,6 +117,26 @@ namespace Funny.Tests
         }
         
         [Test]
+        public void DependentCaseableEquations()
+        {
+            var runtime = FunBuilder.BuildDefault("yPub = 2\r y2 = 3 +yPub");
+            runtime.Calculate()
+                .AssertReturns(
+                    Var.New("yPub", 2),
+                    Var.New("y2", 5));
+        }
+        
+        [Test]
+        public void DependentCaseableEquationsWithReversedOrder()
+        {
+            var runtime = FunBuilder.BuildDefault("y2 = 3 +yPub \r yPub = 2");
+            runtime.Calculate()
+                .AssertReturns(
+                    Var.New("yPub", 2),
+                    Var.New("y2", 5));
+        }
+        
+        [Test]
         public void ComplexDependentConstantsEquations_CalculatesCorrect()
         {
             var runtime = FunBuilder.BuildDefault(

@@ -98,7 +98,7 @@ namespace NFun.LexAnalyze
             for (int i = 0; i < lexEquations.Length; i++)
             {
                 result[i] = new EquationAnalysis();
-                if (vars.TryGetValue(lexEquations[i].Id, out var outvar))
+                if (vars.TryGetValue(lexEquations[i].Id.ToLower(), out var outvar))
                 {
                     outvar.IsOutput = true;
                     result[i].UsedInOtherEquations = true;

@@ -245,6 +245,20 @@ y4 = not(x1 and x2 or x3)
             Assert.AreEqual(primitiveType, output.Type.BaseType);
         }
 
+        [Test]
+        public void CalculationWithAttributes()
+        {
+            var expr = @"
+yprivate   = 0.1 * xpublic 
+yPublic   = yprivate + xpublic";
+            var runtime = FunBuilder.BuildDefault(expr);
+            runtime.Calculate(Var.New("xpublic", 10.0))
+                .AssertReturns(
+                    Var.New("yprivate", 1.0),
+                    Var.New("yPublic",11.0));
+                
+
+        }
 
        [TestCase(" y1 = [1,’2’,3,4]      # ошибка разбора")]
        [TestCase(" y2 = [1,2.0,3,4]      # ошибка разбора")]

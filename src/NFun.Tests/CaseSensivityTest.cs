@@ -18,7 +18,15 @@ namespace Funny.Tests
             var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate().AssertReturns(Var.New("out", expected));
         }
-        
+        [Test]
+        public void DependentVariableEquations()
+        {
+            var runtime = FunBuilder.BuildDefault("yPub = 2\r y2 = 3 +yPub");
+            runtime.Calculate()
+                .AssertReturns(
+                    Var.New("yPub", 2),
+                    Var.New("y2", 5));
+        }
         [TestCase("y(X) = x \r y(3.0)")]
         [TestCase("y(X,x) = x \r y(3.0,4.0)")]
         [TestCase("y(z,x) = x+X \r y(3.0,4.0)")]
