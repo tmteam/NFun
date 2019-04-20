@@ -8,6 +8,11 @@ namespace Funny.Tests
     [TestFixture]
     public class AttributesTest
     {
+        
+        [TestCase("|>private\r x:int\r    y = x", "x",new []{"private"})]
+        [TestCase("|>foo\r|>bar\r x:int\r  z = x", "x",new []{"foo","bar"})]
+        [TestCase("some = 1\r|>foo\r|>bar\r x:int\r z = x", "x",new []{"foo","bar"})]
+        [TestCase("|>start\r x:int\r 1*x", "x",new []{"start"})]
         [TestCase("|>private\r y = x", "y",new []{"private"})]
         [TestCase("|>foo\r z = x", "z",new []{"foo"})]
         [TestCase("|>z\r z = x", "z",new []{"z"})]
@@ -24,7 +29,7 @@ namespace Funny.Tests
             string[] attribute)
         {
             var runtime =FunBuilder.BuildDefault(expression);
-            var varInfo = runtime.Outputs.SingleOrDefault(o => o.Name == variable);
+            var varInfo = runtime.Outputs.Union(runtime.Inputs).SingleOrDefault(o => o.Name == variable);
             Assert.IsNotNull(varInfo);
 
             CollectionAssert.AreEquivalent(attribute, varInfo.Attributes.Select(v=>v.Name));
