@@ -1,3 +1,6 @@
+using System;
+using NFun.Parsing;
+
 namespace NFun.Types
 {
     public struct VarInfo
@@ -5,12 +8,14 @@ namespace NFun.Types
         public readonly bool IsOutput;
         public readonly VarType Type;
         public readonly string Name;
+        public readonly VarAttribute[] Attributes;
 
-        public VarInfo(bool isOutput, VarType type, string name)
+        public VarInfo(bool isOutput, VarType type, string name, VarAttribute[] attributes = null)
         {
             IsOutput = isOutput;
             Type = type;
             Name = name;
+            Attributes = attributes ??new VarAttribute[0];
         }
 
         public override bool Equals(object obj)

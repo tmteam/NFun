@@ -78,6 +78,10 @@ namespace NFun.Tokenization
         /// </summary>
         Colon,
         /// <summary>
+        /// '::'
+        /// </summary>
+        Attribute,
+        /// <summary>
         /// '..'
         /// </summary>
         TwoDots,

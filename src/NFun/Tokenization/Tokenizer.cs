@@ -26,7 +26,6 @@ namespace NFun.Tokenization
         
         private readonly Dictionary<char, TokType> _symbols = new Dictionary<char, TokType>
         {
-            {'|', TokType.BitOr},
             {',', TokType.Sep},
             {'&', TokType.BitAnd},
             {'^', TokType.BitXor},
@@ -167,6 +166,10 @@ namespace NFun.Tokenization
                     return Tok.New(TokType.PipeForward, position, position+1);
                 case '!' when next == '=':
                     return Tok.New(TokType.NotEqual, position, position+2);
+                case '|' when next == '>':
+                    return Tok.New(TokType.Attribute, position, position+2);
+                case '|':
+                    return Tok.New(TokType.BitOr, position, position+1);
                 default:
                     return null;
             }

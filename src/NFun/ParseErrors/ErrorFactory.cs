@@ -169,6 +169,27 @@ namespace NFun.ParseErrors
             return new FunParseException(283,$"({argumentsStub}???) {Nl}Expression inside the brackets is missed{Nl} Example: ({argumentsStub})", 
                 start,end);
         }
+        
+        public static Exception AttributeOnFunction(int exprStart, LexNode lexNode) 
+            => new FunParseException(286,$"Function cannot has attributes.", lexNode.Interval);
+
+        public static Exception ItIsNotAnAttribute(int start, Tok flowCurrent)
+            => new FunParseException(289,$"Attribute name expected, but was '{flowCurrent}'", 
+                start, flowCurrent.Finish);
+
+
+        public static Exception ItIsNotCorrectAttributeValue(Tok next)
+            => new FunParseException(292,$"Attribute value 'text' or 'number' or 'boolean' expected, but was '{next}'", 
+                next.Interval);
+
+        public static Exception AttributeCbrMissed(int start, TokenFlow flow)
+            => new FunParseException(295,$"')' is missed but was '{flow.Current}'", 
+                start, flow.Current.Interval.Finish);
+
+        public static Exception NowNewLineAfterAttribute(int start, TokenFlow flow)
+            => new FunParseException(298,$"Attribute needs new line after it.", 
+                    start, flow.Current.Interval.Finish);
+        
         #endregion
 
         #region  3xx - hi level parsing

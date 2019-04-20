@@ -15,7 +15,6 @@ namespace NFun.LexAnalyze
             var vars = SearchVariables(tree.Equations);
             return new TreeAnalysis
             {
-                AllVariables = vars.Values,
                 OrderedEquations = OrderEquationsOrThrow(tree.Equations, vars)
             };
         }
@@ -29,7 +28,7 @@ namespace NFun.LexAnalyze
                 if (vars.ContainsKey(lower))
                    throw ErrorFactory.OutputNameDuplicates(lexEquation.Id, lexEquation.Expression);
                 
-                vars.Add( lower, new VarAnalysis(lexEquation.Id, true));
+                vars.Add( lower, new VarAnalysis(lexEquation.Id, lexEquation.Attributes, true));
             }
             for (var i = 0; i < lexEquations.Length; i++)
             {
@@ -47,7 +46,7 @@ namespace NFun.LexAnalyze
                     }
                     else
                     {
-                        existed = new VarAnalysis(variableNode.Value);
+                        existed = new VarAnalysis(variableNode.Value, new VarAttribute[0]);
                         vars.Add(lower, existed);
                     }
                     existed.UsedInOutputs.Add(i);

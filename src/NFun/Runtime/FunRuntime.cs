@@ -11,11 +11,11 @@ namespace NFun.Runtime
     {
         public VarInfo[] Inputs => _variables.GetAllSources()
             .Where(v => !v.IsOutput)
-            .Select(s => new VarInfo(false,  s.Type,s.Name)).ToArray();
+            .Select(s => new VarInfo(false,  s.Type,s.Name,s.Attributes)).ToArray();
 
         public VarInfo[] Outputs => _variables.GetAllSources()
             .Where(v => v.IsOutput)
-            .Select(s => new VarInfo(true,  s.Type,s.Name)).ToArray();
+            .Select(s => new VarInfo(true,  s.Type,s.Name, s.Attributes)).ToArray();
 
         private readonly IList<Equation> _equations;
         private readonly VariableDictionary _variables;

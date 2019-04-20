@@ -38,7 +38,10 @@ namespace NFun
             var flow = Tokenizer.ToFlow(_text);
             var lexTree =    Parser.Parse(flow);
              
-            return ExpressionReader.Interpritate(lexTree, _functions.Concat(FunBuilder.PredefinedFunctions), _genericFunctions.Concat(FunBuilder.predefinedGenerics));
+            return ExpressionReader.Interpritate(
+                lexTree, 
+                _functions.Concat(FunBuilder.PredefinedFunctions), 
+                _genericFunctions.Concat(FunBuilder.predefinedGenerics));
         }
         public static IEnumerable<FunctionBase> PredefinedFunctions => _predefinedFunctions;
         public static IEnumerable<GenericFunctionBase> PredefinedGenericFunctions => predefinedGenerics;

@@ -6,22 +6,26 @@ namespace NFun.Runtime
 {
     public class VariableSource
     {
+        public readonly VarAttribute[] Attributes;
         public readonly string Name;
 
         public VariableSource(VariableInfo info)
         {
+            Attributes = info.Attributes;
             Name = info.Id;
             Type = info.Type;
             IsOutput = false;
         }
-        public VariableSource(string name, VarType type)
+        public VariableSource(string name, VarType type, VarAttribute[] attributes = null)
         {
+            Attributes = attributes??new VarAttribute[0];
             Name = name;
             Type = type;
             IsOutput = false;
         }
         public VariableSource(string name)
         {
+            Attributes = new VarAttribute[0];
             Name = name;
             IsOutput = false;
         }

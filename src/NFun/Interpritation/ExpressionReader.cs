@@ -17,7 +17,7 @@ namespace NFun.Interpritation
         private readonly LexFunction[] _lexTreeUserFuns;
         private readonly FunctionsDictionary _functions;
 
-        private readonly VariableDictionary _variables = new VariableDictionary();
+        private readonly VariableDictionary _variables;
         
         private readonly List<Equation> _equations = new List<Equation>();
         
@@ -34,11 +34,7 @@ namespace NFun.Interpritation
 
             var analysis = LexAnalyzer.Analyze(lexTree);
             
-            var ans = new ExpressionReader(
-                analysis,
-                lexTree.UserFuns,
-                functions,
-                lexTree.VarSpecifications);
+            var ans = new ExpressionReader(lexTree,analysis,functions);
             
             ans.Interpritate();
             
@@ -48,24 +44,26 @@ namespace NFun.Interpritation
         }
 
         private ExpressionReader(
+            LexTree tree,
             TreeAnalysis treeAnalysis, 
-            LexFunction[] lexTreeUserFuns, 
-            FunctionsDictionary functions, 
-            VariableInfo[] vars)
+            FunctionsDictionary functions 
+            )
         {
             _treeAnalysis = treeAnalysis;
-            _lexTreeUserFuns = lexTreeUserFuns;
-            _functions = functions;
+            _lexTreeUserFuns = tree.UserFuns;
+            _functions =  functions;
             
-            _variables = new VariableDictionary(vars.Select(v=> new VariableSource(v.Id,v.Type)));
-            
-            foreach (var variable in treeAnalysis.AllVariables.Where(i=>i.IsOutput))
+            _variables = new VariableDictionary(
+                tree.VarSpecifications.Select(v=> new VariableSource(v.Id,v.Type, v.Attributes)));
+
+            foreach (var equation in tree.Equations)
             {
-                _variables.TryAdd( new VariableSource(variable.Id, VarType.Real)
-                    {
-                        IsOutput =  variable.IsOutput
-                    });
+                _variables.TryAdd( new VariableSource(equation.Id, VarType.Real, equation.Attributes)
+                {
+                    IsOutput =  true
+                });
             }
+            
         }
         
         private void Interpritate()

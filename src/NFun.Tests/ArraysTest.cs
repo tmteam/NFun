@@ -64,7 +64,6 @@ namespace Funny.Tests
         [TestCase("y = [1.0,2.0]==[1.0,2.0]", true)]
         [TestCase("y = [1.0,2.0]==([1.0]@[2.0])", true)]
         [TestCase("y = []@[]", new object[0])]
-
         public void ConstantArrayOperatorsTest(string expr, object expected)
         {
             FunBuilder.BuildDefault(expr).Calculate().AssertReturns(Var.New("y", expected));
