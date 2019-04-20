@@ -68,7 +68,7 @@ namespace NFun.BuiltInFunctions
     public class ToTextFunction : FunctionBase
     {
         public ToTextFunction() : base("toText", VarType.Text, VarType.Anything){}
-        public override object Calc(object[] args) => ToText(args[0]);
+        public override object Calc(object[] args) => ToText(args.Get<object>(0));
 
         string ToText(object val)
         {

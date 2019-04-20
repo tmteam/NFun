@@ -4,6 +4,12 @@ namespace NFun.Types
 {
     public static class TypeHelper
     {
+        public static object Unbox(this object o)
+        {
+            if (o is IFunConvertable f)
+                return f.GetValue();
+            return o;
+        }
         public static T Get<T>(this object[] arr, int index)
         {
             return arr[index].To<T>();
@@ -16,6 +22,8 @@ namespace NFun.Types
         }
         public static bool AreEqual(object left, object right)
         {
+            left = left.Unbox();
+            right = right.Unbox();
             if (left is FunArray le)
             {
                 if (!(right is FunArray re))

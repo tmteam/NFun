@@ -42,6 +42,8 @@ namespace NFun.ExprementalTests
             Assert.AreEqual(8, qt.Q);
             Assert.AreEqual(-1, qt.T);
         }
+        
+        
         [Test]
         public void vqByVqt_returnsUpdatedVqt()
         {
@@ -137,6 +139,32 @@ namespace NFun.ExprementalTests
             var res = runtime.Calculate(Var.New("x", 36.6));
             res.AssertReturns(Var.New("y",true));
         }
+        
+        [TestCase(36.0,"y=x==36",true)]
+        [TestCase(36.0,"y=x.isGood()",true)]
+        [TestCase(36.0,"y=x!=10",true)]
+        [TestCase(10.0,"y=x!=10",false)]
+        [TestCase(10.0,"y=x+10",20.0)]
+        [TestCase(10.0,"y=x+x+10",30.0)]
+        [TestCase(10.0,"y=(x+x)==20",true)]
+        [TestCase(10.0,"y=x>5",true)]
+        [TestCase(10.0,"y=x<5",false)]
+        [TestCase(10.0,"y=x<=5",false)]
+        [TestCase(10.0,"y=x>=5",true)]
+        [TestCase(10.0,"y='lalala'+x","lalala10")]
+        [TestCase(10.0,"y= x.toText()","10")]
+        public void SingleVqtInputEquation_CheckOutputValues(object val, string expr, object result)
+        {
+            var runtime = BuildVqtRuntime(expr);
+            var res = runtime.Calculate(Var.New("x", 
+                new PrimitiveVQT(val)
+            {
+                Q = 192,
+                T =  DateTime.Now.Ticks
+            }));
+            res.AssertReturns(Var.New("y",result));
+        }
+        
 
         private static FunRuntime BuildVqtRuntime(string expt)
         {

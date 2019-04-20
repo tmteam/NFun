@@ -73,7 +73,8 @@ namespace NFun.BuiltInFunctions
     public class EqualFunction: FunctionBase
     {
         public EqualFunction() : base(CoreFunNames.Equal, VarType.Bool,VarType.Anything,VarType.Anything){}
-        public override object Calc(object[] args) => TypeHelper.AreEqual(args[0],args[1]);
+        public override object Calc(object[] args) 
+            => TypeHelper.AreEqual(args.Get<object>(0),args.Get<object>(1));
     }
     public class NotEqualFunction: FunctionBase
     {
@@ -164,7 +165,7 @@ namespace NFun.BuiltInFunctions
             VarType.Text,VarType.Text,VarType.Anything){}
 
         public AddTextFunction() : this(CoreFunNames.Add){}
-        public override object Calc(object[] args) => args[0] + ToStringSmart(args[1]);
+        public override object Calc(object[] args) => args.Get<object>(0) + ToStringSmart(args.Get<object>(1));
 
         private static string ToStringSmart(object o)
         {
