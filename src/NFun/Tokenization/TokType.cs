@@ -36,7 +36,7 @@ namespace NFun.Tokenization
         /// </summary>
         ArrCBr,
         /// <summary>
-        /// @
+        /// not used
         /// </summary>
         ArrConcat,
         In,

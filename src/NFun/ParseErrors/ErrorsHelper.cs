@@ -57,7 +57,7 @@ namespace NFun.ParseErrors
                 case TokType.Cbr: return ")";
                 case TokType.ArrOBr: return "[";
                 case TokType.ArrCBr: return "]";
-                case TokType.ArrConcat: return "@";
+                case TokType.Attribute: return "@";
                 case TokType.In: return "in";
                 case TokType.BitOr: return "|";
                 case TokType.BitAnd: return "&";

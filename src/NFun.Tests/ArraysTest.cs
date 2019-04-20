@@ -49,8 +49,7 @@ namespace Funny.Tests
         [TestCase("y = [2,1] in [1,2,3]", true)]    
         [TestCase("y = [1,5,2] in [1,2,3]", false)] 
         [TestCase("y = []", new object[0])]
-        [TestCase("y = [1.0,2.0]@[3.0,4.0]", new []{1.0,2.0,3.0,4.0})]
-        [TestCase("y = ([1.0]@[2.0])@[3.0,4.0]", new []{1.0,2.0,3.0,4.0})]
+
         [TestCase("y = [1,2,3]", new[]{1,2,3})]
         [TestCase("y = ['a','b','c']", new[]{"a","b","c"})]
         [TestCase("y = [1.0]==[]", false)]
@@ -62,8 +61,6 @@ namespace Funny.Tests
         [TestCase("y = [1.0]==[1.0]", true)]
         [TestCase("y = [1.0]!=[1.0]", false)]
         [TestCase("y = [1.0,2.0]==[1.0,2.0]", true)]
-        [TestCase("y = [1.0,2.0]==([1.0]@[2.0])", true)]
-        [TestCase("y = []@[]", new object[0])]
         public void ConstantArrayOperatorsTest(string expr, object expected)
         {
             FunBuilder.BuildDefault(expr).Calculate().AssertReturns(Var.New("y", expected));
@@ -121,7 +118,7 @@ namespace Funny.Tests
             expected[2] = new[] {5};
             
             var expectedType = VarType.ArrayOf(VarType.ArrayOf(VarType.Int32));
-            var expression = " y= [[1,2],[3,4]]@[[5]]";
+            var expression = " y= [[1,2],[3,4]].concat([[5]])";
             
             var runtime = FunBuilder.BuildDefault(expression);
             var res = runtime.Calculate().Get("y");
@@ -162,7 +159,7 @@ namespace Funny.Tests
             expectedOutput[4] = new[] {3, 4};
             expectedOutput[5] = new[] {5};
 
-            var expression = "x:int[][]\r y= x@x";
+            var expression = "x:int[][]\r y= x.concat(x)";
             
             var runtime = FunBuilder.BuildDefault(expression);
             var res = runtime.Calculate(Var.New("x", x)).Get("y");
@@ -175,7 +172,7 @@ namespace Funny.Tests
             var expr = @"
 x: int[]
 filt: int
-concat    = ([1,2,3,4] @ x )
+concat    = ([1,2,3,4].concat(x))
 size      = concat.count()
 possum   = x.filter(i:int=>i>0).reduce((i:int,j:int)=> i+j)
 filtrat   = x.filter(i:int=>i> filt) # filt - входная переменная

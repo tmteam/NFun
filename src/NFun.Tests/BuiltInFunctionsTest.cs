@@ -191,6 +191,10 @@ namespace Funny.Tests
         [TestCase("y = [1,2,3].get(1)", 2)]
         [TestCase("y = [1,2,3].get(0)", 1)]
         
+        [TestCase("y = [1.0,2.0].concat([3.0,4.0])", new []{1.0,2.0,3.0,4.0})]
+        [TestCase("y = [1.0].concat([2.0]).concat([3.0,4.0])", new []{1.0,2.0,3.0,4.0})]
+        [TestCase("y = [].concat([])", new object[0])]
+
         [TestCase("y = [1,2,3].set(1,42)", new[]{1,42,3})]
         
         [TestCase("y = [1.0] . reiterate(3)", new[]{1.0,1.0,1.0})]
@@ -243,6 +247,7 @@ namespace Funny.Tests
         [TestCase("y = [0..1].chunk(7) == [[0,1]]",true)]
         [TestCase("y = [0..6].chunk(2) == [[0,1],[2,3],[4,5],[6]]",true)]
         [TestCase("y = [3..7].chunk(1) == [[3],[4],[5],[6],[7]]",true)]
+        
         public void ConstantEquationWithGenericPredefinedFunction(string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);

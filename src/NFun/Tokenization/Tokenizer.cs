@@ -29,6 +29,7 @@ namespace NFun.Tokenization
             {',', TokType.Sep},
             {'&', TokType.BitAnd},
             {'^', TokType.BitXor},
+            {'|', TokType.BitOr},
             {'/', TokType.Div},
             {'+', TokType.Plus},
             {'-', TokType.Minus},
@@ -38,7 +39,7 @@ namespace NFun.Tokenization
             {'[', TokType.ArrOBr},
             {']', TokType.ArrCBr},
             {':', TokType.Colon},
-            {'@', TokType.ArrConcat},
+            {'@', TokType.Attribute},
             {'~', TokType.BitInverse}
         };
         
@@ -166,10 +167,6 @@ namespace NFun.Tokenization
                     return Tok.New(TokType.PipeForward, position, position+1);
                 case '!' when next == '=':
                     return Tok.New(TokType.NotEqual, position, position+2);
-                case '|' when next == '>':
-                    return Tok.New(TokType.Attribute, position, position+2);
-                case '|':
-                    return Tok.New(TokType.BitOr, position, position+1);
                 default:
                     return null;
             }

@@ -53,7 +53,7 @@ namespace Funny.Tests
         public void SpecialArrayOfStrings_OriginValueReads()
         {
             var runtime =FunBuilder
-                .With("x:text[] \r z = x @ x \r")
+                .With("x:text[] \r z = x.concat(x) \r")
                 .Build();
             
             var res = runtime.Calculate(Var.New("x", 

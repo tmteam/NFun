@@ -56,7 +56,7 @@ namespace NFun
             new IntersectGenericFunctionDefenition(), 
             new SubstractArraysGenericFunctionDefenition(), 
             
-            new ConcatArraysGenericFunctionDefenition(CoreFunNames.ArrConcat), 
+           // new ConcatArraysGenericFunctionDefenition(CoreFunNames.ArrConcat), 
             new ConcatArraysGenericFunctionDefenition("concat"), 
 
             new SetGenericFunctionDefenition(),
