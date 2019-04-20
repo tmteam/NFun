@@ -165,7 +165,6 @@ namespace Funny.Tests
             runtime.Calculate()
                 .AssertReturns(Var.New("y", expected));
         }
-       
         
         [TestCase("y = take([1,2,3,4,5],3)",new []{1,2,3})]        
         [TestCase("y = take([1.0,2.0,3.0,4.0,5.0],4)",new []{1.0,2.0,3.0,4.0})]        
