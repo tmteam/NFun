@@ -62,7 +62,7 @@ namespace Funny.Tests
         [TestCase("foo(x) = x +1\r y=","foo*3","")]
         [TestCase("\r y=","foo*3"," \r foo(x) = x +1")]
         [TestCase("foo(x) = x +1\r ","foo*3"," ")]
-        
+        [TestCase("y = if (x>0) 1 ", "if", "(x<0) -1 else 0")]
         public void ErrorPosition(string beforeError, string errorBody, string afterError)
         {
             AssertErrorPosition(beforeError, errorBody, afterError);

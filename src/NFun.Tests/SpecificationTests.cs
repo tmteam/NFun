@@ -51,9 +51,12 @@ y = 1+ 15 *  if (x < 0 ) -1
 		  if (x > 0)  1
 		  else 0","y", -14)]
         [TestCase(1.0, 
-"y = 'value is ' + (if (x < 0) 'less than'"+
-        "if (x > 0)  'more than'"+
-        "else 'equals to') + ' zero'","y", "value is more than zero")]
+@"
+y = 'value is ' +(
+if (x < 0) 'less than'
+if (x > 0)  'more than'
+else 'equals to'
+) + ' zero'","y", "value is more than zero")]
         
         [TestCase(4.0, @"
    y =  if (x ==1) 'one'

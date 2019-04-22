@@ -137,7 +137,11 @@ namespace NFun.ParseErrors
 
         public static Exception IfConditionIsNotInBrackets(int ifelseStart, int end)
             => new FunParseException(264,$"If condition is not in brackets{Nl} Example: if (a) b  else c ", ifelseStart, end);
+        
+        public static Exception NewLineMissedBeforeRepeatedIf(Interval interval)
+            => new FunParseException(265,$"Not first if has to start from new line{Nl} Example: if (a) b {Nl} if(c) d  else e ", interval);
 
+        
         public static Exception FunctionCallObrMissed(int funStart, string name, int position,LexNode pipedVal)
         {
             if(pipedVal==null)
@@ -489,6 +493,5 @@ namespace NFun.ParseErrors
                 usages.Nodes.First().Interval);
 
         #endregion
-
     }
 }

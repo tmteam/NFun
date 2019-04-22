@@ -457,9 +457,16 @@ namespace NFun.Parsing
             do
             {
                 int conditionStart = _flow.Current.Start;
+
+                var hasNewLineBefore =_flow.IsPrevious(TokType.NewLine);
+                
+                //if
                 if(!_flow.MoveIf(TokType.If))
                     throw ErrorFactory.IfKeywordIsMissing(ifElseStart, _flow.Position);
+                if(ifThenNodes.Any() && !hasNewLineBefore)
+                    throw ErrorFactory.NewLineMissedBeforeRepeatedIf(_flow.Previous.Interval);
 
+                //(condition)
                 if (!_flow.MoveIf(TokType.Obr))
                 {
                     var failedExpr = ReadExpressionOrNull();
@@ -468,14 +475,13 @@ namespace NFun.Parsing
                     else    
                         throw ErrorFactory.IfConditionIsNotInBrackets(ifElseStart, _flow.Position);
                 }
-
                 var condition =  ReadExpressionOrNull();
                 if (condition == null)
                     throw ErrorFactory.ConditionIsMissing(conditionStart, _flow.Position);
-               
                 if(!_flow.MoveIf(TokType.Cbr))
                     throw ErrorFactory.IfConditionIsNotInBrackets(ifElseStart, _flow.Position);
-
+                
+                //then
                 var thenResult = ReadExpressionOrNull();
                 if (thenResult == null)
                     throw ErrorFactory.ThenExpressionIsMissing(conditionStart, _flow.Position);

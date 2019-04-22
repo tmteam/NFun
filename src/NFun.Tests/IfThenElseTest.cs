@@ -51,7 +51,7 @@ namespace Funny.Tests
         [TestCase("y = if (2>1 )10 else -10", 10)]
         [TestCase("y = if (2>1 )10\r else -10", 10)]
         [TestCase("y = if (2==1)10\r else -10", -10)]
-        [TestCase("y = if (2<1 )10 if (2>1)  -10 else 0", -10)]
+        [TestCase("y = if (2<1 )10 \r if (2>1)  -10 else 0", -10)]
         [TestCase("y = if (1>2 )10\r if (1<2) -10\r else 0", -10)]
         public void ConstantIntEquation(string expr, int expected)
         {
@@ -62,7 +62,7 @@ namespace Funny.Tests
         }
         [TestCase("y = if (1<2 ) true else false", true)]
         [TestCase("y = if (true) true else false", true)]
-        [TestCase("y = if (true) true if (false) false else true", true)]
+        [TestCase("y = if (true) true \r if (false) false else true", true)]
         public void ConstantBoolEquation(string expr, bool expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
@@ -104,7 +104,7 @@ else 'not supported' ", 2, "two")]
         [TestCase("y = if (2>1 )10.0 else -10.0", 10.0)]
         [TestCase("y = if (2>1 )10.0\r else -10.0", 10.0)]
         [TestCase("y = if (2==1)10.0\r else -10", -10.0)]
-        [TestCase("y = if (2<1 )10.0 if (2>1) -10.0 else 0", -10.0)]
+        [TestCase("y = if (2<1 )10.0\r if (2>1) -10.0 else 0", -10.0)]
         [TestCase("y = if (1>2 )10.0\r if (1<2)-10.0\r else 0.0", -10.0)]
         public void ConstantRealEquation(string expr, double expected)
         {
