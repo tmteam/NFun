@@ -121,23 +121,23 @@ namespace NFun.ParseErrors
         }
         public static Exception ConditionIsMissing(int conditionStart, int end)
             => new FunParseException(249,
-                $"if ??? then{Nl} Condition expression is missing{Nl} Example: if a>b then ... ", conditionStart, end);
+                $"if (???) {Nl} Condition expression is missing{Nl} Example: if (a>b)  ... ", conditionStart, end);
         
         public static Exception ThenExpressionIsMissing(int conditionStart, int end)
-            => new FunParseException(252,$"if a then ???.  Expression is missing{Nl} Example: if a then a+1 ", conditionStart, end);
+            => new FunParseException(252,$"if (a)  ???.  Expression is missing{Nl} Example: if (a)  a+1 ", conditionStart, end);
 
         public static Exception ElseKeywordIsMissing(int ifelseStart, int end)
-            => new FunParseException(255,$"if a then b ???.  Else keyword is missing{Nl} Example: if a then b else c ", ifelseStart, end);
+            => new FunParseException(255,$"if (a) b ???.  Else keyword is missing{Nl} Example: if (a) b else c ", ifelseStart, end);
 
         public static Exception ElseExpressionIsMissing(int ifelseStart, int end)
-            => new FunParseException(258,$"if a then b else ???.  Else expression is missing{Nl} Example: if a then b else c ", ifelseStart, end);
+            => new FunParseException(258,$"if (a) b else ???.  Else expression is missing{Nl} Example: if (a) b else c ", ifelseStart, end);
 
         public static Exception IfKeywordIsMissing(int ifelseStart, int end)
-            => new FunParseException(261,$"if a then b (if) ...  'if' is missing{Nl} Example: if a then b if c then d else c ", ifelseStart, end);
+            => new FunParseException(261,$"if (a) b (if) ...  'if' is missing{Nl} Example: if (a) b if (c) d else c ", ifelseStart, end);
 
-        public static Exception ThenKeywordIsMissing(int ifelseStart, int end)
-            => new FunParseException(264,$"if a (then) b  ...  'then' is missing{Nl} Example: if a then b  else c ", ifelseStart, end);
-       
+        public static Exception IfConditionIsNotInBrackets(int ifelseStart, int end)
+            => new FunParseException(264,$"If condition is not in brackets{Nl} Example: if (a) b  else c ", ifelseStart, end);
+
         public static Exception FunctionCallObrMissed(int funStart, string name, int position,LexNode pipedVal)
         {
             if(pipedVal==null)

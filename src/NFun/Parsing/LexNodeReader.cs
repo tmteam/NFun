@@ -460,12 +460,21 @@ namespace NFun.Parsing
                 if(!_flow.MoveIf(TokType.If))
                     throw ErrorFactory.IfKeywordIsMissing(ifElseStart, _flow.Position);
 
-                var condition = ReadExpressionOrNull();
+                if (!_flow.MoveIf(TokType.Obr))
+                {
+                    var failedExpr = ReadExpressionOrNull();
+                    if(failedExpr!=null)
+                        throw ErrorFactory.IfConditionIsNotInBrackets(failedExpr.Start, failedExpr.Finish);
+                    else    
+                        throw ErrorFactory.IfConditionIsNotInBrackets(ifElseStart, _flow.Position);
+                }
+
+                var condition =  ReadExpressionOrNull();
                 if (condition == null)
                     throw ErrorFactory.ConditionIsMissing(conditionStart, _flow.Position);
-                
-                if(!_flow.MoveIf(TokType.Then))
-                    throw ErrorFactory.ThenKeywordIsMissing(ifElseStart, _flow.Position);
+               
+                if(!_flow.MoveIf(TokType.Cbr))
+                    throw ErrorFactory.IfConditionIsNotInBrackets(ifElseStart, _flow.Position);
 
                 var thenResult = ReadExpressionOrNull();
                 if (thenResult == null)

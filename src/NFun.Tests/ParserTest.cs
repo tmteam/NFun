@@ -45,7 +45,7 @@ namespace Funny.Tests
         public void ComplexParsingTest()
         {
             var text = @"
-                    max(x,y) = if x>y then x else y
+                    max(x,y) = if (x>y) x else y
                     max3(x,y,z) = max(x,max(y,z))
                     
                     y1 = max3(x,y,z)
@@ -65,7 +65,7 @@ namespace Funny.Tests
             var y1Equation = eq.Equations.Single(e => e.Id == "y1");
             var y2Equation = eq.Equations.Single(e => e.Id == "y2");
             
-            AssertParsed(maxf,"if x>y then x else y", "x","y" );
+            AssertParsed(maxf,"if (x>y) x else y", "x","y" );
             AssertParsed(max3f,"max(x,max(y,z))", "x","y","z" );
             AssertParsed(y1Equation.Expression,  "max3(x,y,z)");
             AssertParsed(y2Equation.Expression,  "max(x,y)+1");

@@ -28,52 +28,52 @@ namespace Funny.Tests
         [TestCase(0.0, "x==0","out", true)]
         [TestCase(0.1, "y = x != 0","y", true)]
         [TestCase(1.0, "y = not (x == 0)","y", true)]
-        [TestCase(1.0, "if x == 0 then 0 else 1","out", 1)]
-        [TestCase(55.5, "y = if x < 0 then 0 else x","y", 55.5)]
+        [TestCase(1.0, "if (x == 0) 0 else 1","out", 1)]
+        [TestCase(55.5, "y = if (x < 0) 0 else x","y", 55.5)]
         [TestCase(-42.2, @"
-y = if x < 0 then -1 
-if x == 0 then 0
+y = if (x < 0) -1 
+if (x == 0)  0
 else 1","y", -1)]
         [TestCase(-42.2, @"
-if x < 0 then -1 
-if x ==0 then 0
+if (x < 0) -1 
+if (x ==0)  0
 else 1","out", -1)]
 
         [TestCase(321.0, @"
-if x < 0 then -1 
-else if x > 0 then 1
-else if x ==0 then 0
+if (x < 0) -1 
+else if (x > 0) 1
+else if (x ==0) 0
 else 123
 ","out", 1)]
         [TestCase(-400, @"
 # if это выражение 
-y = 1+ 15 *  if x < 0 then -1
-		  if x > 0 then 1
+y = 1+ 15 *  if (x < 0 ) -1
+		  if (x > 0)  1
 		  else 0","y", -14)]
         [TestCase(1.0, 
-"y = 'value is ' + (if x < 0 then 'less than'"+
-        "if x > 0 then 'more than'"+
+"y = 'value is ' + (if (x < 0) 'less than'"+
+        "if (x > 0)  'more than'"+
         "else 'equals to') + ' zero'","y", "value is more than zero")]
         
         [TestCase(4.0, @"
-   y =  if x ==1 then 'one'
-        if x ==2 then 'two'
-        if x ==3 then 'three'
-        if x ==4 then 'four'
-        if x ==5 then 'five'
-        if x ==6 then 'six'
-        if x ==7 then 'seven'
-        if x ==8 then 'eight'
-        if x ==9 then 'nine'
-        if x > 9 then 'ten or more' 
-        if x.cos()>0 then 'cos is positive' 
+   y =  if (x ==1) 'one'
+        if (x ==2) 'two'
+        if (x ==3) 'three'
+        if (x ==4) 'four'
+        if (x ==5) 'five'
+        if (x ==6) 'six'
+        if (x ==7) 'seven'
+        if (x ==8) 'eight'
+        if (x ==9) 'nine'
+        if (x > 9) 'ten or more' 
+        if (x.cos()>0)  'cos is positive' 
         else 'negative'","y", "four")]
         
         [TestCase(3, @"
 tostring(v:int):text =
-            if v == 0 then 'zero'
-			if v == 1 then 'one'
-			if v == 2 then 'two'
+            if (v == 0) 'zero'
+			if (v == 1) 'one'
+			if (v == 2) 'two'
 			else 'not supported' 
 x:int
 y = tostring(x)","y", "not supported")]
@@ -143,7 +143,7 @@ y = tostring(x)","y", "not supported")]
         [TestCase("y = [1..4].any(i:int => i>0)#true", "y", true)]
         [TestCase("y = [1..4].all(i:int => i>2)#false", "y", false)]
         [TestCase("y = [1..4].reduce((i:int,j:int)=>i+j)# 10.Аналог sum", "y", 10)]
-        [TestCase("y = [1..4].reduce((i:int,j:int)=>if i>j then i else j)#4.Аналог max", "y", 4)]
+        [TestCase("y = [1..4].reduce((i:int,j:int)=>if (i>j) i else j)#4.Аналог max", "y", 4)]
         public void Constant(string expr, string ouputName, object val)
         {
             var runtime = FunBuilder.BuildDefault(expr);

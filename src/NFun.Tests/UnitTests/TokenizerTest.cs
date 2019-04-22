@@ -24,10 +24,10 @@ namespace Funny.Tests.UnitTests
         [TestCase("o = a == b",TokType.Id, TokType.Def, TokType.Id, TokType.Equal,TokType.Id)]
         [TestCase("o = a + b",    TokType.Id, TokType.Def, TokType.Id, TokType.Plus,TokType.Id)]
         [TestCase("o = a != b",TokType.Id, TokType.Def, TokType.Id, TokType.NotEqual,TokType.Id)]
-        [TestCase("o = if a>b then 1 else x",
+        [TestCase("o = if (a>b)  1 else x",
                                 TokType.Id, TokType.Def, 
-                                TokType.If, TokType.Id, TokType.More, TokType.Id, 
-                                TokType.Then, TokType.Number, 
+                                TokType.If, TokType.Obr, TokType.Id, TokType.More, TokType.Id, 
+                                TokType.Cbr, TokType.Number, 
                                 TokType.Else, TokType.Id)]
         [TestCase("o = 'hiWorld'", TokType.Id, TokType.Def, TokType.Text)]
         [TestCase("o = ''+'hiWorld'", TokType.Id, TokType.Def, TokType.Text, TokType.Plus, TokType.Text)]

@@ -67,8 +67,8 @@ namespace Funny.Tests
             Assert.AreEqual(value,actual.Value);
         }
      
-        [TestCase("@attr() \r  y = if then 3 else 4")]
-        [TestCase("@attr(vasa)\r   y = if then 3 else 4")]
+        [TestCase("@attr() \r  y = if  3 else 4")]
+        [TestCase("@attr(vasa)\r   y = if (true) 3 else 4")]
         [TestCase("\r   y = if then 3 else 4 @attr(vasa)")]
         [TestCase("\r @attr(vasa)")]
         [TestCase("\r @attr( \r x = 1")]
