@@ -80,7 +80,7 @@ namespace NFun.Interpritation
                 {   //Check for duplicated arg-names
 
                     //If outer-scope contains the conflict variable name
-                    if (_variables.GetSource(varNode.Name) != null)
+                    if (_variables.GetSourceOrNull(varNode.Name) != null)
                         throw ErrorFactory.AnonymousFunctionArgumentConflictsWithOuterScope(varNode, defenition);
                     else //else it is duplicated arg name
                         throw ErrorFactory.AnonymousFunctionArgumentDuplicates(varNode, defenition);
@@ -117,7 +117,7 @@ namespace NFun.Interpritation
         private IExpressionNode GetOrAddVariableNode(LexNode varNode)
         {
             var lower = varNode.Value;
-            if (_variables.GetSource(lower) == null)
+            if (_variables.GetSourceOrNull(lower) == null)
             {
                 var funVars = _functions.Get(lower);
                 if (funVars.Count > 1)

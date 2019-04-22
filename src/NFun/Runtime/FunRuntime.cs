@@ -31,7 +31,7 @@ namespace NFun.Runtime
             foreach (var value in vars)
             {
                 var varName = value.Name;
-                var source = _variables.GetSource(varName);
+                var source = _variables.GetSourceOrNull(varName);
                 if(source==null)
                     throw new ArgumentException($"unexpected input '{value.Name}'");
                 source.SetConvertedValue(value.Value);
@@ -42,8 +42,7 @@ namespace NFun.Runtime
             { 
                 var e = _equations[i];
                 ans[i] = new Var(e.Id, e.Expression.Calc(), e.Expression.Type);
-                if (e.ReusingWithOtherEquations)
-                    _variables.GetSource(e.Id).Value = ans[i].Value;
+                _variables.GetSourceOrNull(e.Id).Value = ans[i].Value;
             }
             return new CalculationResult(ans);
         }

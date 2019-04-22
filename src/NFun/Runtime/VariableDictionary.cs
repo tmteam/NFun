@@ -40,7 +40,7 @@ namespace NFun.Runtime
             return true;
         }
             
-        public VariableSource GetSource(string id)
+        public VariableSource GetSourceOrNull(string id)
         {
             if (!_variables.TryGetValue(id.ToLower(), out var v)) 
                 return null;
@@ -66,7 +66,10 @@ namespace NFun.Runtime
             _variables[name].Nodes.AddLast(node);
             return node;
         }
-
+        public VariableUsages GetUsages(string id)
+        {
+            return _variables[id.ToLower()];
+        }
         public VariableUsages[] GetAllUsages()
         {
             return _variables.Values.ToArray();

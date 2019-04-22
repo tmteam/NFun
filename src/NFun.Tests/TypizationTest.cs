@@ -87,23 +87,23 @@ namespace Funny.Tests
         [TestCase("y = true\rz=false",BaseVarType.Bool, BaseVarType.Bool)]
 
         [TestCase("y = 1\rz=y",BaseVarType.Int32, BaseVarType.Int32)]
-        [TestCase("y = z\rz=2",BaseVarType.Int32, BaseVarType.Int32)]
+        [TestCase("z=2 \r y = z",BaseVarType.Int32, BaseVarType.Int32)]
 
-        [TestCase("y = z/2\rz=2",BaseVarType.Real, BaseVarType.Int32)]
+        [TestCase("z=2 \r y = z/2",BaseVarType.Real, BaseVarType.Int32)]
         [TestCase("y = 2\rz=y/2",BaseVarType.Int32, BaseVarType.Real)]
 
         [TestCase("y = 2.0\rz=y",BaseVarType.Real, BaseVarType.Real)]
-        [TestCase("y = z\rz=2.0",BaseVarType.Real, BaseVarType.Real)]
+        [TestCase("z=2.0 \ry = z",BaseVarType.Real, BaseVarType.Real)]
 
         [TestCase("y = true\rz=y",BaseVarType.Bool, BaseVarType.Bool)]
-        [TestCase("y = z\rz=true",BaseVarType.Bool, BaseVarType.Bool)]
+        [TestCase("z=true \r y = z",BaseVarType.Bool, BaseVarType.Bool)]
 
         
-        [TestCase("y = 2\rz=y>1",BaseVarType.Int32, BaseVarType.Bool)]
-        [TestCase("y = z>1\rz=2",BaseVarType.Bool, BaseVarType.Int32)]
+        [TestCase("y = 2\r z=y>1",BaseVarType.Int32, BaseVarType.Bool)]
+        [TestCase("z=2 \r y = z>1",BaseVarType.Bool, BaseVarType.Int32)]
 
         [TestCase("y = 2.0\rz=y>1",BaseVarType.Real, BaseVarType.Bool)]
-        [TestCase("y = z>1\rz=2.0",BaseVarType.Bool, BaseVarType.Real)]
+        [TestCase("z=2.0 \r y = z>1",BaseVarType.Bool, BaseVarType.Real)]
         [TestCase("y = 'hi'\rz=y",BaseVarType.Text, BaseVarType.Text)]
         [TestCase("y = 'hi'\rz=y+ 'lala'",BaseVarType.Text, BaseVarType.Text)]
         [TestCase("y = true\rz='lala'+y",BaseVarType.Bool, BaseVarType.Text)]

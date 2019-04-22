@@ -59,12 +59,9 @@ namespace Funny.Tests
         }
             
         
-        [TestCase("y = z\r z=1.0",       1.0,1.0)]
         [TestCase("y = 1.0\r z=y",       1.0,1.0)]
         [TestCase("y = 1\r z=y/2",       1,0.5)]
         [TestCase("y = true\r z=y",       true,true)]
-        [TestCase("y = z\r z=true",       true,true)]
-        [TestCase("y = z\r z=1",         1,1)]
         [TestCase("y = 1\r z=y",         1,1)]
         [TestCase("y = 1\r z=y*2",       1,2)]
         public void TwinDependentConstantEquations_CalculatesCorrect(string expr,  object expectedY, object expectedZ)
@@ -91,8 +88,8 @@ namespace Funny.Tests
         
         [TestCase("o1 = 1\r o2=o1\r o3 = 0", 1, 1, 0)]
         [TestCase("o1 = 1\r o2 = o1+1\r o3=2*o1*o2",1, 2, 4)]
-        [TestCase("o1 = 1\r o2 = o3\n o3 = 2.0",1, 2.0, 2.0)]
-        [TestCase("o1 = o2*2\r o2 = o3*2\n o3 = 2",8, 4, 2)]
+        [TestCase("o1 = 1\r o3 = 2.0 \r o2 = o3",1, 2.0, 2.0)]
+        [TestCase("o3 = 2 \ro2 = o3*2 \ro1 = o2*2\r ",8, 4, 2)]
         public void ThreeDependentConstantEquations_CalculatesCorrect(string expr,  object o1, object o2, object o3)
         {
             var runtime = FunBuilder.BuildDefault(expr);
@@ -105,7 +102,7 @@ namespace Funny.Tests
         
         [TestCase(2,"o1 = x\r o2=o1\r o3 = 0", 2.0, 2.0, 0)]
         [TestCase(2,"o1 = x/2\r o2 = o1+1\r o3=2*o1*o2",1.0, 2.0, 4.0)]
-        [TestCase(2,"o1 = x/2\r o2 = o3\n o3 = x",1.0, 2.0, 2.0)]
+        [TestCase(2,"o1 = x/2\r o3 = x \ro2 = o3",1.0, 2.0, 2.0)]
         public void ThreeDependentEquationsWithSingleVariable_CalculatesCorrect(double x,string expr,  object o1, object o2, object o3)
         {
             var runtime = FunBuilder.BuildDefault(expr);
@@ -126,15 +123,6 @@ namespace Funny.Tests
                     Var.New("y2", 5));
         }
         
-        [Test]
-        public void DependentCaseableEquationsWithReversedOrder()
-        {
-            var runtime = FunBuilder.BuildDefault("y2 = 3 +yPub \r yPub = 2");
-            runtime.Calculate()
-                .AssertReturns(
-                    Var.New("yPub", 2),
-                    Var.New("y2", 5));
-        }
         
         [Test]
         public void ComplexDependentConstantsEquations_CalculatesCorrect()

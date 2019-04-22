@@ -13,8 +13,8 @@ namespace NFun.Interpritation
 {
     public class ExpressionReader
     {
-        private readonly TreeAnalysis _treeAnalysis;
         private readonly LexFunction[] _lexTreeUserFuns;
+        private readonly LexTree _tree;
         private readonly FunctionsDictionary _functions;
 
         private readonly VariableDictionary _variables;
@@ -31,10 +31,8 @@ namespace NFun.Interpritation
                 functions.Add(predefinedFunction);
             foreach (var genericFunctionBase in predefinedGenerics)
                 functions.Add(genericFunctionBase);
-
-            var analysis = LexAnalyzer.Analyze(lexTree);
             
-            var ans = new ExpressionReader(lexTree,analysis,functions);
+            var ans = new ExpressionReader(lexTree,functions);
             
             ans.Interpritate();
             
@@ -45,25 +43,15 @@ namespace NFun.Interpritation
 
         private ExpressionReader(
             LexTree tree,
-            TreeAnalysis treeAnalysis, 
             FunctionsDictionary functions 
             )
         {
-            _treeAnalysis = treeAnalysis;
             _lexTreeUserFuns = tree.UserFuns;
+            _tree = tree;
             _functions =  functions;
             
             _variables = new VariableDictionary(
                 tree.VarSpecifications.Select(v=> new VariableSource(v.Id,v.Type, v.Attributes)));
-
-            foreach (var equation in tree.Equations)
-            {
-                _variables.TryAdd( new VariableSource(equation.Id, VarType.Real, equation.Attributes)
-                {
-                    IsOutput =  true
-                });
-            }
-            
         }
         
         private void Interpritate()
@@ -82,19 +70,28 @@ namespace NFun.Interpritation
                 ((FunctionPrototype)prototype).SetActual(GetFunction(userFun), userFun.Head.Interval);
             }
             
-            foreach (var equation in _treeAnalysis.OrderedEquations)
+            foreach (var equation in _tree.Equations)
             {
                 var reader = new SingleExpressionReader(_functions, _variables);
-                    
-                var expression = reader.ReadNode(equation.Equation.Expression);
-                //ReplaceInputType
-                _variables.GetSource(equation.Equation.Id).Type = expression.Type;
-                _equations.Add(new Equation
+                var expression = reader.ReadNode(equation.Expression);
+
+                var newSource = new VariableSource(equation.Id, VarType.Real, equation.Attributes)
                 {
-                    Expression = expression,
-                    Id = equation.Equation.Id,
-                    ReusingWithOtherEquations = equation.UsedInOtherEquations
-                });
+                    IsOutput = true
+                };
+                if (!_variables.TryAdd(newSource))
+                {
+                    //some equation referenced the source before
+                    var usages =  _variables.GetUsages(equation.Id);
+                    if(usages.Source.IsOutput)
+                        throw ErrorFactory.OutputNameWithDifferentCase(equation.Id, equation.Expression.Interval);
+                    else                        
+                        throw ErrorFactory.CannotUseOutputValueBeforeItIsDeclared(usages, equation.Id);
+                }
+                    
+                //ReplaceInputType
+                newSource.Type = expression.Type;
+                _equations.Add(new Equation(equation.Id, expression));
             }
         }
 

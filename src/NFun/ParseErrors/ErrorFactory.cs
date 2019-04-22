@@ -11,6 +11,7 @@ using NFun.Parsing;
 using NFun.Runtime;
 using NFun.Tokenization;
 using NFun.Types;
+using LexEquation = NFun.Parsing.LexEquation;
 
 namespace NFun.ParseErrors
 {
@@ -265,6 +266,8 @@ namespace NFun.ParseErrors
         public static Exception OutputNameDuplicates(string id, LexNode lexEquationExpression)
             => new FunParseException(331, $"{id}<-  output name duplicates ", lexEquationExpression.Interval);
 
+        public static Exception OutputNameWithDifferentCase(string id, Interval interval)
+            => new FunParseException(334, $"{id}<-  output name is same to name  {id}", interval);
         
         public static Exception InputNameWithDifferentCase(string id, LexNode lexEquationExpression)
             => new FunParseException(334, $"{lexEquationExpression.Value}<-  input name is same to name  {id}", lexEquationExpression.Interval);
@@ -480,6 +483,12 @@ namespace NFun.ParseErrors
             return new FunParseException(554, $"'Not equal array element types: {firstType} and {failureType}",
                 new Interval(elements[failureIndex-1].Interval.Start, elements[failureIndex].Interval.Finish));
         }
+
+        public static Exception CannotUseOutputValueBeforeItIsDeclared(VariableUsages usages, string equationId) 
+            => new FunParseException(560, $"Cannot use output value '{equationId}' before it is declared'",
+                usages.Nodes.First().Interval);
+
         #endregion
+
     }
 }

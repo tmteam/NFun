@@ -5,6 +5,7 @@ using NFun.Interpritation;
 using NFun.ParseErrors;
 using NFun.Parsing;
 using NFun.Runtime;
+using LexEquation = NFun.Parsing.LexEquation;
 
 namespace NFun.LexAnalyze
 {

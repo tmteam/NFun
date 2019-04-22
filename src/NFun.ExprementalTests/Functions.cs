@@ -5,7 +5,6 @@ using NFun.Types;
 
 namespace Tests
 {
-    
     public class IsGoodFunction : FunctionBase
     {
         public IsGoodFunction() : base("isGood", VarType.Bool, VarType.Anything)

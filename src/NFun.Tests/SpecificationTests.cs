@@ -185,22 +185,6 @@ dif = x1-x2";
             runtime.Calculate(Var.New("x1",10.0),Var.New("x2",2.5))
                 .AssertReturns(Var.New("sum",12.5),Var.New("dif",7.5));
         }
-        [Test]
-        public void Multiple_unorderedEquations()
-        {
-            var expr = @"
-y1 = (-b + d**0.5) /2*a #Используется d
-d  = b**2 - 4*a*c
-y2 = (-b - d**0.5) /2*a #используется d";
-            var runtime = FunBuilder.BuildDefault(expr);
-            Assert.AreEqual(3, runtime.Inputs.Length);
-            Assert.AreEqual(3, runtime.Outputs.Length);
-            runtime.Calculate(
-                    Var.New("a",1.0),Var.New("b",-8.0),Var.New("c",12.0))
-                .AssertReturns(Var.New("d",16.0),
-                    Var.New("y1",6.0),
-                    Var.New("y2",2.0));
-        }
 
         [Test]
         public void Multiple_DiscreeteEquations()

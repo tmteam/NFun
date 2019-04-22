@@ -205,6 +205,9 @@ namespace Funny.Tests
         [TestCase("1 \r2")]
         [TestCase("x*2 \rx*3")]
         [TestCase("=x*2")]
+        [TestCase("y = y")]
+        [TestCase("y = y+x")]
+
         public void ObviouslyFails(string expr) =>
             Assert.Throws<FunParseException>(
                 ()=> FunBuilder.BuildDefault(expr));
