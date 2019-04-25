@@ -9,7 +9,6 @@ using NFun.Parsing;
 using NFun.Runtime;
 using NFun.Tokenization;
 using NFun.Types;
-using LexEquation = NFun.Parsing.LexEquation;
 
 namespace NFun.ParseErrors
 {
