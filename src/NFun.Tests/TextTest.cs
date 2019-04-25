@@ -49,6 +49,8 @@ namespace Funny.Tests
         [TestCase("y='e\\\\mm\\''","e\\mm'")]
         [TestCase("y=' \\r\r'"," \r\r")]
         [TestCase("y='\t \\n\n'","\t \n\n")]
+        [TestCase("y='pre \\{lalala\\} after'","pre {lalala} after")]
+
         public void EscapedTest(string expr,string expected)
         {
             FunBuilder

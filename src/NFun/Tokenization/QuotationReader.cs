@@ -50,6 +50,8 @@ namespace NFun.Tokenization
                     case 't': symbol = '\t'; break;
                     case 'f': symbol = '\f'; break;
                     case 'v': symbol = '\v'; break;
+                    case '{': symbol = '{'; break;
+                    case '}': symbol = '}'; break;
                     default:
                         throw ErrorFactory.UnknownEscapeSequence(next.ToString(), i, i+2); 
                 }
