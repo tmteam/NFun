@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using NFun.ParseErrors;
-using NFun.Runtime;
 using NFun.Tokenization;
 using NFun.Types;
 
@@ -12,9 +11,9 @@ namespace NFun.Parsing
         public static LexTree Parse(TokenFlow flow)
         {
             var reader = new LexNodeReader(flow);
-            var equations = new List<LexEquation>();
-            var funs = new List<LexFunction>();
-            var varSpecifications = new List<VariableInfo>();
+            var roots = new List<ILexRoot>();
+            var functions = new List<LexFunction>();
+            var equationNames = new List<string>();
             while (true)
             {
                 flow.SkipNewLines();
@@ -33,9 +32,10 @@ namespace NFun.Parsing
                 
                 if(e.Is(LexNodeType.TypedVar))
                 {
+                    
                     //Input typed var specification
-                    varSpecifications.Add(
-                        new VariableInfo(e.Value, (VarType)e.AdditionalContent, attributes));                        
+                    roots.Add(
+                        new LexVarDefenition(e.Value, (VarType)e.AdditionalContent, attributes));                        
                 }
                 else if (flow.IsCurrent(TokType.Def) || flow.IsCurrent(TokType.Colon))
                 {
@@ -43,25 +43,27 @@ namespace NFun.Parsing
                     {
                         //equatation
                         flow.MoveNext();
-                        equations.Add(ReadEquation(flow, reader, e.Value,attributes));
+                        var equation = ReadEquation(flow, reader, e.Value, attributes);
+                        roots.Add(equation);
+                        equationNames.Add(equation.Id);
                     }
                     //Todo Make operator fun as separate node type
                     else if (e.Is(LexNodeType.Fun) && e.AdditionalContent == null)
                     {
+                        //fun
                         if (attributes.Any())
                             throw ErrorFactory.AttributeOnFunction(exprStart, e);
-                        //userFun
-                        funs.Add(ReadUserFunction(exprStart, e, flow, reader));
+                        functions.Add(ReadUserFunction(exprStart, e, flow, reader));
                     }
                     else
                         throw ErrorFactory.ExpressionBeforeTheDefenition(exprStart, e, flow.Current);
                 }
                 else
                 {
-
-                    if (equations.Any())
+                    //anonymous equation
+                    if (equationNames.Any())
                     {
-                        if (startOfTheString && equations[0].Id=="out")
+                        if (startOfTheString && equationNames[0]=="out")
                             throw ErrorFactory.OnlyOneAnonymousExpressionAllowed(exprStart, e, flow.Current);
                         else
                             throw ErrorFactory.UnexpectedExpression(e);
@@ -71,15 +73,16 @@ namespace NFun.Parsing
                         throw ErrorFactory.AnonymousExpressionHasToStartFromNewLine(exprStart, e, flow.Current);
                         
                     //anonymous
-                    equations.Add(new LexEquation("out", e, attributes));
+                    var equation = new LexEquation("out", e, attributes);
+                    equationNames.Add(equation.Id);
+                    roots.Add(equation);
                 }
             }
 
             return new LexTree
             {
-                UserFuns = funs.ToArray(),
-                Equations = equations.ToArray(),
-                VarSpecifications = varSpecifications.ToArray(),
+                Roots =  roots.ToArray(),
+                UserFuns = functions.ToArray()
             };
         }
 
@@ -141,7 +144,7 @@ namespace NFun.Parsing
             if (headNode.IsBracket)
                 throw ErrorFactory.UnexpectedBracketsOnFunDefenition( headNode, start,flow.Previous.Finish);
 
-            var arguments = new List<VariableInfo>();
+            var arguments = new List<LexVarDefenition>();
             foreach (var headNodeChild in headNode.Children)
             {
                 if(headNodeChild.Value==null)
@@ -151,7 +154,7 @@ namespace NFun.Parsing
                 if(headNodeChild.IsBracket)    
                     throw ErrorFactory.FunctionArgumentInBracketDefenition(start, headNode, headNodeChild, flow.Current);
 
-                arguments.Add(new VariableInfo(headNodeChild.Value, (VarType)(headNodeChild.AdditionalContent ?? VarType.Real)));
+                arguments.Add(new LexVarDefenition(headNodeChild.Value, (VarType)(headNodeChild.AdditionalContent ?? VarType.Real)));
             }
 
             VarType outputType;

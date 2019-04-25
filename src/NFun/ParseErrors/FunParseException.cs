@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using NFun.Tokenization;
 
 namespace NFun.ParseErrors

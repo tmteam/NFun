@@ -1,9 +1,8 @@
-using NFun.Tokenization;
 using NFun.Types;
 
 namespace NFun.Parsing
 {
-    public class LexFunction
+    public class LexFunction: ILexRoot
     {
         public LexFunction()
         {
@@ -12,7 +11,7 @@ namespace NFun.Parsing
         public VarType OutputType;
         public LexNode Head;
         public string Id => Head.Value;
-        public VariableInfo[] Args;
+        public LexVarDefenition[] Args;
         public LexNode Node;
     }
 }

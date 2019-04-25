@@ -2,14 +2,14 @@ using NFun.Types;
 
 namespace NFun.Parsing
 {
-    public class VariableInfo
+    public class LexVarDefenition: ILexRoot
     {
-        public readonly string Id;
+        public string Id { get; }
         public readonly VarType Type;
         public readonly VarAttribute[] Attributes;
+        
 
-
-        public VariableInfo(string id, VarType type, VarAttribute[] attributes = null)
+        public LexVarDefenition(string id, VarType type, VarAttribute[] attributes = null)
         {
             Id = id;
             Type = type;

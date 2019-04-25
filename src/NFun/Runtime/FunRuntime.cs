@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NFun.Interpritation;
-using NFun.Interpritation.Nodes;
 using NFun.Types;
 
 namespace NFun.Runtime

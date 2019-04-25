@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using NFun.Tokenization;
 using NFun.Types;
 

@@ -9,7 +9,7 @@ namespace NFun.Runtime
         public readonly VarAttribute[] Attributes;
         public readonly string Name;
 
-        public VariableSource(VariableInfo info)
+        public VariableSource(LexVarDefenition info)
         {
             Attributes = info.Attributes;
             Name = info.Id;

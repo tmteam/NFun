@@ -1,12 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using NFun.Interpritation.Functions;
-using NFun.Interpritation.Nodes;
-using NFun.LexAnalyze;
 using NFun.ParseErrors;
 using NFun.Parsing;
 using NFun.Runtime;
-using NFun.Tokenization;
 using NFun.Types;
 
 namespace NFun.Interpritation
@@ -49,50 +47,68 @@ namespace NFun.Interpritation
             _lexTreeUserFuns = tree.UserFuns;
             _tree = tree;
             _functions =  functions;
-            
-            _variables = new VariableDictionary(
-                tree.VarSpecifications.Select(v=> new VariableSource(v.Id,v.Type, v.Attributes)));
+            _variables = new VariableDictionary(); 
+           // _variables = new VariableDictionary(
+           //     tree.VarSpecifications.Select());
         }
         
         private void Interpritate()
         {
+
             foreach (var userFun in _lexTreeUserFuns)
             {
                 var prototype = GetFunctionPrototype(userFun);
                 if (!_functions.Add(prototype))
                     throw ErrorFactory.FunctionAlreadyExist(userFun);
             }
-
+            
             foreach (var userFun in _lexTreeUserFuns)
             {
                 var prototype = _functions.GetOrNull(userFun.Id, userFun.Args.Select(a=>a.Type).ToArray());
                 
                 ((FunctionPrototype)prototype).SetActual(GetFunction(userFun), userFun.Head.Interval);
             }
-            
-            foreach (var equation in _tree.Equations)
+            foreach (var lexRoot in _tree.Roots)
             {
-                var reader = new SingleExpressionReader(_functions, _variables);
-                var expression = reader.ReadNode(equation.Expression);
-
-                var newSource = new VariableSource(equation.Id, VarType.Real, equation.Attributes)
-                {
-                    IsOutput = true
-                };
-                if (!_variables.TryAdd(newSource))
-                {
-                    //some equation referenced the source before
-                    var usages =  _variables.GetUsages(equation.Id);
-                    if(usages.Source.IsOutput)
-                        throw ErrorFactory.OutputNameWithDifferentCase(equation.Id, equation.Expression.Interval);
-                    else                        
-                        throw ErrorFactory.CannotUseOutputValueBeforeItIsDeclared(usages, equation.Id);
+                if (lexRoot is LexEquation equation) {
+                    InterpriteEquation(equation);
                 }
-                    
-                //ReplaceInputType
-                newSource.Type = expression.Type;
-                _equations.Add(new Equation(equation.Id, expression));
+                else if (lexRoot is LexVarDefenition varDef)
+                {
+                    var variableSource = new VariableSource(varDef.Id, varDef.Type, varDef.Attributes);
+                    if (!_variables.TryAdd(variableSource))
+                    {
+                        var allUsages = _variables.GetUsages(variableSource.Name);
+                        
+                        throw ErrorFactory.VariableIsDeclaredAfterUsing(allUsages);
+                    }
+                }
+                else throw  new InvalidOperationException("Type "+ lexRoot+" is not supported as tree root");
             }
+        }
+
+        private void InterpriteEquation(LexEquation equation)
+        {
+            var reader = new SingleExpressionReader(_functions, _variables);
+            var expression = reader.ReadNode(equation.Expression);
+
+            var newSource = new VariableSource(equation.Id, VarType.Real, equation.Attributes)
+            {
+                IsOutput = true
+            };
+            if (!_variables.TryAdd(newSource))
+            {
+                //some equation referenced the source before
+                var usages = _variables.GetUsages(equation.Id);
+                if (usages.Source.IsOutput)
+                    throw ErrorFactory.OutputNameWithDifferentCase(equation.Id, equation.Expression.Interval);
+                else
+                    throw ErrorFactory.CannotUseOutputValueBeforeItIsDeclared(usages, equation.Id);
+            }
+
+            //ReplaceInputType
+            newSource.Type = expression.Type;
+            _equations.Add(new Equation(equation.Id, expression));
         }
 
         private FunctionPrototype GetFunctionPrototype(LexFunction lexFunction) 

@@ -15,8 +15,8 @@ namespace Funny.Tests
         {
             var parsed   = Parser.Parse(Tokenizer.ToFlow(text));
 
-            Assert.AreEqual(1, parsed.Equations.Length);
-            var Equation = parsed.Equations.First();
+            Assert.AreEqual(1, parsed.Roots.Length);
+            var Equation = parsed.Roots.OfType<LexEquation>().First();
             
             Assert.Multiple(() =>
             {
@@ -56,14 +56,14 @@ namespace Funny.Tests
             Assert.Multiple(()=>
             {
                 Assert.AreEqual(2, eq.UserFuns.Length);
-                Assert.AreEqual(2, eq.Equations.Length);
+                Assert.AreEqual(2, eq.Roots.Length);
             });
             
             var maxf = eq.UserFuns.Single(f => f.Id == "max");
             var max3f = eq.UserFuns.Single(f => f.Id == "max3");
 
-            var y1Equation = eq.Equations.Single(e => e.Id == "y1");
-            var y2Equation = eq.Equations.Single(e => e.Id == "y2");
+            var y1Equation = eq.Roots.OfType<LexEquation>().Single(e => e.Id == "y1");
+            var y2Equation = eq.Roots.OfType<LexEquation>().Single(e => e.Id == "y2");
             
             AssertParsed(maxf,"if (x>y) x else y", "x","y" );
             AssertParsed(max3f,"max(x,max(y,z))", "x","y","z" );

@@ -1,7 +1,5 @@
 using System.Collections.Generic;
-using System.Diagnostics.SymbolStore;
 using System.Linq;
-using System.Security.Principal;
 using NFun.Tokenization;
 using NFun.Types;
 

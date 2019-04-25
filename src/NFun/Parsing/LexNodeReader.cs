@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using NFun.BuiltInFunctions;
 using NFun.ParseErrors;
-using NFun.Runtime;
 using NFun.Tokenization;
 
 namespace NFun.Parsing

@@ -1,12 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Principal;
 using System.Text;
 using NFun.Interpritation;
 using NFun.Interpritation.Functions;
 using NFun.Interpritation.Nodes;
-using NFun.LexAnalyze;
 using NFun.Parsing;
 using NFun.Runtime;
 using NFun.Tokenization;
@@ -203,12 +201,12 @@ namespace NFun.ParseErrors
         
         public static Exception UnexpectedExpression(LexNode lexNode) 
             => new FunParseException(300,$"Unexpected expression {ErrorsHelper.ToString(lexNode)}", lexNode.Interval);
-        public static Exception FunDefTokenIsMissed(string funName, List<VariableInfo> arguments, Tok actual)
+        public static Exception FunDefTokenIsMissed(string funName, List<LexVarDefenition> arguments, Tok actual)
         {
             return new FunParseException(301, $"{ErrorsHelper.Signature(funName, arguments)} ??? . '=' def symbol is skipped but was {ErrorsHelper.ToString(actual)}{Nl}Example: {ErrorsHelper.Signature(funName, arguments)} = ...", 
                 actual.Start, actual.Finish);
         }
-        public static Exception FunExpressionIsMissed(string funName, List<VariableInfo> arguments, Interval interval) 
+        public static Exception FunExpressionIsMissed(string funName, List<LexVarDefenition> arguments, Interval interval) 
             => new FunParseException(304,
                 $"{ErrorsHelper.Signature(funName, arguments)} = ??? . Function body is missed {Nl}Example: {ErrorsHelper.Signature(funName, arguments)} = #place your body here", 
                 interval);
@@ -473,7 +471,7 @@ namespace NFun.ParseErrors
         public static Exception InvalidOutputType(FunctionBase function, Interval interval) 
             => new FunParseException(542, $"'{function.OutputType}' is not supported as output parameter of {function.Name}()", interval);
 
-        public static Exception FunctionArgumentDuplicates(LexFunction lexFunction, VariableInfo lexFunctionArg) 
+        public static Exception FunctionArgumentDuplicates(LexFunction lexFunction, LexVarDefenition lexFunctionArg) 
             => new FunParseException(545, $"'Argument name '{lexFunctionArg.Id}' duplicates at  {ErrorsHelper.Signature(lexFunction.Id, lexFunction.Args)} ", lexFunction.Head.Interval);
 
         public static Exception AnonymousFunctionArgumentDuplicates(FunArgumentExpressionNode argNode,LexNode funDefenition)
@@ -492,6 +490,11 @@ namespace NFun.ParseErrors
             => new FunParseException(560, $"Cannot use output value '{equationId}' before it is declared'",
                 usages.Nodes.First().Interval);
 
+        public static Exception VariableIsDeclaredAfterUsing(VariableUsages usages)
+            => new FunParseException(563, $"Variable '{usages.Source.Name}' used before it is declared'",
+                usages.Nodes.First().Interval);       
         #endregion
+
+       
     }
 }

@@ -1,6 +1,10 @@
 namespace NFun.Parsing
 {
-    public class LexEquation
+    public interface ILexRoot{
+        string Id { get; }
+
+    }
+    public class LexEquation: ILexRoot
     {
         public LexEquation(string id, LexNode expression, VarAttribute[] attributes)
         {

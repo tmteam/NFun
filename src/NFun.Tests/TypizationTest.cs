@@ -136,6 +136,8 @@ namespace Funny.Tests
         [TestCase("x:real \r y = [1..10][:x]")]
         [TestCase("x:real \r y = [1..10][:x:]")]
         [TestCase("x:real \r y = [1..10][::x]")]
+        [TestCase("y = x \r x:real ")]
+        [TestCase("z:real \r  y = x+z \r x:real ")]
         public void ObviouslyFailsWithParse(string expr) =>
             Assert.Throws<FunParseException>(
                 ()=> FunBuilder.BuildDefault(expr));

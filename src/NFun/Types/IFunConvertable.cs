@@ -1,5 +1,3 @@
-using System;
-
 namespace NFun.Types
 {
     public interface IFunConvertable

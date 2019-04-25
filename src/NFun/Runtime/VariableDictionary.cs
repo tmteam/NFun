@@ -21,6 +21,11 @@ namespace NFun.Runtime
             }
         }
         
+        /// <summary>
+        /// Returns false if variable is already registered
+        /// </summary>
+        /// <param name="source"></param>
+        /// <returns></returns>
         public bool TryAdd(VariableSource source)
         {
             var lower = source.Name.ToLower();
