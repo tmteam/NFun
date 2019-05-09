@@ -26,5 +26,5 @@ namespace NFun.Parsing
         public bool IsInBrackets { get; set; }
         public SyntaxNodeType Type => SyntaxNodeType.UserFunctionDefenition;
         public Interval Interval { get; set; }
-    }
+        public T Visit<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);    }
 }

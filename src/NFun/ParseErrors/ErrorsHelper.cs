@@ -31,7 +31,7 @@ namespace NFun.ParseErrors
        
         public static string CreateArgumentsStub(IEnumerable<ISyntaxNode> arguments)
         {
-            var argumentsStub = string.Join(",", arguments.Select(ToString));
+            var argumentsStub = string.Join(",", arguments.Select(ToShortText));
             return argumentsStub;
         }
         
@@ -41,32 +41,11 @@ namespace NFun.ParseErrors
 
         
         public static string Join(IEnumerable<ISyntaxNode> arguments) 
-            => string.Join(",", arguments);
+            => string.Join(",", arguments.Select(ToShortText));
 
 
-        public static string ToString(ISyntaxNode node)
-        {
-            /*
-            switch (node.Type)
-            {
-                case LexNodeType.Number: return node.Value;
-                case LexNodeType.Var: return node.Value;
-                case LexNodeType.Fun: return node.Value + "(...)";
-                case LexNodeType.IfThen: return "if...then...";
-                case LexNodeType.IfThanElse: return "if...then....else...";
-                case LexNodeType.Text: return $"\"{(node.Value.Length>20?(node.Value.Substring(17)+"..."):node.Value)}\"";
-                case LexNodeType.ArrayInit: return "[...]";
-                case LexNodeType.AnonymFun: return "(..)=>..";
-                case LexNodeType.TypedVar: return node.Value;
-                case LexNodeType.ListOfExpressions: return "(,)";
-                case LexNodeType.ProcArrayInit: return "[ .. ]";
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }*/
-            //todo visitor
-            return node.ToString();
-        }
-        public static string ToString(Tok tok)
+        public static string ToShortText(ISyntaxNode node) => node.Visit(new ShortDescritpionVisitor());
+        public static string ToText(Tok tok)
         {
             if (!string.IsNullOrWhiteSpace(tok.Value))
                 return tok.Value;

@@ -35,20 +35,20 @@ namespace NFun.ParseErrors
 
         private static readonly string Nl = Environment.NewLine;
         public static Exception UnaryArgumentIsMissing(Tok operatorTok)
-            => throw new FunParseException(301, $"{ErrorsHelper.ToString(operatorTok)} ???{Nl} right expression is missed{Nl} Example: {ErrorsHelper.ToString(operatorTok)} a",
+            => throw new FunParseException(301, $"{ErrorsHelper.ToText(operatorTok)} ???{Nl} right expression is missed{Nl} Example: {ErrorsHelper.ToText(operatorTok)} a",
                 operatorTok.Interval);
         public static Exception MinusDuplicates(Tok previousTok, Tok currentTok)
             => throw new FunParseException(304,$"'--' is not allowed",
                 previousTok.Start, currentTok.Finish);
         public static Exception LeftBinaryArgumentIsMissing(Tok token)
-            => throw new FunParseException(307,$"expression is missed before '{ErrorsHelper.ToString(token)}'",
+            => throw new FunParseException(307,$"expression is missed before '{ErrorsHelper.ToText(token)}'",
                 token.Interval);
         public static Exception RightBinaryArgumentIsMissing(ISyntaxNode leftNode, Tok @operator)
-            => throw new FunParseException(310,$"{ErrorsHelper.ToString(leftNode)} {ErrorsHelper.ToString(@operator)} ???. Right expression is missed{Nl} Example: {ErrorsHelper.ToString(leftNode)} {ErrorsHelper.ToString(@operator)} e",
+            => throw new FunParseException(310,$"{ErrorsHelper.ToShortText(leftNode)} {ErrorsHelper.ToText(@operator)} ???. Right expression is missed{Nl} Example: {ErrorsHelper.ToShortText(leftNode)} {ErrorsHelper.ToText(@operator)} e",
                 leftNode.Interval.Start, @operator.Finish);
 
         public static Exception OperatorIsUnknown(Tok token)
-            => throw new FunParseException(313,$"operator '{ErrorsHelper.ToString(token)}' is unknown",token.Interval);
+            => throw new FunParseException(313,$"operator '{ErrorsHelper.ToText(token)}' is unknown",token.Interval);
 
         public static Exception NotAToken(Tok token)
             => throw new FunParseException(314,$"'{token.Value}' is not valid fun element. What did you mean?", token.Interval);
@@ -73,7 +73,7 @@ namespace NFun.ParseErrors
                     finish);
             else
                 return new FunParseException(228,
-                    $"'[x,..???]. Array hi bound expected but was {ErrorsHelper.ToString(missedVal)}'{Nl} Example: a[1..2] or a[1..5..2]", start, finish);
+                    $"'[x,..???]. Array hi bound expected but was {ErrorsHelper.ToText(missedVal)}'{Nl} Example: a[1..2] or a[1..5..2]", start, finish);
         }
         public static Exception ArrayInitializeStepMissed(Tok openBracket, Tok lastToken, Tok missedVal)
         {
@@ -85,7 +85,7 @@ namespace NFun.ParseErrors
                     finish);
             else
                 return new FunParseException(234,
-                    $"'[x..y..???]. Array step expected but was {ErrorsHelper.ToString(missedVal)}'{Nl} Example: a[1..5..2]", start, finish);
+                    $"'[x..y..???]. Array step expected but was {ErrorsHelper.ToText(missedVal)}'{Nl} Example: a[1..5..2]", start, finish);
         }
         
         public static Exception ArrayIntervalInitializeCbrMissed(Tok openBracket, Tok lastToken, bool hasStep)
@@ -150,13 +150,13 @@ namespace NFun.ParseErrors
                     position);
 
             return new FunParseException(270,
-                $"{ErrorsHelper.ToString(pipedVal)}.{name}( ???. Close bracket ')' is missed{Nl} Example: {ErrorsHelper.ToString(pipedVal)}.{name}() or {name}({ErrorsHelper.ToString(pipedVal)})", 
+                $"{ErrorsHelper.ToShortText(pipedVal)}.{name}( ???. Close bracket ')' is missed{Nl} Example: {ErrorsHelper.ToShortText(pipedVal)}.{name}() or {name}({ErrorsHelper.ToShortText(pipedVal)})", 
                 funStart, 
                 position);
         }
 
         public static Exception TypeExpectedButWas(Tok token) 
-            => new FunParseException(271, $"Expected: type, but was {ErrorsHelper.ToString(token)}", token.Interval);
+            => new FunParseException(271, $"Expected: type, but was {ErrorsHelper.ToText(token)}", token.Interval);
 
         public static Exception ArrTypeCbrMissed(Interval interval)
             => new FunParseException(274, $"']' is missed on array type", interval);
@@ -206,11 +206,11 @@ namespace NFun.ParseErrors
         #region  3xx - hi level parsing
         
         public static Exception UnexpectedExpression(ISyntaxNode lexNode) 
-            => new FunParseException(300,$"Unexpected expression {ErrorsHelper.ToString(lexNode)}", lexNode.Interval);
+            => new FunParseException(300,$"Unexpected expression {ErrorsHelper.ToShortText(lexNode)}", lexNode.Interval);
 
         public static Exception FunDefTokenIsMissed(string funName, List<TypedVarDefSyntaxNode> arguments, Tok actual)
         {
-            return new FunParseException(301, $"{ErrorsHelper.Signature(funName, arguments)} ??? . '=' def symbol is skipped but was {ErrorsHelper.ToString(actual)}{Nl}Example: {ErrorsHelper.Signature(funName, arguments)} = ...", 
+            return new FunParseException(301, $"{ErrorsHelper.Signature(funName, arguments)} ??? . '=' def symbol is skipped but was {ErrorsHelper.ToText(actual)}{Nl}Example: {ErrorsHelper.Signature(funName, arguments)} = ...", 
                 actual.Start, actual.Finish);
         }
         
@@ -220,10 +220,10 @@ namespace NFun.ParseErrors
                 interval);
             
         public static Exception UnknownValueAtStartOfExpression(int exprStart, Tok flowCurrent) 
-            => new FunParseException(307,$"Unexpected symbol {ErrorsHelper.ToString(flowCurrent)}. Equation, anonymous equation, function or type defenition expected.", exprStart, flowCurrent.Finish);
+            => new FunParseException(307,$"Unexpected symbol {ErrorsHelper.ToText(flowCurrent)}. Equation, anonymous equation, function or type defenition expected.", exprStart, flowCurrent.Finish);
         
         public static Exception ExpressionBeforeTheDefenition(int exprStart, ISyntaxNode expression, Tok flowCurrent)
-            => new FunParseException(310,$"Unexpected expression {ErrorsHelper.ToString(expression)} before defenition. Equation, anonymous equation, function or type defenition expected.", exprStart, flowCurrent.Finish);
+            => new FunParseException(310,$"Unexpected expression {ErrorsHelper.ToShortText(expression)} before defenition. Equation, anonymous equation, function or type defenition expected.", exprStart, flowCurrent.Finish);
         
 
         public static Exception AnonymousExpressionHasToStartFromNewLine(int exprStart, ISyntaxNode lexNode, Tok flowCurrent)
@@ -411,7 +411,7 @@ namespace NFun.ParseErrors
             => new FunParseException(506, $"Unable to cast from {from} to {to}", interval);
       
         public static Exception InvalidArgTypeDefenition(ISyntaxNode argumentNode) 
-            => new FunParseException(506, ErrorsHelper.ToString(argumentNode) + " is  not valid fun arg", argumentNode.Interval);
+            => new FunParseException(506, ErrorsHelper.ToShortText(argumentNode) + " is  not valid fun arg", argumentNode.Interval);
 
         public static Exception AnonymousFunDefenitionIsMissing(ISyntaxNode node)
             => new FunParseException(509, "Anonymous fun defenition is missing", node.Interval);

@@ -20,6 +20,6 @@ namespace NFun.Parsing
         public SyntaxNodeType Type => SyntaxNodeType.GlobalVarDefenition;
         public Interval Interval { get; set; }
         public override string ToString() => Id + ":" + Type;
-
+        public T Visit<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
     }
 }

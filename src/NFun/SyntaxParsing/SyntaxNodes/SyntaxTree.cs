@@ -25,5 +25,5 @@ namespace NFun.Parsing
             get { return Interval.Unite(Nodes.First().Interval, Nodes.Last().Interval); }
             set => throw new System.NotImplementedException();
         }
-    }
+        public T Visit<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);    }
 }
