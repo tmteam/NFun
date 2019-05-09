@@ -261,6 +261,10 @@ namespace NFun.ParseErrors
         public static Exception OutputNameWithDifferentCase(string id, Interval interval)
             => new FunParseException(334, $"{id}<-  output name is same to name  {id}", interval);
         
+        public static Exception InputNameWithDifferentCase(string id, string actualName, Interval interval)
+            => new FunParseException(335, $"{actualName}<-  input name is same to name  {id}", interval);
+
+        
         #endregion
 
         #region  4xx - errors of lists
@@ -464,11 +468,11 @@ namespace NFun.ParseErrors
         public static Exception FunctionArgumentDuplicates(UserFunctionDefenitionSyntaxNode lexFunction, VarDefenitionSyntaxNode lexFunctionArg) 
             => new FunParseException(545, $"'Argument name '{lexFunctionArg.Id}' duplicates at  {ErrorsHelper.Signature(lexFunction.Id, lexFunction.Args)} ", lexFunction.Head.Interval);
 
-        public static Exception AnonymousFunctionArgumentDuplicates(FunArgumentExpressionNode argNode,UserFunctionDefenitionSyntaxNode funDefenition)
+        public static Exception AnonymousFunctionArgumentDuplicates(FunArgumentExpressionNode argNode,ISyntaxNode funDefenition)
             => new FunParseException(548, $"'Argument name '{argNode.Name}' of anonymous fun duplicates ", funDefenition.Interval);
 
-        public static Exception AnonymousFunctionArgumentConflictsWithOuterScope(FunArgumentExpressionNode argNode, UserFunctionDefenitionSyntaxNode funDefenition)
-            => new FunParseException(551, $"'Argument name '{argNode.Name}' of anonymous fun conflicts with outer scope variable. It is denied for your safety.", funDefenition.Interval);
+        public static Exception AnonymousFunctionArgumentConflictsWithOuterScope(FunArgumentExpressionNode argNode, ISyntaxNode defenitionNode)
+            => new FunParseException(551, $"'Argument name '{argNode.Name}' of anonymous fun conflicts with outer scope variable. It is denied for your safety.", defenitionNode.Interval);
         public static Exception VariousArrayElementTypes(IExpressionNode[] elements, int failureIndex) {
             var firstType = elements[0].Type;
             var failureType = elements[failureIndex].Type;

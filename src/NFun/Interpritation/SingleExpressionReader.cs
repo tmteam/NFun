@@ -12,13 +12,13 @@ using NFun.Types;
 
 namespace NFun.Interpritation
 {
-    class NSSingleExpressionReader
+    class SingleExpressionReader
     {
         private readonly FunctionsDictionary _functions;
-        private readonly NSVariableDictionary _variables;
-        public NSSingleExpressionReader(
+        private readonly VariableDictionary _variables;
+        public SingleExpressionReader(
             FunctionsDictionary functions, 
-            NSVariableDictionary variables)
+            VariableDictionary variables)
         {
             _functions = functions;
             _variables = variables;
@@ -46,22 +46,24 @@ namespace NFun.Interpritation
             throw ErrorFactory.NotAnExpression(node);
         }
 
-        private IExpressionNode GetAnonymFun(LexNode node)
+        private IExpressionNode GetAnonymFun(AnonymCallSyntaxNode node)
         {
-            var defenition = node.Children.ElementAtOrDefault(0);
-            if (defenition == null)
+            if (node.Defenition==null)
                 throw ErrorFactory.AnonymousFunDefenitionIsMissing(node);
 
-            var expression = node.Children.ElementAtOrDefault(1);
-            if(expression== null)
+            if(node.Body==null)
                 throw ErrorFactory.AnonymousFunBodyIsMissing(node);
             
+            
             //Anonym fun arguments list
-            var argumentLexNodes = defenition.Type == SyntaxNodeType.ListOfExpressions
+
+            ISyntaxNode[] argumentLexNodes;
+            if (node.Defenition is ListOfExpressionsSyntaxNode list)
                 //it can be comlex: (x1,x2,x3)=>...
-                ? defenition.Children
-                //or primitive x1 => ...
-                : new[] {defenition};
+                argumentLexNodes = list.Expressions;
+            else
+                //or primitive: x1 => ...
+                argumentLexNodes = new[] {node.Defenition};
             
             //Prepare local variable scope
             //Capture all outerscope variables
@@ -81,15 +83,15 @@ namespace NFun.Interpritation
 
                     //If outer-scope contains the conflict variable name
                     if (_variables.GetSourceOrNull(varNode.Name) != null)
-                        throw ErrorFactory.AnonymousFunctionArgumentConflictsWithOuterScope(varNode, defenition);
+                        throw ErrorFactory.AnonymousFunctionArgumentConflictsWithOuterScope(varNode, node.Defenition);
                     else //else it is duplicated arg name
-                        throw ErrorFactory.AnonymousFunctionArgumentDuplicates(varNode, defenition);
+                        throw ErrorFactory.AnonymousFunctionArgumentDuplicates(varNode, node.Defenition);
                 }
             }
 
             var originVariables = localVariables.GetAllSources().Select(s=>s.Name).ToArray();
             var scope = new SingleExpressionReader(_functions, localVariables);
-            var expr = scope.ReadNode(expression);
+            var expr = scope.ReadNode(node.Body);
 
             //New variables are new closured
             var closured =  localVariables.GetAllUsages()
@@ -104,12 +106,12 @@ namespace NFun.Interpritation
             return new FunVariableExpressionNode(fun, node.Interval);
         }
         
-        private FunArgumentExpressionNode ConvertToArgumentNodeOrThrow(LexNode node)
+        private FunArgumentExpressionNode ConvertToArgumentNodeOrThrow(ISyntaxNode node)
         {
-            if (node.Type == SyntaxNodeType.Var)
-                return new FunArgumentExpressionNode(node.Value, VarType.Real, node.Interval);
-            if (node.Type == SyntaxNodeType.TypedVar)
-                return new FunArgumentExpressionNode(node.Value, (VarType) node.AdditionalContent, node.Interval);
+            if(node is VariableSyntaxNode varNode)
+                return new FunArgumentExpressionNode(varNode.Value, VarType.Real, node.Interval);
+            if(node is TypedVarDefSyntaxNode typeVarNode)
+                return new FunArgumentExpressionNode(typeVarNode.Name, typeVarNode.VarType, node.Interval);
             
             throw ErrorFactory.InvalidArgTypeDefenition(node);
         }
@@ -125,24 +127,22 @@ namespace NFun.Interpritation
                 if (funVars.Count == 1)
                     return new FunVariableExpressionNode(funVars[0], varNode.Interval);
             }
-            var node = _variables.CreateVarNode(varNode);
+            var node = _variables.CreateVarNode(varNode.Value, varNode.Interval);
             if(node.Source.Name!= varNode.Value)
-                throw ErrorFactory.InputNameWithDifferentCase(varNode.Value, varNode);
+                throw ErrorFactory.InputNameWithDifferentCase(varNode.Value, node.Source.Name, varNode.Interval);
             return node;
         }
         
-        private IExpressionNode GetProcedureArrayNode(LexNode node)
+        private IExpressionNode GetProcedureArrayNode(ProcArrayInit node)
         {
-            var start = ReadNode(node.Children.ElementAt(0));
+            var start = ReadNode(node.From);
             
-            var end = ReadNode(node.Children.ElementAt(1));
+            var end = ReadNode(node.To);
             
-            var stepOrNull = node.Children.ElementAtOrDefault(2);
-
-            if (stepOrNull == null)
+            if (node.Step == null)
                 return new RangeIntFunction().CreateWithConvertionOrThrow(new[] {start, end}, node.Interval);
 
-            var step = ReadNode(stepOrNull);
+            var step = ReadNode(node.Step);
             if(step.Type== VarType.Real)
                return new RangeWithStepRealFunction().CreateWithConvertionOrThrow(new[] {start, end, step},node.Interval);
             
@@ -152,29 +152,29 @@ namespace NFun.Interpritation
             
             return new RangeWithStepIntFunction().CreateWithConvertionOrThrow(new[] {start, end, step},node.Interval);
         }
-        private IExpressionNode GetArrayNode(LexNode node)
+        private IExpressionNode GetArrayNode(ArraySyntaxNode node)
         {
-            var nodes = node.Children.Select(ReadNode).ToArray();
+            var nodes = node.Expressions.Select(ReadNode).ToArray();
             return new ArrayExpressionNode(nodes,node.Interval);
         }
-        private IExpressionNode GetIfThanElseNode(LexNode node)
+        private IExpressionNode GetIfThanElseNode(IfThenElseSyntaxNode node)
         {
             var ifNodes = new List<IfCaseExpressionNode>();
-            foreach (var ifNode in node.Children.Where(c => c.Is(SyntaxNodeType.IfThen)))
+            foreach (var ifNode in node.Ifs)
             {
-                var condition = ReadNode(ifNode.Children.First());
-                var expr = ReadNode(ifNode.Children.Last());
+                var condition = ReadNode(ifNode.Condition);
+                var expr = ReadNode(ifNode.Expr);
                 ifNodes.Add(new IfCaseExpressionNode(condition, expr,node.Interval));
             }
 
-            var elseNode = ReadNode(node.Children.Last());
+            var elseNode = ReadNode(node.ElseExpr);
             return new IfThanElseExpressionNode(ifNodes.ToArray(), elseNode,elseNode.Interval);
         }
 
-        private static IExpressionNode GetTextValueNode(LexNode node) 
+        private static IExpressionNode GetTextValueNode(TextSyntaxNode node) 
             => new ValueExpressionNode(node.Value, node.Interval);
 
-        private static IExpressionNode GetValueNode(LexNode node)
+        private static IExpressionNode GetValueNode(NumberSyntaxNode node)
         {
             var val = node.Value;
             try
@@ -197,13 +197,13 @@ namespace NFun.Interpritation
             }
         }
 
-        private IExpressionNode GetFunNode(LexNode node)
+        private IExpressionNode GetFunNode(FunCallSyntaxNode node)
         {
             var id = node.Value;//.ToLower();
             
             var children= new List<IExpressionNode>();
             var childrenTypes = new List<VarType>();
-            foreach (var argLexNode in node.Children)
+            foreach (var argLexNode in node.Args)
             {
                 var argNode = ReadNode(argLexNode);
                 children.Add(argNode);
@@ -212,7 +212,7 @@ namespace NFun.Interpritation
 
             var function = _functions.GetOrNull(id, childrenTypes.ToArray());
             if (function == null)
-                throw ErrorFactory.FunctionNotFound(node, children, _functions);
+                throw ErrorFactory.FunctionNotFound( node.Value, node.Interval, children, _functions);
             return function.CreateWithConvertionOrThrow(children, node.Interval);
         }
     }

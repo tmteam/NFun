@@ -87,12 +87,12 @@ namespace NFun.Parsing
 
     public class IfThenSyntaxNode : ISyntaxNode
     {
-        public ISyntaxNode Test { get; }
+        public ISyntaxNode Condition { get; }
         public ISyntaxNode Expr { get; }
 
-        public IfThenSyntaxNode(ISyntaxNode test, ISyntaxNode expr, Interval interval)
+        public IfThenSyntaxNode(ISyntaxNode condition, ISyntaxNode expr, Interval interval)
         {
-            Test = test;
+            Condition = condition;
             Expr = expr;
             Interval = interval;
         }

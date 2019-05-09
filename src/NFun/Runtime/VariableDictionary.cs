@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NFun.Interpritation.Nodes;
 using NFun.Parsing;
+using NFun.Tokenization;
 using NFun.Types;
 
 namespace NFun.Runtime
@@ -59,15 +60,15 @@ namespace NFun.Runtime
         private readonly Dictionary<string,VariableUsages> _variables 
             = new Dictionary<string, VariableUsages>();
         
-        public VariableExpressionNode CreateVarNode(LexNode varName)
+        public VariableExpressionNode CreateVarNode(string id, Interval interval)
         {
-            var name = varName.Value.ToLower();
+            var name = id.ToLower();
             if (!_variables.ContainsKey(name))
             {
-                var source = new VariableSource(varName.Value, VarType.Real);
+                var source = new VariableSource(id, VarType.Real);
                 _variables.Add(name, new VariableUsages(source));
             }
-            var node = new VariableExpressionNode(_variables[name].Source,varName.Interval);
+            var node = new VariableExpressionNode(_variables[name].Source,interval);
             _variables[name].Nodes.AddLast(node);
             return node;
         }
