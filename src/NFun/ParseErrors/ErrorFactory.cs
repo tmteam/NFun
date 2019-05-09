@@ -203,6 +203,10 @@ namespace NFun.ParseErrors
                 start,end);
         }
         
+        
+        public static Exception AttributeOnFunction(int exprStart, FunCallSyntaxNode lexNode) 
+            => new FunParseException(286,$"Function cannot has attributes.", lexNode.Interval);
+
         public static Exception AttributeOnFunction(int exprStart, LexNode lexNode) 
             => new FunParseException(286,$"Function cannot has attributes.", lexNode.Interval);
 
@@ -231,11 +235,26 @@ namespace NFun.ParseErrors
         
         public static Exception UnexpectedExpression(LexNode lexNode) 
             => new FunParseException(300,$"Unexpected expression {ErrorsHelper.ToString(lexNode)}", lexNode.Interval);
+        public static Exception UnexpectedExpression(ISyntaxNode lexNode) 
+            => new FunParseException(300,$"Unexpected expression {ErrorsHelper.ToString(lexNode)}", lexNode.Interval);
+
+        public static Exception FunDefTokenIsMissed(string funName, List<VarDefenitionSyntaxNode> arguments, Tok actual)
+        {
+            return new FunParseException(301, $"{ErrorsHelper.Signature(funName, arguments)} ??? . '=' def symbol is skipped but was {ErrorsHelper.ToString(actual)}{Nl}Example: {ErrorsHelper.Signature(funName, arguments)} = ...", 
+                actual.Start, actual.Finish);
+        }
+        
         public static Exception FunDefTokenIsMissed(string funName, List<LexVarDefenition> arguments, Tok actual)
         {
             return new FunParseException(301, $"{ErrorsHelper.Signature(funName, arguments)} ??? . '=' def symbol is skipped but was {ErrorsHelper.ToString(actual)}{Nl}Example: {ErrorsHelper.Signature(funName, arguments)} = ...", 
                 actual.Start, actual.Finish);
         }
+        
+        public static Exception FunExpressionIsMissed(string funName, List<VarDefenitionSyntaxNode> arguments, Interval interval) 
+            => new FunParseException(304,
+                $"{ErrorsHelper.Signature(funName, arguments)} = ??? . Function body is missed {Nl}Example: {ErrorsHelper.Signature(funName, arguments)} = #place your body here", 
+                interval);
+            
         public static Exception FunExpressionIsMissed(string funName, List<LexVarDefenition> arguments, Interval interval) 
             => new FunParseException(304,
                 $"{ErrorsHelper.Signature(funName, arguments)} = ??? . Function body is missed {Nl}Example: {ErrorsHelper.Signature(funName, arguments)} = #place your body here", 
@@ -243,35 +262,58 @@ namespace NFun.ParseErrors
 
         public static Exception UnknownValueAtStartOfExpression(int exprStart, Tok flowCurrent) 
             => new FunParseException(307,$"Unexpected symbol {ErrorsHelper.ToString(flowCurrent)}. Equation, anonymous equation, function or type defenition expected.", exprStart, flowCurrent.Finish);
+        
+        public static Exception ExpressionBeforeTheDefenition(int exprStart, ISyntaxNode expression, Tok flowCurrent)
+            => new FunParseException(310,$"Unexpected expression {ErrorsHelper.ToString(expression)} before defenition. Equation, anonymous equation, function or type defenition expected.", exprStart, flowCurrent.Finish);
+        
         public static Exception ExpressionBeforeTheDefenition(int exprStart, LexNode expression, Tok flowCurrent)
             => new FunParseException(310,$"Unexpected expression {ErrorsHelper.ToString(expression)} before defenition. Equation, anonymous equation, function or type defenition expected.", exprStart, flowCurrent.Finish);
 
+        public static Exception AnonymousExpressionHasToStartFromNewLine(int exprStart, ISyntaxNode lexNode, Tok flowCurrent)
+            =>   throw new FunParseException(313,$"Anonymous equation should start from new line. {Nl}Example : y:int{Nl}y+1 #out = y:int+1", exprStart, flowCurrent.Finish);
+        
         public static Exception AnonymousExpressionHasToStartFromNewLine(int exprStart, LexNode lexNode, Tok flowCurrent)
             =>   throw new FunParseException(313,$"Anonymous equation should start from new line. {Nl}Example : y:int{Nl}y+1 #out = y:int+1", exprStart, flowCurrent.Finish);
-
+        
+        public static Exception OnlyOneAnonymousExpressionAllowed(int exprStart, ISyntaxNode lexNode, Tok flowCurrent)
+            =>   throw new FunParseException(316,$"Only one anonymous equation allowed", exprStart, flowCurrent.Finish);
         public static Exception OnlyOneAnonymousExpressionAllowed(int exprStart, LexNode lexNode, Tok flowCurrent)
             =>   throw new FunParseException(316,$"Only one anonymous equation allowed", exprStart, flowCurrent.Finish);
+        public static Exception UnexpectedBracketsOnFunDefenition(FunCallSyntaxNode headNode, int start, int finish)
+            => new FunParseException(319, $"Unexpected brackets on function defenition ({headNode.Value}(...))=... {Nl}Example: {headNode.Value}(...)=...", 
+                start, finish);
         public static Exception UnexpectedBracketsOnFunDefenition(LexNode headNode, int start, int finish)
             => new FunParseException(319, $"Unexpected brackets on function defenition ({headNode.Value}(...))=... {Nl}Example: {headNode.Value}(...)=...", 
                 start, finish);
 
         
-        public static Exception WrongFunctionArgumentDefenition(int start, LexNode headNode, LexNode headNodeChild,
+        public static Exception WrongFunctionArgumentDefenition(int start, FunCallSyntaxNode headNode, ISyntaxNode headNodeChild,
             Tok flowCurrent)
         {
-            StringBuilder sb = new StringBuilder();
-            foreach (var child in headNode.Children)
-            {
-                if (child == headNodeChild)
-                    sb.Append("???");
-                else if (child.Is(LexNodeType.Var))
-                    sb.Append(child.Value);
-                if (headNode.Children.Last() != child)
-                    sb.Append(",");
-            }
+            var sb = ErrorsHelper.ToFailureFunString(headNode, headNodeChild);
             return new FunParseException(322,
                     $"{headNode.Value}({sb}) = ... {Nl} Function argument is invalid. Variable name (with optional type) expected", 
                     headNodeChild.Interval);
+        }
+        
+        public static Exception WrongFunctionArgumentDefenition(int start, LexNode headNode, LexNode headNodeChild,
+            Tok flowCurrent)
+        {
+            var sb = ErrorsHelper.ToFailureFunString(headNode, headNodeChild);
+            return new FunParseException(322,
+                $"{headNode.Value}({sb}) = ... {Nl} Function argument is invalid. Variable name (with optional type) expected", 
+                headNodeChild.Interval);
+        }
+
+
+        public static Exception FunctionArgumentInBracketDefenition(int start, FunCallSyntaxNode headNode, ISyntaxNode headNodeChild,
+            Tok flowCurrent)
+        {
+            var sb = ErrorsHelper.ToFailureFunString(headNode, headNodeChild);
+
+            return new FunParseException(325,
+                $"{headNode.Value}({sb.ToString()}) = ... {Nl} Function argument is in bracket. Variable name (with optional type) without brackets expected", 
+                headNodeChild.Interval.Start, headNodeChild.Interval.Finish);
         }
         public static Exception FunctionArgumentInBracketDefenition(int start, LexNode headNode, LexNode headNodeChild,
             Tok flowCurrent)

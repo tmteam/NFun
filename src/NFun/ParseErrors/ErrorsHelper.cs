@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using NFun.Parsing;
 using NFun.Tokenization;
 
@@ -8,6 +9,40 @@ namespace NFun.ParseErrors
 {
     public static class ErrorsHelper
     {
+        public static string ToFailureFunString(FunCallSyntaxNode headNode, ISyntaxNode headNodeChild)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (var child in headNode.Args)
+            {
+                if (child == headNodeChild)
+                    sb.Append("???");
+                if (child is VarDefenitionSyntaxNode varDef)
+                    sb.Append(varDef.Id);
+                else if (child is VariableSyntaxNode varSyntax)
+                    sb.Append(varSyntax.Value);
+
+                if (headNode.Args.Last() != child)
+                    sb.Append(",");
+            }
+
+            return sb.ToString();
+        }
+        public static string ToFailureFunString(LexNode headNode, LexNode headNodeChild)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (var child in headNode.Children)
+            {
+                if (child == headNodeChild)
+                    sb.Append("???");
+                else
+                    sb.Append(child.Value);
+
+                if (headNode.Children.Last() != child)
+                    sb.Append(",");
+            }
+
+            return sb.ToString();
+        }
         public static string CreateArgumentsStub(IEnumerable<LexNode> arguments)
         {
             var argumentsStub = string.Join(",", arguments.Select(ToString));
@@ -18,8 +53,18 @@ namespace NFun.ParseErrors
             var argumentsStub = string.Join(",", arguments.Select(ToString));
             return argumentsStub;
         }
+        
+        
+        public static string Signature(string funName, IEnumerable<ISyntaxNode> arguments) 
+            => $"{funName}({Join(arguments)})";
+
+        
         public static string Signature(string funName, IEnumerable<LexVarDefenition> arguments) 
             => $"{funName}({Join(arguments)})";
+
+        
+        public static string Join(IEnumerable<ISyntaxNode> arguments) 
+            => string.Join(",", arguments);
 
         public static string Join(IEnumerable<LexVarDefenition> arguments) 
             => string.Join(",", arguments);

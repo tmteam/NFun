@@ -109,6 +109,10 @@ namespace NFun.Parsing
         AnonymFun,
         TypedVar,
         ListOfExpressions,
-        ProcArrayInit
+        ProcArrayInit,
+        Equation,
+        GlobalVarDefenition,
+        UserFunctionDefenition,
+        SyntaxTree
     }
 }
