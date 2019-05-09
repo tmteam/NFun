@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NFun.Tokenization;
 
 namespace NFun.Parsing
@@ -18,5 +19,9 @@ namespace NFun.Parsing
         public ISyntaxNode[] Args { get; }
         public Interval Interval { get; set; }
         public bool IsOperator { get; }
-        public T Visit<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);    }
+        public T Visit<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
+        
+        public IEnumerable<ISyntaxNode> Children => Args;
+
+    }
 }

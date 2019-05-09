@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NFun.Tokenization;
 
 namespace NFun.Parsing
@@ -19,5 +20,17 @@ namespace NFun.Parsing
         public bool IsInBrackets { get; set; }
         public SyntaxNodeType Type => SyntaxNodeType.ProcArrayInit;
         public Interval Interval { get; set; }
-        public T Visit<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);    }
+        public T Visit<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
+
+        public IEnumerable<ISyntaxNode> Children
+        {
+            get
+            {
+                yield return From;
+                yield return To;
+                if (Step != null)
+                    yield return Step;
+            }
+        }
+    }
 }

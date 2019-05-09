@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NFun.Tokenization;
 
 namespace NFun.Parsing
@@ -18,5 +19,6 @@ namespace NFun.Parsing
         public SyntaxNodeType Type => SyntaxNodeType.AnonymFun;
         public Interval Interval { get; set; }
         public T Visit<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
+        public IEnumerable<ISyntaxNode> Children => new[] {Defenition, Body};
     }
 }

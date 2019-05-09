@@ -103,6 +103,7 @@ namespace NFun.Parsing
                 {TokType.ArrConcat, CoreFunNames.ArrConcat},
                 {TokType.In,CoreFunNames.In},
             };
+        
         public SyntaxNodeReader(TokenFlow flow)
         {
             _flow = flow;

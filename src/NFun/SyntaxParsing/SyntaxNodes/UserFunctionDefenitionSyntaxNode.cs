@@ -21,10 +21,24 @@ namespace NFun.Parsing
         }
 
         public string Id => Head.Value;
-        public IList<TypedVarDefSyntaxNode>  Args { get; set; }
-        public ISyntaxNode Node { get; set; }
+        public IList<TypedVarDefSyntaxNode>  Args { get;  }
+        public ISyntaxNode Node { get; }
         public bool IsInBrackets { get; set; }
         public SyntaxNodeType Type => SyntaxNodeType.UserFunctionDefenition;
         public Interval Interval { get; set; }
-        public T Visit<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);    }
+        public T Visit<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
+
+        public IEnumerable<ISyntaxNode> Children
+        {
+            get
+            {
+                yield return Head;
+                foreach (var typedVarDefSyntaxNode in Args)
+                {
+                    yield return typedVarDefSyntaxNode;
+                }
+            }
+        }
+
+    }
 }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NFun.Tokenization;
 using NFun.Types;
 
@@ -21,5 +22,7 @@ namespace NFun.Parsing
         public Interval Interval { get; set; }
         public override string ToString() => Id + ":" + Type;
         public T Visit<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
+        public IEnumerable<ISyntaxNode> Children => new ISyntaxNode[0];
+
     }
 }

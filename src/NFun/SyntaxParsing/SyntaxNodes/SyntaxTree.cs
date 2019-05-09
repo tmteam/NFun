@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using NFun.Tokenization;
 
@@ -25,5 +26,8 @@ namespace NFun.Parsing
             get { return Interval.Unite(Nodes.First().Interval, Nodes.Last().Interval); }
             set => throw new System.NotImplementedException();
         }
-        public T Visit<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);    }
+        public T Visit<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
+
+        public IEnumerable<ISyntaxNode> Children => Nodes;
+    }
 }
