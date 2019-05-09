@@ -13,12 +13,22 @@ namespace NFun.ParseErrors
             var argumentsStub = string.Join(",", arguments.Select(ToString));
             return argumentsStub;
         }
-
+        public static string CreateArgumentsStub(IEnumerable<ISyntaxNode> arguments)
+        {
+            var argumentsStub = string.Join(",", arguments.Select(ToString));
+            return argumentsStub;
+        }
         public static string Signature(string funName, IEnumerable<LexVarDefenition> arguments) 
             => $"{funName}({Join(arguments)})";
 
         public static string Join(IEnumerable<LexVarDefenition> arguments) 
             => string.Join(",", arguments);
+
+        public static string ToString(ISyntaxNode node)
+        {
+            //todo visitor
+            return node.ToString();
+        }
         public  static string ToString(LexNode node)
         {
             switch (node.Type)

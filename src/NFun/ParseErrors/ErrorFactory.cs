@@ -46,7 +46,10 @@ namespace NFun.ParseErrors
         public static Exception RightBinaryArgumentIsMissing(LexNode leftNode, Tok @operator)
             => throw new FunParseException(310,$"{ErrorsHelper.ToString(leftNode)} {ErrorsHelper.ToString(@operator)} ???. Right expression is missed{Nl} Example: {ErrorsHelper.ToString(leftNode)} {ErrorsHelper.ToString(@operator)} e",
                 leftNode.Start, @operator.Finish);
-        
+        public static Exception RightBinaryArgumentIsMissing(ISyntaxNode leftNode, Tok @operator)
+            => throw new FunParseException(310,$"{ErrorsHelper.ToString(leftNode)} {ErrorsHelper.ToString(@operator)} ???. Right expression is missed{Nl} Example: {ErrorsHelper.ToString(leftNode)} {ErrorsHelper.ToString(@operator)} e",
+                leftNode.Interval.Start, @operator.Finish);
+
         public static Exception OperatorIsUnknown(Tok token)
             => throw new FunParseException(313,$"operator '{ErrorsHelper.ToString(token)}' is unknown",token.Interval);
 
@@ -132,6 +135,7 @@ namespace NFun.ParseErrors
         public static Exception IfKeywordIsMissing(int ifelseStart, int end)
             => new FunParseException(261,$"if (a) b (if) ...  'if' is missing{Nl} Example: if (a) b if (c) d else c ", ifelseStart, end);
 
+        
         public static Exception IfConditionIsNotInBrackets(int ifelseStart, int end)
             => new FunParseException(264,$"If condition is not in brackets{Nl} Example: if (a) b  else c ", ifelseStart, end);
         
@@ -152,6 +156,20 @@ namespace NFun.ParseErrors
                 funStart, 
                 position);
         }
+        
+        public static Exception FunctionCallObrMissed(int funStart, string name, int position,ISyntaxNode pipedVal)
+        {
+            if(pipedVal==null)
+                return new FunParseException(267,
+                    $"{name}( ???. Close bracket ')' is missed{Nl} Example: {name}()", 
+                    funStart, 
+                    position);
+
+            return new FunParseException(270,
+                $"{ErrorsHelper.ToString(pipedVal)}.{name}( ???. Close bracket ')' is missed{Nl} Example: {ErrorsHelper.ToString(pipedVal)}.{name}() or {name}({ErrorsHelper.ToString(pipedVal)})", 
+                funStart, 
+                position);
+        }
 
         public static Exception TypeExpectedButWas(Tok token) 
             => new FunParseException(271, $"Expected: type, but was {ErrorsHelper.ToString(token)}", token.Interval);
@@ -159,10 +177,23 @@ namespace NFun.ParseErrors
         public static Exception ArrTypeCbrMissed(Interval interval)
             => new FunParseException(274, $"']' is missed on array type", interval);
         
+        public static Exception BracketExpressionMissed(int start, int end, IList<ISyntaxNode> arguments)
+        {
+            var argumentsStub = ErrorsHelper.CreateArgumentsStub(arguments);
+            return new FunParseException(282,$"({argumentsStub}???) {Nl}Expression inside the brackets is missed{Nl} Example: ({argumentsStub})", 
+                start,end);
+        }
         public static Exception BracketExpressionMissed(int start, int end, IList<LexNode> arguments)
         {
             var argumentsStub = ErrorsHelper.CreateArgumentsStub(arguments);
             return new FunParseException(282,$"({argumentsStub}???) {Nl}Expression inside the brackets is missed{Nl} Example: ({argumentsStub})", 
+                start,end);
+        }
+        
+        public static Exception ExpressionListMissed(int start, int end, IList<ISyntaxNode> arguments)
+        {
+            var argumentsStub = ErrorsHelper.CreateArgumentsStub(arguments);
+            return new FunParseException(283,$"({argumentsStub}???) {Nl}Expression inside the brackets is missed{Nl} Example: ({argumentsStub})", 
                 start,end);
         }
         public static Exception ExpressionListMissed(int start, int end, IList<LexNode> arguments)

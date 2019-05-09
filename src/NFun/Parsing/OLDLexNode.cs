@@ -8,6 +8,14 @@ namespace NFun.Parsing
     public class LexNode
     {
         #region factories
+        public static LexNode AnonymFun(LexNode defenition, LexNode body) 
+            => new LexNode(
+                LexNodeType.AnonymFun, 
+                null, 
+                defenition.Start, 
+                body.Finish,
+                defenition, 
+                body);
         public static LexNode IfElse(IEnumerable<LexNode> ifThenNodes, LexNode elseResult, int start, int end) 
             => new LexNode(LexNodeType.IfThanElse,null, start, end, ifThenNodes.Append(elseResult).ToArray());
         public static LexNode IfThen(LexNode condition, LexNode expression, int start, int end)
@@ -43,11 +51,6 @@ namespace NFun.Parsing
         public static LexNode OperatorFun(string name, LexNode[] children, int start, int end) 
             => new LexNode(LexNodeType.Fun,  name, start, end, children){AdditionalContent = true};
         
-        public static LexNode Bracket(LexNode node)
-        {
-            node.IsBracket = true;
-            return node;
-        }
       
         #endregion
 
@@ -91,14 +94,7 @@ namespace NFun.Parsing
                 return $"{Typename}( {string.Join<string>(",", Children.Select(c => c.ToString()))})";
         }
 
-        public static LexNode AnonymFun(LexNode defenition, LexNode body) 
-            => new LexNode(
-                LexNodeType.AnonymFun, 
-                null, 
-                defenition.Start, 
-                body.Finish,
-                defenition, 
-                body);
+    
     }
 
     public enum LexNodeType
