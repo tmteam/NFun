@@ -9,7 +9,7 @@ namespace NFun.Parsing
         public VarType OutputType;
         public FunCallSyntaxNode Head;
 
-        public UserFunctionDefenitionSyntaxNode(IList<VarDefenitionSyntaxNode> arguments, 
+        public UserFunctionDefenitionSyntaxNode(IList<TypedVarDefSyntaxNode> arguments, 
             FunCallSyntaxNode headNode, 
             ISyntaxNode expression, 
             VarType outputType)
@@ -21,9 +21,9 @@ namespace NFun.Parsing
         }
 
         public string Id => Head.Value;
-        public IList<VarDefenitionSyntaxNode>  Args { get; set; }
+        public IList<TypedVarDefSyntaxNode>  Args { get; set; }
         public ISyntaxNode Node { get; set; }
-        public bool IsBracket { get; set; }
+        public bool IsInBrackets { get; set; }
         public SyntaxNodeType Type => SyntaxNodeType.UserFunctionDefenition;
         public Interval Interval { get; set; }
     }

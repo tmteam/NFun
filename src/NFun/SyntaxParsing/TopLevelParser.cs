@@ -8,7 +8,7 @@ namespace NFun.Parsing
 {
     public static class TopLevelParser
     {
-        public static ISyntaxNode Parse(TokenFlow flow)
+        public static SyntaxTree Parse(TokenFlow flow)
         {
             var reader = new SyntaxNodeReader(flow);
             var nodes = new List<ISyntaxNode>();
@@ -35,7 +35,7 @@ namespace NFun.Parsing
                     
                     //Input typed var specification
                     nodes.Add(
-                        new VarDefenitionSyntaxNode(typed.Name, typed.VarType, attributes));                        
+                        new VarDefenitionSyntaxNode(typed, attributes));                        
                 }
                 else if (flow.IsCurrent(TokType.Def) || flow.IsCurrent(TokType.Colon))
                 {
@@ -136,20 +136,20 @@ namespace NFun.Parsing
         private static UserFunctionDefenitionSyntaxNode ReadUserFunction(int start, FunCallSyntaxNode headNode, TokenFlow flow, SyntaxNodeReader reader)
         {
             var id = headNode.Value;
-            if (headNode.IsBracket)
+            if (headNode.IsInBrackets)
                 throw ErrorFactory.UnexpectedBracketsOnFunDefenition( headNode, start,flow.Previous.Finish);
 
-            var arguments = new List<VarDefenitionSyntaxNode>();
+            var arguments = new List<TypedVarDefSyntaxNode>();
             foreach (var headNodeChild in headNode.Args)
             {
-                if (headNodeChild is VarDefenitionSyntaxNode varDef)
+                if (headNodeChild is TypedVarDefSyntaxNode varDef)
                     arguments.Add(varDef);
                 else if(headNodeChild is VariableSyntaxNode varSyntax)
-                    arguments.Add(new VarDefenitionSyntaxNode(varSyntax.Value, VarType.Real));
+                    arguments.Add(new TypedVarDefSyntaxNode(varSyntax.Value, VarType.Real, headNodeChild.Interval));
                 else    
                     throw ErrorFactory.WrongFunctionArgumentDefenition(start, headNode, headNodeChild, flow.Current);
               
-                if(headNodeChild.IsBracket)    
+                if(headNodeChild.IsInBrackets)    
                     throw ErrorFactory.FunctionArgumentInBracketDefenition(start, headNode, headNodeChild, flow.Current);
             }
 

@@ -111,7 +111,7 @@ namespace NFun.Interpritation
             if(node is VariableSyntaxNode varNode)
                 return new FunArgumentExpressionNode(varNode.Value, VarType.Real, node.Interval);
             if(node is TypedVarDefSyntaxNode typeVarNode)
-                return new FunArgumentExpressionNode(typeVarNode.Name, typeVarNode.VarType, node.Interval);
+                return new FunArgumentExpressionNode(typeVarNode.Id, typeVarNode.VarType, node.Interval);
             
             throw ErrorFactory.InvalidArgTypeDefenition(node);
         }

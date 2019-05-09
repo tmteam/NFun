@@ -9,11 +9,11 @@ namespace NFun.Runtime
         public readonly VarAttribute[] Attributes;
         public readonly string Name;
 
-        public VariableSource(LexVarDefenition info)
+        public VariableSource(TypedVarDefSyntaxNode info)
         {
-            Attributes = info.Attributes;
+            Attributes = new VarAttribute[0];// info.Attributes;
             Name = info.Id;
-            Type = info.Type;
+            Type = info.VarType;
             IsOutput = false;
         }
         public VariableSource(string name, VarType type, VarAttribute[] attributes = null)

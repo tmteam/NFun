@@ -13,10 +13,10 @@ namespace NFun.Parsing
             Id = id;
             Expression = expression;
             Attributes = attributes;
-            IsBracket = false;
+            IsInBrackets = false;
             Interval = Interval.New(start, expression.Interval.Finish);
         }
-        public bool IsBracket { get; set; }
+        public bool IsInBrackets { get; set; }
         public SyntaxNodeType Type => SyntaxNodeType.Equation;
         public Interval Interval { get; set; }
     }

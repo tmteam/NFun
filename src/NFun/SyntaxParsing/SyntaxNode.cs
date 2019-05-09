@@ -20,9 +20,9 @@ namespace NFun.Parsing
         public static ISyntaxNode Var(Tok token) => new VariableSyntaxNode(token.Value, token.Interval); 
         
         public static ISyntaxNode Text(Tok token)=> new TextSyntaxNode(token.Value,token.Interval);
-        public static ISyntaxNode Num(Tok token) => new TextSyntaxNode(token.Value, token.Interval);
-        public static ISyntaxNode Num(string val, int start, int end) => new TextSyntaxNode(val, Interval.New(start,end));
-        public static ISyntaxNode ProcArrayInit(ISyntaxNode @from, ISyntaxNode step, ISyntaxNode to, int start, int end)
+        public static ISyntaxNode Num(Tok token) => new NumberSyntaxNode(token.Value, token.Interval);
+        public static ISyntaxNode Num(string val, int start, int end) => new NumberSyntaxNode(val, Interval.New(start,end));
+        public static ISyntaxNode ProcArrayInit(ISyntaxNode @from, ISyntaxNode to, ISyntaxNode step, int start, int end)
             =>new ProcArrayInit(from, to, step, Interval.New(start,end));
 
         public static ISyntaxNode ProcArrayInit(ISyntaxNode @from, ISyntaxNode to, int start, int end)
@@ -49,7 +49,7 @@ namespace NFun.Parsing
     
     public interface ISyntaxNode
     {
-        bool IsBracket { get; set; }
+        bool IsInBrackets { get; set; }
          SyntaxNodeType Type { get; }
          Interval Interval { get; set; }
     }
@@ -60,9 +60,10 @@ namespace NFun.Parsing
         public VariableSyntaxNode(string value, Interval interval)
         {
             Value = value;
+            Interval = interval;
         }
 
-        public bool IsBracket { get; set; }
+        public bool IsInBrackets { get; set; }
         public SyntaxNodeType Type => SyntaxNodeType.Var;
         public string Value { get; }
         public Interval Interval { get; set; }
@@ -77,7 +78,7 @@ namespace NFun.Parsing
             IsOperator = isOperator;
         }
 
-        public bool IsBracket { get; set; }
+        public bool IsInBrackets { get; set; }
         public SyntaxNodeType Type => SyntaxNodeType.Fun;
         public string Value { get; }
         public ISyntaxNode[] Args { get; }
@@ -96,7 +97,7 @@ namespace NFun.Parsing
             Expr = expr;
             Interval = interval;
         }
-        public bool IsBracket { get; set; }
+        public bool IsInBrackets { get; set; }
         public SyntaxNodeType Type => SyntaxNodeType.IfThen;
         public Interval Interval { get; set; }
     }
@@ -112,7 +113,7 @@ namespace NFun.Parsing
             ElseExpr = elseExpr;
             Interval = interval;
         }
-        public bool IsBracket { get; set; }
+        public bool IsInBrackets { get; set; }
         public SyntaxNodeType Type => SyntaxNodeType.IfThanElse;
         public Interval Interval { get; set; }
     }
@@ -122,8 +123,9 @@ namespace NFun.Parsing
         public NumberSyntaxNode(string value, Interval interval)
         {
             Value = value;
+            Interval = interval;
         }
-        public bool IsBracket { get; set; }
+        public bool IsInBrackets { get; set; }
         public SyntaxNodeType Type => SyntaxNodeType.Number;
         public string Value { get; }
         public Interval Interval { get; set; }
@@ -134,9 +136,10 @@ namespace NFun.Parsing
         public TextSyntaxNode (string value, Interval interval)
         {
             Value = value;
+            Interval = interval;
         }
-        public bool IsBracket { get; set; }
-        public SyntaxNodeType Type => SyntaxNodeType.Number;
+        public bool IsInBrackets { get; set; }
+        public SyntaxNodeType Type => SyntaxNodeType.Text;
         public string Value { get; }
         public Interval Interval { get; set; }
     }
@@ -155,7 +158,7 @@ namespace NFun.Parsing
             Interval = interval;
         }
 
-        public bool IsBracket { get; set; }
+        public bool IsInBrackets { get; set; }
         public SyntaxNodeType Type => SyntaxNodeType.ProcArrayInit;
         public Interval Interval { get; set; }
     }
@@ -167,26 +170,26 @@ namespace NFun.Parsing
         public ListOfExpressionsSyntaxNode(ISyntaxNode[] expressions,bool hasBrackets, Interval interval)
         {
             Expressions = expressions;
-            IsBracket = hasBrackets;
+            IsInBrackets = hasBrackets;
             Interval = interval;
         }
-        public bool IsBracket { get; set; }
+        public bool IsInBrackets { get; set; }
         public SyntaxNodeType Type => SyntaxNodeType.ListOfExpressions;
         public Interval Interval { get; set; }
     }
 
     public class TypedVarDefSyntaxNode : ISyntaxNode
     {
-        public string Name { get; }
+        public string Id { get; }
         public VarType VarType { get; }
 
-        public TypedVarDefSyntaxNode(string name, VarType varType, Interval interval)
+        public TypedVarDefSyntaxNode(string id, VarType varType, Interval interval)
         {
-            Name = name;
+            Id = id;
             VarType = varType;
             Interval = interval;
         }
-        public bool IsBracket { get; set; }
+        public bool IsInBrackets { get; set; }
         public SyntaxNodeType Type => SyntaxNodeType.Var;
         public Interval Interval { get; set; }
     }
@@ -200,7 +203,7 @@ namespace NFun.Parsing
             Expressions = expressions;
             Interval = interval;
         }
-        public bool IsBracket { get; set; }
+        public bool IsInBrackets { get; set; }
         public SyntaxNodeType Type { get; }
         public Interval Interval { get; set; }
     }
@@ -217,7 +220,7 @@ namespace NFun.Parsing
             Interval = interval;
         }
 
-        public bool IsBracket { get; set; }
+        public bool IsInBrackets { get; set; }
         public SyntaxNodeType Type => SyntaxNodeType.AnonymFun;
         public Interval Interval { get; set; }
     }

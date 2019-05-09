@@ -9,14 +9,14 @@ namespace NFun.Parsing
         public VarType VarType { get; }
         public VarAttribute[] Attributes { get; }
 
-        public VarDefenitionSyntaxNode(string id, VarType varType, VarAttribute[] attributes = null)
+        public VarDefenitionSyntaxNode(TypedVarDefSyntaxNode node, VarAttribute[] attributes = null)
         {
-            Id = id;
-            VarType = varType;
+            Id = node.Id;
+            VarType = node.VarType;
             Attributes = attributes??new VarAttribute[0];
-
+            Interval = node.Interval;
         }
-        public bool IsBracket { get; set; }
+        public bool IsInBrackets { get; set; }
         public SyntaxNodeType Type => SyntaxNodeType.GlobalVarDefenition;
         public Interval Interval { get; set; }
         public override string ToString() => Id + ":" + Type;

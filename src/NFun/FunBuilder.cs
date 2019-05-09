@@ -36,7 +36,7 @@ namespace NFun
         public FunRuntime Build()
         {
             var flow = Tokenizer.ToFlow(_text);
-            var lexTree =    Parser.Parse(flow);
+            var lexTree = TopLevelParser.Parse(flow);
              
             return ExpressionReader.Interpritate(
                 lexTree, 

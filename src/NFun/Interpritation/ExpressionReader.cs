@@ -11,8 +11,8 @@ namespace NFun.Interpritation
 {
     public class ExpressionReader
     {
-        private readonly LexFunction[] _lexTreeUserFuns;
-        private readonly LexTree _tree;
+        private readonly UserFunctionDefenitionSyntaxNode[] _lexTreeUserFuns;
+        private readonly SyntaxTree _tree;
         private readonly FunctionsDictionary _functions;
 
         private readonly VariableDictionary _variables;
@@ -20,7 +20,7 @@ namespace NFun.Interpritation
         private readonly List<Equation> _equations = new List<Equation>();
         
         public static FunRuntime Interpritate(
-            LexTree lexTree,
+            SyntaxTree lexTree,
             IEnumerable<FunctionBase> predefinedFunctions, 
             IEnumerable<GenericFunctionBase> predefinedGenerics)
         {
@@ -40,16 +40,14 @@ namespace NFun.Interpritation
         }
 
         private ExpressionReader(
-            LexTree tree,
+            SyntaxTree tree,
             FunctionsDictionary functions 
             )
         {
-            _lexTreeUserFuns = tree.UserFuns;
+            _lexTreeUserFuns = tree.Nodes.OfType<UserFunctionDefenitionSyntaxNode>().ToArray();
             _tree = tree;
             _functions =  functions;
             _variables = new VariableDictionary(); 
-           // _variables = new VariableDictionary(
-           //     tree.VarSpecifications.Select());
         }
         
         private void Interpritate()
@@ -64,18 +62,18 @@ namespace NFun.Interpritation
             
             foreach (var userFun in _lexTreeUserFuns)
             {
-                var prototype = _functions.GetOrNull(userFun.Id, userFun.Args.Select(a=>a.Type).ToArray());
+                var prototype = _functions.GetOrNull(userFun.Id, userFun.Args.Select(a=>a.VarType).ToArray());
                 
                 ((FunctionPrototype)prototype).SetActual(GetFunction(userFun), userFun.Head.Interval);
             }
-            foreach (var lexRoot in _tree.Roots)
+            foreach (var lexRoot in _tree.Nodes)
             {
-                if (lexRoot is LexEquation equation) {
+                if (lexRoot is EquationSyntaxNode equation) {
                     InterpriteEquation(equation);
                 }
-                else if (lexRoot is LexVarDefenition varDef)
+                else if (lexRoot is VarDefenitionSyntaxNode varDef)
                 {
-                    var variableSource = new VariableSource(varDef.Id, varDef.Type, varDef.Attributes);
+                    var variableSource = new VariableSource(varDef.Id, varDef.VarType, varDef.Attributes);
                     if (!_variables.TryAdd(variableSource))
                     {
                         var allUsages = _variables.GetUsages(variableSource.Name);
@@ -83,11 +81,12 @@ namespace NFun.Interpritation
                         throw ErrorFactory.VariableIsDeclaredAfterUsing(allUsages);
                     }
                 }
-                else throw  new InvalidOperationException("Type "+ lexRoot+" is not supported as tree root");
+                else if(!(lexRoot is UserFunctionDefenitionSyntaxNode)) 
+                    throw  new InvalidOperationException("Type "+ lexRoot+" is not supported as tree root");
             }
         }
 
-        private void InterpriteEquation(LexEquation equation)
+        private void InterpriteEquation(EquationSyntaxNode equation)
         {
             var reader = new SingleExpressionReader(_functions, _variables);
             var expression = reader.ReadNode(equation.Expression);
@@ -111,10 +110,10 @@ namespace NFun.Interpritation
             _equations.Add(new Equation(equation.Id, expression));
         }
 
-        private FunctionPrototype GetFunctionPrototype(LexFunction lexFunction) 
-            => new FunctionPrototype(lexFunction.Id, lexFunction.OutputType,lexFunction.Args.Select(a=>a.Type).ToArray());
+        private FunctionPrototype GetFunctionPrototype(UserFunctionDefenitionSyntaxNode lexFunction) 
+            => new FunctionPrototype(lexFunction.Id, lexFunction.OutputType,lexFunction.Args.Select(a=>a.VarType).ToArray());
 
-        private UserFunction GetFunction(LexFunction lexFunction)
+        private UserFunction GetFunction(UserFunctionDefenitionSyntaxNode lexFunction)
         {
             var vars = new VariableDictionary();
             foreach (var lexFunctionArg in lexFunction.Args)

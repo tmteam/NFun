@@ -8,31 +8,32 @@ namespace Funny.Tests
     [TestFixture]
     public class ParserTest
     {
+        /*
         [TestCase("y = 1+x", "1+x")]
         [TestCase("y = 1","1")]
         [TestCase("y = x+z*(x-z)", "x+z*(x-z)")]
         public void SingleEquationParsingTest(string text, string expectedExpr, params string[] variables)
         {
-            var parsed   = Parser.Parse(Tokenizer.ToFlow(text));
+            var parsed   = TopLevelParser.Parse(Tokenizer.ToFlow(text));
 
-            Assert.AreEqual(1, parsed.Roots.Length);
-            var Equation = parsed.Roots.OfType<LexEquation>().First();
+            Assert.AreEqual(1, parsed.Nodes.Length);
+            var Equation = parsed.Nodes.OfType<EquationSyntaxNode>().First();
             
             Assert.Multiple(() =>
             {
                 Assert.AreEqual("y", Equation.Id);
-                AssertParsed(Equation.Expression, expectedExpr);
+                AssertParsed(Equation, expectedExpr);
             });
-        }
+        }*/
         [TestCase("y(x) = 1+x", "1+x", "x")]
         [TestCase("y() = 1", "1")]
         [TestCase("y(x,z) = x+z*(x-z)", "x+z*(x-z)","x","z")]
         public void SingleFunctionParsingTest(string text, string expectedExpr, params string[] variables)
         {
-            var eq   = Parser.Parse(Tokenizer.ToFlow(text));
+            var eq   = TopLevelParser.Parse(Tokenizer.ToFlow(text));
 
-            Assert.AreEqual(1, eq.UserFuns.Length);
-            var fun = eq.UserFuns.First();
+            Assert.AreEqual(1, eq.Nodes.Count(n=>n is UserFunctionDefenitionSyntaxNode));
+            var fun = eq.Nodes.OfType<UserFunctionDefenitionSyntaxNode>().First();
             
             Assert.Multiple(() =>
             {
@@ -51,19 +52,21 @@ namespace Funny.Tests
                     y1 = max3(x,y,z)
                     y2 =  max(x,y)+1
                 ";
-            var eq   = Parser.Parse(Tokenizer.ToFlow(text));
+            var eq   = TopLevelParser.Parse(Tokenizer.ToFlow(text));
+
+            var functions = eq.Nodes.OfType<UserFunctionDefenitionSyntaxNode>();
             
             Assert.Multiple(()=>
             {
-                Assert.AreEqual(2, eq.UserFuns.Length);
-                Assert.AreEqual(2, eq.Roots.Length);
+                Assert.AreEqual(2, functions.Count());
+                Assert.AreEqual(4, eq.Nodes.Length);
             });
             
-            var maxf = eq.UserFuns.Single(f => f.Id == "max");
-            var max3f = eq.UserFuns.Single(f => f.Id == "max3");
+            var maxf = functions.Single(f => f.Id == "max");
+            var max3f = functions.Single(f => f.Id == "max3");
 
-            var y1Equation = eq.Roots.OfType<LexEquation>().Single(e => e.Id == "y1");
-            var y2Equation = eq.Roots.OfType<LexEquation>().Single(e => e.Id == "y2");
+            var y1Equation = eq.Nodes.OfType<EquationSyntaxNode>().Single(e => e.Id == "y1");
+            var y2Equation = eq.Nodes.OfType<EquationSyntaxNode>().Single(e => e.Id == "y2");
             
             AssertParsed(maxf,"if (x>y) x else y", "x","y" );
             AssertParsed(max3f,"max(x,max(y,z))", "x","y","z" );
@@ -72,7 +75,7 @@ namespace Funny.Tests
 
         }
         
-        private void AssertParsed(LexFunction fun,string expectedExpr, params string[] variables)
+        private void AssertParsed(UserFunctionDefenitionSyntaxNode fun,string expectedExpr, params string[] variables)
         {
             Assert.Multiple(() =>
             {
@@ -80,13 +83,13 @@ namespace Funny.Tests
                 AssertParsed(fun.Node, expectedExpr);
             });
         }
-        private void AssertParsed(LexNode node,string expectedExpr)
+        private void AssertParsed(ISyntaxNode node,string expectedExpr)
         {
-            var expectedExpression = new LexNodeReader(Tokenizer.ToFlow(expectedExpr)).ReadExpressionOrNull();
+            var expectedExpression = new SyntaxNodeReader(Tokenizer.ToFlow(expectedExpr)).ReadExpressionOrNull();
             AssertEquals(expectedExpression, node);
         }
 
-        private void AssertEquals(LexNode expected, LexNode actual)
+        private void AssertEquals(ISyntaxNode expected, ISyntaxNode actual)
         {
             Assert.AreEqual(expected?.ToString(), actual?.ToString());
         }

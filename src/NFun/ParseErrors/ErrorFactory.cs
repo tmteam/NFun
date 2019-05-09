@@ -208,13 +208,13 @@ namespace NFun.ParseErrors
         public static Exception UnexpectedExpression(ISyntaxNode lexNode) 
             => new FunParseException(300,$"Unexpected expression {ErrorsHelper.ToString(lexNode)}", lexNode.Interval);
 
-        public static Exception FunDefTokenIsMissed(string funName, List<VarDefenitionSyntaxNode> arguments, Tok actual)
+        public static Exception FunDefTokenIsMissed(string funName, List<TypedVarDefSyntaxNode> arguments, Tok actual)
         {
             return new FunParseException(301, $"{ErrorsHelper.Signature(funName, arguments)} ??? . '=' def symbol is skipped but was {ErrorsHelper.ToString(actual)}{Nl}Example: {ErrorsHelper.Signature(funName, arguments)} = ...", 
                 actual.Start, actual.Finish);
         }
         
-        public static Exception FunExpressionIsMissed(string funName, List<VarDefenitionSyntaxNode> arguments, Interval interval) 
+        public static Exception FunExpressionIsMissed(string funName, List<TypedVarDefSyntaxNode> arguments, Interval interval) 
             => new FunParseException(304,
                 $"{ErrorsHelper.Signature(funName, arguments)} = ??? . Function body is missed {Nl}Example: {ErrorsHelper.Signature(funName, arguments)} = #place your body here", 
                 interval);
@@ -465,7 +465,7 @@ namespace NFun.ParseErrors
         public static Exception InvalidOutputType(FunctionBase function, Interval interval) 
             => new FunParseException(542, $"'{function.OutputType}' is not supported as output parameter of {function.Name}()", interval);
 
-        public static Exception FunctionArgumentDuplicates(UserFunctionDefenitionSyntaxNode lexFunction, VarDefenitionSyntaxNode lexFunctionArg) 
+        public static Exception FunctionArgumentDuplicates(UserFunctionDefenitionSyntaxNode lexFunction, TypedVarDefSyntaxNode lexFunctionArg) 
             => new FunParseException(545, $"'Argument name '{lexFunctionArg.Id}' duplicates at  {ErrorsHelper.Signature(lexFunction.Id, lexFunction.Args)} ", lexFunction.Head.Interval);
 
         public static Exception AnonymousFunctionArgumentDuplicates(FunArgumentExpressionNode argNode,ISyntaxNode funDefenition)

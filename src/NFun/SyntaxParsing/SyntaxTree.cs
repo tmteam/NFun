@@ -13,7 +13,7 @@ namespace NFun.Parsing
             
         }
 
-        public bool IsBracket
+        public bool IsInBrackets
         {
             get { return false; }
             set => throw new System.NotImplementedException();

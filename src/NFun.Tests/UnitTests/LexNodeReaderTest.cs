@@ -20,14 +20,14 @@ namespace Funny.Tests.UnitTests
         public void ReadExpressionOrNull_SingleExpression_retunsIt(string value, SyntaxNodeType type)
         {
             var flow = new TokenFlow(Tokenizer.ToTokens(value));
-            LexNodeReader reader = new LexNodeReader(flow);
+            var reader = new SyntaxNodeReader(flow);
             var ex = reader.ReadExpressionOrNull();
             Assert.IsNotNull(ex);
             Assert.Multiple(() =>
             {
                 Assert.AreEqual(type, ex.Type);
-                Assert.AreEqual(0, ex.Start,"start index failed");
-                Assert.AreEqual(value.Length, ex.Finish,"finish index failed");
+                Assert.AreEqual(0, ex.Interval.Start,"start index failed");
+                Assert.AreEqual(value.Length, ex.Interval.Finish,"finish index failed");
             });
         }
         
@@ -43,14 +43,14 @@ namespace Funny.Tests.UnitTests
             int start,int end)
         {
             var flow = new TokenFlow(Tokenizer.ToTokens(value));
-            LexNodeReader reader = new LexNodeReader(flow);
+            var reader = new SyntaxNodeReader(flow);
             var ex = reader.ReadExpressionOrNull();
             Assert.IsNotNull(ex);
             Assert.Multiple(() =>
             {
                 Assert.AreEqual(type, ex.Type);
-                Assert.AreEqual(start, ex.Start,"start index failed");
-                Assert.AreEqual(end, ex.Finish,"finish index failed");
+                Assert.AreEqual(start, ex.Interval.Start,"start index failed");
+                Assert.AreEqual(end, ex.Interval.Finish,"finish index failed");
             });
         }
     }

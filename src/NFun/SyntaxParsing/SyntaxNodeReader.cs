@@ -407,8 +407,8 @@ namespace NFun.Parsing
                         throw ErrorFactory.ArrayIntervalInitializeCbrMissed(openBracket, _flow.Current, true);
                     return SyntaxNodeFactory.ProcArrayInit(
                         from: list[0],
-                        step: secondArg,
-                        to: thirdArg,
+                        to:  secondArg,
+                        step: thirdArg,
                         start: openBracket.Start, 
                         end:closeBracket.Finish);
                 }
@@ -441,7 +441,7 @@ namespace NFun.Parsing
             if (nodeList.Count == 1)
             {
                 nodeList[0].Interval = interval;
-                nodeList[0].IsBracket = true;
+                nodeList[0].IsInBrackets = true;
                 return nodeList[0];
             }
             else

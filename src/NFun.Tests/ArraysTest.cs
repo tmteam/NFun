@@ -22,6 +22,8 @@ namespace Funny.Tests
         [TestCase("y = [3.0..1.0..0.5]", new[]{3.0,2.5,2.0,1.5, 1.0})]
         [TestCase("y = [1..3..0.5]", new[]{1.0,1.5,2.0,2.5,3.0})]
         [TestCase("y = [1..1]", new[]{1})]
+        [TestCase("y = [1,2,3,4]", new[]{1,2,3,4})]
+        [TestCase("y = [1]", new[]{1})]
         [TestCase("y = ['foo','bar']", new []{"foo","bar"})]
         [TestCase("y = [0..10][0]", 0)]
         [TestCase("y = [0..10][10]", 10)]
