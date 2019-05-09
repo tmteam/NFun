@@ -50,7 +50,7 @@ namespace NFun.Parsing
     public interface ISyntaxNode
     {
         bool IsBracket { get; set; }
-         SyntaxNodeType Type { get; }
+         LexNodeType Type { get; }
          Interval Interval { get; set; }
     }
     
@@ -63,7 +63,7 @@ namespace NFun.Parsing
         }
 
         public bool IsBracket { get; set; }
-        public SyntaxNodeType Type => SyntaxNodeType.Var;
+        public LexNodeType Type => LexNodeType.Var;
         public string Value { get; }
         public Interval Interval { get; set; }
     }
@@ -78,7 +78,7 @@ namespace NFun.Parsing
         }
 
         public bool IsBracket { get; set; }
-        public SyntaxNodeType Type => SyntaxNodeType.Fun;
+        public LexNodeType Type => LexNodeType.Fun;
         public string Value { get; }
         public ISyntaxNode[] Args { get; }
         public Interval Interval { get; set; }
@@ -97,7 +97,7 @@ namespace NFun.Parsing
             Interval = interval;
         }
         public bool IsBracket { get; set; }
-        public SyntaxNodeType Type => SyntaxNodeType.IfThen;
+        public LexNodeType Type => LexNodeType.IfThen;
         public Interval Interval { get; set; }
     }
 
@@ -113,7 +113,7 @@ namespace NFun.Parsing
             Interval = interval;
         }
         public bool IsBracket { get; set; }
-        public SyntaxNodeType Type => SyntaxNodeType.IfThanElse;
+        public LexNodeType Type => LexNodeType.IfThanElse;
         public Interval Interval { get; set; }
     }
 
@@ -124,7 +124,7 @@ namespace NFun.Parsing
             Value = value;
         }
         public bool IsBracket { get; set; }
-        public SyntaxNodeType Type => SyntaxNodeType.Number;
+        public LexNodeType Type => LexNodeType.Number;
         public string Value { get; }
         public Interval Interval { get; set; }
     }
@@ -136,7 +136,7 @@ namespace NFun.Parsing
             Value = value;
         }
         public bool IsBracket { get; set; }
-        public SyntaxNodeType Type => SyntaxNodeType.Number;
+        public LexNodeType Type => LexNodeType.Number;
         public string Value { get; }
         public Interval Interval { get; set; }
     }
@@ -156,7 +156,7 @@ namespace NFun.Parsing
         }
 
         public bool IsBracket { get; set; }
-        public SyntaxNodeType Type => SyntaxNodeType.ProcArrayInit;
+        public LexNodeType Type => LexNodeType.ProcArrayInit;
         public Interval Interval { get; set; }
     }
 
@@ -171,7 +171,7 @@ namespace NFun.Parsing
             Interval = interval;
         }
         public bool IsBracket { get; set; }
-        public SyntaxNodeType Type => SyntaxNodeType.ListOfExpressions;
+        public LexNodeType Type => LexNodeType.ListOfExpressions;
         public Interval Interval { get; set; }
     }
 
@@ -187,7 +187,7 @@ namespace NFun.Parsing
             Interval = interval;
         }
         public bool IsBracket { get; set; }
-        public SyntaxNodeType Type => SyntaxNodeType.Var;
+        public LexNodeType Type => LexNodeType.Var;
         public Interval Interval { get; set; }
     }
 
@@ -201,7 +201,7 @@ namespace NFun.Parsing
             Interval = interval;
         }
         public bool IsBracket { get; set; }
-        public SyntaxNodeType Type { get; }
+        public LexNodeType Type { get; }
         public Interval Interval { get; set; }
     }
 
@@ -218,7 +218,7 @@ namespace NFun.Parsing
         }
 
         public bool IsBracket { get; set; }
-        public SyntaxNodeType Type => SyntaxNodeType.AnonymFun;
+        public LexNodeType Type => LexNodeType.AnonymFun;
         public Interval Interval { get; set; }
     }
 }

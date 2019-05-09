@@ -6,18 +6,18 @@ namespace Funny.Tests.UnitTests
 {
     public class LexNodeReaderTest
     {
-        [TestCase("y", LexNodeType.Var)]
-        [TestCase("x*y", LexNodeType.Fun)]
-        [TestCase("-x", LexNodeType.Fun)]
-        [TestCase("1+2", LexNodeType.Fun)]
-        [TestCase("1+2/3-1.0", LexNodeType.Fun)]
-        [TestCase("1+2/(3-1.0)", LexNodeType.Fun)]
-        [TestCase("1", LexNodeType.Number)]
-        [TestCase("(1)", LexNodeType.Number)]
-        [TestCase("1.0", LexNodeType.Number)]
-        [TestCase("'someText'", LexNodeType.Text)]
-        [TestCase("'  someText'", LexNodeType.Text)]
-        public void ReadExpressionOrNull_SingleExpression_retunsIt(string value, LexNodeType type)
+        [TestCase("y", SyntaxNodeType.Var)]
+        [TestCase("x*y", SyntaxNodeType.Fun)]
+        [TestCase("-x", SyntaxNodeType.Fun)]
+        [TestCase("1+2", SyntaxNodeType.Fun)]
+        [TestCase("1+2/3-1.0", SyntaxNodeType.Fun)]
+        [TestCase("1+2/(3-1.0)", SyntaxNodeType.Fun)]
+        [TestCase("1", SyntaxNodeType.Number)]
+        [TestCase("(1)", SyntaxNodeType.Number)]
+        [TestCase("1.0", SyntaxNodeType.Number)]
+        [TestCase("'someText'", SyntaxNodeType.Text)]
+        [TestCase("'  someText'", SyntaxNodeType.Text)]
+        public void ReadExpressionOrNull_SingleExpression_retunsIt(string value, SyntaxNodeType type)
         {
             var flow = new TokenFlow(Tokenizer.ToTokens(value));
             LexNodeReader reader = new LexNodeReader(flow);
@@ -31,15 +31,15 @@ namespace Funny.Tests.UnitTests
             });
         }
         
-        [TestCase("'123' \r y=1", LexNodeType.Text,0, 5)]
-        [TestCase("123 \r y=1", LexNodeType.Number, 0,3)]
-        [TestCase("123*1 \r y=1", LexNodeType.Fun, 0,5)]
-        [TestCase("(123*1) \r y=1", LexNodeType.Fun, 0,7)]
-        [TestCase("-1 \r y=1", LexNodeType.Fun, 0,2)]
-        [TestCase(" -1  \r y=1", LexNodeType.Fun, 1,3)]
-        [TestCase("   '123'", LexNodeType.Text,3,8)]
+        [TestCase("'123' \r y=1", SyntaxNodeType.Text,0, 5)]
+        [TestCase("123 \r y=1", SyntaxNodeType.Number, 0,3)]
+        [TestCase("123*1 \r y=1", SyntaxNodeType.Fun, 0,5)]
+        [TestCase("(123*1) \r y=1", SyntaxNodeType.Fun, 0,7)]
+        [TestCase("-1 \r y=1", SyntaxNodeType.Fun, 0,2)]
+        [TestCase(" -1  \r y=1", SyntaxNodeType.Fun, 1,3)]
+        [TestCase("   '123'", SyntaxNodeType.Text,3,8)]
 
-        public void ReadExpressionOrNull_SeveralExpressions_retunsFirstExpressionWithCorrectBounds(string value, LexNodeType type,
+        public void ReadExpressionOrNull_SeveralExpressions_retunsFirstExpressionWithCorrectBounds(string value, SyntaxNodeType type,
             int start,int end)
         {
             var flow = new TokenFlow(Tokenizer.ToTokens(value));

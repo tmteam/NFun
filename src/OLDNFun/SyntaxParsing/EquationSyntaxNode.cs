@@ -17,7 +17,7 @@ namespace NFun.Parsing
             Interval = Interval.New(start, expression.Interval.Finish);
         }
         public bool IsBracket { get; set; }
-        public SyntaxNodeType Type => SyntaxNodeType.Equation;
+        public LexNodeType Type => LexNodeType.Equation;
         public Interval Interval { get; set; }
     }
 }

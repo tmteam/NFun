@@ -6,7 +6,7 @@ using NFun.Types;
 
 namespace NFun.Parsing
 {
-    public static class SyntaxParser
+    public static class TopLevelParser
     {
         public static ISyntaxNode Parse(TokenFlow flow)
         {

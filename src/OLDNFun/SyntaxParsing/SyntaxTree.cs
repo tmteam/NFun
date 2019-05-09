@@ -19,7 +19,7 @@ namespace NFun.Parsing
             set => throw new System.NotImplementedException();
         }
 
-        public SyntaxNodeType Type => SyntaxNodeType.SyntaxTree;
+        public LexNodeType Type => LexNodeType.SyntaxTree;
         public Interval Interval
         {
             get { return Interval.Unite(Nodes.First().Interval, Nodes.Last().Interval); }

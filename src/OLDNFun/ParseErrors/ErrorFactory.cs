@@ -43,6 +43,9 @@ namespace NFun.ParseErrors
         public static Exception LeftBinaryArgumentIsMissing(Tok token)
             => throw new FunParseException(307,$"expression is missed before '{ErrorsHelper.ToString(token)}'",
                 token.Interval);
+        public static Exception RightBinaryArgumentIsMissing(LexNode leftNode, Tok @operator)
+            => throw new FunParseException(310,$"{ErrorsHelper.ToString(leftNode)} {ErrorsHelper.ToString(@operator)} ???. Right expression is missed{Nl} Example: {ErrorsHelper.ToString(leftNode)} {ErrorsHelper.ToString(@operator)} e",
+                leftNode.Start, @operator.Finish);
         public static Exception RightBinaryArgumentIsMissing(ISyntaxNode leftNode, Tok @operator)
             => throw new FunParseException(310,$"{ErrorsHelper.ToString(leftNode)} {ErrorsHelper.ToString(@operator)} ???. Right expression is missed{Nl} Example: {ErrorsHelper.ToString(leftNode)} {ErrorsHelper.ToString(@operator)} e",
                 leftNode.Interval.Start, @operator.Finish);
@@ -140,7 +143,20 @@ namespace NFun.ParseErrors
             => new FunParseException(265,$"Not first if has to start from new line{Nl} Example: if (a) b {Nl} if(c) d  else e ", interval);
 
         
+        public static Exception FunctionCallObrMissed(int funStart, string name, int position,LexNode pipedVal)
+        {
+            if(pipedVal==null)
+                return new FunParseException(267,
+                    $"{name}( ???. Close bracket ')' is missed{Nl} Example: {name}()", 
+                    funStart, 
+                    position);
 
+            return new FunParseException(270,
+                $"{ErrorsHelper.ToString(pipedVal)}.{name}( ???. Close bracket ')' is missed{Nl} Example: {ErrorsHelper.ToString(pipedVal)}.{name}() or {name}({ErrorsHelper.ToString(pipedVal)})", 
+                funStart, 
+                position);
+        }
+        
         public static Exception FunctionCallObrMissed(int funStart, string name, int position,ISyntaxNode pipedVal)
         {
             if(pipedVal==null)
@@ -167,7 +183,12 @@ namespace NFun.ParseErrors
             return new FunParseException(282,$"({argumentsStub}???) {Nl}Expression inside the brackets is missed{Nl} Example: ({argumentsStub})", 
                 start,end);
         }
-      
+        public static Exception BracketExpressionMissed(int start, int end, IList<LexNode> arguments)
+        {
+            var argumentsStub = ErrorsHelper.CreateArgumentsStub(arguments);
+            return new FunParseException(282,$"({argumentsStub}???) {Nl}Expression inside the brackets is missed{Nl} Example: ({argumentsStub})", 
+                start,end);
+        }
         
         public static Exception ExpressionListMissed(int start, int end, IList<ISyntaxNode> arguments)
         {
@@ -175,13 +196,20 @@ namespace NFun.ParseErrors
             return new FunParseException(283,$"({argumentsStub}???) {Nl}Expression inside the brackets is missed{Nl} Example: ({argumentsStub})", 
                 start,end);
         }
-        
+        public static Exception ExpressionListMissed(int start, int end, IList<LexNode> arguments)
+        {
+            var argumentsStub = ErrorsHelper.CreateArgumentsStub(arguments);
+            return new FunParseException(283,$"({argumentsStub}???) {Nl}Expression inside the brackets is missed{Nl} Example: ({argumentsStub})", 
+                start,end);
+        }
         
         
         public static Exception AttributeOnFunction(int exprStart, FunCallSyntaxNode lexNode) 
             => new FunParseException(286,$"Function cannot has attributes.", lexNode.Interval);
 
-     
+        public static Exception AttributeOnFunction(int exprStart, LexNode lexNode) 
+            => new FunParseException(286,$"Function cannot has attributes.", lexNode.Interval);
+
         public static Exception ItIsNotAnAttribute(int start, Tok flowCurrent)
             => new FunParseException(289,$"Attribute name expected, but was '{flowCurrent}'", 
                 start, flowCurrent.Finish);
@@ -205,10 +233,18 @@ namespace NFun.ParseErrors
 
         #region  3xx - hi level parsing
         
+        public static Exception UnexpectedExpression(LexNode lexNode) 
+            => new FunParseException(300,$"Unexpected expression {ErrorsHelper.ToString(lexNode)}", lexNode.Interval);
         public static Exception UnexpectedExpression(ISyntaxNode lexNode) 
             => new FunParseException(300,$"Unexpected expression {ErrorsHelper.ToString(lexNode)}", lexNode.Interval);
 
         public static Exception FunDefTokenIsMissed(string funName, List<VarDefenitionSyntaxNode> arguments, Tok actual)
+        {
+            return new FunParseException(301, $"{ErrorsHelper.Signature(funName, arguments)} ??? . '=' def symbol is skipped but was {ErrorsHelper.ToString(actual)}{Nl}Example: {ErrorsHelper.Signature(funName, arguments)} = ...", 
+                actual.Start, actual.Finish);
+        }
+        
+        public static Exception FunDefTokenIsMissed(string funName, List<LexVarDefenition> arguments, Tok actual)
         {
             return new FunParseException(301, $"{ErrorsHelper.Signature(funName, arguments)} ??? . '=' def symbol is skipped but was {ErrorsHelper.ToString(actual)}{Nl}Example: {ErrorsHelper.Signature(funName, arguments)} = ...", 
                 actual.Start, actual.Finish);
@@ -219,21 +255,37 @@ namespace NFun.ParseErrors
                 $"{ErrorsHelper.Signature(funName, arguments)} = ??? . Function body is missed {Nl}Example: {ErrorsHelper.Signature(funName, arguments)} = #place your body here", 
                 interval);
             
+        public static Exception FunExpressionIsMissed(string funName, List<LexVarDefenition> arguments, Interval interval) 
+            => new FunParseException(304,
+                $"{ErrorsHelper.Signature(funName, arguments)} = ??? . Function body is missed {Nl}Example: {ErrorsHelper.Signature(funName, arguments)} = #place your body here", 
+                interval);
+
         public static Exception UnknownValueAtStartOfExpression(int exprStart, Tok flowCurrent) 
             => new FunParseException(307,$"Unexpected symbol {ErrorsHelper.ToString(flowCurrent)}. Equation, anonymous equation, function or type defenition expected.", exprStart, flowCurrent.Finish);
         
         public static Exception ExpressionBeforeTheDefenition(int exprStart, ISyntaxNode expression, Tok flowCurrent)
             => new FunParseException(310,$"Unexpected expression {ErrorsHelper.ToString(expression)} before defenition. Equation, anonymous equation, function or type defenition expected.", exprStart, flowCurrent.Finish);
         
+        public static Exception ExpressionBeforeTheDefenition(int exprStart, LexNode expression, Tok flowCurrent)
+            => new FunParseException(310,$"Unexpected expression {ErrorsHelper.ToString(expression)} before defenition. Equation, anonymous equation, function or type defenition expected.", exprStart, flowCurrent.Finish);
 
         public static Exception AnonymousExpressionHasToStartFromNewLine(int exprStart, ISyntaxNode lexNode, Tok flowCurrent)
             =>   throw new FunParseException(313,$"Anonymous equation should start from new line. {Nl}Example : y:int{Nl}y+1 #out = y:int+1", exprStart, flowCurrent.Finish);
         
+        public static Exception AnonymousExpressionHasToStartFromNewLine(int exprStart, LexNode lexNode, Tok flowCurrent)
+            =>   throw new FunParseException(313,$"Anonymous equation should start from new line. {Nl}Example : y:int{Nl}y+1 #out = y:int+1", exprStart, flowCurrent.Finish);
+        
         public static Exception OnlyOneAnonymousExpressionAllowed(int exprStart, ISyntaxNode lexNode, Tok flowCurrent)
+            =>   throw new FunParseException(316,$"Only one anonymous equation allowed", exprStart, flowCurrent.Finish);
+        public static Exception OnlyOneAnonymousExpressionAllowed(int exprStart, LexNode lexNode, Tok flowCurrent)
             =>   throw new FunParseException(316,$"Only one anonymous equation allowed", exprStart, flowCurrent.Finish);
         public static Exception UnexpectedBracketsOnFunDefenition(FunCallSyntaxNode headNode, int start, int finish)
             => new FunParseException(319, $"Unexpected brackets on function defenition ({headNode.Value}(...))=... {Nl}Example: {headNode.Value}(...)=...", 
                 start, finish);
+        public static Exception UnexpectedBracketsOnFunDefenition(LexNode headNode, int start, int finish)
+            => new FunParseException(319, $"Unexpected brackets on function defenition ({headNode.Value}(...))=... {Nl}Example: {headNode.Value}(...)=...", 
+                start, finish);
+
         
         public static Exception WrongFunctionArgumentDefenition(int start, FunCallSyntaxNode headNode, ISyntaxNode headNodeChild,
             Tok flowCurrent)
@@ -244,6 +296,16 @@ namespace NFun.ParseErrors
                     headNodeChild.Interval);
         }
         
+        public static Exception WrongFunctionArgumentDefenition(int start, LexNode headNode, LexNode headNodeChild,
+            Tok flowCurrent)
+        {
+            var sb = ErrorsHelper.ToFailureFunString(headNode, headNodeChild);
+            return new FunParseException(322,
+                $"{headNode.Value}({sb}) = ... {Nl} Function argument is invalid. Variable name (with optional type) expected", 
+                headNodeChild.Interval);
+        }
+
+
         public static Exception FunctionArgumentInBracketDefenition(int start, FunCallSyntaxNode headNode, ISyntaxNode headNodeChild,
             Tok flowCurrent)
         {
@@ -253,14 +315,37 @@ namespace NFun.ParseErrors
                 $"{headNode.Value}({sb.ToString()}) = ... {Nl} Function argument is in bracket. Variable name (with optional type) without brackets expected", 
                 headNodeChild.Interval.Start, headNodeChild.Interval.Finish);
         }
-
+        public static Exception FunctionArgumentInBracketDefenition(int start, LexNode headNode, LexNode headNodeChild,
+            Tok flowCurrent)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (var child in headNode.Children)
+            {
+                if (child == headNodeChild)
+                    sb.Append("(???)");
+                else if (child.Is(LexNodeType.Var))
+                    sb.Append(child.Value);
+                if (headNode.Children.Last() != child)
+                    sb.Append(",");
+            }
+            return new FunParseException(325,
+                $"{headNode.Value}({sb.ToString()}) = ... {Nl} Function argument is in bracket. Variable name (with optional type) without brackets expected", 
+                headNodeChild.Start, headNodeChild.Finish);
+        }
+        
         public static Exception VarExpressionIsMissed(int start, string id, Tok flowCurrent)
             => new FunParseException(328, $"{id} = ??? . Equation body is missed {Nl}Example: {id} = {id}+1", 
                 start, flowCurrent.Finish);
        
+        public static Exception OutputNameDuplicates(string id, LexNode lexEquationExpression)
+            => new FunParseException(331, $"{id}<-  output name duplicates ", lexEquationExpression.Interval);
+
         public static Exception OutputNameWithDifferentCase(string id, Interval interval)
             => new FunParseException(334, $"{id}<-  output name is same to name  {id}", interval);
         
+        public static Exception InputNameWithDifferentCase(string id, LexNode lexEquationExpression)
+            => new FunParseException(334, $"{lexEquationExpression.Value}<-  input name is same to name  {id}", lexEquationExpression.Interval);
+
         #endregion
 
         #region  4xx - errors of lists
@@ -393,49 +478,52 @@ namespace NFun.ParseErrors
 
         #region 5xx - Interpritation exceptions
 
-        public static Exception CycleEquationDependencies(EquationSyntaxNode[] result)
+        public static Exception CycleEquationDependencies(LexEquation[] result)
         {
             var expression = result.First().Expression;
             return new FunParseException(501,"Cycle dependencies found: " 
                                          + string.Join("->", result.Select(r=>r.Id)), 
                 expression.Interval);
         }
-        public static Exception NotAnExpression(ISyntaxNode node) 
+        public static Exception NotAnExpression(LexNode node) 
             => new FunParseException(503,$"{node} is not an expression", node.Interval);
   
         public static Exception ImpossibleCast(VarType from,VarType to, Interval interval)
             => new FunParseException(506, $"Unable to cast from {from} to {to}", interval);
       
-        public static Exception InvalidArgTypeDefenition(ISyntaxNode argumentNode) 
+        public static Exception InvalidArgTypeDefenition(LexNode argumentNode) 
             => new FunParseException(506, ErrorsHelper.ToString(argumentNode) + " is  not valid fun arg", argumentNode.Interval);
 
-        public static Exception AnonymousFunDefenitionIsMissing(ISyntaxNode node)
+        public static Exception AnonymousFunDefenitionIsMissing(LexNode node)
             => new FunParseException(509, "Anonymous fun defenition is missing", node.Interval);
 
-        public static Exception AnonymousFunBodyIsMissing(ISyntaxNode node)
+        public static Exception AnonymousFunBodyIsMissing(LexNode node)
             => new FunParseException(512, "Anonymous fun body is missing", node.Interval);
 
-        public static Exception AmbiguousCallOfFunction(IList<FunctionBase> funVars, string funName, Interval interval)
-            => throw new FunParseException(515,$"Ambiguous call of function with name: {funName}", interval);
+        public static Exception AmbiguousCallOfFunction(IList<FunctionBase> funVars, LexNode varName)
+            => throw new FunParseException(515,$"Ambiguous call of function with name: {varName.Value}", varName.Interval);
 
         
         
-
+        
         public static Exception AmbiguousFunctionChoise(IList<FunctionBase> funVars, VariableSyntaxNode varName)
             => throw new FunParseException(516,$"Several functions with name: {varName.Value} can be used in expression. Did you mean input variable instead of function?", varName.Interval);
+
+        public static Exception AmbiguousFunctionChoise(IList<FunctionBase> funVars, LexNode varName)
+            => throw new FunParseException(516,$"Several functions with name: {varName.Value} can be used in expression. Did you mean input variable instead of function?", varName.Interval);
         
-        public static Exception ArrayInitializerTypeMismatch(VarType stepType, ISyntaxNode node)
+        public static Exception ArrayInitializerTypeMismatch(VarType stepType, LexNode node)
             => throw new FunParseException(518,$"Array initializator step has to be int type only but was '{stepType}'. Example: [1..5..2]", node.Interval);
 
-        public static Exception CannotParseNumber(NumberSyntaxNode  node)
+        public static Exception CannotParseNumber(LexNode node)
             => new FunParseException(521, $"Cannot parse number '{node.Value}'", node.Interval);
 
-        public static Exception FunctionNotFound(string name, Interval interval, List<IExpressionNode> children,
+        public static Exception FunctionNotFound(LexNode node, List<IExpressionNode> children,
             FunctionsDictionary functions)
         {
             return new FunParseException(524,
-                $"Function {name}({string.Join(", ", children.Select(c => c.Type))}) is not defined",
-                interval);
+                $"Function {node.Value}({string.Join(", ", children.Select(c => c.Type))}) is not defined",
+                node.Interval);
         }
 
         public static Exception UnknownVariables(IEnumerable<VariableExpressionNode> values)
@@ -445,7 +533,7 @@ namespace NFun.ParseErrors
             return new FunParseException(530,$"Unknown variables \"{string.Join(", ", values)}\"",values.First().Interval);
         }
 
-        public static Exception FunctionAlreadyExist(UserFunctionDefenitionSyntaxNode userFun) 
+        public static Exception FunctionAlreadyExist(LexFunction userFun) 
             => new FunParseException(533,$"Function  {ErrorsHelper.Signature(userFun.Id, userFun.Args)} already exist", 
                 new Interval( userFun.Head.Interval.Start,userFun.Node.Interval.Finish));
 
@@ -461,13 +549,13 @@ namespace NFun.ParseErrors
         public static Exception InvalidOutputType(FunctionBase function, Interval interval) 
             => new FunParseException(542, $"'{function.OutputType}' is not supported as output parameter of {function.Name}()", interval);
 
-        public static Exception FunctionArgumentDuplicates(UserFunctionDefenitionSyntaxNode lexFunction, VarDefenitionSyntaxNode lexFunctionArg) 
+        public static Exception FunctionArgumentDuplicates(LexFunction lexFunction, LexVarDefenition lexFunctionArg) 
             => new FunParseException(545, $"'Argument name '{lexFunctionArg.Id}' duplicates at  {ErrorsHelper.Signature(lexFunction.Id, lexFunction.Args)} ", lexFunction.Head.Interval);
 
-        public static Exception AnonymousFunctionArgumentDuplicates(FunArgumentExpressionNode argNode,UserFunctionDefenitionSyntaxNode funDefenition)
+        public static Exception AnonymousFunctionArgumentDuplicates(FunArgumentExpressionNode argNode,LexNode funDefenition)
             => new FunParseException(548, $"'Argument name '{argNode.Name}' of anonymous fun duplicates ", funDefenition.Interval);
 
-        public static Exception AnonymousFunctionArgumentConflictsWithOuterScope(FunArgumentExpressionNode argNode, UserFunctionDefenitionSyntaxNode funDefenition)
+        public static Exception AnonymousFunctionArgumentConflictsWithOuterScope(FunArgumentExpressionNode argNode, LexNode funDefenition)
             => new FunParseException(551, $"'Argument name '{argNode.Name}' of anonymous fun conflicts with outer scope variable. It is denied for your safety.", funDefenition.Interval);
         public static Exception VariousArrayElementTypes(IExpressionNode[] elements, int failureIndex) {
             var firstType = elements[0].Type;

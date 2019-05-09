@@ -87,7 +87,24 @@ namespace NFun.Tokenization
             tok = null;
             return false;
         }
-        
+        public static LexNode ReadExpressionOrNull(this TokenFlow flow)
+        { 
+            return new LexNodeReader(flow).ReadExpressionOrNull();
+        }
+        public static LexNode TryReadExpressionAndReturnBack(this TokenFlow flow)
+        {
+            int lastFlowPosition = flow.CurrentTokenPosition;
+            try
+            {
+                return new LexNodeReader(flow).ReadExpressionOrNull();
+            }
+            catch (FunParseException){}
+            finally
+            {
+                flow.Move(lastFlowPosition);
+            }
+            throw new InvalidOperationException();
+        }
         public static Tok MoveIfOrThrow(this TokenFlow flow, TokType tokType)
         {
             var cur = flow.Current;

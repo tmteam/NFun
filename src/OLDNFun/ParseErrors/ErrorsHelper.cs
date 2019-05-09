@@ -27,8 +27,27 @@ namespace NFun.ParseErrors
 
             return sb.ToString();
         }
-       
-       
+        public static string ToFailureFunString(LexNode headNode, LexNode headNodeChild)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (var child in headNode.Children)
+            {
+                if (child == headNodeChild)
+                    sb.Append("???");
+                else
+                    sb.Append(child.Value);
+
+                if (headNode.Children.Last() != child)
+                    sb.Append(",");
+            }
+
+            return sb.ToString();
+        }
+        public static string CreateArgumentsStub(IEnumerable<LexNode> arguments)
+        {
+            var argumentsStub = string.Join(",", arguments.Select(ToString));
+            return argumentsStub;
+        }
         public static string CreateArgumentsStub(IEnumerable<ISyntaxNode> arguments)
         {
             var argumentsStub = string.Join(",", arguments.Select(ToString));
@@ -40,13 +59,23 @@ namespace NFun.ParseErrors
             => $"{funName}({Join(arguments)})";
 
         
+        public static string Signature(string funName, IEnumerable<LexVarDefenition> arguments) 
+            => $"{funName}({Join(arguments)})";
+
+        
         public static string Join(IEnumerable<ISyntaxNode> arguments) 
             => string.Join(",", arguments);
 
+        public static string Join(IEnumerable<LexVarDefenition> arguments) 
+            => string.Join(",", arguments);
 
         public static string ToString(ISyntaxNode node)
         {
-            /*
+            //todo visitor
+            return node.ToString();
+        }
+        public  static string ToString(LexNode node)
+        {
             switch (node.Type)
             {
                 case LexNodeType.Number: return node.Value;
@@ -62,9 +91,7 @@ namespace NFun.ParseErrors
                 case LexNodeType.ProcArrayInit: return "[ .. ]";
                 default:
                     throw new ArgumentOutOfRangeException();
-            }*/
-            //todo visitor
-            return node.ToString();
+            }
         }
         public static string ToString(Tok tok)
         {
@@ -129,7 +156,7 @@ namespace NFun.ParseErrors
             var obrStart = flow.Current.Start;
             flow.MoveIfOrThrow(openBrack);
             
-            var list = new List<ISyntaxNode>();
+            var list = new List<LexNode>();
             int currentToken = flow.CurrentTokenPosition;
             do
             {
@@ -146,7 +173,7 @@ namespace NFun.ParseErrors
                     return new ExprListError(
                         ExprListErrorType.ElementMissed,
                         list,
-                        new Interval(list.Last().Interval.Finish, flow.Current.Finish));
+                        new Interval(list.Last().Finish, flow.Current.Finish));
                 }
                 
                 var exp = flow.ReadExpressionOrNull();
@@ -174,15 +201,15 @@ namespace NFun.ParseErrors
             var nextExpression = flow.TryReadExpressionAndReturnBack();
             if (nextExpression != null)//[x y] <- separator is missed
                 return new ExprListError(ExprListErrorType.SepIsMissing, 
-                    list, new Interval(list.Last().Interval.Finish, nextExpression.Interval.Start));
+                    list, new Interval(list.Last().Finish, nextExpression.Start));
             //[x {some crappy crap here}]
             return SpecifyArrayInitError(list, flow, openBrack, closeBrack);
         }
         private static ExprListError SpecifyArrayInitError(
-            IList<ISyntaxNode> arguments, TokenFlow flow, TokType openBrack, TokType closeBrack)
+            IList<LexNode> arguments, TokenFlow flow, TokType openBrack, TokType closeBrack)
         {
             var firstToken = flow.Current;
-            int lastArgPosition = arguments.LastOrDefault()?.Interval.Finish ?? flow.Position;
+            int lastArgPosition = arguments.LastOrDefault()?.Finish ?? flow.Position;
 
             flow.SkipNewLines();
            
@@ -202,7 +229,7 @@ namespace NFun.ParseErrors
            
             var errorStart = lastArgPosition;
             if (flow.Position == errorStart)
-                errorStart = arguments.Last().Interval.Start;
+                errorStart = arguments.Last().Start;
             //[x, {y someshit} , ... 
             if (!hasAnyBeforeStop)
             {
@@ -217,7 +244,7 @@ namespace NFun.ParseErrors
             return new ExprListError(
                 ExprListErrorType.LastArgumentIsInvalid, 
                 arguments,
-                new Interval(arguments.Last().Interval.Start , flow.Position));
+                new Interval(arguments.Last().Start , flow.Position));
         }
 
 
@@ -227,10 +254,10 @@ namespace NFun.ParseErrors
     public class ExprListError
     {
         public readonly ExprListErrorType Type;
-        public readonly ISyntaxNode[] Parsed;
+        public readonly LexNode[] Parsed;
         public readonly Interval Interval;
 
-        public ExprListError(ExprListErrorType type, IEnumerable<ISyntaxNode> parsed, Interval interval)
+        public ExprListError(ExprListErrorType type, IEnumerable<LexNode> parsed, Interval interval)
         {
             Type = type;
             Parsed = parsed.ToArray();

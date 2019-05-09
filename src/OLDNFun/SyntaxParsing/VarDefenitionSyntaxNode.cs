@@ -17,7 +17,7 @@ namespace NFun.Parsing
 
         }
         public bool IsBracket { get; set; }
-        public SyntaxNodeType Type => SyntaxNodeType.GlobalVarDefenition;
+        public LexNodeType Type => LexNodeType.GlobalVarDefenition;
         public Interval Interval { get; set; }
         public override string ToString() => Id + ":" + Type;
 

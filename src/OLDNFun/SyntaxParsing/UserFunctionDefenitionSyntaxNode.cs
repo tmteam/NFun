@@ -24,7 +24,7 @@ namespace NFun.Parsing
         public IList<VarDefenitionSyntaxNode>  Args { get; set; }
         public ISyntaxNode Node { get; set; }
         public bool IsBracket { get; set; }
-        public SyntaxNodeType Type => SyntaxNodeType.UserFunctionDefenition;
+        public LexNodeType Type => LexNodeType.UserFunctionDefenition;
         public Interval Interval { get; set; }
     }
 }
