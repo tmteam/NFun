@@ -1,4 +1,9 @@
-$HEADER$namespace $NAMESPACE$
+namespace NFun.SyntaxParsing.Visitors
 {
-  public enum $ENUM$ {$END$}
+    public enum VisitorResult
+    {
+        Continue,
+        Failed,
+        Skip
+    }
 }

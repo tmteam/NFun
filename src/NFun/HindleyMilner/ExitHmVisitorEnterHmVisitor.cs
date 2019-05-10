@@ -3,7 +3,7 @@ using NFun.SyntaxParsing.Visitors;
 
 namespace NFun.SyntaxParsing
 {
-    class ExitHmVisitorEnterHmVisitor: ISyntaxNodeVisitor<bool>
+    class ExitHmVisitor: ISyntaxNodeVisitor<bool>
     {
         public bool Visit(ArraySyntaxNode node)=> false;
         public bool Visit(UserFunctionDefenitionSyntaxNode node)=> false;

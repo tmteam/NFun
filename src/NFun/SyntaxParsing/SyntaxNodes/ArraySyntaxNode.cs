@@ -1,10 +1,13 @@
 using System.Collections.Generic;
+using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
 
 namespace NFun.Parsing
 {
     public class ArraySyntaxNode : ISyntaxNode
     {
+        public int NodeNumber { get; set; }
+
         public ISyntaxNode[] Expressions { get; }
 
         public ArraySyntaxNode(ISyntaxNode[] expressions, Interval interval)

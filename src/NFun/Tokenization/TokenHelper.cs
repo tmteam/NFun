@@ -15,7 +15,6 @@ namespace NFun.Tokenization
 
             if (val.Length > 2)
             {
-
                 if (val[1] == 'b')
                     return Convert.ToInt32(val.Substring(2),2);
                 if (val[1] == 'x')

@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using NFun.ParseErrors;
+using NFun.SyntaxParsing;
+using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
 using NFun.Types;
 
@@ -80,7 +82,9 @@ namespace NFun.Parsing
                 }
             }
 
-            return new SyntaxTree(nodes.ToArray());
+            var tree = new SyntaxTree(nodes.ToArray());
+            tree.ComeOver(new SetNodeNumberVisitor());
+            return tree;
         }
         private static VarAttribute[] ReadAttributes(TokenFlow flow)
         {

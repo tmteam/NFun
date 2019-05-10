@@ -1,10 +1,13 @@
 using System.Collections.Generic;
+using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
 
 namespace NFun.Parsing
 {
     public class FunCallSyntaxNode: ISyntaxNode
     {
+        public int NodeNumber { get; set; }
+
         public FunCallSyntaxNode(string value, ISyntaxNode[] args, Interval interval, bool isOperator = false)
         {
             Value = value;

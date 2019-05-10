@@ -1,10 +1,13 @@
 using System.Collections.Generic;
+using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
 
 namespace NFun.Parsing
 {
     public class ProcArrayInit : ISyntaxNode
     {
+        public int NodeNumber { get; set; }
+
         public ISyntaxNode From { get; }
         public ISyntaxNode To { get; }
         public ISyntaxNode Step { get; }

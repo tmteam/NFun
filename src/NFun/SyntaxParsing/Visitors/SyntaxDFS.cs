@@ -1,19 +1,38 @@
 using NFun.Parsing;
 
-namespace NFun.SyntaxParsing
+namespace NFun.SyntaxParsing.Visitors
 {
     public static class SyntaxDFS
     {
-        public static void ComeOverTheTree(this ISyntaxNode root, ISyntaxNodeVisitor<bool> enterVisitor,
+        public static bool ComeOver(this ISyntaxNode root, ISyntaxNodeVisitor<VisitorResult> enterVisitor,
             ISyntaxNodeVisitor<bool> exitVisitor)
         {
-            if (!root.Visit(enterVisitor))
-                return;
+            var enterResult = root.Visit(enterVisitor);
+            if (enterResult == VisitorResult.Failed)
+                return false;
+            if (enterResult == VisitorResult.Skip)
+                return true;
             
             foreach (var child in root.Children)
-                child.ComeOverTheTree(enterVisitor, exitVisitor);
+                if (!child.ComeOver(enterVisitor, exitVisitor))
+                    return false;
 
-            root.Visit(exitVisitor);
+            return root.Visit(exitVisitor);
+        }
+        
+        public static bool ComeOver(this ISyntaxNode root, ISyntaxNodeVisitor<VisitorResult> enterVisitor)
+        {
+            var enterResult = root.Visit(enterVisitor);
+            if (enterResult == VisitorResult.Failed)
+                return false;
+            if (enterResult == VisitorResult.Skip)
+                return true;
+            
+            foreach (var child in root.Children)
+                if (!child.ComeOver(enterVisitor))
+                    return false;
+
+            return true;
         }
     }
 

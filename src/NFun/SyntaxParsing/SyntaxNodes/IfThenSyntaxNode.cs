@@ -1,10 +1,13 @@
 using System.Collections.Generic;
+using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
 
 namespace NFun.Parsing
 {
     public class IfThenSyntaxNode : ISyntaxNode
     {
+        public int NodeNumber { get; set; }
+
         public ISyntaxNode Condition { get; }
         public ISyntaxNode Expr { get; }
 

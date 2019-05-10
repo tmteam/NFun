@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
 using NFun.Types;
 
@@ -6,6 +7,8 @@ namespace NFun.Parsing
 {
     public class VarDefenitionSyntaxNode : ISyntaxNode
     {
+        public int NodeNumber { get; set; }
+
         public string Id { get; }
         public VarType VarType { get; }
         public VarAttribute[] Attributes { get; }

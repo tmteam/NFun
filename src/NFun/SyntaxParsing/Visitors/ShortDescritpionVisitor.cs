@@ -1,7 +1,7 @@
 using System.Linq;
 using NFun.Parsing;
 
-namespace NFun.ParseErrors
+namespace NFun.SyntaxParsing.Visitors
 {
     public class ShortDescritpionVisitor: ISyntaxNodeVisitor<string>
     {

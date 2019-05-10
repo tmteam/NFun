@@ -1,25 +1,26 @@
 using NFun.Parsing;
+using NFun.SyntaxParsing.Visitors;
 
 namespace NFun.SyntaxParsing
 {
-    class EnterHmVisitor: ISyntaxNodeVisitor<bool>
+    class EnterHmVisitor: ISyntaxNodeVisitor<VisitorResult>
     {
-        public bool Visit(ArraySyntaxNode node)=> false;
-        public bool Visit(UserFunctionDefenitionSyntaxNode node)=> false;
-        public bool Visit(ProcArrayInit node)=> false;
+        public VisitorResult Visit(ArraySyntaxNode node)=> VisitorResult.Skip;
+        public VisitorResult Visit(UserFunctionDefenitionSyntaxNode node)=> VisitorResult.Skip;
+        public VisitorResult Visit(ProcArrayInit node)=> VisitorResult.Skip;
         
-        public bool Visit(AnonymCallSyntaxNode node) => false;
-        public bool Visit(EquationSyntaxNode node)=> true;
-        public bool Visit(FunCallSyntaxNode node)=> true;
-        public bool Visit(IfThenElseSyntaxNode node)=> true;
-        public bool Visit(IfThenSyntaxNode node)=> true;
-        public bool Visit(ListOfExpressionsSyntaxNode node)=> true;
-        public bool Visit(NumberSyntaxNode node)=> true;
-        public bool Visit(SyntaxTree node)=> true;
-        public bool Visit(TextSyntaxNode node)=> true;
-        public bool Visit(TypedVarDefSyntaxNode node)=> true;
-        public bool Visit(VarDefenitionSyntaxNode node)=> true;
-        public bool Visit(VariableSyntaxNode node)=> true;
+        public VisitorResult Visit(AnonymCallSyntaxNode node) => VisitorResult.Continue;
+        public VisitorResult Visit(EquationSyntaxNode node)=> VisitorResult.Continue;
+        public VisitorResult Visit(FunCallSyntaxNode node)=> VisitorResult.Continue;
+        public VisitorResult Visit(IfThenElseSyntaxNode node)=> VisitorResult.Continue;
+        public VisitorResult Visit(IfThenSyntaxNode node)=> VisitorResult.Continue;
+        public VisitorResult Visit(ListOfExpressionsSyntaxNode node)=> VisitorResult.Continue;
+        public VisitorResult Visit(NumberSyntaxNode node)=> VisitorResult.Continue;
+        public VisitorResult Visit(SyntaxTree node)=> VisitorResult.Continue;
+        public VisitorResult Visit(TextSyntaxNode node)=> VisitorResult.Continue;
+        public VisitorResult Visit(TypedVarDefSyntaxNode node)=> VisitorResult.Continue;
+        public VisitorResult Visit(VarDefenitionSyntaxNode node)=> VisitorResult.Continue;
+        public VisitorResult Visit(VariableSyntaxNode node)=> VisitorResult.Continue;
 
     }
 }

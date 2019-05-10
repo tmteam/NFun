@@ -1,10 +1,12 @@
 using System.Collections.Generic;
+using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
 
 namespace NFun.Parsing
 {
     public class EquationSyntaxNode : ISyntaxNode
     {
+        
         public string Id { get; }
         public ISyntaxNode Expression { get; }
         public VarAttribute[] Attributes { get; }
@@ -17,6 +19,8 @@ namespace NFun.Parsing
             IsInBrackets = false;
             Interval = Interval.New(start, expression.Interval.Finish);
         }
+
+        public int NodeNumber { get; set; }
         public bool IsInBrackets { get; set; }
         public SyntaxNodeType Type => SyntaxNodeType.Equation;
         public Interval Interval { get; set; }

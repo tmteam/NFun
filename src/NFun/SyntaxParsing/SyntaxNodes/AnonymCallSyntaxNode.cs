@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
 
 namespace NFun.Parsing
@@ -15,6 +16,7 @@ namespace NFun.Parsing
             Interval = interval;
         }
 
+        public int NodeNumber { get; set; }
         public bool IsInBrackets { get; set; }
         public SyntaxNodeType Type => SyntaxNodeType.AnonymFun;
         public Interval Interval { get; set; }

@@ -1,4 +1,6 @@
-namespace NFun.Parsing
+using NFun.Parsing;
+
+namespace NFun.SyntaxParsing.Visitors
 {
     public interface ISyntaxNodeVisitor<T>
     {

@@ -1,11 +1,14 @@
 using System.Collections.Generic;
 using System.Linq;
+using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
 
 namespace NFun.Parsing
 {
     public class SyntaxTree: ISyntaxNode
     {
+        public int NodeNumber { get; set; }
+
         public ISyntaxNode[] Nodes { get; }
 
         public SyntaxTree(ISyntaxNode[] nodes)
