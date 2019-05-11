@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using NFun.BuiltInFunctions;
@@ -5,6 +6,7 @@ using NFun.Interpritation;
 using NFun.Interpritation.Functions;
 using NFun.Parsing;
 using NFun.Runtime;
+using NFun.SyntaxParsing;
 using NFun.Tokenization;
 
 namespace NFun
@@ -36,10 +38,20 @@ namespace NFun
         public FunRuntime Build()
         {
             var flow = Tokenizer.ToFlow(_text);
-            var lexTree = TopLevelParser.Parse(flow);
-             
+            var syntaxTree = TopLevelParser.Parse(flow);
+
+            var functionsDictionary =  new FunctionsDictionary();
+            foreach (var predefinedFunction in _functions.Concat(PredefinedFunctions))
+                functionsDictionary.Add(predefinedFunction);
+            foreach (var genericFunctionBase in _genericFunctions.Concat(predefinedGenerics))
+                functionsDictionary.Add(genericFunctionBase);
+            
+            var typeSolving = new HmAlgorithmAdapter(functionsDictionary).Apply(syntaxTree);
+            if (!typeSolving.IsSolved)
+                throw new InvalidOperationException("Types not solved");
+            
             return ExpressionReader.Interpritate(
-                lexTree, 
+                syntaxTree, 
                 _functions.Concat(FunBuilder.PredefinedFunctions), 
                 _genericFunctions.Concat(FunBuilder.predefinedGenerics));
         }
@@ -105,7 +117,7 @@ namespace NFun
                 new AddRealFunction("sum"),
                 new AddIntFunction("sum"),
                 new AddInt64Function("sum"), 
-                new AddTextFunction("concat"),
+                new AddTextFunction("str_concat"),
 
                 new SubstractIntFunction(), 
                 new SubstractRealFunction(), 

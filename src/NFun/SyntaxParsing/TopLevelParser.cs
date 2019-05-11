@@ -45,7 +45,7 @@ namespace NFun.Parsing
                     {
                         //equatation
                         flow.MoveNext();
-                        var equation = ReadEquation(flow, reader, variable.Value, attributes);
+                        var equation = ReadEquation(flow, reader, variable.Id, attributes);
                         nodes.Add(equation);
                         equationNames.Add(equation.Id);
                     }
@@ -149,7 +149,7 @@ namespace NFun.Parsing
                 if (headNodeChild is TypedVarDefSyntaxNode varDef)
                     arguments.Add(varDef);
                 else if(headNodeChild is VariableSyntaxNode varSyntax)
-                    arguments.Add(new TypedVarDefSyntaxNode(varSyntax.Value, VarType.Real, headNodeChild.Interval));
+                    arguments.Add(new TypedVarDefSyntaxNode(varSyntax.Id, VarType.Real, headNodeChild.Interval));
                 else    
                     throw ErrorFactory.WrongFunctionArgumentDefenition(start, headNode, headNodeChild, flow.Current);
               

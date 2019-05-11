@@ -139,9 +139,9 @@ namespace NFun.HindleyMilner.Tyso
         }
         
         
-        public void SetConst(int nodeId, FType type) 
+        public bool SetConst(int nodeId, FType type) 
         {
-            _solver.SetStrict(nodeId, type);
+            return _solver.SetStrict(nodeId, type);
         }
 
         public bool SetNode(int nodeId, SolvingNode closured) 

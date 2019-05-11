@@ -48,7 +48,14 @@ namespace NFun.Interpritation
             }
         }
 
-        public IList<FunctionBase> Get(string name)
+        
+        public GenericFunctionBase GetGenericOrNull(string name, int argCount)
+        {
+            if (!_genericFunctions.TryGetValue(name, out var res))
+                return null;
+            return res.FirstOrDefault(r => r.ArgTypes.Length == argCount);
+        }
+        public IList<FunctionBase> GetNonGeneric(string name)
         {
             if (_functions.TryGetValue(name, out var res))
                 return res;

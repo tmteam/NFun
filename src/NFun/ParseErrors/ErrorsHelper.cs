@@ -20,7 +20,7 @@ namespace NFun.ParseErrors
                 if (child is VarDefenitionSyntaxNode varDef)
                     sb.Append(varDef.Id);
                 else if (child is VariableSyntaxNode varSyntax)
-                    sb.Append(varSyntax.Value);
+                    sb.Append(varSyntax.Id);
 
                 if (headNode.Args.Last() != child)
                     sb.Append(",");

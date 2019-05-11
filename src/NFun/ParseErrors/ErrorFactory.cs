@@ -426,7 +426,7 @@ namespace NFun.ParseErrors
         
 
         public static Exception AmbiguousFunctionChoise(IList<FunctionBase> funVars, VariableSyntaxNode varName)
-            => throw new FunParseException(516,$"Several functions with name: {varName.Value} can be used in expression. Did you mean input variable instead of function?", varName.Interval);
+            => throw new FunParseException(516,$"Several functions with name: {varName.Id} can be used in expression. Did you mean input variable instead of function?", varName.Interval);
         
         public static Exception ArrayInitializerTypeMismatch(VarType stepType, ISyntaxNode node)
             => throw new FunParseException(518,$"Array initializator step has to be int type only but was '{stepType}'. Example: [1..5..2]", node.Interval);

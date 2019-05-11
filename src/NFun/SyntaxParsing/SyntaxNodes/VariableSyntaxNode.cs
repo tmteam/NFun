@@ -8,15 +8,15 @@ namespace NFun.Parsing
     {
         public int NodeNumber { get; set; }
 
-        public VariableSyntaxNode(string value, Interval interval)
+        public VariableSyntaxNode(string id, Interval interval)
         {
-            Value = value;
+            Id = id;
             Interval = interval;
         }
 
         public bool IsInBrackets { get; set; }
         public SyntaxNodeType Type => SyntaxNodeType.Var;
-        public string Value { get; }
+        public string Id { get; }
         public Interval Interval { get; set; }
         public T Visit<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);    
         public IEnumerable<ISyntaxNode> Children => new ISyntaxNode[0];

@@ -109,7 +109,7 @@ namespace NFun.Interpritation
         private FunArgumentExpressionNode ConvertToArgumentNodeOrThrow(ISyntaxNode node)
         {
             if(node is VariableSyntaxNode varNode)
-                return new FunArgumentExpressionNode(varNode.Value, VarType.Real, node.Interval);
+                return new FunArgumentExpressionNode(varNode.Id, VarType.Real, node.Interval);
             if(node is TypedVarDefSyntaxNode typeVarNode)
                 return new FunArgumentExpressionNode(typeVarNode.Id, typeVarNode.VarType, node.Interval);
             
@@ -118,18 +118,18 @@ namespace NFun.Interpritation
         
         private IExpressionNode GetOrAddVariableNode(VariableSyntaxNode varNode)
         {
-            var lower = varNode.Value;
+            var lower = varNode.Id;
             if (_variables.GetSourceOrNull(lower) == null)
             {
-                var funVars = _functions.Get(lower);
+                var funVars = _functions.GetNonGeneric(lower);
                 if (funVars.Count > 1)
                     throw ErrorFactory.AmbiguousFunctionChoise(funVars, varNode);
                 if (funVars.Count == 1)
                     return new FunVariableExpressionNode(funVars[0], varNode.Interval);
             }
-            var node = _variables.CreateVarNode(varNode.Value, varNode.Interval);
-            if(node.Source.Name!= varNode.Value)
-                throw ErrorFactory.InputNameWithDifferentCase(varNode.Value, node.Source.Name, varNode.Interval);
+            var node = _variables.CreateVarNode(varNode.Id, varNode.Interval);
+            if(node.Source.Name!= varNode.Id)
+                throw ErrorFactory.InputNameWithDifferentCase(varNode.Id, node.Source.Name, varNode.Interval);
             return node;
         }
         
@@ -174,7 +174,7 @@ namespace NFun.Interpritation
         private static IExpressionNode GetTextValueNode(TextSyntaxNode node) 
             => new ValueExpressionNode(node.Value, node.Interval);
 
-        private static IExpressionNode GetValueNode(NumberSyntaxNode node)
+        public static IExpressionNode GetValueNode(NumberSyntaxNode node)
         {
             var val = node.Value;
             try
