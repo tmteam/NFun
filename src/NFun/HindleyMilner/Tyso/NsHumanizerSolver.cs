@@ -146,6 +146,45 @@ namespace NFun.HindleyMilner.Tyso
 
         public bool SetNode(int nodeId, SolvingNode closured) 
             => _solver.SetNode(nodeId, closured);
+
+        public bool SetArrayInit(int arrayNode, params int[] nodes)
+        {
+            if (nodes.Length == 0)
+                return _solver.SetStrict(arrayNode, FType.ArrayOf(FType.Generic(0)));
+
+            for (int i = 1; i < nodes.Length; i++)
+            {
+                if (!_solver.Unite(nodes[i - 1], nodes[i]))
+                    return false;
+            }
+
+            var genericType = _solver.GetOrNull(nodes[0]);
+            return _solver.SetStrict(arrayNode, FType.ArrayOf(genericType));
+        }
+
+        public bool SetProcArrayInit(int nodeId, int fromId, int toId)
+        {
+            return _solver.SetLimArgCall(new CallDef(
+                new[] {FType.ArrayOf(FType.Int32), FType.Int32, FType.Int32}, new[] {nodeId, fromId, toId}));
+        }
+
+        public bool SetProcArrayInit(int nodeId, int fromId, int toId, int stepId)
+        {
+
+            var limits = _solver.SetLimit(fromId, NTypeName.Real)
+                         && _solver.SetLimit(toId, NTypeName.Real)
+                         && _solver.SetLimit(stepId, NTypeName.Real);
+            if (!limits)
+                return false;
+            //T0 = Lca(from, to, step)
+            var lcaType = SolvingNode.CreateLca(_solver.GetOrNull(fromId), _solver.GetOrNull(toId),
+                _solver.GetOrNull(stepId));
+            _solver.AddAdditionalType(lcaType);
+            //set nodeId as T0[]
+            var returnType = SolvingNode.CreateStrict(NTypeName.Array, lcaType);
+            _solver.AddAdditionalType(returnType);
+            return _solver.Unite(nodeId, returnType);
+        }
     }
 
     public class OverloadCall

@@ -1,13 +1,12 @@
 using System.Linq;
 using NFun.BuiltInFunctions;
-using NFun.HindleyMilner;
 using NFun.HindleyMilner.Tyso;
 using NFun.Interpritation;
 using NFun.Interpritation.Functions;
 using NFun.Parsing;
 using NFun.SyntaxParsing.Visitors;
 
-namespace NFun.SyntaxParsing
+namespace NFun.HindleyMilner
 {
     class ExitHmVisitor: ISyntaxNodeVisitor<bool>
     {
@@ -20,9 +19,20 @@ namespace NFun.SyntaxParsing
             _dictionary = dictionary;
         }
 
-        public bool Visit(ArraySyntaxNode node)=> false;
+        public bool Visit(ArraySyntaxNode node)=> _solver.SetArrayInit(node.NodeNumber, node.Expressions.Select(e=>e.NodeNumber).ToArray());
         public bool Visit(UserFunctionDefenitionSyntaxNode node)=> false;
-        public bool Visit(ProcArrayInit node)=> false;
+        public bool Visit(ProcArrayInit node)
+        {
+            if (node.Step == null)
+            {
+                return _solver.SetProcArrayInit(node.NodeNumber, node.From.NodeNumber, node.To.NodeNumber);
+            }
+            else
+            {
+                return _solver.SetProcArrayInit(node.NodeNumber, node.From.NodeNumber, node.To.NodeNumber,node.Step.NodeNumber);
+            }
+        }
+
         public bool Visit(AnonymCallSyntaxNode node) => false;
         
         public bool Visit(EquationSyntaxNode node)

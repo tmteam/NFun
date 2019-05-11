@@ -1,13 +1,13 @@
 using NFun.Parsing;
 using NFun.SyntaxParsing.Visitors;
 
-namespace NFun.SyntaxParsing
+namespace NFun.HindleyMilner
 {
     class EnterHmVisitor: ISyntaxNodeVisitor<VisitorResult>
     {
-        public VisitorResult Visit(ArraySyntaxNode node)=> VisitorResult.Skip;
         public VisitorResult Visit(UserFunctionDefenitionSyntaxNode node)=> VisitorResult.Skip;
-        public VisitorResult Visit(ProcArrayInit node)=> VisitorResult.Skip;
+        public VisitorResult Visit(ProcArrayInit node)=> VisitorResult.Continue;
+        public VisitorResult Visit(ArraySyntaxNode node)=> VisitorResult.Continue;
         public VisitorResult Visit(AnonymCallSyntaxNode node) => VisitorResult.Continue;
         public VisitorResult Visit(EquationSyntaxNode node)=> VisitorResult.Continue;
         public VisitorResult Visit(FunCallSyntaxNode node)=> VisitorResult.Continue;

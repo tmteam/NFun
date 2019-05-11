@@ -82,6 +82,13 @@ namespace NFun.HindleyMilner.Tyso
                 throw new StackOverflowException("Fits too depth");
             return Behavior.Fits(candidateType, maxDepth);
         }
+
+        public static SolvingNode CreateLca(params SolvingNode[] children)
+        {
+            var node = new SolvingNode();
+            node.SetLca(children);
+            return node;
+        }
     }
 
     public enum FitResults

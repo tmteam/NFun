@@ -17,6 +17,12 @@ namespace NFun.HindleyMilner.Tyso
         private readonly List<SolvingNode> _additionalNodes;
         private readonly List<OverloadCall> _lazyOverloads = new List<OverloadCall>();
 
+        public SolvingNode GetOrNull(int nodeId)
+        {
+            if (_originNodes.Count < nodeId)
+                return null;
+            return _originNodes[nodeId];
+        }
         public SolvingNode GetOrCreate(string varId)
         {
             if (_variables.ContainsKey(varId)) 
@@ -133,7 +139,11 @@ namespace NFun.HindleyMilner.Tyso
             var solvingB = GetOrAdd(nodeBid);
             return solvingA.SetEqualTo(solvingB);
         }
-
+        public bool Unite(int nodeAid, SolvingNode returnType)
+        {
+            var solvingA = GetOrAdd(nodeAid);
+            return solvingA.SetEqualTo(returnType);
+        }
         public NsResult Solve()
         {
             //First: Optimize type graph
@@ -270,5 +280,12 @@ namespace NFun.HindleyMilner.Tyso
         {
             _lazyOverloads.Add(overloadCall);
         }
+
+        public void AddAdditionalType(SolvingNode node)
+        {
+            _additionalNodes.Add(node);
+        }
+
+       
     }
 }

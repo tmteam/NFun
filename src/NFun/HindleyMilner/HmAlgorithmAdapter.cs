@@ -1,11 +1,10 @@
-using NFun.HindleyMilner;
 using NFun.HindleyMilner.Tyso;
 using NFun.Interpritation;
 using NFun.Parsing;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Types;
 
-namespace NFun.SyntaxParsing
+namespace NFun.HindleyMilner
 {
     public class HmAlgorithmAdapter
     {

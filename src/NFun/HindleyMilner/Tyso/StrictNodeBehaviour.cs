@@ -12,7 +12,8 @@ namespace NFun.HindleyMilner.Tyso
 
         public INodeBehavior SetLimit(FType newLimit)
         {
-            
+            if(newLimit.Name.Id== NTypeName.AnyId)
+                return this;
             if (_type.IsPrimitive)
             {
                 //ERROR: If limit is more strict than concrete

@@ -25,6 +25,8 @@ namespace NFun.HindleyMilner.Tyso
 
         public static FType Real => new FType(NTypeName.Real);
         public static FType ArrayOf(FType type) => new FType(NTypeName.Array, SolvingNode.CreateStrict(type));
+        public static FType ArrayOf(SolvingNode solvingNode) => new FType(NTypeName.Array, solvingNode);
+
         public static FType Generic(int id)=> new GenericType(id);
         
         public static  FType GenericFun(int argsCount) 
