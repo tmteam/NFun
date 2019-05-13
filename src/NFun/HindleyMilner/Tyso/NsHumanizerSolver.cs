@@ -13,24 +13,19 @@ namespace NFun.HindleyMilner.Tyso
         }
 
         public NsResult Solve() => _solver.Solve();
-        
-        public bool ApplyIfClause(int nodeId, int[] testNodeIds, int[] thenNodeIds, int elseNodeId)
+
+        public bool SetFunDefenition(string funId, int funNodeId, int expressionId)
         {
-            //conditions
-            foreach (var testNodeId in testNodeIds)
-            {
-                if (!_solver.SetStrict(testNodeId, FType.Bool))
-                    return false;
-            }
-            
-            foreach (var thenNodeId in thenNodeIds)
-            {
-                if (!_solver.Unite(thenNodeId, elseNodeId))
-                    return false;
-            }
-            
-            
-            return _solver.Unite(nodeId, elseNodeId);
+            throw new NotImplementedException();
+        }
+        public bool SetInvoke(int nodeId, int funNodeId, int[] argIds)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool SetInvoke(int nodeId, string funId,int[] argIds)
+        {
+            throw new NotImplementedException();
         }
         public bool ApplyLcaIf(int nodeId, int[] testNodeIds, int[] thenElseNodeIds)
         {
