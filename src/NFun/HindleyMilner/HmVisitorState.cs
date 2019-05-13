@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using NFun.HindleyMilner.Tyso;
 
 namespace NFun.HindleyMilner
@@ -32,5 +33,15 @@ namespace NFun.HindleyMilner
             _currentFunctionSolving = null;
             return fun;
         }
+        private readonly Dictionary<string, string> AnonymVariablesAliases = new Dictionary<string, string>();
+
+        public string GetActualName(string varName)
+        {
+            if (AnonymVariablesAliases.TryGetValue(varName, out var realVarName))
+                return realVarName;
+            return varName;
+        }
+        public void AddAnonymVariablesAliase(string originName, string anonymName) 
+            => AnonymVariablesAliases.Add(anonymName, originName);
     }
 }

@@ -67,7 +67,7 @@ namespace NFun.HindleyMilner
             }
         }
 
-        public bool Visit(AnonymCallSyntaxNode node) => false;
+        public bool Visit(AnonymCallSyntaxNode node) => true;
         
         public bool Visit(EquationSyntaxNode node)
            => _state.CurrentSolver.SetDefenition(node.Id, node.NodeNumber, node.Expression.NodeNumber);
@@ -170,6 +170,9 @@ namespace NFun.HindleyMilner
         public bool Visit(VarDefenitionSyntaxNode node)
             => _state.CurrentSolver.SetVarType(node.Id, AdpterHelper.ConvertToHmType(node.VarType));
         public bool Visit(VariableSyntaxNode node)
-            => _state.CurrentSolver.SetVar(node.NodeNumber, node.Id);
+        {
+            var id = _state.GetActualName(node.Id);
+            return _state.CurrentSolver.SetVar(node.NodeNumber, id);
+        }
     }
 }

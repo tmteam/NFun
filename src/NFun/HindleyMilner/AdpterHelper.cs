@@ -7,7 +7,7 @@ namespace NFun.HindleyMilner
 {
     public static class AdpterHelper
     {
-        public static FType ConvertToHmType(VarType origin)
+        public static FType ConvertToHmType(this VarType origin)
         {
             switch (origin.BaseType)
             {

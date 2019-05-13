@@ -56,14 +56,7 @@ namespace NFun.Interpritation
             
             
             //Anonym fun arguments list
-
-            ISyntaxNode[] argumentLexNodes;
-            if (node.Defenition is ListOfExpressionsSyntaxNode list)
-                //it can be comlex: (x1,x2,x3)=>...
-                argumentLexNodes = list.Expressions;
-            else
-                //or primitive: x1 => ...
-                argumentLexNodes = new[] {node.Defenition};
+            var argumentLexNodes = node.ArgumentsDefenition;
             
             //Prepare local variable scope
             //Capture all outerscope variables
