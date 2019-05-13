@@ -23,6 +23,13 @@ namespace NFun.HindleyMilner.Tyso
                 return null;
             return _originNodes[nodeId];
         }
+
+        public SolvingNode GetOrNull(string varId)
+        {
+            if (_variables.ContainsKey(varId)) 
+                return _variables[varId];
+            return null;
+        }
         public SolvingNode GetOrCreate(string varId)
         {
             if (_variables.ContainsKey(varId)) 

@@ -14,48 +14,88 @@ namespace TysoTake2.TypeSolvingNodes.Tests
             solver = new NsHumanizerSolver();
         }
         [Test]
-        public void SimpleNonRecursiveConcreteFunction_solved()
+        public void NonRecursiveConstFunction_solved()
         {
-            //  3    021
-            //f(a) = a+1
-            solver.SetVarType("f(1)", FType.Fun(FType.Generic(0), FType.Generic(1)));
-            solver.SetNewVar("f(1) a");
-            solver.SetVar(0, "f(1) a");
-            solver.SetConst(1, FType.Int32);
-            solver.SetArithmeticalOp(2, 0, 1);
-            solver.SetFunDefenition("f(1)", 3, 2);
+            //  1   0
+            //f() = 1
+            var tOut = solver.MakeGeneric();
+            Assert.IsTrue(solver.SetVarType("f(0)", FType.Fun(tOut)));
+
+            solver.SetConst(0, FType.Int32);
+            Assert.IsTrue(solver.SetFunDefenition("f(0)", 1, 0));
             
             var res = solver.Solve();
             Assert.AreEqual(0,res.GenericsCount);
             Assert.IsTrue(res.IsSolved);
-            Assert.AreEqual(FType.Fun(FType.Real, FType.Real), res.GetVarType("f(1)"));
-            Assert.AreEqual(FType.Real, res.GetVarType("a"));
+            Assert.AreEqual(FType.Fun(FType.Int32), res.GetVarType("f(0)"));
         }
         [Test]
-        public void SimpleNonRecursiveConcreteFunction_WithSpecifiedOutputType()
-        {
-            //  3         021
-            //f(a):long = a+1
-            solver.SetVarType("f(1)", FType.Fun(FType.Int64, FType.Generic(0)));
-            solver.SetNewVar("f(1) a");
-            solver.SetVar(0, "f(1) a");
-            solver.SetConst(1, FType.Int32);
-            solver.SetArithmeticalOp(2, 0, 1);
-            solver.SetFunDefenition("f(1)", 3, 2);
-            
-            var res = solver.Solve();
-            Assert.AreEqual(0,res.GenericsCount);
-            Assert.IsTrue(res.IsSolved);
-            Assert.AreEqual(FType.Fun(FType.Real, FType.Real), res.GetVarType("f(1)"));
-            Assert.AreEqual(FType.Real, res.GetVarType("a"));
-        }
-        [Test]
-        public void SimpleNonRecursiveGenericFunction_GenericsFound()
+        public void NonRecursiveProjectionFunction_solved()
         {
             //  1    0
             //f(a) = a
-            solver.SetVarType("f(1)", FType.Fun(FType.Generic(0),FType.Generic(1)));
-            solver.SetNewVar("f(1) a");
+            var tA = solver.SetNewVar("f(1) a");
+            var tOut = solver.MakeGeneric();
+            solver.SetVarType("f(1)", FType.Fun(tOut, tA));
+            
+            solver.SetVar(0, "f(1) a");
+            Assert.IsTrue(solver.SetFunDefenition("f(1)", 1, 0));
+            
+            var res = solver.Solve();
+            Assert.AreEqual(1,res.GenericsCount);
+            Assert.IsTrue(res.IsSolved);
+            Assert.AreEqual(FType.Fun(FType.Generic(0), FType.Generic(0)), res.GetVarType("f(1)"));
+            Assert.AreEqual(FType.Generic(0), res.GetVarType("f(1) a"));
+        }
+        [Test]
+        public void NonRecursiveConcreteFunction_solved()
+        {
+            //  3    021
+            //f(a) = a+1
+            var tA = solver.SetNewVar("f(1) a");
+            var tOut = solver.MakeGeneric();
+            solver.SetVarType("f(1)", FType.Fun(tOut, tA));
+            
+            solver.SetVar(0, "f(1) a");
+            solver.SetConst(1, FType.Int32);
+            solver.SetArithmeticalOp(2, 0, 1);
+            Assert.IsTrue(solver.SetFunDefenition("f(1)", 3, 2));
+            
+            var res = solver.Solve();
+            Assert.AreEqual(0,res.GenericsCount);
+            Assert.IsTrue(res.IsSolved);
+            Assert.AreEqual(FType.Fun(FType.Real, FType.Real), res.GetVarType("f(1)"));
+            Assert.AreEqual(FType.Real, res.GetVarType("f(1) a"));
+        }
+        [Test]
+        public void NonRecursiveConcreteFunction_WithSpecifiedOutputType()
+        {
+            //  3         021
+            //f(a):long = a+1
+            var type = solver.SetNewVar("f(1) a");
+            solver.SetVarType("f(1)", FType.Fun(SolvingNode.CreateStrict(FType.Int64), type));
+            
+            solver.SetVar(0, "f(1) a");
+            solver.SetConst(1, FType.Int32);
+            solver.SetArithmeticalOp(2, 0, 1);
+            solver.SetFunDefenition("f(1)", 3, 2);
+            
+            var res = solver.Solve();
+            Assert.AreEqual(0,res.GenericsCount);
+            Assert.IsTrue(res.IsSolved);
+            Assert.AreEqual(FType.Fun(FType.Int64, FType.Int64), res.GetVarType("f(1)"));
+            Assert.AreEqual(FType.Int64, res.GetVarType("f(1) a"));
+        }
+        [Test]
+        public void NonRecursiveGenericFunction_GenericsFound()
+        {
+            //  1    0
+            //f(a) = a
+
+            var tA = solver.SetNewVar("f(1) a");
+            var tOut = solver.MakeGeneric();
+            solver.SetVarType("f(1)", FType.Fun(tOut, tA));
+            
             solver.SetVar(0, "f(1) a");
             solver.SetFunDefenition("f(1)", 1, 0);
             
@@ -63,16 +103,17 @@ namespace TysoTake2.TypeSolvingNodes.Tests
             Assert.AreEqual(1,res.GenericsCount);
             Assert.IsTrue(res.IsSolved);
             Assert.AreEqual(FType.Fun(FType.Generic(0), FType.Generic(0)), res.GetVarType("f(1)"));
-            Assert.AreEqual(FType.Generic(0), res.GetVarType("a"));
+            Assert.AreEqual(FType.Generic(0), res.GetVarType("f(1) a"));
         }
         
         [Test]
-        public void SimpleNonRecursiveGenericFunction_OutputSpecified_GenericsSolved()
+        public void NonRecursiveGenericFunction_OutputSpecified_GenericsSolved()
         {
             //  1    0
             //f(a):long = a
-            solver.SetVarType("f(1)", FType.Fun(FType.Int64, FType.Generic(0)));
-            solver.SetNewVar("f(1) a");
+            var tA = solver.SetNewVar("f(1) a");
+            solver.SetVarType("f(1)", FType.Fun(SolvingNode.CreateStrict(FType.Int64), tA));
+
             
             solver.SetVar(0, "f(1) a");
             solver.SetFunDefenition("f(1)", 1, 0);

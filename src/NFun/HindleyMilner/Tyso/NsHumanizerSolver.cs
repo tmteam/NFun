@@ -16,7 +16,16 @@ namespace NFun.HindleyMilner.Tyso
 
         public bool SetFunDefenition(string funId, int funNodeId, int expressionId)
         {
-            throw new NotImplementedException();
+            if (!_solver.SetVar(funNodeId, funId))
+                return false;
+            var node = _solver.GetOrNull(funId);
+            var funType = node.Behavior.MakeType(SolvingNode.MaxTypeDepth);
+            if (funType.Name.Id != NTypeName.FunId)
+                return false;
+            
+            if (!_solver.Unite(expressionId, funType.Arguments[0]))
+                return false;
+            return true;
         }
         public bool SetInvoke(int nodeId, int funNodeId, int[] argIds)
         {
@@ -201,6 +210,13 @@ namespace NFun.HindleyMilner.Tyso
             var returnType = SolvingNode.CreateStrict(NTypeName.Array, lcaType);
             _solver.AddAdditionalType(returnType);
             return _solver.Unite(nodeId, returnType);
+        }
+
+        public SolvingNode MakeGeneric()
+        {
+            var res = new SolvingNode();
+            _solver.AddAdditionalType(res);
+            return res;
         }
     }
 
