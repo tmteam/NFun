@@ -1,3 +1,6 @@
+using System;
+using System.Linq;
+
 namespace NFun.HindleyMilner.Tyso
 {
     public class NsHumanizerSolver
@@ -101,7 +104,26 @@ namespace NFun.HindleyMilner.Tyso
             
         }
 
+        public bool InitLambda(int nodeId, int exprId, SolvingNode[] args)
+        {
+            var outputType= _solver.GetOrCreate(exprId);
+            var funType =  SolvingNode.CreateStrict(NTypeName.Function, new[]{outputType}.Concat(args).ToArray());
+            if (!_solver.SetNode(nodeId, funType))
+                return false;
+            if (!_solver.Unite(exprId, outputType))
+                return false;
+            return true;
+        }
+
         public bool SetStrict(int node, FType type) => _solver.SetStrict(node, type);
+        public SolvingNode SetNewVar(string varName)
+        {
+            var genericType = new SolvingNode();
+            if(!_solver.SetVarType(varName, genericType))
+                throw new InvalidOperationException("var already declared");
+            return genericType;
+        }
+
         public bool SetVar(int nodeId, string varName) => _solver.SetVar(nodeId, varName);
         public bool SetVarType(string varName, FType type) => _solver.SetVarType(varName, type);
         public bool SetDefenition(string variableName, int varId, int exprId)

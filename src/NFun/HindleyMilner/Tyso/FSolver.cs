@@ -34,6 +34,21 @@ namespace NFun.HindleyMilner.Tyso
             return node;
 
         }
+        public SolvingNode GetOrCreate(int nodeid)
+        {
+            
+            while (_originNodes.Count <= nodeid) 
+                _originNodes.Add(null);
+
+            if (_originNodes[nodeid] != null) 
+                return _originNodes[nodeid];
+            
+            var solvingNode = new SolvingNode();
+            _additionalNodes.Add(solvingNode);
+            _originNodes[nodeid] = solvingNode;
+            return solvingNode;
+
+        }
         public bool SetVarType(string varId, FType type)
         {
             if (_variables.ContainsKey(varId)) 
@@ -44,10 +59,19 @@ namespace NFun.HindleyMilner.Tyso
             _variables.Add(varId, node);
             return true;
         }
+        public bool SetVarType(string varId, SolvingNode node)
+        {
+            if (_variables.ContainsKey(varId)) 
+                return false;
+            
+            _additionalNodes.Add(node);
+            _variables.Add(varId, node);
+            return true;
+        }
         
         public bool SetVar(int nodeId, string varId)
         {
-            var newNode = GetOrAdd(nodeId);
+            var newNode = GetOrCreate(nodeId);
 
             if (!_variables.ContainsKey(varId))
             {
@@ -102,46 +126,46 @@ namespace NFun.HindleyMilner.Tyso
 
         public bool SetLca(int nodeId, int[] dependentNodes)
         {
-            var children = dependentNodes.Select(GetOrAdd).ToArray();
-            return GetOrAdd(nodeId).SetLca(children);
+            var children = dependentNodes.Select(GetOrCreate).ToArray();
+            return GetOrCreate(nodeId).SetLca(children);
         }
         public bool SetLimit(int nodeId, NTypeName name)
         {
-            return GetOrAdd(nodeId).SetLimit(new FType(name));
+            return GetOrCreate(nodeId).SetLimit(new FType(name));
         }
         public bool SetNonGenericLimit(int nodeId, FType nonGenericType)
         {
-            return GetOrAdd(nodeId).SetLimit(nonGenericType);
+            return GetOrCreate(nodeId).SetLimit(nonGenericType);
         }
         private bool SetStrict(int nodeId, FType type, GenericMap genericsContext)
         {
             if (type is GenericType t)
             {
                 var generic = genericsContext.Get(t.GenericId);
-                return GetOrAdd(nodeId).SetEqualTo(generic);
+                return GetOrCreate(nodeId).SetEqualTo(generic);
             }
             var solvingNode = genericsContext.CreateSolvingNode(type);
-            return GetOrAdd(nodeId).SetStrict(solvingNode.MakeType(SolvingNode.MaxTypeDepth));
+            return GetOrCreate(nodeId).SetStrict(solvingNode.MakeType(SolvingNode.MaxTypeDepth));
         }
         private bool SetLimit(int nodeId, FType type, GenericMap genericsContext)
         {
             if (type is GenericType t)
             {
                 var generic = genericsContext.Get(t.GenericId);
-                return GetOrAdd(nodeId).SetEqualTo(generic);
+                return GetOrCreate(nodeId).SetEqualTo(generic);
             }
             var solvingNode = genericsContext.CreateSolvingNode(type);
-            return GetOrAdd(nodeId).SetLimit(solvingNode.MakeType(SolvingNode.MaxTypeDepth));
+            return GetOrCreate(nodeId).SetLimit(solvingNode.MakeType(SolvingNode.MaxTypeDepth));
         }
         public bool Unite(int nodeAid, int nodeBid)
         {
-            var solvingA = GetOrAdd(nodeAid);
-            var solvingB = GetOrAdd(nodeBid);
+            var solvingA = GetOrCreate(nodeAid);
+            var solvingB = GetOrCreate(nodeBid);
             return solvingA.SetEqualTo(solvingB);
         }
         public bool Unite(int nodeAid, SolvingNode returnType)
         {
-            var solvingA = GetOrAdd(nodeAid);
+            var solvingA = GetOrCreate(nodeAid);
             return solvingA.SetEqualTo(returnType);
         }
         public NsResult Solve()
@@ -182,7 +206,7 @@ namespace NFun.HindleyMilner.Tyso
             {
                 FitResults candidateFit;
                 int candidateScore = 0;
-                var returnTypeFit = GetOrAdd(lazyOverload.ReturnNodeId)
+                var returnTypeFit = GetOrCreate(lazyOverload.ReturnNodeId)
                     .Fits(candidate.ReturnType, SolvingNode.MaxTypeDepth);
                 if (returnTypeFit == FitResults.Not)
                     continue;
@@ -191,7 +215,7 @@ namespace NFun.HindleyMilner.Tyso
 
                 for (int argNum = 0; argNum < lazyOverload.ArgIds.Length; argNum++)
                 {
-                    var argFit = GetOrAdd(lazyOverload.ArgIds[argNum]).Fits(
+                    var argFit = GetOrCreate(lazyOverload.ArgIds[argNum]).Fits(
                         candidate.ArgTypes[argNum], SolvingNode.MaxTypeDepth);
                     if (argFit == FitResults.Not)
                         continue;
@@ -248,21 +272,7 @@ namespace NFun.HindleyMilner.Tyso
         }
         
 
-        private SolvingNode GetOrAdd(int id)
-        {
-            
-            while (_originNodes.Count <= id) 
-                _originNodes.Add(null);
-
-            if (_originNodes[id] != null) 
-                return _originNodes[id];
-            
-            var solvingNode = new SolvingNode();
-            _additionalNodes.Add(solvingNode);
-            _originNodes[id] = solvingNode;
-            return solvingNode;
-
-        }
+        
 
         public bool SetNode(int nodeId, SolvingNode closured)
         {
@@ -286,6 +296,7 @@ namespace NFun.HindleyMilner.Tyso
             _additionalNodes.Add(node);
         }
 
-       
+
+
     }
 }
