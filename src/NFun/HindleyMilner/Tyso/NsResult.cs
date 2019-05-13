@@ -10,7 +10,7 @@ namespace NFun.HindleyMilner.Tyso
         private readonly IList<SolvingNode> _nodes;
         private readonly IList<SolvingNode> _allTypes;
         private readonly Dictionary<string, SolvingNode> _variablesMap;
-
+        public string[] VarNames => _variablesMap.Keys.ToArray();
         public static NsResult NotSolvedResult() => new NsResult(false);
         
         private NsResult(bool isSolved)
@@ -46,6 +46,14 @@ namespace NFun.HindleyMilner.Tyso
 
         private readonly Dictionary<SolvingNode, int> _genMap;
         public FType GetVarType(string varId) => ConvertToHmType2(_variablesMap[varId], NestedDepth);
+
+        public FType GetVarTypeOrNull(string varId)
+        {
+            if (!_variablesMap.TryGetValue(varId, out var solvingNode))
+                return null;
+            return ConvertToHmType2(solvingNode, NestedDepth);
+        }
+
 
         public FType GetNodeType(int nodeId) => ConvertToHmType2(_nodes[nodeId], NestedDepth);
 

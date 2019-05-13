@@ -1,83 +1,124 @@
+using System.Collections.Generic;
 using System.Linq;
 using NFun.BuiltInFunctions;
 using NFun.HindleyMilner.Tyso;
 using NFun.Interpritation;
 using NFun.Interpritation.Functions;
+using NFun.ParseErrors;
 using NFun.Parsing;
 using NFun.SyntaxParsing.Visitors;
+using NFun.Types;
 
 namespace NFun.HindleyMilner
 {
     class ExitHmVisitor: ISyntaxNodeVisitor<bool>
     {
-        private NsHumanizerSolver _solver;
+        private readonly HmVisitorState _state;
         private readonly FunctionsDictionary _dictionary;
-
-        public ExitHmVisitor(NsHumanizerSolver solver, FunctionsDictionary dictionary)
+        private readonly Dictionary<string, FunctionPrototype> _userFunctions = new Dictionary<string, FunctionPrototype>();
+        public ExitHmVisitor(HmVisitorState state, FunctionsDictionary dictionary)
         {
-            _solver = solver;
+            _state = state;
             _dictionary = dictionary;
         }
 
-        public bool Visit(ArraySyntaxNode node)=> _solver.SetArrayInit(node.NodeNumber, node.Expressions.Select(e=>e.NodeNumber).ToArray());
-        public bool Visit(UserFunctionDefenitionSyntaxNode node)=> false;
+        public bool Visit(ArraySyntaxNode node)=> _state.CurrentSolver.SetArrayInit(node.NodeNumber, node.Expressions.Select(e=>e.NodeNumber).ToArray());
+        public bool Visit(UserFunctionDefenitionSyntaxNode node)
+        {
+            if (!node.OutputType.Equals(VarType.Empty))
+                _state.CurrentSolver.SetStrict(node.BodyExpression.NodeNumber, AdpterHelper.ConvertToHmType(node.OutputType));
+            
+            var functionSolvation = _state.ExitFunction();
+            var solvation = functionSolvation.Solver.Solve();
+            
+            if (!solvation.IsSolved)
+                throw new FunParseException(-1,"Function type not solved", 0, 0);
+            /*if(solvation.VarNames.Length!= functionSolvation.ArgsCount)
+                throw new FunParseException(-2,"Unknown variables at the function", 0, 0);*/
+            var userName = functionSolvation.Name + ":" + functionSolvation.ArgsCount;
+            if(_userFunctions.ContainsKey(userName))
+                throw new FunParseException(-3,"User function duplicates", 0, 0);
+            var solvedArgTypes = new List<VarType>();
+            foreach (var var in node.Args)
+            {
+                var res = solvation.GetVarTypeOrNull(var.Id);
+                if(res==null)
+                    solvedArgTypes.Add(VarType.Anything);
+                else
+                    solvedArgTypes.Add(AdpterHelper.ConvertToSimpleTypes(res));
+            }
+
+            var outputType =  AdpterHelper.ConvertToSimpleTypes(solvation.GetNodeType(node.BodyExpression.NodeNumber));
+            
+            _userFunctions.Add(userName, new FunctionPrototype(functionSolvation.Name, outputType, solvedArgTypes.ToArray()));
+            
+            return true;
+        }
+
         public bool Visit(ProcArrayInit node)
         {
             if (node.Step == null)
             {
-                return _solver.SetProcArrayInit(node.NodeNumber, node.From.NodeNumber, node.To.NodeNumber);
+                return _state.CurrentSolver.SetProcArrayInit(node.NodeNumber, node.From.NodeNumber, node.To.NodeNumber);
             }
             else
             {
-                return _solver.SetProcArrayInit(node.NodeNumber, node.From.NodeNumber, node.To.NodeNumber,node.Step.NodeNumber);
+                return _state.CurrentSolver.SetProcArrayInit(node.NodeNumber, node.From.NodeNumber, node.To.NodeNumber,node.Step.NodeNumber);
             }
         }
 
         public bool Visit(AnonymCallSyntaxNode node) => false;
         
         public bool Visit(EquationSyntaxNode node)
-           => _solver.SetDefenition(node.Id, node.NodeNumber, node.Expression.NodeNumber);
+           => _state.CurrentSolver.SetDefenition(node.Id, node.NodeNumber, node.Expression.NodeNumber);
 
         public bool Visit(FunCallSyntaxNode node)
         {
 
             if (node.IsOperator)
             {
-                switch (node.Value)
+                switch (node.Id)
                 {
                     case CoreFunNames.Multiply:
                     case CoreFunNames.Add:
                     case CoreFunNames.Substract:
                     case CoreFunNames.Remainder:
-                        return _solver.SetArithmeticalOp(node.NodeNumber, node.Args[0].NodeNumber,
+                        return _state.CurrentSolver.SetArithmeticalOp(node.NodeNumber, node.Args[0].NodeNumber,
                             node.Args[1].NodeNumber);
                     case CoreFunNames.BitShiftLeft:
                     case CoreFunNames.BitShiftRight:
-                        return _solver.SetBitShiftOperator(node.NodeNumber, node.Args[0].NodeNumber,
+                        return _state.CurrentSolver.SetBitShiftOperator(node.NodeNumber, node.Args[0].NodeNumber,
                             node.Args[1].NodeNumber);
                 }
             }
 
             var argsCount = node.Args.Length;
-            var candidates = _dictionary.GetNonGeneric(node.Value).Where(n=>n.ArgTypes.Length == argsCount).ToList();
+
+            var userShortName = node.Id + ":" + argsCount;
+            if(_userFunctions.ContainsKey(userShortName)){
+                var callDef = ToCallDef(node, _userFunctions[userShortName]);
+                return _state.CurrentSolver.SetCall(callDef);
+            }
+            
+            var candidates = _dictionary.GetNonGeneric(node.Id).Where(n=>n.ArgTypes.Length == argsCount).ToList();
 
             if (candidates.Count == 0)
             {
-                var genericCandidate = _dictionary.GetGenericOrNull(node.Value, argsCount);
+                var genericCandidate = _dictionary.GetGenericOrNull(node.Id, argsCount);
                 if (genericCandidate == null)
                     return false;
                 var callDef = ToCallDef(node, genericCandidate);
-                return _solver.SetCall(callDef);
+                return _state.CurrentSolver.SetCall(callDef);
 
             }
             if (candidates.Count == 1)
             {
                 var fun = candidates[0];
                 var callDef = ToCallDef(node, fun);
-                return _solver.SetCall(callDef);
+                return _state.CurrentSolver.SetCall(callDef);
             }
 
-            return _solver.SetOverloadCall(candidates.Select(ToFunSignature).ToArray(), node.NodeNumber,
+            return _state.CurrentSolver.SetOverloadCall(candidates.Select(ToFunSignature).ToArray(), node.NodeNumber,
                 node.Args.Select(a => a.NodeNumber).ToArray());
         }
 
@@ -105,7 +146,7 @@ namespace NFun.HindleyMilner
 
         public bool Visit(IfThenElseSyntaxNode node)
         {
-            return _solver.ApplyLcaIf(node.NodeNumber,
+            return _state.CurrentSolver.ApplyLcaIf(node.NodeNumber,
                 node.Ifs.Select(i => i.Condition.NodeNumber).ToArray(),
                 node.Ifs.Select(i => i.Expr.NodeNumber).Append(node.ElseExpr.NodeNumber).ToArray());
         }
@@ -115,21 +156,20 @@ namespace NFun.HindleyMilner
         public bool Visit(NumberSyntaxNode node)
         {
             var valueExpression = SingleExpressionReader.GetValueNode(node);
-            return _solver.SetConst(node.NodeNumber, 
+            return _state.CurrentSolver.SetConst(node.NodeNumber, 
                 AdpterHelper.ConvertToHmType(valueExpression.Type));
         }
 
         public bool Visit(SyntaxTree node)=> true;
         public bool Visit(TextSyntaxNode node) 
-            => _solver.SetConst(node.NodeNumber, FType.Text);
+            => _state.CurrentSolver.SetConst(node.NodeNumber, FType.Text);
 
         public bool Visit(TypedVarDefSyntaxNode node)
-            => _solver.SetVarType(node.Id, AdpterHelper.ConvertToHmType(node.VarType));
+            => _state.CurrentSolver.SetVarType(node.Id, AdpterHelper.ConvertToHmType(node.VarType));
             
         public bool Visit(VarDefenitionSyntaxNode node)
-            => _solver.SetVarType(node.Id, AdpterHelper.ConvertToHmType(node.VarType));
+            => _state.CurrentSolver.SetVarType(node.Id, AdpterHelper.ConvertToHmType(node.VarType));
         public bool Visit(VariableSyntaxNode node)
-            => _solver.SetVar(node.NodeNumber, node.Id);
-
+            => _state.CurrentSolver.SetVar(node.NodeNumber, node.Id);
     }
 }

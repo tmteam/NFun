@@ -122,7 +122,7 @@ namespace NFun.Interpritation
                     throw ErrorFactory.FunctionArgumentDuplicates(lexFunction, lexFunctionArg);
             }
             var reader = new SingleExpressionReader(_functions, vars);
-            var expression = reader.ReadNode(lexFunction.Node);
+            var expression = reader.ReadNode(lexFunction.BodyExpression);
             
             ExpressionHelper.CheckForUnknownVariables(
                 lexFunction.Args.Select(a=>a.Id).ToArray(), vars);

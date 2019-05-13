@@ -11,8 +11,9 @@ namespace NFun.HindleyMilner
         public HmAlgorithmAdapter(FunctionsDictionary dictionary)
         {
             _solver = new NsHumanizerSolver();
-            EnterVisitor = new EnterHmVisitor();
-            ExitVisitor = new ExitHmVisitor(_solver, dictionary);
+            var visitorState = new HmVisitorState(new NsHumanizerSolver());
+            EnterVisitor = new EnterHmVisitor(visitorState);
+            ExitVisitor = new ExitHmVisitor(visitorState, dictionary);
         }
 
         private NsHumanizerSolver _solver;

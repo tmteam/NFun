@@ -80,7 +80,7 @@ namespace Funny.Tests
             Assert.Multiple(() =>
             {
                 CollectionAssert.AreEqual(variables, fun.Args.Select(a=>a.Id));
-                AssertParsed(fun.Node, expectedExpr);
+                AssertParsed(fun.BodyExpression, expectedExpr);
             });
         }
         private void AssertParsed(ISyntaxNode node,string expectedExpr)

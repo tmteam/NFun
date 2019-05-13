@@ -139,7 +139,7 @@ namespace NFun.Parsing
 
         private static UserFunctionDefenitionSyntaxNode ReadUserFunction(int start, FunCallSyntaxNode headNode, TokenFlow flow, SyntaxNodeReader reader)
         {
-            var id = headNode.Value;
+            var id = headNode.Id;
             if (headNode.IsInBrackets)
                 throw ErrorFactory.UnexpectedBracketsOnFunDefenition( headNode, start,flow.Previous.Finish);
 

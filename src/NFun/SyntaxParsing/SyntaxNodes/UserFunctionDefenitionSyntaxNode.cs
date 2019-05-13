@@ -20,12 +20,12 @@ namespace NFun.Parsing
             Args = arguments;
             Head = headNode;
             OutputType = outputType;
-            Node = expression;
+            BodyExpression = expression;
         }
 
-        public string Id => Head.Value;
+        public string Id => Head.Id;
         public IList<TypedVarDefSyntaxNode>  Args { get;  }
-        public ISyntaxNode Node { get; }
+        public ISyntaxNode BodyExpression { get; }
         public bool IsInBrackets { get; set; }
         public SyntaxNodeType Type => SyntaxNodeType.UserFunctionDefenition;
         public Interval Interval { get; set; }
@@ -35,11 +35,12 @@ namespace NFun.Parsing
         {
             get
             {
-                yield return Head;
                 foreach (var typedVarDefSyntaxNode in Args)
                 {
                     yield return typedVarDefSyntaxNode;
                 }
+
+                yield return BodyExpression;
             }
         }
 

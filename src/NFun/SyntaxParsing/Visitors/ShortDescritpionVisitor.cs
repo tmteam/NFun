@@ -9,7 +9,7 @@ namespace NFun.SyntaxParsing.Visitors
         public string Visit(AnonymCallSyntaxNode node) => "(..)=>..";
         public string Visit(ArraySyntaxNode node) =>"[...]";
         public string Visit(EquationSyntaxNode node) => $"{node.Id} = ... ";
-        public string Visit(FunCallSyntaxNode node) => $"{node.Value}(...)";
+        public string Visit(FunCallSyntaxNode node) => $"{node.Id}(...)";
         public string Visit(IfThenElseSyntaxNode node) => "if (...) ... else ...";
         public string Visit(IfThenSyntaxNode node) => "if (...) ...";
         public string Visit(ListOfExpressionsSyntaxNode node)

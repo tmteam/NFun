@@ -199,7 +199,7 @@ namespace NFun.Interpritation
 
         private IExpressionNode GetFunNode(FunCallSyntaxNode node)
         {
-            var id = node.Value;//.ToLower();
+            var id = node.Id;//.ToLower();
             
             var children= new List<IExpressionNode>();
             var childrenTypes = new List<VarType>();
@@ -212,7 +212,7 @@ namespace NFun.Interpritation
 
             var function = _functions.GetOrNull(id, childrenTypes.ToArray());
             if (function == null)
-                throw ErrorFactory.FunctionNotFound( node.Value, node.Interval, children, _functions);
+                throw ErrorFactory.FunctionNotFound( node.Id, node.Interval, children, _functions);
             return function.CreateWithConvertionOrThrow(children, node.Interval);
         }
     }

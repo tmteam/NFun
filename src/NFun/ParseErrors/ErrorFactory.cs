@@ -232,7 +232,7 @@ namespace NFun.ParseErrors
         public static Exception OnlyOneAnonymousExpressionAllowed(int exprStart, ISyntaxNode lexNode, Tok flowCurrent)
             =>   throw new FunParseException(316,$"Only one anonymous equation allowed", exprStart, flowCurrent.Finish);
         public static Exception UnexpectedBracketsOnFunDefenition(FunCallSyntaxNode headNode, int start, int finish)
-            => new FunParseException(319, $"Unexpected brackets on function defenition ({headNode.Value}(...))=... {Nl}Example: {headNode.Value}(...)=...", 
+            => new FunParseException(319, $"Unexpected brackets on function defenition ({headNode.Id}(...))=... {Nl}Example: {headNode.Id}(...)=...", 
                 start, finish);
         
         public static Exception WrongFunctionArgumentDefenition(int start, FunCallSyntaxNode headNode, ISyntaxNode headNodeChild,
@@ -240,7 +240,7 @@ namespace NFun.ParseErrors
         {
             var sb = ErrorsHelper.ToFailureFunString(headNode, headNodeChild);
             return new FunParseException(322,
-                    $"{headNode.Value}({sb}) = ... {Nl} Function argument is invalid. Variable name (with optional type) expected", 
+                    $"{headNode.Id}({sb}) = ... {Nl} Function argument is invalid. Variable name (with optional type) expected", 
                     headNodeChild.Interval);
         }
         
@@ -250,7 +250,7 @@ namespace NFun.ParseErrors
             var sb = ErrorsHelper.ToFailureFunString(headNode, headNodeChild);
 
             return new FunParseException(325,
-                $"{headNode.Value}({sb.ToString()}) = ... {Nl} Function argument is in bracket. Variable name (with optional type) without brackets expected", 
+                $"{headNode.Id}({sb.ToString()}) = ... {Nl} Function argument is in bracket. Variable name (with optional type) without brackets expected", 
                 headNodeChild.Interval.Start, headNodeChild.Interval.Finish);
         }
 
@@ -451,7 +451,7 @@ namespace NFun.ParseErrors
 
         public static Exception FunctionAlreadyExist(UserFunctionDefenitionSyntaxNode userFun) 
             => new FunParseException(533,$"Function  {ErrorsHelper.Signature(userFun.Id, userFun.Args)} already exist", 
-                new Interval( userFun.Head.Interval.Start,userFun.Node.Interval.Finish));
+                new Interval( userFun.Head.Interval.Start,userFun.BodyExpression.Interval.Finish));
 
 
         public static Exception NoCommonCast(IEnumerable<IExpressionNode> nodes) 
