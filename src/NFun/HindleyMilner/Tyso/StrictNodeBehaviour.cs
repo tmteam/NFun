@@ -67,6 +67,8 @@ namespace NFun.HindleyMilner.Tyso
 
         public INodeBehavior SetReference(SolvingNode otherNode)
         {
+            if (otherNode.Behavior == this)
+                return this;
             if (!otherNode.SetStrict(_type))
                 return null;
             return new ReferenceBehaviour(otherNode);

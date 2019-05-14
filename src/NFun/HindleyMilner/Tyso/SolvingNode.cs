@@ -57,7 +57,7 @@ namespace NFun.HindleyMilner.Tyso
 
         public int Id { get; }
 
-        public override string ToString() => $"{Id}:{Behavior.GetType().Name}";
+        public override string ToString() => $"{Id}:{Behavior.ToSmartString(10)}";
 
         public string ToSmartString(int maxDepth)
         {

@@ -1,8 +1,7 @@
-using System;
 using NFun.HindleyMilner.Tyso;
 using NUnit.Framework;
 
-namespace TysoTake2.TypeSolvingNodes.Tests
+namespace NFun.HmTests
 {
     public class SolveRecursiveAdapterTest
     {

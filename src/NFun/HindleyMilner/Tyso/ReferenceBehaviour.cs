@@ -1,3 +1,5 @@
+using System;
+
 namespace NFun.HindleyMilner.Tyso
 {
     public class ReferenceBehaviour: INodeBehavior
@@ -6,10 +8,19 @@ namespace NFun.HindleyMilner.Tyso
 
         public ReferenceBehaviour(SolvingNode node)
         {
+            if (node.Behavior is ReferenceBehaviour r)
+            {
+                
+            }
             Node = node;
         }
 
-        public FType MakeType(int maxTypeDepth) => Node.Behavior.MakeType(maxTypeDepth-1);
+        public FType MakeType(int maxTypeDepth)
+        {
+            if(maxTypeDepth<-1)
+                throw new InvalidOperationException("Recursive defenition");
+            return Node.Behavior.MakeType(maxTypeDepth - 1);
+        }
 
         public INodeBehavior SetLimit(FType newLimit) 
             => Node.SetLimit(newLimit) ? this : null;
@@ -23,8 +34,16 @@ namespace NFun.HindleyMilner.Tyso
 
 
         public INodeBehavior SetReference(SolvingNode otherNode)
-            => Node.SetEqualTo(otherNode) ? this : null;
-        
+        {
+            if (otherNode.Behavior is ReferenceBehaviour r)
+            {
+                if (r == this)
+                    return this;
+                return Node.SetEqualTo(r.Node) ? this : null;
+            }
+            return Node.SetEqualTo(otherNode) ? this : null;
+        }
+
         public INodeBehavior SetGeneric(SolvingNode otherGeneric)
             =>  Node.SetGeneric(otherGeneric)? this: null;
 

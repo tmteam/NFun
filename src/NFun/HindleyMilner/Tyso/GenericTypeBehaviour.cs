@@ -25,6 +25,11 @@ namespace NFun.HindleyMilner.Tyso
         {
             if (otherNode.Behavior == this)
                 return this;
+            if (otherNode.Behavior is ReferenceBehaviour r)
+            {
+                if (r.Node.Behavior == this)
+                    return this;
+            }
             return new ReferenceBehaviour(otherNode);
         }
 

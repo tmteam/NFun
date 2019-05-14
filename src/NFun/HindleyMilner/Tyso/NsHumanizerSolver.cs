@@ -27,14 +27,24 @@ namespace NFun.HindleyMilner.Tyso
                 return false;
             return true;
         }
-        public bool SetInvoke(int nodeId, int funNodeId, int[] argIds)
-        {
-            throw new NotImplementedException();
-        }
+        
 
         public bool SetInvoke(int nodeId, string funId,int[] argIds)
         {
-            throw new NotImplementedException();
+            var funDef = _solver.GetOrNull(funId);
+            if(funDef==null)
+                throw new InvalidOperationException("Fun "+ funId+" not found");
+            var funType = funDef.MakeType(SolvingNode.MaxTypeDepth);
+            if (!funType.Name.Equals(NTypeName.Function))
+                return false;
+
+            if (!_solver.SetNode(nodeId, funType.Arguments[0]))
+                return false;
+            for (int i = 0; i < argIds.Length; i++) {
+                if (!_solver.Unite(argIds[i], funType.Arguments[i+1]))
+                    return false;
+            }
+            return true;
         }
         public bool ApplyLcaIf(int nodeId, int[] testNodeIds, int[] thenElseNodeIds)
         {

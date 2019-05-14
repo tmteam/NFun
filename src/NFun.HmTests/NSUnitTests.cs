@@ -1,7 +1,7 @@
 using NFun.HindleyMilner.Tyso;
 using NUnit.Framework;
 
-namespace TysoTake2.TypeSolvingNodes.Tests
+namespace NFun.HmTests
 {
     public class NSUnitTests
     {
@@ -120,6 +120,31 @@ namespace TysoTake2.TypeSolvingNodes.Tests
             _f.Unite(1, 0);  
             _f.Unite(2, 1);  
             Assert.AreEqual(FType.ArrayOf(FType.Int32), _f.Solve().GetNodeType(2));
+        }
+        [Test]
+        public void SetGenericEqualToSelf_BothNodesEqualGeneric()
+        {
+            var generic = new SolvingNode();
+            var refToGeneric = new SolvingNode();
+            refToGeneric.SetEqualTo(generic);
+
+            Assert.IsTrue(generic.SetEqualTo(refToGeneric));
+
+            Assert.IsTrue(generic.MakeType(10).IsPrimitiveGeneric);
+            Assert.IsTrue(refToGeneric.MakeType(10).IsPrimitiveGeneric);
+        }
+        
+        [Test]
+        public void SetReferenceGenericEqualToTheGeneric_BothNodesEqualGeneric()
+        {
+            var generic = new SolvingNode();
+            var refToGeneric = new SolvingNode();
+            refToGeneric.SetEqualTo(generic);
+
+            Assert.IsTrue(refToGeneric.SetEqualTo(generic));
+
+            Assert.IsTrue(generic.MakeType(10).IsPrimitiveGeneric);
+            Assert.IsTrue(refToGeneric.MakeType(10).IsPrimitiveGeneric);
         }
     }
 }

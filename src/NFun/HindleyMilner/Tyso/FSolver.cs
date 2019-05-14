@@ -89,7 +89,9 @@ namespace NFun.HindleyMilner.Tyso
             var currentNode = _variables[varId];
             //if the variable already has its node
             //Just set equality from nodeId to varId
-            return currentNode.SetEqualTo(newNode);
+            return newNode.SetEqualTo(currentNode);
+            
+            //return currentNode.SetEqualTo(newNode);
         }
         
         public bool SetCall(CallDef call)
@@ -136,14 +138,12 @@ namespace NFun.HindleyMilner.Tyso
             var children = dependentNodes.Select(GetOrCreate).ToArray();
             return GetOrCreate(nodeId).SetLca(children);
         }
-        public bool SetLimit(int nodeId, NTypeName name)
-        {
-            return GetOrCreate(nodeId).SetLimit(new FType(name));
-        }
-        public bool SetNonGenericLimit(int nodeId, FType nonGenericType)
-        {
-            return GetOrCreate(nodeId).SetLimit(nonGenericType);
-        }
+        public bool SetLimit(int nodeId, NTypeName name) 
+            => GetOrCreate(nodeId).SetLimit(new FType(name));
+
+        public bool SetNonGenericLimit(int nodeId, FType nonGenericType) 
+            => GetOrCreate(nodeId).SetLimit(nonGenericType);
+
         private bool SetStrict(int nodeId, FType type, GenericMap genericsContext)
         {
             if (type is GenericType t)
@@ -173,6 +173,8 @@ namespace NFun.HindleyMilner.Tyso
         public bool Unite(int nodeAid, SolvingNode returnType)
         {
             var solvingA = GetOrCreate(nodeAid);
+            if (solvingA == returnType)
+                return true;
             return solvingA.SetEqualTo(returnType);
         }
         public NsResult Solve()

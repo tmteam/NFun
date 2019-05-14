@@ -9,21 +9,6 @@ namespace NFun.HindleyMilner.Tyso
             Limit = limit;
         } 
         public FType MakeType(int maxTypeDepth) => Limit;
-        public INodeBehavior SetLimit(SolvingNode newNodeLimit)
-        {
-            var newLimit = newNodeLimit.MakeType(SolvingNode.MaxTypeDepth);
-            if (Limit.IsPrimitive)
-            {
-                if (!Limit.CanBeConvertedTo(newLimit))
-                    Limit = newLimit;
-                return this;
-            }
-            
-            //_limit: any; newLimit: real
-            if (!Limit.CanBeConvertedTo(newLimit))
-                Limit = newLimit;
-            return this;
-        }
 
         private bool isVisited = false;
         public INodeBehavior SetLimit(FType newLimit)
