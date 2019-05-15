@@ -148,6 +148,14 @@ namespace NFun.HindleyMilner.Tyso
 
         public SolvingNode GetByVar(string variableName) => _solver.GetOrCreate(variableName);
 
+        public bool SetComparationOperator(int nodeId, int leftId, int rightId)
+        {
+            return 
+                _solver.SetLimit(leftId, NTypeName.Real)
+                && _solver.SetLimit(rightId, NTypeName.Real)
+                && _solver.SetStrict(nodeId, FType.Bool);
+        }
+        
         public bool SetBitwiseOperator(int nodeId, int leftId, int rightId)
         {
             return 

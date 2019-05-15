@@ -81,12 +81,25 @@ namespace NFun.HindleyMilner
                     case CoreFunNames.Add:
                     case CoreFunNames.Substract:
                     case CoreFunNames.Remainder:
-                        return _state.CurrentSolver.SetArithmeticalOp(node.NodeNumber, node.Args[0].NodeNumber,
+                        return _state.CurrentSolver.SetArithmeticalOp(
+                            node.NodeNumber, 
+                            node.Args[0].NodeNumber,
                             node.Args[1].NodeNumber);
                     case CoreFunNames.BitShiftLeft:
                     case CoreFunNames.BitShiftRight:
-                        return _state.CurrentSolver.SetBitShiftOperator(node.NodeNumber, node.Args[0].NodeNumber,
+                        return _state.CurrentSolver.SetBitShiftOperator(
+                            node.NodeNumber, 
+                            node.Args[0].NodeNumber, 
                             node.Args[1].NodeNumber);
+                    case CoreFunNames.LessOrEqual:
+                    case CoreFunNames.Less:
+                    case CoreFunNames.MoreOrEqual:
+                    case CoreFunNames.More:
+                        return _state.CurrentSolver.SetComparationOperator(
+                            node.NodeNumber,
+                            node.Args[0].NodeNumber, 
+                            node.Args[1].NodeNumber);
+
                 }
             }
 

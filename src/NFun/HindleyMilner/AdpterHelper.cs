@@ -37,30 +37,5 @@ namespace NFun.HindleyMilner
             }
         }
 
-        public static VarType ConvertToSimpleTypes(FType type)
-        {
-            if (type.IsPrimitiveGeneric)
-                return VarType.Generic(((GenericType) type).GenericId);
-            switch (type.Name.Id)
-            {
-                case NTypeName.AnyId: return VarType.Anything;
-                case NTypeName.RealId: return VarType.Real;
-                case NTypeName.TextId: return VarType.Text;
-                case NTypeName.BoolId: return VarType.Bool;
-                case NTypeName.Int64Id: return  VarType.Int64;
-                case NTypeName.Int32Id: return VarType.Int32;
-                case NTypeName.SomeIntegerId: return VarType.Int32;
-                case NTypeName.ArrayId: return VarType.ArrayOf(ConvertToSimpleType(type.Arguments[0]));
-                case NTypeName.FunId :
-                    return VarType.Fun(ConvertToSimpleType(type.Arguments[0]), 
-                        type.Arguments.Skip(1).Select(ConvertToSimpleType).ToArray()
-                        );
-            }
-            throw new InvalidOperationException("Not supported type "+ type.ToSmartString(SolvingNode.MaxTypeDepth));
-            
-        }
-
-        private static VarType ConvertToSimpleType(SolvingNode node) 
-            => ConvertToSimpleTypes(node.MakeType(SolvingNode.MaxTypeDepth));
     }
 }

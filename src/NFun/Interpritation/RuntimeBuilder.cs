@@ -37,7 +37,7 @@ namespace NFun.Interpritation
                     continue;
                 
                 //set types to nodes
-                syntaxNode.ComeOver(new ApplyHmResultVisitor(bodyTypeSolving));
+                syntaxNode.ComeOver(new ApplyHmResultVisitor(bodyTypeSolving, new RealTypeConverter()));
             }
             
             var variables = new VariableDictionary(); 
@@ -113,9 +113,9 @@ namespace NFun.Interpritation
                 throw new FunParseException(-4, $"Function '{functionSyntaxNode.Id}' is not solved", 0, 0);
 
             //set types to nodes
-            functionSyntaxNode.ComeOver(new ApplyHmResultVisitor(types));
+            functionSyntaxNode.ComeOver(new ApplyHmResultVisitor(types,new RealTypeConverter()));
 
-            var funType = types.GetVarType(funAlias);
+            var funType = types.GetVarType(funAlias, new RealTypeConverter());
             //make function prototype
             var prototype = new FunctionPrototype(functionSyntaxNode.Id,
                 funType.FunTypeSpecification.Output,

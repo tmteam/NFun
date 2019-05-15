@@ -15,18 +15,16 @@ namespace NFun.HindleyMilner
         public int GenericsCount => _result.GenericsCount;
         public bool IsSolved => _result.IsSolved;
 
-        public VarType GetVarType(string varId)
-            => AdpterHelper.ConvertToSimpleTypes( _result.GetVarType(varId));
+        public VarType GetVarType(string varId, ISolvedTypeConverter converter)
+            => converter.ToSimpleType( _result.GetVarType(varId));
 
-        public VarType GetNodeType(int nodeId) =>
-            AdpterHelper.ConvertToSimpleTypes(_result.GetNodeType(nodeId));
         
-        public VarType GetNodeTypeOrEmpty(int nodeId)
+        public VarType GetNodeTypeOrEmpty(int nodeId, ISolvedTypeConverter converter)
         {
             var hmType = _result.GetNodeTypeOrNull(nodeId);
             if (hmType == null)
                 return VarType.Empty;
-            return AdpterHelper.ConvertToSimpleTypes(hmType);
+            return converter.ToSimpleType(hmType);
         }
     }
 }
