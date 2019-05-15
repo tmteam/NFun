@@ -12,14 +12,13 @@ namespace NFun.HindleyMilner
     class EnterHmVisitor: EnterVisitorBase
     {
         private readonly HmVisitorState _hmVisitorState;
-        private readonly bool _parseUserFunction;
 
         public EnterHmVisitor(HmVisitorState hmVisitorState)
         {
             _hmVisitorState = hmVisitorState;
         }
 
-        public VisitorResult Visit(AnonymCallSyntaxNode node)
+        public override VisitorResult Visit(AnonymCallSyntaxNode node)
         {
             List<SolvingNode> argTypes = new List<SolvingNode>();
             foreach (var syntaxNode in node.ArgumentsDefenition)
