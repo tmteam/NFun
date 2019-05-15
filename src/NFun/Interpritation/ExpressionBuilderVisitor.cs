@@ -112,12 +112,12 @@ namespace NFun.Interpritation
             foreach (var ifNode in node.Ifs)
             {
                 var condition = ReadNode(ifNode.Condition);
-                var expr = ReadNode(ifNode.Expr);
+                var expr = ReadNode(ifNode.Expression);
                 ifNodes.Add(new IfCaseExpressionNode(condition, expr,node.Interval));
             }
 
             var elseNode = ReadNode(node.ElseExpr);
-            return new IfThanElseExpressionNode(
+            return new IfThenElseExpressionNode(
                 ifNodes.ToArray(), 
                 elseNode,
                 elseNode.Interval, 

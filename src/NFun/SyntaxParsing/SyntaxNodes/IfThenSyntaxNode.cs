@@ -11,12 +11,12 @@ namespace NFun.Parsing
         public int NodeNumber { get; set; }
 
         public ISyntaxNode Condition { get; }
-        public ISyntaxNode Expr { get; }
+        public ISyntaxNode Expression { get; }
 
-        public IfThenSyntaxNode(ISyntaxNode condition, ISyntaxNode expr, Interval interval)
+        public IfThenSyntaxNode(ISyntaxNode condition, ISyntaxNode expression, Interval interval)
         {
             Condition = condition;
-            Expr = expr;
+            Expression = expression;
             Interval = interval;
         }
         public bool IsInBrackets { get; set; }
@@ -24,6 +24,6 @@ namespace NFun.Parsing
         public Interval Interval { get; set; }
 
         public T Visit<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
-        public IEnumerable<ISyntaxNode> Children => new[] {Condition};
+        public IEnumerable<ISyntaxNode> Children => new[] { Condition, Expression};
     }
 }

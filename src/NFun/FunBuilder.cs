@@ -49,7 +49,7 @@ namespace NFun
             syntaxTree.ComeOver(new SetNodeNumberVisitor());
             
             var functionsDictionary = MakeFunctionsDictionary();
-
+            
             return RuntimeBuilder.Build(syntaxTree, functionsDictionary);
         }
 

@@ -60,7 +60,9 @@ namespace NFun.HindleyMilner
         protected override VisitorResult DefaultVisit(ISyntaxNode node)
         {
             var type = _solving.GetNodeTypeOrEmpty(node.NodeNumber, _solvedTypeConverter);
+            
             node.OutputType = type;
+            
             return VisitorResult.Continue;
         }
 

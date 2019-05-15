@@ -159,7 +159,7 @@ namespace NFun.HindleyMilner
         {
             return _state.CurrentSolver.ApplyLcaIf(node.NodeNumber,
                 node.Ifs.Select(i => i.Condition.NodeNumber).ToArray(),
-                node.Ifs.Select(i => i.Expr.NodeNumber).Append(node.ElseExpr.NodeNumber).ToArray());
+                node.Ifs.Select(i => i.Expression.NodeNumber).Append(node.ElseExpr.NodeNumber).ToArray());
         }
         public bool Visit(IfThenSyntaxNode node)=> true;
         public bool Visit(ListOfExpressionsSyntaxNode node)=> true;
