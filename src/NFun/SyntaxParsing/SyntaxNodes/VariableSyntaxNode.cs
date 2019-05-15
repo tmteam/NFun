@@ -1,11 +1,13 @@
 using System.Collections.Generic;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
+using NFun.Types;
 
 namespace NFun.Parsing
 {
     public class VariableSyntaxNode : ISyntaxNode
     {
+        public VarType OutputType { get; set; }
         public int NodeNumber { get; set; }
 
         public VariableSyntaxNode(string id, Interval interval)

@@ -112,5 +112,15 @@ namespace NFun.HindleyMilner.Tyso
             }
             return FType.Fun(ConvertToHmType2(outputNode,NestedDepth),args.ToArray());
         }
+
+        public FType GetNodeTypeOrNull(int nodeId)
+        {
+            if (_nodes.Count <= nodeId)
+                return null;
+            var node = _nodes[nodeId];
+            if (node == null)
+                return null;
+            return ConvertToHmType2(node, NestedDepth);
+        }
     }
 }

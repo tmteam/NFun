@@ -451,7 +451,7 @@ namespace NFun.ParseErrors
 
         public static Exception FunctionAlreadyExist(UserFunctionDefenitionSyntaxNode userFun) 
             => new FunParseException(533,$"Function  {ErrorsHelper.Signature(userFun.Id, userFun.Args)} already exist", 
-                new Interval( userFun.Head.Interval.Start,userFun.BodyExpression.Interval.Finish));
+                new Interval( userFun.Head.Interval.Start,userFun.Body.Interval.Finish));
 
 
         public static Exception NoCommonCast(IEnumerable<IExpressionNode> nodes) 
@@ -463,7 +463,7 @@ namespace NFun.ParseErrors
             => new FunParseException(539,"if Condition has to be boolean but was "+ condition.Type, condition.Interval);
 
         public static Exception InvalidOutputType(FunctionBase function, Interval interval) 
-            => new FunParseException(542, $"'{function.OutputType}' is not supported as output parameter of {function.Name}()", interval);
+            => new FunParseException(542, $"'{function.SpecifiedType}' is not supported as output parameter of {function.Name}()", interval);
 
         public static Exception FunctionArgumentDuplicates(UserFunctionDefenitionSyntaxNode lexFunction, TypedVarDefSyntaxNode lexFunctionArg) 
             => new FunParseException(545, $"'Argument name '{lexFunctionArg.Id}' duplicates at  {ErrorsHelper.Signature(lexFunction.Id, lexFunction.Args)} ", lexFunction.Head.Interval);

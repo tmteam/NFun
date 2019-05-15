@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
+using NFun.Types;
 
 namespace NFun.Parsing
 {
@@ -25,6 +26,7 @@ namespace NFun.Parsing
             Interval = interval;
         }
 
+        public VarType OutputType { get; set; }
         public int NodeNumber { get; set; }
         public bool IsInBrackets { get; set; }
         public SyntaxNodeType Type => SyntaxNodeType.AnonymFun;

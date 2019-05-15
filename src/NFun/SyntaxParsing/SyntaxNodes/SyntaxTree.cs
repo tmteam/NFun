@@ -2,11 +2,13 @@ using System.Collections.Generic;
 using System.Linq;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
+using NFun.Types;
 
 namespace NFun.Parsing
 {
     public class SyntaxTree: ISyntaxNode
     {
+        public VarType OutputType { get; set; }
         public int NodeNumber { get; set; }
 
         public ISyntaxNode[] Nodes { get; }

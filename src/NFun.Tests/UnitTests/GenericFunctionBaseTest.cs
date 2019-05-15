@@ -17,7 +17,7 @@ namespace Funny.Tests.UnitTests
             var function = rpt.CreateConcreteOrNull(VarType.Bool);
             Assert.Multiple(() =>
             {
-                Assert.AreEqual(VarType.Bool, function.OutputType);
+                Assert.AreEqual(VarType.Bool, function.SpecifiedType);
                 CollectionAssert.AreEquivalent(new[]{VarType.Bool}, function.ArgTypes);
             });
         }
@@ -30,7 +30,7 @@ namespace Funny.Tests.UnitTests
             var function = rpt.CreateConcreteOrNull(genericArgument);
             Assert.Multiple(() =>
             {
-                Assert.AreEqual(genericArgument, function.OutputType);
+                Assert.AreEqual(genericArgument, function.SpecifiedType);
                 CollectionAssert.AreEquivalent(new[]{genericArgument}, function.ArgTypes);
             });
         }
@@ -43,7 +43,7 @@ namespace Funny.Tests.UnitTests
             Assert.IsNotNull(function);
             Assert.Multiple(() =>
             {
-                Assert.AreEqual(VarType.ArrayOf(VarType.Bool), function.OutputType);
+                Assert.AreEqual(VarType.ArrayOf(VarType.Bool), function.SpecifiedType);
                 CollectionAssert.AreEquivalent(new[]{VarType.Bool, VarType.Int32}, function.ArgTypes);
             });
         }
@@ -61,7 +61,7 @@ namespace Funny.Tests.UnitTests
             Assert.Multiple(()=>{
                 Assert.AreEqual(
                     expected: VarType.ArrayOf(VarType.Text),
-                    actual: function.OutputType);
+                    actual: function.SpecifiedType);
                 CollectionAssert.AreEqual(
                     expected: new[]
                     {
@@ -81,7 +81,7 @@ namespace Funny.Tests.UnitTests
 
             Assert.Multiple(() =>
             {
-                Assert.AreEqual(VarType.ArrayOf(VarType.Bool), function.OutputType);
+                Assert.AreEqual(VarType.ArrayOf(VarType.Bool), function.SpecifiedType);
                 CollectionAssert.AreEquivalent(new[]{VarType.ArrayOf(VarType.Bool), VarType.Int32}, function.ArgTypes);
             });
         }
@@ -95,7 +95,7 @@ namespace Funny.Tests.UnitTests
             Assert.IsNotNull(function);
             Assert.Multiple(() =>
             {
-                Assert.AreEqual(VarType.ArrayOf(genericArgument), function.OutputType);
+                Assert.AreEqual(VarType.ArrayOf(genericArgument), function.SpecifiedType);
                 CollectionAssert.AreEquivalent(new[]{VarType.ArrayOf(genericArgument), VarType.Int32}, function.ArgTypes);
             });
         }

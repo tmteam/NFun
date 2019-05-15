@@ -82,9 +82,8 @@ namespace NFun.Parsing
                 }
             }
 
-            var tree = new SyntaxTree(nodes.ToArray());
-            tree.ComeOver(new SetNodeNumberVisitor());
-            return tree;
+            return new SyntaxTree(nodes.ToArray());
+            
         }
         private static VarAttribute[] ReadAttributes(TokenFlow flow)
         {

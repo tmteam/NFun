@@ -4,10 +4,8 @@ using NFun.BuiltInFunctions;
 using NFun.HindleyMilner.Tyso;
 using NFun.Interpritation;
 using NFun.Interpritation.Functions;
-using NFun.ParseErrors;
 using NFun.Parsing;
 using NFun.SyntaxParsing.Visitors;
-using NFun.Types;
 
 namespace NFun.HindleyMilner
 {
@@ -25,16 +23,16 @@ namespace NFun.HindleyMilner
         public bool Visit(ArraySyntaxNode node)=> _state.CurrentSolver.SetArrayInit(node.NodeNumber, node.Expressions.Select(e=>e.NodeNumber).ToArray());
         public bool Visit(UserFunctionDefenitionSyntaxNode node)
         {
+            /*
             if (!node.OutputType.Equals(VarType.Empty))
-                _state.CurrentSolver.SetStrict(node.BodyExpression.NodeNumber, AdpterHelper.ConvertToHmType(node.OutputType));
+                _state.CurrentSolver.SetStrict(node.Body.NodeNumber, AdpterHelper.ConvertToHmType(node.OutputType));
             
             var functionSolvation = _state.ExitFunction();
             var solvation = functionSolvation.Solver.Solve();
             
             if (!solvation.IsSolved)
                 throw new FunParseException(-1,"Function type not solved", 0, 0);
-            /*if(solvation.VarNames.Length!= functionSolvation.ArgsCount)
-                throw new FunParseException(-2,"Unknown variables at the function", 0, 0);*/
+           
             var userName = functionSolvation.Name + ":" + functionSolvation.ArgsCount;
             if(_userFunctions.ContainsKey(userName))
                 throw new FunParseException(-3,"User function duplicates", 0, 0);
@@ -48,10 +46,10 @@ namespace NFun.HindleyMilner
                     solvedArgTypes.Add(AdpterHelper.ConvertToSimpleTypes(res));
             }
 
-            var outputType =  AdpterHelper.ConvertToSimpleTypes(solvation.GetNodeType(node.BodyExpression.NodeNumber));
+            var outputType =  AdpterHelper.ConvertToSimpleTypes(solvation.GetNodeType(node.Body.NodeNumber));
             
             _userFunctions.Add(userName, new FunctionPrototype(functionSolvation.Name, outputType, solvedArgTypes.ToArray()));
-            
+            */
             return true;
         }
 
@@ -124,13 +122,13 @@ namespace NFun.HindleyMilner
 
         private static FunSignature ToFunSignature(FunctionBase fun) 
             =>
-            new FunSignature( AdpterHelper.ConvertToHmType(fun.OutputType), 
+            new FunSignature( AdpterHelper.ConvertToHmType(fun.SpecifiedType), 
                 fun.ArgTypes.Select(AdpterHelper.ConvertToHmType).ToArray());
 
         private static CallDef ToCallDef(FunCallSyntaxNode node, FunctionBase fun)
         {
             var ids = new[] {node.NodeNumber}.Concat(node.Args.Select(a => a.NodeNumber)).ToArray();
-            var types = new[] {fun.OutputType}.Concat(fun.ArgTypes).Select(AdpterHelper.ConvertToHmType).ToArray();
+            var types = new[] {fun.SpecifiedType}.Concat(fun.ArgTypes).Select(AdpterHelper.ConvertToHmType).ToArray();
 
             var callDef = new CallDef(types, ids);
             return callDef;
@@ -138,7 +136,7 @@ namespace NFun.HindleyMilner
         private static CallDef ToCallDef(FunCallSyntaxNode node, GenericFunctionBase fun)
         {
             var ids = new[] {node.NodeNumber}.Concat(node.Args.Select(a => a.NodeNumber)).ToArray();
-            var types = new[] {fun.OutputType}.Concat(fun.ArgTypes).Select(AdpterHelper.ConvertToHmType).ToArray();
+            var types = new[] {fun.SpecifiedType}.Concat(fun.ArgTypes).Select(AdpterHelper.ConvertToHmType).ToArray();
 
             var callDef = new CallDef(types, ids);
             return callDef;
@@ -155,7 +153,9 @@ namespace NFun.HindleyMilner
 
         public bool Visit(NumberSyntaxNode node)
         {
-            var valueExpression = SingleExpressionReader.GetValueNode(node);
+            //dirty hack!!!
+            var valueExpression =            
+                ExpressionBuilder.GetValueNode(node);
             return _state.CurrentSolver.SetConst(node.NodeNumber, 
                 AdpterHelper.ConvertToHmType(valueExpression.Type));
         }

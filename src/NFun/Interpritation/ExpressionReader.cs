@@ -88,9 +88,12 @@ namespace NFun.Interpritation
 
         private void InterpriteEquation(EquationSyntaxNode equation)
         {
-            var reader = new SingleExpressionReader(_functions, _variables);
-            var expression = reader.ReadNode(equation.Expression);
+            //var reader = new SingleExpressionReader(_functions, _variables);
+            //var expression = reader.ReadNode(equation.Expression);
 
+            var expression = ExpressionBuilder.ReadExpression(equation.Expression, _functions, _variables);
+            
+            
             var newSource = new VariableSource(equation.Id, VarType.Real, equation.Attributes)
             {
                 IsOutput = true
@@ -111,7 +114,7 @@ namespace NFun.Interpritation
         }
 
         private FunctionPrototype GetFunctionPrototype(UserFunctionDefenitionSyntaxNode lexFunction) 
-            => new FunctionPrototype(lexFunction.Id, lexFunction.OutputType,lexFunction.Args.Select(a=>a.VarType).ToArray());
+            => new FunctionPrototype(lexFunction.Id, lexFunction.SpecifiedType,lexFunction.Args.Select(a=>a.VarType).ToArray());
 
         private UserFunction GetFunction(UserFunctionDefenitionSyntaxNode lexFunction)
         {
@@ -121,15 +124,17 @@ namespace NFun.Interpritation
                 if (!vars.TryAdd(new VariableSource(lexFunctionArg)))
                     throw ErrorFactory.FunctionArgumentDuplicates(lexFunction, lexFunctionArg);
             }
-            var reader = new SingleExpressionReader(_functions, vars);
-            var expression = reader.ReadNode(lexFunction.BodyExpression);
+            
+            //var reader = new SingleExpressionReader(_functions, vars);
+            //var expression = reader.ReadNode(lexFunction.Body);
+            var expression = ExpressionBuilder.ReadExpression(lexFunction.Body, _functions, vars);
             
             ExpressionHelper.CheckForUnknownVariables(
                 lexFunction.Args.Select(a=>a.Id).ToArray(), vars);
             
             return new UserFunction(lexFunction.Id, vars.GetAllSources(), expression);
         }
-
+        
         
     }
 }

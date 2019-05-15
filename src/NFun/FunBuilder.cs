@@ -3,12 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using NFun.BuiltInFunctions;
 using NFun.HindleyMilner;
+using NFun.HindleyMilner.Tyso;
 using NFun.Interpritation;
 using NFun.Interpritation.Functions;
+using NFun.ParseErrors;
 using NFun.Parsing;
 using NFun.Runtime;
 using NFun.SyntaxParsing;
+using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
+using NFun.Types;
 
 namespace NFun
 {
@@ -41,21 +45,144 @@ namespace NFun
             var flow = Tokenizer.ToFlow(_text);
             var syntaxTree = TopLevelParser.Parse(flow);
 
-            var functionsDictionary =  new FunctionsDictionary();
+            //Set node numbers
+            syntaxTree.ComeOver(new SetNodeNumberVisitor());
+            
+            //get topology sort of the functions
+            var functionSolveOrder  = FindFunctionsSolvingOrderOrThrow(syntaxTree);
+            var functionsDictionary = MakeFunctionsDictionary();
+
+            foreach (var functionSyntaxNode in functionSolveOrder)
+            {
+                //make alias for function name
+                var funAlias = functionSyntaxNode.Id+"("+functionSyntaxNode.Args.Count+")";
+
+                //introduce function variable here
+                var visitorInitState = CreateVisitorStateFor(functionSyntaxNode, funAlias);
+                
+                //solving each function
+                 var typeSolving = new HmAlgorithmAdapter(functionsDictionary,visitorInitState);
+                
+                 visitorInitState.CurrentSolver.SetFunDefenition(funAlias, functionSyntaxNode.NodeNumber, functionSyntaxNode.Body.NodeNumber);
+                 // solve the types
+                 var types = typeSolving.Apply(functionSyntaxNode);
+                 if(!types.IsSolved)
+                    throw new FunParseException(-4, $"Function '{functionSyntaxNode.Id}' is not solved", 0,0);
+                 
+                 //set types to nodes
+                 functionSyntaxNode.ComeOver(new ApplyHmResultVisitor(types));
+                 
+                 var funType = types.GetVarType(funAlias);
+                 //make function prototype
+                 var prototype = new FunctionPrototype(functionSyntaxNode.Id, 
+                     funType.FunTypeSpecification.Output, 
+                     funType.FunTypeSpecification.Inputs);
+                 //add prototype to dictionary for future use
+                 functionsDictionary.Add(prototype);
+            }
+            
+            var bodyTypeSolving = new HmAlgorithmAdapter(functionsDictionary).Apply(syntaxTree);
+            if (!bodyTypeSolving.IsSolved)
+                throw new InvalidOperationException("Types not solved");
+            foreach (var syntaxNode in syntaxTree.Children)
+            {
+                //function nodes were solved above
+                if(syntaxNode is UserFunctionDefenitionSyntaxNode)
+                    continue;
+                
+                //set types to nodes
+                syntaxNode.ComeOver(new ApplyHmResultVisitor(bodyTypeSolving));
+            }
+            return ExpressionReader.Interpritate(
+                syntaxTree, 
+                _functions.Concat(PredefinedFunctions), 
+                _genericFunctions.Concat(predefinedGenerics));
+        }
+
+        public HmVisitorState CreateVisitorStateFor(UserFunctionDefenitionSyntaxNode node, string funAlias)
+        {
+            var visitorState = new HmVisitorState(new NsHumanizerSolver());
+            
+            //Add user function as a functional variable
+
+            //make outputType
+            var outputType =  visitorState.CreateTypeNode(node.SpecifiedType);
+            
+            //create input variables
+            var argTypes = new List<SolvingNode>();
+            foreach (var argNode in node.Args)
+            {
+                //make aliases for input variables
+                var inputAlias = funAlias + "::" + argNode.Id;
+                visitorState.AddVariableAliase(argNode.Id, inputAlias);
+                
+                if (argNode.VarType.BaseType == BaseVarType.Empty)
+                {
+                    //variable type is not specified
+                    var genericVarType = visitorState.CurrentSolver.SetNewVar(inputAlias);
+                    argTypes.Add(genericVarType);
+                }
+                else
+                {
+                    //variable type is specified
+                    var hmType = argNode.VarType.ConvertToHmType();
+                    visitorState.CurrentSolver.SetVarType(inputAlias, hmType);
+                    argTypes.Add(SolvingNode.CreateStrict(hmType));
+                }
+                    
+            }
+            //set function variable defenition
+            visitorState.CurrentSolver
+                .SetVarType(funAlias, FType.Fun(outputType, argTypes.ToArray()));
+            return visitorState;
+        }
+        
+        /// <summary>
+        /// Gets order of calculating the functions, based on its co using.
+        /// </summary>
+        private static UserFunctionDefenitionSyntaxNode[] FindFunctionsSolvingOrderOrThrow(SyntaxTree syntaxTree)
+        {
+            var userFunctions = syntaxTree.Children.OfType<UserFunctionDefenitionSyntaxNode>().ToList();
+
+            var userFunctionsNames = new Dictionary<string, int>();
+            int i = 0;
+            foreach (var userFunction in userFunctions)
+            {
+                userFunctionsNames.Add(userFunction.Id + "(" + userFunction.Args.Count + ")", i);
+                i++;
+            }
+
+            int[][] dependenciesGraph = new int[i][];
+            int j = 0;
+            foreach (var userFunction in userFunctions)
+            {
+                var visitor = new FindFunctionDependenciesVisitor(userFunctionsNames);
+                if (!userFunction.ComeOver(visitor))
+                    throw new InvalidOperationException("User fun come over");
+                dependenciesGraph[j] = visitor.GetFoundDependencies();
+                j++;
+            }
+
+            var sortResults = GraphTools.SortCycledTopology(dependenciesGraph);
+            if (sortResults.HasCycle)
+                throw new InvalidOperationException("Cycled functions found");
+
+            var functionSolveOrder = new UserFunctionDefenitionSyntaxNode[sortResults.NodeNames.Length];
+            for (int k = 0; k < sortResults.NodeNames.Length; k++)
+                functionSolveOrder[k] = userFunctions[sortResults.NodeNames[k]];
+            return functionSolveOrder;
+        }
+
+        private FunctionsDictionary MakeFunctionsDictionary()
+        {
+            var functionsDictionary = new FunctionsDictionary();
             foreach (var predefinedFunction in _functions.Concat(PredefinedFunctions))
                 functionsDictionary.Add(predefinedFunction);
             foreach (var genericFunctionBase in _genericFunctions.Concat(predefinedGenerics))
                 functionsDictionary.Add(genericFunctionBase);
-            
-            var typeSolving = new HmAlgorithmAdapter(functionsDictionary).Apply(syntaxTree);
-            if (!typeSolving.IsSolved)
-                throw new InvalidOperationException("Types not solved");
-            
-            return ExpressionReader.Interpritate(
-                syntaxTree, 
-                _functions.Concat(FunBuilder.PredefinedFunctions), 
-                _genericFunctions.Concat(FunBuilder.predefinedGenerics));
+            return functionsDictionary;
         }
+
         public static IEnumerable<FunctionBase> PredefinedFunctions => _predefinedFunctions;
         public static IEnumerable<GenericFunctionBase> PredefinedGenericFunctions => predefinedGenerics;
 

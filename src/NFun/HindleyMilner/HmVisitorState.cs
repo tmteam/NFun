@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using NFun.HindleyMilner.Tyso;
+using NFun.Types;
 
 namespace NFun.HindleyMilner
 {
@@ -35,13 +36,21 @@ namespace NFun.HindleyMilner
         }
         private readonly Dictionary<string, string> AnonymVariablesAliases = new Dictionary<string, string>();
 
+        
+        public SolvingNode CreateTypeNode(VarType type)
+        {
+            if (type.BaseType == BaseVarType.Empty)
+                return CurrentSolver.MakeGeneric();
+            return SolvingNode.CreateStrict(type.ConvertToHmType());
+        }
+        
         public string GetActualName(string varName)
         {
             if (AnonymVariablesAliases.TryGetValue(varName, out var realVarName))
                 return realVarName;
             return varName;
         }
-        public void AddAnonymVariablesAliase(string originName, string anonymName) 
+        public void AddVariableAliase(string originName, string anonymName) 
             => AnonymVariablesAliases.Add(anonymName, originName);
     }
 }

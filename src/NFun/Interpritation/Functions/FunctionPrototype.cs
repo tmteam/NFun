@@ -7,7 +7,7 @@ namespace NFun.Interpritation.Functions
 {
     public class FunctionPrototype: FunctionBase
     {
-        public FunctionPrototype(string name, VarType outputType, VarType[] argTypes) : base(name,  outputType, argTypes)
+        public FunctionPrototype(string name, VarType specifiedType, VarType[] argTypes) : base(name,  specifiedType, argTypes)
         {
         }
 
@@ -16,7 +16,7 @@ namespace NFun.Interpritation.Functions
         {
             _function = function;
 
-            if (OutputType != function.OutputType)
+            if (SpecifiedType != function.SpecifiedType)
                 throw ErrorFactory.InvalidOutputType(function, interval);
         }
 

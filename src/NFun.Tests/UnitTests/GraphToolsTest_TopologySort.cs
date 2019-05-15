@@ -4,7 +4,7 @@ using NUnit.Framework;
 namespace Funny.Tests
 {
     [TestFixture]
-    public class GraphToolsTest
+    public class GraphToolsTest_TopologySort
     {
         [Test]
         public void OneNodeCycle()

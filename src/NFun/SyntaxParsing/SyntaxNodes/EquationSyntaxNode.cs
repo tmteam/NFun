@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
+using NFun.Types;
 
 namespace NFun.Parsing
 {
@@ -20,6 +21,7 @@ namespace NFun.Parsing
             Interval = Interval.New(start, expression.Interval.Finish);
         }
 
+        public VarType OutputType { get; set; }
         public int NodeNumber { get; set; }
         public bool IsInBrackets { get; set; }
         public SyntaxNodeType Type => SyntaxNodeType.Equation;

@@ -12,6 +12,8 @@ namespace NFun.HmTests
         {
             solver = new NsHumanizerSolver();
         }
+        
+        
         [Test]
         public void NonRecursiveConstFunction_solved()
         {

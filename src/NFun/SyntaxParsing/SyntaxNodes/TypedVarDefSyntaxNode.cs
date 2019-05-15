@@ -7,7 +7,10 @@ namespace NFun.Parsing
 {
     public class TypedVarDefSyntaxNode : ISyntaxNode
     {
+        
+        
         public int NodeNumber { get; set; }
+        public VarType OutputType { get; set; }
 
         public string Id { get; }
         public VarType VarType { get; }

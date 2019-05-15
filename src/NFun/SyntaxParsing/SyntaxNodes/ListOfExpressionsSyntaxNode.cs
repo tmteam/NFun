@@ -1,11 +1,13 @@
 using System.Collections.Generic;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
+using NFun.Types;
 
 namespace NFun.Parsing
 {
     public class ListOfExpressionsSyntaxNode : ISyntaxNode
     {
+        public VarType OutputType { get; set; }
         public int NodeNumber { get; set; }
 
         public ISyntaxNode[] Expressions { get; }

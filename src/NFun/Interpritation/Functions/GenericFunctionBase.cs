@@ -10,14 +10,14 @@ namespace NFun.Interpritation.Functions
         public string Name { get; }
         public VarType[] ArgTypes { get; }
         
-        protected GenericFunctionBase(string name, VarType outputType, params VarType[] argTypes)
+        protected GenericFunctionBase(string name, VarType specifiedType, params VarType[] argTypes)
         {
             
             Name = name;
             ArgTypes = argTypes;
-            OutputType = outputType;
+            SpecifiedType = specifiedType;
             var maxGenericId  = argTypes
-                .Append(outputType)
+                .Append(specifiedType)
                 .Max(i => i.SearchMaxGenericTypeId());
             if(!maxGenericId.HasValue)
                 throw new InvalidOperationException($"Type {name} has wrong generic defenition");
@@ -25,7 +25,7 @@ namespace NFun.Interpritation.Functions
             _maxGenericId = maxGenericId.Value;
         }
         
-        public VarType OutputType { get; }
+        public VarType SpecifiedType { get; }
         
         public abstract object Calc(object[] args);
 
@@ -45,11 +45,11 @@ namespace NFun.Interpritation.Functions
             foreach (var solvingParam in solvingParams)
             {
                 if(solvingParam.BaseType== BaseVarType.Empty)
-                    throw new InvalidOperationException($"Incorrect function defenition: ({string.Join(",", ArgTypes)}) -> {OutputType}). Not all generic types can be solved");
+                    throw new InvalidOperationException($"Incorrect function defenition: ({string.Join(",", ArgTypes)}) -> {SpecifiedType}). Not all generic types can be solved");
             }     
             return new ConcreteGenericFunction(
                 functionBase: this, 
-                outputType:  VarType.SubstituteConcreteTypes(OutputType, solvingParams), 
+                specifiedType:  VarType.SubstituteConcreteTypes(SpecifiedType, solvingParams), 
                 argTypes: concreteArgTypes);
         }
      
@@ -58,8 +58,8 @@ namespace NFun.Interpritation.Functions
         {
             private readonly GenericFunctionBase _functionBase;
 
-            public ConcreteGenericFunction(GenericFunctionBase functionBase,  VarType outputType, params VarType[] argTypes) 
-                : base(functionBase+"_"+ string.Join("->", argTypes)+"->"+outputType, outputType, argTypes)
+            public ConcreteGenericFunction(GenericFunctionBase functionBase,  VarType specifiedType, params VarType[] argTypes) 
+                : base(functionBase+"_"+ string.Join("->", argTypes)+"->"+specifiedType, specifiedType, argTypes)
             {
                 _functionBase = functionBase;
             }

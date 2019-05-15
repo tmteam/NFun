@@ -53,7 +53,7 @@ namespace Funny.Tests
     {
         private readonly Func<object[], object> _calc;
 
-        public GenericFunctionMock(Func<object[], object> calc,string name, VarType outputType, params VarType[] argTypes) : base(name, outputType, argTypes)
+        public GenericFunctionMock(Func<object[], object> calc,string name, VarType specifiedType, params VarType[] argTypes) : base(name, specifiedType, argTypes)
         {
             _calc = calc;
         }
@@ -65,8 +65,8 @@ namespace Funny.Tests
     {
         private readonly Func<object[], object> _calc;
 
-        public FunctionMock(Func<object[], object> calc, string name, VarType outputType, params VarType[] argTypes) 
-            : base(name, outputType, argTypes)
+        public FunctionMock(Func<object[], object> calc, string name, VarType specifiedType, params VarType[] argTypes) 
+            : base(name, specifiedType, argTypes)
         {
             _calc = calc;
         }

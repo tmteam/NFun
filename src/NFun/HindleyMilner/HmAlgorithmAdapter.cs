@@ -2,21 +2,20 @@ using NFun.HindleyMilner.Tyso;
 using NFun.Interpritation;
 using NFun.Parsing;
 using NFun.SyntaxParsing.Visitors;
-using NFun.Types;
 
 namespace NFun.HindleyMilner
 {
     public class HmAlgorithmAdapter
     {
-        public HmAlgorithmAdapter(FunctionsDictionary dictionary)
+        public HmAlgorithmAdapter(FunctionsDictionary dictionary, HmVisitorState state = null)
         {
-            _solver = new NsHumanizerSolver();
-            var visitorState = new HmVisitorState(new NsHumanizerSolver());
+            _solver = state?.CurrentSolver??new NsHumanizerSolver();
+            var visitorState = state??new HmVisitorState(_solver);
             EnterVisitor = new EnterHmVisitor(visitorState);
             ExitVisitor = new ExitHmVisitor(visitorState, dictionary);
         }
 
-        private NsHumanizerSolver _solver;
+        private readonly NsHumanizerSolver _solver;
         public ISyntaxNodeVisitor<VisitorResult> EnterVisitor { get; } 
         public ISyntaxNodeVisitor<bool> ExitVisitor { get; }
 
@@ -29,25 +28,5 @@ namespace NFun.HindleyMilner
             var solving = _solver.Solve();
             return new FunTypeSolving(solving);
         }
-    }
-
-    public class FunTypeSolving
-    {
-        private readonly NsResult _result;
-
-        public FunTypeSolving(NsResult result)
-        {
-            _result = result;
-        }
-
-        public int GenericsCount => _result.GenericsCount;
-        public bool IsSolved => _result.IsSolved;
-
-        public VarType GetVarType(string varId)
-            => AdpterHelper.ConvertToSimpleTypes( _result.GetVarType(varId));
-
-        public VarType GetNodeType(int nodeId) =>
-            AdpterHelper.ConvertToSimpleTypes(_result.GetNodeType(nodeId));
-
     }
 }
