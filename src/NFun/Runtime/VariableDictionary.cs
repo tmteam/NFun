@@ -60,12 +60,12 @@ namespace NFun.Runtime
         private readonly Dictionary<string,VariableUsages> _variables 
             = new Dictionary<string, VariableUsages>();
         
-        public VariableExpressionNode CreateVarNode(string id, Interval interval)
+        public VariableExpressionNode CreateVarNode(string id, Interval interval, VarType type)
         {
             var name = id.ToLower();
             if (!_variables.ContainsKey(name))
             {
-                var source = new VariableSource(id, VarType.Real);
+                var source = new VariableSource(id, type);
                 _variables.Add(name, new VariableUsages(source));
             }
             var node = new VariableExpressionNode(_variables[name].Source,interval);

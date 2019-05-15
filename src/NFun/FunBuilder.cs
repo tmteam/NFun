@@ -53,34 +53,9 @@ namespace NFun
             var functionsDictionary = MakeFunctionsDictionary();
 
             foreach (var functionSyntaxNode in functionSolveOrder)
-            {
-                //make alias for function name
-                var funAlias = functionSyntaxNode.Id+"("+functionSyntaxNode.Args.Count+")";
+                BuildFunctionAndPutItToDictionary(functionSyntaxNode, functionsDictionary);
 
-                //introduce function variable here
-                var visitorInitState = CreateVisitorStateFor(functionSyntaxNode, funAlias);
-                
-                //solving each function
-                 var typeSolving = new HmAlgorithmAdapter(functionsDictionary,visitorInitState);
-                
-                 visitorInitState.CurrentSolver.SetFunDefenition(funAlias, functionSyntaxNode.NodeNumber, functionSyntaxNode.Body.NodeNumber);
-                 // solve the types
-                 var types = typeSolving.Apply(functionSyntaxNode);
-                 if(!types.IsSolved)
-                    throw new FunParseException(-4, $"Function '{functionSyntaxNode.Id}' is not solved", 0,0);
-                 
-                 //set types to nodes
-                 functionSyntaxNode.ComeOver(new ApplyHmResultVisitor(types));
-                 
-                 var funType = types.GetVarType(funAlias);
-                 //make function prototype
-                 var prototype = new FunctionPrototype(functionSyntaxNode.Id, 
-                     funType.FunTypeSpecification.Output, 
-                     funType.FunTypeSpecification.Inputs);
-                 //add prototype to dictionary for future use
-                 functionsDictionary.Add(prototype);
-            }
-            
+
             var bodyTypeSolving = new HmAlgorithmAdapter(functionsDictionary).Apply(syntaxTree);
             if (!bodyTypeSolving.IsSolved)
                 throw new InvalidOperationException("Types not solved");
@@ -93,13 +68,69 @@ namespace NFun
                 //set types to nodes
                 syntaxNode.ComeOver(new ApplyHmResultVisitor(bodyTypeSolving));
             }
-            return ExpressionReader.Interpritate(
-                syntaxTree, 
-                _functions.Concat(PredefinedFunctions), 
-                _genericFunctions.Concat(predefinedGenerics));
+            
+            var ans = new ExpressionReader(syntaxTree,functionsDictionary);
+            ans.Interpritate();
+            return new FunRuntime( ans._equations, ans._variables);
         }
 
-        public HmVisitorState CreateVisitorStateFor(UserFunctionDefenitionSyntaxNode node, string funAlias)
+        private void BuildFunctionAndPutItToDictionary(UserFunctionDefenitionSyntaxNode functionSyntaxNode,
+            FunctionsDictionary functionsDictionary)
+        {
+            var funAlias = functionSyntaxNode.GetFunAlias();
+
+            //introduce function variable here
+            var visitorInitState = CreateVisitorStateFor(functionSyntaxNode);
+
+            //solving each function
+            var typeSolving = new HmAlgorithmAdapter(functionsDictionary, visitorInitState);
+
+            visitorInitState.CurrentSolver.SetFunDefenition(funAlias, functionSyntaxNode.NodeNumber,
+                functionSyntaxNode.Body.NodeNumber);
+            // solve the types
+            var types = typeSolving.Apply(functionSyntaxNode);
+            if (!types.IsSolved)
+                throw new FunParseException(-4, $"Function '{functionSyntaxNode.Id}' is not solved", 0, 0);
+
+            //set types to nodes
+            functionSyntaxNode.ComeOver(new ApplyHmResultVisitor(types));
+
+            var funType = types.GetVarType(funAlias);
+            //make function prototype
+            var prototype = new FunctionPrototype(functionSyntaxNode.Id,
+                funType.FunTypeSpecification.Output,
+                funType.FunTypeSpecification.Inputs);
+            //add prototype to dictionary for future use
+            functionsDictionary.Add(prototype);
+            BuildFunction(functionSyntaxNode, prototype, functionsDictionary);
+        }
+
+        private void BuildFunction(
+            UserFunctionDefenitionSyntaxNode lexFunction, 
+            FunctionPrototype prototype, 
+            FunctionsDictionary functionsDictionary)
+        {
+            var vars = new VariableDictionary();
+            for (int i = 0; i < lexFunction.Args.Count ; i++)
+            {
+                var id = lexFunction.Args[i].Id;
+                if (!vars.TryAdd(new VariableSource(id, prototype.ArgTypes[i])))
+                {
+                    throw ErrorFactory.FunctionArgumentDuplicates(lexFunction, lexFunction.Args[i]);
+                }
+
+            }
+            var expression = ExpressionBuilderVisitor
+                .BuildExpression(lexFunction.Body, functionsDictionary, vars);
+            
+            ExpressionHelper.CheckForUnknownVariables(
+                lexFunction.Args.Select(a=>a.Id).ToArray(), vars);
+            
+            var function = new UserFunction(lexFunction.Id, vars.GetAllSources(), expression);
+            prototype.SetActual(function, lexFunction.Interval);
+        }
+        
+        public HmVisitorState CreateVisitorStateFor(UserFunctionDefenitionSyntaxNode node)
         {
             var visitorState = new HmVisitorState(new NsHumanizerSolver());
             
@@ -107,13 +138,13 @@ namespace NFun
 
             //make outputType
             var outputType =  visitorState.CreateTypeNode(node.SpecifiedType);
-            
             //create input variables
             var argTypes = new List<SolvingNode>();
             foreach (var argNode in node.Args)
             {
+                var inputAlias = AdpterHelper.GetArgAlias(argNode.Id, node.GetFunAlias());
+
                 //make aliases for input variables
-                var inputAlias = funAlias + "::" + argNode.Id;
                 visitorState.AddVariableAliase(argNode.Id, inputAlias);
                 
                 if (argNode.VarType.BaseType == BaseVarType.Empty)
@@ -133,7 +164,7 @@ namespace NFun
             }
             //set function variable defenition
             visitorState.CurrentSolver
-                .SetVarType(funAlias, FType.Fun(outputType, argTypes.ToArray()));
+                .SetVarType(node.GetFunAlias(), FType.Fun(outputType, argTypes.ToArray()));
             return visitorState;
         }
         

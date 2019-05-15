@@ -1,12 +1,20 @@
 using System;
 using System.Linq;
 using NFun.HindleyMilner.Tyso;
+using NFun.Parsing;
 using NFun.Types;
 
 namespace NFun.HindleyMilner
 {
     public static class AdpterHelper
     {
+        public static string GetArgAlias(string funAlias, string argId)
+            =>  funAlias + "::" + argId;
+        public static string GetFunAlias(string funId, int argsCount)
+            =>  funId + "(" + argsCount+")";
+
+        public static string GetFunAlias(this UserFunctionDefenitionSyntaxNode syntaxNode)
+            => GetFunAlias(syntaxNode.Id, syntaxNode.Args.Count);
         public static FType ConvertToHmType(this VarType origin)
         {
             switch (origin.BaseType)

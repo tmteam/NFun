@@ -13,15 +13,15 @@ using NFun.Types;
 
 namespace NFun.Interpritation
 {
-    public class ExpressionBuilder: ISyntaxNodeVisitor<IExpressionNode> {
+    public class ExpressionBuilderVisitor: ISyntaxNodeVisitor<IExpressionNode> {
         private readonly FunctionsDictionary _functions;
         private readonly VariableDictionary _variables;
 
-        public static IExpressionNode ReadExpression(ISyntaxNode node, FunctionsDictionary functions,
+        public static IExpressionNode BuildExpression(ISyntaxNode node, FunctionsDictionary functions,
             VariableDictionary variables) =>
-            node.Visit(new ExpressionBuilder(functions, variables));
+            node.Visit(new ExpressionBuilderVisitor(functions, variables));
 
-        public ExpressionBuilder(FunctionsDictionary functions, VariableDictionary variables)
+        public ExpressionBuilderVisitor(FunctionsDictionary functions, VariableDictionary variables)
         {
             _functions = functions;
             _variables = variables;
@@ -65,7 +65,7 @@ namespace NFun.Interpritation
             }
 
             var originVariables = localVariables.GetAllSources().Select(s=>s.Name).ToArray();
-            var expr = ExpressionBuilder.ReadExpression(node.Body, _functions, localVariables);
+            var expr = ExpressionBuilderVisitor.BuildExpression(node.Body, _functions, localVariables);
             
             //New variables are new closured
             var closured =  localVariables.GetAllUsages()
@@ -83,7 +83,9 @@ namespace NFun.Interpritation
         public IExpressionNode Visit(ArraySyntaxNode node)
         {
             var nodes = node.Expressions.Select(ReadNode).ToArray();
-            return new ArrayExpressionNode(nodes,node.Interval);        }
+            return new ArrayExpressionNode(nodes,node.Interval, node.OutputType);
+            
+        }
 
         public IExpressionNode Visit(FunCallSyntaxNode node)
         {
@@ -93,7 +95,7 @@ namespace NFun.Interpritation
             var childrenTypes = new List<VarType>();
             foreach (var argLexNode in node.Args)
             {
-                var argNode =  argLexNode.Visit(this);
+                var argNode =  ReadNode(argLexNode);
                 children.Add(argNode);
                 childrenTypes.Add(argNode.Type);
             }
@@ -115,7 +117,12 @@ namespace NFun.Interpritation
             }
 
             var elseNode = ReadNode(node.ElseExpr);
-            return new IfThanElseExpressionNode(ifNodes.ToArray(), elseNode,elseNode.Interval);        }
+            return new IfThanElseExpressionNode(
+                ifNodes.ToArray(), 
+                elseNode,
+                elseNode.Interval, 
+                node.OutputType);        
+        }
 
         
         public IExpressionNode Visit(NumberSyntaxNode node) => GetValueNode(node);
@@ -194,6 +201,7 @@ namespace NFun.Interpritation
         private IExpressionNode ReadNode(ISyntaxNode node) => node.Visit(this);
         private IExpressionNode GetOrAddVariableNode(VariableSyntaxNode varNode)
         {
+            
             var lower = varNode.Id;
             if (_variables.GetSourceOrNull(lower) == null)
             {
@@ -203,7 +211,7 @@ namespace NFun.Interpritation
                 if (funVars.Count == 1)
                     return new FunVariableExpressionNode(funVars[0], varNode.Interval);
             }
-            var node = _variables.CreateVarNode(varNode.Id, varNode.Interval);
+            var node = _variables.CreateVarNode(varNode.Id, varNode.Interval, varNode.OutputType);
             if(node.Source.Name!= varNode.Id)
                 throw ErrorFactory.InputNameWithDifferentCase(varNode.Id, node.Source.Name, varNode.Interval);
             return node;

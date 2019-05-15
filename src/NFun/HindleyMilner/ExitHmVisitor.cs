@@ -155,7 +155,7 @@ namespace NFun.HindleyMilner
         {
             //dirty hack!!!
             var valueExpression =            
-                ExpressionBuilder.GetValueNode(node);
+                ExpressionBuilderVisitor.GetValueNode(node);
             return _state.CurrentSolver.SetConst(node.NodeNumber, 
                 AdpterHelper.ConvertToHmType(valueExpression.Type));
         }

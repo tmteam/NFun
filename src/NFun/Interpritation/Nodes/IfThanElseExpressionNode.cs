@@ -11,14 +11,15 @@ namespace NFun.Interpritation.Nodes
         private readonly IfCaseExpressionNode[] _ifCaseNodes;
         private readonly IExpressionNode[] _ifCaseConvertedNodes;
         private readonly IExpressionNode _elseNode;
-        public IfThanElseExpressionNode(IfCaseExpressionNode[] ifCaseNodes, IExpressionNode elseNode, Interval interval)
+        public IfThanElseExpressionNode(IfCaseExpressionNode[] ifCaseNodes, IExpressionNode elseNode, Interval interval, VarType type)
         {
             _ifCaseNodes = ifCaseNodes;
             Interval = interval;
             _ifCaseConvertedNodes = new IExpressionNode[_ifCaseNodes.Length];
-            Type = GetMostCommonType(ifCaseNodes.Select(c => c.Type).Append(elseNode.Type));
-            if (Type.BaseType == BaseVarType.Empty)
-                throw ErrorFactory.NoCommonCast(ifCaseNodes.Append(elseNode));
+            //Type = GetMostCommonType(ifCaseNodes.Select(c => c.Type).Append(elseNode.Type));
+            Type = type;
+            //if (Type.BaseType == BaseVarType.Empty)
+            //    throw ErrorFactory.NoCommonCast(ifCaseNodes.Append(elseNode));
             
                 
             for (var index = 0; index < ifCaseNodes.Length; index++)

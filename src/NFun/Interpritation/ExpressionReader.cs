@@ -15,31 +15,26 @@ namespace NFun.Interpritation
         private readonly SyntaxTree _tree;
         private readonly FunctionsDictionary _functions;
 
-        private readonly VariableDictionary _variables;
+        public readonly VariableDictionary _variables;
         
-        private readonly List<Equation> _equations = new List<Equation>();
+        public readonly List<Equation> _equations = new List<Equation>();
         
+        /*
         public static FunRuntime Interpritate(
             SyntaxTree lexTree,
-            IEnumerable<FunctionBase> predefinedFunctions, 
-            IEnumerable<GenericFunctionBase> predefinedGenerics)
+            FunctionsDictionary dictionary)
         {
-            var functions = new FunctionsDictionary();
-            foreach (var predefinedFunction in predefinedFunctions)
-                functions.Add(predefinedFunction);
-            foreach (var genericFunctionBase in predefinedGenerics)
-                functions.Add(genericFunctionBase);
             
-            var ans = new ExpressionReader(lexTree,functions);
+            var ans = new ExpressionReader(lexTree,dictionary);
             
             ans.Interpritate();
             
             return new FunRuntime(
                 equations: ans._equations,  
                 variables:   ans._variables);
-        }
+        }*/
 
-        private ExpressionReader(
+        public ExpressionReader(
             SyntaxTree tree,
             FunctionsDictionary functions 
             )
@@ -50,9 +45,9 @@ namespace NFun.Interpritation
             _variables = new VariableDictionary(); 
         }
         
-        private void Interpritate()
+        public void Interpritate()
         {
-
+/*
             foreach (var userFun in _lexTreeUserFuns)
             {
                 var prototype = GetFunctionPrototype(userFun);
@@ -66,6 +61,7 @@ namespace NFun.Interpritation
                 
                 ((FunctionPrototype)prototype).SetActual(GetFunction(userFun), userFun.Head.Interval);
             }
+            */
             foreach (var lexRoot in _tree.Nodes)
             {
                 if (lexRoot is EquationSyntaxNode equation) {
@@ -91,10 +87,10 @@ namespace NFun.Interpritation
             //var reader = new SingleExpressionReader(_functions, _variables);
             //var expression = reader.ReadNode(equation.Expression);
 
-            var expression = ExpressionBuilder.ReadExpression(equation.Expression, _functions, _variables);
+            var expression = ExpressionBuilderVisitor.BuildExpression(equation.Expression, _functions, _variables);
             
             
-            var newSource = new VariableSource(equation.Id, VarType.Real, equation.Attributes)
+            var newSource = new VariableSource(equation.Id, equation.OutputType, equation.Attributes)
             {
                 IsOutput = true
             };
@@ -109,7 +105,9 @@ namespace NFun.Interpritation
             }
 
             //ReplaceInputType
-            newSource.Type = expression.Type;
+            if(newSource.Type != expression.Type)
+                throw new InvalidOperationException("Equation types mismatch");
+            
             _equations.Add(new Equation(equation.Id, expression));
         }
 
@@ -127,7 +125,7 @@ namespace NFun.Interpritation
             
             //var reader = new SingleExpressionReader(_functions, vars);
             //var expression = reader.ReadNode(lexFunction.Body);
-            var expression = ExpressionBuilder.ReadExpression(lexFunction.Body, _functions, vars);
+            var expression = ExpressionBuilderVisitor.BuildExpression(lexFunction.Body, _functions, vars);
             
             ExpressionHelper.CheckForUnknownVariables(
                 lexFunction.Args.Select(a=>a.Id).ToArray(), vars);
