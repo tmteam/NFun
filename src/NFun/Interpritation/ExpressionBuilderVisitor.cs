@@ -201,7 +201,6 @@ namespace NFun.Interpritation
         private IExpressionNode ReadNode(ISyntaxNode node) => node.Visit(this);
         private IExpressionNode GetOrAddVariableNode(VariableSyntaxNode varNode)
         {
-            
             var lower = varNode.Id;
             if (_variables.GetSourceOrNull(lower) == null)
             {

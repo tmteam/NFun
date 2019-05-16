@@ -23,5 +23,6 @@ namespace NFun.Parsing
         public T Visit<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);    
         public IEnumerable<ISyntaxNode> Children => new ISyntaxNode[0];
 
+        public override string ToString() => $"({NodeNumber}) {Id}:{OutputType}";
     }
 }

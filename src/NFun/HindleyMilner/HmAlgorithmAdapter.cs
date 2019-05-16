@@ -1,13 +1,17 @@
+using System.Collections.Generic;
 using NFun.HindleyMilner.Tyso;
 using NFun.Interpritation;
 using NFun.Parsing;
 using NFun.SyntaxParsing.Visitors;
+using NFun.Types;
 
 namespace NFun.HindleyMilner
 {
     public class HmAlgorithmAdapter
     {
-        public HmAlgorithmAdapter(FunctionsDictionary dictionary, HmVisitorState state = null)
+
+        public HmAlgorithmAdapter(FunctionsDictionary dictionary, 
+            HmVisitorState state = null)
         {
             _solver = state?.CurrentSolver??new NsHumanizerSolver();
             var visitorState = state??new HmVisitorState(_solver);

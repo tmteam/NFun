@@ -89,8 +89,7 @@ namespace NFun.Interpritation
 
             //ReplaceInputType
             if(newSource.Type != expression.Type)
-                throw new InvalidOperationException("Equation types mismatch");
-            
+                throw new InvalidOperationException($"Equation types mismatch. Expected: {newSource.Type} but was: {expression.Type}");            
             return new Equation(equation.Id, expression);
         }
 
@@ -108,7 +107,7 @@ namespace NFun.Interpritation
             visitorInitState.CurrentSolver.SetFunDefenition(funAlias, functionSyntaxNode.NodeNumber,
                 functionSyntaxNode.Body.NodeNumber);
             // solve the types
-            var types = typeSolving.Apply(functionSyntaxNode);
+            var types = typeSolving.Apply(functionSyntaxNode.Body);
             if (!types.IsSolved)
                 throw new FunParseException(-4, $"Function '{functionSyntaxNode.Id}' is not solved", 0, 0);
 
@@ -117,7 +116,7 @@ namespace NFun.Interpritation
 
             var funType = types.GetVarType(funAlias, new RealTypeConverter());
             //make function prototype
-            var prototype = new FunctionPrototype(functionSyntaxNode.Id,
+            var prototype = new UserFunctionPrototype(functionSyntaxNode.Id,
                 funType.FunTypeSpecification.Output,
                 funType.FunTypeSpecification.Inputs);
             //add prototype to dictionary for future use
@@ -126,7 +125,7 @@ namespace NFun.Interpritation
         }
         private static void BuildFunction(
             UserFunctionDefenitionSyntaxNode lexFunction, 
-            FunctionPrototype prototype, 
+            UserFunctionPrototype prototype, 
             FunctionsDictionary functionsDictionary)
         {
             var vars = new VariableDictionary();

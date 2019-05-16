@@ -18,6 +18,8 @@ namespace NFun.HindleyMilner
             _hmVisitorState = hmVisitorState;
         }
 
+        public override VisitorResult Visit(UserFunctionDefenitionSyntaxNode node) => VisitorResult.Skip;
+        
         public override VisitorResult Visit(AnonymCallSyntaxNode node)
         {
             List<SolvingNode> argTypes = new List<SolvingNode>();
@@ -57,6 +59,12 @@ namespace NFun.HindleyMilner
             return VisitorResult.Continue;
         }
 
+        public override VisitorResult Visit(FunCallSyntaxNode funCallnode)
+        {
+            
+            return VisitorResult.Continue;
+        }
+        
         private static string MakeAnonVariableName(AnonymCallSyntaxNode node, string id)
         {
             var anonName = "=" + node.NodeNumber + ":" + id;

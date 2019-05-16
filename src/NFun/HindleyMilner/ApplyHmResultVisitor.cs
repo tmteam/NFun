@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Reflection;
 using NFun.HindleyMilner.Tyso;
 using NFun.Parsing;
 using NFun.SyntaxParsing.Visitors;
@@ -66,6 +67,7 @@ namespace NFun.HindleyMilner
             return VisitorResult.Continue;
         }
 
+        
         public override VisitorResult Visit(UserFunctionDefenitionSyntaxNode node)
         {
             return VisitorResult.Skip;
