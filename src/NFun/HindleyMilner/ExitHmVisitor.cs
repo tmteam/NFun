@@ -68,19 +68,11 @@ namespace NFun.HindleyMilner
                             node.NodeNumber,
                             node.Args[0].NodeNumber, 
                             node.Args[1].NodeNumber);
-
                 }
             }
 
             var argsCount = node.Args.Length;
 
-            var userShortName = node.Id + ":" + argsCount;
-            /*
-            if(_userFunctions.ContainsKey(userShortName)){
-                var callDef = ToCallDef(node, _userFunctions[userShortName]);
-                return _state.CurrentSolver.SetCall(callDef);
-            }*/
-            
             var candidates = _dictionary.GetNonGeneric(node.Id).Where(n=>n.ArgTypes.Length == argsCount).ToList();
 
             if (candidates.Count == 0)
@@ -133,20 +125,45 @@ namespace NFun.HindleyMilner
             => _state.CurrentSolver.SetVarType(node.Id, AdpterHelper.ConvertToHmType(node.VarType));
         public bool Visit(VariableSyntaxNode node)
         {
-            var id = _state.GetActualName(node.Id);
-            return _state.CurrentSolver.SetVar(node.NodeNumber, id);
+            var originId = node.Id;
+            
+            var localId = _state.GetActualName(node.Id);
+            if (_state.CurrentSolver.HasVariable(localId))
+                return _state.CurrentSolver.SetVar(node.NodeNumber, localId);
+            
+            if (_state.CurrentSolver.HasVariable(originId))
+                return _state.CurrentSolver.SetVar(node.NodeNumber, originId);
+            
+            var userFunctions 
+                = _dictionary.GetNonGeneric(originId).OfType<UserFunctionPrototype>().ToList();
+            
+            //ambiguous function reference
+            //Several functions fits
+            if (userFunctions.Count > 1)
+                return false;
+            
+            //if there is no functions - set variable with local name
+            if (userFunctions.Count == 0)
+                return _state.CurrentSolver.SetVar(node.NodeNumber, localId);
+            
+
+            //Make fun variable:
+            _state.CurrentSolver.SetVarType(
+                originId,
+                userFunctions[0].GetHmFunctionalType());
+            return _state.CurrentSolver.SetVar(node.NodeNumber, originId);
         }
         
         
         private static FunSignature ToFunSignature(FunctionBase fun) 
             =>
-                new FunSignature( AdpterHelper.ConvertToHmType(fun.SpecifiedType), 
+                new FunSignature( AdpterHelper.ConvertToHmType(fun.ReturnType), 
                     fun.ArgTypes.Select(AdpterHelper.ConvertToHmType).ToArray());
 
         private static CallDef ToCallDef(FunCallSyntaxNode node, FunctionBase fun)
         {
             var ids = new[] {node.NodeNumber}.Concat(node.Args.Select(a => a.NodeNumber)).ToArray();
-            var types = new[] {fun.SpecifiedType}.Concat(fun.ArgTypes).Select(AdpterHelper.ConvertToHmType).ToArray();
+            var types = new[] {fun.ReturnType}.Concat(fun.ArgTypes).Select(AdpterHelper.ConvertToHmType).ToArray();
 
             var callDef = new CallDef(types, ids);
             return callDef;

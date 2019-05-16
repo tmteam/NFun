@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using NFun.HindleyMilner.Tyso;
+using NFun.Interpritation.Functions;
 using NFun.Parsing;
 using NFun.Types;
 
@@ -15,6 +16,14 @@ namespace NFun.HindleyMilner
 
         public static string GetFunAlias(this UserFunctionDefenitionSyntaxNode syntaxNode)
             => GetFunAlias(syntaxNode.Id, syntaxNode.Args.Count);
+
+        public static FType GetHmFunctionalType(this FunctionBase functionBase)
+        {
+            return FType.Fun(
+                functionBase.ReturnType.ConvertToHmType(),
+                functionBase.ArgTypes.Select(a => a.ConvertToHmType()).ToArray());
+        }
+        
         public static FType ConvertToHmType(this VarType origin)
         {
             switch (origin.BaseType)

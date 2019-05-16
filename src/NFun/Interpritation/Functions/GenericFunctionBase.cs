@@ -49,7 +49,7 @@ namespace NFun.Interpritation.Functions
             }     
             return new ConcreteGenericFunction(
                 functionBase: this, 
-                specifiedType:  VarType.SubstituteConcreteTypes(SpecifiedType, solvingParams), 
+                returnType:  VarType.SubstituteConcreteTypes(SpecifiedType, solvingParams), 
                 argTypes: concreteArgTypes);
         }
      
@@ -58,8 +58,8 @@ namespace NFun.Interpritation.Functions
         {
             private readonly GenericFunctionBase _functionBase;
 
-            public ConcreteGenericFunction(GenericFunctionBase functionBase,  VarType specifiedType, params VarType[] argTypes) 
-                : base(functionBase+"_"+ string.Join("->", argTypes)+"->"+specifiedType, specifiedType, argTypes)
+            public ConcreteGenericFunction(GenericFunctionBase functionBase,  VarType returnType, params VarType[] argTypes) 
+                : base(functionBase+"_"+ string.Join("->", argTypes)+"->"+returnType, returnType, argTypes)
             {
                 _functionBase = functionBase;
             }

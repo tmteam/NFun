@@ -7,7 +7,7 @@ namespace NFun.Interpritation.Functions
 {
     public class UserFunctionPrototype: FunctionBase
     {
-        public UserFunctionPrototype(string name, VarType specifiedType, VarType[] argTypes) : base(name,  specifiedType, argTypes)
+        public UserFunctionPrototype(string name, VarType returnType, VarType[] argTypes) : base(name,  returnType, argTypes)
         {
         }
 
@@ -16,7 +16,7 @@ namespace NFun.Interpritation.Functions
         {
             _function = function;
 
-            if (SpecifiedType != function.SpecifiedType)
+            if (ReturnType != function.ReturnType)
                 throw ErrorFactory.InvalidOutputType(function, interval);
         }
 

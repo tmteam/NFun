@@ -25,6 +25,6 @@ namespace NFun.Interpritation.Nodes
             return _fun.Calc(argValues);
         }
         public Interval Interval { get; }
-        public VarType Type => _fun.SpecifiedType;
+        public VarType Type => _fun.ReturnType;
     }
 }

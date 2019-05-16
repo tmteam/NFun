@@ -123,7 +123,7 @@ namespace Funny.Tests.UnitTests
             dic.Add(intFun);
             
             var fun = dic.GetOrNull(intFun.Name, VarType.Int32);
-            Assert.AreEqual(intFun.SpecifiedType, fun.SpecifiedType);
+            Assert.AreEqual(intFun.ReturnType, fun.ReturnType);
         }
         [Test]
         public void HasOverloadsWithGenerics_ConcreteNeedToBeCasted_GetOrNull_ReturnsGeneric()
@@ -134,7 +134,7 @@ namespace Funny.Tests.UnitTests
             dic.Add(genericFun);
             
             var fun = dic.GetOrNull(concreteFun.Name, VarType.Int32);
-            Assert.AreEqual(VarType.Text, fun.SpecifiedType);
+            Assert.AreEqual(VarType.Text, fun.ReturnType);
         }
         
         [Test]
@@ -146,7 +146,7 @@ namespace Funny.Tests.UnitTests
             dic.Add(genericFun);
             
             var fun = dic.GetOrNull(concreteFun.Name, VarType.Real);
-            Assert.AreEqual(VarType.Real, fun.SpecifiedType);
+            Assert.AreEqual(VarType.Real, fun.ReturnType);
         }
         
         [Test]
@@ -158,7 +158,7 @@ namespace Funny.Tests.UnitTests
             dic.Add(genericFun);
             var someConcreteType = VarType.Int32;
             var fun = dic.GetOrNull(concreteFun.Name, VarType.ArrayOf(someConcreteType));
-            Assert.AreEqual(someConcreteType, fun.SpecifiedType);
+            Assert.AreEqual(someConcreteType, fun.ReturnType);
         }
         [Test]
         public void HasOverloadsWithGenericArray_ConcreteNeedCovariantCast_GetOrNull_ReturnsGeneric()
@@ -169,7 +169,7 @@ namespace Funny.Tests.UnitTests
             dic.Add(genericFun);
             var someConcreteType = VarType.Int32;
             var fun = dic.GetOrNull(concreteFun.Name, VarType.ArrayOf(someConcreteType));
-            Assert.AreEqual(someConcreteType, fun.SpecifiedType);
+            Assert.AreEqual(someConcreteType, fun.ReturnType);
         }
         [Test]
         public void AddHasOverloadsForRealIntText_ArgsAreTextInt_ReturnsTextAnythingOverload()
@@ -258,8 +258,8 @@ namespace Funny.Tests.UnitTests
     }
     class FunMock : FunctionBase
     {
-        public FunMock(string name, VarType specifiedType, params VarType[] argTypes) 
-            : base(name, specifiedType, argTypes)
+        public FunMock(string name, VarType returnType, params VarType[] argTypes) 
+            : base(name, returnType, argTypes)
         {
         }
 

@@ -37,7 +37,7 @@ namespace NFun.HindleyMilner
                     else
                     {
                         _hmVisitorState.CurrentSolver.SetVarType(anonymName, typed.VarType.ConvertToHmType());
-                        type = _hmVisitorState.CurrentSolver.GetByVar(anonymName);
+                        type = _hmVisitorState.CurrentSolver.GetOrCreate(anonymName);
                     }
                 }
                 else if (syntaxNode is VariableSyntaxNode varNode)

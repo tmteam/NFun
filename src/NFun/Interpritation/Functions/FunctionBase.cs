@@ -9,13 +9,13 @@ namespace NFun.Interpritation.Functions
     {
         public string Name { get; }
         public VarType[] ArgTypes { get; }
-        protected FunctionBase(string name,  VarType specifiedType, params VarType[] argTypes)
+        protected FunctionBase(string name,  VarType returnType, params VarType[] argTypes)
         {
             Name = name;
             ArgTypes = argTypes;
-            SpecifiedType = specifiedType;
+            ReturnType = returnType;
         }
-        public VarType SpecifiedType { get; }
+        public VarType ReturnType { get; }
         public abstract object Calc(object[] args);
 
         public IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children, Interval interval)

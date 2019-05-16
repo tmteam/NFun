@@ -120,7 +120,7 @@ namespace NFun.HmTests
             _solver.SetVar(0,"a");
             
             _solver.SetVarType("4:x", FType.Int32);
-            var xType = _solver.GetByVar("4:x");
+            var xType = _solver.GetOrCreate("4:x");
             Assert.IsTrue(_solver.InitLambda(4, 3, new[] {xType}));
             
             _solver.SetVar(1, "4:x");

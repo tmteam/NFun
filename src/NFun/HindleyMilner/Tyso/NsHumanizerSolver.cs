@@ -146,7 +146,8 @@ namespace NFun.HindleyMilner.Tyso
                 _solver.SetVar(varId, variableName) && _solver.SetLca(varId, new[]{exprId});
         }
 
-        public SolvingNode GetByVar(string variableName) => _solver.GetOrCreate(variableName);
+        public bool HasVariable(string variableName) => _solver.GetOrNull(variableName) != null;
+        public SolvingNode GetOrCreate(string variableName) => _solver.GetOrCreate(variableName);
 
         public bool SetComparationOperator(int nodeId, int leftId, int rightId)
         {

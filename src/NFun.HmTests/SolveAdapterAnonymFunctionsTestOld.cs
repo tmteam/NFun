@@ -80,7 +80,7 @@ namespace NFun.HmTests
             // 3    021
             //out = x>input
             anonymFunSolver.SetVar(0, "x");
-            var closured = solver.GetByVar("input");
+            var closured = solver.GetOrCreate("input");
 
             anonymFunSolver.SetNode(1,closured);
             anonymFunSolver.SetArithmeticalOp(2, 0, 1);

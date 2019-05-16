@@ -10,7 +10,7 @@ namespace NFun.Interpritation.Nodes
         {
             _value = fun;
             Interval = interval;
-            Type = VarType.Fun(_value.SpecifiedType, _value.ArgTypes);
+            Type = VarType.Fun(_value.ReturnType, _value.ArgTypes);
         }
         public Interval Interval { get; }
         public VarType Type { get; }
