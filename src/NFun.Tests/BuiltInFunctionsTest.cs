@@ -147,11 +147,11 @@ namespace Funny.Tests
                      y = map([1,2,3],ii)",new[]{0.5,1.0,1.5})]
         [TestCase( @"isodd(x:int):bool = (x%2) == 0
                      y = map([1,2,3],isodd)",new[]{false, true,false})]
-        [TestCase( @"toS(t:text, x:int):text = t+x
+        [TestCase( @"toS(t:text, x:int):text = t.strConcat(x)
                      y = reduce([1,2,3], ':', toS)",":123")]
-        [TestCase( @"toS(t:text, x:int):text = t+x
+        [TestCase( @"toS(t:text, x:int):text = t.strConcat(x)
                      y = reduce([1], '', toS)","1")]
-        [TestCase( @"toS(t:text, x:int):text = t+x
+        [TestCase( @"toS(t:text, x:int):text = t.strConcat(x)
                      y = reduce([1][1:1], '', toS)","")]
         [TestCase( @"toR(r:real, x:int):real = r+x
                      y = reduce([1,2,3], 0.5, toR)",6.5)]

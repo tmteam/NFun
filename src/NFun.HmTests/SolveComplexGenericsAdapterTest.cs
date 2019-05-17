@@ -12,7 +12,7 @@ namespace NFun.HmTests
         {
             solver = new NsHumanizerSolver();
         }
-
+        
         [Test]
         public void GetArrElement_EquationSolved()
         {
@@ -89,8 +89,8 @@ namespace NFun.HmTests
         [Test]
         public void LimitArrayOperationsWithConcreteArgument_EquationSolved()
         {
-            // 3             0      2    1
-            // y(a,b,c) = [0,1,2].concat(b)
+            // 3         0      2    1
+            // y(b) = [0,1,2].concat(b)
             solver.SetConst( 0,FType.ArrayOf(FType.Int32));
             solver.SetVar(1, "b");
             solver.SetCall(new CallDef(FType.ArrayOf(FType.Generic(0)), new[] {2, 0, 1}));
@@ -101,6 +101,9 @@ namespace NFun.HmTests
             Assert.AreEqual(FType.ArrayOf(FType.Int32), solvation.GetVarType("y"));
             Assert.AreEqual(FType.ArrayOf(FType.Int32), solvation.GetVarType("b"));
         }
+        
+
+        
         [Test]
         public void LimitTwoArrayOperationsWithLastConcreteArgument_EquationSolved()
         {

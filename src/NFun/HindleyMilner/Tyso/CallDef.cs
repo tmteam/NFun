@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 
 namespace NFun.HindleyMilner.Tyso
@@ -7,15 +8,21 @@ namespace NFun.HindleyMilner.Tyso
         public CallDef(FType type2, int[] nodesId)
         {
             Types = Enumerable.Repeat(type2,nodesId.Length).ToArray();
-            this.nodesId = nodesId;
+            NodesId = nodesId;
         }
         public CallDef(FType[] types, int[] nodesId)
         {
             Types = types;
-            this.nodesId = nodesId;
+            NodesId = nodesId;
         }
         
         public FType[] Types { get; }
-        public int[] nodesId { get; }
+        public int[] NodesId { get; }
+        public override string ToString()
+        {
+            return
+                $"({string.Join(",", Types.Skip(1).Select(t => t.ToString()))}):{Types[0]} " +
+                $"{{{string.Join(",", NodesId.Select(n => n.ToString()))}}}";
+        }
     }
 }

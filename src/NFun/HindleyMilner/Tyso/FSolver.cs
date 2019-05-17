@@ -99,9 +99,9 @@ namespace NFun.HindleyMilner.Tyso
         {
             var generics = new GenericMap();
 
-            for (int i = 0; i < call.nodesId.Length; i++)
+            for (int i = 0; i < call.NodesId.Length; i++)
             {
-                if (!SetStrict(call.nodesId[i], call.Types[i], generics))
+                if (!SetStrict(call.NodesId[i], call.Types[i], generics))
                     return false;
             }
             _additionalNodes.AddRange(generics.Nodes);
@@ -112,13 +112,13 @@ namespace NFun.HindleyMilner.Tyso
         {
             var generics = new GenericMap();
             //Set strict to return type
-            if (!SetStrict(call.nodesId[0], call.Types[0], generics))
+            if (!SetStrict(call.NodesId[0], call.Types[0], generics))
                 return false;
             
             //Set limit to arg types
-            for (int i = 1; i < call.nodesId.Length; i++)
+            for (int i = 1; i < call.NodesId.Length; i++)
             {
-                if (!SetLimit(call.nodesId[i], call.Types[i], generics))
+                if (!SetLimit(call.NodesId[i], call.Types[i], generics))
                     return false;
             }
             //Save result generics

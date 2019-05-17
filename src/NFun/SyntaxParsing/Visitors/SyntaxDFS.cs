@@ -17,7 +17,12 @@ namespace NFun.SyntaxParsing.Visitors
                 if (!child.ComeOver(enterVisitor, exitVisitor))
                     return false;
 
-            return root.Visit(exitVisitor);
+            var res =  root.Visit(exitVisitor);
+            if (res == false)
+            {
+                
+            }
+            return res;
         }
         
         public static bool ComeOver(this ISyntaxNode root, ISyntaxNodeVisitor<VisitorResult> enterVisitor)
