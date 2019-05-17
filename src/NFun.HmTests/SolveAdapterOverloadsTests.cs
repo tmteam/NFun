@@ -144,8 +144,10 @@ namespace NFun.HmTests
             
             var res = solver.Solve();
             
-            Assert.IsFalse(res.IsSolved);
-        }
+            Assert.AreEqual(0,res.GenericsCount);
+            Assert.AreEqual(FType.Real, res.GetVarType("y"));
+            Assert.AreEqual(FType.Real, res.GetVarType("a"));
+            Assert.AreEqual(FType.Real, res.GetVarType("b"));        }
         
         [Test]
         public void SingleOveload_calculatesWell()

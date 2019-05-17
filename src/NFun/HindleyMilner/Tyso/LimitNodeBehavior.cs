@@ -15,7 +15,7 @@ namespace NFun.HindleyMilner.Tyso
         {
             isVisited = true;
             //_limit: any; newLimit: real
-            if (!Limit.CanBeConvertedTo(newLimit))
+            if (!Limit.CanBeSafelyConvertedTo(newLimit))
                 Limit = newLimit;
             return this;
         }
@@ -26,7 +26,7 @@ namespace NFun.HindleyMilner.Tyso
             //like: _limit: real; type: any
             if (Limit.IsPrimitive)
             {
-                if (Limit.CanBeConvertedTo(newType))
+                if (Limit.CanBeSafelyConvertedTo(newType))
                     return null;
             }
 
@@ -86,21 +86,25 @@ namespace NFun.HindleyMilner.Tyso
             return this;
         }
 
-        public FitResults Fits(FType candidateType, int maxDepth)
+        public ConvertResults CanBeConvertedTo(FType candidateType, int maxDepth)
         {
             if (candidateType.IsPrimitiveGeneric)
-                return FitResults.Converable;
+                return ConvertResults.Converable;
             if (candidateType.Equals(Limit))
-                return FitResults.Strict;
-            if(this.Limit.Name.Equals(NTypeName.SomeInteger) && candidateType.Name.Equals(NTypeName.Int32))
-                return FitResults.Strict;
+                return ConvertResults.Strict;
+            //special case: Int is most expected type for someInteger
+            if(Limit.Name.Equals(NTypeName.SomeInteger) && candidateType.Name.Equals(NTypeName.Int32))
+                return ConvertResults.Strict;
             
-            if (candidateType.CanBeConvertedTo(Limit))
-                //if (candidateType.IsPrimitive)
-                //    return FitResults.Strict;
-                //else    
-                    return FitResults.Converable;
-            return FitResults.Not;
+            //We can reduce current limit to candidateType
+            if (candidateType.CanBeSafelyConvertedTo(Limit))
+                return ConvertResults.Candidate;
+            
+            if (Limit.CanBeSafelyConvertedTo(candidateType))
+                return ConvertResults.Converable;
+            
+
+            return ConvertResults.Not;
         }
 
         public override string ToString() => ToSmartString();

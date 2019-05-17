@@ -44,6 +44,7 @@ namespace NFun.HindleyMilner.Tyso
         
         public static FType Any => new FType(NTypeName.Any);
 
+        
         public bool IsPrimitive => !Arguments.Any();
         public NTypeName Name { get; }
         public SolvingNode[] Arguments { get; }
@@ -61,17 +62,19 @@ namespace NFun.HindleyMilner.Tyso
             return n.ToString() == ToString();
         }
         
-        public bool CanBeConvertedTo(FType type2)
+        public bool CanBeSafelyConvertedTo(FType type2)
         {
             if (IsPrimitive)
-                return type2.Name.Start < Name.Start && type2.Name.Finish > Name.Finish;
+                return Name.CanBeConvertedTo(type2.Name);
             if (!type2.Name.Equals(Name))
                 return false;
             if (Arguments.Length != type2.Arguments.Length)
                 return false;
             for (int i = 0; i < Arguments.Length ; i++)
             {
-                if (!Arguments[i].MakeType(SolvingNode.MaxTypeDepth).CanBeConvertedTo(type2.Arguments[i].MakeType(SolvingNode.MaxTypeDepth)))
+                if (!Arguments[i].MakeType(SolvingNode.MaxTypeDepth)
+                    .CanBeSafelyConvertedTo(
+                            type2.Arguments[i].MakeType(SolvingNode.MaxTypeDepth)))
                     return false;
             }
             return true;

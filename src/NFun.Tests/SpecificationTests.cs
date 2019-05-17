@@ -50,13 +50,6 @@ else 123
 y = 1+ 15 *  if (x < 0 ) -1
 		  if (x > 0)  1
 		  else 0","y", -14)]
-        [TestCase(1.0, 
-@"
-y = 'value is ' +(
-if (x < 0) 'less than'
-if (x > 0)  'more than'
-else 'equals to'
-) + ' zero'","y", "value is more than zero")]
         
         [TestCase(4.0, @"
    y =  if (x ==1) 'one'
@@ -81,8 +74,6 @@ tostring(v:int):text =
 x:int
 y = tostring(x)","y", "not supported")]
        // [TestCase(1.0, "","y", false)]
-        [TestCase(0.43,"y = 'Welcome to fun.Version is '+ x+'.Next version is '+ (x+1)"
-            , "y", "Welcome to fun.Version is 0.43.Next version is 1.43")]
         [TestCase(2.5,"y = [1.0,2.0,3.0].filter(it => it<x).max()","y",2.0)]
         [TestCase(2.5,"x:real \r y = [1.0,2.0,3.0].filter(it => it<x).max()","y",2.0)]
         public void Real_SingleEquationWithSingleInput(object xVal, string expression, string outputName, object outputValue)
@@ -219,11 +210,11 @@ y4 = not(x1 and x2 or x3)
         [TestCase("y = 0.0", BaseVarType.Real)]
         [TestCase("y = false #bool", BaseVarType.Bool)]
         [TestCase("y = 'hi' #text", BaseVarType.Text)]
-        [TestCase("y = 'hi' + a #text", BaseVarType.Text)]
-        [TestCase("y = 'hi' + a #text", BaseVarType.Text)]
+        [TestCase("y = 'hi'.strConcat(a) #text", BaseVarType.Text)]
+        [TestCase("y = 'hi'.strConcat(a) #text", BaseVarType.Text)]
         [TestCase("y = [1,2,3]  #int[]", BaseVarType.ArrayOf)]
         [TestCase("y = ['1','2','3']  #text[]", BaseVarType.ArrayOf)]
-        [TestCase("y = 'hi '+ u #text", BaseVarType.Text)]
+        [TestCase("y = 'hi '.strConcat(u) #text", BaseVarType.Text)]
         public void Single_Equation_OutputTypeTest(string expression, BaseVarType primitiveType)
         {
             var runtime = FunBuilder.BuildDefault(expression);

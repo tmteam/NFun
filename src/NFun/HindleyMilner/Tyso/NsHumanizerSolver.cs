@@ -93,29 +93,72 @@ namespace NFun.HindleyMilner.Tyso
                 if (!_solver.SetStrict(returnNodeId, candidates[0].ReturnType))
                     return false;
             }
-            //if input type is same for all overloads and not generic => set it as limit to the type
             for (int argNum = 0; argNum < argIds.Length; argNum++)
             {
-                bool allEqual = true;
-                for (int i = 1; i < candidates.Length; i++)
-                {
-                    var type = candidates[i].ArgTypes[argNum];
-                    if (type.IsNotConcrete|| !type.Equals(candidates[i - 1].ArgTypes[argNum]))
-                    {
-                        allEqual = false;
-                        break;
-                    }
-                }
-
-                if (allEqual) {
-                    if (!_solver.SetNonGenericLimit(argIds[argNum], candidates[0].ArgTypes[argNum]))
-                        return false;
-                }
+                if (!TrySpecifyArgumentType(candidates, argIds, argNum)) return false;
             }
             //AllOther cases shoud calculates at the end of solving
             _solver.SetLazyOverloadsCall(new OverloadCall(candidates, returnNodeId, argIds));
             return true;
             
+        }
+
+        private bool TrySpecifyArgumentType(FunSignature[] candidates, int[] argIds, int argNum)
+        {
+            bool allEqual = true;
+            
+            for (int i = 1; i < candidates.Length; i++)
+            {
+                var type = candidates[i].ArgTypes[argNum];
+                if (type.IsNotConcrete || !type.Equals(candidates[i - 1].ArgTypes[argNum]))
+                {
+                    allEqual = false;
+                    break;
+                }
+            }
+            //if input type is same for all overloads and not generic => set it as limit to the type
+            if (allEqual)
+            {
+                if (!_solver.SetNonGenericLimit(argIds[argNum], candidates[0].ArgTypes[argNum]))
+                    return false;
+            }
+            
+            //try found base type of all type candidates. 
+            int minEnterId = Int32.MaxValue;
+            int maxEnterId =0;
+            FType winner = null;
+            bool hasBaseType = true;
+            foreach (var candidate in candidates)
+            {
+                var type = candidate.ArgTypes[argNum];
+                
+                if (!type.IsPrimitive || type.IsNotConcrete)
+                {
+                    hasBaseType = false;
+                    break;
+                }
+                if (type.Name.Start < minEnterId)
+                {
+                    minEnterId = type.Name.Start;
+                    winner = null;
+                }
+                if (type.Name.Finish > maxEnterId)
+                {
+                    maxEnterId = type.Name.Finish;
+                    winner = null;
+                }
+
+                if (type.Name.Start == minEnterId && type.Name.Finish == maxEnterId)
+                {
+                    winner = type;
+                }
+            }
+
+            if (hasBaseType && winner != null)
+            {
+                return _solver.SetNonGenericLimit(argIds[argNum], winner);
+            }
+            return true;
         }
 
         public bool InitLambda(int nodeId, int exprId, SolvingNode[] args)
@@ -177,10 +220,10 @@ namespace NFun.HindleyMilner.Tyso
         
         public bool SetArithmeticalOp(int nodeId, int leftId, int rightId)
         {
-            return 
-               _solver.SetLimit(leftId, NTypeName.Real)
-            && _solver.SetLimit(rightId, NTypeName.Real)
-            && _solver.SetLca(nodeId, new[] {leftId, rightId});
+            var leftSet = _solver.SetLimit(leftId, NTypeName.Real);
+            var rightSet = _solver.SetLimit(rightId, NTypeName.Real);
+            var lcaSet =  _solver.SetLca(nodeId, new[] {leftId, rightId});
+            return leftSet && rightSet && lcaSet;
         }
         
         

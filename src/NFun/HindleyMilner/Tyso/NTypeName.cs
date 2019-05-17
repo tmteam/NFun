@@ -48,6 +48,10 @@ namespace NFun.HindleyMilner.Tyso
         public int Finish { get; }
         public override string ToString() => Id;
 
+        public bool CanBeConvertedTo(NTypeName baseType)
+        {
+            return Start >= baseType.Start && Finish <= baseType.Finish;
+        } 
         public override bool Equals(object obj)
         {
             return (obj is NTypeName type) && type.Start == Start && type.Finish == Finish && type.Id== Id;

@@ -62,11 +62,11 @@ namespace Funny.Tests
         [TestCase("y=\"\"", BaseVarType.Text)]
         [TestCase("y=''", BaseVarType.Text)]
         [TestCase("y='hi world'", BaseVarType.Text)]
-        [TestCase("y='hi world'+5", BaseVarType.Text)]
-        [TestCase("y='hi world'+true", BaseVarType.Text)]
-        [TestCase("y='hi world'+true+5", BaseVarType.Text)]
-        [TestCase("y=''+true+5", BaseVarType.Text)]
-        [TestCase("y='hi'+'world'", BaseVarType.Text)]
+        [TestCase("y='hi world'.strConcat(5)", BaseVarType.Text)]
+        [TestCase("y='hi world'.strConcat(true)", BaseVarType.Text)]
+        [TestCase("y='hi world'.strConcat(true).strConcat(5)", BaseVarType.Text)]
+        [TestCase("y=''.strConcat(true).strConcat(5)", BaseVarType.Text)]
+        [TestCase("y='hi'.strConcat('world')", BaseVarType.Text)]
         [TestCase("y = 1<<2", BaseVarType.Int32)]
         [TestCase("y = 8>>2", BaseVarType.Int32)]
         [TestCase("y = 3|2", BaseVarType.Int32)]
@@ -105,8 +105,8 @@ namespace Funny.Tests
         [TestCase("y = 2.0\rz=y>1",BaseVarType.Real, BaseVarType.Bool)]
         [TestCase("z=2.0 \r y = z>1",BaseVarType.Bool, BaseVarType.Real)]
         [TestCase("y = 'hi'\rz=y",BaseVarType.Text, BaseVarType.Text)]
-        [TestCase("y = 'hi'\rz=y+ 'lala'",BaseVarType.Text, BaseVarType.Text)]
-        [TestCase("y = true\rz='lala'+y",BaseVarType.Bool, BaseVarType.Text)]
+        [TestCase("y = 'hi'\rz=y.strConcat('lala')",BaseVarType.Text, BaseVarType.Text)]
+        [TestCase("y = true\rz='lala'.strConcat(y)",BaseVarType.Bool, BaseVarType.Text)]
 
         public void TwinEquations_OutputTypesCalculateCorrect(string expr, BaseVarType ytype,BaseVarType ztype)
         {
@@ -151,7 +151,7 @@ namespace Funny.Tests
         [TestCase(new []{1.0,2.0},    "x:real[]\r y= x.concat(x)", new []{1.0,2.0,1.0,2.0})]        
         [TestCase(1.0, "x:real\r y= x+1", 2.0)]        
         [TestCase(1,    "x:int\r y= x+1", 2)]        
-        [TestCase("1", "x:text\r y= x+1", "11")]        
+        [TestCase("1", "y= x.strConcat(1)", "11")]        
         [TestCase(true, "x:bool\r y= x and true", true)]    
 
         public void SingleInputTypedEquation(object x,  string expr, object y)

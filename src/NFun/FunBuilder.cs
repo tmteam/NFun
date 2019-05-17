@@ -126,7 +126,7 @@ namespace NFun
                 new AddRealFunction("sum"),
                 new AddIntFunction("sum"),
                 new AddInt64Function("sum"), 
-                new AddTextFunction("str_concat"),
+                new AddTextFunction("strConcat"),
 
                 new SubstractIntFunction(), 
                 new SubstractRealFunction(), 

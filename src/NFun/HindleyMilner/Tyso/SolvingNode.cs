@@ -53,7 +53,7 @@ namespace NFun.HindleyMilner.Tyso
 
         public bool SetGeneric(SolvingNode generic) 
             => TrySet(() => Behavior.SetGeneric(generic));
-        public FType MakeType(int maxTypeDepth) => Behavior.MakeType(maxTypeDepth);
+        public FType MakeType(int maxTypeDepth = SolvingNode.MaxTypeDepth) => Behavior.MakeType(maxTypeDepth);
 
         public int Id { get; }
 
@@ -76,11 +76,11 @@ namespace NFun.HindleyMilner.Tyso
              return true;
         }
 
-        public FitResults Fits(FType candidateType, int maxDepth)
+        public ConvertResults CanBeConvertedTo(FType candidateType, int maxDepth = SolvingNode.MaxTypeDepth)
         {
             if(maxDepth<0)
                 throw new StackOverflowException("Fits too depth");
-            return Behavior.Fits(candidateType, maxDepth);
+            return Behavior.CanBeConvertedTo(candidateType, maxDepth);
         }
 
         public static SolvingNode CreateLca(params SolvingNode[] children)
@@ -89,12 +89,20 @@ namespace NFun.HindleyMilner.Tyso
             node.SetLca(children);
             return node;
         }
+
+        public static SolvingNode CreateLimit(FType int32)
+        {
+            var node = new SolvingNode();
+            node.SetLimit(int32);
+            return node;
+        }
     }
 
-    public enum FitResults
+    public enum ConvertResults
     {
         Not = 0, 
         Converable = 1,
-        Strict = 2,
+        Candidate = 2,
+        Strict = 3,
     }
 }

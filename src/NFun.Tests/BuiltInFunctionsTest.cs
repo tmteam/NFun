@@ -256,11 +256,11 @@ namespace Funny.Tests
         
         [TestCase("y = abs(x)",1.0,1.0)]
         [TestCase("y = abs(-x)",-1.0,1.0)]
-        [TestCase("y = sum(x,2)",1.0,3.0)]
-        [TestCase("y = sum(1,x)",2.0,3.0)]
+        [TestCase("y = sum(x,2)",1,3)]
+        [TestCase("y = sum(1,x)",2,3)]
         [TestCase("y = sum(sum(x,x),sum(x,x))",1.0,4.0)]
-        [TestCase("y = abs(x-4)",1.0,3.0)]
-        public void EquationWithPredefinedFunction(string expr, double arg, double expected)
+        [TestCase("y = abs(x-4)",1,3)]
+        public void EquationWithPredefinedFunction(string expr, object arg, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate(Var.New("x", arg))

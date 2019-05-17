@@ -67,8 +67,8 @@ namespace NFun.HindleyMilner.Tyso
             return this;
         }
 
-        public FitResults Fits(FType candidateType, int maxDepth) 
-            => Node.Fits(candidateType, maxDepth-1);
+        public ConvertResults CanBeConvertedTo(FType candidateType, int maxDepth) 
+            => Node.CanBeConvertedTo(candidateType, maxDepth-1);
 
         // public override string ToString() => ToSmartString(SolvingNode.MaxTypeDepth);
     }

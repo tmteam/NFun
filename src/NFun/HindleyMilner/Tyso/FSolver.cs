@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -186,14 +187,12 @@ namespace NFun.HindleyMilner.Tyso
             //Second: Try append overload calls
             foreach (var lazyOverload in _lazyOverloads)
             {
-                var bestCandidate = FindBestCandidate(lazyOverload, out var severalNonStrictFits);
-                if(severalNonStrictFits)
+                var bestCandidate = FunSignature.GetBestFitOrNull(lazyOverload.Candidates, GetOrCreate(lazyOverload.ReturnNodeId),
+                    lazyOverload.ArgIds.Select(GetOrCreate).ToArray());
+                if (bestCandidate == null) 
+                    throw new InvalidOperationException("Overload with several candidates");
                     //More than one candidate fits.
-                    return NsResult.NotSolvedResult();
-
-                if(bestCandidate==null)
-                    //no candidates fits
-                    return NsResult.NotSolvedResult();
+                    //return NsResult.NotSolvedResult();
                 
                 //Single function fits. That's good
                 SetLimArgCall(bestCandidate.ToCallDefenition(lazyOverload.ReturnNodeId, lazyOverload.ArgIds));
@@ -205,59 +204,6 @@ namespace NFun.HindleyMilner.Tyso
                 _additionalNodes,
                 _variables);
         }
-
-        private FunSignature FindBestCandidate(OverloadCall lazyOverload, out bool severalNonStrictFits)
-        {
-            FunSignature bestCandidate = null;
-            severalNonStrictFits = false;
-            int fitScore = 0;
-            foreach (var candidate in lazyOverload.Candidates)
-            {
-                FitResults candidateFit;
-                int candidateScore = 0;
-                var returnTypeFit = GetOrCreate(lazyOverload.ReturnNodeId)
-                    .Fits(candidate.ReturnType, SolvingNode.MaxTypeDepth);
-                if (returnTypeFit == FitResults.Not)
-                    continue;
-                candidateScore += (int) returnTypeFit;
-                candidateFit = returnTypeFit;
-
-                for (int argNum = 0; argNum < lazyOverload.ArgIds.Length; argNum++)
-                {
-                    var argFit = GetOrCreate(lazyOverload.ArgIds[argNum]).Fits(
-                        candidate.ArgTypes[argNum], SolvingNode.MaxTypeDepth);
-                    if (argFit == FitResults.Not)
-                        continue;
-                    if (argFit < candidateFit)
-                        candidateFit = argFit;
-                    candidateScore += (int) argFit;
-                }
-
-                if (candidateFit == FitResults.Strict)
-                {
-                    severalNonStrictFits = false;
-                    return candidate;
-                }
-
-                if (candidateFit == FitResults.Converable)
-                {
-                    if (bestCandidate != null && candidateScore == fitScore)
-                        severalNonStrictFits = true;
-                    else
-                    {
-                        if (candidateScore > fitScore)
-                        {
-                            fitScore = candidateScore;
-                            severalNonStrictFits = false;
-                            bestCandidate = candidate;
-                        }
-                    }
-                }
-            }
-
-            return bestCandidate;
-        }
-
 
         private bool Optimize()
         {

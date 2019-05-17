@@ -16,8 +16,7 @@ namespace NFun.HindleyMilner.Tyso
                 return this;
             if (_type.IsPrimitive)
             {
-                //ERROR: If limit is more strict than concrete
-                if (newLimit.CanBeConvertedTo(_type))
+                if (!_type.CanBeSafelyConvertedTo(newLimit))
                     return null;
             }
             else
@@ -88,22 +87,35 @@ namespace NFun.HindleyMilner.Tyso
             return this;
         }
 
-        public FitResults Fits(FType candidateType, int maxDepth)
+        public ConvertResults CanBeConvertedTo(FType candidateType, int maxDepth)
         {
             if (candidateType.IsPrimitiveGeneric)
-                return FitResults.Converable;
-            if (!candidateType.Name.Equals(_type.Name))
-                return FitResults.Not;
+                return ConvertResults.Converable;
             if (candidateType.IsPrimitive)
-                return FitResults.Strict;
-            if (_type.Arguments.Length!= candidateType.Arguments.Length)
-                return FitResults.Not;
+            {
+                if (candidateType.Name.Equals(_type.Name))
+                    return ConvertResults.Strict;
+                //special case: Int is most expected type for someInteger
+                if(_type.Name.Id== NTypeName.Int32Id && candidateType.Name.Id== NTypeName.SomeIntegerId)
+                    return ConvertResults.Candidate;
+                if (_type.CanBeSafelyConvertedTo(candidateType)) 
+                    return ConvertResults.Converable;
+                else
+                    return ConvertResults.Not;
+            }
+            
+            if (!candidateType.Name.Equals(_type.Name))
+                return ConvertResults.Not;
 
-            FitResults minimalResult = FitResults.Strict;
+            
+            if (_type.Arguments.Length!= candidateType.Arguments.Length)
+                return ConvertResults.Not;
+
+            ConvertResults minimalResult = ConvertResults.Strict;
             for (int i = 0; i < _type.Arguments.Length ; i++)
             {
                 var res =_type.Arguments[i]
-                    .Fits(candidateType.Arguments[i].MakeType(maxDepth-1), maxDepth-1);
+                    .CanBeConvertedTo(candidateType.Arguments[i].MakeType(maxDepth-1), maxDepth-1);
                 if (res < minimalResult)
                     minimalResult = res;
             }

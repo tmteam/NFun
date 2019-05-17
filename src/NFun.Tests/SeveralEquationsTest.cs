@@ -46,7 +46,7 @@ namespace Funny.Tests
         }
                     
         [TestCase("y = 1\r z=y", new string[0])]        
-        [TestCase("y = x\r z=y", new []{"x"})]
+        [TestCase("x:real \r y = x\r z=y", new []{"x"})]
         [TestCase("y = x/2\r z=2*y",new []{"x"})]
         [TestCase("y = x/2\r z=2*y+x",new []{"x"})]
         [TestCase("y = in1/2\r z=2*y+in2",new []{"in1","in2"})]
@@ -74,7 +74,7 @@ namespace Funny.Tests
         }
 
         
-        [TestCase(2, "y = x\r z=y",         2,2)]
+        [TestCase(2, "x:real\r y = x\r z=y",         2,2)]
         [TestCase(2, "y = x/2\r z=2*y",     1,2)]
         [TestCase(2, "y = x/2\r z=2*y+x",   1,4)]
         public void TwinDependentEquationsWithSingleVariable_CalculatesCorrect(double x, string expr,  double expectedY, double expectedZ)
@@ -100,7 +100,7 @@ namespace Funny.Tests
                     Var.New("o3", o3));
         }
         
-        [TestCase(2,"o1 = x\r o2=o1\r o3 = 0", 2.0, 2.0, 0)]
+        [TestCase(2,"x:real\r o1 = x\r o2=o1\r o3 = 0", 2.0, 2.0, 0)]
         [TestCase(2,"o1 = x/2\r o2 = o1+1\r o3=2*o1*o2",1.0, 2.0, 4.0)]
         [TestCase(2,"o1 = x/2\r o3 = x \ro2 = o3",1.0, 2.0, 2.0)]
         public void ThreeDependentEquationsWithSingleVariable_CalculatesCorrect(double x,string expr,  object o1, object o2, object o3)

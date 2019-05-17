@@ -13,7 +13,7 @@ namespace NFun.HindleyMilner
         private VarType MakeGeneric(GenericType type)
         {
             
-            return VarType.Real;
+            return VarType.Anything;
             
             //return VarType.Generic(((GenericType) type).GenericId);
         }

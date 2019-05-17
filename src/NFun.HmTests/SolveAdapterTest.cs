@@ -13,6 +13,15 @@ namespace NFun.HmTests
             solver = new NsHumanizerSolver();
         }
         [Test]
+
+        public void TextCannotBeUsedInArithmetical()
+        {
+            solver.SetConst(0, FType.Text);
+            solver.SetConst(1, FType.Real);
+            Assert.IsFalse( solver.SetArithmeticalOp(2, 0, 1));
+        }
+        
+        [Test]
         public void SimpleArithmeticalOp()
         {
             //3   0 2 1

@@ -227,7 +227,7 @@ namespace Funny.Tests
         }
      
         [TestCase("y = 1", new string[0])]        
-        [TestCase("y = x", new []{"x"})]
+        [TestCase("y = x*1.0", new []{"x"})]
         [TestCase("y = x/2",new []{"x"})]
         [TestCase("y = in1/2+ in2",new []{"in1","in2"})]
         [TestCase("y = in1/2 + (in2*in3)",new []{"in1","in2", "in3"})]
