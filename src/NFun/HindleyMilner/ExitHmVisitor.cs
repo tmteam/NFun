@@ -46,6 +46,10 @@ namespace NFun.HindleyMilner
             {
                 switch (node.Id)
                 {
+                    case CoreFunNames.Negate:
+                        return _state.CurrentSolver.SetNegateOp(
+                            node.NodeNumber, 
+                            node.Args[0].NodeNumber);
                     case CoreFunNames.Multiply:
                     case CoreFunNames.Add:
                     case CoreFunNames.Substract:

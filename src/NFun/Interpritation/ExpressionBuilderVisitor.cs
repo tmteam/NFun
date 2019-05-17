@@ -65,7 +65,7 @@ namespace NFun.Interpritation
             }
 
             var originVariables = localVariables.GetAllSources().Select(s=>s.Name).ToArray();
-            var expr = ExpressionBuilderVisitor.BuildExpression(node.Body, _functions, localVariables);
+            var expr = BuildExpression(node.Body, _functions, localVariables);
             
             //New variables are new closured
             var closured =  localVariables.GetAllUsages()

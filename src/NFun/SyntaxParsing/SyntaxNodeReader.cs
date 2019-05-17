@@ -129,10 +129,9 @@ namespace NFun.Parsing
                 if (nextNode == null)
                     throw ErrorFactory.UnaryArgumentIsMissing(_flow.Current);
                 
-                var negativeNode = SyntaxNodeFactory.Num("-1", start, start);
                 return SyntaxNodeFactory.OperatorFun(
-                    CoreFunNames.Multiply,
-                    new[]{negativeNode, nextNode}, start, nextNode.Interval.Finish);
+                    CoreFunNames.Negate,
+                    new[]{nextNode}, start, nextNode.Interval.Finish);
             }
 
             if (_flow.MoveIf(TokType.BitInverse))

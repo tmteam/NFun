@@ -172,8 +172,30 @@ namespace NFun.BuiltInFunctions
             return o.ToString();
         }
         
-    }            
-        
+    }
+
+    public class NegateOfInt32Function : FunctionBase
+    {
+        public NegateOfInt32Function()
+            : base(CoreFunNames.Negate, VarType.Int32, VarType.Int32){}
+        public override object Calc(object[] args) => - args.Get<int>(0);
+    }
+    
+    public class NegateOfInt64Function : FunctionBase
+    {
+        public NegateOfInt64Function()
+            : base(CoreFunNames.Negate, VarType.Int64, VarType.Int64){}
+        public override object Calc(object[] args) => - args.Get<long>(0);
+    }
+    
+    
+    public class NegateOfRealFunction : FunctionBase
+    {
+        public NegateOfRealFunction()
+            : base(CoreFunNames.Negate, VarType.Real, VarType.Real){}
+        public override object Calc(object[] args) => - args.Get<double>(0);
+    }
+    
     public class AbsOfRealFunction : FunctionBase
     {
         public AbsOfRealFunction() : base("abs", VarType.Real,VarType.Real){}

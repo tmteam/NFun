@@ -208,7 +208,12 @@ namespace NFun.HindleyMilner.Tyso
                 && _solver.SetLca(nodeId, new[] {leftId, rightId});
         }
         
-        
+        public bool SetNegateOp(int nodeId, int argNodeId)
+        {
+            return
+                   _solver.SetLimit(argNodeId, NTypeName.Real)
+                && _solver.Unite(nodeId, argNodeId);
+        }
         
         public bool SetBitShiftOperator(int nodeId, int leftId, int rightId)
         {
@@ -249,7 +254,7 @@ namespace NFun.HindleyMilner.Tyso
             var genericType = _solver.GetOrNull(nodes[0]);
             return _solver.SetStrict(arrayNode, FType.ArrayOf(genericType));
         }
-
+        
         public bool SetProcArrayInit(int nodeId, int fromId, int toId)
         {
             return _solver.SetLimArgCall(new CallDef(
@@ -280,6 +285,8 @@ namespace NFun.HindleyMilner.Tyso
             _solver.AddAdditionalType(res);
             return res;
         }
+
+        
     }
 
     public class OverloadCall
