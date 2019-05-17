@@ -20,23 +20,6 @@ namespace NFun.BuiltInFunctions
             return arr.Any(a => TypeHelper.AreEqual(a, val));
         }
     }
-    public class IsInMultipleGenericFunctionDefenition : GenericFunctionBase
-    {
-        public IsInMultipleGenericFunctionDefenition() : base(CoreFunNames.In, 
-            VarType.Bool,
-            VarType.ArrayOf(VarType.Generic(0)),
-            VarType.ArrayOf(VarType.Generic(0)))
-        {
-        }
-
-        public override object Calc(object[] args)
-        {
-            var arr1 = (IFunArray)args[0];
-            var arr2 = (IFunArray)args[1];
-            //Todo O(n^2)
-            return arr1.All(a=>arr2.Any(a2=>TypeHelper.AreEqual(a,a2)));
-        }
-    }
 
     public class SliceWithStepGenericFunctionDefenition : GenericFunctionBase
     {

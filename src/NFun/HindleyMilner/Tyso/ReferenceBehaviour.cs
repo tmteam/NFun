@@ -1,4 +1,5 @@
 using System;
+using NFun.ParseErrors;
 
 namespace NFun.HindleyMilner.Tyso
 {
@@ -18,7 +19,7 @@ namespace NFun.HindleyMilner.Tyso
         public FType MakeType(int maxTypeDepth)
         {
             if(maxTypeDepth<-1)
-                throw new InvalidOperationException("Recursive defenition");
+                throw FunParseException.ErrorStubToDo("Recursive defenition");
             return Node.Behavior.MakeType(maxTypeDepth - 1);
         }
 

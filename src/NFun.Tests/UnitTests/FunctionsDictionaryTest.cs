@@ -183,35 +183,7 @@ namespace Funny.Tests.UnitTests
             Assert.IsInstanceOf<AddTextFunction>(fun);
             
         }
-        [Test]
-        public void ContainsHasOverloads_ArgsAreAtomic_ReturnsAtomicOverload()
-        {
-            dic.Add(new IsInSingleGenericFunctionDefenition());
-            dic.Add(new IsInMultipleGenericFunctionDefenition());
-           
-            var fun = dic.GetOrNull(CoreFunNames.In,  VarType.Int32,VarType.ArrayOf(VarType.Int32));
-            Assert.IsNotNull(fun);
-            Assert.AreEqual(VarType.Int32, fun.ArgTypes[0]);
-        }
-        [Test]
-        public void ContainsHasOverloads_ArgsAreArray_ReturnsArrayOverload()
-        {
-            dic.Add(new IsInSingleGenericFunctionDefenition());
-            dic.Add(new IsInMultipleGenericFunctionDefenition());
-           
-            var fun = dic.GetOrNull(CoreFunNames.In,  VarType.ArrayOf(VarType.Int32),VarType.ArrayOf(VarType.Int32));
-            Assert.IsNotNull(fun);
-            Assert.AreEqual(VarType.ArrayOf(VarType.Int32), fun.ArgTypes[0]);
-        }
-        [Test]
-        public void ContainsHasOverloads_ArrayArgsAreInvalid_ReturnsNull()
-        {
-            dic.Add(new IsInSingleGenericFunctionDefenition());
-            dic.Add(new IsInMultipleGenericFunctionDefenition());
-           
-            var fun = dic.GetOrNull(CoreFunNames.In,  VarType.ArrayOf(VarType.Text),VarType.ArrayOf(VarType.Int32));
-            Assert.IsNull(fun);
-        }
+        
         [Test]
         public void ContainsWithoutOveloads_AtomicArgsAreInvalid_ReturnsNull()
         {

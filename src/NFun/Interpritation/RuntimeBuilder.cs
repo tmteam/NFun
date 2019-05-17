@@ -27,12 +27,12 @@ namespace NFun.Interpritation
 
             var algorithm = new HmAlgorithmAdapter(functionsDictionary);
             if(!algorithm.ComeOver(syntaxTree))
-                throw new InvalidOperationException("Types not solved");
+                FunParseException.ErrorStubToDo("Types not solved");
 
             //solve body
             var bodyTypeSolving = algorithm.Solve();
             if(!bodyTypeSolving.IsSolved)    
-                throw new InvalidOperationException("Types not solved");
+                FunParseException.ErrorStubToDo("Types not finaly solved");
 
             foreach (var syntaxNode in syntaxTree.Children)
             {
@@ -90,7 +90,7 @@ namespace NFun.Interpritation
 
             //ReplaceInputType
             if(newSource.Type != expression.Type)
-                throw new InvalidOperationException($"Equation types mismatch. Expected: {newSource.Type} but was: {expression.Type}");            
+                throw FunParseException.ErrorStubToDo($"Equation types mismatch. Expected: {newSource.Type} but was: {expression.Type}");            
             return new Equation(equation.Id, expression);
         }
 
@@ -166,6 +166,9 @@ namespace NFun.Interpritation
             var argTypes = new List<SolvingNode>();
             foreach (var argNode in node.Args)
             {
+                if (visitorState.HasAlias(argNode.Id))
+                    throw ErrorFactory.FunctionArgumentDuplicates(node, argNode);
+
                 var inputAlias = AdpterHelper.GetArgAlias(argNode.Id, node.GetFunAlias());
 
                 //make aliases for input variables
@@ -203,7 +206,10 @@ namespace NFun.Interpritation
             int i = 0;
             foreach (var userFunction in userFunctions)
             {
-                userFunctionsNames.Add(userFunction.Id + "(" + userFunction.Args.Count + ")", i);
+                var alias = userFunction.GetFunAlias();
+                if (userFunctionsNames.ContainsKey(alias))
+                    throw ErrorFactory.FunctionAlreadyExist(userFunction);
+                userFunctionsNames.Add(alias, i);
                 i++;
             }
 
@@ -220,7 +226,7 @@ namespace NFun.Interpritation
 
             var sortResults = GraphTools.SortCycledTopology(dependenciesGraph);
             if (sortResults.HasCycle)
-                throw new InvalidOperationException("Cycled functions found");
+                throw FunParseException.ErrorStubToDo("Cycled functions found");
 
             var functionSolveOrder = new UserFunctionDefenitionSyntaxNode[sortResults.NodeNames.Length];
             for (int k = 0; k < sortResults.NodeNames.Length; k++)

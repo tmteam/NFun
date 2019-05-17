@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NFun.ParseErrors;
 
 namespace NFun.HindleyMilner.Tyso
 {
@@ -190,9 +191,8 @@ namespace NFun.HindleyMilner.Tyso
                 var bestCandidate = FunSignature.GetBestFitOrNull(lazyOverload.Candidates, GetOrCreate(lazyOverload.ReturnNodeId),
                     lazyOverload.ArgIds.Select(GetOrCreate).ToArray());
                 if (bestCandidate == null) 
-                    throw new InvalidOperationException("Overload with several candidates");
                     //More than one candidate fits.
-                    //return NsResult.NotSolvedResult();
+                    throw FunParseException.ErrorStubToDo("Overload with several candidates");
                 
                 //Single function fits. That's good
                 SetLimArgCall(bestCandidate.ToCallDefenition(lazyOverload.ReturnNodeId, lazyOverload.ArgIds));

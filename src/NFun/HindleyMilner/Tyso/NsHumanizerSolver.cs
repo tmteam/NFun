@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using NFun.ParseErrors;
 
 namespace NFun.HindleyMilner.Tyso
 {
@@ -176,8 +177,8 @@ namespace NFun.HindleyMilner.Tyso
         public SolvingNode SetNewVar(string varName)
         {
             var genericType = new SolvingNode();
-            if(!_solver.SetVarType(varName, genericType))
-                throw new InvalidOperationException("var already declared");
+            if (!_solver.SetVarType(varName, genericType))
+                throw FunParseException.ErrorStubToDo("var already declared");
             return genericType;
         }
 

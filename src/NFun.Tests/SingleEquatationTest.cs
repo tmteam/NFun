@@ -114,7 +114,6 @@ namespace Funny.Tests
         }
         
 
-        [TestCase("y = x",2,2)]
         [TestCase("y = 2*x",3,6)]
         [TestCase("y = 4/x",2,2)]
         [TestCase("y = x/4",10,2.5)]
@@ -140,7 +139,7 @@ namespace Funny.Tests
             runtime.Calculate(Var.New("x",arg))
                 .AssertReturns(0.00001, Var.New("y", expected));
         }
-        [TestCase("x",2.0,2.0)]
+        [TestCase("x:real\r x",2.0,2.0)]
         [TestCase("x== 2.0",2.0,true)]
         [TestCase("x:real \rx*3",2.0,6.0)]
         [TestCase("x*3",2.0,6.0)]
@@ -242,7 +241,7 @@ namespace Funny.Tests
         [TestCase("1", "out", BaseVarType.Int32)]        
         [TestCase("1.0", "out", BaseVarType.Real)]        
         [TestCase("true", "out", BaseVarType.Bool)]        
-        [TestCase("z = x", "z", BaseVarType.Real)]
+        [TestCase("z = x", "z", BaseVarType.Any)]
         [TestCase("y = x/2","y", BaseVarType.Real)]
         [TestCase("x:bool \r z:bool \r y = x and z","y", BaseVarType.Bool)]
         public void OutputVarablesListIsCorrect(string expr, string output, BaseVarType type)

@@ -52,5 +52,10 @@ namespace NFun.HindleyMilner
         }
         public void AddVariableAliase(string originName, string anonymName) 
             => AnonymVariablesAliases.Add(originName,anonymName);
+
+        public bool HasAlias(string inputAlias)
+        {
+            return AnonymVariablesAliases.ContainsKey(inputAlias);
+        }
     }
 }

@@ -34,7 +34,7 @@ namespace Funny.Tests
         }
         
         [TestCase("y = 1\r z=2", new string[0])]        
-        [TestCase("y = x\r z=x", new []{"x"})]
+        [TestCase("x:real\r y = x\r z=x", new []{"x"})]
         [TestCase("y = x/2\r z=2*x",new []{"x"})]
         [TestCase("y = in1/2\r z=2+in2",new []{"in1","in2"})]
         [TestCase("y = in1/2 + in2\r z=2 + in2",new []{"in1","in2"})]
@@ -45,13 +45,13 @@ namespace Funny.Tests
             CollectionAssert.AreEquivalent(inputs, runtime.Inputs);
         }
                     
-        [TestCase("y = 1\r z=y", new string[0])]        
+        [TestCase("y = 1.0\r z=y", new string[0])]        
         [TestCase("x:real \r y = x\r z=y", new []{"x"})]
         [TestCase("y = x/2\r z=2*y",new []{"x"})]
         [TestCase("y = x/2\r z=2*y+x",new []{"x"})]
         [TestCase("y = in1/2\r z=2*y+in2",new []{"in1","in2"})]
         [TestCase("y = in1/2 + in2\r z=2*y + in2",new []{"in1","in2"})]
-        public void TwinDependentEquations_inputVarsListIsCorrect(string expr, string[] inputNames)
+        public void TwinDependentEquationsWithRealTypes_inputVarsListIsCorrect(string expr, string[] inputNames)
         {
             var runtime = FunBuilder.BuildDefault(expr);
             var inputs = inputNames.Select(i => new VarInfo(false, VarType.Real, i)).ToArray();
@@ -158,7 +158,5 @@ namespace Funny.Tests
         {
             Assert.Throws<FunParseException>(()=> FunBuilder.BuildDefault(expr));
         }
-       
-
     }
 }

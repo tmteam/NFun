@@ -44,6 +44,8 @@ namespace NFun.HindleyMilner
                 {
                     originName = varNode.Id;
                     anonymName = MakeAnonVariableName(node, originName);
+                    if (_hmVisitorState.CurrentSolver.HasVariable(anonymName))
+                        throw ErrorFactory.AnonymousFunctionArgumentDuplicates(varNode, node);
                     type = _hmVisitorState.CurrentSolver.SetNewVar(anonymName);
                 }
                 else 

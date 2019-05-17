@@ -67,33 +67,6 @@ namespace Funny.Tests
             runtime.Calculate().AssertReturns(0.00001, Var.New("y", expected));
         }
 
-        
-
-        
-        [Test]
-        public void SingleOverloadEquatation()
-        {
-            var text = @"
-                    mytostr(a:real):text    =  'real: '+a  
-                    mytostr(a:int):text     =  'int: '+a  
-                    mytostr(a:text):text    =  'text: '+a 
-                    mytostr(a:anything):text=  'any: '+a 
-                    mytostr(a:int[]):text   =  'int[]: '+a 
-            
-        r = mytostr(1.0)
-        i = mytostr(2)
-        t = mytostr('3')
-        arr = mytostr([1,2,3])    
-";
-            
-            var runtime = FunBuilder.BuildDefault(text);
-            runtime.Calculate()
-                .AssertReturns(Var.New("r", "real: 1"),
-                               Var.New("i", "int: 2"),
-                               Var.New("t", "text: 3"),
-                               Var.New("arr", "int[]: [1,2,3]"));
-        }
-        
         [TestCase(1,1)]
         [TestCase(2,1)]
         [TestCase(3,2)]
@@ -150,14 +123,15 @@ namespace Funny.Tests
         }
         
         [TestCase("y = raise(1)\r raise(x) = raise(x)")]
-        [TestCase("y = f(1)\r f(x) = g(x) \r g(x) = f(x)")]
-        [TestCase("y = f(1)\r f(x) = g(x) \r g(x) = l(x)\r l(x) = f(x)")]
+        
         public void StackOverflow_throws_FunStackOverflow(string text)
         {
             Assert.Throws<FunStackoverflowException>(
                 () => FunBuilder.BuildDefault(text).Calculate());
         }
-
+        
+        [TestCase("y = f(1)\r f(x) = g(x) \r g(x) = f(x)")]
+        [TestCase("y = f(1)\r f(x) = g(x) \r g(x) = l(x)\r l(x) = f(x)")]
         [TestCase("y(1)=1")]
         [TestCase("y(x,y=1")]
         [TestCase("y(x y)=1")]

@@ -70,7 +70,7 @@ namespace NFun
         internal static readonly GenericFunctionBase[] predefinedGenerics =
         {
             new IsInSingleGenericFunctionDefenition(), 
-            new IsInMultipleGenericFunctionDefenition(), 
+            //new IsInMultipleGenericFunctionDefenition(), 
             new ReiterateGenericFunctionDefenition(),
             new UniqueGenericFunctionDefenition(), 
             new UniteGenericFunctionDefenition(), 
