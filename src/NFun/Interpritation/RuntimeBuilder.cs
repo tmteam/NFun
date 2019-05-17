@@ -104,12 +104,10 @@ namespace NFun.Interpritation
             //solving each function
             var typeSolving = new HmAlgorithmAdapter(functionsDictionary, visitorInitState);
 
-            //visitorInitState.CurrentSolver.SetFunDefenition(funAlias, functionSyntaxNode.NodeNumber,
-            //    functionSyntaxNode.Body.NodeNumber);
-            // solve the types
-            var types = typeSolving.ApplyWithFunDef(functionSyntaxNode.Body, 
-                funAlias,functionSyntaxNode.NodeNumber, 
+            visitorInitState.CurrentSolver.SetFunDefenition(funAlias, functionSyntaxNode.NodeNumber,
                 functionSyntaxNode.Body.NodeNumber);
+            // solve the types
+            var types = typeSolving.Apply(functionSyntaxNode.Body);
             if (!types.IsSolved)
                 throw new FunParseException(-4, $"Function '{functionSyntaxNode.Id}' is not solved", 0, 0);
 

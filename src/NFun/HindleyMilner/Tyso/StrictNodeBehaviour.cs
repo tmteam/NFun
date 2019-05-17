@@ -47,9 +47,16 @@ namespace NFun.HindleyMilner.Tyso
                 return null;
             if (_type.Arguments.Length != newType.Arguments.Length)
                 return null;
-            for (int i = 0; i < _type.Arguments.Length ; i++) {
-                
-                if (!_type.Arguments[i].SetStrict(newType.Arguments[i].MakeType(SolvingNode.MaxTypeDepth)))
+            for (int i = 0; i < _type.Arguments.Length ; i++)
+            {
+                var thisArgument = _type.Arguments[i];
+                var newArgument = newType.Arguments[i];
+                if (newArgument.Behavior is GenericTypeBehaviour)
+                {
+                    if (!newArgument.SetStrict(thisArgument.MakeType()))
+                        return null;
+                }   
+                else if (!thisArgument.SetStrict(newArgument.MakeType()))
                     return null;
             }
             return this;

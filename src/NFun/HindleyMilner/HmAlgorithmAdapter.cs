@@ -23,19 +23,6 @@ namespace NFun.HindleyMilner
         public ISyntaxNodeVisitor<VisitorResult> EnterVisitor { get; } 
         public ISyntaxNodeVisitor<bool> ExitVisitor { get; }
 
-        public FunTypeSolving ApplyWithFunDef(ISyntaxNode tree, string funAlias, int defNodeId, int bodyId)
-        {
-            var res = tree.ComeOver(EnterVisitor, ExitVisitor);
-            if(!res)
-                return new FunTypeSolving(NsResult.NotSolvedResult());
-
-            if (!_solver.SetFunDefenition(funAlias, defNodeId, bodyId))
-                return new FunTypeSolving(NsResult.NotSolvedResult());
-            
-            var solving = _solver.Solve();
-            return new FunTypeSolving(solving);
-        }
-        
         public FunTypeSolving Apply(ISyntaxNode tree)
         {
             var res = tree.ComeOver(EnterVisitor, ExitVisitor);
