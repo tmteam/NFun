@@ -1,15 +1,12 @@
-using System.Collections.Generic;
 using NFun.HindleyMilner.Tyso;
 using NFun.Interpritation;
 using NFun.Parsing;
 using NFun.SyntaxParsing.Visitors;
-using NFun.Types;
 
 namespace NFun.HindleyMilner
 {
     public class HmAlgorithmAdapter
     {
-
         public HmAlgorithmAdapter(FunctionsDictionary dictionary, 
             HmVisitorState state = null)
         {
@@ -23,12 +20,10 @@ namespace NFun.HindleyMilner
         public ISyntaxNodeVisitor<VisitorResult> EnterVisitor { get; } 
         public ISyntaxNodeVisitor<bool> ExitVisitor { get; }
 
-        public FunTypeSolving Apply(ISyntaxNode tree)
+        public bool ComeOver(ISyntaxNode node) => node.ComeOver(EnterVisitor, ExitVisitor);
+
+        public FunTypeSolving Solve()
         {
-            var res = tree.ComeOver(EnterVisitor, ExitVisitor);
-            if(!res)
-                return new FunTypeSolving(NsResult.NotSolvedResult());
-            
             var solving = _solver.Solve();
             return new FunTypeSolving(solving);
         }

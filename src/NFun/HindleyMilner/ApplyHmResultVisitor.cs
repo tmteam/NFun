@@ -67,10 +67,10 @@ namespace NFun.HindleyMilner
             return VisitorResult.Continue;
         }
 
-        
+
         public override VisitorResult Visit(UserFunctionDefenitionSyntaxNode node)
         {
-            return VisitorResult.Skip;
+            return VisitorResult.Continue;
         }
 
     }

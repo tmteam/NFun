@@ -286,7 +286,13 @@ namespace NFun.HindleyMilner.Tyso
             return res;
         }
 
-        
+
+        public FType GetOrNull(string funAlias)
+        {
+            var type =  _solver.GetOrNull(funAlias);
+            return type?.MakeType();
+            
+        }
     }
 
     public class OverloadCall

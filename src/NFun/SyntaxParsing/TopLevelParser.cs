@@ -156,12 +156,10 @@ namespace NFun.Parsing
                     throw ErrorFactory.FunctionArgumentInBracketDefenition(start, headNode, headNodeChild, flow.Current);
             }
 
-            VarType outputType;
+            var outputType = VarType.Empty;
             if (flow.MoveIf(TokType.Colon, out _))
                 outputType = flow.ReadVarType();
-            else
-                outputType = VarType.Real;
-
+            
             flow.SkipNewLines();
             if (!flow.MoveIf(TokType.Def, out var def))
                 throw ErrorFactory.FunDefTokenIsMissed(id, arguments, flow.Current);  

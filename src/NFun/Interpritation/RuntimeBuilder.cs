@@ -24,12 +24,16 @@ namespace NFun.Interpritation
             //build user functions
             foreach (var functionSyntaxNode in functionSolveOrder)
                 BuildFunctionAndPutItToDictionary(functionSyntaxNode, functionsDictionary);
-            
-            //solve body
-            var bodyTypeSolving = new HmAlgorithmAdapter(functionsDictionary).Apply(syntaxTree);
-            if (!bodyTypeSolving.IsSolved)
+
+            var algorithm = new HmAlgorithmAdapter(functionsDictionary);
+            if(!algorithm.ComeOver(syntaxTree))
                 throw new InvalidOperationException("Types not solved");
-            
+
+            //solve body
+            var bodyTypeSolving = algorithm.Solve();
+            if(!bodyTypeSolving.IsSolved)    
+                throw new InvalidOperationException("Types not solved");
+
             foreach (var syntaxNode in syntaxTree.Children)
             {
                 //function nodes were solved above
@@ -66,17 +70,14 @@ namespace NFun.Interpritation
             }   
             return new FunRuntime(equations, variables);
         }
-        
 
         private static Equation BuildEquationAndPutItToVariables(EquationSyntaxNode equation,FunctionsDictionary functionsDictionary, VariableDictionary variables)
         {
             var expression = ExpressionBuilderVisitor.BuildExpression(equation.Expression, functionsDictionary, variables);
-            
-            
-            var newSource = new VariableSource(equation.Id, equation.OutputType, equation.Attributes)
-            {
+            var newSource = new VariableSource(equation.Id, equation.OutputType, equation.Attributes) {
                 IsOutput = true
             };
+            
             if (!variables.TryAdd(newSource))
             {
                 //some equation referenced the source before
@@ -93,7 +94,8 @@ namespace NFun.Interpritation
             return new Equation(equation.Id, expression);
         }
 
-        private static void BuildFunctionAndPutItToDictionary(UserFunctionDefenitionSyntaxNode functionSyntaxNode,
+        private static void BuildFunctionAndPutItToDictionary(
+            UserFunctionDefenitionSyntaxNode functionSyntaxNode,
             FunctionsDictionary functionsDictionary)
         {
             var funAlias = functionSyntaxNode.GetFunAlias();
@@ -103,11 +105,15 @@ namespace NFun.Interpritation
 
             //solving each function
             var typeSolving = new HmAlgorithmAdapter(functionsDictionary, visitorInitState);
-
+            
+            if(!typeSolving.ComeOver(functionSyntaxNode.Body))
+                throw new FunParseException(-4, $"Function '{functionSyntaxNode.Id}' is not solved", 0, 0);
+            
             visitorInitState.CurrentSolver.SetFunDefenition(funAlias, functionSyntaxNode.NodeNumber,
                 functionSyntaxNode.Body.NodeNumber);
+            
             // solve the types
-            var types = typeSolving.Apply(functionSyntaxNode.Body);
+            var types = typeSolving.Solve();
             if (!types.IsSolved)
                 throw new FunParseException(-4, $"Function '{functionSyntaxNode.Id}' is not solved", 0, 0);
 
@@ -153,9 +159,9 @@ namespace NFun.Interpritation
             var visitorState = new HmVisitorState(new NsHumanizerSolver());
             
             //Add user function as a functional variable
-
             //make outputType
-            var outputType =  visitorState.CreateTypeNode(node.SpecifiedType);
+            var outputType = visitorState.CreateTypeNode(node.ReturnType);
+            
             //create input variables
             var argTypes = new List<SolvingNode>();
             foreach (var argNode in node.Args)
@@ -221,8 +227,5 @@ namespace NFun.Interpritation
                 functionSolveOrder[k] = userFunctions[sortResults.NodeNames[k]];
             return functionSolveOrder;
         }
-
-        
-        
     }
 }

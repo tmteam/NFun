@@ -74,8 +74,21 @@ namespace NFun.HindleyMilner
                             node.Args[1].NodeNumber);
                 }
             }
-
             var argsCount = node.Args.Length;
+
+            //check for recursion call
+            var funAlias = AdpterHelper.GetFunAlias(node.Id, argsCount) ;
+            var funType = _state.CurrentSolver.GetOrNull(funAlias);
+            if (funType != null && funType.Name.Id == NTypeName.FunId 
+                                && funType.Arguments.Length-1 == node.Args.Length)
+            {
+                //Recursive function call. We don't know its signature yet. That's why we set "functional variable",
+                //instead of usual function call
+                var res =  _state.CurrentSolver.SetInvoke(node.NodeNumber, funAlias,
+                    node.Args.Select(a => a.NodeNumber).ToArray());
+                return res;
+            }
+            
 
             var candidates = _dictionary.GetNonGeneric(node.Id).Where(n=>n.ArgTypes.Length == argsCount).ToList();
 

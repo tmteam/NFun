@@ -66,6 +66,10 @@ namespace Funny.Tests
             var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate().AssertReturns(0.00001, Var.New("y", expected));
         }
+
+        
+
+        
         [Test]
         public void SingleOverloadEquatation()
         {

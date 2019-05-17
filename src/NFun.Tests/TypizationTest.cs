@@ -176,5 +176,18 @@ namespace Funny.Tests
                res.AssertReturns(Var.New("y", expected));
             Assert.AreEqual(baseVarType, res.Get("y").Type.BaseType);
         }
+        [TestCase("y(x) = y(x)")]
+        [TestCase("y(x):int = y(x)")]
+        [TestCase("y(x:int) = y(x)")]
+        [TestCase("y(x:int):int = y(x)")]
+        [TestCase("y(x) = y(x)+1")]
+        [TestCase("y(x:int) = y(x)+1")]
+        [TestCase("y(x) = y(x-1)+y(x-2)")]
+        [TestCase("fib(x) = if(x<3) 1 else fib(x-1)+fib(x-2)")]
+        public void RecFunction_TypeSolved(string expr)
+        {
+            Assert.DoesNotThrow(()=> FunBuilder.BuildDefault(expr));
+            
+        }
     }
 }

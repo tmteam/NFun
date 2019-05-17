@@ -9,18 +9,17 @@ namespace NFun.Parsing
     {
         public VarType OutputType { get; set; }
         public int NodeNumber { get; set; }
-
-        public VarType SpecifiedType;
-        public FunCallSyntaxNode Head;
+        public VarType ReturnType { get; }
+        public FunCallSyntaxNode Head { get; }
 
         public UserFunctionDefenitionSyntaxNode(IList<TypedVarDefSyntaxNode> arguments, 
             FunCallSyntaxNode headNode, 
             ISyntaxNode expression, 
-            VarType specifiedType)
+            VarType returnType)
         {
             Args = arguments;
             Head = headNode;
-            SpecifiedType = specifiedType;
+            ReturnType = returnType;
             Body = expression;
         }
 
@@ -32,18 +31,12 @@ namespace NFun.Parsing
         public Interval Interval { get; set; }
         public T Visit<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
 
-        public IEnumerable<ISyntaxNode> Children
-        {
-            get
-            {
+        public IEnumerable<ISyntaxNode> Children {
+            get {
                 foreach (var typedVarDefSyntaxNode in Args)
-                {
                     yield return typedVarDefSyntaxNode;
-                }
-
                 yield return Body;
             }
         }
-
     }
 }
