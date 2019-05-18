@@ -147,7 +147,7 @@ namespace NFun.SyntaxParsing
                 if (headNodeChild is TypedVarDefSyntaxNode varDef)
                     arguments.Add(varDef);
                 else if(headNodeChild is VariableSyntaxNode varSyntax)
-                    arguments.Add(new TypedVarDefSyntaxNode(varSyntax.Id, VarType.Real, headNodeChild.Interval));
+                    arguments.Add(new TypedVarDefSyntaxNode(varSyntax.Id, headNodeChild.OutputType, headNodeChild.Interval));
                 else    
                     throw ErrorFactory.WrongFunctionArgumentDefenition(start, headNode, headNodeChild, flow.Current);
               

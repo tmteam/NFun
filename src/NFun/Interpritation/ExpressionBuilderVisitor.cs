@@ -220,7 +220,7 @@ namespace NFun.Interpritation
         private FunArgumentExpressionNode ConvertToArgumentNodeOrThrow(ISyntaxNode node)
         {
             if(node is VariableSyntaxNode varNode)
-                return new FunArgumentExpressionNode(varNode.Id, VarType.Real, node.Interval);
+                return new FunArgumentExpressionNode(varNode.Id, node.OutputType, node.Interval);
             if(node is TypedVarDefSyntaxNode typeVarNode)
                 return new FunArgumentExpressionNode(typeVarNode.Id, typeVarNode.VarType, node.Interval);
             

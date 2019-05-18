@@ -230,6 +230,8 @@ namespace NFun.BuiltInFunctions
             return res; 
         }
     }
+   
+    
     public class ReduceWithDefaultsGenericFunctionDefenition : GenericFunctionBase
     {
         public ReduceWithDefaultsGenericFunctionDefenition() : base("reduce", 
