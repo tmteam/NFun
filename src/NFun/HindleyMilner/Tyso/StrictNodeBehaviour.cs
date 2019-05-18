@@ -126,9 +126,6 @@ namespace NFun.HindleyMilner.Tyso
             return minimalResult;
         }
 
-        public override string ToString()
-        {
-            return $"{_type}";
-        }
+        public override string ToString() => $"{_type}";
     }
 }

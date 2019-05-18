@@ -26,7 +26,9 @@ namespace NFun.HindleyMilner.Tyso
             //like: _limit: real; type: any
             if (Limit.IsPrimitive)
             {
-                if (Limit.CanBeSafelyConvertedTo(newType))
+                //Downcast
+                if (!Limit.Name.Equals(newType.Name)
+                    &&  Limit.CanBeSafelyConvertedTo(newType))
                     return null;
             }
 
