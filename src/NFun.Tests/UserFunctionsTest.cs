@@ -74,6 +74,45 @@ namespace Funny.Tests
         [TestCase(5,5)]
         [TestCase(6,8)]
         [TestCase(7,13)]
+        public void ClassicRecFibonachi_specifyOutputType(int x, int y)
+        {
+            string text =
+                @"fibrec(n:int, iter, p1,p2):int =
+                          if (n >iter) fibrec(n, iter+1, p1+p2, p1)
+                          else p1+p2  
+                    
+                   fib(n) = if (n<3) 1 else fibrec(n-1,2,1,1)
+                   y = fib(x)";
+            var runtime = FunBuilder.BuildDefault(text);
+            runtime.Calculate(Var.New("x",x)).AssertReturns(0.00001, Var.New("y", y));    
+        }
+        
+        [TestCase(1,1)]
+        [TestCase(2,1)]
+        [TestCase(3,2)]
+        [TestCase(4,3)]
+        [TestCase(5,5)]
+        [TestCase(6,8)]
+        [TestCase(7,13)]
+        public void ClassicRecFibonachi_specifyNType(double x, double y)
+        {
+            string text =
+                @"fibrec(n:int, iter, p1,p2) =
+                          if (n >iter) fibrec(n, iter+1, p1+p2, p1)
+                          else p1+p2  
+                    
+                   fib(n) = if (n<3) 1 else fibrec(n-1,2,1,1)
+                   y = fib(x)";
+            var runtime = FunBuilder.BuildDefault(text);
+            runtime.Calculate(Var.New("x",x)).AssertReturns(0.00001, Var.New("y", y));    
+        }
+        [TestCase(1,1)]
+        [TestCase(2,1)]
+        [TestCase(3,2)]
+        [TestCase(4,3)]
+        [TestCase(5,5)]
+        [TestCase(6,8)]
+        [TestCase(7,13)]
         [TestCase(8,21)]
         [TestCase(9,34)]
         public void ClassicRecFibonachi(double x, double y)

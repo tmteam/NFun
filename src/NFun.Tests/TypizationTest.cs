@@ -73,13 +73,72 @@ namespace Funny.Tests
         [TestCase("y = 3^2", BaseVarType.Int32)]
         [TestCase("y = 4&2", BaseVarType.Int32)]
 
-        public void SingleEquation_OutputTypeCalculatesCorrect(string expr, BaseVarType type)
+        [TestCase(  
+        @"fibrec(n, iter, p1,p2) =
+                          if (n >iter) 
+                                fibrec(n, iter+1, p1+p2, p1)
+                          else 
+                                p1+p2  
+          fib(n) = if (n<3) 1 else fibrec(n-1,2,1,1)
+                   
+          y = fib(1)",BaseVarType.Real)]
+        [TestCase(  
+            @"fibrec(n:int, iter, p1,p2) =
+                          if (n >iter) fibrec(n, iter+1, p1+p2, p1)
+                          else p1+p2  
+                    
+                   fib(n) = if (n<3) 1 else fibrec(n-1,2,1,1)
+                   y = fib(1)",BaseVarType.Real)]
+        [TestCase(  
+            @"fibrec(n, iter, p1,p2):int =
+                          if (n >iter) fibrec(n, iter+1, p1+p2, p1)
+                          else p1+p2  
+                    
+                   fib(n) = if (n<3) 1 else fibrec(n-1,2,1,1)
+                   y = fib(1)",BaseVarType.Int32)]
+       
+      
+        public void SingleEquation_Runtime_OutputTypeCalculatesCorrect(string expr, BaseVarType type)
         {
             
             var runtime = FunBuilder.BuildDefault(expr);
             var res = runtime.Calculate();
             Assert.AreEqual(1, res.Results.Length);
             Assert.AreEqual(VarType.PrimitiveOf(type), res.Results.First().Type);
+        }
+
+        [TestCase(  
+            @"someRec(n, iter, p1,p2) =
+                          if (n >iter) 
+                                someRec(n, iter+1, p1+p2, p1)
+                          else 
+                                p1+p2  
+          y = someRec(9,2,1,1)",BaseVarType.Real)]
+        
+        [TestCase(  
+            @"someRec2(n, iter) =
+                          if (n >iter) 
+                                someRec2(n, iter+1)
+                          else 
+                                1
+          y = someRec2(9,2)",BaseVarType.Real)]
+        [TestCase(  
+            @"someRec3(n, iter) = someRec3(n, iter+1).strConcat(n >iter)
+          y = someRec3(9,2)",BaseVarType.Text)]
+        
+        public void SingleEquations_Parsing_OutputTypesCalculateCorrect(string expr, BaseVarType type)
+        {
+            var runtime = FunBuilder.BuildDefault(expr);
+            Assert.AreEqual(type, runtime.Outputs.Single().Type);
+        }
+        [TestCase( "f(n, iter) = f(n, iter+1).strConcat(n >iter)")]
+        [TestCase( "f1(n, iter) = f1(n+1, iter).strConcat(n >iter)")]
+        [TestCase( "f2(n, iter) = n > iter and f2(n,iter)")]
+        [TestCase( "f3(n, iter) = n > iter and f3(n,iter+1)")]
+        [TestCase( "f4(n, iter) = f4(n,iter) and (n > iter)")]
+        public void EquationTypes_SolvesSomehow(string expr)
+        {
+            Assert.DoesNotThrow(()=>FunBuilder.BuildDefault(expr));
         }
         
         [TestCase("y = 1\rz=2",BaseVarType.Int32, BaseVarType.Int32)]
@@ -108,7 +167,7 @@ namespace Funny.Tests
         [TestCase("y = 'hi'\rz=y.strConcat('lala')",BaseVarType.Text, BaseVarType.Text)]
         [TestCase("y = true\rz='lala'.strConcat(y)",BaseVarType.Bool, BaseVarType.Text)]
 
-        public void TwinEquations_OutputTypesCalculateCorrect(string expr, BaseVarType ytype,BaseVarType ztype)
+        public void TwinEquations_Runtime_OutputTypesCalculateCorrect(string expr, BaseVarType ytype,BaseVarType ztype)
         {
             var runtime = FunBuilder.BuildDefault(expr);
             var res = runtime.Calculate();
