@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using NFun.Parsing;
+using NFun.SyntaxParsing;
+using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
 
@@ -103,7 +104,7 @@ namespace NFun.ParseErrors
         }
         
         public static ExprListError GetExpressionListError(
-            int openBracketTokenPos, TokenFlow flow, TokType openBrack, TokType closeBrack)
+            int openBracketTokenPos, TokFlow flow, TokType openBrack, TokType closeBrack)
         {
             flow.Move(openBracketTokenPos);
             var obrStart = flow.Current.Start;
@@ -159,7 +160,7 @@ namespace NFun.ParseErrors
             return SpecifyArrayInitError(list, flow, openBrack, closeBrack);
         }
         private static ExprListError SpecifyArrayInitError(
-            IList<ISyntaxNode> arguments, TokenFlow flow, TokType openBrack, TokType closeBrack)
+            IList<ISyntaxNode> arguments, TokFlow flow, TokType openBrack, TokType closeBrack)
         {
             var firstToken = flow.Current;
             int lastArgPosition = arguments.LastOrDefault()?.Interval.Finish ?? flow.Position;

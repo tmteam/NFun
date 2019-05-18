@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using NFun.ParseErrors;
-using NFun.Parsing;
 using NFun.Types;
 
 namespace NFun.Tokenization
@@ -49,7 +48,7 @@ namespace NFun.Tokenization
             }
             throw ErrorFactory.TypeExpectedButWas(token);
         }
-        public static VarType ReadVarType(this TokenFlow flow)
+        public static VarType ReadVarType(this TokFlow flow)
         {
             var cur = flow.Current;
             var readType = ToVarType(cur);
@@ -65,7 +64,7 @@ namespace NFun.Tokenization
             return readType;
         }
         
-        public static bool MoveIf(this TokenFlow flow, TokType tokType)
+        public static bool MoveIf(this TokFlow flow, TokType tokType)
         {
             if (flow.IsCurrent(tokType))
             {
@@ -74,7 +73,7 @@ namespace NFun.Tokenization
             }
             return false;
         }
-        public static bool MoveIf(this TokenFlow flow, TokType tokType, out Tok tok)
+        public static bool MoveIf(this TokFlow flow, TokType tokType, out Tok tok)
         {
             if (flow.IsCurrent(tokType))
             {
@@ -87,7 +86,7 @@ namespace NFun.Tokenization
             return false;
         }
         
-        public static Tok MoveIfOrThrow(this TokenFlow flow, TokType tokType)
+        public static Tok MoveIfOrThrow(this TokFlow flow, TokType tokType)
         {
             var cur = flow.Current;
             if (cur == null)

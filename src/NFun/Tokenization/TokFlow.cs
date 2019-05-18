@@ -3,11 +3,11 @@ using System.Linq;
 
 namespace NFun.Tokenization
 {
-    public class TokenFlow
+    public class TokFlow
     {
         private readonly Tok[] _tokens;
 
-        public TokenFlow(IEnumerable<Tok> tokens)
+        public TokFlow(IEnumerable<Tok> tokens)
         {
             _tokens = tokens.ToArray();
         }
@@ -27,28 +27,6 @@ namespace NFun.Tokenization
                 results.Add(current); 
             }
             return results.ToArray();
-        }
-        public Tok SearchNext(params TokType[] types)
-        {
-            for (int i = _currentPos; i < _tokens.Length; i++)
-            {
-                if (types.Contains(_tokens[i].Type))
-                    return _tokens[i];
-            }
-            if (types.Contains(TokType.Eof))
-                return Tok.New(TokType.Eof, _tokens.Length - 1, _tokens.Length - 1);
-            return null;
-        }
-        public Tok SearchNext(TokType type)
-        {
-            if (IsDone)
-                return null;
-            for (int i = _currentPos; i < _tokens.Length; i++)
-            {
-                if (_tokens[i].Is(type))
-                    return _tokens[i];
-            }
-            return null;
         }
 
         public int CurrentTokenPosition => _currentPos;

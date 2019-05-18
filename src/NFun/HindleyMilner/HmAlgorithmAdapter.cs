@@ -1,6 +1,6 @@
 using NFun.HindleyMilner.Tyso;
 using NFun.Interpritation;
-using NFun.Parsing;
+using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.Visitors;
 
 namespace NFun.HindleyMilner

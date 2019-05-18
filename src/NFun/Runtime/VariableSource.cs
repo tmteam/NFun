@@ -1,5 +1,6 @@
 using System;
-using NFun.Parsing;
+using NFun.SyntaxParsing;
+using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Types;
 
 namespace NFun.Runtime

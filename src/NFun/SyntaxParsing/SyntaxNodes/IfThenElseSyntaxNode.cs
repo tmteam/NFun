@@ -4,17 +4,17 @@ using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
 using NFun.Types;
 
-namespace NFun.Parsing
+namespace NFun.SyntaxParsing.SyntaxNodes
 {
     public class IfThenElseSyntaxNode : ISyntaxNode
     {
         public VarType OutputType { get; set; }
         public int NodeNumber { get; set; }
 
-        public IfThenSyntaxNode[] Ifs { get; }
+        public IfCaseSyntaxNode[] Ifs { get; }
         public ISyntaxNode ElseExpr { get; }
 
-        public IfThenElseSyntaxNode(IList<IfThenSyntaxNode> ifs, ISyntaxNode elseExpr, Interval interval)
+        public IfThenElseSyntaxNode(IList<IfCaseSyntaxNode> ifs, ISyntaxNode elseExpr, Interval interval)
         {
             Ifs = ifs.ToArray();
             ElseExpr = elseExpr;

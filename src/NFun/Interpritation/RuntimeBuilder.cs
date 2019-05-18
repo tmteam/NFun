@@ -5,8 +5,9 @@ using NFun.HindleyMilner;
 using NFun.HindleyMilner.Tyso;
 using NFun.Interpritation.Functions;
 using NFun.ParseErrors;
-using NFun.Parsing;
 using NFun.Runtime;
+using NFun.SyntaxParsing;
+using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Types;
 

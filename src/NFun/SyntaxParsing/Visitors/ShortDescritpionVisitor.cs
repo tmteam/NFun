@@ -1,5 +1,5 @@
 using System.Linq;
-using NFun.Parsing;
+using NFun.SyntaxParsing.SyntaxNodes;
 
 namespace NFun.SyntaxParsing.Visitors
 {
@@ -11,7 +11,7 @@ namespace NFun.SyntaxParsing.Visitors
         public string Visit(EquationSyntaxNode node) => $"{node.Id} = ... ";
         public string Visit(FunCallSyntaxNode node) => $"{node.Id}(...)";
         public string Visit(IfThenElseSyntaxNode node) => "if (...) ... else ...";
-        public string Visit(IfThenSyntaxNode node) => "if (...) ...";
+        public string Visit(IfCaseSyntaxNode node) => "if (...) ...";
         public string Visit(ListOfExpressionsSyntaxNode node)
         {
             var strings = node.Expressions.Select(e => e.Visit(this));

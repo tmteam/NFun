@@ -1,8 +1,9 @@
 using System.Collections.Generic;
+using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
 using NFun.Types;
 
-namespace NFun.Parsing
+namespace NFun.SyntaxParsing
 {
     public static class SyntaxNodeFactory
     {
@@ -10,11 +11,11 @@ namespace NFun.Parsing
 
         public static ISyntaxNode AnonymFun(ISyntaxNode defenition, ISyntaxNode body)
             => new AnonymCallSyntaxNode(defenition, body, Interval.Unite(defenition.Interval, body.Interval));
-        public static ISyntaxNode IfElse(IList<IfThenSyntaxNode> ifThenNodes, ISyntaxNode elseResult, int start, int end) 
+        public static ISyntaxNode IfElse(IList<IfCaseSyntaxNode> ifThenNodes, ISyntaxNode elseResult, int start, int end) 
             => new IfThenElseSyntaxNode(ifThenNodes, elseResult, Interval.New(start, end));
         
-        public static IfThenSyntaxNode IfThen(ISyntaxNode condition, ISyntaxNode expression, int start, int end)
-            => new IfThenSyntaxNode(condition,expression,Interval.New(start, end));
+        public static IfCaseSyntaxNode IfThen(ISyntaxNode condition, ISyntaxNode expression, int start, int end)
+            => new IfCaseSyntaxNode(condition,expression,Interval.New(start, end));
         
         public static ISyntaxNode Var(Tok token) => new VariableSyntaxNode(token.Value, token.Interval); 
         

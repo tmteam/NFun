@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using NFun.Parsing;
+using NFun.SyntaxParsing.SyntaxNodes;
 
 namespace NFun.SyntaxParsing.Visitors
 {

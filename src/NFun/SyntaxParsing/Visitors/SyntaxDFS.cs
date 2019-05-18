@@ -1,5 +1,3 @@
-using NFun.Parsing;
-
 namespace NFun.SyntaxParsing.Visitors
 {
     public static class SyntaxDFS

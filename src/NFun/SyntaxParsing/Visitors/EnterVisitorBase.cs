@@ -1,4 +1,4 @@
-using NFun.Parsing;
+using NFun.SyntaxParsing.SyntaxNodes;
 
 namespace NFun.SyntaxParsing.Visitors
 {
@@ -12,7 +12,7 @@ namespace NFun.SyntaxParsing.Visitors
         public virtual VisitorResult Visit(EquationSyntaxNode node)=> DefaultVisit(node);
         public virtual VisitorResult Visit(FunCallSyntaxNode node)=> DefaultVisit(node);
         public virtual VisitorResult Visit(IfThenElseSyntaxNode node)=> DefaultVisit(node);
-        public virtual VisitorResult Visit(IfThenSyntaxNode node)=> DefaultVisit(node);
+        public virtual VisitorResult Visit(IfCaseSyntaxNode node)=> DefaultVisit(node);
         public virtual VisitorResult Visit(ListOfExpressionsSyntaxNode node)=> DefaultVisit(node);
         public virtual VisitorResult Visit(NumberSyntaxNode node)=> DefaultVisit(node);
         public virtual VisitorResult Visit(ProcArrayInit node)=> DefaultVisit(node);

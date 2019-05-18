@@ -4,7 +4,7 @@ using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
 using NFun.Types;
 
-namespace NFun.Parsing
+namespace NFun.SyntaxParsing.SyntaxNodes
 {
     public class SyntaxTree: ISyntaxNode
     {

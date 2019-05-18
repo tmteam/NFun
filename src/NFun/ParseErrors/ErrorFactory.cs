@@ -5,8 +5,9 @@ using System.Text;
 using NFun.Interpritation;
 using NFun.Interpritation.Functions;
 using NFun.Interpritation.Nodes;
-using NFun.Parsing;
 using NFun.Runtime;
+using NFun.SyntaxParsing;
+using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
 using NFun.Types;
 
@@ -191,14 +192,14 @@ namespace NFun.ParseErrors
             => new FunParseException(292,$"Attribute value 'text' or 'number' or 'boolean' expected, but was '{next}'", 
                 next.Interval);
 
-        public static Exception AttributeCbrMissed(int start, TokenFlow flow)
+        public static Exception AttributeCbrMissed(int start, TokFlow flow)
             => new FunParseException(295,$"')' is missed but was '{flow.Current}'", 
                 start, flow.Current.Interval.Finish);
 
-        public static Exception NowNewLineAfterAttribute(int start, TokenFlow flow)
+        public static Exception NowNewLineAfterAttribute(int start, TokFlow flow)
             => new FunParseException(298,$"Attribute needs new line after it.", 
                     start, flow.Current.Interval.Finish);
-        public static Exception NowNewLineBeforeAttribute(TokenFlow flow)
+        public static Exception NowNewLineBeforeAttribute(TokFlow flow)
             => new FunParseException(299,$"Attribute has to start from new line.", 
                 flow.Current.Interval);
         #endregion
@@ -269,7 +270,7 @@ namespace NFun.ParseErrors
 
         #region  4xx - errors of lists
 
-         public static Exception ArrayInitializeByListError(int openBracketTokenPos, TokenFlow flow)
+         public static Exception ArrayInitializeByListError(int openBracketTokenPos, TokFlow flow)
         {
             var res = ErrorsHelper.GetExpressionListError(openBracketTokenPos, flow, TokType.ArrOBr, TokType.ArrCBr);
             var list = res.Parsed;
@@ -311,7 +312,7 @@ namespace NFun.ParseErrors
         }
 
         
-        public static Exception FunctionArgumentError(string id, int openBracketTokenPos, TokenFlow flow)
+        public static Exception FunctionArgumentError(string id, int openBracketTokenPos, TokFlow flow)
         {
             var res = ErrorsHelper.GetExpressionListError(openBracketTokenPos, flow, TokType.Obr, TokType.Cbr);
             var list = res.Parsed;
@@ -353,7 +354,7 @@ namespace NFun.ParseErrors
         }
 
         
-        public static Exception BracketExpressionListError(int openBracketTokenPos, TokenFlow flow)
+        public static Exception BracketExpressionListError(int openBracketTokenPos, TokFlow flow)
         {
             var res = ErrorsHelper.GetExpressionListError(openBracketTokenPos, flow, TokType.Obr, TokType.Cbr);
             var list = res.Parsed;

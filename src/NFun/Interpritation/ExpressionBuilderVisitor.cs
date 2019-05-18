@@ -5,8 +5,9 @@ using NFun.BuiltInFunctions;
 using NFun.Interpritation.Functions;
 using NFun.Interpritation.Nodes;
 using NFun.ParseErrors;
-using NFun.Parsing;
 using NFun.Runtime;
+using NFun.SyntaxParsing;
+using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
 using NFun.Types;
@@ -183,7 +184,7 @@ namespace NFun.Interpritation
         #region not an expression
         public IExpressionNode Visit(EquationSyntaxNode node) => Bad(node);
 
-        public IExpressionNode Visit(IfThenSyntaxNode node) => Bad(node);
+        public IExpressionNode Visit(IfCaseSyntaxNode node) => Bad(node);
         
         public IExpressionNode Visit(ListOfExpressionsSyntaxNode node)=> Bad(node);
 

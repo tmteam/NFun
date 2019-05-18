@@ -6,8 +6,8 @@ namespace NFun.Tokenization
 {
     public class Tokenizer
     {
-        public static TokenFlow ToFlow(string input) 
-            => new TokenFlow(ToTokens(input));
+        public static TokFlow ToFlow(string input) 
+            => new TokFlow(ToTokens(input));
 
         public static IEnumerable<Tok> ToTokens(string input)
         {

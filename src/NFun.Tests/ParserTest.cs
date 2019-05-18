@@ -1,5 +1,6 @@
 using System.Linq;
-using NFun.Parsing;
+using NFun.SyntaxParsing;
+using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
 using NUnit.Framework;
 

@@ -2,13 +2,14 @@ using System.Collections.Generic;
 using System.Linq;
 using NFun.BuiltInFunctions;
 using NFun.ParseErrors;
+using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
 
-namespace NFun.Parsing
+namespace NFun.SyntaxParsing
 {
     public class SyntaxNodeReader
     {
-        private readonly TokenFlow _flow;
+        private readonly TokFlow _flow;
 
         static SyntaxNodeReader()
         {
@@ -104,7 +105,7 @@ namespace NFun.Parsing
                 {TokType.In,CoreFunNames.In},
             };
         
-        public SyntaxNodeReader(TokenFlow flow)
+        public SyntaxNodeReader(TokFlow flow)
         {
             _flow = flow;
         }
@@ -406,7 +407,7 @@ namespace NFun.Parsing
                     if (!_flow.MoveIf(TokType.ArrCBr, out var closeBracket))
                         throw ErrorFactory.ArrayIntervalInitializeCbrMissed(openBracket, _flow.Current, true);
                     return SyntaxNodeFactory.ProcArrayInit(
-                        from: list[0],
+                        @from: list[0],
                         to:  secondArg,
                         step: thirdArg,
                         start: openBracket.Start, 
@@ -451,7 +452,7 @@ namespace NFun.Parsing
         private ISyntaxNode ReadIfThenElse()
         {
             int ifElseStart = _flow.Position;
-            var ifThenNodes = new List<IfThenSyntaxNode>();
+            var ifThenNodes = new List<IfCaseSyntaxNode>();
             do
             {
                 int conditionStart = _flow.Current.Start;

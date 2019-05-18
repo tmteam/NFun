@@ -1,4 +1,4 @@
-namespace NFun.Parsing
+namespace NFun.SyntaxParsing
 {
     public enum SyntaxNodeType
     {

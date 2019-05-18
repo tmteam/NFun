@@ -2,7 +2,8 @@ using System;
 using System.Linq;
 using System.Reflection;
 using NFun.HindleyMilner.Tyso;
-using NFun.Parsing;
+using NFun.SyntaxParsing;
+using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Types;
 

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace NFun.Interpritation
+namespace NFun.SyntaxParsing
 {
     public static class GraphTools
     {

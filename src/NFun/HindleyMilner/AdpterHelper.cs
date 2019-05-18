@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using NFun.HindleyMilner.Tyso;
 using NFun.Interpritation.Functions;
-using NFun.Parsing;
+using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Types;
 
 namespace NFun.HindleyMilner

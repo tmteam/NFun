@@ -4,7 +4,7 @@ using NFun.BuiltInFunctions;
 using NFun.HindleyMilner.Tyso;
 using NFun.Interpritation;
 using NFun.Interpritation.Functions;
-using NFun.Parsing;
+using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Types;
 
@@ -119,7 +119,7 @@ namespace NFun.HindleyMilner
                 node.Ifs.Select(i => i.Condition.NodeNumber).ToArray(),
                 node.Ifs.Select(i => i.Expression.NodeNumber).Append(node.ElseExpr.NodeNumber).ToArray());
         }
-        public bool Visit(IfThenSyntaxNode node)=> true;
+        public bool Visit(IfCaseSyntaxNode node)=> true;
         public bool Visit(ListOfExpressionsSyntaxNode node)=> true;
 
         public bool Visit(NumberSyntaxNode node)

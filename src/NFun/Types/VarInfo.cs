@@ -1,4 +1,4 @@
-using NFun.Parsing;
+using NFun.SyntaxParsing;
 
 namespace NFun.Types
 {

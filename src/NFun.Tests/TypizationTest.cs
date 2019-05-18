@@ -152,7 +152,12 @@ namespace Funny.Tests
         [TestCase(1.0, "x:real\r y= x+1", 2.0)]        
         [TestCase(1,    "x:int\r y= x+1", 2)]        
         [TestCase("1", "y= x.strConcat(1)", "11")]        
-        [TestCase(true, "x:bool\r y= x and true", true)]    
+        [TestCase(true, "x:bool\r y= x and true", true)] 
+        [TestCase(true, "y= [1,2,3].map(x=>x*x)", new[]{1,4,9})] 
+        [TestCase(true, "y= [1,2,3].map(x=>x)", new[]{1,2,3})] 
+        [TestCase(true, "y= [1,2,3].filter(x=>x>2)", new[]{3})] 
+        [TestCase(true, "y= [1,2,3].fold((x1,x2)=>x1+x2)", 6)] 
+
 
         public void SingleInputTypedEquation(object x,  string expr, object y)
         {

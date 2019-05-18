@@ -1,4 +1,4 @@
-using NFun.Parsing;
+using NFun.SyntaxParsing;
 using NFun.Tokenization;
 using NUnit.Framework;
 
@@ -19,7 +19,7 @@ namespace Funny.Tests.UnitTests
         [TestCase("'  someText'", SyntaxNodeType.Text)]
         public void ReadExpressionOrNull_SingleExpression_retunsIt(string value, SyntaxNodeType type)
         {
-            var flow = new TokenFlow(Tokenizer.ToTokens(value));
+            var flow = new TokFlow(Tokenizer.ToTokens(value));
             var reader = new SyntaxNodeReader(flow);
             var ex = reader.ReadExpressionOrNull();
             Assert.IsNotNull(ex);
@@ -42,7 +42,7 @@ namespace Funny.Tests.UnitTests
         public void ReadExpressionOrNull_SeveralExpressions_retunsFirstExpressionWithCorrectBounds(string value, SyntaxNodeType type,
             int start,int end)
         {
-            var flow = new TokenFlow(Tokenizer.ToTokens(value));
+            var flow = new TokFlow(Tokenizer.ToTokens(value));
             var reader = new SyntaxNodeReader(flow);
             var ex = reader.ReadExpressionOrNull();
             Assert.IsNotNull(ex);

@@ -3,9 +3,9 @@ using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
 using NFun.Types;
 
-namespace NFun.Parsing
+namespace NFun.SyntaxParsing.SyntaxNodes
 {
-    public class IfThenSyntaxNode : ISyntaxNode
+    public class IfCaseSyntaxNode : ISyntaxNode
     {
         public VarType OutputType { get; set; }
         public int NodeNumber { get; set; }
@@ -13,7 +13,7 @@ namespace NFun.Parsing
         public ISyntaxNode Condition { get; }
         public ISyntaxNode Expression { get; }
 
-        public IfThenSyntaxNode(ISyntaxNode condition, ISyntaxNode expression, Interval interval)
+        public IfCaseSyntaxNode(ISyntaxNode condition, ISyntaxNode expression, Interval interval)
         {
             Condition = condition;
             Expression = expression;

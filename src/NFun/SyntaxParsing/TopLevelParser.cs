@@ -1,16 +1,15 @@
 using System.Collections.Generic;
 using System.Linq;
 using NFun.ParseErrors;
-using NFun.SyntaxParsing;
-using NFun.SyntaxParsing.Visitors;
+using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
 using NFun.Types;
 
-namespace NFun.Parsing
+namespace NFun.SyntaxParsing
 {
     public static class TopLevelParser
     {
-        public static SyntaxTree Parse(TokenFlow flow)
+        public static SyntaxTree Parse(TokFlow flow)
         {
             var reader = new SyntaxNodeReader(flow);
             var nodes = new List<ISyntaxNode>();
@@ -85,7 +84,7 @@ namespace NFun.Parsing
             return new SyntaxTree(nodes.ToArray());
             
         }
-        private static VarAttribute[] ReadAttributes(TokenFlow flow)
+        private static VarAttribute[] ReadAttributes(TokFlow flow)
         {
             bool newLine = flow.IsStart || flow.Previous.Is(TokType.NewLine);
             var ans = new List<VarAttribute>();
@@ -99,7 +98,7 @@ namespace NFun.Parsing
             }
             return ans.ToArray();
         }
-        private static VarAttribute ReadAttribute(TokenFlow flow)
+        private static VarAttribute ReadAttribute(TokFlow flow)
         {
             var start = flow.Current.Start;
             flow.MoveNext();
@@ -136,7 +135,7 @@ namespace NFun.Parsing
             return new VarAttribute(id.Value, val);
         }
 
-        private static UserFunctionDefenitionSyntaxNode ReadUserFunction(int start, FunCallSyntaxNode headNode, TokenFlow flow, SyntaxNodeReader reader)
+        private static UserFunctionDefenitionSyntaxNode ReadUserFunction(int start, FunCallSyntaxNode headNode, TokFlow flow, SyntaxNodeReader reader)
         {
             var id = headNode.Id;
             if (headNode.IsInBrackets)
@@ -176,7 +175,7 @@ namespace NFun.Parsing
 
             return new UserFunctionDefenitionSyntaxNode(arguments, headNode, expression, outputType ); 
         }
-        private static EquationSyntaxNode ReadEquation(TokenFlow flow, SyntaxNodeReader reader, string id, VarAttribute[] attributes)
+        private static EquationSyntaxNode ReadEquation(TokFlow flow, SyntaxNodeReader reader, string id, VarAttribute[] attributes)
         {
             flow.SkipNewLines();
             var start = flow.Position;
