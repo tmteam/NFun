@@ -53,7 +53,10 @@ namespace NFun.HindleyMilner.Tyso
             return new LcaNodeBehaviour(otherNodes);
         }
 
-        public INodeBehavior SetReference(SolvingNode otherNode) {
+        public INodeBehavior SetReference(SolvingNode otherNode)
+        {
+            if (otherNode.Behavior == this)
+                return this;
             otherNode.SetLimit(Limit);
             return new ReferenceBehaviour(otherNode);
         }

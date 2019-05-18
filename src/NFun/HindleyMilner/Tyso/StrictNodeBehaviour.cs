@@ -78,15 +78,12 @@ namespace NFun.HindleyMilner.Tyso
                 return this;
             if (!otherNode.SetStrict(_type))
                 return null;
-            return new ReferenceBehaviour(otherNode);
+            return this;
         }
         public INodeBehavior SetGeneric(SolvingNode otherGeneric)
             =>  otherGeneric.SetStrict(_type)? this: null;
 
-        public string ToSmartString(int maxDepth = 10)
-        {
-            return $"{_type}";
-        }
+        public string ToSmartString(int maxDepth = 10) => $"{_type}";
 
         public INodeBehavior Optimize(out bool o)
         {

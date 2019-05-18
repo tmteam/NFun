@@ -121,7 +121,7 @@ namespace Funny.Tests
                                 someRec2(n, iter+1)
                           else 
                                 1
-          y = someRec2(9,2)",BaseVarType.Real)]
+          y = someRec2(9,2)",BaseVarType.Int32)]
         [TestCase(  
             @"someRec3(n, iter) = someRec3(n, iter+1).strConcat(n >iter)
           y = someRec3(9,2)",BaseVarType.Text)]
@@ -129,13 +129,20 @@ namespace Funny.Tests
         public void SingleEquations_Parsing_OutputTypesCalculateCorrect(string expr, BaseVarType type)
         {
             var runtime = FunBuilder.BuildDefault(expr);
-            Assert.AreEqual(type, runtime.Outputs.Single().Type);
+            Assert.AreEqual(type, runtime.Outputs.Single().Type.BaseType);
         }
         [TestCase( "f(n, iter) = f(n, iter+1).strConcat(n >iter)")]
         [TestCase( "f1(n, iter) = f1(n+1, iter).strConcat(n >iter)")]
         [TestCase( "f2(n, iter) = n > iter and f2(n,iter)")]
         [TestCase( "f3(n, iter) = n > iter and f3(n,iter+1)")]
         [TestCase( "f4(n, iter) = f4(n,iter) and (n > iter)")]
+        [TestCase( "f5(n) = f5(n) and n>0")]
+        [TestCase( "f6(n) = n>0 and f6(n)")]
+        [TestCase( "f7(n) = n>0 and true")]
+        [TestCase( "f8(n) = n==0 and f8(n)")]
+        [TestCase( "f9(n) = f9(n and true)")]
+        [TestCase( "fa(n) = fa(n+1)")]
+        [TestCase( "fb(n) = fb(n.strConcat(''))")]
         public void EquationTypes_SolvesSomehow(string expr)
         {
             Assert.DoesNotThrow(()=>FunBuilder.BuildDefault(expr));

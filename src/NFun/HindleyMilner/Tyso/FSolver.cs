@@ -154,7 +154,7 @@ namespace NFun.HindleyMilner.Tyso
                 return GetOrCreate(nodeId).SetEqualTo(generic);
             }
             var solvingNode = genericsContext.CreateSolvingNode(type);
-            return GetOrCreate(nodeId).SetStrict(solvingNode.MakeType(SolvingNode.MaxTypeDepth));
+            return GetOrCreate(nodeId).SetStrict(solvingNode.MakeType());
         }
         private bool SetLimit(int nodeId, FType type, GenericMap genericsContext)
         {
@@ -164,7 +164,7 @@ namespace NFun.HindleyMilner.Tyso
                 return GetOrCreate(nodeId).SetEqualTo(generic);
             }
             var solvingNode = genericsContext.CreateSolvingNode(type);
-            return GetOrCreate(nodeId).SetLimit(solvingNode.MakeType(SolvingNode.MaxTypeDepth));
+            return GetOrCreate(nodeId).SetLimit(solvingNode.MakeType());
         }
         public bool Unite(int nodeAid, int nodeBid)
         {

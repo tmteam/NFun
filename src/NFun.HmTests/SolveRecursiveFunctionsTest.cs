@@ -214,7 +214,165 @@ namespace NFun.HmTests
             Assert.AreEqual(FType.Fun(FType.Real, FType.Real), res.GetVarType("f(1)"));
             Assert.AreEqual(FType.Real, res.GetVarType("f(1) a"));
         }
+        /*
+         *
+         * [TestCase( "f(n, iter) = f(n, iter+1).strConcat(n >iter)")]
+        [TestCase( "f1(n, iter) = f1(n+1, iter).strConcat(n >iter)")]
+        [TestCase( "f2(n, iter) = n > iter and f2(n,iter)")]
+        [TestCase( "f3(n, iter) = n > iter and f3(n,iter+1)")]
+        [TestCase( "f4(n, iter) = f4(n,iter) and (n > iter)")]
+        [TestCase( "f8(n) = n==0 and f8(n)")]
+         
+         * 
+         */
         
+        [Test]
+        public void RecursiveFunction_BoolOpOnArg_Solved()
+        {
+            //  4    3 0  2  1
+            //f(a) = f(a and true)
+            var tA = solver.SetNewVar("f(1) a");
+            var tOut = solver.MakeGeneric();
+            solver.SetVarType("f(1)", FType.Fun(tOut, tA));
+            
+            solver.SetVar(0, "f(1) a");
+            solver.SetConst(1, FType.Bool);
+            solver.SetCall(new CallDef(FType.Bool, new[] {2, 0, 1}));
+            
+            solver.SetInvoke(3, "f(1)",new[]{2});
+            solver.SetFunDefenition("f(1)", 4, 3);
+            
+            var res = solver.Solve();
+            Assert.IsTrue(res.IsSolved);
+            Assert.AreEqual(1,res.GenericsCount);
+
+            Assert.AreEqual(FType.Fun(FType.Generic(0), FType.Bool), res.GetVarType("f(1)"));
+            Assert.AreEqual(FType.Bool, res.GetVarType("f(1) a"));
+        }
+        
+        [Test]
+        public void RecursiveFunction_TextCallOnArg_Solved()
+        {
+            //  3    2 0  1
+            //f(a) = f(a.reverseStr())
+            var tA = solver.SetNewVar("f(1) a");
+            var tOut = solver.MakeGeneric();
+            solver.SetVarType("f(1)", FType.Fun(tOut, tA));
+            
+            solver.SetVar(0, "f(1) a");
+            solver.SetCall(new CallDef(FType.Text, new[] {1, 0}));
+            
+            solver.SetInvoke(2, "f(1)",new[]{1});
+            solver.SetFunDefenition("f(1)", 3, 2);
+            
+            var res = solver.Solve();
+            Assert.IsTrue(res.IsSolved);
+            Assert.AreEqual(1,res.GenericsCount);
+
+            Assert.AreEqual(FType.Fun(FType.Generic(0), FType.Text), res.GetVarType("f(1)"));
+            Assert.AreEqual(FType.Text, res.GetVarType("f(1) a"));
+        }
+        
+        [Test]
+        public void RecursiveFunction_strConcatOnArg_Solved()
+        {
+            //  4    3 0     2       1
+            //f(a) = f(a.strConcat("hi"))
+            var tA = solver.SetNewVar("f(1) a");
+            var tOut = solver.MakeGeneric();
+            solver.SetVarType("f(1)", FType.Fun(tOut, tA));
+            
+            solver.SetVar(0, "f(1) a");
+            solver.SetConst(1, FType.Text);
+            solver.SetCall(new CallDef(new[]{FType.Text,FType.Text, FType.Any}, new[] {2, 0,1}));
+            
+            solver.SetInvoke(3, "f(1)",new[]{2});
+            solver.SetFunDefenition("f(1)", 4, 3);
+            
+            var res = solver.Solve();
+            Assert.IsTrue(res.IsSolved);
+            Assert.AreEqual(1,res.GenericsCount);
+
+            Assert.AreEqual(FType.Fun(FType.Generic(0), FType.Text), res.GetVarType("f(1)"));
+            Assert.AreEqual(FType.Text, res.GetVarType("f(1) a"));
+        }
+        
+        [Test]
+        public void RecursiveFunction_ArithmOpOnArg_Solved()
+        {
+            //  4    3 0  2  1
+            //f(a) = f(a  +  1)
+            var tA = solver.SetNewVar("f(1) a");
+            var tOut = solver.MakeGeneric();
+            solver.SetVarType("f(1)", FType.Fun(tOut, tA));
+            
+            solver.SetVar(0, "f(1) a");
+            solver.SetConst(1, FType.Int32);
+            solver.SetArithmeticalOp(2, 0, 1);
+            
+            solver.SetInvoke(3, "f(1)" , new[]{2});
+            solver.SetFunDefenition("f(1)", 4, 3);
+            
+            var res = solver.Solve();
+            Assert.IsTrue(res.IsSolved);
+            Assert.AreEqual(1,res.GenericsCount);
+
+            Assert.AreEqual(FType.Fun(FType.Generic(0), FType.Real), res.GetVarType("f(1)"));
+            Assert.AreEqual(FType.Real, res.GetVarType("f(1) a"));
+        }
+        [Test]
+        public void RecursiveFunction_BoolAndArithmOp_Solved()
+        {
+            //  6    1 0   5  2 4 3
+            //f(a) = f(a) and a > 0
+            var tA = solver.SetNewVar("f(1) a");
+            var tOut = solver.MakeGeneric();
+            solver.SetVarType("f(1)", FType.Fun(tOut, tA));
+            
+            solver.SetVar(0, "f(1) a");
+            solver.SetInvoke(1, "f(1)",new[]{0});
+            
+            solver.SetVar(2, "f(1) a");
+            solver.SetConst(3, FType.Int32); 
+            solver.SetComparationOperator(4, 2, 3);
+            
+            solver.SetCall(new CallDef(FType.Bool, new[] {5, 1, 4}));
+
+            solver.SetFunDefenition("f(1)", 6, 5);
+            
+            var res = solver.Solve();
+            Assert.AreEqual(0,res.GenericsCount);
+            Assert.IsTrue(res.IsSolved);
+            Assert.AreEqual(FType.Fun(FType.Bool, FType.Real), res.GetVarType("f(1)"));
+            Assert.AreEqual(FType.Real, res.GetVarType("f(1) a"));
+        }
+        
+        [Test]
+        public void RecursiveFunction_CompareAndBoolOp_Solved()
+        {
+            //  6    0 2 1 5   4 3
+            //f(a) = a > 0 and f(a) 
+            var tA = solver.SetNewVar("f(1) a");
+            var tOut = solver.MakeGeneric();
+            solver.SetVarType("f(1)", FType.Fun(tOut, tA));
+           
+            solver.SetVar(0, "f(1) a");
+            solver.SetConst(1, FType.Int32); 
+            solver.SetComparationOperator(2, 0, 1);
+
+            solver.SetVar(3, "f(1) a");
+            solver.SetInvoke(4, "f(1)",new[]{3});
+            
+            solver.SetCall(new CallDef(FType.Bool, new[] {5, 2, 4}));
+
+            solver.SetFunDefenition("f(1)", 6, 5);
+            
+            var res = solver.Solve();
+            Assert.AreEqual(0,res.GenericsCount);
+            Assert.IsTrue(res.IsSolved);
+            Assert.AreEqual(FType.Fun(FType.Bool, FType.Real), res.GetVarType("f(1)"));
+            Assert.AreEqual(FType.Real, res.GetVarType("f(1) a"));
+        }
         [Test]
         public void RecursiveFunction_ArithmeticalOnItsCall_Solved()
         {
