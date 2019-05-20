@@ -68,11 +68,10 @@ namespace NFun.HmTests
             
             solver.SetVar( 0,"x");
             Assert.IsTrue(solver.SetArrayInit(1, 0));
-            
             Assert.IsTrue(solver.SetDefenition("y",2, 1));
             
             var result = solver.Solve();
-            
+            Assert.IsTrue(result.IsSolved);
             Assert.AreEqual(1, result.GenericsCount);
             
             Assert.AreEqual(FType.Generic(0), result.GetVarType("x"));
@@ -82,10 +81,10 @@ namespace NFun.HmTests
         }
         
         [Test(Description = "y = [x]; a = [b,c]")]
-        public void ArrayInit_multupleEquations_GenericElementFound()
+        public void ArrayInit_twoComplexEquations_GenericElementsFound()
         {
             //node |2  1 0         6  5 3 4
-            //expr |y = [x]    |   a = [b,c]; 
+            //expr |y = [x]    ;   a = [b,c]; 
             
             solver.SetVar( 0,"x");
             Assert.IsTrue(solver.SetArrayInit(1, 0));
@@ -107,6 +106,8 @@ namespace NFun.HmTests
             Assert.AreEqual(FType.Generic(1), result.GetVarType("c"));
             Assert.AreEqual(FType.ArrayOf(FType.Generic(1)), result.GetVarType("a"));
         }
+
+        
         [Test]
         public void ArrayWithIntValuesSolvesWell()
         {

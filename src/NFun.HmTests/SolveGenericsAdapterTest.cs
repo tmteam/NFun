@@ -53,6 +53,68 @@ namespace NFun.HmTests
             Assert.AreEqual(FType.Generic(1), result.GetVarType("y2"));
 
         }
+        [Test(Description = "y1 = x1; y2 = [x2]")]
+        public void ArrayInit_TwoEquationsWithGeneric_GenericElementsFound()
+        {
+            //node |1    0   4    3 2
+            //expr |y1 = x1; y2 = [x2]; 
+
+            solver.SetVar(0, "x1");
+            Assert.IsTrue(solver.SetDefenition("y1", 1, 0));
+
+            solver.SetVar(2, "x2");
+            Assert.IsTrue(solver.SetArrayInit(3, 2));
+            Assert.IsTrue(solver.SetDefenition("y2", 4, 3));
+
+            var result = solver.Solve();
+            Assert.IsTrue(result.IsSolved);
+            Assert.Multiple(() =>
+            {
+                Assert.AreEqual(2, result.GenericsCount);
+
+                Assert.AreEqual(FType.Generic(0), result.GetVarType("x1"));
+                Assert.AreEqual(FType.Generic(0), result.GetVarType("y1"));
+
+                Assert.AreEqual(FType.Generic(1), result.GetVarType("x2"));
+                Assert.AreEqual(FType.ArrayOf(FType.Generic(1)), result.GetVarType("y2"));
+            });
+        }
+        
+        [Test(Description = "y1 = [x1]; y2 = [x2]; y3 = [x3];")]
+        public void ArrayInit_ThreeEquations_GenericElementsFound()
+        {
+            //node |2   1 0     5   4 3    8   7 6
+            //expr |y1 = [x1]; y2 = [x2]; y3 = [x3]       
+
+            solver.SetVar(0, "x1");
+            Assert.IsTrue(solver.SetArrayInit(1, 0));
+            Assert.IsTrue(solver.SetDefenition("y1", 2, 1));
+
+            solver.SetVar(3, "x2");
+            Assert.IsTrue(solver.SetArrayInit(4, 3));
+            Assert.IsTrue(solver.SetDefenition("y2", 5, 4));
+
+            solver.SetVar(6, "x3");
+            Assert.IsTrue(solver.SetArrayInit(7, 6));
+            Assert.IsTrue(solver.SetDefenition("y3", 8, 7));
+
+            var result = solver.Solve();
+            Assert.IsTrue(result.IsSolved);
+            Assert.Multiple(() =>
+            {
+                Assert.AreEqual(3, result.GenericsCount);
+
+                Assert.AreEqual(FType.Generic(0), result.GetVarType("x1"));
+                Assert.AreEqual(FType.ArrayOf(FType.Generic(0)), result.GetVarType("y1"));
+
+                Assert.AreEqual(FType.Generic(1), result.GetVarType("x2"));
+                Assert.AreEqual(FType.ArrayOf(FType.Generic(1)), result.GetVarType("y2"));
+
+                Assert.AreEqual(FType.Generic(2), result.GetVarType("x3"));
+                Assert.AreEqual(FType.ArrayOf(FType.Generic(2)), result.GetVarType("y3"));
+            });
+        }
+
         [Test]
         public void SimpliestGenericFunctionCall_SingleGenericFound()
         {
