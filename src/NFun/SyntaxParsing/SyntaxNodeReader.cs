@@ -1,9 +1,11 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using NFun.BuiltInFunctions;
 using NFun.ParseErrors;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
+using NFun.Types;
 
 namespace NFun.SyntaxParsing
 {
@@ -154,11 +156,20 @@ namespace NFun.SyntaxParsing
                     new []{node},start, node.Interval.Finish);
             }
             if (_flow.MoveIf(TokType.True, out var trueTok))
-                return SyntaxNodeFactory.Num(trueTok);
+                return SyntaxNodeFactory.Num(true, VarType.Bool,  trueTok.Interval);
             if (_flow.MoveIf(TokType.False, out var falseTok))
-                return SyntaxNodeFactory.Num(falseTok);
+                return SyntaxNodeFactory.Num(false, VarType.Bool,  falseTok.Interval);
             if (_flow.MoveIf(TokType.Number, out var val))
-                return SyntaxNodeFactory.Num(val);
+            {
+                try
+                {
+                    var (obj, type) = TokenHelper.ToConstant(val.Value);
+                    return SyntaxNodeFactory.Num(obj, type, val.Interval);
+                }
+                catch (FormatException) {
+                    throw ErrorFactory.CannotParseNumber(val.Value, val.Interval);
+                }
+            }
             if (_flow.MoveIf(TokType.Text, out var txt))
                 return SyntaxNodeFactory.Text(txt);
             if (_flow.MoveIf(TokType.Id, out var headToken))
@@ -296,9 +307,10 @@ namespace NFun.SyntaxParsing
                     _flow.Position);
             }
             
-            index = index ?? SyntaxNodeFactory.Num("0",openBraket.Start, colon.Finish);
+            index = index ?? SyntaxNodeFactory.Num(0, VarType.Int32, Interval.New(openBraket.Start, colon.Finish));
             
-            var end = ReadExpressionOrNull()?? SyntaxNodeFactory.Num(int.MaxValue.ToString(),colon.Finish, _flow.Position);
+            var end = ReadExpressionOrNull()?? 
+                      SyntaxNodeFactory.Num(int.MaxValue, VarType.Int32, Interval.New(colon.Finish, _flow.Position));
             
             if (!_flow.MoveIf(TokType.Colon, out _))
             {

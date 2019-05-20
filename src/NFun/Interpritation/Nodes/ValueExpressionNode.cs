@@ -7,6 +7,12 @@ namespace NFun.Interpritation.Nodes
     {
         private readonly object _value;
 
+        public ValueExpressionNode(object objVal, VarType type, Interval interval)
+        {
+            _value = objVal;
+            Interval = interval;
+            Type = type;
+        }
         public ValueExpressionNode(string value, Interval interval)
         {
             Type = VarType.Text;

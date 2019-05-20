@@ -18,7 +18,7 @@ namespace NFun.SyntaxParsing.Visitors
             return $"{string.Join(",", strings)}";
         }
 
-        public string Visit(NumberSyntaxNode node) => node.Value;
+        public string Visit(NumberSyntaxNode node) => $"({node.OutputType}){node.Value}";
         public string Visit(ProcArrayInit node)
         {
             var from = node.From.Visit(this);

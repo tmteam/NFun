@@ -16,9 +16,16 @@ namespace NFun.SyntaxParsing.SyntaxNodes
             Interval = interval;
         }
 
+        public NumberSyntaxNode(object value, VarType varType, Interval interval)
+        {
+            OutputType = varType;
+            Interval = interval;
+            Value = value;
+        }
+
         public bool IsInBrackets { get; set; }
         public SyntaxNodeType Type => SyntaxNodeType.Number;
-        public string Value { get; }
+        public object Value { get; }
         public Interval Interval { get; set; }
         public T Visit<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
         public IEnumerable<ISyntaxNode> Children => new ISyntaxNode[0];

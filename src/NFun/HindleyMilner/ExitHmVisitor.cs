@@ -124,11 +124,8 @@ namespace NFun.HindleyMilner
 
         public bool Visit(NumberSyntaxNode node)
         {
-            //dirty hack!!!
-            var valueExpression =            
-                ExpressionBuilderVisitor.GetValueNode(node);
             return _state.CurrentSolver.SetConst(node.NodeNumber, 
-                AdpterHelper.ConvertToHmType(valueExpression.Type));
+                AdpterHelper.ConvertToHmType(node.OutputType));
         }
 
         public bool Visit(SyntaxTree node)=> true;

@@ -432,8 +432,8 @@ namespace NFun.ParseErrors
         public static Exception ArrayInitializerTypeMismatch(VarType stepType, ISyntaxNode node)
             => throw new FunParseException(518,$"Array initializator step has to be int type only but was '{stepType}'. Example: [1..5..2]", node.Interval);
 
-        public static Exception CannotParseNumber(NumberSyntaxNode  node)
-            => new FunParseException(521, $"Cannot parse number '{node.Value}'", node.Interval);
+        public static Exception CannotParseNumber(string val, Interval interval)
+            => new FunParseException(521, $"Cannot parse number '{val}'", interval);
 
         public static Exception FunctionNotFound(string name, Interval interval, List<IExpressionNode> children,
             FunctionsDictionary functions)

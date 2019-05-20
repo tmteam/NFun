@@ -117,7 +117,7 @@ namespace NFun.SyntaxParsing
                         val = true;
                         break;
                     case TokType.Number:
-                        val = TokenHelper.ToNumber(next.Value);
+                        val = TokenHelper.ToConstant(next.Value).Item1;
                         break;
                     case TokType.Text:
                         val = next.Value;

@@ -126,32 +126,7 @@ namespace NFun.Interpritation
         }
 
         
-        public IExpressionNode Visit(NumberSyntaxNode node) => GetValueNode(node);
-
-        public static IExpressionNode GetValueNode(NumberSyntaxNode node)
-        {
-            var val = node.Value;
-            try
-            {
-                if (val.Length > 2)
-                {
-                    if (val == "true")
-                        return new ValueExpressionNode(true, node.Interval);
-                    if (val == "false")
-                        return new ValueExpressionNode(false, node.Interval);
-                }
-
-                var number = TokenHelper.ToNumber(val);
-                if (number is int inum)
-                    return new ValueExpressionNode(inum, node.Interval);
-                else
-                    return new ValueExpressionNode((double) number, node.Interval);
-            }
-            catch (FormatException)
-            {
-                throw ErrorFactory.CannotParseNumber(node);
-            }
-        }
+        public IExpressionNode Visit(NumberSyntaxNode node) => new ValueExpressionNode(node.Value, node.OutputType, node.Interval);
 
         public IExpressionNode Visit(ProcArrayInit node)
         {

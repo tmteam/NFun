@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
@@ -20,8 +21,8 @@ namespace NFun.SyntaxParsing
         public static ISyntaxNode Var(Tok token) => new VariableSyntaxNode(token.Value, token.Interval); 
         
         public static ISyntaxNode Text(Tok token)=> new TextSyntaxNode(token.Value,token.Interval);
-        public static ISyntaxNode Num(Tok token) => new NumberSyntaxNode(token.Value, token.Interval);
-        public static ISyntaxNode Num(string val, int start, int end) => new NumberSyntaxNode(val, Interval.New(start,end));
+        public static ISyntaxNode Num(object value, VarType type, Interval interval) => new NumberSyntaxNode(value, type, interval);
+        
         public static ISyntaxNode ProcArrayInit(ISyntaxNode @from, ISyntaxNode to, ISyntaxNode step, int start, int end)
             =>new ProcArrayInit(from, to, step, Interval.New(start,end));
 
