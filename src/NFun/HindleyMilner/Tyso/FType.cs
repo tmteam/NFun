@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 
 namespace NFun.HindleyMilner.Tyso
@@ -16,8 +17,11 @@ namespace NFun.HindleyMilner.Tyso
         
         public FType(NTypeName name, params SolvingNode[] arguments)
         {
+            
             Name = name;
             Arguments = arguments;
+         //   if(IsPrimitiveGeneric && !(this is GenericType))
+         //       throw new InvalidOperationException("Invalid ftype usage");
         }
         public static FType Int64 => new FType(NTypeName.Int64);
         public static FType Int32 => new FType(NTypeName.Int32);

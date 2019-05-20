@@ -143,6 +143,10 @@ namespace Funny.Tests
         [TestCase( "f9(n) = f9(n and true)")]
         [TestCase( "fa(n) = fa(n+1)")]
         [TestCase( "fb(n) = fb(n.strConcat(''))")]
+        [TestCase("[a].map(z=>z)")]
+        [TestCase("[a].filter(f=>f>2)")]
+        [TestCase("[a].reverse()")]
+        [TestCase("[a]")]
         public void EquationTypes_SolvesSomehow(string expr)
         {
             Assert.DoesNotThrow(()=>FunBuilder.BuildDefault(expr));

@@ -18,7 +18,7 @@ namespace NFun.HmTests
         {
             //1    0
             //y = []
-            solver.SetArrayInit(0);
+            Assert.IsTrue(solver.SetArrayInit(0));
             solver.SetDefenition("y", 1, 0);
             
             var res = solver.Solve();
@@ -33,7 +33,7 @@ namespace NFun.HmTests
             solver.SetVarType("a", FType.Int32);
             solver.SetVar(0,"a");
             solver.SetVar(1,"b");
-            solver.SetArrayInit(2,0,1);
+            Assert.IsTrue(solver.SetArrayInit(2,0,1));
             solver.SetDefenition("y", 3, 2);
             
             var res = solver.Solve();
@@ -50,27 +50,77 @@ namespace NFun.HmTests
             //y = [a,b]
             solver.SetVar(0,"a");
             solver.SetVar(1,"b");
-            solver.SetArrayInit(2,0,1);
+            Assert.IsTrue(solver.SetArrayInit(2,0,1));
             solver.SetDefenition("y", 3, 2);
             
             var res = solver.Solve();
+            Assert.IsTrue(res.IsSolved);
             Assert.AreEqual(1,res.GenericsCount);
             Assert.AreEqual(FType.Generic(0), res.GetVarType("a"));
             Assert.AreEqual(FType.Generic(0), res.GetVarType("b"));
             Assert.AreEqual(FType.ArrayOf(FType.Generic(0)), res.GetVarType("y"));
+        }
+        [Test(Description = "y = [x]")]
+        public void ArrayInit_GenericElement()
+        {
+            //node |2  1 0  
+            //expr |y = [x]; 
+            
+            solver.SetVar( 0,"x");
+            Assert.IsTrue(solver.SetArrayInit(1, 0));
+            
+            Assert.IsTrue(solver.SetDefenition("y",2, 1));
+            
+            var result = solver.Solve();
+            
+            Assert.AreEqual(1, result.GenericsCount);
+            
+            Assert.AreEqual(FType.Generic(0), result.GetVarType("x"));
+            Assert.AreEqual(FType.ArrayOf(FType.Generic(0)), result.GetVarType("y"));
+            
+
+        }
+        
+        [Test(Description = "y = [x]; a = [b,c]")]
+        public void ArrayInit_multupleEquations_GenericElementFound()
+        {
+            //node |2  1 0         6  5 3 4
+            //expr |y = [x]    |   a = [b,c]; 
+            
+            solver.SetVar( 0,"x");
+            Assert.IsTrue(solver.SetArrayInit(1, 0));
+            Assert.IsTrue(solver.SetDefenition("y",2, 1));
+
+            
+            solver.SetVar( 3,"b");
+            solver.SetVar( 4,"c");
+            Assert.IsTrue(solver.SetArrayInit(5, 3,4));
+            Assert.IsTrue(solver.SetDefenition("a",6, 5));
+
+            var result = solver.Solve();
+            Assert.IsTrue(result.IsSolved);
+            Assert.AreEqual(2, result.GenericsCount);
+            
+            Assert.AreEqual(FType.Generic(0), result.GetVarType("x"));
+            Assert.AreEqual(FType.ArrayOf(FType.Generic(0)), result.GetVarType("y"));
+            Assert.AreEqual(FType.Generic(1), result.GetVarType("b"));
+            Assert.AreEqual(FType.Generic(1), result.GetVarType("c"));
+            Assert.AreEqual(FType.ArrayOf(FType.Generic(1)), result.GetVarType("a"));
         }
         [Test]
         public void ArrayWithIntValuesSolvesWell()
         {
             //4   30 1 2 
             //y = [1,2,3]
+            
             solver.SetConst(0, FType.Int32);
             solver.SetConst(1, FType.Int32);
             solver.SetConst(2, FType.Int32);
-            solver.SetArrayInit(3, 0, 1, 2);
+            Assert.IsTrue(solver.SetArrayInit(3, 0, 1, 2));
             solver.SetDefenition("y", 4, 3);
-            
             var res = solver.Solve();
+            Assert.IsTrue(res.IsSolved);
+
             Assert.AreEqual(0,res.GenericsCount);
             Assert.AreEqual(FType.ArrayOf(FType.Int32), res.GetVarType("y"));
         }
@@ -89,6 +139,7 @@ namespace NFun.HmTests
             solver.SetDefenition("y", 5, 4);
             
             var res = solver.Solve();
+            Assert.IsTrue(res.IsSolved);
             Assert.AreEqual(0,res.GenericsCount);
             Assert.AreEqual(FType.Int32, res.GetVarType("x"));
             Assert.AreEqual(FType.ArrayOf(FType.Int32), res.GetVarType("y"));
@@ -101,10 +152,11 @@ namespace NFun.HmTests
             //y = [a..b]
             solver.SetVar(0,"a");
             solver.SetVar(1,"b");
-            solver.SetProcArrayInit(2,0,1);
+            Assert.IsTrue(solver.SetProcArrayInit(2,0,1));
             solver.SetDefenition("y", 3, 2);
             
             var res = solver.Solve();
+            Assert.IsTrue(res.IsSolved);
             Assert.AreEqual(0,res.GenericsCount);
             Assert.AreEqual(FType.Int32, res.GetVarType("a"));
             Assert.AreEqual(FType.Int32, res.GetVarType("b"));
@@ -119,7 +171,7 @@ namespace NFun.HmTests
             solver.SetVar(1,"b");
             solver.SetVar(2,"c");
 
-            solver.SetProcArrayInit(3,0,1,2);
+            Assert.IsTrue(solver.SetProcArrayInit(3,0,1,2));
             solver.SetDefenition("y", 4, 3);
             
             var res = solver.Solve();
@@ -137,10 +189,11 @@ namespace NFun.HmTests
             solver.SetConst(1,FType.Int32);
             solver.SetConst(2,FType.Int32);
 
-            solver.SetProcArrayInit(3,0,1,2);
+            Assert.IsTrue(solver.SetProcArrayInit(3,0,1,2));
             solver.SetDefenition("y", 4, 3);
             
             var res = solver.Solve();
+            Assert.IsTrue(res.IsSolved);
             Assert.AreEqual(0,res.GenericsCount);
             Assert.AreEqual(FType.ArrayOf(FType.Int32), res.GetVarType("y"));
         }
@@ -176,6 +229,7 @@ namespace NFun.HmTests
             Assert.IsTrue(solver.SetDefenition("y", 5, 4));
             
             var res = solver.Solve();
+            
             Assert.IsTrue(res.IsSolved);
             Assert.AreEqual(0,res.GenericsCount);
             Assert.AreEqual(FType.Bool, res.GetVarType("y"));

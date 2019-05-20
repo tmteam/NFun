@@ -21,7 +21,12 @@ namespace NFun.HindleyMilner
         public VarType ToSimpleType(FType type)
         {
             if (type.IsPrimitiveGeneric)
-                return MakeGeneric((GenericType)type);
+            {
+                if(!(type is GenericType))
+                    throw new InvalidOperationException($"type {type} is not instance of GenericType");
+                return MakeGeneric((GenericType) type);
+            }
+
             switch (type.Name.Id)
             {
                 case NTypeName.AnyId: return VarType.Anything;

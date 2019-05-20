@@ -235,6 +235,8 @@ namespace NFun.HmTests
             Assert.AreEqual(FType.Real, solvation.GetNodeType(2));
         }
         
+        
+
  
     }
 }
