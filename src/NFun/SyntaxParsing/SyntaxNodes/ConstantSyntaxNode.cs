@@ -5,18 +5,13 @@ using NFun.Types;
 
 namespace NFun.SyntaxParsing.SyntaxNodes
 {
-    public class NumberSyntaxNode : ISyntaxNode
+    public class ConstantSyntaxNode : ISyntaxNode
     {
         public VarType OutputType { get; set; }
         public int NodeNumber { get; set; }
 
-        public NumberSyntaxNode(string value, Interval interval)
-        {
-            Value = value;
-            Interval = interval;
-        }
-
-        public NumberSyntaxNode(object value, VarType varType, Interval interval)
+        
+        public ConstantSyntaxNode(object value, VarType varType, Interval interval)
         {
             OutputType = varType;
             Interval = interval;

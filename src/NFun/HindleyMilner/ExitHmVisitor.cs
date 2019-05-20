@@ -122,16 +122,14 @@ namespace NFun.HindleyMilner
         public bool Visit(IfCaseSyntaxNode node)=> true;
         public bool Visit(ListOfExpressionsSyntaxNode node)=> true;
 
-        public bool Visit(NumberSyntaxNode node)
+        public bool Visit(ConstantSyntaxNode node)
         {
             return _state.CurrentSolver.SetConst(node.NodeNumber, 
                 AdpterHelper.ConvertToHmType(node.OutputType));
         }
 
         public bool Visit(SyntaxTree node)=> true;
-        public bool Visit(TextSyntaxNode node) 
-            => _state.CurrentSolver.SetConst(node.NodeNumber, FType.Text);
-
+       
         public bool Visit(TypedVarDefSyntaxNode node)
             => _state.CurrentSolver.SetVarType(node.Id, AdpterHelper.ConvertToHmType(node.VarType));
             

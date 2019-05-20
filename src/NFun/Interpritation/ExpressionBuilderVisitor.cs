@@ -126,7 +126,7 @@ namespace NFun.Interpritation
         }
 
         
-        public IExpressionNode Visit(NumberSyntaxNode node) => new ValueExpressionNode(node.Value, node.OutputType, node.Interval);
+        public IExpressionNode Visit(ConstantSyntaxNode node) => new ValueExpressionNode(node.Value, node.OutputType, node.Interval);
 
         public IExpressionNode Visit(ProcArrayInit node)
         {
@@ -148,10 +148,6 @@ namespace NFun.Interpritation
             return new RangeWithStepIntFunction().CreateWithConvertionOrThrow(new[] {start, end, step},node.Interval);        }
 
        
-        public IExpressionNode Visit(TextSyntaxNode node)
-            =>
-                new ValueExpressionNode(node.Value, node.Interval);
-    
       
         public IExpressionNode Visit(VariableSyntaxNode node)
             => GetOrAddVariableNode(node);

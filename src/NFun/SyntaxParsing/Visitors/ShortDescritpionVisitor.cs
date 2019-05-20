@@ -1,5 +1,6 @@
 using System.Linq;
 using NFun.SyntaxParsing.SyntaxNodes;
+using NFun.Types;
 
 namespace NFun.SyntaxParsing.Visitors
 {
@@ -18,7 +19,16 @@ namespace NFun.SyntaxParsing.Visitors
             return $"{string.Join(",", strings)}";
         }
 
-        public string Visit(NumberSyntaxNode node) => $"({node.OutputType}){node.Value}";
+        public string Visit(ConstantSyntaxNode node)
+        {
+            if (node.OutputType.Equals(VarType.Text))
+            {
+                var str = node.Value.ToString();
+                return $"'{(str.Length > 20 ? (str.Substring(17) + "...") : str)}'";
+            }
+            return $"{node.Value}";
+        }
+
         public string Visit(ProcArrayInit node)
         {
             var from = node.From.Visit(this);
@@ -32,9 +42,7 @@ namespace NFun.SyntaxParsing.Visitors
 
         public string Visit(SyntaxTree node) => "Fun equations";
 
-        public string Visit(TextSyntaxNode node) 
-            => $"'{(node.Value.Length>20?(node.Value.Substring(17)+"..."):node.Value)}'";
-
+        
         public string Visit(TypedVarDefSyntaxNode node)
             => $"'{node.Id}:{node.VarType}";
 

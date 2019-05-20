@@ -14,10 +14,9 @@ namespace NFun.SyntaxParsing.Visitors
         public virtual VisitorResult Visit(IfThenElseSyntaxNode node)=> DefaultVisit(node);
         public virtual VisitorResult Visit(IfCaseSyntaxNode node)=> DefaultVisit(node);
         public virtual VisitorResult Visit(ListOfExpressionsSyntaxNode node)=> DefaultVisit(node);
-        public virtual VisitorResult Visit(NumberSyntaxNode node)=> DefaultVisit(node);
+        public virtual VisitorResult Visit(ConstantSyntaxNode node)=> DefaultVisit(node);
         public virtual VisitorResult Visit(ProcArrayInit node)=> DefaultVisit(node);
         public virtual VisitorResult Visit(SyntaxTree node)=> DefaultVisit(node);
-        public virtual VisitorResult Visit(TextSyntaxNode node)=> DefaultVisit(node);
         public virtual VisitorResult Visit(TypedVarDefSyntaxNode node)=> DefaultVisit(node);
         public virtual VisitorResult Visit(UserFunctionDefenitionSyntaxNode node)=> DefaultVisit(node);
         public virtual VisitorResult Visit(VarDefenitionSyntaxNode node)=> DefaultVisit(node);
