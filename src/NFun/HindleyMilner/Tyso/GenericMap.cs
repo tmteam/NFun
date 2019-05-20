@@ -5,16 +5,29 @@ namespace NFun.HindleyMilner.Tyso
 {
     public class GenericMap
     {
-        
         public SolvingNode CreateSolvingNode(FType type)
         {
             if (type is GenericType t) 
                 return Get(t.GenericId);
 
-            var args = type.Arguments.Select(
-                a=> CreateSolvingNode(a.MakeType())).ToArray();
+            var args = type.Arguments.Select(MakeStrictNode).ToArray();
+            
+            //var args = type.Arguments.Select(
+            //      a=> CreateSolvingNode(a.MakeType())).ToArray();
             return SolvingNode.CreateStrict(type.Name, args);
         }
+        private SolvingNode MakeStrictNode(SolvingNode node)
+        {
+            var actual = node.GetActualNode();
+            
+            if (actual.Behavior is GenericTypeBehaviour g)
+            {
+                _map.Add(node);
+                return node;
+            }
+            return CreateSolvingNode(actual.MakeType());
+        }
+        
 
         private List<SolvingNode> _map = new List<SolvingNode>();
         public IEnumerable<SolvingNode> Nodes => _map;

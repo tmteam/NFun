@@ -4,9 +4,7 @@ namespace NFun.HindleyMilner.Tyso
 {
     public class GenericTypeBehaviour: INodeBehavior
     {
-        public FType MakeType(int maxTypeDepth) {
-            return new FType(NTypeName.Generic(0));
-        }
+        public FType MakeType(int maxTypeDepth) => new GenericType(0);
 
         public INodeBehavior SetLimit(FType newLimit) => new LimitNodeBehavior(newLimit);
 

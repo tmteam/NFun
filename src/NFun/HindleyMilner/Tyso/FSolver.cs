@@ -60,6 +60,7 @@ namespace NFun.HindleyMilner.Tyso
         }
         public bool SetVarType(string varId, FType type)
         {
+            
             if (_variables.ContainsKey(varId)) 
                 return _variables[varId].SetStrict(type);
             

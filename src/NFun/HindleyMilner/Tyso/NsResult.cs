@@ -75,7 +75,6 @@ namespace NFun.HindleyMilner.Tyso
             var concreteNode = GetConcrete(node, nestedCount-1);
             var beh = concreteNode.Behavior;
             
-            var type = beh.MakeType(nestedCount-1);
             
             if (beh is GenericTypeBehaviour)
             {
@@ -84,6 +83,8 @@ namespace NFun.HindleyMilner.Tyso
                 //Generic type there!
                 return FType.Generic(val);
             }
+            var type = beh.MakeType(nestedCount-1);
+
             SolvingNode[] arguments = type.Arguments
                 .Select(a => SolvingNode.CreateStrict(ConvertToHmType2(a, nestedCount-1)))
                 .ToArray();

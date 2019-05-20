@@ -20,8 +20,8 @@ namespace NFun.HindleyMilner.Tyso
             
             Name = name;
             Arguments = arguments;
-         //   if(IsPrimitiveGeneric && !(this is GenericType))
-         //       throw new InvalidOperationException("Invalid ftype usage");
+            if(IsPrimitiveGeneric && !(this is GenericType))
+                throw new InvalidOperationException("Invalid ftype usage");
         }
         public static FType Int64 => new FType(NTypeName.Int64);
         public static FType Int32 => new FType(NTypeName.Int32);

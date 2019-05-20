@@ -96,6 +96,18 @@ namespace NFun.HindleyMilner.Tyso
             node.SetLimit(int32);
             return node;
         }
+
+        public  SolvingNode GetActualNode(int depth = MaxTypeDepth)
+        {
+            if(depth<0)
+                throw new StackOverflowException("Cycled reference");
+            if (Behavior is ReferenceBehaviour r)
+            {
+                return r.Node.GetActualNode(depth - 1);
+            }
+
+            return this;
+        }
     }
 
     public enum ConvertResults
