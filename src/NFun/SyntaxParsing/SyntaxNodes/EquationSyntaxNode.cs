@@ -24,7 +24,6 @@ namespace NFun.SyntaxParsing.SyntaxNodes
         public VarType OutputType { get; set; }
         public int NodeNumber { get; set; }
         public bool IsInBrackets { get; set; }
-        public SyntaxNodeType Type => SyntaxNodeType.Equation;
         public Interval Interval { get; set; }
         public T Visit<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
         

@@ -24,8 +24,6 @@ namespace NFun.SyntaxParsing.SyntaxNodes
             get { return false; }
             set => throw new System.NotImplementedException();
         }
-
-        public SyntaxNodeType Type => SyntaxNodeType.SyntaxTree;
         public Interval Interval
         {
             get { return Interval.Unite(Nodes.First().Interval, Nodes.Last().Interval); }

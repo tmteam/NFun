@@ -19,7 +19,6 @@ namespace NFun.SyntaxParsing.SyntaxNodes
         }
 
         public bool IsInBrackets { get; set; }
-        public SyntaxNodeType Type => SyntaxNodeType.Fun;
         public string Id { get; }
         public ISyntaxNode[] Args { get; }
         public Interval Interval { get; set; }

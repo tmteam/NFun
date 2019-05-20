@@ -22,9 +22,8 @@ namespace NFun.SyntaxParsing.SyntaxNodes
             Interval = node.Interval;
         }
         public bool IsInBrackets { get; set; }
-        public SyntaxNodeType Type => SyntaxNodeType.GlobalVarDefenition;
         public Interval Interval { get; set; }
-        public override string ToString() => Id + ":" + Type;
+        public override string ToString() => Id + ":" + OutputType;
         public T Visit<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
         public IEnumerable<ISyntaxNode> Children => new ISyntaxNode[0];
 
