@@ -55,7 +55,7 @@ namespace Funny.Tests
         [TestCase("y(x) = ","z"," +x")]
         [TestCase("","y(x,x)","=x+1")]
         [TestCase("","y(x,x,z)","=x+1")]
-        [TestCase("[1.0,2.0].fold(","(i,i)","=>i+1)")]
+        [TestCase("[1.0,2.0].fold((i,","i",")=>i+1)")]
         [TestCase("[1.0,2.0].map((i,","i",")=>i+1)")]
         [TestCase("y = ","min","*3 ")]
         [TestCase("","max","*3 ")]
