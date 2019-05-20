@@ -147,6 +147,25 @@ namespace Funny.Tests
         [TestCase("[a].filter(f=>f>2)")]
         [TestCase("[a].reverse()")]
         [TestCase("[a]")]
+        [TestCase( "y = [-x].all(i=> i < 0.0)")]
+        [TestCase( "y = [x,x].all(i=> i < 0.0)")]
+        [TestCase( "y = [-x,x].all(i=> i < 0.0)")]
+        [TestCase( "y = [1,-x].all(i=> i < 0.0)")]
+        [TestCase( "y = [x,2.0,3.0].all((i)=> i >1.0)")]
+        [TestCase("y = x * -x")]
+        [TestCase("y = -x * x")]
+        [TestCase("y = [-x,x]")]
+        [TestCase("y = [-x]")]
+
+        [TestCase( "y1 = -x \r y2 = -x")]
+        [TestCase( "y1 = x  \r y2 = -x")]
+        [TestCase( "y = [x,-x].all(i=> i < 0.0)")]
+        [TestCase( "y = [-x,-x].all(i=> i < 0.0)")]
+        [TestCase( "z = [-x,-x,-x] \r  y = z.all((i)=> i < 0.0)")]
+        [TestCase( "y = [x, -x]")]
+        [TestCase( "y = [-x,-x,-x].all((i)=> i < 0.0)")]
+        [TestCase( "[x, -x]")]
+
         public void EquationTypes_SolvesSomehow(string expr)
         {
             Assert.DoesNotThrow(()=>FunBuilder.BuildDefault(expr));

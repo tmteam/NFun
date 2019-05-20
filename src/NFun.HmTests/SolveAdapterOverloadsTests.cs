@@ -171,7 +171,37 @@ namespace NFun.HmTests
             Assert.AreEqual(FType.Bool,  res.GetVarType("a"));
             Assert.AreEqual(FType.Any,   res.GetVarType("b"));
         }
-        
+        [Test(Description = "y = -x; | y2 = -x")]
+        public void TwoOutputsEqualToNegativeInputViaOverloads()
+        {
+            //node |2   1 0 | 5   4 3
+            //expr |y = -x; | y2 = -x
+            
+            solver.SetVar( 0,"x");
+            solver.SetOverloadCall(InvertOverloads, 1, 0);
+            solver.SetDefenition("y",2, 1);
+            
+            
+            solver.SetVar( 3,"x");
+            solver.SetOverloadCall(InvertOverloads, 4, 3);
+            solver.SetDefenition("y2",5, 4);
+            
+            var result = solver.Solve();
+            
+            Assert.IsTrue(result.IsSolved);
+            Assert.AreEqual(0, result.GenericsCount);
+            
+            Assert.AreEqual(FType.Real, result.GetVarType("x"));
+            Assert.AreEqual(FType.Real, result.GetVarType("y"));
+            Assert.AreEqual(FType.Real, result.GetVarType("y2"));
+        }
+        private FunSignature[] InvertOverloads =>new[]
+        {
+            new FunSignature(FType.Int32, FType.Int32),
+            new FunSignature(FType.Int64, FType.Int64),
+            new FunSignature(FType.Real, FType.Real),
+
+        };
         private FunSignature[] SummOverloads => new[]
         {
             new FunSignature(FType.Int32, FType.Int32,FType.Int32),

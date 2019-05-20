@@ -116,6 +116,9 @@ namespace NFun.HmTests
         
                
         #endregion
+        
+        
+        
         [Test]
         public void ArithmeticalTypesAreIncostistent_Error()
         {

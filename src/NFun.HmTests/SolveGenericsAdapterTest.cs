@@ -53,6 +53,8 @@ namespace NFun.HmTests
             Assert.AreEqual(FType.Generic(1), result.GetVarType("y2"));
 
         }
+        
+       
         [Test(Description = "y1 = x1; y2 = [x2]")]
         public void ArrayInit_TwoEquationsWithGeneric_GenericElementsFound()
         {
