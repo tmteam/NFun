@@ -49,14 +49,14 @@ namespace NFun.HindleyMilner
                     type = _hmVisitorState.CurrentSolver.SetNewVar(anonymName);
                 }
                 else 
-                    throw new FunParseException(-4, "Unexpected lambda defention",0,0);
+                    throw FunParseException.ErrorStubToDo("Unexpected lambda defention");
 
                 _hmVisitorState.AddVariableAliase(originName, anonymName);
                 argTypes.Add(type);
             }
 
            if(!_hmVisitorState.CurrentSolver.InitLambda(node.NodeNumber, node.Body.NodeNumber, argTypes.ToArray()))
-               throw new FunParseException(-3, "LambdaCannot be iniited", 0,0);
+               throw FunParseException.ErrorStubToDo("LambdaCannot be iniited");
             
             return VisitorResult.Continue;
         }

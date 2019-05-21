@@ -108,7 +108,7 @@ namespace NFun.Interpritation
             var typeSolving = new HmAlgorithmAdapter(functionsDictionary, visitorInitState);
 
             if (!typeSolving.ComeOver(functionSyntaxNode.Body))
-                throw new FunParseException(-4, $"Function '{functionSyntaxNode.Id}' is not solved", 0, 0);
+                throw FunParseException.ErrorStubToDo($"Function '{functionSyntaxNode.Id}' is not solved");
 
             visitorInitState.CurrentSolver.SetFunDefenition(funAlias, functionSyntaxNode.NodeNumber,
                 functionSyntaxNode.Body.NodeNumber);
@@ -116,7 +116,7 @@ namespace NFun.Interpritation
             // solve the types
             var types = typeSolving.Solve();
             if (!types.IsSolved)
-                throw new FunParseException(-4, $"Function '{functionSyntaxNode.Id}' is not solved", 0, 0);
+                throw FunParseException.ErrorStubToDo($"Function '{functionSyntaxNode.Id}' is not solved");
 
             var isGeneric = types.GenericsCount > 0;
             //set types to nodes

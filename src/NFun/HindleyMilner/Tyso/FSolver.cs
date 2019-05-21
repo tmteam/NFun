@@ -209,6 +209,8 @@ namespace NFun.HindleyMilner.Tyso
 
         public static bool Optimize(IList<SolvingNode> nodes)
         {
+            if (nodes.Count == 0)
+                return true;
             for (int i = 0; i < nodes.Count * nodes.Count; i++)
             {
                 bool somethingChanged = false;
