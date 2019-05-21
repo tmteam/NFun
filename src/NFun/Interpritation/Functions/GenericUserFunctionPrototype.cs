@@ -18,7 +18,7 @@ namespace NFun.Interpritation.Functions
         {
             _function = function;
         }
-
+        
         public override FunctionBase CreateConcreteOrNull(params VarType[] concreteArgTypes)
         {
             var solvingParams = new VarType[_maxGenericId+1];
@@ -30,11 +30,10 @@ namespace NFun.Interpritation.Functions
             }
 
             return new ConcreteGenericFunction(
-                calc: _function.Calc, 
-                name: _function.Name,
+                calc: Calc, 
+                name: Name,
                 returnType:  VarType.SubstituteConcreteTypes(SpecifiedType, solvingParams), 
                 argTypes: concreteArgTypes);
-            return _function;
         }
 
         public override object Calc(object[] args) => _function.Calc(args);
