@@ -7,7 +7,7 @@ namespace NFun.Interpritation.Functions
 {
     public abstract class GenericFunctionBase
     {
-        protected int _maxGenericId;
+        protected readonly int _maxGenericId;
         public string Name { get; }
         public VarType[] ArgTypes { get; }
         

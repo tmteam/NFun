@@ -8,7 +8,7 @@ namespace NFun.HindleyMilner.Tyso
             _type = type;
         }
 
-        public FType MakeType(int maxTypeDepth) => _type;
+        public FType MakeType(int maxTypeDepth = SolvingNode.MaxTypeDepth) => _type;
 
         public INodeBehavior SetLimit(FType newLimit)
         {

@@ -83,6 +83,13 @@ namespace NFun.HindleyMilner.Tyso
             return Behavior.CanBeConvertedTo(candidateType, maxDepth);
         }
 
+        
+        public static SolvingNode CreateRefTo(SolvingNode children)
+        {
+            var node = new SolvingNode();
+            node.SetEqualTo(children);
+            return node;
+        }
         public static SolvingNode CreateLca(params SolvingNode[] children)
         {
             var node = new SolvingNode();
@@ -105,7 +112,6 @@ namespace NFun.HindleyMilner.Tyso
             {
                 return r.Node.GetActualNode(depth - 1);
             }
-
             return this;
         }
     }

@@ -64,7 +64,11 @@ namespace NFun.HindleyMilner.Tyso
                     return new GenericTypeBehaviour();
                 return new ReferenceBehaviour(r.Node);
             }
-            o = false;
+
+            if (!Node.Optimize(out o)) {
+                o = false;
+            }
+
             return this;
         }
 

@@ -180,10 +180,11 @@ namespace NFun.HindleyMilner.Tyso
                 return true;
             return solvingA.SetEqualTo(returnType);
         }
+        
         public NsResult Solve()
         {
             //First: Optimize type graph
-            if(!Optimize())
+            if(!Optimize(_originNodes))
                 return NsResult.NotSolvedResult();
             
             //Second: Try append overload calls
@@ -206,13 +207,12 @@ namespace NFun.HindleyMilner.Tyso
                 _variables);
         }
 
-        private bool Optimize()
+        public static bool Optimize(IList<SolvingNode> nodes)
         {
-            
-            for (int i = 0; i < 100; i++)
+            for (int i = 0; i < nodes.Count * nodes.Count; i++)
             {
                 bool somethingChanged = false;
-                foreach (var originNode in _originNodes)
+                foreach (var originNode in nodes)
                 {
                     if (originNode == null) 
                         continue;
@@ -226,10 +226,7 @@ namespace NFun.HindleyMilner.Tyso
             }
             return false;
         }
-        
-
-        
-
+       
         public bool SetNode(int nodeId, SolvingNode closured)
         {
             if (_originNodes.Count > nodeId && _originNodes[nodeId] != null)
@@ -242,17 +239,8 @@ namespace NFun.HindleyMilner.Tyso
             return true;
         }
 
-        public void SetLazyOverloadsCall(OverloadCall overloadCall)
-        {
-            _lazyOverloads.Add(overloadCall);
-        }
+        public void SetLazyOverloadsCall(OverloadCall overloadCall) => _lazyOverloads.Add(overloadCall);
 
-        public void AddAdditionalType(SolvingNode node)
-        {
-            _additionalNodes.Add(node);
-        }
-
-
-
+        public void AddAdditionalType(SolvingNode node) => _additionalNodes.Add(node);
     }
 }

@@ -381,6 +381,7 @@ namespace NFun.HmTests
             solver.SetArithmeticalOp(2, 0, 1);
             solver.SetDefenition("y", 3, 2);
             var solvation = solver.Solve();
+            Assert.IsTrue(solvation.IsSolved);
             Assert.AreEqual(FType.Int32, solvation.GetVarType("y"));
         }
         [Test]
@@ -393,6 +394,7 @@ namespace NFun.HmTests
             solver.SetConst(2, FType.Int32);
             solver.ApplyLcaIf(3, new[] {1}, new[] {0,2});
             solver.SetDefenition("x", 4, 3);
+            
             Assert.AreEqual(FType.Int32, solver.Solve().GetVarType("x"));
         }
         [Test]
@@ -407,6 +409,7 @@ namespace NFun.HmTests
             solver.ApplyLcaIf(3, new[] {1}, new[] {0,2});
             solver.SetDefenition("y", 4, 3);
             var solvation = solver.Solve();
+            Assert.IsTrue(solvation.IsSolved);
 
             Assert.AreEqual(FType.Int32, solvation.GetVarType("y"));
         }
@@ -422,7 +425,8 @@ namespace NFun.HmTests
             Assert.IsTrue(solver.SetDefenition("y", 4, 3));
             
             var solvation = solver.Solve();
-            
+            Assert.IsTrue(solvation.IsSolved);
+
             Assert.AreEqual(0,solvation.GenericsCount);
             Assert.AreEqual(FType.Int32, solvation.GetVarType("y"));
             Assert.AreEqual(FType.Int32, solvation.GetVarType("x"));
@@ -446,7 +450,8 @@ namespace NFun.HmTests
             
             
             var solvation = solver.Solve();
-            
+            Assert.IsTrue(solvation.IsSolved);
+
             Assert.AreEqual(0,solvation.GenericsCount);
             Assert.AreEqual(FType.Real, solvation.GetVarType("y1"));
             Assert.AreEqual(FType.Real, solvation.GetVarType("y2"));
@@ -472,7 +477,8 @@ namespace NFun.HmTests
             solver.SetDefenition("y3",7,6);
 
             var solvation = solver.Solve();
-            
+            Assert.IsTrue(solvation.IsSolved);
+
             Assert.AreEqual(0,solvation.GenericsCount);
             Assert.AreEqual(FType.Int32, solvation.GetVarType("y1"));
             Assert.AreEqual(FType.Int32, solvation.GetVarType("y2"));
@@ -496,7 +502,8 @@ namespace NFun.HmTests
             solver.SetDefenition("y3",7,6);
 
             var solvation = solver.Solve();
-            
+            Assert.IsTrue(solvation.IsSolved);
+
             Assert.AreEqual(0,solvation.GenericsCount);
             Assert.AreEqual(FType.Int32, solvation.GetVarType("y1"));
             Assert.AreEqual(FType.Int32, solvation.GetVarType("y2"));
@@ -529,7 +536,8 @@ namespace NFun.HmTests
             Assert.True(solver.SetDefenition("a", 3, 2));
              
             var solvation = solver.Solve();
-             
+            Assert.IsTrue(solvation.IsSolved);
+
             Assert.AreEqual(FType.Int64, solvation.GetVarType("a"));
         }
         [Test]
@@ -545,7 +553,8 @@ namespace NFun.HmTests
             Assert.True(solver.SetDefenition("a", 3, 2));
              
             var solvation = solver.Solve();
-             
+            Assert.IsTrue(solvation.IsSolved);
+
             Assert.AreEqual(FType.Int64, solvation.GetVarType("a"));
         }
         
@@ -562,6 +571,8 @@ namespace NFun.HmTests
             solver.SetArithmeticalOp(2, 1, 0);
             solver.SetDefenition("y", 3, 2);
             var solvation = solver.Solve();
+            Assert.IsTrue(solvation.IsSolved);
+
             Assert.AreEqual(FType.Int64, solvation.GetVarType("y"));
         }
         [Test]

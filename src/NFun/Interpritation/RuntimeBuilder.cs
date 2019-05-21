@@ -28,12 +28,12 @@ namespace NFun.Interpritation
 
             var algorithm = new HmAlgorithmAdapter(functionsDictionary);
             if(!algorithm.ComeOver(syntaxTree))
-                FunParseException.ErrorStubToDo("Types not solved");
+                throw FunParseException.ErrorStubToDo("Types not solved");
 
             //solve body
             var bodyTypeSolving = algorithm.Solve();
             if(!bodyTypeSolving.IsSolved)    
-                FunParseException.ErrorStubToDo("Types not finaly solved");
+                throw FunParseException.ErrorStubToDo("Types not finaly solved");
 
             foreach (var syntaxNode in syntaxTree.Children)
             {
