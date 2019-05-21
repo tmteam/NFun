@@ -51,7 +51,6 @@ namespace NFun.HmTests
         [Test]
         public void NonRecursive_IfGenericFunction_SingleGenericFound()
         {
-            
             //node |     4   3   0    1      2
             //expr |y(a,b) = if(true) a else b
             var tA = solver.SetNewVar("a");
@@ -72,7 +71,83 @@ namespace NFun.HmTests
             
             Assert.AreEqual(FType.Generic(0), result.GetVarType("a"));
             Assert.AreEqual(FType.Generic(0), result.GetVarType("b"));
-            Assert.AreEqual(FType.GenericFun(3), result.GetVarType("y(2)"));
+            Assert.AreEqual(FType.GenericFun(2), result.GetVarType("y(2)"));
+        }
+        
+        [Test]
+        public void NonRecursive_IfGenericFunctionWithToCases_SingleGenericFound()
+        {
+            //node |       6   5   0    1      2   3       4
+            //expr |y(a,b,c) = if(true) a if(true) b  else c
+            var tA = solver.SetNewVar("a");
+            var tB = solver.SetNewVar("b");
+            var tC = solver.SetNewVar("c");
+
+            var tOut = solver.MakeGeneric();
+            solver.SetVarType("y(3)", FType.Fun(tOut, tA, tB, tC));
+
+            solver.SetConst(0, FType.Bool);
+            solver.SetVar( 1,"a");
+            solver.SetConst(2, FType.Bool);
+            solver.SetVar( 3,"b");
+            solver.SetVar( 4,"c");
+
+            solver.ApplyLcaIf(3, new[] {0,2}, new[] {1, 3,4});
+            
+            solver.SetFunDefenition("y(2)",6, 5);
+            
+            var result = solver.Solve();
+            Assert.IsTrue(result.IsSolved);
+            Assert.AreEqual(1, result.GenericsCount);
+            
+            Assert.AreEqual(FType.Generic(0), result.GetVarType("a"));
+            Assert.AreEqual(FType.Generic(0), result.GetVarType("b"));
+            Assert.AreEqual(FType.Generic(0), result.GetVarType("c"));
+            Assert.AreEqual(FType.GenericFun(3), result.GetVarType("y(3)"));
+        }
+
+        [Test]
+        public void NonRecursive_IfGenericWithArrayFunction_SingleGenericFound()
+        {
+            
+            //node |         8   7   0   3 1 2      6 4 5
+            //expr |y(a,b,c,d) = if(true) [a,c] else [b,d]
+            var tA = solver.SetNewVar("a");
+            var tB = solver.SetNewVar("b");
+            var tC = solver.SetNewVar("c");
+            var tD = solver.SetNewVar("d");
+
+            var tOut = solver.MakeGeneric();
+            solver.SetVarType("y(4)", FType.Fun(tOut, tA, tB, tC, tD));
+
+            solver.SetConst(0, FType.Bool);
+            solver.SetVar( 1,"a");
+            solver.SetVar( 2,"b");
+            solver.SetArrayInit(3, 1, 2);
+            
+            solver.SetVar( 4,"c");
+            solver.SetVar( 5,"d");
+            solver.SetArrayInit(6, 4, 5);
+
+            solver.ApplyLcaIf(7, new[] {0}, new[] {3, 6});
+            
+            solver.SetFunDefenition("y(4)",8, 7);
+            
+            var result = solver.Solve();
+            Assert.IsTrue(result.IsSolved);
+            Assert.AreEqual(1, result.GenericsCount);
+            
+            Assert.AreEqual(FType.Generic(0), result.GetVarType("a"));
+            Assert.AreEqual(FType.Generic(0), result.GetVarType("b"));
+            Assert.AreEqual(FType.Generic(0), result.GetVarType("c"));
+            Assert.AreEqual(FType.Generic(0), result.GetVarType("d"));
+
+            Assert.AreEqual(FType.Fun(
+                FType.ArrayOf(FType.Generic(0)),
+                FType.Generic(0),
+                FType.Generic(0),
+                FType.Generic(0),
+                FType.Generic(0)), result.GetVarType("y(2)"));
         }
         [Test]
         public void NonRecursiveConcreteFunction_solved()
