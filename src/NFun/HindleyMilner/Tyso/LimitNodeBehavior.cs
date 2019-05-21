@@ -57,10 +57,12 @@ namespace NFun.HindleyMilner.Tyso
 
         public INodeBehavior SetReference(SolvingNode otherNode)
         {
-            if (otherNode.Behavior == this)
+            var actual = otherNode.GetActualNode();
+            
+            if (actual.Behavior == this)
                 return this;
-            otherNode.SetLimit(Limit);
-            return new ReferenceBehaviour(otherNode);
+            actual.SetLimit(Limit);
+            return new ReferenceBehaviour(actual);
         }
 
         public INodeBehavior SetGeneric(SolvingNode otherGeneric)

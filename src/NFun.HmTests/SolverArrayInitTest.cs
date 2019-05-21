@@ -116,6 +116,27 @@ namespace NFun.HmTests
             Assert.AreEqual(FType.Real, result.GetVarType("x"));
         }
 
+        [Test(Description = "y = [-x,x]")]
+        public void ArrayInit_WithNegativeInputs3_Solved()
+        {
+            //node |3 0  21
+            //expr | [x, -x]
+
+            solver.SetVar( 0,"x");
+
+            solver.SetVar( 1,"x");
+            Assert.IsTrue(solver.SetNegateOp(2,1));
+
+            Assert.IsTrue(solver.SetArrayInit(3,0,2));
+            
+            var result = solver.Solve();
+            
+            Assert.IsTrue(result.IsSolved);
+            Assert.AreEqual(0, result.GenericsCount);
+            
+            Assert.AreEqual(FType.Real, result.GetVarType("x"));
+        }
+
         [Test(Description = "y = [x]; a = [b,c]")]
         public void ArrayInit_twoComplexEquations_GenericElementsFound()
         {
