@@ -49,17 +49,39 @@ namespace NFun.HindleyMilner.Tyso
                 return null;
             for (int i = 0; i < _type.Arguments.Length ; i++)
             {
-                var thisArgument = _type.Arguments[i];
-                var newArgument = newType.Arguments[i];
-                if (newArgument.Behavior is GenericTypeBehaviour)
-                {
-                    if (!newArgument.SetStrict(thisArgument.MakeType()))
-                        return null;
-                }   
-                else if (!thisArgument.SetStrict(newArgument.MakeType()))
+                var thisArgument = _type.Arguments[i].GetActualNode();
+                var newArgument = newType.Arguments[i].GetActualNode();
+                if (!MergeArguments(newArgument, thisArgument)) 
                     return null;
             }
             return this;
+        }
+
+        private static bool MergeArguments(SolvingNode newArgument, SolvingNode thisArgument)
+        {
+            if (newArgument.Behavior is GenericTypeBehaviour)
+            {
+                if (thisArgument.Behavior is GenericTypeBehaviour)
+                {
+                    //both are generics
+                    if (!thisArgument.SetEqualTo(newArgument))
+                        return false;
+                }
+                else
+                {
+                    if (!newArgument.SetStrict(thisArgument.MakeType()))
+                        return false;
+                }
+            }
+            else if (thisArgument.Behavior is GenericTypeBehaviour)
+            {
+                if (!thisArgument.SetStrict(newArgument.MakeType()))
+                    return false;
+            }
+            else if (!thisArgument.SetStrict(newArgument.MakeType()))
+                return false;
+
+            return true;
         }
 
         public INodeBehavior SetLca(SolvingNode[] otherNodes)

@@ -63,7 +63,19 @@ namespace NFun.HindleyMilner.Tyso
         {
             if (!(obj is FType n))
                 return false;
-            return n.ToString() == ToString();
+            if (!Name.Equals(n.Name))
+                return false;
+            if (Arguments?.Length != n.Arguments?.Length)
+                return false;
+            if (Arguments?.Any() != true)
+                return true;
+            for (int i = 0; i < Arguments.Length; i++)
+            {
+                if (!Arguments[i].MakeType().Equals(n.Arguments[i].MakeType()))
+                    return false;
+            }
+
+            return true;
         }
         
         public bool CanBeSafelyConvertedTo(FType type2)
@@ -76,9 +88,9 @@ namespace NFun.HindleyMilner.Tyso
                 return false;
             for (int i = 0; i < Arguments.Length ; i++)
             {
-                if (!Arguments[i].MakeType(SolvingNode.MaxTypeDepth)
+                if (!Arguments[i].MakeType()
                     .CanBeSafelyConvertedTo(
-                            type2.Arguments[i].MakeType(SolvingNode.MaxTypeDepth)))
+                            type2.Arguments[i].MakeType()))
                     return false;
             }
             return true;

@@ -162,7 +162,7 @@ namespace NFun.HmTests
             Assert.AreEqual(1, result.GenericsCount);
             Assert.AreEqual(tArr, result.GetVarType("a"));
             Assert.AreEqual(FType.Generic(0), result.GetVarType("b"));
-            Assert.AreEqual(FType.Fun(tArr,tArr), result.GetVarType("y(2)"));
+            Assert.AreEqual(FType.Fun(tArr,tArr,FType.Generic(0)), result.GetVarType("y(2)"));
         }
 
         

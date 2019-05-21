@@ -56,5 +56,21 @@ namespace NFun.HindleyMilner.Tyso
         {
             return (obj is NTypeName type) && type.Start == Start && type.Finish == Finish && type.Id== Id;
         }
+
+        protected bool Equals(NTypeName other)
+        {
+            return string.Equals(Id, other.Id) && Start == other.Start && Finish == other.Finish;
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hashCode = (Id != null ? Id.GetHashCode() : 0);
+                hashCode = (hashCode * 397) ^ Start;
+                hashCode = (hashCode * 397) ^ Finish;
+                return hashCode;
+            }
+        }
     }
 }
