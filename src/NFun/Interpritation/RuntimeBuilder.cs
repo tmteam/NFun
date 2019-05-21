@@ -110,8 +110,9 @@ namespace NFun.Interpritation
             if (!typeSolving.ComeOver(functionSyntaxNode.Body))
                 throw FunParseException.ErrorStubToDo($"Function '{functionSyntaxNode.Id}' is not solved");
 
-            visitorInitState.CurrentSolver.SetFunDefenition(funAlias, functionSyntaxNode.NodeNumber,
-                functionSyntaxNode.Body.NodeNumber);
+            if (!visitorInitState.CurrentSolver.SetFunDefenition(funAlias, functionSyntaxNode.NodeNumber,
+                functionSyntaxNode.Body.NodeNumber))
+                 throw FunParseException.ErrorStubToDo($"Function signature '{functionSyntaxNode.Id}' is not solved");
 
             // solve the types
             var types = typeSolving.Solve();
