@@ -42,7 +42,7 @@ namespace NFun.Interpritation
                     continue;
                 
                 //set types to nodes
-                syntaxNode.ComeOver(new ApplyHmResultVisitor(bodyTypeSolving, new RealTypeConverter()));
+                syntaxNode.ComeOver(new ApplyHmResultVisitor(bodyTypeSolving, SolvedTypeConverter.SetGenericsToAny));
             }
             
             var variables = new VariableDictionary(); 
@@ -118,10 +118,11 @@ namespace NFun.Interpritation
             if (!types.IsSolved)
                 throw new FunParseException(-4, $"Function '{functionSyntaxNode.Id}' is not solved", 0, 0);
 
+            var isGeneric = types.GenericsCount>0;
             //set types to nodes
-            functionSyntaxNode.ComeOver(new ApplyHmResultVisitor(types,new RealTypeConverter()));
+            functionSyntaxNode.ComeOver(new ApplyHmResultVisitor(types,SolvedTypeConverter.SetGenericsToAny));
 
-            var funType = types.GetVarType(funAlias, new RealTypeConverter());
+            var funType = types.GetVarType(funAlias, SolvedTypeConverter.SetGenericsToAny);
             //make function prototype
             var prototype = new UserFunctionPrototype(functionSyntaxNode.Id,
                 funType.FunTypeSpecification.Output,

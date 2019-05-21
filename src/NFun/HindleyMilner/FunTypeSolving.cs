@@ -15,11 +15,11 @@ namespace NFun.HindleyMilner
         public int GenericsCount => _result.GenericsCount;
         public bool IsSolved => _result.IsSolved;
 
-        public VarType GetVarType(string varId, ISolvedTypeConverter converter)
+        public VarType GetVarType(string varId, SolvedTypeConverter converter)
             => converter.ToSimpleType( _result.GetVarType(varId));
 
         
-        public VarType GetNodeTypeOrEmpty(int nodeId, ISolvedTypeConverter converter)
+        public VarType GetNodeTypeOrEmpty(int nodeId, SolvedTypeConverter converter)
         {
             var hmType = _result.GetNodeTypeOrNull(nodeId);
             if (hmType == null)
