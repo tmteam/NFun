@@ -4,6 +4,13 @@ namespace NFun.HindleyMilner.Tyso
 {
     public class GenericTypeBehaviour: INodeBehavior
     {
+        private static int lastId = 0;
+        private readonly int id;
+        public GenericTypeBehaviour()
+        {
+            id = lastId;
+            lastId++;
+        }
         public FType MakeType(int maxTypeDepth) => new GenericType(0);
 
         public INodeBehavior SetLimit(FType newLimit) => new LimitNodeBehavior(newLimit);
@@ -48,6 +55,6 @@ namespace NFun.HindleyMilner.Tyso
         public ConvertResults CanBeConvertedTo(FType candidateType, int maxDepth) 
             => ConvertResults.Converable;
 
-        public override string ToString() => "T";
+        public override string ToString() => $"T{id}";
     }
 }

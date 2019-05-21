@@ -97,23 +97,24 @@ namespace NFun.HindleyMilner.Tyso
                     var newNodes = OtherNodes.Where(o => o.Behavior != this).ToArray();
                     return new LcaNodeBehaviour(newNodes);
                 }
-/*
+
                 if (node.Behavior is StrictNodeBehaviour s)
                 {
                     var type = s.MakeType();
                     //Lca for complex type is equality
+                    //todo How to unite complex type arguments?
                     if (!type.IsPrimitive)
                     {
                         var nodes = OtherNodes.Where(o => o != node).ToArray();
                         foreach (var solvingNode in nodes)
                         {
-                            if (!solvingNode.SetStrict(type)) ;
-                            return null;
+                            if (!solvingNode.SetEqualTo(node)) 
+                                return null;
                         }
 
                         return new StrictNodeBehaviour(type);
                     }
-                }*/
+                }
 
                 if (node.Behavior is GenericTypeBehaviour g)
                 {

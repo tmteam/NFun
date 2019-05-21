@@ -90,7 +90,7 @@ namespace NFun.HindleyMilner.Tyso
                 return "...";
             
             if (Arguments.Any())
-                return $"{Name}<{string.Join(",", Arguments.Select(a => a.MakeType(maxDepth-1).ToSmartString(maxDepth-1)))}>";
+                return $"{Name}<{string.Join(",", Arguments.Select(a => a.ToSmartString(maxDepth-1)))}>";
             else
                 return Name.ToString();
 
