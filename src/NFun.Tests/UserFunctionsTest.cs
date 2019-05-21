@@ -8,7 +8,7 @@ using NUnit.Framework;
 namespace Funny.Tests
 {
     [TestFixture]
-    public class CustomFunctionsTest
+    public class ConcreteUserFunctionsTest
     {
         [Test]
         public void TestOfTheTest()

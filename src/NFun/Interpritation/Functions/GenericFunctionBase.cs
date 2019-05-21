@@ -1,12 +1,13 @@
 using System;
 using System.Linq;
+using NFun.ParseErrors;
 using NFun.Types;
 
 namespace NFun.Interpritation.Functions
 {
     public abstract class GenericFunctionBase
     {
-        private int _maxGenericId;
+        protected int _maxGenericId;
         public string Name { get; }
         public VarType[] ArgTypes { get; }
         
@@ -29,7 +30,7 @@ namespace NFun.Interpritation.Functions
         
         public abstract object Calc(object[] args);
 
-        public FunctionBase CreateConcreteOrNull(params VarType[] concreteArgTypes)
+        public virtual FunctionBase CreateConcreteOrNull(params VarType[] concreteArgTypes)
         {
             if (concreteArgTypes.Length != ArgTypes.Length)
                 return null;
@@ -48,24 +49,23 @@ namespace NFun.Interpritation.Functions
                     throw new InvalidOperationException($"Incorrect function defenition: ({string.Join(",", ArgTypes)}) -> {SpecifiedType}). Not all generic types can be solved");
             }     
             return new ConcreteGenericFunction(
-                functionBase: this, 
+                this.Calc, Name, 
                 returnType:  VarType.SubstituteConcreteTypes(SpecifiedType, solvingParams), 
                 argTypes: concreteArgTypes);
         }
      
      
-        class ConcreteGenericFunction: FunctionBase
+        public class ConcreteGenericFunction: FunctionBase
         {
-            private readonly GenericFunctionBase _functionBase;
+            private Func<object[], object> _calc;
 
-            public ConcreteGenericFunction(GenericFunctionBase functionBase,  VarType returnType, params VarType[] argTypes) 
-                : base(functionBase+"_"+ string.Join("->", argTypes)+"->"+returnType, returnType, argTypes)
+            public ConcreteGenericFunction(Func<object[],object> calc, string name,  VarType returnType, params VarType[] argTypes) 
+                : base(name+"_"+ string.Join("->", argTypes)+"->"+returnType, returnType, argTypes)
             {
-                _functionBase = functionBase;
+                _calc = calc;
             }
 
-            public override object Calc(object[] args)
-                =>_functionBase.Calc(args);
+            public override object Calc(object[] args) => _calc(args);
         }
     }
 }

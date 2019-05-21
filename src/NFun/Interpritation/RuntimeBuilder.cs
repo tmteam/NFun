@@ -106,34 +106,72 @@ namespace NFun.Interpritation
 
             //solving each function
             var typeSolving = new HmAlgorithmAdapter(functionsDictionary, visitorInitState);
-            
-            if(!typeSolving.ComeOver(functionSyntaxNode.Body))
+
+            if (!typeSolving.ComeOver(functionSyntaxNode.Body))
                 throw new FunParseException(-4, $"Function '{functionSyntaxNode.Id}' is not solved", 0, 0);
-            
+
             visitorInitState.CurrentSolver.SetFunDefenition(funAlias, functionSyntaxNode.NodeNumber,
                 functionSyntaxNode.Body.NodeNumber);
-            
+
             // solve the types
             var types = typeSolving.Solve();
             if (!types.IsSolved)
                 throw new FunParseException(-4, $"Function '{functionSyntaxNode.Id}' is not solved", 0, 0);
 
-            var isGeneric = types.GenericsCount>0;
+            var isGeneric = types.GenericsCount > 0;
             //set types to nodes
-            functionSyntaxNode.ComeOver(new ApplyHmResultVisitor(types,SolvedTypeConverter.SetGenericsToAny));
-
-            var funType = types.GetVarType(funAlias, SolvedTypeConverter.SetGenericsToAny);
-            //make function prototype
-            var prototype = new UserFunctionPrototype(functionSyntaxNode.Id,
-                funType.FunTypeSpecification.Output,
-                funType.FunTypeSpecification.Inputs);
-            //add prototype to dictionary for future use
-            functionsDictionary.Add(prototype);
-            BuildFunction(functionSyntaxNode, prototype, functionsDictionary);
+            functionSyntaxNode.ComeOver(new ApplyHmResultVisitor(types, SolvedTypeConverter.SaveGenerics));
+            var funType = types.GetVarType(funAlias, SolvedTypeConverter.SaveGenerics);
+            
+            if (isGeneric)
+            {
+                var prototype = new GenericUserFunctionPrototype(functionSyntaxNode.Id,
+                    funType.FunTypeSpecification.Output,
+                    funType.FunTypeSpecification.Inputs);
+                //add prototype to dictionary for future use
+                functionsDictionary.Add(prototype);
+                BuildGenericFunction(functionSyntaxNode, prototype, functionsDictionary);
+            }
+            else
+            {
+                //make function prototype
+                var prototype = new ConcreteUserFunctionPrototype(functionSyntaxNode.Id,
+                    funType.FunTypeSpecification.Output,
+                    funType.FunTypeSpecification.Inputs);
+                //add prototype to dictionary for future use
+                functionsDictionary.Add(prototype);
+                BuildConcreteFunction(functionSyntaxNode, prototype, functionsDictionary);
+            }
         }
-        private static void BuildFunction(
+
+        private static void BuildGenericFunction(
             UserFunctionDefenitionSyntaxNode lexFunction, 
-            UserFunctionPrototype prototype, 
+            GenericUserFunctionPrototype prototype, 
+            FunctionsDictionary functionsDictionary)
+        {
+            var vars = new VariableDictionary();
+            for (int i = 0; i < lexFunction.Args.Count ; i++)
+            {
+                var id = lexFunction.Args[i].Id;
+                if (!vars.TryAdd(new VariableSource(id, prototype.ArgTypes[i])))
+                {
+                    throw ErrorFactory.FunctionArgumentDuplicates(lexFunction, lexFunction.Args[i]);
+                }
+
+            }
+            var expression = ExpressionBuilderVisitor
+                .BuildExpression(lexFunction.Body, functionsDictionary, vars);
+            
+            ExpressionHelper.CheckForUnknownVariables(
+                lexFunction.Args.Select(a=>a.Id).ToArray(), vars);
+            
+            var function = new UserFunction(lexFunction.Id, vars.GetAllSources(), expression);
+            prototype.SetActual(function, lexFunction.Interval);
+        }
+        
+        private static void BuildConcreteFunction(
+            UserFunctionDefenitionSyntaxNode lexFunction, 
+            ConcreteUserFunctionPrototype prototype, 
             FunctionsDictionary functionsDictionary)
         {
             var vars = new VariableDictionary();

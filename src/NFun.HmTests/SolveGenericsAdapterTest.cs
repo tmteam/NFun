@@ -51,9 +51,29 @@ namespace NFun.HmTests
             
             Assert.AreEqual(FType.Generic(1), result.GetVarType("x2"));
             Assert.AreEqual(FType.Generic(1), result.GetVarType("y2"));
-
         }
         
+        [Test]
+        public void TwoGenericsUniteByIf_SingleGenericFound()
+        {
+            //node |4   3   0    1      2
+            //expr |y = if(true) a else b
+            solver.SetConst(0, FType.Bool);
+            
+            solver.SetVar( 1,"a");
+            solver.SetVar( 2,"b");
+            solver.ApplyLcaIf(3, new[] {0}, new[] {1, 2});
+            
+            solver.SetDefenition("y",4, 3);
+            
+            var result = solver.Solve();
+            Assert.IsTrue(result.IsSolved);
+            Assert.AreEqual(1, result.GenericsCount);
+            
+            Assert.AreEqual(FType.Generic(0), result.GetVarType("a"));
+            Assert.AreEqual(FType.Generic(0), result.GetVarType("b"));
+            Assert.AreEqual(FType.Generic(0), result.GetVarType("y"));
+        }
        
         [Test(Description = "y1 = x1; y2 = [x2]")]
         public void ArrayInit_TwoEquationsWithGeneric_GenericElementsFound()

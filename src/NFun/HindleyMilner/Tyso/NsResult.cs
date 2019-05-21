@@ -90,6 +90,7 @@ namespace NFun.HindleyMilner.Tyso
                 .ToArray();
             if(type.Name.Equals(NTypeName.SomeInteger))
                 return new FType(NTypeName.Int32);
+            
             return new FType(type.Name, arguments);
             
         }

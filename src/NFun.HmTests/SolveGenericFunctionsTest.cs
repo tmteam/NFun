@@ -3,7 +3,7 @@ using NUnit.Framework;
 
 namespace NFun.HmTests
 {
-    public class SolveRecursiveFunctionsTest
+    public class SolveGenericFunctionsTest
     {
         private NsHumanizerSolver solver;
 
@@ -47,6 +47,32 @@ namespace NFun.HmTests
             Assert.IsTrue(res.IsSolved);
             Assert.AreEqual(FType.Fun(FType.Generic(0), FType.Generic(0)), res.GetVarType("f(1)"));
             Assert.AreEqual(FType.Generic(0), res.GetVarType("f(1) a"));
+        }
+        [Test]
+        public void NonRecursive_IfGenericFunction_SingleGenericFound()
+        {
+            
+            //node |     4   3   0    1      2
+            //expr |y(a,b) = if(true) a else b
+            var tA = solver.SetNewVar("a");
+            var tB = solver.SetNewVar("b");
+            var tOut = solver.MakeGeneric();
+            solver.SetVarType("y(2)", FType.Fun(tOut, tA, tB));
+
+            solver.SetConst(0, FType.Bool);
+            solver.SetVar( 1,"a");
+            solver.SetVar( 2,"b");
+            solver.ApplyLcaIf(3, new[] {0}, new[] {1, 2});
+            
+            solver.SetFunDefenition("y(2)",4, 3);
+            
+            var result = solver.Solve();
+            Assert.IsTrue(result.IsSolved);
+            Assert.AreEqual(1, result.GenericsCount);
+            
+            Assert.AreEqual(FType.Generic(0), result.GetVarType("a"));
+            Assert.AreEqual(FType.Generic(0), result.GetVarType("b"));
+            Assert.AreEqual(FType.GenericFun(3), result.GetVarType("y(2)"));
         }
         [Test]
         public void NonRecursiveConcreteFunction_solved()

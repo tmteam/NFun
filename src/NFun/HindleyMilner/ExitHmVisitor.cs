@@ -105,7 +105,7 @@ namespace NFun.HindleyMilner
                 return _state.CurrentSolver.SetCall(ToCallDef(node, candidates[0]));
 
             //User functions get priority
-            var userFunctions = candidates.Where(c => c is UserFunctionPrototype).ToList();
+            var userFunctions = candidates.Where(c => c is ConcreteUserFunctionPrototype).ToList();
             if (userFunctions.Count == 1)
                 return _state.CurrentSolver.SetCall(ToCallDef(node, userFunctions[0]));
             
@@ -147,7 +147,7 @@ namespace NFun.HindleyMilner
                 return _state.CurrentSolver.SetVar(node.NodeNumber, originId);
             
             var userFunctions 
-                = _dictionary.GetNonGeneric(originId).OfType<UserFunctionPrototype>().ToList();
+                = _dictionary.GetNonGeneric(originId).OfType<ConcreteUserFunctionPrototype>().ToList();
             
             //ambiguous function reference
             //Several functions fits
