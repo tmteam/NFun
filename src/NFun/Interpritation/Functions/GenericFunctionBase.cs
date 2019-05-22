@@ -11,14 +11,14 @@ namespace NFun.Interpritation.Functions
         public string Name { get; }
         public VarType[] ArgTypes { get; }
         
-        protected GenericFunctionBase(string name, VarType specifiedType, params VarType[] argTypes)
+        protected GenericFunctionBase(string name, VarType returnType, params VarType[] argTypes)
         {
             
             Name = name;
             ArgTypes = argTypes;
-            SpecifiedType = specifiedType;
+            ReturnType = returnType;
             var maxGenericId  = argTypes
-                .Append(specifiedType)
+                .Append(returnType)
                 .Max(i => i.SearchMaxGenericTypeId());
             if(!maxGenericId.HasValue)
                 throw new InvalidOperationException($"Type {name} has wrong generic defenition");
@@ -26,7 +26,7 @@ namespace NFun.Interpritation.Functions
             _maxGenericId = maxGenericId.Value;
         }
         
-        public VarType SpecifiedType { get; }
+        public VarType ReturnType { get; }
         
         public abstract object Calc(object[] args);
 
@@ -37,14 +37,6 @@ namespace NFun.Interpritation.Functions
             
             var solvingParams = new VarType[_maxGenericId+1];
 
-            if (!VarType.TrySolveGenericTypes(
-                genericArguments: solvingParams, 
-                genericType: SpecifiedType, 
-                concreteType: outputType, 
-                strict:true))
-                
-                return null;
-            
             for (int i = 0; i < ArgTypes.Length; i++)
             {
                 if (!VarType.TrySolveGenericTypes(
@@ -55,25 +47,38 @@ namespace NFun.Interpritation.Functions
                     ))
                     return null;
             }
+            
+            if (!VarType.TrySolveGenericTypes(
+                genericArguments: solvingParams, 
+                genericType: ReturnType, 
+                concreteType: outputType, 
+                strict:true))
+                return null;
 
             foreach (var solvingParam in solvingParams)
             {
                 if(solvingParam.BaseType== BaseVarType.Empty)
-                    throw new InvalidOperationException($"Incorrect function defenition: ({string.Join(",", ArgTypes)}): {SpecifiedType}). Not all generic types can be solved");
+                    throw new InvalidOperationException($"Incorrect function defenition: {TypeHelper.GetFunSignature(ReturnType,ArgTypes)}. Not all generic types can be solved");
             }     
+            
             return new ConcreteGenericFunction(
-                this.Calc, Name, 
-                returnType:  VarType.SubstituteConcreteTypes(SpecifiedType, solvingParams), 
-                argTypes: concreteArgTypes);
+                calc: Calc, 
+                name: Name, 
+                returnType:  VarType.SubstituteConcreteTypes(ReturnType, solvingParams), 
+                argTypes: ArgTypes.Select(a=>VarType.SubstituteConcreteTypes(a,solvingParams))
+                    .ToArray());
         }
-     
-     
+
+        public override string ToString()
+            => TypeHelper.GetFunSignature(Name, ReturnType, ArgTypes);
+
+
         public class ConcreteGenericFunction: FunctionBase
         {
             private Func<object[], object> _calc;
 
             public ConcreteGenericFunction(Func<object[],object> calc, string name,  VarType returnType, params VarType[] argTypes) 
-                : base(name+"_"+ string.Join("->", argTypes)+"->"+returnType, returnType, argTypes)
+                : base(TypeHelper.GetFunSignature(name,returnType,argTypes), returnType, argTypes)
             {
                 _calc = calc;
             }

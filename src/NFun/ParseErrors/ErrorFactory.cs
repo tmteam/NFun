@@ -438,7 +438,7 @@ namespace NFun.ParseErrors
         public static Exception FunctionNotFound(FunCallSyntaxNode node,FunctionsDictionary functions)
         {
             return new FunParseException(524,
-                $"Function {node.Id}({string.Join(",", node.Children.Select(c => c.OutputType))}):{node.OutputType}  is not defined",
+                $"Function {TypeHelper.GetFunSignature(node.Id,node.OutputType, node.Children.Select(c=>c.OutputType))} is not defined",
                 node.Interval);
         }
 

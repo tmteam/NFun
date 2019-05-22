@@ -107,6 +107,69 @@ namespace Funny.Tests.UnitTests
                 CollectionAssert.AreEquivalent(new[]{VarType.ArrayOf(arrayOfBool), VarType.Int32}, function.ArgTypes);
             });
         }
+        [TestCase(BaseVarType.Real,BaseVarType.Int32,BaseVarType.Int32)]
+        [TestCase(BaseVarType.Real,BaseVarType.Real,BaseVarType.Int32)]
+        [TestCase(BaseVarType.Real,BaseVarType.Int32,BaseVarType.Real)]
+
+        [TestCase(BaseVarType.Int32,BaseVarType.Int32,BaseVarType.Int32)]
+        [TestCase(BaseVarType.Int64,BaseVarType.Int32,BaseVarType.Int32)]
+        [TestCase(BaseVarType.Any,  BaseVarType.Int32,BaseVarType.Int32)]
+        public void GetRnd_GenericEqualsOutputType(
+            BaseVarType returnType, BaseVarType firstArg, BaseVarType secondArg)
+        {
+            var rpt = new GetRandomElementFuncDefenition();
+            var function = rpt.CreateConcreteOrNull(
+                VarType.PrimitiveOf(returnType),
+                VarType.PrimitiveOf(firstArg), 
+                VarType.PrimitiveOf(secondArg));
+            var generic = VarType.PrimitiveOf(returnType);
+            Assert.IsNotNull(function);
+            Assert.Multiple(() =>
+            {
+                Assert.AreEqual(generic, function.ReturnType);
+                CollectionAssert.AreEquivalent(new[]{generic, generic}, function.ArgTypes);
+            });
+        }
+        [TestCase(BaseVarType.Int32,BaseVarType.Real,BaseVarType.Int32)]
+        [TestCase(BaseVarType.Int32,BaseVarType.Int32,BaseVarType.Real)]
+        [TestCase(BaseVarType.Int64,BaseVarType.Int32,BaseVarType.Real)]
+        [TestCase(BaseVarType.Real,BaseVarType.Any,BaseVarType.Real)]
+        public void GetRnd_ArgAreIncostistent_ReturnsNull(
+            BaseVarType returnType, BaseVarType firstArg, BaseVarType secondArg)
+        {
+            var rpt = new GetRandomElementFuncDefenition();
+            var function = rpt.CreateConcreteOrNull(
+                VarType.PrimitiveOf(returnType),
+                VarType.PrimitiveOf(firstArg), 
+                VarType.PrimitiveOf(secondArg));
+            Assert.IsNull(function);
+        }
+        
+        [Test]
+        public void GetRnd_RealInt_Real_GenericEqualsReal()
+        {
+            var rpt = new GetRandomElementFuncDefenition();
+            var function = rpt.CreateConcreteOrNull(
+                VarType.Real,
+                VarType.Int32, 
+                VarType.Int32);
+            Assert.IsNotNull(function);
+            Assert.Multiple(() =>
+            {
+                Assert.AreEqual(VarType.Real, function.ReturnType);
+                CollectionAssert.AreEquivalent(new[]{VarType.Real, VarType.Real}, function.ArgTypes);
+            });
+        }
+    }
+
+    public class GetRandomElementFuncDefenition : GenericFunctionBase
+    {
+        public GetRandomElementFuncDefenition() : base("__retSelf",
+            VarType.Generic(0), VarType.Generic(0),VarType.Generic(0))
+        {
+        }
+
+        public override object Calc(object[] args) => throw new NotImplementedException();
     }
     public class ReturnSelfGenericFunctionDefenition : GenericFunctionBase
     {

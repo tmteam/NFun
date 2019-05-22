@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using NFun.Interpritation.Nodes;
 using NFun.Tokenization;
 using NFun.Types;
@@ -40,6 +41,9 @@ namespace NFun.Interpritation.Functions
 
             return new FunExpressionNode(this, castedChildren.ToArray(),interval);
         }
+
+        public override string ToString() 
+            => $"fun {TypeHelper.GetFunSignature(Name, ReturnType, ArgTypes)}";
     }
         
    

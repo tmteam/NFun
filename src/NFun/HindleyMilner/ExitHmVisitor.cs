@@ -183,7 +183,7 @@ namespace NFun.HindleyMilner
         private static CallDef ToCallDef(FunCallSyntaxNode node, GenericFunctionBase fun)
         {
             var ids = new[] {node.NodeNumber}.Concat(node.Args.Select(a => a.NodeNumber)).ToArray();
-            var types = new[] {fun.SpecifiedType}.Concat(fun.ArgTypes).Select(AdpterHelper.ConvertToHmType).ToArray();
+            var types = new[] {fun.ReturnType}.Concat(fun.ArgTypes).Select(AdpterHelper.ConvertToHmType).ToArray();
 
             var callDef = new CallDef(types, ids);
             return callDef;

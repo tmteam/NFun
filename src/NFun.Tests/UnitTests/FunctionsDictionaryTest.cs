@@ -242,8 +242,8 @@ namespace Funny.Tests.UnitTests
     {
         public GenericFunMock(
             string name, 
-            VarType specifiedType, 
-            params VarType[] argTypes) : base(name, specifiedType, argTypes)
+            VarType returnType, 
+            params VarType[] argTypes) : base(name, returnType, argTypes)
         {
         }
 

@@ -10,7 +10,7 @@ namespace NFun.Interpritation.Functions
         private UserFunction _function;
 
         public GenericUserFunctionPrototype(
-            string name, VarType specifiedType, params VarType[] argTypes) : base(name, specifiedType, argTypes)
+            string name, VarType returnType, params VarType[] argTypes) : base(name, returnType, argTypes)
         {
             
         }

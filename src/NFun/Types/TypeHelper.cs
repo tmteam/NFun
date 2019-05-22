@@ -1,9 +1,15 @@
+using System.Collections;
+using System.Collections.Generic;
 using NFun.Runtime;
 
 namespace NFun.Types
 {
     public static class TypeHelper
     {
+        public static string GetFunSignature<T>(string name, T returnType, IEnumerable<T> arguments)
+            => name + "(" + string.Join(",", arguments) + "):" + returnType;
+        public static string GetFunSignature<T>(T returnType, IEnumerable<T> arguments)
+            => "(" + string.Join(",", arguments) + "):" + returnType;
         public static object Unbox(this object o)
         {
             if (o is IFunConvertable f)

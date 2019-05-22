@@ -255,8 +255,6 @@ namespace NFun.HmTests
             Assert.AreEqual(FType.Real, solvation.GetNodeType(2));
         }
         
-
-        
         [Test]
         public void GenericCalcFirst_ThenMoreStrictLimit_GenericSolved()
         {
@@ -273,7 +271,7 @@ namespace NFun.HmTests
              
             var solvation = solver.Solve();
              
-            Assert.AreEqual(FType.Real, solvation.GetVarType("a"));
+            Assert.AreEqual(FType.Int32, solvation.GetVarType("a"));
             Assert.AreEqual(FType.Real, solvation.GetVarType("b"));
         }
         

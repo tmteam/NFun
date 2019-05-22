@@ -162,11 +162,15 @@ namespace NFun.Types
                     }
                     else if (genericArguments[id] != concreteType)
                     {
+                        if (genericArguments[id].CanBeConvertedTo(concreteType)) {
+                            genericArguments[id] = concreteType;
+                            return true;
+                        }
+                        
                         if (strict)
                             return false;
-                        if (genericArguments[id].CanBeConvertedTo(concreteType))
-                            genericArguments[id] = concreteType;
-                        else
+                        
+                        if(!concreteType.CanBeConvertedTo(genericArguments[id]))
                             return false;
                     }
 
