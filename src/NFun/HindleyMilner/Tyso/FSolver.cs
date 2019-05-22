@@ -162,7 +162,9 @@ namespace NFun.HindleyMilner.Tyso
             if (type is GenericType t)
             {
                 var generic = genericsContext.Get(t.GenericId);
-                return GetOrCreate(nodeId).SetEqualTo(generic);
+                return generic.SetLca(new[]{GetOrCreate(nodeId)});
+                
+                //return GetOrCreate(nodeId).SetEqualTo(generic);
             }
             var solvingNode = genericsContext.CreateSolvingNode(type);
             return GetOrCreate(nodeId).SetLimit(solvingNode.MakeType());

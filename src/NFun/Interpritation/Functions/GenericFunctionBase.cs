@@ -30,23 +30,36 @@ namespace NFun.Interpritation.Functions
         
         public abstract object Calc(object[] args);
 
-        public virtual FunctionBase CreateConcreteOrNull(params VarType[] concreteArgTypes)
+        public FunctionBase CreateConcreteOrNull(VarType outputType, params VarType[] concreteArgTypes)
         {
             if (concreteArgTypes.Length != ArgTypes.Length)
                 return null;
             
             var solvingParams = new VarType[_maxGenericId+1];
 
+            if (!VarType.TrySolveGenericTypes(
+                genericArguments: solvingParams, 
+                genericType: SpecifiedType, 
+                concreteType: outputType, 
+                strict:true))
+                
+                return null;
+            
             for (int i = 0; i < ArgTypes.Length; i++)
             {
-                if (!VarType.TrySolveGenericTypes(solvingParams, ArgTypes[i], concreteArgTypes[i]))
+                if (!VarType.TrySolveGenericTypes(
+                    genericArguments: solvingParams, 
+                    genericType: ArgTypes[i], 
+                    concreteType: concreteArgTypes[i],
+                    strict: false
+                    ))
                     return null;
             }
 
             foreach (var solvingParam in solvingParams)
             {
                 if(solvingParam.BaseType== BaseVarType.Empty)
-                    throw new InvalidOperationException($"Incorrect function defenition: ({string.Join(",", ArgTypes)}) -> {SpecifiedType}). Not all generic types can be solved");
+                    throw new InvalidOperationException($"Incorrect function defenition: ({string.Join(",", ArgTypes)}): {SpecifiedType}). Not all generic types can be solved");
             }     
             return new ConcreteGenericFunction(
                 this.Calc, Name, 

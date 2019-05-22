@@ -278,6 +278,44 @@ namespace NFun.HmTests
         }
         
         [Test]
+        public void Generic_callOfTwoTypes_GenericTypeEqualToBaseType()
+        {
+            //3     2  0  1
+            //a = rnd( 0.1, 1) 
+
+            solver.SetConst(0,FType.Real);
+            solver.SetConst(1,FType.Int32);
+            solver.SetCall(new CallDef(FType.Generic(0), new[] {2, 0, 1}));
+            Assert.True(solver.SetDefenition("a", 3, 2));
+             
+            var solvation = solver.Solve();
+            Assert.AreEqual(0, solvation.GenericsCount);             
+            Assert.IsTrue(solvation.IsSolved);             
+            Assert.AreEqual(FType.Real, solvation.GetVarType("a"));
+        }
+        
+        
+        [Test]
+        public void Generic_callOfTwoTypesReversed_GenericTypeEqualToBaseType()
+        {
+            //3     2  0  1
+            //a = rnd(1,0.1) 
+
+            solver.SetConst(0,FType.Int32);
+            solver.SetConst(1,FType.Real);
+            Assert.True(solver.SetCall(new CallDef(FType.Generic(0), new[] {2, 0, 1})));
+            Assert.True(solver.SetDefenition("a", 3, 2));
+             
+            var solvation = solver.Solve();
+            Assert.AreEqual(0, solvation.GenericsCount);             
+            Assert.IsTrue(solvation.IsSolved);             
+
+            Assert.AreEqual(FType.Real, solvation.GetVarType("a"));
+        }
+        
+        
+        
+        [Test]
         public void GenericFirst_LimitSetAfter_OriginGenericSolved()
         {
             // 2   0  1    4   3   

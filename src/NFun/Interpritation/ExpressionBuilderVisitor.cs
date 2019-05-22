@@ -101,7 +101,10 @@ namespace NFun.Interpritation
                 childrenTypes.Add(argNode.Type);
             }
 
-            var function = _functions.GetOrNull(id, childrenTypes.ToArray());
+            var function = _functions.GetOrNull(
+                name: id, 
+                returnType: node.OutputType,
+                args: childrenTypes.ToArray());
             if (function == null)
                 throw ErrorFactory.FunctionNotFound( node.Id, node.Interval, children, _functions);
             return function.CreateWithConvertionOrThrow(children, node.Interval);

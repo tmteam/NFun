@@ -61,16 +61,16 @@ namespace NFun.Interpritation
                 return res;
             return new FunctionBase[0];
         }
-        public FunctionBase GetOrNull(string name, params VarType[] args)
+        public FunctionBase GetOrNull(string name,VarType returnType, params VarType[] args)
         {
             //If there is no function with specified name
             if (!_functions.TryGetValue(name, out var funs)) 
-                return GetOrNullGenerics(name,args);
+                return GetOrNullGenerics(name,returnType, args);
 
             //Filter functions with specified arguments count
             var filtered = funs.Where(f => f.ArgTypes.Length == args.Length).ToArray();
             if (!filtered.Any())
-                return GetOrNullGenerics(name,args);
+                return GetOrNullGenerics(name,returnType,args);
             
             
             //Search full match:
@@ -78,7 +78,7 @@ namespace NFun.Interpritation
             if (fullMatch.Length == 1)
                 return fullMatch.First();
             //Then search generics
-            var genericFun = GetOrNullGenerics(name, args);
+            var genericFun = GetOrNullGenerics(name,returnType, args);
             if (genericFun != null)
                 return genericFun;
             //If concrete candidate is only one - try to cast it
@@ -111,7 +111,7 @@ namespace NFun.Interpritation
                 return null;
             return winner;
         }
-        private FunctionBase GetOrNullGenerics(string name, params VarType[] args)
+        private FunctionBase GetOrNullGenerics(string name, VarType returnType, params VarType[] args)
         {
             //If there is no function with specified name
             if (!_genericFunctions.TryGetValue(name, out var funs)) 
@@ -123,8 +123,9 @@ namespace NFun.Interpritation
                 return null;
             
             var res =  filtered
-                  .Select(f => f.CreateConcreteOrNull(args))
-                  .Where(f => f != null);
+                  .Select(f => f.CreateConcreteOrNull(returnType, args))
+                  .Where(f => f != null)
+                  .ToList();
             if (res.Count() != 1)
                 return null;
             return res.First();
