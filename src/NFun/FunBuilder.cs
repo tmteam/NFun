@@ -113,8 +113,6 @@ namespace NFun
                 new MoreRealFunction(), 
                 new MoreOrEqualIntFunction(), 
                 new MoreOrEqualRealFunction(), 
-                new BitShiftLeftFunction(), 
-                new BitShiftRightFunction(), 
                 new AbsOfRealFunction(),
                 new AbsOfIntFunction(),
                 
@@ -130,14 +128,25 @@ namespace NFun
                 new NegateOfInt32Function(), 
                 new NegateOfInt64Function(), 
                 new NegateOfRealFunction(), 
-
                 
                 new SubstractIntFunction(), 
                 new SubstractRealFunction(), 
+
+                new BitShiftLeftInt32Function(), 
+                new BitShiftLeftInt64Function(), 
+                new BitShiftRightInt32Function(),
+                new BitShiftRightInt64Function(),
+
                 new BitAndIntFunction(),
+                new BitAndInt64Function(),
                 new BitOrIntFunction(),
+                new BitOrInt64Function(),
                 new BitXorIntFunction(),
+                new BitXorInt64Function(),
                 new BitInverseIntFunction(), 
+                new BitInverseInt64Function(), 
+
+                
                 new PowRealFunction(), 
                 new MultiplyIntFunction(), 
                 new MultiplyRealFunction(), 
