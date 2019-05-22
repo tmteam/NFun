@@ -435,12 +435,11 @@ namespace NFun.ParseErrors
         public static Exception CannotParseNumber(string val, Interval interval)
             => new FunParseException(521, $"Cannot parse number '{val}'", interval);
 
-        public static Exception FunctionNotFound(string name, Interval interval, List<IExpressionNode> children,
-            FunctionsDictionary functions)
+        public static Exception FunctionNotFound(FunCallSyntaxNode node,FunctionsDictionary functions)
         {
             return new FunParseException(524,
-                $"Function {name}({string.Join(", ", children.Select(c => c.Type))}) is not defined",
-                interval);
+                $"Function {node.Id}({string.Join(",", node.Children.Select(c => c.OutputType))}):{node.OutputType}  is not defined",
+                node.Interval);
         }
 
         public static Exception UnknownVariables(IEnumerable<VariableExpressionNode> values)

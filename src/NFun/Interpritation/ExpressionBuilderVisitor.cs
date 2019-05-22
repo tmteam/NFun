@@ -106,7 +106,7 @@ namespace NFun.Interpritation
                 returnType: node.OutputType,
                 args: childrenTypes.ToArray());
             if (function == null)
-                throw ErrorFactory.FunctionNotFound( node.Id, node.Interval, children, _functions);
+                throw ErrorFactory.FunctionNotFound(node, _functions);
             return function.CreateWithConvertionOrThrow(children, node.Interval);
         }
 
