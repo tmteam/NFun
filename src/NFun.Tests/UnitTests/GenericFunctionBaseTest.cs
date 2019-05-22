@@ -14,7 +14,7 @@ namespace Funny.Tests.UnitTests
         public void ReturnSelfFunction_PrimitiveType_ResultTypesAreCorrect()
         {
             var rpt = new ReturnSelfGenericFunctionDefenition();
-            var function = rpt.CreateConcreteOrNull(VarType.Bool);
+            var function = rpt.CreateConcreteOrNull(VarType.Bool,VarType.Bool);
             Assert.Multiple(() =>
             {
                 Assert.AreEqual(VarType.Bool, function.ReturnType);
@@ -25,13 +25,14 @@ namespace Funny.Tests.UnitTests
         [Test]
         public void ReturnSelfFunction_ArrayType_ResultTypesAreCorrect()
         {
-            var genericArgument = VarType.ArrayOf(VarType.Bool);
+            var arrayOfBool = VarType.ArrayOf(VarType.Bool);
             var rpt = new ReturnSelfGenericFunctionDefenition();
-            var function = rpt.CreateConcreteOrNull(genericArgument);
+            var function = rpt.CreateConcreteOrNull(arrayOfBool,arrayOfBool);
+            Assert.IsNotNull(function);
             Assert.Multiple(() =>
             {
-                Assert.AreEqual(genericArgument, function.ReturnType);
-                CollectionAssert.AreEquivalent(new[]{genericArgument}, function.ArgTypes);
+                Assert.AreEqual(arrayOfBool, function.ReturnType);
+                CollectionAssert.AreEquivalent(new[]{arrayOfBool}, function.ArgTypes);
             });
         }
         
@@ -39,7 +40,7 @@ namespace Funny.Tests.UnitTests
         public void Repeat_PrimitiveType_ResultTypesAreCorrect()
         {
             var rpt = new RepeatGenericFunctionDefenition();
-            var function = rpt.CreateConcreteOrNull(VarType.Bool, VarType.Int32);
+            var function = rpt.CreateConcreteOrNull(VarType.ArrayOf(VarType.Bool), VarType.Bool, VarType.Int32);
             Assert.IsNotNull(function);
             Assert.Multiple(() =>
             {
@@ -53,7 +54,8 @@ namespace Funny.Tests.UnitTests
         {
             var function = new MapGenericFunctionDefenition()
                 .CreateConcreteOrNull(
-                     VarType.ArrayOf(VarType.Int32), 
+                    VarType.ArrayOf(VarType.Text), 
+                    VarType.ArrayOf(VarType.Int32), 
                      VarType.Fun(VarType.Text, VarType.Int32));
 
             Assert.IsNotNull(function);
@@ -76,7 +78,10 @@ namespace Funny.Tests.UnitTests
         public void Take_PrimitiveType_ResultTypesAreCorrect()
         {
             var rpt = new TakeGenericFunctionDefenition();
-            var function = rpt.CreateConcreteOrNull(VarType.ArrayOf(VarType.Bool), VarType.Int32);
+            var function = rpt.CreateConcreteOrNull(
+                 VarType.ArrayOf(VarType.Bool),
+                 VarType.ArrayOf(VarType.Bool), 
+                 VarType.Int32);
             Assert.IsNotNull(function);
 
             Assert.Multiple(() =>
@@ -90,13 +95,16 @@ namespace Funny.Tests.UnitTests
         public void Take_ArrayType_ResultTypesAreCorrect()
         {
             var rpt = new TakeGenericFunctionDefenition();
-            var genericArgument = VarType.ArrayOf(VarType.Bool);
-            var function = rpt.CreateConcreteOrNull(VarType.ArrayOf(genericArgument), VarType.Int32);
+            var arrayOfBool = VarType.ArrayOf(VarType.Bool);
+            var function = rpt.CreateConcreteOrNull(
+                VarType.ArrayOf(arrayOfBool),
+                VarType.ArrayOf(arrayOfBool), 
+                VarType.Int32);
             Assert.IsNotNull(function);
             Assert.Multiple(() =>
             {
-                Assert.AreEqual(VarType.ArrayOf(genericArgument), function.ReturnType);
-                CollectionAssert.AreEquivalent(new[]{VarType.ArrayOf(genericArgument), VarType.Int32}, function.ArgTypes);
+                Assert.AreEqual(VarType.ArrayOf(arrayOfBool), function.ReturnType);
+                CollectionAssert.AreEquivalent(new[]{VarType.ArrayOf(arrayOfBool), VarType.Int32}, function.ArgTypes);
             });
         }
     }
