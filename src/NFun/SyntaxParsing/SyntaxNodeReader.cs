@@ -166,7 +166,7 @@ namespace NFun.SyntaxParsing
                     var (obj, type) = TokenHelper.ToConstant(val.Value);
                     return SyntaxNodeFactory.Constant(obj, type, val.Interval);
                 }
-                catch (FormatException) {
+                catch (SystemException) {
                     throw ErrorFactory.CannotParseNumber(val.Value, val.Interval);
                 }
             }

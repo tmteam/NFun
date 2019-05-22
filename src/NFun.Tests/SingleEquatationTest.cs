@@ -48,7 +48,6 @@ namespace Funny.Tests
         [TestCase("y = 1 << 3",8)]
         [TestCase("y = 8 >> 3",1)]
         //int64:
-        [TestCase("y = ~0xFFFFFFFF",0)]
         [TestCase("y = 0xFFFFFFFF & 0",0)]
         [TestCase("y = 0xFFFFFFFF ^ 0xFFFFFFFF",0)]
 
