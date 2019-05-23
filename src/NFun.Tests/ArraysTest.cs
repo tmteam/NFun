@@ -225,6 +225,7 @@ filtrat   = x.filter(i:int=>i> filt) # filt - входная переменна�
         [TestCase("y = [1..")]
         [TestCase("y = [2,1] in [1,2,3]")]    
         [TestCase("y = [1,5,2] in [1,2,3]")] 
+        [TestCase("y = x\r[2]")]
         public void ObviouslyFailsOnParse(string expr) =>
             Assert.Throws<FunParseException>(
                 ()=> FunBuilder.BuildDefault(expr));

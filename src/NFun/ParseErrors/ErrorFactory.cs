@@ -266,6 +266,10 @@ namespace NFun.ParseErrors
             => new FunParseException(335, $"{actualName}<-  input name is same to name  {id}", interval);
 
         
+        public static Exception FunctionDefenitionsIsDeniedWhenThereIsAnounymousExpression(EquationSyntaxNode anonymousNode)
+            => new FunParseException(338, $"You cannot use functions if there is anonymous eqaution. Use named equation instead.", anonymousNode.Interval);
+
+        
         #endregion
 
         #region  4xx - errors of lists
@@ -492,6 +496,6 @@ namespace NFun.ParseErrors
                 usages.Nodes.First().Interval);       
         #endregion
 
-       
+
     }
 }
