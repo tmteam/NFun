@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -21,12 +22,17 @@ namespace Funny
         
             while (true)
             {
-                var expression = Console.ReadLine();
+                var expression = ReadMultiline();
                 if (expression == "/exit")
                     return;
                 try
                 {
+                    Stopwatch calcSw;
+                    Stopwatch build = Stopwatch.StartNew();
                     var runtime = FunBuilder.With(expression).Build();
+                    build.Stop();
+                    Console.WriteLine($"Built in {build.Elapsed.TotalMilliseconds}");
+
                     if (runtime.Inputs.Any())
                     {
                         Console.WriteLine("Inputs: " + string.Join(", ", runtime.Inputs.Select(s => s.ToString())));
@@ -34,7 +40,10 @@ namespace Funny
                     }
                     else 
                     {
+                        calcSw = Stopwatch.StartNew();
                         var res = runtime.Calculate();
+                        calcSw.Stop();
+                        Console.WriteLine($"Calc in {calcSw.Elapsed.TotalMilliseconds}");
                         Console.WriteLine("Results:");
                         foreach (var result in res.Results)
                             Console.WriteLine(result.Name + ": " + result.Value + " (" + result.Type + ")");
@@ -68,9 +77,22 @@ namespace Funny
                         Console.WriteLine();
                     }
                 }
+                Console.WriteLine("--------------");
             }
         }
 
+        private static string ReadMultiline()
+        {
+            StringBuilder sb = new StringBuilder();
+            while (true)
+            {
+                var expression = Console.ReadLine();
+                if (expression == "")
+                    return sb.ToString();
+                else
+                    sb.Append("\r\n" + expression);
+            }
+        }
     }
 
 
