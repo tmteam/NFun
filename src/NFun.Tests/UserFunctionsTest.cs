@@ -8,7 +8,7 @@ using NUnit.Framework;
 namespace Funny.Tests
 {
     [TestFixture]
-    public class CustomFunctionsTest
+    public class ConcreteUserFunctionsTest
     {
         [Test]
         public void TestOfTheTest()
@@ -21,10 +21,11 @@ namespace Funny.Tests
         [TestCase("mysum(a:int, b:real):real = a + b \r  y = mysum(1,2)",3.0)]
         [TestCase("mysum(a:int, b:real):real = a + b \r  y = mysum(1,2.0)",3.0)]
         [TestCase("mysum(a:real, b:int):real = a + b \r  y = mysum(1,2)",3.0)]
-        [TestCase("myconcat(a:text, b:text):text = a + b \r  y = myconcat(\"my\",\"test\")","mytest")]
-        [TestCase("myconcat(a:text, b:text):text = a + b \r  y = myconcat(1,\"test\")","1test")]
-        [TestCase("myconcat(a:text, b:text):text = a + b \r  y = myconcat(1,2)","12")]
-        [TestCase("myconcat(a:text, b):text = a + b \r  y = myconcat(1,2.5)","12.5")]
+       //todo toString
+        // [TestCase("myconcat(a:text, b:text):text = a.strConcat(b) \r  y = myconcat(\"my\",\"test\")","mytest")]
+       // [TestCase("myconcat(a:text, b:text):text = a.strConcat(b) \r  y = myconcat(1,\"test\")","1test")]
+       // [TestCase("myconcat(a:text, b:text):text = a.strConcat(b) \r  y = myconcat(1,2)","12")]
+       // [TestCase("myconcat(a:text, b):text = a.strConcat(b)\r  y = myconcat(1,2.5)","12.5")]
         [TestCase("arr(a:real[]):real[] = a    \r  y = arr([1.0,2.0])",new[]{1.0,2.0})]
         [TestCase("arr(a:real[]):real[] = a.concat(a) \r  y = arr([1.0,2.0])",new[]{1.0,2.0,1.0,2.0})]
         [TestCase("arr(a:int[]):int[] = a \r  y = arr([1,2])",new[]{1,2})]
@@ -65,30 +66,46 @@ namespace Funny.Tests
             var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate().AssertReturns(0.00001, Var.New("y", expected));
         }
-        [Test]
-        public void SingleOverloadEquatation()
+
+        [TestCase(1,1)]
+        [TestCase(2,1)]
+        [TestCase(3,2)]
+        [TestCase(4,3)]
+        [TestCase(5,5)]
+        [TestCase(6,8)]
+        [TestCase(7,13)]
+        public void ClassicRecFibonachi_specifyOutputType(int x, int y)
         {
-            var text = @"
-                    mytostr(a:real):text    =  'real: '+a  
-                    mytostr(a:int):text     =  'int: '+a  
-                    mytostr(a:text):text    =  'text: '+a 
-                    mytostr(a:anything):text=  'any: '+a 
-                    mytostr(a:int[]):text   =  'int[]: '+a 
-            
-        r = mytostr(1.0)
-        i = mytostr(2)
-        t = mytostr('3')
-        arr = mytostr([1,2,3])    
-";
-            
+            string text =
+                @"fibrec(n:int, iter, p1,p2):int =
+                          if (n >iter) fibrec(n, iter+1, p1+p2, p1)
+                          else p1+p2  
+                    
+                   fib(n) = if (n<3) 1 else fibrec(n-1,2,1,1)
+                   y = fib(x)";
             var runtime = FunBuilder.BuildDefault(text);
-            runtime.Calculate()
-                .AssertReturns(Var.New("r", "real: 1"),
-                               Var.New("i", "int: 2"),
-                               Var.New("t", "text: 3"),
-                               Var.New("arr", "int[]: [1,2,3]"));
+            runtime.Calculate(Var.New("x",x)).AssertReturns(0.00001, Var.New("y", y));    
         }
         
+        [TestCase(1,1)]
+        [TestCase(2,1)]
+        [TestCase(3,2)]
+        [TestCase(4,3)]
+        [TestCase(5,5)]
+        [TestCase(6,8)]
+        [TestCase(7,13)]
+        public void ClassicRecFibonachi_specifyNType(double x, double y)
+        {
+            string text =
+                @"fibrec(n:int, iter, p1,p2) =
+                          if (n >iter) fibrec(n, iter+1, p1+p2, p1)
+                          else p1+p2  
+                    
+                   fib(n) = if (n<3) 1 else fibrec(n-1,2,1,1)
+                   y = fib(x)";
+            var runtime = FunBuilder.BuildDefault(text);
+            runtime.Calculate(Var.New("x",x)).AssertReturns(0.00001, Var.New("y", y));    
+        }
         [TestCase(1,1)]
         [TestCase(2,1)]
         [TestCase(3,2)]
@@ -145,14 +162,15 @@ namespace Funny.Tests
         }
         
         [TestCase("y = raise(1)\r raise(x) = raise(x)")]
-        [TestCase("y = f(1)\r f(x) = g(x) \r g(x) = f(x)")]
-        [TestCase("y = f(1)\r f(x) = g(x) \r g(x) = l(x)\r l(x) = f(x)")]
+        
         public void StackOverflow_throws_FunStackOverflow(string text)
         {
             Assert.Throws<FunStackoverflowException>(
                 () => FunBuilder.BuildDefault(text).Calculate());
         }
-
+        
+        [TestCase("y = f(1)\r f(x) = g(x) \r g(x) = f(x)")]
+        [TestCase("y = f(1)\r f(x) = g(x) \r g(x) = l(x)\r l(x) = f(x)")]
         [TestCase("y(1)=1")]
         [TestCase("y(x,y=1")]
         [TestCase("y(x y)=1")]
@@ -200,7 +218,7 @@ namespace Funny.Tests
         [TestCase("f((i,j),k) = 12.0 \r y = f(((1,2),3)=>i+j)")]
         [TestCase("f(x*2) = 12.0 \r y = f(3)")]
         [TestCase("f(x*2) = 12.0")]
-        [TestCase("y(x):real= \"vasa\"")]
+        [TestCase("y(x):real= 'vasa'")]
         public void ObviousFails(string expr){
             Assert.Throws<FunParseException>(()=>FunBuilder.BuildDefault(expr));
         }

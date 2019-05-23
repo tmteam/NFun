@@ -47,7 +47,7 @@ namespace Funny.Tests
         [TestCase("z(x) = x+1 \ry = ","y","\rj = z(i)")]
         [TestCase("if ","1+2"," 1 else 2")]
         [TestCase("x:int[] \r y = x","[true and false]","")]
-        [TestCase("", "if (true) 1 else true","")]
+        [TestCase("if (true) 1 else ", "true","")]
         [TestCase("y(x) = x + ","z","")]
         [TestCase("y(x) = ","z"," + x")]
         [TestCase("x:bool\ry=","sin(x)","")]
@@ -55,8 +55,8 @@ namespace Funny.Tests
         [TestCase("y(x) = ","z"," +x")]
         [TestCase("","y(x,x)","=x+1")]
         [TestCase("","y(x,x,z)","=x+1")]
-        [TestCase("[1.0,2.0].fold(","(i,i)","=>i+1)")]
-        [TestCase("[1.0,2.0].map(","(i,i)","=>i+1)")]
+        [TestCase("[1.0,2.0].fold((i,","i",")=>i+1)")]
+        [TestCase("[1.0,2.0].map((i,","i",")=>i+1)")]
         [TestCase("y = ","min","*3 ")]
         [TestCase("","max","*3 ")]
         [TestCase("foo(x) = x +1\r y=","foo*3","")]
@@ -144,8 +144,12 @@ namespace Funny.Tests
                     Assert.Fail($"[FU{e.Code}] Start is greater than end");
                 Assert.Multiple(() =>
                 {
-                    Assert.AreEqual(start, e.Start, $"[FU{e.Code}] Start index");
-                    Assert.AreEqual(end, e.End, $"[FU{e.Code}] End index");
+                    Assert.AreEqual(
+                        expected: start, 
+                        actual: e.Start, message: $"[FU{e.Code}] Start index");
+                    Assert.AreEqual(
+                        expected: end, 
+                        actual: e.End, message: $"[FU{e.Code}] End index");
                 });
             }
         }

@@ -1,5 +1,6 @@
 using System;
-using NFun.Parsing;
+using NFun.SyntaxParsing;
+using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Types;
 
 namespace NFun.Runtime
@@ -23,14 +24,9 @@ namespace NFun.Runtime
             Type = type;
             IsOutput = false;
         }
-        public VariableSource(string name)
-        {
-            Attributes = new VarAttribute[0];
-            Name = name;
-            IsOutput = false;
-        }
+    
         public bool IsOutput { get; set; }
-        public VarType Type { get; set; }
+        public VarType Type { get; }
         public object Value { get; set; }
 
         public void SetConvertedValue(object valueValue)

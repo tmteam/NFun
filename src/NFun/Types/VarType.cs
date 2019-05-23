@@ -147,7 +147,9 @@ namespace NFun.Types
                     throw new ArgumentOutOfRangeException();
             }
         }
-        public static bool TrySolveGenericTypes(VarType[] genericArguments, VarType genericType, VarType concreteType)
+
+        public static bool TrySolveGenericTypes(VarType[] genericArguments, VarType genericType, VarType concreteType,
+            bool strict = false)
         {
             switch (genericType.BaseType)
             {
@@ -160,7 +162,16 @@ namespace NFun.Types
                     }
                     else if (genericArguments[id] != concreteType)
                     {
-                        return false;
+                        if (genericArguments[id].CanBeConvertedTo(concreteType)) {
+                            genericArguments[id] = concreteType;
+                            return true;
+                        }
+                        
+                        if (strict)
+                            return false;
+                        
+                        if(!concreteType.CanBeConvertedTo(genericArguments[id]))
+                            return false;
                     }
 
                     return true;

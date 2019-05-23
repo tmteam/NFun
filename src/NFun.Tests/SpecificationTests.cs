@@ -23,7 +23,7 @@ namespace Funny.Tests
         [TestCase(0.0, "y = cos(x)", "y", 1.0)]
         [TestCase(0.0, "y = x.cos()", "y", 1.0)]
         [TestCase(0.0, "y = x.cos().tan() .abs() .round()", "y", 2)]
-        [TestCase(5.0, "y = x.sum(3)", "y", 8.0)]
+        [TestCase(5,   "y = x.sum(3)", "y", 8)]
         [TestCase(1.0, "y = x == 0","y", false)]
         [TestCase(0.0, "x==0","out", true)]
         [TestCase(0.1, "y = x != 0","y", true)]
@@ -50,13 +50,6 @@ else 123
 y = 1+ 15 *  if (x < 0 ) -1
 		  if (x > 0)  1
 		  else 0","y", -14)]
-        [TestCase(1.0, 
-@"
-y = 'value is ' +(
-if (x < 0) 'less than'
-if (x > 0)  'more than'
-else 'equals to'
-) + ' zero'","y", "value is more than zero")]
         
         [TestCase(4.0, @"
    y =  if (x ==1) 'one'
@@ -81,8 +74,6 @@ tostring(v:int):text =
 x:int
 y = tostring(x)","y", "not supported")]
        // [TestCase(1.0, "","y", false)]
-        [TestCase(0.43,"y = 'Welcome to fun.Version is '+ x+'.Next version is '+ (x+1)"
-            , "y", "Welcome to fun.Version is 0.43.Next version is 1.43")]
         [TestCase(2.5,"y = [1.0,2.0,3.0].filter(it => it<x).max()","y",2.0)]
         [TestCase(2.5,"x:real \r y = [1.0,2.0,3.0].filter(it => it<x).max()","y",2.0)]
         public void Real_SingleEquationWithSingleInput(object xVal, string expression, string outputName, object outputValue)
@@ -116,7 +107,6 @@ y = tostring(x)","y", "not supported")]
         [TestCase("y = [1,2,3,4] .concat( [3,4,5,6])  #Concat [1,2,3,4,3,4,5,6]", "y", new []{1,2,3,4,3,4,5,6})]
         [TestCase("y = 1 in [1,2,3,4]# true", "y", true)]
         [TestCase("y = 0 in [1,2,3,4] # false", "y", false)]
-        [TestCase("y = [1,2] in [1,2,3,4] # true", "y", true)]
         [TestCase("y = [1,2,3,4].intersect([3,4,5,6])  #[3,4]", "y", new []{3,4})]
         [TestCase("y = [1,2,3,4].except([3,4,5,6])  #[1,2]", "y", new []{1,2})]
         [TestCase("y = [1,2,3,4].unite([3,4,5,6])  #[1,2,3,4,5,6]", "y", new []{1,2,3,4,5,6})]
@@ -219,11 +209,11 @@ y4 = not(x1 and x2 or x3)
         [TestCase("y = 0.0", BaseVarType.Real)]
         [TestCase("y = false #bool", BaseVarType.Bool)]
         [TestCase("y = 'hi' #text", BaseVarType.Text)]
-        [TestCase("y = 'hi' + a #text", BaseVarType.Text)]
-        [TestCase("y = 'hi' + a #text", BaseVarType.Text)]
+        [TestCase("y = 'hi'.strConcat(a) #text", BaseVarType.Text)]
+        [TestCase("y = 'hi'.strConcat(a) #text", BaseVarType.Text)]
         [TestCase("y = [1,2,3]  #int[]", BaseVarType.ArrayOf)]
         [TestCase("y = ['1','2','3']  #text[]", BaseVarType.ArrayOf)]
-        [TestCase("y = 'hi '+ u #text", BaseVarType.Text)]
+        [TestCase("y = 'hi '.strConcat(u) #text", BaseVarType.Text)]
         public void Single_Equation_OutputTypeTest(string expression, BaseVarType primitiveType)
         {
             var runtime = FunBuilder.BuildDefault(expression);

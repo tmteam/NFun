@@ -48,8 +48,7 @@ namespace Funny.Tests
         [TestCase("y = 0 in [1,2,3]", false)]    
         [TestCase("y = not 0 in [1,2,3]", true)]    
         [TestCase("y = not 1 in [1,2,3]", false)]    
-        [TestCase("y = [2,1] in [1,2,3]", true)]    
-        [TestCase("y = [1,5,2] in [1,2,3]", false)] 
+        
         [TestCase("y = []", new object[0])]
 
         [TestCase("y = [1,2,3]", new[]{1,2,3})]
@@ -221,7 +220,8 @@ filtrat   = x.filter(i:int=>i> filt) # filt - входная переменна�
         [TestCase("y = [..2..2]")]
         [TestCase("y = [1..4")]
         [TestCase("y = [1..")]
-        
+        [TestCase("y = [2,1] in [1,2,3]")]    
+        [TestCase("y = [1,5,2] in [1,2,3]")] 
         public void ObviouslyFailsOnParse(string expr) =>
             Assert.Throws<FunParseException>(
                 ()=> FunBuilder.BuildDefault(expr));

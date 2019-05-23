@@ -1,5 +1,6 @@
 using System.Linq;
-using NFun.Parsing;
+using NFun.SyntaxParsing;
+using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
 using NUnit.Framework;
 
@@ -80,7 +81,7 @@ namespace Funny.Tests
             Assert.Multiple(() =>
             {
                 CollectionAssert.AreEqual(variables, fun.Args.Select(a=>a.Id));
-                AssertParsed(fun.Node, expectedExpr);
+                AssertParsed(fun.Body, expectedExpr);
             });
         }
         private void AssertParsed(ISyntaxNode node,string expectedExpr)

@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using NFun.ParseErrors;
-using NFun.Parsing;
 using NFun.Types;
 
 namespace NFun.Tokenization
@@ -9,28 +8,47 @@ namespace NFun.Tokenization
     
     public static class TokenHelper
     {
-        public static object ToNumber(string val)
+        /// <exception cref="SystemException">Throws if string contains invalid format</exception>
+        public static (object, VarType) ToConstant(string val)
         {
             val = val.Replace("_", null);
-
-            if (val.Length > 2)
-            {
-
-                if (val[1] == 'b')
-                    return Convert.ToInt32(val.Substring(2),2);
-                if (val[1] == 'x')
-                    return Convert.ToInt32(val, 16);
-            }
 
             if (val.Contains('.'))
             {
                 if (val.EndsWith("."))
                     throw new FormatException();
-                return double.Parse(val);
+                return (double.Parse(val), VarType.Real);
             }
 
-            return int.Parse(val);
+            var longVal = ParseLongValue(val);
+            if (longVal > Int32.MaxValue || longVal < Int32.MinValue)
+                return (longVal, VarType.Int64);
+            return ((int) longVal, VarType.Int32);
         }
+
+        private static long ParseLongValue(string val)
+        {
+            if (val.Length > 2)
+            {
+
+                if (val[1] == 'b')
+                {
+                    var uval = Convert.ToUInt64(val.Substring(2), 2);
+                    if(uval> long.MaxValue)
+                        throw new OverflowException();
+                    return (long)uval;
+                }
+                else if (val[1] == 'x')
+                {
+                    var uval =  Convert.ToUInt64(val, 16);
+                    if(uval> long.MaxValue)
+                        throw new OverflowException();
+                    return (long)uval;
+                }
+            }
+            return long.Parse(val);
+        }
+
         private static VarType ToVarType(this Tok token)
         {
             switch (token.Type)
@@ -50,7 +68,7 @@ namespace NFun.Tokenization
             }
             throw ErrorFactory.TypeExpectedButWas(token);
         }
-        public static VarType ReadVarType(this TokenFlow flow)
+        public static VarType ReadVarType(this TokFlow flow)
         {
             var cur = flow.Current;
             var readType = ToVarType(cur);
@@ -66,7 +84,7 @@ namespace NFun.Tokenization
             return readType;
         }
         
-        public static bool MoveIf(this TokenFlow flow, TokType tokType)
+        public static bool MoveIf(this TokFlow flow, TokType tokType)
         {
             if (flow.IsCurrent(tokType))
             {
@@ -75,7 +93,7 @@ namespace NFun.Tokenization
             }
             return false;
         }
-        public static bool MoveIf(this TokenFlow flow, TokType tokType, out Tok tok)
+        public static bool MoveIf(this TokFlow flow, TokType tokType, out Tok tok)
         {
             if (flow.IsCurrent(tokType))
             {
@@ -88,7 +106,7 @@ namespace NFun.Tokenization
             return false;
         }
         
-        public static Tok MoveIfOrThrow(this TokenFlow flow, TokType tokType)
+        public static Tok MoveIfOrThrow(this TokFlow flow, TokType tokType)
         {
             var cur = flow.Current;
             if (cur == null)

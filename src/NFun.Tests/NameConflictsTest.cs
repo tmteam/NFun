@@ -20,7 +20,6 @@ namespace Funny.Tests
         [TestCase("foo(x) = x +1\r foo = 1+2 \ry = foo*3  ","y",9)]
         [TestCase("foo(x) = x +1\r foo = 1+2 \ry = foo*3 \r  ","y",9)]
         [TestCase("concat = 1+2 \r y = concat*3 \r ","y",9)]
-        [TestCase("min = 'fo'+'o'\ry = min+ 'bar' ","y","foobar")]
         public void OverloadOutputUsesInOtherEquation(string expr, string output, object expected) 
             => FunBuilder.BuildDefault(expr).Calculate().AssertHas(Var.New(output,expected));
         

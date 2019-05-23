@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using NFun.Interpritation.Nodes;
 using NFun.Tokenization;
 using NFun.Types;
@@ -9,13 +10,13 @@ namespace NFun.Interpritation.Functions
     {
         public string Name { get; }
         public VarType[] ArgTypes { get; }
-        protected FunctionBase(string name,  VarType outputType, params VarType[] argTypes)
+        protected FunctionBase(string name,  VarType returnType, params VarType[] argTypes)
         {
             Name = name;
             ArgTypes = argTypes;
-            OutputType = outputType;
+            ReturnType = returnType;
         }
-        public VarType OutputType { get; }
+        public VarType ReturnType { get; }
         public abstract object Calc(object[] args);
 
         public IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children, Interval interval)
@@ -40,6 +41,9 @@ namespace NFun.Interpritation.Functions
 
             return new FunExpressionNode(this, castedChildren.ToArray(),interval);
         }
+
+        public override string ToString() 
+            => $"fun {TypeHelper.GetFunSignature(Name, ReturnType, ArgTypes)}";
     }
         
    

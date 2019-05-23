@@ -6,8 +6,6 @@ namespace NFun.Interpritation
 {
     public class ExpressionHelper
     {
-        
-        
         public static void CheckForUnknownVariables(string[] originVariables, VariableDictionary resultVariables)
         {
             var unknownVariables = resultVariables.GetAllUsages()

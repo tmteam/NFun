@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFun", "NFun\NFun.csproj", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFun.ExprementalTests", "NFun.ExprementalTests\NFun.ExprementalTests.csproj", "{F7299307-9670-42E1-A9E6-287CCD60F228}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFun.HmTests", "NFun.HmTests\NFun.HmTests.csproj", "{1689D654-886A-4A64-93AA-D2E7CE849C48}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{F7299307-9670-42E1-A9E6-287CCD60F228}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F7299307-9670-42E1-A9E6-287CCD60F228}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F7299307-9670-42E1-A9E6-287CCD60F228}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1689D654-886A-4A64-93AA-D2E7CE849C48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1689D654-886A-4A64-93AA-D2E7CE849C48}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1689D654-886A-4A64-93AA-D2E7CE849C48}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1689D654-886A-4A64-93AA-D2E7CE849C48}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -1,11 +1,17 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using NFun.BuiltInFunctions;
+using NFun.HindleyMilner;
+using NFun.HindleyMilner.Tyso;
 using NFun.Interpritation;
 using NFun.Interpritation.Functions;
-using NFun.Parsing;
+using NFun.ParseErrors;
 using NFun.Runtime;
+using NFun.SyntaxParsing;
+using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
+using NFun.Types;
 
 namespace NFun
 {
@@ -36,20 +42,34 @@ namespace NFun
         public FunRuntime Build()
         {
             var flow = Tokenizer.ToFlow(_text);
-            var lexTree = TopLevelParser.Parse(flow);
-             
-            return ExpressionReader.Interpritate(
-                lexTree, 
-                _functions.Concat(FunBuilder.PredefinedFunctions), 
-                _genericFunctions.Concat(FunBuilder.predefinedGenerics));
+            var syntaxTree = TopLevelParser.Parse(flow);
+
+            //Set node numbers
+            syntaxTree.ComeOver(new SetNodeNumberVisitor());
+            
+            var functionsDictionary = MakeFunctionsDictionary();
+            
+            return RuntimeBuilder.Build(syntaxTree, functionsDictionary);
         }
+
+      
+
+        private FunctionsDictionary MakeFunctionsDictionary()
+        {
+            var functionsDictionary = new FunctionsDictionary();
+            foreach (var predefinedFunction in _functions.Concat(PredefinedFunctions))
+                functionsDictionary.Add(predefinedFunction);
+            foreach (var genericFunctionBase in _genericFunctions.Concat(predefinedGenerics))
+                functionsDictionary.Add(genericFunctionBase);
+            return functionsDictionary;
+        }        
         public static IEnumerable<FunctionBase> PredefinedFunctions => _predefinedFunctions;
         public static IEnumerable<GenericFunctionBase> PredefinedGenericFunctions => predefinedGenerics;
 
         internal static readonly GenericFunctionBase[] predefinedGenerics =
         {
             new IsInSingleGenericFunctionDefenition(), 
-            new IsInMultipleGenericFunctionDefenition(), 
+            //new IsInMultipleGenericFunctionDefenition(), 
             new ReiterateGenericFunctionDefenition(),
             new UniqueGenericFunctionDefenition(), 
             new UniteGenericFunctionDefenition(), 
@@ -93,8 +113,6 @@ namespace NFun
                 new MoreRealFunction(), 
                 new MoreOrEqualIntFunction(), 
                 new MoreOrEqualRealFunction(), 
-                new BitShiftLeftFunction(), 
-                new BitShiftRightFunction(), 
                 new AbsOfRealFunction(),
                 new AbsOfIntFunction(),
                 
@@ -105,14 +123,30 @@ namespace NFun
                 new AddRealFunction("sum"),
                 new AddIntFunction("sum"),
                 new AddInt64Function("sum"), 
-                new AddTextFunction("concat"),
-
+                new AddTextFunction("strConcat"),
+                
+                new NegateOfInt32Function(), 
+                new NegateOfInt64Function(), 
+                new NegateOfRealFunction(), 
+                
                 new SubstractIntFunction(), 
                 new SubstractRealFunction(), 
+
+                new BitShiftLeftInt32Function(), 
+                new BitShiftLeftInt64Function(), 
+                new BitShiftRightInt32Function(),
+                new BitShiftRightInt64Function(),
+
                 new BitAndIntFunction(),
+                new BitAndInt64Function(),
                 new BitOrIntFunction(),
+                new BitOrInt64Function(),
                 new BitXorIntFunction(),
+                new BitXorInt64Function(),
                 new BitInverseIntFunction(), 
+                new BitInverseInt64Function(), 
+
+                
                 new PowRealFunction(), 
                 new MultiplyIntFunction(), 
                 new MultiplyRealFunction(), 

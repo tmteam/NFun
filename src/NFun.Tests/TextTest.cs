@@ -10,13 +10,6 @@ namespace Funny.Tests
         [TestCase("y = ''", "")]
         [TestCase("y = 'hi'", "hi")]
         [TestCase("y = 'World'", "World")]
-        [TestCase("y = 'hi'+5", "hi5")]
-        [TestCase("y = ''+10", "10")]
-        [TestCase("y = ''+true", "True")]
-        [TestCase("y = 'hi'+5+true", "hi5True")]
-        [TestCase("y = 'hi'+' '+'world'", "hi world")]
-        [TestCase("y = 'arr: '+ [1,2,3]", "arr: [1,2,3]")]
-        [TestCase("y = 'arr: '+ [[1,2],[3]]", "arr: [[1,2],[3]]")]
         public void TextConstantEquation(string expr, string expected)
         {
             FunBuilder
@@ -66,6 +59,14 @@ namespace Funny.Tests
         [TestCase("'some\\'")]
         [TestCase("'\\GGG'")]
         [TestCase("'\\q'")]
+        [TestCase("y = 'hi'+5")]
+        [TestCase("y = ''+10")]
+        [TestCase("y = ''+true")]
+        [TestCase("y = 'hi'+5+true")]
+        [TestCase("y = 'hi'+' '+'world'")]
+        [TestCase("y = 'arr: '+ [1,2,3]")]
+        [TestCase("y = 'arr: '+ [[1,2],[3]]")]
+
         public void ObviousFails(string expr)
         {
             Assert.Throws<FunParseException>(()=> FunBuilder.BuildDefault(expr));

@@ -8,13 +8,14 @@ namespace NFun.Interpritation.Nodes
 {
     public class ArrayExpressionNode : IExpressionNode
     {
-        
         private IExpressionNode[] _elements;
         
-        public ArrayExpressionNode(IExpressionNode[] elements, Interval interval)
+        public ArrayExpressionNode(IExpressionNode[] elements, Interval interval, VarType type)
         {
+            Type = type;
             _elements = elements;
             Interval = interval;
+            /*
             if (!elements.Any())
                 Type = VarType.ArrayOf(VarType.Anything);
             else
@@ -28,6 +29,17 @@ namespace NFun.Interpritation.Nodes
                         throw ErrorFactory.VariousArrayElementTypes(elements, i);
                 }
                 Type = VarType.ArrayOf(elementType);
+            }*/
+            if (elements.Any())
+            {
+                var elementType = elements[0].Type;
+
+                for (int i = 1; i < elements.Length; i++)
+                {
+                    var iType = elements[i].Type;
+                    if (iType != elementType)
+                        throw ErrorFactory.VariousArrayElementTypes(elements, i);
+                }
             }
         }
         public Interval Interval { get; }

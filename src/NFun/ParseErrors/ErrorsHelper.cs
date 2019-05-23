@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using NFun.Parsing;
+using NFun.SyntaxParsing;
+using NFun.SyntaxParsing.SyntaxNodes;
+using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
 
 namespace NFun.ParseErrors
@@ -19,7 +21,7 @@ namespace NFun.ParseErrors
                 if (child is VarDefenitionSyntaxNode varDef)
                     sb.Append(varDef.Id);
                 else if (child is VariableSyntaxNode varSyntax)
-                    sb.Append(varSyntax.Value);
+                    sb.Append(varSyntax.Id);
 
                 if (headNode.Args.Last() != child)
                     sb.Append(",");
@@ -31,7 +33,7 @@ namespace NFun.ParseErrors
        
         public static string CreateArgumentsStub(IEnumerable<ISyntaxNode> arguments)
         {
-            var argumentsStub = string.Join(",", arguments.Select(ToString));
+            var argumentsStub = string.Join(",", arguments.Select(ToShortText));
             return argumentsStub;
         }
         
@@ -41,32 +43,11 @@ namespace NFun.ParseErrors
 
         
         public static string Join(IEnumerable<ISyntaxNode> arguments) 
-            => string.Join(",", arguments);
+            => string.Join(",", arguments.Select(ToShortText));
 
 
-        public static string ToString(ISyntaxNode node)
-        {
-            /*
-            switch (node.Type)
-            {
-                case LexNodeType.Number: return node.Value;
-                case LexNodeType.Var: return node.Value;
-                case LexNodeType.Fun: return node.Value + "(...)";
-                case LexNodeType.IfThen: return "if...then...";
-                case LexNodeType.IfThanElse: return "if...then....else...";
-                case LexNodeType.Text: return $"\"{(node.Value.Length>20?(node.Value.Substring(17)+"..."):node.Value)}\"";
-                case LexNodeType.ArrayInit: return "[...]";
-                case LexNodeType.AnonymFun: return "(..)=>..";
-                case LexNodeType.TypedVar: return node.Value;
-                case LexNodeType.ListOfExpressions: return "(,)";
-                case LexNodeType.ProcArrayInit: return "[ .. ]";
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }*/
-            //todo visitor
-            return node.ToString();
-        }
-        public static string ToString(Tok tok)
+        public static string ToShortText(ISyntaxNode node) => node.Visit(new ShortDescritpionVisitor());
+        public static string ToText(Tok tok)
         {
             if (!string.IsNullOrWhiteSpace(tok.Value))
                 return tok.Value;
@@ -123,7 +104,7 @@ namespace NFun.ParseErrors
         }
         
         public static ExprListError GetExpressionListError(
-            int openBracketTokenPos, TokenFlow flow, TokType openBrack, TokType closeBrack)
+            int openBracketTokenPos, TokFlow flow, TokType openBrack, TokType closeBrack)
         {
             flow.Move(openBracketTokenPos);
             var obrStart = flow.Current.Start;
@@ -179,7 +160,7 @@ namespace NFun.ParseErrors
             return SpecifyArrayInitError(list, flow, openBrack, closeBrack);
         }
         private static ExprListError SpecifyArrayInitError(
-            IList<ISyntaxNode> arguments, TokenFlow flow, TokType openBrack, TokType closeBrack)
+            IList<ISyntaxNode> arguments, TokFlow flow, TokType openBrack, TokType closeBrack)
         {
             var firstToken = flow.Current;
             int lastArgPosition = arguments.LastOrDefault()?.Interval.Finish ?? flow.Position;

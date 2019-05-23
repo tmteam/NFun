@@ -1,14 +1,17 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using NFun.BuiltInFunctions;
 using NFun.ParseErrors;
+using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
+using NFun.Types;
 
-namespace NFun.Parsing
+namespace NFun.SyntaxParsing
 {
     public class SyntaxNodeReader
     {
-        private readonly TokenFlow _flow;
+        private readonly TokFlow _flow;
 
         static SyntaxNodeReader()
         {
@@ -103,7 +106,8 @@ namespace NFun.Parsing
                 {TokType.ArrConcat, CoreFunNames.ArrConcat},
                 {TokType.In,CoreFunNames.In},
             };
-        public SyntaxNodeReader(TokenFlow flow)
+        
+        public SyntaxNodeReader(TokFlow flow)
         {
             _flow = flow;
         }
@@ -128,10 +132,9 @@ namespace NFun.Parsing
                 if (nextNode == null)
                     throw ErrorFactory.UnaryArgumentIsMissing(_flow.Current);
                 
-                var negativeNode = SyntaxNodeFactory.Num("-1", start, start);
                 return SyntaxNodeFactory.OperatorFun(
-                    CoreFunNames.Multiply,
-                    new[]{negativeNode, nextNode}, start, nextNode.Interval.Finish);
+                    CoreFunNames.Negate,
+                    new[]{nextNode}, start, nextNode.Interval.Finish);
             }
 
             if (_flow.MoveIf(TokType.BitInverse))
@@ -153,13 +156,22 @@ namespace NFun.Parsing
                     new []{node},start, node.Interval.Finish);
             }
             if (_flow.MoveIf(TokType.True, out var trueTok))
-                return SyntaxNodeFactory.Num(trueTok);
+                return SyntaxNodeFactory.Constant(true, VarType.Bool,  trueTok.Interval);
             if (_flow.MoveIf(TokType.False, out var falseTok))
-                return SyntaxNodeFactory.Num(falseTok);
+                return SyntaxNodeFactory.Constant(false, VarType.Bool,  falseTok.Interval);
             if (_flow.MoveIf(TokType.Number, out var val))
-                return SyntaxNodeFactory.Num(val);
+            {
+                try
+                {
+                    var (obj, type) = TokenHelper.ToConstant(val.Value);
+                    return SyntaxNodeFactory.Constant(obj, type, val.Interval);
+                }
+                catch (SystemException) {
+                    throw ErrorFactory.CannotParseNumber(val.Value, val.Interval);
+                }
+            }
             if (_flow.MoveIf(TokType.Text, out var txt))
-                return SyntaxNodeFactory.Text(txt);
+                return SyntaxNodeFactory.Constant(txt.Value, VarType.Text, txt.Interval);
             if (_flow.MoveIf(TokType.Id, out var headToken))
             {
                 if (_flow.IsCurrent(TokType.Obr))
@@ -295,9 +307,10 @@ namespace NFun.Parsing
                     _flow.Position);
             }
             
-            index = index ?? SyntaxNodeFactory.Num("0",openBraket.Start, colon.Finish);
+            index = index ?? SyntaxNodeFactory.Constant(0, VarType.Int32, Interval.New(openBraket.Start, colon.Finish));
             
-            var end = ReadExpressionOrNull()?? SyntaxNodeFactory.Num(int.MaxValue.ToString(),colon.Finish, _flow.Position);
+            var end = ReadExpressionOrNull()?? 
+                      SyntaxNodeFactory.Constant(int.MaxValue, VarType.Int32, Interval.New(colon.Finish, _flow.Position));
             
             if (!_flow.MoveIf(TokType.Colon, out _))
             {
@@ -406,7 +419,7 @@ namespace NFun.Parsing
                     if (!_flow.MoveIf(TokType.ArrCBr, out var closeBracket))
                         throw ErrorFactory.ArrayIntervalInitializeCbrMissed(openBracket, _flow.Current, true);
                     return SyntaxNodeFactory.ProcArrayInit(
-                        from: list[0],
+                        @from: list[0],
                         to:  secondArg,
                         step: thirdArg,
                         start: openBracket.Start, 
@@ -451,7 +464,7 @@ namespace NFun.Parsing
         private ISyntaxNode ReadIfThenElse()
         {
             int ifElseStart = _flow.Position;
-            var ifThenNodes = new List<IfThenSyntaxNode>();
+            var ifThenNodes = new List<IfCaseSyntaxNode>();
             do
             {
                 int conditionStart = _flow.Current.Start;

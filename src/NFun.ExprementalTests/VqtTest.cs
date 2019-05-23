@@ -151,7 +151,6 @@ namespace NFun.ExprementalTests
         [TestCase(10.0,"y=x<5",false)]
         [TestCase(10.0,"y=x<=5",false)]
         [TestCase(10.0,"y=x>=5",true)]
-        [TestCase(10.0,"y='lalala'+x","lalala10")]
         [TestCase(10.0,"y= x.toText()","10")]
         public void SingleVqtInputEquation_CheckOutputValues(object val, string expr, object result)
         {

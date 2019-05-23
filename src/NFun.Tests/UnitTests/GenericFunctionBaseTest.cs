@@ -14,10 +14,10 @@ namespace Funny.Tests.UnitTests
         public void ReturnSelfFunction_PrimitiveType_ResultTypesAreCorrect()
         {
             var rpt = new ReturnSelfGenericFunctionDefenition();
-            var function = rpt.CreateConcreteOrNull(VarType.Bool);
+            var function = rpt.CreateConcreteOrNull(VarType.Bool,VarType.Bool);
             Assert.Multiple(() =>
             {
-                Assert.AreEqual(VarType.Bool, function.OutputType);
+                Assert.AreEqual(VarType.Bool, function.ReturnType);
                 CollectionAssert.AreEquivalent(new[]{VarType.Bool}, function.ArgTypes);
             });
         }
@@ -25,13 +25,14 @@ namespace Funny.Tests.UnitTests
         [Test]
         public void ReturnSelfFunction_ArrayType_ResultTypesAreCorrect()
         {
-            var genericArgument = VarType.ArrayOf(VarType.Bool);
+            var arrayOfBool = VarType.ArrayOf(VarType.Bool);
             var rpt = new ReturnSelfGenericFunctionDefenition();
-            var function = rpt.CreateConcreteOrNull(genericArgument);
+            var function = rpt.CreateConcreteOrNull(arrayOfBool,arrayOfBool);
+            Assert.IsNotNull(function);
             Assert.Multiple(() =>
             {
-                Assert.AreEqual(genericArgument, function.OutputType);
-                CollectionAssert.AreEquivalent(new[]{genericArgument}, function.ArgTypes);
+                Assert.AreEqual(arrayOfBool, function.ReturnType);
+                CollectionAssert.AreEquivalent(new[]{arrayOfBool}, function.ArgTypes);
             });
         }
         
@@ -39,11 +40,11 @@ namespace Funny.Tests.UnitTests
         public void Repeat_PrimitiveType_ResultTypesAreCorrect()
         {
             var rpt = new RepeatGenericFunctionDefenition();
-            var function = rpt.CreateConcreteOrNull(VarType.Bool, VarType.Int32);
+            var function = rpt.CreateConcreteOrNull(VarType.ArrayOf(VarType.Bool), VarType.Bool, VarType.Int32);
             Assert.IsNotNull(function);
             Assert.Multiple(() =>
             {
-                Assert.AreEqual(VarType.ArrayOf(VarType.Bool), function.OutputType);
+                Assert.AreEqual(VarType.ArrayOf(VarType.Bool), function.ReturnType);
                 CollectionAssert.AreEquivalent(new[]{VarType.Bool, VarType.Int32}, function.ArgTypes);
             });
         }
@@ -53,7 +54,8 @@ namespace Funny.Tests.UnitTests
         {
             var function = new MapGenericFunctionDefenition()
                 .CreateConcreteOrNull(
-                     VarType.ArrayOf(VarType.Int32), 
+                    VarType.ArrayOf(VarType.Text), 
+                    VarType.ArrayOf(VarType.Int32), 
                      VarType.Fun(VarType.Text, VarType.Int32));
 
             Assert.IsNotNull(function);
@@ -61,7 +63,7 @@ namespace Funny.Tests.UnitTests
             Assert.Multiple(()=>{
                 Assert.AreEqual(
                     expected: VarType.ArrayOf(VarType.Text),
-                    actual: function.OutputType);
+                    actual: function.ReturnType);
                 CollectionAssert.AreEqual(
                     expected: new[]
                     {
@@ -76,12 +78,15 @@ namespace Funny.Tests.UnitTests
         public void Take_PrimitiveType_ResultTypesAreCorrect()
         {
             var rpt = new TakeGenericFunctionDefenition();
-            var function = rpt.CreateConcreteOrNull(VarType.ArrayOf(VarType.Bool), VarType.Int32);
+            var function = rpt.CreateConcreteOrNull(
+                 VarType.ArrayOf(VarType.Bool),
+                 VarType.ArrayOf(VarType.Bool), 
+                 VarType.Int32);
             Assert.IsNotNull(function);
 
             Assert.Multiple(() =>
             {
-                Assert.AreEqual(VarType.ArrayOf(VarType.Bool), function.OutputType);
+                Assert.AreEqual(VarType.ArrayOf(VarType.Bool), function.ReturnType);
                 CollectionAssert.AreEquivalent(new[]{VarType.ArrayOf(VarType.Bool), VarType.Int32}, function.ArgTypes);
             });
         }
@@ -90,15 +95,81 @@ namespace Funny.Tests.UnitTests
         public void Take_ArrayType_ResultTypesAreCorrect()
         {
             var rpt = new TakeGenericFunctionDefenition();
-            var genericArgument = VarType.ArrayOf(VarType.Bool);
-            var function = rpt.CreateConcreteOrNull(VarType.ArrayOf(genericArgument), VarType.Int32);
+            var arrayOfBool = VarType.ArrayOf(VarType.Bool);
+            var function = rpt.CreateConcreteOrNull(
+                VarType.ArrayOf(arrayOfBool),
+                VarType.ArrayOf(arrayOfBool), 
+                VarType.Int32);
             Assert.IsNotNull(function);
             Assert.Multiple(() =>
             {
-                Assert.AreEqual(VarType.ArrayOf(genericArgument), function.OutputType);
-                CollectionAssert.AreEquivalent(new[]{VarType.ArrayOf(genericArgument), VarType.Int32}, function.ArgTypes);
+                Assert.AreEqual(VarType.ArrayOf(arrayOfBool), function.ReturnType);
+                CollectionAssert.AreEquivalent(new[]{VarType.ArrayOf(arrayOfBool), VarType.Int32}, function.ArgTypes);
             });
         }
+        [TestCase(BaseVarType.Real,BaseVarType.Int32,BaseVarType.Int32)]
+        [TestCase(BaseVarType.Real,BaseVarType.Real,BaseVarType.Int32)]
+        [TestCase(BaseVarType.Real,BaseVarType.Int32,BaseVarType.Real)]
+
+        [TestCase(BaseVarType.Int32,BaseVarType.Int32,BaseVarType.Int32)]
+        [TestCase(BaseVarType.Int64,BaseVarType.Int32,BaseVarType.Int32)]
+        [TestCase(BaseVarType.Any,  BaseVarType.Int32,BaseVarType.Int32)]
+        public void GetRnd_GenericEqualsOutputType(
+            BaseVarType returnType, BaseVarType firstArg, BaseVarType secondArg)
+        {
+            var rpt = new GetRandomElementFuncDefenition();
+            var function = rpt.CreateConcreteOrNull(
+                VarType.PrimitiveOf(returnType),
+                VarType.PrimitiveOf(firstArg), 
+                VarType.PrimitiveOf(secondArg));
+            var generic = VarType.PrimitiveOf(returnType);
+            Assert.IsNotNull(function);
+            Assert.Multiple(() =>
+            {
+                Assert.AreEqual(generic, function.ReturnType);
+                CollectionAssert.AreEquivalent(new[]{generic, generic}, function.ArgTypes);
+            });
+        }
+        [TestCase(BaseVarType.Int32,BaseVarType.Real,BaseVarType.Int32)]
+        [TestCase(BaseVarType.Int32,BaseVarType.Int32,BaseVarType.Real)]
+        [TestCase(BaseVarType.Int64,BaseVarType.Int32,BaseVarType.Real)]
+        [TestCase(BaseVarType.Real,BaseVarType.Any,BaseVarType.Real)]
+        public void GetRnd_ArgAreIncostistent_ReturnsNull(
+            BaseVarType returnType, BaseVarType firstArg, BaseVarType secondArg)
+        {
+            var rpt = new GetRandomElementFuncDefenition();
+            var function = rpt.CreateConcreteOrNull(
+                VarType.PrimitiveOf(returnType),
+                VarType.PrimitiveOf(firstArg), 
+                VarType.PrimitiveOf(secondArg));
+            Assert.IsNull(function);
+        }
+        
+        [Test]
+        public void GetRnd_RealInt_Real_GenericEqualsReal()
+        {
+            var rpt = new GetRandomElementFuncDefenition();
+            var function = rpt.CreateConcreteOrNull(
+                VarType.Real,
+                VarType.Int32, 
+                VarType.Int32);
+            Assert.IsNotNull(function);
+            Assert.Multiple(() =>
+            {
+                Assert.AreEqual(VarType.Real, function.ReturnType);
+                CollectionAssert.AreEquivalent(new[]{VarType.Real, VarType.Real}, function.ArgTypes);
+            });
+        }
+    }
+
+    public class GetRandomElementFuncDefenition : GenericFunctionBase
+    {
+        public GetRandomElementFuncDefenition() : base("__retSelf",
+            VarType.Generic(0), VarType.Generic(0),VarType.Generic(0))
+        {
+        }
+
+        public override object Calc(object[] args) => throw new NotImplementedException();
     }
     public class ReturnSelfGenericFunctionDefenition : GenericFunctionBase
     {

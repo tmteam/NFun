@@ -59,5 +59,8 @@ namespace NFun.Interpritation.Functions
             for (int i = 0; i < args.Length; i++)
                 _variables[i].Value=  args[i];
         }
+
+        public override string ToString() 
+            => $"{Name}({string.Join(",",ArgTypes.Select(a=>a.ToString()))}):{ReturnType}";
     }
 }
