@@ -7,7 +7,7 @@ namespace NFun.SyntaxParsing.Visitors
         protected virtual VisitorResult DefaultVisit(ISyntaxNode node)
             => VisitorResult.Continue;
 
-        public virtual VisitorResult Visit(AnonymCallSyntaxNode node) => DefaultVisit(node);
+        public virtual VisitorResult Visit(AnonymCallSyntaxNode anonymFunNode) => DefaultVisit(anonymFunNode);
         public virtual VisitorResult Visit(ArraySyntaxNode node)=> DefaultVisit(node);
         public virtual VisitorResult Visit(EquationSyntaxNode node)=> DefaultVisit(node);
         public virtual VisitorResult Visit(FunCallSyntaxNode node)=> DefaultVisit(node);

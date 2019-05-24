@@ -10,12 +10,14 @@ namespace NFun.HindleyMilner
         public HmVisitorState(NsHumanizerSolver globalSolver)
         {
             CurrentSolver = globalSolver;
+            _aliasTable = new AliasTable();
         }
 
         public NsHumanizerSolver CurrentSolver { get; }
         private readonly Dictionary<string, string> _anonymVariablesAliases = new Dictionary<string, string>();
+        private AliasTable _aliasTable;
 
-        
+
         public SolvingNode CreateTypeNode(VarType type)
         {
             if (type.BaseType == BaseVarType.Empty)
@@ -25,26 +27,30 @@ namespace NFun.HindleyMilner
         
         public string GetActualName(string varName)
         {
+            return _aliasTable.GetVariableAlias(varName);
+            /*
             if (_anonymVariablesAliases.TryGetValue(varName, out var realVarName))
                 return realVarName;
-            return varName;
+            return varName;*/
         }
 
-        public void EnterScope()
+        public void EnterScope(int nodeId)
         {
-            
+            _aliasTable.InitVariableScope(nodeId, new List<string>());
         }
 
         public void ExitScope()
         {
-            
+            _aliasTable.ExitVariableScope();
         }
-        public void AddVariableAliase(string originName, string anonymName) 
-            => _anonymVariablesAliases.Add(originName,anonymName);
+
+        public void AddVariableAliase(string originName, string alias)
+            => _aliasTable.AddVariableAlias(originName, alias); // _anonymVariablesAliases.Add(originName,anonymName);
 
         public bool HasAlias(string inputAlias)
         {
-            return _anonymVariablesAliases.ContainsKey(inputAlias);
+            return _aliasTable.HasVariable(inputAlias);
+            //return _anonymVariablesAliases.ContainsKey(inputAlias);
         }
     }
 }

@@ -8,7 +8,7 @@ namespace NFun.SyntaxParsing.SyntaxNodes
     public class UserFunctionDefenitionSyntaxNode: ISyntaxNode
     {
         public VarType OutputType { get; set; }
-        public int NodeNumber { get; set; }
+        public int OrderNumber { get; set; }
         public VarType ReturnType { get; }
         public FunCallSyntaxNode Head { get; }
 

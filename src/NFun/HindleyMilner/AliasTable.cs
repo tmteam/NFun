@@ -1,10 +1,11 @@
+using System;
 using System.Collections.Generic;
 
 namespace NFun.HindleyMilner
 {
-    public class VariableAliasTable
+    public class AliasTable
     {
-        public VariableAliasTable()
+        public AliasTable()
         {
             _variableAliasesStack = new List<Dictionary<string, string>>();
             _variableAliasesStack.Add(new Dictionary<string, string>());
@@ -24,13 +25,23 @@ namespace NFun.HindleyMilner
             return false;
         }
 
+        public bool AddVariableAlias(string originName, string variableName)
+        {
+            var currentFrame = _variableAliasesStack[_variableAliasesStack.Count - 1];
+            if (currentFrame.ContainsKey(variableName))
+            {
+                return false;
+            }
+            currentFrame.Add(originName, variableName);
+            return true;
+        }
         public string AddVariableAlias(int node, string variableName)
         {
             var currentFrame = _variableAliasesStack[_variableAliasesStack.Count - 1];
             var alias = MakeAlias(node, variableName);
             if (currentFrame.ContainsKey(variableName))
             {
-                
+                throw new InvalidOperationException("varable name already exist");
             }
             currentFrame.Add(variableName, alias);
             return alias;
@@ -44,7 +55,7 @@ namespace NFun.HindleyMilner
             }
             return variableName;
         }
-        public void InitVariableScope(int nodeNumber, List<string> scopeVariables)
+        public void InitVariableScope(int nodeNumber, IList<string> scopeVariables)
         {
             var dictionary = new Dictionary<string,string>();
             foreach (var scopeVariable in scopeVariables)
@@ -53,7 +64,7 @@ namespace NFun.HindleyMilner
             }
             _variableAliasesStack.Add(dictionary);
         }
-        public void ExitVariableScope(int nodeNumber)
+        public void ExitVariableScope()
         {
             _variableAliasesStack.RemoveAt(_variableAliasesStack.Count-1);
         }

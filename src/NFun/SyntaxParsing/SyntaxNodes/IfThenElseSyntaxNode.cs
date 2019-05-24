@@ -9,7 +9,7 @@ namespace NFun.SyntaxParsing.SyntaxNodes
     public class IfThenElseSyntaxNode : ISyntaxNode
     {
         public VarType OutputType { get; set; }
-        public int NodeNumber { get; set; }
+        public int OrderNumber { get; set; }
 
         public IfCaseSyntaxNode[] Ifs { get; }
         public ISyntaxNode ElseExpr { get; }

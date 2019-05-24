@@ -8,7 +8,7 @@ namespace NFun.SyntaxParsing
     public interface ISyntaxNode
     {    
         VarType OutputType { get; set; }
-        int NodeNumber { get; set; }
+        int OrderNumber { get; set; }
         bool IsInBrackets { get; set; }
         Interval Interval { get; set; }
         T Visit<T>(ISyntaxNodeVisitor<T> visitor);

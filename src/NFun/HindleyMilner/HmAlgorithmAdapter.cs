@@ -7,7 +7,8 @@ namespace NFun.HindleyMilner
 {
     public class HmAlgorithmAdapter
     {
-        public HmAlgorithmAdapter(FunctionsDictionary dictionary, 
+        public HmAlgorithmAdapter(
+            FunctionsDictionary dictionary, 
             HmVisitorState state = null)
         {
             _solver = state?.CurrentSolver??new NsHumanizerSolver();
