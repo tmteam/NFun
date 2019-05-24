@@ -62,16 +62,8 @@ namespace NFun.HindleyMilner
             return VisitorResult.Continue;
         }
 
-        public override VisitorResult Visit(FunCallSyntaxNode funCallnode)
-        {
-            
-            return VisitorResult.Continue;
-        }
         
-        private static string MakeAnonVariableName(AnonymCallSyntaxNode node, string id)
-        {
-            var anonName = "=" + node.OrderNumber + ":" + id;
-            return anonName;
-        }
+        private static string MakeAnonVariableName(AnonymCallSyntaxNode node, string id) 
+            => AdpterHelper.GetArgAlias("anonymous_"+node.OrderNumber, id);
     }
 }

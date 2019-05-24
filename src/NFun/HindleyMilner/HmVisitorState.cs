@@ -44,6 +44,7 @@ namespace NFun.HindleyMilner
             _aliasTable.ExitVariableScope();
         }
 
+
         public void AddVariableAliase(string originName, string alias)
             => _aliasTable.AddVariableAlias(originName, alias); // _anonymVariablesAliases.Add(originName,anonymName);
 
