@@ -34,8 +34,12 @@ namespace NFun.HindleyMilner
                 return _state.CurrentSolver.SetProcArrayInit(node.NodeNumber, node.From.NodeNumber, node.To.NodeNumber,node.Step.NodeNumber);
         }
 
-        public bool Visit(AnonymCallSyntaxNode node) => true;
-        
+        public bool Visit(AnonymCallSyntaxNode node)
+        {
+            _state.ExitScope();
+            return true;
+        }
+
         public bool Visit(EquationSyntaxNode node)
            => _state.CurrentSolver.SetDefenition(node.Id, node.NodeNumber, node.Expression.NodeNumber);
 

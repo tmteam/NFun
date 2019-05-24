@@ -9,32 +9,11 @@ namespace NFun.HindleyMilner
     {
         public HmVisitorState(NsHumanizerSolver globalSolver)
         {
-            _globalSolver = globalSolver;
-            CurrentSolver = _globalSolver;
-        }
-        private NsHumanizerSolver _globalSolver;
-        private UserFunctionHmSolving _currentFunctionSolving = null;
-
-        public NsHumanizerSolver CurrentSolver { get; private set; }
-        public void EnterUserFunction(string name, int argsCount)
-        { 
-            if(_currentFunctionSolving!=null)
-                throw new InvalidOperationException($"re enter into '{name}' function");
-            _currentFunctionSolving = new UserFunctionHmSolving(name, argsCount, new NsHumanizerSolver());
-            CurrentSolver = _currentFunctionSolving.Solver;
+            CurrentSolver = globalSolver;
         }
 
-        public UserFunctionHmSolving ExitFunction()
-        {
-            if(_currentFunctionSolving==null)
-                throw new InvalidOperationException($"No analyzing function");
-            CurrentSolver = _globalSolver;
-
-            var fun = _currentFunctionSolving;
-            _currentFunctionSolving = null;
-            return fun;
-        }
-        private readonly Dictionary<string, string> AnonymVariablesAliases = new Dictionary<string, string>();
+        public NsHumanizerSolver CurrentSolver { get; }
+        private readonly Dictionary<string, string> _anonymVariablesAliases = new Dictionary<string, string>();
 
         
         public SolvingNode CreateTypeNode(VarType type)
@@ -46,16 +25,26 @@ namespace NFun.HindleyMilner
         
         public string GetActualName(string varName)
         {
-            if (AnonymVariablesAliases.TryGetValue(varName, out var realVarName))
+            if (_anonymVariablesAliases.TryGetValue(varName, out var realVarName))
                 return realVarName;
             return varName;
         }
+
+        public void EnterScope()
+        {
+            
+        }
+
+        public void ExitScope()
+        {
+            
+        }
         public void AddVariableAliase(string originName, string anonymName) 
-            => AnonymVariablesAliases.Add(originName,anonymName);
+            => _anonymVariablesAliases.Add(originName,anonymName);
 
         public bool HasAlias(string inputAlias)
         {
-            return AnonymVariablesAliases.ContainsKey(inputAlias);
+            return _anonymVariablesAliases.ContainsKey(inputAlias);
         }
     }
 }

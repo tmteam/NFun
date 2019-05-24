@@ -22,7 +22,8 @@ namespace NFun.HindleyMilner
         
         public override VisitorResult Visit(AnonymCallSyntaxNode node)
         {
-            List<SolvingNode> argTypes = new List<SolvingNode>();
+            var argTypes = new List<SolvingNode>();
+            _hmVisitorState.EnterScope();
             foreach (var syntaxNode in node.ArgumentsDefenition)
             {
                 SolvingNode type;
@@ -50,7 +51,7 @@ namespace NFun.HindleyMilner
                 }
                 else 
                     throw FunParseException.ErrorStubToDo("Unexpected lambda defention");
-
+                
                 _hmVisitorState.AddVariableAliase(originName, anonymName);
                 argTypes.Add(type);
             }
