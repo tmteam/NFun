@@ -83,12 +83,7 @@ namespace NFun.SyntaxParsing
                     nodes.Add(equation);
                 }
             }
-
-            if (hasFuctions && hasAnonymousEquation)
-            {
-                var anonymousNode = nodes.OfType<EquationSyntaxNode>().First();
-                throw ErrorFactory.FunctionDefenitionsIsDeniedWhenThereIsAnounymousExpression(anonymousNode);
-            }
+            
             return new SyntaxTree(nodes.ToArray());
             
         }

@@ -114,11 +114,11 @@ namespace NFun.SyntaxParsing
 
         public ISyntaxNode ReadExpressionOrNull()
             => ReadNext(MaxPriority);
-
+        
         //ReadZeroPriority operation (num, -num, id, fun, if, (...))
         private ISyntaxNode ReadAtomicOrNull()
         {
-            _flow.SkipNewLines();
+           var hasNewLineBefore = _flow.SkipNewLines();
 
             //-num turns to (-1 * num)
             var start = _flow.Position;
@@ -190,6 +190,7 @@ namespace NFun.SyntaxParsing
                 return ReadBrackedListOrNull();
             if (_flow.IsCurrent(TokType.If))
                 return ReadIfThenElse();
+            // '[' can be used as array index, only if there is new line
             if (_flow.IsCurrent(TokType.ArrOBr))
                 return ReadInitializeArray();
             if (_flow.IsCurrent(TokType.NotAToken))
@@ -210,7 +211,7 @@ namespace NFun.SyntaxParsing
             //building the syntax tree
             while (true)
             {
-                _flow.SkipNewLines();
+                var hasNewLines = _flow.SkipNewLines();
                 //if flow is done than current node is everything we got
                 // example:
                 // 1*2+3 {return whole expression }
@@ -235,8 +236,18 @@ namespace NFun.SyntaxParsing
                 if (leftNode == null)
                     throw ErrorFactory.LeftBinaryArgumentIsMissing(opToken);
                 
-                if (opToken.Type == TokType.ArrOBr)
+                if (opToken.Type == TokType.ArrOBr )
+                {
+                    //We can use array slicing, only if there were no new lines before.
+                    //there is problem of choose between anonymous array init and array slice 
+                    //otherwise
+                    if (_flow.IsPrevious(TokType.NewLine))
+                    {
+                        return leftNode;
+                    }
+
                     leftNode = ReadArraySliceNode(leftNode);
+                }
                 else if (opToken.Type == TokType.PipeForward)
                 {
                     _flow.MoveNext();
@@ -372,6 +383,7 @@ namespace NFun.SyntaxParsing
 
         private ISyntaxNode ReadInitializeArray()
         {
+                
             var startTokenNum = _flow.CurrentTokenPosition;
             var openBracket = _flow.MoveIfOrThrow(TokType.ArrOBr);
             
