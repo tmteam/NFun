@@ -1,6 +1,7 @@
 using System;
 using NFun;
 using NFun.ParseErrors;
+using NFun.SyntaxParsing;
 using NFun.Types;
 using NUnit.Framework;
 
@@ -25,6 +26,20 @@ namespace Funny.Tests
         [TestCase( "y = [1.0,2.0,3.0].all((i)=> i >0)",true)]
         [TestCase( "y = [1.0,2.0,3.0].all((i)=> i >1.0)",false)]
         [TestCase( "f(m:real[], p):bool = m.all((i)=> i>p) \r y = f([1.0,2.0,3.0],1.0)",false)]
+        
+        [TestCase("y = [-1,-2,0,1,2,3].filter(i=>i>0).reduce((i,j)=> i+j)", 6 )]
+        [TestCase("y = [-1,-2,0,1,2,3].filter(i=>i>0).filter(i=>i>2)", new[]{3})]
+        [TestCase("y = [-1,-2,0,1,2,3].filter(i=>i>0).map(i=>i*i).map(i:int=>i*i)", new[]{1,16,81})]
+        [TestCase("y = [-1,-2,0,1,2,3].filter(i=>i>0).map(i=>i*i).map(i=>i*i)", new[]{1,16,81})]
+
+        [TestCase("y = [-1,-2,0,1,2,3].filter(i=>i>0).reduce((a,b)=> a+b)", 6 )]
+        [TestCase("y = [-1,-2,0,1,2,3].filter(i=>i>0).filter(a=>a>2)", new[]{3})]
+        [TestCase("y = [-1,-2,0,1,2,3].filter(i=>i>0).map(a=>a*a).map(b=>b*b)", new[]{1,16,81})]
+
+        [TestCase("y = [-1,-2,0,1,2,3].filter(i=>i>0).map(a=>a*a).map(b:int=>b*b)", new[]{1,16,81})]
+        [TestCase("y = [-1,-2,0,1,2,3].filter(i=>i>0).filter(a:int=>a>2)", new[]{3})]
+        [TestCase("y = [-1,-2,0,1,2,3].filter(i=>i>0).reduce((a:int,b)=> a+b)", 6 )]
+
         public void AnonymousFunctions_ConstantEquation(string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
@@ -32,7 +47,6 @@ namespace Funny.Tests
             runtime.Calculate()
                 .AssertReturns(Var.New("y", expected));
         }
-        
         [TestCase( "y = [1.0,2.0,3.0].map((i)=> i*x1*x2)",3.0,4.0, new []{12.0,24.0,36.0})]
         [TestCase( "x1:int\rx2:int\ry = [1,2,3].map((i:int)=> i*x1*x2)",3,4, new []{12,24,36})]
         [TestCase( "y = [1.0,2.0,3.0].reduce((i,j)=> i*x1 - j*x2)",2.0,3.0, -17.0)]
