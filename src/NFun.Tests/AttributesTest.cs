@@ -29,6 +29,7 @@ namespace Funny.Tests
             , string variable,
             string[] attribute)
         {
+            
             var runtime =FunBuilder.BuildDefault(expression);
             var varInfo = runtime.Outputs.Union(runtime.Inputs).SingleOrDefault(o => o.Name == variable);
             Assert.IsNotNull(varInfo);
