@@ -78,5 +78,6 @@ namespace NFun.Tokenization
                 return false;
             return _tokens[_currentPos - 1].Type == tokType;
         }
+        
     }
 }

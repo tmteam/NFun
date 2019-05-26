@@ -29,17 +29,17 @@ namespace NFun.Interpritation
         }
 
 
-        public IExpressionNode Visit(AnonymCallSyntaxNode node)
+        public IExpressionNode Visit(AnonymCallSyntaxNode anonymFunNode)
         {
-            if (node.Defenition==null)
-                throw ErrorFactory.AnonymousFunDefenitionIsMissing(node);
+            if (anonymFunNode.Defenition==null)
+                throw ErrorFactory.AnonymousFunDefenitionIsMissing(anonymFunNode);
 
-            if(node.Body==null)
-                throw ErrorFactory.AnonymousFunBodyIsMissing(node);
+            if(anonymFunNode.Body==null)
+                throw ErrorFactory.AnonymousFunBodyIsMissing(anonymFunNode);
             
             
             //Anonym fun arguments list
-            var argumentLexNodes = node.ArgumentsDefenition;
+            var argumentLexNodes = anonymFunNode.ArgumentsDefenition;
             
             //Prepare local variable scope
             //Capture all outerscope variables
@@ -59,14 +59,14 @@ namespace NFun.Interpritation
 
                     //If outer-scope contains the conflict variable name
                     if (_variables.GetSourceOrNull(varNode.Name) != null)
-                        throw ErrorFactory.AnonymousFunctionArgumentConflictsWithOuterScope(varNode, node.Defenition);
+                        throw ErrorFactory.AnonymousFunctionArgumentConflictsWithOuterScope(varNode, anonymFunNode.Defenition);
                     else //else it is duplicated arg name
-                        throw ErrorFactory.AnonymousFunctionArgumentDuplicates(varNode, node.Defenition);
+                        throw ErrorFactory.AnonymousFunctionArgumentDuplicates(varNode, anonymFunNode.Defenition);
                 }
             }
 
             var originVariables = localVariables.GetAllSources().Select(s=>s.Name).ToArray();
-            var expr = BuildExpression(node.Body, _functions, localVariables);
+            var expr = BuildExpression(anonymFunNode.Body, _functions, localVariables);
             
             //New variables are new closured
             var closured =  localVariables.GetAllUsages()
@@ -78,7 +78,7 @@ namespace NFun.Interpritation
                 _variables.TryAdd(newVar); //add full usage info to allow analyze outer errors
             
             var fun = new UserFunction("anonymous", arguments.ToArray(), expr);
-            return new FunVariableExpressionNode(fun, node.Interval);
+            return new FunVariableExpressionNode(fun, anonymFunNode.Interval);
         }
 
         public IExpressionNode Visit(ArraySyntaxNode node)

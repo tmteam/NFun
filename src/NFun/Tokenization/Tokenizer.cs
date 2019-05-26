@@ -31,14 +31,12 @@ namespace NFun.Tokenization
             {'|', TokType.BitOr},
             {'/', TokType.Div},
             {'+', TokType.Plus},
-            {'-', TokType.Minus},
             {'%', TokType.Rema},
             {'(', TokType.Obr},
             {')', TokType.Cbr},
             {'[', TokType.ArrOBr},
             {']', TokType.ArrCBr},
             {':', TokType.Colon},
-            {'@', TokType.Attribute},
             {'~', TokType.BitInverse}
         };
         
@@ -138,6 +136,10 @@ namespace NFun.Tokenization
             
             switch (current)
             {
+                case '-' when  next == '-':
+                    return Tok.New(TokType.Attribute, position, position+2);   
+                case '-':
+                    return Tok.New(TokType.Minus, position, position+1);
                 case '*' when  next == '*':
                     return Tok.New(TokType.Pow, position, position+2);
                 case '*' :

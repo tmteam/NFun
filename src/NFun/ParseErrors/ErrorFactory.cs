@@ -492,6 +492,6 @@ namespace NFun.ParseErrors
                 usages.Nodes.First().Interval);       
         #endregion
 
-       
+
     }
 }

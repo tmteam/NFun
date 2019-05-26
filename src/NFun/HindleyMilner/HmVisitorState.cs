@@ -9,34 +9,15 @@ namespace NFun.HindleyMilner
     {
         public HmVisitorState(NsHumanizerSolver globalSolver)
         {
-            _globalSolver = globalSolver;
-            CurrentSolver = _globalSolver;
-        }
-        private NsHumanizerSolver _globalSolver;
-        private UserFunctionHmSolving _currentFunctionSolving = null;
-
-        public NsHumanizerSolver CurrentSolver { get; private set; }
-        public void EnterUserFunction(string name, int argsCount)
-        { 
-            if(_currentFunctionSolving!=null)
-                throw new InvalidOperationException($"re enter into '{name}' function");
-            _currentFunctionSolving = new UserFunctionHmSolving(name, argsCount, new NsHumanizerSolver());
-            CurrentSolver = _currentFunctionSolving.Solver;
+            CurrentSolver = globalSolver;
+            _aliasTable = new AliasTable();
         }
 
-        public UserFunctionHmSolving ExitFunction()
-        {
-            if(_currentFunctionSolving==null)
-                throw new InvalidOperationException($"No analyzing function");
-            CurrentSolver = _globalSolver;
+        public NsHumanizerSolver CurrentSolver { get; }
+        private readonly Dictionary<string, string> _anonymVariablesAliases = new Dictionary<string, string>();
+        private AliasTable _aliasTable;
 
-            var fun = _currentFunctionSolving;
-            _currentFunctionSolving = null;
-            return fun;
-        }
-        private readonly Dictionary<string, string> AnonymVariablesAliases = new Dictionary<string, string>();
 
-        
         public SolvingNode CreateTypeNode(VarType type)
         {
             if (type.BaseType == BaseVarType.Empty)
@@ -46,16 +27,31 @@ namespace NFun.HindleyMilner
         
         public string GetActualName(string varName)
         {
-            if (AnonymVariablesAliases.TryGetValue(varName, out var realVarName))
+            return _aliasTable.GetVariableAlias(varName);
+            /*
+            if (_anonymVariablesAliases.TryGetValue(varName, out var realVarName))
                 return realVarName;
-            return varName;
+            return varName;*/
         }
-        public void AddVariableAliase(string originName, string anonymName) 
-            => AnonymVariablesAliases.Add(originName,anonymName);
+
+        public void EnterScope(int nodeId)
+        {
+            _aliasTable.InitVariableScope(nodeId, new List<string>());
+        }
+
+        public void ExitScope()
+        {
+            _aliasTable.ExitVariableScope();
+        }
+
+
+        public void AddVariableAliase(string originName, string alias)
+            => _aliasTable.AddVariableAlias(originName, alias); // _anonymVariablesAliases.Add(originName,anonymName);
 
         public bool HasAlias(string inputAlias)
         {
-            return AnonymVariablesAliases.ContainsKey(inputAlias);
+            return _aliasTable.HasVariable(inputAlias);
+            //return _anonymVariablesAliases.ContainsKey(inputAlias);
         }
     }
 }

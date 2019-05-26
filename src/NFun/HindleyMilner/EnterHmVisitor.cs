@@ -20,10 +20,11 @@ namespace NFun.HindleyMilner
 
         public override VisitorResult Visit(UserFunctionDefenitionSyntaxNode node) => VisitorResult.Skip;
         
-        public override VisitorResult Visit(AnonymCallSyntaxNode node)
+        public override VisitorResult Visit(AnonymCallSyntaxNode anonymFunNode)
         {
-            List<SolvingNode> argTypes = new List<SolvingNode>();
-            foreach (var syntaxNode in node.ArgumentsDefenition)
+            var argTypes = new List<SolvingNode>();
+            _hmVisitorState.EnterScope(anonymFunNode.OrderNumber);
+            foreach (var syntaxNode in anonymFunNode.ArgumentsDefenition)
             {
                 SolvingNode type;
                 string originName;
@@ -31,7 +32,7 @@ namespace NFun.HindleyMilner
                 if (syntaxNode is TypedVarDefSyntaxNode typed)
                 {
                     originName = typed.Id;
-                    anonymName = MakeAnonVariableName(node, originName);
+                    anonymName = MakeAnonVariableName(anonymFunNode, originName);
                     if (typed.VarType.Equals(VarType.Empty))
                         type = _hmVisitorState.CurrentSolver.SetNewVar(anonymName);
                     else
@@ -43,34 +44,26 @@ namespace NFun.HindleyMilner
                 else if (syntaxNode is VariableSyntaxNode varNode)
                 {
                     originName = varNode.Id;
-                    anonymName = MakeAnonVariableName(node, originName);
+                    anonymName = MakeAnonVariableName(anonymFunNode, originName);
                     if (_hmVisitorState.CurrentSolver.HasVariable(anonymName))
-                        throw ErrorFactory.AnonymousFunctionArgumentDuplicates(varNode, node);
+                        throw ErrorFactory.AnonymousFunctionArgumentDuplicates(varNode, anonymFunNode);
                     type = _hmVisitorState.CurrentSolver.SetNewVar(anonymName);
                 }
                 else 
                     throw FunParseException.ErrorStubToDo("Unexpected lambda defention");
-
+                
                 _hmVisitorState.AddVariableAliase(originName, anonymName);
                 argTypes.Add(type);
             }
 
-           if(!_hmVisitorState.CurrentSolver.InitLambda(node.NodeNumber, node.Body.NodeNumber, argTypes.ToArray()))
+           if(!_hmVisitorState.CurrentSolver.InitLambda(anonymFunNode.OrderNumber, anonymFunNode.Body.OrderNumber, argTypes.ToArray()))
                throw FunParseException.ErrorStubToDo("LambdaCannot be iniited");
             
             return VisitorResult.Continue;
         }
 
-        public override VisitorResult Visit(FunCallSyntaxNode funCallnode)
-        {
-            
-            return VisitorResult.Continue;
-        }
         
-        private static string MakeAnonVariableName(AnonymCallSyntaxNode node, string id)
-        {
-            var anonName = "=" + node.NodeNumber + ":" + id;
-            return anonName;
-        }
+        private static string MakeAnonVariableName(AnonymCallSyntaxNode node, string id) 
+            => AdpterHelper.GetArgAlias("anonymous_"+node.OrderNumber, id);
     }
 }

@@ -8,7 +8,7 @@ namespace NFun.SyntaxParsing.SyntaxNodes
     public class VariableSyntaxNode : ISyntaxNode
     {
         public VarType OutputType { get; set; }
-        public int NodeNumber { get; set; }
+        public int OrderNumber { get; set; }
 
         public VariableSyntaxNode(string id, Interval interval)
         {
@@ -22,6 +22,6 @@ namespace NFun.SyntaxParsing.SyntaxNodes
         public T Visit<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);    
         public IEnumerable<ISyntaxNode> Children => new ISyntaxNode[0];
 
-        public override string ToString() => $"({NodeNumber}) {Id}:{OutputType}";
+        public override string ToString() => $"({OrderNumber}) {Id}:{OutputType}";
     }
 }

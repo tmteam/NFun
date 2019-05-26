@@ -9,7 +9,7 @@ namespace NFun.SyntaxParsing.SyntaxNodes
     {
         
         
-        public int NodeNumber { get; set; }
+        public int OrderNumber { get; set; }
         public VarType OutputType { get; set; }
 
         public string Id { get; }

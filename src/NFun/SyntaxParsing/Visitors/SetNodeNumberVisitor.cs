@@ -10,7 +10,7 @@ namespace NFun.SyntaxParsing.Visitors
         public int LastNum { get; private set; }
         protected override VisitorResult DefaultVisit(ISyntaxNode node)
         {
-            node.NodeNumber = LastNum++;
+            node.OrderNumber = LastNum++;
             return VisitorResult.Continue;
         }
     }

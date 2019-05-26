@@ -72,9 +72,22 @@ namespace Funny.Tests
         [TestCase("a = 2.0 \r b=3.0 \r y = [a*0,b*0] ", new[]{0.0,0.0})]
         [TestCase("a = true  \ry = if (a) [1.0] else [2.0, 3.0] ", new[]{1.0})]
         [TestCase("a = false  \r y = if (a) [1.0] else [2.0, 3.0]", new[]{2.0,3.0})]
+     
         public void ConstantCalculableArrayTest(string expr, object expected)
         {
             FunBuilder.BuildDefault(expr).Calculate().AssertHas(Var.New("y", expected));
+        }
+        
+        
+        [TestCase("if (true) [1.0] else [2.0, 3.0] ", new[]{1.0})]
+        [TestCase("if (false) [1.0] else [2.0, 3.0]", new[]{2.0,3.0})]
+        [TestCase ("y(x) = x \r[1]",new[]{1})]
+        [TestCase ("y(x) = x \r[1..3]",new[]{1,2,3})]
+        [TestCase ("y(x) = x # some comment \r[1]",new[]{1})]
+        [TestCase ("y(x) = x # some comment \r[1..3]",new[]{1,2,3})]
+        public void AnonymousConstantArrayTest(string expr, object expected)
+        {
+            FunBuilder.BuildDefault(expr).Calculate().AssertHas(Var.New("out", expected));
         }
         
         [Test]
@@ -222,6 +235,7 @@ filtrat   = x.filter(i:int=>i> filt) # filt - входная переменна�
         [TestCase("y = [1..")]
         [TestCase("y = [2,1] in [1,2,3]")]    
         [TestCase("y = [1,5,2] in [1,2,3]")] 
+        [TestCase("y = x\r[2]")]
         public void ObviouslyFailsOnParse(string expr) =>
             Assert.Throws<FunParseException>(
                 ()=> FunBuilder.BuildDefault(expr));

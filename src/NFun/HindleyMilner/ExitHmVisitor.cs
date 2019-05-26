@@ -20,7 +20,7 @@ namespace NFun.HindleyMilner
             _dictionary = dictionary;
         }
 
-        public bool Visit(ArraySyntaxNode node)=> _state.CurrentSolver.SetArrayInit(node.NodeNumber, node.Expressions.Select(e=>e.NodeNumber).ToArray());
+        public bool Visit(ArraySyntaxNode node)=> _state.CurrentSolver.SetArrayInit(node.OrderNumber, node.Expressions.Select(e=>e.OrderNumber).ToArray());
         /// <summary>
         /// User fuctions are not supported by the visitor
         /// </summary>
@@ -29,15 +29,19 @@ namespace NFun.HindleyMilner
         public bool Visit(ProcArrayInit node)
         {
             if (node.Step == null)
-                return _state.CurrentSolver.SetProcArrayInit(node.NodeNumber, node.From.NodeNumber, node.To.NodeNumber);
+                return _state.CurrentSolver.SetProcArrayInit(node.OrderNumber, node.From.OrderNumber, node.To.OrderNumber);
             else
-                return _state.CurrentSolver.SetProcArrayInit(node.NodeNumber, node.From.NodeNumber, node.To.NodeNumber,node.Step.NodeNumber);
+                return _state.CurrentSolver.SetProcArrayInit(node.OrderNumber, node.From.OrderNumber, node.To.OrderNumber,node.Step.OrderNumber);
         }
 
-        public bool Visit(AnonymCallSyntaxNode node) => true;
-        
+        public bool Visit(AnonymCallSyntaxNode anonymFunNode)
+        {
+            _state.ExitScope();
+            return true;
+        }
+
         public bool Visit(EquationSyntaxNode node)
-           => _state.CurrentSolver.SetDefenition(node.Id, node.NodeNumber, node.Expression.NodeNumber);
+           => _state.CurrentSolver.SetDefenition(node.Id, node.OrderNumber, node.Expression.OrderNumber);
 
         public bool Visit(FunCallSyntaxNode node)
         {
@@ -48,30 +52,30 @@ namespace NFun.HindleyMilner
                 {
                     case CoreFunNames.Negate:
                         return _state.CurrentSolver.SetNegateOp(
-                            node.NodeNumber, 
-                            node.Args[0].NodeNumber);
+                            node.OrderNumber, 
+                            node.Args[0].OrderNumber);
                     case CoreFunNames.Multiply:
                     case CoreFunNames.Add:
                     case CoreFunNames.Substract:
                     case CoreFunNames.Remainder:
                         return _state.CurrentSolver.SetArithmeticalOp(
-                            node.NodeNumber, 
-                            node.Args[0].NodeNumber,
-                            node.Args[1].NodeNumber);
+                            node.OrderNumber, 
+                            node.Args[0].OrderNumber,
+                            node.Args[1].OrderNumber);
                     case CoreFunNames.BitShiftLeft:
                     case CoreFunNames.BitShiftRight:
                         return _state.CurrentSolver.SetBitShiftOperator(
-                            node.NodeNumber, 
-                            node.Args[0].NodeNumber, 
-                            node.Args[1].NodeNumber);
+                            node.OrderNumber, 
+                            node.Args[0].OrderNumber, 
+                            node.Args[1].OrderNumber);
                     case CoreFunNames.LessOrEqual:
                     case CoreFunNames.Less:
                     case CoreFunNames.MoreOrEqual:
                     case CoreFunNames.More:
                         return _state.CurrentSolver.SetComparationOperator(
-                            node.NodeNumber,
-                            node.Args[0].NodeNumber, 
-                            node.Args[1].NodeNumber);
+                            node.OrderNumber,
+                            node.Args[0].OrderNumber, 
+                            node.Args[1].OrderNumber);
                 }
             }
             var argsCount = node.Args.Length;
@@ -84,8 +88,8 @@ namespace NFun.HindleyMilner
             {
                 //Recursive function call. We don't know its signature yet. That's why we set "functional variable",
                 //instead of usual function call
-                var res =  _state.CurrentSolver.SetInvoke(node.NodeNumber, funAlias,
-                    node.Args.Select(a => a.NodeNumber).ToArray());
+                var res =  _state.CurrentSolver.SetInvoke(node.OrderNumber, funAlias,
+                    node.Args.Select(a => a.OrderNumber).ToArray());
                 return res;
             }
             
@@ -109,22 +113,22 @@ namespace NFun.HindleyMilner
             if (userFunctions.Count == 1)
                 return _state.CurrentSolver.SetCall(ToCallDef(node, userFunctions[0]));
             
-            return _state.CurrentSolver.SetOverloadCall(candidates.Select(ToFunSignature).ToArray(), node.NodeNumber,
-                node.Args.Select(a => a.NodeNumber).ToArray());
+            return _state.CurrentSolver.SetOverloadCall(candidates.Select(ToFunSignature).ToArray(), node.OrderNumber,
+                node.Args.Select(a => a.OrderNumber).ToArray());
         }
 
         public bool Visit(IfThenElseSyntaxNode node)
         {
-            return _state.CurrentSolver.ApplyLcaIf(node.NodeNumber,
-                node.Ifs.Select(i => i.Condition.NodeNumber).ToArray(),
-                node.Ifs.Select(i => i.Expression.NodeNumber).Append(node.ElseExpr.NodeNumber).ToArray());
+            return _state.CurrentSolver.ApplyLcaIf(node.OrderNumber,
+                node.Ifs.Select(i => i.Condition.OrderNumber).ToArray(),
+                node.Ifs.Select(i => i.Expression.OrderNumber).Append(node.ElseExpr.OrderNumber).ToArray());
         }
         public bool Visit(IfCaseSyntaxNode node)=> true;
         public bool Visit(ListOfExpressionsSyntaxNode node)=> true;
 
         public bool Visit(ConstantSyntaxNode node)
         {
-            return _state.CurrentSolver.SetConst(node.NodeNumber, 
+            return _state.CurrentSolver.SetConst(node.OrderNumber, 
                 AdpterHelper.ConvertToHmType(node.OutputType));
         }
 
@@ -141,10 +145,10 @@ namespace NFun.HindleyMilner
             
             var localId = _state.GetActualName(node.Id);
             if (_state.CurrentSolver.HasVariable(localId))
-                return _state.CurrentSolver.SetVar(node.NodeNumber, localId);
+                return _state.CurrentSolver.SetVar(node.OrderNumber, localId);
             
             if (_state.CurrentSolver.HasVariable(originId))
-                return _state.CurrentSolver.SetVar(node.NodeNumber, originId);
+                return _state.CurrentSolver.SetVar(node.OrderNumber, originId);
             
             var userFunctions 
                 = _dictionary.GetNonGeneric(originId).OfType<ConcreteUserFunctionPrototype>().ToList();
@@ -156,14 +160,14 @@ namespace NFun.HindleyMilner
             
             //if there is no functions - set variable with local name
             if (userFunctions.Count == 0)
-                return _state.CurrentSolver.SetVar(node.NodeNumber, localId);
+                return _state.CurrentSolver.SetVar(node.OrderNumber, localId);
             
 
             //Make fun variable:
             _state.CurrentSolver.SetVarType(
                 originId,
                 userFunctions[0].GetHmFunctionalType());
-            return _state.CurrentSolver.SetVar(node.NodeNumber, originId);
+            return _state.CurrentSolver.SetVar(node.OrderNumber, originId);
         }
         
         
@@ -174,7 +178,7 @@ namespace NFun.HindleyMilner
 
         private static CallDef ToCallDef(FunCallSyntaxNode node, FunctionBase fun)
         {
-            var ids = new[] {node.NodeNumber}.Concat(node.Args.Select(a => a.NodeNumber)).ToArray();
+            var ids = new[] {node.OrderNumber}.Concat(node.Args.Select(a => a.OrderNumber)).ToArray();
             var types = new[] {fun.ReturnType}.Concat(fun.ArgTypes).Select(AdpterHelper.ConvertToHmType).ToArray();
 
             var callDef = new CallDef(types, ids);
@@ -182,7 +186,7 @@ namespace NFun.HindleyMilner
         }
         private static CallDef ToCallDef(FunCallSyntaxNode node, GenericFunctionBase fun)
         {
-            var ids = new[] {node.NodeNumber}.Concat(node.Args.Select(a => a.NodeNumber)).ToArray();
+            var ids = new[] {node.OrderNumber}.Concat(node.Args.Select(a => a.OrderNumber)).ToArray();
             var types = new[] {fun.ReturnType}.Concat(fun.ArgTypes).Select(AdpterHelper.ConvertToHmType).ToArray();
 
             var callDef = new CallDef(types, ids);

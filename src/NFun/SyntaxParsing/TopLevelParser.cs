@@ -9,12 +9,14 @@ namespace NFun.SyntaxParsing
 {
     public static class TopLevelParser
     {
+        public const string AnonymousEquationId = "out";
         public static SyntaxTree Parse(TokFlow flow)
         {
             var reader = new SyntaxNodeReader(flow);
             var nodes = new List<ISyntaxNode>();
-           
             var equationNames = new List<string>();
+            bool hasAnonymousEquation = false;
+            bool hasFuctions = false;
             while (true)
             {
                 flow.SkipNewLines();
@@ -33,7 +35,6 @@ namespace NFun.SyntaxParsing
                 
                 if(e is TypedVarDefSyntaxNode typed)
                 {
-                    
                     //Input typed var specification
                     nodes.Add(
                         new VarDefenitionSyntaxNode(typed, attributes));                        
@@ -55,6 +56,7 @@ namespace NFun.SyntaxParsing
                         if (attributes.Any())
                             throw ErrorFactory.AttributeOnFunction(exprStart, fun);
                         nodes.Add(ReadUserFunction(exprStart, fun, flow, reader));
+                        hasFuctions = true;
                     }
                     else
                         throw ErrorFactory.ExpressionBeforeTheDefenition(exprStart, e, flow.Current);
@@ -64,7 +66,7 @@ namespace NFun.SyntaxParsing
                     //anonymous equation
                     if (equationNames.Any())
                     {
-                        if (startOfTheString && equationNames[0]=="out")
+                        if (startOfTheString && hasAnonymousEquation)
                             throw ErrorFactory.OnlyOneAnonymousExpressionAllowed(exprStart, e, flow.Current);
                         else
                             throw ErrorFactory.UnexpectedExpression(e);
@@ -75,12 +77,13 @@ namespace NFun.SyntaxParsing
                         
                     //todo start
                     //anonymous
-                    var equation = new EquationSyntaxNode("out",0, e, attributes);
+                    var equation = new EquationSyntaxNode(AnonymousEquationId,0, e, attributes);
+                    hasAnonymousEquation = true;
                     equationNames.Add(equation.Id);
                     nodes.Add(equation);
                 }
             }
-
+            
             return new SyntaxTree(nodes.ToArray());
             
         }

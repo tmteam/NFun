@@ -8,7 +8,7 @@ namespace NFun.SyntaxParsing.SyntaxNodes
     public class ConstantSyntaxNode : ISyntaxNode
     {
         public VarType OutputType { get; set; }
-        public int NodeNumber { get; set; }
+        public int OrderNumber { get; set; }
 
         
         public ConstantSyntaxNode(object value, VarType varType, Interval interval)

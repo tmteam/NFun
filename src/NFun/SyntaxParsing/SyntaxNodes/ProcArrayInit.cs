@@ -8,7 +8,7 @@ namespace NFun.SyntaxParsing.SyntaxNodes
     public class ProcArrayInit : ISyntaxNode
     {
         public VarType OutputType { get; set; }
-        public int NodeNumber { get; set; }
+        public int OrderNumber { get; set; }
 
         public ISyntaxNode From { get; }
         public ISyntaxNode To { get; }
