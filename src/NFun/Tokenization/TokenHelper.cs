@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Linq;
 using NFun.ParseErrors;
 using NFun.Types;
@@ -17,7 +18,8 @@ namespace NFun.Tokenization
             {
                 if (val.EndsWith("."))
                     throw new FormatException();
-                return (double.Parse(val), VarType.Real);
+                //todo надо написать тесты на разные культуры
+                return (double.Parse(val, CultureInfo.InvariantCulture), VarType.Real);
             }
 
             var longVal = ParseLongValue(val);
