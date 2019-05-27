@@ -68,7 +68,7 @@ namespace NFun.HmTests
             
             solver.SetVar( 0,"x");
             Assert.IsTrue(solver.SetArrayInit(1, 0));
-            Assert.IsTrue(solver.SetDefenition("y",2, 1));
+            solver.SetDefenition("y",2, 1).AssertSuccesfully();
             
             var result = solver.Solve();
             Assert.IsTrue(result.IsSolved);
@@ -145,13 +145,13 @@ namespace NFun.HmTests
             
             solver.SetVar( 0,"x");
             Assert.IsTrue(solver.SetArrayInit(1, 0));
-            Assert.IsTrue(solver.SetDefenition("y",2, 1));
+            solver.SetDefenition("y",2, 1).AssertSuccesfully();
 
             
             solver.SetVar( 3,"b");
             solver.SetVar( 4,"c");
             Assert.IsTrue(solver.SetArrayInit(5, 3,4));
-            Assert.IsTrue(solver.SetDefenition("a",6, 5));
+            solver.SetDefenition("a",6, 5).AssertSuccesfully();
 
             var result = solver.Solve();
             Assert.IsTrue(result.IsSolved);
@@ -284,7 +284,7 @@ namespace NFun.HmTests
             solver.SetArrayInit(3, 2);
 
             Assert.IsTrue(solver.SetCall(new CallDef(new[] {FType.Bool, FType.Generic(0), FType.Generic(0)}, new[] {4, 1, 3})));
-            Assert.IsTrue(solver.SetDefenition("y", 5, 4));
+            solver.SetDefenition("y", 5, 4).AssertSuccesfully();
             
             var res = solver.Solve();
             
@@ -305,7 +305,7 @@ namespace NFun.HmTests
             solver.SetArrayInit(3, 2);
 
             Assert.IsTrue(solver.SetCall(new CallDef(new[] {FType.Bool, FType.Any, FType.Any}, new[] {4, 1, 3})));
-            Assert.IsTrue(solver.SetDefenition("y", 5, 4));
+            solver.SetDefenition("y", 5, 4).AssertSuccesfully();
             
             var res = solver.Solve();
             Assert.IsTrue(res.IsSolved);

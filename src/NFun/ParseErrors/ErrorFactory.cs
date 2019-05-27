@@ -202,8 +202,6 @@ namespace NFun.ParseErrors
         public static Exception NowNewLineBeforeAttribute(TokFlow flow)
             => new FunParseException(299,$"Attribute has to start from new line.", 
                 flow.Current.Interval);
-        #endregion
-
         #region  3xx - hi level parsing
         
         public static Exception UnexpectedExpression(ISyntaxNode lexNode) 
@@ -419,7 +417,10 @@ namespace NFun.ParseErrors
 
         public static Exception AnonymousFunBodyIsMissing(ISyntaxNode node)
             => new FunParseException(512, "Anonymous fun body is missing", node.Interval);
-
+        
+        public static Exception AnonymousFunArgumentIsIncorrect(ISyntaxNode node)
+            => new FunParseException(513, "Invalid anonymous fun argument", node.Interval);
+        
         public static Exception AmbiguousCallOfFunction(IList<FunctionBase> funVars, string funName, Interval interval)
             => throw new FunParseException(515,$"Ambiguous call of function with name: {funName}", interval);
 
@@ -476,6 +477,13 @@ namespace NFun.ParseErrors
 
         public static Exception AnonymousFunctionArgumentConflictsWithOuterScope(FunArgumentExpressionNode argNode, ISyntaxNode defenitionNode)
             => new FunParseException(551, $"'Argument name '{argNode.Name}' of anonymous fun conflicts with outer scope variable. It is denied for your safety.", defenitionNode.Interval);
+        public static Exception AnonymousFunDefenitionIsIncorrect(AnonymCallSyntaxNode anonymFunNode)
+            => new FunParseException(554, $"'Anonym fun defenition is incorrect ", anonymFunNode.Interval);
+
+        #endregion
+
+                
+        
         public static Exception VariousArrayElementTypes(IExpressionNode[] elements, int failureIndex) {
             var firstType = elements[0].Type;
             var failureType = elements[failureIndex].Type;
@@ -489,7 +497,18 @@ namespace NFun.ParseErrors
 
         public static Exception VariableIsDeclaredAfterUsing(VariableUsages usages)
             => new FunParseException(563, $"Variable '{usages.Source.Name}' used before it is declared'",
-                usages.Nodes.First().Interval);       
+                usages.Nodes.First().Interval);
+    
+        #endregion
+
+        #region typeSolving
+
+        public static Exception OutputDefenitionDuplicates(EquationSyntaxNode node)
+            => new FunParseException(600,$"Output variable {node.Id} defenition duplicates",node.Interval);        
+    
+        public static Exception OutputDefenitionTypeIsNotSolved(EquationSyntaxNode node)
+            => new FunParseException(603,$"Output variable '{node.Id}' type is incorrect",node.Interval);        
+
         #endregion
 
 

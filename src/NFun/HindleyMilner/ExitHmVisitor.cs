@@ -1,12 +1,11 @@
-using System.Collections.Generic;
 using System.Linq;
 using NFun.BuiltInFunctions;
 using NFun.HindleyMilner.Tyso;
 using NFun.Interpritation;
 using NFun.Interpritation.Functions;
+using NFun.ParseErrors;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
-using NFun.Types;
 
 namespace NFun.HindleyMilner
 {
@@ -41,7 +40,14 @@ namespace NFun.HindleyMilner
         }
 
         public bool Visit(EquationSyntaxNode node)
-           => _state.CurrentSolver.SetDefenition(node.Id, node.OrderNumber, node.Expression.OrderNumber);
+        {
+            var res = _state.CurrentSolver.SetDefenition(node.Id, node.OrderNumber, node.Expression.OrderNumber);
+            if (res.IsSuccesfully)
+                return true;
+            if (res.Error == SetTypeResultError.VariableDefenitionDuplicates)
+                throw ErrorFactory.OutputDefenitionDuplicates(node);
+            throw ErrorFactory.OutputDefenitionTypeIsNotSolved(node);
+        }
 
         public bool Visit(FunCallSyntaxNode node)
         {
@@ -92,7 +98,6 @@ namespace NFun.HindleyMilner
                     node.Args.Select(a => a.OrderNumber).ToArray());
                 return res;
             }
-            
 
             var candidates = _dictionary.GetNonGeneric(node.Id).Where(n=>n.ArgTypes.Length == argsCount).ToList();
 
@@ -100,7 +105,8 @@ namespace NFun.HindleyMilner
             {
                 var genericCandidate = _dictionary.GetGenericOrNull(node.Id, argsCount);
                 if (genericCandidate == null)
-                    return false;
+                    throw ErrorFactory.FunctionNotFound(node, _dictionary);
+                
                 var callDef = ToCallDef(node, genericCandidate);
                 return _state.CurrentSolver.SetCall(callDef);
 
@@ -128,8 +134,7 @@ namespace NFun.HindleyMilner
 
         public bool Visit(ConstantSyntaxNode node)
         {
-            return _state.CurrentSolver.SetConst(node.OrderNumber, 
-                AdpterHelper.ConvertToHmType(node.OutputType));
+            return _state.CurrentSolver.SetConst(node.OrderNumber, AdpterHelper.ConvertToHmType(node.OutputType));
         }
 
         public bool Visit(SyntaxTree node)=> true;
@@ -156,7 +161,9 @@ namespace NFun.HindleyMilner
             //ambiguous function reference
             //Several functions fits
             if (userFunctions.Count > 1)
-                return false;
+                throw ErrorFactory.AmbiguousFunctionChoise(
+                    userFunctions.Select(u=>u as FunctionBase).ToList(), 
+                    node);
             
             //if there is no functions - set variable with local name
             if (userFunctions.Count == 0)

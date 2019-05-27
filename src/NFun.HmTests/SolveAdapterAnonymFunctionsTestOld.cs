@@ -62,7 +62,7 @@ namespace NFun.HmTests
                 FType.Fun(FType.Generic(0),FType.Generic(1)), 
             }, new[] {2, 0, 1})));
             
-            Assert.IsTrue(solver.SetDefenition("y", 3, 2));
+            solver.SetDefenition("y", 3, 2).AssertSuccesfully();
             
             var res = solver.Solve();
             Assert.AreEqual(0,res.GenericsCount);

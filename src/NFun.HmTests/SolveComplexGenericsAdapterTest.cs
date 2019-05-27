@@ -202,7 +202,7 @@ namespace NFun.HmTests
             Assert.IsTrue(solver.SetVar( 5,"d"));
             Assert.IsTrue(solver.SetCall(new CallDef(FType.ArrayOf(FType.Generic(0)), new[] {6, 4, 5})));
             
-            Assert.IsTrue(solver.SetDefenition("y", 7, 6));
+            solver.SetDefenition("y", 7, 6).AssertSuccesfully();
             
             var solvation = solver.Solve();
             Assert.AreEqual(0, solvation.GenericsCount);
@@ -217,8 +217,8 @@ namespace NFun.HmTests
         public void ThreeGenericArrayOperationsWithWrongOutputSpecified_ReturnsError()
         {
             // 7               0  2     1     4       3     6   5
-            // y(a,b,d):real = a.concat(b).concat([1,2]).concat(d)
-            solver.SetVarType("y",FType.Real);
+            // y(a,b,d):real[] = a.concat(b).concat([1,2]).concat(d)
+            solver.SetVarType("y" , FType.ArrayOf(FType.Real));
             solver.SetVar( 0,"a");
             solver.SetVar( 1,"b");
             solver.SetCall(new CallDef(FType.ArrayOf(FType.Generic(0)), new[] {2, 0, 1}));
@@ -227,7 +227,7 @@ namespace NFun.HmTests
             solver.SetVar( 5,"d");
             solver.SetCall(new CallDef(FType.ArrayOf(FType.Generic(0)), new[] {6, 4, 5}));
 
-            Assert.IsFalse(solver.SetDefenition("y", 7, 6));
+            solver.SetDefenition("y", 7, 6).AssertSuccesfully();
         }
 
         [Test]

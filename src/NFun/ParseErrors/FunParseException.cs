@@ -25,7 +25,7 @@ namespace NFun.ParseErrors
         {
             return $"[FU{Code}] {base.ToString()}";
         }
-        //the error is not implemented yet, but it should -)
+        //todo the error is not implemented yet, but it should -)
         public static FunParseException ErrorStubToDo(string varAlreadyDeclared)
         {
             return new FunParseException(-1, varAlreadyDeclared, 0,0);

@@ -162,15 +162,15 @@ namespace NFun.HindleyMilner.Tyso
             return true;
         }
 
-        public bool InitLambda(int nodeId, int exprId, SolvingNode[] args)
+        public SetTypeResult InitLambda(int nodeId, int exprId, SolvingNode[] args)
         {
             var outputType= _solver.GetOrCreate(exprId);
             var funType =  SolvingNode.CreateStrict(NTypeName.Function, new[]{outputType}.Concat(args).ToArray());
             if (!_solver.SetNode(nodeId, funType))
-                return false;
+                return SetTypeResult.Failed(nodeId);
             if (!_solver.Unite(exprId, outputType))
-                return false;
-            return true;
+                return SetTypeResult.Failed(exprId, SetTypeResultError.ExpressionTypeIsIncorrect);
+            return SetTypeResult.Succesfully;
         }
 
         public bool SetStrict(int node, FType type) => _solver.SetStrict(node, type);
@@ -184,10 +184,15 @@ namespace NFun.HindleyMilner.Tyso
 
         public bool SetVar(int nodeId, string varName) => _solver.SetVar(nodeId, varName);
         public bool SetVarType(string varName, FType type) => _solver.SetVarType(varName, type);
-        public bool SetDefenition(string variableName, int varId, int exprId)
+        public SetTypeResult SetDefenition(string variableName, int varId, int exprId)
         {
-            return
-                _solver.SetVar(varId, variableName) && _solver.SetLca(varId, new[]{exprId});
+            if(!_solver.SetVar(varId, variableName))
+                return SetTypeResult.Failed(exprId, SetTypeResultError.VariableDefenitionDuplicates);
+                
+            if(!_solver.SetLca(varId, new[]{exprId}))
+                return SetTypeResult.Failed(exprId, SetTypeResultError.ExpressionTypeIsIncorrect);
+            
+            return SetTypeResult.Succesfully;
         }
 
         public bool HasVariable(string variableName) => _solver.GetOrNull(variableName) != null;
@@ -309,5 +314,55 @@ namespace NFun.HindleyMilner.Tyso
             ArgIds = argIds;
         }
 
+    }
+
+    public enum SetTypeResultError
+    {
+        NoError=0, 
+        ExpressionTypeIsIncorrect = 1,
+        VariableDefenitionDuplicates = 2,
+        
+    }
+    public struct SetTypeResult
+    {
+        public static readonly SetTypeResult Succesfully = new SetTypeResult(isSuccesfully:true);
+        public static SetTypeResult Failed(int nodeId,SetTypeResultError error = SetTypeResultError.ExpressionTypeIsIncorrect) => new SetTypeResult(nodeId,error);
+
+        private SetTypeResult(bool isSuccesfully)
+        {
+            IsSuccesfully = isSuccesfully;
+            FailedNodeId = -1;
+            Error = SetTypeResultError.NoError;
+        }
+        public SetTypeResult(int failedNodeId, SetTypeResultError error)
+        {
+            IsSuccesfully = false;
+            FailedNodeId = failedNodeId;
+            Error = error;
+        }
+        public readonly bool IsSuccesfully;
+        public readonly int FailedNodeId;
+        public readonly SetTypeResultError Error;
+
+        public override bool Equals(object obj)
+        {
+            return base.Equals(obj);
+        }
+
+        public bool Equals(SetTypeResult other)
+        {
+            return IsSuccesfully == other.IsSuccesfully && FailedNodeId == other.FailedNodeId && Error == other.Error;
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                var hashCode = IsSuccesfully.GetHashCode();
+                hashCode = (hashCode * 397) ^ FailedNodeId;
+                hashCode = (hashCode * 397) ^ (int) Error;
+                return hashCode;
+            }
+        }
     }
 }

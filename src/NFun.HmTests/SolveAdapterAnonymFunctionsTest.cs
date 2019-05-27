@@ -20,7 +20,7 @@ namespace NFun.HmTests
             _solver.SetConst(0, FType.ArrayOf(FType.Int32));
             
             var xGeneric =  _solver.SetNewVar("4:x");
-            Assert.IsTrue(_solver.InitLambda(4, 3, new[] {xGeneric}));
+            _solver.InitLambda(4, 3, new[] {xGeneric}).AssertSuccesfully();
             
             _solver.SetVar(1, "4:x");
             _solver.SetConst(2, FType.Int32);
@@ -53,7 +53,7 @@ namespace NFun.HmTests
             _solver.SetConst(0, FType.ArrayOf(FType.Int32));
             
             var xGeneric =  _solver.SetNewVar("4:x");
-            Assert.IsTrue(_solver.InitLambda(4, 3, new[] {xGeneric}));
+            _solver.InitLambda(4, 3, new[] {xGeneric}).AssertSuccesfully();
             
             _solver.SetVar(1, "4:x");
             _solver.SetConst(2, FType.Int32);
@@ -86,7 +86,7 @@ namespace NFun.HmTests
             _solver.SetVar(0,"a");
             
             var xGeneric =  _solver.SetNewVar("4:x");
-            Assert.IsTrue(_solver.InitLambda(4, 3, new[] {xGeneric}));
+            _solver.InitLambda(4, 3, new[] {xGeneric}).AssertSuccesfully();
             
             _solver.SetVar(1, "4:x");
             _solver.SetVar(2, "input");
@@ -121,7 +121,7 @@ namespace NFun.HmTests
             
             _solver.SetVarType("4:x", FType.Int32);
             var xType = _solver.GetOrCreate("4:x");
-            Assert.IsTrue(_solver.InitLambda(4, 3, new[] {xType}));
+            _solver.InitLambda(4, 3, new[] {xType}).AssertSuccesfully();
             
             _solver.SetVar(1, "4:x");
             _solver.SetVar(2, "4:x");

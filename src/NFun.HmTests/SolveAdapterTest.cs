@@ -78,7 +78,7 @@ namespace NFun.HmTests
             solver.SetCall(new CallDef(FType.Real, new []{2,0,1}));
             solver.SetDefenition("y", 3, 2);
             solver.SetConst(4,FType.Int32);
-            Assert.IsTrue(solver.SetDefenition("a", 5, 4));
+            solver.SetDefenition("a", 5, 4).AssertSuccesfully();
 
             var solvation = solver.Solve();
             Assert.AreEqual(FType.Real, solvation.GetVarType("y"));
@@ -273,7 +273,7 @@ namespace NFun.HmTests
             solver.SetCall(new CallDef(FType.Real, new []{2,0,1}));
             solver.SetDefenition("y", 3, 2);
             solver.SetConst(4,FType.Int32);
-            Assert.IsTrue(solver.SetDefenition("a", 5, 4));
+            solver.SetDefenition("a", 5, 4).AssertSuccesfully();
 
             var solvation = solver.Solve();
             Assert.AreEqual(FType.Real, solvation.GetVarType("y"));
@@ -291,11 +291,11 @@ namespace NFun.HmTests
             solver.SetCall(new CallDef(FType.Real, new []{2,0,1}));
             solver.SetDefenition("y", 3, 2);
             solver.SetConst(4,FType.Int32);
-            Assert.IsTrue(solver.SetDefenition("a", 5, 4));
+            solver.SetDefenition("a", 5, 4).AssertSuccesfully();
             solver.SetVar(6, "a");
             solver.SetConst(7,FType.Int32);
             Assert.IsTrue(solver.SetBitShiftOperator(8, 6, 7));
-            Assert.IsTrue(solver.SetDefenition("b", 9, 8));
+            solver.SetDefenition("b", 9, 8).AssertSuccesfully();
             
             var solvation = solver.Solve();
             Assert.AreEqual(FType.Real, solvation.GetVarType("y"));
@@ -316,7 +316,7 @@ namespace NFun.HmTests
             solver.SetVar(3,"b");
             
             solver.SetCall(new CallDef(FType.Real, new []{4,2,3}));
-            Assert.IsTrue(solver.SetDefenition("y", 5, 4));
+            solver.SetDefenition("y", 5, 4).AssertSuccesfully();
             
             var solvation = solver.Solve();
             Assert.AreEqual(FType.Real, solvation.GetVarType("y"));
@@ -338,7 +338,7 @@ namespace NFun.HmTests
             solver.SetDefenition("y", 5, 4);
 
             solver.SetConst(6,FType.Int32);
-            Assert.IsTrue(solver.SetDefenition("b",7,6));
+            solver.SetDefenition("b",7,6).AssertSuccesfully();
 
             var solvation = solver.Solve();
             Assert.AreEqual(FType.Real, solvation.GetVarType("y"));
@@ -422,7 +422,7 @@ namespace NFun.HmTests
             solver.SetConst(1, FType.Bool);
             solver.SetVar(2,"x");
             Assert.IsTrue(solver.ApplyLcaIf(3, new[] {1}, new[] {0,2}));
-            Assert.IsTrue(solver.SetDefenition("y", 4, 3));
+            solver.SetDefenition("y", 4, 3).AssertSuccesfully();
             
             var solvation = solver.Solve();
             Assert.IsTrue(solvation.IsSolved);
@@ -442,11 +442,11 @@ namespace NFun.HmTests
             solver.SetVar(2,"x");
             Assert.IsTrue(solver.ApplyLcaIf(3, new[] {1}, new[] {0,2}));
             solver.SetVar(5,"y1");
-            Assert.IsTrue(solver.SetDefenition("y2", 6, 5));
+            solver.SetDefenition("y2", 6, 5).AssertSuccesfully();
             solver.SetVar(7,"y1");
             solver.SetConst(8, FType.Int32);
             solver.SetArithmeticalOp(9, 7, 8);
-            Assert.IsTrue(solver.SetDefenition("y3", 10, 9));
+            solver.SetDefenition("y3", 10, 9).AssertSuccesfully();
             
             
             var solvation = solver.Solve();
@@ -518,7 +518,7 @@ namespace NFun.HmTests
             solver.SetVarType("a", FType.Real);
             
             solver.SetConst(0, FType.Int32);
-            Assert.True(solver.SetDefenition("a", 1,0));
+            solver.SetDefenition("a", 1,0).AssertSuccesfully();
             var solvation = solver.Solve();
             Assert.AreEqual(FType.Real, solvation.GetVarType("a"));
         }
@@ -530,10 +530,10 @@ namespace NFun.HmTests
             //a = 1:int;  a = 1.0:int64
 
             solver.SetConst(0, FType.Int32);
-            Assert.True(solver.SetDefenition("a", 1,0));
+            solver.SetDefenition("a", 1,0).AssertSuccesfully();
             solver.SetConst(2, FType.Int64);
             
-            Assert.True(solver.SetDefenition("a", 3, 2));
+            solver.SetDefenition("a", 3, 2).AssertSuccesfully();
              
             var solvation = solver.Solve();
             Assert.IsTrue(solvation.IsSolved);
@@ -547,10 +547,10 @@ namespace NFun.HmTests
             //a = 1:int64;  a = 1.0:int32
 
             solver.SetConst(0, FType.Int64);
-            Assert.True(solver.SetDefenition("a", 1,0));
+            solver.SetDefenition("a", 1,0).AssertSuccesfully();
             solver.SetConst(2, FType.Int32);
             
-            Assert.True(solver.SetDefenition("a", 3, 2));
+            solver.SetDefenition("a", 3, 2).AssertSuccesfully();
              
             var solvation = solver.Solve();
             Assert.IsTrue(solvation.IsSolved);

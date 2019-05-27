@@ -82,11 +82,11 @@ namespace NFun.HmTests
             //expr |y1 = x1; y2 = [x2]; 
 
             solver.SetVar(0, "x1");
-            Assert.IsTrue(solver.SetDefenition("y1", 1, 0));
+            solver.SetDefenition("y1", 1, 0).AssertSuccesfully();
 
             solver.SetVar(2, "x2");
             Assert.IsTrue(solver.SetArrayInit(3, 2));
-            Assert.IsTrue(solver.SetDefenition("y2", 4, 3));
+            solver.SetDefenition("y2", 4, 3).AssertSuccesfully();
 
             var result = solver.Solve();
             Assert.IsTrue(result.IsSolved);
@@ -110,15 +110,15 @@ namespace NFun.HmTests
 
             solver.SetVar(0, "x1");
             Assert.IsTrue(solver.SetArrayInit(1, 0));
-            Assert.IsTrue(solver.SetDefenition("y1", 2, 1));
+            solver.SetDefenition("y1", 2, 1).AssertSuccesfully();
 
             solver.SetVar(3, "x2");
             Assert.IsTrue(solver.SetArrayInit(4, 3));
-            Assert.IsTrue(solver.SetDefenition("y2", 5, 4));
+            solver.SetDefenition("y2", 5, 4).AssertSuccesfully();
 
             solver.SetVar(6, "x3");
             Assert.IsTrue(solver.SetArrayInit(7, 6));
-            Assert.IsTrue(solver.SetDefenition("y3", 8, 7));
+            solver.SetDefenition("y3", 8, 7).AssertSuccesfully();
 
             var result = solver.Solve();
             Assert.IsTrue(result.IsSolved);
@@ -246,7 +246,7 @@ namespace NFun.HmTests
             solver.SetConst(3, FType.Int32);
             solver.SetArithmeticalOp(4, 2, 3);
             solver.SetConst(5, FType.Real);
-            Assert.True(solver.SetDefenition("a", 6, 5));
+            solver.SetDefenition("a", 6, 5).AssertSuccesfully();
              
             var solvation = solver.Solve();
              
@@ -267,7 +267,7 @@ namespace NFun.HmTests
             solver.SetConst(2, FType.Real);
             solver.SetArithmeticalOp(4, 2, 3);
             solver.SetConst(5, FType.Int32);
-            Assert.True(solver.SetDefenition("a", 6, 5));
+            solver.SetDefenition("a", 6, 5).AssertSuccesfully();
              
             var solvation = solver.Solve();
              
@@ -284,7 +284,7 @@ namespace NFun.HmTests
             solver.SetConst(0,FType.Real);
             solver.SetConst(1,FType.Int32);
             solver.SetCall(new CallDef(FType.Generic(0), new[] {2, 0, 1}));
-            Assert.True(solver.SetDefenition("a", 3, 2));
+            solver.SetDefenition("a", 3, 2).AssertSuccesfully();
              
             var solvation = solver.Solve();
             Assert.AreEqual(0, solvation.GenericsCount);             
@@ -302,7 +302,7 @@ namespace NFun.HmTests
             solver.SetConst(0,FType.Int32);
             solver.SetConst(1,FType.Real);
             Assert.True(solver.SetCall(new CallDef(FType.Generic(0), new[] {2, 0, 1})));
-            Assert.True(solver.SetDefenition("a", 3, 2));
+            solver.SetDefenition("a", 3, 2).AssertSuccesfully();
              
             var solvation = solver.Solve();
             Assert.AreEqual(0, solvation.GenericsCount);             
@@ -324,7 +324,7 @@ namespace NFun.HmTests
             solver.SetCall(new CallDef(FType.Generic(0), new[] {2, 0, 1}));
             solver.SetConst(3, FType.Int32);
             
-            Assert.True(solver.SetDefenition("a", 4, 3));
+            solver.SetDefenition("a", 4, 3).AssertSuccesfully();
              
             var solvation = solver.Solve();
              
@@ -340,13 +340,13 @@ namespace NFun.HmTests
             //a = 1:int; rnd( a, b) ; a = 1.0:real
 
             solver.SetConst(0, FType.Int32);
-            Assert.True(solver.SetDefenition("a", 1,0));
+            solver.SetDefenition("a", 1,0).AssertSuccesfully();
             solver.SetVar(2,"a");
             solver.SetVar(3,"b");
             solver.SetCall(new CallDef(FType.Generic(0), new[] {4, 2, 3}));
             solver.SetConst(5, FType.Real);
             
-            Assert.True(solver.SetDefenition("a", 6, 5));
+            solver.SetDefenition("a", 6, 5).AssertSuccesfully();
              
             var solvation = solver.Solve();
              

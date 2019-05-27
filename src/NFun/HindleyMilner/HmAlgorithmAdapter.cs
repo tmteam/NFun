@@ -20,7 +20,7 @@ namespace NFun.HindleyMilner
         private readonly NsHumanizerSolver _solver;
         public ISyntaxNodeVisitor<VisitorResult> EnterVisitor { get; } 
         public ISyntaxNodeVisitor<bool> ExitVisitor { get; }
-
+        
         public bool ComeOver(ISyntaxNode node) => node.ComeOver(EnterVisitor, ExitVisitor);
 
         public FunTypeSolving Solve()

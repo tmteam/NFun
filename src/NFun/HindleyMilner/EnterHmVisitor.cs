@@ -18,7 +18,8 @@ namespace NFun.HindleyMilner
             _hmVisitorState = hmVisitorState;
         }
 
-        public override VisitorResult Visit(UserFunctionDefenitionSyntaxNode node) => VisitorResult.Skip;
+        public override VisitorResult Visit(UserFunctionDefenitionSyntaxNode node) 
+            => VisitorResult.Skip;
         
         public override VisitorResult Visit(AnonymCallSyntaxNode anonymFunNode)
         {
@@ -50,14 +51,16 @@ namespace NFun.HindleyMilner
                     type = _hmVisitorState.CurrentSolver.SetNewVar(anonymName);
                 }
                 else 
-                    throw FunParseException.ErrorStubToDo("Unexpected lambda defention");
+                    throw ErrorFactory.AnonymousFunArgumentIsIncorrect(syntaxNode);
                 
                 _hmVisitorState.AddVariableAliase(originName, anonymName);
                 argTypes.Add(type);
             }
 
-           if(!_hmVisitorState.CurrentSolver.InitLambda(anonymFunNode.OrderNumber, anonymFunNode.Body.OrderNumber, argTypes.ToArray()))
-               throw FunParseException.ErrorStubToDo("LambdaCannot be iniited");
+            var lambdaRes = _hmVisitorState.CurrentSolver.InitLambda(anonymFunNode.OrderNumber,
+                anonymFunNode.Body.OrderNumber, argTypes.ToArray());
+            if (!lambdaRes.IsSuccesfully)
+                throw ErrorFactory.AnonymousFunDefenitionIsIncorrect(anonymFunNode);
             
             return VisitorResult.Continue;
         }
