@@ -35,7 +35,11 @@ namespace NFun.HindleyMilner
                     originName = typed.Id;
                     anonymName = MakeAnonVariableName(anonymFunNode, originName);
                     if (typed.VarType.Equals(VarType.Empty))
-                        type = _hmVisitorState.CurrentSolver.SetNewVar(anonymName);
+                    {
+                        type = _hmVisitorState.CurrentSolver.SetNewVarOrNull(anonymName);
+                        if (type == null)
+                            throw ErrorFactory.AnonymousFunctionArgumentDuplicates(typed, anonymFunNode);
+                    }
                     else
                     {
                         _hmVisitorState.CurrentSolver.SetVarType(anonymName, typed.VarType.ConvertToHmType());
@@ -48,7 +52,9 @@ namespace NFun.HindleyMilner
                     anonymName = MakeAnonVariableName(anonymFunNode, originName);
                     if (_hmVisitorState.CurrentSolver.HasVariable(anonymName))
                         throw ErrorFactory.AnonymousFunctionArgumentDuplicates(varNode, anonymFunNode);
-                    type = _hmVisitorState.CurrentSolver.SetNewVar(anonymName);
+                    type = _hmVisitorState.CurrentSolver.SetNewVarOrNull(anonymName);
+                    if (type == null)
+                        throw ErrorFactory.AnonymousFunctionArgumentDuplicates(varNode, anonymFunNode);
                 }
                 else 
                     throw ErrorFactory.AnonymousFunArgumentIsIncorrect(syntaxNode);

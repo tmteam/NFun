@@ -4,22 +4,22 @@ using System.Linq;
 
 namespace NFun.HindleyMilner.Tyso
 {
-    public class NsResult
+    public class HmResult
     {
         public const int NestedDepth = 100;
         private readonly IList<SolvingNode> _nodes;
         private readonly IList<SolvingNode> _allTypes;
         private readonly Dictionary<string, SolvingNode> _variablesMap;
         public string[] VarNames => _variablesMap.Keys.ToArray();
-        public static NsResult NotSolvedResult() => new NsResult(false);
+        public static HmResult NotSolvedResult() => new HmResult(false);
         
-        private NsResult(bool isSolved)
+        private HmResult(bool isSolved)
         {
             _allTypes = new List<SolvingNode>();
             _variablesMap = new Dictionary<string, SolvingNode>();
             IsSolved = isSolved;
         }
-        public NsResult(IList<SolvingNode> nodes, IList<SolvingNode> allTypes, Dictionary<string, SolvingNode> variablesMap)
+        public HmResult(IList<SolvingNode> nodes, IList<SolvingNode> allTypes, Dictionary<string, SolvingNode> variablesMap)
         {
             IsSolved = true;
             _nodes = nodes;
@@ -88,8 +88,8 @@ namespace NFun.HindleyMilner.Tyso
             SolvingNode[] arguments = type.Arguments
                 .Select(a => SolvingNode.CreateStrict(ConvertToHmType2(a, nestedCount-1)))
                 .ToArray();
-            if(type.Name.Equals(NTypeName.SomeInteger))
-                return new FType(NTypeName.Int32);
+            if(type.Name.Equals(HmTypeName.SomeInteger))
+                return new FType(HmTypeName.Int32);
             
             return new FType(type.Name, arguments);
             

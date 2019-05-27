@@ -12,7 +12,7 @@ namespace NFun.HindleyMilner.Tyso
 
         public INodeBehavior SetLimit(FType newLimit)
         {
-            if(newLimit.Name.Id== NTypeName.AnyId)
+            if(newLimit.Name.Id== HmTypeName.AnyId)
                 return this;
             if (_type.IsPrimitive)
             {
@@ -122,7 +122,7 @@ namespace NFun.HindleyMilner.Tyso
                 if (candidateType.Name.Equals(_type.Name))
                     return ConvertResults.Strict;
                 //special case: Int is most expected type for someInteger
-                if(_type.Name.Id== NTypeName.Int32Id && candidateType.Name.Id== NTypeName.SomeIntegerId)
+                if(_type.Name.Id== HmTypeName.Int32Id && candidateType.Name.Id== HmTypeName.SomeIntegerId)
                     return ConvertResults.Candidate;
                 if (_type.CanBeSafelyConvertedTo(candidateType)) 
                     return ConvertResults.Converable;

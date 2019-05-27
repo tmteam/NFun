@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using NFun.HindleyMilner;
 using NFun.Interpritation;
 using NFun.Interpritation.Functions;
 using NFun.Interpritation.Nodes;
@@ -395,7 +396,8 @@ namespace NFun.ParseErrors
         #endregion
 
         #region 5xx - Interpritation exceptions
-
+        
+     
         public static Exception CycleEquationDependencies(EquationSyntaxNode[] result)
         {
             var expression = result.First().Expression;
@@ -436,13 +438,21 @@ namespace NFun.ParseErrors
         public static Exception CannotParseNumber(string val, Interval interval)
             => new FunParseException(521, $"Cannot parse number '{val}'", interval);
 
-        public static Exception FunctionNotFound(FunCallSyntaxNode node,FunctionsDictionary functions)
+        public static Exception FunctionOverloadNotFound(FunCallSyntaxNode node,FunctionsDictionary functions)
         {
             return new FunParseException(524,
                 $"Function {TypeHelper.GetFunSignature(node.Id,node.OutputType, node.Children.Select(c=>c.OutputType))} is not defined",
                 node.Interval);
         }
+        
+        public static Exception OperatorOverloadNotFound(FunCallSyntaxNode node, ISyntaxNode failedArg)
+        {
+            
+            return new FunParseException(524,
+                $"Invalid argument type for '{node.Id}' operator",
+                failedArg.Interval);
 
+        }
         public static Exception UnknownVariables(IEnumerable<VariableExpressionNode> values)
         {
             if (values.Count() == 1)
@@ -474,11 +484,20 @@ namespace NFun.ParseErrors
 
         public static Exception AnonymousFunctionArgumentDuplicates(VariableSyntaxNode argNode,ISyntaxNode funDefenition)
             => new FunParseException(548, $"'Argument name '{argNode.Id}' of anonymous fun duplicates ", argNode.Interval);
+        public static Exception AnonymousFunctionArgumentDuplicates(TypedVarDefSyntaxNode argNode,ISyntaxNode funDefenition)
+            => new FunParseException(548, $"'Argument '{argNode.Id}:{argNode.VarType}' of anonymous fun duplicates ", argNode.Interval);
 
         public static Exception AnonymousFunctionArgumentConflictsWithOuterScope(FunArgumentExpressionNode argNode, ISyntaxNode defenitionNode)
             => new FunParseException(551, $"'Argument name '{argNode.Name}' of anonymous fun conflicts with outer scope variable. It is denied for your safety.", defenitionNode.Interval);
         public static Exception AnonymousFunDefenitionIsIncorrect(AnonymCallSyntaxNode anonymFunNode)
             => new FunParseException(554, $"'Anonym fun defenition is incorrect ", anonymFunNode.Interval);
+
+        
+        public static Exception ComplexRecursion(UserFunctionDefenitionSyntaxNode[] functionSolveOrder)
+        {
+            var callOrder = string.Join("->", functionSolveOrder.Select(s => s.Id + "(..)"));
+            return new FunParseException(557, $"Complex recursion found: {callOrder} ", functionSolveOrder.First().Interval);
+        }
 
         #endregion
 
@@ -502,12 +521,19 @@ namespace NFun.ParseErrors
         #endregion
 
         #region typeSolving
+            
+        public static Exception TypesNotSolved(ISyntaxNode syntaxNode)
+            => new FunParseException(600,$"Types cannot be solved ",syntaxNode.Interval);        
+        
+        public static Exception FunctionTypesNotSolved(UserFunctionDefenitionSyntaxNode node)
+            => new FunParseException(603,$"Function {node.GetFunAlias()} has invalid arguments or output type. Check function body expression",
+                Interval.New(node.Head.Interval.Start, node.Body.Interval.Start));        
 
         public static Exception OutputDefenitionDuplicates(EquationSyntaxNode node)
-            => new FunParseException(600,$"Output variable {node.Id} defenition duplicates",node.Interval);        
+            => new FunParseException(606,$"Output variable {node.Id} defenition duplicates",node.Interval);        
     
         public static Exception OutputDefenitionTypeIsNotSolved(EquationSyntaxNode node)
-            => new FunParseException(603,$"Output variable '{node.Id}' type is incorrect",node.Interval);        
+            => new FunParseException(607,$"Output variable '{node.Id}' type is incorrect",node.Interval);        
 
         #endregion
 

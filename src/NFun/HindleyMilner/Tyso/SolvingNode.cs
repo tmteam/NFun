@@ -12,7 +12,7 @@ namespace NFun.HindleyMilner.Tyso
             ans.SetStrict(type);
             return ans;
         }
-        public static SolvingNode CreateStrict(NTypeName name, params SolvingNode[] args)
+        public static SolvingNode CreateStrict(HmTypeName name, params SolvingNode[] args)
         {
             var ans =  new SolvingNode();
             ans.SetStrict(new FType(name, args));

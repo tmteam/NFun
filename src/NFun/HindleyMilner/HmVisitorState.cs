@@ -7,13 +7,13 @@ namespace NFun.HindleyMilner
 {
     public class HmVisitorState
     {
-        public HmVisitorState(NsHumanizerSolver globalSolver)
+        public HmVisitorState(HmHumanizerSolver globalSolver)
         {
             CurrentSolver = globalSolver;
             _aliasTable = new AliasTable();
         }
 
-        public NsHumanizerSolver CurrentSolver { get; }
+        public HmHumanizerSolver CurrentSolver { get; }
         private readonly Dictionary<string, string> _anonymVariablesAliases = new Dictionary<string, string>();
         private AliasTable _aliasTable;
 

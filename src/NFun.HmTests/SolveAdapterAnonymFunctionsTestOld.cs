@@ -6,12 +6,12 @@ namespace NFun.HmTests
     public class SolveAdapterAnonymFunctionsTestOLD
     
     {
-        private NsHumanizerSolver solver;
+        private HmHumanizerSolver solver;
 
         [SetUp]
         public void Init()
         {
-            solver = new NsHumanizerSolver();
+            solver = new HmHumanizerSolver();
         }
         [Test]
         public void FilterFunction_Resolved()
@@ -42,14 +42,14 @@ namespace NFun.HmTests
 
             solver.SetVar(0, "a");
             //######### SOLVING ANONYMOUS ################
-            var anonymFunSolver = new NsHumanizerSolver();
+            var anonymFunSolver = new HmHumanizerSolver();
             // 3    021
             //out = x>input
             anonymFunSolver.SetVar(0, "x");
             var closured = solver.GetOrCreate("input");
 
             anonymFunSolver.SetNode(1,closured);
-            anonymFunSolver.SetArithmeticalOp(2, 0, 1);
+            anonymFunSolver.SetArithmeticalOp(2, 0, 1).AssertSuccesfully();
 
             var anonymSolve = anonymFunSolver.Solve();
             var anonymFunDef =  anonymSolve.MakeFunDefenition();

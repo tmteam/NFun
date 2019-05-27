@@ -22,15 +22,15 @@ namespace NFun.HindleyMilner
 
             switch (type.Name.Id)
             {
-                case NTypeName.AnyId: return VarType.Anything;
-                case NTypeName.RealId: return VarType.Real;
-                case NTypeName.TextId: return VarType.Text;
-                case NTypeName.BoolId: return VarType.Bool;
-                case NTypeName.Int64Id: return  VarType.Int64;
-                case NTypeName.Int32Id: return VarType.Int32;
-                case NTypeName.SomeIntegerId: return VarType.Int32;
-                case NTypeName.ArrayId: return VarType.ArrayOf(ConvertToSimpleType(type.Arguments[0]));
-                case NTypeName.FunId :
+                case HmTypeName.AnyId: return VarType.Anything;
+                case HmTypeName.RealId: return VarType.Real;
+                case HmTypeName.TextId: return VarType.Text;
+                case HmTypeName.BoolId: return VarType.Bool;
+                case HmTypeName.Int64Id: return  VarType.Int64;
+                case HmTypeName.Int32Id: return VarType.Int32;
+                case HmTypeName.SomeIntegerId: return VarType.Int32;
+                case HmTypeName.ArrayId: return VarType.ArrayOf(ConvertToSimpleType(type.Arguments[0]));
+                case HmTypeName.FunId :
                     return VarType.Fun(ConvertToSimpleType(type.Arguments[0]), 
                         type.Arguments.Skip(1).Select(ConvertToSimpleType).ToArray()
                     );

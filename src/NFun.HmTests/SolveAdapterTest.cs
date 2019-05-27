@@ -5,12 +5,12 @@ namespace NFun.HmTests
 {
     public class SolveAdapterTest
     {
-        private NsHumanizerSolver solver;
+        private HmHumanizerSolver solver;
 
         [SetUp]
         public void Init()
         {
-            solver = new NsHumanizerSolver();
+            solver = new HmHumanizerSolver();
         }
         [Test]
 
@@ -18,7 +18,7 @@ namespace NFun.HmTests
         {
             solver.SetConst(0, FType.Text);
             solver.SetConst(1, FType.Real);
-            Assert.IsFalse( solver.SetArithmeticalOp(2, 0, 1));
+            solver.SetArithmeticalOp(2, 0, 1).AssertFailed(0);
         }
         
         [Test]
@@ -28,7 +28,7 @@ namespace NFun.HmTests
             //y = x + 1
             
             solver.SetVar(0, "x");
-            solver.SetArithmeticalOp(2, 0, 1);
+            solver.SetArithmeticalOp(2, 0, 1).AssertSuccesfully();
             solver.SetDefenition("y", 3, 2);
             
             var res = solver.Solve();
@@ -46,8 +46,8 @@ namespace NFun.HmTests
             solver.SetVar(0, "a");
             solver.SetConst(1, FType.Int32);
             solver.SetVar(2, "b");
-            solver.SetArithmeticalOp(3, 1, 2);
-            solver.SetArithmeticalOp(4, 0, 3);
+            solver.SetArithmeticalOp(3, 1, 2).AssertSuccesfully();
+            solver.SetArithmeticalOp(4, 0, 3).AssertSuccesfully();
             solver.SetDefenition("y", 5, 4);
             
             var res = solver.Solve();
@@ -65,7 +65,7 @@ namespace NFun.HmTests
             //( x / 2 )<<3
             solver.SetVar(0, "x");
             Assert.IsTrue(solver.SetCall(new CallDef(FType.Real, new[] {2,0, 1})));
-            Assert.IsFalse(solver.SetBitShiftOperator(4, 2, 3));
+            solver.SetBitShiftOperator(4, 2, 3).AssertFailed();
         }
         
         [Test]
@@ -93,7 +93,7 @@ namespace NFun.HmTests
             // r = x + y; i = y << 2; x = 3 /  2
             solver.SetVar(0, "x");
             solver.SetVar(1, "y");
-            solver.SetArithmeticalOp(2,0,1);
+            solver.SetArithmeticalOp(2,0,1).AssertSuccesfully();
             solver.SetDefenition("r", 3, 2);
 
             solver.SetVar(4, "y");
@@ -126,7 +126,7 @@ namespace NFun.HmTests
             //( x / 2 )<<3
             solver.SetVar(0, "x");
             Assert.IsTrue(solver.SetCall(new CallDef(FType.Real, new[] {2,0, 1})));
-            Assert.IsFalse(solver.SetBitShiftOperator(4, 2, 3));
+            solver.SetBitShiftOperator(4, 2, 3).AssertFailed();
         }
         [Test]
         public void TwoIntTypes_ResultTypeIsInteger()
@@ -135,7 +135,7 @@ namespace NFun.HmTests
             //  x = 1; x<<3 
             solver.SetConst(0, FType.Int32);
             solver.SetDefenition("x", 1, 0);
-            Assert.IsTrue(solver.SetBitShiftOperator(4, 2, 3));
+            solver.SetBitShiftOperator(4, 2, 3).AssertSuccesfully();
             Assert.AreEqual(FType.Int32, solver.Solve().GetVarType("x"));
         }
 
@@ -175,9 +175,9 @@ namespace NFun.HmTests
             //  myfun(a,b,c) = a + b + c 
             solver.SetVar(0, "a");
             solver.SetVar(1, "b");
-            solver.SetArithmeticalOp(2,0,1);
+            solver.SetArithmeticalOp(2,0,1).AssertSuccesfully();
             solver.SetVar(3, "c");
-            solver.SetArithmeticalOp(4,2,3);
+            solver.SetArithmeticalOp(4,2,3).AssertSuccesfully();
             solver.SetDefenition("myFun", 5, 4);
 
             var solvation = solver.Solve();
@@ -195,9 +195,9 @@ namespace NFun.HmTests
             solver.SetVar(0, "a");
             solver.SetConst(0, FType.Int32);//todo
             solver.SetVar(1, "b");
-            solver.SetArithmeticalOp(2,0,1);
+            solver.SetArithmeticalOp(2,0,1).AssertSuccesfully();
             solver.SetVar(3, "c");
-            solver.SetArithmeticalOp(4,2,3);
+            solver.SetArithmeticalOp(4,2,3).AssertSuccesfully();
             solver.SetDefenition("myFun", 5, 4);
 
             var solvation = solver.Solve();
@@ -235,8 +235,8 @@ namespace NFun.HmTests
             //( x + y )<<3
             solver.SetVar(0, "x");
             solver.SetVar(1, "y");
-            Assert.IsTrue(solver.SetArithmeticalOp(2,0,1));
-            Assert.IsTrue(solver.SetBitShiftOperator(4, 2, 3));
+            solver.SetArithmeticalOp(2,0,1);
+            solver.SetBitShiftOperator(4, 2, 3).AssertSuccesfully();
             var solvation = solver.Solve();
             
             Assert.AreEqual(FType.Int32, solvation.GetVarType("x"));
@@ -294,7 +294,7 @@ namespace NFun.HmTests
             solver.SetDefenition("a", 5, 4).AssertSuccesfully();
             solver.SetVar(6, "a");
             solver.SetConst(7,FType.Int32);
-            Assert.IsTrue(solver.SetBitShiftOperator(8, 6, 7));
+            solver.SetBitShiftOperator(8, 6, 7).AssertSuccesfully();
             solver.SetDefenition("b", 9, 8).AssertSuccesfully();
             
             var solvation = solver.Solve();
@@ -334,8 +334,8 @@ namespace NFun.HmTests
             
             solver.SetVar(2,"a");
             solver.SetVar(3,"b");
-            solver.SetArithmeticalOp(4, 2, 3);
-            solver.SetDefenition("y", 5, 4);
+            solver.SetArithmeticalOp(4, 2, 3).AssertSuccesfully();
+            solver.SetDefenition("y", 5, 4).AssertSuccesfully();
 
             solver.SetConst(6,FType.Int32);
             solver.SetDefenition("b",7,6).AssertSuccesfully();
@@ -584,7 +584,7 @@ namespace NFun.HmTests
             
             solver.SetVar(1,"x");
             solver.SetConst(0, FType.Real);
-            Assert.IsFalse(solver.SetBitShiftOperator(2, 1, 0));
+            solver.SetBitShiftOperator(2, 1, 0).AssertSuccesfully();
         }   
     }
 }

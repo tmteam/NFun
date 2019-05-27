@@ -4,7 +4,7 @@ namespace NFun.HindleyMilner
 {
     public class UserFunctionHmSolving
     {
-        public UserFunctionHmSolving(string name, int argsCount, NsHumanizerSolver solver)
+        public UserFunctionHmSolving(string name, int argsCount, HmHumanizerSolver solver)
         {
             Name = name;
             ArgsCount = argsCount;
@@ -13,6 +13,6 @@ namespace NFun.HindleyMilner
 
         public string Name { get; }
         public int ArgsCount { get; }
-        public NsHumanizerSolver Solver { get; }
+        public HmHumanizerSolver Solver { get; }
     }
 }

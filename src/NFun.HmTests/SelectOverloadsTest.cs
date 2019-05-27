@@ -18,7 +18,7 @@ namespace NFun.HmTests
         SolvingNode RealLimit  => SolvingNode.CreateLimit(FType.Real);
         SolvingNode TextLimit  => SolvingNode.CreateLimit(FType.Text);
         SolvingNode AnyLimit   => SolvingNode.CreateLimit(FType.Any);
-        SolvingNode SomeIntegerLimit => SolvingNode.CreateLimit(new FType(NTypeName.SomeInteger));
+        SolvingNode SomeIntegerLimit => SolvingNode.CreateLimit(new FType(HmTypeName.SomeInteger));
         SolvingNode Lca(params SolvingNode[] nodes) => SolvingNode.CreateLca(nodes);
         SolvingNode Generic   => new SolvingNode();
 

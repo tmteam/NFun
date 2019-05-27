@@ -5,9 +5,9 @@ namespace NFun.HindleyMilner
 {
     public class FunTypeSolving
     {
-        private readonly NsResult _result;
+        private readonly HmResult _result;
 
-        public FunTypeSolving(NsResult result)
+        public FunTypeSolving(HmResult result)
         {
             _result = result;
         }

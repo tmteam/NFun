@@ -51,45 +51,18 @@ namespace NFun.HindleyMilner
 
         public bool Visit(FunCallSyntaxNode node)
         {
-
-            if (node.IsOperator)
+            if (node.IsOperator && HandleOperatorFunction(node, out var result))
             {
-                switch (node.Id)
-                {
-                    case CoreFunNames.Negate:
-                        return _state.CurrentSolver.SetNegateOp(
-                            node.OrderNumber, 
-                            node.Args[0].OrderNumber);
-                    case CoreFunNames.Multiply:
-                    case CoreFunNames.Add:
-                    case CoreFunNames.Substract:
-                    case CoreFunNames.Remainder:
-                        return _state.CurrentSolver.SetArithmeticalOp(
-                            node.OrderNumber, 
-                            node.Args[0].OrderNumber,
-                            node.Args[1].OrderNumber);
-                    case CoreFunNames.BitShiftLeft:
-                    case CoreFunNames.BitShiftRight:
-                        return _state.CurrentSolver.SetBitShiftOperator(
-                            node.OrderNumber, 
-                            node.Args[0].OrderNumber, 
-                            node.Args[1].OrderNumber);
-                    case CoreFunNames.LessOrEqual:
-                    case CoreFunNames.Less:
-                    case CoreFunNames.MoreOrEqual:
-                    case CoreFunNames.More:
-                        return _state.CurrentSolver.SetComparationOperator(
-                            node.OrderNumber,
-                            node.Args[0].OrderNumber, 
-                            node.Args[1].OrderNumber);
-                }
+                if (!result.IsSuccesfully)
+                    ThrowInvalidOperatorCall(node, result);
+                return true;
             }
             var argsCount = node.Args.Length;
 
             //check for recursion call
             var funAlias = AdpterHelper.GetFunAlias(node.Id, argsCount) ;
             var funType = _state.CurrentSolver.GetOrNull(funAlias);
-            if (funType != null && funType.Name.Id == NTypeName.FunId 
+            if (funType != null && funType.Name.Id == HmTypeName.FunId 
                                 && funType.Arguments.Length-1 == node.Args.Length)
             {
                 //Recursive function call. We don't know its signature yet. That's why we set "functional variable",
@@ -105,14 +78,20 @@ namespace NFun.HindleyMilner
             {
                 var genericCandidate = _dictionary.GetGenericOrNull(node.Id, argsCount);
                 if (genericCandidate == null)
-                    throw ErrorFactory.FunctionNotFound(node, _dictionary);
+                    throw ErrorFactory.FunctionOverloadNotFound(node, _dictionary);
                 
                 var callDef = ToCallDef(node, genericCandidate);
-                return _state.CurrentSolver.SetCall(callDef);
-
+                if (_state.CurrentSolver.SetCall(callDef))
+                    return true;
+                throw ErrorFactory.FunctionOverloadNotFound(node, _dictionary);
             }
+
             if (candidates.Count == 1)
-                return _state.CurrentSolver.SetCall(ToCallDef(node, candidates[0]));
+            {
+                if (_state.CurrentSolver.SetCall(ToCallDef(node, candidates[0])))
+                    return true;
+                throw ErrorFactory.FunctionOverloadNotFound(node, _dictionary);
+            }
 
             //User functions get priority
             var userFunctions = candidates.Where(c => c is ConcreteUserFunctionPrototype).ToList();
@@ -121,6 +100,64 @@ namespace NFun.HindleyMilner
             
             return _state.CurrentSolver.SetOverloadCall(candidates.Select(ToFunSignature).ToArray(), node.OrderNumber,
                 node.Args.Select(a => a.OrderNumber).ToArray());
+        }
+
+        private void ThrowInvalidOperatorCall(FunCallSyntaxNode node, SetTypeResult result)
+        {
+            if (result.FailedNodeId == node.OrderNumber)
+                throw ErrorFactory.TypesNotSolved(node);
+            var failedArg = node.Args.First(a => a.OrderNumber == result.FailedNodeId);
+            throw ErrorFactory.OperatorOverloadNotFound(node, failedArg);
+        }
+
+        private bool HandleOperatorFunction(FunCallSyntaxNode node, out SetTypeResult result)
+        {
+            switch (node.Id)
+            {
+                case CoreFunNames.Negate:
+                {
+                    result = _state.CurrentSolver.SetNegateOp(
+                        node.OrderNumber,
+                        node.Args[0].OrderNumber);
+                    return true;
+                }
+
+                case CoreFunNames.Multiply:
+                case CoreFunNames.Add:
+                case CoreFunNames.Substract:
+                case CoreFunNames.Remainder:
+                {
+                    result =  _state.CurrentSolver.SetArithmeticalOp(
+                        node.OrderNumber,
+                        node.Args[0].OrderNumber,
+                        node.Args[1].OrderNumber);
+                    return true;
+                }
+
+                case CoreFunNames.BitShiftLeft:
+                case CoreFunNames.BitShiftRight:
+                {
+                    result =  _state.CurrentSolver.SetBitShiftOperator(
+                        node.OrderNumber,
+                        node.Args[0].OrderNumber,
+                        node.Args[1].OrderNumber);
+                    return true;
+                }
+
+                case CoreFunNames.LessOrEqual:
+                case CoreFunNames.Less:
+                case CoreFunNames.MoreOrEqual:
+                case CoreFunNames.More:
+                {
+                    result =  _state.CurrentSolver.SetComparationOperator(
+                        node.OrderNumber,
+                        node.Args[0].OrderNumber,
+                        node.Args[1].OrderNumber);
+                    return true;
+                }
+            }
+            result = SetTypeResult.Succesfully;
+            return false;
         }
 
         public bool Visit(IfThenElseSyntaxNode node)

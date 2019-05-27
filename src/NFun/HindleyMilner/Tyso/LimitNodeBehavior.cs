@@ -100,7 +100,7 @@ namespace NFun.HindleyMilner.Tyso
             if (candidateType.Equals(Limit))
                 return ConvertResults.Strict;
             //special case: Int is most expected type for someInteger
-            if(Limit.Name.Equals(NTypeName.SomeInteger) && candidateType.Name.Equals(NTypeName.Int32))
+            if(Limit.Name.Equals(HmTypeName.SomeInteger) && candidateType.Name.Equals(HmTypeName.Int32))
                 return ConvertResults.Strict;
             
             //We can reduce current limit to candidateType

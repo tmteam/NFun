@@ -6,12 +6,12 @@ namespace NFun.HmTests
     [TestFixture]
     public class SolverArrayInitTest
     {
-        private NsHumanizerSolver solver;
+        private HmHumanizerSolver solver;
 
         [SetUp]
         public void Init()
         {
-            solver = new NsHumanizerSolver();
+            solver = new HmHumanizerSolver();
         }
         [Test]
         public void EmptyArrayInit()
@@ -86,7 +86,7 @@ namespace NFun.HmTests
             //expr | [x, -x]
             
             solver.SetVar( 0,"x");
-            Assert.IsTrue(solver.SetNegateOp(1,0));
+            solver.SetNegateOp(1,0).AssertSuccesfully();
             solver.SetVar( 2,"x");
             Assert.IsTrue(solver.SetArrayInit(3,1,2));
             
@@ -105,7 +105,7 @@ namespace NFun.HmTests
             
             solver.SetVar( 0,"x");
             solver.SetVar( 1,"x");
-            Assert.IsTrue(solver.SetNegateOp(2,1));
+            solver.SetNegateOp(2,1).AssertSuccesfully();
             Assert.IsTrue(solver.SetArrayInit(3,2,0));
             
             var result = solver.Solve();
@@ -125,7 +125,7 @@ namespace NFun.HmTests
             solver.SetVar( 0,"x");
 
             solver.SetVar( 1,"x");
-            Assert.IsTrue(solver.SetNegateOp(2,1));
+            solver.SetNegateOp(2,1).AssertSuccesfully();
 
             Assert.IsTrue(solver.SetArrayInit(3,0,2));
             

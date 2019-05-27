@@ -7,7 +7,7 @@ namespace NFun.HindleyMilner.Tyso
     {
         public int GenericId { get; }
 
-        public GenericType(int genericId) : base(NTypeName.Generic(genericId))
+        public GenericType(int genericId) : base(HmTypeName.Generic(genericId))
         {
             GenericId = genericId;
         }
@@ -15,7 +15,7 @@ namespace NFun.HindleyMilner.Tyso
     public class FType
     {
         
-        public FType(NTypeName name, params SolvingNode[] arguments)
+        public FType(HmTypeName name, params SolvingNode[] arguments)
         {
             
             Name = name;
@@ -23,34 +23,34 @@ namespace NFun.HindleyMilner.Tyso
             if(IsPrimitiveGeneric && !(this is GenericType))
                 throw new InvalidOperationException("Invalid ftype usage");
         }
-        public static FType Int64 => new FType(NTypeName.Int64);
-        public static FType Int32 => new FType(NTypeName.Int32);
-        public static FType Bool => new FType(NTypeName.Bool);
+        public static FType Int64 => new FType(HmTypeName.Int64);
+        public static FType Int32 => new FType(HmTypeName.Int32);
+        public static FType Bool => new FType(HmTypeName.Bool);
 
-        public static FType Real => new FType(NTypeName.Real);
-        public static FType ArrayOf(FType type) => new FType(NTypeName.Array, SolvingNode.CreateStrict(type));
-        public static FType ArrayOf(SolvingNode solvingNode) => new FType(NTypeName.Array, solvingNode);
+        public static FType Real => new FType(HmTypeName.Real);
+        public static FType ArrayOf(FType type) => new FType(HmTypeName.Array, SolvingNode.CreateStrict(type));
+        public static FType ArrayOf(SolvingNode solvingNode) => new FType(HmTypeName.Array, solvingNode);
 
         public static FType Generic(int id)=> new GenericType(id);
         
         public static  FType GenericFun(int argsCount) 
-            => new FType(NTypeName.Function,  Enumerable.Range(0,argsCount+1).Select(a=> SolvingNode.CreateStrict(Generic(a))).ToArray());
+            => new FType(HmTypeName.Function,  Enumerable.Range(0,argsCount+1).Select(a=> SolvingNode.CreateStrict(Generic(a))).ToArray());
 
         public static  FType Fun(FType output, params FType[] inputs) => new FType(
-            NTypeName.Function, 
+            HmTypeName.Function, 
             new[]{output}.Concat(inputs).Select(SolvingNode.CreateStrict).ToArray());
 
         public static  FType Fun(SolvingNode output, params SolvingNode[] inputs) => new FType(
-            NTypeName.Function, 
+            HmTypeName.Function, 
             new[]{output}.Concat(inputs).ToArray());
-        public static FType Text => new FType(NTypeName.Text);
+        public static FType Text => new FType(HmTypeName.Text);
 
         
-        public static FType Any => new FType(NTypeName.Any);
+        public static FType Any => new FType(HmTypeName.Any);
 
         
         public bool IsPrimitive => !Arguments.Any();
-        public NTypeName Name { get; }
+        public HmTypeName Name { get; }
         public SolvingNode[] Arguments { get; }
 
         public bool IsNotConcrete =>

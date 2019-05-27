@@ -5,12 +5,12 @@ namespace NFun.HmTests
 {
     public class SolveAdapterAnonymFunctionsTest
     {
-        private NsHumanizerSolver _solver;
+        private HmHumanizerSolver _solver;
 
         [SetUp]
         public void Init()
         {
-            _solver = new NsHumanizerSolver();
+            _solver = new HmHumanizerSolver();
         }
         [Test]
         public void FilterFunction_Resolved()
@@ -19,7 +19,7 @@ namespace NFun.HmTests
             //y = [0,2].filter(x=>x>0)
             _solver.SetConst(0, FType.ArrayOf(FType.Int32));
             
-            var xGeneric =  _solver.SetNewVar("4:x");
+            var xGeneric =  _solver.SetNewVarOrThrow("4:x");
             _solver.InitLambda(4, 3, new[] {xGeneric}).AssertSuccesfully();
             
             _solver.SetVar(1, "4:x");
@@ -52,7 +52,7 @@ namespace NFun.HmTests
             //y = [0,2].map(x=>x>0)
             _solver.SetConst(0, FType.ArrayOf(FType.Int32));
             
-            var xGeneric =  _solver.SetNewVar("4:x");
+            var xGeneric =  _solver.SetNewVarOrThrow("4:x");
             _solver.InitLambda(4, 3, new[] {xGeneric}).AssertSuccesfully();
             
             _solver.SetVar(1, "4:x");
@@ -85,12 +85,12 @@ namespace NFun.HmTests
             //y = a.Map(x=>x*input)
             _solver.SetVar(0,"a");
             
-            var xGeneric =  _solver.SetNewVar("4:x");
+            var xGeneric =  _solver.SetNewVarOrThrow("4:x");
             _solver.InitLambda(4, 3, new[] {xGeneric}).AssertSuccesfully();
             
             _solver.SetVar(1, "4:x");
             _solver.SetVar(2, "input");
-            _solver.SetArithmeticalOp(3, 1, 2);
+            _solver.SetArithmeticalOp(3, 1, 2).AssertSuccesfully();
 
             _solver.SetCall(new CallDef(new[]
             {
@@ -125,7 +125,7 @@ namespace NFun.HmTests
             
             _solver.SetVar(1, "4:x");
             _solver.SetVar(2, "4:x");
-            _solver.SetArithmeticalOp(3, 1, 2);
+            _solver.SetArithmeticalOp(3, 1, 2).AssertSuccesfully();
 
             _solver.SetCall(new CallDef(new[]
             {

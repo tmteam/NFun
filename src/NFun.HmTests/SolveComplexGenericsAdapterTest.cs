@@ -5,12 +5,12 @@ namespace NFun.HmTests
 {
     public class SolveComplexGenericsAdapterTest
     {
-        private NsHumanizerSolver solver;
+        private HmHumanizerSolver solver;
 
         [SetUp]
         public void Init()
         {
-            solver = new NsHumanizerSolver();
+            solver = new HmHumanizerSolver();
         }
         
         [Test]

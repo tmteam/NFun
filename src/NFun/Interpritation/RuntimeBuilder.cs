@@ -28,12 +28,12 @@ namespace NFun.Interpritation
 
             var algorithm = new HmAlgorithmAdapter(functionsDictionary);
             if(!algorithm.ComeOver(syntaxTree))
-                throw FunParseException.ErrorStubToDo("Types not solved");
+                throw ErrorFactory.TypesNotSolved(syntaxTree);
 
             //solve body
             var bodyTypeSolving = algorithm.Solve();
-            if(!bodyTypeSolving.IsSolved)    
-                throw FunParseException.ErrorStubToDo("Types not finaly solved");
+            if (!bodyTypeSolving.IsSolved)
+                throw ErrorFactory.TypesNotSolved(syntaxTree);
 
             foreach (var syntaxNode in syntaxTree.Children)
             {
@@ -110,14 +110,22 @@ namespace NFun.Interpritation
             if (!typeSolving.ComeOver(functionSyntaxNode.Body))
                 throw FunParseException.ErrorStubToDo($"Function '{functionSyntaxNode.Id}' is not solved");
 
-            if (!visitorInitState.CurrentSolver.SetFunDefenition(funAlias, functionSyntaxNode.OrderNumber,
-                functionSyntaxNode.Body.OrderNumber))
-                 throw FunParseException.ErrorStubToDo($"Function signature '{functionSyntaxNode.Id}' is not solved");
-
+            var setFunTypeResult = visitorInitState.CurrentSolver.SetFunDefenition(funAlias,
+                functionSyntaxNode.OrderNumber,
+                functionSyntaxNode.Body.OrderNumber);
+            if (!setFunTypeResult.IsSuccesfully)
+            {
+                if (setFunTypeResult.Error == SetTypeResultError.VariableDefenitionDuplicates)
+                    throw ErrorFactory.FunctionAlreadyExist(functionSyntaxNode);
+                else
+                    throw ErrorFactory.FunctionTypesNotSolved(functionSyntaxNode);
+            }
+                
+            
             // solve the types
             var types = typeSolving.Solve();
             if (!types.IsSolved)
-                throw FunParseException.ErrorStubToDo($"Function '{functionSyntaxNode.Id}' is not solved");
+                throw ErrorFactory.TypesNotSolved(functionSyntaxNode);
 
             var isGeneric = types.GenericsCount > 0;
             //set types to nodes
@@ -197,7 +205,7 @@ namespace NFun.Interpritation
         
         public static HmVisitorState CreateVisitorStateFor(UserFunctionDefenitionSyntaxNode node)
         {
-            var visitorState = new HmVisitorState(new NsHumanizerSolver());
+            var visitorState = new HmVisitorState(new HmHumanizerSolver());
             
             //Add user function as a functional variable
             //make outputType
@@ -218,7 +226,7 @@ namespace NFun.Interpritation
                 if (argNode.VarType.BaseType == BaseVarType.Empty)
                 {
                     //variable type is not specified
-                    var genericVarType = visitorState.CurrentSolver.SetNewVar(inputAlias);
+                    var genericVarType = visitorState.CurrentSolver.SetNewVarOrThrow(inputAlias);
                     argTypes.Add(genericVarType);
                 }
                 else
@@ -266,12 +274,16 @@ namespace NFun.Interpritation
             }
 
             var sortResults = GraphTools.SortCycledTopology(dependenciesGraph);
-            if (sortResults.HasCycle)
-                throw FunParseException.ErrorStubToDo("Cycled functions found");
 
             var functionSolveOrder = new UserFunctionDefenitionSyntaxNode[sortResults.NodeNames.Length];
             for (int k = 0; k < sortResults.NodeNames.Length; k++)
                 functionSolveOrder[k] = userFunctions[sortResults.NodeNames[k]];
+            
+            if (sortResults.HasCycle)
+                //if functions has cycle, then function sovle order is cycled
+                throw ErrorFactory.ComplexRecursion(functionSolveOrder);
+            
+          
             return functionSolveOrder;
         }
     }

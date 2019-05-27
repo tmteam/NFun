@@ -5,12 +5,12 @@ namespace NFun.HmTests
 {
     public class SolveGenericFunctionsTest
     {
-        private NsHumanizerSolver solver;
+        private HmHumanizerSolver solver;
 
         [SetUp]
         public void Init()
         {
-            solver = new NsHumanizerSolver();
+            solver = new HmHumanizerSolver();
         }
         
         
@@ -23,7 +23,7 @@ namespace NFun.HmTests
             Assert.IsTrue(solver.SetVarType("f(0)", FType.Fun(tOut)));
 
             solver.SetConst(0, FType.Int32);
-            Assert.IsTrue(solver.SetFunDefenition("f(0)", 1, 0));
+            solver.SetFunDefenition("f(0)", 1, 0).AssertSuccesfully();;
             
             var res = solver.Solve();
             Assert.AreEqual(0,res.GenericsCount);
@@ -35,12 +35,12 @@ namespace NFun.HmTests
         {
             //  1    0
             //f(a) = a
-            var tA = solver.SetNewVar("f(1) a");
+            var tA = solver.SetNewVarOrThrow("f(1) a");
             var tOut = solver.MakeGeneric();
             solver.SetVarType("f(1)", FType.Fun(tOut, tA));
             
             solver.SetVar(0, "f(1) a");
-            Assert.IsTrue(solver.SetFunDefenition("f(1)", 1, 0));
+            solver.SetFunDefenition("f(1)", 1, 0).AssertSuccesfully();;
             
             var res = solver.Solve();
             Assert.AreEqual(1,res.GenericsCount);
@@ -53,8 +53,8 @@ namespace NFun.HmTests
         {
             //node |     4   3   0    1      2
             //expr |y(a,b) = if(true) a else b
-            var tA = solver.SetNewVar("a");
-            var tB = solver.SetNewVar("b");
+            var tA = solver.SetNewVarOrThrow("a");
+            var tB = solver.SetNewVarOrThrow("b");
             var tOut = solver.MakeGeneric();
             solver.SetVarType("y(2)", FType.Fun(tOut, tA, tB));
 
@@ -79,9 +79,9 @@ namespace NFun.HmTests
         {
             //node |       6   5   0    1      2   3       4
             //expr |y(a,b,c) = if(true) a if(true) b  else c
-            var tA = solver.SetNewVar("a");
-            var tB = solver.SetNewVar("b");
-            var tC = solver.SetNewVar("c");
+            var tA = solver.SetNewVarOrThrow("a");
+            var tB = solver.SetNewVarOrThrow("b");
+            var tC = solver.SetNewVarOrThrow("c");
 
             var tOut = solver.MakeGeneric();
             solver.SetVarType("y(3)", FType.Fun(tOut, tA, tB, tC));
@@ -94,7 +94,7 @@ namespace NFun.HmTests
 
             solver.ApplyLcaIf(5, new[] {0,2}, new[] {1, 3,4});
             
-            Assert.IsTrue(solver.SetFunDefenition("y(3)",6, 5));
+            solver.SetFunDefenition("y(3)",6, 5).AssertSuccesfully();;
             
             var result = solver.Solve();
             Assert.IsTrue(result.IsSolved);
@@ -112,7 +112,7 @@ namespace NFun.HmTests
         {
             //node | 5      4   0        2  1       3
             //expr |y(a) = if(true) reverse(a) else a
-            var tA = solver.SetNewVar("a");
+            var tA = solver.SetNewVarOrThrow("a");
             var tOut = solver.MakeGeneric();
             solver.SetVarType("y(1)", FType.Fun(tOut, tA));
 
@@ -137,8 +137,8 @@ namespace NFun.HmTests
         {
             //node | 6       5   0        2  1       4 3
             //expr |y(a,b) = if(true) reverse(a) else [b]
-            var tA = solver.SetNewVar("a");
-            var tB = solver.SetNewVar("b");
+            var tA = solver.SetNewVarOrThrow("a");
+            var tB = solver.SetNewVarOrThrow("b");
 
 
             var tOut = solver.MakeGeneric();
@@ -171,10 +171,10 @@ namespace NFun.HmTests
         {
             //node |         8   7   0   3 1 2      6 4 5
             //expr |y(a,b,c,d) = if(true) [a,b] else [c,d]
-            var tA = solver.SetNewVar("a");
-            var tB = solver.SetNewVar("b");
-            var tC = solver.SetNewVar("c");
-            var tD = solver.SetNewVar("d");
+            var tA = solver.SetNewVarOrThrow("a");
+            var tB = solver.SetNewVarOrThrow("b");
+            var tC = solver.SetNewVarOrThrow("c");
+            var tD = solver.SetNewVarOrThrow("d");
 
             var tOut = solver.MakeGeneric();
             solver.SetVarType("y(4)", FType.Fun(tOut, tA, tB, tC, tD));
@@ -214,9 +214,9 @@ namespace NFun.HmTests
         {
             //node |       6   5   0   3 1 2       4
             //expr |y(a,b,c) = if(true) [a,b] else с
-            var tA = solver.SetNewVar("a");
-            var tB = solver.SetNewVar("b");
-            var tC = solver.SetNewVar("c");
+            var tA = solver.SetNewVarOrThrow("a");
+            var tB = solver.SetNewVarOrThrow("b");
+            var tC = solver.SetNewVarOrThrow("c");
 
             var tOut = solver.MakeGeneric();
             solver.SetVarType("y(3)", FType.Fun(tOut, tA, tB, tC));
@@ -248,14 +248,14 @@ namespace NFun.HmTests
         {
             //  3    021
             //f(a) = a+1
-            var tA = solver.SetNewVar("f(1) a");
+            var tA = solver.SetNewVarOrThrow("f(1) a");
             var tOut = solver.MakeGeneric();
             solver.SetVarType("f(1)", FType.Fun(tOut, tA));
             
             solver.SetVar(0, "f(1) a");
             solver.SetConst(1, FType.Int32);
             solver.SetArithmeticalOp(2, 0, 1);
-            Assert.IsTrue(solver.SetFunDefenition("f(1)", 3, 2));
+            solver.SetFunDefenition("f(1)", 3, 2).AssertSuccesfully();;
             
             var res = solver.Solve();
             Assert.AreEqual(0,res.GenericsCount);
@@ -268,7 +268,7 @@ namespace NFun.HmTests
         {
             //  3         021
             //f(a):long = a+1
-            var type = solver.SetNewVar("f(1) a");
+            var type = solver.SetNewVarOrThrow("f(1) a");
             solver.SetVarType("f(1)", FType.Fun(SolvingNode.CreateStrict(FType.Int64), type));
             
             solver.SetVar(0, "f(1) a");
@@ -288,7 +288,7 @@ namespace NFun.HmTests
             //  1    0
             //f(a) = a
 
-            var tA = solver.SetNewVar("f(1) a");
+            var tA = solver.SetNewVarOrThrow("f(1) a");
             var tOut = solver.MakeGeneric();
             solver.SetVarType("f(1)", FType.Fun(tOut, tA));
             
@@ -307,7 +307,7 @@ namespace NFun.HmTests
         {
             //  1    0
             //f(a):long = a
-            var tA = solver.SetNewVar("f(1) a");
+            var tA = solver.SetNewVarOrThrow("f(1) a");
             solver.SetVarType("f(1)", FType.Fun(SolvingNode.CreateStrict(FType.Int64), tA));
 
             
@@ -326,7 +326,7 @@ namespace NFun.HmTests
         {
             //  2         1 0
             //f(a):long = f(a)
-            var tA = solver.SetNewVar("f(1) a");
+            var tA = solver.SetNewVarOrThrow("f(1) a");
             solver.SetVarType("f(1)", FType.Fun(SolvingNode.CreateStrict(FType.Int64), tA));
             
             solver.SetVar(0, "f(1) a");
@@ -346,7 +346,7 @@ namespace NFun.HmTests
             //  2    1 0
             //f(a) = f(a)
            
-            var tA = solver.SetNewVar("f(1) a");
+            var tA = solver.SetNewVarOrThrow("f(1) a");
             var tOut = solver.MakeGeneric();
             solver.SetVarType("f(1)", FType.Fun(tOut, tA));
             
@@ -366,7 +366,7 @@ namespace NFun.HmTests
         {
             //  4    1 0  3 2
             //f(a) = f(a) * 2
-            var tA = solver.SetNewVar("f(1) a");
+            var tA = solver.SetNewVarOrThrow("f(1) a");
             var tOut = solver.MakeGeneric();
             solver.SetVarType("f(1)", FType.Fun(tOut, tA));
             
@@ -390,7 +390,7 @@ namespace NFun.HmTests
         {
             //  4    1 0  3 2
             //f(a) = f(a) * a
-            var tA = solver.SetNewVar("f(1) a");
+            var tA = solver.SetNewVarOrThrow("f(1) a");
             var tOut = solver.MakeGeneric();
             solver.SetVarType("f(1)", FType.Fun(tOut, tA));
             
@@ -426,7 +426,7 @@ namespace NFun.HmTests
         {
             //  4    3 0  2  1
             //f(a) = f(a and true)
-            var tA = solver.SetNewVar("f(1) a");
+            var tA = solver.SetNewVarOrThrow("f(1) a");
             var tOut = solver.MakeGeneric();
             solver.SetVarType("f(1)", FType.Fun(tOut, tA));
             
@@ -450,7 +450,7 @@ namespace NFun.HmTests
         {
             //  3    2 0  1
             //f(a) = f(a.reverseStr())
-            var tA = solver.SetNewVar("f(1) a");
+            var tA = solver.SetNewVarOrThrow("f(1) a");
             var tOut = solver.MakeGeneric();
             solver.SetVarType("f(1)", FType.Fun(tOut, tA));
             
@@ -473,7 +473,7 @@ namespace NFun.HmTests
         {
             //  4    3 0     2       1
             //f(a) = f(a.strConcat("hi"))
-            var tA = solver.SetNewVar("f(1) a");
+            var tA = solver.SetNewVarOrThrow("f(1) a");
             var tOut = solver.MakeGeneric();
             solver.SetVarType("f(1)", FType.Fun(tOut, tA));
             
@@ -497,7 +497,7 @@ namespace NFun.HmTests
         {
             //  4    3 0  2  1
             //f(a) = f(a  +  1)
-            var tA = solver.SetNewVar("f(1) a");
+            var tA = solver.SetNewVarOrThrow("f(1) a");
             var tOut = solver.MakeGeneric();
             solver.SetVarType("f(1)", FType.Fun(tOut, tA));
             
@@ -520,7 +520,7 @@ namespace NFun.HmTests
         {
             //  6    1 0   5  2 4 3
             //f(a) = f(a) and a > 0
-            var tA = solver.SetNewVar("f(1) a");
+            var tA = solver.SetNewVarOrThrow("f(1) a");
             var tOut = solver.MakeGeneric();
             solver.SetVarType("f(1)", FType.Fun(tOut, tA));
             
@@ -547,7 +547,7 @@ namespace NFun.HmTests
         {
             //  6    0 2 1 5   4 3
             //f(a) = a > 0 and f(a) 
-            var tA = solver.SetNewVar("f(1) a");
+            var tA = solver.SetNewVarOrThrow("f(1) a");
             var tOut = solver.MakeGeneric();
             solver.SetVarType("f(1)", FType.Fun(tOut, tA));
            
@@ -573,7 +573,7 @@ namespace NFun.HmTests
         {
             //  5    1 0  4 3 2
             //f(a) = f(a) + f(2)
-            var tA = solver.SetNewVar("f(1) a");
+            var tA = solver.SetNewVarOrThrow("f(1) a");
             var tOut = solver.MakeGeneric();
             solver.SetVarType("f(1)", FType.Fun(tOut, tA));
             
@@ -603,12 +603,12 @@ namespace NFun.HmTests
             //  10     7 6  9 8
             //f2(a) = f1(a) + 1 
 
-            var tA1 = solver.SetNewVar("f1(1) a");
+            var tA1 = solver.SetNewVarOrThrow("f1(1) a");
             var tOut1 = solver.MakeGeneric();
             solver.SetVarType("f1(1)", FType.Fun(tOut1, tA1));
             
             
-            var tA2 = solver.SetNewVar("f2(1) a");
+            var tA2 = solver.SetNewVarOrThrow("f2(1) a");
             var tOut2 = solver.MakeGeneric();
             solver.SetVarType("f2(1)", FType.Fun(tOut2, tA2));
             
@@ -645,12 +645,12 @@ namespace NFun.HmTests
             //  10     7 6  9 8
             //f2(a):int = f1(a) + 1 
 
-            var tA1 = solver.SetNewVar("f1(1) a");
+            var tA1 = solver.SetNewVarOrThrow("f1(1) a");
             var tOut1 = solver.MakeGeneric();
             solver.SetVarType("f1(1)", FType.Fun(tOut1, tA1));
             
             
-            var tA2 = solver.SetNewVar("f2(1) a");
+            var tA2 = solver.SetNewVarOrThrow("f2(1) a");
             solver.SetVarType("f2(1)", FType.Fun(SolvingNode.CreateStrict(FType.Int32), tA2));
             
             solver.SetVar(0, "f1(1) a");
@@ -684,7 +684,7 @@ namespace NFun.HmTests
             //  10     7 6  9 8
             //f2(a:real) = f1(a) + 1 
 
-            var tA1 = solver.SetNewVar("f1(1) a");
+            var tA1 = solver.SetNewVarOrThrow("f1(1) a");
             var tOut1 = solver.MakeGeneric();
             solver.SetVarType("f1(1)", FType.Fun(tOut1, tA1));
             
@@ -724,11 +724,11 @@ namespace NFun.HmTests
             //  5     4 3
             //f2(a) = f1(a)
 
-            var tA1 = solver.SetNewVar("f1(1) a");
+            var tA1 = solver.SetNewVarOrThrow("f1(1) a");
             var tOut1 = solver.MakeGeneric();
             solver.SetVarType("f1(1)", FType.Fun(tOut1, tA1));
             
-            var tA2 = solver.SetNewVar("f2(1) a");
+            var tA2 = solver.SetNewVarOrThrow("f2(1) a");
             var tOut2 = solver.MakeGeneric();
             solver.SetVarType("f2(1)", FType.Fun(tOut2, tA2));
             
@@ -762,15 +762,15 @@ namespace NFun.HmTests
             //f3(a) = f1(a) 
             
             
-            var tA1 = solver.SetNewVar("f1(1) a");
+            var tA1 = solver.SetNewVarOrThrow("f1(1) a");
             var tOut1 = solver.MakeGeneric();
             solver.SetVarType("f1(1)", FType.Fun(tOut1, tA1));
             
-            var tA2 = solver.SetNewVar("f2(1) a");
+            var tA2 = solver.SetNewVarOrThrow("f2(1) a");
             var tOut2 = solver.MakeGeneric();
             solver.SetVarType("f2(1)", FType.Fun(tOut2, tA2));
 
-            var tA3 = solver.SetNewVar("f3(1) a");
+            var tA3 = solver.SetNewVarOrThrow("f3(1) a");
             var tOut3 = solver.MakeGeneric();
             solver.SetVarType("f3(1)", FType.Fun(tOut3, tA3));
 

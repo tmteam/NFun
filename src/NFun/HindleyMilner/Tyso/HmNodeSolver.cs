@@ -5,9 +5,9 @@ using NFun.ParseErrors;
 
 namespace NFun.HindleyMilner.Tyso
 {
-    public class FSolver
+    public class HmNodeSolver
     {
-        public FSolver()
+        public HmNodeSolver()
         {
             _variables = new Dictionary<string, SolvingNode>();
             _originNodes = new List<SolvingNode>();
@@ -141,7 +141,7 @@ namespace NFun.HindleyMilner.Tyso
             var children = dependentNodes.Select(GetOrCreate).ToArray();
             return GetOrCreate(nodeId).SetLca(children);
         }
-        public bool SetLimit(int nodeId, NTypeName name) 
+        public bool SetLimit(int nodeId, HmTypeName name) 
             => GetOrCreate(nodeId).SetLimit(new FType(name));
 
         public bool SetNonGenericLimit(int nodeId, FType nonGenericType) 
@@ -183,11 +183,11 @@ namespace NFun.HindleyMilner.Tyso
             return solvingA.SetEqualTo(returnType);
         }
         
-        public NsResult Solve()
+        public HmResult Solve()
         {
             //First: Optimize type graph
             if(!Optimize(_originNodes))
-                return NsResult.NotSolvedResult();
+                return HmResult.NotSolvedResult();
             
             //Second: Try append overload calls
             foreach (var lazyOverload in _lazyOverloads)
@@ -203,7 +203,7 @@ namespace NFun.HindleyMilner.Tyso
             }
             
             //Third: Job finished!
-            return new NsResult(
+            return new HmResult(
                 _originNodes,
                 _additionalNodes,
                 _variables);

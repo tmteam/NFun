@@ -21,12 +21,17 @@ namespace NFun.SyntaxParsing.SyntaxNodes
 
         public bool IsInBrackets
         {
-            get { return false; }
+            get => false;
             set => throw new System.NotImplementedException();
         }
         public Interval Interval
         {
-            get { return Interval.Unite(Nodes.First().Interval, Nodes.Last().Interval); }
+            get
+            {
+                var start = Nodes.Select(i => i.Interval.Start).Min();
+                var finish = Nodes.Select(i => i.Interval.Finish).Max();
+                return Interval.New(start, finish);
+            }
             set => throw new System.NotImplementedException();
         }
         public T Visit<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);

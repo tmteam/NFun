@@ -11,13 +11,13 @@ namespace NFun.HindleyMilner
             FunctionsDictionary dictionary, 
             HmVisitorState state = null)
         {
-            _solver = state?.CurrentSolver??new NsHumanizerSolver();
+            _solver = state?.CurrentSolver??new HmHumanizerSolver();
             var visitorState = state??new HmVisitorState(_solver);
             EnterVisitor = new EnterHmVisitor(visitorState);
             ExitVisitor = new ExitHmVisitor(visitorState, dictionary);
         }
 
-        private readonly NsHumanizerSolver _solver;
+        private readonly HmHumanizerSolver _solver;
         public ISyntaxNodeVisitor<VisitorResult> EnterVisitor { get; } 
         public ISyntaxNodeVisitor<bool> ExitVisitor { get; }
         

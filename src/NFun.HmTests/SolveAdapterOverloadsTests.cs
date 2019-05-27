@@ -6,12 +6,12 @@ namespace NFun.HmTests
     [TestFixture]
     public class SolveAdapterOverloadsTests
     {
-        private NsHumanizerSolver solver;
+        private HmHumanizerSolver solver;
 
         [SetUp]
         public void Init()
         {
-            solver = new NsHumanizerSolver();
+            solver = new HmHumanizerSolver();
         }
         [Test]
         public void ToStrOverload_TypeSpecified_equationSolved()
@@ -66,7 +66,7 @@ namespace NFun.HmTests
             solver.SetVar(1, "b");
             
             solver.SetOverloadCall(SummOverloads,2,  0,1);
-            solver.SetArithmeticalOp(4, 2, 3);
+            solver.SetArithmeticalOp(4, 2, 3).AssertSuccesfully();
             
             solver.SetDefenition("y", 5, 4);
             
@@ -114,7 +114,7 @@ namespace NFun.HmTests
             solver.SetVar(1, "b");
             
             solver.SetOverloadCall(SummOverloads,2,  0,1);
-            solver.SetArithmeticalOp(4, 2, 3);
+            solver.SetArithmeticalOp(4, 2, 3).AssertSuccesfully();
             
             solver.SetDefenition("y", 5, 4);
             
