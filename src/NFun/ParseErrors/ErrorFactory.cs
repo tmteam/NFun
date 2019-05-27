@@ -501,7 +501,10 @@ namespace NFun.ParseErrors
 
         #endregion
 
-                
+        
+        public static Exception VariousArrayElementTypes(ISyntaxNode failedArrayElement) {
+            return new FunParseException(554, $"'Various array element types", failedArrayElement.Interval);
+        }
         
         public static Exception VariousArrayElementTypes(IExpressionNode[] elements, int failureIndex) {
             var firstType = elements[0].Type;

@@ -279,19 +279,26 @@ namespace NFun.HindleyMilner.Tyso
         public bool SetNode(int nodeId, SolvingNode closured) 
             => _solver.SetNode(nodeId, closured);
 
-        public bool SetArrayInit(int arrayNode, params int[] nodes)
+        public SetTypeResult SetArrayInit(int arrayNode, params int[] nodes)
         {
             if (nodes.Length == 0)
-                return _solver.SetStrict(arrayNode, FType.ArrayOf(FType.Generic(0)));
+            {
+                if(_solver.SetStrict(arrayNode, FType.ArrayOf(FType.Generic(0))))
+                    return SetTypeResult.Succesfully;
+                
+                return SetTypeResult.Failed(arrayNode, SetTypeResultError.ExpressionTypeIsIncorrect);
+            }
 
             for (int i = 1; i < nodes.Length; i++)
             {
                 if (!_solver.Unite(nodes[i - 1], nodes[i]))
-                    return false;
+                    return SetTypeResult.Failed(nodes[i], SetTypeResultError.IncorrectVariableType);
             }
 
             var genericType = _solver.GetOrNull(nodes[0]);
-            return _solver.SetStrict(arrayNode, FType.ArrayOf(genericType));
+            if(_solver.SetStrict(arrayNode, FType.ArrayOf(genericType)))
+                return  SetTypeResult.Succesfully;
+            return SetTypeResult.Failed(arrayNode, SetTypeResultError.ExpressionTypeIsIncorrect);
         }
         
         public bool SetProcArrayInit(int nodeId, int fromId, int toId)

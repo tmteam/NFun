@@ -85,7 +85,7 @@ namespace NFun.HmTests
             solver.SetDefenition("y1", 1, 0).AssertSuccesfully();
 
             solver.SetVar(2, "x2");
-            Assert.IsTrue(solver.SetArrayInit(3, 2));
+            solver.SetArrayInit(3, 2).AssertSuccesfully();
             solver.SetDefenition("y2", 4, 3).AssertSuccesfully();
 
             var result = solver.Solve();
@@ -109,15 +109,15 @@ namespace NFun.HmTests
             //expr |y1 = [x1]; y2 = [x2]; y3 = [x3]       
 
             solver.SetVar(0, "x1");
-            Assert.IsTrue(solver.SetArrayInit(1, 0));
+            solver.SetArrayInit(1, 0).AssertSuccesfully();
             solver.SetDefenition("y1", 2, 1).AssertSuccesfully();
 
             solver.SetVar(3, "x2");
-            Assert.IsTrue(solver.SetArrayInit(4, 3));
+            solver.SetArrayInit(4, 3).AssertSuccesfully();
             solver.SetDefenition("y2", 5, 4).AssertSuccesfully();
 
             solver.SetVar(6, "x3");
-            Assert.IsTrue(solver.SetArrayInit(7, 6));
+            solver.SetArrayInit(7, 6).AssertSuccesfully();
             solver.SetDefenition("y3", 8, 7).AssertSuccesfully();
 
             var result = solver.Solve();

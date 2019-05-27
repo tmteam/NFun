@@ -114,8 +114,8 @@ namespace Funny.Tests
         [TestCase("s=[",",","2]")]
         [TestCase("s=[",",",",2]")]
         [TestCase("s=","[","")]
-        [TestCase("[", "'1',2",",'3','4']")]
-        [TestCase("[ '0', ", "'1',2","]")]
+        [TestCase("['1',", "2",",'3','4']")]
+        [TestCase("[ '0','1', ", "2","]")]
         public void InitializeArray_ErrorPosition(string beforeError, string errorBody, string afterError)
         {
             AssertErrorPosition(beforeError, errorBody, afterError);

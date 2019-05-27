@@ -19,7 +19,18 @@ namespace NFun.HindleyMilner
             _dictionary = dictionary;
         }
 
-        public bool Visit(ArraySyntaxNode node)=> _state.CurrentSolver.SetArrayInit(node.OrderNumber, node.Expressions.Select(e=>e.OrderNumber).ToArray());
+        public bool Visit(ArraySyntaxNode node)
+        {
+            var res =  _state.CurrentSolver.SetArrayInit(node.OrderNumber,
+                node.Expressions.Select(e => e.OrderNumber).ToArray());
+            if (res.IsSuccesfully)
+                return true;
+            if (res.FailedNodeId == node.OrderNumber)
+                throw ErrorFactory.TypesNotSolved(node);
+            var failedItem = node.Children.First(c => c.OrderNumber == res.FailedNodeId);
+            throw ErrorFactory.VariousArrayElementTypes(failedItem);
+        }
+
         /// <summary>
         /// User fuctions are not supported by the visitor
         /// </summary>
