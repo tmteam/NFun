@@ -147,15 +147,5 @@ namespace NFun.HmTests
             Assert.IsTrue(generic.MakeType(10).IsPrimitiveGeneric);
             Assert.IsTrue(refToGeneric.MakeType(10).IsPrimitiveGeneric);
         }
-        
-        [Test]
-        public void LcaTo2Generics_MakeTypeThrows()
-        {
-            var T0 = new SolvingNode();
-            var T1 = new SolvingNode();
-
-            var lca = SolvingNode.CreateLca(T0, T1);
-            Assert.Throws<InvalidOperationException>(()=>lca.MakeType());
-        }
     }
 }
