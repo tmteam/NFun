@@ -18,7 +18,6 @@ namespace NFun.Tokenization
             {
                 if (val.EndsWith("."))
                     throw new FormatException();
-                //todo надо написать тесты на разные культуры
                 return (double.Parse(val, CultureInfo.InvariantCulture), VarType.Real);
             }
 
