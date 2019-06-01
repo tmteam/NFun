@@ -125,12 +125,15 @@ namespace Funny.Tests
                         .map(i=>i/2)
                         .sum()", BaseVarType.Real)]
         [TestCase(
-            @"div1(x) = 2600/x
-            supsum(n) = [1..n].map(div1).sum()
+            @"div10(x) = 2600/x
+            y = [1..20].map(div10).sum()", BaseVarType.Real)]
+        [TestCase(
+            @"div11(x) = 2600/x
+            supsum(n) = [1..n].map(div11).sum()
             y = [1..20].map(supsum).sum()", BaseVarType.Real)]
         [TestCase(
-            @"div2(x) = 2600/x
-            supsum(n) = [1..n].map(div2).sum()
+            @"div12(x) = 2600/x
+            supsum(n) = [1..n].map(div12).sum()
             y = [1..20].map(supsum).sum().round()", BaseVarType.Int32)]
         public void SingleEquation_Runtime_OutputTypeCalculatesCorrect(string expr, BaseVarType type)
         {
@@ -181,11 +184,22 @@ namespace Funny.Tests
         [TestCase("[a].filter(f=>f>2)")]
         [TestCase("[a].reverse()")]
         [TestCase("[a]")]
-        [TestCase( "y = [-x].all(i=> i < 0.0)")]
-        [TestCase( "y = [x,x].all(i=> i < 0.0)")]
-        [TestCase( "y = [-x,x].all(i=> i < 0.0)")]
-        [TestCase( "y = [1,-x].all(i=> i < 0.0)")]
-        [TestCase( "y = [x,2.0,3.0].all((i)=> i >1.0)")]
+        [TestCase("y = [-x].all(i=> i < 0.0)")]
+        [TestCase("y = [x,x].all(i=> i < 0.0)")]
+        [TestCase("y = [-x,x].all(i=> i < 0.0)")]
+        [TestCase("y = [1,-x].all(i=> i < 0.0)")]
+        [TestCase("y = [x,2.0,3.0].all((i)=> i >1.0)")]
+        [TestCase("y = [1..11].map(i=>[1..n].sum())")]
+        [TestCase("y = [1..12].map(i=>[1..n].sum()).sum()")]
+        [TestCase("dsum7(x) = x+x")]
+        [TestCase(
+            @"dsum8(x) = x+x
+            y = [1..20].map(dsum8)")]
+        [TestCase(
+            @"div9(x) = 2600/x
+            y = [1..20].map(div9)")]
+        [TestCase(@"div10(x) = 2600/x
+                    y(n) = [1..n].map(div10).sum()")]
         [TestCase("y = x * -x")]
         [TestCase("y = -x * x")]
         [TestCase("y = [-x,x]")]
