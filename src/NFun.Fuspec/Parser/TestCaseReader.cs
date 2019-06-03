@@ -15,6 +15,7 @@ namespace Nfun.Fuspec.Parser
         private List<FuspecTestCase> _fuspecTestCases;
         private int _index = 0;
         private bool _isReading = false;
+        private List<string> _script= new List<string>();
         private List<FuspecParserError> _errors=new List<FuspecParserError>();
         
         public TestCasesReader(StreamReader streamReader)
@@ -31,7 +32,7 @@ namespace Nfun.Fuspec.Parser
             var state = TestCaseParseState.FindingOpeningString;
             foreach (var lineStr in _listOfString)
             {
-                if (lineStr.Trim()!="")
+             //   if (lineStr.Trim()!="")
                     state = ReadNext(lineStr, state);
                 _index++;
             }
@@ -65,7 +66,10 @@ namespace Nfun.Fuspec.Parser
 
         private TestCaseParseState FindOpeningString(string str)
         {
+            if (str.Trim() == "")
+                return TestCaseParseState.FindingOpeningString;
             _isReading = false;
+            
             _testCaseBuilder = new TestCaseBuilder();
             if (IsSeparatingLine(str, '*'))
             {
@@ -77,6 +81,8 @@ namespace Nfun.Fuspec.Parser
         
         private TestCaseParseState FindName(string str)
         {
+            if (str.Trim() == "")
+                return TestCaseParseState.ReadingName;
             var name = FindKeyWord("| TEST", str);
             if (name == null || name.Trim()=="")
                 return WriteError(new FuspecParserError(FuspecErrorType.NamedMissed, _index));
@@ -86,6 +92,8 @@ namespace Nfun.Fuspec.Parser
 
         private TestCaseParseState FindTags(string str)
         {
+            if (str.Trim()== "")
+                return TestCaseParseState.ReadingTags;
             if (IsSeparatingLine(str, '*'))
                 return TestCaseParseState.ReadingParams;
             var tags = FindKeyWord("| TAGS", str);
@@ -97,7 +105,6 @@ namespace Nfun.Fuspec.Parser
                 foreach (var tag in splittedTags)
                     if (tag.Trim() != "")
                         _testCaseBuilder.Tags.Add(tag.Trim());
-
             }
             return TestCaseParseState.ReadingTags;
         }
@@ -109,25 +116,22 @@ namespace Nfun.Fuspec.Parser
             var stringOfScript = FindKeyWord("  ", str);
             if (stringOfScript == null)
             {
-                if (_testCaseBuilder.Script == "")
+                if (!_script.Any())
                     return WriteError(new FuspecParserError(FuspecErrorType.ScriptMissed, _index));
+                if (str.Trim() == "")
+                    return TestCaseParseState.ReadingBody;
                 if (IsSeparatingLine(str, '-') || IsSeparatingLine(str, '*'))
                     return ReadValues(str);
                 return AddTestCase(str);
             }
-
-            if (stringOfScript.Trim() != "")
-            {
-                if (_testCaseBuilder.Script == "")
-                    _testCaseBuilder.Script = stringOfScript;
-                else
-                _testCaseBuilder.Script = string.Concat(_testCaseBuilder.Script, '\r' + stringOfScript);
-            }
+            _script.Add(stringOfScript);
             return TestCaseParseState.ReadingBody;
         }
 
         private TestCaseParseState ReadValues(string str)
         {
+            if (str.Trim() == "")
+                return TestCaseParseState.ReadingValues;
             if (IsSeparatingLine(str,'*'))
                 return AddTestCase(str);
             return TestCaseParseState.ReadingValues;
@@ -135,6 +139,12 @@ namespace Nfun.Fuspec.Parser
       
         private TestCaseParseState AddTestCase(string str)
         {
+            _testCaseBuilder.Script = "";
+            foreach (var strScript in _script)
+                _testCaseBuilder.Script = _testCaseBuilder.Script + strScript + "\r";
+
+            _testCaseBuilder.Script = _testCaseBuilder.Script.Substring(0, _testCaseBuilder.Script.Length - 1);
+
             _fuspecTestCases.Add(_testCaseBuilder.Build());
             return FindOpeningString(str);
         }
@@ -144,7 +154,14 @@ namespace Nfun.Fuspec.Parser
             if (_testCaseBuilder.Name == null || _testCaseBuilder.Script == "")
                 WriteError(new FuspecParserError(FuspecErrorType.NoEndingTestCase, _index));
             else
+            {
+                _testCaseBuilder.Script = "";
+                foreach (var str in _script)
+                    _testCaseBuilder.Script = _testCaseBuilder.Script + str + "\r";
+
+                _testCaseBuilder.Script = _testCaseBuilder.Script.Substring(0, _testCaseBuilder.Script.Length - 1);
                 _fuspecTestCases.Add(_testCaseBuilder.Build());
+            }
         }
         
         private TestCaseParseState WriteError(FuspecParserError fuspecParserError)

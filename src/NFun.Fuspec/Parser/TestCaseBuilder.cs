@@ -15,7 +15,7 @@ namespace Nfun.Fuspec.Parser
         
         public TestCaseBuilder()
         {
-            Script = "";
+            Script = null;
             Tags = new List<string>();
         }
 
