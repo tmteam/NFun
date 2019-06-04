@@ -17,8 +17,10 @@ namespace Nfun.Fuspec.Parser
         {
             Script = null;
             Tags = new List<string>();
+            ParamsIm = new List<string>();
+            ParamsOut = new List<string>();
         }
 
-        public FuspecTestCase Build()=> new FuspecTestCase(Name, Tags.ToArray(), Script);
+        public FuspecTestCase Build()=> new FuspecTestCase(Name, Tags.ToArray(), Script, ParamsIm.ToArray(),ParamsOut.ToArray());
     }
 }

@@ -8,5 +8,7 @@ namespace ParcerV1
         EndingHeadMissed = 20,
         ScriptMissed = 30,
         NoEndingTestCase = 40,
+        ParamInMissed=50,
+        ParamOutMissed=60,
     }
 }

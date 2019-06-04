@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using ParcerV1;
 
 namespace Nfun.Fuspec.Parser
@@ -19,9 +20,18 @@ namespace Nfun.Fuspec.Parser
         
         public static bool IsSeparatingLine(string str, char symbol)
         {
+            int i = 0;
             if (str[0] != '|')
                 return false;
-            return str.Substring(1).All(ch => ch == symbol);
+            foreach (var ch in str.Substring(1))
+            {
+                if (ch != '*') return false;
+                i++;
+            }
+
+            if (i < 8) return false;
+            return true;
+            //            return str.Substring(1).All(ch => ch == symbol);
         }
     }
 

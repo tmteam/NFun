@@ -5,7 +5,8 @@ namespace Nfun.Fuspec.Parser
         ReadingName,
         ReadingTags,
         ReadingBody,
-        ReadingParams,
+        ReadingParamsIn,
+        ReadingParamsOut,
         ReadingValues,
         FindingOpeningString,
     }

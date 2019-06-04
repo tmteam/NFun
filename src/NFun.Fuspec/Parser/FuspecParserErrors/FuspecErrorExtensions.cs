@@ -18,6 +18,10 @@ namespace Nfun.Fuspec.Parser.FuspecParserErrors
                     return "OpeningStringMissed";
                 case FuspecErrorType.NoEndingTestCase:
                     return "NoEndingTestCase";
+                case FuspecErrorType.ParamInMissed:
+                    return "ParamInMissed";
+                case FuspecErrorType.ParamOutMissed:
+                    return "ParamOutMissed";
                 default:
                     return "UnknownError!";
             }

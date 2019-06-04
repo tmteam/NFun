@@ -81,7 +81,7 @@ namespace FuspecTests
         }
 
         [Test]
-        public void TagsReading_CorrectTestCaseWithSpaceBarTag_ReturnListOfTags()
+        public void TagsReading_CorrectTestCaseWithSpaceBarTag_ReturnTagWithoutSpaces()
         {
             GenerateFuspecTestCases(
                 @"|************************
@@ -119,7 +119,7 @@ namespace FuspecTests
         }
 
         [Test]
-        public void TagsReading_WrongTestCaseWithoutKeWordTAGS_ReturnError()
+        public void TagsReading_WrongTestCaseWithoutKeWordTAGS_ReturnError_EndingHeadMissed()
         {
             GenerateFuspecTestCases(
                 @"|************************
@@ -197,7 +197,7 @@ namespace FuspecTests
         }
 
         [Test]
-        public void NameReading_CorrectTestCaseWithNameWithSpaces_ReturnError()
+        public void NameReading_CorrectTestCaseWithNameWithSpaces_ReturnNameWithoutSpaces()
         {
             {
                 GenerateFuspecTestCases(
@@ -216,7 +216,7 @@ namespace FuspecTests
         }
 
         [Test]
-        public void NameReading_CorrectTestCaseWithoutName_ReturnError()
+        public void NameReading_CorrectTestCaseWithoutName_ReturnError_NamedMissed()
         {
             {
                 GenerateFuspecTestCases(
@@ -235,7 +235,7 @@ namespace FuspecTests
         }
 
         [Test]
-        public void NameReading_CorrectTestCaseWithSpaceInsteadName_ReturnError()
+        public void NameReading_CorrectTestCaseWithSpaceInsteadName_ReturnError_NameMissed()
         {
             {
                 GenerateFuspecTestCases(
@@ -271,7 +271,26 @@ namespace FuspecTests
                         _fuspecTestCases.Errors.FirstOrDefault().ErrorType);
                 });
             }
+        }
 
+        [Test]
+        public void OpeningStringReading_TestCaseWithPsevdoOpening_returnErrorMissedOpeningString()
+        {
+            {
+                GenerateFuspecTestCases(
+                    @"|**
+| TEST
+| TAGS tag1
+|************************
+  x = round(a + b + c)");
+
+                Assert.Multiple(() =>
+                {
+                    StandardAssertForNotCorrectTestCase();
+                    Assert.AreEqual(FuspecErrorType.OpeningStringMissed,
+                        _fuspecTestCases.Errors.FirstOrDefault().ErrorType);
+                });
+            }
         }
 
         [Test]
@@ -292,9 +311,30 @@ namespace FuspecTests
                         _fuspecTestCases.Errors.FirstOrDefault().ErrorType);
                 });
             }
+        }
+        
+        [Test]
+        public void OpeningStringReading_TestCaseWithErrorInOpeningInSecondCase_returnErrorMissedOpeningString()
+        {
+            {
+                GenerateFuspecTestCases(
+                    @"|*******************
+| TEST test1
+| TAGS tag1
+|************************
+  x = round(a + b + c)
+
+|***************9**9");
+
+                Assert.Multiple(() =>
+                {
+                    StandardAssertForNotCorrectTestCase();
+                    Assert.AreEqual(FuspecErrorType.OpeningStringMissed,
+                        _fuspecTestCases.Errors.FirstOrDefault().ErrorType);
+                });
+            }
 
         }
-
         [Test]
         public void HeadEndReading_TestCaseWithoutHeadEnd_returnErrorEndingHeadMissed()
         {
@@ -326,119 +366,97 @@ hjfghfghs
                 StandardAssertForNotCorrectTestCase();
                 Assert.AreEqual(FuspecErrorType.EndingHeadMissed, _fuspecTestCases.Errors.FirstOrDefault().ErrorType);
             });
-
         }
-
+        
         [Test]
-        public void BodyReading_TestCaseWithoutBody_returnErrorScriptMissed()
+        public void HeadEndReading_TestCaseWithPsevdoHeadEnd_returnError_EndingHeadMissed()
+        {
+            GenerateFuspecTestCases(
+                @"|********************
+| TEST Name
+| TAGS tag1
+|*******
+  y=y+i
+|************");
+            
+            Assert.Multiple(() =>
+            {
+                StandardAssertForNotCorrectTestCase();
+                Assert.AreEqual(FuspecErrorType.EndingHeadMissed,_fuspecTestCases.Errors.FirstOrDefault().ErrorType);
+            });
+        }
+        
+        [Test]
+        public void NoEndingOfCase_TestCaseWithEndingOnName_returnError_NoEndingTestCase()
         {
             GenerateFuspecTestCases(
                 @"|********************
 | TEST Name
 | TAGS tag1
 |************************
-|*********");
+
+|****************
+| TEST test1
+");
+            Assert.Multiple(() =>
+            {
+                StandardAssertForNotCorrectTestCase();
+                Assert.AreEqual(FuspecErrorType.NoEndingTestCase,_fuspecTestCases.Errors.FirstOrDefault().ErrorType);
+            });
+        }
+        
+        [Test]
+        public void NoEndingOfCase_TestCaseWithoutEndingHead_returnError_NoEndingTestCase()
+        {
+            GenerateFuspecTestCases(
+                @"|********************
+| TEST Name
+| TAGS tag1
+
+
+");
+            Assert.Multiple(() =>
+            {
+                StandardAssertForNotCorrectTestCase();
+                Assert.AreEqual(FuspecErrorType.NoEndingTestCase,_fuspecTestCases.Errors.FirstOrDefault().ErrorType);
+            });
+        }
+        
+        [Test]
+        public void NoEndingOfCase_TestCaseWithoutScript_returnError_NoEndingTestCase()
+        {
+            GenerateFuspecTestCases(
+                @"|********************
+| TEST Name
+| TAGS tag1
+|********************
+");
+            Assert.Multiple(() =>
+            {
+                StandardAssertForNotCorrectTestCase();
+                Assert.AreEqual(FuspecErrorType.NoEndingTestCase,_fuspecTestCases.Errors.FirstOrDefault().ErrorType);
+            });
+        }
+       
+        [Test]
+        public void BodyReading_TestCaseWithoutBody_returnError_NoEndingTestCase()
+        {
+            GenerateFuspecTestCases(
+                @"|********************
+| TEST Name
+| TAGS tag1
+|************************
+");
 
             Assert.Multiple(() =>
             {
                 StandardAssertForNotCorrectTestCase();
-                Assert.AreEqual(FuspecErrorType.ScriptMissed,
-                    _fuspecTestCases.Errors.FirstOrDefault().ErrorType);
+                Assert.AreEqual(FuspecErrorType.NoEndingTestCase,_fuspecTestCases.Errors.FirstOrDefault().ErrorType);
             });
         }
-
+    
         [Test]
-        public void BodyReading_OneExpression_returnScript()
-        {
-            GenerateFuspecTestCases(
-                @"|********************
-| TEST Name
-| TAGS tag1
-|************************
-  x = round(a + b + c)");
-
-            Assert.Multiple(() =>
-            {
-                StandardAssertForCorrectTestCase();
-                Assert.AreEqual("x = round(a + b + c)", _fuspecTestCases.TestCases.FirstOrDefault().Script);
-            });
-        }
-
-        [Test]
-        public void BodyReading_ManyExpressions_returnScript()
-        {
-            GenerateFuspecTestCases(
-                @"|********************
-| TEST Name
-| TAGS tag1
-|************************
-  x = round(a + b + c)
-  x = round(a - b - c)");
-
-            Assert.Multiple(() =>
-            {
-                StandardAssertForCorrectTestCase();
-                Assert.AreEqual("x = round(a + b + c)\rx = round(a - b - c)", _fuspecTestCases.TestCases[0].Script);
-            });
-        }
-
-        [Test]
-        public void BodyReading_NoKeyWordAtTheFirstExpression_returnError()
-        {
-            GenerateFuspecTestCases(
-                @"|********************
-| TEST Name
-| TAGS tag1
-|************************
-sss x = round(a + b + c)
-  x = round(a - b - c)");
-
-            Assert.Multiple(() =>
-            {
-                StandardAssertForNotCorrectTestCase();
-                Assert.AreEqual(FuspecErrorType.ScriptMissed, _fuspecTestCases.Errors.FirstOrDefault().ErrorType);
-            });
-        }
-
-        [Test]
-        public void BodyReading_NoKeyWordAtTheSecondExpression_returnError()
-        {
-            GenerateFuspecTestCases(
-                @"|********************
-| TEST Name
-| TAGS tag1
-|************************
-  x = round(a + b + c)
-x = round(a - b - c)");
-
-            Assert.Multiple(() =>
-            {
-                StandardAssertForNotCorrectTestCase();
-                Assert.AreEqual(FuspecErrorType.OpeningStringMissed,
-                    _fuspecTestCases.Errors.FirstOrDefault().ErrorType);
-            });
-        }
-
-        [Test]
-        public void BodyReading_SpaseBarInsteadOneOfTwoExpression_returnOneExpression_()
-        {
-            GenerateFuspecTestCases(
-                @"|********************
-| TEST Name
-| TAGS tag1
-|************************
-      
-  x = round(a - b - c)");
-
-            Assert.Multiple(() =>
-            {
-                StandardAssertForCorrectTestCase();
-                Assert.AreEqual("    \rx = round(a - b - c)", _fuspecTestCases.TestCases.FirstOrDefault().Script);
-            });
-        }
-
-        [Test]
-        public void BodyReading_SpaseBarInsteadOneExpression_returnScript_()
+        public void BodyReading_TestCaseWithSpaseInsteadBody_returnBody()
         {
             GenerateFuspecTestCases(
                 @"|********************
@@ -451,12 +469,101 @@ x = round(a - b - c)");
             Assert.Multiple(() =>
             {
                 StandardAssertForCorrectTestCase();
-                Assert.AreEqual("",_fuspecTestCases.TestCases.FirstOrDefault().Script,"Error in script");
+                Assert.AreEqual("  ",_fuspecTestCases.TestCases.FirstOrDefault().Script,"Wrote not right script");
+            });
+        }
+        [Test]
+        public void BodyReading_TestCaseWhithOneExpression_returnScript()
+        {
+            GenerateFuspecTestCases(
+                @"|********************
+| TEST Name
+| TAGS tag1
+|************************
+  x = round(a + b + c)");
+
+            Assert.Multiple(() =>
+            {
+                StandardAssertForCorrectTestCase();
+                Assert.AreEqual("  x = round(a + b + c)", _fuspecTestCases.TestCases.FirstOrDefault().Script);
             });
         }
 
         [Test]
-        public void BodyReading_SpaseBarIntoOneExpression_returnOneExpression_()
+        public void BodyReading_ManyExpressionsInBody_returnScript()
+        {
+            GenerateFuspecTestCases(
+                @"|********************
+| TEST Name
+| TAGS tag1
+|************************
+  x = round(a + b + c)
+  x = round(a - b - c)");
+
+            Assert.Multiple(() =>
+            {
+                StandardAssertForCorrectTestCase();
+                Assert.AreEqual("  x = round(a + b + c)\r  x = round(a - b - c)", _fuspecTestCases.TestCases[0].Script);
+            });
+        }
+        
+        [Test]
+        public void BodyReading_PsevdoSeparatingStringAfterBody_returnScript()
+        {
+            GenerateFuspecTestCases(
+                @"|********************
+| TEST Name
+| TAGS tag1
+|************************
+  x = round(a + b + c)
+x = round(a - b - c)
+|**");
+
+            Assert.Multiple(() =>
+            {
+                StandardAssertForCorrectTestCase();
+                Assert.AreEqual("  x = round(a + b + c)\rx = round(a - b - c)\r|**", _fuspecTestCases.TestCases[0].Script);
+            });
+        }
+      
+        [Test]
+        public void BodyReading_SpaceBarInsteadOneOfTwoExpression_returnOneExpression_()
+        {
+            GenerateFuspecTestCases(
+                @"|********************
+| TEST Name
+| TAGS tag1
+|************************
+      
+  x = round(a - b - c)");
+
+            Assert.Multiple(() =>
+            {
+                StandardAssertForCorrectTestCase();
+                Assert.AreEqual("      \r  x = round(a - b - c)", _fuspecTestCases.TestCases.FirstOrDefault().Script);
+            });
+        }
+
+        [Test]
+        public void BodyReading_SpaceBarInsteadOneExpression_returnScript_()
+        {
+            GenerateFuspecTestCases(
+                @"|********************
+| TEST Name
+| TAGS tag1
+|************************
+  
+");
+
+            Assert.Multiple(() =>
+            {
+                StandardAssertForCorrectTestCase();
+                Assert.AreEqual("  ",_fuspecTestCases.TestCases.FirstOrDefault().Script,"Didn't write script");
+            });
+        }
+
+        [Test]
+        public void BodyReading_SpaceBarIntoOneExpression_returnOneExpression_()
         {
             GenerateFuspecTestCases(
                 @"|********************
@@ -468,12 +575,12 @@ x = round(a - b - c)");
             Assert.Multiple(() =>
             {
                 StandardAssertForCorrectTestCase();
-                Assert.AreEqual("   x = round(a - b - c)  ", _fuspecTestCases.TestCases.FirstOrDefault().Script);
+                Assert.AreEqual("     x = round(a - b - c)  ", _fuspecTestCases.TestCases.FirstOrDefault().Script);
             });
         }
 
         [Test]
-        public void BodyReading_AfterBodyIsUnknownString_returnError_OpeningStringMissed()
+        public void BodyReading_UnknownStringInBody_returnBody()
         {
             GenerateFuspecTestCases(
                 @"|********************
@@ -485,14 +592,14 @@ x = round(a - b - c)");
 
             Assert.Multiple(() =>
             {
-                StandardAssertForNotCorrectTestCase();
-                Assert.AreEqual(FuspecErrorType.OpeningStringMissed,
-                    _fuspecTestCases.Errors.FirstOrDefault().ErrorType);
+                StandardAssertForCorrectTestCase();
+                Assert.AreEqual("     x = round(a - b - c)  \rпвпавпвапва", _fuspecTestCases.TestCases.FirstOrDefault().Script);
+
             });
         }
 
         [Test]
-        public void BodyReading_AfterBodyIsNewCase_returnScript()
+        public void BodyReading_AfterBodyIsNewCase_returnTwoCasesWithScript()
         {
             GenerateFuspecTestCases(
                 @"|********************
@@ -500,7 +607,7 @@ x = round(a - b - c)");
 | TAGS tag1
 |************************
   x = round(a - b - c)
-|*******
+|*********************
 | TEST Name
 | TAGS tag1
 |************************
@@ -513,11 +620,12 @@ x = round(a - b - c)");
                 Assert.IsNotNull(_fuspecTestCases.Errors, "FuspecTestCases.Errors = null");
                 Assert.AreEqual(0, _fuspecTestCases.Errors.Length, "Parser wrote nonexistent error ");
                 Assert.AreEqual(2, _fuspecTestCases.TestCases.Length, "Parser didn't write testcase");
-                Assert.AreEqual("x = round(a - b - c)", _fuspecTestCases.TestCases.FirstOrDefault().Script);
+                Assert.AreEqual("  x = round(a - b - c)", _fuspecTestCases.TestCases.FirstOrDefault().Script);
+                Assert.AreEqual("     x = round(a - b - c)",_fuspecTestCases.TestCases[1].Script);
             });
         }
         [Test]
-        public void BodyReading_AfterBodyIsNewCaseAfterEnter_returnScript()
+        public void BodyReading_AfterBodyIsNewCase_CasesIsSeparateWhitEnter_returnTwoCasesWithScript()
         {
             GenerateFuspecTestCases(
                 @"|********************
@@ -526,7 +634,7 @@ x = round(a - b - c)");
 |************************
   x = round(a - b - c)
 
-|*******
+|*****************
 | TEST Name
 | TAGS tag1
 |************************
@@ -539,11 +647,13 @@ x = round(a - b - c)");
                 Assert.IsNotNull(_fuspecTestCases.Errors, "FuspecTestCases.Errors = null");
                 Assert.AreEqual(0, _fuspecTestCases.Errors.Length, "Parser wrote nonexistent error ");
                 Assert.AreEqual(2, _fuspecTestCases.TestCases.Length, "Parser didn't write testcase");
-                Assert.AreEqual("x = round(a - b - c)", _fuspecTestCases.TestCases.FirstOrDefault().Script);
+                Assert.AreEqual("  x = round(a - b - c)\r", _fuspecTestCases.TestCases.FirstOrDefault().Script);
+                Assert.AreEqual("     x = round(a - b - c)",_fuspecTestCases.TestCases[1].Script);
+
             });
         }
         [Test]
-        public void BodyReading_AfterBodyIsNewCaseAfterEnterWithSpaces_returnScript()
+        public void BodyReading_AfterBodyIsNewCase_CasesIsSeparatedWithEnterWithSpaces_returnTwoCasesWithScript()
         {
             GenerateFuspecTestCases(
                 @"|********************
@@ -552,7 +662,7 @@ x = round(a - b - c)");
 |************************
   x = round(a - b - c)
     
-|*******
+|*****************
 | TEST Name
 | TAGS tag1
 |************************
@@ -565,36 +675,14 @@ x = round(a - b - c)");
                 Assert.IsNotNull(_fuspecTestCases.Errors, "FuspecTestCases.Errors = null");
                 Assert.AreEqual(0, _fuspecTestCases.Errors.Length, "Parser wrote nonexistent error ");
                 Assert.AreEqual(2, _fuspecTestCases.TestCases.Length, "Parser didn't write testcase");
-                Assert.AreEqual("x = round(a - b - c)\r  ", _fuspecTestCases.TestCases.FirstOrDefault().Script);
+                Assert.AreEqual("  x = round(a - b - c)\r    ", _fuspecTestCases.TestCases.FirstOrDefault().Script);
+                Assert.AreEqual("     x = round(a - b - c)",_fuspecTestCases.TestCases[1].Script);
+
             });
         }
         
-        public void BodyReading_AfterBodyIsNewCaseAfterEnterWithTwoSpaces_returnScript()
-        {
-            GenerateFuspecTestCases(
-                @"|********************
-| TEST Name
-| TAGS tag1
-|************************
-  x = round(a - b - c)
-  
-|*******
-| TEST Name
-| TAGS tag1
-|************************
-     x = round(a - b - c)");
-
-            Assert.Multiple(() =>
-            {
-                Assert.IsNotNull(_fuspecTestCases, "FuspecTestCases = null");
-                Assert.IsNotNull(_fuspecTestCases.TestCases, "FuspecTestCases.TestCases = null");
-                Assert.IsNotNull(_fuspecTestCases.Errors, "FuspecTestCases.Errors = null");
-                Assert.AreEqual(0, _fuspecTestCases.Errors.Length, "Parser wrote nonexistent error ");
-                Assert.AreEqual(2, _fuspecTestCases.TestCases.Length, "Parser didn't write testcase");
-                Assert.AreEqual("x = round(a - b - c)\r", _fuspecTestCases.TestCases.FirstOrDefault().Script);
-            });
-        }
-        public void BodyReading_EmptyStringInsteadScript_returnScript()
+        [Test]
+        public void BodyReading_AfterBodyIsNewCase_FirstBodyHasEnterInsteadScript_returnTwoCasesWithScript()
         {
             GenerateFuspecTestCases(
                 @"|********************
@@ -602,7 +690,7 @@ x = round(a - b - c)");
 | TAGS tag1
 |************************
 
-|*******
+|***********
 | TEST Name
 | TAGS tag1
 |************************
@@ -616,8 +704,10 @@ x = round(a - b - c)");
                 Assert.AreEqual(0, _fuspecTestCases.Errors.Length, "Parser wrote nonexistent error ");
                 Assert.AreEqual(2, _fuspecTestCases.TestCases.Length, "Parser didn't write testcase");
                 Assert.AreEqual("", _fuspecTestCases.TestCases.FirstOrDefault().Script);
+                Assert.AreEqual("     x = round(a - b - c)",_fuspecTestCases.TestCases[1].Script);
             });
         }
+        
         [Test]
         public void EmptyFile_returnEmptyTestcase()
         {
@@ -649,7 +739,7 @@ x = round(a - b - c)");
                 Assert.IsNotNull(_fuspecTestCases.TestCases, "FuspecTestCases.TestCases = null");
                 Assert.IsNotNull(_fuspecTestCases.Errors, "FuspecTestCases.Errors = null");
                 Assert.AreEqual(0, _fuspecTestCases.Errors.Length, "Parser wrote nonexistent error ");
-                Assert.AreEqual(0, _fuspecTestCases.TestCases.Length, "Parser didn't write testcase");
+                Assert.AreEqual(0, _fuspecTestCases.TestCases.Length, "Parser wrote nonexistent testcase");
             });
         }
 
