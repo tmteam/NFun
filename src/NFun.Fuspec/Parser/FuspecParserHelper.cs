@@ -20,6 +20,8 @@ namespace Nfun.Fuspec.Parser
         
         public static bool IsSeparatingLine(string str, char symbol)
         {
+        //    if (separatingString != null)
+            
             int i = 0;
             if (str[0] != '|')
                 return false;
@@ -29,7 +31,7 @@ namespace Nfun.Fuspec.Parser
                 i++;
             }
 
-            if (i < 8) return false;
+            if (i < 8 ) return false;
             return true;
             //            return str.Substring(1).All(ch => ch == symbol);
         }

@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Numerics;
@@ -278,7 +279,7 @@ namespace FuspecTests
         {
             {
                 GenerateFuspecTestCases(
-                    @"|**
+                    @"|*
 | TEST
 | TAGS tag1
 |************************
@@ -740,6 +741,282 @@ x = round(a - b - c)
                 Assert.IsNotNull(_fuspecTestCases.Errors, "FuspecTestCases.Errors = null");
                 Assert.AreEqual(0, _fuspecTestCases.Errors.Length, "Parser wrote nonexistent error ");
                 Assert.AreEqual(0, _fuspecTestCases.TestCases.Length, "Parser wrote nonexistent testcase");
+            });
+        }
+        
+        [Test ]
+        public void ParamsReading_ReadSimpleParams_returnParams()
+        {
+            GenerateFuspecTestCases(
+                @"|********************
+| TEST Name
+| TAGS tag1
+|************************
+| in a:real
+| out y:real
+  x = round(a - b - c)  
+");
+
+            Assert.Multiple(() =>
+            {
+                StandardAssertForCorrectTestCase();
+                Assert.AreEqual("a:real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[0]);
+                Assert.AreEqual("y:real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0]);
+
+            });
+        }
+
+        [Test ]
+        public void ParamsReading_ReadSimpleParamsWithEnterAfterParams_returnParams()
+        {
+            GenerateFuspecTestCases(
+                @"|********************
+| TEST Name
+| TAGS tag1
+|************************
+| in a:real
+| out y:real
+
+  x = round(a - b - c)  
+");
+
+            Assert.Multiple(() =>
+            {
+                StandardAssertForCorrectTestCase();
+                Assert.AreEqual("a:real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[0]);
+                Assert.AreEqual("y:real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0]);
+                Assert.AreEqual("\r  x = round(a - b - c)  ",_fuspecTestCases.TestCases.FirstOrDefault().Script);
+
+            });
+        }
+
+        [Test ]
+        public void ParamsReading_ReadJustParamsIn_returnParamsIn()
+        {
+            GenerateFuspecTestCases(
+                @"|********************
+| TEST Name
+| TAGS tag1
+|************************
+| in a:real
+  x = round(a - b - c)  
+");
+
+            Assert.Multiple(() =>
+            {
+                StandardAssertForCorrectTestCase();
+                Assert.AreEqual("a:real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[0]);
+            });
+        }
+        
+        [Test ]
+        public void ParamsReading_ReadJustParamsOut_returnParamsIn()
+        {
+            GenerateFuspecTestCases(
+                @"|********************
+| TEST Name
+| TAGS tag1
+|************************
+| out y:real
+  x = round(a - b - c)  
+");
+
+            Assert.Multiple(() =>
+            {
+                StandardAssertForCorrectTestCase();
+                Assert.AreEqual("y:real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0]);
+            });
+        }
+        [Test]
+        public void ParamsReading_AfterKeyWordAreEmptyString_returnErrorParamOutMissed()
+        {
+            GenerateFuspecTestCases(
+                @"|********************
+| TEST Name
+| TAGS tag1
+|************************
+| out
+  x = round(a - b - c)  
+");
+
+            Assert.Multiple(() =>
+            {
+                StandardAssertForNotCorrectTestCase();
+                Assert.AreEqual(FuspecErrorType.ParamOutMissed,_fuspecTestCases.Errors.FirstOrDefault().ErrorType);
+            });
+        }
+        
+        [Test]
+        public void ParamsReading_AfterKeyWordOutAreSpaces_returnErrorParamOutMissed()
+        {
+            GenerateFuspecTestCases(
+                @"|********************
+| TEST Name
+| TAGS tag1
+|************************
+| out   
+  x = round(a - b - c)  
+");
+
+            Assert.Multiple(() =>
+            {
+                StandardAssertForNotCorrectTestCase();
+                Assert.AreEqual(FuspecErrorType.ParamOutMissed,_fuspecTestCases.Errors.FirstOrDefault().ErrorType);
+            });
+        }
+        
+        [Test]
+        public void ParamsReading_AfterKeyWordInAreEmptyString_returnErrorParamInMissed()
+        {
+            GenerateFuspecTestCases(
+                @"|********************
+| TEST Name
+| TAGS tag1
+|************************
+| in
+  x = round(a - b - c)  
+");
+
+            Assert.Multiple(() =>
+            {
+                StandardAssertForNotCorrectTestCase();
+                Assert.AreEqual(FuspecErrorType.ParamInMissed,_fuspecTestCases.Errors.FirstOrDefault().ErrorType);
+            });
+        }
+        
+        [Test]
+        public void ParamsReading_AfterKeyWordInAreSpaces_returnErrorParamInMissed()
+        {
+            GenerateFuspecTestCases(
+                @"|********************
+| TEST Name
+| TAGS tag1
+|************************
+| in   
+  x = round(a - b - c)  
+");
+
+            Assert.Multiple(() =>
+            {
+                StandardAssertForNotCorrectTestCase();
+                Assert.AreEqual(FuspecErrorType.ParamInMissed,_fuspecTestCases.Errors.FirstOrDefault().ErrorType);
+            });
+        }
+        
+        [Test]
+        public void ParamsReading_TwoOutParams_returnTwoOutParams()
+        {
+            GenerateFuspecTestCases(
+                @"|********************
+| TEST Name
+| TAGS tag1
+|************************
+| out a:real,b:real
+  x = round(a - b - c)  
+");
+
+            Assert.Multiple(() =>
+            {
+                StandardAssertForCorrectTestCase();
+                Assert.AreEqual( "a:real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0]);
+                Assert.AreEqual("b:real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[1]);
+            });
+        }
+        
+        [Test]
+        public void ParamsReading_TwoOutParamsWithSpaces_returnTwoOutParams()
+        {
+            GenerateFuspecTestCases(
+                @"|********************
+| TEST Name
+| TAGS tag1
+|************************
+| out a:real,  b:real
+  x = round(a - b - c)  
+");
+
+            Assert.Multiple(() =>
+            {
+                StandardAssertForCorrectTestCase();
+                Assert.AreEqual( "a:real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0]);
+                Assert.AreEqual("b:real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[1]);
+            });
+        }
+        
+        [Test]
+        public void ParamsReading_TwoParamsIn_returnTwoInParams()
+        {
+            GenerateFuspecTestCases(
+                @"|********************
+| TEST Name
+| TAGS tag1
+|************************
+| in a:real,b:real
+  x = round(a - b - c)  
+");
+
+            Assert.Multiple(() =>
+            {
+                StandardAssertForCorrectTestCase();
+                Assert.AreEqual( "a:real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[0]);
+                Assert.AreEqual("b:real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[1]);
+            });
+        }
+        
+        [Test]
+        public void ParamsReading_TwoCommasInsteadParams_returnError()
+        {
+            GenerateFuspecTestCases(
+                @"|********************
+| TEST Name
+| TAGS tag1
+|************************
+| out ,,
+  x = round(a - b - c)  
+");
+
+            Assert.Multiple(() =>
+            {
+                StandardAssertForNotCorrectTestCase();
+                Assert.AreEqual(FuspecErrorType.ParamOutMissed, _fuspecTestCases.Errors.FirstOrDefault().ErrorType);
+            });
+        }
+        
+        [Test]
+        public void ParamsReading_NoSpaceAfterKeyWord_returnErrorParamMissed()
+        {
+            GenerateFuspecTestCases(
+                @"|********************
+| TEST Name
+| TAGS tag1
+|************************
+| outa:real
+  x = round(a - b - c)  
+");
+
+            Assert.Multiple(() =>
+            {
+                StandardAssertForNotCorrectTestCase();
+                Assert.AreEqual(FuspecErrorType.ParamOutMissed, _fuspecTestCases.Errors.FirstOrDefault().ErrorType);
+            });
+        }
+        
+        [Test]
+        public void ParamsReading_ParamsAndTwoCommas_returnErrorParamMissed()
+        {
+            GenerateFuspecTestCases(
+                @"|********************
+| TEST Name
+| TAGS tag1
+|************************
+| out a:real,,
+  x = round(a - b - c)  
+");
+
+            Assert.Multiple(() =>
+            {
+                StandardAssertForNotCorrectTestCase();
+                Assert.AreEqual(FuspecErrorType.ParamOutMissed, _fuspecTestCases.Errors.FirstOrDefault().ErrorType);
             });
         }
 
