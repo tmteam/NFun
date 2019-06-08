@@ -100,7 +100,7 @@ namespace Funny.Tests
         public void getAdd_SeveralVariablesInArray_AdditionalValuesSaved()
         {
             var runtime =FunBuilder
-                .With("y = [x1,x2].map(i=>getA(i)).sum()")
+                .With("y = [x1,x2].map(i->getA(i)).sum()")
                 .WithFunctions(new GetAdditionalFunMock())
                 .Build();
             var res = runtime.Calculate(Var.New("x1", 

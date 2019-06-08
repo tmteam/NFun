@@ -33,8 +33,8 @@ namespace Funny.Tests
                             .max()", 400)]
         [TestCase( @"
                      y = [11.0,20.0,1.0,2.0] 
-                            . filter((f)=>f>10.0)
-                            . map((m)=>m*m)
+                            . filter((f)->f>10.0)
+                            . map((m)->m*m)
                             . max()", 400.0)]
         [TestCase( @"y = [1,2,3].max()",3)]
 

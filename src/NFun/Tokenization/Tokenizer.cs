@@ -138,6 +138,8 @@ namespace NFun.Tokenization
             {
                 case '-' when  next == '-':
                     return Tok.New(TokType.Attribute, position, position+2);   
+                case '-' when  next == '>':
+                    return Tok.New(TokType.AnonymFun, position,position + 2);
                 case '-':
                     return Tok.New(TokType.Minus, position, position+1);
                 case '*' when  next == '*':
@@ -158,8 +160,6 @@ namespace NFun.Tokenization
                     return Tok.New(TokType.Less, position, position+1);
                 case '=' when next == '=':
                     return Tok.New(TokType.Equal, position, position + 2);
-                case '=' when next == '>':
-                    return Tok.New(TokType.AnonymFun, position,position + 2);
                 case '=':
                     return Tok.New(TokType.Def, position, position + 1);
                 case '.' when next=='.':

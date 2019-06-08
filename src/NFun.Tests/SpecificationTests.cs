@@ -74,8 +74,8 @@ tostring(v:int):text =
 x:int
 y = tostring(x)","y", "not supported")]
        // [TestCase(1.0, "","y", false)]
-        [TestCase(2.5,"y = [1.0,2.0,3.0].filter(it => it<x).max()","y",2.0)]
-        [TestCase(2.5,"x:real \r y = [1.0,2.0,3.0].filter(it => it<x).max()","y",2.0)]
+        [TestCase(2.5,"y = [1.0,2.0,3.0].filter(it -> it<x).max()","y",2.0)]
+        [TestCase(2.5,"x:real \r y = [1.0,2.0,3.0].filter(it -> it<x).max()","y",2.0)]
         public void Real_SingleEquationWithSingleInput(object xVal, string expression, string outputName, object outputValue)
         {
             var runtime = FunBuilder.BuildDefault(expression);
@@ -132,11 +132,11 @@ y = tostring(x)","y", "not supported")]
         [TestCase("y = [0..10][1:3] #[1,2,3]", "y", new []{1,2,3})]
         [TestCase("y = [0..10][7:] #[7,8,9,10]", "y", new []{7,8,9,10})]
         [TestCase("y = [0..10][:2] #[0,1,2]", "y", new []{0,1,2})]
-        [TestCase("y = [1..4].map(i:int=> i/2)#[0.5,1.0,1.5,2.0]", "y", new []{0.5,1.0,1.5,2.0})]
-        [TestCase("y = [1..4].any(i:int => i>0)#true", "y", true)]
-        [TestCase("y = [1..4].all(i:int => i>2)#false", "y", false)]
-        [TestCase("y = [1..4].reduce((i:int,j:int)=>i+j)# 10.Аналог sum", "y", 10)]
-        [TestCase("y = [1..4].reduce((i:int,j:int)=>if (i>j) i else j)#4.Аналог max", "y", 4)]
+        [TestCase("y = [1..4].map(i:int-> i/2)#[0.5,1.0,1.5,2.0]", "y", new []{0.5,1.0,1.5,2.0})]
+        [TestCase("y = [1..4].any(i:int -> i>0)#true", "y", true)]
+        [TestCase("y = [1..4].all(i:int -> i>2)#false", "y", false)]
+        [TestCase("y = [1..4].reduce((i:int,j:int)->i+j)# 10.Аналог sum", "y", 10)]
+        [TestCase("y = [1..4].reduce((i:int,j:int)->if (i>j) i else j)#4.Аналог max", "y", 4)]
         public void Constant(string expr, string ouputName, object val)
         {
             var runtime = FunBuilder.BuildDefault(expr);
@@ -239,7 +239,7 @@ yPublic   = yprivate + xpublic";
 
        [TestCase(" y1 = [1,’2’,3,4]      # ошибка разбора")]
        [TestCase(" y2 = [1,2.0,3,4]      # ошибка разбора")]
-       [TestCase(" x:real[] \r y = x.filter(x => x< 2 ) # ошибка разбора.")]
+       [TestCase(" x:real[] \r y = x.filter(x -> x< 2 ) # ошибка разбора.")]
         public void ObviousFails(string expr)
         {
             Assert.Throws<FunParseException>(() => FunBuilder.BuildDefault(expr));

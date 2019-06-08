@@ -97,32 +97,32 @@ namespace Funny.Tests
                    fib(n) = if (n<3) 1 else fibrec(n-1,2,1,1)
                    y = fib(1)",BaseVarType.Int32)]
         [TestCase(@"y = [1..7]
-                        .map(i=>i+i)
+                        .map(i->i+i)
                         .sum()", BaseVarType.Int32)]
         [TestCase(@"y = [1..8]
-                        .map(i=>[i].sum())
+                        .map(i->[i].sum())
                         .sum()", BaseVarType.Int32)]
         [TestCase(@"y = [1..9]
-                        .map(i=>[1,i].sum())
+                        .map(i->[1,i].sum())
                         .sum()", BaseVarType.Int32)]
         [TestCase(@"y = [1..10]
-                        .map(i=>[1..i].sum())
+                        .map(i->[1..i].sum())
                         .sum()", BaseVarType.Int32)]
         [TestCase(@"y = [1..11]
-                        .map(i=>[1..n].sum())
+                        .map(i->[1..n].sum())
                         .sum()", BaseVarType.Int32)]
         [TestCase(@"y = [1..12]
-                        .map(i=>[1..n]
-                                .map(x=>2600/x)
+                        .map(i->[1..n]
+                                .map(x->2600/x)
                                 .sum())
                         .sum()", BaseVarType.Real)]
         [TestCase(@"y = [1..13]
-                        .map(i=>[1..10]
-                                .map(x=>2600/x)
+                        .map(i->[1..10]
+                                .map(x->2600/x)
                                 .sum())
                         .sum()", BaseVarType.Real)]
         [TestCase(@"y = [1..14]
-                        .map(i=>i/2)
+                        .map(i->i/2)
                         .sum()", BaseVarType.Real)]
         [TestCase(
             @"div10(x) = 2600/x
@@ -180,17 +180,17 @@ namespace Funny.Tests
         [TestCase( "f9(n) = f9(n and true)")]
         [TestCase( "fa(n) = fa(n+1)")]
         [TestCase( "fb(n) = fb(n.strConcat(''))")]
-        [TestCase("[a].map(z=>z)")]
-        [TestCase("[a].filter(f=>f>2)")]
+        [TestCase("[a].map(z->z)")]
+        [TestCase("[a].filter(f->f>2)")]
         [TestCase("[a].reverse()")]
         [TestCase("[a]")]
-        [TestCase("y = [-x].all(i=> i < 0.0)")]
-        [TestCase("y = [x,x].all(i=> i < 0.0)")]
-        [TestCase("y = [-x,x].all(i=> i < 0.0)")]
-        [TestCase("y = [1,-x].all(i=> i < 0.0)")]
-        [TestCase("y = [x,2.0,3.0].all((i)=> i >1.0)")]
-        [TestCase("y = [1..11].map(i=>[1..n].sum())")]
-        [TestCase("y = [1..12].map(i=>[1..n].sum()).sum()")]
+        [TestCase("y = [-x].all(i-> i < 0.0)")]
+        [TestCase("y = [x,x].all(i-> i < 0.0)")]
+        [TestCase("y = [-x,x].all(i-> i < 0.0)")]
+        [TestCase("y = [1,-x].all(i-> i < 0.0)")]
+        [TestCase("y = [x,2.0,3.0].all((i)-> i >1.0)")]
+        [TestCase("y = [1..11].map(i->[1..n].sum())")]
+        [TestCase("y = [1..12].map(i->[1..n].sum()).sum()")]
         [TestCase("dsum7(x) = x+x")]
         [TestCase(
             @"dsum8(x) = x+x
@@ -207,11 +207,11 @@ namespace Funny.Tests
 
         [TestCase( "y1 = -x \r y2 = -x")]
         [TestCase( "y1 = x  \r y2 = -x")]
-        [TestCase( "y = [x,-x].all(i=> i < 0.0)")]
-        [TestCase( "y = [-x,-x].all(i=> i < 0.0)")]
-        [TestCase( "z = [-x,-x,-x] \r  y = z.all((i)=> i < 0.0)")]
+        [TestCase( "y = [x,-x].all(i-> i < 0.0)")]
+        [TestCase( "y = [-x,-x].all(i-> i < 0.0)")]
+        [TestCase( "z = [-x,-x,-x] \r  y = z.all((i)-> i < 0.0)")]
         [TestCase( "y = [x, -x]")]
-        [TestCase( "y = [-x,-x,-x].all((i)=> i < 0.0)")]
+        [TestCase( "y = [-x,-x,-x].all((i)-> i < 0.0)")]
         [TestCase( "[x, -x]")]
 
         public void EquationTypes_SolvesSomehow(string expr)
@@ -275,7 +275,7 @@ namespace Funny.Tests
         [TestCase("x:real \r y = [1..10][::x]")]
         [TestCase("y = x \r x:real ")]
         [TestCase("z:real \r  y = x+z \r x:real ")]
-        [TestCase("y= [1,2,3].fold((x1,x2)=>x1+1.5)")] 
+        [TestCase("y= [1,2,3].fold((x1,x2)->x1+1.5)")] 
 
         public void ObviouslyFailsWithParse(string expr) =>
             Assert.Throws<FunParseException>(
@@ -301,16 +301,16 @@ namespace Funny.Tests
             Assert.AreEqual(y, res.Results.First().Value);
         }
 
-        [TestCase("y= [1,2,3].map(x=>x*x)", new[]{1,4,9})] 
-        [TestCase("y= [1,2,3].map(x=>x)", new[]{1,2,3})] 
-        [TestCase("y= [1,2,3].map(x=>1)", new[]{1,1,1})] 
-        [TestCase("y= [1,2,3].map(x=>'hi')", new[]{"hi","hi","hi"})] 
-        [TestCase("y= [true,true,false].map(x=>'hi')", new[]{"hi","hi","hi"})] 
-        [TestCase("y= [1,2,3].filter(x=>x>2)", new[]{3})] 
-        [TestCase("y= [1,2,3].reduce((x1,x2)=>x1+x2)", 6)] 
-        [TestCase("y= [1,2,3].reduce((x1,x2)=>1)", 1)] 
-        [TestCase("y= [1,2,3].reduce((x1,x2)=>x1)", 1)] 
-        [TestCase("y= [1,2,3].reduce((x1,x2)=>x1+1)", 3)] 
+        [TestCase("y= [1,2,3].map(x->x*x)", new[]{1,4,9})] 
+        [TestCase("y= [1,2,3].map(x->x)", new[]{1,2,3})] 
+        [TestCase("y= [1,2,3].map(x->1)", new[]{1,1,1})] 
+        [TestCase("y= [1,2,3].map(x->'hi')", new[]{"hi","hi","hi"})] 
+        [TestCase("y= [true,true,false].map(x->'hi')", new[]{"hi","hi","hi"})] 
+        [TestCase("y= [1,2,3].filter(x->x>2)", new[]{3})] 
+        [TestCase("y= [1,2,3].reduce((x1,x2)->x1+x2)", 6)] 
+        [TestCase("y= [1,2,3].reduce((x1,x2)->1)", 1)] 
+        [TestCase("y= [1,2,3].reduce((x1,x2)->x1)", 1)] 
+        [TestCase("y= [1,2,3].reduce((x1,x2)->x1+1)", 3)] 
         public void ConstantTypedEquation(string expr, object y)
         {
             var runtime = FunBuilder.BuildDefault(expr);

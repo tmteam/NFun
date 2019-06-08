@@ -290,7 +290,7 @@ namespace Funny.Tests
         [TestCase("y= max('a','b')")]
         [TestCase("y= max(1,2,3)")]
         [TestCase("y= max(1,true)")]
-        [TestCase("y= max(1,(j)=>j)")]
+        [TestCase("y= max(1,(j)->j)")]
         public void ObviouslyFails(string expr) =>
             Assert.Throws<FunParseException>(
                 ()=> FunBuilder.BuildDefault(expr));
