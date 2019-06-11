@@ -1,9 +1,12 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using Nfun.Fuspec.Parser.FuspecParserErrors;
 using Nfun.Fuspec.Parser.Model;
+using NFun.Tokenization;
+using NFun.Types;
 using ParcerV1;
 using static Nfun.Fuspec.Parser.FuspecParserHelper;
 
@@ -112,16 +115,6 @@ namespace Nfun.Fuspec.Parser
             }
             return TestCaseParseState.ReadingTags;
         }
-/*
-        private TestCaseParseState ReadParamsIn(string str)
-        {
-            return ReadBody(str);
-        }
-
-        private TestCaseParseState ReadParamsOut(string str)
-        {
-            return ReadBody(str);
-        }*/
         
         private TestCaseParseState ReadParamsIn(string str)
         {
@@ -130,46 +123,62 @@ namespace Nfun.Fuspec.Parser
                 _script.Add(str);
                 return TestCaseParseState.ReadingParamsIn;
             }
-            var paramIn = FindKeyWord("| in", str);
-            if (paramIn == null)
+            var paramInString = FindKeyWord("| in", str);
+            if (paramInString == null)
                 return ReadParamsOut(str);
-            if (paramIn.Trim() == "")
+            
+           if (paramInString.Trim() == "")
                 return WriteError(new FuspecParserError(FuspecErrorType.ParamInMissed, _index));
-            var splittedParamsIn = paramIn.Split(',');
-            foreach (var tag in splittedParamsIn)
-                if (tag.Trim() != "")
-                {
-                    _testCaseBuilder.ParamsIm.Add(tag.Trim());
-                }
-
-            if (!_testCaseBuilder.ParamsIm.Any())
+           
+            try
+            {
+                _testCaseBuilder.ParamsIn = GetPAram(paramInString);
+            }
+            catch (Exception e)
+            {
+                return WriteError(new FuspecParserError(FuspecErrorType.WrongParamType, _index));
+            }
+            
+            if (_testCaseBuilder.ParamsIn == null)
+                WriteError(new FuspecParserError(FuspecErrorType.WrongParamType, _index));
+                   
+            if (!_testCaseBuilder.ParamsIn.Any())
                 return WriteError(new FuspecParserError(FuspecErrorType.ParamInMissed, _index));
-            _script=new List<string>();
+            
             return TestCaseParseState.ReadingParamsOut;
         }
 
         private TestCaseParseState ReadParamsOut(string str)
         {
             if (str.Trim() == "")
-            {
-                _script.Add(str);
                 return TestCaseParseState.ReadingParamsOut;
-            }
-            var paramOut = FindKeyWord("| out", str);
-            if (paramOut == null)
-                return ReadBody(str);
-            if (paramOut=="" || paramOut.Substring(0,1)!=" ")
-                return WriteError(new FuspecParserError(FuspecErrorType.ParamOutMissed, _index));
-            var splittedParamsOut = paramOut.Split(',');
-            foreach (var param in splittedParamsOut)
+            if (IsSeparatingLine(str, '-'))
+                return TestCaseParseState.ReadingBody;
+
+            var paramOutString = FindKeyWord("| out", str);
+            if (paramOutString == null)
             {
-                if (param.Trim()=="")
-                    return WriteError(new FuspecParserError(FuspecErrorType.ParamOutMissed, _index));
-                    _testCaseBuilder.ParamsOut.Add(param.Trim());
+                if (_testCaseBuilder.ParamsIn.Any())
+                    return WriteError(new FuspecParserError(FuspecErrorType.SeparatedStringMissed,_index));
+                return ReadBody(str);
             }
-            _script = new List<string>();
             
-            return TestCaseParseState.ReadingBody;
+            if (paramOutString=="" || paramOutString.Substring(0,1)!=" ")
+                return WriteError(new FuspecParserError(FuspecErrorType.ParamOutMissed, _index));
+            
+            try
+            {
+            _testCaseBuilder.ParamsOut = GetPAram(paramOutString);
+            }
+            catch (Exception e)
+            {
+                return WriteError(new FuspecParserError(FuspecErrorType.WrongParamType, _index));
+            }
+            
+            if (_testCaseBuilder.ParamsOut == null)
+                WriteError(new FuspecParserError(FuspecErrorType.WrongParamType, _index));
+            
+            return TestCaseParseState.ReadingParamsOut;
         }
 
         private TestCaseParseState ReadBody(string str)

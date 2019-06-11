@@ -754,14 +754,17 @@ x = round(a - b - c)
 |************************
 | in a:real
 | out y:real
+|----------------------
   x = round(a - b - c)  
 ");
-
+            Param param = new Param("y","Real");
             Assert.Multiple(() =>
             {
                 StandardAssertForCorrectTestCase();
-                Assert.AreEqual("a:real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[0]);
-                Assert.AreEqual("y:real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0]);
+                Assert.AreEqual("a",_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[0].Value);
+                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[0].VarType);
+                Assert.AreEqual(param.Value,_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0].Value);
+                Assert.AreEqual(param.VarType,_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0].VarType);
 
             });
         }
@@ -777,16 +780,19 @@ x = round(a - b - c)
 | in a:real
 | out y:real
 
+|------------------------
+
   x = round(a - b - c)  
 ");
-
+            Param param = new Param("y", "Real");
             Assert.Multiple(() =>
             {
                 StandardAssertForCorrectTestCase();
-                Assert.AreEqual("a:real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[0]);
-                Assert.AreEqual("y:real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0]);
                 Assert.AreEqual("\r  x = round(a - b - c)  ",_fuspecTestCases.TestCases.FirstOrDefault().Script);
-
+                Assert.AreEqual("a",_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[0].Value);
+                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[0].VarType);
+                Assert.AreEqual(param.Value,_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0].Value);
+                Assert.AreEqual(param.VarType,_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0].VarType);
             });
         }
 
@@ -799,13 +805,17 @@ x = round(a - b - c)
 | TAGS tag1
 |************************
 | in a:real
+|--------------------
   x = round(a - b - c)  
 ");
+            Param param = new Param("a", "Real");
 
             Assert.Multiple(() =>
             {
                 StandardAssertForCorrectTestCase();
-                Assert.AreEqual("a:real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[0]);
+                
+                Assert.AreEqual(param.Value,_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[0].Value);
+                Assert.AreEqual(param.VarType,_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[0].VarType);
             });
         }
         
@@ -817,14 +827,17 @@ x = round(a - b - c)
 | TEST Name
 | TAGS tag1
 |************************
-| out y:real
+| out y:real[]
+|----------------
   x = round(a - b - c)  
 ");
 
+            Param param = new Param("y","Real[]");
             Assert.Multiple(() =>
             {
                 StandardAssertForCorrectTestCase();
-                Assert.AreEqual("y:real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0]);
+                Assert.AreEqual(param.Value,_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0].Value);
+                Assert.AreEqual(param.VarType,_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0].VarType);
             });
         }
         [Test]
@@ -836,7 +849,9 @@ x = round(a - b - c)
 | TAGS tag1
 |************************
 | out
-  x = round(a - b - c)  
+|------------------
+  x = round(a - b - c) 
+ 
 ");
 
             Assert.Multiple(() =>
@@ -855,13 +870,14 @@ x = round(a - b - c)
 | TAGS tag1
 |************************
 | out   
+|--------------------------
   x = round(a - b - c)  
 ");
 
             Assert.Multiple(() =>
             {
                 StandardAssertForNotCorrectTestCase();
-                Assert.AreEqual(FuspecErrorType.ParamOutMissed,_fuspecTestCases.Errors.FirstOrDefault().ErrorType);
+                Assert.AreEqual(FuspecErrorType.WrongParamType,_fuspecTestCases.Errors.FirstOrDefault().ErrorType);
             });
         }
         
@@ -874,6 +890,7 @@ x = round(a - b - c)
 | TAGS tag1
 |************************
 | in
+|------------------
   x = round(a - b - c)  
 ");
 
@@ -893,6 +910,7 @@ x = round(a - b - c)
 | TAGS tag1
 |************************
 | in   
+|-----------------------
   x = round(a - b - c)  
 ");
 
@@ -911,15 +929,45 @@ x = round(a - b - c)
 | TEST Name
 | TAGS tag1
 |************************
-| out a:real,b:real
+| out a:real, b:real
+|-----------------------------
   x = round(a - b - c)  
 ");
+            Param param = new Param("a","Real");
+            Param param2 = new Param("b","Real");
 
             Assert.Multiple(() =>
             {
                 StandardAssertForCorrectTestCase();
-                Assert.AreEqual( "a:real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0]);
-                Assert.AreEqual("b:real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[1]);
+                Assert.AreEqual(param.Value,_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0].Value);
+                Assert.AreEqual(param.VarType,_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0].VarType);
+                Assert.AreEqual(param2.Value,_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[1].Value);
+                Assert.AreEqual(param2.VarType,_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[1].VarType);
+            });
+        }
+        
+        [Test]//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
+        public void ParamsReading_TwoOutParamsWithSimilarValues_returnError()
+        {
+            GenerateFuspecTestCases(
+                @"|********************
+| TEST Name
+| TAGS tag1
+|************************
+| out a:real, a:int
+|-----------------------------
+  x = round(a - b - c)  
+");
+            Param param = new Param("a","Real");
+            Param param2 = new Param("a","Int32");
+
+            Assert.Multiple(() =>
+            {
+                StandardAssertForNotCorrectTestCase();
+          //      Assert.AreEqual(param.Value,_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0].Value);
+           //     Assert.AreEqual(param.VarType,_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0].VarType);
+            //    Assert.AreEqual(param2.Value,_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[1].Value);
+             //   Assert.AreEqual(param2.VarType,_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[1].VarType);
             });
         }
         
@@ -932,14 +980,19 @@ x = round(a - b - c)
 | TAGS tag1
 |************************
 | out a:real,  b:real
+|-----------------------
   x = round(a - b - c)  
 ");
 
             Assert.Multiple(() =>
             {
                 StandardAssertForCorrectTestCase();
-                Assert.AreEqual( "a:real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0]);
-                Assert.AreEqual("b:real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[1]);
+                Assert.AreEqual("a",_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0].Value);
+                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0].VarType);
+                
+                Assert.AreEqual("b",_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[1].Value);
+                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[1].VarType);
+                
             });
         }
         
@@ -952,17 +1005,39 @@ x = round(a - b - c)
 | TAGS tag1
 |************************
 | in a:real,b:real
+|---------------------------
   x = round(a - b - c)  
 ");
 
             Assert.Multiple(() =>
             {
                 StandardAssertForCorrectTestCase();
-                Assert.AreEqual( "a:real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[0]);
-                Assert.AreEqual("b:real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[1]);
+                Assert.AreEqual( "a",_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[0].Value);
+                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[0].VarType);
+                Assert.AreEqual( "b",_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[1].Value);
+                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[1].VarType);
             });
         }
         
+        [Test]
+        public void ParamsReading_OneCommaInsteadParams_returnError()
+        {
+            GenerateFuspecTestCases(
+                @"|********************
+| TEST Name
+| TAGS tag1
+|************************
+| out ,
+|-----------------------
+  x = round(a - b - c)  
+");
+
+            Assert.Multiple(() =>
+            {
+                StandardAssertForNotCorrectTestCase();
+                Assert.AreEqual(FuspecErrorType.WrongParamType, _fuspecTestCases.Errors.FirstOrDefault().ErrorType);
+            });
+        }
         [Test]
         public void ParamsReading_TwoCommasInsteadParams_returnError()
         {
@@ -972,13 +1047,14 @@ x = round(a - b - c)
 | TAGS tag1
 |************************
 | out ,,
+|-----------------------
   x = round(a - b - c)  
 ");
 
             Assert.Multiple(() =>
             {
                 StandardAssertForNotCorrectTestCase();
-                Assert.AreEqual(FuspecErrorType.ParamOutMissed, _fuspecTestCases.Errors.FirstOrDefault().ErrorType);
+                Assert.AreEqual(FuspecErrorType.WrongParamType, _fuspecTestCases.Errors.FirstOrDefault().ErrorType);
             });
         }
         
@@ -991,6 +1067,7 @@ x = round(a - b - c)
 | TAGS tag1
 |************************
 | outa:real
+|--------------------------------
   x = round(a - b - c)  
 ");
 
@@ -1001,7 +1078,7 @@ x = round(a - b - c)
             });
         }
         
-        [Test]
+        [Test]//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         public void ParamsReading_ParamsAndTwoCommas_returnErrorParamMissed()
         {
             GenerateFuspecTestCases(
@@ -1010,13 +1087,36 @@ x = round(a - b - c)
 | TAGS tag1
 |************************
 | out a:real,,
+|-----------------------------
   x = round(a - b - c)  
 ");
 
             Assert.Multiple(() =>
             {
                 StandardAssertForNotCorrectTestCase();
-                Assert.AreEqual(FuspecErrorType.ParamOutMissed, _fuspecTestCases.Errors.FirstOrDefault().ErrorType);
+            });
+        }
+        
+        
+        [Test ]
+        public void ParamsReading_ParamsWhithError_returnErrorInParsing()
+        {
+            GenerateFuspecTestCases(
+                @"|********************
+| TEST Name
+| TAGS tag1
+|************************
+| in a:real
+| out f:realsfdf
+|------------------------
+  x = round(a - b - c)  
+");
+
+            Assert.Multiple(() =>
+            {
+                StandardAssertForNotCorrectTestCase();
+                Assert.AreEqual(FuspecErrorType.WrongParamType,_fuspecTestCases.Errors.FirstOrDefault().ErrorType);
+
             });
         }
 
