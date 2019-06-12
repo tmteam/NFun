@@ -13,12 +13,15 @@ namespace Nfun.Fuspec.Parser
         public List<Param> ParamsIn { get; set; }
         
         public List<Param> ParamsOut { get; set; }
+        
+        public ParamValues SetCheckKit { get; set; }
         public TestCaseBuilder()
         {
             Script = null;
             Tags = new List<string>();
             ParamsIn = new List<Param>();
             ParamsOut=new List<Param>();
+            SetCheckKit=new ParamValues();
         }
 
         public FuspecTestCase Build() =>

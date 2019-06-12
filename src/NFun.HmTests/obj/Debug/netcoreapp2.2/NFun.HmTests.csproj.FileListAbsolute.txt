@@ -1,0 +1,17 @@
+C:\Apps\Fun\NFun\src\NFun.HmTests\bin\Debug\netcoreapp2.2\NUnit3.TestAdapter.dll
+C:\Apps\Fun\NFun\src\NFun.HmTests\bin\Debug\netcoreapp2.2\NUnit3.TestAdapter.pdb
+C:\Apps\Fun\NFun\src\NFun.HmTests\bin\Debug\netcoreapp2.2\nunit.engine.netstandard.dll
+C:\Apps\Fun\NFun\src\NFun.HmTests\bin\Debug\netcoreapp2.2\NFun.HmTests.deps.json
+C:\Apps\Fun\NFun\src\NFun.HmTests\bin\Debug\netcoreapp2.2\NFun.HmTests.runtimeconfig.json
+C:\Apps\Fun\NFun\src\NFun.HmTests\bin\Debug\netcoreapp2.2\NFun.HmTests.runtimeconfig.dev.json
+C:\Apps\Fun\NFun\src\NFun.HmTests\bin\Debug\netcoreapp2.2\NFun.HmTests.dll
+C:\Apps\Fun\NFun\src\NFun.HmTests\bin\Debug\netcoreapp2.2\NFun.HmTests.pdb
+C:\Apps\Fun\NFun\src\NFun.HmTests\bin\Debug\netcoreapp2.2\NFun.dll
+C:\Apps\Fun\NFun\src\NFun.HmTests\bin\Debug\netcoreapp2.2\NFun.pdb
+C:\Apps\Fun\NFun\src\NFun.HmTests\obj\Debug\netcoreapp2.2\NFun.HmTests.csprojAssemblyReference.cache
+C:\Apps\Fun\NFun\src\NFun.HmTests\obj\Debug\netcoreapp2.2\NFun.HmTests.csproj.CoreCompileInputs.cache
+C:\Apps\Fun\NFun\src\NFun.HmTests\obj\Debug\netcoreapp2.2\NFun.HmTests.AssemblyInfoInputs.cache
+C:\Apps\Fun\NFun\src\NFun.HmTests\obj\Debug\netcoreapp2.2\NFun.HmTests.AssemblyInfo.cs
+C:\Apps\Fun\NFun\src\NFun.HmTests\obj\Debug\netcoreapp2.2\NFun.HmTests.csproj.CopyComplete
+C:\Apps\Fun\NFun\src\NFun.HmTests\obj\Debug\netcoreapp2.2\NFun.HmTests.dll
+C:\Apps\Fun\NFun\src\NFun.HmTests\obj\Debug\netcoreapp2.2\NFun.HmTests.pdb

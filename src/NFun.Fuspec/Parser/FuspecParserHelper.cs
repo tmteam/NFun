@@ -80,7 +80,53 @@ namespace Nfun.Fuspec.Parser
                 return null;
             return result;
         }
+        
+        public static Dictionary<Param,string> GetSetCheckKit(string paramString)
+        {
+            string value;
+            string varType;
+            var tokFLow = Tokenizer.ToFlow(paramString);
+            Dictionary<Param,string> result = new Dictionary<Param, string>();
+
+            if (tokFLow.Peek == null )
+                return null;
+            
+            while (tokFLow.Current.Type != TokType.Eof)
+            {
+                if (tokFLow.Peek == null)
+                    return null;
+                tokFLow.MoveNext();
+                if ((tokFLow.Previous.Type != TokType.Id ||
+                     tokFLow.Current.Type != TokType.Def) ||
+                    (tokFLow.Peek == null))
+                    return null;
+                value = tokFLow.Previous.Value;
+
+                tokFLow.MoveNext();
+                
+                
+                varType = tokFLow.ReadVarType().ToString();
+
+                foreach (var res in result)
+                {
+                    if (res.Value == value)
+                        return null;
+                }
+
+     //           var setValue = tokFLow.Current.Value;
+                result.Add(new Param(value, varType),"1");
+                
+                if (tokFLow.Current.Type == TokType.Sep)
+                    tokFLow.MoveNext();
+               
+            }
+            if (!result.Any())
+                return null;
+            return result;
+        }
     }
+    
+    
     
 }
 

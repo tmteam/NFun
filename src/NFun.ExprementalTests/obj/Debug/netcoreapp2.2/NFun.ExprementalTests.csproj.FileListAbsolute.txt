@@ -1,0 +1,17 @@
+C:\Apps\Fun\NFun\src\NFun.ExprementalTests\bin\Debug\netcoreapp2.2\NUnit3.TestAdapter.dll
+C:\Apps\Fun\NFun\src\NFun.ExprementalTests\bin\Debug\netcoreapp2.2\NUnit3.TestAdapter.pdb
+C:\Apps\Fun\NFun\src\NFun.ExprementalTests\bin\Debug\netcoreapp2.2\nunit.engine.netstandard.dll
+C:\Apps\Fun\NFun\src\NFun.ExprementalTests\bin\Debug\netcoreapp2.2\NFun.ExprementalTests.deps.json
+C:\Apps\Fun\NFun\src\NFun.ExprementalTests\bin\Debug\netcoreapp2.2\NFun.ExprementalTests.runtimeconfig.json
+C:\Apps\Fun\NFun\src\NFun.ExprementalTests\bin\Debug\netcoreapp2.2\NFun.ExprementalTests.runtimeconfig.dev.json
+C:\Apps\Fun\NFun\src\NFun.ExprementalTests\bin\Debug\netcoreapp2.2\NFun.ExprementalTests.dll
+C:\Apps\Fun\NFun\src\NFun.ExprementalTests\bin\Debug\netcoreapp2.2\NFun.ExprementalTests.pdb
+C:\Apps\Fun\NFun\src\NFun.ExprementalTests\bin\Debug\netcoreapp2.2\NFun.dll
+C:\Apps\Fun\NFun\src\NFun.ExprementalTests\bin\Debug\netcoreapp2.2\NFun.pdb
+C:\Apps\Fun\NFun\src\NFun.ExprementalTests\obj\Debug\netcoreapp2.2\NFun.ExprementalTests.csprojAssemblyReference.cache
+C:\Apps\Fun\NFun\src\NFun.ExprementalTests\obj\Debug\netcoreapp2.2\NFun.ExprementalTests.csproj.CoreCompileInputs.cache
+C:\Apps\Fun\NFun\src\NFun.ExprementalTests\obj\Debug\netcoreapp2.2\NFun.ExprementalTests.AssemblyInfoInputs.cache
+C:\Apps\Fun\NFun\src\NFun.ExprementalTests\obj\Debug\netcoreapp2.2\NFun.ExprementalTests.AssemblyInfo.cs
+C:\Apps\Fun\NFun\src\NFun.ExprementalTests\obj\Debug\netcoreapp2.2\NFun.ExprementalTests.csproj.CopyComplete
+C:\Apps\Fun\NFun\src\NFun.ExprementalTests\obj\Debug\netcoreapp2.2\NFun.ExprementalTests.dll
+C:\Apps\Fun\NFun\src\NFun.ExprementalTests\obj\Debug\netcoreapp2.2\NFun.ExprementalTests.pdb

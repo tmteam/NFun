@@ -877,7 +877,7 @@ x = round(a - b - c)
             Assert.Multiple(() =>
             {
                 StandardAssertForNotCorrectTestCase();
-                Assert.AreEqual(FuspecErrorType.WrongParamType,_fuspecTestCases.Errors.FirstOrDefault().ErrorType);
+                Assert.AreEqual(FuspecErrorType.ParamOutMissed,_fuspecTestCases.Errors.FirstOrDefault().ErrorType);
             });
         }
         
@@ -909,7 +909,7 @@ x = round(a - b - c)
 | TEST Name
 | TAGS tag1
 |************************
-| in   
+| in    
 |-----------------------
   x = round(a - b - c)  
 ");
@@ -1110,6 +1110,31 @@ x = round(a - b - c)
 | out f:realsfdf
 |------------------------
   x = round(a - b - c)  
+");
+
+            Assert.Multiple(() =>
+            {
+                StandardAssertForNotCorrectTestCase();
+                Assert.AreEqual(FuspecErrorType.WrongParamType,_fuspecTestCases.Errors.FirstOrDefault().ErrorType);
+
+            });
+        }
+        
+        [Test]
+        public void SetValuesReading_ReadSimpleSet_returnSetInSetOut()
+        {
+            GenerateFuspecTestCases(
+                @"|********************
+| TEST Name
+| TAGS tag1
+|************************
+| in a:real b:int
+| out x:real
+|------------------------
+  x = a-b  
+|---------------------
+| set a =1; b=2; c=3
+| check x == [[1,2][]]; y == 4  
 ");
 
             Assert.Multiple(() =>

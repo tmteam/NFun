@@ -127,7 +127,7 @@ namespace Nfun.Fuspec.Parser
             if (paramInString == null)
                 return ReadParamsOut(str);
             
-           if (paramInString.Trim() == "")
+            if (paramInString.Trim()=="" || paramInString.Substring(0,1)!=" ")
                 return WriteError(new FuspecParserError(FuspecErrorType.ParamInMissed, _index));
            
             try
@@ -140,7 +140,7 @@ namespace Nfun.Fuspec.Parser
             }
             
             if (_testCaseBuilder.ParamsIn == null)
-                WriteError(new FuspecParserError(FuspecErrorType.WrongParamType, _index));
+                return WriteError(new FuspecParserError(FuspecErrorType.WrongParamType, _index));
                    
             if (!_testCaseBuilder.ParamsIn.Any())
                 return WriteError(new FuspecParserError(FuspecErrorType.ParamInMissed, _index));
@@ -163,7 +163,7 @@ namespace Nfun.Fuspec.Parser
                 return ReadBody(str);
             }
             
-            if (paramOutString=="" || paramOutString.Substring(0,1)!=" ")
+            if (paramOutString.Trim()=="" || paramOutString.Substring(0,1)!=" ")
                 return WriteError(new FuspecParserError(FuspecErrorType.ParamOutMissed, _index));
             
             try
@@ -191,8 +191,10 @@ namespace Nfun.Fuspec.Parser
 
             if (FindKeyWord("|***", str) != null || FindKeyWord("|---",str)!=null)
             {
-                if (IsSeparatingLine(str, '-') || IsSeparatingLine(str, '*'))
-                    return ReadValues(str);
+                if (IsSeparatingLine(str, '-') )
+                    return TestCaseParseState.ReadingValues;
+                if ( IsSeparatingLine(str, '*'))
+                    return AddTestCase(str);
                 return WriteError(new FuspecParserError(FuspecErrorType.OpeningStringMissed, _index));
             }
             _script.Add(str);
@@ -203,8 +205,42 @@ namespace Nfun.Fuspec.Parser
         {
             if (str.Trim() == "")
                 return TestCaseParseState.ReadingValues;
+            if (IsSeparatingLine(str, '-'))
+                return TestCaseParseState.ReadingValues;
             if (IsSeparatingLine(str,'*'))
                 return AddTestCase(str);
+            
+            var SetString = FindKeyWord("| set", str);
+            
+            if (SetString == null)
+            {
+                
+                var CheckString = FindKeyWord("| check", str);
+                if (CheckString == null)
+                    return WriteError(new FuspecParserError(FuspecErrorType.WrongSetCheckKit,_index));
+                if (CheckString.Trim()=="" || CheckString.Substring(0,1)!=" ")
+                    return WriteError(new FuspecParserError(FuspecErrorType.CheckKitMissed, _index));
+                try
+                {
+                   // _testCaseBuilder.SetCheckKit.CheckKit.Add(GetPAram(CheckString).FirstOrDefault(),5);
+                      _testCaseBuilder.SetCheckKit.SetKit = GetSetCheckKit(CheckString);
+               //    _testCaseBuilder.ParamsOut = GetPAram(CheckString);
+
+                }
+                catch (Exception e)
+                {
+                    return WriteError(new FuspecParserError(FuspecErrorType.WrongSetCheckKit, _index));
+                }
+                
+            }
+            if (SetString.Trim()=="" || SetString.Substring(0,1)!=" ")
+                return WriteError(new FuspecParserError(FuspecErrorType.SetKitMissed, _index));
+                
+                return WriteError(new FuspecParserError(FuspecErrorType.SeparatedStringMissed,_index));
+                    
+            
+            
+            
             return TestCaseParseState.ReadingValues;
         }
 

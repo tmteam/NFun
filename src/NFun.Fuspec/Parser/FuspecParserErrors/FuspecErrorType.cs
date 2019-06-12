@@ -12,5 +12,8 @@ namespace ParcerV1
         ParamInMissed=50,
         ParamOutMissed=60,
         WrongParamType=70,
+        WrongSetCheckKit=80,
+        SetKitMissed=81,
+        CheckKitMissed=82,
     }
 }

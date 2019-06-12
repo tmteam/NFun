@@ -1,0 +1,14 @@
+C:\Apps\Fun\NFun\src\NFun.Console\bin\Debug\netcoreapp2.1\NFun.Console.deps.json
+C:\Apps\Fun\NFun\src\NFun.Console\bin\Debug\netcoreapp2.1\NFun.Console.runtimeconfig.json
+C:\Apps\Fun\NFun\src\NFun.Console\bin\Debug\netcoreapp2.1\NFun.Console.runtimeconfig.dev.json
+C:\Apps\Fun\NFun\src\NFun.Console\bin\Debug\netcoreapp2.1\NFun.Console.dll
+C:\Apps\Fun\NFun\src\NFun.Console\bin\Debug\netcoreapp2.1\NFun.Console.pdb
+C:\Apps\Fun\NFun\src\NFun.Console\bin\Debug\netcoreapp2.1\NFun.dll
+C:\Apps\Fun\NFun\src\NFun.Console\bin\Debug\netcoreapp2.1\NFun.pdb
+C:\Apps\Fun\NFun\src\NFun.Console\obj\Debug\netcoreapp2.1\NFun.Console.csprojAssemblyReference.cache
+C:\Apps\Fun\NFun\src\NFun.Console\obj\Debug\netcoreapp2.1\NFun.Console.csproj.CoreCompileInputs.cache
+C:\Apps\Fun\NFun\src\NFun.Console\obj\Debug\netcoreapp2.1\NFun.Console.AssemblyInfoInputs.cache
+C:\Apps\Fun\NFun\src\NFun.Console\obj\Debug\netcoreapp2.1\NFun.Console.AssemblyInfo.cs
+C:\Apps\Fun\NFun\src\NFun.Console\obj\Debug\netcoreapp2.1\NFun.Console.csproj.CopyComplete
+C:\Apps\Fun\NFun\src\NFun.Console\obj\Debug\netcoreapp2.1\NFun.Console.dll
+C:\Apps\Fun\NFun\src\NFun.Console\obj\Debug\netcoreapp2.1\NFun.Console.pdb
