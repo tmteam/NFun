@@ -24,8 +24,8 @@ namespace NFun.ExprementalTests
             var qt = vqt.Value as IVQT;
             Assert.AreEqual(42, qt.V);
             Assert.AreEqual(192, qt.Q);
-            Assert.Less(startTime, qt.T);
-            Assert.Greater(finishTime, qt.T);
+            Assert.LessOrEqual(startTime, qt.T);
+            Assert.GreaterOrEqual(finishTime, qt.T);
         }
         
         [Test]
@@ -59,8 +59,8 @@ namespace NFun.ExprementalTests
             var qt = vqt.Value as IVQT;
             Assert.AreEqual(new []{"42","12"}, qt.V);
             Assert.AreEqual(8, qt.Q);
-            Assert.Less(startTime, qt.T);
-            Assert.Greater(finishTime, qt.T);
+            Assert.LessOrEqual(startTime, qt.T);
+            Assert.GreaterOrEqual(finishTime, qt.T);
         }
         [Test]
         public void setQBadThanSetT_InputIsNotVqt_returnsValueBadNow()
@@ -75,8 +75,8 @@ namespace NFun.ExprementalTests
             var qt = vqt.Value as IVQT;
             Assert.AreEqual(12.1, qt.V);
             Assert.AreEqual(192, qt.Q);
-            Assert.Less(startTime, qt.T);
-            Assert.Greater(finishTime, qt.T);
+            Assert.LessOrEqual(startTime, qt.T);
+            Assert.GreaterOrEqual(finishTime, qt.T);
         }
         [Test]
         public void setQBad_InputIsNotVqt_returnsValueBadUndefined()

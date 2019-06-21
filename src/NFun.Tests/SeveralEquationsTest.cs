@@ -154,6 +154,10 @@ namespace Funny.Tests
         [TestCase("o1 = o3\r o2 = o1\r o3 = o2")]
         [TestCase("o0 = 3\r o1 = o3+o0\r o2 = o1\r o3 = o2")]
         [TestCase("y1 = 3\r y1 = 4")]
+        [TestCase("set a=4")]
+        [TestCase("y1 = 3 y2 = 4")]
+        [TestCase("y1 = 3 y1 = 4")]
+
         public void ObviouslyFails(string expr)
         {
             Assert.Throws<FunParseException>(()=> FunBuilder.BuildDefault(expr));

@@ -36,13 +36,12 @@ namespace Funny.Tests
                             . filter((f)->f>10.0)
                             . map((m)->m*m)
                             . max()", 400.0)]
-        [TestCase( @"y = [1,2,3].max()",3)]
+        [TestCase("y = [1,2,3].max()",3)]
 
-        [TestCase( @"f(x:int):int = x*x y = 4.f()",16)]
-        [TestCase( @"f(x:int):int = x+1 y = 4.f().f().f()",7)]
-        [TestCase( @"f(x:int):int = x*x y = -4.f()",16)]
-
-        [TestCase( @"f(x:int):int = x*x y = 4.f() == f(4)",true)]
+        [TestCase("  f(x:int):int = x*x \r y = 4.f()", 16)]
+        [TestCase(" f(x:int):int = x+1 \r y = 4.f().f().f()", 7)]
+        [TestCase("  f(x:int):int = x*x \r y = -4.f()", 16)]
+        [TestCase(" f(x:int):int = x*x \r y = 4.f() == f(4)",true)]
         public void ConstantTest(string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);

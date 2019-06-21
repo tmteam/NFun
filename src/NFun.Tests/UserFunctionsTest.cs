@@ -219,6 +219,8 @@ namespace Funny.Tests
         [TestCase("f(x*2) = 12.0 \r y = f(3)")]
         [TestCase("f(x*2) = 12.0")]
         [TestCase("y(x):real= 'vasa'")]
+        [TestCase("j = 1 y(x)= x+1")]
+
         public void ObviousFails(string expr){
             Assert.Throws<FunParseException>(()=>FunBuilder.BuildDefault(expr));
         }
