@@ -208,13 +208,28 @@ namespace NFun.HindleyMilner.Tyso
 
         public SetTypeResult SetComparationOperator(int nodeId, int leftId, int rightId)
         {
+            /*
+           if (SetOverloadCall(
+                new[]
+                {
+                    new FunSignature(FType.Bool, FType.Int32, FType.Int32),
+                    new FunSignature(FType.Bool, FType.Real, FType.Real),
+                    new FunSignature(FType.Bool, FType.Int64, FType.Int64),
+                }, nodeId, new []{leftId, rightId}))
+               return SetTypeResult.Succesfully;
+            return SetTypeResult.Failed(nodeId,SetTypeResultError.ArgumentIsNotANumber);
+            */
+            
             if(!_solver.SetLimit(leftId, HmTypeName.Real))
                 return SetTypeResult.Failed(leftId, SetTypeResultError.ArgumentIsNotANumber);
             if(!_solver.SetLimit(rightId, HmTypeName.Real))
                 return SetTypeResult.Failed(leftId, SetTypeResultError.ArgumentIsNotANumber);
 
+
+
             if(!_solver.SetStrict(nodeId, FType.Bool))
                 return SetTypeResult.Failed(nodeId, SetTypeResultError.ExpressionTypeIsIncorrect);
+                
             return SetTypeResult.Succesfully;
         }
         

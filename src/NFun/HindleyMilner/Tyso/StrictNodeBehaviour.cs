@@ -21,7 +21,6 @@ namespace NFun.HindleyMilner.Tyso
             }
             else
             {
-
                 if (newLimit.Arguments.Length != _type.Arguments.Length)
                     return null;
                 for (int i = 0; i < newLimit.Arguments.Length; i++)
@@ -36,8 +35,14 @@ namespace NFun.HindleyMilner.Tyso
                     else if (_type.Name.Id == HmTypeName.Function.Id && i > 0)
                     {
                         //hi order function arguments got reversed rules
-                        if (!limArg.SetLimit(thisArg.MakeType()))
-                            return null;
+
+                        //firstly try to setStrict (for more concrete hi order function solving)
+                        if (!thisArg.SetStrict(limArg.MakeType()))
+                        {
+                            //if it fails - then set limit
+                            if (!limArg.SetLimit(thisArg.MakeType()))
+                                return null;
+                        }
                     }
                     else 
                     {
