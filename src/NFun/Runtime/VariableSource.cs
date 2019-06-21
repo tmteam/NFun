@@ -10,13 +10,6 @@ namespace NFun.Runtime
         public readonly VarAttribute[] Attributes;
         public readonly string Name;
 
-        public VariableSource(TypedVarDefSyntaxNode info)
-        {
-            Attributes = new VarAttribute[0];// info.Attributes;
-            Name = info.Id;
-            Type = info.VarType;
-            IsOutput = false;
-        }
         public VariableSource(string name, VarType type, VarAttribute[] attributes = null)
         {
             Attributes = attributes??new VarAttribute[0];

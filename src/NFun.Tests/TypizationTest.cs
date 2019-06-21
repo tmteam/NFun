@@ -109,10 +109,10 @@ namespace Funny.Tests
                         .map(i->[1..i].sum())
                         .sum()", BaseVarType.Int32)]
         [TestCase(@"y = [1..11]
-                        .map(i->[1..n].sum())
+                        .map(i->[1..i].sum())
                         .sum()", BaseVarType.Int32)]
         [TestCase(@"y = [1..12]
-                        .map(i->[1..n]
+                        .map(i->[1..i]
                                 .map(x->2600/x)
                                 .sum())
                         .sum()", BaseVarType.Real)]
