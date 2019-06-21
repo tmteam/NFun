@@ -57,7 +57,7 @@ namespace NFun.Interpritation
                 }
                 else if (lexRoot is VarDefenitionSyntaxNode varDef)
                 {
-                    var variableSource = new VariableSource(varDef.Id, varDef.VarType, varDef.Attributes);
+                    var variableSource = new VariableSource(varDef.Id, varDef.VarType, varDef.Interval, varDef.Attributes);
                     if (!variables.TryAdd(variableSource))
                     {
                         var allUsages = variables.GetUsages(variableSource.Name);
@@ -86,7 +86,7 @@ namespace NFun.Interpritation
                 if (usages.Source.IsOutput)
                     throw ErrorFactory.OutputNameWithDifferentCase(equation.Id, equation.Expression.Interval);
                 else
-                    throw ErrorFactory.CannotUseOutputValueBeforeItIsDeclared(usages, equation.Id);
+                    throw ErrorFactory.CannotUseOutputValueBeforeItIsDeclared(usages);
             }
 
             //ReplaceInputType

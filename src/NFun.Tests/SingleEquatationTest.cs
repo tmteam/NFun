@@ -50,7 +50,6 @@ namespace Funny.Tests
         //int64:
         [TestCase("y = 0xFFFFFFFF & 0",0)]
         [TestCase("y = 0xFFFFFFFF ^ 0xFFFFFFFF",0)]
-
         public void NumbersConstantEquation(string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
@@ -136,6 +135,7 @@ namespace Funny.Tests
         [TestCase("y = -x ",0.3,-0.3)]
         [TestCase("y = -(-(-x))",2,-2)]
         [TestCase("y = x/0.2",1,5)]
+
         public void SingleVariableEquation(string expr, double arg, double expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
@@ -209,6 +209,7 @@ namespace Funny.Tests
         [TestCase("=x*2")]
         [TestCase("y = y")]
         [TestCase("y = y+x")]
+        [TestCase("a: int a=4")]
         public void ObviouslyFails(string expr) =>
             Assert.Throws<FunParseException>(
                 ()=> FunBuilder.BuildDefault(expr));

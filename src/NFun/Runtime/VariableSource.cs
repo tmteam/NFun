@@ -1,6 +1,7 @@
 using System;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
+using NFun.Tokenization;
 using NFun.Types;
 
 namespace NFun.Runtime
@@ -10,6 +11,15 @@ namespace NFun.Runtime
         public readonly VarAttribute[] Attributes;
         public readonly string Name;
 
+        public readonly Interval? TypeSpecificationIntervalOrNull;
+        public VariableSource(string name, VarType type, Interval typeSpecificationIntervalOrNull, VarAttribute[] attributes = null)
+        {
+            TypeSpecificationIntervalOrNull = typeSpecificationIntervalOrNull;
+            Attributes = attributes ?? new VarAttribute[0];
+            Name = name;
+            Type = type;
+            IsOutput = false;
+        }
         public VariableSource(string name, VarType type, VarAttribute[] attributes = null)
         {
             Attributes = attributes??new VarAttribute[0];
