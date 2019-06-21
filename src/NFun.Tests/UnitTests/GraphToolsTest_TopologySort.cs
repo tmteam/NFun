@@ -174,7 +174,7 @@ namespace Funny.Tests
         private int[] From(params int[] routes) => routes;
         private string ArrayToString(int[] arr)
         {
-            return $"[{string.Join(',', arr)}]";
+            return $"[{string.Join(",", arr)}]";
         }
 
         private void AssertHasCycle(int[] cycle, TopologySortResults actual)
