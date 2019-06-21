@@ -35,12 +35,12 @@ namespace NFun.SyntaxParsing
                 TokType.Plus,
                 TokType.Minus,
                 TokType.BitShiftLeft, 
-                TokType.BitShiftRight,
-                TokType.BitAnd, 
-                TokType.BitXor 
+                TokType.BitShiftRight
             });
             priorities.Add(new[]
             {
+                TokType.BitAnd,
+                TokType.BitXor,
                 TokType.In,
                 TokType.Equal,
                 TokType.NotEqual,
