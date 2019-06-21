@@ -191,6 +191,9 @@ namespace Funny.Tests
         [TestCase("y = [x,2.0,3.0].all((i)-> i >1.0)")]
         [TestCase("y = [1..11].map(i->[1..n].sum())")]
         [TestCase("y = [1..12].map(i->[1..n].sum()).sum()")]
+        [TestCase("y = [1..11].map(i->[1..i].sum())")]
+        [TestCase("y = [1..12].map(i->[1..i].sum()).sum()")]
+
         [TestCase("dsum7(x) = x+x")]
         [TestCase(
             @"dsum8(x) = x+x
@@ -200,6 +203,20 @@ namespace Funny.Tests
             y = [1..20].map(div9)")]
         [TestCase(@"div10(x) = 2600/x
                     y(n) = [1..n].map(div10).sum()")]
+        [TestCase(
+            @"dsum11(x:int):int = x+x
+            y = [1..20].map(dsum11)")]
+        [TestCase(
+            @"dsum12(x:real):real = x+x
+            y = [1..20].map(dsum12)")]
+        [TestCase(@"div13(x:int):real = 2600/x
+                    y(n) = [1..n].map(div13).sum()")]
+        [TestCase(@"div14(x:real):real = 2600/x
+                    y(n) = [1..n].map(div14).sum()")]
+        [TestCase(
+            @"input:int[]
+            dsame15(x:real):real = x
+            y = input.map(dsame15)")]
         [TestCase("y = x * -x")]
         [TestCase("y = -x * x")]
         [TestCase("y = [-x,x]")]

@@ -21,19 +21,27 @@ namespace NFun.HindleyMilner.Tyso
             }
             else
             {
+
                 if (newLimit.Arguments.Length != _type.Arguments.Length)
                     return null;
                 for (int i = 0; i < newLimit.Arguments.Length; i++)
                 {
                     var limArg = newLimit.Arguments[i];
+                    var thisArg = _type.Arguments[i];
                     if (limArg.Behavior is GenericTypeBehaviour)
                     {
-                        if (!_type.Arguments[i].SetGeneric(limArg))
+                        if (!thisArg.SetGeneric(limArg))
                             return null;
                     }
-                    else
+                    else if (_type.Name.Id == HmTypeName.Function.Id && i > 0)
                     {
-                        if (!_type.Arguments[i].SetLimit(limArg.MakeType(SolvingNode.MaxTypeDepth)))
+                        //hi order function arguments got reversed rules
+                        if (!limArg.SetLimit(thisArg.MakeType()))
+                            return null;
+                    }
+                    else 
+                    {
+                        if (!thisArg.SetLimit(limArg.MakeType()))
                             return null;
                     }
                 }

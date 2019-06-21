@@ -25,7 +25,8 @@ namespace Funny.Tests
         [TestCase( "y = [1.0,2.0,3.0].all((i)-> i >0)",true)]
         [TestCase( "y = [1.0,2.0,3.0].all((i)-> i >1.0)",false)]
         [TestCase( "f(m:real[], p):bool = m.all((i)-> i>p) \r y = f([1.0,2.0,3.0],1.0)",false)]
-        
+
+        [TestCase("y = [-7,-2,0,1,2,3].filter(i->i>0)", new[] { 1, 2, 3 })]
         [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).reduce((i,j)-> i+j)", 6 )]
         [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).filter(i->i>2)", new[]{3})]
         [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).map(i->i*i).map(i:int->i*i)", new[]{1,16,81})]

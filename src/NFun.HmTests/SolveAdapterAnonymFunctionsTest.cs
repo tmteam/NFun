@@ -46,7 +46,7 @@ namespace NFun.HmTests
         }
 
         [Test]
-        public void MultiSolvingWithMap_Resolved()
+        public void MultiSolvingWithConcreteMap_Resolved()
         {
             //6      0    5  4 132
             //y = [0,2].map(x=>x>0)
@@ -76,6 +76,70 @@ namespace NFun.HmTests
             Assert.AreEqual(FType.Fun(FType.Bool,FType.Int32), res.GetNodeType(4));
             Assert.AreEqual(FType.Int32, res.GetVarType("4:x"));
             
+        }
+
+        [Test]
+        public void MultiSolvingWithComparationMap_Resolved()
+        {
+            //6      0    5  4 132
+            //y = [0,2].map(x=>x>0)
+            _solver.SetConst(0, FType.ArrayOf(FType.Int32));
+
+            var xGeneric = _solver.SetNewVarOrThrow("4:x");
+            _solver.InitLambda(4, 3, new[] { xGeneric }).AssertSuccesfully();
+
+            _solver.SetVar(1, "4:x");
+            _solver.SetConst(2, FType.Int32);
+            _solver.SetComparationOperator(3, 1, 2);
+
+
+            _solver.SetCall(new CallDef(new[]
+            {
+                FType.ArrayOf(FType.Generic(1)),
+                FType.ArrayOf(FType.Generic(0)),
+                FType.Fun(FType.Generic(1),FType.Generic(0)),
+            }, new[] { 5, 0, 4 }));
+
+            _solver.SetDefenition("y", 6, 5);
+
+            var res = _solver.Solve();
+            Assert.IsTrue(res.IsSolved);
+            Assert.AreEqual(0, res.GenericsCount);
+            Assert.AreEqual(FType.ArrayOf(FType.Bool), res.GetVarType("y"));
+            Assert.AreEqual(FType.Fun(FType.Bool, FType.Int32), res.GetNodeType(4));
+            Assert.AreEqual(FType.Int32, res.GetVarType("4:x"));
+
+        }
+
+        [Test]
+        public void MultiSolvingWithFilter_Resolved()
+        {
+            //6      0    5    4  132
+            //y = [0,2].filter(x->x>0)
+            _solver.SetConst(0, FType.ArrayOf(FType.Int32));
+
+            var xGeneric = _solver.SetNewVarOrThrow("4:x");
+            _solver.InitLambda(4, 3, new[] { xGeneric }).AssertSuccesfully();
+
+            _solver.SetVar(1, "4:x");
+            _solver.SetConst(2, FType.Int32);
+            _solver.SetComparationOperator(3, 1, 2);
+
+            _solver.SetCall(new CallDef(new[]
+            {
+                FType.ArrayOf(FType.Generic(0)),
+                FType.ArrayOf(FType.Generic(0)),
+                FType.Fun(FType.Bool,FType.Generic(0)),
+            }, new[] { 5, 0, 4 }));
+
+            _solver.SetDefenition("y", 6, 5);
+
+            var res = _solver.Solve();
+            Assert.IsTrue(res.IsSolved);
+            Assert.AreEqual(0, res.GenericsCount);
+            Assert.AreEqual(FType.ArrayOf(FType.Int32), res.GetVarType("y"));
+            Assert.AreEqual(FType.Fun(FType.Bool, FType.Int32), res.GetNodeType(4));
+            Assert.AreEqual(FType.Int32, res.GetVarType("4:x"));
         }
 
         [Test]
