@@ -208,7 +208,7 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arr = ((IFunArray)args[0]).As<string>().ToArray();
+            var arr = ((IFunArray)args[0]).Select(TypeHelper.GetTextOrThrow).ToArray();
             Array.Sort(arr, StringComparer.InvariantCulture);
             return new FunArray(arr);
         }

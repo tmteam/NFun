@@ -173,7 +173,7 @@ namespace NFun.SyntaxParsing
             }
             if (_flow.MoveIf(TokType.Text, out var txt))
                 return SyntaxNodeFactory.Constant( 
-                    FunArray.By(txt.Value.Cast<object>()), 
+                    new TextFunArray(txt.Value), 
                     VarType.Text, 
                     txt.Interval);
 
