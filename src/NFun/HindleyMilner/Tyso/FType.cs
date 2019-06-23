@@ -43,9 +43,10 @@ namespace NFun.HindleyMilner.Tyso
         public static  FType Fun(SolvingNode output, params SolvingNode[] inputs) => new FType(
             HmTypeName.Function, 
             new[]{output}.Concat(inputs).ToArray());
-        public static FType Text => new FType(HmTypeName.Text);
+        public static FType Text => ArrayOf(Char);
 
-        
+        public static FType Char => new FType(HmTypeName.Char);
+
         public static FType Any => new FType(HmTypeName.Any);
 
         

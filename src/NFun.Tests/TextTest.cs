@@ -10,7 +10,14 @@ namespace Funny.Tests
         [TestCase("y = ''", "")]
         [TestCase("y = 'hi'", "hi")]
         [TestCase("y = 'World'", "World")]
-        public void TextConstantEquation(string expr, string expected)
+        [TestCase("y = 'foo'.concat('bar')", "foobar")]
+        [TestCase("y = 'foo'.reverse()", "oof")]
+        [TestCase("y = ['bar'[1]]", "a")]
+        [TestCase("y = 'bar'[1]", 'a')]
+        [TestCase("y = 'abcdefg'[:]", "abcdefg")]
+        [TestCase("y = 'abcdefg'[2:4]", "cde")]
+
+        public void TextConstantEquation(string expr, object expected)
         {
             FunBuilder
                 .BuildDefault(expr)

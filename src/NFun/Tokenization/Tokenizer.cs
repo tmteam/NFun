@@ -187,13 +187,7 @@ namespace NFun.Tokenization
         {
             var(result, endPosition) = QuotationReader.ReadQuotation(str, position);
             return Tok.New(TokType.Text, result,position, endPosition);
-            /*for (var i = position+1; i < str.Length; i++)
-            {
-                if(IsQuote(str[i]))
-                    return Tok.New(TokType.Text, 
-                        str.Substring(position+1, i - position-1),position, i+1);
-            }
-            return Tok.New(TokType.NotAToken, position, str.Length);*/
+           
         }
         
         private Tok ReadNumber(string str, int position)
