@@ -24,31 +24,42 @@ namespace Funny.Tests
             runtime.Calculate().AssertReturns(Var.New("y",1));
         }
         
-        [TestCase("y = \r1",1)]
-        [TestCase("y = 2\r*3",6)]
-        [TestCase("y = 2*\r3",6)]
-        [TestCase("y = 2\r+3",5)]
-        [TestCase("y = 2+\r3",5)]
-        [TestCase("y = 2\r+3",5)]
-        [TestCase("y = 2+3\r",5)]
+        [TestCase("y = \r1",    1)]
+        [TestCase("y = 2\r*3",  6)]
+        [TestCase("y = 2*\r3",  6)]
+        [TestCase("y = 2\r+3",  5)]
+        [TestCase("y = 2+\r3",  5)]
+        [TestCase("y = 2\r+3",  5)]
+        [TestCase("y = 2+3\r",  5)]
         [TestCase("y = \r(2+3)",5)]
         [TestCase("y = (\r2+3)",5)]
         [TestCase("y = (2+3\r)",5)]
         [TestCase("y = \r(\r2\r+\r3\r)*(\r3\r)",15)]
 
+        [TestCase("y = ;1",     1)]
+        [TestCase("y = 2;*3",   6)]
+        [TestCase("y = 2*;3",   6)]
+        [TestCase("y = 2;+3",   5)]
+        [TestCase("y = 2+;3",   5)]
+        [TestCase("y = 2;+3",   5)]
+        [TestCase("y = 2+3;",   5)]
+        [TestCase("y = ;(2+3)", 5)]
+        [TestCase("y = (;2+3)", 5)]
+        [TestCase("y = (2+3;)", 5)]
+        [TestCase("y = ;(;2;+;3;)*(;3;)", 15)]
         public void SeveralLinesBetweenNodes_Calculates(string expr, int expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate().AssertReturns(Var.New("y",expected));
         }
         
-        [Test]
-        public void SeveralLinesAfterSingleEquation_Calculates()
-        {
-            var runtime = FunBuilder.BuildDefault(
-                @"y = 1
+        [TestCase(@"y = 1
 
-                ");
+                ")]
+        [TestCase(@"y = 1;;;;")]
+        public void SeveralLinesAfterSingleEquation_Calculates(string expr)
+        {
+            var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate().AssertReturns(Var.New("y",1));
         }
         
@@ -67,18 +78,18 @@ namespace Funny.Tests
             runtime.Calculate().AssertReturns(Var.New("y",1));
         }
         
-        [Test]
-        public void TabulationEverywhere_Calculates()
+        [TestCase("\t\ty\t\t=\t\t1\t\t")]
+        [TestCase(";;y;;=;;1;;")]
+        public void TabulationEverywhere_Calculates(string expr)
         {
-            var runtime = FunBuilder.BuildDefault("\t\ty\t\t=\t\t1\t\t");
+            var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate().AssertReturns(Var.New("y",1));
         }
         
-        /* TODO: Is it an error?
         [Test]
         public void TwoEquationsOnOneLineFails()
         {
-            Assert.Throws<ParseException>(()=> Interpriter.BuildOrThrow("y=1 z=5"));
-        }*/
+            Assert.DoesNotThrow(()=> FunBuilder.BuildDefault("y=1; z=5"));
+        }
     }
 }
