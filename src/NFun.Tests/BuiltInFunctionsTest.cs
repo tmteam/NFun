@@ -153,6 +153,15 @@ namespace Funny.Tests
                      y = reduce([1], '', toS2)","1")]
         [TestCase( @"toS3(t:text, x:int):text = t.strConcat(x)
                      y = reduce([1][1:1], '', toS3)","")]
+        [TestCase(@"toS4(t, x) = t.strConcat(x)
+                     y = reduce([1,2,3], ':', toS4)", ":123")]
+        [TestCase(@"toS5(t, x):text = t.strConcat(x)
+                     y = reduce([1], '', toS5)", "1")]
+        [TestCase(@"toS6(t, x) = t.strConcat(x)
+                     y = reduce([1][1:1], '', toS6)", "")]
+        [TestCase(@"toS7(t, x) = t.concat(x)
+                     y = reduce(['1','2','3'], ':', toS7)", ":123")]
+       
         [TestCase( @"toR(r:real, x:int):real = r+x
                      y = reduce([1,2,3], 0.5, toR)",6.5)]
         [TestCase( @"iSum(r:int, x:int):int = r+x

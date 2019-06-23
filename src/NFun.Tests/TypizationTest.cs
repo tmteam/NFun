@@ -333,6 +333,7 @@ namespace Funny.Tests
         [TestCase("int32", 1, BaseVarType.Int32)]
         [TestCase("int64", (long)1, BaseVarType.Int64)]
         [TestCase("real",  1.0,BaseVarType.Real)]
+        [TestCase("text", "text",BaseVarType.ArrayOf)]
         [TestCase("int[]", new []{1,2,3},BaseVarType.ArrayOf)]
         [TestCase("int64[]", new long[]{1,2,3},BaseVarType.ArrayOf)]
         public void OutputEqualsInput(string type, object expected, BaseVarType baseVarType)

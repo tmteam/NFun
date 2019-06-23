@@ -437,7 +437,11 @@ namespace NFun.ParseErrors
 
         public static Exception AmbiguousFunctionChoise(IList<FunctionBase> funVars, VariableSyntaxNode varName)
             => throw new FunParseException(516,$"Several functions with name: {varName.Id} can be used in expression. Did you mean input variable instead of function?", varName.Interval);
-        
+
+        public static Exception AmbiguousGenericFunctionChoise(IList<GenericFunctionBase> funVars, VariableSyntaxNode varName)
+            => throw new FunParseException(517, $"Several generic functions with name: {varName.Id} can be used in expression. Did you mean input variable instead of function?", varName.Interval);
+
+
         public static Exception ArrayInitializerTypeMismatch(VarType stepType, ISyntaxNode node)
             => throw new FunParseException(518,$"Array initializator step has to be int type only but was '{stepType}'. Example: [1..5..2]", node.Interval);
 
@@ -450,19 +454,27 @@ namespace NFun.ParseErrors
                 $"Function {TypeHelper.GetFunSignature(node.Id,node.OutputType, node.Children.Select(c=>c.OutputType))} is not defined",
                 node.Interval);
         }
+
+
         
         public static Exception OperatorOverloadNotFound(FunCallSyntaxNode node, ISyntaxNode failedArg)
         {
             
-            return new FunParseException(524,
+            return new FunParseException(525,
                 $"Invalid argument type for '{node.Id}' operator",
                 failedArg.Interval);
 
         }
+        public static Exception GenericFunctionDoesNotFit(VariableSyntaxNode node, FunTypeSpecification funType, FunctionsDictionary functions)
+        {
+            return new FunParseException(526,
+                $"Function {TypeHelper.GetFunSignature(node.Id, funType.Output, funType.Inputs)} is not defined",
+                node.Interval);
+        }
         public static Exception UnknownVariables(IEnumerable<VariableExpressionNode> values)
         {
             if (values.Count() == 1)
-                return new FunParseException(527,$"Unknown variable \"{values.First()}\"",values.First().Interval);
+                return new FunParseException(528,$"Unknown variable \"{values.First()}\"",values.First().Interval);
             return new FunParseException(530,$"Unknown variables \"{string.Join(", ", values)}\"",values.First().Interval);
         }
 

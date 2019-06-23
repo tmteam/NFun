@@ -177,13 +177,28 @@ namespace NFun.Interpritation
         private IExpressionNode GetOrAddVariableNode(VariableSyntaxNode varNode)
         {
             var lower = varNode.Id;
-            if (_variables.GetSourceOrNull(lower) == null)
+            if (varNode.OutputType.BaseType == BaseVarType.Fun && _variables.GetSourceOrNull(lower) == null)
             {
                 var funVars = _functions.GetNonGeneric(lower);
                 if (funVars.Count > 1)
                     throw ErrorFactory.AmbiguousFunctionChoise(funVars, varNode);
                 if (funVars.Count == 1)
                     return new FunVariableExpressionNode(funVars[0], varNode.Interval);
+                var genericFunVars = _functions.GetGenericsOrNull(lower);
+
+                if (genericFunVars.Count>1)
+                    throw ErrorFactory.AmbiguousGenericFunctionChoise(genericFunVars, varNode);
+                if (genericFunVars.Count == 1)
+                {
+                    var funType = varNode.OutputType.FunTypeSpecification;
+
+                    var function = _functions.GetOrNull(lower, funType.Output, funType.Inputs); 
+                    if (function == null)
+                        throw ErrorFactory.GenericFunctionDoesNotFit(varNode, funType, _functions);
+
+                    return new FunVariableExpressionNode(function, varNode.Interval);
+
+                }
             }
             var node = _variables.CreateVarNode(varNode.Id, varNode.Interval, varNode.OutputType);
             if(node.Source.Name!= varNode.Id)
