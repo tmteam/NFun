@@ -55,7 +55,7 @@ namespace NFun.Runtime
                 case BaseVarType.Real:
                     Value = Convert.ToDouble(valueValue);
                     break;
-                case BaseVarType.Text:
+                case BaseVarType.Char:
                     Value = valueValue?.ToString() ?? "";
                     break;
                 case BaseVarType.ArrayOf:

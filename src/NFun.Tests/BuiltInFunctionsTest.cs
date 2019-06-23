@@ -147,12 +147,12 @@ namespace Funny.Tests
                      y = map([1,2,3],ii)",new[]{0.5,1.0,1.5})]
         [TestCase( @"isodd(x:int):bool = (x%2) == 0
                      y = map([1,2,3],isodd)",new[]{false, true,false})]
-        [TestCase( @"toS(t:text, x:int):text = t.strConcat(x)
-                     y = reduce([1,2,3], ':', toS)",":123")]
-        [TestCase( @"toS(t:text, x:int):text = t.strConcat(x)
-                     y = reduce([1], '', toS)","1")]
-        [TestCase( @"toS(t:text, x:int):text = t.strConcat(x)
-                     y = reduce([1][1:1], '', toS)","")]
+        [TestCase( @"toS1(t:text, x:int):text = t.strConcat(x)
+                     y = reduce([1,2,3], ':', toS1)",":123")]
+        [TestCase( @"toS2(t:text, x:int):text = t.strConcat(x)
+                     y = reduce([1], '', toS2)","1")]
+        [TestCase( @"toS3(t:text, x:int):text = t.strConcat(x)
+                     y = reduce([1][1:1], '', toS3)","")]
         [TestCase( @"toR(r:real, x:int):real = r+x
                      y = reduce([1,2,3], 0.5, toR)",6.5)]
         [TestCase( @"iSum(r:int, x:int):int = r+x
@@ -250,7 +250,7 @@ namespace Funny.Tests
         public void ConstantEquationWithGenericPredefinedFunction(string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
-            runtime.Calculate()
+            runtime.Calculate() 
                 .AssertReturns(0.00001, Var.New("y", expected));
         }
         

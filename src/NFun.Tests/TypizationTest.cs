@@ -59,14 +59,6 @@ namespace Funny.Tests
         [TestCase("y = true and true", BaseVarType.Bool)]
         [TestCase("y = true or true", BaseVarType.Bool)]
         [TestCase("y = true xor true", BaseVarType.Bool)]
-        [TestCase("y=\"\"", BaseVarType.Text)]
-        [TestCase("y=''", BaseVarType.Text)]
-        [TestCase("y='hi world'", BaseVarType.Text)]
-        [TestCase("y='hi world'.strConcat(5)", BaseVarType.Text)]
-        [TestCase("y='hi world'.strConcat(true)", BaseVarType.Text)]
-        [TestCase("y='hi world'.strConcat(true).strConcat(5)", BaseVarType.Text)]
-        [TestCase("y=''.strConcat(true).strConcat(5)", BaseVarType.Text)]
-        [TestCase("y='hi'.strConcat('world')", BaseVarType.Text)]
         [TestCase("y = 1<<2", BaseVarType.Int32)]
         [TestCase("y = 8>>2", BaseVarType.Int32)]
         [TestCase("y = 3|2", BaseVarType.Int32)]
@@ -159,9 +151,9 @@ namespace Funny.Tests
                           else 
                                 1
           y = someRec2(9,2)",BaseVarType.Int32)]
-        [TestCase(  
-            @"someRec3(n, iter) = someRec3(n, iter+1).strConcat(n >iter)
-          y = someRec3(9,2)",BaseVarType.Text)]
+   //     [TestCase(  
+   //         @"someRec3(n, iter) = someRec3(n, iter+1).strConcat(n >iter)
+   //       y = someRec3(9,2)",BaseVarType.Text)]
         
         public void SingleEquations_Parsing_OutputTypesCalculateCorrect(string expr, BaseVarType type)
         {
@@ -258,9 +250,9 @@ namespace Funny.Tests
 
         [TestCase("y = 2.0\rz=y>1",BaseVarType.Real, BaseVarType.Bool)]
         [TestCase("z=2.0 \r y = z>1",BaseVarType.Bool, BaseVarType.Real)]
-        [TestCase("y = 'hi'\rz=y",BaseVarType.Text, BaseVarType.Text)]
-        [TestCase("y = 'hi'\rz=y.strConcat('lala')",BaseVarType.Text, BaseVarType.Text)]
-        [TestCase("y = true\rz='lala'.strConcat(y)",BaseVarType.Bool, BaseVarType.Text)]
+        //[TestCase("y = 'hi'\rz=y",BaseVarType.Text, BaseVarType.Text)]
+        //[TestCase("y = 'hi'\rz=y.strConcat('lala')",BaseVarType.Text, BaseVarType.Text)]
+        //[TestCase("y = true\rz='lala'.strConcat(y)",BaseVarType.Bool, BaseVarType.Text)]
 
         public void TwinEquations_Runtime_OutputTypesCalculateCorrect(string expr, BaseVarType ytype,BaseVarType ztype)
         {
@@ -341,7 +333,6 @@ namespace Funny.Tests
         [TestCase("int32", 1, BaseVarType.Int32)]
         [TestCase("int64", (long)1, BaseVarType.Int64)]
         [TestCase("real",  1.0,BaseVarType.Real)]
-        [TestCase("text", "1",BaseVarType.Text)]
         [TestCase("int[]", new []{1,2,3},BaseVarType.ArrayOf)]
         [TestCase("int64[]", new long[]{1,2,3},BaseVarType.ArrayOf)]
         public void OutputEqualsInput(string type, object expected, BaseVarType baseVarType)

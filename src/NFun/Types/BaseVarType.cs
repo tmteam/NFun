@@ -7,7 +7,7 @@ namespace NFun.Types
         Int32 =     2,
         Int64 =    3,
         Real =    4,
-        Text =    5,
+        Char =    5,
         Any =6,
         ArrayOf = 7,
         Fun = 8,

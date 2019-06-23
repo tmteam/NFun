@@ -20,7 +20,8 @@ namespace NFun.Types
         public static VarType  Int32 => new VarType(BaseVarType.Int32);
         public static VarType  Int64 => new VarType(BaseVarType.Int64);
         public static VarType  Real => new VarType(BaseVarType.Real);
-        public static VarType  Text => new VarType(BaseVarType.Text);
+        public static VarType Char => new VarType(BaseVarType.Char);
+        public static VarType  Text =>  ArrayOf(Char);
         public static VarType ArrayOf(VarType type) => new VarType(type);
         public static VarType Fun(VarType outputType, params VarType[]inputTypes)
             => new VarType(output: outputType, inputs: inputTypes);
@@ -86,7 +87,7 @@ namespace NFun.Types
                 case BaseVarType.Int32:
                 case BaseVarType.Int64:
                 case BaseVarType.Real:
-                case BaseVarType.Text:
+                case BaseVarType.Char:
                 case BaseVarType.Any:
                     return true;
                 case BaseVarType.ArrayOf:
@@ -131,7 +132,7 @@ namespace NFun.Types
                 case BaseVarType.Int32:
                 case BaseVarType.Int64:
                 case BaseVarType.Real:
-                case BaseVarType.Text:
+                case BaseVarType.Char:
                 case BaseVarType.Any:
                     return genericOrNot;
                 case BaseVarType.ArrayOf:
@@ -211,7 +212,7 @@ namespace NFun.Types
                 case BaseVarType.Int32:
                 case BaseVarType.Int64:
                 case BaseVarType.Real:
-                case BaseVarType.Text:
+                case BaseVarType.Char:
                 case BaseVarType.Any:
                     return null;
                 case BaseVarType.ArrayOf:
@@ -256,7 +257,7 @@ namespace NFun.Types
             {
                 case BaseVarType.Any:
                     return true;
-                case BaseVarType.Text:
+                case BaseVarType.Char:
                     return true;
                 case BaseVarType.Bool:
                     return false;

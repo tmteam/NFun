@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NFun.BuiltInFunctions;
 using NFun.ParseErrors;
+using NFun.Runtime;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
 using NFun.Types;
@@ -171,7 +172,11 @@ namespace NFun.SyntaxParsing
                 }
             }
             if (_flow.MoveIf(TokType.Text, out var txt))
-                return SyntaxNodeFactory.Constant(txt.Value, VarType.Text, txt.Interval);
+                return SyntaxNodeFactory.Constant( 
+                    new TextFunArray(txt.Value), 
+                    VarType.Text, 
+                    txt.Interval);
+
             if (_flow.MoveIf(TokType.Id, out var headToken))
             {
                 if (_flow.IsCurrent(TokType.Obr))

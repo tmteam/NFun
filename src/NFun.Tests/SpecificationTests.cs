@@ -208,12 +208,12 @@ y4 = not(x1 and x2 or x3)
         [TestCase("y = a / b",BaseVarType.Real)]
         [TestCase("y = 0.0", BaseVarType.Real)]
         [TestCase("y = false #bool", BaseVarType.Bool)]
-        [TestCase("y = 'hi' #text", BaseVarType.Text)]
-        [TestCase("y = 'hi'.strConcat(a) #text", BaseVarType.Text)]
-        [TestCase("y = 'hi'.strConcat(a) #text", BaseVarType.Text)]
+      //  [TestCase("y = 'hi' #text", BaseVarType.Text)]
+      //  [TestCase("y = 'hi'.strConcat(a) #text", BaseVarType.Text)]
+      //  [TestCase("y = 'hi'.strConcat(a) #text", BaseVarType.Text)]
         [TestCase("y = [1,2,3]  #int[]", BaseVarType.ArrayOf)]
         [TestCase("y = ['1','2','3']  #text[]", BaseVarType.ArrayOf)]
-        [TestCase("y = 'hi '.strConcat(u) #text", BaseVarType.Text)]
+      //  [TestCase("y = 'hi '.strConcat(u) #text", BaseVarType.Text)]
         public void Single_Equation_OutputTypeTest(string expression, BaseVarType primitiveType)
         {
             var runtime = FunBuilder.BuildDefault(expression);
