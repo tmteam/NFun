@@ -30,7 +30,7 @@ namespace Funny.Tests
         [TestCase("y(X) = x \r y(3.0)")]
         [TestCase("y(X,x) = x \r y(3.0,4.0)")]
         [TestCase("y(z,x) = x+X \r y(3.0,4.0)")]
-        [TestCase("[1.0].fold((X,x)=>x)")]
+        [TestCase("[1.0].fold((X,x)->x)")]
         [TestCase("test = 2.0\r tESt = 3.0")]
         [TestCase("test = Sin(0.5)")]
         [TestCase("test = x * X")]

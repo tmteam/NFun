@@ -20,7 +20,7 @@ namespace Funny.Tests
                 .With($"y = {customName}('{arg}')")
                 .WithFunctions(
                 new FunctionMock(
-                    args => ((string)args[0]).Length, 
+                    args => (args.GetTextOrThrow(0)).Length, 
                     customName, 
                     VarType.Int32, 
                     VarType.Text)).Build();

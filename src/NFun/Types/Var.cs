@@ -34,7 +34,8 @@ namespace NFun.Types
                 return New(name, b);
             if (value is string s)
                 return New(name, s);
-            
+            if (value is char c)
+                return New(name, c);
             if (value is IEnumerable<double> arrDbl)
                 return New(name, arrDbl);
             if (value is IEnumerable<long> arrLong)
@@ -59,7 +60,8 @@ namespace NFun.Types
             => new Var(name, value, VarType.Real);
         public static Var New(string name, string value) 
             => new Var(name, value, VarType.Text);
-
+        public static Var New(string name, char value)
+            => new Var(name, value, VarType.Char);
         public  static VarType ToVarType(Type t)
         {
             if (t == typeof(object))
@@ -74,6 +76,8 @@ namespace NFun.Types
                 return VarType.Text;
             if (t == typeof(bool))
                 return VarType.Bool;
+            if(t== typeof(char))
+                return VarType.Char;
             if (t.IsArray)
             {
                 var eType = t.GetElementType();
