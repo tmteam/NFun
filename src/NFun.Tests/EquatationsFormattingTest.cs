@@ -74,11 +74,6 @@ namespace Funny.Tests
             runtime.Calculate().AssertReturns(Var.New("y",1));
         }
         
-        /* TODO: Is it an error?
-        [Test]
-        public void TwoEquationsOnOneLineFails()
-        {
-            Assert.Throws<ParseException>(()=> Interpriter.BuildOrThrow("y=1 z=5"));
-        }*/
+       
     }
 }
