@@ -12,14 +12,14 @@ namespace Funny.Tests
     [TestFixture]
     public class SpecificationTests
     {
-        [TestCase(10.0, "y = x+1  #Суммирование", "y", 11.0)]
-        [TestCase(10.0, "y = x-1  #Вычитание", "y", 9.0)]
-        [TestCase(10.0, "y = x*2  #Умножение", "y", 20.0)]
+        [TestCase(10, "y = x+1  #Суммирование", "y", 11)]
+        [TestCase(10, "y = x-1  #Вычитание", "y", 9)]
+        [TestCase(10, "y = x*2  #Умножение", "y", 20)]
         [TestCase(10.0, "y = x/2  #Деление", "y", 5.0)]
-        [TestCase(10.0, "y = x%3  #Остаток от деления", "y", 1.0)]
+        [TestCase(10, "y = x%3  #Остаток от деления", "y", 1)]
         [TestCase(10.0, "y = x**2  #Cтепень", "y", 100.0)]
-        [TestCase(10.0, "y = 10*x +1", "y", 101.0)]
-        [TestCase(10.0, "10*x +1", "out", 101.0)]
+        [TestCase(10, "y = 10*x +1", "y", 101)]
+        [TestCase(10.0, "10.0*x +1", "out", 101.0)]
         [TestCase(0.0, "y = cos(x)", "y", 1.0)]
         [TestCase(0.0, "y = x.cos()", "y", 1.0)]
         [TestCase(0.0, "y = x.cos().tan() .abs() .round()", "y", 2)]
@@ -161,8 +161,8 @@ x-
             var runtime = FunBuilder.BuildDefault(expr);
             Assert.AreEqual(1, runtime.Inputs.Length);
             Assert.AreEqual(1, runtime.Outputs.Length);
-            runtime.Calculate(Var.New("x", 2.5))
-                .AssertReturns(Var.New("y",15.0));
+            runtime.Calculate(Var.New("x", 2))
+                .AssertReturns(Var.New("y",10));
         }
         
         

@@ -62,9 +62,9 @@ namespace Funny.Tests
         [TestCase("2*3",6)]
         [TestCase("true == false",false)]
         [TestCase("if (2<3) true else false",true)]
-        [TestCase("y(x) = x*2 \r y(3.0) * y(4.0)",48.0)]
+        [TestCase("y(x) = x*2.0 \r y(3.0) * y(4.0)",48.0)]
         [TestCase("y(x) = x \r y(3.0)",3.0)]
-        [TestCase("y(x) = x*2 \r y(3.0)  \r z(j) = j*j",6.0)]
+        [TestCase("y(x) = x*2.0 \r y(3.0)  \r z(j) = j*j",6.0)]
         public void AnonymousExpressionConstantEquatation(string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
@@ -117,38 +117,44 @@ namespace Funny.Tests
         
 
         [TestCase("y = 2*x",3,6)]
-        [TestCase("y = 4/x",2,2)]
-        [TestCase("y = x/4",10,2.5)]
         [TestCase("y = 4- x",3,1)]
-        [TestCase("y = x- x",3,0)]
         [TestCase("y = 4+ x",3,7)]
-        [TestCase("y = (x + 4/x)",2,4)]
-        [TestCase("y = x**3", 2,8)]
         [TestCase("y = x%3", 2,2)]
         [TestCase("y = x%4", 5,1)]
         [TestCase("y = x%-4", 5,1)]
         [TestCase("y = x%4", -5,-1)]
         [TestCase("y = x%-4", -5,-1)]
         [TestCase("y = x%4", -5,-1)]
-        [TestCase("y = x%2", -5.2,-1.2)]
-        [TestCase("y = 5%x", 2.2,0.6)]
-        [TestCase("y = -x ",0.3,-0.3)]
-        [TestCase("y = -(-(-x))",2,-2)]
-        [TestCase("y = x/0.2",1,5)]
-
-        public void SingleVariableEquation(string expr, double arg, double expected)
+                public void SingleIntVariableEquation(string expr, int arg, int expected)
+        {
+            var runtime = FunBuilder.BuildDefault(expr);
+            runtime.Calculate(Var.New("x", arg))
+                .AssertReturns(0.00001, Var.New("y", expected));
+        }
+        [TestCase("y = x- x", 3, 0)]
+        [TestCase("y = x**3", 2, 8)]
+        [TestCase("y = x%2.0", -5.2, -1.2)]
+        [TestCase("y = 5.0%x", 2.2, 0.6)]
+        [TestCase("y = -x ", 0.3, -0.3)]
+        [TestCase("y = x/0.2", 1, 5)]
+        [TestCase("y = (x + 4/x)", 2, 4)]
+        [TestCase("y = x/4", 10, 2.5)]
+        [TestCase("y = 4/x", 2, 2)]
+        public void SingleRealVariableEquation(string expr, double arg, double expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate(Var.New("x",arg))
                 .AssertReturns(0.00001, Var.New("y", expected));
         }
+
+
         [TestCase("x:real\r x",2.0,2.0)]
         [TestCase("x== 2.0",2.0,true)]
         [TestCase("x:real \rx*3",2.0,6.0)]
-        [TestCase("x*3",2.0,6.0)]
-        [TestCase("\rx*3",2.0,6.0)]
+        [TestCase("x*3",2,6)]
+        [TestCase("\rx*3",2,6)]
         [TestCase("if (x<3) true else false",2.0,true)]
-        [TestCase("y(x) = x*2 \r y(x) * y(4.0)",3.0, 48.0)]
+        [TestCase("y(x) = x*2.0 \r y(x) * y(4.0)",3.0, 48.0)]
         public void AnonymousExpressionSingleVariableEquatation(string expr, double arg, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);

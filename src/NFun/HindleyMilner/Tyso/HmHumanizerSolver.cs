@@ -64,45 +64,57 @@ namespace NFun.HindleyMilner.Tyso
         /// </summary>
         /// <param name="call"></param>
         /// <returns></returns>
-        public bool SetCall(CallDef call) => _solver.SetLimArgCall(call);
+        public bool SetCall(CallDef call) => _solver.SetLimArgCall(call).IsSuccesfully;
 
         /// <summary>
         /// Set call, that limit its args to concrete types
         /// </summary>
         /// <param name="call"></param>
         /// <returns></returns>
-        public bool SetOverloadCall(FunSignature[] candidates, int returnNodeId, params int[] argIds)
+        public bool SetOverloadCall(FunSignature[] candidates, int returnNodeId, params int[] argIds) 
+            => SetOverloadCallWithDetails(candidates, returnNodeId, argIds).IsSuccesfully;
+
+        /// <summary>
+        /// Set call, that limit its args to concrete types
+        /// </summary>
+        /// <param name="call"></param>
+        /// <returns></returns>
+        public SetTypeResult SetOverloadCallWithDetails(FunSignature[] candidates, int returnNodeId, params int[] argIds)
         {
             if (candidates.Length == 1)
-                return SetCall(candidates[0].ToCallDefenition(returnNodeId, argIds));
+                return _solver.SetLimArgCall(candidates[0].ToCallDefenition(returnNodeId, argIds));
 
             if (candidates.Length == 0)
-                return false;
+                return SetTypeResult.Failed(returnNodeId, SetTypeResultError.ExpressionTypeIsIncorrect);
             //if output type is same for all overloads and not generic => set it as lca to the type
             bool allOutpusEqual = true;
             for (int i = 1; i < candidates.Length; i++)
             {
                 var type = candidates[i].ReturnType;
-                if (type.IsNotConcrete|| !type.Equals(candidates[i - 1].ReturnType))
+                if (type.IsNotConcrete || !type.Equals(candidates[i - 1].ReturnType))
                 {
                     allOutpusEqual = false;
                     break;
                 }
             }
 
-            if (allOutpusEqual) {
+            if (allOutpusEqual)
+            {
                 if (!_solver.SetStrict(returnNodeId, candidates[0].ReturnType))
-                    return false;
+                    return SetTypeResult.Failed(returnNodeId);
             }
             for (int argNum = 0; argNum < argIds.Length; argNum++)
             {
-                if (!TrySpecifyArgumentType(candidates, argIds, argNum)) return false;
+                if (!TrySpecifyArgumentType(candidates, argIds, argNum))
+                    return SetTypeResult.Failed(argIds[argNum]);
             }
             //AllOther cases shoud calculates at the end of solving
             _solver.SetLazyOverloadsCall(new OverloadCall(candidates, returnNodeId, argIds));
-            return true;
-            
+            return SetTypeResult.Succesfully;
+
         }
+
+
 
         private bool TrySpecifyArgumentType(FunSignature[] candidates, int[] argIds, int argNum)
         {
@@ -208,17 +220,7 @@ namespace NFun.HindleyMilner.Tyso
 
         public SetTypeResult SetComparationOperator(int nodeId, int leftId, int rightId)
         {
-            /*
-           if (SetOverloadCall(
-                new[]
-                {
-                    new FunSignature(FType.Bool, FType.Int32, FType.Int32),
-                    new FunSignature(FType.Bool, FType.Real, FType.Real),
-                    new FunSignature(FType.Bool, FType.Int64, FType.Int64),
-                }, nodeId, new []{leftId, rightId}))
-               return SetTypeResult.Succesfully;
-            return SetTypeResult.Failed(nodeId,SetTypeResultError.ArgumentIsNotANumber);
-            */
+         
             
             if(!_solver.SetLimit(leftId, HmTypeName.Real))
                 return SetTypeResult.Failed(leftId, SetTypeResultError.ArgumentIsNotANumber);
@@ -274,14 +276,21 @@ namespace NFun.HindleyMilner.Tyso
         
         public SetTypeResult SetArithmeticalOp(int nodeId, int leftId, int rightId)
         {
-            if(!_solver.SetLimit(leftId, HmTypeName.Real))
-                return SetTypeResult.Failed(leftId, SetTypeResultError.ArgumentIsNotANumber);
-            if(!_solver.SetLimit(rightId, HmTypeName.Real))
-                return SetTypeResult.Failed(leftId, SetTypeResultError.ArgumentIsNotANumber);
 
-            if(!_solver.SetLca(nodeId, new[] {leftId, rightId}))
+            var res = SetOverloadCallWithDetails(
+                new[]
+                {
+                    new FunSignature(FType.Int32, FType.Int32, FType.Int32),
+                    new FunSignature(FType.Real, FType.Real, FType.Real),
+                    new FunSignature(FType.Int64, FType.Int64, FType.Int64),
+                }, nodeId, new[] {leftId, rightId});
+            if (!res.IsSuccesfully)
+                return res;
+            
+            if (!_solver.SetLca(nodeId, new[] { leftId, rightId }))
                 return SetTypeResult.Failed(nodeId, SetTypeResultError.ExpressionTypeIsIncorrect);
             return SetTypeResult.Succesfully;
+          
             
         }
         
@@ -319,7 +328,7 @@ namespace NFun.HindleyMilner.Tyso
         public bool SetProcArrayInit(int nodeId, int fromId, int toId)
         {
             return _solver.SetLimArgCall(new CallDef(
-                new[] {FType.ArrayOf(FType.Int32), FType.Int32, FType.Int32}, new[] {nodeId, fromId, toId}));
+                new[] {FType.ArrayOf(FType.Int32), FType.Int32, FType.Int32}, new[] {nodeId, fromId, toId})).IsSuccesfully;
         }
 
         public bool SetProcArrayInit(int nodeId, int fromId, int toId, int stepId)

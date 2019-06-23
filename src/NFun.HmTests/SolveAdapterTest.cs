@@ -52,9 +52,9 @@ namespace NFun.HmTests
             
             var res = solver.Solve();
             Assert.AreEqual(0,res.GenericsCount);
-            Assert.AreEqual(FType.Real, res.GetVarType("a"));
-            Assert.AreEqual(FType.Real, res.GetVarType("b"));
-            Assert.AreEqual(FType.Real, res.GetVarType("y"));
+            Assert.AreEqual(FType.Int32, res.GetVarType("a"));
+            Assert.AreEqual(FType.Int32, res.GetVarType("b"));
+            Assert.AreEqual(FType.Int32, res.GetVarType("y"));
         }
 
         #region  limitCall Expirement
@@ -188,7 +188,7 @@ namespace NFun.HmTests
         }
         
         [Test]
-        public void FunctionSumDefenition_SingleInputIsInt_OtherTypesAreRealW()
+        public void FunctionSumDefenition_SingleInputIsInt_OtherTypesAreInt()
         {
             //   5                 0 2 1 4 3
             //  myfun(a:int,b,c) = a + b + c 
@@ -201,12 +201,32 @@ namespace NFun.HmTests
             solver.SetDefenition("myFun", 5, 4);
 
             var solvation = solver.Solve();
+            Assert.AreEqual(FType.Int32, solvation.GetVarType("myFun"));
+            Assert.AreEqual(FType.Int32, solvation.GetVarType("a"));
+            Assert.AreEqual(FType.Int32, solvation.GetVarType("b"));
+            Assert.AreEqual(FType.Int32, solvation.GetVarType("c"));
+        }
+        [Test]
+        public void FunctionSumDefenition_InputsAreIntsAndReal_OtherTypesAreReal()
+        {
+            //   5                      0 2 1 4 3
+            //  myfun(a:int,b:real,c) = a + b + c 
+            solver.SetVar(0, "a");
+            solver.SetConst(0, FType.Int32);//todo
+            solver.SetVar(1, "b");
+            solver.SetConst(1, FType.Real);//todo
+            solver.SetArithmeticalOp(2, 0, 1).AssertSuccesfully();
+            solver.SetVar(3, "c");
+            solver.SetArithmeticalOp(4, 2, 3).AssertSuccesfully();
+            solver.SetDefenition("myFun", 5, 4);
+
+            var solvation = solver.Solve();
             Assert.AreEqual(FType.Real, solvation.GetVarType("myFun"));
             Assert.AreEqual(FType.Int32, solvation.GetVarType("a"));
             Assert.AreEqual(FType.Real, solvation.GetVarType("b"));
             Assert.AreEqual(FType.Real, solvation.GetVarType("c"));
         }
-        
+
         [Test]
         public void FunctionSumDefenition_retunsInt_AllTypesAreInt()
         {
@@ -259,7 +279,6 @@ namespace NFun.HmTests
             solver.SetDefenition("x", 7, 6);
 
             var solvation = solver.Solve();
-
             Assert.AreEqual(FType.Int64, solvation.GetVarType("x"));
         }
         
@@ -453,9 +472,9 @@ namespace NFun.HmTests
             Assert.IsTrue(solvation.IsSolved);
 
             Assert.AreEqual(0,solvation.GenericsCount);
-            Assert.AreEqual(FType.Real, solvation.GetVarType("y1"));
-            Assert.AreEqual(FType.Real, solvation.GetVarType("y2"));
-            Assert.AreEqual(FType.Real, solvation.GetVarType("y3"));
+            Assert.AreEqual(FType.Int32, solvation.GetVarType("y1"));
+            Assert.AreEqual(FType.Int32, solvation.GetVarType("y2"));
+            Assert.AreEqual(FType.Int32, solvation.GetVarType("y3"));
 
             Assert.AreEqual(FType.Int32, solvation.GetVarType("x"));
         }

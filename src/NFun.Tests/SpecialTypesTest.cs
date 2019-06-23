@@ -20,12 +20,12 @@ namespace Funny.Tests
                 .WithFunctions(new GetAdditionalFunMock())
                 .Build();
             var res = runtime.Calculate(Var.New("x", 
-                new PrimitiveWithAdditional(36.6)
+                new PrimitiveWithAdditional(36)
                 {
                     AdditionalContent = 42
                 }));
             res.AssertReturns(
-                Var.New("z", 36.6*2), 
+                Var.New("z", 36*2), 
                 Var.New("y",42));
 
         }

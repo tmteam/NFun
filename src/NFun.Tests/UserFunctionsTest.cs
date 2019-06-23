@@ -38,15 +38,22 @@ namespace Funny.Tests
         
         
         [TestCase("_inc(a) = a+1.0\r y = _inc(2.0)",3.0)]
-        [TestCase("_inc(a) = a+1\r y = _inc(2)",3)]
-        [TestCase("_inc(y) = y+1\r y = _inc(2)",3)]
-        [TestCase("mult2(a,b) = a*b \r y = mult2(3,4)+1",13)]
-        [TestCase("div2(a,b) = a/b  \r mult2(a,b) = a*b         \r y = mult2(3,4)+div2(4,2)",14)]
-        [TestCase("div2(a,b) = a/b  \r div3(a,b,c) = div2(a,b)/c\r y = div3(16,4,2)",2)]
-        public void ConstantEquation_NonRecursiveFunction(string expr, double expected)
+        [TestCase("div2(a,b) = a/b  \r mult2(a,b) = a*b         \r y = mult2(3,4)+div2(4,2)", 14)]
+        [TestCase("div2(a,b) = a/b  \r div3(a,b,c) = div2(a,b)/c\r y = div3(16,4,2)", 2)]
+        public void ConstantEquation_NonRecursiveFunction_realExpected(string expr, double expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate().AssertReturns(0.00001, Var.New("y", expected));
+        }
+
+        [TestCase("_inc(a) = a+1\r y = _inc(2)", 3)]
+        [TestCase("_inc(y) = y+1\r y = _inc(2)", 3)]
+        [TestCase("mult2(a,b):int = a*b \r y = mult2(3,4)+1", 13)]
+        
+        public void ConstantEquation_NonRecursiveFunction_intExpected(string expr, int expected)
+        {
+            var runtime = FunBuilder.BuildDefault(expr);
+            runtime.Calculate().AssertReturns( Var.New("y", expected));
         }
 
         [TestCase("plus3(a,b,c) = plus2(a,b)+c \r plus2(a,b) = a+b  \r y = plus3(16,4,2)",22)]
@@ -58,13 +65,13 @@ namespace Funny.Tests
         
         
         [TestCase(
-            "max3(a,b,c) =  max2(max2(a,b),c) \r max2(a,b)= if (a<b) b else a\r y = max3(16,32,2)",32)]
+            "max3(a,b,c) =  max2(max2(a,b),c) \r max2(a,b):int = if (a<b) b else a\r y = max3(16,32,2)",32)]
         [TestCase(
             "fact(a) = if (a<2) 1 else a*fact(a-1) \r y = fact(5)",5*4*3*2*1)]
-        public void ConstantEquation_RecFunctions(string expr, double expected)
+        public void ConstantEquation_RecFunctions(string expr, int expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
-            runtime.Calculate().AssertReturns(0.00001, Var.New("y", expected));
+            runtime.Calculate().AssertReturns( Var.New("y", expected));
         }
 
         [TestCase(1,1)]

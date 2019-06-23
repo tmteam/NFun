@@ -23,7 +23,7 @@ namespace Funny.Tests
         }
         
         [TestCase("y = x*0.5\r z=3",2, 1.0,3)]
-        [TestCase("y = x/2\r z=2*x",2, 1.0,4.0)]
+        [TestCase("y = x/2\r z=2.0*x",2, 1.0,4.0)]
         public void TwinEquationsWithSingleVariable(string expr, double x, object expectedY, object expectedZ)
         {
             var runtime = FunBuilder.BuildDefault(expr);
@@ -33,11 +33,11 @@ namespace Funny.Tests
                     Var.New("z", expectedZ));        
         }
         
-        [TestCase("y = 1\r z=2", new string[0])]        
+        [TestCase("y = 1.0\r z=2.0", new string[0])]        
         [TestCase("x:real\r y = x\r z=x", new []{"x"})]
-        [TestCase("y = x/2\r z=2*x",new []{"x"})]
-        [TestCase("y = in1/2\r z=2+in2",new []{"in1","in2"})]
-        [TestCase("y = in1/2 + in2\r z=2 + in2",new []{"in1","in2"})]
+        [TestCase("y = x/2\r z=2.0*x",new []{"x"})]
+        [TestCase("y = in1/2\r z=2.0+in2",new []{"in1","in2"})]
+        [TestCase("y = in1/2 + in2\r z=2.0 + in2",new []{"in1","in2"})]
         public void TwinEquations_inputVarablesListIsCorrect(string expr, string[] inputNames)
         {
             var runtime = FunBuilder.BuildDefault(expr);

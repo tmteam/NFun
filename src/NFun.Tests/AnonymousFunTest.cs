@@ -73,8 +73,8 @@ namespace Funny.Tests
             runtime.Calculate(Var.New("x", arg))
                 .AssertReturns(0.00001, Var.New("y", expected));
         }
-        [TestCase( "z = x*2\r y = [1.0,2.0,3.0].map((i)-> i*z)",2.0, new[]{4.0,8.0, 12.0}, 4.0)]
-        [TestCase( "z = x*2\r y = [1.0,2.0,3.0].map((i)-> i*z)",1.0, new[]{2.0,4.0, 6.0}, 2.0)]
+        [TestCase( "z = x*2.0\r y = [1.0,2.0,3.0].map((i)-> i*z)",2.0, new[]{4.0,8.0, 12.0}, 4.0)]
+        [TestCase("z = x*2.0\r y = [1.0,2.0,3.0].map((i)-> i*z)", 1.0, new[]{2.0,4.0, 6.0}, 2.0)]
         public void AnonymousFunctions_SingleArgument_twoEquations(string expr, double arg, object yExpected, object zExpected)
         {
             var runtime = FunBuilder.BuildDefault(expr);

@@ -260,8 +260,8 @@ namespace NFun.HmTests
             var res = solver.Solve();
             Assert.AreEqual(0,res.GenericsCount);
             Assert.IsTrue(res.IsSolved);
-            Assert.AreEqual(FType.Fun(FType.Real, FType.Real), res.GetVarType("f(1)"));
-            Assert.AreEqual(FType.Real, res.GetVarType("f(1) a"));
+            Assert.AreEqual(FType.Fun(FType.Int32, FType.Int32), res.GetVarType("f(1)"));
+            Assert.AreEqual(FType.Int32, res.GetVarType("f(1) a"));
         }
         [Test]
         public void NonRecursiveConcreteFunction_WithSpecifiedOutputType()
@@ -381,7 +381,7 @@ namespace NFun.HmTests
             var res = solver.Solve();
             Assert.AreEqual(1,res.GenericsCount);
             Assert.IsTrue(res.IsSolved);
-            Assert.AreEqual(FType.Fun(FType.Real, FType.Generic(0)), res.GetVarType("f(1)"));
+            Assert.AreEqual(FType.Fun(FType.Int32, FType.Generic(0)), res.GetVarType("f(1)"));
             Assert.AreEqual(FType.Generic(0), res.GetVarType("f(1) a"));
         }
         
@@ -512,8 +512,8 @@ namespace NFun.HmTests
             Assert.IsTrue(res.IsSolved);
             Assert.AreEqual(1,res.GenericsCount);
 
-            Assert.AreEqual(FType.Fun(FType.Generic(0), FType.Real), res.GetVarType("f(1)"));
-            Assert.AreEqual(FType.Real, res.GetVarType("f(1) a"));
+            Assert.AreEqual(FType.Fun(FType.Generic(0), FType.Int32), res.GetVarType("f(1)"));
+            Assert.AreEqual(FType.Int32, res.GetVarType("f(1) a"));
         }
         [Test]
         public void RecursiveFunction_BoolAndArithmOp_Solved()

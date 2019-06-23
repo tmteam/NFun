@@ -105,7 +105,7 @@ namespace NFun.HmTests
             Assert.AreEqual(FType.Int32, res.GetVarType("b"));
         }
         [Test]
-        public void SumOverloads_SpecfiedWithArithmetical_SomeArgsAreKnown_EquationSolved()
+        public void SumOverloads_SpecfiedWithArithmeticalAsInt_SomeArgsAreKnown_EquationSolved()
         {
             //5     2  0 1 4 3  7   6
             //y = Summ(a,b)+ 2; a = 1
@@ -125,9 +125,34 @@ namespace NFun.HmTests
             
             Assert.IsTrue(res.IsSolved);
             Assert.AreEqual(0,res.GenericsCount);
-            Assert.AreEqual(FType.Real, res.GetVarType("y"));
+            Assert.AreEqual(FType.Int32, res.GetVarType("y"));
             Assert.AreEqual(FType.Int32, res.GetVarType("a"));
             Assert.AreEqual(FType.Int32, res.GetVarType("b"));
+        }
+        [Test]
+        public void SumOverloads_SpecfiedWithArithmeticalAsReal_SomeArgsAreKnown_EquationSolved()
+        {
+            //5     2  0 1 4 3  7   6
+            //y = Summ(a,b)+ 2; a = 1.0
+
+            solver.SetVar(0, "a");
+            solver.SetVar(1, "b");
+
+            solver.SetOverloadCall(SummOverloads, 2, 0, 1);
+            solver.SetArithmeticalOp(4, 2, 3).AssertSuccesfully();
+
+            solver.SetDefenition("y", 5, 4);
+
+            solver.SetConst(6, FType.Real);
+            solver.SetDefenition("a", 7, 6);
+
+            var res = solver.Solve();
+
+            Assert.IsTrue(res.IsSolved);
+            Assert.AreEqual(0, res.GenericsCount);
+            Assert.AreEqual(FType.Real, res.GetVarType("y"));
+            Assert.AreEqual(FType.Real, res.GetVarType("a"));
+            Assert.AreEqual(FType.Real, res.GetVarType("b"));
         }
         [Test]
         public void SumOverloads_TypeNotSolved()

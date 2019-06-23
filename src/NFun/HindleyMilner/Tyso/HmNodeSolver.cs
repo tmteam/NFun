@@ -110,22 +110,22 @@ namespace NFun.HindleyMilner.Tyso
             return true;
         }
         
-        public bool SetLimArgCall(CallDef call)
+        public SetTypeResult SetLimArgCall(CallDef call)
         {
             var generics = new GenericMap();
             //Set strict to return type
             if (!SetStrict(call.NodesId[0], call.Types[0], generics))
-                return false;
+                return SetTypeResult.Failed(call.NodesId[0]);
             
             //Set limit to arg types
             for (int i = 1; i < call.NodesId.Length; i++)
             {
                 if (!SetLimit(call.NodesId[i], call.Types[i], generics))
-                    return false;
+                    return SetTypeResult.Failed(call.NodesId[i]);
             }
             //Save result generics
             _additionalNodes.AddRange(generics.Nodes);
-            return true;
+            return SetTypeResult.Succesfully;
         }
         
         public bool SetStrict(int nodeId, FType type)

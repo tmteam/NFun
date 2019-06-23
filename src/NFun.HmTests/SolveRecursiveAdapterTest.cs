@@ -152,7 +152,7 @@ namespace NFun.HmTests
             
             var res = solver.Solve();
             Assert.AreEqual(0,res.GenericsCount);
-            Assert.AreEqual(FType.Real,         res.GetVarType("y"));
+            Assert.AreEqual(FType.Int32,         res.GetVarType("y"));
         }
     }
 }

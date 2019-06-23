@@ -144,7 +144,7 @@ namespace NFun.ExprementalTests
         [TestCase(36.0,"y=x.isGood()",true)]
         [TestCase(36.0,"y=x!=10",true)]
         [TestCase(10.0,"y=x!=10",false)]
-        [TestCase(10.0,"y=x+10",20.0)]
+        [TestCase(10,"y=x+10",20)]
         [TestCase(10.0,"y=x+x+10",30.0)]
         [TestCase(10.0,"y=(x+x)==20",true)]
         [TestCase(10.0,"y=x>5",true)]
