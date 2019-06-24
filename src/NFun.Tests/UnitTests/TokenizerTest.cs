@@ -63,7 +63,36 @@ namespace Funny.Tests.UnitTests
         [TestCase("0.fun()", 
                 TokType.Number, TokType.PipeForward, TokType.Id, TokType.Obr,TokType.Cbr)]
         [TestCase("1.y", TokType.Number, TokType.PipeForward, TokType.Id)]
-        public void TokenFlowIsCorrect_expectEof(string exp, params TokType[] expected)
+        [TestCase("y = 1; z = 2", 
+            TokType.Id, TokType.Def, TokType.Number, 
+            TokType.NewLine, 
+            TokType.Id, TokType.Def, TokType.Number)]
+        [TestCase("y = a+1; z = b+2", 
+            TokType.Id, TokType.Def, TokType.Id, TokType.Plus, TokType.Number, 
+            TokType.NewLine, 
+            TokType.Id, TokType.Def, TokType.Id, TokType.Plus, TokType.Number)]
+        [TestCase("x = 1\n ; \ny = 2", 
+            TokType.Id, TokType.Def, TokType.Number, 
+            TokType.NewLine, TokType.NewLine, TokType.NewLine, 
+            TokType.Id, TokType.Def, TokType.Number)]
+        [TestCase(@"x = 1
+;
+y = 2", 
+            TokType.Id, TokType.Def, TokType.Number, 
+            TokType.NewLine, TokType.NewLine, TokType.NewLine, TokType.NewLine, TokType.NewLine,  
+            TokType.Id, TokType.Def, TokType.Number)]
+        [TestCase("x = 1; z = x # z == 2", 
+            TokType.Id, TokType.Def, TokType.Number, 
+            TokType.NewLine,  
+            TokType.Id, TokType.Def, TokType.Id)]
+        [TestCase(";;;", TokType.NewLine, TokType.NewLine, TokType.NewLine)]
+        [TestCase("f(x) = x*x; y = f(10); z = y", 
+            TokType.Id, TokType.Obr, TokType.Id, TokType.Cbr, TokType.Def, TokType.Id, TokType.Mult, TokType.Id,
+            TokType.NewLine,
+            TokType.Id, TokType.Def, TokType.Id, TokType.Obr, TokType.Number, TokType.Cbr,
+            TokType.NewLine,
+            TokType.Id, TokType.Def, TokType.Id)]
+        public void TokenFlowIsCorrect_ExpectEof(string exp, params TokType[] expected) 
         {
              var tokens =  Tokenizer
                  .ToTokens(exp)
@@ -74,9 +103,9 @@ namespace Funny.Tests.UnitTests
         }
         
         [TestCase("\t   true   \t", TokType.True)]
-        [TestCase(" x", TokType.Id)]
-        [TestCase("  somebody", TokType.Id)]
-        [TestCase("  -", TokType.Minus)]
+        [TestCase(" x",             TokType.Id)]
+        [TestCase("  somebody",     TokType.Id)]
+        [TestCase("  -",            TokType.Minus)]
         [TestCase("!= ", TokType.NotEqual)]
         [TestCase("/  ", TokType.Div)]
         [TestCase(" % ", TokType.Rema)]
@@ -121,19 +150,18 @@ namespace Funny.Tests.UnitTests
         [TestCase("if", TokType.If, 0, 2)]
         [TestCase("(2+3)", TokType.Obr, 0, 1)]
         [TestCase("if(2+3)", TokType.If, 0, 2)]
-        public void ToTokens_FirstTokenIsCorrectAndContainsCorrectBounds(
-            string expression, TokType type, int start,int end) 
+        public void ToTokens_FirstTokenIsCorrectAndContainsCorrectBounds(string expression, TokType type, int start, int end) 
             => CheckSingleToken(expression, 0, type, start, end);
 
-        private static void CheckSingleToken(string expression, int tokenNumber,TokType type, int start, int end)
+        private static void CheckSingleToken(string expression, int tokenNumber, TokType type, int start, int end)
         {
             var tokens = Tokenizer.ToTokens(expression);
             var first = tokens.ElementAt(tokenNumber);
             Assert.Multiple(() =>
             {
                 Assert.AreEqual(type, first.Type);
-                Assert.AreEqual(start, first.Start, "start");
-                Assert.AreEqual(end, first.Finish, "end");
+                Assert.AreEqual(start, first.Start,  "start");
+                Assert.AreEqual(end,   first.Finish, "end");
             });
         }
 

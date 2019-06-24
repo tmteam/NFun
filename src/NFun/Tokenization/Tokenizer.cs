@@ -81,7 +81,7 @@ namespace NFun.Tokenization
             if(current== 0)
                 return  Tok.New(TokType.Eof, "", position,position);
             
-            if (current == '\r' || current == '\n')
+            if (current == '\r' || current == '\n' || current == ';')
                 return Tok.New(TokType.NewLine, current.ToString(), position,position+1);
             
             if (IsDigit(current))
@@ -102,23 +102,23 @@ namespace NFun.Tokenization
             return Tok.New(TokType.NotAToken, current.ToString(), position,position+1);
         }
         
-        private int SkipComments(string str, int position){
+        private int SkipComments(string str, int position)
+        {
             if(str[position]!='#')
                 throw new InvalidOperationException("'#' symbol expected");
-            if(str.Length== position+1)
+            if(str.Length == position+1)
                 return position;
 
             int index = position+2;
-            for (; index < str.Length && str[index] != '\r' && str[index] != '\n' ; index++)
-            {}
+            for (; index < str.Length && str[index] != '\r' && str[index] != '\n' ; index++){}
             
             return index;
         }
+        
         private Tok ReadIdOrKeyword(string str, int position)
         {
             int finish = position;
-            for (; finish < str.Length && (IsLetter(str[finish]) || IsDigit(str[finish])); finish++)
-            {}
+            for (; finish < str.Length && (IsLetter(str[finish]) || IsDigit(str[finish])); finish++){}
 
             var word = str.Substring(position, finish - position);
             //is id a keyword
@@ -175,10 +175,10 @@ namespace NFun.Tokenization
 
         private TokType? IsSpecial(char val) =>
             _symbols.ContainsKey(val) ? _symbols[val] : (TokType?)null;
-        
-        private bool IsLetter(char val) =>val == '_' ||  (val >= 'a' && val <= 'z') || (val >= 'A' && val <= 'Z');
 
-        private bool IsDigit(char val) => val >= '0' && val <= '9';
+        private bool IsLetter(char val) => val == '_' ||  (val >= 'a' && val <= 'z') || (val >= 'A' && val <= 'Z');
+
+        private bool IsDigit(char val) => char.IsDigit(val); // val >= '0' && val <= '9';
 
         private bool IsQuote(char val) => val == '\''|| val == '\"'; 
 

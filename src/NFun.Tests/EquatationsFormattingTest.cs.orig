@@ -86,6 +86,14 @@ namespace Funny.Tests
             runtime.Calculate().AssertReturns(Var.New("y",1));
         }
         
+<<<<<<< HEAD
        
+=======
+        [Test]
+        public void TwoEquationsOnOneLineFails()
+        {
+            Assert.DoesNotThrow(()=> FunBuilder.BuildDefault("y=1; z=5"));
+        }
+>>>>>>> origin/dev
     }
 }

@@ -448,12 +448,21 @@ namespace NFun.ParseErrors
         public static Exception CannotParseNumber(string val, Interval interval)
             => new FunParseException(521, $"Cannot parse number '{val}'", interval);
 
-        public static Exception FunctionOverloadNotFound(FunCallSyntaxNode node,FunctionsDictionary functions)
+        public static Exception FunctionOverloadNotFound(string id, Interval interval, VarType outputType, VarType[] argTypes , FunctionsDictionary functions)
         {
             return new FunParseException(524,
-                $"Function {TypeHelper.GetFunSignature(node.Id,node.OutputType, node.Children.Select(c=>c.OutputType))} is not defined",
-                node.Interval);
+                $"Function {TypeHelper.GetFunSignature(id, outputType, argTypes)} is not defined",
+                interval);
         }
+
+        public static Exception FunctionOverloadNotFound(FunCallSyntaxNode node, FunctionsDictionary functions)
+            => FunctionOverloadNotFound(
+                id: node.Id, 
+                interval: node.Interval, 
+                outputType: node.OutputType,
+                argTypes: node.Children.Select(c => c.OutputType).ToArray(), 
+                functions: functions);
+        
 
 
         

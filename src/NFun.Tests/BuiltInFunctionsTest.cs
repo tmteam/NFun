@@ -132,8 +132,8 @@ namespace Funny.Tests
         
         [TestCase("y = [0,7,1,2,3].reduce(max)", 7)]
         [TestCase("y = [0.1,7.2,1.3,2.4,3.5].reduce(max)", 7.2)]
-        [TestCase("y = [0,7,1,2,3].reduce(sum)", 7)]
-        [TestCase("y = [0.5,7.0,1.0,2.0,3.0].reduce(sum)", 7.5)]
+        [TestCase("y = [0,7,1,2,3].reduce(sum)", 13)]
+        [TestCase("y = [0.5,7.0,1.0,2.0,3.0].reduce(sum)", 13.5)]
 
         [TestCase("mysum(x:int, y:int):int = x+y \r" +
                   "y = [0,7,1,2,3].reduce(mysum)", 13)]
