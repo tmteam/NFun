@@ -71,16 +71,10 @@ namespace Funny.Tests.UnitTests
             TokType.Id, TokType.Def, TokType.Id, TokType.Plus, TokType.Number, 
             TokType.NewLine, 
             TokType.Id, TokType.Def, TokType.Id, TokType.Plus, TokType.Number)]
-        [TestCase("x = 1\n ; \ny = 2", 
+        [TestCase("x1 = 1\n ; \ny = 2", 
             TokType.Id, TokType.Def, TokType.Number, 
             TokType.NewLine, TokType.NewLine, TokType.NewLine, 
-            TokType.Id, TokType.Def, TokType.Number)]
-        [TestCase(@"x = 1
-;
-y = 2", 
-            TokType.Id, TokType.Def, TokType.Number, 
-            TokType.NewLine, TokType.NewLine, TokType.NewLine, TokType.NewLine, TokType.NewLine,  
-            TokType.Id, TokType.Def, TokType.Number)]
+            TokType.Id, TokType.Def, TokType.Number)] 
         [TestCase("x = 1; z = x # z == 2", 
             TokType.Id, TokType.Def, TokType.Number, 
             TokType.NewLine,  
