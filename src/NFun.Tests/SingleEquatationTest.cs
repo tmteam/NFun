@@ -233,11 +233,14 @@ namespace Funny.Tests
         [TestCase("y = x/2",new []{"x"})]
         [TestCase("y = in1/2+ in2",new []{"in1","in2"})]
         [TestCase("y = in1/2 + (in2*in3)",new []{"in1","in2", "in3"})]
-        public void InputVarablesListIsCorrect(string expr, string[] inputNames)
+        public void InputVarablesListWithAutoTypesIsCorrect(string expr, string[] inputNames)
         {
             var runtime = FunBuilder.BuildDefault(expr);
-            var inputs = inputNames.Select(i => new VarInfo(false, VarType.Real, i)).ToArray();
-            
+            var inputs = inputNames.Select(i => new VarInfo(
+                isOutput: false, 
+                type: VarType.Real, 
+                name: i, 
+                isStrictTyped: false)).ToArray();
             CollectionAssert.AreEquivalent(inputs, runtime.Inputs);
         }
 
@@ -252,7 +255,11 @@ namespace Funny.Tests
             var runtime = FunBuilder.BuildDefault(expr);
                         
             CollectionAssert.AreEquivalent(
-                new[]{new VarInfo(true, VarType.PrimitiveOf(type), output)}, 
+                new[]{new VarInfo(
+                    isOutput: true, 
+                    type: VarType.PrimitiveOf(type), 
+                    name: output, 
+                    isStrictTyped: false)}, 
                 runtime.Outputs);
         }
         

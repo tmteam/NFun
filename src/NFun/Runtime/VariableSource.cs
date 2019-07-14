@@ -8,20 +8,28 @@ namespace NFun.Runtime
 {
     public class VariableSource
     {
+        public bool IsStrictTyped { get; }
+
         public readonly VarAttribute[] Attributes;
         public readonly string Name;
 
         public readonly Interval? TypeSpecificationIntervalOrNull;
-        public VariableSource(string name, VarType type, Interval typeSpecificationIntervalOrNull, VarAttribute[] attributes = null)
+        public VariableSource(
+            string name, 
+            VarType type, 
+            Interval typeSpecificationIntervalOrNull, 
+            VarAttribute[] attributes = null)
         {
+            IsStrictTyped = true;
             TypeSpecificationIntervalOrNull = typeSpecificationIntervalOrNull;
             Attributes = attributes ?? new VarAttribute[0];
             Name = name;
             Type = type;
             IsOutput = false;
         }
-        public VariableSource(string name, VarType type, VarAttribute[] attributes = null)
+        public VariableSource(string name, VarType type,  VarAttribute[] attributes = null)
         {
+            IsStrictTyped = false;
             Attributes = attributes??new VarAttribute[0];
             Name = name;
             Type = type;
