@@ -1,18 +1,23 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFun.Console", "NFun.Console\NFun.Console.csproj", "{C14AEA34-D6AD-4D33-A56C-0522CD3106C2}"
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29009.5
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NFun.Console", "NFun.Console\NFun.Console.csproj", "{C14AEA34-D6AD-4D33-A56C-0522CD3106C2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFun.Tests", "NFun.Tests\NFun.Tests.csproj", "{500BA4AF-E96C-458A-A6E2-4650E9663520}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NFun.Tests", "NFun.Tests\NFun.Tests.csproj", "{500BA4AF-E96C-458A-A6E2-4650E9663520}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFun", "NFun\NFun.csproj", "{A9B5CF03-3CC0-4631-88C8-6BFB8AA4D88F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NFun", "NFun\NFun.csproj", "{A9B5CF03-3CC0-4631-88C8-6BFB8AA4D88F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFun.ExprementalTests", "NFun.ExprementalTests\NFun.ExprementalTests.csproj", "{F7299307-9670-42E1-A9E6-287CCD60F228}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NFun.ExprementalTests", "NFun.ExprementalTests\NFun.ExprementalTests.csproj", "{F7299307-9670-42E1-A9E6-287CCD60F228}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFun.HmTests", "NFun.HmTests\NFun.HmTests.csproj", "{1689D654-886A-4A64-93AA-D2E7CE849C48}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NFun.HmTests", "NFun.HmTests\NFun.HmTests.csproj", "{1689D654-886A-4A64-93AA-D2E7CE849C48}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFun.Fuspec", "NFun.Fuspec\NFun.Fuspec.csproj", "{D450D8F4-6584-40A4-813B-7DAA09B99B4A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NFun.Fuspec", "NFun.Fuspec\NFun.Fuspec.csproj", "{D450D8F4-6584-40A4-813B-7DAA09B99B4A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFun.Fuspectests", "NFun.Fuspectests\NFun.Fuspectests.csproj", "{39943B97-69B5-4474-8EA0-18F14C7317EE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NFun.Fuspectests", "NFun.Fuspectests\NFun.Fuspectests.csproj", "{39943B97-69B5-4474-8EA0-18F14C7317EE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFun.Fuspec.TestHandler", "NFun.Fuspec.TestHandler\NFun.Fuspec.TestHandler.csproj", "{63841139-454E-4853-8A72-D5BE7023B1C7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -48,5 +53,15 @@ Global
 		{39943B97-69B5-4474-8EA0-18F14C7317EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{39943B97-69B5-4474-8EA0-18F14C7317EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{39943B97-69B5-4474-8EA0-18F14C7317EE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{63841139-454E-4853-8A72-D5BE7023B1C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{63841139-454E-4853-8A72-D5BE7023B1C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{63841139-454E-4853-8A72-D5BE7023B1C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{63841139-454E-4853-8A72-D5BE7023B1C7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5471A18E-C54B-4D0C-99CF-6FD8F360B898}
 	EndGlobalSection
 EndGlobal
