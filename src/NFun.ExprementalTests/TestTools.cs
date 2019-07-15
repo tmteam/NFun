@@ -5,7 +5,7 @@ using NFun.Runtime;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace Tests
+namespace NFun.ExprementalTests
 {
     public static class TestTools
     {

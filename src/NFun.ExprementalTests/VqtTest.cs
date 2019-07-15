@@ -2,7 +2,6 @@ using System;
 using NFun.Runtime;
 using NFun.Types;
 using NUnit.Framework;
-using Tests;
 
 namespace NFun.ExprementalTests
 {

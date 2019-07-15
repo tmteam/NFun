@@ -13,11 +13,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NFun.ExprementalTests", "NF
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NFun.HmTests", "NFun.HmTests\NFun.HmTests.csproj", "{1689D654-886A-4A64-93AA-D2E7CE849C48}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NFun.Fuspec", "NFun.Fuspec\NFun.Fuspec.csproj", "{D450D8F4-6584-40A4-813B-7DAA09B99B4A}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NFun.Fuspectests", "NFun.Fuspectests\NFun.Fuspectests.csproj", "{39943B97-69B5-4474-8EA0-18F14C7317EE}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFun.Fuspec.TestHandler", "NFun.Fuspec.TestHandler\NFun.Fuspec.TestHandler.csproj", "{63841139-454E-4853-8A72-D5BE7023B1C7}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{AD33CA54-5018-4BEB-80A2-984016CBA484}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -45,23 +41,16 @@ Global
 		{1689D654-886A-4A64-93AA-D2E7CE849C48}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1689D654-886A-4A64-93AA-D2E7CE849C48}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1689D654-886A-4A64-93AA-D2E7CE849C48}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D450D8F4-6584-40A4-813B-7DAA09B99B4A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D450D8F4-6584-40A4-813B-7DAA09B99B4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D450D8F4-6584-40A4-813B-7DAA09B99B4A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D450D8F4-6584-40A4-813B-7DAA09B99B4A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{39943B97-69B5-4474-8EA0-18F14C7317EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{39943B97-69B5-4474-8EA0-18F14C7317EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{39943B97-69B5-4474-8EA0-18F14C7317EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{39943B97-69B5-4474-8EA0-18F14C7317EE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{63841139-454E-4853-8A72-D5BE7023B1C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{63841139-454E-4853-8A72-D5BE7023B1C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{63841139-454E-4853-8A72-D5BE7023B1C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{63841139-454E-4853-8A72-D5BE7023B1C7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{500BA4AF-E96C-458A-A6E2-4650E9663520} = {AD33CA54-5018-4BEB-80A2-984016CBA484}
+		{F7299307-9670-42E1-A9E6-287CCD60F228} = {AD33CA54-5018-4BEB-80A2-984016CBA484}
+		{1689D654-886A-4A64-93AA-D2E7CE849C48} = {AD33CA54-5018-4BEB-80A2-984016CBA484}
+	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {5471A18E-C54B-4D0C-99CF-6FD8F360B898}
+		SolutionGuid = {4ECD34A8-46A8-48EE-82A4-45A9C6A2327B}
 	EndGlobalSection
 EndGlobal
