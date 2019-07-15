@@ -10,6 +10,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFun.ExprementalTests", "NF
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFun.HmTests", "NFun.HmTests\NFun.HmTests.csproj", "{1689D654-886A-4A64-93AA-D2E7CE849C48}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFun.Fuspec", "NFun.Fuspec\NFun.Fuspec.csproj", "{D450D8F4-6584-40A4-813B-7DAA09B99B4A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFun.Fuspectests", "NFun.Fuspectests\NFun.Fuspectests.csproj", "{39943B97-69B5-4474-8EA0-18F14C7317EE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +40,13 @@ Global
 		{1689D654-886A-4A64-93AA-D2E7CE849C48}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1689D654-886A-4A64-93AA-D2E7CE849C48}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1689D654-886A-4A64-93AA-D2E7CE849C48}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D450D8F4-6584-40A4-813B-7DAA09B99B4A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D450D8F4-6584-40A4-813B-7DAA09B99B4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D450D8F4-6584-40A4-813B-7DAA09B99B4A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D450D8F4-6584-40A4-813B-7DAA09B99B4A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{39943B97-69B5-4474-8EA0-18F14C7317EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{39943B97-69B5-4474-8EA0-18F14C7317EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{39943B97-69B5-4474-8EA0-18F14C7317EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{39943B97-69B5-4474-8EA0-18F14C7317EE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
