@@ -11,6 +11,135 @@ namespace Funny.Tests
     [TestFixture]
     public class BuiltInFunctionsTest
     {
+        [TestCase("int",   (int)-123,     "toInt8", (sbyte)-123)]
+        [TestCase("int",   (int)123,      "toInt8", (sbyte) 123)]
+        [TestCase("int8",  (sbyte)-123,   "toInt8", (sbyte)-123)]
+        [TestCase("int16", (short)-123,   "toInt8", (sbyte)-123)]
+        [TestCase("int32", (int)-123,     "toInt8", (sbyte)-123)]
+        [TestCase("int64", (long)-123,    "toInt8", (sbyte)-123)]
+        [TestCase("uint8", (byte)123,     "toInt8", (sbyte) 123)]
+        [TestCase("uint16",(ushort)123,   "toInt8", (sbyte) 123)]
+        [TestCase("uint32",(uint)123,     "toInt8", (sbyte) 123)]
+        [TestCase("uint64",(ulong)123,    "toInt8", (sbyte) 123)]
+
+        [TestCase("int",   (int)-123,     "toInt16", (short)-123)]
+        [TestCase("int",   (int)123,      "toInt16", (short) 123)]
+        [TestCase("int8",  (sbyte)-123,   "toInt16", (short)-123)]
+        [TestCase("int16", (short)-123,   "toInt16", (short)-123)]
+        [TestCase("int32", (int)-123,     "toInt16", (short)-123)]
+        [TestCase("int64", (long)-123,    "toInt16", (short)-123)]
+        [TestCase("uint8", (byte)123,     "toInt16", (short) 123)]
+        [TestCase("uint16",(ushort)123,   "toInt16", (short) 123)]
+        [TestCase("uint32",(uint)123,     "toInt16", (short) 123)]
+        [TestCase("uint64",(ulong)123,    "toInt16", (short) 123)]
+        
+        [TestCase("int",   (int)-123,     "toInt", -123)]
+        [TestCase("int",   (int)123,      "toInt",  123)]
+        [TestCase("int8",  (sbyte)-123,   "toInt", -123)]
+        [TestCase("int16", (short)-123,   "toInt", -123)]
+        [TestCase("int32", (int)-123,     "toInt", -123)]
+        [TestCase("int64", (long)-123,    "toInt", -123)]
+        [TestCase("uint8", (byte)123,     "toInt",  123)]
+        [TestCase("uint16",(ushort)123,   "toInt",  123)]
+        [TestCase("uint32",(uint)123,     "toInt",  123)]
+        [TestCase("uint64",(ulong)123,    "toInt",  123)]
+
+        [TestCase("int",   (int)-123,     "toInt32", -123)]
+        [TestCase("int",   (int)123,      "toInt32",  123)]
+        [TestCase("int8",  (sbyte)-123,   "toInt32", -123)]
+        [TestCase("int16", (short)-123,   "toInt32", -123)]
+        [TestCase("int32", (int)-123,     "toInt32", -123)]
+        [TestCase("int64", (long)-123,    "toInt32", -123)]
+        [TestCase("uint8", (byte)123,     "toInt32",  123)]
+        [TestCase("uint16",(ushort)123,   "toInt32",  123)]
+        [TestCase("uint32",(uint)123,     "toInt32",  123)]
+        [TestCase("uint64",(ulong)123,    "toInt32",  123)]
+        
+        [TestCase("int",   (int)-123,     "toInt64", (long)-123)]
+        [TestCase("int",   (int)123,      "toInt64", (long) 123)]
+        [TestCase("int8",  (sbyte)-123,   "toInt64", (long)-123)]
+        [TestCase("int16", (short)-123,   "toInt64", (long)-123)]
+        [TestCase("int32", (int)-123,     "toInt64", (long)-123)]
+        [TestCase("int64", (long)-123,    "toInt64", (long)-123)]
+        [TestCase("uint8", (byte)123,     "toInt64", (long) 123)]
+        [TestCase("uint16",(ushort)123,   "toInt64", (long) 123)]
+        [TestCase("uint32",(uint)123,     "toInt64", (long) 123)]
+        [TestCase("uint64",(ulong)123,    "toInt64", (long) 123)]
+        
+        [TestCase("int",   (int)123,      "toUint8", (byte) 123)]
+        [TestCase("int8",  (sbyte)123,    "toUint8", (byte) 123)]
+        [TestCase("int16", (short)123,    "toUint8", (byte) 123)]
+        [TestCase("int64", (long)123,     "toUint8", (byte) 123)]
+        [TestCase("uint8", (byte)123,     "toUint8", (byte) 123)]
+        [TestCase("uint16",(ushort)123,   "toUint8", (byte) 123)]
+        [TestCase("uint32",(uint)123,     "toUint8", (byte) 123)]
+        [TestCase("uint64",(ulong)123,    "toUint8", (byte) 123)]
+        
+        [TestCase("int",   (int)123,      "toUint16", (ushort) 123)]
+        [TestCase("int8",  (sbyte)123,    "toUint16", (ushort) 123)]
+        [TestCase("int16", (short)123,    "toUint16", (ushort) 123)]
+        [TestCase("int64", (long)123,     "toUint16", (ushort) 123)]
+        [TestCase("uint8", (byte)123,     "toUint16", (ushort) 123)]
+        [TestCase("uint16",(ushort)123,   "toUint16", (ushort) 123)]
+        [TestCase("uint32",(uint)123,     "toUint16", (ushort) 123)]
+        [TestCase("uint64",(ulong)123,    "toUint16", (ushort) 123)]
+        
+        [TestCase("int",   (int)123,      "toUint32", (uint) 123)]
+        [TestCase("int8",  (sbyte)123,    "toUint32", (uint) 123)]
+        [TestCase("int16", (short)123,    "toUint32", (uint) 123)]
+        [TestCase("int64", (long)123,     "toUint32", (uint) 123)]
+        [TestCase("uint8", (byte)123,     "toUint32", (uint) 123)]
+        [TestCase("uint16",(ushort)123,   "toUint32", (uint) 123)]
+        [TestCase("uint32",(uint)123,     "toUint32", (uint) 123)]
+        [TestCase("uint64",(ulong)123,    "toUint32", (uint) 123)]
+        
+        [TestCase("int",   (int)123,      "toUint64", (ulong) 123)]
+        [TestCase("int8",  (sbyte)123,    "toUint64", (ulong) 123)]
+        [TestCase("int16", (short)123,    "toUint64", (ulong) 123)]
+        [TestCase("int64", (long)123,     "toUint64", (ulong) 123)]
+        [TestCase("uint8", (byte)123,     "toUint64", (ulong) 123)]
+        [TestCase("uint16",(ushort)123,   "toUint64", (ulong) 123)]
+        [TestCase("uint32",(uint)123,     "toUint64", (ulong) 123)]
+        [TestCase("uint64",(ulong)123,    "toUint64", (ulong) 123)]
+        public void IntConvertFunctionsTest(string inputType, object inputValue,  string converter, object expectedOutput)
+        {
+            var expr = $"x:{inputType}; b = {converter}(y)";
+            var runtime = FunBuilder.BuildDefault(expr);
+            runtime.Calculate(Var.New("x", inputValue))
+                .AssertReturns(Var.New("y", expectedOutput));
+        }
+        
+        [TestCase( "toInt(1.2)",  1)]
+        [TestCase( "toInt(-1.2)", -1)]
+        [TestCase( "toInt('1')", 1)]
+        [TestCase( "toInt('-123')", -123)]
+        [TestCase("toInt([0x21,0x33,0x12])",1_192_737)]
+        [TestCase("toInt([0x21,0x33,0x12,0x00])",1_192_737)]
+        [TestCase("toInt([0x21,0x00,0x00,0x00])",0x21)]
+        [TestCase("toInt([0x21,0x00,0x00,0x00])",0x21)]
+        [TestCase("toInt([0x21])",0x21)]
+
+        [TestCase("toReal('1')", 1.0)]
+        [TestCase("toReal('1.1')", 1.1)]
+        [TestCase("toReal('-0.123')", -0.123)]
+        [TestCase("toReal(1)", 1.0)]
+        [TestCase("toReal(-1)", -1.0)]
+        [TestCase("toText([1,2,3])", "[1,2,3]")]
+        [TestCase("toText(-1)", "-1")]
+        [TestCase("toText(-0.123)", "-0.123")]
+        [TestCase("toBits(123)", new[]
+        {
+            true, true, false,true, true, true, true ,false,
+            false,false,false,false,false,false,false,false,
+            false,false,false,false,false,false,false,false,
+            false,false,false,false,false,false,false,false,
+        })]
+        [TestCase("toBytes(123)", new[]{123,0,0,0})]
+        [TestCase("toBytes(1_192_737)", new[]{0x21,0x33,0x12,0})]
+        [TestCase("toUnicode('hi there')", new[]{0x68,00,0x69,00,0x20,00,0x74,00,0x68,00,0x65,00,0x72,00,0x65,00})]
+        [TestCase("toUtf8('hi there')", new[]{0x68,0x69,0x20,0x74,0x68,0x65,0x72,0x65})]
+
+        
         [TestCase("abs(1)",1)]
         [TestCase("abs(-1)",1)]
         [TestCase("abs(1.0)",1.0)]
@@ -50,36 +179,7 @@ namespace Funny.Tests
         [TestCase("round(1.66666)", 2)]
         [TestCase("round(1.2)", 1)]
 
-        [TestCase("toInt(1.2)", 1)]
-        [TestCase("toInt('1')", 1)]
-        [TestCase("toInt('-123')", -123)]
-        [TestCase("toInt(-1.2)", -1)]
-        [TestCase("toInt([0x21,0x33,0x12])",1_192_737)]
-        [TestCase("toInt([0x21,0x33,0x12,0x00])",1_192_737)]
-        [TestCase("toInt([0x21,0x00,0x00,0x00])",0x21)]
-        [TestCase("toInt([0x21,0x00,0x00,0x00])",0x21)]
-        [TestCase("toInt([0x21])",0x21)]
-
-        [TestCase("toReal('1')", 1.0)]
-        [TestCase("toReal('1.1')", 1.1)]
-        [TestCase("toReal('-0.123')", -0.123)]
-        [TestCase("toReal(1)", 1.0)]
-        [TestCase("toReal(-1)", -1.0)]
-        [TestCase("toText([1,2,3])", "[1,2,3]")]
-        [TestCase("toText(-1)", "-1")]
-        [TestCase("toText(-0.123)", "-0.123")]
-        [TestCase("toBits(123)", new[]
-        {
-            true, true, false,true, true, true, true ,false,
-            false,false,false,false,false,false,false,false,
-            false,false,false,false,false,false,false,false,
-            false,false,false,false,false,false,false,false,
-        })]
-        [TestCase("toBytes(123)", new[]{123,0,0,0})]
-        [TestCase("toBytes(1_192_737)", new[]{0x21,0x33,0x12,0})]
-        [TestCase("toUnicode('hi there')", new[]{0x68,00,0x69,00,0x20,00,0x74,00,0x68,00,0x65,00,0x72,00,0x65,00})]
-        [TestCase("toUtf8('hi there')", new[]{0x68,0x69,0x20,0x74,0x68,0x65,0x72,0x65})]
-
+        
         [TestCase("sign(-5)", -1)]
         [TestCase("sign(-5.0)", -1)]
         [TestCase("sign(5)", 1)]

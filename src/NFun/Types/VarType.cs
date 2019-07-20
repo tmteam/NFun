@@ -17,10 +17,18 @@ namespace NFun.Types
         public static VarType PrimitiveOf(BaseVarType baseType) => new VarType(baseType);
         public static VarType  Anything => new VarType(BaseVarType.Any);
         public static VarType  Bool => new VarType(BaseVarType.Bool);
+        
+        public static VarType  UInt8 => new VarType(BaseVarType.UInt8);
+        public static VarType  UInt16 => new VarType(BaseVarType.UInt16);
+        public static VarType  UInt32 => new VarType(BaseVarType.UInt32);
+        public static VarType  UInt64 => new VarType(BaseVarType.UInt64);
+
+        public static VarType  Int8  => new VarType(BaseVarType.Int8);
+        public static VarType  Int16 => new VarType(BaseVarType.Int16);
         public static VarType  Int32 => new VarType(BaseVarType.Int32);
         public static VarType  Int64 => new VarType(BaseVarType.Int64);
-        public static VarType  Real => new VarType(BaseVarType.Real);
-        public static VarType  Text => new VarType(BaseVarType.Text);
+        public static VarType  Real  => new VarType(BaseVarType.Real);
+        public static VarType  Text  => new VarType(BaseVarType.Text);
         public static VarType ArrayOf(VarType type) => new VarType(type);
         public static VarType Fun(VarType outputType, params VarType[]inputTypes)
             => new VarType(output: outputType, inputs: inputTypes);
@@ -83,8 +91,16 @@ namespace NFun.Types
             switch (BaseType)
             {
                 case BaseVarType.Bool:
+                    
+                case BaseVarType.Int8:
+                case BaseVarType.Int16:
                 case BaseVarType.Int32:
                 case BaseVarType.Int64:
+                case BaseVarType.UInt8:
+                case BaseVarType.UInt16:
+                case BaseVarType.UInt32:
+                case BaseVarType.UInt64:
+
                 case BaseVarType.Real:
                 case BaseVarType.Text:
                 case BaseVarType.Any:
@@ -128,8 +144,14 @@ namespace NFun.Types
             {
                 case BaseVarType.Empty:
                 case BaseVarType.Bool:
+                case BaseVarType.Int8:
+                case BaseVarType.Int16:
                 case BaseVarType.Int32:
                 case BaseVarType.Int64:
+                case BaseVarType.UInt8:
+                case BaseVarType.UInt16:
+                case BaseVarType.UInt32:
+                case BaseVarType.UInt64:
                 case BaseVarType.Real:
                 case BaseVarType.Text:
                 case BaseVarType.Any:
@@ -208,8 +230,14 @@ namespace NFun.Types
             switch (BaseType)
             {
                 case BaseVarType.Bool:
+                case BaseVarType.Int8:
+                case BaseVarType.Int16:
                 case BaseVarType.Int32:
                 case BaseVarType.Int64:
+                case BaseVarType.UInt8:
+                case BaseVarType.UInt16:
+                case BaseVarType.UInt32:
+                case BaseVarType.UInt64:
                 case BaseVarType.Real:
                 case BaseVarType.Text:
                 case BaseVarType.Any:

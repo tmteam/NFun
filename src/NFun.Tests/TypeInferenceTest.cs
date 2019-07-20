@@ -8,7 +8,7 @@ using NUnit.Framework;
 
 namespace Funny.Tests
 {
-    public class TypizationTest
+    public class TypeInferenceTest
     {
         [Test]
         public void VoidTest()
@@ -271,20 +271,7 @@ namespace Funny.Tests
             Assert.AreEqual(y, res.Results.First().Value);   
         }
 
-        [TestCase("int", 1, BaseVarType.Int32)]
-        [TestCase("int32", 1, BaseVarType.Int32)]
-        [TestCase("int64", (long)1, BaseVarType.Int64)]
-        [TestCase("real",  1.0,BaseVarType.Real)]
-        [TestCase("text", "1",BaseVarType.Text)]
-        [TestCase("int[]", new []{1,2,3},BaseVarType.ArrayOf)]
-        [TestCase("int64[]", new long[]{1,2,3},BaseVarType.ArrayOf)]
-        public void OutputEqualsInput(string type, object expected, BaseVarType baseVarType)
-        {
-            var runtime = FunBuilder.BuildDefault($"x:{type}\r  y = x");
-            var res = runtime.Calculate(Var.New("x", expected));
-               res.AssertReturns(Var.New("y", expected));
-            Assert.AreEqual(baseVarType, res.Get("y").Type.BaseType);
-        }
+        
         [TestCase("y(x) = y(x)")]
         [TestCase("y(x):int = y(x)")]
         [TestCase("y(x:int) = y(x)")]
@@ -297,6 +284,68 @@ namespace Funny.Tests
         {
             Assert.DoesNotThrow(()=> FunBuilder.BuildDefault(expr));
             
+        }
+        [TestCase("byte",   (byte)1,   BaseVarType.UInt8)]
+        [TestCase("uint8",  (byte)1,   BaseVarType.UInt8)]
+        [TestCase("uint16", (UInt16)1, BaseVarType.UInt16)]
+        [TestCase("uint32", (UInt32)1, BaseVarType.UInt32)]
+        [TestCase("uint64", (UInt64)1, BaseVarType.UInt64)]
+        [TestCase("int8",   (sbyte)1,  BaseVarType.Int8)]
+        [TestCase("int16",  (Int16)1,  BaseVarType.Int16)]
+        [TestCase("int",    (int)1,    BaseVarType.Int32)]
+        [TestCase("int32",  (int)1,    BaseVarType.Int32)]
+        [TestCase("int64",  (long)1,   BaseVarType.Int64)]
+        [TestCase("real",  1.0,BaseVarType.Real)]
+        [TestCase("text", "1",BaseVarType.Text)]
+        [TestCase("bool", true,BaseVarType.Bool)]
+        [TestCase("int[]", new []{1,2,3},BaseVarType.ArrayOf)]
+        [TestCase("int64[]", new long[]{1,2,3},BaseVarType.ArrayOf)]
+        public void OutputEqualsInput(string type, object expected, BaseVarType baseVarType)
+        {
+            var runtime = FunBuilder.BuildDefault($"x:{type}\r  y = x");
+            var res = runtime.Calculate(Var.New("x", expected));
+            res.AssertReturns(Var.New("y", expected));
+            Assert.AreEqual(baseVarType, res.Get("y").Type.BaseType);
+        }
+        
+        [TestCase("byte",      BaseVarType.UInt8)]
+        [TestCase("uint8",  BaseVarType.UInt8)]
+        [TestCase("uint16", BaseVarType.UInt16)]
+        [TestCase("uint32", BaseVarType.UInt32)]
+        [TestCase("uint64", BaseVarType.UInt64)]
+        [TestCase("int8",   BaseVarType.Int8)]
+        [TestCase("int16",  BaseVarType.Int16)]
+        [TestCase("int",    BaseVarType.Int32)]
+        [TestCase("int32",  BaseVarType.Int32)]
+        [TestCase("int64",  BaseVarType.Int64)]
+        public void IntegersBitwiseTest(string inputTypes, BaseVarType expectedOutputType)
+        {
+            var runtime = FunBuilder.BuildDefault(
+                $"a:{inputTypes}; b:{inputTypes};andOut=a&b;orOut=a|b;xorOut=a^b;notOut=~a");
+
+            Assert.Multiple(() => {
+                Assert.AreEqual(expectedOutputType, runtime.Outputs.Single(o => o.Name == "andOut").Type.BaseType);
+                Assert.AreEqual(expectedOutputType, runtime.Outputs.Single(o => o.Name == "orOut").Type.BaseType);
+                Assert.AreEqual(expectedOutputType, runtime.Outputs.Single(o => o.Name == "xorOut").Type.BaseType);
+                Assert.AreEqual(expectedOutputType, runtime.Outputs.Single(o => o.Name == "notOut").Type.BaseType);
+            });
+        }
+        
+        [TestCase("byte",   BaseVarType.UInt16)]
+        [TestCase("uint8",  BaseVarType.UInt16)]
+        [TestCase("uint16", BaseVarType.UInt32)]
+        [TestCase("uint32", BaseVarType.UInt32)]
+        [TestCase("uint64", BaseVarType.UInt64)]
+        [TestCase("int8",   BaseVarType.Int16)]
+        [TestCase("int16",  BaseVarType.Int32)]
+        [TestCase("int",    BaseVarType.Int32)]
+        [TestCase("int32",  BaseVarType.Int32)]
+        [TestCase("int64",  BaseVarType.Int64)]
+        public void SummOfTwoIntegersTest(string inputTypes, BaseVarType expectedOutputType)
+        {
+            var runtime = FunBuilder.BuildDefault(
+                $"a:{inputTypes}; b:{inputTypes}; y = a + b");
+            Assert.AreEqual(expectedOutputType, runtime.Outputs.Single(o => o.Name == "y").Type.BaseType);
         }
     }
 }

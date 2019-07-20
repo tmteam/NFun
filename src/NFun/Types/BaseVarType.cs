@@ -2,15 +2,21 @@ namespace NFun.Types
 {
     public enum BaseVarType
     {
-        Empty = 0,
-        Bool =    1,
-        Int32 =     2,
-        Int64 =    3,
-        Real =    4,
-        Text =    5,
-        Any =6,
-        ArrayOf = 7,
-        Fun = 8,
-        Generic = 9,
+        Empty,
+        Bool ,
+        UInt8,
+        UInt16,
+        UInt32,
+        UInt64,
+        Int8 ,
+        Int16 ,
+        Int32,
+        Int64,
+        Real,
+        Text,
+        Any,
+        ArrayOf,
+        Fun,
+        Generic,
     }
 }
