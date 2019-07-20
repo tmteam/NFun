@@ -1,11 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>net472;netcoreapp2.1</TargetFrameworks>
 
         <IsPackable>false</IsPackable>
 
         <RootNamespace>Funny.Tests</RootNamespace>
+
+        <TargetFramework>netcoreapp2.1</TargetFramework>
     </PropertyGroup>
 
     <ItemGroup>
