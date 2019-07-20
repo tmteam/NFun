@@ -18,6 +18,7 @@ namespace NFun.Types
         public static VarType PrimitiveOf(BaseVarType baseType) => new VarType(baseType);
         public static VarType Anything => new VarType(BaseVarType.Any);
         public static VarType Bool => new VarType(BaseVarType.Bool);
+        public static VarType Char => new VarType(BaseVarType.Char);
 
         public static VarType UInt8 => new VarType(BaseVarType.UInt8);
         public static VarType UInt16 => new VarType(BaseVarType.UInt16);
@@ -29,7 +30,8 @@ namespace NFun.Types
         public static VarType Int32 => new VarType(BaseVarType.Int32);
         public static VarType Int64 => new VarType(BaseVarType.Int64);
         public static VarType Real => new VarType(BaseVarType.Real);
-        public static VarType Text => new VarType(BaseVarType.Text);
+        public static VarType  Text =>  ArrayOf(Char);
+        
         public static VarType ArrayOf(VarType type) => new VarType(type);
 
         public static VarType Fun(VarType outputType, params VarType[] inputTypes)
@@ -107,7 +109,7 @@ namespace NFun.Types
                 case BaseVarType.UInt64:
 
                 case BaseVarType.Real:
-                case BaseVarType.Text:
+                case BaseVarType.Char:
                 case BaseVarType.Any:
                     return true;
                 case BaseVarType.ArrayOf:
@@ -158,7 +160,7 @@ namespace NFun.Types
                 case BaseVarType.UInt32:
                 case BaseVarType.UInt64:
                 case BaseVarType.Real:
-                case BaseVarType.Text:
+                case BaseVarType.Char:
                 case BaseVarType.Any:
                     return genericOrNot;
                 case BaseVarType.ArrayOf:
@@ -249,7 +251,7 @@ namespace NFun.Types
                 case BaseVarType.UInt32:
                 case BaseVarType.UInt64:
                 case BaseVarType.Real:
-                case BaseVarType.Text:
+                case BaseVarType.Char:
                 case BaseVarType.Any:
                     return null;
                 case BaseVarType.ArrayOf:
@@ -283,87 +285,8 @@ namespace NFun.Types
                     return BaseType.ToString();
             }
         }
-
+        
         public bool CanBeConvertedTo(VarType to)
-            => CanBeConvertedRec(this, to);
-
-        private static bool CanBeConvertedRec(VarType from, VarType to)
-        {
-            var fromBase = from.BaseType;
-            if (fromBase == BaseVarType.Empty)
-                return false;    
-            
-            switch (to.BaseType)
-            {
-                case BaseVarType.Any:
-                case BaseVarType.Text:
-                    return true;
-                case BaseVarType.Fun:
-                case BaseVarType.ArrayOf when fromBase != BaseVarType.ArrayOf:
-                    return false;
-                case BaseVarType.ArrayOf:
-                    return CanBeConvertedRec(
-                        @from: @from.ArrayTypeSpecification.VarType, 
-                        to: to.ArrayTypeSpecification.VarType);
-            }
-            
-            if (fromBase == to.BaseType)
-                return true;
-
-            switch (to.BaseType)
-            {
-                case BaseVarType.UInt16:
-                    return fromBase == BaseVarType.UInt8;
-                case BaseVarType.UInt32:
-                    return fromBase == BaseVarType.UInt8 || fromBase == BaseVarType.UInt16;
-                case BaseVarType.UInt64:
-                    return fromBase == BaseVarType.UInt8
-                           || fromBase == BaseVarType.UInt16
-                           || fromBase == BaseVarType.UInt32;
-                case BaseVarType.Int8:
-                    break;
-                case BaseVarType.Int16:
-                    return fromBase == BaseVarType.Int8 || fromBase == BaseVarType.UInt8;
-                case BaseVarType.Int32:
-                    return fromBase == BaseVarType.Int8
-                           || fromBase == BaseVarType.UInt8
-                           || fromBase == BaseVarType.Int16
-                           || fromBase == BaseVarType.UInt16;
-                case BaseVarType.Int64:
-                    return fromBase == BaseVarType.Int8
-                           || fromBase == BaseVarType.UInt8
-                           || fromBase == BaseVarType.Int16
-                           || fromBase == BaseVarType.UInt16
-                           || fromBase == BaseVarType.Int32
-                           || fromBase == BaseVarType.UInt32;
-
-                case BaseVarType.Real:
-                    return fromBase >= BaseVarType.UInt8 && fromBase <= BaseVarType.Real;
-                case BaseVarType.ArrayOf:
-                    if (fromBase != BaseVarType.ArrayOf)
-                        return false;
-                    return CanBeConvertedRec(
-                        @from: from.ArrayTypeSpecification.VarType, 
-                        to: to.ArrayTypeSpecification.VarType);
-                case BaseVarType.Empty:
-                    return false;
-                case BaseVarType.Bool:
-                    return false;
-                case BaseVarType.UInt8:
-                    return false;
-                case BaseVarType.Text:
-                    return true;
-                case BaseVarType.Any:
-                    return true;
-                case BaseVarType.Fun:
-                    return false;    
-                case BaseVarType.Generic:
-                    return false;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-            return false;
-        }
+            => VarTypeConverter.CanBeConverted(this, to);
     }
 }

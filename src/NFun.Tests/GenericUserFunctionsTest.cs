@@ -39,9 +39,9 @@ namespace Funny.Tests
         [TestCase("first(a) = a[0]\r y = [5,4,3].first()",5)]
         [TestCase("first(a) = a[0]\r y = [[5,4],[3,2],[1]].first()",new[]{5,4})]
         [TestCase("first(a) = a[0]\r y = [[5.0,4.0],[3.0,2.0],[1.0]].first().first()",5.0)]
-        [TestCase("first(a, f) = a.filter(f)[0] \r y = [1,2,3].first((i)=>i>1)", 2)]
-        [TestCase("first(a, f) = a.filter(f)[0] \r y = [1.0,2.0,3.0].first((i)=>i>1)", 2.0)]
-        [TestCase("filtrepeat(a, f) = a.concat(a).filter(f) \r y = [1.0,2.0,3.0].filtrepeat((i)=>i>1)", new[]{2.0,3.0,2.0,3.0})]
+        [TestCase("first(a, f) = a.filter(f)[0] \r y = [1,2,3].first((i)->i>1)", 2)]
+        [TestCase("first(a, f) = a.filter(f)[0] \r y = [1.0,2.0,3.0].first((i)->i>1)", 2.0)]
+        [TestCase("filtrepeat(a, f) = a.concat(a).filter(f) \r y = [1.0,2.0,3.0].filtrepeat((i)->i>1)", new[]{2.0,3.0,2.0,3.0})]
         [TestCase("concat(a, b,c) = a.concat(b).concat(c) \r y = concat([1,2],[3,4],[5,6])", new[]{1,2,3,4,5,6})]
         public void ConstantEquation(string expr, object expected)
         {

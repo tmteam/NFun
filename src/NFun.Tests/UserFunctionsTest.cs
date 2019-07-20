@@ -214,11 +214,13 @@ namespace Funny.Tests
         [TestCase("y(x):real[= x")]
         [TestCase("a(x)=x\r a(y)=y\r")]
         [TestCase("(x)=x\r y = out(x)\r")]
-        [TestCase("f(i,j,k) = 12.0 \r y = f(((1,2),3)=>i+j)")]
-        [TestCase("f((i,j),k) = 12.0 \r y = f(((1,2),3)=>i+j)")]
+        [TestCase("f(i,j,k) = 12.0 \r y = f(((1,2),3)->i+j)")]
+        [TestCase("f((i,j),k) = 12.0 \r y = f(((1,2),3)->i+j)")]
         [TestCase("f(x*2) = 12.0 \r y = f(3)")]
         [TestCase("f(x*2) = 12.0")]
         [TestCase("y(x):real= 'vasa'")]
+        [TestCase("j = 1 y(x)= x+1")]
+
         public void ObviousFails(string expr){
             Assert.Throws<FunParseException>(()=>FunBuilder.BuildDefault(expr));
         }

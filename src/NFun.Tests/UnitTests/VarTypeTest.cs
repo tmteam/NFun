@@ -225,6 +225,7 @@ namespace Funny.Tests.UnitTests
         
         [TestCase(BaseVarType.Int32, BaseVarType.Any, true)]
         [TestCase(BaseVarType.Int32, BaseVarType.Real, true)]
+
         [TestCase(BaseVarType.Int32, BaseVarType.Text, true)]
         [TestCase(BaseVarType.Int32, BaseVarType.Bool, false)]
         [TestCase(BaseVarType.Int32, BaseVarType.UInt64, false)]
@@ -235,6 +236,7 @@ namespace Funny.Tests.UnitTests
         [TestCase(BaseVarType.Int32, BaseVarType.Int32, true)]
         [TestCase(BaseVarType.Int32, BaseVarType.Int16, false)]
         [TestCase(BaseVarType.Int32, BaseVarType.Int8, false)]
+
 
         [TestCase(BaseVarType.Int64, BaseVarType.Any, true)]
         [TestCase(BaseVarType.Int64, BaseVarType.Real, true)]
@@ -300,6 +302,7 @@ namespace Funny.Tests.UnitTests
         [TestCase(BaseVarType.Any, BaseVarType.Int32,  false)]
         [TestCase(BaseVarType.Any, BaseVarType.Int16,  false)]
         [TestCase(BaseVarType.Any, BaseVarType.Int8,   false)]
+
         public void PrimitiveTypes_CanBeConverted(BaseVarType from, BaseVarType to, bool canBeConverted)
         {
             var typeFrom = VarType.PrimitiveOf(from);
@@ -312,35 +315,24 @@ namespace Funny.Tests.UnitTests
         [TestCase(BaseVarType.Int32, BaseVarType.Int32, true)]
         [TestCase(BaseVarType.Int32, BaseVarType.Int64, true)]
         [TestCase(BaseVarType.Int32, BaseVarType.Real, true)]
-        [TestCase(BaseVarType.Int32, BaseVarType.Text, true)]
         [TestCase(BaseVarType.Int32, BaseVarType.Any, true)]
 
         [TestCase(BaseVarType.Real, BaseVarType.Bool, false)]
         [TestCase(BaseVarType.Real, BaseVarType.Int32, false)]
         [TestCase(BaseVarType.Real, BaseVarType.Int64, false)]
         [TestCase(BaseVarType.Real, BaseVarType.Real, true)]
-        [TestCase(BaseVarType.Real, BaseVarType.Text, true)]
         [TestCase(BaseVarType.Real, BaseVarType.Any, true)]
 
         [TestCase(BaseVarType.Bool, BaseVarType.Bool, true)]
         [TestCase(BaseVarType.Bool, BaseVarType.Int32, false)]
         [TestCase(BaseVarType.Bool, BaseVarType.Int64, false)]
         [TestCase(BaseVarType.Bool, BaseVarType.Real, false)]
-        [TestCase(BaseVarType.Bool, BaseVarType.Text, true)]
         [TestCase(BaseVarType.Bool, BaseVarType.Any, true)]
-        
-        [TestCase(BaseVarType.Text, BaseVarType.Bool, false)]
-        [TestCase(BaseVarType.Text, BaseVarType.Int32, false)]
-        [TestCase(BaseVarType.Text, BaseVarType.Int64, false)]
-        [TestCase(BaseVarType.Text, BaseVarType.Real, false)]
-        [TestCase(BaseVarType.Text, BaseVarType.Text, true)]
-        [TestCase(BaseVarType.Text, BaseVarType.Any, true)]
-        
+      
         [TestCase(BaseVarType.Any, BaseVarType.Bool, false)]
         [TestCase(BaseVarType.Any, BaseVarType.Int32, false)]
         [TestCase(BaseVarType.Any, BaseVarType.Int64, false)]
         [TestCase(BaseVarType.Any, BaseVarType.Real, false)]
-        [TestCase(BaseVarType.Any, BaseVarType.Text, true)]
         [TestCase(BaseVarType.Any, BaseVarType.Any, true)]
         public void ArrayTypes_CanBeConverted(BaseVarType from, BaseVarType to, bool canBeConverted)
         {
@@ -361,7 +353,6 @@ namespace Funny.Tests.UnitTests
         [TestCase(BaseVarType.Int32, false)]
         [TestCase(BaseVarType.Int64, false)]
         [TestCase(BaseVarType.Real, false)]
-        [TestCase(BaseVarType.Text, true)]
         [TestCase(BaseVarType.Any, true)]
         public void FromArrayOfInt32ToPrimitive_CanBeConvertedReturnsFalse(BaseVarType to, bool canBeConverted)
         {
@@ -413,7 +404,6 @@ namespace Funny.Tests.UnitTests
         public void SolveGenericTypes_ConcreteRealToConcreteInt_ReturnsFalse()
         {
             //Solving  Array of int SomeFun<T>(T)
-
             var result = VarType.TrySolveGenericTypes(new VarType[1],
                 genericType: VarType.Int32, concreteType: VarType.Real);
             Assert.IsFalse(result);

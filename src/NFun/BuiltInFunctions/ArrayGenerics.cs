@@ -76,7 +76,7 @@ namespace NFun.BuiltInFunctions
                 throw new FunRuntimeException("Start cannot be more than end");
        
             var arr = (IFunArray)args[0];
-            return arr.Slice(start, end, null);
+            return arr.Slice(start, (end==int.MaxValue?null:(int?)end), null);
         }
     }
     
@@ -147,7 +147,7 @@ namespace NFun.BuiltInFunctions
             int i = 0;
             foreach (var element in arr)
             {
-                if (element.Equals(factor))
+                if(TypeHelper.AreEqual(element, factor))
                     return i;
                 i++;
             }

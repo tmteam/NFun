@@ -1,8 +1,7 @@
-using System;
 using NFun.HindleyMilner.Tyso;
 using NUnit.Framework;
 
-namespace NFun.HmTests
+namespace NFun.HmTests.UnitTests
 {
     public class NSUnitTests
     {

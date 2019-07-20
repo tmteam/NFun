@@ -70,7 +70,7 @@ namespace NFun.Tokenization
                 case TokType.UInt32Type:
                     return  VarType.UInt32;
                 case TokType.UInt64Type:
-                    return VarType.Int64;
+                    return VarType.UInt64;
 
                 case TokType.RealType:
                     return  VarType.Real;

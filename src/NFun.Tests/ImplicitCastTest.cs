@@ -23,7 +23,7 @@ namespace Funny.Tests
         [TestCase("uint32",   (uint)42,    "uint64", (ulong)42)]
         [TestCase("uint64",  (ulong)42,    "uint64", (ulong)42)]
 
-        [TestCase("int8",   (sbyte)42,    "int8",  (byte)42)]
+        [TestCase("int8",   (sbyte)42,    "int8",  (sbyte)42)]
 
         [TestCase("int8",   (sbyte)42,    "int16", (short)42)]
         [TestCase("int16",  (short)42,    "int16", (short)42)]

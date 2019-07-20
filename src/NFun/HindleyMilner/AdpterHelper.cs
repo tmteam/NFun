@@ -38,7 +38,7 @@ namespace NFun.HindleyMilner
                 case BaseVarType.UInt32: return FType.UInt32;
                 case BaseVarType.UInt64: return FType.UInt64;
                 case BaseVarType.Real:  return FType.Real;
-                case BaseVarType.Text:  return FType.Text;
+                case BaseVarType.Char:  return FType.Char;
                 case BaseVarType.Any:   return FType.Any;
                 case BaseVarType.ArrayOf: return FType.ArrayOf(ConvertToHmType(origin.ArrayTypeSpecification.VarType));
                 case BaseVarType.Generic: return FType.Generic(origin.GenericId.Value);

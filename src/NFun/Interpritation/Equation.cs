@@ -1,3 +1,4 @@
+using System;
 using NFun.Interpritation.Nodes;
 
 namespace NFun.Interpritation
@@ -5,6 +6,8 @@ namespace NFun.Interpritation
     public class Equation
     {
         //public bool ReusingWithOtherEquations = false;
+        public bool IsTyped => throw new NotImplementedException();
+        
         public readonly string Id;
         public readonly IExpressionNode Expression;
 

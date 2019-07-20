@@ -31,7 +31,7 @@ namespace NFun.Interpritation.Functions
                 var castedNode = argNode;
                 if (fromType != toType)
                 {
-                    var converter = CastExpressionNode.GetConverterOrThrow(fromType, toType, argNode.Interval);
+                    var converter = VarTypeConverter.GetConverterOrThrow(fromType, toType, argNode.Interval);
                     castedNode = new CastExpressionNode(argNode, toType, converter,argNode.Interval);
                 }
 

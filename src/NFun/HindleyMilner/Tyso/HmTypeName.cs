@@ -24,6 +24,7 @@ namespace NFun.HindleyMilner.Tyso
         public const string TextId = "text";
         public const string ArrayId = "array";
         public const string FunId = "fun";
+        public const string CharId = "char";
 
         public static HmTypeName Any => new HmTypeName(AnyId,0,35);
         public static HmTypeName Real => new HmTypeName(RealId,1,20);
@@ -36,7 +37,7 @@ namespace NFun.HindleyMilner.Tyso
         public static HmTypeName Uint16 => new HmTypeName(UInt16Id,11,12);
         public static HmTypeName Uint32 => new HmTypeName(UInt32Id,14,15);
         public static HmTypeName Uint64 => new HmTypeName(UInt64Id,17,18);
-        public static HmTypeName Char => new HmTypeName("char",21,22);
+        public static HmTypeName Char => new HmTypeName(CharId,21,22);
         public static HmTypeName Bool => new HmTypeName(BoolId,23,24);
         public static HmTypeName Complex => new HmTypeName("[someComplex]",25,34);
         public static HmTypeName Array => new HmTypeName(ArrayId,26,29);

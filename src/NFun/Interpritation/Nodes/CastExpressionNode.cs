@@ -27,7 +27,9 @@ namespace NFun.Interpritation.Nodes
                 return _converter(c.GetValue());
             return _converter(res);
         }
-
+        
+        
+        /*
         public static Func<object, object> GetConverterOrThrow(VarType from, VarType to, Interval interval)
         {
             if (from == to)
@@ -47,7 +49,7 @@ namespace NFun.Interpritation.Nodes
                 if (to ==  VarType.ArrayOf(VarType.Anything))
                     return o => o;
                 
-                var elementConverter = GetConverterOrThrow(
+                var elementConverter = VarTypeConverter.GetConverterOrThrow(
                     from.ArrayTypeSpecification.VarType, 
                     to.ArrayTypeSpecification.VarType, 
                     interval);
@@ -56,5 +58,6 @@ namespace NFun.Interpritation.Nodes
 
             throw ErrorFactory.ImpossibleCast(from, to, interval);
         }
+        */
     }
 }
