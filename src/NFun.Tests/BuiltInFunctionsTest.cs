@@ -101,7 +101,7 @@ namespace Funny.Tests
         [TestCase("uint16",(ushort)123,   "toUint64", (ulong) 123)]
         [TestCase("uint32",(uint)123,     "toUint64", (ulong) 123)]
         [TestCase("uint64",(ulong)123,    "toUint64", (ulong) 123)]
-        public void IntConvertFunctionsTest(string inputType, object inputValue,  string converter, object expectedOutput)
+        public void ConvertIntegersFunctionsTest(string inputType, object inputValue,  string converter, object expectedOutput)
         {
             var expr = $"x:{inputType}; b = {converter}(y)";
             var runtime = FunBuilder.BuildDefault(expr);
