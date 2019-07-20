@@ -42,6 +42,8 @@ namespace NFun.Tokenization
         
         private readonly Dictionary<string, TokType> _keywords = new Dictionary<string, TokType>
         {
+            {"in", TokType.In},
+
             {"and",   TokType.And},
             {"or",    TokType.Or},
             {"xor",   TokType.Xor},
@@ -51,14 +53,25 @@ namespace NFun.Tokenization
             {"else",  TokType.Else},
             {"true",  TokType.True},
             {"false", TokType.False},
+            
             {"text", TokType.TextType},
             {"bool", TokType.BoolType},
             {"real", TokType.RealType},
+           
+            {"int8", TokType.Int8Type},
+            {"int16", TokType.Int16Type},
             {"int", TokType.Int32Type},
             {"int32", TokType.Int32Type},
             {"int64", TokType.Int64Type},
+            
+            {"byte",  TokType.UInt8Type},
+            {"uint8",  TokType.UInt8Type},
+            {"uint16", TokType.UInt16Type},
+            {"uint",   TokType.UInt32Type},
+            {"uint32", TokType.UInt32Type},
+            {"uint64", TokType.UInt64Type},
+            
             {"anything", TokType.AnythingType},
-            {"in", TokType.In}
         };
         
         public Tok TryReadNext(string str, int position)

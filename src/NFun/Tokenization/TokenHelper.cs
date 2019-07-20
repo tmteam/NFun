@@ -54,10 +54,24 @@ namespace NFun.Tokenization
         {
             switch (token.Type)
             {
+                case TokType.Int8Type:
+                    return  VarType.Int8;
+                case TokType.Int16Type:
+                    return  VarType.Int16;
                 case TokType.Int32Type:
                     return  VarType.Int32;
                 case TokType.Int64Type:
                     return VarType.Int64;
+                
+                case TokType.UInt8Type:
+                    return  VarType.UInt8;
+                case TokType.UInt16Type:
+                    return  VarType.UInt16;
+                case TokType.UInt32Type:
+                    return  VarType.UInt32;
+                case TokType.UInt64Type:
+                    return VarType.Int64;
+
                 case TokType.RealType:
                     return  VarType.Real;
                 case TokType.BoolType:

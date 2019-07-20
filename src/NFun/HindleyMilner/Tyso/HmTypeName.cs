@@ -15,6 +15,7 @@ namespace NFun.HindleyMilner.Tyso
         public const string Int64Id = "int64";
         public const string Int32Id = "int32";
         public const string Int16Id = "int16";
+        public const string Int8Id = "int8";
         public const string UInt64Id = "uint64";
         public const string UInt32Id = "uint32";
         public const string UInt16Id = "uint16";
@@ -30,7 +31,7 @@ namespace NFun.HindleyMilner.Tyso
         public static HmTypeName Int64 => new HmTypeName(Int64Id,3,16);
         public static HmTypeName Int32 => new HmTypeName(Int32Id,4,13);
         public static HmTypeName Int16 => new HmTypeName(Int16Id,5,10);
-        public static HmTypeName Int8 => new HmTypeName("int8",6,7);
+        public static HmTypeName Int8 => new HmTypeName(Int8Id,6,7);
         public static HmTypeName Uint8 => new HmTypeName(UInt8Id,8,9);
         public static HmTypeName Uint16 => new HmTypeName(UInt16Id,11,12);
         public static HmTypeName Uint32 => new HmTypeName(UInt32Id,14,15);

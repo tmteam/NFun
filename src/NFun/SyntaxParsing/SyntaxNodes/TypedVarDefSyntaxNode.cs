@@ -7,8 +7,6 @@ namespace NFun.SyntaxParsing.SyntaxNodes
 {
     public class TypedVarDefSyntaxNode : ISyntaxNode
     {
-        
-        
         public int OrderNumber { get; set; }
         public VarType OutputType { get; set; }
 
