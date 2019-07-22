@@ -4,4 +4,11 @@
     <TargetFramework>netcoreapp2.2</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\NFun.ExprementalTests\NFun.ExprementalTests.csproj" />
+    <ProjectReference Include="..\NFun.Fuspectests\NFun.Fuspectests.csproj" />
+    <ProjectReference Include="..\NFun.HmTests\NFun.HmTests.csproj" />
+    <ProjectReference Include="..\NFun.Tests\NFun.Tests.csproj" />
+  </ItemGroup>
+
 </Project>

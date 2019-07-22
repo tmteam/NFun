@@ -11,6 +11,6 @@ namespace ParcerV1
         NoEndingTestCase = 40,
         ParamInMissed=50,
         ParamOutMissed=60,
-        WrongParamType=70,
+        WrongParamType=70
     }
 }

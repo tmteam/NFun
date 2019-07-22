@@ -10,15 +10,14 @@ namespace Nfun.Fuspec.Parser
 {
     public static class FuspecParserHelper
     {
-        public static string FindKeyWord(String findingkey, string str)
+        public static string FindKeyWord(string findingkey, string str)
         {
             if (str.Length < findingkey.Length)
                 return null;
             string key = str.Substring(0, findingkey.Length);
-            if (key == findingkey)
-                return str.Substring(findingkey.Length);
-            else
-                return null;
+            return key == findingkey 
+                ? str.Substring(findingkey.Length) 
+                : null;
         }
 
         public static bool IsSeparatingLine(string str, char symbol)
@@ -34,12 +33,11 @@ namespace Nfun.Fuspec.Parser
                 i++;
             }
 
-            if (i < 8) return false;
-            return true;
+            return i >= 8;
             //            return str.Substring(1).All(ch => ch == symbol);
         }
 
-        public static List<Param> GetPAram(string paramString)
+        public static List<Param> GetParam(string paramString)
         {
             string value;
             string varType;
@@ -76,9 +74,9 @@ namespace Nfun.Fuspec.Parser
                     tokFLow.MoveNext();
                
             }
-            if (!result.Any())
-                return null;
-            return result;
+            return !result.Any() 
+                ? null 
+                : result;
         }
     }
     
