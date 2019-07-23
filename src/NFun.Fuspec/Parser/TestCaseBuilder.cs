@@ -15,6 +15,10 @@ namespace Nfun.Fuspec.Parser
         public List<Param> ParamsOut { get; set; }
         
         public ParamValues SetCheckKit { get; set; }
+        
+        public List<SetCheckKit> SetCheckKits { get; set; }
+        
+        
         public TestCaseBuilder()
         {
             Script = null;
@@ -22,9 +26,10 @@ namespace Nfun.Fuspec.Parser
             ParamsIn = new List<Param>();
             ParamsOut=new List<Param>();
             SetCheckKit=new ParamValues();
+            SetCheckKits=new List<SetCheckKit>();
         }
 
         public FuspecTestCase Build() =>
-            new FuspecTestCase(Name, Tags.ToArray(), Script, ParamsIn.ToArray(), ParamsOut.ToArray());
+            new FuspecTestCase(Name, Tags.ToArray(), Script, ParamsIn.ToArray(), ParamsOut.ToArray(),SetCheckKits.ToArray());
     }
 }

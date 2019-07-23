@@ -204,6 +204,7 @@
             <e p="Param.cs" t="Include" />
             <e p="ParamValues.cs" t="Include" />
             <e p="ParsedFuspec.cs" t="Include" />
+            <e p="SetCheckKit.cs" t="Include" />
           </e>
           <e p="TestCaseBuilder.cs" t="Include" />
           <e p="TestCaseParseState.cs" t="Include" />

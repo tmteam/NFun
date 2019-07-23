@@ -1121,7 +1121,7 @@ x = round(a - b - c)
         }
         
         [Test]
-        public void SetValuesReading_ReadSimpleSet_returnSetInSetOut()
+        public void SetValuesReading_ReadSimpleSetСheckKit_ReturnSetCheckKit()
         {
             GenerateFuspecTestCases(
                 @"|********************
@@ -1133,18 +1133,264 @@ x = round(a - b - c)
 |------------------------
   x = a-b  
 |---------------------
-| a
+| set a=5;b=4;
 | check x == [[1,2][]]; y == 4  
 ");
 
             Assert.Multiple(() =>
             {
+                StandardAssertForCorrectTestCase();
+                Assert.AreEqual("a=5",_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits.FirstOrDefault().SetKit[0]);
+                Assert.AreEqual("b=4",_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits.FirstOrDefault().SetKit[1]);
+                Assert.AreEqual("x == [[1,2][]]",_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits.FirstOrDefault().CheckKit[0]);
+                Assert.AreEqual("y == 4",_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits.FirstOrDefault().CheckKit[1]);
+            });
+        }
+        
+        [Test]
+        public void SetValuesReading_ReadSetСheckKitWithEmptyStrings_ReturnSetCheckKit()
+        {
+            GenerateFuspecTestCases(
+                @"|********************
+| TEST Name
+| TAGS tag1
+|************************
+| in a:real b:int
+| out x:real
+|------------------------
+  x = a-b  
+|---------------------
+
+| set a=5;b=4;
+   
+| check x == [[1,2][]]; y == 4  
+
+");
+
+            Assert.Multiple(() =>
+            {
+                StandardAssertForCorrectTestCase();
+                Assert.AreEqual("a=5",_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits.FirstOrDefault().SetKit[0]);
+                Assert.AreEqual("b=4",_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits.FirstOrDefault().SetKit[1]);
+                Assert.AreEqual("x == [[1,2][]]",_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits.FirstOrDefault().CheckKit[0]);
+                Assert.AreEqual("y == 4",_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits.FirstOrDefault().CheckKit[1]);
+            });
+        }
+        
+        [Test]
+        public void SetValuesReading_ReadSet_ReturnSet()
+        {
+            GenerateFuspecTestCases(
+                @"|********************
+| TEST Name
+| TAGS tag1
+|************************
+| in a:real b:int
+| out x:real
+|------------------------
+  x = a-b  
+|---------------------
+| set a=5;b=4;
+");
+
+            Assert.Multiple(() =>
+            {
+                StandardAssertForCorrectTestCase();
+                Assert.AreEqual("a=5",_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits.FirstOrDefault().SetKit[0]);
+                Assert.AreEqual("b=4",_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits.FirstOrDefault().SetKit[1]);
+            });
+        }
+        
+        [Test]
+        public void SetValuesReading_ReadCheckKit_ReturnСheck()
+        {
+            GenerateFuspecTestCases(
+                @"|********************
+| TEST Name
+| TAGS tag1
+|************************
+| in a:real b:int
+| out x:real
+|------------------------
+  x = a-b  
+|---------------------
+| check a==5;b==4;
+");
+
+            Assert.Multiple(() =>
+            {
+                StandardAssertForCorrectTestCase();
+                Assert.AreEqual("a==5",_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits.FirstOrDefault().CheckKit[0]);
+                Assert.AreEqual("b==4",_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits.FirstOrDefault().CheckKit[1]);
+            });
+        }
+
+        [Test]
+        public void SetValuesReading_ReadTwoCheckKit_ReturnErrorNotAllowSecondCheckSet()
+        {
+            GenerateFuspecTestCases(
+                @"|********************
+| TEST Name
+| TAGS tag1
+|************************
+| in a:real b:int
+| out x:real
+|------------------------
+  x = a-b  
+|---------------------
+| check a==5;b==4;
+| check a==5;b==4;
+");
+
+            Assert.Multiple(() =>
+            {
                 StandardAssertForNotCorrectTestCase();
-                Assert.AreEqual(FuspecErrorType.WrongParamType,_fuspecTestCases.Errors.FirstOrDefault().ErrorType);
+                Assert.AreEqual(FuspecErrorType.ExpectedSeparatedLine, _fuspecTestCases.Errors.FirstOrDefault().ErrorType);
+            });
+        }
+        
+        [Test]
+        public void SetValuesReading_ReadTwoCheckKit_ReturnSetCheckKit()
+        {
+            GenerateFuspecTestCases(
+                @"|********************
+| TEST Name
+| TAGS tag1
+|************************
+| in a:real b:int
+| out x:real
+|------------------------
+  x = a-b  
+|---------------------
+| set a=5;b=4;
+| set h=5; y=4;
+");
+
+            Assert.Multiple(() =>
+            {
+                StandardAssertForCorrectTestCase();
+                Assert.AreEqual("a=5",_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits.FirstOrDefault().SetKit[0]);
+                Assert.AreEqual("b=4",_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits.FirstOrDefault().SetKit[1]);
+                Assert.AreEqual("h=5",_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits.FirstOrDefault().SetKit[2]);
+                Assert.AreEqual("y=4",_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits.FirstOrDefault().SetKit[3]);
+
 
             });
         }
 
+        [Test]
+        public void SetValuesReading_ReadTwoFuspecCaseWithSetCheckKits_ReturnTwoFuspecCases()
+        {
+            GenerateFuspecTestCases(
+                @"|********************
+| TEST Name
+| TAGS tag1
+|************************
+| in a:real b:int
+| out x:real
+|------------------------
+  x = a-b  
+|---------------------
+| set a=5;b=4;
+| check h=5; y=4;
+|--------------------
+| set a=5;b=4;
+| check h=5; y=4;
+|-------------------
+ 
+|***************
+| TEST Name
+| TAGS tag1
+|************************
+| in a:real b:int
+| out x:real
+|------------------------
+  x = a-b  
+|---------------------
+| set a=5;b=4;
+| check h=5; y=4;
+");
+
+            Assert.Multiple(() =>
+            {
+                Assert.AreEqual(0, _fuspecTestCases.Errors.Length, "Parser wrote nonexistent error ");
+                Assert.AreEqual(2,_fuspecTestCases.TestCases.Length);
+
+            });
+        }
+        
+        [Test]
+        public void SetValuesReading_ReadWrongSetKit_ReturnError()
+        {
+            GenerateFuspecTestCases(
+                @"|********************
+| TEST Name
+| TAGS tag1
+|************************
+| in a:real b:int
+| out x:real
+|------------------------
+  x = a-b  
+|---------------------
+| setsdf a=5;b=4;  
+");
+
+            Assert.Multiple(() =>
+            {
+                StandardAssertForNotCorrectTestCase();
+                Assert.AreEqual(FuspecErrorType.WrongSetCheckKit, _fuspecTestCases.Errors.FirstOrDefault().ErrorType);
+              });
+        }
+        
+        [Test]
+        public void SetValuesReading_ReadWrongCheckKit_ReturnError()
+        {
+            GenerateFuspecTestCases(
+                @"|********************
+| TEST Name
+| TAGS tag1
+|************************
+| in a:real b:int
+| out x:real
+|------------------------
+  x = a-b  
+|---------------------
+| set a=5;b=4;
+| checkff
+");
+
+            Assert.Multiple(() =>
+            {
+                StandardAssertForNotCorrectTestCase();
+                Assert.AreEqual(FuspecErrorType.WrongSetCheckKit, _fuspecTestCases.Errors.FirstOrDefault().ErrorType);
+            });
+        }
+        [Test]
+        public void SetValuesReading_ReadWrongStringAfterSetCheckKit_ReturnError()
+        {
+            GenerateFuspecTestCases(
+                @"|********************
+| TEST Name
+| TAGS tag1
+|************************
+| in a:real b:int
+| out x:real
+|------------------------
+  x = a-b  
+|---------------------
+| set a=5;b=4;
+| check a==5;
+
+sdfsdfdf
+");
+
+            Assert.Multiple(() =>
+            {
+                StandardAssertForNotCorrectTestCase();
+                Assert.AreEqual(FuspecErrorType.ExpectedSeparatedLine, _fuspecTestCases.Errors.FirstOrDefault().ErrorType);
+            });
+        }
+        
         private void StandardAssertForCorrectTestCase()
         {
             Assert.IsNotNull(_fuspecTestCases, "FuspecTestCases = null");
@@ -1179,6 +1425,5 @@ x = round(a - b - c)
             var specs = new TestCasesReader(new StreamReader(GenerateStreamFromString(str)));
             _fuspecTestCases = new TestCasesReader(new StreamReader(GenerateStreamFromString(str))).Read();
         }
-
     }
 }
