@@ -7,13 +7,11 @@ namespace NFun.Fuspec.TestHandler.Models
     public sealed class ExceptionTestCaseResult:BaseFuspecTestCaseResult
     {
         public Exception Exception { get; }
-        public FuspecParserError FuspecParserError { get; }
 
-        public ExceptionTestCaseResult(DateTime? totalRunning, FuspecTestCase fuspecTestCase, Exception exception, FuspecParserError fuspecParserError) 
+        public ExceptionTestCaseResult(long totalRunning, FuspecTestCase fuspecTestCase, Exception exception) 
             : base(totalRunning, fuspecTestCase)
         {
             Exception = exception;
-            FuspecParserError = fuspecParserError;
         }
     }
 }
