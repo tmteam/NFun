@@ -12,11 +12,6 @@ namespace NFun.Fuspec.TestHandler
         public static BaseFuspecTestCaseResult RunFuspecTest(FuspecTestCase testCase)
         {
             var stopwatch = Stopwatch.StartNew();
-            return ParseTestResult(testCase, stopwatch);
-        }
-
-        private static BaseFuspecTestCaseResult ParseTestResult(FuspecTestCase testCase, Stopwatch stopwatch)
-        {
             BaseFuspecTestCaseResult testResult;
 
             try
@@ -40,5 +35,7 @@ namespace NFun.Fuspec.TestHandler
 
             return testResult;
         }
+
+
     }
 }
