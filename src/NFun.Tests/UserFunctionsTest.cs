@@ -1,5 +1,7 @@
 using System;
 using NFun;
+using NFun.BuiltInFunctions;
+using NFun.Exceptions;
 using NFun.ParseErrors;
 using NFun.Runtime;
 using NFun.Types;
@@ -165,7 +167,7 @@ namespace Funny.Tests
         
         public void StackOverflow_throws_FunStackOverflow(string text)
         {
-            Assert.Throws<FunStackoverflowException>(
+            Assert.Throws<FunRuntimeStackoverflowException>(
                 () => FunBuilder.BuildDefault(text).Calculate());
         }
         
