@@ -82,7 +82,11 @@ namespace NFun.Interpritation
 
         private static Equation BuildEquationAndPutItToVariables(EquationSyntaxNode equation,FunctionsDictionary functionsDictionary, VariableDictionary variables)
         {
-            var expression = ExpressionBuilderVisitor.BuildExpression(equation.Expression, functionsDictionary, variables);
+            var expression = ExpressionBuilderVisitor.BuildExpression(
+                equation.Expression, 
+                functionsDictionary, 
+                variables);
+            
             var newSource = new VariableSource(equation.Id, equation.OutputType, equation.Attributes) {
                 IsOutput = true
             };

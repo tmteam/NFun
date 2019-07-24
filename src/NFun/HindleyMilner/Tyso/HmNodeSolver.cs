@@ -188,7 +188,7 @@ namespace NFun.HindleyMilner.Tyso
             //First: Optimize type graph
             if(!Optimize(_originNodes))
                 return HmResult.NotSolvedResult();
-            
+            var overloads = new Dictionary<int, FunSignature>();
             //Second: Try append overload calls
             foreach (var lazyOverload in _lazyOverloads)
             {
@@ -200,13 +200,15 @@ namespace NFun.HindleyMilner.Tyso
                 
                 //Single function fits. That's good
                 SetLimArgCall(bestCandidate.ToCallDefenition(lazyOverload.ReturnNodeId, lazyOverload.ArgIds));
+                overloads.Add(lazyOverload.ReturnNodeId, bestCandidate);
             }
             
             //Third: Job finished!
             return new HmResult(
                 _originNodes,
                 _additionalNodes,
-                _variables);
+                _variables, 
+                overloads);
         }
 
         public static bool Optimize(IList<SolvingNode> nodes)

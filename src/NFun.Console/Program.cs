@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using NFun;
+using NFun.BuiltInFunctions;
 using NFun.ParseErrors;
 using NFun.Runtime;
 using NFun.Tokenization;

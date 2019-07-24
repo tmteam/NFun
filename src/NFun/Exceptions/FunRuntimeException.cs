@@ -1,6 +1,6 @@
 using System;
 
-namespace NFun.Runtime
+namespace NFun.BuiltInFunctions
 {
     public class FunRuntimeException:Exception
     {

@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NFun.BuiltInFunctions;
+using NFun.Exceptions;
+using NFun.HindleyMilner;
 using NFun.Interpritation.Functions;
 using NFun.Interpritation.Nodes;
 using NFun.ParseErrors;
@@ -104,13 +106,30 @@ namespace NFun.Interpritation
                 children.Add(argNode);
                 childrenTypes.Add(argNode.Type);
             }
+            var signature = node.SignatureOfOverload;
+            FunctionBase function;
+            if (signature != null)
+            {
+                //Signature was calculated by Ti algorithm.
+                
+                function = _functions.GetOrNullConcrete(
+                    name: id,
+                    returnType: signature.ReturnType,
+                    args: signature.ArgTypes);
+            }
+            else
+            {
+                //todo
+                //Ti algorithm had not calculate concrete overload
+                function = _functions.GetOrNullWithOverloadSearch(
+                    name: id, 
+                    returnType: node.OutputType,
+                    args: childrenTypes.ToArray());
+            }
 
-            var function = _functions.GetOrNull(
-                name: id, 
-                returnType: node.OutputType,
-                args: childrenTypes.ToArray());
             if (function == null)
-                throw ErrorFactory.FunctionOverloadNotFound(node, _functions);
+                throw new ImpossibleException("MJ78. Function overload was not found");
+            
             return function.CreateWithConvertionOrThrow(children, node.Interval);
         }
 

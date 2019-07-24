@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using NFun.HindleyMilner;
+using NFun.HindleyMilner.Tyso;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
 using NFun.Types;
@@ -26,6 +28,10 @@ namespace NFun.SyntaxParsing.SyntaxNodes
         public T Visit<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
         
         public IEnumerable<ISyntaxNode> Children => Args;
-
+        /// <summary>
+        /// Concrete Function Signature.
+        /// Setted after Ti-algorithm applied 
+        /// </summary>
+        public FunFunctionSignature SignatureOfOverload { get; set; }
     }
 }
