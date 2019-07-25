@@ -1035,7 +1035,7 @@ x = round(a - b - c)
             Assert.Multiple(() =>
             {
                 StandardAssertForNotCorrectTestCase();
-                Assert.AreEqual(FuspecErrorType.WrongParamType, _fuspecTestCases.Errors.FirstOrDefault().ErrorType);
+                Assert.AreEqual(FuspecErrorType.NFunError_ICantParseParamTypeString, _fuspecTestCases.Errors.FirstOrDefault().ErrorType);
             });
         }
         [Test]
@@ -1054,7 +1054,7 @@ x = round(a - b - c)
             Assert.Multiple(() =>
             {
                 StandardAssertForNotCorrectTestCase();
-                Assert.AreEqual(FuspecErrorType.WrongParamType, _fuspecTestCases.Errors.FirstOrDefault().ErrorType);
+                Assert.AreEqual(FuspecErrorType.NFunError_ICantParseParamTypeString, _fuspecTestCases.Errors.FirstOrDefault().ErrorType);
             });
         }
         
@@ -1115,7 +1115,7 @@ x = round(a - b - c)
             Assert.Multiple(() =>
             {
                 StandardAssertForNotCorrectTestCase();
-                Assert.AreEqual(FuspecErrorType.WrongParamType,_fuspecTestCases.Errors.FirstOrDefault().ErrorType);
+                Assert.AreEqual(FuspecErrorType.NFunError_ICantParseParamTypeString,_fuspecTestCases.Errors.FirstOrDefault().ErrorType);
 
             });
         }
