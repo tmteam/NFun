@@ -1,9 +1,0 @@
-C:\Apps\Fun\NFun\src\NFun\bin\Debug\netstandard2.0\NFun.deps.json
-C:\Apps\Fun\NFun\src\NFun\bin\Debug\netstandard2.0\NFun.dll
-C:\Apps\Fun\NFun\src\NFun\bin\Debug\netstandard2.0\NFun.pdb
-C:\Apps\Fun\NFun\src\NFun\obj\Debug\netstandard2.0\NFun.csprojAssemblyReference.cache
-C:\Apps\Fun\NFun\src\NFun\obj\Debug\netstandard2.0\NFun.csproj.CoreCompileInputs.cache
-C:\Apps\Fun\NFun\src\NFun\obj\Debug\netstandard2.0\NFun.AssemblyInfoInputs.cache
-C:\Apps\Fun\NFun\src\NFun\obj\Debug\netstandard2.0\NFun.AssemblyInfo.cs
-C:\Apps\Fun\NFun\src\NFun\obj\Debug\netstandard2.0\NFun.dll
-C:\Apps\Fun\NFun\src\NFun\obj\Debug\netstandard2.0\NFun.pdb
