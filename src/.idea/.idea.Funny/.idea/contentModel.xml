@@ -213,6 +213,7 @@
       </e>
       <e p="NFun.Fuspectests" t="IncludeRecursive">
         <e p="bin" t="ExcludeRecursive" />
+        <e p="ErrorTests.cs" t="Include" />
         <e p="FuspecTestCasesTests.cs" t="Include" />
         <e p="NFun.Fuspectests.csproj" t="IncludeRecursive" />
         <e p="obj" t="ExcludeRecursive">

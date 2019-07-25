@@ -2,20 +2,20 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="ed421fcf-62c0-4384-b868-cf3cf49b86dd" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/NFun.Fuspectests/ErrorTests.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.Funny/.idea/contentModel.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Funny/.idea/contentModel.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.Funny/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Funny/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NFun.Fuspec/Parser/FuspecParserErrors/FuspecErrorType.cs" beforeDir="false" afterPath="$PROJECT_DIR$/NFun.Fuspec/Parser/FuspecParserErrors/FuspecErrorType.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NFun.Fuspec/Parser/FuspecParserHelper.cs" beforeDir="false" afterPath="$PROJECT_DIR$/NFun.Fuspec/Parser/FuspecParserHelper.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NFun.Fuspec/Parser/TestCaseReader.cs" beforeDir="false" afterPath="$PROJECT_DIR$/NFun.Fuspec/Parser/TestCaseReader.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/NFun.Fuspec/bin/Debug/netcoreapp2.2/NFun.Fuspec.dll" beforeDir="false" afterPath="$PROJECT_DIR$/NFun.Fuspec/bin/Debug/netcoreapp2.2/NFun.Fuspec.dll" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/NFun.Fuspec/bin/Debug/netcoreapp2.2/NFun.Fuspec.pdb" beforeDir="false" afterPath="$PROJECT_DIR$/NFun.Fuspec/bin/Debug/netcoreapp2.2/NFun.Fuspec.pdb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/NFun.Fuspec/obj/Debug/netcoreapp2.2/NFun.Fuspec.assets.cache" beforeDir="false" afterPath="$PROJECT_DIR$/NFun.Fuspec/obj/Debug/netcoreapp2.2/NFun.Fuspec.assets.cache" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/NFun.Fuspec/obj/Debug/netcoreapp2.2/NFun.Fuspec.dll" beforeDir="false" afterPath="$PROJECT_DIR$/NFun.Fuspec/obj/Debug/netcoreapp2.2/NFun.Fuspec.dll" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/NFun.Fuspec/obj/Debug/netcoreapp2.2/NFun.Fuspec.pdb" beforeDir="false" afterPath="$PROJECT_DIR$/NFun.Fuspec/obj/Debug/netcoreapp2.2/NFun.Fuspec.pdb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NFun.Fuspectests/FuspecTestCasesTests.cs" beforeDir="false" afterPath="$PROJECT_DIR$/NFun.Fuspectests/FuspecTestCasesTests.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/NFun.Fuspectests/bin/Debug/netcoreapp2.2/NFun.Fuspec.dll" beforeDir="false" afterPath="$PROJECT_DIR$/NFun.Fuspectests/bin/Debug/netcoreapp2.2/NFun.Fuspec.dll" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/NFun.Fuspectests/bin/Debug/netcoreapp2.2/NFun.Fuspec.pdb" beforeDir="false" afterPath="$PROJECT_DIR$/NFun.Fuspectests/bin/Debug/netcoreapp2.2/NFun.Fuspec.pdb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/NFun.Fuspectests/bin/Debug/netcoreapp2.2/NFun.Fuspectests.dll" beforeDir="false" afterPath="$PROJECT_DIR$/NFun.Fuspectests/bin/Debug/netcoreapp2.2/NFun.Fuspectests.dll" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/NFun.Fuspectests/bin/Debug/netcoreapp2.2/NFun.Fuspectests.pdb" beforeDir="false" afterPath="$PROJECT_DIR$/NFun.Fuspectests/bin/Debug/netcoreapp2.2/NFun.Fuspectests.pdb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/NFun.Fuspectests/bin/Debug/netcoreapp2.2/nunit_random_seed.tmp" beforeDir="false" afterPath="$PROJECT_DIR$/NFun.Fuspectests/bin/Debug/netcoreapp2.2/nunit_random_seed.tmp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/NFun.Fuspectests/obj/Debug/netcoreapp2.2/NFun.Fuspectests.csproj.CoreCompileInputs.cache" beforeDir="false" afterPath="$PROJECT_DIR$/NFun.Fuspectests/obj/Debug/netcoreapp2.2/NFun.Fuspectests.csproj.CoreCompileInputs.cache" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/NFun.Fuspectests/obj/Debug/netcoreapp2.2/NFun.Fuspectests.csprojAssemblyReference.cache" beforeDir="false" afterPath="$PROJECT_DIR$/NFun.Fuspectests/obj/Debug/netcoreapp2.2/NFun.Fuspectests.csprojAssemblyReference.cache" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/NFun.Fuspectests/obj/Debug/netcoreapp2.2/NFun.Fuspectests.dll" beforeDir="false" afterPath="$PROJECT_DIR$/NFun.Fuspectests/obj/Debug/netcoreapp2.2/NFun.Fuspectests.dll" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/NFun.Fuspectests/obj/Debug/netcoreapp2.2/NFun.Fuspectests.pdb" beforeDir="false" afterPath="$PROJECT_DIR$/NFun.Fuspectests/obj/Debug/netcoreapp2.2/NFun.Fuspectests.pdb" afterDir="false" />
@@ -31,8 +31,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/NFun.Fuspectests/FuspecTestCasesTests.cs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-736">
-              <caret line="1022" column="20" selection-start-line="1022" selection-start-column="20" selection-end-line="1022" selection-end-column="20" />
+            <state relative-caret-position="-702">
+              <caret line="859" column="68" lean-forward="true" selection-start-line="859" selection-start-column="68" selection-end-line="859" selection-end-column="68" />
               <folding>
                 <marker date="1564069262944" expanded="false" signature="6:292" ph="..." />
                 <marker date="1564069262944" expanded="true" signature="315:46111" ph="{...}" />
@@ -176,16 +176,51 @@
           </provider>
         </entry>
       </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/NFun.Fuspectests/ErrorTests.cs">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="310">
+              <caret line="30" column="52" selection-start-line="30" selection-start-column="52" selection-end-line="30" selection-end-column="52" />
+              <folding>
+                <marker date="1564071198918" expanded="true" signature="6:134" ph="..." />
+                <marker date="1564071198918" expanded="true" signature="157:2553" ph="{...}" />
+                <marker date="1564071198918" expanded="true" signature="187:2551" ph="{...}" />
+                <marker date="1564071198918" expanded="true" signature="318:858" ph="{...}" />
+                <marker date="1564071198918" expanded="true" signature="568:846" ph="{...}" />
+                <marker date="1564071198918" expanded="true" signature="923:1397" ph="{...}" />
+                <marker date="1564071198918" expanded="true" signature="1457:1923" ph="{...}" />
+                <marker date="1564071198918" expanded="true" signature="1989:2222" ph="{...}" />
+                <marker date="1564071198918" expanded="true" signature="2280:2545" ph="{...}" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/FuspecParser.cs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="68">
-              <caret line="6" column="17" selection-start-line="6" selection-start-column="17" selection-end-line="6" selection-end-column="17" />
+            <state relative-caret-position="119">
+              <caret line="9" column="9" lean-forward="true" selection-start-line="9" selection-start-column="9" selection-end-line="9" selection-end-column="9" />
               <folding>
                 <marker date="1563917366685" expanded="false" signature="6:62" ph="..." />
                 <marker date="1563917366685" expanded="true" signature="92:341" ph="{...}" />
                 <marker date="1563917366685" expanded="true" signature="124:339" ph="{...}" />
                 <marker date="1563917366685" expanded="true" signature="201:333" ph="{...}" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/Model/ParsedFuspec.cs">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="136">
+              <caret line="12" column="56" lean-forward="true" selection-start-line="12" selection-start-column="56" selection-end-line="12" selection-end-column="56" />
+              <folding>
+                <marker date="1563917366688" expanded="false" signature="6:147" ph="..." />
+                <marker date="1563917366688" expanded="true" signature="183:526" ph="{...}" />
+                <marker date="1563917366688" expanded="true" signature="215:524" ph="{...}" />
+                <marker date="1563917366688" expanded="true" signature="336:518" ph="{...}" />
               </folding>
             </state>
           </provider>
@@ -213,39 +248,6 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/Model/SetCheckKit.cs">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="406">
-              <caret line="30" column="28" selection-start-line="30" selection-start-column="28" selection-end-line="30" selection-end-column="28" />
-              <folding>
-                <marker date="1563915963279" expanded="true" signature="69:767" ph="{...}" />
-                <marker date="1563915963279" expanded="true" signature="100:765" ph="{...}" />
-                <marker date="1563915963279" expanded="true" signature="227:329" ph="{...}" />
-                <marker date="1563915963279" expanded="true" signature="375:430" ph="{...}" />
-                <marker date="1563915963279" expanded="true" signature="482:539" ph="{...}" />
-                <marker date="1563915963279" expanded="true" signature="584:638" ph="{...}" />
-                <marker date="1563915963279" expanded="true" signature="700:759" ph="{...}" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/TestCaseBuilder.cs">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-149">
-              <caret line="15" column="8" selection-start-line="15" selection-start-column="8" selection-end-line="15" selection-end-column="8" />
-              <folding>
-                <marker date="1563915963281" expanded="false" signature="6:110" ph="..." />
-                <marker date="1563915963281" expanded="true" signature="140:1056" ph="{...}" />
-                <marker date="1563915963281" expanded="true" signature="177:1054" ph="{...}" />
-                <marker date="1563915963281" expanded="true" signature="618:880" ph="{...}" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/TestCaseParseState.cs">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="136">
@@ -258,10 +260,10 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/TestCaseReader.cs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-183">
+            <state relative-caret-position="4828">
               <caret line="303" column="8" selection-start-line="303" selection-start-column="8" selection-end-line="303" selection-end-column="8" />
               <folding>
                 <marker date="1564069420061" expanded="false" signature="6:307" ph="..." />
@@ -308,8 +310,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/FuspecParserErrors/FuspecErrorType.cs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="221">
-              <caret line="13" column="9" lean-forward="true" selection-start-line="13" selection-start-column="9" selection-end-line="13" selection-end-column="9" />
+            <state relative-caret-position="85">
+              <caret line="5" column="8" lean-forward="true" selection-start-line="5" selection-start-column="8" selection-end-line="5" selection-end-column="27" />
               <folding>
                 <marker date="1564069262923" expanded="true" signature="18:487" ph="{...}" />
                 <marker date="1564069262923" expanded="true" signature="52:485" ph="{...}" />
@@ -389,6 +391,7 @@
     <setting file="file://$PROJECT_DIR$/NFun/Types/VarType.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/NFun/Types/AdditionalTypeSpecification.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/NFun/Types/TypeHelper.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/NFun.Fuspectests/ErrorTests.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/NFun/SyntaxParsing/SyntaxNodeReader.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/NFun/SyntaxParsing/SyntaxNodeFactory.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/NFun/FunBuilder.cs" root0="FORCE_HIGHLIGHTING" />
@@ -416,6 +419,7 @@
         <option value="$PROJECT_DIR$/NFun.Fuspec/Parser/FuspecParserHelper.cs" />
         <option value="$PROJECT_DIR$/NFun.Fuspec/Parser/FuspecParserErrors/FuspecErrorType.cs" />
         <option value="$PROJECT_DIR$/NFun.Fuspec/Parser/TestCaseReader.cs" />
+        <option value="$PROJECT_DIR$/NFun.Fuspectests/ErrorTests.cs" />
       </list>
     </option>
   </component>
@@ -460,7 +464,20 @@
             <path>
               <item name="Project" type="784c90a0:SolutionExplorerRootNode" />
               <item name="Funny" type="24d0babc:SolutionExplorerModelNode" />
+              <item name="NFun.Fuspec" type="24d0babc:SolutionExplorerModelNode" />
+              <item name="Parser" type="24d0babc:SolutionExplorerModelNode" />
+              <item name="Model" type="24d0babc:SolutionExplorerModelNode" />
+            </path>
+            <path>
+              <item name="Project" type="784c90a0:SolutionExplorerRootNode" />
+              <item name="Funny" type="24d0babc:SolutionExplorerModelNode" />
               <item name="NFun.Fuspectests" type="24d0babc:SolutionExplorerModelNode" />
+            </path>
+            <path>
+              <item name="Project" type="784c90a0:SolutionExplorerRootNode" />
+              <item name="Funny" type="24d0babc:SolutionExplorerModelNode" />
+              <item name="NFun.Fuspectests" type="24d0babc:SolutionExplorerModelNode" />
+              <item name="Dependencies" type="24d0babc:SolutionExplorerModelNode" />
             </path>
           </expand>
           <select />
@@ -534,7 +551,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="92825000" />
+    <option name="totallyTimeSpent" value="94473000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -549,14 +566,14 @@
     <frame x="-7" y="-7" width="1550" height="838" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.2671141" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.2671141" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Image Layers" order="2" />
       <window_info id="Capture Tool" order="3" />
       <window_info id="Favorites" order="4" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.3286119" />
-      <window_info anchor="bottom" id="Run" order="2" weight="0.3286119" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.3286119" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.39943343" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -566,7 +583,7 @@
       <window_info anchor="bottom" id="Docker" order="9" show_stripe_button="false" />
       <window_info anchor="bottom" id="Version Control" order="10" />
       <window_info anchor="bottom" id="Database Changes" order="11" />
-      <window_info anchor="bottom" id="Unit Tests" order="12" visible="true" weight="0.3286119" />
+      <window_info anchor="bottom" id="Unit Tests" order="12" weight="0.3286119" />
       <window_info anchor="bottom" id="Terminal" order="13" />
       <window_info anchor="bottom" id="Event Log" order="14" side_tool="true" />
       <window_info anchor="bottom" id="Build" order="15" weight="0.3286119" />
@@ -1292,19 +1309,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/Model/ParsedFuspec.cs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="136">
-          <caret line="12" column="56" selection-start-line="12" selection-start-column="56" selection-end-line="12" selection-end-column="56" />
-          <folding>
-            <marker date="1559068179804" expanded="false" signature="6:147" ph="..." />
-            <marker date="1559068179804" expanded="true" signature="183:526" ph="{...}" />
-            <marker date="1559068179804" expanded="true" signature="215:524" ph="{...}" />
-            <marker date="1559068179804" expanded="true" signature="336:518" ph="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/Model/ParamValues.cs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="119">
@@ -1346,19 +1350,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/FuspecParser.cs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="68">
-          <caret line="6" column="17" selection-start-line="6" selection-start-column="17" selection-end-line="6" selection-end-column="17" />
-          <folding>
-            <marker date="1563917366685" expanded="false" signature="6:62" ph="..." />
-            <marker date="1563917366685" expanded="true" signature="92:341" ph="{...}" />
-            <marker date="1563917366685" expanded="true" signature="124:339" ph="{...}" />
-            <marker date="1563917366685" expanded="true" signature="201:333" ph="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/TestCaseBuilder.cs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-149">
@@ -1391,29 +1382,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/FuspecParserErrors/FuspecErrorType.cs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="221">
-          <caret line="13" column="9" lean-forward="true" selection-start-line="13" selection-start-column="9" selection-end-line="13" selection-end-column="9" />
-          <folding>
-            <marker date="1564069262923" expanded="true" signature="18:487" ph="{...}" />
-            <marker date="1564069262923" expanded="true" signature="52:485" ph="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/FuspecParserErrors/FuspecParserException.cs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="68">
-          <caret line="4" column="17" selection-start-line="4" selection-start-column="17" selection-end-line="4" selection-end-column="17" />
-          <folding>
-            <marker date="1563917366686" expanded="true" signature="62:355" ph="{...}" />
-            <marker date="1563917366686" expanded="true" signature="123:353" ph="{...}" />
-            <marker date="1563917366686" expanded="true" signature="298:347" ph="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/FuspecParserErrors/FuspecParserError.cs">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="68">
@@ -1438,10 +1406,93 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/FuspecParserErrors/FuspecParserException.cs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="68">
+          <caret line="4" column="17" selection-start-line="4" selection-start-column="17" selection-end-line="4" selection-end-column="17" />
+          <folding>
+            <marker date="1563917366686" expanded="true" signature="62:355" ph="{...}" />
+            <marker date="1563917366686" expanded="true" signature="123:353" ph="{...}" />
+            <marker date="1563917366686" expanded="true" signature="298:347" ph="{...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/TestCaseReader.cs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="4828">
+          <caret line="303" column="8" selection-start-line="303" selection-start-column="8" selection-end-line="303" selection-end-column="8" />
+          <folding>
+            <marker date="1564069420061" expanded="false" signature="6:307" ph="..." />
+            <marker date="1564069420061" expanded="true" signature="337:12645" ph="{...}" />
+            <marker date="1564069420061" expanded="true" signature="372:12643" ph="{...}" />
+            <marker date="1564069420061" expanded="true" signature="887:1147" ph="{...}" />
+            <marker date="1564069420061" expanded="true" signature="1186:1669" ph="{...}" />
+            <marker date="1564069420061" expanded="true" signature="1312:1416" ph="{...}" />
+            <marker date="1564069420061" expanded="true" signature="1773:2673" ph="{...}" />
+            <marker date="1564069420061" expanded="true" signature="1823:2663" ph="{...}" />
+            <marker date="1564069420061" expanded="true" signature="2739:3311" ph="{...}" />
+            <marker date="1564069420061" expanded="true" signature="2990:3202" ph="{...}" />
+            <marker date="1564069420061" expanded="true" signature="3376:3779" ph="{...}" />
+            <marker date="1564069420061" expanded="true" signature="3836:4448" ph="{...}" />
+            <marker date="1564069420061" expanded="true" signature="4517:5744" ph="{...}" />
+            <marker date="1564069420061" expanded="true" signature="4561:4682" ph="{...}" />
+            <marker date="1564069420061" expanded="true" signature="5039:5136" ph="{...}" />
+            <marker date="1564069420061" expanded="true" signature="5168:5315" ph="{...}" />
+            <marker date="1564069420061" expanded="true" signature="5806:7088" ph="{...}" />
+            <marker date="1564069420061" expanded="true" signature="6110:6337" ph="{...}" />
+            <marker date="1564069420061" expanded="true" signature="6558:6653" ph="{...}" />
+            <marker date="1564069420061" expanded="true" signature="6685:6832" ph="{...}" />
+            <marker date="1564069420061" expanded="true" signature="7145:7816" ph="{...}" />
+            <marker date="1564069420061" expanded="true" signature="7189:7306" ph="{...}" />
+            <marker date="1564069420061" expanded="true" signature="7390:7725" ph="{...}" />
+            <marker date="1564069420061" expanded="true" signature="7875:10485" ph="{...}" />
+            <marker date="1564069420061" expanded="true" signature="8020:8342" ph="{...}" />
+            <marker date="1564069420061" expanded="true" signature="8112:8271" ph="{...}" />
+            <marker date="1564069420061" expanded="true" signature="8387:8693" ph="{...}" />
+            <marker date="1564069420061" expanded="true" signature="8479:8638" ph="{...}" />
+            <marker date="1564069420061" expanded="true" signature="9154:9763" ph="{...}" />
+            <marker date="1564069420061" expanded="true" signature="10545:10823" ph="{...}" />
+            <marker date="1564069420061" expanded="true" signature="10879:11848" ph="{...}" />
+            <marker date="1564069420061" expanded="true" signature="11362:11838" ph="{...}" />
+            <marker date="1564069420061" expanded="true" signature="11530:11824" ph="{...}" />
+            <marker date="1564069420061" expanded="true" signature="11884:12207" ph="{...}" />
+            <marker date="1564069420061" expanded="true" signature="12257:12397" ph="{...}" />
+            <marker date="1564069420061" expanded="true" signature="12481:12637" ph="{...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/FuspecParser.cs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="119">
+          <caret line="9" column="9" lean-forward="true" selection-start-line="9" selection-start-column="9" selection-end-line="9" selection-end-column="9" />
+          <folding>
+            <marker date="1563917366685" expanded="false" signature="6:62" ph="..." />
+            <marker date="1563917366685" expanded="true" signature="92:341" ph="{...}" />
+            <marker date="1563917366685" expanded="true" signature="124:339" ph="{...}" />
+            <marker date="1563917366685" expanded="true" signature="201:333" ph="{...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/Model/ParsedFuspec.cs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="136">
+          <caret line="12" column="56" lean-forward="true" selection-start-line="12" selection-start-column="56" selection-end-line="12" selection-end-column="56" />
+          <folding>
+            <marker date="1563917366688" expanded="false" signature="6:147" ph="..." />
+            <marker date="1563917366688" expanded="true" signature="183:526" ph="{...}" />
+            <marker date="1563917366688" expanded="true" signature="215:524" ph="{...}" />
+            <marker date="1563917366688" expanded="true" signature="336:518" ph="{...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/NFun.Fuspectests/FuspecTestCasesTests.cs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-736">
-          <caret line="1022" column="20" selection-start-line="1022" selection-start-column="20" selection-end-line="1022" selection-end-column="20" />
+        <state relative-caret-position="-702">
+          <caret line="859" column="68" lean-forward="true" selection-start-line="859" selection-start-column="68" selection-end-line="859" selection-end-column="68" />
           <folding>
             <marker date="1564069262944" expanded="false" signature="6:292" ph="..." />
             <marker date="1564069262944" expanded="true" signature="315:46111" ph="{...}" />
@@ -1584,47 +1635,31 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/TestCaseReader.cs">
+    <entry file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/FuspecParserErrors/FuspecErrorType.cs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-183">
-          <caret line="303" column="8" selection-start-line="303" selection-start-column="8" selection-end-line="303" selection-end-column="8" />
+        <state relative-caret-position="85">
+          <caret line="5" column="8" lean-forward="true" selection-start-line="5" selection-start-column="8" selection-end-line="5" selection-end-column="27" />
           <folding>
-            <marker date="1564069420061" expanded="false" signature="6:307" ph="..." />
-            <marker date="1564069420061" expanded="true" signature="337:12645" ph="{...}" />
-            <marker date="1564069420061" expanded="true" signature="372:12643" ph="{...}" />
-            <marker date="1564069420061" expanded="true" signature="887:1147" ph="{...}" />
-            <marker date="1564069420061" expanded="true" signature="1186:1669" ph="{...}" />
-            <marker date="1564069420061" expanded="true" signature="1312:1416" ph="{...}" />
-            <marker date="1564069420061" expanded="true" signature="1773:2673" ph="{...}" />
-            <marker date="1564069420061" expanded="true" signature="1823:2663" ph="{...}" />
-            <marker date="1564069420061" expanded="true" signature="2739:3311" ph="{...}" />
-            <marker date="1564069420061" expanded="true" signature="2990:3202" ph="{...}" />
-            <marker date="1564069420061" expanded="true" signature="3376:3779" ph="{...}" />
-            <marker date="1564069420061" expanded="true" signature="3836:4448" ph="{...}" />
-            <marker date="1564069420061" expanded="true" signature="4517:5744" ph="{...}" />
-            <marker date="1564069420061" expanded="true" signature="4561:4682" ph="{...}" />
-            <marker date="1564069420061" expanded="true" signature="5039:5136" ph="{...}" />
-            <marker date="1564069420061" expanded="true" signature="5168:5315" ph="{...}" />
-            <marker date="1564069420061" expanded="true" signature="5806:7088" ph="{...}" />
-            <marker date="1564069420061" expanded="true" signature="6110:6337" ph="{...}" />
-            <marker date="1564069420061" expanded="true" signature="6558:6653" ph="{...}" />
-            <marker date="1564069420061" expanded="true" signature="6685:6832" ph="{...}" />
-            <marker date="1564069420061" expanded="true" signature="7145:7816" ph="{...}" />
-            <marker date="1564069420061" expanded="true" signature="7189:7306" ph="{...}" />
-            <marker date="1564069420061" expanded="true" signature="7390:7725" ph="{...}" />
-            <marker date="1564069420061" expanded="true" signature="7875:10485" ph="{...}" />
-            <marker date="1564069420061" expanded="true" signature="8020:8342" ph="{...}" />
-            <marker date="1564069420061" expanded="true" signature="8112:8271" ph="{...}" />
-            <marker date="1564069420061" expanded="true" signature="8387:8693" ph="{...}" />
-            <marker date="1564069420061" expanded="true" signature="8479:8638" ph="{...}" />
-            <marker date="1564069420061" expanded="true" signature="9154:9763" ph="{...}" />
-            <marker date="1564069420061" expanded="true" signature="10545:10823" ph="{...}" />
-            <marker date="1564069420061" expanded="true" signature="10879:11848" ph="{...}" />
-            <marker date="1564069420061" expanded="true" signature="11362:11838" ph="{...}" />
-            <marker date="1564069420061" expanded="true" signature="11530:11824" ph="{...}" />
-            <marker date="1564069420061" expanded="true" signature="11884:12207" ph="{...}" />
-            <marker date="1564069420061" expanded="true" signature="12257:12397" ph="{...}" />
-            <marker date="1564069420061" expanded="true" signature="12481:12637" ph="{...}" />
+            <marker date="1564069262923" expanded="true" signature="18:487" ph="{...}" />
+            <marker date="1564069262923" expanded="true" signature="52:485" ph="{...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/NFun.Fuspectests/ErrorTests.cs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="310">
+          <caret line="30" column="52" selection-start-line="30" selection-start-column="52" selection-end-line="30" selection-end-column="52" />
+          <folding>
+            <marker date="1564071198918" expanded="true" signature="6:134" ph="..." />
+            <marker date="1564071198918" expanded="true" signature="157:2553" ph="{...}" />
+            <marker date="1564071198918" expanded="true" signature="187:2551" ph="{...}" />
+            <marker date="1564071198918" expanded="true" signature="318:858" ph="{...}" />
+            <marker date="1564071198918" expanded="true" signature="568:846" ph="{...}" />
+            <marker date="1564071198918" expanded="true" signature="923:1397" ph="{...}" />
+            <marker date="1564071198918" expanded="true" signature="1457:1923" ph="{...}" />
+            <marker date="1564071198918" expanded="true" signature="1989:2222" ph="{...}" />
+            <marker date="1564071198918" expanded="true" signature="2280:2545" ph="{...}" />
           </folding>
         </state>
       </provider>
