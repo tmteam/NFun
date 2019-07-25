@@ -297,9 +297,9 @@ namespace Nfun.Fuspec.Parser
         {
             _testCaseBuilder.Script = "";
             foreach (var strScript in _script)
-                _testCaseBuilder.Script = _testCaseBuilder.Script + strScript + "\r";
+                _testCaseBuilder.Script = _testCaseBuilder.Script + strScript + "\r\n";
             _testCaseBuilder.Script =
-                _testCaseBuilder.Script.Substring(0, _testCaseBuilder.Script.Length - 1);
+                _testCaseBuilder.Script.Substring(0, _testCaseBuilder.Script.Length - 2);
         }
         
         private void BuildSetCheckKits()

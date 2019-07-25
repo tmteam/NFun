@@ -1,0 +1,6 @@
+|************************
+| TEST Complex example 
+| TAGS
+|************************
+  x = round(a + b + c)
+  x = round(a + b - c)

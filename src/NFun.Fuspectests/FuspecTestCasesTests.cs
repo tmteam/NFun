@@ -28,6 +28,7 @@ namespace FuspecTests
 | TEST Complex example 
 | TAGS
 |************************
+  x = round(a + b + c)
   x = round(a + b + c)");
 
             Assert.Multiple(() =>
@@ -504,7 +505,7 @@ hjfghfghs
             Assert.Multiple(() =>
             {
                 StandardAssertForCorrectTestCase();
-                Assert.AreEqual("  x = round(a + b + c)\r  x = round(a - b - c)", _fuspecTestCases.TestCases[0].Script);
+                Assert.AreEqual("  x = round(a + b + c)\r\n  x = round(a - b - c)", _fuspecTestCases.TestCases[0].Script);
             });
         }
         
@@ -523,7 +524,7 @@ x = round(a - b - c)
             Assert.Multiple(() =>
             {
                 StandardAssertForCorrectTestCase();
-                Assert.AreEqual("  x = round(a + b + c)\rx = round(a - b - c)\r|**", _fuspecTestCases.TestCases[0].Script);
+                Assert.AreEqual("  x = round(a + b + c)\r\nx = round(a - b - c)\r\n|**", _fuspecTestCases.TestCases[0].Script);
             });
         }
       
@@ -541,7 +542,7 @@ x = round(a - b - c)
             Assert.Multiple(() =>
             {
                 StandardAssertForCorrectTestCase();
-                Assert.AreEqual("      \r  x = round(a - b - c)", _fuspecTestCases.TestCases.FirstOrDefault().Script);
+                Assert.AreEqual("      \r\n  x = round(a - b - c)", _fuspecTestCases.TestCases.FirstOrDefault().Script);
             });
         }
 
@@ -594,7 +595,7 @@ x = round(a - b - c)
             Assert.Multiple(() =>
             {
                 StandardAssertForCorrectTestCase();
-                Assert.AreEqual("     x = round(a - b - c)  \rпвпавпвапва", _fuspecTestCases.TestCases.FirstOrDefault().Script);
+                Assert.AreEqual("     x = round(a - b - c)  \r\nпвпавпвапва", _fuspecTestCases.TestCases.FirstOrDefault().Script);
 
             });
         }
@@ -648,7 +649,7 @@ x = round(a - b - c)
                 Assert.IsNotNull(_fuspecTestCases.Errors, "FuspecTestCases.Errors = null");
                 Assert.AreEqual(0, _fuspecTestCases.Errors.Length, "Parser wrote nonexistent error ");
                 Assert.AreEqual(2, _fuspecTestCases.TestCases.Length, "Parser didn't write testcase");
-                Assert.AreEqual("  x = round(a - b - c)\r", _fuspecTestCases.TestCases.FirstOrDefault().Script);
+                Assert.AreEqual("  x = round(a - b - c)\r\n", _fuspecTestCases.TestCases.FirstOrDefault().Script);
                 Assert.AreEqual("     x = round(a - b - c)",_fuspecTestCases.TestCases[1].Script);
 
             });
@@ -667,7 +668,7 @@ x = round(a - b - c)
 | TEST Name
 | TAGS tag1
 |************************
-     x = round(a - b - c)");
+     x = round(a - b + c)");
 
             Assert.Multiple(() =>
             {
@@ -676,8 +677,8 @@ x = round(a - b - c)
                 Assert.IsNotNull(_fuspecTestCases.Errors, "FuspecTestCases.Errors = null");
                 Assert.AreEqual(0, _fuspecTestCases.Errors.Length, "Parser wrote nonexistent error ");
                 Assert.AreEqual(2, _fuspecTestCases.TestCases.Length, "Parser didn't write testcase");
-                Assert.AreEqual("  x = round(a - b - c)\r    ", _fuspecTestCases.TestCases.FirstOrDefault().Script);
-                Assert.AreEqual("     x = round(a - b - c)",_fuspecTestCases.TestCases[1].Script);
+                Assert.AreEqual("  x = round(a - b - c)\r\n    ", _fuspecTestCases.TestCases.FirstOrDefault().Script);
+                Assert.AreEqual("     x = round(a - b + c)",_fuspecTestCases.TestCases[1].Script);
 
             });
         }
@@ -788,7 +789,7 @@ x = round(a - b - c)
             Assert.Multiple(() =>
             {
                 StandardAssertForCorrectTestCase();
-                Assert.AreEqual("\r  x = round(a - b - c)  ",_fuspecTestCases.TestCases.FirstOrDefault().Script);
+                Assert.AreEqual("\r\n  x = round(a - b - c)  ",_fuspecTestCases.TestCases.FirstOrDefault().Script);
                 Assert.AreEqual("a",_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[0].Value);
                 Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[0].VarType);
                 Assert.AreEqual(param.Value,_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0].Value);
