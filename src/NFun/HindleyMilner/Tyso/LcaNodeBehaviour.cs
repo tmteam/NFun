@@ -153,11 +153,21 @@ namespace NFun.HindleyMilner.Tyso
             return this;
         }
 
-        public ConvertResults CanBeConvertedTo(FType candidateType, int maxDepth)
+        public FitResult CanBeConvertedTo(FType candidateType, int maxDepth)
         {
             if (candidateType.IsPrimitiveGeneric)
-                return ConvertResults.Converable;
-            return OtherNodes.Min(o => o.CanBeConvertedTo(candidateType, maxDepth - 1));
+                return new FitResult(FitType.Converable,0);
+            
+            var worstResult = new FitResult(FitType.Strict, 0);
+            
+            foreach (var child in OtherNodes)
+            {
+                
+                var childResult =  child.CanBeConvertedTo(candidateType, maxDepth - 1);
+                if (worstResult.IsBetterThan(childResult))
+                    worstResult = childResult;
+            }
+            return worstResult;
         }
     }
 }

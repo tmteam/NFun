@@ -9,10 +9,6 @@ namespace NFun.HindleyMilner.Tyso
 
         public ReferenceBehaviour(SolvingNode node)
         {
-            if (node.Behavior is ReferenceBehaviour r)
-            {
-                
-            }
             Node = node;
         }
 
@@ -72,7 +68,7 @@ namespace NFun.HindleyMilner.Tyso
             return this;
         }
 
-        public ConvertResults CanBeConvertedTo(FType candidateType, int maxDepth) 
+        public FitResult CanBeConvertedTo(FType candidateType, int maxDepth) 
             => Node.CanBeConvertedTo(candidateType, maxDepth-1);
 
         // public override string ToString() => ToSmartString(SolvingNode.MaxTypeDepth);

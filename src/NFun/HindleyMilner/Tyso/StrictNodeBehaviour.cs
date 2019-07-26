@@ -126,39 +126,39 @@ namespace NFun.HindleyMilner.Tyso
             return this;
         }
 
-        public ConvertResults CanBeConvertedTo(FType candidateType, int maxDepth)
+        public FitResult CanBeConvertedTo(FType candidateType, int maxDepth)
         {
             if (candidateType.IsPrimitiveGeneric)
-                return ConvertResults.Converable;
+                return new  FitResult(FitType.Converable,0);
             if (candidateType.IsPrimitive)
             {
                 if (candidateType.Name.Equals(_type.Name))
-                    return ConvertResults.Strict;
+                    return new FitResult(FitType.Strict, 0);
                 //special case: Int is most expected type for someInteger
                 if(_type.Name.Id== HmTypeName.Int32Id && candidateType.Name.Id== HmTypeName.SomeIntegerId)
-                    return ConvertResults.Candidate;
+                    return new FitResult(FitType.Candidate, _type.GetParentalDistanceTo(candidateType));
                 if (_type.CanBeSafelyConvertedTo(candidateType)) 
-                    return ConvertResults.Converable;
+                    return new FitResult(FitType.Converable, _type.GetParentalDistanceTo(candidateType));
                 else
-                    return ConvertResults.Not;
+                    return FitResult.Not;
             }
             
             if (!candidateType.Name.Equals(_type.Name))
-                return ConvertResults.Not;
+                return FitResult.Not;
 
             
             if (_type.Arguments.Length!= candidateType.Arguments.Length)
-                return ConvertResults.Not;
+                return FitResult.Not;
 
-            ConvertResults minimalResult = ConvertResults.Strict;
+            FitType minimalResult = FitType.Strict;
             for (int i = 0; i < _type.Arguments.Length ; i++)
             {
                 var res =_type.Arguments[i]
                     .CanBeConvertedTo(candidateType.Arguments[i].MakeType(maxDepth-1), maxDepth-1);
-                if (res < minimalResult)
-                    minimalResult = res;
+                if (res.Type < minimalResult)
+                    minimalResult = res.Type;
             }
-            return minimalResult;
+            return new FitResult(minimalResult,0);
         }
 
         public override string ToString() => $"{_type}";

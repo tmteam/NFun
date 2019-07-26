@@ -86,7 +86,9 @@ namespace NFun.HindleyMilner.Tyso
 
             return true;
         }
-        
+
+        public int GetParentalDistanceTo(FType parent) => Name.Depth- parent.Name.Depth;
+
         public bool CanBeSafelyConvertedTo(FType type2)
         {
             if (IsPrimitive)

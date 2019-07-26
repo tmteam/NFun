@@ -76,7 +76,7 @@ namespace NFun.Runtime
                     Value = Convert.ToUInt32(valueValue);
                     break;
                 case BaseVarType.UInt64:
-                    Value = Convert.ToInt64(valueValue);
+                    Value = Convert.ToUInt64(valueValue);
                     break;
                 case BaseVarType.Real:
                     Value = Convert.ToDouble(valueValue);

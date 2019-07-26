@@ -111,7 +111,6 @@ namespace NFun.Interpritation
             if (signature != null)
             {
                 //Signature was calculated by Ti algorithm.
-                
                 function = _functions.GetOrNullConcrete(
                     name: id,
                     returnType: signature.ReturnType,

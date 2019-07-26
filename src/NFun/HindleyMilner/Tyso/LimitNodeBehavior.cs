@@ -93,25 +93,24 @@ namespace NFun.HindleyMilner.Tyso
             return this;
         }
 
-        public ConvertResults CanBeConvertedTo(FType candidateType, int maxDepth)
+        public FitResult CanBeConvertedTo(FType candidateType, int maxDepth)
         {
             if (candidateType.IsPrimitiveGeneric)
-                return ConvertResults.Converable;
+                return new FitResult(FitType.Converable,0);
             if (candidateType.Equals(Limit))
-                return ConvertResults.Strict;
+                return FitResult.Strict;
             //special case: Int is most expected type for someInteger
             if(Limit.Name.Equals(HmTypeName.SomeInteger) && candidateType.Name.Equals(HmTypeName.Int32))
-                return ConvertResults.Strict;
+                return FitResult.Strict;
             
             //We can reduce current limit to candidateType
             if (candidateType.CanBeSafelyConvertedTo(Limit))
-                return ConvertResults.Candidate;
+                return new FitResult(FitType.Candidate, candidateType.GetParentalDistanceTo(Limit));
             
             if (Limit.CanBeSafelyConvertedTo(candidateType))
-                return ConvertResults.Converable;
-            
+                return new FitResult(FitType.Converable, Limit.GetParentalDistanceTo(candidateType));
 
-            return ConvertResults.Not;
+            return FitResult.Not;
         }
 
         public override string ToString() => ToSmartString();
