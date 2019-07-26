@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ContentModelStore">
+    <e p="C:\Apps\NewNewNewFun\NFun\src" t="IncludeFlat">
+      <e p="ConsoleUseParser" t="IncludeRecursive">
+        <e p="bin" t="ExcludeRecursive" />
+        <e p="ConsoleRender.cs" t="Include" />
+        <e p="ConsoleUseParser.csproj" t="IncludeRecursive" />
+        <e p="obj" t="ExcludeRecursive">
+          <e p="Debug" t="Include">
+            <e p="netcoreapp2.2" t="Include">
+              <e p="ConsoleUseParser.AssemblyInfo.cs" t="Include" />
+            </e>
+          </e>
+        </e>
+        <e p="Program.cs" t="Include" />
+        <e p="testcases.txt" t="Include" />
+      </e>
+      <e p="Funny.sln" t="IncludeFlat" />
+      <e p="NFun" t="IncludeRecursive">
+        <e p="bin" t="ExcludeRecursive" />
+        <e p="BuiltInFunctions" t="Include">
+          <e p="ArrayFunctions.cs" t="Include" />
+          <e p="ArrayGenerics.cs" t="Include" />
+          <e p="BitwiseFunctions.cs" t="Include" />
+          <e p="ConvertFunctions.cs" t="Include" />
+          <e p="CoreFunNames.cs" t="Include" />
+          <e p="MathFunctions.cs" t="Include" />
+        </e>
+        <e p="FunBuilder.cs" t="Include" />
+        <e p="HindleyMilner" t="Include">
+          <e p="AdpterHelper.cs" t="Include" />
+          <e p="AliasTable.cs" t="Include" />
+          <e p="ApplyHmResultVisitor.cs" t="Include" />
+          <e p="EnterHmVisitor.cs" t="Include" />
+          <e p="ExitHmVisitor.cs" t="Include" />
+          <e p="FunTypeSolving.cs" t="Include" />
+          <e p="HmAlgorithmAdapter.cs" t="Include" />
+          <e p="HmVisitorState.cs" t="Include" />
+          <e p="SolvedTypeConverter.cs" t="Include" />
+          <e p="Tyso" t="Include">
+            <e p="CallDef.cs" t="Include" />
+            <e p="FType.cs" t="Include" />
+            <e p="FunSignature.cs" t="Include" />
+            <e p="GenericMap.cs" t="Include" />
+            <e p="GenericTypeBehaviour.cs" t="Include" />
+            <e p="HmHumanizerSolver.cs" t="Include" />
+            <e p="HmNodeSolver.cs" t="Include" />
+            <e p="HmResult.cs" t="Include" />
+            <e p="HmTypeName.cs" t="Include" />
+            <e p="INodeBehaviour.cs" t="Include" />
+            <e p="LcaNodeBehaviour.cs" t="Include" />
+            <e p="LimitNodeBehavior.cs" t="Include" />
+            <e p="ReferenceBehaviour.cs" t="Include" />
+            <e p="SolvingNode.cs" t="Include" />
+            <e p="StrictNodeBehaviour.cs" t="Include" />
+          </e>
+          <e p="UserFunctionHmSolving.cs" t="Include" />
+        </e>
+        <e p="Interpritation" t="Include">
+          <e p="Equation.cs" t="Include" />
+          <e p="ExpressionBuilderVisitor.cs" t="Include" />
+          <e p="ExpressionHelper.cs" t="Include" />
+          <e p="Functions" t="Include">
+            <e p="ConcreteUserFunctionPrototype.cs" t="Include" />
+            <e p="FunctionBase.cs" t="Include" />
+            <e p="GenericFunctionBase.cs" t="Include" />
+            <e p="GenericUserFunctionPrototype.cs" t="Include" />
+            <e p="UserFunction.cs" t="Include" />
+          </e>
+          <e p="FunctionsDictionary.cs" t="Include" />
+          <e p="Nodes" t="Include">
+            <e p="ArrayExpressionNode.cs" t="Include" />
+            <e p="CastExpressionNode.cs" t="Include" />
+            <e p="FunArgumentExpressionNode.cs" t="Include" />
+            <e p="FunExpressionNode.cs" t="Include" />
+            <e p="FunVariableExpressionNode.cs" t="Include" />
+            <e p="IExpressionNode.cs" t="Include" />
+            <e p="IfCaseExpressionNode.cs" t="Include" />
+            <e p="IfThenElseExpressionNode.cs" t="Include" />
+            <e p="ValueExpressionNode.cs" t="Include" />
+            <e p="VariableExpressionNode.cs" t="Include" />
+          </e>
+          <e p="RuntimeBuilder.cs" t="Include" />
+        </e>
+        <e p="NFun.csproj" t="IncludeRecursive" />
+        <e p="NFun.nuspec" t="Include" />
+        <e p="obj" t="ExcludeRecursive">
+          <e p="Debug" t="Include">
+            <e p="netstandard2.0" t="Include">
+              <e p="NFun.AssemblyInfo.cs" t="Include" />
+            </e>
+          </e>
+        </e>
+        <e p="ParseErrors" t="Include">
+          <e p="ErrorFactory.cs" t="Include" />
+          <e p="ErrorsHelper.cs" t="Include" />
+          <e p="FunParseException.cs" t="Include" />
+        </e>
+        <e p="Runtime" t="Include">
+          <e p="CalculationResult.cs" t="Include" />
+          <e p="FunArray.cs" t="Include" />
+          <e p="FunRuntime.cs" t="Include" />
+          <e p="FunRuntimeException.cs" t="Include" />
+          <e p="FunStackoverflowException.cs" t="Include" />
+          <e p="VariableDictionary.cs" t="Include" />
+          <e p="VariableSource.cs" t="Include" />
+          <e p="VariableUsages.cs" t="Include" />
+        </e>
+        <e p="SyntaxParsing" t="Include">
+          <e p="GraphTools.cs" t="Include" />
+          <e p="ISyntaxNode.cs" t="Include" />
+          <e p="SyntaxNodeFactory.cs" t="Include" />
+          <e p="SyntaxNodeReader.cs" t="Include" />
+          <e p="SyntaxNodes" t="Include">
+            <e p="AnonymCallSyntaxNode.cs" t="Include" />
+            <e p="ArraySyntaxNode.cs" t="Include" />
+            <e p="ConstantSyntaxNode.cs" t="Include" />
+            <e p="EquationSyntaxNode.cs" t="Include" />
+            <e p="FunCallSyntaxNode.cs" t="Include" />
+            <e p="IfCaseSyntaxNode.cs" t="Include" />
+            <e p="IfThenElseSyntaxNode.cs" t="Include" />
+            <e p="ListOfExpressionsSyntaxNode.cs" t="Include" />
+            <e p="ProcArrayInit.cs" t="Include" />
+            <e p="SyntaxTree.cs" t="Include" />
+            <e p="TypedVarDefSyntaxNode.cs" t="Include" />
+            <e p="UserFunctionDefenitionSyntaxNode.cs" t="Include" />
+            <e p="VarDefenitionSyntaxNode.cs" t="Include" />
+            <e p="VariableSyntaxNode.cs" t="Include" />
+          </e>
+          <e p="TokenParsingHelper.cs" t="Include" />
+          <e p="TopLevelParser.cs" t="Include" />
+          <e p="TopologySortResults.cs" t="Include" />
+          <e p="VarAttribute.cs" t="Include" />
+          <e p="Visitors" t="Include">
+            <e p="EnterVisitorBase.cs" t="Include" />
+            <e p="FindFunctionDependenciesVisitor.cs" t="Include" />
+            <e p="ISyntaxNodeVisitor.cs" t="Include" />
+            <e p="SetNodeNumberVisitor.cs" t="Include" />
+            <e p="ShortDescritpionVisitor.cs" t="Include" />
+            <e p="SyntaxDFS.cs" t="Include" />
+            <e p="VisitorResult.cs" t="Include" />
+          </e>
+        </e>
+        <e p="Tokenization" t="Include">
+          <e p="Interval.cs" t="Include" />
+          <e p="QuotationReader.cs" t="Include" />
+          <e p="Tok.cs" t="Include" />
+          <e p="TokenHelper.cs" t="Include" />
+          <e p="Tokenizer.cs" t="Include" />
+          <e p="TokFlow.cs" t="Include" />
+          <e p="TokType.cs" t="Include" />
+        </e>
+        <e p="Types" t="Include">
+          <e p="AdditionalTypeSpecification.cs" t="Include" />
+          <e p="BaseVarType.cs" t="Include" />
+          <e p="FunTypeSpecification.cs" t="Include" />
+          <e p="IFunConvertable.cs" t="Include" />
+          <e p="TypeHelper.cs" t="Include" />
+          <e p="Var.cs" t="Include" />
+          <e p="VarInfo.cs" t="Include" />
+          <e p="VarType.cs" t="Include" />
+        </e>
+      </e>
+      <e p="NFun.Console" t="IncludeRecursive">
+        <e p="bin" t="ExcludeRecursive" />
+        <e p="LICENSE" t="Include" />
+        <e p="NFun.Console.csproj" t="IncludeRecursive" />
+        <e p="NFun.Console.csproj.DotSettings" t="Include" />
+        <e p="obj" t="ExcludeRecursive">
+          <e p="Debug" t="Include">
+            <e p="netcoreapp2.1" t="Include">
+              <e p="NFun.Console.AssemblyInfo.cs" t="Include" />
+            </e>
+          </e>
+        </e>
+        <e p="Program.cs" t="Include" />
+      </e>
+      <e p="NFun.ExprementalTests" t="IncludeRecursive">
+        <e p="bin" t="ExcludeRecursive" />
+        <e p="Functions.cs" t="Include" />
+        <e p="NFun.ExprementalTests.csproj" t="IncludeRecursive" />
+        <e p="obj" t="ExcludeRecursive">
+          <e p="Debug" t="Include">
+            <e p="netcoreapp2.2" t="Include">
+              <e p="NFun.ExprementalTests.AssemblyInfo.cs" t="Include" />
+              <e p="NFun.ExprementalTests.Program.cs" t="Include" />
+            </e>
+          </e>
+        </e>
+        <e p="TestTools.cs" t="Include" />
+        <e p="TypeExtends.cs" t="Include" />
+        <e p="VqtHelper.cs" t="Include" />
+        <e p="VqtTest.cs" t="Include" />
+      </e>
+      <e p="NFun.Fuspec" t="IncludeRecursive">
+        <e p="bin" t="ExcludeRecursive" />
+        <e p="NFun.Fuspec.csproj" t="IncludeRecursive" />
+        <e p="obj" t="ExcludeRecursive">
+          <e p="Debug" t="Include">
+            <e p="netcoreapp2.2" t="Include">
+              <e p="NFun.Fuspec.AssemblyInfo.cs" t="Include" />
+            </e>
+          </e>
+        </e>
+        <e p="Parser" t="Include">
+          <e p="FuspecParser.cs" t="Include" />
+          <e p="FuspecParserErrors" t="Include">
+            <e p="FuspecErrorExtensions.cs" t="Include" />
+            <e p="FuspecErrorType.cs" t="Include" />
+            <e p="FuspecParserError.cs" t="Include" />
+            <e p="FuspecParserException.cs" t="Include" />
+          </e>
+          <e p="FuspecParserHelper.cs" t="Include" />
+          <e p="Model" t="Include">
+            <e p="FuspecTestCase.cs" t="Include" />
+            <e p="FuspecTestCases.cs" t="Include" />
+            <e p="Param.cs" t="Include" />
+            <e p="ParamValues.cs" t="Include" />
+            <e p="ParsedFuspec.cs" t="Include" />
+            <e p="SetCheckKit.cs" t="Include" />
+          </e>
+          <e p="TestCaseBuilder.cs" t="Include" />
+          <e p="TestCaseParseState.cs" t="Include" />
+          <e p="TestCaseReader.cs" t="Include" />
+        </e>
+      </e>
+      <e p="NFun.Fuspectests" t="IncludeRecursive">
+        <e p="bin" t="ExcludeRecursive" />
+        <e p="ErrorTests.cs" t="Include" />
+        <e p="FuspecTestCasesTests.cs" t="Include" />
+        <e p="NFun.Fuspectests.csproj" t="IncludeRecursive" />
+        <e p="obj" t="ExcludeRecursive">
+          <e p="Debug" t="Include">
+            <e p="netcoreapp2.2" t="Include">
+              <e p="NFun.Fuspectests.AssemblyInfo.cs" t="Include" />
+              <e p="NFun.Fuspectests.Program.cs" t="Include" />
+            </e>
+          </e>
+        </e>
+      </e>
+      <e p="NFun.HmTests" t="IncludeRecursive">
+        <e p="bin" t="ExcludeRecursive" />
+        <e p="HmTestHelper.cs" t="Include" />
+        <e p="IncTests.cs" t="Include" />
+        <e p="NFun.HmTests.csproj" t="IncludeRecursive" />
+        <e p="obj" t="ExcludeRecursive">
+          <e p="Debug" t="Include">
+            <e p="netcoreapp2.2" t="Include">
+              <e p="NFun.HmTests.AssemblyInfo.cs" t="Include" />
+              <e p="NFun.HmTests.Program.cs" t="Include" />
+            </e>
+          </e>
+        </e>
+        <e p="PrimitiveNsTests.cs" t="Include" />
+        <e p="SelectOverloadsTest.cs" t="Include" />
+        <e p="SolveAdapterAnonymFunctionsTest.cs" t="Include" />
+        <e p="SolveAdapterAnonymFunctionsTestOld.cs" t="Include" />
+        <e p="SolveAdapterOverloadsTests.cs" t="Include" />
+        <e p="SolveAdapterTest.cs" t="Include" />
+        <e p="SolveComplexGenericsAdapterTest.cs" t="Include" />
+        <e p="SolveFunctionDefenitionTest.cs" t="Include" />
+        <e p="SolveGenericFunctionsTest.cs" t="Include" />
+        <e p="SolveGenericsAdapterTest.cs" t="Include" />
+        <e p="SolverArrayInitTest.cs" t="Include" />
+        <e p="SolveRecursiveAdapterTest.cs" t="Include" />
+        <e p="UnitTests" t="Include">
+          <e p="NSUnitTests.cs" t="Include" />
+          <e p="OptimisationUnitTest.cs" t="Include" />
+        </e>
+      </e>
+      <e p="NFun.Tests" t="IncludeRecursive">
+        <e p="AnonymousFunTest.cs" t="Include" />
+        <e p="ArraysTest.cs" t="Include" />
+        <e p="AttributesTest.cs" t="Include" />
+        <e p="bin" t="ExcludeRecursive" />
+        <e p="BuiltInFunctionsTest.cs" t="Include" />
+        <e p="CaseSensivityTest.cs" t="Include" />
+        <e p="CommentsTest.cs" t="Include" />
+        <e p="CustomPredefinedFunctionsTest.cs" t="Include" />
+        <e p="EquatationsFormattingTest.cs" t="Include" />
+        <e p="ErrorDetailsTest.cs" t="Include" />
+        <e p="GenericUserFunctionsTest.cs" t="Include" />
+        <e p="IfThenElseTest.cs" t="Include" />
+        <e p="NameConflictsTest.cs" t="Include" />
+        <e p="NFun.Tests.csproj" t="IncludeRecursive" />
+        <e p="obj" t="ExcludeRecursive">
+          <e p="Debug" t="Include">
+            <e p="netcoreapp2.1" t="Include">
+              <e p="NFun.Tests.AssemblyInfo.cs" t="Include" />
+              <e p="NFun.Tests.Program.cs" t="Include" />
+            </e>
+          </e>
+        </e>
+        <e p="OperatorPrioritiesTest.cs" t="Include" />
+        <e p="ParserTest.cs" t="Include" />
+        <e p="PipeForwardTest.cs" t="Include" />
+        <e p="SeveralEquationsTest.cs" t="Include" />
+        <e p="SingleEquatationTest.cs" t="Include" />
+        <e p="SpecialTypesTest.cs" t="Include" />
+        <e p="SpecificationTests.cs" t="Include" />
+        <e p="TestTools.cs" t="Include" />
+        <e p="TextTest.cs" t="Include" />
+        <e p="TypizationTest.cs" t="Include" />
+        <e p="UnitTests" t="Include">
+          <e p="AliasTableTest.cs" t="Include" />
+          <e p="FunArrayTest.cs" t="Include" />
+          <e p="FunctionsDictionaryTest.cs" t="Include" />
+          <e p="GenericFunctionBaseTest.cs" t="Include" />
+          <e p="GraphToolsTest_CycledTopologySort.cs" t="Include" />
+          <e p="GraphToolsTest_TopologySort.cs" t="Include" />
+          <e p="QuotationReaderTest.cs" t="Include" />
+          <e p="TokenHelperTest.cs" t="Include" />
+          <e p="TokenizerTest.cs" t="Include" />
+          <e p="VarTypeTest.cs" t="Include" />
+        </e>
+        <e p="UserFunctionsTest.cs" t="Include" />
+      </e>
+      <e p="packages" t="ExcludeRecursive" />
+    </e>
+    <e p="C:\Users\clien\.nuget\packages\nunit3testadapter\3.10.0\build\netcoreapp1.0\Mono.Cecil.dll" t="Include" />
+    <e p="C:\Users\clien\.nuget\packages\nunit3testadapter\3.10.0\build\netcoreapp1.0\nunit.engine.netstandard.dll" t="Include" />
+    <e p="C:\Users\clien\.nuget\packages\nunit3testadapter\3.10.0\build\netcoreapp1.0\NUnit3.TestAdapter.dll" t="Include" />
+    <e p="C:\Users\clien\.nuget\packages\nunit3testadapter\3.10.0\build\netcoreapp1.0\NUnit3.TestAdapter.pdb" t="Include" />
+    <e p="C:\Users\clien\.nuget\packages\nunit3testadapter\3.11.0\build\netcoreapp1.0\nunit.engine.netstandard.dll" t="Include" />
+    <e p="C:\Users\clien\.nuget\packages\nunit3testadapter\3.11.0\build\netcoreapp1.0\NUnit3.TestAdapter.dll" t="Include" />
+    <e p="C:\Users\clien\.nuget\packages\nunit3testadapter\3.11.0\build\netcoreapp1.0\NUnit3.TestAdapter.pdb" t="Include" />
+    <e p="C:\Users\clien\.Rider2018.3\system\extResources" t="IncludeRecursive" />
+    <e p="C:\Users\clien\.Rider2018.3\system\resharper-host\local\Transient\ReSharperHost\v183\SolutionCaches\_Funny.-261236397.00" t="ExcludeRecursive" />
+  </component>
+</project>
