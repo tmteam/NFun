@@ -26,7 +26,7 @@ namespace NFun.BuiltInFunctions
         public BitShiftRightInt64Function() : base(CoreFunNames.BitShiftRight, VarType.Int64,VarType.Int64,VarType.Int32){}
         public override object Calc(object[] args) => args.Get<long>(0) >> args.Get<int>(1);
     }
-  #region or
+    #region or
     public class BitOrInt32Function : FunctionBase
     {
         public BitOrInt32Function() : base(CoreFunNames.BitOr, VarType.Int32,VarType.Int32,VarType.Int32){}
@@ -89,12 +89,12 @@ namespace NFun.BuiltInFunctions
     
     public class BitXorUInt32Function : FunctionBase
     {
-        public BitXorUInt32Function() : base(CoreFunNames.BitOr, VarType.UInt32,VarType.UInt32,VarType.UInt32){}
+        public BitXorUInt32Function() : base(CoreFunNames.BitXor, VarType.UInt32,VarType.UInt32,VarType.UInt32){}
         public override object Calc(object[] args) => (uint)(args.Get<uint>(0) ^ args.Get<uint>(1));
     }
     public class BitXorUInt64Function : FunctionBase
     {
-        public BitXorUInt64Function() : base(CoreFunNames.BitOr, VarType.UInt64,VarType.UInt64,VarType.UInt64){}
+        public BitXorUInt64Function() : base(CoreFunNames.BitXor, VarType.UInt64,VarType.UInt64,VarType.UInt64){}
         public override object Calc(object[] args) => (ulong)(args.Get<ulong>(0) ^ args.Get<ulong>(1));
     }
     #endregion
@@ -132,7 +132,7 @@ namespace NFun.BuiltInFunctions
     }
     public class BitAndUInt64Function : FunctionBase
     {
-        public BitAndUInt64Function() : base(CoreFunNames.BitOr, VarType.UInt64,VarType.UInt64,VarType.UInt64){}
+        public BitAndUInt64Function() : base(CoreFunNames.BitAnd, VarType.UInt64,VarType.UInt64,VarType.UInt64){}
         public override object Calc(object[] args) => (ulong)(args.Get<ulong>(0) & args.Get<ulong>(1));
     }
     #endregion

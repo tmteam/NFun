@@ -369,8 +369,8 @@ namespace Funny.Tests
         [TestCase("uint16", "&", BaseVarType.UInt16)]
         [TestCase("uint32", "&", BaseVarType.UInt32)]
         [TestCase("uint64", "&", BaseVarType.UInt64)]
-        [TestCase("int8", "&", BaseVarType.Int8)]
-        [TestCase("int16", "&", BaseVarType.Int16)]
+        //[TestCase("int8", "&", BaseVarType.Int8)]
+        //[TestCase("int16", "&", BaseVarType.Int16)]
         [TestCase("int", "&", BaseVarType.Int32)]
         [TestCase("int32", "&", BaseVarType.Int32)]
         [TestCase("int64", "&", BaseVarType.Int64)]
@@ -379,8 +379,8 @@ namespace Funny.Tests
         [TestCase("uint16", "|", BaseVarType.UInt16)]
         [TestCase("uint32", "|", BaseVarType.UInt32)]
         [TestCase("uint64", "|", BaseVarType.UInt64)]
-        [TestCase("int8", "|", BaseVarType.Int8)]
-        [TestCase("int16", "|", BaseVarType.Int16)]
+        //[TestCase("int8", "|", BaseVarType.Int8)]
+        //[TestCase("int16", "|", BaseVarType.Int16)]
         [TestCase("int", "|", BaseVarType.Int32)]
         [TestCase("int32", "|", BaseVarType.Int32)]
         [TestCase("int64", "|", BaseVarType.Int64)]
@@ -390,8 +390,8 @@ namespace Funny.Tests
         [TestCase("uint16", "^", BaseVarType.UInt16)]
         [TestCase("uint32", "^", BaseVarType.UInt32)]
         [TestCase("uint64", "^", BaseVarType.UInt64)]
-        [TestCase("int8", "^", BaseVarType.Int8)]
-        [TestCase("int16", "^", BaseVarType.Int16)]
+        //[TestCase("int8", "^", BaseVarType.Int8)]
+        //[TestCase("int16", "^", BaseVarType.Int16)]
         [TestCase("int", "^", BaseVarType.Int32)]
         [TestCase("int32", "^", BaseVarType.Int32)]
         [TestCase("int64", "^", BaseVarType.Int64)]
@@ -408,8 +408,8 @@ namespace Funny.Tests
         [TestCase("uint16", BaseVarType.UInt16)]
         [TestCase("uint32", BaseVarType.UInt32)]
         [TestCase("uint64", BaseVarType.UInt64)]
-        [TestCase("int8",  BaseVarType.Int8)]
-        [TestCase("int16", BaseVarType.Int16)]
+        //[TestCase("int8",  BaseVarType.Int8)]
+        //[TestCase("int16", BaseVarType.Int16)]
         [TestCase("int", BaseVarType.Int32)]
         [TestCase("int32", BaseVarType.Int32)]
         [TestCase("int64", BaseVarType.Int64)]
@@ -426,7 +426,6 @@ namespace Funny.Tests
         [TestCase("uint16", BaseVarType.UInt32)]
         [TestCase("uint32", BaseVarType.UInt32)]
         [TestCase("uint64", BaseVarType.UInt64)]
-        [TestCase("int8",   BaseVarType.Int16)]
         [TestCase("int16",  BaseVarType.Int32)]
         [TestCase("int",    BaseVarType.Int32)]
         [TestCase("int32",  BaseVarType.Int32)]
@@ -435,6 +434,56 @@ namespace Funny.Tests
         {
             var runtime = FunBuilder.BuildDefault(
                 $"a:{inputTypes}; b:{inputTypes}; y = a + b");
+            Assert.AreEqual(expectedOutputType, runtime.Outputs.Single(o => o.Name == "y").Type.BaseType);
+        }
+        
+        
+        [TestCase("byte",   BaseVarType.Int16)]
+        [TestCase("uint8",  BaseVarType.Int16)]
+        [TestCase("uint16", BaseVarType.Int16)]
+        [TestCase("uint32", BaseVarType.Int32)]
+        [TestCase("uint64", BaseVarType.Int64)]
+        [TestCase("int16",  BaseVarType.Int16)]
+        [TestCase("int",    BaseVarType.Int32)]
+        [TestCase("int32",  BaseVarType.Int32)]
+        [TestCase("int64",  BaseVarType.Int64)]
+        public void DifferenceOfTwoIntegersTest(string inputTypes, BaseVarType expectedOutputType)
+        {
+            var runtime = FunBuilder.BuildDefault(
+                $"a:{inputTypes}; b:{inputTypes}; y = a - b");
+            Assert.AreEqual(expectedOutputType, runtime.Outputs.Single(o => o.Name == "y").Type.BaseType);
+        }
+        
+        [TestCase("byte",   BaseVarType.UInt16)]
+        [TestCase("uint8",  BaseVarType.UInt16)]
+        [TestCase("uint16", BaseVarType.UInt32)]
+        [TestCase("uint32", BaseVarType.UInt32)]
+        [TestCase("uint64", BaseVarType.UInt64)]
+        [TestCase("int8",   BaseVarType.Int16)]
+        [TestCase("int16",  BaseVarType.Int32)]
+        [TestCase("int",    BaseVarType.Int32)]
+        [TestCase("int32",  BaseVarType.Int32)]
+        [TestCase("int64",  BaseVarType.Int64)]
+        public void MultiplyOfTwoIntegersTest(string inputTypes, BaseVarType expectedOutputType)
+        {
+            var runtime = FunBuilder.BuildDefault(
+                $"a:{inputTypes}; b:{inputTypes}; y = a * b");
+            Assert.AreEqual(expectedOutputType, runtime.Outputs.Single(o => o.Name == "y").Type.BaseType);
+        }
+        
+        [TestCase("byte",   BaseVarType.UInt8)]
+        [TestCase("uint8",  BaseVarType.UInt8)]
+        [TestCase("uint16", BaseVarType.UInt16)]
+        [TestCase("uint32", BaseVarType.UInt32)]
+        [TestCase("uint64", BaseVarType.UInt64)]
+        [TestCase("int16",  BaseVarType.Int32)]
+        [TestCase("int",    BaseVarType.Int32)]
+        [TestCase("int32",  BaseVarType.Int32)]
+        [TestCase("int64",  BaseVarType.Int64)]
+        public void RemainsOfTwoIntegersTest(string inputTypes, BaseVarType expectedOutputType)
+        {
+            var runtime = FunBuilder.BuildDefault(
+                $"a:{inputTypes}; b:{inputTypes}; y = a % b");
             Assert.AreEqual(expectedOutputType, runtime.Outputs.Single(o => o.Name == "y").Type.BaseType);
         }
     }

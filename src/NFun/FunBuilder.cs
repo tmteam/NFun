@@ -116,12 +116,27 @@ namespace NFun
                 new AbsOfRealFunction(),
                 new AbsOfIntFunction(),
                 
-                new AddRealFunction(CoreFunNames.Add),
-                new AddIntFunction(CoreFunNames.Add),
-                new AddTextFunction(CoreFunNames.Add),
+                new AddRealFunction(),
+                new AddIntFunction(),
+                new AddInt64Function(), 
+                new AddUInt8Function(),
+                new AddUInt32Function(),
+                new AddUInt64Function(),
+
                 
-                new AddRealFunction("sum"),
-                new AddIntFunction("sum"),
+                new SubstractInt16Function(),
+                new SubstractInt32Function(), 
+                new SubstractInt64Function(), 
+                new SubstractUInt16Function(),
+                new SubstractUInt32Function(), 
+                new SubstractUInt64Function(), 
+                new SubstractRealFunction(), 
+
+                
+                //new AddTextFunction(CoreFunNames.Add),
+                
+                new AddRealFunction ("sum"),
+                new AddIntFunction  ("sum"),
                 new AddInt64Function("sum"), 
                 new AddTextFunction("strConcat"),
                 
@@ -129,9 +144,6 @@ namespace NFun
                 new NegateOfInt64Function(), 
                 new NegateOfRealFunction(), 
                 
-                new SubstractIntFunction(), 
-                new SubstractRealFunction(), 
-
                 new BitShiftLeftInt32Function(), 
                 new BitShiftLeftInt64Function(), 
                 new BitShiftRightInt32Function(),
@@ -163,12 +175,27 @@ namespace NFun
 
                 
                 new PowRealFunction(), 
-                new MultiplyIntFunction(), 
+                
+                new MultiplyInt32Function(), 
+                new MultiplyInt64Function(), 
+
+                new MultiplyUInt8Function(), 
+                new MultiplyUInt32Function(), 
+                new MultiplyUInt64Function(), 
+
                 new MultiplyRealFunction(), 
+                
                 new DivideRealFunction(), 
                 new RemainderRealFunction(), 
-                new RemainderIntFunction(), 
-                    
+                new RemainderInt16Function(),
+                new RemainderInt32Function(), 
+                new RemainderInt64Function(),
+                
+                new RemainderUInt8Function(),
+                new RemainderUInt16Function(),
+                new RemainderUInt32Function(), 
+                new RemainderUInt64Function(), 
+                
                 new SinFunction(), 
                 new CosFunction(),
                 new TanFunction(),
