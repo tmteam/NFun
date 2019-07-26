@@ -114,6 +114,11 @@ namespace Funny.Tests
         [TestCase("y = not 3*3>8", "y = not (3*3>8)")]
         [TestCase("y= [[1,2,3],[4,5,6]] [1] [1:1]","y = ([[1,2,3],[4,5,6]] [1])[1:1]")]
         [TestCase("y = not 3*3>8", "y = not (3*3>8)")]
+        [TestCase("y = 0xFAFA & 128 >> 7",  "y = 0xFAFA & (128 >> 7)")]
+        [TestCase("y = 0xFAFB & 128 >> 7",  "y = 0xFAFB & (128 >> 7)")]
+        [TestCase("y = 0xFAFA & 128 << 7", "y = 0xFAFA & (128 << 7)")]
+        [TestCase("y = 0xFAFB & 128 << 7", "y = 0xFAFB & (128 << 7)")]
+
         public void ConstantCalculationPriorities(string actualExpr, string expectedExpr)
         {
             var expected = FunBuilder.BuildDefault(expectedExpr).Calculate().Get("y");

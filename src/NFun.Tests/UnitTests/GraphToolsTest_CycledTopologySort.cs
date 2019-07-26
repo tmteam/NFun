@@ -1,8 +1,7 @@
-using NFun.Interpritation;
 using NFun.SyntaxParsing;
 using NUnit.Framework;
 
-namespace Tests
+namespace Funny.Tests.UnitTests
 {
     [TestFixture]
         public class GraphToolsTest_CycledTopologySort
@@ -189,7 +188,7 @@ namespace Tests
             private int[] From(params int[] routes) => routes;
             private string ArrayToString(int[] arr)
             {
-                return $"[{string.Join(',', arr)}]";
+                return $"[{string.Join(",", arr)}]";
             }
     
             private void AssertHasCycle(int[] cycle, TopologySortResults actual)

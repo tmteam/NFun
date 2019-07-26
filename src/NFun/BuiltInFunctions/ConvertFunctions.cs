@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using NFun.Interpritation.Functions;
@@ -52,7 +53,7 @@ namespace NFun.BuiltInFunctions
         public override object Calc(object[] args)
         {
             try {
-                return Double.Parse(args.Get<string>(0));
+                return Double.Parse(args.GetTextOrThrow(0), CultureInfo.InvariantCulture);
             }
             catch (Exception e) {
                 throw new FunRuntimeException($"Text '{args[0]}' cannot be parsed into real", e);
@@ -74,6 +75,8 @@ namespace NFun.BuiltInFunctions
         {
             if (val is FunArray f)
                 return $"[{string.Join(",", f.Select(ToText))}]";
+            if (val is double d)
+                return d.ToString(CultureInfo.InvariantCulture);
             else
                 return val.ToString();
         }
@@ -84,7 +87,7 @@ namespace NFun.BuiltInFunctions
         public override object Calc(object[] args)
         {
             try {
-                return int.Parse(args.Get<string>(0));
+                return int.Parse(args.GetTextOrThrow(0));
             }
             catch (Exception e) {
                 throw new FunRuntimeException($"Text '{args[0]}' cannot be parsed into int", e);

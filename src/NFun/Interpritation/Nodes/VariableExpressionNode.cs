@@ -17,7 +17,13 @@ namespace NFun.Interpritation.Nodes
 
         public VarType Type => _source.Type;
         
-        public object Calc() => _source.Value;
+        public object Calc()
+        {
+            if(_source.Value==null)
+                throw new FunRuntimeException($"Variable '{Source.Name}' is not set");
+            return _source.Value;
+        }
+
         private static int _count = 0;
         private readonly int _uid = _count++;
         public override string ToString() => $"{_source.Name}: {_source.Value} uid: {_uid}";

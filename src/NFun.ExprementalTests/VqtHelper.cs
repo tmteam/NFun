@@ -1,7 +1,7 @@
 using System.Linq;
 using NFun.Runtime;
 
-namespace Tests
+namespace NFun.ExprementalTests
 {
     public static class VqtHelper{
         public static object MakeVQT(object value, int q, long t = -1)

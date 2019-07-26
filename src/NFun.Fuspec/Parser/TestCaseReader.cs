@@ -17,10 +17,9 @@ namespace Nfun.Fuspec.Parser
         private List<string> _listOfString = new List<string>();
         private TestCaseBuilder _testCaseBuilder;
         private List<FuspecTestCase> _fuspecTestCases;
-        private int _index = 0;
-        private bool _isReading = false;
+        private int _index;
+        private bool _isReading;
         private List<string> _script= new List<string>();
-        private SetCheckKit _setCheckKit = new SetCheckKit();
         private List<FuspecParserError> _errors=new List<FuspecParserError>();
         
         public TestCasesReader(StreamReader streamReader)
@@ -44,9 +43,9 @@ namespace Nfun.Fuspec.Parser
             if (_isReading)
                 AddLast(state); 
               
-              if (_errors.Any())
-                  return new FuspecTestCases(_errors.ToArray());
-            return new FuspecTestCases(_fuspecTestCases.ToArray());
+            return _errors.Any() 
+                  ? new FuspecTestCases(_errors.ToArray()) 
+                  : new FuspecTestCases(_fuspecTestCases.ToArray());
         }
         
         private TestCaseParseState ReadNext(string str, TestCaseParseState testCaseParseState)
@@ -78,14 +77,12 @@ namespace Nfun.Fuspec.Parser
             _isReading = false;
             
             _testCaseBuilder = new TestCaseBuilder();
-            if (IsSeparatingLine(str, '*'))
-            {
-                _isReading = true;
-                _script=new List<string>();
-                _setCheckKit = new SetCheckKit();
-                return TestCaseParseState.ReadingName;
-            }
-            return WriteError(new FuspecParserError(FuspecErrorType.OpeningStringMissed, _index));
+            if (!IsSeparatingLine(str, '*'))
+                return WriteError(new FuspecParserError(FuspecErrorType.OpeningStringMissed, _index));
+
+            _isReading = true;
+            _script=new List<string>();
+            return TestCaseParseState.ReadingName;
         }
         
         private TestCaseParseState FindName(string str)
@@ -103,18 +100,19 @@ namespace Nfun.Fuspec.Parser
         {
             if (str.Trim()== "")
                 return TestCaseParseState.ReadingTags;
-            
             if (IsSeparatingLine(str, '*'))
                 return TestCaseParseState.ReadingParamsIn;
-            
             var tags = FindKeyWord("| TAGS", str);
-            
             if (tags == null )
                 return WriteError(new FuspecParserError(FuspecErrorType.EndingHeadMissed,_index));
-            
-            if (tags.Trim() != "")
-                _testCaseBuilder.Tags = SplitWithTrim(tags, ',');
-               
+
+            if (tags.Trim() == "")
+                return TestCaseParseState.ReadingTags;
+
+            var splittedTags = tags.Split(',');
+            foreach (var tag in splittedTags)
+                if (tag.Trim() != "")
+                    _testCaseBuilder.Tags.Add(tag.Trim());
             return TestCaseParseState.ReadingTags;
         }
         
@@ -129,7 +127,7 @@ namespace Nfun.Fuspec.Parser
             if (paramInString == null)
                 return ReadParamsOut(str);
             
-            if (paramInString.Trim()=="" || paramInString.Substring(0,1)!=" ")
+            if (paramInString.Trim() == "")
                 return WriteError(new FuspecParserError(FuspecErrorType.ParamInMissed, _index));
            
             try
@@ -138,16 +136,15 @@ namespace Nfun.Fuspec.Parser
             }
             catch (Exception e)
             {
-                return WriteError(new FuspecParserError(FuspecErrorType.NFunError_ICantParseParamTypeString, _index));
+                return WriteError(new FuspecParserError(FuspecErrorType.WrongParamType, _index));
             }
             
             if (_testCaseBuilder.ParamsIn == null)
-                return WriteError(new FuspecParserError(FuspecErrorType.NFunError_ICantParseParamTypeString, _index));
+                WriteError(new FuspecParserError(FuspecErrorType.WrongParamType, _index));
                    
-            if (!_testCaseBuilder.ParamsIn.Any())
-                return WriteError(new FuspecParserError(FuspecErrorType.ParamInMissed, _index));
-            
-            return TestCaseParseState.ReadingParamsOut;
+            return !(_testCaseBuilder.ParamsIn ?? throw new InvalidOperationException()).Any() 
+                ? WriteError(new FuspecParserError(FuspecErrorType.ParamInMissed, _index)) 
+                : TestCaseParseState.ReadingParamsOut;
         }
 
         private TestCaseParseState ReadParamsOut(string str)
@@ -165,20 +162,20 @@ namespace Nfun.Fuspec.Parser
                 return ReadBody(str);
             }
             
-            if (paramOutString.Trim()=="" || paramOutString.Substring(0,1)!=" ")
+            if (paramOutString=="" || paramOutString.Substring(0,1)!=" ")
                 return WriteError(new FuspecParserError(FuspecErrorType.ParamOutMissed, _index));
             
             try
             {
-            _testCaseBuilder.ParamsOut = GetParam(paramOutString);
+                _testCaseBuilder.ParamsOut = GetParam(paramOutString);
             }
             catch (Exception e)
             {
-                return WriteError(new FuspecParserError(FuspecErrorType.NFunError_ICantParseParamTypeString, _index));
+                return WriteError(new FuspecParserError(FuspecErrorType.WrongParamType, _index));
             }
             
             if (_testCaseBuilder.ParamsOut == null)
-                WriteError(new FuspecParserError(FuspecErrorType.NFunError_ICantParseParamTypeString, _index));
+                WriteError(new FuspecParserError(FuspecErrorType.WrongParamType, _index));
             
             return TestCaseParseState.ReadingParamsOut;
         }
@@ -193,10 +190,8 @@ namespace Nfun.Fuspec.Parser
 
             if (FindKeyWord("|***", str) != null || FindKeyWord("|---",str)!=null)
             {
-                if (IsSeparatingLine(str, '-') )
-                    return TestCaseParseState.ReadingValues;
-                if ( IsSeparatingLine(str, '*'))
-                    return AddTestCase(str);
+                if (IsSeparatingLine(str, '-') || IsSeparatingLine(str, '*'))
+                    return ReadValues(str);
                 return WriteError(new FuspecParserError(FuspecErrorType.OpeningStringMissed, _index));
             }
             _script.Add(str);
@@ -207,60 +202,10 @@ namespace Nfun.Fuspec.Parser
         {
             if (str.Trim() == "")
                 return TestCaseParseState.ReadingValues;
-            if (IsSeparatingLine(str, '-'))
-            {
-                if (_setCheckKit.CheckKit.Any() || _setCheckKit.SetKit.Any())
-                {
-                    _testCaseBuilder.SetCheckKits.Add(_setCheckKit);
-                    _setCheckKit = new SetCheckKit();
-                }
-                return TestCaseParseState.ReadingValues;
-            }
 
-            if (IsSeparatingLine(str, '*'))
-            {
-                if (_setCheckKit.CheckKit.Any() || _setCheckKit.SetKit.Any())
-                {
-                    _testCaseBuilder.SetCheckKits.Add(_setCheckKit);
-                    _setCheckKit = new SetCheckKit();
-                }
-                return AddTestCase(str);
-            }
-
-            if (_setCheckKit.CheckKit.Any())
-                return WriteError(new FuspecParserError(FuspecErrorType.ExpectedSeparatedLine, _index));
-
-            var setString = FindKeyWord("| set", str);
-            var checkString = FindKeyWord("| check", str);
-            if ((setString == null & checkString == null))
-                return WriteError(new FuspecParserError(FuspecErrorType.WrongSetCheckKit, _index));
-
-            if (setString != null)
-            {
-                if (setString.Substring(0, 1) != " ")
-                    return WriteError(new FuspecParserError(FuspecErrorType.WrongSetCheckKit, _index));
-                if (setString.Trim() == "")
-                    return WriteError(new FuspecParserError(FuspecErrorType.SetKitMissed, _index));
-
-                _setCheckKit.AddSetKit(SplitWithTrim(setString, ';'));
-
-                if (!_setCheckKit.SetKit.Any())
-                    return WriteError(new FuspecParserError(FuspecErrorType.SetKitMissed, _index));
-
-                return TestCaseParseState.ReadingValues;
-            }
-            if (_setCheckKit.CheckKit.Any())
-                return WriteError(new FuspecParserError(FuspecErrorType.ExpectedSeparatedLine, _index));
-            if (checkString.Substring(0, 1) != " ")
-                return WriteError(new FuspecParserError(FuspecErrorType.WrongSetCheckKit, _index));
-            if (checkString.Trim() == "")
-                return WriteError(new FuspecParserError(FuspecErrorType.CheckKitMissed, _index));
-            _setCheckKit.AddCheckKit(SplitWithTrim(checkString, ';'));
-
-            if (!_setCheckKit.CheckKit.Any())
-                return WriteError(new FuspecParserError(FuspecErrorType.CheckKitMissed, _index));
-
-            return TestCaseParseState.ReadingValues;
+            return IsSeparatingLine(str,'*') 
+                ? AddTestCase(str) 
+                : TestCaseParseState.ReadingValues;
         }
 
         private TestCaseParseState AddTestCase(string str)
@@ -286,8 +231,6 @@ namespace Nfun.Fuspec.Parser
                 else
                 {
                     BuildScript();
-                    if (_setCheckKit.SetKit.Any() || _setCheckKit.CheckKit.Any())
-                        _testCaseBuilder.SetCheckKits.Add(_setCheckKit);
                     _fuspecTestCases.Add(_testCaseBuilder.Build());
                 }
             }
@@ -297,16 +240,9 @@ namespace Nfun.Fuspec.Parser
         {
             _testCaseBuilder.Script = "";
             foreach (var strScript in _script)
-                _testCaseBuilder.Script = _testCaseBuilder.Script + strScript + "\r\n";
+                _testCaseBuilder.Script = _testCaseBuilder.Script + strScript + "\r";
             _testCaseBuilder.Script =
-                _testCaseBuilder.Script.Substring(0, _testCaseBuilder.Script.Length - 2);
-        }
-        
-        private void BuildSetCheckKits()
-        {
-            _testCaseBuilder.SetCheckKits.Add(_setCheckKit);
-            _setCheckKit = new SetCheckKit();
-            
+                _testCaseBuilder.Script.Substring(0, _testCaseBuilder.Script.Length - 1);
         }
 
         private TestCaseParseState WriteError(FuspecParserError fuspecParserError)

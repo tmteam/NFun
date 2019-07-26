@@ -92,9 +92,9 @@ namespace NFun.HindleyMilner
                     throw ErrorFactory.FunctionOverloadNotFound(node, _dictionary);
                 
                 var callDef = ToCallDef(node, genericCandidate);
-                if (_state.CurrentSolver.SetCall(callDef))
-                    return true;
-                throw ErrorFactory.FunctionOverloadNotFound(node, _dictionary);
+                if (!_state.CurrentSolver.SetCall(callDef))
+                    throw ErrorFactory.TypesNotSolved(node);
+                return true;
             }
 
             if (candidates.Count == 1)

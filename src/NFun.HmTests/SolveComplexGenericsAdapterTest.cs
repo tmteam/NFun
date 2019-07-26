@@ -284,5 +284,53 @@ namespace NFun.HmTests
             Assert.AreEqual(FType.ArrayOf(FType.Int32), solvation.GetVarType("a"));
 
         }
+
+        [Test]
+        public void UserFunctionWithInputHiOrderCast_FunctionCastIsPossible_EquationSolved()
+        {
+            //input:int[]
+            
+            //dsame15(x:real):real = x
+            //3     0    2     1
+            //y = input.map(dsame15)
+            solver.SetVarType("input", FType.ArrayOf(FType.Int32));
+            solver.SetVarType("dsame15", FType.Fun(FType.Real, FType.Real));
+            solver.SetVar(1, "dsame15");
+            solver.SetVar(0, "input");
+            Assert.IsTrue(solver.SetCall(new CallDef(
+                new []{
+                    FType.ArrayOf(FType.Generic(1)),
+                    FType.ArrayOf(FType.Generic(0)), 
+                    FType.Fun(FType.Generic(1), FType.Generic(0))}, 
+                new []{2,0,1})));
+
+            solver.SetDefenition("y", 3, 2);
+
+            var solvation = solver.Solve();
+            Assert.IsTrue(solvation.IsSolved);
+            Assert.AreEqual(0, solvation.GenericsCount);
+            Assert.AreEqual(FType.ArrayOf(FType.Int32), solvation.GetVarType("input"));
+            Assert.AreEqual(FType.ArrayOf(FType.Real), solvation.GetVarType("y"));
+
+        }
+        [Test]
+        public void UserFunctionWithInputHiOrderCast_FunctionCastIsImpossible_SetGenericCallFails()
+        {
+            //input:real[]
+
+            //dsame15(x:int):int = x
+            //3     0    2     1
+            //y = input.map(dsame15)
+            solver.SetVarType("input", FType.ArrayOf(FType.Real));
+            solver.SetVarType("dsame15", FType.Fun(FType.Int32, FType.Int32));
+            solver.SetVar(1, "dsame15");
+            solver.SetVar(0, "input");
+            Assert.IsFalse(solver.SetCall(new CallDef(
+                new[]{
+                    FType.ArrayOf(FType.Generic(1)),
+                    FType.ArrayOf(FType.Generic(0)),
+                    FType.Fun(FType.Generic(1), FType.Generic(0))},
+                new[] { 2, 0, 1 })));
+        }
     }
 }
