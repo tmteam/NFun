@@ -5,13 +5,13 @@ namespace NFun.Fuspec.TestHandler.Models
 {
     public class BaseFuspecTestCaseResult
     {
-        public BaseFuspecTestCaseResult(long totalRunning, FuspecTestCase fuspecTestCase)
+        public BaseFuspecTestCaseResult(TimeSpan totalRunning, FuspecTestCase fuspecTestCase)
         {
             TotalRunning = totalRunning;
             FuspecTestCase = fuspecTestCase;
         }
 
-        public long TotalRunning { get; set; }
+        public TimeSpan TotalRunning { get; }
         public FuspecTestCase FuspecTestCase { get; }
     }
 }

@@ -8,7 +8,7 @@ namespace NFun.Fuspec.TestHandler.Models
     {
         public Exception Exception { get; }
 
-        public ExceptionTestCaseResult(long totalRunning, FuspecTestCase fuspecTestCase, Exception exception) 
+        public ExceptionTestCaseResult(TimeSpan totalRunning, FuspecTestCase fuspecTestCase, Exception exception) 
             : base(totalRunning, fuspecTestCase)
         {
             Exception = exception;

@@ -14,11 +14,12 @@ namespace NFun.Fuspectests
         [Test]
         public void FuspecParser_ParseAndRunFuspec_ReturnParsedTests()
         {
-            //todo пример использования fuspecParser
-            FuspecTestCase[] testCases = GenerateFuspecTestCases(FuspecTestCasesCollection.TestCollection);
-            IEnumerable<BaseFuspecTestCaseResult> testsResult = FuspecTestBase.RunTests(testCases);
-
-            Assert.Pass();
+            Assert.DoesNotThrow(() =>
+            {
+                //todo пример использования fuspecParser
+                FuspecTestCase[] testCases = GenerateFuspecTestCases(FuspecTestCasesCollection.TestCollection);
+                IEnumerable<BaseFuspecTestCaseResult> testsResult = FuspecTestBase.RunTests(testCases);
+            });
         }
 
 

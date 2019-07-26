@@ -4,12 +4,12 @@ using NFun.Fuspec.TestHandler.Models;
 
 namespace NFun.Fuspec.TestHandler
 {
-    public static class TestResultConverter
+    public static class TestCaseResult
     {
-        public static ExceptionTestCaseResult BadTestResult(long ms, FuspecTestCase testCase, Exception e) 
+        public static ExceptionTestCaseResult BadTestResult(TimeSpan ms, FuspecTestCase testCase, Exception e) 
             => new ExceptionTestCaseResult(ms, testCase, e);
 
-        public static GoodTestCaseResult GoodTestResult(long ms, FuspecTestCase testCase) 
+        public static GoodTestCaseResult GoodTestResult(TimeSpan ms, FuspecTestCase testCase) 
             => new GoodTestCaseResult(ms, testCase);
     }
 }

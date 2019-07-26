@@ -5,7 +5,7 @@ namespace NFun.Fuspec.TestHandler.Models
 {
     public sealed class GoodTestCaseResult:BaseFuspecTestCaseResult
     {
-        public GoodTestCaseResult(long totalRunning, FuspecTestCase fuspecTestCase) 
+        public GoodTestCaseResult(TimeSpan totalRunning, FuspecTestCase fuspecTestCase) 
             : base(totalRunning, fuspecTestCase)
         {
         }

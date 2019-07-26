@@ -18,19 +18,19 @@ namespace NFun.Fuspec.TestHandler
             {
                 //todo parse in and out funResult
                 FunRuntime funResult = FunBuilder.With(testCase.Script).Build();
-                testResult = TestResultConverter.GoodTestResult(stopwatch.ElapsedMilliseconds, testCase);
+                testResult = TestCaseResult.GoodTestResult(stopwatch.Elapsed, testCase);
             }
             catch (FunParseException parseException)
             {
-                testResult = TestResultConverter.BadTestResult(stopwatch.ElapsedMilliseconds, testCase, parseException);
+                testResult = TestCaseResult.BadTestResult(stopwatch.Elapsed, testCase, parseException);
             }
             catch (FunRuntimeException runtimeException)
             {
-                testResult = TestResultConverter.BadTestResult(stopwatch.ElapsedMilliseconds, testCase, runtimeException);
+                testResult = TestCaseResult.BadTestResult(stopwatch.Elapsed, testCase, runtimeException);
             }
             catch (Exception e)
             {
-                testResult = TestResultConverter.BadTestResult(stopwatch.ElapsedMilliseconds, testCase, e);
+                testResult = TestCaseResult.BadTestResult(stopwatch.Elapsed, testCase, e);
             }
 
             return testResult;
