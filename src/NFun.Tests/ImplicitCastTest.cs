@@ -97,7 +97,7 @@ namespace Funny.Tests
         {
             var expr = $"conv(a:{typeTo}):{typeTo} = a; y = conv({constant})";
             var runtime = FunBuilder.BuildDefault(expr);
-            Assert.AreEqual(typeTo, runtime.Outputs.Single().Type.ToString());
+            Assert.AreEqual(typeTo.ToLower(), runtime.Outputs.Single().Type.ToString().ToLower());
 
         }
         
