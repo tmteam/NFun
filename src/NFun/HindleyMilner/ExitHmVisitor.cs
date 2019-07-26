@@ -101,6 +101,7 @@ namespace NFun.HindleyMilner
             {
                 if (_state.CurrentSolver.SetCall(ToCallDef(node, candidates[0])))
                     return true;
+                
                 throw ErrorFactory.FunctionOverloadNotFound(node, _dictionary);
             }
 

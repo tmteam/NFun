@@ -9,7 +9,7 @@ namespace Funny.Tests
     [TestFixture]
     public class ImplicitCastTest{
 
-        [TestCase("uint8",    (byte)42,    "uint16", (byte)42)]
+        [TestCase("uint8",    (byte)42,    "uint8", (byte)42)]
 
         [TestCase("uint8",    (byte)42,    "uint16", (ushort)42)]
         [TestCase("uint16", (ushort)42,    "uint16", (ushort)42)]

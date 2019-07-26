@@ -156,8 +156,9 @@ namespace NFun.HmTests
             expected: LLLSignature, 
             actual: FunSignature.GetBestFitOrNull(Rli_2Arg_Overload, LongLimit, Generic, Generic));
         [Test]
-        public void LimitRli_AnyAnyAny_returnsNull() => Assert.IsNull(
-            FunSignature.GetBestFitOrNull(Rli_2Arg_Overload, AnyLimit, AnyLimit, AnyLimit));
+        public void LimitRli_AnyAnyAny_returnsNull() => Assert.AreEqual(
+            expected: RRRSignature,
+            actual: FunSignature.GetBestFitOrNull(Rli_2Arg_Overload, AnyLimit, AnyLimit, AnyLimit));
         [Test]
         public void LimitRli_RealLimitRealLimitTextLimit_returnsNull() => Assert.IsNull(
             FunSignature.GetBestFitOrNull(Rli_2Arg_Overload, RealLimit, RealLimit, TextLimit));

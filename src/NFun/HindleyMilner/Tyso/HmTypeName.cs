@@ -54,7 +54,21 @@ namespace NFun.HindleyMilner.Tyso
         
         public bool CanBeConvertedTo(HmTypeName baseType)
         {
-            return Start >= baseType.Start && Finish <= baseType.Finish;
+            if (Start >= baseType.Start && Finish <= baseType.Finish)
+                return true;
+
+            switch (Id)
+            {
+                //Special uint convertion
+                case UInt8Id:
+                    return baseType.Id == UInt16Id || baseType.Id == UInt32Id || baseType.Id == UInt64Id;
+                case UInt16Id:
+                    return  baseType.Id == UInt32Id || baseType.Id == UInt64Id;
+                case UInt32Id:
+                    return  baseType.Id == UInt64Id;
+                default:
+                    return false;
+            }
         } 
         public override bool Equals(object obj)
         {
