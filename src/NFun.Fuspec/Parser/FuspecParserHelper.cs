@@ -15,15 +15,14 @@ namespace Nfun.Fuspec.Parser
             if (str.Length < findingkey.Length)
                 return null;
             string key = str.Substring(0, findingkey.Length);
-            return key == findingkey 
-                ? str.Substring(findingkey.Length) 
-                : null;
+            if (key == findingkey)
+                return str.Substring(findingkey.Length);
+            else
+                return null;
         }
 
         public static bool IsSeparatingLine(string str, char symbol)
         {
-            //    if (separatingString != null)
-
             int i = 0;
             if (str[0] != '|')
                 return false;
@@ -33,8 +32,8 @@ namespace Nfun.Fuspec.Parser
                 i++;
             }
 
-            return i >= 8;
-            //            return str.Substring(1).All(ch => ch == symbol);
+            if (i < 8) return false;
+            return true;
         }
 
         public static List<Param> GetParam(string paramString)
@@ -44,42 +43,57 @@ namespace Nfun.Fuspec.Parser
             var tokFLow = Tokenizer.ToFlow(paramString);
             List<Param> result = new List<Param>();
 
-            if (tokFLow.Peek == null )
+            if (tokFLow.Peek == null)
                 return null;
-            
+
             while (tokFLow.Current.Type != TokType.Eof)
             {
                 if (tokFLow.Peek == null)
                     return null;
+                
                 tokFLow.MoveNext();
                 if ((tokFLow.Previous.Type != TokType.Id ||
                      tokFLow.Current.Type != TokType.Colon) ||
                     (tokFLow.Peek == null))
                     return null;
+                
                 value = tokFLow.Previous.Value;
 
                 tokFLow.MoveNext();
-                
-                
                 varType = tokFLow.ReadVarType().ToString();
 
                 foreach (var res in result)
-                {
                     if (res.Value == value)
                         return null;
-                }
+
                 result.Add(new Param(value, varType));
-                
+
                 if (tokFLow.Current.Type == TokType.Sep)
                     tokFLow.MoveNext();
-               
             }
-            return !result.Any() 
-                ? null 
-                : result;
+
+            if (!result.Any())
+                return null;
+            return result;
         }
+
+        public static List<string> SplitWithTrim(string str, char ch)
+        {
+            List<string> res = new List<string>();
+            var splittedString = str.Split(ch);
+            foreach (var s in splittedString)
+            {
+                if (s.Trim() != "")
+                    res.Add(s.Trim());
+            }
+
+            return res;
+        }
+
     }
     
+   
+
 }
 
    
