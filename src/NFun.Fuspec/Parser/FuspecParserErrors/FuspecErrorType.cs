@@ -11,6 +11,10 @@ namespace ParcerV1
         NoEndingTestCase = 40,
         ParamInMissed=50,
         ParamOutMissed=60,
-        WrongParamType=70,
+        NFunError_ICantParseParamTypeString=70,
+        WrongSetCheckKit=80,
+        SetKitMissed=81,
+        CheckKitMissed=82,
+        ExpectedSeparatedLine = 83,
     }
 }

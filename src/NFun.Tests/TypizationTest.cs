@@ -96,8 +96,45 @@ namespace Funny.Tests
                     
                    fib(n) = if (n<3) 1 else fibrec(n-1,2,1,1)
                    y = fib(1)",BaseVarType.Int32)]
-       
-      
+        [TestCase(@"y = [1..7]
+                        .map(i=>i+i)
+                        .sum()", BaseVarType.Int32)]
+        [TestCase(@"y = [1..8]
+                        .map(i=>[i].sum())
+                        .sum()", BaseVarType.Int32)]
+        [TestCase(@"y = [1..9]
+                        .map(i=>[1,i].sum())
+                        .sum()", BaseVarType.Int32)]
+        [TestCase(@"y = [1..10]
+                        .map(i=>[1..i].sum())
+                        .sum()", BaseVarType.Int32)]
+        [TestCase(@"y = [1..11]
+                        .map(i=>[1..n].sum())
+                        .sum()", BaseVarType.Int32)]
+        [TestCase(@"y = [1..12]
+                        .map(i=>[1..n]
+                                .map(x=>2600/x)
+                                .sum())
+                        .sum()", BaseVarType.Real)]
+        [TestCase(@"y = [1..13]
+                        .map(i=>[1..10]
+                                .map(x=>2600/x)
+                                .sum())
+                        .sum()", BaseVarType.Real)]
+        [TestCase(@"y = [1..14]
+                        .map(i=>i/2)
+                        .sum()", BaseVarType.Real)]
+        [TestCase(
+            @"div10(x) = 2600/x
+            y = [1..20].map(div10).sum()", BaseVarType.Real)]
+        [TestCase(
+            @"div11(x) = 2600/x
+            supsum(n) = [1..n].map(div11).sum()
+            y = [1..20].map(supsum).sum()", BaseVarType.Real)]
+        [TestCase(
+            @"div12(x) = 2600/x
+            supsum(n) = [1..n].map(div12).sum()
+            y = [1..20].map(supsum).sum().round()", BaseVarType.Int32)]
         public void SingleEquation_Runtime_OutputTypeCalculatesCorrect(string expr, BaseVarType type)
         {
             
@@ -147,11 +184,22 @@ namespace Funny.Tests
         [TestCase("[a].filter(f=>f>2)")]
         [TestCase("[a].reverse()")]
         [TestCase("[a]")]
-        [TestCase( "y = [-x].all(i=> i < 0.0)")]
-        [TestCase( "y = [x,x].all(i=> i < 0.0)")]
-        [TestCase( "y = [-x,x].all(i=> i < 0.0)")]
-        [TestCase( "y = [1,-x].all(i=> i < 0.0)")]
-        [TestCase( "y = [x,2.0,3.0].all((i)=> i >1.0)")]
+        [TestCase("y = [-x].all(i=> i < 0.0)")]
+        [TestCase("y = [x,x].all(i=> i < 0.0)")]
+        [TestCase("y = [-x,x].all(i=> i < 0.0)")]
+        [TestCase("y = [1,-x].all(i=> i < 0.0)")]
+        [TestCase("y = [x,2.0,3.0].all((i)=> i >1.0)")]
+        [TestCase("y = [1..11].map(i=>[1..n].sum())")]
+        [TestCase("y = [1..12].map(i=>[1..n].sum()).sum()")]
+        [TestCase("dsum7(x) = x+x")]
+        [TestCase(
+            @"dsum8(x) = x+x
+            y = [1..20].map(dsum8)")]
+        [TestCase(
+            @"div9(x) = 2600/x
+            y = [1..20].map(div9)")]
+        [TestCase(@"div10(x) = 2600/x
+                    y(n) = [1..n].map(div10).sum()")]
         [TestCase("y = x * -x")]
         [TestCase("y = -x * x")]
         [TestCase("y = [-x,x]")]
@@ -296,7 +344,7 @@ namespace Funny.Tests
         public void RecFunction_TypeSolved(string expr)
         {
             Assert.DoesNotThrow(()=> FunBuilder.BuildDefault(expr));
-            
         }
+
     }
 }
