@@ -142,6 +142,9 @@ namespace NFun.HindleyMilner.Tyso
             Type = type;
             Distance = distance;
         }
+
+        public static FitResult Candidate(int distance)
+        => new FitResult(FitType.Candidate, distance);
     }
     public enum FitType
     {

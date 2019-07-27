@@ -51,9 +51,9 @@ namespace NFun.HmTests
             
             Assert.IsTrue(res.IsSolved);
             Assert.AreEqual(0,res.GenericsCount);
-            Assert.AreEqual(FType.Int32, res.GetVarType("y"));
-            Assert.AreEqual(FType.Int32, res.GetVarType("a"));
-            Assert.AreEqual(FType.Int32, res.GetVarType("b"));
+            Assert.AreEqual(FType.Int32, res.GetVarType("y"), "y");
+            Assert.AreEqual(FType.Int32, res.GetVarType("a"), "a");
+            Assert.AreEqual(FType.Int32, res.GetVarType("b"), "b");
         }
         
         [Test]

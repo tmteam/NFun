@@ -60,7 +60,7 @@ namespace NFun.HmTests
             actual:   FunSignature.GetBestFitOrNull(Rli_1Arg_Overload, Int32, Int32));
 
         [Test]
-        public void StrictRli_RI_fitsI2() =>Assert.AreEqual(
+        public void _controversial_StrictRli_RI_fitsI2() =>Assert.AreEqual(
             expected: I2Signature, 
             actual: FunSignature.GetBestFitOrNull(Rli_1Arg_Overload, Real, Int32));
         
@@ -195,7 +195,7 @@ namespace NFun.HmTests
             actual: FunSignature.GetBestFitOrNull(Rli_2Arg_Overload, RealLimit, Int32, Int32));
 
         [Test]
-        public void IMPORTANT_LimitRli_GenericLcaOfLimRealAndInt_fitsI2() => Assert.AreEqual(
+        public void _controversial_LimitRli_GenericLcaOfLimRealAndInt_fitsI2() => Assert.AreEqual(
             expected: I2Signature, 
             actual: FunSignature.GetBestFitOrNull(Rli_1Arg_Overload, Generic, Lca(RealLimit, Int32)));
 

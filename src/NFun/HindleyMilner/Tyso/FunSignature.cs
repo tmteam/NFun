@@ -31,12 +31,11 @@ namespace NFun.HindleyMilner.Tyso
             bestOne.Failed = true;
             foreach (var candidate in candidates) {
                 var returnTypeFit = returnType.CanBeConvertedFrom(candidate.ReturnType);
-                //var returnTypeFit = SolvingNode.CreateStrict(candidate.ReturnType)
-                //    .CanBeConvertedTo(returnType.MakeType()); 
                 if (returnTypeFit.Type == FitType.Not)
                     continue;                
 
                 var fit = new SignatureFit(returnTypeFit);
+                //fit.Apply(returnTypeFit);
                 
                 for (int argNum = 0; argNum < argTypes.Length; argNum++)
                 {
@@ -44,23 +43,7 @@ namespace NFun.HindleyMilner.Tyso
                     var actualArg = argTypes[argNum];
                     
                     var argFit =  actualArg.CanBeConvertedTo(candidateArg);
-                    if (argFit.Type == FitType.Not)
-                    {
-                        fit.Failed = true;
-                        break;
-                    } 
-                    if (argFit.Type == FitType.Strict)
-                        fit.StrictFits++;
-                    else if (argFit.Type == FitType.Candidate)
-                    {
-                        fit.CandidateFits++;
-                        fit.MaxCandidateDistance = Math.Max(argFit.Distance, fit.MaxCandidateDistance);
-                    }
-                    else if (argFit.Type == FitType.Converable)
-                    {
-                        fit.ConvertedFits++;
-                        fit.MaxConvertedDistance = Math.Max(argFit.Distance, fit.MaxCandidateDistance);
-                    }
+                    fit.Apply(argFit); 
                 }
 
                 if(fit.Failed)
@@ -79,6 +62,8 @@ namespace NFun.HindleyMilner.Tyso
             }
             return bestSignatures.ToArray();
         }
+        
+      
         public static FunSignature GetBestFitOrNull(FunSignature[] candidates, SolvingNode returnType,
             params SolvingNode[] argTypes)
         {
@@ -101,6 +86,29 @@ namespace NFun.HindleyMilner.Tyso
                 MaxCandidateDistance = 0;
                 MaxConvertedDistance = 0;
             }
+
+            public void Apply(FitResult fitResult)
+            {
+                if (fitResult.Type == FitType.Not)
+                {
+                    Failed = true;
+                    return;
+                }
+
+                if (fitResult.Type == FitType.Strict)
+                    StrictFits++;
+                else if (fitResult.Type == FitType.Candidate)
+                {
+                    CandidateFits++;
+                    MaxCandidateDistance = Math.Max(fitResult.Distance, MaxCandidateDistance);
+                }
+                else if (fitResult.Type == FitType.Converable)
+                {
+                    ConvertedFits++;
+                    MaxConvertedDistance = Math.Max(fitResult.Distance, MaxCandidateDistance);
+                }
+            }
+
             public readonly FitResult ReturnTypeFit;
             public int MaxCandidateDistance;
             public int MaxConvertedDistance;
@@ -124,29 +132,30 @@ namespace NFun.HindleyMilner.Tyso
                 if (CandidateFits < fit.CandidateFits)
                     return -1;
                 
-                if (MaxCandidateDistance < fit.MaxCandidateDistance)
-                    return 1;
-                if (fit.MaxCandidateDistance < MaxCandidateDistance)
-                    return -1;
                 
                 if (ConvertedFits > fit.ConvertedFits)
                     return 1;
                 if (ConvertedFits < fit.ConvertedFits)
                     return -1;
                 
-                if (MaxConvertedDistance < fit.MaxConvertedDistance)
-                    return 1;
-                if (fit.MaxConvertedDistance < MaxConvertedDistance)
-                    return -1;
-
                 //Compare by output type:
                 if (ReturnTypeFit.Type == FitType.Strict) { 
                     if (fit.ReturnTypeFit.Type != FitType.Strict) 
                         return 1;
                 }
-                else {
+                else{
                     if (fit.ReturnTypeFit.Type == FitType.Strict)
                         return -1;
+                }
+                
+                //Compare by output type:
+                if (ReturnTypeFit.Type != FitType.Strict) { 
+                    //if (fit.ReturnTypeFit.Type != FitType.Strict) 
+                    //        return 1;
+                    //}
+                    //else {
+                    // if (fit.ReturnTypeFit.Type == FitType.Strict)
+                    //    return -1;
                     if (ReturnTypeFit.Type == FitType.Candidate) {
                         if (fit.ReturnTypeFit.Type != FitType.Candidate)
                             return 1;
@@ -156,14 +165,25 @@ namespace NFun.HindleyMilner.Tyso
                             return -1;
                     }
                 }
+                
+                if (MaxCandidateDistance < fit.MaxCandidateDistance)
+                    return 1;
+                if (fit.MaxCandidateDistance < MaxCandidateDistance)
+                    return -1;
+
+               
+                
+                
+                if (MaxConvertedDistance < fit.MaxConvertedDistance)
+                    return 1;
+                if (fit.MaxConvertedDistance < MaxConvertedDistance)
+                    return -1;
+
                     
                 
                 //Ok. These signatures are completely the same. Error.
                 return 0;
             }
         }
-        
     }
-    
-    
 }

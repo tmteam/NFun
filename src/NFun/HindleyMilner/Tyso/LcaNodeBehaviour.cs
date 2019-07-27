@@ -201,12 +201,25 @@ namespace NFun.HindleyMilner.Tyso
                     maxDepth: maxDepth-1);
             }
             
-            return FType.CanBeConverted(from, MakeType(maxDepth-1), maxDepth-1);
+            var res =  FType.CanBeConverted(from, MakeType(maxDepth-1), maxDepth-1);
+            if (res.Type != FitType.Strict)
+                return res;
+            else
+            {
+                return FitResult.Candidate(res.Distance);
+            }
         }
         public FitResult CanBeConvertedTo(FType candidateType, int maxDepth)
         {
             if (candidateType.IsPrimitiveGeneric)
                 return new FitResult(FitType.Converable,0);
+
+            var concreteType = MakeType(maxDepth-1);
+            
+            var res =  FType.CanBeConverted(concreteType, candidateType,maxDepth-1);
+            if(res.Type== FitType.Strict)
+                return FitResult.Candidate(res.Distance);
+            return res;
             
             var worstResult = new FitResult(FitType.Strict, 0);
             
