@@ -12,17 +12,6 @@ namespace Funny.Tests
     [TestFixture]
     public class BuiltInFunctionsTest
     {
-        [TestCase("int",   (int)-123,     "toInt8", (sbyte)-123)]
-        [TestCase("int",   (int)123,      "toInt8", (sbyte) 123)]
-        [TestCase("int8",  (sbyte)-123,   "toInt8", (sbyte)-123)]
-        [TestCase("int16", (short)-123,   "toInt8", (sbyte)-123)]
-        [TestCase("int32", (int)-123,     "toInt8", (sbyte)-123)]
-        [TestCase("int64", (long)-123,    "toInt8", (sbyte)-123)]
-        [TestCase("uint8", (byte)123,     "toInt8", (sbyte) 123)]
-        [TestCase("uint16",(ushort)123,   "toInt8", (sbyte) 123)]
-        [TestCase("uint32",(uint)123,     "toInt8", (sbyte) 123)]
-        [TestCase("uint64",(ulong)123,    "toInt8", (sbyte) 123)]
-
         [TestCase("int",   (int)-123,     "toInt16", (short)-123)]
         [TestCase("int",   (int)123,      "toInt16", (short) 123)]
         [TestCase("int8",  (sbyte)-123,   "toInt16", (short)-123)]
@@ -45,6 +34,17 @@ namespace Funny.Tests
         [TestCase("uint32",(uint)123,     "toInt",  123)]
         [TestCase("uint64",(ulong)123,    "toInt",  123)]
 
+        [TestCase("int",   (int)-123,     "toInt", -123)]
+        [TestCase("int",   (int)123,      "toInt",  123)]
+        [TestCase("int8",  (sbyte)-123,   "toInt", -123)]
+        [TestCase("int16", (short)-123,   "toInt", -123)]
+        [TestCase("int32", (int)-123,     "toInt", -123)]
+        [TestCase("int64", (long)-123,    "toInt", -123)]
+        [TestCase("uint8", (byte)123,     "toInt",  123)]
+        [TestCase("uint16",(ushort)123,   "toInt",  123)]
+        [TestCase("uint32",(uint)123,     "toInt",  123)]
+        [TestCase("uint64",(ulong)123,    "toInt",  123)]
+        
         [TestCase("int",   (int)-123,     "toInt32", -123)]
         [TestCase("int",   (int)123,      "toInt32",  123)]
         [TestCase("int8",  (sbyte)-123,   "toInt32", -123)]
@@ -75,6 +75,15 @@ namespace Funny.Tests
         [TestCase("uint16",(ushort)123,   "toUint8", (byte) 123)]
         [TestCase("uint32",(uint)123,     "toUint8", (byte) 123)]
         [TestCase("uint64",(ulong)123,    "toUint8", (byte) 123)]
+        
+        [TestCase("int",   (int)123,      "toByte", (byte) 123)]
+        [TestCase("int8",  (sbyte)123,    "toByte", (byte) 123)]
+        [TestCase("int16", (short)123,    "toByte", (byte) 123)]
+        [TestCase("int64", (long)123,     "toByte", (byte) 123)]
+        [TestCase("uint8", (byte)123,     "toByte", (byte) 123)]
+        [TestCase("uint16",(ushort)123,   "toByte", (byte) 123)]
+        [TestCase("uint32",(uint)123,     "toByte", (byte) 123)]
+        [TestCase("uint64",(ulong)123,    "toByte", (byte) 123)]
         
         [TestCase("int",   (int)123,      "toUint16", (ushort) 123)]
         [TestCase("int8",  (sbyte)123,    "toUint16", (ushort) 123)]

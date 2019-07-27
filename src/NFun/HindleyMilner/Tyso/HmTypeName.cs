@@ -35,10 +35,10 @@ namespace NFun.HindleyMilner.Tyso
         public static HmTypeName Int32 => new HmTypeName(Int32Id,4,13,4, Int64);
         public static HmTypeName Int16 => new HmTypeName(Int16Id,5,10,5, Int32);
         public static HmTypeName Int8 => new HmTypeName(Int8Id,6,7,6, Int16);
-        public static HmTypeName Uint8 => new HmTypeName(UInt8Id,8,9,6, Uint16);
-        public static HmTypeName Uint16 => new HmTypeName(UInt16Id,11,12,5, Uint32);
-        public static HmTypeName Uint32 => new HmTypeName(UInt32Id,14,15,4, Uint64);
-        public static HmTypeName Uint64 => new HmTypeName(UInt64Id,17,18,3, SomeInteger);
+        public static HmTypeName Uint8 => new HmTypeName(UInt8Id,8,9,10, Uint16);
+        public static HmTypeName Uint16 => new HmTypeName(UInt16Id,11,12,9, Uint32);
+        public static HmTypeName Uint32 => new HmTypeName(UInt32Id,14,15,8, Uint64);
+        public static HmTypeName Uint64 => new HmTypeName(UInt64Id,17,18,7, SomeInteger);
         public static HmTypeName Char => new HmTypeName(CharId,21,22,1, Any);
         public static HmTypeName Bool => new HmTypeName(BoolId,23,24,1, Any);
         public static HmTypeName Complex => new HmTypeName("[someComplex]",25,34,1, Any);
