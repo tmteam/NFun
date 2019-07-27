@@ -19,7 +19,7 @@ namespace NFun.Interpritation.Functions
         public VarType ReturnType { get; }
         public abstract object Calc(object[] args);
 
-        public IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children, Interval interval)
+        public IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children,  Interval interval)
         {
             var castedChildren = new List<IExpressionNode>();
 

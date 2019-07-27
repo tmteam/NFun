@@ -22,23 +22,21 @@ namespace NFun.HindleyMilner.Tyso
         public override string ToString() 
             => $"({string.Join(",", ArgTypes.Select(a => a.ToString()))})->{ReturnType}";
 
-        public static FunSignature GetBestFitOrNull(FunSignature[] candidates, SolvingNode returnType,
+        public static FunSignature[] GetBestFits(FunSignature[] candidates, SolvingNode returnType,
             params SolvingNode[] argTypes)
         {
             bool severalAreSame = false;
             SignatureFit bestOne = new SignatureFit();
+            var bestSignatures = new List<FunSignature>();
             bestOne.Failed = true;
-            for (var i = 0; i < candidates.Length; i++)
-            {
-                var candidate = candidates[i];
-            
-                var returnTypeFit = SolvingNode.CreateStrict(candidate.ReturnType)
-                    .CanBeConvertedTo(returnType.MakeType()); 
-                
+            foreach (var candidate in candidates) {
+                var returnTypeFit = returnType.CanBeConvertedFrom(candidate.ReturnType);
+                //var returnTypeFit = SolvingNode.CreateStrict(candidate.ReturnType)
+                //    .CanBeConvertedTo(returnType.MakeType()); 
                 if (returnTypeFit.Type == FitType.Not)
                     continue;                
 
-                var fit = new SignatureFit(returnTypeFit,i);
+                var fit = new SignatureFit(returnTypeFit);
                 
                 for (int argNum = 0; argNum < argTypes.Length; argNum++)
                 {
@@ -65,31 +63,37 @@ namespace NFun.HindleyMilner.Tyso
                     }
                 }
 
+                if(fit.Failed)
+                    continue;
                 var compare = fit.IsBetterThan(bestOne);
                 if (compare == 0)
-                    severalAreSame = true;
+                {
+                    bestSignatures.Add(candidate);
+                }
                 else if (compare == 1)
                 {
                     bestOne = fit;
-                    severalAreSame = false;
+                    bestSignatures.Clear();
+                    bestSignatures.Add(candidate);
                 }
             }
-
-            if (severalAreSame)
+            return bestSignatures.ToArray();
+        }
+        public static FunSignature GetBestFitOrNull(FunSignature[] candidates, SolvingNode returnType,
+            params SolvingNode[] argTypes)
+        {
+            var res = GetBestFits(candidates, returnType, argTypes);
+            if (res.Length != 1)
                 return null;
-            if (bestOne.Failed)
-                return null;
-
-            return candidates[bestOne.Index];
+            return res.First();
         }
 
         private struct SignatureFit
         {
 
-            public SignatureFit(FitResult returnResults, int index)
+            public SignatureFit(FitResult returnResults)
             {
                 ReturnTypeFit = returnResults;
-                Index = index;
                 StrictFits = 0;
                 CandidateFits = 0;
                 ConvertedFits = 0;
@@ -98,7 +102,6 @@ namespace NFun.HindleyMilner.Tyso
                 MaxConvertedDistance = 0;
             }
             public readonly FitResult ReturnTypeFit;
-            public readonly int Index;
             public int MaxCandidateDistance;
             public int MaxConvertedDistance;
             public int StrictFits;
@@ -120,9 +123,20 @@ namespace NFun.HindleyMilner.Tyso
                     return 1;
                 if (CandidateFits < fit.CandidateFits)
                     return -1;
+                
+                if (MaxCandidateDistance < fit.MaxCandidateDistance)
+                    return 1;
+                if (fit.MaxCandidateDistance < MaxCandidateDistance)
+                    return -1;
+                
                 if (ConvertedFits > fit.ConvertedFits)
                     return 1;
                 if (ConvertedFits < fit.ConvertedFits)
+                    return -1;
+                
+                if (MaxConvertedDistance < fit.MaxConvertedDistance)
+                    return 1;
+                if (fit.MaxConvertedDistance < MaxConvertedDistance)
                     return -1;
 
                 //Compare by output type:
@@ -142,77 +156,13 @@ namespace NFun.HindleyMilner.Tyso
                             return -1;
                     }
                 }
-                //Output types are equal. Need to compare convert closeness
-
-                if (MaxCandidateDistance < fit.MaxCandidateDistance)
-                    return 1;
-                if (fit.MaxCandidateDistance < MaxCandidateDistance)
-                    return -1;
-                
-                if (MaxConvertedDistance < fit.MaxConvertedDistance)
-                    return 1;
-                if (fit.MaxConvertedDistance < MaxConvertedDistance)
-                    return -1;
                     
                 
                 //Ok. These signatures are completely the same. Error.
                 return 0;
             }
         }
-        public static FunSignature GetBestFitOrNullOld(FunSignature[] candidates, SolvingNode returnType, params SolvingNode[] argTypes)
-        {
-            FunSignature bestCandidate = null;
-            bool severalNonStrictFits = false;
-            int fitScore = 0;
-            for (var i = 0; i < candidates.Length; i++)
-            {
-                var candidate = candidates[i];
-                FitType candidateConvert;
-                int candidateScore = 0;
-                var returnTypeFit = returnType
-                    .CanBeConvertedTo(candidate.ReturnType, SolvingNode.MaxTypeDepth);
-                if (returnTypeFit.Type == FitType.Not)
-                    continue;
-                candidateScore += (int) returnTypeFit.Type;
-                candidateConvert = returnTypeFit.Type;
-
-                for (int argNum = 0; argNum < argTypes.Length; argNum++)
-                {
-                    var argFit = argTypes[argNum].CanBeConvertedTo(
-                        candidate.ArgTypes[argNum], SolvingNode.MaxTypeDepth);
-                    if (argFit.Type == FitType.Not)
-                        continue;
-                    if (argFit.Type < candidateConvert)
-                        candidateConvert = argFit.Type;
-                    candidateScore += (int) argFit.Type;
-                }
-
-                if (candidateConvert == FitType.Strict)
-                {
-                    severalNonStrictFits = false;
-                    return candidate;
-                }
-
-                if (candidateConvert == FitType.Converable)
-                {
-                    if (bestCandidate != null && candidateScore == fitScore)
-                        severalNonStrictFits = true;
-                    else
-                    {
-                        if (candidateScore > fitScore)
-                        {
-                            fitScore = candidateScore;
-                            severalNonStrictFits = false;
-                            bestCandidate = candidate;
-                        }
-                    }
-                }
-            }
-
-            if (severalNonStrictFits)
-                return null;
-            return bestCandidate;
-        }
+        
     }
     
     

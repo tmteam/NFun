@@ -121,5 +121,39 @@ namespace NFun.HindleyMilner.Tyso
 
         public override string ToString() => ToSmartString(SolvingNode.MaxTypeDepth);
 
+
+        public static FitResult CanBeConverted(FType from, FType to, int maxDepth){
+            if (to.IsPrimitiveGeneric)
+                return new  FitResult(FitType.Converable,0);
+            if (to.IsPrimitive)
+            {
+                if (to.Name.Equals(from.Name))
+                    return new FitResult(FitType.Strict, 0);
+                //special case: Int is most expected type for someInteger
+                if(from.Name.Id== HmTypeName.Int32Id && to.Name.Id== HmTypeName.SomeIntegerId)
+                    return new FitResult(FitType.Candidate, from.GetParentalDistanceTo(to));
+                if (from.CanBeSafelyConvertedTo(to)) 
+                    return new FitResult(FitType.Converable, from.GetParentalDistanceTo(to));
+                else
+                    return FitResult.Not;
+            }
+            
+            if (!to.Name.Equals(from.Name))
+                return FitResult.Not;
+            
+            if (from.Arguments.Length!= to.Arguments.Length)
+                return FitResult.Not;
+
+            FitType minimalResult = FitType.Strict;
+            for (int i = 0; i < from.Arguments.Length ; i++)
+            {
+                var res =from.Arguments[i]
+                    .CanBeConvertedTo(to.Arguments[i].MakeType(maxDepth-1), maxDepth-1);
+                if (res.Type < minimalResult)
+                    minimalResult = res.Type;
+            }
+            return new FitResult(minimalResult,0);
+        } 
+
     }
 }

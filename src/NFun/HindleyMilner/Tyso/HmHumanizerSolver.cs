@@ -66,12 +66,15 @@ namespace NFun.HindleyMilner.Tyso
         /// <returns></returns>
         public bool SetCall(CallDef call) => _solver.SetLimArgCall(call);
 
+        public bool SetOverloadCall(FunSignature[] candidates, int returnNodeId,
+            params int[] argIds) => SetOverloadCall(candidates, returnNodeId, argIds, true);
         /// <summary>
         /// Set call, that limit its args to concrete types
         /// </summary>
         /// <param name="call"></param>
         /// <returns></returns>
-        public bool SetOverloadCall(FunSignature[] candidates, int returnNodeId, params int[] argIds)
+        public bool SetOverloadCall(FunSignature[] candidates, int returnNodeId, 
+             int[] argIds, bool useForArgLimitation = true )
         {
             if (candidates.Length == 1)
                 return SetCall(candidates[0].ToCallDefenition(returnNodeId, argIds));
@@ -99,7 +102,7 @@ namespace NFun.HindleyMilner.Tyso
                 if (!TrySpecifyArgumentType(candidates, argIds, argNum)) return false;
             }
             //AllOther cases shoud calculates at the end of solving
-            _solver.SetLazyOverloadsCall(new OverloadCall(candidates, returnNodeId, argIds));
+            _solver.AddLazyOverloadsCall(new OverloadCall(candidates, returnNodeId, argIds, useForArgLimitation));
             return true;
             
         }
@@ -207,8 +210,7 @@ namespace NFun.HindleyMilner.Tyso
         public SolvingNode GetOrCreate(string variableName) => _solver.GetOrCreate(variableName);
 
         public SetTypeResult SetComparationOperator(int nodeId, int leftId, int rightId)
-        {
-            /*
+        { /*
            if (SetOverloadCall(
                 new[]
                 {
@@ -278,11 +280,42 @@ namespace NFun.HindleyMilner.Tyso
                 return SetTypeResult.Failed(leftId, SetTypeResultError.ArgumentIsNotANumber);
             if(!_solver.SetLimit(rightId, HmTypeName.Real))
                 return SetTypeResult.Failed(leftId, SetTypeResultError.ArgumentIsNotANumber);
-
+            _solver.SetLca(nodeId, new[]{ 
+                _solver.GetOrCreate(leftId),
+                _solver.GetOrCreate(rightId), 
+                SolvingNode.CreateStrict(FType.UInt16) 
+            });
             if(!_solver.SetLca(nodeId, new[] {leftId, rightId}))
                 return SetTypeResult.Failed(nodeId, SetTypeResultError.ExpressionTypeIsIncorrect);
             return SetTypeResult.Succesfully;
+        }
+        
+        public SetTypeResult SetArithmeticalWithOverloadsOp(int nodeId, int leftId, int rightId)
+        {
+            if(!_solver.SetLimit(leftId, HmTypeName.Real))
+                return SetTypeResult.Failed(leftId, SetTypeResultError.ArgumentIsNotANumber);
+            if(!_solver.SetLimit(rightId, HmTypeName.Real))
+                return SetTypeResult.Failed(leftId, SetTypeResultError.ArgumentIsNotANumber);
             
+            _solver.SetLca(nodeId, new[]{ 
+                _solver.GetOrCreate(leftId),
+                _solver.GetOrCreate(rightId), 
+                SolvingNode.CreateStrict(FType.UInt16) 
+            });
+            
+            
+            //Save possible overloads.
+          /*  _solver.AddLazyOverloadsCall(
+                    new OverloadCall(
+                        new []{
+                        new FunSignature(FType.Real, FType.Real, FType.Real),
+                        new FunSignature(FType.Int32, FType.Int32, FType.Int32),
+                        new FunSignature(FType.Int64, FType.Int64, FType.Int64),
+                        new FunSignature(FType.UInt32, FType.UInt32, FType.UInt32),
+                        new FunSignature(FType.UInt64, FType.UInt64, FType.UInt64)
+                        }, nodeId, new[] {leftId, rightId}, false));
+            */
+            return SetTypeResult.Succesfully;
         }
         
         
@@ -354,16 +387,23 @@ namespace NFun.HindleyMilner.Tyso
             return type?.MakeType();
             
         }
+
+        public bool SetLcaConst(int nodeOrderNumber, FType type)
+        {
+            return _solver.SetLca(nodeOrderNumber, new []{SolvingNode.CreateStrict(type)});
+        }
     }
 
     public class OverloadCall
     {
+        public readonly bool UseForArgLimitation;
         public readonly FunSignature[] Candidates;
         public readonly int ReturnNodeId;
         public readonly int[] ArgIds;
 
-        public OverloadCall(FunSignature[] candidates, int returnNodeId, int[] argIds)
+        public OverloadCall(FunSignature[] candidates, int returnNodeId, int[] argIds, bool useForArgLimitation = true)
         {
+            UseForArgLimitation = useForArgLimitation;
             Candidates = candidates;
             ReturnNodeId = returnNodeId;
             ArgIds = argIds;

@@ -128,8 +128,15 @@ namespace NFun.Interpritation
 
             if (function == null)
                 throw new ImpossibleException("MJ78. Function overload was not found");
-            
-            return function.CreateWithConvertionOrThrow(children, node.Interval);
+             
+            var converted =  function.CreateWithConvertionOrThrow(children, node.Interval);
+            if(converted.Type!= node.OutputType)
+            {
+                var converter = VarTypeConverter.GetConverterOrThrow(converted.Type, node.OutputType, node.Interval);
+                return new CastExpressionNode(converted, node.OutputType, converter,node.Interval);
+            }
+            else
+                return converted;
         }
 
         public IExpressionNode Visit(IfThenElseSyntaxNode node)

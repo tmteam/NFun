@@ -20,7 +20,8 @@ namespace NFun.SyntaxParsing
         
         public static ISyntaxNode Var(Tok token) => new VariableSyntaxNode(token.Value, token.Interval); 
         
-        public static ISyntaxNode Constant(object value, VarType type, Interval interval) => new ConstantSyntaxNode(value, type, interval);
+        public static ISyntaxNode Constant(object value, VarType type, Interval interval) 
+            => new ConstantSyntaxNode(value, type, interval);
         
         public static ISyntaxNode ProcArrayInit(ISyntaxNode @from, ISyntaxNode to, ISyntaxNode step, int start, int end)
             =>new ProcArrayInit(from, to, step, Interval.New(start,end));

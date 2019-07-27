@@ -297,8 +297,15 @@ namespace Funny.Tests
         [TestCase(new []{1.0,2.0},    "x:real[]\r y= x", new []{1.0,2.0})]        
         
         [TestCase(new []{1.0,2.0},    "x:real[]\r y= x.concat(x)", new []{1.0,2.0,1.0,2.0})]        
-        [TestCase(1.0, "x:real\r y= x+1", 2.0)]        
+        [TestCase(1.0, "x:real\r y= x+1", 2.0)]       
+        
         [TestCase(1,    "x:int\r y= x+1", 2)]        
+        [TestCase(1.0, "y= x+1", 2.0)]       
+        [TestCase(2.0, "y= x*1", 2.0)]       
+        [TestCase(1.0, "y= x-1", 0.0)]       
+        [TestCase(1.0, "y= 1+x", 2.0)]       
+        [TestCase(2.0, "y= 1*x", 2.0)]       
+        [TestCase(1.0, "y= 1-x", 0.0)]       
         [TestCase("1", "y= x.strConcat(1)", "11")]        
         [TestCase(true, "x:bool\r y= x and true", true)] 
         
@@ -421,12 +428,6 @@ namespace Funny.Tests
             Assert.AreEqual(expectedOutputType, runtime.Outputs.Single().Type.BaseType);
         }
         
-        [TestCase("byte",   BaseVarType.UInt16)]
-        [TestCase("uint8",  BaseVarType.UInt16)]
-        [TestCase("uint16", BaseVarType.UInt32)]
-        [TestCase("uint32", BaseVarType.UInt32)]
-        [TestCase("uint64", BaseVarType.UInt64)]
-        [TestCase("int16",  BaseVarType.Int32)]
         [TestCase("int",    BaseVarType.Int32)]
         [TestCase("int32",  BaseVarType.Int32)]
         [TestCase("int64",  BaseVarType.Int64)]
@@ -437,13 +438,6 @@ namespace Funny.Tests
             Assert.AreEqual(expectedOutputType, runtime.Outputs.Single(o => o.Name == "y").Type.BaseType);
         }
         
-        
-        [TestCase("byte",   BaseVarType.Int16)]
-        [TestCase("uint8",  BaseVarType.Int16)]
-        [TestCase("uint16", BaseVarType.Int16)]
-        [TestCase("uint32", BaseVarType.Int32)]
-        [TestCase("uint64", BaseVarType.Int64)]
-        [TestCase("int16",  BaseVarType.Int16)]
         [TestCase("int",    BaseVarType.Int32)]
         [TestCase("int32",  BaseVarType.Int32)]
         [TestCase("int64",  BaseVarType.Int64)]
@@ -454,13 +448,6 @@ namespace Funny.Tests
             Assert.AreEqual(expectedOutputType, runtime.Outputs.Single(o => o.Name == "y").Type.BaseType);
         }
         
-        [TestCase("byte",   BaseVarType.UInt16)]
-        [TestCase("uint8",  BaseVarType.UInt16)]
-        [TestCase("uint16", BaseVarType.UInt32)]
-        [TestCase("uint32", BaseVarType.UInt32)]
-        [TestCase("uint64", BaseVarType.UInt64)]
-        [TestCase("int8",   BaseVarType.Int16)]
-        [TestCase("int16",  BaseVarType.Int32)]
         [TestCase("int",    BaseVarType.Int32)]
         [TestCase("int32",  BaseVarType.Int32)]
         [TestCase("int64",  BaseVarType.Int64)]
@@ -471,12 +458,6 @@ namespace Funny.Tests
             Assert.AreEqual(expectedOutputType, runtime.Outputs.Single(o => o.Name == "y").Type.BaseType);
         }
         
-        [TestCase("byte",   BaseVarType.UInt8)]
-        [TestCase("uint8",  BaseVarType.UInt8)]
-        [TestCase("uint16", BaseVarType.UInt16)]
-        [TestCase("uint32", BaseVarType.UInt32)]
-        [TestCase("uint64", BaseVarType.UInt64)]
-        [TestCase("int16",  BaseVarType.Int32)]
         [TestCase("int",    BaseVarType.Int32)]
         [TestCase("int32",  BaseVarType.Int32)]
         [TestCase("int64",  BaseVarType.Int64)]

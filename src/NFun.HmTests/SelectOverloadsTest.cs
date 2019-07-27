@@ -7,12 +7,19 @@ namespace NFun.HmTests
     [SuppressMessage("ReSharper", "InconsistentNaming")]
     public class SelectOverloadsTest
     {
-        SolvingNode Int => SolvingNode.CreateStrict(FType.Int32);
+        SolvingNode Int16 => SolvingNode.CreateStrict(FType.Int16);
+
+        SolvingNode Int32 => SolvingNode.CreateStrict(FType.Int32);
         SolvingNode Long => SolvingNode.CreateStrict(FType.Int64);
         SolvingNode Real  => SolvingNode.CreateStrict(FType.Real);
         SolvingNode Text  => SolvingNode.CreateStrict(FType.Text);
         SolvingNode Any   => SolvingNode.CreateStrict(FType.Any);
         
+        SolvingNode Int16Lca   => SolvingNode.CreateLca(Int16);
+
+        SolvingNode Int32Lca   => SolvingNode.CreateLca(Int32);
+        SolvingNode LongLca  => SolvingNode.CreateLca(Long);
+        SolvingNode RealLca  => SolvingNode.CreateLca(Real);
         SolvingNode IntLimit   => SolvingNode.CreateLimit(FType.Int32);
         SolvingNode LongLimit  => SolvingNode.CreateLimit(FType.Int64);
         SolvingNode RealLimit  => SolvingNode.CreateLimit(FType.Real);
@@ -50,17 +57,17 @@ namespace NFun.HmTests
         [Test]
         public void StrictRli_I2_fitsI2() =>Assert.AreEqual(
             expected: I2Signature, 
-            actual: FunSignature.GetBestFitOrNull(Rli_1Arg_Overload, Int, Int));
+            actual:   FunSignature.GetBestFitOrNull(Rli_1Arg_Overload, Int32, Int32));
 
         [Test]
         public void StrictRli_RI_fitsI2() =>Assert.AreEqual(
             expected: I2Signature, 
-            actual: FunSignature.GetBestFitOrNull(Rli_1Arg_Overload, Real, Int));
+            actual: FunSignature.GetBestFitOrNull(Rli_1Arg_Overload, Real, Int32));
         
         [Test]
         public void StrictRli_IR_returnsNull() =>Assert.AreEqual(
             expected: null, 
-            actual: FunSignature.GetBestFitOrNull(Rli_1Arg_Overload, Int, Real));
+            actual: FunSignature.GetBestFitOrNull(Rli_1Arg_Overload, Int32, Real));
 
         
         [Test]
@@ -74,7 +81,7 @@ namespace NFun.HmTests
         [Test]
         public void StrictRli_III_fitsIII() => Assert.AreEqual(
             expected: IIISignature, 
-            actual: FunSignature.GetBestFitOrNull(Rli_2Arg_Overload, Int, Int, Int));
+            actual: FunSignature.GetBestFitOrNull(Rli_2Arg_Overload, Int32, Int32, Int32));
         [Test]
         public void StrictRli_RLL_fitsLLL() => Assert.AreEqual(
             expected: LLLSignature, 
@@ -82,19 +89,19 @@ namespace NFun.HmTests
         [Test]
         public void StrictRli_RRI_fitsRRR() => Assert.AreEqual(
             expected: RRRSignature, 
-            actual: FunSignature.GetBestFitOrNull(Rli_2Arg_Overload, Real, Real, Int));
+            actual: FunSignature.GetBestFitOrNull(Rli_2Arg_Overload, Real, Real, Int32));
         [Test]
         public void StrictRli_GenericRI_fitsRRR() => Assert.AreEqual(
             expected: RRRSignature, 
-            actual:   FunSignature.GetBestFitOrNull(Rli_2Arg_Overload, Generic, Real, Int) );
+            actual:   FunSignature.GetBestFitOrNull(Rli_2Arg_Overload, Generic, Real, Int32) );
         [Test]
         public void StrictRli_GenericLI_fitsLLL() => Assert.AreEqual(
             expected: LLLSignature,
-            actual: FunSignature.GetBestFitOrNull(Rli_2Arg_Overload, Generic, Long, Int));
+            actual: FunSignature.GetBestFitOrNull(Rli_2Arg_Overload, Generic, Long, Int32));
         [Test]
         public void StrictRli_GenericII_fitsIII() => Assert.AreEqual(
             expected: IIISignature,
-            actual: FunSignature.GetBestFitOrNull(Rli_2Arg_Overload, Generic, Int, Int));
+            actual: FunSignature.GetBestFitOrNull(Rli_2Arg_Overload, Generic, Int32, Int32));
         [Test]
         public void StrictRli_LGenericGeneric_fitsLLL() => Assert.AreEqual(
             expected: LLLSignature, 
@@ -111,10 +118,10 @@ namespace NFun.HmTests
         
         [Test]
         public void StrictRli_ILI_returnsNull() => Assert.IsNull(
-            FunSignature.GetBestFitOrNull(Rli_2Arg_Overload, Int, Long, Int));
+            FunSignature.GetBestFitOrNull(Rli_2Arg_Overload, Int32, Long, Int32));
         [Test]
         public void StrictRli_ILL_returnsNull() => Assert.IsNull(
-            FunSignature.GetBestFitOrNull(Rli_2Arg_Overload, Int, Long, Long));
+            FunSignature.GetBestFitOrNull(Rli_2Arg_Overload, Int32, Long, Long));
         #endregion
 
         #region limit
@@ -180,22 +187,22 @@ namespace NFun.HmTests
         [Test]
         public void IMPORTANT_LimitRli_RlimRlimIStrict_fitsIII() => Assert.AreEqual(
             expected: IIISignature, 
-            actual: FunSignature.GetBestFitOrNull(Rli_2Arg_Overload, RealLimit, RealLimit, Int));
+            actual: FunSignature.GetBestFitOrNull(Rli_2Arg_Overload, RealLimit, RealLimit, Int32));
         
         [Test]
         public void IMPORTANT_LimitRli_RlimIStrictIStrict_fitsIII() => Assert.AreEqual(
             expected: IIISignature, 
-            actual: FunSignature.GetBestFitOrNull(Rli_2Arg_Overload, RealLimit, Int, Int));
+            actual: FunSignature.GetBestFitOrNull(Rli_2Arg_Overload, RealLimit, Int32, Int32));
 
         [Test]
         public void IMPORTANT_LimitRli_GenericLcaOfLimRealAndInt_fitsI2() => Assert.AreEqual(
             expected: I2Signature, 
-            actual: FunSignature.GetBestFitOrNull(Rli_1Arg_Overload, Generic, Lca(RealLimit, Int)));
+            actual: FunSignature.GetBestFitOrNull(Rli_1Arg_Overload, Generic, Lca(RealLimit, Int32)));
 
         [Test]
         public void IMPORTANT_LimitRli_GenericRlimIStrict_fitsIII() => Assert.AreEqual(
             expected: IIISignature, 
-            actual: FunSignature.GetBestFitOrNull(Rli_2Arg_Overload, Generic,RealLimit, Int));
+            actual: FunSignature.GetBestFitOrNull(Rli_2Arg_Overload, Generic,RealLimit, Int32));
 
         
         [Test]
@@ -209,7 +216,7 @@ namespace NFun.HmTests
         [Test]
         public void MixRli_III_fitsIII() => Assert.AreEqual(
             expected: IIISignature, 
-            actual: FunSignature.GetBestFitOrNull(Rli_2Arg_Overload, Int, IntLimit, IntLimit));
+            actual: FunSignature.GetBestFitOrNull(Rli_2Arg_Overload, Int32, IntLimit, IntLimit));
         [Test]
         public void MixRli_RLL_fitsLLL() => Assert.AreEqual(
             expected: LLLSignature, 
@@ -217,7 +224,7 @@ namespace NFun.HmTests
         [Test]
         public void MixRli_RLimitRLimitIStrict_fitsIII() => Assert.AreEqual(
             expected: IIISignature, 
-            actual: FunSignature.GetBestFitOrNull(Rli_2Arg_Overload, RealLimit, RealLimit, Int));
+            actual: FunSignature.GetBestFitOrNull(Rli_2Arg_Overload, RealLimit, RealLimit, Int32));
         
         [Test]
         public void MixRli_RLimitLstringIlimit_fitsIII() => Assert.AreEqual(
@@ -231,11 +238,11 @@ namespace NFun.HmTests
         [Test]
         public void MixRli_GenericLlimitIstring_fitsIII() => Assert.AreEqual(
             expected: IIISignature,
-            actual: FunSignature.GetBestFitOrNull(Rli_2Arg_Overload, Generic, LongLimit, Int));
+            actual: FunSignature.GetBestFitOrNull(Rli_2Arg_Overload, Generic, LongLimit, Int32));
         [Test]
         public void MixRli_GenericII_fitsIII() => Assert.AreEqual(
             expected: IIISignature,
-            actual: FunSignature.GetBestFitOrNull(Rli_2Arg_Overload, Generic, Int, IntLimit));
+            actual: FunSignature.GetBestFitOrNull(Rli_2Arg_Overload, Generic, Int32, IntLimit));
         [Test]
         public void MixRli_LGenericGeneric_fitsLLL() => Assert.AreEqual(
             expected: LLLSignature, 
@@ -251,5 +258,35 @@ namespace NFun.HmTests
             FunSignature.GetBestFitOrNull(Rli_2Arg_Overload, TextLimit, Real, RealLimit));
         #endregion
 
+        #region retutnsLca
+
+        //Return type is LCA (bottom limited)
+        //Example:
+        
+        //y: LCA(int16) # it can be i16, i32, i64, real, any
+        //y = myFun(z:int) 
+        //myFunOverload: (int32)->int32
+        // myFunOverload should fit, because y can be i32
+        
+        [Test]
+        public void LcaRli_i32toLCAi32_fitsI2() =>CollectionAssert.AreEqual(
+            expected: new[]{I2Signature}, 
+            actual:   FunSignature.GetBestFits(Rli_1Arg_Overload, Int32Lca, Int32));
+        
+        [Test]
+        public void LcaRli_i32toLCAi16_fitsI2() =>CollectionAssert.AreEqual(
+            expected: new[]{I2Signature}, 
+            actual:   FunSignature.GetBestFits(Rli_1Arg_Overload, Int16Lca, Int32));
+        
+        [Test]
+        public void LcaRli_i32toLCAi64_fitsL2() =>CollectionAssert.AreEqual(
+            expected: new []{L2Signature}, 
+            actual:   FunSignature.GetBestFits(Rli_1Arg_Overload, LongLca, Int32));
+        
+        [Test]
+        public void LcaRli_i32toLCAReal_fitsR2() =>CollectionAssert.AreEqual(
+            expected: new []{R2Signature}, 
+            actual:   FunSignature.GetBestFits(Rli_1Arg_Overload, RealLca, Int32));
+        #endregion
     }
 }

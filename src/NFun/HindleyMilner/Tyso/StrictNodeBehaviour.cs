@@ -120,47 +120,17 @@ namespace NFun.HindleyMilner.Tyso
 
         public string ToSmartString(int maxDepth = 10) => $"{_type}";
 
-        public INodeBehavior Optimize(out bool o)
-        {
+        public INodeBehavior Optimize(out bool o) {
             o = false;
             return this;
         }
 
+        public FitResult CanBeConvertedFrom(FType candidateType, int maxDepth) 
+            => FType.CanBeConverted(from: candidateType, to: _type, maxDepth: maxDepth);
+        
         public FitResult CanBeConvertedTo(FType candidateType, int maxDepth)
-        {
-            if (candidateType.IsPrimitiveGeneric)
-                return new  FitResult(FitType.Converable,0);
-            if (candidateType.IsPrimitive)
-            {
-                if (candidateType.Name.Equals(_type.Name))
-                    return new FitResult(FitType.Strict, 0);
-                //special case: Int is most expected type for someInteger
-                if(_type.Name.Id== HmTypeName.Int32Id && candidateType.Name.Id== HmTypeName.SomeIntegerId)
-                    return new FitResult(FitType.Candidate, _type.GetParentalDistanceTo(candidateType));
-                if (_type.CanBeSafelyConvertedTo(candidateType)) 
-                    return new FitResult(FitType.Converable, _type.GetParentalDistanceTo(candidateType));
-                else
-                    return FitResult.Not;
-            }
-            
-            if (!candidateType.Name.Equals(_type.Name))
-                return FitResult.Not;
-
-            
-            if (_type.Arguments.Length!= candidateType.Arguments.Length)
-                return FitResult.Not;
-
-            FitType minimalResult = FitType.Strict;
-            for (int i = 0; i < _type.Arguments.Length ; i++)
-            {
-                var res =_type.Arguments[i]
-                    .CanBeConvertedTo(candidateType.Arguments[i].MakeType(maxDepth-1), maxDepth-1);
-                if (res.Type < minimalResult)
-                    minimalResult = res.Type;
-            }
-            return new FitResult(minimalResult,0);
-        }
-
+            => FType.CanBeConverted(from: _type, to: candidateType, maxDepth: maxDepth);
+        
         public override string ToString() => $"{_type}";
     }
 }

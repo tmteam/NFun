@@ -51,6 +51,8 @@ namespace NFun.HindleyMilner.Tyso
             changed = false;
             return this;
         }
+        public FitResult CanBeConvertedFrom(FType from, int maxDepth) 
+            => new FitResult(FitType.Converable, 0);
 
         public FitResult CanBeConvertedTo(FType candidateType, int maxDepth) 
             => new FitResult(FitType.Converable, 0);

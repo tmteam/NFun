@@ -6,6 +6,7 @@ namespace NFun.HmTests.UnitTests
     [TestFixture]
     public class OptimisationUnitTest
     {
+        
         [Test]
         public void OptimizeLcaWith2Generics_AllNodesEqualToSingleGeneric()
         {

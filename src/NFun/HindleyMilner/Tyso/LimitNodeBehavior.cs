@@ -92,7 +92,10 @@ namespace NFun.HindleyMilner.Tyso
             }
             return this;
         }
-
+        
+        public  FitResult CanBeConvertedFrom(FType from, int maxDepth)
+            => FType.CanBeConverted(from, Limit, maxDepth);
+            
         public FitResult CanBeConvertedTo(FType candidateType, int maxDepth)
         {
             if (candidateType.IsPrimitiveGeneric)

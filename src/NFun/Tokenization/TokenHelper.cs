@@ -22,8 +22,24 @@ namespace NFun.Tokenization
             }
 
             var longVal = ParseLongValue(val);
-            if (longVal > Int32.MaxValue || longVal < Int32.MinValue)
-                return (longVal, VarType.Int64);
+
+            /* todo uiXXiXX  
+            if (longVal >= 0)
+            {
+                if (longVal <= byte.MaxValue)
+                    return ((byte) longVal, VarType.UInt8);
+                if(longVal <= UInt16.MaxValue)
+                    return ((UInt16) longVal, VarType.UInt16);
+            }
+            else
+            {
+                if(longVal > Int16.MinValue)
+                    return ((Int16) longVal, VarType.Int16);
+            }
+            */
+            if(longVal>Int32.MaxValue || longVal<Int32.MinValue)
+                return ( longVal, VarType.Int64);
+            
             return ((int) longVal, VarType.Int32);
         }
 

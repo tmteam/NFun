@@ -18,9 +18,24 @@ namespace NFun.HindleyMilner.Tyso
             
             if (OtherNodes.Length == 1)
                 return OtherNodes.First().MakeType(maxTypeDepth-1);
+
+            var concretes = OtherNodes.Select(o => o.MakeType(maxTypeDepth - 1)).ToArray();
+            var left = concretes.Where(c=>c.Name.Start>=0).Min(c => c.Name.Start);
+            var right = concretes.Where(c=>c.Name.Finish>=0).Max(c=>c.Name.Finish);
             
-            //todo find last common ancestor
-            return OtherNodes.Select(o => o.MakeType(maxTypeDepth-1)).OrderBy(a => a.Name.Start).First();
+            //Search for GeneralParent
+
+            var parentName = concretes[0].Name;
+
+            while (true)
+            {
+                if (parentName.Start <= left && parentName.Finish >= right)
+                    return new FType(parentName);
+                
+                if(parentName.Parent==null)
+                    return FType.Any;
+                parentName = parentName.Parent;
+            }
         }
 
         public INodeBehavior SetLimit(FType newLimit)
@@ -87,7 +102,8 @@ namespace NFun.HindleyMilner.Tyso
                 }
                 return new ReferenceBehaviour(OtherNodes[0]);
             }
-                
+
+           
             foreach (var node in OtherNodes)
             {
                    
@@ -97,9 +113,10 @@ namespace NFun.HindleyMilner.Tyso
                     var newNodes = OtherNodes.Where(o => o.Behavior != this).ToArray();
                     return new LcaNodeBehaviour(newNodes);
                 }
-
+            
                 if (node.Behavior is StrictNodeBehaviour s)
                 {
+                    
                     var type = s.MakeType();
                     //Lca for complex type is equality
                     //todo How to unite complex type arguments?
@@ -153,6 +170,39 @@ namespace NFun.HindleyMilner.Tyso
             return this;
         }
 
+        public FitResult CanBeConvertedFrom(FType from, int maxDepth)
+        {
+            if (from.IsPrimitiveGeneric)
+                return new FitResult(FitType.Converable,0);
+
+            FType sameTypeForEveryone = null;
+            bool hasSameType = true;
+            foreach (var otherNode in OtherNodes)
+            {
+                if (sameTypeForEveryone == null)
+                {
+                    sameTypeForEveryone = otherNode.MakeType();
+                }
+                else
+                {
+                    var concrete = otherNode.MakeType();
+                    if(!concrete.Equals(sameTypeForEveryone))
+                    {
+                        hasSameType = false;
+                        break;
+                    }
+                }
+            }
+            if(hasSameType)
+            {
+                return FType.CanBeConverted(
+                    from: sameTypeForEveryone, 
+                    to:from, 
+                    maxDepth: maxDepth-1);
+            }
+            
+            return FType.CanBeConverted(from, MakeType(maxDepth-1), maxDepth-1);
+        }
         public FitResult CanBeConvertedTo(FType candidateType, int maxDepth)
         {
             if (candidateType.IsPrimitiveGeneric)

@@ -76,6 +76,12 @@ namespace NFun.HindleyMilner.Tyso
              return true;
         }
 
+        public FitResult CanBeConvertedFrom(FType candidateType, int maxDepth = SolvingNode.MaxTypeDepth)
+        {
+            if(maxDepth<0)
+                throw new StackOverflowException("Fits too depth");
+            return Behavior.CanBeConvertedFrom(candidateType, maxDepth);
+        }
         public FitResult CanBeConvertedTo(FType candidateType, int maxDepth = SolvingNode.MaxTypeDepth)
         {
             if(maxDepth<0)
