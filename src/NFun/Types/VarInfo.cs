@@ -1,3 +1,4 @@
+using System;
 using NFun.SyntaxParsing;
 
 namespace NFun.Types
@@ -8,9 +9,16 @@ namespace NFun.Types
         public readonly VarType Type;
         public readonly string Name;
         public readonly VarAttribute[] Attributes;
+        public bool IsStrictTyped { get; }
 
-        public VarInfo(bool isOutput, VarType type, string name, VarAttribute[] attributes = null)
+        public VarInfo(
+            bool isOutput, 
+            VarType type,
+            string name, 
+            bool isStrictTyped,
+            VarAttribute[] attributes = null)
         {
+            IsStrictTyped = isStrictTyped;
             IsOutput = isOutput;
             Type = type;
             Name = name;
@@ -27,6 +35,7 @@ namespace NFun.Types
         public bool Equals(VarInfo other)
         {
             return IsOutput == other.IsOutput 
+                   && IsStrictTyped== other.IsStrictTyped
                    && Type.Equals(other.Type) 
                    && string.Equals(Name, other.Name);
         }
@@ -36,6 +45,7 @@ namespace NFun.Types
             unchecked
             {
                 var hashCode = IsOutput.GetHashCode();
+                hashCode = (hashCode * 397) ^ IsOutput.GetHashCode();
                 hashCode = (hashCode * 397) ^ Type.GetHashCode();
                 hashCode = (hashCode * 397) ^ (Name != null ? Name.GetHashCode() : 0);
                 return hashCode;

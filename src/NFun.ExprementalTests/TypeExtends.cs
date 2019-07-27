@@ -1,12 +1,8 @@
 using System;
-using System.Linq;
-using NFun;
-using NFun.Interpritation.Functions;
 using NFun.Runtime;
 using NFun.Types;
-using NUnit.Framework;
 
-namespace Tests
+namespace NFun.ExprementalTests
 {
     public class VQTArray : FunArray, IVQT
     {

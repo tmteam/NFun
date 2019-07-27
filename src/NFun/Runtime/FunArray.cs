@@ -14,14 +14,13 @@ namespace NFun.Runtime
         object GetElementOrNull(int index);
         bool IsEquivalent(IFunArray array);
         IEnumerable<T> As<T>();
-
     }
-    
+
     public class FunArray: IFunArray
     {
         private readonly Array _values;
         public static FunArray Empty => new FunArray(new object[0]);
-
+        public Array Values => _values;
         public IEnumerable<T> As<T>()
         {
             foreach (var value in _values)
@@ -30,10 +29,9 @@ namespace NFun.Runtime
             }
         }
 
-        public static FunArray By(IEnumerable<object> values)
-        {
-            return new FunArray(values.ToArray());
-        }
+        public static FunArray By(IEnumerable<object> values) 
+            => new FunArray(values.ToArray());
+
         public FunArray(Array values)
         {
             _values = values;
@@ -54,7 +52,6 @@ namespace NFun.Runtime
 
         IEnumerator IEnumerable.GetEnumerator() => _values.GetEnumerator();
 
-        public VarType ElementType { get; }
         public int Count { get; }
         public IFunArray Slice(int? startIndex, int? endIndex, int? step)
         {
@@ -92,43 +89,9 @@ namespace NFun.Runtime
             return _values.GetValue(index);
         }
 
-        public bool IsEquivalent(IFunArray array)
-        {
-            if (Count != array.Count)
-                return false;
-            if (Count == 0)
-                return true;
-            
-            if (GetElementOrNull(0) is IFunArray)
-            {
-                for (int i = 0; i < Count; i++)
-                {
-                    var foreign = array.GetElementOrNull(i) ;
-                    var origin = GetElementOrNull(i) ;
-                    if (foreign is IFunArray f)
-                    {
-                        if (origin is IFunArray o)
-                        {
-                            if (!f.IsEquivalent(o))
-                                return false;
-                        }
-                        else return false;
-                    }
-                    else if (!foreign.Equals(origin))
-                        return false;
-                }
-                return true;
-            }
-            else
-            {
-                for (int i = 0; i < Count; i++)
-                {
-                    if (!TypeHelper.AreEqual(GetElementOrNull(i), array.GetElementOrNull(i)))
-                        return false;
-                }
-                return true;
-            }
-        }
+     
+
+        public bool IsEquivalent(IFunArray array) => TypeHelper.AreEquivalent(this, array);
 
         public override bool Equals(object obj)
         {
@@ -173,7 +136,7 @@ namespace NFun.Runtime
 
         public override string ToString()
         {
-            return "Arr["+String.Join(",", _values.Cast<object>())+"]" ;
+            return $"Arr[{string.Join(",", _values.Cast<object>())}]";
         }
     }
 }

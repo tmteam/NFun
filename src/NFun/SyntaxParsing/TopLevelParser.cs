@@ -34,15 +34,19 @@ namespace NFun.SyntaxParsing
                     throw ErrorFactory.UnknownValueAtStartOfExpression(exprStart, flow.Current);
                 
                 if(e is TypedVarDefSyntaxNode typed)
-                {
                     //Input typed var specification
-                    nodes.Add(
-                        new VarDefenitionSyntaxNode(typed, attributes));                        
-                }
+                    nodes.Add(new VarDefenitionSyntaxNode(typed, attributes));                        
                 else if (flow.IsCurrent(TokType.Def) || flow.IsCurrent(TokType.Colon))
                 {
+                    
                     if (e is VariableSyntaxNode variable)
                     {
+
+                        if (hasAnonymousEquation)
+                            throw ErrorFactory.UnexpectedExpression(nodes.OfType<EquationSyntaxNode>().Single());
+
+                        if (!startOfTheString)
+                            throw ErrorFactory.DefenitionHasToStartFromNewLine(exprStart, e, flow.Current);
                         //equatation
                         flow.MoveNext();
                         var equation = ReadEquation(flow, reader, variable.Id, attributes);
@@ -53,6 +57,8 @@ namespace NFun.SyntaxParsing
                     else if (e is FunCallSyntaxNode fun && !fun.IsOperator)
                     {
                         //fun
+                        if (!startOfTheString)
+                            throw ErrorFactory.FunctionDefenitionHasToStartFromNewLine(exprStart, e, flow.Current);
                         if (attributes.Any())
                             throw ErrorFactory.AttributeOnFunction(exprStart, fun);
                         nodes.Add(ReadUserFunction(exprStart, fun, flow, reader));

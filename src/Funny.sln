@@ -1,14 +1,19 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFun.Console", "NFun.Console\NFun.Console.csproj", "{C14AEA34-D6AD-4D33-A56C-0522CD3106C2}"
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29009.5
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NFun.Console", "NFun.Console\NFun.Console.csproj", "{C14AEA34-D6AD-4D33-A56C-0522CD3106C2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFun.Tests", "NFun.Tests\NFun.Tests.csproj", "{500BA4AF-E96C-458A-A6E2-4650E9663520}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NFun.Tests", "NFun.Tests\NFun.Tests.csproj", "{500BA4AF-E96C-458A-A6E2-4650E9663520}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFun", "NFun\NFun.csproj", "{A9B5CF03-3CC0-4631-88C8-6BFB8AA4D88F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NFun", "NFun\NFun.csproj", "{A9B5CF03-3CC0-4631-88C8-6BFB8AA4D88F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFun.ExprementalTests", "NFun.ExprementalTests\NFun.ExprementalTests.csproj", "{F7299307-9670-42E1-A9E6-287CCD60F228}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NFun.ExprementalTests", "NFun.ExprementalTests\NFun.ExprementalTests.csproj", "{F7299307-9670-42E1-A9E6-287CCD60F228}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFun.HmTests", "NFun.HmTests\NFun.HmTests.csproj", "{1689D654-886A-4A64-93AA-D2E7CE849C48}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NFun.HmTests", "NFun.HmTests\NFun.HmTests.csproj", "{1689D654-886A-4A64-93AA-D2E7CE849C48}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{AD33CA54-5018-4BEB-80A2-984016CBA484}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFun.Fuspec", "NFun.Fuspec\NFun.Fuspec.csproj", "{D450D8F4-6584-40A4-813B-7DAA09B99B4A}"
 EndProject
@@ -54,5 +59,16 @@ Global
 		{DE205EB9-4BE3-413E-9AC1-6D37D3452E0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DE205EB9-4BE3-413E-9AC1-6D37D3452E0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DE205EB9-4BE3-413E-9AC1-6D37D3452E0E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{500BA4AF-E96C-458A-A6E2-4650E9663520} = {AD33CA54-5018-4BEB-80A2-984016CBA484}
+		{F7299307-9670-42E1-A9E6-287CCD60F228} = {AD33CA54-5018-4BEB-80A2-984016CBA484}
+		{1689D654-886A-4A64-93AA-D2E7CE849C48} = {AD33CA54-5018-4BEB-80A2-984016CBA484}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4ECD34A8-46A8-48EE-82A4-45A9C6A2327B}
 	EndGlobalSection
 EndGlobal

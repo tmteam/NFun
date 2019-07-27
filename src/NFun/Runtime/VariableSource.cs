@@ -1,24 +1,35 @@
 using System;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
+using NFun.Tokenization;
 using NFun.Types;
 
 namespace NFun.Runtime
 {
     public class VariableSource
     {
+        public bool IsStrictTyped { get; }
+
         public readonly VarAttribute[] Attributes;
         public readonly string Name;
 
-        public VariableSource(TypedVarDefSyntaxNode info)
+        public readonly Interval? TypeSpecificationIntervalOrNull;
+        public VariableSource(
+            string name, 
+            VarType type, 
+            Interval typeSpecificationIntervalOrNull, 
+            VarAttribute[] attributes = null)
         {
-            Attributes = new VarAttribute[0];// info.Attributes;
-            Name = info.Id;
-            Type = info.VarType;
+            IsStrictTyped = true;
+            TypeSpecificationIntervalOrNull = typeSpecificationIntervalOrNull;
+            Attributes = attributes ?? new VarAttribute[0];
+            Name = name;
+            Type = type;
             IsOutput = false;
         }
-        public VariableSource(string name, VarType type, VarAttribute[] attributes = null)
+        public VariableSource(string name, VarType type,  VarAttribute[] attributes = null)
         {
+            IsStrictTyped = false;
             Attributes = attributes??new VarAttribute[0];
             Name = name;
             Type = type;
@@ -52,7 +63,7 @@ namespace NFun.Runtime
                 case BaseVarType.Real:
                     Value = Convert.ToDouble(valueValue);
                     break;
-                case BaseVarType.Text:
+                case BaseVarType.Char:
                     Value = valueValue?.ToString() ?? "";
                     break;
                 case BaseVarType.ArrayOf:

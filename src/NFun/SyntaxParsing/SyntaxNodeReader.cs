@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NFun.BuiltInFunctions;
 using NFun.ParseErrors;
+using NFun.Runtime;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
 using NFun.Types;
@@ -35,12 +36,12 @@ namespace NFun.SyntaxParsing
                 TokType.Plus,
                 TokType.Minus,
                 TokType.BitShiftLeft, 
-                TokType.BitShiftRight,
-                TokType.BitAnd, 
-                TokType.BitXor 
+                TokType.BitShiftRight
             });
             priorities.Add(new[]
             {
+                TokType.BitAnd,
+                TokType.BitXor,
                 TokType.In,
                 TokType.Equal,
                 TokType.NotEqual,
@@ -171,7 +172,11 @@ namespace NFun.SyntaxParsing
                 }
             }
             if (_flow.MoveIf(TokType.Text, out var txt))
-                return SyntaxNodeFactory.Constant(txt.Value, VarType.Text, txt.Interval);
+                return SyntaxNodeFactory.Constant( 
+                    new TextFunArray(txt.Value), 
+                    VarType.Text, 
+                    txt.Interval);
+
             if (_flow.MoveIf(TokType.Id, out var headToken))
             {
                 if (_flow.IsCurrent(TokType.Obr))

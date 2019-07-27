@@ -224,7 +224,13 @@ namespace NFun.ParseErrors
         
         public static Exception ExpressionBeforeTheDefenition(int exprStart, ISyntaxNode expression, Tok flowCurrent)
             => new FunParseException(310,$"Unexpected expression {ErrorsHelper.ToShortText(expression)} before defenition. Equation, anonymous equation, function or type defenition expected.", exprStart, flowCurrent.Finish);
-        
+
+        public static Exception FunctionDefenitionHasToStartFromNewLine(int exprStart, ISyntaxNode lexNode, Tok flowCurrent)
+            => throw new FunParseException(311, $"Function defenition has start from new line. {Nl}Example : y:int{Nl}m(x) = x+1", exprStart, flowCurrent.Finish);
+
+        public static Exception DefenitionHasToStartFromNewLine(int exprStart, ISyntaxNode lexNode, Tok flowCurrent)
+            => throw new FunParseException(312, $"Defenition has start from new line. {Nl}Example : y:int{Nl}j = y+1 #j = y:int+1", exprStart, flowCurrent.Finish);
+
 
         public static Exception AnonymousExpressionHasToStartFromNewLine(int exprStart, ISyntaxNode lexNode, Tok flowCurrent)
             =>   throw new FunParseException(313,$"Anonymous equation should start from new line. {Nl}Example : y:int{Nl}y+1 #out = y:int+1", exprStart, flowCurrent.Finish);
@@ -513,9 +519,15 @@ namespace NFun.ParseErrors
                 new Interval(elements[failureIndex-1].Interval.Start, elements[failureIndex].Interval.Finish));
         }
 
-        public static Exception CannotUseOutputValueBeforeItIsDeclared(VariableUsages usages, string equationId) 
-            => new FunParseException(560, $"Cannot use output value '{equationId}' before it is declared'",
-                usages.Nodes.First().Interval);
+        public static Exception CannotUseOutputValueBeforeItIsDeclared(VariableUsages usages)
+        {
+            var interval = (usages.Nodes.FirstOrDefault()?.Interval)
+                           ?? usages.Source.TypeSpecificationIntervalOrNull 
+                           ?? new Interval();
+
+            return new FunParseException(560, $"Cannot use output value '{usages.Source.Name}' before it is declared'",
+                interval);
+        }
 
         public static Exception VariableIsDeclaredAfterUsing(VariableUsages usages)
             => new FunParseException(563, $"Variable '{usages.Source.Name}' used before it is declared'",

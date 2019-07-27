@@ -49,8 +49,8 @@ namespace NFun.Interpritation
             foreach (var arg in argumentLexNodes)
             {
                 //Convert argument node
-                var varNode = ConvertToArgumentNodeOrThrow(arg);
-                var source = new VariableSource(varNode.Name, varNode.Type);
+                var varNode = FunArgumentExpressionNode.CreateWith(arg);
+                var source = new VariableSource(varNode.Name, varNode.Type, arg.Interval);
                 //collect argument
                 arguments.Add(source);
                 //add argument to local scope
@@ -77,7 +77,11 @@ namespace NFun.Interpritation
             foreach (var newVar in closured)
                 _variables.TryAdd(newVar); //add full usage info to allow analyze outer errors
             
-            var fun = new UserFunction("anonymous", arguments.ToArray(), expr);
+            var fun = new UserFunction(
+                name: "anonymous", 
+                variables: arguments.ToArray(),
+                isReturnTypeStrictlyTyped: anonymFunNode.Defenition.OutputType!= VarType.Empty, 
+                expression: expr );
             return new FunVariableExpressionNode(fun, anonymFunNode.Interval);
         }
 
@@ -179,6 +183,7 @@ namespace NFun.Interpritation
             var lower = varNode.Id;
             if (_variables.GetSourceOrNull(lower) == null)
             {
+                //if it is not a variable it might be a functional-variable
                 var funVars = _functions.GetNonGeneric(lower);
                 if (funVars.Count > 1)
                     throw ErrorFactory.AmbiguousFunctionChoise(funVars, varNode);
@@ -189,16 +194,6 @@ namespace NFun.Interpritation
             if(node.Source.Name!= varNode.Id)
                 throw ErrorFactory.InputNameWithDifferentCase(varNode.Id, node.Source.Name, varNode.Interval);
             return node;
-        }
-        
-        private FunArgumentExpressionNode ConvertToArgumentNodeOrThrow(ISyntaxNode node)
-        {
-            if(node is VariableSyntaxNode varNode)
-                return new FunArgumentExpressionNode(varNode.Id, node.OutputType, node.Interval);
-            if(node is TypedVarDefSyntaxNode typeVarNode)
-                return new FunArgumentExpressionNode(typeVarNode.Id, typeVarNode.VarType, node.Interval);
-            
-            throw ErrorFactory.InvalidArgTypeDefenition(node);
         }
     }
 }
