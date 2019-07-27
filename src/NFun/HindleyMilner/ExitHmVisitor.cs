@@ -128,15 +128,13 @@ namespace NFun.HindleyMilner
         {
             switch (node.Id)
             {
-                /*case CoreFunNames.Negate:
+                case CoreFunNames.Negate:
                 {
-                    
                     result = _state.CurrentSolver.SetNegateOp(
                         node.OrderNumber,
                         node.Args[0].OrderNumber);
                     return true;
-                }*/
-
+                }
                 case CoreFunNames.Multiply:
                 case CoreFunNames.Add:
                 case CoreFunNames.Substract:

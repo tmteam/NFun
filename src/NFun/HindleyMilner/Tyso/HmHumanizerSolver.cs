@@ -250,17 +250,19 @@ namespace NFun.HindleyMilner.Tyso
         
         public SetTypeResult SetNegateOp(int nodeId, int argNodeId)
         {
+            if(!_solver.SetLimit(nodeId, HmTypeName.Real))
+                return SetTypeResult.Failed(argNodeId, SetTypeResultError.ExpressionTypeIsIncorrect);
             if (SetOverloadCall(
                 new[]
                 {
                     new FunSignature(FType.Real,  FType.Real),
+                    
                     new FunSignature(FType.Int16, FType.Int16),
                     new FunSignature(FType.Int32, FType.Int32),
                     new FunSignature(FType.Int64, FType.Int64),
+                    
                     new FunSignature(FType.Int16, FType.UInt8),
-                    new FunSignature(FType.Int16, FType.UInt16),
-                    new FunSignature(FType.Int32, FType.UInt32),
-                    new FunSignature(FType.Int64, FType.UInt64),
+                    new FunSignature(FType.Int64, FType.UInt32),
                 }, nodeId, new[] {argNodeId}, true
             ))
             {
