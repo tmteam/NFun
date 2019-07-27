@@ -387,10 +387,12 @@ namespace NFun.HindleyMilner.Tyso
             return type?.MakeType();
             
         }
-
-        public bool SetLcaConst(int nodeOrderNumber, FType type)
-        {
+        public bool SetLcaConst(int nodeOrderNumber, FType type){
             return _solver.SetLca(nodeOrderNumber, new []{SolvingNode.CreateStrict(type)});
+        }
+        public bool SetLimitConst(int nodeOrderNumber, FType type)
+        {
+            return _solver.SetLimit(nodeOrderNumber, type.Name);
         }
     }
 

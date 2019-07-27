@@ -258,9 +258,9 @@ namespace Funny.Tests
             var runtime = FunBuilder.BuildDefault(expr);
             var res = runtime.Calculate();
             var y = res.Get("y");
-            Assert.AreEqual(y.Type,VarType.PrimitiveOf(ytype),"y");
+            Assert.AreEqual(VarType.PrimitiveOf(ytype),y.Type,"y");
             var z = res.Get("z");
-            Assert.AreEqual(z.Type,VarType.PrimitiveOf(ztype),"z");
+            Assert.AreEqual(VarType.PrimitiveOf(ztype),z.Type,"z");
         }
         
         

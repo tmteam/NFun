@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using NFun.BuiltInFunctions;
 using NFun.HindleyMilner.Tyso;
@@ -199,10 +200,17 @@ namespace NFun.HindleyMilner
         public bool Visit(ConstantSyntaxNode node)
         {
             var type = AdpterHelper.ConvertToHmType(node.OutputType);
-            if(node.OutputType== VarType.Int32)
-                return _state.CurrentSolver.SetLcaConst(node.OrderNumber, type);
+
+            if (node.OutputType == VarType.Int32)
+            {
+                var value = (int) node.Value;
+                if (value >= 0 && value < 256) //alow us to convert int to any lower types
+                    return _state.CurrentSolver.SetLimitConst(node.OrderNumber, FType.Int32);
+            }
+
             return _state.CurrentSolver.SetConst(node.OrderNumber, type);
         }
+                
 
         public bool Visit(SyntaxTree node)=> true;
        

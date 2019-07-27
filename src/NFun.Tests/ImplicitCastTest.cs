@@ -75,6 +75,11 @@ namespace Funny.Tests
         [TestCase("-1", "int32")]
         [TestCase("-1", "int64")]
         [TestCase("-1", "real")]
+        
+        [TestCase("-300", "int16")]
+        [TestCase("-300", "int32")]
+        [TestCase("-300", "int64")]
+        [TestCase("-300", "real")]
 
         [TestCase("0xFF", "uint16")]
         [TestCase("0xFF", "uint32")]
@@ -84,6 +89,13 @@ namespace Funny.Tests
         [TestCase("0xFF", "int64")]
         [TestCase("0xFF", "real")]
 
+        [TestCase("0xFFF", "uint16")]
+        [TestCase("0xFFF", "uint32")]
+        [TestCase("0xFFF", "uint64")]
+        [TestCase("0xFFF", "int32")]
+        [TestCase("0xFFF", "int64")]
+        [TestCase("0xFFF", "real")]
+        
         [TestCase("0xFFFF", "uint32")]
         [TestCase("0xFFFF", "uint64")]
         [TestCase("0xFFFF", "int32")]
@@ -166,7 +178,7 @@ namespace Funny.Tests
         [TestCase("-1", "uint64")]
 
         [TestCase("0xFF", "int8")]
-        [TestCase("0xFF", "uint8")]
+        [TestCase("0xFFF", "uint8")]
         
         [TestCase("0xFFFF", "int8")]
         [TestCase("0xFFFF", "uint8")]
@@ -181,7 +193,7 @@ namespace Funny.Tests
         [TestCase("0xFFFF_FFFF", "uint32")]
         public void ObviousFails_NumberConstantImplicitCast(string constant, string typeTo)
         {
-            var expr = $"conv(a:{typeTo}):{typeTo} = a; y = conv({constant})";
+            var expr = $"customConvert(a:{typeTo}):{typeTo} = a; y = customConvert({constant})";
             Assert.Throws<FunParseException>(()=>FunBuilder.BuildDefault(expr));
         }
     }

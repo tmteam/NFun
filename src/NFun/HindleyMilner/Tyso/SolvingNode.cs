@@ -44,7 +44,6 @@ namespace NFun.HindleyMilner.Tyso
         public bool SetLca(SolvingNode[] nodes)
             => TrySet(()=> Behavior.SetLca(nodes));
 
-
         public bool SetStrict(FType limit)
             => TrySet(()=> Behavior.SetStrict(limit));
 
