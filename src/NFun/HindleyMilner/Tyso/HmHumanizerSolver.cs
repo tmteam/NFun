@@ -250,6 +250,26 @@ namespace NFun.HindleyMilner.Tyso
         
         public SetTypeResult SetNegateOp(int nodeId, int argNodeId)
         {
+            if (SetOverloadCall(
+                new[]
+                {
+                    new FunSignature(FType.Real,  FType.Real),
+                    new FunSignature(FType.Int16, FType.Int16),
+                    new FunSignature(FType.Int32, FType.Int32),
+                    new FunSignature(FType.Int64, FType.Int64),
+                    new FunSignature(FType.Int16, FType.UInt8),
+                    new FunSignature(FType.Int16, FType.UInt16),
+                    new FunSignature(FType.Int32, FType.UInt32),
+                    new FunSignature(FType.Int64, FType.UInt64),
+                }, nodeId, new[] {argNodeId}, true
+            ))
+            {
+                return  SetTypeResult.Succesfully;
+                
+            }
+
+            return SetTypeResult.Failed(nodeId, SetTypeResultError.IncorrectVariableType);
+            
             if(!_solver.SetLimit(argNodeId, HmTypeName.Real))
                 return SetTypeResult.Failed(argNodeId, SetTypeResultError.ArgumentIsNotANumber);
             if(! _solver.Unite(nodeId, argNodeId))
@@ -343,7 +363,7 @@ namespace NFun.HindleyMilner.Tyso
                     return SetTypeResult.Failed(nodes[i], SetTypeResultError.IncorrectVariableType);
             }
 
-            var genericType = _solver.GetOrNull(nodes[0]);
+            var genericType = _solver.GetOrCreate(nodes[0]);
             if(_solver.SetStrict(arrayNode, FType.ArrayOf(genericType)))
                 return  SetTypeResult.Succesfully;
             return SetTypeResult.Failed(arrayNode, SetTypeResultError.ExpressionTypeIsIncorrect);

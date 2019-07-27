@@ -70,7 +70,6 @@ namespace Funny.Tests
         [TestCase("1", "int64")]
         [TestCase("1", "real")]
 
-        [TestCase("-1", "int8")]
         [TestCase("-1", "int16")]
         [TestCase("-1", "int32")]
         [TestCase("-1", "int64")]

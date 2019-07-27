@@ -107,7 +107,7 @@ namespace NFun.Interpritation
                 childrenTypes.Add(argNode.Type);
             }
             var signature = node.SignatureOfOverload;
-            FunctionBase function;
+            FunctionBase function = null;
             if (signature != null)
             {
                 //Signature was calculated by Ti algorithm.

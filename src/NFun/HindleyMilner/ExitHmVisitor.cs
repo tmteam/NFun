@@ -104,7 +104,7 @@ namespace NFun.HindleyMilner
                 if (_state.CurrentSolver.SetCall(ToCallDef(node, candidates[0])))
                     return true;
                 
-                throw ErrorFactory.FunctionOverloadNotFound(node, _dictionary);
+                throw ErrorFactory.TypesNotSolved(node);
             }
 
             //User functions get priority
@@ -128,13 +128,14 @@ namespace NFun.HindleyMilner
         {
             switch (node.Id)
             {
-                case CoreFunNames.Negate:
+                /*case CoreFunNames.Negate:
                 {
+                    
                     result = _state.CurrentSolver.SetNegateOp(
                         node.OrderNumber,
                         node.Args[0].OrderNumber);
                     return true;
-                }
+                }*/
 
                 case CoreFunNames.Multiply:
                 case CoreFunNames.Add:
@@ -206,6 +207,19 @@ namespace NFun.HindleyMilner
                 var value = (int) node.Value;
                 if (value >= 0 && value < 256) //alow us to convert int to any lower types
                     return _state.CurrentSolver.SetLimitConst(node.OrderNumber, FType.Int32);
+                if(value>=0 && value < ushort.MaxValue)
+                    return _state.CurrentSolver.SetLcaConst(node.OrderNumber, FType.UInt16);
+                //if(value>=0 && value < int.MaxValue)
+                //    return _state.CurrentSolver.SetLcaConst(node.OrderNumber, FType.UInt32);
+                if(value<=0 && value > short.MinValue)
+                    return _state.CurrentSolver.SetLcaConst(node.OrderNumber, FType.Int16);
+                //if(value<=0 && value > int.MinValue)
+                //    return _state.CurrentSolver.SetLcaConst(node.OrderNumber, FType.Int32);
+
+                
+                if (value < 0 && value > Int16.MaxValue) //alow us to convert int to any lower types
+                    return _state.CurrentSolver.SetConst(node.OrderNumber, FType.Int16);
+
             }
 
             return _state.CurrentSolver.SetConst(node.OrderNumber, type);

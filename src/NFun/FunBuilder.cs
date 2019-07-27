@@ -139,9 +139,13 @@ namespace NFun
                 new AddIntFunction  ("sum"),
                 new AddInt64Function("sum"), 
                 new AddTextFunction("strConcat"),
-                
+
+                new NegateOfInt16Function(), 
                 new NegateOfInt32Function(), 
+                new NegateOfUInt8Function(), 
+                new NegateOfUInt32Function(), 
                 new NegateOfInt64Function(), 
+                
                 new NegateOfRealFunction(), 
                 
                 new BitShiftLeftInt32Function(), 

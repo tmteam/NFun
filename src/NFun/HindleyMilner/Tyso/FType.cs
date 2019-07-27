@@ -57,7 +57,8 @@ namespace NFun.HindleyMilner.Tyso
 
         public static FType Any => new FType(HmTypeName.Any);
 
-        
+
+        public bool IsNumeric => Name.CanBeConvertedTo(HmTypeName.Real);
         public bool IsPrimitive => !Arguments.Any();
         public HmTypeName Name { get; }
         public SolvingNode[] Arguments { get; }

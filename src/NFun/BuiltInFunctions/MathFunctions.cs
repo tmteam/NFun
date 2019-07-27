@@ -305,7 +305,24 @@ namespace NFun.BuiltInFunctions
             : base(CoreFunNames.Negate, VarType.Int32, VarType.Int32){}
         public override object Calc(object[] args) => - args.Get<int>(0);
     }
-    
+    public class NegateOfUInt32Function : FunctionBase
+    {
+        public NegateOfUInt32Function()
+            : base(CoreFunNames.Negate, VarType.Int64, VarType.UInt32){}
+        public override object Calc(object[] args) => - args.Get<uint>(0);
+    }
+    public class NegateOfInt16Function : FunctionBase
+    {
+        public NegateOfInt16Function()
+            : base(CoreFunNames.Negate, VarType.Int16, VarType.Int16){}
+        public override object Calc(object[] args) => (short)(- args.Get<short>(0));
+    }
+    public class NegateOfUInt8Function : FunctionBase
+    {
+        public NegateOfUInt8Function()
+            : base(CoreFunNames.Negate, VarType.Int16, VarType.UInt8){}
+        public override object Calc(object[] args) => (short)(- args.Get<byte>(0));
+    }
     public class NegateOfInt64Function : FunctionBase
     {
         public NegateOfInt64Function()
