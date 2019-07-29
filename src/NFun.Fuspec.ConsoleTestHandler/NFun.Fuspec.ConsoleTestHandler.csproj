@@ -5,4 +5,9 @@
     <TargetFramework>netcoreapp2.2</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\NFun.Fuspec.TestHandler\NFun.Fuspec.TestHandler.csproj" />
+    <ProjectReference Include="..\NFun.Fuspec\NFun.Fuspec.csproj" />
+  </ItemGroup>
+
 </Project>
