@@ -13,8 +13,6 @@ namespace Nfun.Fuspec.Parser
         //Из названия не понятно, что делает
         /*как понял, что ищет название фуспека.
 
-            я бы сделал тфк:
-
          public static string TryFindFuspectestName(string mask, string inputString) =>
             !inputString.Contains(mask)
                 ? null
@@ -46,7 +44,6 @@ namespace Nfun.Fuspec.Parser
         /*
          * Это получается метод, который определяет состоит ли линия из вертикальной полоски и зведочек?
          * Надо подумать над названием, пока из дебага не запустил - не понял, что происходит
-         * Вот как я бы сделал:
 
            public static bool IsSeparatingStarLine(string inputString, char seekingSymbol, int magicConstant = 8) 
             => inputString.Count(c => c == seekingSymbol) >= magicConstant;
@@ -66,13 +63,14 @@ namespace Nfun.Fuspec.Parser
             }
 
             //return i >= 8;
-            //почему 8? А что есть добавится еще? Во всем коде менять? Посмотри про антипаттерн "Magic Constant"
+            //почему 8? А что есть добавится еще? Посмотри про антипаттерн "Magic Constant"
             if (i < 8) return false;
             return true;
         }
 
         /*
-         * Опять таки, что за GetParam, какой параметр, стоит добавить конкретики
+         * Опять таки, что за GetParam, какой параметр, пока не знаю, какое название было бы правильнее взять, так как слишком много действий
+         * метод выполняет, надо бы раздробить
          */
         public static List<Param> GetParam(string paramString)
         {
@@ -115,10 +113,14 @@ namespace Nfun.Fuspec.Parser
             return result;
         }
 
-
         /*
          * Метод пытается найти тэги, которые идут через запятую, верно?
-         * TryFind
+         
+            Можно попробовать вот так
+
+            public static string[] TryParseTagsWithSeparator(string inputString, char separator) 
+            => Array.ConvertAll(inputString.Split(separator), p => p.Trim());
+
          */
         public static List<string> SplitWithTrim(string str, char ch)
         {
@@ -132,12 +134,5 @@ namespace Nfun.Fuspec.Parser
 
             return res;
         }
-
     }
-    
-   
-
 }
-
-   
-
