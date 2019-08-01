@@ -18,7 +18,8 @@ namespace NFun.Fuspec.TestHandler
                 throw new ArgumentException($"{nameof(fuspecTestCases)} contains no elements");
 
             var testCaseResults = new List<BaseFuspecTestCaseResult>();
-            testCaseResults.AddRange(fuspecTestCases.AsParallel().Select(FuspecTestCasesRunner.RunFuspecTest));
+            var testCasesRunner = new FuspecTestCasesRunner();
+            testCaseResults.AddRange(fuspecTestCases.AsParallel().Select(testCasesRunner.RunFuspecTest));
             return testCaseResults;
         }
     }

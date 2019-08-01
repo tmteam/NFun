@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Threading;
 using Nfun.Fuspec.Parser.Model;
 using NFun.Fuspec.TestHandler.Models;
 using NFun.ParseErrors;
@@ -7,9 +8,9 @@ using NFun.Runtime;
 
 namespace NFun.Fuspec.TestHandler
 {
-    public static class FuspecTestCasesRunner
+    public class FuspecTestCasesRunner
     {
-        public static BaseFuspecTestCaseResult RunFuspecTest(FuspecTestCase testCase)
+        public BaseFuspecTestCaseResult RunFuspecTest(FuspecTestCase testCase)
         {
             var stopwatch = Stopwatch.StartNew();
             BaseFuspecTestCaseResult testResult;
