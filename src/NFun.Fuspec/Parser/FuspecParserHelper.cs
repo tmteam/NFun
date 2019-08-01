@@ -10,6 +10,7 @@ namespace Nfun.Fuspec.Parser
 {
     public static class FuspecParserHelper
     {
+
         //Из названия не понятно, что делает
         /*как понял, что ищет название фуспека.
 
@@ -19,12 +20,13 @@ namespace Nfun.Fuspec.Parser
                 : inputString.Substring(mask.Length);
 
          */
-
+        //Юра: я бы назвал GetKeywordOrNull
         public static string FindKeyWord(string findingkey, string str)
         {
             if (str.Length < findingkey.Length)
                 return null;
             string key = str.Substring(0, findingkey.Length);
+
 
             /*
              * Смотри, как тут элегантно с тернарным оператором))
@@ -32,6 +34,9 @@ namespace Nfun.Fuspec.Parser
              *              ? str.Substring(findingkey.Length)
              *              : null;
              */
+            //Юра: на вкус и цвет.
+            //Что не очень хорошо - если использовать if else то либо оба должны быть в скобках
+            //либо оба без
             if (key == findingkey)
             {
                 return str.Substring(findingkey.Length);
@@ -50,7 +55,8 @@ namespace Nfun.Fuspec.Parser
 
          *
          */
-
+        //Юра: не согласен с егорм. Буквальный перевод ЯвляетсяЛиРазделительнойЛинией
+        //Что можно улучшить  -  symbol. Лучше назвать lineSymbol
         public static bool IsSeparatingLine(string str, char symbol)
         {
             int i = 0;
@@ -64,6 +70,8 @@ namespace Nfun.Fuspec.Parser
 
             //return i >= 8;
             //почему 8? А что есть добавится еще? Посмотри про антипаттерн "Magic Constant"
+            //Юра: По спеке фуспека может быть 8 или более. Но нужно вытащить в костанту - да 
+            // i >= MinSeparatorLineLength предпочтительнее
             if (i < 8) return false;
             return true;
         }
@@ -72,6 +80,7 @@ namespace Nfun.Fuspec.Parser
          * Опять таки, что за GetParam, какой параметр, пока не знаю, какое название было бы правильнее взять, так как слишком много действий
          * метод выполняет, надо бы раздробить
          */
+        //Юра: Согласен. Не понятно. Вероятно тут нужны комментаии, и может разбить метод на подметоды
         public static List<Param> GetParam(string paramString)
         {
             string value;
@@ -86,13 +95,13 @@ namespace Nfun.Fuspec.Parser
             {
                 if (tokFLow.Peek == null)
                     return null;
-                
+
                 tokFLow.MoveNext();
                 if ((tokFLow.Previous.Type != TokType.Id ||
                      tokFLow.Current.Type != TokType.Colon) ||
                     (tokFLow.Peek == null))
                     return null;
-                
+
                 value = tokFLow.Previous.Value;
 
                 tokFLow.MoveNext();
@@ -122,8 +131,11 @@ namespace Nfun.Fuspec.Parser
             => Array.ConvertAll(inputString.Split(separator), p => p.Trim());
 
          */
+        //Юра: не - это именно SplitWithTrim. То есть разделение с отрезанием
+        //Что не очень хорошо - это нейминг char ch
         public static List<string> SplitWithTrim(string str, char ch)
         {
+            //Юра - и var ;)
             List<string> res = new List<string>();
             var splittedString = str.Split(ch);
             foreach (var s in splittedString)
