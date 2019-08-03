@@ -155,7 +155,6 @@ namespace Funny.Tests.UnitTests
         [TestCase(BaseVarType.UInt8, BaseVarType.Int64, true)]
         [TestCase(BaseVarType.UInt8, BaseVarType.Int32, true)]
         [TestCase(BaseVarType.UInt8, BaseVarType.Int16, true)]
-        [TestCase(BaseVarType.UInt8, BaseVarType.Int8, false)]
         
         [TestCase(BaseVarType.UInt16, BaseVarType.Any, true)]
         [TestCase(BaseVarType.UInt16, BaseVarType.Real, true)]
@@ -168,7 +167,6 @@ namespace Funny.Tests.UnitTests
         [TestCase(BaseVarType.UInt16, BaseVarType.Int64, true)]
         [TestCase(BaseVarType.UInt16, BaseVarType.Int32, true)]
         [TestCase(BaseVarType.UInt16, BaseVarType.Int16, false)]
-        [TestCase(BaseVarType.UInt16, BaseVarType.Int8, false)]
         
         
         [TestCase(BaseVarType.UInt32, BaseVarType.Any, true)]
@@ -182,7 +180,6 @@ namespace Funny.Tests.UnitTests
         [TestCase(BaseVarType.UInt32, BaseVarType.Int64, true)]
         [TestCase(BaseVarType.UInt32, BaseVarType.Int32, false)]
         [TestCase(BaseVarType.UInt32, BaseVarType.Int16, false)]
-        [TestCase(BaseVarType.UInt32, BaseVarType.Int8, false)]
         
         [TestCase(BaseVarType.UInt64, BaseVarType.Any, true)]
         [TestCase(BaseVarType.UInt64, BaseVarType.Real, true)]
@@ -195,20 +192,6 @@ namespace Funny.Tests.UnitTests
         [TestCase(BaseVarType.UInt64, BaseVarType.Int64, false)]
         [TestCase(BaseVarType.UInt64, BaseVarType.Int32, false)]
         [TestCase(BaseVarType.UInt64, BaseVarType.Int16, false)]
-        [TestCase(BaseVarType.UInt64, BaseVarType.Int8, false)]
-        
-        [TestCase(BaseVarType.Int8, BaseVarType.Any, true)]
-        [TestCase(BaseVarType.Int8, BaseVarType.Real, true)]
-        [TestCase(BaseVarType.Int8, BaseVarType.Text, true)]
-        [TestCase(BaseVarType.Int8, BaseVarType.Bool, false)]
-        [TestCase(BaseVarType.Int8, BaseVarType.UInt64, false)]
-        [TestCase(BaseVarType.Int8, BaseVarType.UInt32, false)]
-        [TestCase(BaseVarType.Int8, BaseVarType.UInt16, false)]
-        [TestCase(BaseVarType.Int8, BaseVarType.UInt8, false)]
-        [TestCase(BaseVarType.Int8, BaseVarType.Int64, true)]
-        [TestCase(BaseVarType.Int8, BaseVarType.Int32, true)]
-        [TestCase(BaseVarType.Int8, BaseVarType.Int16, true)]
-        [TestCase(BaseVarType.Int8, BaseVarType.Int8, true)]
         
         [TestCase(BaseVarType.Int16, BaseVarType.Any, true)]
         [TestCase(BaseVarType.Int16, BaseVarType.Real, true)]
@@ -221,7 +204,6 @@ namespace Funny.Tests.UnitTests
         [TestCase(BaseVarType.Int16, BaseVarType.Int64, true)]
         [TestCase(BaseVarType.Int16, BaseVarType.Int32, true)]
         [TestCase(BaseVarType.Int16, BaseVarType.Int16, true)]
-        [TestCase(BaseVarType.Int16, BaseVarType.Int8, false)]
         
         [TestCase(BaseVarType.Int32, BaseVarType.Any, true)]
         [TestCase(BaseVarType.Int32, BaseVarType.Real, true)]
@@ -235,8 +217,6 @@ namespace Funny.Tests.UnitTests
         [TestCase(BaseVarType.Int32, BaseVarType.Int64, true)]
         [TestCase(BaseVarType.Int32, BaseVarType.Int32, true)]
         [TestCase(BaseVarType.Int32, BaseVarType.Int16, false)]
-        [TestCase(BaseVarType.Int32, BaseVarType.Int8, false)]
-
 
         [TestCase(BaseVarType.Int64, BaseVarType.Any, true)]
         [TestCase(BaseVarType.Int64, BaseVarType.Real, true)]
@@ -249,7 +229,6 @@ namespace Funny.Tests.UnitTests
         [TestCase(BaseVarType.Int64, BaseVarType.Int64,  true)]
         [TestCase(BaseVarType.Int64, BaseVarType.Int32,  false)]
         [TestCase(BaseVarType.Int64, BaseVarType.Int16,  false)]
-        [TestCase(BaseVarType.Int64, BaseVarType.Int8,   false)]
         
         [TestCase(BaseVarType.Real, BaseVarType.Any,    true)]
         [TestCase(BaseVarType.Real, BaseVarType.Real,   true)]
@@ -262,7 +241,6 @@ namespace Funny.Tests.UnitTests
         [TestCase(BaseVarType.Real, BaseVarType.Int64,  false)]
         [TestCase(BaseVarType.Real, BaseVarType.Int32,  false)]
         [TestCase(BaseVarType.Real, BaseVarType.Int16,  false)]
-        [TestCase(BaseVarType.Real, BaseVarType.Int8,   false)]
         
         [TestCase(BaseVarType.Bool, BaseVarType.Any,    true)]
         [TestCase(BaseVarType.Bool, BaseVarType.Text,   true)]
@@ -275,7 +253,6 @@ namespace Funny.Tests.UnitTests
         [TestCase(BaseVarType.Bool, BaseVarType.Int64,  false)]
         [TestCase(BaseVarType.Bool, BaseVarType.Int32,  false)]
         [TestCase(BaseVarType.Bool, BaseVarType.Int16,  false)]
-        [TestCase(BaseVarType.Bool, BaseVarType.Int8,   false)]
 
         [TestCase(BaseVarType.Text, BaseVarType.Any,    true)]
         [TestCase(BaseVarType.Text, BaseVarType.Text,   true)]
@@ -288,7 +265,6 @@ namespace Funny.Tests.UnitTests
         [TestCase(BaseVarType.Text, BaseVarType.Int64,  false)]
         [TestCase(BaseVarType.Text, BaseVarType.Int32,  false)]
         [TestCase(BaseVarType.Text, BaseVarType.Int16,  false)]
-        [TestCase(BaseVarType.Text, BaseVarType.Int8,   false)]
  
         [TestCase(BaseVarType.Any, BaseVarType.Any,    true)]
         [TestCase(BaseVarType.Any, BaseVarType.Text,   true)]
@@ -301,8 +277,6 @@ namespace Funny.Tests.UnitTests
         [TestCase(BaseVarType.Any, BaseVarType.Int64,  false)]
         [TestCase(BaseVarType.Any, BaseVarType.Int32,  false)]
         [TestCase(BaseVarType.Any, BaseVarType.Int16,  false)]
-        [TestCase(BaseVarType.Any, BaseVarType.Int8,   false)]
-
         public void PrimitiveTypes_CanBeConverted(BaseVarType from, BaseVarType to, bool canBeConverted)
         {
             var typeFrom = VarType.PrimitiveOf(from);

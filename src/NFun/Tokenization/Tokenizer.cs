@@ -58,7 +58,6 @@ namespace NFun.Tokenization
             {"bool", TokType.BoolType},
             {"real", TokType.RealType},
            
-            {"int8", TokType.Int8Type},
             {"int16", TokType.Int16Type},
             {"int", TokType.Int32Type},
             {"int32", TokType.Int32Type},

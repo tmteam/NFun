@@ -40,8 +40,6 @@ namespace NFun.Types
                         return ToUInt32;
                     case BaseVarType.UInt64:
                         return ToUInt64;
-                    case BaseVarType.Int8:
-                        return ToInt8;
                     case BaseVarType.Int16:
                         return ToInt16;
                     case BaseVarType.Int32:
@@ -148,18 +146,16 @@ namespace NFun.Types
                     return fromBase == BaseVarType.UInt8
                            || fromBase == BaseVarType.UInt16
                            || fromBase == BaseVarType.UInt32;
-                case BaseVarType.Int8:
-                    break;
                 case BaseVarType.Int16:
-                    return fromBase == BaseVarType.Int8 || fromBase == BaseVarType.UInt8;
+                    return  fromBase == BaseVarType.UInt8;
                 case BaseVarType.Int32:
-                    return fromBase == BaseVarType.Int8
-                           || fromBase == BaseVarType.UInt8
+                    return 
+                           fromBase == BaseVarType.UInt8
                            || fromBase == BaseVarType.Int16
                            || fromBase == BaseVarType.UInt16;
                 case BaseVarType.Int64:
-                    return fromBase == BaseVarType.Int8
-                           || fromBase == BaseVarType.UInt8
+                    return 
+                              fromBase == BaseVarType.UInt8
                            || fromBase == BaseVarType.Int16
                            || fromBase == BaseVarType.UInt16
                            || fromBase == BaseVarType.Int32

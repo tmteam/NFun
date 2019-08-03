@@ -27,7 +27,6 @@ namespace NFun.HindleyMilner
                 case HmTypeName.RealId: return VarType.Real;
                 case HmTypeName.TextId: return VarType.Text;
                 case HmTypeName.BoolId: return VarType.Bool;
-                case HmTypeName.Int8Id: return  VarType.Int8;
                 case HmTypeName.Int16Id: return VarType.Int16;
                 case HmTypeName.Int64Id: return  VarType.Int64;
                 case HmTypeName.Int32Id: return VarType.Int32;

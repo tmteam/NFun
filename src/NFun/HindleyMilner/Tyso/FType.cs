@@ -26,8 +26,6 @@ namespace NFun.HindleyMilner.Tyso
         public static FType Int64 => new FType(HmTypeName.Int64);
         public static FType Int32 => new FType(HmTypeName.Int32);
         public static FType Int16 => new FType(HmTypeName.Int16);
-        public static FType Int8 => new FType(HmTypeName.Int8);
-
         public static FType UInt64 => new FType(HmTypeName.Uint64);
         public static FType UInt32 => new FType(HmTypeName.Uint32);
         public static FType UInt16 => new FType(HmTypeName.Uint16);

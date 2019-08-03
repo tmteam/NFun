@@ -86,7 +86,6 @@ namespace NFun.Tokenization
         /// </summary>
         TwoDots,
         TextType,
-        Int8Type,
         Int16Type,
         Int32Type,
         Int64Type,

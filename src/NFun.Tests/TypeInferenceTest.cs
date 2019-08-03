@@ -353,7 +353,6 @@ namespace Funny.Tests
         [TestCase("uint16", (UInt16)1, BaseVarType.UInt16)]
         [TestCase("uint32", (UInt32)1, BaseVarType.UInt32)]
         [TestCase("uint64", (UInt64)1, BaseVarType.UInt64)]
-        [TestCase("int8",   (sbyte)1,  BaseVarType.Int8)]
         [TestCase("int16",  (Int16)1,  BaseVarType.Int16)]
         [TestCase("int",    (int)1,    BaseVarType.Int32)]
         [TestCase("int32",  (int)1,    BaseVarType.Int32)]

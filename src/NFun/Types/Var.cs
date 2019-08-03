@@ -83,8 +83,6 @@ namespace NFun.Types
         }
         public static Var New(string name, bool value) 
             => new Var(name, value, VarType.Bool);
-        public static Var New(string name, sbyte value) 
-            => new Var(name, value, VarType.Int8);
         public static Var New(string name, short value) 
             => new Var(name, value, VarType.Int16);
         public static Var New(string name, int value) 
@@ -118,8 +116,6 @@ namespace NFun.Types
                 return VarType.UInt32;
             if (t== typeof(ulong))    
                 return VarType.UInt64;
-            if(t== typeof(sbyte))
-                return VarType.Int8;
             if(t== typeof(short))
                 return VarType.Int16;
             if (t == typeof(int))

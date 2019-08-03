@@ -29,7 +29,7 @@ namespace NFun.HmTests.UnitTests
             var beh = new LcaNodeBehaviour(new[]
             {
                 SolvingNode.CreateStrict(FType.Real),
-                SolvingNode.CreateStrict(FType.Int8)
+                SolvingNode.CreateStrict(FType.UInt8)
             });
             Assert.AreEqual(FType.Real, beh.MakeType(100));
         }
@@ -41,8 +41,8 @@ namespace NFun.HmTests.UnitTests
             {
                 SolvingNode.CreateStrict(FType.UInt32),
                 SolvingNode.CreateStrict(FType.Real),
-                SolvingNode.CreateStrict(FType.Int8),
-                SolvingNode.CreateStrict(FType.Int8)
+                SolvingNode.CreateStrict(FType.UInt8),
+                SolvingNode.CreateStrict(FType.UInt8)
             });
             Assert.AreEqual(FType.Real, beh.MakeType(100));
         }
@@ -55,7 +55,7 @@ namespace NFun.HmTests.UnitTests
             {
                 SolvingNode.CreateStrict(FType.Int64),
                 SolvingNode.CreateStrict(FType.UInt64),
-                SolvingNode.CreateStrict(FType.Int8)
+                SolvingNode.CreateStrict(FType.UInt8)
             });
             Assert.AreEqual(new FType(HmTypeName.SomeInteger), beh.MakeType(100));
         }

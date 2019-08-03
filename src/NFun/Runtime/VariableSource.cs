@@ -54,9 +54,6 @@ namespace NFun.Runtime
                 case BaseVarType.Bool:
                     Value = Convert.ToBoolean(valueValue);
                     break;
-                case BaseVarType.Int8:
-                    Value = Convert.ToSByte(valueValue);
-                    break;
                 case BaseVarType.Int16:
                     Value = Convert.ToInt16(valueValue);
                     break;

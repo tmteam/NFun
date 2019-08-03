@@ -25,7 +25,6 @@ namespace NFun.Types
         public static VarType UInt32 => new VarType(BaseVarType.UInt32);
         public static VarType UInt64 => new VarType(BaseVarType.UInt64);
 
-        public static VarType Int8 => new VarType(BaseVarType.Int8);
         public static VarType Int16 => new VarType(BaseVarType.Int16);
         public static VarType Int32 => new VarType(BaseVarType.Int32);
         public static VarType Int64 => new VarType(BaseVarType.Int64);
@@ -99,7 +98,6 @@ namespace NFun.Types
             {
                 case BaseVarType.Bool:
 
-                case BaseVarType.Int8:
                 case BaseVarType.Int16:
                 case BaseVarType.Int32:
                 case BaseVarType.Int64:
@@ -151,7 +149,6 @@ namespace NFun.Types
             {
                 case BaseVarType.Empty:
                 case BaseVarType.Bool:
-                case BaseVarType.Int8:
                 case BaseVarType.Int16:
                 case BaseVarType.Int32:
                 case BaseVarType.Int64:
@@ -242,7 +239,6 @@ namespace NFun.Types
             switch (BaseType)
             {
                 case BaseVarType.Bool:
-                case BaseVarType.Int8:
                 case BaseVarType.Int16:
                 case BaseVarType.Int32:
                 case BaseVarType.Int64:

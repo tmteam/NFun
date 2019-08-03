@@ -29,7 +29,6 @@ namespace NFun.HindleyMilner
             switch (origin.BaseType)
             {
                 case BaseVarType.Bool:  return FType.Bool;
-                case BaseVarType.Int8:  return FType.Int8;
                 case BaseVarType.Int16: return FType.Int16;
                 case BaseVarType.Int32: return FType.Int32;
                 case BaseVarType.Int64: return FType.Int64;

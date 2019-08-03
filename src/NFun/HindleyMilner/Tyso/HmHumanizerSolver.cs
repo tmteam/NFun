@@ -256,11 +256,9 @@ namespace NFun.HindleyMilner.Tyso
                 new[]
                 {
                     new FunSignature(FType.Real,  FType.Real),
-                    
                     new FunSignature(FType.Int16, FType.Int16),
                     new FunSignature(FType.Int32, FType.Int32),
                     new FunSignature(FType.Int64, FType.Int64),
-                    
                     new FunSignature(FType.Int16, FType.UInt8),
                     new FunSignature(FType.Int64, FType.UInt32),
                 }, nodeId, new[] {argNodeId}, true
