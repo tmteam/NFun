@@ -208,14 +208,12 @@ namespace NFun.HindleyMilner
                     return _state.CurrentSolver.SetLcaConst(node.OrderNumber, FType.UInt16);
                 //if(value>=0 && value < int.MaxValue)
                 //    return _state.CurrentSolver.SetLcaConst(node.OrderNumber, FType.UInt32);
-                if(value<=0 && value >= short.MinValue)
-                    return _state.CurrentSolver.SetLcaConst(node.OrderNumber, FType.Int16);
+                //if(value<=0 && value >= short.MinValue)
+                //    return _state.CurrentSolver.SetLcaConst(node.OrderNumber, FType.Int16);
                 //if(value<=0 && value > int.MinValue)
                 //    return _state.CurrentSolver.SetLcaConst(node.OrderNumber, FType.Int32);
 
                 
-                if (value < 0 && value > Int16.MaxValue) //alow us to convert int to any lower types
-                    return _state.CurrentSolver.SetConst(node.OrderNumber, FType.Int16);
 
             }
 
