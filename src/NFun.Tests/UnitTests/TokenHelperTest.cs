@@ -17,13 +17,13 @@ namespace Funny.Tests.UnitTests
         [TestCase("-9876543210",-9876543210, BaseVarType.Int64)]
         [TestCase("2147483647",2147483647, BaseVarType.Int32)]
         [TestCase("-2147483648",-2147483648, BaseVarType.Int32)]
-        [TestCase("0b1111_1111_1111_1111_1111_1111_1111_0011",0b1111_1111_1111_1111_1111_1111_1111_0011, BaseVarType.Int64)]
+        [TestCase("0b1111_1111_1111_1111_1111_1111_1111_0011",0b1111_1111_1111_1111_1111_1111_1111_0011, BaseVarType.UInt32)]
         [TestCase("0b1111_1111_1111_1111_1111_1111_1111",0b1111_1111_1111_1111_1111_1111_1111, BaseVarType.Int32)]
         public void ToConstant_NumberConstant_ParsesWell(string value, object expectedVal, BaseVarType expectedType)
         {
             var (obj, type) = TokenHelper.ToConstant(value);
             Assert.AreEqual(expectedVal, obj);
-            Assert.AreEqual(type.BaseType, expectedType);
+            Assert.AreEqual(expectedType,type.BaseType);
         }
         [TestCase("false")]
         [TestCase("hi bro")]

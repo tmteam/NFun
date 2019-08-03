@@ -37,9 +37,15 @@ namespace NFun.Tokenization
                     return ((Int16) longVal, VarType.Int16);
             }
             */
-            if(longVal>Int32.MaxValue || longVal<Int32.MinValue)
+            if( longVal<Int32.MinValue)
                 return ( longVal, VarType.Int64);
-            
+            if (longVal > Int32.MaxValue)
+            {
+                if (longVal > UInt32.MaxValue)
+                    return (longVal, VarType.Int64);
+                
+                return ((uint) longVal, VarType.UInt32);
+            }
             return ((int) longVal, VarType.Int32);
         }
 
@@ -47,7 +53,6 @@ namespace NFun.Tokenization
         {
             if (val.Length > 2)
             {
-
                 if (val[1] == 'b')
                 {
                     var uval = Convert.ToUInt64(val.Substring(2), 2);

@@ -102,7 +102,6 @@ namespace Funny.Tests
             var expr = $"conv(a:{typeTo}):{typeTo} = a; y = conv({constant})";
             var runtime = FunBuilder.BuildDefault(expr);
             Assert.AreEqual(typeTo.ToLower(), runtime.Outputs.Single().Type.ToString().ToLower());
-
         }
         
         [TestCase("int16",   "uint8")]
@@ -171,17 +170,15 @@ namespace Funny.Tests
         [TestCase("0xFF", "int8")]
         [TestCase("0xFFF", "uint8")]
         
-        [TestCase("0xFFFF", "int8")]
         [TestCase("0xFFFF", "uint8")]
         [TestCase("0xFFFF", "int16")]
-        [TestCase("0xFFFF", "uint16")]
+        [TestCase("0x10000", "uint16")]
 
-        [TestCase("0xFFFF_FFFF", "int8")]
         [TestCase("0xFFFF_FFFF", "uint8")]
         [TestCase("0xFFFF_FFFF", "int16")]
         [TestCase("0xFFFF_FFFF", "uint16")]
         [TestCase("0xFFFF_FFFF", "int32")]
-        [TestCase("0xFFFF_FFFF", "uint32")]
+        [TestCase("0x1_0000_0000", "uint32")]
         public void ObviousFails_NumberConstantImplicitCast(string constant, string typeTo)
         {
             var expr = $"customConvert(a:{typeTo}):{typeTo} = a; y = customConvert({constant})";

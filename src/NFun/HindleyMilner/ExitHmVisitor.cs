@@ -198,17 +198,17 @@ namespace NFun.HindleyMilner
         public override bool Visit(ConstantSyntaxNode node)
         {
             var type = AdpterHelper.ConvertToHmType(node.OutputType);
-
+            
             if (node.OutputType == VarType.Int32)
             {
                 var value = (int) node.Value;
                 if (value >= 0 && value < 256) //alow us to convert int to any lower types
                     return _state.CurrentSolver.SetLimitConst(node.OrderNumber, FType.Int32);
-                if(value>=0 && value < ushort.MaxValue)
+                if(value>=0 && value <= ushort.MaxValue)
                     return _state.CurrentSolver.SetLcaConst(node.OrderNumber, FType.UInt16);
                 //if(value>=0 && value < int.MaxValue)
                 //    return _state.CurrentSolver.SetLcaConst(node.OrderNumber, FType.UInt32);
-                if(value<=0 && value > short.MinValue)
+                if(value<=0 && value >= short.MinValue)
                     return _state.CurrentSolver.SetLcaConst(node.OrderNumber, FType.Int16);
                 //if(value<=0 && value > int.MinValue)
                 //    return _state.CurrentSolver.SetLcaConst(node.OrderNumber, FType.Int32);
