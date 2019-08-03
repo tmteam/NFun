@@ -354,14 +354,18 @@ namespace Funny.Tests
         }
         
         [TestCase("y = abs(x)",1.0,1.0)]
+
         [TestCase("y = abs(-x)",-1.0,1.0)]
         [TestCase("y = sum(x,2)",1,3)]
         [TestCase("y = sum(1,x)",2,3)]
         [TestCase("y = sum(sum(x,x),sum(x,x))",1.0,4.0)]
-        [TestCase("y = abs(x-4)",1,3)]
-        [TestCase("y = abs(x-toInt(4))",1,3)]
-        [TestCase("y = abs(toInt(x)-toInt(4))",1,3)]
+        [TestCase("y = abs(x-4.0)",1.0,3.0)]
         [TestCase("x:int; y = abs(toInt(x)-toInt(4))",1,3)]
+
+        //Not obvious
+        [TestCase("y = abs(x-4)",1,3)]
+        [TestCase("y = abs(toInt(x)-toInt(4))",1,3)]
+        [TestCase("y = abs(x-toInt(4))",1,3)]
         public void EquationWithPredefinedFunction(string expr, object arg, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);

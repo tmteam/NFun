@@ -357,7 +357,6 @@ namespace Funny.Tests
         [TestCase("int32",  (int)1,    BaseVarType.Int32)]
         [TestCase("int64",  (long)1,   BaseVarType.Int64)]
         [TestCase("real",  1.0,BaseVarType.Real)]
-        [TestCase("text", "1",BaseVarType.Text)]
         [TestCase("bool", true,BaseVarType.Bool)]
         [TestCase("int[]", new []{1,2,3},BaseVarType.ArrayOf)]
         [TestCase("int64[]", new long[]{1,2,3},BaseVarType.ArrayOf)]
@@ -368,7 +367,14 @@ namespace Funny.Tests
             res.AssertReturns(Var.New("y", expected));
             Assert.AreEqual(baseVarType, res.Get("y").Type.BaseType);
         }
-
+        public void OutputEqualsTextInput()
+        {
+            var runtime = FunBuilder.BuildDefault($"x:text;  y = x");
+            var res = runtime.Calculate(Var.New("x", "1"));
+            res.AssertReturns(Var.New("y", "1"));
+            Assert.AreEqual(VarType.Text, res.Get("y").Type.BaseType);
+        }
+        
         [TestCase("byte", "&", BaseVarType.UInt8)]
         [TestCase("uint8", "&", BaseVarType.UInt8)]
         [TestCase("uint16", "&", BaseVarType.UInt16)]

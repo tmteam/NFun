@@ -45,7 +45,7 @@ namespace NFun.Types
             ArrayTypeSpecification = null;
             GenericId = null;
         }
-
+        
         private VarType(int genericId)
         {
             BaseType = BaseVarType.Generic;
@@ -70,6 +70,8 @@ namespace NFun.Types
             GenericId = null;
         }
 
+        public bool IsText => BaseType == BaseVarType.ArrayOf &&
+                              ArrayTypeSpecification.VarType.BaseType == BaseVarType.Char;
         public readonly BaseVarType BaseType;
         public readonly AdditionalTypeSpecification ArrayTypeSpecification;
         public readonly FunTypeSpecification FunTypeSpecification;

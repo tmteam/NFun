@@ -23,7 +23,7 @@ namespace NFun.Types
 
         public static Func<object, object> GetConverterOrThrow(VarType from, VarType to, Interval interval)
         {
-            if (to.BaseType == BaseVarType.Text)
+            if (to.IsText)
                 return ToText;
             if (to.BaseType == BaseVarType.Any)
                 return ToAny;
@@ -53,8 +53,6 @@ namespace NFun.Types
                     case BaseVarType.Fun:
                         break;
                     case BaseVarType.Generic:
-                        break;
-                    case BaseVarType.Text:
                         break;
                     case BaseVarType.Any:
                         break;
@@ -115,13 +113,12 @@ namespace NFun.Types
         {
             var fromBase = from.BaseType;
             if (fromBase == BaseVarType.Empty)
-                return false;    
-            
+                return false;
+            if (to.IsText)
+                return true;
             switch (to.BaseType)
             {
                 case BaseVarType.Any:
-                case BaseVarType.Text:
-                    return true;
                 case BaseVarType.Char:
                     return true;
                 case BaseVarType.Fun:
@@ -175,8 +172,6 @@ namespace NFun.Types
                     return false;
                 case BaseVarType.UInt8:
                     return false;
-                case BaseVarType.Text:
-                    return true;
                 case BaseVarType.Any:
                     return true;
                 case BaseVarType.Fun:

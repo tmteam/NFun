@@ -17,7 +17,6 @@ namespace NFun.Types
         ArrayOf = 11,
         Fun = 12,
         Generic = 13,
-        Text = 14,
-        Any  = 15,
+        Any  = 14,
     }
 }
