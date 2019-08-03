@@ -24,11 +24,10 @@ namespace NFun.HindleyMilner.Tyso
         {
             //Limitation conflict
             //like: _limit: real; type: any
-            if (Limit.IsPrimitive)
+            if (Limit.IsPrimitive && !Limit.Name.Equals(newType.Name))
             {
                 //Downcast
-                if (!Limit.Name.Equals(newType.Name)
-                    &&  Limit.CanBeSafelyConvertedTo(newType))
+                if (!newType.CanBeSafelyConvertedTo(Limit))
                     return null;
             }
 

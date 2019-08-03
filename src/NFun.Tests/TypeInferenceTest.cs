@@ -276,7 +276,6 @@ namespace Funny.Tests
         [TestCase("y=5+'hi'")]
         [TestCase("x:real \r y = [1..x][0]")]
         [TestCase("x:real \r y = [x..10][0]")]
-        [TestCase("x:real \r y = [1..x..10][0]")]
         [TestCase("x:real \r y = [1..10][x]")]
         [TestCase("x:real \r y = [1..10][:x]")]
         [TestCase("x:real \r y = [1..10][:x:]")]

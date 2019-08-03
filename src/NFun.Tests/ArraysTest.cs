@@ -248,7 +248,7 @@ filtrat   = x.filter(i:int ->i> filt) # filt - входная переменна
         [TestCase("y = [1..4..-2.0]")]
         [TestCase("y = [1..4..0]")]
         [TestCase("y = [0..10][11]")]
-        [TestCase("y = ['a','b'][2]")]
+        [TestCase("y = ['a', 'b'][2]")]
         public void ObviouslyFailsOnRuntime(string expr) =>
             Assert.Throws<FunRuntimeException>(
                 ()=> FunBuilder.BuildDefault(expr).Calculate());

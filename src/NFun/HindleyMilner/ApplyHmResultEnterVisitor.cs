@@ -10,16 +10,19 @@ using NFun.Types;
 
 namespace NFun.HindleyMilner
 {
-   
-    public class ApplyHmResultVisitor: EnterVisitorBase
+    public class ApplyHmResultEnterVisitor: EnterVisitorBase
     {
         private readonly FunTypeSolving _solving;
         private readonly SolvedTypeConverter _solvedTypeConverter;
 
-        public ApplyHmResultVisitor(FunTypeSolving solving, SolvedTypeConverter solvedTypeConverter)
+        public ApplyHmResultEnterVisitor(FunTypeSolving solving, SolvedTypeConverter solvedTypeConverter)
         {
             _solving = solving;
             _solvedTypeConverter = solvedTypeConverter;
+        }
+        public override VisitorResult Visit(IfThenElseSyntaxNode node){
+            var result = DefaultVisit(node);
+            return result;
         }
         public override VisitorResult Visit(FunCallSyntaxNode node)
         {

@@ -23,19 +23,14 @@ namespace Funny.Tests
         [TestCase("uint32",   (uint)42,    "uint64", (ulong)42)]
         [TestCase("uint64",  (ulong)42,    "uint64", (ulong)42)]
 
-        [TestCase("int8",   (sbyte)42,    "int8",  (sbyte)42)]
-
-        [TestCase("int8",   (sbyte)42,    "int16", (short)42)]
         [TestCase("int16",  (short)42,    "int16", (short)42)]
         [TestCase("uint8",   (byte)42,    "int16", (short)42)]
 
-        [TestCase("int8",   (sbyte)42,    "int32", (int)42)]
         [TestCase("int16",  (short)42,    "int32", (int)42)]
         [TestCase("int32",  (int)  42,    "int32", (int)42)]
         [TestCase("uint8",   (byte)42,    "int32", (int)42)]
         [TestCase("uint16",(ushort)42,    "int32", (int)42)]
         
-        [TestCase("int8",   (sbyte)42,    "int64", (long)42)]
         [TestCase("int16",  (short)42,    "int64", (long)42)]
         [TestCase("int32",  (int)  42,    "int64", (long)42)]
         [TestCase("int64",  (long) 42,    "int64", (long)42)]
@@ -43,7 +38,6 @@ namespace Funny.Tests
         [TestCase("uint16",(ushort)42,    "int64", (long)42)]
         [TestCase("uint32",  (uint)42,    "int64", (long)42)]
         
-        [TestCase("int8",   (sbyte)42,    "real", 42.0)]
         [TestCase("int16",  (short)42,    "real", 42.0)]
         [TestCase("int32",  (int)  42,    "real", 42.0)]
         [TestCase("int64",  (long) 42,    "real", 42.0)]
@@ -64,7 +58,6 @@ namespace Funny.Tests
         [TestCase("1", "uint16")]
         [TestCase("1", "uint32")]
         [TestCase("1", "uint64")]
-        [TestCase("1", "int8")]
         [TestCase("1", "int16")]
         [TestCase("1", "int32")]
         [TestCase("1", "int64")]
@@ -112,7 +105,6 @@ namespace Funny.Tests
 
         }
         
-        [TestCase("int8",    "uint8")]
         [TestCase("int16",   "uint8")]
         [TestCase("int32",   "uint8")]
         [TestCase("int64",   "uint8")]

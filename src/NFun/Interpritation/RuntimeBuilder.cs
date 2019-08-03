@@ -46,7 +46,9 @@ namespace NFun.Interpritation
                     continue;
                 
                 //set types to nodes
-                syntaxNode.ComeOver(new ApplyHmResultVisitor(bodyTypeSolving, SolvedTypeConverter.SetGenericsToAny));
+                syntaxNode.ComeOver(
+                    enterVisitor: new ApplyHmResultEnterVisitor(bodyTypeSolving, SolvedTypeConverter.SetGenericsToAny),
+                    exitVisitor: new ApplyTiResultsExitVisitor());
             }
             
             var variables = new VariableDictionary(); 
@@ -141,7 +143,9 @@ namespace NFun.Interpritation
 
             var isGeneric = types.GenericsCount > 0;
             //set types to nodes
-            functionSyntaxNode.ComeOver(new ApplyHmResultVisitor(types, SolvedTypeConverter.SaveGenerics));
+            functionSyntaxNode.ComeOver(
+                enterVisitor:new ApplyHmResultEnterVisitor(types, SolvedTypeConverter.SaveGenerics),
+                exitVisitor: new ApplyTiResultsExitVisitor());
             var funType = types.GetVarType(funAlias, SolvedTypeConverter.SaveGenerics);
             
             if (isGeneric)

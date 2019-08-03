@@ -14,7 +14,6 @@ namespace Funny.Tests
     {
         [TestCase("int",   (int)-123,     "toInt16", (short)-123)]
         [TestCase("int",   (int)123,      "toInt16", (short) 123)]
-        [TestCase("int8",  (sbyte)-123,   "toInt16", (short)-123)]
         [TestCase("int16", (short)-123,   "toInt16", (short)-123)]
         [TestCase("int32", (int)-123,     "toInt16", (short)-123)]
         [TestCase("int64", (long)-123,    "toInt16", (short)-123)]
@@ -25,7 +24,6 @@ namespace Funny.Tests
         
         [TestCase("int",   (int)-123,     "toInt", -123)]
         [TestCase("int",   (int)123,      "toInt",  123)]
-        [TestCase("int8",  (sbyte)-123,   "toInt", -123)]
         [TestCase("int16", (short)-123,   "toInt", -123)]
         [TestCase("int32", (int)-123,     "toInt", -123)]
         [TestCase("int64", (long)-123,    "toInt", -123)]
@@ -36,7 +34,6 @@ namespace Funny.Tests
 
         [TestCase("int",   (int)-123,     "toInt", -123)]
         [TestCase("int",   (int)123,      "toInt",  123)]
-        [TestCase("int8",  (sbyte)-123,   "toInt", -123)]
         [TestCase("int16", (short)-123,   "toInt", -123)]
         [TestCase("int32", (int)-123,     "toInt", -123)]
         [TestCase("int64", (long)-123,    "toInt", -123)]
@@ -47,7 +44,6 @@ namespace Funny.Tests
         
         [TestCase("int",   (int)-123,     "toInt32", -123)]
         [TestCase("int",   (int)123,      "toInt32",  123)]
-        [TestCase("int8",  (sbyte)-123,   "toInt32", -123)]
         [TestCase("int16", (short)-123,   "toInt32", -123)]
         [TestCase("int32", (int)-123,     "toInt32", -123)]
         [TestCase("int64", (long)-123,    "toInt32", -123)]
@@ -58,7 +54,6 @@ namespace Funny.Tests
         
         [TestCase("int",   (int)-123,     "toInt64", (long)-123)]
         [TestCase("int",   (int)123,      "toInt64", (long) 123)]
-        [TestCase("int8",  (sbyte)-123,   "toInt64", (long)-123)]
         [TestCase("int16", (short)-123,   "toInt64", (long)-123)]
         [TestCase("int32", (int)-123,     "toInt64", (long)-123)]
         [TestCase("int64", (long)-123,    "toInt64", (long)-123)]
@@ -68,7 +63,6 @@ namespace Funny.Tests
         [TestCase("uint64",(ulong)123,    "toInt64", (long) 123)]
         
         [TestCase("int",   (int)123,      "toUint8", (byte) 123)]
-        [TestCase("int8",  (sbyte)123,    "toUint8", (byte) 123)]
         [TestCase("int16", (short)123,    "toUint8", (byte) 123)]
         [TestCase("int64", (long)123,     "toUint8", (byte) 123)]
         [TestCase("uint8", (byte)123,     "toUint8", (byte) 123)]
@@ -77,7 +71,6 @@ namespace Funny.Tests
         [TestCase("uint64",(ulong)123,    "toUint8", (byte) 123)]
         
         [TestCase("int",   (int)123,      "toByte", (byte) 123)]
-        [TestCase("int8",  (sbyte)123,    "toByte", (byte) 123)]
         [TestCase("int16", (short)123,    "toByte", (byte) 123)]
         [TestCase("int64", (long)123,     "toByte", (byte) 123)]
         [TestCase("uint8", (byte)123,     "toByte", (byte) 123)]
@@ -86,7 +79,6 @@ namespace Funny.Tests
         [TestCase("uint64",(ulong)123,    "toByte", (byte) 123)]
         
         [TestCase("int",   (int)123,      "toUint16", (ushort) 123)]
-        [TestCase("int8",  (sbyte)123,    "toUint16", (ushort) 123)]
         [TestCase("int16", (short)123,    "toUint16", (ushort) 123)]
         [TestCase("int64", (long)123,     "toUint16", (ushort) 123)]
         [TestCase("uint8", (byte)123,     "toUint16", (ushort) 123)]
@@ -95,7 +87,6 @@ namespace Funny.Tests
         [TestCase("uint64",(ulong)123,    "toUint16", (ushort) 123)]
         
         [TestCase("int",   (int)123,      "toUint32", (uint) 123)]
-        [TestCase("int8",  (sbyte)123,    "toUint32", (uint) 123)]
         [TestCase("int16", (short)123,    "toUint32", (uint) 123)]
         [TestCase("int64", (long)123,     "toUint32", (uint) 123)]
         [TestCase("uint8", (byte)123,     "toUint32", (uint) 123)]
@@ -104,7 +95,6 @@ namespace Funny.Tests
         [TestCase("uint64",(ulong)123,    "toUint32", (uint) 123)]
         
         [TestCase("int",   (int)123,      "toUint64", (ulong) 123)]
-        [TestCase("int8",  (sbyte)123,    "toUint64", (ulong) 123)]
         [TestCase("int16", (short)123,    "toUint64", (ulong) 123)]
         [TestCase("int64", (long)123,     "toUint64", (ulong) 123)]
         [TestCase("uint8", (byte)123,     "toUint64", (ulong) 123)]
@@ -356,7 +346,6 @@ namespace Funny.Tests
         [TestCase("y = [0..1].chunk(7) == [[0,1]]",true)]
         [TestCase("y = [0..6].chunk(2) == [[0,1],[2,3],[4,5],[6]]",true)]
         [TestCase("y = [3..7].chunk(1) == [[3],[4],[5],[6],[7]]",true)]
-        
         public void ConstantEquationWithGenericPredefinedFunction(string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
@@ -371,13 +360,13 @@ namespace Funny.Tests
         [TestCase("y = sum(sum(x,x),sum(x,x))",1.0,4.0)]
         [TestCase("y = abs(x-4)",1,3)]
         [TestCase("y = abs(x-toInt(4))",1,3)]
-
+        [TestCase("y = abs(toInt(x)-toInt(4))",1,3)]
+        [TestCase("x:int; y = abs(toInt(x)-toInt(4))",1,3)]
         public void EquationWithPredefinedFunction(string expr, object arg, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate(Var.New("x", arg))
                 .AssertReturns(0.00001, Var.New("y", expected));
-            
         }
         [TestCase("y = pi(")]
         [TestCase("y = pi(1)")]

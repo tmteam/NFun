@@ -120,6 +120,23 @@ namespace NFun.HindleyMilner.Tyso
 
         public override string ToString() => ToSmartString(SolvingNode.MaxTypeDepth);
 
+        public static FType GetLca(FType[] fTypes)
+        {
+            var left = fTypes.Where(c=>c.Name.Start>=0).Min(c => c.Name.Start);
+            var right = fTypes.Where(c=>c.Name.Finish>=0).Max(c=>c.Name.Finish);
+            
+            //Search for GeneralParent
+            var parentName = fTypes[0].Name;
+            while (true)
+            {
+                if (parentName.Start <= left && parentName.Finish >= right)
+                    return new FType(parentName);
+                
+                if(parentName.Parent==null)
+                    return FType.Any;
+                parentName = parentName.Parent;
+            }
+        }
 
         public static FitResult CanBeConverted(FType from, FType to, int maxDepth){
             if (to.IsPrimitiveGeneric)

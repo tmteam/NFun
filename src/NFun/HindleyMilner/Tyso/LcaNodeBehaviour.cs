@@ -20,22 +20,7 @@ namespace NFun.HindleyMilner.Tyso
                 return OtherNodes.First().MakeType(maxTypeDepth-1);
 
             var concretes = OtherNodes.Select(o => o.MakeType(maxTypeDepth - 1)).ToArray();
-            var left = concretes.Where(c=>c.Name.Start>=0).Min(c => c.Name.Start);
-            var right = concretes.Where(c=>c.Name.Finish>=0).Max(c=>c.Name.Finish);
-            
-            //Search for GeneralParent
-
-            var parentName = concretes[0].Name;
-
-            while (true)
-            {
-                if (parentName.Start <= left && parentName.Finish >= right)
-                    return new FType(parentName);
-                
-                if(parentName.Parent==null)
-                    return FType.Any;
-                parentName = parentName.Parent;
-            }
+            return FType.GetLca(concretes);
         }
 
         public INodeBehavior SetLimit(FType newLimit)
@@ -169,7 +154,6 @@ namespace NFun.HindleyMilner.Tyso
             }
             return this;
         }
-
         public FitResult CanBeConvertedFrom(FType from, int maxDepth)
         {
             if (from.IsPrimitiveGeneric)
