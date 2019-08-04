@@ -503,7 +503,7 @@ namespace Funny.Tests
         {
             FunBuilder.BuildDefault(expression)
                 .Calculate(Var.New("x", xValue))
-                .AssertReturns(Var.New("y", expectedY));
+                .AssertHas(Var.New("y", expectedY));
         }
         
     }
