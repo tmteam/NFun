@@ -283,8 +283,11 @@ namespace Funny.Tests
         [TestCase("y = x \r x:real ")]
         [TestCase("z:real \r  y = x+z \r x:real ")]
         [TestCase("y= [1,2,3].fold((x1,x2)->x1+1.5)")]
-        [TestCase("a: int \r a=4")]
-        [TestCase("a: int a=4")]
+        [TestCase("a:int \r a=4")]
+        [TestCase("a:int a=4")]
+        [TestCase("a:real =false")]
+        [TestCase("a:real =false")]
+        [TestCase("x:bool; a:real =x")]
         public void ObviouslyFailsWithParse(string expr) =>
             Assert.Throws<FunParseException>(
                 ()=> FunBuilder.BuildDefault(expr));
@@ -367,12 +370,13 @@ namespace Funny.Tests
             res.AssertReturns(Var.New("y", expected));
             Assert.AreEqual(baseVarType, res.Get("y").Type.BaseType);
         }
+        [Test]
         public void OutputEqualsTextInput()
         {
             var runtime = FunBuilder.BuildDefault($"x:text;  y = x");
             var res = runtime.Calculate(Var.New("x", "1"));
             res.AssertReturns(Var.New("y", "1"));
-            Assert.AreEqual(VarType.Text, res.Get("y").Type.BaseType);
+            Assert.AreEqual(VarType.Text, res.Get("y").Type);
         }
         
         [TestCase("byte", "&", BaseVarType.UInt8)]
@@ -471,5 +475,36 @@ namespace Funny.Tests
                 $"a:{inputTypes}; b:{inputTypes}; y = a % b");
             Assert.AreEqual(expectedOutputType, runtime.Outputs.Single(o => o.Name == "y").Type.BaseType);
         }
+        
+        [TestCase("y:real = 1",  BaseVarType.Real)]
+        [TestCase("y:int = 1",  BaseVarType.Int32)]
+        [TestCase("y:byte = 1",  BaseVarType.UInt8)]
+        [TestCase("x:int; y:real = x",  BaseVarType.Real)]
+        public void OutputType_checkOutputTest(string expression,  BaseVarType expectedType){
+            var runtime = FunBuilder.BuildDefault(expression);
+            Assert.AreEqual(expectedType, runtime.Outputs.Single(o => o.Name == "y").Type.BaseType);
+        }
+        
+        [TestCase("y:real = x+1", "x", BaseVarType.Real)]
+        [TestCase("y:real = x", "x", BaseVarType.Real)]
+        [TestCase("y:bool = x", "x", BaseVarType.Bool)]
+        [TestCase("x:int; y:real = x+a", "a", BaseVarType.Real)]
+        public void OutputType_checkInputTest(string expression, string variable, BaseVarType expectedType){
+            var runtime = FunBuilder.BuildDefault(expression);
+            Assert.AreEqual(expectedType, runtime.Inputs.Single(o => o.Name == variable).Type.BaseType);
+        }
+
+        [TestCase("y:int[] = x",new[]{1,2,3},new[]{1,2,3})]
+        [TestCase("y:real[] = x",new[]{1.0,2.0,3.0},new[]{1.0,2.0,3.0})]
+        [TestCase("z:real[] = x; y = z",new[]{1.0,2.0,3.0},new[]{1.0,2.0,3.0})]
+        [TestCase("y:int[] = x.reverse();",new[]{1,2,3},new[]{3,2,1})]
+        [TestCase("a:int = 5; y:real = a+x",2.5,7.5)]
+        public void OutputType_runtimeTest(string expression, object xValue, object expectedY)
+        {
+            FunBuilder.BuildDefault(expression)
+                .Calculate(Var.New("x", xValue))
+                .AssertReturns(Var.New("y", expectedY));
+        }
+        
     }
 }

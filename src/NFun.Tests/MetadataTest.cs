@@ -54,6 +54,9 @@ namespace Funny.Tests
         [TestCase("x:int; y = x*3 ","y",false)]
         [TestCase("a:int; a*b*c ","out",false)]
         [TestCase("a:int; y = a*b*c ","y",false)]
+        [TestCase("x:int; y:real = x*3 ","y",true)]
+        [TestCase("a:int; y:int = a*b*c ","y",true)]
+        [TestCase("y:int[] = a ","y",true)]
         public void OutputVariable_IsStrictTypedMetadata(string expr, string varName, bool expectedIsStrictType)
         {
             var runtime = FunBuilder.BuildDefault(expr);
