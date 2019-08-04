@@ -143,7 +143,6 @@ namespace NFun.SyntaxParsing
             _hasFuctions = true;
         }
 
-       
         private void ReadOutputVariable(ISyntaxNode equationHeader, string id)
         {
             if (_hasAnonymousEquation)
@@ -154,9 +153,12 @@ namespace NFun.SyntaxParsing
             _flow.MoveNext();
             var equation = ReadEquation(_flow, _reader, id, _attributes);
 
-            if(equationHeader is TypedVarDefSyntaxNode typed)
+            if (equationHeader is TypedVarDefSyntaxNode typed)
+            {
+                equation.TypeSpecificationOrNull = typed;
                 equation.OutputType = typed.VarType;
-            
+            }
+
             _nodes.Add(equation);
             _equationNames.Add(equation.Id);
         }
@@ -168,7 +170,7 @@ namespace NFun.SyntaxParsing
             var exNode = reader.ReadExpressionOrNull();
             if (exNode == null)
                 throw ErrorFactory.VarExpressionIsMissed(start, id, flow.Current);
-            return new EquationSyntaxNode(id,start, exNode, attributes);
+            return new EquationSyntaxNode(id, start, exNode, attributes);
         }
     }
 }

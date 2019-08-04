@@ -52,8 +52,6 @@ namespace NFun
             return RuntimeBuilder.Build(syntaxTree, functionsDictionary);
         }
 
-      
-
         private FunctionsDictionary MakeFunctionsDictionary()
         {
             var functionsDictionary = new FunctionsDictionary();

@@ -24,6 +24,19 @@ namespace NFun.HindleyMilner.Tyso
             if (funType.Name.Id != HmTypeName.FunId)
                 throw new InvalidOperationException("functional type mismatch");
             
+            //if output type specified and it is primitive
+            if (funType.Arguments[0].Behavior is StrictNodeBehaviour strict)
+            {
+                var concrete = strict.MakeType();
+                if (concrete.IsPrimitive)
+                {
+                    if (!_solver.SetLimit(expressionId, concrete.Name))
+                        return SetTypeResult.Failed(expressionId, SetTypeResultError.ExpressionTypeIsIncorrect);
+                    else
+                        return SetTypeResult.Succesfully;
+                }
+            }
+
             if (!_solver.Unite(expressionId, funType.Arguments[0]))
                 return SetTypeResult.Failed(expressionId, SetTypeResultError.ExpressionTypeIsIncorrect);
             return SetTypeResult.Succesfully;

@@ -21,6 +21,8 @@ namespace NFun.SyntaxParsing.SyntaxNodes
             Interval = Interval.New(start, expression.Interval.Finish);
         }
 
+        public TypedVarDefSyntaxNode TypeSpecificationOrNull { get; set; } = null;
+        public bool OutputTypeSpecified => TypeSpecificationOrNull != null;
         public VarType OutputType { get; set; }
         public int OrderNumber { get; set; }
         public bool IsInBrackets { get; set; }

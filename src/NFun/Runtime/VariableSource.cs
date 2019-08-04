@@ -14,7 +14,17 @@ namespace NFun.Runtime
         public readonly string Name;
 
         public readonly Interval? TypeSpecificationIntervalOrNull;
-        public VariableSource(
+        public static VariableSource CreateWithStrictTypeLabel( string name, 
+            VarType type, 
+            Interval typeSpecificationIntervalOrNull, 
+            VarAttribute[] attributes = null)
+            => new VariableSource(name, type, typeSpecificationIntervalOrNull, attributes);
+
+        public static VariableSource CreateWithoutStrictTypeLabel(
+            string name, VarType type,  VarAttribute[] attributes = null)
+            => new VariableSource(name, type, attributes);
+        
+        private VariableSource(
             string name, 
             VarType type, 
             Interval typeSpecificationIntervalOrNull, 

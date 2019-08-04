@@ -20,9 +20,24 @@ namespace NFun.Interpritation
         private readonly FunctionsDictionary _functions;
         private readonly VariableDictionary _variables;
 
-        public static IExpressionNode BuildExpression(ISyntaxNode node, FunctionsDictionary functions,
+        public static IExpressionNode BuildExpression(
+            ISyntaxNode node, 
+            FunctionsDictionary functions,
             VariableDictionary variables) =>
             node.Visit(new ExpressionBuilderVisitor(functions, variables));
+
+        public static IExpressionNode BuildExpression(
+            ISyntaxNode node, 
+            FunctionsDictionary functions,
+            VarType outputType,
+            VariableDictionary variables)
+        {
+            var result =  node.Visit(new ExpressionBuilderVisitor(functions, variables));
+            if (result.Type == outputType)
+                return result;
+            var converter = VarTypeConverter.GetConverterOrThrow(result.Type, outputType, node.Interval);
+            return new CastExpressionNode(result, outputType, converter, node.Interval);
+        }
 
         public ExpressionBuilderVisitor(FunctionsDictionary functions, VariableDictionary variables)
         {
@@ -52,7 +67,7 @@ namespace NFun.Interpritation
             {
                 //Convert argument node
                 var varNode = FunArgumentExpressionNode.CreateWith(arg);
-                var source = new VariableSource(varNode.Name, varNode.Type, arg.Interval);
+                var source = VariableSource.CreateWithStrictTypeLabel(varNode.Name, varNode.Type, arg.Interval);
                 //collect argument
                 arguments.Add(source);
                 //add argument to local scope

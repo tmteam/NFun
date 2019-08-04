@@ -55,8 +55,12 @@ namespace NFun.HindleyMilner
 
         public override bool Visit(EquationSyntaxNode node)
         {
-            if (node.OutputType != VarType.Empty)
-                _state.CurrentSolver.SetVarType(node.Id, node.OutputType.ConvertToHmType());
+            if (node.OutputTypeSpecified)
+            {
+                var type = node.OutputType.ConvertToHmType();
+                _state.CurrentSolver.SetVarType(node.Id, type);
+                _state.CurrentSolver.SetStrict(node.Expression.OrderNumber, type);
+            }
 
             var res = _state.CurrentSolver.SetDefenition(node.Id, node.OrderNumber, node.Expression.OrderNumber);
             if (res.IsSuccesfully)

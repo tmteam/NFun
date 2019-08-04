@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NFun.Exceptions;
 using NFun.HindleyMilner;
 using NFun.HindleyMilner.Tyso;
 using NFun.Interpritation.Functions;
@@ -63,7 +64,7 @@ namespace NFun.Interpritation
                 }
                 else if (lexRoot is VarDefenitionSyntaxNode varDef)
                 {
-                    var variableSource = new VariableSource(
+                    var variableSource = VariableSource.CreateWithStrictTypeLabel(
                         varDef.Id, 
                         varDef.VarType, 
                         varDef.Interval, 
@@ -85,14 +86,24 @@ namespace NFun.Interpritation
         private static Equation BuildEquationAndPutItToVariables(EquationSyntaxNode equation,FunctionsDictionary functionsDictionary, VariableDictionary variables)
         {
             var expression = ExpressionBuilderVisitor.BuildExpression(
-                equation.Expression, 
-                functionsDictionary, 
-                variables);
+                node: equation.Expression, 
+                functions: functionsDictionary,
+                outputType: equation.OutputType,
+                variables: variables);
+
             
-            var newSource = new VariableSource(equation.Id, equation.OutputType, equation.Attributes) {
-                IsOutput = true
-            };
+            VariableSource newSource;
+            if(equation.OutputTypeSpecified)
+                newSource = VariableSource.CreateWithStrictTypeLabel(
+                    name: equation.Id, 
+                    type: equation.OutputType, 
+                    typeSpecificationIntervalOrNull: equation.TypeSpecificationOrNull.Interval, 
+                    attributes: equation.Attributes);
+            else
+                newSource = VariableSource.CreateWithoutStrictTypeLabel(equation.Id, equation.OutputType, equation.Attributes);
             
+            newSource.IsOutput = true;
+          
             if (!variables.TryAdd(newSource))
             {
                 //some equation referenced the source before
@@ -102,10 +113,11 @@ namespace NFun.Interpritation
                 else
                     throw ErrorFactory.CannotUseOutputValueBeforeItIsDeclared(usages);
             }
-
+            
+           
             //ReplaceInputType
             if(newSource.Type != expression.Type)
-                throw FunParseException.ErrorStubToDo($"Equation types mismatch. Expected: {newSource.Type} but was: {expression.Type}");            
+                throw new ImpossibleException("fitless");            
             return new Equation(equation.Id, expression);
         }
 
@@ -178,7 +190,7 @@ namespace NFun.Interpritation
             for (int i = 0; i < lexFunction.Args.Count ; i++)
             {
                 var id = lexFunction.Args[i].Id;
-                if (!vars.TryAdd(new VariableSource(id, prototype.ArgTypes[i])))
+                if (!vars.TryAdd(VariableSource.CreateWithoutStrictTypeLabel(id, prototype.ArgTypes[i])))
                 {
                     throw ErrorFactory.FunctionArgumentDuplicates(lexFunction, lexFunction.Args[i]);
                 }
@@ -217,8 +229,14 @@ namespace NFun.Interpritation
                     throw ErrorFactory.FunctionArgumentDuplicates(lexFunction, lexFunction.Args[i]);
                 }
             }
-            var expression = ExpressionBuilderVisitor
-                .BuildExpression(lexFunction.Body, functionsDictionary, vars);
+            
+            var bodyExpression = ExpressionBuilderVisitor.BuildExpression(
+                    node: lexFunction.Body, 
+                    functions: functionsDictionary, 
+                    outputType: lexFunction.ReturnType== VarType.Empty
+                                    ?lexFunction.Body.OutputType
+                                    :lexFunction.ReturnType,
+                    variables: vars);
             
             ExpressionHelper.CheckForUnknownVariables(
                 lexFunction.Args.Select(a=>a.Id).ToArray(), vars);
@@ -227,7 +245,7 @@ namespace NFun.Interpritation
                 name: lexFunction.Id, 
                 variables: vars.GetAllSources(), 
                 isReturnTypeStrictlyTyped: lexFunction.ReturnType!= VarType.Empty, 
-                expression: expression);
+                expression: bodyExpression);
             prototype.SetActual(function, lexFunction.Interval);
             return function;
         }
@@ -237,9 +255,9 @@ namespace NFun.Interpritation
             VarType actualType)
         {
             if(argSyntax.VarType != VarType.Empty)
-                return new VariableSource(argSyntax.Id, actualType, argSyntax.Interval);
+                return VariableSource.CreateWithStrictTypeLabel(argSyntax.Id, actualType, argSyntax.Interval);
             else
-                return new VariableSource(
+                return VariableSource.CreateWithoutStrictTypeLabel(
                     name: argSyntax.Id,
                     type: actualType);
         }

@@ -133,5 +133,23 @@ namespace NFun.HmTests
             Assert.AreEqual(0, solvation.GenericsCount);
             Assert.AreEqual(FType.Fun(FType.Int32), solvation.GetVarType("y()"));
         }
+        [Test]
+        public void ImplicitCast_EquationSolved()
+        {
+            //     1           0
+            // y(i:int):real = i
+            solver.SetVarType("i", FType.Int32);
+            solver.SetVarType("y()", FType.Fun(FType.Real, FType.Int32));
+
+            Assert.IsTrue(solver.SetVar(0, "i"));
+
+            solver.SetFunDefenition("y()", 1, 0).AssertSuccesfully();
+
+            var solvation = solver.Solve();
+            Assert.IsTrue(solvation.IsSolved);
+            Assert.AreEqual(0, solvation.GenericsCount);
+            Assert.AreEqual(FType.Int32, solvation.GetVarType("i"));
+            Assert.AreEqual(FType.Fun(FType.Real, FType.Int32), solvation.GetVarType("y()"));
+        }
     }
 }
