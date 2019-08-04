@@ -1,9 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using NFun.ParseErrors;
 
-namespace NFun.HindleyMilner.Tyso
+namespace NFun.TypeInference.Solving
 {
     public class HmNodeSolver
     {
@@ -58,7 +57,7 @@ namespace NFun.HindleyMilner.Tyso
             return solvingNode;
 
         }
-        public bool SetVarType(string varId, FType type)
+        public bool SetVarType(string varId, TiType type)
         {
             
             if (_variables.ContainsKey(varId)) 
@@ -97,7 +96,7 @@ namespace NFun.HindleyMilner.Tyso
             //return currentNode.SetEqualTo(newNode);
         }
         
-        public bool SetCall(CallDef call)
+        public bool SetCall(CallDefenition call)
         {
             var generics = new GenericMap();
 
@@ -110,7 +109,7 @@ namespace NFun.HindleyMilner.Tyso
             return true;
         }
         
-        public bool SetLimArgCall(CallDef call)
+        public bool SetLimArgCall(CallDefenition call)
         {
             var generics = new GenericMap();
             //Set strict to return type
@@ -128,7 +127,7 @@ namespace NFun.HindleyMilner.Tyso
             return true;
         }
         
-        public bool SetStrict(int nodeId, FType type)
+        public bool SetStrict(int nodeId, TiType type)
         {
             var generics = new GenericMap();
             var res = SetStrict(nodeId, type, generics);
@@ -145,13 +144,13 @@ namespace NFun.HindleyMilner.Tyso
             var children = dependentNodes.Select(GetOrCreate).ToArray();
             return GetOrCreate(nodeId).SetLca(children);
         }
-        public bool SetLimit(int nodeId, HmTypeName name) 
-            => GetOrCreate(nodeId).SetLimit(new FType(name));
+        public bool SetLimit(int nodeId, TiTypeName name) 
+            => GetOrCreate(nodeId).SetLimit(new TiType(name));
 
-        public bool SetNonGenericLimit(int nodeId, FType nonGenericType) 
+        public bool SetNonGenericLimit(int nodeId, TiType nonGenericType) 
             => GetOrCreate(nodeId).SetLimit(nonGenericType);
 
-        private bool SetStrict(int nodeId, FType type, GenericMap genericsContext)
+        private bool SetStrict(int nodeId, TiType type, GenericMap genericsContext)
         {
             if (type is GenericType t)
             {
@@ -161,7 +160,7 @@ namespace NFun.HindleyMilner.Tyso
             var solvingNode = genericsContext.CreateSolvingNode(type);
             return GetOrCreate(nodeId).SetStrict(solvingNode.MakeType());
         }
-        private bool SetLimit(int nodeId, FType type, GenericMap genericsContext)
+        private bool SetLimit(int nodeId, TiType type, GenericMap genericsContext)
         {
             if (type is GenericType t)
             {

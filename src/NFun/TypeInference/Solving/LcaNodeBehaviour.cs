@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 
-namespace NFun.HindleyMilner.Tyso
+namespace NFun.TypeInference.Solving
 {
     public class LcaNodeBehaviour : INodeBehavior
     {
@@ -11,7 +11,7 @@ namespace NFun.HindleyMilner.Tyso
         {
             OtherNodes = otherNodes;
         }
-        public FType MakeType(int maxTypeDepth)
+        public TiType MakeType(int maxTypeDepth)
         {
             if(maxTypeDepth<0)
                 throw new StackOverflowException("Make type depth SO");
@@ -20,10 +20,10 @@ namespace NFun.HindleyMilner.Tyso
                 return OtherNodes.First().MakeType(maxTypeDepth-1);
 
             var concretes = OtherNodes.Select(o => o.MakeType(maxTypeDepth - 1)).ToArray();
-            return FType.GetLca(concretes);
+            return TiType.GetLca(concretes);
         }
 
-        public INodeBehavior SetLimit(FType newLimit)
+        public INodeBehavior SetLimit(TiType newLimit)
         {
             foreach (var solvingNode in OtherNodes)
             {
@@ -33,7 +33,7 @@ namespace NFun.HindleyMilner.Tyso
             return this;
         }
 
-        public INodeBehavior SetStrict(FType newType)
+        public INodeBehavior SetStrict(TiType newType)
         {
             foreach (var solvingNode in OtherNodes)
             {
@@ -154,12 +154,12 @@ namespace NFun.HindleyMilner.Tyso
             }
             return this;
         }
-        public FitResult CanBeConvertedFrom(FType from, int maxDepth)
+        public FitResult CanBeConvertedFrom(TiType from, int maxDepth)
         {
             if (from.IsPrimitiveGeneric)
-                return new FitResult(FitType.Converable,0);
+                return new FitResult(FitType.Convertable,0);
 
-            FType sameTypeForEveryone = null;
+            TiType sameTypeForEveryone = null;
             bool hasSameType = true;
             foreach (var otherNode in OtherNodes)
             {
@@ -179,13 +179,13 @@ namespace NFun.HindleyMilner.Tyso
             }
             if(hasSameType)
             {
-                return FType.CanBeConverted(
-                    from: sameTypeForEveryone, 
+                return TiType.CanBeConverted(
+                    @from: sameTypeForEveryone, 
                     to:from, 
                     maxDepth: maxDepth-1);
             }
             
-            var res =  FType.CanBeConverted(from, MakeType(maxDepth-1), maxDepth-1);
+            var res =  TiType.CanBeConverted(from, MakeType(maxDepth-1), maxDepth-1);
             if (res.Type != FitType.Strict)
                 return res;
             else
@@ -193,14 +193,14 @@ namespace NFun.HindleyMilner.Tyso
                 return FitResult.Candidate(res.Distance);
             }
         }
-        public FitResult CanBeConvertedTo(FType candidateType, int maxDepth)
+        public FitResult CanBeConvertedTo(TiType candidateType, int maxDepth)
         {
             if (candidateType.IsPrimitiveGeneric)
-                return new FitResult(FitType.Converable,0);
+                return new FitResult(FitType.Convertable,0);
 
             var concreteType = MakeType(maxDepth-1);
             
-            var res =  FType.CanBeConverted(concreteType, candidateType,maxDepth-1);
+            var res =  TiType.CanBeConverted(concreteType, candidateType,maxDepth-1);
             if(res.Type== FitType.Strict)
                 return FitResult.Candidate(res.Distance);
             return res;

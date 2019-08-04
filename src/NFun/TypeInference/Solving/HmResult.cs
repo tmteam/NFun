@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace NFun.HindleyMilner.Tyso
+namespace NFun.TypeInference.Solving
 {
     public class HmResult
     {
@@ -50,9 +50,9 @@ namespace NFun.HindleyMilner.Tyso
 
         private readonly Dictionary<SolvingNode, int> _genMap;
         private Dictionary<int, FunSignature> _overloads;
-        public FType GetVarType(string varId) => ConvertToHmType2(_variablesMap[varId], NestedDepth);
+        public TiType GetVarType(string varId) => ConvertToHmType2(_variablesMap[varId], NestedDepth);
 
-        public FType GetVarTypeOrNull(string varId)
+        public TiType GetVarTypeOrNull(string varId)
         {
             if (!_variablesMap.TryGetValue(varId, out var solvingNode))
                 return null;
@@ -60,7 +60,7 @@ namespace NFun.HindleyMilner.Tyso
         }
 
 
-        public FType GetNodeType(int nodeId) => ConvertToHmType2(_nodes[nodeId], NestedDepth);
+        public TiType GetNodeType(int nodeId) => ConvertToHmType2(_nodes[nodeId], NestedDepth);
 
         private SolvingNode GetConcrete(SolvingNode node, int nestedCount)
         {
@@ -73,7 +73,7 @@ namespace NFun.HindleyMilner.Tyso
             return node;
         }
 
-        private FType ConvertToHmType2(SolvingNode node, int nestedCount)
+        private TiType ConvertToHmType2(SolvingNode node, int nestedCount)
         {
             if (nestedCount < 0)
                 throw new StackOverflowException("ConvertToHmType2 raise SO");
@@ -86,7 +86,7 @@ namespace NFun.HindleyMilner.Tyso
                 if (!_genMap.TryGetValue(concreteNode, out var val))
                     throw new InvalidOperationException("Generic is not in the map");
                 //Generic type there!
-                return FType.Generic(val);
+                return TiType.Generic(val);
             }
 
             var type = beh.MakeType(nestedCount - 1);
@@ -94,14 +94,14 @@ namespace NFun.HindleyMilner.Tyso
             SolvingNode[] arguments = type.Arguments
                 .Select(a => SolvingNode.CreateStrict(ConvertToHmType2(a, nestedCount - 1)))
                 .ToArray();
-            if (type.Name.Equals(HmTypeName.SomeInteger))
-                return new FType(HmTypeName.Int32);
+            if (type.Name.Equals(TiTypeName.SomeInteger))
+                return new TiType(TiTypeName.Int32);
 
-            return new FType(type.Name, arguments);
+            return new TiType(type.Name, arguments);
 
         }
 
-        public FType MakeFunDefenition()
+        public TiType MakeFunDefenition()
         {
             //maxNodeId is return type.
             if (!_nodes.Any())
@@ -110,7 +110,7 @@ namespace NFun.HindleyMilner.Tyso
             if (outputNode == null)
                 throw new InvalidOperationException();
             outputNode = GetConcrete(outputNode, NestedDepth);
-            List<FType> args = new List<FType>();
+            List<TiType> args = new List<TiType>();
             foreach (var solvingNode in _variablesMap)
             {
                 var concrete = GetConcrete(solvingNode.Value, NestedDepth);
@@ -119,10 +119,10 @@ namespace NFun.HindleyMilner.Tyso
                 args.Add(ConvertToHmType2(concrete, NestedDepth));
             }
 
-            return FType.Fun(ConvertToHmType2(outputNode, NestedDepth), args.ToArray());
+            return TiType.Fun(ConvertToHmType2(outputNode, NestedDepth), args.ToArray());
         }
 
-        public FType GetNodeTypeOrNull(int nodeId)
+        public TiType GetNodeTypeOrNull(int nodeId)
         {
             if (_nodes.Count <= nodeId)
                 return null;

@@ -1,7 +1,6 @@
-using System;
 using NFun.ParseErrors;
 
-namespace NFun.HindleyMilner.Tyso
+namespace NFun.TypeInference.Solving
 {
     public class ReferenceBehaviour: INodeBehavior
     {
@@ -12,17 +11,17 @@ namespace NFun.HindleyMilner.Tyso
             Node = node;
         }
 
-        public FType MakeType(int maxTypeDepth)
+        public TiType MakeType(int maxTypeDepth)
         {
             if(maxTypeDepth<-1)
                 throw FunParseException.ErrorStubToDo("Recursive defenition");
             return Node.Behavior.MakeType(maxTypeDepth - 1);
         }
 
-        public INodeBehavior SetLimit(FType newLimit) 
+        public INodeBehavior SetLimit(TiType newLimit) 
             => Node.SetLimit(newLimit) ? this : null;
 
-        public INodeBehavior SetStrict(FType newType)
+        public INodeBehavior SetStrict(TiType newType)
             => Node.SetStrict(newType) ? this : null;
 
 
@@ -68,9 +67,9 @@ namespace NFun.HindleyMilner.Tyso
             return this;
         }
 
-        public FitResult CanBeConvertedTo(FType candidateType, int maxDepth) 
+        public FitResult CanBeConvertedTo(TiType candidateType, int maxDepth) 
             => Node.CanBeConvertedTo(candidateType, maxDepth-1);
-        public FitResult CanBeConvertedFrom(FType candidateType, int maxDepth) 
+        public FitResult CanBeConvertedFrom(TiType candidateType, int maxDepth) 
             => Node.CanBeConvertedFrom(candidateType, maxDepth-1);
 
         // public override string ToString() => ToSmartString(SolvingNode.MaxTypeDepth);

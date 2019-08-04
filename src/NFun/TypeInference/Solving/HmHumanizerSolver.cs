@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using NFun.ParseErrors;
 
-namespace NFun.HindleyMilner.Tyso
+namespace NFun.TypeInference.Solving
 {
     public class HmHumanizerSolver
     {
@@ -21,7 +21,7 @@ namespace NFun.HindleyMilner.Tyso
                 return SetTypeResult.Failed(funNodeId, SetTypeResultError.VariableDefenitionDuplicates);
             var node = _solver.GetOrNull(funId);
             var funType = node.Behavior.MakeType(SolvingNode.MaxTypeDepth);
-            if (funType.Name.Id != HmTypeName.FunId)
+            if (funType.Name.Id != TiTypeName.FunId)
                 throw new InvalidOperationException("functional type mismatch");
             
             //if output type specified and it is primitive
@@ -49,7 +49,7 @@ namespace NFun.HindleyMilner.Tyso
             if(funDef==null)
                 throw new InvalidOperationException("Fun "+ funId+" not found");
             var funType = funDef.MakeType(SolvingNode.MaxTypeDepth);
-            if (!funType.Name.Equals(HmTypeName.Function))
+            if (!funType.Name.Equals(TiTypeName.Function))
                 return false;
 
             if (!_solver.SetNode(nodeId, funType.Arguments[0]))
@@ -65,7 +65,7 @@ namespace NFun.HindleyMilner.Tyso
             //conditions
             foreach (var testNodeId in testNodeIds)
             {
-                if (!_solver.SetStrict(testNodeId, FType.Bool))
+                if (!_solver.SetStrict(testNodeId, TiType.Bool))
                     return false;
             }
 
@@ -77,7 +77,7 @@ namespace NFun.HindleyMilner.Tyso
         /// </summary>
         /// <param name="call"></param>
         /// <returns></returns>
-        public bool SetCall(CallDef call) => _solver.SetLimArgCall(call);
+        public bool SetCall(CallDefenition call) => _solver.SetLimArgCall(call);
 
         public bool SetOverloadCall(FunSignature[] candidates, int returnNodeId,
             params int[] argIds) => SetOverloadCall(candidates, returnNodeId, argIds, true);
@@ -143,7 +143,7 @@ namespace NFun.HindleyMilner.Tyso
             //try found base type of all type candidates. 
             int minEnterId = Int32.MaxValue;
             int maxEnterId =0;
-            FType winner = null;
+            TiType winner = null;
             bool hasBaseType = true;
             foreach (var candidate in candidates)
             {
@@ -181,7 +181,7 @@ namespace NFun.HindleyMilner.Tyso
         public SetTypeResult InitLambda(int nodeId, int exprId, SolvingNode[] args)
         {
             var outputType= _solver.GetOrCreate(exprId);
-            var funType =  SolvingNode.CreateStrict(HmTypeName.Function, new[]{outputType}.Concat(args).ToArray());
+            var funType =  SolvingNode.CreateStrict(TiTypeName.Function, new[]{outputType}.Concat(args).ToArray());
             if (!_solver.SetNode(nodeId, funType))
                 return SetTypeResult.Failed(nodeId);
             if (!_solver.Unite(exprId, outputType))
@@ -189,7 +189,7 @@ namespace NFun.HindleyMilner.Tyso
             return SetTypeResult.Succesfully;
         }
 
-        public bool SetStrict(int node, FType type) => _solver.SetStrict(node, type);
+        public bool SetStrict(int node, TiType type) => _solver.SetStrict(node, type);
         public SolvingNode SetNewVarOrThrow(string varName)
         {
             var genericType = new SolvingNode();
@@ -207,7 +207,7 @@ namespace NFun.HindleyMilner.Tyso
         }
 
         public bool SetVar(int nodeId, string varName) => _solver.SetVar(nodeId, varName);
-        public bool SetVarType(string varName, FType type) => _solver.SetVarType(varName, type);
+        public bool SetVarType(string varName, TiType type) => _solver.SetVarType(varName, type);
         public SetTypeResult SetDefenition(string variableName, int varId, int exprId)
         {
             if(!_solver.SetVar(varId, variableName))
@@ -235,14 +235,14 @@ namespace NFun.HindleyMilner.Tyso
             return SetTypeResult.Failed(nodeId,SetTypeResultError.ArgumentIsNotANumber);
             */
             
-            if(!_solver.SetLimit(leftId, HmTypeName.Real))
+            if(!_solver.SetLimit(leftId, TiTypeName.Real))
                 return SetTypeResult.Failed(leftId, SetTypeResultError.ArgumentIsNotANumber);
-            if(!_solver.SetLimit(rightId, HmTypeName.Real))
+            if(!_solver.SetLimit(rightId, TiTypeName.Real))
                 return SetTypeResult.Failed(leftId, SetTypeResultError.ArgumentIsNotANumber);
 
 
 
-            if(!_solver.SetStrict(nodeId, FType.Bool))
+            if(!_solver.SetStrict(nodeId, TiType.Bool))
                 return SetTypeResult.Failed(nodeId, SetTypeResultError.ExpressionTypeIsIncorrect);
                 
             return SetTypeResult.Succesfully;
@@ -250,10 +250,10 @@ namespace NFun.HindleyMilner.Tyso
         
         public SetTypeResult SetBitwiseOperator(int nodeId, int leftId, int rightId)
         {
-            if(!_solver.SetLimit(leftId, HmTypeName.SomeInteger))
+            if(!_solver.SetLimit(leftId, TiTypeName.SomeInteger))
                 return SetTypeResult.Failed(leftId, SetTypeResultError.ArgumentIsNotAnInt);
                        
-            if(!_solver.SetLimit(rightId, HmTypeName.SomeInteger))
+            if(!_solver.SetLimit(rightId, TiTypeName.SomeInteger))
                 return SetTypeResult.Failed(rightId, SetTypeResultError.ArgumentIsNotAnInt);
                 
             if(!_solver.SetLca(nodeId, new[] {leftId, rightId}))
@@ -263,17 +263,17 @@ namespace NFun.HindleyMilner.Tyso
         
         public SetTypeResult SetNegateOp(int nodeId, int argNodeId)
         {
-            if(!_solver.SetLimit(nodeId, HmTypeName.Real))
+            if(!_solver.SetLimit(nodeId, TiTypeName.Real))
                 return SetTypeResult.Failed(argNodeId, SetTypeResultError.ExpressionTypeIsIncorrect);
             if (SetOverloadCall(
                 new[]
                 {
-                    new FunSignature(FType.Real,  FType.Real),
-                    new FunSignature(FType.Int16, FType.Int16),
-                    new FunSignature(FType.Int32, FType.Int32),
-                    new FunSignature(FType.Int64, FType.Int64),
-                    new FunSignature(FType.Int16, FType.UInt8),
-                    new FunSignature(FType.Int64, FType.UInt32),
+                    new FunSignature(TiType.Real,  TiType.Real),
+                    new FunSignature(TiType.Int16, TiType.Int16),
+                    new FunSignature(TiType.Int32, TiType.Int32),
+                    new FunSignature(TiType.Int64, TiType.Int64),
+                    new FunSignature(TiType.Int16, TiType.UInt8),
+                    new FunSignature(TiType.Int64, TiType.UInt32),
                 }, nodeId, new[] {argNodeId}, true
             ))
             {
@@ -283,7 +283,7 @@ namespace NFun.HindleyMilner.Tyso
 
             return SetTypeResult.Failed(nodeId, SetTypeResultError.IncorrectVariableType);
             
-            if(!_solver.SetLimit(argNodeId, HmTypeName.Real))
+            if(!_solver.SetLimit(argNodeId, TiTypeName.Real))
                 return SetTypeResult.Failed(argNodeId, SetTypeResultError.ArgumentIsNotANumber);
             if(! _solver.Unite(nodeId, argNodeId))
                 return SetTypeResult.Failed(nodeId);
@@ -293,10 +293,10 @@ namespace NFun.HindleyMilner.Tyso
         public SetTypeResult SetBitShiftOperator(int nodeId, int leftId, int rightId)
         {
             
-            if(!_solver.SetLimit(leftId, HmTypeName.SomeInteger))
+            if(!_solver.SetLimit(leftId, TiTypeName.SomeInteger))
                 return SetTypeResult.Failed(leftId, SetTypeResultError.ArgumentIsNotAnInt);
                        
-            if(!_solver.SetLimit(rightId, HmTypeName.SomeInteger))
+            if(!_solver.SetLimit(rightId, TiTypeName.SomeInteger))
                 return SetTypeResult.Failed(rightId, SetTypeResultError.ArgumentIsNotAnInt);
                 
             if(!_solver.SetLca(nodeId, new[] {leftId, rightId}))
@@ -309,14 +309,14 @@ namespace NFun.HindleyMilner.Tyso
         
         public SetTypeResult SetArithmeticalOp(int nodeId, int leftId, int rightId)
         {
-            if(!_solver.SetLimit(leftId, HmTypeName.Real))
+            if(!_solver.SetLimit(leftId, TiTypeName.Real))
                 return SetTypeResult.Failed(leftId, SetTypeResultError.ArgumentIsNotANumber);
-            if(!_solver.SetLimit(rightId, HmTypeName.Real))
+            if(!_solver.SetLimit(rightId, TiTypeName.Real))
                 return SetTypeResult.Failed(leftId, SetTypeResultError.ArgumentIsNotANumber);
             _solver.SetLca(nodeId, new[]{ 
                 _solver.GetOrCreate(leftId),
                 _solver.GetOrCreate(rightId), 
-                SolvingNode.CreateStrict(FType.UInt16) 
+                SolvingNode.CreateStrict(TiType.UInt16) 
             });
             if(!_solver.SetLca(nodeId, new[] {leftId, rightId}))
                 return SetTypeResult.Failed(nodeId, SetTypeResultError.ExpressionTypeIsIncorrect);
@@ -325,15 +325,15 @@ namespace NFun.HindleyMilner.Tyso
         
         public SetTypeResult SetArithmeticalWithOverloadsOp(int nodeId, int leftId, int rightId)
         {
-            if(!_solver.SetLimit(leftId, HmTypeName.Real))
+            if(!_solver.SetLimit(leftId, TiTypeName.Real))
                 return SetTypeResult.Failed(leftId, SetTypeResultError.ArgumentIsNotANumber);
-            if(!_solver.SetLimit(rightId, HmTypeName.Real))
+            if(!_solver.SetLimit(rightId, TiTypeName.Real))
                 return SetTypeResult.Failed(leftId, SetTypeResultError.ArgumentIsNotANumber);
             
             _solver.SetLca(nodeId, new[]{ 
                 _solver.GetOrCreate(leftId),
                 _solver.GetOrCreate(rightId), 
-                SolvingNode.CreateStrict(FType.UInt16) 
+                SolvingNode.CreateStrict(TiType.UInt16) 
             });
             
             
@@ -352,7 +352,7 @@ namespace NFun.HindleyMilner.Tyso
         }
         
         
-        public bool SetConst(int nodeId, FType type) 
+        public bool SetConst(int nodeId, TiType type) 
         {
             return _solver.SetStrict(nodeId, type);
         }
@@ -364,7 +364,7 @@ namespace NFun.HindleyMilner.Tyso
         {
             if (nodes.Length == 0)
             {
-                if(_solver.SetStrict(arrayNode, FType.ArrayOf(FType.Generic(0))))
+                if(_solver.SetStrict(arrayNode, TiType.ArrayOf(TiType.Generic(0))))
                     return SetTypeResult.Succesfully;
                 
                 return SetTypeResult.Failed(arrayNode, SetTypeResultError.ExpressionTypeIsIncorrect);
@@ -377,23 +377,23 @@ namespace NFun.HindleyMilner.Tyso
             }
 
             var genericType = _solver.GetOrCreate(nodes[0]);
-            if(_solver.SetStrict(arrayNode, FType.ArrayOf(genericType)))
+            if(_solver.SetStrict(arrayNode, TiType.ArrayOf(genericType)))
                 return  SetTypeResult.Succesfully;
             return SetTypeResult.Failed(arrayNode, SetTypeResultError.ExpressionTypeIsIncorrect);
         }
         
         public bool SetProcArrayInit(int nodeId, int fromId, int toId)
         {
-            return _solver.SetLimArgCall(new CallDef(
-                new[] {FType.ArrayOf(FType.Int32), FType.Int32, FType.Int32}, new[] {nodeId, fromId, toId}));
+            return _solver.SetLimArgCall(new CallDefenition(
+                new[] {TiType.ArrayOf(TiType.Int32), TiType.Int32, TiType.Int32}, new[] {nodeId, fromId, toId}));
         }
 
         public bool SetProcArrayInit(int nodeId, int fromId, int toId, int stepId)
         {
 
-            var limits = _solver.SetLimit(fromId, HmTypeName.Real)
-                         && _solver.SetLimit(toId, HmTypeName.Real)
-                         && _solver.SetLimit(stepId, HmTypeName.Real);
+            var limits = _solver.SetLimit(fromId, TiTypeName.Real)
+                         && _solver.SetLimit(toId, TiTypeName.Real)
+                         && _solver.SetLimit(stepId, TiTypeName.Real);
             if (!limits)
                 return false;
             //T0 = Lca(from, to, step)
@@ -401,7 +401,7 @@ namespace NFun.HindleyMilner.Tyso
                 _solver.GetOrNull(stepId));
             _solver.AddAdditionalType(lcaType);
             //set nodeId as T0[]
-            var returnType = SolvingNode.CreateStrict(HmTypeName.Array, lcaType);
+            var returnType = SolvingNode.CreateStrict(TiTypeName.Array, lcaType);
             _solver.AddAdditionalType(returnType);
             return _solver.Unite(nodeId, returnType);
         }
@@ -414,16 +414,16 @@ namespace NFun.HindleyMilner.Tyso
         }
 
 
-        public FType GetOrNull(string funAlias)
+        public TiType GetOrNull(string funAlias)
         {
             var type =  _solver.GetOrNull(funAlias);
             return type?.MakeType();
             
         }
-        public bool SetLcaConst(int nodeOrderNumber, FType type){
+        public bool SetLcaConst(int nodeOrderNumber, TiType type){
             return _solver.SetLca(nodeOrderNumber, new []{SolvingNode.CreateStrict(type)});
         }
-        public bool SetLimitConst(int nodeOrderNumber, FType type)
+        public bool SetLimitConst(int nodeOrderNumber, TiType type)
         {
             return _solver.SetLimit(nodeOrderNumber, type.Name);
         }

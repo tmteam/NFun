@@ -102,7 +102,7 @@ namespace NFun.Tokenization
             {"for",   TokType.Reserved},
             {"do",    TokType.Reserved},
             {"while", TokType.Reserved},
-            {"bad",   TokType.Reserved},
+           // {"bad",   TokType.Reserved},
             {"fail",   TokType.Reserved},
             {"error",   TokType.Reserved},
             {"oops",   TokType.Reserved},

@@ -1,21 +1,21 @@
 using System;
 
-namespace NFun.HindleyMilner.Tyso
+namespace NFun.TypeInference.Solving
 {
     public class SolvingNode
     {
         public const int MaxTypeDepth = 100;
 
-        public static SolvingNode CreateStrict(FType type)
+        public static SolvingNode CreateStrict(TiType type)
         {
             var ans =  new SolvingNode();
             ans.SetStrict(type);
             return ans;
         }
-        public static SolvingNode CreateStrict(HmTypeName name, params SolvingNode[] args)
+        public static SolvingNode CreateStrict(TiTypeName name, params SolvingNode[] args)
         {
             var ans =  new SolvingNode();
-            ans.SetStrict(new FType(name, args));
+            ans.SetStrict(new TiType(name, args));
             return ans;
         }
         private static int _lastId = 0;
@@ -44,15 +44,15 @@ namespace NFun.HindleyMilner.Tyso
         public bool SetLca(SolvingNode[] nodes)
             => TrySet(()=> Behavior.SetLca(nodes));
 
-        public bool SetStrict(FType limit)
+        public bool SetStrict(TiType limit)
             => TrySet(()=> Behavior.SetStrict(limit));
 
-        public bool SetLimit(FType limit)
+        public bool SetLimit(TiType limit)
             => TrySet(() => Behavior.SetLimit(limit));
 
         public bool SetGeneric(SolvingNode generic) 
             => TrySet(() => Behavior.SetGeneric(generic));
-        public FType MakeType(int maxTypeDepth = SolvingNode.MaxTypeDepth) => Behavior.MakeType(maxTypeDepth);
+        public TiType MakeType(int maxTypeDepth = SolvingNode.MaxTypeDepth) => Behavior.MakeType(maxTypeDepth);
 
         public int Id { get; }
 
@@ -75,13 +75,13 @@ namespace NFun.HindleyMilner.Tyso
              return true;
         }
 
-        public FitResult CanBeConvertedFrom(FType candidateType, int maxDepth = SolvingNode.MaxTypeDepth)
+        public FitResult CanBeConvertedFrom(TiType candidateType, int maxDepth = SolvingNode.MaxTypeDepth)
         {
             if(maxDepth<0)
                 throw new StackOverflowException("Fits too depth");
             return Behavior.CanBeConvertedFrom(candidateType, maxDepth);
         }
-        public FitResult CanBeConvertedTo(FType candidateType, int maxDepth = SolvingNode.MaxTypeDepth)
+        public FitResult CanBeConvertedTo(TiType candidateType, int maxDepth = SolvingNode.MaxTypeDepth)
         {
             if(maxDepth<0)
                 throw new StackOverflowException("Fits too depth");
@@ -102,7 +102,7 @@ namespace NFun.HindleyMilner.Tyso
             return node;
         }
 
-        public static SolvingNode CreateLimit(FType int32)
+        public static SolvingNode CreateLimit(TiType int32)
         {
             var node = new SolvingNode();
             node.SetLimit(int32);
@@ -149,7 +149,7 @@ namespace NFun.HindleyMilner.Tyso
     public enum FitType
     {
         Not = 0, 
-        Converable = 1,
+        Convertable = 1,
         Candidate = 2,
         Strict = 3,
     }

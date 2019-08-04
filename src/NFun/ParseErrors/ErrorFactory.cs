@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using NFun.HindleyMilner;
-using NFun.HindleyMilner.Tyso;
 using NFun.Interpritation;
 using NFun.Interpritation.Functions;
 using NFun.Interpritation.Nodes;
@@ -11,6 +10,7 @@ using NFun.Runtime;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
+using NFun.TypeInference.Solving;
 using NFun.Types;
 
 namespace NFun.ParseErrors
@@ -525,8 +525,8 @@ namespace NFun.ParseErrors
             
             for (int i = 1; i < hmTypes.Length; i++)
             {
-                currentLca = FType.GetLca(new[]{currentLca, hmTypes[i]});
-                if (currentLca.Name.Equals(HmTypeName.Any))
+                currentLca = TiType.GetLca(new[]{currentLca, hmTypes[i]});
+                if (currentLca.Name.Equals(TiTypeName.Any))
                 {
                     failedInterval = allExpressions[i].Interval;
                     break;

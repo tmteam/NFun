@@ -1,22 +1,22 @@
-using System;
 using System.Linq;
 
-namespace NFun.HindleyMilner.Tyso
+namespace NFun.TypeInference.Solving
 {
-    public class CallDef
+    public class CallDefenition
     {
-        public CallDef(FType type2, int[] nodesId)
+        public CallDefenition(TiType sameTypeForAllArguments, int[] nodesId)
         {
-            Types = Enumerable.Repeat(type2,nodesId.Length).ToArray();
+            Types = Enumerable.Repeat(sameTypeForAllArguments,nodesId.Length).ToArray();
             NodesId = nodesId;
         }
-        public CallDef(FType[] types, int[] nodesId)
+        
+        public CallDefenition(TiType[] types, int[] nodesId)
         {
             Types = types;
             NodesId = nodesId;
         }
         
-        public FType[] Types { get; }
+        public TiType[] Types { get; }
         public int[] NodesId { get; }
         public override string ToString()
         {

@@ -1,4 +1,4 @@
-using NFun.HindleyMilner.Tyso;
+using NFun.TypeInference.Solving;
 using NUnit.Framework;
 
 namespace NFun.HmTests.UnitTests
@@ -30,8 +30,8 @@ namespace NFun.HmTests.UnitTests
         {
             var Ta = new SolvingNode();
             var Tb = new SolvingNode();
-            var arrayOfTa = SolvingNode.CreateStrict(FType.ArrayOf(Ta));
-            var arrayOfTb = SolvingNode.CreateStrict(FType.ArrayOf(Tb));
+            var arrayOfTa = SolvingNode.CreateStrict(TiType.ArrayOf(Ta));
+            var arrayOfTb = SolvingNode.CreateStrict(TiType.ArrayOf(Tb));
             
             var lca = SolvingNode.CreateLca(arrayOfTa,arrayOfTb);
 

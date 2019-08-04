@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
-using NFun.HindleyMilner.Tyso;
 using NFun.Interpritation.Functions;
 using NFun.ParseErrors;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
+using NFun.TypeInference.Solving;
 using NFun.Types;
 
 namespace NFun.HindleyMilner
@@ -73,6 +73,6 @@ namespace NFun.HindleyMilner
 
         
         private static string MakeAnonVariableName(AnonymCallSyntaxNode node, string id) 
-            => AdpterHelper.GetArgAlias("anonymous_"+node.OrderNumber, id);
+            => AdapterHelper.GetArgAlias("anonymous_"+node.OrderNumber, id);
     }
 }

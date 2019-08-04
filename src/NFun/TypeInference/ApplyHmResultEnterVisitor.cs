@@ -2,7 +2,6 @@ using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using NFun.HindleyMilner;
-using NFun.HindleyMilner.Tyso;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
@@ -32,10 +31,6 @@ namespace NFun.HindleyMilner
             
             //Get overload from Ti - algorithm
             var overload = _solving.GetFunctionOverload(node.OrderNumber, _solvedTypeConverter);
-           /* if (overload == null)
-            {
-                overload = new FunFunctionSignature(node.OutputType, node.Args.Select(a=>a.OutputType).ToArray());
-            }*/
             node.SignatureOfOverload = overload;
             return  result;
         }

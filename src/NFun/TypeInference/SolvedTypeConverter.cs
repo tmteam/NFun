@@ -1,17 +1,20 @@
 using System;
 using System.Linq;
-using NFun.HindleyMilner.Tyso;
+using NFun.TypeInference.Solving;
 using NFun.Types;
 
 namespace NFun.HindleyMilner
 {
     public abstract class SolvedTypeConverter 
     {
-        public static SolvedTypeConverter SaveGenerics => new SaveGenericsSolvedTypeConverter();
-        public static SolvedTypeConverter SetGenericsToAny => new SetGenericsToAnySolvedTypeConverter();
+        public static SolvedTypeConverter SaveGenerics 
+            => new SaveGenericsSolvedTypeConverter();
+        
+        public static SolvedTypeConverter SetGenericsToAny 
+            => new SetGenericsToAnySolvedTypeConverter();
 
         protected abstract VarType ConvertGeneric(GenericType type);
-        public VarType ToSimpleType(FType type)
+        public VarType ToSimpleType(TiType type)
         {
             if (type.IsPrimitiveGeneric)
             {
@@ -22,24 +25,23 @@ namespace NFun.HindleyMilner
 
             switch (type.Name.Id)
             {
-
-                case HmTypeName.AnyId: return VarType.Anything;
-                case HmTypeName.RealId: return VarType.Real;
-                case HmTypeName.TextId: return VarType.Text;
-                case HmTypeName.BoolId: return VarType.Bool;
-                case HmTypeName.Int16Id: return VarType.Int16;
-                case HmTypeName.Int64Id: return  VarType.Int64;
-                case HmTypeName.Int32Id: return VarType.Int32;
+                case TiTypeName.AnyId: return VarType.Anything;
+                case TiTypeName.RealId: return VarType.Real;
+                case TiTypeName.TextId: return VarType.Text;
+                case TiTypeName.BoolId: return VarType.Bool;
+                case TiTypeName.Int16Id: return VarType.Int16;
+                case TiTypeName.Int64Id: return  VarType.Int64;
+                case TiTypeName.Int32Id: return VarType.Int32;
                 
-                case HmTypeName.UInt8Id:  return VarType.UInt8;
-                case HmTypeName.UInt16Id: return VarType.UInt16;
-                case HmTypeName.UInt64Id: return VarType.UInt64;
-                case HmTypeName.UInt32Id: return VarType.UInt32;
+                case TiTypeName.UInt8Id:  return VarType.UInt8;
+                case TiTypeName.UInt16Id: return VarType.UInt16;
+                case TiTypeName.UInt64Id: return VarType.UInt64;
+                case TiTypeName.UInt32Id: return VarType.UInt32;
                 
-                case HmTypeName.SomeIntegerId: return VarType.Int32;
-                case HmTypeName.ArrayId: return VarType.ArrayOf(ConvertToSimpleType(type.Arguments[0]));
-                case HmTypeName.CharId: return VarType.Char;
-                case HmTypeName.FunId :
+                case TiTypeName.SomeIntegerId: return VarType.Int32;
+                case TiTypeName.ArrayId: return VarType.ArrayOf(ConvertToSimpleType(type.Arguments[0]));
+                case TiTypeName.CharId: return VarType.Char;
+                case TiTypeName.FunId :
                     return VarType.Fun(ConvertToSimpleType(type.Arguments[0]), 
                         type.Arguments.Skip(1).Select(ConvertToSimpleType).ToArray()
                     );
@@ -49,14 +51,14 @@ namespace NFun.HindleyMilner
         }
 
         private  VarType ConvertToSimpleType(SolvingNode node) 
-            => ToSimpleType(node.MakeType(SolvingNode.MaxTypeDepth));
+            => ToSimpleType(node.MakeType());
         
         
         class SaveGenericsSolvedTypeConverter : SolvedTypeConverter
         {
             protected override VarType ConvertGeneric(GenericType type)
             {
-                return VarType.Generic(((GenericType) type).GenericId);
+                return VarType.Generic(type.GenericId);
 
             }
         }

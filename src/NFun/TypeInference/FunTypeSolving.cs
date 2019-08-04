@@ -1,5 +1,5 @@
 using System.Linq;
-using NFun.HindleyMilner.Tyso;
+using NFun.TypeInference.Solving;
 using NFun.Types;
 
 namespace NFun.HindleyMilner

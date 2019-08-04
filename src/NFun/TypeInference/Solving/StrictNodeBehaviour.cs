@@ -1,18 +1,18 @@
-namespace NFun.HindleyMilner.Tyso
+namespace NFun.TypeInference.Solving
 {
     public class StrictNodeBehaviour : INodeBehavior
     {
-        private readonly FType _type;
-        public StrictNodeBehaviour(FType type)
+        private readonly TiType _type;
+        public StrictNodeBehaviour(TiType type)
         {
             _type = type;
         }
 
-        public FType MakeType(int maxTypeDepth = SolvingNode.MaxTypeDepth) => _type;
+        public TiType MakeType(int maxTypeDepth = SolvingNode.MaxTypeDepth) => _type;
 
-        public INodeBehavior SetLimit(FType newLimit)
+        public INodeBehavior SetLimit(TiType newLimit)
         {
-            if(newLimit.Name.Id== HmTypeName.AnyId)
+            if(newLimit.Name.Id== TiTypeName.AnyId)
                 return this;
             if (_type.IsPrimitive)
             {
@@ -32,7 +32,7 @@ namespace NFun.HindleyMilner.Tyso
                         if (!thisArg.SetGeneric(limArg))
                             return null;
                     }
-                    else if (_type.Name.Id == HmTypeName.Function.Id && i > 0)
+                    else if (_type.Name.Id == TiTypeName.Function.Id && i > 0)
                     {
                         //hi order function arguments got reversed rules
 
@@ -54,7 +54,7 @@ namespace NFun.HindleyMilner.Tyso
             return this;
         }
 
-        public INodeBehavior SetStrict(FType newType)
+        public INodeBehavior SetStrict(TiType newType)
         {
             if (!newType.Name.Equals(_type.Name))
                 return null;
@@ -125,11 +125,11 @@ namespace NFun.HindleyMilner.Tyso
             return this;
         }
 
-        public FitResult CanBeConvertedFrom(FType candidateType, int maxDepth) 
-            => FType.CanBeConverted(from: candidateType, to: _type, maxDepth: maxDepth);
+        public FitResult CanBeConvertedFrom(TiType candidateType, int maxDepth) 
+            => TiType.CanBeConverted(@from: candidateType, to: _type, maxDepth: maxDepth);
         
-        public FitResult CanBeConvertedTo(FType candidateType, int maxDepth)
-            => FType.CanBeConverted(from: _type, to: candidateType, maxDepth: maxDepth);
+        public FitResult CanBeConvertedTo(TiType candidateType, int maxDepth)
+            => TiType.CanBeConverted(@from: _type, to: candidateType, maxDepth: maxDepth);
         
         public override string ToString() => $"{_type}";
     }

@@ -1,4 +1,4 @@
-using NFun.HindleyMilner.Tyso;
+using NFun.TypeInference.Solving;
 using NUnit.Framework;
 
 namespace NFun.HmTests
@@ -18,21 +18,21 @@ namespace NFun.HmTests
         {
             //3      0    2       1
             //y = [0,2].filter(x=>x>0)
-            solver.SetConst(0, FType.ArrayOf(FType.Int32));
-            solver.SetStrict(1, FType.Fun(FType.Generic(0), FType.Bool));
-            solver.SetCall(new CallDef(new[]
+            solver.SetConst(0, TiType.ArrayOf(TiType.Int32));
+            solver.SetStrict(1, TiType.Fun(TiType.Generic(0), TiType.Bool));
+            solver.SetCall(new CallDefenition(new[]
             {
-                FType.ArrayOf(FType.Generic(0)),
-                FType.ArrayOf(FType.Generic(0)),
-                FType.Fun(FType.Generic(0), FType.Bool),
+                TiType.ArrayOf(TiType.Generic(0)),
+                TiType.ArrayOf(TiType.Generic(0)),
+                TiType.Fun(TiType.Generic(0), TiType.Bool),
             }, new[] {2, 0, 1}));
             
             solver.SetDefenition("y", 3, 2);
             
             var res = solver.Solve();
             Assert.AreEqual(0,res.GenericsCount);
-            Assert.AreEqual(FType.ArrayOf(FType.Int32),         res.GetVarType("y"));
-            Assert.AreEqual(FType.Fun(FType.Int32, FType.Bool), res.GetNodeType(1));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Int32),         res.GetVarType("y"));
+            Assert.AreEqual(TiType.Fun(TiType.Int32, TiType.Bool), res.GetNodeType(1));
         }
         [Test]
         public void MultiSolvingWithMapAndClosure_Resolved()
@@ -55,20 +55,20 @@ namespace NFun.HmTests
             var anonymFunDef =  anonymSolve.MakeFunDefenition();
             //###############################################
             solver.SetStrict(1, anonymFunDef);
-            Assert.IsTrue(solver.SetCall(new CallDef(new[]
+            Assert.IsTrue(solver.SetCall(new CallDefenition(new[]
             {
-                FType.ArrayOf(FType.Generic(0)),
-                FType.ArrayOf(FType.Generic(1)),
-                FType.Fun(FType.Generic(0),FType.Generic(1)), 
+                TiType.ArrayOf(TiType.Generic(0)),
+                TiType.ArrayOf(TiType.Generic(1)),
+                TiType.Fun(TiType.Generic(0),TiType.Generic(1)), 
             }, new[] {2, 0, 1})));
             
             solver.SetDefenition("y", 3, 2).AssertSuccesfully();
             
             var res = solver.Solve();
             Assert.AreEqual(0,res.GenericsCount);
-            Assert.AreEqual(FType.ArrayOf(FType.Real),         res.GetVarType("y"));
-            Assert.AreEqual(FType.ArrayOf(FType.Real),         res.GetVarType("a"));
-            Assert.AreEqual(FType.Real,         res.GetVarType("input"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Real),         res.GetVarType("y"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Real),         res.GetVarType("a"));
+            Assert.AreEqual(TiType.Real,         res.GetVarType("input"));
         }
     }
 }

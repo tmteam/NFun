@@ -10,15 +10,14 @@ namespace NFun.HindleyMilner
 
         public override bool Visit(ArraySyntaxNode node)
         {
-            //Check that all types of array initialization are equal
-            if (node.Children.Any())
+            if (!node.Children.Any()) return true;
+
+            //Check equality of all array items
+            var arrayType = node.Children.First().OutputType;
+            foreach (var child in node.Children)
             {
-                var arrayType = node.Children.First().OutputType;
-                foreach (var child in node.Children)
-                {
-                    if (child.OutputType != arrayType)
-                        throw ErrorFactory.VariousArrayElementTypes(child);
-                }
+                if (child.OutputType != arrayType)
+                    throw ErrorFactory.VariousArrayElementTypes(child);
             }
 
             return true;

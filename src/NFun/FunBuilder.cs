@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using NFun.BuiltInFunctions;
 using NFun.HindleyMilner;
-using NFun.HindleyMilner.Tyso;
 using NFun.Interpritation;
 using NFun.Interpritation.Functions;
 using NFun.ParseErrors;

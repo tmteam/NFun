@@ -1,17 +1,17 @@
-namespace NFun.HindleyMilner.Tyso
+namespace NFun.TypeInference.Solving
 {
     public class LimitNodeBehavior: INodeBehavior
     {
-        public FType Limit { get; private set; }
+        public TiType Limit { get; private set; }
 
-        public LimitNodeBehavior(FType limit)
+        public LimitNodeBehavior(TiType limit)
         {
             Limit = limit;
         } 
-        public FType MakeType(int maxTypeDepth) => Limit;
+        public TiType MakeType(int maxTypeDepth) => Limit;
 
         private bool isVisited = false;
-        public INodeBehavior SetLimit(FType newLimit)
+        public INodeBehavior SetLimit(TiType newLimit)
         {
             isVisited = true;
             //_limit: any; newLimit: real
@@ -20,7 +20,7 @@ namespace NFun.HindleyMilner.Tyso
             return this;
         }
 
-        public INodeBehavior SetStrict(FType newType)
+        public INodeBehavior SetStrict(TiType newType)
         {
             //Limitation conflict
             //like: _limit: real; type: any
@@ -92,9 +92,9 @@ namespace NFun.HindleyMilner.Tyso
             return this;
         }
         
-        public  FitResult CanBeConvertedFrom(FType from, int maxDepth)
+        public  FitResult CanBeConvertedFrom(TiType from, int maxDepth)
         {
-            var res =  FType.CanBeConverted(@from, Limit, maxDepth);
+            var res =  TiType.CanBeConverted(@from, Limit, maxDepth);
             if (res.Type == FitType.Strict)
             {
                 return FitResult.Candidate(res.Distance);
@@ -105,14 +105,14 @@ namespace NFun.HindleyMilner.Tyso
             }
         }
 
-        public FitResult CanBeConvertedTo(FType candidateType, int maxDepth)
+        public FitResult CanBeConvertedTo(TiType candidateType, int maxDepth)
         {
             if (candidateType.IsPrimitiveGeneric)
-                return new FitResult(FitType.Converable,0);
+                return new FitResult(FitType.Convertable,0);
             if (candidateType.Equals(Limit))
                 return FitResult.Candidate(0);
             //special case: Int is most expected type for someInteger
-            if(Limit.Name.Equals(HmTypeName.SomeInteger) && candidateType.Name.Equals(HmTypeName.Int32))
+            if(Limit.Name.Equals(TiTypeName.SomeInteger) && candidateType.Name.Equals(TiTypeName.Int32))
                 return FitResult.Candidate(0);
             
             //We can reduce current limit to candidateType
@@ -120,7 +120,7 @@ namespace NFun.HindleyMilner.Tyso
                 return new FitResult(FitType.Candidate, candidateType.GetParentalDistanceTo(Limit));
             
             if (Limit.CanBeSafelyConvertedTo(candidateType))
-                return new FitResult(FitType.Converable, Limit.GetParentalDistanceTo(candidateType));
+                return new FitResult(FitType.Convertable, Limit.GetParentalDistanceTo(candidateType));
 
             return FitResult.Not;
         }

@@ -21,7 +21,6 @@ namespace NFun.HindleyMilner
                 if (_variableAliasesStack[i].ContainsKey(variableName))
                     return true;
             }
-
             return false;
         }
 

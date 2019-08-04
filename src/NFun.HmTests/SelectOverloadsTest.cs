@@ -1,5 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
-using NFun.HindleyMilner.Tyso;
+using NFun.TypeInference.Solving;
 using NUnit.Framework;
 
 namespace NFun.HmTests
@@ -7,35 +7,35 @@ namespace NFun.HmTests
     [SuppressMessage("ReSharper", "InconsistentNaming")]
     public class SelectOverloadsTest
     {
-        SolvingNode Int16 => SolvingNode.CreateStrict(FType.Int16);
+        SolvingNode Int16 => SolvingNode.CreateStrict(TiType.Int16);
 
-        SolvingNode Int32 => SolvingNode.CreateStrict(FType.Int32);
-        SolvingNode Long => SolvingNode.CreateStrict(FType.Int64);
-        SolvingNode Real  => SolvingNode.CreateStrict(FType.Real);
-        SolvingNode Text  => SolvingNode.CreateStrict(FType.Text);
-        SolvingNode Any   => SolvingNode.CreateStrict(FType.Any);
+        SolvingNode Int32 => SolvingNode.CreateStrict(TiType.Int32);
+        SolvingNode Long => SolvingNode.CreateStrict(TiType.Int64);
+        SolvingNode Real  => SolvingNode.CreateStrict(TiType.Real);
+        SolvingNode Text  => SolvingNode.CreateStrict(TiType.Text);
+        SolvingNode Any   => SolvingNode.CreateStrict(TiType.Any);
         
         SolvingNode Int16Lca   => SolvingNode.CreateLca(Int16);
 
         SolvingNode Int32Lca   => SolvingNode.CreateLca(Int32);
         SolvingNode LongLca  => SolvingNode.CreateLca(Long);
         SolvingNode RealLca  => SolvingNode.CreateLca(Real);
-        SolvingNode IntLimit   => SolvingNode.CreateLimit(FType.Int32);
-        SolvingNode LongLimit  => SolvingNode.CreateLimit(FType.Int64);
-        SolvingNode RealLimit  => SolvingNode.CreateLimit(FType.Real);
-        SolvingNode TextLimit  => SolvingNode.CreateLimit(FType.Text);
-        SolvingNode AnyLimit   => SolvingNode.CreateLimit(FType.Any);
-        SolvingNode SomeIntegerLimit => SolvingNode.CreateLimit(new FType(HmTypeName.SomeInteger));
+        SolvingNode IntLimit   => SolvingNode.CreateLimit(TiType.Int32);
+        SolvingNode LongLimit  => SolvingNode.CreateLimit(TiType.Int64);
+        SolvingNode RealLimit  => SolvingNode.CreateLimit(TiType.Real);
+        SolvingNode TextLimit  => SolvingNode.CreateLimit(TiType.Text);
+        SolvingNode AnyLimit   => SolvingNode.CreateLimit(TiType.Any);
+        SolvingNode SomeIntegerLimit => SolvingNode.CreateLimit(new TiType(TiTypeName.SomeInteger));
         SolvingNode Lca(params SolvingNode[] nodes) => SolvingNode.CreateLca(nodes);
         SolvingNode Generic   => new SolvingNode();
 
-        FunSignature RRRSignature = new FunSignature(FType.Real, FType.Real, FType.Real);
-        FunSignature LLLSignature = new FunSignature(FType.Int64, FType.Int64, FType.Int64);
-        FunSignature IIISignature = new FunSignature(FType.Int32, FType.Int32, FType.Int32);
+        FunSignature RRRSignature = new FunSignature(TiType.Real, TiType.Real, TiType.Real);
+        FunSignature LLLSignature = new FunSignature(TiType.Int64, TiType.Int64, TiType.Int64);
+        FunSignature IIISignature = new FunSignature(TiType.Int32, TiType.Int32, TiType.Int32);
         
-        FunSignature R2Signature = new FunSignature(FType.Real,  FType.Real);
-        FunSignature L2Signature = new FunSignature(FType.Int64, FType.Int64);
-        FunSignature I2Signature = new FunSignature(FType.Int32, FType.Int32);
+        FunSignature R2Signature = new FunSignature(TiType.Real,  TiType.Real);
+        FunSignature L2Signature = new FunSignature(TiType.Int64, TiType.Int64);
+        FunSignature I2Signature = new FunSignature(TiType.Int32, TiType.Int32);
 
         private FunSignature[] Rli_2Arg_Overload => new[] {RRRSignature, LLLSignature, IIISignature};
         private FunSignature[] Rli_1Arg_Overload => new[] {R2Signature, L2Signature, I2Signature};

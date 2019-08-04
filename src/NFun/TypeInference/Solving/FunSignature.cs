@@ -2,18 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace NFun.HindleyMilner.Tyso
+namespace NFun.TypeInference.Solving
 {
     public class FunSignature
     {
-        public CallDef ToCallDefenition(int returnNodeId, params int[] argIds)
+        public CallDefenition ToCallDefenition(int returnNodeId, params int[] argIds)
         {
-            return new CallDef(new[]{ReturnType}.Concat(ArgTypes).ToArray(), new[]{returnNodeId}.Concat(argIds).ToArray());
+            return new CallDefenition(new[]{ReturnType}.Concat(ArgTypes).ToArray(), new[]{returnNodeId}.Concat(argIds).ToArray());
         }
-        public readonly FType ReturnType;
-        public readonly FType[] ArgTypes;
+        public readonly TiType ReturnType;
+        public readonly TiType[] ArgTypes;
 
-        public FunSignature(FType returnType, params FType[] argTypes)
+        public FunSignature(TiType returnType, params TiType[] argTypes)
         {
             ReturnType = returnType;
             ArgTypes = argTypes;
@@ -102,7 +102,7 @@ namespace NFun.HindleyMilner.Tyso
                     CandidateFits++;
                     MaxCandidateDistance = Math.Max(fitResult.Distance, MaxCandidateDistance);
                 }
-                else if (fitResult.Type == FitType.Converable)
+                else if (fitResult.Type == FitType.Convertable)
                 {
                     ConvertedFits++;
                     MaxConvertedDistance = Math.Max(fitResult.Distance, MaxCandidateDistance);

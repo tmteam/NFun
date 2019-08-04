@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using NFun.HindleyMilner;
-using NFun.HindleyMilner.Tyso;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
 using NFun.Types;

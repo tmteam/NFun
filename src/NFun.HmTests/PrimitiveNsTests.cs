@@ -1,5 +1,5 @@
 using System.Linq;
-using NFun.HindleyMilner.Tyso;
+using NFun.TypeInference.Solving;
 using NUnit.Framework;
 
 namespace NFun.HmTests
@@ -8,22 +8,22 @@ namespace NFun.HmTests
     {
         private HmNodeSolver _hmNode;
 
-        private CallDef FunInvoke(int nodeId, int funId, int[] argsId) =>
-            new CallDef(
+        private CallDefenition FunInvoke(int nodeId, int funId, int[] argsId) =>
+            new CallDefenition(
                 new[]
                 {
-                    FType.Generic(0),
-                    FType.GenericFun(argsId.Length),
-                }.Concat(Enumerable.Range(1, argsId.Length).Select(FType.Generic)).ToArray()
+                    TiType.Generic(0),
+                    TiType.GenericFun(argsId.Length),
+                }.Concat(Enumerable.Range(1, argsId.Length).Select(TiType.Generic)).ToArray()
                 ,new[] {nodeId,funId}.Concat(argsId).ToArray()
             );
-        private CallDef ArrayIndex(int nodeId, int arrayId, int indexId)
-            =>new CallDef(
+        private CallDefenition ArrayIndex(int nodeId, int arrayId, int indexId)
+            =>new CallDefenition(
                 new[]
                 {
-                    FType.Generic(0),
-                    FType.ArrayOf(FType.Generic(0)),
-                    FType.Int32 
+                    TiType.Generic(0),
+                    TiType.ArrayOf(TiType.Generic(0)),
+                    TiType.Int32 
                 },new[] {nodeId, arrayId, indexId}
             );
 
@@ -42,17 +42,17 @@ namespace NFun.HmTests
             //expr| concat(a,b)
             _hmNode.SetVar(0, "a");
             _hmNode.SetVar(1, "b");
-            _hmNode.SetCall(new CallDef(
-                    FType.ArrayOf(FType.Generic(0)),new[] {0, 1, 2}
+            _hmNode.SetCall(new CallDefenition(
+                    TiType.ArrayOf(TiType.Generic(0)),new[] {0, 1, 2}
             ));
             var result = _hmNode.Solve();
 
             Assert.AreEqual(1, result.GenericsCount);
-            Assert.AreEqual(FType.ArrayOf(FType.Generic(0)), result.GetNodeType(0));
-            Assert.AreEqual(FType.ArrayOf(FType.Generic(0)), result.GetNodeType(1));
-            Assert.AreEqual(FType.ArrayOf(FType.Generic(0)), result.GetNodeType(2));
-            Assert.AreEqual(FType.ArrayOf(FType.Generic(0)), result.GetVarType("a"));
-            Assert.AreEqual(FType.ArrayOf(FType.Generic(0)), result.GetVarType("b"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Generic(0)), result.GetNodeType(0));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Generic(0)), result.GetNodeType(1));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Generic(0)), result.GetNodeType(2));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Generic(0)), result.GetVarType("a"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Generic(0)), result.GetVarType("b"));
         }
         [Test]
         public void CallWithAnonymousFunction_GenericSolved()
@@ -70,16 +70,16 @@ namespace NFun.HmTests
             _hmNode.SetVar(5, "b");
             _hmNode.SetCall(ArrayIndex(6, 4, 5));
             
-            _hmNode.SetCall(new CallDef(FType.Int32, new[] {3, 7, 6}));
+            _hmNode.SetCall(new CallDefenition(TiType.Int32, new[] {3, 7, 6}));
             _hmNode.Unite(8, 7);
             
             var result = _hmNode.Solve();
 
             Assert.AreEqual(0, result.GenericsCount);
-            Assert.AreEqual(FType.Fun(FType.Int32, FType.ArrayOf(FType.Int32), FType.Int32), result.GetVarType("f"));
-            Assert.AreEqual(FType.ArrayOf(FType.Int32), result.GetVarType("a"));
-            Assert.AreEqual(FType.Int32, result.GetVarType("b"));
-            Assert.AreEqual(FType.Int32, result.GetNodeType(8));
+            Assert.AreEqual(TiType.Fun(TiType.Int32, TiType.ArrayOf(TiType.Int32), TiType.Int32), result.GetVarType("f"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Int32), result.GetVarType("a"));
+            Assert.AreEqual(TiType.Int32, result.GetVarType("b"));
+            Assert.AreEqual(TiType.Int32, result.GetNodeType(8));
 
         }
         [Test]
@@ -96,10 +96,10 @@ namespace NFun.HmTests
             var result = _hmNode.Solve();
 
             Assert.AreEqual(3, result.GenericsCount);
-            Assert.AreEqual(FType.Fun(FType.Generic(2),FType.Generic(0), FType.Generic(1)), result.GetVarType("f"));
-            Assert.AreEqual(FType.Generic(0), result.GetVarType("a"));
-            Assert.AreEqual(FType.Generic(1), result.GetVarType("b"));
-            Assert.AreEqual(FType.Generic(2), result.GetNodeType(3));
+            Assert.AreEqual(TiType.Fun(TiType.Generic(2),TiType.Generic(0), TiType.Generic(1)), result.GetVarType("f"));
+            Assert.AreEqual(TiType.Generic(0), result.GetVarType("a"));
+            Assert.AreEqual(TiType.Generic(1), result.GetVarType("b"));
+            Assert.AreEqual(TiType.Generic(2), result.GetNodeType(3));
 
         }
         
@@ -109,14 +109,14 @@ namespace NFun.HmTests
             //node|  2  0 1  4 3
             //expr| get(a,0) + 1
             _hmNode.SetVar(0, "a");
-            Assert.IsTrue(_hmNode.SetStrict(1, FType.Int32));
+            Assert.IsTrue(_hmNode.SetStrict(1, TiType.Int32));
             Assert.IsTrue(_hmNode.SetCall(ArrayIndex(2, 0, 1)));
             
-            Assert.IsTrue(_hmNode.SetCall(new CallDef(FType.Int32, new[] {2, 3, 4})));
+            Assert.IsTrue(_hmNode.SetCall(new CallDefenition(TiType.Int32, new[] {2, 3, 4})));
             
             var result = _hmNode.Solve();
             Assert.AreEqual(0, result.GenericsCount);
-            Assert.AreEqual(FType.ArrayOf(FType.Int32), result.GetVarType("a"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Int32), result.GetVarType("a"));
         }
         
       
@@ -129,20 +129,20 @@ namespace NFun.HmTests
             //node |5   0 4 1 3 2
             //expr |y = 1 + 2 * x;
 
-            _hmNode.SetStrict(0, FType.Int32);
-            _hmNode.SetStrict(1, FType.Int32);
+            _hmNode.SetStrict(0, TiType.Int32);
+            _hmNode.SetStrict(1, TiType.Int32);
             _hmNode.SetVar(2, "x");
-            _hmNode.SetStrict(2, FType.Int32);
-            _hmNode.SetStrict(3, FType.Int32);
-            _hmNode.SetStrict(4, FType.Int32);
+            _hmNode.SetStrict(2, TiType.Int32);
+            _hmNode.SetStrict(3, TiType.Int32);
+            _hmNode.SetStrict(4, TiType.Int32);
             _hmNode.Unite(5,4);
             _hmNode.SetVar(5,"y");
 
             var result = _hmNode.Solve();
             
             Assert.AreEqual(0, result.GenericsCount);
-            Assert.AreEqual(FType.Int32, result.GetVarType("x"));
-            Assert.AreEqual(FType.Int32, result.GetVarType("y"));
+            Assert.AreEqual(TiType.Int32, result.GetVarType("x"));
+            Assert.AreEqual(TiType.Int32, result.GetVarType("y"));
         }
 
         [Test]
@@ -152,14 +152,14 @@ namespace NFun.HmTests
             //expr |y = sum(a)
             
             _hmNode.SetVar(0, "a");  
-            _hmNode.SetStrict(0, FType.ArrayOf(FType.Int32));
-            _hmNode.SetStrict(1, FType.Int32);
+            _hmNode.SetStrict(0, TiType.ArrayOf(TiType.Int32));
+            _hmNode.SetStrict(1, TiType.Int32);
             _hmNode.Unite(2, 1);
             _hmNode.SetVar(2, "y");
             var result = _hmNode.Solve();
             Assert.AreEqual(0, result.GenericsCount);
-            Assert.AreEqual(FType.ArrayOf(FType.Int32), result.GetVarType("a"));
-            Assert.AreEqual(FType.Int32, result.GetVarType("y"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Int32), result.GetVarType("a"));
+            Assert.AreEqual(TiType.Int32, result.GetVarType("y"));
         }
         
         [Test]
@@ -169,14 +169,14 @@ namespace NFun.HmTests
             //expr |y = reverse(a)
             
             _hmNode.SetVar(0, "a");  
-            _hmNode.SetStrict(0, FType.ArrayOf(FType.Int32));
-            _hmNode.SetStrict(1, FType.ArrayOf(FType.Int32));
+            _hmNode.SetStrict(0, TiType.ArrayOf(TiType.Int32));
+            _hmNode.SetStrict(1, TiType.ArrayOf(TiType.Int32));
             _hmNode.Unite(2, 1);
             _hmNode.SetVar(2, "y");
             var result = _hmNode.Solve();
             Assert.AreEqual(0, result.GenericsCount);
-            Assert.AreEqual(FType.ArrayOf(FType.Int32), result.GetVarType("a"));
-            Assert.AreEqual(FType.ArrayOf(FType.Int32), result.GetVarType("y"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Int32), result.GetVarType("a"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Int32), result.GetVarType("y"));
         }
 
         [Test(Description = "y = if a: 1 else 0")]
@@ -185,11 +185,11 @@ namespace NFun.HmTests
             //node |6 5  2 1  0  4   3 
             //expr |y = if a: 1 else 0;
 
-            _hmNode.SetStrict(0, FType.Int32);
+            _hmNode.SetStrict(0, TiType.Int32);
             _hmNode.SetVar(1, "a");  
-            _hmNode.SetStrict(1, FType.Bool);
+            _hmNode.SetStrict(1, TiType.Bool);
             _hmNode.Unite(2,0);
-            _hmNode.SetStrict(3, FType.Int32);
+            _hmNode.SetStrict(3, TiType.Int32);
             _hmNode.Unite(4,2);
             _hmNode.Unite(5,2);
             _hmNode.Unite(6,5);
@@ -197,8 +197,8 @@ namespace NFun.HmTests
             var result = _hmNode.Solve();
 
             Assert.AreEqual(0, result.GenericsCount);
-            Assert.AreEqual(FType.Bool, result.GetVarType("a"));
-            Assert.AreEqual(FType.Int32, result.GetVarType("y"));
+            Assert.AreEqual(TiType.Bool, result.GetVarType("a"));
+            Assert.AreEqual(TiType.Int32, result.GetVarType("y"));
 
         }
 
@@ -211,11 +211,11 @@ namespace NFun.HmTests
 
             _hmNode.SetVar(0, "x");
             _hmNode.SetVar(1, "a");
-            _hmNode.SetStrict(1, FType.Bool);
+            _hmNode.SetStrict(1, TiType.Bool);
             _hmNode.SetVar(2, "z");
-            _hmNode.SetStrict(2, FType.Int32);
-            _hmNode.SetStrict(3, FType.Int32);
-            _hmNode.SetStrict(4, FType.Int32);
+            _hmNode.SetStrict(2, TiType.Int32);
+            _hmNode.SetStrict(3, TiType.Int32);
+            _hmNode.SetStrict(4, TiType.Int32);
             _hmNode.Unite(0, 4);
             _hmNode.Unite(0, 6);
             _hmNode.SetVar(5, "y");
@@ -225,10 +225,10 @@ namespace NFun.HmTests
             Assert.Multiple(() =>
             {
                 Assert.AreEqual(0, result.GenericsCount);
-                Assert.AreEqual(FType.Bool, result.GetVarType("a"),"a");
-                Assert.AreEqual(FType.Int32, result.GetVarType("x"),"x");
-                Assert.AreEqual(FType.Int32, result.GetVarType("z"),"z");
-                Assert.AreEqual(FType.Int32, result.GetVarType("y"),"y");
+                Assert.AreEqual(TiType.Bool, result.GetVarType("a"),"a");
+                Assert.AreEqual(TiType.Int32, result.GetVarType("x"),"x");
+                Assert.AreEqual(TiType.Int32, result.GetVarType("z"),"z");
+                Assert.AreEqual(TiType.Int32, result.GetVarType("y"),"y");
             });
         }
 
@@ -239,7 +239,7 @@ namespace NFun.HmTests
             //expr |y = if (true) x else z 
 
             _hmNode.SetVar(0, "x");  
-            _hmNode.SetStrict(1, FType.Bool);
+            _hmNode.SetStrict(1, TiType.Bool);
             _hmNode.Unite(2,0);
             _hmNode.SetVar(3, "z");
             _hmNode.Unite(4,3);
@@ -251,9 +251,9 @@ namespace NFun.HmTests
             var result = _hmNode.Solve();
             
             Assert.AreEqual(1, result.GenericsCount);
-            Assert.AreEqual(FType.Generic(0), result.GetVarType("x"));
-            Assert.AreEqual(FType.Generic(0), result.GetVarType("z"));
-            Assert.AreEqual(FType.Generic(0), result.GetVarType("y"));
+            Assert.AreEqual(TiType.Generic(0), result.GetVarType("x"));
+            Assert.AreEqual(TiType.Generic(0), result.GetVarType("z"));
+            Assert.AreEqual(TiType.Generic(0), result.GetVarType("y"));
         }
         
         [Test]
@@ -269,8 +269,8 @@ namespace NFun.HmTests
             var result = _hmNode.Solve();
             
             Assert.AreEqual(1, result.GenericsCount);
-            Assert.AreEqual(FType.Generic(0), result.GetVarType("x"));
-            Assert.AreEqual(FType.Generic(0), result.GetVarType("y"));
+            Assert.AreEqual(TiType.Generic(0), result.GetVarType("x"));
+            Assert.AreEqual(TiType.Generic(0), result.GetVarType("y"));
         }
         
         [Test]
@@ -281,8 +281,8 @@ namespace NFun.HmTests
             _hmNode.SetVar(0, "x");
             _hmNode.SetVar(1, "x");
 
-            _hmNode.SetCall(new CallDef(
-                new[] {FType.Int32, FType.Int32, FType.Int32},
+            _hmNode.SetCall(new CallDefenition(
+                new[] {TiType.Int32, TiType.Int32, TiType.Int32},
                 new[] {2, 0, 1}));
 
             _hmNode.SetVar(3,"y");
@@ -291,8 +291,8 @@ namespace NFun.HmTests
             var result = _hmNode.Solve();
             
             Assert.AreEqual(0, result.GenericsCount);
-            Assert.AreEqual(FType.Int32, result.GetVarType("x"));
-            Assert.AreEqual(FType.Int32, result.GetVarType("y"));
+            Assert.AreEqual(TiType.Int32, result.GetVarType("x"));
+            Assert.AreEqual(TiType.Int32, result.GetVarType("y"));
         }
         
         [Test(Description = "y = x; | y2 = x2")]
@@ -313,19 +313,19 @@ namespace NFun.HmTests
             
             Assert.AreEqual(2, result.GenericsCount);
             
-            Assert.AreEqual(FType.Generic(0), result.GetVarType("x"));
-            Assert.AreEqual(FType.Generic(0), result.GetVarType("y"));
+            Assert.AreEqual(TiType.Generic(0), result.GetVarType("x"));
+            Assert.AreEqual(TiType.Generic(0), result.GetVarType("y"));
             
-            Assert.AreEqual(FType.Generic(1), result.GetVarType("x2"));
-            Assert.AreEqual(FType.Generic(1), result.GetVarType("y2"));
+            Assert.AreEqual(TiType.Generic(1), result.GetVarType("x2"));
+            Assert.AreEqual(TiType.Generic(1), result.GetVarType("y2"));
             
         }
 
         [Test]
         public void InvalidTypes_SetEqualityReturnsFalse()
         {
-            _hmNode.SetStrict(0, FType.Int32);
-            _hmNode.SetStrict(1, FType.Bool);
+            _hmNode.SetStrict(0, TiType.Int32);
+            _hmNode.SetStrict(1, TiType.Bool);
             Assert.IsFalse(_hmNode.Unite(0, 1));
         }
         [Test]
@@ -338,7 +338,7 @@ namespace NFun.HmTests
             _hmNode.SetVar(2, "cmp");
             _hmNode.SetCall(FunInvoke(3, 2, new[] {0, 1}));
 
-            _hmNode.SetStrict(3, FType.Bool);
+            _hmNode.SetStrict(3, TiType.Bool);
             _hmNode.SetVar(4, "a");
             _hmNode.SetVar(5, "b");
             _hmNode.Unite(6, 4);
@@ -348,10 +348,10 @@ namespace NFun.HmTests
             var result = _hmNode.Solve();
 
             Assert.AreEqual(1, result.GenericsCount);
-            Assert.AreEqual(FType.Fun(FType.Bool, FType.Generic(0), FType.Generic(0)), result.GetVarType("cmp"));
-            Assert.AreEqual(FType.Generic(0), result.GetVarType("a"));
-            Assert.AreEqual(FType.Generic(0), result.GetVarType("b"));
-            Assert.AreEqual(FType.Generic(0), result.GetNodeType(6));
+            Assert.AreEqual(TiType.Fun(TiType.Bool, TiType.Generic(0), TiType.Generic(0)), result.GetVarType("cmp"));
+            Assert.AreEqual(TiType.Generic(0), result.GetVarType("a"));
+            Assert.AreEqual(TiType.Generic(0), result.GetVarType("b"));
+            Assert.AreEqual(TiType.Generic(0), result.GetNodeType(6));
 
         }
     }

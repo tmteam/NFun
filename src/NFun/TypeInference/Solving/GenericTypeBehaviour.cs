@@ -1,6 +1,6 @@
 using System.Linq;
 
-namespace NFun.HindleyMilner.Tyso
+namespace NFun.TypeInference.Solving
 {
     public class GenericTypeBehaviour: INodeBehavior
     {
@@ -11,11 +11,11 @@ namespace NFun.HindleyMilner.Tyso
             id = lastId;
             lastId++;
         }
-        public FType MakeType(int maxTypeDepth) => new GenericType(0);
+        public TiType MakeType(int maxTypeDepth) => new GenericType(0);
 
-        public INodeBehavior SetLimit(FType newLimit) => new LimitNodeBehavior(newLimit);
+        public INodeBehavior SetLimit(TiType newLimit) => new LimitNodeBehavior(newLimit);
 
-        public INodeBehavior SetStrict(FType newType) => new StrictNodeBehaviour(newType);
+        public INodeBehavior SetStrict(TiType newType) => new StrictNodeBehaviour(newType);
 
         public INodeBehavior SetLca(SolvingNode[] otherNodes)
         {
@@ -51,11 +51,11 @@ namespace NFun.HindleyMilner.Tyso
             changed = false;
             return this;
         }
-        public FitResult CanBeConvertedFrom(FType from, int maxDepth) 
-            => new FitResult(FitType.Converable, 0);
+        public FitResult CanBeConvertedFrom(TiType from, int maxDepth) 
+            => new FitResult(FitType.Convertable, 0);
 
-        public FitResult CanBeConvertedTo(FType candidateType, int maxDepth) 
-            => new FitResult(FitType.Converable, 0);
+        public FitResult CanBeConvertedTo(TiType candidateType, int maxDepth) 
+            => new FitResult(FitType.Convertable, 0);
 
         public override string ToString() => $"T{id}";
     }

@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using NFun.Exceptions;
 using NFun.HindleyMilner;
-using NFun.HindleyMilner.Tyso;
 using NFun.Interpritation.Functions;
 using NFun.ParseErrors;
 using NFun.Runtime;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
+using NFun.TypeInference.Solving;
 using NFun.Types;
 
 namespace NFun.Interpritation
@@ -277,7 +277,7 @@ namespace NFun.Interpritation
                 if (visitorState.HasAlias(argNode.Id))
                     throw ErrorFactory.FunctionArgumentDuplicates(node, argNode);
 
-                var inputAlias = AdpterHelper.GetArgAlias(argNode.Id, node.GetFunAlias());
+                var inputAlias = AdapterHelper.GetArgAlias(argNode.Id, node.GetFunAlias());
 
                 //make aliases for input variables
                 visitorState.AddVariableAliase(argNode.Id, inputAlias);
@@ -299,7 +299,7 @@ namespace NFun.Interpritation
             }
             //set function variable defenition
             visitorState.CurrentSolver
-                .SetVarType(node.GetFunAlias(), FType.Fun(outputType, argTypes.ToArray()));
+                .SetVarType(node.GetFunAlias(), TiType.Fun(outputType, argTypes.ToArray()));
             return visitorState;
         }
         

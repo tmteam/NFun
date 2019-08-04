@@ -1,21 +1,21 @@
 using System;
 using System.Linq;
 
-namespace NFun.HindleyMilner.Tyso
+namespace NFun.TypeInference.Solving
 {
-    public class GenericType: FType
+    public class GenericType: TiType
     {
         public int GenericId { get; }
 
-        public GenericType(int genericId) : base(HmTypeName.Generic(genericId))
+        public GenericType(int genericId) : base(TiTypeName.Generic(genericId))
         {
             GenericId = genericId;
         }
     }
-    public class FType
+    public class TiType
     {
         
-        public FType(HmTypeName name, params SolvingNode[] arguments)
+        public TiType(TiTypeName name, params SolvingNode[] arguments)
         {
             
             Name = name;
@@ -23,53 +23,46 @@ namespace NFun.HindleyMilner.Tyso
             if(IsPrimitiveGeneric && !(this is GenericType))
                 throw new InvalidOperationException("Invalid ftype usage");
         }
-        public static FType Int64 => new FType(HmTypeName.Int64);
-        public static FType Int32 => new FType(HmTypeName.Int32);
-        public static FType Int16 => new FType(HmTypeName.Int16);
-        public static FType UInt64 => new FType(HmTypeName.Uint64);
-        public static FType UInt32 => new FType(HmTypeName.Uint32);
-        public static FType UInt16 => new FType(HmTypeName.Uint16);
-        public static FType UInt8 => new FType(HmTypeName.Uint8);
-        
-        public static FType Bool => new FType(HmTypeName.Bool);
-
-        public static FType Real => new FType(HmTypeName.Real);
-        public static FType ArrayOf(FType type) => new FType(HmTypeName.Array, SolvingNode.CreateStrict(type));
-        public static FType ArrayOf(SolvingNode solvingNode) => new FType(HmTypeName.Array, solvingNode);
-
-        public static FType Generic(int id)=> new GenericType(id);
-        
-        public static  FType GenericFun(int argsCount) 
-            => new FType(HmTypeName.Function,  Enumerable.Range(0,argsCount+1).Select(a=> SolvingNode.CreateStrict(Generic(a))).ToArray());
-
-        public static  FType Fun(FType output, params FType[] inputs) => new FType(
-            HmTypeName.Function, 
+        public static TiType Int64 => new TiType(TiTypeName.Int64);
+        public static TiType Int32 => new TiType(TiTypeName.Int32);
+        public static TiType Int16 => new TiType(TiTypeName.Int16);
+        public static TiType UInt64 => new TiType(TiTypeName.Uint64);
+        public static TiType UInt32 => new TiType(TiTypeName.Uint32);
+        public static TiType UInt16 => new TiType(TiTypeName.Uint16);
+        public static TiType UInt8 => new TiType(TiTypeName.Uint8);
+        public static TiType Bool => new TiType(TiTypeName.Bool);
+        public static TiType Real => new TiType(TiTypeName.Real);
+        public static TiType ArrayOf(TiType type) => new TiType(TiTypeName.Array, SolvingNode.CreateStrict(type));
+        public static TiType ArrayOf(SolvingNode solvingNode) => new TiType(TiTypeName.Array, solvingNode);
+        public static TiType Generic(int id)=> new GenericType(id);
+        public static  TiType GenericFun(int argsCount) 
+            => new TiType(TiTypeName.Function,  Enumerable.Range(0,argsCount+1).Select(a=> SolvingNode.CreateStrict(Generic(a))).ToArray());
+        public static  TiType Fun(TiType output, params TiType[] inputs) => new TiType(
+            TiTypeName.Function, 
             new[]{output}.Concat(inputs).Select(SolvingNode.CreateStrict).ToArray());
 
-        public static  FType Fun(SolvingNode output, params SolvingNode[] inputs) => new FType(
-            HmTypeName.Function, 
+        public static  TiType Fun(SolvingNode output, params SolvingNode[] inputs) => new TiType(
+            TiTypeName.Function, 
             new[]{output}.Concat(inputs).ToArray());
-        public static FType Text => ArrayOf(Char);
+        public static TiType Text => ArrayOf(Char);
 
-        public static FType Char => new FType(HmTypeName.Char);
+        public static TiType Char => new TiType(TiTypeName.Char);
 
-        public static FType Any => new FType(HmTypeName.Any);
+        public static TiType Any => new TiType(TiTypeName.Any);
 
-
-        public bool IsNumeric => Name.CanBeConvertedTo(HmTypeName.Real);
         public bool IsPrimitive => !Arguments.Any();
-        public HmTypeName Name { get; }
+        public TiTypeName Name { get; }
         public SolvingNode[] Arguments { get; }
 
         public bool IsNotConcrete =>
-            Name.IsGeneric || Arguments.Any(a => a.MakeType(SolvingNode.MaxTypeDepth).IsNotConcrete);
+            Name.IsGeneric || Arguments.Any(a => a.MakeType().IsNotConcrete);
 
         public bool IsPrimitiveGeneric => Name.IsGeneric && !Arguments.Any();
 
 
         public override bool Equals(object obj)
         {
-            if (!(obj is FType n))
+            if (!(obj is TiType n))
                 return false;
             if (!Name.Equals(n.Name))
                 return false;
@@ -85,10 +78,12 @@ namespace NFun.HindleyMilner.Tyso
 
             return true;
         }
+        /// <summary>
+        /// Get inherance graph distance to specified parent 
+        /// </summary>
+        public int GetParentalDistanceTo(TiType parent) => Name.Depth- parent.Name.Depth;
 
-        public int GetParentalDistanceTo(FType parent) => Name.Depth- parent.Name.Depth;
-
-        public bool CanBeSafelyConvertedTo(FType type2)
+        public bool CanBeSafelyConvertedTo(TiType type2)
         {
             if (IsPrimitive)
                 return Name.CanBeConvertedTo(type2.Name);
@@ -120,7 +115,10 @@ namespace NFun.HindleyMilner.Tyso
 
         public override string ToString() => ToSmartString(SolvingNode.MaxTypeDepth);
 
-        public static FType GetLca(FType[] fTypes)
+        /// <summary>
+        /// Returns last common ancestor for specified types
+        /// </summary>
+        public static TiType GetLca(TiType[] fTypes)
         {
             var left = fTypes.Where(c=>c.Name.Start>=0).Min(c => c.Name.Start);
             var right = fTypes.Where(c=>c.Name.Finish>=0).Max(c=>c.Name.Finish);
@@ -130,26 +128,26 @@ namespace NFun.HindleyMilner.Tyso
             while (true)
             {
                 if (parentName.Start <= left && parentName.Finish >= right)
-                    return new FType(parentName);
+                    return new TiType(parentName);
                 
                 if(parentName.Parent==null)
-                    return FType.Any;
+                    return TiType.Any;
                 parentName = parentName.Parent;
             }
         }
 
-        public static FitResult CanBeConverted(FType from, FType to, int maxDepth){
+        public static FitResult CanBeConverted(TiType from, TiType to, int maxDepth){
             if (to.IsPrimitiveGeneric)
-                return new  FitResult(FitType.Converable,0);
+                return new  FitResult(FitType.Convertable,0);
             if (to.IsPrimitive)
             {
                 if (to.Name.Equals(from.Name))
                     return new FitResult(FitType.Strict, 0);
                 //special case: Int is most expected type for someInteger
-                if(from.Name.Id== HmTypeName.Int32Id && to.Name.Id== HmTypeName.SomeIntegerId)
+                if(from.Name.Id== TiTypeName.Int32Id && to.Name.Id== TiTypeName.SomeIntegerId)
                     return new FitResult(FitType.Candidate, from.GetParentalDistanceTo(to));
                 if (from.CanBeSafelyConvertedTo(to)) 
-                    return new FitResult(FitType.Converable, from.GetParentalDistanceTo(to));
+                    return new FitResult(FitType.Convertable, from.GetParentalDistanceTo(to));
                 else
                     return FitResult.Not;
             }
@@ -160,7 +158,7 @@ namespace NFun.HindleyMilner.Tyso
             if (from.Arguments.Length!= to.Arguments.Length)
                 return FitResult.Not;
 
-            FitType minimalResult = FitType.Strict;
+            var minimalResult = FitType.Strict;
             for (int i = 0; i < from.Arguments.Length ; i++)
             {
                 var res =from.Arguments[i]

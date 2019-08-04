@@ -1,7 +1,7 @@
-using NFun.HindleyMilner.Tyso;
 using NFun.Interpritation;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.Visitors;
+using NFun.TypeInference.Solving;
 
 namespace NFun.HindleyMilner
 {

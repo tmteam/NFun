@@ -1,12 +1,12 @@
 using System;
 using System.Linq;
 using NFun.BuiltInFunctions;
-using NFun.HindleyMilner.Tyso;
 using NFun.Interpritation;
 using NFun.Interpritation.Functions;
 using NFun.ParseErrors;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
+using NFun.TypeInference.Solving;
 using NFun.Types;
 
 namespace NFun.HindleyMilner
@@ -81,9 +81,9 @@ namespace NFun.HindleyMilner
             var argsCount = node.Args.Length;
 
             //check for recursion call
-            var funAlias = AdpterHelper.GetFunAlias(node.Id, argsCount) ;
+            var funAlias = AdapterHelper.GetFunAlias(node.Id, argsCount) ;
             var funType = _state.CurrentSolver.GetOrNull(funAlias);
-            if (funType != null && funType.Name.Id == HmTypeName.FunId 
+            if (funType != null && funType.Name.Id == TiTypeName.FunId 
                                 && funType.Arguments.Length-1 == node.Args.Length)
             {
                 //Recursive function call. We don't know its signature yet. That's why we set "functional variable",
@@ -153,19 +153,6 @@ namespace NFun.HindleyMilner
                         node.Args[0].OrderNumber,
                         node.Args[1].OrderNumber);
                     
-                    /* todo uiXXiXX
-                    if (result.IsSuccesfully)
-                    {
-                        var candidates = _dictionary.GetNonGeneric(node.Id)
-                            .Where(n => n.ArgTypes.Length == 2).ToList();
-
-                        var setOVerloadResult =  _state.CurrentSolver.SetOverloadCall(candidates.Select(ToFunSignature).ToArray(),
-                            node.OrderNumber,
-                            node.Args.Select(a => a.OrderNumber).ToArray());
-                        if(!setOVerloadResult)
-                            result = SetTypeResult.Failed(node.OrderNumber, SetTypeResultError.ExpressionTypeIsIncorrect);
-                    }*/
-
                     return true;
                 }
 
@@ -204,34 +191,25 @@ namespace NFun.HindleyMilner
       
         public override bool Visit(ConstantSyntaxNode node)
         {
-            var type = AdpterHelper.ConvertToHmType(node.OutputType);
+            var type = AdapterHelper.ConvertToHmType(node.OutputType);
             
             if (node.OutputType == VarType.Int32)
             {
                 var value = (int) node.Value;
                 if (value >= 0 && value < 256) //alow us to convert int to any lower types
-                    return _state.CurrentSolver.SetLimitConst(node.OrderNumber, FType.Int32);
+                    return _state.CurrentSolver.SetLimitConst(node.OrderNumber, TiType.Int32);
                 if(value>=0 && value <= ushort.MaxValue)
-                    return _state.CurrentSolver.SetLcaConst(node.OrderNumber, FType.UInt16);
-                //if(value>=0 && value < int.MaxValue)
-                //    return _state.CurrentSolver.SetLcaConst(node.OrderNumber, FType.UInt32);
-                //if(value<=0 && value >= short.MinValue)
-                //    return _state.CurrentSolver.SetLcaConst(node.OrderNumber, FType.Int16);
-                //if(value<=0 && value > int.MinValue)
-                //    return _state.CurrentSolver.SetLcaConst(node.OrderNumber, FType.Int32);
-
-                
-
+                    return _state.CurrentSolver.SetLcaConst(node.OrderNumber, TiType.UInt16);
             }
 
             return _state.CurrentSolver.SetConst(node.OrderNumber, type);
         }
 
         public override  bool Visit(TypedVarDefSyntaxNode node)
-            => _state.CurrentSolver.SetVarType(node.Id, AdpterHelper.ConvertToHmType(node.VarType));
+            => _state.CurrentSolver.SetVarType(node.Id, AdapterHelper.ConvertToHmType(node.VarType));
             
         public override  bool Visit(VarDefenitionSyntaxNode node)
-            => _state.CurrentSolver.SetVarType(node.Id, AdpterHelper.ConvertToHmType(node.VarType));
+            => _state.CurrentSolver.SetVarType(node.Id, AdapterHelper.ConvertToHmType(node.VarType));
         public override  bool Visit(VariableSyntaxNode node)
         {
             var originId = node.Id;
@@ -256,7 +234,6 @@ namespace NFun.HindleyMilner
             //if there is no functions - set variable with local name
             if (userFunctions.Count == 0)
                 return _state.CurrentSolver.SetVar(node.OrderNumber, localId);
-            
 
             //Make fun variable:
             _state.CurrentSolver.SetVarType(
@@ -267,24 +244,23 @@ namespace NFun.HindleyMilner
         
         
         private static FunSignature ToFunSignature(FunctionBase fun) 
-            =>
-                new FunSignature( AdpterHelper.ConvertToHmType(fun.ReturnType), 
-                    fun.ArgTypes.Select(AdpterHelper.ConvertToHmType).ToArray());
+            => new FunSignature( fun.ReturnType.ConvertToHmType(), 
+                    fun.ArgTypes.Select(AdapterHelper.ConvertToHmType).ToArray());
 
-        private static CallDef ToCallDef(FunCallSyntaxNode node, FunctionBase fun)
+        private static CallDefenition ToCallDef(FunCallSyntaxNode node, FunctionBase fun)
         {
             var ids = new[] {node.OrderNumber}.Concat(node.Args.Select(a => a.OrderNumber)).ToArray();
-            var types = new[] {fun.ReturnType}.Concat(fun.ArgTypes).Select(AdpterHelper.ConvertToHmType).ToArray();
+            var types = new[] {fun.ReturnType}.Concat(fun.ArgTypes).Select(AdapterHelper.ConvertToHmType).ToArray();
 
-            var callDef = new CallDef(types, ids);
+            var callDef = new CallDefenition(types, ids);
             return callDef;
         }
-        private static CallDef ToCallDef(FunCallSyntaxNode node, GenericFunctionBase fun)
+        private static CallDefenition ToCallDef(FunCallSyntaxNode node, GenericFunctionBase fun)
         {
             var ids = new[] {node.OrderNumber}.Concat(node.Args.Select(a => a.OrderNumber)).ToArray();
-            var types = new[] {fun.ReturnType}.Concat(fun.ArgTypes).Select(AdpterHelper.ConvertToHmType).ToArray();
+            var types = new[] {fun.ReturnType}.Concat(fun.ArgTypes).Select(AdapterHelper.ConvertToHmType).ToArray();
 
-            var callDef = new CallDef(types, ids);
+            var callDef = new CallDefenition(types, ids);
             return callDef;
         }
     }

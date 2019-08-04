@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace NFun.HindleyMilner.Tyso
+namespace NFun.TypeInference.Solving
 {
     public class GenericMap
     {
-        public SolvingNode CreateSolvingNode(FType type)
+        public SolvingNode CreateSolvingNode(TiType type)
         {
             if (type is GenericType t) 
                 return Get(t.GenericId);
