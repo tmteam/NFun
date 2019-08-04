@@ -10,10 +10,10 @@ namespace NFun.TypeInference.Solving
         } 
         public TiType MakeType(int maxTypeDepth) => Limit;
 
-        private bool isVisited = false;
+        private bool _isVisited = false;
         public INodeBehavior SetLimit(TiType newLimit)
         {
-            isVisited = true;
+            _isVisited = true;
             //_limit: any; newLimit: real
             if (!Limit.CanBeSafelyConvertedTo(newLimit))
                 Limit = newLimit;
@@ -45,9 +45,9 @@ namespace NFun.TypeInference.Solving
             }
 
             //Resolving circular dependencies
-            if (isVisited)
+            if (_isVisited)
             {
-                isVisited = false;
+                _isVisited = false;
                 return this;
             }
 
@@ -76,13 +76,11 @@ namespace NFun.TypeInference.Solving
             return $"Child or {Limit.ToSmartString(maxDepth - 1)}";
         }
 
-        public INodeBehavior Optimize(out bool changed)
+        public INodeBehavior Optimize(out bool hasChanged)
         {
-            changed = false;
+            hasChanged = false;
             if (Limit.IsPrimitive)
-            {
                 return this;
-            }
 
             foreach (var limitArgument in Limit.Arguments)
             {

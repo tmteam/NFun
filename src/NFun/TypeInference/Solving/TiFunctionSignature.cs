@@ -4,16 +4,18 @@ using System.Linq;
 
 namespace NFun.TypeInference.Solving
 {
-    public class FunSignature
+    public class TiFunctionSignature
     {
         public CallDefenition ToCallDefenition(int returnNodeId, params int[] argIds)
         {
-            return new CallDefenition(new[]{ReturnType}.Concat(ArgTypes).ToArray(), new[]{returnNodeId}.Concat(argIds).ToArray());
+            return new CallDefenition(
+                new[]{ReturnType}.Concat(ArgTypes).ToArray(), 
+                new[]{returnNodeId}.Concat(argIds).ToArray());
         }
         public readonly TiType ReturnType;
         public readonly TiType[] ArgTypes;
 
-        public FunSignature(TiType returnType, params TiType[] argTypes)
+        public TiFunctionSignature(TiType returnType, params TiType[] argTypes)
         {
             ReturnType = returnType;
             ArgTypes = argTypes;
@@ -22,20 +24,18 @@ namespace NFun.TypeInference.Solving
         public override string ToString() 
             => $"({string.Join(",", ArgTypes.Select(a => a.ToString()))})->{ReturnType}";
 
-        public static FunSignature[] GetBestFits(FunSignature[] candidates, SolvingNode returnType,
+        public static TiFunctionSignature[] GetBestFits(TiFunctionSignature[] candidates, SolvingNode returnType,
             params SolvingNode[] argTypes)
         {
-            bool severalAreSame = false;
             SignatureFit bestOne = new SignatureFit();
-            var bestSignatures = new List<FunSignature>();
-            bestOne.Failed = true;
-            foreach (var candidate in candidates) {
+            var bestSignatures = new List<TiFunctionSignature>();
+            foreach (var candidate in candidates) 
+            {
                 var returnTypeFit = returnType.CanBeConvertedFrom(candidate.ReturnType);
                 if (returnTypeFit.Type == FitType.Not)
                     continue;                
 
                 var fit = new SignatureFit(returnTypeFit);
-                //fit.Apply(returnTypeFit);
                 
                 for (int argNum = 0; argNum < argTypes.Length; argNum++)
                 {
@@ -43,7 +43,7 @@ namespace NFun.TypeInference.Solving
                     var actualArg = argTypes[argNum];
                     
                     var argFit =  actualArg.CanBeConvertedTo(candidateArg);
-                    fit.Apply(argFit); 
+                    fit.Append(argFit); 
                 }
 
                 if(fit.Failed)
@@ -64,7 +64,7 @@ namespace NFun.TypeInference.Solving
         }
         
       
-        public static FunSignature GetBestFitOrNull(FunSignature[] candidates, SolvingNode returnType,
+        public static TiFunctionSignature GetBestFitOrNull(TiFunctionSignature[] candidates, SolvingNode returnType,
             params SolvingNode[] argTypes)
         {
             var res = GetBestFits(candidates, returnType, argTypes);
@@ -78,16 +78,16 @@ namespace NFun.TypeInference.Solving
 
             public SignatureFit(FitResult returnResults)
             {
-                ReturnTypeFit = returnResults;
-                StrictFits = 0;
-                CandidateFits = 0;
-                ConvertedFits = 0;
+                _returnTypeFit = returnResults;
+                _strictFits = 0;
+                _candidateFits = 0;
+                _convertedFits = 0;
                 Failed = false;
-                MaxCandidateDistance = 0;
-                MaxConvertedDistance = 0;
+                _maxCandidateDistance = 0;
+                _maxConvertedDistance = 0;
             }
 
-            public void Apply(FitResult fitResult)
+            public void Append(FitResult fitResult)
             {
                 if (fitResult.Type == FitType.Not)
                 {
@@ -96,26 +96,26 @@ namespace NFun.TypeInference.Solving
                 }
 
                 if (fitResult.Type == FitType.Strict)
-                    StrictFits++;
+                    _strictFits++;
                 else if (fitResult.Type == FitType.Candidate)
                 {
-                    CandidateFits++;
-                    MaxCandidateDistance = Math.Max(fitResult.Distance, MaxCandidateDistance);
+                    _candidateFits++;
+                    _maxCandidateDistance = Math.Max(fitResult.Distance, _maxCandidateDistance);
                 }
                 else if (fitResult.Type == FitType.Convertable)
                 {
-                    ConvertedFits++;
-                    MaxConvertedDistance = Math.Max(fitResult.Distance, MaxCandidateDistance);
+                    _convertedFits++;
+                    _maxConvertedDistance = Math.Max(fitResult.Distance, _maxCandidateDistance);
                 }
             }
 
-            public readonly FitResult ReturnTypeFit;
-            public int MaxCandidateDistance;
-            public int MaxConvertedDistance;
-            public int StrictFits;
-            public int CandidateFits;
-            public int ConvertedFits;
-            public bool Failed;
+            private readonly FitResult _returnTypeFit;
+            private int _maxCandidateDistance;
+            private int _maxConvertedDistance;
+            private int _strictFits;
+            private int _candidateFits;
+            private int _convertedFits;
+            public bool Failed { get; private set; }
 
             public int IsBetterThan(SignatureFit fit)
             {
@@ -123,60 +123,51 @@ namespace NFun.TypeInference.Solving
                     return fit.Failed ? 0 : -1;
                 if (fit.Failed)
                     return 1;
-                if (StrictFits > fit.StrictFits)
+                if (_strictFits > fit._strictFits)
                     return 1;
-                if (StrictFits < fit.StrictFits)
+                if (_strictFits < fit._strictFits)
                     return -1;
-                if (CandidateFits > fit.CandidateFits)
+                if (_candidateFits > fit._candidateFits)
                     return 1;
-                if (CandidateFits < fit.CandidateFits)
+                if (_candidateFits < fit._candidateFits)
                     return -1;
                 
                 
-                if (ConvertedFits > fit.ConvertedFits)
+                if (_convertedFits > fit._convertedFits)
                     return 1;
-                if (ConvertedFits < fit.ConvertedFits)
+                if (_convertedFits < fit._convertedFits)
                     return -1;
                 
                 //Compare by output type:
-                if (ReturnTypeFit.Type == FitType.Strict) { 
-                    if (fit.ReturnTypeFit.Type != FitType.Strict) 
+                if (_returnTypeFit.Type == FitType.Strict) { 
+                    if (fit._returnTypeFit.Type != FitType.Strict) 
                         return 1;
                 }
                 else{
-                    if (fit.ReturnTypeFit.Type == FitType.Strict)
+                    if (fit._returnTypeFit.Type == FitType.Strict)
                         return -1;
                 }
                 
                 //Compare by output type:
-                if (ReturnTypeFit.Type != FitType.Strict) { 
-                    //if (fit.ReturnTypeFit.Type != FitType.Strict) 
-                    //        return 1;
-                    //}
-                    //else {
-                    // if (fit.ReturnTypeFit.Type == FitType.Strict)
-                    //    return -1;
-                    if (ReturnTypeFit.Type == FitType.Candidate) {
-                        if (fit.ReturnTypeFit.Type != FitType.Candidate)
+                if (_returnTypeFit.Type != FitType.Strict) { 
+                    if (_returnTypeFit.Type == FitType.Candidate) {
+                        if (fit._returnTypeFit.Type != FitType.Candidate)
                             return 1;
                     }
                     else {
-                        if (fit.ReturnTypeFit.Type == FitType.Candidate)
+                        if (fit._returnTypeFit.Type == FitType.Candidate)
                             return -1;
                     }
                 }
                 
-                if (MaxCandidateDistance < fit.MaxCandidateDistance)
+                if (_maxCandidateDistance < fit._maxCandidateDistance)
                     return 1;
-                if (fit.MaxCandidateDistance < MaxCandidateDistance)
+                if (fit._maxCandidateDistance < _maxCandidateDistance)
                     return -1;
-
-               
                 
-                
-                if (MaxConvertedDistance < fit.MaxConvertedDistance)
+                if (_maxConvertedDistance < fit._maxConvertedDistance)
                     return 1;
-                if (fit.MaxConvertedDistance < MaxConvertedDistance)
+                if (fit._maxConvertedDistance < _maxConvertedDistance)
                     return -1;
 
                     

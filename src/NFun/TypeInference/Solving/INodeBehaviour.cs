@@ -10,7 +10,7 @@ namespace NFun.TypeInference.Solving
         INodeBehavior SetGeneric(SolvingNode otherGeneric);
 
         string ToSmartString(int maxDepth = 10);
-        INodeBehavior Optimize(out bool o);
+        INodeBehavior Optimize(out bool hasChanged);
         FitResult CanBeConvertedTo(TiType candidateType, int maxDepth);
         FitResult CanBeConvertedFrom(TiType candidateType, int maxDepth);
     }

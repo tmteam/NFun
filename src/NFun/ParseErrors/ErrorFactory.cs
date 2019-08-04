@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using NFun.HindleyMilner;
 using NFun.Interpritation;
 using NFun.Interpritation.Functions;
 using NFun.Interpritation.Nodes;
@@ -10,6 +9,7 @@ using NFun.Runtime;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
+using NFun.TypeInference;
 using NFun.TypeInference.Solving;
 using NFun.Types;
 
@@ -520,7 +520,7 @@ namespace NFun.ParseErrors
             Interval failedInterval = ifThenElse.Interval;
             
             //Lca defined only in TI. It is kind of hack
-            var hmTypes = allExpressions.Select(a => a.OutputType.ConvertToHmType()).ToArray();
+            var hmTypes = allExpressions.Select(a => a.OutputType.ConvertToTiType()).ToArray();
             var currentLca = hmTypes[0];
             
             for (int i = 1; i < hmTypes.Length; i++)

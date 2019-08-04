@@ -5,12 +5,12 @@ namespace NFun.HmTests
 {
     public class SolveAdapterAnonymFunctionsTest
     {
-        private HmHumanizerSolver _solver;
+        private TiLanguageSolver _solver;
 
         [SetUp]
         public void Init()
         {
-            _solver = new HmHumanizerSolver();
+            _solver = new TiLanguageSolver();
         }
         [Test]
         public void FilterFunction_Resolved()

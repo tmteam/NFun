@@ -1,21 +1,19 @@
 using System.Collections.Generic;
-using System.Linq;
-using NFun.Interpritation.Functions;
 using NFun.ParseErrors;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
 using NFun.TypeInference.Solving;
 using NFun.Types;
 
-namespace NFun.HindleyMilner
+namespace NFun.TypeInference
 {
-    class EnterHmVisitor: EnterVisitorBase
+    class SetupTiEnterVisitor: EnterVisitorBase
     {
-        private readonly HmVisitorState _hmVisitorState;
+        private readonly SetupTiState _setupTiState;
 
-        public EnterHmVisitor(HmVisitorState hmVisitorState)
+        public SetupTiEnterVisitor(SetupTiState setupTiState)
         {
-            _hmVisitorState = hmVisitorState;
+            _setupTiState = setupTiState;
         }
 
         public override VisitorResult Visit(UserFunctionDefenitionSyntaxNode node) 
@@ -24,7 +22,7 @@ namespace NFun.HindleyMilner
         public override VisitorResult Visit(AnonymCallSyntaxNode anonymFunNode)
         {
             var argTypes = new List<SolvingNode>();
-            _hmVisitorState.EnterScope(anonymFunNode.OrderNumber);
+            _setupTiState.EnterScope(anonymFunNode.OrderNumber);
             foreach (var syntaxNode in anonymFunNode.ArgumentsDefenition)
             {
                 SolvingNode type;
@@ -36,34 +34,34 @@ namespace NFun.HindleyMilner
                     anonymName = MakeAnonVariableName(anonymFunNode, originName);
                     if (typed.VarType.Equals(VarType.Empty))
                     {
-                        type = _hmVisitorState.CurrentSolver.SetNewVarOrNull(anonymName);
+                        type = _setupTiState.CurrentSolver.SetNewVarOrNull(anonymName);
                         if (type == null)
                             throw ErrorFactory.AnonymousFunctionArgumentDuplicates(typed, anonymFunNode);
                     }
                     else
                     {
-                        _hmVisitorState.CurrentSolver.SetVarType(anonymName, typed.VarType.ConvertToHmType());
-                        type = _hmVisitorState.CurrentSolver.GetOrCreate(anonymName);
+                        _setupTiState.CurrentSolver.SetVarType(anonymName, typed.VarType.ConvertToTiType());
+                        type = _setupTiState.CurrentSolver.GetOrCreate(anonymName);
                     }
                 }
                 else if (syntaxNode is VariableSyntaxNode varNode)
                 {
                     originName = varNode.Id;
                     anonymName = MakeAnonVariableName(anonymFunNode, originName);
-                    if (_hmVisitorState.CurrentSolver.HasVariable(anonymName))
+                    if (_setupTiState.CurrentSolver.HasVariable(anonymName))
                         throw ErrorFactory.AnonymousFunctionArgumentDuplicates(varNode, anonymFunNode);
-                    type = _hmVisitorState.CurrentSolver.SetNewVarOrNull(anonymName);
+                    type = _setupTiState.CurrentSolver.SetNewVarOrNull(anonymName);
                     if (type == null)
                         throw ErrorFactory.AnonymousFunctionArgumentDuplicates(varNode, anonymFunNode);
                 }
                 else 
                     throw ErrorFactory.AnonymousFunArgumentIsIncorrect(syntaxNode);
                 
-                _hmVisitorState.AddVariableAliase(originName, anonymName);
+                _setupTiState.AddVariableAliase(originName, anonymName);
                 argTypes.Add(type);
             }
 
-            var lambdaRes = _hmVisitorState.CurrentSolver.InitLambda(anonymFunNode.OrderNumber,
+            var lambdaRes = _setupTiState.CurrentSolver.InitLambda(anonymFunNode.OrderNumber,
                 anonymFunNode.Body.OrderNumber, argTypes.ToArray());
             if (!lambdaRes.IsSuccesfully)
                 throw ErrorFactory.AnonymousFunDefenitionIsIncorrect(anonymFunNode);
@@ -73,6 +71,6 @@ namespace NFun.HindleyMilner
 
         
         private static string MakeAnonVariableName(AnonymCallSyntaxNode node, string id) 
-            => AdapterHelper.GetArgAlias("anonymous_"+node.OrderNumber, id);
+            => LangTiHelper.GetArgAlias("anonymous_"+node.OrderNumber, id);
     }
 }

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using NFun.BuiltInFunctions;
 using NFun.Exceptions;
-using NFun.HindleyMilner;
 using NFun.Interpritation.Functions;
 using NFun.Interpritation.Nodes;
 using NFun.ParseErrors;

@@ -123,7 +123,7 @@ namespace NFun.TypeInference.Solving
 
     public struct FitResult
     {
-        public static readonly FitResult Not = new FitResult(FitType.Not, 0);
+        public static readonly FitResult Not    = new FitResult(FitType.Not, 0);
         public static readonly FitResult Strict = new FitResult(FitType.Strict,0);
         
         public readonly FitType Type;

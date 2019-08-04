@@ -46,9 +46,9 @@ namespace NFun.TypeInference.Solving
         }
 
         public string ToSmartString(int maxDepth = 10) => ToString();
-        public INodeBehavior Optimize(out bool changed)
+        public INodeBehavior Optimize(out bool hasChanged)
         {
-            changed = false;
+            hasChanged = false;
             return this;
         }
         public FitResult CanBeConvertedFrom(TiType from, int maxDepth) 

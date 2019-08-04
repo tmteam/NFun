@@ -6,12 +6,12 @@ namespace NFun.HmTests
     [TestFixture]
     public class SolveAdapterOverloadsTests
     {
-        private HmHumanizerSolver solver;
+        private TiLanguageSolver solver;
 
         [SetUp]
         public void Init()
         {
-            solver = new HmHumanizerSolver();
+            solver = new TiLanguageSolver();
         }
         [Test]
         public void ToStrOverload_TypeSpecified_equationSolved()
@@ -158,7 +158,7 @@ namespace NFun.HmTests
             solver.SetVar(0, "a");
             solver.SetVar(1, "b");
             
-            solver.SetOverloadCall(new []{new FunSignature(TiType.Int64, TiType.Bool,TiType.Any)},2,  0,1);
+            solver.SetOverloadCall(new []{new TiFunctionSignature(TiType.Int64, TiType.Bool,TiType.Any)},2,  0,1);
             
             solver.SetDefenition("y", 3, 2);
             
@@ -195,27 +195,27 @@ namespace NFun.HmTests
             Assert.AreEqual(TiType.Real, result.GetVarType("y"));
             Assert.AreEqual(TiType.Real, result.GetVarType("y2"));
         }
-        private FunSignature[] InvertOverloads =>new[]
+        private TiFunctionSignature[] InvertOverloads =>new[]
         {
-            new FunSignature(TiType.Int32, TiType.Int32),
-            new FunSignature(TiType.Int64, TiType.Int64),
-            new FunSignature(TiType.Real, TiType.Real),
+            new TiFunctionSignature(TiType.Int32, TiType.Int32),
+            new TiFunctionSignature(TiType.Int64, TiType.Int64),
+            new TiFunctionSignature(TiType.Real, TiType.Real),
 
         };
-        private FunSignature[] SummOverloads => new[]
+        private TiFunctionSignature[] SummOverloads => new[]
         {
-            new FunSignature(TiType.Int32, TiType.Int32,TiType.Int32),
-            new FunSignature(TiType.Int64, TiType.Int64,TiType.Int64),
-            new FunSignature(TiType.Real, TiType.Real,TiType.Real),
+            new TiFunctionSignature(TiType.Int32, TiType.Int32,TiType.Int32),
+            new TiFunctionSignature(TiType.Int64, TiType.Int64,TiType.Int64),
+            new TiFunctionSignature(TiType.Real, TiType.Real,TiType.Real),
 
         };
-        private FunSignature[] ToStrOverloads => new[]
+        private TiFunctionSignature[] ToStrOverloads => new[]
         {
-            new FunSignature(TiType.Text, TiType.Int32),
-            new FunSignature(TiType.Text, TiType.Int64),
-            new FunSignature(TiType.Text, TiType.Real),
-            new FunSignature(TiType.Text, TiType.ArrayOf(TiType.Any)),
-            new FunSignature(TiType.Text, TiType.Any)
+            new TiFunctionSignature(TiType.Text, TiType.Int32),
+            new TiFunctionSignature(TiType.Text, TiType.Int64),
+            new TiFunctionSignature(TiType.Text, TiType.Real),
+            new TiFunctionSignature(TiType.Text, TiType.ArrayOf(TiType.Any)),
+            new TiFunctionSignature(TiType.Text, TiType.Any)
         };
     }
 }

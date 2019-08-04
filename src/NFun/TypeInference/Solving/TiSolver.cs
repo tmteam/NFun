@@ -4,9 +4,9 @@ using NFun.ParseErrors;
 
 namespace NFun.TypeInference.Solving
 {
-    public class HmNodeSolver
+    public class TiSolver
     {
-        public HmNodeSolver()
+        public TiSolver()
         {
             _variables = new Dictionary<string, SolvingNode>();
             _originNodes = new List<SolvingNode>();
@@ -186,16 +186,16 @@ namespace NFun.TypeInference.Solving
             return solvingA.SetEqualTo(returnType);
         }
         
-        public HmResult Solve()
+        public TiResult Solve()
         {
             //First: Optimize type graph
             if(!Optimize(_originNodes))
-                return HmResult.NotSolvedResult();
-            var overloads = new Dictionary<int, FunSignature>();
+                return TiResult.NotSolvedResult();
+            var overloads = new Dictionary<int, TiFunctionSignature>();
             //Second: Try append overload calls
             foreach (var lazyOverload in _lazyOverloads)
             {
-                var candidates = FunSignature.GetBestFits(lazyOverload.Candidates, 
+                var candidates = TiFunctionSignature.GetBestFits(lazyOverload.Candidates, 
                     GetOrCreate(lazyOverload.ReturnNodeId),
                     lazyOverload.ArgIds.Select(GetOrCreate).ToArray());
                 if(candidates.Length==0){
@@ -223,7 +223,7 @@ namespace NFun.TypeInference.Solving
             }
             
             //Third: Job finished!
-            return new HmResult(
+            return new TiResult(
                 _originNodes,
                 _additionalNodes,
                 _variables, 

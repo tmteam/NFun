@@ -1,26 +1,28 @@
-using System;
 using System.Collections.Generic;
 using NFun.TypeInference.Solving;
 using NFun.Types;
 
-namespace NFun.HindleyMilner
+namespace NFun.TypeInference
 {
-    public class HmVisitorState
+    /// <summary>
+    /// State of enter setup ti visitor
+    /// </summary>
+    public class SetupTiState
     {
-        public HmVisitorState(HmHumanizerSolver globalSolver)
+        public SetupTiState(TiLanguageSolver globalSolver)
         {
             CurrentSolver = globalSolver;
             _aliasTable = new AliasTable();
         }
 
         private readonly AliasTable _aliasTable;
-        public HmHumanizerSolver CurrentSolver { get; }
+        public TiLanguageSolver CurrentSolver { get; }
 
         public SolvingNode CreateTypeNode(VarType type)
         {
             if (type.BaseType == BaseVarType.Empty)
                 return CurrentSolver.MakeGeneric();
-            return SolvingNode.CreateStrict(type.ConvertToHmType());
+            return SolvingNode.CreateStrict(type.ConvertToTiType());
         }
         
         public string GetActualName(string varName) 

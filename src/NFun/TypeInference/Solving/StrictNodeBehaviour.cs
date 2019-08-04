@@ -16,39 +16,40 @@ namespace NFun.TypeInference.Solving
                 return this;
             if (_type.IsPrimitive)
             {
-                if (!_type.CanBeSafelyConvertedTo(newLimit))
+                if (_type.CanBeSafelyConvertedTo(newLimit))
+                    return this;
+                else
                     return null;
             }
-            else
-            {
-                if (newLimit.Arguments.Length != _type.Arguments.Length)
-                    return null;
-                for (int i = 0; i < newLimit.Arguments.Length; i++)
-                {
-                    var limArg = newLimit.Arguments[i];
-                    var thisArg = _type.Arguments[i];
-                    if (limArg.Behavior is GenericTypeBehaviour)
-                    {
-                        if (!thisArg.SetGeneric(limArg))
-                            return null;
-                    }
-                    else if (_type.Name.Id == TiTypeName.Function.Id && i > 0)
-                    {
-                        //hi order function arguments got reversed rules
 
-                        //firstly try to setStrict (for more concrete hi order function solving)
-                        if (!thisArg.SetStrict(limArg.MakeType()))
-                        {
-                            //if it fails - then set limit
-                            if (!limArg.SetLimit(thisArg.MakeType()))
-                                return null;
-                        }
-                    }
-                    else 
+            if (newLimit.Arguments.Length != _type.Arguments.Length)
+                return null;
+            
+            for (int i = 0; i < newLimit.Arguments.Length; i++)
+            {
+                var limArg = newLimit.Arguments[i];
+                var thisArg = _type.Arguments[i];
+                if (limArg.Behavior is GenericTypeBehaviour)
+                {
+                    if (!thisArg.SetGeneric(limArg))
+                        return null;
+                }
+                else if (_type.Name.Id == TiTypeName.Function.Id && i > 0)
+                {
+                    //hi order function arguments got reversed rules
+
+                    //firstly try to setStrict (for more concrete hi order function solving)
+                    if (!thisArg.SetStrict(limArg.MakeType()))
                     {
-                        if (!thisArg.SetLimit(limArg.MakeType()))
+                        //if it fails - then set limit
+                        if (!limArg.SetLimit(thisArg.MakeType()))
                             return null;
                     }
+                }
+                else 
+                {
+                    if (!thisArg.SetLimit(limArg.MakeType()))
+                        return null;
                 }
             }
             return this;
@@ -120,8 +121,8 @@ namespace NFun.TypeInference.Solving
 
         public string ToSmartString(int maxDepth = 10) => $"{_type}";
 
-        public INodeBehavior Optimize(out bool o) {
-            o = false;
+        public INodeBehavior Optimize(out bool hasChanged) {
+            hasChanged = false;
             return this;
         }
 

@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NFun.Exceptions;
-using NFun.HindleyMilner;
 using NFun.Interpritation.Functions;
 using NFun.ParseErrors;
 using NFun.Runtime;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
+using NFun.TypeInference;
 using NFun.TypeInference.Solving;
 using NFun.Types;
 
@@ -31,13 +31,9 @@ namespace NFun.Interpritation
                userFunctions.Add(userFunction);
             }
 
-            var algorithm = new HmAlgorithmAdapter(functionsDictionary);
-            if(!algorithm.ComeOver(syntaxTree))
-                throw ErrorFactory.TypesNotSolved(syntaxTree);
-
-            //solve body
-            var bodyTypeSolving = algorithm.Solve();
-            if (!bodyTypeSolving.IsSolved)
+            var bodyTypeSolving = LangTiHelper.SetupTiOrNull(syntaxTree, functionsDictionary)?.Solve();
+            
+            if (bodyTypeSolving?.IsSolved!=true)
                 throw ErrorFactory.TypesNotSolved(syntaxTree);
 
             foreach (var syntaxNode in syntaxTree.Children)
@@ -48,8 +44,8 @@ namespace NFun.Interpritation
                 
                 //set types to nodes
                 syntaxNode.ComeOver(
-                    enterVisitor: new ApplyHmResultEnterVisitor(bodyTypeSolving, SolvedTypeConverter.SetGenericsToAny),
-                    exitVisitor: new ApplyTiResultsExitVisitor());
+                    enterVisitor: new ApplyTiResultEnterVisitor(bodyTypeSolving, TiToLangTypeConverter.SetGenericsToAny),
+                    exitVisitor:  new ApplyTiResultsExitVisitor());
             }
             
             var variables = new VariableDictionary(); 
@@ -131,9 +127,9 @@ namespace NFun.Interpritation
             var visitorInitState = CreateVisitorStateFor(functionSyntaxNode);
 
             //solving each function
-            var typeSolving = new HmAlgorithmAdapter(functionsDictionary, visitorInitState);
+            var typeSolving = LangTiHelper.SetupTiOrNull(functionSyntaxNode.Body, functionsDictionary, visitorInitState);
 
-            if (!typeSolving.ComeOver(functionSyntaxNode.Body))
+            if (typeSolving==null)
                 throw FunParseException.ErrorStubToDo($"Function '{functionSyntaxNode.Id}' is not solved");
 
             var setFunTypeResult = visitorInitState.CurrentSolver.SetFunDefenition(funAlias,
@@ -156,9 +152,9 @@ namespace NFun.Interpritation
             var isGeneric = types.GenericsCount > 0;
             //set types to nodes
             functionSyntaxNode.ComeOver(
-                enterVisitor:new ApplyHmResultEnterVisitor(types, SolvedTypeConverter.SaveGenerics),
+                enterVisitor:new ApplyTiResultEnterVisitor(types, TiToLangTypeConverter.SaveGenerics),
                 exitVisitor: new ApplyTiResultsExitVisitor());
-            var funType = types.GetVarType(funAlias, SolvedTypeConverter.SaveGenerics);
+            var funType =  types.GetVarType(funAlias, TiToLangTypeConverter.SaveGenerics);
             
             if (isGeneric)
             {
@@ -262,9 +258,9 @@ namespace NFun.Interpritation
                     type: actualType);
         }
 
-        public static HmVisitorState CreateVisitorStateFor(UserFunctionDefenitionSyntaxNode node)
+        public static SetupTiState CreateVisitorStateFor(UserFunctionDefenitionSyntaxNode node)
         {
-            var visitorState = new HmVisitorState(new HmHumanizerSolver());
+            var visitorState = new SetupTiState(new TiLanguageSolver());
             
             //Add user function as a functional variable
             //make outputType
@@ -277,7 +273,7 @@ namespace NFun.Interpritation
                 if (visitorState.HasAlias(argNode.Id))
                     throw ErrorFactory.FunctionArgumentDuplicates(node, argNode);
 
-                var inputAlias = AdapterHelper.GetArgAlias(argNode.Id, node.GetFunAlias());
+                var inputAlias = LangTiHelper.GetArgAlias(argNode.Id, node.GetFunAlias());
 
                 //make aliases for input variables
                 visitorState.AddVariableAliase(argNode.Id, inputAlias);
@@ -291,7 +287,7 @@ namespace NFun.Interpritation
                 else
                 {
                     //variable type is specified
-                    var hmType = argNode.VarType.ConvertToHmType();
+                    var hmType = argNode.VarType.ConvertToTiType();
                     visitorState.CurrentSolver.SetVarType(inputAlias, hmType);
                     argTypes.Add(SolvingNode.CreateStrict(hmType));
                 }

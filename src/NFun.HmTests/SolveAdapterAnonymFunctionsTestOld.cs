@@ -6,12 +6,12 @@ namespace NFun.HmTests
     public class SolveAdapterAnonymFunctionsTestOLD
     
     {
-        private HmHumanizerSolver solver;
+        private TiLanguageSolver solver;
 
         [SetUp]
         public void Init()
         {
-            solver = new HmHumanizerSolver();
+            solver = new TiLanguageSolver();
         }
         [Test]
         public void FilterFunction_Resolved()
@@ -42,7 +42,7 @@ namespace NFun.HmTests
 
             solver.SetVar(0, "a");
             //######### SOLVING ANONYMOUS ################
-            var anonymFunSolver = new HmHumanizerSolver();
+            var anonymFunSolver = new TiLanguageSolver();
             // 3    021
             //out = x>input
             anonymFunSolver.SetVar(0, "x");

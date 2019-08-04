@@ -3,15 +3,15 @@ using System.Linq;
 using NFun.TypeInference.Solving;
 using NFun.Types;
 
-namespace NFun.HindleyMilner
+namespace NFun.TypeInference
 {
-    public abstract class SolvedTypeConverter 
+    public abstract class TiToLangTypeConverter 
     {
-        public static SolvedTypeConverter SaveGenerics 
-            => new SaveGenericsSolvedTypeConverter();
+        public static TiToLangTypeConverter SaveGenerics 
+            => new SaveGenericsTiToLangTypeConverter();
         
-        public static SolvedTypeConverter SetGenericsToAny 
-            => new SetGenericsToAnySolvedTypeConverter();
+        public static TiToLangTypeConverter SetGenericsToAny 
+            => new SetGenericsToAnyTiToLangTypeConverter();
 
         protected abstract VarType ConvertGeneric(GenericType type);
         public VarType ToSimpleType(TiType type)
@@ -54,7 +54,7 @@ namespace NFun.HindleyMilner
             => ToSimpleType(node.MakeType());
         
         
-        class SaveGenericsSolvedTypeConverter : SolvedTypeConverter
+        class SaveGenericsTiToLangTypeConverter : TiToLangTypeConverter
         {
             protected override VarType ConvertGeneric(GenericType type)
             {
@@ -62,7 +62,7 @@ namespace NFun.HindleyMilner
 
             }
         }
-        class SetGenericsToAnySolvedTypeConverter: SolvedTypeConverter
+        class SetGenericsToAnyTiToLangTypeConverter: TiToLangTypeConverter
         {
             protected override VarType ConvertGeneric(GenericType type)
             {

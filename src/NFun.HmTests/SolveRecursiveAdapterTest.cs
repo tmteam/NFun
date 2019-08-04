@@ -5,12 +5,12 @@ namespace NFun.HmTests
 {
     public class SolveRecursiveAdapterTest
     {
-        private HmHumanizerSolver solver;
+        private TiLanguageSolver solver;
 
         [SetUp]
         public void Init()
         {
-            solver = new HmHumanizerSolver();
+            solver = new TiLanguageSolver();
         }
         [Test]
         public void OutEqualsToItself_SingleGenericFound()

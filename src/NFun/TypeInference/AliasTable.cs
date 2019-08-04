@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace NFun.HindleyMilner
+namespace NFun.TypeInference
 {
     public class AliasTable
     {

@@ -12,15 +12,13 @@ namespace NFun.TypeInference.Solving
 
             var args = type.Arguments.Select(MakeStrictNode).ToArray();
             
-            //var args = type.Arguments.Select(
-            //      a=> CreateSolvingNode(a.MakeType())).ToArray();
             return SolvingNode.CreateStrict(type.Name, args);
         }
         private SolvingNode MakeStrictNode(SolvingNode node)
         {
             var actual = node.GetActualNode();
             
-            if (actual.Behavior is GenericTypeBehaviour g)
+            if (actual.Behavior is GenericTypeBehaviour)
             {
                 _map.Add(node);
                 return node;

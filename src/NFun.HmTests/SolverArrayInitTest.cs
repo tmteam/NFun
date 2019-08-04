@@ -6,12 +6,12 @@ namespace NFun.HmTests
     [TestFixture]
     public class SolverArrayInitTest
     {
-        private HmHumanizerSolver solver;
+        private TiLanguageSolver solver;
 
         [SetUp]
         public void Init()
         {
-            solver = new HmHumanizerSolver();
+            solver = new TiLanguageSolver();
         }
         [Test]
         public void EmptyArrayInit()

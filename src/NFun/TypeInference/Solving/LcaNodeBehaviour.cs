@@ -67,19 +67,19 @@ namespace NFun.TypeInference.Solving
 
         }
 
-        public INodeBehavior Optimize(out bool changed)
+        public INodeBehavior Optimize(out bool hasChanged)
         {
-            changed = false;
+            hasChanged = false;
             int i = 0;
             if (OtherNodes.Length == 0)
             {
-                changed = true;
+                hasChanged = true;
                 return new GenericTypeBehaviour();
             }
 
             if (OtherNodes.Length == 1)
             {
-                changed = true;
+                hasChanged = true;
                 if (OtherNodes[0].Behavior == this)
                 {
                     //Generic is up there
@@ -91,10 +91,9 @@ namespace NFun.TypeInference.Solving
            
             foreach (var node in OtherNodes)
             {
-                   
                 if (node.Behavior == this)
                 {
-                    changed = true;
+                    hasChanged = true;
                     var newNodes = OtherNodes.Where(o => o.Behavior != this).ToArray();
                     return new LcaNodeBehaviour(newNodes);
                 }
@@ -120,7 +119,7 @@ namespace NFun.TypeInference.Solving
 
                 if (node.Behavior is GenericTypeBehaviour g)
                 {
-                    changed = true;
+                    hasChanged = true;
                     var nodes = OtherNodes.Where(o => o != node).ToArray();
                     node.SetLca(nodes);
                     return new ReferenceBehaviour(node);
@@ -134,7 +133,7 @@ namespace NFun.TypeInference.Solving
                         .Where(o=>o!= node)
                         .Distinct();
                     
-                    changed = true;
+                    hasChanged = true;
                     return new LcaNodeBehaviour(unitedNodes.ToArray());
                 }
                 
@@ -147,7 +146,7 @@ namespace NFun.TypeInference.Solving
                             .Where(o=>o.Behavior!= this) 
                             .Where(o=>o!= node)
                             .Distinct();
-                    changed = true;
+                    hasChanged = true;
                     return new LcaNodeBehaviour(unitedNodes.ToArray());
                 }
                 i++;
@@ -204,17 +203,6 @@ namespace NFun.TypeInference.Solving
             if(res.Type== FitType.Strict)
                 return FitResult.Candidate(res.Distance);
             return res;
-            
-            var worstResult = new FitResult(FitType.Strict, 0);
-            
-            foreach (var child in OtherNodes)
-            {
-                
-                var childResult =  child.CanBeConvertedTo(candidateType, maxDepth - 1);
-                if (worstResult.IsBetterThan(childResult))
-                    worstResult = childResult;
-            }
-            return worstResult;
         }
     }
 }

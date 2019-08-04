@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using NFun.BuiltInFunctions;
 using NFun.Interpritation;
@@ -9,14 +8,13 @@ using NFun.SyntaxParsing.Visitors;
 using NFun.TypeInference.Solving;
 using NFun.Types;
 
-namespace NFun.HindleyMilner
+namespace NFun.TypeInference
 {
-    
-    sealed class ExitHmVisitor: ExitVisitorBase
+    sealed class SetupTiExitVisitor: ExitVisitorBase
     {
-        private readonly HmVisitorState _state;
+        private readonly SetupTiState _state;
         private readonly FunctionsDictionary _dictionary;
-        public ExitHmVisitor(HmVisitorState state, FunctionsDictionary dictionary)
+        public SetupTiExitVisitor(SetupTiState state, FunctionsDictionary dictionary)
         {
             _state = state;
             _dictionary = dictionary;
@@ -57,7 +55,7 @@ namespace NFun.HindleyMilner
         {
             if (node.OutputTypeSpecified)
             {
-                var type = node.OutputType.ConvertToHmType();
+                var type = node.OutputType.ConvertToTiType();
                 _state.CurrentSolver.SetVarType(node.Id, type);
                 _state.CurrentSolver.SetStrict(node.Expression.OrderNumber, type);
             }
@@ -81,7 +79,7 @@ namespace NFun.HindleyMilner
             var argsCount = node.Args.Length;
 
             //check for recursion call
-            var funAlias = AdapterHelper.GetFunAlias(node.Id, argsCount) ;
+            var funAlias = LangTiHelper.GetFunAlias(node.Id, argsCount) ;
             var funType = _state.CurrentSolver.GetOrNull(funAlias);
             if (funType != null && funType.Name.Id == TiTypeName.FunId 
                                 && funType.Arguments.Length-1 == node.Args.Length)
@@ -191,7 +189,7 @@ namespace NFun.HindleyMilner
       
         public override bool Visit(ConstantSyntaxNode node)
         {
-            var type = AdapterHelper.ConvertToHmType(node.OutputType);
+            var type = LangTiHelper.ConvertToTiType(node.OutputType);
             
             if (node.OutputType == VarType.Int32)
             {
@@ -206,10 +204,10 @@ namespace NFun.HindleyMilner
         }
 
         public override  bool Visit(TypedVarDefSyntaxNode node)
-            => _state.CurrentSolver.SetVarType(node.Id, AdapterHelper.ConvertToHmType(node.VarType));
+            => _state.CurrentSolver.SetVarType(node.Id, LangTiHelper.ConvertToTiType(node.VarType));
             
         public override  bool Visit(VarDefenitionSyntaxNode node)
-            => _state.CurrentSolver.SetVarType(node.Id, AdapterHelper.ConvertToHmType(node.VarType));
+            => _state.CurrentSolver.SetVarType(node.Id, LangTiHelper.ConvertToTiType(node.VarType));
         public override  bool Visit(VariableSyntaxNode node)
         {
             var originId = node.Id;
@@ -243,14 +241,14 @@ namespace NFun.HindleyMilner
         }
         
         
-        private static FunSignature ToFunSignature(FunctionBase fun) 
-            => new FunSignature( fun.ReturnType.ConvertToHmType(), 
-                    fun.ArgTypes.Select(AdapterHelper.ConvertToHmType).ToArray());
+        private static TiFunctionSignature ToFunSignature(FunctionBase fun) 
+            => new TiFunctionSignature( fun.ReturnType.ConvertToTiType(), 
+                    fun.ArgTypes.Select(LangTiHelper.ConvertToTiType).ToArray());
 
         private static CallDefenition ToCallDef(FunCallSyntaxNode node, FunctionBase fun)
         {
             var ids = new[] {node.OrderNumber}.Concat(node.Args.Select(a => a.OrderNumber)).ToArray();
-            var types = new[] {fun.ReturnType}.Concat(fun.ArgTypes).Select(AdapterHelper.ConvertToHmType).ToArray();
+            var types = new[] {fun.ReturnType}.Concat(fun.ArgTypes).Select(LangTiHelper.ConvertToTiType).ToArray();
 
             var callDef = new CallDefenition(types, ids);
             return callDef;
@@ -258,7 +256,7 @@ namespace NFun.HindleyMilner
         private static CallDefenition ToCallDef(FunCallSyntaxNode node, GenericFunctionBase fun)
         {
             var ids = new[] {node.OrderNumber}.Concat(node.Args.Select(a => a.OrderNumber)).ToArray();
-            var types = new[] {fun.ReturnType}.Concat(fun.ArgTypes).Select(AdapterHelper.ConvertToHmType).ToArray();
+            var types = new[] {fun.ReturnType}.Concat(fun.ArgTypes).Select(LangTiHelper.ConvertToTiType).ToArray();
 
             var callDef = new CallDefenition(types, ids);
             return callDef;

@@ -4,29 +4,26 @@ using System.Linq;
 
 namespace NFun.TypeInference.Solving
 {
-    public class HmResult
+    public class TiResult
     {
         public const int NestedDepth = 100;
         private readonly IList<SolvingNode> _nodes;
-        private readonly IList<SolvingNode> _allTypes;
         private readonly Dictionary<string, SolvingNode> _variablesMap;
         public string[] VarNames => _variablesMap.Keys.ToArray();
-        public static HmResult NotSolvedResult() => new HmResult(false);
+        public static TiResult NotSolvedResult() => new TiResult(false);
 
-        private HmResult(bool isSolved)
+        private TiResult(bool isSolved)
         {
-            _allTypes = new List<SolvingNode>();
             _variablesMap = new Dictionary<string, SolvingNode>();
             IsSolved = isSolved;
         }
 
-        public HmResult(IList<SolvingNode> nodes, IList<SolvingNode> allTypes,
-            Dictionary<string, SolvingNode> variablesMap, Dictionary<int, FunSignature> overloads)
+        public TiResult(IList<SolvingNode> nodes, IList<SolvingNode> allTypes,
+            Dictionary<string, SolvingNode> variablesMap, Dictionary<int, TiFunctionSignature> overloads)
         {
             _overloads = overloads;
             IsSolved = true;
             _nodes = nodes;
-            _allTypes = allTypes;
             _variablesMap = variablesMap;
             int genericsCount = 0;
             _genMap = new Dictionary<SolvingNode, int>();
@@ -46,10 +43,10 @@ namespace NFun.TypeInference.Solving
         }
 
         public int GenericsCount { get; }
-        public bool IsSolved { get; private set; }
+        public bool IsSolved { get; }
 
         private readonly Dictionary<SolvingNode, int> _genMap;
-        private Dictionary<int, FunSignature> _overloads;
+        private readonly Dictionary<int, TiFunctionSignature> _overloads;
         public TiType GetVarType(string varId) => ConvertToHmType2(_variablesMap[varId], NestedDepth);
 
         public TiType GetVarTypeOrNull(string varId)
@@ -132,7 +129,7 @@ namespace NFun.TypeInference.Solving
             return ConvertToHmType2(node, NestedDepth);
         }
 
-        public FunSignature GetFunctionOverload(int nodeId)
+        public TiFunctionSignature GetFunctionOverload(int nodeId)
         {
             if (_overloads.ContainsKey(nodeId)) 
                 return _overloads[nodeId];

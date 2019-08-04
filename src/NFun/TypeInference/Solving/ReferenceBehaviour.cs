@@ -50,18 +50,17 @@ namespace NFun.TypeInference.Solving
             return " => " + Node.ToSmartString(maxDepth - 1);
         }
 
-        public INodeBehavior Optimize(out bool o)
+        public INodeBehavior Optimize(out bool hasChanged)
         {
             if (Node.Behavior is ReferenceBehaviour r) {
-                
-                o = true;
+                hasChanged = true;
                 if (r == this)
                     return new GenericTypeBehaviour();
                 return new ReferenceBehaviour(r.Node);
             }
 
-            if (!Node.Optimize(out o)) {
-                o = false;
+            if (!Node.Optimize(out hasChanged)) {
+                hasChanged = false;
             }
 
             return this;

@@ -4,16 +4,16 @@ using NFun.ParseErrors;
 
 namespace NFun.TypeInference.Solving
 {
-    public class HmHumanizerSolver
+    public class TiLanguageSolver
     {
-        private readonly HmNodeSolver _solver;
+        private readonly TiSolver _solver;
 
-        public HmHumanizerSolver()
+        public TiLanguageSolver()
         {
-            _solver = new HmNodeSolver();
+            _solver = new TiSolver();
         }
 
-        public HmResult Solve() => _solver.Solve();
+        public TiResult Solve() => _solver.Solve();
 
         public SetTypeResult SetFunDefenition(string funId, int funNodeId, int expressionId)
         {
@@ -30,16 +30,17 @@ namespace NFun.TypeInference.Solving
                 var concrete = strict.MakeType();
                 if (concrete.IsPrimitive)
                 {
-                    if (!_solver.SetLimit(expressionId, concrete.Name))
-                        return SetTypeResult.Failed(expressionId, SetTypeResultError.ExpressionTypeIsIncorrect);
-                    else
+                    if (_solver.SetLimit(expressionId, concrete.Name))
                         return SetTypeResult.Succesfully;
+                    else
+                        return SetTypeResult.Failed(expressionId, SetTypeResultError.ExpressionTypeIsIncorrect);
                 }
             }
 
-            if (!_solver.Unite(expressionId, funType.Arguments[0]))
+            if (_solver.Unite(expressionId, funType.Arguments[0])) 
+                return SetTypeResult.Succesfully;
+            else
                 return SetTypeResult.Failed(expressionId, SetTypeResultError.ExpressionTypeIsIncorrect);
-            return SetTypeResult.Succesfully;
         }
         
 
@@ -48,7 +49,7 @@ namespace NFun.TypeInference.Solving
             var funDef = _solver.GetOrNull(funId);
             if(funDef==null)
                 throw new InvalidOperationException("Fun "+ funId+" not found");
-            var funType = funDef.MakeType(SolvingNode.MaxTypeDepth);
+            var funType = funDef.MakeType();
             if (!funType.Name.Equals(TiTypeName.Function))
                 return false;
 
@@ -69,7 +70,6 @@ namespace NFun.TypeInference.Solving
                     return false;
             }
 
-            //var valNodes = thenElseNodeIds.Select(_solver.GetNode) .ToArray();
             return _solver.SetLca(nodeId, thenElseNodeIds);
         }
         /// <summary>
@@ -79,14 +79,12 @@ namespace NFun.TypeInference.Solving
         /// <returns></returns>
         public bool SetCall(CallDefenition call) => _solver.SetLimArgCall(call);
 
-        public bool SetOverloadCall(FunSignature[] candidates, int returnNodeId,
+        public bool SetOverloadCall(TiFunctionSignature[] candidates, int returnNodeId,
             params int[] argIds) => SetOverloadCall(candidates, returnNodeId, argIds, true);
         /// <summary>
         /// Set call, that limit its args to concrete types
         /// </summary>
-        /// <param name="call"></param>
-        /// <returns></returns>
-        public bool SetOverloadCall(FunSignature[] candidates, int returnNodeId, 
+        public bool SetOverloadCall(TiFunctionSignature[] candidates, int returnNodeId, 
              int[] argIds, bool useForArgLimitation = true )
         {
             if (candidates.Length == 1)
@@ -120,7 +118,7 @@ namespace NFun.TypeInference.Solving
             
         }
 
-        private bool TrySpecifyArgumentType(FunSignature[] candidates, int[] argIds, int argNum)
+        private bool TrySpecifyArgumentType(TiFunctionSignature[] candidates, int[] argIds, int argNum)
         {
             bool allEqual = true;
             
@@ -223,41 +221,15 @@ namespace NFun.TypeInference.Solving
         public SolvingNode GetOrCreate(string variableName) => _solver.GetOrCreate(variableName);
 
         public SetTypeResult SetComparationOperator(int nodeId, int leftId, int rightId)
-        { /*
-           if (SetOverloadCall(
-                new[]
-                {
-                    new FunSignature(FType.Bool, FType.Int32, FType.Int32),
-                    new FunSignature(FType.Bool, FType.Real, FType.Real),
-                    new FunSignature(FType.Bool, FType.Int64, FType.Int64),
-                }, nodeId, new []{leftId, rightId}))
-               return SetTypeResult.Succesfully;
-            return SetTypeResult.Failed(nodeId,SetTypeResultError.ArgumentIsNotANumber);
-            */
-            
+        {   
             if(!_solver.SetLimit(leftId, TiTypeName.Real))
                 return SetTypeResult.Failed(leftId, SetTypeResultError.ArgumentIsNotANumber);
             if(!_solver.SetLimit(rightId, TiTypeName.Real))
                 return SetTypeResult.Failed(leftId, SetTypeResultError.ArgumentIsNotANumber);
 
-
-
             if(!_solver.SetStrict(nodeId, TiType.Bool))
                 return SetTypeResult.Failed(nodeId, SetTypeResultError.ExpressionTypeIsIncorrect);
                 
-            return SetTypeResult.Succesfully;
-        }
-        
-        public SetTypeResult SetBitwiseOperator(int nodeId, int leftId, int rightId)
-        {
-            if(!_solver.SetLimit(leftId, TiTypeName.SomeInteger))
-                return SetTypeResult.Failed(leftId, SetTypeResultError.ArgumentIsNotAnInt);
-                       
-            if(!_solver.SetLimit(rightId, TiTypeName.SomeInteger))
-                return SetTypeResult.Failed(rightId, SetTypeResultError.ArgumentIsNotAnInt);
-                
-            if(!_solver.SetLca(nodeId, new[] {leftId, rightId}))
-                return SetTypeResult.Failed(nodeId);
             return SetTypeResult.Succesfully;
         }
         
@@ -268,12 +240,12 @@ namespace NFun.TypeInference.Solving
             if (SetOverloadCall(
                 new[]
                 {
-                    new FunSignature(TiType.Real,  TiType.Real),
-                    new FunSignature(TiType.Int16, TiType.Int16),
-                    new FunSignature(TiType.Int32, TiType.Int32),
-                    new FunSignature(TiType.Int64, TiType.Int64),
-                    new FunSignature(TiType.Int16, TiType.UInt8),
-                    new FunSignature(TiType.Int64, TiType.UInt32),
+                    new TiFunctionSignature(TiType.Real,  TiType.Real),
+                    new TiFunctionSignature(TiType.Int16, TiType.Int16),
+                    new TiFunctionSignature(TiType.Int32, TiType.Int32),
+                    new TiFunctionSignature(TiType.Int64, TiType.Int64),
+                    new TiFunctionSignature(TiType.Int16, TiType.UInt8),
+                    new TiFunctionSignature(TiType.Int64, TiType.UInt32),
                 }, nodeId, new[] {argNodeId}, true
             ))
             {
@@ -282,17 +254,10 @@ namespace NFun.TypeInference.Solving
             }
 
             return SetTypeResult.Failed(nodeId, SetTypeResultError.IncorrectVariableType);
-            
-            if(!_solver.SetLimit(argNodeId, TiTypeName.Real))
-                return SetTypeResult.Failed(argNodeId, SetTypeResultError.ArgumentIsNotANumber);
-            if(! _solver.Unite(nodeId, argNodeId))
-                return SetTypeResult.Failed(nodeId);
-            return SetTypeResult.Succesfully;
         }
         
         public SetTypeResult SetBitShiftOperator(int nodeId, int leftId, int rightId)
         {
-            
             if(!_solver.SetLimit(leftId, TiTypeName.SomeInteger))
                 return SetTypeResult.Failed(leftId, SetTypeResultError.ArgumentIsNotAnInt);
                        
@@ -302,7 +267,6 @@ namespace NFun.TypeInference.Solving
             if(!_solver.SetLca(nodeId, new[] {leftId, rightId}))
                     return SetTypeResult.Failed(nodeId);
             return SetTypeResult.Succesfully;
-                
         }
         
         
@@ -335,27 +299,12 @@ namespace NFun.TypeInference.Solving
                 _solver.GetOrCreate(rightId), 
                 SolvingNode.CreateStrict(TiType.UInt16) 
             });
-            
-            
-            //Save possible overloads.
-          /*  _solver.AddLazyOverloadsCall(
-                    new OverloadCall(
-                        new []{
-                        new FunSignature(FType.Real, FType.Real, FType.Real),
-                        new FunSignature(FType.Int32, FType.Int32, FType.Int32),
-                        new FunSignature(FType.Int64, FType.Int64, FType.Int64),
-                        new FunSignature(FType.UInt32, FType.UInt32, FType.UInt32),
-                        new FunSignature(FType.UInt64, FType.UInt64, FType.UInt64)
-                        }, nodeId, new[] {leftId, rightId}, false));
-            */
             return SetTypeResult.Succesfully;
         }
         
         
         public bool SetConst(int nodeId, TiType type) 
-        {
-            return _solver.SetStrict(nodeId, type);
-        }
+            => _solver.SetStrict(nodeId, type);
 
         public bool SetNode(int nodeId, SolvingNode closured) 
             => _solver.SetNode(nodeId, closured);
@@ -390,7 +339,6 @@ namespace NFun.TypeInference.Solving
 
         public bool SetProcArrayInit(int nodeId, int fromId, int toId, int stepId)
         {
-
             var limits = _solver.SetLimit(fromId, TiTypeName.Real)
                          && _solver.SetLimit(toId, TiTypeName.Real)
                          && _solver.SetLimit(stepId, TiTypeName.Real);
@@ -420,23 +368,21 @@ namespace NFun.TypeInference.Solving
             return type?.MakeType();
             
         }
-        public bool SetLcaConst(int nodeOrderNumber, TiType type){
-            return _solver.SetLca(nodeOrderNumber, new []{SolvingNode.CreateStrict(type)});
-        }
-        public bool SetLimitConst(int nodeOrderNumber, TiType type)
-        {
-            return _solver.SetLimit(nodeOrderNumber, type.Name);
-        }
+        public bool SetLcaConst(int nodeOrderNumber, TiType type) 
+            => _solver.SetLca(nodeOrderNumber, new []{SolvingNode.CreateStrict(type)});
+
+        public bool SetLimitConst(int nodeOrderNumber, TiType type) 
+            => _solver.SetLimit(nodeOrderNumber, type.Name);
     }
 
     public class OverloadCall
     {
         public readonly bool UseForArgLimitation;
-        public readonly FunSignature[] Candidates;
+        public readonly TiFunctionSignature[] Candidates;
         public readonly int ReturnNodeId;
         public readonly int[] ArgIds;
 
-        public OverloadCall(FunSignature[] candidates, int returnNodeId, int[] argIds, bool useForArgLimitation = true)
+        public OverloadCall(TiFunctionSignature[] candidates, int returnNodeId, int[] argIds, bool useForArgLimitation = true)
         {
             UseForArgLimitation = useForArgLimitation;
             Candidates = candidates;
