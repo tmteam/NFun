@@ -3,7 +3,7 @@ using NFun.Interpritation.Functions;
 using NFun.Runtime;
 using NFun.Types;
 
-namespace Tests
+namespace NFun.ExprementalTests
 {
     public class IsGoodFunction : FunctionBase
     {

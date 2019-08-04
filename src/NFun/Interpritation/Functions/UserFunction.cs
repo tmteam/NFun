@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NFun.BuiltInFunctions;
+using NFun.Exceptions;
 using NFun.Interpritation.Nodes;
 using NFun.Runtime;
 
@@ -8,19 +10,22 @@ namespace NFun.Interpritation.Functions
 {
     public class UserFunction : FunctionBase
     {
-        private readonly VariableSource[] _variables;
+        public VariableSource[] Variables { get; }
+        public bool IsReturnTypeStrictlyTyped { get; }
         private readonly IExpressionNode _expression;
-
+            
         public UserFunction(
             string name, 
-            VariableSource[] variables, 
+            VariableSource[] variables,
+            bool isReturnTypeStrictlyTyped,
             IExpressionNode expression) 
             : base(
                 name, 
                 expression.Type,
                 variables.Select(v=>v.Type).ToArray())
         {
-            _variables = variables;
+            Variables = variables;
+            IsReturnTypeStrictlyTyped = isReturnTypeStrictlyTyped;
             _expression = expression;
         }
 
@@ -34,9 +39,9 @@ namespace NFun.Interpritation.Functions
             {
                 _recursiveArgsStack.Push(args);
                 if (_recursiveArgsStack.Count > 400)
-                    throw new FunStackoverflowException($"stack overflow on {Name}");
+                    throw new FunRuntimeStackoverflowException($"stack overflow on {Name}");
 
-                if (args.Length != _variables.Length)
+                if (args.Length != Variables.Length)
                     throw new ArgumentException();
                 SetVariables(args);
 
@@ -57,7 +62,7 @@ namespace NFun.Interpritation.Functions
         private void SetVariables(object[] args)
         {
             for (int i = 0; i < args.Length; i++)
-                _variables[i].Value=  args[i];
+                Variables[i].Value=  args[i];
         }
 
         public override string ToString() 

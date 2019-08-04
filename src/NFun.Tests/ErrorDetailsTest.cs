@@ -48,6 +48,8 @@ namespace Funny.Tests
         [TestCase("if ","1+2"," 1 else 2")]
         [TestCase("x:int[] \r y = x","[true and false]","")]
         [TestCase("if (true) 1 else ", "true","")]
+        [TestCase("if (true) 1; if (false) ", "true"," else 2")]
+        [TestCase("if (true) 1; if (false) 2 else ", "true","")]
         [TestCase("y(x) = x + ","z","")]
         [TestCase("y(x) = ","z"," + x")]
         [TestCase("x:bool\ry=","sin(x)","")]
@@ -55,14 +57,17 @@ namespace Funny.Tests
         [TestCase("y(x) = ","z"," +x")]
         [TestCase("","y(x,x)","=x+1")]
         [TestCase("","y(x,x,z)","=x+1")]
-        [TestCase("[1.0,2.0].fold((i,","i",")=>i+1)")]
-        [TestCase("[1.0,2.0].map((i,","i",")=>i+1)")]
+        [TestCase("[1.0,2.0].fold((i,","i",")->i+1)")]
+        [TestCase("[1.0,2.0].map((i,","i",")->i+1)")]
         [TestCase("y = ","min","*3 ")]
         [TestCase("","max","*3 ")]
         [TestCase("foo(x) = x +1\r y=","foo","*3")]
         [TestCase("\r y=","foo","*3 \r foo(x) = x +1")]
         [TestCase("foo(x) = x +1\r ","foo","*3 ")]
         [TestCase("y = if (x>0) 1 ", "if", "(x<0) -1 else 0")]
+        [TestCase("y = 1 ", "z=", "2")]
+        [TestCase("", "set", " x=1")]
+
         public void ErrorPosition(string beforeError, string errorBody, string afterError)
         {
             AssertErrorPosition(beforeError, errorBody, afterError);
@@ -114,6 +119,8 @@ namespace Funny.Tests
         [TestCase("s=[",",","2]")]
         [TestCase("s=[",",",",2]")]
         [TestCase("s=","[","")]
+        [TestCase("['1',", "2","]")]
+
         [TestCase("['1',", "2",",'3','4']")]
         [TestCase("[ '0','1', ", "2","]")]
         public void InitializeArray_ErrorPosition(string beforeError, string errorBody, string afterError)

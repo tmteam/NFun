@@ -9,21 +9,33 @@ namespace NFun.Types
         {
             unchecked
             {
-                return ((int) BaseType * 397) ^ (ArrayTypeSpecification != null ? ArrayTypeSpecification.GetHashCode() : 0);
+                return ((int) BaseType * 397) ^
+                       (ArrayTypeSpecification != null ? ArrayTypeSpecification.GetHashCode() : 0);
             }
         }
-        
+
         public static VarType Empty => new VarType();
         public static VarType PrimitiveOf(BaseVarType baseType) => new VarType(baseType);
-        public static VarType  Anything => new VarType(BaseVarType.Any);
-        public static VarType  Bool => new VarType(BaseVarType.Bool);
-        public static VarType  Int32 => new VarType(BaseVarType.Int32);
-        public static VarType  Int64 => new VarType(BaseVarType.Int64);
-        public static VarType  Real => new VarType(BaseVarType.Real);
-        public static VarType  Text => new VarType(BaseVarType.Text);
+        public static VarType Anything => new VarType(BaseVarType.Any);
+        public static VarType Bool => new VarType(BaseVarType.Bool);
+        public static VarType Char => new VarType(BaseVarType.Char);
+
+        public static VarType UInt8 => new VarType(BaseVarType.UInt8);
+        public static VarType UInt16 => new VarType(BaseVarType.UInt16);
+        public static VarType UInt32 => new VarType(BaseVarType.UInt32);
+        public static VarType UInt64 => new VarType(BaseVarType.UInt64);
+
+        public static VarType Int16 => new VarType(BaseVarType.Int16);
+        public static VarType Int32 => new VarType(BaseVarType.Int32);
+        public static VarType Int64 => new VarType(BaseVarType.Int64);
+        public static VarType Real => new VarType(BaseVarType.Real);
+        public static VarType  Text =>  ArrayOf(Char);
+        
         public static VarType ArrayOf(VarType type) => new VarType(type);
-        public static VarType Fun(VarType outputType, params VarType[]inputTypes)
+
+        public static VarType Fun(VarType outputType, params VarType[] inputTypes)
             => new VarType(output: outputType, inputs: inputTypes);
+
         public static VarType Generic(int genericId) => new VarType(genericId);
 
         private VarType(VarType output, VarType[] inputs)
@@ -33,6 +45,7 @@ namespace NFun.Types
             ArrayTypeSpecification = null;
             GenericId = null;
         }
+        
         private VarType(int genericId)
         {
             BaseType = BaseVarType.Generic;
@@ -40,6 +53,7 @@ namespace NFun.Types
             ArrayTypeSpecification = null;
             GenericId = genericId;
         }
+
         private VarType(BaseVarType baseType)
         {
             BaseType = baseType;
@@ -55,17 +69,19 @@ namespace NFun.Types
             ArrayTypeSpecification = new AdditionalTypeSpecification(arrayElementType);
             GenericId = null;
         }
-        
+
+        public bool IsText => BaseType == BaseVarType.ArrayOf &&
+                              ArrayTypeSpecification.VarType.BaseType == BaseVarType.Char;
         public readonly BaseVarType BaseType;
         public readonly AdditionalTypeSpecification ArrayTypeSpecification;
         public readonly FunTypeSpecification FunTypeSpecification;
         public readonly int? GenericId;
-        
-        public static bool operator== (VarType obj1, VarType obj2) 
+
+        public static bool operator ==(VarType obj1, VarType obj2)
             => obj1.Equals(obj2);
 
         // this is second one '!='
-        public static bool operator!= (VarType obj1, VarType obj2) 
+        public static bool operator !=(VarType obj1, VarType obj2)
             => !obj1.Equals(obj2);
 
         public override bool Equals(object obj)
@@ -73,20 +89,27 @@ namespace NFun.Types
             if (ReferenceEquals(null, obj)) return false;
             return obj is VarType other && Equals(other);
         }
-       
+
         // this is third one 'Equals'
         private bool Equals(VarType obj)
         {
             if (obj.BaseType != BaseType)
                 return false;
-            
+
             switch (BaseType)
             {
                 case BaseVarType.Bool:
+
+                case BaseVarType.Int16:
                 case BaseVarType.Int32:
                 case BaseVarType.Int64:
+                case BaseVarType.UInt8:
+                case BaseVarType.UInt16:
+                case BaseVarType.UInt32:
+                case BaseVarType.UInt64:
+
                 case BaseVarType.Real:
-                case BaseVarType.Text:
+                case BaseVarType.Char:
                 case BaseVarType.Any:
                     return true;
                 case BaseVarType.ArrayOf:
@@ -95,10 +118,10 @@ namespace NFun.Types
                 {
                     var funA = FunTypeSpecification;
                     var funB = obj.FunTypeSpecification;
-                
+
                     if (!funA.Output.Equals(funB.Output))
                         return false;
-                
+
                     for (int i = 0; i < funA.Inputs.Length; i++)
                     {
                         if (!funA.Inputs[i].Equals(funB.Inputs[i]))
@@ -107,14 +130,14 @@ namespace NFun.Types
 
                     return true;
                 }
-                
+
                 case BaseVarType.Generic:
-                    return GenericId== obj.GenericId;
+                    return GenericId == obj.GenericId;
                 default:
                     return true;
             }
         }
-        
+
         /// <summary>
         /// Substitude concrete types to generic type defenition (if it is)
         ///
@@ -128,10 +151,15 @@ namespace NFun.Types
             {
                 case BaseVarType.Empty:
                 case BaseVarType.Bool:
+                case BaseVarType.Int16:
                 case BaseVarType.Int32:
                 case BaseVarType.Int64:
+                case BaseVarType.UInt8:
+                case BaseVarType.UInt16:
+                case BaseVarType.UInt32:
+                case BaseVarType.UInt64:
                 case BaseVarType.Real:
-                case BaseVarType.Text:
+                case BaseVarType.Char:
                 case BaseVarType.Any:
                     return genericOrNot;
                 case BaseVarType.ArrayOf:
@@ -139,8 +167,10 @@ namespace NFun.Types
                 case BaseVarType.Fun:
                     var outputTypes = new VarType[genericOrNot.FunTypeSpecification.Inputs.Length];
                     for (int i = 0; i < genericOrNot.FunTypeSpecification.Inputs.Length; i++)
-                        outputTypes[i] = SubstituteConcreteTypes(genericOrNot.FunTypeSpecification.Inputs[i], solvedTypes);
-                    return Fun(SubstituteConcreteTypes(genericOrNot.FunTypeSpecification.Output, solvedTypes), outputTypes);
+                        outputTypes[i] =
+                            SubstituteConcreteTypes(genericOrNot.FunTypeSpecification.Inputs[i], solvedTypes);
+                    return Fun(SubstituteConcreteTypes(genericOrNot.FunTypeSpecification.Output, solvedTypes),
+                        outputTypes);
                 case BaseVarType.Generic:
                     return solvedTypes[genericOrNot.GenericId.Value];
                 default:
@@ -162,40 +192,43 @@ namespace NFun.Types
                     }
                     else if (genericArguments[id] != concreteType)
                     {
-                        if (genericArguments[id].CanBeConvertedTo(concreteType)) {
+                        if (genericArguments[id].CanBeConvertedTo(concreteType))
+                        {
                             genericArguments[id] = concreteType;
                             return true;
                         }
-                        
+
                         if (strict)
                             return false;
-                        
-                        if(!concreteType.CanBeConvertedTo(genericArguments[id]))
+
+                        if (!concreteType.CanBeConvertedTo(genericArguments[id]))
                             return false;
                     }
 
                     return true;
                 }
-                case BaseVarType.ArrayOf when concreteType.BaseType!= BaseVarType.ArrayOf:
+                case BaseVarType.ArrayOf when concreteType.BaseType != BaseVarType.ArrayOf:
                     return false;
                 case BaseVarType.ArrayOf:
-                    return TrySolveGenericTypes(genericArguments, genericType.ArrayTypeSpecification.VarType, concreteType.ArrayTypeSpecification.VarType);
-                case BaseVarType.Fun when concreteType.BaseType!= BaseVarType.Fun:
+                    return TrySolveGenericTypes(genericArguments, genericType.ArrayTypeSpecification.VarType,
+                        concreteType.ArrayTypeSpecification.VarType);
+                case BaseVarType.Fun when concreteType.BaseType != BaseVarType.Fun:
                     return false;
                 case BaseVarType.Fun:
                 {
                     var genericFun = genericType.FunTypeSpecification;
                     var concreteFun = concreteType.FunTypeSpecification;
-                    
+
                     if (!TrySolveGenericTypes(genericArguments, genericFun.Output, concreteFun.Output))
                         return false;
                     if (concreteFun.Inputs.Length != genericFun.Inputs.Length)
-                        return false;    
+                        return false;
                     for (int i = 0; i < concreteFun.Inputs.Length; i++)
                     {
                         if (!TrySolveGenericTypes(genericArguments, genericFun.Inputs[i], concreteFun.Inputs[i]))
                             return false;
                     }
+
                     return true;
                 }
                 default:
@@ -203,15 +236,20 @@ namespace NFun.Types
             }
         }
 
-        public int? SearchMaxGenericTypeId() 
+        public int? SearchMaxGenericTypeId()
         {
             switch (BaseType)
             {
                 case BaseVarType.Bool:
+                case BaseVarType.Int16:
                 case BaseVarType.Int32:
                 case BaseVarType.Int64:
+                case BaseVarType.UInt8:
+                case BaseVarType.UInt16:
+                case BaseVarType.UInt32:
+                case BaseVarType.UInt64:
                 case BaseVarType.Real:
-                case BaseVarType.Text:
+                case BaseVarType.Char:
                 case BaseVarType.Any:
                     return null;
                 case BaseVarType.ArrayOf:
@@ -230,6 +268,7 @@ namespace NFun.Types
                     throw new ArgumentOutOfRangeException();
             }
         }
+
         public override string ToString()
         {
             switch (BaseType)
@@ -246,34 +285,6 @@ namespace NFun.Types
         }
         
         public bool CanBeConvertedTo(VarType to)
-            => CanBeConvertedRec(this, to);
-
-        private static bool CanBeConvertedRec(VarType from,VarType to)
-        {
-            if (to == from)
-                return true;
-            switch (to.BaseType)
-            {
-                case BaseVarType.Any:
-                    return true;
-                case BaseVarType.Text:
-                    return true;
-                case BaseVarType.Bool:
-                    return false;
-                case BaseVarType.Int32:
-                    return false;
-                case BaseVarType.Int64:
-                    return from.BaseType == BaseVarType.Int32;
-                case BaseVarType.Real:
-                    return from.BaseType== BaseVarType.Int32;
-                case BaseVarType.ArrayOf:
-                    if (from.BaseType != BaseVarType.ArrayOf)
-                        return false;
-                    else
-                        return CanBeConvertedRec(from.ArrayTypeSpecification.VarType, to.ArrayTypeSpecification.VarType);
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
+            => VarTypeConverter.CanBeConverted(this, to);
     }
 }

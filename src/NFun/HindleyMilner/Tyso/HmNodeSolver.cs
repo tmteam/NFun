@@ -136,6 +136,10 @@ namespace NFun.HindleyMilner.Tyso
             return res;
         }
 
+        public bool SetLca(int nodeId, SolvingNode[] children)
+        {
+            return GetOrCreate(nodeId).SetLca(children);
+        }
         public bool SetLca(int nodeId, int[] dependentNodes)
         {
             var children = dependentNodes.Select(GetOrCreate).ToArray();
@@ -188,25 +192,43 @@ namespace NFun.HindleyMilner.Tyso
             //First: Optimize type graph
             if(!Optimize(_originNodes))
                 return HmResult.NotSolvedResult();
-            
+            var overloads = new Dictionary<int, FunSignature>();
             //Second: Try append overload calls
             foreach (var lazyOverload in _lazyOverloads)
             {
-                var bestCandidate = FunSignature.GetBestFitOrNull(lazyOverload.Candidates, GetOrCreate(lazyOverload.ReturnNodeId),
+                var candidates = FunSignature.GetBestFits(lazyOverload.Candidates, 
+                    GetOrCreate(lazyOverload.ReturnNodeId),
                     lazyOverload.ArgIds.Select(GetOrCreate).ToArray());
-                if (bestCandidate == null) 
-                    //More than one candidate fits.
+                if(candidates.Length==0){
+                    throw FunParseException.ErrorStubToDo("No functions fits");
+                }
+                if(candidates.Length>1){
                     throw FunParseException.ErrorStubToDo("Overload with several candidates");
+                }
+
+                var bestCandidate = candidates[0];
                 
                 //Single function fits. That's good
-                SetLimArgCall(bestCandidate.ToCallDefenition(lazyOverload.ReturnNodeId, lazyOverload.ArgIds));
+                
+                if (lazyOverload.UseForArgLimitation)
+                {
+                    SetLimArgCall(bestCandidate.ToCallDefenition(lazyOverload.ReturnNodeId, lazyOverload.ArgIds));
+                }
+                else
+                {
+                  //  if(!SetStrict(lazyOverload.ReturnNodeId, bestCandidate.ReturnType))
+                  //      throw FunParseException.ErrorStubToDo("Return type does not fit");
+                }
+
+                overloads.Add(lazyOverload.ReturnNodeId, bestCandidate);
             }
             
             //Third: Job finished!
             return new HmResult(
                 _originNodes,
                 _additionalNodes,
-                _variables);
+                _variables, 
+                overloads);
         }
 
         public static bool Optimize(IList<SolvingNode> nodes)
@@ -243,7 +265,7 @@ namespace NFun.HindleyMilner.Tyso
             return true;
         }
 
-        public void SetLazyOverloadsCall(OverloadCall overloadCall) => _lazyOverloads.Add(overloadCall);
+        public void AddLazyOverloadsCall(OverloadCall overloadCall) => _lazyOverloads.Add(overloadCall);
 
         public void AddAdditionalType(SolvingNode node) => _additionalNodes.Add(node);
     }

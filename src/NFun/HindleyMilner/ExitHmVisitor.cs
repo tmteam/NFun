@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using NFun.BuiltInFunctions;
 using NFun.HindleyMilner.Tyso;
@@ -6,10 +7,12 @@ using NFun.Interpritation.Functions;
 using NFun.ParseErrors;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
+using NFun.Types;
 
 namespace NFun.HindleyMilner
 {
-    class ExitHmVisitor: ISyntaxNodeVisitor<bool>
+    
+    sealed class ExitHmVisitor: ExitVisitorBase
     {
         private readonly HmVisitorState _state;
         private readonly FunctionsDictionary _dictionary;
@@ -19,7 +22,7 @@ namespace NFun.HindleyMilner
             _dictionary = dictionary;
         }
 
-        public bool Visit(ArraySyntaxNode node)
+        public override bool Visit(ArraySyntaxNode node)
         {
             var res =  _state.CurrentSolver.SetArrayInit(node.OrderNumber,
                 node.Expressions.Select(e => e.OrderNumber).ToArray());
@@ -34,9 +37,9 @@ namespace NFun.HindleyMilner
         /// <summary>
         /// User fuctions are not supported by the visitor
         /// </summary>
-        public bool Visit(UserFunctionDefenitionSyntaxNode node) => false;
+        public override bool Visit(UserFunctionDefenitionSyntaxNode node) => false;
 
-        public bool Visit(ProcArrayInit node)
+        public override bool Visit(ProcArrayInit node)
         {
             if (node.Step == null)
                 return _state.CurrentSolver.SetProcArrayInit(node.OrderNumber, node.From.OrderNumber, node.To.OrderNumber);
@@ -44,14 +47,21 @@ namespace NFun.HindleyMilner
                 return _state.CurrentSolver.SetProcArrayInit(node.OrderNumber, node.From.OrderNumber, node.To.OrderNumber,node.Step.OrderNumber);
         }
 
-        public bool Visit(AnonymCallSyntaxNode anonymFunNode)
+        public override bool Visit(AnonymCallSyntaxNode anonymFunNode)
         {
             _state.ExitScope();
             return true;
         }
 
-        public bool Visit(EquationSyntaxNode node)
+        public override bool Visit(EquationSyntaxNode node)
         {
+            if (node.OutputTypeSpecified)
+            {
+                var type = node.OutputType.ConvertToHmType();
+                _state.CurrentSolver.SetVarType(node.Id, type);
+                _state.CurrentSolver.SetStrict(node.Expression.OrderNumber, type);
+            }
+
             var res = _state.CurrentSolver.SetDefenition(node.Id, node.OrderNumber, node.Expression.OrderNumber);
             if (res.IsSuccesfully)
                 return true;
@@ -60,7 +70,7 @@ namespace NFun.HindleyMilner
             throw ErrorFactory.OutputDefenitionTypeIsNotSolved(node);
         }
 
-        public bool Visit(FunCallSyntaxNode node)
+        public override bool Visit(FunCallSyntaxNode node)
         {
             if (node.IsOperator && HandleOperatorFunction(node, out var result))
             {
@@ -92,16 +102,17 @@ namespace NFun.HindleyMilner
                     throw ErrorFactory.FunctionOverloadNotFound(node, _dictionary);
                 
                 var callDef = ToCallDef(node, genericCandidate);
-                if (_state.CurrentSolver.SetCall(callDef))
-                    return true;
-                throw ErrorFactory.FunctionOverloadNotFound(node, _dictionary);
+                if (!_state.CurrentSolver.SetCall(callDef))
+                    throw ErrorFactory.TypesNotSolved(node);
+                return true;
             }
 
             if (candidates.Count == 1)
             {
                 if (_state.CurrentSolver.SetCall(ToCallDef(node, candidates[0])))
                     return true;
-                throw ErrorFactory.FunctionOverloadNotFound(node, _dictionary);
+                
+                throw ErrorFactory.TypesNotSolved(node);
             }
 
             //User functions get priority
@@ -132,16 +143,29 @@ namespace NFun.HindleyMilner
                         node.Args[0].OrderNumber);
                     return true;
                 }
-
                 case CoreFunNames.Multiply:
                 case CoreFunNames.Add:
                 case CoreFunNames.Substract:
                 case CoreFunNames.Remainder:
                 {
-                    result =  _state.CurrentSolver.SetArithmeticalOp(
+                    result =  _state.CurrentSolver.SetArithmeticalWithOverloadsOp(
                         node.OrderNumber,
                         node.Args[0].OrderNumber,
                         node.Args[1].OrderNumber);
+                    
+                    /* todo uiXXiXX
+                    if (result.IsSuccesfully)
+                    {
+                        var candidates = _dictionary.GetNonGeneric(node.Id)
+                            .Where(n => n.ArgTypes.Length == 2).ToList();
+
+                        var setOVerloadResult =  _state.CurrentSolver.SetOverloadCall(candidates.Select(ToFunSignature).ToArray(),
+                            node.OrderNumber,
+                            node.Args.Select(a => a.OrderNumber).ToArray());
+                        if(!setOVerloadResult)
+                            result = SetTypeResult.Failed(node.OrderNumber, SetTypeResultError.ExpressionTypeIsIncorrect);
+                    }*/
+
                     return true;
                 }
 
@@ -171,28 +195,44 @@ namespace NFun.HindleyMilner
             return false;
         }
 
-        public bool Visit(IfThenElseSyntaxNode node)
+        public override bool Visit(IfThenElseSyntaxNode node)
         {
             return _state.CurrentSolver.ApplyLcaIf(node.OrderNumber,
                 node.Ifs.Select(i => i.Condition.OrderNumber).ToArray(),
                 node.Ifs.Select(i => i.Expression.OrderNumber).Append(node.ElseExpr.OrderNumber).ToArray());
         }
-        public bool Visit(IfCaseSyntaxNode node)=> true;
-        public bool Visit(ListOfExpressionsSyntaxNode node)=> true;
-
-        public bool Visit(ConstantSyntaxNode node)
+      
+        public override bool Visit(ConstantSyntaxNode node)
         {
-            return _state.CurrentSolver.SetConst(node.OrderNumber, AdpterHelper.ConvertToHmType(node.OutputType));
+            var type = AdpterHelper.ConvertToHmType(node.OutputType);
+            
+            if (node.OutputType == VarType.Int32)
+            {
+                var value = (int) node.Value;
+                if (value >= 0 && value < 256) //alow us to convert int to any lower types
+                    return _state.CurrentSolver.SetLimitConst(node.OrderNumber, FType.Int32);
+                if(value>=0 && value <= ushort.MaxValue)
+                    return _state.CurrentSolver.SetLcaConst(node.OrderNumber, FType.UInt16);
+                //if(value>=0 && value < int.MaxValue)
+                //    return _state.CurrentSolver.SetLcaConst(node.OrderNumber, FType.UInt32);
+                //if(value<=0 && value >= short.MinValue)
+                //    return _state.CurrentSolver.SetLcaConst(node.OrderNumber, FType.Int16);
+                //if(value<=0 && value > int.MinValue)
+                //    return _state.CurrentSolver.SetLcaConst(node.OrderNumber, FType.Int32);
+
+                
+
+            }
+
+            return _state.CurrentSolver.SetConst(node.OrderNumber, type);
         }
 
-        public bool Visit(SyntaxTree node)=> true;
-       
-        public bool Visit(TypedVarDefSyntaxNode node)
+        public override  bool Visit(TypedVarDefSyntaxNode node)
             => _state.CurrentSolver.SetVarType(node.Id, AdpterHelper.ConvertToHmType(node.VarType));
             
-        public bool Visit(VarDefenitionSyntaxNode node)
+        public override  bool Visit(VarDefenitionSyntaxNode node)
             => _state.CurrentSolver.SetVarType(node.Id, AdpterHelper.ConvertToHmType(node.VarType));
-        public bool Visit(VariableSyntaxNode node)
+        public override  bool Visit(VariableSyntaxNode node)
         {
             var originId = node.Id;
             

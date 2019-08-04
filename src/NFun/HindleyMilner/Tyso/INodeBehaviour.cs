@@ -11,6 +11,7 @@ namespace NFun.HindleyMilner.Tyso
 
         string ToSmartString(int maxDepth = 10);
         INodeBehavior Optimize(out bool o);
-        ConvertResults CanBeConvertedTo(FType candidateType, int maxDepth);
+        FitResult CanBeConvertedTo(FType candidateType, int maxDepth);
+        FitResult CanBeConvertedFrom(FType candidateType, int maxDepth);
     }
 }

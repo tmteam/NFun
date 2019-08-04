@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NFun.Exceptions;
 using NFun.HindleyMilner;
 using NFun.HindleyMilner.Tyso;
 using NFun.Interpritation.Functions;
@@ -19,12 +20,16 @@ namespace NFun.Interpritation
             SyntaxTree syntaxTree,
             FunctionsDictionary functionsDictionary)
         {
+            var userFunctions = new List<UserFunction>();
             //get topology sort of the functions
             var functionSolveOrder  = FindFunctionsSolvingOrderOrThrow(syntaxTree);
             
             //build user functions
             foreach (var functionSyntaxNode in functionSolveOrder)
-                BuildFunctionAndPutItToDictionary(functionSyntaxNode, functionsDictionary);
+            {
+               var userFunction =  BuildFunctionAndPutItToDictionary(functionSyntaxNode, functionsDictionary);
+               userFunctions.Add(userFunction);
+            }
 
             var algorithm = new HmAlgorithmAdapter(functionsDictionary);
             if(!algorithm.ComeOver(syntaxTree))
@@ -42,7 +47,9 @@ namespace NFun.Interpritation
                     continue;
                 
                 //set types to nodes
-                syntaxNode.ComeOver(new ApplyHmResultVisitor(bodyTypeSolving, SolvedTypeConverter.SetGenericsToAny));
+                syntaxNode.ComeOver(
+                    enterVisitor: new ApplyHmResultEnterVisitor(bodyTypeSolving, SolvedTypeConverter.SetGenericsToAny),
+                    exitVisitor: new ApplyTiResultsExitVisitor());
             }
             
             var variables = new VariableDictionary(); 
@@ -57,7 +64,11 @@ namespace NFun.Interpritation
                 }
                 else if (lexRoot is VarDefenitionSyntaxNode varDef)
                 {
-                    var variableSource = new VariableSource(varDef.Id, varDef.VarType, varDef.Attributes);
+                    var variableSource = VariableSource.CreateWithStrictTypeLabel(
+                        varDef.Id, 
+                        varDef.VarType, 
+                        varDef.Interval, 
+                        varDef.Attributes);
                     if (!variables.TryAdd(variableSource))
                     {
                         var allUsages = variables.GetUsages(variableSource.Name);
@@ -69,16 +80,30 @@ namespace NFun.Interpritation
                 else 
                     throw  new InvalidOperationException($"Type {lexRoot} is not supported as tree root");
             }   
-            return new FunRuntime(equations, variables);
+            return new FunRuntime(equations, variables, userFunctions);
         }
 
         private static Equation BuildEquationAndPutItToVariables(EquationSyntaxNode equation,FunctionsDictionary functionsDictionary, VariableDictionary variables)
         {
-            var expression = ExpressionBuilderVisitor.BuildExpression(equation.Expression, functionsDictionary, variables);
-            var newSource = new VariableSource(equation.Id, equation.OutputType, equation.Attributes) {
-                IsOutput = true
-            };
+            var expression = ExpressionBuilderVisitor.BuildExpression(
+                node: equation.Expression, 
+                functions: functionsDictionary,
+                outputType: equation.OutputType,
+                variables: variables);
+
             
+            VariableSource newSource;
+            if(equation.OutputTypeSpecified)
+                newSource = VariableSource.CreateWithStrictTypeLabel(
+                    name: equation.Id, 
+                    type: equation.OutputType, 
+                    typeSpecificationIntervalOrNull: equation.TypeSpecificationOrNull.Interval, 
+                    attributes: equation.Attributes);
+            else
+                newSource = VariableSource.CreateWithoutStrictTypeLabel(equation.Id, equation.OutputType, equation.Attributes);
+            
+            newSource.IsOutput = true;
+          
             if (!variables.TryAdd(newSource))
             {
                 //some equation referenced the source before
@@ -86,16 +111,17 @@ namespace NFun.Interpritation
                 if (usages.Source.IsOutput)
                     throw ErrorFactory.OutputNameWithDifferentCase(equation.Id, equation.Expression.Interval);
                 else
-                    throw ErrorFactory.CannotUseOutputValueBeforeItIsDeclared(usages, equation.Id);
+                    throw ErrorFactory.CannotUseOutputValueBeforeItIsDeclared(usages);
             }
-
+            
+           
             //ReplaceInputType
             if(newSource.Type != expression.Type)
-                throw FunParseException.ErrorStubToDo($"Equation types mismatch. Expected: {newSource.Type} but was: {expression.Type}");            
+                throw new ImpossibleException("fitless");            
             return new Equation(equation.Id, expression);
         }
 
-        private static void BuildFunctionAndPutItToDictionary(
+        private static UserFunction BuildFunctionAndPutItToDictionary(
             UserFunctionDefenitionSyntaxNode functionSyntaxNode,
             FunctionsDictionary functionsDictionary)
         {
@@ -129,7 +155,9 @@ namespace NFun.Interpritation
 
             var isGeneric = types.GenericsCount > 0;
             //set types to nodes
-            functionSyntaxNode.ComeOver(new ApplyHmResultVisitor(types, SolvedTypeConverter.SaveGenerics));
+            functionSyntaxNode.ComeOver(
+                enterVisitor:new ApplyHmResultEnterVisitor(types, SolvedTypeConverter.SaveGenerics),
+                exitVisitor: new ApplyTiResultsExitVisitor());
             var funType = types.GetVarType(funAlias, SolvedTypeConverter.SaveGenerics);
             
             if (isGeneric)
@@ -139,7 +167,7 @@ namespace NFun.Interpritation
                     funType.FunTypeSpecification.Inputs);
                 //add prototype to dictionary for future use
                 functionsDictionary.Add(prototype);
-                BuildGenericFunction(functionSyntaxNode, prototype, functionsDictionary);
+                return BuildGenericFunction(functionSyntaxNode, prototype, functionsDictionary);
             }
             else
             {
@@ -149,11 +177,11 @@ namespace NFun.Interpritation
                     funType.FunTypeSpecification.Inputs);
                 //add prototype to dictionary for future use
                 functionsDictionary.Add(prototype);
-                BuildConcreteFunction(functionSyntaxNode, prototype, functionsDictionary);
+                return BuildConcreteFunction(functionSyntaxNode, prototype, functionsDictionary);
             }
         }
 
-        private static void BuildGenericFunction(
+        private static UserFunction BuildGenericFunction(
             UserFunctionDefenitionSyntaxNode lexFunction, 
             GenericUserFunctionPrototype prototype, 
             FunctionsDictionary functionsDictionary)
@@ -162,7 +190,7 @@ namespace NFun.Interpritation
             for (int i = 0; i < lexFunction.Args.Count ; i++)
             {
                 var id = lexFunction.Args[i].Id;
-                if (!vars.TryAdd(new VariableSource(id, prototype.ArgTypes[i])))
+                if (!vars.TryAdd(VariableSource.CreateWithoutStrictTypeLabel(id, prototype.ArgTypes[i])))
                 {
                     throw ErrorFactory.FunctionArgumentDuplicates(lexFunction, lexFunction.Args[i]);
                 }
@@ -174,11 +202,18 @@ namespace NFun.Interpritation
             ExpressionHelper.CheckForUnknownVariables(
                 lexFunction.Args.Select(a=>a.Id).ToArray(), vars);
             
-            var function = new UserFunction(lexFunction.Id, vars.GetAllSources(), expression);
+            var function = new UserFunction(
+                name: lexFunction.Id, 
+                variables: vars.GetAllSources(),
+                isReturnTypeStrictlyTyped: lexFunction.ReturnType!= VarType.Empty, 
+                expression: expression);
+            
             prototype.SetActual(function, lexFunction.Interval);
+            
+            return function;
         }
         
-        private static void BuildConcreteFunction(
+        private static UserFunction BuildConcreteFunction(
             UserFunctionDefenitionSyntaxNode lexFunction, 
             ConcreteUserFunctionPrototype prototype, 
             FunctionsDictionary functionsDictionary)
@@ -186,23 +221,47 @@ namespace NFun.Interpritation
             var vars = new VariableDictionary();
             for (int i = 0; i < lexFunction.Args.Count ; i++)
             {
-                var id = lexFunction.Args[i].Id;
-                if (!vars.TryAdd(new VariableSource(id, prototype.ArgTypes[i])))
+                var variableSource = CreateVariableSourceForArgument(
+                    lexFunction.Args[i], 
+                    prototype.ArgTypes[i]);
+                if (!vars.TryAdd(variableSource))
                 {
                     throw ErrorFactory.FunctionArgumentDuplicates(lexFunction, lexFunction.Args[i]);
                 }
-
             }
-            var expression = ExpressionBuilderVisitor
-                .BuildExpression(lexFunction.Body, functionsDictionary, vars);
+            
+            var bodyExpression = ExpressionBuilderVisitor.BuildExpression(
+                    node: lexFunction.Body, 
+                    functions: functionsDictionary, 
+                    outputType: lexFunction.ReturnType== VarType.Empty
+                                    ?lexFunction.Body.OutputType
+                                    :lexFunction.ReturnType,
+                    variables: vars);
             
             ExpressionHelper.CheckForUnknownVariables(
                 lexFunction.Args.Select(a=>a.Id).ToArray(), vars);
             
-            var function = new UserFunction(lexFunction.Id, vars.GetAllSources(), expression);
+            var function = new UserFunction(
+                name: lexFunction.Id, 
+                variables: vars.GetAllSources(), 
+                isReturnTypeStrictlyTyped: lexFunction.ReturnType!= VarType.Empty, 
+                expression: bodyExpression);
             prototype.SetActual(function, lexFunction.Interval);
+            return function;
         }
-        
+
+        private static VariableSource CreateVariableSourceForArgument(
+            TypedVarDefSyntaxNode argSyntax,
+            VarType actualType)
+        {
+            if(argSyntax.VarType != VarType.Empty)
+                return VariableSource.CreateWithStrictTypeLabel(argSyntax.Id, actualType, argSyntax.Interval);
+            else
+                return VariableSource.CreateWithoutStrictTypeLabel(
+                    name: argSyntax.Id,
+                    type: actualType);
+        }
+
         public static HmVisitorState CreateVisitorStateFor(UserFunctionDefenitionSyntaxNode node)
         {
             var visitorState = new HmVisitorState(new HmHumanizerSolver());
@@ -287,4 +346,5 @@ namespace NFun.Interpritation
             return functionSolveOrder;
         }
     }
+    
 }

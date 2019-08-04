@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NFun.Interpritation;
+using NFun.Interpritation.Functions;
 using NFun.Types;
 
 namespace NFun.Runtime
@@ -10,19 +11,22 @@ namespace NFun.Runtime
     {
         public VarInfo[] Inputs => _variables.GetAllSources()
             .Where(v => !v.IsOutput)
-            .Select(s => new VarInfo(false,  s.Type,s.Name,s.Attributes)).ToArray();
+            .Select(s => new VarInfo(false,  s.Type,s.Name, s.IsStrictTyped, s.Attributes)).ToArray();
 
         public VarInfo[] Outputs => _variables.GetAllSources()
             .Where(v => v.IsOutput)
-            .Select(s => new VarInfo(true,  s.Type,s.Name, s.Attributes)).ToArray();
+            .Select(s => new VarInfo(true,  s.Type,s.Name, s.IsStrictTyped, s.Attributes)).ToArray();
+
+        public IEnumerable<UserFunction> UserFunctions { get; }
 
         private readonly IList<Equation> _equations;
         private readonly VariableDictionary _variables;
-        
-        public FunRuntime(IList<Equation> equations, VariableDictionary variables)
+      
+        public FunRuntime(IList<Equation> equations, VariableDictionary variables, List<UserFunction> userFunctions)
         {
             _equations = equations;
             _variables = variables;
+            UserFunctions = userFunctions;
         }
 
         public CalculationResult Calculate(params Var[] vars)

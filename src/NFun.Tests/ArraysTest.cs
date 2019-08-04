@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using NFun;
+using NFun.BuiltInFunctions;
 using NFun.ParseErrors;
 using NFun.Runtime;
 using NFun.Types;
@@ -188,8 +189,8 @@ x: int[]
 filt: int
 concat    = ([1,2,3,4].concat(x))
 size      = concat.count()
-possum   = x.filter(i:int=>i>0).reduce((i:int,j:int)=> i+j)
-filtrat   = x.filter(i:int=>i> filt) # filt - входная переменная
+possum   = x.filter(i:int ->i>0).reduce((i:int,j:int)-> i+j)
+filtrat   = x.filter(i:int ->i> filt) # filt - входная переменная
 ";
             var runtime = FunBuilder.BuildDefault(expr);
             var res = runtime.Calculate(Var.New("x", new[]{5,6,7,8}),
@@ -247,7 +248,7 @@ filtrat   = x.filter(i:int=>i> filt) # filt - входная переменна�
         [TestCase("y = [1..4..-2.0]")]
         [TestCase("y = [1..4..0]")]
         [TestCase("y = [0..10][11]")]
-        [TestCase("y = ['a','b'][2]")]
+        [TestCase("y = ['a', 'b'][2]")]
         public void ObviouslyFailsOnRuntime(string expr) =>
             Assert.Throws<FunRuntimeException>(
                 ()=> FunBuilder.BuildDefault(expr).Calculate());

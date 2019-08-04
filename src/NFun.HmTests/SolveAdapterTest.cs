@@ -584,7 +584,7 @@ namespace NFun.HmTests
             
             solver.SetVar(1,"x");
             solver.SetConst(0, FType.Real);
-            solver.SetBitShiftOperator(2, 1, 0).AssertSuccesfully();
+            solver.SetBitShiftOperator(2, 1, 0).AssertFailed();
         }   
     }
 }

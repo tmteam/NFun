@@ -50,7 +50,6 @@ namespace Funny.Tests
         //int64:
         [TestCase("y = 0xFFFFFFFF & 0",0)]
         [TestCase("y = 0xFFFFFFFF ^ 0xFFFFFFFF",0)]
-
         public void NumbersConstantEquation(string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
@@ -118,6 +117,7 @@ namespace Funny.Tests
         
 
         [TestCase("y = 2*x",3,6)]
+        [TestCase("y = 2*x",3.5,7.0)]
         [TestCase("y = 4/x",2,2)]
         [TestCase("y = x/4",10,2.5)]
         [TestCase("y = 4- x",3,1)]
@@ -136,6 +136,7 @@ namespace Funny.Tests
         [TestCase("y = -x ",0.3,-0.3)]
         [TestCase("y = -(-(-x))",2,-2)]
         [TestCase("y = x/0.2",1,5)]
+
         public void SingleVariableEquation(string expr, double arg, double expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
@@ -209,7 +210,7 @@ namespace Funny.Tests
         [TestCase("=x*2")]
         [TestCase("y = y")]
         [TestCase("y = y+x")]
-
+        [TestCase("a: int a=4")]
         public void ObviouslyFails(string expr) =>
             Assert.Throws<FunParseException>(
                 ()=> FunBuilder.BuildDefault(expr));
@@ -233,11 +234,14 @@ namespace Funny.Tests
         [TestCase("y = x/2",new []{"x"})]
         [TestCase("y = in1/2+ in2",new []{"in1","in2"})]
         [TestCase("y = in1/2 + (in2*in3)",new []{"in1","in2", "in3"})]
-        public void InputVarablesListIsCorrect(string expr, string[] inputNames)
+        public void InputVarablesListWithAutoTypesIsCorrect(string expr, string[] inputNames)
         {
             var runtime = FunBuilder.BuildDefault(expr);
-            var inputs = inputNames.Select(i => new VarInfo(false, VarType.Real, i)).ToArray();
-            
+            var inputs = inputNames.Select(i => new VarInfo(
+                isOutput: false, 
+                type: VarType.Real, 
+                name: i, 
+                isStrictTyped: false)).ToArray();
             CollectionAssert.AreEquivalent(inputs, runtime.Inputs);
         }
 
@@ -252,7 +256,11 @@ namespace Funny.Tests
             var runtime = FunBuilder.BuildDefault(expr);
                         
             CollectionAssert.AreEquivalent(
-                new[]{new VarInfo(true, VarType.PrimitiveOf(type), output)}, 
+                new[]{new VarInfo(
+                    isOutput: true, 
+                    type: VarType.PrimitiveOf(type), 
+                    name: output, 
+                    isStrictTyped: false)}, 
                 runtime.Outputs);
         }
         

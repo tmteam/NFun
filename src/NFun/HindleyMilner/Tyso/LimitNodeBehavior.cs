@@ -24,11 +24,10 @@ namespace NFun.HindleyMilner.Tyso
         {
             //Limitation conflict
             //like: _limit: real; type: any
-            if (Limit.IsPrimitive)
+            if (Limit.IsPrimitive && !Limit.Name.Equals(newType.Name))
             {
                 //Downcast
-                if (!Limit.Name.Equals(newType.Name)
-                    &&  Limit.CanBeSafelyConvertedTo(newType))
+                if (!newType.CanBeSafelyConvertedTo(Limit))
                     return null;
             }
 
@@ -92,26 +91,38 @@ namespace NFun.HindleyMilner.Tyso
             }
             return this;
         }
+        
+        public  FitResult CanBeConvertedFrom(FType from, int maxDepth)
+        {
+            var res =  FType.CanBeConverted(@from, Limit, maxDepth);
+            if (res.Type == FitType.Strict)
+            {
+                return FitResult.Candidate(res.Distance);
+            }
+            else
+            {
+                return res;
+            }
+        }
 
-        public ConvertResults CanBeConvertedTo(FType candidateType, int maxDepth)
+        public FitResult CanBeConvertedTo(FType candidateType, int maxDepth)
         {
             if (candidateType.IsPrimitiveGeneric)
-                return ConvertResults.Converable;
+                return new FitResult(FitType.Converable,0);
             if (candidateType.Equals(Limit))
-                return ConvertResults.Strict;
+                return FitResult.Candidate(0);
             //special case: Int is most expected type for someInteger
             if(Limit.Name.Equals(HmTypeName.SomeInteger) && candidateType.Name.Equals(HmTypeName.Int32))
-                return ConvertResults.Strict;
+                return FitResult.Candidate(0);
             
             //We can reduce current limit to candidateType
             if (candidateType.CanBeSafelyConvertedTo(Limit))
-                return ConvertResults.Candidate;
+                return new FitResult(FitType.Candidate, candidateType.GetParentalDistanceTo(Limit));
             
             if (Limit.CanBeSafelyConvertedTo(candidateType))
-                return ConvertResults.Converable;
-            
+                return new FitResult(FitType.Converable, Limit.GetParentalDistanceTo(candidateType));
 
-            return ConvertResults.Not;
+            return FitResult.Not;
         }
 
         public override string ToString() => ToSmartString();

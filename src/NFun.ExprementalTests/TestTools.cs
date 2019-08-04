@@ -5,7 +5,7 @@ using NFun.Runtime;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace Tests
+namespace NFun.ExprementalTests
 {
     public static class TestTools
     {
@@ -45,7 +45,7 @@ namespace Tests
                 return v.ToString();
             if (v is IEnumerable en)
             {
-                return "{" + string.Join(',', en.Cast<object>().Select(ToStringSmart)) + "}";
+                return "{" + string.Join(",", en.Cast<object>().Select(ToStringSmart)) + "}";
             }
 
             return v.ToString();

@@ -26,14 +26,27 @@ namespace NFun.HindleyMilner.Tyso
                 for (int i = 0; i < newLimit.Arguments.Length; i++)
                 {
                     var limArg = newLimit.Arguments[i];
+                    var thisArg = _type.Arguments[i];
                     if (limArg.Behavior is GenericTypeBehaviour)
                     {
-                        if (!_type.Arguments[i].SetGeneric(limArg))
+                        if (!thisArg.SetGeneric(limArg))
                             return null;
                     }
-                    else
+                    else if (_type.Name.Id == HmTypeName.Function.Id && i > 0)
                     {
-                        if (!_type.Arguments[i].SetLimit(limArg.MakeType(SolvingNode.MaxTypeDepth)))
+                        //hi order function arguments got reversed rules
+
+                        //firstly try to setStrict (for more concrete hi order function solving)
+                        if (!thisArg.SetStrict(limArg.MakeType()))
+                        {
+                            //if it fails - then set limit
+                            if (!limArg.SetLimit(thisArg.MakeType()))
+                                return null;
+                        }
+                    }
+                    else 
+                    {
+                        if (!thisArg.SetLimit(limArg.MakeType()))
                             return null;
                     }
                 }
@@ -107,47 +120,17 @@ namespace NFun.HindleyMilner.Tyso
 
         public string ToSmartString(int maxDepth = 10) => $"{_type}";
 
-        public INodeBehavior Optimize(out bool o)
-        {
+        public INodeBehavior Optimize(out bool o) {
             o = false;
             return this;
         }
 
-        public ConvertResults CanBeConvertedTo(FType candidateType, int maxDepth)
-        {
-            if (candidateType.IsPrimitiveGeneric)
-                return ConvertResults.Converable;
-            if (candidateType.IsPrimitive)
-            {
-                if (candidateType.Name.Equals(_type.Name))
-                    return ConvertResults.Strict;
-                //special case: Int is most expected type for someInteger
-                if(_type.Name.Id== HmTypeName.Int32Id && candidateType.Name.Id== HmTypeName.SomeIntegerId)
-                    return ConvertResults.Candidate;
-                if (_type.CanBeSafelyConvertedTo(candidateType)) 
-                    return ConvertResults.Converable;
-                else
-                    return ConvertResults.Not;
-            }
-            
-            if (!candidateType.Name.Equals(_type.Name))
-                return ConvertResults.Not;
-
-            
-            if (_type.Arguments.Length!= candidateType.Arguments.Length)
-                return ConvertResults.Not;
-
-            ConvertResults minimalResult = ConvertResults.Strict;
-            for (int i = 0; i < _type.Arguments.Length ; i++)
-            {
-                var res =_type.Arguments[i]
-                    .CanBeConvertedTo(candidateType.Arguments[i].MakeType(maxDepth-1), maxDepth-1);
-                if (res < minimalResult)
-                    minimalResult = res;
-            }
-            return minimalResult;
-        }
-
+        public FitResult CanBeConvertedFrom(FType candidateType, int maxDepth) 
+            => FType.CanBeConverted(from: candidateType, to: _type, maxDepth: maxDepth);
+        
+        public FitResult CanBeConvertedTo(FType candidateType, int maxDepth)
+            => FType.CanBeConverted(from: _type, to: candidateType, maxDepth: maxDepth);
+        
         public override string ToString() => $"{_type}";
     }
 }

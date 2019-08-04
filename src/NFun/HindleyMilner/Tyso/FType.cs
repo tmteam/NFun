@@ -25,6 +25,12 @@ namespace NFun.HindleyMilner.Tyso
         }
         public static FType Int64 => new FType(HmTypeName.Int64);
         public static FType Int32 => new FType(HmTypeName.Int32);
+        public static FType Int16 => new FType(HmTypeName.Int16);
+        public static FType UInt64 => new FType(HmTypeName.Uint64);
+        public static FType UInt32 => new FType(HmTypeName.Uint32);
+        public static FType UInt16 => new FType(HmTypeName.Uint16);
+        public static FType UInt8 => new FType(HmTypeName.Uint8);
+        
         public static FType Bool => new FType(HmTypeName.Bool);
 
         public static FType Real => new FType(HmTypeName.Real);
@@ -43,12 +49,14 @@ namespace NFun.HindleyMilner.Tyso
         public static  FType Fun(SolvingNode output, params SolvingNode[] inputs) => new FType(
             HmTypeName.Function, 
             new[]{output}.Concat(inputs).ToArray());
-        public static FType Text => new FType(HmTypeName.Text);
+        public static FType Text => ArrayOf(Char);
 
-        
+        public static FType Char => new FType(HmTypeName.Char);
+
         public static FType Any => new FType(HmTypeName.Any);
 
-        
+
+        public bool IsNumeric => Name.CanBeConvertedTo(HmTypeName.Real);
         public bool IsPrimitive => !Arguments.Any();
         public HmTypeName Name { get; }
         public SolvingNode[] Arguments { get; }
@@ -77,7 +85,9 @@ namespace NFun.HindleyMilner.Tyso
 
             return true;
         }
-        
+
+        public int GetParentalDistanceTo(FType parent) => Name.Depth- parent.Name.Depth;
+
         public bool CanBeSafelyConvertedTo(FType type2)
         {
             if (IsPrimitive)
@@ -109,6 +119,57 @@ namespace NFun.HindleyMilner.Tyso
         }
 
         public override string ToString() => ToSmartString(SolvingNode.MaxTypeDepth);
+
+        public static FType GetLca(FType[] fTypes)
+        {
+            var left = fTypes.Where(c=>c.Name.Start>=0).Min(c => c.Name.Start);
+            var right = fTypes.Where(c=>c.Name.Finish>=0).Max(c=>c.Name.Finish);
+            
+            //Search for GeneralParent
+            var parentName = fTypes[0].Name;
+            while (true)
+            {
+                if (parentName.Start <= left && parentName.Finish >= right)
+                    return new FType(parentName);
+                
+                if(parentName.Parent==null)
+                    return FType.Any;
+                parentName = parentName.Parent;
+            }
+        }
+
+        public static FitResult CanBeConverted(FType from, FType to, int maxDepth){
+            if (to.IsPrimitiveGeneric)
+                return new  FitResult(FitType.Converable,0);
+            if (to.IsPrimitive)
+            {
+                if (to.Name.Equals(from.Name))
+                    return new FitResult(FitType.Strict, 0);
+                //special case: Int is most expected type for someInteger
+                if(from.Name.Id== HmTypeName.Int32Id && to.Name.Id== HmTypeName.SomeIntegerId)
+                    return new FitResult(FitType.Candidate, from.GetParentalDistanceTo(to));
+                if (from.CanBeSafelyConvertedTo(to)) 
+                    return new FitResult(FitType.Converable, from.GetParentalDistanceTo(to));
+                else
+                    return FitResult.Not;
+            }
+            
+            if (!to.Name.Equals(from.Name))
+                return FitResult.Not;
+            
+            if (from.Arguments.Length!= to.Arguments.Length)
+                return FitResult.Not;
+
+            FitType minimalResult = FitType.Strict;
+            for (int i = 0; i < from.Arguments.Length ; i++)
+            {
+                var res =from.Arguments[i]
+                    .CanBeConvertedTo(to.Arguments[i].MakeType(maxDepth-1), maxDepth-1);
+                if (res.Type < minimalResult)
+                    minimalResult = res.Type;
+            }
+            return new FitResult(minimalResult,0);
+        } 
 
     }
 }

@@ -44,7 +44,6 @@ namespace NFun.HindleyMilner.Tyso
         public bool SetLca(SolvingNode[] nodes)
             => TrySet(()=> Behavior.SetLca(nodes));
 
-
         public bool SetStrict(FType limit)
             => TrySet(()=> Behavior.SetStrict(limit));
 
@@ -76,7 +75,13 @@ namespace NFun.HindleyMilner.Tyso
              return true;
         }
 
-        public ConvertResults CanBeConvertedTo(FType candidateType, int maxDepth = SolvingNode.MaxTypeDepth)
+        public FitResult CanBeConvertedFrom(FType candidateType, int maxDepth = SolvingNode.MaxTypeDepth)
+        {
+            if(maxDepth<0)
+                throw new StackOverflowException("Fits too depth");
+            return Behavior.CanBeConvertedFrom(candidateType, maxDepth);
+        }
+        public FitResult CanBeConvertedTo(FType candidateType, int maxDepth = SolvingNode.MaxTypeDepth)
         {
             if(maxDepth<0)
                 throw new StackOverflowException("Fits too depth");
@@ -116,7 +121,32 @@ namespace NFun.HindleyMilner.Tyso
         }
     }
 
-    public enum ConvertResults
+    public struct FitResult
+    {
+        public static readonly FitResult Not = new FitResult(FitType.Not, 0);
+        public static readonly FitResult Strict = new FitResult(FitType.Strict,0);
+        
+        public readonly FitType Type;
+        public readonly int Distance;
+
+        public bool IsBetterThan(FitResult result)
+        {
+            if (Type > result.Type)
+                return true;
+            if (Type < result.Type)
+                return false;
+            return Distance < result.Distance;
+        }
+        public FitResult(FitType type, int distance)
+        {
+            Type = type;
+            Distance = distance;
+        }
+
+        public static FitResult Candidate(int distance)
+        => new FitResult(FitType.Candidate, distance);
+    }
+    public enum FitType
     {
         Not = 0, 
         Converable = 1,

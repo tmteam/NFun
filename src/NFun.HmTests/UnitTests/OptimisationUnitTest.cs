@@ -1,11 +1,12 @@
 using NFun.HindleyMilner.Tyso;
 using NUnit.Framework;
 
-namespace NFun.HmTests
+namespace NFun.HmTests.UnitTests
 {
     [TestFixture]
     public class OptimisationUnitTest
     {
+        
         [Test]
         public void OptimizeLcaWith2Generics_AllNodesEqualToSingleGeneric()
         {

@@ -10,7 +10,35 @@ namespace Funny.Tests
         [TestCase("y = ''", "")]
         [TestCase("y = 'hi'", "hi")]
         [TestCase("y = 'World'", "World")]
-        public void TextConstantEquation(string expr, string expected)
+        [TestCase("y = 'foo'.concat('bar')", "foobar")]
+        [TestCase("y = 'foo'.reverse()", "oof")]
+        [TestCase("y = ['bar'[1]]", "a")]
+        [TestCase("y = 'bar'[1]", 'a')]
+        [TestCase("y = '01234'[:]", "01234")]
+        [TestCase("y = '01234'[2:4]", "234")]
+        [TestCase("y = '01234'[1:1]", "1")]
+        [TestCase("y = ''[0:0]", "")]
+        [TestCase("y = ''[1:]", "")]
+        [TestCase("y = ''[:1]", "")]
+        [TestCase("y = ''[::1]", "")]
+        [TestCase("y = ''[::3]", "")]
+        [TestCase("y = '01234'[1:2]", "12")]
+        [TestCase("y = '01234'[2:]", "234")]
+        [TestCase("y = '01234'[::2]", "024")]
+        [TestCase("y = '01234'[::1]", "01234")]
+        [TestCase("y = '01234'[::]", "01234")]
+        [TestCase("y = '0123456789'[2:9:3]", "258")]
+        [TestCase("y = '0123456789'[1:8:2]", "1357")]
+        [TestCase("y = '0123456789'[1:8:]", "12345678")]
+        [TestCase("y = '0123456789'[1:8:] == '12345678'", true)]
+        [TestCase("y = '0123456789'[1:8:] != '12345678'", false)]
+        [TestCase("y = 'abc' == 'abc'", true)]
+        [TestCase("y = 'abc' == 'cba'", false)]
+        [TestCase("y = 'abc' == 'cba'.reverse()", true)]
+        [TestCase("y = 'abc' == 'abc'.reverse()", false)]
+        [TestCase("y = 'abc'.concat('def') == 'abcdef'", true)]
+        [TestCase("y = 'abc'.concat('de') == 'abcdef'", false)]
+        public void TextConstantEquation(string expr, object expected)
         {
             FunBuilder
                 .BuildDefault(expr)
@@ -43,7 +71,6 @@ namespace Funny.Tests
         [TestCase("y=' \\r\r'"," \r\r")]
         [TestCase("y='\t \\n\n'","\t \n\n")]
         [TestCase("y='pre \\{lalala\\} after'","pre {lalala} after")]
-
         public void EscapedTest(string expr,string expected)
         {
             FunBuilder
@@ -66,7 +93,6 @@ namespace Funny.Tests
         [TestCase("y = 'hi'+' '+'world'")]
         [TestCase("y = 'arr: '+ [1,2,3]")]
         [TestCase("y = 'arr: '+ [[1,2],[3]]")]
-
         public void ObviousFails(string expr)
         {
             Assert.Throws<FunParseException>(()=> FunBuilder.BuildDefault(expr));

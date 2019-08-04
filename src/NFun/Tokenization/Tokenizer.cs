@@ -42,6 +42,8 @@ namespace NFun.Tokenization
         
         private readonly Dictionary<string, TokType> _keywords = new Dictionary<string, TokType>
         {
+            {"in", TokType.In},
+
             {"and",   TokType.And},
             {"or",    TokType.Or},
             {"xor",   TokType.Xor},
@@ -51,14 +53,24 @@ namespace NFun.Tokenization
             {"else",  TokType.Else},
             {"true",  TokType.True},
             {"false", TokType.False},
+            
             {"text", TokType.TextType},
             {"bool", TokType.BoolType},
             {"real", TokType.RealType},
+           
+            {"int16", TokType.Int16Type},
             {"int", TokType.Int32Type},
             {"int32", TokType.Int32Type},
             {"int64", TokType.Int64Type},
+            
+            {"byte",  TokType.UInt8Type},
+            {"uint8",  TokType.UInt8Type},
+            {"uint16", TokType.UInt16Type},
+            {"uint",   TokType.UInt32Type},
+            {"uint32", TokType.UInt32Type},
+            {"uint64", TokType.UInt64Type},
+            
             {"anything", TokType.AnythingType},
-            {"in", TokType.In}
         };
         
         public Tok TryReadNext(string str, int position)
@@ -81,7 +93,7 @@ namespace NFun.Tokenization
             if(current== 0)
                 return  Tok.New(TokType.Eof, "", position,position);
             
-            if (current == '\r' || current == '\n')
+            if (current == '\r' || current == '\n' || current == ';')
                 return Tok.New(TokType.NewLine, current.ToString(), position,position+1);
             
             if (IsDigit(current))
@@ -102,23 +114,23 @@ namespace NFun.Tokenization
             return Tok.New(TokType.NotAToken, current.ToString(), position,position+1);
         }
         
-        private int SkipComments(string str, int position){
+        private int SkipComments(string str, int position)
+        {
             if(str[position]!='#')
                 throw new InvalidOperationException("'#' symbol expected");
-            if(str.Length== position+1)
+            if(str.Length == position+1)
                 return position;
 
             int index = position+2;
-            for (; index < str.Length && str[index] != '\r' && str[index] != '\n' ; index++)
-            {}
+            for (; index < str.Length && str[index] != '\r' && str[index] != '\n' ; index++){}
             
             return index;
         }
+        
         private Tok ReadIdOrKeyword(string str, int position)
         {
             int finish = position;
-            for (; finish < str.Length && (IsLetter(str[finish]) || IsDigit(str[finish])); finish++)
-            {}
+            for (; finish < str.Length && (IsLetter(str[finish]) || IsDigit(str[finish])); finish++){}
 
             var word = str.Substring(position, finish - position);
             //is id a keyword
@@ -138,6 +150,8 @@ namespace NFun.Tokenization
             {
                 case '-' when  next == '-':
                     return Tok.New(TokType.Attribute, position, position+2);   
+                case '-' when  next == '>':
+                    return Tok.New(TokType.AnonymFun, position,position + 2);
                 case '-':
                     return Tok.New(TokType.Minus, position, position+1);
                 case '*' when  next == '*':
@@ -158,8 +172,6 @@ namespace NFun.Tokenization
                     return Tok.New(TokType.Less, position, position+1);
                 case '=' when next == '=':
                     return Tok.New(TokType.Equal, position, position + 2);
-                case '=' when next == '>':
-                    return Tok.New(TokType.AnonymFun, position,position + 2);
                 case '=':
                     return Tok.New(TokType.Def, position, position + 1);
                 case '.' when next=='.':
@@ -175,10 +187,10 @@ namespace NFun.Tokenization
 
         private TokType? IsSpecial(char val) =>
             _symbols.ContainsKey(val) ? _symbols[val] : (TokType?)null;
-        
-        private bool IsLetter(char val) =>val == '_' ||  (val >= 'a' && val <= 'z') || (val >= 'A' && val <= 'Z');
 
-        private bool IsDigit(char val) => val >= '0' && val <= '9';
+        private bool IsLetter(char val) => val == '_' ||  (val >= 'a' && val <= 'z') || (val >= 'A' && val <= 'Z');
+
+        private bool IsDigit(char val) => char.IsDigit(val); // val >= '0' && val <= '9';
 
         private bool IsQuote(char val) => val == '\''|| val == '\"'; 
 
@@ -187,13 +199,7 @@ namespace NFun.Tokenization
         {
             var(result, endPosition) = QuotationReader.ReadQuotation(str, position);
             return Tok.New(TokType.Text, result,position, endPosition);
-            /*for (var i = position+1; i < str.Length; i++)
-            {
-                if(IsQuote(str[i]))
-                    return Tok.New(TokType.Text, 
-                        str.Substring(position+1, i - position-1),position, i+1);
-            }
-            return Tok.New(TokType.NotAToken, position, str.Length);*/
+           
         }
         
         private Tok ReadNumber(string str, int position)
