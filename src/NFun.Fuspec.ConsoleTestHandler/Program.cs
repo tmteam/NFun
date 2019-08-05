@@ -7,8 +7,14 @@ namespace NFun.Fuspec.ConsoleTestHandler
     {
         static void Main(string[] args)
         {
-            var testsFromDirectory = new RunFuspecTestsFromDirectory();
-            testsFromDirectory.Run();
+            try
+            {
+                RunFuspecTests.Run();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
 
             Console.ReadLine();
         }
