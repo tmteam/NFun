@@ -7,183 +7,162 @@ using NFun.Types;
 
 namespace NFun.SyntaxParsing
 {
-    public static class TopLevelParser
+    
+    public class TopLevelParser
     {
+        private readonly TokFlow _flow;
         public const string AnonymousEquationId = "out";
+
         public static SyntaxTree Parse(TokFlow flow)
+            =>new TopLevelParser(flow).InternalParse(flow);
+        
+        private readonly SyntaxNodeReader _reader ;
+        private readonly List<ISyntaxNode> _nodes = new List<ISyntaxNode>();
+        private readonly List<string> _equationNames = new List<string>();
+        
+        //current reader states
+        private bool _hasAnonymousEquation = false;
+        private bool _hasFuctions = false;
+        private bool _startOfTheLine = false;
+        private int _exprStartPosition = 0;
+        private VarAttribute[] _attributes;
+        public TopLevelParser(TokFlow flow)
         {
-            var reader = new SyntaxNodeReader(flow);
-            var nodes = new List<ISyntaxNode>();
-            var equationNames = new List<string>();
-            bool hasAnonymousEquation = false;
-            bool hasFuctions = false;
+            this._flow = flow;
+            _reader = new SyntaxNodeReader(flow);
+        }
+        public SyntaxTree InternalParse(TokFlow flow)
+        {
             while (true)
             {
                 flow.SkipNewLines();
-                if (flow.IsDone || flow.IsCurrent(TokType.Eof))
-                    break;
-                VarAttribute[] attributes = new VarAttribute[0];
-                if (flow.IsCurrent(TokType.Attribute))
-                    attributes = ReadAttributes(flow);
+                if (flow.IsDoneOrEof()) break;
 
-                var startOfTheString = flow.IsStart || flow.IsPrevious(TokType.NewLine);
+                _attributes          = flow.ReadAttributes();
+                _startOfTheLine       = flow.IsStartOfTheLine();
+                _exprStartPosition    = flow.Current.Start;
 
-                var exprStart = flow.Current.Start;
-                var e = reader.ReadExpressionOrNull();
-                if (e == null)
-                    throw ErrorFactory.UnknownValueAtStartOfExpression(exprStart, flow.Current);
+                var e = _reader.ReadExpressionOrNull()
+                        ?? throw ErrorFactory.UnknownValueAtStartOfExpression(_exprStartPosition, flow.Current);
                 
-                if(e is TypedVarDefSyntaxNode typed)
-                    //Input typed var specification
-                    nodes.Add(new VarDefenitionSyntaxNode(typed, attributes));                        
+                
+                if (e is TypedVarDefSyntaxNode typed)
+                {
+                    if (flow.IsCurrent(TokType.Def))
+                        ReadOutputVariable(typed, typed.Id);
+                    else
+                        ReadInputVariableSpecification(typed);
+                }
                 else if (flow.IsCurrent(TokType.Def) || flow.IsCurrent(TokType.Colon))
                 {
-                    
                     if (e is VariableSyntaxNode variable)
-                    {
-
-                        if (hasAnonymousEquation)
-                            throw ErrorFactory.UnexpectedExpression(nodes.OfType<EquationSyntaxNode>().Single());
-
-                        if (!startOfTheString)
-                            throw ErrorFactory.DefenitionHasToStartFromNewLine(exprStart, e, flow.Current);
-                        //equatation
-                        flow.MoveNext();
-                        var equation = ReadEquation(flow, reader, variable.Id, attributes);
-                        nodes.Add(equation);
-                        equationNames.Add(equation.Id);
-                    }
-                    //Todo Make operator fun as separate node type
+                        ReadOutputVariable(variable, variable.Id);
                     else if (e is FunCallSyntaxNode fun && !fun.IsOperator)
-                    {
-                        //fun
-                        if (!startOfTheString)
-                            throw ErrorFactory.FunctionDefenitionHasToStartFromNewLine(exprStart, e, flow.Current);
-                        if (attributes.Any())
-                            throw ErrorFactory.AttributeOnFunction(exprStart, fun);
-                        nodes.Add(ReadUserFunction(exprStart, fun, flow, reader));
-                        hasFuctions = true;
-                    }
+                        ReadUserFunction(fun);
                     else
-                        throw ErrorFactory.ExpressionBeforeTheDefenition(exprStart, e, flow.Current);
+                        throw ErrorFactory.ExpressionBeforeTheDefenition(_exprStartPosition, e, flow.Current);
                 }
                 else
-                {
-                    //anonymous equation
-                    if (equationNames.Any())
-                    {
-                        if (startOfTheString && hasAnonymousEquation)
-                            throw ErrorFactory.OnlyOneAnonymousExpressionAllowed(exprStart, e, flow.Current);
-                        else
-                            throw ErrorFactory.UnexpectedExpression(e);
-                    }
-
-                    if(!startOfTheString)
-                        throw ErrorFactory.AnonymousExpressionHasToStartFromNewLine(exprStart, e, flow.Current);
-                        
-                    //todo start
-                    //anonymous
-                    var equation = new EquationSyntaxNode(AnonymousEquationId,0, e, attributes);
-                    hasAnonymousEquation = true;
-                    equationNames.Add(equation.Id);
-                    nodes.Add(equation);
-                }
+                    ReadAnonymousEquation(e);
             }
-            
-            return new SyntaxTree(nodes.ToArray());
-            
+            return new SyntaxTree(_nodes.ToArray());
         }
-        private static VarAttribute[] ReadAttributes(TokFlow flow)
+
+        private void ReadInputVariableSpecification(TypedVarDefSyntaxNode typed) 
+            => _nodes.Add(new VarDefenitionSyntaxNode(typed, _attributes));
+
+        private void ReadAnonymousEquation(ISyntaxNode e)
         {
-            bool newLine = flow.IsStart || flow.Previous.Is(TokType.NewLine);
-            var ans = new List<VarAttribute>();
-            while (flow.IsCurrent(TokType.Attribute))
+            if (_equationNames.Any())
             {
-                if (!newLine)
-                    throw ErrorFactory.NowNewLineBeforeAttribute(flow);
-
-                ans.Add(ReadAttribute(flow));
-                flow.SkipNewLines();
+                if (_startOfTheLine && _hasAnonymousEquation)
+                    throw ErrorFactory.OnlyOneAnonymousExpressionAllowed(_exprStartPosition, e, _flow.Current);
+                else
+                    throw ErrorFactory.UnexpectedExpression(e);
             }
-            return ans.ToArray();
-        }
-        private static VarAttribute ReadAttribute(TokFlow flow)
-        {
-            var start = flow.Current.Start;
-            flow.MoveNext();
-            if (!flow.MoveIf(TokType.Id, out var id))
-                throw ErrorFactory.ItIsNotAnAttribute(start, flow.Current);
-            object val = null;
-            if (flow.MoveIf(TokType.Obr))
-            {
-                var next = flow.Current;
-                switch (next.Type)
-                {
-                    case TokType.False:
-                        val = false;
-                        break;
-                    case TokType.True:
-                        val = true;
-                        break;
-                    case TokType.Number:
-                        val = TokenHelper.ToConstant(next.Value).Item1;
-                        break;
-                    case TokType.Text:
-                        val = next.Value;
-                        break;
-                    default:
-                        throw ErrorFactory.ItIsNotCorrectAttributeValue(next);
-                }
-                flow.MoveNext();
-                if(!flow.MoveIf(TokType.Cbr))                
-                    throw ErrorFactory.AttributeCbrMissed(start, flow);
-            }
-            if(!flow.MoveIf(TokType.NewLine))
-                throw ErrorFactory.NowNewLineAfterAttribute(start, flow);
 
-            return new VarAttribute(id.Value, val);
+            if (!_startOfTheLine)
+                throw ErrorFactory.AnonymousExpressionHasToStartFromNewLine(_exprStartPosition, e, _flow.Current);
+
+            //todo start
+            //anonymous
+            var equation = new EquationSyntaxNode(AnonymousEquationId, 0, e, _attributes);
+            _hasAnonymousEquation = true;
+            _equationNames.Add(equation.Id);
+            _nodes.Add(equation);
         }
 
-        private static UserFunctionDefenitionSyntaxNode ReadUserFunction(int start, FunCallSyntaxNode headNode, TokFlow flow, SyntaxNodeReader reader)
+        private void ReadUserFunction( FunCallSyntaxNode fun)
         {
-            var id = headNode.Id;
-            if (headNode.IsInBrackets)
-                throw ErrorFactory.UnexpectedBracketsOnFunDefenition( headNode, start,flow.Previous.Finish);
+            //Todo Make operator fun as separate node type
+
+            if (!_startOfTheLine)
+                throw ErrorFactory.FunctionDefenitionHasToStartFromNewLine(_exprStartPosition, fun, _flow.Current);
+            if (_attributes.Any())
+                throw ErrorFactory.AttributeOnFunction(_exprStartPosition, fun);
+            
+            var id = fun.Id;
+            if (fun.IsInBrackets)
+                throw ErrorFactory.UnexpectedBracketsOnFunDefenition( fun, _exprStartPosition,_flow.Previous.Finish);
 
             var arguments = new List<TypedVarDefSyntaxNode>();
-            foreach (var headNodeChild in headNode.Args)
+            foreach (var headNodeChild in fun.Args)
             {
                 if (headNodeChild is TypedVarDefSyntaxNode varDef)
                     arguments.Add(varDef);
                 else if(headNodeChild is VariableSyntaxNode varSyntax)
                     arguments.Add(new TypedVarDefSyntaxNode(varSyntax.Id, headNodeChild.OutputType, headNodeChild.Interval));
                 else    
-                    throw ErrorFactory.WrongFunctionArgumentDefenition(start, headNode, headNodeChild, flow.Current);
+                    throw ErrorFactory.WrongFunctionArgumentDefenition(_exprStartPosition, fun, headNodeChild, _flow.Current);
               
                 if(headNodeChild.IsInBrackets)    
-                    throw ErrorFactory.FunctionArgumentInBracketDefenition(start, headNode, headNodeChild, flow.Current);
+                    throw ErrorFactory.FunctionArgumentInBracketDefenition(_exprStartPosition, fun, headNodeChild, _flow.Current);
             }
 
             var outputType = VarType.Empty;
-            if (flow.MoveIf(TokType.Colon, out _))
-                outputType = flow.ReadVarType();
+            if (_flow.MoveIf(TokType.Colon, out _))
+                outputType = _flow.ReadVarType();
             
-            flow.SkipNewLines();
-            if (!flow.MoveIf(TokType.Def, out var def))
-                throw ErrorFactory.FunDefTokenIsMissed(id, arguments, flow.Current);  
+            _flow.SkipNewLines();
+            if (!_flow.MoveIf(TokType.Def, out var def))
+                throw ErrorFactory.FunDefTokenIsMissed(id, arguments, _flow.Current);  
 
-            var expression =reader.ReadExpressionOrNull();
+            var expression = _reader.ReadExpressionOrNull();
             if (expression == null)
             {
 
-                int finish = flow.Peek?.Finish ?? flow.Position;
+                int finish = _flow.Peek?.Finish ?? _flow.Position;
                     
                 throw ErrorFactory.FunExpressionIsMissed(id, arguments, 
                     new Interval(def.Start, finish));
             }
 
-            return new UserFunctionDefenitionSyntaxNode(arguments, headNode, expression, outputType ); 
+            var functionNode =  new UserFunctionDefenitionSyntaxNode(arguments, fun, expression, outputType );
+            
+            _nodes.Add(functionNode);
+            _hasFuctions = true;
         }
+
+        private void ReadOutputVariable(ISyntaxNode equationHeader, string id)
+        {
+            if (_hasAnonymousEquation)
+                throw ErrorFactory.UnexpectedExpression(_nodes.OfType<EquationSyntaxNode>().Single());
+            if (!_startOfTheLine)
+                throw ErrorFactory.DefenitionHasToStartFromNewLine(_exprStartPosition, equationHeader, _flow.Current);
+            
+            _flow.MoveNext();
+            var equation = ReadEquation(_flow, _reader, id, _attributes);
+
+            if (equationHeader is TypedVarDefSyntaxNode typed)
+            {
+                equation.TypeSpecificationOrNull = typed;
+                equation.OutputType = typed.VarType;
+            }
+
+            _nodes.Add(equation);
+            _equationNames.Add(equation.Id);
+        }
+
         private static EquationSyntaxNode ReadEquation(TokFlow flow, SyntaxNodeReader reader, string id, VarAttribute[] attributes)
         {
             flow.SkipNewLines();
@@ -191,7 +170,7 @@ namespace NFun.SyntaxParsing
             var exNode = reader.ReadExpressionOrNull();
             if (exNode == null)
                 throw ErrorFactory.VarExpressionIsMissed(start, id, flow.Current);
-            return new EquationSyntaxNode(id,start, exNode, attributes);
+            return new EquationSyntaxNode(id, start, exNode, attributes);
         }
     }
 }

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using NFun.HindleyMilner;
 using NFun.Interpritation;
 using NFun.Interpritation.Functions;
 using NFun.Interpritation.Nodes;
@@ -10,6 +9,8 @@ using NFun.Runtime;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
+using NFun.TypeInference;
+using NFun.TypeInference.Solving;
 using NFun.Types;
 
 namespace NFun.ParseErrors
@@ -444,8 +445,8 @@ namespace NFun.ParseErrors
         public static Exception CannotParseNumber(string val, Interval interval)
             => new FunParseException(521, $"Cannot parse number '{val}'", interval);
 
-        public static Exception FunctionOverloadNotFound(FunCallSyntaxNode node,FunctionsDictionary functions)
-        {
+        public static Exception FunctionOverloadNotFound(FunCallSyntaxNode node,FunctionsDictionary functions)    {
+            
             return new FunParseException(524,
                 $"Function {TypeHelper.GetFunSignature(node.Id,node.OutputType, node.Children.Select(c=>c.OutputType))} is not defined",
                 node.Interval);
@@ -508,14 +509,46 @@ namespace NFun.ParseErrors
         #endregion
 
         
+        public static Exception VariousIfElementTypes(IfThenElseSyntaxNode ifThenElse)
+        {
+            var allExpressions  = ifThenElse.Ifs
+                .Select(i => i.Expression)
+                .Append(ifThenElse.ElseExpr)
+                .ToArray();
+            
+            //Search first failed interval
+            Interval failedInterval = ifThenElse.Interval;
+            
+            //Lca defined only in TI. It is kind of hack
+            var hmTypes = allExpressions.Select(a => a.OutputType.ConvertToTiType()).ToArray();
+            var currentLca = hmTypes[0];
+            
+            for (int i = 1; i < hmTypes.Length; i++)
+            {
+                currentLca = TiType.GetLca(new[]{currentLca, hmTypes[i]});
+                if (currentLca.Name.Equals(TiTypeName.Any))
+                {
+                    failedInterval = allExpressions[i].Interval;
+                    break;
+                }
+            }
+            
+            return new FunParseException(560, $"'If-else expressions contains different type. " +
+                                              $"Specify toAny() cast if the result should be of 'any' type ", 
+                failedInterval);
+        }
+        public static Exception VariousArrayElementTypes(ArraySyntaxNode arraySyntaxNode) {
+            return new FunParseException(563, $"'Various array element types", arraySyntaxNode.Interval);
+        }
+        
         public static Exception VariousArrayElementTypes(ISyntaxNode failedArrayElement) {
-            return new FunParseException(554, $"'Various array element types", failedArrayElement.Interval);
+            return new FunParseException(563, $"'Various array element types", failedArrayElement.Interval);
         }
         
         public static Exception VariousArrayElementTypes(IExpressionNode[] elements, int failureIndex) {
             var firstType = elements[0].Type;
             var failureType = elements[failureIndex].Type;
-            return new FunParseException(554, $"'Not equal array element types: {firstType} and {failureType}",
+            return new FunParseException(566, $"'Not equal array element types: {firstType} and {failureType}",
                 new Interval(elements[failureIndex-1].Interval.Start, elements[failureIndex].Interval.Finish));
         }
 
@@ -525,12 +558,12 @@ namespace NFun.ParseErrors
                            ?? usages.Source.TypeSpecificationIntervalOrNull 
                            ?? new Interval();
 
-            return new FunParseException(560, $"Cannot use output value '{usages.Source.Name}' before it is declared'",
+            return new FunParseException(569, $"Cannot use output value '{usages.Source.Name}' before it is declared'",
                 interval);
         }
 
         public static Exception VariableIsDeclaredAfterUsing(VariableUsages usages)
-            => new FunParseException(563, $"Variable '{usages.Source.Name}' used before it is declared'",
+            => new FunParseException(572, $"Variable '{usages.Source.Name}' used before it is declared'",
                 usages.Nodes.First().Interval);
     
         #endregion

@@ -1,16 +1,16 @@
-using NFun.HindleyMilner.Tyso;
+using NFun.TypeInference.Solving;
 using NUnit.Framework;
 
 namespace NFun.HmTests
 {
     public class SolveComplexGenericsAdapterTest
     {
-        private HmHumanizerSolver solver;
+        private TiLanguageSolver solver;
 
         [SetUp]
         public void Init()
         {
-            solver = new HmHumanizerSolver();
+            solver = new TiLanguageSolver();
         }
         
         [Test]
@@ -21,15 +21,15 @@ namespace NFun.HmTests
             solver.SetVar(0, "i");
             solver.SetVar(1, "a");
             
-            solver.SetCall(new CallDef(new[]{
-                    FType.Generic(0),
-                    FType.ArrayOf(FType.Generic(0)), 
-                    FType.Int32}, new[] {2,1,0}));
+            solver.SetCall(new CallDefenition(new[]{
+                    TiType.Generic(0),
+                    TiType.ArrayOf(TiType.Generic(0)), 
+                    TiType.Int32}, new[] {2,1,0}));
             var solvation = solver.Solve();
             Assert.AreEqual(1, solvation.GenericsCount);
-            Assert.AreEqual(FType.ArrayOf(FType.Generic(0)), solvation.GetVarType("a"));
-            Assert.AreEqual(FType.Int32, solvation.GetVarType("i"));
-            Assert.AreEqual(FType.Generic(0),  solvation.GetNodeType(2));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Generic(0)), solvation.GetVarType("a"));
+            Assert.AreEqual(TiType.Int32, solvation.GetVarType("i"));
+            Assert.AreEqual(TiType.Generic(0),  solvation.GetNodeType(2));
 
         }
         
@@ -39,12 +39,12 @@ namespace NFun.HmTests
             // 2        1     0
             // y(a) = reverse(a)
             solver.SetVar( 0,"a");
-            solver.SetCall(new CallDef(FType.ArrayOf(FType.Generic(0)), new[] {1,0}));
+            solver.SetCall(new CallDefenition(TiType.ArrayOf(TiType.Generic(0)), new[] {1,0}));
             solver.SetDefenition("y", 2, 1);
             
             var solvation = solver.Solve();
             Assert.AreEqual(1, solvation.GenericsCount);
-            Assert.AreEqual(FType.ArrayOf(FType.Generic(0)), solvation.GetVarType("y"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Generic(0)), solvation.GetVarType("y"));
         }
         
         [Test]
@@ -53,21 +53,21 @@ namespace NFun.HmTests
             // 4        3      2  1 0
             // y(a) = reverse(get(a,0))
             solver.SetVar( 1,"a");
-            solver.SetConst(0,FType.Int32);
-            solver.SetCall(new CallDef(
+            solver.SetConst(0,TiType.Int32);
+            solver.SetCall(new CallDefenition(
                 new[]{
-                    FType.Generic(0), 
-                    FType.ArrayOf(FType.Generic(0)), 
-                    FType.Int32}, 
+                    TiType.Generic(0), 
+                    TiType.ArrayOf(TiType.Generic(0)), 
+                    TiType.Int32}, 
                 new[] {2,1,0}));
 
-            solver.SetCall(new CallDef(FType.ArrayOf(FType.Generic(0)), new[] {3,2}));
+            solver.SetCall(new CallDefenition(TiType.ArrayOf(TiType.Generic(0)), new[] {3,2}));
             solver.SetDefenition("y", 4, 3);
             
             var solvation = solver.Solve();
             Assert.AreEqual(1, solvation.GenericsCount);
-            Assert.AreEqual(FType.ArrayOf(FType.Generic(0)), solvation.GetVarType("y"));
-            Assert.AreEqual(FType.ArrayOf(FType.ArrayOf(FType.Generic(0))), solvation.GetVarType("a"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Generic(0)), solvation.GetVarType("y"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.ArrayOf(TiType.Generic(0))), solvation.GetVarType("a"));
         }
         
         [Test]
@@ -76,13 +76,13 @@ namespace NFun.HmTests
             // 5          0  2     1     4   3
             // y(a,b,c) = a.concat(b).concat(c)
             solver.SetVar( 0,"a");
-            solver.SetCall(new CallDef(FType.ArrayOf(FType.Generic(0)), new[] {2,0, 1}));
-            solver.SetCall(new CallDef(FType.ArrayOf(FType.Generic(0)), new[] {4, 2, 3}));
+            solver.SetCall(new CallDefenition(TiType.ArrayOf(TiType.Generic(0)), new[] {2,0, 1}));
+            solver.SetCall(new CallDefenition(TiType.ArrayOf(TiType.Generic(0)), new[] {4, 2, 3}));
             solver.SetDefenition("y", 5, 4);
             
             var solvation = solver.Solve();
             Assert.AreEqual(1, solvation.GenericsCount);
-            Assert.AreEqual(FType.ArrayOf(FType.Generic(0)), solvation.GetVarType("y"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Generic(0)), solvation.GetVarType("y"));
         }
     
         
@@ -91,15 +91,15 @@ namespace NFun.HmTests
         {
             // 3         0      2    1
             // y(b) = [0,1,2].concat(b)
-            solver.SetConst( 0,FType.ArrayOf(FType.Int32));
+            solver.SetConst( 0,TiType.ArrayOf(TiType.Int32));
             solver.SetVar(1, "b");
-            solver.SetCall(new CallDef(FType.ArrayOf(FType.Generic(0)), new[] {2, 0, 1}));
+            solver.SetCall(new CallDefenition(TiType.ArrayOf(TiType.Generic(0)), new[] {2, 0, 1}));
             solver.SetDefenition("y", 3, 2);
             
             var solvation = solver.Solve();
             Assert.AreEqual(0, solvation.GenericsCount);
-            Assert.AreEqual(FType.ArrayOf(FType.Int32), solvation.GetVarType("y"));
-            Assert.AreEqual(FType.ArrayOf(FType.Int32), solvation.GetVarType("b"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Int32), solvation.GetVarType("y"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Int32), solvation.GetVarType("b"));
         }
         
 
@@ -111,16 +111,16 @@ namespace NFun.HmTests
             // y(a,b,c) = a.concat(b).concat([0,1,2])
             solver.SetVar( 0,"a");
             solver.SetVar( 1,"b");
-            solver.SetCall(new CallDef(FType.ArrayOf(FType.Generic(0)), new[] {2, 0, 1}));
-            solver.SetConst(3,FType.ArrayOf(FType.Int32));
-            solver.SetCall(new CallDef(FType.ArrayOf(FType.Generic(0)), new[] {4, 2, 3}));
+            solver.SetCall(new CallDefenition(TiType.ArrayOf(TiType.Generic(0)), new[] {2, 0, 1}));
+            solver.SetConst(3,TiType.ArrayOf(TiType.Int32));
+            solver.SetCall(new CallDefenition(TiType.ArrayOf(TiType.Generic(0)), new[] {4, 2, 3}));
             solver.SetDefenition("y", 5, 4);
             
             var solvation = solver.Solve();
             Assert.AreEqual(0, solvation.GenericsCount);
-            Assert.AreEqual(FType.ArrayOf(FType.Int32), solvation.GetVarType("y"));
-            Assert.AreEqual(FType.ArrayOf(FType.Int32), solvation.GetVarType("b"));
-            Assert.AreEqual(FType.ArrayOf(FType.Int32), solvation.GetVarType("a"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Int32), solvation.GetVarType("y"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Int32), solvation.GetVarType("b"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Int32), solvation.GetVarType("a"));
 
         }
         [Test]
@@ -129,13 +129,13 @@ namespace NFun.HmTests
             // 5          0  2     1     4   3
             // y(a,b,c) = a.concat(b).concat(c)
             solver.SetVar( 0,"a");
-            solver.SetCall(new CallDef(FType.ArrayOf(FType.Generic(0)), new[] {2, 0, 1}));
-            solver.SetCall(new CallDef(FType.ArrayOf(FType.Generic(0)), new[] {4, 2, 3}));
+            solver.SetCall(new CallDefenition(TiType.ArrayOf(TiType.Generic(0)), new[] {2, 0, 1}));
+            solver.SetCall(new CallDefenition(TiType.ArrayOf(TiType.Generic(0)), new[] {4, 2, 3}));
             solver.SetDefenition("y", 5, 4);
             
             var solvation = solver.Solve();
             Assert.AreEqual(1, solvation.GenericsCount);
-            Assert.AreEqual(FType.ArrayOf(FType.Generic(0)), solvation.GetVarType("y"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Generic(0)), solvation.GetVarType("y"));
         }
         
         [Test]
@@ -145,21 +145,21 @@ namespace NFun.HmTests
             // y(a,b,c,d) = a.concat(b).concat(c).concat(d)
             solver.SetVar( 0,"a");
             solver.SetVar( 1,"b");
-            solver.SetCall(new CallDef(FType.ArrayOf(FType.Generic(0)), new[] {2, 0, 1}));
+            solver.SetCall(new CallDefenition(TiType.ArrayOf(TiType.Generic(0)), new[] {2, 0, 1}));
             solver.SetVar( 3,"c");
-            solver.SetCall(new CallDef(FType.ArrayOf(FType.Generic(0)), new[] {4, 2, 3}));
+            solver.SetCall(new CallDefenition(TiType.ArrayOf(TiType.Generic(0)), new[] {4, 2, 3}));
             solver.SetVar( 5,"d");
-            solver.SetCall(new CallDef(FType.ArrayOf(FType.Generic(0)), new[] {6, 4, 5}));
+            solver.SetCall(new CallDefenition(TiType.ArrayOf(TiType.Generic(0)), new[] {6, 4, 5}));
 
             solver.SetDefenition("y", 7, 6);
             
             var solvation = solver.Solve();
             Assert.AreEqual(1, solvation.GenericsCount);
-            Assert.AreEqual(FType.ArrayOf(FType.Generic(0)), solvation.GetVarType("y"));
-            Assert.AreEqual(FType.ArrayOf(FType.Generic(0)), solvation.GetVarType("a"));
-            Assert.AreEqual(FType.ArrayOf(FType.Generic(0)), solvation.GetVarType("b"));
-            Assert.AreEqual(FType.ArrayOf(FType.Generic(0)), solvation.GetVarType("c"));
-            Assert.AreEqual(FType.ArrayOf(FType.Generic(0)), solvation.GetVarType("d"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Generic(0)), solvation.GetVarType("y"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Generic(0)), solvation.GetVarType("a"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Generic(0)), solvation.GetVarType("b"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Generic(0)), solvation.GetVarType("c"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Generic(0)), solvation.GetVarType("d"));
         }
         [Test]
         public void ThreeGenericArrayOperations_MiddleArgSpecified_EquationSolved()
@@ -168,20 +168,20 @@ namespace NFun.HmTests
             // y(a,b,d) = a.concat(b).concat([1,2]).concat(d)
             solver.SetVar( 0,"a");
             solver.SetVar( 1,"b");
-            solver.SetCall(new CallDef(FType.ArrayOf(FType.Generic(0)), new[] {2, 0, 1}));
-            solver.SetConst(3, FType.ArrayOf(FType.Int32));
-            solver.SetCall(new CallDef(FType.ArrayOf(FType.Generic(0)), new[] {4, 2, 3}));
+            solver.SetCall(new CallDefenition(TiType.ArrayOf(TiType.Generic(0)), new[] {2, 0, 1}));
+            solver.SetConst(3, TiType.ArrayOf(TiType.Int32));
+            solver.SetCall(new CallDefenition(TiType.ArrayOf(TiType.Generic(0)), new[] {4, 2, 3}));
             solver.SetVar( 5,"d");
-            solver.SetCall(new CallDef(FType.ArrayOf(FType.Generic(0)), new[] {6, 4, 5}));
+            solver.SetCall(new CallDefenition(TiType.ArrayOf(TiType.Generic(0)), new[] {6, 4, 5}));
 
             solver.SetDefenition("y", 7, 6);
             
             var solvation = solver.Solve();
             Assert.AreEqual(0, solvation.GenericsCount);
-            Assert.AreEqual(FType.ArrayOf(FType.Int32), solvation.GetVarType("y"));
-            Assert.AreEqual(FType.ArrayOf(FType.Int32), solvation.GetVarType("a"));
-            Assert.AreEqual(FType.ArrayOf(FType.Int32), solvation.GetVarType("b"));
-            Assert.AreEqual(FType.ArrayOf(FType.Int32), solvation.GetVarType("d"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Int32), solvation.GetVarType("y"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Int32), solvation.GetVarType("a"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Int32), solvation.GetVarType("b"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Int32), solvation.GetVarType("d"));
         }
         
         [Test]
@@ -190,27 +190,27 @@ namespace NFun.HmTests
             // 7                                 0  2     1     4   3     6   5
             // y(a,b:real[],c:int64[],d:int[]) = a.concat(b).concat(c).concat(d)
 
-            solver.SetVarType("b", FType.ArrayOf(FType.Real));
-            solver.SetVarType("c", FType.ArrayOf(FType.Int64));
-            solver.SetVarType("d", FType.ArrayOf(FType.Int32));
+            solver.SetVarType("b", TiType.ArrayOf(TiType.Real));
+            solver.SetVarType("c", TiType.ArrayOf(TiType.Int64));
+            solver.SetVarType("d", TiType.ArrayOf(TiType.Int32));
 
             solver.SetVar( 0,"a");
             solver.SetVar( 1,"b");
-            Assert.IsTrue(solver.SetCall(new CallDef(FType.ArrayOf(FType.Generic(0)), new[] {2, 0, 1})));
+            Assert.IsTrue(solver.SetCall(new CallDefenition(TiType.ArrayOf(TiType.Generic(0)), new[] {2, 0, 1})));
             Assert.IsTrue(solver.SetVar( 3,"c"));
-            Assert.IsTrue(solver.SetCall(new CallDef(FType.ArrayOf(FType.Generic(0)), new[] {4, 2, 3})));
+            Assert.IsTrue(solver.SetCall(new CallDefenition(TiType.ArrayOf(TiType.Generic(0)), new[] {4, 2, 3})));
             Assert.IsTrue(solver.SetVar( 5,"d"));
-            Assert.IsTrue(solver.SetCall(new CallDef(FType.ArrayOf(FType.Generic(0)), new[] {6, 4, 5})));
+            Assert.IsTrue(solver.SetCall(new CallDefenition(TiType.ArrayOf(TiType.Generic(0)), new[] {6, 4, 5})));
             
             solver.SetDefenition("y", 7, 6).AssertSuccesfully();
             
             var solvation = solver.Solve();
             Assert.AreEqual(0, solvation.GenericsCount);
-            Assert.AreEqual(FType.ArrayOf(FType.Real), solvation.GetVarType("y"));
-            Assert.AreEqual(FType.ArrayOf(FType.Real), solvation.GetVarType("a"));
-            Assert.AreEqual(FType.ArrayOf(FType.Real), solvation.GetVarType("b"));
-            Assert.AreEqual(FType.ArrayOf(FType.Int64), solvation.GetVarType("c"));
-            Assert.AreEqual(FType.ArrayOf(FType.Int32), solvation.GetVarType("d"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Real), solvation.GetVarType("y"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Real), solvation.GetVarType("a"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Real), solvation.GetVarType("b"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Int64), solvation.GetVarType("c"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Int32), solvation.GetVarType("d"));
         }
         
         [Test]
@@ -218,14 +218,14 @@ namespace NFun.HmTests
         {
             // 7               0  2     1     4       3     6   5
             // y(a,b,d):real[] = a.concat(b).concat([1,2]).concat(d)
-            solver.SetVarType("y" , FType.ArrayOf(FType.Real));
+            solver.SetVarType("y" , TiType.ArrayOf(TiType.Real));
             solver.SetVar( 0,"a");
             solver.SetVar( 1,"b");
-            solver.SetCall(new CallDef(FType.ArrayOf(FType.Generic(0)), new[] {2, 0, 1}));
-            solver.SetConst(3, FType.ArrayOf(FType.Int32));
-            solver.SetCall(new CallDef(FType.ArrayOf(FType.Generic(0)), new[] {4, 2, 3}));
+            solver.SetCall(new CallDefenition(TiType.ArrayOf(TiType.Generic(0)), new[] {2, 0, 1}));
+            solver.SetConst(3, TiType.ArrayOf(TiType.Int32));
+            solver.SetCall(new CallDefenition(TiType.ArrayOf(TiType.Generic(0)), new[] {4, 2, 3}));
             solver.SetVar( 5,"d");
-            solver.SetCall(new CallDef(FType.ArrayOf(FType.Generic(0)), new[] {6, 4, 5}));
+            solver.SetCall(new CallDefenition(TiType.ArrayOf(TiType.Generic(0)), new[] {6, 4, 5}));
 
             solver.SetDefenition("y", 7, 6).AssertSuccesfully();
         }
@@ -235,15 +235,15 @@ namespace NFun.HmTests
         {
             // 3             0      2    1
             // y(a,b,c) = [0,1,2].concat(b)
-            solver.SetConst( 0,FType.ArrayOf(FType.Int32));
+            solver.SetConst( 0,TiType.ArrayOf(TiType.Int32));
             solver.SetVar(1, "b");
-            solver.SetCall(new CallDef(FType.ArrayOf(FType.Generic(0)), new[] {2, 0, 1}));
+            solver.SetCall(new CallDefenition(TiType.ArrayOf(TiType.Generic(0)), new[] {2, 0, 1}));
             solver.SetDefenition("y", 3, 2);
             
             var solvation = solver.Solve();
             Assert.AreEqual(0, solvation.GenericsCount);
-            Assert.AreEqual(FType.ArrayOf(FType.Int32), solvation.GetVarType("y"));
-            Assert.AreEqual(FType.ArrayOf(FType.Int32), solvation.GetVarType("b"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Int32), solvation.GetVarType("y"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Int32), solvation.GetVarType("b"));
         }
         [Test]
         public void TwoArrayOperationsWithLastConcreteArgument_EquationSolved()
@@ -252,16 +252,16 @@ namespace NFun.HmTests
             // y(a,b,c) = a.concat(b).concat([0,1,2])
             solver.SetVar( 0,"a");
             solver.SetVar( 1,"b");
-            solver.SetCall(new CallDef(FType.ArrayOf(FType.Generic(0)), new[] {2, 0, 1}));
-            solver.SetConst(3,FType.ArrayOf(FType.Int32));
-            solver.SetCall(new CallDef(FType.ArrayOf(FType.Generic(0)), new[] {4, 2, 3}));
+            solver.SetCall(new CallDefenition(TiType.ArrayOf(TiType.Generic(0)), new[] {2, 0, 1}));
+            solver.SetConst(3,TiType.ArrayOf(TiType.Int32));
+            solver.SetCall(new CallDefenition(TiType.ArrayOf(TiType.Generic(0)), new[] {4, 2, 3}));
             solver.SetDefenition("y", 5, 4);
             
             var solvation = solver.Solve();
             Assert.AreEqual(0, solvation.GenericsCount);
-            Assert.AreEqual(FType.ArrayOf(FType.Int32), solvation.GetVarType("y"));
-            Assert.AreEqual(FType.ArrayOf(FType.Int32), solvation.GetVarType("b"));
-            Assert.AreEqual(FType.ArrayOf(FType.Int32), solvation.GetVarType("a"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Int32), solvation.GetVarType("y"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Int32), solvation.GetVarType("b"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Int32), solvation.GetVarType("a"));
 
         }
         [Test]
@@ -269,19 +269,19 @@ namespace NFun.HmTests
         {
             // 5                0   2    1   4     3
             // y(a,b,c):int[] = a.concat(b).concat(c)
-            solver.SetVarType("y", FType.ArrayOf(FType.Int32));
+            solver.SetVarType("y", TiType.ArrayOf(TiType.Int32));
             solver.SetVar( 0,"a");
             solver.SetVar( 1,"b");
-            solver.SetCall(new CallDef(FType.ArrayOf(FType.Generic(0)), new[] {2, 0, 1}));
+            solver.SetCall(new CallDefenition(TiType.ArrayOf(TiType.Generic(0)), new[] {2, 0, 1}));
             solver.SetVar(3,"c");
-            solver.SetCall(new CallDef(FType.ArrayOf(FType.Generic(0)), new[] {4, 2, 3}));
+            solver.SetCall(new CallDefenition(TiType.ArrayOf(TiType.Generic(0)), new[] {4, 2, 3}));
             solver.SetDefenition("y", 5, 4);
             
             var solvation = solver.Solve();
             Assert.AreEqual(0, solvation.GenericsCount);
-            Assert.AreEqual(FType.ArrayOf(FType.Int32), solvation.GetVarType("y"));
-            Assert.AreEqual(FType.ArrayOf(FType.Int32), solvation.GetVarType("b"));
-            Assert.AreEqual(FType.ArrayOf(FType.Int32), solvation.GetVarType("a"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Int32), solvation.GetVarType("y"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Int32), solvation.GetVarType("b"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Int32), solvation.GetVarType("a"));
 
         }
 
@@ -293,15 +293,15 @@ namespace NFun.HmTests
             //dsame15(x:real):real = x
             //3     0    2     1
             //y = input.map(dsame15)
-            solver.SetVarType("input", FType.ArrayOf(FType.Int32));
-            solver.SetVarType("dsame15", FType.Fun(FType.Real, FType.Real));
+            solver.SetVarType("input", TiType.ArrayOf(TiType.Int32));
+            solver.SetVarType("dsame15", TiType.Fun(TiType.Real, TiType.Real));
             solver.SetVar(1, "dsame15");
             solver.SetVar(0, "input");
-            Assert.IsTrue(solver.SetCall(new CallDef(
+            Assert.IsTrue(solver.SetCall(new CallDefenition(
                 new []{
-                    FType.ArrayOf(FType.Generic(1)),
-                    FType.ArrayOf(FType.Generic(0)), 
-                    FType.Fun(FType.Generic(1), FType.Generic(0))}, 
+                    TiType.ArrayOf(TiType.Generic(1)),
+                    TiType.ArrayOf(TiType.Generic(0)), 
+                    TiType.Fun(TiType.Generic(1), TiType.Generic(0))}, 
                 new []{2,0,1})));
 
             solver.SetDefenition("y", 3, 2);
@@ -309,8 +309,8 @@ namespace NFun.HmTests
             var solvation = solver.Solve();
             Assert.IsTrue(solvation.IsSolved);
             Assert.AreEqual(0, solvation.GenericsCount);
-            Assert.AreEqual(FType.ArrayOf(FType.Int32), solvation.GetVarType("input"));
-            Assert.AreEqual(FType.ArrayOf(FType.Real), solvation.GetVarType("y"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Int32), solvation.GetVarType("input"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Real), solvation.GetVarType("y"));
 
         }
         [Test]
@@ -321,15 +321,15 @@ namespace NFun.HmTests
             //dsame15(x:int):int = x
             //3     0    2     1
             //y = input.map(dsame15)
-            solver.SetVarType("input", FType.ArrayOf(FType.Real));
-            solver.SetVarType("dsame15", FType.Fun(FType.Int32, FType.Int32));
+            solver.SetVarType("input", TiType.ArrayOf(TiType.Real));
+            solver.SetVarType("dsame15", TiType.Fun(TiType.Int32, TiType.Int32));
             solver.SetVar(1, "dsame15");
             solver.SetVar(0, "input");
-            Assert.IsFalse(solver.SetCall(new CallDef(
+            Assert.IsFalse(solver.SetCall(new CallDefenition(
                 new[]{
-                    FType.ArrayOf(FType.Generic(1)),
-                    FType.ArrayOf(FType.Generic(0)),
-                    FType.Fun(FType.Generic(1), FType.Generic(0))},
+                    TiType.ArrayOf(TiType.Generic(1)),
+                    TiType.ArrayOf(TiType.Generic(0)),
+                    TiType.Fun(TiType.Generic(1), TiType.Generic(0))},
                 new[] { 2, 0, 1 })));
         }
     }

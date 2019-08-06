@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NFun.BuiltInFunctions;
+using NFun.Exceptions;
 using NFun.Interpritation.Nodes;
 using NFun.Runtime;
 
@@ -37,7 +39,7 @@ namespace NFun.Interpritation.Functions
             {
                 _recursiveArgsStack.Push(args);
                 if (_recursiveArgsStack.Count > 400)
-                    throw new FunStackoverflowException($"stack overflow on {Name}");
+                    throw new FunRuntimeStackoverflowException($"stack overflow on {Name}");
 
                 if (args.Length != Variables.Length)
                     throw new ArgumentException();

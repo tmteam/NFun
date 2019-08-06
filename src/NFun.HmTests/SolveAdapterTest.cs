@@ -1,23 +1,23 @@
-using NFun.HindleyMilner.Tyso;
+using NFun.TypeInference.Solving;
 using NUnit.Framework;
 
 namespace NFun.HmTests
 {
     public class SolveAdapterTest
     {
-        private HmHumanizerSolver solver;
+        private TiLanguageSolver solver;
 
         [SetUp]
         public void Init()
         {
-            solver = new HmHumanizerSolver();
+            solver = new TiLanguageSolver();
         }
         [Test]
 
         public void TextCannotBeUsedInArithmetical()
         {
-            solver.SetConst(0, FType.Text);
-            solver.SetConst(1, FType.Real);
+            solver.SetConst(0, TiType.Text);
+            solver.SetConst(1, TiType.Real);
             solver.SetArithmeticalOp(2, 0, 1).AssertFailed(0);
         }
         
@@ -33,8 +33,8 @@ namespace NFun.HmTests
             
             var res = solver.Solve();
             Assert.AreEqual(0,res.GenericsCount);
-            Assert.AreEqual(FType.Real, res.GetVarType("x"));
-            Assert.AreEqual(FType.Real, res.GetVarType("y"));
+            Assert.AreEqual(TiType.Real, res.GetVarType("x"));
+            Assert.AreEqual(TiType.Real, res.GetVarType("y"));
         }
         
         [Test]
@@ -44,7 +44,7 @@ namespace NFun.HmTests
             //y = a + 1 * b
             
             solver.SetVar(0, "a");
-            solver.SetConst(1, FType.Int32);
+            solver.SetConst(1, TiType.Int32);
             solver.SetVar(2, "b");
             solver.SetArithmeticalOp(3, 1, 2).AssertSuccesfully();
             solver.SetArithmeticalOp(4, 0, 3).AssertSuccesfully();
@@ -52,9 +52,9 @@ namespace NFun.HmTests
             
             var res = solver.Solve();
             Assert.AreEqual(0,res.GenericsCount);
-            Assert.AreEqual(FType.Real, res.GetVarType("a"));
-            Assert.AreEqual(FType.Real, res.GetVarType("b"));
-            Assert.AreEqual(FType.Real, res.GetVarType("y"));
+            Assert.AreEqual(TiType.Real, res.GetVarType("a"));
+            Assert.AreEqual(TiType.Real, res.GetVarType("b"));
+            Assert.AreEqual(TiType.Real, res.GetVarType("y"));
         }
 
         #region  limitCall Expirement
@@ -64,7 +64,7 @@ namespace NFun.HmTests
             //  0 2 1  4 3
             //( x / 2 )<<3
             solver.SetVar(0, "x");
-            Assert.IsTrue(solver.SetCall(new CallDef(FType.Real, new[] {2,0, 1})));
+            Assert.IsTrue(solver.SetCall(new CallDefenition(TiType.Real, new[] {2,0, 1})));
             solver.SetBitShiftOperator(4, 2, 3).AssertFailed();
         }
         
@@ -75,14 +75,14 @@ namespace NFun.HmTests
             // y = a / b;  a = 1:int
             solver.SetVar(0,"a");
             solver.SetVar(1,"b");
-            solver.SetCall(new CallDef(FType.Real, new []{2,0,1}));
+            solver.SetCall(new CallDefenition(TiType.Real, new []{2,0,1}));
             solver.SetDefenition("y", 3, 2);
-            solver.SetConst(4,FType.Int32);
+            solver.SetConst(4,TiType.Int32);
             solver.SetDefenition("a", 5, 4).AssertSuccesfully();
 
             var solvation = solver.Solve();
-            Assert.AreEqual(FType.Real, solvation.GetVarType("y"));
-            Assert.AreEqual(FType.Int32, solvation.GetVarType("a"));
+            Assert.AreEqual(TiType.Real, solvation.GetVarType("y"));
+            Assert.AreEqual(TiType.Int32, solvation.GetVarType("a"));
             Assert.AreEqual(0, solvation.GenericsCount);
         }
         
@@ -97,20 +97,20 @@ namespace NFun.HmTests
             solver.SetDefenition("r", 3, 2);
 
             solver.SetVar(4, "y");
-            solver.SetConst(5, FType.Int32);
+            solver.SetConst(5, TiType.Int32);
             solver.SetBitShiftOperator(6,4,5);
             solver.SetDefenition("i", 7, 6);
 
-            solver.SetConst(8, FType.Int32);
-            solver.SetConst(9, FType.Int32);
-            solver.SetCall(new CallDef(FType.Real, new[] {10, 8, 9}));
+            solver.SetConst(8, TiType.Int32);
+            solver.SetConst(9, TiType.Int32);
+            solver.SetCall(new CallDefenition(TiType.Real, new[] {10, 8, 9}));
             solver.SetDefenition("x", 11, 10);
 
             var solvation = solver.Solve();
 
-            Assert.AreEqual(FType.Real, solvation.GetVarType("x"));
-            Assert.AreEqual(FType.Real, solvation.GetVarType("r"));
-            Assert.AreEqual(FType.Int32, solvation.GetVarType("y"));
+            Assert.AreEqual(TiType.Real, solvation.GetVarType("x"));
+            Assert.AreEqual(TiType.Real, solvation.GetVarType("r"));
+            Assert.AreEqual(TiType.Int32, solvation.GetVarType("y"));
         }
        
         
@@ -125,7 +125,7 @@ namespace NFun.HmTests
             //  0 2 1  4 3
             //( x / 2 )<<3
             solver.SetVar(0, "x");
-            Assert.IsTrue(solver.SetCall(new CallDef(FType.Real, new[] {2,0, 1})));
+            Assert.IsTrue(solver.SetCall(new CallDefenition(TiType.Real, new[] {2,0, 1})));
             solver.SetBitShiftOperator(4, 2, 3).AssertFailed();
         }
         [Test]
@@ -133,10 +133,10 @@ namespace NFun.HmTests
         {
             //  1   0  2 4 3
             //  x = 1; x<<3 
-            solver.SetConst(0, FType.Int32);
+            solver.SetConst(0, TiType.Int32);
             solver.SetDefenition("x", 1, 0);
             solver.SetBitShiftOperator(4, 2, 3).AssertSuccesfully();
-            Assert.AreEqual(FType.Int32, solver.Solve().GetVarType("x"));
+            Assert.AreEqual(TiType.Int32, solver.Solve().GetVarType("x"));
         }
 
         #region lca-If
@@ -146,24 +146,24 @@ namespace NFun.HmTests
         {
             //  4   3    1   0      2
             //  x = if(true) 1 else 2 
-            solver.SetConst(0, FType.Int32);
-            solver.SetConst(1, FType.Bool);
-            solver.SetConst(2, FType.Int32);
+            solver.SetConst(0, TiType.Int32);
+            solver.SetConst(1, TiType.Bool);
+            solver.SetConst(2, TiType.Int32);
             solver.ApplyLcaIf(3, new[] {1}, new[] {0, 2});
             solver.SetDefenition("x", 4, 3);
-            Assert.AreEqual(FType.Int32, solver.Solve().GetVarType("x"));
+            Assert.AreEqual(TiType.Int32, solver.Solve().GetVarType("x"));
         }
         [Test]
         public void ConstantLcaOneOfThemIf_ResultTypeIsInteger()
         {
             //  4   3    1   0      2
             //  x = if(true) 1 else 2 
-            solver.SetConst(0, FType.Int32);
-            solver.SetConst(1, FType.Bool);
-            solver.SetConst(2, FType.Int32);
+            solver.SetConst(0, TiType.Int32);
+            solver.SetConst(1, TiType.Bool);
+            solver.SetConst(2, TiType.Int32);
             solver.ApplyLcaIf(3, new[] {1}, new[] {0, 2});
             solver.SetDefenition("x", 4, 3);
-            Assert.AreEqual(FType.Int32, solver.Solve().GetVarType("x"));
+            Assert.AreEqual(TiType.Int32, solver.Solve().GetVarType("x"));
         }
         #endregion
         
@@ -181,10 +181,10 @@ namespace NFun.HmTests
             solver.SetDefenition("myFun", 5, 4);
 
             var solvation = solver.Solve();
-            Assert.AreEqual(FType.Real, solvation.GetVarType("myFun"));
-            Assert.AreEqual(FType.Real, solvation.GetVarType("a"));
-            Assert.AreEqual(FType.Real, solvation.GetVarType("b"));
-            Assert.AreEqual(FType.Real, solvation.GetVarType("c"));
+            Assert.AreEqual(TiType.Real, solvation.GetVarType("myFun"));
+            Assert.AreEqual(TiType.Real, solvation.GetVarType("a"));
+            Assert.AreEqual(TiType.Real, solvation.GetVarType("b"));
+            Assert.AreEqual(TiType.Real, solvation.GetVarType("c"));
         }
         
         [Test]
@@ -193,7 +193,7 @@ namespace NFun.HmTests
             //   5                 0 2 1 4 3
             //  myfun(a:int,b,c) = a + b + c 
             solver.SetVar(0, "a");
-            solver.SetConst(0, FType.Int32);//todo
+            solver.SetConst(0, TiType.Int32);//todo
             solver.SetVar(1, "b");
             solver.SetArithmeticalOp(2,0,1).AssertSuccesfully();
             solver.SetVar(3, "c");
@@ -201,10 +201,10 @@ namespace NFun.HmTests
             solver.SetDefenition("myFun", 5, 4);
 
             var solvation = solver.Solve();
-            Assert.AreEqual(FType.Real, solvation.GetVarType("myFun"));
-            Assert.AreEqual(FType.Int32, solvation.GetVarType("a"));
-            Assert.AreEqual(FType.Real, solvation.GetVarType("b"));
-            Assert.AreEqual(FType.Real, solvation.GetVarType("c"));
+            Assert.AreEqual(TiType.Real, solvation.GetVarType("myFun"));
+            Assert.AreEqual(TiType.Int32, solvation.GetVarType("a"));
+            Assert.AreEqual(TiType.Real, solvation.GetVarType("b"));
+            Assert.AreEqual(TiType.Real, solvation.GetVarType("c"));
         }
         
         [Test]
@@ -212,7 +212,7 @@ namespace NFun.HmTests
         {
             //   5                   0 2 1 4 3
             //  myfun(a,b,c):int64 = a + b + c 
-            solver.SetVarType("myFun", FType.Int64); 
+            solver.SetVarType("myFun", TiType.Int64); 
             solver.SetVar(0, "a");
             solver.SetVar(1, "b");
             solver.SetArithmeticalOp(2,0,1);
@@ -220,10 +220,10 @@ namespace NFun.HmTests
             solver.SetArithmeticalOp(4,2,3);
             solver.SetDefenition("myFun", 5, 4);
             var solvation = solver.Solve();
-            Assert.AreEqual(FType.Int64, solvation.GetVarType("myFun"));
-            Assert.AreEqual(FType.Int64, solvation.GetVarType("a"));
-            Assert.AreEqual(FType.Int64, solvation.GetVarType("b"));
-            Assert.AreEqual(FType.Int64, solvation.GetVarType("c"));
+            Assert.AreEqual(TiType.Int64, solvation.GetVarType("myFun"));
+            Assert.AreEqual(TiType.Int64, solvation.GetVarType("a"));
+            Assert.AreEqual(TiType.Int64, solvation.GetVarType("b"));
+            Assert.AreEqual(TiType.Int64, solvation.GetVarType("c"));
         }
         
         
@@ -239,8 +239,8 @@ namespace NFun.HmTests
             solver.SetBitShiftOperator(4, 2, 3).AssertSuccesfully();
             var solvation = solver.Solve();
             
-            Assert.AreEqual(FType.Int32, solvation.GetVarType("x"));
-            Assert.AreEqual(FType.Int32, solvation.GetVarType("y"));
+            Assert.AreEqual(TiType.Int32, solvation.GetVarType("x"));
+            Assert.AreEqual(TiType.Int32, solvation.GetVarType("y"));
         }
         
         [Test]
@@ -248,9 +248,9 @@ namespace NFun.HmTests
         {
             //1   0   3    2  7   4 6 5
             //a = 1l; b = 1l; x = a + b
-            solver.SetConst(0, FType.Int64);
+            solver.SetConst(0, TiType.Int64);
             solver.SetDefenition("a", 1, 0);
-            solver.SetConst(2, FType.Int64);
+            solver.SetConst(2, TiType.Int64);
             solver.SetDefenition("b", 3, 2);
 
             solver.SetVar( 4,"a");
@@ -260,7 +260,7 @@ namespace NFun.HmTests
 
             var solvation = solver.Solve();
 
-            Assert.AreEqual(FType.Int64, solvation.GetVarType("x"));
+            Assert.AreEqual(TiType.Int64, solvation.GetVarType("x"));
         }
         
         [Test]
@@ -270,14 +270,14 @@ namespace NFun.HmTests
             // y = sumReal(a,b);  a = 1:int
             solver.SetVar(0,"a");
             solver.SetVar(1,"b");
-            solver.SetCall(new CallDef(FType.Real, new []{2,0,1}));
+            solver.SetCall(new CallDefenition(TiType.Real, new []{2,0,1}));
             solver.SetDefenition("y", 3, 2);
-            solver.SetConst(4,FType.Int32);
+            solver.SetConst(4,TiType.Int32);
             solver.SetDefenition("a", 5, 4).AssertSuccesfully();
 
             var solvation = solver.Solve();
-            Assert.AreEqual(FType.Real, solvation.GetVarType("y"));
-            Assert.AreEqual(FType.Int32, solvation.GetVarType("a"));
+            Assert.AreEqual(TiType.Real, solvation.GetVarType("y"));
+            Assert.AreEqual(TiType.Int32, solvation.GetVarType("a"));
             Assert.AreEqual(0, solvation.GenericsCount);
         }
         
@@ -288,19 +288,19 @@ namespace NFun.HmTests
             // y = sumReal(a,b);  a = 1:int; b = a << 2
             solver.SetVar(0,"a");
             solver.SetVar(1,"b");
-            solver.SetCall(new CallDef(FType.Real, new []{2,0,1}));
+            solver.SetCall(new CallDefenition(TiType.Real, new []{2,0,1}));
             solver.SetDefenition("y", 3, 2);
-            solver.SetConst(4,FType.Int32);
+            solver.SetConst(4,TiType.Int32);
             solver.SetDefenition("a", 5, 4).AssertSuccesfully();
             solver.SetVar(6, "a");
-            solver.SetConst(7,FType.Int32);
+            solver.SetConst(7,TiType.Int32);
             solver.SetBitShiftOperator(8, 6, 7).AssertSuccesfully();
             solver.SetDefenition("b", 9, 8).AssertSuccesfully();
             
             var solvation = solver.Solve();
-            Assert.AreEqual(FType.Real, solvation.GetVarType("y"));
-            Assert.AreEqual(FType.Int32, solvation.GetVarType("a"));
-            Assert.AreEqual(FType.Int32, solvation.GetVarType("b"));
+            Assert.AreEqual(TiType.Real, solvation.GetVarType("y"));
+            Assert.AreEqual(TiType.Int32, solvation.GetVarType("a"));
+            Assert.AreEqual(TiType.Int32, solvation.GetVarType("b"));
             Assert.AreEqual(0, solvation.GenericsCount);
         }
         
@@ -309,18 +309,18 @@ namespace NFun.HmTests
         {
             // 1      0   5      4    2 3    
             // a = 1:int; y = sumReal(a,b);   
-            solver.SetConst(0,FType.Int32);
+            solver.SetConst(0,TiType.Int32);
             solver.SetDefenition("a", 1, 0);
                 
             solver.SetVar(2,"a");
             solver.SetVar(3,"b");
             
-            solver.SetCall(new CallDef(FType.Real, new []{4,2,3}));
+            solver.SetCall(new CallDefenition(TiType.Real, new []{4,2,3}));
             solver.SetDefenition("y", 5, 4).AssertSuccesfully();
             
             var solvation = solver.Solve();
-            Assert.AreEqual(FType.Real, solvation.GetVarType("y"));
-            Assert.AreEqual(FType.Int32, solvation.GetVarType("a"));
+            Assert.AreEqual(TiType.Real, solvation.GetVarType("y"));
+            Assert.AreEqual(TiType.Int32, solvation.GetVarType("a"));
             Assert.AreEqual(0, solvation.GenericsCount);
         }
         
@@ -329,7 +329,7 @@ namespace NFun.HmTests
         {
             // 1    0        5   2 4 3   7   6 
             // a = 1.0:real; y = a + b;  b = 1:int
-            solver.SetConst(0,FType.Real);
+            solver.SetConst(0,TiType.Real);
             solver.SetDefenition("a", 1, 0);
             
             solver.SetVar(2,"a");
@@ -337,13 +337,13 @@ namespace NFun.HmTests
             solver.SetArithmeticalOp(4, 2, 3).AssertSuccesfully();
             solver.SetDefenition("y", 5, 4).AssertSuccesfully();
 
-            solver.SetConst(6,FType.Int32);
+            solver.SetConst(6,TiType.Int32);
             solver.SetDefenition("b",7,6).AssertSuccesfully();
 
             var solvation = solver.Solve();
-            Assert.AreEqual(FType.Real, solvation.GetVarType("y"));
-            Assert.AreEqual(FType.Real, solvation.GetVarType("a"));
-            Assert.AreEqual(FType.Int32, solvation.GetVarType("b"));
+            Assert.AreEqual(TiType.Real, solvation.GetVarType("y"));
+            Assert.AreEqual(TiType.Real, solvation.GetVarType("a"));
+            Assert.AreEqual(TiType.Int32, solvation.GetVarType("b"));
             Assert.AreEqual(0, solvation.GenericsCount);
         }
         
@@ -358,68 +358,68 @@ namespace NFun.HmTests
             solver.SetDefenition("r", 3, 2);
 
             solver.SetVar(4, "y");
-            solver.SetConst(5, FType.Int32);
+            solver.SetConst(5, TiType.Int32);
             solver.SetBitShiftOperator(6,4,5);
             solver.SetDefenition("i", 7, 6);
 
-            solver.SetConst(8, FType.Int32);
-            solver.SetConst(9, FType.Int32);
-            solver.SetCall(new CallDef(FType.Real, new[] {10, 8, 9}));
+            solver.SetConst(8, TiType.Int32);
+            solver.SetConst(9, TiType.Int32);
+            solver.SetCall(new CallDefenition(TiType.Real, new[] {10, 8, 9}));
             solver.SetDefenition("x", 11, 10);
 
             var solvation = solver.Solve();
 
-            Assert.AreEqual(FType.Real, solvation.GetVarType("x"));
-            Assert.AreEqual(FType.Real, solvation.GetVarType("r"));
-            Assert.AreEqual(FType.Int32, solvation.GetVarType("y"));
+            Assert.AreEqual(TiType.Real, solvation.GetVarType("x"));
+            Assert.AreEqual(TiType.Real, solvation.GetVarType("r"));
+            Assert.AreEqual(TiType.Int32, solvation.GetVarType("y"));
         }
         [Test]
         public void Arithm_WithTwoInts_EqualsInt()
         {
-            solver.SetConst(0, FType.Int32);
-            solver.SetConst(1, FType.Int32);
+            solver.SetConst(0, TiType.Int32);
+            solver.SetConst(1, TiType.Int32);
             solver.SetArithmeticalOp(2, 0, 1);
             solver.SetDefenition("y", 3, 2);
             var solvation = solver.Solve();
             Assert.IsTrue(solvation.IsSolved);
-            Assert.AreEqual(FType.Int32, solvation.GetVarType("y"));
+            Assert.AreEqual(TiType.Int32, solvation.GetVarType("y"));
         }
         [Test]
         public void ConstantIf_ResultTypeIsInteger()
         {
             //  4   3    1   0      2
             //  x = if(true) 1 else 2 
-            solver.SetConst(0, FType.Int32);
-            solver.SetConst(1, FType.Bool);
-            solver.SetConst(2, FType.Int32);
+            solver.SetConst(0, TiType.Int32);
+            solver.SetConst(1, TiType.Bool);
+            solver.SetConst(2, TiType.Int32);
             solver.ApplyLcaIf(3, new[] {1}, new[] {0,2});
             solver.SetDefenition("x", 4, 3);
             
-            Assert.AreEqual(FType.Int32, solver.Solve().GetVarType("x"));
+            Assert.AreEqual(TiType.Int32, solver.Solve().GetVarType("x"));
         }
         [Test]
         public void If_WithTwoInts_equalInt()
         {
             //4    3     1   0      2
             //y  = if (true) 1 else 2
-            solver.SetConst(0, FType.Int32);
-            solver.SetConst(1, FType.Bool);
-            solver.SetConst(2, FType.Int32);
+            solver.SetConst(0, TiType.Int32);
+            solver.SetConst(1, TiType.Bool);
+            solver.SetConst(2, TiType.Int32);
 
             solver.ApplyLcaIf(3, new[] {1}, new[] {0,2});
             solver.SetDefenition("y", 4, 3);
             var solvation = solver.Solve();
             Assert.IsTrue(solvation.IsSolved);
 
-            Assert.AreEqual(FType.Int32, solvation.GetVarType("y"));
+            Assert.AreEqual(TiType.Int32, solvation.GetVarType("y"));
         }
         [Test]
         public void If_withOneIntAndOneVar_equalReal()
         {
             //4    3     1   0      2
             //y  = if (true) 1 else x
-            solver.SetConst(0, FType.Int32);
-            solver.SetConst(1, FType.Bool);
+            solver.SetConst(0, TiType.Int32);
+            solver.SetConst(1, TiType.Bool);
             solver.SetVar(2,"x");
             Assert.IsTrue(solver.ApplyLcaIf(3, new[] {1}, new[] {0,2}));
             solver.SetDefenition("y", 4, 3).AssertSuccesfully();
@@ -428,8 +428,8 @@ namespace NFun.HmTests
             Assert.IsTrue(solvation.IsSolved);
 
             Assert.AreEqual(0,solvation.GenericsCount);
-            Assert.AreEqual(FType.Int32, solvation.GetVarType("y"));
-            Assert.AreEqual(FType.Int32, solvation.GetVarType("x"));
+            Assert.AreEqual(TiType.Int32, solvation.GetVarType("y"));
+            Assert.AreEqual(TiType.Int32, solvation.GetVarType("x"));
         }
         
         [Test]
@@ -437,14 +437,14 @@ namespace NFun.HmTests
         {
             //4     3     1   0      2  6    5   10    7 9 8
             //y1  = if (true) 1 else x; y2 = y1; y3 = y1 * 2
-            solver.SetConst(0, FType.Int32);
-            solver.SetConst(1, FType.Bool);
+            solver.SetConst(0, TiType.Int32);
+            solver.SetConst(1, TiType.Bool);
             solver.SetVar(2,"x");
             Assert.IsTrue(solver.ApplyLcaIf(3, new[] {1}, new[] {0,2}));
             solver.SetVar(5,"y1");
             solver.SetDefenition("y2", 6, 5).AssertSuccesfully();
             solver.SetVar(7,"y1");
-            solver.SetConst(8, FType.Int32);
+            solver.SetConst(8, TiType.Int32);
             solver.SetArithmeticalOp(9, 7, 8);
             solver.SetDefenition("y3", 10, 9).AssertSuccesfully();
             
@@ -453,11 +453,11 @@ namespace NFun.HmTests
             Assert.IsTrue(solvation.IsSolved);
 
             Assert.AreEqual(0,solvation.GenericsCount);
-            Assert.AreEqual(FType.Real, solvation.GetVarType("y1"));
-            Assert.AreEqual(FType.Real, solvation.GetVarType("y2"));
-            Assert.AreEqual(FType.Real, solvation.GetVarType("y3"));
+            Assert.AreEqual(TiType.Real, solvation.GetVarType("y1"));
+            Assert.AreEqual(TiType.Real, solvation.GetVarType("y2"));
+            Assert.AreEqual(TiType.Real, solvation.GetVarType("y3"));
 
-            Assert.AreEqual(FType.Int32, solvation.GetVarType("x"));
+            Assert.AreEqual(TiType.Int32, solvation.GetVarType("x"));
         }
         
         [Test]
@@ -472,7 +472,7 @@ namespace NFun.HmTests
             solver.SetDefenition("y2",3,2);
 
             solver.SetVar(4,"y2");
-            solver.SetConst(6, FType.Int32);
+            solver.SetConst(6, TiType.Int32);
             solver.SetArithmeticalOp(6, 4, 5);
             solver.SetDefenition("y3",7,6);
 
@@ -480,9 +480,9 @@ namespace NFun.HmTests
             Assert.IsTrue(solvation.IsSolved);
 
             Assert.AreEqual(0,solvation.GenericsCount);
-            Assert.AreEqual(FType.Int32, solvation.GetVarType("y1"));
-            Assert.AreEqual(FType.Int32, solvation.GetVarType("y2"));
-            Assert.AreEqual(FType.Int32, solvation.GetVarType("y3"));
+            Assert.AreEqual(TiType.Int32, solvation.GetVarType("y1"));
+            Assert.AreEqual(TiType.Int32, solvation.GetVarType("y2"));
+            Assert.AreEqual(TiType.Int32, solvation.GetVarType("y3"));
         }
         
         [Test]
@@ -497,7 +497,7 @@ namespace NFun.HmTests
             solver.SetDefenition("y2",3,2);
 
             solver.SetVar(4,"y0");
-            solver.SetConst(6, FType.Int32);
+            solver.SetConst(6, TiType.Int32);
             solver.SetArithmeticalOp(6, 4, 5);
             solver.SetDefenition("y3",7,6);
 
@@ -505,9 +505,9 @@ namespace NFun.HmTests
             Assert.IsTrue(solvation.IsSolved);
 
             Assert.AreEqual(0,solvation.GenericsCount);
-            Assert.AreEqual(FType.Int32, solvation.GetVarType("y1"));
-            Assert.AreEqual(FType.Int32, solvation.GetVarType("y2"));
-            Assert.AreEqual(FType.Int32, solvation.GetVarType("y3"));
+            Assert.AreEqual(TiType.Int32, solvation.GetVarType("y1"));
+            Assert.AreEqual(TiType.Int32, solvation.GetVarType("y2"));
+            Assert.AreEqual(TiType.Int32, solvation.GetVarType("y3"));
         }
         [Test]
         public void TypeSpecified_PutHighterType_EquationSOlved()
@@ -515,12 +515,12 @@ namespace NFun.HmTests
             //         1    0  
             //a:real;  a = 1:int32
 
-            solver.SetVarType("a", FType.Real);
+            solver.SetVarType("a", TiType.Real);
             
-            solver.SetConst(0, FType.Int32);
+            solver.SetConst(0, TiType.Int32);
             solver.SetDefenition("a", 1,0).AssertSuccesfully();
             var solvation = solver.Solve();
-            Assert.AreEqual(FType.Real, solvation.GetVarType("a"));
+            Assert.AreEqual(TiType.Real, solvation.GetVarType("a"));
         }
 
         [Test]
@@ -529,16 +529,16 @@ namespace NFun.HmTests
             //1   0       3   2
             //a = 1:int;  a = 1.0:int64
 
-            solver.SetConst(0, FType.Int32);
+            solver.SetConst(0, TiType.Int32);
             solver.SetDefenition("a", 1,0).AssertSuccesfully();
-            solver.SetConst(2, FType.Int64);
+            solver.SetConst(2, TiType.Int64);
             
             solver.SetDefenition("a", 3, 2).AssertSuccesfully();
              
             var solvation = solver.Solve();
             Assert.IsTrue(solvation.IsSolved);
 
-            Assert.AreEqual(FType.Int64, solvation.GetVarType("a"));
+            Assert.AreEqual(TiType.Int64, solvation.GetVarType("a"));
         }
         [Test]
         public void TypeLimitSet_ThanChangedToHigher_LowerLimitAccepted()
@@ -546,16 +546,16 @@ namespace NFun.HmTests
             //1   0          3   2
             //a = 1:int64;  a = 1.0:int32
 
-            solver.SetConst(0, FType.Int64);
+            solver.SetConst(0, TiType.Int64);
             solver.SetDefenition("a", 1,0).AssertSuccesfully();
-            solver.SetConst(2, FType.Int32);
+            solver.SetConst(2, TiType.Int32);
             
             solver.SetDefenition("a", 3, 2).AssertSuccesfully();
              
             var solvation = solver.Solve();
             Assert.IsTrue(solvation.IsSolved);
 
-            Assert.AreEqual(FType.Int64, solvation.GetVarType("a"));
+            Assert.AreEqual(TiType.Int64, solvation.GetVarType("a"));
         }
         
         [Test]
@@ -563,8 +563,8 @@ namespace NFun.HmTests
         {
             //          3   1 2 0
             //a,b:long; y = a + b #y:long
-            solver.SetVarType("a", FType.Int64);
-            solver.SetVarType("b", FType.Int64);
+            solver.SetVarType("a", TiType.Int64);
+            solver.SetVarType("b", TiType.Int64);
 
             solver.SetVar(0,"a");
             solver.SetVar(1,"b");
@@ -573,17 +573,17 @@ namespace NFun.HmTests
             var solvation = solver.Solve();
             Assert.IsTrue(solvation.IsSolved);
 
-            Assert.AreEqual(FType.Int64, solvation.GetVarType("y"));
+            Assert.AreEqual(TiType.Int64, solvation.GetVarType("y"));
         }
         [Test]
         public void ArgTypesSpecified_InvalidOperationCausesError()
         {
             //        1 2 0
             //x:real; x<< 3 #error
-            solver.SetVarType("x", FType.Real);
+            solver.SetVarType("x", TiType.Real);
             
             solver.SetVar(1,"x");
-            solver.SetConst(0, FType.Real);
+            solver.SetConst(0, TiType.Real);
             solver.SetBitShiftOperator(2, 1, 0).AssertFailed();
         }   
     }

@@ -86,8 +86,13 @@ namespace NFun.Tokenization
         /// </summary>
         TwoDots,
         TextType,
+        Int16Type,
         Int32Type,
         Int64Type,
+        UInt8Type,
+        UInt16Type,
+        UInt32Type,
+        UInt64Type,
         RealType,
         BoolType,
         AnythingType,
@@ -99,5 +104,7 @@ namespace NFun.Tokenization
         /// =>
         /// </summary>
         AnonymFun,
+        
+        Reserved
     }
 }

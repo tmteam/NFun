@@ -24,38 +24,80 @@ namespace NFun.Types
         }
         public static Var New(string name, object value)
         {
-            if (value is int i)
-                return New(name, i);
-            if(value is long l)
-                return New(name, l);
-            if (value is double d)
-                return New(name, d);
-            if (value is bool b)
-                return New(name, b);
-            if (value is string s)
-                return New(name, s);
-            if (value is char c)
-                return New(name, c);
-            if (value is IEnumerable<double> arrDbl)
-                return New(name, arrDbl);
-            if (value is IEnumerable<long> arrLong)
-                return New(name, arrLong);
-            if (value is IEnumerable<int> arrInt)
-                return New(name, arrInt);
-            if (value is IEnumerable<string> arrStr)
-                return New(name, arrStr);
-            if (value is IEnumerable<bool> arrBool)
-                return New(name, arrBool);
-            if (value is IEnumerable<object> arrObj)
-                return New(name, arrObj);
-            return new Var(name, value, VarType.Anything);
+            switch (value)
+            {
+                case byte ui8:
+                    return New(name, ui8);
+                case ushort ui16:
+                    return New(name, ui16);
+                case uint ui32:
+                    return New(name, ui32);
+                case ulong ui64:
+                    return New(name, ui64);
+                case sbyte i8:
+                    return New(name, i8);
+                case short i16:
+                    return New(name, i16);
+                case int i32:
+                    return New(name, i32);
+                case long i64:
+                    return New(name, i64);
+                case double d:
+                    return New(name, d);
+                case bool b:
+                    return New(name, b);
+                case string s:
+                    return New(name, s);
+                case char c:
+                    return New(name, c);
+                case IEnumerable<double> arrDbl:
+                    return New(name, arrDbl);
+                //place signed first because ex: int[] fits to signed and unsigned   
+                case IEnumerable<sbyte> arrI8:
+                    return New(name, arrI8);
+                case IEnumerable<short> arrI16:
+                    return New(name, arrI16);
+                case IEnumerable<int> arrI32:
+                    return New(name, arrI32);
+                case IEnumerable<long> arrI64:
+                    return New(name, arrI64);
+                //place unsigned after signed
+                case IEnumerable<byte> arrUI8:
+                    return New(name, arrUI8);
+                case IEnumerable<ushort> arrUi16:
+                    return New(name, arrUi16);
+                case IEnumerable<uint> arrUi32:
+                    return New(name, arrUi32);
+                case IEnumerable<ulong> arrUi64:
+                    return New(name, arrUi64);
+                
+                case IEnumerable<string> arrStr:
+                    return New(name, arrStr);
+                case IEnumerable<bool> arrBool:
+                    return New(name, arrBool);
+                case IEnumerable<object> arrObj:
+                    return New(name, arrObj);
+                default:
+                    return new Var(name, value, VarType.Anything);
+            }
         }
         public static Var New(string name, bool value) 
             => new Var(name, value, VarType.Bool);
+        public static Var New(string name, short value) 
+            => new Var(name, value, VarType.Int16);
         public static Var New(string name, int value) 
             => new Var(name, value, VarType.Int32);
         public static Var New(string name, long value) 
             => new Var(name, value, VarType.Int64);
+        
+        public static Var New(string name, byte value) 
+            => new Var(name, value, VarType.UInt8);
+        public static Var New(string name, ushort value) 
+            => new Var(name, value, VarType.UInt16);
+        public static Var New(string name, uint value) 
+            => new Var(name, value, VarType.UInt32);
+        public static Var New(string name, ulong value) 
+            => new Var(name, value, VarType.UInt64);
         public static Var New(string name, double value) 
             => new Var(name, value, VarType.Real);
         public static Var New(string name, string value) 
@@ -66,6 +108,16 @@ namespace NFun.Types
         {
             if (t == typeof(object))
                 return VarType.Anything;
+            if(t== typeof(byte))
+                return VarType.UInt8;
+            if(t== typeof(ushort))
+                return VarType.UInt16;
+            if (t == typeof(uint))
+                return VarType.UInt32;
+            if (t== typeof(ulong))    
+                return VarType.UInt64;
+            if(t== typeof(short))
+                return VarType.Int16;
             if (t == typeof(int))
                 return VarType.Int32;
             if (t== typeof(long))    
@@ -76,7 +128,7 @@ namespace NFun.Types
                 return VarType.Text;
             if (t == typeof(bool))
                 return VarType.Bool;
-            if(t== typeof(char))
+            if (t== typeof(char))
                 return VarType.Char;
             if (t.IsArray)
             {

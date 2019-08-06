@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NFun.BuiltInFunctions;
+using NFun.Exceptions;
 using NFun.Interpritation.Functions;
 using NFun.Interpritation.Nodes;
 using NFun.ParseErrors;
@@ -18,9 +19,24 @@ namespace NFun.Interpritation
         private readonly FunctionsDictionary _functions;
         private readonly VariableDictionary _variables;
 
-        public static IExpressionNode BuildExpression(ISyntaxNode node, FunctionsDictionary functions,
+        public static IExpressionNode BuildExpression(
+            ISyntaxNode node, 
+            FunctionsDictionary functions,
             VariableDictionary variables) =>
             node.Visit(new ExpressionBuilderVisitor(functions, variables));
+
+        public static IExpressionNode BuildExpression(
+            ISyntaxNode node, 
+            FunctionsDictionary functions,
+            VarType outputType,
+            VariableDictionary variables)
+        {
+            var result =  node.Visit(new ExpressionBuilderVisitor(functions, variables));
+            if (result.Type == outputType)
+                return result;
+            var converter = VarTypeConverter.GetConverterOrThrow(result.Type, outputType, node.Interval);
+            return new CastExpressionNode(result, outputType, converter, node.Interval);
+        }
 
         public ExpressionBuilderVisitor(FunctionsDictionary functions, VariableDictionary variables)
         {
@@ -50,7 +66,7 @@ namespace NFun.Interpritation
             {
                 //Convert argument node
                 var varNode = FunArgumentExpressionNode.CreateWith(arg);
-                var source = new VariableSource(varNode.Name, varNode.Type, arg.Interval);
+                var source = VariableSource.CreateWithStrictTypeLabel(varNode.Name, varNode.Type, arg.Interval);
                 //collect argument
                 arguments.Add(source);
                 //add argument to local scope
@@ -104,14 +120,37 @@ namespace NFun.Interpritation
                 children.Add(argNode);
                 childrenTypes.Add(argNode.Type);
             }
+            var signature = node.SignatureOfOverload;
+            FunctionBase function = null;
+            if (signature != null)
+            {
+                //Signature was calculated by Ti algorithm.
+                function = _functions.GetOrNullConcrete(
+                    name: id,
+                    returnType: signature.ReturnType,
+                    args: signature.ArgTypes);
+            }
+            else
+            {
+                //todo
+                //Ti algorithm had not calculate concrete overload
+                function = _functions.GetOrNullWithOverloadSearch(
+                    name: id, 
+                    returnType: node.OutputType,
+                    args: childrenTypes.ToArray());
+            }
 
-            var function = _functions.GetOrNull(
-                name: id, 
-                returnType: node.OutputType,
-                args: childrenTypes.ToArray());
             if (function == null)
-                throw ErrorFactory.FunctionOverloadNotFound(node, _functions);
-            return function.CreateWithConvertionOrThrow(children, node.Interval);
+                throw new ImpossibleException("MJ78. Function overload was not found");
+             
+            var converted =  function.CreateWithConvertionOrThrow(children, node.Interval);
+            if(converted.Type!= node.OutputType)
+            {
+                var converter = VarTypeConverter.GetConverterOrThrow(converted.Type, node.OutputType, node.Interval);
+                return new CastExpressionNode(converted, node.OutputType, converter,node.Interval);
+            }
+            else
+                return converted;
         }
 
         public IExpressionNode Visit(IfThenElseSyntaxNode node)

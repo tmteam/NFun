@@ -12,7 +12,8 @@ namespace NFun.SyntaxParsing.SyntaxNodes
         public VarType ReturnType { get; }
         public FunCallSyntaxNode Head { get; }
 
-        public UserFunctionDefenitionSyntaxNode(IList<TypedVarDefSyntaxNode> arguments, 
+        public UserFunctionDefenitionSyntaxNode(
+            IList<TypedVarDefSyntaxNode> arguments, 
             FunCallSyntaxNode headNode, 
             ISyntaxNode expression, 
             VarType returnType)
