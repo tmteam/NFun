@@ -758,14 +758,14 @@ x = round(a - b - c)
 |----------------------
   x = round(a - b - c)  
 ");
-            Param param = new Param("y","Real");
+            
             Assert.Multiple(() =>
             {
                 StandardAssertForCorrectTestCase();
                 Assert.AreEqual("a",_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[0].Value);
-                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[0].VarType);
-                Assert.AreEqual(param.Value,_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0].Value);
-                Assert.AreEqual(param.VarType,_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0].VarType);
+                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[0].VarType.ToString());
+                Assert.AreEqual("y",_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0].Value);
+                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0].VarType.ToString());
 
             });
         }
@@ -785,15 +785,14 @@ x = round(a - b - c)
 
   x = round(a - b - c)  
 ");
-            Param param = new Param("y", "Real");
             Assert.Multiple(() =>
             {
                 StandardAssertForCorrectTestCase();
                 Assert.AreEqual("\r\n  x = round(a - b - c)  ",_fuspecTestCases.TestCases.FirstOrDefault().Script);
                 Assert.AreEqual("a",_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[0].Value);
-                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[0].VarType);
-                Assert.AreEqual(param.Value,_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0].Value);
-                Assert.AreEqual(param.VarType,_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0].VarType);
+                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[0].VarType.ToString());
+                Assert.AreEqual("y",_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0].Value);
+                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0].VarType.ToString());
             });
         }
 
@@ -809,14 +808,13 @@ x = round(a - b - c)
 |--------------------
   x = round(a - b - c)  
 ");
-            Param param = new Param("a", "Real");
+          
 
             Assert.Multiple(() =>
             {
                 StandardAssertForCorrectTestCase();
-                
-                Assert.AreEqual(param.Value,_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[0].Value);
-                Assert.AreEqual(param.VarType,_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[0].VarType);
+                Assert.AreEqual("a",_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[0].Value);
+                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[0].VarType.ToString());
             });
         }
         
@@ -833,12 +831,11 @@ x = round(a - b - c)
   x = round(a - b - c)  
 ");
 
-            Param param = new Param("y","Real[]");
             Assert.Multiple(() =>
             {
                 StandardAssertForCorrectTestCase();
-                Assert.AreEqual(param.Value,_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0].Value);
-                Assert.AreEqual(param.VarType,_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0].VarType);
+                Assert.AreEqual("y",_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0].Value);
+                Assert.AreEqual("Real[]",_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0].VarType.ToString());
             });
         }
         [Test]
@@ -934,16 +931,15 @@ x = round(a - b - c)
 |-----------------------------
   x = round(a - b - c)  
 ");
-            Param param = new Param("a","Real");
-            Param param2 = new Param("b","Real");
+    
 
             Assert.Multiple(() =>
             {
                 StandardAssertForCorrectTestCase();
-                Assert.AreEqual(param.Value,_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0].Value);
-                Assert.AreEqual(param.VarType,_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0].VarType);
-                Assert.AreEqual(param2.Value,_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[1].Value);
-                Assert.AreEqual(param2.VarType,_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[1].VarType);
+                Assert.AreEqual("a",_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0].Value);
+                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0].VarType.ToString());
+                Assert.AreEqual("b",_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[1].Value);
+                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[1].VarType.ToString());
             });
         }
         
@@ -959,16 +955,16 @@ x = round(a - b - c)
 |-----------------------------
   x = round(a - b - c)  
 ");
-            Param param = new Param("a","Real");
-            Param param2 = new Param("a","Int32");
-
+            
+// не организована проверка!
             Assert.Multiple(() =>
             {
                 StandardAssertForNotCorrectTestCase();
-          //      Assert.AreEqual(param.Value,_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0].Value);
-           //     Assert.AreEqual(param.VarType,_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0].VarType);
-            //    Assert.AreEqual(param2.Value,_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[1].Value);
-             //   Assert.AreEqual(param2.VarType,_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[1].VarType);
+                Assert.AreEqual(FuspecErrorType.NFunError_ICantParseParamTypeString, _fuspecTestCases.Errors.FirstOrDefault().ErrorType);
+                //    Assert.AreEqual("a",_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0].Value);
+                //    Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0].VarType.ToString());
+                //    Assert.AreEqual("b",_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[1].Value);
+                //    Assert.AreEqual("Int32",_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[1].VarType.ToString());
             });
         }
         
@@ -989,10 +985,10 @@ x = round(a - b - c)
             {
                 StandardAssertForCorrectTestCase();
                 Assert.AreEqual("a",_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0].Value);
-                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0].VarType);
+                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[0].VarType.ToString());
                 
                 Assert.AreEqual("b",_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[1].Value);
-                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[1].VarType);
+                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsOut[1].VarType.ToString());
                 
             });
         }
@@ -1005,7 +1001,7 @@ x = round(a - b - c)
 | TEST Name
 | TAGS tag1
 |************************
-| in a:real,b:real
+| in a:real,  b:real
 |---------------------------
   x = round(a - b - c)  
 ");
@@ -1014,9 +1010,9 @@ x = round(a - b - c)
             {
                 StandardAssertForCorrectTestCase();
                 Assert.AreEqual( "a",_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[0].Value);
-                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[0].VarType);
+                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[0].VarType.ToString());
                 Assert.AreEqual( "b",_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[1].Value);
-                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[1].VarType);
+                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[1].VarType.ToString());
             });
         }
         
