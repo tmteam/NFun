@@ -92,7 +92,7 @@ namespace Nfun.Fuspec.Parser
         {
             if (str.Trim() == "")
                 return TestCaseParseState.ReadingName;
-            var name = FindKeyWord("| TEST", str);
+            var name = FindStringOrNullByKeyWord("| TEST", str);
             if (name == null || name.Trim()=="")
                 return WriteError(new FuspecParserError(FuspecErrorType.NamedMissed, _index));
             _testCaseBuilder.Name =name.Trim();
@@ -107,7 +107,7 @@ namespace Nfun.Fuspec.Parser
             if (IsSeparatingLine(str, '*'))
                 return TestCaseParseState.ReadingParamsIn;
             
-            var tags = FindKeyWord("| TAGS", str);
+            var tags = FindStringOrNullByKeyWord("| TAGS", str);
             
             if (tags == null )
                 return WriteError(new FuspecParserError(FuspecErrorType.EndingHeadMissed,_index));
@@ -125,7 +125,7 @@ namespace Nfun.Fuspec.Parser
                 _script.Add(str);
                 return TestCaseParseState.ReadingParamsIn;
             }
-            var paramInString = FindKeyWord("| in", str);
+            var paramInString = FindStringOrNullByKeyWord("| in", str);
             if (paramInString == null)
                 return ReadParamsOut(str);
             
@@ -134,7 +134,7 @@ namespace Nfun.Fuspec.Parser
            
             try
             {
-                _testCaseBuilder.ParamsIn = GetParam(paramInString);
+                _testCaseBuilder.ParamsIn = GetInOutParam(paramInString);
             }
             catch (Exception e)
             {
@@ -157,7 +157,7 @@ namespace Nfun.Fuspec.Parser
             if (IsSeparatingLine(str, '-'))
                 return TestCaseParseState.ReadingBody;
 
-            var paramOutString = FindKeyWord("| out", str);
+            var paramOutString = FindStringOrNullByKeyWord("| out", str);
             if (paramOutString == null)
             {
                 if (_testCaseBuilder.ParamsIn.Any())
@@ -170,7 +170,7 @@ namespace Nfun.Fuspec.Parser
             
             try
             {
-            _testCaseBuilder.ParamsOut = GetParam(paramOutString);
+            _testCaseBuilder.ParamsOut = GetInOutParam(paramOutString);
             }
             catch (Exception e)
             {
@@ -191,7 +191,7 @@ namespace Nfun.Fuspec.Parser
                 return TestCaseParseState.ReadingBody;
             }
 
-            if (FindKeyWord("|***", str) != null || FindKeyWord("|---",str)!=null)
+            if (FindStringOrNullByKeyWord("|***", str) != null || FindStringOrNullByKeyWord("|---",str)!=null)
             {
                 if (IsSeparatingLine(str, '-') )
                     return TestCaseParseState.ReadingValues;
@@ -230,8 +230,8 @@ namespace Nfun.Fuspec.Parser
             if (_setCheckKit.CheckKit.Any())
                 return WriteError(new FuspecParserError(FuspecErrorType.ExpectedSeparatedLine, _index));
 
-            var setString = FindKeyWord("| set", str);
-            var checkString = FindKeyWord("| check", str);
+            var setString = FindStringOrNullByKeyWord("| set", str);
+            var checkString = FindStringOrNullByKeyWord("| check", str);
             if ((setString == null & checkString == null))
                 return WriteError(new FuspecParserError(FuspecErrorType.WrongSetCheckKit, _index));
 
