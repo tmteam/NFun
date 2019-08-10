@@ -1,0 +1,160 @@
+
+|****************************************
+| TEST int constant arithmetic 
+| TAGS int constant arithmetic                         
+|************************
+| in x:int        
+| out plus:int; minus:int; 
+|     multi:int; rema:int           
+|------------------------
+  x:int
+  plus :int = x+1
+  minus:int =x-1
+  multi:int =x*100
+  rema :int =x%10
+|---------------------
+| set x=1;         
+| check plus==2; minus==0; 
+|       multi==100; rema==1        
+| 
+| set x=-20;          
+| check plus==-19; minus==-21; multi==-2000; rema==0
+
+
+|****************************************
+| TEST real constant arithmetic 
+| TAGS real constant arithmetic                         
+|************************
+| in x:real        
+| out plus:real; minus:real; 
+|     multi:real; rema:real           
+|------------------------
+  x:real
+  plus :real = x+1
+  minus:real = x-1
+  multi:real = x*100
+  divide:real = x/10
+  pow:real    = x**2
+|---------------------
+| set x=1;         
+| check plus==2; minus==0; 
+|       multi==100; divide==0.1; pow==1  
+|       
+| set x=-20;          
+| check plus==-19; minus==-21; 
+| multi==-2000; divide==-2; pow==-8000
+
+
+
+|****************************************
+| TEST int to real upcast 
+| TAGS int real constant upcast                         
+|************************
+| in  x:real        
+| out p1,p2,p3,m1,m2,m3,r1,r2,r3 
+|------------------------
+  x:int
+  p1 :real = x+1
+  p2 :real = x+1.0
+  p3 :real = x+x
+  m1 :real = x*1
+  m2 :real = x*1.0
+  m3 :real = x*x
+  r1 :real = x%1
+  r2 :real = x%1.0
+  r3 :real = x%x
+|---------------------
+| set x=1;         
+| check p1==1.0; p2==1.0; p3==2.0
+|		m1==1.0; m2==1.0; m3==1.0
+|		r1==0.0; r2==0.0; r3==0.0
+|                
+| set x=-20;          
+| check p1==-19; p2==-19; p3==-19
+|		m1==-20; m2==-20; m3==400
+|       r1==0.0; r2==0.0; r3==0.0 
+
+
+
+|****************************************
+| TEST int constant equality 
+| TAGS int constant equal                         
+|************************
+  it1 = 1==1
+  it2 = 0==0
+  it3 = -1 == -1
+  
+  if1 = 1==0
+  if2 = 0==1
+  if3 = -1 == 2
+  
+  nif1 = 1!=1
+  nif2 = 0!=0
+  nif3 = -1 != -1
+  
+  nit1 = 1!=0
+  nit2 = 0!=1
+  nit3 = -1 != 2
+|---------------------
+| check it1;it2;it3; nit1;nit2;nit3
+|		if1==false; if2==false; if3==false
+|		nif1==false; nif2==false; nif3==false
+
+
+
+|****************************************
+| TEST real constant equality 
+| TAGS real constant equal                         
+|************************
+  #true
+  rt1 = 1.1==1.1
+  rt2 = 0.2==0.2
+  rt3 = -1.3 == -1.3
+  
+  rf1 = 1.4==1.0
+  rf2 = 0.5==1.0
+  rf3 = -1.0 == 2.0
+  
+  #false
+  nrf1 = 1.6!=1.6
+  nrf2 = 0.0!=0.0
+  nrf3 = -1.0 != -1.0
+  
+  nrt1 = 1.7!=0.7
+  nrt2 = 0.8!=1.8
+  nrt3 = -1.9 != 2.9
+|---------------------
+| check rt1;rt2;rt3; nrt1;nrt2;nrt3
+|		rf1==false; rf2==false; rf3==false
+|		nrf1==false; nrf2==false; nrf3==false
+
+
+|****************************************
+| TEST real and int constant equality 
+| TAGS real int constant equal convert                        
+|************************
+  #true
+  t1 = 1.0==1
+  t2 = 0==0.0
+  t3 = -1.0 == -1
+  
+  f1 = 1.4==1
+  f2 = 0.5==1
+  f3 = -1 == 2.0
+  
+  #false
+  nf1 = 1!=1.0
+  nf2 = 0.0!=0
+  nf3 = -1.0 != -1
+  
+  nt1 = 1.0!=0
+  nt2 = 0.8!=1
+  nt3 = -1 != 2.9
+|---------------------
+| check t1;t2;t3; nt1;nt2;nt3
+|		f1==false; f2==false; f3==false
+|		nf1==false; nf2==false; nf3==false
+
+
+
+
