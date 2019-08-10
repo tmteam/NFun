@@ -1,0 +1,552 @@
+###############################################
+##############   equality   ###################
+###############################################
+
+
+|****************************************
+| TEST int constant equality 
+| TAGS int constant equal                         
+|************************
+  it1 = 1==1
+  it2 = 0==0
+  it3 = -1 == -1
+  
+  if1 = 1==0
+  if2 = 0==1
+  if3 = -1 == 2
+  
+  nif1 = 1!=1
+  nif2 = 0!=0
+  nif3 = -1 != -1
+  
+  nit1 = 1!=0
+  nit2 = 0!=1
+  nit3 = -1 != 2
+|---------------------
+| check it1;it2;it3; nit1;nit2;nit3
+|   if1==false; if2==false; if3==false
+|   nif1==false; nif2==false; nif3==false
+
+
+
+|****************************************
+| TEST real constant equality 
+| TAGS real constant equal                         
+|************************
+  #true
+  rt1 = 1.1==1.1
+  rt2 = 0.2==0.2
+  rt3 = -1.3 == -1.3
+  
+  rf1 = 1.4==1.0
+  rf2 = 0.5==1.0
+  rf3 = -1.0 == 2.0
+  
+  #false
+  nrf1 = 1.6!=1.6
+  nrf2 = 0.0!=0.0
+  nrf3 = -1.0 != -1.0
+  
+  nrt1 = 1.7!=0.7
+  nrt2 = 0.8!=1.8
+  nrt3 = -1.9 != 2.9
+|---------------------
+| check rt1;rt2;rt3; nrt1;nrt2;nrt3
+|   rf1==false; rf2==false; rf3==false
+|   nrf1==false; nrf2==false; nrf3==false
+
+
+|****************************************
+| TEST real and int constant equality 
+| TAGS real int constant equal convert                        
+|************************
+  #true
+  t1 = 1.0==1
+  t2 = 0==0.0
+  t3 = -1.0 == -1
+  
+  f1 = 1.4==1
+  f2 = 0.5==1
+  f3 = -1 == 2.0
+  
+  #false
+  nf1 = 1!=1.0
+  nf2 = 0.0!=0
+  nf3 = -1.0 != -1
+  
+  nt1 = 1.0!=0
+  nt2 = 0.8!=1
+  nt3 = -1 != 2.9
+|---------------------
+| check t1;t2;t3; nt1;nt2;nt3
+|   f1==false; f2==false; f3==false
+|   nf1==false; nf2==false; nf3==false
+
+
+|****************************************
+| TEST int equality 
+| TAGS int equal                         
+|************************
+  x1:int
+  x2:int
+
+  eq = x1==x2
+  ne = x1!=x2
+|---------------------
+| set x1=0; x2=0
+| check eq==true; ne==false
+| set x1=1; x2=1
+| check eq==true; ne==false
+| set x1=100; x2=100
+| check eq==true; ne==false
+| set x1=-1; x2=-1
+| check eq==true; ne==false
+| set x1=-100; x2=-100
+| check eq==true; ne==false
+|
+| set x1=0; x2=1
+| check eq==false; ne==true
+| set x1=1; x2=0
+| check eq==false; ne==true
+| set x1=100; x2=101
+| check eq==false; ne==true
+| set x1=-100; x2=100
+| check eq==false; ne==true
+| set x1=-100; x2=-1
+| check eq==false; ne==true
+
+
+|****************************************
+| TEST real equality 
+| TAGS real equal                         
+|************************
+  x1:real
+  x2:real
+
+  eq = x1==x2
+  ne = x1!=x2
+|---------------------
+| set x1=0; x2=0
+| check eq==true; ne==false
+| set x1=1; x2=1
+| check eq==true; ne==false
+| set x1=200; x2=200
+| check eq==true; ne==false
+| set x1=-3; x2=-3
+| check eq==true; ne==false
+| set x1=-400; x2=-400
+| check eq==true; ne==false
+|
+| set x1=0.1; x2=0.1
+| check eq==true; ne==false
+| set x1=5.2; x2=5.2
+| check eq==true; ne==false
+| set x1=600.3; x2=600.3
+| check eq==true; ne==false
+| set x1=-7.4; x2=-7.4
+| check eq==true; ne==false
+| set x1=-800.5; x2=-800.5
+| check eq==true; ne==false
+|
+| set x1=0; x2=1
+| check eq==false; ne==true
+| set x1=1; x2=0
+| check eq==false; ne==true
+| set x1=100; x2=101
+| check eq==false; ne==true
+| set x1=-100; x2=100
+| check eq==false; ne==true
+| set x1=-100; x2=-1
+| check eq==false; ne==true
+|
+| set x1=0.1; x2=1.2
+| check eq==false; ne==true
+| set x1=1.3; x2=0.4
+| check eq==false; ne==true
+| set x1=100.5; x2=101.6
+| check eq==false; ne==true
+| set x1=-100.7; x2=100
+| check eq==false; ne==true
+| set x1=-100.8; x2=-1.9
+| check eq==false; ne==true
+
+
+
+|****************************************
+| TEST int real equality 
+| TAGS int real equal convert                        
+|************************
+  r:real
+  i:int
+
+  eq = x1==x2
+  ne = x1!=x2
+|---------------------
+| set r=0; i=0
+| check eq==true; ne==false
+| set r=1; i=1
+| check eq==true; ne==false
+| set r=200; i=200
+| check eq==true; ne==false
+| set r=-3; i=-3
+| check eq==true; ne==false
+| set r=-400; i=-400
+| check eq==true; ne==false
+|
+| set r=0; i=1
+| check eq==false; ne==true
+| set r=1; i=0
+| check eq==false; ne==true
+| set r=100; i=101
+| check eq==false; ne==true
+| set r=-100; i=100
+| check eq==false; ne==true
+| set r=-100; i=-1
+| check eq==false; ne==true
+|
+| set r=0.1; i=0
+| check eq==false; ne==true
+| set r=1.3; i=1
+| check eq==false; ne==true
+| set r=100.5; i=101.6
+| check eq==false; ne==true
+| set r=-100.7; i=100
+| check eq==false; ne==true
+| set r=-100.8; i=-1.9
+| check eq==false; ne==true
+
+
+
+
+###############################################
+#############  compare int   ##################
+###############################################
+
+
+|****************************************
+| TEST less int constant  
+| TAGS int constant less compare                         
+|************************
+  t1 = 0<1
+  t2 = 1<2
+  t3 = -1<1
+  t4 = -2< -1
+  
+  f1 = 1<0
+  f2 = 2<1
+  f3 =  1< -1
+  f4 = -1< -2
+|---------------------
+| check t1;t2;t3;t4
+|       f1==false;f2==false;f3==false;f4=false
+
+
+|****************************************
+| TEST more int constant  
+| TAGS int constant more compare                         
+|************************
+  t1 = 1>0
+  t2 = 2>1
+  t3 = 1> -1
+  t4 = -1> -2
+  
+  f1 = 0>1
+  f2 = 1>2
+  f3 = -1> 1
+  f4 = -2> -1
+|---------------------
+| check t1;t2;t3;t4
+|       f1==false;f2==false;f3==false;f4=false
+
+
+
+|****************************************
+| TEST less or equal int constant  
+| TAGS int constant compare                         
+|************************
+  t1 = 0<=1
+  t2 = 1<=2
+  t3 = -1<=1
+  t4 = -2<= -1
+  t5 = 0<=0
+  t6 = 1<=1
+  t7 = -1<=-1
+  
+  f1 = 1<=0
+  f2 = 2<=1
+  f3 =  1<= -1
+  f4 = -1<= -2
+|---------------------
+| check t1;t2;t3;t4;t5;t6;t7
+|       f1==false;f2==false;f3==false;f4=false
+
+
+|****************************************
+| TEST more or equal int constant  
+| TAGS int constant more compare                         
+|************************
+  t1 = 1>=0
+  t2 = 2>=1
+  t3 = 1>= -1
+  t4 = -1>= -2
+  t5 = 0>=0
+  t6 = 1>=1
+  t7 = -1>=-1
+  
+  f1 = 0>=1
+  f2 = 1>=2
+  f3 = -1>= 1
+  f4 = -2>= -1
+|---------------------
+| check t1;t2;t3;t4;t5;t6;t7
+|       f1==false;f2==false;f3==false;f4=false
+
+|****************************************
+| TEST compare int variables  
+| TAGS int compare                         
+|************************
+  int:x1
+  int:x2
+   
+  m = x1>x2
+  l = x1<x2 
+  me = x1>=x2
+  le = x1<=x2
+|---------------------
+| set x1=0;x2=0
+| check m==false; l==false; me==true; le==true
+|
+| set x1=1;x2=0
+| check m==true; l==false; me==true; le==false
+|
+| set x1=0;x2=100
+| check m==false; l==true; me==false; le==true
+|
+| set x1=-1;x2=-2
+| check m==false; l==true; me==false; le==true
+|
+
+###############################################
+############   compare real   #################
+###############################################
+
+|****************************************
+| TEST less real constant  
+| TAGS real constant less compare                         
+|************************
+  t1 = 0.1<1.2
+  t2 = 1.3<2.4
+  t3 = -1.5<1.6
+  t4 = -2.7< -1.8
+  
+  f1 = 1.9<0.0
+  f2 = 2.1<1.2
+  f3 =  1.3< -1.4
+  f4 = -1.5< -2.6
+|---------------------
+| check t1;t2;t3;t4
+|       f1==false;f2==false;f3==false;f4=false
+
+
+|****************************************
+| TEST more real constant  
+| TAGS real constant more compare                         
+|************************
+  t1 = 1.0>0.1
+  t2 = 2.2>1.3
+  t3 = 1.4> -1.5
+  t4 = -1.6> -2.7
+  
+  f1 = 0.8>1.9
+  f2 = 1.0>2.1
+  f3 = -1.2> 1.3
+  f4 = -2.4> -1.5
+|---------------------
+| check t1;t2;t3;t4
+|       f1==false;f2==false;f3==false;f4=false
+
+
+
+|****************************************
+| TEST less or equal real constant  
+| TAGS real constant compare                         
+|************************
+  t1 = 0.0<=1.1
+  t2 = 1.2<=2.3
+  t3 = -1.4<=1.5
+  t4 = -2.6<= -1.7
+  t5 = 0.0<=0.0
+  t6 = 1.8<=1.8
+  t7 = -1.0<=-1.0
+  
+  f1 = 1.1<=0.2
+  f2 = 2.3<=1.4
+  f3 =  1.5<= -1.5
+  f4 = -1.6<= -2.7
+|---------------------
+| check t1;t2;t3;t4;t5;t6;t7
+|       f1==false;f2==false;f3==false;f4=false
+
+
+
+|****************************************
+| TEST more or equal real constant  
+| TAGS real constant compare                         
+|************************
+  t1 = 1.1>=0.2
+  t2 = 2.0>=1.0
+  t3 = 1.3>= -1.4
+  t4 = -1.5>= -2.6
+  t5 = 0.0>=0.0
+  t6 = 1.2>=1.2
+  t7 = -1.3>=-1.3
+  
+  f1 = 0.0>=1.0
+  f2 = 1.1>=2.2
+  f3 = -1.3>= 1.3
+  f4 = -2.4>= -1.4
+|---------------------
+| check t1;t2;t3;t4;t5;t6;t7
+|       f1==false;f2==false;f3==false;f4=false
+
+
+
+
+|****************************************
+| TEST compare real variables  
+| TAGS real compare                         
+|************************
+  real:x1
+  real:x2
+   
+  m = x1>x2
+  l = x1<x2 
+  me = x1>=x2
+  le = x1<=x2
+|---------------------
+| set x1=0.0;x2=0.0
+| check m==false; l==false; me==true; le==true
+|
+| set x1=1.1;x2=0.2
+| check m==true; l==false; me==true; le==false
+|
+| set x1=0.3;x2=100.4
+| check m==false; l==true; me==false; le==true
+|
+| set x1=-1.5;x2=-2.6
+| check m==false; l==true; me==false; le==true
+|
+
+
+###############################################
+############ compare real and int #############
+###############################################
+
+|****************************************
+| TEST less int to real constant  
+| TAGS int real constant less compare                         
+|************************
+  t1 = 0.1<1
+  t2 = 1 <2.4
+  t3 = -1.5<1
+  t4 = -7< -1.8
+  
+  f1 = 1 <0.0
+  f2 = 2.1<1
+  f3 =  1 < -1.4
+  f4 = -1.5< -6
+|---------------------
+| check t1;t2;t3;t4
+|       f1==false;f2==false;f3==false;f4=false
+
+
+|****************************************
+| TEST more int to real constant  
+| TAGS int real constant more compare                         
+|************************
+  t1 = 1.0>0
+  t2 = 2>1.3
+  t3 = 1.4> -1
+  t4 = -1 > -2.7
+  
+  f1 = 0.8>1
+  f2 = 1>2.1
+  f3 = -1.2> 1
+  f4 = -2> -1.5
+|---------------------
+| check t1;t2;t3;t4
+|       f1==false;f2==false;f3==false;f4=false
+
+
+
+|****************************************
+| TEST less or equal int to real constant  
+| TAGS int real constant compare                         
+|************************
+  t1 = 0.0<=1
+  t2 = 1<=2.3
+  t3 = -1.4<=1
+  t4 = -2<= -1.7
+  t5 = 0.0<=0
+  t6 = 1<=1.8
+  t7 = -1.0<=-1
+  
+  f1 = 1<=0.2
+  f2 = 2.3<=1
+  f3 =  1<= -1.5
+  f4 = -1.6<= -2
+|---------------------
+| check t1;t2;t3;t4;t5;t6;t7
+|       f1==false;f2==false;f3==false;f4=false
+
+
+
+|****************************************
+| TEST more or equal int to real constant  
+| TAGS int real constant compare                         
+|************************
+  t1 = 1>=0.2
+  t2 = 2.0>=1
+  t3 = 1>= -1.4
+  t4 = -1.5>= -2
+  t5 = 0>=0.0
+  t6 = 1.2>=1
+  t7 = -1>=-1.3
+  
+  f1 = 0.0>=1
+  f2 = 1>=2.2
+  f3 = -1.3>= 1
+  f4 = -2>= -1.4
+|---------------------
+| check t1;t2;t3;t4;t5;t6;t7
+|       f1==false;f2==false;f3==false;f4=false
+
+
+
+
+|****************************************
+| TEST compare int to real variables  
+| TAGS int real compare                         
+|************************
+  int:i
+  real:r
+   
+  m = i>r
+  l = i<r 
+  me = i>=r
+  le = i<=r
+|---------------------
+| set i=0;r=0.0
+| check m==false; l==false; me==true; le==true
+|
+| set i=1;r=0.2
+| check m==true; l==false; me==true; le==false
+|
+| set i=0;r=100.4
+| check m==false; l==true; me==false; le==true
+|
+| set i=-1;r=-2.6
+| check m==false; l==true; me==false; le==true
+|
+
+
