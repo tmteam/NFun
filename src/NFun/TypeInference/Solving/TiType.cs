@@ -14,7 +14,6 @@ namespace NFun.TypeInference.Solving
     }
     public class TiType
     {
-        
         public TiType(TiTypeName name, params SolvingNode[] arguments)
         {
             

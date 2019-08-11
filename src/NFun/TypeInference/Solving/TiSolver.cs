@@ -17,7 +17,7 @@ namespace NFun.TypeInference.Solving
         
         private readonly List<SolvingNode> _additionalNodes;
         private readonly List<OverloadCall> _lazyOverloads = new List<OverloadCall>();
-
+        
         public SolvingNode GetOrNull(int nodeId)
         {
             if (_originNodes.Count < nodeId)
@@ -40,11 +40,10 @@ namespace NFun.TypeInference.Solving
             _additionalNodes.Add(node);
             _variables.Add(varId, node);
             return node;
-
         }
+        
         public SolvingNode GetOrCreate(int nodeid)
         {
-            
             while (_originNodes.Count <= nodeid) 
                 _originNodes.Add(null);
 
@@ -59,7 +58,6 @@ namespace NFun.TypeInference.Solving
         }
         public bool SetVarType(string varId, TiType type)
         {
-            
             if (_variables.ContainsKey(varId)) 
                 return _variables[varId].SetStrict(type);
             
@@ -92,8 +90,6 @@ namespace NFun.TypeInference.Solving
             //if the variable already has its node
             //Just set equality from nodeId to varId
             return newNode.SetEqualTo(currentNode);
-            
-            //return currentNode.SetEqualTo(newNode);
         }
         
         public bool SetCall(CallDefenition call)
