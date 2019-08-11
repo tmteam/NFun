@@ -2,37 +2,33 @@ namespace NFun.TypeInference.Solving
 {
     public class LimitNodeBehavior: INodeBehavior
     {
-        public TiType Limit { get; private set; }
+        private TiType _limit { get; set; }
 
         public LimitNodeBehavior(TiType limit)
         {
-            Limit = limit;
+            _limit = limit;
         } 
-        public TiType MakeType(int maxTypeDepth) => Limit;
+        public TiType MakeType(int maxTypeDepth) => _limit;
 
         private bool _isVisited = false;
         public INodeBehavior SetLimit(TiType newLimit)
         {
             _isVisited = true;
             //_limit: any; newLimit: real
-            if (!Limit.CanBeSafelyConvertedTo(newLimit))
-                Limit = newLimit;
+            if (!_limit.CanBeSafelyConvertedTo(newLimit))
+                _limit = newLimit;
             return this;
         }
 
         public INodeBehavior SetStrict(TiType newType)
         {
-            //Limitation conflict
-            //like: _limit: real; type: any
-            if (Limit.IsPrimitive && !Limit.Name.Equals(newType.Name))
+            if (!newType.CanBeSafelyConvertedTo(_limit))
             {
-                //Downcast
-                if (!newType.CanBeSafelyConvertedTo(Limit))
-                    return null;
+                //Limitation conflict
+                //like: _limit: real; type: any
+                return null;
             }
-
             return new StrictNodeBehaviour(newType);
-            
         }
 
         public INodeBehavior SetLca(SolvingNode[] otherNodes)
@@ -40,7 +36,7 @@ namespace NFun.TypeInference.Solving
             
             foreach (var solvingNode in otherNodes)
             {
-                if (!solvingNode.SetLimit(Limit))
+                if (!solvingNode.SetLimit(_limit))
                     return null;
             }
 
@@ -60,12 +56,12 @@ namespace NFun.TypeInference.Solving
             
             if (actual.Behavior == this)
                 return this;
-            actual.SetLimit(Limit);
+            actual.SetLimit(_limit);
             return new ReferenceBehaviour(actual);
         }
 
         public INodeBehavior SetGeneric(SolvingNode otherGeneric)
-            => !otherGeneric.SetLimit(Limit)
+            => !otherGeneric.SetLimit(_limit)
                 ? null : this;
 
         public string ToSmartString(int maxDepth = 10)
@@ -73,16 +69,16 @@ namespace NFun.TypeInference.Solving
             if (maxDepth < 0)
                 return "...";
 
-            return $"Child or {Limit.ToSmartString(maxDepth - 1)}";
+            return $"Child or {_limit.ToSmartString(maxDepth - 1)}";
         }
 
         public INodeBehavior Optimize(out bool hasChanged)
         {
             hasChanged = false;
-            if (Limit.IsPrimitive)
+            if (_limit.IsPrimitive)
                 return this;
 
-            foreach (var limitArgument in Limit.Arguments)
+            foreach (var limitArgument in _limit.Arguments)
             {
                 if (!limitArgument.Optimize(out _))
                     return null;
@@ -92,7 +88,7 @@ namespace NFun.TypeInference.Solving
         
         public  FitResult CanBeConvertedFrom(TiType from, int maxDepth)
         {
-            var res =  TiType.CanBeConverted(@from, Limit, maxDepth);
+            var res =  TiType.CanBeConverted(@from, _limit, maxDepth);
             if (res.Type == FitType.Strict)
             {
                 return FitResult.Candidate(res.Distance);
@@ -107,18 +103,18 @@ namespace NFun.TypeInference.Solving
         {
             if (candidateType.IsPrimitiveGeneric)
                 return new FitResult(FitType.Convertable,0);
-            if (candidateType.Equals(Limit))
+            if (candidateType.Equals(_limit))
                 return FitResult.Candidate(0);
             //special case: Int is most expected type for someInteger
-            if(Limit.Name.Equals(TiTypeName.SomeInteger) && candidateType.Name.Equals(TiTypeName.Int32))
+            if(_limit.Name.Equals(TiTypeName.SomeInteger) && candidateType.Name.Equals(TiTypeName.Int32))
                 return FitResult.Candidate(0);
             
             //We can reduce current limit to candidateType
-            if (candidateType.CanBeSafelyConvertedTo(Limit))
-                return new FitResult(FitType.Candidate, candidateType.GetParentalDistanceTo(Limit));
+            if (candidateType.CanBeSafelyConvertedTo(_limit))
+                return new FitResult(FitType.Candidate, candidateType.GetParentalDistanceTo(_limit));
             
-            if (Limit.CanBeSafelyConvertedTo(candidateType))
-                return new FitResult(FitType.Convertable, Limit.GetParentalDistanceTo(candidateType));
+            if (_limit.CanBeSafelyConvertedTo(candidateType))
+                return new FitResult(FitType.Convertable, _limit.GetParentalDistanceTo(candidateType));
 
             return FitResult.Not;
         }
