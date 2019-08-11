@@ -258,7 +258,7 @@ namespace NFun.Interpritation
                     type: actualType);
         }
 
-        public static SetupTiState CreateVisitorStateFor(UserFunctionDefenitionSyntaxNode node)
+        private static SetupTiState CreateVisitorStateFor(UserFunctionDefenitionSyntaxNode node)
         {
             var visitorState = new SetupTiState(new TiLanguageSolver());
             

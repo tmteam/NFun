@@ -14,17 +14,6 @@ namespace NFun.TypeInference.Solving
             
             return SolvingNode.CreateStrict(type.Name, args);
         }
-        private SolvingNode MakeStrictNode(SolvingNode node)
-        {
-            var actual = node.GetActualNode();
-            
-            if (actual.Behavior is GenericTypeBehaviour)
-            {
-                _map.Add(node);
-                return node;
-            }
-            return CreateSolvingNode(actual.MakeType());
-        }
         
 
         private List<SolvingNode> _map = new List<SolvingNode>();
@@ -46,5 +35,18 @@ namespace NFun.TypeInference.Solving
             _map[genericId] = newGeneric;
             return newGeneric;
         }
+        
+        private SolvingNode MakeStrictNode(SolvingNode node)
+        {
+            var actual = node.GetActualNode();
+            
+            if (actual.Behavior is GenericTypeBehaviour)
+            {
+                _map.Add(node);
+                return node;
+            }
+            return CreateSolvingNode(actual.MakeType());
+        }
+
     }
 }

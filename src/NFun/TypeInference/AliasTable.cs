@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace NFun.TypeInference
 {
+    /// <summary>
+    /// Variable table. It needs to give special names to variable during TI-setup process
+    /// </summary>
     public class AliasTable
     {
         public AliasTable()
@@ -12,8 +15,7 @@ namespace NFun.TypeInference
         }
         
         private readonly List<Dictionary<string, string>> _variableAliasesStack;
-        private string MakeAlias(int nodeLayerId, string varName) => nodeLayerId + "::" + varName;
-
+        
         public bool HasVariable(string variableName)
         {
             for (int i = _variableAliasesStack.Count  - 1; i >= 0; i--)
@@ -67,5 +69,7 @@ namespace NFun.TypeInference
         {
             _variableAliasesStack.RemoveAt(_variableAliasesStack.Count-1);
         }
+        private string MakeAlias(int nodeLayerId, string varName) => nodeLayerId + "::" + varName;
+
     }
 }

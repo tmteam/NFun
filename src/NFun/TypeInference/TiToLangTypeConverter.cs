@@ -53,7 +53,9 @@ namespace NFun.TypeInference
         private  VarType ConvertToSimpleType(SolvingNode node) 
             => ToSimpleType(node.MakeType());
         
-        
+        /// <summary>
+        /// Generic types from TI stays nfun generics
+        /// </summary>
         class SaveGenericsTiToLangTypeConverter : TiToLangTypeConverter
         {
             protected override VarType ConvertGeneric(GenericType type)
@@ -62,6 +64,10 @@ namespace NFun.TypeInference
 
             }
         }
+        
+        /// <summary>
+        /// Generic types from TI become any type
+        /// </summary>
         class SetGenericsToAnyTiToLangTypeConverter: TiToLangTypeConverter
         {
             protected override VarType ConvertGeneric(GenericType type)

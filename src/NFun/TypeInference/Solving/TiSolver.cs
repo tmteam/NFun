@@ -213,11 +213,6 @@ namespace NFun.TypeInference.Solving
                 {
                     SetLimArgCall(bestCandidate.ToCallDefenition(lazyOverload.ReturnNodeId, lazyOverload.ArgIds));
                 }
-                else
-                {
-                  //  if(!SetStrict(lazyOverload.ReturnNodeId, bestCandidate.ReturnType))
-                  //      throw FunParseException.ErrorStubToDo("Return type does not fit");
-                }
 
                 overloads.Add(lazyOverload.ReturnNodeId, bestCandidate);
             }
