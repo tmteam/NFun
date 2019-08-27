@@ -99,4 +99,4 @@ namespace Nfun.Fuspec.Parser
             return res;
         }
     }
-}
+} 

@@ -2,11 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="77f6d582-2a31-4dda-8560-2554fc8f125c" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.Funny/.idea/contentModel.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Funny/.idea/contentModel.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.Funny/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Funny/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/.idea.Funny/riderModule.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.Funny/riderModule.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/NFun.Fuspec/Parser/FuspecParserHelper.cs" beforeDir="false" afterPath="$PROJECT_DIR$/NFun.Fuspec/Parser/FuspecParserHelper.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/NFun.Fuspec/Parser/TestCaseReader.cs" beforeDir="false" afterPath="$PROJECT_DIR$/NFun.Fuspec/Parser/TestCaseReader.cs" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -71,20 +67,20 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/FuspecParserHelper.cs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1220">
-              <caret line="15" column="45" selection-start-line="15" selection-start-column="45" selection-end-line="15" selection-end-column="45" />
+            <state relative-caret-position="242">
+              <caret line="101" column="1" selection-start-line="101" selection-start-column="1" selection-end-line="101" selection-end-column="1" />
               <folding>
-                <marker date="1565375791781" expanded="false" signature="6:199" ph="..." />
-                <marker date="1565375791781" expanded="true" signature="229:3637" ph="{...}" />
-                <marker date="1565375791781" expanded="true" signature="274:3635" ph="{...}" />
-                <marker date="1565375791781" expanded="true" signature="418:682" ph="{...}" />
-                <marker date="1565375791781" expanded="true" signature="756:941" ph="{...}" />
-                <marker date="1565375791781" expanded="true" signature="953:1156" ph="/* Опять таки, что за GetParam, какой параметр, пока не знаю, какое название было бы правильнее взять, так как сл ... */" />
-                <marker date="1565375791781" expanded="true" signature="1276:1658" ph="/* Наташа: Param - это модель. Возможно нужно дать лучший нейминг для модели? Метод делает то, что получает списо ... */" />
-                <marker date="1565375791781" expanded="true" signature="1727:1953" ph="{...}" />
-                <marker date="1565375791781" expanded="true" signature="2027:3366" ph="{...}" />
-                <marker date="1565375791781" expanded="true" signature="2357:3329" ph="{...}" />
-                <marker date="1565375791781" expanded="true" signature="3457:3629" ph="{...}" />
+                <marker date="1565376021711" expanded="false" signature="6:199" ph="..." />
+                <marker date="1565376021711" expanded="true" signature="229:3637" ph="{...}" />
+                <marker date="1565376021711" expanded="true" signature="274:3635" ph="{...}" />
+                <marker date="1565376021711" expanded="true" signature="418:682" ph="{...}" />
+                <marker date="1565376021711" expanded="true" signature="756:941" ph="{...}" />
+                <marker date="1565376021711" expanded="true" signature="953:1156" ph="/* Опять таки, что за GetParam, какой параметр, пока не знаю, какое название было бы правильнее взять, так как сл ... */" />
+                <marker date="1565376021711" expanded="true" signature="1276:1658" ph="/* Наташа: Param - это модель. Возможно нужно дать лучший нейминг для модели? Метод делает то, что получает списо ... */" />
+                <marker date="1565376021711" expanded="true" signature="1727:1953" ph="{...}" />
+                <marker date="1565376021711" expanded="true" signature="2027:3366" ph="{...}" />
+                <marker date="1565376021711" expanded="true" signature="2357:3329" ph="{...}" />
+                <marker date="1565376021711" expanded="true" signature="3457:3629" ph="{...}" />
               </folding>
             </state>
           </provider>
@@ -557,7 +553,7 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="23714000" />
+    <option name="totallyTimeSpent" value="24513000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -1024,20 +1020,20 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/FuspecParserHelper.cs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1220">
-          <caret line="15" column="45" selection-start-line="15" selection-start-column="45" selection-end-line="15" selection-end-column="45" />
+        <state relative-caret-position="242">
+          <caret line="101" column="1" selection-start-line="101" selection-start-column="1" selection-end-line="101" selection-end-column="1" />
           <folding>
-            <marker date="1565375791781" expanded="false" signature="6:199" ph="..." />
-            <marker date="1565375791781" expanded="true" signature="229:3637" ph="{...}" />
-            <marker date="1565375791781" expanded="true" signature="274:3635" ph="{...}" />
-            <marker date="1565375791781" expanded="true" signature="418:682" ph="{...}" />
-            <marker date="1565375791781" expanded="true" signature="756:941" ph="{...}" />
-            <marker date="1565375791781" expanded="true" signature="953:1156" ph="/* Опять таки, что за GetParam, какой параметр, пока не знаю, какое название было бы правильнее взять, так как сл ... */" />
-            <marker date="1565375791781" expanded="true" signature="1276:1658" ph="/* Наташа: Param - это модель. Возможно нужно дать лучший нейминг для модели? Метод делает то, что получает списо ... */" />
-            <marker date="1565375791781" expanded="true" signature="1727:1953" ph="{...}" />
-            <marker date="1565375791781" expanded="true" signature="2027:3366" ph="{...}" />
-            <marker date="1565375791781" expanded="true" signature="2357:3329" ph="{...}" />
-            <marker date="1565375791781" expanded="true" signature="3457:3629" ph="{...}" />
+            <marker date="1565376021711" expanded="false" signature="6:199" ph="..." />
+            <marker date="1565376021711" expanded="true" signature="229:3637" ph="{...}" />
+            <marker date="1565376021711" expanded="true" signature="274:3635" ph="{...}" />
+            <marker date="1565376021711" expanded="true" signature="418:682" ph="{...}" />
+            <marker date="1565376021711" expanded="true" signature="756:941" ph="{...}" />
+            <marker date="1565376021711" expanded="true" signature="953:1156" ph="/* Опять таки, что за GetParam, какой параметр, пока не знаю, какое название было бы правильнее взять, так как сл ... */" />
+            <marker date="1565376021711" expanded="true" signature="1276:1658" ph="/* Наташа: Param - это модель. Возможно нужно дать лучший нейминг для модели? Метод делает то, что получает списо ... */" />
+            <marker date="1565376021711" expanded="true" signature="1727:1953" ph="{...}" />
+            <marker date="1565376021711" expanded="true" signature="2027:3366" ph="{...}" />
+            <marker date="1565376021711" expanded="true" signature="2357:3329" ph="{...}" />
+            <marker date="1565376021711" expanded="true" signature="3457:3629" ph="{...}" />
           </folding>
         </state>
       </provider>
