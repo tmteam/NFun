@@ -168,6 +168,7 @@
           <e p="VarType.cs" t="Include" />
           <e p="VarTypeConverter.cs" t="Include" />
         </e>
+        <e p="ValueParser.cs" t="Include" />
       </e>
       <e p="NFun.Console" t="IncludeRecursive">
         <e p="bin" t="ExcludeRecursive" />
@@ -319,6 +320,7 @@
           <e p="QuotationReaderTest.cs" t="Include" />
           <e p="TokenHelperTest.cs" t="Include" />
           <e p="TokenizerTest.cs" t="Include" />
+          <e p="ValueParserTest.cs" t="Include" />
           <e p="VarTypeTest.cs" t="Include" />
         </e>
         <e p="UserFunctionsTest.cs" t="Include" />
