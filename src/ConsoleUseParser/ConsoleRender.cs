@@ -35,11 +35,11 @@ namespace ConsoleUseParser
                 foreach (var setCheckKit in fuspecTestCase.SetCheckKits)
                 {
                     Console.WriteLine("###");
-                    if (setCheckKit.SetKit.Any())
-                        PrintElement("  Set",setCheckKit.SetKit);
+              //      if (setCheckKit.SetKit.Any())
+                //        PrintElement("  Set",setCheckKit.SetKit);
                        
-                    if (setCheckKit.CheckKit.Any())
-                        PrintElement("  Check:",setCheckKit.CheckKit);
+                  //  if (setCheckKit.CheckKit.Any())
+                    //    PrintElement("  Check:",setCheckKit.CheckKit);
                 }
             }
         }

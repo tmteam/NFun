@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using Nfun.Fuspec.Parser.Model;
+using NFun.ParseErrors;
 using NFun.Tokenization;
 using NFun.Types;
 using ParcerV1;
@@ -25,6 +26,7 @@ namespace Nfun.Fuspec.Parser
 
         public static bool IsSeparatingLine(string str, char lineSymbol)
         {
+            str = str.Trim();
             if (str[0] != '|')
                 return false;
             return (str.Substring(1).All(c => c == lineSymbol) && str.Length > MinSeparatorLineLength);
@@ -48,14 +50,14 @@ namespace Nfun.Fuspec.Parser
         {
             List<Param> result = new List<Param>();
 
-            result = ParseStringByNFun(paramString);
+            result = GetVarTypeByNFun(paramString);
             
             if (!result.Any())
                 return null;
             return result;
         }
 
-        private static List<Param> ParseStringByNFun(string paramString)
+        private static List<Param> GetVarTypeByNFun(string paramString)
         {
             string value;
             VarType varType;
@@ -98,5 +100,67 @@ namespace Nfun.Fuspec.Parser
             res.RemoveAll(p=>p=="");
             return res;
         }
+
+        public static List<Value> GetValue(string valueStr)
+        {
+
+            List<Value> result = new List<Value>();
+            //генерим поток токенов
+            var tokFLow = Tokenizer.ToFlow(valueStr);
+
+            //пока не кончатся токены
+            while (tokFLow.Current.Type != TokType.Eof)
+            {
+                tokFLow.MoveNext();
+
+                //проверяет предыдуший и следующий токен
+                if ((tokFLow.Previous.Type != TokType.Id ||
+                     tokFLow.Current.Type != TokType.Colon) ||
+                    (tokFLow.Peek == null))
+                    return null;
+                //если выражение нам подходит, то берем имя переменной(Value) и ее тип(VarType)
+                var idName = tokFLow.Previous.Value;
+                var startIndex = tokFLow.Current.Finish;
+            //    tokFLow.MoveNext();
+
+                var endIndex = ReadEndofValue(tokFLow);
+          //      var vartype = tokFLow.ReadVarType();
+             
+//              var value =new Value(idName,valueStr.Substring(startIndex,tokFLow.Current.Start));
+             var value = new Value(idName, valueStr.Substring(startIndex,endIndex-startIndex-1));
+                result.Add(value);
+                
+                tokFLow.MoveNext();
+                // если слудующий токен - запятая
+                if (tokFLow.Current.Type == TokType.Sep)
+                    tokFLow.MoveNext();
+                    
+                 
+             }
+            return result;
+        }
+        
+        public static int ReadEndofValue(this TokFlow flow)
+        {
+            var cur = flow.Current;
+            flow.MoveNext();
+
+            while (flow.IsCurrent(TokType.ArrOBr))
+            {
+                flow.MoveNext();
+                if (!flow.MoveIf(TokType.ArrCBr))
+                {
+                    throw ErrorFactory.ArrTypeCbrMissed(new Interval(cur.Start, flow.Current.Start));
+                }
+
+            }
+
+            return flow.Current.Finish-1;
+        }
+
+   
+
+
     }
+    
 } 

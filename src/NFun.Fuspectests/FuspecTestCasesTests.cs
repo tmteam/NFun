@@ -1116,10 +1116,11 @@ x = round(a - b - c)
 
             });
         }
-        
+
         [Test]
-        public void SetValuesReading_ReadSimpleSetСheckKit_ReturnSetCheckKit()
+        public void SetValuesReading_ReadSingleSetValue()
         {
+
             GenerateFuspecTestCases(
                 @"|********************
 | TEST Name
@@ -1130,149 +1131,18 @@ x = round(a - b - c)
 |------------------------
   x = a-b  
 |---------------------
-| set a=5;b=4;
-| check x == [[1,2][]]; y == 4  
+| set a:[1,2,3]
 ");
 
             Assert.Multiple(() =>
             {
                 StandardAssertForCorrectTestCase();
-                Assert.AreEqual("a=5",_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits.FirstOrDefault().SetKit[0]);
-                Assert.AreEqual("b=4",_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits.FirstOrDefault().SetKit[1]);
-                Assert.AreEqual("x == [[1,2][]]",_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits.FirstOrDefault().CheckKit[0]);
-                Assert.AreEqual("y == 4",_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits.FirstOrDefault().CheckKit[1]);
+                Assert.AreEqual( "a",_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits.FirstOrDefault().Set.FirstOrDefault().IdName);
+                Assert.AreEqual("[1,2,3]",_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits.FirstOrDefault().Set.FirstOrDefault().IdValue);
+          //      Assert.AreEqual( "b",_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[1].Value);
+            //    Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().ParamsIn[1].VarType.ToString());
             });
-        }
-        
-        [Test]
-        public void SetValuesReading_ReadSetСheckKitWithEmptyStrings_ReturnSetCheckKit()
-        {
-            GenerateFuspecTestCases(
-                @"|********************
-| TEST Name
-| TAGS tag1
-|************************
-| in a:real b:int
-| out x:real
-|------------------------
-  x = a-b  
-|---------------------
 
-| set a=5;b=4;
-   
-| check x == [[1,2][]]; y == 4  
-
-");
-
-            Assert.Multiple(() =>
-            {
-                StandardAssertForCorrectTestCase();
-                Assert.AreEqual("a=5",_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits.FirstOrDefault().SetKit[0]);
-                Assert.AreEqual("b=4",_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits.FirstOrDefault().SetKit[1]);
-                Assert.AreEqual("x == [[1,2][]]",_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits.FirstOrDefault().CheckKit[0]);
-                Assert.AreEqual("y == 4",_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits.FirstOrDefault().CheckKit[1]);
-            });
-        }
-        
-        [Test]
-        public void SetValuesReading_ReadSet_ReturnSet()
-        {
-            GenerateFuspecTestCases(
-                @"|********************
-| TEST Name
-| TAGS tag1
-|************************
-| in a:real b:int
-| out x:real
-|------------------------
-  x = a-b  
-|---------------------
-| set a=5;b=4;
-");
-
-            Assert.Multiple(() =>
-            {
-                StandardAssertForCorrectTestCase();
-                Assert.AreEqual("a=5",_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits.FirstOrDefault().SetKit[0]);
-                Assert.AreEqual("b=4",_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits.FirstOrDefault().SetKit[1]);
-            });
-        }
-        
-        [Test]
-        public void SetValuesReading_ReadCheckKit_ReturnСheck()
-        {
-            GenerateFuspecTestCases(
-                @"|********************
-| TEST Name
-| TAGS tag1
-|************************
-| in a:real b:int
-| out x:real
-|------------------------
-  x = a-b  
-|---------------------
-| check a==5;b==4;
-");
-
-            Assert.Multiple(() =>
-            {
-                StandardAssertForCorrectTestCase();
-                Assert.AreEqual("a==5",_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits.FirstOrDefault().CheckKit[0]);
-                Assert.AreEqual("b==4",_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits.FirstOrDefault().CheckKit[1]);
-            });
-        }
-
-        [Test]
-        public void SetValuesReading_ReadTwoCheckKit_ReturnErrorNotAllowSecondCheckSet()
-        {
-            GenerateFuspecTestCases(
-                @"|********************
-| TEST Name
-| TAGS tag1
-|************************
-| in a:real b:int
-| out x:real
-|------------------------
-  x = a-b  
-|---------------------
-| check a==5;b==4;
-| check a==5;b==4;
-");
-
-            Assert.Multiple(() =>
-            {
-                StandardAssertForNotCorrectTestCase();
-                Assert.AreEqual(FuspecErrorType.ExpectedSeparatedLine, _fuspecTestCases.Errors.FirstOrDefault().ErrorType);
-            });
-        }
-        
-        [Test]
-        public void SetValuesReading_ReadTwoCheckKit_ReturnSetCheckKit()
-        {
-            GenerateFuspecTestCases(
-                @"|********************
-| TEST Name
-| TAGS tag1
-|************************
-| in a:real b:int
-| out x:real
-|------------------------
-  x = a-b  
-|---------------------
-| set a=5;b=4;
-| set h=5; y=4;
-");
-
-            Assert.Multiple(() =>
-            {
-                StandardAssertForCorrectTestCase();
-                Assert.AreEqual("a=5",_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits.FirstOrDefault().SetKit[0]);
-                Assert.AreEqual("b=4",_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits.FirstOrDefault().SetKit[1]);
-                Assert.AreEqual("h=5",_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits.FirstOrDefault().SetKit[2]);
-                Assert.AreEqual("y=4",_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits.FirstOrDefault().SetKit[3]);
-
-
-            });
         }
 
         [Test]

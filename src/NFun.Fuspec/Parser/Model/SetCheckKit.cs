@@ -4,33 +4,25 @@ namespace Nfun.Fuspec.Parser.Model
 {
     public class SetCheckKit
     {
-        public List< string> SetKit { get; }
-        public List<string> CheckKit { get; }
+        public List<Value> Set { get; private set; }
+        public List<Value> Get { get; private set; }
 
         public SetCheckKit()
         {
-            SetKit=new List<string>();
-            CheckKit = new List<string>();
+            Set = new List<Value>();
+            Get=new List<Value>();
         }
 
-        public void AddSet(string setString)
+        public void AddSet(List<Value> set)
         {
-            SetKit.Add(setString);
+            Set.AddRange(set); 
         }
 
-        public void AddSetKit(List<string> setKit)
+        public void AddGet(Value get)
         {
-            SetKit.AddRange(setKit);
-        }
-
-        public void AddCheck(string answer)
-        {
-            CheckKit.Add(answer);
+            Get.Add(get);
         }
         
-        public void AddCheckKit(List<string> setKit)
-        {
-            CheckKit.AddRange(setKit);
-        }
+        
     }
 }

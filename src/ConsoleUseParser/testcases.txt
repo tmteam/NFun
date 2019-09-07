@@ -20,3 +20,42 @@
 |---------------------
 | set a=55;b=-4;
 | check a==5;
+
+
+C#,
+Yeld
+Asnync
+Ienumerable
+IQueriable
+Icollection
+
+ООП - ОК
+
+EF -
+
+таски - Рихтер(раздел про таски)
+
+, .net core, 
+
+SQL - транзакции,  
+
+
+Web Api, MVC, ASP
+---------
+IOC (inversion of control)
+
+--------------
+
+LINQ
+
+- поговрить о потоках и тасках
+- 
+
+
+
+EF - SQL -Ado.net
+------------------
+транзакция
+уровни изоляции
+------------------
+

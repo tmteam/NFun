@@ -20,7 +20,8 @@ namespace Nfun.Fuspec.Parser
         private int _index = 0;
         private bool _isReading = false;
         private List<string> _script= new List<string>();
-        private SetCheckKit _setCheckKit = new SetCheckKit();
+        private List<SetCheckKit> _setCheckKits= new List<SetCheckKit>();
+        private SetCheckKit _setCheckKit= new SetCheckKit();
         private List<FuspecParserError> _errors=new List<FuspecParserError>();
         
         public TestCasesReader(StreamReader streamReader)
@@ -82,7 +83,7 @@ namespace Nfun.Fuspec.Parser
             {
                 _isReading = true;
                 _script=new List<string>();
-                _setCheckKit = new SetCheckKit();
+                _setCheckKits = new List<SetCheckKit>();
                 return TestCaseParseState.ReadingName;
             }
             return WriteError(new FuspecParserError(FuspecErrorType.OpeningStringMissed, _index));
@@ -160,7 +161,7 @@ namespace Nfun.Fuspec.Parser
             var paramOutString = FindStringOrNullByKeyWord("| out", str);
             if (paramOutString == null)
             {
-                if (_testCaseBuilder.ParamsIn.Any())
+                if (_testCaseBuilder.ParamsIn.Any()||_testCaseBuilder.ParamsOut.Any())
                     return WriteError(new FuspecParserError(FuspecErrorType.SeparatedStringMissed,_index));
                 return ReadBody(str);
             }
@@ -207,7 +208,37 @@ namespace Nfun.Fuspec.Parser
         {
             if (str.Trim() == "")
                 return TestCaseParseState.ReadingValues;
-            if (IsSeparatingLine(str, '-'))
+          
+            if (IsSeparatingLine(str, '*'))
+            {
+                if (_setCheckKits.Any())
+                    _testCaseBuilder.SetCheckKits = _setCheckKits;
+                return AddTestCase(str);
+            }
+            
+            var setString = FindStringOrNullByKeyWord("| set", str);
+            var checkString = FindStringOrNullByKeyWord("| check", str);
+            
+            if ((setString == null & checkString == null))
+                return WriteError(new FuspecParserError(FuspecErrorType.WrongSetCheckKit, _index));
+
+            if (setString != null)
+            {
+                if (setString.Substring(0, 1) != " ")
+                    return WriteError(new FuspecParserError(FuspecErrorType.WrongSetCheckKit, _index));
+                if (setString.Trim() == "")
+                    return WriteError(new FuspecParserError(FuspecErrorType.SetKitMissed, _index));
+
+                var value = GetValue(setString);
+                _setCheckKit.AddSet(value);   
+                
+                
+            }
+            _setCheckKits.Add(_setCheckKit);
+            return TestCaseParseState.ReadingValues;            
+
+
+            /*if (IsSeparatingLine(str, '-'))
             {
                 if (_setCheckKit.CheckKit.Any() || _setCheckKit.SetKit.Any())
                 {
@@ -226,10 +257,9 @@ namespace Nfun.Fuspec.Parser
                 }
                 return AddTestCase(str);
             }
+            
 
-            if (_setCheckKit.CheckKit.Any())
-                return WriteError(new FuspecParserError(FuspecErrorType.ExpectedSeparatedLine, _index));
-
+            
             var setString = FindStringOrNullByKeyWord("| set", str);
             var checkString = FindStringOrNullByKeyWord("| check", str);
             if ((setString == null & checkString == null))
@@ -261,6 +291,7 @@ namespace Nfun.Fuspec.Parser
                 return WriteError(new FuspecParserError(FuspecErrorType.CheckKitMissed, _index));
 
             return TestCaseParseState.ReadingValues;
+        */
         }
 
         private TestCaseParseState AddTestCase(string str)
@@ -286,7 +317,7 @@ namespace Nfun.Fuspec.Parser
                 else
                 {
                     BuildScript();
-                    if (_setCheckKit.SetKit.Any() || _setCheckKit.CheckKit.Any())
+                    if (_setCheckKits.Any())
                         _testCaseBuilder.SetCheckKits.Add(_setCheckKit);
                     _fuspecTestCases.Add(_testCaseBuilder.Build());
                 }
