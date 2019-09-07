@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using Nfun.Fuspec.Parser.Model;
+using NFun;
 using NFun.ParseErrors;
 using NFun.Tokenization;
 using NFun.Types;
+
 using ParcerV1;
 
 namespace Nfun.Fuspec.Parser
@@ -101,9 +103,11 @@ namespace Nfun.Fuspec.Parser
             return res;
         }
 
+      
         public static List<Value> GetValue(string valueStr)
         {
-
+           
+            
             List<Value> result = new List<Value>();
             //генерим поток токенов
             var tokFLow = Tokenizer.ToFlow(valueStr);
@@ -118,45 +122,22 @@ namespace Nfun.Fuspec.Parser
                      tokFLow.Current.Type != TokType.Colon) ||
                     (tokFLow.Peek == null))
                     return null;
-                //если выражение нам подходит, то берем имя переменной(Value) и ее тип(VarType)
+                //если выражение нам подходит, то берем имя переменной(Value) и парсим ее тип и значение
                 var idName = tokFLow.Previous.Value;
-                var startIndex = tokFLow.Current.Finish;
-            //    tokFLow.MoveNext();
-
-                var endIndex = ReadEndofValue(tokFLow);
-          //      var vartype = tokFLow.ReadVarType();
-             
-//              var value =new Value(idName,valueStr.Substring(startIndex,tokFLow.Current.Start));
-             var value = new Value(idName, valueStr.Substring(startIndex,endIndex-startIndex-1));
+                tokFLow.MoveNext();
+                var valVarType = ValueParser.ParseValue(tokFLow); 
+                var value = new Value(idName, valVarType.Item1,valVarType.Item2);
                 result.Add(value);
                 
-                tokFLow.MoveNext();
+              //  tokFLow.MoveNext();
                 // если слудующий токен - запятая
                 if (tokFLow.Current.Type == TokType.Sep)
                     tokFLow.MoveNext();
-                    
-                 
              }
             return result;
         }
         
-        public static int ReadEndofValue(this TokFlow flow)
-        {
-            var cur = flow.Current;
-            flow.MoveNext();
-
-            while (flow.IsCurrent(TokType.ArrOBr))
-            {
-                flow.MoveNext();
-                if (!flow.MoveIf(TokType.ArrCBr))
-                {
-                    throw ErrorFactory.ArrTypeCbrMissed(new Interval(cur.Start, flow.Current.Start));
-                }
-
-            }
-
-            return flow.Current.Finish-1;
-        }
+   
 
    
 

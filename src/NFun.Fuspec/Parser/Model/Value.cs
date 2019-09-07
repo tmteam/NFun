@@ -6,12 +6,14 @@ namespace Nfun.Fuspec.Parser.Model
     public class Value
     {
         public string IdName { get;  }
-        public string IdValue { get; }
+        public object IdValue { get; }
+        public VarType IdType { get; }
 
-        public Value(string idName, string idValue)
+        public Value(string idName, object idValue,VarType idType)
         {
             IdName = idName;
             IdValue = idValue;
+            IdType = idType;
         }
     }
     

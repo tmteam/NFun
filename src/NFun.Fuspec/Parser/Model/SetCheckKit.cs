@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Nfun.Fuspec.Parser.Model
@@ -5,12 +6,12 @@ namespace Nfun.Fuspec.Parser.Model
     public class SetCheckKit
     {
         public List<Value> Set { get; private set; }
-        public List<Value> Get { get; private set; }
+        public List<Value> Check { get; private set; }
 
         public SetCheckKit()
         {
             Set = new List<Value>();
-            Get=new List<Value>();
+            Check=new List<Value>();
         }
 
         public void AddSet(List<Value> set)
@@ -18,9 +19,14 @@ namespace Nfun.Fuspec.Parser.Model
             Set.AddRange(set); 
         }
 
-        public void AddGet(Value get)
+        public void AddGet(List<Value> get)
         {
-            Get.Add(get);
+            Check.AddRange(get);
+        }
+
+        public void RefreshCheck(List<Value> check)
+        {
+            Check = check;
         }
         
         
