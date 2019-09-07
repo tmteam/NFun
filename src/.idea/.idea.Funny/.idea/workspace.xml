@@ -24,7 +24,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/NFun/Types/VarType.cs">
           <provider selected="true" editor-type-id="text-editor">
-            <state>
+            <state relative-caret-position="51">
               <caret line="5" column="18" selection-start-line="5" selection-start-column="18" selection-end-line="5" selection-end-column="18" />
               <folding>
                 <marker date="1566933811982" expanded="false" signature="6:32" ph="..." />
@@ -58,11 +58,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/FuspecParserHelper.cs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="276">
-              <caret line="81" column="43" lean-forward="true" selection-start-line="81" selection-start-column="43" selection-end-line="81" selection-end-column="43" />
+            <state relative-caret-position="66">
+              <caret line="143" column="9" lean-forward="true" selection-start-line="143" selection-start-column="9" selection-end-line="143" selection-end-column="9" />
               <folding>
                 <marker date="1567543456525" expanded="false" signature="6:223" ph="..." />
                 <marker date="1567543456525" expanded="true" signature="253:5710" ph="{...}" />
@@ -89,7 +89,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/TestCaseParseState.cs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="34">
+            <state relative-caret-position="17">
               <caret line="2" column="16" selection-start-line="2" selection-start-column="16" selection-end-line="2" selection-end-column="16" />
               <folding>
                 <marker date="1566933811936" expanded="true" signature="28:246" ph="{...}" />
@@ -102,7 +102,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/TestCaseReader.cs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-72">
+            <state relative-caret-position="2312">
               <caret line="155" column="12" selection-start-line="155" selection-start-column="12" selection-end-line="155" selection-end-column="12" />
               <folding>
                 <marker date="1567544180658" expanded="false" signature="6:307" ph="..." />
@@ -147,8 +147,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/ConsoleUseParser/testcases.txt">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2669">
-              <caret line="157" lean-forward="true" selection-start-line="157" selection-end-line="157" />
+            <state relative-caret-position="1037">
+              <caret line="61" selection-start-line="61" selection-end-line="61" />
             </state>
           </provider>
         </entry>
@@ -156,7 +156,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/NFun.Fuspectests/FuspecTestCasesTests.cs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-15096">
+            <state relative-caret-position="1802">
               <caret line="123" column="20" selection-start-line="123" selection-start-column="20" selection-end-line="123" selection-end-column="20" />
               <folding>
                 <marker date="1567539449575" expanded="false" signature="6:292" ph="..." />
@@ -315,8 +315,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/NFun/SyntaxParsing/SyntaxNodeReader.cs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="304">
-              <caret line="354" column="12" lean-forward="true" selection-start-line="354" selection-start-column="12" selection-end-line="354" selection-end-column="12" />
+            <state relative-caret-position="5763">
+              <caret line="354" column="12" selection-start-line="354" selection-start-column="12" selection-end-line="354" selection-end-column="12" />
               <folding>
                 <marker date="1567099216776" expanded="false" signature="6:220" ph="..." />
                 <marker date="1567099216776" expanded="true" signature="250:22413" ph="{...}" />
@@ -387,7 +387,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/NFun/Tokenization/Tokenizer.cs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="51">
+            <state relative-caret-position="2074">
               <caret line="128" column="12" selection-start-line="128" selection-start-column="12" selection-end-line="128" selection-end-column="27" />
               <folding>
                 <marker date="1566933811973" expanded="false" signature="6:71" ph="..." />
@@ -416,11 +416,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/NFun/Tokenization/TokenHelper.cs">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="81">
-              <caret line="107" column="42" lean-forward="true" selection-start-line="107" selection-start-column="42" selection-end-line="107" selection-end-column="42" />
+            <state relative-caret-position="404">
+              <caret line="131" column="5" lean-forward="true" selection-start-line="131" selection-start-column="5" selection-end-line="131" selection-end-column="5" />
               <folding>
                 <marker date="1567108251317" expanded="false" signature="6:102" ph="..." />
                 <marker date="1567108251317" expanded="true" signature="131:5361" ph="{...}" />
@@ -454,43 +454,43 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
   <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/TestCaseParseState.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/NFun.Fuspectests/FuspecTestCasesTests.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/NFun.Fuspectests/ErrorTests.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/NFun/SyntaxParsing/SyntaxNodeReader.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/NFun/SyntaxParsing/ISyntaxNode.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/ConsoleUseParser/ConsoleRender.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/ConsoleUseParser/Program.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$USER_HOME$/Downloads/Telegram Desktop/FuspecParserHelper.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/Model/Value.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/6DADD22E-0197-42CE-80AA-EFEF99855BE0/46/3cb26086/Dictionary`2.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/A2DDBDA9-1E09-414A-801B-36BA566856C2/f7/d7c4f79e/String.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/NFun/Tokenization/Tokenizer.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/NFun/Tokenization/TokenHelper.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/NFun/Tokenization/Tok.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/NFun/Tokenization/TokType.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/NFun/Tokenization/TokFlow.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/TestCaseParseState.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/NFun/Types/Var.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/NFun/Types/IFunConvertable.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/NFun/Types/VarInfo.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/NFun/Types/BaseVarType.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/NFun/SyntaxParsing/ISyntaxNode.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/NFun/Types/VarType.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/ConsoleUseParser/ConsoleRender.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/NFun/SyntaxParsing/SyntaxNodes/SyntaxTree.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/ConsoleUseParser/Program.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/NFun/Types/TypeHelper.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/NFun/SyntaxParsing/SyntaxNodes/ArraySyntaxNode.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/NFun/SyntaxParsing/SyntaxNodes/EquationSyntaxNode.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$USER_HOME$/Downloads/Telegram Desktop/FuspecParserHelper.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/Model/Value.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/FuspecParser.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/FuspecParserHelper.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/Model/SetCheckKit.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/Model/ParsedFuspec.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/6DADD22E-0197-42CE-80AA-EFEF99855BE0/46/3cb26086/Dictionary`2.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/Model/ParamValues.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/NFun/SyntaxParsing/SyntaxNodes/ConstantSyntaxNode.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/Model/Param.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/Model/FuspecTestCase.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/A2DDBDA9-1E09-414A-801B-36BA566856C2/f7/d7c4f79e/String.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/Model/FuspecTestCases.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/TestCaseReader.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/TestCaseBuilder.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/NFun/Tokenization/Tokenizer.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/NFun/Tokenization/TokenHelper.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/NFun/Tokenization/Tok.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/NFun/FunBuilder.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/NFun/Tokenization/TokType.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/NFun/Tokenization/TokFlow.cs" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
@@ -520,6 +520,8 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="AssemblyExplorer" />
+      <pane id="FileSystemExplorer" />
       <pane id="SolutionExplorer">
         <subPane>
           <expand>
@@ -530,11 +532,6 @@
             <path>
               <item name="Project" type="784c90a0:SolutionExplorerRootNode" />
               <item name="Funny" type="24d0babc:SolutionExplorerModelNode" />
-              <item name="ConsoleUseParser" type="24d0babc:SolutionExplorerModelNode" />
-            </path>
-            <path>
-              <item name="Project" type="784c90a0:SolutionExplorerRootNode" />
-              <item name="Funny" type="24d0babc:SolutionExplorerModelNode" />
               <item name="NFun.Fuspec" type="24d0babc:SolutionExplorerModelNode" />
             </path>
             <path>
@@ -542,26 +539,12 @@
               <item name="Funny" type="24d0babc:SolutionExplorerModelNode" />
               <item name="NFun.Fuspec" type="24d0babc:SolutionExplorerModelNode" />
               <item name="Parser" type="24d0babc:SolutionExplorerModelNode" />
-            </path>
-            <path>
-              <item name="Project" type="784c90a0:SolutionExplorerRootNode" />
-              <item name="Funny" type="24d0babc:SolutionExplorerModelNode" />
-              <item name="NFun.Fuspec" type="24d0babc:SolutionExplorerModelNode" />
-              <item name="Parser" type="24d0babc:SolutionExplorerModelNode" />
-              <item name="Model" type="24d0babc:SolutionExplorerModelNode" />
-            </path>
-            <path>
-              <item name="Project" type="784c90a0:SolutionExplorerRootNode" />
-              <item name="Funny" type="24d0babc:SolutionExplorerModelNode" />
-              <item name="NFun.Fuspectests" type="24d0babc:SolutionExplorerModelNode" />
             </path>
           </expand>
           <select />
         </subPane>
         <option name="show-all-files" value="false" />
       </pane>
-      <pane id="AssemblyExplorer" />
-      <pane id="FileSystemExplorer" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -642,11 +625,12 @@
       <option name="presentableId" value="Default" />
       <updated>1564072065102</updated>
       <workItem from="1564072066196" duration="9944000" />
+      <workItem from="1567849817168" duration="272000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="43077000" />
+    <option name="totallyTimeSpent" value="43349000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -659,9 +643,8 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-7" y="-7" width="1550" height="838" extended-state="6" />
-    <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.1738255" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.17583893" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Image Layers" order="2" />
       <window_info id="Capture Tool" order="3" />
@@ -1384,7 +1367,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/NFun/Types/VarType.cs">
       <provider selected="true" editor-type-id="text-editor">
-        <state>
+        <state relative-caret-position="51">
           <caret line="5" column="18" selection-start-line="5" selection-start-column="18" selection-end-line="5" selection-end-column="18" />
           <folding>
             <marker date="1566933811982" expanded="false" signature="6:32" ph="..." />
@@ -1417,134 +1400,9 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/NFun/Tokenization/Tokenizer.cs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="51">
-          <caret line="128" column="12" selection-start-line="128" selection-start-column="12" selection-end-line="128" selection-end-column="27" />
-          <folding>
-            <marker date="1566933811973" expanded="false" signature="6:71" ph="..." />
-            <marker date="1566933811973" expanded="true" signature="100:11036" ph="{...}" />
-            <marker date="1566933811973" expanded="true" signature="129:11034" ph="{...}" />
-            <marker date="1566933811973" expanded="true" signature="295:613" ph="{...}" />
-            <marker date="1566933811973" expanded="true" signature="378:603" ph="{...}" />
-            <marker date="1566933811973" expanded="true" signature="732:1183" ph="{...}" />
-            <marker date="1566933811973" expanded="true" signature="1299:3765" ph="{...}" />
-            <marker date="1566933811973" expanded="true" signature="3832:5288" ph="{...}" />
-            <marker date="1566933811973" expanded="true" signature="4029:4255" ph="{...}" />
-            <marker date="1566933811973" expanded="true" signature="5356:5732" ph="{...}" />
-            <marker date="1566933811973" expanded="true" signature="5803:6261" ph="{...}" />
-            <marker date="1566933811973" expanded="true" signature="6359:8447" ph="{...}" />
-            <marker date="1566933811973" expanded="true" signature="6540:8437" ph="{...}" />
-            <marker date="1566933811973" expanded="true" signature="8964:9153" ph="{...}" />
-            <marker date="1566933811973" expanded="true" signature="9219:11028" ph="{...}" />
-            <marker date="1566933811973" expanded="true" signature="9402:10377" ph="{...}" />
-            <marker date="1566933811973" expanded="true" signature="9543:9769" ph="{...}" />
-            <marker date="1566933811973" expanded="true" signature="9841:10068" ph="{...}" />
-            <marker date="1566933811973" expanded="true" signature="9923:10050" ph="{...}" />
-            <marker date="1566933811973" expanded="true" signature="10232:10340" ph="{...}" />
-            <marker date="1566933811973" expanded="true" signature="10659:10897" ph="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/NFun/SyntaxParsing/SyntaxNodeReader.cs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="304">
-          <caret line="354" column="12" lean-forward="true" selection-start-line="354" selection-start-column="12" selection-end-line="354" selection-end-column="12" />
-          <folding>
-            <marker date="1567099216776" expanded="false" signature="6:220" ph="..." />
-            <marker date="1567099216776" expanded="true" signature="250:22413" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="286:22411" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="367:1909" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="476:595" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="694:798" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="846:999" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="1047:1353" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="1403:1479" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="1530:1648" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="1719:1850" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="2215:3461" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="3517:3563" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="3777:7640" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="3971:4818" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="4421:4638" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="4869:5210" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="5253:5586" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="5951:6331" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="5985:6174" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="6215:6317" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="6622:7144" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="6811:7048" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="7685:11526" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="7973:11516" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="8060:8196" ph="/* if flow is done than current node is everything we got ... */" />
-            <marker date="1567099216776" expanded="true" signature="8346:8504" ph="/* if current token is not an operation ... */" />
-            <marker date="1567099216776" expanded="true" signature="8654:8790" ph="/* if op has higher priority us ... */" />
-            <marker date="1567099216776" expanded="true" signature="9072:9529" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="9111:9305" ph="/* We can use array slicing, only if there were no new lines before. ... */" />
-            <marker date="1567099216776" expanded="true" signature="9364:9449" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="9591:9888" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="9948:10160" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="10198:11502" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="10995:11484" ph="/* trace: ... */" />
-            <marker date="1567099216776" expanded="true" signature="11597:13930" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="11803:12538" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="11852:12162" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="12922:13332" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="13179:13282" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="13637:13698" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="13826:13885" ph="{...}" />
-            <marker date="1567099216776" expanded="false" signature="13940:22405" ph="read concreete" />
-            <marker date="1567099216776" expanded="true" signature="14021:14436" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="14478:14998" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="15049:18378" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="15264:15377" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="15460:18125" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="15569:16229" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="15742:15866" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="15930:16078" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="16304:17625" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="16423:17138" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="16618:16754" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="16822:16982" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="17646:18111" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="18430:19245" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="18971:19133" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="19291:21599" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="19973:20365" ph="{...}" />
-            <marker date="1567099216776" expanded="true" signature="21684:22386" ph="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/NFun.Fuspectests/ErrorTests.cs">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="51">
-          <caret line="9" column="17" selection-start-line="9" selection-start-column="17" selection-end-line="9" selection-end-column="17" />
-          <folding>
-            <marker date="1566933811938" expanded="false" signature="6:134" ph="..." />
-            <marker date="1566933811938" expanded="true" signature="157:2553" ph="{...}" />
-            <marker date="1566933811938" expanded="true" signature="187:2551" ph="{...}" />
-            <marker date="1566933811938" expanded="true" signature="318:858" ph="{...}" />
-            <marker date="1566933811938" expanded="true" signature="568:846" ph="{...}" />
-            <marker date="1566933811938" expanded="true" signature="923:1397" ph="{...}" />
-            <marker date="1566933811938" expanded="true" signature="1457:1923" ph="{...}" />
-            <marker date="1566933811938" expanded="true" signature="1989:2222" ph="{...}" />
-            <marker date="1566933811938" expanded="true" signature="2280:2545" ph="{...}" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/ConsoleUseParser/testcases.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2669">
-          <caret line="157" lean-forward="true" selection-start-line="157" selection-end-line="157" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/TestCaseParseState.cs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="34">
+        <state relative-caret-position="17">
           <caret line="2" column="16" selection-start-line="2" selection-start-column="16" selection-end-line="2" selection-end-column="16" />
           <folding>
             <marker date="1566933811936" expanded="true" signature="28:246" ph="{...}" />
@@ -1553,9 +1411,59 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/TestCaseReader.cs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2312">
+          <caret line="155" column="12" selection-start-line="155" selection-start-column="12" selection-end-line="155" selection-end-column="12" />
+          <folding>
+            <marker date="1567544180658" expanded="false" signature="6:307" ph="..." />
+            <marker date="1567544180658" expanded="true" signature="337:13902" ph="{...}" />
+            <marker date="1567544180658" expanded="true" signature="372:13900" ph="{...}" />
+            <marker date="1567544180658" expanded="true" signature="960:1220" ph="{...}" />
+            <marker date="1567544180658" expanded="true" signature="1259:1742" ph="{...}" />
+            <marker date="1567544180658" expanded="true" signature="1385:1489" ph="{...}" />
+            <marker date="1567544180658" expanded="true" signature="1846:2746" ph="{...}" />
+            <marker date="1567544180658" expanded="true" signature="1896:2736" ph="{...}" />
+            <marker date="1567544180658" expanded="true" signature="2812:3391" ph="{...}" />
+            <marker date="1567544180658" expanded="true" signature="3063:3282" ph="{...}" />
+            <marker date="1567544180658" expanded="true" signature="3456:3873" ph="{...}" />
+            <marker date="1567544180658" expanded="true" signature="3930:4556" ph="{...}" />
+            <marker date="1567544180658" expanded="true" signature="4625:5871" ph="{...}" />
+            <marker date="1567544180658" expanded="true" signature="4669:4790" ph="{...}" />
+            <marker date="1567544180658" expanded="true" signature="5161:5263" ph="{...}" />
+            <marker date="1567544180658" expanded="true" signature="5295:5442" ph="{...}" />
+            <marker date="1567544180658" expanded="true" signature="5933:7268" ph="{...}" />
+            <marker date="1567544180658" expanded="true" signature="6251:6512" ph="{...}" />
+            <marker date="1567544180658" expanded="true" signature="6733:6833" ph="{...}" />
+            <marker date="1567544180658" expanded="true" signature="6865:7012" ph="{...}" />
+            <marker date="1567544180658" expanded="true" signature="7325:8024" ph="{...}" />
+            <marker date="1567544180658" expanded="true" signature="7369:7486" ph="{...}" />
+            <marker date="1567544180658" expanded="true" signature="7598:7933" ph="{...}" />
+            <marker date="1567544180658" expanded="true" signature="8083:11777" ph="{...}" />
+            <marker date="1567544180658" expanded="true" signature="8239:8416" ph="{...}" />
+            <marker date="1567544180658" expanded="true" signature="8779:9240" ph="{...}" />
+            <marker date="1567544180658" expanded="true" signature="9365:11767" ph="/* if (IsSeparatingLine(str, '-')) ... */" />
+            <marker date="1567544180658" expanded="true" signature="11837:12115" ph="{...}" />
+            <marker date="1567544180658" expanded="true" signature="12171:13103" ph="{...}" />
+            <marker date="1567544180658" expanded="true" signature="12654:13093" ph="{...}" />
+            <marker date="1567544180658" expanded="true" signature="12822:13079" ph="{...}" />
+            <marker date="1567544180658" expanded="true" signature="13139:13464" ph="{...}" />
+            <marker date="1567544180658" expanded="true" signature="13514:13654" ph="{...}" />
+            <marker date="1567544180658" expanded="true" signature="13738:13894" ph="{...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ConsoleUseParser/testcases.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1037">
+          <caret line="61" selection-start-line="61" selection-end-line="61" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/NFun.Fuspectests/FuspecTestCasesTests.cs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-15096">
+        <state relative-caret-position="1802">
           <caret line="123" column="20" selection-start-line="123" selection-start-column="20" selection-end-line="123" selection-end-column="20" />
           <folding>
             <marker date="1567539449575" expanded="false" signature="6:292" ph="..." />
@@ -1690,79 +1598,127 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/FuspecParserHelper.cs">
+    <entry file="file://$PROJECT_DIR$/NFun.Fuspectests/ErrorTests.cs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="276">
-          <caret line="81" column="43" lean-forward="true" selection-start-line="81" selection-start-column="43" selection-end-line="81" selection-end-column="43" />
+        <state relative-caret-position="51">
+          <caret line="9" column="17" selection-start-line="9" selection-start-column="17" selection-end-line="9" selection-end-column="17" />
           <folding>
-            <marker date="1567543456525" expanded="false" signature="6:223" ph="..." />
-            <marker date="1567543456525" expanded="true" signature="253:5710" ph="{...}" />
-            <marker date="1567543456525" expanded="true" signature="298:5703" ph="{...}" />
-            <marker date="1567543456525" expanded="true" signature="442:706" ph="{...}" />
-            <marker date="1567543456525" expanded="true" signature="780:995" ph="{...}" />
-            <marker date="1567543456525" expanded="true" signature="1007:1210" ph="/* Опять таки, что за GetParam, какой параметр, пока не знаю, какое название было бы правильнее взять, так как сл ... */" />
-            <marker date="1567543456525" expanded="true" signature="1330:1712" ph="/* Наташа: Param - это модель фуспека. Возможно нужно дать лучший нейминг для модели? Метод получает список объек ... */" />
-            <marker date="1567543456525" expanded="true" signature="1781:2006" ph="{...}" />
-            <marker date="1567543456525" expanded="true" signature="2079:3418" ph="{...}" />
-            <marker date="1567543456525" expanded="true" signature="2409:3381" ph="{...}" />
-            <marker date="1567543456525" expanded="true" signature="3509:3681" ph="{...}" />
-            <marker date="1567543456525" expanded="true" signature="3742:5191" ph="{...}" />
-            <marker date="1567543456525" expanded="true" signature="3990:5154" ph="{...}" />
-            <marker date="1567543456525" expanded="true" signature="4610:4767" ph="/* var vartype = tokFLow.ReadVarType(); ... */" />
-            <marker date="1567543456525" expanded="true" signature="5260:5690" ph="{...}" />
-            <marker date="1567543456525" expanded="true" signature="5387:5637" ph="{...}" />
-            <marker date="1567543456525" expanded="true" signature="5484:5622" ph="{...}" />
+            <marker date="1566933811938" expanded="false" signature="6:134" ph="..." />
+            <marker date="1566933811938" expanded="true" signature="187:2551" ph="{...}" />
+            <marker date="1566933811938" expanded="true" signature="318:858" ph="{...}" />
+            <marker date="1566933811938" expanded="true" signature="568:846" ph="{...}" />
+            <marker date="1566933811938" expanded="true" signature="923:1397" ph="{...}" />
+            <marker date="1566933811938" expanded="true" signature="1457:1923" ph="{...}" />
+            <marker date="1566933811938" expanded="true" signature="1989:2222" ph="{...}" />
+            <marker date="1566933811938" expanded="true" signature="2280:2545" ph="{...}" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/TestCaseReader.cs">
+    <entry file="file://$PROJECT_DIR$/NFun/SyntaxParsing/SyntaxNodeReader.cs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-72">
-          <caret line="155" column="12" selection-start-line="155" selection-start-column="12" selection-end-line="155" selection-end-column="12" />
+        <state relative-caret-position="5763">
+          <caret line="354" column="12" selection-start-line="354" selection-start-column="12" selection-end-line="354" selection-end-column="12" />
           <folding>
-            <marker date="1567544180658" expanded="false" signature="6:307" ph="..." />
-            <marker date="1567544180658" expanded="true" signature="337:13902" ph="{...}" />
-            <marker date="1567544180658" expanded="true" signature="372:13900" ph="{...}" />
-            <marker date="1567544180658" expanded="true" signature="960:1220" ph="{...}" />
-            <marker date="1567544180658" expanded="true" signature="1259:1742" ph="{...}" />
-            <marker date="1567544180658" expanded="true" signature="1385:1489" ph="{...}" />
-            <marker date="1567544180658" expanded="true" signature="1846:2746" ph="{...}" />
-            <marker date="1567544180658" expanded="true" signature="1896:2736" ph="{...}" />
-            <marker date="1567544180658" expanded="true" signature="2812:3391" ph="{...}" />
-            <marker date="1567544180658" expanded="true" signature="3063:3282" ph="{...}" />
-            <marker date="1567544180658" expanded="true" signature="3456:3873" ph="{...}" />
-            <marker date="1567544180658" expanded="true" signature="3930:4556" ph="{...}" />
-            <marker date="1567544180658" expanded="true" signature="4625:5871" ph="{...}" />
-            <marker date="1567544180658" expanded="true" signature="4669:4790" ph="{...}" />
-            <marker date="1567544180658" expanded="true" signature="5161:5263" ph="{...}" />
-            <marker date="1567544180658" expanded="true" signature="5295:5442" ph="{...}" />
-            <marker date="1567544180658" expanded="true" signature="5933:7268" ph="{...}" />
-            <marker date="1567544180658" expanded="true" signature="6251:6512" ph="{...}" />
-            <marker date="1567544180658" expanded="true" signature="6733:6833" ph="{...}" />
-            <marker date="1567544180658" expanded="true" signature="6865:7012" ph="{...}" />
-            <marker date="1567544180658" expanded="true" signature="7325:8024" ph="{...}" />
-            <marker date="1567544180658" expanded="true" signature="7369:7486" ph="{...}" />
-            <marker date="1567544180658" expanded="true" signature="7598:7933" ph="{...}" />
-            <marker date="1567544180658" expanded="true" signature="8083:11777" ph="{...}" />
-            <marker date="1567544180658" expanded="true" signature="8239:8416" ph="{...}" />
-            <marker date="1567544180658" expanded="true" signature="8779:9240" ph="{...}" />
-            <marker date="1567544180658" expanded="true" signature="9365:11767" ph="/* if (IsSeparatingLine(str, '-')) ... */" />
-            <marker date="1567544180658" expanded="true" signature="11837:12115" ph="{...}" />
-            <marker date="1567544180658" expanded="true" signature="12171:13103" ph="{...}" />
-            <marker date="1567544180658" expanded="true" signature="12654:13093" ph="{...}" />
-            <marker date="1567544180658" expanded="true" signature="12822:13079" ph="{...}" />
-            <marker date="1567544180658" expanded="true" signature="13139:13464" ph="{...}" />
-            <marker date="1567544180658" expanded="true" signature="13514:13654" ph="{...}" />
-            <marker date="1567544180658" expanded="true" signature="13738:13894" ph="{...}" />
+            <marker date="1567099216776" expanded="false" signature="6:220" ph="..." />
+            <marker date="1567099216776" expanded="true" signature="250:22413" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="286:22411" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="367:1909" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="476:595" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="694:798" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="846:999" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="1047:1353" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="1403:1479" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="1530:1648" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="1719:1850" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="2215:3461" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="3517:3563" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="3777:7640" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="3971:4818" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="4421:4638" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="4869:5210" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="5253:5586" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="5951:6331" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="5985:6174" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="6215:6317" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="6622:7144" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="6811:7048" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="7685:11526" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="7973:11516" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="8060:8196" ph="/* if flow is done than current node is everything we got ... */" />
+            <marker date="1567099216776" expanded="true" signature="8346:8504" ph="/* if current token is not an operation ... */" />
+            <marker date="1567099216776" expanded="true" signature="8654:8790" ph="/* if op has higher priority us ... */" />
+            <marker date="1567099216776" expanded="true" signature="9072:9529" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="9111:9305" ph="/* We can use array slicing, only if there were no new lines before. ... */" />
+            <marker date="1567099216776" expanded="true" signature="9364:9449" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="9591:9888" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="9948:10160" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="10198:11502" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="10995:11484" ph="/* trace: ... */" />
+            <marker date="1567099216776" expanded="true" signature="11597:13930" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="11803:12538" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="11852:12162" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="12922:13332" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="13179:13282" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="13637:13698" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="13826:13885" ph="{...}" />
+            <marker date="1567099216776" expanded="false" signature="13940:22405" ph="read concreete" />
+            <marker date="1567099216776" expanded="true" signature="14021:14436" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="14478:14998" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="15049:18378" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="15264:15377" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="15460:18125" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="15569:16229" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="15742:15866" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="15930:16078" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="16304:17625" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="16423:17138" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="16618:16754" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="16822:16982" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="17646:18111" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="18430:19245" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="18971:19133" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="19291:21599" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="19973:20365" ph="{...}" />
+            <marker date="1567099216776" expanded="true" signature="21684:22386" ph="{...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/NFun/Tokenization/Tokenizer.cs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2074">
+          <caret line="128" column="12" selection-start-line="128" selection-start-column="12" selection-end-line="128" selection-end-column="27" />
+          <folding>
+            <marker date="1566933811973" expanded="false" signature="6:71" ph="..." />
+            <marker date="1566933811973" expanded="true" signature="100:11036" ph="{...}" />
+            <marker date="1566933811973" expanded="true" signature="129:11034" ph="{...}" />
+            <marker date="1566933811973" expanded="true" signature="295:613" ph="{...}" />
+            <marker date="1566933811973" expanded="true" signature="378:603" ph="{...}" />
+            <marker date="1566933811973" expanded="true" signature="732:1183" ph="{...}" />
+            <marker date="1566933811973" expanded="true" signature="1299:3765" ph="{...}" />
+            <marker date="1566933811973" expanded="true" signature="3832:5288" ph="{...}" />
+            <marker date="1566933811973" expanded="true" signature="4029:4255" ph="{...}" />
+            <marker date="1566933811973" expanded="true" signature="5356:5732" ph="{...}" />
+            <marker date="1566933811973" expanded="true" signature="5803:6261" ph="{...}" />
+            <marker date="1566933811973" expanded="true" signature="6359:8447" ph="{...}" />
+            <marker date="1566933811973" expanded="true" signature="6540:8437" ph="{...}" />
+            <marker date="1566933811973" expanded="true" signature="8964:9153" ph="{...}" />
+            <marker date="1566933811973" expanded="true" signature="9219:11028" ph="{...}" />
+            <marker date="1566933811973" expanded="true" signature="9402:10377" ph="{...}" />
+            <marker date="1566933811973" expanded="true" signature="9543:9769" ph="{...}" />
+            <marker date="1566933811973" expanded="true" signature="9841:10068" ph="{...}" />
+            <marker date="1566933811973" expanded="true" signature="9923:10050" ph="{...}" />
+            <marker date="1566933811973" expanded="true" signature="10232:10340" ph="{...}" />
+            <marker date="1566933811973" expanded="true" signature="10659:10897" ph="{...}" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/NFun/Tokenization/TokenHelper.cs">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="81">
-          <caret line="107" column="42" lean-forward="true" selection-start-line="107" selection-start-column="42" selection-end-line="107" selection-end-column="42" />
+        <state relative-caret-position="404">
+          <caret line="131" column="5" lean-forward="true" selection-start-line="131" selection-start-column="5" selection-end-line="131" selection-end-column="5" />
           <folding>
             <marker date="1567108251317" expanded="false" signature="6:102" ph="..." />
             <marker date="1567108251317" expanded="true" signature="131:5361" ph="{...}" />
@@ -1785,6 +1741,32 @@
             <marker date="1567108251317" expanded="true" signature="4347:4473" ph="{...}" />
             <marker date="1567108251317" expanded="true" signature="4619:5353" ph="{...}" />
             <marker date="1567108251317" expanded="true" signature="4694:5073" ph="{...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/NFun.Fuspec/Parser/FuspecParserHelper.cs">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="66">
+          <caret line="143" column="9" lean-forward="true" selection-start-line="143" selection-start-column="9" selection-end-line="143" selection-end-column="9" />
+          <folding>
+            <marker date="1567543456525" expanded="false" signature="6:223" ph="..." />
+            <marker date="1567543456525" expanded="true" signature="253:5710" ph="{...}" />
+            <marker date="1567543456525" expanded="true" signature="298:5703" ph="{...}" />
+            <marker date="1567543456525" expanded="true" signature="442:706" ph="{...}" />
+            <marker date="1567543456525" expanded="true" signature="780:995" ph="{...}" />
+            <marker date="1567543456525" expanded="true" signature="1007:1210" ph="/* Опять таки, что за GetParam, какой параметр, пока не знаю, какое название было бы правильнее взять, так как сл ... */" />
+            <marker date="1567543456525" expanded="true" signature="1330:1712" ph="/* Наташа: Param - это модель фуспека. Возможно нужно дать лучший нейминг для модели? Метод получает список объек ... */" />
+            <marker date="1567543456525" expanded="true" signature="1781:2006" ph="{...}" />
+            <marker date="1567543456525" expanded="true" signature="2079:3418" ph="{...}" />
+            <marker date="1567543456525" expanded="true" signature="2409:3381" ph="{...}" />
+            <marker date="1567543456525" expanded="true" signature="3509:3681" ph="{...}" />
+            <marker date="1567543456525" expanded="true" signature="3742:5191" ph="{...}" />
+            <marker date="1567543456525" expanded="true" signature="3990:5154" ph="{...}" />
+            <marker date="1567543456525" expanded="true" signature="4610:4767" ph="/* var vartype = tokFLow.ReadVarType(); ... */" />
+            <marker date="1567543456525" expanded="true" signature="5260:5690" ph="{...}" />
+            <marker date="1567543456525" expanded="true" signature="5387:5637" ph="{...}" />
+            <marker date="1567543456525" expanded="true" signature="5484:5622" ph="{...}" />
           </folding>
         </state>
       </provider>
