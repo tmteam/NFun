@@ -194,20 +194,36 @@ namespace Nfun.Fuspec.Parser
                 return TestCaseParseState.ReadingBody;
             }
 
-            if (FindStringOrNullByKeyWord("|***", str) != null || FindStringOrNullByKeyWord("|---",str)!=null)
+
+            if (IsSeparatingLine(str, '-'))
             {
-                if (IsSeparatingLine(str, '-') )
-                    return TestCaseParseState.ReadingValues;
-                if ( IsSeparatingLine(str, '*'))
-                    return AddTestCase(str);
-                return WriteError(new FuspecParserError(FuspecErrorType.OpeningStringMissed, _index));
+                if (!(_script.Any(x => x.Trim() != "")))
+                    WriteError(new FuspecParserError(FuspecErrorType.ScriptMissed, _index));
+                return TestCaseParseState.ReadingValues;
             }
+            if (IsSeparatingLine(str, '*'))
+                return AddTestCase(str);
+
+            if (FindStringOrNullByKeyWord("|***", str) != null && !IsSeparatingLine(str, '*'))
+                return WriteError(new FuspecParserError(FuspecErrorType.OpeningStringMissed, _index));
+
+
+            if (FindStringOrNullByKeyWord("| set", str) != null || FindStringOrNullByKeyWord("| check", str) != null)
+            {
+                if ((!_script.Any(x => x.Trim() != "")))
+                  WriteError(new FuspecParserError(FuspecErrorType.ScriptMissed, _index));
+                WriteError(new FuspecParserError(FuspecErrorType.SeparatedStringMissed, _index));
+
+            }
+            
             _script.Add(str);
             return TestCaseParseState.ReadingBody;
         }
 
         private TestCaseParseState ReadValues(string str)
         {
+            
+            
             if (str.Trim() == "")
                 return TestCaseParseState.ReadingValues;
 
@@ -218,14 +234,15 @@ namespace Nfun.Fuspec.Parser
             var checkString = FindStringOrNullByKeyWord("| check", str);
 
             if ((setString == null && checkString == null))
-                return WriteError(new FuspecParserError(FuspecErrorType.ExpectedSeparatedLine, _index));
+                return WriteError(new FuspecParserError(FuspecErrorType.ExpectedOpeningLine, _index));
 
             if (setString != null)
             {
-                if (setString.Substring(0, 1) != " ")
-                    return WriteError(new FuspecParserError(FuspecErrorType.WrongSetCheckKit, _index));
                 if (setString.Trim() == "")
                     return WriteError(new FuspecParserError(FuspecErrorType.SetKitMissed, _index));
+                if (setString.Substring(0, 1) != " ")
+                    return WriteError(new FuspecParserError(FuspecErrorType.WrongSetCheckKit, _index));
+                
 
                 //если была только сет строка перед текущей, то надо добавить SetCheckKit
                 if (!_setCheckKit.Check.Any() && _setCheckKit.Set.Any())
@@ -244,10 +261,11 @@ namespace Nfun.Fuspec.Parser
 
             if (checkString != null)
             {
+                if (checkString.Trim() == "")
+                    return WriteError(new FuspecParserError(FuspecErrorType.CheckKitMissed, _index));
                 if (checkString.Substring(0, 1) != " ")
                     return WriteError(new FuspecParserError(FuspecErrorType.WrongSetCheckKit, _index));
-                if (checkString.Trim() == "")
-                    return WriteError(new FuspecParserError(FuspecErrorType.SetKitMissed, _index));
+         
                 try
                 {
                     _setCheckKit.AddGet(GetValue(checkString));
@@ -265,7 +283,7 @@ namespace Nfun.Fuspec.Parser
 
         private TestCaseParseState AddTestCase(string str)
         {
-            if (!_script.Any())
+            if (!(_script.Any(x=> x.Trim()!="")))
                 return WriteError(new FuspecParserError(FuspecErrorType.ScriptMissed, _index));
             BuildScript();
             BuildSetCheckKits();
@@ -275,15 +293,16 @@ namespace Nfun.Fuspec.Parser
 
         private void AddLast(TestCaseParseState state)
         {
+            
             if ((state == TestCaseParseState.ReadingName) || (state == TestCaseParseState.ReadingTags))
                 WriteError(new FuspecParserError(FuspecErrorType.NoEndingTestCase, _index));
-            if (!_script.Any() && ((state == TestCaseParseState.ReadingParamsOut ||
-                                   state == TestCaseParseState.ReadingParamsIn)))
+            
+            if ( !(_script.Any(x=> x.Trim()!="")) && (state !=TestCaseParseState.ReadingValues))
                 WriteError(new FuspecParserError(FuspecErrorType.NoEndingTestCase, _index));
             else
             {
-                if (!_script.Any())
-                    WriteError(new FuspecParserError(FuspecErrorType.NoEndingTestCase, _index));
+                if (!(_script.Any(x=> x.Trim()!="")))
+                    WriteError(new FuspecParserError(FuspecErrorType.ScriptMissed, _index));
                 else
                 {
                     BuildScript();

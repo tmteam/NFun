@@ -16,6 +16,6 @@ namespace ParcerV1
         WrongSetCheckKit=80,
         SetKitMissed=81,
         CheckKitMissed=82,
-        ExpectedSeparatedLine = 83,
+        ExpectedOpeningLine = 83,
     }
 }
