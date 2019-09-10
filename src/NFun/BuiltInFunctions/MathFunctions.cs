@@ -79,19 +79,51 @@ namespace NFun.BuiltInFunctions
         public NotEqualFunction() : base(CoreFunNames.NotEqual, VarType.Bool,VarType.Anything,VarType.Anything){}
         public override object Calc(object[] args) => !TypeHelper.AreEqual(args[0],args[1]);
     }
-
+#region remainder
     public class RemainderRealFunction: FunctionBase
     {
         public RemainderRealFunction() : base(CoreFunNames.Remainder, VarType.Real,VarType.Real,VarType.Real){}
         public override object Calc(object[] args) => args.Get<double>(0) % args.Get<double>(1);
     }
-    
-    public class RemainderIntFunction: FunctionBase
+    public class RemainderInt16Function: FunctionBase
     {
-        public RemainderIntFunction() : base(CoreFunNames.Remainder, VarType.Int32,VarType.Int32,VarType.Int32){}
+        public RemainderInt16Function() : base(CoreFunNames.Remainder, VarType.Int16,VarType.Int16,VarType.Int16){}
+        public override object Calc(object[] args) => (Int16)(args.Get<Int16>(0) % args.Get<Int16>(1));
+    }
+    public class RemainderInt32Function: FunctionBase
+    {
+        public RemainderInt32Function() : base(CoreFunNames.Remainder, VarType.Int32,VarType.Int32,VarType.Int32){}
         public override object Calc(object[] args) => args.Get<int>(0) % args.Get<int>(1);
     }
     
+    public class RemainderInt64Function: FunctionBase
+    {
+        public RemainderInt64Function() : base(CoreFunNames.Remainder, VarType.Int64,VarType.Int64,VarType.Int64){}
+        public override object Calc(object[] args) => (Int64)(args.Get<Int64>(0) % args.Get<Int64>(1));
+    }
+    
+    public class RemainderUInt8Function: FunctionBase
+    {
+        public RemainderUInt8Function() : base(CoreFunNames.Remainder, VarType.UInt8,VarType.UInt8,VarType.UInt8){}
+        public override object Calc(object[] args) => (byte)(args.Get<byte>(0) % args.Get<byte>(1));
+    }
+    public class RemainderUInt16Function: FunctionBase
+    {
+        public RemainderUInt16Function() : base(CoreFunNames.Remainder, VarType.UInt16,VarType.UInt16,VarType.UInt16){}
+        public override object Calc(object[] args) => (UInt16)(args.Get<UInt16>(0) % args.Get<UInt16>(1));
+    }
+    public class RemainderUInt32Function: FunctionBase
+    {
+        public RemainderUInt32Function() : base(CoreFunNames.Remainder, VarType.UInt32,VarType.UInt32,VarType.UInt32){}
+        public override object Calc(object[] args) => (uint)(args.Get<uint>(0) % args.Get<uint>(1));
+    }
+    
+    public class RemainderUInt64Function: FunctionBase
+    {
+        public RemainderUInt64Function() : base(CoreFunNames.Remainder, VarType.UInt64,VarType.UInt64,VarType.UInt64){}
+        public override object Calc(object[] args) => (UInt64)(args.Get<UInt64>(0) % args.Get<UInt64>(1));
+    }
+  #endregion
         
     public class PowRealFunction: FunctionBase
     {
@@ -105,30 +137,88 @@ namespace NFun.BuiltInFunctions
         public DivideRealFunction() : base(CoreFunNames.Divide, VarType.Real,VarType.Real,VarType.Real){}
         public override object Calc(object[] args) => args.Get<double>(0) / args.Get<double>(1);
     }
+
+    #region multiply
+
     
-    
-    
+
     public class MultiplyRealFunction: FunctionBase
     {
         public MultiplyRealFunction() : base(CoreFunNames.Multiply, VarType.Real,VarType.Real,VarType.Real){}
         public override object Calc(object[] args) => args.Get<double>(0) * args.Get<double>(1);
     }
-    public class MultiplyIntFunction: FunctionBase
+
+    public class MultiplyInt32Function: FunctionBase
     {
-        public MultiplyIntFunction() : base(CoreFunNames.Multiply, VarType.Int32,VarType.Int32,VarType.Int32){}
+        public MultiplyInt32Function() : base(CoreFunNames.Multiply, VarType.Int32,VarType.Int32,VarType.Int32){}
         public override object Calc(object[] args) => args.Get<int>(0) * args.Get<int>(1);
     }
+    public class MultiplyInt64Function: FunctionBase
+    {
+        public MultiplyInt64Function() : base(CoreFunNames.Multiply, VarType.Int64,VarType.Int64,VarType.Int64){}
+        public override object Calc(object[] args) => args.Get<long>(0) * args.Get<long>(1);
+    }
+    
+    public class MultiplyUInt8Function: FunctionBase
+    {
+        public MultiplyUInt8Function() : base(CoreFunNames.Multiply, VarType.UInt16,VarType.UInt8,VarType.UInt8){}
+        public override object Calc(object[] args) => (ushort)(args.Get<byte>(0) * args.Get<byte>(1));
+    }
+    public class MultiplyUInt32Function: FunctionBase
+    {
+        public MultiplyUInt32Function() : base(CoreFunNames.Multiply, VarType.UInt32,VarType.UInt32,VarType.UInt32){}
+        public override object Calc(object[] args) => (uint)(args.Get<uint>(0) * args.Get<uint>(1));
+    }
+    
+    public class MultiplyUInt64Function: FunctionBase
+    {
+        public MultiplyUInt64Function() : base(CoreFunNames.Multiply, VarType.UInt64,VarType.UInt64,VarType.UInt64){}
+        public override object Calc(object[] args) => (ulong)(args.Get<ulong>(0) * args.Get<ulong>(1));
+    }
+    
+    #endregion
+
+    #region substract
     public class SubstractRealFunction: FunctionBase
     {
         public SubstractRealFunction() : base(CoreFunNames.Substract, VarType.Real,VarType.Real,VarType.Real){}
         public override object Calc(object[] args) => args.Get<double>(0) - args.Get<double>(1);
     }
-    public class SubstractIntFunction: FunctionBase
+    public class SubstractInt16Function: FunctionBase
     {
-        public SubstractIntFunction() : base(CoreFunNames.Substract, VarType.Int32,VarType.Int32,VarType.Int32){}
+        public SubstractInt16Function() : base(CoreFunNames.Substract, VarType.Int16,VarType.Int16,VarType.Int16){}
+        public override object Calc(object[] args) => (Int16)(args.Get<Int16>(0) - args.Get<Int16>(1));
+    }
+    public class SubstractInt32Function: FunctionBase
+    {
+        public SubstractInt32Function() : base(CoreFunNames.Substract, VarType.Int32,VarType.Int32,VarType.Int32){}
         public override object Calc(object[] args) => args.Get<int>(0) - args.Get<int>(1);
     }
-   
+    public class SubstractInt64Function: FunctionBase
+    {
+        public SubstractInt64Function() : base(CoreFunNames.Substract, VarType.Int64,VarType.Int64,VarType.Int64){}
+        public override object Calc(object[] args) => (Int64)(args.Get<Int64>(0) - args.Get<Int64>(1));
+    }
+    
+    public class SubstractUInt16Function: FunctionBase
+    {
+        public SubstractUInt16Function() : base(CoreFunNames.Substract, VarType.Int16,VarType.UInt16,VarType.UInt16){}
+        public override object Calc(object[] args) => (Int16)(args.Get<UInt16>(0) - args.Get<UInt16>(1));
+    }
+    public class SubstractUInt32Function: FunctionBase
+    {
+        public SubstractUInt32Function() : base(CoreFunNames.Substract, VarType.Int32,VarType.UInt32,VarType.UInt32){}
+        public override object Calc(object[] args) => args.Get<uint>(0) - args.Get<uint>(1);
+    }
+    public class SubstractUInt64Function: FunctionBase
+    {
+        public SubstractUInt64Function() : base(CoreFunNames.Substract, VarType.Int64,VarType.UInt64,VarType.UInt64){}
+        public override object Calc(object[] args) => (Int64)(args.Get<UInt64>(0) - args.Get<UInt64>(1));
+    }
+    
+    
+    #endregion
+    #region add 
     public class AddRealFunction: FunctionBase
     {
         public AddRealFunction(string name) : base(name, VarType.Real,VarType.Real,VarType.Real){}
@@ -157,6 +247,41 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args) => args.Get<long>(0) + args.Get<long>(1);
     }
+    
+    
+    public class AddUInt8Function: FunctionBase
+    {
+        public AddUInt8Function(string name) : base(name, VarType.UInt16, VarType.UInt8, VarType.UInt8)
+        {
+        }
+
+        public AddUInt8Function() : this(CoreFunNames.Add){}
+
+        public override object Calc(object[] args) => (UInt16)(args.Get<byte>(0) + args.Get<byte>(1));
+    }
+
+    public class AddUInt32Function: FunctionBase
+    {
+        public AddUInt32Function(string name) : base(name, VarType.UInt32, VarType.UInt32, VarType.UInt32)
+        {
+        }
+
+        public AddUInt32Function() : this(CoreFunNames.Add){}
+
+        public override object Calc(object[] args) => (uint)(args.Get<uint>(0) + args.Get<uint>(1));
+    }
+    
+    public class AddUInt64Function: FunctionBase
+    {
+        public AddUInt64Function(string name) : base(name, VarType.UInt64, VarType.UInt64, VarType.UInt64)
+        {
+        }
+
+        public AddUInt64Function() : this(CoreFunNames.Add){}
+
+        public override object Calc(object[] args) => (ulong)(args.Get<ulong>(0) + args.Get<ulong>(1));
+    }
+#endregion
     public class AddTextFunction: FunctionBase
     {
         public AddTextFunction(string name) : base(name, 
@@ -180,7 +305,24 @@ namespace NFun.BuiltInFunctions
             : base(CoreFunNames.Negate, VarType.Int32, VarType.Int32){}
         public override object Calc(object[] args) => - args.Get<int>(0);
     }
-    
+    public class NegateOfUInt32Function : FunctionBase
+    {
+        public NegateOfUInt32Function()
+            : base(CoreFunNames.Negate, VarType.Int64, VarType.UInt32){}
+        public override object Calc(object[] args) => - args.Get<uint>(0);
+    }
+    public class NegateOfInt16Function : FunctionBase
+    {
+        public NegateOfInt16Function()
+            : base(CoreFunNames.Negate, VarType.Int16, VarType.Int16){}
+        public override object Calc(object[] args) => (short)(- args.Get<short>(0));
+    }
+    public class NegateOfUInt8Function : FunctionBase
+    {
+        public NegateOfUInt8Function()
+            : base(CoreFunNames.Negate, VarType.Int16, VarType.UInt8){}
+        public override object Calc(object[] args) => (short)(- args.Get<byte>(0));
+    }
     public class NegateOfInt64Function : FunctionBase
     {
         public NegateOfInt64Function()

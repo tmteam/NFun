@@ -42,6 +42,8 @@ namespace NFun.Tokenization
         
         private readonly Dictionary<string, TokType> _keywords = new Dictionary<string, TokType>
         {
+            {"in", TokType.In},
+
             {"and",   TokType.And},
             {"or",    TokType.Or},
             {"xor",   TokType.Xor},
@@ -51,14 +53,60 @@ namespace NFun.Tokenization
             {"else",  TokType.Else},
             {"true",  TokType.True},
             {"false", TokType.False},
+            
             {"text", TokType.TextType},
             {"bool", TokType.BoolType},
             {"real", TokType.RealType},
+           
+            {"int16", TokType.Int16Type},
             {"int", TokType.Int32Type},
             {"int32", TokType.Int32Type},
             {"int64", TokType.Int64Type},
+            
+            {"byte",  TokType.UInt8Type},
+            {"uint8",  TokType.UInt8Type},
+            {"uint16", TokType.UInt16Type},
+            {"uint",   TokType.UInt32Type},
+            {"uint32", TokType.UInt32Type},
+            {"uint64", TokType.UInt64Type},
+            
             {"anything", TokType.AnythingType},
-            {"in", TokType.In}
+            
+            {"char", TokType.Reserved},
+            {"int8", TokType.Reserved},
+            {"let", TokType.Reserved},
+            {"var", TokType.Reserved},
+            {"from", TokType.Reserved},
+            {"to", TokType.Reserved},
+            {"of", TokType.Reserved},
+            {"import", TokType.Reserved},
+            {"async", TokType.Reserved},
+            {"await", TokType.Reserved},
+            {"int128", TokType.Reserved},
+            {"uint128", TokType.Reserved},
+            {"decimal", TokType.Reserved},
+            {"number", TokType.Reserved},
+            {"num", TokType.Reserved},
+            {"type", TokType.Reserved},
+            {"struct", TokType.Reserved},
+            {"where", TokType.Reserved},
+            {"unless", TokType.Reserved},
+            {"switch", TokType.Reserved},
+            {"case", TokType.Reserved},
+            {"match", TokType.Reserved},
+            {"optional", TokType.Reserved},
+            {"out",   TokType.Reserved},
+            {"nil",  TokType.Reserved},
+            {"none",  TokType.Reserved},
+            {"pass",  TokType.Reserved},
+            {"for",   TokType.Reserved},
+            {"do",    TokType.Reserved},
+            {"while", TokType.Reserved},
+           // {"bad",   TokType.Reserved},
+            {"fail",   TokType.Reserved},
+            {"error",   TokType.Reserved},
+            {"oops",   TokType.Reserved},
+            {"throw", TokType.Reserved},
         };
         
         public Tok TryReadNext(string str, int position)

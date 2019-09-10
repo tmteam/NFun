@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using NFun;
+using NFun.BuiltInFunctions;
 using NFun.ParseErrors;
 using NFun.Runtime;
 using NFun.Tokenization;
@@ -19,7 +20,7 @@ namespace Funny
         {
             Console.WriteLine("Let's make some fun.");
             Console.WriteLine("Type an expression or '/exit' to return");
-        
+            
             while (true)
             {
                 var expression = ReadMultiline();

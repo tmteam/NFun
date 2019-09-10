@@ -48,6 +48,8 @@ namespace Funny.Tests
         [TestCase("if ","1+2"," 1 else 2")]
         [TestCase("x:int[] \r y = x","[true and false]","")]
         [TestCase("if (true) 1 else ", "true","")]
+        [TestCase("if (true) 1; if (false) ", "true"," else 2")]
+        [TestCase("if (true) 1; if (false) 2 else ", "true","")]
         [TestCase("y(x) = x + ","z","")]
         [TestCase("y(x) = ","z"," + x")]
         [TestCase("x:bool\ry=","sin(x)","")]
@@ -117,6 +119,8 @@ namespace Funny.Tests
         [TestCase("s=[",",","2]")]
         [TestCase("s=[",",",",2]")]
         [TestCase("s=","[","")]
+        [TestCase("['1',", "2","]")]
+
         [TestCase("['1',", "2",",'3','4']")]
         [TestCase("[ '0','1', ", "2","]")]
         public void InitializeArray_ErrorPosition(string beforeError, string errorBody, string afterError)

@@ -1,4 +1,4 @@
-using NFun.HindleyMilner;
+using NFun.TypeInference;
 using NUnit.Framework;
 
 namespace Funny.Tests.UnitTests

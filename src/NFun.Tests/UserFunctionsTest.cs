@@ -1,5 +1,7 @@
 using System;
 using NFun;
+using NFun.BuiltInFunctions;
+using NFun.Exceptions;
 using NFun.ParseErrors;
 using NFun.Runtime;
 using NFun.Types;
@@ -21,6 +23,8 @@ namespace Funny.Tests
         [TestCase("mysum(a:int, b:real):real = a + b \r  y = mysum(1,2)",3.0)]
         [TestCase("mysum(a:int, b:real):real = a + b \r  y = mysum(1,2.0)",3.0)]
         [TestCase("mysum(a:real, b:int):real = a + b \r  y = mysum(1,2)",3.0)]
+        [TestCase("conv(x:int):real = x; y = conv(2);", 2.0)] 
+
        //todo toString
         // [TestCase("myconcat(a:text, b:text):text = a.strConcat(b) \r  y = myconcat(\"my\",\"test\")","mytest")]
        // [TestCase("myconcat(a:text, b:text):text = a.strConcat(b) \r  y = myconcat(1,\"test\")","1test")]
@@ -30,7 +34,7 @@ namespace Funny.Tests
         [TestCase("arr(a:real[]):real[] = a.concat(a) \r  y = arr([1.0,2.0])",new[]{1.0,2.0,1.0,2.0})]
         [TestCase("arr(a:int[]):int[] = a \r  y = arr([1,2])",new[]{1,2})]
         [TestCase("arr(a:text[]):text[] = a.concat(a) \r  y = arr(['qwe','rty'])",new[]{"qwe","rty","qwe","rty"})]
-        public void TypedConstantEquation_NonRecursiveFunction(string expr, object expected)
+       public void TypedConstantEquation_NonRecursiveFunction(string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate().AssertReturns(Var.New("y", expected));
@@ -165,7 +169,7 @@ namespace Funny.Tests
         
         public void StackOverflow_throws_FunStackOverflow(string text)
         {
-            Assert.Throws<FunStackoverflowException>(
+            Assert.Throws<FunRuntimeStackoverflowException>(
                 () => FunBuilder.BuildDefault(text).Calculate());
         }
         
@@ -220,6 +224,9 @@ namespace Funny.Tests
         [TestCase("f(x*2) = 12.0")]
         [TestCase("y(x):real= 'vasa'")]
         [TestCase("j = 1 y(x)= x+1")]
+        [TestCase("y:real(x)= 1")]
+        [TestCase("y:real(x:real)= 1")]
+        [TestCase("y:real(x):real= 1")]
 
         public void ObviousFails(string expr){
             Assert.Throws<FunParseException>(()=>FunBuilder.BuildDefault(expr));

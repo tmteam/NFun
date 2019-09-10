@@ -1,4 +1,4 @@
-using NFun.HindleyMilner.Tyso;
+using NFun.TypeInference.Solving;
 using NUnit.Framework;
 
 namespace NFun.HmTests
@@ -6,12 +6,12 @@ namespace NFun.HmTests
     [TestFixture]
     public class SolveAdapterOverloadsTests
     {
-        private HmHumanizerSolver solver;
+        private TiLanguageSolver solver;
 
         [SetUp]
         public void Init()
         {
-            solver = new HmHumanizerSolver();
+            solver = new TiLanguageSolver();
         }
         [Test]
         public void ToStrOverload_TypeSpecified_equationSolved()
@@ -24,14 +24,14 @@ namespace NFun.HmTests
             solver.SetOverloadCall(ToStrOverloads, 1, 0);
             solver.SetDefenition("y", 2, 1);
             
-            solver.SetConst(3, FType.Int32);
+            solver.SetConst(3, TiType.Int32);
             solver.SetDefenition("x", 4, 3);
             
             var res = solver.Solve();
             
             Assert.AreEqual(0,res.GenericsCount);
-            Assert.AreEqual(FType.Int32, res.GetVarType("x"));
-            Assert.AreEqual(FType.Text, res.GetVarType("y"));
+            Assert.AreEqual(TiType.Int32, res.GetVarType("x"));
+            Assert.AreEqual(TiType.Text, res.GetVarType("y"));
         }
         [Test]
         public void SumOverloads_EquationSolved()
@@ -51,9 +51,9 @@ namespace NFun.HmTests
             
             Assert.IsTrue(res.IsSolved);
             Assert.AreEqual(0,res.GenericsCount);
-            Assert.AreEqual(FType.Int32, res.GetVarType("y"));
-            Assert.AreEqual(FType.Int32, res.GetVarType("a"));
-            Assert.AreEqual(FType.Int32, res.GetVarType("b"));
+            Assert.AreEqual(TiType.Int32, res.GetVarType("y"), "y");
+            Assert.AreEqual(TiType.Int32, res.GetVarType("a"), "a");
+            Assert.AreEqual(TiType.Int32, res.GetVarType("b"), "b");
         }
         
         [Test]
@@ -74,9 +74,9 @@ namespace NFun.HmTests
             
             Assert.IsTrue(res.IsSolved);
             Assert.AreEqual(0,res.GenericsCount);
-            Assert.AreEqual(FType.Real, res.GetVarType("y"));
-            Assert.AreEqual(FType.Real, res.GetVarType("a"));
-            Assert.AreEqual(FType.Real, res.GetVarType("b"));
+            Assert.AreEqual(TiType.Real, res.GetVarType("y"));
+            Assert.AreEqual(TiType.Real, res.GetVarType("a"));
+            Assert.AreEqual(TiType.Real, res.GetVarType("b"));
         }
         
         [Test]
@@ -93,16 +93,16 @@ namespace NFun.HmTests
             
             solver.SetDefenition("y", 5, 4);
             
-            solver.SetConst(6,FType.Int32);
+            solver.SetConst(6,TiType.Int32);
             solver.SetDefenition("a", 7, 6);
             
             var res = solver.Solve();
             
             Assert.IsTrue(res.IsSolved);
             Assert.AreEqual(0,res.GenericsCount);
-            Assert.AreEqual(FType.Int32, res.GetVarType("y"));
-            Assert.AreEqual(FType.Int32, res.GetVarType("a"));
-            Assert.AreEqual(FType.Int32, res.GetVarType("b"));
+            Assert.AreEqual(TiType.Int32, res.GetVarType("y"));
+            Assert.AreEqual(TiType.Int32, res.GetVarType("a"));
+            Assert.AreEqual(TiType.Int32, res.GetVarType("b"));
         }
         [Test]
         public void SumOverloads_SpecfiedWithArithmetical_SomeArgsAreKnown_EquationSolved()
@@ -118,16 +118,16 @@ namespace NFun.HmTests
             
             solver.SetDefenition("y", 5, 4);
             
-            solver.SetConst(6,FType.Int32);
+            solver.SetConst(6,TiType.Int32);
             solver.SetDefenition("a", 7, 6);
             
             var res = solver.Solve();
             
             Assert.IsTrue(res.IsSolved);
             Assert.AreEqual(0,res.GenericsCount);
-            Assert.AreEqual(FType.Real, res.GetVarType("y"));
-            Assert.AreEqual(FType.Int32, res.GetVarType("a"));
-            Assert.AreEqual(FType.Int32, res.GetVarType("b"));
+            Assert.AreEqual(TiType.Real, res.GetVarType("y"));
+            Assert.AreEqual(TiType.Int32, res.GetVarType("a"));
+            Assert.AreEqual(TiType.Int32, res.GetVarType("b"));
         }
         [Test]
         public void SumOverloads_TypeNotSolved()
@@ -145,9 +145,9 @@ namespace NFun.HmTests
             var res = solver.Solve();
             
             Assert.AreEqual(0,res.GenericsCount);
-            Assert.AreEqual(FType.Real, res.GetVarType("y"));
-            Assert.AreEqual(FType.Real, res.GetVarType("a"));
-            Assert.AreEqual(FType.Real, res.GetVarType("b"));        }
+            Assert.AreEqual(TiType.Real, res.GetVarType("y"));
+            Assert.AreEqual(TiType.Real, res.GetVarType("a"));
+            Assert.AreEqual(TiType.Real, res.GetVarType("b"));        }
         
         [Test]
         public void SingleOveload_calculatesWell()
@@ -158,7 +158,7 @@ namespace NFun.HmTests
             solver.SetVar(0, "a");
             solver.SetVar(1, "b");
             
-            solver.SetOverloadCall(new []{new FunSignature(FType.Int64, FType.Bool,FType.Any)},2,  0,1);
+            solver.SetOverloadCall(new []{new TiFunctionSignature(TiType.Int64, TiType.Bool,TiType.Any)},2,  0,1);
             
             solver.SetDefenition("y", 3, 2);
             
@@ -167,9 +167,9 @@ namespace NFun.HmTests
             Assert.IsTrue(res.IsSolved);
             Assert.AreEqual(0,res.GenericsCount);
 
-            Assert.AreEqual(FType.Int64, res.GetVarType("y"));
-            Assert.AreEqual(FType.Bool,  res.GetVarType("a"));
-            Assert.AreEqual(FType.Any,   res.GetVarType("b"));
+            Assert.AreEqual(TiType.Int64, res.GetVarType("y"));
+            Assert.AreEqual(TiType.Bool,  res.GetVarType("a"));
+            Assert.AreEqual(TiType.Any,   res.GetVarType("b"));
         }
         [Test(Description = "y = -x; | y2 = -x")]
         public void TwoOutputsEqualToNegativeInputViaOverloads()
@@ -191,31 +191,31 @@ namespace NFun.HmTests
             Assert.IsTrue(result.IsSolved);
             Assert.AreEqual(0, result.GenericsCount);
             
-            Assert.AreEqual(FType.Real, result.GetVarType("x"));
-            Assert.AreEqual(FType.Real, result.GetVarType("y"));
-            Assert.AreEqual(FType.Real, result.GetVarType("y2"));
+            Assert.AreEqual(TiType.Real, result.GetVarType("x"));
+            Assert.AreEqual(TiType.Real, result.GetVarType("y"));
+            Assert.AreEqual(TiType.Real, result.GetVarType("y2"));
         }
-        private FunSignature[] InvertOverloads =>new[]
+        private TiFunctionSignature[] InvertOverloads =>new[]
         {
-            new FunSignature(FType.Int32, FType.Int32),
-            new FunSignature(FType.Int64, FType.Int64),
-            new FunSignature(FType.Real, FType.Real),
+            new TiFunctionSignature(TiType.Int32, TiType.Int32),
+            new TiFunctionSignature(TiType.Int64, TiType.Int64),
+            new TiFunctionSignature(TiType.Real, TiType.Real),
 
         };
-        private FunSignature[] SummOverloads => new[]
+        private TiFunctionSignature[] SummOverloads => new[]
         {
-            new FunSignature(FType.Int32, FType.Int32,FType.Int32),
-            new FunSignature(FType.Int64, FType.Int64,FType.Int64),
-            new FunSignature(FType.Real, FType.Real,FType.Real),
+            new TiFunctionSignature(TiType.Int32, TiType.Int32,TiType.Int32),
+            new TiFunctionSignature(TiType.Int64, TiType.Int64,TiType.Int64),
+            new TiFunctionSignature(TiType.Real, TiType.Real,TiType.Real),
 
         };
-        private FunSignature[] ToStrOverloads => new[]
+        private TiFunctionSignature[] ToStrOverloads => new[]
         {
-            new FunSignature(FType.Text, FType.Int32),
-            new FunSignature(FType.Text, FType.Int64),
-            new FunSignature(FType.Text, FType.Real),
-            new FunSignature(FType.Text, FType.ArrayOf(FType.Any)),
-            new FunSignature(FType.Text, FType.Any)
+            new TiFunctionSignature(TiType.Text, TiType.Int32),
+            new TiFunctionSignature(TiType.Text, TiType.Int64),
+            new TiFunctionSignature(TiType.Text, TiType.Real),
+            new TiFunctionSignature(TiType.Text, TiType.ArrayOf(TiType.Any)),
+            new TiFunctionSignature(TiType.Text, TiType.Any)
         };
     }
 }

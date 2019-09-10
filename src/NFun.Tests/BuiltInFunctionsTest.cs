@@ -1,6 +1,7 @@
 using System;
 using System.Net.WebSockets;
 using NFun;
+using NFun.BuiltInFunctions;
 using NFun.ParseErrors;
 using NFun.Runtime;
 using NFun.Types;
@@ -11,6 +12,134 @@ namespace Funny.Tests
     [TestFixture]
     public class BuiltInFunctionsTest
     {
+        [TestCase("int",   (int)-123,     "toInt16", (short)-123)]
+        [TestCase("int",   (int)123,      "toInt16", (short) 123)]
+        [TestCase("int16", (short)-123,   "toInt16", (short)-123)]
+        [TestCase("int32", (int)-123,     "toInt16", (short)-123)]
+        [TestCase("int64", (long)-123,    "toInt16", (short)-123)]
+        [TestCase("uint8", (byte)123,     "toInt16", (short) 123)]
+        [TestCase("uint16",(ushort)123,   "toInt16", (short) 123)]
+        [TestCase("uint32",(uint)123,     "toInt16", (short) 123)]
+        [TestCase("uint64",(ulong)123,    "toInt16", (short) 123)]
+        
+        [TestCase("int",   (int)-123,     "toInt", -123)]
+        [TestCase("int",   (int)123,      "toInt",  123)]
+        [TestCase("int16", (short)-123,   "toInt", -123)]
+        [TestCase("int32", (int)-123,     "toInt", -123)]
+        [TestCase("int64", (long)-123,    "toInt", -123)]
+        [TestCase("uint8", (byte)123,     "toInt",  123)]
+        [TestCase("uint16",(ushort)123,   "toInt",  123)]
+        [TestCase("uint32",(uint)123,     "toInt",  123)]
+        [TestCase("uint64",(ulong)123,    "toInt",  123)]
+
+        [TestCase("int",   (int)-123,     "toInt", -123)]
+        [TestCase("int",   (int)123,      "toInt",  123)]
+        [TestCase("int16", (short)-123,   "toInt", -123)]
+        [TestCase("int32", (int)-123,     "toInt", -123)]
+        [TestCase("int64", (long)-123,    "toInt", -123)]
+        [TestCase("uint8", (byte)123,     "toInt",  123)]
+        [TestCase("uint16",(ushort)123,   "toInt",  123)]
+        [TestCase("uint32",(uint)123,     "toInt",  123)]
+        [TestCase("uint64",(ulong)123,    "toInt",  123)]
+        
+        [TestCase("int",   (int)-123,     "toInt32", -123)]
+        [TestCase("int",   (int)123,      "toInt32",  123)]
+        [TestCase("int16", (short)-123,   "toInt32", -123)]
+        [TestCase("int32", (int)-123,     "toInt32", -123)]
+        [TestCase("int64", (long)-123,    "toInt32", -123)]
+        [TestCase("uint8", (byte)123,     "toInt32",  123)]
+        [TestCase("uint16",(ushort)123,   "toInt32",  123)]
+        [TestCase("uint32",(uint)123,     "toInt32",  123)]
+        [TestCase("uint64",(ulong)123,    "toInt32",  123)]
+        
+        [TestCase("int",   (int)-123,     "toInt64", (long)-123)]
+        [TestCase("int",   (int)123,      "toInt64", (long) 123)]
+        [TestCase("int16", (short)-123,   "toInt64", (long)-123)]
+        [TestCase("int32", (int)-123,     "toInt64", (long)-123)]
+        [TestCase("int64", (long)-123,    "toInt64", (long)-123)]
+        [TestCase("uint8", (byte)123,     "toInt64", (long) 123)]
+        [TestCase("uint16",(ushort)123,   "toInt64", (long) 123)]
+        [TestCase("uint32",(uint)123,     "toInt64", (long) 123)]
+        [TestCase("uint64",(ulong)123,    "toInt64", (long) 123)]
+        
+        [TestCase("int",   (int)123,      "toUint8", (byte) 123)]
+        [TestCase("int16", (short)123,    "toUint8", (byte) 123)]
+        [TestCase("int64", (long)123,     "toUint8", (byte) 123)]
+        [TestCase("uint8", (byte)123,     "toUint8", (byte) 123)]
+        [TestCase("uint16",(ushort)123,   "toUint8", (byte) 123)]
+        [TestCase("uint32",(uint)123,     "toUint8", (byte) 123)]
+        [TestCase("uint64",(ulong)123,    "toUint8", (byte) 123)]
+        
+        [TestCase("int",   (int)123,      "toByte", (byte) 123)]
+        [TestCase("int16", (short)123,    "toByte", (byte) 123)]
+        [TestCase("int64", (long)123,     "toByte", (byte) 123)]
+        [TestCase("uint8", (byte)123,     "toByte", (byte) 123)]
+        [TestCase("uint16",(ushort)123,   "toByte", (byte) 123)]
+        [TestCase("uint32",(uint)123,     "toByte", (byte) 123)]
+        [TestCase("uint64",(ulong)123,    "toByte", (byte) 123)]
+        
+        [TestCase("int",   (int)123,      "toUint16", (ushort) 123)]
+        [TestCase("int16", (short)123,    "toUint16", (ushort) 123)]
+        [TestCase("int64", (long)123,     "toUint16", (ushort) 123)]
+        [TestCase("uint8", (byte)123,     "toUint16", (ushort) 123)]
+        [TestCase("uint16",(ushort)123,   "toUint16", (ushort) 123)]
+        [TestCase("uint32",(uint)123,     "toUint16", (ushort) 123)]
+        [TestCase("uint64",(ulong)123,    "toUint16", (ushort) 123)]
+        
+        [TestCase("int",   (int)123,      "toUint32", (uint) 123)]
+        [TestCase("int16", (short)123,    "toUint32", (uint) 123)]
+        [TestCase("int64", (long)123,     "toUint32", (uint) 123)]
+        [TestCase("uint8", (byte)123,     "toUint32", (uint) 123)]
+        [TestCase("uint16",(ushort)123,   "toUint32", (uint) 123)]
+        [TestCase("uint32",(uint)123,     "toUint32", (uint) 123)]
+        [TestCase("uint64",(ulong)123,    "toUint32", (uint) 123)]
+        
+        [TestCase("int",   (int)123,      "toUint64", (ulong) 123)]
+        [TestCase("int16", (short)123,    "toUint64", (ulong) 123)]
+        [TestCase("int64", (long)123,     "toUint64", (ulong) 123)]
+        [TestCase("uint8", (byte)123,     "toUint64", (ulong) 123)]
+        [TestCase("uint16",(ushort)123,   "toUint64", (ulong) 123)]
+        [TestCase("uint32",(uint)123,     "toUint64", (ulong) 123)]
+        [TestCase("uint64",(ulong)123,    "toUint64", (ulong) 123)]
+        public void ConvertIntegersFunctionsTest(string inputType, object inputValue,  string converter, object expectedOutput)
+        {
+            var expr = $"x:{inputType}; y = {converter}(x)";
+            var runtime = FunBuilder.BuildDefault(expr);
+            runtime.Calculate(Var.New("x", inputValue))
+                .AssertReturns(Var.New("y", expectedOutput));
+        }
+        
+        [TestCase( "toInt(1.2)",  1)]
+        [TestCase( "toInt(-1.2)", -1)]
+        [TestCase( "toInt('1')", 1)]
+        [TestCase( "toInt('-123')", -123)]
+        [TestCase("toInt([0x21,0x33,0x12])",1_192_737)]
+        [TestCase("toInt([0x21,0x33,0x12,0x00])",1_192_737)]
+        [TestCase("toInt([0x21,0x00,0x00,0x00])",0x21)]
+        [TestCase("toInt([0x21,0x00,0x00,0x00])",0x21)]
+        [TestCase("toInt([0x21])",0x21)]
+
+        [TestCase("toReal('1')", 1.0)]
+        [TestCase("toReal('1.1')", 1.1)]
+        [TestCase("toReal('-0.123')", -0.123)]
+        [TestCase("toReal(1)", 1.0)]
+        [TestCase("toReal(-1)", -1.0)]
+        [TestCase("toText([1,2,3])", "[1,2,3]")]
+        [TestCase("toText(-1)", "-1")]
+        [TestCase("toText(-0.123)", "-0.123")]
+        [TestCase("toBits(123)", new[]
+        {
+            true, true, false,true, true, true, true ,false,
+            false,false,false,false,false,false,false,false,
+            false,false,false,false,false,false,false,false,
+            false,false,false,false,false,false,false,false,
+        })]
+        [TestCase("toBytes(123)", new[]{123,0,0,0})]
+        [TestCase("toBytes(1_192_737)", new[]{0x21,0x33,0x12,0})]
+        [TestCase("toUnicode('hi there')", new[]{0x68,00,0x69,00,0x20,00,0x74,00,0x68,00,0x65,00,0x72,00,0x65,00})]
+        [TestCase("toUtf8('hi there')", new[]{0x68,0x69,0x20,0x74,0x68,0x65,0x72,0x65})]
+
+        
         [TestCase("abs(1)",1)]
         [TestCase("abs(-1)",1)]
         [TestCase("abs(1.0)",1.0)]
@@ -50,36 +179,7 @@ namespace Funny.Tests
         [TestCase("round(1.66666)", 2)]
         [TestCase("round(1.2)", 1)]
 
-        [TestCase("toInt(1.2)", 1)]
-        [TestCase("toInt('1')", 1)]
-        [TestCase("toInt('-123')", -123)]
-        [TestCase("toInt(-1.2)", -1)]
-        [TestCase("toInt([0x21,0x33,0x12])",1_192_737)]
-        [TestCase("toInt([0x21,0x33,0x12,0x00])",1_192_737)]
-        [TestCase("toInt([0x21,0x00,0x00,0x00])",0x21)]
-        [TestCase("toInt([0x21,0x00,0x00,0x00])",0x21)]
-        [TestCase("toInt([0x21])",0x21)]
-
-        [TestCase("toReal('1')", 1.0)]
-        [TestCase("toReal('1.1')", 1.1)]
-        [TestCase("toReal('-0.123')", -0.123)]
-        [TestCase("toReal(1)", 1.0)]
-        [TestCase("toReal(-1)", -1.0)]
-        [TestCase("toText([1,2,3])", "[1,2,3]")]
-        [TestCase("toText(-1)", "-1")]
-        [TestCase("toText(-0.123)", "-0.123")]
-        [TestCase("toBits(123)", new[]
-        {
-            true, true, false,true, true, true, true ,false,
-            false,false,false,false,false,false,false,false,
-            false,false,false,false,false,false,false,false,
-            false,false,false,false,false,false,false,false,
-        })]
-        [TestCase("toBytes(123)", new[]{123,0,0,0})]
-        [TestCase("toBytes(1_192_737)", new[]{0x21,0x33,0x12,0})]
-        [TestCase("toUnicode('hi there')", new[]{0x68,00,0x69,00,0x20,00,0x74,00,0x68,00,0x65,00,0x72,00,0x65,00})]
-        [TestCase("toUtf8('hi there')", new[]{0x68,0x69,0x20,0x74,0x68,0x65,0x72,0x65})]
-
+        
         [TestCase("sign(-5)", -1)]
         [TestCase("sign(-5.0)", -1)]
         [TestCase("sign(5)", 1)]
@@ -246,7 +346,6 @@ namespace Funny.Tests
         [TestCase("y = [0..1].chunk(7) == [[0,1]]",true)]
         [TestCase("y = [0..6].chunk(2) == [[0,1],[2,3],[4,5],[6]]",true)]
         [TestCase("y = [3..7].chunk(1) == [[3],[4],[5],[6],[7]]",true)]
-        
         public void ConstantEquationWithGenericPredefinedFunction(string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
@@ -255,18 +354,23 @@ namespace Funny.Tests
         }
         
         [TestCase("y = abs(x)",1.0,1.0)]
+
         [TestCase("y = abs(-x)",-1.0,1.0)]
         [TestCase("y = sum(x,2)",1,3)]
         [TestCase("y = sum(1,x)",2,3)]
         [TestCase("y = sum(sum(x,x),sum(x,x))",1.0,4.0)]
-        [TestCase("y = abs(x-4)",1,3)]
+        [TestCase("y = abs(x-4.0)",1.0,3.0)]
+        [TestCase("x:int; y = abs(toInt(x)-toInt(4))",1,3)]
+        [TestCase("y = abs(x-4)",1.0,3.0)]
+        //Check, when (and if) TI will be rewritten
+        //[TestCase("y = abs(toInt(x)-toInt(4))",1,3)]
+        //[TestCase("y = abs(x-toInt(4))",1,3)]
         public void EquationWithPredefinedFunction(string expr, object arg, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate(Var.New("x", arg))
                 .AssertReturns(0.00001, Var.New("y", expected));
         }
-        
         [TestCase("y = pi(")]
         [TestCase("y = pi(1)")]
         [TestCase("y = abs(")]
@@ -304,6 +408,7 @@ namespace Funny.Tests
             var runtime = FunBuilder.BuildDefault(expr);
             Assert.Throws<FunRuntimeException>(
                 () => runtime.Calculate());
+            byte a = 1;
         }
     }
 }

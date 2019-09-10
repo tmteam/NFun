@@ -1,14 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NFun.HindleyMilner;
-using NFun.HindleyMilner.Tyso;
+using NFun.Exceptions;
 using NFun.Interpritation.Functions;
 using NFun.ParseErrors;
 using NFun.Runtime;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
+using NFun.TypeInference;
+using NFun.TypeInference.Solving;
 using NFun.Types;
 
 namespace NFun.Interpritation
@@ -30,13 +31,9 @@ namespace NFun.Interpritation
                userFunctions.Add(userFunction);
             }
 
-            var algorithm = new HmAlgorithmAdapter(functionsDictionary);
-            if(!algorithm.ComeOver(syntaxTree))
-                throw ErrorFactory.TypesNotSolved(syntaxTree);
-
-            //solve body
-            var bodyTypeSolving = algorithm.Solve();
-            if (!bodyTypeSolving.IsSolved)
+            var bodyTypeSolving = LangTiHelper.SetupTiOrNull(syntaxTree, functionsDictionary)?.Solve();
+            
+            if (bodyTypeSolving?.IsSolved!=true)
                 throw ErrorFactory.TypesNotSolved(syntaxTree);
 
             foreach (var syntaxNode in syntaxTree.Children)
@@ -46,7 +43,9 @@ namespace NFun.Interpritation
                     continue;
                 
                 //set types to nodes
-                syntaxNode.ComeOver(new ApplyHmResultVisitor(bodyTypeSolving, SolvedTypeConverter.SetGenericsToAny));
+                syntaxNode.ComeOver(
+                    enterVisitor: new ApplyTiResultEnterVisitor(bodyTypeSolving, TiToLangTypeConverter.SetGenericsToAny),
+                    exitVisitor:  new ApplyTiResultsExitVisitor());
             }
             
             var variables = new VariableDictionary(); 
@@ -61,7 +60,7 @@ namespace NFun.Interpritation
                 }
                 else if (lexRoot is VarDefenitionSyntaxNode varDef)
                 {
-                    var variableSource = new VariableSource(
+                    var variableSource = VariableSource.CreateWithStrictTypeLabel(
                         varDef.Id, 
                         varDef.VarType, 
                         varDef.Interval, 
@@ -82,11 +81,25 @@ namespace NFun.Interpritation
 
         private static Equation BuildEquationAndPutItToVariables(EquationSyntaxNode equation,FunctionsDictionary functionsDictionary, VariableDictionary variables)
         {
-            var expression = ExpressionBuilderVisitor.BuildExpression(equation.Expression, functionsDictionary, variables);
-            var newSource = new VariableSource(equation.Id, equation.OutputType, equation.Attributes) {
-                IsOutput = true
-            };
+            var expression = ExpressionBuilderVisitor.BuildExpression(
+                node: equation.Expression, 
+                functions: functionsDictionary,
+                outputType: equation.OutputType,
+                variables: variables);
+
             
+            VariableSource newSource;
+            if(equation.OutputTypeSpecified)
+                newSource = VariableSource.CreateWithStrictTypeLabel(
+                    name: equation.Id, 
+                    type: equation.OutputType, 
+                    typeSpecificationIntervalOrNull: equation.TypeSpecificationOrNull.Interval, 
+                    attributes: equation.Attributes);
+            else
+                newSource = VariableSource.CreateWithoutStrictTypeLabel(equation.Id, equation.OutputType, equation.Attributes);
+            
+            newSource.IsOutput = true;
+          
             if (!variables.TryAdd(newSource))
             {
                 //some equation referenced the source before
@@ -96,10 +109,11 @@ namespace NFun.Interpritation
                 else
                     throw ErrorFactory.CannotUseOutputValueBeforeItIsDeclared(usages);
             }
-
+            
+           
             //ReplaceInputType
             if(newSource.Type != expression.Type)
-                throw FunParseException.ErrorStubToDo($"Equation types mismatch. Expected: {newSource.Type} but was: {expression.Type}");            
+                throw new ImpossibleException("fitless");            
             return new Equation(equation.Id, expression);
         }
 
@@ -113,9 +127,9 @@ namespace NFun.Interpritation
             var visitorInitState = CreateVisitorStateFor(functionSyntaxNode);
 
             //solving each function
-            var typeSolving = new HmAlgorithmAdapter(functionsDictionary, visitorInitState);
+            var typeSolving = LangTiHelper.SetupTiOrNull(functionSyntaxNode.Body, functionsDictionary, visitorInitState);
 
-            if (!typeSolving.ComeOver(functionSyntaxNode.Body))
+            if (typeSolving==null)
                 throw FunParseException.ErrorStubToDo($"Function '{functionSyntaxNode.Id}' is not solved");
 
             var setFunTypeResult = visitorInitState.CurrentSolver.SetFunDefenition(funAlias,
@@ -137,8 +151,10 @@ namespace NFun.Interpritation
 
             var isGeneric = types.GenericsCount > 0;
             //set types to nodes
-            functionSyntaxNode.ComeOver(new ApplyHmResultVisitor(types, SolvedTypeConverter.SaveGenerics));
-            var funType = types.GetVarType(funAlias, SolvedTypeConverter.SaveGenerics);
+            functionSyntaxNode.ComeOver(
+                enterVisitor:new ApplyTiResultEnterVisitor(types, TiToLangTypeConverter.SaveGenerics),
+                exitVisitor: new ApplyTiResultsExitVisitor());
+            var funType =  types.GetVarType(funAlias, TiToLangTypeConverter.SaveGenerics);
             
             if (isGeneric)
             {
@@ -170,7 +186,7 @@ namespace NFun.Interpritation
             for (int i = 0; i < lexFunction.Args.Count ; i++)
             {
                 var id = lexFunction.Args[i].Id;
-                if (!vars.TryAdd(new VariableSource(id, prototype.ArgTypes[i])))
+                if (!vars.TryAdd(VariableSource.CreateWithoutStrictTypeLabel(id, prototype.ArgTypes[i])))
                 {
                     throw ErrorFactory.FunctionArgumentDuplicates(lexFunction, lexFunction.Args[i]);
                 }
@@ -209,8 +225,14 @@ namespace NFun.Interpritation
                     throw ErrorFactory.FunctionArgumentDuplicates(lexFunction, lexFunction.Args[i]);
                 }
             }
-            var expression = ExpressionBuilderVisitor
-                .BuildExpression(lexFunction.Body, functionsDictionary, vars);
+            
+            var bodyExpression = ExpressionBuilderVisitor.BuildExpression(
+                    node: lexFunction.Body, 
+                    functions: functionsDictionary, 
+                    outputType: lexFunction.ReturnType== VarType.Empty
+                                    ?lexFunction.Body.OutputType
+                                    :lexFunction.ReturnType,
+                    variables: vars);
             
             ExpressionHelper.CheckForUnknownVariables(
                 lexFunction.Args.Select(a=>a.Id).ToArray(), vars);
@@ -219,7 +241,7 @@ namespace NFun.Interpritation
                 name: lexFunction.Id, 
                 variables: vars.GetAllSources(), 
                 isReturnTypeStrictlyTyped: lexFunction.ReturnType!= VarType.Empty, 
-                expression: expression);
+                expression: bodyExpression);
             prototype.SetActual(function, lexFunction.Interval);
             return function;
         }
@@ -229,16 +251,16 @@ namespace NFun.Interpritation
             VarType actualType)
         {
             if(argSyntax.VarType != VarType.Empty)
-                return new VariableSource(argSyntax.Id, actualType, argSyntax.Interval);
+                return VariableSource.CreateWithStrictTypeLabel(argSyntax.Id, actualType, argSyntax.Interval);
             else
-                return new VariableSource(
+                return VariableSource.CreateWithoutStrictTypeLabel(
                     name: argSyntax.Id,
                     type: actualType);
         }
 
-        public static HmVisitorState CreateVisitorStateFor(UserFunctionDefenitionSyntaxNode node)
+        private static SetupTiState CreateVisitorStateFor(UserFunctionDefenitionSyntaxNode node)
         {
-            var visitorState = new HmVisitorState(new HmHumanizerSolver());
+            var visitorState = new SetupTiState(new TiLanguageSolver());
             
             //Add user function as a functional variable
             //make outputType
@@ -251,7 +273,7 @@ namespace NFun.Interpritation
                 if (visitorState.HasAlias(argNode.Id))
                     throw ErrorFactory.FunctionArgumentDuplicates(node, argNode);
 
-                var inputAlias = AdpterHelper.GetArgAlias(argNode.Id, node.GetFunAlias());
+                var inputAlias = LangTiHelper.GetArgAlias(argNode.Id, node.GetFunAlias());
 
                 //make aliases for input variables
                 visitorState.AddVariableAliase(argNode.Id, inputAlias);
@@ -265,7 +287,7 @@ namespace NFun.Interpritation
                 else
                 {
                     //variable type is specified
-                    var hmType = argNode.VarType.ConvertToHmType();
+                    var hmType = argNode.VarType.ConvertToTiType();
                     visitorState.CurrentSolver.SetVarType(inputAlias, hmType);
                     argTypes.Add(SolvingNode.CreateStrict(hmType));
                 }
@@ -273,7 +295,7 @@ namespace NFun.Interpritation
             }
             //set function variable defenition
             visitorState.CurrentSolver
-                .SetVarType(node.GetFunAlias(), FType.Fun(outputType, argTypes.ToArray()));
+                .SetVarType(node.GetFunAlias(), TiType.Fun(outputType, argTypes.ToArray()));
             return visitorState;
         }
         

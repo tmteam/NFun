@@ -1,4 +1,4 @@
-using NFun.HindleyMilner.Tyso;
+using NFun.TypeInference.Solving;
 using NUnit.Framework;
 
 namespace NFun.HmTests
@@ -6,12 +6,12 @@ namespace NFun.HmTests
     [TestFixture]
     public class SolverArrayInitTest
     {
-        private HmHumanizerSolver solver;
+        private TiLanguageSolver solver;
 
         [SetUp]
         public void Init()
         {
-            solver = new HmHumanizerSolver();
+            solver = new TiLanguageSolver();
         }
         [Test]
         public void EmptyArrayInit()
@@ -23,14 +23,14 @@ namespace NFun.HmTests
             
             var res = solver.Solve();
             Assert.AreEqual(1,res.GenericsCount);
-            Assert.AreEqual(FType.ArrayOf(FType.Generic(0)), res.GetVarType("y"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Generic(0)), res.GetVarType("y"));
         }
         [Test]
         public void ArrayOfVariables_Solved()
         {
             //       3   20 1
             //a:int; y = [a,b]
-            solver.SetVarType("a", FType.Int32);
+            solver.SetVarType("a", TiType.Int32);
             solver.SetVar(0,"a");
             solver.SetVar(1,"b");
             solver.SetArrayInit(2,0,1).AssertSuccesfully();
@@ -38,9 +38,9 @@ namespace NFun.HmTests
             
             var res = solver.Solve();
             Assert.AreEqual(0,res.GenericsCount);
-            Assert.AreEqual(FType.Int32, res.GetVarType("a"));
-            Assert.AreEqual(FType.Int32, res.GetVarType("b"));
-            Assert.AreEqual(FType.ArrayOf(FType.Int32), res.GetVarType("y"));
+            Assert.AreEqual(TiType.Int32, res.GetVarType("a"));
+            Assert.AreEqual(TiType.Int32, res.GetVarType("b"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Int32), res.GetVarType("y"));
         }
         
         [Test]
@@ -56,9 +56,9 @@ namespace NFun.HmTests
             var res = solver.Solve();
             Assert.IsTrue(res.IsSolved);
             Assert.AreEqual(1,res.GenericsCount);
-            Assert.AreEqual(FType.Generic(0), res.GetVarType("a"));
-            Assert.AreEqual(FType.Generic(0), res.GetVarType("b"));
-            Assert.AreEqual(FType.ArrayOf(FType.Generic(0)), res.GetVarType("y"));
+            Assert.AreEqual(TiType.Generic(0), res.GetVarType("a"));
+            Assert.AreEqual(TiType.Generic(0), res.GetVarType("b"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Generic(0)), res.GetVarType("y"));
         }
         [Test(Description = "y = [x]")]
         public void ArrayInit_GenericElement()
@@ -74,8 +74,8 @@ namespace NFun.HmTests
             Assert.IsTrue(result.IsSolved);
             Assert.AreEqual(1, result.GenericsCount);
             
-            Assert.AreEqual(FType.Generic(0), result.GetVarType("x"));
-            Assert.AreEqual(FType.ArrayOf(FType.Generic(0)), result.GetVarType("y"));
+            Assert.AreEqual(TiType.Generic(0), result.GetVarType("x"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Generic(0)), result.GetVarType("y"));
             
 
         }
@@ -95,7 +95,7 @@ namespace NFun.HmTests
             Assert.IsTrue(result.IsSolved);
             Assert.AreEqual(0, result.GenericsCount);
             
-            Assert.AreEqual(FType.Real, result.GetVarType("x"));
+            Assert.AreEqual(TiType.Real, result.GetVarType("x"));
         }
         [Test(Description = "y = [-x,x]")]
         public void ArrayInit_WithNegativeInputs2_Solved()
@@ -113,7 +113,7 @@ namespace NFun.HmTests
             Assert.IsTrue(result.IsSolved);
             Assert.AreEqual(0, result.GenericsCount);
             
-            Assert.AreEqual(FType.Real, result.GetVarType("x"));
+            Assert.AreEqual(TiType.Real, result.GetVarType("x"));
         }
 
         [Test(Description = "y = [-x,x]")]
@@ -134,7 +134,7 @@ namespace NFun.HmTests
             Assert.IsTrue(result.IsSolved);
             Assert.AreEqual(0, result.GenericsCount);
             
-            Assert.AreEqual(FType.Real, result.GetVarType("x"));
+            Assert.AreEqual(TiType.Real, result.GetVarType("x"));
         }
 
         [Test(Description = "y = [x]; a = [b,c]")]
@@ -157,11 +157,11 @@ namespace NFun.HmTests
             Assert.IsTrue(result.IsSolved);
             Assert.AreEqual(2, result.GenericsCount);
             
-            Assert.AreEqual(FType.Generic(0), result.GetVarType("x"));
-            Assert.AreEqual(FType.ArrayOf(FType.Generic(0)), result.GetVarType("y"));
-            Assert.AreEqual(FType.Generic(1), result.GetVarType("b"));
-            Assert.AreEqual(FType.Generic(1), result.GetVarType("c"));
-            Assert.AreEqual(FType.ArrayOf(FType.Generic(1)), result.GetVarType("a"));
+            Assert.AreEqual(TiType.Generic(0), result.GetVarType("x"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Generic(0)), result.GetVarType("y"));
+            Assert.AreEqual(TiType.Generic(1), result.GetVarType("b"));
+            Assert.AreEqual(TiType.Generic(1), result.GetVarType("c"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Generic(1)), result.GetVarType("a"));
         }
 
         
@@ -171,16 +171,16 @@ namespace NFun.HmTests
             //4   30 1 2 
             //y = [1,2,3]
             
-            solver.SetConst(0, FType.Int32);
-            solver.SetConst(1, FType.Int32);
-            solver.SetConst(2, FType.Int32);
+            solver.SetConst(0, TiType.Int32);
+            solver.SetConst(1, TiType.Int32);
+            solver.SetConst(2, TiType.Int32);
             solver.SetArrayInit(3, 0, 1, 2).AssertSuccesfully();
             solver.SetDefenition("y", 4, 3);
             var res = solver.Solve();
             Assert.IsTrue(res.IsSolved);
 
             Assert.AreEqual(0,res.GenericsCount);
-            Assert.AreEqual(FType.ArrayOf(FType.Int32), res.GetVarType("y"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Int32), res.GetVarType("y"));
         }
         
         [Test]
@@ -188,9 +188,9 @@ namespace NFun.HmTests
         {
             //5   40 1 2 3
             //y = [1,2,3,x]
-            solver.SetConst(0, FType.Int32);
-            solver.SetConst(1, FType.Int32);
-            solver.SetConst(2, FType.Int32);
+            solver.SetConst(0, TiType.Int32);
+            solver.SetConst(1, TiType.Int32);
+            solver.SetConst(2, TiType.Int32);
             solver.SetVar(3, "x");
 
             solver.SetArrayInit(4, 0, 1, 2,3);
@@ -199,8 +199,8 @@ namespace NFun.HmTests
             var res = solver.Solve();
             Assert.IsTrue(res.IsSolved);
             Assert.AreEqual(0,res.GenericsCount);
-            Assert.AreEqual(FType.Int32, res.GetVarType("x"));
-            Assert.AreEqual(FType.ArrayOf(FType.Int32), res.GetVarType("y"));
+            Assert.AreEqual(TiType.Int32, res.GetVarType("x"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Int32), res.GetVarType("y"));
         }
         
         [Test]
@@ -216,9 +216,9 @@ namespace NFun.HmTests
             var res = solver.Solve();
             Assert.IsTrue(res.IsSolved);
             Assert.AreEqual(0,res.GenericsCount);
-            Assert.AreEqual(FType.Int32, res.GetVarType("a"));
-            Assert.AreEqual(FType.Int32, res.GetVarType("b"));
-            Assert.AreEqual(FType.ArrayOf(FType.Int32), res.GetVarType("y"));
+            Assert.AreEqual(TiType.Int32, res.GetVarType("a"));
+            Assert.AreEqual(TiType.Int32, res.GetVarType("b"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Int32), res.GetVarType("y"));
         }
         [Test]
         public void ProcArrayOfVariablesWithStep_SolvedAsReal()
@@ -234,18 +234,18 @@ namespace NFun.HmTests
             
             var res = solver.Solve();
             Assert.AreEqual(0,res.GenericsCount);
-            Assert.AreEqual(FType.Real, res.GetVarType("a"));
-            Assert.AreEqual(FType.Real, res.GetVarType("b"));
-            Assert.AreEqual(FType.ArrayOf(FType.Real), res.GetVarType("y"));
+            Assert.AreEqual(TiType.Real, res.GetVarType("a"));
+            Assert.AreEqual(TiType.Real, res.GetVarType("b"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Real), res.GetVarType("y"));
         }
         [Test]
         public void ProcArrayOfConstantsWithStep_SolvedAsInt()
         {
             //4   30  1  2
             //y = [1..5..2]
-            solver.SetConst(0,FType.Int32);
-            solver.SetConst(1,FType.Int32);
-            solver.SetConst(2,FType.Int32);
+            solver.SetConst(0,TiType.Int32);
+            solver.SetConst(1,TiType.Int32);
+            solver.SetConst(2,TiType.Int32);
 
             Assert.IsTrue(solver.SetProcArrayInit(3,0,1,2));
             solver.SetDefenition("y", 4, 3);
@@ -253,7 +253,7 @@ namespace NFun.HmTests
             var res = solver.Solve();
             Assert.IsTrue(res.IsSolved);
             Assert.AreEqual(0,res.GenericsCount);
-            Assert.AreEqual(FType.ArrayOf(FType.Int32), res.GetVarType("y"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Int32), res.GetVarType("y"));
         }
        
         [Test]
@@ -261,16 +261,16 @@ namespace NFun.HmTests
         {
             //4   30  1    2
             //y = [1..5.0..2]
-            solver.SetConst(0,FType.Int32);
-            solver.SetConst(1,FType.Real);
-            solver.SetConst(2,FType.Int32);
+            solver.SetConst(0,TiType.Int32);
+            solver.SetConst(1,TiType.Real);
+            solver.SetConst(2,TiType.Int32);
 
             solver.SetProcArrayInit(3,0,1,2);
             solver.SetDefenition("y", 4, 3);
             
             var res = solver.Solve();
             Assert.AreEqual(0,res.GenericsCount);
-            Assert.AreEqual(FType.ArrayOf(FType.Real), res.GetVarType("y"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Real), res.GetVarType("y"));
         }
         
         [Test]
@@ -278,19 +278,19 @@ namespace NFun.HmTests
         {
             //5    1 0  4  3 2
             //y = [ 1 ] == [ 1 ]
-            solver.SetConst(0,FType.Int32);
+            solver.SetConst(0,TiType.Int32);
             solver.SetArrayInit(1, 0);
-            solver.SetConst(2,FType.Int32);
+            solver.SetConst(2,TiType.Int32);
             solver.SetArrayInit(3, 2);
 
-            Assert.IsTrue(solver.SetCall(new CallDef(new[] {FType.Bool, FType.Generic(0), FType.Generic(0)}, new[] {4, 1, 3})));
+            Assert.IsTrue(solver.SetCall(new CallDefenition(new[] {TiType.Bool, TiType.Generic(0), TiType.Generic(0)}, new[] {4, 1, 3})));
             solver.SetDefenition("y", 5, 4).AssertSuccesfully();
             
             var res = solver.Solve();
             
             Assert.IsTrue(res.IsSolved);
             Assert.AreEqual(0,res.GenericsCount);
-            Assert.AreEqual(FType.Bool, res.GetVarType("y"));
+            Assert.AreEqual(TiType.Bool, res.GetVarType("y"));
         }
         
         
@@ -299,18 +299,18 @@ namespace NFun.HmTests
         {
             //5    1 0  4  3 2
             //y = [ 1 ] == [ 1 ]
-            solver.SetConst(0,FType.Int32);
+            solver.SetConst(0,TiType.Int32);
             solver.SetArrayInit(1, 0);
-            solver.SetConst(2,FType.Int32);
+            solver.SetConst(2,TiType.Int32);
             solver.SetArrayInit(3, 2);
 
-            Assert.IsTrue(solver.SetCall(new CallDef(new[] {FType.Bool, FType.Any, FType.Any}, new[] {4, 1, 3})));
+            Assert.IsTrue(solver.SetCall(new CallDefenition(new[] {TiType.Bool, TiType.Any, TiType.Any}, new[] {4, 1, 3})));
             solver.SetDefenition("y", 5, 4).AssertSuccesfully();
             
             var res = solver.Solve();
             Assert.IsTrue(res.IsSolved);
             Assert.AreEqual(0,res.GenericsCount);
-            Assert.AreEqual(FType.Bool, res.GetVarType("y"));
+            Assert.AreEqual(TiType.Bool, res.GetVarType("y"));
         }
 
     }

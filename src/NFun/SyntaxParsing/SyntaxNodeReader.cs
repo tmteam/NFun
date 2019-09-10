@@ -133,6 +133,11 @@ namespace NFun.SyntaxParsing
                 if (nextNode == null)
                     throw ErrorFactory.UnaryArgumentIsMissing(_flow.Current);
                 
+                if (nextNode is ConstantSyntaxNode constant)
+                {
+                    if (constant.Value is Int32 i32)
+                        return new ConstantSyntaxNode(-i32, constant.OutputType, new Interval(start,nextNode.Interval.Finish));
+                }
                 return SyntaxNodeFactory.OperatorFun(
                     CoreFunNames.Negate,
                     new[]{nextNode}, start, nextNode.Interval.Finish);

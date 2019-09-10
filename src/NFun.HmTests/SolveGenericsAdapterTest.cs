@@ -1,16 +1,16 @@
-using NFun.HindleyMilner.Tyso;
+using NFun.TypeInference.Solving;
 using NUnit.Framework;
 
 namespace NFun.HmTests
 {
     public class SolveGenericsAdapterTest
     {
-        private HmHumanizerSolver solver;
+        private TiLanguageSolver solver;
 
         [SetUp]
         public void Init()
         {
-            solver = new HmHumanizerSolver();
+            solver = new TiLanguageSolver();
         }
         
         [Test(Description = "y = x")]
@@ -26,8 +26,8 @@ namespace NFun.HmTests
             
             Assert.AreEqual(1, result.GenericsCount);
             
-            Assert.AreEqual(FType.Generic(0), result.GetVarType("x"));
-            Assert.AreEqual(FType.Generic(0), result.GetVarType("y"));
+            Assert.AreEqual(TiType.Generic(0), result.GetVarType("x"));
+            Assert.AreEqual(TiType.Generic(0), result.GetVarType("y"));
             
 
         }
@@ -46,11 +46,11 @@ namespace NFun.HmTests
             
             Assert.AreEqual(2, result.GenericsCount);
             
-            Assert.AreEqual(FType.Generic(0), result.GetVarType("x"));
-            Assert.AreEqual(FType.Generic(0), result.GetVarType("y"));
+            Assert.AreEqual(TiType.Generic(0), result.GetVarType("x"));
+            Assert.AreEqual(TiType.Generic(0), result.GetVarType("y"));
             
-            Assert.AreEqual(FType.Generic(1), result.GetVarType("x2"));
-            Assert.AreEqual(FType.Generic(1), result.GetVarType("y2"));
+            Assert.AreEqual(TiType.Generic(1), result.GetVarType("x2"));
+            Assert.AreEqual(TiType.Generic(1), result.GetVarType("y2"));
         }
         
         [Test]
@@ -58,7 +58,7 @@ namespace NFun.HmTests
         {
             //node |4   3   0    1      2
             //expr |y = if(true) a else b
-            solver.SetConst(0, FType.Bool);
+            solver.SetConst(0, TiType.Bool);
             
             solver.SetVar( 1,"a");
             solver.SetVar( 2,"b");
@@ -70,9 +70,9 @@ namespace NFun.HmTests
             Assert.IsTrue(result.IsSolved);
             Assert.AreEqual(1, result.GenericsCount);
             
-            Assert.AreEqual(FType.Generic(0), result.GetVarType("a"));
-            Assert.AreEqual(FType.Generic(0), result.GetVarType("b"));
-            Assert.AreEqual(FType.Generic(0), result.GetVarType("y"));
+            Assert.AreEqual(TiType.Generic(0), result.GetVarType("a"));
+            Assert.AreEqual(TiType.Generic(0), result.GetVarType("b"));
+            Assert.AreEqual(TiType.Generic(0), result.GetVarType("y"));
         }
        
         [Test(Description = "y1 = x1; y2 = [x2]")]
@@ -94,11 +94,11 @@ namespace NFun.HmTests
             {
                 Assert.AreEqual(2, result.GenericsCount);
 
-                Assert.AreEqual(FType.Generic(0), result.GetVarType("x1"));
-                Assert.AreEqual(FType.Generic(0), result.GetVarType("y1"));
+                Assert.AreEqual(TiType.Generic(0), result.GetVarType("x1"));
+                Assert.AreEqual(TiType.Generic(0), result.GetVarType("y1"));
 
-                Assert.AreEqual(FType.Generic(1), result.GetVarType("x2"));
-                Assert.AreEqual(FType.ArrayOf(FType.Generic(1)), result.GetVarType("y2"));
+                Assert.AreEqual(TiType.Generic(1), result.GetVarType("x2"));
+                Assert.AreEqual(TiType.ArrayOf(TiType.Generic(1)), result.GetVarType("y2"));
             });
         }
         
@@ -126,14 +126,14 @@ namespace NFun.HmTests
             {
                 Assert.AreEqual(3, result.GenericsCount);
 
-                Assert.AreEqual(FType.Generic(0), result.GetVarType("x1"));
-                Assert.AreEqual(FType.ArrayOf(FType.Generic(0)), result.GetVarType("y1"));
+                Assert.AreEqual(TiType.Generic(0), result.GetVarType("x1"));
+                Assert.AreEqual(TiType.ArrayOf(TiType.Generic(0)), result.GetVarType("y1"));
 
-                Assert.AreEqual(FType.Generic(1), result.GetVarType("x2"));
-                Assert.AreEqual(FType.ArrayOf(FType.Generic(1)), result.GetVarType("y2"));
+                Assert.AreEqual(TiType.Generic(1), result.GetVarType("x2"));
+                Assert.AreEqual(TiType.ArrayOf(TiType.Generic(1)), result.GetVarType("y2"));
 
-                Assert.AreEqual(FType.Generic(2), result.GetVarType("x3"));
-                Assert.AreEqual(FType.ArrayOf(FType.Generic(2)), result.GetVarType("y3"));
+                Assert.AreEqual(TiType.Generic(2), result.GetVarType("x3"));
+                Assert.AreEqual(TiType.ArrayOf(TiType.Generic(2)), result.GetVarType("y3"));
             });
         }
 
@@ -144,14 +144,14 @@ namespace NFun.HmTests
             // y = rand(a,b) 
             solver.SetVar( 0,"a");
             solver.SetVar( 1,"b");
-            solver.SetCall(new CallDef(FType.Generic(0), new[] {2,0, 1}));
+            solver.SetCall(new CallDefenition(TiType.Generic(0), new[] {2,0, 1}));
             solver.SetDefenition("y", 3, 2);
             
             var solvation = solver.Solve();
             Assert.AreEqual(1, solvation.GenericsCount);
-            Assert.AreEqual(FType.Generic(0), solvation.GetVarType("y"));
-            Assert.AreEqual(FType.Generic(0), solvation.GetVarType("a"));
-            Assert.AreEqual(FType.Generic(0), solvation.GetVarType("b"));
+            Assert.AreEqual(TiType.Generic(0), solvation.GetVarType("y"));
+            Assert.AreEqual(TiType.Generic(0), solvation.GetVarType("a"));
+            Assert.AreEqual(TiType.Generic(0), solvation.GetVarType("b"));
         }
         [Test]
         public void SimpliestGenericFunctionWithSingleResolvedArg_EquationSolved()
@@ -159,14 +159,14 @@ namespace NFun.HmTests
             // 3    2   0 1
             // y = rand(a,1) 
             solver.SetVar( 0,"a");
-            solver.SetConst( 1,FType.Int32);
-            solver.SetCall(new CallDef(FType.Generic(0), new[] {2,0, 1}));
+            solver.SetConst( 1,TiType.Int32);
+            solver.SetCall(new CallDefenition(TiType.Generic(0), new[] {2,0, 1}));
             solver.SetDefenition("y", 3, 2);
             
             var solvation = solver.Solve();
             Assert.AreEqual(0, solvation.GenericsCount);
-            Assert.AreEqual(FType.Int32, solvation.GetVarType("y"));
-            Assert.AreEqual(FType.Int32, solvation.GetVarType("a"));
+            Assert.AreEqual(TiType.Int32, solvation.GetVarType("y"));
+            Assert.AreEqual(TiType.Int32, solvation.GetVarType("a"));
         }
         [Test]
         public void SimpliestGenericFunctionWithResolvedOutputArg_EquationSolved()
@@ -175,32 +175,32 @@ namespace NFun.HmTests
             // y(a,b):int = rand(a,b) 
             solver.SetVar( 0,"a");
             solver.SetVar( 1,"b");
-            solver.SetCall(new CallDef(FType.Generic(0), new[] {2,0, 1}));
+            solver.SetCall(new CallDefenition(TiType.Generic(0), new[] {2,0, 1}));
             solver.SetDefenition("y", 3, 2);
-            solver.SetStrict(3, FType.Int32);
+            solver.SetStrict(3, TiType.Int32);
             
             var solvation = solver.Solve();
             Assert.AreEqual(0, solvation.GenericsCount);
-            Assert.AreEqual(FType.Int32, solvation.GetVarType("y"));
-            Assert.AreEqual(FType.Int32, solvation.GetVarType("a"));
-            Assert.AreEqual(FType.Int32, solvation.GetVarType("b"));
+            Assert.AreEqual(TiType.Int32, solvation.GetVarType("y"));
+            Assert.AreEqual(TiType.Int32, solvation.GetVarType("a"));
+            Assert.AreEqual(TiType.Int32, solvation.GetVarType("b"));
         }
         [Test]
         public void SimpliestGenericFunctionWithSpecifiedOutputArg_EquationSolved()
         {
             //  3             2  0 1
             // y(a,b):int = rand(a,b) 
-            solver.SetVarType("y", FType.Int32);
+            solver.SetVarType("y", TiType.Int32);
             solver.SetVar( 0,"a");
             solver.SetVar( 1,"b");
-            solver.SetCall(new CallDef(FType.Generic(0), new[] {2,0, 1}));
+            solver.SetCall(new CallDefenition(TiType.Generic(0), new[] {2,0, 1}));
             solver.SetDefenition("y", 3, 2);
             
             var solvation = solver.Solve();
             Assert.AreEqual(0, solvation.GenericsCount);
-            Assert.AreEqual(FType.Int32, solvation.GetVarType("y"));
-            Assert.AreEqual(FType.Int32, solvation.GetVarType("a"));
-            Assert.AreEqual(FType.Int32, solvation.GetVarType("b"));
+            Assert.AreEqual(TiType.Int32, solvation.GetVarType("y"));
+            Assert.AreEqual(TiType.Int32, solvation.GetVarType("a"));
+            Assert.AreEqual(TiType.Int32, solvation.GetVarType("b"));
         }
         [Test]
         public void LimitCall_TwoGenericOperations_SingleGenericFound()
@@ -208,13 +208,13 @@ namespace NFun.HmTests
             // 5          0  2 1  4  3
             // y(a,b,c) = a.or(b).or(c) 
             solver.SetVar( 0,"a");
-            solver.SetCall(new CallDef(FType.Generic(0), new[] {2,0, 1}));
-            solver.SetCall(new CallDef(FType.Generic(0), new[] {4, 2, 3}));
+            solver.SetCall(new CallDefenition(TiType.Generic(0), new[] {2,0, 1}));
+            solver.SetCall(new CallDefenition(TiType.Generic(0), new[] {4, 2, 3}));
             solver.SetDefenition("y", 5, 4);
             
             var solvation = solver.Solve();
             Assert.AreEqual(1, solvation.GenericsCount);
-            Assert.AreEqual(FType.Generic(0), solvation.GetVarType("y"));
+            Assert.AreEqual(TiType.Generic(0), solvation.GetVarType("y"));
         }
         
         [Test]
@@ -223,15 +223,15 @@ namespace NFun.HmTests
             // 7          0  2 1  4  3   6 5
             // y(a,b,c) = a.or(b).or(c).or(d) 
             solver.SetVar( 0,"a");
-            solver.SetCall(new CallDef(FType.Generic(0), new[] {2,0, 1}));
-            solver.SetCall(new CallDef(FType.Generic(0), new[] {4, 2, 3}));
-            solver.SetCall(new CallDef(FType.Generic(0), new[] {6, 4, 5}));
+            solver.SetCall(new CallDefenition(TiType.Generic(0), new[] {2,0, 1}));
+            solver.SetCall(new CallDefenition(TiType.Generic(0), new[] {4, 2, 3}));
+            solver.SetCall(new CallDefenition(TiType.Generic(0), new[] {6, 4, 5}));
 
             solver.SetDefenition("y", 7, 6);
             
             var solvation = solver.Solve();
             Assert.AreEqual(1, solvation.GenericsCount);
-            Assert.AreEqual(FType.Generic(0), solvation.GetVarType("y"));
+            Assert.AreEqual(TiType.Generic(0), solvation.GetVarType("y"));
         }
         
         [Test]
@@ -242,17 +242,17 @@ namespace NFun.HmTests
 
             solver.SetVar(0,"a");
             solver.SetVar(1,"b");
-            solver.SetCall(new CallDef(FType.Generic(0), new[] {2, 0, 1}));
-            solver.SetConst(3, FType.Int32);
+            solver.SetCall(new CallDefenition(TiType.Generic(0), new[] {2, 0, 1}));
+            solver.SetConst(3, TiType.Int32);
             solver.SetArithmeticalOp(4, 2, 3);
-            solver.SetConst(5, FType.Real);
+            solver.SetConst(5, TiType.Real);
             solver.SetDefenition("a", 6, 5).AssertSuccesfully();
              
             var solvation = solver.Solve();
              
-            Assert.AreEqual(FType.Real, solvation.GetVarType("a"));
-            Assert.AreEqual(FType.Real, solvation.GetVarType("b"));
-            Assert.AreEqual(FType.Real, solvation.GetNodeType(2));
+            Assert.AreEqual(TiType.Real, solvation.GetVarType("a"));
+            Assert.AreEqual(TiType.Real, solvation.GetVarType("b"));
+            Assert.AreEqual(TiType.Real, solvation.GetNodeType(2));
         }
         
         [Test]
@@ -263,16 +263,16 @@ namespace NFun.HmTests
 
             solver.SetVar(0,"a");
             solver.SetVar(1,"b");
-            solver.SetCall(new CallDef(FType.Generic(0), new[] {2, 0, 1}));
-            solver.SetConst(2, FType.Real);
+            solver.SetCall(new CallDefenition(TiType.Generic(0), new[] {2, 0, 1}));
+            solver.SetConst(2, TiType.Real);
             solver.SetArithmeticalOp(4, 2, 3);
-            solver.SetConst(5, FType.Int32);
+            solver.SetConst(5, TiType.Int32);
             solver.SetDefenition("a", 6, 5).AssertSuccesfully();
              
             var solvation = solver.Solve();
              
-            Assert.AreEqual(FType.Int32, solvation.GetVarType("a"));
-            Assert.AreEqual(FType.Real, solvation.GetVarType("b"));
+            Assert.AreEqual(TiType.Int32, solvation.GetVarType("a"));
+            Assert.AreEqual(TiType.Real, solvation.GetVarType("b"));
         }
         
         [Test]
@@ -281,15 +281,15 @@ namespace NFun.HmTests
             //3     2  0  1
             //a = rnd( 0.1, 1) 
 
-            solver.SetConst(0,FType.Real);
-            solver.SetConst(1,FType.Int32);
-            solver.SetCall(new CallDef(FType.Generic(0), new[] {2, 0, 1}));
+            solver.SetConst(0,TiType.Real);
+            solver.SetConst(1,TiType.Int32);
+            solver.SetCall(new CallDefenition(TiType.Generic(0), new[] {2, 0, 1}));
             solver.SetDefenition("a", 3, 2).AssertSuccesfully();
              
             var solvation = solver.Solve();
             Assert.AreEqual(0, solvation.GenericsCount);             
             Assert.IsTrue(solvation.IsSolved);             
-            Assert.AreEqual(FType.Real, solvation.GetVarType("a"));
+            Assert.AreEqual(TiType.Real, solvation.GetVarType("a"));
         }
         
         
@@ -299,16 +299,16 @@ namespace NFun.HmTests
             //3     2  0  1
             //a = rnd(1,0.1) 
 
-            solver.SetConst(0,FType.Int32);
-            solver.SetConst(1,FType.Real);
-            Assert.True(solver.SetCall(new CallDef(FType.Generic(0), new[] {2, 0, 1})));
+            solver.SetConst(0,TiType.Int32);
+            solver.SetConst(1,TiType.Real);
+            Assert.True(solver.SetCall(new CallDefenition(TiType.Generic(0), new[] {2, 0, 1})));
             solver.SetDefenition("a", 3, 2).AssertSuccesfully();
              
             var solvation = solver.Solve();
             Assert.AreEqual(0, solvation.GenericsCount);             
             Assert.IsTrue(solvation.IsSolved);             
 
-            Assert.AreEqual(FType.Real, solvation.GetVarType("a"));
+            Assert.AreEqual(TiType.Real, solvation.GetVarType("a"));
         }
         
         
@@ -321,16 +321,16 @@ namespace NFun.HmTests
 
             solver.SetVar(0,"a");
             solver.SetVar(1,"b");
-            solver.SetCall(new CallDef(FType.Generic(0), new[] {2, 0, 1}));
-            solver.SetConst(3, FType.Int32);
+            solver.SetCall(new CallDefenition(TiType.Generic(0), new[] {2, 0, 1}));
+            solver.SetConst(3, TiType.Int32);
             
             solver.SetDefenition("a", 4, 3).AssertSuccesfully();
              
             var solvation = solver.Solve();
              
-            Assert.AreEqual(FType.Int32, solvation.GetVarType("a"));
-            Assert.AreEqual(FType.Int32, solvation.GetVarType("b"));
-            Assert.AreEqual(FType.Int32, solvation.GetNodeType(2));
+            Assert.AreEqual(TiType.Int32, solvation.GetVarType("a"));
+            Assert.AreEqual(TiType.Int32, solvation.GetVarType("b"));
+            Assert.AreEqual(TiType.Int32, solvation.GetNodeType(2));
         }
         
         [Test]
@@ -339,20 +339,20 @@ namespace NFun.HmTests
             //1   0       4   2  3    6    5
             //a = 1:int; rnd( a, b) ; a = 1.0:real
 
-            solver.SetConst(0, FType.Int32);
+            solver.SetConst(0, TiType.Int32);
             solver.SetDefenition("a", 1,0).AssertSuccesfully();
             solver.SetVar(2,"a");
             solver.SetVar(3,"b");
-            solver.SetCall(new CallDef(FType.Generic(0), new[] {4, 2, 3}));
-            solver.SetConst(5, FType.Real);
+            solver.SetCall(new CallDefenition(TiType.Generic(0), new[] {4, 2, 3}));
+            solver.SetConst(5, TiType.Real);
             
             solver.SetDefenition("a", 6, 5).AssertSuccesfully();
              
             var solvation = solver.Solve();
              
-            Assert.AreEqual(FType.Real, solvation.GetVarType("a"));
-            Assert.AreEqual(FType.Real, solvation.GetVarType("b"));
-            Assert.AreEqual(FType.Real, solvation.GetNodeType(2));
+            Assert.AreEqual(TiType.Real, solvation.GetVarType("a"));
+            Assert.AreEqual(TiType.Real, solvation.GetVarType("b"));
+            Assert.AreEqual(TiType.Real, solvation.GetNodeType(2));
         }
         
         

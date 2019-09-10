@@ -64,7 +64,7 @@ namespace NFun.Runtime
             var name = id.ToLower();
             if (!_variables.ContainsKey(name))
             {
-                var source = new VariableSource(id, type);
+                var source = VariableSource.CreateWithoutStrictTypeLabel(id, type);
                 _variables.Add(name, new VariableUsages(source));
             }
             var node = new VariableExpressionNode(_variables[name].Source,interval);

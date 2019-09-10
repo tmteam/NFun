@@ -144,36 +144,117 @@ namespace Funny.Tests.UnitTests
         #endregion
         
         #region CanBeConverted
-        [TestCase(BaseVarType.Int32, BaseVarType.Int64, true)]
-        [TestCase(BaseVarType.Int32, BaseVarType.Bool, false)]
-        [TestCase(BaseVarType.Int32, BaseVarType.Int32, true)]
-        [TestCase(BaseVarType.Int32, BaseVarType.Real, true)]
-        [TestCase(BaseVarType.Int32, BaseVarType.Any, true)]
-
-        [TestCase(BaseVarType.Int64, BaseVarType.Int64, true)]
-        [TestCase(BaseVarType.Int64, BaseVarType.Bool, false)]
-        [TestCase(BaseVarType.Int64, BaseVarType.Int32, false)]
-        [TestCase(BaseVarType.Int64, BaseVarType.Real, false)]
-        [TestCase(BaseVarType.Int64, BaseVarType.Any, true)]
+        [TestCase(BaseVarType.UInt8, BaseVarType.Any, true)]
+        [TestCase(BaseVarType.UInt8, BaseVarType.Real, true)]
+        [TestCase(BaseVarType.UInt8, BaseVarType.Bool, false)]
+        [TestCase(BaseVarType.UInt8, BaseVarType.UInt64, true)]
+        [TestCase(BaseVarType.UInt8, BaseVarType.UInt32, true)]
+        [TestCase(BaseVarType.UInt8, BaseVarType.UInt16, true)]
+        [TestCase(BaseVarType.UInt8, BaseVarType.UInt8, true)]
+        [TestCase(BaseVarType.UInt8, BaseVarType.Int64, true)]
+        [TestCase(BaseVarType.UInt8, BaseVarType.Int32, true)]
+        [TestCase(BaseVarType.UInt8, BaseVarType.Int16, true)]
         
-        [TestCase(BaseVarType.Real, BaseVarType.Bool, false)]
-        [TestCase(BaseVarType.Real, BaseVarType.Int32, false)]
-        [TestCase(BaseVarType.Real, BaseVarType.Int64, false)]
-        [TestCase(BaseVarType.Real, BaseVarType.Real, true)]
-        [TestCase(BaseVarType.Real, BaseVarType.Any, true)]
+        [TestCase(BaseVarType.UInt16, BaseVarType.Any, true)]
+        [TestCase(BaseVarType.UInt16, BaseVarType.Real, true)]
+        [TestCase(BaseVarType.UInt16, BaseVarType.Bool, false)]
+        [TestCase(BaseVarType.UInt16, BaseVarType.UInt64, true)]
+        [TestCase(BaseVarType.UInt16, BaseVarType.UInt32, true)]
+        [TestCase(BaseVarType.UInt16, BaseVarType.UInt16, true)]
+        [TestCase(BaseVarType.UInt16, BaseVarType.UInt8, false)]
+        [TestCase(BaseVarType.UInt16, BaseVarType.Int64, true)]
+        [TestCase(BaseVarType.UInt16, BaseVarType.Int32, true)]
+        [TestCase(BaseVarType.UInt16, BaseVarType.Int16, false)]
+        
+        
+        [TestCase(BaseVarType.UInt32, BaseVarType.Any, true)]
+        [TestCase(BaseVarType.UInt32, BaseVarType.Real, true)]
+        [TestCase(BaseVarType.UInt32, BaseVarType.Bool, false)]
+        [TestCase(BaseVarType.UInt32, BaseVarType.UInt64, true)]
+        [TestCase(BaseVarType.UInt32, BaseVarType.UInt32, true)]
+        [TestCase(BaseVarType.UInt32, BaseVarType.UInt16, false)]
+        [TestCase(BaseVarType.UInt32, BaseVarType.UInt8, false)]
+        [TestCase(BaseVarType.UInt32, BaseVarType.Int64, true)]
+        [TestCase(BaseVarType.UInt32, BaseVarType.Int32, false)]
+        [TestCase(BaseVarType.UInt32, BaseVarType.Int16, false)]
+        
+        [TestCase(BaseVarType.UInt64, BaseVarType.Any, true)]
+        [TestCase(BaseVarType.UInt64, BaseVarType.Real, true)]
+        [TestCase(BaseVarType.UInt64, BaseVarType.Bool, false)]
+        [TestCase(BaseVarType.UInt64, BaseVarType.UInt64, true)]
+        [TestCase(BaseVarType.UInt64, BaseVarType.UInt32, false)]
+        [TestCase(BaseVarType.UInt64, BaseVarType.UInt16, false)]
+        [TestCase(BaseVarType.UInt64, BaseVarType.UInt8, false)]
+        [TestCase(BaseVarType.UInt64, BaseVarType.Int64, false)]
+        [TestCase(BaseVarType.UInt64, BaseVarType.Int32, false)]
+        [TestCase(BaseVarType.UInt64, BaseVarType.Int16, false)]
+        
+        [TestCase(BaseVarType.Int16, BaseVarType.Any, true)]
+        [TestCase(BaseVarType.Int16, BaseVarType.Real, true)]
+        [TestCase(BaseVarType.Int16, BaseVarType.Bool, false)]
+        [TestCase(BaseVarType.Int16, BaseVarType.UInt64, false)]
+        [TestCase(BaseVarType.Int16, BaseVarType.UInt32, false)]
+        [TestCase(BaseVarType.Int16, BaseVarType.UInt16, false)]
+        [TestCase(BaseVarType.Int16, BaseVarType.UInt8, false)]
+        [TestCase(BaseVarType.Int16, BaseVarType.Int64, true)]
+        [TestCase(BaseVarType.Int16, BaseVarType.Int32, true)]
+        [TestCase(BaseVarType.Int16, BaseVarType.Int16, true)]
+        
+        [TestCase(BaseVarType.Int32, BaseVarType.Any, true)]
+        [TestCase(BaseVarType.Int32, BaseVarType.Real, true)]
 
-        [TestCase(BaseVarType.Bool, BaseVarType.Bool, true)]
-        [TestCase(BaseVarType.Bool, BaseVarType.Int32, false)]
-        [TestCase(BaseVarType.Bool, BaseVarType.Int64, false)]
-        [TestCase(BaseVarType.Bool, BaseVarType.Real, false)]
-        [TestCase(BaseVarType.Bool, BaseVarType.Any, true)]
+        [TestCase(BaseVarType.Int32, BaseVarType.Bool, false)]
+        [TestCase(BaseVarType.Int32, BaseVarType.UInt64, false)]
+        [TestCase(BaseVarType.Int32, BaseVarType.UInt32, false)]
+        [TestCase(BaseVarType.Int32, BaseVarType.UInt16, false)]
+        [TestCase(BaseVarType.Int32, BaseVarType.UInt8, false)]
+        [TestCase(BaseVarType.Int32, BaseVarType.Int64, true)]
+        [TestCase(BaseVarType.Int32, BaseVarType.Int32, true)]
+        [TestCase(BaseVarType.Int32, BaseVarType.Int16, false)]
 
+        [TestCase(BaseVarType.Int64, BaseVarType.Any, true)]
+        [TestCase(BaseVarType.Int64, BaseVarType.Real, true)]
+        [TestCase(BaseVarType.Int64, BaseVarType.Bool, false)]
+        [TestCase(BaseVarType.Int64, BaseVarType.UInt64, false)]
+        [TestCase(BaseVarType.Int64, BaseVarType.UInt32, false)]
+        [TestCase(BaseVarType.Int64, BaseVarType.UInt16, false)]
+        [TestCase(BaseVarType.Int64, BaseVarType.UInt8,  false)]
+        [TestCase(BaseVarType.Int64, BaseVarType.Int64,  true)]
+        [TestCase(BaseVarType.Int64, BaseVarType.Int32,  false)]
+        [TestCase(BaseVarType.Int64, BaseVarType.Int16,  false)]
+        
+        [TestCase(BaseVarType.Real, BaseVarType.Any,    true)]
+        [TestCase(BaseVarType.Real, BaseVarType.Real,   true)]
+        [TestCase(BaseVarType.Real, BaseVarType.Bool,   false)]
+        [TestCase(BaseVarType.Real, BaseVarType.UInt64, false)]
+        [TestCase(BaseVarType.Real, BaseVarType.UInt32, false)]
+        [TestCase(BaseVarType.Real, BaseVarType.UInt16, false)]
+        [TestCase(BaseVarType.Real, BaseVarType.UInt8,  false)]
+        [TestCase(BaseVarType.Real, BaseVarType.Int64,  false)]
+        [TestCase(BaseVarType.Real, BaseVarType.Int32,  false)]
+        [TestCase(BaseVarType.Real, BaseVarType.Int16,  false)]
+        
+        [TestCase(BaseVarType.Bool, BaseVarType.Any,    true)]
+        [TestCase(BaseVarType.Bool, BaseVarType.Bool,   true)]
+        [TestCase(BaseVarType.Bool, BaseVarType.Real,   false)]
+        [TestCase(BaseVarType.Bool, BaseVarType.UInt64, false)]
+        [TestCase(BaseVarType.Bool, BaseVarType.UInt32, false)]
+        [TestCase(BaseVarType.Bool, BaseVarType.UInt16, false)]
+        [TestCase(BaseVarType.Bool, BaseVarType.UInt8,  false)]
+        [TestCase(BaseVarType.Bool, BaseVarType.Int64,  false)]
+        [TestCase(BaseVarType.Bool, BaseVarType.Int32,  false)]
+        [TestCase(BaseVarType.Bool, BaseVarType.Int16,  false)]
  
-        [TestCase(BaseVarType.Any, BaseVarType.Bool, false)]
-        [TestCase(BaseVarType.Any, BaseVarType.Int32, false)]
-        [TestCase(BaseVarType.Any, BaseVarType.Int64, false)]
-        [TestCase(BaseVarType.Any, BaseVarType.Real, false)]
-        [TestCase(BaseVarType.Any, BaseVarType.Any, true)]
+        [TestCase(BaseVarType.Any, BaseVarType.Any,    true)]
+        [TestCase(BaseVarType.Any, BaseVarType.Bool,   false)]
+        [TestCase(BaseVarType.Any, BaseVarType.Real,   false)]
+        [TestCase(BaseVarType.Any, BaseVarType.UInt64, false)]
+        [TestCase(BaseVarType.Any, BaseVarType.UInt32, false)]
+        [TestCase(BaseVarType.Any, BaseVarType.UInt16, false)]
+        [TestCase(BaseVarType.Any, BaseVarType.UInt8,  false)]
+        [TestCase(BaseVarType.Any, BaseVarType.Int64,  false)]
+        [TestCase(BaseVarType.Any, BaseVarType.Int32,  false)]
+        [TestCase(BaseVarType.Any, BaseVarType.Int16,  false)]
         public void PrimitiveTypes_CanBeConverted(BaseVarType from, BaseVarType to, bool canBeConverted)
         {
             var typeFrom = VarType.PrimitiveOf(from);
@@ -181,6 +262,41 @@ namespace Funny.Tests.UnitTests
             Assert.AreEqual(canBeConverted, typeFrom.CanBeConvertedTo(typeTo));
         }
         
+        
+        [TestCase( BaseVarType.Any,    true)]
+        [TestCase( BaseVarType.Bool,   false)]
+        [TestCase( BaseVarType.Real,   false)]
+        [TestCase( BaseVarType.UInt64, false)]
+        [TestCase( BaseVarType.UInt32, false)]
+        [TestCase( BaseVarType.UInt16, false)]
+        [TestCase( BaseVarType.UInt8,  false)]
+        [TestCase( BaseVarType.Int64,  false)]
+        [TestCase( BaseVarType.Int32,  false)]
+        [TestCase( BaseVarType.Int16,  false)]
+        public void TextType_CanBeConvertedTo(BaseVarType to, bool canBeConverted)
+        {
+            var typeFrom = VarType.Text;
+            var typeTo = VarType.PrimitiveOf(to);
+            Assert.AreEqual(canBeConverted, typeFrom.CanBeConvertedTo(typeTo));
+        }
+        
+        [TestCase( BaseVarType.Any,    true)]
+        [TestCase( BaseVarType.Bool,   true)]
+        [TestCase( BaseVarType.Real,   true)]
+        [TestCase( BaseVarType.UInt64, true)]
+        [TestCase( BaseVarType.UInt32, true)]
+        [TestCase( BaseVarType.UInt16, true)]
+        [TestCase( BaseVarType.UInt8,  true)]
+        [TestCase( BaseVarType.Int64,  true)]
+        [TestCase( BaseVarType.Int32,  true)]
+        [TestCase( BaseVarType.Int16,  true)]
+        public void TextType_CanBeConvertedFrom(BaseVarType from, bool canBeConverted)
+        {
+            var typeTo = VarType.Text;
+            var typeFrom = VarType.PrimitiveOf(from);
+            Assert.AreEqual(canBeConverted, typeFrom.CanBeConvertedTo(typeTo));
+        }
+
         
         [TestCase(BaseVarType.Int32, BaseVarType.Bool, false)]
         [TestCase(BaseVarType.Int32, BaseVarType.Int32, true)]
@@ -275,7 +391,6 @@ namespace Funny.Tests.UnitTests
         public void SolveGenericTypes_ConcreteRealToConcreteInt_ReturnsFalse()
         {
             //Solving  Array of int SomeFun<T>(T)
-
             var result = VarType.TrySolveGenericTypes(new VarType[1],
                 genericType: VarType.Int32, concreteType: VarType.Real);
             Assert.IsFalse(result);

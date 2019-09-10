@@ -32,7 +32,7 @@ namespace NFun.Interpritation.Nodes
                 if (bodyType != Type)
                 {
                     _ifCaseConvertedNodes[index] = new CastExpressionNode(ifCase.Body, Type,
-                        CastExpressionNode.GetConverterOrThrow(bodyType, Type, ifCase.Interval)
+                        VarTypeConverter.GetConverterOrThrow(bodyType, Type, ifCase.Interval)
                         ,ifCase.Interval);
                 }
                 else
@@ -42,7 +42,7 @@ namespace NFun.Interpritation.Nodes
             if (elseNode.Type != Type)
             {
                 _elseNode = new CastExpressionNode(elseNode, Type, 
-                    CastExpressionNode.GetConverterOrThrow(elseNode.Type, Type, elseNode.Interval)
+                    VarTypeConverter.GetConverterOrThrow(elseNode.Type, Type, elseNode.Interval)
                     , elseNode.Interval);
             }
             else

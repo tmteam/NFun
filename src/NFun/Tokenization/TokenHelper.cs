@@ -22,8 +22,30 @@ namespace NFun.Tokenization
             }
 
             var longVal = ParseLongValue(val);
-            if (longVal > Int32.MaxValue || longVal < Int32.MinValue)
-                return (longVal, VarType.Int64);
+
+            /* todo uiXXiXX  
+            if (longVal >= 0)
+            {
+                if (longVal <= byte.MaxValue)
+                    return ((byte) longVal, VarType.UInt8);
+                if(longVal <= UInt16.MaxValue)
+                    return ((UInt16) longVal, VarType.UInt16);
+            }
+            else
+            {
+                if(longVal > Int16.MinValue)
+                    return ((Int16) longVal, VarType.Int16);
+            }
+            */
+            if( longVal<Int32.MinValue)
+                return ( longVal, VarType.Int64);
+            if (longVal > Int32.MaxValue)
+            {
+                if (longVal > UInt32.MaxValue)
+                    return (longVal, VarType.Int64);
+                
+                return ((uint) longVal, VarType.UInt32);
+            }
             return ((int) longVal, VarType.Int32);
         }
 
@@ -31,7 +53,6 @@ namespace NFun.Tokenization
         {
             if (val.Length > 2)
             {
-
                 if (val[1] == 'b')
                 {
                     var uval = Convert.ToUInt64(val.Substring(2), 2);
@@ -54,10 +75,22 @@ namespace NFun.Tokenization
         {
             switch (token.Type)
             {
+                case TokType.Int16Type:
+                    return  VarType.Int16;
                 case TokType.Int32Type:
                     return  VarType.Int32;
                 case TokType.Int64Type:
                     return VarType.Int64;
+                
+                case TokType.UInt8Type:
+                    return  VarType.UInt8;
+                case TokType.UInt16Type:
+                    return  VarType.UInt16;
+                case TokType.UInt32Type:
+                    return  VarType.UInt32;
+                case TokType.UInt64Type:
+                    return VarType.UInt64;
+
                 case TokType.RealType:
                     return  VarType.Real;
                 case TokType.BoolType:
@@ -114,18 +147,16 @@ namespace NFun.Tokenization
             {
                 var prev = flow.Previous;
                 if (prev == null)
-                    throw new FunParseException(000, $"\"{tokType}\" is missing at end of stream",
-                        -1,
-                        -1);
+                    throw FunParseException.ErrorStubToDo($"\"{tokType}\" is missing at end of stream");
                 else
-                    throw new FunParseException(001, $"\"{tokType}\" is missing at end of stream",
-                        prev.Start, prev.Finish);
+                    throw FunParseException.ErrorStubToDo($"\"{tokType}\" is missing at end of stream");
+                //prev.Start, prev.Finish);
             }
 
             if (!cur.Is(tokType))
-                throw new FunParseException(002,
-                    $"\"{tokType}\" is missing but was \"{cur}\"",
-                    cur.Start, cur.Finish);
+                throw FunParseException.ErrorStubToDo(
+                    $"\"{tokType}\" is missing but was \"{cur}\"");
+                    //cur.Start, cur.Finish);
             
             flow.MoveNext();
             return cur;

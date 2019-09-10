@@ -1,6 +1,5 @@
 using System;
 using NFun.SyntaxParsing;
-using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
 using NFun.Types;
 
@@ -14,7 +13,17 @@ namespace NFun.Runtime
         public readonly string Name;
 
         public readonly Interval? TypeSpecificationIntervalOrNull;
-        public VariableSource(
+        public static VariableSource CreateWithStrictTypeLabel( string name, 
+            VarType type, 
+            Interval typeSpecificationIntervalOrNull, 
+            VarAttribute[] attributes = null)
+            => new VariableSource(name, type, typeSpecificationIntervalOrNull, attributes);
+
+        public static VariableSource CreateWithoutStrictTypeLabel(
+            string name, VarType type,  VarAttribute[] attributes = null)
+            => new VariableSource(name, type, attributes);
+        
+        private VariableSource(
             string name, 
             VarType type, 
             Interval typeSpecificationIntervalOrNull, 
@@ -54,11 +63,26 @@ namespace NFun.Runtime
                 case BaseVarType.Bool:
                     Value = Convert.ToBoolean(valueValue);
                     break;
+                case BaseVarType.Int16:
+                    Value = Convert.ToInt16(valueValue);
+                    break;
                 case BaseVarType.Int32:
                     Value = Convert.ToInt32(valueValue);
                     break;
                 case BaseVarType.Int64:
                     Value = Convert.ToInt64(valueValue);
+                    break;
+                case BaseVarType.UInt8:
+                    Value = Convert.ToByte(valueValue);
+                    break;
+                case BaseVarType.UInt16:
+                    Value = Convert.ToUInt16(valueValue);
+                    break;
+                case BaseVarType.UInt32:
+                    Value = Convert.ToUInt32(valueValue);
+                    break;
+                case BaseVarType.UInt64:
+                    Value = Convert.ToUInt64(valueValue);
                     break;
                 case BaseVarType.Real:
                     Value = Convert.ToDouble(valueValue);

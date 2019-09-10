@@ -117,6 +117,7 @@ namespace Funny.Tests
         
 
         [TestCase("y = 2*x",3,6)]
+        [TestCase("y = 2*x",3.5,7.0)]
         [TestCase("y = 4/x",2,2)]
         [TestCase("y = x/4",10,2.5)]
         [TestCase("y = 4- x",3,1)]
