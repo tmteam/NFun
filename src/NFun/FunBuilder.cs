@@ -40,7 +40,7 @@ namespace NFun
         public FunRuntime Build()
         {
             var flow = Tokenizer.ToFlow(_text);
-            var syntaxTree = TopLevelParser.Parse(flow);
+            var syntaxTree = Parser.Parse(flow);
 
             //Set node numbers
             syntaxTree.ComeOver(new SetNodeNumberVisitor());
@@ -62,7 +62,7 @@ namespace NFun
         public static IEnumerable<FunctionBase> PredefinedFunctions => _predefinedFunctions;
         public static IEnumerable<GenericFunctionBase> PredefinedGenericFunctions => predefinedGenerics;
 
-        internal static readonly GenericFunctionBase[] predefinedGenerics =
+        private static readonly GenericFunctionBase[] predefinedGenerics =
         {
             new IsInSingleGenericFunctionDefenition(), 
             //new IsInMultipleGenericFunctionDefenition(), 
@@ -93,7 +93,8 @@ namespace NFun
             new AnyGenericFunctionDefenition(), 
             new ReverseGenericFunctionDefenition(),
         };
-        internal static readonly FunctionBase[] _predefinedFunctions = 
+
+        private static readonly FunctionBase[] _predefinedFunctions = 
             {
                 new InvertFunction(), 
                 new AndFunction(), 
@@ -118,7 +119,6 @@ namespace NFun
                 new AddUInt8Function(),
                 new AddUInt32Function(),
                 new AddUInt64Function(),
-
                 
                 new SubstractInt16Function(),
                 new SubstractInt32Function(), 
@@ -127,7 +127,6 @@ namespace NFun
                 new SubstractUInt32Function(), 
                 new SubstractUInt64Function(), 
                 new SubstractRealFunction(), 
-
                 
                 //new AddTextFunction(CoreFunNames.Add),
                 
@@ -172,7 +171,6 @@ namespace NFun
                 new BitInverseUInt16Function(), 
                 new BitInverseUInt32Function(), 
                 new BitInverseUInt64Function(), 
-
                 
                 new PowRealFunction(), 
                 
@@ -258,7 +256,6 @@ namespace NFun
                 new ToUint16FromUint64Function(), 
                 new ToUint32FromUint64Function(), 
                 new ToUint64FromUint64Function(), 
-
                 
                 new EFunction(), 
                 new PiFunction(),

@@ -8,13 +8,13 @@ using NFun.Types;
 namespace NFun.SyntaxParsing
 {
     
-    public class TopLevelParser
+    public class Parser
     {
         private readonly TokFlow _flow;
         public const string AnonymousEquationId = "out";
 
         public static SyntaxTree Parse(TokFlow flow)
-            =>new TopLevelParser(flow).InternalParse(flow);
+            =>new Parser(flow).InternalParse(flow);
         
         private readonly SyntaxNodeReader _reader ;
         private readonly List<ISyntaxNode> _nodes = new List<ISyntaxNode>();
@@ -26,12 +26,13 @@ namespace NFun.SyntaxParsing
         private bool _startOfTheLine = false;
         private int _exprStartPosition = 0;
         private VarAttribute[] _attributes;
-        public TopLevelParser(TokFlow flow)
+        public Parser(TokFlow flow)
         {
-            this._flow = flow;
+            _flow = flow;
             _reader = new SyntaxNodeReader(flow);
         }
-        public SyntaxTree InternalParse(TokFlow flow)
+
+        private SyntaxTree InternalParse(TokFlow flow)
         {
             while (true)
             {
@@ -42,7 +43,7 @@ namespace NFun.SyntaxParsing
                 _startOfTheLine       = flow.IsStartOfTheLine();
                 _exprStartPosition    = flow.Current.Start;
 
-                var e = _reader.ReadExpressionOrNull()
+                var e = _reader.ReadNodeOrNull()
                         ?? throw ErrorFactory.UnknownValueAtStartOfExpression(_exprStartPosition, flow.Current);
                 
                 
@@ -127,7 +128,7 @@ namespace NFun.SyntaxParsing
             if (!_flow.MoveIf(TokType.Def, out var def))
                 throw ErrorFactory.FunDefTokenIsMissed(id, arguments, _flow.Current);  
 
-            var expression = _reader.ReadExpressionOrNull();
+            var expression = _reader.ReadNodeOrNull();
             if (expression == null)
             {
 
@@ -167,7 +168,7 @@ namespace NFun.SyntaxParsing
         {
             flow.SkipNewLines();
             var start = flow.Position;
-            var exNode = reader.ReadExpressionOrNull();
+            var exNode = reader.ReadNodeOrNull();
             if (exNode == null)
                 throw ErrorFactory.VarExpressionIsMissed(start, id, flow.Current);
             return new EquationSyntaxNode(id, start, exNode, attributes);

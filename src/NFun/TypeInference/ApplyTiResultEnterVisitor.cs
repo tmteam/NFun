@@ -15,14 +15,14 @@ namespace NFun.TypeInference
             _solving = solving;
             _tiToLangTypeConverter = tiToLangTypeConverter;
         }
-        public override VisitorResult Visit(IfThenElseSyntaxNode node){
+        public override VisitorEnterResult Visit(IfThenElseSyntaxNode node){
             var result = DefaultVisit(node);
             return result;
         }
-        public override VisitorResult Visit(FunCallSyntaxNode node)
+        public override VisitorEnterResult Visit(FunCallSyntaxNode node)
         {
             var result = DefaultVisit(node);
-            if (result != VisitorResult.Continue)
+            if (result != VisitorEnterResult.Continue)
                 return result;
             
             //Get overload from Ti - algorithm
@@ -31,19 +31,19 @@ namespace NFun.TypeInference
             return  result;
         }
 
-        protected override VisitorResult DefaultVisit(ISyntaxNode node)
+        protected override VisitorEnterResult DefaultVisit(ISyntaxNode node)
         {
             var type = _solving.GetNodeTypeOrEmpty(node.OrderNumber, _tiToLangTypeConverter);
             
             node.OutputType = type;
             
-            return VisitorResult.Continue;
+            return VisitorEnterResult.Continue;
         }
 
 
-        public override VisitorResult Visit(UserFunctionDefenitionSyntaxNode node)
+        public override VisitorEnterResult Visit(UserFunctionDefenitionSyntaxNode node)
         {
-            return VisitorResult.Continue;
+            return VisitorEnterResult.Continue;
         }
 
     }

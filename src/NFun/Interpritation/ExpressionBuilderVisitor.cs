@@ -23,7 +23,7 @@ namespace NFun.Interpritation
             ISyntaxNode node, 
             FunctionsDictionary functions,
             VariableDictionary variables) =>
-            node.Visit(new ExpressionBuilderVisitor(functions, variables));
+            node.Accept(new ExpressionBuilderVisitor(functions, variables));
 
         public static IExpressionNode BuildExpression(
             ISyntaxNode node, 
@@ -31,7 +31,7 @@ namespace NFun.Interpritation
             VarType outputType,
             VariableDictionary variables)
         {
-            var result =  node.Visit(new ExpressionBuilderVisitor(functions, variables));
+            var result =  node.Accept(new ExpressionBuilderVisitor(functions, variables));
             if (result.Type == outputType)
                 return result;
             var converter = VarTypeConverter.GetConverterOrThrow(result.Type, outputType, node.Interval);
@@ -216,7 +216,7 @@ namespace NFun.Interpritation
         #endregion
         private IExpressionNode Bad(ISyntaxNode node)=> throw ErrorFactory.NotAnExpression(node);
 
-        private IExpressionNode ReadNode(ISyntaxNode node) => node.Visit(this);
+        private IExpressionNode ReadNode(ISyntaxNode node) => node.Accept(this);
         private IExpressionNode GetOrAddVariableNode(VariableSyntaxNode varNode)
         {
             var lower = varNode.Id;

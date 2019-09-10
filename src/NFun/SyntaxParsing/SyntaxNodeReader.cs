@@ -14,6 +14,29 @@ namespace NFun.SyntaxParsing
     {
         private readonly TokFlow _flow;
 
+        #region factories
+
+        public static ISyntaxNode ReadNodeOrNull(TokFlow flow)
+        {
+            return new SyntaxNodeReader(flow).ReadNodeOrNull();
+        }
+
+        public static ISyntaxNode ReadNodeAndFinallyReturnBack(TokFlow flow)
+        {
+            int lastFlowPosition = flow.CurrentTokenPosition;
+            try
+            {
+                return new SyntaxNodeReader(flow).ReadNodeOrNull();
+            }
+            catch (FunParseException){}
+            finally
+            {
+                flow.Move(lastFlowPosition);
+            }
+            throw new InvalidOperationException();
+        }
+        #endregion
+        
         static SyntaxNodeReader()
         {
             var priorities = new List<TokType[]>();
@@ -113,13 +136,13 @@ namespace NFun.SyntaxParsing
             _flow = flow;
         }
 
-        public ISyntaxNode ReadExpressionOrNull()
+        public ISyntaxNode ReadNodeOrNull()
             => ReadNext(MaxPriority);
         
         //ReadZeroPriority operation (num, -num, id, fun, if, (...))
         private ISyntaxNode ReadAtomicOrNull()
         {
-           var hasNewLineBefore = _flow.SkipNewLines();
+           _flow.SkipNewLines();
 
             //-num turns to (-1 * num)
             var start = _flow.Position;
@@ -221,7 +244,7 @@ namespace NFun.SyntaxParsing
             //building the syntax tree
             while (true)
             {
-                var hasNewLines = _flow.SkipNewLines();
+                _flow.SkipNewLines();
                 //if flow is done than current node is everything we got
                 // example:
                 // 1*2+3 {return whole expression }
@@ -268,7 +291,7 @@ namespace NFun.SyntaxParsing
                 else if (opToken.Type == TokType.AnonymFun)
                 {
                     _flow.MoveNext();
-                    var body = ReadExpressionOrNull();       
+                    var body = ReadNodeOrNull();       
                     leftNode = SyntaxNodeFactory.AnonymFun(leftNode, body);
                 }
                 
@@ -308,7 +331,7 @@ namespace NFun.SyntaxParsing
         {
             var openBraket = _flow.Current;
             _flow.MoveNext();
-            var index = ReadExpressionOrNull();
+            var index = ReadNodeOrNull();
             
             if (!_flow.MoveIf(TokType.Colon, out var colon))
             {
@@ -330,7 +353,7 @@ namespace NFun.SyntaxParsing
             
             index = index ?? SyntaxNodeFactory.Constant(0, VarType.Int32, Interval.New(openBraket.Start, colon.Finish));
             
-            var end = ReadExpressionOrNull()?? 
+            var end = ReadNodeOrNull()?? 
                       SyntaxNodeFactory.Constant(int.MaxValue, VarType.Int32, Interval.New(colon.Finish, _flow.Position));
             
             if (!_flow.MoveIf(TokType.Colon, out _))
@@ -345,7 +368,7 @@ namespace NFun.SyntaxParsing
                 }, openBraket.Start, _flow.Position);
             }
             
-            var step = ReadExpressionOrNull();
+            var step = ReadNodeOrNull();
             if(!_flow.MoveIf(TokType.ArrCBr))
                 throw ErrorFactory.ArraySliceCbrMissed(openBraket,_flow.Current, true);
             if(step==null)
@@ -364,7 +387,7 @@ namespace NFun.SyntaxParsing
             read = new List<ISyntaxNode>();
             do
             {
-                var exp = ReadExpressionOrNull();
+                var exp = ReadNodeOrNull();
                 if (exp != null)
                     read.Add(exp);
                 else if (read.Count > 0)
@@ -380,7 +403,7 @@ namespace NFun.SyntaxParsing
             int start = _flow.Current.Start;
             do
             {
-                var exp = ReadExpressionOrNull();
+                var exp = ReadNodeOrNull();
                 if (exp != null)
                     list.Add(exp);
                 else if (list.Count > 0)
@@ -403,7 +426,7 @@ namespace NFun.SyntaxParsing
             }
             if (list.Count == 1 && _flow.MoveIf(TokType.TwoDots, out var twoDots))
             {
-                var secondArg = ReadExpressionOrNull();
+                var secondArg = ReadNodeOrNull();
                 if (secondArg == null)
                 {
                     var lastToken = twoDots;
@@ -422,7 +445,7 @@ namespace NFun.SyntaxParsing
 
                 if (_flow.MoveIf(TokType.TwoDots, out var secondTwoDots))
                 {
-                    var thirdArg = ReadExpressionOrNull();
+                    var thirdArg = ReadNodeOrNull();
                     if (thirdArg == null)
                     {
                         var lastToken = secondTwoDots;
@@ -502,20 +525,20 @@ namespace NFun.SyntaxParsing
                 //(condition)
                 if (!_flow.MoveIf(TokType.Obr))
                 {
-                    var failedExpr = ReadExpressionOrNull();
+                    var failedExpr = ReadNodeOrNull();
                     if(failedExpr!=null)
                         throw ErrorFactory.IfConditionIsNotInBrackets(failedExpr.Interval.Start,failedExpr.Interval.Finish);
                     else    
                         throw ErrorFactory.IfConditionIsNotInBrackets(ifElseStart, _flow.Position);
                 }
-                var condition =  ReadExpressionOrNull();
+                var condition =  ReadNodeOrNull();
                 if (condition == null)
                     throw ErrorFactory.ConditionIsMissing(conditionStart, _flow.Position);
                 if(!_flow.MoveIf(TokType.Cbr))
                     throw ErrorFactory.IfConditionIsNotInBrackets(ifElseStart, _flow.Position);
                 
                 //then
-                var thenResult = ReadExpressionOrNull();
+                var thenResult = ReadNodeOrNull();
                 if (thenResult == null)
                     throw ErrorFactory.ThenExpressionIsMissing(conditionStart, _flow.Position);
                 
@@ -527,7 +550,7 @@ namespace NFun.SyntaxParsing
             if(!_flow.MoveIf(TokType.Else))
                 throw ErrorFactory.ElseKeywordIsMissing(ifElseStart, _flow.Position);
 
-            var elseResult = ReadExpressionOrNull();
+            var elseResult = ReadNodeOrNull();
             if (elseResult == null)
                 throw ErrorFactory.ElseExpressionIsMissing(ifElseStart, _flow.Position);
 
