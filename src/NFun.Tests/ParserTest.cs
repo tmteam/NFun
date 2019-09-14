@@ -86,7 +86,7 @@ namespace Funny.Tests
         }
         private void AssertParsed(ISyntaxNode node,string expectedExpr)
         {
-            var expectedExpression = new SyntaxNodeReader(Tokenizer.ToFlow(expectedExpr)).ReadNodeOrNull();
+            var expectedExpression = SyntaxNodeReader.ReadNodeOrNull(Tokenizer.ToFlow(expectedExpr));
             AssertEquals(expectedExpression, node);
         }
 

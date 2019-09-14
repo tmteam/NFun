@@ -152,7 +152,10 @@ namespace NFun.ParseErrors
                 return new ExprListError(ExprListErrorType.SingleOpenBracket, list, 
                     new Interval(obrStart, obrStart+1));
 
-            var nextExpression = SyntaxNodeReader.ReadNodeAndFinallyReturnBack(flow);
+            var position = flow.CurrentTokenPosition;
+            var nextExpression = SyntaxNodeReader.ReadNodeOrNull(flow);
+            flow.Move(position);
+
             if (nextExpression != null)//[x y] <- separator is missed
                 return new ExprListError(ExprListErrorType.SepIsMissing, 
                     list, new Interval(list.Last().Interval.Finish, nextExpression.Interval.Start));
