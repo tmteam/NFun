@@ -20,21 +20,26 @@ namespace NFun.Interpritation
             SyntaxTree syntaxTree,
             FunctionsDictionary functionsDictionary)
         {
-            var userFunctions = new List<UserFunction>();
-            //get topology sort of the functions
-            var functionSolveOrder  = FindFunctionsSolvingOrderOrThrow(syntaxTree);
-            
+            #region build user functions
+            //get topology sort of the functions call
+            //result is the order of functions that need to be compiled
+            //functions that not references other functions have to be compiled firstly
+            //Then those functions will be compiled
+            //that refer to already compiled functions
+            var functionSolveOrder  = syntaxTree.FindFunctionSolvingOrderOrThrow();
+
             //build user functions
+            var userFunctions = new List<UserFunction>();
             foreach (var functionSyntaxNode in functionSolveOrder)
             {
                var userFunction =  BuildFunctionAndPutItToDictionary(functionSyntaxNode, functionsDictionary);
                userFunctions.Add(userFunction);
             }
-
-            var bodyTypeSolving = LangTiHelper.SetupTiOrNull(syntaxTree, functionsDictionary)?.Solve();
+            #endregion
             
-            if (bodyTypeSolving?.IsSolved!=true)
-                throw ErrorFactory.TypesNotSolved(syntaxTree);
+            #region solve body types
+            //Solve types for all equations nodes
+            var bodyTypeSolving = LangTiHelper.SolveOrThrow(syntaxTree, functionsDictionary);
 
             foreach (var syntaxNode in syntaxTree.Children)
             {
@@ -47,18 +52,20 @@ namespace NFun.Interpritation
                     enterVisitor: new ApplyTiResultEnterVisitor(bodyTypeSolving, TiToLangTypeConverter.SetGenericsToAny),
                     exitVisitor:  new ApplyTiResultsExitVisitor());
             }
+            #endregion
             
+            #region build body
             var variables = new VariableDictionary(); 
             var equations = new List<Equation>();
-
-            foreach (var lexRoot in syntaxTree.Nodes)
+        
+            foreach (var treeNode in syntaxTree.Nodes)
             {
-                if (lexRoot is EquationSyntaxNode node)
+                if (treeNode is EquationSyntaxNode node)
                 {
                     var equation = BuildEquationAndPutItToVariables(node, functionsDictionary, variables);
                     equations.Add(equation);
                 }
-                else if (lexRoot is VarDefenitionSyntaxNode varDef)
+                else if (treeNode is VarDefenitionSyntaxNode varDef)
                 {
                     var variableSource = VariableSource.CreateWithStrictTypeLabel(
                         varDef.Id, 
@@ -71,15 +78,19 @@ namespace NFun.Interpritation
                         throw ErrorFactory.VariableIsDeclaredAfterUsing(allUsages);
                     }
                 }
-                else if(lexRoot is UserFunctionDefenitionSyntaxNode)
+                else if(treeNode is UserFunctionDefenitionSyntaxNode)
                     continue;//user function was built above
                 else 
-                    throw  new InvalidOperationException($"Type {lexRoot} is not supported as tree root");
+                    throw  new InvalidOperationException($"Type {treeNode} is not supported as tree root");
             }   
+            #endregion
             return new FunRuntime(equations, variables, userFunctions);
         }
 
-        private static Equation BuildEquationAndPutItToVariables(EquationSyntaxNode equation,FunctionsDictionary functionsDictionary, VariableDictionary variables)
+        private static Equation BuildEquationAndPutItToVariables(
+            EquationSyntaxNode equation,
+            FunctionsDictionary functionsDictionary, 
+            VariableDictionary variables)
         {
             var expression = ExpressionBuilderVisitor.BuildExpression(
                 node: equation.Expression, 
@@ -178,84 +189,71 @@ namespace NFun.Interpritation
         }
 
         private static UserFunction BuildGenericFunction(
-            UserFunctionDefenitionSyntaxNode lexFunction, 
-            GenericUserFunctionPrototype prototype, 
-            FunctionsDictionary functionsDictionary)
+            UserFunctionDefenitionSyntaxNode functionSyntax, 
+            GenericUserFunctionPrototype     functionPrototype, 
+            FunctionsDictionary              functionsDictionary)
         {
             var vars = new VariableDictionary();
-            for (int i = 0; i < lexFunction.Args.Count ; i++)
+            for (int i = 0; i < functionSyntax.Args.Count ; i++)
             {
-                var id = lexFunction.Args[i].Id;
-                if (!vars.TryAdd(VariableSource.CreateWithoutStrictTypeLabel(id, prototype.ArgTypes[i])))
+                var id = functionSyntax.Args[i].Id;
+                if (!vars.TryAdd(VariableSource.CreateWithoutStrictTypeLabel(id, functionPrototype.ArgTypes[i])))
                 {
-                    throw ErrorFactory.FunctionArgumentDuplicates(lexFunction, lexFunction.Args[i]);
+                    throw ErrorFactory.FunctionArgumentDuplicates(functionSyntax, functionSyntax.Args[i]);
                 }
 
             }
             var expression = ExpressionBuilderVisitor
-                .BuildExpression(lexFunction.Body, functionsDictionary, vars);
+                .BuildExpression(functionSyntax.Body, functionsDictionary, vars);
             
             vars.ThrowIfSomeVariablesNotExistsInTheList(
-                 lexFunction.Args.Select(a=>a.Id));
+                 functionSyntax.Args.Select(a=>a.Id));
             
             var function = new UserFunction(
-                name: lexFunction.Id, 
+                name: functionSyntax.Id, 
                 variables: vars.GetAllSources(),
-                isReturnTypeStrictlyTyped: lexFunction.ReturnType!= VarType.Empty, 
+                isReturnTypeStrictlyTyped: functionSyntax.ReturnType!= VarType.Empty, 
                 expression: expression);
             
-            prototype.SetActual(function, lexFunction.Interval);
+            functionPrototype.SetActual(function, functionSyntax.Interval);
             
             return function;
         }
         
         private static UserFunction BuildConcreteFunction(
-            UserFunctionDefenitionSyntaxNode lexFunction, 
-            ConcreteUserFunctionPrototype prototype, 
+            UserFunctionDefenitionSyntaxNode functionSyntax, 
+            ConcreteUserFunctionPrototype functionPrototype, 
             FunctionsDictionary functionsDictionary)
         {
             var vars = new VariableDictionary();
-            for (int i = 0; i < lexFunction.Args.Count ; i++)
+            for (int i = 0; i < functionSyntax.Args.Count ; i++)
             {
-                var variableSource = CreateVariableSourceForArgument(
-                    lexFunction.Args[i], 
-                    prototype.ArgTypes[i]);
+                var variableSource = RuntimeBuilderHelper.CreateVariableSourceForArgument(
+                    argSyntax:  functionSyntax.Args[i], 
+                    actualType: functionPrototype.ArgTypes[i]);
+                
                 if (!vars.TryAdd(variableSource))
-                {
-                    throw ErrorFactory.FunctionArgumentDuplicates(lexFunction, lexFunction.Args[i]);
-                }
+                    throw ErrorFactory.FunctionArgumentDuplicates(functionSyntax, functionSyntax.Args[i]);
             }
             
             var bodyExpression = ExpressionBuilderVisitor.BuildExpression(
-                    node: lexFunction.Body, 
+                    node: functionSyntax.Body, 
                     functions: functionsDictionary, 
-                    outputType: lexFunction.ReturnType== VarType.Empty
-                                    ?lexFunction.Body.OutputType
-                                    :lexFunction.ReturnType,
+                    outputType: functionSyntax.ReturnType== VarType.Empty
+                                    ?functionSyntax.Body.OutputType
+                                    :functionSyntax.ReturnType,
                     variables: vars);
             
             vars.ThrowIfSomeVariablesNotExistsInTheList(
-                 lexFunction.Args.Select(a=>a.Id));
+                 functionSyntax.Args.Select(a=>a.Id));
             
             var function = new UserFunction(
-                name: lexFunction.Id, 
-                variables: vars.GetAllSources(), 
-                isReturnTypeStrictlyTyped: lexFunction.ReturnType!= VarType.Empty, 
-                expression: bodyExpression);
-            prototype.SetActual(function, lexFunction.Interval);
+                name:                      functionSyntax.Id, 
+                variables:                 vars.GetAllSources(), 
+                isReturnTypeStrictlyTyped: functionSyntax.ReturnType!= VarType.Empty, 
+                expression:                bodyExpression);
+            functionPrototype.SetActual(function, functionSyntax.Interval);
             return function;
-        }
-
-        private static VariableSource CreateVariableSourceForArgument(
-            TypedVarDefSyntaxNode argSyntax,
-            VarType actualType)
-        {
-            if(argSyntax.VarType != VarType.Empty)
-                return VariableSource.CreateWithStrictTypeLabel(argSyntax.Id, actualType, argSyntax.Interval);
-            else
-                return VariableSource.CreateWithoutStrictTypeLabel(
-                    name: argSyntax.Id,
-                    type: actualType);
         }
 
         private static SetupTiState CreateVisitorStateFor(UserFunctionDefenitionSyntaxNode node)
@@ -297,48 +295,6 @@ namespace NFun.Interpritation
             visitorState.CurrentSolver
                 .SetVarType(node.GetFunAlias(), TiType.Fun(outputType, argTypes.ToArray()));
             return visitorState;
-        }
-        
-        /// <summary>
-        /// Gets order of calculating the functions, based on its co using.
-        /// </summary>
-        private static UserFunctionDefenitionSyntaxNode[] FindFunctionsSolvingOrderOrThrow(SyntaxTree syntaxTree)
-        {
-            var userFunctions = syntaxTree.Children.OfType<UserFunctionDefenitionSyntaxNode>().ToList();
-
-            var userFunctionsNames = new Dictionary<string, int>();
-            int i = 0;
-            foreach (var userFunction in userFunctions)
-            {
-                var alias = userFunction.GetFunAlias();
-                if (userFunctionsNames.ContainsKey(alias))
-                    throw ErrorFactory.FunctionAlreadyExist(userFunction);
-                userFunctionsNames.Add(alias, i);
-                i++;
-            }
-
-            int[][] dependenciesGraph = new int[i][];
-            int j = 0;
-            foreach (var userFunction in userFunctions)
-            {
-                var visitor = new FindFunctionDependenciesVisitor(userFunctionsNames);
-                if (!userFunction.ComeOver(visitor))
-                    throw new InvalidOperationException("User fun come over");
-                dependenciesGraph[j] = visitor.GetFoundDependencies();
-                j++;
-            }
-
-            var sortResults = GraphTools.SortCycledTopology(dependenciesGraph);
-
-            var functionSolveOrder = new UserFunctionDefenitionSyntaxNode[sortResults.NodeNames.Length];
-            for (int k = 0; k < sortResults.NodeNames.Length; k++)
-                functionSolveOrder[k] = userFunctions[sortResults.NodeNames[k]];
-            
-            if (sortResults.HasCycle)
-                //if functions has cycle, then function sovle order is cycled
-                throw ErrorFactory.ComplexRecursion(functionSolveOrder);
-          
-            return functionSolveOrder;
         }
     }
 }
