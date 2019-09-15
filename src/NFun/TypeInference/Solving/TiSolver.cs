@@ -194,11 +194,12 @@ namespace NFun.TypeInference.Solving
                 var candidates = TiFunctionSignature.GetBestFits(lazyOverload.Candidates, 
                     GetOrCreate(lazyOverload.ReturnNodeId),
                     lazyOverload.ArgIds.Select(GetOrCreate).ToArray());
-                if(candidates.Length==0){
-                    throw FunParseException.ErrorStubToDo("No functions fits");
+                if(candidates.Length==0)
+                {
+                    return TiResult.NoFunctionsFits(lazyOverload.ReturnNodeId);
                 }
                 if(candidates.Length>1){
-                    throw FunParseException.ErrorStubToDo("Overload with several candidates");
+                    return TiResult.SeveralOverloadCandidates(lazyOverload.ReturnNodeId);
                 }
 
                 var bestCandidate = candidates[0];

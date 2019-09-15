@@ -6,13 +6,50 @@ using NFun.Runtime;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
+using NFun.Tokenization;
 using NFun.TypeInference;
+using NFun.TypeInference.Solving;
 using NFun.Types;
 
 namespace NFun.Interpritation
 {
     public static class RuntimeBuilderHelper
     {
+        public static TiResult SolveOrThrow(SyntaxTree syntaxTree, FunctionsDictionary functionsDictionary)
+        {
+            var bodyTypeSolving =  LangTiHelper.SetupTiOrNull(syntaxTree, functionsDictionary)?.Solve();
+
+            if (bodyTypeSolving == null)
+                throw ErrorFactory.TypesNotSolved(syntaxTree);
+            if (bodyTypeSolving?.IsSolved != true)
+            {
+                var failedNodeOrNull = syntaxTree.GetDescendantNodeOrNull(bodyTypeSolving.FailedNodeId);
+                ThrowTiError(syntaxTree, bodyTypeSolving.Result, failedNodeOrNull);
+            }
+            return bodyTypeSolving;
+        }
+        public static void ThrowIfNotSolved(ISyntaxNode functionSyntaxNode, TiResult types)
+        {
+            if (types.IsSolved) return;
+            var failedNodeOrNull = functionSyntaxNode.GetDescendantNodeOrNull(types.FailedNodeId);
+            ThrowTiError(functionSyntaxNode, types.Result, failedNodeOrNull);
+        }
+
+        private static void ThrowTiError(ISyntaxNode root, TiSolveResult result,ISyntaxNode failedNodeOrNull)
+        {
+            switch (result)
+            {
+                case TiSolveResult.Solved:
+                    throw new InvalidOperationException();
+                case TiSolveResult.NotSolvedOverloadWithSeveralCandidates:
+                    throw ErrorFactory.AmbiguousFunctionChoise(failedNodeOrNull);
+                case TiSolveResult.NotSolvedNoFunctionFits:
+                    throw ErrorFactory.FunctionIsNotExists(failedNodeOrNull);
+                default:
+                    throw ErrorFactory.TypesNotSolved(root);
+            }
+        }
+
         public static void ThrowIfSomeVariablesNotExistsInTheList(this VariableDictionary resultVariables, IEnumerable<string> list )
         {
             var unknownVariables = resultVariables.GetAllUsages()

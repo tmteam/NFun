@@ -39,7 +39,7 @@ namespace NFun.Interpritation
             
             #region solve body types
             //Solve types for all equations nodes
-            var bodyTypeSolving = LangTiHelper.SolveOrThrow(syntaxTree, functionsDictionary);
+            var bodyTypeSolving = RuntimeBuilderHelper.SolveOrThrow(syntaxTree, functionsDictionary);
 
             foreach (var syntaxNode in syntaxTree.Children)
             {
@@ -157,8 +157,7 @@ namespace NFun.Interpritation
             
             // solve the types
             var types = typeSolving.Solve();
-            if (!types.IsSolved)
-                throw ErrorFactory.TypesNotSolved(functionSyntaxNode);
+            RuntimeBuilderHelper.ThrowIfNotSolved(functionSyntaxNode, types);
 
             var isGeneric = types.GenericsCount > 0;
             //set types to nodes
@@ -187,6 +186,8 @@ namespace NFun.Interpritation
                 return BuildConcreteFunction(functionSyntaxNode, prototype, functionsDictionary);
             }
         }
+
+        
 
         private static UserFunction BuildGenericFunction(
             UserFunctionDefenitionSyntaxNode functionSyntax, 

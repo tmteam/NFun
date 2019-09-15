@@ -29,14 +29,7 @@ namespace NFun.TypeInference
             return null;
         }
 
-        public static TiResult SolveOrThrow(SyntaxTree syntaxTree, FunctionsDictionary functionsDictionary)
-        {
-            var bodyTypeSolving = SetupTiOrNull(syntaxTree, functionsDictionary)?.Solve();
-            
-            if (bodyTypeSolving?.IsSolved!=true)
-                throw ErrorFactory.TypesNotSolved(syntaxTree);
-            return bodyTypeSolving;
-        }
+        
         public static string GetArgAlias(string funAlias, string argId)
             =>  funAlias + "::" + argId;
         public static string GetFunAlias(string funId, int argsCount)

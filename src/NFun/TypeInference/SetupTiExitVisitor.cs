@@ -225,9 +225,7 @@ namespace NFun.TypeInference
             //ambiguous function reference
             //Several functions fits
             if (userFunctions.Count > 1)
-                throw ErrorFactory.AmbiguousFunctionChoise(
-                    userFunctions.Select(u=>u as FunctionBase).ToList(), 
-                    node);
+                throw ErrorFactory.AmbiguousFunctionChoise(node);
             
             //if there is no functions - set variable with local name
             if (userFunctions.Count == 0)

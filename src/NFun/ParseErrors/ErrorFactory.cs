@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using NFun.Interpritation;
 using NFun.Interpritation.Functions;
 using NFun.Interpritation.Nodes;
@@ -421,14 +420,29 @@ namespace NFun.ParseErrors
         public static Exception AnonymousFunArgumentIsIncorrect(ISyntaxNode node)
             => new FunParseException(518, "Invalid anonymous fun argument", node.Interval);
 
-        public static Exception AmbiguousCallOfFunction(IList<FunctionBase> funVars, string funName, Interval interval)
-            => throw new FunParseException(521,$"Ambiguous call of function with name: {funName}", interval);
+        public static Exception FunctionIsNotExists(ISyntaxNode node)
+        {
+            if(node is FunCallSyntaxNode fc)                
+                return new FunParseException(521, $"Unknown function {fc.Id}", fc.Interval);
+            return new FunParseException(521, $"Unknown function", node?.Interval??Interval.Empty);
+        }
 
-        public static Exception AmbiguousFunctionChoise(IList<FunctionBase> funVars, VariableSyntaxNode varName)
-            => throw new FunParseException(524,$"Several functions with name: {varName.Id} can be used in expression. Did you mean input variable instead of function?", varName.Interval);
+
+        public static Exception AmbiguousFunctionChoise(ISyntaxNode node)
+        {
+            if (node is FunCallSyntaxNode fc)
+
+                return new FunParseException(524,
+                    $"Several functions with name: {fc.Id} can be used in expression. Did you mean input variable instead of function?",
+                    node.Interval);
+            return new FunParseException(525, $"Ambiguous function call", node?.Interval ?? Interval.Empty);
+        }
+
+        public static Exception AmbiguousFunctionChoise(VariableSyntaxNode varName)
+            =>  new FunParseException(526,$"Several functions with name: {varName.Id} can be used in expression. Did you mean input variable instead of function?", varName.Interval);
         
         public static Exception ArrayInitializerTypeMismatch(VarType stepType, ISyntaxNode node)
-            => throw new FunParseException(527,$"Array initializator step has to be int type only but was '{stepType}'. Example: [1..5..2]", node.Interval);
+            => new FunParseException(527,$"Array initializator step has to be int type only but was '{stepType}'. Example: [1..5..2]", node.Interval);
 
         public static Exception CannotParseNumber(string val, Interval interval)
             => new FunParseException(530, $"Cannot parse number '{val}'", interval);
@@ -552,6 +566,9 @@ namespace NFun.ParseErrors
         public static Exception TypesNotSolved(ISyntaxNode syntaxNode)
             => new FunParseException(600,$"Types cannot be solved ",syntaxNode.Interval);        
         
+        public static Exception TypesNotSolved(Interval interval)
+            => new FunParseException(600,$"Types cannot be solved ",interval);        
+
         public static Exception FunctionTypesNotSolved(UserFunctionDefenitionSyntaxNode node)
             => new FunParseException(603,$"Function {node.GetFunAlias()} has invalid arguments or output type. Check function body expression",
                 Interval.New(node.Head.Interval.Start, node.Body.Interval.Start));        
@@ -563,5 +580,7 @@ namespace NFun.ParseErrors
             => new FunParseException(609,$"Output variable '{node.Id}' type is incorrect",node.Interval);        
 
         #endregion
+
+      
     }
 }

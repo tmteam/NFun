@@ -4,18 +4,31 @@ using System.Linq;
 
 namespace NFun.TypeInference.Solving
 {
+    public enum TiSolveResult
+    {
+        Solved = 0,
+        NotSolved = 1,
+        NotSolvedOverloadWithSeveralCandidates = 2,
+        NotSolvedNoFunctionFits = 3,
+    }
     public class TiResult
     {
         public const int NestedDepth = 100;
         private readonly IList<SolvingNode> _nodes;
         private readonly Dictionary<string, SolvingNode> _variablesMap;
         public string[] VarNames => _variablesMap.Keys.ToArray();
-        public static TiResult NotSolvedResult() => new TiResult(false);
-
-        private TiResult(bool isSolved)
+        public static TiResult NotSolvedResult() 
+            => new TiResult(TiSolveResult.NotSolved, -1);
+        public static TiResult SeveralOverloadCandidates(int nodeId) 
+            => new TiResult(TiSolveResult.NotSolvedOverloadWithSeveralCandidates,nodeId);
+        public static TiResult NoFunctionsFits(int nodeId)
+            => new TiResult(TiSolveResult.NotSolvedNoFunctionFits,nodeId);
+        private TiResult(TiSolveResult result, int failedNodeId = -1)
         {
             _variablesMap = new Dictionary<string, SolvingNode>();
-            IsSolved = isSolved;
+            IsSolved = result == TiSolveResult.Solved;
+            FailedNodeId = failedNodeId;
+            Result = result;
         }
 
         public TiResult(IList<SolvingNode> nodes, IList<SolvingNode> allTypes,
@@ -40,11 +53,14 @@ namespace NFun.TypeInference.Solving
             }
 
             GenericsCount = genericsCount;
+            FailedNodeId = -1;
+            Result = TiSolveResult.Solved;
         }
 
         public int GenericsCount { get; }
         public bool IsSolved { get; }
-
+        public int FailedNodeId { get; }
+        public TiSolveResult Result { get; }
         private readonly Dictionary<SolvingNode, int> _genMap;
         private readonly Dictionary<int, TiFunctionSignature> _overloads;
         public TiType GetVarType(string varId) => ConvertToHmType2(_variablesMap[varId], NestedDepth);
@@ -135,5 +151,7 @@ namespace NFun.TypeInference.Solving
                 return _overloads[nodeId];
             return null;
         }
+
+        
     }
 }

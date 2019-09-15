@@ -62,7 +62,6 @@ namespace NFun.TypeInference.Solving
             }
             return bestSignatures.ToArray();
         }
-        
       
         public static TiFunctionSignature GetBestFitOrNull(TiFunctionSignature[] candidates, SolvingNode returnType,
             params SolvingNode[] argTypes)
