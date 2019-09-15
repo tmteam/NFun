@@ -408,7 +408,6 @@ namespace Funny.Tests
             var runtime = FunBuilder.BuildDefault(expr);
             Assert.Throws<FunRuntimeException>(
                 () => runtime.Calculate());
-            byte a = 1;
         }
     }
 }

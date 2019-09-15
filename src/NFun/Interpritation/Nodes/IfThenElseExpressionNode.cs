@@ -14,16 +14,10 @@ namespace NFun.Interpritation.Nodes
         public IfThenElseExpressionNode(IfCaseExpressionNode[] ifCaseNodes, IExpressionNode elseNode, Interval interval, VarType type)
         {
             _ifCaseNodes = ifCaseNodes;
-            Interval = interval;
             _ifCaseConvertedNodes = new IExpressionNode[_ifCaseNodes.Length];
-            
-            //Type = GetMostCommonType(ifCaseNodes.Select(c => c.Type).Append(elseNode.Type));
           
             Type = type;
-            
-            //if (Type.BaseType == BaseVarType.Empty)
-            //    throw ErrorFactory.NoCommonCast(ifCaseNodes.Append(elseNode));
-            
+            Interval = interval;
                 
             for (var index = 0; index < ifCaseNodes.Length; index++)
             {
@@ -41,9 +35,11 @@ namespace NFun.Interpritation.Nodes
 
             if (elseNode.Type != Type)
             {
-                _elseNode = new CastExpressionNode(elseNode, Type, 
-                    VarTypeConverter.GetConverterOrThrow(elseNode.Type, Type, elseNode.Interval)
-                    , elseNode.Interval);
+                _elseNode = new CastExpressionNode(
+                    origin:     elseNode, 
+                    targetType: Type, 
+                    converter:  VarTypeConverter.GetConverterOrThrow(elseNode.Type, Type, elseNode.Interval)
+                    , interval: elseNode.Interval);
             }
             else
             {

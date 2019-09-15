@@ -182,8 +182,6 @@ namespace NFun.Types
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-
-            return false;
         }
     }
 }
