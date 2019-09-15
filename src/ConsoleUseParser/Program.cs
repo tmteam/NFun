@@ -10,7 +10,7 @@ namespace ConsoleUseParser
     {
         public static void Main()
         {
-            using (var streamReader = new StreamReader(@"CompareIntReal.txt", System.Text.Encoding.Default))
+            using (var streamReader = new StreamReader(@"arithmetic.txt", System.Text.Encoding.Default))
             {
                 try
                 {

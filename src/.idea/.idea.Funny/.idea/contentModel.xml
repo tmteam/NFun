@@ -3,7 +3,9 @@
   <component name="ContentModelStore">
     <e p="C:\Apps\NewNewNewFun\NFun\src" t="IncludeFlat">
       <e p="ConsoleUseParser" t="IncludeRecursive">
+        <e p="arithmetic.txt" t="Include" />
         <e p="bin" t="ExcludeRecursive" />
+        <e p="CompareEquality.txt" t="Include" />
         <e p="CompareIntReal — копия.txt" t="Include" />
         <e p="CompareIntReal.txt" t="Include" />
         <e p="ConsoleRender.cs" t="Include" />
@@ -17,10 +19,10 @@
         </e>
         <e p="Program.cs" t="Include" />
         <e p="testcases — копия.txt" t="Include" />
-        <e p="testcases.txt" t="Include" />
       </e>
       <e p="Funny.sln" t="IncludeFlat" />
       <e p="NFun" t="IncludeRecursive">
+        <e p="BaseFunctions.cs" t="Include" />
         <e p="bin" t="ExcludeRecursive" />
         <e p="BuiltInFunctions" t="Include">
           <e p="ArrayFunctions.cs" t="Include" />
@@ -78,10 +80,13 @@
           <e p="ErrorsHelper.cs" t="Include" />
         </e>
         <e p="Runtime" t="Include">
+          <e p="Arrays" t="Include">
+            <e p="IFunArray.cs" t="Include" />
+            <e p="ImmutableFunArray.cs" t="Include" />
+            <e p="TextFunArray.cs" t="Include" />
+          </e>
           <e p="CalculationResult.cs" t="Include" />
-          <e p="FunArray.cs" t="Include" />
           <e p="FunRuntime.cs" t="Include" />
-          <e p="TextFunArray.cs" t="Include" />
           <e p="VariableDictionary.cs" t="Include" />
           <e p="VariableSource.cs" t="Include" />
           <e p="VariableUsages.cs" t="Include" />
@@ -89,6 +94,7 @@
         <e p="SyntaxParsing" t="Include">
           <e p="GraphTools.cs" t="Include" />
           <e p="ISyntaxNode.cs" t="Include" />
+          <e p="Parser.cs" t="Include" />
           <e p="SyntaxNodeFactory.cs" t="Include" />
           <e p="SyntaxNodeReader.cs" t="Include" />
           <e p="SyntaxNodes" t="Include">
@@ -107,8 +113,6 @@
             <e p="VarDefenitionSyntaxNode.cs" t="Include" />
             <e p="VariableSyntaxNode.cs" t="Include" />
           </e>
-          <e p="TokenParsingHelper.cs" t="Include" />
-          <e p="TopLevelParser.cs" t="Include" />
           <e p="TopologySortResults.cs" t="Include" />
           <e p="VarAttribute.cs" t="Include" />
           <e p="Visitors" t="Include">
@@ -118,8 +122,8 @@
             <e p="ISyntaxNodeVisitor.cs" t="Include" />
             <e p="SetNodeNumberVisitor.cs" t="Include" />
             <e p="ShortDescritpionVisitor.cs" t="Include" />
-            <e p="SyntaxDFS.cs" t="Include" />
-            <e p="VisitorResult.cs" t="Include" />
+            <e p="SyntaxTreeDeepFieldSearch.cs" t="Include" />
+            <e p="VisitorEnterResult.cs" t="Include" />
           </e>
         </e>
         <e p="Tokenization" t="Include">
@@ -166,10 +170,10 @@
           <e p="FunTypeSpecification.cs" t="Include" />
           <e p="IFunConvertable.cs" t="Include" />
           <e p="TypeHelper.cs" t="Include" />
-          <e p="Var.cs" t="Include" />
           <e p="VarInfo.cs" t="Include" />
           <e p="VarType.cs" t="Include" />
           <e p="VarTypeConverter.cs" t="Include" />
+          <e p="VarVal.cs" t="Include" />
         </e>
         <e p="ValueParser.cs" t="Include" />
       </e>
