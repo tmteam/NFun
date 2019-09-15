@@ -1024,7 +1024,7 @@ x = round(a - b - c)
         
         
         [Test ]
-        public void ParamsReading_ParamsWhithError_returnErrorInParsing()
+        public void ParamsReading_ParamsWithError_returnErrorInParsing()
         {
             GenerateFuspecTestCases(
                 @"|********************
@@ -1236,6 +1236,69 @@ x = round(a - b - c)
             });
 
         }
+        
+         [Test]
+        public void SetValuesReading_ReadArrayValue()
+        {
+
+            GenerateFuspecTestCases(
+                @"|********************
+| TEST Name
+| TAGS tag1
+|************************
+| in a:real b:int
+| out x:real
+|------------------------
+  x = a-b 
+|---------------------
+| set a:[1,2], b:[8.8,6], c:4.4
+
+");
+
+            Assert.Multiple(() =>
+            {
+                StandardAssertForCorrectTestCase();
+                Assert.AreEqual(1,_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits.Length);
+
+                Assert.AreEqual( "a",_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits[0].Set.FirstOrDefault().IdName);
+                Assert.AreEqual(VarType.ArrayOf(VarType.Int32),_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits[0].Set[0].IdType);
+                Assert.AreEqual(VarType.ArrayOf(VarType.Anything),_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits[0].Set[1].IdType);
+                Assert.AreEqual(VarType.Real,_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits[0].Set[2].IdType);
+            });
+
+        }
+        
+        [Test]
+        public void SetValuesReading_ReadBoolValue()
+        {
+
+            GenerateFuspecTestCases(
+                @"|********************
+| TEST Name
+| TAGS tag1
+|************************
+| in a:real b:int
+| out x:real
+|------------------------
+  x = a-b 
+|---------------------
+| set a:true, b:[8.8,6], c:4.4
+
+");
+
+            Assert.Multiple(() =>
+            {
+                StandardAssertForCorrectTestCase();
+                Assert.AreEqual(1,_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits.Length);
+
+                Assert.AreEqual( "a",_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits[0].Set.FirstOrDefault().IdName);
+                Assert.AreEqual(VarType.Bool,_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits[0].Set[0].IdType);
+                Assert.AreEqual(VarType.ArrayOf(VarType.Anything),_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits[0].Set[1].IdType);
+                Assert.AreEqual(VarType.Real,_fuspecTestCases.TestCases.FirstOrDefault().SetCheckKits[0].Set[2].IdType);
+            });
+
+        }
+
         [Test]
         public void SetValuesReading_ReadTwoFuspecCaseWithSetCheckKits_ReturnTwoFuspecCases()
         {

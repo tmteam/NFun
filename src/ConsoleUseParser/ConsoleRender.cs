@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Nfun.Fuspec.Parser.Model;
 
 namespace ConsoleUseParser
@@ -10,8 +11,10 @@ namespace ConsoleUseParser
         public static void Print(this FuspecTestCase fuspecTestCase)
         {
             Console.WriteLine("----------------------");
-            
-            Console.WriteLine("| Name of test: {0}", fuspecTestCase.Name);
+            Console.ForegroundColor = ConsoleColor.Blue;
+            Console.Write("| Name of test: ");
+            Console.ResetColor();
+            Console.WriteLine("{0}", fuspecTestCase.Name);
             
             Console.Write("| Tags: ");
             if (fuspecTestCase.Tags.Length == 0)
@@ -32,15 +35,33 @@ namespace ConsoleUseParser
             if (fuspecTestCase.SetCheckKits.Length != 0)
             {
                 Console.WriteLine("| Sets of values ");
+               
+                int i = 0;
                 foreach (var setCheckKit in fuspecTestCase.SetCheckKits)
                 {
-                    Console.WriteLine("###");
-              //      if (setCheckKit.SetKit.Any())
-                //        PrintElement("  Set",setCheckKit.SetKit);
-                       
-                  //  if (setCheckKit.CheckKit.Any())
-                    //    PrintElement("  Check:",setCheckKit.CheckKit);
+                    i++;
+                    Console.Write("\t");
+                    Console.Write(i + " set: ");
+                    if (setCheckKit.Set.Any())
+                        foreach (var set in setCheckKit.Set)
+                        {
+                            Console.Write(set.IdName + ":" + set.IdValue + "(" + set.IdType + "), ");
+                        }
+                    else Console.Write("None");
+
+                    Console.WriteLine();
+                    Console.Write("\t");
+                    Console.Write(i + " check: ");
+                    if (setCheckKit.Check.Any())
+                        foreach (var check in setCheckKit.Check)
+                        {
+                            Console.Write(check.IdName + ":" + check.IdValue + "(" + check.IdType + "), ");
+                        }
+                    else Console.Write("None");
+
+                    Console.WriteLine();
                 }
+
             }
         }
 

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using Nfun.Fuspec.Parser.FuspecParserErrors;
 using Nfun.Fuspec.Parser.Model;
+using NFun.ParseErrors;
 using NFun.Tokenization;
 using NFun.Types;
 using ParcerV1;
@@ -251,6 +252,11 @@ namespace Nfun.Fuspec.Parser
                 try
                 {
                     _setCheckKit.AddSet(GetValue(setString));
+                }
+                catch (FunParseException e)
+                {
+                   Console.WriteLine($"fpe {e.Code} {e.Message}");
+                   return WriteError(new FuspecParserError(FuspecErrorType.NFunMessage_ICantParseValue, _index));
                 }
                 catch (Exception e)
                 {
