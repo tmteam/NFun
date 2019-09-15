@@ -1,18 +1,19 @@
+using System.Collections.Generic;
 using System.Linq;
 using NFun.ParseErrors;
 using NFun.Runtime;
 
 namespace NFun.Interpritation
 {
-    public class ExpressionHelper
+    public static class ExpressionHelper
     {
-        public static void CheckForUnknownVariables(string[] originVariables, VariableDictionary resultVariables)
+        public static void ThrowIfSomeVariablesNotExistsInTheList(this VariableDictionary resultVariables, IEnumerable<string> list )
         {
             var unknownVariables = resultVariables.GetAllUsages()
-                .Where(u=> !originVariables.Contains(u.Source.Name)).ToList();
+                .Where(u=> !list.Contains(u.Source.Name)).ToList();
             if (unknownVariables.Any())
             {
-                throw ErrorFactory.UnknownVariables(unknownVariables.SelectMany(u => u.Nodes));
+                throw ErrorFactory.UnknownVariables(unknownVariables.SelectMany(u => u.Usages));
             }        
         }
     }

@@ -5,44 +5,38 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using NFun.Types;
 
-namespace NFun.Runtime
+namespace NFun.Runtime.Arrays
 {
-    public interface IFunArray: IEnumerable<object>
+    public class ImmutableFunArray: IFunArray
     {
-        int Count { get; }
-        IFunArray Slice(int? startIndex, int? endIndex, int? step);
-        object GetElementOrNull(int index);
-        bool IsEquivalent(IFunArray array);
-        IEnumerable<T> As<T>();
-    }
+        public static ImmutableFunArray Empty => new ImmutableFunArray(new object[0]);
+        public static ImmutableFunArray By(IEnumerable<object> values) 
+            => new ImmutableFunArray(values.ToArray());
 
-    public class FunArray: IFunArray
-    {
         private readonly Array _values;
-        public static FunArray Empty => new FunArray(new object[0]);
+        private int _hash = 0;
+      
+        public ImmutableFunArray(Array values)
+        {
+            _values = values;
+            Count = _values.Length;
+        }
+        public ImmutableFunArray(params ImmutableFunArray[] values)
+        {
+            _values = values;
+            Count = _values.Length;
+        }
+        
+        public int Count { get; }
         public Array Values => _values;
         public IEnumerable<T> As<T>()
+        
         {
             foreach (var value in _values)
             {
                 yield return (T) value;
             }
         }
-
-        public static FunArray By(IEnumerable<object> values) 
-            => new FunArray(values.ToArray());
-
-        public FunArray(Array values)
-        {
-            _values = values;
-            Count = _values.Length;
-        }
-        public FunArray(params FunArray[] values)
-        {
-            _values = values;
-            Count = _values.Length;
-        }
-        
 
         public IEnumerator<object> GetEnumerator()
         {
@@ -52,7 +46,6 @@ namespace NFun.Runtime
 
         IEnumerator IEnumerable.GetEnumerator() => _values.GetEnumerator();
 
-        public int Count { get; }
         public IFunArray Slice(int? startIndex, int? endIndex, int? step)
         {
             if (Count == 0)
@@ -79,7 +72,7 @@ namespace NFun.Runtime
                 for (int i = start, index = 0; i <= end; i+= step.Value, index++)
                     newArr[index] = _values.GetValue(i);
             }
-            return new FunArray(newArr);
+            return new ImmutableFunArray(newArr);
         }
 
         public object GetElementOrNull(int index)
@@ -89,20 +82,18 @@ namespace NFun.Runtime
             return _values.GetValue(index);
         }
 
-     
-
         public bool IsEquivalent(IFunArray array) => TypeHelper.AreEquivalent(this, array);
 
         public override bool Equals(object obj)
         {
-            if (obj is FunArray f)
+            if (obj is ImmutableFunArray f)
             {
                 return Equals(f);
             }
             return false;
         }
 
-        protected bool Equals(FunArray other)
+        private bool Equals(ImmutableFunArray other)
         {
             if (Count != other.Count)
                 return false;
@@ -113,9 +104,7 @@ namespace NFun.Runtime
             }
             return true;
         }
-
         
-        private int _hash = 0;
         [SuppressMessage("ReSharper", "NonReadonlyMemberInGetHashCode")]
         public override int GetHashCode()
         {
@@ -123,7 +112,6 @@ namespace NFun.Runtime
                 return _hash;
             unchecked
             {
-                
                 _hash = Count * 397;
                 foreach (var value in _values)
                 {
@@ -133,10 +121,7 @@ namespace NFun.Runtime
             }
         }
 
-
-        public override string ToString()
-        {
-            return $"Arr[{string.Join(",", _values.Cast<object>())}]";
-        }
+        public override string ToString() 
+            => $"Arr[{string.Join(",", _values.Cast<object>())}]";
     }
 }

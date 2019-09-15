@@ -1,6 +1,7 @@
 using System.Linq;
 using NFun.ParseErrors;
 using NFun.Runtime;
+using NFun.Runtime.Arrays;
 using NFun.Tokenization;
 using NFun.Types;
 
@@ -45,6 +46,6 @@ namespace NFun.Interpritation.Nodes
         public Interval Interval { get; }
         public VarType Type { get; }
         public object Calc()
-            => FunArray.By(_elements.Select(e => e.Calc()));
+            => ImmutableFunArray.By(_elements.Select(e => e.Calc()));
     }
 }

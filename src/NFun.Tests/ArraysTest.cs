@@ -6,6 +6,7 @@ using NFun;
 using NFun.BuiltInFunctions;
 using NFun.ParseErrors;
 using NFun.Runtime;
+using NFun.Runtime.Arrays;
 using NFun.Types;
 using NUnit.Framework;
 
@@ -65,7 +66,7 @@ namespace Funny.Tests
         [TestCase("y = [1.0,2.0]==[1.0,2.0]", true)]
         public void ConstantArrayOperatorsTest(string expr, object expected)
         {
-            FunBuilder.BuildDefault(expr).Calculate().AssertReturns(Var.New("y", expected));
+            FunBuilder.BuildDefault(expr).Calculate().AssertReturns(VarVal.New("y", expected));
         }
         [TestCase("a = 2.0 \r b=3.0 \r  y = [1.0,a,b] ", new[]{1.0,2.0,3.0})]
         [TestCase("a = 2.0 \r b=3.0 \r y = [a,b] ", new[]{2.0,3.0})]
@@ -76,7 +77,7 @@ namespace Funny.Tests
      
         public void ConstantCalculableArrayTest(string expr, object expected)
         {
-            FunBuilder.BuildDefault(expr).Calculate().AssertHas(Var.New("y", expected));
+            FunBuilder.BuildDefault(expr).Calculate().AssertHas(VarVal.New("y", expected));
         }
         
         
@@ -88,7 +89,7 @@ namespace Funny.Tests
         [TestCase ("y(x) = x # some comment \r[1..3]",new[]{1,2,3})]
         public void AnonymousConstantArrayTest(string expr, object expected)
         {
-            FunBuilder.BuildDefault(expr).Calculate().AssertHas(Var.New("out", expected));
+            FunBuilder.BuildDefault(expr).Calculate().AssertHas(VarVal.New("out", expected));
         }
         
         [Test]
@@ -97,7 +98,7 @@ namespace Funny.Tests
             var expression = "y = [[1.0,2.0],[3.0,4.0],[5.0]] . intersect ([[3.0,4.0],[1.0],[5.0],[4.0]])";
             var expected = new[] {new [] {3.0, 4.0},new[]{5.0}};
 
-            FunBuilder.BuildDefault(expression).Calculate().AssertReturns(Var.New("y", expected));
+            FunBuilder.BuildDefault(expression).Calculate().AssertReturns(VarVal.New("y", expected));
         }
         [Test]
         public void ExceptToDimArrayTest()
@@ -105,7 +106,7 @@ namespace Funny.Tests
             var expression = "y = [[1.0,2.0],[3.0,4.0]]. except([[3.0,4.0],[1.0],[4.0]])";
             var expected = new[] {new [] {1.0, 2.0}};
 
-            FunBuilder.BuildDefault(expression).Calculate().AssertReturns(Var.New("y", expected));
+            FunBuilder.BuildDefault(expression).Calculate().AssertReturns(VarVal.New("y", expected));
         }
         
         [Test]
@@ -153,7 +154,7 @@ namespace Funny.Tests
             var expression = "x:int[][]\r y= x";
             
             var runtime = FunBuilder.BuildDefault(expression);
-            var res = runtime.Calculate(Var.New("x", x)).Get("y");
+            var res = runtime.Calculate(VarVal.New("x", x)).Get("y");
             Assert.AreEqual(expectedType, res.Type);
             AssertMultiDimentionalEquals(res, expectedOutput);
         }
@@ -177,7 +178,7 @@ namespace Funny.Tests
             var expression = "x:int[][]\r y= x.concat(x)";
             
             var runtime = FunBuilder.BuildDefault(expression);
-            var res = runtime.Calculate(Var.New("x", x)).Get("y");
+            var res = runtime.Calculate(VarVal.New("x", x)).Get("y");
             Assert.AreEqual(expectedType, res.Type);
             AssertMultiDimentionalEquals(res, expectedOutput);
         }
@@ -193,15 +194,15 @@ possum   = x.filter(i:int ->i>0).reduce((i:int,j:int)-> i+j)
 filtrat   = x.filter(i:int ->i> filt) # filt - входная переменная
 ";
             var runtime = FunBuilder.BuildDefault(expr);
-            var res = runtime.Calculate(Var.New("x", new[]{5,6,7,8}),
-                Var.New("filt", 2)
+            var res = runtime.Calculate(VarVal.New("x", new[]{5,6,7,8}),
+                VarVal.New("filt", 2)
                 );
         }
-        private static void AssertMultiDimentionalEquals(Var res, int[][] expectedOutput)
+        private static void AssertMultiDimentionalEquals(VarVal res, int[][] expectedOutput)
         {
             for (int i = 0; i < expectedOutput.Length; i++)
             {
-                var enumerable = (FunArray)res.Value;
+                var enumerable = (ImmutableFunArray)res.Value;
                 var array = enumerable.GetElementOrNull(i);
 
                 for (int j = 0; j < expectedOutput[i].Length; j++)

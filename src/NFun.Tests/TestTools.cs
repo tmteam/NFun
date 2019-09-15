@@ -9,7 +9,7 @@ namespace Funny.Tests
 {
     public static class TestTools
     {
-        public static void AssertReturns(this CalculationResult result, double delta, params Var[] vars)
+        public static void AssertReturns(this CalculationResult result, double delta, params VarVal[] vars)
         {
             Assert.AreEqual(vars.Length, result.Results.Length,$"output variables mismatch: {string.Join(",", result.Results)}");
             Assert.Multiple(() =>
@@ -21,11 +21,11 @@ namespace Funny.Tests
                 }
             });
         }
-        public static void AssertReturns(this CalculationResult result,  params Var[] vars)
+        public static void AssertReturns(this CalculationResult result,  params VarVal[] vars)
         {
             AssertReturns(result,0, vars);
         }
-        public static void AssertHas(this CalculationResult result, Var variable, double delta = 0)
+        public static void AssertHas(this CalculationResult result, VarVal variable, double delta = 0)
         {
             var res = result.Results.FirstOrDefault(r => r.Name == variable.Name);
             Assert.IsNotNull(res, $"Variable \"{variable.Name}\" not found");

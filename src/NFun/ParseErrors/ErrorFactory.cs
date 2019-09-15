@@ -554,7 +554,7 @@ namespace NFun.ParseErrors
 
         public static Exception CannotUseOutputValueBeforeItIsDeclared(VariableUsages usages)
         {
-            var interval = (usages.Nodes.FirstOrDefault()?.Interval)
+            var interval = (usages.Usages.FirstOrDefault()?.Interval)
                            ?? usages.Source.TypeSpecificationIntervalOrNull 
                            ?? new Interval();
 
@@ -564,7 +564,7 @@ namespace NFun.ParseErrors
 
         public static Exception VariableIsDeclaredAfterUsing(VariableUsages usages)
             => new FunParseException(572, $"Variable '{usages.Source.Name}' used before it is declared'",
-                usages.Nodes.First().Interval);
+                usages.Usages.First().Interval);
     
         #endregion
 

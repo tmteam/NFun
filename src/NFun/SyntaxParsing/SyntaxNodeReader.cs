@@ -4,6 +4,7 @@ using System.Linq;
 using NFun.BuiltInFunctions;
 using NFun.ParseErrors;
 using NFun.Runtime;
+using NFun.Runtime.Arrays;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
 using NFun.Types;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NFun.Interpritation.Functions;
 using NFun.Runtime;
+using NFun.Runtime.Arrays;
 using NFun.Types;
 
 namespace NFun.BuiltInFunctions
@@ -32,7 +33,7 @@ namespace NFun.BuiltInFunctions
                 for (int i = start; i >= end; i-= step)
                     result.Add(i);
 
-            return new FunArray(result.ToArray());
+            return new ImmutableFunArray(result.ToArray());
         }
             
     }
@@ -61,7 +62,7 @@ namespace NFun.BuiltInFunctions
                 for (var i = start; i >= end; i-= step)
                     result.Add(i);
 
-            return new FunArray(result.ToArray());
+            return new ImmutableFunArray(result.ToArray());
         }
             
     }
@@ -85,7 +86,7 @@ namespace NFun.BuiltInFunctions
             else
                 for (int i = start; i >= end; i -= 1)
                     result.Add(i);
-            return new FunArray(result.ToArray());
+            return new ImmutableFunArray(result.ToArray());
         }
     }
     
@@ -198,7 +199,7 @@ namespace NFun.BuiltInFunctions
         {
             var arr = ((IFunArray)args[0]).As<int>().ToArray();
             Array.Sort(arr);
-            return new FunArray(arr);
+            return new ImmutableFunArray(arr);
         }
     }
     
@@ -210,7 +211,7 @@ namespace NFun.BuiltInFunctions
         {
             var arr = ((IFunArray)args[0]).Select(TypeHelper.GetTextOrThrow).ToArray();
             Array.Sort(arr, StringComparer.InvariantCulture);
-            return new FunArray(arr);
+            return new ImmutableFunArray(arr);
         }
     }
     

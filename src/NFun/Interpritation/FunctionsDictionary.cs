@@ -5,7 +5,7 @@ using NFun.Types;
 
 namespace NFun.Interpritation
 {
-    public class FunctionsDictionary
+    public sealed class FunctionsDictionary
     {
         private readonly Dictionary<string, List<FunctionBase>> _functions 
             = new Dictionary<string, List<FunctionBase>>();
