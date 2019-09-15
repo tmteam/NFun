@@ -141,6 +141,8 @@ namespace NFun.SyntaxParsing
                 {
                     if (constant.Value is Int32 i32)
                         return new ConstantSyntaxNode(-i32, constant.OutputType, new Interval(start,nextNode.Interval.Finish));
+                    if (constant.Value is double d)
+                        return new ConstantSyntaxNode(-d, constant.OutputType, new Interval(start,nextNode.Interval.Finish));
                 }
                 return SyntaxNodeFactory.OperatorFun(
                     CoreFunNames.Negate,
