@@ -1,0 +1,210 @@
+|****************************************
+| TEST apply numeric constant  
+| TAGS int real constant apply                         
+|************************  
+| out i1:int;i2:int; r1:real; r2:real 
+|------------------------
+  i1:int = 1
+  i2:int = -1
+  r1:real = 1.0
+  r2:real = 2
+|---------------------
+| check i1==1; i2==-1; 
+|       r1==1; r2=2;        
+
+
+
+|****************************************
+| TEST apply int constant arithmetic
+| TAGS int  constant apply arithmetic                        
+|************************  
+| out i1:int; i2:int; i3:int; i4:int
+|     i5:int; i6:int; i7:int; i8:int
+|     i9:int;i10:int;i11:int;i12:int
+|------------------------
+  i1:int =  1 + 100
+  i2:int = -1 + 100
+  i3:int =  1 - 100
+  i4:int = -1 - 100
+
+  i5:int =  1 * 100
+  i6:int = -1 * 100
+  i7:int =  1 *-100
+  i8:int = -1 *-100
+
+  i9:int =  13 % 4
+  i10:int = -13 % 4
+  i11:int =  13 % -100
+  i12:int = -13 % -100
+|---------------------
+| check i1==101;  i2==99;  i3==-99; i4=-101;
+|       i5==100;i6==-100; i7==-100;  i8=100;
+|       i9==1;    i10==3; i11==13 ;  i12=13;
+
+
+
+|****************************************
+| TEST real constant arithmetic with upcast
+| TAGS real constant arithmetic upcast                        
+|************************  
+| out r1:real; r2:real; r3:real; r4:real
+|     r5:real; r6:real; r7:real; r8:real
+|     r9:real;r10:real;r11:real;r12:real
+|    r13:real;r14:real;r15:real;r16:real
+|    r17:real;r18:real;r19:real;r20:real
+|------------------------
+  r1:real =  1.1 + 100.2
+  r2:real = -1.3 + 100
+  r3:real =  1.5 - 100.6
+  r4:real = -1 - 100.8
+
+  r5:real =  1.1 * 100
+  r6:real = -1 * 100.05
+  r7:real =  1.05 *-100
+  r8:real = -1.1 *-100.5
+
+  r9:real =  13.6 % 4.7
+  r10:real = -13.8 % 4.9
+  r11:real =  13.11 % -100.12
+  r12:real = -13.13 % -100.14
+
+  r13:real =  12 / 4
+  r14:real =  10 / -10 
+  r15:real =  0/ 0.55 
+  r16:real =  -0.3 /0.3
+
+  r17:real =  2 ** 5
+  r18:real =  10 ** -1 
+  r19:real =  -1.5 ** 2 
+  r20:real =  5.2 ** 3.1 
+|---------------------
+| check r1==101.3;    r2==98.7;   r3==-99.1;  r4=-101.8;
+| check r5==101.1; r6==-100.05;    r7==-105;  r8=110.55;
+| check r9==4.2  ;     r10==-4; r11==13.102;  r12=13.13;
+| check r13==3   ;     r14==-1  ; r15==0   ;  r16=-1  ;
+| check r17==32  ;     r18==0.1 ; r19==2.25;  r20=-230.57437175697558;
+
+
+
+
+|****************************************
+| TEST apply real constant arithmetic with upcast
+| TAGS real constant apply arithmetic upcast                        
+|************************  
+| out i1:real; i2:real; i3:real; i4:real
+|     i5:real; i6:real; i7:real; i8:real
+|     i9:real;i10:real;i11:real;i12:real
+|------------------------
+  i1:real =  1 + 100
+  i2:real = -1 + 100
+  i3:real =  1 - 100
+  i4:real = -1 - 100
+
+  i5:real =  1 * 100
+  i6:real = -1 * 100
+  i7:real =  1 *-100
+  i8:real = -1 *-100
+
+  i9:real =  13 % 4
+  i10:real = -13 % 4
+  i11:real =  13 % -100
+  i12:real = -13 % -100
+|---------------------
+| check i1==101;  i2==99;  i3==-99; i4=-101;
+|       i5==100;i6==-100; i7==-100;  i8=100;
+|       i9==1;    i10==3; i11==13 ;  i12=13;
+
+
+
+
+|****************************************
+| TEST int constant arithmetic 
+| TAGS int constant arithmetic                         
+|************************
+| in x:int        
+| out plus:int; minus:int; 
+|     multi:int; rema:int           
+|------------------------
+  x:int
+  plus :int = x+1
+  minus:int =x-1
+  multi:int =x*100
+  rema :int =x%10
+|---------------------
+| set x=1;         
+| check plus==2; minus==0; 
+|       multi==100; rema==1        
+| 
+| set x=-20;          
+| check plus==-19; minus==-21; multi==-2000; rema==0
+
+
+|****************************************
+| TEST real constant arithmetic 
+| TAGS real constant arithmetic                         
+|************************
+| in x:real        
+| out plus:real; minus:real; 
+|     multi:real; rema:real           
+|------------------------
+  x:real
+  plus :real = x+1
+  minus:real = x-1
+  multi:real = x*100
+  divide:real = x/10
+  pow:real    = x**2
+|---------------------
+| set x=1;         
+| check plus==2; minus==0; 
+|       multi==100; divide==0.1; pow==1  
+|       
+| set x=-20;          
+| check plus==-19; minus==-21; 
+| multi==-2000; divide==-2; pow==-8000
+
+
+
+|****************************************
+| TEST int to real upcast 
+| TAGS int real constant upcast                         
+|************************
+| in  x:real        
+| out p1,p2,p3,m1,m2,m3,r1,r2,r3 
+|------------------------
+  x:int
+  p1 :real = x+1
+  p2 :real = x+1.0
+  p3 :real = x+x
+  m1 :real = x*1
+  m2 :real = x*1.0
+  m3 :real = x*x
+  r1 :real = x%1
+  r2 :real = x%1.0
+  r3 :real = x%x
+|---------------------
+| set x=1;         
+| check p1==1.0; p2==1.0; p3==2.0
+|		m1==1.0; m2==1.0; m3==1.0
+|		r1==0.0; r2==0.0; r3==0.0
+|                
+| set x=-20;          
+| check p1==-19; p2==-19; p3==-19
+|		m1==-20; m2==-20; m3==400
+|       r1==0.0; r2==0.0; r3==0.0 
+
+
+|****************************************
+| TEST priorities numeric constant  
+| TAGS priority arithmetics constant                         
+|************************  
+| out i1:int;i2:int; r1:real; r2:real 
+|------------------------
+  i1:int = -1-3*2
+  i2:int = (-1-3)*2
+  r1:real = -1.0-3*2
+  r2:real = (-1-3)*2
+|---------------------
+| check i1==-7; i2==-8; 
+|       r1==-7; r2=-8;        
+
+

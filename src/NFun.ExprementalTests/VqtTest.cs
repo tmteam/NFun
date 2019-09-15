@@ -67,7 +67,7 @@ namespace NFun.ExprementalTests
             var expt = "y = x.setQ(good()).setT(now())";
             var runtime = BuildVqtRuntime(expt);
             var startTime = DateTime.Now.Ticks;
-            var res = runtime.Calculate(Var.New("x", 12.1));
+            var res = runtime.Calculate(VarVal.New("x", 12.1));
             var finishTime = DateTime.Now.Ticks;
             var vqt = res.Get("y");
             Assert.IsInstanceOf<IVQT>(vqt.Value);
@@ -82,7 +82,7 @@ namespace NFun.ExprementalTests
         {
             var expt = "y = x.setQ(bad())";
             var runtime = BuildVqtRuntime(expt);
-            var res = runtime.Calculate(Var.New("x", 12.1));
+            var res = runtime.Calculate(VarVal.New("x", 12.1));
             var vqt = res.Get("y");
             Assert.IsInstanceOf<IVQT>(vqt.Value);
             var qt = vqt.Value as IVQT;
@@ -95,7 +95,7 @@ namespace NFun.ExprementalTests
         {
             var expt = "y = x.setQ(good())";
             var runtime = BuildVqtRuntime(expt);
-            var res = runtime.Calculate(Var.New("x", 12.1));
+            var res = runtime.Calculate(VarVal.New("x", 12.1));
             var vqt = res.Get("y");
             Assert.IsInstanceOf<IVQT>(vqt.Value);
             var qt = vqt.Value as IVQT;
@@ -108,13 +108,13 @@ namespace NFun.ExprementalTests
         {
             var expt = "y = x.isGood()";
             var runtime = BuildVqtRuntime(expt);
-            var res = runtime.Calculate(Var.New("x", 
+            var res = runtime.Calculate(VarVal.New("x", 
                 new PrimitiveVQT(36.6)
                 {
                     Q = 192,
                     T =  DateTime.Now.Ticks
                 }));
-            res.AssertReturns(Var.New("y",true));
+            res.AssertReturns(VarVal.New("y",true));
 
         }
         [Test]
@@ -122,21 +122,21 @@ namespace NFun.ExprementalTests
         {
             var expt = "y = x.isGood()";
             var runtime = BuildVqtRuntime(expt);
-            var res = runtime.Calculate(Var.New("x", 
+            var res = runtime.Calculate(VarVal.New("x", 
                 new PrimitiveVQT(36.6)
                 {
                     Q = 8,
                     T =  DateTime.Now.Ticks
                 }));
-            res.AssertReturns(Var.New("y",false));
+            res.AssertReturns(VarVal.New("y",false));
         }
         [Test]
         public void IsGood_InputIsNotVqt_returnsTrue()
         {
             var expt = "y = x.isGood()";
             var runtime = BuildVqtRuntime(expt);
-            var res = runtime.Calculate(Var.New("x", 36.6));
-            res.AssertReturns(Var.New("y",true));
+            var res = runtime.Calculate(VarVal.New("x", 36.6));
+            res.AssertReturns(VarVal.New("y",true));
         }
         
         [TestCase(36.0,"y=x==36",true)]
@@ -154,13 +154,13 @@ namespace NFun.ExprementalTests
         public void SingleVqtInputEquation_CheckOutputValues(object val, string expr, object result)
         {
             var runtime = BuildVqtRuntime(expr);
-            var res = runtime.Calculate(Var.New("x", 
+            var res = runtime.Calculate(VarVal.New("x", 
                 new PrimitiveVQT(val)
             {
                 Q = 192,
                 T =  DateTime.Now.Ticks
             }));
-            res.AssertReturns(Var.New("y",result));
+            res.AssertReturns(VarVal.New("y",result));
         }
         
 

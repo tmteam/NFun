@@ -24,7 +24,7 @@ namespace NFun.SyntaxParsing.SyntaxNodes
         public bool IsInBrackets { get; set; }
         public Interval Interval { get; set; }
         public override string ToString() => Id + ":" + OutputType;
-        public T Visit<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
+        public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
         public IEnumerable<ISyntaxNode> Children => new ISyntaxNode[0];
 
     }

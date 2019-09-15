@@ -195,8 +195,8 @@ namespace NFun.Interpritation
             var expression = ExpressionBuilderVisitor
                 .BuildExpression(lexFunction.Body, functionsDictionary, vars);
             
-            ExpressionHelper.CheckForUnknownVariables(
-                lexFunction.Args.Select(a=>a.Id).ToArray(), vars);
+            vars.ThrowIfSomeVariablesNotExistsInTheList(
+                 lexFunction.Args.Select(a=>a.Id));
             
             var function = new UserFunction(
                 name: lexFunction.Id, 
@@ -234,8 +234,8 @@ namespace NFun.Interpritation
                                     :lexFunction.ReturnType,
                     variables: vars);
             
-            ExpressionHelper.CheckForUnknownVariables(
-                lexFunction.Args.Select(a=>a.Id).ToArray(), vars);
+            vars.ThrowIfSomeVariablesNotExistsInTheList(
+                 lexFunction.Args.Select(a=>a.Id));
             
             var function = new UserFunction(
                 name: lexFunction.Id, 
@@ -258,7 +258,7 @@ namespace NFun.Interpritation
                     type: actualType);
         }
 
-        public static SetupTiState CreateVisitorStateFor(UserFunctionDefenitionSyntaxNode node)
+        private static SetupTiState CreateVisitorStateFor(UserFunctionDefenitionSyntaxNode node)
         {
             var visitorState = new SetupTiState(new TiLanguageSolver());
             
@@ -337,10 +337,8 @@ namespace NFun.Interpritation
             if (sortResults.HasCycle)
                 //if functions has cycle, then function sovle order is cycled
                 throw ErrorFactory.ComplexRecursion(functionSolveOrder);
-            
           
             return functionSolveOrder;
         }
     }
-    
 }

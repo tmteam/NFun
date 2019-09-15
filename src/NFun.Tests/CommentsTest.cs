@@ -35,8 +35,8 @@ z = true")]
             var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate()
                 .AssertReturns(
-                    Var.New("y", 1.0),
-                    Var.New("z", true));
+                    VarVal.New("y", 1.0),
+                    VarVal.New("z", true));
         }
         [TestCase("y = /*here is a comment  z = true")]
         [TestCase("y = 1.0 here is a comment*/\r z = true")]

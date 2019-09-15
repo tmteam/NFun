@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using NFun.Runtime;
+using NFun.Runtime.Arrays;
 
 namespace NFun.Types
 {
@@ -23,7 +24,7 @@ namespace NFun.Types
             var e = (IFunArray)obj;
             if (e is TextFunArray t)
                 return t.Text;
-            if (e is FunArray f)
+            if (e is ImmutableFunArray f)
                 return new string((char[])f.Values);
             char[] result = new char[e.Count];
             for (int i = 0; i < e.Count; i++)
@@ -37,7 +38,7 @@ namespace NFun.Types
             var e = (IFunArray)arr[index];
             if (e is TextFunArray t)
                 return t.Text;
-            if (e is FunArray f)
+            if (e is ImmutableFunArray f)
                 return new string((char[]) f.Values);
             char [] result = new char[e.Count];
             for (int i = 0; i < e.Count; i++)

@@ -3,15 +3,17 @@ namespace NFun.SyntaxParsing.Visitors
     
     public class SetNodeNumberVisitor: EnterVisitorBase
     {
+        private int _lastNum;
+
         public SetNodeNumberVisitor(int startNum = 0)
         {
-            LastNum = startNum;
+            _lastNum = startNum;
         }
-        public int LastNum { get; private set; }
-        protected override VisitorResult DefaultVisit(ISyntaxNode node)
+
+        protected override VisitorEnterResult DefaultVisit(ISyntaxNode node)
         {
-            node.OrderNumber = LastNum++;
-            return VisitorResult.Continue;
+            node.OrderNumber = _lastNum++;
+            return VisitorEnterResult.Continue;
         }
     }
 }

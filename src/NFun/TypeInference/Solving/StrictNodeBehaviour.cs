@@ -37,7 +37,6 @@ namespace NFun.TypeInference.Solving
                 else if (_type.Name.Id == TiTypeName.Function.Id && i > 0)
                 {
                     //hi order function arguments got reversed rules
-
                     //firstly try to setStrict (for more concrete hi order function solving)
                     if (!thisArg.SetStrict(limArg.MakeType()))
                     {
@@ -63,7 +62,7 @@ namespace NFun.TypeInference.Solving
                 return null;
             for (int i = 0; i < _type.Arguments.Length ; i++)
             {
-                var thisArgument = _type.Arguments[i].GetActualNode();
+                var thisArgument  = _type.Arguments[i].GetActualNode();
                 var newArgument = newType.Arguments[i].GetActualNode();
                 if (!MergeArguments(newArgument, thisArgument)) 
                     return null;
@@ -81,16 +80,10 @@ namespace NFun.TypeInference.Solving
                     if (!thisArgument.SetEqualTo(newArgument))
                         return false;
                 }
-                else
+                else if (!newArgument.SetStrict(thisArgument.MakeType()))
                 {
-                    if (!newArgument.SetStrict(thisArgument.MakeType()))
-                        return false;
+                     return false;
                 }
-            }
-            else if (thisArgument.Behavior is GenericTypeBehaviour)
-            {
-                if (!thisArgument.SetStrict(newArgument.MakeType()))
-                    return false;
             }
             else if (!thisArgument.SetStrict(newArgument.MakeType()))
                 return false;

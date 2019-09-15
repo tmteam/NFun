@@ -19,7 +19,7 @@ namespace NFun.SyntaxParsing.SyntaxNodes
         public bool IsInBrackets { get; set; }
         public string Id { get; }
         public Interval Interval { get; set; }
-        public T Visit<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);    
+        public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);    
         public IEnumerable<ISyntaxNode> Children => new ISyntaxNode[0];
 
         public override string ToString() => $"({OrderNumber}) {Id}:{OutputType}";

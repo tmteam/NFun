@@ -14,13 +14,13 @@ namespace NFun.SyntaxParsing.Visitors
             _userFunctionsNames = userFunctionsNames;
         }
         
-        public override VisitorResult Visit(FunCallSyntaxNode node)
+        public override VisitorEnterResult Visit(FunCallSyntaxNode node)
         {
             var nodeName = node.Id + "(" + node.Args.Length + ")";
             if(!_userFunctionsNames.TryGetValue(nodeName, out int id))
-                return VisitorResult.Continue;
+                return VisitorEnterResult.Continue;
             _dependencies.Add(id);
-            return VisitorResult.Continue;
+            return VisitorEnterResult.Continue;
         }
     }
 }

@@ -16,10 +16,10 @@ namespace NFun.TypeInference
             _setupTiState = setupTiState;
         }
 
-        public override VisitorResult Visit(UserFunctionDefenitionSyntaxNode node) 
-            => VisitorResult.Skip;
+        public override VisitorEnterResult Visit(UserFunctionDefenitionSyntaxNode node) 
+            => VisitorEnterResult.Skip;
         
-        public override VisitorResult Visit(AnonymCallSyntaxNode anonymFunNode)
+        public override VisitorEnterResult Visit(AnonymCallSyntaxNode anonymFunNode)
         {
             var argTypes = new List<SolvingNode>();
             _setupTiState.EnterScope(anonymFunNode.OrderNumber);
@@ -66,7 +66,7 @@ namespace NFun.TypeInference
             if (!lambdaRes.IsSuccesfully)
                 throw ErrorFactory.AnonymousFunDefenitionIsIncorrect(anonymFunNode);
             
-            return VisitorResult.Continue;
+            return VisitorEnterResult.Continue;
         }
 
         
