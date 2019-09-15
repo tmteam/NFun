@@ -243,20 +243,20 @@ namespace NFun.TypeInference
             => new TiFunctionSignature( fun.ReturnType.ConvertToTiType(), 
                     fun.ArgTypes.Select(LangTiHelper.ConvertToTiType).ToArray());
 
-        private static CallDefenition ToCallDef(FunCallSyntaxNode node, FunctionBase fun)
+        private static CallDefinition ToCallDef(FunCallSyntaxNode node, FunctionBase fun)
         {
             var ids = new[] {node.OrderNumber}.Concat(node.Args.Select(a => a.OrderNumber)).ToArray();
             var types = new[] {fun.ReturnType}.Concat(fun.ArgTypes).Select(LangTiHelper.ConvertToTiType).ToArray();
 
-            var callDef = new CallDefenition(types, ids);
+            var callDef = new CallDefinition(types, ids);
             return callDef;
         }
-        private static CallDefenition ToCallDef(FunCallSyntaxNode node, GenericFunctionBase fun)
+        private static CallDefinition ToCallDef(FunCallSyntaxNode node, GenericFunctionBase fun)
         {
             var ids = new[] {node.OrderNumber}.Concat(node.Args.Select(a => a.OrderNumber)).ToArray();
             var types = new[] {fun.ReturnType}.Concat(fun.ArgTypes).Select(LangTiHelper.ConvertToTiType).ToArray();
 
-            var callDef = new CallDefenition(types, ids);
+            var callDef = new CallDefinition(types, ids);
             return callDef;
         }
     }

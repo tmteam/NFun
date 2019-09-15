@@ -92,7 +92,7 @@ namespace NFun.TypeInference.Solving
             return newNode.SetEqualTo(currentNode);
         }
         
-        public bool SetCall(CallDefenition call)
+        public bool SetCall(CallDefinition call)
         {
             var generics = new GenericMap();
 
@@ -105,7 +105,7 @@ namespace NFun.TypeInference.Solving
             return true;
         }
         
-        public bool SetLimArgCall(CallDefenition call)
+        public bool SetLimArgCall(CallDefinition call)
         {
             var generics = new GenericMap();
             //Set strict to return type
@@ -208,7 +208,7 @@ namespace NFun.TypeInference.Solving
                 
                 if (lazyOverload.UseForArgLimitation)
                 {
-                    SetLimArgCall(bestCandidate.ToCallDefenition(lazyOverload.ReturnNodeId, lazyOverload.ArgIds));
+                    SetLimArgCall(bestCandidate.ToCallDefinition(lazyOverload.ReturnNodeId, lazyOverload.ArgIds));
                 }
 
                 overloads.Add(lazyOverload.ReturnNodeId, bestCandidate);

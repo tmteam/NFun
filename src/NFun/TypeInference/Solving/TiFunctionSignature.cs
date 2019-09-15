@@ -6,9 +6,9 @@ namespace NFun.TypeInference.Solving
 {
     public class TiFunctionSignature
     {
-        public CallDefenition ToCallDefenition(int returnNodeId, params int[] argIds)
+        public CallDefinition ToCallDefinition(int returnNodeId, params int[] argIds)
         {
-            return new CallDefenition(
+            return new CallDefinition(
                 new[]{ReturnType}.Concat(ArgTypes).ToArray(), 
                 new[]{returnNodeId}.Concat(argIds).ToArray());
         }
@@ -74,16 +74,15 @@ namespace NFun.TypeInference.Solving
 
         private struct SignatureFit
         {
-
             public SignatureFit(FitResult returnResults)
             {
                 _returnTypeFit = returnResults;
                 _strictFits = 0;
                 _candidateFits = 0;
                 _convertedFits = 0;
-                Failed = false;
                 _maxCandidateDistance = 0;
                 _maxConvertedDistance = 0;
+                Failed = false;
             }
 
             public void Append(FitResult fitResult)
@@ -130,8 +129,6 @@ namespace NFun.TypeInference.Solving
                     return 1;
                 if (_candidateFits < fit._candidateFits)
                     return -1;
-                
-                
                 if (_convertedFits > fit._convertedFits)
                     return 1;
                 if (_convertedFits < fit._convertedFits)
@@ -168,8 +165,6 @@ namespace NFun.TypeInference.Solving
                     return 1;
                 if (fit._maxConvertedDistance < _maxConvertedDistance)
                     return -1;
-
-                    
                 
                 //Ok. These signatures are completely the same. Error.
                 return 0;
