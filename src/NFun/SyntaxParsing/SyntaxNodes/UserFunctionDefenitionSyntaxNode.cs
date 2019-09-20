@@ -29,7 +29,7 @@ namespace NFun.SyntaxParsing.SyntaxNodes
         public ISyntaxNode Body { get; }
         public bool IsInBrackets { get; set; }
         public Interval Interval { get; set; }
-        public T Visit<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
+        public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
 
         public IEnumerable<ISyntaxNode> Children {
             get {

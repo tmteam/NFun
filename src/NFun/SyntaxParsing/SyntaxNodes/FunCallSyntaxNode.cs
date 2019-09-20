@@ -24,7 +24,7 @@ namespace NFun.SyntaxParsing.SyntaxNodes
         public ISyntaxNode[] Args { get; }
         public Interval Interval { get; set; }
         public bool IsOperator { get; }
-        public T Visit<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
+        public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
         
         public IEnumerable<ISyntaxNode> Children => Args;
         /// <summary>

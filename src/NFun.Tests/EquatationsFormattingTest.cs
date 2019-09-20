@@ -14,14 +14,14 @@ namespace Funny.Tests
                 @"
                 
                 y = 1");
-            runtime.Calculate().AssertReturns(Var.New("y",1));
+            runtime.Calculate().AssertReturns(VarVal.New("y",1));
         }
         
         [Test]
         public void SeveralLinesAfterуEqual_Calculates()
         {
             var runtime = FunBuilder.BuildDefault("y =\r\r 1");
-            runtime.Calculate().AssertReturns(Var.New("y",1));
+            runtime.Calculate().AssertReturns(VarVal.New("y",1));
         }
         
         [TestCase("y = \r1",    1)]
@@ -50,7 +50,7 @@ namespace Funny.Tests
         public void SeveralLinesBetweenNodes_Calculates(string expr, int expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
-            runtime.Calculate().AssertReturns(Var.New("y",expected));
+            runtime.Calculate().AssertReturns(VarVal.New("y",expected));
         }
         
         [TestCase(@"y = 1
@@ -60,7 +60,7 @@ namespace Funny.Tests
         public void SeveralLinesAfterSingleEquation_Calculates(string expr)
         {
             var runtime = FunBuilder.BuildDefault(expr);
-            runtime.Calculate().AssertReturns(Var.New("y",1));
+            runtime.Calculate().AssertReturns(VarVal.New("y",1));
         }
         
         [Test]
@@ -75,7 +75,7 @@ namespace Funny.Tests
                     1
 
                 ");
-            runtime.Calculate().AssertReturns(Var.New("y",1));
+            runtime.Calculate().AssertReturns(VarVal.New("y",1));
         }
         
         [TestCase("\t\ty\t\t=\t\t1\t\t")]
@@ -83,7 +83,7 @@ namespace Funny.Tests
         public void TabulationEverywhere_Calculates(string expr)
         {
             var runtime = FunBuilder.BuildDefault(expr);
-            runtime.Calculate().AssertReturns(Var.New("y",1));
+            runtime.Calculate().AssertReturns(VarVal.New("y",1));
         }
         
         [Test]

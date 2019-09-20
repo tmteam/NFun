@@ -24,10 +24,10 @@ namespace NFun.HmTests
             
             _solver.SetVar(1, "4:x");
             _solver.SetConst(2, TiType.Int32);
-            _solver.SetCall(new CallDefenition(new[] {TiType.Bool, TiType.Int32, TiType.Int32}, new []{3,1,2}));
+            _solver.SetCall(new CallDefinition(new[] {TiType.Bool, TiType.Int32, TiType.Int32}, new []{3,1,2}));
             
 
-            _solver.SetCall(new CallDefenition(new[]
+            _solver.SetCall(new CallDefinition(new[]
             {
                 TiType.ArrayOf(TiType.Generic(0)),
                 TiType.ArrayOf(TiType.Generic(0)),
@@ -57,10 +57,10 @@ namespace NFun.HmTests
             
             _solver.SetVar(1, "4:x");
             _solver.SetConst(2, TiType.Int32);
-            _solver.SetCall(new CallDefenition(new[] {TiType.Bool, TiType.Int32, TiType.Int32}, new []{3,1,2}));
+            _solver.SetCall(new CallDefinition(new[] {TiType.Bool, TiType.Int32, TiType.Int32}, new []{3,1,2}));
             
 
-            _solver.SetCall(new CallDefenition(new[]
+            _solver.SetCall(new CallDefinition(new[]
             {
                 TiType.ArrayOf(TiType.Generic(1)),
                 TiType.ArrayOf(TiType.Generic(0)),
@@ -93,7 +93,7 @@ namespace NFun.HmTests
             _solver.SetComparationOperator(3, 1, 2);
 
 
-            _solver.SetCall(new CallDefenition(new[]
+            _solver.SetCall(new CallDefinition(new[]
             {
                 TiType.ArrayOf(TiType.Generic(1)),
                 TiType.ArrayOf(TiType.Generic(0)),
@@ -125,7 +125,7 @@ namespace NFun.HmTests
             _solver.SetConst(2, TiType.Int32);
             _solver.SetComparationOperator(3, 1, 2);
 
-            _solver.SetCall(new CallDefenition(new[]
+            _solver.SetCall(new CallDefinition(new[]
             {
                 TiType.ArrayOf(TiType.Generic(0)),
                 TiType.ArrayOf(TiType.Generic(0)),
@@ -156,7 +156,7 @@ namespace NFun.HmTests
             _solver.SetConst(2, TiType.Int32);
             _solver.SetComparationOperator(3, 1, 2);
 
-            _solver.SetCall(new CallDefenition(new[]
+            _solver.SetCall(new CallDefinition(new[]
             {
                 TiType.Generic(0),
                 TiType.Generic(0),
@@ -187,7 +187,7 @@ namespace NFun.HmTests
             _solver.SetVar(2, "input");
             _solver.SetArithmeticalOp(3, 1, 2).AssertSuccesfully();
 
-            _solver.SetCall(new CallDefenition(new[]
+            _solver.SetCall(new CallDefinition(new[]
             {
                 TiType.ArrayOf(TiType.Generic(1)),
                 TiType.ArrayOf(TiType.Generic(0)),
@@ -222,7 +222,7 @@ namespace NFun.HmTests
             _solver.SetVar(2, "4:x");
             _solver.SetArithmeticalOp(3, 1, 2).AssertSuccesfully();
 
-            _solver.SetCall(new CallDefenition(new[]
+            _solver.SetCall(new CallDefinition(new[]
             {
                 TiType.ArrayOf(TiType.Generic(1)),
                 TiType.ArrayOf(TiType.Generic(0)),

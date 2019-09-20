@@ -3,6 +3,7 @@ using System.Linq;
 using NFun;
 using NFun.Interpritation.Functions;
 using NFun.Runtime;
+using NFun.Runtime.Arrays;
 using NFun.Types;
 using NUnit.Framework;
 
@@ -25,7 +26,7 @@ namespace Funny.Tests
                     VarType.Int32, 
                     VarType.Text)).Build();
            
-            runtime.Calculate().AssertReturns(Var.New("y", arg.Length));
+            runtime.Calculate().AssertReturns(VarVal.New("y", arg.Length));
         }
 
         [TestCase("[1,2,3,4]",  new[]{1,3})]
@@ -39,13 +40,13 @@ namespace Funny.Tests
                 .With($"y = {customName}({arg})")
                 .WithFunctions(
                     new GenericFunctionMock(
-                        args => FunArray.By(((FunArray) args[0])
+                        args => ImmutableFunArray.By(((ImmutableFunArray) args[0])
                             .Where((_, i) => i % 2 == 0)), 
                         customName, 
                         VarType.ArrayOf(VarType.Generic(0)),
                         VarType.ArrayOf(VarType.Generic(0))))
                 .Build();
-            runtime.Calculate().AssertReturns(Var.New("y", expected));
+            runtime.Calculate().AssertReturns(VarVal.New("y", expected));
         }
         
     }

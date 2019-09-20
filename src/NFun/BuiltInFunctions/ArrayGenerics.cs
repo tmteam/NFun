@@ -1,6 +1,7 @@
 using System.Linq;
 using NFun.Interpritation.Functions;
 using NFun.Runtime;
+using NFun.Runtime.Arrays;
 using NFun.Types;
 
 namespace NFun.BuiltInFunctions
@@ -127,7 +128,7 @@ namespace NFun.BuiltInFunctions
 
             var newArr = arr.ToArray();
             newArr[index] = val;
-            return new FunArray(newArr);
+            return new ImmutableFunArray(newArr);
         }
     }
 
@@ -168,7 +169,7 @@ namespace NFun.BuiltInFunctions
             var arr = (IFunArray)args[0];
             var factor = args.Get<int>(1) ;
             
-            var res = FunArray.By(Enumerable.Repeat(arr,factor).SelectMany(a=>a));
+            var res = ImmutableFunArray.By(Enumerable.Repeat(arr,factor).SelectMany(a=>a));
             return res; 
         }
     }
@@ -191,8 +192,8 @@ namespace NFun.BuiltInFunctions
             var res = arr
                 .Select((x, i) => new {Index = i, Value = x})
                 .GroupBy(x => x.Index / chunkSize)
-                .Select(x => FunArray.By(x.Select(v => v.Value)));
-            return FunArray.By(res);
+                .Select(x => ImmutableFunArray.By(x.Select(v => v.Value)));
+            return ImmutableFunArray.By(res);
         }
     }
     public class FlatGenericFunctionDefenition : GenericFunctionBase
@@ -206,7 +207,7 @@ namespace NFun.BuiltInFunctions
         public override object Calc(object[] args)
         {
             var arr = (IFunArray)args[0];
-            return FunArray.By(arr.SelectMany(o => (IFunArray) o));
+            return ImmutableFunArray.By(arr.SelectMany(o => (IFunArray) o));
         }
     }
     public class ReduceGenericFunctionDefenition : GenericFunctionBase
@@ -265,7 +266,7 @@ namespace NFun.BuiltInFunctions
         {
             var arr1 = (IFunArray)args[0];
             var arr2 = (IFunArray)args[1];
-            return FunArray.By(arr1.Union(arr2));
+            return ImmutableFunArray.By(arr1.Union(arr2));
         }
     }
     public class UniqueGenericFunctionDefenition : GenericFunctionBase
@@ -281,7 +282,7 @@ namespace NFun.BuiltInFunctions
         {
             var arr1 = (IFunArray)args[0];
             var arr2 = (IFunArray)args[1];
-            return FunArray.By(arr1.Except(arr2).Concat(arr2.Except(arr1)));
+            return ImmutableFunArray.By(arr1.Except(arr2).Concat(arr2.Except(arr1)));
         }
     }
     public class IntersectGenericFunctionDefenition : GenericFunctionBase
@@ -297,7 +298,7 @@ namespace NFun.BuiltInFunctions
         {
             var arr1 = (IFunArray)args[0];
             var arr2 = (IFunArray)args[1];
-            return FunArray.By(arr1.Intersect(arr2));
+            return ImmutableFunArray.By(arr1.Intersect(arr2));
         }
     }
     public class ConcatArraysGenericFunctionDefenition : GenericFunctionBase
@@ -313,7 +314,7 @@ namespace NFun.BuiltInFunctions
         {
             var arr1 = (IFunArray)args[0];
             var arr2 = (IFunArray)args[1];
-            var res = FunArray.By(arr1.Concat(arr2));
+            var res = ImmutableFunArray.By(arr1.Concat(arr2));
             return res;
         }
     }
@@ -331,7 +332,7 @@ namespace NFun.BuiltInFunctions
         {
             var arr1 = (IFunArray)args[0];
             var arr2 = (IFunArray)args[1];
-            return FunArray.By(arr1.Except(arr2));
+            return ImmutableFunArray.By(arr1.Except(arr2));
         }
     }
     public class MapGenericFunctionDefenition : GenericFunctionBase
@@ -348,7 +349,7 @@ namespace NFun.BuiltInFunctions
             var arr = (IFunArray)args[0];
             var map = args[1] as FunctionBase;
             
-            var res = FunArray.By(arr.Select(a=>map.Calc(new []{a})));
+            var res = ImmutableFunArray.By(arr.Select(a=>map.Calc(new []{a})));
             return res; 
         }
     }
@@ -400,7 +401,7 @@ namespace NFun.BuiltInFunctions
             var arr = (IFunArray)args[0];
             var filter = args[1] as FunctionBase;
             
-            return FunArray.By(arr.Where(a=>(bool)filter.Calc(new []{a})));
+            return ImmutableFunArray.By(arr.Where(a=>(bool)filter.Calc(new []{a})));
         }
     }
     
@@ -416,7 +417,7 @@ namespace NFun.BuiltInFunctions
         public override object Calc(object[] args)
         {
             var first = args[0];
-            return FunArray.By(Enumerable.Repeat(first, args.Get<int>(1)));
+            return ImmutableFunArray.By(Enumerable.Repeat(first, args.Get<int>(1)));
         }
     }
     
@@ -431,7 +432,7 @@ namespace NFun.BuiltInFunctions
         public override object Calc(object[] args)
         {
             var arr  = (IFunArray) args[0];
-            return FunArray.By(arr.Reverse());
+            return ImmutableFunArray.By(arr.Reverse());
         }
     }
     public class TakeGenericFunctionDefenition: GenericFunctionBase

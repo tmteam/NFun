@@ -8,8 +8,8 @@ namespace NFun.HmTests
     {
         private TiSolver _ti;
 
-        private CallDefenition FunInvoke(int nodeId, int funId, int[] argsId) =>
-            new CallDefenition(
+        private CallDefinition FunInvoke(int nodeId, int funId, int[] argsId) =>
+            new CallDefinition(
                 new[]
                 {
                     TiType.Generic(0),
@@ -17,8 +17,8 @@ namespace NFun.HmTests
                 }.Concat(Enumerable.Range(1, argsId.Length).Select(TiType.Generic)).ToArray()
                 ,new[] {nodeId,funId}.Concat(argsId).ToArray()
             );
-        private CallDefenition ArrayIndex(int nodeId, int arrayId, int indexId)
-            =>new CallDefenition(
+        private CallDefinition ArrayIndex(int nodeId, int arrayId, int indexId)
+            =>new CallDefinition(
                 new[]
                 {
                     TiType.Generic(0),
@@ -42,7 +42,7 @@ namespace NFun.HmTests
             //expr| concat(a,b)
             _ti.SetVar(0, "a");
             _ti.SetVar(1, "b");
-            _ti.SetCall(new CallDefenition(
+            _ti.SetCall(new CallDefinition(
                     TiType.ArrayOf(TiType.Generic(0)),new[] {0, 1, 2}
             ));
             var result = _ti.Solve();
@@ -70,7 +70,7 @@ namespace NFun.HmTests
             _ti.SetVar(5, "b");
             _ti.SetCall(ArrayIndex(6, 4, 5));
             
-            _ti.SetCall(new CallDefenition(TiType.Int32, new[] {3, 7, 6}));
+            _ti.SetCall(new CallDefinition(TiType.Int32, new[] {3, 7, 6}));
             _ti.Unite(8, 7);
             
             var result = _ti.Solve();
@@ -112,7 +112,7 @@ namespace NFun.HmTests
             Assert.IsTrue(_ti.SetStrict(1, TiType.Int32));
             Assert.IsTrue(_ti.SetCall(ArrayIndex(2, 0, 1)));
             
-            Assert.IsTrue(_ti.SetCall(new CallDefenition(TiType.Int32, new[] {2, 3, 4})));
+            Assert.IsTrue(_ti.SetCall(new CallDefinition(TiType.Int32, new[] {2, 3, 4})));
             
             var result = _ti.Solve();
             Assert.AreEqual(0, result.GenericsCount);
@@ -281,7 +281,7 @@ namespace NFun.HmTests
             _ti.SetVar(0, "x");
             _ti.SetVar(1, "x");
 
-            _ti.SetCall(new CallDefenition(
+            _ti.SetCall(new CallDefinition(
                 new[] {TiType.Int32, TiType.Int32, TiType.Int32},
                 new[] {2, 0, 1}));
 

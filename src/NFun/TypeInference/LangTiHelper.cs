@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using NFun.Interpritation;
 using NFun.Interpritation.Functions;
+using NFun.ParseErrors;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
@@ -27,6 +28,8 @@ namespace NFun.TypeInference
                 return solver;
             return null;
         }
+
+        
         public static string GetArgAlias(string funAlias, string argId)
             =>  funAlias + "::" + argId;
         public static string GetFunAlias(string funId, int argsCount)

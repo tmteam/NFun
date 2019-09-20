@@ -34,7 +34,7 @@ namespace NFun.SyntaxParsing.SyntaxNodes
             }
             set => throw new System.NotImplementedException();
         }
-        public T Visit<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
+        public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
 
         public IEnumerable<ISyntaxNode> Children => Nodes;
     }
