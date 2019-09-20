@@ -22,20 +22,6 @@ namespace Nfun.Fuspec.Parser.FuspecParserErrors
                     return "ParamInMissed";
                 case FuspecErrorType.ParamOutMissed:
                     return "ParamOutMissed";
-                case FuspecErrorType.SeparatedStringMissed:
-                    return "SeparatedStringMissed";
-                case FuspecErrorType.NFunMessage_ICantParseValue:
-                    return "NFunMessage_ICantParseValue";
-                case FuspecErrorType.NFunMessage_ICantParseParamTypeString:
-                    return "NFunMessage_ICantParseParamTypeString=";
-                case FuspecErrorType.WrongSetCheckKit:
-                    return "WrongSetCheckKit";
-                case FuspecErrorType.SetKitMissed:
-                    return "SetKitMissed";
-                case FuspecErrorType.CheckKitMissed:
-                    return "CheckKitMissed";
-                case FuspecErrorType.ExpectedOpeningLine:
-                    return "ExpectedOpeningLine";
                 default:
                     return "UnknownError!";
             }

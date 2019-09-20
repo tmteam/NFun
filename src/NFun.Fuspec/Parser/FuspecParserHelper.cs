@@ -3,145 +3,84 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using Nfun.Fuspec.Parser.Model;
-using NFun;
-using NFun.ParseErrors;
 using NFun.Tokenization;
-using NFun.Types;
-
 using ParcerV1;
 
 namespace Nfun.Fuspec.Parser
 {
     public static class FuspecParserHelper
     {
-        private const int MinSeparatorLineLength = 8;
-
-        public static string FindStringOrNullByKeyWord(string keyWord, string str)
+        public static string FindKeyWord(string findingkey, string str)
         {
-            if (str.Length < keyWord.Length)
+            if (str.Length < findingkey.Length)
                 return null;
-            string key = str.Substring(0, keyWord.Length);
-            if (key == keyWord)
-                return str.Substring(keyWord.Length);
-            return null;
+            string key = str.Substring(0, findingkey.Length);
+            return key == findingkey 
+                ? str.Substring(findingkey.Length) 
+                : null;
         }
 
-        public static bool IsSeparatingLine(string str, char lineSymbol)
+        public static bool IsSeparatingLine(string str, char symbol)
         {
-            str = str.Trim();
+            //    if (separatingString != null)
+
+            int i = 0;
             if (str[0] != '|')
                 return false;
-            return (str.Substring(1).All(c => c == lineSymbol) && str.Length > MinSeparatorLineLength);
+            foreach (var ch in str.Substring(1))
+            {
+                if (ch != symbol) return false;
+                i++;
+            }
+
+            return i >= 8;
+            //            return str.Substring(1).All(ch => ch == symbol);
         }
 
-
-
-        /*
-         * Опять таки, что за GetParam, какой параметр, пока не знаю, какое название было бы правильнее взять, так как слишком много действий
-         * метод выполняет, надо бы раздробить
-         */
-        //Юра: Согласен. Не понятно. Вероятно тут нужны комментаии, и может разбить метод на подметоды
-       
-        /* Наташа: Param - это модель фуспека. Возможно нужно дать лучший нейминг для модели? Метод получает список объектов Param
-         * Вынесла всю логику работы с NFun в отдельный метод ParseStringByNFun, чтобы она не вводила смуту в понимание.
-         * В методе написала комментарии, что делают методы NFun.
-         * Думаю Юра поправит, если я что-то не так поняла )
-         */
-
-        public static List<Param> GetInOutParam(string paramString)
-        {
-            List<Param> result = new List<Param>();
-
-            result = GetVarTypeByNFun(paramString);
-            
-            if (!result.Any())
-                return null;
-            return result;
-        }
-
-        private static List<Param> GetVarTypeByNFun(string paramString)
+        public static List<Param> GetParam(string paramString)
         {
             string value;
-            VarType varType;
-            List<Param> result = new List<Param>();
-            
-            //генерим поток токенов
+            string varType;
             var tokFLow = Tokenizer.ToFlow(paramString);
+            List<Param> result = new List<Param>();
+
+            if (tokFLow.Peek == null )
+                return null;
             
-            //пока не кончатся токены
             while (tokFLow.Current.Type != TokType.Eof)
             {
+                if (tokFLow.Peek == null)
+                    return null;
                 tokFLow.MoveNext();
-                
-                //проверяет предыдуший и следующий токен
                 if ((tokFLow.Previous.Type != TokType.Id ||
                      tokFLow.Current.Type != TokType.Colon) ||
                     (tokFLow.Peek == null))
                     return null;
-                //если выражение нам подходит, то берем имя переменной(Value) и ее тип(VarType)
                 value = tokFLow.Previous.Value;
+
                 tokFLow.MoveNext();
-                varType = tokFLow.ReadVarType();
                 
-                // если такое имя переменной уже есть
-                if (result.Any(param => param.Value == value)) 
-                    return null;
                 
+                varType = tokFLow.ReadVarType().ToString();
+
+                foreach (var res in result)
+                {
+                    if (res.Value == value)
+                        return null;
+                }
                 result.Add(new Param(value, varType));
                 
-                 // если слудующий токен - запятая
                 if (tokFLow.Current.Type == TokType.Sep)
                     tokFLow.MoveNext();
+               
             }
-            return result;
+            return !result.Any() 
+                ? null 
+                : result;
         }
-        
-        public static List<string> SplitWithTrim(string str, char dividingSymbol)
-        {
-            var res = Array.ConvertAll(str.Split(dividingSymbol), p => p.Trim()).ToList();
-            res.RemoveAll(p=>p=="");
-            return res;
-        }
-
-      
-        public static List<Value> GetValue(string valueStr)
-        {
-           
-            
-            List<Value> result = new List<Value>();
-            //генерим поток токенов
-            var tokFLow = Tokenizer.ToFlow(valueStr);
-
-            //пока не кончатся токены
-            while (tokFLow.Current.Type != TokType.Eof)
-            {
-                tokFLow.MoveNext();
-
-                //проверяет предыдуший и следующий токен
-                if ((tokFLow.Previous.Type != TokType.Id ||
-                     tokFLow.Current.Type != TokType.Colon) ||
-                    (tokFLow.Peek == null))
-                    return null;
-                //если выражение нам подходит, то берем имя переменной(Value) и парсим ее тип и значение
-                var idName = tokFLow.Previous.Value;
-                tokFLow.MoveNext();
-                var valVarType = ValueParser.ParseValue(tokFLow); 
-                var value = new Value(idName, valVarType.Item1,valVarType.Item2);
-                result.Add(value);
-                
-              //  tokFLow.MoveNext();
-                // если слудующий токен - запятая
-                if (tokFLow.Current.Type == TokType.Sep)
-                    tokFLow.MoveNext();
-             }
-            return result;
-        }
-        
-   
-
-   
-
-
     }
     
-} 
+}
+
+   
+

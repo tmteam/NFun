@@ -118,8 +118,6 @@ namespace NFun.Tokenization
             return readType;
         }
         
-       
-        
         public static bool MoveIf(this TokFlow flow, TokType tokType)
         {
             if (flow.IsCurrent(tokType))
