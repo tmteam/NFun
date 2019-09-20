@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading;
+using NFun.BuiltInFunctions;
 using Nfun.Fuspec.Parser.Model;
 using NFun.Fuspec.TestHandler.Models;
 using NFun.ParseErrors;
