@@ -225,7 +225,9 @@ namespace NFun.TypeInference
             //ambiguous function reference
             //Several functions fits
             if (userFunctions.Count > 1)
-                throw ErrorFactory.AmbiguousFunctionChoise(node);
+                throw ErrorFactory.AmbiguousFunctionChoise(
+                    userFunctions.Select(u=>u as FunctionBase).ToList(), 
+                    node);
             
             //if there is no functions - set variable with local name
             if (userFunctions.Count == 0)
@@ -243,20 +245,20 @@ namespace NFun.TypeInference
             => new TiFunctionSignature( fun.ReturnType.ConvertToTiType(), 
                     fun.ArgTypes.Select(LangTiHelper.ConvertToTiType).ToArray());
 
-        private static CallDefinition ToCallDef(FunCallSyntaxNode node, FunctionBase fun)
+        private static CallDefenition ToCallDef(FunCallSyntaxNode node, FunctionBase fun)
         {
             var ids = new[] {node.OrderNumber}.Concat(node.Args.Select(a => a.OrderNumber)).ToArray();
             var types = new[] {fun.ReturnType}.Concat(fun.ArgTypes).Select(LangTiHelper.ConvertToTiType).ToArray();
 
-            var callDef = new CallDefinition(types, ids);
+            var callDef = new CallDefenition(types, ids);
             return callDef;
         }
-        private static CallDefinition ToCallDef(FunCallSyntaxNode node, GenericFunctionBase fun)
+        private static CallDefenition ToCallDef(FunCallSyntaxNode node, GenericFunctionBase fun)
         {
             var ids = new[] {node.OrderNumber}.Concat(node.Args.Select(a => a.OrderNumber)).ToArray();
             var types = new[] {fun.ReturnType}.Concat(fun.ArgTypes).Select(LangTiHelper.ConvertToTiType).ToArray();
 
-            var callDef = new CallDefinition(types, ids);
+            var callDef = new CallDefenition(types, ids);
             return callDef;
         }
     }

@@ -16,6 +16,7 @@ namespace NFun.TypeInference.Solving
     {
         public TiType(TiTypeName name, params SolvingNode[] arguments)
         {
+            
             Name = name;
             Arguments = arguments;
             if(IsPrimitiveGeneric && !(this is GenericType))
@@ -57,6 +58,7 @@ namespace NFun.TypeInference.Solving
 
         public bool IsPrimitiveGeneric => Name.IsGeneric && !Arguments.Any();
 
+
         public override bool Equals(object obj)
         {
             if (!(obj is TiType n))
@@ -75,17 +77,6 @@ namespace NFun.TypeInference.Solving
 
             return true;
         }
-
-        public override int GetHashCode()
-        {
-            unchecked
-            {
-                var hashCode = Name.GetHashCode();
-                hashCode = (hashCode * 397) ^ Arguments?.Length??0;
-                return hashCode;
-            }
-        }
-
         /// <summary>
         /// Get inherance graph distance to specified parent 
         /// </summary>
@@ -176,5 +167,6 @@ namespace NFun.TypeInference.Solving
             }
             return new FitResult(minimalResult,0);
         } 
+
     }
 }

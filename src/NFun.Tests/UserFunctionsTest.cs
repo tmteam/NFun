@@ -37,7 +37,7 @@ namespace Funny.Tests
        public void TypedConstantEquation_NonRecursiveFunction(string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
-            runtime.Calculate().AssertReturns(VarVal.New("y", expected));
+            runtime.Calculate().AssertReturns(Var.New("y", expected));
         }
         
         
@@ -50,14 +50,14 @@ namespace Funny.Tests
         public void ConstantEquation_NonRecursiveFunction(string expr, double expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
-            runtime.Calculate().AssertReturns(0.00001, VarVal.New("y", expected));
+            runtime.Calculate().AssertReturns(0.00001, Var.New("y", expected));
         }
 
         [TestCase("plus3(a,b,c) = plus2(a,b)+c \r plus2(a,b) = a+b  \r y = plus3(16,4,2)",22)]
         public void ConstantEquation_ReversedImplementationsOfFunctions(string expr, double expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
-            runtime.Calculate().AssertReturns(0.00001, VarVal.New("y", expected));
+            runtime.Calculate().AssertReturns(0.00001, Var.New("y", expected));
         }
         
         
@@ -68,7 +68,7 @@ namespace Funny.Tests
         public void ConstantEquation_RecFunctions(string expr, double expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
-            runtime.Calculate().AssertReturns(0.00001, VarVal.New("y", expected));
+            runtime.Calculate().AssertReturns(0.00001, Var.New("y", expected));
         }
 
         [TestCase(1,1)]
@@ -88,7 +88,7 @@ namespace Funny.Tests
                    fib(n) = if (n<3) 1 else fibrec(n-1,2,1,1)
                    y = fib(x)";
             var runtime = FunBuilder.BuildDefault(text);
-            runtime.Calculate(VarVal.New("x",x)).AssertReturns(0.00001, VarVal.New("y", y));    
+            runtime.Calculate(Var.New("x",x)).AssertReturns(0.00001, Var.New("y", y));    
         }
         
         [TestCase(1,1)]
@@ -108,7 +108,7 @@ namespace Funny.Tests
                    fib(n) = if (n<3) 1 else fibrec(n-1,2,1,1)
                    y = fib(x)";
             var runtime = FunBuilder.BuildDefault(text);
-            runtime.Calculate(VarVal.New("x",x)).AssertReturns(0.00001, VarVal.New("y", y));    
+            runtime.Calculate(Var.New("x",x)).AssertReturns(0.00001, Var.New("y", y));    
         }
         [TestCase(1,1)]
         [TestCase(2,1)]
@@ -129,7 +129,7 @@ namespace Funny.Tests
                    fib(n) = if (n<3) 1 else fibrec(n-1,2,1,1)
                    y = fib(x)";
             var runtime = FunBuilder.BuildDefault(text);
-                runtime.Calculate(VarVal.New("x",x)).AssertReturns(0.00001, VarVal.New("y", y));    
+                runtime.Calculate(Var.New("x",x)).AssertReturns(0.00001, Var.New("y", y));    
         }
         
         [TestCase(1,1)]
@@ -148,7 +148,7 @@ namespace Funny.Tests
                    fib(n) = if (n<3) 1 else fib(n-1)+fib(n-2)
                    y = fib(x)";
             var runtime = FunBuilder.BuildDefault(text);
-            runtime.Calculate(VarVal.New("x",x)).AssertReturns(0.00001, VarVal.New("y", y));    
+            runtime.Calculate(Var.New("x",x)).AssertReturns(0.00001, Var.New("y", y));    
         }
         [TestCase(1,1)]
         [TestCase(3,2)]
@@ -162,7 +162,7 @@ namespace Funny.Tests
                    x:int
                    y = fib(x)";
             var runtime = FunBuilder.BuildDefault(text);
-            runtime.Calculate(VarVal.New("x",x)).AssertReturns(VarVal.New("y", y));    
+            runtime.Calculate(Var.New("x",x)).AssertReturns(Var.New("y", y));    
         }
         
         [TestCase("y = raise(1)\r raise(x) = raise(x)")]

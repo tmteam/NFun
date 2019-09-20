@@ -8,5 +8,6 @@ namespace NFun.Interpritation.Nodes
         Interval Interval { get; }
         VarType Type { get; }
         object Calc();
+                
     }
 }

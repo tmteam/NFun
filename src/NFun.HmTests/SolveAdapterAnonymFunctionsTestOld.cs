@@ -20,7 +20,7 @@ namespace NFun.HmTests
             //y = [0,2].filter(x=>x>0)
             solver.SetConst(0, TiType.ArrayOf(TiType.Int32));
             solver.SetStrict(1, TiType.Fun(TiType.Generic(0), TiType.Bool));
-            solver.SetCall(new CallDefinition(new[]
+            solver.SetCall(new CallDefenition(new[]
             {
                 TiType.ArrayOf(TiType.Generic(0)),
                 TiType.ArrayOf(TiType.Generic(0)),
@@ -55,7 +55,7 @@ namespace NFun.HmTests
             var anonymFunDef =  anonymSolve.MakeFunDefenition();
             //###############################################
             solver.SetStrict(1, anonymFunDef);
-            Assert.IsTrue(solver.SetCall(new CallDefinition(new[]
+            Assert.IsTrue(solver.SetCall(new CallDefenition(new[]
             {
                 TiType.ArrayOf(TiType.Generic(0)),
                 TiType.ArrayOf(TiType.Generic(1)),

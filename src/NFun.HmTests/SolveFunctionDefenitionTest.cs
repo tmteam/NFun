@@ -24,7 +24,7 @@ namespace NFun.HmTests
 
             Assert.IsTrue(solver.SetVar(0, "a"));
             Assert.IsTrue(solver.SetVar(1, "a"));
-            Assert.IsTrue(solver.SetCall(new CallDefinition(TiType.ArrayOf(TiType.Generic(0)), new[] {2, 0, 1})));
+            Assert.IsTrue(solver.SetCall(new CallDefenition(TiType.ArrayOf(TiType.Generic(0)), new[] {2, 0, 1})));
 
             solver.SetFunDefenition("y()", 3, 2).AssertSuccesfully();
 
@@ -49,7 +49,7 @@ namespace NFun.HmTests
             
             Assert.IsTrue(solver.SetVar(0, "a"));
             Assert.IsTrue(solver.SetVar(1, "a"));
-            Assert.IsTrue(solver.SetCall(new CallDefinition(TiType.ArrayOf(TiType.Generic(0)), new[] {2, 0, 1})));
+            Assert.IsTrue(solver.SetCall(new CallDefenition(TiType.ArrayOf(TiType.Generic(0)), new[] {2, 0, 1})));
 
             var solvation = solver.Solve();
             Assert.IsTrue(solvation.IsSolved);
@@ -70,7 +70,7 @@ namespace NFun.HmTests
             solver.SetFunDefenition("y()", 2, 1).AssertSuccesfully();;
             
             Assert.IsTrue(solver.SetVar(0, "a"));
-            Assert.IsTrue(solver.SetCall(new CallDefinition(TiType.ArrayOf(TiType.Generic(0)), new[] {1, 0})));
+            Assert.IsTrue(solver.SetCall(new CallDefenition(TiType.ArrayOf(TiType.Generic(0)), new[] {1, 0})));
 
             var solvation = solver.Solve();
             Assert.IsTrue(solvation.IsSolved);
@@ -91,7 +91,7 @@ namespace NFun.HmTests
             solver.SetFunDefenition("y()", 2, 1).AssertSuccesfully();;
             
             Assert.IsTrue(solver.SetVar(0, "a"));
-            Assert.IsTrue(solver.SetCall(new CallDefinition(TiType.Generic(0), new[] {1, 0})));
+            Assert.IsTrue(solver.SetCall(new CallDefenition(TiType.Generic(0), new[] {1, 0})));
 
             var solvation = solver.Solve();
             Assert.IsTrue(solvation.IsSolved);
@@ -110,7 +110,7 @@ namespace NFun.HmTests
             solver.SetVarType("y()", TiType.Fun(arrayOfInt));
 
             solver.SetFunDefenition("y()", 1, 0).AssertSuccesfully();;
-            Assert.IsTrue(solver.SetCall(new CallDefinition(TiType.Generic(0), new[] {0})));
+            Assert.IsTrue(solver.SetCall(new CallDefenition(TiType.Generic(0), new[] {0})));
 
             var solvation = solver.Solve();
             Assert.IsTrue(solvation.IsSolved);
@@ -126,7 +126,7 @@ namespace NFun.HmTests
             solver.SetVarType("y()", TiType.Fun(TiType.Int32));
 
             solver.SetFunDefenition("y()", 1, 0).AssertSuccesfully();;
-            Assert.IsTrue(solver.SetCall(new CallDefinition(TiType.Generic(0), new[] {0})));
+            Assert.IsTrue(solver.SetCall(new CallDefenition(TiType.Generic(0), new[] {0})));
 
             var solvation = solver.Solve();
             Assert.IsTrue(solvation.IsSolved);

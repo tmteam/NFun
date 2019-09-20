@@ -15,7 +15,7 @@ namespace NFun.SyntaxParsing.Visitors
         public string Visit(IfCaseSyntaxNode node) => "if (...) ...";
         public string Visit(ListOfExpressionsSyntaxNode node)
         {
-            var strings = node.Expressions.Select(e => e.Accept(this));
+            var strings = node.Expressions.Select(e => e.Visit(this));
             return $"{string.Join(",", strings)}";
         }
 
@@ -31,13 +31,13 @@ namespace NFun.SyntaxParsing.Visitors
 
         public string Visit(ProcArrayInit node)
         {
-            var from = node.From.Accept(this);
-            var to = node.To.Accept(this);
+            var from = node.From.Visit(this);
+            var to = node.To.Visit(this);
 
             if (node.Step == null)
                 return $"[{from}..{to}]";
             else
-                return $"[{from}..{to}..{node.Step.Accept(this)}]";
+                return $"[{from}..{to}..{node.Step.Visit(this)}]";
         }
 
         public string Visit(SyntaxTree node) => "Fun equations";

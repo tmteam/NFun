@@ -89,7 +89,7 @@ namespace NFun.HmTests.UnitTests
         [Test]
         public void FunReturnsItsArg_SetOutType_AllGenericsAreSolved()
         {
-            _ti.SetCall(new CallDefinition(TiType.Generic(0), new[] {0, 1}));
+            _ti.SetCall(new CallDefenition(TiType.Generic(0), new[] {0, 1}));
             Assert.IsTrue(_ti.SetStrict(1, TiType.Int32));
             var result = _ti.Solve();
             Assert.AreEqual(0, result.GenericsCount);

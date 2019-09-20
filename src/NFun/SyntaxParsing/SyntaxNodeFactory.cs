@@ -8,6 +8,8 @@ namespace NFun.SyntaxParsing
 {
     public static class SyntaxNodeFactory
     {
+        #region factories
+
         public static ISyntaxNode AnonymFun(ISyntaxNode defenition, ISyntaxNode body)
             => new AnonymCallSyntaxNode(defenition, body, Interval.Unite(defenition.Interval, body.Interval));
         public static ISyntaxNode IfElse(IList<IfCaseSyntaxNode> ifThenNodes, ISyntaxNode elseResult, int start, int end) 
@@ -40,5 +42,9 @@ namespace NFun.SyntaxParsing
        
         public static ISyntaxNode OperatorFun(string name, ISyntaxNode[] children, int start, int end) 
             => new FunCallSyntaxNode(name, children, Interval.New(start,end), true);    
+        
+      
+        #endregion
+
     }
 }

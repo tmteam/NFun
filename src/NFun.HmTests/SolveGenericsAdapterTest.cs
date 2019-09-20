@@ -144,7 +144,7 @@ namespace NFun.HmTests
             // y = rand(a,b) 
             solver.SetVar( 0,"a");
             solver.SetVar( 1,"b");
-            solver.SetCall(new CallDefinition(TiType.Generic(0), new[] {2,0, 1}));
+            solver.SetCall(new CallDefenition(TiType.Generic(0), new[] {2,0, 1}));
             solver.SetDefenition("y", 3, 2);
             
             var solvation = solver.Solve();
@@ -160,7 +160,7 @@ namespace NFun.HmTests
             // y = rand(a,1) 
             solver.SetVar( 0,"a");
             solver.SetConst( 1,TiType.Int32);
-            solver.SetCall(new CallDefinition(TiType.Generic(0), new[] {2,0, 1}));
+            solver.SetCall(new CallDefenition(TiType.Generic(0), new[] {2,0, 1}));
             solver.SetDefenition("y", 3, 2);
             
             var solvation = solver.Solve();
@@ -175,7 +175,7 @@ namespace NFun.HmTests
             // y(a,b):int = rand(a,b) 
             solver.SetVar( 0,"a");
             solver.SetVar( 1,"b");
-            solver.SetCall(new CallDefinition(TiType.Generic(0), new[] {2,0, 1}));
+            solver.SetCall(new CallDefenition(TiType.Generic(0), new[] {2,0, 1}));
             solver.SetDefenition("y", 3, 2);
             solver.SetStrict(3, TiType.Int32);
             
@@ -193,7 +193,7 @@ namespace NFun.HmTests
             solver.SetVarType("y", TiType.Int32);
             solver.SetVar( 0,"a");
             solver.SetVar( 1,"b");
-            solver.SetCall(new CallDefinition(TiType.Generic(0), new[] {2,0, 1}));
+            solver.SetCall(new CallDefenition(TiType.Generic(0), new[] {2,0, 1}));
             solver.SetDefenition("y", 3, 2);
             
             var solvation = solver.Solve();
@@ -208,8 +208,8 @@ namespace NFun.HmTests
             // 5          0  2 1  4  3
             // y(a,b,c) = a.or(b).or(c) 
             solver.SetVar( 0,"a");
-            solver.SetCall(new CallDefinition(TiType.Generic(0), new[] {2,0, 1}));
-            solver.SetCall(new CallDefinition(TiType.Generic(0), new[] {4, 2, 3}));
+            solver.SetCall(new CallDefenition(TiType.Generic(0), new[] {2,0, 1}));
+            solver.SetCall(new CallDefenition(TiType.Generic(0), new[] {4, 2, 3}));
             solver.SetDefenition("y", 5, 4);
             
             var solvation = solver.Solve();
@@ -223,9 +223,9 @@ namespace NFun.HmTests
             // 7          0  2 1  4  3   6 5
             // y(a,b,c) = a.or(b).or(c).or(d) 
             solver.SetVar( 0,"a");
-            solver.SetCall(new CallDefinition(TiType.Generic(0), new[] {2,0, 1}));
-            solver.SetCall(new CallDefinition(TiType.Generic(0), new[] {4, 2, 3}));
-            solver.SetCall(new CallDefinition(TiType.Generic(0), new[] {6, 4, 5}));
+            solver.SetCall(new CallDefenition(TiType.Generic(0), new[] {2,0, 1}));
+            solver.SetCall(new CallDefenition(TiType.Generic(0), new[] {4, 2, 3}));
+            solver.SetCall(new CallDefenition(TiType.Generic(0), new[] {6, 4, 5}));
 
             solver.SetDefenition("y", 7, 6);
             
@@ -242,7 +242,7 @@ namespace NFun.HmTests
 
             solver.SetVar(0,"a");
             solver.SetVar(1,"b");
-            solver.SetCall(new CallDefinition(TiType.Generic(0), new[] {2, 0, 1}));
+            solver.SetCall(new CallDefenition(TiType.Generic(0), new[] {2, 0, 1}));
             solver.SetConst(3, TiType.Int32);
             solver.SetArithmeticalOp(4, 2, 3);
             solver.SetConst(5, TiType.Real);
@@ -263,7 +263,7 @@ namespace NFun.HmTests
 
             solver.SetVar(0,"a");
             solver.SetVar(1,"b");
-            solver.SetCall(new CallDefinition(TiType.Generic(0), new[] {2, 0, 1}));
+            solver.SetCall(new CallDefenition(TiType.Generic(0), new[] {2, 0, 1}));
             solver.SetConst(2, TiType.Real);
             solver.SetArithmeticalOp(4, 2, 3);
             solver.SetConst(5, TiType.Int32);
@@ -283,7 +283,7 @@ namespace NFun.HmTests
 
             solver.SetConst(0,TiType.Real);
             solver.SetConst(1,TiType.Int32);
-            solver.SetCall(new CallDefinition(TiType.Generic(0), new[] {2, 0, 1}));
+            solver.SetCall(new CallDefenition(TiType.Generic(0), new[] {2, 0, 1}));
             solver.SetDefenition("a", 3, 2).AssertSuccesfully();
              
             var solvation = solver.Solve();
@@ -301,7 +301,7 @@ namespace NFun.HmTests
 
             solver.SetConst(0,TiType.Int32);
             solver.SetConst(1,TiType.Real);
-            Assert.True(solver.SetCall(new CallDefinition(TiType.Generic(0), new[] {2, 0, 1})));
+            Assert.True(solver.SetCall(new CallDefenition(TiType.Generic(0), new[] {2, 0, 1})));
             solver.SetDefenition("a", 3, 2).AssertSuccesfully();
              
             var solvation = solver.Solve();
@@ -321,7 +321,7 @@ namespace NFun.HmTests
 
             solver.SetVar(0,"a");
             solver.SetVar(1,"b");
-            solver.SetCall(new CallDefinition(TiType.Generic(0), new[] {2, 0, 1}));
+            solver.SetCall(new CallDefenition(TiType.Generic(0), new[] {2, 0, 1}));
             solver.SetConst(3, TiType.Int32);
             
             solver.SetDefenition("a", 4, 3).AssertSuccesfully();
@@ -343,7 +343,7 @@ namespace NFun.HmTests
             solver.SetDefenition("a", 1,0).AssertSuccesfully();
             solver.SetVar(2,"a");
             solver.SetVar(3,"b");
-            solver.SetCall(new CallDefinition(TiType.Generic(0), new[] {4, 2, 3}));
+            solver.SetCall(new CallDefenition(TiType.Generic(0), new[] {4, 2, 3}));
             solver.SetConst(5, TiType.Real);
             
             solver.SetDefenition("a", 6, 5).AssertSuccesfully();

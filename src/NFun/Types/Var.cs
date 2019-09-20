@@ -2,31 +2,27 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NFun.Runtime;
-using NFun.Runtime.Arrays;
 
 namespace NFun.Types
 {
-    /// <summary>
-    /// Name type and value of concrete variable 
-    /// </summary>
-    public struct VarVal {
+    public struct Var {
 
-        public static VarVal New<T>(string name, T[] value)
+        public static Var New<T>(string name, T[] value)
         {
             var baseType = ToVarType(typeof(T));
             var vartype = VarType.ArrayOf(baseType);
-            return new VarVal(name, new ImmutableFunArray(value), vartype);
+            return new Var(name, new FunArray(value), vartype);
         }
-        public static VarVal New<T>(string name, IEnumerable<T> value)
+        public static Var New<T>(string name, IEnumerable<T> value)
         {
             var baseType = ToVarType(typeof(T));
             var vartype = VarType.ArrayOf(baseType);
             if (value is IFunArray a)
-                return  new VarVal(name, a, vartype);
+                return  new Var(name, a, vartype);
             else
-                return new VarVal(name, new ImmutableFunArray(value.ToArray()), vartype);
+                return new Var(name, new FunArray(value.ToArray()), vartype);
         }
-        public static VarVal New(string name, object value)
+        public static Var New(string name, object value)
         {
             switch (value)
             {
@@ -82,32 +78,32 @@ namespace NFun.Types
                 case IEnumerable<object> arrObj:
                     return New(name, arrObj);
                 default:
-                    return new VarVal(name, value, VarType.Anything);
+                    return new Var(name, value, VarType.Anything);
             }
         }
-        public static VarVal New(string name, bool value) 
-            => new VarVal(name, value, VarType.Bool);
-        public static VarVal New(string name, short value) 
-            => new VarVal(name, value, VarType.Int16);
-        public static VarVal New(string name, int value) 
-            => new VarVal(name, value, VarType.Int32);
-        public static VarVal New(string name, long value) 
-            => new VarVal(name, value, VarType.Int64);
+        public static Var New(string name, bool value) 
+            => new Var(name, value, VarType.Bool);
+        public static Var New(string name, short value) 
+            => new Var(name, value, VarType.Int16);
+        public static Var New(string name, int value) 
+            => new Var(name, value, VarType.Int32);
+        public static Var New(string name, long value) 
+            => new Var(name, value, VarType.Int64);
         
-        public static VarVal New(string name, byte value) 
-            => new VarVal(name, value, VarType.UInt8);
-        public static VarVal New(string name, ushort value) 
-            => new VarVal(name, value, VarType.UInt16);
-        public static VarVal New(string name, uint value) 
-            => new VarVal(name, value, VarType.UInt32);
-        public static VarVal New(string name, ulong value) 
-            => new VarVal(name, value, VarType.UInt64);
-        public static VarVal New(string name, double value) 
-            => new VarVal(name, value, VarType.Real);
-        public static VarVal New(string name, string value) 
-            => new VarVal(name, value, VarType.Text);
-        public static VarVal New(string name, char value)
-            => new VarVal(name, value, VarType.Char);
+        public static Var New(string name, byte value) 
+            => new Var(name, value, VarType.UInt8);
+        public static Var New(string name, ushort value) 
+            => new Var(name, value, VarType.UInt16);
+        public static Var New(string name, uint value) 
+            => new Var(name, value, VarType.UInt32);
+        public static Var New(string name, ulong value) 
+            => new Var(name, value, VarType.UInt64);
+        public static Var New(string name, double value) 
+            => new Var(name, value, VarType.Real);
+        public static Var New(string name, string value) 
+            => new Var(name, value, VarType.Text);
+        public static Var New(string name, char value)
+            => new Var(name, value, VarType.Char);
         public  static VarType ToVarType(Type t)
         {
             if (t == typeof(object))
@@ -141,12 +137,11 @@ namespace NFun.Types
             }
             throw new ArgumentException($"Type {t.Name} is not supported");
         }
-        
         public readonly string Name;
         public readonly object Value;
         public readonly VarType Type;
         
-        public VarVal(string name, object value, VarType type)
+        public Var(string name, object value, VarType type)
         {
             Name = name;
             Value = value;

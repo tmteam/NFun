@@ -77,7 +77,7 @@ namespace NFun.TypeInference.Solving
         /// </summary>
         /// <param name="call"></param>
         /// <returns></returns>
-        public bool SetCall(CallDefinition call) => _solver.SetLimArgCall(call);
+        public bool SetCall(CallDefenition call) => _solver.SetLimArgCall(call);
 
         public bool SetOverloadCall(TiFunctionSignature[] candidates, int returnNodeId,
             params int[] argIds) => SetOverloadCall(candidates, returnNodeId, argIds, true);
@@ -88,7 +88,7 @@ namespace NFun.TypeInference.Solving
              int[] argIds, bool useForArgLimitation = true )
         {
             if (candidates.Length == 1)
-                return SetCall(candidates[0].ToCallDefinition(returnNodeId, argIds));
+                return SetCall(candidates[0].ToCallDefenition(returnNodeId, argIds));
 
             if (candidates.Length == 0)
                 return false;
@@ -333,7 +333,7 @@ namespace NFun.TypeInference.Solving
         
         public bool SetProcArrayInit(int nodeId, int fromId, int toId)
         {
-            return _solver.SetLimArgCall(new CallDefinition(
+            return _solver.SetLimArgCall(new CallDefenition(
                 new[] {TiType.ArrayOf(TiType.Int32), TiType.Int32, TiType.Int32}, new[] {nodeId, fromId, toId}));
         }
 

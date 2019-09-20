@@ -10,12 +10,8 @@ namespace NFun.Interpritation.Nodes
     public class CastExpressionNode: IExpressionNode
     {
         private readonly IExpressionNode _origin;
-        private readonly Func<object, object> _converter;
-        public CastExpressionNode(
-            IExpressionNode origin, 
-            VarType targetType, 
-            Func<object, object> converter, 
-            Interval interval)
+        private Func<object, object> _converter;
+        public CastExpressionNode(IExpressionNode origin, VarType targetType, Func<object, object> converter, Interval interval)
         {
             _origin = origin;
             Type = targetType;

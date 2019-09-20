@@ -29,7 +29,7 @@ namespace NFun.Runtime
             UserFunctions = userFunctions;
         }
 
-        public CalculationResult Calculate(params VarVal[] vars)
+        public CalculationResult Calculate(params Var[] vars)
         {
             foreach (var value in vars)
             {
@@ -40,11 +40,11 @@ namespace NFun.Runtime
                 source.SetConvertedValue(value.Value);
             }
             
-            var ans = new VarVal[_equations.Count];
+            var ans = new Var[_equations.Count];
             for (int i = 0; i < _equations.Count; i++)
             { 
                 var e = _equations[i];
-                ans[i] = new VarVal(e.Id, e.Expression.Calc(), e.Expression.Type);
+                ans[i] = new Var(e.Id, e.Expression.Calc(), e.Expression.Type);
                 _variables.GetSourceOrNull(e.Id).Value = ans[i].Value;
             }
             return new CalculationResult(ans);

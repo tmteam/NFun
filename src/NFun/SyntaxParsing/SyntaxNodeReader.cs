@@ -4,18 +4,16 @@ using System.Linq;
 using NFun.BuiltInFunctions;
 using NFun.ParseErrors;
 using NFun.Runtime;
-using NFun.Runtime.Arrays;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
 using NFun.Types;
 
 namespace NFun.SyntaxParsing
 {
-    /// <summary>
-    /// Reads concrete syntax nodes from token flow
-    /// </summary>
-    public static class SyntaxNodeReader
+    public class SyntaxNodeReader
     {
+        private readonly TokFlow _flow;
+
         static SyntaxNodeReader()
         {
             var priorities = new List<TokType[]>();
@@ -110,68 +108,64 @@ namespace NFun.SyntaxParsing
                 {TokType.In,CoreFunNames.In},
             };
         
-        public static ISyntaxNode ReadNodeOrNull(TokFlow flow)
-            => ReadNodeOrNull(flow,MaxPriority);
-        
-        /// <summary>
-        /// Reads node with lowest priority
-        /// Equiualent to ReadNodeOrNull(0)
-        /// num, -num, id, fun, if, (...)
-        /// throws FunParseException if underlying syntax is invalid,
-        /// or returns null if underlying syntax cannot be represented as atomic node
-        /// (EOF for example)
-        /// /// </summary>
-        public static  ISyntaxNode ReadAtomicNodeOrNull(TokFlow flow)
+        public SyntaxNodeReader(TokFlow flow)
         {
-            flow.SkipNewLines();
+            _flow = flow;
+        }
+
+        public ISyntaxNode ReadExpressionOrNull()
+            => ReadNext(MaxPriority);
+        
+        //ReadZeroPriority operation (num, -num, id, fun, if, (...))
+        private ISyntaxNode ReadAtomicOrNull()
+        {
+           var hasNewLineBefore = _flow.SkipNewLines();
 
             //-num turns to (-1 * num)
-            var start = flow.Position;
-            if (flow.IsCurrent(TokType.Minus))
+            var start = _flow.Position;
+            if (_flow.IsCurrent(TokType.Minus))
             {
-                if (flow.IsPrevious(TokType.Minus))
-                    throw ErrorFactory.MinusDuplicates(flow.Previous, flow.Current);
-                flow.MoveNext();
+                if (_flow.IsPrevious(TokType.Minus))
+                    throw ErrorFactory.MinusDuplicates(_flow.Previous, _flow.Current);
+                _flow.MoveNext();
                 
-                var nextNode = ReadAtomicNodeOrNull(flow);
+                var nextNode = ReadAtomicOrNull();
                 if (nextNode == null)
-                    throw ErrorFactory.UnaryArgumentIsMissing(flow.Current);
+                    throw ErrorFactory.UnaryArgumentIsMissing(_flow.Current);
                 
                 if (nextNode is ConstantSyntaxNode constant)
                 {
                     if (constant.Value is Int32 i32)
                         return new ConstantSyntaxNode(-i32, constant.OutputType, new Interval(start,nextNode.Interval.Finish));
-                    if (constant.Value is double d)
-                        return new ConstantSyntaxNode(-d, constant.OutputType, new Interval(start,nextNode.Interval.Finish));
                 }
                 return SyntaxNodeFactory.OperatorFun(
                     CoreFunNames.Negate,
                     new[]{nextNode}, start, nextNode.Interval.Finish);
             }
 
-            if (flow.MoveIf(TokType.BitInverse))
+            if (_flow.MoveIf(TokType.BitInverse))
             {
-                var node = ReadNodeOrNull(flow,1);
+                var node = ReadNext(1);
                 if(node==null)
-                    throw ErrorFactory.UnaryArgumentIsMissing(flow.Current);
+                    throw ErrorFactory.UnaryArgumentIsMissing(_flow.Current);
                 return SyntaxNodeFactory.OperatorFun(
                     CoreFunNames.BitInverse, 
                     new []{node}, start, node.Interval.Finish);
             }
-            if (flow.MoveIf(TokType.Not))
+            if (_flow.MoveIf(TokType.Not))
             {
-                var node = ReadNodeOrNull(flow,5);
+                var node = ReadNext(5);
                 if(node==null)
-                    throw ErrorFactory.UnaryArgumentIsMissing(flow.Current);
+                    throw ErrorFactory.UnaryArgumentIsMissing(_flow.Current);
                 return SyntaxNodeFactory.OperatorFun(
                     CoreFunNames.Not, 
                     new []{node},start, node.Interval.Finish);
             }
-            if (flow.MoveIf(TokType.True, out var trueTok))
+            if (_flow.MoveIf(TokType.True, out var trueTok))
                 return SyntaxNodeFactory.Constant(true, VarType.Bool,  trueTok.Interval);
-            if (flow.MoveIf(TokType.False, out var falseTok))
+            if (_flow.MoveIf(TokType.False, out var falseTok))
                 return SyntaxNodeFactory.Constant(false, VarType.Bool,  falseTok.Interval);
-            if (flow.MoveIf(TokType.Number, out var val))
+            if (_flow.MoveIf(TokType.Number, out var val))
             {
                 try
                 {
@@ -182,64 +176,59 @@ namespace NFun.SyntaxParsing
                     throw ErrorFactory.CannotParseNumber(val.Value, val.Interval);
                 }
             }
-            if (flow.MoveIf(TokType.Text, out var txt))
+            if (_flow.MoveIf(TokType.Text, out var txt))
                 return SyntaxNodeFactory.Constant( 
                     new TextFunArray(txt.Value), 
                     VarType.Text, 
                     txt.Interval);
 
-            if (flow.MoveIf(TokType.Id, out var headToken))
+            if (_flow.MoveIf(TokType.Id, out var headToken))
             {
-                if (flow.IsCurrent(TokType.Obr))
-                    return ReadFunctionCall(flow,headToken);
+                if (_flow.IsCurrent(TokType.Obr))
+                    return ReadFunctionCall(headToken);
                 
-                if (flow.IsCurrent(TokType.Colon))
+                if (_flow.IsCurrent(TokType.Colon))
                 {
-                    flow.MoveNext();
-                    var type = flow.ReadVarType();
-                    return SyntaxNodeFactory.TypedVar(headToken.Value, type, headToken.Start, flow.Position);
+                    _flow.MoveNext();
+                    var type = _flow.ReadVarType();
+                    return SyntaxNodeFactory.TypedVar(headToken.Value, type, headToken.Start, _flow.Position);
                 }
                 else
                     return SyntaxNodeFactory.Var(headToken);
             }
-            if (flow.IsCurrent(TokType.Obr))
-                return ReadBrackedNodeList(flow);
-            if (flow.IsCurrent(TokType.If))
-                return ReadIfThenElseNode(flow);
+            if (_flow.IsCurrent(TokType.Obr))
+                return ReadBrackedListOrNull();
+            if (_flow.IsCurrent(TokType.If))
+                return ReadIfThenElse();
             // '[' can be used as array index, only if there is new line
-            if (flow.IsCurrent(TokType.ArrOBr))
-                return ReadInitializeArrayNode(flow);
-            if (flow.IsCurrent(TokType.NotAToken))
-                throw ErrorFactory.NotAToken(flow.Current);
+            if (_flow.IsCurrent(TokType.ArrOBr))
+                return ReadInitializeArray();
+            if (_flow.IsCurrent(TokType.NotAToken))
+                throw ErrorFactory.NotAToken(_flow.Current);
             return null;
         }
-        
-        /// <summary>
-        /// Reads node with specified syntax priority
-        /// throws FunParseException if underlying syntax is invalid,
-        /// or returns null if underlying syntax cannot be represented as node
-        /// (EOF for example)
-        /// </summary>
-        public static ISyntaxNode ReadNodeOrNull(TokFlow flow, int priority)
+
+
+        ISyntaxNode ReadNext(int priority)
         {
             //Lower priority is the special case
             if (priority == 0)
-                return ReadAtomicNodeOrNull(flow);
+                return ReadAtomicOrNull();
 
             //starting with left Node
-            var leftNode = ReadNodeOrNull(flow, priority - 1);
+            var leftNode = ReadNext(priority - 1);
 
             //building the syntax tree
             while (true)
             {
-                flow.SkipNewLines();
+                var hasNewLines = _flow.SkipNewLines();
                 //if flow is done than current node is everything we got
                 // example:
                 // 1*2+3 {return whole expression }
-                if (flow.IsDone)
+                if (_flow.IsDone)
                     return leftNode;
                 
-                var opToken = flow.Current;
+                var opToken = _flow.Current;
                 //if current token is not an operation
                 //than expression is done
                 //example:
@@ -262,32 +251,32 @@ namespace NFun.SyntaxParsing
                     //We can use array slicing, only if there were no new lines before.
                     //there is problem of choose between anonymous array init and array slice 
                     //otherwise
-                    if (flow.IsPrevious(TokType.NewLine))
+                    if (_flow.IsPrevious(TokType.NewLine))
                     {
                         return leftNode;
                     }
 
-                    leftNode = ReadArraySliceNode(flow,leftNode);
+                    leftNode = ReadArraySliceNode(leftNode);
                 }
                 else if (opToken.Type == TokType.PipeForward)
                 {
-                    flow.MoveNext();
-                    if(!flow.MoveIf(TokType.Id, out var id))
+                    _flow.MoveNext();
+                    if(!_flow.MoveIf(TokType.Id, out var id))
                         throw ErrorFactory.FunctionNameIsMissedAfterPipeForward(opToken);
-                    leftNode =  ReadFunctionCall(flow, id, leftNode);       
+                    leftNode =  ReadFunctionCall(id, leftNode);       
                 }
                 else if (opToken.Type == TokType.AnonymFun)
                 {
-                    flow.MoveNext();
-                    var body = ReadNodeOrNull(flow);       
+                    _flow.MoveNext();
+                    var body = ReadExpressionOrNull();       
                     leftNode = SyntaxNodeFactory.AnonymFun(leftNode, body);
                 }
                 
                 else
                 {
-                    flow.MoveNext();
+                    _flow.MoveNext();
 
-                    var rightNode = ReadNodeOrNull(flow, priority - 1);
+                    var rightNode = ReadNext(priority - 1);
                     if (rightNode == null)
                         throw ErrorFactory.RightBinaryArgumentIsMissing(leftNode, opToken);
                     
@@ -301,7 +290,7 @@ namespace NFun.SyntaxParsing
                         throw ErrorFactory.OperatorIsUnknown(opToken);
 
                     //trace:
-                    //ReadNodeOrNull(priority: 3 ) // *,/,%,AND
+                    //ReadNext(priority: 3 ) // *,/,%,AND
                     //0: {start} 4/2*5+1
                     //1: {l:4} /2*5+1
                     //2: {l:4}{op:/} 2*5+1
@@ -314,141 +303,143 @@ namespace NFun.SyntaxParsing
                 }
             }
         }
-        
-        /// <summary>
-        /// Read array index or array slice node
-        /// </summary>
-        public static ISyntaxNode ReadArraySliceNode(TokFlow flow, ISyntaxNode arrayNode)
+
+        private ISyntaxNode ReadArraySliceNode(ISyntaxNode arrayNode)
         {
-            var openBraket = flow.Current;
-            flow.MoveNext();
-            var index = ReadNodeOrNull(flow);
+            var openBraket = _flow.Current;
+            _flow.MoveNext();
+            var index = ReadExpressionOrNull();
             
-            if (!flow.MoveIf(TokType.Colon, out var colon))
+            if (!_flow.MoveIf(TokType.Colon, out var colon))
             {
                 if (index == null)
                 {
-                    if(flow.MoveIf(TokType.ArrCBr, out var closeBracket))
+                    if(_flow.MoveIf(TokType.ArrCBr, out var closeBracket))
                         throw ErrorFactory.ArrayIndexExpected(openBraket,closeBracket);
                     else    
                         throw ErrorFactory.ArrayIndexOrSliceExpected(openBraket);
                 }
-                if(!flow.MoveIf(TokType.ArrCBr))
-                    throw ErrorFactory.ArrayIndexCbrMissed(openBraket,flow.Current);
+                if(!_flow.MoveIf(TokType.ArrCBr))
+                    throw ErrorFactory.ArrayIndexCbrMissed(openBraket,_flow.Current);
                     
                 return SyntaxNodeFactory.OperatorFun(
                     CoreFunNames.GetElementName, 
                     new[] {arrayNode, index},openBraket.Start, 
-                    flow.Position);
+                    _flow.Position);
             }
             
             index = index ?? SyntaxNodeFactory.Constant(0, VarType.Int32, Interval.New(openBraket.Start, colon.Finish));
             
-            var end = ReadNodeOrNull(flow)?? 
-                      SyntaxNodeFactory.Constant(int.MaxValue, VarType.Int32, Interval.New(colon.Finish, flow.Position));
+            var end = ReadExpressionOrNull()?? 
+                      SyntaxNodeFactory.Constant(int.MaxValue, VarType.Int32, Interval.New(colon.Finish, _flow.Position));
             
-            if (!flow.MoveIf(TokType.Colon, out _))
+            if (!_flow.MoveIf(TokType.Colon, out _))
             {
-                if(!flow.MoveIf(TokType.ArrCBr))
-                    throw ErrorFactory.ArraySliceCbrMissed(openBraket,flow.Current, false);
+                if(!_flow.MoveIf(TokType.ArrCBr))
+                    throw ErrorFactory.ArraySliceCbrMissed(openBraket,_flow.Current, false);
                 return SyntaxNodeFactory.OperatorFun(CoreFunNames.SliceName, new[]
                 {
                     arrayNode, 
                     index, 
                     end
-                }, openBraket.Start, flow.Position);
+                }, openBraket.Start, _flow.Position);
             }
             
-            var step = ReadNodeOrNull(flow);
-            if(!flow.MoveIf(TokType.ArrCBr))
-                throw ErrorFactory.ArraySliceCbrMissed(openBraket,flow.Current, true);
+            var step = ReadExpressionOrNull();
+            if(!_flow.MoveIf(TokType.ArrCBr))
+                throw ErrorFactory.ArraySliceCbrMissed(openBraket,_flow.Current, true);
             if(step==null)
                 return SyntaxNodeFactory.OperatorFun(CoreFunNames.SliceName, new[] {
                     arrayNode, index, end
-                },openBraket.Start, flow.Position);
+                },openBraket.Start, _flow.Position);
             
             return SyntaxNodeFactory.OperatorFun(CoreFunNames.SliceName, new[] {
                 arrayNode, index, end, step
-            },openBraket.Start, flow.Position);
+            },openBraket.Start, _flow.Position);
         }
-        
-        /// <summary>
-        /// Read list of nodes separated by comma
-        /// </summary>
-        public static IList<ISyntaxNode> ReadNodeList(TokFlow flow)
+
+        #region  read concreete
+        bool TryReadNodeList(out IList<ISyntaxNode> read)
         {
-            var list = new List<ISyntaxNode>();
-            int start = flow.Current.Start;
+            read = new List<ISyntaxNode>();
             do
             {
-                var exp = ReadNodeOrNull(flow);
+                var exp = ReadExpressionOrNull();
+                if (exp != null)
+                    read.Add(exp);
+                else if (read.Count > 0)
+                    return false;
+                else
+                    break;
+            } while (_flow.MoveIf(TokType.Sep, out _));
+            return true;
+        }
+        IList<ISyntaxNode> ReadNodeList()
+        {
+            var list = new List<ISyntaxNode>();
+            int start = _flow.Current.Start;
+            do
+            {
+                var exp = ReadExpressionOrNull();
                 if (exp != null)
                     list.Add(exp);
                 else if (list.Count > 0)
-                    throw ErrorFactory.ExpressionListMissed(start, flow.Position, list);
+                    throw ErrorFactory.ExpressionListMissed(start, _flow.Position, list);
                 else
                     break;
-            } while (flow.MoveIf(TokType.Sep, out _));
+            } while (_flow.MoveIf(TokType.Sep, out _));
             return list;
         }
-        /// <summary>
-        /// Read array initialization node.
-        /// [a..b]
-        /// [a..b..c]
-        /// [a,b,c,d]
-        /// </summary>
-        /// <param name="flow"></param>
-        /// <returns></returns>
-        /// <exception cref="Exception"></exception>
-        public static ISyntaxNode ReadInitializeArrayNode(TokFlow flow)
+
+        private ISyntaxNode ReadInitializeArray()
         {
                 
-            var startTokenNum = flow.CurrentTokenPosition;
-            var openBracket = flow.MoveIfOrThrow(TokType.ArrOBr);
+            var startTokenNum = _flow.CurrentTokenPosition;
+            var openBracket = _flow.MoveIfOrThrow(TokType.ArrOBr);
             
-            if (!TryReadNodeList(flow, out var list))
+            if (!TryReadNodeList(out var list))
             {
-                throw ErrorFactory.ArrayInitializeByListError(startTokenNum, flow);
+                throw ErrorFactory.ArrayInitializeByListError(startTokenNum, _flow);
             }
-            if (list.Count == 1 && flow.MoveIf(TokType.TwoDots, out var twoDots))
+            if (list.Count == 1 && _flow.MoveIf(TokType.TwoDots, out var twoDots))
             {
-                var secondArg = ReadNodeOrNull(flow);
+                var secondArg = ReadExpressionOrNull();
                 if (secondArg == null)
                 {
                     var lastToken = twoDots;
-                    var missedVal = flow.Current;
-                    if (flow.Current.Is(TokType.ArrCBr)) {
-                        lastToken = flow.Current;
+                    var missedVal = _flow.Current;
+                    if (_flow.Current.Is(TokType.ArrCBr)) {
+                        lastToken = _flow.Current;
                         missedVal = default(Tok);
                     }
-                    else if(flow.Current.Is(TokType.TwoDots)) {
-                        lastToken = flow.Current;
+                    else if(_flow.Current.Is(TokType.TwoDots)) {
+                        lastToken = _flow.Current;
                         missedVal = default(Tok);                        
                     }
                     throw ErrorFactory.ArrayInitializeSecondIndexMissed(
                         openBracket, lastToken, missedVal);
                 }
 
-                if (flow.MoveIf(TokType.TwoDots, out var secondTwoDots))
+                if (_flow.MoveIf(TokType.TwoDots, out var secondTwoDots))
                 {
-                    var thirdArg = ReadNodeOrNull(flow);
+                    var thirdArg = ReadExpressionOrNull();
                     if (thirdArg == null)
                     {
                         var lastToken = secondTwoDots;
-                        var missedVal = flow.Current;
-                        if (flow.Current.Is(TokType.ArrCBr)) {
-                            lastToken = flow.Current;
+                        var missedVal = _flow.Current;
+                        if (_flow.Current.Is(TokType.ArrCBr)) {
+                            lastToken = _flow.Current;
                             missedVal = default(Tok);
                         }
-                        else if(flow.Current.Is(TokType.TwoDots)) {
-                            lastToken = flow.Current;
+                        else if(_flow.Current.Is(TokType.TwoDots)) {
+                            lastToken = _flow.Current;
                             missedVal = default(Tok);                        
                         }
                         throw ErrorFactory.ArrayInitializeStepMissed(
                             openBracket, lastToken, missedVal);
                     }
-                    if (!flow.MoveIf(TokType.ArrCBr, out var closeBracket))
-                        throw ErrorFactory.ArrayIntervalInitializeCbrMissed(openBracket, flow.Current, true);
+                    if (!_flow.MoveIf(TokType.ArrCBr, out var closeBracket))
+                        throw ErrorFactory.ArrayIntervalInitializeCbrMissed(openBracket, _flow.Current, true);
                     return SyntaxNodeFactory.ProcArrayInit(
                         @from: list[0],
                         to:  secondArg,
@@ -458,8 +449,8 @@ namespace NFun.SyntaxParsing
                 }
                 else
                 {
-                    if (!flow.MoveIf(TokType.ArrCBr,out var closeBracket))
-                        throw ErrorFactory.ArrayIntervalInitializeCbrMissed(openBracket, flow.Current, false);
+                    if (!_flow.MoveIf(TokType.ArrCBr,out var closeBracket))
+                        throw ErrorFactory.ArrayIntervalInitializeCbrMissed(openBracket, _flow.Current, false);
                     return SyntaxNodeFactory.ProcArrayInit(
                         @from: list[0], 
                         to: secondArg,
@@ -467,120 +458,99 @@ namespace NFun.SyntaxParsing
                         end:closeBracket.Finish);
                 }
             }
-            if (!flow.MoveIf(TokType.ArrCBr,out var closeBr))
-                throw ErrorFactory.ArrayInitializeByListError(startTokenNum, flow);
+            if (!_flow.MoveIf(TokType.ArrCBr,out var closeBr))
+                throw ErrorFactory.ArrayInitializeByListError(startTokenNum, _flow);
             return SyntaxNodeFactory.Array(list.ToArray(), openBracket.Start, closeBr.Finish);
         }
-        /// <summary>
-        /// Read nodes enlisted in the brackets
-        /// (a,b,c)
-        /// </summary>
-        public static ISyntaxNode ReadBrackedNodeList(TokFlow flow)
+        private ISyntaxNode ReadBrackedListOrNull()
         {
-            int start = flow.Current.Start;
-            int obrId = flow.CurrentTokenPosition;
-            flow.MoveNext();
-            var nodeList = ReadNodeList(flow);
+            int start = _flow.Current.Start;
+            int obrId = _flow.CurrentTokenPosition;
+            _flow.MoveNext();
+            var nodeList = ReadNodeList();
             if (nodeList.Count == 0)
-                throw ErrorFactory.BracketExpressionMissed(start, flow.Position, nodeList);
-            if (!flow.MoveIf(TokType.Cbr, out var cbr))
-                throw ErrorFactory.BracketExpressionListError(obrId, flow);
+                throw ErrorFactory.BracketExpressionMissed(start, _flow.Position, nodeList);
+            if (!_flow.MoveIf(TokType.Cbr, out var cbr))
+                throw ErrorFactory.BracketExpressionListError(obrId, _flow);
             var interval = new Interval(start, cbr.Finish);
             if (nodeList.Count == 1)
             {
                 nodeList[0].Interval = interval;
                 nodeList[0].IsInBrackets = true;
-                return nodeList[0] ?? throw new NullReferenceException();
+                return nodeList[0];
             }
             else
                 return SyntaxNodeFactory.ListOf(nodeList.ToArray(), interval, true);
         }
-        /// <summary>
-        /// Read if-then-if-then-else node
-        /// </summary>
-        public static ISyntaxNode ReadIfThenElseNode(TokFlow flow)
+
+        private ISyntaxNode ReadIfThenElse()
         {
-            int ifElseStart = flow.Position;
+            int ifElseStart = _flow.Position;
             var ifThenNodes = new List<IfCaseSyntaxNode>();
             do
             {
-                int conditionStart = flow.Current.Start;
+                int conditionStart = _flow.Current.Start;
 
-                var hasNewLineBefore =flow.IsPrevious(TokType.NewLine);
+                var hasNewLineBefore =_flow.IsPrevious(TokType.NewLine);
                 
                 //if
-                if(!flow.MoveIf(TokType.If))
-                    throw ErrorFactory.IfKeywordIsMissing(ifElseStart, flow.Position);
+                if(!_flow.MoveIf(TokType.If))
+                    throw ErrorFactory.IfKeywordIsMissing(ifElseStart, _flow.Position);
                 if(ifThenNodes.Any() && !hasNewLineBefore)
-                    throw ErrorFactory.NewLineMissedBeforeRepeatedIf(flow.Previous.Interval);
+                    throw ErrorFactory.NewLineMissedBeforeRepeatedIf(_flow.Previous.Interval);
 
                 //(condition)
-                if (!flow.MoveIf(TokType.Obr))
+                if (!_flow.MoveIf(TokType.Obr))
                 {
-                    var failedExpr = ReadNodeOrNull(flow);
+                    var failedExpr = ReadExpressionOrNull();
                     if(failedExpr!=null)
                         throw ErrorFactory.IfConditionIsNotInBrackets(failedExpr.Interval.Start,failedExpr.Interval.Finish);
                     else    
-                        throw ErrorFactory.IfConditionIsNotInBrackets(ifElseStart, flow.Position);
+                        throw ErrorFactory.IfConditionIsNotInBrackets(ifElseStart, _flow.Position);
                 }
-                var condition =  ReadNodeOrNull(flow);
+                var condition =  ReadExpressionOrNull();
                 if (condition == null)
-                    throw ErrorFactory.ConditionIsMissing(conditionStart, flow.Position);
-                if(!flow.MoveIf(TokType.Cbr))
-                    throw ErrorFactory.IfConditionIsNotInBrackets(ifElseStart, flow.Position);
-
+                    throw ErrorFactory.ConditionIsMissing(conditionStart, _flow.Position);
+                if(!_flow.MoveIf(TokType.Cbr))
+                    throw ErrorFactory.IfConditionIsNotInBrackets(ifElseStart, _flow.Position);
+                
                 //then
-                var thenResult = ReadNodeOrNull(flow);
+                var thenResult = ReadExpressionOrNull();
                 if (thenResult == null)
-                    throw ErrorFactory.ThenExpressionIsMissing(conditionStart, flow.Position);
+                    throw ErrorFactory.ThenExpressionIsMissing(conditionStart, _flow.Position);
                 
                 ifThenNodes.Add(SyntaxNodeFactory.IfThen(condition, thenResult, 
                     start: conditionStart, 
-                    end: flow.Position));
-            } while (!flow.IsCurrent(TokType.Else));
+                    end: _flow.Position));
+            } while (!_flow.IsCurrent(TokType.Else));
             
-            if(!flow.MoveIf(TokType.Else))
-                throw ErrorFactory.ElseKeywordIsMissing(ifElseStart, flow.Position);
+            if(!_flow.MoveIf(TokType.Else))
+                throw ErrorFactory.ElseKeywordIsMissing(ifElseStart, _flow.Position);
 
-            var elseResult = ReadNodeOrNull(flow);
+            var elseResult = ReadExpressionOrNull();
             if (elseResult == null)
-                throw ErrorFactory.ElseExpressionIsMissing(ifElseStart, flow.Position);
+                throw ErrorFactory.ElseExpressionIsMissing(ifElseStart, _flow.Position);
 
-            return SyntaxNodeFactory.IfElse(ifThenNodes, elseResult, ifElseStart, flow.Position);
+            return SyntaxNodeFactory.IfElse(ifThenNodes, elseResult, ifElseStart, _flow.Position);
         }
-        
-        private static ISyntaxNode ReadFunctionCall(TokFlow flow, Tok head, ISyntaxNode pipedVal = null)
-        {
-            var obrId = flow.CurrentTokenPosition;
-            var start = pipedVal?.Interval.Start ?? head.Start;
-            if(!flow.MoveIf(TokType.Obr))
-                throw ErrorFactory.FunctionCallObrMissed(
-                    start, head.Value, flow.Position, pipedVal);
 
-            if (!TryReadNodeList(flow, out var arguments) 
-                || !flow.MoveIf(TokType.Cbr, out var cbr))
-                throw ErrorFactory.FunctionArgumentError(head.Value, obrId, flow);
+        private ISyntaxNode ReadFunctionCall(Tok head, ISyntaxNode pipedVal = null)
+        {
+            var obrId = _flow.CurrentTokenPosition;
+            var start = pipedVal?.Interval.Start ?? head.Start;
+            if(!_flow.MoveIf(TokType.Obr))
+                throw ErrorFactory.FunctionCallObrMissed(
+                    start, head.Value, _flow.Position, pipedVal);
+
+            if (!TryReadNodeList(out var arguments) 
+                || !_flow.MoveIf(TokType.Cbr, out var cbr))
+                throw ErrorFactory.FunctionArgumentError(head.Value, obrId, _flow);
             
             if(pipedVal!=null)
                 arguments.Insert(0,pipedVal);
             
             return SyntaxNodeFactory.FunCall(head.Value, arguments.ToArray(), start, cbr.Finish);
         }
-        
-        private static bool TryReadNodeList(TokFlow flow, out IList<ISyntaxNode> read)
-        {
-            read = new List<ISyntaxNode>();
-            do
-            {
-                var exp = ReadNodeOrNull(flow);
-                if (exp != null)
-                    read.Add(exp);
-                else if (read.Count > 0)
-                    return false;
-                else
-                    break;
-            } while (flow.MoveIf(TokType.Sep, out _));
-            return true;
-        }
+        #endregion
     }
 }

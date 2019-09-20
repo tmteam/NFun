@@ -43,7 +43,7 @@ namespace Funny.Tests
             FunBuilder
                 .BuildDefault(expr)
                 .Calculate()
-                .AssertReturns(VarVal.New("y", expected));
+                .AssertReturns(Var.New("y", expected));
         }
         [TestCase("y='  \\\\'","  \\")]
         [TestCase("y='\\t'","\t")]
@@ -76,7 +76,7 @@ namespace Funny.Tests
             FunBuilder
                 .BuildDefault(expr)
                 .Calculate()
-                .AssertReturns(VarVal.New("y", expected));
+                .AssertReturns(Var.New("y", expected));
         }
         [TestCase("y='hell")]
         [TestCase("y=hell'")]

@@ -11,7 +11,7 @@ namespace NFun.SyntaxParsing
         int OrderNumber { get; set; }
         bool IsInBrackets { get; set; }
         Interval Interval { get; set; }
-        T Accept<T>(ISyntaxNodeVisitor<T> visitor);
+        T Visit<T>(ISyntaxNodeVisitor<T> visitor);
         IEnumerable<ISyntaxNode> Children { get; }
     }
 }

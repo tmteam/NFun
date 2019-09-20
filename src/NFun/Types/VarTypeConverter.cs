@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using NFun.ParseErrors;
 using NFun.Runtime;
-using NFun.Runtime.Arrays;
 using NFun.Tokenization;
 
 namespace NFun.Types
@@ -71,7 +70,7 @@ namespace NFun.Types
                     to.ArrayTypeSpecification.VarType, 
                     interval);
                 
-                return o => ImmutableFunArray.By(((IFunArray) o).Select(elementConverter));
+                return o => FunArray.By(((IFunArray) o).Select(elementConverter));
             }
 
             throw ErrorFactory.ImpossibleCast(from, to, interval);
@@ -101,7 +100,7 @@ namespace NFun.Types
                     from.ArrayTypeSpecification.VarType, 
                     to.ArrayTypeSpecification.VarType, 
                     interval);
-                return o => ImmutableFunArray.By(((IFunArray) o).Select(elementConverter));
+                return o => FunArray.By(((IFunArray) o).Select(elementConverter));
             }
 
             throw ErrorFactory.ImpossibleCast(from, to, interval);
@@ -182,6 +181,8 @@ namespace NFun.Types
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+
+            return false;
         }
     }
 }

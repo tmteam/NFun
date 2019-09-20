@@ -1,6 +1,5 @@
 using System.Linq;
 using NFun.Runtime;
-using NFun.Runtime.Arrays;
 
 namespace NFun.ExprementalTests
 {

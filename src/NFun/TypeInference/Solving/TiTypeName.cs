@@ -2,7 +2,7 @@ namespace NFun.TypeInference.Solving
 {
     public class TiTypeName
     {
-        private TiTypeName(string id, int start, int finish, int depth, TiTypeName parent)
+        public TiTypeName(string id, int start, int finish, int depth, TiTypeName parent)
         {
             Id = id;
             Start = start;
@@ -71,11 +71,15 @@ namespace NFun.TypeInference.Solving
                     return false;
             }
         } 
-        public override bool Equals(object obj) 
-            => (obj is TiTypeName type) 
-               && type.Start == Start 
-               && type.Finish == Finish 
-               && type.Id== Id;
+        public override bool Equals(object obj)
+        {
+            return (obj is TiTypeName type) && type.Start == Start && type.Finish == Finish && type.Id== Id;
+        }
+
+        protected bool Equals(TiTypeName other)
+        {
+            return string.Equals(Id, other.Id) && Start == other.Start && Finish == other.Finish;
+        }
 
         public override int GetHashCode()
         {

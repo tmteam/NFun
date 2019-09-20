@@ -64,7 +64,7 @@ namespace NFun.HmTests
             //  0 2 1  4 3
             //( x / 2 )<<3
             solver.SetVar(0, "x");
-            Assert.IsTrue(solver.SetCall(new CallDefinition(TiType.Real, new[] {2,0, 1})));
+            Assert.IsTrue(solver.SetCall(new CallDefenition(TiType.Real, new[] {2,0, 1})));
             solver.SetBitShiftOperator(4, 2, 3).AssertFailed();
         }
         
@@ -75,7 +75,7 @@ namespace NFun.HmTests
             // y = a / b;  a = 1:int
             solver.SetVar(0,"a");
             solver.SetVar(1,"b");
-            solver.SetCall(new CallDefinition(TiType.Real, new []{2,0,1}));
+            solver.SetCall(new CallDefenition(TiType.Real, new []{2,0,1}));
             solver.SetDefenition("y", 3, 2);
             solver.SetConst(4,TiType.Int32);
             solver.SetDefenition("a", 5, 4).AssertSuccesfully();
@@ -103,7 +103,7 @@ namespace NFun.HmTests
 
             solver.SetConst(8, TiType.Int32);
             solver.SetConst(9, TiType.Int32);
-            solver.SetCall(new CallDefinition(TiType.Real, new[] {10, 8, 9}));
+            solver.SetCall(new CallDefenition(TiType.Real, new[] {10, 8, 9}));
             solver.SetDefenition("x", 11, 10);
 
             var solvation = solver.Solve();
@@ -125,7 +125,7 @@ namespace NFun.HmTests
             //  0 2 1  4 3
             //( x / 2 )<<3
             solver.SetVar(0, "x");
-            Assert.IsTrue(solver.SetCall(new CallDefinition(TiType.Real, new[] {2,0, 1})));
+            Assert.IsTrue(solver.SetCall(new CallDefenition(TiType.Real, new[] {2,0, 1})));
             solver.SetBitShiftOperator(4, 2, 3).AssertFailed();
         }
         [Test]
@@ -270,7 +270,7 @@ namespace NFun.HmTests
             // y = sumReal(a,b);  a = 1:int
             solver.SetVar(0,"a");
             solver.SetVar(1,"b");
-            solver.SetCall(new CallDefinition(TiType.Real, new []{2,0,1}));
+            solver.SetCall(new CallDefenition(TiType.Real, new []{2,0,1}));
             solver.SetDefenition("y", 3, 2);
             solver.SetConst(4,TiType.Int32);
             solver.SetDefenition("a", 5, 4).AssertSuccesfully();
@@ -288,7 +288,7 @@ namespace NFun.HmTests
             // y = sumReal(a,b);  a = 1:int; b = a << 2
             solver.SetVar(0,"a");
             solver.SetVar(1,"b");
-            solver.SetCall(new CallDefinition(TiType.Real, new []{2,0,1}));
+            solver.SetCall(new CallDefenition(TiType.Real, new []{2,0,1}));
             solver.SetDefenition("y", 3, 2);
             solver.SetConst(4,TiType.Int32);
             solver.SetDefenition("a", 5, 4).AssertSuccesfully();
@@ -315,7 +315,7 @@ namespace NFun.HmTests
             solver.SetVar(2,"a");
             solver.SetVar(3,"b");
             
-            solver.SetCall(new CallDefinition(TiType.Real, new []{4,2,3}));
+            solver.SetCall(new CallDefenition(TiType.Real, new []{4,2,3}));
             solver.SetDefenition("y", 5, 4).AssertSuccesfully();
             
             var solvation = solver.Solve();
@@ -364,7 +364,7 @@ namespace NFun.HmTests
 
             solver.SetConst(8, TiType.Int32);
             solver.SetConst(9, TiType.Int32);
-            solver.SetCall(new CallDefinition(TiType.Real, new[] {10, 8, 9}));
+            solver.SetCall(new CallDefenition(TiType.Real, new[] {10, 8, 9}));
             solver.SetDefenition("x", 11, 10);
 
             var solvation = solver.Solve();

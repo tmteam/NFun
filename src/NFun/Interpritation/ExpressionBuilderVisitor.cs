@@ -15,8 +15,7 @@ using NFun.Types;
 
 namespace NFun.Interpritation
 {
-    public sealed class ExpressionBuilderVisitor: ISyntaxNodeVisitor<IExpressionNode> {
-        
+    public class ExpressionBuilderVisitor: ISyntaxNodeVisitor<IExpressionNode> {
         private readonly FunctionsDictionary _functions;
         private readonly VariableDictionary _variables;
 
@@ -24,7 +23,7 @@ namespace NFun.Interpritation
             ISyntaxNode node, 
             FunctionsDictionary functions,
             VariableDictionary variables) =>
-            node.Accept(new ExpressionBuilderVisitor(functions, variables));
+            node.Visit(new ExpressionBuilderVisitor(functions, variables));
 
         public static IExpressionNode BuildExpression(
             ISyntaxNode node, 
@@ -32,14 +31,14 @@ namespace NFun.Interpritation
             VarType outputType,
             VariableDictionary variables)
         {
-            var result =  node.Accept(new ExpressionBuilderVisitor(functions, variables));
+            var result =  node.Visit(new ExpressionBuilderVisitor(functions, variables));
             if (result.Type == outputType)
                 return result;
             var converter = VarTypeConverter.GetConverterOrThrow(result.Type, outputType, node.Interval);
             return new CastExpressionNode(result, outputType, converter, node.Interval);
         }
 
-        private ExpressionBuilderVisitor(FunctionsDictionary functions, VariableDictionary variables)
+        public ExpressionBuilderVisitor(FunctionsDictionary functions, VariableDictionary variables)
         {
             _functions = functions;
             _variables = variables;
@@ -95,8 +94,8 @@ namespace NFun.Interpritation
                 _variables.TryAdd(newVar); //add full usage info to allow analyze outer errors
             
             var fun = new UserFunction(
-                name:       "anonymous", 
-                variables:  arguments.ToArray(),
+                name: "anonymous", 
+                variables: arguments.ToArray(),
                 isReturnTypeStrictlyTyped: anonymFunNode.Defenition.OutputType!= VarType.Empty, 
                 expression: expr );
             return new FunVariableExpressionNode(fun, anonymFunNode.Interval);
@@ -106,11 +105,12 @@ namespace NFun.Interpritation
         {
             var nodes = node.Expressions.Select(ReadNode).ToArray();
             return new ArrayExpressionNode(nodes,node.Interval, node.OutputType);
+            
         }
 
         public IExpressionNode Visit(FunCallSyntaxNode node)
         {
-            var id = node.Id;
+            var id = node.Id;//.ToLower();
             
             var children= new List<IExpressionNode>();
             var childrenTypes = new List<VarType>();
@@ -126,18 +126,18 @@ namespace NFun.Interpritation
             {
                 //Signature was calculated by Ti algorithm.
                 function = _functions.GetOrNullConcrete(
-                    name:       id,
+                    name: id,
                     returnType: signature.ReturnType,
-                    args:       signature.ArgTypes);
+                    args: signature.ArgTypes);
             }
             else
             {
                 //todo
                 //Ti algorithm had not calculate concrete overload
                 function = _functions.GetOrNullWithOverloadSearch(
-                    name:       id, 
+                    name: id, 
                     returnType: node.OutputType,
-                    args:       childrenTypes.ToArray());
+                    args: childrenTypes.ToArray());
             }
 
             if (function == null)
@@ -165,19 +165,20 @@ namespace NFun.Interpritation
 
             var elseNode = ReadNode(node.ElseExpr);
             return new IfThenElseExpressionNode(
-                ifCaseNodes: ifNodes.ToArray(), 
-                elseNode:    elseNode,
-                interval:    elseNode.Interval, 
-                type:        node.OutputType);        
+                ifNodes.ToArray(), 
+                elseNode,
+                elseNode.Interval, 
+                node.OutputType);        
         }
+
         
-        public IExpressionNode Visit(ConstantSyntaxNode node) 
-            => new ValueExpressionNode(node.Value, node.OutputType, node.Interval);
+        public IExpressionNode Visit(ConstantSyntaxNode node) => new ValueExpressionNode(node.Value, node.OutputType, node.Interval);
 
         public IExpressionNode Visit(ProcArrayInit node)
         {
             var start = ReadNode(node.From);
-            var end   = ReadNode(node.To);
+            
+            var end = ReadNode(node.To);
             
             if (node.Step == null)
                 return new RangeIntFunction().CreateWithConvertionOrThrow(new[] {start, end}, node.Interval);
@@ -188,41 +189,34 @@ namespace NFun.Interpritation
             
             if (step.Type!= VarType.Int32)
                 throw ErrorFactory.ArrayInitializerTypeMismatch(step.Type, node);
+
             
-            return new RangeWithStepIntFunction().CreateWithConvertionOrThrow(new[] {start, end, step},node.Interval);        
-        }
+            return new RangeWithStepIntFunction().CreateWithConvertionOrThrow(new[] {start, end, step},node.Interval);        }
+
+       
       
         public IExpressionNode Visit(VariableSyntaxNode node)
             => GetOrAddVariableNode(node);
 
         #region not an expression
-        public IExpressionNode Visit(EquationSyntaxNode node) 
-            => ThrowNotAnExpression(node);
+        public IExpressionNode Visit(EquationSyntaxNode node) => Bad(node);
 
-        public IExpressionNode Visit(IfCaseSyntaxNode node) 
-            => ThrowNotAnExpression(node);
+        public IExpressionNode Visit(IfCaseSyntaxNode node) => Bad(node);
         
-        public IExpressionNode Visit(ListOfExpressionsSyntaxNode node)
-            => ThrowNotAnExpression(node);
+        public IExpressionNode Visit(ListOfExpressionsSyntaxNode node)=> Bad(node);
 
-        public IExpressionNode Visit(SyntaxTree node)
-            => ThrowNotAnExpression(node);
+        public IExpressionNode Visit(SyntaxTree node)=> Bad(node);
 
-        public IExpressionNode Visit(TypedVarDefSyntaxNode node)
-            => ThrowNotAnExpression(node);
+        public IExpressionNode Visit(TypedVarDefSyntaxNode node)=> Bad(node);
 
-        public IExpressionNode Visit(UserFunctionDefenitionSyntaxNode node)
-            => ThrowNotAnExpression(node);
+        public IExpressionNode Visit(UserFunctionDefenitionSyntaxNode node)=> Bad(node);
 
-        public IExpressionNode Visit(VarDefenitionSyntaxNode node)
-            => ThrowNotAnExpression(node);
+        public IExpressionNode Visit(VarDefenitionSyntaxNode node)=> Bad(node);
 
         #endregion
-        private IExpressionNode ThrowNotAnExpression(ISyntaxNode node)
-            => throw ErrorFactory.NotAnExpression(node);
+        private IExpressionNode Bad(ISyntaxNode node)=> throw ErrorFactory.NotAnExpression(node);
 
-        private IExpressionNode ReadNode(ISyntaxNode node) 
-            => node.Accept(this);
+        private IExpressionNode ReadNode(ISyntaxNode node) => node.Visit(this);
         private IExpressionNode GetOrAddVariableNode(VariableSyntaxNode varNode)
         {
             var lower = varNode.Id;
@@ -231,7 +225,7 @@ namespace NFun.Interpritation
                 //if it is not a variable it might be a functional-variable
                 var funVars = _functions.GetNonGeneric(lower);
                 if (funVars.Count > 1)
-                    throw ErrorFactory.AmbiguousFunctionChoise(varNode);
+                    throw ErrorFactory.AmbiguousFunctionChoise(funVars, varNode);
                 if (funVars.Count == 1)
                     return new FunVariableExpressionNode(funVars[0], varNode.Interval);
             }

@@ -171,6 +171,5 @@ namespace Funny.Tests.UnitTests
         public void ToTokens_secondTokenIsCorrectAndContainsCorrectBounds(string expression, TokType type, int start,
             int end)
             => CheckSingleToken(expression, 1, type, start, end);
-
     }
 }

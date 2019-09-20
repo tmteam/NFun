@@ -29,14 +29,14 @@ namespace Funny.Tests
         
         public void DiscreetePriorities(string actualExpr, string expectedExpr)
         {
-            var allCombinations = new List<VarVal[]>();
+            var allCombinations = new List<Var[]>();
             foreach (var x1 in new[] {0, 1})
             foreach (var x2 in new[] {0, 1})
             foreach (var x3 in new[] {0, 1})
                 allCombinations.Add(new[]{
-                    VarVal.New("x1",x1),
-                    VarVal.New("x2",x2),
-                    VarVal.New("x3",x3)});
+                    Var.New("x1",x1),
+                    Var.New("x2",x2),
+                    Var.New("x3",x3)});
 
             Assert.Multiple(()=>{
                 foreach (var inputs in allCombinations)
@@ -44,12 +44,12 @@ namespace Funny.Tests
                     var actual = FunBuilder
                         .BuildDefault(actualExpr)
                         .Calculate(inputs)
-                        .GetValueOf("y");
+                        .GetResultOf("y");
 
                     var expected = FunBuilder
                         .BuildDefault(expectedExpr)
                         .Calculate(inputs)
-                        .GetValueOf("y");
+                        .GetResultOf("y");
 
                     if (!actual.Equals(expected))
                         Assert.Fail($"On x1={inputs[0].Value} x2={inputs[1].Value} x3={inputs[2].Value}\r" +
@@ -65,14 +65,14 @@ namespace Funny.Tests
         [TestCase("y = not x1*x2>x3", "y = not (x1*x2>x3)")]
         public void ArithmeticVariablePriorities(string actualExpr, string expectedExpr)
         {
-            var allCombinations = new List<VarVal[]>();
+            var allCombinations = new List<Var[]>();
             foreach (var x1 in new[] {0, 1, 2})
             foreach (var x2 in new[] {0, 1, 2})
             foreach (var x3 in new[] {0, 1, 2})
                 allCombinations.Add(new[]{
-                    VarVal.New("x1",x1),
-                    VarVal.New("x2",x2),
-                    VarVal.New("x3",x3)});
+                    Var.New("x1",x1),
+                    Var.New("x2",x2),
+                    Var.New("x3",x3)});
 
             Assert.Multiple(()=>{
                 foreach (var inputs in allCombinations)
@@ -80,12 +80,12 @@ namespace Funny.Tests
                     var actual = FunBuilder
                         .BuildDefault(actualExpr)
                         .Calculate(inputs)
-                        .GetValueOf("y");
+                        .GetResultOf("y");
 
                     var expected = FunBuilder
                         .BuildDefault(expectedExpr)
                         .Calculate(inputs)
-                        .GetValueOf("y");
+                        .GetResultOf("y");
 
                     if (!actual.Equals(expected))
                         Assert.Fail($"On x1={inputs[0].Value} x2={inputs[1].Value} x3={inputs[2].Value}\r" +
@@ -126,7 +126,7 @@ namespace Funny.Tests
             FunBuilder
                 .BuildDefault(actualExpr)
                 .Calculate()
-                .AssertReturns(new VarVal("y", expected.Value, expected.Type));
+                .AssertReturns(new Var("y", expected.Value, expected.Type));
         }
         
     }

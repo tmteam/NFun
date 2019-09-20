@@ -7,8 +7,6 @@ namespace NFun.Interpritation.Nodes
 {
     public class FunVariableExpressionNode : IExpressionNode
     {
-        private readonly FunctionBase _value;
-
         public FunVariableExpressionNode(FunctionBase fun, Interval interval)
         {
             _value = fun;
@@ -17,6 +15,7 @@ namespace NFun.Interpritation.Nodes
         }
         public Interval Interval { get; }
         public VarType Type { get; }
+        private readonly FunctionBase _value;
         public object Calc() => _value;
     }
 }

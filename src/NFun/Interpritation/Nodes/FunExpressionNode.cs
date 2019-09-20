@@ -16,9 +16,7 @@ namespace NFun.Interpritation.Nodes
             _argsNodes = argsNodes;
             Interval = interval;
         }
-        
-        public Interval Interval { get; }
-        public VarType Type => _fun.ReturnType;
+
         public object Calc()
         {
             var argValues = _argsNodes
@@ -26,5 +24,7 @@ namespace NFun.Interpritation.Nodes
                 .ToArray();
             return _fun.Calc(argValues);
         }
+        public Interval Interval { get; }
+        public VarType Type => _fun.ReturnType;
     }
 }

@@ -3,7 +3,6 @@ using System.Linq;
 using NFun;
 using NFun.Interpritation.Functions;
 using NFun.Runtime;
-using NFun.Runtime.Arrays;
 using NFun.Types;
 using NUnit.Framework;
 
@@ -20,14 +19,14 @@ namespace Funny.Tests
                       "y = x.getA()")
                 .WithFunctions(new GetAdditionalFunMock())
                 .Build();
-            var res = runtime.Calculate(VarVal.New("x", 
+            var res = runtime.Calculate(Var.New("x", 
                 new PrimitiveWithAdditional(36.6)
                 {
                     AdditionalContent = 42
                 }));
             res.AssertReturns(
-                VarVal.New("z", 36.6*2), 
-                VarVal.New("y",42));
+                Var.New("z", 36.6*2), 
+                Var.New("y",42));
 
         }
         
@@ -39,14 +38,14 @@ namespace Funny.Tests
                       "y = x.getA()")
                 .WithFunctions(new GetAdditionalFunMock())
                 .Build();
-            var res = runtime.Calculate(VarVal.New("x", 
+            var res = runtime.Calculate(Var.New("x", 
                 new PrimitiveWithAdditional(36)
                 {
                     AdditionalContent = 42
                 }));
             res.AssertReturns(
-                VarVal.New("z", 36*2), 
-                VarVal.New("y",42));
+                Var.New("z", 36*2), 
+                Var.New("y",42));
 
         }
         
@@ -57,12 +56,12 @@ namespace Funny.Tests
                 .With("x:text[] \r z = x.concat(x) \r")
                 .Build();
             
-            var res = runtime.Calculate(VarVal.New("x", 
+            var res = runtime.Calculate(Var.New("x", 
                 new ArrayWithAdditional(new[]{"a","b"}) {
                     AdditionalContent = 42
                 }));
             res.AssertReturns(
-                VarVal.New("z", new[]{"a","b","a","b"}));
+                Var.New("z", new[]{"a","b","a","b"}));
         }
         [Test]
         public void SpecialArrayOfStrings_AdditionalValueReads()
@@ -72,11 +71,11 @@ namespace Funny.Tests
                 .WithFunctions(new GetAdditionalFunMock())
                 .Build();
             
-            var res = runtime.Calculate(VarVal.New("x", 
+            var res = runtime.Calculate(Var.New("x", 
                 new ArrayWithAdditional(new[]{"a","b"}) {
                     AdditionalContent = 42
                 }));
-            res.AssertReturns(VarVal.New("y",42));
+            res.AssertReturns(Var.New("y",42));
         }
         [Test]
         public void SpecialPrimitiveInt_CastToReal_AdditionalValueReads()
@@ -87,14 +86,14 @@ namespace Funny.Tests
                       "y = x.getA()")
                 .WithFunctions(new GetAdditionalFunMock())
                 .Build();
-            var res = runtime.Calculate(VarVal.New("x", 
+            var res = runtime.Calculate(Var.New("x", 
                 new PrimitiveWithAdditional(36)
                 {
                     AdditionalContent = 42
                 }));
             res.AssertReturns(
-                VarVal.New("z", 72.0), 
-                VarVal.New("y",42));
+                Var.New("z", 72.0), 
+                Var.New("y",42));
 
         }
         [Test]
@@ -104,16 +103,16 @@ namespace Funny.Tests
                 .With("y = [x1,x2].map(i->getA(i)).sum()")
                 .WithFunctions(new GetAdditionalFunMock())
                 .Build();
-            var res = runtime.Calculate(VarVal.New("x1", 
+            var res = runtime.Calculate(Var.New("x1", 
                 new PrimitiveWithAdditional(54.0) {
                     AdditionalContent = 42
                 }),
-                VarVal.New("x2", 
+                Var.New("x2", 
                     new PrimitiveWithAdditional(38.0) {
                         AdditionalContent = 69
                     })
                 );
-            res.AssertReturns(VarVal.New("y", 69+42));
+            res.AssertReturns(Var.New("y", 69+42));
         }
         
         [Test]
@@ -163,7 +162,7 @@ namespace Funny.Tests
             return 0;
         }
     }
-    public class ArrayWithAdditional : ImmutableFunArray, IWithAdditionalContent
+    public class ArrayWithAdditional : FunArray, IWithAdditionalContent
     {
         public ArrayWithAdditional(Array val):base(val)
         {

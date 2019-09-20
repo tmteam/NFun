@@ -7,26 +7,26 @@ namespace NFun.Interpritation.Nodes
 {
     public class VariableExpressionNode: IExpressionNode
     {
-        private static int _count = 0;
-        private readonly int _uid = _count++;
-
+        public VariableSource Source => _source;
+        private readonly VariableSource _source;
+        public Interval Interval { get; }
         public VariableExpressionNode(VariableSource source, Interval interval)
         {
-            Source = source;
+            _source = source;
             Interval = interval;
         }
 
-        public VariableSource Source { get; }
-        public Interval Interval { get; }
-        public VarType Type => Source.Type;
+        public VarType Type => _source.Type;
         
         public object Calc()
         {
-            if(Source.Value==null)
+            if(_source.Value==null)
                 throw new FunRuntimeException($"Variable '{Source.Name}' is not set");
-            return Source.Value;
+            return _source.Value;
         }
-        public override string ToString() => $"{Source.Name}: {Source.Value} uid: {_uid}";
 
+        private static int _count = 0;
+        private readonly int _uid = _count++;
+        public override string ToString() => $"{_source.Name}: {_source.Value} uid: {_uid}";
     }
 }

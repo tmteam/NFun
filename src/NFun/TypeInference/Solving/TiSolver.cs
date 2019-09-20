@@ -92,7 +92,7 @@ namespace NFun.TypeInference.Solving
             return newNode.SetEqualTo(currentNode);
         }
         
-        public bool SetCall(CallDefinition call)
+        public bool SetCall(CallDefenition call)
         {
             var generics = new GenericMap();
 
@@ -105,7 +105,7 @@ namespace NFun.TypeInference.Solving
             return true;
         }
         
-        public bool SetLimArgCall(CallDefinition call)
+        public bool SetLimArgCall(CallDefenition call)
         {
             var generics = new GenericMap();
             //Set strict to return type
@@ -194,12 +194,11 @@ namespace NFun.TypeInference.Solving
                 var candidates = TiFunctionSignature.GetBestFits(lazyOverload.Candidates, 
                     GetOrCreate(lazyOverload.ReturnNodeId),
                     lazyOverload.ArgIds.Select(GetOrCreate).ToArray());
-                if(candidates.Length==0)
-                {
-                    return TiResult.NoFunctionsFits(lazyOverload.ReturnNodeId);
+                if(candidates.Length==0){
+                    throw FunParseException.ErrorStubToDo("No functions fits");
                 }
                 if(candidates.Length>1){
-                    return TiResult.SeveralOverloadCandidates(lazyOverload.ReturnNodeId);
+                    throw FunParseException.ErrorStubToDo("Overload with several candidates");
                 }
 
                 var bestCandidate = candidates[0];
@@ -208,7 +207,7 @@ namespace NFun.TypeInference.Solving
                 
                 if (lazyOverload.UseForArgLimitation)
                 {
-                    SetLimArgCall(bestCandidate.ToCallDefinition(lazyOverload.ReturnNodeId, lazyOverload.ArgIds));
+                    SetLimArgCall(bestCandidate.ToCallDefenition(lazyOverload.ReturnNodeId, lazyOverload.ArgIds));
                 }
 
                 overloads.Add(lazyOverload.ReturnNodeId, bestCandidate);

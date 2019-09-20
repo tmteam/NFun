@@ -1,6 +1,6 @@
 namespace NFun.SyntaxParsing.Visitors
 {
-    public enum VisitorEnterResult
+    public enum VisitorResult
     {
         Continue,
         Failed,

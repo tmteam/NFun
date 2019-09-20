@@ -5,10 +5,6 @@ namespace NFun.TypeInference.Solving
 {
     public class GenericMap
     {
-        private readonly List<SolvingNode> _map = new List<SolvingNode>();
-
-        public IEnumerable<SolvingNode> Nodes => _map;
-
         public SolvingNode CreateSolvingNode(TiType type)
         {
             if (type is GenericType t) 
@@ -18,6 +14,10 @@ namespace NFun.TypeInference.Solving
             
             return SolvingNode.CreateStrict(type.Name, args);
         }
+        
+
+        private List<SolvingNode> _map = new List<SolvingNode>();
+        public IEnumerable<SolvingNode> Nodes => _map;
 
         /// <summary>
         /// Get (or Add then Get) reserved node for generic type Ti

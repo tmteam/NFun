@@ -3,16 +3,16 @@ using NFun.Types;
 
 namespace NFun.Runtime
 {
-    public sealed class CalculationResult
+    public class CalculationResult
     {
-        public CalculationResult(VarVal[] results)
+        public CalculationResult(Var[] results)
         {
             Results = results;
         }
 
-        public VarVal[] Results { get; }
+        public Var[] Results { get; }
 
-        public VarVal Get(string name)
+        public Var Get(string name)
         {
             foreach (var equationResult in Results)
             {
@@ -22,7 +22,7 @@ namespace NFun.Runtime
             }
             throw new ArgumentException(name);
         }
-        public object GetValueOf(string name)
+        public object GetResultOf(string name)
         {
             foreach (var equationResult in Results)
             {

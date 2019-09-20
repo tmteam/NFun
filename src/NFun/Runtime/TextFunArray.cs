@@ -4,14 +4,14 @@ using System.Collections.Generic;
 using System.Text;
 using NFun.Types;
 
-namespace NFun.Runtime.Arrays
+namespace NFun.Runtime
 {
     public class TextFunArray : IFunArray
     {
-        public static readonly TextFunArray EmptyText 
+        private readonly string _text;
+        public readonly static TextFunArray EmptyText 
             = new TextFunArray("");
 
-        private readonly string _text;
         public TextFunArray(string text)
         {
             _text = text;

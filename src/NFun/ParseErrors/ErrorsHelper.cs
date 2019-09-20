@@ -46,7 +46,7 @@ namespace NFun.ParseErrors
             => string.Join(",", arguments.Select(ToShortText));
 
 
-        public static string ToShortText(ISyntaxNode node) => node.Accept(new ShortDescritpionVisitor());
+        public static string ToShortText(ISyntaxNode node) => node.Visit(new ShortDescritpionVisitor());
         public static string ToText(Tok tok)
         {
             if (!string.IsNullOrWhiteSpace(tok.Value))
@@ -130,7 +130,7 @@ namespace NFun.ParseErrors
                         new Interval(list.Last().Interval.Finish, flow.Current.Finish));
                 }
                 
-                var exp = SyntaxNodeReader.ReadNodeOrNull(flow);
+                var exp = flow.ReadExpressionOrNull();
                 if (exp != null)
                     list.Add(exp);
                 if (exp == null && list.Any())
@@ -152,10 +152,7 @@ namespace NFun.ParseErrors
                 return new ExprListError(ExprListErrorType.SingleOpenBracket, list, 
                     new Interval(obrStart, obrStart+1));
 
-            var position = flow.CurrentTokenPosition;
-            var nextExpression = SyntaxNodeReader.ReadNodeOrNull(flow);
-            flow.Move(position);
-
+            var nextExpression = flow.TryReadExpressionAndReturnBack();
             if (nextExpression != null)//[x y] <- separator is missed
                 return new ExprListError(ExprListErrorType.SepIsMissing, 
                     list, new Interval(list.Last().Interval.Finish, nextExpression.Interval.Start));

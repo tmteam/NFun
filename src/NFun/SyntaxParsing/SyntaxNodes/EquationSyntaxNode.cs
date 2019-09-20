@@ -27,7 +27,7 @@ namespace NFun.SyntaxParsing.SyntaxNodes
         public int OrderNumber { get; set; }
         public bool IsInBrackets { get; set; }
         public Interval Interval { get; set; }
-        public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
+        public T Visit<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
         
         public IEnumerable<ISyntaxNode> Children => new[]{Expression};
 

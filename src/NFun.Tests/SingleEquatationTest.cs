@@ -68,7 +68,7 @@ namespace Funny.Tests
         public void AnonymousExpressionConstantEquatation(string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
-            runtime.Calculate().AssertReturns(VarVal.New("out", expected));
+            runtime.Calculate().AssertReturns(Var.New("out", expected));
         }
         
         
@@ -112,7 +112,7 @@ namespace Funny.Tests
         {
             var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate()
-                .AssertReturns(new VarVal("y", expected, VarType.Bool));
+                .AssertReturns(new Var("y", expected, VarType.Bool));
         }
         
 
@@ -140,8 +140,8 @@ namespace Funny.Tests
         public void SingleVariableEquation(string expr, double arg, double expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
-            runtime.Calculate(VarVal.New("x",arg))
-                .AssertReturns(0.00001, VarVal.New("y", expected));
+            runtime.Calculate(Var.New("x",arg))
+                .AssertReturns(0.00001, Var.New("y", expected));
         }
         [TestCase("x:real\r x",2.0,2.0)]
         [TestCase("x== 2.0",2.0,true)]
@@ -153,7 +153,7 @@ namespace Funny.Tests
         public void AnonymousExpressionSingleVariableEquatation(string expr, double arg, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
-            runtime.Calculate(VarVal.New("x", arg)).AssertReturns(VarVal.New("out", expected));
+            runtime.Calculate(Var.New("x", arg)).AssertReturns(Var.New("out", expected));
         }
         [TestCase("y = ()")]
         [TestCase("y = )")]
@@ -223,8 +223,8 @@ namespace Funny.Tests
         {
             var runtime = FunBuilder.BuildDefault(expr);
             var res = runtime.Calculate(
-                VarVal.New("x1", arg1),
-                VarVal.New("x2", arg2));
+                Var.New("x1", arg1),
+                Var.New("x2", arg2));
 
             Assert.AreEqual(expected, res.Results.First().Value);
         }

@@ -46,7 +46,7 @@ namespace Funny.Tests
         {
             var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate()
-                .AssertReturns(VarVal.New("y", expected));
+                .AssertReturns(Var.New("y", expected));
         }
         
         [TestCase( @"f(x:int):int = x*x y = 4.f)")]

@@ -6,7 +6,7 @@ namespace NFun.Runtime
     public class VariableUsages
     {
         public readonly VariableSource Source;
-        public readonly LinkedList<VariableExpressionNode> Usages = new LinkedList<VariableExpressionNode>();
+        public readonly LinkedList<VariableExpressionNode> Nodes = new LinkedList<VariableExpressionNode>();
 
         public VariableUsages(VariableSource source)
         {

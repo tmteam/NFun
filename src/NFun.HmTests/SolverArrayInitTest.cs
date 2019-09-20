@@ -283,7 +283,7 @@ namespace NFun.HmTests
             solver.SetConst(2,TiType.Int32);
             solver.SetArrayInit(3, 2);
 
-            Assert.IsTrue(solver.SetCall(new CallDefinition(new[] {TiType.Bool, TiType.Generic(0), TiType.Generic(0)}, new[] {4, 1, 3})));
+            Assert.IsTrue(solver.SetCall(new CallDefenition(new[] {TiType.Bool, TiType.Generic(0), TiType.Generic(0)}, new[] {4, 1, 3})));
             solver.SetDefenition("y", 5, 4).AssertSuccesfully();
             
             var res = solver.Solve();
@@ -304,7 +304,7 @@ namespace NFun.HmTests
             solver.SetConst(2,TiType.Int32);
             solver.SetArrayInit(3, 2);
 
-            Assert.IsTrue(solver.SetCall(new CallDefinition(new[] {TiType.Bool, TiType.Any, TiType.Any}, new[] {4, 1, 3})));
+            Assert.IsTrue(solver.SetCall(new CallDefenition(new[] {TiType.Bool, TiType.Any, TiType.Any}, new[] {4, 1, 3})));
             solver.SetDefenition("y", 5, 4).AssertSuccesfully();
             
             var res = solver.Solve();

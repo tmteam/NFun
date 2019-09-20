@@ -118,7 +118,7 @@ namespace NFun.HmTests
 
             solver.SetConst(0, TiType.Bool);
             solver.SetVar( 1,"a");
-            solver.SetCall(new CallDefinition(TiType.ArrayOf(TiType.Generic(0)), new[] {2, 1}));
+            solver.SetCall(new CallDefenition(TiType.ArrayOf(TiType.Generic(0)), new[] {2, 1}));
             
             solver.SetVar( 3,"a");
             solver.ApplyLcaIf(4, new[] {0}, new[] {2, 3});
@@ -148,7 +148,7 @@ namespace NFun.HmTests
 
             solver.SetConst(0, TiType.Bool);
             solver.SetVar( 1,"a");
-            solver.SetCall(new CallDefinition(tArr, new[] {2, 1}));
+            solver.SetCall(new CallDefenition(tArr, new[] {2, 1}));
             
             solver.SetVar( 3,"b");
             solver.SetArrayInit(4, 3);
@@ -432,7 +432,7 @@ namespace NFun.HmTests
             
             solver.SetVar(0, "f(1) a");
             solver.SetConst(1, TiType.Bool);
-            solver.SetCall(new CallDefinition(TiType.Bool, new[] {2, 0, 1}));
+            solver.SetCall(new CallDefenition(TiType.Bool, new[] {2, 0, 1}));
             
             solver.SetInvoke(3, "f(1)",new[]{2});
             solver.SetFunDefenition("f(1)", 4, 3);
@@ -455,7 +455,7 @@ namespace NFun.HmTests
             solver.SetVarType("f(1)", TiType.Fun(tOut, tA));
             
             solver.SetVar(0, "f(1) a");
-            solver.SetCall(new CallDefinition(TiType.Text, new[] {1, 0}));
+            solver.SetCall(new CallDefenition(TiType.Text, new[] {1, 0}));
             
             solver.SetInvoke(2, "f(1)",new[]{1});
             solver.SetFunDefenition("f(1)", 3, 2);
@@ -479,7 +479,7 @@ namespace NFun.HmTests
             
             solver.SetVar(0, "f(1) a");
             solver.SetConst(1, TiType.Text);
-            solver.SetCall(new CallDefinition(new[]{TiType.Text,TiType.Text, TiType.Any}, new[] {2, 0,1}));
+            solver.SetCall(new CallDefenition(new[]{TiType.Text,TiType.Text, TiType.Any}, new[] {2, 0,1}));
             
             solver.SetInvoke(3, "f(1)",new[]{2});
             solver.SetFunDefenition("f(1)", 4, 3);
@@ -531,7 +531,7 @@ namespace NFun.HmTests
             solver.SetConst(3, TiType.Int32); 
             solver.SetComparationOperator(4, 2, 3);
             
-            solver.SetCall(new CallDefinition(TiType.Bool, new[] {5, 1, 4}));
+            solver.SetCall(new CallDefenition(TiType.Bool, new[] {5, 1, 4}));
 
             solver.SetFunDefenition("f(1)", 6, 5);
             
@@ -558,7 +558,7 @@ namespace NFun.HmTests
             solver.SetVar(3, "f(1) a");
             solver.SetInvoke(4, "f(1)",new[]{3});
             
-            solver.SetCall(new CallDefinition(TiType.Bool, new[] {5, 2, 4}));
+            solver.SetCall(new CallDefenition(TiType.Bool, new[] {5, 2, 4}));
 
             solver.SetFunDefenition("f(1)", 6, 5);
             
