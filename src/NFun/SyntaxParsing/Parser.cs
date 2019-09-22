@@ -103,7 +103,7 @@ namespace NFun.SyntaxParsing
             if (!_startOfTheLine)
                 throw ErrorFactory.FunctionDefenitionHasToStartFromNewLine(_exprStartPosition, fun, _flow.Current);
             if (_attributes.Any())
-                throw ErrorFactory.AttributeOnFunction(_exprStartPosition, fun);
+                throw ErrorFactory.AttributeOnFunction(fun);
             
             var id = fun.Id;
             if (fun.IsInBrackets)
@@ -117,10 +117,10 @@ namespace NFun.SyntaxParsing
                 else if(headNodeChild is VariableSyntaxNode varSyntax)
                     arguments.Add(new TypedVarDefSyntaxNode(varSyntax.Id, headNodeChild.OutputType, headNodeChild.Interval));
                 else    
-                    throw ErrorFactory.WrongFunctionArgumentDefenition(_exprStartPosition, fun, headNodeChild, _flow.Current);
+                    throw ErrorFactory.WrongFunctionArgumentDefenition(fun, headNodeChild);
               
                 if(headNodeChild.IsInBrackets)    
-                    throw ErrorFactory.FunctionArgumentInBracketDefenition(_exprStartPosition, fun, headNodeChild, _flow.Current);
+                    throw ErrorFactory.FunctionArgumentInBracketDefenition(fun, headNodeChild, _flow.Current);
             }
 
             var outputType = VarType.Empty;

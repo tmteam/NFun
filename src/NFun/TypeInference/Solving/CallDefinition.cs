@@ -2,15 +2,15 @@ using System.Linq;
 
 namespace NFun.TypeInference.Solving
 {
-    public class CallDefenition
+    public class CallDefinition
     {
-        public CallDefenition(TiType sameTypeForAllArguments, int[] nodesId)
+        public CallDefinition(TiType sameTypeForAllArguments, int[] nodesId)
         {
             Types = Enumerable.Repeat(sameTypeForAllArguments,nodesId.Length).ToArray();
             NodesId = nodesId;
         }
         
-        public CallDefenition(TiType[] types, int[] nodesId)
+        public CallDefinition(TiType[] types, int[] nodesId)
         {
             Types = types;
             NodesId = nodesId;

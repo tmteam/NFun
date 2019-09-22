@@ -22,24 +22,6 @@ namespace NFun.Tokenization
             }
         }
         
-        
-        private readonly Dictionary<char, TokType> _symbols = new Dictionary<char, TokType>
-        {
-            {',', TokType.Sep},
-            {'&', TokType.BitAnd},
-            {'^', TokType.BitXor},
-            {'|', TokType.BitOr},
-            {'/', TokType.Div},
-            {'+', TokType.Plus},
-            {'%', TokType.Rema},
-            {'(', TokType.Obr},
-            {')', TokType.Cbr},
-            {'[', TokType.ArrOBr},
-            {']', TokType.ArrCBr},
-            {':', TokType.Colon},
-            {'~', TokType.BitInverse}
-        };
-        
         private readonly Dictionary<string, TokType> _keywords = new Dictionary<string, TokType>
         {
             {"in", TokType.In},
@@ -141,11 +123,12 @@ namespace NFun.Tokenization
             if (IsDigit(current))
                 return ReadNumber(str, position);
             
-            if (IsSpecial(current) is TokType symbol )
-                return Tok.New(symbol, current.ToString(), position,position+1);
-
+            
             if (IsLetter(current))
                 return ReadIdOrKeyword(str, position);
+
+            //if (IsSpecial(current) is TokType symbol )
+            //    return Tok.New(symbol, current.ToString(), position,position+1);
 
             if (TryReadUncommonSpecialSymbols(str, position, current) is Tok tok) 
                 return tok;
@@ -190,6 +173,19 @@ namespace NFun.Tokenization
             
             switch (current)
             {
+                case ',': return Tok.New(TokType.Sep,        position, position+1);
+                case '&': return Tok.New(TokType.BitAnd,     position, position+1);
+                case '^': return Tok.New(TokType.BitXor,     position, position+1);
+                case '|': return Tok.New(TokType.BitOr,      position, position+1);
+                case '/': return Tok.New(TokType.Div,        position, position+1);
+                case '+': return Tok.New(TokType.Plus,       position, position+1);
+                case '%': return Tok.New(TokType.Rema,       position, position+1);
+                case '(': return Tok.New(TokType.Obr,        position, position+1);
+                case ')': return Tok.New(TokType.Cbr,        position, position+1);
+                case '[': return Tok.New(TokType.ArrOBr,     position, position+1);
+                case ']': return Tok.New(TokType.ArrCBr,     position, position+1);
+                case ':': return Tok.New(TokType.Colon,      position, position+1);
+                case '~': return Tok.New(TokType.BitInverse, position, position+1);
                 case '-' when  next == '-':
                     return Tok.New(TokType.Attribute, position, position+2);   
                 case '-' when  next == '>':
@@ -226,9 +222,6 @@ namespace NFun.Tokenization
                     return null;
             }
         }
-
-        private TokType? IsSpecial(char val) =>
-            _symbols.ContainsKey(val) ? _symbols[val] : (TokType?)null;
 
         private bool IsLetter(char val) => val == '_' ||  (val >= 'a' && val <= 'z') || (val >= 'A' && val <= 'Z');
 

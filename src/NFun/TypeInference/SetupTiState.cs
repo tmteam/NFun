@@ -9,13 +9,14 @@ namespace NFun.TypeInference
     /// </summary>
     public class SetupTiState
     {
+        private readonly AliasTable _aliasTable;
+
         public SetupTiState(TiLanguageSolver globalSolver)
         {
             CurrentSolver = globalSolver;
             _aliasTable = new AliasTable();
         }
 
-        private readonly AliasTable _aliasTable;
         public TiLanguageSolver CurrentSolver { get; }
 
         public SolvingNode CreateTypeNode(VarType type)

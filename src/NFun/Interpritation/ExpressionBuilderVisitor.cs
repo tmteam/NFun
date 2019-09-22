@@ -191,8 +191,6 @@ namespace NFun.Interpritation
             
             return new RangeWithStepIntFunction().CreateWithConvertionOrThrow(new[] {start, end, step},node.Interval);        
         }
-
-       
       
         public IExpressionNode Visit(VariableSyntaxNode node)
             => GetOrAddVariableNode(node);
@@ -233,7 +231,7 @@ namespace NFun.Interpritation
                 //if it is not a variable it might be a functional-variable
                 var funVars = _functions.GetNonGeneric(lower);
                 if (funVars.Count > 1)
-                    throw ErrorFactory.AmbiguousFunctionChoise(funVars, varNode);
+                    throw ErrorFactory.AmbiguousFunctionChoise(varNode);
                 if (funVars.Count == 1)
                     return new FunVariableExpressionNode(funVars[0], varNode.Interval);
             }

@@ -40,7 +40,9 @@ namespace NFun.Interpritation
             }
 
             if (_functions[function.Name].Any(a => a.ArgTypes.SequenceEqual(function.ArgTypes)))
+            {
                 return false;
+            }
             else
             {
                 _functions[function.Name].Add(function);
@@ -171,9 +173,8 @@ namespace NFun.Interpritation
             for (int i = 0; i < from.Length; i++)
             {
                 if (from[i] == to[i])
-                {
                     closeness++;
-                }
+
                 if (!from[i].CanBeConvertedTo(to[i]))
                     return 0;
             }
@@ -193,9 +194,7 @@ namespace NFun.Interpritation
                 if (!from[i].CanBeConvertedTo(to[i]))
                     return false;
             }
-
             return true;
         }
-        
     }
 }

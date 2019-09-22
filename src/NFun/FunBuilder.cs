@@ -44,12 +44,15 @@ namespace NFun
             //Set node numbers
             syntaxTree.ComeOver(new SetNodeNumberVisitor());
             
-            var functionsDictionary = MakeFunctionsDictionary();
+            var functionsDictionary = CreateFunctionsDictionary();
             
             return RuntimeBuilder.Build(syntaxTree, functionsDictionary);
         }
 
-        private FunctionsDictionary MakeFunctionsDictionary()
+        /// <summary>
+        /// Creates functions dictionary that contains build in and custom functions
+        /// </summary>
+        private FunctionsDictionary CreateFunctionsDictionary()
         {
             var functionsDictionary = new FunctionsDictionary();
             foreach (var predefinedFunction in _functions.Concat(BaseFunctions.ConcreteFunctions))

@@ -7,6 +7,7 @@ namespace NFun.Runtime
 {
     public class VariableSource
     {
+        
         public static VariableSource CreateWithStrictTypeLabel( string name, 
             VarType type, 
             Interval typeSpecificationIntervalOrNull, 

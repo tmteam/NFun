@@ -1,7 +1,22 @@
+using NFun.SyntaxParsing.SyntaxNodes;
+
 namespace NFun.SyntaxParsing.Visitors
 {
     public static class SyntaxTreeDeepFieldSearch
     {
+        public static ISyntaxNode GetDescendantNodeOrNull(this ISyntaxNode root, int nodeId)
+        {
+            if (root.OrderNumber == nodeId) 
+                return root;
+            
+            foreach (var child in root.Children)
+            {
+                var result = GetDescendantNodeOrNull(child, nodeId);
+                if (result != null)
+                    return result;
+            }
+            return null;
+        }
         public static bool ComeOver(this ISyntaxNode root, ISyntaxNodeVisitor<VisitorEnterResult> enterVisitor,
             ISyntaxNodeVisitor<bool> exitVisitor)
         {
