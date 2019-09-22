@@ -347,3 +347,11 @@ healthchecksdb
 
 # Backup folder for Package Reference Convert tool in Visual Studio 2017
 MigrationBackup/
+/src/.idea/.idea.Funny/.idea/.name
+/src/.idea/.idea.Funny/.idea/encodings.xml
+/src/.idea/.idea.Funny/.idea/indexLayout.xml
+/src/.idea/.idea.Funny/.idea/misc.xml
+/src/.idea/.idea.Funny/.idea/modules.xml
+/src/.idea/.idea.Funny/.idea/vcs.xml
+/src/.idea/.idea.Funny/.idea/workspace.xml
+/src/.idea/.idea.Funny/riderModule.iml
