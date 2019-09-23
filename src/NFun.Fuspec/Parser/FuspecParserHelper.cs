@@ -15,7 +15,7 @@ namespace Nfun.Fuspec.Parser
     internal static class FuspecParserHelper
     {
         private const int MinSeparatorLineLength = 8;
-
+        //todo cr: naming FindStringOrNullByKeyWord -> GetContentIfStartsFromKeywordOrNull
         internal static string FindStringOrNullByKeyWord(string keyWord, string str)
         {
             if (str.Length < keyWord.Length)
@@ -35,35 +35,35 @@ namespace Nfun.Fuspec.Parser
         }
 
 
+        //todo cr : Use List only if you need to modify collection outside
+        //Use array or any other readonly collection (like Ienumerable<T> or ReadonlyMemory)
+        // otherwise
 
-        /*
-         * Опять таки, что за GetParam, какой параметр, пока не знаю, какое название было бы правильнее взять, так как слишком много действий
-         * метод выполняет, надо бы раздробить
-         */
-        //Юра: Согласен. Не понятно. Вероятно тут нужны комментаии, и может разбить метод на подметоды
 
-        /* Наташа: Param - это модель фуспека. Возможно нужно дать лучший нейминг для модели? Метод получает список объектов Param
-         * Вынесла всю логику работы с NFun в отдельный метод ParseStringByNFun, чтобы она не вводила смуту в понимание.
-         * В методе написала комментарии, что делают методы NFun.
-         * Думаю Юра поправит, если я что-то не так поняла )
-         */
-
+        //todo cr: Whole method is useless. Use GetVarTypeByNFun instead
+        //todo cr: GetInOutParam -> ParseInOutList
         internal static List<IdType> GetInOutParam(string paramString)
         {
+            //todo cr: - remove useless line
             List<IdType> result = new List<IdType>();
 
             result = GetVarTypeByNFun(paramString);
+
+            //todo cr: null is not the best option - return empty collection instead
 
             if (!result.Any())
                 return null;
             return result;
         }
 
+        //todo cr: Naming: GetVarTypeByNFun-> ParseVarTypes
         private static List<IdType> GetVarTypeByNFun(string paramString)
         {
             string value;
             VarType varType;
             List<IdType> result = new List<IdType>();
+
+            //todo cr: translate comments to eng. It's opensource baby!
 
             //генерим поток токенов
             var tokFLow = Tokenizer.ToFlow(paramString);
@@ -71,6 +71,11 @@ namespace Nfun.Fuspec.Parser
             //пока не кончатся токены
             while (tokFLow.Current.Type != TokType.Eof)
             {
+                //todo cr: use var previous =  tokFlow.Current; tokFlow.MoveNext();
+                // instead of using "tokflow.previous" everywhere
+
+                //todo cr: best style is to read tokens from flow
+                // one by one instead of using previous or next tokens 
                 tokFLow.MoveNext();
 
                 //проверяет предыдуший и следующий токен
@@ -79,6 +84,8 @@ namespace Nfun.Fuspec.Parser
                     (tokFLow.Peek == null))
                     return null;
                 //если выражение нам подходит, то берем имя переменной(Value) и ее тип(VarType)
+                //todo cr: do not introduce reusable variable. 
+                //Use "previous.Value" everywhere
                 value = tokFLow.Previous.Value;
                 tokFLow.MoveNext();
                 varType = tokFLow.ReadVarType();
@@ -96,15 +103,23 @@ namespace Nfun.Fuspec.Parser
             return result;
         }
 
+        //todo cr: naming: dividingSymbol -> separator
         internal static List<string> SplitWithTrim(string str, char dividingSymbol)
         {
+            //todo cr: using linq Where in one chain
+            //a.ConvertAll
+            // .Where
+            // .ToArray 
+
+            //Use experssion style for one-line methods 
             var res = Array.ConvertAll(str.Split(dividingSymbol), p => p.Trim()).ToList();
             res.RemoveAll(p => p == "");
             return res;
         }
-
+        //todo cr: naming: GetValue->ParseValues
         internal static List<VarVal> GetValue(string valueStr)
         {
+            //todo cr: var
             List<VarVal> result = new List<VarVal>();
             //генерим поток токенов
             var tokFLow = Tokenizer.ToFlow(valueStr);
@@ -112,6 +127,7 @@ namespace Nfun.Fuspec.Parser
             //пока не кончатся токены
             while (tokFLow.Current.Type != TokType.Eof)
             {
+                //todo cr: Check for DRY for GetValue and GetVarTypeByNFun methods
                 tokFLow.MoveNext();
 
                 //проверяет предыдуший и следующий токен
