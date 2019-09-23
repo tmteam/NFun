@@ -4,7 +4,7 @@ using Nfun.Fuspec.Parser.Model;
 
 namespace Nfun.Fuspec.Parser
 {
-    public class TestCaseBuilder  
+    class TestCaseBuilder  
     {
         public string Name { get; set; }
         public List<string> Tags { get; set; } //
@@ -29,7 +29,7 @@ namespace Nfun.Fuspec.Parser
             SetCheckKits=new List<SetCheckPair>();
         }
 
-        public FuspecTestCase Build() =>
+        internal FuspecTestCase Build() =>
             new FuspecTestCase(Name, Tags.ToArray(), Script, ParamsIn.ToArray(), ParamsOut.ToArray(),SetCheckKits.ToArray());
     }
 }

@@ -4,7 +4,7 @@ using Nfun.Fuspec.Parser.Model;
 
 namespace Nfun.Fuspec.Parser
 {
-    public class FuspecParser
+    public static class FuspecParser
     {
         public static FuspecTestCase[] Read(StreamReader streamReader)
         {

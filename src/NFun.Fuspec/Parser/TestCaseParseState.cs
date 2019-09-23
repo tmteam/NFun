@@ -1,6 +1,6 @@
 namespace Nfun.Fuspec.Parser
 {
-    public enum TestCaseParseState
+    enum TestCaseParseState
     {
         ReadingName,
         ReadingTags,

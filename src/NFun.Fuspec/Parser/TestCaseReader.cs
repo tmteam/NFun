@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using Nfun.Fuspec.Parser.FuspecParserErrors;
 using Nfun.Fuspec.Parser.Model;
@@ -11,9 +12,11 @@ using NFun.Types;
 using ParcerV1;
 using static Nfun.Fuspec.Parser.FuspecParserHelper;
 
+[assembly: InternalsVisibleTo("Nfun.Fuspectests")]
+ 
 namespace Nfun.Fuspec.Parser
 {
-    public class TestCasesReader
+    class TestCasesReader
     {
         private List<string> _listOfString = new List<string>();
         private TestCaseBuilder _testCaseBuilder;
@@ -25,7 +28,7 @@ namespace Nfun.Fuspec.Parser
         private SetCheckPair _setCheckPair= new SetCheckPair();
         private List<FuspecParserError> _errors=new List<FuspecParserError>();
         
-        public TestCasesReader(StreamReader streamReader)
+        internal TestCasesReader(StreamReader streamReader)
         {
             string line;
             while ((line = streamReader.ReadLine()) != null)
@@ -35,7 +38,7 @@ namespace Nfun.Fuspec.Parser
             
         }
 
-        public FuspecTestCases Read()
+        internal FuspecTestCases Read()
         {
             var state = TestCaseParseState.FindingOpeningString;
             foreach (var lineStr in _listOfString)
