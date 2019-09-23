@@ -16,8 +16,11 @@ using static Nfun.Fuspec.Parser.FuspecParserHelper;
  
 namespace Nfun.Fuspec.Parser
 {
+    //todo cr: Too large class. 9 states.  SRP violation. 
     class TestCasesReader
     {
+        //todo cr: Some fields initialized implicitly, some in ctor
+        //todo cr: use readonly if field is initializing in ctor
         private List<string> _listOfString = new List<string>();
         private TestCaseBuilder _testCaseBuilder;
         private List<FuspecTestCase> _fuspecTestCases;
@@ -114,6 +117,7 @@ namespace Nfun.Fuspec.Parser
             if (IsSeparatingLine(str, '*'))
                 return TestCaseParseState.ReadingParamsIn;
             
+            //todo cr: move all magic constants to class constants
             var tags = FindStringOrNullByKeyWord("| TAGS", str);
             
             if (tags == null )
