@@ -48,9 +48,9 @@ namespace Nfun.Fuspec.Parser
          * Думаю Юра поправит, если я что-то не так поняла )
          */
 
-        public static List<Param> GetInOutParam(string paramString)
+        public static List<IdType> GetInOutParam(string paramString)
         {
-            List<Param> result = new List<Param>();
+            List<IdType> result = new List<IdType>();
 
             result = GetVarTypeByNFun(paramString);
             
@@ -59,11 +59,11 @@ namespace Nfun.Fuspec.Parser
             return result;
         }
 
-        private static List<Param> GetVarTypeByNFun(string paramString)
+        private static List<IdType> GetVarTypeByNFun(string paramString)
         {
             string value;
             VarType varType;
-            List<Param> result = new List<Param>();
+            List<IdType> result = new List<IdType>();
             
             //генерим поток токенов
             var tokFLow = Tokenizer.ToFlow(paramString);
@@ -84,10 +84,10 @@ namespace Nfun.Fuspec.Parser
                 varType = tokFLow.ReadVarType();
                 
                 // если такое имя переменной уже есть
-                if (result.Any(param => param.Value == value)) 
+                if (result.Any(param => param.Id == value)) 
                     return null;
                 
-                result.Add(new Param(value, varType));
+                result.Add(new IdType(value, varType));
                 
                  // если слудующий токен - запятая
                 if (tokFLow.Current.Type == TokType.Sep)
@@ -104,11 +104,11 @@ namespace Nfun.Fuspec.Parser
         }
 
       
-        public static List<Value> GetValue(string valueStr)
+        public static List<VarVal> GetValue(string valueStr)
         {
            
             
-            List<Value> result = new List<Value>();
+            List<VarVal> result = new List<VarVal>();
             //генерим поток токенов
             var tokFLow = Tokenizer.ToFlow(valueStr);
 
@@ -126,7 +126,7 @@ namespace Nfun.Fuspec.Parser
                 var idName = tokFLow.Previous.Value;
                 tokFLow.MoveNext();
                 var valVarType = ValueParser.ParseValue(tokFLow); 
-                var value = new Value(idName, valVarType.Item1,valVarType.Item2);
+                var value = new VarVal(idName, valVarType.Item1,valVarType.Item2);
                 result.Add(value);
                 
               //  tokFLow.MoveNext();

@@ -8,24 +8,24 @@ namespace Nfun.Fuspec.Parser.Model
         public FuspecTestCase(  string name, 
                                 string[] tags, 
                                 string body,
-                                Param[] paramsIn, Param[] paramsOut, 
-                                SetCheckKit[] setCheckKits )
+                                IdType[] inputVarList, IdType[] outputVarList, 
+                                SetCheckPair[] setChecks )
         {
             Name = name;
             Tags = tags;
             Script = body;
-            ParamsIn = paramsIn;
-            ParamsOut = paramsOut;
-            SetCheckKits = setCheckKits;
+            InputVarList = inputVarList;
+            OutputVarList = outputVarList;
+            SetChecks = setChecks;
         }
         public string Name { get; }
         public string[] Tags { get; }
         public string Script{ get; }
         
-        public Param[] ParamsIn { get; }
-        public Param[] ParamsOut { get; }
+        public IdType[] InputVarList { get; }
+        public IdType[] OutputVarList { get; }
         
-        public SetCheckKit[] SetCheckKits { get; }
+        public SetCheckPair[] SetChecks { get; }
 
     }
     

@@ -2,15 +2,15 @@ using NFun.Types;
 
 namespace Nfun.Fuspec.Parser.Model
 {
-    public class Param
+    public class IdType
     {
-        public string Value { get; }
+        public string Id { get; }
         public VarType VarType { get; }
         
 
-        public Param(string value, VarType varType)
+        public IdType(string id, VarType varType)
         {
-            Value = value;
+            Id = id;
             VarType = varType;
             
         }

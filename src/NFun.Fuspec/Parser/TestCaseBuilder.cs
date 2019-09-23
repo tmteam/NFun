@@ -10,23 +10,23 @@ namespace Nfun.Fuspec.Parser
         public List<string> Tags { get; set; } //
         public string Script { get; set; }
         
-        public List<Param> ParamsIn { get; set; }
+        public List<IdType> ParamsIn { get; set; }
         
-        public List<Param> ParamsOut { get; set; }
+        public List<IdType> ParamsOut { get; set; }
         
-        public ParamValues SetCheckKit { get; set; }
+    //    public ParamValues SetCheckKit { get; set; }
         
-        public List<SetCheckKit> SetCheckKits { get; set; }
+        public List<SetCheckPair> SetCheckKits { get; set; }
         
         
         public TestCaseBuilder()
         {
             Script = null;
             Tags = new List<string>();
-            ParamsIn = new List<Param>();
-            ParamsOut=new List<Param>();
-            SetCheckKit=new ParamValues();
-            SetCheckKits=new List<SetCheckKit>();
+            ParamsIn = new List<IdType>();
+            ParamsOut=new List<IdType>();
+          //  SetCheckKit=new ParamValues();
+            SetCheckKits=new List<SetCheckPair>();
         }
 
         public FuspecTestCase Build() =>

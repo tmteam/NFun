@@ -23,21 +23,21 @@ namespace ConsoleUseParser
                 foreach (var tag in fuspecTestCase.Tags)
                     Console.WriteLine(tag+"   ");
             
-            if (fuspecTestCase.ParamsIn.Length!=0)
-                PrintElement("| Type for input parameters:  ",fuspecTestCase.ParamsIn);
+            if (fuspecTestCase.InputVarList.Length!=0)
+                PrintElement("| Type for input parameters:  ",fuspecTestCase.InputVarList);
             
-            if (fuspecTestCase.ParamsOut.Length!=0)
-                PrintElement("| Type for output parameters:  ",fuspecTestCase.ParamsOut);
+            if (fuspecTestCase.OutputVarList.Length!=0)
+                PrintElement("| Type for output parameters:  ",fuspecTestCase.OutputVarList);
             
             Console.WriteLine("| Body script:");
             Console.WriteLine(fuspecTestCase.Script);
 
-            if (fuspecTestCase.SetCheckKits.Length != 0)
+            if (fuspecTestCase.SetChecks.Length != 0)
             {
                 Console.WriteLine("| Sets of values ");
                
                 int i = 0;
-                foreach (var setCheckKit in fuspecTestCase.SetCheckKits)
+                foreach (var setCheckKit in fuspecTestCase.SetChecks)
                 {
                     i++;
                     Console.Write("\t");
@@ -45,7 +45,7 @@ namespace ConsoleUseParser
                     if (setCheckKit.Set.Any())
                         foreach (var set in setCheckKit.Set)
                         {
-                            Console.Write(set.IdName + ":" + set.IdValue + "(" + set.IdType + "), ");
+                            Console.Write(set.Name + ":" + set.Value + "(" + set.Type + "), ");
                         }
                     else Console.Write("None");
 
@@ -55,7 +55,7 @@ namespace ConsoleUseParser
                     if (setCheckKit.Check.Any())
                         foreach (var check in setCheckKit.Check)
                         {
-                            Console.Write(check.IdName + ":" + check.IdValue + "(" + check.IdType + "), ");
+                            Console.Write(check.Name + ":" + check.Value + "(" + check.Type + "), ");
                         }
                     else Console.Write("None");
 
@@ -73,11 +73,11 @@ namespace ConsoleUseParser
             Console.WriteLine();
         }
         
-        private static void PrintElement(string message, IEnumerable<Param> paramsInOut)
+        private static void PrintElement(string message, IEnumerable<IdType> paramsInOut)
         {
             Console.Write(message);
             foreach (var param in paramsInOut)
-                Console.Write(param.Value+" : "+param.VarType+"   ");
+                Console.Write(param.Id+" : "+param.VarType+"   ");
             Console.WriteLine();
         }
     }

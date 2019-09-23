@@ -21,8 +21,8 @@ namespace Nfun.Fuspec.Parser
         private int _index = 0;
         private bool _isReading = false;
         private List<string> _script= new List<string>();
-        private List<SetCheckKit> _setCheckKits= new List<SetCheckKit>();
-        private SetCheckKit _setCheckKit= new SetCheckKit();
+        private List<SetCheckPair> _setCheckKits= new List<SetCheckPair>();
+        private SetCheckPair _setCheckPair= new SetCheckPair();
         private List<FuspecParserError> _errors=new List<FuspecParserError>();
         
         public TestCasesReader(StreamReader streamReader)
@@ -86,7 +86,7 @@ namespace Nfun.Fuspec.Parser
             {
                 _isReading = true;
                 _script=new List<string>();
-                _setCheckKits = new List<SetCheckKit>();
+                _setCheckKits = new List<SetCheckPair>();
                 return TestCaseParseState.ReadingName;
             }
             return WriteError(new FuspecParserError(FuspecErrorType.OpeningStringMissed, _index));
@@ -246,12 +246,12 @@ namespace Nfun.Fuspec.Parser
                 
 
                 //если была только сет строка перед текущей, то надо добавить SetCheckKit
-                if (!_setCheckKit.Check.Any() && _setCheckKit.Set.Any())
-                    _setCheckKits.Add(_setCheckKit);
-                _setCheckKit = new SetCheckKit();
+                if (!_setCheckPair.Check.Any() && _setCheckPair.Set.Any())
+                    _setCheckKits.Add(_setCheckPair);
+                _setCheckPair = new SetCheckPair();
                 try
                 {
-                    _setCheckKit.AddSet(GetValue(setString));
+                    _setCheckPair.AddSet(GetValue(setString));
                 }
                 catch (FunParseException e)
                 {
@@ -274,13 +274,14 @@ namespace Nfun.Fuspec.Parser
          
                 try
                 {
-                    _setCheckKit.AddGet(GetValue(checkString));
+                    _setCheckPair.AddGet(GetValue(checkString));
                 }
                 catch (Exception e)
                 {
                     return WriteError(new FuspecParserError(FuspecErrorType.NFunMessage_ICantParseValue, _index));
                 }
-                _setCheckKits.Add(_setCheckKit);
+                
+                _setCheckKits.Add(_setCheckPair);
             }
 
             return TestCaseParseState.ReadingValues;
@@ -329,14 +330,14 @@ namespace Nfun.Fuspec.Parser
         
         private void BuildSetCheckKits()
         {
-            if (!_setCheckKit.Check.Any() && _setCheckKit.Set.Any())
-                _setCheckKits.Add(_setCheckKit);
+            if (!_setCheckPair.Check.Any() && _setCheckPair.Set.Any())
+                _setCheckKits.Add(_setCheckPair);
          
             if (_setCheckKits.Any())
                 _testCaseBuilder.SetCheckKits=_setCheckKits;
         
-            _setCheckKits = new List<SetCheckKit>();
-            _setCheckKit=new SetCheckKit();
+            _setCheckKits = new List<SetCheckPair>();
+            _setCheckPair=new SetCheckPair();
         }
 
         private TestCaseParseState WriteError(FuspecParserError fuspecParserError)

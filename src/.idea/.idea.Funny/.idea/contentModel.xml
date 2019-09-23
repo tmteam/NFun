@@ -43,7 +43,6 @@
         <e p="Interpritation" t="Include">
           <e p="Equation.cs" t="Include" />
           <e p="ExpressionBuilderVisitor.cs" t="Include" />
-          <e p="ExpressionHelper.cs" t="Include" />
           <e p="Functions" t="Include">
             <e p="ConcreteUserFunctionPrototype.cs" t="Include" />
             <e p="FunctionBase.cs" t="Include" />
@@ -65,6 +64,7 @@
             <e p="VariableExpressionNode.cs" t="Include" />
           </e>
           <e p="RuntimeBuilder.cs" t="Include" />
+          <e p="RuntimeBuilderHelper.cs" t="Include" />
         </e>
         <e p="NFun.csproj" t="IncludeRecursive" />
         <e p="NFun.nuspec" t="Include" />
@@ -146,7 +146,7 @@
           <e p="SetupTiExitVisitor.cs" t="Include" />
           <e p="SetupTiState.cs" t="Include" />
           <e p="Solving" t="Include">
-            <e p="CallDefenition.cs" t="Include" />
+            <e p="CallDefinition.cs" t="Include" />
             <e p="GenericMap.cs" t="Include" />
             <e p="GenericTypeBehaviour.cs" t="Include" />
             <e p="INodeBehaviour.cs" t="Include" />
@@ -229,11 +229,9 @@
           <e p="Model" t="Include">
             <e p="FuspecTestCase.cs" t="Include" />
             <e p="FuspecTestCases.cs" t="Include" />
-            <e p="Param.cs" t="Include" />
-            <e p="ParamValues.cs" t="Include" />
+            <e p="IdType.cs" t="Include" />
             <e p="ParsedFuspec.cs" t="Include" />
-            <e p="SetCheckKit.cs" t="Include" />
-            <e p="Value.cs" t="Include" />
+            <e p="SetCheckPair.cs" t="Include" />
           </e>
           <e p="TestCaseBuilder.cs" t="Include" />
           <e p="TestCaseParseState.cs" t="Include" />
