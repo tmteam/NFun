@@ -395,6 +395,7 @@ namespace Funny.Tests
         [TestCase("y= max(1,2,3)")]
         [TestCase("y= max(1,true)")]
         [TestCase("y= max(1,(j)->j)")]
+        [TestCase("y = [1,2] in [1,2,3,4]")]
         public void ObviouslyFails(string expr) =>
             Assert.Throws<FunParseException>(
                 ()=> FunBuilder.BuildDefault(expr));
