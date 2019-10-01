@@ -9,7 +9,6 @@ namespace NFun
         {
             new IsInSingleGenericFunctionDefenition(), 
             //new IsInMultipleGenericFunctionDefenition(), 
-            new ReiterateGenericFunctionDefenition(),
             new UniqueGenericFunctionDefenition(), 
             new UniteGenericFunctionDefenition(), 
             new IntersectGenericFunctionDefenition(), 

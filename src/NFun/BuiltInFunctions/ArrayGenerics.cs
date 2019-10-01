@@ -155,24 +155,7 @@ namespace NFun.BuiltInFunctions
             return -1;
         }
     }
-    public class ReiterateGenericFunctionDefenition : GenericFunctionBase
-    {
-        public ReiterateGenericFunctionDefenition() : base("reiterate", 
-            VarType.ArrayOf(VarType.Generic(0)),
-            VarType.ArrayOf(VarType.Generic(0)),
-            VarType.Int32)
-        {
-        }
 
-        public override object Calc(object[] args)
-        {
-            var arr = (IFunArray)args[0];
-            var factor = args.Get<int>(1) ;
-            
-            var res = ImmutableFunArray.By(Enumerable.Repeat(arr,factor).SelectMany(a=>a));
-            return res; 
-        }
-    }
     public class ChunkGenericFunctionDefenition : GenericFunctionBase
     {
         public ChunkGenericFunctionDefenition() : base("chunk", 

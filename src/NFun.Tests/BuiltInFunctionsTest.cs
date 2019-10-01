@@ -296,11 +296,11 @@ namespace Funny.Tests
 
         [TestCase("y = [1,2,3].set(1,42)", new[]{1,42,3})]
         
-        [TestCase("y = [1.0] . reiterate(3)", new[]{1.0,1.0,1.0})]
-        [TestCase("y = [] . reiterate(3)", new object[0])]
-        [TestCase("y = ['a','b'] . reiterate(3)", new []{"a","b","a","b","a","b"})]
-        [TestCase("y = ['a','b'] . reiterate(0)", new string[0])]
-        [TestCase("y = ['a','b'] . reiterate(1)", new []{"a","b"})]
+        [TestCase("y = [1.0] .repeat(3).flat()", new[]{1.0,1.0,1.0})]
+        [TestCase("y = [] .repeat(3).flat()", new object[0])]
+        [TestCase("y = ['a','b'] .repeat(3).flat()", new []{"a","b","a","b","a","b"})]
+        [TestCase("y = ['a','b'] .repeat(0).flat()", new string[0])]
+        [TestCase("y = ['a','b'] .repeat(1).flat()", new []{"a","b"})]
         
         [TestCase("y = [1.0,2.0] . unite([3.0,4.0])", new []{1.0,2.0,3.0,4.0})]
         [TestCase("y = [1.0,2.0,3.0]. unite([3.0,4.0])", new []{1.0,2.0,3.0,4.0})]
