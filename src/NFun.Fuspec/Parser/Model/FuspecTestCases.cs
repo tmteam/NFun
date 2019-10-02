@@ -3,7 +3,7 @@ using Nfun.Fuspec.Parser.FuspecParserErrors;
 
 namespace Nfun.Fuspec.Parser.Model
 {
-    public class FuspecTestCases
+    internal class FuspecTestCases
     {
         public FuspecTestCase[] TestCases { get; }
         public FuspecParserError[] Errors { get; }

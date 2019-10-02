@@ -6,7 +6,7 @@ using Nfun.Fuspec.Parser.FuspecParserErrors;
 
 namespace Nfun.Fuspec.Parser.Model
 {
-    public class ParsedFuspec
+    internal class ParsedFuspec
     {
         public FuspecTestCase[] FuspecTestCases { get; }
 

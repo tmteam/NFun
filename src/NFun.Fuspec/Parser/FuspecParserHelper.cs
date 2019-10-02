@@ -34,6 +34,9 @@ namespace Nfun.Fuspec.Parser
             return (str.Substring(1).All(c => c == lineSymbol) && str.Length > MinSeparatorLineLength);
         }
 
+        internal static List<string> SplitWithTrim(string str, char separator)
+            => Array.ConvertAll(str.Split(separator), p => p.Trim()).Where(p=> p!="").Select(p=>p).ToList();
+        
         //todo cr: return empty list, not null
         //Todo cr: answer: null is a marker of Error. Empty list is a marker of empty string of values
         internal static IdType[] ParseVarType(string paramString)
@@ -76,11 +79,7 @@ namespace Nfun.Fuspec.Parser
             return result.ToArray();
         }
 
-        internal static List<string> SplitWithTrim(string str, char separator)
-              => Array.ConvertAll(str.Split(separator), p => p.Trim()).Where(p=> p!="").Select(p=>p).ToList();
- 
-        
-        internal static VarVal[] ParseValues(string valueStr)
+      internal static VarVal[] ParseValues(string valueStr)
         {
              var result = new List<VarVal>();
             //генерим поток токенов

@@ -12,7 +12,6 @@ namespace Nfun.Fuspec.Parser.Model
         {
             Id = id;
             VarType = varType;
-            
         }
     }
 }
