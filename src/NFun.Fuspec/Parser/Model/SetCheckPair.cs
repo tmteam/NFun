@@ -25,12 +25,12 @@ namespace Nfun.Fuspec.Parser.Model
             _check=new List<VarVal>();
         }
 
-        internal void AddSet(List<VarVal> set)
+        internal void AddSet(VarVal[] set)
         {
             _set.AddRange(set); 
         }
 
-        internal void AddGet(List<VarVal> get)
+        internal void AddGet(VarVal[] get)
         {
             _check.AddRange(get);
         }

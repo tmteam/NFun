@@ -7,33 +7,26 @@ namespace Nfun.Fuspec.Parser
     class TestCaseBuilder  
     {
         public string Name { get; set; }
-        public List<string> Tags { get; set; } //
+        public string[] Tags { get; set; } //
         public string Script { get; set; }
         
-        //todo cr: public properties has to be immutable
-        //Use T[] or IEnumerable<T> instead
-
-        public List<IdType> ParamsIn { get; set; }
+        public IdType[] ParamsIn { get; set; }
         
-        public List<IdType> ParamsOut { get; set; }
-        //todo cr: remove not used
-    //    public ParamValues SetCheckKit { get; set; }
+        public IdType[] ParamsOut { get; set; }
         
-        public List<SetCheckPair> SetCheckKits { get; set; }
+        public SetCheckPair[] SetCheckKits { get; set; }
         
         
         public TestCaseBuilder()
         {
             Script = null;
-            Tags = new List<string>();
-            ParamsIn = new List<IdType>();
-            ParamsOut=new List<IdType>();
-            //todo cr: remove not used
-          //  SetCheckKit=new ParamValues();
-            SetCheckKits=new List<SetCheckPair>();
+            Tags = new string[0];
+            ParamsIn = new IdType[0];
+            ParamsOut=new IdType[0];
+            SetCheckKits=new SetCheckPair[0];
         }
 
         internal FuspecTestCase Build() =>
-            new FuspecTestCase(Name, Tags.ToArray(), Script, ParamsIn.ToArray(), ParamsOut.ToArray(),SetCheckKits.ToArray());
+            new FuspecTestCase(Name, Tags, Script, ParamsIn, ParamsOut,SetCheckKits);
     }
 }
