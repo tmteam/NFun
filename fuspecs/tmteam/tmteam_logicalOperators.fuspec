@@ -80,7 +80,7 @@
 
 
 |****************************************
-| TEST Logical operators priority  
+| TEST binary pushkin test (Logical operators priority ) 
 | TAGS bool discreet logic priority and or xor not                          
 |************************   
   [
@@ -89,17 +89,17 @@
   	not false and not false,
   	true and not false,
   	true and not not true,
-	true or not false,
-	not not true or true,
-	not not true or not not true,
-	not true or not not true,
-	true or not not true,
-	true or not true,
-	not (not true or not true),
-	not false or not false,
-	false or not false,
-	not not false or not false,
-	not not true xor false,
+	  true or not false,
+	  not not true or true,
+	  not not true or not not true,
+	  not true or not not true,
+	  true or not not true,
+	  true or not true,
+	  not (not true or not true),
+	  not false or not false,
+	  false or not false,
+	  not not false or not false,
+	  not not true xor false,
   	true xor not not false,
   	not false xor false,
   	false xor not false,
