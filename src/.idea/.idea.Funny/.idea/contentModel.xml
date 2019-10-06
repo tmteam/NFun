@@ -28,6 +28,36 @@
         <e p="user-functions.fuspec" t="Include" />
       </e>
       <e p="Funny.sln" t="IncludeFlat" />
+      <e p="FuspecHandler" t="IncludeRecursive">
+        <e p="bin" t="ExcludeRecursive" />
+        <e p="ConsoleWriter.cs" t="Include" />
+        <e p="FuspecHandler.csproj" t="IncludeRecursive" />
+        <e p="fuspecs" t="Include">
+          <e p="basics" t="Include">
+            <e p="arithmetic.fuspec" t="Include" />
+            <e p="arrays.fuspec" t="Include" />
+            <e p="basics.fuspec" t="Include" />
+            <e p="bitwise.fuspec" t="Include" />
+            <e p="buit-in-functions.fuspec" t="Include" />
+            <e p="CompareEquality.fuspec" t="Include" />
+            <e p="CompareIntReal.fuspec" t="Include" />
+            <e p="constants.fuspec" t="Include" />
+            <e p="if-else.fuspec" t="Include" />
+            <e p="integers.fuspec" t="Include" />
+            <e p="logical-operators.fuspec" t="Include" />
+            <e p="user-functions.fuspec" t="Include" />
+          </e>
+        </e>
+        <e p="obj" t="ExcludeRecursive">
+          <e p="Debug" t="Include">
+            <e p="netcoreapp2.2" t="Include">
+              <e p="FuspecHandler.AssemblyInfo.cs" t="Include" />
+            </e>
+          </e>
+        </e>
+        <e p="Program.cs" t="Include" />
+        <e p="TestHandler.cs" t="Include" />
+      </e>
       <e p="NFun" t="IncludeRecursive">
         <e p="BaseFunctions.cs" t="Include" />
         <e p="bin" t="ExcludeRecursive" />

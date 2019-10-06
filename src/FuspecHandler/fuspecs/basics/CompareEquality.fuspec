@@ -1,0 +1,194 @@
+|****************************************
+| TEST int constant equality 
+| TAGS int constant equal                         
+|************************
+  it1 = 1:1
+  it2 = 0:0
+  it3 = -1 : -1
+  
+  if1 = 1:0
+  if2 = 0:1
+  if3 = -1 : 2
+  
+  nif1 = 1!=1
+  nif2 = 0!=0
+  nif3 = -1 != -1
+  
+  nit1 = 1!=0
+  nit2 = 0!=1
+  nit3 = -1 != 2
+|---------------------
+| check it1: true,  it2:true, it3:true , nit1: true, nit2: true, nit3:true, if1:false, if2:false, if3: false, nif1:false, nif2:false, nif3:false
+
+
+
+|****************************************
+| TEST real constant equality 
+| TAGS real constant equal                         
+|************************
+  #true
+  rt1 = 1.1:1.1
+  rt2 = 0.2:0.2
+  rt3 = -1.3 : -1.3
+  
+  rf1 = 1.4:1.0
+  rf2 = 0.5:1.0
+  rf3 = -1.0 : 2.0
+  
+  #false
+  nrf1 = 1.6!=1.6
+  nrf2 = 0.0!=0.0
+  nrf3 = -1.0 != -1.0
+  
+  nrt1 = 1.7!=0.7
+  nrt2 = 0.8!=1.8
+  nrt3 = -1.9 != 2.9
+|---------------------
+| check rt1:true, rt2:true, rt3:true, nrt1:true,nrt2:true, nrt3:true, rf1:false, rf2:false, rf3:false, nrf1:false, nrf2:false, nrf3:false
+
+
+|****************************************
+| TEST real and int constant equality 
+| TAGS real int constant equal convert                        
+|************************
+  #true
+  t1 = 1.0:1
+  t2 = 0:0.0
+  t3 = -1.0 : -1
+  
+  f1 = 1.4:1
+  f2 = 0.5:1
+  f3 = -1 : 2.0
+  
+  #false
+  nf1 = 1!=1.0
+  nf2 = 0.0!=0
+  nf3 = -1.0 != -1
+  
+  nt1 = 1.0!=0
+  nt2 = 0.8!=1
+  nt3 = -1 != 2.9
+|---------------------
+| check t:true,t2:true,t3:true, nt1:true,nt2:true,nt3:true,f1:false, f2:false, f3:false,nf1:false, nf2:false, nf3:false
+
+|****************************************
+| TEST int equality 
+| TAGS int equal                         
+|************************
+  x1:int
+  x2:int
+
+  eq = x1:x2
+  ne = x1!=x2
+|---------------------
+| set x1:0, x2:0
+| check eq:true, ne:false
+| set x1:1, x2:1
+| check eq:true, ne:false
+| set x1:100, x2:100
+| check eq:true, ne:false
+| set x1:-1, x2:-1
+| check eq:true, ne:false
+| set x1:-100, x2:-100
+| check eq:true, ne:false
+
+| set x1:0, x2:1
+| check eq:false, ne:true
+| set x1:1, x2:0,
+| check eq:false, ne:true
+| set x1:100, x2:101
+| check eq:false, ne:true
+| set x1:-100, x2:100
+| check eq:false, ne:true
+| set x1:-100, x2:-1
+| check eq:false, ne:true
+
+
+|****************************************
+| TEST real equality 
+| TAGS real equal                         
+|************************
+  x1:real
+  x2:real
+
+  eq = x1:x2
+  ne = x1!=x2
+|---------------------
+| set x1:0, x2:0
+| check eq:true, ne:false
+| set x1:1, x2:1
+| check eq:true, ne:false
+| set x1:200, x2:200
+| check eq:true, ne:false
+| set x1:-3, x2:-3
+| check eq:true, ne:false
+| set x1:-400, x2:-400
+| check eq:true, ne:false
+
+| set x1:0.1, x2:0.1
+| check eq:true, ne:false
+| set x1:5.2, x2:5.2
+| check eq:true, ne:false
+| set x1:600.3, x2:600.3
+
+| set x1:0, x2:1
+| check eq:false, ne:true
+| set x1:1, x2:0
+| check eq:false, ne:true
+| set x1:100, x2:101
+| check eq:false, ne:true
+| set x1:-100, x2:100
+| check eq:false, ne:true
+| set x1:-100, x2:-1
+| check eq:false, ne:true
+
+| set x1:0.1,x2:1.2
+| check eq:false, ne:true
+| set x1:1.3, x2:0.4
+| check eq:false, ne:true
+| set x1:100.5, x2:101.6
+| check eq:false, ne:true
+
+
+
+|****************************************
+| TEST int real equality 
+| TAGS int real equal convert                        
+|************************
+  r:real
+  i:int
+
+  eq = x1:x2
+  ne = x1!=x2
+|---------------------
+| set r:0, i:0
+| check eq:true, ne:false
+| set r:1, i:1
+| check eq:true, ne:false
+
+| set r:200, i:200
+| check eq:true, ne:false
+| set r:-3, i:-3
+| check eq:true, ne:false
+| set r:-400, i:-400
+| check eq:true, ne:false
+
+| set r:0, i:1
+| check eq:false, ne:true
+| set r:1, i:0
+| check eq:false, ne:true
+| set r:100, i:101
+| check eq:false, ne:true
+| set r:-100, i:100
+| check eq:false, ne:true
+| set r:-100, i:-1
+| check eq:false, ne:true
+
+| set r:0.1, i:0
+| check eq:false, ne:true
+| set r:1.3, i:1
+| check eq:false, ne:true
+| set r:100.5, i:101.6
+| check eq:false, ne:true
+
+

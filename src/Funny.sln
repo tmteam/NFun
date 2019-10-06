@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFun.Fuspectests", "NFun.Fu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleUseParser", "ConsoleUseParser\ConsoleUseParser.csproj", "{DE205EB9-4BE3-413E-9AC1-6D37D3452E0E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FuspecHandler", "FuspecHandler\FuspecHandler.csproj", "{368481E9-7A6C-4DB6-BBFA-05C2621A86FD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -59,6 +61,10 @@ Global
 		{DE205EB9-4BE3-413E-9AC1-6D37D3452E0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DE205EB9-4BE3-413E-9AC1-6D37D3452E0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DE205EB9-4BE3-413E-9AC1-6D37D3452E0E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{368481E9-7A6C-4DB6-BBFA-05C2621A86FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{368481E9-7A6C-4DB6-BBFA-05C2621A86FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{368481E9-7A6C-4DB6-BBFA-05C2621A86FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{368481E9-7A6C-4DB6-BBFA-05C2621A86FD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
