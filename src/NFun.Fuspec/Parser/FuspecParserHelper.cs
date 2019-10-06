@@ -14,8 +14,6 @@ namespace Nfun.Fuspec.Parser
 {
     internal static class FuspecParserHelper
     {
-        private const int MinSeparatorLineLength = 8;
-        
         internal static string GetContentOrNullIfStartsFromKeyword(string keyWord, string str)
         {
             if (str.Length < keyWord.Length)
@@ -26,15 +24,7 @@ namespace Nfun.Fuspec.Parser
             return null;
         }
 
-        public static bool IsSeparatingLine(string str, char lineSymbol)
-        {
-            str = str.Trim();
-            if (str[0] != '|')
-                return false;
-            return (str.Substring(1).All(c => c == lineSymbol) && str.Length > MinSeparatorLineLength);
-        }
-
-        internal static List<string> SplitWithTrim(string str, char separator)
+      internal static List<string> SplitWithTrim(string str, char separator)
             => Array.ConvertAll(str.Split(separator), p => p.Trim()).Where(p=> p!="").Select(p=>p).ToList();
         
         //todo cr: return empty list, not null

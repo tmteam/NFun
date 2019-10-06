@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ContentModelStore">
-    <e p="C:\Apps\NewNewNewFun\NFun\src" t="IncludeFlat">
+    <e p="C:\Apps\NewFun\NFun\src" t="IncludeFlat">
       <e p="ConsoleUseParser" t="IncludeRecursive">
         <e p="arithmetic.txt" t="Include" />
         <e p="bin" t="ExcludeRecursive" />
@@ -218,6 +218,7 @@
           </e>
         </e>
         <e p="Parser" t="Include">
+          <e p="Constants.cs" t="Include" />
           <e p="FuspecParser.cs" t="Include" />
           <e p="FuspecParserErrors" t="Include">
             <e p="FuspecErrorExtensions.cs" t="Include" />
@@ -345,6 +346,6 @@
     <e p="C:\Users\clien\.nuget\packages\nunit3testadapter\3.13.0\build\netcoreapp1.0\NUnit3.TestAdapter.dll" t="Include" />
     <e p="C:\Users\clien\.nuget\packages\nunit3testadapter\3.13.0\build\netcoreapp1.0\NUnit3.TestAdapter.pdb" t="Include" />
     <e p="C:\Users\clien\.Rider2018.3\system\extResources" t="IncludeRecursive" />
-    <e p="C:\Users\clien\.Rider2018.3\system\resharper-host\local\Transient\ReSharperHost\v183\SolutionCaches\_Funny.-261236397.00" t="ExcludeRecursive" />
+    <e p="C:\Users\clien\.Rider2018.3\system\resharper-host\local\Transient\ReSharperHost\v183\SolutionCaches\_Funny.-1552133293.00" t="ExcludeRecursive" />
   </component>
 </project>

@@ -37,7 +37,7 @@ namespace Nfun.Fuspec.Parser
            
             while (!_inputText.Eof)
             {
-                if (!(_inputText.IsCurentLineEmty() && (state!=TestCaseParseState.ReadingBody)))
+                  if (!(_inputText.IsCurentLineEmty() && (state!=TestCaseParseState.ReadingBody && state!=TestCaseParseState.ReadingParamsIn)))
                     state = ReadNext(_inputText.CurrentLine, state);
                 _inputText.MoveNext();
             }
@@ -77,7 +77,7 @@ namespace Nfun.Fuspec.Parser
         {
             _testCaseBuilder = new TestCaseBuilder();
 
-            if (IsSeparatingLine(str, '*'))
+            if (_inputText.ISCurrentLineSeparated('*'))
             {
                 _script = new List<string>();
                 _setCheckKits = new List<SetCheckPair>();
@@ -101,7 +101,7 @@ namespace Nfun.Fuspec.Parser
 
         private TestCaseParseState FindTags(string str)
         {
-            if (IsSeparatingLine(str, '*'))
+            if (_inputText.ISCurrentLineSeparated('*'))
                 return TestCaseParseState.ReadingParamsIn;
 
             //todo cr: move all magic constants to class constants
@@ -152,7 +152,7 @@ namespace Nfun.Fuspec.Parser
 
         private TestCaseParseState ReadParamsOut(string str)
         {
-            if (IsSeparatingLine(str, '-'))
+            if (_inputText.ISCurrentLineSeparated('-'))
                 return TestCaseParseState.ReadingBody;
 
             var paramOutString = GetContentOrNullIfStartsFromKeyword("| out", str);
@@ -189,17 +189,17 @@ namespace Nfun.Fuspec.Parser
                 return TestCaseParseState.ReadingBody;
             }
 
-            if (IsSeparatingLine(str, '-'))
+            if (_inputText.ISCurrentLineSeparated('-'))
             {
                 if (!(_script.Any(x => x.Trim() != "")))
                     WriteError(new FuspecParserError(FuspecErrorType.ScriptMissed, _inputText.Index));
                 return TestCaseParseState.ReadingValues;
             }
 
-            if (IsSeparatingLine(str, '*'))
+            if (_inputText.ISCurrentLineSeparated('*'))
                 return AddTestCase(str);
 
-            if (GetContentOrNullIfStartsFromKeyword("|***", str) != null && !IsSeparatingLine(str, '*'))
+            if (GetContentOrNullIfStartsFromKeyword("|***", str) != null && !_inputText.ISCurrentLineSeparated('*'))
                 return WriteError(new FuspecParserError(FuspecErrorType.OpeningStringMissed, _inputText.Index));
 
 
@@ -217,7 +217,7 @@ namespace Nfun.Fuspec.Parser
 
         private TestCaseParseState ReadValues(string str)
         {
-            if (IsSeparatingLine(str, '*'))
+            if (_inputText.ISCurrentLineSeparated('*'))
                 return AddTestCase(str);
 
             var setString = GetContentOrNullIfStartsFromKeyword("| set", str);

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using NFun.Types;
 
 namespace Nfun.Fuspec.Parser
@@ -31,10 +32,14 @@ namespace Nfun.Fuspec.Parser
         }
 
         public bool IsCurentLineEmty() => CurrentLine.Trim() == "" ? true : false;
-      //  {
-        //    if (_cur.Trim() == "")
-          //      return true;
-           // else return false;
-       // }
+
+        public bool ISCurrentLineSeparated(char lineSymbol)
+        {
+            var str = CurrentLine;
+            if (str[0] != '|')
+                return false;
+            return (str.Substring(1).All(c => c == lineSymbol) && str.Length > Constants.MinSeparatorLineLength);
+           
+        }
     }
 }
