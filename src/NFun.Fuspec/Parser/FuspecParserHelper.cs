@@ -42,7 +42,7 @@ namespace Nfun.Fuspec.Parser
                 var next = tokFLow.Peek;
                 
                 //if TokFlow doesn't "Id:[any token]" 
-                if ((previous.Type != TokType.Id ||
+                if ((!(previous.Type== TokType.Id || previous.Type==TokType.Reserved)||
                      cur.Type != TokType.Colon) ||
                      next.Type == TokType.Eof)
                     return null;
@@ -85,7 +85,7 @@ namespace Nfun.Fuspec.Parser
                 var next = tokFLow.Peek;
 
                 //if TokFlow doesn't "Id:[any token]" 
-                if ((previous.Type != TokType.Id ||
+                if ((!(previous.Type== TokType.Id || previous.Type==TokType.Reserved) || 
                      cur.Type != TokType.Colon) ||
                     next.Type == TokType.Eof)
                     return null;

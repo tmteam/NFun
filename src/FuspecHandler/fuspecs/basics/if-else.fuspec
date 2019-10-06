@@ -1,0 +1,180 @@
+|****************************************
+| TEST if-else constant    
+| TAGS if                          
+|************************
+  if (true) 1 else 2
+|---------------------
+| check out: 1          
+
+
+|****************************************
+| TEST if-else     
+| TAGS if                          
+|************************
+| in  x : bool
+|------------------------
+  i:int  = if (x) 1 else 2
+  t:text = if (x) '1' 
+            else '2'
+  r:real = if (x) 1.0; else 2.0
+  b:bool = if (x) false;; else true
+  ai:int[]  = if (x) 
+                [1,2,3] 
+              else 
+                [4,5,6]
+  at:text[] = 
+  if (x) 
+  ['1','2','3'] 
+  else 
+  ['4','5','6']
+  ar:real[] = if (x) [1.0] else [2.0]
+  ab:bool[] = if (x) [true, false] else [false]
+|---------------------
+| set   x: true
+| check i: 1, t: '1', r:'1.0', b: false, ai: [1,2,3], at: ['1','2','3'], ar: [1.0], ab: [true, false]
+| set   x: false
+| check i: 2, t: '2', r:'2.0', b: true, ai: [4,5,6], at: ['4','5','6'], ar: [2.0], ab: [ false]
+
+
+
+
+
+
+|****************************************
+| TEST if-if-else    
+| TAGS if                          
+|************************
+| in  x : int
+|------------------------
+  i:int  = if (x>10) 1
+           if (x<10) 2
+           if (x<3) 42
+           else 3           
+  
+# (x==7) has less priority than (x<10) condition
+  
+  t:text = if (x>10) 'more' ; if (x<10) 'less'; if(x==7) 'it will never happens'; else 'equal'
+
+
+  ar:real[] = if (x==10) 
+                  [10.0]
+              if (x==11) 
+                  [12.0]
+              if (x<10)
+                  [2.0,3.0]
+              else          
+                  [4.0,5.0,6.0]
+  
+|---------------------
+| set   x: -100
+| check i: 2, t: 'less', ar: [2.0,3.0]
+| set   x: 200000
+| check i: 1, t: 'more', ar:[4.0,5.0,6.0]
+| set   x: 11
+| check i: 1, t: 'more', ar:[12.0]
+
+
+
+
+
+
+|****************************************
+| TEST nested if-else    
+| TAGS if                          
+|************************
+| in  x : int, y:text
+|------------------------
+  t  = if (x>10) 
+          if(y=='first') 'first >10'
+          if(y=='second') 'second >10'
+          if(y=='third') 'third >10'
+          else 'else >10'
+
+       if (x<10)
+          if(x>0)
+              if(y=='first')  'first (0,10)'
+              if(y=='second') 'second (0,10)'
+              if(y=='third')  'third (0,10)'
+              else 'else (0,10)'
+          if(x==-15)
+              if(y=='first')  'first -15'
+              if(y=='second') 'second -15'
+              if(y=='third')  'third -15'
+              else 'else -15'
+           else
+              if(y=='first')  'first <10'
+              if(y=='second') 'second <10'
+              if(y=='third')  'third <10'
+              else 'else >10'
+        else '10'           
+  
+|---------------------
+| set   x: -100, y:'first'
+| check t: 'first <10'
+| set   x: -100, y:'second'
+| check t: 'second <10'
+| set   x: -100, y:'third'
+| check t: 'third <10'
+| set   x: -100, y:'lalala'
+| check t: 'else <10'
+
+| set   x: -15, y:'first'
+| check t: 'first -15'
+| set   x: -15, y:'second'
+| check t: 'second -15'
+| set   x: -15, y:'third'
+| check t: 'third -15'
+| set   x: -15, y:'lalala'
+| check t: 'else -15'
+
+| set   x: 1, y:'first'
+| check t: 'first (0,10)'
+| set   x: 1, y:'second'
+| check t: 'second (0,10)'
+| set   x: 1, y:'third'
+| check t: 'third (0,10)'
+| set   x: 1, y:'lalala'
+| check t: 'else (0,10)'
+
+| set   x: 10, y:'first'
+| check t: '10'
+| set   x: 10, y:'second'
+| check t: '10'
+| set   x: 10, y:'third'
+| check t: '10'
+| set   x: 10, y:'lalala'
+| check t: '10'
+
+| set   x: 100, y:'first'
+| check t: 'first >10'
+| set   x: 100, y:'second'
+| check t: 'second >10'
+| set   x: 100, y:'third'
+| check t: 'third >10'
+| set   x: 100, y:'lalala'
+| check t: 'else >10'
+
+
+
+
+
+
+
+|****************************************
+| TEST if-else as expression 
+| TAGS if                          
+|************************
+| in  x : int
+| out i: int, arri: int[]
+|------------------------
+  i:int  = 42 * if (x>0) x else -1
+  arri = [if(x>0) x else -x, if(x<0) -1 else 1 ]
+|---------------------
+| set   x: 10
+| check i: 420, arri: [10,1]
+| set   x: 0
+| check i: -42, arri: [0,1]
+| set   x: -10
+| check i: -42, arri: [0,-1]
+
+
