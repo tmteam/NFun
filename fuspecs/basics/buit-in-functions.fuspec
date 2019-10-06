@@ -1,0 +1,35 @@
+|****************************************
+| TEST cos sin abs   
+| TAGS built-in-function
+|************************  
+| int: x:real
+| out  r:real 
+|------------------------
+  y = x.cos()**2 + x.sin()**2
+  z = (y-1).abs() < 0.001
+|---------------------
+| set: x:-0.2
+| check z: true
+| set: x:3
+| check z: true
+
+
+
+
+
+|****************************************
+| TEST cos sin tan   
+| TAGS built-in-function
+|************************  
+| int: x:real
+| out  ycos:real, ysin: real, ytan: real 
+|------------------------
+  ycos = x.cos()
+  ysin = x.cos()
+  ytan = x.tan()
+|---------------------
+| set: x:0
+| check ycos: 1, ysin: 0, ytan:0
+
+
+
