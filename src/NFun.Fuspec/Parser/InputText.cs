@@ -29,5 +29,12 @@ namespace Nfun.Fuspec.Parser
                 return;
             _index++;
         }
+
+        public bool IsCurentLineEmty() => CurrentLine.Trim() == "" ? true : false;
+      //  {
+        //    if (_cur.Trim() == "")
+          //      return true;
+           // else return false;
+       // }
     }
 }
