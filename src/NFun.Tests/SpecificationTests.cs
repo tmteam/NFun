@@ -127,7 +127,7 @@ y = tostring(x)", "y", "not supported")]
         [TestCase("y = [0..6].set(3, 42) #[0,1,2,42,4,5,6]", "y", new[] {0, 1, 2, 42, 4, 5, 6})]
         [TestCase("y = [].any() # false", "y", false)]
         [TestCase("y = 1.repeat(3) # [1,1,1]", "y", new[] {1, 1, 1})]
-        [TestCase("y = ['foo','bar'].reiterate(3)#['foo','bar','foo','bar','foo','bar'] "
+        [TestCase("y = ['foo','bar'].repeat(3).flat()#['foo','bar','foo','bar','foo','bar'] "
             , "y", new[] {"foo", "bar", "foo", "bar", "foo", "bar"})]
         [TestCase("y = [0..10][0]  #0", "y", 0)]
         [TestCase("y = [0..10][1]  #1", "y", 1)]
