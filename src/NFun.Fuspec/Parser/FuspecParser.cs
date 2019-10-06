@@ -7,7 +7,7 @@ namespace Nfun.Fuspec.Parser
 {
     public static class FuspecParser
     {
-	    private static List<string> _listOfString;
+	    private static List<string> _listOfString = new List<string>();
 	    
 	    //todo cr : Is there only one public method? 
     	//If it is - may be it is better to unite FuspecParser 
@@ -26,9 +26,9 @@ namespace Nfun.Fuspec.Parser
         public static FuspecTestCase[] Read(StreamReader streamReader)
         {
         	//todo cr : too complex expression. Split it
-            string line;
-            while ((line = streamReader.ReadLine()) != null)
-	            _listOfString.Add(line);
+       //     string line;
+         //   while ((line = streamReader.ReadLine()) != null)
+	       //     _listOfString.Add(line);
 
             var inputText = InputText.Read(streamReader);
             

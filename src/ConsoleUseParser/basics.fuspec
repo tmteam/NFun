@@ -1,0 +1,169 @@
+
+//out!!!!!!
+
+|****************************************
+| TEST out bool constant  
+| TAGS out bool constant                         
+|************************
+| out out: bool 
+|------------------------
+  true
+|---------------------
+| check out: true
+
+
+|****************************************
+| TEST out int constant  
+| TAGS out real constant                         
+|************************
+| out out: int32 
+|------------------------
+  42
+|---------------------
+| check out: 42
+
+
+
+|****************************************
+| TEST out real constant  
+| TAGS out real constant                         
+|************************
+| out out: real 
+|------------------------
+  42.2
+|---------------------
+| check out: 42.2
+
+
+
+
+|****************************************
+| TEST out text constant  
+| TAGS out text constant                         
+|************************
+| out out: text 
+|------------------------
+  'hi'
+|---------------------
+| check out: 'hi'
+
+
+
+|****************************************
+| TEST out int array constant  
+| TAGS out int array constant                         
+|************************
+| out out: int[] 
+|------------------------
+  [1,2,3,4,5]
+|---------------------
+| check out: [1,2,3,4,5]
+
+
+|****************************************
+| TEST out int  
+| TAGS out int variable                         
+|************************
+| in  x:int
+| out out: int
+|------------------------
+  x: int
+  
+  x*2
+|---------------------
+| set x: 2
+| check out: 4
+| set x: 0
+| check out: 0
+| set x: -50
+| check out: -100
+
+
+
+|****************************************
+| TEST out real  
+| TAGS out real variable                         
+|************************
+| in  x:real
+| out out: real
+|------------------------
+  x: real
+  
+  x
+|---------------------
+| set x: 2.0
+| check out: 4.0
+| set x: 0.0
+| check out: 0.0
+| set x: -50.6
+| check out: -101.2
+
+
+
+|****************************************
+| TEST complex out real   
+| TAGS out real variable                         
+|************************
+| in  x:real, y:real
+| out out: real
+|------------------------
+  x: real
+  
+  x*y - x/2
+|---------------------
+| set x: 2.0, y: 2.0
+| check out: 3.0
+| set x: -1.0, y: 1.5
+| check out: 1.0
+| set x: -0.0, y: 0.0
+| check out: 0.0
+
+
+
+|****************************************
+| TEST out text  
+| TAGS out text variable                         
+|************************
+| in  x:text
+| out out: text
+|------------------------
+  x: text
+  
+  x
+|---------------------
+| set x: 'hi'
+| check out: 'hi'
+| set x: '0.0'
+| check out: '0.0'
+| set x: '-50.6 aaa'
+| check out: '-50.6 aaa'
+
+
+
+|****************************************
+| TEST format  
+| TAGS out text variable                         
+|************************
+| in  x:int
+| out y: int
+|------------------------
+
+x: int
+
+
+y:int = 10
+*
+
+x-
+10
+|------------------------
+| set   x: 2
+| check y: 10
+| set   x: 3
+| check y: 20
+| set   x: -4
+| check y: -50
+
+
+
+

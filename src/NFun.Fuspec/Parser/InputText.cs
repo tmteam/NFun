@@ -35,7 +35,8 @@ namespace Nfun.Fuspec.Parser
 
         public bool ISCurrentLineSeparated(char lineSymbol)
         {
-            var str = CurrentLine;
+            var str = CurrentLine.Trim();
+            
             if (str[0] != '|')
                 return false;
             return (str.Substring(1).All(c => c == lineSymbol) && str.Length > Constants.MinSeparatorLineLength);

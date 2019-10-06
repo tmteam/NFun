@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NFun.Runtime.Arrays;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
@@ -29,6 +30,7 @@ namespace NFun
             if (syntaxNode is ConstantSyntaxNode constant)
                 return ParseConstant(constant);
            
+           
             if (syntaxNode is ArraySyntaxNode array)
             {
                 List<object> items = new List<object>();
@@ -53,13 +55,18 @@ namespace NFun
 
         private static (object, VarType) ParseConstant(ConstantSyntaxNode constant)
         {
+            //if (constant.Value is TextFunArray)
+            //{
+          //      return (constant.Value.ToString(), VarType.Text);
+       ///     }
             switch (constant.Value)
             {
                 case int i:      return (i, VarType.Int32);
                 case uint ui:    return (ui, VarType.UInt32);
                 case double d:   return (d, VarType.Real);
-                case string str: return (str, VarType.Text);
+                case TextFunArray str: return (str.ToString(), VarType.Text);
                 case bool b:     return (b, VarType.Bool);
+                
             }
             throw  new ArgumentOutOfRangeException();
         }

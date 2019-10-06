@@ -1301,6 +1301,37 @@ x = round(a - b - c)
         }
 
         [Test]
+        public void SetValuesReading_ReadTextValue()
+        {
+
+            GenerateFuspecTestCases(
+                @"|********************
+| TEST Name
+| TAGS tag1
+|************************
+| in a:real b:int
+| out x:real
+|------------------------
+  x = a-b 
+|---------------------
+| set a:'rtr', b:[""r"",""ttt""], c:4.4
+
+");
+
+            Assert.Multiple(() =>
+            {
+                StandardAssertForCorrectTestCase();
+                Assert.AreEqual(1,_fuspecTestCases.TestCases.FirstOrDefault().SetChecks.Length);
+
+                Assert.AreEqual( "a",_fuspecTestCases.TestCases.FirstOrDefault().SetChecks[0].Set.FirstOrDefault().Name);
+                Assert.AreEqual(VarType.Text,_fuspecTestCases.TestCases.FirstOrDefault().SetChecks[0].Set[0].Type);
+                Assert.AreEqual(VarType.ArrayOf(VarType.Text),_fuspecTestCases.TestCases.FirstOrDefault().SetChecks[0].Set[1].Type);
+                Assert.AreEqual(VarType.Real,_fuspecTestCases.TestCases.FirstOrDefault().SetChecks[0].Set[2].Type);
+            });
+
+        }
+        
+        [Test]
         public void SetValuesReading_ReadTwoFuspecCaseWithSetCheckKits_ReturnTwoFuspecCases()
         {
             GenerateFuspecTestCases(
