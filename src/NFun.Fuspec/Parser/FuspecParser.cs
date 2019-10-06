@@ -29,9 +29,10 @@ namespace Nfun.Fuspec.Parser
             string line;
             while ((line = streamReader.ReadLine()) != null)
 	            _listOfString.Add(line);
-           
+
+            var inputText = InputText.Read(streamReader);
             
-            var fuspectests = new TestCasesReader().Read(_listOfString);
+            var fuspectests = new TestCasesReader().Read(inputText);
             return new ParsedFuspec(fuspectests).FuspecTestCases;
         }
     }
