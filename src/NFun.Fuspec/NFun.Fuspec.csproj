@@ -5,10 +5,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="Parser" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\NFun\NFun.csproj" />
     </ItemGroup>
 

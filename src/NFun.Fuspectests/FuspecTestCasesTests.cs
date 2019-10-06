@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -1440,10 +1441,18 @@ sdfsdfdf
         }
 
         private void GenerateFuspecTestCases(string str)
-        {
-            GenerateStreamFromString(str);
-            var specs = new TestCasesReader(new StreamReader(GenerateStreamFromString(str)));
-            _fuspecTestCases = new TestCasesReader(new StreamReader(GenerateStreamFromString(str))).Read();
+        {        
+            List<string> listOfString = new List<string>();
+            using (TextReader tr = new StringReader(str))
+            {
+                string line;
+                while ((line = tr.ReadLine()) != null)
+                {
+                    listOfString.Add(line);
+                }
+            }
+            var inputText = InputText.Read(new StreamReader(GenerateStreamFromString(str)));
+            _fuspecTestCases = new TestCasesReader().Read(inputText);
         }
     }
 }
