@@ -1,0 +1,175 @@
+****************************************
+| TEST Quadratic equation   
+| TAGS arithmetic
+|************************  
+| in:  a:real, b:real, c:real
+| out  d:real, res:real 
+|------------------------
+  d = b**2-4*a*c
+
+  res = if (d>0) [(-b+ sqrt(d))/2*a, (-b- sqrt(d))/2*a]
+  	    if (d==0) [-b/2*a]
+  	    else []
+|---------------------
+| set a:1, b:-8, c:12
+| check res:[4,6]
+| set a:5, b:3, c:7
+| check res:[]
+| set a:1, b:-6, c:9
+| check res: [3]
+
+
+
+
+
+****************************************
+| TEST Quadratic equation as a function
+| TAGS arithmetic user-function
+|************************  
+| in:  a:real, b:real, c:real
+| out  out:real 
+|------------------------
+  d(a,b,c) = b**2-4*a*c
+
+  quadprime(a,b,c,d) = 
+  		if (d>0)  [(-b+ d.sqrt())/2*a, (-b- d.sqrt())/2*a]
+  	    if (d==0) [-b/2*a]
+  	    else []
+
+  quad(a,b,c) = quadprime(a,b,c,d(a,b,c))
+
+  quad(a,b,c)
+|---------------------
+| set a:1, b:-8, c:12
+| check out:[4,6]
+| set a:5, b:3, c:7
+| check out:[]
+| set a:1, b:-6, c:9
+| check out: [3]
+
+
+
+
+****************************************
+| TEST swap
+| TAGS arrays user-function
+|************************  
+| in:  input:real[], i:int, j:int
+| out  res:real[] 
+|------------------------
+
+  twiceSet(arr,i,j,ival,jval)
+  	= arr.set(i,ival).set(j,jval)
+
+  swap(arr, i, j) 
+    = arr.twiceSet(i,j,arr[j], arr[i])
+
+  res:real[] = input.swap(i,j)
+|---------------------
+| set input:[1,2,3,4,5], i:2, j:3
+| check res:[1,2,4,3,5]
+
+
+
+
+
+****************************************
+| TEST bubble sort
+| TAGS arrays
+|************************  
+  twiceSet(arr,i,j,ival,jval)
+  	= arr.set(i,ival).set(j,jval)
+
+  swap(arr, i, j) 
+    = arr.twiceSet(i,j,arr[j], arr[i])
+  
+  swapIfNotSorted(arr, i)
+  	=	if   (c[i]<c[i+1]) c
+  		else c.swap(i, i+1)
+
+  # run throu array 
+  # and swap every unsorted values
+  onelineSort(input) =  
+  	[0..input.count()-1].reduce(input, swapIfNotSorted)		
+
+  bubbleSort(input)=
+  	[0..input.count()-1]
+  		.reduce(
+  			input, 
+  			(c,i)-> c.onelineSort())
+
+  ini:int[]
+  i:int[]  = ini.bubbleSort()
+|---------------------
+| set ini:[5,2,3,7,3,4,7]
+| check i:[2,3,3,4,5,7,7]
+| set ini:[24,52,31,55,0,55,55]
+| check i:[0,24,31,52,55,55,55]
+
+
+
+
+
+****************************************
+| TEST custom foreachi
+| TAGS arrays user-function
+|************************  
+|in    t:int[]
+|out res:int
+|---------------------
+  foreachi(init, f)
+  	= [0..init.count()-1].reduce(init, f)
+
+ res:int =  t.foreachi((acc,cur)-> if (acc>cur) acc else cur )
+|---------------------
+| set t:[5,2,3,7,3,4,7]
+| check res:7
+| set t:[11,100,3]
+| check res:100
+
+
+
+
+
+****************************************
+| TEST custom foreachi with hi-order
+| TAGS arrays user-function hi-order
+|************************  
+|in    t:int[]
+|out res:int
+|---------------------
+  foreachi(init, f)
+  	= [0..init.count()-1].reduce(init, f)
+
+ res:int =  t.foreachi(max)
+|---------------------
+| set t:[5,2,3,7,3,4,7]
+| check res:7
+| set t:[11,100,3]
+| check res:100
+
+
+
+
+
+****************************************
+| TEST custom foreachi with custom hi-order
+| TAGS arrays user-function hi-order
+|************************  
+|in    t:int[]
+|out res:int
+|---------------------
+  foreachi(init, f)
+  	= [0..init.count()-1].reduce(init, f)
+  	
+  mymax(i:int,j) = if(i>j) i else j
+
+ res:int =  t.foreachi(mymax)
+|---------------------
+| set t:[5,2,3,7,3,4,7]
+| check res:7
+| set t:[11,100,3]
+| check res:100
+
+
+
