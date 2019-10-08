@@ -57,7 +57,6 @@
 | in:  input:real[], i:int, j:int
 | out  res:real[] 
 |------------------------
-
   twiceSet(arr,i,j,ival,jval)
   	= arr.set(i,ival).set(j,jval)
 
@@ -161,7 +160,7 @@
 |---------------------
   foreachi(init, f)
   	= [0..init.count()-1].reduce(init, f)
-  	
+
   mymax(i:int,j) = if(i>j) i else j
 
  res:int =  t.foreachi(mymax)
@@ -172,4 +171,24 @@
 | check res:100
 
 
+
+
+
+****************************************
+| TEST fold fibonacci 
+| TAGS user-function
+|************************  
+| in   n:int[]
+| res  res:int[] 
+|------------------------
+ fib(n) = 
+ 	if(n==0) [0]
+ 	if(n==1) [0,1]
+    else
+    	[2..n].reduce([0,1], (acc,i) -> acc.concat([acc[i-1]+acc[i-2]])
+
+ res = n.map(fib)
+|---------------------
+| set     n:[0, 1, 2, 3, 4, 5, 6, 7,   8,  9]
+| check res:[0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
 
