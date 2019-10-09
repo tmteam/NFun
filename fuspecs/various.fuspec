@@ -182,13 +182,41 @@
 | res  res:int[] 
 |------------------------
  fib(n) = 
- 	if(n==0) [0]
- 	if(n==1) [0,1]
+ 	if(n==0) 0
+ 	if(n==1) 1
     else
-    	[2..n].reduce([0,1], (acc,i) -> acc.concat([acc[i-1]+acc[i-2]])
+    	[2..n].reduce([0,1], 
+    		(acc,i) -> [acc.last(), acc[i-1]+acc[i-2])
+    		  .last()
 
  res = n.map(fib)
 |---------------------
 | set     n:[0, 1, 2, 3, 4, 5, 6, 7,   8,  9]
 | check res:[0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
+
+
+
+
+****************************************
+| TEST Golden ratio 
+| TAGS user-function
+|************************  
+| in   n:int[]
+| res  res:int[] 
+|------------------------
+ fibvals(n) = 
+ 	if(n<=1) [0,1]
+    else
+    	[2..n].reduce([0,1], 
+    	    (acc,i) -> [acc.last(), acc[i-1]+acc[i-2])
+
+ div(arr) = arr[1]/arr[2]
+
+ goldenRatio(n) = div(fibvals[n]) 
+
+ res = abs(goldenRatio(i) - 1.61803398875)<0.001
+|---------------------
+| set     i:100
+| check res:true
+
 
