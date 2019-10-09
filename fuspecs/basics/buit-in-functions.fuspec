@@ -33,3 +33,18 @@
 
 
 
+
+
+|****************************************
+| TEST flat   
+| TAGS built-in-function
+|************************  
+| out  iflat:int[], tflat:text 
+|------------------------
+ tflat = ['hi',' ','my name', ' is', ' fun']
+ iflat = [[0,1],[2,3],[4,5],[6]].flat()
+|---------------------
+| check iflat:[0,1,2,3,4,5,6], tflat:['hi my name is fun']
+
+
+

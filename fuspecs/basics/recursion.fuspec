@@ -64,8 +64,10 @@
 | in:  n:int
 | out  out:text 
 |------------------------
+  #interpolation: '{f(n-1)}, {n}'
+  
   f(n) = if(n<=0) n.toText()
-         else f(n-1).concat(', ').concat(n.toText())  
+         else [f(n-1),', ',n.toText()].flat()  
 
   [0..n].map(f)
 |---------------------
@@ -173,6 +175,31 @@
 |---------------------
 | set i:[1,2,3,4,5,6,7,8,9],  t= "hello world"
 | check yi:[9,8,7,6,5,4,3,2,1], t ="dlrow olleh"
+
+
+
+
+
+****************************************
+| TEST req array sum 
+| TAGS req user-function
+|************************  
+  mysum(arr, i) =
+    if(i>=arr.count()) 0
+    else arr[i] + mysum(arr, i+1)
+
+  mysum(arr) = mysum(arr,0)  
+
+  res = mysum(input) 
+        
+|---------------------
+| set input:[1,2,3,4]
+| check res:10
+| set input:[1]
+| check res:1
+| set input:[1,-1]
+| check res:0
+
 
 
 

@@ -179,15 +179,14 @@
 | TAGS user-function
 |************************  
 | in   n:int[]
-| res  res:int[] 
+| out  res:int[] 
 |------------------------
  fib(n) = 
  	if(n==0) 0
  	if(n==1) 1
     else
-    	[2..n].reduce([0,1], 
-    		(acc,i) -> [acc.last(), acc[i-1]+acc[i-2])
-    		  .last()
+        [2..n].reduce([0,1], 
+    		(acc,i)->[acc[1], acc[i-1]+acc[i-2]])[1]
 
  res = n.map(fib)
 |---------------------
@@ -202,7 +201,7 @@
 | TAGS user-function
 |************************  
 | in   n:int[]
-| res  res:int[] 
+| out  res:int[] 
 |------------------------
  fibvals(n) = 
  	if(n<=1) [0,1]
@@ -214,9 +213,53 @@
 
  goldenRatio(n) = div(fibvals[n]) 
 
- res = abs(goldenRatio(i) - 1.61803398875)<0.001
+ res = (goldenRatio(i) - 1.61803398875).abs() < 0.001
 |---------------------
 | set     i:100
 | check res:true
+
+
+
+
+****************************************
+| TEST Each second real 
+| TAGS user-function toReal anything isReal
+|************************  
+| in   n:int[]
+| out  res:int[] 
+|------------------------
+ smth: anything[]
+ 	= [1,'2',3.0,4,5.2, true, false, 7.2]
+
+ res = smth
+ 		.filter(x->x.isReal())
+ 		.map(x->x.toReal())
+ 		[::2]
+|---------------------
+| check res:[5.2,7.2]
+
+
+
+
+
+****************************************
+| TEST increment with upper bound 
+|************************  
+| in   x:real
+| out  done:bool, newCount:real 
+|------------------------
+done = x>=1000	
+newCount = if(!done) x+1 else x
+|---------------------
+| set x:100
+| check done:false, newCount:101
+| set x:999
+| check done:false, newCount:1000
+| set x:1000
+| check done:true, newCount:1000
+
+
+
+
 
 
