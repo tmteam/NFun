@@ -3,20 +3,10 @@
   <component name="ContentModelStore">
     <e p="C:\Apps\NewFun\NFun\src" t="IncludeFlat">
       <e p="ConsoleUseParser" t="IncludeRecursive">
-        <e p="arithmetic.txt" t="Include" />
         <e p="arrays.fuspec" t="Include" />
-        <e p="basics.fuspec" t="Include" />
         <e p="bin" t="ExcludeRecursive" />
-        <e p="bitwise.fuspec" t="Include" />
-        <e p="buit-in-functions.fuspec" t="Include" />
-        <e p="CompareEquality.txt" t="Include" />
-        <e p="CompareIntReal.txt" t="Include" />
         <e p="ConsoleRender.cs" t="Include" />
         <e p="ConsoleUseParser.csproj" t="IncludeRecursive" />
-        <e p="constants.fuspec" t="Include" />
-        <e p="if-else.fuspec" t="Include" />
-        <e p="integers.fuspec" t="Include" />
-        <e p="logical-operators.fuspec" t="Include" />
         <e p="obj" t="ExcludeRecursive">
           <e p="Debug" t="Include">
             <e p="netcoreapp2.2" t="Include">
@@ -25,7 +15,6 @@
           </e>
         </e>
         <e p="Program.cs" t="Include" />
-        <e p="user-functions.fuspec" t="Include" />
       </e>
       <e p="Funny.sln" t="IncludeFlat" />
       <e p="FuspecHandler" t="IncludeRecursive">
@@ -56,6 +45,7 @@
           </e>
         </e>
         <e p="Program.cs" t="Include" />
+        <e p="StatsCollector.cs" t="Include" />
         <e p="TestHandler.cs" t="Include" />
       </e>
       <e p="NFun" t="IncludeRecursive">

@@ -5,6 +5,8 @@ using System.Linq;
 using Nfun.Fuspec.Parser;
 using Nfun.Fuspec.Parser.FuspecParserErrors;
 using Nfun.Fuspec.Parser.Model;
+using NFun.BuiltInFunctions;
+using NFun.ParseErrors;
 
 namespace FuspecHandler
 {
@@ -14,39 +16,21 @@ namespace FuspecHandler
         {
             Console.WriteLine("Hello! I'm a Fuspec Handler! ");
             Console.WriteLine();
+            
+            var testHandler = new TestHandler();
+            var stats=testHandler.NonDetailedTest();
+            
+            Console.WriteLine();
+            Console.WriteLine("##########################");
+            Console.WriteLine("Statistic:");
+            Console.WriteLine("##########################");
 
-            string[] allFoundFiles = Directory.GetFiles("fuspecs\\", "*.fuspec", SearchOption.AllDirectories);
+            stats.PtintStatistic();
 
-            foreach (var file in allFoundFiles)
-            {
-                ConsoleWriter.PrintTestName(file);
-                
-                using (var streamReader = new StreamReader(file, System.Text.Encoding.Default))
-                {
-                    try
-                    {
-                        var specs = FuspecParser.Read(streamReader);
-                        if (specs.Any())
-                        {
-                            foreach (var fus in specs)
-                            {
-                                ConsoleWriter.PrintFuspecName(fus.Name, file);
-                                TestHandler.RunTest(fus);
-                            }
-                        }
-                        else Console.WriteLine("No tests!");
-                    }
-                    catch (FuspecParserException e)
-                    {
-                        ConsoleWriter.PrintFuspecParserException(e, file);
-                        //   throw;
-                    }
-                    catch (Exception e)
-                    {
-                       ConsoleWriter.PrintUnknownException(e,file);
-                    }
-                }
-            }
+            Console.WriteLine("Do you want to detail Errors?");
+            var errors = stats.Errors;
+            
+            
         }
 
       
