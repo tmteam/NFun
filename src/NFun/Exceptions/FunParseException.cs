@@ -21,10 +21,9 @@ namespace NFun.ParseErrors
             Interval = new Interval(start,end);
         }
 
-        public override string ToString()
-        {
-            return $"[FU{Code}] {base.ToString()}";
-        }
+        public override string ToString() 
+            => $"[FU{Code}] {base.ToString()}";
+
         //todo the error is not implemented yet, but it should -)
         public static FunParseException ErrorStubToDo(string varAlreadyDeclared)
         {

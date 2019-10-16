@@ -45,7 +45,7 @@ namespace Funny.Tests
             var runtime = FunBuilder.BuildDefault(expr);
             CollectionAssert.IsEmpty(runtime.Inputs,"Unexpected inputs on constant equations");
             runtime.Calculate()
-                .AssertReturns(Var.New("y", expected));
+                .AssertReturns(VarVal.New("y", expected));
         }
         [TestCase( "y = [1.0,2.0,3.0].map((i)-> i*x1*x2)",3.0,4.0, new []{12.0,24.0,36.0})]
         [TestCase( "x1:int\rx2:int\ry = [1,2,3].map((i:int)-> i*x1*x2)",3,4, new []{12,24,36})]
@@ -56,9 +56,9 @@ namespace Funny.Tests
         {
             var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate(
-                    Var.New("x1", x1),
-                    Var.New("x2", x2))
-                .AssertReturns(0.00001, Var.New("y", expected));
+                    VarVal.New("x1", x1),
+                    VarVal.New("x2", x2))
+                .AssertReturns(0.00001, VarVal.New("y", expected));
         }
 
         [TestCase( "y = [1.0,2.0,3.0].all((i)-> i >x)",1.0, false)]
@@ -70,18 +70,18 @@ namespace Funny.Tests
         public void AnonymousFunctions_SingleArgumentEquation(string expr, double arg, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
-            runtime.Calculate(Var.New("x", arg))
-                .AssertReturns(0.00001, Var.New("y", expected));
+            runtime.Calculate(VarVal.New("x", arg))
+                .AssertReturns(0.00001, VarVal.New("y", expected));
         }
         [TestCase( "z = x*2\r y = [1.0,2.0,3.0].map((i)-> i*z)",2.0, new[]{4.0,8.0, 12.0}, 4.0)]
         [TestCase( "z = x*2\r y = [1.0,2.0,3.0].map((i)-> i*z)",1.0, new[]{2.0,4.0, 6.0}, 2.0)]
         public void AnonymousFunctions_SingleArgument_twoEquations(string expr, double arg, object yExpected, object zExpected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
-            runtime.Calculate(Var.New("x", arg))
+            runtime.Calculate(VarVal.New("x", arg))
                 .AssertReturns(0.00001, 
-                    Var.New("y", yExpected),
-                    Var.New("z", zExpected));
+                    VarVal.New("y", yExpected),
+                    VarVal.New("z", zExpected));
 
         }
         [TestCase("y = [1.0].reduce(((i,j)->i+j)")]

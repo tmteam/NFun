@@ -1,6 +1,5 @@
 using System;
 using NFun.SyntaxParsing;
-using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
 using NFun.Types;
 
@@ -8,12 +7,7 @@ namespace NFun.Runtime
 {
     public class VariableSource
     {
-        public bool IsStrictTyped { get; }
-
-        public readonly VarAttribute[] Attributes;
-        public readonly string Name;
-
-        public readonly Interval? TypeSpecificationIntervalOrNull;
+        
         public static VariableSource CreateWithStrictTypeLabel( string name, 
             VarType type, 
             Interval typeSpecificationIntervalOrNull, 
@@ -23,7 +17,7 @@ namespace NFun.Runtime
         public static VariableSource CreateWithoutStrictTypeLabel(
             string name, VarType type,  VarAttribute[] attributes = null)
             => new VariableSource(name, type, attributes);
-        
+
         private VariableSource(
             string name, 
             VarType type, 
@@ -46,6 +40,14 @@ namespace NFun.Runtime
             IsOutput = false;
         }
     
+        public bool IsStrictTyped { get; }
+
+        public VarAttribute[] Attributes { get; }
+        
+        public string Name { get; }
+
+        public Interval? TypeSpecificationIntervalOrNull { get; }
+
         public bool IsOutput { get; set; }
         public VarType Type { get; }
         public object Value { get; set; }

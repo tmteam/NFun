@@ -18,8 +18,8 @@ namespace Funny.Tests
             var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate()
                 .AssertReturns(
-                    Var.New("y", expectedY),
-                    Var.New("z", expectedZ));
+                    VarVal.New("y", expectedY),
+                    VarVal.New("z", expectedZ));
         }
         
         [TestCase("y = x*0.5\r z=3",2, 1.0,3)]
@@ -27,10 +27,10 @@ namespace Funny.Tests
         public void TwinEquationsWithSingleVariable(string expr, double x, object expectedY, object expectedZ)
         {
             var runtime = FunBuilder.BuildDefault(expr);
-            runtime.Calculate(Var.New("x", x))
+            runtime.Calculate(VarVal.New("x", x))
                 .AssertReturns(
-                    Var.New("y", expectedY),
-                    Var.New("z", expectedZ));        
+                    VarVal.New("y", expectedY),
+                    VarVal.New("z", expectedZ));        
         }
         
         [TestCase("x:real\r y = x\r z=x", new []{"x"})]
@@ -95,8 +95,8 @@ namespace Funny.Tests
             var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate()
                 .AssertReturns(
-                    Var.New("y", expectedY),
-                    Var.New("z", expectedZ));
+                    VarVal.New("y", expectedY),
+                    VarVal.New("z", expectedZ));
         }
 
         
@@ -106,10 +106,10 @@ namespace Funny.Tests
         public void TwinDependentEquationsWithSingleVariable_CalculatesCorrect(double x, string expr,  double expectedY, double expectedZ)
         {
             var runtime = FunBuilder.BuildDefault(expr);
-            runtime.Calculate(Var.New("x", x))
+            runtime.Calculate(VarVal.New("x", x))
                 .AssertReturns(
-                    Var.New("y", expectedY),
-                    Var.New("z", expectedZ));
+                    VarVal.New("y", expectedY),
+                    VarVal.New("z", expectedZ));
         }
         
         [TestCase("o1 = 1\r o2=o1\r o3 = 0", 1, 1, 0)]
@@ -121,9 +121,9 @@ namespace Funny.Tests
             var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate()
                 .AssertReturns(
-                    Var.New("o1", o1),
-                    Var.New("o2", o2),
-                    Var.New("o3", o3));
+                    VarVal.New("o1", o1),
+                    VarVal.New("o2", o2),
+                    VarVal.New("o3", o3));
         }
         
         [TestCase(2,"x:real\r o1 = x\r o2=o1\r o3 = 0", 2.0, 2.0, 0)]
@@ -132,11 +132,11 @@ namespace Funny.Tests
         public void ThreeDependentEquationsWithSingleVariable_CalculatesCorrect(double x,string expr,  object o1, object o2, object o3)
         {
             var runtime = FunBuilder.BuildDefault(expr);
-            runtime.Calculate(Var.New("x", x))
+            runtime.Calculate(VarVal.New("x", x))
                 .AssertReturns(
-                    Var.New("o1", o1),
-                    Var.New("o2", o2),
-                    Var.New("o3", o3));
+                    VarVal.New("o1", o1),
+                    VarVal.New("o2", o2),
+                    VarVal.New("o3", o3));
         }
         
         [Test]
@@ -145,8 +145,8 @@ namespace Funny.Tests
             var runtime = FunBuilder.BuildDefault("yPub = 2\r y2 = 3 +yPub");
             runtime.Calculate()
                 .AssertReturns(
-                    Var.New("yPub", 2),
-                    Var.New("y2", 5));
+                    VarVal.New("yPub", 2),
+                    VarVal.New("y2", 5));
         }
         
         
@@ -165,14 +165,14 @@ namespace Funny.Tests
             
             runtime.Calculate()
                 .AssertReturns(
-                    Var.New("o1", 1),
-                    Var.New("o2", 2),
-                    Var.New("o3", 4),
-                    Var.New("o4", 0.5),
-                    Var.New("o5", 0),
-                    Var.New("o6", 4.5),
-                    Var.New("o7", true),
-                    Var.New("o8", false)
+                    VarVal.New("o1", 1),
+                    VarVal.New("o2", 2),
+                    VarVal.New("o3", 4),
+                    VarVal.New("o4", 0.5),
+                    VarVal.New("o5", 0),
+                    VarVal.New("o6", 4.5),
+                    VarVal.New("o7", true),
+                    VarVal.New("o8", false)
                     );
         }
         

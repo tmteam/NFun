@@ -105,8 +105,8 @@ namespace Funny.Tests
         {
             var expr = $"x:{inputType}; y = {converter}(x)";
             var runtime = FunBuilder.BuildDefault(expr);
-            runtime.Calculate(Var.New("x", inputValue))
-                .AssertReturns(Var.New("y", expectedOutput));
+            runtime.Calculate(VarVal.New("x", inputValue))
+                .AssertReturns(VarVal.New("y", expectedOutput));
         }
         
         [TestCase( "toInt(1.2)",  1)]
@@ -215,7 +215,7 @@ namespace Funny.Tests
         {
             var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate()
-                .AssertReturns(0.00001, Var.New("out", expected));
+                .AssertReturns(0.00001, VarVal.New("out", expected));
         }
         
         [TestCase((long)42, "x:int64\r y = x.sum(1)", (long)43)]
@@ -225,8 +225,8 @@ namespace Funny.Tests
         public void SingleVariableEquation(object input, string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
-            runtime.Calculate(Var.New("x", input))
-                .AssertReturns(Var.New("y", expected));
+            runtime.Calculate(VarVal.New("x", input))
+                .AssertReturns(VarVal.New("y", expected));
         }
     
         
@@ -263,7 +263,7 @@ namespace Funny.Tests
         {
             var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate()
-                .AssertReturns(Var.New("y", expected));
+                .AssertReturns(VarVal.New("y", expected));
         }
         
         [TestCase("y = take([1,2,3,4,5],3)",new []{1,2,3})]        
@@ -296,11 +296,11 @@ namespace Funny.Tests
 
         [TestCase("y = [1,2,3].set(1,42)", new[]{1,42,3})]
         
-        [TestCase("y = [1.0] . reiterate(3)", new[]{1.0,1.0,1.0})]
-        [TestCase("y = [] . reiterate(3)", new object[0])]
-        [TestCase("y = ['a','b'] . reiterate(3)", new []{"a","b","a","b","a","b"})]
-        [TestCase("y = ['a','b'] . reiterate(0)", new string[0])]
-        [TestCase("y = ['a','b'] . reiterate(1)", new []{"a","b"})]
+        [TestCase("y = [1.0] .repeat(3).flat()", new[]{1.0,1.0,1.0})]
+        [TestCase("y = [] .repeat(3).flat()", new object[0])]
+        [TestCase("y = ['a','b'] .repeat(3).flat()", new []{"a","b","a","b","a","b"})]
+        [TestCase("y = ['a','b'] .repeat(0).flat()", new string[0])]
+        [TestCase("y = ['a','b'] .repeat(1).flat()", new []{"a","b"})]
         
         [TestCase("y = [1.0,2.0] . unite([3.0,4.0])", new []{1.0,2.0,3.0,4.0})]
         [TestCase("y = [1.0,2.0,3.0]. unite([3.0,4.0])", new []{1.0,2.0,3.0,4.0})]
@@ -350,7 +350,7 @@ namespace Funny.Tests
         {
             var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate() 
-                .AssertReturns(0.00001, Var.New("y", expected));
+                .AssertReturns(0.00001, VarVal.New("y", expected));
         }
         
         [TestCase("y = abs(x)",1.0,1.0)]
@@ -368,8 +368,8 @@ namespace Funny.Tests
         public void EquationWithPredefinedFunction(string expr, object arg, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
-            runtime.Calculate(Var.New("x", arg))
-                .AssertReturns(0.00001, Var.New("y", expected));
+            runtime.Calculate(VarVal.New("x", arg))
+                .AssertReturns(0.00001, VarVal.New("y", expected));
         }
         [TestCase("y = pi(")]
         [TestCase("y = pi(1)")]
@@ -395,6 +395,7 @@ namespace Funny.Tests
         [TestCase("y= max(1,2,3)")]
         [TestCase("y= max(1,true)")]
         [TestCase("y= max(1,(j)->j)")]
+        [TestCase("y = [1,2] in [1,2,3,4]")]
         public void ObviouslyFails(string expr) =>
             Assert.Throws<FunParseException>(
                 ()=> FunBuilder.BuildDefault(expr));
@@ -408,7 +409,6 @@ namespace Funny.Tests
             var runtime = FunBuilder.BuildDefault(expr);
             Assert.Throws<FunRuntimeException>(
                 () => runtime.Calculate());
-            byte a = 1;
         }
     }
 }

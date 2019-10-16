@@ -15,33 +15,30 @@ namespace NFun.Interpritation.Nodes
             {
                 case VariableSyntaxNode varNode:
                     return new FunArgumentExpressionNode(
-                        name: varNode.Id, 
-                        type: node.OutputType, 
-                        interval: node.Interval, 
-                        isStrictlyType: false);
+                        name:     varNode.Id, 
+                        type:     node.OutputType, 
+                        interval: node.Interval);
                 case TypedVarDefSyntaxNode typeVarNode:
                     return new FunArgumentExpressionNode(
-                        name: typeVarNode.Id, 
-                        type: typeVarNode.VarType, 
-                        interval: node.Interval, 
-                        isStrictlyType: true);
+                        name:     typeVarNode.Id, 
+                        type:     typeVarNode.VarType, 
+                        interval: node.Interval);
                 default:
                     throw ErrorFactory.InvalidArgTypeDefenition(node);
             }
         }
-        public string Name { get; }
-        public Interval Interval { get; }
-        public bool IsStrictlyType { get; }
-        
-        private FunArgumentExpressionNode(string name, VarType type, Interval interval, bool isStrictlyType)
+
+        private FunArgumentExpressionNode(string name, VarType type, Interval interval)
         {
             Type = type;
             Interval = interval;
-            IsStrictlyType = isStrictlyType;
             Name = name;
         }
-        
+
+        public string Name { get; }
+        public Interval Interval { get; }
         public VarType Type { get; } 
+        
         
         public object Calc() => throw new InvalidOperationException();
         

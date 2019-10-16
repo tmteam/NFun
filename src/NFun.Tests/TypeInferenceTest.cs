@@ -314,7 +314,7 @@ namespace Funny.Tests
         public void SingleInputTypedEquation(object x,  string expr, object y)
         {
             var runtime = FunBuilder.BuildDefault(expr);
-            var res = runtime.Calculate(Var.New("x", x));
+            var res = runtime.Calculate(VarVal.New("x", x));
             Assert.AreEqual(1, res.Results.Length);
             Assert.AreEqual(y, res.Results.First().Value);
         }
@@ -366,16 +366,16 @@ namespace Funny.Tests
         public void OutputEqualsInput(string type, object expected, BaseVarType baseVarType)
         {
             var runtime = FunBuilder.BuildDefault($"x:{type}\r  y = x");
-            var res = runtime.Calculate(Var.New("x", expected));
-            res.AssertReturns(Var.New("y", expected));
+            var res = runtime.Calculate(VarVal.New("x", expected));
+            res.AssertReturns(VarVal.New("y", expected));
             Assert.AreEqual(baseVarType, res.Get("y").Type.BaseType);
         }
         [Test]
         public void OutputEqualsTextInput()
         {
             var runtime = FunBuilder.BuildDefault($"x:text;  y = x");
-            var res = runtime.Calculate(Var.New("x", "1"));
-            res.AssertReturns(Var.New("y", "1"));
+            var res = runtime.Calculate(VarVal.New("x", "1"));
+            res.AssertReturns(VarVal.New("y", "1"));
             Assert.AreEqual(VarType.Text, res.Get("y").Type);
         }
         
@@ -502,8 +502,8 @@ namespace Funny.Tests
         public void OutputType_runtimeTest(string expression, object xValue, object expectedY)
         {
             FunBuilder.BuildDefault(expression)
-                .Calculate(Var.New("x", xValue))
-                .AssertHas(Var.New("y", expectedY));
+                .Calculate(VarVal.New("x", xValue))
+                .AssertHas(VarVal.New("y", expectedY));
         }
         
     }

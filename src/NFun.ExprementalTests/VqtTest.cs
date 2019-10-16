@@ -67,7 +67,7 @@ namespace NFun.ExprementalTests
             var expt = "y = x.setQ(good()).setT(now())";
             var runtime = BuildVqtRuntime(expt);
             var startTime = DateTime.Now.Ticks;
-            var res = runtime.Calculate(Var.New("x", 12.1));
+            var res = runtime.Calculate(VarVal.New("x", 12.1));
             var finishTime = DateTime.Now.Ticks;
             var vqt = res.Get("y");
             Assert.IsInstanceOf<IVQT>(vqt.Value);
@@ -82,7 +82,7 @@ namespace NFun.ExprementalTests
         {
             var expt = "y = x.setQ(bad())";
             var runtime = BuildVqtRuntime(expt);
-            var res = runtime.Calculate(Var.New("x", 12.1));
+            var res = runtime.Calculate(VarVal.New("x", 12.1));
             var vqt = res.Get("y");
             Assert.IsInstanceOf<IVQT>(vqt.Value);
             var qt = vqt.Value as IVQT;
@@ -95,7 +95,7 @@ namespace NFun.ExprementalTests
         {
             var expt = "y = x.setQ(good())";
             var runtime = BuildVqtRuntime(expt);
-            var res = runtime.Calculate(Var.New("x", 12.1));
+            var res = runtime.Calculate(VarVal.New("x", 12.1));
             var vqt = res.Get("y");
             Assert.IsInstanceOf<IVQT>(vqt.Value);
             var qt = vqt.Value as IVQT;
@@ -108,13 +108,13 @@ namespace NFun.ExprementalTests
         {
             var expt = "y = x.isGood()";
             var runtime = BuildVqtRuntime(expt);
-            var res = runtime.Calculate(Var.New("x", 
+            var res = runtime.Calculate(VarVal.New("x", 
                 new PrimitiveVQT(36.6)
                 {
                     Q = 192,
                     T =  DateTime.Now.Ticks
                 }));
-            res.AssertReturns(Var.New("y",true));
+            res.AssertReturns(VarVal.New("y",true));
 
         }
         [Test]
@@ -122,21 +122,21 @@ namespace NFun.ExprementalTests
         {
             var expt = "y = x.isGood()";
             var runtime = BuildVqtRuntime(expt);
-            var res = runtime.Calculate(Var.New("x", 
+            var res = runtime.Calculate(VarVal.New("x", 
                 new PrimitiveVQT(36.6)
                 {
                     Q = 8,
                     T =  DateTime.Now.Ticks
                 }));
-            res.AssertReturns(Var.New("y",false));
+            res.AssertReturns(VarVal.New("y",false));
         }
         [Test]
         public void IsGood_InputIsNotVqt_returnsTrue()
         {
             var expt = "y = x.isGood()";
             var runtime = BuildVqtRuntime(expt);
-            var res = runtime.Calculate(Var.New("x", 36.6));
-            res.AssertReturns(Var.New("y",true));
+            var res = runtime.Calculate(VarVal.New("x", 36.6));
+            res.AssertReturns(VarVal.New("y",true));
         }
         
         [TestCase(36.0,"y=x==36",true)]
@@ -151,18 +151,28 @@ namespace NFun.ExprementalTests
         [TestCase(10.0,"y=x<=5",false)]
         [TestCase(10.0,"y=x>=5",true)]
         [TestCase(10.0,"y= x.toText()","10")]
+        [TestCase(true, "y= if(x) 1 else -1", 1)]
+        [TestCase(false, "y= if(x) 1 else -1", -1)]
+        [TestCase(1.0, "y= if(true) x else -x", 1.0)]
+        [TestCase(42.0, "y= if(false) x else 5.0", 5.0)]
+        [TestCase(3, "y= [1..x]", new[] { 1, 2, 3 })]
+        [TestCase(3, "y= [x..7]", new[] { 3, 4, 5, 6, 7 })]
+        [TestCase(3, "y= [1..5][x]", 4)]
+        [TestCase(2, "x:int; y= [1..6..x]", new[] { 1, 3, 5 })]
+        [TestCase(0.5, "y= [1.0..3.0..x]", new[] { 1.0, 1.5, 2.0, 2.5, 3.0 })]
         public void SingleVqtInputEquation_CheckOutputValues(object val, string expr, object result)
         {
             var runtime = BuildVqtRuntime(expr);
-            var res = runtime.Calculate(Var.New("x", 
+            var res = runtime.Calculate(VarVal.New("x", 
                 new PrimitiveVQT(val)
             {
                 Q = 192,
                 T =  DateTime.Now.Ticks
             }));
-            res.AssertReturns(Var.New("y",result));
+            res.AssertReturns(VarVal.New("y",result));
         }
         
+
 
         private static FunRuntime BuildVqtRuntime(string expt)
         {

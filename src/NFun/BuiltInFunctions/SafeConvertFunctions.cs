@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using NFun.Interpritation.Functions;
 using NFun.Runtime;
+using NFun.Runtime.Arrays;
 using NFun.Types;
 
 namespace NFun.BuiltInFunctions
@@ -57,26 +58,26 @@ namespace NFun.BuiltInFunctions
     public class ToUtf8Function : FunctionBase
     {
         public ToUtf8Function() : base("toUtf8", VarType.ArrayOf(VarType.Int32), VarType.Text){}
-        public override object Calc(object[] args) => FunArray.By(
+        public override object Calc(object[] args) => ImmutableFunArray.By(
             Encoding.UTF8.GetBytes( args.Get<object>(0).ToString()).Select(c=> (object)Convert.ToInt32(c)));
     }
     public class ToUnicodeFunction : FunctionBase
     {
         public ToUnicodeFunction() : base("toUnicode", VarType.ArrayOf(VarType.Int32), VarType.Text){}
-        public override object Calc(object[] args) => FunArray.By(
+        public override object Calc(object[] args) => ImmutableFunArray.By(
             Encoding.Unicode.GetBytes(args.Get<object>(0).ToString()).Select(c=> (object)Convert.ToInt32(c)));
     }
     public class ToBitsFromIntFunction : FunctionBase
     {
         public ToBitsFromIntFunction() : base("toBits", VarType.ArrayOf(VarType.Bool), VarType.Int32){}
-        public override object Calc(object[] args) => FunArray.By(
+        public override object Calc(object[] args) => ImmutableFunArray.By(
             new BitArray(BitConverter.GetBytes(args.Get<int>(0))).Cast<bool>().Cast<object>());
     }
     public class ToBytesFromIntFunction : FunctionBase
     {
         public ToBytesFromIntFunction() 
             : base("toBytes", VarType.ArrayOf(VarType.Int32), VarType.Int32){}
-        public override object Calc(object[] args) => FunArray.By(
+        public override object Calc(object[] args) => ImmutableFunArray.By(
             BitConverter.GetBytes(args.Get<int>(0)).Select(c=> (object)Convert.ToInt32(c)));
     }
     
@@ -87,7 +88,7 @@ namespace NFun.BuiltInFunctions
 
         string ToText(object val)
         {
-            if (val is FunArray f)
+            if (val is ImmutableFunArray f)
                 return $"[{string.Join(",", f.Select(ToText))}]";
             if (val is double d)
                 return d.ToString(CultureInfo.InvariantCulture);

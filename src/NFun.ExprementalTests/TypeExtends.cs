@@ -1,10 +1,11 @@
 using System;
 using NFun.Runtime;
+using NFun.Runtime.Arrays;
 using NFun.Types;
 
 namespace NFun.ExprementalTests
 {
-    public class VQTArray : FunArray, IVQT
+    public class VQTArray : ImmutableFunArray, IVQT
     {
         public VQTArray(Array val):base(val)
         {

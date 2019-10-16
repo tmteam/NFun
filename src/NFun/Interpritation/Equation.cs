@@ -3,11 +3,8 @@ using NFun.Interpritation.Nodes;
 
 namespace NFun.Interpritation
 {
-    public class Equation
+    public sealed class Equation
     {
-        //public bool ReusingWithOtherEquations = false;
-        public bool IsTyped => throw new NotImplementedException();
-        
         public readonly string Id;
         public readonly IExpressionNode Expression;
 
@@ -17,12 +14,6 @@ namespace NFun.Interpritation
             Expression = expression;
         }
 
-        public override string ToString()
-        {
-          //  if (ReusingWithOtherEquations)
-          //      return $"\"{Id}\" equation (reusing)";
-          //  else
-                return $"\"{Id}\" equation";
-        }
+        public override string ToString() => $"\"{Id}\" equation";
     }
 }

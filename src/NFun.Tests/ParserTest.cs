@@ -31,7 +31,7 @@ namespace Funny.Tests
         [TestCase("y(x,z) = x+z*(x-z)", "x+z*(x-z)","x","z")]
         public void SingleFunctionParsingTest(string text, string expectedExpr, params string[] variables)
         {
-            var eq   = TopLevelParser.Parse(Tokenizer.ToFlow(text));
+            var eq   = Parser.Parse(Tokenizer.ToFlow(text));
 
             Assert.AreEqual(1, eq.Nodes.Count(n=>n is UserFunctionDefenitionSyntaxNode));
             var fun = eq.Nodes.OfType<UserFunctionDefenitionSyntaxNode>().First();
@@ -53,7 +53,7 @@ namespace Funny.Tests
                     y1 = max3(x,y,z)
                     y2 =  max(x,y)+1
                 ";
-            var eq   = TopLevelParser.Parse(Tokenizer.ToFlow(text));
+            var eq   = Parser.Parse(Tokenizer.ToFlow(text));
 
             var functions = eq.Nodes.OfType<UserFunctionDefenitionSyntaxNode>();
             
@@ -86,7 +86,7 @@ namespace Funny.Tests
         }
         private void AssertParsed(ISyntaxNode node,string expectedExpr)
         {
-            var expectedExpression = new SyntaxNodeReader(Tokenizer.ToFlow(expectedExpr)).ReadExpressionOrNull();
+            var expectedExpression = SyntaxNodeReader.ReadNodeOrNull(Tokenizer.ToFlow(expectedExpr));
             AssertEquals(expectedExpression, node);
         }
 

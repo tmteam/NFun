@@ -1,0 +1,85 @@
+|****************************************
+| TEST constant user function  
+| TAGS constant function
+|************************  
+| out i:int, a:int[], r:real, t:text 
+|------------------------
+  takeInt():int = 1
+  takeArr():int[] = [1,2,3]
+  takeReal():real = 1.0
+  takeText():text = 'abc'
+
+  i = takeInt()
+  a = takeArr()
+  r = takeReal()
+  t = takeText()
+|---------------------
+| check i:1, a:[1,2,3], r:1.0, t:'abc'
+
+
+
+
+|****************************************
+| TEST sum of int and real  
+| TAGS function
+|************************  
+| int: x:int, r:real
+| out  r:real 
+|------------------------
+  mysum(i:int, r:real):real = i+r
+  
+  r = mysum(x,y)
+|---------------------
+| set: x:-100, r: 100.0
+| check r: 0.0
+| set: x:100, r: -100.0
+| check r: 0.0
+| set: x:1, r: -42.5
+| check r: -41.5
+
+
+
+
+|****************************************
+| TEST user function overloads  
+| TAGS overload user-function
+|************************  
+| int: x:int, r:real
+| out  r:real 
+|------------------------
+  inc(i, j) = i+j
+  inc(i) = inc(i,1)
+  
+  singlearg = inc(x)
+  twinarg = inc(x,10)  
+|---------------------
+| set: x:-100
+| check singlearg: -99, twinarg: -90
+| set: x:100, 
+| check singlearg: 101, twinarg: 110
+
+
+
+
+|****************************************
+| TEST user and buildin function overloads  
+| TAGS overload user-function
+|************************  
+| int: x:int, r:real
+| out  r:real 
+|------------------------
+  #custom user function max(r r r) overloads
+  #built in function max(r r)
+  max(i, j, k) = i.max(j).max(k)
+  
+  userfun = max(i[0], i[1], i[2])
+  builtin = max(i[0], i[1])
+|---------------------
+| set: i:[0,1,2]
+| check userfun:2, builtin:1
+| set: i:[-5,-7,10]
+| check userfun:10, builtin:-5
+| set: i:[10,-7,10]
+| check userfun:10, builtin:10
+
+

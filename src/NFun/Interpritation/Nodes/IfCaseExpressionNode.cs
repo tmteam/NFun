@@ -8,7 +8,6 @@ namespace NFun.Interpritation.Nodes
     public class IfCaseExpressionNode : IExpressionNode
     {
         private readonly IExpressionNode _condition;
-        public IExpressionNode Body { get; }
 
         public IfCaseExpressionNode(IExpressionNode condition, IExpressionNode body, Interval interval)
         {
@@ -20,19 +19,10 @@ namespace NFun.Interpritation.Nodes
             Interval = interval;
         }
 
-        public IEnumerable<IExpressionNode> Children
-        {
-            get
-            {
-                yield return _condition;
-                yield return Body;
-            }
-        }
-
-        public bool IsSatisfied() => (bool)_condition.Calc();
-        public object Calc() 
-            => Body.Calc();
+        public IExpressionNode Body { get; }
         public VarType Type => Body.Type;
         public Interval Interval { get; }
+        public bool IsSatisfied() => _condition.Calc().To<bool>();
+        public object Calc() => Body.Calc();
     }
 }

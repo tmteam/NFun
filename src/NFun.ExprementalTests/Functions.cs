@@ -1,6 +1,7 @@
 using System;
 using NFun.Interpritation.Functions;
 using NFun.Runtime;
+using NFun.Runtime.Arrays;
 using NFun.Types;
 
 namespace NFun.ExprementalTests
@@ -36,12 +37,13 @@ namespace NFun.ExprementalTests
     public class VQTFunction : GenericFunctionBase
     {
         public VQTFunction() : base("vqt", VarType.Generic(0),
-            VarType.Generic(0), 
-            VarType.Int32, 
+            VarType.Generic(0),
+            VarType.Int32,
             VarType.Int64)
         {
-            
+
         }
+
         public override object Calc(object[] args)
             => VqtHelper.MakeVQT(args[0], args.Get<Int32>(1), args.Get<Int64>(2));
     }
@@ -50,9 +52,9 @@ namespace NFun.ExprementalTests
     public class minQFunction : FunctionBase
     {
         public minQFunction() : base("worstQ", VarType.Int32,VarType.ArrayOf(VarType.Anything))
-        {
-            
+        { 
         }
+
         public override object Calc(object[] args)
         {
             var arr = (args[0] as IFunArray);
@@ -68,6 +70,7 @@ namespace NFun.ExprementalTests
             return res;
         }
     }
+
     public class SetTFunction : GenericFunctionBase
     {
         public SetTFunction() : base("setT", VarType.Generic(0),
@@ -153,7 +156,7 @@ namespace NFun.ExprementalTests
         public override object Calc(object[] args)
         {
             var ticks = args.Get<long>(0);
-            var dt = new DateTime(ticks);
+            var dt = new DateTime(ticks); 
             return dt.ToUniversalTime().Ticks;
         }
     }

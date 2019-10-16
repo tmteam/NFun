@@ -147,18 +147,16 @@ namespace NFun.Tokenization
             {
                 var prev = flow.Previous;
                 if (prev == null)
-                    throw new FunParseException(000, $"\"{tokType}\" is missing at end of stream",
-                        -1,
-                        -1);
+                    throw FunParseException.ErrorStubToDo($"\"{tokType}\" is missing at end of stream");
                 else
-                    throw new FunParseException(001, $"\"{tokType}\" is missing at end of stream",
-                        prev.Start, prev.Finish);
+                    throw FunParseException.ErrorStubToDo($"\"{tokType}\" is missing at end of stream");
+                //prev.Start, prev.Finish);
             }
 
             if (!cur.Is(tokType))
-                throw new FunParseException(002,
-                    $"\"{tokType}\" is missing but was \"{cur}\"",
-                    cur.Start, cur.Finish);
+                throw FunParseException.ErrorStubToDo(
+                    $"\"{tokType}\" is missing but was \"{cur}\"");
+                    //cur.Start, cur.Finish);
             
             flow.MoveNext();
             return cur;
