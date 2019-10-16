@@ -10,63 +10,85 @@ namespace FuspecHandler
 {
     public class statsCollector
     {
-        private int _numberOfFiles=0;
         private int _numberOfTests = 0;
-        private int _funErrors = 0;
         private List<Exception> _errors = new List<Exception>();
-        private Dictionary<string,bool> _filesNamesCollection = new Dictionary<string, bool>();
+        private Dictionary<string,int> _filesNamesCollection = new Dictionary<string, int>();
+        private ConsoleWriter _consoleWriter = new ConsoleWriter();
         
-        public Exception[] Errors => _errors.ToArray() ;
-        
-        public statsCollector(int numberOfFiles) => _numberOfFiles = numberOfFiles;
-        
-        public void AddFileToStatistic(string nameOfFile, bool isParsingSuccessful) => 
-            _filesNamesCollection.Add(nameOfFile,isParsingSuccessful);
+        public Exception[] Errors => _errors.ToArray();
+
+
+        public void AddFileToStatistic(string nameOfFile, int errorLine) => 
+            _filesNamesCollection.Add(nameOfFile,errorLine);
         
         public void AddError(Exception e)
         {
-            switch (e)
+            _errors.Add(e);
+            if (e is FuspecParserException)
             {
-                case FuspecParserException fusParsExc:
-                    _errors.Add(fusParsExc);
-                     AddFileToStatistic(e.Source, false);
-                    break;
-                case FunParseException funParsException:
-                    _funErrors++;
-                    _errors.Add(funParsException);
-                    break;
-                case FunRuntimeException funRuntimeException:
-                    _funErrors++;
-                    _errors.Add(funRuntimeException);
-                    break;
-                default:
-                    _errors.Add(e);
-                    break;
+                var fuspecEx = e as FuspecParserException;
+                AddFileToStatistic(fuspecEx.Data["File"].ToString(),fuspecEx.Errors.FirstOrDefault().LineNumber);
             }
         }
 
-        public void AddSpecsCount(int specsCount)
-        {
+        public void AddSpecsCount(int specsCount) =>
             _numberOfTests += specsCount;
-        }
-
-        public void PtintStatistic()
+        
+        public void PrintStatistic()
         {
+            Console.WriteLine();
+            Console.WriteLine("##########################");
+            Console.WriteLine("Statistic:");
+            Console.WriteLine("##########################");
             
-            Console.WriteLine("Number of files: {0}", _numberOfFiles);
-            Console.WriteLine("number of Successful parsed Files: {0}", _filesNamesCollection.Count(file => file.Value));
+            Console.WriteLine("Number of files: {0}", _filesNamesCollection.Count);
+            Console.WriteLine("Number of Successful parsed Files: {0}", _filesNamesCollection.Count(file => file.Value<0));
 
-            var brokenFiles = _filesNamesCollection.Where(file => !file.Value);
-            if (_numberOfFiles != brokenFiles.Count())
+            var brokenFiles = _filesNamesCollection.Where(file => file.Value>=0);
+            if (brokenFiles.Any())
             {
                 Console.WriteLine("Name of broken files: ");
                 foreach (var file in brokenFiles)
-                    Console.WriteLine("\t{0}", file.Key);
+                    Console.WriteLine("\t\t\t{0} LINE: {1}", file.Key,file.Value);
             }
 
             Console.WriteLine("Number of SucsessfulParsedTests: {0}", _numberOfTests);
-            Console.WriteLine("Number of SucsessfulCompleteTests: {0}", _numberOfTests - _funErrors);
-            
+            Console.WriteLine("Number of SucsessfulCompleteTests: {0}", _numberOfTests - _errors.Count(e=>(e is FunRuntimeException || e is FunParseException)));
+            Console.WriteLine("Number of FunRuntime Error: {0}", _errors.Count(e=>e is FunRuntimeException));
+            Console.WriteLine("Number of FunParse Error: {0}", _errors.Count(e=>e is FunParseException));
+        }
+
+        public void PrintFullStatistic()
+        {
+            foreach (var error in _errors)
+            {
+                var file = error.Data["File"].ToString();
+                var script="";
+                var test="";
+                
+                if (error is FunParseException || error is FunRuntimeException)
+                {
+                    script = error.Data["Script"].ToString();
+                    test = error.Data["Test"].ToString();
+                }
+                
+                switch (error)
+                {
+                    case FuspecParserException fusParsExc:
+                        _consoleWriter.PrintFuspecParserException(fusParsExc,file);
+                        break;
+                    case FunParseException funParsException:
+                        _consoleWriter.PrintFunParseException(funParsException, file, script,test);
+                        break;
+                    case FunRuntimeException funRuntimeException:
+                        _consoleWriter.PrintFuspecRunTimeException(funRuntimeException,file,test);
+                        break;
+                    default:
+                        _consoleWriter.PrintUnknownException(error);
+                        break;
+                }
+                
+            }
         }
     }
 }

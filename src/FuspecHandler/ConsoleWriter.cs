@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Linq;
 using Nfun.Fuspec.Parser.FuspecParserErrors;
 using Nfun.Fuspec.Parser.Model;
+using NFun.BuiltInFunctions;
 using NFun.ParseErrors;
 
 namespace FuspecHandler
@@ -24,9 +25,16 @@ namespace FuspecHandler
             Console.ResetColor();
         }
 
-        public  void PrintFuspecName(string fusName)
-        {
+        public  void PrintFuspecName(string fusName)=>
             Console.Write("{0,-50}   ", fusName);
+        
+        
+        public  void PrintOkTest()
+        {
+            Console.BackgroundColor = ConsoleColor.Green;
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("  Ok!  ");
+            Console.ResetColor();
         }
 
         public void PrintError(Exception e)
@@ -39,63 +47,58 @@ namespace FuspecHandler
                 case FunParseException funParsException:
                     PrintError(-1,ConsoleColor.Red,ConsoleColor.White);
                     break;
+                case FunRuntimeException funParsException:
+                    PrintError(-1,ConsoleColor.Red,ConsoleColor.White);
+                    break;
                 default:
                     PrintError(-1,ConsoleColor.DarkYellow,ConsoleColor.Black);
                     break;
             }
         }
 
-        public void PrintError(int numberOfLine, ConsoleColor backgroundColor, ConsoleColor foregroundColor)
+        private void PrintError(int numberOfLine, ConsoleColor backgroundColor, ConsoleColor foregroundColor)
         {
             Console.BackgroundColor = backgroundColor;
             Console.ForegroundColor = foregroundColor;
             if (numberOfLine >= 0)
                 Console.WriteLine(" Can't parse the file!!!\n\r Error in line {0}!", numberOfLine);
             else
-                Console.WriteLine("Error");
+                Console.WriteLine(" Error ");
             Console.ResetColor();
         }
-
         
-        
-
         public  void PrintFuspecParserException(FuspecParserException e, string file)
         {
             Console.BackgroundColor = ConsoleColor.DarkGray;
             Console.ForegroundColor = ConsoleColor.Black;
             var error = e.Errors.FirstOrDefault();
-            Console.WriteLine("Error in file: {0} in line: {1}", file, error.LineNumber);
-            Console.WriteLine(error.ErrorType.ToString());
+            Console.WriteLine("Error in file: {0}.", file);
             Console.ResetColor();
-        }
 
-        public  void PrintUnknownException(Exception e, string file)
-        {
-            Console.BackgroundColor = ConsoleColor.DarkYellow;
-            Console.ForegroundColor = ConsoleColor.Black;
-            Console.WriteLine("Unknown Exeption!!!!!");
-            Console.WriteLine(e.Message);
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine(e.StackTrace);
+            Console.WriteLine("\t\tError line: {1}", file, error.LineNumber);
+            Console.WriteLine("\t\tError type: {0} ", error.ErrorType.ToString());
             Console.WriteLine();
-            Console.ResetColor();
         }
-
-        public  void PrintOkTest()
+        
+        public  void PrintFuspecRunTimeException(FunRuntimeException e, string file,string test)
         {
-            Console.BackgroundColor = ConsoleColor.Green;
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine("It's ok!");
+            Console.BackgroundColor = ConsoleColor.Red;
+            Console.ForegroundColor = ConsoleColor.Black;
+            Console.WriteLine("Error in file:  {0}\n      in test:  {1}.", file,test); 
+            Console.WriteLine("\t\tError in file: {0}.", file);
             Console.ResetColor();
+            
+            Console.WriteLine("Expression cannot be calculated: " + e.Message);
+            Console.WriteLine();
         }
-
-        public  void PrintFunParseException(FunParseException e, string script)
+ 
+        public  void PrintFunParseException(FunParseException e, string file, string script,string test)
         {
             Console.BackgroundColor = ConsoleColor.Red;
             Console.ForegroundColor = ConsoleColor.White;
-            Console.Write(" ERROR [FU" + e.Code + "] ");
-            Console.Write($" {e.Message} ");
-
+            Console.WriteLine("Error in file:  {0}\n      in test:  {1}.", file,test); 
+            Console.Write("\t\tERROR [FU" + e.Code + "] ");
+            Console.WriteLine($" {e.Message} ");
             Console.ResetColor();
 
             if (e.End != -1)
@@ -112,8 +115,19 @@ namespace FuspecHandler
                     Console.Write(script.Substring(e.End));
                 Console.WriteLine();
             }
+            Console.WriteLine();
         }
-
-      
+        
+        public  void PrintUnknownException(Exception e)
+        {
+            Console.BackgroundColor = ConsoleColor.DarkYellow;
+            Console.ForegroundColor = ConsoleColor.Black;
+            Console.WriteLine("Unknown Exeption!!!!!");
+            Console.WriteLine(e.Message);
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine(e.StackTrace);
+            Console.WriteLine();
+            Console.ResetColor();
+        }
     }
 }

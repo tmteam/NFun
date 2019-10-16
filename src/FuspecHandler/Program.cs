@@ -15,20 +15,19 @@ namespace FuspecHandler
         static void Main(string[] args)
         {
             Console.WriteLine("Hello! I'm a Fuspec Handler! ");
-            Console.WriteLine();
             
             var testHandler = new TestHandler();
-            var stats=testHandler.NonDetailedTest();
-            
+            var stats = testHandler.RunTests();
+
+            stats.PrintStatistic();
+
             Console.WriteLine();
-            Console.WriteLine("##########################");
-            Console.WriteLine("Statistic:");
-            Console.WriteLine("##########################");
-
-            stats.PtintStatistic();
-
-            Console.WriteLine("Do you want to detail Errors?");
-            var errors = stats.Errors;
+            Console.WriteLine("######################################");
+            Console.Write("Do you want to detail Errors?  Y/N  ");
+            Console.WriteLine();
+            var answer = Console.ReadLine();
+            if (answer=="y") 
+                stats.PrintFullStatistic();
             
             
         }
