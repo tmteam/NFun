@@ -1,0 +1,294 @@
+****************************************
+| TEST Quadratic equation   
+| TAGS arithmetic
+|************************  
+| in:  a:real, b:real, c:real
+| out  d:real, res:real 
+|------------------------
+  d = b**2-4*a*c
+
+  res = if (d>0) [(-b+ sqrt(d))/2*a, (-b- sqrt(d))/2*a]
+  	    if (d==0) [-b/2*a]
+  	    else []
+|---------------------
+| set a:1, b:-8, c:12
+| check res:[4,6]
+| set a:5, b:3, c:7
+| check res:[]
+| set a:1, b:-6, c:9
+| check res: [3]
+
+
+
+
+
+****************************************
+| TEST Quadratic equation as a function
+| TAGS arithmetic user-function
+|************************  
+| in:  a:real, b:real, c:real
+| out  out:real 
+|------------------------
+  d(a,b,c) = b**2-4*a*c
+
+  quadprime(a,b,c,d) = 
+  		if (d>0)  [(-b+ d.sqrt())/2*a, (-b- d.sqrt())/2*a]
+  	    if (d==0) [-b/2*a]
+  	    else []
+
+  quad(a,b,c) = quadprime(a,b,c,d(a,b,c))
+
+  quad(a,b,c)
+|---------------------
+| set a:1, b:-8, c:12
+| check out:[4,6]
+| set a:5, b:3, c:7
+| check out:[]
+| set a:1, b:-6, c:9
+| check out: [3]
+
+
+
+
+****************************************
+| TEST swap
+| TAGS arrays user-function
+|************************  
+| in:  input:real[], i:int, j:int
+| out  res:real[] 
+|------------------------
+  #set two values to array
+  twiceSet(arr,i,j,ival,jval)
+  	= arr.set(i,ival).set(j,jval)
+
+  #swap two values in array
+  swap(arr, i, j) 
+    = arr.twiceSet(i,j,arr[j], arr[i])
+
+  res:real[] = input.swap(i,j)
+|---------------------
+| set input:[1,2,3,4,5], i:2, j:3
+| check res:[1,2,4,3,5]
+
+
+
+
+
+****************************************
+| TEST bubble sort
+| TAGS arrays
+|************************  
+  twiceSet(arr,i,j,ival,jval)
+  	= arr.set(i,ival).set(j,jval)
+
+  swap(arr, i, j) 
+    = arr.twiceSet(i,j,arr[j], arr[i])
+  
+  swapIfNotSorted(arr, i)
+  	=	if   (c[i]<c[i+1]) c
+  		else c.swap(i, i+1)
+
+  # run thru array 
+  # and swap every unsorted values
+  onelineSort(input) =  
+  	[0..input.count()-1].reduce(input, swapIfNotSorted)		
+
+  bubbleSort(input)=
+  	[0..input.count()-1]
+  		.reduce(
+  			input, 
+  			(c,i)-> c.onelineSort())
+
+  ini:int[]
+  i:int[]  = ini.bubbleSort()
+|---------------------
+| set ini:[5,2,3,7,3,4,7]
+| check i:[2,3,3,4,5,7,7]
+| set ini:[24,52,31,55,0,55,55]
+| check i:[0,24,31,52,55,55,55]
+
+
+
+
+
+****************************************
+| TEST custom foreachi
+| TAGS arrays user-function
+|************************  
+|in    t:int[]
+|out res:int
+|---------------------
+  foreachi(init, f)
+  	= [0..init.count()-1].reduce(init, f)
+
+ res:int =  t.foreachi((acc,cur)-> if (acc>cur) acc else cur )
+|---------------------
+| set t:[5,2,3,7,3,4,7]
+| check res:7
+| set t:[11,100,3]
+| check res:100
+
+
+
+
+
+****************************************
+| TEST custom foreachi with hi-order
+| TAGS arrays user-function hi-order
+|************************  
+|in    t:int[]
+|out res:int
+|---------------------
+  foreachi(init, f)
+  	= [0..init.count()-1].reduce(init, f)
+
+ res:int =  t.foreachi(max)
+|---------------------
+| set t:[5,2,3,7,3,4,7]
+| check res:7
+| set t:[11,100,3]
+| check res:100
+
+
+
+
+
+****************************************
+| TEST custom foreachi with custom hi-order
+| TAGS arrays user-function hi-order
+|************************  
+|in    t:int[]
+|out res:int
+|---------------------
+  foreachi(init, f)
+  	= [0..init.count()-1].reduce(init, f)
+
+  mymax(i:int,j) = if(i>j) i else j
+
+ res:int =  t.foreachi(mymax)
+|---------------------
+| set t:[5,2,3,7,3,4,7]
+| check res:7
+| set t:[11,100,3]
+| check res:100
+
+
+
+
+
+****************************************
+| TEST fold fibonacci 
+| TAGS user-function
+|************************  
+| in   n:int[]
+| out  res:int[] 
+|------------------------
+ fib(n) = 
+ 	if(n==0) 0
+ 	if(n==1) 1
+    else
+        [2..n].reduce([0,1], 
+    		(acc,i)->[acc[1], acc[i-1]+acc[i-2]])[1]
+
+ res = n.map(fib)
+|---------------------
+| set     n:[0, 1, 2, 3, 4, 5, 6, 7,   8,  9]
+| check res:[0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
+
+
+
+
+****************************************
+| TEST Golden ratio 
+| TAGS user-function
+|************************  
+| in   n:int[]
+| out  res:int[] 
+|------------------------
+ fibvals(n) = 
+ 	if(n<=1) [0,1]
+    else
+    	[2..n].reduce([0,1], 
+    	    (acc,i) -> [acc.last(), acc[i-1]+acc[i-2])
+
+ div(arr) = arr[1]/arr[2]
+
+ goldenRatio(n) = div(fibvals[n]) 
+
+ res = (goldenRatio(i) - 1.61803398875).abs() < 0.001
+|---------------------
+| set     i:100
+| check res:true
+
+
+
+
+****************************************
+| TEST Each second real 
+| TAGS user-function toReal anything isReal
+|************************  
+| in   n:int[]
+| out  res:int[] 
+|------------------------
+ smth: anything[]
+ 	= [1,'2',3.0,4,5.2, true, false, 7.2]
+
+ res = smth
+ 		.filter(x->x.isReal())
+ 		.map(x->x.toReal())
+ 		[::2]
+|---------------------
+| check res:[5.2,7.2]
+
+
+
+
+
+****************************************
+| TEST increment with upper bound 
+|************************  
+| in   x:real
+| out  done:bool, newCount:real 
+|------------------------
+done = x>=1000	
+newCount = if(!done) x+1 else x
+|---------------------
+| set x:100
+| check done:false, newCount:101
+| set x:999
+| check done:false, newCount:1000
+| set x:1000
+| check done:true, newCount:1000
+
+
+
+##foreach (it:10, cur: [1..10], i:i+1)  
+##  -> if (it> cur) it else cur 
+##
+##foreach it,cur: [1..10] -> if (it> cur) it else cur 
+##
+##for it:10, cur: [1..10] -> if (it> cur) it else cur 
+##for (it:10, cur: [1..10],  -> if (it> cur) it else cur 
+##
+##[1..10].fold:  
+##       (cur,acc) -> if (cur>acc) cur else acc
+##    
+##[1..10].foreach from 10: 
+##       (cur,acc) -> if (cur>acc) cur else acc
+##
+##
+##[1..10].fold 
+##    (cur,acc) -> if (cur>acc) cur else acc
+##
+##[1..10].map -> it*10
+##
+##[1..10].filter -> it.isGross() and it.age>15
+##       .map    -> '{it.name}'s age is {it.age}'
+##       .fold (acc, cur) = acc+cur
+##[1..10].filter -> it>=2
+         .map -> it*10
+
+
+
+
+

@@ -151,6 +151,15 @@ namespace NFun.ExprementalTests
         [TestCase(10.0,"y=x<=5",false)]
         [TestCase(10.0,"y=x>=5",true)]
         [TestCase(10.0,"y= x.toText()","10")]
+        [TestCase(true, "y= if(x) 1 else -1", 1)]
+        [TestCase(false, "y= if(x) 1 else -1", -1)]
+        [TestCase(1.0, "y= if(true) x else -x", 1.0)]
+        [TestCase(42.0, "y= if(false) x else 5.0", 5.0)]
+        [TestCase(3, "y= [1..x]", new[] { 1, 2, 3 })]
+        [TestCase(3, "y= [x..7]", new[] { 3, 4, 5, 6, 7 })]
+        [TestCase(3, "y= [1..5][x]", 4)]
+        [TestCase(2, "x:int; y= [1..6..x]", new[] { 1, 3, 5 })]
+        [TestCase(0.5, "y= [1.0..3.0..x]", new[] { 1.0, 1.5, 2.0, 2.5, 3.0 })]
         public void SingleVqtInputEquation_CheckOutputValues(object val, string expr, object result)
         {
             var runtime = BuildVqtRuntime(expr);
@@ -163,6 +172,7 @@ namespace NFun.ExprementalTests
             res.AssertReturns(VarVal.New("y",result));
         }
         
+
 
         private static FunRuntime BuildVqtRuntime(string expt)
         {

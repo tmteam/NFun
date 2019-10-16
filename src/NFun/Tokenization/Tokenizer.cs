@@ -95,6 +95,9 @@ namespace NFun.Tokenization
             {"error",   TokType.Reserved},
             {"oops",   TokType.Reserved},
             {"throw", TokType.Reserved},
+            {"result", TokType.Reserved},
+            {"_", TokType.Reserved},
+
         };
         
         public Tok TryReadNext(string str, int position)

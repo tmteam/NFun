@@ -40,8 +40,46 @@
 
 
 
+|****************************************
+| TEST user function overloads  
+| TAGS overload user-function
+|************************  
+| int: x:int, r:real
+| out  r:real 
+|------------------------
+  inc(i, j) = i+j
+  inc(i) = inc(i,1)
+  
+  singlearg = inc(x)
+  twinarg = inc(x,10)  
+|---------------------
+| set: x:-100
+| check singlearg: -99, twinarg: -90
+| set: x:100, 
+| check singlearg: 101, twinarg: 110
 
 
 
+
+|****************************************
+| TEST user and buildin function overloads  
+| TAGS overload user-function
+|************************  
+| int: x:int, r:real
+| out  r:real 
+|------------------------
+  #custom user function max(r r r) overloads
+  #built in function max(r r)
+  max(i, j, k) = i.max(j).max(k)
+  
+  userfun = max(i[0], i[1], i[2])
+  builtin = max(i[0], i[1])
+|---------------------
+| set: i:[0,1,2]
+| check userfun:2, builtin:1
+| set: i:[-5,-7,10]
+| check userfun:10, builtin:-5
+| set: i:[10,-7,10]
+| check userfun:10, builtin:10
 
 

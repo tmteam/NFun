@@ -68,6 +68,9 @@ namespace Funny.Tests
         {
             FunBuilder.BuildDefault(expr).Calculate().AssertReturns(VarVal.New("y", expected));
         }
+
+
+
         [TestCase("a = 2.0 \r b=3.0 \r  y = [1.0,a,b] ", new[]{1.0,2.0,3.0})]
         [TestCase("a = 2.0 \r b=3.0 \r y = [a,b] ", new[]{2.0,3.0})]
         [TestCase("a = 2.0 \r b=3.0 \r y = [a+1,b+2] ", new[]{3.0,5.0})]
@@ -100,6 +103,20 @@ namespace Funny.Tests
 
             FunBuilder.BuildDefault(expression).Calculate().AssertReturns(VarVal.New("y", expected));
         }
+
+        [TestCase(3, "y= [1..x]", new[] {1, 2, 3})]
+        [TestCase(3, "y= [x..7]", new[] {3, 4, 5, 6, 7})]
+        [TestCase(3, "y= [x,2,3]", new[] {3, 2, 3})]
+        [TestCase(3, "y= [1..5][x]", 4)]
+        [TestCase(2, "x:int; y= [1..6..x]", new[] {1, 3, 5})]
+        [TestCase(0.5, "y= [1.0..3.0..x]", new[] {1.0, 1.5, 2.0, 2.5, 3.0})]
+        public void SingleVqtInputEquation_CheckOutputValues(object val, string expr, object expected)
+        {
+            FunBuilder.BuildDefault(expr).Calculate(VarVal.New("x",val)).AssertHas(VarVal.New("y", expected));
+        }
+
+
+
         [Test]
         public void ExceptToDimArrayTest()
         {
