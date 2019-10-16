@@ -2,7 +2,7 @@
 | TEST req factorial
 | TAGS req user-function
 |************************  
-| in:  n:int
+| in  n:int
 | out  out:int 
 |------------------------
  fact(n) = if (n==0) 0

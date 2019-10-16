@@ -57,9 +57,11 @@
 | in:  input:real[], i:int, j:int
 | out  res:real[] 
 |------------------------
+  #set two values to array
   twiceSet(arr,i,j,ival,jval)
   	= arr.set(i,ival).set(j,jval)
 
+  #swap two values in array
   swap(arr, i, j) 
     = arr.twiceSet(i,j,arr[j], arr[i])
 
@@ -86,7 +88,7 @@
   	=	if   (c[i]<c[i+1]) c
   		else c.swap(i, i+1)
 
-  # run throu array 
+  # run thru array 
   # and swap every unsorted values
   onelineSort(input) =  
   	[0..input.count()-1].reduce(input, swapIfNotSorted)		
@@ -258,6 +260,33 @@ newCount = if(!done) x+1 else x
 | set x:1000
 | check done:true, newCount:1000
 
+
+
+##foreach (it:10, cur: [1..10], i:i+1)  
+##  -> if (it> cur) it else cur 
+##
+##foreach it,cur: [1..10] -> if (it> cur) it else cur 
+##
+##for it:10, cur: [1..10] -> if (it> cur) it else cur 
+##for (it:10, cur: [1..10],  -> if (it> cur) it else cur 
+##
+##[1..10].fold:  
+##       (cur,acc) -> if (cur>acc) cur else acc
+##    
+##[1..10].foreach from 10: 
+##       (cur,acc) -> if (cur>acc) cur else acc
+##
+##
+##[1..10].fold 
+##    (cur,acc) -> if (cur>acc) cur else acc
+##
+##[1..10].map -> it*10
+##
+##[1..10].filter -> it.isGross() and it.age>15
+##       .map    -> '{it.name}'s age is {it.age}'
+##       .fold (acc, cur) = acc+cur
+##[1..10].filter -> it>=2
+         .map -> it*10
 
 
 
