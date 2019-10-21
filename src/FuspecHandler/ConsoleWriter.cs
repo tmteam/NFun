@@ -84,9 +84,11 @@ namespace FuspecHandler
         {
             Console.BackgroundColor = ConsoleColor.Red;
             Console.ForegroundColor = ConsoleColor.Black;
-            Console.WriteLine("Error in file:  {0}\n      in test:  {1}.", file,test); 
-            Console.WriteLine("\t\tError in file: {0}.", file);
+            Console.WriteLine("ERROR :");
             Console.ResetColor();
+
+            Console.WriteLine("in file:  {0}\n      in test:  {1}.", file,test); 
+            Console.WriteLine("\t\tError in file: {0}.", file);
             
             Console.WriteLine("Expression cannot be calculated: " + e.Message);
             Console.WriteLine();
@@ -96,10 +98,14 @@ namespace FuspecHandler
         {
             Console.BackgroundColor = ConsoleColor.Red;
             Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine("Error in file:  {0}\n      in test:  {1}.", file,test); 
             Console.Write("\t\tERROR [FU" + e.Code + "] ");
             Console.WriteLine($" {e.Message} ");
             Console.ResetColor();
+            Console.WriteLine("\t\tFILE:  {0}\n\t\tTEST:  {1}.", file,test); 
+            Console.WriteLine("--------------------------------------");
+Console.WriteLine("\t\tSCRIPT");
+            Console.WriteLine("--------------------------------------");
+
 
             if (e.End != -1)
             {

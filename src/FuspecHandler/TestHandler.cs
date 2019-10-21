@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -15,13 +16,13 @@ namespace FuspecHandler
 {
     public class TestHandler
     {
-        private readonly statsCollector _stats = new statsCollector();
         private readonly ConsoleWriter _consoleWriter = new ConsoleWriter();
 
 
         public statsCollector RunTests()
         {
             string[] allFoundFiles = Directory.GetFiles("fuspecs\\", "*.fuspec", SearchOption.AllDirectories);
+            statsCollector _stats = new statsCollector(allFoundFiles.Length);
 
             foreach (var file in allFoundFiles)
             {
@@ -32,7 +33,6 @@ namespace FuspecHandler
                     try
                     {
                         var specs = FuspecParser.Read(streamReader);
-                        _stats.AddFileToStatistic(file, -1);
                         _stats.AddSpecsCount(specs.Length);
 
                         if (specs.Any())
@@ -63,7 +63,16 @@ namespace FuspecHandler
             {
                 var runtime = FunBuilder.With(script).Build();
 
-                if (!runtime.Inputs.Any())
+                runtime.Inputs.Select((s => new IdType( s.Name, s.Type)));
+
+                if (runtime.Inputs.Any())
+                {
+                   /* CompareInputs();
+                    Console.WriteLine("Inputs: " + string.Join(", ", runtime.Inputs.Select(s => s.ToString())));
+                    Console.WriteLine("Ouputs: " + string.Join(", ", runtime.Outputs.Select(s => s.ToString())));
+                */
+                }
+                else
                 {
                     var res = runtime.Calculate();
                 }
@@ -76,6 +85,11 @@ namespace FuspecHandler
                 e.Data.Add("Test",fuspec.Name);
                 throw;
             }
+        }
+
+        private bool CompareInputs()
+        {
+            return true;
         }
     }
 }

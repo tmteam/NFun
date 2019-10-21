@@ -13,5 +13,10 @@ namespace Nfun.Fuspec.Parser.Model
             Id = id;
             VarType = varType;
         }
+
+        public override string ToString()
+        {
+            return Id+":"+VarType;
+        }
     }
 }
