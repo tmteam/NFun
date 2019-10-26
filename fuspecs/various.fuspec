@@ -1,8 +1,8 @@
-****************************************
+|****************************************
 | TEST Quadratic equation   
 | TAGS arithmetic
 |************************  
-| in:  a:real, b:real, c:real
+| in   a:real, b:real, c:real
 | out  d:real, res:real 
 |------------------------
   d = b**2-4*a*c
@@ -20,11 +20,11 @@
 
 
 
-****************************************
+|****************************************
 | TEST Quadratic equation as a function
 | TAGS arithmetic user-function
 |************************  
-| in:  a:real, b:real, c:real
+| in   a:real, b:real, c:real
 | out  out:real 
 |------------------------
   d(a,b,c) = b**2-4*a*c
@@ -47,11 +47,11 @@
 
 
 
-****************************************
+|****************************************
 | TEST swap
 | TAGS arrays user-function
 |************************  
-| in:  input:real[], i:int, j:int
+| in  input:real[], i:int, j:int
 | out  res:real[] 
 |------------------------
   #set two values to array
@@ -69,7 +69,7 @@
 
 
 
-****************************************
+|****************************************
 | TEST bubble sort
 | TAGS arrays
 |************************  
@@ -104,12 +104,12 @@
 
 
 
-****************************************
+|****************************************
 | TEST custom foreachi
 | TAGS arrays user-function
 |************************  
-|in    t:int[]
-|out res:int
+| in    t:int[]
+| out res:int
 |---------------------
   foreachi(init, f)
   	= [0..init.count()-1].reduce(init, f)
@@ -123,12 +123,12 @@
 
 
 
-****************************************
+|****************************************
 | TEST custom foreachi with hi-order
 | TAGS arrays user-function hi-order
 |************************  
-|in    t:int[]
-|out res:int
+| in    t:int[]
+| out res:int
 |---------------------
   foreachi(init, f)
   	= [0..init.count()-1].reduce(init, f)
@@ -142,12 +142,12 @@
 
 
 
-****************************************
+|****************************************
 | TEST custom foreachi with custom hi-order
 | TAGS arrays user-function hi-order
 |************************  
-|in    t:int[]
-|out res:int
+| in    t:int[]
+| out res:int
 |---------------------
   foreachi(init, f)
   	= [0..init.count()-1].reduce(init, f)
@@ -163,7 +163,7 @@
 
 
 
-****************************************
+|****************************************
 | TEST fold fibonacci 
 | TAGS user-function
 |************************  
@@ -184,7 +184,7 @@
 
 
 
-****************************************
+|****************************************
 | TEST Golden ratio 
 | TAGS user-function
 |************************  
@@ -208,7 +208,7 @@
 
 
 
-****************************************
+|****************************************
 | TEST Each second real 
 | TAGS user-function toReal anything isReal
 |************************  
@@ -227,7 +227,7 @@
 
 
 
-****************************************
+|****************************************
 | TEST increment with upper bound 
 |************************  
 | in   x:real
@@ -249,7 +249,7 @@ newCount = if(!done) x+1 else x
 | TEST fun odds
 | TAGS built-in-function
 |************************  
-| int: x:int[]
+| in x:int[]
 | out  ysum:int, ymulti: int, ymin: int, ymax:int 
 |------------------------
   getOdds(x)= x.filter(i->i%2==0)
@@ -260,7 +260,7 @@ newCount = if(!done) x+1 else x
   ymin   = x.getOdds.reduce(min)
   ymax   = x.getOdds.reduce(mymax)
 |---------------------
-| set: x:[0,1,2,3,4,5,6,7,8,9]
+| set x:[0,1,2,3,4,5,6,7,8,9]
 | check ysum:20, ymulti:384, ymin:0, ymax:8
 
 
@@ -287,32 +287,6 @@ newCount = if(!done) x+1 else x
  passed2 = transpon(orig2) == ['mk','aa','st','hj','aa']       
 |---------------------
 | check passed1: true, passed2:true 
-
-##foreach (it:10, cur: [1..10], i:i+1)  
-##  -> if (it> cur) it else cur 
-##
-##foreach it,cur: [1..10] -> if (it> cur) it else cur 
-##
-##for it:10, cur: [1..10] -> if (it> cur) it else cur 
-##for (it:10, cur: [1..10],  -> if (it> cur) it else cur 
-##
-##[1..10].fold:  
-##       (cur,acc) -> if (cur>acc) cur else acc
-##    
-##[1..10].foreach from 10: 
-##       (cur,acc) -> if (cur>acc) cur else acc
-##
-##
-##[1..10].fold 
-##    (cur,acc) -> if (cur>acc) cur else acc
-##
-##[1..10].map -> it*10
-##
-##[1..10].filter -> it.isGross() and it.age>15
-##       .map    -> '{it.name}'s age is {it.age}'
-##       .fold (acc, cur) = acc+cur
-##[1..10].filter -> it>=2
-         .map -> it*10
 
 
 

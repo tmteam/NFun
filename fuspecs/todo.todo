@@ -26,3 +26,28 @@ dfs(graph, , i)
 dfs(graph) = dfs(graph, graph.count().repeat(false),0) 
 
 
+##foreach (it:10, cur: [1..10], i:i+1)  
+##  -> if (it> cur) it else cur 
+##
+##foreach it,cur: [1..10] -> if (it> cur) it else cur 
+##
+##for it:10, cur: [1..10] -> if (it> cur) it else cur 
+##for (it:10, cur: [1..10],  -> if (it> cur) it else cur 
+##
+##[1..10].fold:  
+##       (cur,acc) -> if (cur>acc) cur else acc
+##    
+##[1..10].foreach from 10: 
+##       (cur,acc) -> if (cur>acc) cur else acc
+##
+##
+##[1..10].fold 
+##    (cur,acc) -> if (cur>acc) cur else acc
+##
+##[1..10].map -> it*10
+##
+##[1..10].filter -> it.isGross() and it.age>15
+##       .map    -> '{it.name}'s age is {it.age}'
+##       .fold (acc, cur) = acc+cur
+##[1..10].filter -> it>=2
+         .map -> it*10

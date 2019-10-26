@@ -2,15 +2,15 @@
 | TEST cos sin abs   
 | TAGS built-in-function
 |************************  
-| int: x:real
+| in  x:real
 | out  r:real 
 |------------------------
   y = x.cos()**2 + x.sin()**2
   z = (y-1).abs() < 0.001
 |---------------------
-| set: x:-0.2
+| set  x:-0.2
 | check z: true
-| set: x:3
+| set  x:3
 | check z: true
 
 
@@ -19,14 +19,14 @@
 | TEST cos sin tan   
 | TAGS built-in-function
 |************************  
-| int: x:real
+| in x:real
 | out  ycos:real, ysin: real, ytan: real 
 |------------------------
   ycos = x.cos()
   ysin = x.cos()
   ytan = x.tan()
 |---------------------
-| set: x:0
+| set  x:0
 | check ycos: 1, ysin: 0, ytan:0
 
 
@@ -79,14 +79,12 @@
    		.map(count)
 
 |---------------------
-| set x:[vasa,kata], n:3
+| set x:['vasa','kata'], n:3
 | check aaa: [], tot:[]
-| set x:[vasaa,kataaa, jony, aa,  mashaaa, aaa_aaa_aaa], n:3
+| set x:['vasaa','kataaa', 'jony', 'aa',  'mashaaa', 'aaa_aaa_aaa'], n:3
 | check aaa: [3,4,4,9], tot:[5,6,7,11]
-| set x:[vasa,kata], n:2
+| set x:['vasa','kata'], n:2
 | check aaa: [2,2], tot:[4,4]
-
-
 
 
 |****************************************
@@ -97,10 +95,12 @@
 |---------------------
 | check concat: 'singing: we will rock you' 
 
+
+|****************************************
 | TEST odds   
 | TAGS built-in-function
 |************************  
-| int: x:int[]
+| in x:int[]
 | out  ysum:int, ymulti: int, ymin: int, ymax:int 
 |------------------------
   ysum = x.filter(i->i%2==0).sum()
@@ -108,7 +108,7 @@
   ymin = x.filter(i->i%2).reduce(min)
   ymax = x.filter(i->i%2).reduce(max)
 |---------------------
-| set: x:[0,1,2,3,4,5,6,7,8,9]
+| set  x:[0,1,2,3,4,5,6,7,8,9]
 | check ysum:20, ymulti:384, ymin:0, ymax:8
 
 
@@ -136,6 +136,7 @@
 |------------------
 | set origin:['','a','b']
 | check out:', a, b'
+
 
 |****************************************
 | TEST trim
