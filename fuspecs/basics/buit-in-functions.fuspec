@@ -111,3 +111,83 @@
 | set: x:[0,1,2,3,4,5,6,7,8,9]
 | check ysum:20, ymulti:384, ymin:0, ymax:8
 
+
+|****************************************
+| TEST int join
+| TAGS text array join
+|************************
+  
+  origin:int[]
+  origin.join(', ') 
+  
+|------------------
+| set origin:[1,2,3,4,5]
+| check out:'1, 2, 3, 4, 5'
+| set origin:[3,2]
+| check out:'3, 2'
+
+
+|****************************************
+| TEST text join
+| TAGS text array join
+|************************
+  origin:text
+  origin.join(', ') 
+|------------------
+| set origin:['','a','b']
+| check out:', a, b'
+
+|****************************************
+| TEST trim
+| TAGS text array trim
+|************************
+  origin.trim()
+|------------------
+| set origin: ' hi with start and end  '
+| check out:'hi with start and end'
+
+
+|****************************************
+| TEST trim start
+| TAGS text array trimStart
+|************************
+  origin.trimStart()
+|------------------
+| set origin: ' hi with start and end  '
+| check out:'hi with start and end  '
+
+|****************************************
+| TEST trim end
+| TAGS text array trimEnd
+|************************
+  origin.trimEnd()
+|------------------
+| set origin: ' hi with start and end  '
+| check out:' hi with start and end'
+
+
+|****************************************
+| TEST text join split
+| TAGS text join split
+|************************
+  origin:text
+  origin.split(' ').join('-') 
+|------------------
+| set origin: 'hello my lovely world'
+| check out:'hello-my-lovely-world'
+| set origin:''
+| check out:''
+| set origin:' '
+| check out:''
+| set origin: ' hello   my lovely  world'
+| check out:'hello-my-lovely-world'
+
+
+|****************************************
+| TEST int join split
+| TAGS int join split
+|************************
+  origin.split(42).join(2) 
+|------------------
+| set origin: [1,42,42,2,3,42]
+| check out:[1,2,2,3]

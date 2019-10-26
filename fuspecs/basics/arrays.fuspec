@@ -237,6 +237,40 @@
 
 
 
+|****************************************
+| TEST text join
+| TAGS text array join
+|************************
+  
+  origin:int[]
+  origin.join(', ') 
+  
+|------------------
+| set origin:[1,2,3,4,5]
+| check out:'1, 2, 3, 4, 5'
+| set origin:[3,2]
+| check out:'3, 2'
+
+
+
+|****************************************
+| TEST text join split
+| TAGS text join split
+|************************
+  origin:text
+  origin.split(' ').join('-') 
+|------------------
+| set origin: 'hello my lovely world'
+| check out:'hello-my-lovely-world'
+| set origin:''
+| check out:''
+| set origin:' '
+| check out:''
+
+
+
+
+
 
 
 
