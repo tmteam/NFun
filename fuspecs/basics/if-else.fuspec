@@ -108,7 +108,7 @@
               if(y=='second') 'second <10'
               if(y=='third')  'third <10'
               else 'else >10'
-        else '10'           
+       else '10'           
   
 |---------------------
 | set   x: -100, y='first'

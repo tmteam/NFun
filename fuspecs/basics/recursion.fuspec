@@ -5,9 +5,8 @@
 | in  n:int
 | out  out:int 
 |------------------------
- fact(n) = if (n==0) 0
-  			if (n==1) 1 
-  			else fact(n-1)*n
+  fact(n) = if (n<2) n
+  		    else fact(n-1)*n
 
   fact(n)
 |---------------------
@@ -17,7 +16,6 @@
 | check out:1
 | set n:4
 | check out: 24
-
 
 
 
@@ -34,7 +32,6 @@
   [0..4].map(fact)
 |---------------------
 | check out:[0,1,2,6,24]
-
 
 
 
@@ -110,8 +107,6 @@
 
 
 
-
-
 ****************************************
 | TEST req akkerman TODO
 | TAGS req user-function TODO
@@ -127,8 +122,6 @@
         
 |---------------------
 | set m:3, n:2
-
-
 
 
 
@@ -149,9 +142,6 @@
 |---------------------
 | set x:[1,2,3,4,5,6,7,8,9]
 | check y:[true,true,false,true,false,false,false,true,false]
-
-
-
 
 
 
@@ -178,8 +168,6 @@
 
 
 
-
-
 ****************************************
 | TEST req array sum 
 | TAGS req user-function
@@ -199,7 +187,3 @@
 | check res:1
 | set input:[1,-1]
 | check res:0
-
-
-
-
