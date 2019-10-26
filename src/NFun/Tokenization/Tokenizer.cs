@@ -60,6 +60,7 @@ namespace NFun.Tokenization
             {"int8", TokType.Reserved},
             {"let", TokType.Reserved},
             {"var", TokType.Reserved},
+            {"val", TokType.Reserved},
             {"void", TokType.Reserved},
             {"from", TokType.Reserved},
             {"to", TokType.Reserved},
@@ -97,7 +98,8 @@ namespace NFun.Tokenization
             {"throw", TokType.Reserved},
             {"result", TokType.Reserved},
             {"_", TokType.Reserved},
-
+            {"ip", TokType.Reserved},
+            {"date", TokType.Reserved},
         };
         
         public Tok TryReadNext(string str, int position)

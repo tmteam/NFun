@@ -96,7 +96,6 @@
 
 
 
-
 |****************************************
 | TEST int array index
 | TAGS array
@@ -217,6 +216,61 @@
 		].all(r->r)
 |------------------
 | check: results: true
+
+
+
+|****************************************
+| TEST var type array
+| TAGS array anything
+|************************
+  i:int
+  t:text
+  r:real
+  a:anything
+
+  j:anything = [i,t,j]
+|------------------
+| set i:1, t:'vasa', r:4.0, a: 'yeah'
+| check j:[1, 'vasa', 4.0, 'yeah']
+| set i:7, t:'', r:4.0, a: 42
+| check j:[7, '', 4.0, 42]
+
+
+
+|****************************************
+| TEST text join
+| TAGS text array join
+|************************
+  
+  origin:int[]
+  origin.join(', ') 
+  
+|------------------
+| set origin:[1,2,3,4,5]
+| check out:'1, 2, 3, 4, 5'
+| set origin:[3,2]
+| check out:'3, 2'
+
+
+
+|****************************************
+| TEST text join split
+| TAGS text join split
+|************************
+  origin:text
+  origin.split(' ').join('-') 
+|------------------
+| set origin: 'hello my lovely world'
+| check out:'hello-my-lovely-world'
+| set origin:''
+| check out:''
+| set origin:' '
+| check out:''
+
+
+
+
+
 
 
 

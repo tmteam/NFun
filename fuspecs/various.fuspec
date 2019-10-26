@@ -20,8 +20,6 @@
 
 
 
-
-
 ****************************************
 | TEST Quadratic equation as a function
 | TAGS arithmetic user-function
@@ -49,7 +47,6 @@
 
 
 
-
 ****************************************
 | TEST swap
 | TAGS arrays user-function
@@ -69,8 +66,6 @@
 |---------------------
 | set input:[1,2,3,4,5], i:2, j:3
 | check res:[1,2,4,3,5]
-
-
 
 
 
@@ -109,8 +104,6 @@
 
 
 
-
-
 ****************************************
 | TEST custom foreachi
 | TAGS arrays user-function
@@ -130,8 +123,6 @@
 
 
 
-
-
 ****************************************
 | TEST custom foreachi with hi-order
 | TAGS arrays user-function hi-order
@@ -148,8 +139,6 @@
 | check res:7
 | set t:[11,100,3]
 | check res:100
-
-
 
 
 
@@ -174,8 +163,6 @@
 
 
 
-
-
 ****************************************
 | TEST fold fibonacci 
 | TAGS user-function
@@ -194,7 +181,6 @@
 |---------------------
 | set     n:[0, 1, 2, 3, 4, 5, 6, 7,   8,  9]
 | check res:[0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
-
 
 
 
@@ -222,7 +208,6 @@
 
 
 
-
 ****************************************
 | TEST Each second real 
 | TAGS user-function toReal anything isReal
@@ -239,8 +224,6 @@
  		[::2]
 |---------------------
 | check res:[5.2,7.2]
-
-
 
 
 
@@ -261,6 +244,49 @@ newCount = if(!done) x+1 else x
 | check done:true, newCount:1000
 
 
+  
+|****************************************
+| TEST fun odds
+| TAGS built-in-function
+|************************  
+| int: x:int[]
+| out  ysum:int, ymulti: int, ymin: int, ymax:int 
+|------------------------
+  getOdds(x)= x.filter(i->i%2==0)
+  mymax(x,y) = if (x>y) x else y
+
+  ysum   = x.getOdds.sum()
+  ymulti = x.getOdds.reduce((s,i)-> s*i)
+  ymin   = x.getOdds.reduce(min)
+  ymax   = x.getOdds.reduce(mymax)
+|---------------------
+| set: x:[0,1,2,3,4,5,6,7,8,9]
+| check ysum:20, ymulti:384, ymin:0, ymax:8
+
+
+
+|****************************************
+| TEST transpond  
+| TAGS user-function array                         
+|************************  
+  transpon(x) = [0..x[0].count()-1]
+                .map(  col-> x.map(row->row[col])  )
+
+  orig1 = 
+       [[1,2,3],
+        [4,5,6],
+        [7,8,9]]
+  
+  passed1 = transpon(orig) == 
+       [[1,4,7],
+        [2,5,8],
+        [3,6,9]]
+
+ orig2 =  ['masha', 'katja']
+ 
+ passed2 = transpon(orig2) == ['mk','aa','st','hj','aa']       
+|---------------------
+| check passed1: true, passed2:true 
 
 ##foreach (it:10, cur: [1..10], i:i+1)  
 ##  -> if (it> cur) it else cur 
@@ -290,5 +316,149 @@ newCount = if(!done) x+1 else x
 
 
 
+|****************************************
+| TEST array item multiplication  
+| TAGS user-function array                         
+|************************  
+  multi(a,b) = 
+      if(a.count()!=b.count()) []
+      else
+          [0..a.count()-1].map(i->a[i]*b[i]))  
+
+  a =  [1,2,3]
+  b =  [4,5,6]
+  expected = [4,10,18]     
+  
+  passed = a.multi(b)==expected
+|---------------------
+| check passed: true 
 
 
+
+|****************************************
+| TEST array matrix multiplication  
+| TAGS user-function array                         
+|************************  
+  multi(a,b) = a.map(ai-> b.map(bi->ai*bi))  
+
+  a =  [1,2,3]
+  b =  [4,5,6]
+
+  expected = [
+              [04,05,06],
+              [08,10,12],
+              [12,15,18]
+             ]     
+  
+  passed = a.multi(b)==expected
+|---------------------
+| check passed: true 
+
+
+
+|****************************************
+| TEST max of matrix  
+| TAGS user-function array                         
+|************************  
+  origin = [
+              [12,05,06],
+              [42,33,12],
+              [01,15,18]
+             ] 
+
+  origin.reduce((acc,cur) -> max(acc, cur.reduce(max)))
+|---------------------
+| check out: 42 
+
+
+
+|****************************************
+| TEST max of matrix with functions  
+| TAGS user-function array                         
+|************************  
+  
+  maxOfArray(t) = t.reduce(max)
+
+  maxOfMatrix(t) = t.reduce(maxOfMatrix)
+
+  origin = [
+              [12,05,06],
+              [42,33,12],
+              [01,15,18]
+             ] 
+
+  origin.maxOfMatrix()
+
+|---------------------
+| check out: 42 
+
+
+
+
+
+|****************************************
+| TEST max of cube matrix with functions  
+| TAGS user-function array                         
+|************************  
+  
+  maxOfArray(t) = t.reduce(max)
+
+  maxOfMatrix(t) = t.reduce(maxOfMatrix)
+
+  maxOfCube(j)=j.reduce(maxOfMatrix)
+
+  origin =[
+             [
+              [12,05,06],
+              [42,-2,12],
+              [01,15,18]
+             ],
+             [
+              [12,05,06],
+              [42,-1,68],
+              [01,15,18]
+             ],
+             [
+              [0,05,100],
+              [42,33,12],
+              [0,15,0]
+             ]
+          ] 
+
+  origin.maxOfCube()
+
+|---------------------
+| check out: 100 
+
+
+
+
+|****************************************
+| TEST max of cube matrix with generic functions  
+| TAGS user-function array                         
+|************************  
+  
+
+  maxOf(t) = t.reduce(f)
+
+  origin =[
+             [
+              [12,05,06],
+              [42,-2,12],
+              [01,15,18]
+             ],
+             [
+              [12,05,06],
+              [42,-1,68],
+              [01,15,18]
+             ],
+             [
+              [0,05,100],
+              [42,33,12],
+              [0,15,0]
+             ]
+          ] 
+
+  origin.maxOf(maxOf(max))
+|---------------------
+| check out: 100 
