@@ -96,7 +96,6 @@
 
 
 
-
 |****************************************
 | TEST int array index
 | TAGS array
@@ -217,6 +216,27 @@
 		].all(r->r)
 |------------------
 | check: results: true
+
+
+
+|****************************************
+| TEST var type array
+| TAGS array anything
+|************************
+  i:int
+  t:text
+  r:real
+  a:anything
+
+  j:anything = [i,t,j]
+|------------------
+| set i:1, t:'vasa', r:4.0, a: 'yeah'
+| check j:[1, 'vasa', 4.0, 'yeah']
+| set i:7, t:'', r:4.0, a: 42
+| check j:[7, '', 4.0, 42]
+
+
+
 
 
 
