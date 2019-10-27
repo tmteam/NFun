@@ -259,6 +259,12 @@ namespace Funny.Tests
                      y = reduce([1,2,3], iSum)",6)]
         [TestCase( @"iSum(r:int, x:int):int = r+x
                      y = reduce([100], iSum)",100)]
+        [TestCase("y = [1,2,3,4,5,6,7].filter(i->i%2==0).sum()",12)]
+        [TestCase("y = [1,2,3,4,5,6,7].filter(i->i%2).reduce((s,i)-> s+i+1)",15)]
+        [TestCase("y = [1,2,3,4,5,6,7].filter(i->i%2).reduce((s,i)-> s+i+1)",15)]
+        [TestCase("y = [1,2,3,4,5,6,7].filter(i->i%2).reduce(min)",0)]
+        [TestCase("y = [1,2,3,4,5,6,7].filter(i->i%2).reduce(max)",6)]
+
         public void HiOrderFunConstantEquatation(string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
@@ -434,6 +440,7 @@ namespace Funny.Tests
         [TestCase("y = [1..100].chunk(0)")]
         [TestCase(@"iSum(r:int, x:int):int = r+x
                      y = reduce([100][1:1], iSum)")]
+        
         public void FailsOnRuntime(string expr)
         {
             var runtime = FunBuilder.BuildDefault(expr);

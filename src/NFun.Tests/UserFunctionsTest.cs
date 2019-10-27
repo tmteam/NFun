@@ -65,12 +65,21 @@ namespace Funny.Tests
             "max3(a,b,c) =  max2(max2(a,b),c) \r max2(a,b)= if (a<b) b else a\r y = max3(16,32,2)",32)]
         [TestCase(
             "fact(a) = if (a<2) 1 else a*fact(a-1) \r y = fact(5)",5*4*3*2*1)]
-        public void ConstantEquation_RecFunctions(string expr, double expected)
+       
+        public void ConstantEquationOfReal_RecFunctions(string expr, double expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate().AssertReturns(0.00001, VarVal.New("y", expected));
         }
-
+        
+        [TestCase(@"myReverse(t) =  if(t.count()<2) t else t[1:].reverse().concat(t[0])   
+                    y = [1,2,3,4].myReverse()
+         ",new []{4,3,2,1} )]
+        public void ConstantEquationOfReal_RecFunctions(string expr, object expected)
+        {
+            var runtime = FunBuilder.BuildDefault(expr);
+            runtime.Calculate().AssertReturns( VarVal.New("y", expected));
+        }
         [TestCase(1,1)]
         [TestCase(2,1)]
         [TestCase(3,2)]
