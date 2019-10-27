@@ -54,34 +54,42 @@ namespace FuspecHandler
             Console.WriteLine("Number of FunParse Error: {0}", _errors.Count(e => e is FunParseException));
         }
 
-        public void PrintFullStatistic()
+        public void PrintErrorDetails()
         {
             foreach (var error in _errors)
             {
-                var file = error.Data["File"].ToString();
-                var script = "";
-                var test = "";
+                Console.WriteLine();
+                Console.WriteLine();
+                Console.WriteLine("*********************************");
+                PrintError(error);
+            }
+        }
 
-                if (error is FunParseException || error is FunRuntimeException)
-                {
-                    script = error.Data["Script"].ToString();
-                    test = error.Data["Test"].ToString();
-                }
+        private void PrintError(Exception error)
+        {
+            var file = error.Data["File"].ToString();
+            var script = "";
+            var test = "";
 
-                switch (error)
-                {
-                    case FuspecParserException fusParsExc:
-                        break;
-                    case FunParseException funParsException:
-                        _consoleWriter.PrintFunParseException(funParsException, file, script, test);
-                        break;
-                    case FunRuntimeException funRuntimeException:
-                        _consoleWriter.PrintFuspecRunTimeException(funRuntimeException, file, test);
-                        break;
-                    default:
-                        _consoleWriter.PrintUnknownException(error);
-                        break;
-                }
+            if (error is FunParseException || error is FunRuntimeException)
+            {
+                script = error.Data["Script"].ToString();
+                test   = error.Data["Test"].ToString();
+            }
+
+            switch (error)
+            {
+                case FuspecParserException fusParsExc:
+                    break;
+                case FunParseException funParsException:
+                    _consoleWriter.PrintFunParseException(funParsException, file, script, test);
+                    break;
+                case FunRuntimeException funRuntimeException:
+                    _consoleWriter.PrintFuspecRunTimeException(funRuntimeException, file, test);
+                    break;
+                default:
+                    _consoleWriter.PrintUnknownException(error);
+                    break;
             }
         }
     }

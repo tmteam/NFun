@@ -98,15 +98,11 @@ namespace FuspecHandler
         {
             Console.BackgroundColor = ConsoleColor.Red;
             Console.ForegroundColor = ConsoleColor.White;
-            Console.Write("\t\tERROR [FU" + e.Code + "] ");
+            Console.Write("ERROR [FU" + e.Code + "] ");
             Console.WriteLine($" {e.Message} ");
             Console.ResetColor();
-            Console.WriteLine("\t\tFILE:  {0}\n\t\tTEST:  {1}.", file,test); 
-            Console.WriteLine("--------------------------------------");
-Console.WriteLine("\t\tSCRIPT");
-            Console.WriteLine("--------------------------------------");
-
-
+            Console.WriteLine("FILE:  {0}\nTEST:  {1}.", file,test); 
+            Console.WriteLine("\r\n");
             if (e.End != -1)
             {
                 if (e.Start > 0)

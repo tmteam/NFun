@@ -1,37 +1,55 @@
 ﻿using System;
-using System.Globalization;
 using System.IO;
-using System.Linq;
-using Nfun.Fuspec.Parser;
-using Nfun.Fuspec.Parser.FuspecParserErrors;
-using Nfun.Fuspec.Parser.Model;
-using NFun.BuiltInFunctions;
-using NFun.ParseErrors;
 
 namespace FuspecHandler
 {
     class Program
     {
-        static void Main(string[] args)
+        static string GetFuspecRootOrNull()
         {
-            Console.WriteLine("Hello! I'm a Fuspec Handler! ");
-            
-            var testHandler = new TestHandler();
-            var stats = testHandler.RunTests();
-
-            stats.PrintStatistic();
-
-            Console.WriteLine();
-            Console.WriteLine("######################################");
-            Console.Write("Do you want to detail Errors?  Y/N  ");
-            Console.WriteLine();
-            var answer = Console.ReadLine();
-            if (answer=="y") 
-                stats.PrintFullStatistic();
-            
-            
+            var currentDir = Directory.GetCurrentDirectory();
+            while (true)
+            {
+                var combined = Path.Combine(currentDir, "fuspecs");
+                if (Directory.Exists(combined))
+                    return combined;
+                var info = Directory.GetParent(currentDir);
+                if (info.Root.FullName == info.FullName)
+                    return null;
+                currentDir = info.FullName;
+            }
         }
 
-      
+        static void Main(string[] args)
+        {
+            var path = GetFuspecRootOrNull(); //  Path.Combine(Directory.GetCurrentDirectory(), "fuspecs");
+            if (path == null)
+            {
+                Console.WriteLine("Fuspecs are not found");
+                return;
+            }
+
+            Console.WriteLine($"Executing tests from: path");
+
+            while (true)
+            {
+
+                Console.WriteLine($"Fuspec runner. Path: {path}");
+                var testHandler = new TestHandler();
+                var stats = testHandler.RunTests(path);
+
+                stats.PrintStatistic();
+
+                Console.WriteLine();
+                Console.WriteLine("######################################");
+                Console.Write("[D] - detail error. [E] - exit. [R] - repeat?   ");
+                Console.WriteLine();
+                var answer = Console.ReadLine();
+                if (answer.ToLower() == "d")
+                    stats.PrintErrorDetails();
+                if (answer.ToLower() == "e")
+                    return;
+            }
+        }
     }
 }

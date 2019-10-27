@@ -19,9 +19,9 @@ namespace FuspecHandler
         private readonly ConsoleWriter _consoleWriter = new ConsoleWriter();
 
 
-        public statsCollector RunTests()
+        public statsCollector RunTests(string directoryPath)
         {
-            string[] allFoundFiles = Directory.GetFiles("fuspecs\\", "*.fuspec", SearchOption.AllDirectories);
+            string[] allFoundFiles =  Directory.GetFiles(directoryPath, "*.fuspec", SearchOption.AllDirectories);
             statsCollector _stats = new statsCollector(allFoundFiles.Length);
 
             foreach (var file in allFoundFiles)

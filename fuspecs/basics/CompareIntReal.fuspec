@@ -78,8 +78,8 @@
 | TEST compare int variables  
 | TAGS int compare                         
 |************************
-  int:x1
-  int:x2
+  x1:int
+  x2:int
    
   m = x1>x2
   l = x1<x2 
@@ -186,8 +186,8 @@
 | TEST compare real variables  
 | TAGS real compare                         
 |************************
-  real:x1
-  real:x2
+  x1:real
+  x2:real
    
   m = x1>x2
   l = x1<x2 
@@ -294,8 +294,8 @@
 | TEST compare int to real variables  
 | TAGS int real compare                         
 |************************
-  int:i
-  real:r
+  i:int
+  r:real
    
   m = i>r
   l = i<r 
