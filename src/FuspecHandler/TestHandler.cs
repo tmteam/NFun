@@ -49,9 +49,10 @@ namespace FuspecHandler
 
                     foreach (var fus in specs)
                     {
+                        if (fus.IsTestExecuted)
+
                         try
                         {
-                            if (fus.IsTestExecuted)
                                RunOneTest(fus);
                         }
                         catch (Exception e)
@@ -59,6 +60,12 @@ namespace FuspecHandler
                             e.Data.Add("File", file);
                             _stats.AddError(e);
                             _consoleWriter.PrintError(e);
+                        }
+                        else
+                        {
+                            _consoleWriter.PrintFuspecName(fus.Name);
+                            _consoleWriter.PrintTODOTest();
+
                         }
                     }
 

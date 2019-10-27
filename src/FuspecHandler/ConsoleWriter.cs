@@ -36,6 +36,14 @@ namespace FuspecHandler
             Console.WriteLine("  Ok!  ");
             Console.ResetColor();
         }
+        
+        public  void PrintTODOTest()
+        {
+            Console.BackgroundColor = ConsoleColor.DarkYellow;
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine(" TODO! ");
+            Console.ResetColor();
+        }
 
         public void PrintError(Exception e)
         {
