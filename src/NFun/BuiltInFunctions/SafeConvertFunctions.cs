@@ -44,10 +44,7 @@ namespace NFun.BuiltInFunctions
     {
         public ToUint64FromUint64Function() : base("toUint64", VarType.UInt64, VarType.UInt64){}
         public override object Calc(object[] args) => args.Get<ulong>(0);
-    }
-    
-   
-    
+    } 
     
     public class ToRealFromRealFunction : FunctionBase
     {
@@ -84,7 +81,7 @@ namespace NFun.BuiltInFunctions
     public class ToTextFunction : FunctionBase
     {
         public ToTextFunction() : base("toText", VarType.Text, VarType.Anything){}
-        public override object Calc(object[] args) => ToText(args.Get<object>(0));
+        public override object Calc(object[] args) => new TextFunArray(ToText(args.Get<object>(0)));
 
         string ToText(object val)
         {

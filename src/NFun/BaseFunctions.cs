@@ -224,6 +224,11 @@ namespace NFun
             new RangeIntFunction(),
             new RangeWithStepIntFunction(),
             new RangeWithStepRealFunction(),
+            new TrimFunction(),
+            new TrimStartFunction(),
+            new TrimEndFunction(),
+            new SplitFunction(),
+            new JoinFunction(),
         };
     }
 }

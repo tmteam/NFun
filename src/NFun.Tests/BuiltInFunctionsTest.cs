@@ -346,6 +346,36 @@ namespace Funny.Tests
         [TestCase("y = [0..1].chunk(7) == [[0,1]]",true)]
         [TestCase("y = [0..6].chunk(2) == [[0,1],[2,3],[4,5],[6]]",true)]
         [TestCase("y = [3..7].chunk(1) == [[3],[4],[5],[6],[7]]",true)]
+        
+        [TestCase("y = ' hi world '.trim()","hi world")]
+        [TestCase("y = ' hi world'.trim()","hi world")]
+        [TestCase("y = 'hi world  '.trim()","hi world")]
+        [TestCase("y = '  hi world  '.trim()","hi world")]
+        [TestCase("y = 'hi world'.trim()","hi world")]
+
+        [TestCase("y = ' hi world '.trimStart()","hi world ")]
+        [TestCase("y = ' hi world'.trimStart()","hi world")]
+        [TestCase("y = 'hi world  '.trimStart()","hi world  ")]
+        [TestCase("y = '  hi world  '.trimStart()","hi world  ")]
+        [TestCase("y = 'hi world'.trim()","hi world")]
+
+        [TestCase("y = ' hi world '.trimEnd()"," hi world")]
+        [TestCase("y = ' hi world'.trimEnd()"," hi world")]
+        [TestCase("y = 'hi world  '.trimEnd()","hi world")]
+        [TestCase("y = '  hi world  '.trimEnd()","  hi world")]
+        [TestCase("y = 'hi world'.trim()","hi world")]
+        
+        
+        [TestCase("y = ['1','2','3','4'].join(', ')","1, 2, 3, 4")]
+        [TestCase("y = ['1','2','3','4'].join(',')","1,2,3,4")]
+        [TestCase("y = ['1'].join(',')","1")]
+
+        [TestCase("y = '1 2 3 4 5'.split(' ')",new []{"1","2","3","4","5"})]
+        [TestCase("y = ' '.split(' ')",new string[0])]
+        [TestCase("y = '1 2 3 4 5'.split(' ').join(',')","1,2,3,4,5")]
+        [TestCase("y = [1, 2, 3, 4, 5].map(toText).join(',')","1,2,3,4,5")]
+        [TestCase("y = 'c b a'.split(' ').sort().join(' ')","a b c")]
+        [TestCase("y = 123.toText().reverse()","321")]
         public void ConstantEquationWithGenericPredefinedFunction(string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);

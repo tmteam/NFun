@@ -35,7 +35,7 @@ namespace NFun.BuiltInFunctions
     public class BitOrInt64Function : FunctionBase
     {
         public BitOrInt64Function() : base(CoreFunNames.BitOr, VarType.Int64,VarType.Int64,VarType.Int64){}
-        public override object Calc(object[] args) => args.Get<int>(0) | args.Get<int>(1);
+        public override object Calc(object[] args) => args.Get<long>(0) | args.Get<long>(1);
     }
     
     public class BitOrUInt8Function : FunctionBase

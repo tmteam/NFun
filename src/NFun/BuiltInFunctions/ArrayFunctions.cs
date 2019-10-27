@@ -203,17 +203,7 @@ namespace NFun.BuiltInFunctions
         }
     }
     
-    public class SortTextFunction : FunctionBase
-    {
-        public SortTextFunction() : base("sort", VarType.ArrayOf(VarType.Text), VarType.ArrayOf(VarType.Text)){}
-
-        public override object Calc(object[] args)
-        {
-            var arr = ((IFunArray)args[0]).Select(TypeHelper.GetTextOrThrow).ToArray();
-            Array.Sort(arr, StringComparer.InvariantCulture);
-            return new ImmutableFunArray(arr);
-        }
-    }
+  
     
     public class SortRealFunction : FunctionBase
     {
