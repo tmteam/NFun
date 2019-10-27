@@ -47,7 +47,7 @@
   orXT  = x or true
   orXF  = x or false
   xorFX = false xor x
-  xorFX = true  xor x
+  xorTX = true  xor x
   xorXT = x xor true
   xorXF = x xor false
   notX  = not x
