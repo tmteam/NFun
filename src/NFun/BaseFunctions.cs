@@ -136,6 +136,8 @@ namespace NFun
             new RemainderUInt32Function(), 
             new RemainderUInt64Function(), 
                 
+            new SqrtFunction(),
+
             new SinFunction(), 
             new CosFunction(),
             new TanFunction(),

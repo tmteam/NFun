@@ -150,7 +150,9 @@ namespace Funny.Tests
         [TestCase("15 - sum(abs(1-4), 7)",5)]
         [TestCase("pi()",Math.PI)]
         [TestCase("e()",Math.E)]
-        
+        [TestCase("sqrt(0)", 0.0)]
+        [TestCase("sqrt(1.0)", 1.0)]
+        [TestCase("sqrt(4.0)", 2.0)]
         [TestCase("cos(0)", 1.0)]
         [TestCase("sin(0)", 0.0)]
         [TestCase("acos(1)", 0.0)]
@@ -185,6 +187,11 @@ namespace Funny.Tests
         [TestCase("sign(5)", 1)]
         [TestCase("sign(5.2)", 1)]
         [TestCase("min(0.5, 1)", 0.5)]
+        [TestCase("[1,2,3].count()", 3)]
+        [TestCase("['1','2','3'].count()", 3)]
+        [TestCase("[1..10].filter(i->i>3).count()", 7)]
+        [TestCase("[].count()", 0)]
+
         [TestCase("count([1,2,3])",3)]
         [TestCase("count([])",0)]
         [TestCase("count([1.0,2.0,3.0])",3)]
@@ -204,6 +211,10 @@ namespace Funny.Tests
         [TestCase("median([1.0,10.5,6.0])",6.0)]
         [TestCase("median([1,-10,0])",0)]        
         [TestCase("[1.0,2.0,3.0].any()",true)]
+        [TestCase("['a'].any()", true)]
+        [TestCase("[1..10].filter(i->i>3).any()", true)]
+        [TestCase("[1..10].filter(i->i>10).any()", false)]
+
         [TestCase("any([])",false)]
         [TestCase("[4,3,5,1].sort()",new []{1,3,4,5})]
         [TestCase("[4.0,3.0,5.0,1.0].sort()",new []{1.0,3.0,4.0,5.0})]
@@ -376,8 +387,10 @@ namespace Funny.Tests
         [TestCase("y = 'hi world  '.trimEnd()","hi world")]
         [TestCase("y = '  hi world  '.trimEnd()","  hi world")]
         [TestCase("y = 'hi world'.trim()","hi world")]
-        
-        
+
+
+       // [TestCase("y = [true,false,true].join(', ')", "true, false, true")]
+       // [TestCase("y = [1,2,3,4].join(', ')", "1, 2, 3, 4")]
         [TestCase("y = ['1','2','3','4'].join(', ')","1, 2, 3, 4")]
         [TestCase("y = ['1','2','3','4'].join(',')","1,2,3,4")]
         [TestCase("y = ['1'].join(',')","1")]

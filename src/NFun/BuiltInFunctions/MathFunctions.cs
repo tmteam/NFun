@@ -123,8 +123,12 @@ namespace NFun.BuiltInFunctions
         public RemainderUInt64Function() : base(CoreFunNames.Remainder, VarType.UInt64,VarType.UInt64,VarType.UInt64){}
         public override object Calc(object[] args) => (UInt64)(args.Get<UInt64>(0) % args.Get<UInt64>(1));
     }
-  #endregion
-        
+    #endregion
+    public class SqrtFunction : FunctionBase
+    {
+        public SqrtFunction() : base("sqrt", VarType.Real, VarType.Real) { }
+        public override object Calc(object[] args) => Math.Sqrt(args.Get<double>(0));
+    }
     public class PowRealFunction: FunctionBase
     {
         public PowRealFunction() : base(CoreFunNames.Pow, VarType.Real,VarType.Real,VarType.Real){}
