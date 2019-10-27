@@ -260,14 +260,17 @@ namespace Funny.Tests
         [TestCase( @"iSum(r:int, x:int):int = r+x
                      y = reduce([100], iSum)",100)]
         [TestCase("y = [1,2,3,4,5,6,7].filter(i->i%2==0).sum()",12)]
-        [TestCase("y = [1,2,3,4,5,6,7].filter(i->i%2).reduce((s,i)-> s+i+1)",15)]
-        [TestCase("y = [1,2,3,4,5,6,7].filter(i->i%2).reduce((s,i)-> s+i+1)",15)]
-        [TestCase("y = [1,2,3,4,5,6,7].filter(i->i%2).reduce(min)",0)]
-        [TestCase("y = [1,2,3,4,5,6,7].filter(i->i%2).reduce(max)",6)]
+        [TestCase("y = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce((s,i)-> s+i+1)", 14)]
+        [TestCase("y = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce((s,i)-> s+i+1)", 14)]
+        [TestCase("y = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce(min)", 2)]
+        [TestCase("y = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce(max)", 6)]
+        [TestCase("y = [1,2,3,4,5,6,7].filter(i:int->i%2==0).reduce(max)", 6)]
         [TestCase("y = [1,2,3,4].reduce((s,i)-> s+i)", 10)]
         [TestCase("y = [1,2,3,4,5,6,7].reduce(max)", 7)]
         [TestCase("y = [1,2,3,4,5,6,7].reduce((s,i)->if (s>i) s else i)", 7)]
-
+        [TestCase("y = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce((s,i)->if (s>i) s else i)", 6)]
+        [TestCase("y = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce((s,i)->0)", 0)]
+        [TestCase("y = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce((s,i)->0)", 0)]
         public void HiOrderFunConstantEquatation(string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
