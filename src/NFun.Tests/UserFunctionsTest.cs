@@ -60,7 +60,6 @@ namespace Funny.Tests
             runtime.Calculate().AssertReturns(0.00001, VarVal.New("y", expected));
         }
         
-        
         [TestCase(
             "max3(a,b,c) =  max2(max2(a,b),c) \r max2(a,b)= if (a<b) b else a\r y = max3(16,32,2)",32)]
         [TestCase(
@@ -75,6 +74,18 @@ namespace Funny.Tests
         [TestCase(@"myReverse(t) =  if(t.count()<2) t else t[1:].reverse().concat(t[0])   
                     y = [1,2,3,4].myReverse()
          ",new []{4,3,2,1} )]
+        [TestCase(@"myLast(t) =  if(t.count()<2) t[0] else t[1:].myLast()   
+                    y = [1,2,3,4].myLast()
+         ", 4)]
+        [TestCase(@"myLast(t):int =  if(t.count()<2) t[0] else t[1:].myLast()   
+                    y = [1,2,3,4].myLast()
+         ", 4)]
+        [TestCase(@"myLast(t:int[]) =  if(t.count()<2) t[0] else t[1:].myLast()   
+                    y = [1,2,3,4].myLast()
+         ", 4)]
+        [TestCase(@"myLast(t:int[]):int =  if(t.count()<2) t[0] else t[1:].myLast()   
+                    y = [1,2,3,4].myLast()
+         ", 4)]
         public void ConstantEquationOfReal_RecFunctions(string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
