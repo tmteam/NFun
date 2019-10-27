@@ -15,6 +15,8 @@ namespace Nfun.Fuspec.Parser
         public IdType[] ParamsIn { get; set; }
         
         public IdType[] ParamsOut { get; set; }
+        
+        public bool IsTestExecuted { get; set; }
 
         public SetCheckPair[] SetCheckKits => _setCheckKits.ToArray();
         
@@ -26,10 +28,11 @@ namespace Nfun.Fuspec.Parser
             ParamsIn = new IdType[0];
             ParamsOut=new IdType[0];
             _setCheckKits=new List<SetCheckPair>();
+            IsTestExecuted = true;
         }
 
         internal FuspecTestCase Build() =>
-            new FuspecTestCase(Name, Tags, Script, ParamsIn, ParamsOut,SetCheckKits);
+            new FuspecTestCase(Name, Tags, Script, ParamsIn, ParamsOut,SetCheckKits, IsTestExecuted);
         
         internal  void BuildSetCheckKits(List<SetCheckPair> setCheckKits)
         {

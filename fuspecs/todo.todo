@@ -536,12 +536,8 @@
 | set a:12, b:9
 | check out: '12,11,10,9'
 
-
-
-
-
 |****************************************
-| TEST req array reverse 
+| TODO req array reverse 
 | TAGS req user-function
 |************************  
 | in   t:text, i:int[]
@@ -560,6 +556,8 @@
 |---------------------
 | set i:[1,2,3,4,5,6,7,8,9],  t: "hello world"
 | check yi:[9,8,7,6,5,4,3,2,1], t:"dlrow olleh"
+
+
 
 
 |****************************************

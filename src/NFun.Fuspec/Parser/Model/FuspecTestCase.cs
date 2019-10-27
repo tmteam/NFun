@@ -9,7 +9,8 @@ namespace Nfun.Fuspec.Parser.Model
                                 string[] tags, 
                                 string body,
                                 IdType[] inputVarList, IdType[] outputVarList, 
-                                SetCheckPair[] setChecks )
+                                SetCheckPair[] setChecks,
+                                bool isTestExecuted)
         {
             Name = name;
             Tags = tags;
@@ -17,6 +18,7 @@ namespace Nfun.Fuspec.Parser.Model
             InputVarList = inputVarList;
             OutputVarList = outputVarList;
             SetChecks = setChecks;
+            IsTestExecuted = isTestExecuted;
         }
         public string Name { get; }
         public string[] Tags { get; }
@@ -26,6 +28,8 @@ namespace Nfun.Fuspec.Parser.Model
         public IdType[] OutputVarList { get; }
         
         public SetCheckPair[] SetChecks { get; }
+        
+        public bool IsTestExecuted { get; }
 
     }
     

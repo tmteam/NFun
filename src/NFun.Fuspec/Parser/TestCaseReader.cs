@@ -92,10 +92,12 @@ namespace Nfun.Fuspec.Parser
             if (_inputText.IsCurentLineEmty())
                return TestCaseParseState.ReadingName;
 
-            var name = GetContentOrNullIfStartsFromKeyword("| TEST", str);
+            var name = GetContentOrNullIfStartsFromKeyword("| TEST", str) ?? GetContentOrNullIfStartsFromKeyword("| TODO", str);
             if (name == null || name.Trim() == "")
                 return WriteError(new FuspecParserError(FuspecErrorType.NamedMissed, _inputText.Index));
             _testCaseBuilder.Name = name.Trim();
+            if (str.IndexOf("TODO") == 2)
+                _testCaseBuilder.IsTestExecuted = false;
             return TestCaseParseState.ReadingTags;
         }
 

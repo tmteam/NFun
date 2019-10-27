@@ -51,6 +51,7 @@ namespace FuspecHandler
                     {
                         try
                         {
+                            if (fus.IsTestExecuted)
                                RunOneTest(fus);
                         }
                         catch (Exception e)

@@ -50,6 +50,9 @@ namespace FuspecHandler
             Console.WriteLine("Number of SuccessfulParsedTests: {0}", _numberOfTests);
             Console.WriteLine("Number of SuccessfulCompleteTests: {0}",
                 _numberOfTests - funRuntimeErrors.Count() - funParseErrors.Length);
+            Console.WriteLine("Number of TODO tests: {0}", "unknown");
+            Console.WriteLine("_______");
+            Console.WriteLine("ERRORS:");
             Console.WriteLine("Number of FunRuntime Error: {0}", _errors.Count(e => e is FunRuntimeException));
             Console.WriteLine("Number of FunParse Error: {0}", _errors.Count(e => e is FunParseException));
         }
