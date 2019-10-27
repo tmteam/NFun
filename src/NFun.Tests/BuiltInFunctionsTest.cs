@@ -264,6 +264,9 @@ namespace Funny.Tests
         [TestCase("y = [1,2,3,4,5,6,7].filter(i->i%2).reduce((s,i)-> s+i+1)",15)]
         [TestCase("y = [1,2,3,4,5,6,7].filter(i->i%2).reduce(min)",0)]
         [TestCase("y = [1,2,3,4,5,6,7].filter(i->i%2).reduce(max)",6)]
+        [TestCase("y = [1,2,3,4].reduce((s,i)-> s+i)", 10)]
+        [TestCase("y = [1,2,3,4,5,6,7].reduce(max)", 7)]
+        [TestCase("y = [1,2,3,4,5,6,7].reduce((s,i)->if (s>i) s else i)", 7)]
 
         public void HiOrderFunConstantEquatation(string expr, object expected)
         {

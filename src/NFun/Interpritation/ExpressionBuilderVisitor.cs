@@ -231,7 +231,21 @@ namespace NFun.Interpritation
                 //if it is not a variable it might be a functional-variable
                 var funVars = _functions.GetNonGeneric(lower);
                 if (funVars.Count > 1)
-                    throw ErrorFactory.AmbiguousFunctionChoise(varNode);
+                {
+                    var specification = varNode.OutputType.FunTypeSpecification;
+                    if (specification == null)
+                        throw ErrorFactory.FunctionNameAndVariableNameConflict(varNode);
+
+                    //several function with such name are appliable
+                    var result = funVars.Where(f =>
+                            f.ReturnType == specification.Output && f.ArgTypes.SequenceEqual(specification.Inputs))
+                        .ToList();
+
+                    if (result.Count > 1)
+                        throw ErrorFactory.AmbiguousFunctionChoise(varNode);
+                    return new FunVariableExpressionNode(result[0], varNode.Interval);
+                }
+
                 if (funVars.Count == 1)
                     return new FunVariableExpressionNode(funVars[0], varNode.Interval);
             }
