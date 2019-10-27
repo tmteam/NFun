@@ -31,7 +31,7 @@ namespace FuspecHandler
 
             Console.WriteLine($"Executing tests from: path");
 
-            while (true)
+         //   while (true)
             {
 
                 Console.WriteLine($"Fuspec runner. Path: {path}");
