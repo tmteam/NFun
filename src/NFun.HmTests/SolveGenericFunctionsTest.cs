@@ -631,25 +631,6 @@ namespace NFun.HmTests
             Assert.IsTrue(res.IsSolved);
             Assert.AreEqual(TiType.Fun(TiType.Int32, TiType.Int32), res.GetVarType("f(1)"));
             Assert.AreEqual(TiType.ArrayOf(TiType.Int32), res.GetVarType("f(1)arg"));
-
-
-            /*
-            //  2         1 0
-            //f(a):long = f(a)
-            var tA = solver.SetNewVarOrThrow("f(1) a");
-            solver.SetVarType("f(1)", TiType.Fun(SolvingNode.CreateStrict(TiType.Int64), tA));
-            
-            solver.SetVar(0, "f(1) a");
-            solver.SetInvoke(1, "f(1)", new[] {0});
-            solver.SetFunDefenition("f(1)", 2, 1);
-            
-            var res = solver.Solve();
-            Assert.AreEqual(1,res.GenericsCount);
-            Assert.IsTrue(res.IsSolved);
-            Assert.AreEqual(TiType.Fun(TiType.Int64, TiType.Generic(0)), res.GetVarType("f(1)"));
-            Assert.AreEqual(TiType.Generic(0), res.GetVarType("f(1) a"));
- 
-             */
         }
 
         [Test]
