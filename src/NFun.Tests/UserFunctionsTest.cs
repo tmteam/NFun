@@ -91,6 +91,23 @@ namespace Funny.Tests
             var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate().AssertReturns( VarVal.New("y", expected));
         }
+        [TestCase(@"f(t):int =  if(t.count()<2) t[0] else t[1:].f();   
+                    y = [1].f()")]
+        [TestCase(@"f(t):int =  if(true) t[0] else t[1:].f();  y = [1].f()")]
+        [TestCase(@"f(t):int =  if(true) 1 else t[1:].f();  y = [1].f()")]
+        [TestCase(@"f(t):int =  if(t.count()<2) t[0] else t.f(); y = [1].f()")]
+        [TestCase(@"f(t):int =  t[1:].f(); y = [1].f()")]
+        [TestCase("f(t) =  f(t); y = [1].f()")]
+        [TestCase("f(t):int =  f(t); y = [1].f()")]
+        [TestCase("f(t):int =  f(t)+1; y = [1].f()")]
+        [TestCase("f(t:int[]) =  f(t)+1; y = [1].f()")]
+        [TestCase("f(t:int[]):int =  f(t)+1; y = [1].f()")]
+        [TestCase(@"f(t):int =  if(true) 1 else f(t); y = [1].f()")]
+        [TestCase(@"f(t):int =  t[0]")]
+        [TestCase(@"f(t):int =  t[1:][0]")]
+        public void ConstantEquationOfReal_RecFunctionsBuilds(string expr) 
+            => FunBuilder.BuildDefault(expr);
+
         [TestCase(1,1)]
         [TestCase(2,1)]
         [TestCase(3,2)]

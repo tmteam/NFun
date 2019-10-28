@@ -190,15 +190,6 @@ namespace NFun.TypeInference
         public override bool Visit(ConstantSyntaxNode node)
         {
             var type = LangTiHelper.ConvertToTiType(node.OutputType);
-            
-            if (node.OutputType == VarType.Int32)
-            {
-                var value = (int) node.Value;
-                if (value >= 0 && value < 256) //alow us to convert int to any lower types
-                    return _state.CurrentSolver.SetLimitConst(node.OrderNumber, TiType.Int32);
-                if(value>=0 && value <= ushort.MaxValue)
-                    return _state.CurrentSolver.SetLcaConst(node.OrderNumber, TiType.UInt16);
-            }
 
             return _state.CurrentSolver.SetConst(node.OrderNumber, type);
         }

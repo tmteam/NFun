@@ -593,8 +593,65 @@ namespace NFun.HmTests
             Assert.AreEqual(TiType.Fun(TiType.Real, TiType.Int32), res.GetVarType("f(1)"));
             Assert.AreEqual(TiType.Int32, res.GetVarType("f(1) a"));
         }
-        
-        
+
+        [Test]
+        public void RecursiveFunction_ArrayWithConcreteOutput_Solved()
+        {
+            //  9          8  7     2  0 1       6  5   3 4    
+            //f(t):int =  if(true) get(t,0) else f(skip(t,1)
+
+            var tA = solver.SetNewVarOrThrow("f(1)arg");
+
+            solver.SetVarType("f(1)", TiType.Fun(SolvingNode.CreateStrict(TiType.Int32), tA));
+            solver.SetVar(0, "f(1)arg");
+            solver.SetConst(1, TiType.Int32);
+            solver.SetCall(new CallDefinition(
+                new[]{
+                    TiType.Generic(0),
+                    TiType.ArrayOf(TiType.Generic(0)),
+                    TiType.Int32},
+                new[] { 2, 0, 1 }));
+            solver.SetVar(3, "f(1)arg");
+            solver.SetConst(4, TiType.Int32);
+            solver.SetCall(new CallDefinition(
+                new[]{
+                    TiType.ArrayOf(TiType.Generic(0)),
+                    TiType.ArrayOf(TiType.Generic(0)),
+                    TiType.Int32},
+                new[] { 5, 3, 4 }));
+
+            solver.SetInvoke(6, "f(1)", new[] { 5 });
+
+            solver.SetConst(7, TiType.Bool);
+            solver.ApplyLcaIf(8, new[] { 7 }, new[] { 2, 6 });
+            solver.SetFunDefenition("f(1)", 9, 8);
+
+            var res = solver.Solve();
+            Assert.AreEqual(1, res.GenericsCount);
+            Assert.IsTrue(res.IsSolved);
+            Assert.AreEqual(TiType.Fun(TiType.Int32, TiType.Int32), res.GetVarType("f(1)"));
+            Assert.AreEqual(TiType.ArrayOf(TiType.Int32), res.GetVarType("f(1)arg"));
+
+
+            /*
+            //  2         1 0
+            //f(a):long = f(a)
+            var tA = solver.SetNewVarOrThrow("f(1) a");
+            solver.SetVarType("f(1)", TiType.Fun(SolvingNode.CreateStrict(TiType.Int64), tA));
+            
+            solver.SetVar(0, "f(1) a");
+            solver.SetInvoke(1, "f(1)", new[] {0});
+            solver.SetFunDefenition("f(1)", 2, 1);
+            
+            var res = solver.Solve();
+            Assert.AreEqual(1,res.GenericsCount);
+            Assert.IsTrue(res.IsSolved);
+            Assert.AreEqual(TiType.Fun(TiType.Int64, TiType.Generic(0)), res.GetVarType("f(1)"));
+            Assert.AreEqual(TiType.Generic(0), res.GetVarType("f(1) a"));
+ 
+             */
+        }
+
         [Test]
         public void TwoRecursiveFunctions_ArithmeticalOnItCall_Solved()
         {
