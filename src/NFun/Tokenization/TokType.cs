@@ -36,6 +36,14 @@ namespace NFun.Tokenization
         /// </summary>
         ArrCBr,
         /// <summary>
+        /// '..{
+        /// </summary>
+        InterOBr,
+        /// <summary>
+        ///  '}...'
+        /// </summary>
+        InterCBr,
+        /// <summary>
         /// not used
         /// </summary>
         ArrConcat,

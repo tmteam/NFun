@@ -29,5 +29,6 @@ namespace NFun.BuiltInFunctions
         public const string ArrConcat = "@";
         public const string Not = "invert";
         public const string Negate = "-_invert_num";
+        public static string Format = "@Format";
     }
 }

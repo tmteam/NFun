@@ -6,7 +6,7 @@ namespace NFun.Tokenization
 {
     public static class QuotationReader
     {
-        public static (string result, int resultPosition) ReadQuotation(string rawString, int position)
+        public static (string result, int resultPosition, bool hasInterpolationSymbol) ReadQuotation(string rawString, int position)
         {
             var quoteSymbol = rawString[position];
             if(quoteSymbol!= '\'' && quoteSymbol!= '\"')
@@ -21,7 +21,7 @@ namespace NFun.Tokenization
             int closeQuotationPosition = 0;
             for (; i < rawString.Length; i++)
             {
-                if (rawString[i] == quoteSymbol)
+                if (rawString[i] == quoteSymbol || rawString[i] == '{')
                 {
                     closeQuotationPosition = i;
                     break;

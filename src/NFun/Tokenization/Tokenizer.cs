@@ -239,7 +239,6 @@ namespace NFun.Tokenization
         {
             var(result, endPosition) = QuotationReader.ReadQuotation(str, position);
             return Tok.New(TokType.Text, result,position, endPosition);
-           
         }
         
         private Tok ReadNumber(string str, int position)

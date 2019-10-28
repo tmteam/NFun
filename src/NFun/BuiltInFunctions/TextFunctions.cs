@@ -7,6 +7,18 @@ using NFun.Types;
 
 namespace NFun.BuiltInFunctions
 {
+    public class FormatTextFunction : FunctionBase
+    {
+        public FormatTextFunction() : base("format", VarType.Text, VarType.Text, VarType.ArrayOf(VarType.Anything)) { }
+
+        public override object Calc(object[] args)
+        {
+            var template = args.GetTextOrThrow(0);
+            var formatArguments = ((IFunArray) args[1]);
+            var result = string.Format(template, formatArguments);
+            return new TextFunArray(result);
+        }
+    }
     public class SortTextFunction : FunctionBase
     {
         public SortTextFunction() : base("sort", VarType.ArrayOf(VarType.Text), VarType.ArrayOf(VarType.Text)){}
