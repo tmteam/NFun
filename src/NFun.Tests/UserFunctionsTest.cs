@@ -71,26 +71,6 @@ namespace Funny.Tests
             runtime.Calculate().AssertReturns(0.00001, VarVal.New("y", expected));
         }
         
-        [TestCase(@"myReverse(t) =  if(t.count()<2) t else t[1:].reverse().concat(t[0])   
-                    y = [1,2,3,4].myReverse()
-         ",new []{4,3,2,1} )]
-        [TestCase(@"myLast(t) =  if(t.count()<2) t[0] else t[1:].myLast()   
-                    y = [1,2,3,4].myLast()
-         ", 4)]
-        [TestCase(@"myLast(t):int =  if(t.count()<2) t[0] else t[1:].myLast()   
-                    y = [1,2,3,4].myLast()
-         ", 4)]
-        [TestCase(@"myLast(t:int[]) =  if(t.count()<2) t[0] else t[1:].myLast()   
-                    y = [1,2,3,4].myLast()
-         ", 4)]
-        [TestCase(@"myLast(t:int[]):int =  if(t.count()<2) t[0] else t[1:].myLast()   
-                    y = [1,2,3,4].myLast()
-         ", 4)]
-        public void ConstantEquationOfReal_RecFunctions(string expr, object expected)
-        {
-            var runtime = FunBuilder.BuildDefault(expr);
-            runtime.Calculate().AssertReturns( VarVal.New("y", expected));
-        }
         [TestCase(1,1)]
         [TestCase(2,1)]
         [TestCase(3,2)]
