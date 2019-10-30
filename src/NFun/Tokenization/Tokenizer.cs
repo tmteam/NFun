@@ -6,6 +6,7 @@ namespace NFun.Tokenization
 {
     public class Tokenizer
     {
+        private Queue<Tok> _futureTokens = null;
         public static TokFlow ToFlow(string input) 
             => new TokFlow(ToTokens(input));
 
@@ -18,6 +19,18 @@ namespace NFun.Tokenization
                 yield return res;
                 if (res.Is(TokType.Eof)) 
                     yield break;
+
+                //yield future tokens if there are any
+                if (reader._futureTokens != null)
+                {
+                    while (reader._futureTokens.Count>0)
+                    {
+                        res = reader._futureTokens.Dequeue();
+                        yield return res;
+                    }
+                    reader._futureTokens = null;
+                }
+                
                 i = res.Finish;
             }
         }
@@ -102,11 +115,11 @@ namespace NFun.Tokenization
             {"date", TokType.Reserved},
         };
         
-        public Tok TryReadNext(string str, int position)
+        private Tok TryReadNext(string str, int position)
         {
             if(position>=str.Length)
                 return Tok.New(TokType.Eof, position,position);
-            
+
             var current = str[position];
             if (current == '#')
             {
@@ -235,10 +248,26 @@ namespace NFun.Tokenization
         private bool IsQuote(char val) => val == '\''|| val == '\"'; 
 
         /// <exception cref="FunParseException"></exception>
-        private Tok ReadText(string str, int position)
+        private Tok ReadText(string str, int startPosition)
         {
-            var(result, endPosition) = QuotationReader.ReadQuotation(str, position);
-            return Tok.New(TokType.Text, result,position, endPosition);
+            var openQuoteSymbol = str[startPosition];
+            if (startPosition >= str.Length - 1)
+                throw ErrorFactory.QuoteAtEndOfString(openQuoteSymbol,startPosition,startPosition + 1);
+
+            var (result, endPosition) = QuotationReader.ReadQuotation(str, startPosition);
+            if(endPosition==-1)
+                throw ErrorFactory.ClosingQuoteIsMissed(openQuoteSymbol, startPosition, str.Length-1);
+
+            var closeQuoteSymbol = str[endPosition];
+            if (closeQuoteSymbol == '{')
+            {
+                //interpolation
+                throw new NotImplementedException();
+            }
+            else if (closeQuoteSymbol != openQuoteSymbol)
+                throw ErrorFactory.ClosingQuoteIsMissed(openQuoteSymbol, startPosition, endPosition);
+
+            return Tok.New(TokType.Text, result,startPosition, endPosition+1);
         }
         
         private Tok ReadNumber(string str, int position)

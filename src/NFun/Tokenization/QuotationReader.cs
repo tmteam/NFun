@@ -6,22 +6,23 @@ namespace NFun.Tokenization
 {
     public static class QuotationReader
     {
-        public static (string result, int resultPosition, bool hasInterpolationSymbol) ReadQuotation(string rawString, int position)
+        /// <summary>
+        /// Convert escaped string until ' or  "  or { symbols
+        /// </summary>
+        /// <param name="rawString"></param>
+        /// <param name="startPosition">open quote position</param>
+        /// <returns>result: escaped string, resultPosition: index of closing quote symbol. -1 if no close quote symbol found</returns>
+        public static (string result, int resultPosition) ReadQuotation(string rawString, int startPosition)
         {
-            var quoteSymbol = rawString[position];
-            if(quoteSymbol!= '\'' && quoteSymbol!= '\"')
-                throw new InvalidOperationException("Current symbol is not \"open-quote\" symbol");
-            if (position == rawString.Length - 1)
-                throw ErrorFactory.QuoteAtEndOfString(quoteSymbol, position, position + 1);
-            
-            StringBuilder sb = new StringBuilder();
-            int lastNonEscaped = position+1;
+            var sb = new StringBuilder();
+            int lastNonEscaped = startPosition+1;
 
             int i = lastNonEscaped;
-            int closeQuotationPosition = 0;
+            var closeQuotationPosition = 0;
             for (; i < rawString.Length; i++)
             {
-                if (rawString[i] == quoteSymbol || rawString[i] == '{')
+                var current = rawString[i];
+                if (current == '\'' || current == '"' || current == '{')
                 {
                     closeQuotationPosition = i;
                     break;
@@ -61,17 +62,17 @@ namespace NFun.Tokenization
             }
 
             if (closeQuotationPosition == 0)
-                throw ErrorFactory.ClosingQuoteIsMissed(quoteSymbol, position + 1, i);
-            
-            if (lastNonEscaped == position+1)
-                return (rawString.Substring(position + 1, i - position-1), i + 1);
+                return ("", -1);
+
+            if (lastNonEscaped == startPosition+1)
+                return (rawString.Substring(startPosition + 1, i - startPosition-1), i);
             
             if (lastNonEscaped <= rawString.Length-1)
             {
                 var prev = rawString.Substring(lastNonEscaped,i - lastNonEscaped);
                 sb.Append(prev);
             }
-            return (sb.ToString(), i+1);
+            return (sb.ToString(), closeQuotationPosition);
         }
     }
 }
