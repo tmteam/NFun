@@ -202,58 +202,8 @@ namespace NFun.SyntaxParsing
                 else
                     return SyntaxNodeFactory.Var(headToken);
             }
-            if (flow.MoveIf(TokType.TextOpenInterpolation, out var openInterpolationText))
-            {
-                //interpolation
-                var concatinations = new List<ISyntaxNode>();
-                //Open interpolation string
-                // '...{ 
-                concatinations.Add(SyntaxNodeFactory.Constant(
-                    new TextFunArray(openInterpolationText.Value),
-                    VarType.Text,
-                    openInterpolationText.Interval));
-                
-                while (true)
-                {
-                    //Read interpolation body
-                    //{...} 
-                    var allNext = ReadNodeOrNull(flow);
-                    if (allNext == null)
-                        throw ErrorFactory.InterpolationExpressionIsMissing(concatinations.Last());
-
-                    var toText = SyntaxNodeFactory.FunCall(CoreFunNames.ToText, new[] {allNext}, allNext.Interval.Start,
-                        allNext.Interval.Finish);
-                    concatinations.Add(toText);
-
-
-                    //if next is interpolation finish
-                    // }...'
-                    if (flow.Current.Type is TokType.TextCloseInterpolation)
-                    {
-                        concatinations.Add(SyntaxNodeFactory.Constant(
-                            new TextFunArray(flow.Current.Value),
-                            VarType.Text,
-                            flow.Current.Interval));
-                        flow.MoveNext();
-                        var arrayOfTexts = SyntaxNodeFactory.Array(concatinations.ToArray(), openInterpolationText.Start,
-                            flow.Current.Finish);
-                        return SyntaxNodeFactory.FunCall(CoreFunNames.ConcatTexts, new[] { arrayOfTexts }, openInterpolationText.Start,
-                            flow.Current.Finish);
-                    }
-                    //interpolation continuation
-                    // }...{
-                    else if (flow.Current.Type is TokType.TextMidInterpolation)
-                    {
-                        concatinations.Add(SyntaxNodeFactory.Constant(
-                            new TextFunArray(flow.Current.Value),
-                            VarType.Text,
-                            openInterpolationText.Interval));
-                        flow.MoveNext();
-                    }
-                    else
-                        throw  new ImpossibleException("imp328. Invalid interpolation sequence");
-                }
-            }
+            if (flow.IsCurrent(TokType.TextOpenInterpolation))
+                return ReadInterpolationText(flow);
             if (flow.IsCurrent(TokType.Obr))
                 return ReadBrackedNodeList(flow);
             if (flow.IsCurrent(TokType.If))
@@ -265,7 +215,8 @@ namespace NFun.SyntaxParsing
                 throw ErrorFactory.NotAToken(flow.Current);
             return null;
         }
-        
+
+
         /// <summary>
         /// Reads node with specified syntax priority
         /// throws FunParseException if underlying syntax is invalid,
@@ -366,7 +317,63 @@ namespace NFun.SyntaxParsing
                 }
             }
         }
-        
+
+        public static ISyntaxNode ReadInterpolationText(TokFlow flow)
+        {
+            var openInterpolationToken = flow.MoveIfOrThrow(TokType.TextOpenInterpolation);
+            //interpolation
+            var concatinations = new List<ISyntaxNode>();
+            //Open interpolation string
+            // '...{ 
+            concatinations.Add(SyntaxNodeFactory.Constant(
+                new TextFunArray(openInterpolationToken.Value),
+                VarType.Text,
+                openInterpolationToken.Interval));
+
+            while (true)
+            {
+                //Read interpolation body
+                //{...} 
+                var allNext = ReadNodeOrNull(flow);
+                if (allNext == null)
+                    throw ErrorFactory.InterpolationExpressionIsMissing(concatinations.Last());
+
+                var toText = SyntaxNodeFactory.FunCall(CoreFunNames.ToText, new[] { allNext }, allNext.Interval.Start,
+                    allNext.Interval.Finish);
+                concatinations.Add(toText);
+
+
+                //interpolation end
+                // }...'
+                if (flow.Current.Type is TokType.TextCloseInterpolation)
+                {
+                    concatinations.Add(SyntaxNodeFactory.Constant(
+                        new TextFunArray(flow.Current.Value),
+                        VarType.Text,
+                        flow.Current.Interval));
+                    flow.MoveNext();
+                    var arrayOfTexts = SyntaxNodeFactory.Array(concatinations.ToArray(), openInterpolationToken.Start,
+                        flow.Current.Finish);
+
+                    return SyntaxNodeFactory.FunCall(CoreFunNames.ConcatTexts, new[] { arrayOfTexts },
+                        openInterpolationToken.Start,
+                        flow.Current.Finish);
+                }
+                //interpolation continuation
+                // }...{
+                else if (flow.Current.Type is TokType.TextMidInterpolation)
+                {
+                    concatinations.Add(SyntaxNodeFactory.Constant(
+                        new TextFunArray(flow.Current.Value),
+                        VarType.Text,
+                        openInterpolationToken.Interval));
+                    flow.MoveNext();
+                }
+                else
+                    throw new ImpossibleException("imp328. Invalid interpolation sequence");
+            }
+        }
+
         /// <summary>
         /// Read array index or array slice node
         /// </summary>
@@ -471,11 +478,11 @@ namespace NFun.SyntaxParsing
                     var missedVal = flow.Current;
                     if (flow.Current.Is(TokType.ArrCBr)) {
                         lastToken = flow.Current;
-                        missedVal = default(Tok);
+                        missedVal = default;
                     }
                     else if(flow.Current.Is(TokType.TwoDots)) {
                         lastToken = flow.Current;
-                        missedVal = default(Tok);                        
+                        missedVal = default;                        
                     }
                     throw ErrorFactory.ArrayInitializeSecondIndexMissed(
                         openBracket, lastToken, missedVal);
@@ -490,11 +497,11 @@ namespace NFun.SyntaxParsing
                         var missedVal = flow.Current;
                         if (flow.Current.Is(TokType.ArrCBr)) {
                             lastToken = flow.Current;
-                            missedVal = default(Tok);
+                            missedVal = default;
                         }
                         else if(flow.Current.Is(TokType.TwoDots)) {
                             lastToken = flow.Current;
-                            missedVal = default(Tok);                        
+                            missedVal = default;                        
                         }
                         throw ErrorFactory.ArrayInitializeStepMissed(
                             openBracket, lastToken, missedVal);

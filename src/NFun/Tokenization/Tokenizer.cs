@@ -65,12 +65,16 @@ namespace NFun.Tokenization
             
             {"never", TokType.Reserved},
             {"base", TokType.Reserved},
+
+            {"void", TokType.Reserved},
             {"char", TokType.Reserved},
             {"int8", TokType.Reserved},
+            {"ip", TokType.Reserved},
+            {"date", TokType.Reserved},
+            
             {"let", TokType.Reserved},
             {"var", TokType.Reserved},
             {"val", TokType.Reserved},
-            {"void", TokType.Reserved},
             {"from", TokType.Reserved},
             {"to", TokType.Reserved},
             {"of", TokType.Reserved},
@@ -107,8 +111,7 @@ namespace NFun.Tokenization
             {"throw", TokType.Reserved},
             {"result", TokType.Reserved},
             {"_", TokType.Reserved},
-            {"ip", TokType.Reserved},
-            {"date", TokType.Reserved},
+         
         };
         
         private static int SkipComments(string str, int position)
