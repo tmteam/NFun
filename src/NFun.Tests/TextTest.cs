@@ -44,13 +44,13 @@ namespace Funny.Tests
         [TestCase("y = '{42}hi'", "42hi")]
         [TestCase("y = 'hello {42} world'", "hello 42 world")]
         [TestCase("y = 'hello {42+1} world'", "hello 43 world")]
-
+        [TestCase("y = '{''}'", "")]
         [TestCase("y = 'hi {42} and {21}'", "hi 42 and 21")]
         [TestCase("y = 'hi {42+13} and {21-1}'", "hi 55 and 20")]
         [TestCase("y = '{0+1} {1+2} {2+3}'", "1 3 5")]
         [TestCase("y = 'pre {'p{42-1*2}m{21-1+10*3}a'} mid {'p{42-2}m{21-1}a'} fin'", "pre p40m50a mid p40m20a fin")]
-        [TestCase("y = 'pre1{'pre2{2-2}after2'}after1'", "pre1pre20after2")]
-        [TestCase("y = 'pre1 {'inside'} after1'", "pre1 inside after2")]
+        [TestCase("y = 'pre1{'pre2{2-2}after2'}after1'", "pre1pre20after2after1")]
+        [TestCase("y = 'pre1 {'inside'} after1'", "pre1 inside after1")]
 
         public void TextConstantEquation(string expr, object expected) =>
             FunBuilder

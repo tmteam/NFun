@@ -263,12 +263,14 @@ namespace NFun.ParseErrors
         public static Exception InputNameWithDifferentCase(string id, string actualName, Interval interval)
             => new FunParseException(348, $"{actualName}<-  input name is same to name  {id}", interval);
 
-        
+        public static Exception InterpolationExpressionIsMissing(ISyntaxNode lastNode)
+            => new FunParseException(252, $"  Interpolation expression is missing{Nl} Example: 'before {{...}} after' ", lastNode.Interval);
+
         #endregion
 
         #region  4xx - errors of lists
 
-         public static Exception ArrayInitializeByListError(int openBracketTokenPos, TokFlow flow)
+        public static Exception ArrayInitializeByListError(int openBracketTokenPos, TokFlow flow)
         {
             var res = ErrorsHelper.GetExpressionListError(openBracketTokenPos, flow, TokType.ArrOBr, TokType.ArrCBr);
             var list = res.Parsed;
