@@ -7,6 +7,16 @@ using NFun.Types;
 
 namespace NFun.BuiltInFunctions
 {
+    public class ConcatTextsFunction : FunctionBase
+    {
+        public ConcatTextsFunction() : base(CoreFunNames.ConcatTexts, VarType.Text,VarType.ArrayOf(VarType.Text)) { }
+
+        public override object Calc(object[] args)
+        {
+            var strings = args.GetListOfStringOrThrow(0);
+            return new TextFunArray(string.Join("", strings));
+        }
+    }
     public class FormatTextFunction : FunctionBase
     {
         public FormatTextFunction() : base("format", VarType.Text, VarType.Text, VarType.ArrayOf(VarType.Anything)) { }

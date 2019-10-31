@@ -187,7 +187,6 @@ namespace NFun.SyntaxParsing
                     new TextFunArray(txt.Value), 
                     VarType.Text, 
                     txt.Interval);
-
             if (flow.MoveIf(TokType.Id, out var headToken))
             {
                 if (flow.IsCurrent(TokType.Obr))
@@ -201,6 +200,44 @@ namespace NFun.SyntaxParsing
                 }
                 else
                     return SyntaxNodeFactory.Var(headToken);
+            }
+            if (flow.MoveIf(TokType.TextOpenInterpolation, out var openInterpolationText))
+            {
+                //interpolation
+                var concatinations = new List<ISyntaxNode>();
+                concatinations.Add(SyntaxNodeFactory.Constant(
+                    new TextFunArray(openInterpolationText.Value),
+                    VarType.Text,
+                    openInterpolationText.Interval));
+                //Read until interpolation close
+                var allNext = ReadNodeOrNull(flow);
+                var toText = SyntaxNodeFactory.FunCall(CoreFunNames.ToText, new[] {allNext}, allNext.Interval.Start,
+                    allNext.Interval.Finish);
+                concatinations.Add(toText);
+
+                if (flow.Current.Type is TokType.TextCloseInterpolation)
+                { 
+                    concatinations.Add(SyntaxNodeFactory.Constant(
+                        new TextFunArray(flow.Current.Value),
+                        VarType.Text,
+                        flow.Current.Interval));
+                    flow.MoveNext();
+                    var arrayOfTexts =  SyntaxNodeFactory.Array(concatinations.ToArray(), openInterpolationText.Start,
+                        flow.Current.Finish);
+                    return SyntaxNodeFactory.FunCall(CoreFunNames.ConcatTexts, new []{arrayOfTexts}, openInterpolationText.Start,
+                        flow.Current.Finish);
+                }
+                throw new NotImplementedException();
+                /*
+                else if (flow.Current.Type is TokType.TextMidInterpolation)
+                {
+                    concatinations.Add(SyntaxNodeFactory.Constant(
+                        new TextFunArray(flow.Current.Value),
+                        VarType.Text,
+                        openInterpolationText.Interval));
+                    flow.MoveNext();
+                }*/
+
             }
             if (flow.IsCurrent(TokType.Obr))
                 return ReadBrackedNodeList(flow);

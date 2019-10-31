@@ -80,7 +80,7 @@ namespace NFun.BuiltInFunctions
     
     public class ToTextFunction : FunctionBase
     {
-        public ToTextFunction() : base("toText", VarType.Text, VarType.Anything){}
+        public ToTextFunction() : base(CoreFunNames.ToText, VarType.Text, VarType.Anything){}
         public override object Calc(object[] args) => new TextFunArray(ToText(args.Get<object>(0)));
 
         string ToText(object val)

@@ -30,5 +30,8 @@ namespace NFun.BuiltInFunctions
         public const string Not = "invert";
         public const string Negate = "-_invert_num";
         public static string Format = "@Format";
+        public static string ToText = "toText";
+        public static string ConcatTexts = "@concatTexts";
+
     }
 }

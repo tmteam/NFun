@@ -222,7 +222,7 @@ namespace NFun
             new AnyFunction(), 
             new SortIntFunction(), 
             new SortRealFunction(), 
-            new SortTextFunction(), 
+            new SortTextFunction(),
             new RangeIntFunction(),
             new RangeWithStepIntFunction(),
             new RangeWithStepRealFunction(),
@@ -231,6 +231,7 @@ namespace NFun
             new TrimEndFunction(),
             new SplitFunction(),
             new JoinFunction(),
+            new ConcatTextsFunction()
         };
     }
 }
