@@ -67,17 +67,16 @@ namespace Funny.Tests
         [TestCase("y = if (x>0) 1 ", "if", "(x<0) -1 else 0")]
         [TestCase("y = 1 ", "z=", "2")]
         [TestCase("", "set", " x=1")]
-
         public void ErrorPosition(string beforeError, string errorBody, string afterError)
         {
             AssertErrorPosition(beforeError, errorBody, afterError);
         }
-        [TestCase("y='", "something \\' some postfix", "")]
-        [TestCase("y='", "\\' some postfix", "")]
-                [TestCase("y='some text ","\\", "")]
+
+        [TestCase("y=", "'something \\' some postfix", "")]
+        [TestCase("y=", "'\\' some postfix", "")] 
+        [TestCase("y='some text ","\\", "")]
         [TestCase("y=","'","")]
         [TestCase("", "'", "")]
-
         public void QuotationNotClosed_ErrorPosition(string beforeError, string errorBody, string afterError)
         {
             AssertErrorPosition(beforeError, errorBody, afterError);
