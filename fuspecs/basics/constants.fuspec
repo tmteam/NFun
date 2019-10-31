@@ -120,28 +120,16 @@
 
 
 
-
-
-
-
 |****************************************
 | TEST text constant  
 | TAGS text constant apply                         
 |************************  
   e1:text = ''
   e2:text = ""
-  e3:char[] = ''
-  e4:char[] = ""
   v1:text = 'vasa' 
   v2:text = "vasa" 
-  v3:char[] = 'vasa' 
-  v4:char[] = "vasa" 
 |---------------------
 | check e1: ''
 | check e2: ''
-| check e3: ''
-| check e4: ''
 | check v1: 'vasa'
 | check v2: 'vasa'
-| check v3: 'vasa'
-| check v4: 'vasa'

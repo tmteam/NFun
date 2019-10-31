@@ -150,7 +150,9 @@ namespace Funny.Tests
         [TestCase("15 - sum(abs(1-4), 7)",5)]
         [TestCase("pi()",Math.PI)]
         [TestCase("e()",Math.E)]
-        
+        [TestCase("sqrt(0)", 0.0)]
+        [TestCase("sqrt(1.0)", 1.0)]
+        [TestCase("sqrt(4.0)", 2.0)]
         [TestCase("cos(0)", 1.0)]
         [TestCase("sin(0)", 0.0)]
         [TestCase("acos(1)", 0.0)]
@@ -185,6 +187,11 @@ namespace Funny.Tests
         [TestCase("sign(5)", 1)]
         [TestCase("sign(5.2)", 1)]
         [TestCase("min(0.5, 1)", 0.5)]
+        [TestCase("[1,2,3].count()", 3)]
+        [TestCase("['1','2','3'].count()", 3)]
+        [TestCase("[1..10].filter(i->i>3).count()", 7)]
+        [TestCase("[].count()", 0)]
+
         [TestCase("count([1,2,3])",3)]
         [TestCase("count([])",0)]
         [TestCase("count([1.0,2.0,3.0])",3)]
@@ -204,6 +211,10 @@ namespace Funny.Tests
         [TestCase("median([1.0,10.5,6.0])",6.0)]
         [TestCase("median([1,-10,0])",0)]        
         [TestCase("[1.0,2.0,3.0].any()",true)]
+        [TestCase("['a'].any()", true)]
+        [TestCase("[1..10].filter(i->i>3).any()", true)]
+        [TestCase("[1..10].filter(i->i>10).any()", false)]
+
         [TestCase("any([])",false)]
         [TestCase("[4,3,5,1].sort()",new []{1,3,4,5})]
         [TestCase("[4.0,3.0,5.0,1.0].sort()",new []{1.0,3.0,4.0,5.0})]
@@ -259,6 +270,18 @@ namespace Funny.Tests
                      y = reduce([1,2,3], iSum)",6)]
         [TestCase( @"iSum(r:int, x:int):int = r+x
                      y = reduce([100], iSum)",100)]
+        [TestCase("y = [1,2,3,4,5,6,7].filter(i->i%2==0).sum()",12)]
+        [TestCase("y = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce((s,i)-> s+i+1)", 14)]
+        [TestCase("y = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce((s,i)-> s+i+1)", 14)]
+        [TestCase("y = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce(min)", 2)]
+        [TestCase("y = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce(max)", 6)]
+        [TestCase("y = [1,2,3,4,5,6,7].filter(i:int->i%2==0).reduce(max)", 6)]
+        [TestCase("y = [1,2,3,4].reduce((s,i)-> s+i)", 10)]
+        [TestCase("y = [1,2,3,4,5,6,7].reduce(max)", 7)]
+        [TestCase("y = [1,2,3,4,5,6,7].reduce((s,i)->if (s>i) s else i)", 7)]
+        [TestCase("y = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce((s,i)->if (s>i) s else i)", 6)]
+        [TestCase("y = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce((s,i)->0)", 0)]
+        [TestCase("y = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce((s,i)->0)", 0)]
         public void HiOrderFunConstantEquatation(string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
@@ -346,6 +369,38 @@ namespace Funny.Tests
         [TestCase("y = [0..1].chunk(7) == [[0,1]]",true)]
         [TestCase("y = [0..6].chunk(2) == [[0,1],[2,3],[4,5],[6]]",true)]
         [TestCase("y = [3..7].chunk(1) == [[3],[4],[5],[6],[7]]",true)]
+        
+        [TestCase("y = ' hi world '.trim()","hi world")]
+        [TestCase("y = ' hi world'.trim()","hi world")]
+        [TestCase("y = 'hi world  '.trim()","hi world")]
+        [TestCase("y = '  hi world  '.trim()","hi world")]
+        [TestCase("y = 'hi world'.trim()","hi world")]
+
+        [TestCase("y = ' hi world '.trimStart()","hi world ")]
+        [TestCase("y = ' hi world'.trimStart()","hi world")]
+        [TestCase("y = 'hi world  '.trimStart()","hi world  ")]
+        [TestCase("y = '  hi world  '.trimStart()","hi world  ")]
+        [TestCase("y = 'hi world'.trim()","hi world")]
+
+        [TestCase("y = ' hi world '.trimEnd()"," hi world")]
+        [TestCase("y = ' hi world'.trimEnd()"," hi world")]
+        [TestCase("y = 'hi world  '.trimEnd()","hi world")]
+        [TestCase("y = '  hi world  '.trimEnd()","  hi world")]
+        [TestCase("y = 'hi world'.trim()","hi world")]
+
+
+       // [TestCase("y = [true,false,true].join(', ')", "true, false, true")]
+       // [TestCase("y = [1,2,3,4].join(', ')", "1, 2, 3, 4")]
+        [TestCase("y = ['1','2','3','4'].join(', ')","1, 2, 3, 4")]
+        [TestCase("y = ['1','2','3','4'].join(',')","1,2,3,4")]
+        [TestCase("y = ['1'].join(',')","1")]
+
+        [TestCase("y = '1 2 3 4 5'.split(' ')",new []{"1","2","3","4","5"})]
+        [TestCase("y = ' '.split(' ')",new string[0])]
+        [TestCase("y = '1 2 3 4 5'.split(' ').join(',')","1,2,3,4,5")]
+        [TestCase("y = [1, 2, 3, 4, 5].map(toText).join(',')","1,2,3,4,5")]
+        [TestCase("y = 'c b a'.split(' ').sort().join(' ')","a b c")]
+        [TestCase("y = 123.toText().reverse()","321")]
         public void ConstantEquationWithGenericPredefinedFunction(string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
@@ -404,6 +459,7 @@ namespace Funny.Tests
         [TestCase("y = [1..100].chunk(0)")]
         [TestCase(@"iSum(r:int, x:int):int = r+x
                      y = reduce([100][1:1], iSum)")]
+        
         public void FailsOnRuntime(string expr)
         {
             var runtime = FunBuilder.BuildDefault(expr);

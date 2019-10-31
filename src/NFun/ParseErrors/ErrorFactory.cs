@@ -263,12 +263,14 @@ namespace NFun.ParseErrors
         public static Exception InputNameWithDifferentCase(string id, string actualName, Interval interval)
             => new FunParseException(348, $"{actualName}<-  input name is same to name  {id}", interval);
 
-        
+        public static Exception InterpolationExpressionIsMissing(ISyntaxNode lastNode)
+            => new FunParseException(252, $"  Interpolation expression is missing{Nl} Example: 'before {{...}} after' ", lastNode.Interval);
+
         #endregion
 
         #region  4xx - errors of lists
 
-         public static Exception ArrayInitializeByListError(int openBracketTokenPos, TokFlow flow)
+        public static Exception ArrayInitializeByListError(int openBracketTokenPos, TokFlow flow)
         {
             var res = ErrorsHelper.GetExpressionListError(openBracketTokenPos, flow, TokType.ArrOBr, TokType.ArrCBr);
             var list = res.Parsed;
@@ -432,11 +434,13 @@ namespace NFun.ParseErrors
         {
             if (node is FunCallSyntaxNode fc)
 
-                return new FunParseException(524,
+                return new FunParseException(522,
                     $"Several functions with name: {fc.Id} can be used in expression. Did you mean input variable instead of function?",
                     node.Interval);
-            return new FunParseException(525, $"Ambiguous function call", node?.Interval ?? Interval.Empty);
+            return new FunParseException(523, $"Ambiguous function call", node?.Interval ?? Interval.Empty);
         }
+        public static Exception FunctionNameAndVariableNameConflict(VariableSyntaxNode varName)
+            => new FunParseException(524, $"Function with name: {varName.Id} can be used in expression because it's name conflict with function that exists in scope. Declare input variable", varName.Interval);
 
         public static Exception AmbiguousFunctionChoise(VariableSyntaxNode varName)
             =>  new FunParseException(526,$"Several functions with name: {varName.Id} can be used in expression. Did you mean input variable instead of function?", varName.Interval);

@@ -50,20 +50,17 @@ namespace Funny.Tests.UnitTests
                 prefix+str+postfix, prefix.Length);
             
             Assert.AreEqual(expected, parsed);
-            Assert.AreEqual(str.Length+ prefix.Length, end);
+            Assert.AreEqual(str.Length-1+ prefix.Length, end);
         }
 
-        [TestCase("'", "something \\' some postfix", "")]
         [TestCase("'something", "\\ ", "else' some postfix")]
         [TestCase("'something", "\\e", "lse' some postfix")]
         [TestCase("'something \\\\", "\\e", "lse' some postfix")]
         [TestCase("'", "\\e", "lse' some postfix")]
-        [TestCase("'", "\\' some postfix", "")]
         [TestCase("'", "\\G", "' some postfix")]
         [TestCase("'", "\\(", "' some postfix")]
         [TestCase("'\\\\", "\\(", "hi' some postfix")]
         [TestCase("'some text ","\\", "")]
-        [TestCase("","'","")]
         public void TextIsNotCorrect_ErrorIntervalAsExpected(string before, string error, string after)
         {
             var prefix = "some prefix ";
@@ -76,7 +73,14 @@ namespace Funny.Tests.UnitTests
             Console.WriteLine($"Catched error string: \"{foundError}\"");
             Assert.AreEqual(error, foundError);
         }
+        [TestCase("'\\' some postfix")]
+        [TestCase("'something \\' some postfix")]
+        [TestCase("'")]
+        public void CloseQuoteMissing_returnsNegativeOne(string text)
+        {
+            var (result, resultPosition) = QuotationReader.ReadQuotation(text, 0);
+            Assert.AreEqual(-1, resultPosition);
+        }
 
-       
     }
 }

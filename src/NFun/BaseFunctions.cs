@@ -136,6 +136,8 @@ namespace NFun
             new RemainderUInt32Function(), 
             new RemainderUInt64Function(), 
                 
+            new SqrtFunction(),
+
             new SinFunction(), 
             new CosFunction(),
             new TanFunction(),
@@ -220,10 +222,16 @@ namespace NFun
             new AnyFunction(), 
             new SortIntFunction(), 
             new SortRealFunction(), 
-            new SortTextFunction(), 
+            new SortTextFunction(),
             new RangeIntFunction(),
             new RangeWithStepIntFunction(),
             new RangeWithStepRealFunction(),
+            new TrimFunction(),
+            new TrimStartFunction(),
+            new TrimEndFunction(),
+            new SplitFunction(),
+            new JoinFunction(),
+            new ConcatTextsFunction()
         };
     }
 }

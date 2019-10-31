@@ -79,56 +79,6 @@
 
 
 
-|****************************************
-| TEST Int16 bitinverse  
-| TAGS Bitwise                         
-|************************  
-  a:int16
-  i:int16 = ~~a 
-|---------------------
-| set a:1
-| check i:1
-| set a:2
-| check i:2
-| set a:3
-| check i:3
-| set a:7
-| check i:7
-| set a:8
-| check i:8
-| set a:100
-| check i:100
-| set a:200
-| check i:200
-| set a:300
-| check i:300
-
-
-
-
-|****************************************
-| TEST UInt16 bitinverse  
-| TAGS Bitwise                         
-|************************  
-  a:uint16
-  i:uint16 = ~~a 
-|---------------------
-| set a:1
-| check i:1
-| set a:2
-| check i:2
-| set a:7
-| check i:7
-| set a:8
-| check i:8
-| set a:100
-| check i:100
-| set a:200
-| check i:200
-| set a:300
-| check i:300
-
-
 
 
 |****************************************

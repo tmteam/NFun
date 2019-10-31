@@ -1,13 +1,13 @@
-****************************************
+|****************************************
 | TEST Quadratic equation   
 | TAGS arithmetic
 |************************  
-| in:  a:real, b:real, c:real
+| in   a:real, b:real, c:real
 | out  d:real, res:real 
 |------------------------
   d = b**2-4*a*c
 
-  res = if (d>0) [(-b+ sqrt(d))/2*a, (-b- sqrt(d))/2*a]
+  res = if (d>0) [(-b+ d**0.5)/2*a, (-b- d**0.5) /2*a]
   	    if (d==0) [-b/2*a]
   	    else []
 |---------------------
@@ -20,17 +20,17 @@
 
 
 
-****************************************
+|****************************************
 | TEST Quadratic equation as a function
 | TAGS arithmetic user-function
 |************************  
-| in:  a:real, b:real, c:real
+| in   a:real, b:real, c:real
 | out  out:real 
 |------------------------
   d(a,b,c) = b**2-4*a*c
 
   quadprime(a,b,c,d) = 
-  		if (d>0)  [(-b+ d.sqrt())/2*a, (-b- d.sqrt())/2*a]
+  		if (d>0)  [(-b+ d**0.5)/2*a, (-b- d**0.5)/2*a]
   	    if (d==0) [-b/2*a]
   	    else []
 
@@ -47,16 +47,18 @@
 
 
 
-****************************************
+|****************************************
 | TEST swap
 | TAGS arrays user-function
 |************************  
-| in:  input:real[], i:int, j:int
+| in  input:real[], i:int, j:int
 | out  res:real[] 
 |------------------------
+  #set two values to array
   twiceSet(arr,i,j,ival,jval)
   	= arr.set(i,ival).set(j,jval)
 
+  #swap two values in array
   swap(arr, i, j) 
     = arr.twiceSet(i,j,arr[j], arr[i])
 
@@ -67,7 +69,7 @@
 
 
 
-****************************************
+|****************************************
 | TEST bubble sort
 | TAGS arrays
 |************************  
@@ -81,7 +83,7 @@
   	=	if   (c[i]<c[i+1]) c
   		else c.swap(i, i+1)
 
-  # run throu array 
+  # run thru array 
   # and swap every unsorted values
   onelineSort(input) =  
   	[0..input.count()-1].reduce(input, swapIfNotSorted)		
@@ -102,12 +104,12 @@
 
 
 
-****************************************
+|****************************************
 | TEST custom foreachi
 | TAGS arrays user-function
 |************************  
-|in    t:int[]
-|out res:int
+| in    t:int[]
+| out res:int
 |---------------------
   foreachi(init, f)
   	= [0..init.count()-1].reduce(init, f)
@@ -121,12 +123,12 @@
 
 
 
-****************************************
+|****************************************
 | TEST custom foreachi with hi-order
 | TAGS arrays user-function hi-order
 |************************  
-|in    t:int[]
-|out res:int
+| in    t:int[]
+| out res:int
 |---------------------
   foreachi(init, f)
   	= [0..init.count()-1].reduce(init, f)
@@ -140,12 +142,12 @@
 
 
 
-****************************************
+|****************************************
 | TEST custom foreachi with custom hi-order
 | TAGS arrays user-function hi-order
 |************************  
-|in    t:int[]
-|out res:int
+| in    t:int[]
+| out res:int
 |---------------------
   foreachi(init, f)
   	= [0..init.count()-1].reduce(init, f)
@@ -161,7 +163,7 @@
 
 
 
-****************************************
+|****************************************
 | TEST fold fibonacci 
 | TAGS user-function
 |************************  
@@ -182,7 +184,7 @@
 
 
 
-****************************************
+|****************************************
 | TEST Golden ratio 
 | TAGS user-function
 |************************  
@@ -206,7 +208,7 @@
 
 
 
-****************************************
+|****************************************
 | TEST Each second real 
 | TAGS user-function toReal anything isReal
 |************************  
@@ -225,7 +227,7 @@
 
 
 
-****************************************
+|****************************************
 | TEST increment with upper bound 
 |************************  
 | in   x:real
@@ -247,7 +249,7 @@ newCount = if(!done) x+1 else x
 | TEST fun odds
 | TAGS built-in-function
 |************************  
-| int: x:int[]
+| in x:int[]
 | out  ysum:int, ymulti: int, ymin: int, ymax:int 
 |------------------------
   getOdds(x)= x.filter(i->i%2==0)
@@ -258,7 +260,7 @@ newCount = if(!done) x+1 else x
   ymin   = x.getOdds.reduce(min)
   ymax   = x.getOdds.reduce(mymax)
 |---------------------
-| set: x:[0,1,2,3,4,5,6,7,8,9]
+| set x:[0,1,2,3,4,5,6,7,8,9]
 | check ysum:20, ymulti:384, ymin:0, ymax:8
 
 
@@ -285,6 +287,7 @@ newCount = if(!done) x+1 else x
  passed2 = transpon(orig2) == ['mk','aa','st','hj','aa']       
 |---------------------
 | check passed1: true, passed2:true 
+
 
 
 |****************************************

@@ -5,6 +5,7 @@ using NUnit.Framework;
 
 namespace Funny.Tests
 {
+    [TestFixture]
     public class TextTest
     {
         [TestCase("y = ''", "")]
@@ -38,13 +39,35 @@ namespace Funny.Tests
         [TestCase("y = 'abc' == 'abc'.reverse()", false)]
         [TestCase("y = 'abc'.concat('def') == 'abcdef'", true)]
         [TestCase("y = 'abc'.concat('de') == 'abcdef'", false)]
-        public void TextConstantEquation(string expr, object expected)
-        {
+        [TestCase("y = '{0}'", "0")]
+        [TestCase("y = 'hi {42}'", "hi 42")]
+        [TestCase("y = '{42}hi'", "42hi")]
+        [TestCase("y = 'hello {42} world'", "hello 42 world")]
+        [TestCase("y = 'hello {42+1} world'", "hello 43 world")]
+        [TestCase("y = '{''}'", "")]
+        [TestCase("y = 'hi {42} and {21}'", "hi 42 and 21")]
+        [TestCase("y = 'hi {42+13} and {21-1}'", "hi 55 and 20")]
+        [TestCase("y = '{0+1} {1+2} {2+3}'", "1 3 5")]
+        [TestCase("y = 'pre {'p{42-1*2}m{21-1+10*3}a'} mid {'p{42-2}m{21-1}a'} fin'", "pre p40m50a mid p40m20a fin")]
+        [TestCase("y = 'pre1{'pre2{2-2}after2'}after1'", "pre1pre20after2after1")]
+        [TestCase("y = 'pre1 {'inside'} after1'", "pre1 inside after1")]
+
+        public void TextConstantEquation(string expr, object expected) =>
             FunBuilder
                 .BuildDefault(expr)
                 .Calculate()
                 .AssertReturns(VarVal.New("y", expected));
-        }
+
+
+        [TestCase(42,"y = x.toText().concat('lalala')", "42lalala")]
+        [TestCase(42, "y = 'pre{x-1*2}mid{x*x/x}fin'", "pre40mid42fin")]
+
+        public void SingleVariableEquation(object input, string expr, object expected) =>
+            FunBuilder
+                .BuildDefault(expr)
+                .Calculate(VarVal.New("x", input))
+                .AssertReturns(VarVal.New("y", expected));
+
         [TestCase("y='  \\\\'","  \\")]
         [TestCase("y='\\t'","\t")]
         [TestCase("y='\\n'","\n")]
@@ -71,13 +94,12 @@ namespace Funny.Tests
         [TestCase("y=' \\r\r'"," \r\r")]
         [TestCase("y='\t \\n\n'","\t \n\n")]
         [TestCase("y='pre \\{lalala\\} after'","pre {lalala} after")]
-        public void EscapedTest(string expr,string expected)
-        {
+        public void EscapedTest(string expr,string expected) =>
             FunBuilder
                 .BuildDefault(expr)
                 .Calculate()
                 .AssertReturns(VarVal.New("y", expected));
-        }
+
         [TestCase("y='hell")]
         [TestCase("y=hell'")]
         [TestCase("y='")]
@@ -93,9 +115,28 @@ namespace Funny.Tests
         [TestCase("y = 'hi'+' '+'world'")]
         [TestCase("y = 'arr: '+ [1,2,3]")]
         [TestCase("y = 'arr: '+ [[1,2],[3]]")]
-        public void ObviousFails(string expr)
-        {
+        [TestCase("y='hello'world'")]
+        [TestCase("y='hello''world'")]
+
+        [TestCase("y='hello{}world'")]
+        [TestCase("y='hello'{0}world'")]
+        [TestCase("y='hello{0}'world'")]
+        [TestCase("y='hello\"{0}world'")]
+        [TestCase("y='hello{0}\"world'")]
+        [TestCase("y='hello{0}\"world{0}'")]
+        [TestCase("y='hello{0}world'{0}'")]
+        [TestCase("y='hello{0}world{0}''")]
+        [TestCase("y='hello{0}world{0}")]
+        [TestCase("y='hello{{0}world{0}'")]
+        [TestCase("y='hello{0{}world{0}'")]
+        [TestCase("y='hello{0}world{{0}'")]
+        [TestCase("y='hello{0}world{0{}'")]
+        [TestCase("y='hello{'i'{0}}world{{0}'")]
+        [TestCase("y='hello{{0}'i'}world{{0}'")]
+        [TestCase("y={0}'hello'world'")]
+        [TestCase("y='pre {0}''fin'")]
+        [TestCase("y='pre {0}''mid{1}fin'")]
+        public void ObviousFails(string expr) => 
             Assert.Throws<FunParseException>(()=> FunBuilder.BuildDefault(expr));
-        }
     }
 }

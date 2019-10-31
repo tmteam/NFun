@@ -1,8 +1,9 @@
-****************************************
+
+|****************************************
 | TEST req factorial
 | TAGS req user-function
 |************************  
-| in:  n:int
+| in  n:int
 | out  out:int 
 |------------------------
   fact(n) = if (n<2) n
@@ -19,7 +20,7 @@
 
 
 
-****************************************
+|****************************************
 | TEST req factorial in array
 | TAGS req user-function
 |************************  
@@ -35,12 +36,12 @@
 
 
 
-****************************************
+|****************************************
 | TEST req simple fibonacci 
 | TAGS req user-function
 |************************  
 | in  n:int[]
-| res  res:int[] 
+| out  res:int[] 
 |------------------------
  fib(n) = 
         if (n==0) 0
@@ -54,11 +55,11 @@
 
 
 
-****************************************
+|****************************************
 | TEST req print numbers
 | TAGS req user-function
 |************************  
-| in:  n:int
+| in   n:int
 | out  out:text 
 |------------------------
   #interpolation: '{f(n-1)}, {n}'
@@ -81,37 +82,11 @@
 
 
 
-
-****************************************
-| TEST req from a to b
-| TAGS req user-function
-|************************  
-| in:  a:int, b:int
-| out  out:text 
-|------------------------
-  concat(a,b) = a.toText().concat(' ').concat(b)
-
-  f(a,b) = 
-          if(a>b)  concat(a, f(a-1,b))
-          if(b>a)  concat(a, f(a+1,b)) 
-          else a.toText()
-              
-  f(a,b)        
-|---------------------
-| set a:1, b:5
-| check out: '1,2,3,4,5'
-| set a :9, b:12
-| check out: '9,10,11,12'
-| set a:12, b:9
-| check out: '12,11,10,9'
-
-
-
-****************************************
+|****************************************
 | TEST req akkerman TODO
 | TAGS req user-function TODO
 |************************  
-| in:  m:int, n:int
+| in   m:int, n:int
 | out  out:text 
 |------------------------
 #todo - find results
@@ -125,11 +100,11 @@
 
 
 
-****************************************
+|****************************************
 | TEST req isPow
 | TAGS req user-function
 |************************  
-| in:  x:real[]
+| in   x:real[]
 | out  y:bool[]
 |------------------------
   isPowOf2(n) = 
@@ -143,47 +118,3 @@
 | set x:[1,2,3,4,5,6,7,8,9]
 | check y:[true,true,false,true,false,false,false,true,false]
 
-
-
-****************************************
-| TEST req array reverse 
-| TAGS req user-function
-|************************  
-| in:  t:text, i:int[]
-| out  yt:text, yi:int[]
-|------------------------
-  reverse(t) =
-        if(t.count<2) t
-        else t[1:].reverse().concat(t[0])
-  
-  t:text
-  i:int[]
-
-  yt = t.reverse()
-  yi = i.reverse()          
-        
-|---------------------
-| set i:[1,2,3,4,5,6,7,8,9],  t= "hello world"
-| check yi:[9,8,7,6,5,4,3,2,1], t ="dlrow olleh"
-
-
-
-****************************************
-| TEST req array sum 
-| TAGS req user-function
-|************************  
-  mysum(arr, i) =
-    if(i>=arr.count()) 0
-    else arr[i] + mysum(arr, i+1)
-
-  mysum(arr) = mysum(arr,0)  
-
-  res = mysum(input) 
-        
-|---------------------
-| set input:[1,2,3,4]
-| check res:10
-| set input:[1]
-| check res:1
-| set input:[1,-1]
-| check res:0

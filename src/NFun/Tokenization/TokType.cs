@@ -36,6 +36,14 @@ namespace NFun.Tokenization
         /// </summary>
         ArrCBr,
         /// <summary>
+        /// {
+        /// </summary>
+        FiObr,
+        /// <summary>
+        ///  }
+        /// </summary>
+        FiCbr,
+        /// <summary>
         /// not used
         /// </summary>
         ArrConcat,
@@ -69,6 +77,10 @@ namespace NFun.Tokenization
         /// </summary>
         Sep,
         Text,
+        TextOpenInterpolation,
+        TextMidInterpolation,
+        TextCloseInterpolation,
+
         NotAToken,
 
         True,

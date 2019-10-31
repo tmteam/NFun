@@ -2,15 +2,15 @@
 | TEST cos sin abs   
 | TAGS built-in-function
 |************************  
-| int: x:real
+| in  x:real
 | out  r:real 
 |------------------------
   y = x.cos()**2 + x.sin()**2
   z = (y-1).abs() < 0.001
 |---------------------
-| set: x:-0.2
+| set  x:-0.2
 | check z: true
-| set: x:3
+| set  x:3
 | check z: true
 
 
@@ -19,14 +19,14 @@
 | TEST cos sin tan   
 | TAGS built-in-function
 |************************  
-| int: x:real
+| in x:real
 | out  ycos:real, ysin: real, ytan: real 
 |------------------------
   ycos = x.cos()
   ysin = x.cos()
   ytan = x.tan()
 |---------------------
-| set: x:0
+| set  x:0
 | check ycos: 1, ysin: 0, ytan:0
 
 
@@ -45,50 +45,19 @@
 
 
 |****************************************
-| TEST linq#1   
-| TAGS built-in-function map filter count 
+| TEST reduce 2   
+| TAGS built-in-function reduce
 |************************  
-| in   x:text[]
-| out  aaa:int[], tot:int[] 
-|------------------------
- #x is array of texts
-   achar = 'a'[0]
- 
- # aaa is count of 'a' chars in texts, witch contains N or more 
- # 'a' chars 
-   aaa = x
-   		.map(s->s.count(j->j==achar))
-   		.filter(s->s >= n)
- 
- # tot is lengths of texts witch contain N or more  
- # 'a' chars 
-   tot = x
-   		.filter(
-   				s-> n<= s.count(j->j==achar)
-   			)    
-   		.map(count)
-
+  max = [1,2,6,54,2,76,8,3].reduce((acc,cur)-> if (cur>acc) cur else acc)
 |---------------------
-| set x:[vasa,kata], n:3
-| check aaa: [], tot:[]
-| set x:[vasaa,kataaa, jony, aa,  mashaaa, aaa_aaa_aaa], n:3
-| check aaa: [3,4,4,9], tot:[5,6,7,11]
-| set x:[vasa,kata], n:2
-| check aaa: [2,2], tot:[4,4]
-
+| check max: 76
 
 
 |****************************************
-| TEST odds   
-| TAGS built-in-function
+| TEST reduce 3   
+| TAGS built-in-function reduce
 |************************  
-| int: x:int[]
-| out  ysum:int, ymulti: int, ymin: int, ymax:int 
-|------------------------
-  ysum = x.filter(i->i%2==0).sum()
-  ymulti = x.filter(i->i%2).reduce((s,i)-> s*i)
-  ymin = x.filter(i->i%2).reduce(min)
-  ymax = x.filter(i->i%2).reduce(max)
+  concat = ['we','will','rock','you'].reduce('singing:', (acc,cur)-> [acc, ' ',cur].flat())
 |---------------------
-| set: x:[0,1,2,3,4,5,6,7,8,9]
-| check ysum:20, ymulti:384, ymin:0, ymax:8
+| check concat: 'singing: we will rock you' 
+

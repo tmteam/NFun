@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using NFun.Tokenization;
 using NUnit.Framework;
@@ -7,28 +8,28 @@ namespace Funny.Tests.UnitTests
     [TestFixture]
     public class TokenizerTest
     {
-        [TestCase("1",       TokType.Number)]
-        [TestCase("x+1",     TokType.Id, TokType.Plus,         TokType.Number)]
-        [TestCase("x and y", TokType.Id, TokType.And,          TokType.Id)]
-        [TestCase("x or y",  TokType.Id, TokType.Or,           TokType.Id)]
-        [TestCase("x xor y", TokType.Id, TokType.Xor,          TokType.Id)]
-        [TestCase("x != y",  TokType.Id, TokType.NotEqual,     TokType.Id)]
-        [TestCase("x < y",   TokType.Id, TokType.Less,         TokType.Id)]
-        [TestCase("x <= y",  TokType.Id, TokType.LessOrEqual,  TokType.Id)]
-        [TestCase("x > y",   TokType.Id, TokType.More,         TokType.Id)]
-        [TestCase("x >= y",  TokType.Id, TokType.MoreOrEqual,  TokType.Id)]
-        [TestCase("x == y",  TokType.Id, TokType.Equal,        TokType.Id)]
-        [TestCase("x**y",     TokType.Id, TokType.Pow,          TokType.Id)]
-        [TestCase("x=y",     TokType.Id, TokType.Def,          TokType.Id)]
-        [TestCase("o = a and b",  TokType.Id, TokType.Def, TokType.Id, TokType.And,TokType.Id)]
-        [TestCase("o = a == b",TokType.Id, TokType.Def, TokType.Id, TokType.Equal,TokType.Id)]
-        [TestCase("o = a + b",    TokType.Id, TokType.Def, TokType.Id, TokType.Plus,TokType.Id)]
-        [TestCase("o = a != b",TokType.Id, TokType.Def, TokType.Id, TokType.NotEqual,TokType.Id)]
+        [TestCase("1", TokType.Number)]
+        [TestCase("x+1", TokType.Id, TokType.Plus, TokType.Number)]
+        [TestCase("x and y", TokType.Id, TokType.And, TokType.Id)]
+        [TestCase("x or y", TokType.Id, TokType.Or, TokType.Id)]
+        [TestCase("x xor y", TokType.Id, TokType.Xor, TokType.Id)]
+        [TestCase("x != y", TokType.Id, TokType.NotEqual, TokType.Id)]
+        [TestCase("x < y", TokType.Id, TokType.Less, TokType.Id)]
+        [TestCase("x <= y", TokType.Id, TokType.LessOrEqual, TokType.Id)]
+        [TestCase("x > y", TokType.Id, TokType.More, TokType.Id)]
+        [TestCase("x >= y", TokType.Id, TokType.MoreOrEqual, TokType.Id)]
+        [TestCase("x == y", TokType.Id, TokType.Equal, TokType.Id)]
+        [TestCase("x**y", TokType.Id, TokType.Pow, TokType.Id)]
+        [TestCase("x=y", TokType.Id, TokType.Def, TokType.Id)]
+        [TestCase("o = a and b", TokType.Id, TokType.Def, TokType.Id, TokType.And, TokType.Id)]
+        [TestCase("o = a == b", TokType.Id, TokType.Def, TokType.Id, TokType.Equal, TokType.Id)]
+        [TestCase("o = a + b", TokType.Id, TokType.Def, TokType.Id, TokType.Plus, TokType.Id)]
+        [TestCase("o = a != b", TokType.Id, TokType.Def, TokType.Id, TokType.NotEqual, TokType.Id)]
         [TestCase("o = if (a>b)  1 else x",
-                                TokType.Id, TokType.Def, 
-                                TokType.If, TokType.Obr, TokType.Id, TokType.More, TokType.Id, 
-                                TokType.Cbr, TokType.Number, 
-                                TokType.Else, TokType.Id)]
+            TokType.Id, TokType.Def,
+            TokType.If, TokType.Obr, TokType.Id, TokType.More, TokType.Id,
+            TokType.Cbr, TokType.Number,
+            TokType.Else, TokType.Id)]
         [TestCase("o = 'hiWorld'", TokType.Id, TokType.Def, TokType.Text)]
         [TestCase("o = ''+'hiWorld'", TokType.Id, TokType.Def, TokType.Text, TokType.Plus, TokType.Text)]
         [TestCase("x:real", TokType.Id, TokType.Colon, TokType.RealType)]
@@ -37,61 +38,105 @@ namespace Funny.Tests.UnitTests
         [TestCase("x:int64", TokType.Id, TokType.Colon, TokType.Int64Type)]
         [TestCase("x:text", TokType.Id, TokType.Colon, TokType.TextType)]
         [TestCase("x:bool", TokType.Id, TokType.Colon, TokType.BoolType)]
-        [TestCase("x.y",  TokType.Id, TokType.PipeForward, TokType.Id)] 
-        [TestCase("x.y(1).z",  TokType.Id, 
+        [TestCase("x.y", TokType.Id, TokType.PipeForward, TokType.Id)]
+        [TestCase("x.y(1).z", TokType.Id,
             TokType.PipeForward, TokType.Id, TokType.Obr, TokType.Number, TokType.Cbr,
             TokType.PipeForward, TokType.Id)]
         [TestCase("[0..1]", TokType.ArrOBr, TokType.Number, TokType.TwoDots, TokType.Number, TokType.ArrCBr)]
-        [TestCase("[0..1..2]", 
-            TokType.ArrOBr, 
-            TokType.Number, TokType.TwoDots, TokType.Number,TokType.TwoDots, TokType.Number,
+        [TestCase("[0..1..2]",
+            TokType.ArrOBr,
+            TokType.Number, TokType.TwoDots, TokType.Number, TokType.TwoDots, TokType.Number,
             TokType.ArrCBr)]
         [TestCase("0.", TokType.Number, TokType.PipeForward)]
         [TestCase("0.1", TokType.Number)]
         [TestCase("1y = x", TokType.NotAToken, TokType.Def, TokType.Id)]
         [TestCase("1y", TokType.NotAToken)]
-        [TestCase("0.0f", TokType.NotAToken)] 
+        [TestCase("0.0f", TokType.NotAToken)]
 
         [TestCase("y = ['foo','bar']", TokType.Id, TokType.Def,
-            TokType.ArrOBr, 
-            TokType.Text, TokType.Sep, TokType.Text, 
+            TokType.ArrOBr,
+            TokType.Text, TokType.Sep, TokType.Text,
             TokType.ArrCBr)]
         [TestCase(@"z = true#", TokType.Id, TokType.Def, TokType.True)]
         [TestCase(@"true#", TokType.True)]
         [TestCase(@"true #", TokType.True)]
         [TestCase(@"true #comment", TokType.True)]
-        [TestCase("0.fun()", 
-                TokType.Number, TokType.PipeForward, TokType.Id, TokType.Obr,TokType.Cbr)]
+        [TestCase("0.fun()",
+            TokType.Number, TokType.PipeForward, TokType.Id, TokType.Obr, TokType.Cbr)]
         [TestCase("1.y", TokType.Number, TokType.PipeForward, TokType.Id)]
-        [TestCase("y = 1; z = 2", 
-            TokType.Id, TokType.Def, TokType.Number, 
-            TokType.NewLine, 
+        [TestCase("y = 1; z = 2",
+            TokType.Id, TokType.Def, TokType.Number,
+            TokType.NewLine,
             TokType.Id, TokType.Def, TokType.Number)]
-        [TestCase("y = a+1; z = b+2", 
-            TokType.Id, TokType.Def, TokType.Id, TokType.Plus, TokType.Number, 
-            TokType.NewLine, 
+        [TestCase("y = a+1; z = b+2",
+            TokType.Id, TokType.Def, TokType.Id, TokType.Plus, TokType.Number,
+            TokType.NewLine,
             TokType.Id, TokType.Def, TokType.Id, TokType.Plus, TokType.Number)]
-        [TestCase("x1 = 1\n ; \ny = 2", 
-            TokType.Id, TokType.Def, TokType.Number, 
-            TokType.NewLine, TokType.NewLine, TokType.NewLine, 
-            TokType.Id, TokType.Def, TokType.Number)] 
-        [TestCase("x = 1; z = x # z == 2", 
-            TokType.Id, TokType.Def, TokType.Number, 
-            TokType.NewLine,  
+        [TestCase("x1 = 1\n ; \ny = 2",
+            TokType.Id, TokType.Def, TokType.Number,
+            TokType.NewLine, TokType.NewLine, TokType.NewLine,
+            TokType.Id, TokType.Def, TokType.Number)]
+        [TestCase("x = 1; z = x # z == 2",
+            TokType.Id, TokType.Def, TokType.Number,
+            TokType.NewLine,
             TokType.Id, TokType.Def, TokType.Id)]
         [TestCase(";;;", TokType.NewLine, TokType.NewLine, TokType.NewLine)]
-        [TestCase("f(x) = x*x; y = f(10); z = y", 
+        [TestCase("f(x) = x*x; y = f(10); z = y",
             TokType.Id, TokType.Obr, TokType.Id, TokType.Cbr, TokType.Def, TokType.Id, TokType.Mult, TokType.Id,
             TokType.NewLine,
             TokType.Id, TokType.Def, TokType.Id, TokType.Obr, TokType.Number, TokType.Cbr,
             TokType.NewLine,
             TokType.Id, TokType.Def, TokType.Id)]
+
+        [TestCase("'{112}'", 
+            TokType.TextOpenInterpolation, TokType.Number, TokType.TextCloseInterpolation)]
+        [TestCase("'{112}';",
+            TokType.TextOpenInterpolation, TokType.Number, TokType.TextCloseInterpolation, TokType.NewLine)]
+
+        [TestCase("'1+2 = {12}'",
+            TokType.TextOpenInterpolation, TokType.Number, TokType.TextCloseInterpolation)]
+
+        [TestCase("'hello{o}world{b}'", 
+            TokType.TextOpenInterpolation, TokType.Id, TokType.TextMidInterpolation, 
+            TokType.Id, TokType.TextCloseInterpolation)]
+        [TestCase("'{''}'", TokType.TextOpenInterpolation, TokType.Text, TokType.TextCloseInterpolation)]
+
+
+        [TestCase("'pre{ {a} + 'pre{0+1}' }after'", 
+            //'pre{ {a} +
+            TokType.TextOpenInterpolation, TokType.FiObr, TokType.Id, TokType.FiCbr, TokType.Plus, 
+            //'pre{0+1}'
+            TokType.TextOpenInterpolation,  TokType.Number, TokType.Plus, TokType.Number, TokType.TextCloseInterpolation,
+            //}after'
+            TokType.TextCloseInterpolation)]
+        [TestCase("'pre{ 'pre{0+1}' }after'",
+            //'pre{
+            TokType.TextOpenInterpolation, 
+            //'pre{0+1}'
+            TokType.TextOpenInterpolation, TokType.Number, TokType.Plus, TokType.Number, TokType.TextCloseInterpolation,
+            //}after'
+            TokType.TextCloseInterpolation)]
+
+     
+
+        [TestCase("'pre{ {a} }'", TokType.TextOpenInterpolation, TokType.FiObr, TokType.Id, TokType.FiCbr, TokType.TextCloseInterpolation)]
+        [TestCase("'pre{ {} }'", TokType.TextOpenInterpolation, TokType.FiObr, TokType.FiCbr, TokType.TextCloseInterpolation)]
+        [TestCase("'pre{ {1} 2 }'", TokType.TextOpenInterpolation, TokType.FiObr, 
+            TokType.Number, TokType.FiCbr, TokType.Number, TokType.TextCloseInterpolation)]
+        [TestCase("'pre{ 'pre{0}after' }after'",
+            //'pre{
+            TokType.TextOpenInterpolation,
+            //'pre{0}'
+            TokType.TextOpenInterpolation, TokType.Number, TokType.TextCloseInterpolation,
+            //}after'
+            TokType.TextCloseInterpolation)]
         public void TokenFlowIsCorrect_ExpectEof(string exp, params TokType[] expected) 
         {
-             var tokens =  Tokenizer
-                 .ToTokens(exp)
-                 .Select(s=>s.Type)
-                 .ToArray(); 
+            var tokens = new List<TokType>();
+            foreach (var token in Tokenizer.ToTokens(exp))
+            {
+                tokens.Add(token.Type);
+            }
              //Add Eof at end of flow for test readability
             CollectionAssert.AreEquivalent(expected.Append(TokType.Eof),tokens);
         }

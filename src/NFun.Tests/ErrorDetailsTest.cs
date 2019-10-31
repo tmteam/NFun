@@ -67,23 +67,28 @@ namespace Funny.Tests
         [TestCase("y = if (x>0) 1 ", "if", "(x<0) -1 else 0")]
         [TestCase("y = 1 ", "z=", "2")]
         [TestCase("", "set", " x=1")]
-
         public void ErrorPosition(string beforeError, string errorBody, string afterError)
         {
             AssertErrorPosition(beforeError, errorBody, afterError);
         }
-        [TestCase("y='", "something \\' some postfix", "")]
-        [TestCase("y='something", "\\ ", "else' some postfix")]
-        [TestCase("y='something", "\\e", "lse' some postfix")]
-        [TestCase("y='something \\\\", "\\e", "lse' some postfix")]
+
+        [TestCase("y=", "'something \\' some postfix", "")]
+        [TestCase("y=", "'\\' some postfix", "")] 
+        [TestCase("y='some text ","\\", "")]
+        [TestCase("y=","'","")]
+        [TestCase("", "'", "")]
+        public void QuotationNotClosed_ErrorPosition(string beforeError, string errorBody, string afterError)
+        {
+            AssertErrorPosition(beforeError, errorBody, afterError);
+        }
         [TestCase("y='", "\\e", "lse' some postfix")]
-        [TestCase("y='", "\\' some postfix", "")]
         [TestCase("y='", "\\G", "' some postfix")]
         [TestCase("y='", "\\(", "' some postfix")]
         [TestCase("y='\\\\", "\\(", "hi' some postfix")]
-        [TestCase("y='some text ","\\", "")]
-        [TestCase("y=","'","")]
-        public void Quotation_ErrorPosition(string beforeError, string errorBody, string afterError)
+        [TestCase("y='something", "\\ ", "else' some postfix")]
+        [TestCase("y='something", "\\e", "lse' some postfix")]
+        [TestCase("y='something \\\\", "\\e", "lse' some postfix")]
+        public void QuotationBadEscape_ErrorPosition(string beforeError, string errorBody, string afterError)
         {
             AssertErrorPosition(beforeError, errorBody, afterError);
         }

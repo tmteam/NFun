@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using NFun.Runtime;
 using NFun.Runtime.Arrays;
 
@@ -19,13 +20,18 @@ namespace NFun.Types
             return o;
         }
 
+        public static IEnumerable<string> GetListOfStringOrThrow(this object[] arr, int index) => ((IFunArray) arr[index]).Select(TypeHelper.GetTextOrThrow);
+
         public static string GetTextOrThrow(object obj)
         {
+            //if (obj is string s)
+             //   return s;
             var e = (IFunArray)obj;
             if (e is TextFunArray t)
                 return t.Text;
             if (e is ImmutableFunArray f)
                 return new string((char[])f.Values);
+            
             char[] result = new char[e.Count];
             for (int i = 0; i < e.Count; i++)
             {
