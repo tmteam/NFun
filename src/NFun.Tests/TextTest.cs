@@ -5,6 +5,7 @@ using NUnit.Framework;
 
 namespace Funny.Tests
 {
+    [TestFixture]
     public class TextTest
     {
         [TestCase("y = ''", "")]

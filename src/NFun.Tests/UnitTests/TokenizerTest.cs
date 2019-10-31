@@ -89,47 +89,47 @@ namespace Funny.Tests.UnitTests
             TokType.Id, TokType.Def, TokType.Id)]
 
         [TestCase("'{112}'", 
-            TokType.Text, TokType.InterObr, TokType.Number, TokType.InterCbr, TokType.Text)]
+            TokType.TextOpenInterpolation, TokType.Number, TokType.TextCloseInterpolation)]
         [TestCase("'{112}';",
-            TokType.Text, TokType.InterObr, TokType.Number, TokType.InterCbr, TokType.Text, TokType.NewLine)]
+            TokType.TextOpenInterpolation, TokType.Number, TokType.TextCloseInterpolation, TokType.NewLine)]
 
         [TestCase("'1+2 = {12}'",
-            TokType.Text, TokType.InterObr, TokType.Number, TokType.InterCbr, TokType.Text)]
+            TokType.TextOpenInterpolation, TokType.Number, TokType.TextCloseInterpolation)]
 
         [TestCase("'hello{o}world{b}'", 
-            TokType.Text,TokType.InterObr, TokType.Id, TokType.InterCbr,TokType.Text, 
-            TokType.InterObr, TokType.Id, TokType.InterCbr, TokType.Text)]
-        [TestCase("'{''}'", TokType.Text, TokType.InterObr, TokType.Text, TokType.InterCbr, TokType.Text)]
+            TokType.TextOpenInterpolation, TokType.Id, TokType.TextMidInterpolation, 
+            TokType.Id, TokType.TextCloseInterpolation)]
+        [TestCase("'{''}'", TokType.TextOpenInterpolation, TokType.Text, TokType.TextCloseInterpolation)]
 
 
         [TestCase("'pre{ {a} + 'pre{0+1}' }after'", 
             //'pre{ {a} +
-            TokType.Text, TokType.InterObr, TokType.FiObr, TokType.Id, TokType.FiCbr, TokType.Plus, 
+            TokType.TextOpenInterpolation, TokType.FiObr, TokType.Id, TokType.FiCbr, TokType.Plus, 
             //'pre{0+1}'
-            TokType.Text, TokType.InterObr,  TokType.Number, TokType.Plus, TokType.Number, TokType.InterCbr,TokType.Text,
+            TokType.TextOpenInterpolation,  TokType.Number, TokType.Plus, TokType.Number, TokType.TextCloseInterpolation,
             //}after'
-            TokType.InterCbr, TokType.Text)]
+            TokType.TextCloseInterpolation)]
         [TestCase("'pre{ 'pre{0+1}' }after'",
             //'pre{
-            TokType.Text, TokType.InterObr, 
+            TokType.TextOpenInterpolation, 
             //'pre{0+1}'
-            TokType.Text, TokType.InterObr, TokType.Number, TokType.Plus, TokType.Number, TokType.InterCbr, TokType.Text,
+            TokType.TextOpenInterpolation, TokType.Number, TokType.Plus, TokType.Number, TokType.TextCloseInterpolation,
             //}after'
-            TokType.InterCbr, TokType.Text)]
+            TokType.TextCloseInterpolation)]
 
      
 
-        [TestCase("'pre{ {a} }'", TokType.Text, TokType.InterObr, TokType.FiObr, TokType.Id, TokType.FiCbr, TokType.InterCbr, TokType.Text)]
-        [TestCase("'pre{ {} }'", TokType.Text, TokType.InterObr, TokType.FiObr, TokType.FiCbr, TokType.InterCbr, TokType.Text)]
-        [TestCase("'pre{ {1} 2 }'", TokType.Text, TokType.InterObr, TokType.FiObr, 
-            TokType.Number, TokType.FiCbr, TokType.Number, TokType.InterCbr, TokType.Text)]
+        [TestCase("'pre{ {a} }'", TokType.TextOpenInterpolation, TokType.FiObr, TokType.Id, TokType.FiCbr, TokType.TextCloseInterpolation)]
+        [TestCase("'pre{ {} }'", TokType.TextOpenInterpolation, TokType.FiObr, TokType.FiCbr, TokType.TextCloseInterpolation)]
+        [TestCase("'pre{ {1} 2 }'", TokType.TextOpenInterpolation, TokType.FiObr, 
+            TokType.Number, TokType.FiCbr, TokType.Number, TokType.TextCloseInterpolation)]
         [TestCase("'pre{ 'pre{0}after' }after'",
             //'pre{
-            TokType.Text, TokType.InterObr,
+            TokType.TextOpenInterpolation,
             //'pre{0}'
-            TokType.Text, TokType.InterObr, TokType.Number, TokType.InterCbr, TokType.Text,
+            TokType.TextOpenInterpolation, TokType.Number, TokType.TextCloseInterpolation,
             //}after'
-            TokType.InterCbr, TokType.Text)]
+            TokType.TextCloseInterpolation)]
         public void TokenFlowIsCorrect_ExpectEof(string exp, params TokType[] expected) 
         {
             var tokens = new List<TokType>();

@@ -36,14 +36,6 @@ namespace NFun.Tokenization
         /// </summary>
         ArrCBr,
         /// <summary>
-        /// '...{  Intepolation starts
-        /// </summary>
-        InterObr, 
-        /// <summary>
-        ///  }...' Interpolation finish
-        /// </summary>
-        InterCbr,
-        /// <summary>
         /// {
         /// </summary>
         FiObr,
@@ -85,6 +77,10 @@ namespace NFun.Tokenization
         /// </summary>
         Sep,
         Text,
+        TextOpenInterpolation,
+        TextMidInterpolation,
+        TextCloseInterpolation,
+
         NotAToken,
 
         True,
