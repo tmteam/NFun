@@ -1,12 +1,19 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NFun.ParseErrors;
 
 namespace NFun.Tokenization
 {
+
+    struct InterpolationLayer
+    {
+        public char OpenQuoteSymbol;
+        public int FigureBracketsDiff;
+    }
     public class Tokenizer
     {
-        private Queue<Tok> _futureTokens = null;
+        #region statics
         public static TokFlow ToFlow(string input) 
             => new TokFlow(ToTokens(input));
 
@@ -35,7 +42,7 @@ namespace NFun.Tokenization
             }
         }
         
-        private readonly Dictionary<string, TokType> _keywords = new Dictionary<string, TokType>
+        private static readonly Dictionary<string, TokType> _keywords = new Dictionary<string, TokType>
         {
             {"in", TokType.In},
 
@@ -115,49 +122,7 @@ namespace NFun.Tokenization
             {"date", TokType.Reserved},
         };
         
-        private Tok TryReadNext(string str, int position)
-        {
-            if(position>=str.Length)
-                return Tok.New(TokType.Eof, position,position);
-
-            var current = str[position];
-            if (current == '#')
-            {
-                var newPosition = SkipComments(str, position);
-                if (newPosition == position)
-                    newPosition++; 
-                return TryReadNext(str, newPosition);
-            }
-            
-            if (current == ' ' || current == '\t')
-                return TryReadNext(str, position + 1);
-
-            if(current== 0)
-                return  Tok.New(TokType.Eof, "", position,position);
-            
-            if (current == '\r' || current == '\n' || current == ';')
-                return Tok.New(TokType.NewLine, current.ToString(), position,position+1);
-            
-            if (IsDigit(current))
-                return ReadNumber(str, position);
-            
-            
-            if (IsLetter(current))
-                return ReadIdOrKeyword(str, position);
-
-            //if (IsSpecial(current) is TokType symbol )
-            //    return Tok.New(symbol, current.ToString(), position,position+1);
-
-            if (TryReadUncommonSpecialSymbols(str, position, current) is Tok tok) 
-                return tok;
-
-            if (IsQuote(current))
-                return ReadText(str, position);
-            
-            return Tok.New(TokType.NotAToken, current.ToString(), position,position+1);
-        }
-        
-        private int SkipComments(string str, int position)
+        private static int SkipComments(string str, int position)
         {
             if(str[position]!='#')
                 throw new InvalidOperationException("'#' symbol expected");
@@ -170,7 +135,7 @@ namespace NFun.Tokenization
             return index;
         }
         
-        private Tok ReadIdOrKeyword(string str, int position)
+        private static Tok ReadIdOrKeyword(string str, int position)
         {
             int finish = position;
             for (; finish < str.Length && (IsLetter(str[finish]) || IsDigit(str[finish])); finish++){}
@@ -191,6 +156,8 @@ namespace NFun.Tokenization
             
             switch (current)
             {
+                case '{': return Tok.New(TokType.FiObr,      position, position + 1);
+                case '}': return Tok.New(TokType.FiCbr,      position, position + 1);
                 case ',': return Tok.New(TokType.Sep,        position, position+1);
                 case '&': return Tok.New(TokType.BitAnd,     position, position+1);
                 case '^': return Tok.New(TokType.BitXor,     position, position+1);
@@ -241,51 +208,27 @@ namespace NFun.Tokenization
             }
         }
 
-        private bool IsLetter(char val) => val == '_' ||  (val >= 'a' && val <= 'z') || (val >= 'A' && val <= 'Z');
+        private static bool IsLetter(char val) => val == '_' ||  (val >= 'a' && val <= 'z') || (val >= 'A' && val <= 'Z');
 
-        private bool IsDigit(char val) => char.IsDigit(val); // val >= '0' && val <= '9';
+        private static bool IsDigit(char val) => char.IsDigit(val); // val >= '0' && val <= '9';
 
-        private bool IsQuote(char val) => val == '\''|| val == '\"'; 
-
-        /// <exception cref="FunParseException"></exception>
-        private Tok ReadText(string str, int startPosition)
-        {
-            var openQuoteSymbol = str[startPosition];
-            if (startPosition >= str.Length - 1)
-                throw ErrorFactory.QuoteAtEndOfString(openQuoteSymbol,startPosition,startPosition + 1);
-
-            var (result, endPosition) = QuotationReader.ReadQuotation(str, startPosition);
-            if(endPosition==-1)
-                throw ErrorFactory.ClosingQuoteIsMissed(openQuoteSymbol, startPosition, str.Length-1);
-
-            var closeQuoteSymbol = str[endPosition];
-            if (closeQuoteSymbol == '{')
-            {
-                //interpolation
-                throw new NotImplementedException();
-            }
-            else if (closeQuoteSymbol != openQuoteSymbol)
-                throw ErrorFactory.ClosingQuoteIsMissed(openQuoteSymbol, startPosition, endPosition);
-
-            return Tok.New(TokType.Text, result,startPosition, endPosition+1);
-        }
-        
-        private Tok ReadNumber(string str, int position)
+        private static bool IsQuote(char val) => val == '\''|| val == '\"';
+        private static Tok ReadNumber(string str, int position)
         {
             int dotPostition = -1;
             bool hasTypeSpecifier = false;
-            
+
             int index = position;
             for (; index < str.Length; index++)
             {
-                if (IsDigit(str[index])) 
+                if (IsDigit(str[index]))
                     continue;
-                
+
                 if (hasTypeSpecifier)
                 {
-                    if(str[index]>='a' && str[index] <='f' )
+                    if (str[index] >= 'a' && str[index] <= 'f')
                         continue;
-                    if(str[index]>='A' && str[index] <='F' )
+                    if (str[index] >= 'A' && str[index] <= 'F')
                         continue;
                 }
                 else if (index == position + 1 && str[position] == '0')
@@ -297,29 +240,212 @@ namespace NFun.Tokenization
                     }
                 }
 
-                if(str[index]=='_')
+                if (str[index] == '_')
                     continue;
-                
-                if (!hasTypeSpecifier && str[index] == '.' && dotPostition==-1)
+
+                if (!hasTypeSpecifier && str[index] == '.' && dotPostition == -1)
                 {
                     dotPostition = index;
                     continue;
                 }
                 break;
             }
-           
+
             //if dot is last then skip
-            if(dotPostition==index-1)
-                return Tok.New(TokType.Number, 
-                    str.Substring(position, index - position-1),position, index-1);
-            if (index < str.Length && IsLetter(str[index ]))
+            if (dotPostition == index - 1)
+                return Tok.New(TokType.Number,
+                    str.Substring(position, index - position - 1), position, index - 1);
+            if (index < str.Length && IsLetter(str[index]))
             {
                 var txtToken = ReadIdOrKeyword(str, index);
-                return Tok.New(TokType.NotAToken, str.Substring(position,txtToken.Finish - position), 
-                    position,txtToken.Finish);
+                return Tok.New(TokType.NotAToken, str.Substring(position, txtToken.Finish - position),
+                    position, txtToken.Finish);
             }
-            return Tok.New(TokType.Number, str.Substring(position, index - position), 
+            return Tok.New(TokType.Number, str.Substring(position, index - position),
                 position, index);
         }
+        
+        #endregion
+        
+        private List<Tok> _futureTokens = null;
+
+       
+
+        private Tok TryReadNext(string str, int position)
+        {
+            if (position >= str.Length)
+                return Tok.New(TokType.Eof, position, position);
+
+            var current = str[position];
+            if (current == '#')
+            {
+                var newPosition = SkipComments(str, position);
+                if (newPosition == position)
+                    newPosition++;
+                return TryReadNext(str, newPosition);
+            }
+
+            if (current == ' ' || current == '\t')
+                return TryReadNext(str, position + 1);
+
+            if (current == 0)
+                return Tok.New(TokType.Eof, "", position, position);
+
+            if (current == '\r' || current == '\n' || current == ';')
+                return Tok.New(TokType.NewLine, current.ToString(), position, position + 1);
+
+            if (IsDigit(current))
+                return ReadNumber(str, position);
+
+
+            if (IsLetter(current))
+                return ReadIdOrKeyword(str, position);
+
+            //if (IsSpecial(current) is TokType symbol )
+            //    return Tok.New(symbol, current.ToString(), position,position+1);
+
+            if (TryReadUncommonSpecialSymbols(str, position, current) is Tok tok)
+                return tok;
+
+            if (IsQuote(current))
+            {
+                _futureTokens.AddRange(ReadText(str, position));
+                var firstOne =  _futureTokens[0];
+                _futureTokens.RemoveAt(0);
+                return firstOne;
+            }
+
+            return Tok.New(TokType.NotAToken, current.ToString(), position, position + 1);
+        }
+        /// <exception cref="FunParseException"></exception>
+        private List<Tok> ReadText(string str, int startPosition)
+        {
+            var openQuoteSymbol = str[startPosition];
+
+            var results = new Queue<Tok>();
+            var expectedClosingSymbol = openQuoteSymbol;
+            while (true)
+            {
+                if (startPosition >= str.Length - 1)
+                    throw ErrorFactory.QuoteAtEndOfString(expectedClosingSymbol, startPosition, startPosition + 1);
+
+                var (result, endPosition) = QuotationReader.ReadQuotation(str, startPosition);
+                if (endPosition == -1)
+                    throw ErrorFactory.ClosingQuoteIsMissed(expectedClosingSymbol, startPosition, str.Length - 1);
+
+                var closeQuoteSymbol = str[endPosition];
+                if (closeQuoteSymbol == '{')
+                {
+                    //Parse interpolation
+                    //The idea is to put all the tokens of whole quotation to _futureTokens queue
+
+                    //Starts from start of the string
+                    results.Enqueue(Tok.New(TokType.Text, result, startPosition, endPosition + 1));
+                    results.Enqueue(Tok.New(TokType.InterObr, endPosition + 1, endPosition + 2));
+
+                    int current = endPosition + 1;
+                    //read all interpolation from '{' till '}'
+                    //put all tokens to queue
+                    int figureBracketsCount = 1;
+
+                    while (current < str.Length)
+                    {
+                        var token = TryReadNext(str, current);
+                        if (token.Type == TokType.FiCbr)
+                        {
+                            figureBracketsCount--;
+                            if (figureBracketsCount == 0)
+                            {
+                                //close interpolation symbol
+                                results.Enqueue(Tok.New(TokType.InterCbr, token.Start, token.Finish));
+                                break;
+                            }
+                        }
+                        else if (token.Type == TokType.FiObr)
+                            figureBracketsCount++;
+                        if (token.Type != TokType.Text)
+                            results.Enqueue(token);
+                        current = token.Finish;
+                    }
+                    //read text continuation recursively from interpolation close bracket '}' position
+                    startPosition = current;
+                }
+                else
+                {
+                    if (closeQuoteSymbol != expectedClosingSymbol)
+                        throw ErrorFactory.ClosingQuoteIsMissed(expectedClosingSymbol, startPosition, endPosition);
+
+                    results.Enqueue(Tok.New(TokType.Text, result, startPosition, endPosition + 1));
+                    break;
+                }
+            }
+
+            
+            return results;
+
+        }
+
+        /// <summary>
+        /// Reads single text token or sequence of tokens in interpolation case.
+        /// puts  all tokens into  _futureTokens queue
+        /// </summary>
+        /// <exception cref="FunParseException"></exception>
+        private void ReadTextRecursive(string str, int startPosition, char expectedClosingSymbol)
+        {
+            if (startPosition >= str.Length - 1)
+                throw ErrorFactory.QuoteAtEndOfString(expectedClosingSymbol, startPosition, startPosition + 1);
+
+            var (result, endPosition) = QuotationReader.ReadQuotation(str, startPosition);
+            if (endPosition == -1)
+                throw ErrorFactory.ClosingQuoteIsMissed(expectedClosingSymbol, startPosition, str.Length - 1);
+
+            var closeQuoteSymbol = str[endPosition];
+            if (closeQuoteSymbol == '{')
+            {
+                //Parse interpolation
+                //The idea is to put all the tokens of whole quotation to _futureTokens queue
+
+                //Starts from start of the string
+                _futureTokens.Enqueue(Tok.New(TokType.Text, result, startPosition, endPosition + 1));
+                _futureTokens.Enqueue(Tok.New(TokType.InterObr, endPosition + 1, endPosition + 2));
+
+                int current = endPosition + 1;
+                //read all interpolation from '{' till '}'
+                //put all tokens to queue
+                int figureBracketsCount = 1;
+
+                while (current < str.Length)
+                {
+                    var token = TryReadNext(str, current);
+                    if (token.Type == TokType.FiCbr)
+                    {
+                        figureBracketsCount--;
+                        if (figureBracketsCount == 0)
+                        {
+                            //close interpolation symbol
+                            _futureTokens.Enqueue(Tok.New(TokType.InterCbr, token.Start, token.Finish));
+                            break;
+                        }
+                    }
+                    else if (token.Type == TokType.FiObr)
+                        figureBracketsCount++;
+                    if(token.Type!= TokType.Text)
+                        _futureTokens.Enqueue(token);
+                    current = token.Finish;
+                }
+
+                //read text continuation recursively from interpolation close bracket '}' position
+                ReadTextRecursive(str, current, expectedClosingSymbol);
+            }
+            else
+            {
+                if (closeQuoteSymbol != expectedClosingSymbol)
+                    throw ErrorFactory.ClosingQuoteIsMissed(expectedClosingSymbol, startPosition, endPosition);
+
+                _futureTokens.Enqueue(Tok.New(TokType.Text, result, startPosition, endPosition + 1));
+            }
+        }
+
+      
     }
 }
