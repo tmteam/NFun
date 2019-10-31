@@ -36,13 +36,21 @@ namespace NFun.Tokenization
         /// </summary>
         ArrCBr,
         /// <summary>
+        /// '...{  Intepolation starts
+        /// </summary>
+        InterObr, 
+        /// <summary>
+        ///  }...' Interpolation finish
+        /// </summary>
+        InterCbr,
+        /// <summary>
         /// {
         /// </summary>
-        fiObr,
+        FiObr,
         /// <summary>
         ///  }
         /// </summary>
-        fiCbr,
+        FiCbr,
         /// <summary>
         /// not used
         /// </summary>

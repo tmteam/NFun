@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using NFun.Tokenization;
 using NUnit.Framework;
@@ -86,17 +87,56 @@ namespace Funny.Tests.UnitTests
             TokType.Id, TokType.Def, TokType.Id, TokType.Obr, TokType.Number, TokType.Cbr,
             TokType.NewLine,
             TokType.Id, TokType.Def, TokType.Id)]
+
         [TestCase("'{112}'", 
-            TokType.Text, TokType.InterOBr, TokType.Number, TokType.InterCBr, TokType.Text)]
-        [TestCase("'hello{o}world{b}", 
-            TokType.Text,TokType.InterOBr, TokType.Id, TokType.InterCBr,TokType.Text, 
-            TokType.InterOBr, TokType.Id, TokType.InterCBr, TokType.Text)]
+            TokType.Text, TokType.InterObr, TokType.Number, TokType.InterCbr, TokType.Text)]
+        [TestCase("'{112}';",
+            TokType.Text, TokType.InterObr, TokType.Number, TokType.InterCbr, TokType.Text, TokType.NewLine)]
+
+        [TestCase("'1+2 = {12}'",
+            TokType.Text, TokType.InterObr, TokType.Number, TokType.InterCbr, TokType.Text)]
+
+        [TestCase("'hello{o}world{b}'", 
+            TokType.Text,TokType.InterObr, TokType.Id, TokType.InterCbr,TokType.Text, 
+            TokType.InterObr, TokType.Id, TokType.InterCbr, TokType.Text)]
+        [TestCase("'{''}'", TokType.Text, TokType.InterObr, TokType.Text, TokType.InterCbr, TokType.Text)]
+
+
+        [TestCase("'pre{ {a} + 'pre{0+1}' }after'", 
+            //'pre{ {a} +
+            TokType.Text, TokType.InterObr, TokType.FiObr, TokType.Id, TokType.FiCbr, TokType.Plus, 
+            //'pre{0+1}'
+            TokType.Text, TokType.InterObr,  TokType.Number, TokType.Plus, TokType.Number, TokType.InterCbr,TokType.Text,
+            //}after'
+            TokType.InterCbr, TokType.Text)]
+        [TestCase("'pre{ 'pre{0+1}' }after'",
+            //'pre{
+            TokType.Text, TokType.InterObr, 
+            //'pre{0+1}'
+            TokType.Text, TokType.InterObr, TokType.Number, TokType.Plus, TokType.Number, TokType.InterCbr, TokType.Text,
+            //}after'
+            TokType.InterCbr, TokType.Text)]
+
+     
+
+        [TestCase("'pre{ {a} }'", TokType.Text, TokType.InterObr, TokType.FiObr, TokType.Id, TokType.FiCbr, TokType.InterCbr, TokType.Text)]
+        [TestCase("'pre{ {} }'", TokType.Text, TokType.InterObr, TokType.FiObr, TokType.FiCbr, TokType.InterCbr, TokType.Text)]
+        [TestCase("'pre{ {1} 2 }'", TokType.Text, TokType.InterObr, TokType.FiObr, 
+            TokType.Number, TokType.FiCbr, TokType.Number, TokType.InterCbr, TokType.Text)]
+        [TestCase("'pre{ 'pre{0}after' }after'",
+            //'pre{
+            TokType.Text, TokType.InterObr,
+            //'pre{0}'
+            TokType.Text, TokType.InterObr, TokType.Number, TokType.InterCbr, TokType.Text,
+            //}after'
+            TokType.InterCbr, TokType.Text)]
         public void TokenFlowIsCorrect_ExpectEof(string exp, params TokType[] expected) 
         {
-             var tokens =  Tokenizer
-                 .ToTokens(exp)
-                 .Select(s=>s.Type)
-                 .ToArray(); 
+            var tokens = new List<TokType>();
+            foreach (var token in Tokenizer.ToTokens(exp))
+            {
+                tokens.Add(token.Type);
+            }
              //Add Eof at end of flow for test readability
             CollectionAssert.AreEquivalent(expected.Append(TokType.Eof),tokens);
         }
