@@ -18,12 +18,12 @@ namespace Funny.Tests
             var parsed   = TopLevelParser.Parse(Tokenizer.ToFlow(text));
 
             Assert.AreEqual(1, parsed.Nodes.Length);
-            var Equation = parsed.Nodes.OfType<EquationSyntaxNode>().First();
+            var JetEquation = parsed.Nodes.OfType<EquationSyntaxNode>().First();
             
             Assert.Multiple(() =>
             {
-                Assert.AreEqual("y", Equation.Id);
-                AssertParsed(Equation, expectedExpr);
+                Assert.AreEqual("y", JetEquation.Id);
+                AssertParsed(JetEquation, expectedExpr);
             });
         }*/
         [TestCase("y(x) = 1+x", "1+x", "x")]
