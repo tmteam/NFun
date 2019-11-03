@@ -44,8 +44,6 @@ namespace Funny
 
                     Console.WriteLine($"Built in {buildSw.Elapsed.TotalMilliseconds}");
 
-
-
                     if (runtime.Inputs.Any())
                     {
                         Console.WriteLine("Inputs: " + string.Join(", ", runtime.Inputs.Select(s => s.ToString())));
@@ -107,6 +105,4 @@ namespace Funny
             }
         }
     }
-
-
 }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Linq;
 using NFun.ParseErrors;
 using NFun.Tokenization;
@@ -65,6 +66,11 @@ namespace NFun.Interpritation.Nodes
         public void Apply(IExpressionNodeVisitor visitor)
         {
             visitor.Visit(this, _ifCaseNodes);
+            for (int i = 0; i < _ifCaseNodes.Length; i++)
+            {
+                _ifCaseConvertedNodes[i].Apply(visitor);
+            }
+            _elseNode.Apply(visitor);
         }
     }
 }
