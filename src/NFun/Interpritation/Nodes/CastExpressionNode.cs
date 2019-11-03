@@ -22,6 +22,13 @@ namespace NFun.Interpritation.Nodes
             _converter = converter;
             Interval = interval;
         }
+
+        public void Apply(IExpressionNodeVisitor visitor)
+        {
+            visitor.Visit(this, Type, _origin.Type);
+            _origin.Apply(visitor);
+        }
+
         public Interval Interval { get; }
         public VarType Type { get; }
         public object Calc()

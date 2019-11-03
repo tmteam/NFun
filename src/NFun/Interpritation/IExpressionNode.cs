@@ -5,6 +5,7 @@ namespace NFun.Interpritation.Nodes
 {
     public interface IExpressionNode
     {
+        void Apply(IExpressionNodeVisitor visitor);
         Interval Interval { get; }
         VarType Type { get; }
         object Calc();

@@ -36,6 +36,7 @@ namespace NFun.Interpritation.Nodes
         }
 
         public string Name { get; }
+       
         public Interval Interval { get; }
         public VarType Type { get; } 
         
@@ -43,5 +44,10 @@ namespace NFun.Interpritation.Nodes
         public object Calc() => throw new InvalidOperationException();
         
         public override string ToString() => $"{Name}: {Type}";
+
+        public void Apply(IExpressionNodeVisitor visitor)
+        {
+        }
+
     }
 }

@@ -9,6 +9,24 @@ namespace NFun.Runtime
 {
     public class FunRuntime
     {
+        public void ApplyEntry(IExpressionNodeVisitor visitor)
+        {
+            foreach (var userFunction in UserFunctions)
+            {
+                userFunction.Apply(visitor);
+            }
+
+            foreach (var varInfo in Inputs)
+            {
+                visitor.VisitInput(varInfo);
+            }
+
+            foreach (var equation in _equations)
+            {
+                visitor.Visit(equation);
+                equation.Expression.Apply(visitor);
+            }
+        }
         public VarInfo[] Inputs => _variables.GetAllSources()
             .Where(v => !v.IsOutput)
             .Select(s => new VarInfo(false,  s.Type,s.Name, s.IsStrictTyped, s.Attributes)).ToArray();

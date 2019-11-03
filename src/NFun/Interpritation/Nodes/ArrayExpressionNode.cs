@@ -28,9 +28,18 @@ namespace NFun.Interpritation.Nodes
                 }
             }
         }
+
+      
+
         public Interval Interval { get; }
         public VarType Type { get; }
         public object Calc()
             => ImmutableFunArray.By(_elements.Select(e => e.Calc()));
+          public void Apply(IExpressionNodeVisitor visitor)
+        {
+            visitor.Visit(this, _elements);
+            foreach (var expressionNode in _elements)
+                expressionNode.Apply(visitor);
+        }
     }
 }

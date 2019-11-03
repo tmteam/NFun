@@ -213,10 +213,10 @@ namespace NFun.ParseErrors
                 interval);
             
         public static Exception UnknownValueAtStartOfExpression(int exprStart, Tok flowCurrent) 
-            => new FunParseException(315,$"Unexpected symbol {ErrorsHelper.ToText(flowCurrent)}. Equation, anonymous equation, function or type defenition expected.", exprStart, flowCurrent.Finish);
+            => new FunParseException(315,$"Unexpected symbol {ErrorsHelper.ToText(flowCurrent)}. JetEquation, anonymous equation, function or type defenition expected.", exprStart, flowCurrent.Finish);
         
         public static Exception ExpressionBeforeTheDefenition(int exprStart, ISyntaxNode expression, Tok flowCurrent)
-            => new FunParseException(318,$"Unexpected expression {ErrorsHelper.ToShortText(expression)} before defenition. Equation, anonymous equation, function or type defenition expected.", exprStart, flowCurrent.Finish);
+            => new FunParseException(318,$"Unexpected expression {ErrorsHelper.ToShortText(expression)} before defenition. JetEquation, anonymous equation, function or type defenition expected.", exprStart, flowCurrent.Finish);
 
         public static Exception FunctionDefenitionHasToStartFromNewLine(int exprStart, ISyntaxNode lexNode, Tok flowCurrent)
             => throw new FunParseException(321, $"Function defenition has start from new line. {Nl}Example : y:int{Nl}m(x) = x+1", exprStart, flowCurrent.Finish);
@@ -254,7 +254,7 @@ namespace NFun.ParseErrors
         }
 
         public static Exception VarExpressionIsMissed(int start, string id, Tok flowCurrent)
-            => new FunParseException(342, $"{id} = ??? . Equation body is missed {Nl}Example: {id} = {id}+1", 
+            => new FunParseException(342, $"{id} = ??? . JetEquation body is missed {Nl}Example: {id} = {id}+1", 
                 start, flowCurrent.Finish);
        
         public static Exception OutputNameWithDifferentCase(string id, Interval interval)

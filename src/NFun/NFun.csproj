@@ -6,4 +6,8 @@
         <Version>0.7.1</Version>
     </PropertyGroup>
 
+    <ItemGroup>
+      <Folder Include="Interpritation\Visitors\" />
+    </ItemGroup>
+
 </Project>

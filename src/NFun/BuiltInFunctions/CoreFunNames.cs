@@ -6,11 +6,11 @@ namespace NFun.BuiltInFunctions
         public const string Add = "+";
         public const string GetElementName = "get";
         public const string SliceName = "slice";
-        public const string Substract = "substract";
+        public const string Substract = "-";
         public const string BitOr = "bitor";
         public const string BitXor = "bitxor";
         public const string BitInverse = "bitinverse";
-        public const string Multiply = "multiply";
+        public const string Multiply = "*";
         public const string Divide = "divide";
         public const string Pow = "pow";
         public const string Remainder = "remainder";
@@ -29,7 +29,6 @@ namespace NFun.BuiltInFunctions
         public const string ArrConcat = "@";
         public const string Not = "invert";
         public const string Negate = "-_invert_num";
-        public static string Format = "@Format";
         public static string ToText = "toText";
         public static string ConcatTexts = "@concatTexts";
 

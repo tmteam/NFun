@@ -16,7 +16,9 @@ namespace NFun.Interpritation.Nodes
             _argsNodes = argsNodes;
             Interval = interval;
         }
-        
+
+       
+
         public Interval Interval { get; }
         public VarType Type => _fun.ReturnType;
         public object Calc()
@@ -25,6 +27,15 @@ namespace NFun.Interpritation.Nodes
                 .Select(a => a.Calc())
                 .ToArray();
             return _fun.Calc(argValues);
+        }
+
+        public void Apply(IExpressionNodeVisitor visitor)
+        {
+            visitor.Visit(this , _fun.Name, _argsNodes.Select(a=>a.Type).ToArray());
+            foreach (var expressionNode in _argsNodes)
+            {
+                expressionNode.Apply(visitor);
+            }
         }
     }
 }

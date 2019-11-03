@@ -17,6 +17,8 @@ namespace NFun.Interpritation.Nodes
         }
 
         public VariableSource Source { get; }
+       
+
         public Interval Interval { get; }
         public VarType Type => Source.Type;
         
@@ -27,6 +29,9 @@ namespace NFun.Interpritation.Nodes
             return Source.Value;
         }
         public override string ToString() => $"{Source.Name}: {Source.Value} uid: {_uid}";
-
+        public void Apply(IExpressionNodeVisitor visitor)
+        {
+            visitor.Visit(this);
+        }
     }
 }

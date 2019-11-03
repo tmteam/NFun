@@ -21,8 +21,18 @@ namespace NFun.Interpritation.Nodes
 
         public IExpressionNode Body { get; }
         public VarType Type => Body.Type;
+      
+
         public Interval Interval { get; }
         public bool IsSatisfied() => _condition.Calc().To<bool>();
         public object Calc() => Body.Calc();
+
+        public void Apply(IExpressionNodeVisitor visitor)
+        {
+            visitor.Visit(this);
+            _condition.Apply(visitor);
+            Body.Apply(visitor);
+
+        }
     }
 }

@@ -15,8 +15,14 @@ namespace NFun.Interpritation.Nodes
             Interval = interval;
             Type = VarType.Fun(_value.ReturnType, _value.ArgTypes);
         }
+
         public Interval Interval { get; }
         public VarType Type { get; }
         public object Calc() => _value;
+
+        public void Apply(IExpressionNodeVisitor visitor)
+        {
+            visitor.Visit(this);
+        }
     }
 }

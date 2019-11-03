@@ -58,22 +58,13 @@ namespace NFun.Interpritation.Nodes
             return _elseNode.Calc(); //caster(_elseNode.Calc());
         }
         public VarType Type { get; }
+
         public Interval Interval { get; }
 
-        VarType GetMostCommonType(IEnumerable<VarType> types)
+
+        public void Apply(IExpressionNodeVisitor visitor)
         {
-            var mostCommon = types.First();
-            foreach (var varType in types.Skip(1))
-            {
-                if (varType.CanBeConvertedTo(mostCommon))
-                  continue;
-                if (mostCommon.CanBeConvertedTo(varType))
-                    mostCommon = varType;
-                else
-                    return  VarType.Empty;
-            }
-            return mostCommon;
-           
+            visitor.Visit(this, _ifCaseNodes);
         }
     }
 }

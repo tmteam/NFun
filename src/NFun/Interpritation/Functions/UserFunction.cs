@@ -65,6 +65,12 @@ namespace NFun.Interpritation.Functions
                 Variables[i].Value=  args[i];
         }
 
+        public void Apply(IExpressionNodeVisitor visitor)
+        {
+            visitor.Visit(this);
+            _expression.Apply(visitor);
+        }
+
         public override string ToString() 
             => $"{Name}({string.Join(",",ArgTypes.Select(a=>a.ToString()))}):{ReturnType}";
     }

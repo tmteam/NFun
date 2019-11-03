@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using NFun;
 using NFun.BuiltInFunctions;
+using NFun.Jet;
 using NFun.ParseErrors;
 using NFun.Runtime;
 using NFun.Tokenization;
@@ -18,51 +19,6 @@ namespace Funny
     {
         static void Main(string[] args)
         {
-            Console.WriteLine($"~byte(1)={~(byte)1}");
-            Console.WriteLine($"~byte(5)={~(byte)5}");
-            Console.WriteLine($"~byte(0)={~(byte)0}");
-            Console.WriteLine($"~~byte(1)={~~(byte)1}");
-            
-            Console.WriteLine($"~int16(1)={~(short)1}");
-            Console.WriteLine($"~int16(5)={~(short)5}");
-            Console.WriteLine($"~int16(0)={~(short)0}");
-            Console.WriteLine($"~int16(-1)={~(short)-1}");
-            Console.WriteLine($"~int16(-5)={~(short)-5}");
-            Console.WriteLine($"~~int16(1)={~~(short)1}");
-
-            Console.WriteLine($"~uint16(1)={~(ushort)1}");
-            Console.WriteLine($"~uint16(5)={~(ushort)5}");
-            Console.WriteLine($"~uint16(0)={~(ushort)0}");
-            Console.WriteLine($"~~uint16(1)={~~(ushort)1}");
-
-            
-            Console.WriteLine($"~int(1)={~(int)1}");
-            Console.WriteLine($"~int(5)={~(int)5}");
-            Console.WriteLine($"~int(0)={~(int)0}");
-            Console.WriteLine($"~int(-1)={~(int)-1}");
-            Console.WriteLine($"~int(-5)={~(int)-5}");
-            Console.WriteLine($"~~int(1)={~~(int)1}");
-
-            Console.WriteLine($"~uint(1)={~(uint)1}");
-            Console.WriteLine($"~uint(5)={~(uint)5}");
-            Console.WriteLine($"~uint(0)={~(uint)0}");
-            Console.WriteLine($"~~uint(1)={~~(uint)1}");
-            
-
-            Console.WriteLine($"~int64(1)={~(long)1}");
-            Console.WriteLine($"~int64(5)={~(long)5}");
-            Console.WriteLine($"~int64(0)={~(long)0}");
-            Console.WriteLine($"~int64(-1)={~(long)-1}");
-            Console.WriteLine($"~int64(-5)={~(long)-5}");
-            Console.WriteLine($"~~int64(1)={~~(long)1}");
-
-            Console.WriteLine($"~uint64(1)={~(ulong)1}");
-            Console.WriteLine($"~uint64(5)={~(ulong)5}");
-            Console.WriteLine($"~uint64(0)={~(ulong)0}");
-            Console.WriteLine($"~~uint64(1)={~~(ulong)1}");
-
-            
-            
             Console.WriteLine("Let's make some fun.");
             Console.WriteLine("Type an expression or '/exit' to return");
             
@@ -74,10 +30,21 @@ namespace Funny
                 try
                 {
                     Stopwatch calcSw;
-                    Stopwatch build = Stopwatch.StartNew();
+                    Stopwatch buildSw = Stopwatch.StartNew();
                     var runtime = FunBuilder.With(expression).Build();
-                    build.Stop();
-                    Console.WriteLine($"Built in {build.Elapsed.TotalMilliseconds}");
+                    buildSw.Stop();
+
+                    var visitor = new JetBuilderVisitor();
+                    runtime.ApplyEntry(visitor);
+                    
+                    var jetText = visitor.GetResult().ToString();
+                    Console.WriteLine("Jet:");
+                    Console.WriteLine(jetText);
+                    Console.WriteLine();
+
+                    Console.WriteLine($"Built in {buildSw.Elapsed.TotalMilliseconds}");
+
+
 
                     if (runtime.Inputs.Any())
                     {
