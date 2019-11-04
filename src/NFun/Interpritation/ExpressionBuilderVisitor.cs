@@ -155,22 +155,31 @@ namespace NFun.Interpritation
 
         public IExpressionNode Visit(IfThenElseSyntaxNode node)
         {
-            var ifNodes = new List<IfCaseExpressionNode>();
-            foreach (var ifNode in node.Ifs)
+            //expressions
+            //if (...) {here} 
+            var expressionNodes = new IExpressionNode[node.Ifs.Length];
+            //conditions
+            // if ( {here} ) ...
+            var conditionNodes = new IExpressionNode[node.Ifs.Length];
+
+            for (int i = 0; i < expressionNodes.Length; i++)
             {
-                var condition = ReadNode(ifNode.Condition);
-                var expr = ReadNode(ifNode.Expression);
-                ifNodes.Add(new IfCaseExpressionNode(condition, expr,node.Interval));
+                conditionNodes[i] = ReadNode(node.Ifs[i].Condition);
+                var exprNode = ReadNode(node.Ifs[i].Expression);
+                expressionNodes[i] = CastExpressionNode.GetConvertedOrOriginOrThrow(exprNode, node.OutputType);
             }
 
-            var elseNode = ReadNode(node.ElseExpr);
-            return new IfThenElseExpressionNode(
-                ifCaseNodes: ifNodes.ToArray(), 
-                elseNode:    elseNode,
-                interval:    elseNode.Interval, 
-                type:        node.OutputType);        
+            var elseNode = CastExpressionNode.GetConvertedOrOriginOrThrow(ReadNode(node.ElseExpr), node.OutputType);
+
+            return new IfElseExpressionNode(
+                ifExpressionNodes: expressionNodes,
+                conditionNodes:    conditionNodes,
+                elseNode:          elseNode,
+                interval:          node.Interval, 
+                type:              node.OutputType);
         }
-        
+
+
         public IExpressionNode Visit(ConstantSyntaxNode node) 
             => new ValueExpressionNode(node.Value, node.OutputType, node.Interval);
 

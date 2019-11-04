@@ -10,17 +10,17 @@ namespace NFun.Types
 {
     public static class VarTypeConverter
     {
-        private static readonly Func<object, object> ToInt8 = (o => Convert.ToSByte(o));
-        private static readonly Func<object, object> ToInt16 = (o => Convert.ToInt16(o));
-        private static readonly Func<object, object> ToInt32 = (o => Convert.ToInt32(o));
-        private static readonly Func<object, object> ToInt64 = (o => Convert.ToInt64(o));
-        private static readonly Func<object, object> ToUInt8 = (o => Convert.ToByte(o));
+        private static readonly Func<object, object> ToInt8   = (o => Convert.ToSByte(o));
+        private static readonly Func<object, object> ToInt16  = (o => Convert.ToInt16(o));
+        private static readonly Func<object, object> ToInt32  = (o => Convert.ToInt32(o));
+        private static readonly Func<object, object> ToInt64  = (o => Convert.ToInt64(o));
+        private static readonly Func<object, object> ToUInt8  = (o => Convert.ToByte(o));
         private static readonly Func<object, object> ToUInt16 = (o => Convert.ToUInt16(o));
         private static readonly Func<object, object> ToUInt32 = (o => Convert.ToUInt32(o));
         private static readonly Func<object, object> ToUInt64 = (o => Convert.ToUInt64(o));
-        private static readonly Func<object, object> ToReal = (o => Convert.ToDouble(o));
-        private static readonly Func<object, object> ToText = (o => o?.ToString() ?? "");
-        private static readonly Func<object, object> ToAny = (o => o);
+        private static readonly Func<object, object> ToReal   = (o => Convert.ToDouble(o));
+        private static readonly Func<object, object> ToText   = (o => o?.ToString() ?? "");
+        private static readonly Func<object, object> ToAny    = (o => o);
 
         public static Func<object, object> GetConverterOrThrow(VarType from, VarType to, Interval interval)
         {
