@@ -179,7 +179,7 @@ namespace NFun.Interpritation
 
 
         public IExpressionNode Visit(ConstantSyntaxNode node) 
-            => new ValueExpressionNode(node.Value, node.OutputType, node.Interval);
+            => new ConstantExpressionNode(node.Value, node.OutputType, node.Interval);
 
         public IExpressionNode Visit(ProcArrayInit node)
         {

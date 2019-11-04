@@ -16,7 +16,7 @@ namespace NFun.Interpritation
         
         
         void Visit(CastExpressionNode node, VarType to, VarType from);
-        void Visit(ValueExpressionNode node, object value);
+        void Visit(ConstantExpressionNode node, object value);
         void Visit(VariableExpressionNode node);
         void Visit(ArrayExpressionNode node, IExpressionNode[] items);
         void Visit(IfElseExpressionNode node, int caseCount);

@@ -39,7 +39,7 @@ namespace NFun.Jet
                 case BaseVarType.Real:
                     return "r";
                 case BaseVarType.ArrayOf:
-                    return "[]" + ToShortType(type.ArrayTypeSpecification.VarType);
+                    return "[" + ToShortType(type.ArrayTypeSpecification.VarType);
                 case BaseVarType.Fun:
                     return "(" + string.Join(",", type.FunTypeSpecification.Inputs.Select(ToShortType)) + "):" +
                            ToShortType(type.FunTypeSpecification.Output);
@@ -80,15 +80,16 @@ namespace NFun.Jet
         public void Visit(UserFunction function)
         {
             _ac.AppendLine();
-            _ac.Append("u:");
+            _ac.Append("u ");
             _ac.Append(function.Name);
-            _ac.Append(" ");
+            _ac.Append(":");
             _ac.Append(ToShortType(function.ReturnType));
             if (function.Variables.Any())
             {
+                _ac.Append(":");
                 _ac.Append(string.Join(":", function.Variables.Select(v => v.Name + ":" + ToShortType(v.Type))));
             }
-
+            _ac.Append(" ");
         }
 
         public void Visit(CastExpressionNode node, VarType to, VarType @from)
@@ -108,7 +109,7 @@ namespace NFun.Jet
             _ac.Append(" ");
         }
 
-        public void Visit(ValueExpressionNode node, object value)
+        public void Visit(ConstantExpressionNode node, object value)
         {
             _ac.Append("n ");
             _ac.Append(ToShortType(node.Type));
@@ -137,7 +138,7 @@ namespace NFun.Jet
         {
             _ac.Append("f ");
             _ac.Append(name);
-            _ac.Append(" ");
+            _ac.Append(":");
             _ac.Append(string.Join(":", new[] {node.Type}.Concat(argTypes).Select(ToShortType)));
             _ac.Append(" ");
         }

@@ -3,11 +3,11 @@ using NFun.Types;
 
 namespace NFun.Interpritation.Nodes
 {
-    public class ValueExpressionNode: IExpressionNode
+    public class ConstantExpressionNode: IExpressionNode
     {
         private readonly object _value;
 
-        public ValueExpressionNode(object objVal, VarType type, Interval interval)
+        public ConstantExpressionNode(object objVal, VarType type, Interval interval)
         {
             _value = objVal;
             Interval = interval;
@@ -17,9 +17,7 @@ namespace NFun.Interpritation.Nodes
         public VarType Type { get; }
         public Interval Interval { get; }
         public object Calc() => _value;
-        public void Apply(IExpressionNodeVisitor visitor)
-        {
-            visitor.Visit(this,_value);
-        }
+        public void Apply(IExpressionNodeVisitor visitor) 
+            => visitor.Visit(this,_value);
     }
 }

@@ -40,7 +40,6 @@ namespace NFun.Interpritation.Nodes
         public Interval Interval { get; }
         public VarType Type { get; } 
         
-        
         public object Calc() => throw new InvalidOperationException();
         
         public override string ToString() => $"{Name}: {Type}";
