@@ -64,6 +64,8 @@ namespace Funny.Tests
         [TestCase("y = [1.0]==[1.0]", true)]
         [TestCase("y = [1.0]!=[1.0]", false)]
         [TestCase("y = [1.0,2.0]==[1.0,2.0]", true)]
+
+
         public void ConstantArrayOperatorsTest(string expr, object expected)
         {
             FunBuilder.BuildDefault(expr).Calculate().AssertReturns(VarVal.New("y", expected));
@@ -77,7 +79,7 @@ namespace Funny.Tests
         [TestCase("a = 2.0 \r b=3.0 \r y = [a*0,b*0] ", new[]{0.0,0.0})]
         [TestCase("a = true  \ry = if (a) [1.0] else [2.0, 3.0] ", new[]{1.0})]
         [TestCase("a = false  \r y = if (a) [1.0] else [2.0, 3.0]", new[]{2.0,3.0})]
-     
+        [TestCase("x=1; y=[x,x]", new[]{1,1})]
         public void ConstantCalculableArrayTest(string expr, object expected)
         {
             FunBuilder.BuildDefault(expr).Calculate().AssertHas(VarVal.New("y", expected));
