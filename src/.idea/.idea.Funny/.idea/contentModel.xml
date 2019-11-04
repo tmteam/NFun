@@ -29,7 +29,7 @@
           </e>
         </e>
         <e p="Program.cs" t="Include" />
-        <e p="StatsCollector.cs" t="Include" />
+        <e p="Statistic.cs" t="Include" />
         <e p="TestCaseResult.cs" t="Include" />
         <e p="TestHandler.cs" t="Include" />
       </e>

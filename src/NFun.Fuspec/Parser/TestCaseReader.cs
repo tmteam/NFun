@@ -76,7 +76,7 @@ namespace Nfun.Fuspec.Parser
         private TestCaseParseState FindOpeningString(string str)
         {
             _testCaseBuilder = new TestCaseBuilder();
-
+            _testCaseBuilder.StartLine = _inputText.Index;
             if (_inputText.ISCurrentLineSeparated('*'))
             {
                 _script = new List<string>();

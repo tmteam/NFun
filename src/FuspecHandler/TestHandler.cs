@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -18,98 +19,73 @@ namespace FuspecHandler
     public class TestHandler
     {
         private readonly ConsoleWriter _consoleWriter = new ConsoleWriter();
+        private TestCaseResult _testCaseResult;
+        private Statistic _statistic;
 
 
-        public statsCollector RunTests(string directoryPath)
+        public Statistic RunTests(string directoryPath)
         {
-            string[] allFoundFiles =  Directory.GetFiles(directoryPath, "*.todo", SearchOption.AllDirectories);
-            statsCollector _stats = new statsCollector(allFoundFiles.Length);
-
+            string[] allFoundFiles =  Directory.GetFiles(directoryPath, "*.fuspec", SearchOption.AllDirectories);
+            _statistic = new Statistic(allFoundFiles.Length);
+            
             foreach (var file in allFoundFiles)
             {
                 _consoleWriter.PrintTestName(file);
                 using (var streamReader = new StreamReader(file, System.Text.Encoding.Default))
                 {
-                    FuspecTestCase[] specs = null;
+                    IEnumerable<FuspecTestCase> specs= new FuspecTestCase[0];
                     try
                     {
                         specs = FuspecParser.Read(streamReader);
-                        
-                        _stats.AddSpecsCount(specs.Length);
-
-                    }
-                    
-                    catch (Exception e)
-                    {
-                        e.Data.Add("File", file);
-                        _stats.AddError(e);
-                                 _consoleWriter.PrintError(e);
-                    }
-
-
-                    foreach (var fus in specs)
-                    {
-                        if (fus.IsTestExecuted)
-
-                        try
+                        foreach (var fus in specs)
                         {
-                               RunOneTest(fus);
-                        }
-                        catch (Exception e)
-                        {
-                            e.Data.Add("File", file);
-                            _stats.AddError(e);
-                            _consoleWriter.PrintError(e);
-                        }
-                        else
-                        {
+                            _testCaseResult = new TestCaseResult(file, fus);
                             _consoleWriter.PrintFuspecName(fus.Name);
-                            _consoleWriter.PrintTODOTest();
-
+                            if (fus.IsTestExecuted)
+                                try
+                                {
+                                    RunOneTest(fus);
+                                }
+                                catch (Exception e)
+                                {
+                                    _testCaseResult.SetError(e);
+                                    _consoleWriter.PrintError(e);
+                                }
+                            else
+                                _consoleWriter.PrintTODOTest();
+                            _statistic.AddTestToStatistic(_testCaseResult);
                         }
+                        if (!specs.Any()) _consoleWriter.PrintNoTests();
+                    }
+                    catch (FuspecParserException e)
+                    {
+                        _statistic.AddFileReadingError(file, e);
+                        _consoleWriter.PrintBrokenFile();
                     }
 
-                   if (!specs.Any()) Console.WriteLine("No tests!");
                 }
             }
-            return _stats;
+            return _statistic;
         }
 
-        private void RunOneTest(FuspecTestCase fuspec)
+        private void RunOneTest(FuspecTestCase fus)
         {
+            var runtime = FunBuilder.With(fus.Script).Build();
+            //    if (runtime.Inputs.Any())
+            //   {
+            /* CompareInputs();
+             Console.WriteLine("Inputs: " + string.Join(", ", runtime.Inputs.Select(s => s.ToString())));
+             Console.WriteLine("Ouputs: " + string.Join(", ", runtime.Outputs.Select(s => s.ToString())));
+         */
+            // }
+            // else
+            if(!runtime.Inputs.Any())
+            {
+                var res = runtime.Calculate();
+            }
+
             // Printing process
-                _consoleWriter.PrintFuspecName(fuspec.Name);
-
-            var script = fuspec.Script;
-            try
-            {
-                var runtime = FunBuilder.With(script).Build();
-
-                //  runtime.Inputs.Select((s => new IdType( s.Name, s.Type)));
-
-                if (runtime.Inputs.Any())
-                {
-                    /* CompareInputs();
-                     Console.WriteLine("Inputs: " + string.Join(", ", runtime.Inputs.Select(s => s.ToString())));
-                     Console.WriteLine("Ouputs: " + string.Join(", ", runtime.Outputs.Select(s => s.ToString())));
-                 */
-                }
-                else
-                {
-                    var res = runtime.Calculate();
-                }
-
-                // Printing process
-                        _consoleWriter.PrintOkTest();
-            }
-           
-            catch (Exception e)
-            {
-                e.Data.Add("Script", script);
-                e.Data.Add("Test", fuspec.Name);
-                throw;
-            }
-           
+            _consoleWriter.PrintOkTest();
         }
 
         private bool CompareInputs()
