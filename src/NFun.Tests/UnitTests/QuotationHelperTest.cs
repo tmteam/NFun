@@ -5,8 +5,8 @@ using NUnit.Framework;
 
 namespace Funny.Tests.UnitTests
 {
-    [TestOf(typeof(QuotationReader))]
-    public class QuotationReaderTest
+    [TestOf(typeof(QuotationHelper))]
+    public class QuotationHelperTest
     {
         [TestCase("  \\\\","  \\")]
         [TestCase("","")]
@@ -15,6 +15,9 @@ namespace Funny.Tests.UnitTests
         [TestCase("\\n","\n")]
         [TestCase("\\'","'")]
         [TestCase("\\r","\r")]
+        [TestCase("\\{", "{")]
+        [TestCase("\\}", "}")]
+
         [TestCase("\\v","\v")]
         [TestCase("\\f","\f")]
         [TestCase("\\\"","\"")]
@@ -42,16 +45,54 @@ namespace Funny.Tests.UnitTests
             AssertStringParsed("", "some postfix", origin, expected);
             AssertStringParsed("prefix", "postfix", origin, expected);
         }
-        
+
+        [TestCase("  \\\\")]
+        [TestCase("")]
+        [TestCase("test")]
+        [TestCase("\\t")]
+        [TestCase("\\n")]
+        [TestCase("\\'")]
+        [TestCase("\\r")]
+        [TestCase("\\v")]
+        [TestCase("\\f")]
+        [TestCase("\\}")]
+        [TestCase("\\{")]
+        [TestCase("\\\"")]
+        [TestCase("\\\\")]
+        [TestCase("e\\'")]
+        [TestCase("#\\r")]
+        [TestCase(" \\r\\r")]
+        [TestCase("\\r\\r ")]
+        [TestCase("  \\\\  ")]
+        [TestCase("John: \\'fuck you!\\', he stops.")]
+        [TestCase("w\\t")]
+        [TestCase("w\\\\\\t")]
+        [TestCase("q\\t")]
+        [TestCase("w\\\"")]
+        [TestCase(" \\r")]
+        [TestCase("\\t \\n")]
+        [TestCase("q\\tg")]
+        [TestCase("e\\\\mm\\'")]
+        [TestCase("\\t \\n\\n")]
+        public void TextIsCorrect_EscapedConvertBack_ConvertedEqualToOrigin(string quoted)
+        {
+            var str = $"'{quoted}'";
+            var (parsed, end) = QuotationHelper.ReadQuotation(str, 0);
+            var restored = QuotationHelper.ToEscaped(parsed);
+
+            Assert.AreEqual(quoted, restored);
+        }
+
         private void AssertStringParsed(string prefix, string postfix, string quoted, string expected)
         {
             var str = $"'{quoted}'";
-            var (parsed, end) =  QuotationReader.ReadQuotation(
+            var (parsed, end) =  QuotationHelper.ReadQuotation(
                 prefix+str+postfix, prefix.Length);
             
             Assert.AreEqual(expected, parsed);
             Assert.AreEqual(str.Length-1+ prefix.Length, end);
         }
+
 
         [TestCase("'something", "\\ ", "else' some postfix")]
         [TestCase("'something", "\\e", "lse' some postfix")]
@@ -66,7 +107,7 @@ namespace Funny.Tests.UnitTests
             var prefix = "some prefix ";
             var str = prefix + before + error + after;
             var ex = Assert.Throws<FunParseException>(() =>
-                QuotationReader.ReadQuotation(str, prefix.Length));
+                QuotationHelper.ReadQuotation(str, prefix.Length));
             Console.WriteLine("Origin string to parse: "+ str);
             Console.WriteLine("Parse error: [FU"+ ex.Code+"] "+ex.Message);
             var foundError = ex.Interval.SubString(str);
@@ -78,7 +119,7 @@ namespace Funny.Tests.UnitTests
         [TestCase("'")]
         public void CloseQuoteMissing_returnsNegativeOne(string text)
         {
-            var (result, resultPosition) = QuotationReader.ReadQuotation(text, 0);
+            var (result, resultPosition) = QuotationHelper.ReadQuotation(text, 0);
             Assert.AreEqual(-1, resultPosition);
         }
 

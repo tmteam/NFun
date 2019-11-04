@@ -5,6 +5,7 @@ using NFun.Interpritation;
 using NFun.Interpritation.Functions;
 using NFun.Interpritation.Nodes;
 using NFun.Runtime;
+using NFun.Runtime.Arrays;
 using NFun.SyntaxParsing;
 using NFun.Tokenization;
 using NFun.Types;
@@ -196,7 +197,7 @@ namespace NFun.Jet
                 case BaseVarType.Real:
                     return Double.Parse(value, NumberFormatInfo.InvariantInfo);
                 case BaseVarType.ArrayOf when  type.ArrayTypeSpecification.VarType== VarType.Char:
-                    return QuotationReader.ReadQuotation(value, 0).result;
+                    return new TextFunArray(JetSerializationHelper.FromJetEscaped(value));
                 default:
                     throw new ArgumentOutOfRangeException();
             }

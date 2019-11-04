@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using NFun.ParseErrors;
 using NFun.Types;
 
 namespace NFun.Jet
@@ -68,6 +71,91 @@ namespace NFun.Jet
                 return VarType.Generic(id);
 
             throw new NotImplementedException();
+        }
+
+
+
+        const string ms_regexEscapes = @"[\f\n\r\s\t\v\\]";
+
+        /// <summary>
+        /// Converts usual text to jet escaped text. Replace pattern: \f\n\r\s\t\v\\. Returns \\e for empty string
+        /// </summary>
+        public static string ToJetEscaped(string text)
+        {
+            if (text.Length == 0)
+                return "\\e";
+            return   Regex.Replace(text, ms_regexEscapes, match);
+        }
+
+        /// <summary>
+        /// Convert jet escaped string. Replace pattern: \f\n\r\s\t\v\\. Parses \\e as empty string
+        /// </summary>
+        public static string FromJetEscaped(string rawString)
+        {
+            var sb = new StringBuilder();
+            int lastNonEscaped = 0;
+
+            int i = 0;
+            for (; i < rawString.Length; i++)
+            {
+                if (rawString[i] != '\\')
+                    continue;
+
+                if (lastNonEscaped != i)
+                {
+                    var prev = rawString.Substring(lastNonEscaped, i - lastNonEscaped);
+                    sb.Append(prev);
+                }
+
+                if (i == rawString.Length - 1)
+                    throw new JetParseException("BackslashAtEndOfString");
+
+                var next = rawString[i + 1];
+                char symbol;
+                switch (next)
+                {
+                    case '\\': symbol = '\\'; break;
+                    case 'n': symbol = '\n'; break;
+                    case 'r': symbol = '\r'; break;
+                    case 't': symbol = '\t'; break;
+                    case 'f': symbol = '\f'; break;
+                    case 'v': symbol = '\v'; break;
+                    case 's': symbol = ' '; break;
+                    //use special escaped for empty string
+                    case 'e': return string.Empty;
+                    default:
+                        throw new JetParseException("UnknownEscapeSequence "+next);
+                }
+                sb.Append(symbol);
+                i++;
+                lastNonEscaped = i + 1;
+            }
+
+            if (lastNonEscaped == 0)
+                return rawString;
+
+            if (lastNonEscaped <= rawString.Length - 1)
+            {
+                var prev = rawString.Substring(lastNonEscaped, i - lastNonEscaped);
+                sb.Append(prev);
+            }
+            return sb.ToString();
+        }
+        private static string match(Match m)
+        {
+            string match = m.ToString();
+            switch (match)
+            {
+                case " ": return @"\s";
+                case "\f": return @"\f";
+                case "\n": return @"\n";
+                case "\r": return @"\r";
+                case "\t": return @"\t";
+                case "\v": return @"\v";
+                case "\\": return @"\\";
+            }
+
+            throw new NotSupportedException();
         }
     }
 }

@@ -337,7 +337,7 @@ namespace NFun.Tokenization
             if (startPosition >= str.Length - 1)
                 throw ErrorFactory.QuoteAtEndOfString(expectedClosingSymbol, startPosition, startPosition + 1);
 
-            var (result, endPosition) = QuotationReader.ReadQuotation(str, startPosition);
+            var (result, endPosition) = QuotationHelper.ReadQuotation(str, startPosition);
             if (endPosition == -1)
                 throw ErrorFactory.ClosingQuoteIsMissed(expectedClosingSymbol, startPosition, str.Length);
 

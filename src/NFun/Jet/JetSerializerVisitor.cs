@@ -6,11 +6,12 @@ using NFun.Interpritation;
 using NFun.Interpritation.Functions;
 using NFun.Interpritation.Nodes;
 using NFun.SyntaxParsing;
+using NFun.Tokenization;
 using NFun.Types;
 
 namespace NFun.Jet
 {
-    public class JetBuilderVisitor : IExpressionNodeVisitor
+    public class JetSerializerVisitor : IExpressionNodeVisitor
     {
         readonly StringBuilder _ac = new StringBuilder();
 
@@ -90,9 +91,7 @@ namespace NFun.Jet
                     _ac.Append( ((double)value).ToString(CultureInfo.InvariantCulture));
                     break;
                 case BaseVarType.ArrayOf when  node.Type.ArrayTypeSpecification.VarType == VarType.Char:
-                    _ac.Append("'");
-                    _ac.Append(value);
-                    _ac.Append("'");
+                    _ac.Append(JetSerializationHelper.ToJetEscaped(value.ToString()));
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

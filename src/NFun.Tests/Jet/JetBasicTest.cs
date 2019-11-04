@@ -16,7 +16,7 @@ namespace Funny.Tests.Jet
         [TestCase("y=if(2>1) [1+2,2+3]; if (false) [1-4,3]; else [0]", new[]{3,5})]
         [TestCase("y:int[]=[1,2,3]", new[] { 1, 2,3 })]
         [TestCase("y=['1','2','3']", new[] { "1", "2", "3" })]
-
+      //  [TestCase("y:int=[1,2,3][2]", 3)]
         [TestCase("y=42 +1/2", 42.5)]
         [TestCase("y='test'", "test")]
         [TestCase("y='my name is \\'vasa\\''", "my name is 'vasa'")]
@@ -26,7 +26,7 @@ namespace Funny.Tests.Jet
             var runtime = FunBuilder.BuildDefault(expression);
             runtime.Calculate().AssertReturns(VarVal.New("y",expectedY));
 
-            var jetBuilder = new JetBuilderVisitor();
+            var jetBuilder = new JetSerializerVisitor();
             runtime.ApplyEntry(jetBuilder);
             var jet = jetBuilder.GetResult().ToString();
             Console.WriteLine("Jet: "+ jet);

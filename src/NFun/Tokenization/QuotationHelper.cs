@@ -1,11 +1,43 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
+using System.Text.RegularExpressions;
 using NFun.ParseErrors;
 
 namespace NFun.Tokenization
 {
-    public static class QuotationReader
+   
+
+
+    public static class QuotationHelper
     {
+        const string ms_regexEscapes = @"[\f\n\r\t\v{}'\\""]";
+
+        /// <summary>
+        /// Converts usual text to fun escaped text
+        /// </summary>
+        public static string ToEscaped(string text)
+            => Regex.Replace(text, ms_regexEscapes, match);
+
+        private static string match(Match m)
+        {
+            string match = m.ToString();
+            switch (match)
+            {
+                case "\f": return @"\f";
+                case "\n": return @"\n";
+                case "\r": return @"\r";
+                case "\t": return @"\t";
+                case "\v": return @"\v";
+                case "{": return @"\{";
+                case "}": return @"\}";
+                case "\"": return @"\""";
+                case "\\": return @"\\";
+                case "'": return @"\'";
+            }
+
+            throw new NotSupportedException();
+        }
         /// <summary>
         /// Convert escaped string until ' or  "  or { symbols
         /// </summary>
