@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using NFun.BuiltInFunctions;
@@ -10,7 +9,6 @@ using NFun.Runtime;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
-using NFun.Tokenization;
 using NFun.Types;
 
 namespace NFun.Interpritation
@@ -155,17 +153,23 @@ namespace NFun.Interpritation
 
         public IExpressionNode Visit(IfThenElseSyntaxNode node)
         {
-            var ifNodes = new List<IfCaseExpressionNode>();
-            foreach (var ifNode in node.Ifs)
+            var ifNodes        = new IExpressionNode[node.Ifs.Length];
+            var conditionNodes = new IExpressionNode[node.Ifs.Length];
+
+            for (int i = 0; i < ifNodes.Length; i++)
             {
-                var condition = ReadNode(ifNode.Condition);
-                var expr = ReadNode(ifNode.Expression);
-                ifNodes.Add(new IfCaseExpressionNode(condition, expr,node.Interval));
+                conditionNodes[i] = ReadNode(node.Ifs[i].Condition);
+
+                //convert node:
+                var exprNode =  ReadNode(node.Ifs[i].Expression);
+                ifNodes[i] = CastExpressionNode.GetConvertedOrOriginOrThrow(exprNode, node.OutputType);
             }
 
-            var elseNode = ReadNode(node.ElseExpr);
-            return new IfThenElseExpressionNode(
-                ifCaseNodes: ifNodes.ToArray(), 
+            var elseNode = CastExpressionNode.GetConvertedOrOriginOrThrow(ReadNode(node.ElseExpr), node.OutputType);
+
+            return new IfElseExpressionNode(
+                ifExpressionNodes: ifNodes, 
+                conditionNodes: conditionNodes,
                 elseNode:    elseNode,
                 interval:    elseNode.Interval, 
                 type:        node.OutputType);        

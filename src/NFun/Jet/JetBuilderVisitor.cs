@@ -5,6 +5,7 @@ using System.Text;
 using NFun.Interpritation;
 using NFun.Interpritation.Functions;
 using NFun.Interpritation.Nodes;
+using NFun.SyntaxParsing;
 using NFun.Types;
 
 namespace NFun.Jet
@@ -15,7 +16,7 @@ namespace NFun.Jet
         {
             switch (type.BaseType)
             {
-                case BaseVarType.Empty: 
+                case BaseVarType.Empty:
                     return "???";
                 case BaseVarType.Char:
                     return "c";
@@ -54,10 +55,12 @@ namespace NFun.Jet
         readonly StringBuilder _ac = new StringBuilder();
 
         public StringBuilder GetResult() => _ac;
+
         public void VisitInput(VarInfo variable)
         {
+            PrintArguments(variable.Attributes);
             _ac.AppendLine();
-            _ac.Append("i");
+            _ac.Append("i ");
             _ac.Append(variable.Name);
             _ac.Append(" ");
             _ac.Append(ToShortType(variable.Type));
@@ -67,17 +70,16 @@ namespace NFun.Jet
         public void Visit(Equation node)
         {
             _ac.AppendLine();
-
-            _ac.Append("o:");
+            _ac.Append("o ");
             _ac.Append(node.Id);
             _ac.Append(" ");
             _ac.Append(ToShortType(node.Expression.Type));
             _ac.Append(" ");
         }
+
         public void Visit(UserFunction function)
         {
             _ac.AppendLine();
-
             _ac.Append("u:");
             _ac.Append(function.Name);
             _ac.Append(" ");
@@ -88,6 +90,7 @@ namespace NFun.Jet
             }
 
         }
+
         public void Visit(CastExpressionNode node, VarType to, VarType @from)
         {
             _ac.Append("c ");
@@ -123,16 +126,10 @@ namespace NFun.Jet
             _ac.Append(" ");
         }
 
-        public void Visit(IfCaseExpressionNode node)
+        public void Visit(IfElseExpressionNode node, int ifCount)
         {
-            _ac.Append("s");
-            _ac.Append(" ");
-        }
-
-        public void Visit(IfThenElseExpressionNode node, IfCaseExpressionNode[] ifCaseNodes)
-        {
-            _ac.Append("? ");
-            _ac.Append(ifCaseNodes.Length);
+            _ac.Append("s ");
+            _ac.Append(ifCount);
             _ac.Append(" ");
         }
 
@@ -145,16 +142,37 @@ namespace NFun.Jet
             _ac.Append(" ");
         }
 
-      
 
-       public void Visit(FunArgumentExpressionNode node)
+        public void Visit(FunArgumentExpressionNode node)
         {
-                
+
         }
 
         public void Visit(FunVariableExpressionNode node)
         {
-            throw  new NotImplementedException();
+            throw new NotImplementedException();
+        }
+
+        private void PrintArguments(VarAttribute[] argumentsOrNull)
+        {
+            if(argumentsOrNull==null)
+                return;
+            foreach (var varAttribute in argumentsOrNull)
+            {
+                if (varAttribute.Value != null)
+                {
+                    _ac.Append("q ");
+                    _ac.Append(varAttribute.Name);
+                }
+                else
+                {
+                    _ac.Append("w ");
+                    _ac.Append(varAttribute.Name);
+                    _ac.Append(" ");
+                    _ac.Append(varAttribute.Value);
+                }
+            }
         }
     }
 }
+
