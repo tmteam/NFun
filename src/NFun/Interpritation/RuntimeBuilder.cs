@@ -202,7 +202,6 @@ namespace NFun.Interpritation
                 {
                     throw ErrorFactory.FunctionArgumentDuplicates(functionSyntax, functionSyntax.Args[i]);
                 }
-
             }
             var expression = ExpressionBuilderVisitor
                 .BuildExpression(functionSyntax.Body, functionsDictionary, vars);

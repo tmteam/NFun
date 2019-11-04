@@ -28,7 +28,7 @@ namespace NFun.Interpritation.Nodes
             }
         }
 
-        private FunArgumentExpressionNode(string name, VarType type, Interval interval)
+        public FunArgumentExpressionNode(string name, VarType type, Interval interval)
         {
             Type = type;
             Interval = interval;
