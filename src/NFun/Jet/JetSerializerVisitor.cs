@@ -6,7 +6,6 @@ using NFun.Interpritation;
 using NFun.Interpritation.Functions;
 using NFun.Interpritation.Nodes;
 using NFun.SyntaxParsing;
-using NFun.Tokenization;
 using NFun.Types;
 
 namespace NFun.Jet
@@ -117,15 +116,36 @@ namespace NFun.Jet
             _ac.Append(ifCount);
             _ac.Append(" ");
         }
-
+        
         public void Visit(FunExpressionNode node, string name, VarType[] argTypes)
         {
-            _ac.Append(JetSerializationHelper.FunCallId);
-            _ac.Append(" ");
-            _ac.Append(name);
-            _ac.Append(":");
-            _ac.Append(string.Join(":", new[] {node.Type}.Concat(argTypes).Select(JetSerializationHelper.ToJetTypeText)));
-            _ac.Append(" ");
+            if (node.FunctionDefenition is GenericFunctionBase.ConcreteGenericFunction)
+            {
+                _ac.Append(JetSerializationHelper.GenericCallId);
+                _ac.Append(" ");
+                _ac.Append(name);
+                _ac.Append(" ");
+                _ac.Append(node.Type.ToJetTypeText());
+                _ac.Append(" ");
+                _ac.Append(argTypes.Length);
+                _ac.Append(" ");
+                foreach (var argType in argTypes)
+                {
+                    _ac.Append(argType.ToJetTypeText());
+                    _ac.Append(" ");
+                }
+            }
+            else
+            {
+                _ac.Append(JetSerializationHelper.FunCallId);
+                _ac.Append(" ");
+                _ac.Append(name);
+                _ac.Append(":");
+                _ac.Append(string.Join(":", new[] { node.Type }.Concat(argTypes).Select(JetSerializationHelper.ToJetTypeText)));
+                _ac.Append(" ");
+
+            }
+
         }
 
 

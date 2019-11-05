@@ -78,7 +78,7 @@ namespace NFun.Interpritation.Functions
             private Func<object[], object> _calc;
 
             public ConcreteGenericFunction(Func<object[],object> calc, string name,  VarType returnType, params VarType[] argTypes) 
-                : base(TypeHelper.GetFunSignature(name,returnType,argTypes), returnType, argTypes)
+                : base(name, returnType, argTypes)
             {
                 _calc = calc;
             }

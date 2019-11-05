@@ -20,6 +20,8 @@ namespace NFun.Jet
         public const string ArrayId = "a";
         public const string IfId = "s";
         public const string FunCallId = "f";
+        public const string GenericCallId = "g";
+
         public const string ParameterlessAttributeId = "w";
         public const string AttributeWithParameterId = "q";
 
@@ -41,7 +43,7 @@ namespace NFun.Jet
                 case BaseVarType.Any:     return "a";
                 case BaseVarType.Generic: return type.GenericId.Value.ToString();
 
-                case BaseVarType.ArrayOf:  return "[" + ToJetTypeText(type.ArrayTypeSpecification.VarType);
+                case BaseVarType.ArrayOf:  return "'" + ToJetTypeText(type.ArrayTypeSpecification.VarType);
                 case BaseVarType.Fun: return "(" + string.Join(",", type.FunTypeSpecification.Inputs.Select(ToJetTypeText)) + "):" +
                            ToJetTypeText(type.FunTypeSpecification.Output);
                 default:
@@ -67,12 +69,12 @@ namespace NFun.Jet
                 case "a":return VarType.Anything;
             }
 
-            if (type.StartsWith("["))
+            if (type.StartsWith("'"))
                 return VarType.ArrayOf(ParseType(type.Substring(1)));
             if (int.TryParse(type, out var id))
                 return VarType.Generic(id);
 
-            throw new NotImplementedException();
+            throw new NotImplementedException("type "+type+" is not supported");
         }
 
         public static object ParseConstantValue(VarType type, string value)

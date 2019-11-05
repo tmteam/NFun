@@ -143,6 +143,27 @@ namespace NFun.Jet
 
 
 
+                case JetSerializationHelper.GenericCallId:
+                    var genericFunId = ReadNext();
+                    var genericReturnType = JetSerializationHelper.ParseType(ReadNext());
+                    var genericArgsCount = Int32.Parse (ReadNext());
+                    var genericArgTypes = new VarType[genericArgsCount];
+                    for (int i = 0; i < genericArgsCount; i++)
+                    {
+                        genericArgTypes[i] = JetSerializationHelper.ParseType(ReadNext());
+                    }
+                    var genericFunction = _funDictionary.GetGenericOrNull(genericFunId, genericArgsCount)
+                        ?? throw new JetParseException("Function " + genericFunId + " not found");
+                    var concrete = genericFunction.CreateConcreteOrNull(genericReturnType, genericArgTypes);
+                    var argExprs = new IExpressionNode[genericArgsCount];
+                    for (int i = 0; i < genericArgsCount; i++)
+                    {
+                        argExprs[i] = ReadExpression();
+                    }
+                    return new FunExpressionNode(concrete, argExprs, Interval.Empty);
+
+
+
                 case JetSerializationHelper.IfId:
                     //s {N} {conditionExpr1} {bodyExpr1} ... {conditionExprN} {bodyExprN} {elseExpr}
                     var ifCount = int.Parse(ReadNext());

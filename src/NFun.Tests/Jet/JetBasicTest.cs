@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using NFun;
 using NFun.Interpritation;
 using NFun.Jet;
@@ -16,7 +14,9 @@ namespace Funny.Tests.Jet
         [TestCase("y=if(2>1) [1+2,2+3]; if (false) [1-4,3]; else [0]", new[]{3,5})]
         [TestCase("y:int[]=[1,2,3]", new[] { 1, 2,3 })]
         [TestCase("y=['1','2','3']", new[] { "1", "2", "3" })]
-      //  [TestCase("y:int=[1,2,3][2]", 3)]
+        [TestCase("y:int=[1,2,3][2]", 3)]
+        [TestCase("y:int=[[1,2,3],[4,5,6],[7,8,9]][2][1]", 8)]
+
         [TestCase("y=42 +1/2", 42.5)]
         [TestCase("y='test'", "test")]
         [TestCase("y='my name is \\'vasa\\''", "my name is 'vasa'")]
@@ -28,6 +28,7 @@ namespace Funny.Tests.Jet
         [TestCase("fact(x):int = if(x==0) 1 else fact(x-1)*x; y=4.fact()", 4*3*2*1)]
         [TestCase("myMult(x,y):int = x*y;  fact(x):int = if(x==0) 1 else fact(x-1).myMult(x); y=4.fact()", 4 * 3 * 2 * 1)]
         [TestCase("fact(x):int = if(x==0) 1 else fact(x-1).myMult(x); myMult(x,y):int = x*y; y=4.fact()", 4 * 3 * 2 * 1)]
+        [TestCase("myGet(x,i) = x[i];  y=[1,2,3].myGet(1)",2)]
 
         public void OriginAnJettedCalculateSameConstants(string expression, object expectedY)
         {
@@ -46,8 +47,6 @@ namespace Funny.Tests.Jet
 
             var jetRuntime  =  JetDeserializer.Deserialize(jet, functionsDictionary);
             jetRuntime.Calculate().AssertReturns(VarVal.New("y", expectedY));
-
         }
-
     }
 }

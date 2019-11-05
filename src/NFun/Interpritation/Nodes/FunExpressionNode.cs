@@ -7,31 +7,32 @@ namespace NFun.Interpritation.Nodes
 {
     public class FunExpressionNode : IExpressionNode
     {
-        private readonly FunctionBase _fun;
+        public FunctionBase FunctionDefenition { get; }
+
         private readonly IExpressionNode[] _argsNodes;
 
         public FunExpressionNode(FunctionBase fun, IExpressionNode[] argsNodes, Interval interval)
         {
-            _fun = fun;
+            FunctionDefenition = fun;
             _argsNodes = argsNodes;
             Interval = interval;
         }
 
-       
+        
 
         public Interval Interval { get; }
-        public VarType Type => _fun.ReturnType;
+        public VarType Type => FunctionDefenition.ReturnType;
         public object Calc()
         {
             var argValues = _argsNodes
                 .Select(a => a.Calc())
                 .ToArray();
-            return _fun.Calc(argValues);
+            return FunctionDefenition.Calc(argValues);
         }
 
         public void Apply(IExpressionNodeVisitor visitor)
         {
-            visitor.Visit(this , _fun.Name, _argsNodes.Select(a=>a.Type).ToArray());
+            visitor.Visit(this , FunctionDefenition.Name, _argsNodes.Select(a=>a.Type).ToArray());
             foreach (var expressionNode in _argsNodes)
             {
                 expressionNode.Apply(visitor);
