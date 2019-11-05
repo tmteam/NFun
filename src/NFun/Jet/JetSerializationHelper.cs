@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using NFun.ParseErrors;
+using NFun.Runtime.Arrays;
 using NFun.Types;
 
 namespace NFun.Jet
@@ -73,7 +75,34 @@ namespace NFun.Jet
             throw new NotImplementedException();
         }
 
-
+        public static object ParseConstantValue(VarType type, string value)
+        {
+            switch (type.BaseType)
+            {
+                case BaseVarType.Bool:
+                    return bool.Parse(value);
+                case BaseVarType.UInt8:
+                    return Byte.Parse(value);
+                case BaseVarType.UInt16:
+                    return UInt16.Parse(value);
+                case BaseVarType.UInt32:
+                    return UInt32.Parse(value);
+                case BaseVarType.UInt64:
+                    return UInt64.Parse(value);
+                case BaseVarType.Int16:
+                    return Int16.Parse(value);
+                case BaseVarType.Int32:
+                    return Int32.Parse(value);
+                case BaseVarType.Int64:
+                    return Int64.Parse(value);
+                case BaseVarType.Real:
+                    return Double.Parse(value, NumberFormatInfo.InvariantInfo);
+                case BaseVarType.ArrayOf when type.ArrayTypeSpecification.VarType == VarType.Char:
+                    return new TextFunArray(JetSerializationHelper.FromJetEscaped(value));
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
 
         const string ms_regexEscapes = @"[\f\n\r\s\t\v\\]";
 

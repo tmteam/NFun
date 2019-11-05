@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using NFun.Interpritation;
 using NFun.Interpritation.Functions;
 using NFun.Interpritation.Nodes;
 using NFun.Runtime;
-using NFun.Runtime.Arrays;
 using NFun.SyntaxParsing;
 using NFun.Tokenization;
 using NFun.Types;
@@ -15,16 +13,16 @@ namespace NFun.Jet
     public class JetDeserializer
     {
         private readonly FunctionsDictionary _funDictionary;
-        List<VarAttribute> _attributeBuffer = new List<VarAttribute>(2);
-        List<Equation> _equations = new List<Equation>();
-        VariableDictionary _variables = new VariableDictionary();
-        List<VarInfo> _inputs = new List<VarInfo>();
-        List<VarInfo> _outputs = new List<VarInfo>();
+        readonly List<VarAttribute> _attributeBuffer = new List<VarAttribute>(2);
+        readonly List<Equation> _equations = new List<Equation>();
+        readonly List<VarInfo> _inputs = new List<VarInfo>();
+        readonly List<VarInfo> _outputs = new List<VarInfo>();
 
+        private readonly string[] _splitted;
         private int _position = 0;
-        private string[] _splitted;
-
-        public JetDeserializer(string input, FunctionsDictionary funDictionary)
+        private VariableDictionary _variables = new VariableDictionary();
+        
+            public JetDeserializer(string input, FunctionsDictionary funDictionary)
         {
             _funDictionary = funDictionary;
             _splitted = input.Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries);
@@ -103,7 +101,7 @@ namespace NFun.Jet
 
                 case JetSerializationHelper.ConstId:
                     var type  = JetSerializationHelper.ParseType(ReadNext());
-                    var value = ParseConstantValue(type,ReadNext());
+                    var value = JetSerializationHelper.ParseConstantValue(type,ReadNext());
                     return new ConstantExpressionNode(value, type, Interval.Empty);
 
 
@@ -154,53 +152,30 @@ namespace NFun.Jet
                 case JetSerializationHelper.UserFunctionId:
                     var funDef = ReadNext().Split(':');
                     var userFunName = funDef[0];
-                    var userFunReturnType = JetSerializationHelper.ParseType(funDef[1]);
+                    //var userFunReturnType = JetSerializationHelper.ParseType(funDef[1]);
                     var argsCount = (funDef.Length - 2) / 2;
-                    var userFunArgs = new FunArgumentExpressionNode[argsCount];
+                    //var userFunArgs = new FunArgumentExpressionNode[argsCount];
+                    var varSources = new VariableSource[argsCount];
                     for (int i = 0; i < argsCount; i++)
                     {
                         var argName = funDef[i * 2 + 2];
                         var argType = JetSerializationHelper.ParseType(funDef[i * 2 + 3]);
-                        userFunArgs[i] = new FunArgumentExpressionNode(argName, argType, Interval.Empty);
+                        varSources[i] = new VariableSource(argName, argType);
                     }
-                    throw new NotImplementedException();
-                    //var userFunExpression = ReadExpression();
-                    
-                    //new UserFunction(userFunName, )
-                    //_funDictionary.Add()
-                    //return null;
+                    //need to replace variable dictionary before read the expression
+                    var bodyVariableDictionary = _variables;
+                    _variables = new VariableDictionary(varSources);
+                    var userFunExpression = ReadExpression();
+                    //restore bodyVariables
+                    _variables = bodyVariableDictionary;                    
+                    var userFunction = new UserFunction(userFunName, varSources, true, userFunExpression);
+                    _funDictionary.Add(userFunction);
+                    return null;
                 default:
                     throw new JetParseException($"Node of type {currentNodeId} is not supported");
             }
         }
 
-        public static object ParseConstantValue(VarType type, string value)
-        {
-            switch (type.BaseType)
-            {
-                case BaseVarType.Bool:
-                    return bool.Parse(value);
-                case BaseVarType.UInt8:
-                    return Byte.Parse(value);
-                case BaseVarType.UInt16:
-                    return UInt16.Parse(value);
-                case BaseVarType.UInt32:
-                    return UInt32.Parse(value);
-                case BaseVarType.UInt64:
-                    return UInt64.Parse(value);
-                case BaseVarType.Int16:
-                    return Int16.Parse(value);
-                case BaseVarType.Int32:
-                    return Int32.Parse(value);
-                case BaseVarType.Int64:
-                    return Int64.Parse(value);
-                case BaseVarType.Real:
-                    return Double.Parse(value, NumberFormatInfo.InvariantInfo);
-                case BaseVarType.ArrayOf when  type.ArrayTypeSpecification.VarType== VarType.Char:
-                    return new TextFunArray(JetSerializationHelper.FromJetEscaped(value));
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
+       
     }
 }

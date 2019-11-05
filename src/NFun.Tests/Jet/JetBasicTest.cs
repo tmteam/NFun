@@ -21,6 +21,10 @@ namespace Funny.Tests.Jet
         [TestCase("y='test'", "test")]
         [TestCase("y='my name is \\'vasa\\''", "my name is 'vasa'")]
         [TestCase("y='1+1= {1+1}'", "1+1= 2")]
+        [TestCase("myInc(x):int = x+1;  y=myInc(41)",42)]
+        [TestCase("mult2(x):int = x*2;  myInc(x):int = x+1;  y=20.myInc().mult2()", 42)]
+        [TestCase("mult2(x):int = mySum(x,x);  mySum(x,y):int = x+y;  y=10.mult2().mult2().mySum(2)", 42)]
+        [TestCase("mySum(x,y):int = x+y; mult2(x):int = mySum(x,x);    y=10.mult2().mult2().mySum(2)", 42)]
         public void OriginAnJettedCalculateSameConstants(string expression, object expectedY)
         {
             var runtime = FunBuilder.BuildDefault(expression);
