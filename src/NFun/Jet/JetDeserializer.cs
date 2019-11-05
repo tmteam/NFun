@@ -20,10 +20,15 @@ namespace NFun.Jet
 
         private readonly string[] _splitted;
         private int _position = 0;
-        private VariableDictionary _variables = new VariableDictionary();
+        /// <summary>
+        /// Current variables scope. 
+        /// </summary>
+        private VariableDictionary _currentVariables;
         
-            public JetDeserializer(string input, FunctionsDictionary funDictionary)
+        public JetDeserializer(string input, FunctionsDictionary funDictionary)
         {
+            //initialize body scope variables
+            _currentVariables = new VariableDictionary();
             _funDictionary = funDictionary;
             _splitted = input.Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries);
         }
@@ -35,7 +40,7 @@ namespace NFun.Jet
             {
                 deserializer.ReadExpression();
             }
-            return new FunRuntime(deserializer._equations, deserializer._variables, new List<UserFunction>());
+            return new FunRuntime(deserializer._equations, deserializer._currentVariables, new List<UserFunction>());
         }
 
         private string ReadNext()
@@ -69,22 +74,23 @@ namespace NFun.Jet
                     var inputName = ReadNext();
                     var inputType = JetSerializationHelper.ParseType(ReadNext());
                     _inputs.Add(new VarInfo(false, inputType, inputName, true, _attributeBuffer?.ToArray()));
-                    _variables.TryAdd(new VariableSource(inputName, inputType, _attributeBuffer?.ToArray()));
+                    _currentVariables.TryAdd(new VariableSource(inputName, inputType, _attributeBuffer?.ToArray()));
                     _attributeBuffer?.Clear();
                     return null;
 
 
 
                 case JetSerializationHelper.VariableId:
+                    //x {varName}
                     var varName = ReadNext();
-                    return new VariableExpressionNode(_variables.GetSourceOrNull(varName), Interval.Empty);
+                    return new VariableExpressionNode(_currentVariables.GetSourceOrNull(varName), Interval.Empty);
 
 
 
                 case JetSerializationHelper.ArrayId:
+                    //a {N} {item1} ... {itemN} 
                     var arrayType = JetSerializationHelper.ParseType(ReadNext());
-                    var sCount = ReadNext();
-                    var count = int.Parse(sCount);
+                    var count = int.Parse(ReadNext());
                     var items = new IExpressionNode[count];
                     for (int i = 0; i < count; i++)
                         items[i] = ReadExpression();
@@ -93,6 +99,7 @@ namespace NFun.Jet
 
 
                 case JetSerializationHelper.CastId:
+                    //c {toType} {expr}
                     var to = JetSerializationHelper.ParseType(ReadNext());
                     var node = ReadExpression();
                     return CastExpressionNode.GetConvertedOrOriginOrThrow(node, to);
@@ -100,6 +107,7 @@ namespace NFun.Jet
 
 
                 case JetSerializationHelper.ConstId:
+                    //n {type} {value}
                     var type  = JetSerializationHelper.ParseType(ReadNext());
                     var value = JetSerializationHelper.ParseConstantValue(type,ReadNext());
                     return new ConstantExpressionNode(value, type, Interval.Empty);
@@ -110,7 +118,7 @@ namespace NFun.Jet
                     var outputName = ReadNext();
                     var expression = ReadExpression();
                     _outputs.Add(new VarInfo(true, expression.Type, outputName, true, _attributeBuffer?.ToArray()));
-                    _variables.TryAdd(new VariableSource(outputName, expression.Type, _attributeBuffer?.ToArray()));
+                    _currentVariables.TryAdd(new VariableSource(outputName, expression.Type, _attributeBuffer?.ToArray()));
                     _equations.Add(new Equation(outputName, expression));
                     _attributeBuffer.Clear();
                     return null;
@@ -136,12 +144,13 @@ namespace NFun.Jet
 
 
                 case JetSerializationHelper.IfId:
+                    //s {N} {conditionExpr1} {bodyExpr1} ... {conditionExprN} {bodyExprN} {elseExpr}
                     var ifCount = int.Parse(ReadNext());
                     var ifExpressions = new IExpressionNode[ifCount];
                     var ifConditions = new IExpressionNode[ifCount];
                     for (int i = 0; i < ifCount; i++)
                     {
-                        ifConditions[i] = ReadExpression();
+                        ifConditions[i]  = ReadExpression();
                         ifExpressions[i] = ReadExpression();
                     }
                     var elseExpression = ReadExpression();
@@ -152,30 +161,35 @@ namespace NFun.Jet
                 case JetSerializationHelper.UserFunctionId:
                     var funDef = ReadNext().Split(':');
                     var userFunName = funDef[0];
-                    //var userFunReturnType = JetSerializationHelper.ParseType(funDef[1]);
+                    var userFunReturnType = JetSerializationHelper.ParseType(funDef[1]);
                     var argsCount = (funDef.Length - 2) / 2;
-                    //var userFunArgs = new FunArgumentExpressionNode[argsCount];
                     var varSources = new VariableSource[argsCount];
+                    var argTypes = new VarType[argsCount];
+
                     for (int i = 0; i < argsCount; i++)
                     {
                         var argName = funDef[i * 2 + 2];
                         var argType = JetSerializationHelper.ParseType(funDef[i * 2 + 3]);
                         varSources[i] = new VariableSource(argName, argType);
+                        argTypes[i] = argType;
                     }
-                    //need to replace variable dictionary before read the expression
-                    var bodyVariableDictionary = _variables;
-                    _variables = new VariableDictionary(varSources);
+                    //use function prototype for recursive calls
+                    var prototype = new ConcreteUserFunctionPrototype(userFunName, userFunReturnType, argTypes);
+                    _funDictionary.Add(prototype);
+
+                    //replace variable dictionary before read the expression
+                    //because functions has different variable scope
+                    var bodyVariableDictionary = _currentVariables;
+                    _currentVariables = new VariableDictionary(varSources);
                     var userFunExpression = ReadExpression();
                     //restore bodyVariables
-                    _variables = bodyVariableDictionary;                    
-                    var userFunction = new UserFunction(userFunName, varSources, true, userFunExpression);
-                    _funDictionary.Add(userFunction);
+                    _currentVariables = bodyVariableDictionary;                    
+
+                    prototype.SetActual(new UserFunction(userFunName, varSources, true, userFunExpression), Interval.Empty);
                     return null;
                 default:
                     throw new JetParseException($"Node of type {currentNodeId} is not supported");
             }
         }
-
-       
     }
 }

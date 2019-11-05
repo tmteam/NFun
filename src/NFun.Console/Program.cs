@@ -1,17 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
 using NFun;
 using NFun.BuiltInFunctions;
-using NFun.Jet;
 using NFun.ParseErrors;
-using NFun.Runtime;
-using NFun.Tokenization;
-using NFun.Types;
 
 namespace Funny
 {
@@ -29,17 +23,10 @@ namespace Funny
                     return;
                 try
                 {
-                    Stopwatch calcSw;
                     Stopwatch buildSw = Stopwatch.StartNew();
                     var runtime = FunBuilder.With(expression).Build();
                     buildSw.Stop();
 
-                    var visitor = new JetBuilderVisitor();
-                    runtime.ApplyEntry(visitor);
-                    
-                    var jetText = visitor.GetResult().ToString();
-                    Console.WriteLine("Jet:");
-                    Console.WriteLine(jetText);
                     Console.WriteLine();
 
                     Console.WriteLine($"Built in {buildSw.Elapsed.TotalMilliseconds}");
@@ -51,7 +38,7 @@ namespace Funny
                     }
                     else 
                     {
-                        calcSw = Stopwatch.StartNew();
+                        var calcSw = Stopwatch.StartNew();
                         var res = runtime.Calculate();
                         calcSw.Stop();
                         Console.WriteLine($"Calc in {calcSw.Elapsed.TotalMilliseconds}");
