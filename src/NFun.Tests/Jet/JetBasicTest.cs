@@ -29,6 +29,7 @@ namespace Funny.Tests.Jet
         [TestCase("myMult(x,y):int = x*y;  fact(x):int = if(x==0) 1 else fact(x-1).myMult(x); y=4.fact()", 4 * 3 * 2 * 1)]
         [TestCase("fact(x):int = if(x==0) 1 else fact(x-1).myMult(x); myMult(x,y):int = x*y; y=4.fact()", 4 * 3 * 2 * 1)]
         [TestCase("myGet(x,i) = x[i];  y=[1,2,3].myGet(1)",2)]
+        [TestCase("getHalf(x) = x[round(x.count()/2) : ];  y=[1,2,3,4].getHalf()", new int[]{3,4})]
 
         public void OriginAnJettedCalculateSameConstants(string expression, object expectedY)
         {

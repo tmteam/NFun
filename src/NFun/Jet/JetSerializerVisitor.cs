@@ -37,7 +37,11 @@ namespace NFun.Jet
 
         public void Visit(UserFunction function)
         {
-            _ac.Append(JetSerializationHelper.UserFunctionId);
+            if (function.IsGeneric)
+                _ac.Append(JetSerializationHelper.GenericUserFunctionId);
+            else
+                _ac.Append(JetSerializationHelper.UserFunctionId);
+
             _ac.Append(" ");
             _ac.Append(function.Name);
             _ac.Append(":");

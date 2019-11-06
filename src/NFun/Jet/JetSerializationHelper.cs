@@ -14,6 +14,7 @@ namespace NFun.Jet
         public const string InputDefenitionId = "i";
         public const string EquationId = "o";
         public const string UserFunctionId = "u";
+        public const string GenericUserFunctionId = "v";
         public const string CastId = "c";
         public const string VariableId = "x";
         public const string ConstId = "n";

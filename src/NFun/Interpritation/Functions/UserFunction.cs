@@ -13,17 +13,20 @@ namespace NFun.Interpritation.Functions
         public VariableSource[] Variables { get; }
         public bool IsReturnTypeStrictlyTyped { get; }
         private readonly IExpressionNode _expression;
-            
+        public bool IsGeneric { get; }
         public UserFunction(
             string name, 
             VariableSource[] variables,
             bool isReturnTypeStrictlyTyped,
-            IExpressionNode expression) 
+            bool isGeneric,
+            IExpressionNode expression 
+            ) 
             : base(
                 name, 
                 expression.Type,
                 variables.Select(v=>v.Type).ToArray())
         {
+            IsGeneric = isGeneric;
             Variables = variables;
             IsReturnTypeStrictlyTyped = isReturnTypeStrictlyTyped;
             _expression = expression;

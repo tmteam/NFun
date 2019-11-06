@@ -96,6 +96,7 @@ namespace NFun.Interpritation
                 name:       "anonymous", 
                 variables:  arguments.ToArray(),
                 isReturnTypeStrictlyTyped: anonymFunNode.Defenition.OutputType!= VarType.Empty, 
+                isGeneric: false,
                 expression: expr );
             return new FunVariableExpressionNode(fun, anonymFunNode.Interval);
         }

@@ -206,8 +206,54 @@ namespace NFun.Jet
                     //restore bodyVariables
                     _currentVariables = bodyVariableDictionary;                    
 
-                    prototype.SetActual(new UserFunction(userFunName, varSources, true, userFunExpression), Interval.Empty);
+                    prototype.SetActual(new UserFunction(
+                        name: userFunName, 
+                        variables: varSources, 
+                        isReturnTypeStrictlyTyped: true, 
+                        isGeneric: false,
+                        expression: userFunExpression), 
+                        Interval.Empty);
                     return null;
+
+
+
+                case JetSerializationHelper.GenericUserFunctionId:
+                    var genericFunDef = ReadNext().Split(':');
+                    var genericUserFunName = genericFunDef[0];
+                    var genericUserFunReturnType = JetSerializationHelper.ParseType(genericFunDef[1]);
+                    var genericDefArgsCount = (genericFunDef.Length - 2) / 2;
+                    var genericVarSources = new VariableSource[genericDefArgsCount];
+                    var genericDefArgTypes = new VarType[genericDefArgsCount];
+
+                    for (int i = 0; i < genericDefArgsCount; i++)
+                    {
+                        var argName = genericFunDef[i * 2 + 2];
+                        var argType = JetSerializationHelper.ParseType(genericFunDef[i * 2 + 3]);
+                        genericVarSources[i] = new VariableSource(argName, argType);
+                        genericDefArgTypes[i] = argType;
+                    }
+                    //use function prototype for recursive calls
+                    var genericPrototype = new GenericUserFunctionPrototype(genericUserFunName, genericUserFunReturnType, genericDefArgTypes);
+                    _funDictionary.Add(genericPrototype);
+
+                    //replace variable dictionary before read the expression
+                    //because functions has different variable scope
+                    var genericBodyVariableDictionary = _currentVariables;
+                    _currentVariables = new VariableDictionary(genericVarSources);
+                    var genericFunExpression = ReadExpression();
+                    //restore bodyVariables
+                    _currentVariables = genericBodyVariableDictionary;
+
+                    genericPrototype.SetActual(new UserFunction(
+                        name: genericUserFunName, 
+                        variables: genericVarSources, 
+                        isReturnTypeStrictlyTyped: true, 
+                        isGeneric: true,  
+                        expression: genericFunExpression), Interval.Empty);
+                    return null;
+
+
+
                 default:
                     throw new JetParseException($"Node of type {currentNodeId} is not supported");
             }

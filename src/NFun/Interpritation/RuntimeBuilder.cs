@@ -213,6 +213,7 @@ namespace NFun.Interpritation
                 name: functionSyntax.Id, 
                 variables: vars.GetAllSources(),
                 isReturnTypeStrictlyTyped: functionSyntax.ReturnType!= VarType.Empty, 
+                isGeneric: true,
                 expression: expression);
             
             functionPrototype.SetActual(function, functionSyntax.Interval);
@@ -251,6 +252,7 @@ namespace NFun.Interpritation
                 name:                      functionSyntax.Id, 
                 variables:                 vars.GetAllSources(), 
                 isReturnTypeStrictlyTyped: functionSyntax.ReturnType!= VarType.Empty, 
+                isGeneric: false,
                 expression:                bodyExpression);
             functionPrototype.SetActual(function, functionSyntax.Interval);
             return function;
