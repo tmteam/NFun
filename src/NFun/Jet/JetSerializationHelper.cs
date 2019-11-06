@@ -3,7 +3,6 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using NFun.ParseErrors;
 using NFun.Runtime.Arrays;
 using NFun.Types;
 
@@ -11,20 +10,21 @@ namespace NFun.Jet
 {
     public static class JetSerializationHelper
     {
-        public const string InputDefenitionId = "i";
-        public const string EquationId = "o";
-        public const string UserFunctionId = "u";
-        public const string GenericUserFunctionId = "v";
-        public const string CastId = "c";
-        public const string VariableId = "x";
-        public const string ConstId = "n";
-        public const string ArrayId = "a";
-        public const string IfId = "s";
-        public const string FunCallId = "f";
-        public const string GenericCallId = "g";
+        public const string InputDefenitionId = "I";
+        public const string EquationId = "O";
+        public const string UserFunctionId = "U";
+        public const string GenericUserFunctionId = "V";
+        public const string CastId = "C";
+        public const string VariableId = "X";
+        public const string ConstId = "N";
+        public const string ArrayId = "A";
+        public const string IfId = "S";
+        public const string FunCallId = "F";
+        public const string GenericCallId = "G";
 
-        public const string ParameterlessAttributeId = "w";
-        public const string AttributeWithParameterId = "q";
+
+        public const string ParameterlessAttributeId = "W";
+        public const string AttributeWithParameterId = "Q";
 
         public static string ToJetTypeText(this VarType type)
         {
