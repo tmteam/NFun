@@ -54,6 +54,25 @@ namespace NFun.Jet
             _ac.Append(" ");
         }
 
+        public void VisitLambda(UserFunction function)
+        {
+            if (function.IsGeneric)
+                _ac.Append(JetSerializationHelper.GenericUserFunctionId);
+            else
+                _ac.Append(JetSerializationHelper.UserFunctionId);
+
+            _ac.Append(" ");
+            _ac.Append(function.Name);
+            _ac.Append(":");
+            _ac.Append(function.ReturnType.ToJetTypeText());
+            if (function.Variables.Any())
+            {
+                _ac.Append(":");
+                _ac.Append(string.Join(":", function.Variables.Select(v => v.Name + ":" + v.Type.ToJetTypeText())));
+            }
+            _ac.Append(" ");
+        }
+
         public void Visit(CastExpressionNode node, VarType to, VarType @from)
         {
             _ac.Append(JetSerializationHelper.CastId);
@@ -158,9 +177,14 @@ namespace NFun.Jet
 
         }
 
-        public void Visit(FunVariableExpressionNode node)
+        public void Visit(FunVariableExpressionNode node, string name)
         {
-            throw new NotImplementedException();
+            _ac.Append(JetSerializationHelper.FunVariableId);
+            _ac.Append(" ");
+            _ac.Append(node.Type.ToJetTypeText());
+            _ac.Append(" ");
+            _ac.Append(name);
+            _ac.Append(" ");
         }
 
         private void PrintArguments(VarAttribute[] argumentsOrNull)

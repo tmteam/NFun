@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
 using NFun.Interpritation;
 using NFun.Interpritation.Functions;
 using NFun.Interpritation.Nodes;
@@ -23,7 +25,7 @@ namespace NFun.Jet
         /// <summary>
         /// Current variables scope. 
         /// </summary>
-        private VariableDictionary _currentVariables;
+        private IVariableDictionary _currentVariables;
         
         public JetDeserializer(string input, FunctionsDictionary funDictionary)
         {
@@ -176,43 +178,27 @@ namespace NFun.Jet
                     }
                     var elseExpression = ReadExpression();
                     return new IfElseExpressionNode(ifExpressions, ifConditions, elseExpression, Interval.Empty, elseExpression.Type);
-                
-                
-                
-                case JetSerializationHelper.UserFunctionId:
-                    var funDef = ReadNext().Split(':');
-                    var userFunName = funDef[0];
-                    var userFunReturnType = JetSerializationHelper.ParseType(funDef[1]);
-                    var argsCount = (funDef.Length - 2) / 2;
-                    var varSources = new VariableSource[argsCount];
-                    var argTypes = new VarType[argsCount];
 
-                    for (int i = 0; i < argsCount; i++)
+
+
+                case JetSerializationHelper.FunVariableId:
+                    var funType = JetSerializationHelper.ParseType(ReadNext());
+                    var funName = ReadNext();
+                    FunctionBase hiFunction = null;
+                    if (funName == Constants.AnonymousFunctionId)
                     {
-                        var argName = funDef[i * 2 + 2];
-                        var argType = JetSerializationHelper.ParseType(funDef[i * 2 + 3]);
-                        varSources[i] = new VariableSource(argName, argType);
-                        argTypes[i] = argType;
+                        if(ReadNext()!= JetSerializationHelper.UserFunctionId) throw new JetParseException("lambda not specified");
+                        hiFunction = ReadUserFunction(allowRecursion: false, useCustomScope:false);
                     }
-                    //use function prototype for recursive calls
-                    var prototype = new ConcreteUserFunctionPrototype(userFunName, userFunReturnType, argTypes);
-                    _funDictionary.Add(prototype);
+                    else
+                        hiFunction = _funDictionary.GetOrNullConcrete(funName, funType.FunTypeSpecification.Output, funType.FunTypeSpecification.Inputs)
+                                   ?? throw new JetParseException("Function " + funName + " not found");
+                    return new FunVariableExpressionNode(hiFunction, Interval.Empty);
 
-                    //replace variable dictionary before read the expression
-                    //because functions has different variable scope
-                    var bodyVariableDictionary = _currentVariables;
-                    _currentVariables = new VariableDictionary(varSources);
-                    var userFunExpression = ReadExpression();
-                    //restore bodyVariables
-                    _currentVariables = bodyVariableDictionary;                    
 
-                    prototype.SetActual(new UserFunction(
-                        name: userFunName, 
-                        variables: varSources, 
-                        isReturnTypeStrictlyTyped: true, 
-                        isGeneric: false,
-                        expression: userFunExpression), 
-                        Interval.Empty);
+
+                case JetSerializationHelper.UserFunctionId:
+                    ReadUserFunction(allowRecursion: true, useCustomScope: true);
                     return null;
 
 
@@ -235,15 +221,14 @@ namespace NFun.Jet
                     //use function prototype for recursive calls
                     var genericPrototype = new GenericUserFunctionPrototype(genericUserFunName, genericUserFunReturnType, genericDefArgTypes);
                     _funDictionary.Add(genericPrototype);
-
                     //replace variable dictionary before read the expression
                     //because functions has different variable scope
                     var genericBodyVariableDictionary = _currentVariables;
                     _currentVariables = new VariableDictionary(genericVarSources);
                     var genericFunExpression = ReadExpression();
+
                     //restore bodyVariables
                     _currentVariables = genericBodyVariableDictionary;
-
                     genericPrototype.SetActual(new UserFunction(
                         name: genericUserFunName, 
                         variables: genericVarSources, 
@@ -257,6 +242,66 @@ namespace NFun.Jet
                 default:
                     throw new JetParseException($"Node of type {currentNodeId} is not supported");
             }
+        }
+
+        private FunctionBase ReadUserFunction(bool allowRecursion, bool useCustomScope)
+        {
+            var funDef = ReadNext().Split(':');
+            var userFunName = funDef[0];
+            var userFunReturnType = JetSerializationHelper.ParseType(funDef[1]);
+            var argsCount = (funDef.Length - 2) / 2;
+            var varSources = new VariableSource[argsCount];
+            var argTypes = new VarType[argsCount];
+
+            for (int i = 0; i < argsCount; i++)
+            {
+                var argName = funDef[i * 2 + 2];
+                var argType = JetSerializationHelper.ParseType(funDef[i * 2 + 3]);
+                varSources[i] = new VariableSource(argName, argType);
+                argTypes[i] = argType;
+            }
+
+
+            //replace variable dictionary before read the expression
+            //because functions has different variable scope
+            var bodyVariableDictionary = _currentVariables;
+
+            if (useCustomScope)
+                _currentVariables = new VariableDictionary(varSources);
+            else 
+                _currentVariables = new LocalFunctionVariableDictionary(_currentVariables, varSources.ToDictionary(v=>v.Name,s=> s) );
+
+            FunctionBase result = null;
+
+            if (allowRecursion)
+            {
+                //use function prototype for recursive calls
+                var prototype = new ConcreteUserFunctionPrototype(userFunName, userFunReturnType, argTypes);
+                _funDictionary.Add(prototype);
+                var userFunExpression = ReadExpression();
+
+                prototype.SetActual(new UserFunction(
+                    name: userFunName,
+                    variables: varSources,
+                    isReturnTypeStrictlyTyped: true,
+                    isGeneric: false,
+                    expression: userFunExpression), Interval.Empty);
+                result = prototype;
+            }
+            else
+            {
+                var userFunExpression = ReadExpression();
+                result = new UserFunction(
+                    name: userFunName,
+                    variables: varSources,
+                    isReturnTypeStrictlyTyped: true,
+                    isGeneric: false,
+                    expression: userFunExpression);
+            }
+            //restore bodyVariables
+
+            _currentVariables = bodyVariableDictionary;
+            return result;
         }
     }
 }

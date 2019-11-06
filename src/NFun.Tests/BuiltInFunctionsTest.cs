@@ -233,6 +233,7 @@ namespace Funny.Tests
         [TestCase((long)42, "x:int64\r y = max(1,x)", (long)42)]
         [TestCase((long)42, "x:int64\r y = min(1,x)", (long)1)]
         [TestCase((long)42, "x:int64\r y = min(100,x)", (long)42)]
+        [TestCase(new []{1.0,2.0,3.0}, "y = x.reduce(max)", 3)]
         public void SingleVariableEquation(object input, string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
@@ -282,6 +283,7 @@ namespace Funny.Tests
         [TestCase("y = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce((s,i)->if (s>i) s else i)", 6)]
         [TestCase("y = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce((s,i)->0)", 0)]
         [TestCase("y = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce((s,i)->0)", 0)]
+        [TestCase("y=[1,2,3].map(toReal)", new[] { 1.0, 2.0, 3.0 })]
         public void HiOrderFunConstantEquatation(string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);

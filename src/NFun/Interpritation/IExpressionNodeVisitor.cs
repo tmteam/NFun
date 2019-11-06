@@ -12,6 +12,8 @@ namespace NFun.Interpritation
     {
         void VisitInput(VarInfo variable);
         void Visit(UserFunction function);
+        void VisitLambda(UserFunction function);
+
         void Visit(Equation node);
         
         
@@ -22,6 +24,6 @@ namespace NFun.Interpritation
         void Visit(IfElseExpressionNode node, int caseCount);
         void Visit(FunExpressionNode node, string name, VarType[] argTypes);
         void Visit(FunArgumentExpressionNode node);
-        void Visit(FunVariableExpressionNode node);
+        void Visit(FunVariableExpressionNode node, string name);
     }
 }

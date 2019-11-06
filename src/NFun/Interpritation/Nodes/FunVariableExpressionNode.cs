@@ -7,22 +7,24 @@ namespace NFun.Interpritation.Nodes
 {
     public class FunVariableExpressionNode : IExpressionNode
     {
-        private readonly FunctionBase _value;
+        public  FunctionBase FunctionDeclaration { get; }
 
         public FunVariableExpressionNode(FunctionBase fun, Interval interval)
         {
-            _value = fun;
+            FunctionDeclaration = fun;
             Interval = interval;
-            Type = VarType.Fun(_value.ReturnType, _value.ArgTypes);
+            Type = VarType.Fun(FunctionDeclaration.ReturnType, FunctionDeclaration.ArgTypes);
         }
 
         public Interval Interval { get; }
         public VarType Type { get; }
-        public object Calc() => _value;
+        public object Calc() => FunctionDeclaration;
 
         public void Apply(IExpressionNodeVisitor visitor)
         {
-            visitor.Visit(this);
+            visitor.Visit(this, FunctionDeclaration.Name);
+            if(FunctionDeclaration.Name== Constants.AnonymousFunctionId)
+                ((UserFunction)FunctionDeclaration).Apply(visitor);
         }
     }
 }

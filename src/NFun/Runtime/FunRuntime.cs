@@ -38,9 +38,9 @@ namespace NFun.Runtime
         public IEnumerable<UserFunction> UserFunctions { get; }
 
         private readonly IList<Equation> _equations;
-        private readonly VariableDictionary _variables;
+        private readonly IVariableDictionary _variables;
       
-        public FunRuntime(IList<Equation> equations, VariableDictionary variables, List<UserFunction> userFunctions)
+        public FunRuntime(IList<Equation> equations, IVariableDictionary variables, List<UserFunction> userFunctions)
         {
             _equations = equations;
             _variables = variables;

@@ -16,12 +16,12 @@ namespace NFun.Interpritation
     public sealed class ExpressionBuilderVisitor: ISyntaxNodeVisitor<IExpressionNode> {
         
         private readonly FunctionsDictionary _functions;
-        private readonly VariableDictionary _variables;
+        private readonly IVariableDictionary _variables;
 
         public static IExpressionNode BuildExpression(
             ISyntaxNode node, 
             FunctionsDictionary functions,
-            VariableDictionary variables) =>
+            IVariableDictionary variables) =>
             node.Accept(new ExpressionBuilderVisitor(functions, variables));
 
         public static IExpressionNode BuildExpression(
@@ -37,7 +37,7 @@ namespace NFun.Interpritation
             return new CastExpressionNode(result, outputType, converter, node.Interval);
         }
 
-        private ExpressionBuilderVisitor(FunctionsDictionary functions, VariableDictionary variables)
+        private ExpressionBuilderVisitor(FunctionsDictionary functions, IVariableDictionary variables)
         {
             _functions = functions;
             _variables = variables;
@@ -56,45 +56,36 @@ namespace NFun.Interpritation
             //Anonym fun arguments list
             var argumentLexNodes = anonymFunNode.ArgumentsDefenition;
             
-            //Prepare local variable scope
-            //Capture all outerscope variables
-            var localVariables = new VariableDictionary(_variables.GetAllSources());
+             new VariableDictionary(_variables.GetAllSources());
             
-            var arguments = new List<VariableSource>();
+            var arguments = new Dictionary<string, VariableSource>();
             foreach (var arg in argumentLexNodes)
             {
                 //Convert argument node
                 var varNode = FunArgumentExpressionNode.CreateWith(arg);
-                var source = VariableSource.CreateWithStrictTypeLabel(varNode.Name, varNode.Type, arg.Interval);
-                //collect argument
-                arguments.Add(source);
-                //add argument to local scope
-                if (!localVariables.TryAdd(source))
-                {   //Check for duplicated arg-names
+                
+                //Check for duplicated arg-names
+                if (arguments.ContainsKey(varNode.Name))
+                    throw ErrorFactory.AnonymousFunctionArgumentDuplicates(varNode, anonymFunNode.Defenition);
 
-                    //If outer-scope contains the conflict variable name
-                    if (_variables.GetSourceOrNull(varNode.Name) != null)
-                        throw ErrorFactory.AnonymousFunctionArgumentConflictsWithOuterScope(varNode, anonymFunNode.Defenition);
-                    else //else it is duplicated arg name
-                        throw ErrorFactory.AnonymousFunctionArgumentDuplicates(varNode, anonymFunNode.Defenition);
-                }
+                //If outer-scope contains the conflict variable name
+                if (_variables.Contains(varNode.Name))
+                    throw ErrorFactory.AnonymousFunctionArgumentConflictsWithOuterScope(varNode, anonymFunNode.Defenition);
+
+                var source = VariableSource.CreateWithStrictTypeLabel(varNode.Name, varNode.Type, arg.Interval);
+                arguments.Add(varNode.Name, source);
             }
+
+            //Prepare local variable scope
+            //Captures all outerscope variables and put it to origin dictionary
+            var localVariables = new LocalFunctionVariableDictionary(_variables, arguments);
 
             var originVariables = localVariables.GetAllSources().Select(s=>s.Name).ToArray();
             var expr = BuildExpression(anonymFunNode.Body, _functions, localVariables);
             
-            //New variables are new closured
-            var closured =  localVariables.GetAllUsages()
-                .Where(s => !originVariables.Contains(s.Source.Name))
-                .ToList();
-
-            //Add closured vars to outer-scope dictionary
-            foreach (var newVar in closured)
-                _variables.TryAdd(newVar); //add full usage info to allow analyze outer errors
-            
             var fun = new UserFunction(
-                name:       "anonymous", 
-                variables:  arguments.ToArray(),
+                name:       Constants.AnonymousFunctionId, 
+                variables:  arguments.Values.ToArray(),
                 isReturnTypeStrictlyTyped: anonymFunNode.Defenition.OutputType!= VarType.Empty, 
                 isGeneric: false,
                 expression: expr );

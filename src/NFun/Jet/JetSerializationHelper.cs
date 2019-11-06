@@ -21,6 +21,7 @@ namespace NFun.Jet
         public const string IfId = "S";
         public const string FunCallId = "F";
         public const string GenericCallId = "G";
+        public const string FunVariableId = "H";
 
 
         public const string ParameterlessAttributeId = "W";
@@ -43,10 +44,10 @@ namespace NFun.Jet
                 case BaseVarType.Real:    return "r";
                 case BaseVarType.Any:     return "a";
                 case BaseVarType.Generic: return type.GenericId.Value.ToString();
-
                 case BaseVarType.ArrayOf:  return "'" + ToJetTypeText(type.ArrayTypeSpecification.VarType);
-                case BaseVarType.Fun: return "(" + string.Join(",", type.FunTypeSpecification.Inputs.Select(ToJetTypeText)) + "):" +
-                           ToJetTypeText(type.FunTypeSpecification.Output);
+                case BaseVarType.Fun:
+                    return ":" + string.Join(":", new[] {type.FunTypeSpecification.Output}
+                               .Concat(type.FunTypeSpecification.Inputs).Select(ToJetTypeText));
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -72,6 +73,18 @@ namespace NFun.Jet
 
             if (type.StartsWith("'"))
                 return VarType.ArrayOf(ParseType(type.Substring(1)));
+            if (type.StartsWith(":"))
+            {
+                var subTypes = type.Split(new []{":"}, StringSplitOptions.RemoveEmptyEntries);
+                var returnType =  ParseType(subTypes[0]);
+                var argTypes = new VarType[subTypes.Length - 1];
+                for (int i = 1; i < subTypes.Length; i++)
+                {
+                    argTypes[i - 1] = ParseType(subTypes[i]);
+                }
+                return VarType.Fun(returnType, argTypes);
+            }
+
             if (int.TryParse(type, out var id))
                 return VarType.Generic(id);
 

@@ -6,7 +6,7 @@ using NFun.Types;
 
 namespace NFun.Runtime
 {
-    public class VariableDictionary
+    public class VariableDictionary : IVariableDictionary
     {
         
         private readonly Dictionary<string,VariableUsages> _variables 
@@ -21,7 +21,8 @@ namespace NFun.Runtime
                 _variables.Add(variableSource.Name.ToLower(), new VariableUsages(variableSource));
             }
         }
-        
+
+        public bool Contains(string id) => _variables.ContainsKey(id);
         /// <summary>
         /// Returns false if variable is already registered
         /// </summary>
