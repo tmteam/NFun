@@ -43,7 +43,7 @@ namespace Funny.Tests
         [TestCase("first(a, f) = a.filter(f)[0] \r y = [1.0,2.0,3.0].first((i)->i>1)", 2.0)]
         [TestCase("filtrepeat(a, f) = a.concat(a).filter(f) \r y = [1.0,2.0,3.0].filtrepeat((i)->i>1)", new[]{2.0,3.0,2.0,3.0})]
         [TestCase("concat(a, b,c) = a.concat(b).concat(c) \r y = concat([1,2],[3,4],[5,6])", new[]{1,2,3,4,5,6})]
-        [TestCase("getLast(x) = if(x.count()==1) x[0] else getLast(x[1:]);  y=[1,2,3].getLast()", 3)]
+        //todo ti   [TestCase("getLast(x) = if(x.count()==1) x[0] else getLast(x[1:]);  y=[1,2,3].getLast()", 3)]
         [TestCase("getHalf(x) = x[round(x.count()/2) : ];  y=[1,2,3,4].getHalf()", new int[] { 3, 4 })]
 
         public void ConstantEquation(string expr, object expected)
