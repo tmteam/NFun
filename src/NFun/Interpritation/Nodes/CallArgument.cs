@@ -7,19 +7,19 @@ using NFun.Types;
 
 namespace NFun.Interpritation.Nodes
 {
-    public class FunArgumentExpressionNode : IExpressionNode
+    public class CallArgument 
     {
-        public static  FunArgumentExpressionNode CreateWith(ISyntaxNode node)
+        public static  CallArgument CreateWith(ISyntaxNode node)
         {
             switch (node)
             {
                 case VariableSyntaxNode varNode:
-                    return new FunArgumentExpressionNode(
+                    return new CallArgument(
                         name:     varNode.Id, 
                         type:     node.OutputType, 
                         interval: node.Interval);
                 case TypedVarDefSyntaxNode typeVarNode:
-                    return new FunArgumentExpressionNode(
+                    return new CallArgument(
                         name:     typeVarNode.Id, 
                         type:     typeVarNode.VarType, 
                         interval: node.Interval);
@@ -28,7 +28,7 @@ namespace NFun.Interpritation.Nodes
             }
         }
 
-        public FunArgumentExpressionNode(string name, VarType type, Interval interval)
+        public CallArgument(string name, VarType type, Interval interval)
         {
             Type = type;
             Interval = interval;
@@ -40,13 +40,7 @@ namespace NFun.Interpritation.Nodes
         public Interval Interval { get; }
         public VarType Type { get; } 
         
-        public object Calc() => throw new InvalidOperationException();
         
         public override string ToString() => $"{Name}: {Type}";
-
-        public void Apply(IExpressionNodeVisitor visitor)
-        {
-        }
-
     }
 }

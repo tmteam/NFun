@@ -10,20 +10,18 @@ namespace NFun.Interpritation
 {
     public interface IExpressionNodeVisitor
     {
-        void VisitInput(VarInfo variable);
-        void Visit(UserFunction function);
-        void VisitLambda(UserFunction function);
+        void AddInput(VarInfo variable);
+        void AddUserFunction(UserFunction function);
+        void AddEquation(Equation node);
+        void AddLambda(UserFunction function);
 
-        void Visit(Equation node);
-        
-        
+
         void Visit(CastExpressionNode node, VarType to, VarType from);
         void Visit(ConstantExpressionNode node, object value);
         void Visit(VariableExpressionNode node);
         void Visit(ArrayExpressionNode node, IExpressionNode[] items);
         void Visit(IfElseExpressionNode node, int caseCount);
-        void Visit(FunExpressionNode node, string name, VarType[] argTypes);
-        void Visit(FunArgumentExpressionNode node);
+        void Visit(CallExpressionNode node, string name, VarType[] argTypes);
         void Visit(FunVariableExpressionNode node, string name);
     }
 }

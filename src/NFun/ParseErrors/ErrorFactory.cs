@@ -485,7 +485,7 @@ namespace NFun.ParseErrors
         public static Exception FunctionArgumentDuplicates(UserFunctionDefenitionSyntaxNode lexFunction, TypedVarDefSyntaxNode lexFunctionArg) 
             => new FunParseException(554, $"'Argument name '{lexFunctionArg.Id}' duplicates at  {ErrorsHelper.Signature(lexFunction.Id, lexFunction.Args)} ", lexFunction.Head.Interval);
 
-        public static Exception AnonymousFunctionArgumentDuplicates(FunArgumentExpressionNode argNode,ISyntaxNode funDefenition)
+        public static Exception AnonymousFunctionArgumentDuplicates(CallArgument argNode,ISyntaxNode funDefenition)
             => new FunParseException(557, $"'Argument name '{argNode.Name}' of anonymous fun duplicates ", argNode.Interval);
 
         public static Exception AnonymousFunctionArgumentDuplicates(VariableSyntaxNode argNode,ISyntaxNode funDefenition)
@@ -493,7 +493,7 @@ namespace NFun.ParseErrors
         public static Exception AnonymousFunctionArgumentDuplicates(TypedVarDefSyntaxNode argNode,ISyntaxNode funDefenition)
             => new FunParseException(563, $"'Argument '{argNode.Id}:{argNode.VarType}' of anonymous fun duplicates ", argNode.Interval);
 
-        public static Exception AnonymousFunctionArgumentConflictsWithOuterScope(FunArgumentExpressionNode argNode, ISyntaxNode defenitionNode)
+        public static Exception AnonymousFunctionArgumentConflictsWithOuterScope(CallArgument argNode, ISyntaxNode defenitionNode)
             => new FunParseException(566, $"'Argument name '{argNode.Name}' of anonymous fun conflicts with outer scope variable. It is denied for your safety.", defenitionNode.Interval);
         public static Exception AnonymousFunDefenitionIsIncorrect(AnonymCallSyntaxNode anonymFunNode)
             => new FunParseException(569, $"'Anonym fun defenition is incorrect ", anonymFunNode.Interval);

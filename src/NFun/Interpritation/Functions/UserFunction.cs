@@ -74,7 +74,7 @@ namespace NFun.Interpritation.Functions
 
         public void Apply(IExpressionNodeVisitor visitor)
         {
-            visitor.Visit(this);
+            visitor.AddUserFunction(this);
             _expression.Apply(visitor);
         }
 

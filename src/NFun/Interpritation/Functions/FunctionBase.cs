@@ -39,7 +39,7 @@ namespace NFun.Interpritation.Functions
                 i++;
             }
 
-            return new FunExpressionNode(this, castedChildren.ToArray(),interval);
+            return new CallExpressionNode(this, castedChildren.ToArray(),interval);
         }
 
         public override string ToString() 

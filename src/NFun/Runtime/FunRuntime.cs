@@ -18,12 +18,12 @@ namespace NFun.Runtime
 
             foreach (var varInfo in Inputs)
             {
-                visitor.VisitInput(varInfo);
+                visitor.AddInput(varInfo);
             }
 
             foreach (var equation in _equations)
             {
-                visitor.Visit(equation);
+                visitor.AddEquation(equation);
                 equation.Expression.Apply(visitor);
             }
         }

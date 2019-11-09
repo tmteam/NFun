@@ -62,18 +62,18 @@ namespace NFun.Interpritation
             foreach (var arg in argumentLexNodes)
             {
                 //Convert argument node
-                var varNode = FunArgumentExpressionNode.CreateWith(arg);
+                var argument = CallArgument.CreateWith(arg);
                 
                 //Check for duplicated arg-names
-                if (arguments.ContainsKey(varNode.Name))
-                    throw ErrorFactory.AnonymousFunctionArgumentDuplicates(varNode, anonymFunNode.Defenition);
+                if (arguments.ContainsKey(argument.Name))
+                    throw ErrorFactory.AnonymousFunctionArgumentDuplicates(argument, anonymFunNode.Defenition);
 
                 //If outer-scope contains the conflict variable name
-                if (_variables.Contains(varNode.Name))
-                    throw ErrorFactory.AnonymousFunctionArgumentConflictsWithOuterScope(varNode, anonymFunNode.Defenition);
+                if (_variables.Contains(argument.Name))
+                    throw ErrorFactory.AnonymousFunctionArgumentConflictsWithOuterScope(argument, anonymFunNode.Defenition);
 
-                var source = VariableSource.CreateWithStrictTypeLabel(varNode.Name, varNode.Type, arg.Interval);
-                arguments.Add(varNode.Name, source);
+                var source = VariableSource.CreateWithStrictTypeLabel(argument.Name, argument.Type, arg.Interval);
+                arguments.Add(argument.Name, source);
             }
 
             //Prepare local variable scope

@@ -1,17 +1,20 @@
 using System.Linq;
 using NFun.Interpritation.Functions;
+using NFun.ParseErrors;
+using NFun.SyntaxParsing;
+using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
 using NFun.Types;
 
 namespace NFun.Interpritation.Nodes
 {
-    public class FunExpressionNode : IExpressionNode
+    public class CallExpressionNode : IExpressionNode
     {
         public FunctionBase FunctionDefenition { get; }
 
         private readonly IExpressionNode[] _argsNodes;
 
-        public FunExpressionNode(FunctionBase fun, IExpressionNode[] argsNodes, Interval interval)
+        public CallExpressionNode(FunctionBase fun, IExpressionNode[] argsNodes, Interval interval)
         {
             FunctionDefenition = fun;
             _argsNodes = argsNodes;
@@ -39,4 +42,6 @@ namespace NFun.Interpritation.Nodes
             }
         }
     }
+
+  
 }

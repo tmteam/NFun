@@ -16,7 +16,7 @@ namespace NFun.Jet
 
         public StringBuilder GetResult() => _ac;
 
-        public void VisitInput(VarInfo variable)
+        public void AddInput(VarInfo variable)
         {
             PrintArguments(variable.Attributes);
             _ac.Append(JetSerializationHelper.InputDefenitionId);
@@ -27,7 +27,7 @@ namespace NFun.Jet
             _ac.Append(" ");
         }
 
-        public void Visit(Equation node)
+        public void AddEquation(Equation node)
         {
             _ac.Append(JetSerializationHelper.EquationId);
             _ac.Append(" ");
@@ -35,7 +35,7 @@ namespace NFun.Jet
             _ac.Append(" ");
         }
 
-        public void Visit(UserFunction function)
+        public void AddUserFunction(UserFunction function)
         {
             if (function.IsRecursive)
             {
@@ -61,7 +61,7 @@ namespace NFun.Jet
             _ac.Append(" ");
         }
 
-        public void VisitLambda(UserFunction function)
+        public void AddLambda(UserFunction function)
         {
             if (function.IsGeneric)
                 _ac.Append(JetSerializationHelper.GenericUserFunctionId);
@@ -147,7 +147,7 @@ namespace NFun.Jet
             _ac.Append(" ");
         }
         
-        public void Visit(FunExpressionNode node, string name, VarType[] argTypes)
+        public void Visit(CallExpressionNode node, string name, VarType[] argTypes)
         {
             if (node.FunctionDefenition is GenericFunctionBase.ConcreteGenericFunction)
             {
@@ -178,11 +178,6 @@ namespace NFun.Jet
 
         }
 
-
-        public void Visit(FunArgumentExpressionNode node)
-        {
-
-        }
 
         public void Visit(FunVariableExpressionNode node, string name)
         {

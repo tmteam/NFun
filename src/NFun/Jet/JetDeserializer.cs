@@ -146,7 +146,7 @@ namespace NFun.Jet
                     }
                     var function = _funDictionary.GetOrNullConcrete(name, returnType, varTypes)
                                    ?? throw new JetParseException("Function " + funId + " not found");
-                    return new FunExpressionNode(function, args, Interval.Empty);
+                    return new CallExpressionNode(function, args, Interval.Empty);
 
 
 
@@ -167,7 +167,7 @@ namespace NFun.Jet
                     {
                         argExprs[i] = ReadExpression();
                     }
-                    return new FunExpressionNode(concrete, argExprs, Interval.Empty);
+                    return new CallExpressionNode(concrete, argExprs, Interval.Empty);
 
 
 
