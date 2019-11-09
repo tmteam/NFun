@@ -229,7 +229,7 @@ namespace NFun.Interpritation
             if (_variables.GetSourceOrNull(lower) == null)
             {
                 //if it is not a variable it might be a functional-variable
-                var funVars = _functions.GetNonGeneric(lower);
+                var funVars = _functions.GetConcretes(lower);
                 if (funVars.Count > 1)
                 {
                     var specification = varNode.OutputType.FunTypeSpecification;

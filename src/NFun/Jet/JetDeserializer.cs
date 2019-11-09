@@ -202,7 +202,7 @@ namespace NFun.Jet
 
 
 
-                case JetSerializationHelper.RecursiveBatchId:
+                case JetSerializationHelper.RecursiveUserFunctionsBatchId:
                     var recursiveBatchSize = int.Parse(ReadNext());
                     for (int i = 0; i < recursiveBatchSize; i++)
                     {

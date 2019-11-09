@@ -49,18 +49,31 @@ namespace NFun.Interpritation
                 return true;
             }
         }
-
         
         public GenericFunctionBase GetGenericOrNull(string name, int argCount)
         {
+            GenericFunctionBase result = null;
             if (!_genericFunctions.TryGetValue(name, out var res))
                 return null;
             return res.FirstOrDefault(r => r.ArgTypes.Length == argCount);
         }
-        public IList<FunctionBase> GetNonGeneric(string name)
+
+        public IEnumerable<ConcreteUserFunctionPrototype> GetConcreteUserFunctions(string name)
+        {
+            if (_functions.TryGetValue(name, out var res))
+                return res.OfType<ConcreteUserFunctionPrototype>();
+            return new ConcreteUserFunctionPrototype[0];
+        }
+        public IList<FunctionBase> GetConcretes(string name)
         {
             if (_functions.TryGetValue(name, out var res))
                 return res;
+            return new FunctionBase[0];
+        }
+        public IList<FunctionBase> GetConcretes(string name, int argsCount)
+        {
+            if (_functions.TryGetValue(name, out var res))
+                return res.Where(r=>r.ArgTypes.Length==argsCount).ToList();
             return new FunctionBase[0];
         }
         public FunctionBase GetOrNullWithOverloadSearch(string name,VarType returnType, params VarType[] args)
@@ -87,7 +100,7 @@ namespace NFun.Interpritation
             if (filtered.Length == 1)
             {
                 var candidate = filtered.First();
-                return CanBeConverted(args, candidate.ArgTypes) ? candidate : null;
+                return VarTypeConverter.CanBeConverted(args, candidate.ArgTypes) ? candidate : null;
             }
             
             //Try to find most close of castable functions
@@ -96,7 +109,7 @@ namespace NFun.Interpritation
             FunctionBase winner = null;
             foreach (var function in filtered)
             {
-                var closeness = GetCloseness(args, function.ArgTypes);
+                var closeness = VarTypeConverter.GetCloseness(args, function.ArgTypes);
                 if(closeness==0)
                     continue;
                 else if (closeness > maxCloseness)
@@ -138,7 +151,7 @@ namespace NFun.Interpritation
             if (filtered.Length == 1)
             {
                 var candidate = filtered.First();
-                return CanBeConverted(args, candidate.ArgTypes) ? candidate : null;
+                return VarTypeConverter.CanBeConverted(args, candidate.ArgTypes) ? candidate : null;
             }
 
             return null;
@@ -165,36 +178,6 @@ namespace NFun.Interpritation
         }
         
         
-        private int GetCloseness(VarType[] from, VarType[] to)
-        {
-            if (from.Length != to.Length)
-                return 0;
-            int closeness = 0;
-            for (int i = 0; i < from.Length; i++)
-            {
-                if (from[i] == to[i])
-                    closeness++;
-
-                if (!from[i].CanBeConvertedTo(to[i]))
-                    return 0;
-            }
-
-            return closeness;
-        }
-        
-        private bool CanBeConverted(VarType[] from, VarType[] to)
-        {
-            if (from.Length != to.Length)
-                return false;
-            
-            for (int i = 0; i < from.Length; i++)
-            {
-                if(from[i]== to[i])
-                    continue;
-                if (!from[i].CanBeConvertedTo(to[i]))
-                    return false;
-            }
-            return true;
-        }
+       
     }
 }

@@ -40,7 +40,7 @@ namespace NFun.Jet
             if (function.IsRecursive)
             {
                 //Mark single recusrsive function, that calls itself
-                _ac.Append(JetSerializationHelper.RecursiveBatchId);
+                _ac.Append(JetSerializationHelper.RecursiveUserFunctionsBatchId);
                 _ac.Append(" 1 ");
             }
 

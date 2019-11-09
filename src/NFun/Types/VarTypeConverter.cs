@@ -183,5 +183,38 @@ namespace NFun.Types
                     throw new ArgumentOutOfRangeException();
             }
         }
+
+
+        public static int GetCloseness(VarType[] from, VarType[] to)
+        {
+            if (from.Length != to.Length)
+                return 0;
+            int closeness = 0;
+            for (int i = 0; i < from.Length; i++)
+            {
+                if (from[i] == to[i])
+                    closeness++;
+
+                if (!from[i].CanBeConvertedTo(to[i]))
+                    return 0;
+            }
+
+            return closeness;
+        }
+
+        public static bool CanBeConverted(VarType[] from, VarType[] to)
+        {
+            if (from.Length != to.Length)
+                return false;
+
+            for (int i = 0; i < from.Length; i++)
+            {
+                if (from[i] == to[i])
+                    continue;
+                if (!from[i].CanBeConvertedTo(to[i]))
+                    return false;
+            }
+            return true;
+        }
     }
 }

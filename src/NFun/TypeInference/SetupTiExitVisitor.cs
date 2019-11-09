@@ -91,7 +91,7 @@ namespace NFun.TypeInference
                 return res;
             }
 
-            var candidates = _dictionary.GetNonGeneric(node.Id).Where(n=>n.ArgTypes.Length == argsCount).ToList();
+            var candidates = _dictionary.GetConcretes(node.Id, argsCount).ToList();
 
             if (candidates.Count == 0)
             {
@@ -220,7 +220,7 @@ namespace NFun.TypeInference
                 return _state.CurrentSolver.SetVar(node.OrderNumber, originId);
             
             var userFunctions 
-                = _dictionary.GetNonGeneric(originId).OfType<ConcreteUserFunctionPrototype>().ToList();
+                = _dictionary.GetConcreteUserFunctions(originId).ToList();
             
             //ambiguous function reference
             //Several functions fits
