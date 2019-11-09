@@ -125,8 +125,8 @@ namespace Funny.Tests
             
             FunBuilder
                 .BuildDefault(actualExpr)
-                .Calculate()
-                .AssertReturns(new VarVal("y", expected.Value, expected.Type));
+                .AssertBuildJetAndCalculateConstant(
+                    new VarVal("y", expected.Value, expected.Type));
         }
         
     }

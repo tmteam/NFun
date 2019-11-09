@@ -40,16 +40,7 @@ namespace Funny.Tests.Jet
         public void OriginAnJettedCalculateSameConstants(string expression, object expectedY)
         {
             var runtime = FunBuilder.BuildDefault(expression);
-            runtime.Calculate().AssertReturns(VarVal.New("y",expectedY));
-
-            var jetBuilder = new JetSerializerVisitor();
-            runtime.ApplyEntry(jetBuilder);
-            var jet = jetBuilder.GetResult().ToString();
-            Console.WriteLine("Jet: "+ jet);
-
-            var functionsDictionary = new FunctionsDictionary(BaseFunctions.Functions);
-            var jetRuntime  =  JetDeserializer.Deserialize(jet, functionsDictionary);
-            jetRuntime.Calculate().AssertReturns(VarVal.New("y", expectedY));
+            runtime.AssertBuildJetAndCalculateConstant(VarVal.New("y",expectedY));
         }
 
 
@@ -84,11 +75,10 @@ namespace Funny.Tests.Jet
         public void OriginAnJettedCalculateSameWithSingleVariable(string expression,object variable, object expectedY)
         {
             var runtime = FunBuilder.BuildDefault(expression);
+
             runtime.Calculate(VarVal.New("x",variable)).AssertReturns(VarVal.New("y", expectedY));
 
-            var jetBuilder = new JetSerializerVisitor();
-            runtime.ApplyEntry(jetBuilder);
-            var jet = jetBuilder.GetResult().ToString();
+            var jet = runtime.ToJet();
             Console.WriteLine("Jet: " + jet);
             var functionsDictionary = new FunctionsDictionary(BaseFunctions.Functions);
 

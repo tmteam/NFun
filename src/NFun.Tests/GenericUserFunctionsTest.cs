@@ -49,7 +49,7 @@ namespace Funny.Tests
         public void ConstantEquation(string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
-            runtime.Calculate().AssertReturns(VarVal.New("y", expected));
+            runtime.AssertBuildJetAndCalculateConstant(VarVal.New("y", expected));
         }
     }
 }

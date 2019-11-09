@@ -26,7 +26,7 @@ namespace Funny.Tests
                     VarType.Int32, 
                     VarType.Text)).Build();
            
-            runtime.Calculate().AssertReturns(VarVal.New("y", arg.Length));
+            runtime.AssertBuildJetAndCalculateConstant(VarVal.New("y", arg.Length));
         }
 
         [TestCase("[1,2,3,4]",  new[]{1,3})]
@@ -46,7 +46,7 @@ namespace Funny.Tests
                         VarType.ArrayOf(VarType.Generic(0)),
                         VarType.ArrayOf(VarType.Generic(0))))
                 .Build();
-            runtime.Calculate().AssertReturns(VarVal.New("y", expected));
+            runtime.AssertBuildJetAndCalculateConstant(VarVal.New("y", expected));
         }
         
     }

@@ -16,8 +16,7 @@ namespace Funny.Tests
         public void TwinConstantEquations(string expr, object expectedY, object expectedZ)
         {
             var runtime = FunBuilder.BuildDefault(expr);
-            runtime.Calculate()
-                .AssertReturns(
+            runtime.AssertBuildJetAndCalculateConstant(
                     VarVal.New("y", expectedY),
                     VarVal.New("z", expectedZ));
         }
@@ -93,8 +92,7 @@ namespace Funny.Tests
         public void TwinDependentConstantEquations_CalculatesCorrect(string expr,  object expectedY, object expectedZ)
         {
             var runtime = FunBuilder.BuildDefault(expr);
-            runtime.Calculate()
-                .AssertReturns(
+            runtime.AssertBuildJetAndCalculateConstant(
                     VarVal.New("y", expectedY),
                     VarVal.New("z", expectedZ));
         }
@@ -119,8 +117,7 @@ namespace Funny.Tests
         public void ThreeDependentConstantEquations_CalculatesCorrect(string expr,  object o1, object o2, object o3)
         {
             var runtime = FunBuilder.BuildDefault(expr);
-            runtime.Calculate()
-                .AssertReturns(
+            runtime.AssertBuildJetAndCalculateConstant(
                     VarVal.New("o1", o1),
                     VarVal.New("o2", o2),
                     VarVal.New("o3", o3));
@@ -143,8 +140,7 @@ namespace Funny.Tests
         public void DependentCaseableEquations()
         {
             var runtime = FunBuilder.BuildDefault("yPub = 2\r y2 = 3 +yPub");
-            runtime.Calculate()
-                .AssertReturns(
+            runtime.AssertBuildJetAndCalculateConstant(
                     VarVal.New("yPub", 2),
                     VarVal.New("y2", 5));
         }

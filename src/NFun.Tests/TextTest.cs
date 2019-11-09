@@ -56,8 +56,7 @@ namespace Funny.Tests
         public void TextConstantEquation(string expr, object expected) =>
             FunBuilder
                 .BuildDefault(expr)
-                .Calculate()
-                .AssertReturns(VarVal.New("y", expected));
+                .AssertBuildJetAndCalculateConstant(VarVal.New("y", expected));
 
 
         [TestCase(42,"y = x.toText().concat('lalala')", "42lalala")]
@@ -98,8 +97,7 @@ namespace Funny.Tests
         public void EscapedTest(string expr,string expected) =>
             FunBuilder
                 .BuildDefault(expr)
-                .Calculate()
-                .AssertReturns(VarVal.New("y", expected));
+                .AssertBuildJetAndCalculateConstant(VarVal.New("y", expected));
 
         [TestCase("y='hell")]
         [TestCase("y=hell'")]

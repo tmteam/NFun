@@ -39,11 +39,13 @@ namespace Funny.Tests
                          else 10";
             var runtime = FunBuilder.BuildDefault(expr);
                
-            runtime.Calculate(
+            runtime.AssertBuildJetAndCalculate(
+                    inputs: new[] {
                     VarVal.New("x1",Convert.ToDouble(x1)),
                     VarVal.New("x2",Convert.ToDouble(x2)), 
-                    VarVal.New("x3",Convert.ToDouble(x3)))
-                .AssertReturns(VarVal.New("y", expected));
+                    VarVal.New("x3",Convert.ToDouble(x3))},
+                    expectedOutputs: new[] { VarVal.New("y", expected) }
+                    );
         }
         
         [TestCase("y = if (1<2 )10 else -10", 10)]
@@ -95,8 +97,9 @@ if (x == 2) 'two'
 else 'not supported' ", 2, "two")]
         public void SingleVariableEquatation(string expression, int x, object expected)
         {
-            FunBuilder.BuildDefault(expression).Calculate(VarVal.New("x", x))
-                .AssertReturns(VarVal.New("out", expected));
+            FunBuilder.BuildDefault(expression).AssertBuildJetAndCalculate(
+                inputs:          new[] {VarVal.New("x", x)},
+                expectedOutputs: new[] {VarVal.New("out", expected)});
         }
         
         [TestCase("y = if (1<2 )10 else -10.0", 10.0)]

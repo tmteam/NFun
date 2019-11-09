@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using NFun;
+using NFun.BuiltInFunctions;
 using NFun.Interpritation;
 using NFun.Jet;
 using NFun.ParseErrors;
@@ -30,8 +31,8 @@ namespace Nfun.CustomBenchmark
             Measure(action, 100);
             Thread.Sleep(5);
             Measure(action, 200);
-            GC.Collect();
             Thread.Sleep(5);
+            GC.Collect();
             List<double> results = new List<double>(100);
             for (int i = 0; i < 100; i++)
             {
@@ -39,7 +40,7 @@ namespace Nfun.CustomBenchmark
                 Thread.Sleep(10);
             }
 
-            Console.WriteLine($"{name} : {Math.Round(results.Average())} mks");
+            Console.WriteLine($"{name} : {results.Average():##.###} mks");
             return results.Average();
         }
 
@@ -66,14 +67,16 @@ namespace Nfun.CustomBenchmark
 
             MeasureWithHeat("jetting",() =>
             {
-                var mvisitor = new JetSerializerVisitor();
-                runtime.ApplyEntry(mvisitor);
-                var mjetText = mvisitor.GetResult().ToString();
+                var mjetText = runtime.ToJet();
             });
 
+            
             var visitor = new JetSerializerVisitor();
             runtime.ApplyEntry(visitor);
             var jetText = visitor.GetResult().ToString();
+
+            MeasureWithHeat("split", () => { jetText.Split(' '); });
+
 
             var jetBuildTime = MeasureWithHeat("jet build", () =>
             {
@@ -93,9 +96,38 @@ namespace Nfun.CustomBenchmark
             {
                 functionsDictionary = new FunctionsDictionary(BaseFunctions.Functions);
             });
-            MeasureWithHeat("Search overload",() =>
+            MeasureWithHeat("GetConcretes * 2", () =>
+            {
+                var res = functionsDictionary.GetConcretes("*", 2);
+            });
+            MeasureWithHeat("GetOrNullConcrete * (r,r):r", () =>
             {
                 var res = functionsDictionary.GetOrNullConcrete("*", VarType.Real, VarType.Real, VarType.Real);
+            });
+
+            MeasureWithHeat("GetOrNullConcrete  divide", () =>
+            {
+                var res = functionsDictionary.GetOrNullConcrete(CoreFunNames.Divide, VarType.Real, VarType.Real, VarType.Real);
+            });
+
+            MeasureWithHeat("GetOrNullConcrete map(r[],r->r):r[]", () =>
+            {
+                var res = functionsDictionary.GetOrNullConcrete("map", VarType.ArrayOf(VarType.Real),
+                    VarType.ArrayOf(VarType.Real), VarType.Fun(VarType.Real, VarType.Real));
+            });
+            MeasureWithHeat("GetGenericOrNull", () =>
+            {
+                var res = functionsDictionary.GetGenericOrNull("map", 2);
+            });
+
+            MeasureWithHeat("CanBeConverted", () =>
+            {
+                VarTypeConverter.CanBeConverted(VarType.UInt32, VarType.Real);
+            });
+
+            MeasureWithHeat("CanBeConverted Multiple", () =>
+            {
+                VarTypeConverter.CanBeConverted(new []{VarType.Real, VarType.ArrayOf(VarType.Char)} , new[] { VarType.Real, VarType.ArrayOf(VarType.Char) });
             });
 
             var results = new List<EquationMeasureResult>

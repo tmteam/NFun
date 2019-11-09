@@ -45,8 +45,7 @@ namespace Funny.Tests
         public void ConstantTest(string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
-            runtime.Calculate()
-                .AssertReturns(VarVal.New("y", expected));
+            runtime.AssertBuildJetAndCalculateConstant(VarVal.New("y", expected));
         }
         
         [TestCase( @"f(x:int):int = x*x y = 4.f)")]

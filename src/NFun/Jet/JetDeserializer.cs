@@ -215,15 +215,18 @@ namespace NFun.Jet
                     return null;
 
 
+
                 case JetSerializationHelper.UserFunctionId:
                     var userFunction = ReadUserFunction(isRecursive: false, useCustomScope: true);
                     _funDictionary.Add(userFunction);
                     return null;
 
 
+
                 case JetSerializationHelper.GenericUserFunctionId:
                     ReadGenericUserFunction(false);
                     return null;
+
 
 
                 default:

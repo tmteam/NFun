@@ -42,10 +42,9 @@ namespace Funny.Tests
 
         public void AnonymousFunctions_ConstantEquation(string expr, object expected)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
-            CollectionAssert.IsEmpty(runtime.Inputs,"Unexpected inputs on constant equations");
-            runtime.Calculate()
-                .AssertReturns(VarVal.New("y", expected));
+            
+            FunBuilder.BuildDefault(expr)
+                .AssertBuildJetAndCalculateConstant(VarVal.New("y", expected));
         }
         [TestCase( "y = [1.0,2.0,3.0].map((i)-> i*x1*x2)",3.0,4.0, new []{12.0,24.0,36.0})]
         [TestCase( "x1:int\rx2:int\ry = [1,2,3].map((i:int)-> i*x1*x2)",3,4, new []{12,24,36})]

@@ -131,6 +131,7 @@ namespace NFun.Interpritation
             var fullMatch = filtered.Where(f => f.ArgTypes.SequenceEqual(args)).ToArray();
             if (fullMatch.Length == 1)
                 return fullMatch.First();
+
             //Then search generics
             var genericFun = GetOrNullGenerics(name,returnType, args);
             if (genericFun != null)

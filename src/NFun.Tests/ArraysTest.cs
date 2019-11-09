@@ -68,7 +68,7 @@ namespace Funny.Tests
 
         public void ConstantArrayOperatorsTest(string expr, object expected)
         {
-            FunBuilder.BuildDefault(expr).Calculate().AssertReturns(VarVal.New("y", expected));
+            FunBuilder.BuildDefault(expr).AssertBuildJetAndCalculateConstant(VarVal.New("y", expected));
         }
 
 
@@ -105,7 +105,7 @@ namespace Funny.Tests
             var expression = "y = [[1.0,2.0],[3.0,4.0],[5.0]] . intersect ([[3.0,4.0],[1.0],[5.0],[4.0]])";
             var expected = new[] {new [] {3.0, 4.0},new[]{5.0}};
 
-            FunBuilder.BuildDefault(expression).Calculate().AssertReturns(VarVal.New("y", expected));
+            FunBuilder.BuildDefault(expression).AssertBuildJetAndCalculateConstant(VarVal.New("y", expected));
         }
 
         [TestCase(3, "y= [1..x]", new[] {1, 2, 3})]
@@ -127,7 +127,7 @@ namespace Funny.Tests
             var expression = "y = [[1.0,2.0],[3.0,4.0]]. except([[3.0,4.0],[1.0],[4.0]])";
             var expected = new[] {new [] {1.0, 2.0}};
 
-            FunBuilder.BuildDefault(expression).Calculate().AssertReturns(VarVal.New("y", expected));
+            FunBuilder.BuildDefault(expression).AssertBuildJetAndCalculateConstant(VarVal.New("y", expected));
         }
         
         [Test]

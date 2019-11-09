@@ -33,8 +33,7 @@ z = true")]
         public void SingleLineCommentsOnMultipleConstantEquatations(string expr)
         {
             var runtime = FunBuilder.BuildDefault(expr);
-            runtime.Calculate()
-                .AssertReturns(
+            runtime.AssertBuildJetAndCalculateConstant(
                     VarVal.New("y", 1.0),
                     VarVal.New("z", true));
         }

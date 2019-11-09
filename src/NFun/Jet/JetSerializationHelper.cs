@@ -89,7 +89,7 @@ namespace NFun.Jet
             if (int.TryParse(type, out var id))
                 return VarType.Generic(id);
 
-            throw new NotImplementedException("type "+type+" is not supported");
+            throw new NotImplementedException($"type '{type}' is not supported");
         }
 
         public static object ParseConstantValue(VarType type, string value)

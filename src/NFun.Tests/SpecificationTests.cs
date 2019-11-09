@@ -144,8 +144,8 @@ y = tostring(x)", "y", "not supported")]
             var runtime = FunBuilder.BuildDefault(expr);
             Assert.AreEqual(0, runtime.Inputs.Length);
             Assert.AreEqual(1, runtime.Outputs.Length);
-            runtime.Calculate()
-                .AssertReturns(VarVal.New(outputName, val));
+            runtime.AssertBuildJetAndCalculateConstant(
+                VarVal.New(outputName, val));
         }
 
         [TestCase("a=1; b=2; c=3;",                             new[]{"a","b","c"}, new object[]{1, 2, 3})]

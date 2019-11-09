@@ -3,12 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using NFun.Interpritation;
 using NFun.Interpritation.Functions;
+using NFun.Jet;
 using NFun.Types;
 
 namespace NFun.Runtime
 {
     public class FunRuntime
     {
+        public string ToJet()
+        {
+            var jetBuilder = new JetSerializerVisitor();
+            this.ApplyEntry(jetBuilder);
+            return jetBuilder.GetResult().ToString();
+        }
+
         public void ApplyEntry(IExpressionNodeVisitor visitor)
         {
             foreach (var userFunction in UserFunctions)
@@ -27,6 +35,7 @@ namespace NFun.Runtime
                 equation.Expression.Apply(visitor);
             }
         }
+
         public VarInfo[] Inputs => _variables.GetAllSources()
             .Where(v => !v.IsOutput)
             .Select(s => new VarInfo(false,  s.Type,s.Name, s.IsStrictTyped, s.Attributes)).ToArray();

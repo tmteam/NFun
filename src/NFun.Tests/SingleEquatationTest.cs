@@ -121,7 +121,7 @@ namespace Funny.Tests
         public void AnonymousExpressionConstantEquatation(string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
-            runtime.Calculate().AssertReturns(VarVal.New("out", expected));
+            runtime.AssertBuildJetAndCalculateConstant(VarVal.New("out", expected));
         }
         
         
@@ -164,8 +164,7 @@ namespace Funny.Tests
         public void DiscreeteConstantEquataion(string expr, bool expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
-            runtime.Calculate()
-                .AssertReturns(new VarVal("y", expected, VarType.Bool));
+            runtime.AssertBuildJetAndCalculateConstant(new VarVal("y", expected, VarType.Bool));
         }
         
 

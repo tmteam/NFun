@@ -16,17 +16,18 @@ namespace Funny.Tests
         public void ConstantEquatation(string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
-            runtime.Calculate().AssertReturns(VarVal.New("out", expected));
+            runtime.AssertBuildJetAndCalculateConstant(VarVal.New("out", expected));
         }
         [Test]
         public void DependentVariableEquations()
         {
             var runtime = FunBuilder.BuildDefault("yPub = 2\r y2 = 3 +yPub");
-            runtime.Calculate()
-                .AssertReturns(
+            runtime.AssertBuildJetAndCalculateConstant(
                     VarVal.New("yPub", 2),
                     VarVal.New("y2", 5));
         }
+
+
         [TestCase("y(X) = x \r y(3.0)")]
         [TestCase("y(X,x) = x \r y(3.0,4.0)")]
         [TestCase("y(z,x) = x+X \r y(3.0,4.0)")]

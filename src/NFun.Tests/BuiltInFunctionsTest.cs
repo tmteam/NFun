@@ -105,8 +105,9 @@ namespace Funny.Tests
         {
             var expr = $"x:{inputType}; y = {converter}(x)";
             var runtime = FunBuilder.BuildDefault(expr);
-            runtime.Calculate(VarVal.New("x", inputValue))
-                .AssertReturns(VarVal.New("y", expectedOutput));
+            runtime.AssertBuildJetAndCalculate(
+                inputs:          new [] { VarVal.New("x", inputValue)},
+                expectedOutputs: new [] { VarVal.New("y", expectedOutput)});
         }
         
         [TestCase( "toInt(1.2)",  1)]
@@ -237,8 +238,9 @@ namespace Funny.Tests
         public void SingleVariableEquation(object input, string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
-            runtime.Calculate(VarVal.New("x", input))
-                .AssertReturns(VarVal.New("y", expected));
+            runtime.AssertBuildJetAndCalculate(
+                inputs:          new []{VarVal.New("x", input)},
+                expectedOutputs: new []{VarVal.New("y", expected)});
         }
     
         
@@ -287,8 +289,8 @@ namespace Funny.Tests
         public void HiOrderFunConstantEquatation(string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
-            runtime.Calculate()
-                .AssertReturns(VarVal.New("y", expected));
+            runtime.AssertBuildJetAndCalculateConstant(
+                VarVal.New("y", expected));
         }
         
         [TestCase("y = take([1,2,3,4,5],3)",new []{1,2,3})]        

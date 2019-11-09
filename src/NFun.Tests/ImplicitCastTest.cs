@@ -51,7 +51,9 @@ namespace Funny.Tests
             var expr = $"conv(a:{typeTo}):{typeTo} = a; x:{typeFrom}; y = conv(x)";
             var runtime = FunBuilder.BuildDefault(expr);
             
-            runtime.Calculate(VarVal.New("x", valueFrom)).AssertReturns(VarVal.New("y", valueTo));
+            runtime.AssertBuildJetAndCalculate(
+                inputs:          new []{ VarVal.New("x", valueFrom)},
+                expectedOutputs: new []{ VarVal.New("y", valueTo)});
         }
 
         [TestCase("1", "uint8")]
