@@ -77,11 +77,7 @@ namespace Nfun.CustomBenchmark
 
             var jetBuildTime = MeasureWithHeat("jet build", () =>
             {
-                var functionsDictionary = new FunctionsDictionary();
-                foreach (var predefinedFunction in BaseFunctions.ConcreteFunctions)
-                    functionsDictionary.Add(predefinedFunction);
-                foreach (var genericFunctionBase in BaseFunctions.GenericFunctions)
-                    functionsDictionary.Add(genericFunctionBase);
+                var functionsDictionary = new FunctionsDictionary(BaseFunctions.Functions);
                 JetDeserializer.Deserialize(jetText, functionsDictionary);
             });
 
@@ -95,11 +91,7 @@ namespace Nfun.CustomBenchmark
             FunctionsDictionary functionsDictionary = null;
             MeasureWithHeat("Initialize fun dictionary", () =>
             {
-                functionsDictionary = new FunctionsDictionary();
-                foreach (var predefinedFunction in BaseFunctions.ConcreteFunctions)
-                    functionsDictionary.Add(predefinedFunction);
-                foreach (var genericFunctionBase in BaseFunctions.GenericFunctions)
-                    functionsDictionary.Add(genericFunctionBase);
+                functionsDictionary = new FunctionsDictionary(BaseFunctions.Functions);
             });
             MeasureWithHeat("Search overload",() =>
             {
@@ -112,15 +104,15 @@ namespace Nfun.CustomBenchmark
                 MeasureEquation("io", "y = x"),
                 MeasureEquation("kxb", "y = 10*x+1"),
 
-                //MeasureEquation("mlt_2", "y = 21*2"),
+                MeasureEquation("mlt_2", "y = 21*2"),
                 MeasureEquation("mlt_4", "y = 21*2*21*2"), 
-                //MeasureEquation("mlt_8", "y = 21*2*21*2*21*2*21*2"),
-                //MeasureEquation("mlt_16", "y = 21*2*21*2*21*2*21*2*21*2*21*2*21*2*21*2"),
+                MeasureEquation("mlt_8", "y = 21*2*21*2*21*2*21*2"),
+                MeasureEquation("mlt_16", "y = 21*2*21*2*21*2*21*2*21*2*21*2*21*2*21*2"),
 
-                //MeasureEquation("mlt_x2", "y = x*x"),
+                MeasureEquation("mlt_x2", "y = x*x"),
                 MeasureEquation("mlt_x4", "y = x*x*x*x"),
-                //MeasureEquation("mlt_x8", "y = x*x*x*x*x*x*x*x"),
-                //MeasureEquation("mlt_x16", "y = x*x*x*x*x*x*x*x*x*x*x*x*x*x*x*x"),
+                MeasureEquation("mlt_x8", "y = x*x*x*x*x*x*x*x"),
+                MeasureEquation("mlt_x16", "y = x*x*x*x*x*x*x*x*x*x*x*x*x*x*x*x"),
 
                 MeasureEquation("ifarr", "y = if (true) [1, 2, 3] else [0]"),
                 MeasureEquation("funfun", "y = sqrt(10 * x ** x) + 12.5 * x + 13"),
@@ -132,10 +124,12 @@ namespace Nfun.CustomBenchmark
             results.Sort((c1,c2)=> c1.Size.CompareTo(c2.Size));
             Console.WriteLine();
             Console.WriteLine($"name\t\tsize   build    jet");
+            Console.WriteLine("__________________________________");
             foreach (var e in results)
             {
                 Console.WriteLine($"{e.Name}\t\t {e.Size:000}  {e.Build:##.###}  {e.JetBuild:##.###}");
             }
+            Console.WriteLine($"Average\t\t {results.Select(r=>r.Size).Average():000}  {results.Select(r => r.Build).Average():##.###}  {results.Select(r=>r.JetBuild).Average():##.###}");
         }
     }
 
