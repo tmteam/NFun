@@ -88,6 +88,7 @@ namespace NFun.Interpritation
                 variables:  arguments.Values.ToArray(),
                 isReturnTypeStrictlyTyped: anonymFunNode.Defenition.OutputType!= VarType.Empty, 
                 isGeneric: false,
+                isRecursive: false,
                 expression: expr );
             return new FunVariableExpressionNode(fun, anonymFunNode.Interval);
         }

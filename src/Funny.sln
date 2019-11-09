@@ -17,7 +17,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{AD33CA54
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Benchmarks", "Benchmarks", "{C57CF31A-CE9E-40D1-8673-6FB9B9D18C9D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nfun.CustomBenchmark", "Nfun.CustomBenchmark\Nfun.CustomBenchmark.csproj", "{0DFC2192-30A7-4CC1-B347-99EA37D5A895}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nfun.CustomBenchmark", "Nfun.CustomBenchmark\Nfun.CustomBenchmark.csproj", "{0DFC2192-30A7-4CC1-B347-99EA37D5A895}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

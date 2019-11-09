@@ -10,6 +10,7 @@ namespace NFun.Jet
 {
     public static class JetSerializationHelper
     {
+        public const string RecursiveBatchId = "R";
         public const string InputDefenitionId = "I";
         public const string EquationId = "O";
         public const string UserFunctionId = "U";

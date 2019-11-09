@@ -14,11 +14,14 @@ namespace NFun.Interpritation.Functions
         public bool IsReturnTypeStrictlyTyped { get; }
         private readonly IExpressionNode _expression;
         public bool IsGeneric { get; }
+        public bool IsRecursive { get; }
+
         public UserFunction(
             string name, 
             VariableSource[] variables,
             bool isReturnTypeStrictlyTyped,
             bool isGeneric,
+            bool isRecursive,
             IExpressionNode expression 
             ) 
             : base(
@@ -27,6 +30,7 @@ namespace NFun.Interpritation.Functions
                 variables.Select(v=>v.Type).ToArray())
         {
             IsGeneric = isGeneric;
+            IsRecursive = isRecursive;
             Variables = variables;
             IsReturnTypeStrictlyTyped = isReturnTypeStrictlyTyped;
             _expression = expression;

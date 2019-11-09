@@ -100,6 +100,7 @@ namespace Funny.Tests.UnitTests
                 };
                 var res = GraphTools.SortCycledTopology(graph);
                 AssertHasRoute(new[]{2,1,0}, res);
+                CollectionAssert.AreEqual(new int[]{1}, res.RecursionsOrNull);
             }
             [Test]
             public void ThreeNodesInLineRevertSorting()

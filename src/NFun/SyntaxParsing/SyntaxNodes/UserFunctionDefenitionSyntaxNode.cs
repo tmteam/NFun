@@ -7,7 +7,8 @@ namespace NFun.SyntaxParsing.SyntaxNodes
 {
     public class UserFunctionDefenitionSyntaxNode: ISyntaxNode
     {
-        public VarType OutputType { get; set; }
+        public bool IsRecursive { get; set; }   = false;
+        public VarType OutputType { get; set; } = VarType.Empty;
         public int OrderNumber { get; set; }
         public VarType ReturnType { get; }
         public FunCallSyntaxNode Head { get; }

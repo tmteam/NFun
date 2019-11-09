@@ -37,6 +37,13 @@ namespace NFun.Jet
 
         public void Visit(UserFunction function)
         {
+            if (function.IsRecursive)
+            {
+                //Mark single recusrsive function, that calls itself
+                _ac.Append(JetSerializationHelper.RecursiveBatchId);
+                _ac.Append(" 1 ");
+            }
+
             if (function.IsGeneric)
                 _ac.Append(JetSerializationHelper.GenericUserFunctionId);
             else

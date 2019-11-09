@@ -45,9 +45,9 @@ namespace NFun.SyntaxParsing
                 for (int i = 0; i < _graph.Length; i++)
                 {
                     if (!RecSort(i))
-                        return new TopologySortResults(_cycleRoute.ToArray(), true);
+                        return new TopologySortResults(_cycleRoute.ToArray(), null, true);
                 }
-                return new TopologySortResults(_route, false);
+                return new TopologySortResults(_route, null, false);
             }
             private bool RecSort(int node)
             {
@@ -94,7 +94,7 @@ namespace NFun.SyntaxParsing
         private readonly NodeState[] _nodeStates;
         private readonly int[] _route;
         private Queue<int> _cycleRoute = new Queue<int>();
-
+        private List<int> _selfCycled = null;
         private int _processedCount = 0;
 
         public CycleTopologySort(int[][] graph)
@@ -109,10 +109,10 @@ namespace NFun.SyntaxParsing
             for (int i = 0; i < _graph.Length; i++)
             {
                 if (!RecSort(i))
-                    return new TopologySortResults(_cycleRoute.ToArray(), true);
+                    return new TopologySortResults(_cycleRoute.ToArray(), _selfCycled?.ToArray(), true);
             }
 
-            return new TopologySortResults(_route, false);
+            return new TopologySortResults(_route, _selfCycled?.ToArray(), false);
         }
 
         private bool RecSort(int node)
@@ -130,9 +130,13 @@ namespace NFun.SyntaxParsing
                         var childId = _graph[node][child];
                         
                         //ignore self dependencies
-                        if(childId == node)
+                        if (childId == node)
+                        {
+                            _selfCycled = _selfCycled ?? new List<int>();
+                            _selfCycled.Add(childId);
                             continue;
-                        
+                        }
+
                         if (!RecSort(childId)) {
                             _cycleRoute.Enqueue(_graph[node][child]);
                             return false;

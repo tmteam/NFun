@@ -214,6 +214,7 @@ namespace NFun.Interpritation
                 variables: vars.GetAllSources(),
                 isReturnTypeStrictlyTyped: functionSyntax.ReturnType!= VarType.Empty, 
                 isGeneric: true,
+                isRecursive: functionSyntax.IsRecursive,
                 expression: expression);
             
             functionPrototype.SetActual(function, functionSyntax.Interval);
@@ -253,6 +254,7 @@ namespace NFun.Interpritation
                 variables:                 vars.GetAllSources(), 
                 isReturnTypeStrictlyTyped: functionSyntax.ReturnType!= VarType.Empty, 
                 isGeneric: false,
+                isRecursive: functionSyntax.IsRecursive,
                 expression:                bodyExpression);
             functionPrototype.SetActual(function, functionSyntax.Interval);
             return function;

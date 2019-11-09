@@ -93,11 +93,18 @@ namespace NFun.Interpritation
             var functionSolveOrder = new UserFunctionDefenitionSyntaxNode[sortResults.NodeNames.Length];
             for (int k = 0; k < sortResults.NodeNames.Length; k++)
                 functionSolveOrder[k] = userFunctions[sortResults.NodeNames[k]];
-            
+
+            //Set recursion marks
+            if (sortResults.RecursionsOrNull != null)
+            {
+                foreach (var recursiveId in sortResults.RecursionsOrNull)
+                    userFunctions[recursiveId].IsRecursive = true;
+            }
+
             if (sortResults.HasCycle)
                 //if functions has cycle, then function sovle order is cycled
                 throw ErrorFactory.ComplexRecursion(functionSolveOrder);
-          
+            
             return functionSolveOrder;
         }
         public static VariableSource CreateVariableSourceForArgument(

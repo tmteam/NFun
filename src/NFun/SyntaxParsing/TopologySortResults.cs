@@ -1,3 +1,5 @@
+using System;
+
 namespace NFun.SyntaxParsing
 {
     public struct TopologySortResults
@@ -8,11 +10,16 @@ namespace NFun.SyntaxParsing
         /// </summary>
         public readonly int[] NodeNames;
         public readonly bool HasCycle;
+        /// <summary>
+        /// List of recursive nodes or null if there are no one
+        /// </summary>
+        public readonly int[] RecursionsOrNull;
 
-        public TopologySortResults(int[] nodeNames, bool hasCycle)
+        public TopologySortResults(int[] nodeNames, int[] recursionsOrNull, bool hasCycle)
         {
             NodeNames = nodeNames;
             HasCycle = hasCycle;
+            RecursionsOrNull = recursionsOrNull;
         }
     }
 }
