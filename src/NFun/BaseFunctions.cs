@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using NFun.BuiltInFunctions;
 using NFun.Interpritation.Functions;
 
@@ -5,6 +8,8 @@ namespace NFun
 {
     public static class BaseFunctions
     {
+     
+        
         public static GenericFunctionBase[] GenericFunctions { get; } =
         {
             new IsInSingleGenericFunctionDefenition(), 
@@ -185,7 +190,6 @@ namespace NFun
             new ToInt16FromInt64Function(), 
             new ToInt32FromInt64Function(), 
             new ToInt32FromInt64Function("toInt"), 
-            new ToInt64FromInt64Function(), 
             new ToInt16FromUInt64Function(), 
             new ToInt32FromUInt64Function(), 
             new ToInt32FromUInt64Function("toInt"), 
@@ -199,7 +203,6 @@ namespace NFun
             new ToUint8FromUint64Function(),
             new ToUint16FromUint64Function(), 
             new ToUint32FromUint64Function(), 
-            new ToUint64FromUint64Function(), 
                 
             new EFunction(), 
             new PiFunction(),
@@ -233,5 +236,14 @@ namespace NFun
             new JoinFunction(),
             new ConcatTextsFunction()
         };
+
+        public static Interpritation.BuiltInFunctions Functions { get; }
+            = new Interpritation.BuiltInFunctions(ConcreteFunctions, GenericFunctions);
+
+        public static Interpritation.BuiltInFunctions CreateBuiltInFunctions(IEnumerable<FunctionBase> customConcretes,
+            IEnumerable<GenericFunctionBase> customGenerics) =>
+            new Interpritation.BuiltInFunctions(
+                ConcreteFunctions.Concat(customConcretes), 
+                GenericFunctions.Concat(customGenerics));
     }
 }

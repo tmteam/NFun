@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using NFun;
 using NFun.BuiltInFunctions;
 using NFun.Interpritation;
 using NFun.Interpritation.Functions;
@@ -16,7 +17,7 @@ namespace Funny.Tests.UnitTests
         [SetUp]
         public void Setup()
         {
-            dic = new FunctionsDictionary();
+            dic = new FunctionsDictionary(new BuiltInFunctions(new FunctionBase[0], new GenericFunctionBase[0] ));
         }
 
         [Test]

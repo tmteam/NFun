@@ -46,12 +46,8 @@ namespace Funny.Tests.Jet
             runtime.ApplyEntry(jetBuilder);
             var jet = jetBuilder.GetResult().ToString();
             Console.WriteLine("Jet: "+ jet);
-            var functionsDictionary = new FunctionsDictionary();
-            foreach (var predefinedFunction in BaseFunctions.ConcreteFunctions)
-                functionsDictionary.Add(predefinedFunction);
-            foreach (var genericFunctionBase in BaseFunctions.GenericFunctions)
-                functionsDictionary.Add(genericFunctionBase);
 
+            var functionsDictionary = new FunctionsDictionary(BaseFunctions.Functions);
             var jetRuntime  =  JetDeserializer.Deserialize(jet, functionsDictionary);
             jetRuntime.Calculate().AssertReturns(VarVal.New("y", expectedY));
         }
@@ -94,11 +90,7 @@ namespace Funny.Tests.Jet
             runtime.ApplyEntry(jetBuilder);
             var jet = jetBuilder.GetResult().ToString();
             Console.WriteLine("Jet: " + jet);
-            var functionsDictionary = new FunctionsDictionary();
-            foreach (var predefinedFunction in BaseFunctions.ConcreteFunctions)
-                functionsDictionary.Add(predefinedFunction);
-            foreach (var genericFunctionBase in BaseFunctions.GenericFunctions)
-                functionsDictionary.Add(genericFunctionBase);
+            var functionsDictionary = new FunctionsDictionary(BaseFunctions.Functions);
 
             var jetRuntime = JetDeserializer.Deserialize(jet, functionsDictionary);
             jetRuntime.Calculate(VarVal.New("x", variable)).AssertReturns(VarVal.New("y", expectedY));

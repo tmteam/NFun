@@ -52,16 +52,8 @@ namespace NFun
         /// <summary>
         /// Creates functions dictionary that contains build in and custom functions
         /// </summary>
-        private FunctionsDictionary CreateFunctionsDictionary()
-        {
-            var functionsDictionary = new FunctionsDictionary();
-            foreach (var predefinedFunction in _functions.Concat(BaseFunctions.ConcreteFunctions))
-                functionsDictionary.Add(predefinedFunction);
-            foreach (var genericFunctionBase in _genericFunctions.Concat(BaseFunctions.GenericFunctions))
-                functionsDictionary.Add(genericFunctionBase);
-            return functionsDictionary;
-        }        
-        
+        private FunctionsDictionary CreateFunctionsDictionary() => new FunctionsDictionary(BaseFunctions.CreateBuiltInFunctions(_functions, _genericFunctions));
+
         public static FunRuntime BuildDefault(string text)
             => FunBuilder.With(text).Build();
     }
