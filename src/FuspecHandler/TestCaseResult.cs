@@ -2,6 +2,7 @@ using System;
 using System.IO.Enumeration;
 using Nfun.Fuspec.Parser.Model;
 using NFun.TypeInference.Solving;
+using NFun.Types;
 
 namespace FuspecHandler
 {
@@ -9,14 +10,13 @@ namespace FuspecHandler
     {
         private Exception _error;
 
-        public string FileName { get; }
-        public int StartLine => Fus.StartLine;
-        public bool IsTodoTest => Fus.IsTestExecuted;
-        public Exception Error => _error;
-        public FuspecTestCase Fus { get; }
+        public readonly string FileName;
+        public readonly FuspecTestCase Fus;
+        public  Exception Error => _error;
+        public VarInfo[] Inputs;
 
-        
-        
+
+
         public TestCaseResult(string fileName, FuspecTestCase fus)
         {
             FileName = fileName;
@@ -28,15 +28,10 @@ namespace FuspecHandler
         {
             _error = e;
         }
- /*   
-    - startLine
-    - isSuccesfully
-    - Exception: Error
-    choise of: 
-    - Funparse
-    - Funruntime
-    - SetCheck
-    - InOut
-    - Unhandled
-  */  }
+
+        public void SetInputs(VarInfo[] inputs)
+        {
+            Inputs = inputs;
+        }
+    }
 }

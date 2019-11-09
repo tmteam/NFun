@@ -28,6 +28,7 @@
             </e>
           </e>
         </e>
+        <e p="OutputInputException.cs" t="Include" />
         <e p="Program.cs" t="Include" />
         <e p="Statistic.cs" t="Include" />
         <e p="TestCaseResult.cs" t="Include" />

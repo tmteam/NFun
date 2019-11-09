@@ -9,13 +9,7 @@ using NFun.ParseErrors;
 namespace FuspecHandler
 {
     public class ConsoleWriter
-    {
-
-        public void PrintLnText(string Text)
-        {
-            Console.WriteLine(Text);
-        }
-
+    {  
         public void PrintStatisticHeader()
         {
             Console.WriteLine();
@@ -24,7 +18,7 @@ namespace FuspecHandler
             Console.WriteLine("##########################");
         }
 
-        public void PrintTestName(string name)
+        public void PrintTestingFileName(string name)
         {
             Console.BackgroundColor = ConsoleColor.DarkBlue;
             Console.ForegroundColor = ConsoleColor.Black;
@@ -36,7 +30,6 @@ namespace FuspecHandler
 
         public void PrintFuspecName(string fusName) =>
             Console.Write("{0,-50}   ", fusName);
-
 
         public void PrintOkTest()
         {
@@ -54,34 +47,46 @@ namespace FuspecHandler
             Console.ResetColor();
         }
 
+        public void PrintNoTests()
+        {
+            Console.Write("\t\t\t\t\t\t   ");
+            Console.BackgroundColor = ConsoleColor.DarkMagenta;
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine(" No tests! ");
+                        
+            Console.ResetColor();
+        }
         public void PrintError(Exception e)
         {
             switch (e)
             {
                 case FuspecParserException fusParsExc:
-                    PrintError(fusParsExc.Errors.FirstOrDefault().LineNumber, ConsoleColor.DarkGray,
-                        ConsoleColor.Black);
+                    Console.Write("\t\t\t\t\t\t  ");
+                    Console.BackgroundColor = ConsoleColor.DarkGray;
+                    Console.ForegroundColor = ConsoleColor.White;
+                    Console.WriteLine(" Can't parse! ");
+                    Console.ResetColor();
                     break;
                 case FunParseException funParsException:
-                    PrintError(-1, ConsoleColor.Red, ConsoleColor.White);
+                    PrintError(ConsoleColor.Red, ConsoleColor.White);
                     break;
                 case FunRuntimeException funParsException:
-                    PrintError(-1, ConsoleColor.DarkRed, ConsoleColor.White);
+                    PrintError(ConsoleColor.DarkRed, ConsoleColor.White);
+                    break;
+                case OutputInputException outputInputException:
+                    PrintError(ConsoleColor.DarkCyan, ConsoleColor.White);
                     break;
                 default:
-                    PrintError(-1, ConsoleColor.Yellow, ConsoleColor.Black);
+                    PrintError(ConsoleColor.Yellow, ConsoleColor.Black);
                     break;
             }
         }
 
-        private void PrintError(int numberOfLine, ConsoleColor backgroundColor, ConsoleColor foregroundColor)
+        private void PrintError(ConsoleColor backgroundColor, ConsoleColor foregroundColor)
         {
             Console.BackgroundColor = backgroundColor;
             Console.ForegroundColor = foregroundColor;
-            if (numberOfLine >= 0)
-                Console.WriteLine(" Can't parse the file!!!\n\r Error in line {0}!", numberOfLine);
-            else
-                Console.WriteLine(" Error ");
+            Console.WriteLine(" Error ");
             Console.ResetColor();
         }
 
@@ -108,14 +113,14 @@ namespace FuspecHandler
             Console.WriteLine();
         }
 
-        public void PrintFunParseException(FunParseException e, string file, string script, string test)
+        public void PrintFunParseException(FunParseException e, string file, string script, string test, int startLine)
         {
             Console.BackgroundColor = ConsoleColor.Red;
             Console.ForegroundColor = ConsoleColor.White;
             Console.Write("ERROR [FU" + e.Code + "] ");
             Console.WriteLine($" {e.Message} ");
             Console.ResetColor();
-            Console.WriteLine("FILE:  {0}\nTEST:  {1}.", file, test);
+            Console.WriteLine("FILE:       {0}\nTEST:       {1}\nSTARTLINE:  {2}", file, test, startLine);
             Console.WriteLine("\r\n");
             if (e.End != -1)
             {
@@ -166,25 +171,18 @@ namespace FuspecHandler
             Console.WriteLine("Number of Successful parsed Files: {0}", numberOfSuccessfulParsedFiles);
         }
 
-        public void PrintBrokenFile()
+        public void PrintOutpitInputException(string[] messages)
         {
-            Console.Write("\t\t\t\t\t\t");
-            Console.BackgroundColor = ConsoleColor.Gray;
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine("   Can't parse! ");
-            
-            Console.ResetColor();
-           
-        }
-
-        public void PrintNoTests()
-        {
-            Console.Write("\t\t\t\t\t\t   ");
-                        Console.BackgroundColor = ConsoleColor.DarkMagenta;
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.WriteLine(" No tests! ");
-                        
+                        Console.BackgroundColor = ConsoleColor.DarkCyan;
+                        Console.ForegroundColor = ConsoleColor.Black;
+                        Console.WriteLine("ERROR! In/Out check failed! :");
                         Console.ResetColor();
+
+                        foreach (var message in messages)
+                        {
+                            Console.WriteLine("\t\t "+message);
+                        }
+
         }
     }
 }
