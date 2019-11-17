@@ -12,6 +12,6 @@ namespace FuspecHandler
 
         public OutputInputException() => messages= new List<string>();
 
-        public void AddErrorMessage(string mes) => messages.Add(mes);
+        public void AddErrorMessage(string[] mes) => messages.AddRange(mes);
     }
 }

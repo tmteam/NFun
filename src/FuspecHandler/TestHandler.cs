@@ -87,8 +87,8 @@ namespace FuspecHandler
 
             OutputInputException outputInputException = new OutputInputException();
 
-            string mes = CompareTypeAndGetMessageErrorOrNull(fus.InputVarList, runtime.Inputs);
-            if (mes != null)
+            var mes = CompareTypeAndGetMessageErrorOrNull(fus.InputVarList, runtime.Inputs);
+            if (mes.Any())
                 outputInputException.AddErrorMessage(mes);
 
             mes = CompareTypeAndGetMessageErrorOrNull(fus.OutputVarList, runtime.Outputs);
@@ -101,26 +101,32 @@ namespace FuspecHandler
             return runtime.Inputs;
         }
 
-        private string CompareTypeAndGetMessageErrorOrNull(VarInfo[] testTypes, VarInfo[] scriptTypes)
+        private string[] CompareTypeAndGetMessageErrorOrNull(VarInfo[] testTypes, VarInfo[] scriptTypes)
         {
+            List<string> messages = new List<string>();
+
+            foreach (var varInfo in scriptTypes)
+            {
+                var inputRes = testTypes.Where(s => s.Name == varInfo.Name);
+                if (!inputRes.Any())
+                    messages.Add(varInfo.ToString() + " - missed in test!");
+            }
+                
             
             if (scriptTypes.Any())
             {
                 foreach (var varInfo in testTypes)
                 {
                     var inputRes = scriptTypes.Where(s => s.Name == varInfo.Name);
-                    if (inputRes.Any())
-                    {
-                        if (inputRes.Single().Type != varInfo.Type)
-                            return "Test : " + varInfo.ToString() + ". Script: " + inputRes.Single().ToString();
-                        else
-                            return null;
-                    }
+                    if (!inputRes.Any())
+                        messages.Add(varInfo.ToString() + " - not found in script!");
                     else
-                        return  varInfo.ToString() + " - not found!";
+                        if (inputRes.Single().Type != varInfo.Type)
+                            messages.Add( "Test : " + varInfo.ToString() + ". Script: " + inputRes.Single().ToString());
+                   
                 }
             }
-            return null;
+            return messages.ToArray();
         }
     }
 }
