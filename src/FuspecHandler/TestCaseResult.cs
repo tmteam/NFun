@@ -12,10 +12,8 @@ namespace FuspecHandler
 
         public readonly string FileName;
         public readonly FuspecTestCase Fus;
-        public  Exception Error => _error;
-        public VarInfo[] Inputs;
-
-
+        public Exception Error => _error;
+        private VarInfo[] Inputs;
 
         public TestCaseResult(string fileName, FuspecTestCase fus)
         {

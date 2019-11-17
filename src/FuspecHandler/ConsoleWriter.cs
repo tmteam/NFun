@@ -171,12 +171,19 @@ namespace FuspecHandler
             Console.WriteLine("Number of Successful parsed Files: {0}", numberOfSuccessfulParsedFiles);
         }
 
-        public void PrintOutpitInputException(string[] messages)
+        public void PrintOutpitInputException(string fileName, string testName, string[] messages)
         {
                         Console.BackgroundColor = ConsoleColor.DarkCyan;
                         Console.ForegroundColor = ConsoleColor.Black;
                         Console.WriteLine("ERROR! In/Out check failed! :");
                         Console.ResetColor();
+                        
+                        Console.Write("File: ");
+                        Console.ResetColor();
+                        Console.Write("{0}\t\t ",fileName);
+                        Console.Write("Name: ");
+                        Console.ResetColor();
+                        Console.WriteLine(testName);
 
                         foreach (var message in messages)
                         {

@@ -87,76 +87,76 @@ namespace FuspecHandler
             
            OutputInputException outputInputException = new OutputInputException();
 
-            // Printing process
-       //     Console.WriteLine();
-
-            if (runtime.Inputs.Any())
+           string mes = CompareVarInfoAndIdType(fus.InputVarList, runtime.Inputs);
+           if (mes!="")
+           outputInputException.AddErrorMessage(mes);
+ 
+           
+           /*     if (runtime.Inputs.Any())
             {
-                
-              //  Console.WriteLine("Fun Inputs:  " + string.Join(", ", runtime.Inputs.Select(s => s.ToString())));
-              //  Console.Write("Test Inputs: ");
-
                 foreach (var varInfo in fus.InputVarList)
                 {
-             //       Console.Write("(in) {0}", varInfo.ToString());
                     var inputRes = runtime.Inputs.Where(s => s.Name == varInfo.Id);
                     if (inputRes.Any())
+                    {
                         if (inputRes.Single().Type != varInfo.VarType)
-                        {
-                       //     Console.Write("(it should be {0})", inputRes.Single().ToString());
-                         //    errors.Add(new OutputInputError("It should be "+inputRes.Single().ToString(),varInfo, inputRes.Single()));                                   
-                                outputInputException.AddErrorMessage("Test :(in) "+ varInfo.ToString()+". In script: "+inputRes.Single().ToString());
-                        }
-                        else
-                        {
-                      //      Console.Write("(nonexistent in!)");
-                            outputInputException.AddErrorMessage("(in) "+varInfo.ToString() + " - missed!");
-
-                        }
-
-               //     Console.Write(", ");
-
+                            outputInputException.AddErrorMessage(
+                                "Test :(in) " + varInfo.ToString() + ". In script: " + inputRes.Single().ToString());
+                    }
+                    else
+                        outputInputException.AddErrorMessage("(in) " + varInfo.ToString() + " - not found!");
                 }
-
-                //   Console.WriteLine();
             }
+            
+            */
+           mes =  CompareVarInfoAndIdType(fus.OutputVarList, runtime.Outputs);
+           if (mes!="")
+               outputInputException.AddErrorMessage(mes);
+         //  outputInputException.AddErrorMessage(mes);
+       /*
 
             if (runtime.Outputs.Any())
             {
-            //    Console.WriteLine("Fun Outputs:  " + string.Join(", ", runtime.Outputs.Select(s => s.ToString())));
-            //    Console.Write("Test Outputs: ");
-
                 foreach (var varInfo in fus.OutputVarList)
                 {
-             //       Console.Write("(out) {0}",varInfo.ToString());
-                    
                     var outputRes = runtime.Outputs.Where(s => s.Name == varInfo.Id);
                     if (outputRes.Any())
                     {
                         if (outputRes.Single().Type != varInfo.VarType)
-               //             Console.Write("(it should be {0})", outputRes.Single().ToString());
-                            outputInputException.AddErrorMessage("Test: (out) "+ varInfo.ToString()+". In script: "+outputRes.Single().ToString());
-
+                            outputInputException.AddErrorMessage(
+                                "Test: (out) " + varInfo.ToString() + ". In script: " + outputRes.Single().ToString());
                     }
                     else
-                    {
-                       // Console.Write("(nonexistent out!)");
-                       outputInputException.AddErrorMessage("(out) "+varInfo.ToString() + " - missed!");
-
-                    }
-                //    Console.Write(", ");
-                }     
-             //   Console.WriteLine();
+                        outputInputException.AddErrorMessage("(out) " + varInfo.ToString() + " - missed!");
+                }
+            }    
+             */   
              if (outputInputException.Messages.Any())
                  throw outputInputException;
-
-            }
+            
             return runtime.Inputs;
         }
 
-        private bool CompareInputs()
+        private string CompareVarInfoAndIdType(IdType[] idTypes, VarInfo[] varTypes)
         {
-            return true;
+
+            if (varTypes.Any())
+            {
+                foreach (var varInfo in idTypes)
+                {
+                    var inputRes = varTypes.Where(s => s.Name == varInfo.Id);
+                    if (inputRes.Any())
+                    {
+                        if (inputRes.Single().Type != varInfo.VarType)
+                            return "Test : " + varInfo.ToString() + ". Script: " + inputRes.Single().ToString();
+                        else
+                            return "";
+                    }
+                    else
+                        return  varInfo.ToString() + " - not found!";
+                }
+            }
+            return "";
         }
     }
 }

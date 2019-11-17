@@ -83,7 +83,7 @@ namespace FuspecHandler
                     _consoleWriter.PrintFuspecRunTimeException(funRuntimeException, testCaseResult.FileName, testCaseResult.Fus.Name);
                     break;
                 case OutputInputException outputInputException:
-                    _consoleWriter.PrintOutpitInputException(outputInputException.Messages);
+                    _consoleWriter.PrintOutpitInputException(testCaseResult.FileName,testCaseResult.Fus.Name, outputInputException.Messages);
                     break;
                 default:
                     _consoleWriter.PrintUnknownException(testCaseResult.FileName,testCaseResult.Fus.Name,testCaseResult.Error);
