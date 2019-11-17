@@ -29,9 +29,9 @@ namespace Nfun.Fuspec.Parser
         
         //todo cr: return empty list, not null
         //Todo cr: answer: null is a marker of Error. Empty list is a marker of empty string of values
-        internal static IdType[] ParseVarType(string paramString)
+        internal static VarInfo[] ParseVarType(string paramString, bool isOutput)
         {
-            List<IdType> result = new List<IdType>();
+            List<VarInfo> result = new List<VarInfo>();
 
             var tokFLow = Tokenizer.ToFlow(paramString);
             while (tokFLow.Current.Type != TokType.Eof)
@@ -49,14 +49,14 @@ namespace Nfun.Fuspec.Parser
                
                 var value = previous.Value;
                 // if result already contains Id
-                if (result.Any(param => param.Id == value))
+                if (result.Any(param => param.Name == value))
                     return null;
                 
                 tokFLow.MoveNext();
                 //ToDo cr: pick out this part or not? 
                 //******************************************
                 var varType = tokFLow.ReadVarType();
-                result.Add(new IdType(value, varType));
+                result.Add(new VarInfo(isOutput,varType, value,true));
 
                 //******************************************
                 

@@ -1,5 +1,6 @@
 using System.Linq;
 using Nfun.Fuspec.Parser.FuspecParserErrors;
+using NFun.Types;
 
 namespace Nfun.Fuspec.Parser.Model
 {
@@ -8,7 +9,7 @@ namespace Nfun.Fuspec.Parser.Model
         public FuspecTestCase(  string name, 
                                 string[] tags, 
                                 string body,
-                                IdType[] inputVarList, IdType[] outputVarList, 
+                                VarInfo[] inputVarList, VarInfo[] outputVarList, 
                                 SetCheckPair[] setChecks,
                                 bool isTestExecuted,
                                 int startLine)
@@ -26,8 +27,8 @@ namespace Nfun.Fuspec.Parser.Model
         public string[] Tags { get; }
         public string Script{ get; }
         
-        public IdType[] InputVarList { get; }
-        public IdType[] OutputVarList { get; }
+        public VarInfo[] InputVarList { get; }
+        public VarInfo[] OutputVarList { get; }
         
         public SetCheckPair[] SetChecks { get; }
         

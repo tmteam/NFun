@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Nfun.Fuspec.Parser.FuspecParserErrors;
 using Nfun.Fuspec.Parser.Model;
+using NFun.Types;
 
 namespace Nfun.Fuspec.Parser
 {
@@ -12,9 +13,9 @@ namespace Nfun.Fuspec.Parser
         public string[] Tags { get; set; } //
         public string Script { get; set; }
         
-        public IdType[] ParamsIn { get; set; }
+        public VarInfo[] ParamsIn { get; set; }
         
-        public IdType[] ParamsOut { get; set; }
+        public VarInfo[] ParamsOut { get; set; }
         
         public bool IsTestExecuted { get; set; }
         
@@ -27,8 +28,8 @@ namespace Nfun.Fuspec.Parser
         {
             Script = null;
             Tags = new string[0];
-            ParamsIn = new IdType[0];
-            ParamsOut=new IdType[0];
+            ParamsIn = new VarInfo[0];
+            ParamsOut=new VarInfo[0];
             _setCheckKits=new List<SetCheckPair>();
             IsTestExecuted = true;
             StartLine = -1;

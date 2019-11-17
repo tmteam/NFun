@@ -691,10 +691,10 @@ x = round(a - b - c)
             Assert.Multiple(() =>
             {
                 StandardAssertForCorrectTestCase();
-                Assert.AreEqual("a",_fuspecTestCases.TestCases.FirstOrDefault().InputVarList[0].Id);
-                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().InputVarList[0].VarType.ToString());
-                Assert.AreEqual("y",_fuspecTestCases.TestCases.FirstOrDefault().OutputVarList[0].Id);
-                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().OutputVarList[0].VarType.ToString());
+                Assert.AreEqual("a",_fuspecTestCases.TestCases.FirstOrDefault().InputVarList[0].Name);
+                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().InputVarList[0].Type.ToString());
+                Assert.AreEqual("y",_fuspecTestCases.TestCases.FirstOrDefault().OutputVarList[0].Name);
+                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().OutputVarList[0].Type.ToString());
 
             });
         }
@@ -718,10 +718,10 @@ x = round(a - b - c)
             {
                 StandardAssertForCorrectTestCase();
                 Assert.AreEqual("\r\n  x = round(a - b - c)  ",_fuspecTestCases.TestCases.FirstOrDefault().Script);
-                Assert.AreEqual("a",_fuspecTestCases.TestCases.FirstOrDefault().InputVarList[0].Id);
-                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().InputVarList[0].VarType.ToString());
-                Assert.AreEqual("y",_fuspecTestCases.TestCases.FirstOrDefault().OutputVarList[0].Id);
-                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().OutputVarList[0].VarType.ToString());
+                Assert.AreEqual("a",_fuspecTestCases.TestCases.FirstOrDefault().InputVarList[0].Name);
+                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().InputVarList[0].Type.ToString());
+                Assert.AreEqual("y",_fuspecTestCases.TestCases.FirstOrDefault().OutputVarList[0].Name);
+                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().OutputVarList[0].Type.ToString());
             });
         }
 
@@ -742,8 +742,8 @@ x = round(a - b - c)
             Assert.Multiple(() =>
             {
                 StandardAssertForCorrectTestCase();
-                Assert.AreEqual("a",_fuspecTestCases.TestCases.FirstOrDefault().InputVarList[0].Id);
-                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().InputVarList[0].VarType.ToString());
+                Assert.AreEqual("a",_fuspecTestCases.TestCases.FirstOrDefault().InputVarList[0].Name);
+                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().InputVarList[0].Type.ToString());
             });
         }
         
@@ -763,8 +763,8 @@ x = round(a - b - c)
             Assert.Multiple(() =>
             {
                 StandardAssertForCorrectTestCase();
-                Assert.AreEqual("y",_fuspecTestCases.TestCases.FirstOrDefault().OutputVarList[0].Id);
-                Assert.AreEqual("Real[]",_fuspecTestCases.TestCases.FirstOrDefault().OutputVarList[0].VarType.ToString());
+                Assert.AreEqual("y",_fuspecTestCases.TestCases.FirstOrDefault().OutputVarList[0].Name);
+                Assert.AreEqual("Real[]",_fuspecTestCases.TestCases.FirstOrDefault().OutputVarList[0].Type.ToString());
             });
         }
         [Test]
@@ -865,10 +865,10 @@ x = round(a - b - c)
             Assert.Multiple(() =>
             {
                 StandardAssertForCorrectTestCase();
-                Assert.AreEqual("a",_fuspecTestCases.TestCases.FirstOrDefault().OutputVarList[0].Id);
-                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().OutputVarList[0].VarType.ToString());
-                Assert.AreEqual("b",_fuspecTestCases.TestCases.FirstOrDefault().OutputVarList[1].Id);
-                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().OutputVarList[1].VarType.ToString());
+                Assert.AreEqual("a",_fuspecTestCases.TestCases.FirstOrDefault().OutputVarList[0].Name);
+                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().OutputVarList[0].Type.ToString());
+                Assert.AreEqual("b",_fuspecTestCases.TestCases.FirstOrDefault().OutputVarList[1].Name);
+                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().OutputVarList[1].Type.ToString());
             });
         }
         
@@ -913,11 +913,11 @@ x = round(a - b - c)
             Assert.Multiple(() =>
             {
                 StandardAssertForCorrectTestCase();
-                Assert.AreEqual("a",_fuspecTestCases.TestCases.FirstOrDefault().OutputVarList[0].Id);
-                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().OutputVarList[0].VarType.ToString());
+                Assert.AreEqual("a",_fuspecTestCases.TestCases.FirstOrDefault().OutputVarList[0].Name);
+                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().OutputVarList[0].Type.ToString());
                 
-                Assert.AreEqual("b",_fuspecTestCases.TestCases.FirstOrDefault().OutputVarList[1].Id);
-                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().OutputVarList[1].VarType.ToString());
+                Assert.AreEqual("b",_fuspecTestCases.TestCases.FirstOrDefault().OutputVarList[1].Name);
+                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().OutputVarList[1].Type.ToString());
                 
             });
         }
@@ -938,10 +938,10 @@ x = round(a - b - c)
             Assert.Multiple(() =>
             {
                 StandardAssertForCorrectTestCase();
-                Assert.AreEqual( "a",_fuspecTestCases.TestCases.FirstOrDefault().InputVarList[0].Id);
-                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().InputVarList[0].VarType.ToString());
-                Assert.AreEqual( "b",_fuspecTestCases.TestCases.FirstOrDefault().InputVarList[1].Id);
-                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().InputVarList[1].VarType.ToString());
+                Assert.AreEqual( "a",_fuspecTestCases.TestCases.FirstOrDefault().InputVarList[0].Name);
+                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().InputVarList[0].Type.ToString());
+                Assert.AreEqual( "b",_fuspecTestCases.TestCases.FirstOrDefault().InputVarList[1].Name);
+                Assert.AreEqual("Real",_fuspecTestCases.TestCases.FirstOrDefault().InputVarList[1].Type.ToString());
             });
         }
         

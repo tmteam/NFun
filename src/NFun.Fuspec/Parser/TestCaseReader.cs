@@ -136,7 +136,7 @@ namespace Nfun.Fuspec.Parser
 
             try
             {
-                _testCaseBuilder.ParamsIn = ParseVarType(paramInString);
+                _testCaseBuilder.ParamsIn = ParseVarType(paramInString,false);
             }
             catch (Exception e)
             {
@@ -170,7 +170,7 @@ namespace Nfun.Fuspec.Parser
 
             try
             {
-                _testCaseBuilder.ParamsOut = ParseVarType(paramOutString);
+                _testCaseBuilder.ParamsOut = ParseVarType(paramOutString,true);
             }
             catch (Exception e)
             {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Nfun.Fuspec.Parser.Model;
+using NFun.Types;
 
 namespace ConsoleUseParser
 {
@@ -73,11 +74,11 @@ namespace ConsoleUseParser
             Console.WriteLine();
         }
         
-        private static void PrintElement(string message, IEnumerable<IdType> paramsInOut)
+        private static void PrintElement(string message, IEnumerable<VarInfo> paramsInOut)
         {
             Console.Write(message);
             foreach (var param in paramsInOut)
-                Console.Write(param.Id+" : "+param.VarType+"   ");
+                Console.Write(param.Name+" : "+param.Type+"   ");
             Console.WriteLine();
         }
     }
