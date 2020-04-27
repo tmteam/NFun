@@ -6,15 +6,14 @@ using NFun.Runtime;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
-using NFun.Tokenization;
 using NFun.TypeInference;
-using NFun.TypeInference.Solving;
 using NFun.Types;
 
 namespace NFun.Interpritation
 {
     public static class RuntimeBuilderHelper
     {
+        /*
         public static TiResult SolveOrThrow(SyntaxTree syntaxTree, FunctionsDictionary functionsDictionary)
         {
             var bodyTypeSolving =  LangTiHelper.SetupTiOrNull(syntaxTree, functionsDictionary)?.Solve();
@@ -49,7 +48,7 @@ namespace NFun.Interpritation
                     throw ErrorFactory.TypesNotSolved(root);
             }
         }
-
+        */
         public static void ThrowIfSomeVariablesNotExistsInTheList(this VariableDictionary resultVariables, IEnumerable<string> list )
         {
             var unknownVariables = resultVariables.GetAllUsages()

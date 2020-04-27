@@ -9,7 +9,6 @@ using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
 using NFun.TypeInference;
-using NFun.TypeInference.Solving;
 using NFun.Types;
 
 namespace NFun.ParseErrors
@@ -522,12 +521,13 @@ namespace NFun.ParseErrors
             
             for (int i = 1; i < hmTypes.Length; i++)
             {
-                currentLca = TiType.GetLca(new[]{currentLca, hmTypes[i]});
-                if (currentLca.Name.Equals(TiTypeName.Any))
-                {
-                    failedInterval = allExpressions[i].Interval;
-                    break;
-                }
+                throw new NotImplementedException();
+                //currentLca = TiType.GetLca(new[]{currentLca, hmTypes[i]});
+                //if (currentLca.Name.Equals(TiTypeName.Any))
+                //{
+                //    failedInterval = allExpressions[i].Interval;
+                //    break;
+                //}
             }
             
             return new FunParseException(575, $"'If-else expressions contains different type. " +

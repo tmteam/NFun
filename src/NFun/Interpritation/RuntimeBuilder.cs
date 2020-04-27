@@ -9,7 +9,7 @@ using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
 using NFun.TypeInference;
-using NFun.TypeInference.Solving;
+using NFun.TypeInferenceAdapter;
 using NFun.Types;
 
 namespace NFun.Interpritation
@@ -20,71 +20,73 @@ namespace NFun.Interpritation
             SyntaxTree syntaxTree,
             FunctionsDictionary functionsDictionary)
         {
-            #region build user functions
-            //get topology sort of the functions call
-            //result is the order of functions that need to be compiled
-            //functions that not references other functions have to be compiled firstly
-            //Then those functions will be compiled
-            //that refer to already compiled functions
-            var functionSolveOrder  = syntaxTree.FindFunctionSolvingOrderOrThrow();
+            throw new NotImplementedException();
 
-            //build user functions
-            var userFunctions = new List<UserFunction>();
-            foreach (var functionSyntaxNode in functionSolveOrder)
-            {
-               var userFunction =  BuildFunctionAndPutItToDictionary(functionSyntaxNode, functionsDictionary);
-               userFunctions.Add(userFunction);
-            }
-            #endregion
-            
-            #region solve body types
-            //Solve types for all equations nodes
-            var bodyTypeSolving = RuntimeBuilderHelper.SolveOrThrow(syntaxTree, functionsDictionary);
+            //#region build user functions
+            ////get topology sort of the functions call
+            ////result is the order of functions that need to be compiled
+            ////functions that not references other functions have to be compiled firstly
+            ////Then those functions will be compiled
+            ////that refer to already compiled functions
+            //var functionSolveOrder  = syntaxTree.FindFunctionSolvingOrderOrThrow();
 
-            foreach (var syntaxNode in syntaxTree.Children)
-            {
-                //function nodes were solved above
-                if(syntaxNode is UserFunctionDefenitionSyntaxNode)
-                    continue;
-                
-                //set types to nodes
-                syntaxNode.ComeOver(
-                    enterVisitor: new ApplyTiResultEnterVisitor(bodyTypeSolving, TiToLangTypeConverter.SetGenericsToAny),
-                    exitVisitor:  new ApplyTiResultsExitVisitor());
-            }
-            #endregion
-            
-            #region build body
-            var variables = new VariableDictionary(); 
-            var equations = new List<Equation>();
-        
-            foreach (var treeNode in syntaxTree.Nodes)
-            {
-                if (treeNode is EquationSyntaxNode node)
-                {
-                    var equation = BuildEquationAndPutItToVariables(node, functionsDictionary, variables);
-                    equations.Add(equation);
-                }
-                else if (treeNode is VarDefenitionSyntaxNode varDef)
-                {
-                    var variableSource = VariableSource.CreateWithStrictTypeLabel(
-                        varDef.Id, 
-                        varDef.VarType, 
-                        varDef.Interval, 
-                        varDef.Attributes);
-                    if (!variables.TryAdd(variableSource))
-                    {
-                        var allUsages = variables.GetUsages(variableSource.Name);
-                        throw ErrorFactory.VariableIsDeclaredAfterUsing(allUsages);
-                    }
-                }
-                else if(treeNode is UserFunctionDefenitionSyntaxNode)
-                    continue;//user function was built above
-                else 
-                    throw  new InvalidOperationException($"Type {treeNode} is not supported as tree root");
-            }   
-            #endregion
-            return new FunRuntime(equations, variables, userFunctions);
+            ////build user functions
+            //var userFunctions = new List<UserFunction>();
+            //foreach (var functionSyntaxNode in functionSolveOrder)
+            //{
+            //   var userFunction =  BuildFunctionAndPutItToDictionary(functionSyntaxNode, functionsDictionary);
+            //   userFunctions.Add(userFunction);
+            //}
+            //#endregion
+
+            //#region solve body types
+            ////Solve types for all equations nodes
+            //var bodyTypeSolving = RuntimeBuilderHelper.SolveOrThrow(syntaxTree, functionsDictionary);
+
+            //foreach (var syntaxNode in syntaxTree.Children)
+            //{
+            //    //function nodes were solved above
+            //    if(syntaxNode is UserFunctionDefenitionSyntaxNode)
+            //        continue;
+
+            //    //set types to nodes
+            //    syntaxNode.ComeOver(
+            //        enterVisitor: new ApplyTiResultEnterVisitor(bodyTypeSolving, TiToLangTypeConverter.SetGenericsToAny),
+            //        exitVisitor:  new ApplyTiResultsExitVisitor());
+            //}
+            //#endregion
+
+            //#region build body
+            //var variables = new VariableDictionary(); 
+            //var equations = new List<Equation>();
+
+            //foreach (var treeNode in syntaxTree.Nodes)
+            //{
+            //    if (treeNode is EquationSyntaxNode node)
+            //    {
+            //        var equation = BuildEquationAndPutItToVariables(node, functionsDictionary, variables);
+            //        equations.Add(equation);
+            //    }
+            //    else if (treeNode is VarDefenitionSyntaxNode varDef)
+            //    {
+            //        var variableSource = VariableSource.CreateWithStrictTypeLabel(
+            //            varDef.Id, 
+            //            varDef.VarType, 
+            //            varDef.Interval, 
+            //            varDef.Attributes);
+            //        if (!variables.TryAdd(variableSource))
+            //        {
+            //            var allUsages = variables.GetUsages(variableSource.Name);
+            //            throw ErrorFactory.VariableIsDeclaredAfterUsing(allUsages);
+            //        }
+            //    }
+            //    else if(treeNode is UserFunctionDefenitionSyntaxNode)
+            //        continue;//user function was built above
+            //    else 
+            //        throw  new InvalidOperationException($"Type {treeNode} is not supported as tree root");
+            //}   
+            //#endregion
+            //return new FunRuntime(equations, variables, userFunctions);
         }
 
         private static Equation BuildEquationAndPutItToVariables(
@@ -132,62 +134,65 @@ namespace NFun.Interpritation
             UserFunctionDefenitionSyntaxNode functionSyntaxNode,
             FunctionsDictionary functionsDictionary)
         {
-            var funAlias = functionSyntaxNode.GetFunAlias();
+            throw new NotImplementedException();
 
-            //introduce function variable here
-            var visitorInitState = CreateVisitorStateFor(functionSyntaxNode);
+            //var funAlias = functionSyntaxNode.GetFunAlias();
 
-            //solving each function
-            var typeSolving = LangTiHelper.SetupTiOrNull(functionSyntaxNode.Body, functionsDictionary, visitorInitState);
+            ////introduce function variable here
+            //var visitorInitState = CreateVisitorStateFor(functionSyntaxNode);
 
-            if (typeSolving==null)
-                throw FunParseException.ErrorStubToDo($"Function '{functionSyntaxNode.Id}' is not solved");
+            ////solving each function
+            //var typeSolving = LangTiHelper.SetupTiOrNull(functionSyntaxNode.Body, functionsDictionary, visitorInitState);
 
-            var setFunTypeResult = visitorInitState.CurrentSolver.SetFunDefenition(funAlias,
-                functionSyntaxNode.OrderNumber,
-                functionSyntaxNode.Body.OrderNumber);
-            if (!setFunTypeResult.IsSuccesfully)
-            {
-                if (setFunTypeResult.Error == SetTypeResultError.VariableDefenitionDuplicates)
-                    throw ErrorFactory.FunctionAlreadyExist(functionSyntaxNode);
-                else
-                    throw ErrorFactory.FunctionTypesNotSolved(functionSyntaxNode);
-            }
-                
-            
-            // solve the types
-            var types = typeSolving.Solve();
-            RuntimeBuilderHelper.ThrowIfNotSolved(functionSyntaxNode, types);
+            //if (typeSolving==null)
+            //    throw FunParseException.ErrorStubToDo($"Function '{functionSyntaxNode.Id}' is not solved");
 
-            var isGeneric = types.GenericsCount > 0;
-            //set types to nodes
-            functionSyntaxNode.ComeOver(
-                enterVisitor:new ApplyTiResultEnterVisitor(types, TiToLangTypeConverter.SaveGenerics),
-                exitVisitor: new ApplyTiResultsExitVisitor());
-            var funType =  types.GetVarType(funAlias, TiToLangTypeConverter.SaveGenerics);
-            
-            if (isGeneric)
-            {
-                var prototype = new GenericUserFunctionPrototype(functionSyntaxNode.Id,
-                    funType.FunTypeSpecification.Output,
-                    funType.FunTypeSpecification.Inputs);
-                //add prototype to dictionary for future use
-                functionsDictionary.Add(prototype);
-                return BuildGenericFunction(functionSyntaxNode, prototype, functionsDictionary);
-            }
-            else
-            {
-                //make function prototype
-                var prototype = new ConcreteUserFunctionPrototype(functionSyntaxNode.Id,
-                    funType.FunTypeSpecification.Output,
-                    funType.FunTypeSpecification.Inputs);
-                //add prototype to dictionary for future use
-                functionsDictionary.Add(prototype);
-                return BuildConcreteFunction(functionSyntaxNode, prototype, functionsDictionary);
-            }
+            //var setFunTypeResult = visitorInitState.CurrentSolver.SetFunDefenition(funAlias,
+            //    functionSyntaxNode.OrderNumber,
+            //    functionSyntaxNode.Body.OrderNumber);
+            //if (!setFunTypeResult.IsSuccesfully)
+            //{
+            //    if (setFunTypeResult.Error == SetTypeResultError.VariableDefenitionDuplicates)
+            //        throw ErrorFactory.FunctionAlreadyExist(functionSyntaxNode);
+            //    else
+            //        throw ErrorFactory.FunctionTypesNotSolved(functionSyntaxNode);
+
+            //}
+
+
+            //// solve the types
+            //var types = typeSolving.Solve();
+            //RuntimeBuilderHelper.ThrowIfNotSolved(functionSyntaxNode, types);
+
+            //var isGeneric = types.GenericsCount > 0;
+            ////set types to nodes
+            //functionSyntaxNode.ComeOver(
+            //    enterVisitor:new ApplyTiResultEnterVisitor(types, TiToLangTypeConverter.SaveGenerics),
+            //    exitVisitor: new ApplyTiResultsExitVisitor());
+            //var funType =  types.GetVarType(funAlias, TiToLangTypeConverter.SaveGenerics);
+
+            //if (isGeneric)
+            //{
+            //    var prototype = new GenericUserFunctionPrototype(functionSyntaxNode.Id,
+            //        funType.FunTypeSpecification.Output,
+            //        funType.FunTypeSpecification.Inputs);
+            //    //add prototype to dictionary for future use
+            //    functionsDictionary.Add(prototype);
+            //    return BuildGenericFunction(functionSyntaxNode, prototype, functionsDictionary);
+            //}
+            //else
+            //{
+            //    //make function prototype
+            //    var prototype = new ConcreteUserFunctionPrototype(functionSyntaxNode.Id,
+            //        funType.FunTypeSpecification.Output,
+            //        funType.FunTypeSpecification.Inputs);
+            //    //add prototype to dictionary for future use
+            //    functionsDictionary.Add(prototype);
+            //    return BuildConcreteFunction(functionSyntaxNode, prototype, functionsDictionary);
+            //}
         }
 
-        
+
 
         private static UserFunction BuildGenericFunction(
             UserFunctionDefenitionSyntaxNode functionSyntax, 
@@ -259,43 +264,44 @@ namespace NFun.Interpritation
 
         private static SetupTiState CreateVisitorStateFor(UserFunctionDefenitionSyntaxNode node)
         {
-            var visitorState = new SetupTiState(new TiLanguageSolver());
+            throw new NotImplementedException();
+            //var visitorState = new SetupTiState(new TiLanguageSolver());
             
-            //Add user function as a functional variable
-            //make outputType
-            var outputType = visitorState.CreateTypeNode(node.ReturnType);
+            ////Add user function as a functional variable
+            ////make outputType
+            //var outputType = visitorState.CreateTypeNode(node.ReturnType);
             
-            //create input variables
-            var argTypes = new List<SolvingNode>();
-            foreach (var argNode in node.Args)
-            {
-                if (visitorState.HasAlias(argNode.Id))
-                    throw ErrorFactory.FunctionArgumentDuplicates(node, argNode);
+            ////create input variables
+            //var argTypes = new List<SolvingNode>();
+            //foreach (var argNode in node.Args)
+            //{
+            //    if (visitorState.HasAlias(argNode.Id))
+            //        throw ErrorFactory.FunctionArgumentDuplicates(node, argNode);
 
-                var inputAlias = LangTiHelper.GetArgAlias(argNode.Id, node.GetFunAlias());
+            //    var inputAlias = LangTiHelper.GetArgAlias(argNode.Id, node.GetFunAlias());
 
-                //make aliases for input variables
-                visitorState.AddVariableAliase(argNode.Id, inputAlias);
+            //    //make aliases for input variables
+            //    visitorState.AddVariableAliase(argNode.Id, inputAlias);
                 
-                if (argNode.VarType.BaseType == BaseVarType.Empty)
-                {
-                    //variable type is not specified
-                    var genericVarType = visitorState.CurrentSolver.SetNewVarOrThrow(inputAlias);
-                    argTypes.Add(genericVarType);
-                }
-                else
-                {
-                    //variable type is specified
-                    var hmType = argNode.VarType.ConvertToTiType();
-                    visitorState.CurrentSolver.SetVarType(inputAlias, hmType);
-                    argTypes.Add(SolvingNode.CreateStrict(hmType));
-                }
+            //    if (argNode.VarType.BaseType == BaseVarType.Empty)
+            //    {
+            //        //variable type is not specified
+            //        var genericVarType = visitorState.CurrentSolver.SetNewVarOrThrow(inputAlias);
+            //        argTypes.Add(genericVarType);
+            //    }
+            //    else
+            //    {
+            //        //variable type is specified
+            //        var hmType = argNode.VarType.ConvertToTiType();
+            //        visitorState.CurrentSolver.SetVarType(inputAlias, hmType);
+            //        argTypes.Add(SolvingNode.CreateStrict(hmType));
+            //    }
                     
-            }
-            //set function variable defenition
-            visitorState.CurrentSolver
-                .SetVarType(node.GetFunAlias(), TiType.Fun(outputType, argTypes.ToArray()));
-            return visitorState;
+            //}
+            ////set function variable defenition
+            //visitorState.CurrentSolver
+            //    .SetVarType(node.GetFunAlias(), TiType.Fun(outputType, argTypes.ToArray()));
+            //return visitorState;
         }
     }
 }
