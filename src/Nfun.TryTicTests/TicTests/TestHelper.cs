@@ -1,12 +1,39 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using NFun;
+using NFun.Interpritation;
+using NFun.SyntaxParsing.Visitors;
 using NFun.Tic;
 using NFun.Tic.SolvingStates;
+using NFun.TypeInferenceAdapter;
 using NUnit.Framework;
+using Array = NFun.Tic.SolvingStates.Array;
 
 namespace Nfun.TryTicTests.TicTests
 {
     public static class TestHelper
     {
+        public static FinalizationResults Solve(string equation)
+        {
+            Console.WriteLine(equation);
+
+            var flow = NFun.Tokenization.Tokenizer.ToFlow(equation);
+            var tree = NFun.SyntaxParsing.Parser.Parse(flow);
+            tree.ComeOver(new SetNodeNumberVisitor(0));
+
+
+            var graph = new GraphBuilder();
+            var state = new SetupTiState(graph);
+            var enterVisitor = new SetupTiEnterVisitor(new SetupTiState(graph));
+
+            var functions = new FunctionsDictionary();
+            foreach (var predefinedFunction in BaseFunctions.ConcreteFunctions)
+                functions.Add(predefinedFunction);
+
+            var exitVisitor = new SetupTiExitVisitor(state, functions);
+            tree.ComeOver(enterVisitor, exitVisitor);
+            return graph.Solve();
+        }
         public static void AssertAreGenerics(this FinalizationResults result, SolvingNode targetGenericNode,
             params string[] varNames)
         {

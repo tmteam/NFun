@@ -6,18 +6,7 @@ namespace NFun.Tic.Tests
 {
     class TrickyPrimitives
     {
-        [Test]
-        public void WrongNodeOrder_Solved()
-        {
-
-            //x = 16i
-            var graph = new GraphBuilder();
-            graph.SetConst(2, Primitive.I32);
-            graph.SetDef("x", 2);
-            var result =graph.Solve();
-            result.AssertNoGenerics();
-            result.AssertNamed(Primitive.I32,"x");
-        }
+        
         [Test(Description = "y = isNan(1) ")]
         public void SimpleConcreteFunctionWithConstant()
         {

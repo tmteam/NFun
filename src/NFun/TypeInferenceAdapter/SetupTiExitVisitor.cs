@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using NFun.BuiltInFunctions;
 using NFun.Interpritation;
+using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tic;
@@ -74,7 +75,7 @@ namespace NFun.TypeInferenceAdapter
 
         public override bool Visit(EquationSyntaxNode node)
         {
-            Console.WriteLine($"E-{node.OrderNumber}: {node.Id}:{node.OutputType} = {node.Expression.OrderNumber}");
+            Trace(node, $"{node.Id}:{node.OutputType} = {node.Expression.OrderNumber}");
 
             if (node.OutputTypeSpecified)
             {
@@ -87,7 +88,7 @@ namespace NFun.TypeInferenceAdapter
 
         public override bool Visit(FunCallSyntaxNode node)
         {
-            Console.WriteLine($"E-{node.OrderNumber}: Call {node.Id}({node.Args.Length}) ");
+            Trace(node, $"Call {node.Id}({string.Join(",", node.Args.Select(a=>a.OrderNumber))}");
 
             if (node.IsOperator)
             {
@@ -165,17 +166,20 @@ namespace NFun.TypeInferenceAdapter
 
         public override bool Visit(IfThenElseSyntaxNode node)
         {
+            var conditions = node.Ifs.Select(i => i.Condition.OrderNumber).ToArray();
+            var expressions = node.Ifs.Select(i => i.Expression.OrderNumber).Append(node.ElseExpr.OrderNumber).ToArray();
+            Trace(node,$"if({string.Join(",",conditions)}): {string.Join(",",expressions)}");
             _state.CurrentSolver.SetIfElse(
-                node.Ifs.Select(i => i.Condition.OrderNumber).ToArray(),
-                node.Ifs.Select(i => i.Expression.OrderNumber).ToArray(),
-                node.ElseExpr.OrderNumber);
+                conditions,
+                expressions,
+                node.OrderNumber);
             return true;
 
         }
 
         public override bool Visit(ConstantSyntaxNode node)
         {
-            Console.WriteLine($"E-{node.OrderNumber}: Constant {node.Value} "+ (node.StrictType?"!":""));
+            Trace(node, $"Constant {node.Value}"+ (node.StrictType?"!":""));
             if (node.StrictType)
             {
                 var type = LangTiHelper.ConvertToTiType(node.OutputType);
@@ -225,7 +229,7 @@ namespace NFun.TypeInferenceAdapter
 
         public override  bool Visit(TypedVarDefSyntaxNode node)
         {
-            Console.WriteLine($"E-{node.OrderNumber}:Tvar {node.Id}:{node.VarType}  ");
+            Trace(node, $"Tvar {node.Id}:{node.VarType}  ");
 
             var type = LangTiHelper.ConvertToTiType(node.VarType);
             _state.CurrentSolver.SetVarType(node.Id, type);
@@ -234,17 +238,18 @@ namespace NFun.TypeInferenceAdapter
 
         public override  bool Visit(VarDefenitionSyntaxNode node)
         {
-            Console.WriteLine($"E-{node.OrderNumber}:VarDef {node.Id}:{node.VarType}  ");
+            Trace(node, $"VarDef {node.Id}:{node.VarType}  ");
 
             var type = LangTiHelper.ConvertToTiType(node.VarType);
             _state.CurrentSolver.SetVarType(node.Id, type);
             return true;
         }
 
-        
+       
+
         public override  bool Visit(VariableSyntaxNode node)
         {
-            Console.WriteLine($"E-{node.OrderNumber}: VAR {node.Id} ");
+            Trace(node,$"VAR {node.Id} ");
 
             var originId = node.Id;
             var localId = _state.GetActualName(node.Id);
@@ -300,7 +305,8 @@ namespace NFun.TypeInferenceAdapter
         //    var callDef = new CallDefinition(types, ids);
         //    return callDef;
         //}
-
+        private void Trace(ISyntaxNode node, string text) =>
+            Console.WriteLine($"Exit:{node.OrderNumber}. {text} ");
         private bool HandleOperatorFunction(FunCallSyntaxNode node)
         {
             switch (node.Id)
