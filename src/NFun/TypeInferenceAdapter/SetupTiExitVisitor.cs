@@ -2,16 +2,16 @@ using System;
 using System.Linq;
 using NFun.BuiltInFunctions;
 using NFun.Interpritation;
-using NFun.Interpritation.Functions;
-using NFun.ParseErrors;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
-using NFun.TypeInferenceAdapter;
+using NFun.Tic;
+using NFun.Tic.SolvingStates;
+using NFun.TypeInference;
 using NFun.Types;
 
-namespace NFun.TypeInference
+namespace NFun.TypeInferenceAdapter
 {
-    sealed class SetupTiExitVisitor: ExitVisitorBase
+    public sealed class SetupTiExitVisitor: ExitVisitorBase
     {
         private readonly SetupTiState _state;
         private readonly FunctionsDictionary _dictionary;
@@ -23,7 +23,11 @@ namespace NFun.TypeInference
 
         public override bool Visit(ArraySyntaxNode node)
         {
-            throw new InvalidOperationException();
+            _state.CurrentSolver.SetArrayInit(
+                node.OrderNumber, 
+                node.Expressions.Select(e => e.OrderNumber).ToArray()
+                );
+            return true;
             //var res =  _state.CurrentSolver.SetArrayInit(node.OrderNumber,
             //    node.Expressions.Select(e => e.OrderNumber).ToArray());
             //if (res.IsSuccesfully)
@@ -41,40 +45,63 @@ namespace NFun.TypeInference
 
         public override bool Visit(ProcArrayInit node)
         {
-            throw new InvalidOperationException();
+            throw new NotImplementedException();
             //if (node.Step == null)
             //    return _state.CurrentSolver.SetProcArrayInit(node.OrderNumber, node.From.OrderNumber, node.To.OrderNumber);
             //else
             //    return _state.CurrentSolver.SetProcArrayInit(node.OrderNumber, node.From.OrderNumber, node.To.OrderNumber,node.Step.OrderNumber);
         }
 
-        public override bool Visit(AnonymCallSyntaxNode anonymFunNode)
-        {
+        public override bool Visit(AnonymCallSyntaxNode node)
+        { 
+            if (node.OutputType == VarType.Empty)
+                _state.CurrentSolver.CreateLambda(
+                    node.Body.OrderNumber,
+                    node.OrderNumber,
+                    node.ArgumentsDefenition.Select(a => a.ToString()).ToArray());
+            else
+            {
+                var retType = (IType)node.OutputType.ConvertToTiType();
+                _state.CurrentSolver.CreateLambda(
+                    node.Body.OrderNumber,
+                    node.OrderNumber,
+                    retType,
+                    node.ArgumentsDefenition.Select(a => a.ToString()).ToArray());
+            }
             _state.ExitScope();
             return true;
         }
 
         public override bool Visit(EquationSyntaxNode node)
         {
-            throw new InvalidOperationException();
+            Console.WriteLine($"E-{node.OrderNumber}: {node.Id}:{node.OutputType} = {node.Expression.OrderNumber}");
 
-            //if (node.OutputTypeSpecified)
-            //{
-            //    var type = node.OutputType.ConvertToTiType();
-            //    _state.CurrentSolver.SetVarType(node.Id, type);
-            //    _state.CurrentSolver.SetStrict(node.Expression.OrderNumber, type);
-            //}
-
-            //var res = _state.CurrentSolver.SetDefenition(node.Id, node.OrderNumber, node.Expression.OrderNumber);
-            //if (res.IsSuccesfully)
-            //    return true;
-            //if (res.Error == SetTypeResultError.VariableDefenitionDuplicates)
-            //    throw ErrorFactory.OutputDefenitionDuplicates(node);
-            //throw ErrorFactory.OutputDefenitionTypeIsNotSolved(node);
+            if (node.OutputTypeSpecified)
+            {
+                var type = node.OutputType.ConvertToTiType();
+                _state.CurrentSolver.SetVarType(node.Id, type);
+            }
+            _state.CurrentSolver.SetDef(node.Id, node.Expression.OrderNumber);
+            return true;
         }
 
         public override bool Visit(FunCallSyntaxNode node)
         {
+            Console.WriteLine($"E-{node.OrderNumber}: Call {node.Id}({node.Args.Length}) ");
+
+            if (node.IsOperator)
+            {
+                //todo - operator is usual functions
+                var res = HandleOperatorFunction(node);
+                if (res)
+                    return true;
+                throw new InvalidOperationException("Operator "+ node.Id+" is not supported");
+
+            }
+            throw new InvalidOperationException("Only operator call supported");
+
+            //
+            //node.SignatureOfOverload
             //if (node.IsOperator && HandleOperatorFunction(node, out var result))
             //{
             //    if (!result.IsSuccesfully)
@@ -85,7 +112,6 @@ namespace NFun.TypeInference
 
             ////check for recursion call
             //var funAlias = LangTiHelper.GetFunAlias(node.Id, argsCount) ;
-            throw new InvalidOperationException();
 
             //var funType = _state.CurrentSolver.GetOrNull(funAlias);
             //if (funType != null && funType.Name.Id == TiTypeName.FunId 
@@ -96,7 +122,7 @@ namespace NFun.TypeInference
             //    var res =  _state.CurrentSolver.SetInvoke(node.OrderNumber, funAlias,
             //        node.Args.Select(a => a.OrderNumber).ToArray());
             //    return res;
-            //}
+            //} 
 
             //var candidates = _dictionary.GetNonGeneric(node.Id).Where(n=>n.ArgTypes.Length == argsCount).ToList();
 
@@ -137,105 +163,98 @@ namespace NFun.TypeInference
         //    throw ErrorFactory.OperatorOverloadNotFound(node, failedArg);
         //}
 
-        //private bool HandleOperatorFunction(FunCallSyntaxNode node, out SetTypeResult result)
-        //{
-        //    switch (node.Id)
-        //    {
-        //        case CoreFunNames.Negate:
-        //        {
-        //            result = _state.CurrentSolver.SetNegateOp(
-        //                node.OrderNumber,
-        //                node.Args[0].OrderNumber);
-        //            return true;
-        //        }
-        //        case CoreFunNames.Multiply:
-        //        case CoreFunNames.Add:
-        //        case CoreFunNames.Substract:
-        //        case CoreFunNames.Remainder:
-        //        {
-        //            result =  _state.CurrentSolver.SetArithmeticalWithOverloadsOp(
-        //                node.OrderNumber,
-        //                node.Args[0].OrderNumber,
-        //                node.Args[1].OrderNumber);
-                    
-        //            return true;
-        //        }
-
-        //        case CoreFunNames.BitShiftLeft:
-        //        case CoreFunNames.BitShiftRight:
-        //        {
-        //            result =  _state.CurrentSolver.SetBitShiftOperator(
-        //                node.OrderNumber,
-        //                node.Args[0].OrderNumber,
-        //                node.Args[1].OrderNumber);
-        //            return true;
-        //        }
-
-        //        case CoreFunNames.LessOrEqual:
-        //        case CoreFunNames.Less:
-        //        case CoreFunNames.MoreOrEqual:
-        //        case CoreFunNames.More:
-        //        {
-        //            result =  _state.CurrentSolver.SetComparationOperator(
-        //                node.OrderNumber,
-        //                node.Args[0].OrderNumber,
-        //                node.Args[1].OrderNumber);
-        //            return true;
-        //        }
-        //    }
-        //    result = SetTypeResult.Succesfully;
-        //    return false;
-        //}
-
         public override bool Visit(IfThenElseSyntaxNode node)
         {
-            throw new InvalidOperationException();
+            _state.CurrentSolver.SetIfElse(
+                node.Ifs.Select(i => i.Condition.OrderNumber).ToArray(),
+                node.Ifs.Select(i => i.Expression.OrderNumber).ToArray(),
+                node.ElseExpr.OrderNumber);
+            return true;
 
-            //return _state.CurrentSolver.ApplyLcaIf(node.OrderNumber,
-            //    node.Ifs.Select(i => i.Condition.OrderNumber).ToArray(),
-            //    node.Ifs.Select(i => i.Expression.OrderNumber).Append(node.ElseExpr.OrderNumber).ToArray());
         }
 
         public override bool Visit(ConstantSyntaxNode node)
         {
-            throw new InvalidOperationException();
+            Console.WriteLine($"E-{node.OrderNumber}: Constant {node.Value} "+ (node.StrictType?"!":""));
+            if (node.StrictType)
+            {
+                var type = LangTiHelper.ConvertToTiType(node.OutputType);
+                _state.CurrentSolver.SetConst(node.OrderNumber, type as Primitive);
+                return true;
+            }
+            
+            object val = node.Value;
 
-            //var type = LangTiHelper.ConvertToTiType(node.OutputType);
+            if (val is int i32) val = (long) i32;
+            else if (val is uint u32) val = (long) u32;
 
-            //if (node.OutputType == VarType.Int32)
-            //{
-            //    var value = (int) node.Value;
-            //    if (value >= 0 && value < 256) //alow us to convert int to any lower types
-            //        return _state.CurrentSolver.SetLimitConst(node.OrderNumber, TiType.Int32);
-            //    if(value>=0 && value <= ushort.MaxValue)
-            //        return _state.CurrentSolver.SetLcaConst(node.OrderNumber, TiType.UInt16);
-            //}
+            if (val is ulong )
+            {
+                _state.CurrentSolver.SetIntConst(node.OrderNumber, Primitive.U64);
+            }
+            else if (val is long value)
+            {
+                if (value > 0)
+                {
+                    if (value < 256)
+                        _state.CurrentSolver.SetIntConst(node.OrderNumber, Primitive.U8);
+                    else if (value <= short.MaxValue)
+                        _state.CurrentSolver.SetIntConst(node.OrderNumber, Primitive.U12);
+                    else if (value <= ushort.MaxValue)
+                        _state.CurrentSolver.SetIntConst(node.OrderNumber, Primitive.U16);
+                    else if (value <= int.MaxValue)
+                        _state.CurrentSolver.SetIntConst(node.OrderNumber, Primitive.U24);
+                    else if (value <= uint.MaxValue)
+                        _state.CurrentSolver.SetIntConst(node.OrderNumber, Primitive.U32);
+                    else
+                        _state.CurrentSolver.SetIntConst(node.OrderNumber, Primitive.U48);
+                }
+                else
+                {
+                    if (value > short.MinValue)
+                        _state.CurrentSolver.SetIntConst(node.OrderNumber, Primitive.I16);
+                    else if (value > int.MinValue)
+                        _state.CurrentSolver.SetIntConst(node.OrderNumber, Primitive.I32);
+                    else
+                        _state.CurrentSolver.SetIntConst(node.OrderNumber, Primitive.I64);
+                }
+            }
 
-            //return _state.CurrentSolver.SetConst(node.OrderNumber, type);
+            return true;
         }
 
         public override  bool Visit(TypedVarDefSyntaxNode node)
         {
-            throw new InvalidOperationException();
+            Console.WriteLine($"E-{node.OrderNumber}:Tvar {node.Id}:{node.VarType}  ");
 
-            //return _state.CurrentSolver.SetVarType(node.Id, LangTiHelper.ConvertToTiType(node.VarType));
+            var type = LangTiHelper.ConvertToTiType(node.VarType);
+            _state.CurrentSolver.SetVarType(node.Id, type);
+            return true;
         }
 
         public override  bool Visit(VarDefenitionSyntaxNode node)
         {
-            throw new InvalidOperationException();
+            Console.WriteLine($"E-{node.OrderNumber}:VarDef {node.Id}:{node.VarType}  ");
 
-            //return _state.CurrentSolver.SetVarType(node.Id, LangTiHelper.ConvertToTiType(node.VarType));
+            var type = LangTiHelper.ConvertToTiType(node.VarType);
+            _state.CurrentSolver.SetVarType(node.Id, type);
+            return true;
         }
 
+        
         public override  bool Visit(VariableSyntaxNode node)
         {
-            throw new InvalidOperationException();
+            Console.WriteLine($"E-{node.OrderNumber}: VAR {node.Id} ");
+
+            var originId = node.Id;
+            var localId = _state.GetActualName(node.Id);
+            _state.CurrentSolver.SetVar(localId, node.OrderNumber);
+            return true;
 
             //var originId = node.Id;
 
             //var localId = _state.GetActualName(node.Id);
-            //if (_state.CurrentSolver.HasVariable(localId))
+            //if (_state .CurrentSolver.HasVariable(localId))
             //    return _state.CurrentSolver.SetVar(node.OrderNumber, localId);
 
             //if (_state.CurrentSolver.HasVariable(originId))
@@ -281,5 +300,60 @@ namespace NFun.TypeInference
         //    var callDef = new CallDefinition(types, ids);
         //    return callDef;
         //}
+
+        private bool HandleOperatorFunction(FunCallSyntaxNode node)
+        {
+            switch (node.Id)
+            {
+                case CoreFunNames.Negate:
+                {
+                    _state.CurrentSolver.SetNegateCall(
+                        node.Args[0].OrderNumber, node.OrderNumber);
+                    return true;
+                }
+                case CoreFunNames.Multiply:
+                case CoreFunNames.Add:
+                case CoreFunNames.Substract:
+                case CoreFunNames.Remainder:
+                {
+                    _state.CurrentSolver.SetArith(
+                        node.Args[0].OrderNumber,
+                        node.Args[1].OrderNumber,
+                        node.OrderNumber);
+                    return true;
+                }
+                case CoreFunNames.Divide:
+                {
+                    _state.CurrentSolver.SetCall(Primitive.Real, 
+                        node.Args[0].OrderNumber,
+                        node.Args[1].OrderNumber, 
+                        node.OrderNumber);
+                    return true;
+                }
+                case CoreFunNames.BitShiftLeft:
+                case CoreFunNames.BitShiftRight:
+                {
+                    _state.CurrentSolver.SetBitShift(
+                        node.Args[0].OrderNumber,
+                        node.Args[1].OrderNumber, node.OrderNumber);
+                    return true;
+                }
+
+                case CoreFunNames.LessOrEqual:
+                case CoreFunNames.Less:
+                case CoreFunNames.MoreOrEqual:
+                case CoreFunNames.More:
+                {
+                    _state.CurrentSolver.SetComparable(
+                        node.Args[0].OrderNumber,
+                        node.Args[1].OrderNumber,
+                        node.Args[1].OrderNumber);
+                    return true;
+                }
+            }
+            throw  new InvalidOperationException();
+        }
+
     }
+
 }

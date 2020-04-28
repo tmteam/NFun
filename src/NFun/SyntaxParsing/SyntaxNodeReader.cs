@@ -140,10 +140,10 @@ namespace NFun.SyntaxParsing
                 
                 if (nextNode is ConstantSyntaxNode constant)
                 {
-                    if (constant.Value is Int32 i32)
-                        return new ConstantSyntaxNode(-i32, constant.OutputType, new Interval(start,nextNode.Interval.Finish));
+                    if (constant.Value is long i32)
+                        return new ConstantSyntaxNode(-i32, constant.OutputType, new Interval(start,nextNode.Interval.Finish), constant.StrictType);
                     if (constant.Value is double d)
-                        return new ConstantSyntaxNode(-d, constant.OutputType, new Interval(start,nextNode.Interval.Finish));
+                        return new ConstantSyntaxNode(-d, constant.OutputType, new Interval(start,nextNode.Interval.Finish), true);
                 }
                 return SyntaxNodeFactory.OperatorFun(
                     CoreFunNames.Negate,
@@ -169,23 +169,24 @@ namespace NFun.SyntaxParsing
                     new []{node},start, node.Interval.Finish);
             }
             if (flow.MoveIf(TokType.True, out var trueTok))
-                return SyntaxNodeFactory.Constant(true, VarType.Bool,  trueTok.Interval);
+                return SyntaxNodeFactory.Constant(true, true, VarType.Bool,  trueTok.Interval);
             if (flow.MoveIf(TokType.False, out var falseTok))
-                return SyntaxNodeFactory.Constant(false, VarType.Bool,  falseTok.Interval);
+                return SyntaxNodeFactory.Constant(false, true, VarType.Bool,  falseTok.Interval);
             if (flow.MoveIf(TokType.Number, out var val))
             {
                 try
                 {
                     var (obj, type) = TokenHelper.ToConstant(val.Value);
-                    return SyntaxNodeFactory.Constant(obj, type, val.Interval);
+                    var concrete = obj is double || (val.Value.Length > 2 && (val.Value[1] == 'x' || val.Value[1] == 'b'));
+                    return SyntaxNodeFactory.Constant(obj, concrete, type, val.Interval);
                 }
                 catch (SystemException) {
                     throw ErrorFactory.CannotParseNumber(val.Value, val.Interval);
                 }
             }
             if (flow.MoveIf(TokType.Text, out var txt))
-                return SyntaxNodeFactory.Constant( 
-                    new TextFunArray(txt.Value), 
+                return SyntaxNodeFactory.Constant(
+                    new TextFunArray(txt.Value), true,
                     VarType.Text, 
                     txt.Interval);
             if (flow.MoveIf(TokType.Id, out var headToken))
@@ -326,7 +327,7 @@ namespace NFun.SyntaxParsing
             //Open interpolation string
             // '...{ 
             concatinations.Add(SyntaxNodeFactory.Constant(
-                new TextFunArray(openInterpolationToken.Value),
+                new TextFunArray(openInterpolationToken.Value), true,
                 VarType.Text,
                 openInterpolationToken.Interval));
 
@@ -349,6 +350,7 @@ namespace NFun.SyntaxParsing
                 {
                     concatinations.Add(SyntaxNodeFactory.Constant(
                         new TextFunArray(flow.Current.Value),
+                        true,
                         VarType.Text,
                         flow.Current.Interval));
                     flow.MoveNext();
@@ -365,6 +367,7 @@ namespace NFun.SyntaxParsing
                 {
                     concatinations.Add(SyntaxNodeFactory.Constant(
                         new TextFunArray(flow.Current.Value),
+                        true,
                         VarType.Text,
                         openInterpolationToken.Interval));
                     flow.MoveNext();
@@ -401,10 +404,10 @@ namespace NFun.SyntaxParsing
                     flow.Position);
             }
             
-            index = index ?? SyntaxNodeFactory.Constant(0, VarType.Int32, Interval.New(openBraket.Start, colon.Finish));
+            index = index ?? SyntaxNodeFactory.Constant(0, true, VarType.Int32, Interval.New(openBraket.Start, colon.Finish));
             
             var end = ReadNodeOrNull(flow)?? 
-                      SyntaxNodeFactory.Constant(int.MaxValue, VarType.Int32, Interval.New(colon.Finish, flow.Position));
+                      SyntaxNodeFactory.Constant(int.MaxValue, true, VarType.Int32, Interval.New(colon.Finish, flow.Position));
             
             if (!flow.MoveIf(TokType.Colon, out _))
             {

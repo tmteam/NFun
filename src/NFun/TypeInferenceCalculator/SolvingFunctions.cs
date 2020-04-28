@@ -557,9 +557,8 @@ namespace NFun.Tic
         public static FinalizationResults FinalizeUp(SolvingNode[] toposortedNodes, SolvingNode[]outputNodes)
         {
             var typeVariables = new HashSet<SolvingNode>();
-            var syntaxNodes = new SolvingNode[toposortedNodes.Length];
             var namedNodes = new List<SolvingNode>();
-
+            var syntaxNodes = new List<SolvingNode>(toposortedNodes.Length);
             void Finalize(SolvingNode node)
             {
                 if (node.State is RefTo)
@@ -608,7 +607,13 @@ namespace NFun.Tic
                 if (node.Type == SolvingNodeType.Named)
                     namedNodes.Add(node);
                 else if (node.Type == SolvingNodeType.SyntaxNode)
-                    syntaxNodes[int.Parse(node.Name)] = node;
+                {
+                    var nodeId = int.Parse(node.Name);
+                    while (syntaxNodes.Count<=nodeId) 
+                        syntaxNodes.Add(null);
+                    syntaxNodes[nodeId] = node;
+                }
+
             }
 
 
@@ -624,7 +629,7 @@ namespace NFun.Tic
             foreach (var node in notSolved) 
                 node.State = ((Constrains) node.State).TrySolveOrNull() ?? node.State;
 
-            return new FinalizationResults(typeVariables.ToArray(), namedNodes.ToArray(), syntaxNodes);
+            return new FinalizationResults(typeVariables.ToArray(), namedNodes.ToArray(), syntaxNodes.ToArray());
         }
 
         #endregion

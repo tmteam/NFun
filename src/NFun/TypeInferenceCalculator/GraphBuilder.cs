@@ -65,22 +65,25 @@ namespace NFun.Tic
                 throw new InvalidOperationException();
             }
         }
-        
-        public void SetVarType(string s, Fun fun)
+        public void SetVarType(string s, IState state)
         {
             var node = GetNamedNode(s);
-            node.State = fun;
-        }
-        public void SetVarType(string s, Array array)
-        {
-            var node = GetNamedNode(s);
-            node.State = array;
-        }
-        public void SetVarType(string s, Primitive u64)
-        {
-            var node = GetNamedNode(s);
-            if (!node.TryBecomeConcrete(u64))
-                throw new InvalidOperationException();
+
+           if (state is Primitive primitive)
+            {
+                if (!node.TryBecomeConcrete(primitive))
+                    throw new InvalidOperationException();
+            }
+            else if (state is Array _)
+            {
+                node.State = state;
+            }
+            else if (state is Fun _)
+            {
+                node.State = state;
+            }
+           else
+               throw new InvalidOperationException();
         }
 
         
@@ -179,7 +182,12 @@ namespace NFun.Tic
             while (true)
             {
 
-                var allNodes = _syntaxNodes.Concat(_variables.Values).Concat(_typeVariables).ToArray();
+                var allNodes = _syntaxNodes
+                    .Where(s=>s!=null)
+                    .Concat(_variables.Values)
+                    .Concat(_typeVariables)
+                    .ToArray();
+                
                 if (iteration > allNodes.Length * allNodes.Length)
                     throw new InvalidOperationException("Infinite cycle detected. Types cannot be solved");
                 iteration++;

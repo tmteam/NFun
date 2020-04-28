@@ -8,9 +8,6 @@ namespace NFun.SyntaxParsing.SyntaxNodes
 {
     public class FunCallSyntaxNode: ISyntaxNode
     {
-        public VarType OutputType { get; set; }
-        public int OrderNumber { get; set; }
-
         public FunCallSyntaxNode(string id, ISyntaxNode[] args, Interval interval, bool isOperator = false)
         {
             Id = id;
@@ -18,6 +15,8 @@ namespace NFun.SyntaxParsing.SyntaxNodes
             Interval = interval;
             IsOperator = isOperator;
         }
+        public VarType OutputType { get; set; }
+        public int OrderNumber { get; set; }
 
         public bool IsInBrackets { get; set; }
         public string Id { get; }

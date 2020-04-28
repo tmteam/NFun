@@ -9,19 +9,21 @@ namespace NFun.SyntaxParsing.SyntaxNodes
     {
         public VarType OutputType { get; set; }
         public int OrderNumber { get; set; }
-
+        public bool StrictType { get; }
         
-        public ConstantSyntaxNode(object value, VarType varType, Interval interval)
+        public ConstantSyntaxNode(object value, VarType varType, Interval interval, bool strictType)
         {
             OutputType = varType;
             Interval = interval;
+            StrictType = strictType;
             Value = value;
         }
 
         public bool IsInBrackets { get; set; }
         public object Value { get; }
         public Interval Interval { get; set; }
-        public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
         public IEnumerable<ISyntaxNode> Children => new ISyntaxNode[0];
+
+        public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
     }
 }
