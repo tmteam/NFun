@@ -4,7 +4,7 @@ using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Types;
 
-namespace NFun.TypeInference
+namespace NFun.TypeInferenceAdapter
 {
     public class ApplyTiResultsExitVisitor: ExitVisitorBase{
 

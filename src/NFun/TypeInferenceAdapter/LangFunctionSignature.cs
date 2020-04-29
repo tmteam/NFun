@@ -1,6 +1,6 @@
 using NFun.Types;
 
-namespace NFun.TypeInference
+namespace NFun.TypeInferenceAdapter
 {
     public class LangFunctionSignature{
                public readonly VarType ReturnType;

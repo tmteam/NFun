@@ -1,9 +1,4 @@
-using System;
-using System.Linq;
-using NFun.Tic.SolvingStates;
-using NFun.Types;
-
-namespace NFun.TypeInference
+namespace NFun.TypeInferenceAdapter
 {
     //public abstract class TiToLangTypeConverter 
     //{

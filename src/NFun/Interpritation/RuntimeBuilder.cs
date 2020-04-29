@@ -8,7 +8,6 @@ using NFun.Runtime;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
-using NFun.TypeInference;
 using NFun.TypeInferenceAdapter;
 using NFun.Types;
 

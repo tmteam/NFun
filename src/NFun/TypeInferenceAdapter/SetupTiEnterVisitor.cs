@@ -1,7 +1,6 @@
 using NFun.ParseErrors;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
-using NFun.TypeInference;
 using NFun.Types;
 
 namespace NFun.TypeInferenceAdapter

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
-using NFun.TypeInference;
+using NFun.TypeInferenceAdapter;
 using NFun.Types;
 
 namespace NFun.SyntaxParsing.SyntaxNodes

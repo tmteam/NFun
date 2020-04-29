@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace NFun.TypeInference
+namespace NFun.TypeInferenceAdapter
 {
     /// <summary>
     /// Variable table. It needs to give special names to variable during TI-setup process

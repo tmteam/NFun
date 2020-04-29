@@ -1,19 +1,39 @@
 using System;
 using System.Linq;
 using NFun.ParseErrors;
+using NFun.Tic.SolvingStates;
 using NFun.Types;
 
 namespace NFun.Interpritation.Functions
 {
-    public abstract class GenericFunctionBase
+    public struct GenericConstrains
     {
+        public readonly Primitive Ancestor;
+        public readonly Primitive Descendant;
+        public bool IsComparable;
+
+        public static readonly GenericConstrains Any 
+            = new GenericConstrains(null, null, false);
+        public static readonly GenericConstrains Arithmetical
+            = new GenericConstrains(Primitive.Real, Primitive.U24, false);
+
+        public GenericConstrains(Primitive ancestor = null, Primitive descendant = null, bool isComparable = false)
+        {
+            Ancestor = ancestor;
+            Descendant = descendant;
+            IsComparable = isComparable;
+        }
+    }
+    public abstract class GenericFunctionBase: IFunctionSignature
+    {
+        public virtual GenericConstrains[] GenericDefenitions { get; }
+        public int GenericsCount => _maxGenericId;
         protected readonly int _maxGenericId;
         public string Name { get; }
         public VarType[] ArgTypes { get; }
         
-        protected GenericFunctionBase(string name, VarType returnType, params VarType[] argTypes)
+        protected GenericFunctionBase(string name,  VarType returnType, params VarType[] argTypes)
         {
-            
             Name = name;
             ArgTypes = argTypes;
             ReturnType = returnType;
@@ -23,9 +43,15 @@ namespace NFun.Interpritation.Functions
             if(!maxGenericId.HasValue)
                 throw new InvalidOperationException($"Type {name} has wrong generic defenition");
             
+            GenericDefenitions = new GenericConstrains[maxGenericId.Value];
+            
+            for (int i = 0; i < maxGenericId; i++) 
+                GenericDefenitions[i] = GenericConstrains.Any;
             _maxGenericId = maxGenericId.Value;
         }
-        
+
+       
+
         public VarType ReturnType { get; }
         
         public abstract object Calc(object[] args);
@@ -40,14 +66,14 @@ namespace NFun.Interpritation.Functions
             for (int i = 0; i < ArgTypes.Length; i++)
             {
                 if (!VarType.TrySolveGenericTypes(
-                    genericArguments: solvingParams, 
-                    genericType: ArgTypes[i], 
+                    genericArguments: solvingParams,
+                    genericType: ArgTypes[i],
                     concreteType: concreteArgTypes[i],
                     strict: false
-                    ))
+                ))
                     return null;
             }
-            
+
             if (!VarType.TrySolveGenericTypes(
                 genericArguments: solvingParams, 
                 genericType: ReturnType, 

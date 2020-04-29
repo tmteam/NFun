@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using NFun;
+using NFun.BuiltInFunctions;
 using NFun.Interpritation;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tic;
@@ -26,9 +27,11 @@ namespace Nfun.TryTicTests.TicTests
             var state = new SetupTiState(graph);
             var enterVisitor = new SetupTiEnterVisitor(new SetupTiState(graph));
 
-            var functions = new FunctionsDictionary();
+            var functions = new FunDictionaryNew();
             foreach (var predefinedFunction in BaseFunctions.ConcreteFunctions)
                 functions.Add(predefinedFunction);
+
+            functions.Add(new AddFunction("myAdd"));
 
             var exitVisitor = new SetupTiExitVisitor(state, functions);
             tree.ComeOver(enterVisitor, exitVisitor);

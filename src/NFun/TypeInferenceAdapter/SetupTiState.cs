@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using NFun.Tic;
-using NFun.TypeInference;
 
 namespace NFun.TypeInferenceAdapter
 {

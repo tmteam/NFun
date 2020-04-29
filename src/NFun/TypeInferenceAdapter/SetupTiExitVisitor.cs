@@ -2,12 +2,13 @@ using System;
 using System.Linq;
 using NFun.BuiltInFunctions;
 using NFun.Interpritation;
+using NFun.Interpritation.Functions;
+using NFun.ParseErrors;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tic;
 using NFun.Tic.SolvingStates;
-using NFun.TypeInference;
 using NFun.Types;
 
 namespace NFun.TypeInferenceAdapter
@@ -15,8 +16,8 @@ namespace NFun.TypeInferenceAdapter
     public sealed class SetupTiExitVisitor: ExitVisitorBase
     {
         private readonly SetupTiState _state;
-        private readonly FunctionsDictionary _dictionary;
-        public SetupTiExitVisitor(SetupTiState state, FunctionsDictionary dictionary)
+        private readonly FunDictionaryNew _dictionary;
+        public SetupTiExitVisitor(SetupTiState state, FunDictionaryNew dictionary)
         {
             _state = state;
             _dictionary = dictionary;
@@ -90,7 +91,7 @@ namespace NFun.TypeInferenceAdapter
 
         public override bool Visit(FunCallSyntaxNode node)
         {
-            Trace(node, $"Call {node.Id}({string.Join(",", node.Args.Select(a=>a.OrderNumber))}");
+            Trace(node, $"Call {node.Id}({string.Join(",", node.Args.Select(a=>a.OrderNumber))})");
 
             if (node.IsOperator)
             {
@@ -101,8 +102,55 @@ namespace NFun.TypeInferenceAdapter
                 throw new InvalidOperationException("Operator "+ node.Id+" is not supported");
 
             }
-            throw new InvalidOperationException("Only operator call supported");
+            var signature = _dictionary.GetOrNull(node.Id, node.Args.Length);
+            if(signature==null)
+                throw ErrorFactory.FunctionOverloadNotFound(node, _dictionary);
+            if (signature is FunctionBase function)
+            {
+                IType [] types = new IType[function.ArgTypes.Length+1];
+                int[] ids = new int[function.ArgTypes.Length + 1];
+                for (int i = 0; i < function.ArgTypes.Length; i++)
+                {
+                    var type = function.ArgTypes[i].ConvertToTiType();
+                    types[i] = (IType)type;
+                    ids[i] = node.Args[i].OrderNumber;
+                }
 
+                types[types.Length - 1] = (IType)function.ReturnType.ConvertToTiType();
+                ids[types.Length - 1] = node.OrderNumber;
+                _state.CurrentSolver.SetCall(types, ids);
+                return true;
+            }
+
+            if (signature is GenericFunctionBase generic)
+            {
+                var defenitions = generic.GenericDefenitions;
+                var genericTypes = new RefTo[defenitions.Length];
+                for (int i = 0; i < defenitions.Length; i++)
+                {
+                    var def = defenitions[i];
+                    genericTypes[i] = _state.CurrentSolver.InitializeVarNode(
+                        def.Descendant,
+                        def.Ancestor, 
+                        def.IsComparable);
+
+                }
+
+                IState[] types = new IState[generic.ArgTypes.Length + 1];
+                int[] ids = new int[generic.ArgTypes.Length + 1];
+                for (int i = 0; i < generic.ArgTypes.Length; i++)
+                {
+                    types[i] = generic.ArgTypes[i].ConvertToTiType(genericTypes);
+                    ids[i] = node.Args[i].OrderNumber;
+                }
+
+                types[types.Length - 1] = generic.ReturnType.ConvertToTiType(genericTypes);
+                ids[types.Length - 1] = node.OrderNumber;
+                _state.CurrentSolver.SetCall(types, ids);
+                return true;
+            }
+
+            return false;
             //
             //node.SignatureOfOverload
             //if (node.IsOperator && HandleOperatorFunction(node, out var result))

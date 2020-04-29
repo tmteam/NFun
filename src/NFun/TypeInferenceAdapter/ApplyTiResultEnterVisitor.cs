@@ -3,7 +3,7 @@ using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tic;
 
-namespace NFun.TypeInference
+namespace NFun.TypeInferenceAdapter
 {
     public class ApplyTiResultEnterVisitor: EnterVisitorBase
     {
