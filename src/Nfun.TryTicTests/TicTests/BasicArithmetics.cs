@@ -6,6 +6,7 @@ using NFun.Tic;
 using NFun.Tic.SolvingStates;
 using NFun.TypeInferenceAdapter;
 using NUnit.Framework;
+using Array = NFun.Tic.SolvingStates.Array;
 
 namespace Nfun.TryTicTests.TicTests
 {
@@ -174,5 +175,16 @@ namespace Nfun.TryTicTests.TicTests
             result.AssertNamed(Primitive.I32 , "y", "a", "b");
         }
 
+        [Test]
+        public void MapWithLambda()
+        {
+            //var result = TestHelper.Solve("y  = a.map(f(i)=i+1)");
+            //var result = TestHelper.Solve("y  = a.map{it+1}");
+
+            var result = TestHelper.Solve("y  = a.map(i:int->i+1)");
+            result.AssertNoGenerics();
+            result.AssertNamed(Array.Of(Primitive.I32), "y");
+            result.AssertNamed(Array.Of(Primitive.I32), "a");
+        }
     }
 }

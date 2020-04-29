@@ -32,6 +32,8 @@ namespace Nfun.TryTicTests.TicTests
                 functions.Add(predefinedFunction);
 
             functions.Add(new AddFunction("myAdd"));
+            functions.Add(new MapFunction());
+
 
             var exitVisitor = new SetupTiExitVisitor(state, functions);
             tree.ComeOver(enterVisitor, exitVisitor);

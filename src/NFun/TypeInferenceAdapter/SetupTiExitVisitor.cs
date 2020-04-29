@@ -57,12 +57,21 @@ namespace NFun.TypeInferenceAdapter
         }
 
         public override bool Visit(AnonymCallSyntaxNode node)
-        { 
+        {
+            var argNames = new string[node.ArgumentsDefenition.Length];
+            for (var i = 0; i < node.ArgumentsDefenition.Length; i++)
+            {
+                var syntaxNode = node.ArgumentsDefenition[i];
+                if (syntaxNode is TypedVarDefSyntaxNode typed)
+                    argNames[i] = _state.GetActualName(typed.Id);
+                else if (syntaxNode is VariableSyntaxNode varNode)
+                    argNames[i] = _state.GetActualName(varNode.Id);
+            }
+
+            Trace(node,$"f({string.Join(" ",argNames)}):{node.OutputType}= {{{node.OrderNumber}}}");
+
             if (node.OutputType == VarType.Empty)
-                _state.CurrentSolver.CreateLambda(
-                    node.Body.OrderNumber,
-                    node.OrderNumber,
-                    node.ArgumentsDefenition.Select(a => a.ToString()).ToArray());
+                _state.CurrentSolver.CreateLambda(node.Body.OrderNumber,node.OrderNumber, argNames);
             else
             {
                 var retType = (IType)node.OutputType.ConvertToTiType();
@@ -70,7 +79,7 @@ namespace NFun.TypeInferenceAdapter
                     node.Body.OrderNumber,
                     node.OrderNumber,
                     retType,
-                    node.ArgumentsDefenition.Select(a => a.ToString()).ToArray());
+                    argNames);
             }
             _state.ExitScope();
             return true;
@@ -105,52 +114,36 @@ namespace NFun.TypeInferenceAdapter
             var signature = _dictionary.GetOrNull(node.Id, node.Args.Length);
             if(signature==null)
                 throw ErrorFactory.FunctionOverloadNotFound(node, _dictionary);
-            if (signature is FunctionBase function)
+            RefTo[] genericTypes;
+            if (signature is GenericFunctionBase t)
             {
-                IType [] types = new IType[function.ArgTypes.Length+1];
-                int[] ids = new int[function.ArgTypes.Length + 1];
-                for (int i = 0; i < function.ArgTypes.Length; i++)
-                {
-                    var type = function.ArgTypes[i].ConvertToTiType();
-                    types[i] = (IType)type;
-                    ids[i] = node.Args[i].OrderNumber;
-                }
-
-                types[types.Length - 1] = (IType)function.ReturnType.ConvertToTiType();
-                ids[types.Length - 1] = node.OrderNumber;
-                _state.CurrentSolver.SetCall(types, ids);
-                return true;
-            }
-
-            if (signature is GenericFunctionBase generic)
-            {
-                var defenitions = generic.GenericDefenitions;
-                var genericTypes = new RefTo[defenitions.Length];
+                var defenitions = t.GenericDefenitions;
+                genericTypes = new RefTo[defenitions.Length];
                 for (int i = 0; i < defenitions.Length; i++)
                 {
                     var def = defenitions[i];
                     genericTypes[i] = _state.CurrentSolver.InitializeVarNode(
                         def.Descendant,
-                        def.Ancestor, 
+                        def.Ancestor,
                         def.IsComparable);
 
                 }
-
-                IState[] types = new IState[generic.ArgTypes.Length + 1];
-                int[] ids = new int[generic.ArgTypes.Length + 1];
-                for (int i = 0; i < generic.ArgTypes.Length; i++)
-                {
-                    types[i] = generic.ArgTypes[i].ConvertToTiType(genericTypes);
-                    ids[i] = node.Args[i].OrderNumber;
-                }
-
-                types[types.Length - 1] = generic.ReturnType.ConvertToTiType(genericTypes);
-                ids[types.Length - 1] = node.OrderNumber;
-                _state.CurrentSolver.SetCall(types, ids);
-                return true;
             }
+            else genericTypes = new RefTo[0];
+            
+            var types = new IState[signature.ArgTypes.Length + 1];
+            var ids = new int[signature.ArgTypes.Length + 1];
+            for (int i = 0; i < signature.ArgTypes.Length; i++)
+            {
+                types[i] = signature.ArgTypes[i].ConvertToTiType(genericTypes);
+                ids[i] = node.Args[i].OrderNumber;
+            }
+            types[types.Length - 1] = signature.ReturnType.ConvertToTiType(genericTypes);
+            ids[types.Length - 1] = node.OrderNumber;
 
-            return false;
+            _state.CurrentSolver.SetCall(types, ids);
+            return true;
+           
             //
             //node.SignatureOfOverload
             //if (node.IsOperator && HandleOperatorFunction(node, out var result))
@@ -289,7 +282,6 @@ namespace NFun.TypeInferenceAdapter
         public override  bool Visit(VarDefenitionSyntaxNode node)
         {
             Trace(node, $"VarDef {node.Id}:{node.VarType}  ");
-
             var type = LangTiHelper.ConvertToTiType(node.VarType);
             _state.CurrentSolver.SetVarType(node.Id, type);
             return true;
@@ -301,7 +293,6 @@ namespace NFun.TypeInferenceAdapter
         {
             Trace(node,$"VAR {node.Id} ");
 
-            var originId = node.Id;
             var localId = _state.GetActualName(node.Id);
             _state.CurrentSolver.SetVar(localId, node.OrderNumber);
             return true;

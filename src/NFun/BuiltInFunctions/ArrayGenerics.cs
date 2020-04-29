@@ -318,24 +318,7 @@ namespace NFun.BuiltInFunctions
             return ImmutableFunArray.By(arr1.Except(arr2));
         }
     }
-    public class MapGenericFunctionDefenition : GenericFunctionBase
-    {
-        public MapGenericFunctionDefenition() : base("map", 
-            VarType.ArrayOf(VarType.Generic(1)),
-            VarType.ArrayOf(VarType.Generic(0)),
-            VarType.Fun(VarType.Generic(1), VarType.Generic(0)))
-        {
-        }
-
-        public override object Calc(object[] args)
-        {
-            var arr = (IFunArray)args[0];
-            var map = args[1] as FunctionBase;
-            
-            var res = ImmutableFunArray.By(arr.Select(a=>map.Calc(new []{a})));
-            return res; 
-        }
-    }
+  
     public class AnyGenericFunctionDefenition : GenericFunctionBase
     {
         public AnyGenericFunctionDefenition() : base("any", 

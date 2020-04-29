@@ -30,7 +30,7 @@ namespace NFun
             new FilterGenericFunctionDefenition(),
             new FlatGenericFunctionDefenition(),
             new ChunkGenericFunctionDefenition(),
-            new MapGenericFunctionDefenition(),
+            new MapFunction(),
             new AllGenericFunctionDefenition(), 
             new AnyGenericFunctionDefenition(), 
             new ReverseGenericFunctionDefenition(),
