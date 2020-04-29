@@ -24,6 +24,8 @@ namespace NFun.TypeInferenceAdapter
 
         public override bool Visit(ArraySyntaxNode node)
         {
+            var elementIds = node.Expressions.Select(e => e.OrderNumber).ToArray();
+            Trace(node, $"[{string.Join(",", elementIds)}]");
             _state.CurrentSolver.SetArrayInit(
                 node.OrderNumber, 
                 node.Expressions.Select(e => e.OrderNumber).ToArray()
