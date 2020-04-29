@@ -55,6 +55,8 @@ namespace NFun.Tic.SolvingStates
         public IState GetArgType(int index) => ArgNodes[index].State;
         public SolvingNode RetNode { get; }
         public SolvingNode[] ArgNodes { get; }
+        public IEnumerable<IState> Args => ArgNodes.Select(a => a.State);
+
         public int ArgsCount => ArgNodes.Length;
         public bool IsSolved => RetNode.IsSolved && ArgNodes.All(n=>n.IsSolved);
         public IType GetLastCommonAncestorOrNull(IType otherType)

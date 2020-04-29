@@ -394,7 +394,15 @@ namespace NFun.TypeInferenceAdapter
                     _state.CurrentSolver.SetComparable(
                         node.Args[0].OrderNumber,
                         node.Args[1].OrderNumber,
-                        node.Args[1].OrderNumber);
+                        node.OrderNumber);
+                    return true;
+                }
+                case CoreFunNames.Equal:
+                {
+                    _state.CurrentSolver.SetEquality(
+                        node.Args[0].OrderNumber,
+                        node.Args[1].OrderNumber,
+                        node.OrderNumber);
                     return true;
                 }
             }

@@ -17,8 +17,8 @@ namespace NFun.Tic
             NamedNodes.First(n => n.Name == "T" + variableName);
         public IState GetVariable(string variableName) =>
             NamedNodes.First(n => n.Name == "T" + variableName).State;
-        public SolvingNode GetSyntaxNode(int syntaxNode) =>
-            SyntaxNodes.First(n => n.Name == syntaxNode.ToString());
+        public SolvingNode GetSyntaxNodeOrNull(int syntaxNode) =>
+            SyntaxNodes.FirstOrDefault(n => n?.Name == syntaxNode.ToString());
 
         private IEnumerable<SolvingNode> AllNodes => TypeVariables.Union(NamedNodes).Union(SyntaxNodes);
         public IEnumerable<SolvingNode> Generics => AllNodes.Where(t => t?.State is Constrains);
@@ -30,4 +30,5 @@ namespace NFun.Tic
 
        
     }
+    
 }

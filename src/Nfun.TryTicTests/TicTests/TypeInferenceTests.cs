@@ -10,7 +10,7 @@ using Array = NFun.Tic.SolvingStates.Array;
 
 namespace Nfun.TryTicTests.TicTests
 {
-    class BasicArithmetics
+    public class TypeInferenceTests
     {
       
         [Test]

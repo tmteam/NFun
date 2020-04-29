@@ -27,7 +27,6 @@ namespace NFun.Interpritation.Functions
     public abstract class GenericFunctionBase: IFunctionSignature
     {
         public virtual GenericConstrains[] GenericDefenitions { get; }
-        public int GenericsCount => _maxGenericId;
         protected readonly int _maxGenericId;
         public string Name { get; }
         public VarType[] ArgTypes { get; }
@@ -55,6 +54,16 @@ namespace NFun.Interpritation.Functions
         public VarType ReturnType { get; }
         
         public abstract object Calc(object[] args);
+
+        public virtual FunctionBase CreateConcrete(VarType[] genericTypes)
+        {
+            return new ConcreteGenericFunction(
+                calc: Calc,
+                name: Name,
+                returnType: VarType.SubstituteConcreteTypes(ReturnType, genericTypes),
+                argTypes: ArgTypes.Select(a => VarType.SubstituteConcreteTypes(a, genericTypes))
+                    .ToArray());
+        }
 
         public FunctionBase CreateConcreteOrNull(VarType outputType, params VarType[] concreteArgTypes)
         {

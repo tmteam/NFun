@@ -84,7 +84,7 @@ namespace NFun.Tic.Tests
         {
             foreach (var id in nodeIds)
             {
-                Assert.AreEqual(type, results.GetSyntaxNode(id).GetNonReference().State);
+                Assert.AreEqual(type, results.GetSyntaxNodeOrNull(id).GetNonReference().State);
             }
 
         }

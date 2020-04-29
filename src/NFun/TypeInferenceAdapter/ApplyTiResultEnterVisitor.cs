@@ -2,18 +2,30 @@ using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tic;
+using NFun.Types;
 
 namespace NFun.TypeInferenceAdapter
 {
     public class ApplyTiResultEnterVisitor: EnterVisitorBase
     {
         private readonly FinalizationResults _solving;
-        //private readonly TiToLangTypeConverter _tiToLangTypeConverter;
+        private readonly ITypeInferenceResultsInterpriter _tiToLangTypeConverter;
 
-        public ApplyTiResultEnterVisitor(FinalizationResults solving )
+        public ApplyTiResultEnterVisitor(FinalizationResults solving, ITypeInferenceResultsInterpriter tiToLangTypeConverter)
         {
             _solving = solving;
-            //_tiToLangTypeConverter = tiToLangTypeConverter;
+            _tiToLangTypeConverter = tiToLangTypeConverter;
+        }
+
+        public override VisitorEnterResult Visit(EquationSyntaxNode node)
+        {
+            var type = _solving.GetVariableNode(node.Id)?.State;
+            if (type == null)
+                node.OutputType = VarType.Empty;
+            else
+                node.OutputType = _tiToLangTypeConverter.Convert(type);
+
+            return VisitorEnterResult.Continue;
         }
         public override VisitorEnterResult Visit(IfThenElseSyntaxNode node){
             var result = DefaultVisit(node);
@@ -33,9 +45,11 @@ namespace NFun.TypeInferenceAdapter
 
         protected override VisitorEnterResult DefaultVisit(ISyntaxNode node)
         {
-            //var type = _solving.GetNodeTypeOrEmpty(node.OrderNumber, _tiToLangTypeConverter);
-            
-            //node.OutputType = type;
+            var type = _solving.GetSyntaxNodeOrNull(node.OrderNumber)?.State;
+            if(type==null)
+                node.OutputType = VarType.Empty;
+            else
+                node.OutputType = _tiToLangTypeConverter.Convert(type);
             
             return VisitorEnterResult.Continue;
         }

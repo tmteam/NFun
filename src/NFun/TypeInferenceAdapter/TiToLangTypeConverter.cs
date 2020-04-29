@@ -1,5 +1,89 @@
+using System;
+using System.Linq;
+using NFun.Tic.SolvingStates;
+using NFun.Types;
+using Array = NFun.Tic.SolvingStates.Array;
+
 namespace NFun.TypeInferenceAdapter
 {
+    public interface ITypeInferenceResultsInterpriter
+    {
+        VarType Convert(IState type);
+    }
+
+    public class TypeInferenceOnlyConcreteInterpriter:ITypeInferenceResultsInterpriter
+    {
+        public VarType Convert(IState type)
+        {
+            switch (type)
+            {
+                case RefTo refTo:
+                    return Convert(refTo.Element);
+                case Primitive primitive:
+                    return ToConcrete(primitive.Name);
+                case Constrains constrains when constrains.Prefered != null:
+                    return ToConcrete(constrains.Prefered.Name);
+                case Constrains constrains when !constrains.HasAncestor:
+                {
+                    if(constrains.IsComparable)
+                        throw new NotImplementedException();
+                    return VarType.Anything;
+                }
+
+                case Constrains constrains:
+                {
+                    if (constrains.Ancestor.Name.HasFlag(PrimitiveTypeName._isAbstract))
+                    {
+                        switch (constrains.Ancestor.Name)
+                        {
+                            case PrimitiveTypeName.I96: return VarType.Int64;
+                            case PrimitiveTypeName.I48: return VarType.Int32;
+                            case PrimitiveTypeName.U48: return VarType.UInt32;
+                            case PrimitiveTypeName.U24: return VarType.UInt16;
+                            case PrimitiveTypeName.U12: return VarType.UInt8;
+                            default: throw new NotSupportedException();
+                        }
+                    }
+                    return ToConcrete(constrains.Ancestor.Name);
+                }
+
+                case Array array:
+                    return VarType.ArrayOf(Convert(array.Element));
+                case Fun fun:
+                    return VarType.Fun(Convert(fun.ReturnType), fun.Args.Select(Convert).ToArray());
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+
+        private static VarType ToConcrete(PrimitiveTypeName name)
+        {
+            switch (name)
+            {
+                case PrimitiveTypeName.Any: return VarType.Anything;
+                case PrimitiveTypeName.Char: return VarType.Char;
+                case PrimitiveTypeName.Bool: return VarType.Bool;
+                case PrimitiveTypeName.Real: return VarType.Real;
+                case PrimitiveTypeName.I64: return VarType.Int64;
+                case PrimitiveTypeName.I32: return VarType.Int32;
+                case PrimitiveTypeName.I24: return VarType.Int32;
+                case PrimitiveTypeName.I16: return VarType.Int16;
+                case PrimitiveTypeName.U64: return VarType.UInt64;
+                case PrimitiveTypeName.U32: return VarType.UInt32;
+                case PrimitiveTypeName.U16: return VarType.UInt16;
+                case PrimitiveTypeName.U8: return VarType.UInt8;
+
+                case PrimitiveTypeName.I96: /*return VarType.Real;*/
+                case PrimitiveTypeName.I48: /*return VarType.Int64;*/
+                case PrimitiveTypeName.U48: /*return VarType.Int64;*/
+                case PrimitiveTypeName.U24: /*return VarType.Int32;*/
+                case PrimitiveTypeName.U12: /*return VarType.Int16;*/
+                    throw new InvalidOperationException("Cannot cast abstract type " + name);
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+    }
     //public abstract class TiToLangTypeConverter 
     //{
     //    public static TiToLangTypeConverter SaveGenerics 

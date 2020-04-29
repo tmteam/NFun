@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using NFun.Interpritation.Functions;
@@ -147,21 +148,22 @@ namespace NFun.Interpritation
         private FunctionBase GetOrNullGenerics(string name, VarType returnType, params VarType[] args)
         {
             //If there is no function with specified name
-            if (!_genericFunctions.TryGetValue(name, out var funs)) 
-                return null;
+            //if (!_genericFunctions.TryGetValue(name, out var funs)) 
+            //    return null;
 
-            //Filter functions with specified arguments count
-            var filtered = funs.Where(f => f.ArgTypes.Length == args.Length).ToArray();
-            if (!filtered.Any())
-                return null;
+            ////Filter functions with specified arguments count
+            //var filtered = funs.Where(f => f.ArgTypes.Length == args.Length).ToArray();
+            //if (!filtered.Any())
+            //    return null;
             
-            var res =  filtered
-                  .Select(f => f.CreateConcreteOrNull(returnType, args))
-                  .Where(f => f != null)
-                  .ToList();
-            if (res.Count() != 1)
-                return null;
-            return res.First();
+            //var res =  filtered
+            //      .Select(f => f.CreateConcreteOrNull(returnType, args))
+            //      .Where(f => f != null)
+            //      .ToList();
+            //if (res.Count() != 1)
+            //    return null;
+            //return res.First();
+            throw new NotImplementedException();
         }
         
         
