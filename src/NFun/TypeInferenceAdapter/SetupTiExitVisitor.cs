@@ -16,9 +16,9 @@ namespace NFun.TypeInferenceAdapter
     public sealed class SetupTiExitVisitor: ExitVisitorBase
     {
         private readonly SetupTiState _state;
-        private readonly FunDictionaryNew _dictionary;
+        private readonly FunctionDictionary _dictionary;
         private readonly TypeInferenceResultsBuilder _resultsBuilder;
-        public SetupTiExitVisitor(SetupTiState state, FunDictionaryNew dictionary, TypeInferenceResultsBuilder resultsBuilder)
+        public SetupTiExitVisitor(SetupTiState state, FunctionDictionary dictionary, TypeInferenceResultsBuilder resultsBuilder)
         {
             _state = state;
             _dictionary = dictionary;

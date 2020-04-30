@@ -28,7 +28,7 @@ namespace Nfun.TryTicTests.TicTests
             var state = new SetupTiState(graph);
             var enterVisitor = new SetupTiEnterVisitor(new SetupTiState(graph));
 
-            var functions = new FunDictionaryNew();
+            var functions = new FunctionDictionary();
             foreach (var predefinedFunction in BaseFunctions.ConcreteFunctions)
                 functions.Add(predefinedFunction);
             foreach (var predefinedFunction in BaseFunctions.GenericFunctions)

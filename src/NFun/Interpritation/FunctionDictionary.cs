@@ -3,7 +3,7 @@ using NFun.Interpritation.Functions;
 
 namespace NFun.Interpritation
 {
-    public sealed class FunDictionaryNew
+    public sealed class FunctionDictionary
     {
         private readonly Dictionary<string, IFunctionSignature> _functions 
             = new Dictionary<string, IFunctionSignature>();

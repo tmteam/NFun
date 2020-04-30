@@ -450,7 +450,7 @@ namespace NFun.ParseErrors
         public static Exception CannotParseNumber(string val, Interval interval)
             => new FunParseException(530, $"Cannot parse number '{val}'", interval);
 
-        public static Exception FunctionOverloadNotFound(FunCallSyntaxNode node,FunDictionaryNew functions)    {
+        public static Exception FunctionOverloadNotFound(FunCallSyntaxNode node,FunctionDictionary functions)    {
             
             return new FunParseException(533,
                 $"Function {TypeHelper.GetFunSignature(node.Id,node.OutputType, node.Children.Select(c=>c.OutputType))} is not defined",

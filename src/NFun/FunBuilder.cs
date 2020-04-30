@@ -43,16 +43,16 @@ namespace NFun
             syntaxTree.ComeOver(new SetNodeNumberVisitor());
             
             var functionsDictionary = CreateFunctionsDictionary();
-            
+
             return RuntimeBuilder.Build(syntaxTree, functionsDictionary);
         }
 
         /// <summary>
         /// Creates functions dictionary that contains build in and custom functions
         /// </summary>
-        private FunctionsDictionary CreateFunctionsDictionary()
+        private FunctionDictionary CreateFunctionsDictionary()
         {
-            var functionsDictionary = new FunctionsDictionary();
+            var functionsDictionary = new FunctionDictionary();
             foreach (var predefinedFunction in _functions.Concat(BaseFunctions.ConcreteFunctions))
                 functionsDictionary.Add(predefinedFunction);
             foreach (var genericFunctionBase in _genericFunctions.Concat(BaseFunctions.GenericFunctions))

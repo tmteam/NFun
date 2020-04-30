@@ -1,11 +1,15 @@
-﻿using NFun.Types;
+using NFun;
+using NFun.ParseErrors;
+using NFun.Runtime;
+using Nfun.TryTicTests.SyntaxTests;
+using NFun.Types;
 using NUnit.Framework;
 
-namespace Nfun.TryTicTests.SyntaxTests
+namespace Funny.Tests
 {
     [TestFixture]
     public class CommentsTest
-    {
+    {   
         [TestCase("y = 1.0#comment\r z = true")]
         [TestCase("y = 1.0\r#comment\r z = true")]
         [TestCase("y = 1.0\r z = true#here is a comment")]
@@ -29,11 +33,25 @@ z = true")]
 
         public void SingleLineCommentsOnMultipleConstantEquatations(string expr)
         {
-            var runtime = TestTools.Build(expr);
+            var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate()
                 .AssertReturns(
                     VarVal.New("y", 1.0),
                     VarVal.New("z", true));
         }
+        [TestCase("y = /*here is a comment  z = true")]
+        [TestCase("y = 1.0 here is a comment*/\r z = true")]
+        [TestCase("y = 1.0\r z#here is a comment*/  = true")]
+        [TestCase("y = 1.0\r z = true/*here is a comment")]
+        [TestCase("y = 1.0\r z = #true here is a comment*/")]
+        [TestCase("y = 1.0\r z = #here is a comment*/ true")]
+        [TestCase("y = 1.0\r z = #here is a comment/* true")]
+
+        [TestCase("y =#here is a comment y 1.0\r z = true")]
+        [TestCase("y = 2.0\r z = #here is a comment/ true")]
+
+        public void ObviouslyFails(string expr) =>
+            Assert.Throws<FunParseException>(
+                ()=> FunBuilder.BuildDefault(expr));
     }
 }

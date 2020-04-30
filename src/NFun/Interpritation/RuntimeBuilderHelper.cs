@@ -16,7 +16,7 @@ namespace NFun.Interpritation
     public static class RuntimeBuilderHelper
     {
         
-        public static TypeInferenceResults SolveOrThrow(SyntaxTree syntaxTree, FunDictionaryNew functionsDictionary)
+        public static TypeInferenceResults SolveOrThrow(SyntaxTree syntaxTree, FunctionDictionary functionsDictionary)
         {
             var resultBuilder = new TypeInferenceResultsBuilder();
             var bodyTypeSolving =  LangTiHelper.SetupTiOrNull(syntaxTree, functionsDictionary, resultBuilder)?.Solve();

@@ -11,38 +11,46 @@ using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
+using NFun.TypeInferenceAdapter;
 using NFun.Types;
 
 namespace NFun.Interpritation
 {
     public sealed class ExpressionBuilderVisitor: ISyntaxNodeVisitor<IExpressionNode> {
         
-        private readonly FunctionsDictionary _functions;
+        private readonly FunctionDictionary _functions;
         private readonly VariableDictionary _variables;
+        private readonly TypeInferenceResults _typeInferenceResults;
 
         public static IExpressionNode BuildExpression(
             ISyntaxNode node, 
-            FunctionsDictionary functions,
-            VariableDictionary variables) =>
-            node.Accept(new ExpressionBuilderVisitor(functions, variables));
+            FunctionDictionary functions,
+            VariableDictionary variables, 
+            TypeInferenceResults typeInferenceResults) =>
+            node.Accept(new ExpressionBuilderVisitor(functions, variables, typeInferenceResults));
 
         public static IExpressionNode BuildExpression(
-            ISyntaxNode node, 
-            FunctionsDictionary functions,
+            ISyntaxNode node,
+            FunctionDictionary functions,
             VarType outputType,
-            VariableDictionary variables)
+            VariableDictionary variables, 
+            TypeInferenceResults typeInferenceResults)
         {
-            var result =  node.Accept(new ExpressionBuilderVisitor(functions, variables));
+            var result =  node.Accept(new ExpressionBuilderVisitor(functions, variables, typeInferenceResults));
             if (result.Type == outputType)
                 return result;
             var converter = VarTypeConverter.GetConverterOrThrow(result.Type, outputType, node.Interval);
             return new CastExpressionNode(result, outputType, converter, node.Interval);
         }
 
-        private ExpressionBuilderVisitor(FunctionsDictionary functions, VariableDictionary variables)
+        private ExpressionBuilderVisitor(
+            FunctionDictionary functions, 
+            VariableDictionary variables,
+            TypeInferenceResults typeInferenceResults)
         {
             _functions = functions;
             _variables = variables;
+            _typeInferenceResults = typeInferenceResults;
         }
 
 
@@ -53,7 +61,6 @@ namespace NFun.Interpritation
 
             if(anonymFunNode.Body==null)
                 throw ErrorFactory.AnonymousFunBodyIsMissing(anonymFunNode);
-            
             
             //Anonym fun arguments list
             var argumentLexNodes = anonymFunNode.ArgumentsDefenition;
@@ -83,7 +90,7 @@ namespace NFun.Interpritation
             }
 
             var originVariables = localVariables.GetAllSources().Select(s=>s.Name).ToArray();
-            var expr = BuildExpression(anonymFunNode.Body, _functions, localVariables);
+            var expr = BuildExpression(anonymFunNode.Body, _functions, localVariables, _typeInferenceResults);
             
             //New variables are new closured
             var closured =  localVariables.GetAllUsages()
@@ -120,28 +127,23 @@ namespace NFun.Interpritation
                 children.Add(argNode);
                 childrenTypes.Add(argNode.Type);
             }
-            var signature = node.SignatureOfOverload;
+            //var signature = node.SignatureOfOverload;
             FunctionBase function = null;
-            if (signature != null)
+            var someFunc = _functions.GetOrNull(id, node.Args.Length);
+            if (someFunc is FunctionBase f)
+                function = f;
+            else if (someFunc is GenericFunctionBase generic)
             {
-                //Signature was calculated by Ti algorithm.
-                function = _functions.GetOrNullConcrete(
-                    name:       id,
-                    returnType: signature.ReturnType,
-                    args:       signature.ArgTypes);
-            }
-            else
-            {
-                //todo
-                //Ti algorithm had not calculate concrete overload
-                function = _functions.GetOrNullWithOverloadSearch(
-                    name:       id, 
-                    returnType: node.OutputType,
-                    args:       childrenTypes.ToArray());
+                var genericTypes = _typeInferenceResults.GetGenericFunctionTypes(node.OrderNumber);
+                if(genericTypes==null)
+                    throw new ImpossibleException($"MJ71. Generic function is missed at {node.OrderNumber}:  {id}`{node.Args.Length} ");
+                var converter = new TypeInferenceOnlyConcreteInterpriter();
+                var genericArgs = genericTypes.Select(g => converter.Convert(g)).ToArray();
+                function = generic.CreateConcrete(genericArgs); //todo generic types
             }
 
             if (function == null)
-                throw new ImpossibleException("MJ78. Function overload was not found");
+                throw new ImpossibleException($"MJ78. Function {id}`{node.Args.Length} was not found");
              
             var converted =  function.CreateWithConvertionOrThrow(children, node.Interval);
             if(converted.Type!= node.OutputType)
@@ -180,8 +182,12 @@ namespace NFun.Interpritation
         }
 
 
-        public IExpressionNode Visit(ConstantSyntaxNode node) 
-            => new ValueExpressionNode(node.Value, node.OutputType, node.Interval);
+        public IExpressionNode Visit(ConstantSyntaxNode node)
+        {
+            if (!node.StrictType && node.Value is long l)
+                return GenericNumber.CreateConcrete(node.Interval, l, node.OutputType);
+            return new ValueExpressionNode(node.Value, node.OutputType, node.Interval);
+        }
 
         public IExpressionNode Visit(ProcArrayInit node)
         {
@@ -238,7 +244,7 @@ namespace NFun.Interpritation
             if (_variables.GetSourceOrNull(lower) == null)
             {
                 //if it is not a variable it might be a functional-variable
-                var funVars = _functions.GetNonGeneric(lower);
+                var funVars = _functions.GetOverloads(lower);
                 if (funVars.Count > 1)
                 {
                     var specification = varNode.OutputType.FunTypeSpecification;
@@ -252,11 +258,17 @@ namespace NFun.Interpritation
 
                     if (result.Count > 1)
                         throw ErrorFactory.AmbiguousFunctionChoise(varNode);
-                    return new FunVariableExpressionNode(result[0], varNode.Interval);
+                    if(result[0] is FunctionBase ff)
+                        return new FunVariableExpressionNode(ff, varNode.Interval);
+                    else
+                        throw new NotImplementedException("GenericsAreNotSupp");
                 }
 
                 if (funVars.Count == 1)
-                    return new FunVariableExpressionNode(funVars[0], varNode.Interval);
+                {
+                    if (funVars[0] is FunctionBase ff)
+                        return new FunVariableExpressionNode(ff, varNode.Interval);
+                }
             }
             var node = _variables.CreateVarNode(varNode.Id, varNode.Interval, varNode.OutputType);
             if(node.Source.Name!= varNode.Id)

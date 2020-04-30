@@ -22,13 +22,13 @@ namespace Nfun.TryTicTests.SyntaxTests
             tree.ComeOver(new SetNodeNumberVisitor(0));
 
 
-            var functions = new FunDictionaryNew();
+            var functions = new FunctionDictionary();
             foreach (var predefinedFunction in BaseFunctions.ConcreteFunctions)
                 functions.Add(predefinedFunction);
             foreach (var predefinedFunction in BaseFunctions.GenericFunctions)
                 functions.Add(predefinedFunction);
 
-            return RuntimeBuilderNew.Build(tree, functions);
+            return RuntimeBuilder.Build(tree, functions);
         }
         public static void AssertReturns(this CalculationResult result, double delta, params VarVal[] vars)
         {

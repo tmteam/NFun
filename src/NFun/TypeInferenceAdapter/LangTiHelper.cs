@@ -17,7 +17,7 @@ namespace NFun.TypeInferenceAdapter
         /// Setups ti algorithm
         /// </summary>
         /// <returns>null if setup failed, Algorithm solver otherwise</returns>
-        public static GraphBuilder SetupTiOrNull(ISyntaxNode syntaxNode, FunDictionaryNew dictionary, TypeInferenceResultsBuilder resultsBuilder,
+        public static GraphBuilder SetupTiOrNull(ISyntaxNode syntaxNode, FunctionDictionary dictionary, TypeInferenceResultsBuilder resultsBuilder,
             SetupTiState state = null)
         {
             var solver = state?.CurrentSolver??new GraphBuilder();
