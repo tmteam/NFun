@@ -12,8 +12,8 @@ namespace Funny.Tests
     public class SeveralEquationsTest
     {
         [TestCase("y = 1.0\r z = true", 1.0, true)]
-        [TestCase("y = 2\r z=3",2,3)]
-        [TestCase("y = 2*3\r z= 1 + (1 + 4)/2 - (3 +2)*(3 -1)",6,-6.5)]
+        [TestCase("y = 2\r z=3",2.0,3.0)]
+        [TestCase("y = 2*3\r z= 1 + (1 + 4)/2 - (3 +2)*(3 -1)",6.0,-6.5)]
         public void TwinConstantEquations(string expr, object expectedY, object expectedZ)
         {
             var runtime = FunBuilder.BuildDefault(expr);
@@ -23,7 +23,7 @@ namespace Funny.Tests
                     VarVal.New("z", expectedZ));
         }
         
-        [TestCase("y = x*0.5\r z=3",2, 1.0,3)]
+        [TestCase("y = x*0.5\r z=3",2, 1.0,3.0)]
         [TestCase("y = x/2\r z=2*x",2, 1.0,4.0)]
         public void TwinEquationsWithSingleVariable(string expr, double x, object expectedY, object expectedZ)
         {
@@ -87,10 +87,10 @@ namespace Funny.Tests
             
         
         [TestCase("y = 1.0\r z=y",       1.0,1.0)]
-        [TestCase("y = 1\r z=y/2",       1,0.5)]
+        [TestCase("y = 1\r z=y/2",       1.0,0.5)]
         [TestCase("y = true\r z=y",       true,true)]
-        [TestCase("y = 1\r z=y",         1,1)]
-        [TestCase("y = 1\r z=y*2",       1,2)]
+        [TestCase("y = 1\r z=y",         1.0,1.0)]
+        [TestCase("y = 1\r z=y*2",       1.0,2.0)]
         public void TwinDependentConstantEquations_CalculatesCorrect(string expr,  object expectedY, object expectedZ)
         {
             var runtime = FunBuilder.BuildDefault(expr);
@@ -117,7 +117,7 @@ namespace Funny.Tests
         [TestCase("o1 = 1\r o2 = o1+1\r o3=2*o1*o2",1, 2, 4)]
         [TestCase("o1 = 1\r o3 = 2.0 \r o2 = o3",1, 2.0, 2.0)]
         [TestCase("o3 = 2 \ro2 = o3*2 \ro1 = o2*2\r ",8, 4, 2)]
-        public void ThreeDependentConstantEquations_CalculatesCorrect(string expr,  object o1, object o2, object o3)
+        public void ThreeDependentConstantEquations_CalculatesCorrect(string expr,  double o1, double o2, double o3)
         {
             var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate()
@@ -127,7 +127,7 @@ namespace Funny.Tests
                     VarVal.New("o3", o3));
         }
         
-        [TestCase(2,"x:real\r o1 = x\r o2=o1\r o3 = 0", 2.0, 2.0, 0)]
+        [TestCase(2,"x:real\r o1 = x\r o2=o1\r o3 = 0", 2.0, 2.0, 0.0)]
         [TestCase(2,"o1 = x/2\r o2 = o1+1\r o3=2*o1*o2",1.0, 2.0, 4.0)]
         [TestCase(2,"o1 = x/2\r o3 = x \ro2 = o3",1.0, 2.0, 2.0)]
         public void ThreeDependentEquationsWithSingleVariable_CalculatesCorrect(double x,string expr,  object o1, object o2, object o3)
@@ -146,8 +146,8 @@ namespace Funny.Tests
             var runtime = FunBuilder.BuildDefault("yPub = 2\r y2 = 3 +yPub");
             runtime.Calculate()
                 .AssertReturns(
-                    VarVal.New("yPub", 2),
-                    VarVal.New("y2", 5));
+                    VarVal.New("yPub", 2.0),
+                    VarVal.New("y2", 5.0));
         }
         
         
@@ -166,11 +166,11 @@ namespace Funny.Tests
             
             runtime.Calculate()
                 .AssertReturns(
-                    VarVal.New("o1", 1),
-                    VarVal.New("o2", 2),
-                    VarVal.New("o3", 4),
+                    VarVal.New("o1", 1.0),
+                    VarVal.New("o2", 2.0),
+                    VarVal.New("o3", 4.0),
                     VarVal.New("o4", 0.5),
-                    VarVal.New("o5", 0),
+                    VarVal.New("o5", 0.0),
                     VarVal.New("o6", 4.5),
                     VarVal.New("o7", true),
                     VarVal.New("o8", false)

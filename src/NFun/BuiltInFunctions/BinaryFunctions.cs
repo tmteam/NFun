@@ -24,7 +24,7 @@ namespace NFun.BuiltInFunctions
     }
     public class XorFunction : FunctionBase
     {
-        public XorFunction() : base(CoreFunNames.Or, VarType.Bool, VarType.Bool, VarType.Bool) { }
+        public XorFunction() : base(CoreFunNames.Xor, VarType.Bool, VarType.Bool, VarType.Bool) { }
         public override object Calc(object[] args) => args.Get<bool>(0) ^ args.Get<bool>(1);
     }
     #endregion

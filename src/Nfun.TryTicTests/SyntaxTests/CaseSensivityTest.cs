@@ -16,9 +16,10 @@ namespace Funny.Tests
             var runtime = FunBuilder.BuildDefault("yPub = 2\r y2 = 3 +yPub");
             runtime.Calculate()
                 .AssertReturns(
-                    VarVal.New("yPub", 2),
-                    VarVal.New("y2", 5));
+                    VarVal.New("yPub", 2.0),
+                    VarVal.New("y2", 5.0));
         }
+        /*
         [TestCase("[1.0].fold((X,x)->x)")]
         [TestCase("test = 2.0\r tESt = 3.0")]
         [TestCase("test = Sin(0.5)")]
@@ -31,5 +32,6 @@ namespace Funny.Tests
         public void ObviouslyFails(string expr) =>
             Assert.Throws<FunParseException>(
                 ()=> FunBuilder.BuildDefault(expr));
+            */
     }
 }

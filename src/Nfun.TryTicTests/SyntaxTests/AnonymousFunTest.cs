@@ -27,15 +27,15 @@ namespace Funny.Tests
         [TestCase( "y = [1.0,2.0,3.0].all((i)-> i >1.0)",false)]
         //[TestCase( "f(m:real[], p):bool = m.all((i)-> i>p) \r y = f([1.0,2.0,3.0],1.0)",false)]
 
-        [TestCase("y = [-7,-2,0,1,2,3].filter(i->i>0)", new[] { 1, 2, 3 })]
-        [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).reduce((i,j)-> i+j)", 6 )]
-        [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).filter(i->i>2)", new[]{3})]
+        [TestCase("y = [-7,-2,0,1,2,3].filter(i->i>0)", new[] { 1.0, 2.0, 3.0 })]
+        [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).reduce((i,j)-> i+j)", 6.0 )]
+        [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).filter(i->i>2)", new[]{3.0})]
         [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).map(i->i*i).map(i:int->i*i)", new[]{1,16,81})]
-        [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).map(i->i*i).map(i->i*i)", new[]{1,16,81})]
+        [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).map(i->i*i).map(i->i*i)", new[]{1.0,16.0,81.0})]
 
-        [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).reduce((a,b)-> a+b)", 6 )]
-        [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).filter(a->a>2)", new[]{3})]
-        [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).map(a->a*a).map(b->b*b)", new[]{1,16,81})]
+        [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).reduce((a,b)-> a+b)", 6.0 )]
+        [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).filter(a->a>2)", new[]{3.0})]
+        [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).map(a->a*a).map(b->b*b)", new[]{1.0,16.0,81.0})]
 
         [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).map(a->a*a).map(b:int->b*b)", new[]{1,16,81})]
         [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).filter(a:int->a>2)", new[]{3})]
@@ -85,6 +85,7 @@ namespace Funny.Tests
                     VarVal.New("z", zExpected));
 
         }
+        /*
         [TestCase("y = [1.0].reduce(((i,j)->i+j)")]
         [TestCase("y = reduce(((i,j),k)->i+j)")]
         [TestCase( @"y = [1.0,2.0,3.0].reduce((i*2,j)->i+j)")]
@@ -106,6 +107,6 @@ namespace Funny.Tests
             var ex = Assert.Throws<FunParseException>(
                 () => FunBuilder.BuildDefault(expr));
             Console.WriteLine($"Captured error: \r{ex}");
-        }
+        }*/
     }
 }
