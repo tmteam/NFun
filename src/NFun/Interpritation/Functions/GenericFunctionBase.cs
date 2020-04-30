@@ -12,6 +12,7 @@ namespace NFun.Interpritation.Functions
         public readonly Primitive Descendant;
         public bool IsComparable;
 
+        public static readonly GenericConstrains Comparable =new GenericConstrains(null,null,true);
         public static readonly GenericConstrains Any 
             = new GenericConstrains(null, null, false);
         public static readonly GenericConstrains Arithmetical
@@ -26,30 +27,47 @@ namespace NFun.Interpritation.Functions
     }
     public abstract class GenericFunctionBase: IFunctionSignature
     {
-        public virtual GenericConstrains[] GenericDefenitions { get; }
+        public GenericConstrains[] GenericDefenitions { get; }
         protected readonly int _maxGenericId;
         public string Name { get; }
         public VarType[] ArgTypes { get; }
-        
-        protected GenericFunctionBase(string name,  VarType returnType, params VarType[] argTypes)
+
+        protected GenericFunctionBase(string name, VarType returnType, 
+            params VarType[] argTypes)
         {
             Name = name;
             ArgTypes = argTypes;
             ReturnType = returnType;
-            var maxGenericId  = argTypes
-                .Append(returnType)
-                .Max(i => i.SearchMaxGenericTypeId());
-            if(!maxGenericId.HasValue)
-                throw new InvalidOperationException($"Type {name} has wrong generic defenition");
-            
-            GenericDefenitions = new GenericConstrains[maxGenericId.Value];
-            
-            for (int i = 0; i < maxGenericId; i++) 
-                GenericDefenitions[i] = GenericConstrains.Any;
-            _maxGenericId = maxGenericId.Value;
+                var maxGenericId = argTypes
+                    .Append(returnType)
+                    .Max(i => i.SearchMaxGenericTypeId());
+                if (!maxGenericId.HasValue)
+                    throw new InvalidOperationException($"Type {name} has wrong generic defenition");
+
+                GenericDefenitions = new GenericConstrains[maxGenericId.Value + 1];
+
+                for (int i = 0; i <= maxGenericId; i++)
+                    GenericDefenitions[i] = GenericConstrains.Any;
+                _maxGenericId = maxGenericId.Value;
+        }
+        protected GenericFunctionBase(string name, GenericConstrains[] genericDefenitions, VarType returnType,
+            params VarType[] argTypes)
+        {
+            Name = name;
+            ArgTypes = argTypes;
+            ReturnType = returnType;
+            GenericDefenitions = genericDefenitions;
         }
 
-       
+        protected GenericFunctionBase(string name, GenericConstrains genericDefenition, VarType returnType,
+            params VarType[] argTypes)
+        {
+            Name = name;
+            ArgTypes = argTypes;
+            ReturnType = returnType;
+            GenericDefenitions = new []{genericDefenition};
+        }
+
 
         public VarType ReturnType { get; }
         

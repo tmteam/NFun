@@ -7,6 +7,7 @@ using NFun.SyntaxParsing.Visitors;
 using NFun.Tic;
 using NFun.Tic.SolvingStates;
 using NFun.TypeInferenceAdapter;
+using NFun.TypeInferenceCalculator;
 using NUnit.Framework;
 using Array = NFun.Tic.SolvingStates.Array;
 
@@ -30,12 +31,14 @@ namespace Nfun.TryTicTests.TicTests
             var functions = new FunDictionaryNew();
             foreach (var predefinedFunction in BaseFunctions.ConcreteFunctions)
                 functions.Add(predefinedFunction);
+            foreach (var predefinedFunction in BaseFunctions.GenericFunctions)
+                functions.Add(predefinedFunction);
 
-            functions.Add(new AddFunction("myAdd"));
-            functions.Add(new MapFunction());
+            //functions.Add(new AddFunction("myAdd"));
+            //functions.Add(new MapFunction());
 
 
-            var exitVisitor = new SetupTiExitVisitor(state, functions);
+            var exitVisitor = new SetupTiExitVisitor(state, functions,new TypeInferenceResultsBuilder());
             tree.ComeOver(enterVisitor, exitVisitor);
             return graph.Solve();
         }

@@ -163,14 +163,14 @@ namespace Nfun.TryTicTests.TicTests
         [Test]
         public void GenericFunctionCall()
         {
-            var result = TestHelper.Solve("y  = myAdd(a,b)");
+            var result = TestHelper.Solve("y = a+b");
             var generic = result.AssertAndGetSingleArithGeneric();
             result.AssertAreGenerics(generic, "y", "a", "b");
         }
         [Test]
         public void GenericFunctionCallWithConcreteArg()
         {
-            var result = TestHelper.Solve("y:int  = myAdd(a,b)");
+            var result = TestHelper.Solve("y:int  = a+b");
             result.AssertNoGenerics();
             result.AssertNamed(Primitive.I32 , "y", "a", "b");
         }

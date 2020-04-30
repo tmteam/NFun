@@ -11,6 +11,7 @@ using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
+using NFun.TypeInferenceAdapter;
 using NFun.Types;
 
 namespace NFun.Interpritation
@@ -19,30 +20,37 @@ namespace NFun.Interpritation
         
         private readonly FunDictionaryNew _functions;
         private readonly VariableDictionary _variables;
+        private readonly TypeInferenceResults _typeInferenceResults;
 
         public static IExpressionNode BuildExpression(
             ISyntaxNode node, 
             FunDictionaryNew functions,
-            VariableDictionary variables) =>
-            node.Accept(new ExpressionBuilderVisitorNew(functions, variables));
+            VariableDictionary variables, 
+            TypeInferenceResults typeInferenceResults) =>
+            node.Accept(new ExpressionBuilderVisitorNew(functions, variables, typeInferenceResults));
 
         public static IExpressionNode BuildExpression(
             ISyntaxNode node,
             FunDictionaryNew functions,
             VarType outputType,
-            VariableDictionary variables)
+            VariableDictionary variables, 
+            TypeInferenceResults typeInferenceResults)
         {
-            var result =  node.Accept(new ExpressionBuilderVisitorNew(functions, variables));
+            var result =  node.Accept(new ExpressionBuilderVisitorNew(functions, variables, typeInferenceResults));
             if (result.Type == outputType)
                 return result;
             var converter = VarTypeConverter.GetConverterOrThrow(result.Type, outputType, node.Interval);
             return new CastExpressionNode(result, outputType, converter, node.Interval);
         }
 
-        private ExpressionBuilderVisitorNew(FunDictionaryNew functions, VariableDictionary variables)
+        private ExpressionBuilderVisitorNew(
+            FunDictionaryNew functions, 
+            VariableDictionary variables,
+            TypeInferenceResults typeInferenceResults)
         {
             _functions = functions;
             _variables = variables;
+            _typeInferenceResults = typeInferenceResults;
         }
 
 
@@ -53,7 +61,6 @@ namespace NFun.Interpritation
 
             if(anonymFunNode.Body==null)
                 throw ErrorFactory.AnonymousFunBodyIsMissing(anonymFunNode);
-            
             
             //Anonym fun arguments list
             var argumentLexNodes = anonymFunNode.ArgumentsDefenition;
@@ -83,7 +90,7 @@ namespace NFun.Interpritation
             }
 
             var originVariables = localVariables.GetAllSources().Select(s=>s.Name).ToArray();
-            var expr = BuildExpression(anonymFunNode.Body, _functions, localVariables);
+            var expr = BuildExpression(anonymFunNode.Body, _functions, localVariables, _typeInferenceResults);
             
             //New variables are new closured
             var closured =  localVariables.GetAllUsages()
@@ -126,10 +133,17 @@ namespace NFun.Interpritation
             if (someFunc is FunctionBase f)
                 function = f;
             else if (someFunc is GenericFunctionBase generic)
-                function = generic.CreateConcrete(new VarType[0]); //todo generic types
+            {
+                var genericTypes = _typeInferenceResults.GetGenericFunctionTypes(node.OrderNumber);
+                if(genericTypes==null)
+                    throw new ImpossibleException($"MJ71. Generic function is missed at {node.OrderNumber}:  {id}`{node.Args.Length} ");
+                var converter = new TypeInferenceOnlyConcreteInterpriter();
+                var genericArgs = genericTypes.Select(g => converter.Convert(g)).ToArray();
+                function = generic.CreateConcrete(genericArgs); //todo generic types
+            }
 
             if (function == null)
-                throw new ImpossibleException("MJ78. Function overload was not found");
+                throw new ImpossibleException($"MJ78. Function {id}`{node.Args.Length} was not found");
              
             var converted =  function.CreateWithConvertionOrThrow(children, node.Interval);
             if(converted.Type!= node.OutputType)

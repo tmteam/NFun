@@ -6,7 +6,9 @@ namespace Nfun.TryTicTests.SyntaxTests
 {
     public class PrimitivesTest
     {
+        [TestCase("[1,2,3]", new []{1.0,2.0,3.0})]
         [TestCase("1", 1.0)]
+        [TestCase("0x1", 1)]
         [TestCase("true", true)]
         [TestCase("2*3", 6.0)]
         [TestCase("true == false", false)]

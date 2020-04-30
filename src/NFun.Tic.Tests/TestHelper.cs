@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using NFun.Tic.SolvingStates;
+using NFun.TypeInferenceCalculator;
 using NUnit.Framework;
 
 namespace NFun.Tic.Tests

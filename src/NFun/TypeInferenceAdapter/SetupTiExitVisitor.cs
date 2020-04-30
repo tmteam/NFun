@@ -17,10 +17,12 @@ namespace NFun.TypeInferenceAdapter
     {
         private readonly SetupTiState _state;
         private readonly FunDictionaryNew _dictionary;
-        public SetupTiExitVisitor(SetupTiState state, FunDictionaryNew dictionary)
+        private readonly TypeInferenceResultsBuilder _resultsBuilder;
+        public SetupTiExitVisitor(SetupTiState state, FunDictionaryNew dictionary, TypeInferenceResultsBuilder resultsBuilder)
         {
             _state = state;
             _dictionary = dictionary;
+            _resultsBuilder = resultsBuilder;
         }
 
         public override bool Visit(ArraySyntaxNode node)
@@ -102,15 +104,7 @@ namespace NFun.TypeInferenceAdapter
         {
             Trace(node, $"Call {node.Id}({string.Join(",", node.Args.Select(a=>a.OrderNumber))})");
 
-            if (node.IsOperator)
-            {
-                //todo - operator is usual functions
-                var res = HandleOperatorFunction(node);
-                if (res)
-                    return true;
-                throw new InvalidOperationException("Operator "+ node.Id+" is not supported");
-
-            }
+         
             var signature = _dictionary.GetOrNull(node.Id, node.Args.Length);
             if(signature==null)
                 throw ErrorFactory.FunctionOverloadNotFound(node, _dictionary);
@@ -128,6 +122,7 @@ namespace NFun.TypeInferenceAdapter
                         def.IsComparable);
 
                 }
+                _resultsBuilder.SetGenericFunctionTypes(node.OrderNumber, genericTypes);
             }
             else genericTypes = new RefTo[0];
             
@@ -348,66 +343,7 @@ namespace NFun.TypeInferenceAdapter
         //}
         private void Trace(ISyntaxNode node, string text) =>
             Console.WriteLine($"Exit:{node.OrderNumber}. {text} ");
-        private bool HandleOperatorFunction(FunCallSyntaxNode node)
-        {
-            switch (node.Id)
-            {
-                case CoreFunNames.Negate:
-                {
-                    _state.CurrentSolver.SetNegateCall(
-                        node.Args[0].OrderNumber, node.OrderNumber);
-                    return true;
-                }
-                case CoreFunNames.Multiply:
-                case CoreFunNames.Add:
-                case CoreFunNames.Substract:
-                case CoreFunNames.Remainder:
-                {
-                    _state.CurrentSolver.SetArith(
-                        node.Args[0].OrderNumber,
-                        node.Args[1].OrderNumber,
-                        node.OrderNumber);
-                    return true;
-                }
-                case CoreFunNames.Divide:
-                {
-                    _state.CurrentSolver.SetCall(Primitive.Real, 
-                        node.Args[0].OrderNumber,
-                        node.Args[1].OrderNumber, 
-                        node.OrderNumber);
-                    return true;
-                }
-                case CoreFunNames.BitShiftLeft:
-                case CoreFunNames.BitShiftRight:
-                {
-                    _state.CurrentSolver.SetBitShift(
-                        node.Args[0].OrderNumber,
-                        node.Args[1].OrderNumber, node.OrderNumber);
-                    return true;
-                }
-
-                case CoreFunNames.LessOrEqual:
-                case CoreFunNames.Less:
-                case CoreFunNames.MoreOrEqual:
-                case CoreFunNames.More:
-                {
-                    _state.CurrentSolver.SetComparable(
-                        node.Args[0].OrderNumber,
-                        node.Args[1].OrderNumber,
-                        node.OrderNumber);
-                    return true;
-                }
-                case CoreFunNames.Equal:
-                {
-                    _state.CurrentSolver.SetEquality(
-                        node.Args[0].OrderNumber,
-                        node.Args[1].OrderNumber,
-                        node.OrderNumber);
-                    return true;
-                }
-            }
-            throw  new InvalidOperationException();
-        }
+     
 
     }
 

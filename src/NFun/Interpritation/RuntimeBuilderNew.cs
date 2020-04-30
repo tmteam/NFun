@@ -61,7 +61,7 @@ namespace NFun.Interpritation
             {
                 if (treeNode is EquationSyntaxNode node)
                 {
-                    var equation = BuildEquationAndPutItToVariables(node, functionsDictionary, variables);
+                    var equation = BuildEquationAndPutItToVariables(node, functionsDictionary, variables, bodyTypeSolving);
                     equations.Add(equation);
                 }
                 else if (treeNode is VarDefenitionSyntaxNode varDef)
@@ -89,14 +89,15 @@ namespace NFun.Interpritation
         private static Equation BuildEquationAndPutItToVariables(
             EquationSyntaxNode equation,
             FunDictionaryNew functionsDictionary, 
-            VariableDictionary variables)
+            VariableDictionary variables, 
+            TypeInferenceResults typeInferenceResults)
         {
             var expression = ExpressionBuilderVisitorNew.BuildExpression(
-                node: equation.Expression, 
-                functions: functionsDictionary,
+                node:       equation.Expression, 
+                functions:  functionsDictionary,
                 outputType: equation.OutputType,
-                variables: variables);
-
+                variables:  variables,
+                typeInferenceResults: typeInferenceResults);
             
             VariableSource newSource;
             if(equation.OutputTypeSpecified)

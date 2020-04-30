@@ -11,7 +11,7 @@ using NFun.Types;
 namespace NFun.BuiltInFunctions
 {
     
-    
+    /*
     public class ToInt16FromInt16Function : FunctionBase
     {
         public ToInt16FromInt16Function() : base("toInt16", VarType.Int16, VarType.Int16){}
@@ -93,5 +93,5 @@ namespace NFun.BuiltInFunctions
                 return val.ToString();
         }
     }
-    
+    */
 }

@@ -10,7 +10,7 @@ using NFun.Types;
 
 namespace NFun.BuiltInFunctions
 {
-    
+    /*
     public class ToIntFromRealFunction : FunctionBase
     {
         public ToIntFromRealFunction(string name = "toInt32") : base(name, VarType.Int32, VarType.Real){}
@@ -137,5 +137,7 @@ namespace NFun.BuiltInFunctions
             }
             
         }
+        
     }
+    */
 }

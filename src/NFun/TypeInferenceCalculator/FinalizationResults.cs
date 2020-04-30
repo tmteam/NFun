@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using NFun.Tic;
 using NFun.Tic.SolvingStates;
 
-namespace NFun.Tic
+namespace NFun.TypeInferenceCalculator
 {
     public class FinalizationResults
     {
@@ -27,8 +28,22 @@ namespace NFun.Tic
         public SolvingNode[] TypeVariables { get; }
         public SolvingNode[] NamedNodes { get; }
         public SolvingNode[] SyntaxNodes { get; }
+        public Constrains[] GetAllGenerics => AllNodes.Select(a => a?.State).OfType<Constrains>().ToArray();
+        public IState[] GetSyntaxNodes() => SyntaxNodes.Select(s => s?.State).ToArray();
 
-       
+        public Dictionary<string, IState> GetAllNamedNodes()
+        {
+            return NamedNodes.ToDictionary(
+                n =>
+                {
+                    if (n.Name.StartsWith("T"))
+                        return n.Name.Substring(1);
+                    return n.Name;
+                },
+                n => n.State
+            );
+        }
+
     }
     
 }

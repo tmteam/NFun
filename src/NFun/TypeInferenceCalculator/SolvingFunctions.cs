@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using NFun.Tic.SolvingStates;
+using NFun.TypeInferenceCalculator;
 using Array = NFun.Tic.SolvingStates.Array;
 
 namespace NFun.Tic

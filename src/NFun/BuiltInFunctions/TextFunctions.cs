@@ -42,23 +42,14 @@ namespace NFun.BuiltInFunctions
     }
     public class TrimFunction : FunctionBase
     {
-        public TrimFunction() : base("trim",
-            VarType.Text, 
-            VarType.Text)
-        {
-            
-        }
+        public TrimFunction() : base("trim",VarType.Text,VarType.Text){}
 
         public override object Calc(object[] args) => args.GetTextOrThrow(0).Trim();
     }
     
     public class TrimStartFunction : FunctionBase
     {
-        public TrimStartFunction() : base("trimStart",
-            VarType.Text, 
-            VarType.Text)
-        {
-            
+        public TrimStartFunction() : base("trimStart",VarType.Text,VarType.Text){
         }
 
         public override object Calc(object[] args) => args.GetTextOrThrow(0).TrimStart();
@@ -66,12 +57,7 @@ namespace NFun.BuiltInFunctions
     
     public class TrimEndFunction : FunctionBase
     {
-        public TrimEndFunction() : base("trimEnd",
-            VarType.Text, 
-            VarType.Text)
-        {
-            
-        }
+        public TrimEndFunction() : base("trimEnd",VarType.Text,VarType.Text){}
         public override object Calc(object[] args) => args.GetTextOrThrow(0).TrimEnd();
     }
     
@@ -81,9 +67,7 @@ namespace NFun.BuiltInFunctions
         public SplitFunction() : base("split",
             VarType.ArrayOf(VarType.Text), 
             VarType.Text,
-            VarType.Text)
-        {
-            
+            VarType.Text){
         }
         public override object Calc(object[] args)
             => new ImmutableFunArray(
@@ -96,10 +80,7 @@ namespace NFun.BuiltInFunctions
     
     public class JoinFunction : FunctionBase
     {
-        public JoinFunction() : base("join",
-            VarType.Text,
-            VarType.ArrayOf(VarType.Text),
-            VarType.Text)
+        public JoinFunction() : base("join",VarType.Text,VarType.ArrayOf(VarType.Text),VarType.Text)
         {
             
         }

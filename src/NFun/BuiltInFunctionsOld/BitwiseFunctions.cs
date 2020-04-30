@@ -3,7 +3,7 @@ using NFun.Types;
 
 namespace NFun.BuiltInFunctions
 {
-    
+    /*
     public class BitShiftLeftInt32Function: FunctionBase
     {
         public BitShiftLeftInt32Function() : base(CoreFunNames.BitShiftLeft, VarType.Int32,VarType.Int32,VarType.Int32){}
@@ -174,4 +174,5 @@ namespace NFun.BuiltInFunctions
         public override object Calc(object[] args) => (ulong)~args.Get<ulong>(0);
     }
     #endregion
+    */
 }

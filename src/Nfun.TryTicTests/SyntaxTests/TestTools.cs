@@ -25,9 +25,8 @@ namespace Nfun.TryTicTests.SyntaxTests
             var functions = new FunDictionaryNew();
             foreach (var predefinedFunction in BaseFunctions.ConcreteFunctions)
                 functions.Add(predefinedFunction);
-
-            functions.Add(new AddFunction("myAdd"));
-            functions.Add(new MapFunction());
+            foreach (var predefinedFunction in BaseFunctions.GenericFunctions)
+                functions.Add(predefinedFunction);
 
             return RuntimeBuilderNew.Build(tree, functions);
         }

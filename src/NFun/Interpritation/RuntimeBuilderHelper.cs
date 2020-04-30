@@ -8,6 +8,7 @@ using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tic;
 using NFun.TypeInferenceAdapter;
+using NFun.TypeInferenceCalculator;
 using NFun.Types;
 
 namespace NFun.Interpritation
@@ -15,13 +16,21 @@ namespace NFun.Interpritation
     public static class RuntimeBuilderHelper
     {
         
-        public static FinalizationResults SolveOrThrow(SyntaxTree syntaxTree, FunDictionaryNew functionsDictionary)
+        public static TypeInferenceResults SolveOrThrow(SyntaxTree syntaxTree, FunDictionaryNew functionsDictionary)
         {
-            var bodyTypeSolving =  LangTiHelper.SetupTiOrNull(syntaxTree, functionsDictionary)?.Solve();
+            var resultBuilder = new TypeInferenceResultsBuilder();
+            var bodyTypeSolving =  LangTiHelper.SetupTiOrNull(syntaxTree, functionsDictionary, resultBuilder)?.Solve();
 
             if (bodyTypeSolving == null)
                 throw ErrorFactory.TypesNotSolved(syntaxTree);
-            return bodyTypeSolving;
+            resultBuilder.SetSyntaxNodeTypes(bodyTypeSolving.GetSyntaxNodes());
+            foreach (var generic in bodyTypeSolving.GetAllGenerics)
+            {
+                resultBuilder.AddGenericType(generic);
+            }
+
+            resultBuilder.SetNamedNodes(bodyTypeSolving.GetAllNamedNodes());
+            return resultBuilder.Build();
         }
         //public static void ThrowIfNotSolved(ISyntaxNode functionSyntaxNode, TiResult types)
         //{
