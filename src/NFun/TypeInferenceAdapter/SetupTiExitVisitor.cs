@@ -221,7 +221,11 @@ namespace NFun.TypeInferenceAdapter
             if (node.StrictType)
             {
                 var type = LangTiHelper.ConvertToTiType(node.OutputType);
-                _state.CurrentSolver.SetConst(node.OrderNumber, type as Primitive);
+                if(type is Primitive primitive)
+                    _state.CurrentSolver.SetConst(node.OrderNumber, type as Primitive);
+                else 
+                    throw new NotImplementedException("Todo. Array and fun constants");
+
                 return true;
             }
             

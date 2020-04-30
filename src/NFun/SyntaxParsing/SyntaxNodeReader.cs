@@ -511,22 +511,21 @@ namespace NFun.SyntaxParsing
                     }
                     if (!flow.MoveIf(TokType.ArrCBr, out var closeBracket))
                         throw ErrorFactory.ArrayIntervalInitializeCbrMissed(openBracket, flow.Current, true);
-                    return SyntaxNodeFactory.ProcArrayInit(
-                        @from: list[0],
-                        to:  secondArg,
-                        step: thirdArg,
-                        start: openBracket.Start, 
-                        end:closeBracket.Finish);
+                    return SyntaxNodeFactory.OperatorFun(
+                        name:     CoreFunNames.RangeStepName,
+                        children: new[] {list[0], secondArg, thirdArg}, 
+                        start:    openBracket.Start, 
+                        end:      closeBracket.Finish);
                 }
                 else
                 {
                     if (!flow.MoveIf(TokType.ArrCBr,out var closeBracket))
                         throw ErrorFactory.ArrayIntervalInitializeCbrMissed(openBracket, flow.Current, false);
-                    return SyntaxNodeFactory.ProcArrayInit(
-                        @from: list[0], 
-                        to: secondArg,
-                        start: openBracket.Start, 
-                        end:closeBracket.Finish);
+                    return SyntaxNodeFactory.OperatorFun(
+                            name: CoreFunNames.RangeName,
+                            children: new[] { list[0], secondArg},
+                            start: openBracket.Start,
+                            end: closeBracket.Finish);
                 }
             }
             if (!flow.MoveIf(TokType.ArrCBr,out var closeBr))

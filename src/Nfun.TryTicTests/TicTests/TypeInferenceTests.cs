@@ -176,6 +176,20 @@ namespace Nfun.TryTicTests.TicTests
         }
 
         [Test]
+        public void GenericArrInit()
+        {
+            var result = TestHelper.Solve("y  = [1..4]");
+            var generic = result.AssertAndGetSingleGeneric(Primitive.U8, Primitive.I48);
+            result.AssertNamed(Array.Of(generic), "y");
+        }
+        [Test]
+        public void GenericArray()
+        {
+            var result = TestHelper.Solve("y = [1,2,3,4].any() # true");
+            result.AssertNoGenerics();
+            result.AssertNamed(Primitive.Bool, "y");
+        }
+        [Test]
         public void MapWithLambda()
         {
             //var result = TestHelper.Solve("y  = a.map(f(i)=i+1)");

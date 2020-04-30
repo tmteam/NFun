@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using NFun.Interpritation.Functions;
 using NFun.Runtime;
@@ -21,7 +23,6 @@ namespace NFun.BuiltInFunctions
             return arr.Any(a => TypeHelper.AreEqual(a, val));
         }
     }
-
     public class SliceWithStepGenericFunctionDefenition : GenericFunctionBase
     {
         public SliceWithStepGenericFunctionDefenition() : base(CoreFunNames.SliceName, 
@@ -52,7 +53,325 @@ namespace NFun.BuiltInFunctions
             return arr.Slice(start, end, step);
         }
     }
-    
+    public class RangeFunction : GenericFunctionBase
+    {
+        public RangeFunction() : base(CoreFunNames.RangeName,
+            GenericConstrains.Integers32,
+            VarType.ArrayOf(VarType.Generic(0)), VarType.Generic(0), VarType.Generic(0))
+        {
+        }
+
+        public override FunctionBase CreateConcrete(VarType[] genericTypes)
+        {
+            switch (genericTypes[0].BaseType)
+            {
+                case BaseVarType.UInt8: return new UInt8Function();
+                case BaseVarType.UInt16: return new UInt16Function();
+                case BaseVarType.UInt32: return new UInt32Function();
+                case BaseVarType.Int16: return new Int16Function();
+                case BaseVarType.Int32: return new Int32Function();
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        public override object Calc(object[] args) => throw new NotImplementedException();
+
+        private const string id = "range";
+        class Int16Function : FunctionBase
+        {
+            public Int16Function() : base(id, VarType.ArrayOf(VarType.Int16), VarType.Int16, VarType.Int16) { }
+            public override object Calc(object[] args)
+            {
+                var start = args.Get<short>(0);
+                var end = args.Get<short>(1);
+                var result = new List<short>();
+
+                if (start < end)
+                    for (var i = start; i <= end; i += 1)
+                        result.Add(i);
+                else
+                    for (var i = start; i >= end; i -= 1)
+                        result.Add(i);
+                return new ImmutableFunArray(result.ToArray());
+            }
+        }
+        class Int32Function : FunctionBase
+        {
+            public Int32Function() : base(id, VarType.ArrayOf(VarType.Int32), VarType.Int32, VarType.Int32) { }
+
+            public override object Calc(object[] args)
+            {
+                var start = args.Get<int>(0);
+                var end = args.Get<int>(1);
+                var result = new List<int>();
+
+                if (start < end)
+                    for (int i = start; i <= end; i += 1)
+                        result.Add(i);
+                else
+                    for (int i = start; i >= end; i -= 1)
+                        result.Add(i);
+                return new ImmutableFunArray(result.ToArray());
+            }
+        }
+        class UInt8Function : FunctionBase
+        {
+            public UInt8Function() : base(id, VarType.ArrayOf(VarType.UInt8), VarType.UInt8, VarType.UInt8) { }
+            public override object Calc(object[] args)
+            {
+                var start = args.Get<byte>(0);
+                var end = args.Get<byte>(1);
+                var result = new List<byte>();
+
+                if (start < end)
+                    for (var i = start; i <= end; i += 1)
+                        result.Add(i);
+                else
+                    for (var i = start; i >= end; i -= 1)
+                        result.Add(i);
+                return new ImmutableFunArray(result.ToArray());
+            }
+        }
+        class UInt16Function : FunctionBase
+        {
+            public UInt16Function() : base(id, VarType.ArrayOf(VarType.UInt16), VarType.UInt16, VarType.UInt16) { }
+            public override object Calc(object[] args)
+            {
+                var start = args.Get<ushort>(0);
+                var end = args.Get<ushort>(1);
+                var result = new List<ushort>();
+
+                if (start < end)
+                    for (var i = start; i <= end; i += 1)
+                        result.Add(i);
+                else
+                    for (var i = start; i >= end; i -= 1)
+                        result.Add(i);
+                return new ImmutableFunArray(result.ToArray());
+            }
+        }
+        class UInt32Function : FunctionBase
+        {
+            public UInt32Function() : base(id, VarType.ArrayOf(VarType.UInt32), VarType.UInt32, VarType.UInt32) { }
+            public override object Calc(object[] args)
+            {
+                var start = args.Get<uint>(0);
+                var end = args.Get<uint>(1);
+                var result = new List<uint>();
+
+                if (start < end)
+                    for (var i = start; i <= end; i += 1)
+                        result.Add(i);
+                else
+                    for (var i = start; i >= end; i -= 1)
+                        result.Add(i);
+                return new ImmutableFunArray(result.ToArray());
+            }
+        }
+    }
+    public class RangeStepFunction : GenericFunctionBase
+    {
+        public RangeStepFunction() : base(CoreFunNames.RangeStepName, 
+            GenericConstrains.Numbers, 
+            VarType.ArrayOf(VarType.Generic(0)), VarType.Generic(0), VarType.Generic(0), VarType.Generic(0))
+        {
+        }
+
+        public override FunctionBase CreateConcrete(VarType[] genericTypes)
+        {
+            switch (genericTypes[0].BaseType)
+            {
+                case BaseVarType.UInt8: return new UInt8Function();
+                case BaseVarType.UInt16: return new UInt16Function();
+                case BaseVarType.UInt32: return new UInt32Function();
+                case BaseVarType.UInt64: return new UInt64Function();
+                case BaseVarType.Int16: return new Int16Function();
+                case BaseVarType.Int32: return new Int32Function();
+                case BaseVarType.Int64: return new Int64Function();
+                case BaseVarType.Real: return new RealFunction();
+
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        public override object Calc(object[] args) => throw new NotImplementedException();
+
+        private const string id = "rangeWithStep";
+        class Int16Function : FunctionBase
+        {
+            public Int16Function() : base(id, VarType.ArrayOf(VarType.Int16), VarType.Int16, VarType.Int16, VarType.Int16) { }
+            public override object Calc(object[] args)
+            {
+                var start = args.Get<int>(0);
+                var end = args.Get<int>(1);
+                var step = args.Get<int>(2);
+                if (step <= 0)
+                    throw new FunRuntimeException("Step has to be positive");
+
+                var result = new List<int>();
+                if (start < end)
+                    for (int i = start; i <= end; i += step)
+                        result.Add(i);
+                else
+                    for (int i = start; i >= end; i -= step)
+                        result.Add(i);
+                return new ImmutableFunArray(result.ToArray());
+            }
+        }
+        class Int32Function : FunctionBase
+        {
+            public Int32Function() : base(id, VarType.ArrayOf(VarType.Int32), VarType.Int32, VarType.Int32, VarType.Int32) { }
+
+            public override object Calc(object[] args)
+            {
+                var start = args.Get<int>(0);
+                var end = args.Get<int>(1);
+                var step = args.Get<int>(2);
+                if (step <= 0)
+                    throw new FunRuntimeException("Step has to be positive");
+
+                var result = new List<int>();
+                if (start < end)
+                    for (int i = start; i <= end; i += step)
+                        result.Add(i);
+                else
+                    for (int i = start; i >= end; i -= step)
+                        result.Add(i);
+                return new ImmutableFunArray(result.ToArray());
+
+            }
+        }
+        class Int64Function : FunctionBase
+        {
+            public Int64Function() : base(id, VarType.ArrayOf(VarType.Int64), VarType.Int64, VarType.Int64, VarType.Int64) { }
+
+            public override object Calc(object[] args)
+            {
+                var start = args.Get<long>(0);
+                var end = args.Get<long>(1);
+                var step = args.Get<long>(2);
+                if (step <= 0)
+                    throw new FunRuntimeException("Step has to be positive");
+
+                var result = new List<long>();
+                if (start < end)
+                    for (var i = start; i <= end; i += step)
+                        result.Add(i);
+                else
+                    for (var i = start; i >= end; i -= step)
+                        result.Add(i);
+                return new ImmutableFunArray(result.ToArray());
+
+            }
+        }
+        class UInt8Function : FunctionBase
+        {
+            public UInt8Function() : base(id, VarType.ArrayOf(VarType.UInt8), VarType.UInt8, VarType.UInt8, VarType.UInt8) { }
+            public override object Calc(object[] args)
+            {
+                var start = args.Get<byte>(0);
+                var end = args.Get<byte>(1);
+                var step = args.Get<byte>(2);
+                if (step <= 0)
+                    throw new FunRuntimeException("Step has to be positive");
+
+                var result = new List<byte>();
+                if (start < end)
+                    for (var i = start; i <= end; i += step)
+                        result.Add(i);
+                else
+                    for (var i = start; i >= end; i -= step)
+                        result.Add(i);
+                return new ImmutableFunArray(result.ToArray());
+            }
+        }
+        class UInt16Function : FunctionBase
+        {
+            public UInt16Function() : base(id, VarType.ArrayOf(VarType.UInt16), VarType.UInt16, VarType.UInt16, VarType.UInt16) { }
+            public override object Calc(object[] args)
+            {
+                var start = args.Get<UInt16>(0);
+                var end = args.Get<UInt16>(1);
+                var step = args.Get<UInt16>(2);
+                if (step <= 0)
+                    throw new FunRuntimeException("Step has to be positive");
+
+                var result = new List<UInt16>();
+                if (start < end)
+                    for (var i = start; i <= end; i += step)
+                        result.Add(i);
+                else
+                    for (var i = start; i >= end; i -= step)
+                        result.Add(i);
+                return new ImmutableFunArray(result.ToArray());
+            }
+        }
+        class UInt32Function : FunctionBase
+        {
+            public UInt32Function() : base(id, VarType.ArrayOf(VarType.UInt32), VarType.UInt32, VarType.UInt32, VarType.UInt32) { }
+            public override object Calc(object[] args)
+            {
+                var start = args.Get<UInt32>(0);
+                var end = args.Get<UInt32>(1);
+                var step = args.Get<UInt32>(2);
+                if (step <= 0)
+                    throw new FunRuntimeException("Step has to be positive");
+
+                var result = new List<UInt32>();
+                if (start < end)
+                    for (var i = start; i <= end; i += step)
+                        result.Add(i);
+                else
+                    for (var i = start; i >= end; i -= step)
+                        result.Add(i);
+                return new ImmutableFunArray(result.ToArray());
+            }
+        }
+        class UInt64Function : FunctionBase
+        {
+            public UInt64Function() : base(id, VarType.ArrayOf(VarType.UInt64), VarType.UInt64, VarType.UInt64, VarType.UInt64) { }
+            public override object Calc(object[] args)
+            {
+                var start = args.Get<UInt64>(0);
+                var end = args.Get<UInt64>(1);
+                var step = args.Get<UInt64>(2);
+                if (step <= 0)
+                    throw new FunRuntimeException("Step has to be positive");
+
+                var result = new List<UInt64>();
+                if (start < end)
+                    for (var i = start; i <= end; i += step)
+                        result.Add(i);
+                else
+                    for (var i = start; i >= end; i -= step)
+                        result.Add(i);
+                return new ImmutableFunArray(result.ToArray());
+            }
+        }
+        class RealFunction : FunctionBase
+        {
+            public RealFunction() : base(id, VarType.ArrayOf(VarType.Real), VarType.Real, VarType.Real, VarType.Real) { }
+            public override object Calc(object[] args)
+            {
+                var start = args.Get<double>(0);
+                var end = args.Get<double>(1);
+                var step = args.Get<double>(2);
+                if (step <= 0)
+                    throw new FunRuntimeException("Step has to be positive");
+
+                var result = new List<double>();
+                if (start < end)
+                    for (var i = start; i <= end; i += step)
+                        result.Add(i);
+                else
+                    for (var i = start; i >= end; i -= step)
+                        result.Add(i);
+                return new ImmutableFunArray(result.ToArray());
+            }
+        }
+    }
     public class SliceGenericFunctionDefenition : GenericFunctionBase
     {
         public SliceGenericFunctionDefenition() : base(CoreFunNames.SliceName, 
@@ -80,7 +399,6 @@ namespace NFun.BuiltInFunctions
             return arr.Slice(start, (end==int.MaxValue?null:(int?)end), null);
         }
     }
-    
     public class GetGenericFunctionDefenition : GenericFunctionBase
     {
         public GetGenericFunctionDefenition() : base(CoreFunNames.GetElementName, 
@@ -131,7 +449,6 @@ namespace NFun.BuiltInFunctions
             return new ImmutableFunArray(newArr);
         }
     }
-
     public class FindGenericFunctionDefenition : GenericFunctionBase
     {
         public FindGenericFunctionDefenition() : base("find", 
@@ -155,7 +472,6 @@ namespace NFun.BuiltInFunctions
             return -1;
         }
     }
-
     public class ChunkGenericFunctionDefenition : GenericFunctionBase
     {
         public ChunkGenericFunctionDefenition() : base("chunk", 
@@ -214,8 +530,6 @@ namespace NFun.BuiltInFunctions
             return res; 
         }
     }
-   
-    
     public class ReduceWithDefaultsGenericFunctionDefenition : GenericFunctionBase
     {
         public ReduceWithDefaultsGenericFunctionDefenition() : base("reduce", 
@@ -301,7 +615,6 @@ namespace NFun.BuiltInFunctions
             return res;
         }
     }
-   
     public class SubstractArraysGenericFunctionDefenition : GenericFunctionBase
     {
         public SubstractArraysGenericFunctionDefenition() : base("except", 
@@ -318,7 +631,20 @@ namespace NFun.BuiltInFunctions
             return ImmutableFunArray.By(arr1.Except(arr2));
         }
     }
-  
+    public class HasAnyGenericFunctionDefenition : GenericFunctionBase
+    {
+        public HasAnyGenericFunctionDefenition() : base("any",
+            VarType.Bool,
+            VarType.ArrayOf(VarType.Generic(0)))
+        {
+        }
+
+        public override object Calc(object[] args)
+        {
+            var arr = (IFunArray)args[0];
+            return arr.Count>0;
+        }
+    }
     public class AnyGenericFunctionDefenition : GenericFunctionBase
     {
         public AnyGenericFunctionDefenition() : base("any", 
@@ -370,7 +696,6 @@ namespace NFun.BuiltInFunctions
             return ImmutableFunArray.By(arr.Where(a=>(bool)filter.Calc(new []{a})));
         }
     }
-    
     public class RepeatGenericFunctionDefenition : GenericFunctionBase
     {
         public RepeatGenericFunctionDefenition() : base("repeat",
@@ -386,7 +711,6 @@ namespace NFun.BuiltInFunctions
             return ImmutableFunArray.By(Enumerable.Repeat(first, args.Get<int>(1)));
         }
     }
-    
     public class ReverseGenericFunctionDefenition: GenericFunctionBase
     {
         public ReverseGenericFunctionDefenition() : base("reverse", 
@@ -429,5 +753,4 @@ namespace NFun.BuiltInFunctions
             return ((IFunArray)args[0]).Slice(args.Get<int>(1),null,1);
         }
     }
-
 }

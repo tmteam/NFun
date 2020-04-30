@@ -186,6 +186,10 @@ namespace NFun.Tic.SolvingStates
             else
                 result.Prefered = constrains.Prefered;
             
+            if(result.Prefered!=null)
+                if (!result.Fits(result.Prefered))
+                    result.Prefered = null;
+
             return result;
         }
        

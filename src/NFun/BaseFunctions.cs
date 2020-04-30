@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using NFun.BuiltInFunctions;
 using NFun.Interpritation.Functions;
 
@@ -34,6 +35,8 @@ namespace NFun
             new IntersectGenericFunctionDefenition(),
             new SubstractArraysGenericFunctionDefenition(), 
             
+            new RangeFunction(),
+            new RangeStepFunction(),
             // new ConcatArraysGenericFunctionDefenition(CoreFunNames.ArrConcat), 
             new ConcatArraysGenericFunctionDefenition("concat"),
 
@@ -52,6 +55,7 @@ namespace NFun
             new ChunkGenericFunctionDefenition(),
             new MapFunction(),
             new AllGenericFunctionDefenition(),
+            new HasAnyGenericFunctionDefenition(),
             new AnyGenericFunctionDefenition(),
             new ReverseGenericFunctionDefenition(),
         };
@@ -62,9 +66,6 @@ namespace NFun
             new AndFunction(),
             new OrFunction(),
             new XorFunction(),
-            
-            //new AbsOfRealFunction(),
-            //new AbsOfIntFunction(),
 
             //new BitShiftLeftInt32Function(),
             //new BitShiftLeftInt64Function(),
@@ -74,17 +75,6 @@ namespace NFun
             new PowRealFunction(),
 
            
-
-            //new RemainderRealFunction(),
-            //new RemainderInt16Function(),
-            //new RemainderInt32Function(),
-            //new RemainderInt64Function(),
-
-            //new RemainderUInt8Function(),
-            //new RemainderUInt16Function(),
-            //new RemainderUInt32Function(),
-            //new RemainderUInt64Function(),
-
             new DivideRealFunction(),
             new SqrtFunction(),
 
@@ -155,12 +145,7 @@ namespace NFun
             //new PiFunction(),
             new CountFunction(),
             new AverageFunction(),
-            //new MaxOfIntFunction(),
-            //new MaxOfInt64Function(),
-            //new MaxOfRealFunction(),
-            //new MinOfIntFunction(),
-            //new MinOfInt64Function(),
-            //new MinOfRealFunction(),
+           
             new MultiMaxIntFunction(),
             new MultiMaxRealFunction(),
             new MultiMinIntFunction(),
@@ -169,13 +154,9 @@ namespace NFun
             new MultiSumRealFunction(),
             new MedianIntFunction(),
             new MedianRealFunction(),
-            new AnyFunction(),
             new SortIntFunction(),
             new SortRealFunction(),
             new SortTextFunction(),
-            new RangeIntFunction(),
-            new RangeWithStepIntFunction(),
-            new RangeWithStepRealFunction(),
             new TrimFunction(),
             new TrimStartFunction(),
             new TrimEndFunction(),

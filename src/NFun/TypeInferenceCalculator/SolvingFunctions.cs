@@ -590,6 +590,7 @@ namespace NFun.Tic
                         Finalize(member);
                    
                 }
+                
             }
 
             foreach (var node in toposortedNodes.Reverse())

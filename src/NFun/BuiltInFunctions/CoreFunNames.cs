@@ -6,6 +6,8 @@ namespace NFun.BuiltInFunctions
         public const string Add = "+";
         public const string GetElementName = "get";
         public const string SliceName = "slice";
+        public const string RangeName = "range";
+        public const string RangeStepName = "rangeWithStep";
         public const string Substract = "substract";
         public const string BitOr = "bitor";
         public const string BitXor = "bitxor";

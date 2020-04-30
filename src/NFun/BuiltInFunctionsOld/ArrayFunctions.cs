@@ -8,88 +8,7 @@ using NFun.Types;
 
 namespace NFun.BuiltInFunctions
 {
-    public class RangeWithStepIntFunction: FunctionBase{
-        public const string Id = "range";
-
-        public RangeWithStepIntFunction() : base(Id,
-                VarType.ArrayOf(VarType.Int32), 
-                VarType.Int32,VarType.Int32, VarType.Int32)
-        {
-            
-        }
-        public override object Calc(object[] args)
-        {
-            var start = args.Get<int>(0);
-            var end = args.Get<int>(1);
-            var step = args.Get<int>(2);
-            if(step<=0)
-                throw  new FunRuntimeException("Step has to be positive");
-
-            var result = new List<int>();
-            if(start<end)
-                for (int i = start; i <= end; i+= step)
-                    result.Add(i);
-            else
-                for (int i = start; i >= end; i-= step)
-                    result.Add(i);
-
-            return new ImmutableFunArray(result.ToArray());
-        }
-            
-    }
-    public class RangeWithStepRealFunction: FunctionBase{
-        public const string Id = "range";
-
-        public RangeWithStepRealFunction() : base(Id,
-            VarType.ArrayOf(VarType.Real), 
-            VarType.Real,VarType.Real, VarType.Real)
-        {
-            
-        }
-
-        public override object Calc(object[] args)
-        {
-            var start = args.Get<double>(0);
-            var end = args.Get<double>(1);
-            var step = args.Get<double>(2);
-            if(step<=0)
-                throw  new FunRuntimeException("Step has to be positive");
-            var result = new List<double>();
-            if(start<end)
-                for (var i = start; i <= end; i+= step)
-                    result.Add(i);
-            else 
-                for (var i = start; i >= end; i-= step)
-                    result.Add(i);
-
-            return new ImmutableFunArray(result.ToArray());
-        }
-            
-    }
-
-    public class RangeIntFunction: FunctionBase{
-        public RangeIntFunction() : base(Id,VarType.ArrayOf(VarType.Int32), VarType.Int32, VarType.Int32)
-        {
-            
-        }
-
-        public const string Id = "range";
-        public override object Calc(object[] args)
-        {
-            var start = args.Get<int>(0);
-            var end = args.Get<int>(1);
-            var result = new List<int>();
-
-            if (start < end)
-                for (int i = start; i <= end; i += 1)
-                    result.Add(i);
-            else
-                for (int i = start; i >= end; i -= 1)
-                    result.Add(i);
-            return new ImmutableFunArray(result.ToArray());
-        }
-    }
-    
+  
     public class MedianRealFunction: FunctionBase{
         public MedianRealFunction() : base("median",VarType.Real, VarType.ArrayOf(VarType.Real))
         {
@@ -224,16 +143,7 @@ namespace NFun.BuiltInFunctions
             ((IFunArray)args[0]).As<double>().Average();
     }
     
-    public class AnyFunction : FunctionBase
-    {
-        public AnyFunction(): base("any", VarType.Bool, VarType.ArrayOf(VarType.Anything))
-        {
-            
-        }
-
-        public override object Calc(object[] args) 
-            => ((IFunArray)args[0]).Count>0;
-    }
+   
     
     public class CountFunction : FunctionBase
     {
