@@ -17,6 +17,12 @@ namespace NFun.Interpritation.Functions
             = new GenericConstrains(null, null, false);
         public static readonly GenericConstrains Arithmetical
             = new GenericConstrains(Primitive.Real, Primitive.U24, false);
+        public static readonly GenericConstrains Integers
+            = new GenericConstrains(Primitive.I96, null, false);
+        public static readonly GenericConstrains SignedNumber
+            = new GenericConstrains(Primitive.Real, Primitive.I16, false);
+        public static readonly GenericConstrains Numbers
+            = new GenericConstrains(Primitive.Real, null, false);
 
         public GenericConstrains(Primitive ancestor = null, Primitive descendant = null, bool isComparable = false)
         {

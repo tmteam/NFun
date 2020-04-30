@@ -13,7 +13,17 @@ namespace NFun
             new MoreOrEqualFunction(),
             new LessFunction(),
             new LessOrEqualFunction(),
+            new MinFunction(),
+            new MaxFunction(),
 
+            new BitOrFunction(),
+            new BitAndFunction(),
+            new BitXorFunction(),
+            new BitInverseFunction(),
+
+            new InvertFunction(),
+            new AbsFunction(),
+            new RemainderFunction(),
             new AddFunction(),
             new SubstractFunction(),
             new MultiplyFunction(),
@@ -56,52 +66,11 @@ namespace NFun
             //new AbsOfRealFunction(),
             //new AbsOfIntFunction(),
 
-            //new AddRealFunction(),
-            //new AddIntFunction(),
-            //new AddInt64Function(),
-            //new AddUInt8Function(),
-            //new AddUInt32Function(),
-            //new AddUInt64Function(),
-
-           
-
-            //new NegateOfInt16Function(),
-            //new NegateOfInt32Function(),
-            //new NegateOfUInt8Function(),
-            //new NegateOfUInt32Function(),
-            //new NegateOfInt64Function(),
-
-            //new NegateOfRealFunction(),
-
             //new BitShiftLeftInt32Function(),
             //new BitShiftLeftInt64Function(),
             //new BitShiftRightInt32Function(),
             //new BitShiftRightInt64Function(),
-            //new BitAndIntFunction(),
-            //new BitAndInt64Function(),
-            //new BitAndUInt8Function(),
-            //new BitAndUInt16Function(),
-            //new BitAndUInt32Function(),
-            //new BitAndUInt64Function(),
-            //new BitOrInt32Function(),
-            //new BitOrInt64Function(),
-            //new BitOrUInt8Function(),
-            //new BitOrUInt16Function(),
-            //new BitOrUInt32Function(),
-            //new BitOrUInt64Function(),
-            //new BitXorIntFunction(),
-            //new BitXorInt64Function(),
-            //new BitXorUInt8Function(),
-            //new BitXorUInt16Function(),
-            //new BitXorUInt32Function(),
-            //new BitXorUInt64Function(),
-            //new BitInverseIntFunction(),
-            //new BitInverseInt64Function(),
-            //new BitInverseUInt8Function(),
-            //new BitInverseUInt16Function(),
-            //new BitInverseUInt32Function(),
-            //new BitInverseUInt64Function(),
-
+          
             new PowRealFunction(),
 
            

@@ -61,4 +61,28 @@ namespace NFun.BuiltInFunctions
             return a.CompareTo(b) != 1;
         }
     }
+    public class MinFunction : GenericFunctionBase
+    {
+        public MinFunction() : base("min", GenericConstrains.Comparable, VarType.Generic(0), VarType.Generic(0), VarType.Generic(0)) { }
+
+        public override object Calc(object[] args)
+        {
+            var a = args.Get<IComparable>(0);
+            var b = args.Get<IComparable>(1);
+            if (a.CompareTo(b) != 1) return a;
+            return b;
+        }
+    }
+    public class MaxFunction : GenericFunctionBase
+    {
+        public MaxFunction() : base("max", GenericConstrains.Comparable, VarType.Generic(0), VarType.Generic(0), VarType.Generic(0)) { }
+
+        public override object Calc(object[] args)
+        {
+            var a = args.Get<IComparable>(0);
+            var b = args.Get<IComparable>(1);
+            if (a.CompareTo(b) == 1) return a;
+            return b;
+        }
+    }
 }
