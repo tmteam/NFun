@@ -53,6 +53,75 @@ namespace NFun.BuiltInFunctions
             return arr.Slice(start, end, step);
         }
     }
+    public class SortFunction : GenericFunctionBase
+    {
+        public SortFunction() : base("sort", GenericConstrains.Comparable, VarType.Generic(0), VarType.ArrayOf(VarType.Generic(0))) { }
+
+        public override object Calc(object[] args)
+        {
+            var arr = ((IFunArray)args[0]).As<IComparable>().ToArray();
+            Array.Sort(arr);
+            return new ImmutableFunArray(arr);
+        }
+    }
+    public class MedianFunction : GenericFunctionBase
+    {
+        public MedianFunction() : base("median", GenericConstrains.Comparable, VarType.Generic(0), VarType.ArrayOf(VarType.Generic(0)))
+        {
+
+        }
+
+        public override object Calc(object[] args)
+            => GetMedian(((IFunArray)args[0]).As<IComparable>());
+
+        public static IComparable GetMedian(IEnumerable<IComparable> source)
+        {
+            // Create a copy of the input, and sort the copy
+            var temp = source.ToArray();
+            Array.Sort(temp);
+
+            int count = temp.Length;
+            if (count == 0)
+                throw new InvalidOperationException("Empty collection");
+            if (count % 2 == 0)
+                return temp[count / 2 - 1];
+            return temp[count / 2];
+        }
+    }
+    public class MaxElementFunction : GenericFunctionBase
+    {
+        public MaxElementFunction() : base("max", GenericConstrains.Comparable, VarType.Generic(0), VarType.ArrayOf(VarType.Generic(0))) {}
+
+        public override object Calc(object[] args)
+        {
+            var array = (IFunArray) args[0];
+            return array.As<IComparable>().Max();
+        }
+    }
+    public class MinElementFunction : GenericFunctionBase
+    {
+        public MinElementFunction() : base("min", GenericConstrains.Comparable, VarType.Generic(0), VarType.ArrayOf(VarType.Generic(0))) { }
+
+        public override object Calc(object[] args)
+        {
+            var array = (IFunArray)args[0];
+            return array.As<IComparable>().Min();
+        }
+    }
+
+    public class MultiSumFunction : GenericFunctionBase
+    {
+        public MultiSumFunction() : base("sum", GenericConstrains.Arithmetical, VarType.Generic(0), VarType.ArrayOf(VarType.Generic(0)))
+        {
+
+        }
+
+        public override object Calc(object[] args)
+            =>  throw new NotImplementedException("Generic sum need to be implemented");//((IFunArray)args[0]).As<int>().Sum();
+    }
+
+   
+
     public class RangeFunction : GenericFunctionBase
     {
         public RangeFunction() : base(CoreFunNames.RangeName,

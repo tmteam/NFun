@@ -77,11 +77,11 @@ namespace Funny.Tests
 if (x == 0) 'zero'
 else 'positive' ", 2, "positive")]
         [TestCase(@"
-if (x == 0) [0]
-if (x == 1) [0,1]
-if (x == 2) [0,1,2]
-if (x == 3) [0,1,2,3]
-else [0,0,0] ", 2, new[]{0,1,2})]
+if (x == 0) [0.0]
+if (x == 1) [0.0,1.0]
+if (x == 2) [0.0,1.0,2.0]
+if (x == 3) [0.0,1.0,2.0,3.0]
+else [0.0,0.0,0.0] ", 2, new[]{0.0,1.0,2.0})]
         [TestCase(@"
 if (x==0) ['0']
 if (x==1) ['0','1']

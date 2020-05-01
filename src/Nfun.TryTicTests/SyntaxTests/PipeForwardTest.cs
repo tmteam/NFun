@@ -37,7 +37,7 @@ namespace Funny.Tests
                             . filter((f)->f>10.0)
                             . map((m)->m*m)
                             . max()", 400.0)]
-        [TestCase("y = [1,2,3].max()",3)]
+        [TestCase("y = [1.0,2,3].max()",3.0)]
 
         //[TestCase("  f(x:int):int = x*x \r y = 4.f()", 16)]
         //[TestCase(" f(x:int):int = x+1 \r y = 4.f().f().f()", 7)]

@@ -186,20 +186,15 @@ namespace NFun.Tic
                     case Primitive concreteAnc:
                     {
                         if (!typeDesc.CanBeImplicitlyConvertedTo(concreteAnc))
-                            throw new InvalidOperationException();
+                            throw new InvalidOperationException("Types cannot be solved. Implicit convertation is impossible");
                         return ancestor.State;
                     }
 
                     case Constrains constrainsAnc:
                     {
-                        //if (typeDesc is Primitive p)
-                        //{
-                            var result = constrainsAnc.GetCopy();
-                            result.AddDescedant(typeDesc);
-                            return result.GetOptimizedOrThrow();
-                        //}
-
-                        //return constrainsAnc;
+                        var result = constrainsAnc.GetCopy();
+                        result.AddDescedant(typeDesc);
+                        return result.GetOptimizedOrThrow();
                     }
 
                     case Array arrayAnc:
@@ -256,7 +251,7 @@ namespace NFun.Tic
                     {
                         var result = TransformToArrayOrNull(descendant.Name, constrainsDesc, arrayAnc);
                         if (result == null)
-                            throw new InvalidOperationException();
+                            throw new InvalidOperationException("Types cannot be solved. Element cannot be converted to Array ");
 
                         result.ElementNode.Ancestors.Add(arrayAnc.ElementNode);
                         descendant.State = result;

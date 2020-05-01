@@ -73,6 +73,7 @@ namespace NFun.BuiltInFunctions
             return b;
         }
     }
+  
     public class MaxFunction : GenericFunctionBase
     {
         public MaxFunction() : base("max", GenericConstrains.Comparable, VarType.Generic(0), VarType.Generic(0), VarType.Generic(0)) { }

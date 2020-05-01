@@ -10,7 +10,21 @@ using NFun.Types;
 
 namespace NFun.BuiltInFunctions
 {
-    
+    public class ToTextFunction : FunctionBase
+    {
+        public ToTextFunction() : base(CoreFunNames.ToText, VarType.Text, VarType.Anything) { }
+        public override object Calc(object[] args) => new TextFunArray(ToText(args.Get<object>(0)));
+
+        string ToText(object val)
+        {
+            if (val is ImmutableFunArray f)
+                return $"[{string.Join(",", f.Select(ToText))}]";
+            if (val is double d)
+                return d.ToString(CultureInfo.InvariantCulture);
+            else
+                return val.ToString();
+        }
+    }
     /*
     public class ToInt16FromInt16Function : FunctionBase
     {
@@ -78,20 +92,6 @@ namespace NFun.BuiltInFunctions
             BitConverter.GetBytes(args.Get<int>(0)).Select(c=> (object)Convert.ToInt32(c)));
     }
     
-    public class ToTextFunction : FunctionBase
-    {
-        public ToTextFunction() : base(CoreFunNames.ToText, VarType.Text, VarType.Anything){}
-        public override object Calc(object[] args) => new TextFunArray(ToText(args.Get<object>(0)));
-
-        string ToText(object val)
-        {
-            if (val is ImmutableFunArray f)
-                return $"[{string.Join(",", f.Select(ToText))}]";
-            if (val is double d)
-                return d.ToString(CultureInfo.InvariantCulture);
-            else
-                return val.ToString();
-        }
-    }
+    
     */
 }

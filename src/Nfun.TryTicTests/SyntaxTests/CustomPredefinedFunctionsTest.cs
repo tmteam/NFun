@@ -30,10 +30,10 @@ namespace Funny.Tests
             runtime.Calculate().AssertReturns(VarVal.New("y", arg.Length));
         }
 
-        [TestCase("[1,2,3,4]",  new[]{1,3})]
-        [TestCase("[0,1,2,3,4]",  new[]{0,2,4})]
-        [TestCase("['0','1','2','3','4']",  new[]{"0","2","4"})]
-        [TestCase("[0]",  new[]{0})]
+        [TestCase("[0x1,2,3,4]", new[] { 1, 3 })]
+        [TestCase("[0x0,1,2,3,4]", new[] { 0, 2, 4 })]
+        [TestCase("['0','1','2','3','4']", new[] { "0", "2", "4" })]
+        [TestCase("[0.0]", new[] { 0.0 })]
         public void CustomGenericFunction_EachSecond_WorksFine(string arg, object expected)
         {
             string customName = "each_second";
@@ -41,15 +41,15 @@ namespace Funny.Tests
                 .With($"y = {customName}({arg})")
                 .WithFunctions(
                     new GenericFunctionMock(
-                        args => ImmutableFunArray.By(((ImmutableFunArray) args[0])
-                            .Where((_, i) => i % 2 == 0)), 
-                        customName, 
+                        args => ImmutableFunArray.By(((ImmutableFunArray)args[0])
+                            .Where((_, i) => i % 2 == 0)),
+                        customName,
                         VarType.ArrayOf(VarType.Generic(0)),
                         VarType.ArrayOf(VarType.Generic(0))))
                 .Build();
             runtime.Calculate().AssertReturns(VarVal.New("y", expected));
         }
-        
+
     }
     public class GenericFunctionMock: GenericFunctionBase
     {

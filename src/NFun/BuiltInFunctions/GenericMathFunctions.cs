@@ -95,7 +95,7 @@ namespace NFun.BuiltInFunctions
             return base.CreateConcrete(genericTypes);
         }
 
-        public override object Calc(object[] args) => args.Get<double>(0) + args.Get<double>(1);
+        public override object Calc(object[] args) => args.Get<double>(0) + args.Get<double>(0);
         public class RealFunction : FunctionBase
         {
             public RealFunction() : base(CoreFunNames.Negate, VarType.Real, VarType.Real) { }
@@ -105,17 +105,17 @@ namespace NFun.BuiltInFunctions
         public class Int16Function : FunctionBase
         {
             public Int16Function() : base(CoreFunNames.Negate, VarType.Int16, VarType.Int16) { }
-            public override object Calc(object[] args) => (short)Math.Abs(args.Get<short>(1));
+            public override object Calc(object[] args) => (short)Math.Abs(args.Get<short>(0));
         }
         public class Int32Function : FunctionBase
         {
             public Int32Function() : base(CoreFunNames.Negate, VarType.Int32, VarType.Int32) { }
-            public override object Calc(object[] args) => Math.Abs(args.Get<int>(1));
+            public override object Calc(object[] args) => Math.Abs(args.Get<int>(0));
         }
         public class Int64Function : FunctionBase
         {
             public Int64Function() : base(CoreFunNames.Negate, VarType.Int64, VarType.Int64) { }
-            public override object Calc(object[] args) => Math.Abs(args.Get<long>(1));
+            public override object Calc(object[] args) => Math.Abs(args.Get<long>(0));
         }
 
     }
