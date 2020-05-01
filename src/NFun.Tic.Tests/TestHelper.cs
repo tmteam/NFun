@@ -89,5 +89,13 @@ namespace NFun.Tic.Tests
             }
 
         }
+        public static void AssertNode(this FinalizationResults results, SolvingNode generic, params int[] nodeIds)
+        {
+            foreach (var id in nodeIds)
+            {
+                Assert.AreEqual(generic.GetNonReference(), results.GetSyntaxNodeOrNull(id).GetNonReference());
+            }
+
+        }
     }
 }

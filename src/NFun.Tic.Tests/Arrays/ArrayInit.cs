@@ -107,6 +107,27 @@ namespace NFun.Tic.Tests.Arrays
 
             var result = graph.Solve();
             var generic = result.AssertAndGetSingleGeneric(Primitive.U8, Primitive.Real);
+            result.AssertNode(generic,0,1);
+            result.AssertNamedEqualToArrayOf(generic, "y");
+            result.AssertAreGenerics(generic, "x");
+        }
+
+        [Test]
+        public void GenericArrayInitWithVariable2()
+        {
+            //    3 0 1 2 
+            // y = [x,1,2]
+            var graph = new GraphBuilder();
+            graph.SetVar("x", 0);
+
+            graph.SetIntConst(1, Primitive.U8);
+            graph.SetIntConst(2, Primitive.U8);
+            graph.SetArrayInit(3, 0, 1, 2);
+            graph.SetDef("y", 3);
+
+            var result = graph.Solve();
+            var generic = result.AssertAndGetSingleGeneric(Primitive.U8, Primitive.Real);
+            result.AssertNode(generic, 0, 1);
             result.AssertNamedEqualToArrayOf(generic, "y");
             result.AssertAreGenerics(generic, "x");
         }

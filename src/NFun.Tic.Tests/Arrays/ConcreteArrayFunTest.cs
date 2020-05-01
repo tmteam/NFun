@@ -76,7 +76,22 @@ namespace NFun.Tic.Tests.Arrays
             result.AssertNode(Array.Of(Primitive.Char), 0);
             result.AssertNamed(Array.Of(Primitive.Char), "y");
         }
+        [Test]
+        public void CompareTwoDifferentArrays_Solved()
+        {
+            //    1 0    3   2         
+            //y = [1.0] == 'abc'
+            var graph = new GraphBuilder();
+            graph.SetConst(0, Primitive.Real);
+            graph.SetArrayInit(1, 0);
+            graph.SetArrayConst(2, Primitive.Char);
+            graph.SetEquality(1,2,3);
+            graph.SetDef("y", 3);
 
+            var res = graph.Solve();
+            res.AssertNoGenerics();
+            res.AssertNamed(Primitive.Bool, "y");
+        }
         [Test]
         public void ImpossibleArgType_Throws()
         {

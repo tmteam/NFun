@@ -26,7 +26,7 @@ namespace NFun.Interpritation.Nodes
         {
             switch (primitive.BaseType)
             {
-                case BaseVarType.Real:   return new ValueExpressionNode((double)_value, VarType.Int64, Interval);
+                case BaseVarType.Real:   return new ValueExpressionNode((double)_value, VarType.Real,   Interval);
                 case BaseVarType.Int64:  return new ValueExpressionNode(        _value, VarType.Int64,  Interval);
                 case BaseVarType.Int32:  return new ValueExpressionNode((int)   _value, VarType.Int32,  Interval);
                 case BaseVarType.Int16:  return new ValueExpressionNode((short) _value, VarType.Int16,  Interval);

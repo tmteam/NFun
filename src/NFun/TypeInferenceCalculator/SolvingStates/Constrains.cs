@@ -64,6 +64,7 @@ namespace NFun.Tic.SolvingStates
                     return true;
                 if (!array.IsSolved || !descArray.IsSolved)
                     return false;
+                return false;
             }
             else if (type is Fun fun)
             {

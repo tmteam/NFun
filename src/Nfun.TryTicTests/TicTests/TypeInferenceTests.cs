@@ -200,5 +200,22 @@ namespace Nfun.TryTicTests.TicTests
             result.AssertNamed(Array.Of(Primitive.I32), "y");
             result.AssertNamed(Array.Of(Primitive.I32), "a");
         }
+        [Test]
+        public void CompareArrays()
+        {
+            //y = [1.0] ==[]
+            var result = TestHelper.Solve("y = [1.0] ==[]");
+            result.AssertNoGenerics();
+            result.AssertNamed(Primitive.Bool, "y");
+        }
+        [Test]
+        public void InitArrayWithVar()
+        {
+            var result = TestHelper.Solve("y = [x,2,3]");
+            var generic = result.AssertAndGetSingleGeneric(Primitive.U8, Primitive.Real);
+
+            result.AssertNamed(Array.Of(generic), "y");
+            result.AssertAreGenerics(generic, "x");
+        }
     }
 }
