@@ -18,6 +18,21 @@ namespace NFun.Tic
         public RefTo InitializeVarNode(IType desc = null, Primitive anc = null, bool isComparable = false) 
             => new RefTo(CreateVarType(new Constrains(desc, anc){IsComparable =  isComparable}));
 
+        private void RegistrateCompositeType(ICompositeType composite)
+        {
+            foreach (var member in composite.Members)
+            {
+                if (!member.Registrated)
+                {
+                    member.Registrated = true;
+                    if (member.State is ICompositeType c)
+                        RegistrateCompositeType(c);
+                    _typeVariables.Add(member);
+                    
+                }
+            }
+        }
+
         #region set primitives
 
         public void SetVar(string name, int node)
@@ -66,25 +81,23 @@ namespace NFun.Tic
                 throw new InvalidOperationException();
             }
         }
+
         public void SetVarType(string s, IState state)
         {
             var node = GetNamedNode(s);
 
-           if (state is Primitive primitive)
+            if (state is Primitive primitive)
             {
                 if (!node.TryBecomeConcrete(primitive))
                     throw new InvalidOperationException();
             }
-            else if (state is Array _)
+            else if (state is ICompositeType composite)
             {
+                RegistrateCompositeType(composite);
                 node.State = state;
             }
-            else if (state is Fun _)
-            {
-                node.State = state;
-            }
-           else
-               throw new InvalidOperationException();
+            else
+                throw new InvalidOperationException();
         }
 
         public void SetArrayConst(int id, Primitive elementType)
@@ -142,10 +155,12 @@ namespace NFun.Tic
             if(argThenReturnTypes.Length!=argThenReturnIds.Length)
                 throw new ArgumentException("Sizes of type and id array have to be equal");
 
+
             for (int i = 0; i < argThenReturnIds.Length - 1; i++)
             {
                 var type = argThenReturnTypes[i];
                 var argId = argThenReturnIds[i];
+
                 switch (type)
                 {
                     case Primitive primitive:
@@ -155,20 +170,13 @@ namespace NFun.Tic
                             throw new InvalidOperationException();
                         break;
                     }
-                    case Array array:
-                    {
-                        //var node = GetOrCreateNode(argId);
-                        //var ancestor = CreateVarType(array);
-                        //ancestor.BecomeAncestorFor(node);
 
-                        //todo Upcast support
-                        GetOrCreateArrayNode(argId, array.ElementNode);
-                        break;
-                    }
-                    case Fun fun:
+                    case ICompositeType composite:
                     {
+                        RegistrateCompositeType(composite);
+
                         var node = GetOrCreateNode(argId);
-                        var ancestor = CreateVarType(fun);
+                        var ancestor = CreateVarType(composite);
                         ancestor.BecomeAncestorFor(node);
                         break;
                     }
@@ -325,7 +333,7 @@ namespace NFun.Tic
                 return varnode;
             }
 
-            var ans = new SolvingNode("T" + name, new Constrains(), SolvingNodeType.Named);
+            var ans = new SolvingNode("T" + name, new Constrains(), SolvingNodeType.Named) { Registrated = true };
             _variables.Add(name, ans);
             return ans;
         }
@@ -346,7 +354,7 @@ namespace NFun.Tic
             }
             else
             {
-                var res = new SolvingNode(lambdaId.ToString(), fun, SolvingNodeType.SyntaxNode);
+                var res = new SolvingNode(lambdaId.ToString(), fun, SolvingNodeType.SyntaxNode) {Registrated = true};
                 _syntaxNodes[lambdaId] = res;
             }
         }
@@ -372,7 +380,7 @@ namespace NFun.Tic
                 return alreadyExists;
             }
 
-            var res = new SolvingNode(id.ToString(), new Array(elementType), SolvingNodeType.SyntaxNode);
+            var res = new SolvingNode(id.ToString(), new Array(elementType), SolvingNodeType.SyntaxNode) { Registrated = true};
             _syntaxNodes[id] = res;
             return res;
         }
@@ -387,17 +395,21 @@ namespace NFun.Tic
             if (alreadyExists != null)
                 return alreadyExists;
 
-            var res = new SolvingNode(id.ToString(), new Constrains(), SolvingNodeType.SyntaxNode);
+            var res = new SolvingNode(id.ToString(), new Constrains(), SolvingNodeType.SyntaxNode) {Registrated = true};
             _syntaxNodes[id] = res;
             return res;
         }
 
         private SolvingNode CreateVarType(IState state = null)
         {
+            if (state is ICompositeType composite)
+                RegistrateCompositeType(composite);
+
             var varNode = new SolvingNode(
-                name:  "V" + _varNodeId,
-                state: state ?? new Constrains(),
-                type:  SolvingNodeType.TypeVariable);
+                    name: "V" + _varNodeId,
+                    state: state ?? new Constrains(),
+                    type: SolvingNodeType.TypeVariable)
+                {Registrated = true};
             _varNodeId++;
             _typeVariables.Add(varNode);
             return varNode;

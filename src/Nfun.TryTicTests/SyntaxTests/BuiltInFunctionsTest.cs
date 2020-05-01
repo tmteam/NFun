@@ -271,18 +271,18 @@ namespace Funny.Tests
         //             y = reduce([1,2,3], iSum)",6)]
         //[TestCase( @"iSum(r:int, x:int):int = r+x
         //             y = reduce([100], iSum)",100)]
-        [TestCase("y = [1,2,3,4,5,6,7].filter(i->i%2==0).sum()",12)]
-        [TestCase("y = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce((s,i)-> s+i+1)", 14)]
-        [TestCase("y = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce((s,i)-> s+i+1)", 14)]
-        [TestCase("y = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce(min)", 2)]
-        [TestCase("y = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce(max)", 6)]
-        [TestCase("y = [1,2,3,4,5,6,7].filter(i:int->i%2==0).reduce(max)", 6)]
-        [TestCase("y = [1,2,3,4].reduce((s,i)-> s+i)", 10)]
-        [TestCase("y = [1,2,3,4,5,6,7].reduce(max)", 7)]
-        [TestCase("y = [1,2,3,4,5,6,7].reduce((s,i)->if (s>i) s else i)", 7)]
-        [TestCase("y = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce((s,i)->if (s>i) s else i)", 6)]
-        [TestCase("y = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce((s,i)->0)", 0)]
-        [TestCase("y = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce((s,i)->0)", 0)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter(i->i%2==0).sum()", 12)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce((s,i)-> s+i+1)", 14)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce((s,i)-> s+i+1)", 14)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce(min)", 2)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce(max)", 6)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter(i:int->i%2==0).reduce(max)", 6)]
+        [TestCase("y:int = [1,2,3,4].reduce((s,i)-> s+i)", 10)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].reduce(max)", 7)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].reduce((s,i)->if (s>i) s else i)", 7)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce((s,i)->if (s>i) s else i)", 6)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce((s,i)->0)", 0)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce((s,i)->0)", 0)]
         public void HiOrderFunConstantEquatation(string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
@@ -290,13 +290,13 @@ namespace Funny.Tests
                 .AssertReturns(VarVal.New("y", expected));
         }
         
-        [TestCase("y = take([1,2,3,4,5],3)",new []{1,2,3})]        
+        [TestCase("y:int[] = take([1,2,3,4,5],3)", new []{1,2,3})]        
         [TestCase("y = take([1.0,2.0,3.0,4.0,5.0],4)",new []{1.0,2.0,3.0,4.0})]        
         [TestCase("y = take([1.0,2.0,3.0],20)",new []{1.0,2.0,3.0})]        
         [TestCase("y = take([1.0,2.0,3.0],0)",new double[0])]        
         [TestCase("y = take(skip([1.0,2.0,3.0],1),1)",new []{2.0})]        
     
-        [TestCase("y = skip([1,2,3,4,5],3)",new []{4,5})]        
+        [TestCase("y:int[] = skip([1,2,3,4,5],3)", new []{4,5})]        
         [TestCase("y = skip(['1','2','3','4','5'],3)",new []{"4","5"})]        
         [TestCase("y = skip([1.0,2.0,3.0,4.0,5.0],4)",new []{5.0})]        
         [TestCase("y = skip([1.0,2.0,3.0],20)",new double[0])]        
@@ -305,20 +305,20 @@ namespace Funny.Tests
         [TestCase("y = repeat('abc',3)",new []{"abc","abc","abc"})]        
         [TestCase("y = repeat('abc',0)",new string[0])]        
         
-        [TestCase("mypage(x:int[]):int[] = take(skip(x,1),1) \r y = mypage([1,2,3]) ",new []{2})]        
+       // [TestCase("mypage(x:int[]):int[] = take(skip(x,1),1) \r y = mypage([1,2,3]) ",new []{2})]        
 
-        [TestCase("y = [1,2,3]. reverse()",new[]{3,2,1})]
-        [TestCase("y = [1,2,3]. reverse() . reverse()",new[]{1,2,3})]
+        [TestCase("y:int[] = [1,2,3]. reverse()", new[]{3,2,1})]
+        [TestCase("y:int[] = [1,2,3]. reverse() . reverse()", new[]{1,2,3})]
         [TestCase("y = []. reverse()",new object[0])]
         
-        [TestCase("y = [1,2,3].get(1)", 2)]
-        [TestCase("y = [1,2,3].get(0)", 1)]
+        [TestCase("y:int[] = [1,2,3].get(1)", 2)]
+        [TestCase("y:int[] = [1,2,3].get(0)", 1)]
         
         [TestCase("y = [1.0,2.0].concat([3.0,4.0])", new []{1.0,2.0,3.0,4.0})]
         [TestCase("y = [1.0].concat([2.0]).concat([3.0,4.0])", new []{1.0,2.0,3.0,4.0})]
         [TestCase("y = [].concat([])", new object[0])]
 
-        [TestCase("y = [1,2,3].set(1,42)", new[]{1,42,3})]
+        [TestCase("y:int[] = [1,2,3].set(1,42)", new[]{1,42,3})]
         
         [TestCase("y = [1.0] .repeat(3).flat()", new[]{1.0,1.0,1.0})]
         [TestCase("y = [] .repeat(3).flat()", new object[0])]
@@ -351,9 +351,9 @@ namespace Funny.Tests
         [TestCase("y = find(['la','LALA','pipi'], 'pipi')", 2)]
         [TestCase("y = find(['la','LALA','pipi'], 'pIpi')", -1)]
         
-        [TestCase("y = [[1],[2,3],[4,5,6]].flat()", new []{1,2,3,4,5,6})]
-        [TestCase("y = [[1]][1:1].flat()", new int[0])]
-        [TestCase("y = [[1][1:1]].flat()", new int[0])]
+        [TestCase("y:int[] = [[1],[2,3],[4,5,6]].flat()", new []{1,2,3,4,5,6})]
+        [TestCase("y:int[] = [[1]][1:1].flat()", new int[0])]
+        [TestCase("y:int[] = [[1][1:1]].flat()", new int[0])]
         [TestCase("y = flat([['1'],['2','3'],['4','5','6']])", new []{"1","2","3","4","5","6"})]
         [TestCase("y = flat([['1']][1:1])", new string[0])]
         [TestCase("y = flat([['1'][1:1]])", new string[0])]

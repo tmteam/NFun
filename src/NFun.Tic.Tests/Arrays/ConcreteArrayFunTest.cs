@@ -151,6 +151,23 @@ namespace NFun.Tic.Tests.Arrays
             res.AssertNamed(Primitive.Bool, "y");
             Assert.AreEqual(Primitive.Real, arrayType.GetNonReference());
         }
+
+        [Test]
+        public void Count()
+        {
+            //     1      0               
+            //y = count('abc')
+            var graph = new GraphBuilder();
+            graph.SetArrayConst(0, Primitive.Char);
+
+            graph.SetCall(new IState[]{Array.Of(Primitive.Any), Primitive.I32}, new []{0,1});
+            graph.SetDef("y", 1);
+
+            var res = graph.Solve();
+            res.AssertNoGenerics();
+            res.AssertNamed(Primitive.I32, "y");
+        }
+
         [Test]
         public void ImpossibleArgType_Throws()
         {

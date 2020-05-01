@@ -249,7 +249,15 @@ namespace Nfun.TryTicTests.TicTests
             var state = equalGenericType[0];
             TestHelper.AssertAreSame(Array.Of(Primitive.Real), state);
         }
+        [Test]
+        public void Count()
+        {
+            var result = TestHelper.Solve("y = 'a'.count()");
+            result.AssertNoGenerics();
+            result.AssertNamed(Primitive.I32, "y");
+        }
 
+        
         [Test]
         public void InitArrayWithVar()
         {

@@ -73,8 +73,8 @@ namespace NFun.TypeInferenceAdapter
                 case PrimitiveTypeName.U16: return VarType.UInt16;
                 case PrimitiveTypeName.U8: return VarType.UInt8;
 
-                case PrimitiveTypeName.I96: /*return VarType.Real;*/
-                case PrimitiveTypeName.I48: /*return VarType.Int64;*/
+                case PrimitiveTypeName.I96: return VarType.Int64; /*return VarType.Real;*/
+                case PrimitiveTypeName.I48: return VarType.Int32;/*;*/
                 case PrimitiveTypeName.U48: /*return VarType.Int64;*/
                 case PrimitiveTypeName.U24: /*return VarType.Int32;*/
                 case PrimitiveTypeName.U12: /*return VarType.Int16;*/

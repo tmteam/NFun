@@ -256,7 +256,8 @@ namespace NFun.Interpritation
                     var result = funVars.Where(f =>
                             f.ReturnType == specification.Output && f.ArgTypes.SequenceEqual(specification.Inputs))
                         .ToList();
-
+                    if (result.Count == 0)
+                        throw ErrorFactory.FunctionIsNotExists(varNode);
                     if (result.Count > 1)
                         throw ErrorFactory.AmbiguousFunctionChoise(varNode);
                     if(result[0] is FunctionBase ff)

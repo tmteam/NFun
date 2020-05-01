@@ -15,6 +15,7 @@ namespace NFun.Tic
 
     public class SolvingNode
     {
+        internal bool Registrated = false;
         private IState _state;
         public int GraphId { get; set; } = -1;
         public static SolvingNode CreateTypeNode(IType type) 
