@@ -15,6 +15,25 @@ namespace Nfun.TryTicTests.TicTests
 {
     public static class TestHelper
     {
+        public static void AssertAreSame(IState expected, IState actual)
+        {
+            if (!AreSame(expected, actual))
+            {
+                if (expected is RefTo r1)
+                    expected = r1.Node.GetNonReference().State;
+                if (actual is RefTo r2)
+                    actual = r2.Node.GetNonReference().State;
+                Assert.Fail($"Expected: {expected} but was: {actual}");
+            }
+        }
+        public static bool AreSame(IState a, IState b)
+        {
+            if (a is RefTo r1)
+                a = r1.Node.GetNonReference().State;
+            if (b is RefTo r2)
+                b = r2.Node.GetNonReference().State;
+            return a.Equals(b);
+        }
         public static FinalizationResults Solve(string equation)
         {
             Console.WriteLine(equation);
@@ -34,13 +53,36 @@ namespace Nfun.TryTicTests.TicTests
             foreach (var predefinedFunction in BaseFunctions.GenericFunctions)
                 functions.Add(predefinedFunction);
 
-            //functions.Add(new AddFunction("myAdd"));
-            //functions.Add(new MapFunction());
-
 
             var exitVisitor = new SetupTiExitVisitor(state, functions,new TypeInferenceResultsBuilder());
             tree.ComeOver(enterVisitor, exitVisitor);
             return graph.Solve();
+        }
+        public static TypeInferenceResults SolveAndGetResults(string equation)
+        {
+            Console.WriteLine(equation);
+
+            var flow = NFun.Tokenization.Tokenizer.ToFlow(equation);
+            var tree = NFun.SyntaxParsing.Parser.Parse(flow);
+            tree.ComeOver(new SetNodeNumberVisitor(0));
+
+
+            var graph = new GraphBuilder();
+            var state = new SetupTiState(graph);
+            var enterVisitor = new SetupTiEnterVisitor(new SetupTiState(graph));
+
+            var functions = new FunctionDictionary();
+            foreach (var predefinedFunction in BaseFunctions.ConcreteFunctions)
+                functions.Add(predefinedFunction);
+            foreach (var predefinedFunction in BaseFunctions.GenericFunctions)
+                functions.Add(predefinedFunction);
+
+            var resultsBuilder = new TypeInferenceResultsBuilder();
+            var exitVisitor = new SetupTiExitVisitor(state, functions, resultsBuilder);
+            tree.ComeOver(enterVisitor, exitVisitor);
+            var res =  graph.Solve();
+            resultsBuilder.SetResults(res);
+            return resultsBuilder.Build();
         }
         public static void AssertAreGenerics(this FinalizationResults result, SolvingNode targetGenericNode,
             params string[] varNames)

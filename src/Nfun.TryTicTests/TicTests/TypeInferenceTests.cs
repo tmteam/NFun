@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using NFun;
 using NFun.Interpritation;
 using NFun.SyntaxParsing.Visitors;
@@ -208,6 +209,37 @@ namespace Nfun.TryTicTests.TicTests
             result.AssertNoGenerics();
             result.AssertNamed(Primitive.Bool, "y");
         }
+
+        [Test]
+        public void CompareArrays_GenericTypeSolvedWell()
+        {
+            //y = [1.0] ==[]
+            var result = TestHelper.SolveAndGetResults("y = [1.0] ==[]");
+            var equalGenericType = result.GenericFunctionTypes.Where(g => g != null).Single();
+            Assert.AreEqual(equalGenericType.Length,1);
+            var state = equalGenericType[0];
+            TestHelper.AssertAreSame(Primitive.Any, state);
+        }
+
+        [Test]
+        public void CompareBools_GenericTypeSolvedWell()
+        {
+            var result = TestHelper.SolveAndGetResults("y = true == false");
+            var equalGenericType = result.GenericFunctionTypes.Where(g => g != null).Single();
+            Assert.AreEqual(equalGenericType.Length, 1);
+            var state = equalGenericType[0];
+            TestHelper.AssertAreSame(Primitive.Bool, state);
+        }
+        [Test]
+        public void CompareSameArrays_GenericTypeSolvedWell()
+        {
+            var result = TestHelper.SolveAndGetResults("y = [1.0] == [1.0]");
+            var equalGenericType = result.GenericFunctionTypes.Where(g => g != null).Single();
+            Assert.AreEqual(equalGenericType.Length, 1);
+            var state = equalGenericType[0];
+            TestHelper.AssertAreSame(Array.Of(Primitive.Real), state);
+        }
+
         [Test]
         public void InitArrayWithVar()
         {

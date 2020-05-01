@@ -23,13 +23,7 @@ namespace NFun.Interpritation
 
             if (bodyTypeSolving == null)
                 throw ErrorFactory.TypesNotSolved(syntaxTree);
-            resultBuilder.SetSyntaxNodeTypes(bodyTypeSolving.GetSyntaxNodes());
-            foreach (var generic in bodyTypeSolving.GetAllGenerics)
-            {
-                resultBuilder.AddGenericType(generic);
-            }
-
-            resultBuilder.SetNamedNodes(bodyTypeSolving.GetAllNamedNodes());
+            resultBuilder.SetResults(bodyTypeSolving);
             return resultBuilder.Build();
         }
         //public static void ThrowIfNotSolved(ISyntaxNode functionSyntaxNode, TiResult types)

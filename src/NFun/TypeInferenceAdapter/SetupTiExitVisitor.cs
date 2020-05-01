@@ -104,7 +104,6 @@ namespace NFun.TypeInferenceAdapter
         public override bool Visit(FunCallSyntaxNode node)
         {
             Trace(node, $"Call {node.Id}({string.Join(",", node.Args.Select(a=>a.OrderNumber))})");
-
          
             var signature = _dictionary.GetOrNull(node.Id, node.Args.Length);
             if(signature==null)

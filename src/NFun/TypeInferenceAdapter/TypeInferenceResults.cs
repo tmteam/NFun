@@ -2,15 +2,17 @@
 using System.Collections.Generic;
 using System.Text;
 using NFun.Tic.SolvingStates;
+using NFun.TypeInferenceCalculator;
 
 namespace NFun.TypeInferenceAdapter
 {
     public class TypeInferenceResultsBuilder
     {
-        List<RefTo[]> _genericFunctionTypes = new List<RefTo[]>();
-        private IState[] _syntaxNodeTypes;
-        List<Constrains> _constrainses = new List<Constrains>();
-        private Dictionary<string, IState> _namedNodes = new Dictionary<string, IState>();
+        readonly List<RefTo[]> _genericFunctionTypes = new List<RefTo[]>();
+        readonly List<Constrains> _constrainses = new List<Constrains>();
+        
+        private Dictionary<string, IState> _namedNodes = null;
+        private IState[] _syntaxNodeTypes = null;
 
         public void SetGenericFunctionTypes(int id, RefTo[] types)
         {
@@ -20,25 +22,30 @@ namespace NFun.TypeInferenceAdapter
             _genericFunctionTypes[id] = types;
         }
 
-        public void SetSyntaxNodeTypes(IState[] syntaxNodeTypes)
+        public void SetResults(FinalizationResults bodyTypeSolving)
         {
-            _syntaxNodeTypes = syntaxNodeTypes;
-        }
+            SetSyntaxNodeTypes(bodyTypeSolving.GetSyntaxNodes());
+            foreach (var generic in bodyTypeSolving.GetAllGenerics)
+            {
+                AddGenericType(generic);
+            }
 
-        public void AddGenericType(Constrains constrains)
-        {
-            _constrainses.Add(constrains);
+            SetNamedNodes(bodyTypeSolving.GetAllNamedNodes());
         }
-
         public TypeInferenceResults Build()
         {
-            return new TypeInferenceResults(_genericFunctionTypes.ToArray(), _syntaxNodeTypes, _constrainses.ToArray(), _namedNodes);
+            return new TypeInferenceResults(_genericFunctionTypes.ToArray(), _syntaxNodeTypes, _constrainses.ToArray(),
+                _namedNodes);
         }
 
-        public void SetNamedNodes(Dictionary<string, IState> namedNodes)
-        {
-            _namedNodes = namedNodes;
-        }
+        private void SetSyntaxNodeTypes(IState[] syntaxNodeTypes) 
+            => _syntaxNodeTypes = syntaxNodeTypes;
+
+        private void AddGenericType(Constrains constrains) 
+            => _constrainses.Add(constrains);
+
+        private void SetNamedNodes(Dictionary<string, IState> namedNodes) 
+            => _namedNodes = namedNodes;
     }
     public class TypeInferenceResults
     {
@@ -69,10 +76,7 @@ namespace NFun.TypeInferenceAdapter
                 return null;
             return SyntaxNodeTypes[id];
         }
-        public IState GetVariableType(string name)
-        {
-            return _namedNodes[name];
-        }
+        public IState GetVariableType(string name) => _namedNodes[name];
     }
 
 }

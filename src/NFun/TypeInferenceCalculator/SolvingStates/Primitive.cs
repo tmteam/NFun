@@ -78,10 +78,9 @@ namespace NFun.Tic.SolvingStates
         {
             switch (Name)
             {
-                case PrimitiveTypeName.Any:  return "A";
-                case PrimitiveTypeName.Char: return "C";
-                case PrimitiveTypeName.Bool: return "B";
-                case PrimitiveTypeName.Real: return "R";
+                case PrimitiveTypeName.Char: return "Ch";
+                case PrimitiveTypeName.Bool: return "Bo";
+                case PrimitiveTypeName.Real: return "Re";
                 default: return Name.ToString();
             }
         }

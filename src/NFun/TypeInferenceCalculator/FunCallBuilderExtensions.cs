@@ -11,13 +11,14 @@ namespace NFun.Tic
             builder.SetCall(types, argumentsThenResult);
         }
 
-        public static void SetEquality(this GraphBuilder builder, int leftId, int rightId, int resultId)
+        public static RefTo SetEquality(this GraphBuilder builder, int leftId, int rightId, int resultId)
         {
             var t = builder.InitializeVarNode();
             
             builder.SetCall(
                 argThenReturnTypes: new IState []{t, t, Primitive.Bool},
                 argThenReturnIds: new []{leftId, rightId, resultId});
+            return t;
         }
         
         public static void SetComparable(this GraphBuilder builder,int leftId, int rightId, int resultId)

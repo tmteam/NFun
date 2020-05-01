@@ -85,12 +85,32 @@ namespace NFun.Tic.Tests.Arrays
             graph.SetConst(0, Primitive.Real);
             graph.SetArrayInit(1, 0);
             graph.SetArrayConst(2, Primitive.Char);
-            graph.SetEquality(1,2,3);
+            var generic = graph.SetEquality(1,2,3);
             graph.SetDef("y", 3);
 
             var res = graph.Solve();
             res.AssertNoGenerics();
             res.AssertNamed(Primitive.Bool, "y");
+            //Assert.AreEqual(Array.Of(Primitive.Any), generic.Element);
+
+        }
+
+        [Test]
+        public void CompareTwoDifferentArrays_Solved2()
+        {
+            //    1 0    3    2         
+            //y = [1.0] == emptyArrayOfAny
+            var graph = new GraphBuilder();
+            graph.SetConst(0, Primitive.Real);
+            graph.SetArrayInit(1, 0);
+            graph.SetArrayConst(2, Primitive.Any);
+            var generic = graph.SetEquality(1, 2, 3);
+            graph.SetDef("y", 3);
+
+            var res = graph.Solve();
+            res.AssertNoGenerics();
+            res.AssertNamed(Primitive.Bool, "y");
+            //Assert.AreEqual(Array.Of(Primitive.Any), generic.Element);
         }
         [Test]
         public void ImpossibleArgType_Throws()
