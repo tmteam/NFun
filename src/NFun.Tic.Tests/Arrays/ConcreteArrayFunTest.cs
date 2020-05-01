@@ -42,7 +42,6 @@ namespace NFun.Tic.Tests.Arrays
 
 
         [Test(Description = "y = [1i,-1i].NoNans()")]
-        //[Ignore("Upcast for complex types")]
         public void ConcreteCall_WithGenericArray()
         {
             //        3   2 0  1
@@ -60,6 +59,22 @@ namespace NFun.Tic.Tests.Arrays
             result.AssertNode(Array.Of(Primitive.Real),2);
             result.AssertNode(Primitive.Real, 0,1);
             result.AssertNamed(Primitive.Bool, "y");
+        }
+        [Test(Description = "reverse( 'hello')")]
+        public void SetArrayConst()
+        {
+            //        1       0
+            //y = reverse( 'hello') 
+            var graph = new GraphBuilder();
+            graph.SetArrayConst(0, Primitive.Char);
+            var t = graph.InitializeVarNode();
+            graph.SetCall(new []{Array.Of(t), Array.Of(t)},new []{0,1});
+            graph.SetDef("y", 1);
+
+            var result = graph.Solve();
+            result.AssertNoGenerics();
+            result.AssertNode(Array.Of(Primitive.Char), 0);
+            result.AssertNamed(Array.Of(Primitive.Char), "y");
         }
 
         [Test]

@@ -87,7 +87,27 @@ namespace NFun.Tic
                throw new InvalidOperationException();
         }
 
-        
+        public void SetArrayConst(int id, Primitive elementType)
+        {
+            var eNode = CreateVarType(elementType);
+            var node = GetOrCreateNode(id);
+            if (node.State is Constrains c)
+            {
+                var arrayOf = Array.Of(eNode);
+                if (c.Fits(arrayOf))
+                {
+                    node.State = arrayOf;
+                    return;
+                }
+            }
+            else if (node.State is Array a)
+            {
+                if(a.Element== elementType)
+                    return;
+            }
+            throw new InvalidOperationException();
+        }
+
         public void CreateLambda(int returnId, int lambdaId,params string[] varNames)
         {
             var args = varNames.Select(GetNamedNode).ToArray();

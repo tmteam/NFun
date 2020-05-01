@@ -87,10 +87,10 @@ namespace Funny.Tests
         
         [TestCase("if (true) [1.0] else [2.0, 3.0] ", new[]{1.0})]
         [TestCase("if (false) [1.0] else [2.0, 3.0]", new[]{2.0,3.0})]
-        [TestCase ("y(x) = x \r[1]",new[]{1})]
-        [TestCase ("y(x) = x \r[1..3]",new[]{1,2,3})]
-        [TestCase ("y(x) = x # some comment \r[1]",new[]{1})]
-        [TestCase ("y(x) = x # some comment \r[1..3]",new[]{1,2,3})]
+        //[TestCase ("y(x) = x \r[1]",new[]{1.0})]
+        //[TestCase ("y(x) = x \r[1..3]",new[]{1,2,3})]
+        //[TestCase ("y(x) = x # some comment \r[1]",new[]{1})]
+        //[TestCase ("y(x) = x # some comment \r[1..3]",new[]{1,2,3})]
         public void AnonymousConstantArrayTest(string expr, object expected)
         {
             FunBuilder.BuildDefault(expr).Calculate().AssertHas(VarVal.New("out", expected));

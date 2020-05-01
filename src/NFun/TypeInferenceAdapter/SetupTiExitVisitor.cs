@@ -10,6 +10,7 @@ using NFun.SyntaxParsing.Visitors;
 using NFun.Tic;
 using NFun.Tic.SolvingStates;
 using NFun.Types;
+using Array = NFun.Tic.SolvingStates.Array;
 
 namespace NFun.TypeInferenceAdapter
 {
@@ -221,14 +222,16 @@ namespace NFun.TypeInferenceAdapter
             if (node.StrictType)
             {
                 var type = LangTiHelper.ConvertToTiType(node.OutputType);
-                if(type is Primitive primitive)
-                    _state.CurrentSolver.SetConst(node.OrderNumber, type as Primitive);
-                else 
-                    throw new NotImplementedException("Todo. Array and fun constants");
-
+                if (type is Primitive p)
+                    _state.CurrentSolver.SetConst(node.OrderNumber, p);
+                else if (type is Array a && a.Element is Primitive primitiveElement)
+                    _state.CurrentSolver.SetArrayConst(node.OrderNumber, primitiveElement);
+                else
+                    throw new InvalidOperationException("Complex constant type is not supported");
+                
                 return true;
             }
-            
+
             object val = node.Value;
 
             if (val is int i32) val = (long) i32;
