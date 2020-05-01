@@ -192,9 +192,14 @@ namespace NFun.Tic
 
                     case Constrains constrainsAnc:
                     {
-                        var result = constrainsAnc.GetCopy();
-                        result.AddDescedant(typeDesc);
-                        return result.GetOptimizedOrThrow();
+                        //if (typeDesc is Primitive p)
+                        //{
+                            var result = constrainsAnc.GetCopy();
+                            result.AddDescedant(typeDesc);
+                            return result.GetOptimizedOrThrow();
+                        //}
+
+                        //return constrainsAnc;
                     }
 
                     case Array arrayAnc:
@@ -434,17 +439,17 @@ namespace NFun.Tic
 
         public static void TryMergeDestructive(SolvingNode descendantNode, SolvingNode ancestorNode)
         {
-            Console.WriteLine($"-dm: {ancestorNode} -> {descendantNode}");
             var nonRefAncestor = GetNonReference(ancestorNode);
             var nonRefDescendant = GetNonReference(descendantNode);
             if (nonRefDescendant == nonRefAncestor)
             {
-                Console.WriteLine($"Same deref. Skip");
+                Console.WriteLine($"{ancestorNode}=={descendantNode}. Skip");
                 return;
             }
 
             var originAnc = nonRefAncestor.ToString();
             var originDes = nonRefDescendant.ToString();
+            Console.WriteLine($"-dm: {originAnc} => {originDes}");
 
 
             switch (nonRefAncestor.State)
@@ -470,7 +475,11 @@ namespace NFun.Tic
                         Console.Write("a+c");
                         nonRefDescendant.State = new RefTo(nonRefAncestor);
                     }
-
+                    else if (nonRefDescendant.State is Array arrayDesc)
+                    {
+                        Console.Write("a+a");
+                        TryMergeDestructive(arrayDesc.ElementNode, arrayAnc.ElementNode);
+                    }
                     break;
                 }
 
@@ -481,7 +490,15 @@ namespace NFun.Tic
                         Console.Write("f+c");
                         nonRefDescendant.State = new RefTo(nonRefAncestor);
                     }
-
+                    else if (nonRefDescendant.State is Fun funDesc)
+                    {
+                        Console.Write("f+f");
+                        if (funAnc.ArgsCount != funDesc.ArgsCount)
+                            break;
+                        for (int i = 0; i < funAnc.ArgsCount; i++)
+                            TryMergeDestructive(funDesc.ArgNodes[i], funAnc.ArgNodes[i]);
+                        TryMergeDestructive(funAnc.RetNode, funDesc.RetNode);
+                    }
                     break;
                 }
 
@@ -526,7 +543,6 @@ namespace NFun.Tic
                     descendantNode.Ancestors.Remove(nonRefAncestor);
                     break;
                 }
-
                 case Constrains constrainsAnc when nonRefDescendant.State is Array arrayDes:
                 {
                     Console.Write("c+a");
@@ -536,7 +552,6 @@ namespace NFun.Tic
 
                     break;
                 }
-
                 case Constrains constrainsAnc when nonRefDescendant.State is Fun funDes:
                 {
                     Console.Write("c+f");
@@ -544,6 +559,12 @@ namespace NFun.Tic
                     if (constrainsAnc.Fits(funDes))
                         nonRefAncestor.State = ancestorNode.State = new RefTo(nonRefDescendant);
 
+                    break;
+                }
+
+                default:
+                {
+                    Console.Write("no");
                     break;
                 }
             }

@@ -265,11 +265,46 @@ namespace NFun.Tic.Tests
             result.AssertNoGenerics();
             result.AssertNamed(Primitive.I64, "a");
         }
-        
 
-        
 
-        
+        [Test]
+        public void EqualtyOnGenerics()
+        {
+            //     0  2  1     
+            //y = 1.0 == x 
+
+            var graph = new GraphBuilder();
+            graph.SetConst(0, Primitive.Real);
+            graph.SetVar("x",1);
+            var generic = graph.SetEquality(0, 1, 2);
+            graph.SetDef("y", 2);
+
+            var result = graph.Solve();
+            result.AssertNoGenerics();
+            result.AssertNamed(Primitive.Bool, "y");
+            result.AssertNamed(Primitive.Real, "x");
+            Assert.AreEqual(Primitive.Real, generic.GetNonReference());
+        }
+        [Test]
+        public void EqualtyOnGenericsReversed()
+        {
+            //    0  2  1     
+            //y = x == 1.0 
+
+            var graph = new GraphBuilder();
+            graph.SetVar("x", 0);
+            graph.SetConst(1, Primitive.Real);
+            var generic = graph.SetEquality(0, 1, 2);
+            graph.SetDef("y", 2);
+
+            var result = graph.Solve();
+            result.AssertNoGenerics();
+            result.AssertNamed(Primitive.Bool, "y");
+            result.AssertNamed(Primitive.Real, "x");
+            Assert.AreEqual(Primitive.Real, generic.GetNonReference());
+        }
+
+
 
     }
 }

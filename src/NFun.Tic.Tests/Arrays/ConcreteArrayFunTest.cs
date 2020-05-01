@@ -113,6 +113,45 @@ namespace NFun.Tic.Tests.Arrays
             //Assert.AreEqual(Array.Of(Primitive.Any), generic.Element);
         }
         [Test]
+        public void CompareConcreteAndGenericEmptyArray()
+        {
+            //    1 0   3  2         
+            //y = [1.0] == []
+            var graph = new GraphBuilder();
+            graph.SetConst(0, Primitive.Real);
+            graph.SetArrayInit(1, 0);
+            var arrayType = graph.SetArrayInit(2);
+            var eqGeneric = graph.SetEquality(1, 2, 3);
+            graph.SetDef("y", 3);
+
+            var res = graph.Solve();
+            
+            Console.WriteLine(eqGeneric.GetNonReference());
+
+            res.AssertNoGenerics();
+            res.AssertNamed(Primitive.Bool, "y");
+            Assert.AreEqual(Primitive.Real, arrayType.GetNonReference());
+        }
+        [Test]
+        public void CompareConcreteAndGenericEmptyArray2()
+        {
+            //         0      2  1         
+            //y = arrayOfReal == []
+            var graph = new GraphBuilder();
+            graph.SetArrayConst(0, Primitive.Real);
+            var arrayType = graph.SetArrayInit(1);
+            var eqGeneric = graph.SetEquality(0, 1, 2);
+            graph.SetDef("y", 2);
+
+            var res = graph.Solve();
+
+            Console.WriteLine(eqGeneric.GetNonReference());
+
+            res.AssertNoGenerics();
+            res.AssertNamed(Primitive.Bool, "y");
+            Assert.AreEqual(Primitive.Real, arrayType.GetNonReference());
+        }
+        [Test]
         public void ImpossibleArgType_Throws()
         {
             //                 1  0

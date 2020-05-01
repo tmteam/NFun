@@ -129,7 +129,20 @@ namespace NFun.Tic.SolvingStates
             if(!TryAddAncestor(type))
                 throw new InvalidOperationException();
         }
+        public void AddDescedant(Primitive type)
+        {
 
+            if (type == null)
+                return;
+            if (Descedant == null)
+                Descedant = type;
+            else
+            {
+                var ancestor = Descedant.GetLastCommonAncestorOrNull(type);
+                if (ancestor != null)
+                    Descedant = ancestor;
+            }
+        }
         public void AddDescedant(IType type)
         {
             

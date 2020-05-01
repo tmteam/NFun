@@ -124,7 +124,7 @@ namespace NFun.Tic
             SetOrCreateLambda(lambdaId, args, returnTypeNode);
         }
 
-        public void SetArrayInit(int resultIds, params int[] elementIds)
+        public RefTo SetArrayInit(int resultIds, params int[] elementIds)
         {
             var elementType = CreateVarType();
             var resultNode = GetOrCreateArrayNode(resultIds, elementType);
@@ -134,6 +134,7 @@ namespace NFun.Tic
                 elementType.BecomeReferenceFor(GetOrCreateNode(id));
                 elementType.MemberOf.Add(resultNode);
             }
+            return new RefTo(elementType);
         }
 
         public void SetCall(IState[] argThenReturnTypes, int[] argThenReturnIds)

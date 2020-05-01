@@ -218,7 +218,17 @@ namespace Nfun.TryTicTests.TicTests
             var equalGenericType = result.GenericFunctionTypes.Where(g => g != null).Single();
             Assert.AreEqual(equalGenericType.Length,1);
             var state = equalGenericType[0];
-            TestHelper.AssertAreSame(Primitive.Any, state);
+            TestHelper.AssertAreSame(Array.Of(Primitive.Real), state);
+        }
+        [Test]
+        public void CompareArraysReversed_GenericTypeSolvedWell()
+        {
+            //y = []==[1.0]
+            var result = TestHelper.SolveAndGetResults("y = [1.0] ==[]");
+            var equalGenericType = result.GenericFunctionTypes.Where(g => g != null).Single();
+            Assert.AreEqual(equalGenericType.Length, 1);
+            var state = equalGenericType[0];
+            TestHelper.AssertAreSame(Array.Of(Primitive.Real), state);
         }
 
         [Test]

@@ -7,6 +7,7 @@
             Node = node;
         }
 
+        public IState GetNonReference() => Node.GetNonReference().State;
         public IState Element => Node.State; 
         public SolvingNode Node { get; }
         public override string ToString() => $"ref({Node.Name})";
