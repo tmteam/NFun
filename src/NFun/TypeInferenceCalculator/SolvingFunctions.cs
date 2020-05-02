@@ -395,7 +395,7 @@ namespace NFun.Tic
             if (descendant.State is Constrains constrainsDesc)
             {
                 constrainsDesc.AddAncestor(up);
-                return constrainsDesc.GetOptimizedOrThrow(); //descendant.State;
+                return constrainsDesc.GetOptimizedOrThrow();
             }
 
             throw new InvalidOperationException();
