@@ -77,7 +77,7 @@ namespace NFun.BuiltInFunctions
     public class AbsFunction : GenericFunctionBase
     {
         public AbsFunction() : base(
-            "abs",
+            id,
             GenericConstrains.SignedNumber,
             VarType.Generic(0), VarType.Generic(0))
         { }
@@ -92,34 +92,33 @@ namespace NFun.BuiltInFunctions
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-            return base.CreateConcrete(genericTypes);
         }
 
-        public override object Calc(object[] args) => args.Get<double>(0) + args.Get<double>(0);
+        private const string id = "abs";
+        public override object Calc(object[] args) => throw new InvalidOperationException();
         public class RealFunction : FunctionBase
         {
-            public RealFunction() : base(CoreFunNames.Negate, VarType.Real, VarType.Real) { }
+            public RealFunction() : base(id, VarType.Real, VarType.Real) { }
 
             public override object Calc(object[] args) => Math.Abs(args.Get<double>(0));
         }
         public class Int16Function : FunctionBase
         {
-            public Int16Function() : base(CoreFunNames.Negate, VarType.Int16, VarType.Int16) { }
+            public Int16Function() : base(id, VarType.Int16, VarType.Int16) { }
             public override object Calc(object[] args) => (short)Math.Abs(args.Get<short>(0));
         }
         public class Int32Function : FunctionBase
         {
-            public Int32Function() : base(CoreFunNames.Negate, VarType.Int32, VarType.Int32) { }
+            public Int32Function() : base(id, VarType.Int32, VarType.Int32) { }
             public override object Calc(object[] args) => Math.Abs(args.Get<int>(0));
         }
         public class Int64Function : FunctionBase
         {
-            public Int64Function() : base(CoreFunNames.Negate, VarType.Int64, VarType.Int64) { }
+            public Int64Function() : base(id, VarType.Int64, VarType.Int64) { }
             public override object Calc(object[] args) => Math.Abs(args.Get<long>(0));
         }
 
     }
-   
     public class InvertFunction : GenericFunctionBase
     {
         public InvertFunction() : base(
@@ -167,7 +166,6 @@ namespace NFun.BuiltInFunctions
     }
     public class AddFunction : GenericFunctionBase
     {
-
         public AddFunction(string name) : base(
             name, 
             GenericConstrains.Arithmetical, 
@@ -274,7 +272,7 @@ namespace NFun.BuiltInFunctions
         {
             public UInt8Function() : base(CoreFunNames.Substract, VarType.UInt16, VarType.UInt8, VarType.UInt8) { }
 
-            public override object Calc(object[] args) => (UInt16)(args.Get<byte>(0) - args.Get<byte>(1));
+            public override object Calc(object[] args) => (byte)(args.Get<byte>(0) - args.Get<byte>(1));
         }
         public class UInt16Function : FunctionBase
         {

@@ -19,6 +19,8 @@ namespace NFun.Interpritation.Functions
             = new GenericConstrains(Primitive.Real, Primitive.U24, false);
         public static readonly GenericConstrains Integers
             = new GenericConstrains(Primitive.I96, null, false);
+        public static readonly GenericConstrains Integers3264
+            = new GenericConstrains(Primitive.I96, Primitive.U24, false);
         public static readonly GenericConstrains Integers32
             = new GenericConstrains(Primitive.I48, null, false);
         public static readonly GenericConstrains SignedNumber

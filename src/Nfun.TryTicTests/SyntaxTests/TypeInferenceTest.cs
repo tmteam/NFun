@@ -15,18 +15,18 @@ namespace Funny.Tests
         {
             Assert.Pass();
         }
-        [TestCase("y = 2",BaseVarType.Int32)]
-        [TestCase("y = 2*3",BaseVarType.Int32)]
+        [TestCase("y = 0x2",BaseVarType.Int32)]
+        [TestCase("y = 0x2*3",BaseVarType.Int32)]
         [TestCase("y = 2**3",BaseVarType.Real)]
-        [TestCase("y = 2%3",BaseVarType.Int32)]
+        [TestCase("y = 0x2%3",BaseVarType.Int32)]
 
         [TestCase("y = 4/3",BaseVarType.Real)]
-        [TestCase("y = 4- 3",BaseVarType.Int32)]
-        [TestCase("y = 4+ 3",BaseVarType.Int32)]
+        [TestCase("y = 0x4- 3",BaseVarType.Int32)]
+        [TestCase("y = 0x4+ 3",BaseVarType.Int32)]
         [TestCase("z = 1 + 4/3 + 3 +2*3 -1", BaseVarType.Real)]
-        [TestCase("y = -2*-4",BaseVarType.Int32)]
-        [TestCase("y = -2*(-4+2)",BaseVarType.Int32)]
-        [TestCase("y = -(-(-1))",BaseVarType.Int32)]
+        [TestCase("y = -0x2*-4",BaseVarType.Int32)]
+        [TestCase("y = -2*(-4+0x2)",BaseVarType.Int32)]
+        [TestCase("y = -(-(-1.0))",BaseVarType.Real)]
 
         [TestCase("y = 0.2",BaseVarType.Real)]
         [TestCase("y = 1.1_11  ",BaseVarType.Real)]
@@ -325,11 +325,11 @@ namespace Funny.Tests
         [TestCase("y:int[]= [1,2,3].map(x->1)", new[]{1,1,1})] 
         [TestCase("y= [1,2,3].map(x->'hi')", new[]{"hi","hi","hi"})] 
         [TestCase("y= [true,true,false].map(x->'hi')", new[]{"hi","hi","hi"})] 
-        [TestCase("y:int[]= [1,2,3].filter(x->x>2)", new[]{3})] 
-        [TestCase("y:int[]= [1,2,3].reduce((x1,x2)->x1+x2)", 6)] 
-        [TestCase("y:int[]= [1,2,3].reduce((x1,x2)->1)", 1)] 
-        [TestCase("y:int[]= [1,2,3].reduce((x1,x2)->x1)", 1)] 
-        [TestCase("y:int[]= [1,2,3].reduce((x1,x2)->x1+1)", 3)] 
+        [TestCase("y:int= [1,2,3].filter(x->x>2)", new[]{3})] 
+        [TestCase("y:int= [1,2,3].reduce((x1,x2)->x1+x2)", 6)] 
+        [TestCase("y:int= [1,2,3].reduce((x1,x2)->1)", 1)] 
+        [TestCase("y:int= [1,2,3].reduce((x1,x2)->x1)", 1)] 
+        [TestCase("y:int= [1,2,3].reduce((x1,x2)->x1+1)", 3)] 
         public void ConstantTypedEquation(string expr, object y)
         {
             var runtime = FunBuilder.BuildDefault(expr);

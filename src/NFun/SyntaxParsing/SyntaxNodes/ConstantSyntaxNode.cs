@@ -19,6 +19,7 @@ namespace NFun.SyntaxParsing.SyntaxNodes
             Value = value;
         }
 
+        public string ClrTypeName => Value?.GetType().Name;
         public bool IsInBrackets { get; set; }
         public object Value { get; }
         public Interval Interval { get; set; }

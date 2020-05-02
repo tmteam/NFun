@@ -21,6 +21,8 @@ namespace NFun
             new BitAndFunction(),
             new BitXorFunction(),
             new BitInverseFunction(),
+            new BitShiftLeftFunction(),
+            new BitShiftRightFunction(),
 
             new InvertFunction(),
             new AbsFunction(),
@@ -42,6 +44,7 @@ namespace NFun
 
             new RangeFunction(),
             new RangeStepFunction(),
+            new MultiSumFunction(),
             // new ConcatArraysGenericFunctionDefenition(CoreFunNames.ArrConcat), 
             new ConcatArraysGenericFunctionDefenition("concat"),
 

@@ -184,9 +184,13 @@ namespace NFun.Interpritation
 
         public IExpressionNode Visit(ConstantSyntaxNode node)
         {
-            if (!node.StrictType && node.Value is long l)
-                return GenericNumber.CreateConcrete(node.Interval, l, node.OutputType);
-            return new ValueExpressionNode(node.Value, node.OutputType, node.Interval);
+            var typeConverter = new TypeInferenceOnlyConcreteInterpriter();
+            var type = typeConverter.Convert(_typeInferenceResults.SyntaxNodeTypes[node.OrderNumber]);
+
+            if(node.Value is long l) //¬се числа кроме u64 и real закодированы как логни
+                return ValueExpressionNode.CreateConcrete(type,  l, node.Interval);
+            else
+                return new ValueExpressionNode(node.Value, type, node.Interval);
         }
 
         public IExpressionNode Visit(ProcArrayInit node)

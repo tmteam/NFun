@@ -257,13 +257,13 @@ yPublic   = yprivate + xpublic";
                     VarVal.New("yPublic", 11.0));
         }
 
-        [TestCase(" y1 = [1,’2’,3,4]      # ошибка разбора")]
-        [TestCase(" y2 = [1,2.0,3,4]      # ошибка разбора")]
-        [TestCase(" x:real[] \r y = x.filter(x => x< 2 ) # ошибка разбора.")]
-        public void ObviousFails(string expr)
-        {
-            Assert.Throws<FunParseException>(() => FunBuilder.BuildDefault(expr));
-        }
+        //[TestCase(" y1 = [1,’2’,3,4]      # ошибка разбора")]
+        //[TestCase(" y2 = [1,2.0,3,4]      # ошибка разбора")]
+        //[TestCase(" x:real[] \r y = x.filter(x => x< 2 ) # ошибка разбора.")]
+        //public void ObviousFails(string expr)
+        //{
+        //    Assert.Throws<FunParseException>(() => FunBuilder.BuildDefault(expr));
+        //}
 
         //[TestCase(" y = toInt('string')")]
         //[TestCase(" y = toReal('string')")]

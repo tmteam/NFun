@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NFun.Interpritation.Functions;
-using NFun.Runtime;
 using NFun.Runtime.Arrays;
 using NFun.Types;
 
@@ -111,13 +110,89 @@ namespace NFun.BuiltInFunctions
 
     public class MultiSumFunction : GenericFunctionBase
     {
-        public MultiSumFunction() : base("sum", GenericConstrains.Arithmetical, VarType.Generic(0), VarType.ArrayOf(VarType.Generic(0)))
-        {
-
+        public const string id = "sum";
+        public MultiSumFunction() : base(id, GenericConstrains.Arithmetical, VarType.Generic(0), VarType.ArrayOf(VarType.Generic(0))){
         }
 
         public override object Calc(object[] args)
-            =>  throw new NotImplementedException("Generic sum need to be implemented");//((IFunArray)args[0]).As<int>().Sum();
+            =>  throw new NotSupportedException();        
+
+        public override FunctionBase CreateConcrete(VarType[] genericTypes)
+        {
+            switch (genericTypes[0].BaseType)
+            {
+                case BaseVarType.UInt16: return new UInt16Function();
+                case BaseVarType.UInt32: return new UInt32Function();
+                case BaseVarType.UInt64: return new UInt64Function();
+                case BaseVarType.Int16: return new Int16Function();
+                case BaseVarType.Int32: return new Int32Function();
+                case BaseVarType.Int64: return new Int64Function();
+                case BaseVarType.Real: return new RealFunction();
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        public class RealFunction : FunctionBase
+        {
+            public RealFunction() : base(id, VarType.Real, VarType.ArrayOf(VarType.Real)) { }
+
+            public override object Calc(object[] args) => ((IFunArray) args[0]).As<double>().Sum();
+        }
+        public class Int16Function : FunctionBase
+        {
+            public Int16Function() : base(id, VarType.Int16, VarType.ArrayOf(VarType.Int16)) { }
+            public override object Calc(object[] args)
+            {
+                short answer = 0;
+                foreach (var i in ((IFunArray)args[0]).As<short>())
+                    answer += i;
+                return answer;
+            }
+        }
+        public class Int32Function : FunctionBase
+        {
+            public Int32Function() : base(id, VarType.Int32, VarType.ArrayOf(VarType.Int32)) { }
+            public override object Calc(object[] args) => ((IFunArray) args[0]).As<int>().Sum();
+        }
+        public class Int64Function : FunctionBase
+        {
+            public Int64Function() : base(id, VarType.Int64, VarType.ArrayOf(VarType.Int64)) { }
+            public override object Calc(object[] args) => ((IFunArray) args[0]).As<long>().Sum();
+        }
+        public class UInt16Function : FunctionBase
+        {
+            public UInt16Function() : base(id, VarType.UInt16, VarType.ArrayOf(VarType.UInt16)) { }
+            public override object Calc(object[] args)
+            {
+                ushort answer = 0;
+                foreach (var i in ((IFunArray)args[0]).As<ushort>())
+                    answer += i;
+                return answer;
+            }
+        }
+        public class UInt32Function : FunctionBase
+        {
+            public UInt32Function() : base(id, VarType.UInt32, VarType.ArrayOf(VarType.UInt32)) { }
+            public override object Calc(object[] args)
+            {
+                uint answer = 0;
+                foreach (var i in ((IFunArray)args[0]).As<uint>())
+                    answer += i;
+                return answer;
+            }
+        }
+        public class UInt64Function : FunctionBase
+        {
+            public UInt64Function() : base(id, VarType.UInt64, VarType.ArrayOf(VarType.UInt64)) { }
+            public override object Calc(object[] args)
+            {
+                ulong answer = 0;
+                foreach (var i in ((IFunArray) args[0]).As<ulong>())
+                    answer += i;
+                return answer;
+            }
+        }
     }
 
    
