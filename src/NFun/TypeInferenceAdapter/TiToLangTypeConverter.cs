@@ -36,8 +36,19 @@ namespace NFun.TypeInferenceAdapter
                     {
                         switch (constrains.Ancestor.Name)
                         {
-                            case PrimitiveTypeName.I96: return VarType.Int64;
-                            case PrimitiveTypeName.I48: return VarType.Int32;
+                            case PrimitiveTypeName.I96:
+                            {
+                                if(constrains.HasDescendant || constrains.Descedant.CanBeImplicitlyConvertedTo(Primitive.I32))
+                                    return VarType.Int32;
+                                return VarType.Int64;
+                            }
+
+                            case PrimitiveTypeName.I48:
+                            {
+                                if (constrains.HasDescendant || constrains.Descedant.CanBeImplicitlyConvertedTo(Primitive.I32))
+                                    return VarType.Int32;
+                                return VarType.UInt32;
+                            }
                             case PrimitiveTypeName.U48: return VarType.UInt32;
                             case PrimitiveTypeName.U24: return VarType.UInt16;
                             case PrimitiveTypeName.U12: return VarType.UInt8;

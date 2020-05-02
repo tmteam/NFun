@@ -6,7 +6,8 @@ namespace NFun.SyntaxParsing.Visitors
 {
     public class ShortDescritpionVisitor: ISyntaxNodeVisitor<string>
     {
-      
+        public void SetChildrenNumber(ISyntaxNode parent, int num) { }
+
         public string Visit(AnonymCallSyntaxNode anonymFunNode) => "(..)=>..";
         public string Visit(ArraySyntaxNode node) =>"[...]";
         public string Visit(EquationSyntaxNode node) => $"{node.Id} = ... ";

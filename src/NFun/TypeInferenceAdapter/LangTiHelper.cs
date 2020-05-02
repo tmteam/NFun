@@ -21,9 +21,9 @@ namespace NFun.TypeInferenceAdapter
             SetupTiState state = null)
         {
             var solver = state?.CurrentSolver??new GraphBuilder();
-            var visitorState = state??new SetupTiState(solver);
-            var enterVisitor = new SetupTiEnterVisitor(visitorState);
-            var exitVisitor = new SetupTiExitVisitor(visitorState, dictionary, resultsBuilder);
+            var tiState = state??new SetupTiState(solver);
+            var enterVisitor = new SetupTiEnterVisitor(tiState, dictionary, resultsBuilder);
+            var exitVisitor = new SetupTiExitVisitor(tiState,   dictionary, resultsBuilder);
             if (syntaxNode.ComeOver(enterVisitor, exitVisitor)) 
                 return solver;
             return null;
@@ -38,12 +38,16 @@ namespace NFun.TypeInferenceAdapter
         public static string GetFunAlias(this UserFunctionDefenitionSyntaxNode syntaxNode)
             => GetFunAlias(syntaxNode.Id, syntaxNode.Args.Count);
 
-        public static IState GetHmFunctionalType(this FunctionBase functionBase)
+        public static IState GetTicFunType(this IFunctionSignature functionBase)
         {
             return Fun.Of(
                 functionBase.ArgTypes.Select(a => a.ConvertToTiType()).ToArray(),
                 functionBase.ReturnType.ConvertToTiType());
         }
+        public static IState GetTicFunType(this GenericFunctionBase functionBase, RefTo[] genericMap) =>
+            Fun.Of(
+                functionBase.ArgTypes.Select(a => a.ConvertToTiType(genericMap)).ToArray(),
+                functionBase.ReturnType.ConvertToTiType(genericMap));
 
         public static Primitive ConvertToTiType(this BaseVarType baseVarType)
         {

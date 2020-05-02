@@ -280,5 +280,20 @@ namespace Nfun.TryTicTests.TicTests
             result.AssertNamed(Array.Of(generic), "y");
             result.AssertAreGenerics(generic, "x");
         }
+        [Test]
+        public void FilterComparable()
+        {
+            var result = TestHelper.Solve("y:int[]= [1,2,3].filter(x->x>2)");
+            result.AssertNoGenerics();
+            result.AssertNamed(Array.Of(Primitive.I32),"y");
+        }
+        [Test]
+        public void HiOrderMap()
+        {
+            var result = TestHelper.Solve("y = '12'.map(toText)");
+            result.AssertNoGenerics();
+            result.AssertNamed(Array.Of(Array.Of(Primitive.Char)), "y");
+        }
+        
     }
 }

@@ -456,7 +456,14 @@ namespace NFun.ParseErrors
                 $"Function {TypeHelper.GetFunSignature(node.Id,node.OutputType, node.Children.Select(c=>c.OutputType))} is not defined",
                 node.Interval);
         }
-        
+        public static Exception FunctionOverloadNotFound(VariableSyntaxNode node, FunctionDictionary functions)
+        {
+
+            return new FunParseException(533,
+                $"Function {TypeHelper.GetFunSignature(node.Id, node.OutputType, node.Children.Select(c => c.OutputType))} is not defined",
+                node.Interval);
+        }
+
         public static Exception OperatorOverloadNotFound(FunCallSyntaxNode node, ISyntaxNode failedArg)
         {
             return new FunParseException(536,

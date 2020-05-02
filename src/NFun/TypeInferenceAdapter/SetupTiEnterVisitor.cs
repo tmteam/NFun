@@ -1,3 +1,4 @@
+using NFun.Interpritation;
 using NFun.ParseErrors;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
@@ -8,12 +9,33 @@ namespace NFun.TypeInferenceAdapter
     public class SetupTiEnterVisitor: EnterVisitorBase
     {
         private readonly SetupTiState _setupTiState;
+        private readonly FunctionDictionary _dictionary;
+        private readonly TypeInferenceResultsBuilder _resultsBuilder;
 
-        public SetupTiEnterVisitor(SetupTiState setupTiState)
+        public SetupTiEnterVisitor(
+            SetupTiState setupTiState, 
+            FunctionDictionary dictionary, 
+            TypeInferenceResultsBuilder resultsBuilder)
         {
             _setupTiState = setupTiState;
+            _dictionary = dictionary;
+            _resultsBuilder = resultsBuilder;
         }
 
+        public override VisitorEnterResult Visit(FunCallSyntaxNode node)
+        {
+            //Мы должны найти сигнатуру функции для указанного узла на входе
+            //для того чтобы вложенные аргументы
+            //знали что выбирать - переменную или функцию - исходя из сигнатуры 
+            //внешней функции
+
+            var signature = _dictionary.GetOrNull(node.Id, node.Args.Length);
+            if (signature == null)
+                throw ErrorFactory.FunctionOverloadNotFound(node, _dictionary);
+            _resultsBuilder.SetFunction(node.OrderNumber, signature);
+
+            return VisitorEnterResult.Continue;
+        }
         public override VisitorEnterResult Visit(UserFunctionDefenitionSyntaxNode node) 
             => VisitorEnterResult.Skip;
         

@@ -45,7 +45,7 @@ namespace Nfun.TryTicTests.TicTests
 
             var graph = new GraphBuilder();
             var state = new SetupTiState(graph);
-            var enterVisitor = new SetupTiEnterVisitor(new SetupTiState(graph));
+            var resultsBuilder = new TypeInferenceResultsBuilder();
 
             var functions = new FunctionDictionary();
             foreach (var predefinedFunction in BaseFunctions.ConcreteFunctions)
@@ -53,8 +53,8 @@ namespace Nfun.TryTicTests.TicTests
             foreach (var predefinedFunction in BaseFunctions.GenericFunctions)
                 functions.Add(predefinedFunction);
 
-
-            var exitVisitor = new SetupTiExitVisitor(state, functions,new TypeInferenceResultsBuilder());
+            var enterVisitor = new SetupTiEnterVisitor(state, functions, resultsBuilder);
+            var exitVisitor = new SetupTiExitVisitor(state, functions, resultsBuilder);
             tree.ComeOver(enterVisitor, exitVisitor);
             return graph.Solve();
         }
@@ -69,7 +69,6 @@ namespace Nfun.TryTicTests.TicTests
 
             var graph = new GraphBuilder();
             var state = new SetupTiState(graph);
-            var enterVisitor = new SetupTiEnterVisitor(new SetupTiState(graph));
 
             var functions = new FunctionDictionary();
             foreach (var predefinedFunction in BaseFunctions.ConcreteFunctions)
@@ -78,6 +77,7 @@ namespace Nfun.TryTicTests.TicTests
                 functions.Add(predefinedFunction);
 
             var resultsBuilder = new TypeInferenceResultsBuilder();
+            var enterVisitor = new SetupTiEnterVisitor(state, functions, resultsBuilder);
             var exitVisitor = new SetupTiExitVisitor(state, functions, resultsBuilder);
             tree.ComeOver(enterVisitor, exitVisitor);
             var res =  graph.Solve();

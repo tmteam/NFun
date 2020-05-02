@@ -205,10 +205,10 @@ namespace Funny.Tests
         //            y(n) = [1..n].map(div13).sum()")]
         //[TestCase(@"div14(x:real):real = 2600/x
         //            y(n) = [1..n].map(div14).sum()")]
-        [TestCase(
-            @"input:int[]
-            dsame15(x:real):real = x
-            y = input.map(dsame15)")]
+        //[TestCase(
+        //    @"input:int[]
+        //    dsame15(x:real):real = x
+        //    y = input.map(dsame15)")]
         [TestCase("y = x * -x")]
         [TestCase("y = -x * x")]
         [TestCase("y = [-x,x]")]
@@ -325,7 +325,7 @@ namespace Funny.Tests
         [TestCase("y:int[]= [1,2,3].map(x->1)", new[]{1,1,1})] 
         [TestCase("y= [1,2,3].map(x->'hi')", new[]{"hi","hi","hi"})] 
         [TestCase("y= [true,true,false].map(x->'hi')", new[]{"hi","hi","hi"})] 
-        [TestCase("y:int= [1,2,3].filter(x->x>2)", new[]{3})] 
+        [TestCase("y:int[]= [1,2,3].filter(x->x>2)", new[]{3})] 
         [TestCase("y:int= [1,2,3].reduce((x1,x2)->x1+x2)", 6)] 
         [TestCase("y:int= [1,2,3].reduce((x1,x2)->1)", 1)] 
         [TestCase("y:int= [1,2,3].reduce((x1,x2)->x1)", 1)] 
@@ -386,7 +386,7 @@ namespace Funny.Tests
         [TestCase("uint32", "&", BaseVarType.UInt32)]
         [TestCase("uint64", "&", BaseVarType.UInt64)]
         //[TestCase("int8", "&", BaseVarType.Int8)]
-        //[TestCase("int16", "&", BaseVarType.Int16)]
+        [TestCase("int16", "&", BaseVarType.Int16)]
         [TestCase("int", "&", BaseVarType.Int32)]
         [TestCase("int32", "&", BaseVarType.Int32)]
         [TestCase("int64", "&", BaseVarType.Int64)]
@@ -396,7 +396,7 @@ namespace Funny.Tests
         [TestCase("uint32", "|", BaseVarType.UInt32)]
         [TestCase("uint64", "|", BaseVarType.UInt64)]
         //[TestCase("int8", "|", BaseVarType.Int8)]
-        //[TestCase("int16", "|", BaseVarType.Int16)]
+        [TestCase("int16", "|", BaseVarType.Int16)]
         [TestCase("int", "|", BaseVarType.Int32)]
         [TestCase("int32", "|", BaseVarType.Int32)]
         [TestCase("int64", "|", BaseVarType.Int64)]
@@ -407,7 +407,7 @@ namespace Funny.Tests
         [TestCase("uint32", "^", BaseVarType.UInt32)]
         [TestCase("uint64", "^", BaseVarType.UInt64)]
         //[TestCase("int8", "^", BaseVarType.Int8)]
-        //[TestCase("int16", "^", BaseVarType.Int16)]
+        [TestCase("int16", "^", BaseVarType.Int16)]
         [TestCase("int", "^", BaseVarType.Int32)]
         [TestCase("int32", "^", BaseVarType.Int32)]
         [TestCase("int64", "^", BaseVarType.Int64)]

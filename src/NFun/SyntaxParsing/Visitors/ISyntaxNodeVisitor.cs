@@ -4,6 +4,8 @@ namespace NFun.SyntaxParsing.Visitors
 {
     public interface ISyntaxNodeVisitor<T>
     {
+        void SetChildrenNumber(ISyntaxNode parent, int num);
+
         T Visit(AnonymCallSyntaxNode anonymFunNode);
         T Visit(ArraySyntaxNode node);
         T Visit(EquationSyntaxNode node);

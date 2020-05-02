@@ -512,7 +512,7 @@ namespace NFun.SyntaxParsing
                     if (!flow.MoveIf(TokType.ArrCBr, out var closeBracket))
                         throw ErrorFactory.ArrayIntervalInitializeCbrMissed(openBracket, flow.Current, true);
                     return SyntaxNodeFactory.OperatorFun(
-                        name:     CoreFunNames.RangeStepName,
+                        name:     CoreFunNames.RangeName,
                         children: new[] {list[0], secondArg, thirdArg}, 
                         start:    openBracket.Start, 
                         end:      closeBracket.Finish);

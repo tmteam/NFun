@@ -99,7 +99,7 @@ namespace NFun.Tic
             else
                 throw new InvalidOperationException();
         }
-
+        
         public void SetArrayConst(int id, Primitive elementType)
         {
             var eNode = CreateVarType(elementType);
@@ -280,7 +280,17 @@ namespace NFun.Tic
             foreach (var node in allNodes)
                 ReqPrintNode(node);
         }
-
+        public IState GetNodeStateOrNull(int id)
+        {
+            if (_syntaxNodes.Count <= id)
+                return null;
+            var node = _syntaxNodes[id];
+            if (node == null)
+                return null;
+            if (node.State is RefTo)
+                return null;
+            return node.State;
+        }
         public FinalizationResults Solve()
         {
             PrintTrace();
@@ -417,5 +427,6 @@ namespace NFun.Tic
         }
 
 
+       
     }
 }

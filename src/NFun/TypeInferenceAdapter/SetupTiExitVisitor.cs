@@ -104,25 +104,14 @@ namespace NFun.TypeInferenceAdapter
         public override bool Visit(FunCallSyntaxNode node)
         {
             Trace(node, $"Call {node.Id}({string.Join(",", node.Args.Select(a=>a.OrderNumber))})");
-         
-            var signature = _dictionary.GetOrNull(node.Id, node.Args.Length);
-            if(signature==null)
-                throw ErrorFactory.FunctionOverloadNotFound(node, _dictionary);
+
+            var signature = _resultsBuilder.GetSignatureOrNull(node.OrderNumber);
+
             RefTo[] genericTypes;
             if (signature is GenericFunctionBase t)
             {
-                var defenitions = t.GenericDefenitions;
-                genericTypes = new RefTo[defenitions.Length];
-                for (int i = 0; i < defenitions.Length; i++)
-                {
-                    var def = defenitions[i];
-                    genericTypes[i] = _state.CurrentSolver.InitializeVarNode(
-                        def.Descendant,
-                        def.Ancestor,
-                        def.IsComparable);
-
-                }
-                _resultsBuilder.SetGenericFunctionTypes(node.OrderNumber, genericTypes);
+                genericTypes = InitializeGenericTypes(t.GenericDefenitions);
+                _resultsBuilder.SetGenericTypes(node.OrderNumber, genericTypes);
             }
             else genericTypes = new RefTo[0];
             
@@ -134,77 +123,15 @@ namespace NFun.TypeInferenceAdapter
                 ids[i] = node.Args[i].OrderNumber;
             }
             types[types.Length - 1] = signature.ReturnType.ConvertToTiType(genericTypes);
-            ids[types.Length - 1] = node.OrderNumber;
+            ids[types.Length - 1]   = node.OrderNumber;
 
             _state.CurrentSolver.SetCall(types, ids);
             return true;
-           
-            //
-            //node.SignatureOfOverload
-            //if (node.IsOperator && HandleOperatorFunction(node, out var result))
-            //{
-            //    if (!result.IsSuccesfully)
-            //        ThrowInvalidOperatorCall(node, result);
-            //    return true;
-            //}
-            //var argsCount = node.Args.Length;
-
-            ////check for recursion call
-            //var funAlias = LangTiHelper.GetFunAlias(node.Id, argsCount) ;
-
-            //var funType = _state.CurrentSolver.GetOrNull(funAlias);
-            //if (funType != null && funType.Name.Id == TiTypeName.FunId 
-            //                    && funType.Arguments.Length-1 == node.Args.Length)
-            //{
-            //    //Recursive function call. We don't know its signature yet. That's why we set "functional variable",
-            //    //instead of usual function call
-            //    var res =  _state.CurrentSolver.SetInvoke(node.OrderNumber, funAlias,
-            //        node.Args.Select(a => a.OrderNumber).ToArray());
-            //    return res;
-            //} 
-
-            //var candidates = _dictionary.GetNonGeneric(node.Id).Where(n=>n.ArgTypes.Length == argsCount).ToList();
-
-            //if (candidates.Count == 0)
-            //{
-            //    var genericCandidate = _dictionary.GetGenericOrNull(node.Id, argsCount);
-            //    if (genericCandidate == null)
-            //        throw ErrorFactory.FunctionOverloadNotFound(node, _dictionary);
-
-            //    var callDef = ToCallDef(node, genericCandidate);
-            //    if (!_state.CurrentSolver.SetCall(callDef))
-            //        throw ErrorFactory.TypesNotSolved(node);
-            //    return true;
-            //}
-
-            //if (candidates.Count == 1)
-            //{
-            //    if (_state.CurrentSolver.SetCall(ToCallDef(node, candidates[0])))
-            //        return true;
-
-            //    throw ErrorFactory.TypesNotSolved(node);
-            //}
-
-            ////User functions get priority
-            //var userFunctions = candidates.Where(c => c is ConcreteUserFunctionPrototype).ToList();
-            //if (userFunctions.Count == 1)
-            //    return _state.CurrentSolver.SetCall(ToCallDef(node, userFunctions[0]));
-
-            //return _state.CurrentSolver.SetOverloadCall(candidates.Select(ToFunSignature).ToArray(), node.OrderNumber,
-            //    node.Args.Select(a => a.OrderNumber).ToArray());
         }
-
-        //private void ThrowInvalidOperatorCall(FunCallSyntaxNode node, SetTypeResult result)
-        //{
-        //    if (result.FailedNodeId == node.OrderNumber)
-        //        throw ErrorFactory.TypesNotSolved(node);
-        //    var failedArg = node.Args.First(a => a.OrderNumber == result.FailedNodeId);
-        //    throw ErrorFactory.OperatorOverloadNotFound(node, failedArg);
-        //}
 
         public override bool Visit(IfThenElseSyntaxNode node)
         {
-            var conditions = node.Ifs.Select(i => i.Condition.OrderNumber).ToArray();
+            var conditions  = node.Ifs.Select(i => i.Condition.OrderNumber).ToArray();
             var expressions = node.Ifs.Select(i => i.Expression.OrderNumber).Append(node.ElseExpr.OrderNumber).ToArray();
             Trace(node,$"if({string.Join(",",conditions)}): {string.Join(",",expressions)}");
             _state.CurrentSolver.SetIfElse(
@@ -212,7 +139,6 @@ namespace NFun.TypeInferenceAdapter
                 expressions,
                 node.OrderNumber);
             return true;
-
         }
 
         public override bool Visit(ConstantSyntaxNode node)
@@ -288,69 +214,66 @@ namespace NFun.TypeInferenceAdapter
             return true;
         }
 
-       
-
-        public override  bool Visit(VariableSyntaxNode node)
+        public override bool Visit(VariableSyntaxNode node)
         {
             Trace(node,$"VAR {node.Id} ");
+            //Нужно узнать у Tic - что именно ожидается - переменная или функция
+            //Если функция - то сколько в ней аргументов
+            VarType argType = VarType.Empty;
+            if (Parent is FunCallSyntaxNode parentCall)
+            {
+                var parentSignature = _resultsBuilder.GetSignatureOrNull(parentCall.OrderNumber);
+                if(parentSignature!=null)
+                    argType = parentSignature.ArgTypes[CurrentChildNumber];
+            }
+            
+            if (argType.BaseType== BaseVarType.Fun)
+            {
+                //В качестве аргумента ожидается функция
+                var argsCount = argType.FunTypeSpecification.Inputs.Length;
+                var signature = _dictionary.GetOrNull(node.Id, argsCount);
+                if (signature == null)
+                    throw ErrorFactory.FunctionOverloadNotFound(node, _dictionary);
+                if (signature is GenericFunctionBase generic)
+                {
+                    var generics =InitializeGenericTypes(generic.GenericDefenitions);
+                    _resultsBuilder.SetGenericTypes(node.OrderNumber, generics);
 
+                    _state.CurrentSolver.SetVarType($"g'{argsCount}'{node.Id}", generic.GetTicFunType(generics));
+                    _state.CurrentSolver.SetVar($"g'{argsCount}'{node.Id}", node.OrderNumber);
+                    
+                }
+                else
+                {
+                    _state.CurrentSolver.SetVarType($"f'{argsCount}'{node.Id}", signature.GetTicFunType());
+                    _state.CurrentSolver.SetVar($"f'{argsCount}'{node.Id}",node.OrderNumber);
+                }
+
+                _resultsBuilder.SetFunctionalVariable(node.OrderNumber, signature);
+                return true;
+            }
+            //ищем обычную переменную
             var localId = _state.GetActualName(node.Id);
             _state.CurrentSolver.SetVar(localId, node.OrderNumber);
             return true;
-
-            //var originId = node.Id;
-
-            //var localId = _state.GetActualName(node.Id);
-            //if (_state .CurrentSolver.HasVariable(localId))
-            //    return _state.CurrentSolver.SetVar(node.OrderNumber, localId);
-
-            //if (_state.CurrentSolver.HasVariable(originId))
-            //    return _state.CurrentSolver.SetVar(node.OrderNumber, originId);
-
-            //var userFunctions 
-            //    = _dictionary.GetNonGeneric(originId).OfType<ConcreteUserFunctionPrototype>().ToList();
-
-            ////ambiguous function reference
-            ////Several functions fits
-            //if (userFunctions.Count > 1)
-            //    throw ErrorFactory.AmbiguousFunctionChoise(node);
-
-            ////if there is no functions - set variable with local name
-            //if (userFunctions.Count == 0)
-            //    return _state.CurrentSolver.SetVar(node.OrderNumber, localId);
-
-            ////Make fun variable:
-            //_state.CurrentSolver.SetVarType(
-            //    originId,
-            //    userFunctions[0].GetHmFunctionalType());
-            //return _state.CurrentSolver.SetVar(node.OrderNumber, originId);
         }
 
-
-        //private static TiFunctionSignature ToFunSignature(FunctionBase fun) 
-        //    => new TiFunctionSignature( fun.ReturnType.ConvertToTiType(), 
-        //            fun.ArgTypes.Select(LangTiHelper.ConvertToTiType).ToArray());
-
-        //private static CallDefinition ToCallDef(FunCallSyntaxNode node, FunctionBase fun)
-        //{
-        //    var ids = new[] {node.OrderNumber}.Concat(node.Args.Select(a => a.OrderNumber)).ToArray();
-        //    var types = new[] {fun.ReturnType}.Concat(fun.ArgTypes).Select(LangTiHelper.ConvertToTiType).ToArray();
-
-        //    var callDef = new CallDefinition(types, ids);
-        //    return callDef;
-        //}
-        //private static CallDefinition ToCallDef(FunCallSyntaxNode node, GenericFunctionBase fun)
-        //{
-        //    var ids = new[] {node.OrderNumber}.Concat(node.Args.Select(a => a.OrderNumber)).ToArray();
-        //    var types = new[] {fun.ReturnType}.Concat(fun.ArgTypes).Select(LangTiHelper.ConvertToTiType).ToArray();
-
-        //    var callDef = new CallDefinition(types, ids);
-        //    return callDef;
-        //}
         private void Trace(ISyntaxNode node, string text) =>
             Console.WriteLine($"Exit:{node.OrderNumber}. {text} ");
-     
+        private RefTo[] InitializeGenericTypes(GenericConstrains[] constrains)
+        {
+            var genericTypes = new RefTo[constrains.Length];
+            for (int i = 0; i < constrains.Length; i++)
+            {
+                var def = constrains[i];
+                genericTypes[i] = _state.CurrentSolver.InitializeVarNode(
+                    def.Descendant,
+                    def.Ancestor,
+                    def.IsComparable);
+            }
 
+            return genericTypes;
+        }
     }
 
 }

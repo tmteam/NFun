@@ -21,6 +21,7 @@ namespace NFun.Interpritation
         private readonly FunctionDictionary _functions;
         private readonly VariableDictionary _variables;
         private readonly TypeInferenceResults _typeInferenceResults;
+        public void SetChildrenNumber(ISyntaxNode parent, int num) { }
 
         public static IExpressionNode BuildExpression(
             ISyntaxNode node, 
@@ -52,6 +53,7 @@ namespace NFun.Interpritation
             _variables = variables;
             _typeInferenceResults = typeInferenceResults;
         }
+
 
 
         public IExpressionNode Visit(AnonymCallSyntaxNode anonymFunNode)
@@ -245,6 +247,24 @@ namespace NFun.Interpritation
             => node.Accept(this);
         private IExpressionNode GetOrAddVariableNode(VariableSyntaxNode varNode)
         {
+            var funVariable = _typeInferenceResults.GetFunctionalVariableOrNull(varNode.OrderNumber);
+            if (funVariable != null)
+            {
+                if (funVariable is GenericFunctionBase generic)
+                {
+                    var genericTypes = _typeInferenceResults.GetGenericFunctionTypes(varNode.OrderNumber);
+                    if (genericTypes == null)
+                        throw new ImpossibleException($"MJ79. Generic function is missed at {varNode.OrderNumber}:  {varNode.Id}`{generic.Name} ");
+                    var converter = new TypeInferenceOnlyConcreteInterpriter();
+                    var genericArgs = genericTypes.Select(g => converter.Convert(g)).ToArray();
+                    var function = generic.CreateConcrete(genericArgs); //todo generic types
+                    return new FunVariableExpressionNode(function, varNode.Interval);
+
+                }
+                else if (funVariable is FunctionBase concrete)
+                    return new FunVariableExpressionNode(concrete, varNode.Interval);
+            }
+            
             var lower = varNode.Id;
             if (_variables.GetSourceOrNull(lower) == null)
             {

@@ -8,22 +8,24 @@ using NFun.Types;
 
 namespace NFun.BuiltInFunctions
 {
-    public class MapFunction : GenericFunctionBase
+    public class AverageFunction : FunctionBase
     {
-        public MapFunction() : base("map",
-            VarType.ArrayOf(VarType.Generic(1)),
-            VarType.ArrayOf(VarType.Generic(0)),
-            VarType.Fun(VarType.Generic(1), VarType.Generic(0)))
+        public AverageFunction() : base("avg", VarType.Real, VarType.ArrayOf(VarType.Real)) { }
+        public override object Calc(object[] args) =>
+            ((IFunArray)args[0]).As<double>().Average();
+    }
+
+
+
+    public class CountFunction : FunctionBase
+    {
+        public CountFunction() : base("count", VarType.Int32, VarType.ArrayOf(VarType.Anything))
         {
+
         }
 
         public override object Calc(object[] args)
-        {
-            var arr = (IFunArray)args[0];
-            var map = args[1] as FunctionBase;
-
-            var res = ImmutableFunArray.By(arr.Select(a => map.Calc(new[] { a })));
-            return res;
-        }
+            => ((IFunArray)args[0]).Count;
     }
+    
 }

@@ -53,7 +53,11 @@ namespace Funny.Tests
         [TestCase("y = 'pre1{'pre2{2-2}after2'}after1'", "pre1pre20after2after1")]
         [TestCase("y = 'pre1 {'inside'} after1'", "pre1 inside after1")]
         [TestCase("y = 'pre'.concat((1+2).toText())","pre3")]
+        [TestCase("y = 'ab'.concat(toText(1+2))", "ab3" )]
+        [TestCase("y = 'a b '.concat(toText(1+2)).split(' ')", new[] { "a", "b", "3" })]
         [TestCase("y = 'a b '.concat((1+2).toText()).split(' ')", new[]{"a","b","3"})]
+        [TestCase("y = 'a b c'.split(' ')", new[] { "a", "b", "c" })]
+
         public void TextConstantEquation(string expr, object expected) =>
             FunBuilder
                 .BuildDefault(expr)

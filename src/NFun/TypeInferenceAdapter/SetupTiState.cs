@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using NFun.Interpritation.Functions;
 using NFun.Tic;
 
 namespace NFun.TypeInferenceAdapter
@@ -10,6 +11,18 @@ namespace NFun.TypeInferenceAdapter
     {
         private readonly AliasTable _aliasTable;
 
+        private Stack<IFunctionSignature> _functionsCall = new Stack<IFunctionSignature>();
+        public void EnterFunction(IFunctionSignature signature) 
+            => _functionsCall.Push(signature);
+
+        public IFunctionSignature GetCurrentFunctionSignatureOrNull()
+        {
+            if (_functionsCall.Count == 0)
+                return null;
+            return _functionsCall.Peek();
+        }
+        public IFunctionSignature ExitFunction() => _functionsCall.Pop();
+
         public SetupTiState(GraphBuilder globalSolver)
         {
             CurrentSolver = globalSolver;
@@ -18,13 +31,6 @@ namespace NFun.TypeInferenceAdapter
 
         public GraphBuilder CurrentSolver { get; }
 
-        //public SolvingNode CreateTypeNode(VarType type)
-        //{
-        //    if (type.BaseType == BaseVarType.Empty)
-        //        return CurrentSolver.MakeGeneric();
-        //    return SolvingNode.CreateStrict(type.ConvertToTiType());
-        //}
-        
         public string GetActualName(string varName) 
             => _aliasTable.GetVariableAlias(varName);
 
