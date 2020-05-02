@@ -203,7 +203,8 @@ namespace NFun.Tic
 
             if (exprNode.State is Primitive primitive && defNode.State is Constrains constrains)
                     constrains.Prefered = primitive;
-            defNode.BecomeAncestorFor(exprNode);
+
+            exprNode.Ancestors.Add(defNode);
         }
         #endregion
         public SolvingNode[] Toposort()

@@ -213,7 +213,28 @@ namespace NFun.Tic.Tests.Arrays
             result.AssertNamed(Array.Of(Array.Of(Primitive.I32)), "x");
             result.AssertNamed(Primitive.Real, "y");
         }
-
+        [Test(Description = "x:int[]; y:i16 = x[0]")]
+        public void OneDimention_ImpossibleConcreteArgAndDef()
+        {
+            //                  2  0,1 
+            //x:int[]; y:i16 = get(x,0) 
+            var graph = new GraphBuilder();
+            graph.SetVarType("x", Array.Of(Primitive.I32));
+            graph.SetVar("x", 0);
+            graph.SetConst(1, Primitive.I32);
+            graph.SetArrGetCall(0, 1, 2);
+            try
+            {
+                graph.SetVarType("y", Primitive.I16);
+                graph.SetDef("y", 2);
+                graph.Solve();
+                Assert.Fail();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+        }
         [Test(Description = "x:int[][]; y:i16 = x[0][0]")]
         public void TwoDimentions_ImpossibleConcreteArgAndDef()
         {

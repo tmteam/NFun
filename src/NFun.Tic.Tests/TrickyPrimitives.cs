@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 
@@ -304,7 +305,22 @@ namespace NFun.Tic.Tests
             Assert.AreEqual(Primitive.Real, generic.GetNonReference());
         }
 
-
+        [Test(Description = "y:int = 1.0")]
+        public void Downcast_Throws()
+        {
+            //node |         0
+            //expr |y:int = 1.0 
+            var graph = new GraphBuilder();
+            graph.SetConst(0, Primitive.Real);
+            graph.SetVarType("y", Primitive.I32);
+            try
+            {
+                graph.SetDef("y", 0);
+                graph.Solve();
+                Assert.Fail();
+            }
+            catch(Exception e) {Console.WriteLine(e); }
+        }
 
     }
 }
