@@ -146,10 +146,10 @@ namespace Funny.Tests
         [TestCase("abs(-0x1)", 1)]
         [TestCase("abs(1.0)",1.0)]
         [TestCase("abs(-1.0)",1.0)]
-        [TestCase("sum(1,2)",3)]
-        [TestCase("sum(sum(1,2),sum(3,4))",10)]
+        [TestCase("add(0x1,2)",3)]
+        [TestCase("add(add(1,2),add(0x3,4))",10)]
         [TestCase("abs(0x1-0x4)", 3)]
-        [TestCase("15 - sum(abs(1-4), 7)",5)]
+        [TestCase("15 - add(abs(1-4), 0x7)",5)]
         [TestCase("pi()",Math.PI)]
         [TestCase("e()",Math.E)]
         [TestCase("sqrt(0x0)", 0.0)]
@@ -200,8 +200,8 @@ namespace Funny.Tests
         [TestCase("count([[1,2],[3,4]])",2)]
         [TestCase("avg([1,2,3])",2.0)]
         [TestCase("avg([1.0,2.0,6.0])",3.0)]
-        [TestCase("sum([1.0,2,3])",6.0)]
-        [TestCase("sum([1.0,2.5,6.0])",9.5)]
+        [TestCase("add([1.0,2,3])",6.0)]
+        [TestCase("add([1.0,2.5,6.0])",9.5)]
         [TestCase("max([1.0,10.5,6.0])",10.5)]
         [TestCase("max([1,-10,0.0])",1.0)]
         [TestCase("max(1.0,3.4)",3.4)]
@@ -218,7 +218,7 @@ namespace Funny.Tests
         [TestCase("[1..10].filter(i->i>10).any()", false)]
 
         [TestCase("any([])",false)]
-        [TestCase("[4,3,5,1].sort()",new []{1,3,4,5})]
+        [TestCase("[0x4,0x3,0x5,0x1].sort()",new []{1,3,4,5})]
         [TestCase("[4.0,3.0,5.0,1.0].sort()",new []{1.0,3.0,4.0,5.0})]
         [TestCase("['4.0','3.0','5.0','1.0'].sort()",new []{"1.0","3.0","4.0","5.0"})]
         [TestCase("range(0,5)",new []{0,1,2,3,4,5})]
@@ -231,7 +231,7 @@ namespace Funny.Tests
                 .AssertReturns(0.00001, VarVal.New("out", expected));
         }
         
-        [TestCase((long)42, "x:int64\r y = x.sum(1)", (long)43)]
+        [TestCase((long)42, "x:int64\r y = x.add(1)", (long)43)]
         [TestCase((long)42, "x:int64\r y = max(1,x)", (long)42)]
         [TestCase((long)42, "x:int64\r y = min(1,x)", (long)1)]
         [TestCase((long)42, "x:int64\r y = min(100,x)", (long)42)]
@@ -243,10 +243,9 @@ namespace Funny.Tests
         }
     
         
-        //todo hi fun overloads selector
-        //[TestCase("y = [0,7,1,2,3] . fold(max)", 7)]
-        //[TestCase("y = [0,7,1,2,3] . fold(sum)", 7)]
-        //[TestCase("y = [0.0,7.0,1.0,2.0,3.0] . fold(sum)", 7.0)]
+        [TestCase("y = [0,7,1,2,3] . fold(max)", 7)]
+        [TestCase("y = [0,7,1,2,3] . fold(sum)", 7)]
+        [TestCase("y = [0.0,7.0,1.0,2.0,3.0] . fold(sum)", 7.0)]
 
         //[TestCase("mysum(x:int, y:int):int = x+y \r" +
         //          "y = [0,7,1,2,3].reduce(mysum)", 13)]
@@ -413,9 +412,9 @@ namespace Funny.Tests
         [TestCase("y = abs(x)",1.0,1.0)]
 
         [TestCase("y = abs(-x)",-1.0,1.0)]
-        [TestCase("y = sum(x,2)",1,3)]
-        [TestCase("y = sum(1,x)",2,3)]
-        [TestCase("y = sum(sum(x,x),sum(x,x))",1.0,4.0)]
+        [TestCase("y = add(x,2)",1,3)]
+        [TestCase("y = add(1,x)",2,3)]
+        [TestCase("y = add(add(x,x),add(x,x))",1.0,4.0)]
         [TestCase("y = abs(x-4.0)",1.0,3.0)]
        // [TestCase("x:int; y = abs(toInt(x)-toInt(4))",1,3)]
         [TestCase("y = abs(x-4)",1.0,3.0)]

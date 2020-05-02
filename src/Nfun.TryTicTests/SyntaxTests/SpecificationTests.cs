@@ -26,7 +26,7 @@ namespace Funny.Tests
         [TestCase(0.0, "y = cos(x)", "y", 1.0)]
         [TestCase(0.0, "y = x.cos()", "y", 1.0)]
         [TestCase(0.0, "y = x.cos().tan() .abs() .round()", "y", 2)]
-        [TestCase(5, "y = x.sum(3)", "y", 8)]
+        [TestCase(5,   "y = x.add(3)", "y", 8)]
         [TestCase(1.0, "y = x == 0", "y", false)]
         [TestCase(0.0, "x==0", "out", true)]
         [TestCase(0.1, "y = x != 0", "y", true)]

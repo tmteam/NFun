@@ -231,6 +231,8 @@ namespace NFun.Tic.SolvingStates
                         if(!TryAddAncestor(Primitive.Real))
                             throw new InvalidOperationException();
                     }
+                    else if (Descedant is Array a && a.Element.Equals(Primitive.Char))
+                        return Descedant;
                     else
                         throw new InvalidOperationException("Types cannot be compared");
                 }

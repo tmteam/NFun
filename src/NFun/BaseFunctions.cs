@@ -154,7 +154,7 @@ namespace NFun
             //new PiFunction(),
             new CountFunction(),
             new AverageFunction(),
-            new SortTextFunction(),
+            //new SortTextFunction(),
             new TrimFunction(),
             new TrimStartFunction(),
             new TrimEndFunction(),

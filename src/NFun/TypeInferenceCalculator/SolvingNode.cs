@@ -88,6 +88,8 @@ namespace NFun.Tic
         }
         public bool TrySetAncestor(Primitive anc)
         {
+            if (anc.Equals(Primitive.Any))
+                return true;
             var node = this;
             if (node.State is RefTo)
                 node = node.GetNonReference();

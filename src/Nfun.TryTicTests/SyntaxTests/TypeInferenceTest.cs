@@ -309,7 +309,7 @@ namespace Funny.Tests
         [TestCase(1.0, "y= 1+x", 2.0)]       
         [TestCase(2.0, "y= 1*x", 2.0)]       
         [TestCase(1.0, "y= 1-x", 0.0)]       
-        [TestCase("1", "y= x.strConcat(1)", "11")]        
+        //[TestCase("1", "y= x.strConcat(1)", "11")]        
         [TestCase(true, "x:bool\r y= x and true", true)] 
         
         public void SingleInputTypedEquation(object x,  string expr, object y)

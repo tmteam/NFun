@@ -256,8 +256,21 @@ namespace Nfun.TryTicTests.TicTests
             result.AssertNoGenerics();
             result.AssertNamed(Primitive.I32, "y");
         }
+        [Test]
+        public void Sort()
+        {
+            var result = TestHelper.Solve("y = [4,3,5,1].sort()");
+            var g = result.AssertAndGetSingleGeneric(Primitive.U8, Primitive.Real, true);
+            result.AssertNamed(Array.Of(g), "y");
+        }
+        [Test]
+        public void SortConcrete()
+        {
+            var result = TestHelper.Solve("y:int[] = [4,3,5,1].sort()");
+            result.AssertNoGenerics();
+            result.AssertNamed(Array.Of(Primitive.I32), "y");
+        }
 
-        
         [Test]
         public void InitArrayWithVar()
         {

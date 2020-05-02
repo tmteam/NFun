@@ -3,7 +3,7 @@ namespace NFun.BuiltInFunctions
     public class CoreFunNames
     {
         public const string BitAnd = "bitand";
-        public const string Add = "+";
+        public const string Add = "add";
         public const string GetElementName = "get";
         public const string SliceName = "slice";
         public const string RangeName = "range";
