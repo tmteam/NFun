@@ -68,14 +68,14 @@ y = 1+ 15 *  if (x < 0 ) -1
         if (x.cos()>0)  'cos is positive' 
         else 'negative'", "y", "four")]
 
-//        [TestCase(3, @"
-//tostring(v:int):text =
-//            if (v == 0) 'zero'
-//			if (v == 1) 'one'
-//			if (v == 2) 'two'
-//			else 'not supported' 
-//x:int
-//y = tostring(x)", "y", "not supported")]
+        [TestCase(3, @"
+tostring(v:int):text =
+            if (v == 0) 'zero'
+			if (v == 1) 'one'
+			if (v == 2) 'two'
+			else 'not supported' 
+x:int
+y = tostring(x)", "y", "not supported")]
         [TestCase(2.5, "y = [1.0,2.0,3.0].filter(it -> it<x).max()", "y", 2.0)]
         [TestCase(2.5, "x:real \r y = [1.0,2.0,3.0].filter(it -> it<x).max()", "y", 2.0)]
         public void Real_SingleEquationWithSingleInput(object xVal, string expression, string outputName,
@@ -230,9 +230,9 @@ y4 = not(x1 and x2 or x3)
         [TestCase("y = a / b", BaseVarType.Real)]
         [TestCase("y = 0.0", BaseVarType.Real)]
         [TestCase("y = false #bool", BaseVarType.Bool)]
-      //  [TestCase("y = 'hi' #text", BaseVarType.Text)]
-      //  [TestCase("y = 'hi'.strConcat(a) #text", BaseVarType.Text)]
-      //  [TestCase("y = 'hi'.strConcat(a) #text", BaseVarType.Text)]
+        //[TestCase("y = 'hi' #text", BaseVarType.)]
+        //  [TestCase("y = 'hi'.strConcat(a) #text", BaseVarType.Text)]
+        //  [TestCase("y = 'hi'.strConcat(a) #text", BaseVarType.Text)]
         [TestCase("y = [1,2,3]  #int[]", BaseVarType.ArrayOf)]
         [TestCase("y = ['1','2','3']  #text[]", BaseVarType.ArrayOf)]
       //  [TestCase("y = 'hi '.strConcat(u) #text", BaseVarType.Text)]
@@ -256,22 +256,22 @@ yPublic   = yprivate + xpublic";
                     VarVal.New("yprivate", 1.0),
                     VarVal.New("yPublic", 11.0));
         }
-
-        //[TestCase(" y1 = [1,’2’,3,4]      # ошибка разбора")]
-        //[TestCase(" y2 = [1,2.0,3,4]      # ошибка разбора")]
-        //[TestCase(" x:real[] \r y = x.filter(x => x< 2 ) # ошибка разбора.")]
-        //public void ObviousFails(string expr)
-        //{
-        //    Assert.Throws<FunParseException>(() => FunBuilder.BuildDefault(expr));
-        //}
-
-        //[TestCase(" y = toInt('string')")]
-        //[TestCase(" y = toReal('string')")]
-        //[TestCase(" y = [1,2,3][4]")]
-        //public void ObviousFailsOnRuntime(string expr)
-        //{
-        //    Assert.Throws<FunRuntimeException>(
-        //        () => FunBuilder.BuildDefault(expr).Calculate());
-        //}
+        [Ignore("errors")]
+        [TestCase(" y1 = [1,’2’,3,4]      # ошибка разбора")]
+        [TestCase(" y2 = [1,2.0,3,4]      # ошибка разбора")]
+        [TestCase(" x:real[] \r y = x.filter(x => x< 2 ) # ошибка разбора.")]
+        public void ObviousFails(string expr)
+        {
+            Assert.Throws<FunParseException>(() => FunBuilder.BuildDefault(expr));
+        }
+        [Ignore("errors and toxxx")]
+        [TestCase(" y = toInt('string')")]
+        [TestCase(" y = toReal('string')")]
+        [TestCase(" y = [1,2,3][4]")]
+        public void ObviousFailsOnRuntime(string expr)
+        {
+            Assert.Throws<FunRuntimeException>(
+                () => FunBuilder.BuildDefault(expr).Calculate());
+        }
     }
 }

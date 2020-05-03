@@ -18,21 +18,21 @@ namespace NFun.Interpritation
 {
     public sealed class ExpressionBuilderVisitor: ISyntaxNodeVisitor<IExpressionNode> {
         
-        private readonly FunctionDictionary _functions;
+        private readonly IFunctionDicitionary _functions;
         private readonly VariableDictionary _variables;
         private readonly TypeInferenceResults _typeInferenceResults;
         public void SetChildrenNumber(ISyntaxNode parent, int num) { }
 
         public static IExpressionNode BuildExpression(
-            ISyntaxNode node, 
-            FunctionDictionary functions,
+            ISyntaxNode node,
+            IFunctionDicitionary functions,
             VariableDictionary variables, 
             TypeInferenceResults typeInferenceResults) =>
             node.Accept(new ExpressionBuilderVisitor(functions, variables, typeInferenceResults));
 
         public static IExpressionNode BuildExpression(
             ISyntaxNode node,
-            FunctionDictionary functions,
+            IFunctionDicitionary functions,
             VarType outputType,
             VariableDictionary variables, 
             TypeInferenceResults typeInferenceResults)
@@ -45,7 +45,7 @@ namespace NFun.Interpritation
         }
 
         private ExpressionBuilderVisitor(
-            FunctionDictionary functions, 
+            IFunctionDicitionary functions, 
             VariableDictionary variables,
             TypeInferenceResults typeInferenceResults)
         {

@@ -19,7 +19,7 @@ namespace Funny.Tests
                     VarVal.New("yPub", 2.0),
                     VarVal.New("y2", 5.0));
         }
-        /*
+        [Ignore("errors")]
         [TestCase("[1.0].fold((X,x)->x)")]
         [TestCase("test = 2.0\r tESt = 3.0")]
         [TestCase("test = Sin(0.5)")]
@@ -31,7 +31,7 @@ namespace Funny.Tests
 
         public void ObviouslyFails(string expr) =>
             Assert.Throws<FunParseException>(
-                ()=> FunBuilder.BuildDefault(expr));
-            */
+                () => FunBuilder.BuildDefault(expr));
+
     }
 }

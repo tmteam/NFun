@@ -9,12 +9,12 @@ namespace NFun.TypeInferenceAdapter
     public class SetupTiEnterVisitor: EnterVisitorBase
     {
         private readonly SetupTiState _setupTiState;
-        private readonly FunctionDictionary _dictionary;
+        private readonly IFunctionDicitionary _dictionary;
         private readonly TypeInferenceResultsBuilder _resultsBuilder;
 
         public SetupTiEnterVisitor(
-            SetupTiState setupTiState, 
-            FunctionDictionary dictionary, 
+            SetupTiState setupTiState,
+            IFunctionDicitionary dictionary, 
             TypeInferenceResultsBuilder resultsBuilder)
         {
             _setupTiState = setupTiState;

@@ -137,6 +137,18 @@ namespace NFun.Tic
             SetOrCreateLambda(lambdaId, args, returnTypeNode);
         }
 
+        public Fun CreateFunction(int returnId, IType returnType = null, params string[] varNames)
+        {
+            var args = varNames.Select(GetNamedNode).ToArray();
+            var exprId = GetOrCreateNode(returnId);
+            var returnTypeNode = CreateVarType(returnType);
+            //expr<=returnType<= ...
+            exprId.Ancestors.Add(returnTypeNode);
+            var fun = Fun.Of(args, returnTypeNode);
+            CreateVarType(fun);
+            return fun;
+        }
+
         public RefTo SetArrayInit(int resultIds, params int[] elementIds)
         {
             var elementType = CreateVarType();

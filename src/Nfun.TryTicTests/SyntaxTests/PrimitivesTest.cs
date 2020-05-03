@@ -13,14 +13,21 @@ namespace Nfun.TryTicTests.SyntaxTests
         [TestCase("2*3", 6.0)]
         [TestCase("true == false", false)]
         [TestCase("if (2<3) true else false", true)]
-        //todo
-        //[TestCase("y(x) = x*2 \r y(3.0) * y(4.0)", 48.0)]
-        //[TestCase("y(x) = x \r y(3.0)", 3.0)]
-        //[TestCase("y(x) = x*2 \r y(3.0)  \r z(j) = j*j", 6.0)]
         public void AnonymousExpressionConstantEquatation(string expr, object expected)
         {
             var runtime = TestTools.Build(expr);
             runtime.Calculate().AssertReturns(VarVal.New("out", expected));
         }
+
+        [Ignore("generics")]
+        [TestCase("y(x) = x*2 \r y(3.0) * y(4.0)", 48.0)]
+        [TestCase("y(x) = x \r y(3.0)", 3.0)]
+        [TestCase("y(x) = x*2 \r y(3.0)  \r z(j) = j*j", 6.0)]
+        public void AnonymousExpressionConstantEquatationWithUserFunctions(string expr, object expected)
+        {
+            var runtime = TestTools.Build(expr);
+            runtime.Calculate().AssertReturns(VarVal.New("out", expected));
+        }
+
     }
 }

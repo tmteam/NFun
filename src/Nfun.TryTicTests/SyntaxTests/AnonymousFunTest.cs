@@ -25,7 +25,7 @@ namespace Funny.Tests
         [TestCase( "y = [1.0,2.0,3.0].any((i)-> i == 0.0)",false)]
         [TestCase( "y = [1.0,2.0,3.0].all((i)-> i >0)",true)]
         [TestCase( "y = [1.0,2.0,3.0].all((i)-> i >1.0)",false)]
-        //[TestCase( "f(m:real[], p):bool = m.all((i)-> i>p) \r y = f([1.0,2.0,3.0],1.0)",false)]
+        [TestCase( "f(m:real[], p):bool = m.all((i)-> i>p) \r y = f([1.0,2.0,3.0],1.0)",false)]
 
         [TestCase("y = [-7,-2,0,1,2,3].filter(i->i>0)", new[] { 1.0, 2.0, 3.0 })]
         [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).reduce((i,j)-> i+j)", 6.0 )]
@@ -85,7 +85,7 @@ namespace Funny.Tests
                     VarVal.New("z", zExpected));
 
         }
-        /*
+        [Ignore("errors")]
         [TestCase("y = [1.0].reduce(((i,j)->i+j)")]
         [TestCase("y = reduce(((i,j),k)->i+j)")]
         [TestCase( @"y = [1.0,2.0,3.0].reduce((i*2,j)->i+j)")]
@@ -97,7 +97,7 @@ namespace Funny.Tests
         [TestCase("[1.0,2.0].map((i,i)->i+1)")]
         [TestCase("[1.0,2.0].reduce((i,i)->i+1)")]
         [TestCase( "x:bool\r y = [1,2,3].all((i)-> i>x)")]
-        //[TestCase( "f(m:real[], p):bool = m.all((i)-> i>zzz) \r y = f([1.0,2.0,3.0],1.0)")]
+        [TestCase( "f(m:real[], p):bool = m.all((i)-> i>zzz) \r y = f([1.0,2.0,3.0],1.0)")]
         [TestCase( "x:bool \r y = x and ([1.0,2.0,3.0].all((x)-> x >=1.0))")]
         [TestCase( "y = [-x,-x,-x].all((x)-> x < 0.0)")]
         [TestCase( "z = [-x,-x,-x] \r  y = z.all((z)-> z < 0.0)")]
@@ -107,6 +107,6 @@ namespace Funny.Tests
             var ex = Assert.Throws<FunParseException>(
                 () => FunBuilder.BuildDefault(expr));
             Console.WriteLine($"Captured error: \r{ex}");
-        }*/
+        }
     }
 }

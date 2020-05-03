@@ -13,7 +13,7 @@ namespace Funny.Tests
     [TestFixture]
     public class BuiltInFunctionsTest
     {
-        /*
+        [Ignore("converts")]
         [TestCase("int",   (int)-123,     "toInt16", (short)-123)]
         [TestCase("int",   (int)123,      "toInt16", (short) 123)]
         [TestCase("int16", (short)-123,   "toInt16", (short)-123)]
@@ -109,7 +109,7 @@ namespace Funny.Tests
             var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate(VarVal.New("x", inputValue))
                 .AssertReturns(VarVal.New("y", expectedOutput));
-        }*/
+        }
         
         //[TestCase( "toInt(1.2)",  1)]
         //[TestCase( "toInt(-1.2)", -1)]
@@ -247,30 +247,30 @@ namespace Funny.Tests
         [TestCase("y:int = [0x0,7,1,2,3] . reduce(add)", 13)]
         [TestCase("y = [0.0,7.0,1.0,2.0,3.0] . reduce(add)", 13.0)]
 
-        //[TestCase("mysum(x:int, y:int):int = x+y \r" +
-        //          "y = [0,7,1,2,3].reduce(mysum)", 13)]
-        //[TestCase( @"rr(x:real):bool = x>10
-        //             y = filter([11.0,20.0,1.0,2.0],rr)",new[]{11.0,20.0})]
-        //[TestCase( @"ii(x:int):bool = x>10
-        //             y = filter([11,20,1,2],ii)",new[]{11,20})]
-        //[TestCase( @"ii(x:int):int = x*x
-        //             y = map([1,2,3],ii)",new[]{1,4,9})]
-        //[TestCase( @"ii(x:int):real = x/2
-        //             y = map([1,2,3],ii)",new[]{0.5,1.0,1.5})]
-        //[TestCase( @"isodd(x:int):bool = (x%2) == 0
-        //             y = map([1,2,3],isodd)",new[]{false, true,false})]
-        //[TestCase( @"toS1(t:text, x:int):text = t.strConcat(x)
-        //             y = reduce([1,2,3], ':', toS1)",":123")]
-        //[TestCase( @"toS2(t:text, x:int):text = t.strConcat(x)
-        //             y = reduce([1], '', toS2)","1")]
-        //[TestCase( @"toS3(t:text, x:int):text = t.strConcat(x)
-        //             y = reduce([1][1:1], '', toS3)","")]
-        //[TestCase( @"toR(r:real, x:int):real = r+x
-        //             y = reduce([1,2,3], 0.5, toR)",6.5)]
-        //[TestCase( @"iSum(r:int, x:int):int = r+x
-        //             y = reduce([1,2,3], iSum)",6)]
-        //[TestCase( @"iSum(r:int, x:int):int = r+x
-        //             y = reduce([100], iSum)",100)]
+        [TestCase("mysum(x:int, y:int):int = x+y \r" +
+                  "y = [0,7,1,2,3].reduce(mysum)", 13)]
+        [TestCase(@"rr(x:real):bool = x>10
+                     y = filter([11.0,20.0,1.0,2.0],rr)", new[] { 11.0, 20.0 })]
+        [TestCase(@"ii(x:int):bool = x>10
+                     y = filter([11,20,1,2],ii)", new[] { 11, 20 })]
+        [TestCase(@"ii(x:int):int = x*x
+                     y = map([1,2,3],ii)", new[] { 1, 4, 9 })]
+        [TestCase(@"ii(x:int):real = x/2
+                     y = map([1,2,3],ii)", new[] { 0.5, 1.0, 1.5 })]
+        [TestCase(@"isodd(x:int):bool = (x%2) == 0
+                     y = map([1,2,3],isodd)", new[] { false, true, false })]
+        [TestCase(@"toS1(t:text, x:int):text = t.concat(x)
+                     y = reduce([1,2,3], ':', toS1)", ":123")]
+        [TestCase(@"toS2(t:text, x:int):text = t.concat(x)
+                     y = reduce([1], '', toS2)", "1")]
+        [TestCase(@"toS3(t:text, x:int):text = t.concat(x)
+                     y = reduce([1][1:1], '', toS3)", "")]
+        [TestCase(@"toR(r:real, x:int):real = r+x
+                     y = reduce([1,2,3], 0.5, toR)", 6.5)]
+        [TestCase(@"iSum(r:int, x:int):int = r+x
+                     y = reduce([1,2,3], iSum)", 6)]
+        [TestCase(@"iSum(r:int, x:int):int = r+x
+                     y = reduce([100], iSum)", 100)]
         [TestCase("y:int = [1,2,3,4,5,6,7].filter(i->i%2==0).sum()", 12)]
         [TestCase("y:int = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce((s,i)-> s+i+1)", 14)]
         [TestCase("y:int = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce((s,i)-> s+i+1)", 14)]
@@ -303,9 +303,9 @@ namespace Funny.Tests
         [TestCase("y = skip([1.0,2.0,3.0],0)",new []{1.0,2.0,3.0})]        
         
         [TestCase("y = repeat('abc',3)",new []{"abc","abc","abc"})]        
-        [TestCase("y = repeat('abc',0)",new string[0])]        
-        
-       // [TestCase("mypage(x:int[]):int[] = take(skip(x,1),1) \r y = mypage([1,2,3]) ",new []{2})]        
+        [TestCase("y = repeat('abc',0)",new string[0])]
+
+        [TestCase("mypage(x:int[]):int[] = take(skip(x,1),1) \r y = mypage([1,2,3]) ", new[] { 2 })]
 
         [TestCase("y:int[] = [1,2,3]. reverse()", new[]{3,2,1})]
         [TestCase("y:int[] = [1,2,3]. reverse() . reverse()", new[]{1,2,3})]
@@ -390,8 +390,8 @@ namespace Funny.Tests
         [TestCase("y = 'hi world'.trim()","hi world")]
 
 
-       // [TestCase("y = [true,false,true].join(', ')", "true, false, true")]
-       // [TestCase("y = [1,2,3,4].join(', ')", "1, 2, 3, 4")]
+        [TestCase("y = [true,false,true].map(toText).join(', ')", "true, false, true")]
+        [TestCase("y = [1,2,3,4].map(toText).join(', ')", "1, 2, 3, 4")]
         [TestCase("y = ['1','2','3','4'].join(', ')","1, 2, 3, 4")]
         [TestCase("y = ['1','2','3','4'].join(',')","1,2,3,4")]
         [TestCase("y = ['1'].join(',')","1")]
@@ -420,8 +420,8 @@ namespace Funny.Tests
         [TestCase("y = abs(x-4.0)",1.0,3.0)]
        // [TestCase("x:int; y = abs(toInt(x)-toInt(4))",1,3)]
         [TestCase("y = abs(x-4)",1.0,3.0)]
-        //Check, when (and if) TI will be rewritten
-        //[TestCase("y = abs(toInt(x)-toInt(4))",1,3)]
+
+       //[TestCase("y = abs(toInt(x)-toInt(4))",1,3)]
         //[TestCase("y = abs(x-toInt(4))",1,3)]
         public void EquationWithPredefinedFunction(string expr, object arg, object expected)
         {
@@ -429,40 +429,41 @@ namespace Funny.Tests
             runtime.Calculate(VarVal.New("x", arg))
                 .AssertReturns(0.00001, VarVal.New("y", expected));
         }
-        //[TestCase("y = pi(")]
-        //[TestCase("y = pi(1)")]
-        //[TestCase("y = abs(")]
-        //[TestCase("y = abs)")]
-        //[TestCase("y = abs()")]
-        //[TestCase("y = abs(1,)")]
-        //[TestCase("y = abs(1,,2)")]
-        //[TestCase("y = abs(,,2)")]
-        //[TestCase("y = abs(,,)")]
-        //[TestCase("y = abs(2,)")]
-        //[TestCase("y = abs(1,2)")]
-        //[TestCase("y = abs(1 2)")]
-        //[TestCase("y = add(")]
-        //[TestCase("y = add()")]
-        //[TestCase("y = add(1)")]
-        //[TestCase("y = add 1")]
-        //[TestCase("y = add(1,2,3)")]
-        //[TestCase("y = avg(['1','2','3'])")]
-        //[TestCase("y= max([])")]
-        //[TestCase("y= max(['a','b'])")]
-        //[TestCase("y= max('a','b')")]
-        //[TestCase("y= max(1,2,3)")]
-        //[TestCase("y= max(1,true)")]
-        //[TestCase("y= max(1,(j)->j)")]
-        //[TestCase("y = [1,2] in [1,2,3,4]")]
-        //public void ObviouslyFails(string expr) =>
-        //    Assert.Throws<FunParseException>(
-        //        ()=> FunBuilder.BuildDefault(expr));
+        [Ignore("errors")]
+        [TestCase("y = pi(")]
+        [TestCase("y = pi(1)")]
+        [TestCase("y = abs(")]
+        [TestCase("y = abs)")]
+        [TestCase("y = abs()")]
+        [TestCase("y = abs(1,)")]
+        [TestCase("y = abs(1,,2)")]
+        [TestCase("y = abs(,,2)")]
+        [TestCase("y = abs(,,)")]
+        [TestCase("y = abs(2,)")]
+        [TestCase("y = abs(1,2)")]
+        [TestCase("y = abs(1 2)")]
+        [TestCase("y = add(")]
+        [TestCase("y = add()")]
+        [TestCase("y = add(1)")]
+        [TestCase("y = add 1")]
+        [TestCase("y = add(1,2,3)")]
+        [TestCase("y = avg(['1','2','3'])")]
+        [TestCase("y= max([])")]
+        [TestCase("y= max(['a','b'])")]
+        [TestCase("y= max('a','b')")]
+        [TestCase("y= max(1,2,3)")]
+        [TestCase("y= max(1,true)")]
+        [TestCase("y= max(1,(j)->j)")]
+        [TestCase("y = [1,2] in [1,2,3,4]")]
+        public void ObviouslyFails(string expr) =>
+            Assert.Throws<FunParseException>(
+                () => FunBuilder.BuildDefault(expr));
 
         [TestCase("y = [1..100].chunk(-1)")]
         [TestCase("y = [1..100].chunk(0)")]
-        //[TestCase(@"iSum(r:int, x:int):int = r+x
-        //             y = reduce([100][1:1], iSum)")]
-        
+        [TestCase(@"iSum(r:int, x:int):int = r+x
+                     y = reduce([100][1:1], iSum)")]
+
         public void FailsOnRuntime(string expr)
         {
             var runtime = FunBuilder.BuildDefault(expr);

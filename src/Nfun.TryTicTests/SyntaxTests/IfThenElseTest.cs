@@ -114,7 +114,7 @@ else 'not supported' ", 2, "two")]
             Assert.AreEqual(1, res.Results.Length);
             Assert.AreEqual(expected, res.Results.First().Value);
         }
-        /*
+        [Ignore("errors")]
         [TestCase("y = if (3) else 4")]
         [TestCase("y = if 1 3")]
         [TestCase("y = if true then 3")]
@@ -136,6 +136,6 @@ else 'not supported' ", 2, "two")]
         [TestCase("y = if (2>1)  false if 2<1 then true else 1")]
         public void ObviouslyFails(string expr) =>
             Assert.Throws<FunParseException>(
-                ()=> FunBuilder.BuildDefault(expr));*/
+                () => FunBuilder.BuildDefault(expr));
     }
 }
