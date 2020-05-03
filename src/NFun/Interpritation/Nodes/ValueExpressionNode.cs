@@ -50,8 +50,8 @@ namespace NFun.Interpritation.Nodes
             switch (primitive.BaseType)
             {
                 case BaseVarType.Real: return new ValueExpressionNode((double)value, VarType.Real, interval);
-                case BaseVarType.Int64: return new ValueExpressionNode(value, VarType.Int64, interval);
-                case BaseVarType.Int32: return new ValueExpressionNode((int)value, VarType.Int32, interval);
+                case BaseVarType.Int64: return new ValueExpressionNode((long) value, VarType.Int64, interval);
+                case BaseVarType.Int32: return new ValueExpressionNode((int)  value, VarType.Int32, interval);
                 case BaseVarType.Int16: return new ValueExpressionNode((short)value, VarType.Int16, interval);
                 case BaseVarType.UInt64: return new ValueExpressionNode((ulong)value, VarType.UInt64, interval);
                 case BaseVarType.UInt32: return new ValueExpressionNode((uint)value, VarType.UInt32, interval);
@@ -66,8 +66,8 @@ namespace NFun.Interpritation.Nodes
             switch (primitive.BaseType)
             {
                 case BaseVarType.Real: return new ValueExpressionNode((double)value, VarType.Real, interval);
-                case BaseVarType.Int64: return new ValueExpressionNode(value, VarType.Int64, interval);
-                case BaseVarType.Int32: return new ValueExpressionNode((int)value, VarType.Int32, interval);
+                case BaseVarType.Int64: return new ValueExpressionNode((long) value, VarType.Int64, interval);
+                case BaseVarType.Int32: return new ValueExpressionNode((int)  value, VarType.Int32, interval);
                 case BaseVarType.Int16: return new ValueExpressionNode((short)value, VarType.Int16, interval);
                 case BaseVarType.UInt64: return new ValueExpressionNode((ulong)value, VarType.UInt64, interval);
                 case BaseVarType.UInt32: return new ValueExpressionNode((uint)value, VarType.UInt32, interval);

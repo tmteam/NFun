@@ -158,7 +158,7 @@ namespace NFun.TypeInferenceAdapter
 
         public override bool Visit(GenericIntSyntaxNode node)
         {
-            Trace(node, $"Constant {node.Value}:{(node.IsHexOrBin ? "hex" : "int")}");
+            Trace(node, $"IntConst {node.Value}:{(node.IsHexOrBin ? "hex" : "int")}");
 
             if (node.IsHexOrBin)
             {

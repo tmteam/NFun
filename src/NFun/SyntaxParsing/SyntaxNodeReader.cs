@@ -195,18 +195,18 @@ namespace NFun.SyntaxParsing
                 return SyntaxNodeFactory.Constant(false, VarType.Bool,  falseTok.Interval);
             if (flow.MoveIf(TokType.HexOrBinaryNumber, out var binVal)) {//0xff, 0b01
                 var val = binVal.Value;
-                if (val[1] == 'b') {
-                    var uval = Convert.ToUInt64(val.Substring(2), 2);
-                    return SyntaxNodeFactory.HexOrBinIntConstant(uval, binVal.Interval);
-                } else if (val[1] == 'x') {
-                    var uval = Convert.ToUInt64(val, 16);
-                    return SyntaxNodeFactory.HexOrBinIntConstant(uval, binVal.Interval);
-                }
+                int dimentions = 0;
+                if (val[1] == 'b')      dimentions = 2;
+                else if (val[1] == 'x') dimentions = 16;
+                else throw new ImpossibleException("Hex or bin constant has invalid format: "+val);
+                
+                var uval = Convert.ToUInt64(val.Replace("_",null).Substring(2), dimentions);
+                return SyntaxNodeFactory.HexOrBinIntConstant(uval, binVal.Interval);
             }
             if (flow.MoveIf(TokType.IntNumber, out var intVal))        //1,2,3
-                return SyntaxNodeFactory.IntGenericConstant(ulong.Parse(intVal.Value), intVal.Interval);
+                return SyntaxNodeFactory.IntGenericConstant(ulong.Parse(intVal.Value.Replace("_", String.Empty)), intVal.Interval);
             if (flow.MoveIf(TokType.RealNumber, out var realVal))       //1.0
-                return SyntaxNodeFactory.Constant(double.Parse(realVal.Value, CultureInfo.InvariantCulture), VarType.Real, realVal.Interval);
+                return SyntaxNodeFactory.Constant(double.Parse(realVal.Value.Replace("_", String.Empty), CultureInfo.InvariantCulture), VarType.Real, realVal.Interval);
             if (flow.MoveIf(TokType.Text, out var txt))
                 return SyntaxNodeFactory.Constant(new TextFunArray(txt.Value),VarType.Text,txt.Interval);
             if (flow.MoveIf(TokType.Id, out var headToken))
@@ -482,7 +482,6 @@ namespace NFun.SyntaxParsing
         /// <exception cref="Exception"></exception>
         public static ISyntaxNode ReadInitializeArrayNode(TokFlow flow)
         {
-                
             var startTokenNum = flow.CurrentTokenPosition;
             var openBracket = flow.MoveIfOrThrow(TokType.ArrOBr);
             

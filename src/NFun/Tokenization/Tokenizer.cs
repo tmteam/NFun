@@ -149,7 +149,6 @@ namespace NFun.Tokenization
         {
             int dotPostition = -1;
             bool hasTypeSpecifier = false;
-            int dotCount = 0;
             int index = position;
             for (; index < str.Length; index++)
             {
@@ -174,13 +173,15 @@ namespace NFun.Tokenization
 
                 if (str[index] == '_')
                     continue;
-
-                if (!hasTypeSpecifier && str[index] == '.' && dotPostition == -1)
+                if (str[index] == '.')
                 {
-                    dotCount++;
-                    dotPostition = index;
-                    continue;
+                    if (!hasTypeSpecifier && dotPostition == -1)
+                    {
+                            dotPostition = index;
+                            continue;
+                    }
                 }
+
                 break;
             }
 
@@ -189,8 +190,6 @@ namespace NFun.Tokenization
             if (dotPostition == index - 1)
             {
                 if (hasTypeSpecifier) type = TokType.HexOrBinaryNumber;
-                else if(dotCount>0)   type = TokType.RealNumber;
-
                 return Tok.New(type, str.Substring(position, index - position - 1), position, index - 1);
             }
 
@@ -200,8 +199,8 @@ namespace NFun.Tokenization
                 return Tok.New(TokType.NotAToken, str.Substring(position, txtToken.Finish - position),
                     position, txtToken.Finish);
             }
-            if (hasTypeSpecifier)   type = TokType.HexOrBinaryNumber;
-            else if (dotCount > 0)  type = TokType.RealNumber;
+            if      (dotPostition!=-1)   type = TokType.RealNumber;
+            else if (hasTypeSpecifier)   type = TokType.HexOrBinaryNumber;
 
             return Tok.New(type, str.Substring(position, index - position), position, index);
         }

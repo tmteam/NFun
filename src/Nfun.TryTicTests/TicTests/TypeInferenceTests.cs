@@ -25,8 +25,9 @@ namespace Nfun.TryTicTests.TicTests
         public void SetConstants()
         {
             var result = TestHelper.Solve("x = 0x10");
-            result.AssertNoGenerics();
-            result.AssertNamed(Primitive.I32, "x");
+            var t = result.AssertAndGetSingleGeneric(Primitive.U8, Primitive.I96);
+            result.AssertAreGenerics(t, "x");
+
         }
         [Test]
         public void SimpleDivideComputation()
@@ -55,9 +56,9 @@ namespace Nfun.TryTicTests.TicTests
         [Test]
         public void IncrementI64()
         {
-            var result = TestHelper.Solve("y = x + 0xffff_ffff");
+            var result = TestHelper.Solve("y = x + 0xFFFF_FFFF_FFFF_FFFF");
             result.AssertNoGenerics();
-            result.AssertNamed(Primitive.I64, "x","y");
+            result.AssertNamed(Primitive.U64, "x","y");
         }
 
         [Test]
@@ -123,6 +124,7 @@ namespace Nfun.TryTicTests.TicTests
 
        
         [Test]
+        [Ignore("UB")]
         public void UpcastArgType_ArithmOp_EquationSolved()
         { 
             var result = TestHelper.Solve("a = 1.0; y = a + b;  b = 0x1");
