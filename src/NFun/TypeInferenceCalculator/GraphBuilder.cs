@@ -68,13 +68,16 @@ namespace NFun.Tic
             => SetOrCreatePrimitive(id, type);
 
         public void SetIntConst(int id, Primitive desc)
+            => SetIntConst(id, desc, Primitive.Real, Primitive.Real);
+
+        public void SetIntConst(int id, Primitive desc, Primitive anc, Primitive prefered)
         {
             var node = GetOrCreateNode(id);
             if (node.State is Constrains constrains)
             {
-                constrains.AddAncestor(Primitive.Real);
+                constrains.AddAncestor(anc);
                 constrains.AddDescedant(desc);
-                constrains.Prefered = Primitive.Real;
+                constrains.Prefered = prefered;
             }
             else
             {

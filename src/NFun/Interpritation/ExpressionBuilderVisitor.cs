@@ -188,13 +188,29 @@ namespace NFun.Interpritation
         {
             var typeConverter = new TypeInferenceOnlyConcreteInterpriter();
             var type = typeConverter.Convert(_typeInferenceResults.SyntaxNodeTypes[node.OrderNumber]);
-
-            if(node.Value is long l) //Все числа кроме u64 и real закодированы как логни
-                return ValueExpressionNode.CreateConcrete(type,  l, node.Interval);
-            else
+            //все инт типы закодированы либо long либо ulong
+            if(node.Value is long l)
+                return ValueExpressionNode.CreateConcrete(type, l, node.Interval);
+            else if (node.Value is ulong u)
+                return ValueExpressionNode.CreateConcrete(type, u, node.Interval);
+            else //значит все остальные закодированны в свой конкретный clr тип
                 return new ValueExpressionNode(node.Value, type, node.Interval);
         }
+        public IExpressionNode Visit(GenericIntSyntaxNode node)
+        {
+            var typeConverter = new TypeInferenceOnlyConcreteInterpriter();
+            var type = typeConverter.Convert(_typeInferenceResults.SyntaxNodeTypes[node.OrderNumber]);
 
+            if (node.Value is long l) 
+                return ValueExpressionNode.CreateConcrete(type, l, node.Interval);
+            else if (node.Value is ulong u)
+                return ValueExpressionNode.CreateConcrete(type, u, node.Interval);
+            else if (node.Value is double d)
+                return new ValueExpressionNode(node.Value, type, node.Interval);                
+            else
+                throw new ImpossibleException($"Generic syntax node has wrong value type: {node.Value.GetType().Name}");
+            
+        }
         public IExpressionNode Visit(ProcArrayInit node)
         {
             throw new InvalidOperationException();
@@ -216,6 +232,8 @@ namespace NFun.Interpritation
       
         public IExpressionNode Visit(VariableSyntaxNode node)
             => GetOrAddVariableNode(node);
+
+      
 
         #region not an expression
         public IExpressionNode Visit(EquationSyntaxNode node) 

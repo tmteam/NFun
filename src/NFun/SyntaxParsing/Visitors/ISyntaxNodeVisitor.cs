@@ -20,5 +20,6 @@ namespace NFun.SyntaxParsing.Visitors
         T Visit(UserFunctionDefenitionSyntaxNode node);
         T Visit(VarDefenitionSyntaxNode node);
         T Visit(VariableSyntaxNode node);
+        T Visit(GenericIntSyntaxNode node);
     }
 }

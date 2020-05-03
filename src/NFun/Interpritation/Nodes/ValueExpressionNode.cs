@@ -45,6 +45,22 @@ namespace NFun.Interpritation.Nodes
 
         public string ClrTypeName => _value?.GetType().Name;
 
+        public static ValueExpressionNode CreateConcrete(VarType primitive, ulong value, Interval interval)
+        {
+            switch (primitive.BaseType)
+            {
+                case BaseVarType.Real: return new ValueExpressionNode((double)value, VarType.Real, interval);
+                case BaseVarType.Int64: return new ValueExpressionNode(value, VarType.Int64, interval);
+                case BaseVarType.Int32: return new ValueExpressionNode((int)value, VarType.Int32, interval);
+                case BaseVarType.Int16: return new ValueExpressionNode((short)value, VarType.Int16, interval);
+                case BaseVarType.UInt64: return new ValueExpressionNode((ulong)value, VarType.UInt64, interval);
+                case BaseVarType.UInt32: return new ValueExpressionNode((uint)value, VarType.UInt32, interval);
+                case BaseVarType.UInt16: return new ValueExpressionNode((ushort)value, VarType.UInt16, interval);
+                case BaseVarType.UInt8: return new ValueExpressionNode((byte)value, VarType.UInt8, interval);
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(primitive), primitive, null);
+            }
+        }
         public static ValueExpressionNode CreateConcrete(VarType primitive, long value, Interval interval)
         {
             switch (primitive.BaseType)

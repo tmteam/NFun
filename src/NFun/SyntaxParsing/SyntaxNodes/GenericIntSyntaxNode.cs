@@ -5,24 +5,22 @@ using NFun.Types;
 
 namespace NFun.SyntaxParsing.SyntaxNodes
 {
-    public class ConstantSyntaxNode : ISyntaxNode
+    public class GenericIntSyntaxNode : ISyntaxNode
     {
         public VarType OutputType { get; set; }
         public int OrderNumber { get; set; }
-        
-        public ConstantSyntaxNode(object value, VarType varType, Interval interval)
+
+        public GenericIntSyntaxNode(object value, bool isHexOrBin, Interval interval)
         {
-            OutputType = varType;
             Interval = interval;
             Value = value;
+            IsHexOrBin = isHexOrBin;
         }
-
-        public string ClrTypeName => Value?.GetType().Name;
-        public bool IsInBrackets { get; set; }
         public object Value { get; }
+        public bool IsHexOrBin { get; }
+        public bool IsInBrackets { get; set; }
         public Interval Interval { get; set; }
         public IEnumerable<ISyntaxNode> Children => new ISyntaxNode[0];
         public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
-
     }
 }

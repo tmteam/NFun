@@ -6,7 +6,22 @@ namespace NFun.Tokenization
         If,
         Else,
         Then,
-        Number,
+        /// <summary>
+        /// 1,2,3
+        /// </summary>
+        IntNumber,
+        /// <summary>
+        /// 0xff, 0bff
+        /// </summary>
+        HexOrBinaryNumber,
+        /// <summary>
+        /// 1.0
+        /// </summary>
+        RealNumber,
+        /// <summary>
+        /// 1L
+        /// </summary>
+        LongNumber,
         Plus,
         Minus,
         Div,

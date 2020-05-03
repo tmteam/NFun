@@ -149,7 +149,7 @@ namespace NFun.Tokenization
         {
             int dotPostition = -1;
             bool hasTypeSpecifier = false;
-
+            int dotCount = 0;
             int index = position;
             for (; index < str.Length; index++)
             {
@@ -177,24 +177,33 @@ namespace NFun.Tokenization
 
                 if (!hasTypeSpecifier && str[index] == '.' && dotPostition == -1)
                 {
+                    dotCount++;
                     dotPostition = index;
                     continue;
                 }
                 break;
             }
 
+            var type = TokType.IntNumber;
             //if dot is last then skip
             if (dotPostition == index - 1)
-                return Tok.New(TokType.Number,
-                    str.Substring(position, index - position - 1), position, index - 1);
+            {
+                if (hasTypeSpecifier) type = TokType.HexOrBinaryNumber;
+                else if(dotCount>0)   type = TokType.RealNumber;
+
+                return Tok.New(type, str.Substring(position, index - position - 1), position, index - 1);
+            }
+
             if (index < str.Length && IsLetter(str[index]))
             {
                 var txtToken = ReadIdOrKeyword(str, index);
                 return Tok.New(TokType.NotAToken, str.Substring(position, txtToken.Finish - position),
                     position, txtToken.Finish);
             }
-            return Tok.New(TokType.Number, str.Substring(position, index - position),
-                position, index);
+            if (hasTypeSpecifier)   type = TokType.HexOrBinaryNumber;
+            else if (dotCount > 0)  type = TokType.RealNumber;
+
+            return Tok.New(type, str.Substring(position, index - position), position, index);
         }
 
         #endregion

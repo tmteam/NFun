@@ -47,7 +47,7 @@ namespace NFun.Tokenization
                     case TokType.True:
                         val = true;
                         break;
-                    case TokType.Number:
+                    case TokType.RealNumber:
                         val = TokenHelper.ToConstant(next.Value).Item1;
                         break;
                     case TokType.Text:

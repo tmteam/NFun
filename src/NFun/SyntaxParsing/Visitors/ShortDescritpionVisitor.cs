@@ -42,8 +42,6 @@ namespace NFun.SyntaxParsing.Visitors
         }
 
         public string Visit(SyntaxTree node) => "Fun equations";
-
-        
         public string Visit(TypedVarDefSyntaxNode node)
             => $"'{node.Id}:{node.VarType}";
 
@@ -52,5 +50,6 @@ namespace NFun.SyntaxParsing.Visitors
         public string Visit(VarDefenitionSyntaxNode node) => $"'{node.Id}:{node.VarType}";
 
         public string Visit(VariableSyntaxNode node) => node.Id;
+        public string Visit(GenericIntSyntaxNode node) => node.Value.ToString();
     }
 }

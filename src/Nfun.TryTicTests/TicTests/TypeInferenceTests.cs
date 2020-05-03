@@ -295,5 +295,20 @@ namespace Nfun.TryTicTests.TicTests
             result.AssertNamed(Array.Of(Array.Of(Primitive.Char)), "y");
         }
         
+
+        [Test]
+        public void ConcatAndSplit()
+        {
+            var result = TestHelper.Solve("y = split(concat('a b ','c'),' ')");
+            result.AssertNoGenerics();
+            result.AssertNamed(Array.Of(Array.Of(Primitive.Char)), "y");
+        }
+        [Test]
+        public void Split()
+        {
+            var result = TestHelper.Solve("y = split('a b c',' ')");
+            result.AssertNoGenerics();
+            result.AssertNamed(Array.Of(Array.Of(Primitive.Char)), "y");
+        }
     }
 }

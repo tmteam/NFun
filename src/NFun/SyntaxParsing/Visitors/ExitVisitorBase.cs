@@ -26,5 +26,6 @@ namespace NFun.SyntaxParsing.Visitors
         public virtual bool Visit(UserFunctionDefenitionSyntaxNode node) => true;
         public virtual bool Visit(VarDefenitionSyntaxNode node) => true;
         public virtual bool Visit(VariableSyntaxNode node) => true;
+        public virtual bool Visit(GenericIntSyntaxNode node) => true;
     }
 }

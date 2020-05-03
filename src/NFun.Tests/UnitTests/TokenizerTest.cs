@@ -8,8 +8,8 @@ namespace Funny.Tests.UnitTests
     [TestFixture]
     public class TokenizerTest
     {
-        [TestCase("1", TokType.Number)]
-        [TestCase("x+1", TokType.Id, TokType.Plus, TokType.Number)]
+        [TestCase("1", TokType.RealNumber)]
+        [TestCase("x+1", TokType.Id, TokType.Plus, TokType.RealNumber)]
         [TestCase("x and y", TokType.Id, TokType.And, TokType.Id)]
         [TestCase("x or y", TokType.Id, TokType.Or, TokType.Id)]
         [TestCase("x xor y", TokType.Id, TokType.Xor, TokType.Id)]
@@ -28,7 +28,7 @@ namespace Funny.Tests.UnitTests
         [TestCase("o = if (a>b)  1 else x",
             TokType.Id, TokType.Def,
             TokType.If, TokType.Obr, TokType.Id, TokType.More, TokType.Id,
-            TokType.Cbr, TokType.Number,
+            TokType.Cbr, TokType.RealNumber,
             TokType.Else, TokType.Id)]
         [TestCase("o = 'hiWorld'", TokType.Id, TokType.Def, TokType.Text)]
         [TestCase("o = ''+'hiWorld'", TokType.Id, TokType.Def, TokType.Text, TokType.Plus, TokType.Text)]
@@ -40,15 +40,15 @@ namespace Funny.Tests.UnitTests
         [TestCase("x:bool", TokType.Id, TokType.Colon, TokType.BoolType)]
         [TestCase("x.y", TokType.Id, TokType.PipeForward, TokType.Id)]
         [TestCase("x.y(1).z", TokType.Id,
-            TokType.PipeForward, TokType.Id, TokType.Obr, TokType.Number, TokType.Cbr,
+            TokType.PipeForward, TokType.Id, TokType.Obr, TokType.RealNumber, TokType.Cbr,
             TokType.PipeForward, TokType.Id)]
-        [TestCase("[0..1]", TokType.ArrOBr, TokType.Number, TokType.TwoDots, TokType.Number, TokType.ArrCBr)]
+        [TestCase("[0..1]", TokType.ArrOBr, TokType.RealNumber, TokType.TwoDots, TokType.RealNumber, TokType.ArrCBr)]
         [TestCase("[0..1..2]",
             TokType.ArrOBr,
-            TokType.Number, TokType.TwoDots, TokType.Number, TokType.TwoDots, TokType.Number,
+            TokType.RealNumber, TokType.TwoDots, TokType.RealNumber, TokType.TwoDots, TokType.RealNumber,
             TokType.ArrCBr)]
-        [TestCase("0.", TokType.Number, TokType.PipeForward)]
-        [TestCase("0.1", TokType.Number)]
+        [TestCase("0.", TokType.RealNumber, TokType.PipeForward)]
+        [TestCase("0.1", TokType.RealNumber)]
         [TestCase("1y = x", TokType.NotAToken, TokType.Def, TokType.Id)]
         [TestCase("1y", TokType.NotAToken)]
         [TestCase("0.0f", TokType.NotAToken)]
@@ -62,39 +62,39 @@ namespace Funny.Tests.UnitTests
         [TestCase(@"true #", TokType.True)]
         [TestCase(@"true #comment", TokType.True)]
         [TestCase("0.fun()",
-            TokType.Number, TokType.PipeForward, TokType.Id, TokType.Obr, TokType.Cbr)]
-        [TestCase("1.y", TokType.Number, TokType.PipeForward, TokType.Id)]
+            TokType.RealNumber, TokType.PipeForward, TokType.Id, TokType.Obr, TokType.Cbr)]
+        [TestCase("1.y", TokType.RealNumber, TokType.PipeForward, TokType.Id)]
         [TestCase("y = 1; z = 2",
-            TokType.Id, TokType.Def, TokType.Number,
+            TokType.Id, TokType.Def, TokType.RealNumber,
             TokType.NewLine,
-            TokType.Id, TokType.Def, TokType.Number)]
+            TokType.Id, TokType.Def, TokType.RealNumber)]
         [TestCase("y = a+1; z = b+2",
-            TokType.Id, TokType.Def, TokType.Id, TokType.Plus, TokType.Number,
+            TokType.Id, TokType.Def, TokType.Id, TokType.Plus, TokType.RealNumber,
             TokType.NewLine,
-            TokType.Id, TokType.Def, TokType.Id, TokType.Plus, TokType.Number)]
+            TokType.Id, TokType.Def, TokType.Id, TokType.Plus, TokType.RealNumber)]
         [TestCase("x1 = 1\n ; \ny = 2",
-            TokType.Id, TokType.Def, TokType.Number,
+            TokType.Id, TokType.Def, TokType.RealNumber,
             TokType.NewLine, TokType.NewLine, TokType.NewLine,
-            TokType.Id, TokType.Def, TokType.Number)]
+            TokType.Id, TokType.Def, TokType.RealNumber)]
         [TestCase("x = 1; z = x # z == 2",
-            TokType.Id, TokType.Def, TokType.Number,
+            TokType.Id, TokType.Def, TokType.RealNumber,
             TokType.NewLine,
             TokType.Id, TokType.Def, TokType.Id)]
         [TestCase(";;;", TokType.NewLine, TokType.NewLine, TokType.NewLine)]
         [TestCase("f(x) = x*x; y = f(10); z = y",
             TokType.Id, TokType.Obr, TokType.Id, TokType.Cbr, TokType.Def, TokType.Id, TokType.Mult, TokType.Id,
             TokType.NewLine,
-            TokType.Id, TokType.Def, TokType.Id, TokType.Obr, TokType.Number, TokType.Cbr,
+            TokType.Id, TokType.Def, TokType.Id, TokType.Obr, TokType.RealNumber, TokType.Cbr,
             TokType.NewLine,
             TokType.Id, TokType.Def, TokType.Id)]
 
         [TestCase("'{112}'", 
-            TokType.TextOpenInterpolation, TokType.Number, TokType.TextCloseInterpolation)]
+            TokType.TextOpenInterpolation, TokType.RealNumber, TokType.TextCloseInterpolation)]
         [TestCase("'{112}';",
-            TokType.TextOpenInterpolation, TokType.Number, TokType.TextCloseInterpolation, TokType.NewLine)]
+            TokType.TextOpenInterpolation, TokType.RealNumber, TokType.TextCloseInterpolation, TokType.NewLine)]
 
         [TestCase("'1+2 = {12}'",
-            TokType.TextOpenInterpolation, TokType.Number, TokType.TextCloseInterpolation)]
+            TokType.TextOpenInterpolation, TokType.RealNumber, TokType.TextCloseInterpolation)]
 
         [TestCase("'hello{o}world{b}'", 
             TokType.TextOpenInterpolation, TokType.Id, TokType.TextMidInterpolation, 
@@ -106,14 +106,14 @@ namespace Funny.Tests.UnitTests
             //'pre{ {a} +
             TokType.TextOpenInterpolation, TokType.FiObr, TokType.Id, TokType.FiCbr, TokType.Plus, 
             //'pre{0+1}'
-            TokType.TextOpenInterpolation,  TokType.Number, TokType.Plus, TokType.Number, TokType.TextCloseInterpolation,
+            TokType.TextOpenInterpolation,  TokType.RealNumber, TokType.Plus, TokType.RealNumber, TokType.TextCloseInterpolation,
             //}after'
             TokType.TextCloseInterpolation)]
         [TestCase("'pre{ 'pre{0+1}' }after'",
             //'pre{
             TokType.TextOpenInterpolation, 
             //'pre{0+1}'
-            TokType.TextOpenInterpolation, TokType.Number, TokType.Plus, TokType.Number, TokType.TextCloseInterpolation,
+            TokType.TextOpenInterpolation, TokType.RealNumber, TokType.Plus, TokType.RealNumber, TokType.TextCloseInterpolation,
             //}after'
             TokType.TextCloseInterpolation)]
 
@@ -122,12 +122,12 @@ namespace Funny.Tests.UnitTests
         [TestCase("'pre{ {a} }'", TokType.TextOpenInterpolation, TokType.FiObr, TokType.Id, TokType.FiCbr, TokType.TextCloseInterpolation)]
         [TestCase("'pre{ {} }'", TokType.TextOpenInterpolation, TokType.FiObr, TokType.FiCbr, TokType.TextCloseInterpolation)]
         [TestCase("'pre{ {1} 2 }'", TokType.TextOpenInterpolation, TokType.FiObr, 
-            TokType.Number, TokType.FiCbr, TokType.Number, TokType.TextCloseInterpolation)]
+            TokType.RealNumber, TokType.FiCbr, TokType.RealNumber, TokType.TextCloseInterpolation)]
         [TestCase("'pre{ 'pre{0}after' }after'",
             //'pre{
             TokType.TextOpenInterpolation,
             //'pre{0}'
-            TokType.TextOpenInterpolation, TokType.Number, TokType.TextCloseInterpolation,
+            TokType.TextOpenInterpolation, TokType.RealNumber, TokType.TextCloseInterpolation,
             //}after'
             TokType.TextCloseInterpolation)]
         public void TokenFlowIsCorrect_ExpectEof(string exp, params TokType[] expected) 
@@ -169,11 +169,11 @@ namespace Funny.Tests.UnitTests
         [TestCase(">=", TokType.MoreOrEqual)]
         [TestCase(">", TokType.More)]
         [TestCase("'sometext'", TokType.Text)]
-        [TestCase("12345", TokType.Number)]
-        [TestCase("0", TokType.Number)]
-        [TestCase("0.1", TokType.Number)]
-        [TestCase("0x00f", TokType.Number)]
-        [TestCase("123.4312_1", TokType.Number)]
+        [TestCase("12345", TokType.RealNumber)]
+        [TestCase("0", TokType.RealNumber)]
+        [TestCase("0.1", TokType.RealNumber)]
+        [TestCase("0x00f", TokType.RealNumber)]
+        [TestCase("123.4312_1", TokType.RealNumber)]
         [TestCase("false", TokType.False)]
         [TestCase("123abc", TokType.NotAToken)]
         public void ToTokens_SingleTokenIsCorrectAndContainsCorrectBounds(string expression, TokType type)
@@ -205,11 +205,11 @@ namespace Funny.Tests.UnitTests
         }
 
         [TestCase("x+y", TokType.Plus, 1, 2)]
-        [TestCase("-1", TokType.Number, 1, 2)]
-        [TestCase("-123", TokType.Number, 1, 4)]
+        [TestCase("-1", TokType.RealNumber, 1, 2)]
+        [TestCase("-123", TokType.RealNumber, 1, 4)]
         [TestCase("else  if ", TokType.If, 6, 8)]
         [TestCase(" +if", TokType.If, 2, 4)]
-        [TestCase("(2+3)", TokType.Number, 1, 2)]
+        [TestCase("(2+3)", TokType.RealNumber, 1, 2)]
         [TestCase("if(2+3)", TokType.Obr, 2, 3)]
         [TestCase("if", TokType.Eof, 2, 2)]
         [TestCase("x", TokType.Eof, 1, 1)]
