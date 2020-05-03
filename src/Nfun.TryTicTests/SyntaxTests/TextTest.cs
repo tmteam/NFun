@@ -57,6 +57,7 @@ namespace Funny.Tests
         [TestCase("y = 'a b '.concat(toText(1+2)).split(' ')", new[] { "a", "b", "3" })]
         [TestCase("y = 'a b '.concat((1+2).toText()).split(' ')", new[]{"a","b","3"})]
         [TestCase("y = 'a b c'.split(' ')", new[] { "a", "b", "c" })]
+        [TestCase("y = 'a b '.concat('c').split(' ')", new[] { "a", "b", "c" })]
 
         public void TextConstantEquation(string expr, object expected) =>
             FunBuilder

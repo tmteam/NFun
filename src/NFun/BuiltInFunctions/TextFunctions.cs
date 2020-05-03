@@ -85,6 +85,10 @@ namespace NFun.BuiltInFunctions
             
         }
         public override object Calc(object[] args)
-            =>  new TextFunArray(string.Join(args.GetTextOrThrow(1), args.GetListOfStringOrThrow(0)));
+        {
+            var listOfStrings = args.GetListOfStringOrThrow(0);
+            var arg = string.Join(args.GetTextOrThrow(1), listOfStrings);
+            return new TextFunArray(arg);
+        }
     }
 }

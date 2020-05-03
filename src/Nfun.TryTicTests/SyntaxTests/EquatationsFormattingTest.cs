@@ -80,11 +80,11 @@ namespace Funny.Tests
         }
         
         [TestCase("\t\ty\t\t=\t\t1\t\t")]
-        [TestCase(";;y;:int;=;;1;;")]
+        [TestCase(";;y;:int;=;;1.0;;")]
         public void TabulationEverywhere_Calculates(string expr)
         {
             var runtime = FunBuilder.BuildDefault(expr);
-            runtime.Calculate().AssertReturns(VarVal.New("y",1));
+            runtime.Calculate().AssertReturns(VarVal.New("y",1.0));
         }
         
         [Test]

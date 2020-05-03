@@ -24,8 +24,6 @@ namespace NFun.Types
 
         public static string GetTextOrThrow(object obj)
         {
-            //if (obj is string s)
-             //   return s;
             var e = (IFunArray)obj;
             if (e is TextFunArray t)
                 return t.Text;

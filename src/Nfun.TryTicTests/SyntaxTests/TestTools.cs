@@ -64,6 +64,8 @@ namespace Nfun.TryTicTests.SyntaxTests
         {
             if (v is string)
                 return v.ToString();
+            if (v is char[] c)
+                return new string(c);
             if (v is IEnumerable en)
             {
                 return "{" + string.Join(",", en.Cast<object>().Select(ToStringSmart)) + "}";

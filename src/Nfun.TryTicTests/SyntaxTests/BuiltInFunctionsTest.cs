@@ -259,11 +259,11 @@ namespace Funny.Tests
                      y = map([1,2,3],ii)", new[] { 0.5, 1.0, 1.5 })]
         [TestCase(@"isodd(x:int):bool = (x%2) == 0
                      y = map([1,2,3],isodd)", new[] { false, true, false })]
-        [TestCase(@"toS1(t:text, x:int):text = t.concat(x)
+        [TestCase(@"toS1(t:text, x:int):text = t.concat(x.toText())
                      y = reduce([1,2,3], ':', toS1)", ":123")]
-        [TestCase(@"toS2(t:text, x:int):text = t.concat(x)
+        [TestCase(@"toS2(t:text, x:int):text = t.concat(x.toText())
                      y = reduce([1], '', toS2)", "1")]
-        [TestCase(@"toS3(t:text, x:int):text = t.concat(x)
+        [TestCase(@"toS3(t:text, x:int):text = t.concat(x.toText())
                      y = reduce([1][1:1], '', toS3)", "")]
         [TestCase(@"toR(r:real, x:int):real = r+x
                      y = reduce([1,2,3], 0.5, toR)", 6.5)]
@@ -389,11 +389,12 @@ namespace Funny.Tests
         [TestCase("y = '  hi world  '.trimEnd()","  hi world")]
         [TestCase("y = 'hi world'.trim()","hi world")]
 
-
-        [TestCase("y = [true,false,true].map(toText).join(', ')", "true, false, true")]
+        [TestCase("y = [true,false,true].map(toText).join(', ')", "True, False, True")]
         [TestCase("y = [1,2,3,4].map(toText).join(', ')", "1, 2, 3, 4")]
         [TestCase("y = ['1','2','3','4'].join(', ')","1, 2, 3, 4")]
         [TestCase("y = ['1','2','3','4'].join(',')","1,2,3,4")]
+        [TestCase("y = ['01','02','03','04'].join(',')","01,02,03,04")]
+
         [TestCase("y = ['1'].join(',')","1")]
 
         [TestCase("y = '1 2 3 4 5'.split(' ')",new []{"1","2","3","4","5"})]

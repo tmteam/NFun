@@ -33,6 +33,7 @@ namespace NFun.BuiltInFunctions
         public const string Negate = "-_invert_num";
         public static string Format = "@Format";
         public static string ToText = "toText";
+        //UsedInInterpolation
         public static string ConcatTexts = "@concatTexts";
 
     }

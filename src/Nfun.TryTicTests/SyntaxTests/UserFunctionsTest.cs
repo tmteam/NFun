@@ -26,11 +26,11 @@ namespace Funny.Tests
         [TestCase("mysum(a:real, b:int):real = a + b \r  y = mysum(1,2)",3.0)]
         [TestCase("conv(x:int):real = x; y = conv(2);", 2.0)]
 
-        //todo toString
         [TestCase("myconcat(a:text, b:text):text = a.concat(b) \r  y = myconcat(\"my\",\"test\")", "mytest")]
-        [TestCase("myconcat(a:text, b:text):text = a.concat(b) \r  y = myconcat(1,\"test\")", "1test")]
-        [TestCase("myconcat(a:text, b:text):text = a.concat(b) \r  y = myconcat(1,2)", "12")]
-        [TestCase("myconcat(a:text, b):text = a.concat(b)\r  y = myconcat(1,2.5)", "12.5")]
+        [TestCase("myconcat(a:text, b:text):text = a.concat(b) \r  y = myconcat(1.toText(),\"test\")", "1test")]
+        [TestCase("myconcat(a:text, b:text):text = a.concat(b) \r  y = myconcat(1.toText(),2.toText())", "12")]
+        [TestCase("myconcat(a:text, b):text = a.concat(b)\r  y = myconcat(1.toText(), 2.5.toText())", "12.5")]
+        
         [TestCase("arr(a:real[]):real[] = a    \r  y = arr([1.0,2.0])",new[]{1.0,2.0})]
         [TestCase("arr(a:real[]):real[] = a.concat(a) \r  y = arr([1.0,2.0])",new[]{1.0,2.0,1.0,2.0})]
         [TestCase("arr(a:int[]):int[] = a \r  y = arr([1,2])",new[]{1,2})]
