@@ -148,8 +148,10 @@ namespace NFun.Tic
             //expr<=returnType<= ...
             exprId.Ancestors.Add(returnTypeNode);
             var fun = Fun.Of(args, returnTypeNode);
-            CreateVarType(fun);
+            var node = CreateVarType(fun);
+            _outputNodes.Add(node);
             return fun;
+
         }
 
         public RefTo SetArrayInit(int resultIds, params int[] elementIds)
@@ -164,6 +166,28 @@ namespace NFun.Tic
             }
             return new RefTo(elementType);
         }
+
+        public void SetCall(Fun fun, params int[] argThenReturnIds)
+        {
+            if (fun.ArgsCount != argThenReturnIds.Length - 1)
+                throw new ArgumentException("Sizes of type and id array have to be equal");
+
+            RegistrateCompositeType(fun);
+
+            for (int i = 0; i < fun.ArgsCount; i++)
+            {
+                var type = fun.ArgNodes[i];
+                var argId = argThenReturnIds[i];
+                var node = GetOrCreateNode(argId);
+                type.BecomeAncestorFor(node);
+            }
+
+            var returnId = argThenReturnIds[argThenReturnIds.Length - 1];
+            var returnNode = GetOrCreateNode(returnId);
+            returnNode.State = SolvingFunctions.GetMergedState(returnNode.State, fun.ReturnType);
+        }
+
+
 
         public void SetCall(IState[] argThenReturnTypes, int[] argThenReturnIds)
         {
@@ -201,6 +225,7 @@ namespace NFun.Tic
                         refTo.Node.BecomeAncestorFor(node);
                         break;
                     }
+                    
                     default: throw new InvalidOperationException();
                 }
             }

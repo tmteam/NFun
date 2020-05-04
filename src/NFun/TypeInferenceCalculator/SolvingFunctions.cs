@@ -631,12 +631,11 @@ namespace NFun.Tic
                         syntaxNodes.Add(null);
                     syntaxNodes[nodeId] = node;
                 }
-
             }
 
 
             var outputTypes = outputNodes
-                .SelectMany(s => s.GetAllLeafTypes())
+                .SelectMany(s => s.GetAllOutputTypes())
                 .Distinct()
                 .ToArray();
             var notSolved = toposortedNodes
@@ -689,6 +688,21 @@ namespace NFun.Tic
                     return new[] {node.GetNonReference()};
                 default:
                     return new[] {node};
+            }
+        }
+
+        private static IEnumerable<SolvingNode> GetAllOutputTypes(this SolvingNode node)
+        {
+            switch (node.State)
+            {
+                case Fun fun:
+                    return new[] { fun.RetNode };
+                case Array array:
+                     return array.AllLeafTypes;
+                case RefTo _:
+                    return new[] { node.GetNonReference() };
+                default:
+                    return new[] { node };
             }
         }
 
