@@ -635,7 +635,7 @@ namespace NFun.Tic
 
 
             var outputTypes = outputNodes
-                .SelectMany(s => s.GetAllOutputTypes())
+                .SelectMany(GetAllOutputTypes)
                 .Distinct()
                 .ToArray();
             var notSolved = toposortedNodes

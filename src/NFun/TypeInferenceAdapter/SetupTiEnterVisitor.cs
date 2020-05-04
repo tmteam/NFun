@@ -2,6 +2,7 @@ using NFun.Interpritation;
 using NFun.ParseErrors;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
+using NFun.Tic.SolvingStates;
 using NFun.Types;
 
 namespace NFun.TypeInferenceAdapter
@@ -30,15 +31,52 @@ namespace NFun.TypeInferenceAdapter
             //внешней функции
 
             var signature = _dictionary.GetOrNull(node.Id, node.Args.Length);
-            if (signature == null)
-                throw ErrorFactory.FunctionOverloadNotFound(node, _dictionary);
-            _resultsBuilder.SetFunction(node.OrderNumber, signature);
+            if (signature != null)
+                _resultsBuilder.RememberFunctionCall(node.OrderNumber, signature);
+            else
+            {
+                //если функции нету в словаре - это может быть рекурсивынй вызов
+                //нужно поискать в функциональных переменных
+                var userFunction = _resultsBuilder.GetUserFunctionSignature(node.Id, node.Args.Length);
+                if (userFunction == null)
+                    throw ErrorFactory.FunctionOverloadNotFound(node, _dictionary);
+                //мы пока не знаем сигнатуру пользовательской функции - потому не запоминаем сигнатуры
+            }
 
             return VisitorEnterResult.Continue;
         }
-        public override VisitorEnterResult Visit(UserFunctionDefenitionSyntaxNode node) 
-            => VisitorEnterResult.Skip;
-        
+        public override VisitorEnterResult Visit(UserFunctionDefenitionSyntaxNode node)
+        {
+            //Функция может быть рекурсивной. 
+            //Обработка вызовов функций должна проверить - не является ли она вызовом самого себя,
+            //Вместо того что бы лезть в словарь функций. мы можем посмотреть нет ли в выведение типов такой переменной
+            //
+            //Сигнатуру получившейся функции можно будет посмотреть в результатах вывода типов
+
+            var argNames = new string[node.Args.Count];
+            int i = 0;
+            foreach (var arg in node.Args)
+            {
+                argNames[i] = arg.Id;
+                i++;
+                if (arg.VarType != VarType.Empty)
+                    _setupTiState.CurrentSolver.SetVarType(arg.Id, arg.VarType.ConvertToTiType());
+            }
+
+            IType returnType = null;
+            if (node.ReturnType != VarType.Empty)
+                returnType = (IType)node.ReturnType.ConvertToTiType();
+            
+
+            var fun =_setupTiState.CurrentSolver.CreateFunctionalVar(
+                name: node.Id+"'"+ node.Args.Count, 
+                returnId: node.Body.OrderNumber, 
+                returnType: returnType, 
+                varNames: argNames);
+            _resultsBuilder.RememberUserFunctionSignature(node.Id, fun);
+            return VisitorEnterResult.Continue;
+        }
+
         public override VisitorEnterResult Visit(AnonymCallSyntaxNode anonymFunNode)
         {
             _setupTiState.EnterScope(anonymFunNode.OrderNumber);

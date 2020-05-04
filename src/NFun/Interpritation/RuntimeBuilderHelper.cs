@@ -16,11 +16,19 @@ namespace NFun.Interpritation
     public static class RuntimeBuilderHelper
     {
         
-        public static TypeInferenceResults SolveOrThrow(SyntaxTree syntaxTree, IFunctionDicitionary functionsDictionary)
+        public static TypeInferenceResults SolveBodyOrThrow(SyntaxTree syntaxTree, IFunctionDicitionary functionsDictionary)
         {
             var resultBuilder = new TypeInferenceResultsBuilder();
-            var bodyTypeSolving =  LangTiHelper.SetupTiOrNull(syntaxTree, functionsDictionary, resultBuilder)?.Solve();
+            var builder = new GraphBuilder();
+            var state = new SetupTiState(builder);
+            //Пробегаем по всем узлам, КРОМЕ синтакс нод
+            foreach (var node in syntaxTree.Nodes.Where(n=>!(n is UserFunctionDefenitionSyntaxNode)))
+            {
+                if(!LangTiHelper.SetupTiOrNull(node, functionsDictionary, resultBuilder, state))
+                    throw ErrorFactory.TypesNotSolved(node);
+            }
 
+            var bodyTypeSolving = builder.Solve();
             if (bodyTypeSolving == null)
                 throw ErrorFactory.TypesNotSolved(syntaxTree);
             resultBuilder.SetResults(bodyTypeSolving);

@@ -46,10 +46,7 @@ namespace NFun.TypeInferenceAdapter
             //throw ErrorFactory.VariousArrayElementTypes(failedItem);
         }
 
-        /// <summary>
-        /// User fuctions are not supported by the visitor
-        /// </summary>
-        public override bool Visit(UserFunctionDefenitionSyntaxNode node) => false;
+        public override bool Visit(UserFunctionDefenitionSyntaxNode node) => true;
 
         public override bool Visit(ProcArrayInit node)
         {
@@ -104,7 +101,15 @@ namespace NFun.TypeInferenceAdapter
 
         public override bool Visit(FunCallSyntaxNode node)
         {
-            Trace(node, $"Call {node.Id}({string.Join(",", node.Args.Select(a=>a.OrderNumber))})");
+            var userFunction = _resultsBuilder.GetUserFunctionSignature(node.Id, node.Args.Length);
+            if (userFunction != null)
+            {
+                //Это вызов пользовательской функции
+                Trace(node, $"Call UF{node.Id}({string.Join(",", node.Args.Select(a => a.OrderNumber))})");
+                _state.CurrentSolver.SetCall(userFunction, node.Args.Select(a => a.OrderNumber).Append(node.OrderNumber).ToArray());
+                return true;
+            }
+            Trace(node, $"Call {node.Id}({string.Join(",", node.Args.Select(a => a.OrderNumber))})");
 
             var signature = _resultsBuilder.GetSignatureOrNull(node.OrderNumber);
 
@@ -240,9 +245,11 @@ namespace NFun.TypeInferenceAdapter
         public override  bool Visit(TypedVarDefSyntaxNode node)
         {
             Trace(node, $"Tvar {node.Id}:{node.VarType}  ");
-
-            var type = LangTiHelper.ConvertToTiType(node.VarType);
-            _state.CurrentSolver.SetVarType(node.Id, type);
+            if (node.VarType != VarType.Empty)
+            {
+                var type = LangTiHelper.ConvertToTiType(node.VarType);
+                _state.CurrentSolver.SetVarType(node.Id, type);
+            }
             return true;
         }
 
@@ -289,7 +296,7 @@ namespace NFun.TypeInferenceAdapter
                     _state.CurrentSolver.SetVar($"f'{argsCount}'{node.Id}",node.OrderNumber);
                 }
 
-                _resultsBuilder.SetFunctionalVariable(node.OrderNumber, signature);
+                _resultsBuilder.RememberFunctionalVariable(node.OrderNumber, signature);
                 return true;
             }
             //ищем обычную переменную

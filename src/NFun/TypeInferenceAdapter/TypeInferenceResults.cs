@@ -14,6 +14,7 @@ namespace NFun.TypeInferenceAdapter
         readonly List<Constrains> _constrainses = new List<Constrains>();
         readonly List<IFunctionSignature> _functionSignatures = new List<IFunctionSignature>();
         readonly List<IFunctionSignature> _functionalVariable = new List<IFunctionSignature>();
+        readonly Dictionary<string, Fun> userFunctionSignatures = new Dictionary<string, Fun>();
 
         private Dictionary<string, IState> _namedNodes = null;
         private IState[] _syntaxNodeTypes = null;
@@ -25,20 +26,29 @@ namespace NFun.TypeInferenceAdapter
 
             _genericFunctionTypes[id] = types;
         }
-        
+
+        public Fun GetUserFunctionSignature(string id, int argsCount)
+        {
+            string name = id + "'" + argsCount;
+            userFunctionSignatures.TryGetValue(name, out var res);
+            return res;
+;        }
         public IFunctionSignature GetSignatureOrNull(int id)
         {
             if (_functionSignatures.Count <= id)
                 return null;
             return _functionSignatures[id];
         }
-        public void SetFunctionalVariable(int id, IFunctionSignature signature)
+        public void RememberUserFunctionSignature(string name, Fun signature) 
+            => userFunctionSignatures.Add(name+"'"+signature.ArgsCount, signature);
+
+        public void RememberFunctionalVariable(int id, IFunctionSignature signature)
         {
             while (_functionalVariable.Count <= id)
                 _functionalVariable.Add(null);
             _functionalVariable[id] = signature;
         }
-        public void SetFunction(int id, IFunctionSignature signature)
+        public void RememberFunctionCall(int id, IFunctionSignature signature)
         {
             while (_functionSignatures.Count <= id)
                 _functionSignatures.Add(null);

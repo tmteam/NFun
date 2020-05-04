@@ -80,8 +80,43 @@ namespace Funny.Tests
             var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate().AssertReturns(0.00001, VarVal.New("y", expected));
         }
-        
-        [Ignore("reqursive")]
+        [TestCase(1, 1)]
+        [TestCase(2, 2)]
+        [TestCase(3, 6)]
+        [TestCase(4, 24)]
+        [TestCase(5, 120)]
+        [TestCase(6, 720)]
+        public void RecFactorial_Concrete(int x, int y)
+        {
+            string text =
+                @"fact(n:int):int = if(n>1) n*fact(n-1)
+                                    else 1
+                    
+                   y = fact(x)";
+            var runtime = FunBuilder.BuildDefault(text);
+            runtime.Calculate(VarVal.New("x", x)).AssertReturns(0.00001, VarVal.New("y", y));
+        }
+
+        [TestCase(1, 1)]
+        [TestCase(2, 1)]
+        [TestCase(3, 2)]
+        [TestCase(4, 3)]
+        [TestCase(5, 5)]
+        [TestCase(6, 8)]
+        [TestCase(7, 13)]
+        public void ClassicRecFibonachi_AllTypesConcrete(int x, int y)
+        {
+            string text =
+                @"fibrec(n:int, iter:int, p1:int,p2:int):int =
+                          if (n >iter) fibrec(n, iter+1, p1+p2, p1)
+                          else p1+p2  
+                    
+                   fib(n:int) = if (n<3) 1 else fibrec(n-1,2,1,1)
+                   y = fib(x)";
+            var runtime = FunBuilder.BuildDefault(text);
+            runtime.Calculate(VarVal.New("x", x)).AssertReturns(0.00001, VarVal.New("y", y));
+        }
+
         [TestCase(1,1)]
         [TestCase(2,1)]
         [TestCase(3,2)]
@@ -102,7 +137,7 @@ namespace Funny.Tests
             runtime.Calculate(VarVal.New("x",x)).AssertReturns(0.00001, VarVal.New("y", y));    
         }
 
-        [Ignore("reqursive functions")]
+        [Ignore("generic functions")]
         [TestCase(1,1)]
         [TestCase(2,1)]
         [TestCase(3,2)]
@@ -122,7 +157,7 @@ namespace Funny.Tests
             var runtime = FunBuilder.BuildDefault(text);
             runtime.Calculate(VarVal.New("x",x)).AssertReturns(0.00001, VarVal.New("y", y));    
         }
-        [Ignore("reqursive functions")]
+        [Ignore("generic functions")]
 
         [TestCase(1,1)]
         [TestCase(2,1)]
@@ -145,7 +180,7 @@ namespace Funny.Tests
             var runtime = FunBuilder.BuildDefault(text);
                 runtime.Calculate(VarVal.New("x",x)).AssertReturns(0.00001, VarVal.New("y", y));    
         }
-        [Ignore("reqursive functions")]
+        [Ignore("generic functions")]
 
         [TestCase(1,1)]
         [TestCase(2,1)]
@@ -165,7 +200,6 @@ namespace Funny.Tests
             var runtime = FunBuilder.BuildDefault(text);
             runtime.Calculate(VarVal.New("x",x)).AssertReturns(0.00001, VarVal.New("y", y));    
         }
-        [Ignore("reqursive functions")]
 
         [TestCase(1,1)]
         [TestCase(3,2)]

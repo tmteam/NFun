@@ -15,7 +15,7 @@ namespace NFun.Tic.Tests
             //node |       1 0  3 2
             //expr |y(x) = y(x) + 1i 
             var graph = new GraphBuilder();
-            var fun = graph.CreateFunction(3, null, "x");
+            var fun = graph.CreateFunctionalVar("y",3, null, "x");
             graph.SetVar("x", 0);
             graph.SetCall(fun, 0, 1);
             graph.SetConst(2, Primitive.I32);
@@ -35,7 +35,7 @@ namespace NFun.Tic.Tests
             //expr |y(x) = y(x) + x + 1.0
             var graph = new GraphBuilder();
             
-            var fun = graph.CreateFunction(5, null, "x");
+            var fun = graph.CreateFunctionalVar("y", 5, null, "x");
             graph.SetConst(0, Primitive.Real);
             graph.SetVar("x", 1);
             graph.SetArith(0,1,2);
@@ -55,7 +55,7 @@ namespace NFun.Tic.Tests
             //node |       4    0   2 1    3
             //expr |y(x) = if true: y(x) | x 
             var graph = new GraphBuilder();
-            var fun = graph.CreateFunction(4, null, "x");
+            var fun = graph.CreateFunctionalVar("y",4, null, "x");
             graph.SetConst(0, Primitive.Bool);
             graph.SetVar("x", 1);
             graph.SetCall(fun, 1, 2);

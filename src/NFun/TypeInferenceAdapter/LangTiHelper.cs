@@ -17,19 +17,15 @@ namespace NFun.TypeInferenceAdapter
         /// Setups ti algorithm
         /// </summary>
         /// <returns>null if setup failed, Algorithm solver otherwise</returns>
-        public static GraphBuilder SetupTiOrNull(
+        public static bool SetupTiOrNull(
             ISyntaxNode syntaxNode, 
             IFunctionDicitionary dictionary, 
             TypeInferenceResultsBuilder resultsBuilder,
-            SetupTiState state = null)
+            SetupTiState state)
         {
-            var solver = state?.CurrentSolver??new GraphBuilder();
-            var tiState = state??new SetupTiState(solver);
-            var enterVisitor = new SetupTiEnterVisitor(tiState, dictionary, resultsBuilder);
-            var exitVisitor = new SetupTiExitVisitor(tiState,   dictionary, resultsBuilder);
-            if (syntaxNode.ComeOver(enterVisitor, exitVisitor)) 
-                return solver;
-            return null;
+            var enterVisitor = new SetupTiEnterVisitor(state, dictionary, resultsBuilder);
+            var exitVisitor  = new SetupTiExitVisitor(state,   dictionary, resultsBuilder);
+            return syntaxNode.ComeOver(enterVisitor, exitVisitor);
         }
 
         

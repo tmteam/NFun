@@ -143,7 +143,7 @@ namespace Nfun.TryTicTests.TicTests
             result.AssertAreGenerics(arithGeneric,  "y","x","z");
         }
 
-        [Test]
+        [Test(Description = "y = if |a: x| else: (z + 1.0)")]
         public void SolvingConcreteCaseWithIfs()
         {
             var result = TestHelper.Solve("y = if (a) x; else (z + 1.0);");

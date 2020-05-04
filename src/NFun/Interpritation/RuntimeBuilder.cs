@@ -38,7 +38,7 @@ namespace NFun.Interpritation
 
             #region solve body types
             //Solve types for all equations nodes
-            var bodyTypeSolving = RuntimeBuilderHelper.SolveOrThrow(syntaxTree, scopeFunctionDictionary);
+            var bodyTypeSolving = RuntimeBuilderHelper.SolveBodyOrThrow(syntaxTree, scopeFunctionDictionary);
 
             foreach (var syntaxNode in syntaxTree.Children)
             {
@@ -134,34 +134,22 @@ namespace NFun.Interpritation
         {
             ////introduce function variable
             var graphBuider = new GraphBuilder();
-            //Setup user function signature
-            foreach (var argument in functionSyntaxNode.Args)
-            {
-                if(argument.VarType!= VarType.Empty)
-                    graphBuider.SetVarType(argument.Id, argument.VarType.ConvertToTiType());
-            }
-            if (functionSyntaxNode.ReturnType != VarType.Empty)
-                graphBuider.SetVarType("$result", functionSyntaxNode.ReturnType.ConvertToTiType());
-            //setup return type
-            graphBuider.SetDef("$result", functionSyntaxNode.Body.OrderNumber);
-
+            
             //setup body type inference
             var resultsBuilder = new TypeInferenceResultsBuilder();
-            var typeSolving = LangTiHelper.SetupTiOrNull(
-                functionSyntaxNode.Body, 
+            if(!LangTiHelper.SetupTiOrNull(
+                functionSyntaxNode, 
                 functionsDictionary, 
                 resultsBuilder, 
-                new SetupTiState(graphBuider));
-            if (typeSolving==null)
+                new SetupTiState(graphBuider)))
                 throw FunParseException.ErrorStubToDo($"Function '{functionSyntaxNode.Id}' is not solved");
-
+            
             // solve the types
-            var types = typeSolving.Solve();
+            var types = graphBuider.Solve();
             if(types.GenericsCount>0)
-                throw new NotImplementedException("Generic user functions are not supported");
+                throw new NotImplementedException($"Function {functionSyntaxNode.Id} is generic. Generic user functions are not supported");
             resultsBuilder.SetResults(types);
-            var typeInferenceResuls = resultsBuilder.Build(); 
-
+            var typeInferenceResuls = resultsBuilder.Build();
 
             //set types to nodes
             var converter = new TypeInferenceOnlyConcreteInterpriter();
@@ -171,12 +159,11 @@ namespace NFun.Interpritation
                     tiToLangTypeConverter: converter),
                 exitVisitor: new ApplyTiResultsExitVisitor());
 
-            var returnType = converter.Convert(typeInferenceResuls.GetVariableType("$result"));
-            var argTypes = functionSyntaxNode
-                .Args
-                .Select(a => converter.Convert(typeInferenceResuls.GetVariableType(a.Id)))
-                .ToArray();
+            var funType = converter.Convert(
+                typeInferenceResuls.GetVariableType(functionSyntaxNode.Id + "'" + functionSyntaxNode.Args.Count));
 
+            var returnType = funType.FunTypeSpecification.Output;
+            var argTypes = funType.FunTypeSpecification.Inputs;
 
             //make function prototype
             var prototype = new ConcreteUserFunctionPrototype(functionSyntaxNode.Id, returnType, argTypes);

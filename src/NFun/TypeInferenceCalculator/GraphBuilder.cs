@@ -17,7 +17,6 @@ namespace NFun.Tic
         private readonly List<SolvingNode> _outputNodes = new List<SolvingNode>();
         public RefTo InitializeVarNode(IType desc = null, Primitive anc = null, bool isComparable = false) 
             => new RefTo(CreateVarType(new Constrains(desc, anc){IsComparable =  isComparable}));
-
         private void RegistrateCompositeType(ICompositeType composite)
         {
             foreach (var member in composite.Members)
@@ -140,7 +139,7 @@ namespace NFun.Tic
             SetOrCreateLambda(lambdaId, args, returnTypeNode);
         }
 
-        public Fun CreateFunction(int returnId, IType returnType = null, params string[] varNames)
+        public Fun CreateFunctionalVar(string name, int returnId, IType returnType = null, params string[] varNames)
         {
             var args = varNames.Select(GetNamedNode).ToArray();
             var exprId = GetOrCreateNode(returnId);
@@ -148,7 +147,11 @@ namespace NFun.Tic
             //expr<=returnType<= ...
             exprId.Ancestors.Add(returnTypeNode);
             var fun = Fun.Of(args, returnTypeNode);
-            var node = CreateVarType(fun);
+
+            var node = GetNamedNode(name);
+            if(!(node.State is Constrains c) || !c.NoConstrains)
+                throw new InvalidOperationException("variable "+ name+ "already declared");
+            node.State = fun;
             _outputNodes.Add(node);
             return fun;
 
