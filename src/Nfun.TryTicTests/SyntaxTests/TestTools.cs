@@ -42,10 +42,11 @@ namespace Nfun.TryTicTests.SyntaxTests
                 }
             });
         }
-        public static void AssertReturns(this CalculationResult result, params VarVal[] vars)
-        {
-            AssertReturns(result, 0, vars);
-        }
+        public static void AssertReturns(this CalculationResult result, params VarVal[] vars) 
+            => AssertReturns(result, 0, vars);
+
+        public static void AssertReturns(this CalculationResult result, object val)
+            => AssertReturns(result, 0, new []{VarVal.New("out", val)});
         public static CalculationResult AssertHas(this CalculationResult result, VarVal variable, double delta = 0)
         {
             var res = result.Results.FirstOrDefault(r => r.Name == variable.Name);

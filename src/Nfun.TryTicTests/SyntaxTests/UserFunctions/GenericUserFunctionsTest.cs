@@ -64,7 +64,11 @@ namespace Funny.Tests
                 .AssertHas(VarVal.New("a", expectedA))
                 .AssertHas(VarVal.New("b", expectedB));
         }
-
-
+        [TestCase(@"choose(f1, f3,  selector, arg1, arg2) = if(selector) f1(arg1,arg2) else f2(arg1,arg2); choose(max, min, true, 1,2)", 2.0)]
+        [TestCase(@"car2(f, x) = i->f(x, i); max.car2(1)(2)",2.0)]
+        [TestCase(@"mult(x)=y->z->x*y*z;    mult(2)(3)(4)",24.0)]
+        [TestCase(@"mult()= x->y->z->x* y*z; mult()(2)(3)(4)",24.0)]
+        public void HiOrder(string expr, object expected) 
+            => FunBuilder.BuildDefault(expr).Calculate().AssertReturns(expected);
     }
 }
