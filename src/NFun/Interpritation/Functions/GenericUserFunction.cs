@@ -4,7 +4,6 @@ using System.Linq;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tic.SolvingStates;
-using NFun.Tokenization;
 using NFun.TypeInferenceAdapter;
 using NFun.Types;
 
@@ -67,7 +66,8 @@ namespace NFun.Interpritation.Functions
             var returnType = funType.FunTypeSpecification.Output;
             var argTypes = funType.FunTypeSpecification.Inputs;
 
-            //Создаем прототип и сразу кладем его в кеш. Это нужно для того, что бы в случае рекурсивного билда - прототип уже был в кеше
+            //Создаем прототип и сразу кладем его в кеш.
+            //Это нужно для того, что бы в случае рекурсивного билда - прототип уже был в кеше
             var concretePrototype = new ConcreteUserFunctionPrototype(Name, returnType, argTypes);
             _concreteFunctionsCache.Add(id, concretePrototype);
 

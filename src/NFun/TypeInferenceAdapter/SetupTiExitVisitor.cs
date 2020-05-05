@@ -270,6 +270,7 @@ namespace NFun.TypeInferenceAdapter
         public override bool Visit(VariableSyntaxNode node)
         {
             Trace(node,$"VAR {node.Id} ");
+
             //Нужно узнать у Tic - что именно ожидается - переменная или функция
             //Если функция - то сколько в ней аргументов
             VarType argType = VarType.Empty;
@@ -285,27 +286,29 @@ namespace NFun.TypeInferenceAdapter
                 //В качестве аргумента ожидается функция
                 var argsCount = argType.FunTypeSpecification.Inputs.Length;
                 var signature = _dictionary.GetOrNull(node.Id, argsCount);
-                if (signature == null)
-                    throw ErrorFactory.FunctionOverloadNotFound(node, _dictionary);
-                if (signature is GenericFunctionBase generic)
+                if (signature != null)
                 {
-                    var generics =InitializeGenericTypes(generic.GenericDefenitions);
-                    _resultsBuilder.SetGenericTypes(node.OrderNumber, generics);
+                    if (signature is GenericFunctionBase genericFunction)
+                    {
+                        var generics = InitializeGenericTypes(genericFunction.GenericDefenitions);
+                        _resultsBuilder.SetGenericTypes(node.OrderNumber, generics);
 
-                    _state.CurrentSolver.SetVarType($"g'{argsCount}'{node.Id}", generic.GetTicFunType(generics));
-                    _state.CurrentSolver.SetVar($"g'{argsCount}'{node.Id}", node.OrderNumber);
-                    
-                }
-                else
-                {
-                    _state.CurrentSolver.SetVarType($"f'{argsCount}'{node.Id}", signature.GetTicFunType());
-                    _state.CurrentSolver.SetVar($"f'{argsCount}'{node.Id}",node.OrderNumber);
-                }
+                        _state.CurrentSolver.SetVarType($"g'{argsCount}'{node.Id}",
+                            genericFunction.GetTicFunType(generics));
+                        _state.CurrentSolver.SetVar($"g'{argsCount}'{node.Id}", node.OrderNumber);
 
-                _resultsBuilder.RememberFunctionalVariable(node.OrderNumber, signature);
-                return true;
+                    }
+                    else
+                    {
+                        _state.CurrentSolver.SetVarType($"f'{argsCount}'{node.Id}", signature.GetTicFunType());
+                        _state.CurrentSolver.SetVar($"f'{argsCount}'{node.Id}", node.OrderNumber);
+                    }
+
+                    _resultsBuilder.RememberFunctionalVariable(node.OrderNumber, signature);
+                    return true;
+                }
             }
-            //ищем обычную переменную
+            //ставим обычную переменную
             var localId = _state.GetActualName(node.Id);
             _state.CurrentSolver.SetVar(localId, node.OrderNumber);
             return true;
