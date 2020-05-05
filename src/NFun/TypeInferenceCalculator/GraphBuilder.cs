@@ -356,14 +356,14 @@ namespace NFun.Tic
             SolvingFunctions.SetDownwardsLimits(sorted);
             PrintTrace();
 
-            SolvingFunctions.Destruction(sorted);
+            DestructionFunctions.Destruction(sorted);
 
             Console.WriteLine();
             Console.WriteLine("Destruct Down");
             PrintTrace();
 
             Console.WriteLine("Finalize");
-            var results = SolvingFunctions.FinalizeUp(sorted, _outputNodes.ToArray());
+            var results = DestructionFunctions.FinalizeUp(sorted, _outputNodes.ToArray());
 
             Console.WriteLine($"Type variables: {results.TypeVariables.Length}");
             foreach (var typeVariable in results.TypeVariables)

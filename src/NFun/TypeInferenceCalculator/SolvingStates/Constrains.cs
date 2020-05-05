@@ -206,16 +206,27 @@ namespace NFun.Tic.SolvingStates
 
             return result;
         }
-       
-        public override string ToString()
+        /// <summary>
+        /// Пытается вывести тип если это возможно
+        /// Возвращает себя если это не возможно
+        /// </summary>
+        public IState Solve()
         {
-            var res =  $"[{Descedant}..{Ancestor}]";
+            if (Prefered != null && Fits(Prefered))
+                return Prefered;
+            var ancestor = Ancestor ?? Primitive.Any;
             if (IsComparable)
-                res += "<>";
-            if (Prefered != null)
-                res += Prefered + "!";
-            return res;
+            {
+                if (ancestor.IsComparable)
+                    return ancestor;
+                else 
+                    return this;
+            }
+            if (Descedant is Array)
+                return Descedant;
+            return ancestor;
         }
+       
 
         public IState GetOptimizedOrThrow()
         {
@@ -251,7 +262,15 @@ namespace NFun.Tic.SolvingStates
 
             return this;
         }
-
+        public override string ToString()
+        {
+            var res = $"[{Descedant}..{Ancestor}]";
+            if (IsComparable)
+                res += "<>";
+            if (Prefered != null)
+                res += Prefered + "!";
+            return res;
+        }
         public string Description => ToString();
     }
 }

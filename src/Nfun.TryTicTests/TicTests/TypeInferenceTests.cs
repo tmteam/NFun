@@ -312,5 +312,51 @@ namespace Nfun.TryTicTests.TicTests
             result.AssertNoGenerics();
             result.AssertNamed(Array.Of(Array.Of(Primitive.Char)), "y");
         }
+        [Test]
+        public void SolveConcreteFunctions0()
+        {
+            FunBuilder.BuildDefault(
+                @"f1(a:int):int = 1
+                  f2(n) = f1(n-1)*f1(n)");
+        }
+        [Test]
+        public void SolveConcreteFunctions2()
+        {
+            FunBuilder.BuildDefault(
+                @"f1(a:int):int = 1
+                  f2(n) = if(true) f1(n) else f1(n-1)");
+        }
+
+        [Test]
+        public void SolveConcreteFunctions3()
+        {
+            FunBuilder.BuildDefault(
+                @"f1(a:int):int = 1
+                  f2(n) = (if(n<3) 1 else 2)* f1(n-1)");
+        }
+
+        [Test]
+        public void SolveConcreteFunctions4()
+        {
+            FunBuilder.BuildDefault(
+                @"  f1(n:int):int = 1
+                    f2(n) = if(n<3) 1 else f1(n)");
+        }
+        [Test]
+        public void SolveConcreteReqFunctions()
+        {
+            FunBuilder.BuildDefault(
+                @"f1(a:int, b:int, c:int, d:int):int = f1(a,b,c,d)
+                  f2(n) = if(n<3) 1 else f1(n-1,2,1,1)");
+        }
+        [Test]
+        public void SolveConcreteFibonachiFunctions()
+        {
+            FunBuilder.BuildDefault(
+                @"fibrec(n:int, iter, p1,p2):int =
+                          if (n >iter) fibrec(n, iter+1, p1+p2, p1)
+                          else p1+p2
+                  f2(n) = if(n<3) 1 else fibrec(n-1,2,1,1)");
+        }
     }
 }
