@@ -274,29 +274,30 @@ namespace NFun.Tic
                     case SortStatus.AncestorCycle:
                     {
                         var cycle = result.Order;
-                        Console.ForegroundColor = ConsoleColor.Yellow;
-                        Console.WriteLine($"Found cycle: ");
-                        Console.ResetColor();
-                        Console.WriteLine(string.Join("->", cycle.Select(r => r.Name)));
+                        TraceLog.WriteLine("Found cycle: ", ConsoleColor.Yellow);
+                        TraceLog.WriteLine(()=>string.Join("->", cycle.Select(r => r.Name)));
 
                         //main node. every other node has to reference on it
                         SolvingFunctions.MergeGroup(cycle);
 
-                        Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine($"Cycle normalization results: ");
-                        Console.ResetColor();
-                        foreach (var solvingNode in cycle)
-                            solvingNode.PrintToConsole();
+                        if (TraceLog.IsEnabled)
+                        {
+                            TraceLog.WriteLine($"Cycle normalization results: ", ConsoleColor.Green);
+                            foreach (var solvingNode in cycle)
+                                solvingNode.PrintToConsole();
+                        }
+
                         break;
                     }
 
                     case SortStatus.Sorted:
-                        Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine($"Toposort results: ");
-                        Console.ResetColor();
-                        Console.WriteLine(string.Join("->", result.Order.Select(r => r.Name)));
-                        Console.WriteLine("Refs:" + string.Join(",", result.Refs.Select(r => r.Name)));
+                        if (TraceLog.IsEnabled)
+                        {
+                            TraceLog.WriteLine("Toposort results: ", ConsoleColor.Green);
+                            TraceLog.WriteLine(string.Join("->", result.Order.Select(r => r.Name)));
+                            TraceLog.WriteLine("Refs:" + string.Join(",", result.Refs.Select(r => r.Name)));
 
+                        }
                         return result.Order.Union(result.Refs).ToArray();
                 }
             }
@@ -304,6 +305,9 @@ namespace NFun.Tic
 
         public void PrintTrace()
         {
+            if(!TraceLog.IsEnabled)
+                return;
+            
             var alreadyPrinted = new HashSet<SolvingNode>();
 
             var allNodes = _syntaxNodes.Union(_variables.Select(v => v.Value)).Union(_typeVariables);
@@ -323,59 +327,64 @@ namespace NFun.Tic
             foreach (var node in allNodes)
                 ReqPrintNode(node);
         }
-        public IState GetNodeStateOrNull(int id)
-        {
-            if (_syntaxNodes.Count <= id)
-                return null;
-            var node = _syntaxNodes[id];
-            if (node == null)
-                return null;
-            if (node.State is RefTo)
-                return null;
-            return node.State;
-        }
+       
         public FinalizationResults Solve()
         {
-            PrintTrace();
-            Console.WriteLine();
+            if (TraceLog.IsEnabled) {
+                PrintTrace();
+                TraceLog.WriteLine();
+            }
 
             var sorted = Toposort();
 
-            Console.WriteLine("Decycled:");
-            PrintTrace();
-
-            Console.WriteLine();
-            Console.WriteLine("Set up");
+            if (TraceLog.IsEnabled)
+            {
+                TraceLog.WriteLine("Decycled:");
+                PrintTrace();
+                TraceLog.WriteLine();
+                TraceLog.WriteLine("Set up");
+            }
 
             SolvingFunctions.SetUpwardsLimits(sorted);
-            PrintTrace();
+            if (TraceLog.IsEnabled)
+            {
+                PrintTrace();
 
-            Console.WriteLine();
-            Console.WriteLine("Set down");
+                TraceLog.WriteLine();
+                TraceLog.WriteLine("Set down");
+            }
 
             SolvingFunctions.SetDownwardsLimits(sorted);
-            PrintTrace();
+            if(TraceLog.IsEnabled)
+                PrintTrace();
 
             DestructionFunctions.Destruction(sorted);
 
-            Console.WriteLine();
-            Console.WriteLine("Destruct Down");
-            PrintTrace();
+            if (TraceLog.IsEnabled)
+            {
+                TraceLog.WriteLine();
+                TraceLog.WriteLine("Destruct Down");
+                PrintTrace();
+                TraceLog.WriteLine("Finalize");
+            }
 
-            Console.WriteLine("Finalize");
             var results = DestructionFunctions.FinalizeUp(sorted, _outputNodes.ToArray());
 
-            Console.WriteLine($"Type variables: {results.TypeVariables.Length}");
-            foreach (var typeVariable in results.TypeVariables)
-                Console.WriteLine("    " + typeVariable);
+            if (TraceLog.IsEnabled)
+            {
 
-            Console.WriteLine($"Syntax node types: ");
-            foreach (var syntaxNode in results.SyntaxNodes.Where(s => s != null))
-                Console.WriteLine("    " + syntaxNode);
+                TraceLog.WriteLine($"Type variables: {results.TypeVariables.Length}");
+                foreach (var typeVariable in results.TypeVariables)
+                    TraceLog.WriteLine("    " + typeVariable);
 
-            Console.WriteLine($"Named node types: ");
-            foreach (var namedNode in results.NamedNodes)
-                Console.WriteLine("    " + namedNode);
+                TraceLog.WriteLine($"Syntax node types: ");
+                foreach (var syntaxNode in results.SyntaxNodes.Where(s => s != null))
+                    TraceLog.WriteLine("    " + syntaxNode);
+
+                TraceLog.WriteLine($"Named node types: ");
+                foreach (var namedNode in results.NamedNodes)
+                    TraceLog.WriteLine("    " + namedNode);
+            }
 
             return results;
         }

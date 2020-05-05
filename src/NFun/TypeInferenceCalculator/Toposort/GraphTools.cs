@@ -49,11 +49,9 @@ namespace NFun.Tic.Toposort
 
             private bool RecSort(Edge edge, int from = -1)
             {
-                //Console.Write($"S: {from} : {edge} ");
                 var node = edge.To;
                 if (_graph[node] == null)
                 {
-                  //  Console.Write($"  --null\r\n");
                     _nodeStates[node] = NodeState.Checked;
                     return true;
                 }
@@ -62,17 +60,13 @@ namespace NFun.Tic.Toposort
                 {
                     case NodeState.Checked:
                     {
-                       // Console.Write($"  --Checked\r\n");
                         return true;}
                     case NodeState.Checking:
                     {
-                        //Console.Write($"  --Cycle\r\n");
                         return false;
                     }
                     default:
                         _nodeStates[node] = NodeState.Checking;
-                        //Console.Write($"--Checking\r\n");
-
                         var hasSelfCycle = false;
                         for (int child = 0; child < _graph[node].Length; child++)
                         {
@@ -87,7 +81,6 @@ namespace NFun.Tic.Toposort
                             {
                                 if (!hasSelfCycle)
                                 {
-                                    //Console.Write($"--SKIPEQ\r\n");
                                     //Can skip only one back reference
                                     //Second one is a cycle
                                     hasSelfCycle = true;

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using NFun.Tic.SolvingStates;
+using NFun.TypeInferenceCalculator;
 using Array = NFun.Tic.SolvingStates.Array;
 
 namespace NFun.Tic
@@ -61,14 +62,15 @@ namespace NFun.Tic
 
         public void PrintToConsole()
         {
-            Console.ForegroundColor = ConsoleColor.Green;
-            Console.Write($"{Name}:");
-            Console.ResetColor();
-            Console.Write(State.Description);
-            if (Ancestors.Any()) 
-                Console.Write( "  <=" + string.Join(",", Ancestors.Select(a=>a.Name)));
+            if(!TraceLog.IsEnabled)
+                return;
+            
+            TraceLog.Write($"{Name}:", ConsoleColor.Green);
+            TraceLog.Write(State.Description);
+            if (Ancestors.Any())
+                TraceLog.Write( "  <=" + string.Join(",", Ancestors.Select(a=>a.Name)));
 
-            Console.WriteLine();
+            TraceLog.WriteLine();
         }
 
 

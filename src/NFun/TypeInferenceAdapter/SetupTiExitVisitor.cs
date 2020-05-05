@@ -10,6 +10,7 @@ using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tic;
 using NFun.Tic.SolvingStates;
+using NFun.TypeInferenceCalculator;
 using NFun.Types;
 using Array = NFun.Tic.SolvingStates.Array;
 
@@ -315,7 +316,7 @@ namespace NFun.TypeInferenceAdapter
         }
 
         private void Trace(ISyntaxNode node, string text) =>
-            Console.WriteLine($"Exit:{node.OrderNumber}. {text} ");
+            TraceLog.Write($"Exit:{node.OrderNumber}. {text} ");
         private RefTo[] InitializeGenericTypes(GenericConstrains[] constrains)
         {
             var genericTypes = new RefTo[constrains.Length];
