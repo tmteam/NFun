@@ -28,6 +28,9 @@ namespace NFun.Interpritation.Functions
         public static readonly GenericConstrains Numbers
             = new GenericConstrains(Primitive.Real, null, false);
 
+        public static GenericConstrains FromTicConstrains(Constrains constrains)
+            =>new GenericConstrains(constrains.Ancestor , constrains.Descedant as Primitive, constrains.IsComparable);
+
         public GenericConstrains(Primitive ancestor = null, Primitive descendant = null, bool isComparable = false)
         {
             Ancestor = ancestor;

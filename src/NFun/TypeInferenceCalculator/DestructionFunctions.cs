@@ -10,7 +10,7 @@ namespace NFun.TypeInferenceCalculator
     public static class DestructionFunctions
     {
 
-        #region Destruction
+        #region Destructiont
 
         public static void Destruction(SolvingNode[] toposorteNodes)
         {

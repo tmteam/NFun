@@ -139,8 +139,7 @@ namespace NFun.Interpritation
                 var genericTypes = _typeInferenceResults.GetGenericFunctionTypes(node.OrderNumber);
                 if(genericTypes==null)
                     throw new ImpossibleException($"MJ71. Generic function is missed at {node.OrderNumber}:  {id}`{node.Args.Length} ");
-                var converter = new TypeInferenceOnlyConcreteInterpriter();
-                var genericArgs = genericTypes.Select(g => converter.Convert(g)).ToArray();
+                var genericArgs = genericTypes.Select(g => TicTypesConverter.Concrete.Convert(g)).ToArray();
                 function = generic.CreateConcrete(genericArgs); //todo generic types
             }
 
@@ -186,8 +185,7 @@ namespace NFun.Interpritation
 
         public IExpressionNode Visit(ConstantSyntaxNode node)
         {
-            var typeConverter = new TypeInferenceOnlyConcreteInterpriter();
-            var type = typeConverter.Convert(_typeInferenceResults.SyntaxNodeTypes[node.OrderNumber]);
+            var type = TicTypesConverter.Concrete.Convert(_typeInferenceResults.SyntaxNodeTypes[node.OrderNumber]);
             //все инт типы закодированы либо long либо ulong
             if(node.Value is long l)
                 return ValueExpressionNode.CreateConcrete(type, l, node.Interval);
@@ -198,8 +196,7 @@ namespace NFun.Interpritation
         }
         public IExpressionNode Visit(GenericIntSyntaxNode node)
         {
-            var typeConverter = new TypeInferenceOnlyConcreteInterpriter();
-            var type = typeConverter.Convert(_typeInferenceResults.SyntaxNodeTypes[node.OrderNumber]);
+            var type = TicTypesConverter.Concrete.Convert(_typeInferenceResults.SyntaxNodeTypes[node.OrderNumber]);
 
             if (node.Value is long l) 
                 return ValueExpressionNode.CreateConcrete(type, l, node.Interval);
@@ -273,8 +270,7 @@ namespace NFun.Interpritation
                     var genericTypes = _typeInferenceResults.GetGenericFunctionTypes(varNode.OrderNumber);
                     if (genericTypes == null)
                         throw new ImpossibleException($"MJ79. Generic function is missed at {varNode.OrderNumber}:  {varNode.Id}`{generic.Name} ");
-                    var converter = new TypeInferenceOnlyConcreteInterpriter();
-                    var genericArgs = genericTypes.Select(g => converter.Convert(g)).ToArray();
+                    var genericArgs = genericTypes.Select(g => TicTypesConverter.Concrete.Convert(g)).ToArray();
                     var function = generic.CreateConcrete(genericArgs); //todo generic types
                     return new FunVariableExpressionNode(function, varNode.Interval);
 

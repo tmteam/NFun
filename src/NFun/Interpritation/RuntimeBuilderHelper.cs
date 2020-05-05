@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NFun.Interpritation.Functions;
 using NFun.ParseErrors;
 using NFun.Runtime;
 using NFun.SyntaxParsing;
@@ -15,7 +16,40 @@ namespace NFun.Interpritation
 {
     public static class RuntimeBuilderHelper
     {
-        
+        public static UserFunction BuildConcrete(
+            this UserFunctionDefenitionSyntaxNode functionSyntax,
+            VarType[] argTypes, VarType returnType,
+            IFunctionDicitionary functionsDictionary,
+            TypeInferenceResults results)
+        {
+            var vars = new VariableDictionary();
+            for (int i = 0; i < functionSyntax.Args.Count; i++)
+            {
+                var variableSource = RuntimeBuilderHelper.CreateVariableSourceForArgument(
+                    argSyntax: functionSyntax.Args[i],
+                    actualType: argTypes[i]);
+
+                if (!vars.TryAdd(variableSource))
+                    throw ErrorFactory.FunctionArgumentDuplicates(functionSyntax, functionSyntax.Args[i]);
+            }
+
+            var bodyExpression = ExpressionBuilderVisitor.BuildExpression(
+                node: functionSyntax.Body,
+                functions: functionsDictionary,
+                outputType: returnType,
+                variables: vars,
+                typeInferenceResults: results);
+
+            vars.ThrowIfSomeVariablesNotExistsInTheList(
+                functionSyntax.Args.Select(a => a.Id));
+
+            var function = new UserFunction(
+                name: functionSyntax.Id,
+                variables: vars.GetAllSources(),
+                isReturnTypeStrictlyTyped: functionSyntax.ReturnType != VarType.Empty,
+                expression: bodyExpression);
+            return function;
+        }
         public static TypeInferenceResults SolveBodyOrThrow(SyntaxTree syntaxTree, IFunctionDicitionary functionsDictionary)
         {
             var resultBuilder = new TypeInferenceResultsBuilder();

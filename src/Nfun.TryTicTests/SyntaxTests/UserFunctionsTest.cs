@@ -41,7 +41,6 @@ namespace Funny.Tests
             runtime.Calculate().AssertReturns(VarVal.New("y", expected));
         }
 
-        [Ignore("generics")]
         [TestCase("_inc(a) = a+1\r y = _inc(2)", 3)]
         [TestCase("_inc(y) = y+1\r y = _inc(2)", 3)]
         [TestCase("mult2(a,b) = a*b \r y = mult2(3,4)+1", 13)]
@@ -60,7 +59,6 @@ namespace Funny.Tests
             runtime.Calculate().AssertReturns(0.00001, VarVal.New("y", expected));
         }
 
-        [Ignore("generic functions")]
         [TestCase("plus3(a,b,c) = plus2(a,b)+c \r plus2(a,b) = a+b  \r y = plus3(16,4,2)",22)]
         public void ConstantEquation_ReversedImplementationsOfFunctions(string expr, double expected)
         {
@@ -68,7 +66,7 @@ namespace Funny.Tests
             runtime.Calculate().AssertReturns(0.00001, VarVal.New("y", expected));
         }
 
-        [Ignore("generic functions")]
+        [Ignore("rec generic functions")]
 
         [TestCase(
             "max3(a,b,c) =  max2(max2(a,b),c) \r max2(a,b)= if (a<b) b else a\r y = max3(16,32,2)",32)]
@@ -137,7 +135,7 @@ namespace Funny.Tests
             runtime.Calculate(VarVal.New("x",x)).AssertReturns(0.00001, VarVal.New("y", y));    
         }
 
-        [Ignore("generic functions")]
+        [Ignore("rec generic  functions")]
         [TestCase(1,1)]
         [TestCase(2,1)]
         [TestCase(3,2)]
@@ -157,7 +155,7 @@ namespace Funny.Tests
             var runtime = FunBuilder.BuildDefault(text);
             runtime.Calculate(VarVal.New("x",x)).AssertReturns(0.00001, VarVal.New("y", y));    
         }
-        [Ignore("generic functions")]
+        [Ignore("rec generic rec functions")]
 
         [TestCase(1,1)]
         [TestCase(2,1)]
@@ -180,7 +178,7 @@ namespace Funny.Tests
             var runtime = FunBuilder.BuildDefault(text);
                 runtime.Calculate(VarVal.New("x",x)).AssertReturns(0.00001, VarVal.New("y", y));    
         }
-        [Ignore("generic functions")]
+        [Ignore("rec generic functions")]
 
         [TestCase(1,1)]
         [TestCase(2,1)]
@@ -215,7 +213,7 @@ namespace Funny.Tests
             var runtime = FunBuilder.BuildDefault(text);
             runtime.Calculate(VarVal.New("x",x)).AssertReturns(VarVal.New("y", y));    
         }
-        [Ignore("generic functions")]
+        [Ignore("rec generic functions")]
 
         [TestCase("y = raise(1)\r raise(x) = raise(x)")]
         

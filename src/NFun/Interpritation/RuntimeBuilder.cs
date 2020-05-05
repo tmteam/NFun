@@ -48,7 +48,7 @@ namespace NFun.Interpritation
 
                 //set types to nodes
                 syntaxNode.ComeOver(
-                    enterVisitor: new ApplyTiResultEnterVisitor(bodyTypeSolving, new TypeInferenceOnlyConcreteInterpriter()),
+                    enterVisitor: new ApplyTiResultEnterVisitor(bodyTypeSolving, TicTypesConverter.Concrete),
                     exitVisitor: new ApplyTiResultsExitVisitor());
             }
             #endregion
@@ -128,88 +128,59 @@ namespace NFun.Interpritation
             return new Equation(equation.Id, expression);
         }
 
-        private static UserFunction BuildFunctionAndPutItToDictionary(
+
+        private static void BuildFunctionAndPutItToDictionary(
             UserFunctionDefenitionSyntaxNode functionSyntaxNode,
             ScopeFunctionDictionary functionsDictionary)
         {
             ////introduce function variable
             var graphBuider = new GraphBuilder();
-            
+
             //setup body type inference
             var resultsBuilder = new TypeInferenceResultsBuilder();
-            if(!LangTiHelper.SetupTiOrNull(
-                functionSyntaxNode, 
-                functionsDictionary, 
-                resultsBuilder, 
+            if (!LangTiHelper.SetupTiOrNull(
+                functionSyntaxNode,
+                functionsDictionary,
+                resultsBuilder,
                 new SetupTiState(graphBuider)))
                 throw FunParseException.ErrorStubToDo($"Function '{functionSyntaxNode.Id}' is not solved");
-            
+
             // solve the types
             var types = graphBuider.Solve();
-            if(types.GenericsCount>0)
-                throw new NotImplementedException($"Function {functionSyntaxNode.Id} is generic. Generic user functions are not supported");
             resultsBuilder.SetResults(types);
             var typeInferenceResuls = resultsBuilder.Build();
 
-            //set types to nodes
-            var converter = new TypeInferenceOnlyConcreteInterpriter();
-            functionSyntaxNode.ComeOver(
-                enterVisitor:new ApplyTiResultEnterVisitor(
-                    solving:               typeInferenceResuls,  
-                    tiToLangTypeConverter: converter),
-                exitVisitor: new ApplyTiResultsExitVisitor());
-
-            var funType = converter.Convert(
-                typeInferenceResuls.GetVariableType(functionSyntaxNode.Id + "'" + functionSyntaxNode.Args.Count));
-
-            var returnType = funType.FunTypeSpecification.Output;
-            var argTypes = funType.FunTypeSpecification.Inputs;
-
-            //make function prototype
-            var prototype = new ConcreteUserFunctionPrototype(functionSyntaxNode.Id, returnType, argTypes);
-            //add prototype to dictionary for future use
-            functionsDictionary.Add(prototype);
-            var function = BuildConcreteFunction(functionSyntaxNode, prototype, functionsDictionary, typeInferenceResuls);
-            prototype.SetActual(function, functionSyntaxNode.Interval);
-            return function;
-        }
-
-        private static UserFunction BuildConcreteFunction(
-            UserFunctionDefenitionSyntaxNode functionSyntax,
-            ConcreteUserFunctionPrototype functionPrototype,
-            IFunctionDicitionary functionsDictionary, 
-            TypeInferenceResults results)
-        {
-            var vars = new VariableDictionary();
-            for (int i = 0; i < functionSyntax.Args.Count; i++)
+            if (types.GenericsCount == 0)
             {
-                var variableSource = RuntimeBuilderHelper.CreateVariableSourceForArgument(
-                    argSyntax: functionSyntax.Args[i],
-                    actualType: functionPrototype.ArgTypes[i]);
+                #region concreteFunction
 
-                if (!vars.TryAdd(variableSource))
-                    throw ErrorFactory.FunctionArgumentDuplicates(functionSyntax, functionSyntax.Args[i]);
+                //set types to nodes
+                functionSyntaxNode.ComeOver(
+                    enterVisitor: new ApplyTiResultEnterVisitor(
+                        solving: typeInferenceResuls,
+                        tiToLangTypeConverter: TicTypesConverter.Concrete),
+                    exitVisitor: new ApplyTiResultsExitVisitor());
+
+                var funType = TicTypesConverter.Concrete.Convert(
+                    typeInferenceResuls.GetVariableType(functionSyntaxNode.Id + "'" + functionSyntaxNode.Args.Count));
+
+                var returnType = funType.FunTypeSpecification.Output;
+                var argTypes = funType.FunTypeSpecification.Inputs;
+
+                //make function prototype
+                var prototype = new ConcreteUserFunctionPrototype(functionSyntaxNode.Id, returnType, argTypes);
+                //add prototype to dictionary for future use
+                functionsDictionary.Add(prototype);
+                var function =
+                    functionSyntaxNode.BuildConcrete(argTypes, returnType, functionsDictionary, typeInferenceResuls);
+                prototype.SetActual(function, functionSyntaxNode.Interval);
+                #endregion
             }
-
-            var bodyExpression = ExpressionBuilderVisitor.BuildExpression(
-                    node: functionSyntax.Body,
-                    functions: functionsDictionary,
-                    outputType: functionPrototype.ReturnType,
-                    variables: vars, 
-                    typeInferenceResults: results);
-
-            vars.ThrowIfSomeVariablesNotExistsInTheList(
-                 functionSyntax.Args.Select(a => a.Id));
-
-            var function = new UserFunction(
-                name: functionSyntax.Id,
-                variables: vars.GetAllSources(),
-                isReturnTypeStrictlyTyped: functionSyntax.ReturnType != VarType.Empty,
-                expression: bodyExpression);
-            return function;
+            else
+            {
+                var function = GenericUserFunction.Create(typeInferenceResuls, functionSyntaxNode, functionsDictionary);
+                functionsDictionary.Add(function);
+            }
         }
-
-
-
     }
 }

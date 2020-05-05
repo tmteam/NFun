@@ -19,11 +19,8 @@ namespace Funny
         static void Main(string[] args)
         {
 
-            var runtime = FunBuilder.With("g(x):real = y(x)*y(x)\r\n" +
-                                          "y(x):real = 12+x\r\n" +
-                                          "" +
-                                          "" +
-                                          "a = g(x)").Build();
+            var runtime = FunBuilder.With("myInv(a)=-a;" +
+                                          "a = myInv(x)").Build();
 
 
             //Console.WriteLine("Let's make some fun.");

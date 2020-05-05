@@ -8,9 +8,9 @@ namespace NFun.TypeInferenceAdapter
     public class ApplyTiResultEnterVisitor: EnterVisitorBase
     {
         private readonly TypeInferenceResults _solving;
-        private readonly ITypeInferenceResultsInterpriter _tiToLangTypeConverter;
+        private readonly TicTypesConverter _tiToLangTypeConverter;
 
-        public ApplyTiResultEnterVisitor(TypeInferenceResults solving, ITypeInferenceResultsInterpriter tiToLangTypeConverter)
+        public ApplyTiResultEnterVisitor(TypeInferenceResults solving, TicTypesConverter tiToLangTypeConverter)
         {
             _solving = solving;
             _tiToLangTypeConverter = tiToLangTypeConverter;
