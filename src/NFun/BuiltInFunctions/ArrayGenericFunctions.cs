@@ -135,9 +135,9 @@ namespace NFun.BuiltInFunctions
         public override object Calc(object[] args)
             =>  throw new NotSupportedException();        
 
-        public override FunctionBase CreateConcrete(VarType[] genericTypes)
+        public override FunctionBase CreateConcrete(VarType[] concreteTypes)
         {
-            switch (genericTypes[0].BaseType)
+            switch (concreteTypes[0].BaseType)
             {
                 case BaseVarType.UInt16: return new UInt16Function();
                 case BaseVarType.UInt32: return new UInt32Function();
@@ -223,9 +223,9 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override FunctionBase CreateConcrete(VarType[] genericTypes)
+        public override FunctionBase CreateConcrete(VarType[] concreteTypes)
         {
-            switch (genericTypes[0].BaseType)
+            switch (concreteTypes[0].BaseType)
             {
                 case BaseVarType.UInt8: return new UInt8Function();
                 case BaseVarType.UInt16: return new UInt16Function();
@@ -340,9 +340,9 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override FunctionBase CreateConcrete(VarType[] genericTypes)
+        public override FunctionBase CreateConcrete(VarType[] concreteTypes)
         {
-            switch (genericTypes[0].BaseType)
+            switch (concreteTypes[0].BaseType)
             {
                 case BaseVarType.UInt8: return new UInt8Function();
                 case BaseVarType.UInt16: return new UInt16Function();

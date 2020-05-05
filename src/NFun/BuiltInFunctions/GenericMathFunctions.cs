@@ -14,9 +14,9 @@ namespace NFun.BuiltInFunctions
 
         public RemainderFunction() : this(CoreFunNames.Remainder) { }
 
-        public override FunctionBase CreateConcrete(VarType[] genericTypes)
+        public override FunctionBase CreateConcrete(VarType[] concreteTypes)
         {
-            switch (genericTypes[0].BaseType)
+            switch (concreteTypes[0].BaseType)
             {
                 case BaseVarType.UInt8: return new UInt8Function();
                 case BaseVarType.UInt16: return new UInt16Function();
@@ -81,9 +81,9 @@ namespace NFun.BuiltInFunctions
             GenericConstrains.SignedNumber,
             VarType.Generic(0), VarType.Generic(0))
         { }
-        public override FunctionBase CreateConcrete(VarType[] genericTypes)
+        public override FunctionBase CreateConcrete(VarType[] concreteTypes)
         {
-            switch (genericTypes[0].BaseType)
+            switch (concreteTypes[0].BaseType)
             {
                 case BaseVarType.Int16: return new Int16Function();
                 case BaseVarType.Int32: return new Int32Function();
@@ -126,9 +126,9 @@ namespace NFun.BuiltInFunctions
             GenericConstrains.SignedNumber,
             VarType.Generic(0), VarType.Generic(0))
         { }
-        public override FunctionBase CreateConcrete(VarType[] genericTypes)
+        public override FunctionBase CreateConcrete(VarType[] concreteTypes)
         {
-            switch (genericTypes[0].BaseType)
+            switch (concreteTypes[0].BaseType)
             {
                 case BaseVarType.Int16: return new Int16Function();
                 case BaseVarType.Int32: return new Int32Function();
@@ -137,7 +137,7 @@ namespace NFun.BuiltInFunctions
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-            return base.CreateConcrete(genericTypes);
+            return base.CreateConcrete(concreteTypes);
         }
 
         public override object Calc(object[] args) => args.Get<double>(0) + args.Get<double>(1);
@@ -173,9 +173,9 @@ namespace NFun.BuiltInFunctions
 
         public AddFunction() : this(CoreFunNames.Add) { }
 
-        public override FunctionBase CreateConcrete(VarType[] genericTypes)
+        public override FunctionBase CreateConcrete(VarType[] concreteTypes)
         {
-            switch (genericTypes[0].BaseType)
+            switch (concreteTypes[0].BaseType)
             {
                 case BaseVarType.UInt16: return new UInt16Function();
                 case BaseVarType.UInt32: return new UInt32Function();
@@ -187,7 +187,7 @@ namespace NFun.BuiltInFunctions
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-            return base.CreateConcrete(genericTypes);
+            return base.CreateConcrete(concreteTypes);
         }
 
         public override object Calc(object[] args) => args.Get<double>(0) + args.Get<double>(1);
@@ -228,9 +228,9 @@ namespace NFun.BuiltInFunctions
         public SubstractFunction(string name) : base(name, GenericConstrains.Arithmetical, VarType.Generic(0), VarType.Generic(0), VarType.Generic(0)) { }
         public SubstractFunction() : this(CoreFunNames.Substract) { }
 
-        public override FunctionBase CreateConcrete(VarType[] genericTypes)
+        public override FunctionBase CreateConcrete(VarType[] concreteTypes)
         {
-            switch (genericTypes[0].BaseType)
+            switch (concreteTypes[0].BaseType)
             {
                 case BaseVarType.UInt8: return new  UInt8Function();
                 case BaseVarType.UInt16: return new UInt16Function();
@@ -297,9 +297,9 @@ namespace NFun.BuiltInFunctions
         public MultiplyFunction(string name) : base(name, GenericConstrains.Arithmetical, VarType.Generic(0), VarType.Generic(0), VarType.Generic(0)) { }
         public MultiplyFunction() : this(CoreFunNames.Multiply) { }
 
-        public override FunctionBase CreateConcrete(VarType[] genericTypes)
+        public override FunctionBase CreateConcrete(VarType[] concreteTypes)
         {
-            switch (genericTypes[0].BaseType)
+            switch (concreteTypes[0].BaseType)
             {
                 case BaseVarType.UInt32: return new UInt32Function();
                 case BaseVarType.UInt64: return new UInt64Function();

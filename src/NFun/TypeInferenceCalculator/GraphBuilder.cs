@@ -152,7 +152,7 @@ namespace NFun.Tic
             if(!(node.State is Constrains c) || !c.NoConstrains)
                 throw new InvalidOperationException("variable "+ name+ "already declared");
             node.State = fun;
-            _outputNodes.Add(node);
+            _outputNodes.Add(returnTypeNode);
             return fun;
 
         }

@@ -46,7 +46,7 @@ namespace Nfun.TryTicTests.SyntaxTests
         {
             AssertReturns(result, 0, vars);
         }
-        public static void AssertHas(this CalculationResult result, VarVal variable, double delta = 0)
+        public static CalculationResult AssertHas(this CalculationResult result, VarVal variable, double delta = 0)
         {
             var res = result.Results.FirstOrDefault(r => r.Name == variable.Name);
             Assert.IsNotNull(res, $"Variable \"{variable.Name}\" not found");
@@ -58,6 +58,7 @@ namespace Nfun.TryTicTests.SyntaxTests
             else
                 Assert.AreEqual(variable.Value, res.Value,
                     $"Var \"{variable}\" expected: {ToStringSmart(variable.Value)}, but was: {ToStringSmart(res.Value)}");
+            return result;
         }
 
         private static string ToStringSmart(object v)

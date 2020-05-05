@@ -21,23 +21,27 @@ namespace NFun.Interpritation
         private readonly IFunctionDicitionary _functions;
         private readonly VariableDictionary _variables;
         private readonly TypeInferenceResults _typeInferenceResults;
+        private readonly TicTypesConverter _typesConverter;
         public void SetChildrenNumber(ISyntaxNode parent, int num) { }
 
         public static IExpressionNode BuildExpression(
             ISyntaxNode node,
             IFunctionDicitionary functions,
             VariableDictionary variables, 
-            TypeInferenceResults typeInferenceResults) =>
-            node.Accept(new ExpressionBuilderVisitor(functions, variables, typeInferenceResults));
+            TypeInferenceResults typeInferenceResults, 
+            TicTypesConverter typesConverter) =>
+            node.Accept(new ExpressionBuilderVisitor(functions, variables, typeInferenceResults, typesConverter));
 
         public static IExpressionNode BuildExpression(
             ISyntaxNode node,
             IFunctionDicitionary functions,
             VarType outputType,
             VariableDictionary variables, 
-            TypeInferenceResults typeInferenceResults)
+            TypeInferenceResults typeInferenceResults, 
+            TicTypesConverter typesConverter)
         {
-            var result =  node.Accept(new ExpressionBuilderVisitor(functions, variables, typeInferenceResults));
+            var result =  node.Accept(
+                new ExpressionBuilderVisitor(functions, variables, typeInferenceResults, typesConverter));
             if (result.Type == outputType)
                 return result;
             var converter = VarTypeConverter.GetConverterOrThrow(result.Type, outputType, node.Interval);
@@ -47,11 +51,13 @@ namespace NFun.Interpritation
         private ExpressionBuilderVisitor(
             IFunctionDicitionary functions, 
             VariableDictionary variables,
-            TypeInferenceResults typeInferenceResults)
+            TypeInferenceResults typeInferenceResults, 
+            TicTypesConverter typesConverter)
         {
             _functions = functions;
             _variables = variables;
             _typeInferenceResults = typeInferenceResults;
+            _typesConverter = typesConverter;
         }
 
 
@@ -92,7 +98,7 @@ namespace NFun.Interpritation
             }
 
             var originVariables = localVariables.GetAllSources().Select(s=>s.Name).ToArray();
-            var expr = BuildExpression(anonymFunNode.Body, _functions, localVariables, _typeInferenceResults);
+            var expr = BuildExpression(anonymFunNode.Body, _functions, localVariables, _typeInferenceResults,_typesConverter);
             
             //New variables are new closured
             var closured =  localVariables.GetAllUsages()
@@ -139,7 +145,7 @@ namespace NFun.Interpritation
                 var genericTypes = _typeInferenceResults.GetGenericFunctionTypes(node.OrderNumber);
                 if(genericTypes==null)
                     throw new ImpossibleException($"MJ71. Generic function is missed at {node.OrderNumber}:  {id}`{node.Args.Length} ");
-                var genericArgs = genericTypes.Select(g => TicTypesConverter.Concrete.Convert(g)).ToArray();
+                var genericArgs = genericTypes.Select(g => _typesConverter.Convert(g)).ToArray();
                 function = generic.CreateConcrete(genericArgs); //todo generic types
             }
 
@@ -185,7 +191,7 @@ namespace NFun.Interpritation
 
         public IExpressionNode Visit(ConstantSyntaxNode node)
         {
-            var type = TicTypesConverter.Concrete.Convert(_typeInferenceResults.SyntaxNodeTypes[node.OrderNumber]);
+            var type = _typesConverter.Convert(_typeInferenceResults.SyntaxNodeTypes[node.OrderNumber]);
             //все инт типы закодированы либо long либо ulong
             if(node.Value is long l)
                 return ValueExpressionNode.CreateConcrete(type, l, node.Interval);
@@ -196,7 +202,7 @@ namespace NFun.Interpritation
         }
         public IExpressionNode Visit(GenericIntSyntaxNode node)
         {
-            var type = TicTypesConverter.Concrete.Convert(_typeInferenceResults.SyntaxNodeTypes[node.OrderNumber]);
+            var type = _typesConverter.Convert(_typeInferenceResults.SyntaxNodeTypes[node.OrderNumber]);
 
             if (node.Value is long l) 
                 return ValueExpressionNode.CreateConcrete(type, l, node.Interval);
@@ -270,7 +276,7 @@ namespace NFun.Interpritation
                     var genericTypes = _typeInferenceResults.GetGenericFunctionTypes(varNode.OrderNumber);
                     if (genericTypes == null)
                         throw new ImpossibleException($"MJ79. Generic function is missed at {varNode.OrderNumber}:  {varNode.Id}`{generic.Name} ");
-                    var genericArgs = genericTypes.Select(g => TicTypesConverter.Concrete.Convert(g)).ToArray();
+                    var genericArgs = genericTypes.Select(g => _typesConverter.Convert(g)).ToArray();
                     var function = generic.CreateConcrete(genericArgs); //todo generic types
                     return new FunVariableExpressionNode(function, varNode.Interval);
 

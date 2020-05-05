@@ -10,9 +10,9 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override FunctionBase CreateConcrete(VarType[] genericTypes)
+        public override FunctionBase CreateConcrete(VarType[] concreteTypes)
         {
-            switch (genericTypes[0].BaseType)
+            switch (concreteTypes[0].BaseType)
             {
                 case BaseVarType.UInt8: return new UInt8Function();
                 case BaseVarType.UInt16: return new UInt16Function();
@@ -63,9 +63,9 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override FunctionBase CreateConcrete(VarType[] genericTypes)
+        public override FunctionBase CreateConcrete(VarType[] concreteTypes)
         {
-            switch (genericTypes[0].BaseType)
+            switch (concreteTypes[0].BaseType)
             {
                 case BaseVarType.UInt8: return new UInt8Function();
                 case BaseVarType.UInt16: return new UInt16Function();
@@ -123,9 +123,9 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override FunctionBase CreateConcrete(VarType[] genericTypes)
+        public override FunctionBase CreateConcrete(VarType[] concreteTypes)
         {
-            switch (genericTypes[0].BaseType)
+            switch (concreteTypes[0].BaseType)
             {
                 case BaseVarType.UInt8: return new UInt8Function();
                 case BaseVarType.UInt16: return new UInt16Function();
@@ -176,9 +176,9 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override FunctionBase CreateConcrete(VarType[] genericTypes)
+        public override FunctionBase CreateConcrete(VarType[] concreteTypes)
         {
-            switch (genericTypes[0].BaseType)
+            switch (concreteTypes[0].BaseType)
             {
                 case BaseVarType.UInt8: return new UInt8Function();
                 case BaseVarType.UInt16: return new UInt16Function();
@@ -237,9 +237,9 @@ namespace NFun.BuiltInFunctions
             VarType.Generic(0), 
             VarType.Generic(0), 
             VarType.UInt8) { }
-        public override FunctionBase CreateConcrete(VarType[] genericTypes)
+        public override FunctionBase CreateConcrete(VarType[] concreteTypes)
         {
-            switch (genericTypes[0].BaseType)
+            switch (concreteTypes[0].BaseType)
             {
                 case BaseVarType.UInt32: return new UInt32Function();
                 case BaseVarType.UInt64: return new UInt64Function();
@@ -277,9 +277,9 @@ namespace NFun.BuiltInFunctions
             VarType.Generic(0),
             VarType.UInt8)
         { }
-        public override FunctionBase CreateConcrete(VarType[] genericTypes)
+        public override FunctionBase CreateConcrete(VarType[] concreteTypes)
         {
-            switch (genericTypes[0].BaseType)
+            switch (concreteTypes[0].BaseType)
             {
                 case BaseVarType.UInt32: return new UInt32Function();
                 case BaseVarType.UInt64: return new UInt64Function();

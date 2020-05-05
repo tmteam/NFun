@@ -53,10 +53,10 @@ namespace NFun.Interpritation.Functions
             _dictionary = dictionary;
         }
 
-        public override FunctionBase CreateConcrete(VarType[] genericTypes)
+        public override FunctionBase CreateConcrete(VarType[] concreteTypes)
         {
             //set types to nodes
-            var converter = TicTypesConverter.ReplaceGenericTypesConverter(_constrainsMap, genericTypes);
+            var converter = TicTypesConverter.ReplaceGenericTypesConverter(_constrainsMap, concreteTypes);
 
             _syntaxNode.ComeOver(
                 enterVisitor: new ApplyTiResultEnterVisitor(
@@ -70,7 +70,12 @@ namespace NFun.Interpritation.Functions
             var returnType = funType.FunTypeSpecification.Output;
             var argTypes   = funType.FunTypeSpecification.Inputs;
 
-            var function = _syntaxNode.BuildConcrete(argTypes, returnType,_dictionary,_typeInferenceResults);
+            var function = _syntaxNode.BuildConcrete(
+                argTypes:   argTypes, 
+                returnType: returnType,
+                functionsDictionary: _dictionary,
+                results:    _typeInferenceResults, 
+                converter:  converter);
             return function;
         }
 

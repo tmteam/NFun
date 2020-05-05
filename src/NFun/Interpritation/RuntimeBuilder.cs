@@ -97,7 +97,8 @@ namespace NFun.Interpritation
                 functions:  functionsDictionary,
                 outputType: equation.OutputType,
                 variables:  variables,
-                typeInferenceResults: typeInferenceResults);
+                typeInferenceResults: typeInferenceResults, 
+                typesConverter: TicTypesConverter.Concrete);
             
             VariableSource newSource;
             if(equation.OutputTypeSpecified)
@@ -172,7 +173,13 @@ namespace NFun.Interpritation
                 //add prototype to dictionary for future use
                 functionsDictionary.Add(prototype);
                 var function =
-                    functionSyntaxNode.BuildConcrete(argTypes, returnType, functionsDictionary, typeInferenceResuls);
+                    functionSyntaxNode.BuildConcrete(
+                        argTypes:   argTypes, 
+                        returnType: returnType, 
+                        functionsDictionary: functionsDictionary, 
+                        results:    typeInferenceResuls, 
+                        converter:  TicTypesConverter.Concrete);
+                
                 prototype.SetActual(function, functionSyntaxNode.Interval);
                 #endregion
             }

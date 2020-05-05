@@ -18,9 +18,11 @@ namespace NFun.Interpritation
     {
         public static UserFunction BuildConcrete(
             this UserFunctionDefenitionSyntaxNode functionSyntax,
-            VarType[] argTypes, VarType returnType,
+            VarType[] argTypes, 
+            VarType returnType,
             IFunctionDicitionary functionsDictionary,
-            TypeInferenceResults results)
+            TypeInferenceResults results, 
+            TicTypesConverter converter)
         {
             var vars = new VariableDictionary();
             for (int i = 0; i < functionSyntax.Args.Count; i++)
@@ -38,7 +40,8 @@ namespace NFun.Interpritation
                 functions: functionsDictionary,
                 outputType: returnType,
                 variables: vars,
-                typeInferenceResults: results);
+                typeInferenceResults: results, 
+                typesConverter: converter);
 
             vars.ThrowIfSomeVariablesNotExistsInTheList(
                 functionSyntax.Args.Select(a => a.Id));

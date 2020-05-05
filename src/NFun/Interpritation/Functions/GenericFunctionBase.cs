@@ -86,13 +86,13 @@ namespace NFun.Interpritation.Functions
         
         public abstract object Calc(object[] args);
 
-        public virtual FunctionBase CreateConcrete(VarType[] genericTypes)
+        public virtual FunctionBase CreateConcrete(VarType[] concreteTypes)
         {
             return new ConcreteGenericFunction(
                 calc: Calc,
                 name: Name,
-                returnType: VarType.SubstituteConcreteTypes(ReturnType, genericTypes),
-                argTypes: ArgTypes.Select(a => VarType.SubstituteConcreteTypes(a, genericTypes))
+                returnType: VarType.SubstituteConcreteTypes(ReturnType, concreteTypes),
+                argTypes: ArgTypes.Select(a => VarType.SubstituteConcreteTypes(a, concreteTypes))
                     .ToArray());
         }
 
