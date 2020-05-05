@@ -102,13 +102,17 @@ namespace NFun.TypeInferenceAdapter
         public override bool Visit(FunCallSyntaxNode node)
         {
             var userFunction = _resultsBuilder.GetUserFunctionSignature(node.Id, node.Args.Length);
-            if (userFunction != null)
-            {
-                //Это вызов пользовательской функции
+            if (userFunction != null) {
+                //Это вызов пользовательской функции. Например в случае рекурсии
                 Trace(node, $"Call UF{node.Id}({string.Join(",", node.Args.Select(a => a.OrderNumber))})");
                 _state.CurrentSolver.SetCall(userFunction, node.Args.Select(a => a.OrderNumber).Append(node.OrderNumber).ToArray());
+                //Если функция является дженериковой и рекурсивной, то мы пока не знаем ограничения дженериков
+                //В таком случае - единственное что мы можем - это запомнить тип рекурсивного вызова
+                _resultsBuilder.RememberRecursiveCall(node.OrderNumber, userFunction);
                 return true;
             }
+
+            //Вызов обычной функции
             Trace(node, $"Call {node.Id}({string.Join(",", node.Args.Select(a => a.OrderNumber))})");
 
             var signature = _resultsBuilder.GetSignatureOrNull(node.OrderNumber);
@@ -116,6 +120,8 @@ namespace NFun.TypeInferenceAdapter
             RefTo[] genericTypes;
             if (signature is GenericFunctionBase t)
             {
+                //Если это дженерик функция - то нужно сохранить типы дженериков с которыми она вызывается
+                //что бы не вычислять эти типы заново на этапе построения
                 genericTypes = InitializeGenericTypes(t.GenericDefenitions);
                 _resultsBuilder.SetGenericTypes(node.OrderNumber, genericTypes);
             }

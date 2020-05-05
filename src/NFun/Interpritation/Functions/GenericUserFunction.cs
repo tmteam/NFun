@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
@@ -52,11 +53,23 @@ namespace NFun.Interpritation.Functions
             _syntaxNode = syntaxNode;
             _dictionary = dictionary;
         }
-
+        Dictionary<string, FunctionBase> _concreteFunctionsCache = new Dictionary<string, FunctionBase>();
         public override FunctionBase CreateConcrete(VarType[] concreteTypes)
         {
+            var id = string.Join(",", concreteTypes);
+            if (_concreteFunctionsCache.TryGetValue(id, out var alreadyExists))
+                return alreadyExists;
             //set types to nodes
             var converter = TicTypesConverter.ReplaceGenericTypesConverter(_constrainsMap, concreteTypes);
+            var funType = converter.Convert(
+                _typeInferenceResults.GetVariableType(_syntaxNode.Id + "'" + _syntaxNode.Args.Count));
+
+            var returnType = funType.FunTypeSpecification.Output;
+            var argTypes = funType.FunTypeSpecification.Inputs;
+
+            //Создаем прототип и сразу кладем его в кеш. Это нужно для того, что бы в случае рекурсивного билда - прототип уже был в кеше
+            var concretePrototype = new ConcreteUserFunctionPrototype(Name, returnType, argTypes);
+            _concreteFunctionsCache.Add(id, concretePrototype);
 
             _syntaxNode.ComeOver(
                 enterVisitor: new ApplyTiResultEnterVisitor(
@@ -64,11 +77,7 @@ namespace NFun.Interpritation.Functions
                     tiToLangTypeConverter: converter),
                 exitVisitor: new ApplyTiResultsExitVisitor());
 
-            var funType = converter.Convert(
-                _typeInferenceResults.GetVariableType(_syntaxNode.Id + "'" + _syntaxNode.Args.Count));
-
-            var returnType = funType.FunTypeSpecification.Output;
-            var argTypes   = funType.FunTypeSpecification.Inputs;
+           
 
             var function = _syntaxNode.BuildConcrete(
                 argTypes:   argTypes, 
@@ -76,6 +85,8 @@ namespace NFun.Interpritation.Functions
                 functionsDictionary: _dictionary,
                 results:    _typeInferenceResults, 
                 converter:  converter);
+
+            concretePrototype.SetActual(function,_syntaxNode.Interval);
             return function;
         }
 

@@ -70,6 +70,11 @@ namespace NFun.Interpritation.Functions
             ArgTypes = argTypes;
             ReturnType = returnType;
             GenericDefenitions = genericDefenitions;
+            var maxGenericId = argTypes
+                .Append(returnType)
+                .Max(i => i.SearchMaxGenericTypeId());
+            if (!maxGenericId.HasValue)
+                throw new InvalidOperationException($"Type {name} has wrong generic defenition");
         }
 
         protected GenericFunctionBase(string name, GenericConstrains genericDefenition, VarType returnType,
@@ -79,6 +84,11 @@ namespace NFun.Interpritation.Functions
             ArgTypes = argTypes;
             ReturnType = returnType;
             GenericDefenitions = new []{genericDefenition};
+            var maxGenericId = argTypes
+                .Append(returnType)
+                .Max(i => i.SearchMaxGenericTypeId());
+            if (!maxGenericId.HasValue)
+                throw new InvalidOperationException($"Type {name} has wrong generic defenition");
         }
 
 
@@ -134,6 +144,49 @@ namespace NFun.Interpritation.Functions
                 argTypes: ArgTypes.Select(a=>VarType.SubstituteConcreteTypes(a,solvingParams))
                     .ToArray());
         }
+        /// <summary>
+        /// На основании сигнатуры вызова (с конкретными типами) вычисляет список дженерик аргументов
+        /// соответствующий этому вызову
+        /// </summary>
+        public VarType[] CalcGenericArgTypeList(FunTypeSpecification funTypeSpecification)
+        {
+            var result = new VarType[GenericDefenitions.Length];
+            SubstitudeType(ReturnType, funTypeSpecification.Output);
+
+            for (int i = 0; i < funTypeSpecification.Inputs.Length; i++)
+            {
+                SubstitudeType(ArgTypes[i], funTypeSpecification.Inputs[i]);
+            }
+
+            return result;
+
+            bool SubstitudeType(VarType genericOrConcrete, VarType concrete)
+            {
+                var id = genericOrConcrete.GenericId;
+                if (id.HasValue)
+                {
+                    result[id.Value] = concrete;
+                    return true;
+                }
+
+                if (genericOrConcrete.ArrayTypeSpecification != null)
+                    return SubstitudeType(genericOrConcrete.ArrayTypeSpecification.VarType,
+                        concrete.ArrayTypeSpecification.VarType);
+
+                if (genericOrConcrete.FunTypeSpecification != null)
+                {
+                    SubstitudeType(genericOrConcrete.FunTypeSpecification.Output, concrete.FunTypeSpecification.Output);
+                    for (int i = 0; i < genericOrConcrete.FunTypeSpecification.Inputs.Length; i++)
+                    {
+                        SubstitudeType(genericOrConcrete.FunTypeSpecification.Inputs[i],
+                            concrete.FunTypeSpecification.Inputs[i]);
+                    }
+                    return true;
+                }
+
+                return false;
+            }
+        }
 
         public override string ToString()
             => TypeHelper.GetFunSignature(Name, ReturnType, ArgTypes);
@@ -151,5 +204,7 @@ namespace NFun.Interpritation.Functions
 
             public override object Calc(object[] args) => _calc(args);
         }
+
+      
     }
 }

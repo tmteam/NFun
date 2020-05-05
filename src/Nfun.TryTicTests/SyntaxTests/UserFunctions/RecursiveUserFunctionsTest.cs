@@ -10,6 +10,34 @@ namespace Funny.Tests
     public class RecursiveUserFunctionsTest
     {
         [TestCase(1, 1)]
+        [TestCase(2, 2)]
+        [TestCase(3, 6)]
+        [TestCase(4, 24)]
+        [TestCase(5, 120)]
+        [TestCase(6, 720)]
+        public void FactorialConcrete(int x, int y)
+        {
+            string text =
+                @"fact(n):int = if(n<=1) 1 else fact(n-1)*n
+                  y = fact(x)";
+            var runtime = FunBuilder.BuildDefault(text);
+            runtime.Calculate(VarVal.New("x", x)).AssertReturns(0.00001, VarVal.New("y", y));
+        }
+        [TestCase(1, 1)]
+        [TestCase(2, 2)]
+        [TestCase(3, 6)]
+        [TestCase(4, 24)]
+        [TestCase(5, 120)]
+        [TestCase(6, 720)]
+        public void FactorialGeneric(double x, double y)
+        {
+            string text =
+                @"fact(n) = if(n<=1) 1 else fact(n-1)*n
+                  y = fact(x)";
+            var runtime = FunBuilder.BuildDefault(text);
+            runtime.Calculate(VarVal.New("x", x)).AssertReturns(0.00001, VarVal.New("y", y));
+        }
+        [TestCase(1, 1)]
         [TestCase(2, 1)]
         [TestCase(3, 2)]
         [TestCase(4, 3)]

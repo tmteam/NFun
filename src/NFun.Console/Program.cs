@@ -19,9 +19,8 @@ namespace Funny
         static void Main(string[] args)
         {
 
-            var runtime = FunBuilder.With("repeat(a)=a.concat(a);" +
-                                          ";" +
-                                          "a = [1,2,3].repeat()").Build();
+            var runtime = FunBuilder.With(" @fact(n):int = if (n <= 1) 1 else fact(n - 1) * n"+
+                                            "y = fact(x)").Build();
 
 
             //Console.WriteLine("Let's make some fun.");

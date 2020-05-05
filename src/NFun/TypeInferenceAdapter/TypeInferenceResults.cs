@@ -14,6 +14,8 @@ namespace NFun.TypeInferenceAdapter
         readonly List<Constrains> _constrainses = new List<Constrains>();
         readonly List<IFunctionSignature> _functionSignatures = new List<IFunctionSignature>();
         readonly List<IFunctionSignature> _functionalVariable = new List<IFunctionSignature>();
+        readonly List<Fun> _recursiveCalls = new List<Fun>();
+
         readonly Dictionary<string, Fun> userFunctionSignatures = new Dictionary<string, Fun>();
 
         private Dictionary<string, IState> _namedNodes = null;
@@ -72,7 +74,8 @@ namespace NFun.TypeInferenceAdapter
                 generics: _constrainses.ToArray(),
                 namedNodes: _namedNodes,
                 functionSignatures: _functionSignatures.ToArray(),
-                functionalVariables: _functionalVariable.ToArray()
+                functionalVariables: _functionalVariable.ToArray(),
+                recursiveCalls: _recursiveCalls.ToArray()
                 );
         }
 
@@ -86,13 +89,19 @@ namespace NFun.TypeInferenceAdapter
             => _namedNodes = namedNodes;
 
 
-      
+        public void RememberRecursiveCall(int id, Fun userFunction)
+        {
+            while (_recursiveCalls.Count <= id)
+                _recursiveCalls.Add(null);
+            _recursiveCalls[id] = userFunction;
+        }
     }
     public class TypeInferenceResults
     {
         private Dictionary<string, IState> _namedNodes;
         private readonly IFunctionSignature[] _functions;
         private readonly IFunctionSignature[] _functionalVariables;
+        private readonly Fun[] _recursiveCalls;
 
         public TypeInferenceResults(
             RefTo[][] genericFunctionTypes, 
@@ -100,7 +109,8 @@ namespace NFun.TypeInferenceAdapter
             Constrains[] generics,
             Dictionary<string, IState> namedNodes,
             IFunctionSignature[] functionSignatures,
-            IFunctionSignature[] functionalVariables
+            IFunctionSignature[] functionalVariables, 
+            Fun[] recursiveCalls
             )
         {
             GenericFunctionTypes = genericFunctionTypes;
@@ -109,6 +119,7 @@ namespace NFun.TypeInferenceAdapter
             _namedNodes = namedNodes;
             _functions = functionSignatures;
             _functionalVariables = functionalVariables;
+            _recursiveCalls = recursiveCalls;
         }
         public IFunctionSignature GetSignatureOrNull(int id)
         {
@@ -122,11 +133,17 @@ namespace NFun.TypeInferenceAdapter
                 return null;
             return _functionalVariables[id];
         }
-        public IState[] GetGenericFunctionTypes(int id)
+        public IState[] GetGenericCallArguments(int id)
         {
             if (GenericFunctionTypes.Length <= id)
                 return null;
             return GenericFunctionTypes[id];
+        }
+        public Fun GetRecursiveCallOrNull(int id)
+        {
+            if (_recursiveCalls.Length <= id)
+                return null;
+            return _recursiveCalls[id];
         }
         public IState[][] GenericFunctionTypes { get; }
         public IState[] SyntaxNodeTypes{ get; }

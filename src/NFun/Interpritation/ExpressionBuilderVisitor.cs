@@ -140,13 +140,30 @@ namespace NFun.Interpritation
             var someFunc = _functions.GetOrNull(id, node.Args.Length);
             if (someFunc is FunctionBase f)
                 function = f;
-            else if (someFunc is GenericFunctionBase generic)
+            else if (someFunc is GenericFunctionBase genericFunction)
             {
-                var genericTypes = _typeInferenceResults.GetGenericFunctionTypes(node.OrderNumber);
-                if(genericTypes==null)
-                    throw new ImpossibleException($"MJ71. Generic function is missed at {node.OrderNumber}:  {id}`{node.Args.Length} ");
-                var genericArgs = genericTypes.Select(g => _typesConverter.Convert(g)).ToArray();
-                function = generic.CreateConcrete(genericArgs); //todo generic types
+                VarType[] genericArgs;
+
+                var genericTypes = _typeInferenceResults.GetGenericCallArguments(node.OrderNumber);
+                if (genericTypes == null)
+                {
+                    //Аргументы обобщенного вызова могут быть не известны. Например для случая обобщенной рекурсивной функции
+                    //В таком случае мы можем "достать" их из результатов выведения
+
+                    var recCallSignature =  _typeInferenceResults.GetRecursiveCallOrNull(node.OrderNumber);
+                    if(recCallSignature==null)
+                        throw new ImpossibleException($"MJ78. Function {id}`{node.Args.Length} was not found");
+
+                    var varTypeCallSignature = _typesConverter.Convert(recCallSignature);
+                    //теперь нужно перевести эту сигнатуру в аргументы дженериков
+                    genericArgs = genericFunction.CalcGenericArgTypeList(varTypeCallSignature.FunTypeSpecification);
+                }
+                else
+                {
+                    genericArgs = genericTypes.Select(g => _typesConverter.Convert(g)).ToArray();
+                }
+
+                function = genericFunction.CreateConcrete(genericArgs); 
             }
 
             if (function == null)
@@ -273,7 +290,7 @@ namespace NFun.Interpritation
             {
                 if (funVariable is GenericFunctionBase generic)
                 {
-                    var genericTypes = _typeInferenceResults.GetGenericFunctionTypes(varNode.OrderNumber);
+                    var genericTypes = _typeInferenceResults.GetGenericCallArguments(varNode.OrderNumber);
                     if (genericTypes == null)
                         throw new ImpossibleException($"MJ79. Generic function is missed at {varNode.OrderNumber}:  {varNode.Id}`{generic.Name} ");
                     var genericArgs = genericTypes.Select(g => _typesConverter.Convert(g)).ToArray();
