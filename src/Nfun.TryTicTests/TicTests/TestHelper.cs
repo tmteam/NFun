@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using NFun;
-using NFun.BuiltInFunctions;
 using NFun.Interpritation;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tic;
@@ -11,7 +10,7 @@ using NFun.TypeInferenceCalculator;
 using NUnit.Framework;
 using Array = NFun.Tic.SolvingStates.Array;
 
-namespace Nfun.TryTicTests.TicTests
+namespace Nfun.ModuleTests.TicTests
 {
     public static class TestHelper
     {

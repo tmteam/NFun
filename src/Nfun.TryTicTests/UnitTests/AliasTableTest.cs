@@ -1,7 +1,7 @@
-using NFun.TypeInference;
+using NFun.TypeInferenceAdapter;
 using NUnit.Framework;
 
-namespace Funny.Tests.UnitTests
+namespace Nfun.ModuleTests.UnitTests
 {
     public class AliasTableTest
     {

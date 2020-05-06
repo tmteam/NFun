@@ -1,7 +1,7 @@
 using NFun.SyntaxParsing;
 using NUnit.Framework;
 
-namespace Funny.Tests.UnitTests
+namespace Nfun.ModuleTests.UnitTests
 {
     [TestFixture]
     public class GraphToolsTest_TopologySort

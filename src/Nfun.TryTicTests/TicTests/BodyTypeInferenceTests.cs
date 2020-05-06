@@ -1,15 +1,9 @@
-﻿using System;
-using System.Linq;
-using NFun;
-using NFun.Interpritation;
-using NFun.SyntaxParsing.Visitors;
-using NFun.Tic;
+﻿using System.Linq;
 using NFun.Tic.SolvingStates;
-using NFun.TypeInferenceAdapter;
 using NUnit.Framework;
 using Array = NFun.Tic.SolvingStates.Array;
 
-namespace Nfun.TryTicTests.TicTests
+namespace Nfun.ModuleTests.TicTests
 {
     public class BodyTypeInferenceTests
     {

@@ -15,7 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{AD33CA54
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NFun.Tic.Tests", "NFun.Tic.Tests\NFun.Tic.Tests.csproj", "{DB452DDE-D067-4B7E-95BD-423FD77BCDC7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nfun.TryTicTests", "Nfun.TryTicTests\Nfun.TryTicTests.csproj", "{40C6C361-6E91-485E-9A43-7844956AB245}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nfun.ModuleTests", "Nfun.TryTicTests\Nfun.ModuleTests.csproj", "{40C6C361-6E91-485E-9A43-7844956AB245}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

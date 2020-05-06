@@ -3,7 +3,7 @@ using NFun.Tokenization;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace Funny.Tests.UnitTests
+namespace Nfun.ModuleTests.UnitTests
 {
     [TestFixture]
     public class TokenHelperTest
@@ -17,7 +17,6 @@ namespace Funny.Tests.UnitTests
         [TestCase("-9876543210",-9876543210, BaseVarType.Int64)]
         [TestCase("2147483647",2147483647, BaseVarType.Int32)]
         [TestCase("-2147483648",-2147483648, BaseVarType.Int32)]
-        [TestCase("0b1111_1111_1111_1111_1111_1111_1111_0011",0b1111_1111_1111_1111_1111_1111_1111_0011, BaseVarType.UInt32)]
         [TestCase("0b1111_1111_1111_1111_1111_1111_1111",0b1111_1111_1111_1111_1111_1111_1111, BaseVarType.Int32)]
         public void ToConstant_NumberConstant_ParsesWell(string value, object expectedVal, BaseVarType expectedType)
         {

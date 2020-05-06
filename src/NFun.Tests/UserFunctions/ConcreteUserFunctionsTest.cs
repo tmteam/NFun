@@ -1,22 +1,13 @@
-using System;
 using NFun;
-using NFun.BuiltInFunctions;
 using NFun.ParseErrors;
-using NFun.Runtime;
-using Nfun.TryTicTests.SyntaxTests;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace Funny.Tests
+namespace Funny.Tests.UserFunctions
 {
     [TestFixture]
     public class ConcreteUserFunctionsTest
     {
-        [Test]
-        public void TestOfTheTest()
-        {
-            Assert.Pass();
-        }
         [TestCase("myor(a:bool, b:bool):bool = a or b \r y = myor(true,false)",true)]
         [TestCase("mysum(a:int, b:int):int = a + b \r    y = mysum(1,2)",3)]
         [TestCase("mysum(a:real, b:real):real = a + b \r y = mysum(1,2)",3.0)]

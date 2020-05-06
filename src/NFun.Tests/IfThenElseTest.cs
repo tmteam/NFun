@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using NFun;
 using NFun.ParseErrors;
-using NFun.Runtime;
 using NFun.Types;
 using NUnit.Framework;
 
@@ -21,7 +20,7 @@ namespace Funny.Tests
         [TestCase(3,9,0,8)]
         [TestCase(9,4,0,9)]
         [TestCase(9,9,0,10)]
-        public void NestedIfThenElse(double x1, double x2, double x3, int expected)
+        public void NestedIfThenElse(double x1, double x2, double x3, double expected)
         {
             var expr = @"
                 y = if (x1 == 1) 1 
@@ -76,11 +75,11 @@ namespace Funny.Tests
 if (x == 0) 'zero'
 else 'positive' ", 2, "positive")]
         [TestCase(@"
-if (x == 0) [0]
-if (x == 1) [0,1]
-if (x == 2) [0,1,2]
-if (x == 3) [0,1,2,3]
-else [0,0,0] ", 2, new[]{0,1,2})]
+if (x == 0) [0.0]
+if (x == 1) [0.0,1.0]
+if (x == 2) [0.0,1.0,2.0]
+if (x == 3) [0.0,1.0,2.0,3.0]
+else [0.0,0.0,0.0] ", 2, new[]{0.0,1.0,2.0})]
         [TestCase(@"
 if (x==0) ['0']
 if (x==1) ['0','1']
@@ -93,12 +92,10 @@ if (x == 0) 'zero'
 if (x == 1) 'one'
 if (x == 2) 'two'
 else 'not supported' ", 2, "two")]
-        public void SingleVariableEquatation(string expression, int x, object expected)
-        {
-            FunBuilder.BuildDefault(expression).Calculate(VarVal.New("x", x))
-                .AssertReturns(VarVal.New("out", expected));
-        }
-        
+        public void SingleVariableEquatation(string expression, int x, object expected) 
+            => FunBuilder.BuildDefault(expression).Calculate(VarVal.New("x", x))
+                .AssertOutEquals(expected);
+
         [TestCase("y = if (1<2 )10 else -10.0", 10.0)]
         [TestCase("y = if (1>2 )-10.0 else 10", 10.0)]
         [TestCase("y = if (2>1 )10.0 else -10.0", 10.0)]
@@ -113,7 +110,7 @@ else 'not supported' ", 2, "two")]
             Assert.AreEqual(1, res.Results.Length);
             Assert.AreEqual(expected, res.Results.First().Value);
         }
-        
+        [Ignore("errors")]
         [TestCase("y = if (3) else 4")]
         [TestCase("y = if 1 3")]
         [TestCase("y = if true then 3")]
@@ -135,6 +132,6 @@ else 'not supported' ", 2, "two")]
         [TestCase("y = if (2>1)  false if 2<1 then true else 1")]
         public void ObviouslyFails(string expr) =>
             Assert.Throws<FunParseException>(
-                ()=> FunBuilder.BuildDefault(expr));
+                () => FunBuilder.BuildDefault(expr));
     }
 }

@@ -1,4 +1,3 @@
-
 using System.Linq;
 using NFun;
 using NFun.ParseErrors;

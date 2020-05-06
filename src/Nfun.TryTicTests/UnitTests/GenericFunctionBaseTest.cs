@@ -5,7 +5,7 @@ using NFun.Interpritation.Functions;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace Funny.Tests.UnitTests
+namespace Nfun.ModuleTests.UnitTests
 {
     [TestFixture]
     public class GenericFunctionBaseTest
@@ -52,7 +52,7 @@ namespace Funny.Tests.UnitTests
         [Test]
         public void Map_FunReturnsText_ResultTypesAreCorrect()
         {
-            var function = new MapGenericFunctionDefenition()
+            var function = new MapFunction()
                 .CreateConcreteOrNull(
                     VarType.ArrayOf(VarType.Text), 
                     VarType.ArrayOf(VarType.Int32), 

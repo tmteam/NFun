@@ -3,7 +3,7 @@ using NFun.ParseErrors;
 using NFun.Tokenization;
 using NUnit.Framework;
 
-namespace Funny.Tests.UnitTests
+namespace Nfun.ModuleTests.UnitTests
 {
     [TestOf(typeof(QuotationReader))]
     public class QuotationReaderTest

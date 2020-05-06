@@ -1,7 +1,7 @@
 using NFun.Types;
 using NUnit.Framework;
 
-namespace Funny.Tests.UnitTests
+namespace Nfun.ModuleTests.UnitTests
 {
     [TestFixture]
     public class VarTypeTest

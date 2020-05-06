@@ -1,11 +1,8 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using NFun;
 using NFun.BuiltInFunctions;
 using NFun.ParseErrors;
-using NFun.Runtime;
 using NFun.Runtime.Arrays;
 using NFun.Types;
 using NUnit.Framework;
@@ -17,15 +14,15 @@ namespace Funny.Tests
     {
         [TestCase("y = [1..4]", new[]{1,2,3,4})]
         [TestCase("y = [4..1]", new[]{4,3,2,1})]
-        [TestCase("y = [1..7..2]", new[]{1,3,5,7})]
-        [TestCase("y = [7..1..2]", new[]{7,5,3,1})]
-        [TestCase("y = [1..8..2]", new[]{1,3,5,7})]
+        [TestCase("y:int[] = [1..7..2]", new[]{1,3,5,7})]
+        [TestCase("y:int[] = [7..1..2]", new[]{7,5,3,1})]
+        [TestCase("y:int[] = [1..8..2]", new[]{1,3,5,7})]
         [TestCase("y = [1.0..3.0..0.5]", new[]{1.0,1.5,2.0,2.5,3.0})]
         [TestCase("y = [3.0..1.0..0.5]", new[]{3.0,2.5,2.0,1.5, 1.0})]
         [TestCase("y = [1..3..0.5]", new[]{1.0,1.5,2.0,2.5,3.0})]
         [TestCase("y = [1..1]", new[]{1})]
-        [TestCase("y = [1,2,3,4]", new[]{1,2,3,4})]
-        [TestCase("y = [1]", new[]{1})]
+        [TestCase("y:int[] = [1,2,3,4]", new[]{1,2,3,4})]
+        [TestCase("y = [0x1]", new[]{1})]
         [TestCase("y = ['foo','bar']", new []{"foo","bar"})]
         [TestCase("y = [0..10][0]", 0)]
         [TestCase("y = [0..10][10]", 10)]
@@ -36,7 +33,7 @@ namespace Funny.Tests
         [TestCase("y = [0..10][5:]", new[]{5,6,7,8,9,10})]
         [TestCase("y = ['a','b'][0]", "a")]
         [TestCase("y = ['a','b'][1]", "b")]
-        [TestCase("y = [1,2,3][:]", new[]{1,2,3})]
+        [TestCase("y:real[] = [1,2,3][:]", new[]{1.0,2.0,3.0})]
         [TestCase("y = [0..10][1:7:2]", new[]{1,3,5,7})]
         [TestCase("y = [0..10][1:2:]", new[]{1,2})]
         [TestCase("y = [0..10][1::2]", new[]{1,3,5,7,9})]
@@ -53,7 +50,7 @@ namespace Funny.Tests
         
         [TestCase("y = []", new object[0])]
 
-        [TestCase("y = [1,2,3]", new[]{1,2,3})]
+        [TestCase("y:int[] = [1,2,3]", new[]{1,2,3})]
         [TestCase("y = ['a','b','c']", new[]{"a","b","c"})]
         [TestCase("y = [1.0]==[]", false)]
         [TestCase("y = [1.0]==[2.0]", false)]
@@ -86,15 +83,13 @@ namespace Funny.Tests
         
         [TestCase("if (true) [1.0] else [2.0, 3.0] ", new[]{1.0})]
         [TestCase("if (false) [1.0] else [2.0, 3.0]", new[]{2.0,3.0})]
-        [TestCase ("y(x) = x \r[1]",new[]{1})]
+        [TestCase ("y(x) = x \r[1]",new[]{1.0})]
         [TestCase ("y(x) = x \r[1..3]",new[]{1,2,3})]
-        [TestCase ("y(x) = x # some comment \r[1]",new[]{1})]
+        [TestCase ("y(x) = x # some comment \r[1]",new[]{1.0})]
         [TestCase ("y(x) = x # some comment \r[1..3]",new[]{1,2,3})]
-        public void AnonymousConstantArrayTest(string expr, object expected)
-        {
-            FunBuilder.BuildDefault(expr).Calculate().AssertHas(VarVal.New("out", expected));
-        }
-        
+        public void AnonymousConstantArrayTest(string expr, object expected) 
+            => FunBuilder.BuildDefault(expr).Calculate().AssertOutEquals(expected);
+
         [Test]
         public void IntersectToDimArrayTest()
         {
@@ -106,7 +101,7 @@ namespace Funny.Tests
 
         [TestCase(3, "y= [1..x]", new[] {1, 2, 3})]
         [TestCase(3, "y= [x..7]", new[] {3, 4, 5, 6, 7})]
-        [TestCase(3, "y= [x,2,3]", new[] {3, 2, 3})]
+        [TestCase(3, "y:int[]= [x,2,3]", new[] {3, 2, 3})]
         [TestCase(3, "y= [1..5][x]", 4)]
         [TestCase(2, "x:int; y= [1..6..x]", new[] {1, 3, 5})]
         [TestCase(0.5, "y= [1.0..3.0..x]", new[] {1.0, 1.5, 2.0, 2.5, 3.0})]
@@ -134,8 +129,8 @@ namespace Funny.Tests
             expected[1] = new[] {3, 4};
             expected[2] = new[] {5};
             
-            var expectedType = VarType.ArrayOf(VarType.ArrayOf(VarType.Int32));
-            var expression = " y= [[1,2],[3,4],[5]]";
+            var expectedType = VarType.ArrayOf(VarType.ArrayOf(VarType.Real));
+            var expression = " y= [[1.0,2.0],[3.0,4.0],[5.0]]";
             
             var runtime = FunBuilder.BuildDefault(expression);
             var res = runtime.Calculate().Get("y");
@@ -150,8 +145,8 @@ namespace Funny.Tests
             expected[1] = new[] {3, 4};
             expected[2] = new[] {5};
             
-            var expectedType = VarType.ArrayOf(VarType.ArrayOf(VarType.Int32));
-            var expression = " y= [[1,2],[3,4]].concat([[5]])";
+            var expectedType = VarType.ArrayOf(VarType.ArrayOf(VarType.Real));
+            var expression = " y= [[1,2],[3,4]].concat([[5.0]])";
             
             var runtime = FunBuilder.BuildDefault(expression);
             var res = runtime.Calculate().Get("y");
@@ -229,7 +224,7 @@ filtrat   = x.filter(i:int ->i> filt) # filt - входная переменна
                 }
             }
         }
-
+        [Ignore("errors")]
         [TestCase("y = [")]
         [TestCase("y = [,]")]
         [TestCase("y = [,1.0]")]
@@ -252,12 +247,13 @@ filtrat   = x.filter(i:int ->i> filt) # filt - входная переменна
         [TestCase("y = [..2..2]")]
         [TestCase("y = [1..4")]
         [TestCase("y = [1..")]
-        [TestCase("y = [2,1] in [1,2,3]")]    
-        [TestCase("y = [1,5,2] in [1,2,3]")] 
+        [TestCase("y = [2,1] in [1,2,3]")]
+        [TestCase("y = [1,5,2] in [1,2,3]")]
         [TestCase("y = x\r[2]")]
         public void ObviouslyFailsOnParse(string expr) =>
             Assert.Throws<FunParseException>(
-                ()=> FunBuilder.BuildDefault(expr));
+                () => FunBuilder.BuildDefault(expr));
+
         [TestCase("y = [1..2..-2]")]
         [TestCase("y = [1..2..0]")]
         [TestCase("y = [4..1..-2]")]

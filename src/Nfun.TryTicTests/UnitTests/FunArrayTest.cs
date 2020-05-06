@@ -1,11 +1,9 @@
-using System;
 using System.Collections;
 using System.Linq;
-using NFun.Runtime;
 using NFun.Runtime.Arrays;
 using NUnit.Framework;
 
-namespace Funny.Tests.UnitTests
+namespace Nfun.ModuleTests.UnitTests
 {
     [TestFixture]
     public class FunArrayTest
