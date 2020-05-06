@@ -11,39 +11,55 @@ using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
+using NFun.TypeInferenceAdapter;
 using NFun.Types;
 
 namespace NFun.Interpritation
 {
     public sealed class ExpressionBuilderVisitor: ISyntaxNodeVisitor<IExpressionNode> {
         
-        private readonly FunctionsDictionary _functions;
+        private readonly IFunctionDicitionary _functions;
         private readonly VariableDictionary _variables;
+        private readonly TypeInferenceResults _typeInferenceResults;
+        private readonly TicTypesConverter _typesConverter;
+        public void SetChildrenNumber(ISyntaxNode parent, int num) { }
 
         public static IExpressionNode BuildExpression(
-            ISyntaxNode node, 
-            FunctionsDictionary functions,
-            VariableDictionary variables) =>
-            node.Accept(new ExpressionBuilderVisitor(functions, variables));
+            ISyntaxNode node,
+            IFunctionDicitionary functions,
+            VariableDictionary variables, 
+            TypeInferenceResults typeInferenceResults, 
+            TicTypesConverter typesConverter) =>
+            node.Accept(new ExpressionBuilderVisitor(functions, variables, typeInferenceResults, typesConverter));
 
         public static IExpressionNode BuildExpression(
-            ISyntaxNode node, 
-            FunctionsDictionary functions,
+            ISyntaxNode node,
+            IFunctionDicitionary functions,
             VarType outputType,
-            VariableDictionary variables)
+            VariableDictionary variables, 
+            TypeInferenceResults typeInferenceResults, 
+            TicTypesConverter typesConverter)
         {
-            var result =  node.Accept(new ExpressionBuilderVisitor(functions, variables));
+            var result =  node.Accept(
+                new ExpressionBuilderVisitor(functions, variables, typeInferenceResults, typesConverter));
             if (result.Type == outputType)
                 return result;
             var converter = VarTypeConverter.GetConverterOrThrow(result.Type, outputType, node.Interval);
             return new CastExpressionNode(result, outputType, converter, node.Interval);
         }
 
-        private ExpressionBuilderVisitor(FunctionsDictionary functions, VariableDictionary variables)
+        private ExpressionBuilderVisitor(
+            IFunctionDicitionary functions, 
+            VariableDictionary variables,
+            TypeInferenceResults typeInferenceResults, 
+            TicTypesConverter typesConverter)
         {
             _functions = functions;
             _variables = variables;
+            _typeInferenceResults = typeInferenceResults;
+            _typesConverter = typesConverter;
         }
+
 
 
         public IExpressionNode Visit(AnonymCallSyntaxNode anonymFunNode)
@@ -53,7 +69,6 @@ namespace NFun.Interpritation
 
             if(anonymFunNode.Body==null)
                 throw ErrorFactory.AnonymousFunBodyIsMissing(anonymFunNode);
-            
             
             //Anonym fun arguments list
             var argumentLexNodes = anonymFunNode.ArgumentsDefenition;
@@ -83,7 +98,7 @@ namespace NFun.Interpritation
             }
 
             var originVariables = localVariables.GetAllSources().Select(s=>s.Name).ToArray();
-            var expr = BuildExpression(anonymFunNode.Body, _functions, localVariables);
+            var expr = BuildExpression(anonymFunNode.Body, _functions, localVariables, _typeInferenceResults,_typesConverter);
             
             //New variables are new closured
             var closured =  localVariables.GetAllUsages()
@@ -94,7 +109,7 @@ namespace NFun.Interpritation
             foreach (var newVar in closured)
                 _variables.TryAdd(newVar); //add full usage info to allow analyze outer errors
             
-            var fun = new UserFunction(
+            var fun = new ConcreteUserFunction(
                 name:       "anonymous", 
                 variables:  arguments.ToArray(),
                 isReturnTypeStrictlyTyped: anonymFunNode.Defenition.OutputType!= VarType.Empty, 
@@ -120,28 +135,39 @@ namespace NFun.Interpritation
                 children.Add(argNode);
                 childrenTypes.Add(argNode.Type);
             }
-            var signature = node.SignatureOfOverload;
+            //var signature = node.SignatureOfOverload;
             FunctionBase function = null;
-            if (signature != null)
+            var someFunc = _functions.GetOrNull(id, node.Args.Length);
+            if (someFunc is FunctionBase f)
+                function = f;
+            else if (someFunc is GenericFunctionBase genericFunction)
             {
-                //Signature was calculated by Ti algorithm.
-                function = _functions.GetOrNullConcrete(
-                    name:       id,
-                    returnType: signature.ReturnType,
-                    args:       signature.ArgTypes);
-            }
-            else
-            {
-                //todo
-                //Ti algorithm had not calculate concrete overload
-                function = _functions.GetOrNullWithOverloadSearch(
-                    name:       id, 
-                    returnType: node.OutputType,
-                    args:       childrenTypes.ToArray());
+                VarType[] genericArgs;
+
+                var genericTypes = _typeInferenceResults.GetGenericCallArguments(node.OrderNumber);
+                if (genericTypes == null)
+                {
+                    //јргументы обобщенного вызова могут быть не известны. Ќапример дл€ случа€ обобщенной рекурсивной функции
+                    //¬ таком случае мы можем "достать" их из результатов выведени€
+
+                    var recCallSignature =  _typeInferenceResults.GetRecursiveCallOrNull(node.OrderNumber);
+                    if(recCallSignature==null)
+                        throw new ImpossibleException($"MJ78. Function {id}`{node.Args.Length} was not found");
+
+                    var varTypeCallSignature = _typesConverter.Convert(recCallSignature);
+                    //теперь нужно перевести эту сигнатуру в аргументы дженериков
+                    genericArgs = genericFunction.CalcGenericArgTypeList(varTypeCallSignature.FunTypeSpecification);
+                }
+                else
+                {
+                    genericArgs = genericTypes.Select(g => _typesConverter.Convert(g)).ToArray();
+                }
+
+                function = genericFunction.CreateConcrete(genericArgs); 
             }
 
             if (function == null)
-                throw new ImpossibleException("MJ78. Function overload was not found");
+                throw new ImpossibleException($"MJ78. Function {id}`{node.Args.Length} was not found");
              
             var converted =  function.CreateWithConvertionOrThrow(children, node.Interval);
             if(converted.Type!= node.OutputType)
@@ -155,45 +181,79 @@ namespace NFun.Interpritation
 
         public IExpressionNode Visit(IfThenElseSyntaxNode node)
         {
-            var ifNodes = new List<IfCaseExpressionNode>();
-            foreach (var ifNode in node.Ifs)
+            //expressions
+            //if (...) {here} 
+            var expressionNodes = new IExpressionNode[node.Ifs.Length];
+            //conditions
+            // if ( {here} ) ...
+            var conditionNodes = new IExpressionNode[node.Ifs.Length];
+
+            for (int i = 0; i < expressionNodes.Length; i++)
             {
-                var condition = ReadNode(ifNode.Condition);
-                var expr = ReadNode(ifNode.Expression);
-                ifNodes.Add(new IfCaseExpressionNode(condition, expr,node.Interval));
+                conditionNodes[i] = ReadNode(node.Ifs[i].Condition);
+                var exprNode = ReadNode(node.Ifs[i].Expression);
+                expressionNodes[i] = CastExpressionNode.GetConvertedOrOriginOrThrow(exprNode, node.OutputType);
             }
 
-            var elseNode = ReadNode(node.ElseExpr);
-            return new IfThenElseExpressionNode(
-                ifCaseNodes: ifNodes.ToArray(), 
-                elseNode:    elseNode,
-                interval:    elseNode.Interval, 
-                type:        node.OutputType);        
-        }
-        
-        public IExpressionNode Visit(ConstantSyntaxNode node) 
-            => new ValueExpressionNode(node.Value, node.OutputType, node.Interval);
+            var elseNode = CastExpressionNode.GetConvertedOrOriginOrThrow(ReadNode(node.ElseExpr), node.OutputType);
 
+            return new IfElseExpressionNode(
+                ifExpressionNodes: expressionNodes,
+                conditionNodes:    conditionNodes,
+                elseNode:          elseNode,
+                interval:          node.Interval, 
+                type:              node.OutputType);
+        }
+
+
+        public IExpressionNode Visit(ConstantSyntaxNode node)
+        {
+            var type = _typesConverter.Convert(_typeInferenceResults.SyntaxNodeTypes[node.OrderNumber]);
+            //все инт типы закодированы либо long либо ulong
+            if(node.Value is long l)
+                return ValueExpressionNode.CreateConcrete(type, l, node.Interval);
+            else if (node.Value is ulong u)
+                return ValueExpressionNode.CreateConcrete(type, u, node.Interval);
+            else //значит все остальные закодированны в свой конкретный clr тип
+                return new ValueExpressionNode(node.Value, type, node.Interval);
+        }
+        public IExpressionNode Visit(GenericIntSyntaxNode node)
+        {
+            var type = _typesConverter.Convert(_typeInferenceResults.SyntaxNodeTypes[node.OrderNumber]);
+
+            if (node.Value is long l) 
+                return ValueExpressionNode.CreateConcrete(type, l, node.Interval);
+            else if (node.Value is ulong u)
+                return ValueExpressionNode.CreateConcrete(type, u, node.Interval);
+            else if (node.Value is double d)
+                return new ValueExpressionNode(node.Value, type, node.Interval);                
+            else
+                throw new ImpossibleException($"Generic syntax node has wrong value type: {node.Value.GetType().Name}");
+            
+        }
         public IExpressionNode Visit(ProcArrayInit node)
         {
-            var start = ReadNode(node.From);
-            var end   = ReadNode(node.To);
+            throw new InvalidOperationException();
+            //var start = ReadNode(node.From);
+            //var end   = ReadNode(node.To);
             
-            if (node.Step == null)
-                return new RangeIntFunction().CreateWithConvertionOrThrow(new[] {start, end}, node.Interval);
+            //if (node.Step == null)
+            //    return new RangeIntFunction().CreateWithConvertionOrThrow(new[] {start, end}, node.Interval);
 
-            var step = ReadNode(node.Step);
-            if(step.Type== VarType.Real)
-                return new RangeWithStepRealFunction().CreateWithConvertionOrThrow(new[] {start, end, step},node.Interval);
+            //var step = ReadNode(node.Step);
+            //if(step.Type== VarType.Real)
+            //    return new RangeWithStepRealFunction().CreateWithConvertionOrThrow(new[] {start, end, step},node.Interval);
             
-            if (step.Type!= VarType.Int32)
-                throw ErrorFactory.ArrayInitializerTypeMismatch(step.Type, node);
+            //if (step.Type!= VarType.Int32)
+            //    throw ErrorFactory.ArrayInitializerTypeMismatch(step.Type, node);
             
-            return new RangeWithStepIntFunction().CreateWithConvertionOrThrow(new[] {start, end, step},node.Interval);        
+            //return new RangeWithStepIntFunction().CreateWithConvertionOrThrow(new[] {start, end, step},node.Interval);        
         }
       
         public IExpressionNode Visit(VariableSyntaxNode node)
             => GetOrAddVariableNode(node);
+
+      
 
         #region not an expression
         public IExpressionNode Visit(EquationSyntaxNode node) 
@@ -225,15 +285,53 @@ namespace NFun.Interpritation
             => node.Accept(this);
         private IExpressionNode GetOrAddVariableNode(VariableSyntaxNode varNode)
         {
+            var funVariable = _typeInferenceResults.GetFunctionalVariableOrNull(varNode.OrderNumber);
+            if (funVariable != null)
+            {
+                if (funVariable is GenericFunctionBase generic)
+                {
+                    var genericTypes = _typeInferenceResults.GetGenericCallArguments(varNode.OrderNumber);
+                    if (genericTypes == null)
+                        throw new ImpossibleException($"MJ79. Generic function is missed at {varNode.OrderNumber}:  {varNode.Id}`{generic.Name} ");
+                    var genericArgs = genericTypes.Select(g => _typesConverter.Convert(g)).ToArray();
+                    var function = generic.CreateConcrete(genericArgs); //todo generic types
+                    return new FunVariableExpressionNode(function, varNode.Interval);
+
+                }
+                else if (funVariable is FunctionBase concrete)
+                    return new FunVariableExpressionNode(concrete, varNode.Interval);
+            }
+            
             var lower = varNode.Id;
             if (_variables.GetSourceOrNull(lower) == null)
             {
                 //if it is not a variable it might be a functional-variable
-                var funVars = _functions.GetNonGeneric(lower);
+                var funVars = _functions.GetOverloads(lower);
                 if (funVars.Count > 1)
-                    throw ErrorFactory.AmbiguousFunctionChoise(varNode);
+                {
+                    var specification = varNode.OutputType.FunTypeSpecification;
+                    if (specification == null)
+                        throw ErrorFactory.FunctionNameAndVariableNameConflict(varNode);
+
+                    //several function with such name are appliable
+                    var result = funVars.Where(f =>
+                            f.ReturnType == specification.Output && f.ArgTypes.SequenceEqual(specification.Inputs))
+                        .ToList();
+                    if (result.Count == 0)
+                        throw ErrorFactory.FunctionIsNotExists(varNode);
+                    if (result.Count > 1)
+                        throw ErrorFactory.AmbiguousFunctionChoise(varNode);
+                    if(result[0] is FunctionBase ff)
+                        return new FunVariableExpressionNode(ff, varNode.Interval);
+                    else
+                        throw new NotImplementedException("GenericsAreNotSupp");
+                }
+
                 if (funVars.Count == 1)
-                    return new FunVariableExpressionNode(funVars[0], varNode.Interval);
+                {
+                    if (funVars[0] is FunctionBase ff)
+                        return new FunVariableExpressionNode(ff, varNode.Interval);
+                }
             }
             var node = _variables.CreateVarNode(varNode.Id, varNode.Interval, varNode.OutputType);
             if(node.Source.Name!= varNode.Id)

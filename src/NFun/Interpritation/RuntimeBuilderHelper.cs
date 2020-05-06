@@ -1,55 +1,98 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NFun.Interpritation.Functions;
 using NFun.ParseErrors;
 using NFun.Runtime;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
-using NFun.Tokenization;
-using NFun.TypeInference;
-using NFun.TypeInference.Solving;
+using NFun.Tic;
+using NFun.TypeInferenceAdapter;
+using NFun.TypeInferenceCalculator;
 using NFun.Types;
 
 namespace NFun.Interpritation
 {
     public static class RuntimeBuilderHelper
     {
-        public static TiResult SolveOrThrow(SyntaxTree syntaxTree, FunctionsDictionary functionsDictionary)
+        public static ConcreteUserFunction BuildConcrete(
+            this UserFunctionDefenitionSyntaxNode functionSyntax,
+            VarType[] argTypes, 
+            VarType returnType,
+            IFunctionDicitionary functionsDictionary,
+            TypeInferenceResults results, 
+            TicTypesConverter converter)
         {
-            var bodyTypeSolving =  LangTiHelper.SetupTiOrNull(syntaxTree, functionsDictionary)?.Solve();
+            var vars = new VariableDictionary();
+            for (int i = 0; i < functionSyntax.Args.Count; i++)
+            {
+                var variableSource = RuntimeBuilderHelper.CreateVariableSourceForArgument(
+                    argSyntax: functionSyntax.Args[i],
+                    actualType: argTypes[i]);
 
+                if (!vars.TryAdd(variableSource))
+                    throw ErrorFactory.FunctionArgumentDuplicates(functionSyntax, functionSyntax.Args[i]);
+            }
+
+            var bodyExpression = ExpressionBuilderVisitor.BuildExpression(
+                node: functionSyntax.Body,
+                functions: functionsDictionary,
+                outputType: returnType,
+                variables: vars,
+                typeInferenceResults: results, 
+                typesConverter: converter);
+
+            vars.ThrowIfSomeVariablesNotExistsInTheList(
+                functionSyntax.Args.Select(a => a.Id));
+
+            var function = new ConcreteUserFunction(
+                name: functionSyntax.Id,
+                variables: vars.GetAllSources(),
+                isReturnTypeStrictlyTyped: functionSyntax.ReturnType != VarType.Empty,
+                expression: bodyExpression);
+            return function;
+        }
+        public static TypeInferenceResults SolveBodyOrThrow(SyntaxTree syntaxTree, IFunctionDicitionary functionsDictionary)
+        {
+            var resultBuilder = new TypeInferenceResultsBuilder();
+            var builder = new GraphBuilder();
+            var state = new SetupTiState(builder);
+            //Пробегаем по всем узлам, КРОМЕ синтакс нод
+            foreach (var node in syntaxTree.Nodes.Where(n=>!(n is UserFunctionDefenitionSyntaxNode)))
+            {
+                if(!LangTiHelper.SetupTiOrNull(node, functionsDictionary, resultBuilder, state))
+                    throw ErrorFactory.TypesNotSolved(node);
+            }
+
+            var bodyTypeSolving = builder.Solve();
             if (bodyTypeSolving == null)
                 throw ErrorFactory.TypesNotSolved(syntaxTree);
-            if (bodyTypeSolving?.IsSolved != true)
-            {
-                var failedNodeOrNull = syntaxTree.GetDescendantNodeOrNull(bodyTypeSolving.FailedNodeId);
-                ThrowTiError(syntaxTree, bodyTypeSolving.Result, failedNodeOrNull);
-            }
-            return bodyTypeSolving;
+            resultBuilder.SetResults(bodyTypeSolving);
+            return resultBuilder.Build();
         }
-        public static void ThrowIfNotSolved(ISyntaxNode functionSyntaxNode, TiResult types)
-        {
-            if (types.IsSolved) return;
-            var failedNodeOrNull = functionSyntaxNode.GetDescendantNodeOrNull(types.FailedNodeId);
-            ThrowTiError(functionSyntaxNode, types.Result, failedNodeOrNull);
-        }
+        //public static void ThrowIfNotSolved(ISyntaxNode functionSyntaxNode, TiResult types)
+        //{
+        //    if (types.IsSolved) return;
+        //    var failedNodeOrNull = functionSyntaxNode.GetDescendantNodeOrNull(types.FailedNodeId);
+        //    ThrowTiError(functionSyntaxNode, types.Result, failedNodeOrNull);
+        //}
 
-        private static void ThrowTiError(ISyntaxNode root, TiSolveResult result,ISyntaxNode failedNodeOrNull)
-        {
-            switch (result)
-            {
-                case TiSolveResult.Solved:
-                    throw new InvalidOperationException();
-                case TiSolveResult.NotSolvedOverloadWithSeveralCandidates:
-                    throw ErrorFactory.AmbiguousFunctionChoise(failedNodeOrNull);
-                case TiSolveResult.NotSolvedNoFunctionFits:
-                    throw ErrorFactory.FunctionIsNotExists(failedNodeOrNull);
-                default:
-                    throw ErrorFactory.TypesNotSolved(root);
-            }
-        }
-
+        //private static void ThrowTiError(ISyntaxNode root, TiSolveResult result,ISyntaxNode failedNodeOrNull)
+        //{
+        //    switch (result)
+        //    {
+        //        case TiSolveResult.Solved:
+        //            throw new InvalidOperationException();
+        //        case TiSolveResult.NotSolvedOverloadWithSeveralCandidates:
+        //            throw ErrorFactory.AmbiguousFunctionChoise(failedNodeOrNull);
+        //        case TiSolveResult.NotSolvedNoFunctionFits:
+        //            throw ErrorFactory.FunctionIsNotExists(failedNodeOrNull);
+        //        default:
+        //            throw ErrorFactory.TypesNotSolved(root);
+        //    }
+        //}
+        
         public static void ThrowIfSomeVariablesNotExistsInTheList(this VariableDictionary resultVariables, IEnumerable<string> list )
         {
             var unknownVariables = resultVariables.GetAllUsages()

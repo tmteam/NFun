@@ -17,12 +17,12 @@ namespace NFun.Runtime
             .Where(v => v.IsOutput)
             .Select(s => new VarInfo(true,  s.Type,s.Name, s.IsStrictTyped, s.Attributes)).ToArray();
 
-        public IEnumerable<UserFunction> UserFunctions { get; }
+        public IEnumerable<IFunctionSignature> UserFunctions { get; }
 
         private readonly IList<Equation> _equations;
         private readonly VariableDictionary _variables;
       
-        public FunRuntime(IList<Equation> equations, VariableDictionary variables, List<UserFunction> userFunctions)
+        public FunRuntime(IList<Equation> equations, VariableDictionary variables, List<IFunctionSignature> userFunctions)
         {
             _equations = equations;
             _variables = variables;

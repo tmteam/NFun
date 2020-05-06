@@ -1,7 +1,4 @@
 using System;
-using System.Linq;
-using NFun.ParseErrors;
-using NFun.Runtime;
 using NFun.Tokenization;
 using NFun.Types;
 
@@ -9,6 +6,13 @@ namespace NFun.Interpritation.Nodes
 {
     public class CastExpressionNode: IExpressionNode
     {
+        public static IExpressionNode GetConvertedOrOriginOrThrow(IExpressionNode origin, VarType to)
+        {
+            if (origin.Type == to)
+                return origin;
+            var converter = VarTypeConverter.GetConverterOrThrow(origin.Type, to, origin.Interval);
+            return new CastExpressionNode(origin, to, converter, origin.Interval);
+        }
         private readonly IExpressionNode _origin;
         private readonly Func<object, object> _converter;
         public CastExpressionNode(

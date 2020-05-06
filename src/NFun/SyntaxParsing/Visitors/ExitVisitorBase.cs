@@ -4,6 +4,14 @@ namespace NFun.SyntaxParsing.Visitors
 {
     public abstract class ExitVisitorBase: ISyntaxNodeVisitor<bool>
     {
+        protected int CurrentChildNumber = -1;
+        protected ISyntaxNode Parent = null;
+        public void SetChildrenNumber(ISyntaxNode parent, int num)
+        {
+            Parent = parent;
+            CurrentChildNumber = num;
+        }
+
         public virtual bool Visit(AnonymCallSyntaxNode anonymFunNode) => true;
         public virtual bool Visit(ArraySyntaxNode node) => true;
         public virtual bool Visit(EquationSyntaxNode node) => true;
@@ -18,5 +26,6 @@ namespace NFun.SyntaxParsing.Visitors
         public virtual bool Visit(UserFunctionDefenitionSyntaxNode node) => true;
         public virtual bool Visit(VarDefenitionSyntaxNode node) => true;
         public virtual bool Visit(VariableSyntaxNode node) => true;
+        public virtual bool Visit(GenericIntSyntaxNode node) => true;
     }
 }

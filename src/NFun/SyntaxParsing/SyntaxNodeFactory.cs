@@ -15,18 +15,14 @@ namespace NFun.SyntaxParsing
         
         public static IfCaseSyntaxNode IfThen(ISyntaxNode condition, ISyntaxNode expression, int start, int end)
             => new IfCaseSyntaxNode(condition,expression,Interval.New(start, end));
-        
-        public static ISyntaxNode Var(Tok token) => new VariableSyntaxNode(token.Value, token.Interval); 
-        
+        public static ISyntaxNode Var(Tok token) 
+            => new VariableSyntaxNode(token.Value, token.Interval); 
         public static ISyntaxNode Constant(object value, VarType type, Interval interval) 
             => new ConstantSyntaxNode(value, type, interval);
-        
-        public static ISyntaxNode ProcArrayInit(ISyntaxNode @from, ISyntaxNode to, ISyntaxNode step, int start, int end)
-            =>new ProcArrayInit(from, to, step, Interval.New(start,end));
-
-        public static ISyntaxNode ProcArrayInit(ISyntaxNode @from, ISyntaxNode to, int start, int end)
-            =>new ProcArrayInit(from, to, null, Interval.New(start,end));
-        
+        public static ISyntaxNode IntGenericConstant(ulong value, Interval interval)
+            => new GenericIntSyntaxNode(value, false, interval);
+        public static ISyntaxNode HexOrBinIntConstant(ulong value, Interval interval)
+            => new GenericIntSyntaxNode(value, true, interval);
         public static ISyntaxNode Array(ISyntaxNode[] elements, int start, int end)
             => new ArraySyntaxNode(elements, Interval.New(start,end));
         public static ISyntaxNode ListOf(ISyntaxNode[] elements, Interval interval, bool hasBrackets) 

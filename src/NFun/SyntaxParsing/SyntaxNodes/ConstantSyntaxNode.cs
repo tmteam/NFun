@@ -9,7 +9,6 @@ namespace NFun.SyntaxParsing.SyntaxNodes
     {
         public VarType OutputType { get; set; }
         public int OrderNumber { get; set; }
-
         
         public ConstantSyntaxNode(object value, VarType varType, Interval interval)
         {
@@ -18,10 +17,12 @@ namespace NFun.SyntaxParsing.SyntaxNodes
             Value = value;
         }
 
+        public string ClrTypeName => Value?.GetType().Name;
         public bool IsInBrackets { get; set; }
         public object Value { get; }
         public Interval Interval { get; set; }
-        public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
         public IEnumerable<ISyntaxNode> Children => new ISyntaxNode[0];
+        public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
+
     }
 }

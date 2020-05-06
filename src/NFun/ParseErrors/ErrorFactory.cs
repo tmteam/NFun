@@ -8,8 +8,7 @@ using NFun.Runtime;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
-using NFun.TypeInference;
-using NFun.TypeInference.Solving;
+using NFun.TypeInferenceAdapter;
 using NFun.Types;
 
 namespace NFun.ParseErrors
@@ -263,12 +262,14 @@ namespace NFun.ParseErrors
         public static Exception InputNameWithDifferentCase(string id, string actualName, Interval interval)
             => new FunParseException(348, $"{actualName}<-  input name is same to name  {id}", interval);
 
-        
+        public static Exception InterpolationExpressionIsMissing(ISyntaxNode lastNode)
+            => new FunParseException(252, $"  Interpolation expression is missing{Nl} Example: 'before {{...}} after' ", lastNode.Interval);
+
         #endregion
 
         #region  4xx - errors of lists
 
-         public static Exception ArrayInitializeByListError(int openBracketTokenPos, TokFlow flow)
+        public static Exception ArrayInitializeByListError(int openBracketTokenPos, TokFlow flow)
         {
             var res = ErrorsHelper.GetExpressionListError(openBracketTokenPos, flow, TokType.ArrOBr, TokType.ArrCBr);
             var list = res.Parsed;
@@ -432,11 +433,13 @@ namespace NFun.ParseErrors
         {
             if (node is FunCallSyntaxNode fc)
 
-                return new FunParseException(524,
+                return new FunParseException(522,
                     $"Several functions with name: {fc.Id} can be used in expression. Did you mean input variable instead of function?",
                     node.Interval);
-            return new FunParseException(525, $"Ambiguous function call", node?.Interval ?? Interval.Empty);
+            return new FunParseException(523, $"Ambiguous function call", node?.Interval ?? Interval.Empty);
         }
+        public static Exception FunctionNameAndVariableNameConflict(VariableSyntaxNode varName)
+            => new FunParseException(524, $"Function with name: {varName.Id} can be used in expression because it's name conflict with function that exists in scope. Declare input variable", varName.Interval);
 
         public static Exception AmbiguousFunctionChoise(VariableSyntaxNode varName)
             =>  new FunParseException(526,$"Several functions with name: {varName.Id} can be used in expression. Did you mean input variable instead of function?", varName.Interval);
@@ -447,13 +450,20 @@ namespace NFun.ParseErrors
         public static Exception CannotParseNumber(string val, Interval interval)
             => new FunParseException(530, $"Cannot parse number '{val}'", interval);
 
-        public static Exception FunctionOverloadNotFound(FunCallSyntaxNode node,FunctionsDictionary functions)    {
+        public static Exception FunctionOverloadNotFound(FunCallSyntaxNode node, IFunctionDicitionary functions)    {
             
             return new FunParseException(533,
                 $"Function {TypeHelper.GetFunSignature(node.Id,node.OutputType, node.Children.Select(c=>c.OutputType))} is not defined",
                 node.Interval);
         }
-        
+        public static Exception FunctionOverloadNotFound(VariableSyntaxNode node, IFunctionDicitionary functions)
+        {
+
+            return new FunParseException(533,
+                $"Function {TypeHelper.GetFunSignature(node.Id, node.OutputType, node.Children.Select(c => c.OutputType))} is not defined",
+                node.Interval);
+        }
+
         public static Exception OperatorOverloadNotFound(FunCallSyntaxNode node, ISyntaxNode failedArg)
         {
             return new FunParseException(536,
@@ -518,12 +528,13 @@ namespace NFun.ParseErrors
             
             for (int i = 1; i < hmTypes.Length; i++)
             {
-                currentLca = TiType.GetLca(new[]{currentLca, hmTypes[i]});
-                if (currentLca.Name.Equals(TiTypeName.Any))
-                {
-                    failedInterval = allExpressions[i].Interval;
-                    break;
-                }
+                throw new NotImplementedException();
+                //currentLca = TiType.GetLca(new[]{currentLca, hmTypes[i]});
+                //if (currentLca.Name.Equals(TiTypeName.Any))
+                //{
+                //    failedInterval = allExpressions[i].Interval;
+                //    break;
+                //}
             }
             
             return new FunParseException(575, $"'If-else expressions contains different type. " +

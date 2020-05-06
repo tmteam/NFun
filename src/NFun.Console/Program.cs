@@ -1,16 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
 using NFun;
 using NFun.BuiltInFunctions;
 using NFun.ParseErrors;
-using NFun.Runtime;
-using NFun.Tokenization;
-using NFun.Types;
 
 namespace Funny
 {
@@ -20,7 +14,7 @@ namespace Funny
         {
             Console.WriteLine("Let's make some fun.");
             Console.WriteLine("Type an expression or '/exit' to return");
-            
+
             while (true)
             {
                 var expression = ReadMultiline();
@@ -39,7 +33,7 @@ namespace Funny
                         Console.WriteLine("Inputs: " + string.Join(", ", runtime.Inputs.Select(s => s.ToString())));
                         Console.WriteLine("Ouputs: " + string.Join(", ", runtime.Outputs.Select(s => s.ToString())));
                     }
-                    else 
+                    else
                     {
                         calcSw = Stopwatch.StartNew();
                         var res = runtime.Calculate();
@@ -58,7 +52,7 @@ namespace Funny
                 {
                     Console.BackgroundColor = ConsoleColor.Red;
                     Console.ForegroundColor = ConsoleColor.White;
-                    Console.Write(" ERROR [FU"+ e.Code +"] ");
+                    Console.Write(" ERROR [FU" + e.Code + "] ");
                     Console.Write($" {e.Message} ");
 
                     Console.ResetColor();
@@ -73,7 +67,7 @@ namespace Funny
 
                         Console.Write(e.Interval.SubString(expression));
                         Console.ResetColor();
-                        if(expression.Length>=e.End)
+                        if (expression.Length >= e.End)
                             Console.Write(expression.Substring(e.End));
                         Console.WriteLine();
                     }

@@ -9,6 +9,7 @@ using NUnit.Framework;
 
 namespace Funny.Tests
 {
+    [Ignore("Special types support")]
     [TestFixture]
     public class SpecialTypesTest
     {

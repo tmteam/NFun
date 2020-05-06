@@ -41,12 +41,11 @@ namespace NFun.Tokenization
                 return ( longVal, VarType.Int64);
             if (longVal > Int32.MaxValue)
             {
-                if (longVal > UInt32.MaxValue)
-                    return (longVal, VarType.Int64);
-                
-                return ((uint) longVal, VarType.UInt32);
+                //if (longVal > UInt32.MaxValue)
+                //    return (longVal, VarType.Int64);
+                return (longVal, VarType.Int64);
             }
-            return ((int) longVal, VarType.Int32);
+            return (longVal, VarType.Int32);
         }
 
         private static long ParseLongValue(string val)

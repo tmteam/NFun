@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using NFun.BuiltInFunctions;
+using NFun.Exceptions;
 using NFun.ParseErrors;
 using NFun.Runtime;
 using NFun.Runtime.Arrays;
@@ -81,33 +83,33 @@ namespace NFun.SyntaxParsing
         private static readonly Dictionary<TokType, string> OperatorFunNames
             = new Dictionary<TokType, string>()
             {
-                {TokType.Plus,CoreFunNames.Add},
+                {TokType.Plus, CoreFunNames.Add},
                 {TokType.Minus,CoreFunNames.Substract},
-                {TokType.Mult,CoreFunNames.Multiply},
-                {TokType.Div,CoreFunNames.Divide},
-                {TokType.Rema,CoreFunNames.Remainder},
-                {TokType.Pow,CoreFunNames.Pow},
+                {TokType.Mult, CoreFunNames.Multiply},
+                {TokType.Div,  CoreFunNames.Divide},
+                {TokType.Rema, CoreFunNames.Remainder},
+                {TokType.Pow,  CoreFunNames.Pow},
 
-                {TokType.And,CoreFunNames.And},
-                {TokType.Or,CoreFunNames.Or},
-                {TokType.Xor,CoreFunNames.Xor},
+                {TokType.And,  CoreFunNames.And},
+                {TokType.Or,   CoreFunNames.Or},
+                {TokType.Xor,  CoreFunNames.Xor},
                 
                 {TokType.BitAnd,CoreFunNames.BitAnd},
-                {TokType.BitOr,CoreFunNames.BitOr},
+                {TokType.BitOr, CoreFunNames.BitOr},
                 {TokType.BitXor,CoreFunNames.BitXor},
                 
-                {TokType.More,CoreFunNames.More},
+                {TokType.More,       CoreFunNames.More},
                 {TokType.MoreOrEqual,CoreFunNames.MoreOrEqual},
-                {TokType.Less,CoreFunNames.Less},
+                {TokType.Less,       CoreFunNames.Less},
                 {TokType.LessOrEqual,CoreFunNames.LessOrEqual},
 
-                {TokType.Equal,CoreFunNames.Equal},
-                {TokType.NotEqual,CoreFunNames.NotEqual},
+                {TokType.Equal,      CoreFunNames.Equal},
+                {TokType.NotEqual,   CoreFunNames.NotEqual},
 
-                {TokType.BitShiftLeft,CoreFunNames.BitShiftLeft},
+                {TokType.BitShiftLeft, CoreFunNames.BitShiftLeft},
                 {TokType.BitShiftRight,CoreFunNames.BitShiftRight},
-                {TokType.ArrConcat, CoreFunNames.ArrConcat},
-                {TokType.In,CoreFunNames.In},
+                {TokType.ArrConcat,    CoreFunNames.ArrConcat},
+                {TokType.In,           CoreFunNames.In},
             };
         
         public static ISyntaxNode ReadNodeOrNull(TokFlow flow)
@@ -136,13 +138,33 @@ namespace NFun.SyntaxParsing
                 var nextNode = ReadAtomicNodeOrNull(flow);
                 if (nextNode == null)
                     throw ErrorFactory.UnaryArgumentIsMissing(flow.Current);
-                
+
+                var interval = new Interval(start, nextNode.Interval.Finish);
                 if (nextNode is ConstantSyntaxNode constant)
                 {
-                    if (constant.Value is Int32 i32)
-                        return new ConstantSyntaxNode(-i32, constant.OutputType, new Interval(start,nextNode.Interval.Finish));
-                    if (constant.Value is double d)
-                        return new ConstantSyntaxNode(-d, constant.OutputType, new Interval(start,nextNode.Interval.Finish));
+                    switch (constant.Value)
+                    {
+                        case ulong u64 when u64 > long.MaxValue:
+                            throw FunParseException.ErrorStubToDo("Token overflow 1");
+                        case ulong u64:
+                            return new ConstantSyntaxNode(-(long)u64, constant.OutputType, interval);
+                        case long i64:
+                            return new ConstantSyntaxNode(-i64, constant.OutputType, interval);
+                        case double d:
+                            return new ConstantSyntaxNode(-d, constant.OutputType, interval);
+                    }
+                }
+                else if (nextNode is GenericIntSyntaxNode g)
+                {
+                    switch (g.Value)
+                    {
+                        case ulong u64 when u64 > long.MaxValue:
+                            throw FunParseException.ErrorStubToDo("Token overflow 2");
+                        case ulong u64:
+                            return new GenericIntSyntaxNode(-(long)u64, g.IsHexOrBin, interval);
+                        case long i64:
+                            return new GenericIntSyntaxNode(-i64, g.IsHexOrBin, interval);
+                    }
                 }
                 return SyntaxNodeFactory.OperatorFun(
                     CoreFunNames.Negate,
@@ -171,23 +193,22 @@ namespace NFun.SyntaxParsing
                 return SyntaxNodeFactory.Constant(true, VarType.Bool,  trueTok.Interval);
             if (flow.MoveIf(TokType.False, out var falseTok))
                 return SyntaxNodeFactory.Constant(false, VarType.Bool,  falseTok.Interval);
-            if (flow.MoveIf(TokType.Number, out var val))
-            {
-                try
-                {
-                    var (obj, type) = TokenHelper.ToConstant(val.Value);
-                    return SyntaxNodeFactory.Constant(obj, type, val.Interval);
-                }
-                catch (SystemException) {
-                    throw ErrorFactory.CannotParseNumber(val.Value, val.Interval);
-                }
+            if (flow.MoveIf(TokType.HexOrBinaryNumber, out var binVal)) {//0xff, 0b01
+                var val = binVal.Value;
+                int dimentions = 0;
+                if (val[1] == 'b')      dimentions = 2;
+                else if (val[1] == 'x') dimentions = 16;
+                else throw new ImpossibleException("Hex or bin constant has invalid format: "+val);
+                
+                var uval = Convert.ToUInt64(val.Replace("_",null).Substring(2), dimentions);
+                return SyntaxNodeFactory.HexOrBinIntConstant(uval, binVal.Interval);
             }
+            if (flow.MoveIf(TokType.IntNumber, out var intVal))        //1,2,3
+                return SyntaxNodeFactory.IntGenericConstant(ulong.Parse(intVal.Value.Replace("_", String.Empty)), intVal.Interval);
+            if (flow.MoveIf(TokType.RealNumber, out var realVal))       //1.0
+                return SyntaxNodeFactory.Constant(double.Parse(realVal.Value.Replace("_", String.Empty), CultureInfo.InvariantCulture), VarType.Real, realVal.Interval);
             if (flow.MoveIf(TokType.Text, out var txt))
-                return SyntaxNodeFactory.Constant( 
-                    new TextFunArray(txt.Value), 
-                    VarType.Text, 
-                    txt.Interval);
-
+                return SyntaxNodeFactory.Constant(new TextFunArray(txt.Value),VarType.Text,txt.Interval);
             if (flow.MoveIf(TokType.Id, out var headToken))
             {
                 if (flow.IsCurrent(TokType.Obr))
@@ -202,6 +223,8 @@ namespace NFun.SyntaxParsing
                 else
                     return SyntaxNodeFactory.Var(headToken);
             }
+            if (flow.IsCurrent(TokType.TextOpenInterpolation))
+                return ReadInterpolationText(flow);
             if (flow.IsCurrent(TokType.Obr))
                 return ReadBrackedNodeList(flow);
             if (flow.IsCurrent(TokType.If))
@@ -213,7 +236,8 @@ namespace NFun.SyntaxParsing
                 throw ErrorFactory.NotAToken(flow.Current);
             return null;
         }
-        
+
+
         /// <summary>
         /// Reads node with specified syntax priority
         /// throws FunParseException if underlying syntax is invalid,
@@ -314,7 +338,63 @@ namespace NFun.SyntaxParsing
                 }
             }
         }
-        
+
+        public static ISyntaxNode ReadInterpolationText(TokFlow flow)
+        {
+            var openInterpolationToken = flow.MoveIfOrThrow(TokType.TextOpenInterpolation);
+            //interpolation
+            var concatinations = new List<ISyntaxNode>();
+            //Open interpolation string
+            // '...{ 
+            concatinations.Add(SyntaxNodeFactory.Constant(
+                new TextFunArray(openInterpolationToken.Value), 
+                VarType.Text,
+                openInterpolationToken.Interval));
+
+            while (true)
+            {
+                //Read interpolation body
+                //{...} 
+                var allNext = ReadNodeOrNull(flow);
+                if (allNext == null)
+                    throw ErrorFactory.InterpolationExpressionIsMissing(concatinations.Last());
+
+                var toText = SyntaxNodeFactory.FunCall(CoreFunNames.ToText, new[] { allNext }, allNext.Interval.Start,
+                    allNext.Interval.Finish);
+                concatinations.Add(toText);
+
+
+                //interpolation end
+                // }...'
+                if (flow.Current.Type is TokType.TextCloseInterpolation)
+                {
+                    concatinations.Add(SyntaxNodeFactory.Constant(
+                        new TextFunArray(flow.Current.Value),
+                        VarType.Text,
+                        flow.Current.Interval));
+                    flow.MoveNext();
+                    var arrayOfTexts = SyntaxNodeFactory.Array(concatinations.ToArray(), openInterpolationToken.Start,
+                        flow.Current.Finish);
+
+                    return SyntaxNodeFactory.FunCall(CoreFunNames.ConcatTexts, new[] { arrayOfTexts },
+                        openInterpolationToken.Start,
+                        flow.Current.Finish);
+                }
+                //interpolation continuation
+                // }...{
+                else if (flow.Current.Type is TokType.TextMidInterpolation)
+                {
+                    concatinations.Add(SyntaxNodeFactory.Constant(
+                        new TextFunArray(flow.Current.Value),
+                        VarType.Text,
+                        openInterpolationToken.Interval));
+                    flow.MoveNext();
+                }
+                else
+                    throw new ImpossibleException("imp328. Invalid interpolation sequence");
+            }
+        }
+
         /// <summary>
         /// Read array index or array slice node
         /// </summary>
@@ -402,7 +482,6 @@ namespace NFun.SyntaxParsing
         /// <exception cref="Exception"></exception>
         public static ISyntaxNode ReadInitializeArrayNode(TokFlow flow)
         {
-                
             var startTokenNum = flow.CurrentTokenPosition;
             var openBracket = flow.MoveIfOrThrow(TokType.ArrOBr);
             
@@ -419,11 +498,11 @@ namespace NFun.SyntaxParsing
                     var missedVal = flow.Current;
                     if (flow.Current.Is(TokType.ArrCBr)) {
                         lastToken = flow.Current;
-                        missedVal = default(Tok);
+                        missedVal = default;
                     }
                     else if(flow.Current.Is(TokType.TwoDots)) {
                         lastToken = flow.Current;
-                        missedVal = default(Tok);                        
+                        missedVal = default;                        
                     }
                     throw ErrorFactory.ArrayInitializeSecondIndexMissed(
                         openBracket, lastToken, missedVal);
@@ -438,33 +517,32 @@ namespace NFun.SyntaxParsing
                         var missedVal = flow.Current;
                         if (flow.Current.Is(TokType.ArrCBr)) {
                             lastToken = flow.Current;
-                            missedVal = default(Tok);
+                            missedVal = default;
                         }
                         else if(flow.Current.Is(TokType.TwoDots)) {
                             lastToken = flow.Current;
-                            missedVal = default(Tok);                        
+                            missedVal = default;                        
                         }
                         throw ErrorFactory.ArrayInitializeStepMissed(
                             openBracket, lastToken, missedVal);
                     }
                     if (!flow.MoveIf(TokType.ArrCBr, out var closeBracket))
                         throw ErrorFactory.ArrayIntervalInitializeCbrMissed(openBracket, flow.Current, true);
-                    return SyntaxNodeFactory.ProcArrayInit(
-                        @from: list[0],
-                        to:  secondArg,
-                        step: thirdArg,
-                        start: openBracket.Start, 
-                        end:closeBracket.Finish);
+                    return SyntaxNodeFactory.OperatorFun(
+                        name:     CoreFunNames.RangeName,
+                        children: new[] {list[0], secondArg, thirdArg}, 
+                        start:    openBracket.Start, 
+                        end:      closeBracket.Finish);
                 }
                 else
                 {
                     if (!flow.MoveIf(TokType.ArrCBr,out var closeBracket))
                         throw ErrorFactory.ArrayIntervalInitializeCbrMissed(openBracket, flow.Current, false);
-                    return SyntaxNodeFactory.ProcArrayInit(
-                        @from: list[0], 
-                        to: secondArg,
-                        start: openBracket.Start, 
-                        end:closeBracket.Finish);
+                    return SyntaxNodeFactory.OperatorFun(
+                            name: CoreFunNames.RangeName,
+                            children: new[] { list[0], secondArg},
+                            start: openBracket.Start,
+                            end: closeBracket.Finish);
                 }
             }
             if (!flow.MoveIf(TokType.ArrCBr,out var closeBr))

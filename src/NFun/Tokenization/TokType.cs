@@ -6,7 +6,22 @@ namespace NFun.Tokenization
         If,
         Else,
         Then,
-        Number,
+        /// <summary>
+        /// 1,2,3
+        /// </summary>
+        IntNumber,
+        /// <summary>
+        /// 0xff, 0bff
+        /// </summary>
+        HexOrBinaryNumber,
+        /// <summary>
+        /// 1.0
+        /// </summary>
+        RealNumber,
+        /// <summary>
+        /// 1L
+        /// </summary>
+        LongNumber,
         Plus,
         Minus,
         Div,
@@ -35,6 +50,14 @@ namespace NFun.Tokenization
         ///  ] 
         /// </summary>
         ArrCBr,
+        /// <summary>
+        /// {
+        /// </summary>
+        FiObr,
+        /// <summary>
+        ///  }
+        /// </summary>
+        FiCbr,
         /// <summary>
         /// not used
         /// </summary>
@@ -69,6 +92,10 @@ namespace NFun.Tokenization
         /// </summary>
         Sep,
         Text,
+        TextOpenInterpolation,
+        TextMidInterpolation,
+        TextCloseInterpolation,
+
         NotAToken,
 
         True,

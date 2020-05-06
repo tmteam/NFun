@@ -1,7 +1,6 @@
 using System;
 using System.IO.Enumeration;
 using Nfun.Fuspec.Parser.Model;
-using NFun.TypeInference.Solving;
 using NFun.Types;
 
 namespace FuspecHandler

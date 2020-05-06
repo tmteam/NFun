@@ -6,7 +6,7 @@ using NFun.Types;
 
 namespace NFun.Interpritation.Functions
 {
-    public abstract class FunctionBase
+    public abstract class FunctionBase: IFunctionSignature
     {
         public string Name { get; }
         public VarType[] ArgTypes { get; }

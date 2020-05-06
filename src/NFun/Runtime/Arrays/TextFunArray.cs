@@ -6,7 +6,7 @@ using NFun.Types;
 
 namespace NFun.Runtime.Arrays
 {
-    public class TextFunArray : IFunArray
+    public class TextFunArray : IFunArray, IComparable
     {
         public static readonly TextFunArray EmptyText 
             = new TextFunArray("");
@@ -100,5 +100,11 @@ namespace NFun.Runtime.Arrays
         public string Text => _text;
 
         public override string ToString() => _text;
+        public int CompareTo(object obj)
+        {
+            if (obj is TextFunArray t2)
+                return string.Compare(Text, t2.Text, StringComparison.Ordinal);
+            return 0;
+        }
     }
 }
