@@ -43,7 +43,15 @@ namespace NFun.Types
             if (e is TextFunArray t)
                 return t.Text;
             if (e is ImmutableFunArray f)
-                return new string((char[]) f.Values);
+            {
+                if(f.Values is char[] carr)
+                    return new string(carr);
+                var str = new char[f.Count];
+                for (int i = 0; i < f.Count; i++) 
+                    str[i] = (char) f.Values.GetValue(i);
+                return new string(str);
+            }
+
             char [] result = new char[e.Count];
             for (int i = 0; i < e.Count; i++)
             {

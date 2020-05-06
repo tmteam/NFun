@@ -150,7 +150,7 @@ namespace Funny.Tests
                                 someRec2(n, iter+1)
                           else 
                                 1
-          y = someRec2(0x9,0x2)", BaseVarType.Int32)]
+          y:int = someRec2(0x9,0x2)", BaseVarType.Int32)]
         //todo
         //[TestCase(
         //    @"someRec3(n, iter) = someRec3(n, iter+1).strConcat(n >iter)
@@ -161,8 +161,8 @@ namespace Funny.Tests
             var runtime = FunBuilder.BuildDefault(expr);
             Assert.AreEqual(type, runtime.Outputs.Single().Type.BaseType);
         }
-        [TestCase("f(n, iter) = f(n, iter+1).strConcat(n >iter)")]
-        [TestCase("f1(n, iter) = f1(n+1, iter).strConcat(n >iter)")]
+        [TestCase("f(n, iter)  = f(n, iter+1).concat((n >iter).ToText())")]
+        [TestCase("f1(n, iter) = f1(n+1, iter).concat((n >iter).ToText())")]
         [TestCase("f2(n, iter) = n > iter and f2(n,iter)")]
         [TestCase("f3(n, iter) = n > iter and f3(n,iter+1)")]
         [TestCase("f4(n, iter) = f4(n,iter) and (n > iter)")]
@@ -172,7 +172,7 @@ namespace Funny.Tests
         [TestCase("f8(n) = n==0 and f8(n)")]
         [TestCase("f9(n) = f9(n and true)")]
         [TestCase("fa(n) = fa(n+1)")]
-        [TestCase("fb(n) = fb(n.strConcat(''))")]
+        [TestCase("fb(n) = n.concat('').fb()")]
         [TestCase("[a].map(z->z)")]
         [TestCase("[a].filter(f->f>2)")]
         [TestCase("[a].reverse()")]
@@ -186,7 +186,6 @@ namespace Funny.Tests
         [TestCase("y = [1..12].map(i->[1..n].sum()).sum()")]
         [TestCase("y = [1..11].map(i->[1..i].sum())")]
         [TestCase("y = [1..12].map(i->[1..i].sum()).sum()")]
-
         [TestCase("dsum7(x) = x+x")]
         [TestCase(
             @"dsum8(x) = x+x
