@@ -30,17 +30,6 @@ namespace NFun.SyntaxParsing.Visitors
             return $"{node.Value}";
         }
 
-        public string Visit(ProcArrayInit node)
-        {
-            var from = node.From.Accept(this);
-            var to = node.To.Accept(this);
-
-            if (node.Step == null)
-                return $"[{from}..{to}]";
-            else
-                return $"[{from}..{to}..{node.Step.Accept(this)}]";
-        }
-
         public string Visit(SyntaxTree node) => "Fun equations";
         public string Visit(TypedVarDefSyntaxNode node)
             => $"'{node.Id}:{node.VarType}";
