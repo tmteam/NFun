@@ -1,17 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using NFun.Exceptions;
 using NFun.Interpritation.Functions;
 using NFun.ParseErrors;
 using NFun.Runtime;
-using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tic;
-using NFun.Tic.SolvingStates;
 using NFun.TypeInferenceAdapter;
-using NFun.Types;
 
 namespace NFun.Interpritation
 {
@@ -21,6 +17,7 @@ namespace NFun.Interpritation
             SyntaxTree syntaxTree,
             FunctionDictionary functionsDictionary)
         {
+            var userFunctionsList = new List<IFunctionSignature>();
             #region build user functions
             //get topology sort of the functions call
             //result is the order of functions that need to be compiled
@@ -32,7 +29,10 @@ namespace NFun.Interpritation
             var scopeFunctionDictionary = new ScopeFunctionDictionary(functionsDictionary);
             //build user functions
             foreach (var functionSyntaxNode in functionSolveOrder)
-                BuildFunctionAndPutItToDictionary(functionSyntaxNode, scopeFunctionDictionary);
+            {
+                var userFun =BuildFunctionAndPutItToDictionary(functionSyntaxNode, scopeFunctionDictionary);
+                userFunctionsList.Add(userFun);
+            }
 
             #endregion
 
@@ -83,7 +83,7 @@ namespace NFun.Interpritation
                     throw new InvalidOperationException($"Type {treeNode} is not supported as tree root");
             }
             #endregion
-            return new FunRuntime(equations, variables, new List<UserFunction>());
+            return new FunRuntime(equations, variables, userFunctionsList);
         }
 
         private static Equation BuildEquationAndPutItToVariables(
@@ -130,7 +130,7 @@ namespace NFun.Interpritation
         }
 
 
-        private static void BuildFunctionAndPutItToDictionary(
+        private static IFunctionSignature BuildFunctionAndPutItToDictionary(
             UserFunctionDefenitionSyntaxNode functionSyntaxNode,
             ScopeFunctionDictionary functionsDictionary)
         {
@@ -181,12 +181,14 @@ namespace NFun.Interpritation
                         converter:  TicTypesConverter.Concrete);
                 
                 prototype.SetActual(function, functionSyntaxNode.Interval);
+                return function;
                 #endregion
             }
             else
             {
                 var function = GenericUserFunction.Create(typeInferenceResuls, functionSyntaxNode, functionsDictionary);
                 functionsDictionary.Add(function);
+                return function;
             }
         }
     }

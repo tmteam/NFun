@@ -109,7 +109,7 @@ namespace NFun.Interpritation
             foreach (var newVar in closured)
                 _variables.TryAdd(newVar); //add full usage info to allow analyze outer errors
             
-            var fun = new UserFunction(
+            var fun = new ConcreteUserFunction(
                 name:       "anonymous", 
                 variables:  arguments.ToArray(),
                 isReturnTypeStrictlyTyped: anonymFunNode.Defenition.OutputType!= VarType.Empty, 

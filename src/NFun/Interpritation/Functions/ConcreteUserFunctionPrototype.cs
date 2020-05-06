@@ -11,8 +11,8 @@ namespace NFun.Interpritation.Functions
         {
         }
 
-        private UserFunction _function;
-        public void SetActual(UserFunction function, Interval interval)
+        private ConcreteUserFunction _function;
+        public void SetActual(ConcreteUserFunction function, Interval interval)
         {
             _function = function;
 

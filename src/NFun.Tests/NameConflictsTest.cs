@@ -10,7 +10,7 @@ namespace Funny.Tests
     {
         [TestCase("concat = 1+2","concat",3.0)]
         [TestCase("min = 1+2","min",3.0)]
-        [TestCase("max = 1+0x2","max",3.0)]
+        [TestCase("max = 1+0x2","max",3)]
         [TestCase("foo(x) = x +1\r foo = 1+2","foo",3.0)]
         public void OutputNameOverloadsBuiltinFunctionName(string expr, string output, object expected) 
             => FunBuilder.BuildDefault(expr).Calculate().AssertHas(VarVal.New(output,expected));

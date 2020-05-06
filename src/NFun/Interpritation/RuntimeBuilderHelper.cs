@@ -16,7 +16,7 @@ namespace NFun.Interpritation
 {
     public static class RuntimeBuilderHelper
     {
-        public static UserFunction BuildConcrete(
+        public static ConcreteUserFunction BuildConcrete(
             this UserFunctionDefenitionSyntaxNode functionSyntax,
             VarType[] argTypes, 
             VarType returnType,
@@ -46,7 +46,7 @@ namespace NFun.Interpritation
             vars.ThrowIfSomeVariablesNotExistsInTheList(
                 functionSyntax.Args.Select(a => a.Id));
 
-            var function = new UserFunction(
+            var function = new ConcreteUserFunction(
                 name: functionSyntax.Id,
                 variables: vars.GetAllSources(),
                 isReturnTypeStrictlyTyped: functionSyntax.ReturnType != VarType.Empty,

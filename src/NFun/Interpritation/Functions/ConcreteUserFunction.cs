@@ -8,13 +8,13 @@ using NFun.Runtime;
 
 namespace NFun.Interpritation.Functions
 {
-    public class UserFunction : FunctionBase
+    public class ConcreteUserFunction : FunctionBase
     {
         public VariableSource[] Variables { get; }
         public bool IsReturnTypeStrictlyTyped { get; }
         private readonly IExpressionNode _expression;
             
-        public UserFunction(
+        public ConcreteUserFunction(
             string name, 
             VariableSource[] variables,
             bool isReturnTypeStrictlyTyped,
