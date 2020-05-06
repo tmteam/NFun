@@ -29,8 +29,8 @@ namespace NFun
                 throw new ArgumentException();
             if (syntaxNode is ConstantSyntaxNode constant)
                 return ParseConstant(constant);
-           
-           
+            if (syntaxNode is GenericIntSyntaxNode intGeneric)
+                return ParseGenericIntConstant(intGeneric);
             if (syntaxNode is ArraySyntaxNode array)
             {
                 List<object> items = new List<object>();
@@ -50,15 +50,40 @@ namespace NFun
                     return (new object[0], VarType.ArrayOf(VarType.Anything));
                 return (items.ToArray(), VarType.ArrayOf( unifiedType.Value));
             }
-            throw new ArgumentException();
+            throw new NotSupportedException($"syntax node {syntaxNode.GetType().Name} is not supported");
         }
-
+        private static (object, VarType) ParseGenericIntConstant(GenericIntSyntaxNode constant)
+        {
+            if (constant.IsHexOrBin)
+            {
+                //0xff, 0xFFFF or 0b1110101010
+                if (constant.Value is long l)
+                {
+                    if (l <= int.MaxValue)
+                        return ((int) l, VarType.Int32);
+                    else
+                        return (l, VarType.Int64);
+                }
+                else if(constant.Value is ulong u)
+                    return (u, VarType.UInt64);
+                else
+                    throw new NotSupportedException();
+                
+            }
+            else
+            {
+                //1,2,3..
+                if (constant.Value is long l)
+                    return ((double) l, VarType.Real);
+                else if (constant.Value is ulong u)
+                    return ((double)u, VarType.Real);
+                else
+                    throw new NotSupportedException();
+            }
+        }
         private static (object, VarType) ParseConstant(ConstantSyntaxNode constant)
         {
-            //if (constant.Value is TextFunArray)
-            //{
-          //      return (constant.Value.ToString(), VarType.Text);
-       ///     }
+
             switch (constant.Value)
             {
                 case int i:      return (i, VarType.Int32);
