@@ -231,29 +231,9 @@ namespace NFun.Interpritation
                 throw new ImpossibleException($"Generic syntax node has wrong value type: {node.Value.GetType().Name}");
             
         }
-        public IExpressionNode Visit(ProcArrayInit node)
-        {
-            throw new InvalidOperationException();
-            //var start = ReadNode(node.From);
-            //var end   = ReadNode(node.To);
-            
-            //if (node.Step == null)
-            //    return new RangeIntFunction().CreateWithConvertionOrThrow(new[] {start, end}, node.Interval);
-
-            //var step = ReadNode(node.Step);
-            //if(step.Type== VarType.Real)
-            //    return new RangeWithStepRealFunction().CreateWithConvertionOrThrow(new[] {start, end, step},node.Interval);
-            
-            //if (step.Type!= VarType.Int32)
-            //    throw ErrorFactory.ArrayInitializerTypeMismatch(step.Type, node);
-            
-            //return new RangeWithStepIntFunction().CreateWithConvertionOrThrow(new[] {start, end, step},node.Interval);        
-        }
       
         public IExpressionNode Visit(VariableSyntaxNode node)
             => GetOrAddVariableNode(node);
-
-      
 
         #region not an expression
         public IExpressionNode Visit(EquationSyntaxNode node) 

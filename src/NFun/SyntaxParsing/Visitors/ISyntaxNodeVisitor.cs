@@ -14,12 +14,11 @@ namespace NFun.SyntaxParsing.Visitors
         T Visit(IfCaseSyntaxNode node);
         T Visit(ListOfExpressionsSyntaxNode node);
         T Visit(ConstantSyntaxNode node);
-        T Visit(ProcArrayInit node);
+        T Visit(GenericIntSyntaxNode node);
         T Visit(SyntaxTree node);
         T Visit(TypedVarDefSyntaxNode node);
         T Visit(UserFunctionDefenitionSyntaxNode node);
         T Visit(VarDefenitionSyntaxNode node);
         T Visit(VariableSyntaxNode node);
-        T Visit(GenericIntSyntaxNode node);
     }
 }

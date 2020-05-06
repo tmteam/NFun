@@ -49,15 +49,6 @@ namespace NFun.TypeInferenceAdapter
 
         public override bool Visit(UserFunctionDefenitionSyntaxNode node) => true;
 
-        public override bool Visit(ProcArrayInit node)
-        {
-            throw new NotImplementedException();
-            //if (node.Step == null)
-            //    return _state.CurrentSolver.SetProcArrayInit(node.OrderNumber, node.From.OrderNumber, node.To.OrderNumber);
-            //else
-            //    return _state.CurrentSolver.SetProcArrayInit(node.OrderNumber, node.From.OrderNumber, node.To.OrderNumber,node.Step.OrderNumber);
-        }
-
         public override bool Visit(AnonymCallSyntaxNode node)
         {
             var argNames = new string[node.ArgumentsDefenition.Length];
