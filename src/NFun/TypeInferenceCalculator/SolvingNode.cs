@@ -46,7 +46,9 @@ namespace NFun.Tic
                 
                 if (value is Array array) 
                     array.ElementNode.MemberOf.Add(this);
-                
+                if(value is RefTo refTo && refTo.Node== this)
+                    throw new InvalidOperationException("Self referencing node");
+
                 _state = value;
             }
         }

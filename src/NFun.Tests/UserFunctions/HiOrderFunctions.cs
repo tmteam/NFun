@@ -34,6 +34,9 @@ namespace Funny.Tests.UserFunctions
 
         [TestCase(@"call8(f) = i->f(i); call8(x->x+1)(2)", 3.0)]
         [TestCase(@"call9(f) = i->f(i); (x->x+1).call9()(2)", 3.0)]
+
+        //[TestCase(@"call95(f) = i->f(i); m =1; j = (x->x+1).call95()(2)", 3.0)]
+
         [TestCase(@"call10(f,x) = i->f(x,i); max.call10(3)(2)", 3.0)]
         [TestCase(@"call11() = i->i; call11()(2)", 2.0)]
 

@@ -36,7 +36,7 @@ namespace NFun.Tic.Tests.Funs
 
             result.AssertNode(Fun.Of(Array.Of(t), Array.Of(t)), 3);
         }
-
+        [Ignore("UB")]
         [Test]
         public void FunDefCallTest_returnIsStrict()
         {
@@ -150,9 +150,64 @@ namespace NFun.Tic.Tests.Funs
             var graph = new GraphBuilder();
             var generic = graph.InitializeVarNode();
             graph.SetCall(new IState[]{Fun.Of(generic,generic)},new []{0});
+            
             graph.SetIntConst(1,Primitive.U8);
+            
             graph.SetCall(0,new []{1,2});
             graph.SetDef("x",2);
+
+            var result = graph.Solve();
+            var t = result.AssertAndGetSingleGeneric(Primitive.U8, Primitive.Real);
+            result.AssertAreGenerics(t, "x");
+        }
+        [Test]
+        public void GenericCallWithFunVar()
+        {
+            //fun = i->i
+            //    1   0   
+            //x = fun(2)
+
+            var graph = new GraphBuilder();
+            var generic = graph.InitializeVarNode();
+            graph.SetIntConst(0, Primitive.U8);
+            graph.SetCall(Fun.Of(generic, generic), new[] { 0, 1 });
+            graph.SetDef("x", 1);
+
+            var result = graph.Solve();
+            var t = result.AssertAndGetSingleGeneric(Primitive.U8, Primitive.Real);
+            result.AssertAreGenerics(t, "x");
+        }
+
+        [Test]
+        public void GenericCallWithStates()
+        {
+            //fun = i->i
+            //    1   0   
+            //x = fun(2)
+
+            var graph = new GraphBuilder();
+            var generic = graph.InitializeVarNode();
+            graph.SetIntConst(0, Primitive.U8);
+            graph.SetCall(new IState[]{generic, generic},  new[] { 0, 1 });
+            graph.SetDef("x", 1);
+
+            var result = graph.Solve();
+            var t = result.AssertAndGetSingleGeneric(Primitive.U8, Primitive.Real);
+            result.AssertAreGenerics(t, "x");
+        }
+        [Test]
+        public void SequenceCallWithFunVar()
+        {
+            //myFun() = i->i
+            //    2 0       1
+            //x = (myFun())(2)
+
+            var graph = new GraphBuilder();
+            var generic = graph.InitializeVarNode();
+            graph.SetCall(Fun.Of(new IState[0],  Fun.Of(generic, generic)), 0);
+            graph.SetIntConst(1, Primitive.U8);
+            graph.SetCall(0, new[] { 1, 2 });
+            graph.SetDef("x", 2);
 
             var result = graph.Solve();
             var t = result.AssertAndGetSingleGeneric(Primitive.U8, Primitive.Real);

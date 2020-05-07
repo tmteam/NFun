@@ -211,15 +211,19 @@ namespace NFun.Tic
 
             for (int i = 0; i < fun.ArgsCount; i++)
             {
-                var type = fun.ArgNodes[i];
-                var argId = argThenReturnIds[i];
-                var node = GetOrCreateNode(argId);
-                type.BecomeAncestorFor(node);
+                var state = fun.ArgNodes[i].State;
+                if (state is Constrains)
+                    state = new RefTo(fun.ArgNodes[i]);
+                SetCallArgument(state, argThenReturnIds[i]);
             }
 
             var returnId = argThenReturnIds[argThenReturnIds.Length - 1];
             var returnNode = GetOrCreateNode(returnId);
-            returnNode.State = SolvingFunctions.GetMergedState(returnNode.State, fun.ReturnType);
+
+            //Нужно завернуть тип в ссылочный
+            //var returnType = fun.ReturnType is Constrains? new RefTo(fun.RetNode):fun.ReturnType;
+
+            SolvingFunctions.Merge(fun.RetNode,returnNode);
         }
 
         /// <summary>
@@ -232,47 +236,48 @@ namespace NFun.Tic
             if(argThenReturnTypes.Length!=argThenReturnIds.Length)
                 throw new ArgumentException("Sizes of type and id array have to be equal");
 
-
             for (int i = 0; i < argThenReturnIds.Length - 1; i++)
-            {
-                var type = argThenReturnTypes[i];
-                var argId = argThenReturnIds[i];
+                SetCallArgument(argThenReturnTypes[i], argThenReturnIds[i]);
 
-                switch (type)
-                {
-                    case Primitive primitive:
-                    {
-                        var node = GetOrCreateNode(argId);
-                        if(!node.TrySetAncestor(primitive))
-                            throw new InvalidOperationException();
-                        break;
-                    }
-
-                    case ICompositeType composite:
-                    {
-                        RegistrateCompositeType(composite);
-
-                        var node = GetOrCreateNode(argId);
-                        var ancestor = CreateVarType(composite);
-                        ancestor.BecomeAncestorFor(node);
-                        break;
-                    }
-                    case RefTo refTo:
-                    {
-                        var node = GetOrCreateNode(argId);
-                        refTo.Node.BecomeAncestorFor(node);
-                        break;
-                    }
-                    
-                    default: throw new InvalidOperationException();
-                }
-            }
+            var returnType = argThenReturnTypes[argThenReturnIds.Length - 1];
 
             var returnId = argThenReturnIds[argThenReturnIds.Length - 1];
-            var returnType = argThenReturnTypes[argThenReturnIds.Length - 1];
             var returnNode = GetOrCreateNode(returnId);
             returnNode.State =  SolvingFunctions.GetMergedState(returnNode.State, returnType);
         }
+
+        private void SetCallArgument(IState type, int argId)
+        {
+            var node = GetOrCreateNode(argId);
+
+            switch (type)
+            {
+                case Primitive primitive:
+                {
+                    if (!node.TrySetAncestor(primitive))
+                        throw new InvalidOperationException();
+                    break;
+                }
+
+                case ICompositeType composite:
+                {
+                    RegistrateCompositeType(composite);
+
+                    var ancestor = CreateVarType(composite);
+                    ancestor.BecomeAncestorFor(node);
+                    break;
+                }
+
+                case RefTo refTo:
+                {
+                    refTo.Node.BecomeAncestorFor(node);
+                    break;
+                }
+
+                default: throw new InvalidOperationException();
+            }
+        }
+
         public void SetDef(string name, int rightNodeId)
         {
             var exprNode = GetOrCreateNode(rightNodeId);
@@ -429,9 +434,13 @@ namespace NFun.Tic
         {
             var id = argThenReturnIds[argThenReturnIds.Length - 1];
 
-            if (functionNode.State is Fun fun)
+            var state = functionNode.State;
+            if (state is RefTo r)
+                state = r.Node.State;
+
+            if (state is Fun fun)
                 SetCall(fun, argThenReturnIds);
-            else if (functionNode.State is Constrains constrains)
+            else if (state is Constrains constrains)
             {
                 var idNode = GetOrCreateNode(id);
 
@@ -447,7 +456,7 @@ namespace NFun.Tic
                 SetCall(newFunVar, argThenReturnIds);
             }
             else
-                throw new InvalidOperationException("po po");
+                throw new InvalidOperationException($"po po. functionNode.State is {functionNode.State}");
         }
         private SolvingNode GetNamedNode(string name)
         {
