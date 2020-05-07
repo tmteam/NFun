@@ -179,10 +179,8 @@ namespace FuspecHandler
                         Console.ResetColor();
                         
                         Console.Write("File: ");
-                        Console.ResetColor();
-                        Console.Write("{0}\t\t ",fileName);
+                        Console.WriteLine("{0}\t\t ",fileName);
                         Console.Write("Name: ");
-                        Console.ResetColor();
                         Console.WriteLine(testName);
 
                         foreach (var message in messages)
