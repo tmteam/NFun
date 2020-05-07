@@ -361,7 +361,7 @@ namespace NFun.TypeInferenceAdapter
         private void Trace(ISyntaxNode node, string text)
         {
             if (TraceLog.IsEnabled)
-                TraceLog.Write($"Exit:{node.OrderNumber}. {text} ");
+                TraceLog.WriteLine($"Exit:{node.OrderNumber}. {text} ");
         }
     }
 

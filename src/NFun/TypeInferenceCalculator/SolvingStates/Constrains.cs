@@ -207,10 +207,10 @@ namespace NFun.Tic.SolvingStates
             return result;
         }
         /// <summary>
-        /// Пытается вывести тип если это возможно
+        /// Пытается вывести наиболее общий тип, если это возможно
         /// Возвращает себя если это не возможно
         /// </summary>
-        public IState Solve()
+        public IState SolveCovariant()
         {
             if (Prefered != null && Fits(Prefered))
                 return Prefered;
@@ -226,7 +226,27 @@ namespace NFun.Tic.SolvingStates
                 return Descedant;
             return ancestor;
         }
-       
+        /// <summary>
+        /// Пытается вывести наиболее частный тип, если это возможно
+        /// Возвращает себя если это не возможно
+        /// </summary>
+        public IState SolveContravariant()
+        {
+            if (Prefered != null && Fits(Prefered))
+                return Prefered;
+            if (!HasDescendant)
+                return this;
+
+            if (IsComparable)
+            {
+                //todo
+                //char[] is comparable!
+                if (!(Descedant is Primitive p) || !p.IsComparable)
+                    return this;
+            }
+            return Descedant;
+        }
+
 
         public IState GetOptimizedOrThrow()
         {

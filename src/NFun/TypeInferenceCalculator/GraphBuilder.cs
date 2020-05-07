@@ -15,6 +15,8 @@ namespace NFun.Tic
         private readonly List<SolvingNode> _typeVariables = new List<SolvingNode>();
         private int _varNodeId = 0;
         private readonly List<SolvingNode> _outputNodes = new List<SolvingNode>();
+        private readonly List<SolvingNode> _inputNodes = new List<SolvingNode>();
+
         public RefTo InitializeVarNode(IType desc = null, Primitive anc = null, bool isComparable = false) 
             => new RefTo(CreateVarType(new Constrains(desc, anc){IsComparable =  isComparable}));
         private void RegistrateCompositeType(ICompositeType composite)
@@ -139,7 +141,7 @@ namespace NFun.Tic
             SetOrCreateLambda(lambdaId, args, returnTypeNode);
         }
 
-        public Fun CreateFunctionDefenition(string name, int returnId, IType returnType = null, params string[] varNames)
+        public Fun SetFunDef(string name, int returnId, IType returnType = null, params string[] varNames)
         {
             var args = varNames.Select(GetNamedNode).ToArray();
             var exprId = GetOrCreateNode(returnId);
@@ -153,6 +155,7 @@ namespace NFun.Tic
                 throw new InvalidOperationException("variable "+ name+ "already declared");
             node.State = fun;
             _outputNodes.Add(returnTypeNode);
+            _inputNodes.AddRange(args);
             return fun;
 
         }
@@ -186,8 +189,9 @@ namespace NFun.Tic
         /// <param name="argThenReturnIds"></param>
         public void SetCall(string name, params int[] argThenReturnIds)
         {
-            if (!_variables.TryGetValue(name, out var namedNode))
-                throw new InvalidOperationException($"Function {name} is unknown");
+            var namedNode =GetNamedNode(name);
+            //if (!_variables.TryGetValue(name, out var namedNode))
+            //    throw new InvalidOperationException($"Function {name} is unknown");
             SetCall(namedNode, argThenReturnIds);
            
         }
@@ -399,7 +403,9 @@ namespace NFun.Tic
                 TraceLog.WriteLine("Finalize");
             }
 
-            var results = DestructionFunctions.FinalizeUp(sorted, _outputNodes.ToArray());
+            var results = DestructionFunctions.FinalizeUp(sorted, 
+                _outputNodes.ToArray(),
+                _inputNodes.ToArray());
 
             if (TraceLog.IsEnabled)
             {
