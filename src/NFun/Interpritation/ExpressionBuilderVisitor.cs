@@ -135,12 +135,19 @@ namespace NFun.Interpritation
                 children.Add(argNode);
                 childrenTypes.Add(argNode.Type);
             }
-            //var signature = node.SignatureOfOverload;
             FunctionBase function = null;
             var someFunc = _functions.GetOrNull(id, node.Args.Length);
-            if (someFunc is FunctionBase f)
+            if (someFunc is null)
+            {
+                //hi order function
+                 var functionalVariableSource = _variables.GetSourceOrNull(id);
+                 if (functionalVariableSource?.Type.FunTypeSpecification == null)
+                    throw new ImpossibleException($"MJ78. Function {id}`{node.Args.Length} was not found");
+                 function = ConcreteHiOrderFunction.Create(functionalVariableSource);
+            }
+            else if (someFunc is FunctionBase f) //concrete function
                 function = f;
-            else if (someFunc is GenericFunctionBase genericFunction)
+            else if (someFunc is GenericFunctionBase genericFunction) //generic function
             {
                 VarType[] genericArgs;
 
@@ -166,9 +173,8 @@ namespace NFun.Interpritation
                 function = genericFunction.CreateConcrete(genericArgs); 
             }
 
-            if (function == null)
-                throw new ImpossibleException($"MJ78. Function {id}`{node.Args.Length} was not found");
-             
+           
+
             var converted =  function.CreateWithConvertionOrThrow(children, node.Interval);
             if(converted.Type!= node.OutputType)
             {
@@ -268,13 +274,13 @@ namespace NFun.Interpritation
             var funVariable = _typeInferenceResults.GetFunctionalVariableOrNull(varNode.OrderNumber);
             if (funVariable != null)
             {
-                if (funVariable is GenericFunctionBase generic)
+                if (funVariable is GenericFunctionBase genericFunction)
                 {
                     var genericTypes = _typeInferenceResults.GetGenericCallArguments(varNode.OrderNumber);
                     if (genericTypes == null)
-                        throw new ImpossibleException($"MJ79. Generic function is missed at {varNode.OrderNumber}:  {varNode.Id}`{generic.Name} ");
+                        throw new ImpossibleException($"MJ79. Generic function is missed at {varNode.OrderNumber}:  {varNode.Id}`{genericFunction.Name} ");
                     var genericArgs = genericTypes.Select(g => _typesConverter.Convert(g)).ToArray();
-                    var function = generic.CreateConcrete(genericArgs); //todo generic types
+                    var function = genericFunction.CreateConcrete(genericArgs); //todo generic types
                     return new FunVariableExpressionNode(function, varNode.Interval);
 
                 }

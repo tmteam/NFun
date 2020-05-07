@@ -128,7 +128,7 @@ namespace NFun.Tokenization
         /// </summary>
         PipeForward,
         /// <summary>
-        /// =>
+        /// ->
         /// </summary>
         AnonymFun,
         

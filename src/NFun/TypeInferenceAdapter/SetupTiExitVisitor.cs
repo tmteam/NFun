@@ -97,23 +97,35 @@ namespace NFun.TypeInferenceAdapter
 
         public override bool Visit(FunCallSyntaxNode node)
         {
+            var ids = new int[node.Args.Length + 1];
+            for (int i = 0; i < node.Args.Length; i++)
+                ids[i] = node.Args[i].OrderNumber;
+            ids[ids.Length - 1] = node.OrderNumber;
+
             var userFunction = _resultsBuilder.GetUserFunctionSignature(node.Id, node.Args.Length);
             if (userFunction != null)
             {
                 //Это вызов пользовательской функции. Например в случае рекурсии
-                Trace(node, $"Call UF{node.Id}({string.Join(",", node.Args.Select(a => a.OrderNumber))})");
-                _state.CurrentSolver.SetCall(userFunction,
-                    node.Args.Select(a => a.OrderNumber).Append(node.OrderNumber).ToArray());
+                Trace(node, $"Call UF{node.Id}({string.Join(",", ids)})");
+                _state.CurrentSolver.SetCall(userFunction, ids);
                 //Если функция является дженериковой и рекурсивной, то мы пока не знаем ограничения дженериков
                 //В таком случае - единственное что мы можем - это запомнить тип рекурсивного вызова
                 _resultsBuilder.RememberRecursiveCall(node.OrderNumber, userFunction);
                 return true;
             }
 
-            //Вызов обычной функции
-            Trace(node, $"Call {node.Id}({string.Join(",", node.Args.Select(a => a.OrderNumber))})");
 
             var signature = _resultsBuilder.GetSignatureOrNull(node.OrderNumber);
+            if (signature == null)
+            {
+                //Функциональная переменная
+                Trace(node, $"Call hi order {node.Id}({string.Join(",", ids)})");
+                _state.CurrentSolver.SetCall(node.Id, ids);
+                return true;
+            }
+            //Вызов обычной функции
+
+            Trace(node, $"Call {node.Id}({string.Join(",", ids)})");
 
             RefTo[] genericTypes;
             if (signature is GenericFunctionBase t)
@@ -126,15 +138,15 @@ namespace NFun.TypeInferenceAdapter
             else genericTypes = new RefTo[0];
 
             var types = new IState[signature.ArgTypes.Length + 1];
-            var ids = new int[signature.ArgTypes.Length + 1];
+            
+
             for (int i = 0; i < signature.ArgTypes.Length; i++)
             {
                 types[i] = signature.ArgTypes[i].ConvertToTiType(genericTypes);
-                ids[i] = node.Args[i].OrderNumber;
+
             }
 
             types[types.Length - 1] = signature.ReturnType.ConvertToTiType(genericTypes);
-            ids[types.Length - 1] = node.OrderNumber;
 
             _state.CurrentSolver.SetCall(types, ids);
             return true;
