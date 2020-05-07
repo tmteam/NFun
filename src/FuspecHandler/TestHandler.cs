@@ -21,8 +21,6 @@ namespace FuspecHandler
     {
         private readonly ConsoleWriter _consoleWriter = new ConsoleWriter();
         private TestCaseResult _testCaseResult;
-   //     private Statistic _statistic;
-
 
         public Statistic RunTests(string directoryPath)
         {
@@ -43,11 +41,7 @@ namespace FuspecHandler
                             _testCaseResult = new TestCaseResult(file, fus);
                             _consoleWriter.PrintFuspecName(fus.Name);
                             if (!fus.IsTestExecuted)
-                            {
                                 _consoleWriter.PrintTODOTest();
-                            //    statistic.AddTestToStatistic(_testCaseResult);
-                                    // continue;
-                            }
                             else
                             {
                                 try
@@ -105,14 +99,16 @@ namespace FuspecHandler
         {
             List<string> messages = new List<string>();
 
-            foreach (var varInfo in scriptTypes)
-            {
-                var inputRes = testTypes.Where(s => s.Name == varInfo.Name);
-                if (!inputRes.Any())
-                    messages.Add(varInfo.ToString() + " - missed in test!");
-            }
-                
-            
+            // FIND OutputInputERROR: Script has some Inputs or Outputs, but they don't write in fuspek 
+            //   foreach (var varInfo in scriptTypes)
+            //    {
+            //        var inputRes = testTypes.Where(s => s.Name == varInfo.Name);
+            //        if (!inputRes.Any())
+            //            messages.Add(varInfo.ToString() + " - missed in test!");
+            //    }
+
+            // FIND OutputInputERROR:  Fuspec has Inputs or Outputs, but Script doesn't   
+            // FIND OutputInputERROR:  Inputs or Outpits of Fuspec and  Inputs or Outpits of Fuspec are differ  
             if (scriptTypes.Any())
             {
                 foreach (var varInfo in testTypes)
@@ -123,7 +119,6 @@ namespace FuspecHandler
                     else
                         if (inputRes.Single().Type != varInfo.Type)
                             messages.Add( "Test : " + varInfo.ToString() + ". Script: " + inputRes.Single().ToString());
-                   
                 }
             }
             return messages.ToArray();

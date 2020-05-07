@@ -3,7 +3,7 @@
 | TAGS arithmetic
 |************************  
 | in   a:real, b:real, c:real
-| out  d:real, res:real 
+| out  d:real, res:real[] 
 |------------------------
   d = b**2-4*a*c
 
@@ -25,7 +25,7 @@
 | TAGS arithmetic user-function
 |************************  
 | in   a:real, b:real, c:real
-| out  out:real 
+| out  out:real[] 
 |------------------------
   d(a,b,c) = b**2-4*a*c
 
@@ -168,7 +168,7 @@
 | TAGS user-function
 |************************  
 | in   n:int[]
-| out  res:int[] 
+| out  res:real[] 
 |------------------------
  fib(n) = 
  	if(n==0) 0
@@ -194,8 +194,7 @@
  fibvals(n) = 
  	if(n<=1) [0,1]
     else
-    	[2..n].reduce([0,1], 
-    	    (acc,i) -> [acc.last(), acc[i-1]+acc[i-2])
+    	[2..n].reduce([0,1], (acc,i) -> [acc.last(), acc[i-1]+acc[i-2]])
 
  div(arr) = arr[1]/arr[2]
 
@@ -234,7 +233,7 @@
 | out  done:bool, newCount:real 
 |------------------------
 done = x>=1000	
-newCount = if(!done) x+1 else x
+newCount = if (!done) x+1 else x
 |---------------------
 | set x:100
 | check done:false, newCount:101
@@ -249,16 +248,16 @@ newCount = if(!done) x+1 else x
 | TEST fun odds
 | TAGS built-in-function
 |************************  
-| in x:int[]
-| out  ysum:int, ymulti: int, ymin: int, ymax:int 
+| in x:real[]
+| out  ysum:real, ymulti: real, ymin: real, ymax:real 
 |------------------------
   getOdds(x)= x.filter(i->i%2==0)
   mymax(x,y) = if (x>y) x else y
 
-  ysum   = x.getOdds.sum()
-  ymulti = x.getOdds.reduce((s,i)-> s*i)
-  ymin   = x.getOdds.reduce(min)
-  ymax   = x.getOdds.reduce(mymax)
+  ysum   = x.getOdds().sum()
+  ymulti = x.getOdds().reduce((s,i)-> s*i)
+  ymin   = x.getOdds().reduce(min)
+  ymax   = x.getOdds().reduce(mymax)
 |---------------------
 | set x:[0,1,2,3,4,5,6,7,8,9]
 | check ysum:20, ymulti:384, ymin:0, ymax:8
@@ -297,7 +296,7 @@ newCount = if(!done) x+1 else x
   multi(a,b) = 
       if(a.count()!=b.count()) []
       else
-          [0..a.count()-1].map(i->a[i]*b[i]))  
+          [0..a.count()-1].map(i->a[i]*b[i])  
 
   a =  [1,2,3]
   b =  [4,5,6]
