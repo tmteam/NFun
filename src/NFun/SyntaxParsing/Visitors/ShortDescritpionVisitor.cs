@@ -39,6 +39,8 @@ namespace NFun.SyntaxParsing.Visitors
         public string Visit(VarDefenitionSyntaxNode node) => $"'{node.Id}:{node.VarType}";
 
         public string Visit(VariableSyntaxNode node) => node.Id;
+        public string Visit(ResultFunCallSyntaxNode node) => $"{node.ResultExpression.Accept(this)}(...)";
+
         public string Visit(GenericIntSyntaxNode node) => node.Value.ToString();
     }
 }

@@ -170,36 +170,29 @@ namespace NFun.Tic
             return new RefTo(elementType);
         }
         /// <summary>
+        /// Устанавливает вызов узла
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="argThenReturnIds"></param>
+        public void SetCall(int bodyId, params int[] argThenReturnIds)
+        {
+            var node = GetOrCreateNode(bodyId);
+            SetCall(node, argThenReturnIds);
+        }
+        /// <summary>
         /// Устанавливает вызов функциональной переменной
         /// </summary>
         /// <param name="name"></param>
         /// <param name="argThenReturnIds"></param>
         public void SetCall(string name, params int[] argThenReturnIds)
         {
-            var id = argThenReturnIds[argThenReturnIds.Length-1];
             if (!_variables.TryGetValue(name, out var namedNode))
                 throw new InvalidOperationException($"Function {name} is unknown");
-
-            if (namedNode.State is Fun fun) 
-                SetCall(fun, argThenReturnIds);
-            else if (namedNode.State is Constrains constrains)
-            {
-                var idNode = GetOrCreateNode(id);
-
-                SolvingNode[] genericArgs = new SolvingNode[argThenReturnIds.Length - 1];
-                for (int i = 0; i < argThenReturnIds.Length-1; i++) 
-                    genericArgs[i] = CreateVarType();
-
-                var newFunVar = Fun.Of(genericArgs, idNode);
-                if(!constrains.Fits(newFunVar))
-                    throw new InvalidOperationException("naaa");
-                namedNode.State = newFunVar;
-
-                SetCall(newFunVar, argThenReturnIds);
-            }
-            else
-                throw new InvalidOperationException("po po");
+            SetCall(namedNode, argThenReturnIds);
+           
         }
+
+       
         /// <summary>
         /// Устанавливает вызов известной функциональной переменной
         /// </summary>
@@ -426,7 +419,30 @@ namespace NFun.Tic
 
             return results;
         }
+        private void SetCall(SolvingNode functionNode, int[] argThenReturnIds)
+        {
+            var id = argThenReturnIds[argThenReturnIds.Length - 1];
 
+            if (functionNode.State is Fun fun)
+                SetCall(fun, argThenReturnIds);
+            else if (functionNode.State is Constrains constrains)
+            {
+                var idNode = GetOrCreateNode(id);
+
+                var genericArgs = new SolvingNode[argThenReturnIds.Length - 1];
+                for (int i = 0; i < argThenReturnIds.Length - 1; i++)
+                    genericArgs[i] = CreateVarType();
+
+                var newFunVar = Fun.Of(genericArgs, idNode);
+                if (!constrains.Fits(newFunVar))
+                    throw new InvalidOperationException("naaa");
+                functionNode.State = newFunVar;
+
+                SetCall(newFunVar, argThenReturnIds);
+            }
+            else
+                throw new InvalidOperationException("po po");
+        }
         private SolvingNode GetNamedNode(string name)
         {
             if (_variables.TryGetValue(name, out var varnode))

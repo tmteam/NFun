@@ -127,27 +127,22 @@ namespace NFun.Interpritation
         {
             var id = node.Id;
             
-            var children= new List<IExpressionNode>();
-            var childrenTypes = new List<VarType>();
-            foreach (var argLexNode in node.Args)
-            {
-                var argNode =  ReadNode(argLexNode);
-                children.Add(argNode);
-                childrenTypes.Add(argNode.Type);
-            }
-            FunctionBase function = null;
             var someFunc = _functions.GetOrNull(id, node.Args.Length);
             if (someFunc is null)
             {
+                //todo move to variable syntax node
+
                 //hi order function
                  var functionalVariableSource = _variables.GetSourceOrNull(id);
                  if (functionalVariableSource?.Type.FunTypeSpecification == null)
                     throw new ImpossibleException($"MJ78. Function {id}`{node.Args.Length} was not found");
-                 function = ConcreteHiOrderFunction.Create(functionalVariableSource);
+                 return CreateFunctionCall(node, ConcreteHiOrderFunction.Create(functionalVariableSource));
             }
-            else if (someFunc is FunctionBase f) //concrete function
-                function = f;
-            else if (someFunc is GenericFunctionBase genericFunction) //generic function
+
+            if (someFunc is FunctionBase f) //concrete function
+                return CreateFunctionCall(node, f);
+
+            if (someFunc is GenericFunctionBase genericFunction) //generic function
             {
                 VarType[] genericArgs;
 
@@ -170,21 +165,37 @@ namespace NFun.Interpritation
                     genericArgs = genericTypes.Select(g => _typesConverter.Convert(g)).ToArray();
                 }
 
-                function = genericFunction.CreateConcrete(genericArgs); 
+                var function = genericFunction.CreateConcrete(genericArgs);
+                return CreateFunctionCall(node, function);
             }
 
-           
+            throw new ImpossibleException($"MJ101. Function {id}`{node.Args.Length} type is unknown");
+        }
 
-            var converted =  function.CreateWithConvertionOrThrow(children, node.Interval);
-            if(converted.Type!= node.OutputType)
+        private IExpressionNode CreateFunctionCall(IFunCallSyntaxNode node, FunctionBase function)
+        {
+            var children = new List<IExpressionNode>();
+            foreach (var argLexNode in node.Args)
+            {
+                var argNode = ReadNode(argLexNode);
+                children.Add(argNode);
+            }
+            var converted = function.CreateWithConvertionOrThrow(children, node.Interval);
+            if (converted.Type != node.OutputType)
             {
                 var converter = VarTypeConverter.GetConverterOrThrow(converted.Type, node.OutputType, node.Interval);
-                return new CastExpressionNode(converted, node.OutputType, converter,node.Interval);
+                return new CastExpressionNode(converted, node.OutputType, converter, node.Interval);
             }
             else
                 return converted;
         }
 
+        public IExpressionNode Visit(ResultFunCallSyntaxNode node)
+        {
+            var functionGenerator = ReadNode(node.ResultExpression);
+            var function          = ConcreteHiOrderFunctionWithSyntaxNode.Create(functionGenerator);
+            return CreateFunctionCall(node, function);
+        }
         public IExpressionNode Visit(IfThenElseSyntaxNode node)
         {
             //expressions
@@ -240,6 +251,8 @@ namespace NFun.Interpritation
       
         public IExpressionNode Visit(VariableSyntaxNode node)
             => GetOrAddVariableNode(node);
+
+        
 
         #region not an expression
         public IExpressionNode Visit(EquationSyntaxNode node) 

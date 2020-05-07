@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.InteropServices;
 using NFun.BuiltInFunctions;
 using NFun.Exceptions;
 using NFun.ParseErrors;
@@ -26,6 +27,7 @@ namespace NFun.SyntaxParsing
                 TokType.AnonymFun,
                 TokType.ArrOBr,
                 TokType.PipeForward,
+                TokType.Obr
             });
             
             priorities.Add(new[]{TokType.Pow});
@@ -195,12 +197,12 @@ namespace NFun.SyntaxParsing
                 return SyntaxNodeFactory.Constant(false, VarType.Bool,  falseTok.Interval);
             if (flow.MoveIf(TokType.HexOrBinaryNumber, out var binVal)) {//0xff, 0b01
                 var val = binVal.Value;
-                int dimentions = 0;
-                if (val[1] == 'b')      dimentions = 2;
-                else if (val[1] == 'x') dimentions = 16;
+                int dimensions;
+                if (val[1] == 'b')      dimensions = 2;
+                else if (val[1] == 'x') dimensions = 16;
                 else throw new ImpossibleException("Hex or bin constant has invalid format: "+val);
                 
-                var uval = Convert.ToUInt64(val.Replace("_",null).Substring(2), dimentions);
+                var uval = Convert.ToUInt64(val.Replace("_",null).Substring(2), dimensions);
                 return SyntaxNodeFactory.HexOrBinIntConstant(uval, binVal.Interval);
             }
             if (flow.MoveIf(TokType.IntNumber, out var intVal))        //1,2,3
@@ -287,9 +289,7 @@ namespace NFun.SyntaxParsing
                     //there is problem of choose between anonymous array init and array slice 
                     //otherwise
                     if (flow.IsPrevious(TokType.NewLine))
-                    {
                         return leftNode;
-                    }
 
                     leftNode = ReadArraySliceNode(flow,leftNode);
                 }
@@ -306,7 +306,14 @@ namespace NFun.SyntaxParsing
                     var body = ReadNodeOrNull(flow);       
                     leftNode = SyntaxNodeFactory.AnonymFun(leftNode, body);
                 }
-                
+                else if (opToken.Type == TokType.Obr && flow.Previous.Type == TokType.Cbr)
+                {
+                    if (flow.IsPrevious(TokType.NewLine))
+                        return leftNode;
+                    //call result of previous expression:
+                    // (expr)(arg1, ... argN)
+                    leftNode = ReadFunctionCall(flow, leftNode);
+                }
                 else
                 {
                     flow.MoveNext();
@@ -644,7 +651,20 @@ namespace NFun.SyntaxParsing
             
             return SyntaxNodeFactory.FunCall(head.Value, arguments.ToArray(), start, cbr.Finish);
         }
-        
+        private static ISyntaxNode ReadFunctionCall(TokFlow flow, ISyntaxNode functionResultNode)
+        {
+            var obrId = flow.CurrentTokenPosition;
+            var start = functionResultNode.Interval.Start;
+            if (!flow.MoveIf(TokType.Obr))
+                throw new ImpossibleException("Ooops. Something wrong in parser");
+
+            if (!TryReadNodeList(flow, out var arguments)
+                || !flow.MoveIf(TokType.Cbr, out var cbr))
+                throw ErrorFactory.FunctionArgumentError(functionResultNode.ToString(), obrId, flow);
+
+            return  new ResultFunCallSyntaxNode(functionResultNode,arguments.ToArray(),  Interval.New(functionResultNode.Interval.Start, cbr.Finish));
+        }
+
         private static bool TryReadNodeList(TokFlow flow, out IList<ISyntaxNode> read)
         {
             read = new List<ISyntaxNode>();
