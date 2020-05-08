@@ -176,7 +176,8 @@ namespace NFun.TypeInferenceCalculator
         #endregion
 
         #region Finalize
-        public static FinalizationResults FinalizeUp(SolvingNode[] toposortedNodes, SolvingNode[] outputNodes)
+        public static FinalizationResults FinalizeUp(SolvingNode[] toposortedNodes, 
+            SolvingNode[] outputNodes, SolvingNode[] inputNodes)
         {
             var typeVariables = new HashSet<SolvingNode>();
             var namedNodes = new List<SolvingNode>();
@@ -238,13 +239,14 @@ namespace NFun.TypeInferenceCalculator
                 }
             }
 
-            SolveUselessGenerics(toposortedNodes, outputNodes);
+            SolveUselessGenerics(toposortedNodes, outputNodes, inputNodes);
             return new FinalizationResults(typeVariables.ToArray(), namedNodes.ToArray(), syntaxNodes.ToArray());
         }
 
         private static void SolveUselessGenerics(
             SolvingNode[] toposortedNodes,
-            SolvingNode[] outputNodes)
+            SolvingNode[] outputNodes,
+            SolvingNode[] inputNodes)
         {
             //Если нерешенный тип участвует только во входных переменных
             //то этот тип можно попытаться привести к конкретному
@@ -254,17 +256,43 @@ namespace NFun.TypeInferenceCalculator
                 .SelectMany(GetAllOutputTypes)
                 .Where(t => t.State is Constrains)
                 .Distinct()
-                .ToArray(); //для отладки
+                .ToList(); //для отладки
 
-            //находим входные типы которые НЕ участвуют в выходных типах
+            //Контрвариативные типы
+            var contravariants = inputNodes
+                .Where(t => t.State is Fun)
+                .SelectMany(t => ((Fun) t.State).ArgNodes)
+                .SelectMany(n=>n.GetAllLeafTypes())
+                .Where(t => t.State is Constrains)
+                .Except(outputTypes)
+                .Distinct()
+                .ToArray();
+
+            foreach (var node in contravariants)
+            {
+                outputTypes.Add(node);
+                node.State = ((Constrains) node.State).SolveContravariant();
+            }
+
+
+            //находим входные ковариативные типы которые НЕ участвуют в выходных типах
             var notSolved = toposortedNodes
                 .Where(t => t.State is Constrains)
                 .Except(outputTypes)
                 .ToArray(); //для отладки
-
+            
+            if (TraceLog.IsEnabled && notSolved.Any())
+            {
+                TraceLog.WriteLine($"Finalize. outputs {outputTypes.Count}");
+                foreach (var outputType in outputTypes) outputType.PrintToConsole();
+                TraceLog.WriteLine($"Contravariants: {contravariants.Length}");
+                foreach (var contra in contravariants) contra.PrintToConsole();
+                TraceLog.WriteLine($"\r\nFinalize. solve {notSolved.Length}");
+                foreach (var solving in notSolved) solving.PrintToConsole();
+            }
             //пытаемся их решить.
             foreach (var node in notSolved)
-                node.State = ((Constrains)node.State).Solve();
+                node.State = ((Constrains)node.State).SolveCovariant();
         }
 
         #endregion

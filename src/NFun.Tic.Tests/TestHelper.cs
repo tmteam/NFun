@@ -42,7 +42,7 @@ namespace NFun.Tic.Tests
             if (desc == null)
                 Assert.IsFalse(generic.HasDescendant);
             else
-                Assert.AreEqual(desc, generic.Descedant);
+                Assert.AreEqual(desc, generic.Descedant,"Actual generic type is "+generic);
 
             if (anc == null)
                 Assert.IsFalse(generic.HasAncestor);

@@ -10,19 +10,19 @@ namespace NFun.Types
 {
     public static class VarTypeConverter
     {
-        private static readonly Func<object, object> ToInt8   = (o => Convert.ToSByte(o));
-        private static readonly Func<object, object> ToInt16  = (o => Convert.ToInt16(o));
-        private static readonly Func<object, object> ToInt32  = (o => Convert.ToInt32(o));
-        private static readonly Func<object, object> ToInt64  = (o => Convert.ToInt64(o));
-        private static readonly Func<object, object> ToUInt8  = (o => Convert.ToByte(o));
-        private static readonly Func<object, object> ToUInt16 = (o => Convert.ToUInt16(o));
-        private static readonly Func<object, object> ToUInt32 = (o => Convert.ToUInt32(o));
-        private static readonly Func<object, object> ToUInt64 = (o => Convert.ToUInt64(o));
-        private static readonly Func<object, object> ToReal   = (o => Convert.ToDouble(o));
-        private static readonly Func<object, object> ToText   = (o => o?.ToString() ?? "");
-        private static readonly Func<object, object> ToAny    = (o => o);
+        public static readonly Func<object, object> ToInt8   = (o => Convert.ToSByte(o));
+        public static readonly Func<object, object> ToInt16  = (o => Convert.ToInt16(o));
+        public static readonly Func<object, object> ToInt32  = (o => Convert.ToInt32(o));
+        public static readonly Func<object, object> ToInt64  = (o => Convert.ToInt64(o));
+        public static readonly Func<object, object> ToUInt8  = (o => Convert.ToByte(o));
+        public static readonly Func<object, object> ToUInt16 = (o => Convert.ToUInt16(o));
+        public static readonly Func<object, object> ToUInt32 = (o => Convert.ToUInt32(o));
+        public static readonly Func<object, object> ToUInt64 = (o => Convert.ToUInt64(o));
+        public static readonly Func<object, object> ToReal   = (o => Convert.ToDouble(o));
+        public static readonly Func<object, object> ToText   = (o => o?.ToString() ?? "");
+        public static readonly Func<object, object> ToAny    = (o => o);
 
-        public static Func<object, object> GetConverterOrThrow(VarType from, VarType to, Interval interval)
+        public static Func<object, object> GetConverterOrNull(VarType from, VarType to)
         {
             if (to.IsText)
                 return ToText;
@@ -33,79 +33,46 @@ namespace NFun.Types
             {
                 switch (to.BaseType)
                 {
-                    case BaseVarType.UInt8:
-                        return ToUInt8;
-                    case BaseVarType.UInt16:
-                        return ToUInt16;
-                    case BaseVarType.UInt32:
-                        return ToUInt32;
-                    case BaseVarType.UInt64:
-                        return ToUInt64;
-                    case BaseVarType.Int16:
-                        return ToInt16;
-                    case BaseVarType.Int32:
-                        return ToInt32;
-                    case BaseVarType.Int64:
-                        return ToInt64;
-                    case BaseVarType.Real:
-                        return ToReal;
+                    case BaseVarType.UInt8:  return ToUInt8;
+                    case BaseVarType.UInt16: return ToUInt16;
+                    case BaseVarType.UInt32: return ToUInt32;
+                    case BaseVarType.UInt64: return ToUInt64;
+                    case BaseVarType.Int16:  return ToInt16;
+                    case BaseVarType.Int32:  return ToInt32;
+                    case BaseVarType.Int64:  return ToInt64;
+                    case BaseVarType.Real:   return ToReal;
                     case BaseVarType.ArrayOf:
-                        break;
-                    case BaseVarType.Fun:
-                        break;
+                    case BaseVarType.Fun:     
                     case BaseVarType.Generic:
-                        break;
-                    case BaseVarType.Any:
-                        break;
+                    case BaseVarType.Any: break;
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
             }
-            if (from.BaseType == BaseVarType.ArrayOf && to.BaseType== BaseVarType.ArrayOf)
+            if (from.BaseType == BaseVarType.ArrayOf && to.BaseType == BaseVarType.ArrayOf)
             {
-                if (to ==  VarType.ArrayOf(VarType.Anything))
+                if (to == VarType.ArrayOf(VarType.Anything))
                     return o => o;
-                
-                var elementConverter = GetConverterOrThrow(
-                    from.ArrayTypeSpecification.VarType, 
-                    to.ArrayTypeSpecification.VarType, 
-                    interval);
-                
-                return o => ImmutableFunArray.By(((IFunArray) o).Select(elementConverter));
+
+                var elementConverter = GetConverterOrNull(
+                    from.ArrayTypeSpecification.VarType,
+                    to.ArrayTypeSpecification.VarType);
+                if (elementConverter == null)
+                    return null;
+
+                return o => ImmutableFunArray.By(((IFunArray)o).Select(elementConverter));
             }
-
-            throw ErrorFactory.ImpossibleCast(from, to, interval);
+            return null;
         }
-
-        /*
+        
         public static Func<object, object> GetConverterOrThrow(VarType from, VarType to, Interval interval)
         {
-            if (from == to)
-                return o => o;
-            if (@from == VarType.Int32)
-            {
-                if (to == VarType.Real)  return o => Convert.ToDouble(o);
-                if (to == VarType.Int64) return o => Convert.ToInt64(o);
-            }
+            var res = GetConverterOrNull(from, to);
+            if(res==null)
+                throw ErrorFactory.ImpossibleCast(from, to, interval);
+            return res;
+        }
 
-            if (to == VarType.Text)
-                return o => o?.ToString() ?? "";
-            if (to == VarType.Anything)
-                return o => o;
-            if (from.BaseType == BaseVarType.ArrayOf && to.BaseType== BaseVarType.ArrayOf)
-            {
-                if (to ==  VarType.ArrayOf(VarType.Anything))
-                    return o => o;
-                
-                var elementConverter = GetConverterOrThrow(
-                    from.ArrayTypeSpecification.VarType, 
-                    to.ArrayTypeSpecification.VarType, 
-                    interval);
-                return o => ImmutableFunArray.By(((IFunArray) o).Select(elementConverter));
-            }
-
-            throw ErrorFactory.ImpossibleCast(from, to, interval);
-        }*/
 
         public static bool IsNumeric(this BaseVarType varType) 
             => varType >= BaseVarType.UInt8 && varType <= BaseVarType.Real;

@@ -24,6 +24,8 @@ namespace NFun.Interpritation
             TypeInferenceResults results, 
             TicTypesConverter converter)
         {
+            TraceLog.WriteLine($"\r\n====BUILD CONCRETE {functionSyntax.Id}(..) ====");
+
             var vars = new VariableDictionary();
             for (int i = 0; i < functionSyntax.Args.Count; i++)
             {
@@ -55,6 +57,8 @@ namespace NFun.Interpritation
         }
         public static TypeInferenceResults SolveBodyOrThrow(SyntaxTree syntaxTree, IFunctionDicitionary functionsDictionary)
         {
+            TraceLog.WriteLine("\r\n====BODY====");
+
             var resultBuilder = new TypeInferenceResultsBuilder();
             var builder = new GraphBuilder();
             var state = new SetupTiState(builder);

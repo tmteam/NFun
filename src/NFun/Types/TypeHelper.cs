@@ -37,6 +37,8 @@ namespace NFun.Types
             }
             return new string(result);
         }
+
+      
         public static string GetTextOrThrow(this object[] arr, int index)
         {
             var e = (IFunArray)arr[index];

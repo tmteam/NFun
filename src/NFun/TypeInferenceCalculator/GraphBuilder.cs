@@ -15,6 +15,8 @@ namespace NFun.Tic
         private readonly List<SolvingNode> _typeVariables = new List<SolvingNode>();
         private int _varNodeId = 0;
         private readonly List<SolvingNode> _outputNodes = new List<SolvingNode>();
+        private readonly List<SolvingNode> _inputNodes = new List<SolvingNode>();
+
         public RefTo InitializeVarNode(IType desc = null, Primitive anc = null, bool isComparable = false) 
             => new RefTo(CreateVarType(new Constrains(desc, anc){IsComparable =  isComparable}));
         private void RegistrateCompositeType(ICompositeType composite)
@@ -139,7 +141,7 @@ namespace NFun.Tic
             SetOrCreateLambda(lambdaId, args, returnTypeNode);
         }
 
-        public Fun CreateFunctionalVar(string name, int returnId, IType returnType = null, params string[] varNames)
+        public Fun SetFunDef(string name, int returnId, IType returnType = null, params string[] varNames)
         {
             var args = varNames.Select(GetNamedNode).ToArray();
             var exprId = GetOrCreateNode(returnId);
@@ -153,6 +155,7 @@ namespace NFun.Tic
                 throw new InvalidOperationException("variable "+ name+ "already declared");
             node.State = fun;
             _outputNodes.Add(returnTypeNode);
+            _inputNodes.AddRange(args);
             return fun;
 
         }
@@ -169,7 +172,36 @@ namespace NFun.Tic
             }
             return new RefTo(elementType);
         }
+        /// <summary>
+        /// Устанавливает вызов узла
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="argThenReturnIds"></param>
+        public void SetCall(int bodyId, params int[] argThenReturnIds)
+        {
+            var node = GetOrCreateNode(bodyId);
+            SetCall(node, argThenReturnIds);
+        }
+        /// <summary>
+        /// Устанавливает вызов функциональной переменной
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="argThenReturnIds"></param>
+        public void SetCall(string name, params int[] argThenReturnIds)
+        {
+            var namedNode =GetNamedNode(name);
+            //if (!_variables.TryGetValue(name, out var namedNode))
+            //    throw new InvalidOperationException($"Function {name} is unknown");
+            SetCall(namedNode, argThenReturnIds);
+           
+        }
 
+       
+        /// <summary>
+        /// Устанавливает вызов известной функциональной переменной
+        /// </summary>
+        /// <param name="fun"></param>
+        /// <param name="argThenReturnIds"></param>
         public void SetCall(Fun fun, params int[] argThenReturnIds)
         {
             if (fun.ArgsCount != argThenReturnIds.Length - 1)
@@ -179,65 +211,73 @@ namespace NFun.Tic
 
             for (int i = 0; i < fun.ArgsCount; i++)
             {
-                var type = fun.ArgNodes[i];
-                var argId = argThenReturnIds[i];
-                var node = GetOrCreateNode(argId);
-                type.BecomeAncestorFor(node);
+                var state = fun.ArgNodes[i].State;
+                if (state is Constrains)
+                    state = new RefTo(fun.ArgNodes[i]);
+                SetCallArgument(state, argThenReturnIds[i]);
             }
 
             var returnId = argThenReturnIds[argThenReturnIds.Length - 1];
             var returnNode = GetOrCreateNode(returnId);
-            returnNode.State = SolvingFunctions.GetMergedState(returnNode.State, fun.ReturnType);
+
+            //Нужно завернуть тип в ссылочный
+            //var returnType = fun.ReturnType is Constrains? new RefTo(fun.RetNode):fun.ReturnType;
+
+            SolvingFunctions.Merge(fun.RetNode,returnNode);
         }
 
-
-
+        /// <summary>
+        /// Устанавливает вызов функции с известной сигнатурой
+        /// </summary>
+        /// <param name="argThenReturnTypes"></param>
+        /// <param name="argThenReturnIds"></param>
         public void SetCall(IState[] argThenReturnTypes, int[] argThenReturnIds)
         {
             if(argThenReturnTypes.Length!=argThenReturnIds.Length)
                 throw new ArgumentException("Sizes of type and id array have to be equal");
 
-
             for (int i = 0; i < argThenReturnIds.Length - 1; i++)
-            {
-                var type = argThenReturnTypes[i];
-                var argId = argThenReturnIds[i];
+                SetCallArgument(argThenReturnTypes[i], argThenReturnIds[i]);
 
-                switch (type)
-                {
-                    case Primitive primitive:
-                    {
-                        var node = GetOrCreateNode(argId);
-                        if(!node.TrySetAncestor(primitive))
-                            throw new InvalidOperationException();
-                        break;
-                    }
-
-                    case ICompositeType composite:
-                    {
-                        RegistrateCompositeType(composite);
-
-                        var node = GetOrCreateNode(argId);
-                        var ancestor = CreateVarType(composite);
-                        ancestor.BecomeAncestorFor(node);
-                        break;
-                    }
-                    case RefTo refTo:
-                    {
-                        var node = GetOrCreateNode(argId);
-                        refTo.Node.BecomeAncestorFor(node);
-                        break;
-                    }
-                    
-                    default: throw new InvalidOperationException();
-                }
-            }
+            var returnType = argThenReturnTypes[argThenReturnIds.Length - 1];
 
             var returnId = argThenReturnIds[argThenReturnIds.Length - 1];
-            var returnType = argThenReturnTypes[argThenReturnIds.Length - 1];
             var returnNode = GetOrCreateNode(returnId);
             returnNode.State =  SolvingFunctions.GetMergedState(returnNode.State, returnType);
         }
+
+        private void SetCallArgument(IState type, int argId)
+        {
+            var node = GetOrCreateNode(argId);
+
+            switch (type)
+            {
+                case Primitive primitive:
+                {
+                    if (!node.TrySetAncestor(primitive))
+                        throw new InvalidOperationException();
+                    break;
+                }
+
+                case ICompositeType composite:
+                {
+                    RegistrateCompositeType(composite);
+
+                    var ancestor = CreateVarType(composite);
+                    ancestor.BecomeAncestorFor(node);
+                    break;
+                }
+
+                case RefTo refTo:
+                {
+                    refTo.Node.BecomeAncestorFor(node);
+                    break;
+                }
+
+                default: throw new InvalidOperationException();
+            }
+        }
+
         public void SetDef(string name, int rightNodeId)
         {
             var exprNode = GetOrCreateNode(rightNodeId);
@@ -368,7 +408,9 @@ namespace NFun.Tic
                 TraceLog.WriteLine("Finalize");
             }
 
-            var results = DestructionFunctions.FinalizeUp(sorted, _outputNodes.ToArray());
+            var results = DestructionFunctions.FinalizeUp(sorted, 
+                _outputNodes.ToArray(),
+                _inputNodes.ToArray());
 
             if (TraceLog.IsEnabled)
             {
@@ -388,7 +430,34 @@ namespace NFun.Tic
 
             return results;
         }
+        private void SetCall(SolvingNode functionNode, int[] argThenReturnIds)
+        {
+            var id = argThenReturnIds[argThenReturnIds.Length - 1];
 
+            var state = functionNode.State;
+            if (state is RefTo r)
+                state = r.Node.State;
+
+            if (state is Fun fun)
+                SetCall(fun, argThenReturnIds);
+            else if (state is Constrains constrains)
+            {
+                var idNode = GetOrCreateNode(id);
+
+                var genericArgs = new SolvingNode[argThenReturnIds.Length - 1];
+                for (int i = 0; i < argThenReturnIds.Length - 1; i++)
+                    genericArgs[i] = CreateVarType();
+
+                var newFunVar = Fun.Of(genericArgs, idNode);
+                if (!constrains.Fits(newFunVar))
+                    throw new InvalidOperationException("naaa");
+                functionNode.State = newFunVar;
+
+                SetCall(newFunVar, argThenReturnIds);
+            }
+            else
+                throw new InvalidOperationException($"po po. functionNode.State is {functionNode.State}");
+        }
         private SolvingNode GetNamedNode(string name)
         {
             if (_variables.TryGetValue(name, out var varnode))

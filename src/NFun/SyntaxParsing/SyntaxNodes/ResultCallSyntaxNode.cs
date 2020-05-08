@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using NFun.BuiltInFunctions;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
 using NFun.TypeInferenceAdapter;
@@ -6,30 +8,33 @@ using NFun.Types;
 
 namespace NFun.SyntaxParsing.SyntaxNodes
 {
-    public interface IFunCallSyntaxNode : ISyntaxNode
+    public class ResultFunCallSyntaxNode: IFunCallSyntaxNode
     {
-         ISyntaxNode[] Args { get; }
-    }
-    public class FunCallSyntaxNode: IFunCallSyntaxNode
-    {
-        public FunCallSyntaxNode(string id, ISyntaxNode[] args, Interval interval, bool isOperator = false)
+        public ResultFunCallSyntaxNode(ISyntaxNode resultExpression, ISyntaxNode[] args, Interval interval)
         {
-            Id = id;
+            ResultExpression = resultExpression;
             Args = args;
             Interval = interval;
-            IsOperator = isOperator;
         }
         public VarType OutputType { get; set; }
         public int OrderNumber { get; set; }
 
         public bool IsInBrackets { get; set; }
-        public string Id { get; }
+        public ISyntaxNode ResultExpression { get; }
         public ISyntaxNode[] Args { get; }
         public Interval Interval { get; set; }
-        public bool IsOperator { get; }
         public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
         
-        public IEnumerable<ISyntaxNode> Children => Args;
+        public IEnumerable<ISyntaxNode> Children
+        {
+            get
+            {
+                yield return ResultExpression;
+                foreach (var node in Args)
+                    yield return node;
+            }
+        }
+
         /// <summary>
         /// Concrete Function Signature.
         /// Setted after Ti-algorithm applied 

@@ -9,4 +9,10 @@
       <ProjectReference Include="..\NFun.Fuspec\NFun.Fuspec.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="arrays.fuspec">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>

@@ -140,13 +140,14 @@
   minus:real = x-1
   multi:real = x*100
   divide:real = x/10
+  rema:real   = x%10
   pow:real    = x**2
 |---------------------
 | set x:1,         
-| check plus:2, minus:0, multi:100, divide:0.1, pow:1  
+| check plus:2, minus:0, multi:100, divide:0.1, pow:1, rema:1  
        
 | set x:-20,          
-| check plus:-19, minus:-21, multi:-2000, divide:-2, pow:-8000
+| check plus:-19, minus:-21, multi:-2000, divide:-2, pow:-8000, rema:0
 
 
 

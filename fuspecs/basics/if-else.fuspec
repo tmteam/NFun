@@ -46,7 +46,7 @@
 | TEST if-if-else    
 | TAGS if                          
 |************************
-| in  x : int
+| in  x : real
 |------------------------
   i:int  = if (x>10) 1
            if (x<10) 2
@@ -84,7 +84,7 @@
 | TEST nested if-else    
 | TAGS if                          
 |************************
-| in  x : int, y:text
+| in  x : real, y:text
 |------------------------
   t  = if (x>10) 
           if(y=='first') 'first >10'

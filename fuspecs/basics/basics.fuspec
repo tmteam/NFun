@@ -14,7 +14,7 @@
 | TODO out int constant  
 | TAGS out real constant                         
 |************************
-| out out: int 
+| out out: real 
 |------------------------
   42
 
@@ -37,10 +37,6 @@ Name: out int constant
   42.2
 |---------------------
 | check out: 42.2
-
-
-
-
 |****************************************
 | TEST out text constant  
 | TAGS out text constant                         
@@ -54,8 +50,8 @@ Name: out int constant
 
 
 |****************************************
-| TEST out int array constant  
-| TAGS out int array constant                         
+| TEST out array constant  
+| TAGS out array constant                         
 |************************
 | out out: real[] 
 |------------------------

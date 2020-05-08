@@ -10,11 +10,18 @@ namespace Funny
 {
     class Program
     {
+
+        static Func<double, Func<double, double>> F(double x) => y => z=> x*y*z;
+
         static void Main(string[] args)
         {
+            Func<double, Func<double, double>> F(double x) => y => z => x * y * z;
+            var foo = F(1)(2)(3);
+
+
             Console.WriteLine("Let's make some fun.");
             Console.WriteLine("Type an expression or '/exit' to return");
-
+            
             while (true)
             {
                 var expression = ReadMultiline();

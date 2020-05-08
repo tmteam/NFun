@@ -61,7 +61,7 @@ namespace NFun.TypeInferenceCalculator
             if (IsEnabled)
             {
                 Console.ForegroundColor = green;
-                Console.WriteLine(locator);
+                Console.Write(locator);
                 Console.ResetColor();
             }
         }

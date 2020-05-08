@@ -33,7 +33,7 @@ namespace NFun.TypeInferenceAdapter
             var signature = _dictionary.GetOrNull(node.Id, node.Args.Length);
             if (signature != null)
                 _resultsBuilder.RememberFunctionCall(node.OrderNumber, signature);
-            else
+            /*else
             {
                 //если функции нету в словаре - это может быть рекурсивынй вызов
                 //нужно поискать в функциональных переменных
@@ -41,7 +41,7 @@ namespace NFun.TypeInferenceAdapter
                 if (userFunction == null)
                     throw ErrorFactory.FunctionOverloadNotFound(node, _dictionary);
                 //мы пока не знаем сигнатуру пользовательской функции - потому не запоминаем сигнатуры
-            }
+            }*/
 
             return VisitorEnterResult.Continue;
         }
@@ -68,7 +68,7 @@ namespace NFun.TypeInferenceAdapter
                 returnType = (IType)node.ReturnType.ConvertToTiType();
             
 
-            var fun =_setupTiState.CurrentSolver.CreateFunctionalVar(
+            var fun =_setupTiState.CurrentSolver.SetFunDef(
                 name: node.Id+"'"+ node.Args.Count, 
                 returnId: node.Body.OrderNumber, 
                 returnType: returnType, 

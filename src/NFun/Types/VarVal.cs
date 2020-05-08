@@ -57,8 +57,8 @@ namespace NFun.Types
                 case IEnumerable<double> arrDbl:
                     return New(name, arrDbl);
                 //place signed first because ex: int[] fits to signed and unsigned   
-                case IEnumerable<sbyte> arrI8:
-                    return New(name, arrI8);
+                //case IEnumerable<sbyte> arrI8:
+                //    return New(name, arrI8);
                 case IEnumerable<short> arrI16:
                     return New(name, arrI16);
                 case IEnumerable<int> arrI32:

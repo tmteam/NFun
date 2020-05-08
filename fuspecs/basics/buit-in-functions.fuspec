@@ -2,8 +2,8 @@
 | TEST cos sin abs   
 | TAGS built-in-function
 |************************  
-| in  x:real
-| out  z:bool
+| in   x:real
+| out  z:bool 
 |------------------------
   y = x.cos()**2 + x.sin()**2
   z = (y-1).abs() < 0.001
@@ -35,9 +35,9 @@
 | TEST flat   
 | TAGS built-in-function
 |************************  
-| out  iflat:real[], tflat:text[] 
+| out  iflat:real[], tflat:text 
 |------------------------
- tflat = ['hi',' ','my name', ' is', ' fun']
+ tflat = ['hi',' ','my name', ' is', ' fun'].flat()
  iflat = [[0,1],[2,3],[4,5],[6]].flat()
 |---------------------
 | check iflat:[0,1,2,3,4,5,6], tflat:['hi my name is fun']
