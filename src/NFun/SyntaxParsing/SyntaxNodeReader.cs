@@ -306,9 +306,10 @@ namespace NFun.SyntaxParsing
                     var body = ReadNodeOrNull(flow);       
                     leftNode = SyntaxNodeFactory.AnonymFun(leftNode, body);
                 }
-                else if (opToken.Type == TokType.Obr && flow.Previous.Type == TokType.Cbr)
+                else if (opToken.Type == TokType.Obr)
                 {
-                    if (flow.IsPrevious(TokType.NewLine))
+
+                    if (flow.IsPrevious(TokType.NewLine) || flow.Previous.Type != TokType.Cbr)
                         return leftNode;
                     //call result of previous expression:
                     // (expr)(arg1, ... argN)
