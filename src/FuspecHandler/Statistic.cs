@@ -57,8 +57,30 @@ namespace FuspecHandler
             Console.WriteLine("Number of FunRuntime Errors: {0}", funRuntimeErrors);
             Console.WriteLine("Number of FunParse Errors: {0}", funParseErrors);
             Console.WriteLine("Number of In/Out Check Errors: {0}", funOutputInputErrors);
-            Console.WriteLine("Number of Unknown Errors: Can't count now! {0}", unknownErrors);
+            Console.WriteLine("Number of Unknown Errors: {0}", unknownErrors);
 
+        }
+
+        internal void PrintDetailsForOneFile(string nameOfFile)
+        {
+            var fileTests = _testCaseResults.Where(x => x.FileName == nameOfFile);
+            if (fileTests.Count(e => e.Error != null) == 0 && fileTests.Any())
+            {
+                _consoleWriter.PrintFuspecName("All tests are OK!");
+                _consoleWriter.PrintOkTest();
+            }
+            else
+            {
+                foreach (var stat in _testCaseResults.Where(x => x.FileName == nameOfFile))
+                {
+                    if (stat.Error != null)
+                    {
+                        _consoleWriter.PrintFuspecName(stat.Fus.Name);
+                        _consoleWriter.PrintError(stat.Error);
+                    }
+                }
+            }
+          
         }
 
         public void PrintErrorDetails()

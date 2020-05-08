@@ -41,21 +41,20 @@ namespace FuspecHandler
                         foreach (var fus in specs)
                         {
                             _testCaseResult = new TestCaseResult(file, fus);
-                            _consoleWriter.PrintFuspecName(fus.Name);
                             if (!fus.IsTestExecuted)
+                            {
+                                _consoleWriter.PrintFuspecName(fus.Name);
                                 _consoleWriter.PrintTODOTest();
+                            }
                             else
                             {
                                 try
                                 {
                                     _testCaseResult.SetInputs(RunOneTest(fus));
-                                    _consoleWriter.PrintOkTest();
-
                                 }
                                 catch (Exception e)
                                 {
                                     _testCaseResult.SetError(e);
-                                    _consoleWriter.PrintError(e);
                                 }
                             }
                             statistic.AddTestToStatistic(_testCaseResult);
@@ -68,6 +67,8 @@ namespace FuspecHandler
                         statistic.AddFileReadingError(file, e);
                         _consoleWriter.PrintError(e);
                     }
+                    statistic.PrintDetailsForOneFile(file);
+
                 }
             }
             return statistic;
