@@ -14,7 +14,7 @@
 | TEST out int constant  
 | TAGS out real constant                         
 |************************
-| out out: int32 
+| out out: real 
 |------------------------
   42
 |---------------------
@@ -48,10 +48,10 @@
 
 
 |****************************************
-| TEST out int array constant  
-| TAGS out int array constant                         
+| TEST out array constant  
+| TAGS out array constant                         
 |************************
-| out out: int[] 
+| out out: real[] 
 |------------------------
   [1,2,3,4,5]
 |---------------------

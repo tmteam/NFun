@@ -23,18 +23,18 @@
 | TEST sum of int and real  
 | TAGS function
 |************************  
-| in  x:int, r:real
+| in  x:int, y:real
 | out r:real 
 |------------------------
   mysum(i:int, r:real):real = i+r
   
   r = mysum(x,y)
 |---------------------
-| set x:-100, r: 100.0
+| set x:-100, y: 100.0
 | check r: 0.0
-| set x:100, r: -100.0
+| set x:100, y: -100.0
 | check r: 0.0
-| set x:1, r: -42.5
+| set x:1, y: -42.5
 | check r: -41.5
 
 
@@ -44,11 +44,11 @@
 | TEST user function overloads  
 | TAGS overload user-function
 |************************  
-| in x:int, r:real
-| out  r:real 
+| in  x:int
+| out singlearg:int, twinarg:int 
 |------------------------
-  inc(i, j) = i+j
-  inc(i) = inc(i,1)
+  inc(i:int, j) = i+j
+  inc(i:int) = inc(i,1)
   
   singlearg = inc(x)
   twinarg = inc(x,10)  

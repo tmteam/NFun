@@ -198,7 +198,7 @@
 
  div(arr) = arr[1]/arr[2]
 
- goldenRatio(n) = div(fibvals[n]) 
+ goldenRatio(n) = div(fibvals(n)) 
 
  res = (goldenRatio(i) - 1.61803398875).abs() < 0.001
 |---------------------
@@ -219,8 +219,7 @@
 
  res = smth
  		.filter(x->x.isReal())
- 		.map(x->x.toReal())
- 		[::2]
+ 		.map(x->x.toReal())[::2]
 |---------------------
 | check res:[5.2,7.2]
 
@@ -233,7 +232,7 @@
 | out  done:bool, newCount:real 
 |------------------------
 done = x>=1000	
-newCount = if (!done) x+1 else x
+newCount = if (not done) x+1 else x
 |---------------------
 | set x:100
 | check done:false, newCount:101
@@ -339,9 +338,9 @@ newCount = if (!done) x+1 else x
               [01,15,18]
              ] 
 
-  origin.reduce((acc,cur) -> max(acc, cur.reduce(max)))
+  res = origin.reduce((acc,cur) -> max(acc, cur.reduce(max)))
 |---------------------
-| check out: 42 
+| check res: 42 
 
 
 
@@ -352,7 +351,7 @@ newCount = if (!done) x+1 else x
   
   maxOfArray(t) = t.reduce(max)
 
-  maxOfMatrix(t) = t.reduce(maxOfMatrix)
+  maxOfMatrix(t) = t.reduce(maxOfArray)
 
   origin = [
               [12,05,06],
@@ -360,10 +359,10 @@ newCount = if (!done) x+1 else x
               [01,15,18]
              ] 
 
-  origin.maxOfMatrix()
+  res = origin.maxOfMatrix()
 
 |---------------------
-| check out: 42 
+| check res: 42 
 
 
 
@@ -376,7 +375,7 @@ newCount = if (!done) x+1 else x
   
   maxOfArray(t) = t.reduce(max)
 
-  maxOfMatrix(t) = t.reduce(maxOfMatrix)
+  maxOfMatrix(t) = t.reduce(maxOfArray)
 
   maxOfCube(j)=j.reduce(maxOfMatrix)
 
@@ -398,10 +397,10 @@ newCount = if (!done) x+1 else x
              ]
           ] 
 
-  origin.maxOfCube()
+  res = origin.maxOfCube()
 
 |---------------------
-| check out: 100 
+| check res: 100 
 
 
 
@@ -432,6 +431,6 @@ newCount = if (!done) x+1 else x
              ]
           ] 
 
-  origin.maxOf(maxOf(max))
+  res = origin.maxOf(maxOf(max))
 |---------------------
-| check out: 100 
+| check res: 100 
