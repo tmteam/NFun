@@ -330,7 +330,7 @@ newCount = if (not done) x+1 else x
   
   maxOfArray(t) = t.reduce(max)
 
-  maxOfMatrix(t) = t.reduce(maxOfArray)
+  maxInRows(t) = t.map(maxOfArray)
 
   origin = [
               [12,05,06],
@@ -338,7 +338,7 @@ newCount = if (not done) x+1 else x
               [01,15,18]
              ] 
 
-  res = origin.maxOfMatrix()
+  res = origin.maxInRows().maxOfArray()
 
 |---------------------
 | check res: 42 
@@ -352,11 +352,12 @@ newCount = if (not done) x+1 else x
 | TAGS user-function array                         
 |************************  
   
-  maxOfArray(t) = t.reduce(max)
+  arrMax(t) = t.reduce(max)
 
-  maxOfMatrix(t) = t.reduce(maxOfArray)
+  arr2Max(t) = t.map(arrMax).arrMax()
 
-  maxOfCube(j)=j.reduce(maxOfMatrix)
+  arr3Max(t) = t.map(arr2Max).arrMax()
+
 
   origin =[
              [
@@ -376,7 +377,7 @@ newCount = if (not done) x+1 else x
              ]
           ] 
 
-  res = origin.maxOfCube()
+  res = origin.arr3Max()
 
 |---------------------
 | check res: 100 
@@ -389,8 +390,10 @@ newCount = if (not done) x+1 else x
 | TAGS user-function array                         
 |************************  
   
+  maxOfArray(t)=t->t.reduce(max)
 
-  maxOf(t) = t.reduce(f)
+  maxOf(t) = t.reduce(l->l.reduce(maxOfArray))
+
 
   origin =[
              [
@@ -410,6 +413,6 @@ newCount = if (not done) x+1 else x
              ]
           ] 
 
-  res = origin.maxOf(maxOf(max))
+  res = origin.maxOf()
 |---------------------
 | check res: 100 

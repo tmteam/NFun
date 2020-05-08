@@ -147,7 +147,7 @@
   r:real
   a:anything
 
-  j:anything = [i,t,j]
+  j:anything[] = [i,t,r,a]
 |------------------
 | set i:1, t:'vasa', r:4.0, a: 'yeah'
 | check j:[1, 'vasa', 4.0, 'yeah']

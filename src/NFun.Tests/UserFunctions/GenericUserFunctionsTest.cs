@@ -63,6 +63,20 @@ namespace Funny.Tests.UserFunctions
                 .AssertHas(VarVal.New("a", expectedA))
                 .AssertHas(VarVal.New("b", expectedB));
         }
-      
+
+        [Test]
+        public void SelectOverload()
+        {
+            var expr =
+                @"  
+                #custom user function max(r r r) overloads
+                #built in function max(r r)
+                max(i, j, k) = i.max(j).max(k)
+  
+                userfun = max(1, 2, 3)
+                builtin = max(1, 2)";
+            FunBuilder.BuildDefault(expr).Calculate()
+                .AssertReturns(VarVal.New("userfun", 3.0), VarVal.New("builtin", 2.0));
+        }
     }
 }

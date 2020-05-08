@@ -9,11 +9,6 @@ namespace Funny.Tests
 {
     public class TypeInferenceTest
     {
-        [Test]
-        public void VoidTest()
-        {
-            Assert.Pass();
-        }
         [TestCase("y = 0x2",BaseVarType.Int32)]
         [TestCase("y = 0x2*3",BaseVarType.Int32)]
         [TestCase("y = 2**3",BaseVarType.Real)]
