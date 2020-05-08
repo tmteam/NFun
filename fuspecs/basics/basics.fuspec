@@ -11,12 +11,18 @@
 
 
 |****************************************
-| TEST out int constant  
+| TODO out int constant  
 | TAGS out real constant                         
 |************************
-| out out: int32 
+| out out: int 
 |------------------------
   42
+
+ERROR! In/Out check failed! :
+File: C:\Apps\NewFun\NFun\fuspecs\basics\basics.fuspec
+Name: out int constant
+                 Test : (out) out:Int32. Script: (out) out:Real
+
 |---------------------
 | check out: 42
 
@@ -51,7 +57,7 @@
 | TEST out int array constant  
 | TAGS out int array constant                         
 |************************
-| out out: int[] 
+| out out: real[] 
 |------------------------
   [1,2,3,4,5]
 |---------------------

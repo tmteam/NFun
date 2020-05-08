@@ -3,7 +3,7 @@
 | TAGS built-in-function
 |************************  
 | in  x:real
-| out  r:real 
+| out  z:bool
 |------------------------
   y = x.cos()**2 + x.sin()**2
   z = (y-1).abs() < 0.001
@@ -35,7 +35,7 @@
 | TEST flat   
 | TAGS built-in-function
 |************************  
-| out  iflat:int[], tflat:text 
+| out  iflat:real[], tflat:text[] 
 |------------------------
  tflat = ['hi',' ','my name', ' is', ' fun']
  iflat = [[0,1],[2,3],[4,5],[6]].flat()
