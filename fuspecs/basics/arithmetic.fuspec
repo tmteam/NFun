@@ -133,7 +133,7 @@
 | TAGS real constant arithmetic                         
 |************************
 | in x:real        
-| out plus:real, minus:real, multi:real, rema:real           
+| out plus:real, minus:real, multi:real, divide:real, pow:real           
 |------------------------
   x:real
   plus :real = x+1
