@@ -39,13 +39,16 @@
 | check y: 2
 | set a:[1,2,3,4], b:2
 | check y: 4
+<<<<<<< HEAD
+=======
 
+>>>>>>> Funtic
 
 
 
 
 |****************************************
-| TEST real array index
+| TODO real array index
 | TAGS array
 |************************  
 | out y:real 

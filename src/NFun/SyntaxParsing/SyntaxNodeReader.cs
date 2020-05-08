@@ -70,7 +70,7 @@ namespace NFun.SyntaxParsing
             
             for (byte i = 0; i < priorities.Count; i++)
             {
-                foreach (var tokType in priorities[i])
+                foreach (var tokType in priorities[i])         
                     Priorities.Add(tokType, i);
             }
 

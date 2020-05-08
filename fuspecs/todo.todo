@@ -536,12 +536,17 @@
 | set a:12, b:9
 | check out: '12,11,10,9'
 
+<<<<<<< HEAD
+|****************************************
+| TODO req array reverse 
+=======
 
 
 
 
 |****************************************
 | TEST req array reverse 
+>>>>>>> Funtic
 | TAGS req user-function
 |************************  
 | in   t:text, i:int[]
@@ -562,6 +567,11 @@
 | check yi:[9,8,7,6,5,4,3,2,1], t:"dlrow olleh"
 
 
+<<<<<<< HEAD
+
+
+=======
+>>>>>>> Funtic
 |****************************************
 | TEST req array sum 
 | TAGS req user-function

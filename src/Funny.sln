@@ -13,9 +13,19 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NFun.ExprementalTests", "NF
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{AD33CA54-5018-4BEB-80A2-984016CBA484}"
 EndProject
+<<<<<<< HEAD
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFun.Fuspec", "NFun.Fuspec\NFun.Fuspec.csproj", "{D450D8F4-6584-40A4-813B-7DAA09B99B4A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFun.Fuspectests", "NFun.Fuspectests\NFun.Fuspectests.csproj", "{39943B97-69B5-4474-8EA0-18F14C7317EE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleUseParser", "ConsoleUseParser\ConsoleUseParser.csproj", "{DE205EB9-4BE3-413E-9AC1-6D37D3452E0E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FuspecHandler", "FuspecHandler\FuspecHandler.csproj", "{368481E9-7A6C-4DB6-BBFA-05C2621A86FD}"
+=======
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NFun.Tic.Tests", "NFun.Tic.Tests\NFun.Tic.Tests.csproj", "{DB452DDE-D067-4B7E-95BD-423FD77BCDC7}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nfun.ModuleTests", "Nfun.TryTicTests\Nfun.ModuleTests.csproj", "{40C6C361-6E91-485E-9A43-7844956AB245}"
+>>>>>>> Funtic
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +49,28 @@ Global
 		{F7299307-9670-42E1-A9E6-287CCD60F228}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F7299307-9670-42E1-A9E6-287CCD60F228}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F7299307-9670-42E1-A9E6-287CCD60F228}.Release|Any CPU.Build.0 = Release|Any CPU
+<<<<<<< HEAD
+		{1689D654-886A-4A64-93AA-D2E7CE849C48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1689D654-886A-4A64-93AA-D2E7CE849C48}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1689D654-886A-4A64-93AA-D2E7CE849C48}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1689D654-886A-4A64-93AA-D2E7CE849C48}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D450D8F4-6584-40A4-813B-7DAA09B99B4A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D450D8F4-6584-40A4-813B-7DAA09B99B4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D450D8F4-6584-40A4-813B-7DAA09B99B4A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D450D8F4-6584-40A4-813B-7DAA09B99B4A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{39943B97-69B5-4474-8EA0-18F14C7317EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{39943B97-69B5-4474-8EA0-18F14C7317EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{39943B97-69B5-4474-8EA0-18F14C7317EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{39943B97-69B5-4474-8EA0-18F14C7317EE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DE205EB9-4BE3-413E-9AC1-6D37D3452E0E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DE205EB9-4BE3-413E-9AC1-6D37D3452E0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DE205EB9-4BE3-413E-9AC1-6D37D3452E0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DE205EB9-4BE3-413E-9AC1-6D37D3452E0E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{368481E9-7A6C-4DB6-BBFA-05C2621A86FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{368481E9-7A6C-4DB6-BBFA-05C2621A86FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{368481E9-7A6C-4DB6-BBFA-05C2621A86FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{368481E9-7A6C-4DB6-BBFA-05C2621A86FD}.Release|Any CPU.Build.0 = Release|Any CPU
+=======
 		{DB452DDE-D067-4B7E-95BD-423FD77BCDC7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DB452DDE-D067-4B7E-95BD-423FD77BCDC7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DB452DDE-D067-4B7E-95BD-423FD77BCDC7}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -47,6 +79,7 @@ Global
 		{40C6C361-6E91-485E-9A43-7844956AB245}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{40C6C361-6E91-485E-9A43-7844956AB245}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{40C6C361-6E91-485E-9A43-7844956AB245}.Release|Any CPU.Build.0 = Release|Any CPU
+>>>>>>> Funtic
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
