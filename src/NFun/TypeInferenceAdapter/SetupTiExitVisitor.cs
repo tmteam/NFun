@@ -152,6 +152,16 @@ namespace NFun.TypeInferenceAdapter
             return true;
         }
 
+        public override bool Visit(ResultFunCallSyntaxNode node)
+        {
+            var ids = new int[node.Args.Length + 1];
+            for (int i = 0; i < node.Args.Length; i++)
+                ids[i] = node.Args[i].OrderNumber;
+            ids[ids.Length - 1] = node.OrderNumber;
+
+            _state.CurrentSolver.SetCall(node.ResultExpression.OrderNumber, ids);
+            return true;
+        }
         public override bool Visit(IfThenElseSyntaxNode node)
         {
             var conditions = node.Ifs.Select(i => i.Condition.OrderNumber).ToArray();
@@ -351,7 +361,7 @@ namespace NFun.TypeInferenceAdapter
         private void Trace(ISyntaxNode node, string text)
         {
             if (TraceLog.IsEnabled)
-                TraceLog.Write($"Exit:{node.OrderNumber}. {text} ");
+                TraceLog.WriteLine($"Exit:{node.OrderNumber}. {text} ");
         }
     }
 

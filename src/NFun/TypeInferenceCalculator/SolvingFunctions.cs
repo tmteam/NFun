@@ -69,6 +69,9 @@ namespace NFun.Tic
 
         public static void Merge(SolvingNode main, SolvingNode secondary)
         {
+            if(main==secondary)
+                return;
+            
             var res = GetMergedState(main.State, secondary.State);
             main.State = res;
             if (res is IType t && t.IsSolved)
@@ -425,7 +428,10 @@ namespace NFun.Tic
         {
             referencedNode = referencedNode.GetNonReference();
             original = original.GetNonReference();
-            Merge(referencedNode, original);
+            if(referencedNode.Type == SolvingNodeType.SyntaxNode)
+                Merge(original, referencedNode);
+            else
+                Merge(referencedNode, original);
         }
 
       

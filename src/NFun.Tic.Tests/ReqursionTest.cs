@@ -3,19 +3,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using NFun.Tic.SolvingStates;
+using NFun.TypeInferenceCalculator;
 using NUnit.Framework;
 
 namespace NFun.Tic.Tests
 {
     class ReqursionTest
     {
+        [SetUp] public void Initiazlize() => TraceLog.IsEnabled = true;
+        [TearDown] public void Finalize() => TraceLog.IsEnabled = false;
         [Test]
         public void SimpleReqursive()
         {
             //node |       1 0  3 2
             //expr |y(x) = y(x) + 1i 
             var graph = new GraphBuilder();
-            var fun = graph.CreateFunctionDefenition("y",3, null, "x");
+            var fun = graph.SetFunDef("y",3, null, "x");
             graph.SetVar("x", 0);
             graph.SetCall(fun, 0, 1);
             graph.SetConst(2, Primitive.I32);
@@ -35,7 +38,7 @@ namespace NFun.Tic.Tests
             //expr |y(x) = y(x) + x + 1.0
             var graph = new GraphBuilder();
             
-            var fun = graph.CreateFunctionDefenition("y", 5, null, "x");
+            var fun = graph.SetFunDef("y", 5, null, "x");
             graph.SetConst(0, Primitive.Real);
             graph.SetVar("x", 1);
             graph.SetArith(0,1,2);
@@ -55,7 +58,7 @@ namespace NFun.Tic.Tests
             //node |       4    0   2 1    3
             //expr |y(x) = if true: y(x) | x 
             var graph = new GraphBuilder();
-            var fun = graph.CreateFunctionDefenition("y",4, null, "x");
+            var fun = graph.SetFunDef("y",4, null, "x");
             graph.SetConst(0, Primitive.Bool);
             graph.SetVar("x", 1);
             graph.SetCall(fun, 1, 2);

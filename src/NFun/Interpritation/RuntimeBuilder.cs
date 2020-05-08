@@ -8,6 +8,7 @@ using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tic;
 using NFun.TypeInferenceAdapter;
+using NFun.TypeInferenceCalculator;
 
 namespace NFun.Interpritation
 {
@@ -134,6 +135,8 @@ namespace NFun.Interpritation
             UserFunctionDefenitionSyntaxNode functionSyntaxNode,
             ScopeFunctionDictionary functionsDictionary)
         {
+            TraceLog.WriteLine($"\r\n====BUILD {functionSyntaxNode.Id}(..) ====");
+
             ////introduce function variable
             var graphBuider = new GraphBuilder();
 

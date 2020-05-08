@@ -5,6 +5,7 @@ using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tic.SolvingStates;
 using NFun.TypeInferenceAdapter;
+using NFun.TypeInferenceCalculator;
 using NFun.Types;
 
 namespace NFun.Interpritation.Functions
@@ -35,6 +36,10 @@ namespace NFun.Interpritation.Functions
 
             var argTypes = ticSignature.Args.Select(a => signatureConverter.Convert(a)).ToArray();
             var retType = signatureConverter.Convert(ticSignature.ReturnType);
+            if (TraceLog.IsEnabled)
+            {
+                TraceLog.WriteLine($"CREATE GENERIC FUN {syntaxNode.Id}({string.Join(",",argTypes)}):{retType}");
+            }
             return new GenericUserFunction(typeInferenceResults, syntaxNode, dictionary, langConstrains, retType, argTypes);
         }
 

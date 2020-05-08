@@ -68,7 +68,7 @@ namespace NFun.TypeInferenceAdapter
                 returnType = (IType)node.ReturnType.ConvertToTiType();
             
 
-            var fun =_setupTiState.CurrentSolver.CreateFunctionDefenition(
+            var fun =_setupTiState.CurrentSolver.SetFunDef(
                 name: node.Id+"'"+ node.Args.Count, 
                 returnId: node.Body.OrderNumber, 
                 returnType: returnType, 
