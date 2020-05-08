@@ -7,7 +7,7 @@ using NFun.Types;
 using NUnit.Framework;
 using ParcerV1;
 
-namespace FuspecTests
+namespace NFun.Fuspectests
 {
     public class ErrorTests
     {

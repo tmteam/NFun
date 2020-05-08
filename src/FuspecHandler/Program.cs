@@ -5,7 +5,7 @@ namespace FuspecHandler
 {
     class Program
     {
-        private static string GetFuspecRootOrNull()
+        static string GetFuspecRootOrNull()
         {
             var currentDir = Directory.GetCurrentDirectory();
             while (true)

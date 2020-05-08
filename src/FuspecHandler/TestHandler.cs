@@ -24,6 +24,8 @@ namespace FuspecHandler
 
         public Statistic RunTests(string directoryPath)
         {
+          //  var allFoundFiles = Directory.GetFiles(directoryPath, "buit-in-functions.fuspec", SearchOption.AllDirectories);
+
             var allFoundFiles =  Directory.GetFiles(directoryPath, "*.fuspec", SearchOption.AllDirectories);
             var statistic = new Statistic(allFoundFiles.Length);
             
