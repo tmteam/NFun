@@ -50,13 +50,15 @@ namespace FuspecHandler
             Console.WriteLine("Number of TODO tests: {0}", _testCaseResults.Count(e => !e.Fus.IsTestExecuted));
             Console.WriteLine("_______");
             Console.WriteLine("ERRORS:");
-            Console.WriteLine("Number of FunRuntime Errors: {0}",
-                _testCaseResults.Count(e => e.Error is FunRuntimeException));
-            Console.WriteLine("Number of FunParse Errors: {0}",
-                _testCaseResults.Count(e => e.Error is FunParseException));
-            Console.WriteLine("Number of In/Out Check Errors: {0}", +
-                _testCaseResults.Count(e=> e.Error is OutputInputException));
-            Console.WriteLine("Number of Unknown Errors: Can't count now!");
+            var funRuntimeErrors = _testCaseResults.Count(e => e.Error is FunRuntimeException);
+            var funParseErrors = _testCaseResults.Count(e => e.Error is FunParseException);
+            var funOutputInputErrors = _testCaseResults.Count(e => e.Error is OutputInputException);
+            var unknownErrors = _testCaseResults.Count(e => e.Error != null) - funOutputInputErrors - funParseErrors - funRuntimeErrors;
+            Console.WriteLine("Number of FunRuntime Errors: {0}", funRuntimeErrors);
+            Console.WriteLine("Number of FunParse Errors: {0}", funParseErrors);
+            Console.WriteLine("Number of In/Out Check Errors: {0}", funOutputInputErrors);
+            Console.WriteLine("Number of Unknown Errors: Can't count now! {0}", unknownErrors);
+
         }
 
         public void PrintErrorDetails()
