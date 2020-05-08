@@ -110,36 +110,15 @@
 |************************  
 | in    t:int[]
 | out res:int
-|---------------------
-  foreachi(init, f)
-  	= [0..init.count()-1].reduce(init, f)
+|--------------------- 
+ foreachi(arr, f) = [1..arr.count()-1].reduce(arr[0], f)
 
- res:int =  t.foreachi((acc,cur)-> if (acc>cur) acc else cur )
-|---------------------
-| set t:[5,2,3,7,3,4,7]
-| check res:7
-| set t:[11,100,3]
-| check res:100
-
-
-
-|****************************************
-| TEST custom foreachi with hi-order
-| TAGS arrays user-function hi-order
-|************************  
-| in    t:int[]
-| out res:int
-|---------------------
-  foreachi(init, f)
-  	= [0..init.count()-1].reduce(init, f)
-
- res:int =  t.foreachi(max)
+ res:int =  t.foreachi((acc,i)-> if (acc>t[i]) acc else t[i] )
 |---------------------
 | set t:[5,2,3,7,3,4,7]
 | check res:7
 | set t:[11,100,3]
 | check res:100
-
 
 
 |****************************************
@@ -149,12 +128,12 @@
 | in    t:int[]
 | out res:int
 |---------------------
-  foreachi(init, f)
-  	= [0..init.count()-1].reduce(init, f)
+ foreachi(init, f)
+    = [0..init.count()-1].reduce(init, f)
 
-  mymax(i:int,j) = if(i>j) i else j
-
- res:int =  t.foreachi(mymax)
+ arrmax(acc,i)= if (acc>t[i]) acc else t[i]
+ 
+ res:int =  t.foreachi(arrmax)
 |---------------------
 | set t:[5,2,3,7,3,4,7]
 | check res:7
