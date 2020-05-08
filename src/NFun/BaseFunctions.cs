@@ -8,6 +8,8 @@ namespace NFun
     {
         public static GenericFunctionBase[] GenericFunctions { get; } =
         {
+            new ConvertFunction(),
+
             new EqualFunction(),
             new NotEqualFunction(),
             new MoreFunction(),
