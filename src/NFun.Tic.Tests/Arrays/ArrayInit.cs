@@ -1,4 +1,5 @@
 ﻿using NFun.Tic.SolvingStates;
+using NFun.TypeInferenceCalculator.Errors;
 using NUnit.Framework;
 
 namespace NFun.Tic.Tests.Arrays
@@ -42,21 +43,19 @@ namespace NFun.Tic.Tests.Arrays
         [Test]
         public void ArrayInitWithSpecifiedArrayTypeAndDowncast_fails()
         {
-            try
+            //            3 0  1  2 
+            // y:byte[] = [1i,2i,3i]
+            var graph = new GraphBuilder();
+            graph.SetVarType("y", Array.Of(Primitive.U8));
+            graph.SetConst(0, Primitive.I32);
+            graph.SetConst(1, Primitive.I32);
+            graph.SetConst(2, Primitive.I32);
+            graph.SetArrayInit(3, 0, 1, 2);
+            TestHelper.AssertThrowsTicError(() =>
             {
-                //            3 0  1  2 
-                // y:byte[] = [1i,2i,3i]
-                var graph = new GraphBuilder();
-                graph.SetVarType("y", Array.Of(Primitive.U8));
-                graph.SetConst(0, Primitive.I32);
-                graph.SetConst(1, Primitive.I32);
-                graph.SetConst(2, Primitive.I32);
-                graph.SetArrayInit(3, 0, 1, 2);
                 graph.SetDef("y", 3);
                 graph.Solve();
-                Assert.Fail("Equation should not be solved");
-            }
-            catch {}
+            });
         }
 
         [Test]

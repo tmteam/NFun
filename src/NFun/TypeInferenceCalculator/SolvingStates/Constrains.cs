@@ -247,8 +247,7 @@ namespace NFun.Tic.SolvingStates
             return Descedant;
         }
 
-
-        public IState GetOptimizedOrThrow()
+        public IState GetOptimizedOrNull()
         {
             if (IsComparable)
             {
@@ -256,32 +255,36 @@ namespace NFun.Tic.SolvingStates
                 {
                     if (Descedant.Equals(Primitive.Char))
                         return Primitive.Char;
-                    
+
                     if (Descedant is Primitive primitive && primitive.IsNumeric)
                     {
-                        if(!TryAddAncestor(Primitive.Real))
-                            throw new InvalidOperationException();
+                        if (!TryAddAncestor(Primitive.Real))
+                            return null;
                     }
                     else if (Descedant is Array a && a.Element.Equals(Primitive.Char))
                         return Descedant;
                     else
-                        throw new InvalidOperationException("Types cannot be compared");
+                        return null;
                 }
             }
 
             if (HasAncestor && HasDescendant)
             {
-                if(Ancestor.Equals(Descedant))
+                if (Ancestor.Equals(Descedant))
                     return Ancestor;
                 if (!Descedant.CanBeImplicitlyConvertedTo(Ancestor))
-                    throw new InvalidOperationException();
+                    return null;
+
             }
 
-            if (Descedant?.Equals(Primitive.Any)==true)
+            if (Descedant?.Equals(Primitive.Any) == true)
                 return Primitive.Any;
 
             return this;
         }
+        public IState GetOptimizedOrThrow() 
+            => GetOptimizedOrNull()?? throw new InvalidOperationException();
+
         public override string ToString()
         {
             var res = $"[{Descedant}..{Ancestor}]";

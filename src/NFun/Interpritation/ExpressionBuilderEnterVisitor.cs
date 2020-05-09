@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NFun.BuiltInFunctions;
 using NFun.Exceptions;
 using NFun.Interpritation.Functions;
 using NFun.Interpritation.Nodes;
@@ -10,7 +9,6 @@ using NFun.Runtime;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
-using NFun.Tokenization;
 using NFun.TypeInferenceAdapter;
 using NFun.Types;
 
@@ -222,7 +220,6 @@ namespace NFun.Interpritation
                 type:              node.OutputType);
         }
 
-
         public IExpressionNode Visit(ConstantSyntaxNode node)
         {
             var type = _typesConverter.Convert(_typeInferenceResults.SyntaxNodeTypes[node.OrderNumber]);
@@ -252,7 +249,6 @@ namespace NFun.Interpritation
         public IExpressionNode Visit(VariableSyntaxNode node)
             => GetOrAddVariableNode(node);
 
-        
 
         #region not an expression
         public IExpressionNode Visit(EquationSyntaxNode node) 
@@ -284,10 +280,7 @@ namespace NFun.Interpritation
             => node.Accept(this);
         private IExpressionNode GetOrAddVariableNode(VariableSyntaxNode varNode)
         {
-            if (varNode.Id == "maxOfArray")
-            {
-
-            }
+           
             var funVariable = _typeInferenceResults.GetFunctionalVariableOrNull(varNode.OrderNumber);
             if (funVariable != null)
             {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using NFun.Tic.SolvingStates;
+using NFun.TypeInferenceCalculator.Errors;
 using NUnit.Framework;
 
 namespace NFun.Tic.Tests
@@ -313,13 +314,11 @@ namespace NFun.Tic.Tests
             var graph = new GraphBuilder();
             graph.SetConst(0, Primitive.Real);
             graph.SetVarType("y", Primitive.I32);
-            try
+            TestHelper.AssertThrowsTicError(() =>
             {
                 graph.SetDef("y", 0);
                 graph.Solve();
-                Assert.Fail();
-            }
-            catch(Exception e) {Console.WriteLine(e); }
+            });
         }
 
     }

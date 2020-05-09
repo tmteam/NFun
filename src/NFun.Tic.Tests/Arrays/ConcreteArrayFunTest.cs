@@ -1,5 +1,6 @@
 ﻿using System;
 using NFun.Tic.SolvingStates;
+using NFun.TypeInferenceCalculator.Errors;
 using NUnit.Framework;
 using Array = NFun.Tic.SolvingStates.Array;
 
@@ -176,20 +177,14 @@ namespace NFun.Tic.Tests.Arrays
             var graph = new GraphBuilder();
             graph.SetVarType("x", Array.Of(Primitive.Any));
             graph.SetVar("x", 0);
-            
-            try
+            TestHelper.AssertThrowsTicError(() =>
             {
-                
-                graph.SetCall(new IState[] { Array.Of(Primitive.Real), Primitive.Bool }, new[] { 0, 1 });
+                graph.SetCall(new IState[] {Array.Of(Primitive.Real), Primitive.Bool}, new[] {0, 1});
                 graph.SetDef("y", 1);
                 graph.Solve();
                 Assert.Fail();
-            }
-            catch (Exception e) 
-            {
-                Console.WriteLine(e);
-            }
-            
+            });
+
         }
     }
 }

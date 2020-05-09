@@ -4,6 +4,7 @@ using System.Linq;
 using NFun.Tic.SolvingStates;
 using NFun.Tic.Toposort;
 using NFun.TypeInferenceCalculator;
+using NFun.TypeInferenceCalculator.Errors;
 using Array = NFun.Tic.SolvingStates.Array;
 
 namespace NFun.Tic
@@ -19,20 +20,7 @@ namespace NFun.Tic
 
         public RefTo InitializeVarNode(IType desc = null, Primitive anc = null, bool isComparable = false) 
             => new RefTo(CreateVarType(new Constrains(desc, anc){IsComparable =  isComparable}));
-        private void RegistrateCompositeType(ICompositeType composite)
-        {
-            foreach (var member in composite.Members)
-            {
-                if (!member.Registrated)
-                {
-                    member.Registrated = true;
-                    if (member.State is ICompositeType c)
-                        RegistrateCompositeType(c);
-                    _typeVariables.Add(member);
-                    
-                }
-            }
-        }
+      
 
         #region set primitives
 
@@ -70,8 +58,9 @@ namespace NFun.Tic
 
         public void SetIntConst(int id, Primitive desc)
             => SetIntConst(id, desc, Primitive.Real, Primitive.Real);
-
-        public void SetIntConst(int id, Primitive desc, Primitive anc, Primitive prefered)
+        public bool TrySetIntConst(int id, Primitive desc)
+            => TrySetIntConst(id, desc, Primitive.Real, Primitive.Real);
+        public bool TrySetIntConst(int id, Primitive desc, Primitive anc, Primitive prefered)
         {
             var node = GetOrCreateNode(id);
             if (node.State is Constrains constrains)
@@ -79,11 +68,15 @@ namespace NFun.Tic
                 constrains.AddAncestor(anc);
                 constrains.AddDescedant(desc);
                 constrains.Prefered = prefered;
+                return true;
             }
-            else
-            {
+
+            return false;
+        }
+        public void SetIntConst(int id, Primitive desc, Primitive anc, Primitive prefered)
+        {
+            if (!TrySetIntConst(id, desc,anc, prefered))
                 throw new InvalidOperationException();
-            }
         }
 
         public void SetVarType(string s, IState state)
@@ -119,7 +112,7 @@ namespace NFun.Tic
             }
             else if (node.State is Array a)
             {
-                if(a.Element== elementType)
+                if(a.Element.Equals(elementType))
                     return;
             }
             throw new InvalidOperationException();
@@ -190,10 +183,7 @@ namespace NFun.Tic
         public void SetCall(string name, params int[] argThenReturnIds)
         {
             var namedNode =GetNamedNode(name);
-            //if (!_variables.TryGetValue(name, out var namedNode))
-            //    throw new InvalidOperationException($"Function {name} is unknown");
             SetCall(namedNode, argThenReturnIds);
-           
         }
 
        
@@ -243,7 +233,8 @@ namespace NFun.Tic
 
             var returnId = argThenReturnIds[argThenReturnIds.Length - 1];
             var returnNode = GetOrCreateNode(returnId);
-            returnNode.State =  SolvingFunctions.GetMergedState(returnNode.State, returnType);
+            returnNode.State = SolvingFunctions.GetMergedStateOrNull(returnNode.State, returnType)
+                               ?? throw TicErrors.CannotSetState(returnNode, returnType);
         }
 
         private void SetCallArgument(IState type, int argId)
@@ -258,7 +249,6 @@ namespace NFun.Tic
                         throw new InvalidOperationException();
                     break;
                 }
-
                 case ICompositeType composite:
                 {
                     RegistrateCompositeType(composite);
@@ -267,14 +257,13 @@ namespace NFun.Tic
                     ancestor.BecomeAncestorFor(node);
                     break;
                 }
-
                 case RefTo refTo:
                 {
                     refTo.Node.BecomeAncestorFor(node);
                     break;
                 }
 
-                default: throw new InvalidOperationException();
+                default: throw new NotSupportedException();
             }
         }
 
@@ -310,7 +299,7 @@ namespace NFun.Tic
 
                 switch (result.Status)
                 {
-                    case SortStatus.MemebershipCycle: throw new InvalidOperationException("Reqursive type defenition");
+                    case SortStatus.MemebershipCycle: throw TicErrors.RecursiveTypeDefenition(result.Order.ToArray());
                     case SortStatus.AncestorCycle:
                     {
                         var cycle = result.Order;
@@ -474,15 +463,11 @@ namespace NFun.Tic
         {
             var fun = Fun.Of(args, ret);
 
-            while (_syntaxNodes.Count <= lambdaId)
-            {
-                _syntaxNodes.Add(null);
-            }
-
-            var alreadyExists = _syntaxNodes[lambdaId];
+            var alreadyExists = _syntaxNodes.GetOrEnlarge(lambdaId);
             if (alreadyExists != null)
             {
-                alreadyExists.State = SolvingFunctions.GetMergedState(fun, alreadyExists.State);
+                alreadyExists.State = SolvingFunctions.GetMergedStateOrNull(fun, alreadyExists.State)
+                                      ?? throw TicErrors.CannotSetState(alreadyExists, fun);
             }
             else
             {
@@ -490,25 +475,21 @@ namespace NFun.Tic
                 _syntaxNodes[lambdaId] = res;
             }
         }
-        private SolvingNode SetOrCreatePrimitive(int id, Primitive type)
+
+        private void SetOrCreatePrimitive(int id, Primitive type)
         {
             var node = GetOrCreateNode(id);
             if (!node.TryBecomeConcrete(type))
-                throw new InvalidOperationException();
-            return node;
+                throw TicErrors.CannotBecome(node, type);
         }
-      
+
         private SolvingNode GetOrCreateArrayNode(int id, SolvingNode elementType)
         {
-            while (_syntaxNodes.Count <= id)
-            {
-                _syntaxNodes.Add(null);
-            }
-
-            var alreadyExists = _syntaxNodes[id];
+            var alreadyExists = _syntaxNodes.GetOrEnlarge(id);
             if (alreadyExists != null)
             {
-                alreadyExists.State = SolvingFunctions.GetMergedState(new Array(elementType), alreadyExists.State);
+                alreadyExists.State = SolvingFunctions.GetMergedStateOrNull(new Array(elementType), alreadyExists.State)
+                                      ?? throw TicErrors.CannotSetState(elementType, new Array(elementType));
                 return alreadyExists;
             }
 
@@ -518,12 +499,7 @@ namespace NFun.Tic
         }
         private SolvingNode GetOrCreateNode(int id)
         {
-            while (_syntaxNodes.Count <= id)
-            {
-                _syntaxNodes.Add(null);
-            }
-
-            var alreadyExists = _syntaxNodes[id];
+            var alreadyExists = _syntaxNodes.GetOrEnlarge(id);
             if (alreadyExists != null)
                 return alreadyExists;
 
@@ -531,7 +507,20 @@ namespace NFun.Tic
             _syntaxNodes[id] = res;
             return res;
         }
+        private void RegistrateCompositeType(ICompositeType composite)
+        {
+            foreach (var member in composite.Members)
+            {
+                if (!member.Registrated)
+                {
+                    member.Registrated = true;
+                    if (member.State is ICompositeType c)
+                        RegistrateCompositeType(c);
+                    _typeVariables.Add(member);
 
+                }
+            }
+        }
         private SolvingNode CreateVarType(IState state = null)
         {
             if (state is ICompositeType composite)
