@@ -24,11 +24,12 @@
 | TEST req factorial in array
 | TAGS req user-function
 |************************  
-| out  out:int 
+| out  out:int[] 
 |------------------------
-  fact(n) = if (n==0) 0
+  fact(n) = 
+        if (n==0) 0
   			if (n==1) 1 
-  			else fact(n-1)*n
+  			else      fact(n-1)*n
 
   [0..4].map(fact)
 |---------------------

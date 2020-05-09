@@ -327,9 +327,7 @@ newCount = if (not done) x+1 else x
 | TEST max of matrix with functions  
 | TAGS user-function array                         
 |************************  
-  
   maxOfArray(t) = t.reduce(max)
-
   maxInRows(t) = t.map(maxOfArray)
 
   origin = [

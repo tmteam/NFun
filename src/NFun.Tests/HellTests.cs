@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using NFun;
+﻿using NFun;
 using NFun.TypeInferenceCalculator;
 using NFun.Types;
 using NUnit.Framework;
 
 namespace Funny.Tests
 {
-    class HellTests
+    public class HellTests
     {
         [SetUp] public void Initialize() => TraceLog.IsEnabled = true;
         [TearDown] public void Deinitiazlize() => TraceLog.IsEnabled = false;
@@ -17,13 +14,40 @@ namespace Funny.Tests
         public void CustomForeachi()
         {
             var expr = @" 
-            foreachi(arr, f) = [1..arr.count()-1].reduce(arr[0], f)
+            foreachi(arr, f) = [0..arr.count()-1].reduce(arr[0], f)
             
-            res:int =  t.foreachi((acc,i)-> if (acc>t[i]) acc else t[i] )";
+            res:int =  t.foreachi( (acc,i)-> if (acc>t[i]) acc else t[i] )";
 
             FunBuilder.BuildDefault(expr).Calculate(
                 VarVal.New("t",new[]{1,2,7,34,1,2}))
                 .AssertReturns(VarVal.New("res",34));
+        }
+
+        [Test]
+        public void CustomForeachiWithUserFun()
+        {
+            var expr = @" 
+            foreachi(arr, f) = [0..arr.count()-1].reduce(arr[0], f)
+
+            max(a, t, i) = max(a, t[i])             
+
+            res:int =  t.foreachi((acc,i)-> max(acc,t,i)";
+
+            FunBuilder.BuildDefault(expr).Calculate(
+                    VarVal.New("t", new[] { 1, 2, 7, 34, 1, 2 }))
+                .AssertReturns(VarVal.New("res", 34));
+        }
+        [Test]
+        public void CustomForeachiWithBuiltInFun()
+        {
+            var expr = @" 
+            foreachi(arr, f) = [0..arr.count()-1].reduce(arr[0], f)
+
+            res:int =  t.foreachi((acc,i)-> max(acc,t[i])";
+
+            FunBuilder.BuildDefault(expr).Calculate(
+                    VarVal.New("t", new[] { 1, 2, 7, 34, 1, 2 }))
+                .AssertReturns(VarVal.New("res", 34));
         }
         [Test]
         public void TwinGenericFunCall()
@@ -42,21 +66,5 @@ namespace Funny.Tests
             FunBuilder.BuildDefault(expr).Calculate()
                 .AssertHas(VarVal.New("res", 42));
         }
-
-        [Test]
-        public void GenericRecursive()
-        {
-            var expr = 
-                @"fact(n) = if (n==0) 0
-                            if (n == 1) 1
-                            else fact(n - 1) * n
-
-                res =[0..4].map(fact)";
-            FunBuilder.BuildDefault(expr).Calculate()
-                .AssertHas(VarVal.New("res", 42));
-
-        }
-       
-
     }
 }

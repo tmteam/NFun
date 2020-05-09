@@ -78,5 +78,19 @@ namespace Funny.Tests.UserFunctions
             FunBuilder.BuildDefault(expr).Calculate()
                 .AssertReturns(VarVal.New("userfun", 3.0), VarVal.New("builtin", 2.0));
         }
+
+        [Test]
+        public void GenericRecursive()
+        {
+            var expr =
+                @"fact(n) = if (n==0) 0
+                            if (n == 1) 1
+                            else fact(n - 1) * n
+
+                res = [0..4].map(fact)";
+            FunBuilder.BuildDefault(expr).Calculate()
+                .AssertHas(VarVal.New("res", new[] { 0, 1, 2, 6, 24 }));
+
+        }
     }
 }

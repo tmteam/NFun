@@ -65,8 +65,8 @@ namespace NFun.Interpritation.Functions
                 return alreadyExists;
             //set types to nodes
             var converter = TicTypesConverter.ReplaceGenericTypesConverter(_constrainsMap, concreteTypes);
-            var funType = converter.Convert(
-                _typeInferenceResults.GetVariableType(_syntaxNode.Id + "'" + _syntaxNode.Args.Count));
+            var ticSignature = _typeInferenceResults.GetVariableType(_syntaxNode.Id + "'" + _syntaxNode.Args.Count);
+            var funType = converter.Convert(ticSignature);
 
             var returnType = funType.FunTypeSpecification.Output;
             var argTypes = funType.FunTypeSpecification.Inputs;
