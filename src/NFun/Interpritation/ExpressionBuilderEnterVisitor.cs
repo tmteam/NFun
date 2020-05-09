@@ -284,6 +284,10 @@ namespace NFun.Interpritation
             => node.Accept(this);
         private IExpressionNode GetOrAddVariableNode(VariableSyntaxNode varNode)
         {
+            if (varNode.Id == "maxOfArray")
+            {
+
+            }
             var funVariable = _typeInferenceResults.GetFunctionalVariableOrNull(varNode.OrderNumber);
             if (funVariable != null)
             {

@@ -49,22 +49,6 @@ namespace Funny.Tests
                     VarVal.New("t", new[] { 1, 2, 7, 34, 1, 2 }))
                 .AssertReturns(VarVal.New("res", 34));
         }
-        [Test]
-        public void TwinGenericFunCall()
-        {
-            var expr = @"maxOfArray(t) = t.reduce(max)
-
-  maxOfMatrix(t) = t.reduce(maxOfArray)
-
-  origin = [
-              [12,05,06],
-              [42,33,12],
-              [01,15,18]
-             ] 
-
-  res = origin.maxOfMatrix()";
-            FunBuilder.BuildDefault(expr).Calculate()
-                .AssertHas(VarVal.New("res", 42));
-        }
+       
     }
 }

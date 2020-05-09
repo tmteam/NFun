@@ -92,5 +92,44 @@ namespace Funny.Tests.UserFunctions
                 .AssertHas(VarVal.New("res", new[] { 0, 1, 2, 6, 24 }));
 
         }
+
+        [Test]
+        public void TwinGenericFunCall()
+        {
+            var expr = @"maxOfArray(t) = t.reduce(max)
+
+           maxOfMatrix(t) = t.map(maxOfArray).maxOfArray()
+
+  origin = [
+              [12,05,06],
+              [42,33,12],
+              [01,15,18]
+             ] 
+
+  res:int = origin.maxOfMatrix()";
+            FunBuilder.BuildDefault(expr).Calculate()
+                .AssertHas(VarVal.New("res", 42));
+        }
+
+        [Ignore("UB")]
+        [Test]
+        public void TwinGenericWrongOrderFunCall()
+        {
+            var expr = @"
+
+           maxOfMatrix(t) = t.map(maxOfArray).maxOfArray()
+            
+            maxOfArray(t) = t.reduce(max)
+
+  origin = [
+              [12,05,06],
+              [42,33,12],
+              [01,15,18]
+             ] 
+
+  res:int = origin.maxOfMatrix()";
+            FunBuilder.BuildDefault(expr).Calculate()
+                .AssertHas(VarVal.New("res", 42));
+        }
     }
 }
