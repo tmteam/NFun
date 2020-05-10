@@ -247,7 +247,7 @@ namespace NFun.Tic
                 case Primitive primitive:
                 {
                     if (!node.TrySetAncestor(primitive))
-                        throw new InvalidOperationException();
+                        throw TicErrors.CannotSetState(node, primitive);
                     break;
                 }
                 case ICompositeType composite:

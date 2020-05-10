@@ -104,7 +104,13 @@ namespace NFun.Tic
             }
             else if (node.State is Constrains constrains)
             {
-                return constrains.TryAddAncestor(anc);
+                if (!constrains.TryAddAncestor(anc))
+                    return false;
+                var optimized = constrains.GetOptimizedOrNull();
+                if (optimized == null)
+                    return false;
+                State = optimized;
+                return true;
             };
             return false;
         }

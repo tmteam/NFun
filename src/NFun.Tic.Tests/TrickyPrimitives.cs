@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using NFun.Tic.SolvingStates;
+using NFun.TypeInferenceCalculator;
 using NFun.TypeInferenceCalculator.Errors;
 using NUnit.Framework;
 
@@ -8,7 +9,10 @@ namespace NFun.Tic.Tests
 {
     class TrickyPrimitives
     {
-        
+        [SetUp]    public void Initialize() => TraceLog.IsEnabled = true;
+        [TearDown] public void DeInitialize() => TraceLog.IsEnabled = false;
+
+
         [Test(Description = "y = isNan(1) ")]
         public void SimpleConcreteFunctionWithConstant()
         {
@@ -320,6 +324,22 @@ namespace NFun.Tic.Tests
                 graph.Solve();
             });
         }
+        [Test]
+        public void NegativeIntArgumentInUintFunction_throws()
+        {
+            //myFunction(a:u16):u16 = ...
+            
+            //node |       1        0
+            //expr |y = myFunction(-1) 
+            var graph = new GraphBuilder();
+            graph.SetIntConst(0, Primitive.I16, Primitive.Real, Primitive.Real);
 
+            TestHelper.AssertThrowsTicError(() =>
+            {
+                graph.SetCall(new IState[] { Primitive.U16, Primitive.U16 }, new[] { 0, 1 });
+                graph.SetDef("y", 1);
+                graph.Solve();
+            });
+        }
     }
 }

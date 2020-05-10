@@ -21,6 +21,10 @@ namespace NFun.Tic.Tests
             {
                 Console.WriteLine(e);
             }
+            catch (AssertionException)
+            {
+
+            }
             catch (Exception e)
             {
                 Assert.Fail($"Invalid exception. {e.GetType().Name} was thrown. TicExcpetion expected.\r\n{e}");

@@ -282,9 +282,7 @@ namespace NFun.Tic.SolvingStates
 
             return this;
         }
-        public IState GetOptimizedOrThrow() 
-            => GetOptimizedOrNull()?? throw new InvalidOperationException();
-
+   
         public override string ToString()
         {
             var res = $"[{Descedant}..{Ancestor}]";

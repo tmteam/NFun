@@ -161,7 +161,17 @@ namespace NFun.BuiltInFunctions
             {
                 _converter = converter;
             }
-            public override object Calc(object[] args) => _converter(args[0]);
+            public override object Calc(object[] args)
+            {
+                try
+                {
+                    return _converter(args[0]);
+                }
+                catch (Exception e)
+                {
+                    throw new FunRuntimeException($"Cannot convert {args[0]} to type {this.ReturnType}", e);
+                }
+            }
         }
         public override object Calc(object[] args) => throw new NotSupportedException();
 

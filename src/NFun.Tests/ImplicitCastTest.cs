@@ -1,6 +1,7 @@
 using System.Linq;
 using NFun;
 using NFun.ParseErrors;
+using NFun.TypeInferenceCalculator;
 using NFun.Types;
 using NUnit.Framework;
 
@@ -182,6 +183,7 @@ namespace Funny.Tests
         [TestCase("0x1_0000_0000", "uint32")]
         public void ObviousFails_NumberConstantImplicitCast(string constant, string typeTo)
         {
+            TraceLog.IsEnabled = true;
             var expr = $"customConvert(a:{typeTo}):{typeTo} = a; y = customConvert({constant})";
             Assert.Throws<FunParseException>(() => FunBuilder.BuildDefault(expr).Calculate());
         }

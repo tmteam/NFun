@@ -133,7 +133,7 @@ namespace NFun.Interpritation
                 //hi order function
                  var functionalVariableSource = _variables.GetSourceOrNull(id);
                  if (functionalVariableSource?.Type.FunTypeSpecification == null)
-                    throw new ImpossibleException($"MJ78. Function {id}`{node.Args.Length} was not found");
+                     throw ErrorFactory.FunctionOverloadNotFound(node, _functions);
                  return CreateFunctionCall(node, ConcreteHiOrderFunction.Create(functionalVariableSource));
             }
 
