@@ -200,6 +200,9 @@ namespace NFun.Interpritation
             {
                 var function = GenericUserFunction.Create(typeInferenceResuls, functionSyntaxNode, functionsDictionary);
                 functionsDictionary.Add(function);
+                //Нужно интерпритировать какой либо тип функции, что бы проверить ошибки
+                GenericUserFunction.CreateSomeConcrete(function);
+                
                 return function;
             }
         }

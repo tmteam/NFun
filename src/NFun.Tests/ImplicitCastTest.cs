@@ -183,7 +183,7 @@ namespace Funny.Tests
         public void ObviousFails_NumberConstantImplicitCast(string constant, string typeTo)
         {
             var expr = $"customConvert(a:{typeTo}):{typeTo} = a; y = customConvert({constant})";
-            Assert.Throws<FunParseException>(() => FunBuilder.BuildDefault(expr));
+            Assert.Throws<FunParseException>(() => FunBuilder.BuildDefault(expr).Calculate());
         }
     }
 }

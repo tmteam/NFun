@@ -448,7 +448,6 @@ namespace Funny.Tests
         [TestCase("y = avg(['1','2','3'])")]
         [TestCase("y= max([])")]
         [TestCase("y= max(['a','b'])")]
-        [TestCase("y= max('a','b')")]
         [TestCase("y= max(1,2,3)")]
         [TestCase("y= max(1,true)")]
         [TestCase("y= max(1,(j)->j)")]

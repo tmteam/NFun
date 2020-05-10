@@ -26,14 +26,12 @@ namespace NFun.TypeInferenceAdapter
             return false;
         }
 
-        public bool AddVariableAlias(string originName, string variableName)
+        public bool AddVariableAlias(string originName, string alias)
         {
             var currentFrame = _variableAliasesStack[_variableAliasesStack.Count - 1];
-            if (currentFrame.ContainsKey(variableName))
-            {
+            if (currentFrame.ContainsKey(originName))
                 return false;
-            }
-            currentFrame.Add(originName, variableName);
+            currentFrame.Add(originName, alias);
             return true;
         }
         public string AddVariableAlias(int node, string variableName)
@@ -47,14 +45,14 @@ namespace NFun.TypeInferenceAdapter
             currentFrame.Add(variableName, alias);
             return alias;
         }
-        public string GetVariableAlias(string variableName)
+        public string GetVariableAlias(string origin)
         {
             for (int i = _variableAliasesStack.Count  - 1; i >= 0; i--)
             {
-                if (_variableAliasesStack[i].ContainsKey(variableName))
-                    return _variableAliasesStack[i][variableName];
+                if (_variableAliasesStack[i].ContainsKey(origin))
+                    return _variableAliasesStack[i][origin];
             }
-            return variableName;
+            return origin;
         }
         public void InitVariableScope(int nodeNumber, IList<string> scopeVariables)
         {

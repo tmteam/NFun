@@ -31,7 +31,7 @@ namespace Funny.Tests
 
             max(a, t, i) = max(a, t[i])             
 
-            res:int =  t.foreachi((acc,i)-> max(acc,t,i)";
+            res:int =  t.foreachi((acc,i)-> max(acc,t,i))";
 
             FunBuilder.BuildDefault(expr).Calculate(
                     VarVal.New("t", new[] { 1, 2, 7, 34, 1, 2 }))
@@ -43,7 +43,7 @@ namespace Funny.Tests
             var expr = @" 
             foreachi(arr, f) = [0..arr.count()-1].reduce(arr[0], f)
 
-            res:int =  t.foreachi((acc,i)-> max(acc,t[i])";
+            res:int =  t.foreachi((acc,i)-> max(acc,t[i]))";
 
             FunBuilder.BuildDefault(expr).Calculate(
                     VarVal.New("t", new[] { 1, 2, 7, 34, 1, 2 }))

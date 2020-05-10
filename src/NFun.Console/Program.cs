@@ -11,13 +11,15 @@ namespace Funny
     class Program
     {
 
-        static Func<double, Func<double, double>> F(double x) => y => z=> x*y*z;
 
         static void Main(string[] args)
         {
-            Func<double, Func<double, double>> F(double x) => y => z => x * y * z;
-            var foo = F(1)(2)(3);
 
+            FunBuilder.BuildDefault("y(x:int):int = 2*z");
+
+            //FunBuilder.BuildDefault("y(x) = 2*z");
+
+            throw new InvalidOperationException();
 
             Console.WriteLine("Let's make some fun.");
             Console.WriteLine("Type an expression or '/exit' to return");
