@@ -156,9 +156,7 @@ namespace NFun.Interpritation
                 // solve the types
                 types = graphBuider.Solve();
             }
-            catch (TicException e) {
-                throw FunParseException.ErrorStubToDo($"Types not solved. {e}");
-            }
+            catch (TicException e) { throw ErrorFactory.TranslateTicError(e, functionSyntaxNode);}
 
             resultsBuilder.SetResults(types);
             var typeInferenceResuls = resultsBuilder.Build();

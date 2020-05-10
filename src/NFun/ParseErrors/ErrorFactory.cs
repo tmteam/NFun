@@ -7,8 +7,12 @@ using NFun.Interpritation.Nodes;
 using NFun.Runtime;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
+using NFun.SyntaxParsing.Visitors;
+using NFun.Tic.Errors;
+using NFun.Tic.SolvingStates;
 using NFun.Tokenization;
 using NFun.TypeInferenceAdapter;
+using NFun.TypeInferenceCalculator.Errors;
 using NFun.Types;
 
 namespace NFun.ParseErrors
@@ -592,6 +596,22 @@ namespace NFun.ParseErrors
 
         #endregion
 
-      
+
+        public static Exception TranslateTicError(TicException ticException, ISyntaxNode syntaxNodeToSearch)
+        {
+            if (ticException is ImcompatibleAncestorSyntaxNodeException syntaxNodeEx)
+            {
+                var concreteNode = SyntaxTreeDeepFieldSearch.FindNodeByOrderNumOrNull(syntaxNodeToSearch, syntaxNodeEx.SyntaxNodeId);
+                if (concreteNode != null)
+                    return new FunParseException(601, $"Types cannot be solved: {ticException.Message} ", concreteNode.Interval);
+            }
+            else if (ticException is ImcompatibleAncestorNamedNodeException namedNodeEx)
+            {
+                var concreteNode = SyntaxTreeDeepFieldSearch.FindVarDefenitionOrNull(syntaxNodeToSearch, namedNodeEx.NodeName);
+                if (concreteNode != null)
+                    return new FunParseException(602, $"Types cannot be solved: {ticException.Message} ", concreteNode.Interval);
+            }
+            return TypesNotSolved(syntaxNodeToSearch);
+        }
     }
 }

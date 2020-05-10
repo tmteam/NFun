@@ -303,31 +303,35 @@ namespace NFun.Interpritation
             {
                 //if it is not a variable it might be a functional-variable
                 var funVars = _functions.GetOverloads(lower);
-                if (funVars.Count > 1)
+                if (funVars.Count > 0)
                 {
                     var specification = varNode.OutputType.FunTypeSpecification;
                     if (specification == null)
                         throw ErrorFactory.FunctionNameAndVariableNameConflict(varNode);
 
-                    //several function with such name are appliable
-                    var result = funVars.Where(f =>
-                            f.ReturnType == specification.Output && f.ArgTypes.SequenceEqual(specification.Inputs))
-                        .ToList();
-                    if (result.Count == 0)
-                        throw ErrorFactory.FunctionIsNotExists(varNode);
-                    if (result.Count > 1)
-                        throw ErrorFactory.AmbiguousFunctionChoise(varNode);
-                    if(result[0] is FunctionBase ff)
-                        return new FunVariableExpressionNode(ff, varNode.Interval);
-                    else
-                        throw new NotImplementedException("GenericsAreNotSupp");
+                    if (funVars.Count > 1)
+                    {
+                        //several function with such name are appliable
+                        var result = funVars.Where(f =>
+                                f.ReturnType == specification.Output && f.ArgTypes.SequenceEqual(specification.Inputs))
+                            .ToList();
+                        if (result.Count == 0)
+                            throw ErrorFactory.FunctionIsNotExists(varNode);
+                        if (result.Count > 1)
+                            throw ErrorFactory.AmbiguousFunctionChoise(varNode);
+                        if (result[0] is FunctionBase ff)
+                            return new FunVariableExpressionNode(ff, varNode.Interval);
+                        else
+                            throw new NotImplementedException("GenericsAreNotSupp");
+                    }
+
+                    if (funVars.Count == 1)
+                    {
+                        if (funVars[0] is FunctionBase ff)
+                            return new FunVariableExpressionNode(ff, varNode.Interval);
+                    }
                 }
 
-                if (funVars.Count == 1)
-                {
-                    if (funVars[0] is FunctionBase ff)
-                        return new FunVariableExpressionNode(ff, varNode.Interval);
-                }
             }
             var node = _variables.CreateVarNode(varNode.Id, varNode.Interval, varNode.OutputType);
             if(node.Source.Name!= varNode.Id)

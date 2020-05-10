@@ -446,7 +446,7 @@ namespace Funny.Tests
         [TestCase("y = add 1")]
         [TestCase("y = add(1,2,3)")]
         [TestCase("y = avg(['1','2','3'])")]
-        [TestCase("y= max([])")]
+       // [TestCase("y= max([])")]
         [TestCase("y= max(1,2,3)")]
         [TestCase("y= max(1,true)")]
         [TestCase("y= max(1,(j)->j)")]

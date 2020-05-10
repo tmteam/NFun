@@ -80,10 +80,8 @@ namespace NFun.Interpritation
                 resultBuilder.SetResults(bodyTypeSolving);
                 return resultBuilder.Build();
             }
-            catch (TicException e)
-            {
-                throw FunParseException.ErrorStubToDo($"Body types not solved. {e}");
-            }
+            catch (TicException e) { throw ErrorFactory.TranslateTicError(e, syntaxTree); }
+
         }
         //public static void ThrowIfNotSolved(ISyntaxNode functionSyntaxNode, TiResult types)
         //{
@@ -106,7 +104,7 @@ namespace NFun.Interpritation
         //            throw ErrorFactory.TypesNotSolved(root);
         //    }
         //}
-        
+
         public static void ThrowIfSomeVariablesNotExistsInTheList(this VariableDictionary resultVariables, IEnumerable<string> list )
         {
             var unknownVariables = resultVariables.GetAllUsages()
