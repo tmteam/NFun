@@ -1,5 +1,6 @@
 ﻿using System;
 using NFun.Tic.SolvingStates;
+using NFun.TypeInferenceCalculator.Errors;
 using NUnit.Framework;
 using Array = NFun.Tic.SolvingStates.Array;
 
@@ -56,20 +57,13 @@ namespace NFun.Tic.Tests.Funs
             graph.SetVar("a", 0);
             graph.SetVar("2lx", 1);
             graph.CreateLambda(1, 2, Primitive.Any, "2lx");
-
-            try
+            TestHelper.AssertThrowsTicError(() =>
             {
                 graph.SetGetFirst(0, 2, 3);
                 graph.SetDef("y", 3);
                 graph.Solve();
-                Assert.Fail("Impossible equation solved");
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
-            
 
+            });
         }
         [Test]
         public void StrictArrayAndLambdaArg()
@@ -105,18 +99,14 @@ namespace NFun.Tic.Tests.Funs
             graph.SetVar("lx", 2);
             graph.SetIntConst(3, Primitive.U8);
             graph.SetEquality(2, 3, 4);
-            try
+            TestHelper.AssertThrowsTicError(() =>
             {
                 graph.CreateLambda(4, 5, "lx");
                 graph.SetGetFirst(1, 5, 6);
                 graph.SetDef("y", 6);
                 graph.Solve();
                 Assert.Fail("Impossible equation solved");
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
+            });
         }
 
         [Test]

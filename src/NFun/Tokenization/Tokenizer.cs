@@ -147,51 +147,33 @@ namespace NFun.Tokenization
         private static bool IsQuote(char val) => val == '\''|| val == '\"';
         private static Tok ReadNumber(string str, int position)
         {
-            int dotPostition = -1;
-            bool hasTypeSpecifier = false;
+            int dotPosition = -1;
             int index = position;
             for (; index < str.Length; index++)
             {
-                if (IsDigit(str[index]))
+                var symbol = str[index];
+                if (IsDigit(symbol))
                     continue;
-
-                if (hasTypeSpecifier)
+           
+                if (index == position + 1 && str[position] == '0')
                 {
-                    if (str[index] >= 'a' && str[index] <= 'f')
-                        continue;
-                    if (str[index] >= 'A' && str[index] <= 'F')
-                        continue;
-                }
-                else if (index == position + 1 && str[position] == '0')
-                {
-                    if (str[index] == 'x' || str[index] == 'b')
-                    {
-                        hasTypeSpecifier = true;
-                        continue;
-                    }
+                    if (str[index] == 'x') return ReadHexNumber(str, position);
+                    if (str[index] == 'b') return ReadBinNumber(str, position);
                 }
 
-                if (str[index] == '_')
+                if (symbol == '_')
                     continue;
-                if (str[index] == '.')
+                if (symbol == '.' && dotPosition == -1)
                 {
-                    if (!hasTypeSpecifier && dotPostition == -1)
-                    {
-                            dotPostition = index;
-                            continue;
-                    }
+                    dotPosition = index;
+                    continue;
                 }
-
                 break;
             }
 
-            var type = TokType.IntNumber;
             //if dot is last then skip
-            if (dotPostition == index - 1)
-            {
-                if (hasTypeSpecifier) type = TokType.HexOrBinaryNumber;
-                return Tok.New(type, str.Substring(position, index - position - 1), position, index - 1);
-            }
+            if (dotPosition == index - 1)
+                return Tok.New(TokType.IntNumber, str.Substring(position, index - position - 1), position, index - 1);
 
             if (index < str.Length && IsLetter(str[index]))
             {
@@ -199,12 +181,51 @@ namespace NFun.Tokenization
                 return Tok.New(TokType.NotAToken, str.Substring(position, txtToken.Finish - position),
                     position, txtToken.Finish);
             }
-            if      (dotPostition!=-1)   type = TokType.RealNumber;
-            else if (hasTypeSpecifier)   type = TokType.HexOrBinaryNumber;
 
+            var type = dotPosition == -1 ? TokType.IntNumber: TokType.RealNumber;
             return Tok.New(type, str.Substring(position, index - position), position, index);
         }
 
+        private static Tok ReadHexNumber(string str, int position)
+        {
+            if(str[position]!= '0' || str[position+1] != 'x')
+                throw new ArgumentException("Invalid Read hex usage");
+            int index = position+2;
+            for (; index < str.Length; index++)
+            {
+                var symbol = str[index];
+                if (IsDigit(symbol)) continue;
+                if (symbol >= 'a' && symbol <= 'f') continue;
+                if (symbol >= 'A' && symbol <= 'F') continue;
+                if (str[index] == '_') continue;
+                break;
+            }
+            if (index == position + 2)
+            {
+                var end = ReadIdOrKeyword(str, position + 2).Finish;
+                return Tok.New(TokType.NotAToken, str.Substring(position, end - position), position, end);
+            }
+            return Tok.New(TokType.HexOrBinaryNumber, str.Substring(position, index - position), position, index);
+        }
+        private static Tok ReadBinNumber(string str, int position)
+        {
+            if (str[position] != '0' || str[position + 1] != 'b')
+                throw new ArgumentException("Invalid Read bin usage");
+            int index = position + 2;
+            for (; index < str.Length; index++)
+            {
+                var symbol = str[index];
+                if (symbol == '1' || symbol==  '0' || symbol == '_')
+                    continue;
+                break;
+            }
+
+            if (index == position + 2) {
+                var end = ReadIdOrKeyword(str, position + 2).Finish;
+                return Tok.New(TokType.NotAToken, str.Substring(position, end - position), position, end);
+            }
+            return Tok.New(TokType.HexOrBinaryNumber, str.Substring(position, index - position), position, index);
+        }
         #endregion
 
         private Tok TryReadUncommonSpecialSymbols(string str, int position, char current)

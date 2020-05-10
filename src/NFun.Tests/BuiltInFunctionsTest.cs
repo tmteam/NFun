@@ -428,7 +428,6 @@ namespace Funny.Tests
             runtime.Calculate(VarVal.New("x", arg))
                 .AssertReturns(0.00001, VarVal.New("y", expected));
         }
-        [Ignore("errors")]
         [TestCase("y = pi(")]
         [TestCase("y = pi(1)")]
         [TestCase("y = abs(")]
@@ -447,9 +446,7 @@ namespace Funny.Tests
         [TestCase("y = add 1")]
         [TestCase("y = add(1,2,3)")]
         [TestCase("y = avg(['1','2','3'])")]
-        [TestCase("y= max([])")]
-        [TestCase("y= max(['a','b'])")]
-        [TestCase("y= max('a','b')")]
+       // [TestCase("y= max([])")]
         [TestCase("y= max(1,2,3)")]
         [TestCase("y= max(1,true)")]
         [TestCase("y= max(1,(j)->j)")]

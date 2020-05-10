@@ -1,13 +1,37 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using NFun.Tic.SolvingStates;
 using NFun.TypeInferenceCalculator;
+using NFun.TypeInferenceCalculator.Errors;
 using NUnit.Framework;
+using Array = NFun.Tic.SolvingStates.Array;
 
 namespace NFun.Tic.Tests
 {
     public static class TestHelper
     {
-        public static void AssertAreGenerics(this FinalizationResults result, SolvingNode targetGenericNode,
+        public static void AssertThrowsTicError(Action delegateCode)
+        {
+            try
+            {
+                delegateCode();
+                Assert.Fail("Impossible equation solved");
+            }
+            catch (TicException e)
+            {
+                Console.WriteLine(e);
+            }
+            catch (AssertionException)
+            {
+
+            }
+            catch (Exception e)
+            {
+                Assert.Fail($"Invalid exception. {e.GetType().Name} was thrown. TicExcpetion expected.\r\n{e}");
+
+            }
+        }
+            public static void AssertAreGenerics(this FinalizationResults result, SolvingNode targetGenericNode,
             params string[] varNames)
         {
             foreach (var varName in varNames)

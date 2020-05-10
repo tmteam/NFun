@@ -49,6 +49,49 @@ namespace Nfun.ModuleTests.UnitTests
             TokType.ArrCBr)]
         [TestCase("0.", TokType.IntNumber, TokType.PipeForward)]
         [TestCase("0.1", TokType.RealNumber)]
+        
+        [TestCase("0xFF", TokType.HexOrBinaryNumber)]
+        [TestCase("0xFF_01", TokType.HexOrBinaryNumber)]
+
+        [TestCase("0b001", TokType.HexOrBinaryNumber)]
+        [TestCase("0b001_0", TokType.HexOrBinaryNumber)]
+
+        [TestCase("0xFF.a", TokType.HexOrBinaryNumber, TokType.PipeForward, TokType.Id)]
+        [TestCase("0xFF_01.a", TokType.HexOrBinaryNumber, TokType.PipeForward, TokType.Id)]
+
+        [TestCase("0b001.a", TokType.HexOrBinaryNumber, TokType.PipeForward, TokType.Id)]
+        [TestCase("0b001_0.a", TokType.HexOrBinaryNumber, TokType.PipeForward, TokType.Id)]
+
+        [TestCase("0xFF)", TokType.HexOrBinaryNumber, TokType.Cbr)]
+        [TestCase("0xFF_01)", TokType.HexOrBinaryNumber, TokType.Cbr)]
+        [TestCase("0b001)", TokType.HexOrBinaryNumber, TokType.Cbr)]
+        [TestCase("0b001_0)", TokType.HexOrBinaryNumber, TokType.Cbr)]
+
+        [TestCase("(0xFF)",    TokType.Obr, TokType.HexOrBinaryNumber, TokType.Cbr)]
+        [TestCase("(0xFF_01)", TokType.Obr, TokType.HexOrBinaryNumber, TokType.Cbr)]
+        [TestCase("(0b001)",   TokType.Obr, TokType.HexOrBinaryNumber, TokType.Cbr)]
+        [TestCase("(0b001_0)", TokType.Obr, TokType.HexOrBinaryNumber, TokType.Cbr)]
+
+
+        [TestCase("0x", TokType.NotAToken)]
+        [TestCase("0b", TokType.NotAToken)]
+        [TestCase("0bFF", TokType.NotAToken)]
+        [TestCase("0xGG", TokType.NotAToken)]
+        [TestCase("0x.y", TokType.NotAToken, TokType.PipeForward, TokType.Id)]
+        [TestCase("0b.y", TokType.NotAToken, TokType.PipeForward, TokType.Id)]
+        [TestCase("0xGG.y", TokType.NotAToken, TokType.PipeForward, TokType.Id)]
+
+
+        [TestCase("0x)", TokType.NotAToken, TokType.Cbr)]
+        [TestCase("0b)", TokType.NotAToken, TokType.Cbr)]
+        [TestCase("0bFF)", TokType.NotAToken, TokType.Cbr)]
+        [TestCase("0xGG)", TokType.NotAToken, TokType.Cbr)]
+
+        [TestCase("(0x)",   TokType.Obr, TokType.NotAToken, TokType.Cbr)]
+        [TestCase("(0b)",   TokType.Obr, TokType.NotAToken, TokType.Cbr)]
+        [TestCase("(0bFF)", TokType.Obr, TokType.NotAToken, TokType.Cbr)]
+        [TestCase("(0xGG)", TokType.Obr, TokType.NotAToken, TokType.Cbr)]
+
         [TestCase("1y = x", TokType.NotAToken, TokType.Def, TokType.Id)]
         [TestCase("1y", TokType.NotAToken)]
         [TestCase("0.0f", TokType.NotAToken)]

@@ -1,5 +1,6 @@
 ﻿using System;
 using NFun.Tic.SolvingStates;
+using NFun.TypeInferenceCalculator.Errors;
 using NUnit.Framework;
 using Array = NFun.Tic.SolvingStates.Array;
 
@@ -221,17 +222,13 @@ namespace NFun.Tic.Tests
             graph.SetIntConst(2, Primitive.U8);
             graph.SetArith(1, 2, 3);
             graph.CreateLambda(3, 4, "la");
-            try
+            TestHelper.AssertThrowsTicError(() =>
             {
                 graph.SetMap(0, 4, 5);
                 graph.SetDef("x", 5);
                 graph.Solve();
                 Assert.Fail("Impossible equation solved");
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
+            });
         }
 
         [Test]
@@ -246,17 +243,13 @@ namespace NFun.Tic.Tests
             graph.SetIntConst(2, Primitive.U8);
             graph.SetArith(1, 2, 3);
             graph.CreateLambda(3, 4, "la");
-            try
+            TestHelper.AssertThrowsTicError(() =>
             {
                 graph.SetMap(0, 4, 5);
                 graph.SetDef("x", 5);
                 graph.Solve();
                 Assert.Fail("Impossible equation solved");
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
+            });
         }
         [Test]
         public void ArrayCycle_Solved()
@@ -283,16 +276,12 @@ namespace NFun.Tic.Tests
             var graph = new GraphBuilder();
             graph.SetVar("x", 0);
             graph.SetArrayInit(1,0);
-            try
+            TestHelper.AssertThrowsTicError(() =>
             {
                 graph.SetDef("x", 1);
                 graph.Solve();
                 Assert.Fail("Impossible equation solved");
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
+            });
         }
 
         [Test]
@@ -304,16 +293,12 @@ namespace NFun.Tic.Tests
             graph.SetVar("x", 0);
             graph.SetVar("x", 1);
             graph.SetArrayInit(2, 0,1);
-            try
+            TestHelper.AssertThrowsTicError(() =>
             {
                 graph.SetDef("x", 2);
                 graph.Solve();
                 Assert.Fail("Impossible equation solved");
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
+            });
         }
        [Test]
        public void Array_ComplexReqursiveDefenition_throws()
@@ -324,16 +309,12 @@ namespace NFun.Tic.Tests
            graph.SetVar("x", 0);
            graph.SetArrayInit(1, 0);
            graph.SetArrayInit(2, 1);
-           try
+           TestHelper.AssertThrowsTicError(() =>
            {
                graph.SetDef("x", 2);
                graph.Solve();
                Assert.Fail("Impossible equation solved");
-           }
-           catch (Exception e)
-           {
-               Console.WriteLine(e);
-           }
+           });
        }
         [Test]
         public void Array_ComplexReqursiveDefenition2_throws()
@@ -346,16 +327,12 @@ namespace NFun.Tic.Tests
             graph.SetVar("x", 2);
             graph.SetArrayInit(3, 2);
             graph.SetArrayInit(4, 1,3);
-            try
+            TestHelper.AssertThrowsTicError(() =>
             {
                 graph.SetDef("x", 4);
                 graph.Solve();
                 Assert.Fail("Impossible equation solved");
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
+            });
         }
     }
 }

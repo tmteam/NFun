@@ -1,6 +1,7 @@
 using System.Linq;
 using NFun;
 using NFun.ParseErrors;
+using NFun.TypeInferenceCalculator;
 using NFun.Types;
 using NUnit.Framework;
 
@@ -105,7 +106,6 @@ namespace Funny.Tests
             Assert.AreEqual(typeTo.ToLower(), runtime.Outputs.Single().Type.ToString().ToLower());
         }
 
-        [Ignore("errors")]
         [TestCase("int16", "uint8")]
         [TestCase("int32", "uint8")]
         [TestCase("int64", "uint8")]
@@ -160,11 +160,10 @@ namespace Funny.Tests
         [TestCase("real", "int64")]
         public void ObviousFails_ImplicitNumbersCast(string typeFrom, string typeTo)
         {
-            var expr = $"conv(a:{typeTo}):{typeTo} = a; x:{typeFrom}; y = conv(x)";
-            Assert.Throws<FunParseException>(() => FunBuilder.BuildDefault(expr));
+            Assert.Throws<FunParseException>(
+                () => FunBuilder.BuildDefault("x:{typefrom}; y:{typeTo} = x"));
         }
 
-        [Ignore("errors")]
         [TestCase("-1", "uint8")]
         [TestCase("-1", "uint16")]
         [TestCase("-1", "uint32")]
@@ -184,8 +183,9 @@ namespace Funny.Tests
         [TestCase("0x1_0000_0000", "uint32")]
         public void ObviousFails_NumberConstantImplicitCast(string constant, string typeTo)
         {
+            TraceLog.IsEnabled = true;
             var expr = $"customConvert(a:{typeTo}):{typeTo} = a; y = customConvert({constant})";
-            Assert.Throws<FunParseException>(() => FunBuilder.BuildDefault(expr));
+            Assert.Throws<FunParseException>(() => FunBuilder.BuildDefault(expr).Calculate());
         }
     }
 }

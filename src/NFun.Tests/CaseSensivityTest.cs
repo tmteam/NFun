@@ -26,8 +26,7 @@ namespace Funny.Tests
                     VarVal.New("y2", 5.0));
         }
 
-        [Ignore("errors")]
-        [TestCase("[1.0].fold((X,x)->x)")]
+        [TestCase("[1.0].reduce((X,x)->x)")]
         [TestCase("test = 2.0\r tESt = 3.0")]
         [TestCase("test = Sin(0.5)")]
         [TestCase("test = x * X")]

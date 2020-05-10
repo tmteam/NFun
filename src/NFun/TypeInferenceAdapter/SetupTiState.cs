@@ -40,7 +40,7 @@ namespace NFun.TypeInferenceAdapter
         public void ExitScope() 
             => _aliasTable.ExitVariableScope();
 
-        public void AddVariableAliase(string originName, string alias)
+        public bool AddVariableAliase(string originName, string alias)
             => _aliasTable.AddVariableAlias(originName, alias); 
         
         public bool HasAlias(string inputAlias) 

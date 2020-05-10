@@ -45,7 +45,7 @@ namespace NFun.Interpritation
             return true;
         }
         private static string GetOverloadName(string name, int argCount)
-            => name.ToLower() + " " + argCount;
+            => name + " " + argCount;
     }
     public interface IFunctionDicitionary
     {
@@ -63,7 +63,7 @@ namespace NFun.Interpritation
 
         public IList<IFunctionSignature> GetOverloads(string name)
         {
-            if (!_overloads.TryGetValue(name.ToLower(), out var signatures))
+            if (!_overloads.TryGetValue(name, out var signatures))
                 return new IFunctionSignature[0];
             return signatures;
         }
@@ -88,6 +88,6 @@ namespace NFun.Interpritation
         }
 
         private static string GetOverloadName(string name, int argCount) 
-            => name.ToLower() + " " + argCount;
+            => name + " " + argCount;
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using NFun.Tic.SolvingStates;
 using NFun.TypeInferenceCalculator;
+using NFun.TypeInferenceCalculator.Errors;
 using NUnit.Framework;
 using Array = NFun.Tic.SolvingStates.Array;
 
@@ -123,21 +124,15 @@ namespace NFun.Tic.Tests.Funs
             graph.SetConst(1, Primitive.Real);
             graph.SetArith(0,1, 2);
             graph.CreateLambda(2, 3, "lx");
-
             var generic = graph.InitializeVarNode();
-
-            try
+            TestHelper.AssertThrowsTicError(() =>
             {
                 // myFun(f(any):T ):T
-                graph.SetCall(new IState[] { Fun.Of(Primitive.Any, generic), generic }, new[] { 3, 4 });
+                graph.SetCall(new IState[] {Fun.Of(Primitive.Any, generic), generic}, new[] {3, 4});
                 graph.SetDef("y", 4);
                 graph.Solve();
                 Assert.Fail("Impossible equation solved");
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
+            });
         }
 
         [Test]

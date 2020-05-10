@@ -1,5 +1,6 @@
 ﻿using System;
 using NFun.Tic.SolvingStates;
+using NFun.TypeInferenceCalculator.Errors;
 using NUnit.Framework;
 using Array = NFun.Tic.SolvingStates.Array;
 
@@ -171,18 +172,13 @@ namespace NFun.Tic.Tests.Funs
             graph.SetVarType("lb", Primitive.I32);
             graph.SetVar("lb", 2);
             graph.SetArith(1, 2, 3);
-            try
+            TestHelper.AssertThrowsTicError(() =>
             {
                 graph.CreateLambda(3, 4, Primitive.I64, "la", "lb");
                 graph.SetReduceCall(0, 4, 5);
                 graph.SetDef("y", 5);
                 graph.Solve();
-                Assert.Fail("Impossible equation solved");
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
+            });
         }
 
     }

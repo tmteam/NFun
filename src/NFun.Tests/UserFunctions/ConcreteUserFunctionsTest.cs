@@ -57,9 +57,6 @@ namespace Funny.Tests.UserFunctions
         }
 
        
-        
-        
-        [Ignore("errors")]
         [TestCase("y = f(1)\r f(x) = g(x) \r g(x) = f(x)")]
         [TestCase("y = f(1)\r f(x) = g(x) \r g(x) = l(x)\r l(x) = f(x)")]
         [TestCase("y(1)=1")]
@@ -86,6 +83,8 @@ namespace Funny.Tests.UserFunctions
         [TestCase("y(,) = 2")]
         [TestCase("y(x) = 2*z")]
         [TestCase("y(x) = 2*y")]
+        [TestCase("y(x:int):int = 2*z")]
+        [TestCase("y(x:int):int = 2*y")]
         [TestCase("y(x)=")]        
         [TestCase("y(x)-1")]
         [TestCase("y:int(x)-1")]

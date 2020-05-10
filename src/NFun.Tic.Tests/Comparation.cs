@@ -1,5 +1,6 @@
 ﻿using System;
 using NFun.Tic.SolvingStates;
+using NFun.TypeInferenceCalculator.Errors;
 using NUnit.Framework;
 
 namespace NFun.Tic.Tests
@@ -89,8 +90,7 @@ namespace NFun.Tic.Tests
             var graph = new GraphBuilder();
             graph.SetConst(0, Primitive.Real);
             graph.SetConst(1, Primitive.Char);
-
-            Assert.Throws<InvalidOperationException>(() =>
+            TestHelper.AssertThrowsTicError(() =>
             {
                 graph.SetComparable(0, 1, 2);
                 graph.SetDef("y", 2);
@@ -109,7 +109,7 @@ namespace NFun.Tic.Tests
             graph.SetConst(0, Primitive.Char);
             graph.SetConst(1, Primitive.Real);
 
-            Assert.Throws<InvalidOperationException>(() =>
+            TestHelper.AssertThrowsTicError(() =>
             {
                 graph.SetComparable(0, 1, 2);
                 graph.SetDef("y", 2);

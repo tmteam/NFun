@@ -256,7 +256,6 @@ namespace Funny.Tests
             Assert.AreEqual(VarType.PrimitiveOf(ztype),z.Type,"z");
         }
 
-        [Ignore("errors")]
         [TestCase("x:foo\r y= x and true")]
         [TestCase("x::foo\r y= x and true")]
         [TestCase("x:real[\r y= x")]
@@ -331,7 +330,7 @@ namespace Funny.Tests
             Assert.AreEqual(y, res.Results.First().Value);   
         }
 
-        [Ignore("reqursive")]
+
         [TestCase("y(x) = y(x)")]
         [TestCase("y(x):int = y(x)")]
         [TestCase("y(x:int) = y(x)")]

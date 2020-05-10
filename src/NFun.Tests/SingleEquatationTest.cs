@@ -202,7 +202,6 @@ namespace Funny.Tests
         public void AnonymousExpressionSingleVariableEquatation(string expr, double arg, object expected) 
             => FunBuilder.BuildDefault(expr).Calculate(VarVal.New("x", arg)).AssertOutEquals(expected);
 
-        [Ignore("errors")]
         [TestCase("y = ()")]
         [TestCase("y = )")]
         [TestCase("y = )*2")]

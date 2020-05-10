@@ -35,7 +35,7 @@ namespace NFun.TypeInferenceAdapter
                     case Constrains constrains when !constrains.HasAncestor:
                         {
                             if (constrains.IsComparable)
-                                throw new NotImplementedException();
+                                return VarType.Real;
                             return VarType.Anything;
                         }
 
