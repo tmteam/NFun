@@ -55,7 +55,7 @@ namespace NFun.Tic
             if (stateB is RefTo)
                 return GetMergedStateOrNull(stateB, stateA);
 
-            throw new NotSupportedException();
+            return null;
         }
 
 

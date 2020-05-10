@@ -41,7 +41,7 @@
 | TEST req simple fibonacci 
 | TAGS req user-function
 |************************  
-| in  n:int[]
+| in  n:real[]
 | out  res:int[] 
 |------------------------
  fib(n) = 

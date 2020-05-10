@@ -7,6 +7,37 @@ using NFun.Types;
 
 namespace NFun.BuiltInFunctions
 {
+    public class LastFunction : GenericFunctionBase
+    {
+        public LastFunction() : base("last",
+            VarType.Generic(0),
+            VarType.ArrayOf(VarType.Generic(0)))
+        {
+        }
+
+        public override object Calc(object[] args)
+        {
+            var arr = (IFunArray) args[0];
+            var ans = arr.GetElementOrNull(arr.Count-1);
+            return ans ?? throw new FunRuntimeException("Array is empty");
+
+        }
+    }
+    public class FirstFunction : GenericFunctionBase
+    {
+        public FirstFunction() : base("first",
+            VarType.Generic(0),
+            VarType.ArrayOf(VarType.Generic(0)))
+        {
+        }
+
+        public override object Calc(object[] args)
+        {
+            var arr = (IFunArray)args[0];
+            var ans =  arr.GetElementOrNull(0);
+            return ans ?? throw new FunRuntimeException("Array is empty");
+        }
+    }
     public class MapFunction : GenericFunctionBase
     {
         public MapFunction() : base("map",

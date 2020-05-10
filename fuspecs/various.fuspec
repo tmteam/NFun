@@ -79,7 +79,7 @@
   swap(arr, i, j) 
     = arr.twiceSet(i,j,arr[j], arr[i])
   
-  swapIfNotSorted(arr, i)
+  swapIfNotSorted(c, i)
   	=	if   (c[i]<c[i+1]) c
   		else c.swap(i, i+1)
 
@@ -121,26 +121,6 @@
 | check res:100
 
 
-|****************************************
-| TEST custom foreachi with custom hi-order
-| TAGS arrays user-function hi-order
-|************************  
-| in    t:int[]
-| out res:int
-|---------------------
- foreachi(init, f)
-    = [0..init.count()-1].reduce(init, f)
-
- arrmax(acc,i)= if (acc>t[i]) acc else t[i]
- 
- res:int =  t.foreachi(arrmax)
-|---------------------
-| set t:[5,2,3,7,3,4,7]
-| check res:7
-| set t:[11,100,3]
-| check res:100
-
-
 
 |****************************************
 | TEST fold fibonacci 
@@ -167,8 +147,8 @@
 | TEST Golden ratio 
 | TAGS user-function
 |************************  
-| in   n:int[]
-| out  res:int[] 
+| in   n:int
+| out  res:bool 
 |------------------------
  fibvals(n) = 
  	if(n<=1) [0,1]
@@ -179,9 +159,9 @@
 
  goldenRatio(n) = div(fibvals(n)) 
 
- res = (goldenRatio(i) - 1.61803398875).abs() < 0.001
+ res = (goldenRatio(n) - 1.61803398875).abs() < 0.001
 |---------------------
-| set     i:100
+| set     n:100
 | check res:true
 
 
@@ -379,7 +359,7 @@ newCount = if (not done) x+1 else x
 |************************  
   maxOfArray(t)  = t.reduce(max)
   maxInRows(t)   = t.map(maxOfArray)
-  maxOfMatrix(t) = t.maxOfArray()
+  maxOfMatrix(t) = t.maxInRows().maxOfArray()
 
   origin = [
               [12,05,06],
@@ -425,7 +405,7 @@ newCount = if (not done) x+1 else x
 | TEST max of cube with super hi order function  
 | TAGS array generics hi order                        
 |************************  
-  g(arr,f) = t.map(f).max()
+  g(arr,f) = arr.map(f).max()
 
   origin =[
              [
@@ -445,7 +425,7 @@ newCount = if (not done) x+1 else x
              ]
           ] 
 
-  res = origin.g(i->g(max))
+  res = origin.g(i->g(i,max))
 
 |---------------------
 | check res: 100 
@@ -457,8 +437,10 @@ newCount = if (not done) x+1 else x
 |************************  
   maxOfArray(t)  = t.reduce(max)
   maxInRows(t)   = t.map(maxOfArray)
-  maxOfMatrix(t) = t.maxOfArray()
-  maxOfCube(t)   = t.map(maxOfMatrix).max()
+  maxOfMatrix(t) = 
+        t.maxInRows().maxOfArray()
+  maxOfCube(t)   = 
+        t.map(maxOfMatrix).max()
 
  origin =[
              [

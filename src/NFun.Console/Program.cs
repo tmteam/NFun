@@ -14,13 +14,6 @@ namespace Funny
 
         static void Main(string[] args)
         {
-
-            FunBuilder.BuildDefault("y(x:int):int = 2*z");
-
-            //FunBuilder.BuildDefault("y(x) = 2*z");
-
-            throw new InvalidOperationException();
-
             Console.WriteLine("Let's make some fun.");
             Console.WriteLine("Type an expression or '/exit' to return");
             

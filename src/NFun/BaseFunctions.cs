@@ -64,6 +64,8 @@ namespace NFun
             new FlatGenericFunctionDefenition(),
             new ChunkGenericFunctionDefenition(),
             new MapFunction(),
+            new LastFunction(),
+            new FirstFunction(),
             new AllGenericFunctionDefenition(),
             new HasAnyGenericFunctionDefenition(),
             new AnyGenericFunctionDefenition(),
