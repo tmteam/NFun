@@ -9,6 +9,7 @@ using NFun.SyntaxParsing.Visitors;
 using NFun.Tic;
 using NFun.TypeInferenceAdapter;
 using NFun.TypeInferenceCalculator;
+using NFun.TypeInferenceCalculator.Errors;
 
 namespace NFun.Interpritation
 {
@@ -139,18 +140,26 @@ namespace NFun.Interpritation
 
             ////introduce function variable
             var graphBuider = new GraphBuilder();
-
-            //setup body type inference
             var resultsBuilder = new TypeInferenceResultsBuilder();
-            if (!LangTiHelper.SetupTiOrNull(
-                functionSyntaxNode,
-                functionsDictionary,
-                resultsBuilder,
-                new SetupTiState(graphBuider)))
-                throw FunParseException.ErrorStubToDo($"Function '{functionSyntaxNode.Id}' is not solved");
+            FinalizationResults types;
 
-            // solve the types
-            var types = graphBuider.Solve();
+            try
+            {
+                //setup body type inference
+                if (!LangTiHelper.SetupTiOrNull(
+                    functionSyntaxNode,
+                    functionsDictionary,
+                    resultsBuilder,
+                    new SetupTiState(graphBuider)))
+                    throw FunParseException.ErrorStubToDo($"Function '{functionSyntaxNode.Id}' is not solved");
+
+                // solve the types
+                types = graphBuider.Solve();
+            }
+            catch (TicException e) {
+                throw FunParseException.ErrorStubToDo($"Types not solved. {e}");
+            }
+
             resultsBuilder.SetResults(types);
             var typeInferenceResuls = resultsBuilder.Build();
 

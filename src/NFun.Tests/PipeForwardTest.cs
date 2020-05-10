@@ -48,7 +48,7 @@ namespace Funny.Tests
             runtime.Calculate()
                 .AssertReturns(VarVal.New("y", expected));
         }
-        [Ignore("errors")]
+
         [TestCase(@"f(x:int):int = x*x y = 4.f)")]
         [TestCase(@"f(x:int):int = x*x y = 4.f( == f(4)")]
         [TestCase(@"f(x:int):int = x*x y = 4.f(,) == f(4)")]

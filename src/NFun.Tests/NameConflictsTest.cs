@@ -29,7 +29,7 @@ namespace Funny.Tests
             => FunBuilder.BuildDefault(expr)
                 .Calculate(VarVal.New(iname, ival))
                 .AssertHas(VarVal.New(oname, oval));
-        [Ignore("errors")]
+
         [TestCase("y = min*3 ")]
         [TestCase("max*3 ")]
         [TestCase("foo(x) = x +1\r y=foo*3 ")]

@@ -428,7 +428,6 @@ namespace Funny.Tests
             runtime.Calculate(VarVal.New("x", arg))
                 .AssertReturns(0.00001, VarVal.New("y", expected));
         }
-        [Ignore("errors")]
         [TestCase("y = pi(")]
         [TestCase("y = pi(1)")]
         [TestCase("y = abs(")]

@@ -224,7 +224,6 @@ filtrat   = x.filter(i:int ->i> filt) # filt - входная переменна
                 }
             }
         }
-        [Ignore("errors")]
         [TestCase("y = [")]
         [TestCase("y = [,]")]
         [TestCase("y = [,1.0]")]

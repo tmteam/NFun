@@ -105,7 +105,6 @@ namespace Funny.Tests
             Assert.AreEqual(typeTo.ToLower(), runtime.Outputs.Single().Type.ToString().ToLower());
         }
 
-        [Ignore("errors")]
         [TestCase("int16", "uint8")]
         [TestCase("int32", "uint8")]
         [TestCase("int64", "uint8")]
@@ -160,11 +159,10 @@ namespace Funny.Tests
         [TestCase("real", "int64")]
         public void ObviousFails_ImplicitNumbersCast(string typeFrom, string typeTo)
         {
-            var expr = $"conv(a:{typeTo}):{typeTo} = a; x:{typeFrom}; y = conv(x)";
-            Assert.Throws<FunParseException>(() => FunBuilder.BuildDefault(expr));
+            Assert.Throws<FunParseException>(
+                () => FunBuilder.BuildDefault("x:{typefrom}; y:{typeTo} = x"));
         }
 
-        [Ignore("errors")]
         [TestCase("-1", "uint8")]
         [TestCase("-1", "uint16")]
         [TestCase("-1", "uint32")]

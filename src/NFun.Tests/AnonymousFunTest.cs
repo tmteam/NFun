@@ -84,7 +84,6 @@ namespace Funny.Tests
                     VarVal.New("z", zExpected));
 
         }
-        [Ignore("errors")]
         [TestCase("y = [1.0].reduce(((i,j)->i+j)")]
         [TestCase("y = reduce(((i,j),k)->i+j)")]
         [TestCase( @"y = [1.0,2.0,3.0].reduce((i*2,j)->i+j)")]

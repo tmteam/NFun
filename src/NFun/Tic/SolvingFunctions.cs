@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
+using NFun.Tic.Errors;
 using NFun.Tic.SolvingStates;
-using NFun.TypeInferenceCalculator.Errors;
 using Array = NFun.Tic.SolvingStates.Array;
 
 namespace NFun.Tic

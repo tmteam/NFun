@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using NFun.Tic.Errors;
 using NFun.Tic.SolvingStates;
 using NFun.Tic.Toposort;
 using NFun.TypeInferenceCalculator;
@@ -480,7 +481,7 @@ namespace NFun.Tic
         {
             var node = GetOrCreateNode(id);
             if (!node.TryBecomeConcrete(type))
-                throw TicErrors.CannotBecome(node, type);
+                throw TicErrors.CannotSetState(node, type);
         }
 
         private SolvingNode GetOrCreateArrayNode(int id, SolvingNode elementType)

@@ -110,7 +110,6 @@ else 'not supported' ", 2, "two")]
             Assert.AreEqual(1, res.Results.Length);
             Assert.AreEqual(expected, res.Results.First().Value);
         }
-        [Ignore("errors")]
         [TestCase("y = if (3) else 4")]
         [TestCase("y = if 1 3")]
         [TestCase("y = if true then 3")]

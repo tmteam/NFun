@@ -174,7 +174,7 @@ namespace Funny.Tests
                     VarVal.New("o8", false)
                     );
         }
-        [Ignore("errors")]
+
         [TestCase("o1 = o2\r o2=o1")]
         [TestCase("o1 = o3\r o2 = o1\r o3 = o2")]
         [TestCase("o0 = 3\r o1 = o3+o0\r o2 = o1\r o3 = o2")]
@@ -182,7 +182,6 @@ namespace Funny.Tests
         [TestCase("set a=4")]
         [TestCase("y1 = 3 y2 = 4")]
         [TestCase("y1 = 3 y1 = 4")]
-
         public void ObviouslyFails(string expr)
         {
             Assert.Throws<FunParseException>(()=> FunBuilder.BuildDefault(expr));
