@@ -38,6 +38,18 @@ namespace NFun.BuiltInFunctions
             return ans ?? throw new FunRuntimeException("Array is empty");
         }
     }
+
+    public class CountFunction : GenericFunctionBase
+    {
+        public CountFunction() : base("count",
+            VarType.Int32,
+            VarType.ArrayOf(VarType.Generic(0)))
+        {
+        }
+
+        public override object Calc(object[] args)
+            => ((IFunArray)args[0]).Count;
+    }
     public class MapFunction : GenericFunctionBase
     {
         public MapFunction() : base("map",
@@ -635,7 +647,7 @@ namespace NFun.BuiltInFunctions
                 throw new FunRuntimeException("Argument out of range");
             if(index>arr.Count+1)
                 throw new FunRuntimeException("Argument out of range");
-            var val = args.Get<int>(2);
+            var val = args[2];
 
             var newArr = arr.ToArray();
             newArr[index] = val;

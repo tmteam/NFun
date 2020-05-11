@@ -1,8 +1,10 @@
+using System.Linq;
 using NFun.Interpritation;
 using NFun.ParseErrors;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tic.SolvingStates;
+using NFun.TypeInferenceCalculator;
 using NFun.Types;
 
 namespace NFun.TypeInferenceAdapter
@@ -67,7 +69,7 @@ namespace NFun.TypeInferenceAdapter
             if (node.ReturnType != VarType.Empty)
                 returnType = (IType)node.ReturnType.ConvertToTiType();
             
-
+            TraceLog.WriteLine($"Enter {node.OrderNumber}. UFun {node.Id}({string.Join(",",argNames)})->{node.Body.OrderNumber}:{returnType?.ToString()??"empty"}");
             var fun =_setupTiState.CurrentSolver.SetFunDef(
                 name: node.Id+"'"+ node.Args.Count, 
                 returnId: node.Body.OrderNumber, 

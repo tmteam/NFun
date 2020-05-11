@@ -176,7 +176,7 @@ namespace Funny.Tests
                           # run thru array 
                           # and swap every unsorted values
                           onelineSort(input) =  
-  	                        [0..input.count()-1].reduce(input, swapIfNotSorted)		
+  	                        [0..input.count()-2].reduce(input, swapIfNotSorted)		
 
                           bubbleSort(input)=
   	                        [0..input.count()-1]

@@ -152,6 +152,21 @@ namespace NFun.Tic
                 generic
             }, new[] { arrId, funId, returnId });
         }
+
+        public static void SetSizeOfArrayCall(this GraphBuilder graph, int argId, int resId)
+        {
+            var tOfCount = graph.InitializeVarNode();
+            //count
+            graph.SetCall(new IState[] { Array.Of(tOfCount), Primitive.I32 }, new[] { argId, resId });
+        }
+
+        public static void SetRangeCall(this GraphBuilder graph, int fromId, int toId, int resId)
+        {
+            var generic = graph.InitializeVarNode(anc: Primitive.I48);
+            //range
+            graph.SetCall(new IState[] { generic, generic, Array.Of(generic) }, new[] { fromId, toId, resId });
+
+        }
         public static void SetReduceCall(this GraphBuilder graph, int arrId, int defId, int funId, int resId)
         {
             var tRes = graph.InitializeVarNode();

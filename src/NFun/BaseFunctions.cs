@@ -66,6 +66,7 @@ namespace NFun
             new MapFunction(),
             new LastFunction(),
             new FirstFunction(),
+            new CountFunction(),
             new AllGenericFunctionDefenition(),
             new HasAnyGenericFunctionDefenition(),
             new AnyGenericFunctionDefenition(),
@@ -156,7 +157,6 @@ namespace NFun
 
             //new EFunction(),
             //new PiFunction(),
-            new CountFunction(),
             new AverageFunction(),
             //new SortTextFunction(),
             new TrimFunction(),
