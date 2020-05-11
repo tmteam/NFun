@@ -76,28 +76,28 @@ namespace Nfun.ModuleTests.UnitTests
         public void TwoComplexHiOrderEqualFunTypes_Equals_ReturnsTrue()
         {
             var typeA = VarType.Fun(
-                outputType: VarType.ArrayOf(VarType.Fun(VarType.Int32, VarType.Text)),
+                returnType: VarType.ArrayOf(VarType.Fun(VarType.Int32, VarType.Text)),
                 inputTypes: 
                         new []{
                             VarType.ArrayOf(VarType.Anything),
                             VarType.Fun(
-                                outputType: VarType.ArrayOf(VarType.Real), 
+                                returnType: VarType.ArrayOf(VarType.Real), 
                                 inputTypes: VarType.Fun(
-                                                outputType: VarType.Fun(
-                                                                outputType: VarType.ArrayOf(VarType.Bool),
+                                                returnType: VarType.Fun(
+                                                                returnType: VarType.ArrayOf(VarType.Bool),
                                                                 inputTypes: VarType.Bool),
                                                 inputTypes: VarType.Text))
                             });
             var typeB = VarType.Fun(
-                outputType: VarType.ArrayOf(VarType.Fun(VarType.Int32, VarType.Text)),
+                returnType: VarType.ArrayOf(VarType.Fun(VarType.Int32, VarType.Text)),
                 inputTypes: 
                 new []{
                     VarType.ArrayOf(VarType.Anything),
                     VarType.Fun(
-                        outputType: VarType.ArrayOf(VarType.Real), 
+                        returnType: VarType.ArrayOf(VarType.Real), 
                         inputTypes: VarType.Fun(
-                            outputType: VarType.Fun(
-                                outputType: VarType.ArrayOf(VarType.Bool),
+                            returnType: VarType.Fun(
+                                returnType: VarType.ArrayOf(VarType.Bool),
                                 inputTypes: VarType.Bool),
                             inputTypes: VarType.Text))
                 });

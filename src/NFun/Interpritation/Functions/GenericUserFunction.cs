@@ -39,6 +39,7 @@ namespace NFun.Interpritation.Functions
             if (TraceLog.IsEnabled)
             {
                 TraceLog.WriteLine($"CREATE GENERIC FUN {syntaxNode.Id}({string.Join(",",argTypes)}):{retType}");
+                TraceLog.WriteLine($"    ...where {string.Join(", ", langConstrains)}");
             }
             var function =  new GenericUserFunction(typeInferenceResults, syntaxNode, dictionary, langConstrains, retType, argTypes);
             return function;

@@ -154,7 +154,7 @@ namespace NFun.Tic
 
         }
 
-        public RefTo SetArrayInit(int resultIds, params int[] elementIds)
+        public RefTo SetStrictArrayInit(int resultIds, params int[] elementIds)
         {
             var elementType = CreateVarType();
             var resultNode = GetOrCreateArrayNode(resultIds, elementType);
@@ -162,6 +162,18 @@ namespace NFun.Tic
             foreach (var id in elementIds)
             {
                 elementType.BecomeReferenceFor(GetOrCreateNode(id));
+                elementType.MemberOf.Add(resultNode);
+            }
+            return new RefTo(elementType);
+        }
+        public RefTo SetSoftArrayInit(int resultIds, params int[] elementIds)
+        {
+            var elementType = CreateVarType();
+            var resultNode = GetOrCreateArrayNode(resultIds, elementType);
+
+            foreach (var id in elementIds)
+            {
+                elementType.BecomeAncestorFor(GetOrCreateNode(id));
                 elementType.MemberOf.Add(resultNode);
             }
             return new RefTo(elementType);

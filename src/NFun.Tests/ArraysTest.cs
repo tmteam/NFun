@@ -80,7 +80,7 @@ namespace Funny.Tests
             FunBuilder.BuildDefault(expr).Calculate().AssertHas(VarVal.New("y", expected));
         }
         
-        
+        [TestCase("[1,'2',3.0,4,5.2, true, false, 7.2]",new object[]{1.0,"2",3.0,4.0,5.2,true,false,7.2})]
         [TestCase("if (true) [1.0] else [2.0, 3.0] ", new[]{1.0})]
         [TestCase("if (false) [1.0] else [2.0, 3.0]", new[]{2.0,3.0})]
         [TestCase ("y(x) = x \r[1]",new[]{1.0})]
@@ -98,6 +98,7 @@ namespace Funny.Tests
 
             FunBuilder.BuildDefault(expression).Calculate().AssertReturns(VarVal.New("y", expected));
         }
+        
 
         [TestCase(3, "y= [1..x]", new[] {1, 2, 3})]
         [TestCase(3, "y= [x..7]", new[] {3, 4, 5, 6, 7})]

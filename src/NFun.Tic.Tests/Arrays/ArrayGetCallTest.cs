@@ -32,7 +32,7 @@ namespace NFun.Tic.Tests.Arrays
             var graph = new GraphBuilder();
             graph.SetIntConst(0, Primitive.U8);
             graph.SetIntConst(1, Primitive.I16);
-            graph.SetArrayInit(2, 0, 1);
+            graph.SetStrictArrayInit(2, 0, 1);
             graph.SetConst(3, Primitive.I32);
             graph.SetArrGetCall(2, 3, 4);
             graph.SetDef("y", 4);

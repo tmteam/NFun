@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Security.Cryptography;
 using NFun.ParseErrors;
 using NFun.Tic.SolvingStates;
 using NFun.Types;
@@ -11,6 +12,12 @@ namespace NFun.Interpritation.Functions
         public readonly Primitive Ancestor;
         public readonly Primitive Descendant;
         public bool IsComparable;
+        public override string ToString()
+        {
+            if (Ancestor == null && Descendant == null && IsComparable)
+                return "<>";
+            return $"[{Descendant}..{Ancestor}]" + (IsComparable ? "<>" : "");
+        }
 
         public static readonly GenericConstrains Comparable =new GenericConstrains(null,null,true);
         public static readonly GenericConstrains Any 

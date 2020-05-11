@@ -261,7 +261,7 @@ namespace NFun.Tic.Tests
             graph.SetIntConst(1, Primitive.U8);
             graph.SetArrGetCall(0,1,2);
             graph.SetIntConst(3, Primitive.U8);
-            graph.SetArrayInit(4,2, 3);
+            graph.SetStrictArrayInit(4,2, 3);
             graph.SetDef("x", 4);
             var res = graph.Solve();
             
@@ -275,7 +275,7 @@ namespace NFun.Tic.Tests
             //x = [ x]
             var graph = new GraphBuilder();
             graph.SetVar("x", 0);
-            graph.SetArrayInit(1,0);
+            graph.SetStrictArrayInit(1,0);
             TestHelper.AssertThrowsTicError(() =>
             {
                 graph.SetDef("x", 1);
@@ -292,7 +292,7 @@ namespace NFun.Tic.Tests
             var graph = new GraphBuilder();
             graph.SetVar("x", 0);
             graph.SetVar("x", 1);
-            graph.SetArrayInit(2, 0,1);
+            graph.SetStrictArrayInit(2, 0,1);
             TestHelper.AssertThrowsTicError(() =>
             {
                 graph.SetDef("x", 2);
@@ -307,8 +307,8 @@ namespace NFun.Tic.Tests
            //x = [ [ x]]
            var graph = new GraphBuilder();
            graph.SetVar("x", 0);
-           graph.SetArrayInit(1, 0);
-           graph.SetArrayInit(2, 1);
+           graph.SetStrictArrayInit(1, 0);
+           graph.SetStrictArrayInit(2, 1);
            TestHelper.AssertThrowsTicError(() =>
            {
                graph.SetDef("x", 2);
@@ -323,10 +323,10 @@ namespace NFun.Tic.Tests
             //x = [ [ a],[ x]]
             var graph = new GraphBuilder();
             graph.SetVar("a",0);
-            graph.SetArrayInit(1, 0);
+            graph.SetStrictArrayInit(1, 0);
             graph.SetVar("x", 2);
-            graph.SetArrayInit(3, 2);
-            graph.SetArrayInit(4, 1,3);
+            graph.SetStrictArrayInit(3, 2);
+            graph.SetStrictArrayInit(4, 1,3);
             TestHelper.AssertThrowsTicError(() =>
             {
                 graph.SetDef("x", 4);

@@ -704,7 +704,7 @@ namespace NFun.BuiltInFunctions
     }
     public class ReduceGenericFunctionDefenition : GenericFunctionBase
     {
-        public ReduceGenericFunctionDefenition() : base("reduce", 
+        public ReduceGenericFunctionDefenition() : base("reduce",new [] {GenericConstrains.Any}, 
             VarType.Generic(0),
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.Fun(VarType.Generic(0), VarType.Generic(0), VarType.Generic(0)))
@@ -726,13 +726,12 @@ namespace NFun.BuiltInFunctions
     public class ReduceWithDefaultsGenericFunctionDefenition : GenericFunctionBase
     {
         public ReduceWithDefaultsGenericFunctionDefenition() : base("reduce", 
-            VarType.Generic(1),
+            returnType: VarType.Generic(1),
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.Generic(1),
-            VarType.Fun(VarType.Generic(1), VarType.Generic(1), VarType.Generic(0)))
-        {
-        }
-
+            VarType.Fun(
+                    returnType: VarType.Generic(1), VarType.Generic(1), VarType.Generic(0)))
+        {}
         public override object Calc(object[] args)
         {
             var arr = (IFunArray)args[0];

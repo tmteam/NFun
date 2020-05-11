@@ -33,8 +33,8 @@ namespace NFun.Types
         
         public static VarType ArrayOf(VarType type) => new VarType(type);
 
-        public static VarType Fun(VarType outputType, params VarType[] inputTypes)
-            => new VarType(output: outputType, inputs: inputTypes);
+        public static VarType Fun(VarType returnType, params VarType[] inputTypes)
+            => new VarType(output: returnType, inputs: inputTypes);
 
         public static VarType Generic(int genericId) => new VarType(genericId);
 

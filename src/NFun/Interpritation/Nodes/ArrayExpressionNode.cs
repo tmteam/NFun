@@ -16,17 +16,6 @@ namespace NFun.Interpritation.Nodes
             Type = type;
             _elements = elements;
             Interval = interval;
-            if (elements.Any())
-            {
-                var elementType = elements[0].Type;
-
-                for (int i = 1; i < elements.Length; i++)
-                {
-                    var iType = elements[i].Type;
-                    if (iType != elementType)
-                        throw ErrorFactory.VariousArrayElementTypes(elements, i);
-                }
-            }
         }
         public Interval Interval { get; }
         public VarType Type { get; }

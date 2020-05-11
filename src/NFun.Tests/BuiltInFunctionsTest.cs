@@ -217,7 +217,10 @@ namespace Funny.Tests
         [TestCase("['a'].any()", true)]
         [TestCase("[1..10].filter(i->i>3).any()", true)]
         [TestCase("[1..10].filter(i->i>10).any()", false)]
-
+        [TestCase("[1,2,3,4].reduce((acc,cur)->acc+cur)", 10.0)]
+        [TestCase("[1,2,3,4].reduce(0,(acc,cur)->acc+cur)", 10.0)]
+        [TestCase("[1,2,3,4].reduce(-10,(acc,cur)->acc+cur)", 0.0)]
+        [TestCase("[1,2,3,4].reduce('',(acc,cur)->'{acc}{cur}')", "1234")]
         [TestCase("any([])",false)]
         [TestCase("[0x4,0x3,0x5,0x1].sort()",new []{1,3,4,5})]
         [TestCase("[4.0,3.0,5.0,1.0].sort()",new []{1.0,3.0,4.0,5.0})]

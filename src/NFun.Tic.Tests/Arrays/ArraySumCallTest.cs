@@ -31,7 +31,7 @@ namespace NFun.Tic.Tests.Arrays
             var graph = new GraphBuilder();
             graph.SetIntConst(0, Primitive.U8);
             graph.SetIntConst(1, Primitive.I16);
-            graph.SetArrayInit(2, 0, 1);
+            graph.SetStrictArrayInit(2, 0, 1);
             graph.SetSumCall(2,3);
             graph.SetDef("y", 3);
             var result = graph.Solve();

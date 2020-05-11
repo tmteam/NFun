@@ -34,19 +34,11 @@ namespace NFun.TypeInferenceAdapter
         {
             var elementIds = node.Expressions.Select(e => e.OrderNumber).ToArray();
             Trace(node, $"[{string.Join(",", elementIds)}]");
-            _state.CurrentSolver.SetArrayInit(
+            _state.CurrentSolver.SetSoftArrayInit(
                 node.OrderNumber,
                 node.Expressions.Select(e => e.OrderNumber).ToArray()
             );
             return true;
-            //var res =  _state.CurrentSolver.SetArrayInit(node.OrderNumber,
-            //    node.Expressions.Select(e => e.OrderNumber).ToArray());
-            //if (res.IsSuccesfully)
-            //    return true;
-            //if (res.FailedNodeId == node.OrderNumber)
-            //    throw ErrorFactory.TypesNotSolved(node);
-            //var failedItem = node.Children.First(c => c.OrderNumber == res.FailedNodeId);
-            //throw ErrorFactory.VariousArrayElementTypes(failedItem);
         }
 
         public override bool Visit(UserFunctionDefenitionSyntaxNode node) => true;
