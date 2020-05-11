@@ -16,6 +16,22 @@ namespace NFun.Interpritation
             _originalDictionary = originalDictionary;
         }
 
+        public IList<IFunctionSignature> SearchAllFunctionsIgnoreCase(string name, int argCount)
+        {
+            var lowerName = GetOverloadName(name.ToLower(), argCount);
+            var results = new List<IFunctionSignature>();
+            foreach (var function in _functions)
+            {
+                if (function.Key.ToLower() == lowerName)
+                {
+                    results.Add(function.Value);
+                }
+            }
+            if(results.Any())
+                return results;
+            return _originalDictionary.SearchAllFunctionsIgnoreCase(name, argCount);
+        }
+
         public IList<IFunctionSignature> GetOverloads(string name)
         {
             var origins = _originalDictionary.GetOverloads(name);
@@ -49,6 +65,8 @@ namespace NFun.Interpritation
     }
     public interface IFunctionDicitionary
     {
+        IList<IFunctionSignature> SearchAllFunctionsIgnoreCase(string name, int argCount);
+
         IList<IFunctionSignature> GetOverloads(string name);
         IFunctionSignature GetOrNull(string name, int argCount);
     }
@@ -60,6 +78,20 @@ namespace NFun.Interpritation
 
         private readonly Dictionary<string, List<IFunctionSignature>> _overloads
             = new Dictionary<string, List<IFunctionSignature>>();
+
+        public IList<IFunctionSignature> SearchAllFunctionsIgnoreCase(string name, int argCount)
+        {
+            var lowerName = GetOverloadName(name.ToLower(),argCount);
+            var results = new List<IFunctionSignature>();
+            foreach (var function in _functions)
+            {
+                if (function.Key.ToLower() == lowerName) {
+                    results.Add(function.Value);
+                }
+            }
+
+            return results;
+        }
 
         public IList<IFunctionSignature> GetOverloads(string name)
         {

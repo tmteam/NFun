@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using NFun.Interpritation;
 using NFun.Interpritation.Functions;
 using NFun.Interpritation.Nodes;
@@ -454,18 +455,17 @@ namespace NFun.ParseErrors
         public static Exception CannotParseNumber(string val, Interval interval)
             => new FunParseException(530, $"Cannot parse number '{val}'", interval);
 
-        public static Exception FunctionOverloadNotFound(FunCallSyntaxNode node, IFunctionDicitionary functions)    {
-            
-            return new FunParseException(533,
-                $"Function {TypeHelper.GetFunSignature(node.Id,node.OutputType, node.Children.Select(c=>c.OutputType))} is not defined",
-                node.Interval);
-        }
-        public static Exception FunctionOverloadNotFound(VariableSyntaxNode node, IFunctionDicitionary functions)
+        public static Exception FunctionOverloadNotFound(FunCallSyntaxNode node, IFunctionDicitionary functions)
         {
-
-            return new FunParseException(533,
-                $"Function {TypeHelper.GetFunSignature(node.Id, node.OutputType, node.Children.Select(c => c.OutputType))} is not defined",
-                node.Interval);
+            var candidates =  functions.SearchAllFunctionsIgnoreCase(node.Id, node.Args.Length);
+            StringBuilder msg = new StringBuilder($"Function '{node.Id}({string.Join(",", node.Args.Select(a => "_"))})' is not found. ");
+            if (candidates.Any())
+            {
+                var candidate = candidates.First();
+                msg.Append(
+                    $"\r\nDid you mean function '{TypeHelper.GetFunSignature(candidate.Name, candidate.ReturnType, candidate.ArgTypes)}' ?");
+            }
+            return new FunParseException(533,msg.ToString(),node.Interval);
         }
 
         public static Exception OperatorOverloadNotFound(FunCallSyntaxNode node, ISyntaxNode failedArg)

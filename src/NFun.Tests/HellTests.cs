@@ -51,6 +51,13 @@ namespace Funny.Tests
         }
 
         [Test]
+        public void ConcatExperiments()
+        {
+            var expr = "'res: '.concat((n >5).toText())";
+            FunBuilder.BuildDefault(expr).Calculate(VarVal.New("n",1.0)).AssertOutEquals("res: False");
+        }
+
+        [Test]
 
         public void SomeFun3()
         {
@@ -160,37 +167,6 @@ namespace Funny.Tests
 
         }
 
-        [Test]
-        public void BubbleSort()
-        {
-            var expr = @"twiceSet(arr,i,j,ival,jval)
-  	                        = arr.set(i,ival).set(j,jval)
-
-                          swap(arr, i, j) 
-                            = arr.twiceSet(i,j,arr[j], arr[i])
-                          
-                          swapIfNotSorted(c, i)
-  	                        =	if   (c[i]<c[i+1]) c
-  		                        else c.swap(i, i+1)
-
-                          # run thru array 
-                          # and swap every unsorted values
-                          onelineSort(input) =  
-  	                        [0..input.count()-2].reduce(input, swapIfNotSorted)		
-
-                          bubbleSort(input)=
-  	                        [0..input.count()-1]
-  		                        .reduce(
-  			                        input, 
-  			                        (c,i)-> c.onelineSort())
-
-                          
-                          i:int[]  = [1,4,3,2,5].bubbleSort()";
-
-
-            FunBuilder.BuildDefault(expr).Calculate()
-                .AssertReturns(VarVal.New("i", new[]{1,2,3,4,5}));
-
-        }
+        
     }
 }
