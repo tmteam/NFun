@@ -76,9 +76,11 @@
   twiceSet(arr,i,j,ival,jval)
   	= arr.set(i,ival).set(j,jval)
 
+  #swap elements i,j in array arr  
   swap(arr, i, j) 
     = arr.twiceSet(i,j,arr[j], arr[i])
   
+  #swap elements i, i+1 if they are not sorted
   swapIfNotSorted(c, i)
   	=	if   (c[i]<c[i+1]) c
   		else c.swap(i, i+1)
@@ -86,7 +88,7 @@
   # run thru array 
   # and swap every unsorted values
   onelineSort(input) =  
-  	[0..input.count()-1].reduce(input, swapIfNotSorted)		
+  	[0..input.count()-2].reduce(input, swapIfNotSorted)		
 
   bubbleSort(input)=
   	[0..input.count()-1]

@@ -1,65 +1,25 @@
-|****************************************
-| TEST cos sin abs   
-| TAGS built-in-function
-|************************  
-| in   x:real
-| out  z:bool 
-|------------------------
-  y = x.cos()**2 + x.sin()**2
-  z = (y-1).abs() < 0.001
-|---------------------
-| set  x:-0.2
-| check z: true
-| set  x:3
-| check z: true
-
-
 
 |****************************************
-| TEST cos sin tan   
-| TAGS built-in-function
+| TEST text constant  
+| TAGS text constant apply                         
 |************************  
-| in x:real
-| out  ycos:real, ysin: real, ytan: real 
-|------------------------
-  ycos = x.cos()
-  ysin = x.cos()
-  ytan = x.tan()
+  e1:text = ''
+  e2:text = ""
+  e3:char[] = ''
+  e4:char[] = ""
+  v1:text = 'vasa' 
+  v2:text = "vasa" 
+  v3:char[] = 'vasa' 
+  v4:char[] = "vasa" 
 |---------------------
-| set  x:0
-| check ycos: 1, ysin: 0, ytan:0
-
-
-
-|****************************************
-| TEST flat   
-| TAGS built-in-function
-|************************  
-| out  iflat:real[], tflat:text 
-|------------------------
- tflat = ['hi',' ','my name', ' is', ' fun'].flat()
- iflat = [[0,1],[2,3],[4,5],[6]].flat()
-|---------------------
-| check iflat:[0,1,2,3,4,5,6], tflat:['hi my name is fun']
-
-
-
-|****************************************
-| TEST reduce 2   
-| TAGS built-in-function reduce
-|************************  
-  max = [1,2,6,54,2,76,8,3].reduce((acc,cur)-> if (cur>acc) cur else acc)
-|---------------------
-| check max: 76
-
-
-|****************************************
-| TEST reduce 3   
-| TAGS built-in-function reduce
-|************************  
-  concat = ['we','will','rock','you'].reduce('singing:', (acc,cur)-> [acc, ' ',cur].flat())
-|---------------------
-| check concat: 'singing: we will rock you' 
+| check e1: ''
+| check e2: ''
+| check e3: ''
+| check e4: ''
+| check v1: 'vasa'
+| check v2: 'vasa'
+| check v3: 'vasa'
+| check v4: 'vasa'
 
 
 
