@@ -482,22 +482,15 @@ namespace NFun.Tic
         {
             if (descendant.NoConstrains)
             {
-                string eName;
-
-                if (descNodeName.StartsWith("T") && descNodeName.Length > 1)
-                    eName = "e" + descNodeName.Substring(1).ToLower() + "'";
-                else
-                    eName = "e" + descNodeName.ToLower() + "'";
-
                 var argNodes = new SolvingNode[ancestor.ArgsCount];
                 for (int i = 0; i < ancestor.ArgsCount; i++)
                 {
-                    var argNode = new SolvingNode(eName, new Constrains(), SolvingNodeType.TypeVariable);
+                    var argNode = new SolvingNode("a'"+ descNodeName +"'"+i, new Constrains(), SolvingNodeType.TypeVariable);
                     argNode.Ancestors.Add(ancestor.ArgNodes[i]);
                     argNodes[i] = argNode;
                 }
 
-                var retNode = new SolvingNode(eName, new Constrains(), SolvingNodeType.TypeVariable);
+                var retNode = new SolvingNode("r'"+ descNodeName, new Constrains(), SolvingNodeType.TypeVariable);
                 retNode.Ancestors.Add(ancestor.RetNode);
 
                 return Fun.Of(argNodes, retNode);
@@ -514,7 +507,6 @@ namespace NFun.Tic
                 if (nrArgNodes.All(n => n.IsSolved) && nrRetNode.IsSolved)
                     return Fun.Of(nrArgNodes, nrRetNode);
             }
-
             return null;
         }
     }

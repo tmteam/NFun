@@ -190,29 +190,28 @@ namespace NFun.TypeInferenceCalculator
 
                     if (originalOne != node)
                     {
-                        TraceLog.WriteLine($"\t{node.Name}->r");
+                        TraceLog.WriteLine($"\t{node.Name}->reduce ref");
                         node.State = new RefTo(originalOne);
                     }
 
                     if (originalOne.State is IType)
                     {
                         node.State = originalOne.State;
-                        TraceLog.WriteLine($"\t{node.Name}->s");
+                        TraceLog.WriteLine($"\t{node.Name}->concretize ref to {node.State}");
                     }
                 }
-                else if (node.State is ICompositeType composite)
+                
+                if (node.State is ICompositeType composite)
                 {
                     if (composite.Members.Any(m => m.State is RefTo))
                     {
                         node.State = composite.GetNonReferenced();
-                        TraceLog.WriteLine($"\t{node.Name}->ar");
+                        TraceLog.WriteLine($"\t{node.Name}->simplify composite  {composite}->{node.State} ");
                     }
 
-                    foreach (var member in composite.Members)
+                    foreach (var member in ((ICompositeType) node.State).Members)
                         Finalize(member);
-
                 }
-
             }
 
             foreach (var node in toposortedNodes.Reverse())
