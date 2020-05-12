@@ -580,9 +580,6 @@ namespace NFun.ParseErrors
             
         public static Exception TypesNotSolved(ISyntaxNode syntaxNode)
             => new FunParseException(600,$"Types cannot be solved ",syntaxNode.Interval);        
-        
-        public static Exception TypesNotSolved(Interval interval)
-            => new FunParseException(600,$"Types cannot be solved ",interval);        
 
         public static Exception FunctionTypesNotSolved(UserFunctionDefenitionSyntaxNode node)
             => new FunParseException(603,$"Function {node.GetFunAlias()} has invalid arguments or output type. Check function body expression",
@@ -611,6 +608,20 @@ namespace NFun.ParseErrors
                 if (concreteNode != null)
                     return new FunParseException(602, $"Types cannot be solved: {ticException.Message} ", concreteNode.Interval);
             }
+            else if (ticException is RecursiveTypeDefenitionException e)
+            {
+                foreach (var nodeName in e.NodeNames)
+                {
+                    var concreteNode =
+                        SyntaxTreeDeepFieldSearch.FindVarDefenitionOrNull(syntaxNodeToSearch, nodeName);
+                    if (concreteNode != null)
+                    {
+                        return new FunParseException(603,
+                            $"Recursive type defenition: {string.Join("->", e.NodeNames)} ", concreteNode.Interval);
+                    }
+                }
+            }
+
             return TypesNotSolved(syntaxNodeToSearch);
         }
     }

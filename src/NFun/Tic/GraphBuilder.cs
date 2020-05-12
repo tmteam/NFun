@@ -173,7 +173,7 @@ namespace NFun.Tic
 
             foreach (var id in elementIds)
             {
-                elementType.BecomeAncestorFor(GetOrCreateNode(id));
+                GetOrCreateNode(id).Ancestors.Add(elementType);
                 elementType.MemberOf.Add(resultNode);
             }
             return new RefTo(elementType);
@@ -267,12 +267,12 @@ namespace NFun.Tic
                     RegistrateCompositeType(composite);
 
                     var ancestor = CreateVarType(composite);
-                    ancestor.BecomeAncestorFor(node);
+                    node.Ancestors.Add(ancestor);
                     break;
                 }
                 case RefTo refTo:
                 {
-                    refTo.Node.BecomeAncestorFor(node);
+                    node.Ancestors.Add(refTo.Node);
                     break;
                 }
 

@@ -120,6 +120,17 @@ namespace NFun.Tic
             };
             return false;
         }
-     
+        public SolvingNode GetNonReference()
+        {
+            var result = this;
+            if (result.State is RefTo referenceA)
+            {
+                result = referenceA.Node;
+                if (result.State is RefTo)
+                    return result.GetNonReference();
+            }
+
+            return result;
+        }
     }
 }

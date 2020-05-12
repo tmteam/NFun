@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using NFun.Tic;
+using NFun.Tic.Errors;
 using NFun.Tic.SolvingStates;
+using NFun.TypeInferenceCalculator;
 using Array = NFun.Tic.SolvingStates.Array;
 
-namespace NFun.TypeInferenceCalculator
+namespace NFun.Tic
 {
     public static class DestructionFunctions
     {
-
         #region Destructiont
 
         public static void Destruction(SolvingNode[] toposorteNodes)
@@ -27,8 +27,8 @@ namespace NFun.TypeInferenceCalculator
 
                 foreach (var ancestor in node.Ancestors.ToArray())
                 {
-                    if(ancestor==node)
-                        throw new InvalidOperationException("Ancestor cannot be equal to node itself");
+                    //if(ancestor==node)
+                    //    throw new InvalidOperationException("Ancestor cannot be equal to node itself");
                     TryMergeDestructive(node, ancestor);
                 }
             }
@@ -188,6 +188,8 @@ namespace NFun.TypeInferenceCalculator
             var syntaxNodes = new List<SolvingNode>(toposortedNodes.Length);
             void Finalize(SolvingNode node)
             {
+                node.ThrowIfTypeIsRecursive();
+
                 if (node.State is RefTo)
                 {
                     var originalOne = node.GetNonReference();
@@ -209,8 +211,9 @@ namespace NFun.TypeInferenceCalculator
                 {
                     if (composite.Members.Any(m => m.State is RefTo))
                     {
+                        TraceLog.Write($"\t{node.Name}->simplify composite ");
                         node.State = composite.GetNonReferenced();
-                        TraceLog.WriteLine($"\t{node.Name}->simplify composite  {composite}->{node.State} ");
+                        TraceLog.Write($"{composite}->{node.State} \r\n");
                     }
 
                     foreach (var member in ((ICompositeType) node.State).Members)
@@ -299,6 +302,7 @@ namespace NFun.TypeInferenceCalculator
         }
 
         #endregion
+
         private static IEnumerable<SolvingNode> GetAllLeafTypes(this SolvingNode node)
         {
             switch (node.State)
@@ -325,6 +329,37 @@ namespace NFun.TypeInferenceCalculator
                 default:
                     return new[] { node };
             }
+        }
+
+        public static void ThrowIfTypeIsRecursive(this SolvingNode node)
+        {
+            switch (node.State)
+            {
+                case Primitive _:
+                case Constrains _:
+                    return;
+                case RefTo _:
+                case ICompositeType _:
+                    ThrowIfTypeIsRecursive(node, new HashSet<SolvingNode>());
+                    return;
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+        private static void ThrowIfTypeIsRecursive(this SolvingNode node, HashSet<SolvingNode> nodes)
+        {
+            if (!nodes.Add(node))
+                throw TicErrors.RecursiveTypeDefenition(nodes.ToArray());
+            if (node.State is RefTo r)
+                ThrowIfTypeIsRecursive(r.Node, nodes);
+            else if (node.State is ICompositeType composite)
+            {
+                foreach (var compositeMember in composite.Members)
+                {
+                    ThrowIfTypeIsRecursive(compositeMember, nodes);
+                }
+            }
+            nodes.Remove(node);
         }
     }
 }

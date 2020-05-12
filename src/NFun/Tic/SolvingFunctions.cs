@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using NFun.Tic.Errors;
 using NFun.Tic.SolvingStates;
@@ -249,7 +250,7 @@ namespace NFun.Tic
                     }
                     case Array arrayAnc:
                     {
-                        var result = TransformToArrayOrNull(descendant.Name, constrainsDesc, arrayAnc)
+                        var result = TransformToArrayOrNull(descendant.Name, constrainsDesc)
                                 ?? throw TicErrors.IncompatibleNodes(ancestor, descendant);
 
                         result.ElementNode.Ancestors.Add(arrayAnc.ElementNode);
@@ -292,7 +293,7 @@ namespace NFun.Tic
                     foreach (var member in composite.Members)
                         Downwards(member);
                 
-                foreach (var ancestor in descendant.Ancestors)
+                foreach (var ancestor in descendant.Ancestors.ToArray())
                     descendant.State = SetDownwardsLimits(descendant, ancestor);
             }
 
@@ -330,9 +331,11 @@ namespace NFun.Tic
             {
                 if (descendant.State is Constrains constr)
                 {
-                    var result = TransformToArrayOrNull(descendant.Name, constr, ancArray)
+                    var result = TransformToArrayOrNull(descendant.Name, constr)
                             ?? throw TicErrors.CanntoBecomeFunction(ancestor, descendant);
+                    result.ElementNode.Ancestors.Add(ancArray.ElementNode);
                     descendant.State = result;
+                    descendant.Ancestors.Remove(ancestor);
                 }
 
                 if (descendant.State is Array desArray)
@@ -401,47 +404,23 @@ namespace NFun.Tic
 
         #endregion
 
-
-        public static SolvingNode GetNonReference(this SolvingNode node)
-        {
-            var result = node;
-            if (result.State is RefTo referenceA)
-            {
-                result = referenceA.Node;
-                if (result.State is RefTo)
-                    return GetNonReference(result);
-            }
-
-            return result;
-        }
-
-        public static void BecomeAncestorFor(this SolvingNode ancestor, SolvingNode descendant)
-        {
-            descendant.Ancestors.Add(ancestor);
-        }
-
         public static void BecomeReferenceFor(this SolvingNode referencedNode, SolvingNode original)
         {
             referencedNode = referencedNode.GetNonReference();
             original = original.GetNonReference();
-            if(referencedNode.Type == SolvingNodeType.SyntaxNode)
+            if (referencedNode.Type == SolvingNodeType.SyntaxNode)
                 Merge(original, referencedNode);
             else
                 Merge(referencedNode, original);
         }
-
-      
-
 
         /// <summary>
         /// Превращает неопределенное ограничение в ограничение с массивом
         /// </summary>
         /// <param name="descNodeName"></param>
         /// <param name="descendant"></param>
-        /// <param name="ancestor"></param>
         /// <returns></returns>
-        private static Array TransformToArrayOrNull(string descNodeName, Constrains descendant,
-            Array ancestor)
+        private static Array TransformToArrayOrNull(string descNodeName, Constrains descendant)
         {
             if (descendant.NoConstrains)
             {
@@ -454,11 +433,9 @@ namespace NFun.Tic
                     eName = "e" + descNodeName.ToLower() + "'";
 
                 var node = new SolvingNode(eName, constrains, SolvingNodeType.TypeVariable);
-                node.Ancestors.Add(ancestor.ElementNode);
                 return new Array(node);
             }
-
-            if (descendant.HasDescendant && descendant.Descedant is Array arrayEDesc)
+            else if (descendant.HasDescendant && descendant.Descedant is Array arrayEDesc)
             {
                 if (arrayEDesc.Element is RefTo)
                 {
@@ -509,5 +486,7 @@ namespace NFun.Tic
             }
             return null;
         }
+
+       
     }
 }

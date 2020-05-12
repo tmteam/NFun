@@ -19,7 +19,7 @@ namespace Funny
             // var expr2 = @" reverse(t) =  t[1:].reverse().concat(t[0])";
             // [TestCase("y = t.concat(t[0][0])")]
             //[TestCase("y = t.concat(t[0][0][0])")]
-            FunBuilder.BuildDefault(@"t.concat(t[0][0])");
+            //FunBuilder.BuildDefault(@"t.concat(t[0][0])");
             FunBuilder.BuildDefault(@"t.concat(t[0][0][0])");
 
             FunBuilder.BuildDefault(@"t.concat(t[0])");

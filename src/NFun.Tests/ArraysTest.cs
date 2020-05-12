@@ -251,11 +251,21 @@ filtrat   = x.filter(i:int ->i> filt) # filt - входная переменна
         [TestCase("y = [1,5,2] in [1,2,3]")]
         [TestCase("y = x\r[2]")]
         [TestCase("y = t.concat(t[0])")]
-        //todo !!!
-        // [TestCase("y = t.concat(t[0][0])")]
-        //[TestCase("y = t.concat(t[0][0][0])")]
+        [TestCase("y = t.concat(t[0][0])")]
+        [TestCase("y = t.concat(t[0][0][0])")]
+        [TestCase("y = t.concat(t[0][0][0][0])")]
+        [TestCase("y = t[0].concat(t[0][0])")]
+        [TestCase("y = t[0].concat(t[0][0][0])")]
+        [TestCase("y = t[0].concat(t[0][0][0][0])")]
+        [TestCase("y = t[0][0].concat(t[0][0][0])")]
+        [TestCase("y = t[0][0].concat(t[0][0][0][0])")]
+        [TestCase("y = t[0][0][0].concat(t[0][0][0][0])")]
         [TestCase("y = t[t])")]
         [TestCase("y = t[0][t])")]
+        [TestCase("y = t[0][0][t])")]
+        [TestCase("y = t[0][0][t[0]])")]
+        [TestCase("y = t[0][0][0][t[0]])")]
+        [TestCase("y = t[0][0][0][t[0][0]])")]
 
         public void ObviouslyFailsOnParse(string expr) =>
             Assert.Throws<FunParseException>(
