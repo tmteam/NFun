@@ -16,6 +16,8 @@ namespace NFun.Tic
         {
             void Destruction(SolvingNode node)
             {
+                node.ThrowIfTypeIsRecursive();
+
                 if (node.State is ICompositeType composite)
                 {
                     if (composite.Members.Any(m => m.State is RefTo))

@@ -84,28 +84,3 @@
 
 
 
-
-
-
-|****************************************
-| TEST req from a to b
-| TAGS req user-function
-|************************  
-| in  a:int, b:int
-| out  out:text 
-|------------------------
-  concat(a,b) = a.toText().concat(' ').concat(b)
-
-  f(a,b) = 
-          if(a>b)  concat(a, f(a-1,b))
-          if(b>a)  concat(a, f(a+1,b)) 
-          else a.toText()
-              
-  f(a,b)        
-|---------------------
-| set a:1, b:5
-| check out: '1,2,3,4,5'
-| set a :9, b:12
-| check out: '9,10,11,12'
-| set a:12, b:9
-| check out: '12,11,10,9'

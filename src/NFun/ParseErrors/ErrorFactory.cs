@@ -620,8 +620,14 @@ namespace NFun.ParseErrors
                             $"Recursive type defenition: {string.Join("->", e.NodeNames)} ", concreteNode.Interval);
                     }
                 }
-            }
 
+                foreach (var nodeId in e.NodeIds)
+                {
+                    var concreteNode = SyntaxTreeDeepFieldSearch.FindNodeByOrderNumOrNull(syntaxNodeToSearch, nodeId);
+                    if (concreteNode != null)
+                        return new FunParseException(603, $"Recursive type defenition detected", concreteNode.Interval);
+                }
+            }
             return TypesNotSolved(syntaxNodeToSearch);
         }
     }

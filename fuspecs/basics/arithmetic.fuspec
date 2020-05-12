@@ -256,7 +256,7 @@
 
 
 |****************************************
-| TEST sign convert chain arithmetic   
+| TODO sign convert chain arithmetic   
 | TAGS convert                          
 |************************  
   x:int16
@@ -275,7 +275,7 @@
 
 
 |****************************************
-| TEST integers multiply user function  
+| TODO integers multiply user function  
 | TAGS integers convert function                          
 |************************  
 | out i16:int16, i32:int32, i64:int64, u8:uint8, u16:uint16, u32: uint32, u64:uint64 
@@ -312,7 +312,7 @@
 
 
 |****************************************
-| TEST unsigned integers decrement user function  
+| TODO unsigned integers decrement user function  
 | TAGS integers convert function                          
 |************************  
 | out ui16:uint16, ui32:uint32, ui64:uint64
@@ -336,7 +336,7 @@
 
 
 |****************************************
-| TEST unsigned chain convert decrement user function  
+| TODO unsigned chain convert decrement user function  
 | TAGS integers convert function                          
 |************************  
 | out ui16:uint16, ui32:uint32, ui64:uint64
@@ -361,7 +361,7 @@
 
 
 |****************************************
-| TEST integers decrement user function  
+| TODO integers decrement user function  
 | TAGS integers convert function                          
 |************************  
 | out i16:int16, i32:int32, i64:int64, u8:uint8, u16:uint16, u32: uint32, u64:uint64 
@@ -393,7 +393,7 @@
 
 
 |****************************************
-| TEST signed integers decrement user function  
+| TODO signed integers decrement user function  
 | TAGS integers convert function                          
 |************************  
 | out i16:int16, i32:int32, i64:int64
@@ -421,7 +421,7 @@
 
 
 |****************************************
-| TEST integers increment user function  
+| TODO integers increment user function  
 | TAGS integers convert function                          
 |*****************************  
 | out i16:int16, i32:int32, i64:int64, u8:uint8, u16:uint16, u32:uint32, u64:uint64 

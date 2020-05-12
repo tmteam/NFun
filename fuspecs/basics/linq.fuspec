@@ -60,13 +60,13 @@
 | TEST odds   
 | TAGS built-in-function
 |************************  
-| in x:int[]
-| out  ysum:int, ymulti: int, ymin: int, ymax:int 
+| in x:real[]
+| out  ysum:real, ymulti: real, ymin: real, ymax:real 
 |------------------------
-  ysum = x.filter(i->i%2==0).sum()
-  ymulti = x.filter(i->i%2).reduce((s,i)-> s*i)
-  ymin = x.filter(i->i%2).reduce(min)
-  ymax = x.filter(i->i%2).reduce(max)
+  ysum   = x.filter(i->i%2==0).sum()
+  ymulti = x.filter(i->i%2==0).reduce((s,i)-> s*i)
+  ymin   = x.filter(i->i%2==0).reduce(min)
+  ymax   = x.filter(i->i%2==0).reduce(max)
 |---------------------
 | set  x:[0,1,2,3,4,5,6,7,8,9]
 | check ysum:20, ymulti:384, ymin:0, ymax:8

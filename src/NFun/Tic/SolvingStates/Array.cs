@@ -32,7 +32,7 @@ namespace NFun.Tic.SolvingStates
             {
                 if (Element is Array arr)
                 {
-                    if(arr.ElementNode == ElementNode)
+                    if (arr.ElementNode == ElementNode)
                         throw new InvalidOperationException("Imposible reqursive defenition");
                 }
                 return (Element as IType)?.IsSolved == true;

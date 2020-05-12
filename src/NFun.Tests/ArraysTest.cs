@@ -250,6 +250,11 @@ filtrat   = x.filter(i:int ->i> filt) # filt - входная переменна
         [TestCase("y = [2,1] in [1,2,3]")]
         [TestCase("y = [1,5,2] in [1,2,3]")]
         [TestCase("y = x\r[2]")]
+  
+        public void ObviouslyFailsOnParse(string expr) =>
+            Assert.Throws<FunParseException>(
+                () => FunBuilder.BuildDefault(expr));
+
         [TestCase("y = t.concat(t[0])")]
         [TestCase("y = t.concat(t[0][0])")]
         [TestCase("y = t.concat(t[0][0][0])")]
@@ -266,8 +271,28 @@ filtrat   = x.filter(i:int ->i> filt) # filt - входная переменна
         [TestCase("y = t[0][0][t[0]])")]
         [TestCase("y = t[0][0][0][t[0]])")]
         [TestCase("y = t[0][0][0][t[0][0]])")]
-
-        public void ObviouslyFailsOnParse(string expr) =>
+        [TestCase("y = if(t.count() < 2) t else t[1:].reverse().concat(t[0])")]
+        [TestCase("f(t) = if(t.count() < 2) t else t[1:].reverse().concat(t[0])")]
+        [TestCase("f(t) = t[1:].reverse().concat(t[0])")]
+        [TestCase("f(t) = t.reverse().concat(t[0])")]
+        [TestCase("f(t) = t.concat(t[0])")]
+        [TestCase("f(t) = t.concat(t[0])")]
+        [TestCase("f(t) = t.concat(t[0][0])")]
+        [TestCase("f(t) = t.concat(t[0][0][0])")]
+        [TestCase("f(t) = t.concat(t[0][0][0][0])")]
+        [TestCase("f(t) = t[0].concat(t[0][0])")]
+        [TestCase("f(t) = t[0].concat(t[0][0][0])")]
+        [TestCase("f(t) = t[0].concat(t[0][0][0][0])")]
+        [TestCase("f(t) = t[0][0].concat(t[0][0][0])")]
+        [TestCase("f(t) = t[0][0].concat(t[0][0][0][0])")]
+        [TestCase("f(t) = t[0][0][0].concat(t[0][0][0][0])")]
+        [TestCase("f(t) = t[t])")]
+        [TestCase("f(t) = t[0][t])")]
+        [TestCase("f(t) = t[0][0][t])")]
+        [TestCase("f(t) = t[0][0][t[0]])")]
+        [TestCase("f(t) = t[0][0][0][t[0]])")]
+        [TestCase("f(t) = t[0][0][0][t[0][0]])")]
+        public void ObviouslyFailsWithRecursiveTypeDefenitionOnParse(string expr) =>
             Assert.Throws<FunParseException>(
                 () => FunBuilder.BuildDefault(expr));
 

@@ -804,7 +804,7 @@ namespace NFun.BuiltInFunctions
     }
     public class ConcatArraysGenericFunctionDefenition : GenericFunctionBase
     {
-        public ConcatArraysGenericFunctionDefenition(string name) : base(name, 
+        public ConcatArraysGenericFunctionDefenition() : base("concat", 
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)))
@@ -819,6 +819,25 @@ namespace NFun.BuiltInFunctions
             return res;
         }
     }
+
+    public class AppendGenericFunctionDefenition : GenericFunctionBase
+    {
+        public AppendGenericFunctionDefenition() : base("append",
+            VarType.ArrayOf(VarType.Generic(0)),
+            VarType.ArrayOf(VarType.Generic(0)),
+            VarType.Generic(0))
+        {
+        }
+
+        public override object Calc(object[] args)
+        {
+            var arr1 = (IFunArray)args[0];
+            var arr2 = args[1];
+            var res = ImmutableFunArray.By(arr1.Append(arr2));
+            return res;
+        }
+    }
+
     public class SubstractArraysGenericFunctionDefenition : GenericFunctionBase
     {
         public SubstractArraysGenericFunctionDefenition() : base("except", 
@@ -835,6 +854,25 @@ namespace NFun.BuiltInFunctions
             return ImmutableFunArray.By(arr1.Except(arr2));
         }
     }
+
+    public class CountOfGenericFunctionDefenition : GenericFunctionBase
+    {
+        public CountOfGenericFunctionDefenition() : base("count",
+            VarType.Int32,
+            VarType.ArrayOf(VarType.Generic(0)),
+            VarType.Fun(VarType.Bool, VarType.Generic(0)))
+        {
+        }
+
+        public override object Calc(object[] args)
+        {
+            var arr = (IFunArray)args[0];
+            var filter = args[1] as FunctionBase;
+
+            return arr.Count(a => (bool)filter.Calc(new[] { a }));
+        }
+    }
+
     public class HasAnyGenericFunctionDefenition : GenericFunctionBase
     {
         public HasAnyGenericFunctionDefenition() : base("any",

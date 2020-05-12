@@ -1,12 +1,12 @@
 
 |****************************************
-| TEST text constant  
+| TODO text constant  
 | TAGS text constant apply                         
 |************************  
   e1:text = ''
   e2:text = ""
-  e3:char[] = ''
-  e4:char[] = ""
+  e3:char[] = \''
+  e4:char[] = \""
   v1:text = 'vasa' 
   v2:text = "vasa" 
   v3:char[] = 'vasa' 
@@ -73,7 +73,7 @@
 
 
 |****************************************
-| TEST text join
+| TODO text join
 | TAGS text array join
 |************************
   

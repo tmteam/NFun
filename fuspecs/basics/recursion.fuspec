@@ -129,13 +129,14 @@
 | in  a:int, b:int
 | out  out:text 
 |------------------------
-  concat(a,b) = a.toText().concat(' ').concat(b)
+  myConcat(a,b) = '{a},{b}'
 
   f(a,b) = 
-          if(a>b)  concat(a, f(a-1,b))
-          if(b>a)  concat(a, f(a+1,b)) 
+          if(a>b)  myConcat(a, f(a-1,b))
+          if(b>a)  myConcat(a, f(a+1,b)) 
           else a.toText()
-              
+  a:int
+  b:int              
   f(a,b)        
 |---------------------
 | set a:1, b:5
@@ -148,7 +149,7 @@
 
 
 |****************************************
-| TODO STACKOVERFLOW! req array reverse 
+| TEST req array reverse 
 | TAGS req user-function
 |************************  
 | in   t:text, i:int[]
@@ -156,7 +157,7 @@
 |------------------------
   reverse(t) =
         if(t.count()<2) t
-        else t[1:].reverse().concat(t[0])
+        else t[1:].reverse().append(t[0])
   
   t:text
   i:int[]

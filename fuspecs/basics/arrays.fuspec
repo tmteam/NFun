@@ -192,7 +192,6 @@
 | TEST apply int array step initialization
 | TAGS apply array                         
 |************************  
-  a:int; b:int; c:int
   i16:int16[] = [a..b..c]     
   i32:int32[] = [a..b..c]     
   i64:int64[] = [a..b..c]     

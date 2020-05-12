@@ -46,9 +46,6 @@ namespace NFun.Tic
 
                 if (value is Array array)
                 {
-                    if(array.ElementNode == this)
-                        throw new InvalidOperationException("Self referencing array node");
-
                     array.ElementNode.MemberOf.Add(this);
                 }
 
