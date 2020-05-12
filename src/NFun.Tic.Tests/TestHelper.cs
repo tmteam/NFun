@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using NFun.Tic.Errors;
 using NFun.Tic.SolvingStates;
 using NFun.TypeInferenceCalculator;
 using NFun.TypeInferenceCalculator.Errors;
@@ -8,8 +9,30 @@ using Array = NFun.Tic.SolvingStates.Array;
 
 namespace NFun.Tic.Tests
 {
+
     public static class TestHelper
     {
+        public static void AssertThrowsRecursiveTicTypedDefenition(Action delegateCode)
+        {
+            try
+            {
+                delegateCode();
+                Assert.Fail("Impossible equation solved");
+            }
+            catch (RecursiveTypeDefenitionException e)
+            {
+                Console.WriteLine(e);
+            }
+            catch (AssertionException)
+            {
+
+            }
+            catch (Exception e)
+            {
+                Assert.Fail($"Invalid exception. {e.GetType().Name} was thrown. RecursiveTypeDefenition expected.\r\n{e}");
+
+            }
+        }
         public static void AssertThrowsTicError(Action delegateCode)
         {
             try

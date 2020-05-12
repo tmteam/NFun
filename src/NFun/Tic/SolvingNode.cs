@@ -43,9 +43,15 @@ namespace NFun.Tic
                     throw new InvalidOperationException();
                 if(IsSolved && !value.Equals(_state))
                     throw new InvalidOperationException("Node is already solved");
-                
-                if (value is Array array) 
+
+                if (value is Array array)
+                {
+                    if(array.ElementNode == this)
+                        throw new InvalidOperationException("Self referencing array node");
+
                     array.ElementNode.MemberOf.Add(this);
+                }
+
                 if(value is RefTo refTo && refTo.Node== this)
                     throw new InvalidOperationException("Self referencing node");
 

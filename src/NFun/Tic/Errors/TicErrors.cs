@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using NFun.Tic.SolvingStates;
 
 namespace NFun.Tic.Errors
@@ -61,8 +62,17 @@ namespace NFun.Tic.Errors
             => IncompatibleNodes(a, b);
         public static Exception RecursiveTypeDefenition(SolvingNode[] group)
         {
-            return new TicNoDetailsException();
+            List<string> listOfNames = new List<string>();
+            List<int> listOfNodes = new List<int>();
 
+            foreach (var node in group)
+            {
+                if (node.Type == SolvingNodeType.Named) 
+                    listOfNames.Add(node.Name);
+                else if(node.Type== SolvingNodeType.SyntaxNode)
+                    listOfNodes.Add(int.Parse(node.Name));
+            }
+            return new RecursiveTypeDefenitionException(listOfNames.ToArray(), listOfNodes.ToArray());
         }
         public static Exception CannotSetState(SolvingNode node, IState b)
         {

@@ -26,7 +26,11 @@ namespace NFun.TypeInferenceCalculator
                 }
 
                 foreach (var ancestor in node.Ancestors.ToArray())
+                {
+                    if(ancestor==node)
+                        throw new InvalidOperationException("Ancestor cannot be equal to node itself");
                     TryMergeDestructive(node, ancestor);
+                }
             }
 
             for (int i = toposorteNodes.Length - 1; i >= 0; i--)
@@ -44,7 +48,7 @@ namespace NFun.TypeInferenceCalculator
             var nonRefDescendant = descendantNode.GetNonReference();
             if (nonRefDescendant == nonRefAncestor)
             {
-                TraceLog.WriteLine(()=>$"{ancestorNode}=={descendantNode}. Skip");
+                TraceLog.WriteLine(()=>$"{ancestorNode.Name}=={descendantNode.Name}. Skip");
                 return;
             }
 
@@ -59,7 +63,7 @@ namespace NFun.TypeInferenceCalculator
                 {
                     if (nonRefDescendant.State is Constrains c && c.Fits(concreteAnc))
                     {
-                        TraceLog.Write("p+c");
+                        TraceLog.Write("p+c: ");
                         if (c.Prefered != null && c.Fits(c.Prefered))
                             nonRefDescendant.State = c.Prefered;
                         else
@@ -73,12 +77,12 @@ namespace NFun.TypeInferenceCalculator
                 {
                     if (nonRefDescendant.State is Constrains constrainsDesc && constrainsDesc.Fits(arrayAnc))
                     {
-                        TraceLog.Write("a+c");
+                        TraceLog.Write("a+c: ");
                         nonRefDescendant.State = new RefTo(nonRefAncestor);
                     }
                     else if (nonRefDescendant.State is Array arrayDesc)
                     {
-                        TraceLog.Write("a+a");
+                        TraceLog.Write("a+a: ");
                         TryMergeDestructive(arrayDesc.ElementNode, arrayAnc.ElementNode);
                     }
                     break;
@@ -88,12 +92,12 @@ namespace NFun.TypeInferenceCalculator
                 {
                     if (nonRefDescendant.State is Constrains constrainsDesc && constrainsDesc.Fits(funAnc))
                     {
-                        TraceLog.Write("f+c");
+                        TraceLog.Write("f+c: ");
                         nonRefDescendant.State = new RefTo(nonRefAncestor);
                     }
                     else if (nonRefDescendant.State is Fun funDesc)
                     {
-                        TraceLog.Write("f+f");
+                        TraceLog.Write("f+f: ");
                         if (funAnc.ArgsCount != funDesc.ArgsCount)
                             break;
                         for (int i = 0; i < funAnc.ArgsCount; i++)
@@ -107,7 +111,7 @@ namespace NFun.TypeInferenceCalculator
                 {
                     if (constrainsAnc.Fits(concreteDesc))
                     {
-                        TraceLog.Write("c+p");
+                        TraceLog.Write("c+p: ");
                         descendantNode.State = ancestorNode.State = nonRefAncestor.State = concreteDesc;
                     }
 
@@ -116,7 +120,7 @@ namespace NFun.TypeInferenceCalculator
 
                 case Constrains constrainsAnc when nonRefDescendant.State is Constrains constrainsDesc:
                 {
-                    TraceLog.Write("c+c");
+                    TraceLog.Write("c+c: ");
 
                     var result = constrainsAnc.MergeOrNull(constrainsDesc);
                     if (result == null)
@@ -146,7 +150,7 @@ namespace NFun.TypeInferenceCalculator
                 }
                 case Constrains constrainsAnc when nonRefDescendant.State is Array arrayDes:
                 {
-                    TraceLog.Write("c+a");
+                    TraceLog.Write("c+a: ");
 
                     if (constrainsAnc.Fits(arrayDes))
                         nonRefAncestor.State = ancestorNode.State = new RefTo(nonRefDescendant);
@@ -155,7 +159,7 @@ namespace NFun.TypeInferenceCalculator
                 }
                 case Constrains constrainsAnc when nonRefDescendant.State is Fun funDes:
                 {
-                    TraceLog.Write("c+f");
+                    TraceLog.Write("c+f: ");
 
                     if (constrainsAnc.Fits(funDes))
                         nonRefAncestor.State = ancestorNode.State = new RefTo(nonRefDescendant);

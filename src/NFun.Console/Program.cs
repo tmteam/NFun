@@ -5,6 +5,7 @@ using System.Text;
 using NFun;
 using NFun.BuiltInFunctions;
 using NFun.ParseErrors;
+using NFun.TypeInferenceCalculator;
 
 namespace Funny
 {
@@ -14,6 +15,31 @@ namespace Funny
 
         static void Main(string[] args)
         {
+            TraceLog.IsEnabled = true;
+            // var expr2 = @" reverse(t) =  t[1:].reverse().concat(t[0])";
+            // [TestCase("y = t.concat(t[0][0])")]
+            //[TestCase("y = t.concat(t[0][0][0])")]
+            FunBuilder.BuildDefault(@"t.concat(t[0][0])");
+            FunBuilder.BuildDefault(@"t.concat(t[0][0][0])");
+
+            FunBuilder.BuildDefault(@"t.concat(t[0])");
+
+            return;
+            FunBuilder.BuildDefault(@" r(t) = t.concat(t[0])");
+            return;
+
+            FunBuilder.BuildDefault(@" r(t) = if(t.count()==3) t else t.concat(t[0])");
+
+            return;
+            var expr = @" reverse(t) =  if(t.count()<2) t else t[1:].reverse().concat(t[0])
+  
+                  t:text
+                  i:int[]
+
+                  yt = t.reverse()
+                  yi = i.reverse()          ";
+                            FunBuilder.BuildDefault(expr);
+
             Console.WriteLine("Let's make some fun.");
             Console.WriteLine("Type an expression or '/exit' to return");
             

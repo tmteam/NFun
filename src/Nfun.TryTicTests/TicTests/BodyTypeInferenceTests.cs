@@ -314,5 +314,13 @@ namespace Nfun.ModuleTests.TicTests
 
             result.AssertNamed(Array.Of(generic), "y","x");
         }
-    }
+
+        [Test]
+        public void ReqursiveTypeDefenitionThrows()
+        {
+            Assert.Throws<NFun.Tic.Errors.RecursiveTypeDefenitionException>(
+                ()=>TestHelper.Solve("y = t.concat(t[0])"));
+        }
+
+}
 }

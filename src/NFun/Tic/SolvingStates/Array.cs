@@ -26,7 +26,19 @@ namespace NFun.Tic.SolvingStates
             => new Array(SolvingNode.CreateTypeNode(type));
 
         public SolvingNode ElementNode { get; }
-        public bool IsSolved => (Element as IType)?.IsSolved == true;
+        public bool IsSolved
+        {
+            get
+            {
+                if (Element is Array arr)
+                {
+                    if(arr.ElementNode == ElementNode)
+                        throw new InvalidOperationException("Imposible reqursive defenition");
+                }
+                return (Element as IType)?.IsSolved == true;
+            }
+        }
+
         public IState Element => ElementNode.State;
 
 
