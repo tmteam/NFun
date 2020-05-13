@@ -8,20 +8,7 @@ namespace NFun.TypeInferenceAdapter
 {
     public class ApplyTiResultsExitVisitor: ExitVisitorBase{
 
-        public override bool Visit(ArraySyntaxNode node)
-        {
-            if (!node.Children.Any()) return true;
 
-            //Check equality of all array items
-            var arrayType = node.Children.First().OutputType;
-            foreach (var child in node.Children)
-            {
-                if (child.OutputType != arrayType)
-                    throw ErrorFactory.VariousArrayElementTypes(child);
-            }
-
-            return true;
-        }
         public override bool Visit(IfThenElseSyntaxNode node)
         {
             if (node.OutputType != VarType.Anything) 

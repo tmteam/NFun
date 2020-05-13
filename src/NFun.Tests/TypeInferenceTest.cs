@@ -9,11 +9,6 @@ namespace Funny.Tests
 {
     public class TypeInferenceTest
     {
-        [Test]
-        public void VoidTest()
-        {
-            Assert.Pass();
-        }
         [TestCase("y = 0x2",BaseVarType.Int32)]
         [TestCase("y = 0x2*3",BaseVarType.Int32)]
         [TestCase("y = 2**3",BaseVarType.Real)]
@@ -161,8 +156,8 @@ namespace Funny.Tests
             var runtime = FunBuilder.BuildDefault(expr);
             Assert.AreEqual(type, runtime.Outputs.Single().Type.BaseType);
         }
-        [TestCase("f(n, iter)  = f(n, iter+1).concat((n >iter).ToText())")]
-        [TestCase("f1(n, iter) = f1(n+1, iter).concat((n >iter).ToText())")]
+        [TestCase("f(n, iter)  = f(n, iter+1).concat((n >iter).toText())")]
+        [TestCase("f1(n, iter) = f1(n+1, iter).concat((n >iter).toText())")]
         [TestCase("f2(n, iter) = n > iter and f2(n,iter)")]
         [TestCase("f3(n, iter) = n > iter and f3(n,iter+1)")]
         [TestCase("f4(n, iter) = f4(n,iter) and (n > iter)")]
@@ -261,7 +256,6 @@ namespace Funny.Tests
             Assert.AreEqual(VarType.PrimitiveOf(ztype),z.Type,"z");
         }
 
-        [Ignore("errors")]
         [TestCase("x:foo\r y= x and true")]
         [TestCase("x::foo\r y= x and true")]
         [TestCase("x:real[\r y= x")]
@@ -336,7 +330,7 @@ namespace Funny.Tests
             Assert.AreEqual(y, res.Results.First().Value);   
         }
 
-        [Ignore("reqursive")]
+
         [TestCase("y(x) = y(x)")]
         [TestCase("y(x):int = y(x)")]
         [TestCase("y(x:int) = y(x)")]

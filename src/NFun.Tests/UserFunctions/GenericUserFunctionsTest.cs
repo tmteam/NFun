@@ -63,6 +63,109 @@ namespace Funny.Tests.UserFunctions
                 .AssertHas(VarVal.New("a", expectedA))
                 .AssertHas(VarVal.New("b", expectedB));
         }
-      
+
+        [Test]
+        public void SelectOverload()
+        {
+            var expr =
+                @"  
+                #custom user function max(r r r) overloads
+                #built in function max(r r)
+                max(i, j, k) = i.max(j).max(k)
+  
+                userfun = max(1, 2, 3)
+                builtin = max(1, 2)";
+            FunBuilder.BuildDefault(expr).Calculate()
+                .AssertReturns(VarVal.New("userfun", 3.0), VarVal.New("builtin", 2.0));
+        }
+
+        [Test]
+        public void GenericRecursive()
+        {
+            var expr =
+                @"fact(n) = if (n==0) 0
+                            if (n == 1) 1
+                            else fact(n - 1) * n
+
+                res = [0..4].map(fact)";
+            FunBuilder.BuildDefault(expr).Calculate()
+                .AssertHas(VarVal.New("res", new[] { 0, 1, 2, 6, 24 }));
+
+        }
+
+        [Test]
+        public void TwinGenericFunCall()
+        {
+            var expr = @"maxOfArray(t) = t.reduce(max)
+
+           maxOfMatrix(t) = t.map(maxOfArray).maxOfArray()
+
+  origin = [
+              [12,05,06],
+              [42,33,12],
+              [01,15,18]
+             ] 
+
+  res:int = origin.maxOfMatrix()";
+            FunBuilder.BuildDefault(expr).Calculate()
+                .AssertHas(VarVal.New("res", 42));
+        }
+
+        [Ignore("UB")]
+        [Test]
+        public void TwinGenericWrongOrderFunCall()
+        {
+            var expr = @"
+
+           maxOfMatrix(t) = t.map(maxOfArray).maxOfArray()
+            
+            maxOfArray(t) = t.reduce(max)
+
+  origin = [
+              [12,05,06],
+              [42,33,12],
+              [01,15,18]
+             ] 
+
+  res:int = origin.maxOfMatrix()";
+            FunBuilder.BuildDefault(expr).Calculate()
+                .AssertHas(VarVal.New("res", 42));
+        }
+
+        [Test]
+        public void GenericBubbleSort()
+        {
+            var expr = @"twiceSet(arr,i,j,ival,jval)
+  	                        = arr.set(i,ival).set(j,jval)
+
+                          swap(arr, i, j) 
+                            = arr.twiceSet(i,j,arr[j], arr[i])
+                          
+                          swapIfNotSorted(c, i)
+  	                        =	if   (c[i]<c[i+1]) c
+  		                        else c.swap(i, i+1)
+
+                          # run thru array 
+                          # and swap every unsorted values
+                          onelineSort(input) =  
+  	                        [0..input.count()-2].reduce(input, swapIfNotSorted)		
+
+                          bubbleSort(input)=
+  	                        [0..input.count()-1]
+  		                        .reduce(
+  			                        input, 
+  			                        (c,i)-> c.onelineSort())
+
+                          i:int[]  = [1,4,3,2,5].bubbleSort()
+                          r:real[] = [1,4,3,2,5].bubbleSort()
+";
+
+
+            FunBuilder.BuildDefault(expr).Calculate()
+                .AssertReturns(
+                    VarVal.New("i", new[] { 1, 2, 3, 4, 5 }),
+                    VarVal.New("r", new[] { 1.0, 2.0, 3.0, 4.0, 5.0 }));
+
+        }
     }
 }

@@ -43,9 +43,12 @@ namespace NFun.Tic
                     throw new InvalidOperationException();
                 if(IsSolved && !value.Equals(_state))
                     throw new InvalidOperationException("Node is already solved");
-                
-                if (value is Array array) 
+
+                if (value is Array array)
+                {
                     array.ElementNode.MemberOf.Add(this);
+                }
+
                 if(value is RefTo refTo && refTo.Node== this)
                     throw new InvalidOperationException("Self referencing node");
 
@@ -104,10 +107,27 @@ namespace NFun.Tic
             }
             else if (node.State is Constrains constrains)
             {
-                return constrains.TryAddAncestor(anc);
+                if (!constrains.TryAddAncestor(anc))
+                    return false;
+                var optimized = constrains.GetOptimizedOrNull();
+                if (optimized == null)
+                    return false;
+                State = optimized;
+                return true;
             };
             return false;
         }
-     
+        public SolvingNode GetNonReference()
+        {
+            var result = this;
+            if (result.State is RefTo referenceA)
+            {
+                result = referenceA.Node;
+                if (result.State is RefTo)
+                    return result.GetNonReference();
+            }
+
+            return result;
+        }
     }
 }

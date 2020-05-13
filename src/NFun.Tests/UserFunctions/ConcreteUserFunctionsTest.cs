@@ -56,10 +56,39 @@ namespace Funny.Tests.UserFunctions
             runtime.Calculate().AssertReturns(0.00001, VarVal.New("y", expected));
         }
 
-       
-        
-        
-        [Ignore("errors")]
+        [Test]
+        public void BubbleSortConcrete()
+        {
+            var expr = @"twiceSet(arr:int[],i:int,j:int,ival:int,jval:int):int[]
+  	                        = arr.set(i,ival).set(j,jval)
+
+                          swap(arr:int[], i:int, j:int):int[] 
+                            = arr.twiceSet(i,j,arr[j], arr[i])
+                          
+                          swapIfNotSorted(c:int[], i:int):int[]
+  	                        =	if   (c[i]<c[i+1]) c
+  		                        else c.swap(i, i+1)
+
+                          # run thru array 
+                          # and swap every unsorted values
+                          onelineSort(input:int[]):int[] =  
+  	                        [0..input.count()-2].reduce(input, swapIfNotSorted)		
+
+                          bubbleSort(input:int[]):int[]=
+  	                        [0..input.count()-1]
+  		                        .reduce(
+  			                        input, 
+  			                        (c,i)-> c.onelineSort())
+
+                          
+                          i:int[]  = [1,4,3,2,5].bubbleSort()";
+
+
+            FunBuilder.BuildDefault(expr).Calculate()
+                .AssertReturns(VarVal.New("i", new[] { 1, 2, 3, 4, 5 }));
+
+        }
+
         [TestCase("y = f(1)\r f(x) = g(x) \r g(x) = f(x)")]
         [TestCase("y = f(1)\r f(x) = g(x) \r g(x) = l(x)\r l(x) = f(x)")]
         [TestCase("y(1)=1")]
@@ -86,6 +115,8 @@ namespace Funny.Tests.UserFunctions
         [TestCase("y(,) = 2")]
         [TestCase("y(x) = 2*z")]
         [TestCase("y(x) = 2*y")]
+        [TestCase("y(x:int):int = 2*z")]
+        [TestCase("y(x:int):int = 2*y")]
         [TestCase("y(x)=")]        
         [TestCase("y(x)-1")]
         [TestCase("y:int(x)-1")]

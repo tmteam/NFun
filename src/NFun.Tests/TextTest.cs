@@ -105,7 +105,7 @@ namespace Funny.Tests
                 .BuildDefault(expr)
                 .Calculate()
                 .AssertReturns(VarVal.New("y", expected));
-        [Ignore("errors")]
+
         [TestCase("y='hell")]
         [TestCase("y=hell'")]
         [TestCase("y='")]

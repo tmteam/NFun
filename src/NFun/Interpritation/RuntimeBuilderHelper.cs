@@ -10,6 +10,7 @@ using NFun.SyntaxParsing.Visitors;
 using NFun.Tic;
 using NFun.TypeInferenceAdapter;
 using NFun.TypeInferenceCalculator;
+using NFun.TypeInferenceCalculator.Errors;
 using NFun.Types;
 
 namespace NFun.Interpritation
@@ -55,25 +56,32 @@ namespace NFun.Interpritation
                 expression: bodyExpression);
             return function;
         }
-        public static TypeInferenceResults SolveBodyOrThrow(SyntaxTree syntaxTree, IFunctionDicitionary functionsDictionary)
+
+        public static TypeInferenceResults SolveBodyOrThrow(SyntaxTree syntaxTree,
+            IFunctionDicitionary functionsDictionary)
         {
-            TraceLog.WriteLine("\r\n====BODY====");
-
-            var resultBuilder = new TypeInferenceResultsBuilder();
-            var builder = new GraphBuilder();
-            var state = new SetupTiState(builder);
-            //Пробегаем по всем узлам, КРОМЕ синтакс нод
-            foreach (var node in syntaxTree.Nodes.Where(n=>!(n is UserFunctionDefenitionSyntaxNode)))
+            try
             {
-                if(!LangTiHelper.SetupTiOrNull(node, functionsDictionary, resultBuilder, state))
-                    throw ErrorFactory.TypesNotSolved(node);
-            }
+                TraceLog.WriteLine("\r\n====BODY====");
 
-            var bodyTypeSolving = builder.Solve();
-            if (bodyTypeSolving == null)
-                throw ErrorFactory.TypesNotSolved(syntaxTree);
-            resultBuilder.SetResults(bodyTypeSolving);
-            return resultBuilder.Build();
+                var resultBuilder = new TypeInferenceResultsBuilder();
+                var builder = new GraphBuilder();
+                var state = new SetupTiState(builder);
+                //Пробегаем по всем узлам, КРОМЕ синтакс нод
+                foreach (var node in syntaxTree.Nodes.Where(n => !(n is UserFunctionDefenitionSyntaxNode)))
+                {
+                    if (!LangTiHelper.SetupTiOrNull(node, functionsDictionary, resultBuilder, state))
+                        throw ErrorFactory.TypesNotSolved(node);
+                }
+
+                var bodyTypeSolving = builder.Solve();
+                if (bodyTypeSolving == null)
+                    throw ErrorFactory.TypesNotSolved(syntaxTree);
+                resultBuilder.SetResults(bodyTypeSolving);
+                return resultBuilder.Build();
+            }
+            catch (TicException e) { throw ErrorFactory.TranslateTicError(e, syntaxTree); }
+
         }
         //public static void ThrowIfNotSolved(ISyntaxNode functionSyntaxNode, TiResult types)
         //{
@@ -96,7 +104,7 @@ namespace NFun.Interpritation
         //            throw ErrorFactory.TypesNotSolved(root);
         //    }
         //}
-        
+
         public static void ThrowIfSomeVariablesNotExistsInTheList(this VariableDictionary resultVariables, IEnumerable<string> list )
         {
             var unknownVariables = resultVariables.GetAllUsages()

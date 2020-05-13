@@ -17,15 +17,5 @@ namespace NFun.BuiltInFunctions
 
 
 
-    public class CountFunction : FunctionBase
-    {
-        public CountFunction() : base("count", VarType.Int32, VarType.ArrayOf(VarType.Anything))
-        {
-
-        }
-
-        public override object Calc(object[] args)
-            => ((IFunArray)args[0]).Count;
-    }
     
 }

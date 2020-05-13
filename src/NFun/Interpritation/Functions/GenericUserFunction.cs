@@ -39,8 +39,23 @@ namespace NFun.Interpritation.Functions
             if (TraceLog.IsEnabled)
             {
                 TraceLog.WriteLine($"CREATE GENERIC FUN {syntaxNode.Id}({string.Join(",",argTypes)}):{retType}");
+                TraceLog.WriteLine($"    ...where {string.Join(", ", langConstrains)}");
             }
-            return new GenericUserFunction(typeInferenceResults, syntaxNode, dictionary, langConstrains, retType, argTypes);
+            var function =  new GenericUserFunction(typeInferenceResults, syntaxNode, dictionary, langConstrains, retType, argTypes);
+            return function;
+        }
+
+        public static void CreateSomeConcrete(GenericUserFunction function)
+        {
+            var varType = new List<VarType>();
+            foreach (var constrains in function._constrainsMap)
+            {
+                var anc = constrains.Ancestor ?? Primitive.Any;
+                var concrete = TicTypesConverter.ToConcrete(anc.Name);
+                varType.Add(concrete);
+            }
+
+            function.CreateConcrete(varType.ToArray());
         }
 
         private GenericUserFunction(
@@ -65,8 +80,8 @@ namespace NFun.Interpritation.Functions
                 return alreadyExists;
             //set types to nodes
             var converter = TicTypesConverter.ReplaceGenericTypesConverter(_constrainsMap, concreteTypes);
-            var funType = converter.Convert(
-                _typeInferenceResults.GetVariableType(_syntaxNode.Id + "'" + _syntaxNode.Args.Count));
+            var ticSignature = _typeInferenceResults.GetVariableType(_syntaxNode.Id + "'" + _syntaxNode.Args.Count);
+            var funType = converter.Convert(ticSignature);
 
             var returnType = funType.FunTypeSpecification.Output;
             var argTypes = funType.FunTypeSpecification.Inputs;

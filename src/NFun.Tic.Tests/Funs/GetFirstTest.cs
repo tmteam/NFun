@@ -1,5 +1,6 @@
 ﻿using System;
 using NFun.Tic.SolvingStates;
+using NFun.TypeInferenceCalculator.Errors;
 using NUnit.Framework;
 using Array = NFun.Tic.SolvingStates.Array;
 
@@ -14,7 +15,7 @@ namespace NFun.Tic.Tests.Funs
             //y = First([ 1i ], x->x==0)
             var graph = new GraphBuilder();
             graph.SetConst(0, Primitive.I32);
-            graph.SetArrayInit(1, 0);
+            graph.SetStrictArrayInit(1, 0);
             graph.SetVar("lx", 2);
             graph.SetIntConst(3, Primitive.U8);
             graph.SetEquality(2, 3, 4);
@@ -34,7 +35,7 @@ namespace NFun.Tic.Tests.Funs
             //y = First([ 1i ], (x):bool->x==0)
             var graph = new GraphBuilder();
             graph.SetConst(0, Primitive.I32);
-            graph.SetArrayInit(1, 0);
+            graph.SetStrictArrayInit(1, 0);
             graph.SetVar("lx", 2);
             graph.SetIntConst(3, Primitive.U8);
             graph.SetEquality(2, 3, 4);
@@ -56,20 +57,13 @@ namespace NFun.Tic.Tests.Funs
             graph.SetVar("a", 0);
             graph.SetVar("2lx", 1);
             graph.CreateLambda(1, 2, Primitive.Any, "2lx");
-
-            try
+            TestHelper.AssertThrowsTicError(() =>
             {
                 graph.SetGetFirst(0, 2, 3);
                 graph.SetDef("y", 3);
                 graph.Solve();
-                Assert.Fail("Impossible equation solved");
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
-            
 
+            });
         }
         [Test]
         public void StrictArrayAndLambdaArg()
@@ -78,7 +72,7 @@ namespace NFun.Tic.Tests.Funs
             //y = first([ 1i ], x:int-> x == 0)
             var graph = new GraphBuilder();
             graph.SetConst(0, Primitive.I32);
-            graph.SetArrayInit(1, 0);
+            graph.SetStrictArrayInit(1, 0);
             graph.SetVarType("lx", Primitive.I32);
             graph.SetVar("lx", 2);
             graph.SetIntConst(3, Primitive.U8);
@@ -100,23 +94,19 @@ namespace NFun.Tic.Tests.Funs
             //y = First([ 1.0 ], x:int->x==0)
             var graph = new GraphBuilder();
             graph.SetConst(0, Primitive.Real);
-            graph.SetArrayInit(1, 0);
+            graph.SetStrictArrayInit(1, 0);
             graph.SetVarType("lx", Primitive.I32);
             graph.SetVar("lx", 2);
             graph.SetIntConst(3, Primitive.U8);
             graph.SetEquality(2, 3, 4);
-            try
+            TestHelper.AssertThrowsTicError(() =>
             {
                 graph.CreateLambda(4, 5, "lx");
                 graph.SetGetFirst(1, 5, 6);
                 graph.SetDef("y", 6);
                 graph.Solve();
                 Assert.Fail("Impossible equation solved");
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
+            });
         }
 
         [Test]
@@ -127,7 +117,7 @@ namespace NFun.Tic.Tests.Funs
             //y = First([ 1i ], x:real->x ==0)
             var graph = new GraphBuilder();
             graph.SetConst(0, Primitive.I32);
-            graph.SetArrayInit(1, 0);
+            graph.SetStrictArrayInit(1, 0);
             graph.SetVarType("lx", Primitive.Real);
             graph.SetVar("lx", 2);
             graph.SetIntConst(3, Primitive.U8);

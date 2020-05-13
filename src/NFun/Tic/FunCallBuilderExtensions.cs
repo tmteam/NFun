@@ -83,6 +83,7 @@ namespace NFun.Tic
                 argThenReturnIds: new[] { argId, resultId });
         }
 
+        
         public static void SetArrGetCall(this GraphBuilder builder, int arrArgId, int indexArgId, int resId)
         {
             var varNode = builder.InitializeVarNode();
@@ -150,6 +151,35 @@ namespace NFun.Tic
                 Fun.Of(new[] {generic, generic}, generic),
                 generic
             }, new[] { arrId, funId, returnId });
+        }
+
+        public static void SetSizeOfArrayCall(this GraphBuilder graph, int argId, int resId)
+        {
+            var tOfCount = graph.InitializeVarNode();
+            //count
+            graph.SetCall(new IState[] { Array.Of(tOfCount), Primitive.I32 }, new[] { argId, resId });
+        }
+
+        public static void SetRangeCall(this GraphBuilder graph, int fromId, int toId, int resId)
+        {
+            var generic = graph.InitializeVarNode(anc: Primitive.I48);
+            //range
+            graph.SetCall(new IState[] { generic, generic, Array.Of(generic) }, new[] { fromId, toId, resId });
+
+        }
+        public static void SetReduceCall(this GraphBuilder graph, int arrId, int defId, int funId, int resId)
+        {
+            var tRes = graph.InitializeVarNode();
+            var tArg = graph.InitializeVarNode();
+            //reduce call   reduce( T[], G, (G,T)->G )->G 
+            graph.SetCall(new IState[]
+                {
+                    Array.Of(tArg), 
+                    tRes, 
+                    Fun.Of(new IState[] { tRes, tArg }, tRes), 
+                    tRes
+                },
+                new[] { arrId, defId, funId, resId });
         }
 
         public static void SetFoldCall(this GraphBuilder graph, int arrId, int funId, int returnId)

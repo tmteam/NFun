@@ -35,7 +35,7 @@ namespace NFun.TypeInferenceAdapter
                     case Constrains constrains when !constrains.HasAncestor:
                         {
                             if (constrains.IsComparable)
-                                throw new NotImplementedException();
+                                return VarType.Real;
                             return VarType.Anything;
                         }
 
@@ -126,8 +126,8 @@ namespace NFun.TypeInferenceAdapter
                         return Convert(refTo.Element);
                     case Primitive primitive:
                         return ToConcrete(primitive.Name);
-                    case Constrains constrains when constrains.Prefered != null:
-                        return ToConcrete(constrains.Prefered.Name);
+                    //case Constrains constrains when constrains.Prefered != null:
+                    //    return ToConcrete(constrains.Prefered.Name);
                     case Constrains constrains:
                         var index = System.Array.IndexOf(_constrainsMap, constrains);
                         if (index == -1)

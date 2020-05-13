@@ -65,8 +65,8 @@
 | TEST user and buildin function overloads  
 | TAGS overload user-function
 |************************  
-| in x:int, r:real
-| out  r:real 
+| in   i:real[]
+| out  userfun:real, builtin:real 
 |------------------------
   #custom user function max(r r r) overloads
   #built in function max(r r)
@@ -81,5 +81,6 @@
 | check userfun:10, builtin:-5
 | set i:[10,-7,10]
 | check userfun:10, builtin:10
+
 
 

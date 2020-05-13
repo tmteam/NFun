@@ -1,4 +1,5 @@
 ﻿using NFun.Tic.SolvingStates;
+using NFun.TypeInferenceCalculator.Errors;
 using NUnit.Framework;
 
 namespace NFun.Tic.Tests.Arrays
@@ -15,7 +16,7 @@ namespace NFun.Tic.Tests.Arrays
             graph.SetConst(0, Primitive.I32);
             graph.SetConst(1, Primitive.I32);
             graph.SetConst(2, Primitive.I32);
-            graph.SetArrayInit(3, 0, 1, 2);
+            graph.SetStrictArrayInit(3, 0, 1, 2);
             graph.SetDef("y", 3);
             var result = graph.Solve();
             result.AssertNoGenerics();
@@ -31,7 +32,7 @@ namespace NFun.Tic.Tests.Arrays
             graph.SetConst(0, Primitive.I32);
             graph.SetConst(1, Primitive.I32);
             graph.SetConst(2, Primitive.I32);
-            graph.SetArrayInit(3, 0, 1, 2);
+            graph.SetStrictArrayInit(3, 0, 1, 2);
             graph.SetDef("y", 3);
 
             var result = graph.Solve();
@@ -42,21 +43,19 @@ namespace NFun.Tic.Tests.Arrays
         [Test]
         public void ArrayInitWithSpecifiedArrayTypeAndDowncast_fails()
         {
-            try
+            //            3 0  1  2 
+            // y:byte[] = [1i,2i,3i]
+            var graph = new GraphBuilder();
+            graph.SetVarType("y", Array.Of(Primitive.U8));
+            graph.SetConst(0, Primitive.I32);
+            graph.SetConst(1, Primitive.I32);
+            graph.SetConst(2, Primitive.I32);
+            graph.SetStrictArrayInit(3, 0, 1, 2);
+            TestHelper.AssertThrowsTicError(() =>
             {
-                //            3 0  1  2 
-                // y:byte[] = [1i,2i,3i]
-                var graph = new GraphBuilder();
-                graph.SetVarType("y", Array.Of(Primitive.U8));
-                graph.SetConst(0, Primitive.I32);
-                graph.SetConst(1, Primitive.I32);
-                graph.SetConst(2, Primitive.I32);
-                graph.SetArrayInit(3, 0, 1, 2);
                 graph.SetDef("y", 3);
                 graph.Solve();
-                Assert.Fail("Equation should not be solved");
-            }
-            catch {}
+            });
         }
 
         [Test]
@@ -69,7 +68,7 @@ namespace NFun.Tic.Tests.Arrays
             graph.SetIntConst(0, Primitive.U8);
             graph.SetIntConst(1, Primitive.U8);
             graph.SetIntConst(2, Primitive.U8);
-            graph.SetArrayInit(3, 0, 1, 2);
+            graph.SetStrictArrayInit(3, 0, 1, 2);
             graph.SetDef("y", 3);
 
             var result = graph.Solve();
@@ -85,7 +84,7 @@ namespace NFun.Tic.Tests.Arrays
             graph.SetIntConst(0, Primitive.U8);
             graph.SetIntConst(1, Primitive.U8);
             graph.SetIntConst(2, Primitive.U8);
-            graph.SetArrayInit(3, 0,1,2);
+            graph.SetStrictArrayInit(3, 0,1,2);
             graph.SetDef("y", 3);
 
             var result = graph.Solve();
@@ -102,7 +101,7 @@ namespace NFun.Tic.Tests.Arrays
             graph.SetIntConst(0, Primitive.U8);
             graph.SetIntConst(1, Primitive.U8);
             graph.SetVar("x",2);
-            graph.SetArrayInit(3, 0, 1, 2);
+            graph.SetStrictArrayInit(3, 0, 1, 2);
             graph.SetDef("y",3);
 
             var result = graph.Solve();
@@ -122,7 +121,7 @@ namespace NFun.Tic.Tests.Arrays
 
             graph.SetIntConst(1, Primitive.U8);
             graph.SetIntConst(2, Primitive.U8);
-            graph.SetArrayInit(3, 0, 1, 2);
+            graph.SetStrictArrayInit(3, 0, 1, 2);
             graph.SetDef("y", 3);
 
             var result = graph.Solve();
@@ -139,7 +138,7 @@ namespace NFun.Tic.Tests.Arrays
             var graph = new GraphBuilder();
             graph.SetVar("a", 0);
             graph.SetVar("b", 1);
-            graph.SetArrayInit(2, 0, 1);
+            graph.SetStrictArrayInit(2, 0, 1);
             graph.SetDef("y", 2);
 
             var result = graph.Solve();
@@ -156,7 +155,7 @@ namespace NFun.Tic.Tests.Arrays
             graph.SetVarType("a", Primitive.I32);
             graph.SetVar("a", 0);
             graph.SetVar("b", 1);
-            graph.SetArrayInit(2, 0, 1);
+            graph.SetStrictArrayInit(2, 0, 1);
             graph.SetDef("y", 2);
 
             var result = graph.Solve();
@@ -173,7 +172,7 @@ namespace NFun.Tic.Tests.Arrays
             graph.SetVar("x", 0);
             graph.SetVar("x", 1);
             graph.SetNegateCall(1, 2);
-            graph.SetArrayInit(3, 0, 2);
+            graph.SetStrictArrayInit(3, 0, 2);
             graph.SetDef("y", 3);
 
             var result = graph.Solve();
@@ -189,7 +188,7 @@ namespace NFun.Tic.Tests.Arrays
             var graph = new GraphBuilder();
             graph.SetVar("x", 0);
             graph.SetVar("x", 1);
-            graph.SetArrayInit(2, 0, 1);
+            graph.SetStrictArrayInit(2, 0, 1);
             graph.SetDef("y", 2);
 
             var result = graph.Solve();
@@ -208,7 +207,7 @@ namespace NFun.Tic.Tests.Arrays
             graph.SetConst(0, Primitive.Real);
             graph.SetIntConst(1, Primitive.U8);
             graph.SetIntConst(2, Primitive.U8);
-            graph.SetArrayInit(3, 0, 1, 2);
+            graph.SetStrictArrayInit(3, 0, 1, 2);
             graph.SetDef("y", 3);
         
             var result = graph.Solve();
@@ -225,8 +224,8 @@ namespace NFun.Tic.Tests.Arrays
             graph.SetConst(0, Primitive.I32);
             graph.SetConst(1, Primitive.I32);
             graph.SetConst(2, Primitive.I32);
-            graph.SetArrayInit(3, 0, 1, 2);
-            graph.SetArrayInit(4,3);
+            graph.SetStrictArrayInit(3, 0, 1, 2);
+            graph.SetStrictArrayInit(4,3);
             graph.SetDef("y", 4);
             var result = graph.Solve();
             result.AssertNoGenerics();
@@ -242,8 +241,8 @@ namespace NFun.Tic.Tests.Arrays
             graph.SetConst(0, Primitive.I32);
             graph.SetConst(1, Primitive.I32);
             graph.SetConst(2, Primitive.I32);
-            graph.SetArrayInit(3, 0, 1, 2);
-            graph.SetArrayInit(4, 3);
+            graph.SetStrictArrayInit(3, 0, 1, 2);
+            graph.SetStrictArrayInit(4, 3);
             graph.SetVarType("y", Array.Of(Array.Of(Primitive.I32)));
             graph.SetDef("y", 4);
             var result = graph.Solve();

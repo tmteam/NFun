@@ -52,5 +52,8 @@ namespace Funny.Tests.UserFunctions
         [TestCase(@"car2(g):real = g(2.0,4.0); car2(max)    ", 4.0)]
         public void HiOrderConcreteFunction(string expr, object expected)
             => FunBuilder.BuildDefault(expr).Calculate().AssertOutEquals(expected);
+
+
+        
     }
 }

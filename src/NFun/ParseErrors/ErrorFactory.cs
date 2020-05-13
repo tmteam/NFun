@@ -1,14 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using NFun.Interpritation;
 using NFun.Interpritation.Functions;
 using NFun.Interpritation.Nodes;
 using NFun.Runtime;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
+using NFun.SyntaxParsing.Visitors;
+using NFun.Tic.Errors;
+using NFun.Tic.SolvingStates;
 using NFun.Tokenization;
 using NFun.TypeInferenceAdapter;
+using NFun.TypeInferenceCalculator.Errors;
 using NFun.Types;
 
 namespace NFun.ParseErrors
@@ -450,18 +455,17 @@ namespace NFun.ParseErrors
         public static Exception CannotParseNumber(string val, Interval interval)
             => new FunParseException(530, $"Cannot parse number '{val}'", interval);
 
-        public static Exception FunctionOverloadNotFound(FunCallSyntaxNode node, IFunctionDicitionary functions)    {
-            
-            return new FunParseException(533,
-                $"Function {TypeHelper.GetFunSignature(node.Id,node.OutputType, node.Children.Select(c=>c.OutputType))} is not defined",
-                node.Interval);
-        }
-        public static Exception FunctionOverloadNotFound(VariableSyntaxNode node, IFunctionDicitionary functions)
+        public static Exception FunctionOverloadNotFound(FunCallSyntaxNode node, IFunctionDicitionary functions)
         {
-
-            return new FunParseException(533,
-                $"Function {TypeHelper.GetFunSignature(node.Id, node.OutputType, node.Children.Select(c => c.OutputType))} is not defined",
-                node.Interval);
+            var candidates =  functions.SearchAllFunctionsIgnoreCase(node.Id, node.Args.Length);
+            StringBuilder msg = new StringBuilder($"Function '{node.Id}({string.Join(",", node.Args.Select(a => "_"))})' is not found. ");
+            if (candidates.Any())
+            {
+                var candidate = candidates.First();
+                msg.Append(
+                    $"\r\nDid you mean function '{TypeHelper.GetFunSignature(candidate.Name, candidate.ReturnType, candidate.ArgTypes)}' ?");
+            }
+            return new FunParseException(533,msg.ToString(),node.Interval);
         }
 
         public static Exception OperatorOverloadNotFound(FunCallSyntaxNode node, ISyntaxNode failedArg)
@@ -576,9 +580,6 @@ namespace NFun.ParseErrors
             
         public static Exception TypesNotSolved(ISyntaxNode syntaxNode)
             => new FunParseException(600,$"Types cannot be solved ",syntaxNode.Interval);        
-        
-        public static Exception TypesNotSolved(Interval interval)
-            => new FunParseException(600,$"Types cannot be solved ",interval);        
 
         public static Exception FunctionTypesNotSolved(UserFunctionDefenitionSyntaxNode node)
             => new FunParseException(603,$"Function {node.GetFunAlias()} has invalid arguments or output type. Check function body expression",
@@ -592,6 +593,42 @@ namespace NFun.ParseErrors
 
         #endregion
 
-      
+
+        public static Exception TranslateTicError(TicException ticException, ISyntaxNode syntaxNodeToSearch)
+        {
+            if (ticException is ImcompatibleAncestorSyntaxNodeException syntaxNodeEx)
+            {
+                var concreteNode = SyntaxTreeDeepFieldSearch.FindNodeByOrderNumOrNull(syntaxNodeToSearch, syntaxNodeEx.SyntaxNodeId);
+                if (concreteNode != null)
+                    return new FunParseException(601, $"Types cannot be solved: {ticException.Message} ", concreteNode.Interval);
+            }
+            else if (ticException is ImcompatibleAncestorNamedNodeException namedNodeEx)
+            {
+                var concreteNode = SyntaxTreeDeepFieldSearch.FindVarDefenitionOrNull(syntaxNodeToSearch, namedNodeEx.NodeName);
+                if (concreteNode != null)
+                    return new FunParseException(602, $"Types cannot be solved: {ticException.Message} ", concreteNode.Interval);
+            }
+            else if (ticException is RecursiveTypeDefenitionException e)
+            {
+                foreach (var nodeName in e.NodeNames)
+                {
+                    var concreteNode =
+                        SyntaxTreeDeepFieldSearch.FindVarDefenitionOrNull(syntaxNodeToSearch, nodeName);
+                    if (concreteNode != null)
+                    {
+                        return new FunParseException(603,
+                            $"Recursive type defenition: {string.Join("->", e.NodeNames)} ", concreteNode.Interval);
+                    }
+                }
+
+                foreach (var nodeId in e.NodeIds)
+                {
+                    var concreteNode = SyntaxTreeDeepFieldSearch.FindNodeByOrderNumOrNull(syntaxNodeToSearch, nodeId);
+                    if (concreteNode != null)
+                        return new FunParseException(603, $"Recursive type defenition detected", concreteNode.Interval);
+                }
+            }
+            return TypesNotSolved(syntaxNodeToSearch);
+        }
     }
 }

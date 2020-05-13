@@ -1,5 +1,6 @@
 ﻿using System;
 using NFun.Tic.SolvingStates;
+using NFun.TypeInferenceCalculator.Errors;
 using NUnit.Framework;
 using Array = NFun.Tic.SolvingStates.Array;
 
@@ -31,7 +32,7 @@ namespace NFun.Tic.Tests.Arrays
             var graph = new GraphBuilder();
             graph.SetIntConst(0, Primitive.U8);
             graph.SetIntConst(1, Primitive.I16);
-            graph.SetArrayInit(2, 0, 1);
+            graph.SetStrictArrayInit(2, 0, 1);
             graph.SetConst(3, Primitive.I32);
             graph.SetArrGetCall(2, 3, 4);
             graph.SetDef("y", 4);
@@ -96,8 +97,7 @@ namespace NFun.Tic.Tests.Arrays
         [Test(Description = "x:int[]; y = x[0]")]
         public void ConcreteArgAndDef_Impossible()
         {
-            try
-            {
+            
                 //          2  0,1
                 //x:real[]; y:int = get(x,0) 
                 var graph = new GraphBuilder();
@@ -106,15 +106,11 @@ namespace NFun.Tic.Tests.Arrays
                 graph.SetConst(1, Primitive.I32);
                 graph.SetArrGetCall(0, 1, 2);
                 graph.SetVarType("y", Primitive.I32);
-                graph.SetDef("y", 2);
-                var result = graph.Solve();
-                Assert.Fail("Impossible equation solved");
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-
-            }
+                TestHelper.AssertThrowsTicError(() =>
+                {
+                    graph.SetDef("y", 2);
+                    graph.Solve();
+                });
         }
 
         [Test(Description = "y = x[0][0]")]
@@ -223,17 +219,12 @@ namespace NFun.Tic.Tests.Arrays
             graph.SetVar("x", 0);
             graph.SetConst(1, Primitive.I32);
             graph.SetArrGetCall(0, 1, 2);
-            try
+            TestHelper.AssertThrowsTicError(() =>
             {
                 graph.SetVarType("y", Primitive.I16);
                 graph.SetDef("y", 2);
                 graph.Solve();
-                Assert.Fail();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
+            });
         }
         [Test(Description = "x:int[][]; y:i16 = x[0][0]")]
         public void TwoDimentions_ImpossibleConcreteArgAndDef()
@@ -247,15 +238,12 @@ namespace NFun.Tic.Tests.Arrays
             graph.SetArrGetCall(0, 1, 2);
             graph.SetConst(3, Primitive.I32);
             graph.SetArrGetCall(2, 3, 4);
-            try
+            TestHelper.AssertThrowsTicError(() =>
             {
                 graph.SetVarType("y", Primitive.I16);
                 graph.SetDef("y", 4);
                 graph.Solve();
-                Assert.Fail();
-            } catch (Exception e) {
-                Console.WriteLine(e);
-            }
+            });
         }
 
         [Test(Description = "x:int[][]; y:i16 = x[0][0]")]

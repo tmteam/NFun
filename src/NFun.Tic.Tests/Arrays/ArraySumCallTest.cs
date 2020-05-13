@@ -1,5 +1,6 @@
 ﻿using System;
 using NFun.Tic.SolvingStates;
+using NFun.TypeInferenceCalculator.Errors;
 using NUnit.Framework;
 using Array = NFun.Tic.SolvingStates.Array;
 
@@ -30,7 +31,7 @@ namespace NFun.Tic.Tests.Arrays
             var graph = new GraphBuilder();
             graph.SetIntConst(0, Primitive.U8);
             graph.SetIntConst(1, Primitive.I16);
-            graph.SetArrayInit(2, 0, 1);
+            graph.SetStrictArrayInit(2, 0, 1);
             graph.SetSumCall(2,3);
             graph.SetDef("y", 3);
             var result = graph.Solve();
@@ -61,20 +62,15 @@ namespace NFun.Tic.Tests.Arrays
             //y:char = sum(x) 
 
             var graph = new GraphBuilder();
-            try
+
+            graph.SetVar("x", 0);
+            graph.SetSumCall(0, 1);
+            graph.SetVarType("y", Primitive.Char);
+            TestHelper.AssertThrowsTicError(() =>
             {
-                graph.SetVar("x", 0);
-                graph.SetSumCall(0, 1);
-                graph.SetVarType("y", Primitive.Char);
                 graph.SetDef("y", 1);
                 graph.Solve();
-                Assert.Fail();
-            }
-            catch (Exception e) 
-            {
-                Console.WriteLine(e);
-            }
-            
+            });
         }
 
         [Test(Description = "x:int[]; y = x.sum()")]
@@ -113,24 +109,18 @@ namespace NFun.Tic.Tests.Arrays
         [Test(Description = "x:real[]; y:int = x[0]")]
         public void Impossible_ConcreteArgAndDef_throws()
         {
-            try
+            //                   1  0
+            //x:real[]; y:int = sum(x) 
+            var graph = new GraphBuilder();
+            graph.SetVarType("x", Array.Of(Primitive.Real));
+            graph.SetVar("x", 0);
+            graph.SetSumCall(0, 1);
+            graph.SetVarType("y", Primitive.I32);
+            TestHelper.AssertThrowsTicError(() =>
             {
-                //                   1  0
-                //x:real[]; y:int = sum(x) 
-                var graph = new GraphBuilder();
-                graph.SetVarType("x", Array.Of(Primitive.Real));
-                graph.SetVar("x", 0);
-                graph.SetSumCall(0, 1);
-                graph.SetVarType("y", Primitive.I32);
                 graph.SetDef("y", 1);
-                var result = graph.Solve();
-                Assert.Fail("Impossible equation solved");
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-
-            }
+                graph.Solve();
+            });
         }
     }
 }

@@ -1,21 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using NFun.Tic;
+using NFun.Tic.Errors;
 using NFun.Tic.SolvingStates;
+using NFun.TypeInferenceCalculator;
 using Array = NFun.Tic.SolvingStates.Array;
 
-namespace NFun.TypeInferenceCalculator
+namespace NFun.Tic
 {
     public static class DestructionFunctions
     {
-
         #region Destructiont
 
         public static void Destruction(SolvingNode[] toposorteNodes)
         {
             void Destruction(SolvingNode node)
             {
+                node.ThrowIfTypeIsRecursive();
+
                 if (node.State is ICompositeType composite)
                 {
                     if (composite.Members.Any(m => m.State is RefTo))
@@ -26,7 +28,11 @@ namespace NFun.TypeInferenceCalculator
                 }
 
                 foreach (var ancestor in node.Ancestors.ToArray())
+                {
+                    //if(ancestor==node)
+                    //    throw new InvalidOperationException("Ancestor cannot be equal to node itself");
                     TryMergeDestructive(node, ancestor);
+                }
             }
 
             for (int i = toposorteNodes.Length - 1; i >= 0; i--)
@@ -44,7 +50,7 @@ namespace NFun.TypeInferenceCalculator
             var nonRefDescendant = descendantNode.GetNonReference();
             if (nonRefDescendant == nonRefAncestor)
             {
-                TraceLog.WriteLine(()=>$"{ancestorNode}=={descendantNode}. Skip");
+                TraceLog.WriteLine(()=>$"{ancestorNode.Name}=={descendantNode.Name}. Skip");
                 return;
             }
 
@@ -59,7 +65,7 @@ namespace NFun.TypeInferenceCalculator
                 {
                     if (nonRefDescendant.State is Constrains c && c.Fits(concreteAnc))
                     {
-                        TraceLog.Write("p+c");
+                        TraceLog.Write("p+c: ");
                         if (c.Prefered != null && c.Fits(c.Prefered))
                             nonRefDescendant.State = c.Prefered;
                         else
@@ -73,12 +79,12 @@ namespace NFun.TypeInferenceCalculator
                 {
                     if (nonRefDescendant.State is Constrains constrainsDesc && constrainsDesc.Fits(arrayAnc))
                     {
-                        TraceLog.Write("a+c");
+                        TraceLog.Write("a+c: ");
                         nonRefDescendant.State = new RefTo(nonRefAncestor);
                     }
                     else if (nonRefDescendant.State is Array arrayDesc)
                     {
-                        TraceLog.Write("a+a");
+                        TraceLog.Write("a+a: ");
                         TryMergeDestructive(arrayDesc.ElementNode, arrayAnc.ElementNode);
                     }
                     break;
@@ -88,12 +94,12 @@ namespace NFun.TypeInferenceCalculator
                 {
                     if (nonRefDescendant.State is Constrains constrainsDesc && constrainsDesc.Fits(funAnc))
                     {
-                        TraceLog.Write("f+c");
+                        TraceLog.Write("f+c: ");
                         nonRefDescendant.State = new RefTo(nonRefAncestor);
                     }
                     else if (nonRefDescendant.State is Fun funDesc)
                     {
-                        TraceLog.Write("f+f");
+                        TraceLog.Write("f+f: ");
                         if (funAnc.ArgsCount != funDesc.ArgsCount)
                             break;
                         for (int i = 0; i < funAnc.ArgsCount; i++)
@@ -107,7 +113,7 @@ namespace NFun.TypeInferenceCalculator
                 {
                     if (constrainsAnc.Fits(concreteDesc))
                     {
-                        TraceLog.Write("c+p");
+                        TraceLog.Write("c+p: ");
                         descendantNode.State = ancestorNode.State = nonRefAncestor.State = concreteDesc;
                     }
 
@@ -116,7 +122,7 @@ namespace NFun.TypeInferenceCalculator
 
                 case Constrains constrainsAnc when nonRefDescendant.State is Constrains constrainsDesc:
                 {
-                    TraceLog.Write("c+c");
+                    TraceLog.Write("c+c: ");
 
                     var result = constrainsAnc.MergeOrNull(constrainsDesc);
                     if (result == null)
@@ -146,7 +152,7 @@ namespace NFun.TypeInferenceCalculator
                 }
                 case Constrains constrainsAnc when nonRefDescendant.State is Array arrayDes:
                 {
-                    TraceLog.Write("c+a");
+                    TraceLog.Write("c+a: ");
 
                     if (constrainsAnc.Fits(arrayDes))
                         nonRefAncestor.State = ancestorNode.State = new RefTo(nonRefDescendant);
@@ -155,7 +161,7 @@ namespace NFun.TypeInferenceCalculator
                 }
                 case Constrains constrainsAnc when nonRefDescendant.State is Fun funDes:
                 {
-                    TraceLog.Write("c+f");
+                    TraceLog.Write("c+f: ");
 
                     if (constrainsAnc.Fits(funDes))
                         nonRefAncestor.State = ancestorNode.State = new RefTo(nonRefDescendant);
@@ -184,35 +190,37 @@ namespace NFun.TypeInferenceCalculator
             var syntaxNodes = new List<SolvingNode>(toposortedNodes.Length);
             void Finalize(SolvingNode node)
             {
+                node.ThrowIfTypeIsRecursive();
+
                 if (node.State is RefTo)
                 {
                     var originalOne = node.GetNonReference();
 
                     if (originalOne != node)
                     {
-                        TraceLog.WriteLine($"\t{node.Name}->r");
+                        TraceLog.WriteLine($"\t{node.Name}->reduce ref");
                         node.State = new RefTo(originalOne);
                     }
 
                     if (originalOne.State is IType)
                     {
                         node.State = originalOne.State;
-                        TraceLog.WriteLine($"\t{node.Name}->s");
+                        TraceLog.WriteLine($"\t{node.Name}->concretize ref to {node.State}");
                     }
                 }
-                else if (node.State is ICompositeType composite)
+                
+                if (node.State is ICompositeType composite)
                 {
                     if (composite.Members.Any(m => m.State is RefTo))
                     {
+                        TraceLog.Write($"\t{node.Name}->simplify composite ");
                         node.State = composite.GetNonReferenced();
-                        TraceLog.WriteLine($"\t{node.Name}->ar");
+                        TraceLog.Write($"{composite}->{node.State} \r\n");
                     }
 
-                    foreach (var member in composite.Members)
+                    foreach (var member in ((ICompositeType) node.State).Members)
                         Finalize(member);
-
                 }
-
             }
 
             foreach (var node in toposortedNodes.Reverse())
@@ -296,6 +304,7 @@ namespace NFun.TypeInferenceCalculator
         }
 
         #endregion
+
         private static IEnumerable<SolvingNode> GetAllLeafTypes(this SolvingNode node)
         {
             switch (node.State)
@@ -322,6 +331,37 @@ namespace NFun.TypeInferenceCalculator
                 default:
                     return new[] { node };
             }
+        }
+
+        public static void ThrowIfTypeIsRecursive(this SolvingNode node)
+        {
+            switch (node.State)
+            {
+                case Primitive _:
+                case Constrains _:
+                    return;
+                case RefTo _:
+                case ICompositeType _:
+                    ThrowIfTypeIsRecursive(node, new HashSet<SolvingNode>());
+                    return;
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+        private static void ThrowIfTypeIsRecursive(this SolvingNode node, HashSet<SolvingNode> nodes)
+        {
+            if (!nodes.Add(node))
+                throw TicErrors.RecursiveTypeDefenition(nodes.ToArray());
+            if (node.State is RefTo r)
+                ThrowIfTypeIsRecursive(r.Node, nodes);
+            else if (node.State is ICompositeType composite)
+            {
+                foreach (var compositeMember in composite.Members)
+                {
+                    ThrowIfTypeIsRecursive(compositeMember, nodes);
+                }
+            }
+            nodes.Remove(node);
         }
     }
 }

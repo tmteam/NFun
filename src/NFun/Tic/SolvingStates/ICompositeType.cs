@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿ using System.Collections.Generic;
 
 namespace NFun.Tic.SolvingStates
 {

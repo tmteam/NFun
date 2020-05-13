@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using NFun.BuiltInFunctions;
 using NFun.Types;
 
 namespace NFun.Runtime.Arrays
@@ -64,10 +65,14 @@ namespace NFun.Runtime.Arrays
             }
             else
             {
+                int len;
                 if (endIndex.HasValue)
-                    str = _text.Substring(startIndex.Value, endIndex.Value+1 - startIndex.Value);
+                    len = endIndex.Value+1 - startIndex.Value;
                 else
-                    str = _text.Substring(startIndex.Value, _text.Length  - startIndex.Value);
+                    len = _text.Length  - startIndex.Value;
+                if (startIndex.Value + len > _text.Length)
+                    len = _text.Length - startIndex.Value;
+                str = _text.Substring(startIndex.Value, len);
             }
             return new TextFunArray(str);
         }

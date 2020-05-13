@@ -1,5 +1,6 @@
 ﻿using System;
 using NFun.Tic.SolvingStates;
+using NFun.TypeInferenceCalculator.Errors;
 using NUnit.Framework;
 using Array = NFun.Tic.SolvingStates.Array;
 
@@ -49,7 +50,7 @@ namespace NFun.Tic.Tests.Arrays
             var graph = new GraphBuilder();
             graph.SetIntConst(0, Primitive.U8);
             graph.SetIntConst(1, Primitive.I16);
-            graph.SetArrayInit(2, 0, 1);
+            graph.SetStrictArrayInit(2, 0, 1);
 
             graph.SetCall(new IState[] { Array.Of(Primitive.Real), Primitive.Bool }, new[] { 2, 3 });
             graph.SetDef("y", 3);
@@ -83,7 +84,7 @@ namespace NFun.Tic.Tests.Arrays
             //y = [1.0] == 'abc'
             var graph = new GraphBuilder();
             graph.SetConst(0, Primitive.Real);
-            graph.SetArrayInit(1, 0);
+            graph.SetStrictArrayInit(1, 0);
             graph.SetArrayConst(2, Primitive.Char);
             var generic = graph.SetEquality(1,2,3);
             graph.SetDef("y", 3);
@@ -102,7 +103,7 @@ namespace NFun.Tic.Tests.Arrays
             //y = [1.0] == emptyArrayOfAny
             var graph = new GraphBuilder();
             graph.SetConst(0, Primitive.Real);
-            graph.SetArrayInit(1, 0);
+            graph.SetStrictArrayInit(1, 0);
             graph.SetArrayConst(2, Primitive.Any);
             var generic = graph.SetEquality(1, 2, 3);
             graph.SetDef("y", 3);
@@ -119,8 +120,8 @@ namespace NFun.Tic.Tests.Arrays
             //y = [1.0] == []
             var graph = new GraphBuilder();
             graph.SetConst(0, Primitive.Real);
-            graph.SetArrayInit(1, 0);
-            var arrayType = graph.SetArrayInit(2);
+            graph.SetStrictArrayInit(1, 0);
+            var arrayType = graph.SetStrictArrayInit(2);
             var eqGeneric = graph.SetEquality(1, 2, 3);
             graph.SetDef("y", 3);
 
@@ -139,7 +140,7 @@ namespace NFun.Tic.Tests.Arrays
             //y = arrayOfReal == []
             var graph = new GraphBuilder();
             graph.SetArrayConst(0, Primitive.Real);
-            var arrayType = graph.SetArrayInit(1);
+            var arrayType = graph.SetStrictArrayInit(1);
             var eqGeneric = graph.SetEquality(0, 1, 2);
             graph.SetDef("y", 2);
 
@@ -176,20 +177,14 @@ namespace NFun.Tic.Tests.Arrays
             var graph = new GraphBuilder();
             graph.SetVarType("x", Array.Of(Primitive.Any));
             graph.SetVar("x", 0);
-            
-            try
+            TestHelper.AssertThrowsTicError(() =>
             {
-                
-                graph.SetCall(new IState[] { Array.Of(Primitive.Real), Primitive.Bool }, new[] { 0, 1 });
+                graph.SetCall(new IState[] {Array.Of(Primitive.Real), Primitive.Bool}, new[] {0, 1});
                 graph.SetDef("y", 1);
                 graph.Solve();
                 Assert.Fail();
-            }
-            catch (Exception e) 
-            {
-                Console.WriteLine(e);
-            }
-            
+            });
+
         }
     }
 }

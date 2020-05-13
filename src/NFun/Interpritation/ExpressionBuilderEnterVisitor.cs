@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NFun.BuiltInFunctions;
 using NFun.Exceptions;
 using NFun.Interpritation.Functions;
 using NFun.Interpritation.Nodes;
@@ -10,7 +9,6 @@ using NFun.Runtime;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
-using NFun.Tokenization;
 using NFun.TypeInferenceAdapter;
 using NFun.Types;
 
@@ -135,7 +133,7 @@ namespace NFun.Interpritation
                 //hi order function
                  var functionalVariableSource = _variables.GetSourceOrNull(id);
                  if (functionalVariableSource?.Type.FunTypeSpecification == null)
-                    throw new ImpossibleException($"MJ78. Function {id}`{node.Args.Length} was not found");
+                     throw ErrorFactory.FunctionOverloadNotFound(node, _functions);
                  return CreateFunctionCall(node, ConcreteHiOrderFunction.Create(functionalVariableSource));
             }
 
@@ -222,7 +220,6 @@ namespace NFun.Interpritation
                 type:              node.OutputType);
         }
 
-
         public IExpressionNode Visit(ConstantSyntaxNode node)
         {
             var type = _typesConverter.Convert(_typeInferenceResults.SyntaxNodeTypes[node.OrderNumber]);
@@ -252,7 +249,6 @@ namespace NFun.Interpritation
         public IExpressionNode Visit(VariableSyntaxNode node)
             => GetOrAddVariableNode(node);
 
-        
 
         #region not an expression
         public IExpressionNode Visit(EquationSyntaxNode node) 
@@ -284,6 +280,7 @@ namespace NFun.Interpritation
             => node.Accept(this);
         private IExpressionNode GetOrAddVariableNode(VariableSyntaxNode varNode)
         {
+           
             var funVariable = _typeInferenceResults.GetFunctionalVariableOrNull(varNode.OrderNumber);
             if (funVariable != null)
             {
@@ -306,31 +303,35 @@ namespace NFun.Interpritation
             {
                 //if it is not a variable it might be a functional-variable
                 var funVars = _functions.GetOverloads(lower);
-                if (funVars.Count > 1)
+                if (funVars.Count > 0)
                 {
                     var specification = varNode.OutputType.FunTypeSpecification;
                     if (specification == null)
                         throw ErrorFactory.FunctionNameAndVariableNameConflict(varNode);
 
-                    //several function with such name are appliable
-                    var result = funVars.Where(f =>
-                            f.ReturnType == specification.Output && f.ArgTypes.SequenceEqual(specification.Inputs))
-                        .ToList();
-                    if (result.Count == 0)
-                        throw ErrorFactory.FunctionIsNotExists(varNode);
-                    if (result.Count > 1)
-                        throw ErrorFactory.AmbiguousFunctionChoise(varNode);
-                    if(result[0] is FunctionBase ff)
-                        return new FunVariableExpressionNode(ff, varNode.Interval);
-                    else
-                        throw new NotImplementedException("GenericsAreNotSupp");
+                    if (funVars.Count > 1)
+                    {
+                        //several function with such name are appliable
+                        var result = funVars.Where(f =>
+                                f.ReturnType == specification.Output && f.ArgTypes.SequenceEqual(specification.Inputs))
+                            .ToList();
+                        if (result.Count == 0)
+                            throw ErrorFactory.FunctionIsNotExists(varNode);
+                        if (result.Count > 1)
+                            throw ErrorFactory.AmbiguousFunctionChoise(varNode);
+                        if (result[0] is FunctionBase ff)
+                            return new FunVariableExpressionNode(ff, varNode.Interval);
+                        else
+                            throw new NotImplementedException("GenericsAreNotSupp");
+                    }
+
+                    if (funVars.Count == 1)
+                    {
+                        if (funVars[0] is FunctionBase ff)
+                            return new FunVariableExpressionNode(ff, varNode.Interval);
+                    }
                 }
 
-                if (funVars.Count == 1)
-                {
-                    if (funVars[0] is FunctionBase ff)
-                        return new FunVariableExpressionNode(ff, varNode.Interval);
-                }
             }
             var node = _variables.CreateVarNode(varNode.Id, varNode.Interval, varNode.OutputType);
             if(node.Source.Name!= varNode.Id)

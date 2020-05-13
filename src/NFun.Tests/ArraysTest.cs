@@ -80,7 +80,7 @@ namespace Funny.Tests
             FunBuilder.BuildDefault(expr).Calculate().AssertHas(VarVal.New("y", expected));
         }
         
-        
+        [TestCase("[1,'2',3.0,4,5.2, true, false, 7.2]",new object[]{1.0,"2",3.0,4.0,5.2,true,false,7.2})]
         [TestCase("if (true) [1.0] else [2.0, 3.0] ", new[]{1.0})]
         [TestCase("if (false) [1.0] else [2.0, 3.0]", new[]{2.0,3.0})]
         [TestCase ("y(x) = x \r[1]",new[]{1.0})]
@@ -98,6 +98,7 @@ namespace Funny.Tests
 
             FunBuilder.BuildDefault(expression).Calculate().AssertReturns(VarVal.New("y", expected));
         }
+        
 
         [TestCase(3, "y= [1..x]", new[] {1, 2, 3})]
         [TestCase(3, "y= [x..7]", new[] {3, 4, 5, 6, 7})]
@@ -224,7 +225,6 @@ filtrat   = x.filter(i:int ->i> filt) # filt - входная переменна
                 }
             }
         }
-        [Ignore("errors")]
         [TestCase("y = [")]
         [TestCase("y = [,]")]
         [TestCase("y = [,1.0]")]
@@ -250,7 +250,49 @@ filtrat   = x.filter(i:int ->i> filt) # filt - входная переменна
         [TestCase("y = [2,1] in [1,2,3]")]
         [TestCase("y = [1,5,2] in [1,2,3]")]
         [TestCase("y = x\r[2]")]
+  
         public void ObviouslyFailsOnParse(string expr) =>
+            Assert.Throws<FunParseException>(
+                () => FunBuilder.BuildDefault(expr));
+
+        [TestCase("y = t.concat(t[0])")]
+        [TestCase("y = t.concat(t[0][0])")]
+        [TestCase("y = t.concat(t[0][0][0])")]
+        [TestCase("y = t.concat(t[0][0][0][0])")]
+        [TestCase("y = t[0].concat(t[0][0])")]
+        [TestCase("y = t[0].concat(t[0][0][0])")]
+        [TestCase("y = t[0].concat(t[0][0][0][0])")]
+        [TestCase("y = t[0][0].concat(t[0][0][0])")]
+        [TestCase("y = t[0][0].concat(t[0][0][0][0])")]
+        [TestCase("y = t[0][0][0].concat(t[0][0][0][0])")]
+        [TestCase("y = t[t])")]
+        [TestCase("y = t[0][t])")]
+        [TestCase("y = t[0][0][t])")]
+        [TestCase("y = t[0][0][t[0]])")]
+        [TestCase("y = t[0][0][0][t[0]])")]
+        [TestCase("y = t[0][0][0][t[0][0]])")]
+        [TestCase("y = if(t.count() < 2) t else t[1:].reverse().concat(t[0])")]
+        [TestCase("f(t) = if(t.count() < 2) t else t[1:].reverse().concat(t[0])")]
+        [TestCase("f(t) = t[1:].reverse().concat(t[0])")]
+        [TestCase("f(t) = t.reverse().concat(t[0])")]
+        [TestCase("f(t) = t.concat(t[0])")]
+        [TestCase("f(t) = t.concat(t[0])")]
+        [TestCase("f(t) = t.concat(t[0][0])")]
+        [TestCase("f(t) = t.concat(t[0][0][0])")]
+        [TestCase("f(t) = t.concat(t[0][0][0][0])")]
+        [TestCase("f(t) = t[0].concat(t[0][0])")]
+        [TestCase("f(t) = t[0].concat(t[0][0][0])")]
+        [TestCase("f(t) = t[0].concat(t[0][0][0][0])")]
+        [TestCase("f(t) = t[0][0].concat(t[0][0][0])")]
+        [TestCase("f(t) = t[0][0].concat(t[0][0][0][0])")]
+        [TestCase("f(t) = t[0][0][0].concat(t[0][0][0][0])")]
+        [TestCase("f(t) = t[t])")]
+        [TestCase("f(t) = t[0][t])")]
+        [TestCase("f(t) = t[0][0][t])")]
+        [TestCase("f(t) = t[0][0][t[0]])")]
+        [TestCase("f(t) = t[0][0][0][t[0]])")]
+        [TestCase("f(t) = t[0][0][0][t[0][0]])")]
+        public void ObviouslyFailsWithRecursiveTypeDefenitionOnParse(string expr) =>
             Assert.Throws<FunParseException>(
                 () => FunBuilder.BuildDefault(expr));
 

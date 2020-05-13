@@ -4,14 +4,29 @@ namespace NFun.SyntaxParsing.Visitors
 {
     public static class SyntaxTreeDeepFieldSearch
     {
-        public static ISyntaxNode GetDescendantNodeOrNull(this ISyntaxNode root, int nodeId)
+        public static ISyntaxNode FindNodeByOrderNumOrNull(this ISyntaxNode root, int nodeId)
         {
             if (root.OrderNumber == nodeId) 
                 return root;
             
             foreach (var child in root.Children)
             {
-                var result = GetDescendantNodeOrNull(child, nodeId);
+                var result = FindNodeByOrderNumOrNull(child, nodeId);
+                if (result != null)
+                    return result;
+            }
+            return null;
+        }
+        public static ISyntaxNode FindVarDefenitionOrNull(this ISyntaxNode root, string nodeName)
+        {
+            if (root is TypedVarDefSyntaxNode v && v.Id == nodeName)
+                return root;
+            if (root is VarDefenitionSyntaxNode vd && vd.Id == nodeName)
+                return root;
+
+            foreach (var child in root.Children)
+            {
+                var result = FindVarDefenitionOrNull(child, nodeName);
                 if (result != null)
                     return result;
             }

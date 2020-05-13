@@ -9,6 +9,7 @@ using NFun.SyntaxParsing.Visitors;
 using NFun.Tic;
 using NFun.TypeInferenceAdapter;
 using NFun.TypeInferenceCalculator;
+using NFun.TypeInferenceCalculator.Errors;
 
 namespace NFun.Interpritation
 {
@@ -139,18 +140,24 @@ namespace NFun.Interpritation
 
             ////introduce function variable
             var graphBuider = new GraphBuilder();
-
-            //setup body type inference
             var resultsBuilder = new TypeInferenceResultsBuilder();
-            if (!LangTiHelper.SetupTiOrNull(
-                functionSyntaxNode,
-                functionsDictionary,
-                resultsBuilder,
-                new SetupTiState(graphBuider)))
-                throw FunParseException.ErrorStubToDo($"Function '{functionSyntaxNode.Id}' is not solved");
+            FinalizationResults types;
 
-            // solve the types
-            var types = graphBuider.Solve();
+            try
+            {
+                //setup body type inference
+                if (!LangTiHelper.SetupTiOrNull(
+                    functionSyntaxNode,
+                    functionsDictionary,
+                    resultsBuilder,
+                    new SetupTiState(graphBuider)))
+                    throw FunParseException.ErrorStubToDo($"Function '{functionSyntaxNode.Id}' is not solved");
+
+                // solve the types
+                types = graphBuider.Solve();
+            }
+            catch (TicException e) { throw ErrorFactory.TranslateTicError(e, functionSyntaxNode);}
+
             resultsBuilder.SetResults(types);
             var typeInferenceResuls = resultsBuilder.Build();
 
@@ -191,6 +198,9 @@ namespace NFun.Interpritation
             {
                 var function = GenericUserFunction.Create(typeInferenceResuls, functionSyntaxNode, functionsDictionary);
                 functionsDictionary.Add(function);
+                //Нужно интерпритировать какой либо тип функции, что бы проверить ошибки
+                GenericUserFunction.CreateSomeConcrete(function);
+                
                 return function;
             }
         }

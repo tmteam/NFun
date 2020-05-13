@@ -6,6 +6,7 @@ namespace NFun.Runtime.Arrays
     {
         int Count { get; }
         IFunArray Slice(int? startIndex, int? endIndex, int? step);
+
         object GetElementOrNull(int index);
         bool IsEquivalent(IFunArray array);
         IEnumerable<T> As<T>();

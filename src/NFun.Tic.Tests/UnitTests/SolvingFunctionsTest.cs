@@ -10,39 +10,39 @@ namespace NFun.Tic.Tests.UnitTests
         [Test]
         public void GetMergedState_TwoSamePrimitives()
         {
-            var res = SolvingFunctions.GetMergedState(Primitive.I32, Primitive.I32);
+            var res = SolvingFunctions.GetMergedStateOrNull(Primitive.I32, Primitive.I32);
             Assert.AreEqual(res, Primitive.I32);
         }
 
         [Test]
         public void GetMergedState_PrimitiveAndEmptyConstrains()
         {
-            var res = SolvingFunctions.GetMergedState(Primitive.I32, new Constrains());
+            var res = SolvingFunctions.GetMergedStateOrNull(Primitive.I32, new Constrains());
             Assert.AreEqual(res, Primitive.I32);
         }
 
         [Test]
         public void GetMergedState_EmptyConstrainsAndPrimitive()
         {
-            var res = SolvingFunctions.GetMergedState(new Constrains(), Primitive.I32);
+            var res = SolvingFunctions.GetMergedStateOrNull(new Constrains(), Primitive.I32);
             Assert.AreEqual(res, Primitive.I32);
         }
         [Test]
         public void GetMergedState_PrimitiveAndConstrainsThatFit()
         {
-            var res = SolvingFunctions.GetMergedState(Primitive.I32, new Constrains(Primitive.U24, Primitive.I48));
+            var res = SolvingFunctions.GetMergedStateOrNull(Primitive.I32, new Constrains(Primitive.U24, Primitive.I48));
             Assert.AreEqual(res, Primitive.I32);
         }
         [Test]
         public void GetMergedState_ConstrainsThatFitAndPrimitive()
         {
-            var res = SolvingFunctions.GetMergedState(new Constrains(Primitive.U24, Primitive.I48), Primitive.I32);
+            var res = SolvingFunctions.GetMergedStateOrNull(new Constrains(Primitive.U24, Primitive.I48), Primitive.I32);
             Assert.AreEqual(res, Primitive.I32);
         }
         [Test]
         public void GetMergedState_TwoSameConcreteArrays()
         {
-            var res = SolvingFunctions.GetMergedState(Array.Of(Primitive.I32), Array.Of(Primitive.I32));
+            var res = SolvingFunctions.GetMergedStateOrNull(Array.Of(Primitive.I32), Array.Of(Primitive.I32));
             Assert.AreEqual(res, Array.Of(Primitive.I32));
         }
 
@@ -65,10 +65,8 @@ namespace NFun.Tic.Tests.UnitTests
 
         void AssertGetMergedStateThrows(IState stateA, IState stateB)
         {
-            Assert.Throws<InvalidOperationException>(
-                () => SolvingFunctions.GetMergedState(stateA, stateB));
-            Assert.Throws<InvalidOperationException>(
-                () => SolvingFunctions.GetMergedState(stateB, stateA));
+            Assert.IsNull(SolvingFunctions.GetMergedStateOrNull(stateA, stateB));
+            Assert.IsNull(SolvingFunctions.GetMergedStateOrNull(stateB, stateA));
         }
     }
 }
