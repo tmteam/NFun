@@ -69,7 +69,7 @@ namespace Nfun.Fuspec.Parser
             return result.ToArray();
         }
 
-      internal static VarVal[] ParseValues(string valueStr)
+      public static VarVal[] ParseValues(string valueStr)
         {
              var result = new List<VarVal>();
             //генерим поток токенов
