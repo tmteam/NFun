@@ -21,7 +21,7 @@ namespace NFun.TypeInferenceAdapter
         private Dictionary<string, IState> _namedNodes = null;
         private IState[] _syntaxNodeTypes = null;
 
-        public void SetGenericTypes(int id, RefTo[] types)
+        public void RememberGenericCallArguments(int id, RefTo[] types)
         {
             while (_genericFunctionTypes.Count<=id) 
                 _genericFunctionTypes.Add(null);

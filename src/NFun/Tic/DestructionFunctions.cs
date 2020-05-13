@@ -256,17 +256,15 @@ namespace NFun.Tic
             SolvingNode[] outputNodes,
             SolvingNode[] inputNodes)
         {
-            //Если нерешенный тип участвует только во входных переменных
-            //то этот тип можно попытаться привести к конкретному
 
-            //находим нерешенные выходные типы
+            //All not solved output types
             var outputTypes = outputNodes
                 .SelectMany(GetAllOutputTypes)
                 .Where(t => t.State is Constrains)
                 .Distinct()
-                .ToList(); //для отладки
+                .ToList();
 
-            //Контрвариативные типы
+            //Not solved contravariant types
             var contravariants = inputNodes
                 .Where(t => t.State is Fun)
                 .SelectMany(t => ((Fun) t.State).ArgNodes)
@@ -276,6 +274,7 @@ namespace NFun.Tic
                 .Distinct()
                 .ToArray();
 
+            //try to solve them
             foreach (var node in contravariants)
             {
                 outputTypes.Add(node);
@@ -283,11 +282,11 @@ namespace NFun.Tic
             }
 
 
-            //находим входные ковариативные типы которые НЕ участвуют в выходных типах
+            //Input covariant types that NOT referenced and are not members of any output types
             var notSolved = toposortedNodes
                 .Where(t => t.State is Constrains)
                 .Except(outputTypes)
-                .ToArray(); //для отладки
+                .ToArray(); 
             
             if (TraceLog.IsEnabled && notSolved.Any())
             {
@@ -298,7 +297,7 @@ namespace NFun.Tic
                 TraceLog.WriteLine($"\r\nFinalize. solve {notSolved.Length}");
                 foreach (var solving in notSolved) solving.PrintToConsole();
             }
-            //пытаемся их решить.
+            //try to solve them
             foreach (var node in notSolved)
                 node.State = ((Constrains)node.State).SolveCovariant();
         }

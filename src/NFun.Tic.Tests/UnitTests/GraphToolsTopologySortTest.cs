@@ -292,14 +292,14 @@ namespace NFun.Tic.Tests.UnitTests
         private string ArrayToString(IEnumerable<Edge> arr) => $"[{string.Join(" ", arr)}]";
         private void AssertHasCycle(int[] cycle, TopologySortResults actual)
         {
-            Assert.IsTrue(actual.HasCycle, "Cycle not found");
+            Assert.IsTrue(actual.HasLoop, "Cycle not found");
             CollectionAssert.AreEqual(cycle, actual.NodeNames.Select(n=>n.To).ToArray(),
                 $"expected: {ArrayToString(cycle)} but was: {ArrayToString(actual.NodeNames)}");
 
         }
         private void AssertHasRoute(int[] expected, TopologySortResults actual)
         {
-            Assert.IsFalse(actual.HasCycle, "Order not found");
+            Assert.IsFalse(actual.HasLoop, "Order not found");
             CollectionAssert.AreEqual(expected, actual.NodeNames.Select(n=>n.To).ToArray(),
                 $"expected: {ArrayToString(expected)} but was: {ArrayToString(actual.NodeNames)}");
 

@@ -29,7 +29,6 @@ namespace NFun.Tic.Tests
         }
 
         [Test(Description = "y = isNan(x) ")]
-        //[Ignore("Обобщенный вход без выхода")]
         public void SimpleConcreteFunctionWithVariable()
         {
             //node |    1     0
@@ -46,7 +45,6 @@ namespace NFun.Tic.Tests
         }
 
         [Test(Description = "x:int; y = isNan(x) ")]
-        //[Ignore("Обобщенный вход без выхода")]
 
         public void SimpleConcreteFunctionWithVariableOfConcreteType()
         {
@@ -148,7 +146,7 @@ namespace NFun.Tic.Tests
         }
 
         [Test]
-        //[Ignore("Обобщенная константа без выхода")]
+        [Ignore("UB r type")]
         public void LimitCall_ComplexEquations_TypesSolved()
         {
             //     0 2 1      3 5  4      6 8 7
@@ -178,7 +176,6 @@ namespace NFun.Tic.Tests
         }
 
         [Test]
-        //[Ignore("Generic constants")]
         public void SummReducecByBitShift_AllTypesAreInt()
         {
             //  0 2 1  4 3
@@ -202,7 +199,6 @@ namespace NFun.Tic.Tests
         }
 
         [Test]
-        //[Ignore("Generic constants")]
         public void ConcreteTypeOfArithmetical_ConstantsAreConcrete()
         {
             //0 4 1 3 2  

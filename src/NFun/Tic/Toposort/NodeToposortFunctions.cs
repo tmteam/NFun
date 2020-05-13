@@ -29,25 +29,23 @@ namespace NFun.Tic.Toposort
     {
         public static NodeSortResult Toposort(SolvingNode[] nodes)
         {
-            //На данном этапе - в nodes лежат все узлы участвующие в вычислениях
-            //нужно убрать все  циклы с ребрами "равно", что-бы можно было спокойно работать далее
-            //не опасаясь Stackoverflow
-            RemoveRefenceCycles(nodes);
-            //Теперь из графа можно исключить все ребра "равно". Для этого нужно перекинуть
-            //все взаимодействия (Ancestor и Member) на оригинальные узлы
-            //
-            //Это нужно для того что бы можно было провести направленный топосорт
+            //The node list probably contains reference loops
+            //We need to remove these loops to avoid Stackoverflow exceptions 
+            RemoveRefenceLoops(nodes);
 
-            MergeAllReferences(nodes, out var refs, out var concretes);
+            //Need to remove all reference nodes from the graph. They interfere with the toposort and can be considered solved
+            MergeAllReferences(nodes, out var referenceNodes, out var nonReferenceNOdes);
             
-            var graph = ConvertToArrayGraph(concretes);
+            //Do toposort
+            var graph = ConvertToArrayGraph(nonReferenceNOdes);
             var sorted = GraphTools.SortTopology(graph);
-            var order = sorted.NodeNames.Select(n => concretes[n.To]).Reverse().ToArray();
-            return new NodeSortResult(order, refs, 
-                sorted.HasCycle
+            var order = sorted.NodeNames.Select(n => nonReferenceNOdes[n.To]).Reverse().ToArray();
+            
+            return new NodeSortResult(order, referenceNodes, 
+                sorted.HasLoop
                 ? sorted.NodeNames.Any(n => n.Type == EdgeType.Member)
-                    ? SortStatus.MemebershipCycle
-                    : SortStatus.AncestorCycle
+                    ? SortStatus.MemebershipCycle // if any edge is of membership type, than recursive type defenition found. Example t = t[0]
+                    : SortStatus.AncestorCycle    // Ancestor cycle found.  Example: x = x+1. 
                 : SortStatus.Sorted);
         }
 
@@ -105,7 +103,7 @@ namespace NFun.Tic.Toposort
         }
 
 
-        private static void RemoveRefenceCycles(SolvingNode[] nodes)
+        private static void RemoveRefenceLoops(SolvingNode[] nodes)
         {
             while (true)
             {
@@ -114,7 +112,7 @@ namespace NFun.Tic.Toposort
                 var arrayOfRefList = refList.ToArray();
                 var refGraph = ConvertToRefArrayGraph(arrayOfRefList);
                 var refTopology = GraphTools.SortTopology(refGraph);
-                if (!refTopology.HasCycle)
+                if (!refTopology.HasLoop)
                     return;
                 
                 var refCycle = refTopology.NodeNames.Select(n => nodes[n.To]).ToArray();

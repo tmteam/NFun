@@ -95,13 +95,14 @@ namespace NFun.TypeInferenceAdapter
             ids[ids.Length - 1] = node.OrderNumber;
 
             var userFunction = _resultsBuilder.GetUserFunctionSignature(node.Id, node.Args.Length);
-            if (userFunction != null)
+            if (userFunction != null) 
             {
-                //Это вызов пользовательской функции. Например в случае рекурсии
+                //Call user-function if it is being built at the same time as the current expression is being built
+                //for example: recursive calls, or if function relates to global variables
                 Trace(node, $"Call UF{node.Id}({string.Join(",", ids)})");
                 _state.CurrentSolver.SetCall(userFunction, ids);
-                //Если функция является дженериковой и рекурсивной, то мы пока не знаем ограничения дженериков
-                //В таком случае - единственное что мы можем - это запомнить тип рекурсивного вызова
+                //in the case of generic user function  - we dont know generic arg types yet 
+                //we need to remember generic TIC signature to used it at the end of interpritation
                 _resultsBuilder.RememberRecursiveCall(node.OrderNumber, userFunction);
                 return true;
             }
@@ -110,22 +111,21 @@ namespace NFun.TypeInferenceAdapter
             var signature = _resultsBuilder.GetSignatureOrNull(node.OrderNumber);
             if (signature == null)
             {
-                //Функциональная переменная
+                //Functional variable
                 Trace(node, $"Call hi order {node.Id}({string.Join(",", ids)})");
                 _state.CurrentSolver.SetCall(node.Id, ids);
                 return true;
             }
-            //Вызов обычной функции
-
+            //Normal function call
             Trace(node, $"Call {node.Id}({string.Join(",", ids)})");
 
             RefTo[] genericTypes;
             if (signature is GenericFunctionBase t)
             {
-                //Если это дженерик функция - то нужно сохранить типы дженериков с которыми она вызывается
-                //что бы не вычислять эти типы заново на этапе построения
+                //Optimization
+                //Remember generic arguments to use it again at the built time
                 genericTypes = InitializeGenericTypes(t.GenericDefenitions);
-                _resultsBuilder.SetGenericTypes(node.OrderNumber, genericTypes);
+                _resultsBuilder.RememberGenericCallArguments(node.OrderNumber, genericTypes);
             }
             else genericTypes = new RefTo[0];
 
@@ -154,6 +154,7 @@ namespace NFun.TypeInferenceAdapter
             _state.CurrentSolver.SetCall(node.ResultExpression.OrderNumber, ids);
             return true;
         }
+       
         public override bool Visit(IfThenElseSyntaxNode node)
         {
             var conditions = node.Ifs.Select(i => i.Condition.OrderNumber).ToArray();
@@ -290,9 +291,10 @@ namespace NFun.TypeInferenceAdapter
         {
             Trace(node, $"VAR {node.Id} ");
 
-            //Нужно узнать у Tic - что именно ожидается - переменная или функция
-            //Если функция - то сколько в ней аргументов
-            VarType argType = VarType.Empty;
+            //nfun syntax allows multiple variables to have the same name depending on whether they are functions or not
+            //need to know what type of argument is expected - is it variableId, or functionId?
+            //if it is function - how many arguments are expected ? 
+            var argType = VarType.Empty;
             if (Parent is FunCallSyntaxNode parentCall)
             {
                 var parentSignature = _resultsBuilder.GetSignatureOrNull(parentCall.OrderNumber);
@@ -300,9 +302,8 @@ namespace NFun.TypeInferenceAdapter
                     argType = parentSignature.ArgTypes[CurrentChildNumber];
             }
 
-            if (argType.BaseType == BaseVarType.Fun)
+            if (argType.BaseType == BaseVarType.Fun)// functional argument is expected
             {
-                //В качестве аргумента ожидается функция
                 var argsCount = argType.FunTypeSpecification.Inputs.Length;
                 var signature = _dictionary.GetOrNull(node.Id, argsCount);
                 if (signature != null)
@@ -310,7 +311,7 @@ namespace NFun.TypeInferenceAdapter
                     if (signature is GenericFunctionBase genericFunction)
                     {
                         var generics = InitializeGenericTypes(genericFunction.GenericDefenitions);
-                        _resultsBuilder.SetGenericTypes(node.OrderNumber, generics);
+                        _resultsBuilder.RememberGenericCallArguments(node.OrderNumber, generics);
 
                         _state.CurrentSolver.SetVarType($"g'{argsCount}'{node.Id}",
                             genericFunction.GetTicFunType(generics));
@@ -328,7 +329,7 @@ namespace NFun.TypeInferenceAdapter
                 }
             }
 
-            //ставим обычную переменную
+            // usual argument is expected
             var localId = _state.GetActualName(node.Id);
             _state.CurrentSolver.SetVar(localId, node.OrderNumber);
             return true;

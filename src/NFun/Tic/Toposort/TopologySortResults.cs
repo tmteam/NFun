@@ -9,16 +9,16 @@ namespace NFun.Tic.Toposort
         /// First cycle route otherwise
         /// </summary>
         public readonly IList<Edge> NodeNames;
-        public readonly bool HasCycle;
+        public readonly bool HasLoop;
         /// <summary>
         /// List of recursive nodes or null if there are no one
         /// </summary>
         public readonly int[] RecursionsOrNull;
 
-        public TopologySortResults(IList<Edge> nodeNames, int[] recursionsOrNull, bool hasCycle)
+        public TopologySortResults(IList<Edge> nodeNames, int[] recursionsOrNull, bool hasLoop)
         {
             NodeNames = nodeNames;
-            HasCycle = hasCycle;
+            HasLoop = hasLoop;
             RecursionsOrNull = recursionsOrNull;
         }
     }

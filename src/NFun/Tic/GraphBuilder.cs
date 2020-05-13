@@ -179,32 +179,26 @@ namespace NFun.Tic
             return new RefTo(elementType);
         }
         /// <summary>
-        /// Устанавливает вызов узла
+        /// Set function call, where function variable (or expression) placed at bodyId
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="argThenReturnIds"></param>
         public void SetCall(int bodyId, params int[] argThenReturnIds)
         {
             var node = GetOrCreateNode(bodyId);
             SetCall(node, argThenReturnIds);
         }
         /// <summary>
-        /// Устанавливает вызов функциональной переменной
+        /// Set function call, of function variable with id of name
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="argThenReturnIds"></param>
         public void SetCall(string name, params int[] argThenReturnIds)
         {
             var namedNode =GetNamedNode(name);
             SetCall(namedNode, argThenReturnIds);
         }
 
-       
+
         /// <summary>
-        /// Устанавливает вызов известной функциональной переменной
+        /// Set function call, of already known functional type 
         /// </summary>
-        /// <param name="fun"></param>
-        /// <param name="argThenReturnIds"></param>
         public void SetCall(Fun fun, params int[] argThenReturnIds)
         {
             if (fun.ArgsCount != argThenReturnIds.Length - 1)
@@ -222,18 +216,12 @@ namespace NFun.Tic
 
             var returnId = argThenReturnIds[argThenReturnIds.Length - 1];
             var returnNode = GetOrCreateNode(returnId);
-
-            //Нужно завернуть тип в ссылочный
-            //var returnType = fun.ReturnType is Constrains? new RefTo(fun.RetNode):fun.ReturnType;
-
             SolvingFunctions.Merge(fun.RetNode,returnNode);
         }
 
         /// <summary>
-        /// Устанавливает вызов функции с известной сигнатурой
+        /// Set function call, with function signature
         /// </summary>
-        /// <param name="argThenReturnTypes"></param>
-        /// <param name="argThenReturnIds"></param>
         public void SetCall(IState[] argThenReturnTypes, int[] argThenReturnIds)
         {
             if(argThenReturnTypes.Length!=argThenReturnIds.Length)

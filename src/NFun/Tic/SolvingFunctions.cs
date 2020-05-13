@@ -309,7 +309,7 @@ namespace NFun.Tic
 
         private static IState SetDownwardsLimits(SolvingNode descendant, SolvingNode ancestor)
         {
-            #region todo проверить случаи ссылок
+            #region handle refTo case
 
             if (descendant == ancestor)
                 return descendant.State;
@@ -415,11 +415,8 @@ namespace NFun.Tic
         }
 
         /// <summary>
-        /// Превращает неопределенное ограничение в ограничение с массивом
+        /// Transform constrains state to array state
         /// </summary>
-        /// <param name="descNodeName"></param>
-        /// <param name="descendant"></param>
-        /// <returns></returns>
         private static Array TransformToArrayOrNull(string descNodeName, Constrains descendant)
         {
             if (descendant.NoConstrains)
@@ -453,7 +450,7 @@ namespace NFun.Tic
         }
 
         /// <summary>
-        /// Превращает неопределенное ограничение в функциональный тип 
+        /// Transform constrains to fun state
         /// </summary>
         private static Fun TransformToFunOrNull(string descNodeName, Constrains descendant, Fun ancestor)
         {

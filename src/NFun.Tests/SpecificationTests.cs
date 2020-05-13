@@ -14,12 +14,12 @@ namespace Funny.Tests
     [TestFixture]
     public class SpecificationTests
     {
-        [TestCase(10.0, "y = x+1  #Суммирование", "y", 11.0)]
-        [TestCase(10.0, "y = x-1  #Вычитание", "y", 9.0)]
-        [TestCase(10.0, "y = x*2  #Умножение", "y", 20.0)]
-        [TestCase(10.0, "y = x/2  #Деление", "y", 5.0)]
-        [TestCase(10.0, "y = x%3  #Остаток от деления", "y", 1.0)]
-        [TestCase(10.0, "y = x**2  #Cтепень", "y", 100.0)]
+        [TestCase(10.0, "y = x+1  #addition", "y", 11.0)]
+        [TestCase(10.0, "y = x-1  #subtraction", "y", 9.0)]
+        [TestCase(10.0, "y = x*2  #multiplication", "y", 20.0)]
+        [TestCase(10.0, "y = x/2  #division", "y", 5.0)]
+        [TestCase(10.0, "y = x%3  #remainder", "y", 1.0)]
+        [TestCase(10.0, "y = x**2  #exponentiation", "y", 100.0)]
         [TestCase(10.0, "y = 10*x +1", "y", 101.0)]
         [TestCase(10.0, "10*x +1", "out", 101.0)]
         [TestCase(0.0, "y = cos(x)", "y", 1.0)]
@@ -137,8 +137,8 @@ y = tostring(x)", "y", "not supported")]
         [TestCase("y = [1..4].map(i:int -> i/2)#[0.5,1.0,1.5,2.0]", "y", new[] {0.5, 1.0, 1.5, 2.0})]
         [TestCase("y = [1..4].any(i:int -> i>0)#true", "y", true)]
         [TestCase("y = [1..4].all(i:int -> i>2)#false", "y", false)]
-        [TestCase("y = [1..4].reduce((i:int,j:int)->i+j)# 10.Аналог sum", "y", 10)]
-        [TestCase("y = [1..4].reduce((i:int,j:int)->if (i>j) i else j)#4.Аналог max", "y", 4)]
+        [TestCase("y = [1..4].reduce((i:int,j:int)->i+j)# 10.sum of array", "y", 10)]
+        [TestCase("y = [1..4].reduce((i:int,j:int)->if (i>j) i else j)#4.max of array", "y", 4)]
         public void Constant(string expr, string outputName, object val)
         {
             var runtime = FunBuilder.BuildDefault(expr);
@@ -256,8 +256,8 @@ yPublic   = yprivate + xpublic";
                     VarVal.New("yPublic", 11.0));
         }
 
-        [TestCase(" y1 = [1,’2’,3,4]      # ошибка разбора")]
-        [TestCase(" x:real[] \r y = x.filter(x => x< 2 ) # ошибка разбора.")]
+        [TestCase(" y1 = [1,’2’,3,4]      # error")]
+        [TestCase(" x:real[] \r y = x.filter(x => x< 2 ) # error.")]
         public void ObviousFails(string expr)
         {
             Assert.Throws<FunParseException>(() => FunBuilder.BuildDefault(expr));

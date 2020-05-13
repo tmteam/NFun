@@ -265,8 +265,7 @@ namespace NFun.Tic.Tests
         }
 
         [Test]
-        //[Ignore("Не определено поведение а. Какого она должна быть типа?")]
-        //todo
+        [Ignore("UB a type")]
         public void UpcastArgTypeThatIsBefore_EquationSolved()
         {
             //        0       1 3 2
