@@ -17,12 +17,6 @@
 | out out: real 
 |------------------------
   42
-
-ERROR! In/Out check failed! :
-File: C:\Apps\NewFun\NFun\fuspecs\basics\basics.fuspec
-Name: out int constant
-                 Test : (out) out:Int32. Script: (out) out:Real
-
 |---------------------
 | check out: 42
 
