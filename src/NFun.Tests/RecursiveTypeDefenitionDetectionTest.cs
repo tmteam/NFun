@@ -54,6 +54,10 @@ namespace Funny.Tests
         [TestCase("g(f) = f(f)")]
         [TestCase("g(f) = f(f(f))")]
         [TestCase("g(f) = f(f(f(f)))")]
+        [TestCase("g(f) = f(f[0])")]
+        [TestCase("g(f) = f(f[0])")]
+        [TestCase("g(f) = f(f())")]
+
         public void ObviouslyFailsWithRecursiveTypeDefenitionOfFunctionalVar(string expr) =>
             Assert.Throws<FunParseException>(
                 () => FunBuilder.BuildDefault(expr));

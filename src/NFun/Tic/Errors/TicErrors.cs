@@ -56,6 +56,10 @@ namespace NFun.Tic.Errors
         public static Exception IncompatibleFunSignatures(SolvingNode ancestor, SolvingNode descendant)
             => IncompatibleNodes(ancestor, descendant);
 
+        public static Exception InvalidFunctionalVarableSignature(SolvingNode targetNode)
+        {
+            return new TicNoDetailsException();
+        }
         public static Exception CannotMerge(SolvingNode a, SolvingNode b)
             => IncompatibleNodes(a, b);
         public static Exception CannotMergeGroup(SolvingNode[] group, SolvingNode a, SolvingNode b)

@@ -429,7 +429,13 @@ namespace NFun.Tic
                 state = r.Node.State;
 
             if (state is Fun fun)
+            {
+                if (fun.ArgsCount != argThenReturnIds.Length - 1)
+                    throw TicErrors.InvalidFunctionalVarableSignature(functionNode);
+
                 SetCall(fun, argThenReturnIds);
+
+            }
             else if (state is Constrains constrains)
             {
                 var idNode = GetOrCreateNode(id);
@@ -536,8 +542,5 @@ namespace NFun.Tic
             _typeVariables.Add(varNode);
             return varNode;
         }
-
-
-       
     }
 }
