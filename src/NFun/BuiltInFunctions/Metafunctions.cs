@@ -34,16 +34,17 @@ namespace NFun.BuiltInFunctions
 
     public class GetValOrDefault : GenericMetafunction
     {
-        public GetValOrDefault() : base("defa", VarType.Generic(0), VarType.Generic(0))
+        public GetValOrDefault() : base("defa", VarType.Generic(0), VarType.Anything)
         {
         }
 
         public override object Calc(object[] args) => throw new NotImplementedException();
 
-        public virtual FunctionBase CreateConcrete(VarType[] concreteTypes)
+        public override FunctionBase CreateConcrete(VarType[] concreteTypes)
         {
             return new ConcreteMetaFunction(
                 name: Name,
+                genericArg: concreteTypes[0],
                 returnType: VarType.SubstituteConcreteTypes(ReturnType, concreteTypes),
                 argTypes: ArgTypes.Select(a => VarType.SubstituteConcreteTypes(a, concreteTypes))
                     .ToArray());
@@ -51,18 +52,26 @@ namespace NFun.BuiltInFunctions
 
         public class ConcreteMetaFunction : FunctionBase
         {
-            public ConcreteMetaFunction(
-                string name,
+            private readonly VarType _genericArg;
+
+            public ConcreteMetaFunction(string name,
+                VarType genericArg,
                 VarType returnType,
                 params VarType[] argTypes)
                 : base(TypeHelper.GetFunSignature(name, returnType, argTypes), returnType, argTypes)
             {
+                _genericArg = genericArg;
             }
 
             public override object Calc(object[] args)
             {
-                var varType = ArgTypes[0];
+                var varType = _genericArg;
                 var source = args[0] as VariableSource;
+
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.WriteLine($"Called defa. Type: {varType}. source: {source}");
+                Console.ResetColor();
+
                 if (source == null)
                     return 0;
                 return source.Value ?? 0;

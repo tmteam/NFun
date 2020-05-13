@@ -41,8 +41,6 @@ namespace NFun.TypeInferenceAdapter
             return true;
         }
 
-        public override bool Visit(UserFunctionDefenitionSyntaxNode node) => true;
-
         public override bool Visit(AnonymCallSyntaxNode node)
         {
             var argNames = new string[node.ArgumentsDefenition.Length];
@@ -95,9 +93,8 @@ namespace NFun.TypeInferenceAdapter
             ids[ids.Length - 1] = node.OrderNumber;
 
             var userFunction = _resultsBuilder.GetUserFunctionSignature(node.Id, node.Args.Length);
-            if (userFunction != null)
+            if (userFunction != null)   //Это вызов пользовательской функции. Например в случае рекурсии
             {
-                //Это вызов пользовательской функции. Например в случае рекурсии
                 Trace(node, $"Call UF{node.Id}({string.Join(",", ids)})");
                 _state.CurrentSolver.SetCall(userFunction, ids);
                 //Если функция является дженериковой и рекурсивной, то мы пока не знаем ограничения дженериков
@@ -108,15 +105,14 @@ namespace NFun.TypeInferenceAdapter
 
 
             var signature = _resultsBuilder.GetSignatureOrNull(node.OrderNumber);
-            if (signature == null)
+            if (signature == null)   //Функциональная переменная
             {
-                //Функциональная переменная
                 Trace(node, $"Call hi order {node.Id}({string.Join(",", ids)})");
                 _state.CurrentSolver.SetCall(node.Id, ids);
                 return true;
             }
-            //Вызов обычной функции
 
+            //Вызов обычной функции
             Trace(node, $"Call {node.Id}({string.Join(",", ids)})");
 
             RefTo[] genericTypes;
@@ -154,6 +150,7 @@ namespace NFun.TypeInferenceAdapter
             _state.CurrentSolver.SetCall(node.ResultExpression.OrderNumber, ids);
             return true;
         }
+
         public override bool Visit(IfThenElseSyntaxNode node)
         {
             var conditions = node.Ifs.Select(i => i.Condition.OrderNumber).ToArray();
@@ -333,7 +330,6 @@ namespace NFun.TypeInferenceAdapter
             _state.CurrentSolver.SetVar(localId, node.OrderNumber);
             return true;
         }
-
 
         private RefTo[] InitializeGenericTypes(GenericConstrains[] constrains)
         {

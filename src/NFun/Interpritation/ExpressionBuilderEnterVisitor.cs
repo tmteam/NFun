@@ -58,8 +58,6 @@ namespace NFun.Interpritation
             _typesConverter = typesConverter;
         }
 
-
-
         public IExpressionNode Visit(AnonymCallSyntaxNode anonymFunNode)
         {
             if (anonymFunNode.Defenition==null)
@@ -170,24 +168,6 @@ namespace NFun.Interpritation
             throw new ImpossibleException($"MJ101. Function {id}`{node.Args.Length} type is unknown");
         }
 
-        private IExpressionNode CreateFunctionCall(IFunCallSyntaxNode node, FunctionBase function)
-        {
-            var children = new List<IExpressionNode>();
-            foreach (var argLexNode in node.Args)
-            {
-                var argNode = ReadNode(argLexNode);
-                children.Add(argNode);
-            }
-            var converted = function.CreateWithConvertionOrThrow(children, node.Interval);
-            if (converted.Type != node.OutputType)
-            {
-                var converter = VarTypeConverter.GetConverterOrThrow(converted.Type, node.OutputType, node.Interval);
-                return new CastExpressionNode(converted, node.OutputType, converter, node.Interval);
-            }
-            else
-                return converted;
-        }
-
         public IExpressionNode Visit(ResultFunCallSyntaxNode node)
         {
             var functionGenerator = ReadNode(node.ResultExpression);
@@ -240,6 +220,7 @@ namespace NFun.Interpritation
             else //значит все остальные закодированны в свой конкретный clr тип
                 return new ValueExpressionNode(node.Value, type, node.Interval);
         }
+
         public IExpressionNode Visit(GenericIntSyntaxNode node)
         {
             var type = _typesConverter.Convert(_typeInferenceResults.SyntaxNodeTypes[node.OrderNumber]);
@@ -254,10 +235,9 @@ namespace NFun.Interpritation
                 throw new ImpossibleException($"Generic syntax node has wrong value type: {node.Value.GetType().Name}");
             
         }
-      
+        
         public IExpressionNode Visit(VariableSyntaxNode node)
             => GetOrAddVariableNode(node);
-
 
         #region not an expression
         public IExpressionNode Visit(EquationSyntaxNode node) 
@@ -282,11 +262,30 @@ namespace NFun.Interpritation
             => ThrowNotAnExpression(node);
 
         #endregion
+        private IExpressionNode CreateFunctionCall(IFunCallSyntaxNode node, FunctionBase function)
+        {
+            var children = new List<IExpressionNode>();
+            foreach (var argLexNode in node.Args)
+            {
+                var argNode = ReadNode(argLexNode);
+                children.Add(argNode);
+            }
+            var converted = function.CreateWithConvertionOrThrow(children, node.Interval);
+            if (converted.Type != node.OutputType)
+            {
+                var converter = VarTypeConverter.GetConverterOrThrow(converted.Type, node.OutputType, node.Interval);
+                return new CastExpressionNode(converted, node.OutputType, converter, node.Interval);
+            }
+            else
+                return converted;
+        }
+
         private IExpressionNode ThrowNotAnExpression(ISyntaxNode node)
             => throw ErrorFactory.NotAnExpression(node);
 
         private IExpressionNode ReadNode(ISyntaxNode node) 
             => node.Accept(this);
+        
         private IExpressionNode GetOrAddVariableNode(VariableSyntaxNode varNode)
         {
            

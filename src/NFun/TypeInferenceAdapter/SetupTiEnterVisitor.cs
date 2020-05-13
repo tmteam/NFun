@@ -36,7 +36,7 @@ namespace NFun.TypeInferenceAdapter
             //внешней функции
 
             var signature = _dictionary.GetOrNull(node.Id, node.Args.Length);
-            if (signature is Metafunction)
+            if (signature is GenericMetafunction)
             {
                 //Если сигнатура - метафункциальная - нужно найти оригинальную функцию и перестроить дерево
                 var firstArg = node.Args[0] as VariableSyntaxNode;
