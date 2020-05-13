@@ -1,5 +1,6 @@
 using System.Linq;
 using NFun.Interpritation;
+using NFun.Interpritation.Functions;
 using NFun.ParseErrors;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
@@ -25,6 +26,8 @@ namespace NFun.TypeInferenceAdapter
             _resultsBuilder = resultsBuilder;
         }
 
+        public override VisitorEnterResult Visit(MetaInfoSyntaxNode node) => VisitorEnterResult.Skip;
+
         public override VisitorEnterResult Visit(FunCallSyntaxNode node)
         {
             //Мы должны найти сигнатуру функции для указанного узла на входе
@@ -33,18 +36,18 @@ namespace NFun.TypeInferenceAdapter
             //внешней функции
 
             var signature = _dictionary.GetOrNull(node.Id, node.Args.Length);
+            if (signature is Metafunction)
+            {
+                //Если сигнатура - метафункциальная - нужно найти оригинальную функцию и перестроить дерево
+                var firstArg = node.Args[0] as VariableSyntaxNode;
+                if(firstArg==null)
+                    throw FunParseException.ErrorStubToDo("first arg should be variable");
+                node.TransformToMetafunction(firstArg);
+            }
+            
             if (signature != null)
                 _resultsBuilder.RememberFunctionCall(node.OrderNumber, signature);
-            /*else
-            {
-                //если функции нету в словаре - это может быть рекурсивынй вызов
-                //нужно поискать в функциональных переменных
-                var userFunction = _resultsBuilder.GetUserFunctionSignature(node.Id, node.Args.Length);
-                if (userFunction == null)
-                    throw ErrorFactory.FunctionOverloadNotFound(node, _dictionary);
-                //мы пока не знаем сигнатуру пользовательской функции - потому не запоминаем сигнатуры
-            }*/
-
+          
             return VisitorEnterResult.Continue;
         }
         public override VisitorEnterResult Visit(UserFunctionDefenitionSyntaxNode node)

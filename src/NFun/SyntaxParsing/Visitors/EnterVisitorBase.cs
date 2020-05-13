@@ -13,6 +13,7 @@ namespace NFun.SyntaxParsing.Visitors
         public virtual VisitorEnterResult Visit(EquationSyntaxNode node)=> DefaultVisit(node);
         public virtual VisitorEnterResult Visit(FunCallSyntaxNode node)=> DefaultVisit(node);
         public virtual VisitorEnterResult Visit(ResultFunCallSyntaxNode node) => DefaultVisit(node);
+        public virtual VisitorEnterResult Visit(MetaInfoSyntaxNode node) => DefaultVisit(node);
         public virtual VisitorEnterResult Visit(IfThenElseSyntaxNode node)=> DefaultVisit(node);
         public virtual VisitorEnterResult Visit(IfCaseSyntaxNode node)=> DefaultVisit(node);
         public virtual VisitorEnterResult Visit(ListOfExpressionsSyntaxNode node)=> DefaultVisit(node);

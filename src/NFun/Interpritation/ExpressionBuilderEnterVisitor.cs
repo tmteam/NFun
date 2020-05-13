@@ -194,6 +194,15 @@ namespace NFun.Interpritation
             var function          = ConcreteHiOrderFunctionWithSyntaxNode.Create(functionGenerator);
             return CreateFunctionCall(node, function);
         }
+
+        public IExpressionNode Visit(MetaInfoSyntaxNode node)
+        {
+            var id = node.VariableSyntaxNode.Id;
+            if (!_typeInferenceResults.HasVariable(id))
+                throw FunParseException.ErrorStubToDo($"Variable {id} not exist in the scope");
+            return new MetaInfoExpressionNode(_variables, id , node.Interval);
+        }
+
         public IExpressionNode Visit(IfThenElseSyntaxNode node)
         {
             //expressions
@@ -331,7 +340,6 @@ namespace NFun.Interpritation
                             return new FunVariableExpressionNode(ff, varNode.Interval);
                     }
                 }
-
             }
             var node = _variables.CreateVarNode(varNode.Id, varNode.Interval, varNode.OutputType);
             if(node.Source.Name!= varNode.Id)

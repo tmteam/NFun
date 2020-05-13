@@ -165,7 +165,8 @@ namespace NFun
             new TrimEndFunction(),
             new SplitFunction(),
             new JoinFunction(),
-            new ConcatTextsFunction()
+            new ConcatTextsFunction(),
+            new GetVarTextInfoMetafunction()
         };
     }
 }
