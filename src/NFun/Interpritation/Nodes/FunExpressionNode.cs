@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using NFun.Interpritation.Functions;
 using NFun.Tokenization;
@@ -21,10 +22,10 @@ namespace NFun.Interpritation.Nodes
         public VarType Type => _fun.ReturnType;
         public object Calc()
         {
-            var argValues = _argsNodes
-                .Select(a => a.Calc())
-                .ToArray();
-            return _fun.Calc(argValues);
+            var args = new object[_argsNodes.Length];
+            for (int i = 0; i < args.Length; i++) 
+                args[i] = _argsNodes[i].Calc();
+            return _fun.Calc(args);
         }
     }
 }

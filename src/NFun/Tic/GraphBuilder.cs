@@ -121,13 +121,13 @@ namespace NFun.Tic
 
         public void CreateLambda(int returnId, int lambdaId,params string[] varNames)
         {
-            var args = varNames.Select(GetNamedNode).ToArray();
-            var ret = GetOrCreateNode(returnId);
+            var args = GetNamedNodes(varNames);
+            var ret  = GetOrCreateNode(returnId);
             SetOrCreateLambda(lambdaId, args,ret);
         }
         public void CreateLambda(int returnId, int lambdaId,IType returnType, params string[] varNames)
         {
-            var args = varNames.Select(GetNamedNode).ToArray();
+            var args   = GetNamedNodes(varNames);
             var exprId = GetOrCreateNode(returnId);
             var returnTypeNode = CreateVarType(returnType);
             exprId.Ancestors.Add(returnTypeNode);
@@ -137,7 +137,7 @@ namespace NFun.Tic
 
         public Fun SetFunDef(string name, int returnId, IType returnType = null, params string[] varNames)
         {
-            var args = varNames.Select(GetNamedNode).ToArray();
+            var args   = GetNamedNodes(varNames);
             var exprId = GetOrCreateNode(returnId);
             var returnTypeNode = CreateVarType(returnType);
             //expr<=returnType<= ...
@@ -454,7 +454,16 @@ namespace NFun.Tic
             else
                 throw new InvalidOperationException($"po po. functionNode.State is {functionNode.State}");
         }
-        private SolvingNode GetNamedNode(string name)
+
+        private SolvingNode[] GetNamedNodes(string[] names)
+        {
+            var ans = new SolvingNode[names.Length];
+            for (int i = 0; i < names.Length; i++)
+                ans[i] = GetNamedNode(names[i]);
+
+            return ans;
+        }
+            private SolvingNode GetNamedNode(string name)
         {
             if (_variables.TryGetValue(name, out var varnode))
             {

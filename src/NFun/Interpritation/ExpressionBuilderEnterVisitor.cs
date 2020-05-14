@@ -93,7 +93,9 @@ namespace NFun.Interpritation
                 }
             }
 
-            var originVariables = localVariables.GetAllSources().Select(s=>s.Name).ToArray();
+            var sources = localVariables.GetAllSources();
+            var originVariables = new string[sources.Length];
+            for (int i = 0; i < originVariables.Length; i++) originVariables[i] = sources[i].Name;
             var expr = BuildExpression(anonymFunNode.Body, _functions, localVariables, _typeInferenceResults,_typesConverter);
             
             //New variables are new closured
@@ -115,7 +117,10 @@ namespace NFun.Interpritation
 
         public IExpressionNode Visit(ArraySyntaxNode node)
         {
-            var nodes = node.Expressions.Select(ReadNode).ToArray();
+            var nodes = new IExpressionNode[node.Expressions.Length];
+            for (int i = 0; i< node.Expressions.Length; i++)
+                nodes[i] = ReadNode(node.Expressions[i]);
+
             return new ArrayExpressionNode(nodes,node.Interval, node.OutputType);
         }
 
@@ -158,7 +163,9 @@ namespace NFun.Interpritation
                 }
                 else
                 {
-                    genericArgs = genericTypes.Select(g => _typesConverter.Convert(g)).ToArray();
+                    genericArgs = new VarType[genericTypes.Length];
+                    for (int i = 0; i < genericTypes.Length; i++) 
+                        genericArgs[i] = _typesConverter.Convert(genericTypes[i]);
                 }
 
                 var function = genericFunction.CreateConcrete(genericArgs);
@@ -299,8 +306,12 @@ namespace NFun.Interpritation
                     var genericTypes = _typeInferenceResults.GetGenericCallArguments(varNode.OrderNumber);
                     if (genericTypes == null)
                         throw new ImpossibleException($"MJ79. Generic function is missed at {varNode.OrderNumber}:  {varNode.Id}`{genericFunction.Name} ");
-                    var genericArgs = genericTypes.Select(g => _typesConverter.Convert(g)).ToArray();
-                    var function = genericFunction.CreateConcrete(genericArgs); //todo generic types
+
+                    var genericArgs = new VarType[genericTypes.Length];
+                    for (int i = 0; i < genericTypes.Length; i++)
+                        genericArgs[i] = _typesConverter.Convert(genericTypes[i]);
+
+                    var function = genericFunction.CreateConcrete(genericArgs); 
                     return new FunVariableExpressionNode(function, varNode.Interval);
 
                 }

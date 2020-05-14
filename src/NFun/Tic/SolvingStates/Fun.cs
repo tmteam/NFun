@@ -36,8 +36,10 @@ namespace NFun.Tic.SolvingStates
 
         public static Fun Of(IType[] argTypes,IType retType)
         {
+            var argNodes = new SolvingNode[argTypes.Length];
+            for (int i = 0; i < argTypes.Length; i++) argNodes[i] = SolvingNode.CreateTypeNode(argTypes[i]);
             return new Fun(
-                argNodes: argTypes.Select(SolvingNode.CreateTypeNode).ToArray(),
+                argNodes: argNodes,
                 retNode: SolvingNode.CreateTypeNode(retType));
         }
         public static Fun Of(SolvingNode[] argNodes,SolvingNode returnNode)
@@ -125,8 +127,13 @@ namespace NFun.Tic.SolvingStates
             return fun.ReturnType.Equals(ReturnType);
         }
 
-        public ICompositeType GetNonReferenced() 
-            => new Fun(ArgNodes.Select(a=>a.GetNonReference()).ToArray(), RetNode.GetNonReference());
+        public ICompositeType GetNonReferenced()
+        {
+            var nonRefArgNodes = new SolvingNode[ArgNodes.Length];
+            for (int i = 0; i < ArgNodes.Length; i++) nonRefArgNodes[i] = ArgNodes[i].GetNonReference();
+            
+            return new Fun(nonRefArgNodes, RetNode.GetNonReference());
+        }
 
         public IEnumerable<SolvingNode> Members => ArgNodes.Append(RetNode);
 

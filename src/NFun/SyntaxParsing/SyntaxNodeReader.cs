@@ -632,7 +632,7 @@ namespace NFun.SyntaxParsing
             if (elseResult == null)
                 throw ErrorFactory.ElseExpressionIsMissing(ifElseStart, flow.Position);
 
-            return SyntaxNodeFactory.IfElse(ifThenNodes, elseResult, ifElseStart, flow.Position);
+            return SyntaxNodeFactory.IfElse(ifThenNodes.ToArray(), elseResult, ifElseStart, flow.Position);
         }
         
         private static ISyntaxNode ReadFunctionCall(TokFlow flow, Tok head, ISyntaxNode pipedVal = null)
