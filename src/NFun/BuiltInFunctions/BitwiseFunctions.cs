@@ -29,32 +29,32 @@ namespace NFun.BuiltInFunctions
         public override object Calc(object[] args) => throw new System.NotImplementedException();
         public class Int16Function : FunctionBase {
             public Int16Function() : base(CoreFunNames.BitOr, VarType.Int16, VarType.Int16, VarType.Int16) { }
-            public override object Calc(object[] args) => args.Get<short>(0) | args.Get<short>(1);
+            public override object Calc(object[] args) => ((short)args[0]) | ((short)args[1]);
         }
         public class Int32Function : FunctionBase {
             public Int32Function() : base(CoreFunNames.BitOr, VarType.Int32, VarType.Int32, VarType.Int32) { }
-            public override object Calc(object[] args) => args.Get<int>(0) | args.Get<int>(1);
+            public override object Calc(object[] args) => ((int)args[0]) | ((int)args[1]);
         }
         public class Int64Function : FunctionBase {
             public Int64Function() : base(CoreFunNames.BitOr, VarType.Int64, VarType.Int64, VarType.Int64) { }
-            public override object Calc(object[] args) => args.Get<long>(0) | args.Get<long>(1);
+            public override object Calc(object[] args) => ((long)args[0]) | ((long)args[1]);
         }
         public class UInt8Function : FunctionBase {
             public UInt8Function() : base(CoreFunNames.BitOr, VarType.UInt8, VarType.UInt8, VarType.UInt8) { }
-            public override object Calc(object[] args) => (byte)(args.Get<byte>(0) | args.Get<byte>(1));
+            public override object Calc(object[] args) => (byte)(((byte)args[0]) | ((byte)args[1]));
         }
         public class UInt16Function : FunctionBase {
             public UInt16Function() : base(CoreFunNames.BitOr, VarType.UInt16, VarType.UInt16, VarType.UInt16) { }
-            public override object Calc(object[] args) => (ushort)(args.Get<ushort>(0) | args.Get<ushort>(1));
+            public override object Calc(object[] args) => (ushort)(((ushort)args[0]) | ((ushort)args[1]));
         }
 
         public class UInt32Function : FunctionBase {
             public UInt32Function() : base(CoreFunNames.BitOr, VarType.UInt32, VarType.UInt32, VarType.UInt32) { }
-            public override object Calc(object[] args) => (uint)(args.Get<uint>(0) | args.Get<uint>(1));
+            public override object Calc(object[] args) => (uint)(((uint)args[0]) | ((uint)args[1]));
         }
         public class UInt64Function : FunctionBase {
             public UInt64Function() : base(CoreFunNames.BitOr, VarType.UInt64, VarType.UInt64, VarType.UInt64) { }
-            public override object Calc(object[] args) => (ulong)(args.Get<ulong>(0) | args.Get<ulong>(1));
+            public override object Calc(object[] args) => (ulong)((ulong)args[0] | (ulong)args[1]);
         }
     }
     public class BitXorFunction : GenericFunctionBase
@@ -83,38 +83,38 @@ namespace NFun.BuiltInFunctions
         public class Int16Function : FunctionBase
         {
             public Int16Function() : base(CoreFunNames.BitOr, VarType.Int16, VarType.Int16, VarType.Int16) { }
-            public override object Calc(object[] args) => args.Get<short>(0) ^ args.Get<short>(1);
+            public override object Calc(object[] args) => ((short)args[0]) ^ ((short)args[1]);
         }
         public class Int32Function : FunctionBase
         {
             public Int32Function() : base(CoreFunNames.BitOr, VarType.Int32, VarType.Int32, VarType.Int32) { }
-            public override object Calc(object[] args) => args.Get<int>(0) ^ args.Get<int>(1);
+            public override object Calc(object[] args) => ((int)args[0]) ^ ((int)args[1]);
         }
         public class Int64Function : FunctionBase
         {
             public Int64Function() : base(CoreFunNames.BitOr, VarType.Int64, VarType.Int64, VarType.Int64) { }
-            public override object Calc(object[] args) => args.Get<long>(0) ^ args.Get<long>(1);
+            public override object Calc(object[] args) => ((long)args[0]) ^ ((long)args[1]);
         }
         public class UInt8Function : FunctionBase
         {
             public UInt8Function() : base(CoreFunNames.BitOr, VarType.UInt8, VarType.UInt8, VarType.UInt8) { }
-            public override object Calc(object[] args) => (byte)(args.Get<byte>(0) ^ args.Get<byte>(1));
+            public override object Calc(object[] args) => (byte)(((byte)args[0]) ^ ((byte)args[1]));
         }
         public class UInt16Function : FunctionBase
         {
             public UInt16Function() : base(CoreFunNames.BitOr, VarType.UInt16, VarType.UInt16, VarType.UInt16) { }
-            public override object Calc(object[] args) => (ushort)(args.Get<ushort>(0) ^ args.Get<ushort>(1));
+            public override object Calc(object[] args) => (ushort)(((ushort)args[0]) ^ ((ushort)args[1]));
         }
 
         public class UInt32Function : FunctionBase
         {
             public UInt32Function() : base(CoreFunNames.BitOr, VarType.UInt32, VarType.UInt32, VarType.UInt32) { }
-            public override object Calc(object[] args) => (uint)(args.Get<uint>(0) ^ args.Get<uint>(1));
+            public override object Calc(object[] args) => (uint)(((uint)args[0]) ^ ((uint)args[1]));
         }
         public class UInt64Function : FunctionBase
         {
             public UInt64Function() : base(CoreFunNames.BitOr, VarType.UInt64, VarType.UInt64, VarType.UInt64) { }
-            public override object Calc(object[] args) => (ulong)(args.Get<ulong>(0) ^ args.Get<ulong>(1));
+            public override object Calc(object[] args) => (ulong)(((ulong)args[0]) ^ (ulong)args[1]);
         }
     }
     public class BitAndFunction : GenericFunctionBase
@@ -142,32 +142,32 @@ namespace NFun.BuiltInFunctions
         public override object Calc(object[] args) => throw new System.NotImplementedException();
         public class Int16Function : FunctionBase{
             public Int16Function() : base(CoreFunNames.BitAnd, VarType.Int16, VarType.Int16, VarType.Int16) { }
-            public override object Calc(object[] args) => args.Get<short>(0) & args.Get<short>(1);
+            public override object Calc(object[] args) => ((short)args[0]) & ((short)args[1]);
         }
         public class Int32Function : FunctionBase{
             public Int32Function() : base(CoreFunNames.BitAnd, VarType.Int32, VarType.Int32, VarType.Int32) { }
-            public override object Calc(object[] args) => args.Get<int>(0) & args.Get<int>(1);
+            public override object Calc(object[] args) => ((int)args[0]) & ((int)args[1]);
         }
         public class Int64Function : FunctionBase{
             public Int64Function() : base(CoreFunNames.BitAnd, VarType.Int64, VarType.Int64, VarType.Int64) { }
-            public override object Calc(object[] args) => args.Get<long>(0) & args.Get<long>(1);
+            public override object Calc(object[] args) => ((long)args[0]) & ((long)args[1]);
         }
         public class UInt8Function : FunctionBase{
             public UInt8Function() : base(CoreFunNames.BitAnd, VarType.UInt8, VarType.UInt8, VarType.UInt8) { }
-            public override object Calc(object[] args) => (byte)(args.Get<byte>(0) & args.Get<byte>(1));
+            public override object Calc(object[] args) => (byte)(((byte)args[0]) & ((byte)args[1]));
         }
         public class UInt16Function : FunctionBase{
             public UInt16Function() : base(CoreFunNames.BitAnd, VarType.UInt16, VarType.UInt16, VarType.UInt16) { }
-            public override object Calc(object[] args) => (ushort)(args.Get<ushort>(0) & args.Get<ushort>(1));
+            public override object Calc(object[] args) => (ushort)(((ushort)args[0]) & ((ushort)args[1]));
         }
 
         public class UInt32Function : FunctionBase {
             public UInt32Function() : base(CoreFunNames.BitAnd, VarType.UInt32, VarType.UInt32, VarType.UInt32) { }
-            public override object Calc(object[] args) => (uint)(args.Get<uint>(0) & args.Get<uint>(1));
+            public override object Calc(object[] args) => (uint)(((uint)args[0]) & ((uint)args[1]));
         }
         public class UInt64Function : FunctionBase {
             public UInt64Function() : base(CoreFunNames.BitAnd, VarType.UInt64, VarType.UInt64, VarType.UInt64) { }
-            public override object Calc(object[] args) => (ulong)(args.Get<ulong>(0) & args.Get<ulong>(1));
+            public override object Calc(object[] args) => (ulong)(((ulong)args[0]) & (ulong)args[1]);
         }
     }
     public class BitInverseFunction : GenericFunctionBase
@@ -195,38 +195,38 @@ namespace NFun.BuiltInFunctions
         public override object Calc(object[] args) => throw new System.NotImplementedException();
         public class Int16Function : FunctionBase
         {
-            public Int16Function() : base(CoreFunNames.BitAnd, VarType.Int16, VarType.Int16) { }
-            public override object Calc(object[] args) => (short)~args.Get<short>(1);
+            public Int16Function() : base(CoreFunNames.BitInverse, VarType.Int16, VarType.Int16) { }
+            public override object Calc(object[] args) => (short)~((short)args[0]);
         }
         public class Int32Function : FunctionBase
         {
-            public Int32Function() : base(CoreFunNames.BitAnd, VarType.Int32, VarType.Int32) { }
-            public override object Calc(object[] args) => (int)~args.Get<int>(1);
+            public Int32Function() : base(CoreFunNames.BitInverse, VarType.Int32, VarType.Int32) { }
+            public override object Calc(object[] args) => (int)~((int)args[0]);
         }
         public class Int64Function : FunctionBase
         {
-            public Int64Function() : base(CoreFunNames.BitAnd, VarType.Int64, VarType.Int64) { }
-            public override object Calc(object[] args) => (long)~args.Get<long>(1);
+            public Int64Function() : base(CoreFunNames.BitInverse, VarType.Int64, VarType.Int64) { }
+            public override object Calc(object[] args) => (long)~((long)args[0]);
         }
         public class UInt8Function : FunctionBase
         {
-            public UInt8Function() : base(CoreFunNames.BitAnd, VarType.UInt8, VarType.UInt8) { }
-            public override object Calc(object[] args) => (byte)~args.Get<byte>(1);
+            public UInt8Function() : base(CoreFunNames.BitInverse, VarType.UInt8, VarType.UInt8) { }
+            public override object Calc(object[] args) => (byte)~((byte)args[0]);
         }
         public class UInt16Function : FunctionBase
         {
-            public UInt16Function() : base(CoreFunNames.BitAnd, VarType.UInt16, VarType.UInt16) { }
-            public override object Calc(object[] args) => (ushort)~args.Get<ushort>(1);
+            public UInt16Function() : base(CoreFunNames.BitInverse, VarType.UInt16, VarType.UInt16) { }
+            public override object Calc(object[] args) => (ushort)~((ushort)args[0]);
         }
         public class UInt32Function : FunctionBase
         {
-            public UInt32Function() : base(CoreFunNames.BitAnd, VarType.UInt32, VarType.UInt32) { }
-            public override object Calc(object[] args) => (uint)~args.Get<uint>(1);
+            public UInt32Function() : base(CoreFunNames.BitInverse, VarType.UInt32, VarType.UInt32) { }
+            public override object Calc(object[] args) => (uint)~((uint)args[0]);
         }
         public class UInt64Function : FunctionBase
         {
-            public UInt64Function() : base(CoreFunNames.BitAnd, VarType.UInt64, VarType.UInt64) { }
-            public override object Calc(object[] args) => (ulong)~args.Get<ulong>(1);
+            public UInt64Function() : base(CoreFunNames.BitInverse, VarType.UInt64, VarType.UInt64) { }
+            public override object Calc(object[] args) => (ulong)~(ulong)args[0];
         }
     }
 
@@ -253,20 +253,20 @@ namespace NFun.BuiltInFunctions
 
         public class Int32Function : FunctionBase {
             public Int32Function() : base(CoreFunNames.BitShiftLeft, VarType.Int32, VarType.Int32, VarType.UInt8) { }
-            public override object Calc(object[] args) => args.Get<int>(0) << args.Get<byte>(1);
+            public override object Calc(object[] args) => ((int)args[0]) << ((byte)args[1]);
         }
         public class Int64Function : FunctionBase {
             public Int64Function() : base(CoreFunNames.BitShiftLeft, VarType.Int64, VarType.Int64, VarType.UInt8) { }
-            public override object Calc(object[] args) => args.Get<long>(0) << args.Get<byte>(1);
+            public override object Calc(object[] args) => ((long)args[0]) << ((byte)args[1]);
         }
 
         public class UInt32Function : FunctionBase {
             public UInt32Function() : base(CoreFunNames.BitShiftLeft, VarType.UInt32, VarType.UInt32, VarType.UInt8) { }
-            public override object Calc(object[] args) => (uint)(args.Get<uint>(0) << args.Get<byte>(1));
+            public override object Calc(object[] args) => (uint)(((uint)args[0]) << ((byte)args[1]));
         }
         public class UInt64Function : FunctionBase {
             public UInt64Function() : base(CoreFunNames.BitShiftLeft, VarType.UInt64, VarType.UInt64, VarType.UInt8) { }
-            public override object Calc(object[] args) => (ulong)(args.Get<ulong>(0) << args.Get<byte>(1));
+            public override object Calc(object[] args) => (ulong)(((ulong)args[0]) << ((byte)args[1]));
         }
     }
     public class BitShiftRightFunction : GenericFunctionBase
@@ -293,20 +293,20 @@ namespace NFun.BuiltInFunctions
 
         public class Int32Function : FunctionBase {
             public Int32Function() : base(CoreFunNames.BitShiftRight, VarType.Int32, VarType.Int32, VarType.UInt8) { }
-            public override object Calc(object[] args) => args.Get<int>(0) >> args.Get<byte>(1);
+            public override object Calc(object[] args) => ((int)args[0]) >> ((byte)args[1]);
         }
         public class Int64Function : FunctionBase {
             public Int64Function() : base(CoreFunNames.BitShiftRight, VarType.Int64, VarType.Int64, VarType.UInt8) { }
-            public override object Calc(object[] args) => args.Get<long>(0) >> args.Get<byte>(1);
+            public override object Calc(object[] args) => ((long)args[0]) >> ((byte)args[1]);
         }
 
         public class UInt32Function : FunctionBase {
             public UInt32Function() : base(CoreFunNames.BitShiftRight, VarType.UInt32, VarType.UInt32, VarType.UInt8) { }
-            public override object Calc(object[] args) => (uint)(args.Get<uint>(0) >> args.Get<byte>(1));
+            public override object Calc(object[] args) => (uint)((uint)args[0] >> (byte)args[1]);
         }
         public class UInt64Function : FunctionBase {
             public UInt64Function() : base(CoreFunNames.BitShiftRight, VarType.UInt64, VarType.UInt64, VarType.UInt8) { }
-            public override object Calc(object[] args) => (ulong)(args.Get<ulong>(0) >> args.Get<byte>(1));
+            public override object Calc(object[] args) => (ulong)((ulong)args[0] >> (byte)args[1]);
         }
     }
 }

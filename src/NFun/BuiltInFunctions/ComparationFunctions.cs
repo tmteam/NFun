@@ -15,7 +15,7 @@ namespace NFun.BuiltInFunctions
     {
         public EqualFunction() : base(CoreFunNames.Equal, VarType.Bool, VarType.Generic(0), VarType.Generic(0)) { }
         public override object Calc(object[] args)
-            => TypeHelper.AreEqual(args.Get<object>(0), args.Get<object>(1));
+            => TypeHelper.AreEqual(args[0], args[1]);
     }
     public class MoreFunction : GenericFunctionBase
     {
@@ -23,8 +23,8 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var a = args.Get<IComparable>(0);
-            var b = args.Get<IComparable>(1);
+            var a = ((IComparable)args[0]);
+            var b = ((IComparable)args[1]);
             return a.CompareTo(b)==1;
         }
     }
@@ -34,8 +34,8 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var a = args.Get<IComparable>(0);
-            var b = args.Get<IComparable>(1);
+            var a = ((IComparable)args[0]);
+            var b = ((IComparable)args[1]);
             return a.CompareTo(b) != -1;
         }
     }
@@ -45,8 +45,8 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var a = args.Get<IComparable>(0);
-            var b = args.Get<IComparable>(1);
+            var a = ((IComparable)args[0]);
+            var b = ((IComparable)args[1]);
             return a.CompareTo(b) == -1;
         }
     }
@@ -56,8 +56,8 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var a = args.Get<IComparable>(0);
-            var b = args.Get<IComparable>(1);
+            var a = ((IComparable)args[0]);
+            var b = ((IComparable)args[1]);
             return a.CompareTo(b) != 1;
         }
     }
@@ -67,8 +67,8 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var a = args.Get<IComparable>(0);
-            var b = args.Get<IComparable>(1);
+            var a = ((IComparable)args[0]);
+            var b = ((IComparable)args[1]);
             if (a.CompareTo(b) != 1) return a;
             return b;
         }
@@ -80,8 +80,8 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var a = args.Get<IComparable>(0);
-            var b = args.Get<IComparable>(1);
+            var a = ((IComparable)args[0]);
+            var b = ((IComparable)args[1]);
             if (a.CompareTo(b) == 1) return a;
             return b;
         }

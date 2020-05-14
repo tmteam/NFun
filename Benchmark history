@@ -3,22 +3,6 @@
 i7 8th. xiaomi mi pro.
 .NET Core 3.0.0 (CoreCLR 4.700.19.46205, CoreFX 4.700.19.46214), X64 RyuJIT; GC = Concurrent Workstation
 
-Nfun calculate
-|                 Method |            Mean |         Error |        StdDev |
-|----------------------- |----------------:|--------------:|--------------:|
-|            'true calc' |     106.2942 ns |     1.5886 ns |     1.4860 ns |
-|               '1 calc' |     107.7521 ns |     1.1806 ns |     1.1043 ns |
-|            'text calc' |     109.8301 ns |     2.2918 ns |     2.1438 ns |
-|          'bool[] calc' |     268.3129 ns |     5.3679 ns |     6.3901 ns |
-|          'real[] calc' |     264.1778 ns |     5.3286 ns |     6.3434 ns |
-|       'const kxb calc' |     396.1805 ns |     5.8745 ns |     5.4950 ns |
-|  'array multiply calc' |   4,873.7614 ns |    97.4853 ns |   104.3081 ns |
-|         'sum1000 calc' |  81,060.9229 ns | 1,019.3614 ns |   953.5113 ns |
-|    'dummy bubble calc' | 710,476.9775 ns | 8,397.9111 ns | 6,556.5366 ns |
-|    'kxb with var calc' |     515.0461 ns |     8.3396 ns |     7.8008 ns |
-|      'dotnet kxb calc' |       0.7524 ns |     0.0529 ns |     0.0469 ns |
-| 'dotnet summ1000 calc' |   5,128.2455 ns |    62.1911 ns |    51.9324 ns |
-
 Nfun interptitate
 |             Method |         Mean |      Error |     StdDev |       Median | Ratio | RatioSD |
 |------------------- |-------------:|-----------:|-----------:|-------------:|------:|--------:|
@@ -34,4 +18,36 @@ Nfun interptitate
 |     'kxb with var' |    52.599 us |  0.9308 us |  0.7772 us |    52.594 us |  2.86 |    0.06 |
 | 'Dotnet kxb build' |    82.944 us |  1.5914 us |  1.6343 us |    82.776 us |  4.50 |    0.12 |
 |  'dotnet Summ1000' |     5.224 us |  0.1013 us |  0.1084 us |     5.227 us |  0.29 |    0.01 |
+
+Nfun calculate
+|                 Method |            Mean |         Error |        StdDev |
+|----------------------- |----------------:|--------------:|--------------:|
+|            'true calc' |     106.2942 ns |     1.5886 ns |     1.4860 ns |
+|               '1 calc' |     107.7521 ns |     1.1806 ns |     1.1043 ns |
+|            'text calc' |     109.8301 ns |     2.2918 ns |     2.1438 ns |
+|          'bool[] calc' |     268.3129 ns |     5.3679 ns |     6.3901 ns |
+|          'real[] calc' |     264.1778 ns |     5.3286 ns |     6.3434 ns |
+|       'const kxb calc' |     396.1805 ns |     5.8745 ns |     5.4950 ns |
+|  'array multiply calc' |   4,873.7614 ns |    97.4853 ns |   104.3081 ns |
+|         'sum1000 calc' |  81,060.9229 ns | 1,019.3614 ns |   953.5113 ns |
+|    'dummy bubble calc' | 710,476.9775 ns | 8,397.9111 ns | 6,556.5366 ns |
+|    'kxb with var calc' |     515.0461 ns |     8.3396 ns |     7.8008 ns |
+|      'dotnet kxb calc' |       0.7524 ns |     0.0529 ns |     0.0469 ns |
+| 'dotnet summ1000 calc' |   5,128.2455 ns |    62.1911 ns |    51.9324 ns |
 ================================================================================================
+14.05.2020. Remove value wrapping. (~ 5 % speedup)
+Nfun calculate
+|                 Method |            Mean |          Error |         StdDev |          Median |
+|----------------------- |----------------:|---------------:|---------------:|----------------:|
+|            'true calc' |     106.0544 ns |      2.2174 ns |      5.7239 ns |     103.9250 ns |
+|               '1 calc' |     107.9756 ns |      2.1454 ns |      1.9018 ns |     107.8316 ns |
+|            'text calc' |     115.7424 ns |      2.8670 ns |      8.2259 ns |     114.6284 ns |
+|          'bool[] calc' |     265.8672 ns |      5.3942 ns |      8.2375 ns |     263.4842 ns |
+|          'real[] calc' |     265.1143 ns |      5.2178 ns |      4.8808 ns |     265.4677 ns |
+|       'const kxb calc' |     359.0056 ns |      4.8244 ns |      4.2767 ns |     357.9912 ns |
+|  'array multiply calc' |   4,490.0963 ns |     89.6347 ns |    128.5513 ns |   4,490.0215 ns |
+|         'sum1000 calc' |  80,626.1816 ns |  1,396.5815 ns |  1,306.3632 ns |  80,774.5483 ns |
+|    'dummy bubble calc' | 662,770.2474 ns | 11,258.8168 ns | 10,531.5042 ns | 663,634.5703 ns |
+|    'kxb with var calc' |     488.3084 ns |      9.8439 ns |     10.9415 ns |     488.6087 ns |
+|      'dotnet kxb calc' |       0.7998 ns |      0.0569 ns |      0.0632 ns |       0.7883 ns |
+| 'dotnet summ1000 calc' |   5,092.2606 ns |     95.7150 ns |     84.8488 ns |   5,075.8057 ns |

@@ -29,9 +29,7 @@ namespace NFun.ExprementalTests
         }
         public override object Calc(object[] args)
         {
-            if (args[0] is IVQT v)
-                return VqtHelper.MakeVQT(v.V, args.Get<Int32>(1), v.T);
-            return VqtHelper.MakeVQT(args[0], args.Get<Int32>(1), -1);
+            throw new NotSupportedException();
         }
     }
     public class VQTFunction : GenericFunctionBase
@@ -45,7 +43,7 @@ namespace NFun.ExprementalTests
         }
 
         public override object Calc(object[] args)
-            => VqtHelper.MakeVQT(args[0], args.Get<Int32>(1), args.Get<Int64>(2));
+            =>  throw new NotSupportedException();
     }
 
     
@@ -79,14 +77,7 @@ namespace NFun.ExprementalTests
             
         }
         public override object Calc(object[] args)
-        {
-            var t = args.Get<Int64>(1);
-            if (args[0] is IVQT vqt)
-            {
-                return VqtHelper.MakeVQT(vqt.V, vqt.Q, t);
-            }
-            return VqtHelper.MakeVQT(args[0], -1, t);
-        }
+            =>  throw new NotSupportedException();
     }
     public class SetQFunction : GenericFunctionBase
     {
@@ -96,7 +87,7 @@ namespace NFun.ExprementalTests
         }
         public override object Calc(object[] args)
         {
-            var q = args.Get<int>(1);
+            var q = ((int)args[1]);
             if (args[0] is IVQT vqt)
             {
                 return VqtHelper.MakeVQT(vqt.V, q, vqt.T);
@@ -155,7 +146,7 @@ namespace NFun.ExprementalTests
 
         public override object Calc(object[] args)
         {
-            var ticks = args.Get<long>(0);
+            var ticks = ((long)args[0]);
             var dt = new DateTime(ticks); 
             return dt.ToUniversalTime().Ticks;
         }
