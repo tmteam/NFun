@@ -13,8 +13,13 @@ namespace NFun
     public  class FunBuilder
     {
         private readonly string _text;
-
+        private IFunctionDicitionary _dicitionary;
         public static FunBuilder With(string text) => new FunBuilder(text);
+        public FunBuilder With(IFunctionDicitionary dictionary)
+        {
+            _dicitionary = dictionary;
+            return this;
+        }
 
         private FunBuilder(string text)
         {
@@ -42,7 +47,7 @@ namespace NFun
             //Set node numbers
             syntaxTree.ComeOver(new SetNodeNumberVisitor());
             
-            var functionsDictionary = CreateFunctionsDictionary();
+            var functionsDictionary = _dicitionary??CreateFunctionsDictionary();
 
             return RuntimeBuilder.Build(syntaxTree, functionsDictionary);
         }
@@ -52,10 +57,10 @@ namespace NFun
         /// </summary>
         private FunctionDictionary CreateFunctionsDictionary()
         {
-            var functionsDictionary = new FunctionDictionary();
-            foreach (var predefinedFunction in _functions.Concat(BaseFunctions.ConcreteFunctions))
+            var functionsDictionary = BaseFunctions.GetDefaultDictionary();
+            foreach (var predefinedFunction in _functions)
                 functionsDictionary.Add(predefinedFunction);
-            foreach (var genericFunctionBase in _genericFunctions.Concat(BaseFunctions.GenericFunctions))
+            foreach (var genericFunctionBase in _genericFunctions)
                 functionsDictionary.Add(genericFunctionBase);
             return functionsDictionary;
         }        

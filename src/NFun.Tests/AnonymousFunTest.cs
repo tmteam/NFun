@@ -16,10 +16,10 @@ namespace Funny.Tests
         [TestCase( @"y = map([1,2,3], i:int  ->i*i)",new[]{1,4,9})]
         [TestCase( @"y = [1,2,3] . map(i:int->i*i)",new[]{1,4,9})]
         [TestCase( @"y = [1.0,2.0,3.0] . map(i->i*i)",new[]{1.0,4.0,9.0})]
-        [TestCase( @"y = [1.0,2.0,3.0] . reduce((i,j)->i+j)",6.0)]
-        [TestCase( @"y = reduce([1.0,2.0,3.0],(i,j)->i+j)",6.0)]
-        [TestCase( @"y = [1,2,3] . reduce((i:int, j:int)->i+j)",6)]
-        [TestCase( @"y = reduce([1,2,3],(i:int, j:int)->i+j)",6)]
+        [TestCase( @"y = [1.0,2.0,3.0] . fold((i,j)->i+j)",6.0)]
+        [TestCase( @"y = fold([1.0,2.0,3.0],(i,j)->i+j)",6.0)]
+        [TestCase( @"y = [1,2,3] . fold((i:int, j:int)->i+j)",6)]
+        [TestCase( @"y = fold([1,2,3],(i:int, j:int)->i+j)",6)]
         [TestCase( "y = [1.0,2.0,3.0].any((i)-> i == 1.0)",true)]
         [TestCase( "y = [1.0,2.0,3.0].any((i)-> i == 0.0)",false)]
         [TestCase( "y = [1.0,2.0,3.0].all((i)-> i >0)",true)]
@@ -27,18 +27,18 @@ namespace Funny.Tests
         [TestCase( "f(m:real[], p):bool = m.all((i)-> i>p) \r y = f([1.0,2.0,3.0],1.0)",false)]
 
         [TestCase("y = [-7,-2,0,1,2,3].filter(i->i>0)", new[] { 1.0, 2.0, 3.0 })]
-        [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).reduce((i,j)-> i+j)", 6.0 )]
+        [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).fold((i,j)-> i+j)", 6.0 )]
         [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).filter(i->i>2)", new[]{3.0})]
         [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).map(i->i*i).map(i:int->i*i)", new[]{1,16,81})]
         [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).map(i->i*i).map(i->i*i)", new[]{1.0,16.0,81.0})]
 
-        [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).reduce((a,b)-> a+b)", 6.0 )]
+        [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).fold((a,b)-> a+b)", 6.0 )]
         [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).filter(a->a>2)", new[]{3.0})]
         [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).map(a->a*a).map(b->b*b)", new[]{1.0,16.0,81.0})]
 
         [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).map(a->a*a).map(b:int->b*b)", new[]{1,16,81})]
         [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).filter(a:int->a>2)", new[]{3})]
-        [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).reduce((a:int,b)-> a+b)", 6 )]
+        [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).fold((a:int,b)-> a+b)", 6 )]
 
         public void AnonymousFunctions_ConstantEquation(string expr, object expected)
         {
@@ -49,9 +49,9 @@ namespace Funny.Tests
         }
         [TestCase( "y = [1.0,2.0,3.0].map((i)-> i*x1*x2)",3.0,4.0, new []{12.0,24.0,36.0})]
         [TestCase( "x1:int\rx2:int\ry = [1,2,3].map((i:int)-> i*x1*x2)",3,4, new []{12,24,36})]
-        [TestCase( "y = [1.0,2.0,3.0].reduce((i,j)-> i*x1 - j*x2)",2.0,3.0, -17.0)]
-        [TestCase( "y = [1.0,2.0,3.0].reduce((i,j)-> i*x1 - j*x2)",3.0,4.0, -27.0)]
-        [TestCase( "y = [1.0,2.0,3.0].reduce((i,j)-> i*x1 - j*x2)",0.0,0.0, 0.0)]
+        [TestCase( "y = [1.0,2.0,3.0].fold((i,j)-> i*x1 - j*x2)",2.0,3.0, -17.0)]
+        [TestCase( "y = [1.0,2.0,3.0].fold((i,j)-> i*x1 - j*x2)",3.0,4.0, -27.0)]
+        [TestCase( "y = [1.0,2.0,3.0].fold((i,j)-> i*x1 - j*x2)",0.0,0.0, 0.0)]
         public void AnonymousFunctions_TwoArgumentsEquation(string expr, double x1,double x2, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
@@ -65,8 +65,8 @@ namespace Funny.Tests
         [TestCase( "y = [1.0,2.0,3.0].map((i)-> i*x)",3.0, new []{3.0,6.0,9.0})]
         [TestCase( "y = [1.0,2.0,3.0].all((i)-> i >x)",1.0, false)]
         [TestCase( "x:int\r y = [1,2,3].all((i:int)-> i >x)",1, false)]
-        [TestCase( @"y = [1.0,2.0,3.0].reduce((i,j)-> x)",123.0, 123.0)]
-        [TestCase( @"y = [1.0,2.0,3.0].reduce((i,j)->i+j+x)",2.0,10.0)]
+        [TestCase( @"y = [1.0,2.0,3.0].fold((i,j)-> x)",123.0, 123.0)]
+        [TestCase( @"y = [1.0,2.0,3.0].fold((i,j)->i+j+x)",2.0,10.0)]
         public void AnonymousFunctions_SingleArgumentEquation(string expr, double arg, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
@@ -84,16 +84,16 @@ namespace Funny.Tests
                     VarVal.New("z", zExpected));
 
         }
-        [TestCase("y = [1.0].reduce(((i,j)->i+j)")]
-        [TestCase("y = reduce(((i,j),k)->i+j)")]
-        [TestCase( @"y = [1.0,2.0,3.0].reduce((i*2,j)->i+j)")]
-        [TestCase( @"y = [1.0,2.0,3.0].reduce((2,j)->i+j)")]
-        [TestCase( @"y = [1.0,2.0,3.0].reduce((j)->i+j)")]
-        [TestCase( @"y = [1.0,2.0,3.0].reduce((j)->j)")]
-        [TestCase( @"y = [1.0,2.0,3.0].reduce((i,j,k)->i+j+k)")]
-        [TestCase( @"y = [1.0,2.0,3.0].reduce((i)->i)")]
+        [TestCase("y = [1.0].fold(((i,j)->i+j)")]
+        [TestCase("y = fold(((i,j),k)->i+j)")]
+        [TestCase( @"y = [1.0,2.0,3.0].fold((i*2,j)->i+j)")]
+        [TestCase( @"y = [1.0,2.0,3.0].fold((2,j)->i+j)")]
+        [TestCase( @"y = [1.0,2.0,3.0].fold((j)->i+j)")]
+        [TestCase( @"y = [1.0,2.0,3.0].fold((j)->j)")]
+        [TestCase( @"y = [1.0,2.0,3.0].fold((i,j,k)->i+j+k)")]
+        [TestCase( @"y = [1.0,2.0,3.0].fold((i)->i)")]
         [TestCase("[1.0,2.0].map((i,i)->i+1)")]
-        [TestCase("[1.0,2.0].reduce((i,i)->i+1)")]
+        [TestCase("[1.0,2.0].fold((i,i)->i+1)")]
         [TestCase( "x:bool\r y = [1,2,3].all((i)-> i>x)")]
         [TestCase( "f(m:real[], p):bool = m.all((i)-> i>zzz) \r y = f([1.0,2.0,3.0],1.0)")]
         [TestCase( "x:bool \r y = x and ([1.0,2.0,3.0].all((x)-> x >=1.0))")]

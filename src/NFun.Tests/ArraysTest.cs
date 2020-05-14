@@ -203,8 +203,8 @@ x: int[]
 filt: int
 concat    = ([1,2,3,4].concat(x))
 size      = concat.count()
-possum   = x.filter(i:int ->i>0).reduce((i:int,j:int)-> i+j)
-filtrat   = x.filter(i:int ->i> filt) # filt - входная переменная
+possum   = x.filter(i:int ->i>0).fold((i:int,j:int)-> i+j)
+filtrat   = x.filter(i:int ->i> filt) # filt - input variable
 ";
             var runtime = FunBuilder.BuildDefault(expr);
             var res = runtime.Calculate(VarVal.New("x", new[]{5,6,7,8}),
@@ -255,47 +255,7 @@ filtrat   = x.filter(i:int ->i> filt) # filt - входная переменна
             Assert.Throws<FunParseException>(
                 () => FunBuilder.BuildDefault(expr));
 
-        [TestCase("y = t.concat(t[0])")]
-        [TestCase("y = t.concat(t[0][0])")]
-        [TestCase("y = t.concat(t[0][0][0])")]
-        [TestCase("y = t.concat(t[0][0][0][0])")]
-        [TestCase("y = t[0].concat(t[0][0])")]
-        [TestCase("y = t[0].concat(t[0][0][0])")]
-        [TestCase("y = t[0].concat(t[0][0][0][0])")]
-        [TestCase("y = t[0][0].concat(t[0][0][0])")]
-        [TestCase("y = t[0][0].concat(t[0][0][0][0])")]
-        [TestCase("y = t[0][0][0].concat(t[0][0][0][0])")]
-        [TestCase("y = t[t])")]
-        [TestCase("y = t[0][t])")]
-        [TestCase("y = t[0][0][t])")]
-        [TestCase("y = t[0][0][t[0]])")]
-        [TestCase("y = t[0][0][0][t[0]])")]
-        [TestCase("y = t[0][0][0][t[0][0]])")]
-        [TestCase("y = if(t.count() < 2) t else t[1:].reverse().concat(t[0])")]
-        [TestCase("f(t) = if(t.count() < 2) t else t[1:].reverse().concat(t[0])")]
-        [TestCase("f(t) = t[1:].reverse().concat(t[0])")]
-        [TestCase("f(t) = t.reverse().concat(t[0])")]
-        [TestCase("f(t) = t.concat(t[0])")]
-        [TestCase("f(t) = t.concat(t[0])")]
-        [TestCase("f(t) = t.concat(t[0][0])")]
-        [TestCase("f(t) = t.concat(t[0][0][0])")]
-        [TestCase("f(t) = t.concat(t[0][0][0][0])")]
-        [TestCase("f(t) = t[0].concat(t[0][0])")]
-        [TestCase("f(t) = t[0].concat(t[0][0][0])")]
-        [TestCase("f(t) = t[0].concat(t[0][0][0][0])")]
-        [TestCase("f(t) = t[0][0].concat(t[0][0][0])")]
-        [TestCase("f(t) = t[0][0].concat(t[0][0][0][0])")]
-        [TestCase("f(t) = t[0][0][0].concat(t[0][0][0][0])")]
-        [TestCase("f(t) = t[t])")]
-        [TestCase("f(t) = t[0][t])")]
-        [TestCase("f(t) = t[0][0][t])")]
-        [TestCase("f(t) = t[0][0][t[0]])")]
-        [TestCase("f(t) = t[0][0][0][t[0]])")]
-        [TestCase("f(t) = t[0][0][0][t[0][0]])")]
-        public void ObviouslyFailsWithRecursiveTypeDefenitionOnParse(string expr) =>
-            Assert.Throws<FunParseException>(
-                () => FunBuilder.BuildDefault(expr));
-
+      
         [TestCase("y = [1..2..-2]")]
         [TestCase("y = [1..2..0]")]
         [TestCase("y = [4..1..-2]")]

@@ -86,8 +86,8 @@ namespace NFun.Interpritation.Functions
             var returnType = funType.FunTypeSpecification.Output;
             var argTypes = funType.FunTypeSpecification.Inputs;
 
-            //Создаем прототип и сразу кладем его в кеш.
-            //Это нужно для того, что бы в случае рекурсивного билда - прототип уже был в кеше
+            //Create function prototype and put it to cache for recursive cases
+            //If the function is recursive - function will take recursive prototype from cache
             var concretePrototype = new ConcreteUserFunctionPrototype(Name, returnType, argTypes);
             _concreteFunctionsCache.Add(id, concretePrototype);
 
@@ -96,8 +96,6 @@ namespace NFun.Interpritation.Functions
                     solving: _typeInferenceResults,
                     tiToLangTypeConverter: converter),
                 exitVisitor: new ApplyTiResultsExitVisitor());
-
-           
 
             var function = _syntaxNode.BuildConcrete(
                 argTypes:   argTypes, 

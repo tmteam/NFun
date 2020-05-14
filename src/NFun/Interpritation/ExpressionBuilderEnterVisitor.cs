@@ -145,15 +145,15 @@ namespace NFun.Interpritation
                 var genericTypes = _typeInferenceResults.GetGenericCallArguments(node.OrderNumber);
                 if (genericTypes == null)
                 {
-                    //јргументы обобщенного вызова могут быть не известны. Ќапример дл€ случа€ обобщенной рекурсивной функции
-                    //¬ таком случае мы можем "достать" их из результатов выведени€
-
+                    // Generuc call arguments are unknown  in case of  generic recursion function . 
+                    // Take it from type inference results in this case
                     var recCallSignature =  _typeInferenceResults.GetRecursiveCallOrNull(node.OrderNumber);
+                    //if generic call arguments not exist in type inference result - it is NFUN core error
                     if(recCallSignature==null)
                         throw new ImpossibleException($"MJ78. Function {id}`{node.Args.Length} was not found");
 
                     var varTypeCallSignature = _typesConverter.Convert(recCallSignature);
-                    //теперь нужно перевести эту сигнатуру в аргументы дженериков
+                    //Calculate generic call arguments by concrete function signature
                     genericArgs = genericFunction.CalcGenericArgTypeList(varTypeCallSignature.FunTypeSpecification);
                 }
                 else
@@ -212,12 +212,12 @@ namespace NFun.Interpritation
         public IExpressionNode Visit(ConstantSyntaxNode node)
         {
             var type = _typesConverter.Convert(_typeInferenceResults.SyntaxNodeTypes[node.OrderNumber]);
-            //все инт типы закодированы либо long либо ulong
+            //All integer values are encoded by ulong (if it is ulong) or long otherwise
             if(node.Value is long l)
                 return ValueExpressionNode.CreateConcrete(type, l, node.Interval);
             else if (node.Value is ulong u)
                 return ValueExpressionNode.CreateConcrete(type, u, node.Interval);
-            else //значит все остальные закодированны в свой конкретный clr тип
+            else //other types have their own clr-types
                 return new ValueExpressionNode(node.Value, type, node.Interval);
         }
 
@@ -262,6 +262,7 @@ namespace NFun.Interpritation
             => ThrowNotAnExpression(node);
 
         #endregion
+
         private IExpressionNode CreateFunctionCall(IFunCallSyntaxNode node, FunctionBase function)
         {
             var children = new List<IExpressionNode>();
@@ -279,6 +280,7 @@ namespace NFun.Interpritation
             else
                 return converted;
         }
+
 
         private IExpressionNode ThrowNotAnExpression(ISyntaxNode node)
             => throw ErrorFactory.NotAnExpression(node);

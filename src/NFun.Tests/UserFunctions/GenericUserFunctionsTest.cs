@@ -96,7 +96,7 @@ namespace Funny.Tests.UserFunctions
         [Test]
         public void TwinGenericFunCall()
         {
-            var expr = @"maxOfArray(t) = t.reduce(max)
+            var expr = @"maxOfArray(t) = t.fold(max)
 
            maxOfMatrix(t) = t.map(maxOfArray).maxOfArray()
 
@@ -119,7 +119,7 @@ namespace Funny.Tests.UserFunctions
 
            maxOfMatrix(t) = t.map(maxOfArray).maxOfArray()
             
-            maxOfArray(t) = t.reduce(max)
+            maxOfArray(t) = t.fold(max)
 
   origin = [
               [12,05,06],
@@ -148,11 +148,11 @@ namespace Funny.Tests.UserFunctions
                           # run thru array 
                           # and swap every unsorted values
                           onelineSort(input) =  
-  	                        [0..input.count()-2].reduce(input, swapIfNotSorted)		
+  	                        [0..input.count()-2].fold(input, swapIfNotSorted)		
 
                           bubbleSort(input)=
   	                        [0..input.count()-1]
-  		                        .reduce(
+  		                        .fold(
   			                        input, 
   			                        (c,i)-> c.onelineSort())
 

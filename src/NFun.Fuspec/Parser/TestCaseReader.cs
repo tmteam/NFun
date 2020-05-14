@@ -236,7 +236,7 @@ namespace Nfun.Fuspec.Parser
                     return WriteError(new FuspecParserError(FuspecErrorType.WrongSetCheckKit, _inputText.Index));
 
 
-                //если была только сет строка перед текущей, то надо добавить SetCheckKit
+                //if there was only a 'set' string before the current one, then add 'set-check-kit'
                 if (!_setCheckPair.Check.Any() && _setCheckPair.Set.Any())
                     _setCheckKits.Add(_setCheckPair);
                 _setCheckPair = new SetCheckPair();

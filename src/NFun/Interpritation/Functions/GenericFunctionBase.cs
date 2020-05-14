@@ -152,9 +152,8 @@ namespace NFun.Interpritation.Functions
                     .ToArray());
         }
         /// <summary>
-        /// На основании сигнатуры вызова (с конкретными типами) вычисляет список дженерик аргументов
-        /// соответствующий этому вызову
-        /// </summary>
+        /// calculates generic call arguments  based on a concrete call signature
+        /// </summary> 
         public VarType[] CalcGenericArgTypeList(FunTypeSpecification funTypeSpecification)
         {
             var result = new VarType[GenericDefenitions.Length];

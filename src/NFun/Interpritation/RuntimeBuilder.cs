@@ -17,7 +17,7 @@ namespace NFun.Interpritation
     {
         public static FunRuntime Build(
             SyntaxTree syntaxTree,
-            FunctionDictionary functionsDictionary)
+            IFunctionDicitionary functionsDictionary)
         {
             var userFunctionsList = new List<IFunctionSignature>();
             #region build user functions
@@ -198,7 +198,9 @@ namespace NFun.Interpritation
             {
                 var function = GenericUserFunction.Create(typeInferenceResuls, functionSyntaxNode, functionsDictionary);
                 functionsDictionary.Add(function);
-                //Нужно интерпритировать какой либо тип функции, что бы проверить ошибки
+                //We have to interpritate function at least once, to find all errors
+                //todo
+                //we can skip it if body uses the function to fold expression built time
                 GenericUserFunction.CreateSomeConcrete(function);
                 
                 return function;

@@ -62,7 +62,7 @@ namespace NFun.Tic.Tests
         
 
         [Test]
-        [Ignore("Todo - сделать оптимизацию для поиска подходящего типа")]
+        [Ignore("Select concrete integer type")]
         public void BitwiseDifferentConstants()
         {
             //    0  2 1
