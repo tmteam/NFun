@@ -17,7 +17,7 @@ namespace NFun.Interpritation
     {
         public static FunRuntime Build(
             SyntaxTree syntaxTree,
-            FunctionDictionary functionsDictionary)
+            IFunctionDicitionary functionsDictionary)
         {
             var userFunctionsList = new List<IFunctionSignature>();
             #region build user functions
