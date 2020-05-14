@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Nfun.Fuspec.Parser.Model
 {
-    class CheckData: ISetCheckData
+    public class CheckData: ISetCheckData
     {
         readonly List<VarVal> _check;
         public VarVal[] ValuesKit => _check.ToArray();

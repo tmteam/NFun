@@ -166,7 +166,7 @@ namespace FuspecHandler
         {
             Console.BackgroundColor = ConsoleColor.DarkCyan;
             Console.ForegroundColor = ConsoleColor.Black;
-            PrintLineAndResetColor("ERROR! In/Out check failed! :");
+            PrintLineAndResetColor("ERROR! Types check failed! :");
 
             Console.Write("File: ");
             Console.WriteLine("{0}\t\t ", fileName);
