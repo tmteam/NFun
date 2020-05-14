@@ -203,7 +203,7 @@ x: int[]
 filt: int
 concat    = ([1,2,3,4].concat(x))
 size      = concat.count()
-possum   = x.filter(i:int ->i>0).reduce((i:int,j:int)-> i+j)
+possum   = x.filter(i:int ->i>0).fold((i:int,j:int)-> i+j)
 filtrat   = x.filter(i:int ->i> filt) # filt - input variable
 ";
             var runtime = FunBuilder.BuildDefault(expr);

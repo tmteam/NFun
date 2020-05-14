@@ -198,7 +198,7 @@ namespace NFun.Tic
 
                     if (originalOne != node)
                     {
-                        TraceLog.WriteLine($"\t{node.Name}->reduce ref");
+                        TraceLog.WriteLine($"\t{node.Name}->fold ref");
                         node.State = new RefTo(originalOne);
                     }
 

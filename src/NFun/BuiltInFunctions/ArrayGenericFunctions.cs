@@ -714,9 +714,9 @@ namespace NFun.BuiltInFunctions
             return ImmutableFunArray.By(arr.SelectMany(o => (IFunArray) o));
         }
     }
-    public class ReduceGenericFunctionDefenition : GenericFunctionBase
+    public class FoldGenericFunctionDefenition : GenericFunctionBase
     {
-        public ReduceGenericFunctionDefenition() : base("reduce",new [] {GenericConstrains.Any}, 
+        public FoldGenericFunctionDefenition() : base("fold",new [] {GenericConstrains.Any}, 
             VarType.Generic(0),
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.Fun(VarType.Generic(0), VarType.Generic(0), VarType.Generic(0)))
@@ -735,9 +735,9 @@ namespace NFun.BuiltInFunctions
             return res; 
         }
     }
-    public class ReduceWithDefaultsGenericFunctionDefenition : GenericFunctionBase
+    public class foldWithDefaultsGenericFunctionDefenition : GenericFunctionBase
     {
-        public ReduceWithDefaultsGenericFunctionDefenition() : base("reduce", 
+        public foldWithDefaultsGenericFunctionDefenition() : base("fold", 
             returnType: VarType.Generic(1),
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.Generic(1),

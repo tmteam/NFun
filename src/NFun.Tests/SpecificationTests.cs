@@ -137,8 +137,8 @@ y = tostring(x)", "y", "not supported")]
         [TestCase("y = [1..4].map(i:int -> i/2)#[0.5,1.0,1.5,2.0]", "y", new[] {0.5, 1.0, 1.5, 2.0})]
         [TestCase("y = [1..4].any(i:int -> i>0)#true", "y", true)]
         [TestCase("y = [1..4].all(i:int -> i>2)#false", "y", false)]
-        [TestCase("y = [1..4].reduce((i:int,j:int)->i+j)# 10.sum of array", "y", 10)]
-        [TestCase("y = [1..4].reduce((i:int,j:int)->if (i>j) i else j)#4.max of array", "y", 4)]
+        [TestCase("y = [1..4].fold((i:int,j:int)->i+j)# 10.sum of array", "y", 10)]
+        [TestCase("y = [1..4].fold((i:int,j:int)->if (i>j) i else j)#4.max of array", "y", 4)]
         public void Constant(string expr, string outputName, object val)
         {
             var runtime = FunBuilder.BuildDefault(expr);

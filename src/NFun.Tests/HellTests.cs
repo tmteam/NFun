@@ -14,7 +14,7 @@ namespace Funny.Tests
         public void CustomForeachi()
         {
             var expr = @" 
-            foreachi(arr, f) = [0..arr.count()-1].reduce(arr[0], f)
+            foreachi(arr, f) = [0..arr.count()-1].fold(arr[0], f)
             
             res:int =  t.foreachi( (acc,i)-> if (acc>t[i]) acc else t[i] )";
 
@@ -27,7 +27,7 @@ namespace Funny.Tests
         public void CustomForeachiWithUserFun()
         {
             var expr = @" 
-            foreachi(arr, f) = [0..arr.count()-1].reduce(arr[0], f)
+            foreachi(arr, f) = [0..arr.count()-1].fold(arr[0], f)
 
             max(a, t, i) = max(a, t[i])             
 
@@ -41,7 +41,7 @@ namespace Funny.Tests
         public void CustomForeachiWithBuiltInFun()
         {
             var expr = @" 
-            foreachi(arr, f) = [0..arr.count()-1].reduce(arr[0], f)
+            foreachi(arr, f) = [0..arr.count()-1].fold(arr[0], f)
 
             res:int =  t.foreachi((acc,i)-> max(acc,t[i]))";
 
@@ -83,7 +83,7 @@ namespace Funny.Tests
             FunBuilder.BuildDefault(expr);
         }
         [Test]
-        public void ReduceOfHiOrder2()
+        public void foldOfHiOrder2()
         {
             var expr = @"
                         #swapIfNotSorted(T_0[],Int32):T_0[]  where T_0: <>
@@ -93,13 +93,13 @@ namespace Funny.Tests
                           # run thru array 
                           # and swap every unsorted values
                           onelineSort(input) =  
-  	                        [0..input.count()].reduce(input, swapIfNotSorted)";
+  	                        [0..input.count()].fold(input, swapIfNotSorted)";
 
             FunBuilder.BuildDefault(expr);
         }
 
         [Test]
-        public void ReduceOfHiOrder3()
+        public void foldOfHiOrder3()
         {
             var expr = @"
                         #swapIfNotSorted(T_0[],Int32):T_0[]  where T_0: <>
@@ -108,13 +108,13 @@ namespace Funny.Tests
 
                           # run thru array 
                           # and swap every unsorted values
-                          onelineSort(input) = [0..input.count()].reduce(input, swapIfNotSorted)";
+                          onelineSort(input) = [0..input.count()].fold(input, swapIfNotSorted)";
 
             FunBuilder.BuildDefault(expr);
         }
 
         [Test]
-        public void ReduceOfHiOrder()
+        public void foldOfHiOrder()
         {
             var expr = @"twiceSet(arr,i,j,ival,jval)
   	                        = arr.set(i,ival).set(j,jval)
@@ -129,7 +129,7 @@ namespace Funny.Tests
                           # run thru array 
                           # and swap every unsorted values
                           onelineSort(input) =  
-  	                        [0..input.count()].reduce(input, swapIfNotSorted)";
+  	                        [0..input.count()].fold(input, swapIfNotSorted)";
 
             FunBuilder.BuildDefault(expr);
         }
@@ -150,11 +150,11 @@ namespace Funny.Tests
                           # run thru array 
                           # and swap every unsorted values
                           onelineSort(input) =  
-  	                        [0..input.count()-2].reduce(input, swapIfNotSorted)		
+  	                        [0..input.count()-2].fold(input, swapIfNotSorted)		
 
                           bubbleSort(input:int[]):int[]=
   	                        [0..input.count()-1]
-  		                        .reduce(
+  		                        .fold(
   			                        input, 
   			                        (c,i)-> c.onelineSort())
 

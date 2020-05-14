@@ -18,7 +18,7 @@ namespace NFun.Tic.Tests
         // fun swapIfNotSorted(T_0[],Int32):T_0[]  where T_0: <>
 
         //                       6  32   1      0         4      5
-        //sortOneTime(input) = reduce([0..count(input)], input, swapIfNotSorted)";
+        //sortOneTime(input) = fold([0..count(input)], input, swapIfNotSorted)";
         //Exit: 16.Tvar input: Empty
         //Exit:19.IntConst 0:int
         //Exit:21.VAR input
@@ -26,7 +26,7 @@ namespace NFun.Tic.Tests
         //Exit: 18.Call range(19, 20, 18)
         //Exit: 22.VAR input
         //Exit:23.VAR swapIfNotSorted
-        //Exit:17.Call reduce(18, 22, 23, 17)
+        //Exit:17.Call fold(18, 22, 23, 17)
 
 
 
@@ -44,7 +44,7 @@ namespace NFun.Tic.Tests
                 Fun.Of(new IState[] {SolvingStates.Array.Of(tOfSwap), Primitive.I32}, SolvingStates.Array.Of(tOfSwap)));
             graph.SetVar("swapIfNotSorted", 5);
 
-            graph.SetReduceCall(3, 4, 5, 6);
+            graph.SetfoldCall(3, 4, 5, 6);
 
             var result = graph.Solve();
             var generic = result.AssertAndGetSingleGeneric(null, null, true);
@@ -58,7 +58,7 @@ namespace NFun.Tic.Tests
             // fun swapIfNotSorted(T_0[],Int32):T_0[]  where T_0: <>
 
             //                       17     18   19  20     21       22      23
-            //sortOneTime(input) = reduce( range(0, count(input)), input, swapIfNotSorted)";
+            //sortOneTime(input) = fold( range(0, count(input)), input, swapIfNotSorted)";
             
             //Nfun Trace:
             //Exit: 16.Tvar input: Empty
@@ -68,7 +68,7 @@ namespace NFun.Tic.Tests
             //Exit: 18.Call range(19, 20, 18)
             //Exit: 22.VAR input
             //Exit:23.VAR swapIfNotSorted
-            //Exit:17.Call reduce(18, 22, 23, 17)
+            //Exit:17.Call fold(18, 22, 23, 17)
 
             var graph = new GraphBuilder();
             var fundef = graph.SetFunDef("sortOneTime", 17, null, "input");
@@ -89,8 +89,8 @@ namespace NFun.Tic.Tests
             graph.SetVarType("swapIfNotSorted",
                 Fun.Of(new IState[] {SolvingStates.Array.Of(tOfSwap), Primitive.I32}, SolvingStates.Array.Of(tOfSwap)));
             graph.SetVar("swapIfNotSorted", 23);
-            //Exit:17.Call reduce(18, 22, 23, 17)
-            graph.SetReduceCall(18, 22, 23, 17);
+            //Exit:17.Call fold(18, 22, 23, 17)
+            graph.SetfoldCall(18, 22, 23, 17);
 
             var result = graph.Solve();
             var generic = result.AssertAndGetSingleGeneric(null, null, true);

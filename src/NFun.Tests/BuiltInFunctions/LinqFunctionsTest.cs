@@ -7,12 +7,12 @@ namespace Funny.Tests.BuiltInFunctions
 {
     class LinqFunctionsTest
     {
-        [TestCase("y:int = [0,7,1,2,3] . reduce(max)", 7)]
-        [TestCase("y:int = [0x0,7,1,2,3] . reduce(add)", 13)]
-        [TestCase("y = [0.0,7.0,1.0,2.0,3.0] . reduce(add)", 13.0)]
+        [TestCase("y:int = [0,7,1,2,3] . fold(max)", 7)]
+        [TestCase("y:int = [0x0,7,1,2,3] . fold(add)", 13)]
+        [TestCase("y = [0.0,7.0,1.0,2.0,3.0] . fold(add)", 13.0)]
 
         [TestCase("mysum(x:int, y:int):int = x+y \r" +
-                  "y = [0,7,1,2,3].reduce(mysum)", 13)]
+                  "y = [0,7,1,2,3].fold(mysum)", 13)]
         [TestCase(@"rr(x:real):bool = x>10
                      y = filter([11.0,20.0,1.0,2.0],rr)", new[] { 11.0, 20.0 })]
         [TestCase(@"ii(x:int):bool = x>10
@@ -24,29 +24,29 @@ namespace Funny.Tests.BuiltInFunctions
         [TestCase(@"isodd(x:int):bool = (x%2) == 0
                      y = map([1,2,3],isodd)", new[] { false, true, false })]
         [TestCase(@"toS1(t:text, x:int):text = t.concat(x.toText())
-                     y = reduce([1,2,3], ':', toS1)", ":123")]
+                     y = fold([1,2,3], ':', toS1)", ":123")]
         [TestCase(@"toS2(t:text, x:int):text = t.concat(x.toText())
-                     y = reduce([1], '', toS2)", "1")]
+                     y = fold([1], '', toS2)", "1")]
         [TestCase(@"toS3(t:text, x:int):text = t.concat(x.toText())
-                     y = reduce([1][1:1], '', toS3)", "")]
+                     y = fold([1][1:1], '', toS3)", "")]
         [TestCase(@"toR(r:real, x:int):real = r+x
-                     y = reduce([1,2,3], 0.5, toR)", 6.5)]
+                     y = fold([1,2,3], 0.5, toR)", 6.5)]
         [TestCase(@"iSum(r:int, x:int):int = r+x
-                     y = reduce([1,2,3], iSum)", 6)]
+                     y = fold([1,2,3], iSum)", 6)]
         [TestCase(@"iSum(r:int, x:int):int = r+x
-                     y = reduce([100], iSum)", 100)]
+                     y = fold([100], iSum)", 100)]
         [TestCase("y:int = [1,2,3,4,5,6,7].filter(i->i%2==0).sum()", 12)]
-        [TestCase("y:int = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce((s,i)-> s+i+1)", 14)]
-        [TestCase("y:int = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce((s,i)-> s+i+1)", 14)]
-        [TestCase("y:int = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce(min)", 2)]
-        [TestCase("y:int = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce(max)", 6)]
-        [TestCase("y:int = [1,2,3,4,5,6,7].filter(i:int->i%2==0).reduce(max)", 6)]
-        [TestCase("y:int = [1,2,3,4].reduce((s,i)-> s+i)", 10)]
-        [TestCase("y:int = [1,2,3,4,5,6,7].reduce(max)", 7)]
-        [TestCase("y:int = [1,2,3,4,5,6,7].reduce((s,i)->if (s>i) s else i)", 7)]
-        [TestCase("y:int = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce((s,i)->if (s>i) s else i)", 6)]
-        [TestCase("y:int = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce((s,i)->0)", 0)]
-        [TestCase("y:int = [1,2,3,4,5,6,7].filter(i->i%2==0).reduce((s,i)->0)", 0)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter(i->i%2==0).fold((s,i)-> s+i+1)", 14)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter(i->i%2==0).fold((s,i)-> s+i+1)", 14)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter(i->i%2==0).fold(min)", 2)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter(i->i%2==0).fold(max)", 6)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter(i:int->i%2==0).fold(max)", 6)]
+        [TestCase("y:int = [1,2,3,4].fold((s,i)-> s+i)", 10)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].fold(max)", 7)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].fold((s,i)->if (s>i) s else i)", 7)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter(i->i%2==0).fold((s,i)->if (s>i) s else i)", 6)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter(i->i%2==0).fold((s,i)->0)", 0)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter(i->i%2==0).fold((s,i)->0)", 0)]
         public void HiOrderFunConstantEquatation(string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
@@ -163,7 +163,7 @@ namespace Funny.Tests.BuiltInFunctions
         [TestCase("y = [1..100].chunk(-1)")]
         [TestCase("y = [1..100].chunk(0)")]
         [TestCase(@"iSum(r:int, x:int):int = r+x
-                     y = reduce([100][1:1], iSum)")]
+                     y = fold([100][1:1], iSum)")]
 
         public void FailsOnRuntime(string expr)
         {

@@ -200,7 +200,7 @@ namespace NFun.Interpritation
                 functionsDictionary.Add(function);
                 //We have to interpritate function at least once, to find all errors
                 //todo
-                //we can skip it if body uses the function to reduce expression built time
+                //we can skip it if body uses the function to fold expression built time
                 GenericUserFunction.CreateSomeConcrete(function);
                 
                 return function;

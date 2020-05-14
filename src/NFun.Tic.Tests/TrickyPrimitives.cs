@@ -176,7 +176,7 @@ namespace NFun.Tic.Tests
         }
 
         [Test]
-        public void SummReducecByBitShift_AllTypesAreInt()
+        public void SummfoldcByBitShift_AllTypesAreInt()
         {
             //  0 2 1  4 3
             //( x + y )<<3

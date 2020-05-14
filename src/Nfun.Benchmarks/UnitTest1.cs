@@ -60,7 +60,7 @@ namespace Nfun.Benchmarks
     {
         private FunctionDictionary dicitionary;
         private string hellExpr = @" 
-            foreachi(arr, f) = [0..arr.count()-1].reduce(arr[0], f)
+            foreachi(arr, f) = [0..arr.count()-1].fold(arr[0], f)
 
             res:int =  t.foreachi((acc,i)-> max(acc,t[i]))";
         [GlobalSetup]
