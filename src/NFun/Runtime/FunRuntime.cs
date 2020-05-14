@@ -49,5 +49,26 @@ namespace NFun.Runtime
             }
             return new CalculationResult(ans);
         }
+
+        public CalculationResult CalculateFake(params VarVal[] vars)
+        {
+            foreach (var value in vars)
+            {
+                var varName = value.Name;
+                var source = _variables.GetSourceOrNull(varName);
+                if (source == null)
+                    throw new ArgumentException($"unexpected input '{value.Name}'");
+                source.SetConvertedValue(value.Value);
+            }
+
+            var ans = new VarVal[_equations.Count];
+            //for (int i = 0; i < _equations.Count; i++)
+            //{
+            //    var e = _equations[i];
+            //    ans[i] = new VarVal(e.Id, e.Expression.Calc(), e.Expression.Type);
+            //    _variables.GetSourceOrNull(e.Id).Value = ans[i].Value;
+            //}
+            return new CalculationResult(ans);
+        }
     }
 }
