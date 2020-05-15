@@ -47,15 +47,16 @@ namespace NFun.Interpritation.Functions
 
         public static void CreateSomeConcrete(GenericUserFunction function)
         {
-            var varType = new List<VarType>();
-            foreach (var constrains in function._constrainsMap)
+            var varType = new VarType[function._constrainsMap.Length];
+
+            for (var i = 0; i < function._constrainsMap.Length; i++)
             {
-                var anc = constrains.Ancestor ?? Primitive.Any;
+                var anc = function._constrainsMap[i].Ancestor ?? Primitive.Any;
                 var concrete = TicTypesConverter.ToConcrete(anc.Name);
-                varType.Add(concrete);
+                varType[i] =concrete;
             }
 
-            function.CreateConcrete(varType.ToArray());
+            function.CreateConcrete(varType);
         }
 
         private GenericUserFunction(

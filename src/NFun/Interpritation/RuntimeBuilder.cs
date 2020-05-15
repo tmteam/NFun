@@ -102,19 +102,19 @@ namespace NFun.Interpritation
                 typeInferenceResults: typeInferenceResults, 
                 typesConverter: TicTypesConverter.Concrete);
             
-            VariableSource newSource;
+            VariableSource outputVariableSource;
             if(equation.OutputTypeSpecified)
-                newSource = VariableSource.CreateWithStrictTypeLabel(
+                outputVariableSource = VariableSource.CreateWithStrictTypeLabel(
                     name: equation.Id, 
                     type: equation.OutputType, 
                     typeSpecificationIntervalOrNull: equation.TypeSpecificationOrNull.Interval, 
                     attributes: equation.Attributes);
             else
-                newSource = VariableSource.CreateWithoutStrictTypeLabel(equation.Id, equation.OutputType, equation.Attributes);
+                outputVariableSource = VariableSource.CreateWithoutStrictTypeLabel(equation.Id, equation.OutputType, equation.Attributes);
             
-            newSource.IsOutput = true;
+            outputVariableSource.IsOutput = true;
           
-            if (!variables.TryAdd(newSource))
+            if (!variables.TryAdd(outputVariableSource))
             {
                 //some equation referenced the source before
                 var usages = variables.GetUsages(equation.Id);
@@ -126,9 +126,9 @@ namespace NFun.Interpritation
             
            
             //ReplaceInputType
-            if(newSource.Type != expression.Type)
+            if(outputVariableSource.Type != expression.Type)
                 throw new ImpossibleException("fitless");            
-            return new Equation(equation.Id, expression);
+            return new Equation(equation.Id, expression, outputVariableSource);
         }
 
 

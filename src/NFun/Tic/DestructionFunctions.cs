@@ -29,8 +29,6 @@ namespace NFun.Tic
 
                 foreach (var ancestor in node.Ancestors.ToArray())
                 {
-                    //if(ancestor==node)
-                    //    throw new InvalidOperationException("Ancestor cannot be equal to node itself");
                     TryMergeDestructive(node, ancestor);
                 }
             }

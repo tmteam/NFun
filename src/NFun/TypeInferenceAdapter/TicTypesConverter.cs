@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using NFun.Tic.SolvingStates;
 using NFun.Types;
@@ -14,7 +15,7 @@ namespace NFun.TypeInferenceAdapter
         public static TicTypesConverter GenericSignatureConverter(Constrains[] constrainsMap) 
             => new ConstrainsConverter(constrainsMap);
 
-        public static TicTypesConverter ReplaceGenericTypesConverter(Constrains[] constrainsMap,VarType[] genericArgs)
+        public static TicTypesConverter ReplaceGenericTypesConverter(Constrains[] constrainsMap, IList<VarType> genericArgs)
             => new GenericMapConverter(constrainsMap, genericArgs);
 
         public abstract VarType Convert(IState type);
@@ -110,9 +111,9 @@ namespace NFun.TypeInferenceAdapter
         class GenericMapConverter : TicTypesConverter
         {
             private readonly Constrains[] _constrainsMap;
-            private readonly VarType[] _argTypes;
+            private readonly IList<VarType> _argTypes;
 
-            public GenericMapConverter(Constrains[] constrainsMap, VarType[] argTypes)
+            public GenericMapConverter(Constrains[] constrainsMap, IList<VarType> argTypes)
             {
                 _constrainsMap = constrainsMap;
                 _argTypes = argTypes;

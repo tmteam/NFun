@@ -21,7 +21,7 @@ namespace NFun.Interpritation.Functions
 
         public IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children,  Interval interval)
         {
-            var castedChildren = new List<IExpressionNode>();
+            var castedChildren = new IExpressionNode[children.Count];
 
             var i = 0;
             foreach (var argNode in children)
@@ -35,11 +35,11 @@ namespace NFun.Interpritation.Functions
                     castedNode = new CastExpressionNode(argNode, toType, converter,argNode.Interval);
                 }
 
-                castedChildren.Add(castedNode);
+                castedChildren[i] = castedNode;
                 i++;
             }
 
-            return new FunExpressionNode(this, castedChildren.ToArray(),interval);
+            return new FunExpressionNode(this, castedChildren, interval);
         }
 
         public override string ToString() 

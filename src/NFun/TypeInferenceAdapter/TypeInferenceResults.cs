@@ -155,6 +155,8 @@ namespace NFun.TypeInferenceAdapter
                 return null;
             return SyntaxNodeTypes[id];
         }
+
+        public bool HasVariable(string name) => _namedNodes.ContainsKey(name);
         public IState GetVariableType(string name) => _namedNodes[name];
     }
 

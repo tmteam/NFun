@@ -41,8 +41,6 @@ namespace NFun.TypeInferenceAdapter
             return true;
         }
 
-        public override bool Visit(UserFunctionDefenitionSyntaxNode node) => true;
-
         public override bool Visit(AnonymCallSyntaxNode node)
         {
             var argNames = new string[node.ArgumentsDefenition.Length];
@@ -95,6 +93,7 @@ namespace NFun.TypeInferenceAdapter
             ids[ids.Length - 1] = node.OrderNumber;
 
             var userFunction = _resultsBuilder.GetUserFunctionSignature(node.Id, node.Args.Length);
+
             if (userFunction != null) 
             {
                 //Call user-function if it is being built at the same time as the current expression is being built
@@ -109,13 +108,14 @@ namespace NFun.TypeInferenceAdapter
 
 
             var signature = _resultsBuilder.GetSignatureOrNull(node.OrderNumber);
-            if (signature == null)
-            {
+            if (signature == null)               {
                 //Functional variable
                 Trace(node, $"Call hi order {node.Id}({string.Join(",", ids)})");
                 _state.CurrentSolver.SetCall(node.Id, ids);
                 return true;
             }
+
+         
             //Normal function call
             Trace(node, $"Call {node.Id}({string.Join(",", ids)})");
 
@@ -132,10 +132,8 @@ namespace NFun.TypeInferenceAdapter
             var types = new IState[signature.ArgTypes.Length + 1];
             
 
-            for (int i = 0; i < signature.ArgTypes.Length; i++)
-            {
+            for (int i = 0; i < signature.ArgTypes.Length; i++) {
                 types[i] = signature.ArgTypes[i].ConvertToTiType(genericTypes);
-
             }
 
             types[types.Length - 1] = signature.ReturnType.ConvertToTiType(genericTypes);
@@ -154,7 +152,6 @@ namespace NFun.TypeInferenceAdapter
             _state.CurrentSolver.SetCall(node.ResultExpression.OrderNumber, ids);
             return true;
         }
-       
         public override bool Visit(IfThenElseSyntaxNode node)
         {
             var conditions = node.Ifs.Select(i => i.Condition.OrderNumber).ToArray();
@@ -334,7 +331,6 @@ namespace NFun.TypeInferenceAdapter
             _state.CurrentSolver.SetVar(localId, node.OrderNumber);
             return true;
         }
-
 
         private RefTo[] InitializeGenericTypes(GenericConstrains[] constrains)
         {

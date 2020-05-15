@@ -494,21 +494,21 @@ namespace NFun.SyntaxParsing
             var openBracket = flow.MoveIfOrThrow(TokType.ArrOBr);
             
             if (!TryReadNodeList(flow, out var list))
-            {
                 throw ErrorFactory.ArrayInitializeByListError(startTokenNum, flow);
-            }
-            if (list.Count == 1 && flow.MoveIf(TokType.TwoDots, out var twoDots))
+            
+            if (list.Count == 1 && flow.MoveIf(TokType.TwoDots, out var twoDots))// Range [a..b] or [a..b..c]
             {
                 var secondArg = ReadNodeOrNull(flow);
                 if (secondArg == null)
                 {
                     var lastToken = twoDots;
                     var missedVal = flow.Current;
+                    
                     if (flow.Current.Is(TokType.ArrCBr)) {
                         lastToken = flow.Current;
                         missedVal = default;
                     }
-                    else if(flow.Current.Is(TokType.TwoDots)) {
+                    else if(flow.Current.Is(TokType.TwoDots)) { 
                         lastToken = flow.Current;
                         missedVal = default;                        
                     }
@@ -632,7 +632,7 @@ namespace NFun.SyntaxParsing
             if (elseResult == null)
                 throw ErrorFactory.ElseExpressionIsMissing(ifElseStart, flow.Position);
 
-            return SyntaxNodeFactory.IfElse(ifThenNodes, elseResult, ifElseStart, flow.Position);
+            return SyntaxNodeFactory.IfElse(ifThenNodes.ToArray(), elseResult, ifElseStart, flow.Position);
         }
         
         private static ISyntaxNode ReadFunctionCall(TokFlow flow, Tok head, ISyntaxNode pipedVal = null)
@@ -655,9 +655,8 @@ namespace NFun.SyntaxParsing
         private static ISyntaxNode ReadFunctionCall(TokFlow flow, ISyntaxNode functionResultNode)
         {
             var obrId = flow.CurrentTokenPosition;
-            var start = functionResultNode.Interval.Start;
             if (!flow.MoveIf(TokType.Obr))
-                throw new ImpossibleException("Ooops. Something wrong in parser");
+                throw new ImpossibleException("Panic. Something wrong in parser");
 
             if (!TryReadNodeList(flow, out var arguments)
                 || !flow.MoveIf(TokType.Cbr, out var cbr))

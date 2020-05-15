@@ -230,8 +230,8 @@ namespace Funny.Tests.BuiltInFunctions
         [TestCase("[0x4,0x3,0x5,0x1].sort()",new []{1,3,4,5})]
         [TestCase("[4.0,3.0,5.0,1.0].sort()",new []{1.0,3.0,4.0,5.0})]
         [TestCase("['4.0','3.0','5.0','1.0'].sort()",new []{"1.0","3.0","4.0","5.0"})]
-        [TestCase("range(0,5)",new []{0,1,2,3,4,5})]
-        [TestCase("range(7,10)",new []{7,8,9,10})]
+        [TestCase("range(0,5)",new []{0.0,1,2,3,4,5})]
+        [TestCase("range(7,10)",new []{7.0,8,9,10})]
         [TestCase("range(1,10,2.0)",new []{1.0,3.0,5.0,7.0,9.0})]
         public void ConstantEquationWithPredefinedFunction(string expr, object expected)
             =>FunBuilder.BuildDefault(expr).Calculate().AssertOutEquals(0.00001, expected);
