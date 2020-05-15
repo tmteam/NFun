@@ -505,8 +505,8 @@ namespace NFun.ParseErrors
 
         public static Exception AnonymousFunctionArgumentConflictsWithOuterScope(FunArgumentExpressionNode argNode, ISyntaxNode defenitionNode)
             => new FunParseException(566, $"'Argument name '{argNode.Name}' of anonymous fun conflicts with outer scope variable. It is denied for your safety.", defenitionNode.Interval);
-        public static Exception AnonymousFunDefenitionIsIncorrect(AnonymCallSyntaxNode anonymFunNode)
-            => new FunParseException(569, $"'Anonym fun defenition is incorrect ", anonymFunNode.Interval);
+        public static Exception AnonymousFunDefenitionIsIncorrect(ArrowAnonymCallSyntaxNode arrowAnonymFunNode)
+            => new FunParseException(569, $"'Anonym fun defenition is incorrect ", arrowAnonymFunNode.Interval);
         
         public static Exception ComplexRecursion(UserFunctionDefenitionSyntaxNode[] functionSolveOrder)
         {
@@ -629,6 +629,11 @@ namespace NFun.ParseErrors
                 }
             }
             return TypesNotSolved(syntaxNodeToSearch);
+        }
+
+        public static Exception SuperAnonymousFunctionIsNotClose(int anonymousStart, int anonymousFinish)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -8,12 +8,13 @@ namespace NFun.SyntaxParsing.Visitors
             => VisitorEnterResult.Continue;
 
         public void SetChildrenNumber(ISyntaxNode parent, int num) { }
-        public virtual VisitorEnterResult Visit(AnonymCallSyntaxNode anonymFunNode) => DefaultVisit(anonymFunNode);
+        public virtual VisitorEnterResult Visit(ArrowAnonymCallSyntaxNode arrowAnonymFunNode) => DefaultVisit(arrowAnonymFunNode);
         public virtual VisitorEnterResult Visit(ArraySyntaxNode node)=> DefaultVisit(node);
         public virtual VisitorEnterResult Visit(EquationSyntaxNode node)=> DefaultVisit(node);
         public virtual VisitorEnterResult Visit(FunCallSyntaxNode node)=> DefaultVisit(node);
         public virtual VisitorEnterResult Visit(ResultFunCallSyntaxNode node) => DefaultVisit(node);
         public virtual VisitorEnterResult Visit(MetaInfoSyntaxNode node) => DefaultVisit(node);
+        public virtual VisitorEnterResult Visit(SuperAnonymCallSyntaxNode node) => DefaultVisit(node);
         public virtual VisitorEnterResult Visit(IfThenElseSyntaxNode node)=> DefaultVisit(node);
         public virtual VisitorEnterResult Visit(IfCaseSyntaxNode node)=> DefaultVisit(node);
         public virtual VisitorEnterResult Visit(ListOfExpressionsSyntaxNode node)=> DefaultVisit(node);

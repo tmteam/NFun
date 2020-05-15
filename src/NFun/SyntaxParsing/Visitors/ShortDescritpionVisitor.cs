@@ -8,7 +8,7 @@ namespace NFun.SyntaxParsing.Visitors
     {
         public void SetChildrenNumber(ISyntaxNode parent, int num) { }
 
-        public string Visit(AnonymCallSyntaxNode anonymFunNode) => "(..)=>..";
+        public string Visit(ArrowAnonymCallSyntaxNode arrowAnonymFunNode) => "(..)=>..";
         public string Visit(ArraySyntaxNode node) =>"[...]";
         public string Visit(EquationSyntaxNode node) => $"{node.Id} = ... ";
         public string Visit(FunCallSyntaxNode node) => $"{node.Id}(...)";
@@ -41,7 +41,7 @@ namespace NFun.SyntaxParsing.Visitors
         public string Visit(VariableSyntaxNode node) => node.Id;
         public string Visit(ResultFunCallSyntaxNode node) => $"{node.ResultExpression.Accept(this)}(...)";
         public string Visit(MetaInfoSyntaxNode node) =>  $"meta({node.VariableSyntaxNode.Accept(this)})";
-
+        public string Visit(SuperAnonymCallSyntaxNode node) => "{" + node.Body.Accept(this) + "}";
         public string Visit(GenericIntSyntaxNode node) => node.Value.ToString();
     }
 }

@@ -41,7 +41,10 @@ namespace NFun.TypeInferenceAdapter
             return true;
         }
 
-        public override bool Visit(AnonymCallSyntaxNode node)
+        public override bool Visit(SuperAnonymCallSyntaxNode node)
+            => throw new NotImplementedException();
+
+        public override bool Visit(ArrowAnonymCallSyntaxNode node)
         {
             var argNames = new string[node.ArgumentsDefenition.Length];
             for (var i = 0; i < node.ArgumentsDefenition.Length; i++)

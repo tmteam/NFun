@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using NFun.Interpritation;
 using NFun.Interpritation.Functions;
@@ -71,17 +72,21 @@ namespace NFun.TypeInferenceAdapter
             return VisitorEnterResult.Continue;
         }
 
-        public override VisitorEnterResult Visit(AnonymCallSyntaxNode anonymFunNode)
+        public override VisitorEnterResult Visit(SuperAnonymCallSyntaxNode node)
         {
-            _setupTiState.EnterScope(anonymFunNode.OrderNumber);
-            foreach (var syntaxNode in anonymFunNode.ArgumentsDefenition)
+            throw new NotImplementedException();
+        }
+        public override VisitorEnterResult Visit(ArrowAnonymCallSyntaxNode arrowAnonymFunNode)
+        {
+            _setupTiState.EnterScope(arrowAnonymFunNode.OrderNumber);
+            foreach (var syntaxNode in arrowAnonymFunNode.ArgumentsDefenition)
             {
                 string originName;
                 string anonymName;
                 if (syntaxNode is TypedVarDefSyntaxNode typed)
                 {
                     originName = typed.Id;
-                    anonymName = MakeAnonVariableName(anonymFunNode, originName);
+                    anonymName = MakeAnonVariableName(arrowAnonymFunNode, originName);
                     if (!typed.VarType.Equals(VarType.Empty))
                     {
                         var ticType = typed.VarType.ConvertToTiType();
@@ -91,7 +96,7 @@ namespace NFun.TypeInferenceAdapter
                 else if (syntaxNode is VariableSyntaxNode varNode)
                 {
                     originName = varNode.Id;
-                    anonymName = MakeAnonVariableName(anonymFunNode, originName);
+                    anonymName = MakeAnonVariableName(arrowAnonymFunNode, originName);
                 }
                 else 
                     throw ErrorFactory.AnonymousFunArgumentIsIncorrect(syntaxNode);
@@ -102,7 +107,7 @@ namespace NFun.TypeInferenceAdapter
             return VisitorEnterResult.Continue;
         }
 
-        private static string MakeAnonVariableName(AnonymCallSyntaxNode node, string id) 
+        private static string MakeAnonVariableName(ArrowAnonymCallSyntaxNode node, string id) 
             => LangTiHelper.GetArgAlias("anonymous_"+node.OrderNumber, id);
     }
 }
