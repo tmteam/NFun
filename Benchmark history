@@ -42,6 +42,13 @@ Nfun interptitate
 i7 8th. xiaomi mi pro.
 .NET Core 3.0.0 (CoreCLR 4.700.19.46205, CoreFX 4.700.19.46214), X64 RyuJIT; GC = Concurrent Workstation
 
+Nfun update
+|                  Method |         Mean |      Error |     StdDev | Ratio |
+|------------------------ |-------------:|-----------:|-----------:|------:|
+| 'dotnet [1.1000].SUM()' | 13,060.32 ns | 141.799 ns | 132.639 ns | 1.000 |
+|             'true calc' |     72.36 ns |   1.427 ns |   1.752 ns | 0.006 |
+|        'const kxb calc' |    148.25 ns |   2.984 ns |   3.774 ns | 0.011 |
+|     'kxb with var calc' |    150.40 ns |   2.167 ns |   2.027 ns | 0.012 |
 
 Nfun calculate
 |                  Method |             Mean |          Error |         StdDev |   Ratio | RatioSD |

@@ -185,7 +185,7 @@ namespace Funny.Tests
         {
             TraceLog.IsEnabled = true;
             var expr = $"customConvert(a:{typeTo}):{typeTo} = a; y = customConvert({constant})";
-            Assert.Throws<FunParseException>(() => FunBuilder.BuildDefault(expr).Calculate());
+            Assert.Throws<FunParseException>(() => FunBuilder.BuildDefault(expr).Update());
         }
     }
 }

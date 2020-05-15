@@ -7,7 +7,6 @@ namespace NFun.Runtime
 {
     public class VariableSource
     {
-        
         public static VariableSource CreateWithStrictTypeLabel( string name, 
             VarType type, 
             Interval typeSpecificationIntervalOrNull, 
@@ -47,7 +46,10 @@ namespace NFun.Runtime
         public string Name { get; }
 
         public Interval? TypeSpecificationIntervalOrNull { get; }
-
+        /// <summary>
+        /// You can add any data here to use it in metafunctions
+        /// </summary>
+        public object ClientMetaData { get; set; }
         public bool IsOutput { get; set; }
         public VarType Type { get; }
         public object Value { get; set; }
@@ -98,7 +100,7 @@ namespace NFun.Runtime
                     Value = valueValue;
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new NotSupportedException();
             }
         }
     }

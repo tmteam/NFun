@@ -655,9 +655,8 @@ namespace NFun.SyntaxParsing
         private static ISyntaxNode ReadFunctionCall(TokFlow flow, ISyntaxNode functionResultNode)
         {
             var obrId = flow.CurrentTokenPosition;
-            var start = functionResultNode.Interval.Start;
             if (!flow.MoveIf(TokType.Obr))
-                throw new ImpossibleException("Ooops. Something wrong in parser");
+                throw new ImpossibleException("Panic. Something wrong in parser");
 
             if (!TryReadNodeList(flow, out var arguments)
                 || !flow.MoveIf(TokType.Cbr, out var cbr))
