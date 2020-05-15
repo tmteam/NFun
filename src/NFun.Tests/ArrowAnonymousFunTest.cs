@@ -7,7 +7,7 @@ using NUnit.Framework;
 namespace Funny.Tests
 {
     [TestFixture]
-    public class AnonymousFunTest
+    public class ArrowAnonymousFunTest
     {
         [TestCase( @"y = [11.0,20.0,1.0,2.0].filter(i -> i>10)",new[]{11.0,20.0})]
         [TestCase( @"y = [11.0,20.0,1.0,2.0].filter((i) -> i>10)",new[]{11.0,20.0})]
