@@ -44,21 +44,21 @@ i7 8th. xiaomi mi pro.
 
 
 Nfun calculate
-|                 Method |            Mean |         Error |         StdDev |          Median |
-|----------------------- |----------------:|--------------:|---------------:|----------------:|
-|            'true calc' |     122.4437 ns |     6.8582 ns |     19.3437 ns |     115.1182 ns |
-|               '1 calc' |     117.8947 ns |     4.4765 ns |     12.4044 ns |     115.5950 ns |
-|            'text calc' |     109.1231 ns |     2.2674 ns |      6.2831 ns |     107.1428 ns |
-|          'bool[] calc' |     266.1117 ns |     4.7127 ns |      4.4083 ns |     266.4846 ns |
-|          'real[] calc' |     269.5174 ns |     5.4538 ns |      7.4652 ns |     268.4808 ns |
-|       'const kxb calc' |     214.4641 ns |     2.3141 ns |      2.1646 ns |     214.2299 ns |
-|  'array multiply calc' |   3,159.4506 ns |    59.8734 ns |     64.0639 ns |   3,158.3475 ns |
-|         'sum1000 calc' |  81,904.5227 ns | 1,627.2251 ns |  1,998.3786 ns |  82,573.1079 ns |
-|    'dummy bubble calc' | 483,231.0547 ns | 9,530.1250 ns | 17,426.3725 ns | 479,761.0352 ns |
-|    'kxb with var calc' |     317.9094 ns |     6.3884 ns |      6.2742 ns |     316.1467 ns |
-|      'dotnet kxb calc' |       0.7630 ns |     0.0512 ns |      0.0870 ns |       0.7564 ns |
-| 'dotnet summ1000 calc' |   5,322.2341 ns |   103.3251 ns |    148.1858 ns |   5,359.5589 ns |
-
+|                  Method |             Mean |          Error |         StdDev |   Ratio | RatioSD |
+|------------------------ |-----------------:|---------------:|---------------:|--------:|--------:|
+| 'dotnet [1.3000].SUM()' |    14,644.007 ns |    289.7852 ns |    322.0955 ns |   1.000 |    0.00 |
+|             'true calc' |       108.942 ns |      2.1775 ns |      2.3299 ns |   0.007 |    0.00 |
+|                '1 calc' |       107.120 ns |      2.2120 ns |      2.1725 ns |   0.007 |    0.00 |
+|             'text calc' |       109.085 ns |      2.2437 ns |      2.7554 ns |   0.007 |    0.00 |
+|           'bool[] calc' |       260.292 ns |      3.6770 ns |      3.2595 ns |   0.018 |    0.00 |
+|           'real[] calc' |       261.599 ns |      5.2771 ns |      5.8655 ns |   0.018 |    0.00 |
+|        'const kxb calc' |       200.080 ns |      2.8383 ns |      2.6549 ns |   0.014 |    0.00 |
+|   'array multiply calc' |     3,142.772 ns |     35.4623 ns |     29.6126 ns |   0.215 |    0.00 |
+|          'sum1000 calc' |    80,141.373 ns |  1,030.9828 ns |    913.9394 ns |   5.473 |    0.16 |
+|     'dummy bubble calc' |   475,101.461 ns |  8,210.9865 ns |  6,410.5982 ns |  32.534 |    0.73 |
+|       'everything calc' | 2,367,190.179 ns | 46,473.1347 ns | 41,197.2234 ns | 161.610 |    3.90 |
+|     'kxb with var calc' |       320.091 ns |      3.7462 ns |      3.3209 ns |   0.022 |    0.00 |
+|       'dotnet kxb calc' |         1.042 ns |      0.0604 ns |      0.0719 ns |   0.000 |    0.00 |
 
 Nfun interptitate
 |             Method |         Mean |      Error |     StdDev | Ratio | RatioSD |
@@ -75,3 +75,20 @@ Nfun interptitate
 |     'kxb with var' |    51.434 us |  1.0281 us |  0.9617 us |  2.71 |    0.08 |
 | 'Dotnet kxb build' |    83.425 us |  1.6657 us |  1.7823 us |  4.38 |    0.18 |
 |  'dotnet Summ1000' |     4.859 us |  0.0961 us |  0.1215 us |  0.25 |    0.01 |
+
+Nfun parser
+|                  Method |        Mean |       Error |      StdDev | Ratio | RatioSD |
+|------------------------ |------------:|------------:|------------:|------:|--------:|
+| 'dotnet [1.1000].SUM()' |  4,125.4 ns |    60.94 ns |    54.02 ns |  1.00 |    0.00 |
+|                    true |    657.4 ns |     9.32 ns |     7.78 ns |  0.16 |    0.00 |
+|                       1 |    636.9 ns |    10.11 ns |     8.96 ns |  0.15 |    0.00 |
+|                    text |    722.1 ns |     8.14 ns |     6.35 ns |  0.18 |    0.00 |
+|                'bool[]' |  3,426.4 ns |    52.15 ns |    48.79 ns |  0.83 |    0.02 |
+|                'real[]' |  3,222.9 ns |    62.00 ns |    54.96 ns |  0.78 |    0.02 |
+|             'const kxb' |  1,770.3 ns |    23.72 ns |    22.18 ns |  0.43 |    0.01 |
+|        'array multiply' | 18,829.3 ns |   257.17 ns |   227.98 ns |  4.57 |    0.10 |
+|                 sum1000 |  2,505.8 ns |    38.16 ns |    53.50 ns |  0.61 |    0.02 |
+|          'dummy Bubble' | 40,127.3 ns |   404.86 ns |   338.07 ns |  9.74 |    0.17 |
+|              Everything | 75,894.0 ns | 1,504.25 ns | 1,407.07 ns | 18.42 |    0.44 |
+|          'kxb with var' |  1,646.2 ns |    14.09 ns |    11.77 ns |  0.40 |    0.01 |
+|      'Dotnet kxb build' | 75,751.8 ns | 1,262.55 ns | 1,685.46 ns | 18.53 |    0.49 |

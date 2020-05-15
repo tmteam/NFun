@@ -9,21 +9,24 @@ namespace Nfun.Benchmarks
 {
     public class NfunInterpritationBenchmark
     {
-        private FunctionDictionary _dicitionary;
+        private FunctionDictionary _dictionary;
         private Scripts _scripts;
      
         [GlobalSetup]
         public void Setup()
         {
             _scripts = new Scripts();
-            _dicitionary = BaseFunctions.GetDefaultDictionary();
+            _dictionary = BaseFunctions.GetDefaultDictionary();
         }
-        [Benchmark(Description = "true", Baseline = true)]
+        [Benchmark(Description = "dotnet [1.1000].SUM()", Baseline = true)]
+        public int BaseLineDotnetTest1000() => Enumerable.Range(1, 1000).Sum();
+
+        [Benchmark(Description = "true")]
         public void TrueCalc()
         {
             FunBuilder
                 .With(_scripts.ConstTrue)
-                .With(_dicitionary)
+                .With(_dictionary)
                 .Build();
         }
         [Benchmark(Description = "1")]
@@ -31,7 +34,7 @@ namespace Nfun.Benchmarks
         {
             FunBuilder
                 .With(_scripts.Const1)
-                .With(_dicitionary)
+                .With(_dictionary)
                 .Build();
         }
         [Benchmark(Description = "text")]
@@ -39,7 +42,7 @@ namespace Nfun.Benchmarks
         {
             FunBuilder
                 .With(_scripts.ConstText)
-                .With(_dicitionary)
+                .With(_dictionary)
                 .Build();
         }
         [Benchmark(Description = "bool[]")]
@@ -47,7 +50,7 @@ namespace Nfun.Benchmarks
         {
             FunBuilder
                 .With(_scripts.ConstBoolArray)
-                .With(_dicitionary)
+                .With(_dictionary)
                 .Build();
         }
         [Benchmark(Description = "real[]")]
@@ -55,7 +58,7 @@ namespace Nfun.Benchmarks
         {
             FunBuilder
                 .With(_scripts.ConstRealArray)
-                .With(_dicitionary)
+                .With(_dictionary)
                 .Build();
         }
         [Benchmark(Description = "const kxb")]
@@ -63,7 +66,7 @@ namespace Nfun.Benchmarks
         {
             FunBuilder
                 .With(_scripts.ConstKxb)
-                .With(_dicitionary)
+                .With(_dictionary)
                 .Build();
         }
         [Benchmark(Description = "array multiply")]
@@ -71,7 +74,7 @@ namespace Nfun.Benchmarks
         {
             FunBuilder
                 .With(_scripts.MultiplyArrayItems)
-                .With(_dicitionary)
+                .With(_dictionary)
                 .Build();
         }
 
@@ -80,7 +83,7 @@ namespace Nfun.Benchmarks
         {
             FunBuilder
                 .With(_scripts.ConstThousandSum)
-                .With(_dicitionary)
+                .With(_dictionary)
                 .Build();
         }
 
@@ -89,7 +92,16 @@ namespace Nfun.Benchmarks
         {
             FunBuilder
                 .With(_scripts.DummyBubbleSort)
-                .With(_dicitionary)
+                .With(_dictionary)
+                .Build();
+        }
+
+        [Benchmark(Description = "Everything")]
+        public void Everything()
+        {
+            FunBuilder
+                .With(_scripts.Everything)
+                .With(_dictionary)
                 .Build();
         }
 
@@ -98,7 +110,7 @@ namespace Nfun.Benchmarks
         {
             FunBuilder
                 .With(_scripts.VarKxb)
-                .With(_dicitionary)
+                .With(_dictionary)
                 .Build();
         }
 
@@ -111,10 +123,6 @@ namespace Nfun.Benchmarks
         }
         
 
-        [Benchmark(Description = "dotnet Summ1000")]
-        public int DotnetTest1000()
-        {
-            return Enumerable.Range(1, 1000).Sum();
-        }
+        
     }
 }
