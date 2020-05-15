@@ -97,15 +97,15 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var start = args.Get<int>(1);
+            var start = ((int)args[1]);
             if(start<0)
                 throw new FunRuntimeException("Argument out of range");
-            var end = args.Get<int>(2);
+            var end = ((int)args[2]);
             if(end<0)
                 throw new FunRuntimeException("Argument out of range");
             if(end!=0 && start>end)
                 throw new FunRuntimeException("Start cannot be more than end");
-            var step = args.Get<int>(3);
+            var step = ((int)args[3]);
             if(step<0)
                 throw new FunRuntimeException("Argument out of range");
             if (step == 0)
@@ -292,8 +292,8 @@ namespace NFun.BuiltInFunctions
             public Int16Function() : base(id, VarType.ArrayOf(VarType.Int16), VarType.Int16, VarType.Int16) { }
             public override object Calc(object[] args)
             {
-                var start = args.Get<short>(0);
-                var end = args.Get<short>(1);
+                var start = ((short)args[0]);
+                var end = ((short)args[1]);
                 var result = new List<short>();
 
                 if (start < end)
@@ -311,8 +311,8 @@ namespace NFun.BuiltInFunctions
 
             public override object Calc(object[] args)
             {
-                var start = args.Get<int>(0);
-                var end = args.Get<int>(1);
+                var start = ((int)args[0]);
+                var end = ((int)args[1]);
                 var result = new List<int>();
 
                 if (start < end)
@@ -348,8 +348,8 @@ namespace NFun.BuiltInFunctions
             public UInt8Function() : base(id, VarType.ArrayOf(VarType.UInt8), VarType.UInt8, VarType.UInt8) { }
             public override object Calc(object[] args)
             {
-                var start = args.Get<byte>(0);
-                var end = args.Get<byte>(1);
+                var start = ((byte)args[0]);
+                var end = ((byte)args[1]);
                 var result = new List<byte>();
 
                 if (start < end)
@@ -366,8 +366,8 @@ namespace NFun.BuiltInFunctions
             public UInt16Function() : base(id, VarType.ArrayOf(VarType.UInt16), VarType.UInt16, VarType.UInt16) { }
             public override object Calc(object[] args)
             {
-                var start = args.Get<ushort>(0);
-                var end = args.Get<ushort>(1);
+                var start = ((ushort)args[0]);
+                var end = ((ushort)args[1]);
                 var result = new List<ushort>();
 
                 if (start < end)
@@ -384,8 +384,8 @@ namespace NFun.BuiltInFunctions
             public UInt32Function() : base(id, VarType.ArrayOf(VarType.UInt32), VarType.UInt32, VarType.UInt32) { }
             public override object Calc(object[] args)
             {
-                var start = args.Get<uint>(0);
-                var end = args.Get<uint>(1);
+                var start = ((uint)args[0]);
+                var end = ((uint)args[1]);
                 var result = new List<uint>();
 
                 if (start < end)
@@ -471,9 +471,9 @@ namespace NFun.BuiltInFunctions
             public Int16Function() : base(id, VarType.ArrayOf(VarType.Int16), VarType.Int16, VarType.Int16, VarType.Int16) { }
             public override object Calc(object[] args)
             {
-                var start = args.Get<int>(0);
-                var end = args.Get<int>(1);
-                var step = args.Get<int>(2);
+                var start = ((int)args[0]);
+                var end = ((int)args[1]);
+                var step = ((int)args[2]);
                 if (step <= 0)
                     throw new FunRuntimeException("Step has to be positive");
 
@@ -493,9 +493,9 @@ namespace NFun.BuiltInFunctions
 
             public override object Calc(object[] args)
             {
-                var start = args.Get<int>(0);
-                var end = args.Get<int>(1);
-                var step = args.Get<int>(2);
+                var start = ((int)args[0]);
+                var end = ((int)args[1]);
+                var step = ((int)args[2]);
                 if (step <= 0)
                     throw new FunRuntimeException("Step has to be positive");
 
@@ -516,9 +516,9 @@ namespace NFun.BuiltInFunctions
 
             public override object Calc(object[] args)
             {
-                var start = args.Get<long>(0);
-                var end = args.Get<long>(1);
-                var step = args.Get<long>(2);
+                var start = ((long)args[0]);
+                var end = ((long)args[1]);
+                var step = ((long)args[2]);
                 if (step <= 0)
                     throw new FunRuntimeException("Step has to be positive");
 
@@ -538,9 +538,9 @@ namespace NFun.BuiltInFunctions
             public UInt8Function() : base(id, VarType.ArrayOf(VarType.UInt8), VarType.UInt8, VarType.UInt8, VarType.UInt8) { }
             public override object Calc(object[] args)
             {
-                var start = args.Get<byte>(0);
-                var end = args.Get<byte>(1);
-                var step = args.Get<byte>(2);
+                var start = ((byte)args[0]);
+                var end = ((byte)args[1]);
+                var step = ((byte)args[2]);
                 if (step <= 0)
                     throw new FunRuntimeException("Step has to be positive");
 
@@ -559,9 +559,9 @@ namespace NFun.BuiltInFunctions
             public UInt16Function() : base(id, VarType.ArrayOf(VarType.UInt16), VarType.UInt16, VarType.UInt16, VarType.UInt16) { }
             public override object Calc(object[] args)
             {
-                var start = args.Get<UInt16>(0);
-                var end = args.Get<UInt16>(1);
-                var step = args.Get<UInt16>(2);
+                var start = ((ushort)args[0]);
+                var end = ((ushort)args[1]);
+                var step = ((ushort)args[2]);
                 if (step <= 0)
                     throw new FunRuntimeException("Step has to be positive");
 
@@ -580,9 +580,9 @@ namespace NFun.BuiltInFunctions
             public UInt32Function() : base(id, VarType.ArrayOf(VarType.UInt32), VarType.UInt32, VarType.UInt32, VarType.UInt32) { }
             public override object Calc(object[] args)
             {
-                var start = args.Get<UInt32>(0);
-                var end = args.Get<UInt32>(1);
-                var step = args.Get<UInt32>(2);
+                var start = ((UInt32)args[0]);
+                var end = ((UInt32)args[1]);
+                var step = ((uint)args[2]);
                 if (step <= 0)
                     throw new FunRuntimeException("Step has to be positive");
 
@@ -601,9 +601,9 @@ namespace NFun.BuiltInFunctions
             public UInt64Function() : base(id, VarType.ArrayOf(VarType.UInt64), VarType.UInt64, VarType.UInt64, VarType.UInt64) { }
             public override object Calc(object[] args)
             {
-                var start = args.Get<UInt64>(0);
-                var end = args.Get<UInt64>(1);
-                var step = args.Get<UInt64>(2);
+                var start = ((ulong)args[0]);
+                var end = ((ulong)args[1]);
+                var step = ((ulong)args[2]);
                 if (step <= 0)
                     throw new FunRuntimeException("Step has to be positive");
 
@@ -622,9 +622,9 @@ namespace NFun.BuiltInFunctions
             public RealFunction() : base(id, VarType.ArrayOf(VarType.Real), VarType.Real, VarType.Real, VarType.Real) { }
             public override object Calc(object[] args)
             {
-                var start = args.Get<double>(0);
-                var end = args.Get<double>(1);
-                var step = args.Get<double>(2);
+                var start = ((double)args[0]);
+                var end = ((double)args[1]);
+                var step = ((double)args[2]);
                 if (step <= 0)
                     throw new FunRuntimeException("Step has to be positive");
 
@@ -651,11 +651,11 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var start = args.Get<int>(1);
+            var start = ((int)args[1]);
             if(start<0)
                 throw new FunRuntimeException("Argument out of range");
 
-            var end = args.Get<int>(2);
+            var end = ((int)args[2]);
             if(end<0)
                 throw new FunRuntimeException("Argument out of range");
                 
@@ -677,7 +677,7 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var index = args.Get<int>(1);
+            var index = ((int)args[1]);
             if(index<0)
                 throw new FunRuntimeException("Argument out of range");
                 
@@ -704,7 +704,7 @@ namespace NFun.BuiltInFunctions
         {
             var arr = (IFunArray)args[0];
 
-            var index = args.Get<int>(1);
+            var index = ((int)args[1]);
             if(index<0)
                 throw new FunRuntimeException("Argument out of range");
             if(index>arr.Count+1)
@@ -751,7 +751,7 @@ namespace NFun.BuiltInFunctions
         public override object Calc(object[] args)
         {
             var arr = (IFunArray)args[0];
-            var chunkSize = args.Get<int>(1);
+            var chunkSize = ((int)args[1]);
             if(chunkSize<=0)
                 throw new FunRuntimeException("Chunk size is "+chunkSize+". It has to be positive");
 
@@ -1012,7 +1012,7 @@ namespace NFun.BuiltInFunctions
         public override object Calc(object[] args)
         {
             var first = args[0];
-            return ImmutableFunArray.By(Enumerable.Repeat(first, args.Get<int>(1)));
+            return ImmutableFunArray.By(Enumerable.Repeat(first, ((int)args[1])));
         }
     }
     public class ReverseGenericFunctionDefenition: GenericFunctionBase
@@ -1040,7 +1040,7 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            return ((IFunArray)args[0]).Slice(null,args.Get<int>(1)-1,1);
+            return ((IFunArray)args[0]).Slice(null,((int)args[1])-1,1);
         }
     }
     public class SkipGenericFunctionDefenition: GenericFunctionBase
@@ -1054,7 +1054,7 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            return ((IFunArray)args[0]).Slice(args.Get<int>(1),null,1);
+            return ((IFunArray)args[0]).Slice(((int)args[1]),null,1);
         }
     }
 }
