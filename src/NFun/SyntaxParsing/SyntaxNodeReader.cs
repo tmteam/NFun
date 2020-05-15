@@ -494,21 +494,21 @@ namespace NFun.SyntaxParsing
             var openBracket = flow.MoveIfOrThrow(TokType.ArrOBr);
             
             if (!TryReadNodeList(flow, out var list))
-            {
                 throw ErrorFactory.ArrayInitializeByListError(startTokenNum, flow);
-            }
-            if (list.Count == 1 && flow.MoveIf(TokType.TwoDots, out var twoDots))
+            
+            if (list.Count == 1 && flow.MoveIf(TokType.TwoDots, out var twoDots))// Range [a..b] or [a..b..c]
             {
                 var secondArg = ReadNodeOrNull(flow);
                 if (secondArg == null)
                 {
                     var lastToken = twoDots;
                     var missedVal = flow.Current;
+                    
                     if (flow.Current.Is(TokType.ArrCBr)) {
                         lastToken = flow.Current;
                         missedVal = default;
                     }
-                    else if(flow.Current.Is(TokType.TwoDots)) {
+                    else if(flow.Current.Is(TokType.TwoDots)) { 
                         lastToken = flow.Current;
                         missedVal = default;                        
                     }

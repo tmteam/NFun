@@ -84,19 +84,19 @@ namespace Funny.Tests
                    y = fib(1)", BaseVarType.Int32)]
         [TestCase(@"y = [1..7]
                         .map(i->i+i)
-                        .sum()", BaseVarType.Int32)]
+                        .sum()", BaseVarType.Real)]
         [TestCase(@"y = [1..8]
                         .map(i->[i].sum())
-                        .sum()", BaseVarType.Int32)]
+                        .sum()", BaseVarType.Real)]
         [TestCase(@"y = [1..9]
                         .map(i->[1,i].sum())
-                        .sum()", BaseVarType.Int32)]
+                        .sum()", BaseVarType.Real)]
         [TestCase(@"y = [1..10]
                         .map(i->[1..i].sum())
-                        .sum()", BaseVarType.Int32)]
+                        .sum()", BaseVarType.Real)]
         [TestCase(@"y = [1..11]
                         .map(i->[1..i].sum())
-                        .sum()", BaseVarType.Int32)]
+                        .sum()", BaseVarType.Real)]
         [TestCase(@"y = [1..12]
                         .map(i->[1..i]
                                 .map(x->2600/x)
@@ -266,8 +266,6 @@ namespace Funny.Tests
         [TestCase("x:real[[]\r y= x")]
         [TestCase("x:real][]\r y= x")]
         [TestCase("y=5+'hi'")]
-        [TestCase("x:real \r y = [1..x][0]")]
-        [TestCase("x:real \r y = [x..10][0]")]
         [TestCase("x:real \r y = [1..10][x]")]
         [TestCase("x:real \r y = [1..10][:x]")]
         [TestCase("x:real \r y = [1..10][:x:]")]

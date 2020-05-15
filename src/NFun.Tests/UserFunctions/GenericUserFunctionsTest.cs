@@ -89,7 +89,7 @@ namespace Funny.Tests.UserFunctions
 
                 res = [0..4].map(fact)";
             FunBuilder.BuildDefault(expr).Calculate()
-                .AssertHas(VarVal.New("res", new[] { 0, 1, 2, 6, 24 }));
+                .AssertHas(VarVal.New("res", new[] { 0.0, 1.0, 2, 6, 24 }));
 
         }
 

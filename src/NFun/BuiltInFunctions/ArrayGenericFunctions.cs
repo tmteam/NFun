@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NFun.Interpritation.Functions;
+using NFun.ParseErrors;
 using NFun.Runtime.Arrays;
 using NFun.Types;
 
@@ -261,7 +262,7 @@ namespace NFun.BuiltInFunctions
     public class RangeFunction : GenericFunctionBase
     {
         public RangeFunction() : base(CoreFunNames.RangeName,
-            GenericConstrains.Integers32,
+            GenericConstrains.Numbers,
             VarType.ArrayOf(VarType.Generic(0)), VarType.Generic(0), VarType.Generic(0))
         {
         }
@@ -270,13 +271,16 @@ namespace NFun.BuiltInFunctions
         {
             switch (concreteTypes[0].BaseType)
             {
-                case BaseVarType.UInt8: return new UInt8Function();
+                case BaseVarType.UInt8:  return new UInt8Function();
                 case BaseVarType.UInt16: return new UInt16Function();
                 case BaseVarType.UInt32: return new UInt32Function();
-                case BaseVarType.Int16: return new Int16Function();
-                case BaseVarType.Int32: return new Int32Function();
+                case BaseVarType.UInt64: return new UInt64Function();
+                case BaseVarType.Int16:  return new Int16Function();
+                case BaseVarType.Int32:  return new Int32Function();
+                case BaseVarType.Int64:  return new Int64Function();
+                case BaseVarType.Real:   return new RealFunction();
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new NotSupportedException();
             }
         }
 
@@ -316,6 +320,25 @@ namespace NFun.BuiltInFunctions
                         result.Add(i);
                 else
                     for (int i = start; i >= end; i -= 1)
+                        result.Add(i);
+                return new ImmutableFunArray(result.ToArray());
+            }
+        }
+        class Int64Function : FunctionBase
+        {
+            public Int64Function() : base(id, VarType.ArrayOf(VarType.Int64), VarType.Int64, VarType.Int64) { }
+
+            public override object Calc(object[] args)
+            {
+                var start = args.Get<long>(0);
+                var end = args.Get<long>(1);
+                var result = new List<long>();
+
+                if (start < end)
+                    for (var i = start; i <= end; i += 1)
+                        result.Add(i);
+                else
+                    for (var i = start; i >= end; i -= 1)
                         result.Add(i);
                 return new ImmutableFunArray(result.ToArray());
             }
@@ -364,6 +387,45 @@ namespace NFun.BuiltInFunctions
                 var start = args.Get<uint>(0);
                 var end = args.Get<uint>(1);
                 var result = new List<uint>();
+
+                if (start < end)
+                    for (var i = start; i <= end; i += 1)
+                        result.Add(i);
+                else
+                    for (var i = start; i >= end; i -= 1)
+                        result.Add(i);
+                return new ImmutableFunArray(result.ToArray());
+            }
+        }
+        class UInt64Function : FunctionBase
+        {
+            public UInt64Function() : base(id, VarType.ArrayOf(VarType.UInt64), VarType.UInt64, VarType.UInt64) { }
+
+            public override object Calc(object[] args)
+            {
+                var start = args.Get<ulong>(0);
+                var end = args.Get<ulong>(1);
+                var result = new List<ulong>();
+
+                if (start < end)
+                    for (var i = start; i <= end; i += 1)
+                        result.Add(i);
+                else
+                    for (var i = start; i >= end; i -= 1)
+                        result.Add(i);
+                return new ImmutableFunArray(result.ToArray());
+            }
+        }
+        class RealFunction : FunctionBase
+        {
+            public RealFunction() : base(id, VarType.ArrayOf(VarType.Real), VarType.Real, VarType.Real) { }
+
+            public override object Calc(object[] args)
+            {
+                var start = args.Get<double>(0);
+                var end = args.Get<double>(1);
+                
+                var result = new List<double>();
 
                 if (start < end)
                     for (var i = start; i <= end; i += 1)
