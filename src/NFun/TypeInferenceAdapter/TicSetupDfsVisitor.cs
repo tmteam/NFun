@@ -1,6 +1,7 @@
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using NFun.BuiltInFunctions;
+using System.Text;
 using NFun.Exceptions;
 using NFun.Interpritation;
 using NFun.Interpritation.Functions;
@@ -12,17 +13,60 @@ using NFun.Tic;
 using NFun.Tic.SolvingStates;
 using NFun.TypeInferenceCalculator;
 using NFun.Types;
-using Array = NFun.Tic.SolvingStates.Array;
+using Array = System.Array;
 
 namespace NFun.TypeInferenceAdapter
 {
-    public sealed class SetupTiExitVisitor : ExitVisitorBase
+    public class TicSetupDfsVisitor: DfsVisitorBase
     {
         private readonly SetupTiState _state;
         private readonly IFunctionDicitionary _dictionary;
         private readonly TypeInferenceResultsBuilder _resultsBuilder;
+        private ISyntaxNode ParentNode { get; set; }
+        private int CurrentChildNumber { get; set; }
 
-        public SetupTiExitVisitor(SetupTiState state, IFunctionDicitionary dictionary,
+        public static bool Run(IEnumerable<ISyntaxNode> nodes, GraphBuilder builder, IFunctionDicitionary dictionary,
+            TypeInferenceResultsBuilder resultsBuilder)
+        { 
+            var visitor = new TicSetupDfsVisitor(new SetupTiState(builder), dictionary, resultsBuilder);
+            foreach (var syntaxNode in nodes)
+            {
+                if (!Dfs(visitor, syntaxNode))
+                    return false;
+            }
+
+            return true;
+        }
+
+        private static bool Dfs(TicSetupDfsVisitor visitor, ISyntaxNode node)
+        {
+            var res = node.Accept(visitor as ISyntaxNodeVisitor<VisitorEnterResult>);
+            if(res == VisitorEnterResult.Failed)
+                return false;
+            if(res == VisitorEnterResult.Skip)
+                return true;
+            int childNum = 0;
+            foreach (var child in node.Children)
+            {
+                visitor.OnEnterNode(node, childNum);
+                if (!Dfs(visitor, child))
+                    return false;
+                visitor.OnExitNode();
+                childNum++;
+            }
+            return node.Accept(visitor as ISyntaxNodeVisitor<bool>);
+        }
+
+        public void OnEnterNode(ISyntaxNode parent, int childNum)
+        {
+            ParentNode = parent;
+            CurrentChildNumber = childNum;
+        }
+
+        public void OnExitNode()
+        {
+        }
+        internal TicSetupDfsVisitor(SetupTiState state, IFunctionDicitionary dictionary,
             TypeInferenceResultsBuilder resultsBuilder)
         {
             _state = state;
@@ -30,7 +74,40 @@ namespace NFun.TypeInferenceAdapter
             _resultsBuilder = resultsBuilder;
         }
 
-        public override bool Visit(ArraySyntaxNode node)
+        #region MetaInfoSyntaxNode
+        protected override VisitorEnterResult EnterVisit(MetaInfoSyntaxNode node) => VisitorEnterResult.Skip;
+        #endregion
+
+        #region UserFunctionDefenitionSyntaxNode
+        protected override VisitorEnterResult EnterVisit(UserFunctionDefenitionSyntaxNode node)
+        {
+            var argNames = new string[node.Args.Count];
+            int i = 0;
+            foreach (var arg in node.Args)
+            {
+                argNames[i] = arg.Id;
+                i++;
+                if (arg.VarType != VarType.Empty)
+                    _state.CurrentSolver.SetVarType(arg.Id, arg.VarType.ConvertToTiType());
+            }
+
+            IType returnType = null;
+            if (node.ReturnType != VarType.Empty)
+                returnType = (IType)node.ReturnType.ConvertToTiType();
+
+            TraceLog.WriteLine($"Enter {node.OrderNumber}. UFun {node.Id}({string.Join(",", argNames)})->{node.Body.OrderNumber}:{returnType?.ToString() ?? "empty"}");
+            var fun = _state.CurrentSolver.SetFunDef(
+                name: node.Id + "'" + node.Args.Count,
+                returnId: node.Body.OrderNumber,
+                returnType: returnType,
+                varNames: argNames);
+            _resultsBuilder.RememberUserFunctionSignature(node.Id, fun);
+            return VisitorEnterResult.Continue;
+        }
+        #endregion
+
+        #region ArraySyntaxNode
+        protected override bool ExitVisit(ArraySyntaxNode node)
         {
             var elementIds = node.Expressions.Select(e => e.OrderNumber).ToArray();
             Trace(node, $"[{string.Join(",", elementIds)}]");
@@ -40,11 +117,49 @@ namespace NFun.TypeInferenceAdapter
             );
             return true;
         }
+        #endregion
 
-        public override bool Visit(SuperAnonymCallSyntaxNode node)
+        #region SuperAnonymFunctionSyntaxNode
+        protected override VisitorEnterResult EnterVisit(SuperAnonymFunctionSyntaxNode node) 
             => throw new NotImplementedException();
 
-        public override bool Visit(ArrowAnonymCallSyntaxNode node)
+        protected override bool ExitVisit(SuperAnonymFunctionSyntaxNode node)
+            => throw new NotImplementedException();
+        #endregion
+
+        #region ArrowAnonymFunctionSyntaxNode
+        protected override VisitorEnterResult EnterVisit(ArrowAnonymFunctionSyntaxNode arrowAnonymFunNode)
+        {
+            _state.EnterScope(arrowAnonymFunNode.OrderNumber);
+            foreach (var syntaxNode in arrowAnonymFunNode.ArgumentsDefenition)
+            {
+                string originName;
+                string anonymName;
+                if (syntaxNode is TypedVarDefSyntaxNode typed)
+                {
+                    originName = typed.Id;
+                    anonymName = MakeAnonVariableName(arrowAnonymFunNode, originName);
+                    if (!typed.VarType.Equals(VarType.Empty))
+                    {
+                        var ticType = typed.VarType.ConvertToTiType();
+                        _state.CurrentSolver.SetVarType(anonymName, ticType);
+                    }
+                }
+                else if (syntaxNode is VariableSyntaxNode varNode)
+                {
+                    originName = varNode.Id;
+                    anonymName = MakeAnonVariableName(arrowAnonymFunNode, originName);
+                }
+                else
+                    throw ErrorFactory.AnonymousFunArgumentIsIncorrect(syntaxNode);
+
+                _state.AddVariableAliase(originName, anonymName);
+            }
+
+            return VisitorEnterResult.Continue;
+        }
+
+        protected override bool ExitVisit(ArrowAnonymFunctionSyntaxNode node)
         {
             var argNames = new string[node.ArgumentsDefenition.Length];
             for (var i = 0; i < node.ArgumentsDefenition.Length; i++)
@@ -62,7 +177,7 @@ namespace NFun.TypeInferenceAdapter
                 _state.CurrentSolver.CreateLambda(node.Body.OrderNumber, node.OrderNumber, argNames);
             else
             {
-                var retType = (IType) node.OutputType.ConvertToTiType();
+                var retType = (IType)node.OutputType.ConvertToTiType();
                 _state.CurrentSolver.CreateLambda(
                     node.Body.OrderNumber,
                     node.OrderNumber,
@@ -73,8 +188,10 @@ namespace NFun.TypeInferenceAdapter
             _state.ExitScope();
             return true;
         }
+        #endregion
 
-        public override bool Visit(EquationSyntaxNode node)
+        #region EquationSyntaxNode
+        protected override bool ExitVisit(EquationSyntaxNode node)
         {
             Trace(node, $"{node.Id}:{node.OutputType} = {node.Expression.OrderNumber}");
 
@@ -87,8 +204,28 @@ namespace NFun.TypeInferenceAdapter
             _state.CurrentSolver.SetDef(node.Id, node.Expression.OrderNumber);
             return true;
         }
+        #endregion
 
-        public override bool Visit(FunCallSyntaxNode node)
+        #region FunCallSyntaxNode
+        protected override VisitorEnterResult EnterVisit(FunCallSyntaxNode node)
+        {
+            var signature = _dictionary.GetOrNull(node.Id, node.Args.Length);
+            if (signature is GenericMetafunction)
+            {
+                //If it is Metafunction - need to transform origin node to metafunction
+                var firstArg = node.Args[0] as VariableSyntaxNode;
+                if (firstArg == null)
+                    throw FunParseException.ErrorStubToDo("first arg should be variable");
+                node.TransformToMetafunction(firstArg);
+            }
+
+            if (signature != null)
+                _resultsBuilder.RememberFunctionCall(node.OrderNumber, signature);
+
+            return VisitorEnterResult.Continue;
+        }
+        
+        protected override bool ExitVisit(FunCallSyntaxNode node)
         {
             var ids = new int[node.Args.Length + 1];
             for (int i = 0; i < node.Args.Length; i++)
@@ -97,7 +234,7 @@ namespace NFun.TypeInferenceAdapter
 
             var userFunction = _resultsBuilder.GetUserFunctionSignature(node.Id, node.Args.Length);
 
-            if (userFunction != null) 
+            if (userFunction != null)
             {
                 //Call user-function if it is being built at the same time as the current expression is being built
                 //for example: recursive calls, or if function relates to global variables
@@ -111,14 +248,15 @@ namespace NFun.TypeInferenceAdapter
 
 
             var signature = _resultsBuilder.GetSignatureOrNull(node.OrderNumber);
-            if (signature == null)               {
+            if (signature == null)
+            {
                 //Functional variable
                 Trace(node, $"Call hi order {node.Id}({string.Join(",", ids)})");
                 _state.CurrentSolver.SetCall(node.Id, ids);
                 return true;
             }
 
-         
+
             //Normal function call
             Trace(node, $"Call {node.Id}({string.Join(",", ids)})");
 
@@ -133,9 +271,10 @@ namespace NFun.TypeInferenceAdapter
             else genericTypes = new RefTo[0];
 
             var types = new IState[signature.ArgTypes.Length + 1];
-            
 
-            for (int i = 0; i < signature.ArgTypes.Length; i++) {
+
+            for (int i = 0; i < signature.ArgTypes.Length; i++)
+            {
                 types[i] = signature.ArgTypes[i].ConvertToTiType(genericTypes);
             }
 
@@ -144,8 +283,10 @@ namespace NFun.TypeInferenceAdapter
             _state.CurrentSolver.SetCall(types, ids);
             return true;
         }
+        #endregion
 
-        public override bool Visit(ResultFunCallSyntaxNode node)
+        #region ResultFunCallSyntaxNode
+        protected override bool ExitVisit(ResultFunCallSyntaxNode node)
         {
             var ids = new int[node.Args.Length + 1];
             for (int i = 0; i < node.Args.Length; i++)
@@ -155,7 +296,10 @@ namespace NFun.TypeInferenceAdapter
             _state.CurrentSolver.SetCall(node.ResultExpression.OrderNumber, ids);
             return true;
         }
-        public override bool Visit(IfThenElseSyntaxNode node)
+        #endregion
+
+        #region IfThenElseSyntaxNode
+        protected override bool ExitVisit(IfThenElseSyntaxNode node)
         {
             var conditions = node.Ifs.Select(i => i.Condition.OrderNumber).ToArray();
             var expressions = node.Ifs.Select(i => i.Expression.OrderNumber).Append(node.ElseExpr.OrderNumber)
@@ -167,22 +311,27 @@ namespace NFun.TypeInferenceAdapter
                 node.OrderNumber);
             return true;
         }
+        #endregion
 
-        public override bool Visit(ConstantSyntaxNode node)
+        #region ConstantSyntaxNode
+
+        protected override bool ExitVisit(ConstantSyntaxNode node)
         {
             Trace(node, $"Constant {node.Value}:{node.ClrTypeName}");
             var type = LangTiHelper.ConvertToTiType(node.OutputType);
 
             if (type is Primitive p)
                 _state.CurrentSolver.SetConst(node.OrderNumber, p);
-            else if (type is Array a && a.Element is Primitive primitiveElement)
+            else if (type is Tic.SolvingStates.Array a && a.Element is Primitive primitiveElement)
                 _state.CurrentSolver.SetArrayConst(node.OrderNumber, primitiveElement);
             else
                 throw new InvalidOperationException("Complex constant type is not supported");
             return true;
         }
+        #endregion
 
-        public override bool Visit(GenericIntSyntaxNode node)
+        #region GenericIntSyntaxNode
+        protected override bool ExitVisit(GenericIntSyntaxNode node)
         {
             Trace(node, $"IntConst {node.Value}:{(node.IsHexOrBin ? "hex" : "int")}");
 
@@ -193,7 +342,7 @@ namespace NFun.TypeInferenceAdapter
                 ulong actualValue;
                 if (node.Value is long l)
                 {
-                    if (l > 0) actualValue = (ulong) l;
+                    if (l > 0) actualValue = (ulong)l;
                     else
                     {
                         //negative constant
@@ -215,15 +364,15 @@ namespace NFun.TypeInferenceAdapter
                 //positive constant
                 if (actualValue <= byte.MaxValue)
                     _state.CurrentSolver.SetIntConst(node.OrderNumber, Primitive.U8, Primitive.I96, Primitive.I32);
-                else if (actualValue <= (ulong) Int16.MaxValue)
+                else if (actualValue <= (ulong)Int16.MaxValue)
                     _state.CurrentSolver.SetIntConst(node.OrderNumber, Primitive.U12, Primitive.I96, Primitive.I32);
-                else if (actualValue <= (ulong) UInt16.MaxValue)
+                else if (actualValue <= (ulong)UInt16.MaxValue)
                     _state.CurrentSolver.SetIntConst(node.OrderNumber, Primitive.U16, Primitive.I96, Primitive.I32);
-                else if (actualValue <= (ulong) Int32.MaxValue)
+                else if (actualValue <= (ulong)Int32.MaxValue)
                     _state.CurrentSolver.SetIntConst(node.OrderNumber, Primitive.U24, Primitive.I96, Primitive.I32);
-                else if (actualValue <= (ulong) UInt32.MaxValue)
+                else if (actualValue <= (ulong)UInt32.MaxValue)
                     _state.CurrentSolver.SetIntConst(node.OrderNumber, Primitive.U32, Primitive.I96, Primitive.I64);
-                else if (actualValue <= (ulong) Int64.MaxValue)
+                else if (actualValue <= (ulong)Int64.MaxValue)
                     _state.CurrentSolver.SetIntConst(node.OrderNumber, Primitive.U48, Primitive.I96, Primitive.I64);
                 else
                     _state.CurrentSolver.SetConst(node.OrderNumber, Primitive.U64);
@@ -236,7 +385,7 @@ namespace NFun.TypeInferenceAdapter
                 ulong actualValue;
                 if (node.Value is long l)
                 {
-                    if (l > 0) actualValue = (ulong) l;
+                    if (l > 0) actualValue = (ulong)l;
                     else
                     {
                         //negative constant
@@ -254,11 +403,11 @@ namespace NFun.TypeInferenceAdapter
 
                 //positive constant
                 if (actualValue <= byte.MaxValue) descedant = Primitive.U8;
-                else if (actualValue <= (ulong) Int16.MaxValue) descedant = Primitive.U12;
-                else if (actualValue <= (ulong) UInt16.MaxValue) descedant = Primitive.U16;
-                else if (actualValue <= (ulong) Int32.MaxValue) descedant = Primitive.U24;
-                else if (actualValue <= (ulong) UInt32.MaxValue) descedant = Primitive.U32;
-                else if (actualValue <= (ulong) Int64.MaxValue) descedant = Primitive.U48;
+                else if (actualValue <= (ulong)Int16.MaxValue) descedant = Primitive.U12;
+                else if (actualValue <= (ulong)UInt16.MaxValue) descedant = Primitive.U16;
+                else if (actualValue <= (ulong)Int32.MaxValue) descedant = Primitive.U24;
+                else if (actualValue <= (ulong)UInt32.MaxValue) descedant = Primitive.U32;
+                else if (actualValue <= (ulong)Int64.MaxValue) descedant = Primitive.U48;
                 else descedant = Primitive.U64;
                 _state.CurrentSolver.SetIntConst(node.OrderNumber, descedant);
 
@@ -266,8 +415,10 @@ namespace NFun.TypeInferenceAdapter
 
             return true;
         }
+        #endregion
 
-        public override bool Visit(TypedVarDefSyntaxNode node)
+        #region TypedVarDefSyntaxNode
+        protected override bool ExitVisit(TypedVarDefSyntaxNode node)
         {
             Trace(node, $"Tvar {node.Id}:{node.VarType}  ");
             if (node.VarType != VarType.Empty)
@@ -278,16 +429,20 @@ namespace NFun.TypeInferenceAdapter
 
             return true;
         }
+        #endregion
 
-        public override bool Visit(VarDefenitionSyntaxNode node)
+        #region VarDefenitionSyntaxNode
+        protected override bool ExitVisit(VarDefenitionSyntaxNode node)
         {
             Trace(node, $"VarDef {node.Id}:{node.VarType}  ");
             var type = LangTiHelper.ConvertToTiType(node.VarType);
             _state.CurrentSolver.SetVarType(node.Id, type);
             return true;
         }
-
-        public override bool Visit(VariableSyntaxNode node)
+        #endregion
+       
+        #region VariableSyntaxNode
+        protected override bool ExitVisit(VariableSyntaxNode node)
         {
             Trace(node, $"VAR {node.Id} ");
 
@@ -295,7 +450,7 @@ namespace NFun.TypeInferenceAdapter
             //need to know what type of argument is expected - is it variableId, or functionId?
             //if it is function - how many arguments are expected ? 
             var argType = VarType.Empty;
-            if (Parent is FunCallSyntaxNode parentCall)
+            if (ParentNode is FunCallSyntaxNode parentCall)
             {
                 var parentSignature = _resultsBuilder.GetSignatureOrNull(parentCall.OrderNumber);
                 if (parentSignature != null)
@@ -334,7 +489,9 @@ namespace NFun.TypeInferenceAdapter
             _state.CurrentSolver.SetVar(localId, node.OrderNumber);
             return true;
         }
+        #endregion
 
+        #region  privates
         private RefTo[] InitializeGenericTypes(GenericConstrains[] constrains)
         {
             var genericTypes = new RefTo[constrains.Length];
@@ -355,6 +512,39 @@ namespace NFun.TypeInferenceAdapter
             if (TraceLog.IsEnabled)
                 TraceLog.WriteLine($"Exit:{node.OrderNumber}. {text} ");
         }
+        private static string MakeAnonVariableName(ISyntaxNode node, string id)
+            => LangTiHelper.GetArgAlias("anonymous_" + node.OrderNumber, id);
+        #endregion
+
+      
     }
 
+
+    class SetupTiState
+    {
+        private readonly AliasTable _aliasTable;
+
+        public SetupTiState(GraphBuilder globalSolver)
+        {
+            CurrentSolver = globalSolver;
+            _aliasTable = new AliasTable();
+        }
+
+        public GraphBuilder CurrentSolver { get; }
+
+        public string GetActualName(string varName)
+            => _aliasTable.GetVariableAlias(varName);
+
+        public void EnterScope(int nodeId)
+            => _aliasTable.InitVariableScope(nodeId, new List<string>());
+
+        public void ExitScope()
+            => _aliasTable.ExitVariableScope();
+
+        public bool AddVariableAliase(string originName, string alias)
+            => _aliasTable.AddVariableAlias(originName, alias);
+
+        public bool HasAlias(string inputAlias)
+            => _aliasTable.HasVariable(inputAlias);
+    }
 }

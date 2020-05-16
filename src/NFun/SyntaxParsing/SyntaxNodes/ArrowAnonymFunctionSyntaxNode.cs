@@ -6,13 +6,13 @@ using NFun.Types;
 
 namespace NFun.SyntaxParsing.SyntaxNodes
 {
-    public class ArrowAnonymCallSyntaxNode : ISyntaxNode
+    public class ArrowAnonymFunctionSyntaxNode : ISyntaxNode
     {
         public ISyntaxNode[] ArgumentsDefenition { get; }    
         public ISyntaxNode Defenition { get; }
         public ISyntaxNode Body { get; }
 
-        public ArrowAnonymCallSyntaxNode(ISyntaxNode defenition, ISyntaxNode body, Interval interval)
+        public ArrowAnonymFunctionSyntaxNode(ISyntaxNode defenition, ISyntaxNode body, Interval interval)
         {
             if (defenition is ListOfExpressionsSyntaxNode list)
                 //it can be comlex: (x1,x2,x3)=>...

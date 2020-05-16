@@ -9,7 +9,7 @@ namespace NFun.SyntaxParsing
     public static class SyntaxNodeFactory
     {
         public static ISyntaxNode AnonymFun(ISyntaxNode defenition, ISyntaxNode body)
-            => new ArrowAnonymCallSyntaxNode(defenition, body, Interval.Unite(defenition.Interval, body.Interval));
+            => new ArrowAnonymFunctionSyntaxNode(defenition, body, Interval.Unite(defenition.Interval, body.Interval));
         public static ISyntaxNode IfElse(IfCaseSyntaxNode[] ifThenNodes, ISyntaxNode elseResult, int start, int end) 
             => new IfThenElseSyntaxNode(ifThenNodes, elseResult, Interval.New(start, end));
         public static IfCaseSyntaxNode IfThen(ISyntaxNode condition, ISyntaxNode expression, int start, int end)

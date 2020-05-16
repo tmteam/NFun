@@ -23,12 +23,12 @@ namespace NFun.TypeInferenceAdapter
             return VisitorEnterResult.Continue;
         }
         public override VisitorEnterResult Visit(IfThenElseSyntaxNode node){
-            var result = DefaultVisit(node);
+            var result = DefaultVisitEnter(node);
             return result;
         }
         public override VisitorEnterResult Visit(FunCallSyntaxNode node)
         {
-            var result = DefaultVisit(node);
+            var result = DefaultVisitEnter(node);
             if (result != VisitorEnterResult.Continue)
                 return result;
             
@@ -38,7 +38,7 @@ namespace NFun.TypeInferenceAdapter
             return  result;
         }
 
-        protected override VisitorEnterResult DefaultVisit(ISyntaxNode node)
+        protected override VisitorEnterResult DefaultVisitEnter(ISyntaxNode node)
         {
             var type = _solving.GetSyntaxNodeTypeOrNull(node.OrderNumber);
             if(type==null)

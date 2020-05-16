@@ -63,10 +63,10 @@ namespace NFun.SyntaxParsing
             });
             
             priorities.Add( new [] {
-                    TokType.Or,
-                    TokType.Xor,
-                    TokType.BitOr
-                });
+                TokType.Or,
+                TokType.Xor,
+                TokType.BitOr
+            });
             
             for (byte i = 0; i < priorities.Count; i++)
             {
@@ -215,17 +215,21 @@ namespace NFun.SyntaxParsing
             if (flow.MoveIf(TokType.Id, out var headToken))
             {
                 if (flow.IsCurrent(TokType.Obr))
-                    return ReadFunctionCall(flow,headToken);
-                
-                if (flow.IsCurrent(TokType.Colon))
+                {
+                    return ReadFunctionCall(flow, headToken);
+                }
+                else if (flow.IsCurrent(TokType.Colon))
                 {
                     flow.MoveNext();
                     var type = flow.ReadVarType();
                     return SyntaxNodeFactory.TypedVar(headToken.Value, type, headToken.Start, flow.Position);
                 }
                 else
+                {
                     return SyntaxNodeFactory.Var(headToken);
+                }
             }
+
             if (flow.IsCurrent(TokType.TextOpenInterpolation))
                 return ReadInterpolationText(flow);
             if (flow.IsCurrent(TokType.Obr))
@@ -364,7 +368,7 @@ namespace NFun.SyntaxParsing
             var body = ReadNodeOrNull(flow);
             if (!flow.MoveIf(TokType.FiCbr))
                 throw ErrorFactory.SuperAnonymousFunctionIsNotClose(body.Interval.Start, flow.CurrentTokenPosition);
-            return new SuperAnonymCallSyntaxNode(body);
+            return new SuperAnonymFunctionSyntaxNode(body);
         }
 
         public static ISyntaxNode ReadInterpolationText(TokFlow flow)

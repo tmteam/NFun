@@ -6,11 +6,11 @@ using NFun.Types;
 
 namespace NFun.SyntaxParsing.SyntaxNodes
 {
-    public class SuperAnonymCallSyntaxNode : ISyntaxNode
+    public class SuperAnonymFunctionSyntaxNode : ISyntaxNode
     {
         public ISyntaxNode Body { get; }
 
-        public SuperAnonymCallSyntaxNode(ISyntaxNode body)
+        public SuperAnonymFunctionSyntaxNode(ISyntaxNode body)
         {
             Body = body;
             Interval = body.Interval;

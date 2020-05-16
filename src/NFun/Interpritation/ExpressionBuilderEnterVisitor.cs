@@ -20,7 +20,7 @@ namespace NFun.Interpritation
         private readonly VariableDictionary _variables;
         private readonly TypeInferenceResults _typeInferenceResults;
         private readonly TicTypesConverter _typesConverter;
-        public void SetChildrenNumber(ISyntaxNode parent, int num) { }
+        public void OnEnterNode(ISyntaxNode parent, int childNum) { }
 
         public static IExpressionNode BuildExpression(
             ISyntaxNode node,
@@ -58,7 +58,7 @@ namespace NFun.Interpritation
             _typesConverter = typesConverter;
         }
 
-        public IExpressionNode Visit(ArrowAnonymCallSyntaxNode arrowAnonymFunNode)
+        public IExpressionNode Visit(ArrowAnonymFunctionSyntaxNode arrowAnonymFunNode)
         {
             if (arrowAnonymFunNode.Defenition==null)
                 throw ErrorFactory.AnonymousFunDefenitionIsMissing(arrowAnonymFunNode);
@@ -190,7 +190,7 @@ namespace NFun.Interpritation
             return new MetaInfoExpressionNode(_variables, id , node.Interval);
         }
 
-        public IExpressionNode Visit(SuperAnonymCallSyntaxNode arrowAnonymFunNode)
+        public IExpressionNode Visit(SuperAnonymFunctionSyntaxNode arrowAnonymFunNode)
         {
             throw new NotImplementedException();
         }

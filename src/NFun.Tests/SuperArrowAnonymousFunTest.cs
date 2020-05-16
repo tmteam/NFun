@@ -44,6 +44,10 @@ namespace Funny.Tests
         [TestCase("y:int[] = [-1,-2,0,1,2,3].filter(i->i>0).map{it*it}.map{it*it}", new[]{1,16,81})]
         [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).filter{it>2}", new[]{3})]
         [TestCase("y:int[] = [-1,-2,0,1,2,3].filter(i->i>0).fold{it1+it2}", 6 )]
+        [TestCase("y:int[] = [-1,-2,0,1,2,3].filter(i->i>0).fold{it1+it2}", 6)]
+
+        [TestCase(@"y = [[1,2],[3,4],[5,6]].map{ it.map{it+1}.sum()}", new[]{5.0,9,13})]
+        [TestCase(@"y = [[1,2],[3,4],[5,6]].fold(-10) { it1+ it2.sum()}}", 11.0)]
 
         public void AnonymousFunctions_ConstantEquation(string expr, object expected)
         {
@@ -74,6 +78,7 @@ namespace Funny.Tests
         [TestCase( @"y = [1.0,2.0,3.0].fold{it1+it2+x}",2.0,10.0)]
         [TestCase(@"y = [1.0,2.0,3.0].fold{it2+x}", 2.0, 7.0)]
         [TestCase(@"y = [1.0,2.0,3.0].fold{it1+x}", 2.0, 5.0)]
+        [TestCase(@"y = [[1,2],[3,4],[5,6]].map{it.map{it+x}.sum()}.sum()", 1.0, 25.0)]
 
         public void AnonymousFunctions_SingleArgumentEquation(string expr, double arg, object expected)
         {

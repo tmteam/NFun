@@ -505,7 +505,7 @@ namespace NFun.ParseErrors
 
         public static Exception AnonymousFunctionArgumentConflictsWithOuterScope(FunArgumentExpressionNode argNode, ISyntaxNode defenitionNode)
             => new FunParseException(566, $"'Argument name '{argNode.Name}' of anonymous fun conflicts with outer scope variable. It is denied for your safety.", defenitionNode.Interval);
-        public static Exception AnonymousFunDefenitionIsIncorrect(ArrowAnonymCallSyntaxNode arrowAnonymFunNode)
+        public static Exception AnonymousFunDefenitionIsIncorrect(ArrowAnonymFunctionSyntaxNode arrowAnonymFunNode)
             => new FunParseException(569, $"'Anonym fun defenition is incorrect ", arrowAnonymFunNode.Interval);
         
         public static Exception ComplexRecursion(UserFunctionDefenitionSyntaxNode[] functionSolveOrder)
