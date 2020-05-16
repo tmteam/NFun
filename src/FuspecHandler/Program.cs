@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NFun.Types;
+using System;
 using System.IO;
 
 namespace FuspecHandler
@@ -31,7 +32,7 @@ namespace FuspecHandler
 
             Console.WriteLine($"Executing tests from: path");
 
-         //   while (true)
+            while (true)
             {
 
                 Console.WriteLine($"Fuspec runner. Path: {path}");
@@ -44,11 +45,18 @@ namespace FuspecHandler
                 Console.WriteLine("######################################");
                 Console.Write("[D] - detail error. [E] - exit. [R] - repeat?   ");
                 Console.WriteLine();
-                var answer = Console.ReadLine();
-                if (answer.ToLower() == "d")
+                var answer = "";
+                while (answer != "e" && answer != "d" && answer != "r")
+                    answer = Console.ReadLine().ToLower();
+                if (answer == "d")
+                {
                     stats.PrintErrorDetails();
-                if (answer.ToLower() == "e")
+                    Console.Write("[E] - exit. [Any button] - repeat?   ");
+                    answer = Console.ReadLine().ToLower();
+                }
+                if (answer == "e")
                     return;
+
             }
         }
     }
