@@ -3,8 +3,8 @@
 | TEST out int constant  
 | TAGS out real constant                         
 |************************
-| out out:anything
+| out out: int
 |------------------
-  a
+  a:int
 |---------------------
-| set a:2.0
+| set a:2

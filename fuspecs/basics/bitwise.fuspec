@@ -45,11 +45,11 @@
 | set a:2, b:1
 | check shri:1
 | set a:4, b:1
-| check shli:2
+| check shri:2
 | set a:4, b:2
-| check shli:1
+| check shri:1
 | set a:6, b:1
-| check shli:3
+| check shri:3
 
 
 

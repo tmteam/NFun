@@ -69,7 +69,7 @@
   nt2 = 0.8!=1
   nt3 = -1 != 2.9
 |---------------------
-| check t:true,t2:true,t3:true, nt1:true,nt2:true,nt3:true,f1:false, f2:false, f3:false,nf1:false, nf2:false, nf3:false
+| check t1:true,t2:true,t3:true, nt1:true,nt2:true,nt3:true,f1:false, f2:false, f3:false,nf1:false, nf2:false, nf3:false
 
 |****************************************
 | TEST int equality 
@@ -158,8 +158,8 @@
   r:real
   i:int
 
-  eq = x1==x2
-  ne = x1!=x2
+  eq = r==i
+  ne = r!=i
 |---------------------
 | set r:0, i:0
 | check eq:true, ne:false
