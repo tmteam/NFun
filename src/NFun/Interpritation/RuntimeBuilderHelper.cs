@@ -69,7 +69,7 @@ namespace NFun.Interpritation
 
                 //to build body - we have to skip all user-function-syntax-nodes
                 var bodyNodes = syntaxTree.Nodes.Where(n => !(n is UserFunctionDefenitionSyntaxNode));
-                if(!TicSetupDfsVisitor.Run(bodyNodes, typeGraph, functionsDictionary, resultBuilder))
+                if(!TicSetupVisitor.Run(bodyNodes, typeGraph, functionsDictionary, resultBuilder))
                     throw ErrorFactory.TypesNotSolved(syntaxTree);
 
                 var bodyTypeSolving = typeGraph.Solve();

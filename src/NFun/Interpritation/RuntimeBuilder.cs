@@ -146,7 +146,7 @@ namespace NFun.Interpritation
             try
             {
 
-                if (!TicSetupDfsVisitor.Run(new[] {functionSyntaxNode}, graphBuider, functionsDictionary,
+                if (!TicSetupVisitor.Run(new[] {functionSyntaxNode}, graphBuider, functionsDictionary,
                     resultsBuilder))
                 {
                     throw FunParseException.ErrorStubToDo($"Function '{functionSyntaxNode.Id}' is not solved");

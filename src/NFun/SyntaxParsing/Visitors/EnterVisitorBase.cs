@@ -6,8 +6,6 @@ namespace NFun.SyntaxParsing.Visitors
     {
         protected virtual VisitorEnterResult DefaultVisitEnter(ISyntaxNode node)
             => VisitorEnterResult.Continue;
-
-        public void OnEnterNode(ISyntaxNode parent, int childNum) { }
         public virtual VisitorEnterResult Visit(ArrowAnonymFunctionSyntaxNode arrowAnonymFunNode) => DefaultVisitEnter(arrowAnonymFunNode);
         public virtual VisitorEnterResult Visit(ArraySyntaxNode node)=> DefaultVisitEnter(node);
         public virtual VisitorEnterResult Visit(EquationSyntaxNode node)=> DefaultVisitEnter(node);
