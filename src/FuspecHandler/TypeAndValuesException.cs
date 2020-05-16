@@ -5,13 +5,13 @@ using ParcerV1;
 
 namespace FuspecHandler
 {
-    public class OutputInputException: Exception
+    public class TypeAndValuesException: Exception
     {
         private List<string> messages;
         public string[] Messages=>messages.ToArray();
 
-        public OutputInputException() => messages= new List<string>();
+        public TypeAndValuesException() => messages= new List<string>();
 
-        public void AddErrorMessage(string[] mes) => messages.AddRange(mes);
+        public void AddErrorMessage(IEnumerable<string> mes) => messages.AddRange(mes);
     }
 }

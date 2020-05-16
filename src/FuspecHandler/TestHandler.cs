@@ -14,6 +14,7 @@ using NFun.ParseErrors;
 using Nfun.Fuspec.Parser.FuspecParserErrors;
 using NFun.Types;
 using NFun.Fuspec.Parser.Interfaces;
+using NFun.Runtime;
 
 namespace FuspecHandler
 {
@@ -24,9 +25,9 @@ namespace FuspecHandler
 
         public Statistic RunTests(string directoryPath)
         {
-           // var allFoundFiles = Directory.GetFiles(directoryPath, "test.fuspec", SearchOption.AllDirectories);
+       //     var allFoundFiles = Directory.GetFiles(directoryPath, "arithmetic.fuspec", SearchOption.AllDirectories);
 
-            var allFoundFiles =  Directory.GetFiles(directoryPath, "*.fuspec", SearchOption.AllDirectories);
+          var allFoundFiles =  Directory.GetFiles(directoryPath, "*.fuspec", SearchOption.AllDirectories);
             var statistic = new Statistic(allFoundFiles.Length);
             
             foreach (var file in allFoundFiles)
@@ -50,7 +51,9 @@ namespace FuspecHandler
                             {
                                 try
                                 {
-                                    _testCaseResult.SetInputs(RunOneTest(fus));
+                                    var runtime = FunBuilder.With(fus.Script).Build();
+                                    CkeckTypesAndValues(runtime,fus);
+                                    RunOneTest(runtime, fus);
                                     _consoleWriter.PrintOkTest();
                                 }
                                 catch (Exception e)
@@ -60,7 +63,6 @@ namespace FuspecHandler
                                 }
                             }
                             statistic.AddTestToStatistic(_testCaseResult);
-                            
                         }
                         if (!specs.Any()) _consoleWriter.PrintNoTests();
                     }
@@ -74,29 +76,13 @@ namespace FuspecHandler
             return statistic;
         }
 
-        private VarInfo[] RunOneTest(FuspecTestCase fus)
+        private void CkeckTypesAndValues(FunRuntime runtime, FuspecTestCase fus)
         {
-            var runtime = FunBuilder.With(fus.Script).Build();
-            if (!runtime.Inputs.Any())
-            {
-                var res = runtime.Calculate();
-            }
+            TypeAndValuesException outputInputException = new TypeAndValuesException();
 
             // Check OutputInputsErrors
-            OutputInputException outputInputException = new OutputInputException();
-
-
-            var mes = CompareInOutTypeAndGetMessageErrorOrNull(fus.InputVarList, runtime.Inputs);
-            if (mes.Any())
-                outputInputException.AddErrorMessage(mes);
-
-            mes = CompareInOutTypeAndGetMessageErrorOrNull(fus.OutputVarList, runtime.Outputs);
-            if (mes != null)
-                outputInputException.AddErrorMessage(mes);
-
-            //      if (outputInputException.Messages.Any())
-            //        throw outputInputException;
-
+            outputInputException.AddErrorMessage(CompareInOutTypeAndGetMessageErrorOrNull(fus.InputVarList, runtime.Inputs));
+            outputInputException.AddErrorMessage(CompareInOutTypeAndGetMessageErrorOrNull(fus.OutputVarList, runtime.Outputs));
 
             //check SetCheckErrors
             var numberOfKit = 0;
@@ -104,46 +90,97 @@ namespace FuspecHandler
             {
                 numberOfKit++;
                 if (checkOrSetKit is SetData setKit)
-                {
-                    mes = CompareSetOrCheckTypesAndGetMessageOrNull(numberOfKit,setKit.ValuesKit, runtime.Inputs);
-                    if (mes.Any())
-                         outputInputException.AddErrorMessage(mes);
-                }
-                if (checkOrSetKit is CheckData checkKit)
-                {
-                    mes = CompareSetOrCheckTypesAndGetMessageOrNull(numberOfKit,checkKit.ValuesKit, runtime.Outputs);
-                    if (mes.Any())
-                        outputInputException.AddErrorMessage(mes);
-                }
+                    outputInputException.AddErrorMessage(CompareSetCheckTypesAndGetMessageOrNull(numberOfKit, checkOrSetKit.ValuesKit, runtime.Inputs));
+                else
+                    outputInputException.AddErrorMessage(CompareSetCheckTypesAndGetMessageOrNull(numberOfKit, checkOrSetKit.ValuesKit, runtime.Outputs));
             }
+
+            // if find some output/input errors
             if (outputInputException.Messages.Any())
                 throw outputInputException;
-            return runtime.Inputs;
         }
 
-        private string[] CompareSetOrCheckTypesAndGetMessageOrNull(int numberOfSetCheckKit, VarVal[] testSetCheckKit, VarInfo[] scriptTypes)
+        private void RunOneTest(FunRuntime runtime, FuspecTestCase fus)
+        {                       
+            TypeAndValuesException outputInputException = new TypeAndValuesException();
+            var numberOfKit = 0;
+            var setKit = new SetData();
+
+            if (!runtime.Inputs.Any())
+                runtime.Calculate();
+
+            foreach (var checkOrSetKit in fus.SetChecks)
+            {
+                numberOfKit++;
+                if (checkOrSetKit is SetData)
+                {
+                    setKit = (SetData)checkOrSetKit;
+                    runtime.Calculate(setKit.ValuesKit);
+                }
+          /*      if (checkOrSetKit is CheckData checkKit)
+                {
+                    CalculationResult results;
+                    if (!runtime.Inputs.Any())
+                        results = runtime.Calculate();
+                    else
+                        results = runtime.Calculate(setKit.ValuesKit);
+
+                    foreach (var res in results.Results)
+                    {
+                        //cравниваем полученные значения и сheck
+                    }
+                }*/
+            }
+
+            if (outputInputException.Messages.Any())
+                throw outputInputException;
+        }       
+        
+
+
+        private string[] CompareSetCheckTypesAndGetMessageOrNull(int numberOfSetCheckKit, VarVal[] testSetCheckKit, VarInfo[] scriptTypes)
         {
             List<string> messages = new List<string>();
 
+            foreach (var varVal in scriptTypes)
+            {
+                var setCheckType = testSetCheckKit.Where(s => s.Name == varVal.Name);
+                if (setCheckType.Count() > 1)
+                    messages.Add($"Error of SetCheckTypes in {numberOfSetCheckKit} SetCheckkit:\n\r\t\t\t" +
+                        "There are two similar data");
+                if (!varVal.IsOutput)
+                    if (!setCheckType.Any())
+                        messages.Add($"Error of SetCheckTypes in {numberOfSetCheckKit} SetCheckkit:\n\r\t\t\t" +
+                            "Value( " + varVal.ToString() + " )" + " - not found this valueName in Kit! But it is in script!");
+            }
             foreach (var varVal in testSetCheckKit)
             {
-                var scriptType = scriptTypes.Where(s => s.Name == varVal.Name);
-                if (scriptType.Count() > 1)
-                    messages.Add($"Error of SetCheckTypes in {numberOfSetCheckKit} SetCheckkit:\n\r\t\t\t"+
-                        "There are two similar data");
-                if (!scriptType.Any())
-                    messages.Add($"Error of SetCheckTypes in {numberOfSetCheckKit} SetCheckkit:\n\r\t\t\t"+
-                        "Value( " + varVal.ToString()+" )" + " - not found this valueName in script!");
-                else
-                    if (scriptType.Single().Type != varVal.Type && scriptType.Single().Type != VarType.Anything)
-                    messages.Add($"Error of SetCheckTypes in {numberOfSetCheckKit} SetCheckkit:\n\r\t\t\t"+
-                                   "Error of Types. Your value: " + varVal.ToString() + 
-                                   ". But in script it has Type: " + scriptType.Single().ToString());
-            }
+                IEnumerable<VarInfo> scriptType;
+                    scriptType = scriptTypes.Where(s => s.Name == varVal.Name);
 
+                if (!scriptType.Any())
+                    messages.Add($"Error of SetCheckTypes in {numberOfSetCheckKit} SetCheckkit:\n\r\t\t\t" +
+                        "Value( " + varVal.ToString() + " )" + " - not found this valueName in script!");
+                else 
+                // сравнение типов!
+
+                {
+             /*       string scriptForCheckType = ($"{varVal.Name} : {scriptType.Single().Type} = {varVal.Value}").ToLower(); 
+                    try
+                    {
+                        var runtimeForCheckType = FunBuilder.With(scriptForCheckType).Build();
+                    }
+                    catch(Exception e)
+                    {
+                        messages.Add($"Error of SetCheckTypes in {numberOfSetCheckKit} SetCheckkit:\n\r\t\t\t" +
+                                   "Error of Types. Your value: " + varVal.ToString() +
+                                   ". But in script it has Type: " + scriptType.Single().ToString());
+                    } */                
+                }
+            }
             return messages.ToArray();
         }
-       
+          
         private string[] CompareInOutTypeAndGetMessageErrorOrNull(VarInfo[] testTypes, VarInfo[] scriptTypes)
         {
             List<string> messages = new List<string>();
@@ -171,8 +208,6 @@ namespace FuspecHandler
                                 "Your value : " + varInfo.ToString() + ". But in script: " + inputRes.Single().ToString());
                 }
             }
-            
-
             return messages.ToArray();
         }
     }
