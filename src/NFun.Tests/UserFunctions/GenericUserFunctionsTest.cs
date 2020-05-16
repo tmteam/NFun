@@ -89,14 +89,14 @@ namespace Funny.Tests.UserFunctions
 
                 res = [0..4].map(fact)";
             FunBuilder.BuildDefault(expr).Calculate()
-                .AssertHas(VarVal.New("res", new[] { 0, 1, 2, 6, 24 }));
+                .AssertHas(VarVal.New("res", new[] { 0.0, 1.0, 2, 6, 24 }));
 
         }
 
         [Test]
         public void TwinGenericFunCall()
         {
-            var expr = @"maxOfArray(t) = t.reduce(max)
+            var expr = @"maxOfArray(t) = t.fold(max)
 
            maxOfMatrix(t) = t.map(maxOfArray).maxOfArray()
 
@@ -119,7 +119,7 @@ namespace Funny.Tests.UserFunctions
 
            maxOfMatrix(t) = t.map(maxOfArray).maxOfArray()
             
-            maxOfArray(t) = t.reduce(max)
+            maxOfArray(t) = t.fold(max)
 
   origin = [
               [12,05,06],
@@ -148,11 +148,11 @@ namespace Funny.Tests.UserFunctions
                           # run thru array 
                           # and swap every unsorted values
                           onelineSort(input) =  
-  	                        [0..input.count()-2].reduce(input, swapIfNotSorted)		
+  	                        [0..input.count()-2].fold(input, swapIfNotSorted)		
 
                           bubbleSort(input)=
   	                        [0..input.count()-1]
-  		                        .reduce(
+  		                        .fold(
   			                        input, 
   			                        (c,i)-> c.onelineSort())
 

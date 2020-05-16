@@ -67,7 +67,7 @@ namespace NFun.Interpritation
                 var resultBuilder = new TypeInferenceResultsBuilder();
                 var builder = new GraphBuilder();
                 var state = new SetupTiState(builder);
-                //Пробегаем по всем узлам, КРОМЕ синтакс нод
+                //to build body - we have to skip all user-function-syntax-nodes
                 foreach (var node in syntaxTree.Nodes.Where(n => !(n is UserFunctionDefenitionSyntaxNode)))
                 {
                     if (!LangTiHelper.SetupTiOrNull(node, functionsDictionary, resultBuilder, state))

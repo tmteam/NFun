@@ -176,7 +176,7 @@ namespace Nfun.ModuleTests.TicTests
         public void GenericArrInit()
         {
             var result = TestHelper.Solve("y  = [1..4]");
-            var generic = result.AssertAndGetSingleGeneric(Primitive.U8, Primitive.I48);
+            var generic = result.AssertAndGetSingleGeneric(Primitive.U8, Primitive.Real);
             result.AssertNamed(Array.Of(generic), "y");
         }
         [Test]

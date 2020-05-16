@@ -26,6 +26,7 @@ namespace NFun.Types
             else
                 return new VarVal(name, new ImmutableFunArray(value.ToArray()), vartype);
         }
+
         public static VarVal New(string name, object value)
         {
             switch (value)
@@ -54,36 +55,34 @@ namespace NFun.Types
                     return New(name, s);
                 case char c:
                     return New(name, c);
-                case IEnumerable<double> arrDbl:
+                case double[] arrDbl:
                     return New(name, arrDbl);
-                //place signed first because ex: int[] fits to signed and unsigned   
-                //case IEnumerable<sbyte> arrI8:
-                //    return New(name, arrI8);
-                case IEnumerable<short> arrI16:
-                    return New(name, arrI16);
-                case IEnumerable<int> arrI32:
-                    return New(name, arrI32);
-                case IEnumerable<long> arrI64:
-                    return New(name, arrI64);
-                //place unsigned after signed
-                case IEnumerable<byte> arrUI8:
-                    return New(name, arrUI8);
-                case IEnumerable<ushort> arrUi16:
-                    return New(name, arrUi16);
-                case IEnumerable<uint> arrUi32:
-                    return New(name, arrUi32);
-                case IEnumerable<ulong> arrUi64:
-                    return New(name, arrUi64);
-                
-                case IEnumerable<string> arrStr:
+                case string[] arrStr:
                     return New(name, arrStr);
-                case IEnumerable<bool> arrBool:
+                case bool[]  arrBool:
                     return New(name, arrBool);
-                case IEnumerable<object> arrObj:
-                    return New(name, arrObj);
-                default:
-                    return new VarVal(name, value, VarType.Anything);
+                case IFunArray funArray:
+                    return New(name, funArray);
             }
+
+            var type = value.GetType();
+            if(type== typeof(short[]))
+                return New(name, (short[])value);
+            if (type == typeof(int[]))
+                return New(name, (int[])value);
+            if (type == typeof(long[]))
+                return New(name, (long[])value);
+            if (type == typeof(byte[]))
+                return New(name, (byte[])value);
+            if (type == typeof(ushort[]))
+                return New(name, (ushort[])value);
+            if (type == typeof(uint[]))
+                return New(name, (uint[])value);
+            if (type == typeof(ulong[]))
+                return New(name, (uint[])value);
+            if (type == typeof(object[]))
+                return New(name, (object[])value);
+            return new VarVal(name, value, VarType.Anything);
         }
         public static VarVal New(string name, bool value) 
             => new VarVal(name, value, VarType.Bool);

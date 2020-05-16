@@ -58,8 +58,6 @@ namespace NFun.Interpritation
             _typesConverter = typesConverter;
         }
 
-
-
         public IExpressionNode Visit(AnonymCallSyntaxNode anonymFunNode)
         {
             if (anonymFunNode.Defenition==null)
@@ -95,7 +93,9 @@ namespace NFun.Interpritation
                 }
             }
 
-            var originVariables = localVariables.GetAllSources().Select(s=>s.Name).ToArray();
+            var sources = localVariables.GetAllSources();
+            var originVariables = new string[sources.Length];
+            for (int i = 0; i < originVariables.Length; i++) originVariables[i] = sources[i].Name;
             var expr = BuildExpression(anonymFunNode.Body, _functions, localVariables, _typeInferenceResults,_typesConverter);
             
             //New variables are new closured
@@ -117,7 +117,10 @@ namespace NFun.Interpritation
 
         public IExpressionNode Visit(ArraySyntaxNode node)
         {
-            var nodes = node.Expressions.Select(ReadNode).ToArray();
+            var nodes = new IExpressionNode[node.Expressions.Length];
+            for (int i = 0; i< node.Expressions.Length; i++)
+                nodes[i] = ReadNode(node.Expressions[i]);
+
             return new ArrayExpressionNode(nodes,node.Interval, node.OutputType);
         }
 
@@ -147,20 +150,22 @@ namespace NFun.Interpritation
                 var genericTypes = _typeInferenceResults.GetGenericCallArguments(node.OrderNumber);
                 if (genericTypes == null)
                 {
-                    //јргументы обобщенного вызова могут быть не известны. Ќапример дл€ случа€ обобщенной рекурсивной функции
-                    //¬ таком случае мы можем "достать" их из результатов выведени€
-
+                    // Generuc call arguments are unknown  in case of  generic recursion function . 
+                    // Take it from type inference results in this case
                     var recCallSignature =  _typeInferenceResults.GetRecursiveCallOrNull(node.OrderNumber);
+                    //if generic call arguments not exist in type inference result - it is NFUN core error
                     if(recCallSignature==null)
                         throw new ImpossibleException($"MJ78. Function {id}`{node.Args.Length} was not found");
 
                     var varTypeCallSignature = _typesConverter.Convert(recCallSignature);
-                    //теперь нужно перевести эту сигнатуру в аргументы дженериков
+                    //Calculate generic call arguments by concrete function signature
                     genericArgs = genericFunction.CalcGenericArgTypeList(varTypeCallSignature.FunTypeSpecification);
                 }
                 else
                 {
-                    genericArgs = genericTypes.Select(g => _typesConverter.Convert(g)).ToArray();
+                    genericArgs = new VarType[genericTypes.Length];
+                    for (int i = 0; i < genericTypes.Length; i++) 
+                        genericArgs[i] = _typesConverter.Convert(genericTypes[i]);
                 }
 
                 var function = genericFunction.CreateConcrete(genericArgs);
@@ -170,30 +175,21 @@ namespace NFun.Interpritation
             throw new ImpossibleException($"MJ101. Function {id}`{node.Args.Length} type is unknown");
         }
 
-        private IExpressionNode CreateFunctionCall(IFunCallSyntaxNode node, FunctionBase function)
-        {
-            var children = new List<IExpressionNode>();
-            foreach (var argLexNode in node.Args)
-            {
-                var argNode = ReadNode(argLexNode);
-                children.Add(argNode);
-            }
-            var converted = function.CreateWithConvertionOrThrow(children, node.Interval);
-            if (converted.Type != node.OutputType)
-            {
-                var converter = VarTypeConverter.GetConverterOrThrow(converted.Type, node.OutputType, node.Interval);
-                return new CastExpressionNode(converted, node.OutputType, converter, node.Interval);
-            }
-            else
-                return converted;
-        }
-
         public IExpressionNode Visit(ResultFunCallSyntaxNode node)
         {
             var functionGenerator = ReadNode(node.ResultExpression);
             var function          = ConcreteHiOrderFunctionWithSyntaxNode.Create(functionGenerator);
             return CreateFunctionCall(node, function);
         }
+
+        public IExpressionNode Visit(MetaInfoSyntaxNode node)
+        {
+            var id = node.VariableSyntaxNode.Id;
+            if (!_typeInferenceResults.HasVariable(id))
+                throw FunParseException.ErrorStubToDo($"Variable {id} not exist in the scope");
+            return new MetaInfoExpressionNode(_variables, id , node.Interval);
+        }
+
         public IExpressionNode Visit(IfThenElseSyntaxNode node)
         {
             //expressions
@@ -223,14 +219,15 @@ namespace NFun.Interpritation
         public IExpressionNode Visit(ConstantSyntaxNode node)
         {
             var type = _typesConverter.Convert(_typeInferenceResults.SyntaxNodeTypes[node.OrderNumber]);
-            //все инт типы закодированы либо long либо ulong
+            //All integer values are encoded by ulong (if it is ulong) or long otherwise
             if(node.Value is long l)
                 return ValueExpressionNode.CreateConcrete(type, l, node.Interval);
             else if (node.Value is ulong u)
                 return ValueExpressionNode.CreateConcrete(type, u, node.Interval);
-            else //значит все остальные закодированны в свой конкретный clr тип
+            else //other types have their own clr-types
                 return new ValueExpressionNode(node.Value, type, node.Interval);
         }
+
         public IExpressionNode Visit(GenericIntSyntaxNode node)
         {
             var type = _typesConverter.Convert(_typeInferenceResults.SyntaxNodeTypes[node.OrderNumber]);
@@ -245,10 +242,9 @@ namespace NFun.Interpritation
                 throw new ImpossibleException($"Generic syntax node has wrong value type: {node.Value.GetType().Name}");
             
         }
-      
+        
         public IExpressionNode Visit(VariableSyntaxNode node)
             => GetOrAddVariableNode(node);
-
 
         #region not an expression
         public IExpressionNode Visit(EquationSyntaxNode node) 
@@ -273,11 +269,32 @@ namespace NFun.Interpritation
             => ThrowNotAnExpression(node);
 
         #endregion
+
+        private IExpressionNode CreateFunctionCall(IFunCallSyntaxNode node, FunctionBase function)
+        {
+            var children = new List<IExpressionNode>();
+            foreach (var argLexNode in node.Args)
+            {
+                var argNode = ReadNode(argLexNode);
+                children.Add(argNode);
+            }
+            var converted = function.CreateWithConvertionOrThrow(children, node.Interval);
+            if (converted.Type != node.OutputType)
+            {
+                var converter = VarTypeConverter.GetConverterOrThrow(converted.Type, node.OutputType, node.Interval);
+                return new CastExpressionNode(converted, node.OutputType, converter, node.Interval);
+            }
+            else
+                return converted;
+        }
+
+
         private IExpressionNode ThrowNotAnExpression(ISyntaxNode node)
             => throw ErrorFactory.NotAnExpression(node);
 
         private IExpressionNode ReadNode(ISyntaxNode node) 
             => node.Accept(this);
+        
         private IExpressionNode GetOrAddVariableNode(VariableSyntaxNode varNode)
         {
            
@@ -289,8 +306,12 @@ namespace NFun.Interpritation
                     var genericTypes = _typeInferenceResults.GetGenericCallArguments(varNode.OrderNumber);
                     if (genericTypes == null)
                         throw new ImpossibleException($"MJ79. Generic function is missed at {varNode.OrderNumber}:  {varNode.Id}`{genericFunction.Name} ");
-                    var genericArgs = genericTypes.Select(g => _typesConverter.Convert(g)).ToArray();
-                    var function = genericFunction.CreateConcrete(genericArgs); //todo generic types
+
+                    var genericArgs = new VarType[genericTypes.Length];
+                    for (int i = 0; i < genericTypes.Length; i++)
+                        genericArgs[i] = _typesConverter.Convert(genericTypes[i]);
+
+                    var function = genericFunction.CreateConcrete(genericArgs); 
                     return new FunVariableExpressionNode(function, varNode.Interval);
 
                 }
@@ -331,7 +352,6 @@ namespace NFun.Interpritation
                             return new FunVariableExpressionNode(ff, varNode.Interval);
                     }
                 }
-
             }
             var node = _variables.CreateVarNode(varNode.Id, varNode.Interval, varNode.OutputType);
             if(node.Source.Name!= varNode.Id)

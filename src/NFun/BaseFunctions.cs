@@ -1,13 +1,24 @@
 using System.Security.Cryptography;
 using NFun.BuiltInFunctions;
+using NFun.Interpritation;
 using NFun.Interpritation.Functions;
 
 namespace NFun
 {
     public static class BaseFunctions
     {
+        public static FunctionDictionary GetDefaultDictionary()
+        {
+            var functionsDictionary = new FunctionDictionary();
+            foreach (var predefinedFunction in ConcreteFunctions)
+                functionsDictionary.Add(predefinedFunction);
+            foreach (var genericFunctionBase in GenericFunctions)
+                functionsDictionary.Add(genericFunctionBase);
+            return functionsDictionary;
+        }
         public static GenericFunctionBase[] GenericFunctions { get; } =
         {
+            new GetValOrDefault(),
             new ConvertFunction(),
 
             new EqualFunction(),
@@ -55,8 +66,8 @@ namespace NFun
             new SliceGenericFunctionDefenition(),
             new SliceWithStepGenericFunctionDefenition(),
             new FindGenericFunctionDefenition(),
-            new ReduceWithDefaultsGenericFunctionDefenition(),
-            new ReduceGenericFunctionDefenition(),
+            new foldWithDefaultsGenericFunctionDefenition(),
+            new FoldGenericFunctionDefenition(),
             new TakeGenericFunctionDefenition(),
             new SkipGenericFunctionDefenition(),
             new RepeatGenericFunctionDefenition(),
@@ -165,7 +176,8 @@ namespace NFun
             new TrimEndFunction(),
             new SplitFunction(),
             new JoinFunction(),
-            new ConcatTextsFunction()
+            new ConcatTextsFunction(),
+            new GetVarTextInfoMetafunction()
         };
     }
 }

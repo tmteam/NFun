@@ -84,19 +84,19 @@ namespace Funny.Tests
                    y = fib(1)", BaseVarType.Int32)]
         [TestCase(@"y = [1..7]
                         .map(i->i+i)
-                        .sum()", BaseVarType.Int32)]
+                        .sum()", BaseVarType.Real)]
         [TestCase(@"y = [1..8]
                         .map(i->[i].sum())
-                        .sum()", BaseVarType.Int32)]
+                        .sum()", BaseVarType.Real)]
         [TestCase(@"y = [1..9]
                         .map(i->[1,i].sum())
-                        .sum()", BaseVarType.Int32)]
+                        .sum()", BaseVarType.Real)]
         [TestCase(@"y = [1..10]
                         .map(i->[1..i].sum())
-                        .sum()", BaseVarType.Int32)]
+                        .sum()", BaseVarType.Real)]
         [TestCase(@"y = [1..11]
                         .map(i->[1..i].sum())
-                        .sum()", BaseVarType.Int32)]
+                        .sum()", BaseVarType.Real)]
         [TestCase(@"y = [1..12]
                         .map(i->[1..i]
                                 .map(x->2600/x)
@@ -266,15 +266,13 @@ namespace Funny.Tests
         [TestCase("x:real[[]\r y= x")]
         [TestCase("x:real][]\r y= x")]
         [TestCase("y=5+'hi'")]
-        [TestCase("x:real \r y = [1..x][0]")]
-        [TestCase("x:real \r y = [x..10][0]")]
         [TestCase("x:real \r y = [1..10][x]")]
         [TestCase("x:real \r y = [1..10][:x]")]
         [TestCase("x:real \r y = [1..10][:x:]")]
         [TestCase("x:real \r y = [1..10][::x]")]
         [TestCase("y = x \r x:real ")]
         [TestCase("z:real \r  y = x+z \r x:real ")]
-        [TestCase("y= [1,2,3].fold((x1,x2)->x1+1.5)")]
+        [TestCase("y= [1,2,3].fold((x1,x2)->'{x1}!')")]
         [TestCase("a:int \r a=4")]
         [TestCase("a:int a=4")]
         [TestCase("a:real =false")]
@@ -318,10 +316,10 @@ namespace Funny.Tests
         [TestCase("y= [1,2,3].map(x->'hi')", new[]{"hi","hi","hi"})] 
         [TestCase("y= [true,true,false].map(x->'hi')", new[]{"hi","hi","hi"})] 
         [TestCase("y:int[]= [1,2,3].filter(x->x>2)", new[]{3})] 
-        [TestCase("y:int= [1,2,3].reduce((x1,x2)->x1+x2)", 6)] 
-        [TestCase("y:int= [1,2,3].reduce((x1,x2)->1)", 1)] 
-        [TestCase("y:int= [1,2,3].reduce((x1,x2)->x1)", 1)] 
-        [TestCase("y:int= [1,2,3].reduce((x1,x2)->x1+1)", 3)] 
+        [TestCase("y:int= [1,2,3].fold((x1,x2)->x1+x2)", 6)] 
+        [TestCase("y:int= [1,2,3].fold((x1,x2)->1)", 1)] 
+        [TestCase("y:int= [1,2,3].fold((x1,x2)->x1)", 1)] 
+        [TestCase("y:int= [1,2,3].fold((x1,x2)->x1+1)", 3)] 
         public void ConstantTypedEquation(string expr, object y)
         {
             var runtime = FunBuilder.BuildDefault(expr);

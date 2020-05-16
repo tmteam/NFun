@@ -121,13 +121,13 @@ namespace NFun.Tic
 
         public void CreateLambda(int returnId, int lambdaId,params string[] varNames)
         {
-            var args = varNames.Select(GetNamedNode).ToArray();
-            var ret = GetOrCreateNode(returnId);
+            var args = GetNamedNodes(varNames);
+            var ret  = GetOrCreateNode(returnId);
             SetOrCreateLambda(lambdaId, args,ret);
         }
         public void CreateLambda(int returnId, int lambdaId,IType returnType, params string[] varNames)
         {
-            var args = varNames.Select(GetNamedNode).ToArray();
+            var args   = GetNamedNodes(varNames);
             var exprId = GetOrCreateNode(returnId);
             var returnTypeNode = CreateVarType(returnType);
             exprId.Ancestors.Add(returnTypeNode);
@@ -137,7 +137,7 @@ namespace NFun.Tic
 
         public Fun SetFunDef(string name, int returnId, IType returnType = null, params string[] varNames)
         {
-            var args = varNames.Select(GetNamedNode).ToArray();
+            var args   = GetNamedNodes(varNames);
             var exprId = GetOrCreateNode(returnId);
             var returnTypeNode = CreateVarType(returnType);
             //expr<=returnType<= ...
@@ -179,32 +179,26 @@ namespace NFun.Tic
             return new RefTo(elementType);
         }
         /// <summary>
-        /// Устанавливает вызов узла
+        /// Set function call, where function variable (or expression) placed at bodyId
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="argThenReturnIds"></param>
         public void SetCall(int bodyId, params int[] argThenReturnIds)
         {
             var node = GetOrCreateNode(bodyId);
             SetCall(node, argThenReturnIds);
         }
         /// <summary>
-        /// Устанавливает вызов функциональной переменной
+        /// Set function call, of function variable with id of name
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="argThenReturnIds"></param>
         public void SetCall(string name, params int[] argThenReturnIds)
         {
             var namedNode =GetNamedNode(name);
             SetCall(namedNode, argThenReturnIds);
         }
 
-       
+
         /// <summary>
-        /// Устанавливает вызов известной функциональной переменной
+        /// Set function call, of already known functional type 
         /// </summary>
-        /// <param name="fun"></param>
-        /// <param name="argThenReturnIds"></param>
         public void SetCall(Fun fun, params int[] argThenReturnIds)
         {
             if (fun.ArgsCount != argThenReturnIds.Length - 1)
@@ -222,18 +216,12 @@ namespace NFun.Tic
 
             var returnId = argThenReturnIds[argThenReturnIds.Length - 1];
             var returnNode = GetOrCreateNode(returnId);
-
-            //Нужно завернуть тип в ссылочный
-            //var returnType = fun.ReturnType is Constrains? new RefTo(fun.RetNode):fun.ReturnType;
-
             SolvingFunctions.Merge(fun.RetNode,returnNode);
         }
 
         /// <summary>
-        /// Устанавливает вызов функции с известной сигнатурой
+        /// Set function call, with function signature
         /// </summary>
-        /// <param name="argThenReturnTypes"></param>
-        /// <param name="argThenReturnIds"></param>
         public void SetCall(IState[] argThenReturnTypes, int[] argThenReturnIds)
         {
             if(argThenReturnTypes.Length!=argThenReturnIds.Length)
@@ -441,7 +429,13 @@ namespace NFun.Tic
                 state = r.Node.State;
 
             if (state is Fun fun)
+            {
+                if (fun.ArgsCount != argThenReturnIds.Length - 1)
+                    throw TicErrors.InvalidFunctionalVarableSignature(functionNode);
+
                 SetCall(fun, argThenReturnIds);
+
+            }
             else if (state is Constrains constrains)
             {
                 var idNode = GetOrCreateNode(id);
@@ -460,7 +454,16 @@ namespace NFun.Tic
             else
                 throw new InvalidOperationException($"po po. functionNode.State is {functionNode.State}");
         }
-        private SolvingNode GetNamedNode(string name)
+
+        private SolvingNode[] GetNamedNodes(string[] names)
+        {
+            var ans = new SolvingNode[names.Length];
+            for (int i = 0; i < names.Length; i++)
+                ans[i] = GetNamedNode(names[i]);
+
+            return ans;
+        }
+            private SolvingNode GetNamedNode(string name)
         {
             if (_variables.TryGetValue(name, out var varnode))
             {
@@ -548,8 +551,5 @@ namespace NFun.Tic
             _typeVariables.Add(varNode);
             return varNode;
         }
-
-
-       
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using NFun.Interpritation.Functions;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
 using NFun.TypeInferenceAdapter;
@@ -24,16 +25,18 @@ namespace NFun.SyntaxParsing.SyntaxNodes
 
         public bool IsInBrackets { get; set; }
         public string Id { get; }
-        public ISyntaxNode[] Args { get; }
+        public ISyntaxNode[] Args { get; private set; }
         public Interval Interval { get; set; }
         public bool IsOperator { get; }
         public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
-        
         public IEnumerable<ISyntaxNode> Children => Args;
         /// <summary>
         /// Concrete Function Signature.
         /// Setted after Ti-algorithm applied 
         /// </summary>
         public LangFunctionSignature SignatureOfOverload { get; set; }
+
+        public void TransformToMetafunction(VariableSyntaxNode node) 
+            => Args[0] = new MetaInfoSyntaxNode(node);
     }
 }

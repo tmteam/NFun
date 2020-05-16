@@ -9,10 +9,10 @@ namespace NFun.Tic.Tests.Funs
     public class MultiArgTests
     {
         [Test]
-        public void GenericReduce_GetSum()
+        public void Genericfold_GetSum()
         {
             //        5  0  4      132
-            //y = reduce(x, f(a,b)=a+b)
+            //y = fold(x, f(a,b)=a+b)
             var graph = new GraphBuilder();
             
             graph.SetVar("x", 0);
@@ -20,7 +20,7 @@ namespace NFun.Tic.Tests.Funs
             graph.SetVar("lb", 2);
             graph.SetArith(1,2,3);
             graph.CreateLambda(3, 4, "la","lb");
-            graph.SetReduceCall(0, 4, 5);
+            graph.SetfoldCall(0, 4, 5);
             graph.SetDef("y", 5);
 
             var result = graph.Solve();
@@ -33,10 +33,10 @@ namespace NFun.Tic.Tests.Funs
         }
 
         [Test]
-        public void Reduce_ConcreteLambdaReturn_GetSum()
+        public void fold_ConcreteLambdaReturn_GetSum()
         {
             //        5  0  4          132
-            //y = reduce(x, f(a,b):i64=a+b)
+            //y = fold(x, f(a,b):i64=a+b)
             var graph = new GraphBuilder();
 
             graph.SetVar("x", 0);
@@ -44,7 +44,7 @@ namespace NFun.Tic.Tests.Funs
             graph.SetVar("lb", 2);
             graph.SetArith(1, 2, 3);
             graph.CreateLambda(3, 4, Primitive.I64, "la", "lb");
-            graph.SetReduceCall(0, 4, 5);
+            graph.SetfoldCall(0, 4, 5);
             graph.SetDef("y", 5);
 
             var result = graph.Solve();
@@ -60,10 +60,10 @@ namespace NFun.Tic.Tests.Funs
 
 
         [Test]
-        public void ReduceConcreteOut_GetSum()
+        public void foldConcreteOut_GetSum()
         {
             //            5  0  4      132
-            //y:u32 = reduce(x, f(a,b)=a+b)
+            //y:u32 = fold(x, f(a,b)=a+b)
             var graph = new GraphBuilder();
 
             graph.SetVar("x", 0);
@@ -71,7 +71,7 @@ namespace NFun.Tic.Tests.Funs
             graph.SetVar("lb", 2);
             graph.SetArith(1, 2, 3);
             graph.CreateLambda(3, 4, "la", "lb");
-            graph.SetReduceCall(0, 4, 5);
+            graph.SetfoldCall(0, 4, 5);
             graph.SetVarType("y", Primitive.U32);
             graph.SetDef("y", 5);
 
@@ -85,10 +85,10 @@ namespace NFun.Tic.Tests.Funs
         }
 
         [Test]
-        public void  ReduceConcreteArg_GetSum()
+        public void  foldConcreteArg_GetSum()
         {
             //                 5  0  4      132
-            //x:u32[]; y = reduce(x, f(a,b)=a+b)
+            //x:u32[]; y = fold(x, f(a,b)=a+b)
             var graph = new GraphBuilder();
 
             graph.SetVarType("y", Primitive.U32);
@@ -97,7 +97,7 @@ namespace NFun.Tic.Tests.Funs
             graph.SetVar("lb", 2);
             graph.SetArith(1, 2, 3);
             graph.CreateLambda(3, 4, "la", "lb");
-            graph.SetReduceCall(0, 4, 5);
+            graph.SetfoldCall(0, 4, 5);
             graph.SetDef("y", 5);
 
             var result = graph.Solve();
@@ -161,10 +161,10 @@ namespace NFun.Tic.Tests.Funs
         }
 
         [Test]
-        public void Reduce_GetSumWithImpossibleTypes_throws()
+        public void fold_GetSumWithImpossibleTypes_throws()
         {
             //        5  0  4              132
-            //y = reduce(x, f(a,b:i32):i64=a+b)
+            //y = fold(x, f(a,b:i32):i64=a+b)
             var graph = new GraphBuilder();
 
             graph.SetVar("x", 0);
@@ -175,7 +175,7 @@ namespace NFun.Tic.Tests.Funs
             TestHelper.AssertThrowsTicError(() =>
             {
                 graph.CreateLambda(3, 4, Primitive.I64, "la", "lb");
-                graph.SetReduceCall(0, 4, 5);
+                graph.SetfoldCall(0, 4, 5);
                 graph.SetDef("y", 5);
                 graph.Solve();
             });

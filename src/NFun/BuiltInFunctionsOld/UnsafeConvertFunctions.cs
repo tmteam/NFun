@@ -17,7 +17,7 @@ namespace NFun.BuiltInFunctions
         public override object Calc(object[] args)
         {
             try {
-                return Convert.ToInt32(args.Get<double>(0));
+                return Convert.ToInt32(((double)args[0]));
             }
             catch (Exception e) {
                 throw new FunRuntimeException($"Number '{args[0]}' cannot be converted into int", e);
@@ -28,66 +28,66 @@ namespace NFun.BuiltInFunctions
     public class ToInt16FromInt64Function : FunctionBase
     {
         public ToInt16FromInt64Function() : base("toInt16", VarType.Int16, VarType.Int64){}
-        public override object Calc(object[] args) => (Int16)args.Get<long>(0);
+        public override object Calc(object[] args) => (Int16)((long)args[0]);
     }
     public class ToInt16FromUInt64Function : FunctionBase
     {
         public ToInt16FromUInt64Function() : base("toInt16", VarType.Int16, VarType.UInt64){}
-        public override object Calc(object[] args) => (Int16)args.Get<ulong>(0);
+        public override object Calc(object[] args) => (Int16)((ulong)args[0]);
     }
     public class ToInt32FromInt64Function : FunctionBase
     {
         public ToInt32FromInt64Function(string name = "toInt32") : base(name, VarType.Int32, VarType.Int64){}
-        public override object Calc(object[] args) => (int)args.Get<long>(0);
+        public override object Calc(object[] args) => (int)((long)args[0]);
     }
     public class ToInt32FromUInt64Function : FunctionBase
     {
         public ToInt32FromUInt64Function(string name = "toInt32") : base(name, VarType.Int32, VarType.UInt64){}
 
-        public override object Calc(object[] args) => (int)args.Get<UInt64>(0);
+        public override object Calc(object[] args) => (int)((ulong)args[0]);
     }
     public class ToInt64FromUInt64Function : FunctionBase
     {
         public ToInt64FromUInt64Function() : base("toInt64", VarType.Int64, VarType.UInt64){}
-        public override object Calc(object[] args) => (long)args.Get<ulong>(0);
+        public override object Calc(object[] args) => (long)((ulong)args[0]);
     }
     
     public class ToUint8FromUint64Function : FunctionBase
     {
         public ToUint8FromUint64Function(string name = "toUint8") : base(name, VarType.UInt8, VarType.UInt64){}
-        public override object Calc(object[] args) => (byte) args.Get<ulong>(0);
+        public override object Calc(object[] args) => (byte) ((ulong)args[0]);
     }
     public class ToUint8FromInt64Function : FunctionBase
     {
         public ToUint8FromInt64Function(string name ="toUint8") : base(name, VarType.UInt8, VarType.Int64){}
-        public override object Calc(object[] args) => (byte) args.Get<long>(0);
+        public override object Calc(object[] args) => (byte) ((long)args[0]);
     }
     
     public class ToUint16FromUint64Function : FunctionBase
     {
         public ToUint16FromUint64Function() : base("toUint16", VarType.UInt16, VarType.UInt64){}
-        public override object Calc(object[] args) => (ushort) args.Get<ulong>(0);
+        public override object Calc(object[] args) => (ushort) ((ulong)args[0]);
     }
      public class ToUint16FromInt64Function : FunctionBase
         {
             public ToUint16FromInt64Function() : base("toUint16", VarType.UInt16, VarType.Int64){}
-            public override object Calc(object[] args) => (ushort) args.Get<long>(0);
+            public override object Calc(object[] args) => (ushort) ((long)args[0]);
         }
     public class ToUint32FromUint64Function : FunctionBase
     {
         public ToUint32FromUint64Function() : base("toUint32", VarType.UInt32, VarType.UInt64){}
-        public override object Calc(object[] args) => (uint)args.Get<ulong>(0);
+        public override object Calc(object[] args) => (uint)((ulong)args[0]);
     }
     
     public class ToUint32FromInt64Function : FunctionBase
     {
             public ToUint32FromInt64Function() : base("toUint32", VarType.UInt32, VarType.Int64){}
-            public override object Calc(object[] args) => (uint)args.Get<long>(0);
+            public override object Calc(object[] args) => (uint)((long)args[0]);
     }
     public class ToUint64FromInt64Function : FunctionBase
     {
         public ToUint64FromInt64Function() : base("toUint64", VarType.UInt64, VarType.Int64){}
-        public override object Calc(object[] args) => (ulong)args.Get<long>(0);
+        public override object Calc(object[] args) => (ulong)((long)args[0]);
     }
     
     public class ToRealFromTextFunction : FunctionBase

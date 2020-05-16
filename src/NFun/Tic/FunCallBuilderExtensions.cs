@@ -141,7 +141,7 @@ namespace NFun.Tic
                 argType: inNode), 
                 Array.Of(outNode)}, new []{arrId,funId, resultId});
         }
-        public static void SetReduceCall(this GraphBuilder graph, int arrId, int funId, int returnId)
+        public static void SetfoldCall(this GraphBuilder graph, int arrId, int funId, int returnId)
         {
             var generic = graph.InitializeVarNode();
 
@@ -167,11 +167,11 @@ namespace NFun.Tic
             graph.SetCall(new IState[] { generic, generic, Array.Of(generic) }, new[] { fromId, toId, resId });
 
         }
-        public static void SetReduceCall(this GraphBuilder graph, int arrId, int defId, int funId, int resId)
+        public static void SetfoldCall(this GraphBuilder graph, int arrId, int defId, int funId, int resId)
         {
             var tRes = graph.InitializeVarNode();
             var tArg = graph.InitializeVarNode();
-            //reduce call   reduce( T[], G, (G,T)->G )->G 
+            //fold call   fold( T[], G, (G,T)->G )->G 
             graph.SetCall(new IState[]
                 {
                     Array.Of(tArg), 

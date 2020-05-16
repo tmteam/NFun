@@ -8,18 +8,18 @@ using Array = NFun.Tic.SolvingStates.Array;
 
 namespace NFun.Tic.Tests.Funs
 {
-    public class ReduceTest
+    public class foldTest
     {
         [SetUp] public void Initiazlize() => TraceLog.IsEnabled = true;
         [TearDown] public void Finalize() => TraceLog.IsEnabled = false;
 
         [Test]
-        public void Reduce_foreachi()
+        public void fold_foreachi()
         {
             // fun swapIfNotSorted(T_0[],Int32):T_0[]  where T_0: <>
 
             //             6  32   1      0         4      5
-            //sorted = reduce([0..count(input)], input, swapIfNotSorted)";
+            //sorted = fold([0..count(input)], input, swapIfNotSorted)";
             var graph = new GraphBuilder();
             graph.SetVar("input", 0);
 
@@ -32,7 +32,7 @@ namespace NFun.Tic.Tests.Funs
             graph.SetVarType("swapIfNotSorted", Fun.Of(new IState[] { Array.Of(tOfSwap), Primitive.I32 }, Array.Of(tOfSwap)));
             graph.SetVar("swapIfNotSorted", 5);
 
-            graph.SetReduceCall(3, 4, 5, 6);
+            graph.SetfoldCall(3, 4, 5, 6);
             graph.SetDef("sorted", 6);
 
             var result = graph.Solve();
@@ -41,12 +41,12 @@ namespace NFun.Tic.Tests.Funs
         }
 
         [Test]
-        public void Reduce_foreachi_rangeIsFixed()
+        public void fold_foreachi_rangeIsFixed()
         {
             // fun swapIfNotSorted(T_0[],Int32):T_0[]  where T_0: <>
             
             //             6  32   1      0         4      5
-            //sorted = reduce([0..count(input)], input, swapIfNotSorted)";
+            //sorted = fold([0..count(input)], input, swapIfNotSorted)";
             var graph = new GraphBuilder();
             graph.SetVar("input",0);
             var tOfCount = graph.InitializeVarNode();
@@ -62,7 +62,7 @@ namespace NFun.Tic.Tests.Funs
             graph.SetVarType("swapIfNotSorted", Fun.Of(new IState[]{Array.Of(tOfSwap), Primitive.I32}, Array.Of(tOfSwap)));
             graph.SetVar("swapIfNotSorted",5);
 
-            graph.SetReduceCall(3,4,5,6);
+            graph.SetfoldCall(3,4,5,6);
             graph.SetDef("sorted",6);
             
             var result = graph.Solve();
@@ -71,12 +71,12 @@ namespace NFun.Tic.Tests.Funs
         }
 
         [Test]
-        public void Reduce_for()
+        public void fold_for()
         {
             // fun swapIfNotSorted(T_0[],Int32):T_0[]  where T_0: <>
 
             //             5  21   0    3         4      
-            //sorted = reduce([0..5], input, swapIfNotSorted)";
+            //sorted = fold([0..5], input, swapIfNotSorted)";
             var graph = new GraphBuilder();
 
 
@@ -90,7 +90,7 @@ namespace NFun.Tic.Tests.Funs
             graph.SetVarType("swapIfNotSorted", Fun.Of(new IState[] { Array.Of(tOfSwap), Primitive.I32 }, Array.Of(tOfSwap)));
             graph.SetVar("swapIfNotSorted", 4);
 
-            graph.SetReduceCall(2, 3, 4, 5);
+            graph.SetfoldCall(2, 3, 4, 5);
             graph.SetDef("sorted", 5);
 
             var result = graph.Solve();

@@ -207,8 +207,10 @@ namespace NFun.Tic.SolvingStates
             return result;
         }
         /// <summary>
-        /// Пытается вывести наиболее общий тип, если это возможно
-        /// Возвращает себя если это не возможно
+        /// Try to infer most generic type if is possible
+        /// Return self otherwise
+        ///
+        /// For most cases it means that ancestor type will be used
         /// </summary>
         public IState SolveCovariant()
         {
@@ -227,9 +229,12 @@ namespace NFun.Tic.SolvingStates
             return ancestor;
         }
         /// <summary>
-        /// Пытается вывести наиболее частный тип, если это возможно
-        /// Возвращает себя если это не возможно
+        /// Try to infer most CONCRETE type if is possible
+        /// Return self otherwise
+        ///
+        /// For most cases it means that descedant type will be used
         /// </summary>
+
         public IState SolveContravariant()
         {
             if (Prefered != null && Fits(Prefered))

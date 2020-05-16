@@ -72,13 +72,12 @@ namespace Nfun.Fuspec.Parser
       public static VarVal[] ParseValues(string valueStr)
         {
              var result = new List<VarVal>();
-            //генерим поток токенов
+            //create token flow
             var tokFLow = Tokenizer.ToFlow(valueStr);
 
-            //пока не кончатся токены
+            //until end of flow
             while (tokFLow.Current.Type != TokType.Eof)
             {
-                //todo cr: Check for DRY for GetValue and GetVarTypeByNFun methods
                 tokFLow.MoveNext();
                 var previous = tokFLow.Previous;
                 var cur = tokFLow.Current;

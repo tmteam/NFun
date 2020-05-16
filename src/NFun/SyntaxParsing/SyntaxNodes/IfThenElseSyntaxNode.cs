@@ -14,9 +14,9 @@ namespace NFun.SyntaxParsing.SyntaxNodes
         public IfCaseSyntaxNode[] Ifs { get; }
         public ISyntaxNode ElseExpr { get; }
 
-        public IfThenElseSyntaxNode(IList<IfCaseSyntaxNode> ifs, ISyntaxNode elseExpr, Interval interval)
+        public IfThenElseSyntaxNode(IfCaseSyntaxNode[] ifs, ISyntaxNode elseExpr, Interval interval)
         {
-            Ifs = ifs.ToArray();
+            Ifs = ifs;
             ElseExpr = elseExpr;
             Interval = interval;
         }

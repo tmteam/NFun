@@ -25,12 +25,5 @@ namespace FuspecHandler
         {
             _error = e;
         }
-
-        public void SetInputs(VarInfo[] inputs)
-        {
-            Inputs = inputs;
-        }
-
-      
     }
 }

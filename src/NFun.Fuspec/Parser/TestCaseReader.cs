@@ -232,7 +232,7 @@ namespace Nfun.Fuspec.Parser
                 parseState = AddSetCheckKitToSetCkecks(setString, new SetData());
                 if (parseState != TestCaseParseState.ReadingValues)
                     return parseState;
-            }
+           }
 
             if (checkString!=null)
                             parseState = AddSetCheckKitToSetCkecks(checkString, new CheckData());

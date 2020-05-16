@@ -12,35 +12,39 @@ namespace Funny.Tests
     [TestFixture]
     public class ArraysTest
     {
-        [TestCase("y = [1..4]", new[]{1,2,3,4})]
-        [TestCase("y = [4..1]", new[]{4,3,2,1})]
+        [TestCase("y = [1..4]", new[]{1.0,2,3,4})]
+        [TestCase("y = [4..1]", new[]{4.0,3,2,1})]
+        [TestCase("y:uint[] = [1..4]", new uint[] { 1, 2, 3, 4 })]
+        [TestCase("y:uint[] = [4..1]", new uint[] { 4, 3, 2, 1 })]
         [TestCase("y:int[] = [1..7..2]", new[]{1,3,5,7})]
         [TestCase("y:int[] = [7..1..2]", new[]{7,5,3,1})]
         [TestCase("y:int[] = [1..8..2]", new[]{1,3,5,7})]
         [TestCase("y = [1.0..3.0..0.5]", new[]{1.0,1.5,2.0,2.5,3.0})]
         [TestCase("y = [3.0..1.0..0.5]", new[]{3.0,2.5,2.0,1.5, 1.0})]
         [TestCase("y = [1..3..0.5]", new[]{1.0,1.5,2.0,2.5,3.0})]
-        [TestCase("y = [1..1]", new[]{1})]
+        [TestCase("y:int[] = [1..1]", new[]{1})]
         [TestCase("y:int[] = [1,2,3,4]", new[]{1,2,3,4})]
         [TestCase("y = [0x1]", new[]{1})]
         [TestCase("y = ['foo','bar']", new []{"foo","bar"})]
-        [TestCase("y = [0..10][0]", 0)]
-        [TestCase("y = [0..10][10]", 10)]
-        [TestCase("y = [0..10][2:5]", new[]{2,3,4,5})]
-        [TestCase("y = [0..10][1:1]", new[]{1})]
-        [TestCase("y = [0..10][1:2]", new[]{1,2})]
-        [TestCase("y = [0..10][:5]", new[]{0,1,2,3,4,5})]
-        [TestCase("y = [0..10][5:]", new[]{5,6,7,8,9,10})]
+        [TestCase("y:int = [0..10][0]", 0)]
+        [TestCase("y:int = [0..10][10]", 10)]
+        [TestCase("y = [0..10][0]",   0.0)]
+        [TestCase("y = [0..10][10]", 10.0)]
+        [TestCase("y:int[] = [0..10][2:5]", new[]{2,3,4,5})]
+        [TestCase("y:int[] = [0..10][1:1]", new[]{1})]
+        [TestCase("y:int[] = [0..10][1:2]", new[]{1,2})]
+        [TestCase("y:int[] = [0..10][:5]", new[]{0,1,2,3,4,5})]
+        [TestCase("y:int[] = [0..10][5:]", new[]{5,6,7,8,9,10})]
         [TestCase("y = ['a','b'][0]", "a")]
         [TestCase("y = ['a','b'][1]", "b")]
         [TestCase("y:real[] = [1,2,3][:]", new[]{1.0,2.0,3.0})]
-        [TestCase("y = [0..10][1:7:2]", new[]{1,3,5,7})]
-        [TestCase("y = [0..10][1:2:]", new[]{1,2})]
-        [TestCase("y = [0..10][1::2]", new[]{1,3,5,7,9})]
-        [TestCase("y = [0..10][5::]", new[]{5,6,7,8,9,10})]
-        [TestCase("y = [0..10][:2:]", new[]{0,1,2})]
-        [TestCase("y = [0..10][::4]", new[]{0,4,8})]
-        [TestCase("y = [0..10][:4:3]", new[]{0,3})]
+        [TestCase("y:int[] = [0..10][1:7:2]", new[]{1,3,5,7})]
+        [TestCase("y:int[] = [0..10][1:2:]", new[]{1,2})]
+        [TestCase("y:int[] = [0..10][1::2]", new[]{1,3,5,7,9})]
+        [TestCase("y:int[] = [0..10][5::]", new[]{5,6,7,8,9,10})]
+        [TestCase("y:int[] = [0..10][:2:]", new[]{0,1,2})]
+        [TestCase("y:int[] = [0..10][::4]", new[]{0,4,8})]
+        [TestCase("y:int[] = [0..10][:4:3]", new[]{0,3})]
         [TestCase("y = [1.0,1.2,2.4]", new[]{1.0,1.2, 2.4})]
         [TestCase("y = [1.0]", new[]{1.0})]
         [TestCase("y = 1 in [1,2,3]", true)]    
@@ -66,15 +70,12 @@ namespace Funny.Tests
             FunBuilder.BuildDefault(expr).Calculate().AssertReturns(VarVal.New("y", expected));
         }
 
-
-
         [TestCase("a = 2.0 \r b=3.0 \r  y = [1.0,a,b] ", new[]{1.0,2.0,3.0})]
         [TestCase("a = 2.0 \r b=3.0 \r y = [a,b] ", new[]{2.0,3.0})]
         [TestCase("a = 2.0 \r b=3.0 \r y = [a+1,b+2] ", new[]{3.0,5.0})]
         [TestCase("a = 2.0 \r b=3.0 \r y = [a*0,b*0] ", new[]{0.0,0.0})]
         [TestCase("a = true  \ry = if (a) [1.0] else [2.0, 3.0] ", new[]{1.0})]
         [TestCase("a = false  \r y = if (a) [1.0] else [2.0, 3.0]", new[]{2.0,3.0})]
-     
         public void ConstantCalculableArrayTest(string expr, object expected)
         {
             FunBuilder.BuildDefault(expr).Calculate().AssertHas(VarVal.New("y", expected));
@@ -84,9 +85,9 @@ namespace Funny.Tests
         [TestCase("if (true) [1.0] else [2.0, 3.0] ", new[]{1.0})]
         [TestCase("if (false) [1.0] else [2.0, 3.0]", new[]{2.0,3.0})]
         [TestCase ("y(x) = x \r[1]",new[]{1.0})]
-        [TestCase ("y(x) = x \r[1..3]",new[]{1,2,3})]
+        [TestCase ("y(x) = x \r[1..3]",new[]{1.0,2,3})]
         [TestCase ("y(x) = x # some comment \r[1]",new[]{1.0})]
-        [TestCase ("y(x) = x # some comment \r[1..3]",new[]{1,2,3})]
+        [TestCase ("y(x) = x # some comment \r[1..3]",new[]{1.0,2,3})]
         public void AnonymousConstantArrayTest(string expr, object expected) 
             => FunBuilder.BuildDefault(expr).Calculate().AssertOutEquals(expected);
 
@@ -100,10 +101,10 @@ namespace Funny.Tests
         }
         
 
-        [TestCase(3, "y= [1..x]", new[] {1, 2, 3})]
-        [TestCase(3, "y= [x..7]", new[] {3, 4, 5, 6, 7})]
+        [TestCase(3, "y= [1..x]", new[] {1.0, 2, 3})]
+        [TestCase(3, "y= [x..7]", new[] {3.0, 4, 5, 6, 7})]
         [TestCase(3, "y:int[]= [x,2,3]", new[] {3, 2, 3})]
-        [TestCase(3, "y= [1..5][x]", 4)]
+        [TestCase(3, "y= [1..5][x]", 4.0)]
         [TestCase(2, "x:int; y= [1..6..x]", new[] {1, 3, 5})]
         [TestCase(0.5, "y= [1.0..3.0..x]", new[] {1.0, 1.5, 2.0, 2.5, 3.0})]
         public void SingleVqtInputEquation_CheckOutputValues(object val, string expr, object expected)
@@ -203,8 +204,8 @@ x: int[]
 filt: int
 concat    = ([1,2,3,4].concat(x))
 size      = concat.count()
-possum   = x.filter(i:int ->i>0).reduce((i:int,j:int)-> i+j)
-filtrat   = x.filter(i:int ->i> filt) # filt - входная переменная
+possum   = x.filter(i:int ->i>0).fold((i:int,j:int)-> i+j)
+filtrat   = x.filter(i:int ->i> filt) # filt - input variable
 ";
             var runtime = FunBuilder.BuildDefault(expr);
             var res = runtime.Calculate(VarVal.New("x", new[]{5,6,7,8}),
@@ -238,10 +239,9 @@ filtrat   = x.filter(i:int ->i> filt) # filt - входная переменна
         [TestCase("y = +[2.0]")]
         [TestCase("y = [2.0 3.0]")]
         [TestCase("y = [2.0,,3.0]")]
-        [TestCase("y = [1.0..4]")]
         [TestCase("y = ['1'..4]")]
         [TestCase("y = ['1'..'4']")]
-        [TestCase("y = [1.0..4.0]")]
+        
         [TestCase("y = [1..7..]")]
         [TestCase("y = [1....2]")]
         [TestCase("y = [..2..2]")]
@@ -255,47 +255,7 @@ filtrat   = x.filter(i:int ->i> filt) # filt - входная переменна
             Assert.Throws<FunParseException>(
                 () => FunBuilder.BuildDefault(expr));
 
-        [TestCase("y = t.concat(t[0])")]
-        [TestCase("y = t.concat(t[0][0])")]
-        [TestCase("y = t.concat(t[0][0][0])")]
-        [TestCase("y = t.concat(t[0][0][0][0])")]
-        [TestCase("y = t[0].concat(t[0][0])")]
-        [TestCase("y = t[0].concat(t[0][0][0])")]
-        [TestCase("y = t[0].concat(t[0][0][0][0])")]
-        [TestCase("y = t[0][0].concat(t[0][0][0])")]
-        [TestCase("y = t[0][0].concat(t[0][0][0][0])")]
-        [TestCase("y = t[0][0][0].concat(t[0][0][0][0])")]
-        [TestCase("y = t[t])")]
-        [TestCase("y = t[0][t])")]
-        [TestCase("y = t[0][0][t])")]
-        [TestCase("y = t[0][0][t[0]])")]
-        [TestCase("y = t[0][0][0][t[0]])")]
-        [TestCase("y = t[0][0][0][t[0][0]])")]
-        [TestCase("y = if(t.count() < 2) t else t[1:].reverse().concat(t[0])")]
-        [TestCase("f(t) = if(t.count() < 2) t else t[1:].reverse().concat(t[0])")]
-        [TestCase("f(t) = t[1:].reverse().concat(t[0])")]
-        [TestCase("f(t) = t.reverse().concat(t[0])")]
-        [TestCase("f(t) = t.concat(t[0])")]
-        [TestCase("f(t) = t.concat(t[0])")]
-        [TestCase("f(t) = t.concat(t[0][0])")]
-        [TestCase("f(t) = t.concat(t[0][0][0])")]
-        [TestCase("f(t) = t.concat(t[0][0][0][0])")]
-        [TestCase("f(t) = t[0].concat(t[0][0])")]
-        [TestCase("f(t) = t[0].concat(t[0][0][0])")]
-        [TestCase("f(t) = t[0].concat(t[0][0][0][0])")]
-        [TestCase("f(t) = t[0][0].concat(t[0][0][0])")]
-        [TestCase("f(t) = t[0][0].concat(t[0][0][0][0])")]
-        [TestCase("f(t) = t[0][0][0].concat(t[0][0][0][0])")]
-        [TestCase("f(t) = t[t])")]
-        [TestCase("f(t) = t[0][t])")]
-        [TestCase("f(t) = t[0][0][t])")]
-        [TestCase("f(t) = t[0][0][t[0]])")]
-        [TestCase("f(t) = t[0][0][0][t[0]])")]
-        [TestCase("f(t) = t[0][0][0][t[0][0]])")]
-        public void ObviouslyFailsWithRecursiveTypeDefenitionOnParse(string expr) =>
-            Assert.Throws<FunParseException>(
-                () => FunBuilder.BuildDefault(expr));
-
+      
         [TestCase("y = [1..2..-2]")]
         [TestCase("y = [1..2..0]")]
         [TestCase("y = [4..1..-2]")]

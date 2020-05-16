@@ -21,6 +21,6 @@ namespace NFun.SyntaxParsing.Visitors
         T Visit(VarDefenitionSyntaxNode node);
         T Visit(VariableSyntaxNode node);
         T Visit(ResultFunCallSyntaxNode node);
-
+        T Visit(MetaInfoSyntaxNode anonymFunNode);
     }
 }

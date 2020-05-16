@@ -47,15 +47,16 @@ namespace NFun.Interpritation.Functions
 
         public static void CreateSomeConcrete(GenericUserFunction function)
         {
-            var varType = new List<VarType>();
-            foreach (var constrains in function._constrainsMap)
+            var varType = new VarType[function._constrainsMap.Length];
+
+            for (var i = 0; i < function._constrainsMap.Length; i++)
             {
-                var anc = constrains.Ancestor ?? Primitive.Any;
+                var anc = function._constrainsMap[i].Ancestor ?? Primitive.Any;
                 var concrete = TicTypesConverter.ToConcrete(anc.Name);
-                varType.Add(concrete);
+                varType[i] =concrete;
             }
 
-            function.CreateConcrete(varType.ToArray());
+            function.CreateConcrete(varType);
         }
 
         private GenericUserFunction(
@@ -86,8 +87,8 @@ namespace NFun.Interpritation.Functions
             var returnType = funType.FunTypeSpecification.Output;
             var argTypes = funType.FunTypeSpecification.Inputs;
 
-            //Создаем прототип и сразу кладем его в кеш.
-            //Это нужно для того, что бы в случае рекурсивного билда - прототип уже был в кеше
+            //Create function prototype and put it to cache for recursive cases
+            //If the function is recursive - function will take recursive prototype from cache
             var concretePrototype = new ConcreteUserFunctionPrototype(Name, returnType, argTypes);
             _concreteFunctionsCache.Add(id, concretePrototype);
 
@@ -96,8 +97,6 @@ namespace NFun.Interpritation.Functions
                     solving: _typeInferenceResults,
                     tiToLangTypeConverter: converter),
                 exitVisitor: new ApplyTiResultsExitVisitor());
-
-           
 
             var function = _syntaxNode.BuildConcrete(
                 argTypes:   argTypes, 

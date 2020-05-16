@@ -72,11 +72,11 @@ namespace Funny.Tests.UserFunctions
                           # run thru array 
                           # and swap every unsorted values
                           onelineSort(input:int[]):int[] =  
-  	                        [0..input.count()-2].reduce(input, swapIfNotSorted)		
+  	                        [0..input.count()-2].fold(input, swapIfNotSorted)		
 
                           bubbleSort(input:int[]):int[]=
   	                        [0..input.count()-1]
-  		                        .reduce(
+  		                        .fold(
   			                        input, 
   			                        (c,i)-> c.onelineSort())
 

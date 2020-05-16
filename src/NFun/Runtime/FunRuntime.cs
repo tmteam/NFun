@@ -9,6 +9,7 @@ namespace NFun.Runtime
 {
     public class FunRuntime
     {
+        public IEnumerable<VariableSource> GetAllVariableSources() => _variables.GetAllSources();
         public VarInfo[] Inputs => _variables.GetAllSources()
             .Where(v => !v.IsOutput)
             .Select(s => new VarInfo(false,  s.Type,s.Name, s.IsStrictTyped, s.Attributes)).ToArray();
@@ -29,6 +30,11 @@ namespace NFun.Runtime
             UserFunctions = userFunctions;
         }
 
+        public void Update()
+        {
+            foreach (var e in _equations)
+                e.CalcExpression();
+        }
         public CalculationResult Calculate(params VarVal[] vars)
         {
             foreach (var value in vars)
@@ -41,12 +47,9 @@ namespace NFun.Runtime
             }
             
             var ans = new VarVal[_equations.Count];
-            for (int i = 0; i < _equations.Count; i++)
-            { 
-                var e = _equations[i];
-                ans[i] = new VarVal(e.Id, e.Expression.Calc(), e.Expression.Type);
-                _variables.GetSourceOrNull(e.Id).Value = ans[i].Value;
-            }
+            for (int i = 0; i < _equations.Count; i++) 
+                ans[i] = _equations[i].CalcExpression();
+            
             return new CalculationResult(ans);
         }
     }

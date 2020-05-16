@@ -103,14 +103,19 @@ namespace NFun.Interpritation.Functions
         
         public abstract object Calc(object[] args);
 
-        public virtual FunctionBase CreateConcrete(VarType[] concreteTypes)
-        {
-            return new ConcreteGenericFunction(
+        public virtual FunctionBase CreateConcrete(VarType[] concreteTypesMap) =>
+            new ConcreteGenericFunction(
                 calc: Calc,
                 name: Name,
-                returnType: VarType.SubstituteConcreteTypes(ReturnType, concreteTypes),
-                argTypes: ArgTypes.Select(a => VarType.SubstituteConcreteTypes(a, concreteTypes))
-                    .ToArray());
+                returnType: VarType.SubstituteConcreteTypes(ReturnType, concreteTypesMap),
+                argTypes: SubstitudeArgTypes(concreteTypesMap));
+
+        private VarType[] SubstitudeArgTypes(VarType[] concreteTypes)
+        {
+            var concreteArgTypes = new VarType[ArgTypes.Length];
+            for (int i = 0; i < concreteArgTypes.Length; i++)
+                concreteArgTypes[i] = VarType.SubstituteConcreteTypes(ArgTypes[i], concreteTypes);
+            return concreteArgTypes;
         }
 
         public FunctionBase CreateConcreteOrNull(VarType outputType, params VarType[] concreteArgTypes)
@@ -148,13 +153,11 @@ namespace NFun.Interpritation.Functions
                 calc: Calc, 
                 name: Name, 
                 returnType:  VarType.SubstituteConcreteTypes(ReturnType, solvingParams), 
-                argTypes: ArgTypes.Select(a=>VarType.SubstituteConcreteTypes(a,solvingParams))
-                    .ToArray());
+                argTypes: SubstitudeArgTypes(solvingParams));
         }
         /// <summary>
-        /// На основании сигнатуры вызова (с конкретными типами) вычисляет список дженерик аргументов
-        /// соответствующий этому вызову
-        /// </summary>
+        /// calculates generic call arguments  based on a concrete call signature
+        /// </summary> 
         public VarType[] CalcGenericArgTypeList(FunTypeSpecification funTypeSpecification)
         {
             var result = new VarType[GenericDefenitions.Length];
