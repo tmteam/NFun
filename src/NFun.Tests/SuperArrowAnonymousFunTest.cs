@@ -48,12 +48,30 @@ namespace Funny.Tests
 
         [TestCase(@"y = [[1,2],[3,4],[5,6]].map{ it.map{it+1}.sum()}", new[]{5.0,9,13})]
         [TestCase(@"y = [[1,2],[3,4],[5,6]].fold(-10) { it1+ it2.sum()}", 11.0)]
+        [TestCase(@"y = {it+1}(3.0)", 4.0)]
+        [TestCase(@"f = {it+1}; y = f(3.0)", 4.0)]
+        [TestCase(@"f = ({it+1}); y = f(3.0)", 4.0)]
+        [TestCase(@"y = ({it+1})(3.0)", 4.0)]
+        [TestCase(@"y = (({it+1}))(3.0)", 4.0)]
+
+        [TestCase(@"car3(g) = g(2); y = car3({it-1})   ", 1.0)]
+        [TestCase(@"car4(g) = g(2); y =   car4{it}   ", 2.0)]
+        [TestCase(@"car4(g) = g(2); y =   car4({it})   ", 2.0)]
+
+        [TestCase(@"call5(f, x) = f(x); y = call5({it+1},  1)", 2.0)]
+        [TestCase(@"call6(f, x) = f(x); y = call6({it+1.0}, 1.0)", 2.0)]
+
+        [TestCase(@"call8(f) = {f(it)}; y = call8({it+1})(2)", 3.0)]
+        [TestCase(@"call9(f) = {f(it)}; y = ({it+1}).call9()(2)", 3.0)]
+
+        [TestCase(@"call10(f,x) = {f(x,it)}; y =  max.call10(3)(2)", 3.0)]
+        [TestCase(@"call11() = {it}; y =  call11()(2)", 2.0)]
         public void AnonymousFunctions_ConstantEquation(string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
             CollectionAssert.IsEmpty(runtime.Inputs,"Unexpected inputs on constant equations");
             runtime.Calculate()
-                .AssertReturns(VarVal.New("y", expected));
+                .AssertHas(VarVal.New("y", expected));
         }
         [TestCase( "y = [1.0,2.0,3.0].map{it*x1*x2}",3.0,4.0, new []{12.0,24.0,36.0})]
         [TestCase( "x1:int\rx2:int\ry = [1,2,3].map{it*x1*x2}",3,4, new []{12,24,36})]

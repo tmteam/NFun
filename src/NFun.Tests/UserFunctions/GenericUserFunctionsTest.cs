@@ -43,6 +43,12 @@ namespace Funny.Tests.UserFunctions
         [TestCase("first(a, f) = a.filter(f)[0] \r y = [1.0,2.0,3.0].first((i)->i>1)", 2.0)]
         [TestCase("filtrepeat(a, f) = a.concat(a).filter(f) \r y = [1.0,2.0,3.0].filtrepeat((i)->i>1)", new[]{2.0,3.0,2.0,3.0})]
         [TestCase("concat(a, b,c) = a.concat(b).concat(c) \r y:int[] = concat([1,2],[3,4],[5,6])", new[]{1,2,3,4,5,6})]
+        [TestCase(@"car1(g) = g(2); my(x)=x-1; y =  car1(my)   ", 1.0)]
+        [TestCase(@"car1(g) = g(2,3,4); my(a,b,c)=a+b+c; y = car1(my)   ", 9.0)]
+        [TestCase(@"choose(f1, f2,  selector, arg1, arg2) = if(selector) f1(arg1,arg2) else f2(arg1,arg2); 
+                   y =  choose(max, min, true, 1,2)", 2.0)]
+        [TestCase(@"car0(g) = g(2,4); y = car0(max)    ", 4.0)]
+        [TestCase(@"car2(g) = g(2,4); y = car2(min)    ", 2.0)]
         public void ConstantEquation(string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
