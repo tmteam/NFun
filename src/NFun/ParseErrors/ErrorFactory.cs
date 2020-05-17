@@ -631,9 +631,7 @@ namespace NFun.ParseErrors
             return TypesNotSolved(syntaxNodeToSearch);
         }
 
-        public static Exception SuperAnonymousFunctionIsNotClose(int anonymousStart, int anonymousFinish)
-        {
-            throw new NotImplementedException();
-        }
+        public static Exception SuperAnonymousFunctionIsNotClose(int anonymousStart, int anonymousFinish) 
+            => FunParseException.ErrorStubToDo("SuperAnonymousFunctionIsNotClose");
     }
 }
