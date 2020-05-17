@@ -503,8 +503,8 @@ namespace NFun.ParseErrors
         public static Exception AnonymousFunctionArgumentDuplicates(TypedVarDefSyntaxNode argNode,ISyntaxNode funDefenition)
             => new FunParseException(563, $"'Argument '{argNode.Id}:{argNode.VarType}' of anonymous fun duplicates ", argNode.Interval);
 
-        public static Exception AnonymousFunctionArgumentConflictsWithOuterScope(FunArgumentExpressionNode argNode, ISyntaxNode defenitionNode)
-            => new FunParseException(566, $"'Argument name '{argNode.Name}' of anonymous fun conflicts with outer scope variable. It is denied for your safety.", defenitionNode.Interval);
+        public static Exception AnonymousFunctionArgumentConflictsWithOuterScope(string argName, Interval defInterval)
+            => new FunParseException(566, $"'Argument name '{argName}' of anonymous fun conflicts with outer scope variable. It is denied for your safety.", defInterval);
         public static Exception AnonymousFunDefenitionIsIncorrect(ArrowAnonymFunctionSyntaxNode arrowAnonymFunNode)
             => new FunParseException(569, $"'Anonym fun defenition is incorrect ", arrowAnonymFunNode.Interval);
         

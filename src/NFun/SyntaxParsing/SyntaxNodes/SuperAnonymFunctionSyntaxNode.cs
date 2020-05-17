@@ -15,7 +15,8 @@ namespace NFun.SyntaxParsing.SyntaxNodes
             Body = body;
             Interval = body.Interval;
         }
-
+        //public string[] ArgNames { get; set; }
+        //public VarType[] ArgValues { get; set; }
         public VarType OutputType { get; set; }
         public int OrderNumber { get; set; }
         public bool IsInBrackets { get; set; }

@@ -84,7 +84,40 @@ namespace NFun.TypeInferenceAdapter
             );
             return true;
         }
-        public bool Visit(SuperAnonymFunctionSyntaxNode node)  => throw new NotImplementedException();
+        public bool Visit(SuperAnonymFunctionSyntaxNode node)
+        {
+            _state.EnterScope(node.OrderNumber);
+
+            var argType = _parentFunctionArgType.FunTypeSpecification;
+            string[] originArgNames = null;
+            string[] aliasArgNames = null;
+
+            if (argType == null || argType.Inputs.Length==1)
+                originArgNames = new[] {"it"};
+            else
+            {
+                originArgNames = new string[argType.Inputs.Length];
+                for (int i = 0; i < argType.Inputs.Length; i++)
+                    originArgNames[i] = $"it{i + 1}";
+            }
+
+            aliasArgNames = new string[originArgNames.Length];
+
+            for (var i = 0; i < originArgNames.Length; i++)
+            {
+                var originName = originArgNames[i];
+                var aliasName = MakeAnonVariableName(node, originName);
+                _state.AddVariableAliase(originName, aliasName);
+                aliasArgNames[i] = aliasName;
+            }
+
+            VisitChildren(node);
+            Trace(node, $"f({string.Join(" ", originArgNames)}):{node.OutputType}= {{{node.OrderNumber}}}");
+            _ticTypeGraph.CreateLambda(node.Body.OrderNumber, node.OrderNumber, aliasArgNames);
+
+            _state.ExitScope();
+            return true;
+        }
 
         public bool Visit(ArrowAnonymFunctionSyntaxNode node)
         {
@@ -116,20 +149,20 @@ namespace NFun.TypeInferenceAdapter
 
             VisitChildren(node);
             
-            var argNames = new string[node.ArgumentsDefenition.Length];
+            var aliasNames = new string[node.ArgumentsDefenition.Length];
             for (var i = 0; i < node.ArgumentsDefenition.Length; i++)
             {
                 var syntaxNode = node.ArgumentsDefenition[i];
                 if (syntaxNode is TypedVarDefSyntaxNode typed)
-                    argNames[i] = _state.GetActualName(typed.Id);
+                    aliasNames[i] = _state.GetVariableAlias(typed.Id);
                 else if (syntaxNode is VariableSyntaxNode varNode)
-                    argNames[i] = _state.GetActualName(varNode.Id);
+                    aliasNames[i] = _state.GetVariableAlias(varNode.Id);
             }
 
-            Trace(node, $"f({string.Join(" ", argNames)}):{node.OutputType}= {{{node.OrderNumber}}}");
+            Trace(node, $"f({string.Join(" ", aliasNames)}):{node.OutputType}= {{{node.OrderNumber}}}");
 
             if (node.OutputType == VarType.Empty)
-                _ticTypeGraph.CreateLambda(node.Body.OrderNumber, node.OrderNumber, argNames);
+                _ticTypeGraph.CreateLambda(node.Body.OrderNumber, node.OrderNumber, aliasNames);
             else
             {
                 var retType = (IType)node.OutputType.ConvertToTiType();
@@ -137,7 +170,7 @@ namespace NFun.TypeInferenceAdapter
                     node.Body.OrderNumber,
                     node.OrderNumber,
                     retType,
-                    argNames);
+                    aliasNames);
             }
 
             _state.ExitScope();
@@ -160,7 +193,13 @@ namespace NFun.TypeInferenceAdapter
             return true;
         }
 
-        private VarType _parentFunctionVarType = VarType.Empty;
+
+        /// <summary>
+        /// If we handle function call -
+        /// it shows type of argument that currently handling
+        /// if it is known
+        /// </summary>
+        private VarType _parentFunctionArgType = VarType.Empty;
         public bool Visit(FunCallSyntaxNode node)
         {
             var signature = _dictionary.GetOrNull(node.Id, node.Args.Length);
@@ -176,7 +215,7 @@ namespace NFun.TypeInferenceAdapter
             for (int i = 0; i < node.Args.Length; i++)
             {
                 if (signature != null)
-                    _parentFunctionVarType = signature.ArgTypes[i];
+                    _parentFunctionArgType = signature.ArgTypes[i];
                 node.Args[i].Accept(this);
             }
 
@@ -391,7 +430,7 @@ namespace NFun.TypeInferenceAdapter
             //nfun syntax allows multiple variables to have the same name depending on whether they are functions or not
             //need to know what type of argument is expected - is it variableId, or functionId?
             //if it is function - how many arguments are expected ? 
-            var argType = _parentFunctionVarType;
+            var argType = _parentFunctionArgType;
             if (argType.BaseType == BaseVarType.Fun)// functional argument is expected
             {
                 var argsCount = argType.FunTypeSpecification.Inputs.Length;
@@ -420,7 +459,7 @@ namespace NFun.TypeInferenceAdapter
             }
 
             // usual argument is expected
-            var localId = _state.GetActualName(node.Id);
+            var localId = _state.GetVariableAlias(node.Id);
             _ticTypeGraph.SetVar(localId, node.OrderNumber);
             return true;
         }
@@ -469,7 +508,7 @@ namespace NFun.TypeInferenceAdapter
 
         public GraphBuilder CurrentSolver { get; }
 
-        public string GetActualName(string varName)
+        public string GetVariableAlias(string varName)
             => _aliasTable.GetVariableAlias(varName);
 
         public void EnterScope(int nodeId)

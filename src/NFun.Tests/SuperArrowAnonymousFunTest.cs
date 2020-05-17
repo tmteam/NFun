@@ -24,7 +24,7 @@ namespace Funny.Tests
         [TestCase( @"y = [1.0,2.0,3.0] . fold{it1+it2}",6.0)]
         [TestCase(@"y = fold([1.0,2.0,3.0],{it1+it2})", 6.0)]
 
-        [TestCase(@"y = [1,2,3].fold{it1+it2}", 6)]
+        [TestCase(@"y = [1,2,3].fold{it1+it2}", 6.0)]
         [TestCase( "y = [1.0,2.0,3.0].any{it==1.0}",true)]
         [TestCase( "y = [1.0,2.0,3.0].any{it == 0.0}",false)]
         [TestCase( "y = [1.0,2.0,3.0].all{it >0}",true)]
@@ -32,23 +32,22 @@ namespace Funny.Tests
         [TestCase( "f(m:real[], p):bool = m.all{ it>p } \r y = f([1.0,2.0,3.0],1.0)",false)]
 
         [TestCase("y = [-7,-2,0,1,2,3].filter {it>0}", new[] { 1.0, 2.0, 3.0 })]
-        [TestCase("y = [-1,-2,0,1,2,3].filter {it>0} .fold((i,j)-> i+j)", 6.0 )]
-        [TestCase("y = [-1,-2,0,1,2,3].filter {it>0}.filter(i->i>2)", new[]{3.0})]
-        [TestCase("y = [-1,-2,0,1,2,3].filter {it>0}.map(i->i*i).map(i:int->i*i)", new[]{1,16,81})]
-        [TestCase("y = [-1,-2,0,1,2,3].filter {it>0}.map(i->i*i).map(i->i*i)", new[]{1.0,16.0,81.0})]
+        [TestCase("y = [-1,-2,0,1,2,3].filter {it>0} .fold{it1+it2}", 6.0 )]
+        [TestCase("y = [-1,-2,0,1,2,3].filter {it>0}.filter{it>2}", new[]{3.0})]
+        [TestCase("y:int[] = [-1,-2,0,1,2,3].filter {it>0}.map{it*it}.map{it*it}", new[]{1,16,81})]
+        [TestCase("y = [-1,-2,0,1,2,3].filter {it>0}.map{it*it}.map{it*it}", new[]{1.0,16.0,81.0})]
 
         [TestCase("y = [-1,-2,0,1,2,3].filter{it>0}.fold{it1+it2}", 6.0 )]
         [TestCase("y = [-1,-2,0,1,2,3].filter{it>0}.filter{it>2}", new[]{3.0})]
         [TestCase("y = [-1,-2,0,1,2,3].filter{it>0}.map{it*it}.map{it*it}", new[]{1.0,16.0,81.0})]
 
-        [TestCase("y:int[] = [-1,-2,0,1,2,3].filter(i->i>0).map{it*it}.map{it*it}", new[]{1,16,81})]
-        [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).filter{it>2}", new[]{3})]
-        [TestCase("y:int[] = [-1,-2,0,1,2,3].filter(i->i>0).fold{it1+it2}", 6 )]
-        [TestCase("y:int[] = [-1,-2,0,1,2,3].filter(i->i>0).fold{it1+it2}", 6)]
+        [TestCase("y:int[] = [-1,-2,0,1,2,3].filter{it>0}.map{it*it}.map{it*it}", new[]{1,16,81})]
+        [TestCase("y = [-1,-2,0,1,2,3].filter{it>0}.filter{it>2}", new[]{3.0})]
+        [TestCase("y:int = [-1,-2,0,1,2,3].filter{it>0}.fold{it1+it2}", 6 )]
+        [TestCase("y:real = [-1,-2,0,1,2,3].filter{it>0}.fold{it1+it2}", 6.0)]
 
         [TestCase(@"y = [[1,2],[3,4],[5,6]].map{ it.map{it+1}.sum()}", new[]{5.0,9,13})]
-        [TestCase(@"y = [[1,2],[3,4],[5,6]].fold(-10) { it1+ it2.sum()}}", 11.0)]
-
+        [TestCase(@"y = [[1,2],[3,4],[5,6]].fold(-10) { it1+ it2.sum()}", 11.0)]
         public void AnonymousFunctions_ConstantEquation(string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
@@ -76,8 +75,8 @@ namespace Funny.Tests
         [TestCase( "x:int\r y = [1,2,3].all {it >x}",1, false)]
         [TestCase( @"y = [1.0,2.0,3.0].fold{x}",123.0, 123.0)]
         [TestCase( @"y = [1.0,2.0,3.0].fold{it1+it2+x}",2.0,10.0)]
-        [TestCase(@"y = [1.0,2.0,3.0].fold{it2+x}", 2.0, 7.0)]
-        [TestCase(@"y = [1.0,2.0,3.0].fold{it1+x}", 2.0, 5.0)]
+        [TestCase(@"y = [1.0,2.0,3.0].fold{it2+x}", 2.0, 5.0)]
+        [TestCase(@"y = [1.0,2.0,3.0].fold{it1+x}", 2.0, 4.0)]
         [TestCase(@"y = [[1,2],[3,4],[5,6]].map{it.map{it+x}.sum()}.sum()", 1.0, 25.0)]
 
         public void AnonymousFunctions_SingleArgumentEquation(string expr, double arg, object expected)
@@ -115,6 +114,9 @@ namespace Funny.Tests
         [TestCase( "y = [-x,-x,-x].all(it < 0.0)")]
         [TestCase( "z = [-x,-x,-x] \r  y = z.all(z < 0.0)")]
         [TestCase( "y = [x,2.0,3.0].all({it >1.0}")]
+        [TestCase(@"y = [[1,2],[3,4],[5,6]].fold(-10) { it1+ it2.sum()}")]
+        [TestCase("y:int[] = [-1,-2,0,1,2,3].filter {it>0}.map{it1*it2}.map{it1*it2}")]
+        [TestCase("y = [-1,-2,0,1,2,3].filter {it>0}.map{it1*it2}.map{it1*it2}")]
         public void ObviouslyFailsOnParse(string expr)
         {
             var ex = Assert.Throws<FunParseException>(
