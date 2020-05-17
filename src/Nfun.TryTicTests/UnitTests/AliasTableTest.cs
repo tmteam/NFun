@@ -8,13 +8,13 @@ namespace Nfun.ModuleTests.UnitTests
         [Test]
         public void EmptyTable_HasVariableReturnsNull()
         {
-            var table = new AliasTable();
+            var table = new VariableScopeAliasTable();
             Assert.IsFalse(table.HasVariable("some"));
         }
         [Test]
         public void AddVariableAlias_AliasDoesNotEqualOriginName()
         {
-            var table = new AliasTable();
+            var table = new VariableScopeAliasTable();
             var name = "some";
             table.AddVariableAlias(1, name);
             var result = table.GetVariableAlias(name);
@@ -26,24 +26,24 @@ namespace Nfun.ModuleTests.UnitTests
         [Test]
         public void AddVariableAlias_DifferentLayersGotDifferentNames()
         {
-            var table = new AliasTable();
+            var table = new VariableScopeAliasTable();
             
             var name = "some";
             table.AddVariableAlias(1, name);
             var level0alias = table.GetVariableAlias(name);
-            table.InitVariableScope(12, new[]{name});
+            table.EnterScope(12, new[]{name});
             var level1alias = table.GetVariableAlias(name);
-            table.InitVariableScope(42, new[]{name});
+            table.EnterScope(42, new[]{name});
             
             var level2alias = table.GetVariableAlias(name);
             
             Assert.AreNotEqual(level2alias, level1alias);
             Assert.AreNotEqual(level2alias, level0alias);
             
-            table.ExitVariableScope();
+            table.ExitScope();
             Assert.AreEqual(level1alias, table.GetVariableAlias(name));                
             
-            table.ExitVariableScope();
+            table.ExitScope();
             Assert.AreEqual(level0alias, table.GetVariableAlias(name));                
         }
     }

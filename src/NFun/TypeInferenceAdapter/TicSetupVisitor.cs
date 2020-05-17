@@ -17,7 +17,7 @@ namespace NFun.TypeInferenceAdapter
 {
     public class TicSetupVisitor : ISyntaxNodeVisitor<bool>
     {
-        private readonly SetupTiState _state;
+        private readonly VariableScopeAliasTable _aliasScope;
         private readonly GraphBuilder _ticTypeGraph;
         private readonly IFunctionDicitionary _dictionary;
         private readonly TypeInferenceResultsBuilder _resultsBuilder;
@@ -28,7 +28,7 @@ namespace NFun.TypeInferenceAdapter
             IFunctionDicitionary dictionary,
             TypeInferenceResultsBuilder resultsBuilder)
         {
-            var visitor = new TicSetupVisitor(new SetupTiState(builder), dictionary, resultsBuilder);
+            var visitor = new TicSetupVisitor(builder, dictionary, resultsBuilder);
             foreach (var syntaxNode in nodes)
             {
                 if (!syntaxNode.Accept(visitor))
@@ -36,13 +36,30 @@ namespace NFun.TypeInferenceAdapter
             }
             return true;
         }
-        internal TicSetupVisitor(SetupTiState state, IFunctionDicitionary dictionary,
+        internal TicSetupVisitor(GraphBuilder ticTypeGraph,  IFunctionDicitionary dictionary,
             TypeInferenceResultsBuilder resultsBuilder)
         {
-            _state = state;
+            _aliasScope = new VariableScopeAliasTable();
             _dictionary = dictionary;
             _resultsBuilder = resultsBuilder;
-            _ticTypeGraph = state.CurrentSolver;
+            _ticTypeGraph = ticTypeGraph;
+        }
+
+        public bool Visit(SyntaxTree node) => VisitChildren(node);
+        public bool Visit(EquationSyntaxNode node)
+        {
+            VisitChildren(node);
+
+            Trace(node, $"{node.Id}:{node.OutputType} = {node.Expression.OrderNumber}");
+
+            if (node.OutputTypeSpecified)
+            {
+                var type = node.OutputType.ConvertToTiType();
+                _ticTypeGraph.SetVarType(node.Id, type);
+            }
+
+            _ticTypeGraph.SetDef(node.Id, node.Expression.OrderNumber);
+            return true;
         }
         public bool Visit(UserFunctionDefenitionSyntaxNode node)
         {
@@ -86,7 +103,7 @@ namespace NFun.TypeInferenceAdapter
         }
         public bool Visit(SuperAnonymFunctionSyntaxNode node)
         {
-            _state.EnterScope(node.OrderNumber);
+            _aliasScope.EnterScope(node.OrderNumber);
 
             var argType = _parentFunctionArgType.FunTypeSpecification;
             string[] originArgNames = null;
@@ -107,7 +124,7 @@ namespace NFun.TypeInferenceAdapter
             {
                 var originName = originArgNames[i];
                 var aliasName = MakeAnonVariableName(node, originName);
-                _state.AddVariableAliase(originName, aliasName);
+                _aliasScope.AddVariableAlias(originName, aliasName);
                 aliasArgNames[i] = aliasName;
             }
 
@@ -115,13 +132,12 @@ namespace NFun.TypeInferenceAdapter
             Trace(node, $"f({string.Join(" ", originArgNames)}):{node.OutputType}= {{{node.OrderNumber}}}");
             _ticTypeGraph.CreateLambda(node.Body.OrderNumber, node.OrderNumber, aliasArgNames);
 
-            _state.ExitScope();
+            _aliasScope.ExitScope();
             return true;
         }
-
         public bool Visit(ArrowAnonymFunctionSyntaxNode node)
         {
-            _state.EnterScope(node.OrderNumber);
+            _aliasScope.EnterScope(node.OrderNumber);
             foreach (var syntaxNode in node.ArgumentsDefenition)
             {
                 string originName;
@@ -144,7 +160,7 @@ namespace NFun.TypeInferenceAdapter
                 else
                     throw ErrorFactory.AnonymousFunArgumentIsIncorrect(syntaxNode);
 
-                _state.AddVariableAliase(originName, anonymName);
+                _aliasScope.AddVariableAlias(originName, anonymName);
             }
 
             VisitChildren(node);
@@ -154,9 +170,9 @@ namespace NFun.TypeInferenceAdapter
             {
                 var syntaxNode = node.ArgumentsDefenition[i];
                 if (syntaxNode is TypedVarDefSyntaxNode typed)
-                    aliasNames[i] = _state.GetVariableAlias(typed.Id);
+                    aliasNames[i] = _aliasScope.GetVariableAlias(typed.Id);
                 else if (syntaxNode is VariableSyntaxNode varNode)
-                    aliasNames[i] = _state.GetVariableAlias(varNode.Id);
+                    aliasNames[i] = _aliasScope.GetVariableAlias(varNode.Id);
             }
 
             Trace(node, $"f({string.Join(" ", aliasNames)}):{node.OutputType}= {{{node.OrderNumber}}}");
@@ -173,27 +189,10 @@ namespace NFun.TypeInferenceAdapter
                     aliasNames);
             }
 
-            _state.ExitScope();
+            _aliasScope.ExitScope();
             return true;
         }
-
-        public bool Visit(EquationSyntaxNode node)
-        {
-            VisitChildren(node);
-
-            Trace(node, $"{node.Id}:{node.OutputType} = {node.Expression.OrderNumber}");
-
-            if (node.OutputTypeSpecified)
-            {
-                var type = node.OutputType.ConvertToTiType();
-                _ticTypeGraph.SetVarType(node.Id, type);
-            }
-
-            _ticTypeGraph.SetDef(node.Id, node.Expression.OrderNumber);
-            return true;
-        }
-
-
+        
         /// <summary>
         /// If we handle function call -
         /// it shows type of argument that currently handling
@@ -266,8 +265,6 @@ namespace NFun.TypeInferenceAdapter
             _ticTypeGraph.SetCall(types, ids);
             return true;
         }
-
-
         public bool Visit(ResultFunCallSyntaxNode node)
         {
             VisitChildren(node);
@@ -294,8 +291,7 @@ namespace NFun.TypeInferenceAdapter
                 node.OrderNumber);
             return true;
         }
-
-
+        public bool Visit(IfCaseSyntaxNode node) => VisitChildren(node);
         public bool Visit(ConstantSyntaxNode node)
         {
             Trace(node, $"Constant {node.Value}:{node.ClrTypeName}");
@@ -309,7 +305,6 @@ namespace NFun.TypeInferenceAdapter
                 throw new InvalidOperationException("Complex constant type is not supported");
             return true;
         }
-
         public bool Visit(GenericIntSyntaxNode node)
         {
             Trace(node, $"IntConst {node.Value}:{(node.IsHexOrBin ? "hex" : "int")}");
@@ -394,35 +389,6 @@ namespace NFun.TypeInferenceAdapter
 
             return true;
         }
-
-        public bool Visit(SyntaxTree node)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool Visit(TypedVarDefSyntaxNode node)
-        {
-            VisitChildren(node);
-
-            Trace(node, $"Tvar {node.Id}:{node.VarType}  ");
-            if (node.VarType != VarType.Empty)
-            {
-                var type = node.VarType.ConvertToTiType();
-                _ticTypeGraph.SetVarType(node.Id, type);
-            }
-
-            return true;
-        }
-        public bool Visit(VarDefenitionSyntaxNode node)
-        {
-            VisitChildren(node);
-
-            Trace(node, $"VarDef {node.Id}:{node.VarType}  ");
-            var type = node.VarType.ConvertToTiType();
-            _ticTypeGraph.SetVarType(node.Id, type);
-            return true;
-        }
-
         public bool Visit(VariableSyntaxNode node)
         {
             Trace(node, $"VAR {node.Id} ");
@@ -459,13 +425,34 @@ namespace NFun.TypeInferenceAdapter
             }
 
             // usual argument is expected
-            var localId = _state.GetVariableAlias(node.Id);
+            var localId = _aliasScope.GetVariableAlias(node.Id);
             _ticTypeGraph.SetVar(localId, node.OrderNumber);
             return true;
         }
-        public bool Visit(MetaInfoSyntaxNode node) => true;
-        public bool Visit(IfCaseSyntaxNode node) => VisitChildren(node);
+        public bool Visit(TypedVarDefSyntaxNode node)
+        {
+            VisitChildren(node);
+
+            Trace(node, $"Tvar {node.Id}:{node.VarType}  ");
+            if (node.VarType != VarType.Empty)
+            {
+                var type = node.VarType.ConvertToTiType();
+                _ticTypeGraph.SetVarType(node.Id, type);
+            }
+
+            return true;
+        }
+        public bool Visit(VarDefenitionSyntaxNode node)
+        {
+            VisitChildren(node);
+
+            Trace(node, $"VarDef {node.Id}:{node.VarType}  ");
+            var type = node.VarType.ConvertToTiType();
+            _ticTypeGraph.SetVarType(node.Id, type);
+            return true;
+        }
         public bool Visit(ListOfExpressionsSyntaxNode node) => VisitChildren(node);
+        public bool Visit(MetaInfoSyntaxNode node) => true;
 
         #region privates
         private RefTo[] InitializeGenericTypes(GenericConstrains[] constrains)
@@ -482,7 +469,6 @@ namespace NFun.TypeInferenceAdapter
 
             return genericTypes;
         }
-        #endregion
 
         private void Trace(ISyntaxNode node, string text)
         {
@@ -493,31 +479,7 @@ namespace NFun.TypeInferenceAdapter
             => LangTiHelper.GetArgAlias("anonymous_" + node.OrderNumber, id);
         private bool VisitChildren(ISyntaxNode node) 
             => node.Children.All(child => child.Accept(this));
-    }
+        #endregion
 
-
-    class SetupTiState
-    {
-        private readonly AliasTable _aliasTable;
-
-        public SetupTiState(GraphBuilder globalSolver)
-        {
-            CurrentSolver = globalSolver;
-            _aliasTable = new AliasTable();
-        }
-
-        public GraphBuilder CurrentSolver { get; }
-
-        public string GetVariableAlias(string varName)
-            => _aliasTable.GetVariableAlias(varName);
-
-        public void EnterScope(int nodeId)
-            => _aliasTable.InitVariableScope(nodeId, new List<string>());
-
-        public void ExitScope()
-            => _aliasTable.ExitVariableScope();
-
-        public bool AddVariableAliase(string originName, string alias)
-            => _aliasTable.AddVariableAlias(originName, alias);
     }
 }

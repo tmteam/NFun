@@ -9,12 +9,12 @@ namespace Funny.Tests
     [TestFixture]
     public class SuperAnonymousFunTest
     {
-        [TestCase( @"y = [11.0,20.0,1.0,2.0].filter{it>10}",new[]{11.0,20.0})]
         [TestCase( @"y = [11.0,20.0,1.0,2.0].filter {it>10}",new[]{11.0,20.0})]
-        [TestCase(@"y = [11.0,20.0,1.0,2.0].filter {it>10}", new[] { 11.0, 20.0 })]
+        [TestCase( @"y = [11.0,20.0,1.0,2.0].filter {it>10}",new[]{11.0,20.0})]
+        [TestCase(@"y = [11.0,20.0,1.0,2.0].filter  {it>10}", new[] { 11.0, 20.0 })]
 
         [TestCase( @"y = [11.0,20.0,1.0,2.0].filter({it>10})",new[]{11.0,20.0})]
-        [TestCase(@"y = filter([11.0,20.0,1.0,2.0],{it>10})", new[] { 11.0, 20.0 })]
+        [TestCase(@"y = filter([11.0,20.0,1.0,2.0], {it>10})", new[] { 11.0, 20.0 })]
         [TestCase(@"y = filter([11.0,20.0,1.0,2.0]) {it>10} ", new[] { 11.0, 20.0 })]
 
         [TestCase(@"y:int[] = [11,20,1,2].filter{it>10}", new[]{11,20})]
@@ -25,10 +25,10 @@ namespace Funny.Tests
         [TestCase(@"y = fold([1.0,2.0,3.0],{it1+it2})", 6.0)]
 
         [TestCase(@"y = [1,2,3].fold{it1+it2}", 6.0)]
-        [TestCase( "y = [1.0,2.0,3.0].any{it==1.0}",true)]
-        [TestCase( "y = [1.0,2.0,3.0].any{it == 0.0}",false)]
-        [TestCase( "y = [1.0,2.0,3.0].all{it >0}",true)]
-        [TestCase( "y = [1.0,2.0,3.0].all  {it >1.0}",false)]
+        [TestCase( "y = [1.0,2.0,3.0].any {it==1.0}",true)]
+        [TestCase( "y = [1.0,2.0,3.0].any {it == 0.0}",false)]
+        [TestCase( "y = [1.0,2.0,3.0].all {it >0}",true)]
+        [TestCase( "y = [1.0,2.0,3.0].all {it >1.0}",false)]
         [TestCase( "f(m:real[], p):bool = m.all{ it>p } \r y = f([1.0,2.0,3.0],1.0)",false)]
 
         [TestCase("y = [-7,-2,0,1,2,3].filter {it>0}", new[] { 1.0, 2.0, 3.0 })]
@@ -76,7 +76,7 @@ namespace Funny.Tests
         [TestCase( @"y = [1.0,2.0,3.0].fold{x}",123.0, 123.0)]
         [TestCase( @"y = [1.0,2.0,3.0].fold{it1+it2+x}",2.0,10.0)]
         [TestCase(@"y = [1.0,2.0,3.0].fold{it2+x}", 2.0, 5.0)]
-        [TestCase(@"y = [1.0,2.0,3.0].fold{it1+x}", 2.0, 4.0)]
+        [TestCase(@"y = [1.0,2.0,3.0].fold{it1+x}", 2.0, 5.0)]
         [TestCase(@"y = [[1,2],[3,4],[5,6]].map{it.map{it+x}.sum()}.sum()", 1.0, 25.0)]
 
         public void AnonymousFunctions_SingleArgumentEquation(string expr, double arg, object expected)
