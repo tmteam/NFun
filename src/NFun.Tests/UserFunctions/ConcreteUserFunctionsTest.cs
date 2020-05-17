@@ -80,7 +80,7 @@ namespace Funny.Tests.UserFunctions
   	                        [0..input.count()-1]
   		                        .fold(
   			                        input, 
-  			                        (c,i)-> c.onelineSort())
+  			                        {onelineSort(it1)})
 
                           
                           i:int[]  = [1,4,3,2,5].bubbleSort()";

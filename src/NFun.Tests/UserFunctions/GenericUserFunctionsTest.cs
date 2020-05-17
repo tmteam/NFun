@@ -39,9 +39,9 @@ namespace Funny.Tests.UserFunctions
         [TestCase("first(a) = a[0]\r y = [5,4,3].first()",5.0)]
         [TestCase("first(a) = a[0]\r y = [[5,4],[3,2],[1]].first()",new[]{5.0,4.0})]
         [TestCase("first(a) = a[0]\r y = [[5.0,4.0],[3.0,2.0],[1.0]].first().first()",5.0)]
-        [TestCase("first(a, f) = a.filter(f)[0] \r y = [1,2,3].first((i)->i>1)", 2.0)]
-        [TestCase("first(a, f) = a.filter(f)[0] \r y = [1.0,2.0,3.0].first((i)->i>1)", 2.0)]
-        [TestCase("filtrepeat(a, f) = a.concat(a).filter(f) \r y = [1.0,2.0,3.0].filtrepeat((i)->i>1)", new[]{2.0,3.0,2.0,3.0})]
+        [TestCase("first(a, f) = a.filter(f)[0] \r y = [1,2,3].first{it>1}", 2.0)]
+        [TestCase("first(a, f) = a.filter(f)[0] \r y = [1.0,2.0,3.0].first{it>1}", 2.0)]
+        [TestCase("filtrepeat(a, f) = a.concat(a).filter(f) \r y = [1.0,2.0,3.0].filtrepeat{it>1}", new[]{2.0,3.0,2.0,3.0})]
         [TestCase("concat(a, b,c) = a.concat(b).concat(c) \r y:int[] = concat([1,2],[3,4],[5,6])", new[]{1,2,3,4,5,6})]
         [TestCase(@"car1(g) = g(2); my(x)=x-1; y =  car1(my)   ", 1.0)]
         [TestCase(@"car1(g) = g(2,3,4); my(a,b,c)=a+b+c; y = car1(my)   ", 9.0)]
@@ -156,11 +156,7 @@ namespace Funny.Tests.UserFunctions
                           onelineSort(input) =  
   	                        [0..input.count()-2].fold(input, swapIfNotSorted)		
 
-                          bubbleSort(input)=
-  	                        [0..input.count()-1]
-  		                        .fold(
-  			                        input, 
-  			                        (c,i)-> c.onelineSort())
+                          bubbleSort(input)= [0..input.count()-1].fold(input){onelineSort(it1)}
 
                           i:int[]  = [1,4,3,2,5].bubbleSort()
                           r:real[] = [1,4,3,2,5].bubbleSort()

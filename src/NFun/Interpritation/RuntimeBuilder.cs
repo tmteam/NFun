@@ -155,23 +155,10 @@ namespace NFun.Interpritation
 
             try
             {
-
                 if (!TicSetupVisitor.Run(new[] {functionSyntaxNode}, graphBuider, functionsDictionary,
                     resultsBuilder))
-                {
                     throw FunParseException.ErrorStubToDo($"Function '{functionSyntaxNode.Id}' is not solved");
-
-                }
-
-
-                ////setup body type inference
-                //if (!LangTiHelper.SetupTiOrNull(
-                //    functionSyntaxNode,
-                //    functionsDictionary,
-                //    resultsBuilder,
-                //    new SetupTiState(graphBuider)))
-                //    throw FunParseException.ErrorStubToDo($"Function '{functionSyntaxNode.Id}' is not solved");
-
+                
                 // solve the types
                 types = graphBuider.Solve();
             }
