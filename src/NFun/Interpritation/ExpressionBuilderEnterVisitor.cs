@@ -75,9 +75,6 @@ namespace NFun.Interpritation
                 }
             }
 
-            var startOfDefenionInterval =
-                Interval.New(arrowAnonymFunNode.Interval.Start, arrowAnonymFunNode.Interval.Start + 1);
-
             //Prepare local variable scope
             //Capture all outerscope variables
             var localVariables = new VariableDictionary(_variables.GetAllSources());
@@ -91,18 +88,9 @@ namespace NFun.Interpritation
                 //collect argument
                 arguments.Add(source);
                 //add argument to local scope
-                if (!localVariables.TryAdd(source))
-                {
-                    //Check for duplicated arg-names
-                    //If outer-scope contains the conflict variable name
-                    if (_variables.GetSourceOrNull(arg) != null)
-                        throw ErrorFactory.AnonymousFunctionArgumentConflictsWithOuterScope(arg,
-                            startOfDefenionInterval);
-                    else //else it is duplicated arg name
-                        throw new ImpossibleException("dublicate super anonymous function name");
-                }
+                //if argument with it* name already exist - replace it
+                localVariables.AddOrReplace(source);
             }
-
 
             var body = arrowAnonymFunNode.Body;
             return BuildAnonymousFunction(arrowAnonymFunNode.Interval, body, localVariables, arguments);
@@ -319,7 +307,9 @@ namespace NFun.Interpritation
             var closured = localVariables.GetAllUsages()
                 .Where(s => !originVariables.Contains(s.Source.Name))
                 .ToList();
-
+            var itVar = closured.FirstOrDefault(c => c.Source.Name.StartsWith("it", StringComparison.OrdinalIgnoreCase));
+            if (itVar != null) 
+                throw FunParseException.ErrorStubToDo("Unexpected it* variable");
             //Add closured vars to outer-scope dictionary
             foreach (var newVar in closured)
                 _variables.TryAdd(newVar); //add full usage info to allow analyze outer errors

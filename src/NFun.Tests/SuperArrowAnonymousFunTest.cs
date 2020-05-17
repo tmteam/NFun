@@ -56,6 +56,7 @@ namespace Funny.Tests
 
         [TestCase(@"car3(g) = g(2); y = car3({it-1})   ", 1.0)]
         [TestCase(@"car4(g) = g(2); y =   car4{it}   ", 2.0)]
+        [TestCase(@"car41(g) = g(2); y =   car41 {it}   ", 2.0)]
         [TestCase(@"car4(g) = g(2); y =   car4({it})   ", 2.0)]
 
         [TestCase(@"call5(f, x) = f(x); y = call5({it+1},  1)", 2.0)]
@@ -66,6 +67,8 @@ namespace Funny.Tests
 
         [TestCase(@"call10(f,x) = {f(x,it)}; y =  max.call10(3)(2)", 3.0)]
         [TestCase(@"call11() = {it}; y =  call11()(2)", 2.0)]
+        [TestCase(@"call12 = {it}; y =  call12(2)", 2.0)]
+
         public void AnonymousFunctions_ConstantEquation(string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
@@ -95,7 +98,7 @@ namespace Funny.Tests
         [TestCase( @"y = [1.0,2.0,3.0].fold{it1+it2+x}",2.0,10.0)]
         [TestCase(@"y = [1.0,2.0,3.0].fold{it2+x}", 2.0, 5.0)]
         [TestCase(@"y = [1.0,2.0,3.0].fold{it1+x}", 2.0, 5.0)]
-        [TestCase(@"y = [[1,2],[3,4],[5,6]].map{it.map{it+x}.sum()}.sum()", 1.0, 25.0)]
+        [TestCase(@"y = [[1,2],[3,4],[5,6]].map{it.map{it+x}.sum()}.sum()", 1.0, 27.0)]
 
         public void AnonymousFunctions_SingleArgumentEquation(string expr, double arg, object expected)
         {
@@ -115,7 +118,17 @@ namespace Funny.Tests
 
         }
         [TestCase("y = [1.0].fold{(it1+it2)")]
-        [TestCase("y = [1.0].fold{it1+it2)}")]
+        [TestCase("y = [1.0].fold{It1+it2)}")]
+        [TestCase("y = [1.0].map{It)}")]
+        [TestCase("y = [1.0].map{It1)}")]
+        [TestCase("y = it")]
+        [TestCase("y = it2")]
+        [TestCase("y = it1")]
+        [TestCase("y = it3")]
+        [TestCase("it = x")]
+        [TestCase("it1 = x")]
+        [TestCase("it2 = x")]
+        [TestCase("it3 = x")]
         [TestCase("y = [1.0].fold (it1+it2)}")]
         [TestCase("y = [1.0].fold{it+it2}")]
         [TestCase("y = [1.0].fold{it1+it}")]
@@ -132,7 +145,6 @@ namespace Funny.Tests
         [TestCase( "y = [-x,-x,-x].all(it < 0.0)")]
         [TestCase( "z = [-x,-x,-x] \r  y = z.all(z < 0.0)")]
         [TestCase( "y = [x,2.0,3.0].all({it >1.0}")]
-        [TestCase(@"y = [[1,2],[3,4],[5,6]].fold(-10) { it1+ it2.sum()}")]
         [TestCase("y:int[] = [-1,-2,0,1,2,3].filter {it>0}.map{it1*it2}.map{it1*it2}")]
         [TestCase("y = [-1,-2,0,1,2,3].filter {it>0}.map{it1*it2}.map{it1*it2}")]
         public void ObviouslyFailsOnParse(string expr)

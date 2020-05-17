@@ -214,20 +214,25 @@ namespace NFun.SyntaxParsing
                 return SyntaxNodeFactory.Constant(new TextFunArray(txt.Value),VarType.Text,txt.Interval);
             if (flow.MoveIf(TokType.Id, out var headToken))
             {
-                if (flow.IsCurrent(TokType.Obr))
-                {
+                //fun call
+                // 'id(1,2)'
+                if (flow.IsCurrent(TokType.Obr)) 
                     return ReadFunctionCall(flow, headToken);
-                }
-                else if (flow.IsCurrent(TokType.Colon))
+                //fun call with super anonymous argument
+                // 'id { it*2 }'
+                if (flow.IsCurrent(TokType.FiObr))
+                    return ReadFunctionCall(flow, headToken);
+                // variable with type defenition
+                //'id:int'
+                if (flow.IsCurrent(TokType.Colon))
                 {
                     flow.MoveNext();
                     var type = flow.ReadVarType();
                     return SyntaxNodeFactory.TypedVar(headToken.Value, type, headToken.Start, flow.Position);
                 }
-                else
-                {
-                    return SyntaxNodeFactory.Var(headToken);
-                }
+                // just variable
+                // 'id'
+                return SyntaxNodeFactory.Var(headToken);
             }
 
             if (flow.IsCurrent(TokType.TextOpenInterpolation))
@@ -313,11 +318,13 @@ namespace NFun.SyntaxParsing
                 }
                 else if (opToken.Type == TokType.Obr)
                 {
-                    if (flow.IsPrevious(TokType.NewLine) || flow.Previous.Type != TokType.Cbr)
+                    if (flow.IsPrevious(TokType.NewLine))
+                        return leftNode;
+                    if(!flow.IsPrevious(TokType.Cbr) && !flow.IsPrevious(TokType.FiCbr))
                         return leftNode;
                     //call result of previous expression:
                     // (expr)(arg1, ... argN)
-                    leftNode = ReadFunctionCall(flow, leftNode);
+                    leftNode = ReadResultCall(flow, leftNode);
                 }
                 else if (opToken.Type == TokType.FiObr)
                 {
@@ -694,7 +701,7 @@ namespace NFun.SyntaxParsing
             
             return SyntaxNodeFactory.FunCall(head.Value, arguments.ToArray(), start, flow.Position);
         }
-        private static ISyntaxNode ReadFunctionCall(TokFlow flow, ISyntaxNode functionResultNode)
+        private static ISyntaxNode ReadResultCall(TokFlow flow, ISyntaxNode functionResultNode)
         {
             var obrId = flow.CurrentTokenPosition;
             if (!flow.MoveIf(TokType.Obr))

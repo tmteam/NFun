@@ -35,7 +35,7 @@ namespace NFun.SyntaxParsing
                 flow.SkipNewLines();
                 if (flow.IsDoneOrEof()) break;
 
-                _attributes          = flow.ReadAttributes();
+                _attributes           = flow.ReadAttributes();
                 _startOfTheLine       = flow.IsStartOfTheLine();
                 _exprStartPosition    = flow.Current.Start;
 
@@ -98,8 +98,6 @@ namespace NFun.SyntaxParsing
         /// </summary>
         private void ReadUserFunction( FunCallSyntaxNode fun)
         {
-            //Todo Make operator fun as separate node type
-
             if (!_startOfTheLine)
                 throw ErrorFactory.FunctionDefenitionHasToStartFromNewLine(_exprStartPosition, fun, _flow.Current);
             if (_attributes.Any())

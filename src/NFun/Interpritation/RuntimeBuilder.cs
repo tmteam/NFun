@@ -65,9 +65,14 @@ namespace NFun.Interpritation
                 {
                     var equation = BuildEquationAndPutItToVariables(node, scopeFunctionDictionary, variables, bodyTypeSolving);
                     equations.Add(equation);
+                    if (equation.Id.ToLower().StartsWith("it"))
+                        throw FunParseException.ErrorStubToDo("variable cannot starts with 'it'");
                 }
                 else if (treeNode is VarDefenitionSyntaxNode varDef)
                 {
+                    if (varDef.Id.ToLower().StartsWith("it"))
+                        throw FunParseException.ErrorStubToDo("variable cannot starts with 'it'");
+
                     var variableSource = VariableSource.CreateWithStrictTypeLabel(
                         varDef.Id,
                         varDef.VarType,
@@ -113,7 +118,12 @@ namespace NFun.Interpritation
                 outputVariableSource = VariableSource.CreateWithoutStrictTypeLabel(equation.Id, equation.OutputType, equation.Attributes);
             
             outputVariableSource.IsOutput = true;
-          
+
+            var itVariable = variables.VariableOrNullThatStartsWith("it");
+            if (itVariable != null)
+                throw FunParseException.ErrorStubToDo("Variable cannot starts with it");
+
+
             if (!variables.TryAdd(outputVariableSource))
             {
                 //some equation referenced the source before
