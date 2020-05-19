@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using NFun.Interpritation.Functions;
+using NFun.Runtime.Arrays;
 using NFun.Types;
 
 namespace NFun.BuiltInFunctions
@@ -11,12 +12,48 @@ namespace NFun.BuiltInFunctions
         public NotEqualFunction() : base(CoreFunNames.NotEqual, VarType.Bool, VarType.Generic(0), VarType.Generic(0)) { }
         public override object Calc(object[] args) => !TypeHelper.AreEqual(args[0], args[1]);
     }
+
     public class EqualFunction : GenericFunctionBase
     {
-        public EqualFunction() : base(CoreFunNames.Equal, VarType.Bool, VarType.Generic(0), VarType.Generic(0)) { }
-        public override object Calc(object[] args)
-            => TypeHelper.AreEqual(args[0], args[1]);
+        public EqualFunction() : base(CoreFunNames.Equal, VarType.Bool, VarType.Generic(0), VarType.Generic(0))
+        {
+        }
+
+        public override object Calc(object[] args) 
+            => AreEqual(args[0], args[1]);
+
+        private static bool AreEqual(object left, object right)
+        {
+            if (left is IFunArray le)
+            {
+                if (!(right is IFunArray re))
+                    return false;
+                return AreEquivalent(le, re);
+            }
+
+            if (left.GetType() == right.GetType())
+                return left.Equals(right);
+            return false;
+        }
+
+        private static bool AreEquivalent(IFunArray a, IFunArray b)
+        {
+            if (a.Count != b.Count)
+                return false;
+            if (a.Count == 0)
+                return true;
+            for (int i = 0; i < a.Count; i++)
+            {
+                var elementA = a.GetElementOrNull(i);
+                var elementB = b.GetElementOrNull(i);
+                if (!AreEqual(elementA, elementB))
+                    return false;
+            }
+
+            return true;
+        }
     }
+
     public class MoreFunction : GenericFunctionBase
     {
         public MoreFunction() : base(CoreFunNames.More, GenericConstrains.Comparable,VarType.Bool, VarType.Generic(0), VarType.Generic(0)){}

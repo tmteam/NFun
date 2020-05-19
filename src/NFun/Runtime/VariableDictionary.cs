@@ -22,6 +22,11 @@ namespace NFun.Runtime
             }
         }
         
+        public void AddOrReplace(VariableSource source)
+        {
+            var lower = source.Name.ToLower();
+            _variables[lower] = new VariableUsages(source);
+        }
         /// <summary>
         /// Returns false if variable is already registered
         /// </summary>
@@ -70,7 +75,17 @@ namespace NFun.Runtime
             _variables[name].Usages.AddLast(node);
             return node;
         }
-        
+
+        public VariableUsages VariableOrNullThatStartsWith(string prefix)
+        {
+            foreach (var key in _variables.Keys)
+            {
+                if (key.StartsWith(prefix))
+                    return _variables[key];
+            }
+
+            return null;
+        }
         public VariableUsages GetUsages(string id) 
             => _variables[id.ToLower()];
 

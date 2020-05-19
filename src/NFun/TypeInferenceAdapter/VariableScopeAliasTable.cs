@@ -6,9 +6,9 @@ namespace NFun.TypeInferenceAdapter
     /// <summary>
     /// Variable table. It needs to give special names to variable during TI-setup process
     /// </summary>
-    public class AliasTable
+    public class VariableScopeAliasTable
     {
-        public AliasTable()
+        public VariableScopeAliasTable()
         {
             _variableAliasesStack = new List<Dictionary<string, string>>();
             _variableAliasesStack.Add(new Dictionary<string, string>());
@@ -54,16 +54,17 @@ namespace NFun.TypeInferenceAdapter
             }
             return origin;
         }
-        public void InitVariableScope(int nodeNumber, IList<string> scopeVariables)
+
+        public void EnterScope(int nodeNumber, IList<string> scopeVariables = null)
         {
             var dictionary = new Dictionary<string,string>();
-            foreach (var scopeVariable in scopeVariables)
-            {
-                dictionary.Add(scopeVariable, MakeAlias(nodeNumber, scopeVariable));
-            }
+            if(scopeVariables!=null)
+                foreach (var scopeVariable in scopeVariables)
+                    dictionary.Add(scopeVariable, MakeAlias(nodeNumber, scopeVariable));
+
             _variableAliasesStack.Add(dictionary);
         }
-        public void ExitVariableScope()
+        public void ExitScope()
         {
             _variableAliasesStack.RemoveAt(_variableAliasesStack.Count-1);
         }

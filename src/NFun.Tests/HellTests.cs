@@ -16,7 +16,7 @@ namespace Funny.Tests
             var expr = @" 
             foreachi(arr, f) = [0..arr.count()-1].fold(arr[0], f)
             
-            res:int =  t.foreachi( (acc,i)-> if (acc>t[i]) acc else t[i] )";
+            res:int =  t.foreachi {if (it1>t[it2]) it1 else t[it2]} ";
 
             FunBuilder.BuildDefault(expr).Calculate(
                 VarVal.New("t",new[]{1,2,7,34,1,2}))
@@ -31,7 +31,7 @@ namespace Funny.Tests
 
             max(a, t, i) = max(a, t[i])             
 
-            res:int =  t.foreachi((acc,i)-> max(acc,t,i))";
+            res:int =  t.foreachi {max(it1,t,it2)}";
 
             FunBuilder.BuildDefault(expr).Calculate(
                     VarVal.New("t", new[] { 1, 2, 7, 34, 1, 2 }))
@@ -43,7 +43,7 @@ namespace Funny.Tests
             var expr = @" 
             foreachi(arr, f) = [0..arr.count()-1].fold(arr[0], f)
 
-            res:int =  t.foreachi((acc,i)-> max(acc,t[i]))";
+            res:int =  t.foreachi{ max(it1,t[it2])}";
 
             FunBuilder.BuildDefault(expr).Calculate(
                     VarVal.New("t", new[] { 1, 2, 7, 34, 1, 2 }))
@@ -156,7 +156,7 @@ namespace Funny.Tests
   	                        [0..input.count()-1]
   		                        .fold(
   			                        input, 
-  			                        (c,i)-> c.onelineSort())
+  			                        {onelineSort(it1)})
 
                           
                           i:int[]  = [1,4,3,2,5].bubbleSort()";
@@ -181,48 +181,25 @@ namespace Funny.Tests
                           # run thru array and swap every unsorted values
                           onelineSort(input) =  [0..input.count()-2].fold(input, swapIfNotSorted)		
 
-                          bubbleSort(input)= [0..input.count()-1].fold(input, (c,i)-> c.onelineSort())
+                          bubbleSort(input)= [0..input.count()-1].fold(input, {onelineSort(it1)})
 
                           #body  
                           ins:int[]  = [1,5,3,5,6,1,2,100,0,3,2,10,3,50,6,42,43,53]
                           rns:real[] = ins
-                          tns  = ins.filter(x->x%2==0).map(toText).concat(['vasa','kate'])
+                          tns  = ins.filter{it%2==0}.map(toText).concat(['vasa','kate'])
                         
                           i  = ins.bubbleSort() == ins.reverse().sort()
                           r  = rns.bubbleSort() == rns.sort()
                           t  = tns == tns
 
                           myOr(a,b):bool = a or b  
-                          k =  [0..100].map(x->i and r or t xor i).fold(myOr)
+                          k =  [0..100].map{i and r or t xor i}.fold(myOr)
 
                           mySum(a,b) = a + b  
-                          j =  [0..100].map(x->(ins[1]+ x- ins[2])/x).fold(mySum);
+                          j =  [0..100].map{(ins[1]+ it- ins[2])/it}.fold(mySum);
                    ";
             var res = FunBuilder.BuildDefault(expr).Calculate();
 
         }
-        [Test]
-        public void simple()
-        {
-            var expr = @"        
-                ins:int[]  = [1,5,3,5,6,1,2,100,0,3,2,10,3,50,6,42,43,53]
-                rns: real[] = ins
-                tns = ins.filter(x->x % 2 == 0).map(toText).concat(['vasa', 'kate'])
-
-                i  = ins == ins.reverse().sort()
-                r  = rns == rns.sort()
-                t  = tns == tns
-
-                
-                myOr(a,b):bool = a or b  
-                k =  [0..100].map(x->i and r or t xor i).fold(myOr)
-
-                mySum(a,b) = a + b  
-                j =  [0..100].map(x->(ins[1]+ x- ins[2])/x).fold(mySum);
-            ";
-            var res = FunBuilder.BuildDefault(expr).Calculate();
-
-        }
-
     }
 }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NFun.SyntaxParsing.SyntaxNodes;
 
 namespace NFun.SyntaxParsing.Visitors
@@ -5,19 +6,25 @@ namespace NFun.SyntaxParsing.Visitors
     public abstract class ExitVisitorBase: ISyntaxNodeVisitor<bool>
     {
         protected int CurrentChildNumber = -1;
-        protected ISyntaxNode Parent = null;
-        public void SetChildrenNumber(ISyntaxNode parent, int num)
+        
+        protected  readonly Stack<ISyntaxNode> Route = new Stack<ISyntaxNode>();
+
+        public void OnEnterNode(ISyntaxNode parent, int childNum)
         {
-            Parent = parent;
-            CurrentChildNumber = num;
+            Route.Push(parent);
+            CurrentChildNumber = childNum;
         }
 
-        public virtual bool Visit(AnonymCallSyntaxNode anonymFunNode) => true;
+        public void OnExitNode() => Route.Pop();
+
+
+        public virtual bool Visit(ArrowAnonymFunctionSyntaxNode arrowAnonymFunNode) => true;
         public virtual bool Visit(ArraySyntaxNode node) => true;
         public virtual bool Visit(EquationSyntaxNode node) => true;
         public virtual bool Visit(FunCallSyntaxNode node) => true;
         public virtual bool Visit(ResultFunCallSyntaxNode node) => true;
         public virtual bool Visit(MetaInfoSyntaxNode metaInfoNode)=> true;
+        public virtual bool Visit(SuperAnonymFunctionSyntaxNode arrowAnonymFunNode) => true;
         public virtual bool Visit(IfThenElseSyntaxNode node) => true;
         public virtual  bool Visit(IfCaseSyntaxNode node) => true;
         public virtual bool Visit(ListOfExpressionsSyntaxNode node) => true;

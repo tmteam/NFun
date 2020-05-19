@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using NFun.BuiltInFunctions;
 using NFun.Exceptions;
@@ -63,10 +64,10 @@ namespace NFun.SyntaxParsing
             });
             
             priorities.Add( new [] {
-                    TokType.Or,
-                    TokType.Xor,
-                    TokType.BitOr
-                });
+                TokType.Or,
+                TokType.Xor,
+                TokType.BitOr
+            });
             
             for (byte i = 0; i < priorities.Count; i++)
             {
@@ -169,8 +170,7 @@ namespace NFun.SyntaxParsing
                     }
                 }
                 return SyntaxNodeFactory.OperatorFun(
-                    CoreFunNames.Negate,
-                    new[]{nextNode}, start, nextNode.Interval.Finish);
+                    CoreFunNames.Negate, new[]{nextNode}, start, nextNode.Interval.Finish);
             }
 
             if (flow.MoveIf(TokType.BitInverse))
@@ -191,6 +191,8 @@ namespace NFun.SyntaxParsing
                     CoreFunNames.Not, 
                     new []{node},start, node.Interval.Finish);
             }
+            if (flow.MoveIf(TokType.FiObr))
+                return ReadSuperAnonymousFunction(flow);
             if (flow.MoveIf(TokType.True, out var trueTok))
                 return SyntaxNodeFactory.Constant(true, VarType.Bool,  trueTok.Interval);
             if (flow.MoveIf(TokType.False, out var falseTok))
@@ -205,26 +207,44 @@ namespace NFun.SyntaxParsing
                 var uval = Convert.ToUInt64(val.Replace("_",null).Substring(2), dimensions);
                 return SyntaxNodeFactory.HexOrBinIntConstant(uval, binVal.Interval);
             }
-            if (flow.MoveIf(TokType.IntNumber, out var intVal))        //1,2,3
-                return SyntaxNodeFactory.IntGenericConstant(ulong.Parse(intVal.Value.Replace("_", String.Empty)), intVal.Interval);
+
+            if (flow.MoveIf(TokType.IntNumber, out var intVal))
+            {
+                //1,2,3
+                var decVal = BigInteger.Parse(intVal.Value.Replace("_", String.Empty));
+                if (decVal > ulong.MaxValue)
+                    throw FunParseException.ErrorStubToDo("Too big value");
+                
+                return SyntaxNodeFactory.IntGenericConstant((ulong)decVal,intVal.Interval);
+            }
+
             if (flow.MoveIf(TokType.RealNumber, out var realVal))       //1.0
                 return SyntaxNodeFactory.Constant(double.Parse(realVal.Value.Replace("_", String.Empty), CultureInfo.InvariantCulture), VarType.Real, realVal.Interval);
             if (flow.MoveIf(TokType.Text, out var txt))
                 return SyntaxNodeFactory.Constant(new TextFunArray(txt.Value),VarType.Text,txt.Interval);
             if (flow.MoveIf(TokType.Id, out var headToken))
             {
-                if (flow.IsCurrent(TokType.Obr))
-                    return ReadFunctionCall(flow,headToken);
-                
+                //fun call
+                // 'id(1,2)'
+                if (flow.IsCurrent(TokType.Obr)) 
+                    return ReadFunctionCall(flow, headToken);
+                //fun call with super anonymous argument
+                // 'id { it*2 }'
+                if (flow.IsCurrent(TokType.FiObr))
+                    return ReadFunctionCall(flow, headToken);
+                // variable with type defenition
+                //'id:int'
                 if (flow.IsCurrent(TokType.Colon))
                 {
                     flow.MoveNext();
                     var type = flow.ReadVarType();
                     return SyntaxNodeFactory.TypedVar(headToken.Value, type, headToken.Start, flow.Position);
                 }
-                else
-                    return SyntaxNodeFactory.Var(headToken);
+                // just variable
+                // 'id'
+                return SyntaxNodeFactory.Var(headToken);
             }
+
             if (flow.IsCurrent(TokType.TextOpenInterpolation))
                 return ReadInterpolationText(flow);
             if (flow.IsCurrent(TokType.Obr))
@@ -308,12 +328,25 @@ namespace NFun.SyntaxParsing
                 }
                 else if (opToken.Type == TokType.Obr)
                 {
-
-                    if (flow.IsPrevious(TokType.NewLine) || flow.Previous.Type != TokType.Cbr)
+                    if (flow.IsPrevious(TokType.NewLine))
+                        return leftNode;
+                    if(!flow.IsPrevious(TokType.Cbr) && !flow.IsPrevious(TokType.FiCbr))
                         return leftNode;
                     //call result of previous expression:
                     // (expr)(arg1, ... argN)
-                    leftNode = ReadFunctionCall(flow, leftNode);
+                    leftNode = ReadResultCall(flow, leftNode);
+                }
+                else if (opToken.Type == TokType.FiObr)
+                {
+                    var anonFun = ReadSuperAnonymousFunction(flow);
+                    //super-anonymous-function
+                    // x =  { /*body*/ }
+                    if (!(leftNode is VariableSyntaxNode idNode))
+                        throw FunParseException.ErrorStubToDo("unexpected anonymous function");
+                    
+                    leftNode = SyntaxNodeFactory.FunCall(idNode.Id, new[] {anonFun}, 
+                        start: idNode.Interval.Start, 
+                        end:   anonFun.Interval.Finish);
                 }
                 else
                 {
@@ -345,6 +378,14 @@ namespace NFun.SyntaxParsing
                     //8: '+' priority is higter than 3: return l:((4/2)*5)
                 }
             }
+        }
+
+        private static ISyntaxNode ReadSuperAnonymousFunction(TokFlow flow)
+        {
+            var body = ReadNodeOrNull(flow);
+            if (!flow.MoveIf(TokType.FiCbr))
+                throw ErrorFactory.SuperAnonymousFunctionIsNotClose(body.Interval.Start, flow.CurrentTokenPosition);
+            return new SuperAnonymFunctionSyntaxNode(body);
         }
 
         public static ISyntaxNode ReadInterpolationText(TokFlow flow)
@@ -639,20 +680,38 @@ namespace NFun.SyntaxParsing
         {
             var obrId = flow.CurrentTokenPosition;
             var start = pipedVal?.Interval.Start ?? head.Start;
-            if(!flow.MoveIf(TokType.Obr))
+            List<ISyntaxNode> arguments = null;
+            if (flow.MoveIf(TokType.Obr))
+            {
+                if (!TryReadNodeList(flow, out arguments)
+                    || !flow.MoveIf(TokType.Cbr, out _))
+                    throw ErrorFactory.FunctionArgumentError(head.Value, obrId, flow);
+
+                if (flow.MoveIf(TokType.FiObr))
+                {
+                    //super-anonymous-style-function as last param of function
+                    // out =  fold(x,0){ /*body*/ }
+                    arguments.Add(ReadSuperAnonymousFunction(flow));
+                }
+            }
+            else if (flow.MoveIf(TokType.FiObr))
+            {
+                //super-anonymous-style-function instead of params of function
+                // out =  myFun{ /*body*/ }
+                arguments = new List<ISyntaxNode> { ReadSuperAnonymousFunction(flow)};
+            } 
+            else
+            {
                 throw ErrorFactory.FunctionCallObrMissed(
                     start, head.Value, flow.Position, pipedVal);
+            }
 
-            if (!TryReadNodeList(flow, out var arguments) 
-                || !flow.MoveIf(TokType.Cbr, out var cbr))
-                throw ErrorFactory.FunctionArgumentError(head.Value, obrId, flow);
-            
             if(pipedVal!=null)
                 arguments.Insert(0,pipedVal);
             
-            return SyntaxNodeFactory.FunCall(head.Value, arguments.ToArray(), start, cbr.Finish);
+            return SyntaxNodeFactory.FunCall(head.Value, arguments.ToArray(), start, flow.Position);
         }
-        private static ISyntaxNode ReadFunctionCall(TokFlow flow, ISyntaxNode functionResultNode)
+        private static ISyntaxNode ReadResultCall(TokFlow flow, ISyntaxNode functionResultNode)
         {
             var obrId = flow.CurrentTokenPosition;
             if (!flow.MoveIf(TokType.Obr))
@@ -665,7 +724,7 @@ namespace NFun.SyntaxParsing
             return  new ResultFunCallSyntaxNode(functionResultNode,arguments.ToArray(),  Interval.New(functionResultNode.Interval.Start, cbr.Finish));
         }
 
-        private static bool TryReadNodeList(TokFlow flow, out IList<ISyntaxNode> read)
+        private static bool TryReadNodeList(TokFlow flow, out List<ISyntaxNode> read)
         {
             read = new List<ISyntaxNode>();
             do

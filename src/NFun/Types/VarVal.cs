@@ -9,8 +9,8 @@ namespace NFun.Types
     /// <summary>
     /// Name type and value of concrete variable 
     /// </summary>
-    public struct VarVal {
-
+    public struct VarVal
+    {
         public static VarVal New<T>(string name, T[] value)
         {
             var baseType = ToVarType(typeof(T));
@@ -144,7 +144,8 @@ namespace NFun.Types
         public readonly string Name;
         public readonly object Value;
         public readonly VarType Type;
-        
+        public bool IsEmpty => this.Name == null && this.Type == VarType.Empty;
+
         public VarVal(string name, object value, VarType type)
         {
             Name = name;
@@ -152,9 +153,6 @@ namespace NFun.Types
             Type = type;
         }
 
-        public override string ToString()
-        {
-            return $"{Name}: {Value} of type {Type}";
-        }
+        public override string ToString() => $"{Name}: {Value} of type {Type}";
     }
 }

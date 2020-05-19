@@ -2,11 +2,14 @@ using NFun.SyntaxParsing.SyntaxNodes;
 
 namespace NFun.SyntaxParsing.Visitors
 {
+    public interface IDfsSyntaxNodeVisitor
+    {
+        void OnEnterNode(ISyntaxNode parent, int childNum);
+        void OnExitNode();
+    }
     public interface ISyntaxNodeVisitor<T>
     {
-        void SetChildrenNumber(ISyntaxNode parent, int num);
-
-        T Visit(AnonymCallSyntaxNode anonymFunNode);
+        T Visit(ArrowAnonymFunctionSyntaxNode arrowAnonymFunNode);
         T Visit(ArraySyntaxNode node);
         T Visit(EquationSyntaxNode node);
         T Visit(FunCallSyntaxNode node);
@@ -22,5 +25,6 @@ namespace NFun.SyntaxParsing.Visitors
         T Visit(VariableSyntaxNode node);
         T Visit(ResultFunCallSyntaxNode node);
         T Visit(MetaInfoSyntaxNode anonymFunNode);
+        T Visit(SuperAnonymFunctionSyntaxNode arrowAnonymFunNode);
     }
 }

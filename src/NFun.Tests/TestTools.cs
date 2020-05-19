@@ -50,7 +50,7 @@ namespace Funny.Tests
         public static CalculationResult AssertHas(this CalculationResult result, VarVal variable, double delta = 0)
         {
             var res = result.Results.FirstOrDefault(r => r.Name == variable.Name);
-            Assert.IsNotNull(res, $"Variable \"{variable.Name}\" not found");
+            Assert.IsFalse(res.IsEmpty, $"Variable \"{variable.Name}\" not found");
             Assert.AreEqual(variable.Type, res.Type, $"Variable \"{variable.Name}\" has wrong type");
 
             if (variable.Type == VarType.Real)

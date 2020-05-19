@@ -5,6 +5,7 @@ using NUnit.Framework;
 
 namespace NFun.ExprementalTests
 {
+    /*
     [TestFixture]
     public class VqtTest
     {
@@ -192,7 +193,5 @@ namespace NFun.ExprementalTests
                 .Build();
             return runtime;
         }
-
-      
-    }
+    }*/
 }

@@ -9,6 +9,7 @@ using NFun.Runtime;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
+using NFun.Tokenization;
 using NFun.TypeInferenceAdapter;
 using NFun.Types;
 
@@ -20,7 +21,6 @@ namespace NFun.Interpritation
         private readonly VariableDictionary _variables;
         private readonly TypeInferenceResults _typeInferenceResults;
         private readonly TicTypesConverter _typesConverter;
-        public void SetChildrenNumber(ISyntaxNode parent, int num) { }
 
         public static IExpressionNode BuildExpression(
             ISyntaxNode node,
@@ -58,16 +58,53 @@ namespace NFun.Interpritation
             _typesConverter = typesConverter;
         }
 
-        public IExpressionNode Visit(AnonymCallSyntaxNode anonymFunNode)
+        public IExpressionNode Visit(SuperAnonymFunctionSyntaxNode arrowAnonymFunNode)
         {
-            if (anonymFunNode.Defenition==null)
-                throw ErrorFactory.AnonymousFunDefenitionIsMissing(anonymFunNode);
+            var outputTypeFunDefenition = arrowAnonymFunNode.OutputType.FunTypeSpecification;
+            if(outputTypeFunDefenition==null)
+                throw new ImpossibleException("Fun defenition expected");
+            string[] argNames = null;
+            if (outputTypeFunDefenition.Inputs.Length == 1)
+                argNames = new[] {"it"};
+            else
+            {
+                argNames = new string[outputTypeFunDefenition.Inputs.Length];
+                for (int i = 0; i < outputTypeFunDefenition.Inputs.Length; i++)
+                {
+                    argNames[i] = $"it{i + 1}";
+                }
+            }
 
-            if(anonymFunNode.Body==null)
-                throw ErrorFactory.AnonymousFunBodyIsMissing(anonymFunNode);
+            //Prepare local variable scope
+            //Capture all outerscope variables
+            var localVariables = new VariableDictionary(_variables.GetAllSources());
+            
+            var arguments = new List<VariableSource>();
+            for (var i = 0; i < argNames.Length; i++)
+            {
+                var arg = argNames[i];
+                var type = outputTypeFunDefenition.Inputs[i];
+                var source = VariableSource.CreateWithoutStrictTypeLabel(arg, type);
+                //collect argument
+                arguments.Add(source);
+                //add argument to local scope
+                //if argument with it* name already exist - replace it
+                localVariables.AddOrReplace(source);
+            }
+
+            var body = arrowAnonymFunNode.Body;
+            return BuildAnonymousFunction(arrowAnonymFunNode.Interval, body, localVariables, arguments);
+        }
+        public IExpressionNode Visit(ArrowAnonymFunctionSyntaxNode arrowAnonymFunNode)
+        {
+            if (arrowAnonymFunNode.Defenition==null)
+                throw ErrorFactory.AnonymousFunDefenitionIsMissing(arrowAnonymFunNode);
+
+            if(arrowAnonymFunNode.Body==null)
+                throw ErrorFactory.AnonymousFunBodyIsMissing(arrowAnonymFunNode);
             
             //Anonym fun arguments list
-            var argumentLexNodes = anonymFunNode.ArgumentsDefenition;
+            var argumentLexNodes = arrowAnonymFunNode.ArgumentsDefenition;
             
             //Prepare local variable scope
             //Capture all outerscope variables
@@ -87,33 +124,18 @@ namespace NFun.Interpritation
 
                     //If outer-scope contains the conflict variable name
                     if (_variables.GetSourceOrNull(varNode.Name) != null)
-                        throw ErrorFactory.AnonymousFunctionArgumentConflictsWithOuterScope(varNode, anonymFunNode.Defenition);
+                        throw ErrorFactory.AnonymousFunctionArgumentConflictsWithOuterScope(varNode.Name, arrowAnonymFunNode.Interval);
                     else //else it is duplicated arg name
-                        throw ErrorFactory.AnonymousFunctionArgumentDuplicates(varNode, anonymFunNode.Defenition);
+                        throw ErrorFactory.AnonymousFunctionArgumentDuplicates(varNode, arrowAnonymFunNode.Defenition);
                 }
             }
 
-            var sources = localVariables.GetAllSources();
-            var originVariables = new string[sources.Length];
-            for (int i = 0; i < originVariables.Length; i++) originVariables[i] = sources[i].Name;
-            var expr = BuildExpression(anonymFunNode.Body, _functions, localVariables, _typeInferenceResults,_typesConverter);
-            
-            //New variables are new closured
-            var closured =  localVariables.GetAllUsages()
-                .Where(s => !originVariables.Contains(s.Source.Name))
-                .ToList();
-
-            //Add closured vars to outer-scope dictionary
-            foreach (var newVar in closured)
-                _variables.TryAdd(newVar); //add full usage info to allow analyze outer errors
-            
-            var fun = new ConcreteUserFunction(
-                name:       "anonymous", 
-                variables:  arguments.ToArray(),
-                isReturnTypeStrictlyTyped: anonymFunNode.Defenition.OutputType!= VarType.Empty, 
-                expression: expr );
-            return new FunVariableExpressionNode(fun, anonymFunNode.Interval);
+        
+            var body = arrowAnonymFunNode.Body;
+            return BuildAnonymousFunction(arrowAnonymFunNode.Interval, body, localVariables, arguments);
         }
+
+     
 
         public IExpressionNode Visit(ArraySyntaxNode node)
         {
@@ -189,6 +211,8 @@ namespace NFun.Interpritation
                 throw FunParseException.ErrorStubToDo($"Variable {id} not exist in the scope");
             return new MetaInfoExpressionNode(_variables, id , node.Interval);
         }
+
+        
 
         public IExpressionNode Visit(IfThenElseSyntaxNode node)
         {
@@ -269,6 +293,34 @@ namespace NFun.Interpritation
             => ThrowNotAnExpression(node);
 
         #endregion
+
+        private IExpressionNode BuildAnonymousFunction(Interval interval, ISyntaxNode body,
+            VariableDictionary localVariables, List<VariableSource> arguments)
+        {
+            var sources = localVariables.GetAllSources();
+            var originVariables = new string[sources.Length];
+            for (int i = 0; i < originVariables.Length; i++) originVariables[i] = sources[i].Name;
+
+            var expr = BuildExpression(body, _functions, localVariables, _typeInferenceResults, _typesConverter);
+
+            //New variables are new closured
+            var closured = localVariables.GetAllUsages()
+                .Where(s => !originVariables.Contains(s.Source.Name))
+                .ToList();
+            var itVar = closured.FirstOrDefault(c => c.Source.Name.StartsWith("it", StringComparison.OrdinalIgnoreCase));
+            if (itVar != null) 
+                throw FunParseException.ErrorStubToDo("Unexpected it* variable");
+            //Add closured vars to outer-scope dictionary
+            foreach (var newVar in closured)
+                _variables.TryAdd(newVar); //add full usage info to allow analyze outer errors
+
+            var fun = new ConcreteUserFunction(
+                name: "anonymous",
+                variables: arguments.ToArray(),
+                isReturnTypeStrictlyTyped: false,
+                expression: expr);
+            return new FunVariableExpressionNode(fun, interval);
+        }
 
         private IExpressionNode CreateFunctionCall(IFunCallSyntaxNode node, FunctionBase function)
         {

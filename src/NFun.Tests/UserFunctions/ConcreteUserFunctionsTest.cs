@@ -25,7 +25,9 @@ namespace Funny.Tests.UserFunctions
         [TestCase("arr(a:real[]):real[] = a.concat(a) \r  y = arr([1.0,2.0])",new[]{1.0,2.0,1.0,2.0})]
         [TestCase("arr(a:int[]):int[] = a \r  y = arr([1,2])",new[]{1,2})]
         [TestCase("arr(a:text[]):text[] = a.concat(a) \r  y = arr(['qwe','rty'])",new[]{"qwe","rty","qwe","rty"})]
-       public void TypedConstantEquation_NonRecursiveFunction(string expr, object expected)
+        [TestCase(@"car2(g):real = g(2.0,4.0); y = car2(max)    ", 4.0)]
+
+        public void TypedConstantEquation_NonRecursiveFunction(string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
             runtime.Calculate().AssertReturns(VarVal.New("y", expected));
@@ -78,7 +80,7 @@ namespace Funny.Tests.UserFunctions
   	                        [0..input.count()-1]
   		                        .fold(
   			                        input, 
-  			                        (c,i)-> c.onelineSort())
+  			                        {onelineSort(it1)})
 
                           
                           i:int[]  = [1,4,3,2,5].bubbleSort()";

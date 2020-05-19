@@ -42,17 +42,12 @@ namespace NFun.SyntaxParsing.Visitors
             if (enterResult == VisitorEnterResult.Skip)
                 return true;
 
-            int i = 0;
             foreach (var child in root.Children)
             {
-                exitVisitor.SetChildrenNumber(root,i);
-                i++;
                 if (!child.ComeOver(enterVisitor, exitVisitor))
                     return false;
             }
-
-            var res =  root.Accept(exitVisitor);
-            return res;
+            return root.Accept(exitVisitor);
         }
 
         private static bool ComeOver(this ISyntaxNode root, 
@@ -75,7 +70,6 @@ namespace NFun.SyntaxParsing.Visitors
                 i++;
 
             }
-            exitVisitor.SetChildrenNumber(parent, childNumber);
             var res = root.Accept(exitVisitor);
             return res;
         }

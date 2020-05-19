@@ -65,16 +65,14 @@ namespace NFun.Interpritation
                 TraceLog.WriteLine("\r\n====BODY====");
 
                 var resultBuilder = new TypeInferenceResultsBuilder();
-                var builder = new GraphBuilder();
-                var state = new SetupTiState(builder);
-                //to build body - we have to skip all user-function-syntax-nodes
-                foreach (var node in syntaxTree.Nodes.Where(n => !(n is UserFunctionDefenitionSyntaxNode)))
-                {
-                    if (!LangTiHelper.SetupTiOrNull(node, functionsDictionary, resultBuilder, state))
-                        throw ErrorFactory.TypesNotSolved(node);
-                }
+                var typeGraph = new GraphBuilder();
 
-                var bodyTypeSolving = builder.Solve();
+                //to build body - we have to skip all user-function-syntax-nodes
+                var bodyNodes = syntaxTree.Nodes.Where(n => !(n is UserFunctionDefenitionSyntaxNode));
+                if(!TicSetupVisitor.Run(bodyNodes, typeGraph, functionsDictionary, resultBuilder))
+                    throw ErrorFactory.TypesNotSolved(syntaxTree);
+
+                var bodyTypeSolving = typeGraph.Solve();
                 if (bodyTypeSolving == null)
                     throw ErrorFactory.TypesNotSolved(syntaxTree);
                 resultBuilder.SetResults(bodyTypeSolving);

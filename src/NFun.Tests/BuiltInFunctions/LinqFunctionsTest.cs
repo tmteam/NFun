@@ -35,18 +35,17 @@ namespace Funny.Tests.BuiltInFunctions
                      y = fold([1,2,3], iSum)", 6)]
         [TestCase(@"iSum(r:int, x:int):int = r+x
                      y = fold([100], iSum)", 100)]
-        [TestCase("y:int = [1,2,3,4,5,6,7].filter(i->i%2==0).sum()", 12)]
-        [TestCase("y:int = [1,2,3,4,5,6,7].filter(i->i%2==0).fold((s,i)-> s+i+1)", 14)]
-        [TestCase("y:int = [1,2,3,4,5,6,7].filter(i->i%2==0).fold((s,i)-> s+i+1)", 14)]
-        [TestCase("y:int = [1,2,3,4,5,6,7].filter(i->i%2==0).fold(min)", 2)]
-        [TestCase("y:int = [1,2,3,4,5,6,7].filter(i->i%2==0).fold(max)", 6)]
-        [TestCase("y:int = [1,2,3,4,5,6,7].filter(i:int->i%2==0).fold(max)", 6)]
-        [TestCase("y:int = [1,2,3,4].fold((s,i)-> s+i)", 10)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter({it%2==0}).sum()", 12)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter({it%2==0}).fold({it1+it2+1})", 14)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter({it%2==0}).fold({it1+it2+1})", 14)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter({it%2==0}).fold(min)", 2)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter({it%2==0}).fold(max)", 6)]
+        [TestCase("y:int = [1,2,3,4].fold {it1+it2}", 10)]
         [TestCase("y:int = [1,2,3,4,5,6,7].fold(max)", 7)]
-        [TestCase("y:int = [1,2,3,4,5,6,7].fold((s,i)->if (s>i) s else i)", 7)]
-        [TestCase("y:int = [1,2,3,4,5,6,7].filter(i->i%2==0).fold((s,i)->if (s>i) s else i)", 6)]
-        [TestCase("y:int = [1,2,3,4,5,6,7].filter(i->i%2==0).fold((s,i)->0)", 0)]
-        [TestCase("y:int = [1,2,3,4,5,6,7].filter(i->i%2==0).fold((s,i)->0)", 0)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].fold{if(it1>it2) it1 else it2}", 7)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter({it%2==0}).fold{if(it1>it2) it1 else it2}", 6)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter({it%2==0}).fold{0}", 0)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter({it%2==0}).fold{0}", 0)]
         public void HiOrderFunConstantEquatation(string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);

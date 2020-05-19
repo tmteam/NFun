@@ -7,7 +7,7 @@ using NUnit.Framework;
 namespace Funny.Tests
 {
     [TestFixture]
-    public class AnonymousFunTest
+    public class ArrowAnonymousFunTest
     {
         [TestCase( @"y = [11.0,20.0,1.0,2.0].filter(i -> i>10)",new[]{11.0,20.0})]
         [TestCase( @"y = [11.0,20.0,1.0,2.0].filter((i) -> i>10)",new[]{11.0,20.0})]
@@ -26,26 +26,38 @@ namespace Funny.Tests
         [TestCase( "y = [1.0,2.0,3.0].all((i)-> i >1.0)",false)]
         [TestCase( "f(m:real[], p):bool = m.all((i)-> i>p) \r y = f([1.0,2.0,3.0],1.0)",false)]
 
-        [TestCase("y = [-7,-2,0,1,2,3].filter(i->i>0)", new[] { 1.0, 2.0, 3.0 })]
-        [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).fold((i,j)-> i+j)", 6.0 )]
-        [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).filter(i->i>2)", new[]{3.0})]
-        [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).map(i->i*i).map(i:int->i*i)", new[]{1,16,81})]
-        [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).map(i->i*i).map(i->i*i)", new[]{1.0,16.0,81.0})]
+        [TestCase("y = [-7,-2,0,1,2,3].filter({it>0})", new[] { 1.0, 2.0, 3.0 })]
+        [TestCase("y = [-1,-2,0,1,2,3].filter({it>0}).fold((i,j)-> i+j)", 6.0 )]
+        [TestCase("y = [-1,-2,0,1,2,3].filter({it>0}).filter(i->i>2)", new[]{3.0})]
+        [TestCase("y = [-1,-2,0,1,2,3].filter({it>0}).map(i->i*i).map(i:int->i*i)", new[]{1,16,81})]
+        [TestCase("y = [-1,-2,0,1,2,3].filter({it>0}).map(i->i*i).map(i->i*i)", new[]{1.0,16.0,81.0})]
 
-        [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).fold((a,b)-> a+b)", 6.0 )]
-        [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).filter(a->a>2)", new[]{3.0})]
-        [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).map(a->a*a).map(b->b*b)", new[]{1.0,16.0,81.0})]
+        [TestCase("y = [-1,-2,0,1,2,3].filter({it>0}).fold((a,b)-> a+b)", 6.0 )]
+        [TestCase("y = [-1,-2,0,1,2,3].filter({it>0}).filter(a->a>2)", new[]{3.0})]
+        [TestCase("y = [-1,-2,0,1,2,3].filter({it>0}).map(a->a*a).map(b->b*b)", new[]{1.0,16.0,81.0})]
 
-        [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).map(a->a*a).map(b:int->b*b)", new[]{1,16,81})]
-        [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).filter(a:int->a>2)", new[]{3})]
-        [TestCase("y = [-1,-2,0,1,2,3].filter(i->i>0).fold((a:int,b)-> a+b)", 6 )]
+        [TestCase("y = [-1,-2,0,1,2,3].filter({it>0}).map(a->a*a).map(b:int->b*b)", new[]{1,16,81})]
+        [TestCase("y = [-1,-2,0,1,2,3].filter({it>0}).filter(a:int->a>2)", new[]{3})]
+        [TestCase("y = [-1,-2,0,1,2,3].filter({it>0}).fold((a:int,b)-> a+b)", 6 )]
+        [TestCase(@"car3(g) = g(2);   y = car3(x->x-1)   ", 1.0)]
+        [TestCase(@"car4(g) = g(2);   y = car4{it}   ", 2.0)]
+        [TestCase(@"call5(f, x) = f(x); y = call5(x->x+1,  1)", 2.0)]
+        [TestCase(@"call6(f, x) = f(x); y = call6(x->x+1.0, 1.0)", 2.0)]
+        [TestCase(@"call7(f, x) = f(x); y = call7(((x:real)->x+1.0), 1.0)", 2.0)]
+        [TestCase(@"call8(f) = i->f(i); y = call8(x->x+1)(2)", 3.0)]
+        [TestCase(@"call9(f) = i->f(i); y = (x->x+1).call9()(2)", 3.0)]
+        [TestCase(@"mult(x)=y->z->x*y*z;    y = mult(2)(3)(4)", 24.0)]
+        [TestCase(@"mult()= x->y->z->x* y*z; y = mult()(2)(3)(4)", 24.0)]
+        [TestCase(@"y = (x->x+1)(3.0)", 4.0)]
+        [TestCase(@"f = x->x+1; y = f(3.0)", 4.0)]
+        [TestCase(@"f = a->b->a+b; y = f(3.0)(5.0)", 8.0)]
 
         public void AnonymousFunctions_ConstantEquation(string expr, object expected)
         {
             var runtime = FunBuilder.BuildDefault(expr);
             CollectionAssert.IsEmpty(runtime.Inputs,"Unexpected inputs on constant equations");
             runtime.Calculate()
-                .AssertReturns(VarVal.New("y", expected));
+                .AssertHas(VarVal.New("y", expected));
         }
         [TestCase( "y = [1.0,2.0,3.0].map((i)-> i*x1*x2)",3.0,4.0, new []{12.0,24.0,36.0})]
         [TestCase( "x1:int\rx2:int\ry = [1,2,3].map((i:int)-> i*x1*x2)",3,4, new []{12,24,36})]

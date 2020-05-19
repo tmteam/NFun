@@ -92,6 +92,8 @@ if (x == 0) 'zero'
 if (x == 1) 'one'
 if (x == 2) 'two'
 else 'not supported' ", 2, "two")]
+        [TestCase("if (x==1) [1,2,3] else []", 1, new[] { 1.0, 2, 3 })]
+        [TestCase("if (x==1) [1,2,3] else []", 0, new double[0])]
         public void SingleVariableEquatation(string expression, int x, object expected) 
             => FunBuilder.BuildDefault(expression).Calculate(VarVal.New("x", x))
                 .AssertOutEquals(expected);

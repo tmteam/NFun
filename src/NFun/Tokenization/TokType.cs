@@ -69,7 +69,14 @@ namespace NFun.Tokenization
         BitShiftLeft,
         BitShiftRight,
         BitInverse,
+        /// <summary>
+        /// x, y, myFun... etc
+        /// </summary>
         Id,
+        /// <summary>
+        /// it, it1,it2,it3...
+        /// </summary>
+        Iti,
         /// <summary>
         /// =
         /// </summary>

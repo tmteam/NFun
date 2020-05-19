@@ -13,22 +13,6 @@ namespace NFun.TypeInferenceAdapter
 {
     public static class LangTiHelper
     {
-        /// <summary>
-        /// Setups ti algorithm
-        /// </summary>
-        /// <returns>null if setup failed, Algorithm solver otherwise</returns>
-        public static bool SetupTiOrNull(
-            ISyntaxNode syntaxNode, 
-            IFunctionDicitionary dictionary, 
-            TypeInferenceResultsBuilder resultsBuilder,
-            SetupTiState state)
-        {
-            var enterVisitor = new SetupTiEnterVisitor(state, dictionary, resultsBuilder);
-            var exitVisitor  = new SetupTiExitVisitor(state,   dictionary, resultsBuilder);
-            return syntaxNode.ComeOver(enterVisitor, exitVisitor);
-        }
-
-        
         public static string GetArgAlias(string funAlias, string argId)
             =>  funAlias + "::" + argId;
         public static string GetFunAlias(string funId, int argsCount)

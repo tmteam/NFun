@@ -105,6 +105,8 @@ namespace Funny.Tests
         [TestCase(3, "y= [x..7]", new[] {3.0, 4, 5, 6, 7})]
         [TestCase(3, "y:int[]= [x,2,3]", new[] {3, 2, 3})]
         [TestCase(3, "y= [1..5][x]", 4.0)]
+        [TestCase(true, "y= (if(x) [1,2] else [])[0]", 1.0)]
+
         [TestCase(2, "x:int; y= [1..6..x]", new[] {1, 3, 5})]
         [TestCase(0.5, "y= [1.0..3.0..x]", new[] {1.0, 1.5, 2.0, 2.5, 3.0})]
         public void SingleVqtInputEquation_CheckOutputValues(object val, string expr, object expected)
@@ -204,8 +206,8 @@ x: int[]
 filt: int
 concat    = ([1,2,3,4].concat(x))
 size      = concat.count()
-possum   = x.filter(i:int ->i>0).fold((i:int,j:int)-> i+j)
-filtrat   = x.filter(i:int ->i> filt) # filt - input variable
+possum   = x.filter{it>0}.fold{it1+it2}
+filtrat   = x.filter{it> filt} # filt - input variable
 ";
             var runtime = FunBuilder.BuildDefault(expr);
             var res = runtime.Calculate(VarVal.New("x", new[]{5,6,7,8}),

@@ -75,8 +75,8 @@ tostring(v:int):text =
 			else 'not supported' 
 x:int
 y = tostring(x)", "y", "not supported")]
-        [TestCase(2.5, "y = [1.0,2.0,3.0].filter(it -> it<x).max()", "y", 2.0)]
-        [TestCase(2.5, "x:real \r y = [1.0,2.0,3.0].filter(it -> it<x).max()", "y", 2.0)]
+        [TestCase(2.5, "y = [1.0,2.0,3.0].filter{it<x}.max()", "y", 2.0)]
+        [TestCase(2.5, "x:real \r y = [1.0,2.0,3.0].filter{it<x}.max()", "y", 2.0)]
         public void Real_SingleEquationWithSingleInput(object xVal, string expression, string outputName,
             object outputValue)
         {
@@ -134,11 +134,9 @@ y = tostring(x)", "y", "not supported")]
         [TestCase("y:int[] = [0..10][1:3] #[1,2,3]", "y", new[] {1, 2, 3})]
         [TestCase("y:int[] = [0..10][7:] #[7,8,9,10]", "y", new[] {7, 8, 9, 10})]
         [TestCase("y:int[] = [0..10][:2] #[0,1,2]", "y", new[] {0, 1, 2})]
-        [TestCase("y = [1..4].map(i:int -> i/2)#[0.5,1.0,1.5,2.0]", "y", new[] {0.5, 1.0, 1.5, 2.0})]
-        [TestCase("y = [1..4].any(i:int -> i>0)#true", "y", true)]
-        [TestCase("y = [1..4].all(i:int -> i>2)#false", "y", false)]
-        [TestCase("y = [1..4].fold((i:int,j:int)->i+j)# 10.sum of array", "y", 10)]
-        [TestCase("y = [1..4].fold((i:int,j:int)->if (i>j) i else j)#4.max of array", "y", 4)]
+        [TestCase("y = [1..4].map{it/2}#[0.5,1.0,1.5,2.0]", "y", new[] {0.5, 1.0, 1.5, 2.0})]
+        [TestCase("y = [1..4].any{it>0}#true", "y", true)]
+        [TestCase("y = [1..4].all{it>2}#false", "y", false)]
         public void Constant(string expr, string outputName, object val)
         {
             var runtime = FunBuilder.BuildDefault(expr);

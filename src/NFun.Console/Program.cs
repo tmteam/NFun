@@ -5,7 +5,6 @@ using System.Text;
 using NFun;
 using NFun.BuiltInFunctions;
 using NFun.ParseErrors;
-using NFun.TypeInferenceCalculator;
 
 namespace Funny
 {
