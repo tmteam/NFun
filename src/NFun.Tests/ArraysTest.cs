@@ -105,6 +105,8 @@ namespace Funny.Tests
         [TestCase(3, "y= [x..7]", new[] {3.0, 4, 5, 6, 7})]
         [TestCase(3, "y:int[]= [x,2,3]", new[] {3, 2, 3})]
         [TestCase(3, "y= [1..5][x]", 4.0)]
+        [TestCase(3, "y= (if(true) [1,2] else [])[0]", 1.0)]
+
         [TestCase(2, "x:int; y= [1..6..x]", new[] {1, 3, 5})]
         [TestCase(0.5, "y= [1.0..3.0..x]", new[] {1.0, 1.5, 2.0, 2.5, 3.0})]
         public void SingleVqtInputEquation_CheckOutputValues(object val, string expr, object expected)

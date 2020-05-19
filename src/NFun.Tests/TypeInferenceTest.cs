@@ -150,7 +150,7 @@ namespace Funny.Tests
         //[TestCase(
         //    @"someRec3(n, iter) = someRec3(n, iter+1).strConcat(n >iter)
         //  y = someRec3(9,2)[0]", BaseVarType.Char)]
-
+        [TestCase("(if(true) [1,2] else [])[0]", BaseVarType.Real)]
         public void SingleEquations_Parsing_OutputTypesCalculateCorrect(string expr, BaseVarType type)
         {
             var runtime = FunBuilder.BuildDefault(expr);
@@ -320,6 +320,7 @@ namespace Funny.Tests
         [TestCase("y:int= [1,2,3].fold{1}", 1)] 
         [TestCase("y:int= [1,2,3].fold{it1}", 1)] 
         [TestCase("y:int= [1,2,3].fold{it1+1}", 3)] 
+
         public void ConstantTypedEquation(string expr, object y)
         {
             var runtime = FunBuilder.BuildDefault(expr);
@@ -471,6 +472,7 @@ namespace Funny.Tests
         [TestCase("y:int = 1",  BaseVarType.Int32)]
         [TestCase("y:byte = 1",  BaseVarType.UInt8)]
         [TestCase("x:int; y:real = x",  BaseVarType.Real)]
+
         public void OutputType_checkOutputTest(string expression,  BaseVarType expectedType){
             var runtime = FunBuilder.BuildDefault(expression);
             Assert.AreEqual(expectedType, runtime.Outputs.Single(o => o.Name == "y").Type.BaseType);

@@ -7,6 +7,7 @@ using NUnit.Framework;
 
 namespace Funny.Tests
 {
+   
     [TestFixture]
     public class SingleEquationTest
     {
@@ -108,17 +109,7 @@ namespace Funny.Tests
             var res = runtime.Calculate();
             res.AssertHas(VarVal.New("y", expected));
         }
-        [TestCase("1",1.0)]
-        [TestCase("0x1", 1)]
-        [TestCase("true",true)]
-        [TestCase("2*0x3",6)]
-        [TestCase("true == false",false)]
-        [TestCase("if (2<3) true else false",true)]
-        [TestCase("y(x) = x*2 \r y(3.0) * y(4.0)",48.0)]
-        [TestCase("y(x) = x \r y(3.0)",3.0)]
-        [TestCase("y(x) = x*2 \r y(3.0)  \r z(j) = j*j",6.0)]
-        public void AnonymousExpressionConstantEquatation(string expr, object expected) 
-            => FunBuilder.BuildDefault(expr).Calculate().AssertOutEquals(expected);
+       
 
 
         [TestCase("y = true", true)]
@@ -258,7 +249,7 @@ namespace Funny.Tests
         [TestCase("y = y")]
         [TestCase("y = y+x")]
         [TestCase("a: int a=4")]
-        
+        [TestCase("y = 91111111111111111111111111111111111111")]
         public void ObviouslyFails(string expr) =>
             Assert.Throws<FunParseException>(
                 ()=> FunBuilder.BuildDefault(expr));

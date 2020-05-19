@@ -189,13 +189,17 @@ namespace Nfun.ModuleTests.TicTests
         [Test]
         public void MapWithLambda()
         {
-            //var result = TestHelper.Solve("y  = a.map(f(i)=i+1)");
-            //var result = TestHelper.Solve("y  = a.map{it+1}");
-
             var result = TestHelper.Solve("y  = a.map(i:int->i+1)");
             result.AssertNoGenerics();
             result.AssertNamed(Array.Of(Primitive.I32), "y");
             result.AssertNamed(Array.Of(Primitive.I32), "a");
+        }
+        [Test]
+        public void IfWithEmptyArray()
+        {
+            var result = TestHelper.Solve("y  =if (true) [1,2,3] else []");
+            result.AssertNoGenerics();
+            result.AssertNamed(Array.Of(Primitive.Real), "y");
         }
         [Test]
         public void CompareArrays()
