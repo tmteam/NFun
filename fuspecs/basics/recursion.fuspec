@@ -24,7 +24,7 @@
 | TEST req factorial in array
 | TAGS req user-function
 |************************  
-| out  out:int[] 
+| out  out:real[] 
 |------------------------
   fact(n) = 
         if (n==0) 0

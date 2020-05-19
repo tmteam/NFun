@@ -88,11 +88,11 @@
   # run thru array 
   # and swap every unsorted values
   onelineSort(input) =  
-  	[0..input.count()-2].reduce(input, swapIfNotSorted)		
+  	[0..input.count()-2].fold(input, swapIfNotSorted)		
 
   bubbleSort(input)=
   	[0..input.count()-1]
-  		.reduce(
+  		.fold(
   			input, 
   			(c,i)-> c.onelineSort())
 
@@ -113,7 +113,7 @@
 | in    t:int[]
 | out res:int
 |--------------------- 
- foreachi(arr, f) = [1..arr.count()-1].reduce(arr[0], f)
+ foreachi(arr, f) = [1..arr.count()-1].fold(arr[0], f)
 
  res:int =  t.foreachi((acc,i)-> if (acc>t[i]) acc else t[i] )
 |---------------------
@@ -135,7 +135,7 @@
  	if(n==0) 0
  	if(n==1) 1
     else
-        [2..n].reduce([0,1], 
+        [2..n].fold([0,1], 
     		(acc,i)->[acc[1], acc[i-1]+acc[i-2]])[1]
 
  res = n.map(fib)
@@ -155,7 +155,7 @@
  fibvals(n) = 
  	if(n<=1) [0,1]
     else
-    	[2..n].reduce([0,1], (acc,i) -> [acc.last(), acc[i-1]+acc[i-2]])
+    	[2..n].fold([0,1], (acc,i) -> [acc.last(), acc[i-1]+acc[i-2]])
 
  div(arr) = arr[1]/arr[2]
 
@@ -215,9 +215,9 @@ newCount = if (not done) x+1 else x
   mymax(x,y) = if (x>y) x else y
 
   ysum   = x.getOdds().sum()
-  ymulti = x.getOdds().reduce((s,i)-> s*i)
-  ymin   = x.getOdds().reduce(min)
-  ymax   = x.getOdds().reduce(mymax)
+  ymulti = x.getOdds().fold((s,i)-> s*i)
+  ymin   = x.getOdds().fold(min)
+  ymax   = x.getOdds().fold(mymax)
 |---------------------
 | set x:[0,1,2,3,4,5,6,7,8,9]
 | check ysum:20, ymulti:384, ymin:0, ymax:8
@@ -313,7 +313,7 @@ newCount = if (not done) x+1 else x
               [01,15,18]
              ] 
 
-  res = origin.map(t->t.reduce(max)).reduce(max)
+  res = origin.map(t->t.fold(max)).fold(max)
 |---------------------
 | check res: 42 
 
@@ -323,7 +323,7 @@ newCount = if (not done) x+1 else x
 | TEST max of matrix with 1 function  
 | TAGS user-function array                         
 |************************  
-  maxOfArray(t) = t.reduce(max)
+  maxOfArray(t) = t.fold(max)
 
   origin = [
               [12,05,06],
@@ -340,7 +340,7 @@ newCount = if (not done) x+1 else x
 | TEST max of matrix with 2 functions  
 | TAGS user-function array                         
 |************************  
-  maxOfArray(t) = t.reduce(max)
+  maxOfArray(t) = t.fold(max)
   maxInRows(t)  = t.map(maxOfArray)
 
   origin = [
@@ -359,7 +359,7 @@ newCount = if (not done) x+1 else x
 | TEST max of matrix with 3 functions  
 | TAGS user-function array                         
 |************************  
-  maxOfArray(t)  = t.reduce(max)
+  maxOfArray(t)  = t.fold(max)
   maxInRows(t)   = t.map(maxOfArray)
   maxOfMatrix(t) = t.maxInRows().maxOfArray()
 
@@ -437,7 +437,7 @@ newCount = if (not done) x+1 else x
 | TEST max of cube matrix with user functions  
 | TAGS user-function array                         
 |************************  
-  maxOfArray(t)  = t.reduce(max)
+  maxOfArray(t)  = t.fold(max)
   maxInRows(t)   = t.map(maxOfArray)
   maxOfMatrix(t) = 
         t.maxInRows().maxOfArray()

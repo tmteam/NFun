@@ -2,9 +2,9 @@
 | TEST int constant equality 
 | TAGS int constant equal                         
 |************************
-  it1 = 1==1
-  it2 = 0==0
-  it3 = -1 == -1
+  iit1 = 1==1
+  iit2 = 0==0
+  iit3 = -1 == -1
   
   if1 = 1==0
   if2 = 0==1
@@ -18,7 +18,7 @@
   nit2 = 0!=1
   nit3 = -1 != 2
 |---------------------
-| check it1: true,  it2:true, it3:true , nit1: true, nit2: true, nit3:true, if1:false, if2:false, if3: false, nif1:false, nif2:false, nif3:false
+| check iit1: true,  iit2:true, iit3:true , nit1: true, nit2: true, nit3:true, if1:false, if2:false, if3: false, nif1:false, nif2:false, nif3:false
 
 
 
