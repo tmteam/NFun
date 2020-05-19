@@ -42,24 +42,16 @@ namespace ConsoleUseParser
                 {
                     i++;
                     Console.Write("\t");
-                    Console.Write(i + " set: ");
-                    if (setCheckKit.Set.Any())
-                        foreach (var set in setCheckKit.Set)
+                    if (setCheckKit is SetData)
+                        Console.Write(" set: ");
+                    else
+                        Console.Write(" check: ");
+                    if (setCheckKit.ValuesKit.Any())
+                        foreach (var kit in setCheckKit.ValuesKit)
                         {
-                            Console.Write(set.Name + ":" + set.Value + "(" + set.Type + "), ");
+                            Console.Write(kit.Name + ":" + kit.Value + "(" + kit.Type + "),  ");
                         }
                     else Console.Write("None");
-
-                    Console.WriteLine();
-                    Console.Write("\t");
-                    Console.Write(i + " check: ");
-                    if (setCheckKit.Check.Any())
-                        foreach (var check in setCheckKit.Check)
-                        {
-                            Console.Write(check.Name + ":" + check.Value + "(" + check.Type + "), ");
-                        }
-                    else Console.Write("None");
-
                     Console.WriteLine();
                 }
 

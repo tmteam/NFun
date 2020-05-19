@@ -5,7 +5,7 @@
   andFF = false and false
   andFT = false and true
   andTT = true and true
-  andTf = true and false
+  andTF = true and false
   orFF  = false or false
   orFT  = false or true
   orTT  = true or true
@@ -13,7 +13,7 @@
   xorFF = false xor false
   xorFT = false xor true
   xorTT = true xor true
-  xorTf = true xor false
+  xorTF = true xor false
   notT  = not true
   notF  = not false
 |---------------------

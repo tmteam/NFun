@@ -24,7 +24,7 @@
 | TEST req factorial in array
 | TAGS req user-function
 |************************  
-| out  out:int[] 
+| out  out:real[] 
 |------------------------
   fact(n) = 
         if (n==0) 0
@@ -84,8 +84,8 @@
 
 
 |****************************************
-| TEST req akkerman TODO
-| TAGS req user-function TODO
+| TODO req user-function
+| TAGS req user-function
 |************************  
 | in   m:int, n:int
 | out  out:text 
@@ -167,7 +167,7 @@
         
 |---------------------
 | set i:[1,2,3,4,5,6,7,8,9],  t: "hello world"
-| check yi:[9,8,7,6,5,4,3,2,1], t:"dlrow olleh"
+| check yi:[9,8,7,6,5,4,3,2,1], yt:"dlrow olleh"
 
 
 

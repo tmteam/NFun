@@ -52,11 +52,11 @@ namespace FuspecHandler
             Console.WriteLine("ERRORS:");
             var funRuntimeErrors = _testCaseResults.Count(e => e.Error is FunRuntimeException);
             var funParseErrors = _testCaseResults.Count(e => e.Error is FunParseException);
-            var funOutputInputErrors = _testCaseResults.Count(e => e.Error is OutputInputException);
-            var unknownErrors = _testCaseResults.Count(e => e.Error != null) - funOutputInputErrors - funParseErrors - funRuntimeErrors;
+            var typesAndValuesErrors = _testCaseResults.Count(e => e.Error is TypeAndValuesException);
+            var unknownErrors = _testCaseResults.Count(e => e.Error != null) - typesAndValuesErrors - funParseErrors - funRuntimeErrors;
             Console.WriteLine("Number of FunRuntime Errors: {0}", funRuntimeErrors);
             Console.WriteLine("Number of FunParse Errors: {0}", funParseErrors);
-            Console.WriteLine("Number of In/Out Check Errors: {0}", funOutputInputErrors);
+            Console.WriteLine("Number of TypesValues Errors: {0}", typesAndValuesErrors);
             Console.WriteLine("Number of Unknown Errors: {0}", unknownErrors);
 
         }
@@ -106,7 +106,7 @@ namespace FuspecHandler
                 case FunRuntimeException funRuntimeException:
                     _consoleWriter.PrintFuspecRunTimeException(funRuntimeException, testCaseResult.FileName, testCaseResult.Fus.Name);
                     break;
-                case OutputInputException outputInputException:
+                case TypeAndValuesException outputInputException:
                     _consoleWriter.PrintOutpitInputException(testCaseResult.FileName,testCaseResult.Fus.Name, outputInputException.Messages);
                     break;
                 default:

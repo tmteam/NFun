@@ -58,7 +58,7 @@ namespace NFun
             {
                 //0xff, 0xFFFF or 0b1110101010
                 if (constant.Value is long l)
-                {
+                {                    
                     if (l <= int.MaxValue)
                         return ((int) l, VarType.Int32);
                     else

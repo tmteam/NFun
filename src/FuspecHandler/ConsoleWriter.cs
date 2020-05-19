@@ -66,9 +66,9 @@ namespace FuspecHandler
                     PrintError(ConsoleColor.Yellow, ConsoleColor.Black);
                     break;
                 case FunRuntimeException funParsException:
-                    PrintError(ConsoleColor.DarkRed, ConsoleColor.White);
+                    PrintError(ConsoleColor.Yellow, ConsoleColor.Black);
                     break;
-                case OutputInputException outputInputException:
+                case TypeAndValuesException outputInputException:
                     PrintError(ConsoleColor.DarkCyan, ConsoleColor.White);
                     break;
                 default:
@@ -97,7 +97,7 @@ namespace FuspecHandler
 
         public void PrintFuspecRunTimeException(FunRuntimeException e, string file, string test)
         {
-            Console.BackgroundColor = ConsoleColor.Red;
+            Console.BackgroundColor = ConsoleColor.Yellow;
             Console.ForegroundColor = ConsoleColor.Black;
             Console.WriteLine("ERROR :");
             Console.ResetColor();
@@ -111,8 +111,8 @@ namespace FuspecHandler
 
         public void PrintFunParseException(FunParseException e, string file, string script, string test, int startLine)
         {
-            Console.BackgroundColor = ConsoleColor.Red;
-            Console.ForegroundColor = ConsoleColor.White;
+            Console.BackgroundColor = ConsoleColor.Yellow;
+            Console.ForegroundColor = ConsoleColor.Black;
             Console.Write("ERROR [FU" + e.Code + "] ");
             PrintLineAndResetColor($" {e.Message} ");
             Console.WriteLine("FILE:       {0}\nTEST:       {1}\nSTARTLINE:  {2}", file, test, startLine);
@@ -122,8 +122,8 @@ namespace FuspecHandler
                 if (e.Start > 0)
                     Console.Write(script.Substring(0, e.Start));
 
-                Console.BackgroundColor = ConsoleColor.DarkRed;
-                Console.ForegroundColor = ConsoleColor.White;
+                Console.BackgroundColor = ConsoleColor.Yellow;
+                Console.ForegroundColor = ConsoleColor.Black;
 
                 Console.Write(e.Interval.SubString(script));
                 Console.ResetColor();
@@ -137,15 +137,15 @@ namespace FuspecHandler
 
         public void PrintUnknownException(string fileName, string testName, Exception e)
         {
-            Console.BackgroundColor = ConsoleColor.DarkYellow;
-            Console.ForegroundColor = ConsoleColor.Black;
+            Console.BackgroundColor = ConsoleColor.Red;
+            Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine($"Unknown Exception {e.GetType().Name}");
 
             Console.Write("File: ");
             Console.ResetColor();
             Console.Write("{0}\t\t\r\n", fileName);
-            Console.BackgroundColor = ConsoleColor.DarkYellow;
-            Console.ForegroundColor = ConsoleColor.Black;
+            Console.BackgroundColor = ConsoleColor.DarkRed;
+            Console.ForegroundColor = ConsoleColor.White;
             Console.Write("Name: ");
             Console.ResetColor();
             Console.WriteLine(testName);
@@ -166,7 +166,7 @@ namespace FuspecHandler
         {
             Console.BackgroundColor = ConsoleColor.DarkCyan;
             Console.ForegroundColor = ConsoleColor.Black;
-            PrintLineAndResetColor("ERROR! In/Out check failed! :");
+            PrintLineAndResetColor("ERROR! Types check failed! :");
 
             Console.Write("File: ");
             Console.WriteLine("{0}\t\t ", fileName);

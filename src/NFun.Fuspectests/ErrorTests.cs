@@ -418,7 +418,7 @@ namespace NFun.Fuspectests
             Assert.Multiple(() =>
             {
                 StandardAssertForNotCorrectTestCase();
-                Assert.AreEqual(FuspecErrorType.SetKitMissed, _fuspecTestCases.Errors.FirstOrDefault().ErrorType);
+                Assert.AreEqual(FuspecErrorType.SetOrCheckKitMissed, _fuspecTestCases.Errors.FirstOrDefault().ErrorType);
             });
         }
         
@@ -441,7 +441,7 @@ namespace NFun.Fuspectests
             Assert.Multiple(() =>
             {
                 StandardAssertForNotCorrectTestCase();
-                Assert.AreEqual(FuspecErrorType.CheckKitMissed, _fuspecTestCases.Errors.FirstOrDefault().ErrorType);
+                Assert.AreEqual(FuspecErrorType.SetOrCheckKitMissed, _fuspecTestCases.Errors.FirstOrDefault().ErrorType);
             });
         }
         

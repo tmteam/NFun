@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using Nfun.Fuspec.Parser.FuspecParserErrors;
 using Nfun.Fuspec.Parser.Model;
+using NFun.Fuspec.Parser.Interfaces;
 using NFun.ParseErrors;
 using NFun.Tokenization;
 using NFun.Types;
@@ -16,17 +17,13 @@ using static Nfun.Fuspec.Parser.FuspecParserHelper;
 
 namespace Nfun.Fuspec.Parser
 {
-    //todo cr: Too large class. 9 states.  SRP violation. 
     class TestCasesReader
     {
-        //todo cr: Some fields initialized implicitly, some in ctor
-        //todo cr: use readonly if field is initializing in ctor
         private InputText _inputText;
         private TestCaseBuilder _testCaseBuilder= new TestCaseBuilder();
         private List<FuspecTestCase> _fuspecTestCases =  new List<FuspecTestCase>();
         private List<string> _script = new List<string>();
-        private List<SetCheckPair> _setCheckKits = new List<SetCheckPair>();
-        private SetCheckPair _setCheckPair = new SetCheckPair();
+        private List<ISetCheckData> _setChecks = new List<ISetCheckData>();
         private List<FuspecParserError> _errors = new List<FuspecParserError>();
 
         internal FuspecTestCases Read(InputText inputText)
@@ -67,7 +64,7 @@ namespace Nfun.Fuspec.Parser
                 case TestCaseParseState.ReadingParamsOut:
                     return ReadParamsOut(str);
                 case TestCaseParseState.ReadingValues:
-                    return ReadValues(str);
+                    return ReadSetCheckValues(str);
                 default:
                     return WriteError(new FuspecParserError(FuspecErrorType.Unknown, _inputText.Index));
             }
@@ -80,7 +77,8 @@ namespace Nfun.Fuspec.Parser
             if (_inputText.ISCurrentLineSeparated('*'))
             {
                 _script = new List<string>();
-                _setCheckKits = new List<SetCheckPair>();
+                _setChecks = new List<ISetCheckData>();
+
                 return TestCaseParseState.ReadingName;
             }
 
@@ -217,8 +215,9 @@ namespace Nfun.Fuspec.Parser
             return TestCaseParseState.ReadingBody;
         }
 
-        private TestCaseParseState ReadValues(string str)
+        private TestCaseParseState ReadSetCheckValues(string str)
         {
+            TestCaseParseState parseState = TestCaseParseState.ReadingValues;
             if (_inputText.ISCurrentLineSeparated('*'))
                 return AddTestCase(str);
 
@@ -230,48 +229,35 @@ namespace Nfun.Fuspec.Parser
 
             if (setString != null)
             {
-                if (setString.Trim() == "")
-                    return WriteError(new FuspecParserError(FuspecErrorType.SetKitMissed, _inputText.Index));
-                if (setString.Substring(0, 1) != " ")
-                    return WriteError(new FuspecParserError(FuspecErrorType.WrongSetCheckKit, _inputText.Index));
+                parseState = AddSetCheckKitToSetCkecks(setString, new SetData());
+                if (parseState != TestCaseParseState.ReadingValues)
+                    return parseState;
+           }
 
+            if (checkString!=null)
+                            parseState = AddSetCheckKitToSetCkecks(checkString, new CheckData());
+            return parseState;
+        }
 
-                //if there was only a 'set' string before the current one, then add 'set-check-kit'
-                if (!_setCheckPair.Check.Any() && _setCheckPair.Set.Any())
-                    _setCheckKits.Add(_setCheckPair);
-                _setCheckPair = new SetCheckPair();
-                try
-                {
-                    _setCheckPair.AddSet(ParseValues(setString));
-                }
-                catch (FunParseException e)
-                {
-                    Console.WriteLine($"fpe {e.Code} {e.Message}");
-                    return WriteError(new FuspecParserError(FuspecErrorType.NFunMessage_ICantParseValue, _inputText.Index));
-                }
-                catch (Exception e)
-                {
-                    return WriteError(new FuspecParserError(FuspecErrorType.NFunMessage_ICantParseValue, _inputText.Index));
-                }
+        private TestCaseParseState AddSetCheckKitToSetCkecks(string setCheckString, ISetCheckData setOrCheckKit)
+        {
+            if (setCheckString.Trim() == "")
+                return WriteError(new FuspecParserError(FuspecErrorType.SetOrCheckKitMissed, _inputText.Index));
+            if (setCheckString.Substring(0, 1) != " ")
+                return WriteError(new FuspecParserError(FuspecErrorType.WrongSetCheckKit, _inputText.Index));
+            try
+            {                
+                setOrCheckKit.AddValue(ParseValues(setCheckString));
+                _setChecks.Add(setOrCheckKit);
             }
-
-            if (checkString != null)
+            catch (FunParseException e)
             {
-                if (checkString.Trim() == "")
-                    return WriteError(new FuspecParserError(FuspecErrorType.CheckKitMissed, _inputText.Index));
-                if (checkString.Substring(0, 1) != " ")
-                    return WriteError(new FuspecParserError(FuspecErrorType.WrongSetCheckKit, _inputText.Index));
-
-                try
-                {
-                    _setCheckPair.AddGet(ParseValues(checkString));
-                }
-                catch (Exception e)
-                {
-                    return WriteError(new FuspecParserError(FuspecErrorType.NFunMessage_ICantParseValue, _inputText.Index));
-                }
-
-                _setCheckKits.Add(_setCheckPair);
+                Console.WriteLine($"fpe {e.Code} {e.Message}");
+                return WriteError(new FuspecParserError(FuspecErrorType.NFunMessage_ICantParseValue, _inputText.Index));
+            }
+            catch (Exception e)
+            {
+                return WriteError(new FuspecParserError(FuspecErrorType.NFunMessage_ICantParseValue, _inputText.Index));
             }
 
             return TestCaseParseState.ReadingValues;
@@ -289,18 +275,9 @@ namespace Nfun.Fuspec.Parser
 
         private void BuildTestCase()
         {
-            
-            if (!_setCheckPair.Check.Any() && _setCheckPair.Set.Any())
-                _setCheckKits.Add(_setCheckPair);
-            
-           
-            _testCaseBuilder.BuildSetCheckKits(_setCheckKits);
+            _testCaseBuilder.BuildSetCheckKits(_setChecks);
             _testCaseBuilder.BuildScript(_script);
             _fuspecTestCases.Add(_testCaseBuilder.Build());
-
-
-            _setCheckKits = new List<SetCheckPair>();
-            _setCheckPair = new SetCheckPair();   
         }
 
         private void AddLast(TestCaseParseState state)

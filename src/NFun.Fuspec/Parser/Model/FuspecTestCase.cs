@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using System.Linq;
 using Nfun.Fuspec.Parser.FuspecParserErrors;
+using NFun.Fuspec.Parser.Interfaces;
 using NFun.Types;
 
 namespace Nfun.Fuspec.Parser.Model
@@ -10,7 +12,7 @@ namespace Nfun.Fuspec.Parser.Model
                                 string[] tags, 
                                 string body,
                                 VarInfo[] inputVarList, VarInfo[] outputVarList, 
-                                SetCheckPair[] setChecks,
+                                ISetCheckData[] setChecks,
                                 bool isTestExecuted,
                                 int startLine)
         {
@@ -29,8 +31,8 @@ namespace Nfun.Fuspec.Parser.Model
         
         public VarInfo[] InputVarList { get; }
         public VarInfo[] OutputVarList { get; }
-        
-        public SetCheckPair[] SetChecks { get; }
+
+        public ISetCheckData[] SetChecks { get; } 
         
         public bool IsTestExecuted { get; }
         
