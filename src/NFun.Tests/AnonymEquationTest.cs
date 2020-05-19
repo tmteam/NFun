@@ -27,6 +27,8 @@ namespace Funny.Tests
         [TestCase("8==8==1", false)]
         [TestCase("true==true==true", true)]
         [TestCase("8==8==8", false)]
+        [TestCase("[0,0,1]==[0,false,1]", false)]
+        [TestCase("[false,0,1]==[0,false,1]", false)]
         [TestCase("0 == 0 == 8",false)]
         [TestCase("8 == 1 == 0",false)]
         [TestCase("true == 1",false)]

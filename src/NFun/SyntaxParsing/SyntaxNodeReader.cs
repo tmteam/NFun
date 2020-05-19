@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using NFun.BuiltInFunctions;
 using NFun.Exceptions;
@@ -206,8 +207,17 @@ namespace NFun.SyntaxParsing
                 var uval = Convert.ToUInt64(val.Replace("_",null).Substring(2), dimensions);
                 return SyntaxNodeFactory.HexOrBinIntConstant(uval, binVal.Interval);
             }
-            if (flow.MoveIf(TokType.IntNumber, out var intVal))        //1,2,3
-                return SyntaxNodeFactory.IntGenericConstant(ulong.Parse(intVal.Value.Replace("_", String.Empty)), intVal.Interval);
+
+            if (flow.MoveIf(TokType.IntNumber, out var intVal))
+            {
+                //1,2,3
+                var decVal = BigInteger.Parse(intVal.Value.Replace("_", String.Empty));
+                if (decVal > ulong.MaxValue)
+                    throw FunParseException.ErrorStubToDo("Too big value");
+                
+                return SyntaxNodeFactory.IntGenericConstant((ulong)decVal,intVal.Interval);
+            }
+
             if (flow.MoveIf(TokType.RealNumber, out var realVal))       //1.0
                 return SyntaxNodeFactory.Constant(double.Parse(realVal.Value.Replace("_", String.Empty), CultureInfo.InvariantCulture), VarType.Real, realVal.Interval);
             if (flow.MoveIf(TokType.Text, out var txt))
