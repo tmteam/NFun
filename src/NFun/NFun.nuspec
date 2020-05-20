@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>NFun</id>
-    <version>0.7.1</version>
+    <version>0.8.0</version>
     <title>NFun</title>
     <authors>Tmteam</authors>
     <owners>Tmteam</owners>
@@ -11,8 +11,8 @@
     <iconUrl>https://images.chesscomfiles.com/uploads/v1/user/22965700.9556bba7.1200x1200o.a2c16c8ee719.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Pure intepritable fun language for .net applications</description>
-    <releaseNotes>Interpolation</releaseNotes>
-    <copyright>Copyright 2019</copyright>
+    <releaseNotes>Type inference calculator</releaseNotes>
+    <copyright>Copyright 2020</copyright>
     <tags>Not a functional intepritable language</tags>
   </metadata>
 </package>
