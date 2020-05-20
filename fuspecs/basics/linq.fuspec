@@ -1,19 +1,19 @@
 
 
 |****************************************
-| TEST reduce 2   
-| TAGS built-in-function reduce
+| TEST fold 2   
+| TAGS built-in-function fold
 |************************  
-  max = [1,2,6,54,2,76,8,3].reduce((acc,cur)-> if (cur>acc) cur else acc)
+  max = [1,2,6,54,2,76,8,3].fold {if (it2>it1) it2 else it1}
 |---------------------
 | check max: 76
 
 
 |****************************************
-| TEST reduce 3   
-| TAGS built-in-function reduce
+| TEST fold 3   
+| TAGS built-in-function fold
 |************************  
-  concat = ['we','will','rock','you'].reduce('singing:', (acc,cur)-> [acc, ' ',cur].flat())
+  concat = ['we','will','rock','you'].fold('singing:') {[it1, ' ',it2].flat()}
 |---------------------
 | check concat: 'singing: we will rock you' 
 
@@ -34,15 +34,15 @@
  # aaa is count of 'a' chars in texts, witch contains N or more 
  # 'a' chars 
    aaa = x
-   		.map(s->s.count(j->j==achar))
-   		.filter(s->s >= n)
+   		.map{it.count {it==achar}}
+   		.filter{it >= n}
  
  # tot is lengths of texts witch contain N or more  
  # 'a' chars 
    tot = x
-   		.filter(
-   				s-> s.count(j->j==achar) >=n
-   			)    
+   		.filter {
+   				it.count {it==achar} >=n
+   			}    
    		.map(count)
 
 |---------------------
@@ -63,10 +63,10 @@
 | in x:real[]
 | out  ysum:real, ymulti: real, ymin: real, ymax:real 
 |------------------------
-  ysum   = x.filter(i->i%2==0).sum()
-  ymulti = x.filter(i->i%2==0).reduce((s,i)-> s*i)
-  ymin   = x.filter(i->i%2==0).reduce(min)
-  ymax   = x.filter(i->i%2==0).reduce(max)
+  ysum   = x.filter{it%2==0}.sum()
+  ymulti = x.filter{it%2==0}.fold{it1*it2}
+  ymin   = x.filter{it%2==0}.fold(min)
+  ymax   = x.filter{it%2==0}.fold(max)
 |---------------------
 | set  x:[0,1,2,3,4,5,6,7,8,9]
 | check ysum:20, ymulti:384, ymin:0, ymax:8

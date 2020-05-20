@@ -330,8 +330,8 @@ namespace NFun.BuiltInFunctions
 
             public override object Calc(object[] args)
             {
-                var start = args.Get<long>(0);
-                var end = args.Get<long>(1);
+                var start = (long)args[0];
+                var end =   (long)args[1];
                 var result = new List<long>();
 
                 if (start < end)
@@ -403,8 +403,8 @@ namespace NFun.BuiltInFunctions
 
             public override object Calc(object[] args)
             {
-                var start = args.Get<ulong>(0);
-                var end = args.Get<ulong>(1);
+                var start = (ulong)args[0];
+                var end =   (ulong)args[1];
                 var result = new List<ulong>();
 
                 if (start < end)
@@ -422,8 +422,8 @@ namespace NFun.BuiltInFunctions
 
             public override object Calc(object[] args)
             {
-                var start = args.Get<double>(0);
-                var end = args.Get<double>(1);
+                var start = (double)args[0];
+                var end =   (double)args[1];
                 
                 var result = new List<double>();
 

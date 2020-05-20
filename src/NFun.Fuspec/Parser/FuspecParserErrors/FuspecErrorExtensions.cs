@@ -30,6 +30,8 @@ namespace Nfun.Fuspec.Parser.FuspecParserErrors
                     return "NFunMessage_ICantParseParamTypeString=";
                 case FuspecErrorType.WrongSetCheckKit:
                     return "WrongSetCheckKit";
+                case FuspecErrorType.SetOrCheckKitMissed:
+                    return "SetOrCheckKitMissed";
                 case FuspecErrorType.SetKitMissed:
                     return "SetKitMissed";
                 case FuspecErrorType.CheckKitMissed:

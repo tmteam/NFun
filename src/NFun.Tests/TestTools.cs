@@ -54,7 +54,7 @@ namespace Funny.Tests
             Assert.AreEqual(variable.Type, res.Type, $"Variable \"{variable.Name}\" has wrong type");
 
             if (variable.Type == VarType.Real)
-                Assert.AreEqual(variable.Value.To<double>(), res.Value.To<double>(), delta,
+                Assert.AreEqual((double) variable.Value, (double)res.Value, delta,
                     $"Var \"{variable}\" expected: {variable.Value}, but was: {res.Value}");
             else
                 Assert.AreEqual(variable.Value, res.Value,

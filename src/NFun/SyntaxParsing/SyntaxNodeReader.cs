@@ -22,6 +22,7 @@ namespace NFun.SyntaxParsing
     {
         static SyntaxNodeReader()
         {
+            // ReSharper disable once UseObjectOrCollectionInitializer
             var priorities = new List<TokType[]>();
             priorities.Add(new []
             {

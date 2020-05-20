@@ -2,15 +2,16 @@ using System.Collections.Generic;
 using System.Linq;
 using Nfun.Fuspec.Parser.FuspecParserErrors;
 using Nfun.Fuspec.Parser.Model;
+using NFun.Fuspec.Parser.Interfaces;
 using NFun.Types;
 
 namespace Nfun.Fuspec.Parser
 {
     class TestCaseBuilder
     {
-        private List<SetCheckPair> _setCheckKits;
+        private List<ISetCheckData> _setChecks;
         public string Name { get; set; }
-        public string[] Tags { get; set; } //
+        public string[] Tags { get; set; } 
         public string Script { get; set; }
         
         public VarInfo[] ParamsIn { get; set; }
@@ -21,7 +22,7 @@ namespace Nfun.Fuspec.Parser
         
         public int StartLine { get; set; }
 
-        public SetCheckPair[] SetCheckKits => _setCheckKits.ToArray();
+        public ISetCheckData[] SetChecks => _setChecks.ToArray();
         
         
         public TestCaseBuilder()
@@ -30,18 +31,18 @@ namespace Nfun.Fuspec.Parser
             Tags = new string[0];
             ParamsIn = new VarInfo[0];
             ParamsOut=new VarInfo[0];
-            _setCheckKits=new List<SetCheckPair>();
+            _setChecks=new List<ISetCheckData>();
             IsTestExecuted = true;
             StartLine = -1;
         }
 
-        internal FuspecTestCase Build() =>
-            new FuspecTestCase(Name, Tags, Script, ParamsIn, ParamsOut,SetCheckKits, IsTestExecuted, StartLine);
+        public FuspecTestCase Build() =>
+            new FuspecTestCase(Name, Tags, Script, ParamsIn, ParamsOut, SetChecks, IsTestExecuted, StartLine);
         
-        internal  void BuildSetCheckKits(List<SetCheckPair> setCheckKits)
+        internal  void BuildSetCheckKits(List<ISetCheckData> setChecks)
         {
-            if (setCheckKits.Any())
-                _setCheckKits=setCheckKits;
+            if (setChecks.Any())
+                _setChecks=setChecks;
         }
         
         internal void BuildScript(List<string> script)
