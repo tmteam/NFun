@@ -27,7 +27,7 @@ namespace NFun.Interpritation.Nodes
         {
             for (var index = 0; index < _ifExpressionNodes.Length; index++)
             {
-                if (_conditionNodes[index].Calc().To<bool>())
+                if ((bool)_conditionNodes[index].Calc())
                     return _ifExpressionNodes[index].Calc(); 
             }
             return _elseNode.Calc();
