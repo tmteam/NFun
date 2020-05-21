@@ -67,7 +67,7 @@ namespace Nfun.Benchmarks
                           #body  
                           ins:int[]  = [1,5,3,5,6,0x1,2,0b100,0,3,2,10,3,50,6,42,43,53]
                           rns:real[] = ins
-                          tns  = ins.filter{it%2==0}.map(toText).concat(['vasa','kate', '21*2 = {21*2}'])
+                          tns  = ins.filter{it.remainder(2)==0}.map(toText).concat(['vasa','kate', '21*2 = {21*2}'])
                         
                           i  = ins.bubbleSort() == ins.reverse().sort()
                           r  = rns.bubbleSort() == rns.sort()

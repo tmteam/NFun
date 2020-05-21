@@ -18,7 +18,7 @@ namespace Funny.Tests
         [TestCase(10.0, "y = x-1  #subtraction", "y", 9.0)]
         [TestCase(10.0, "y = x*2  #multiplication", "y", 20.0)]
         [TestCase(10.0, "y = x/2  #division", "y", 5.0)]
-        [TestCase(10.0, "y = x%3  #remainder", "y", 1.0)]
+        [TestCase(10.0, "y = x.remainder(3)  #remainder", "y", 1.0)]
         [TestCase(10.0, "y = x**2  #exponentiation", "y", 100.0)]
         [TestCase(10.0, "y = 10*x +1", "y", 101.0)]
         [TestCase(10.0, "10*x +1", "out", 101.0)]

@@ -63,10 +63,10 @@
 | in x:real[]
 | out  ysum:real, ymulti: real, ymin: real, ymax:real 
 |------------------------
-  ysum   = x.filter{it%2==0}.sum()
-  ymulti = x.filter{it%2==0}.fold{it1*it2}
-  ymin   = x.filter{it%2==0}.fold(min)
-  ymax   = x.filter{it%2==0}.fold(max)
+  ysum   = x.filter{it.remainder(2)==0}.sum()
+  ymulti = x.filter{it.remainder(2)==0}.fold{it1*it2}
+  ymin   = x.filter{it.remainder(2)==0}.fold(min)
+  ymax   = x.filter{it.remainder(2)==0}.fold(max)
 |---------------------
 | set  x:[0,1,2,3,4,5,6,7,8,9]
 | check ysum:20, ymulti:384, ymin:0, ymax:8

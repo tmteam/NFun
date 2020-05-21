@@ -93,10 +93,10 @@
   i7:int =  1 *-100
   i8:int = -1 *-100
 
-  i9:int =  13 % 4
-  i10:int = -13 % 4
-  i11:int =  13 % -100
-  i12:int = -13 % -100
+  i9:int =  13  .remainder(4)
+  i10:int = -13 .remainder(4)
+  i11:int =  13 .remainder(-100)
+  i12:int = -13 .remainder(-100)
 |---------------------
 | check i1:101,  i2:99,  i3:-99, i4:-101, i5:100,i6:-100, i7:-100,  i8:100, i9:1,    i10:3, i11:13 ,  i12:13,
 
@@ -118,10 +118,10 @@
   r7:real =  1.05 *-100
   r8:real = -1.1 *-100.5
 
-  r9:real =  13.6 % 4.7
-  r10:real = -13.8 % 4.9
-  r11:real =  13.11 % -100.12
-  r12:real = -13.13 % -100.14
+  r9:real =  13.6  .remainder(4.7)
+  r10:real = -13.8.remainder( 4.9)
+  r11:real =  13.11.remainder( -100.12)
+  r12:real = -13.13.remainder( -100.14)
 
   r13:real =  12 / 4
   r14:real =  10 / -10 
@@ -154,10 +154,10 @@
   i7:real =  1 *-100
   i8:real = -1 *-100
 
-  i9:real =  13 % 4
-  i10:real = -13 % 4
-  i11:real =  13 % -100
-  i12:real = -13 % -100
+  i9:real =  13.remainder( 4)
+  i10:real = -13.remainder( 4)
+  i11:real =  13.remainder( -100)
+  i12:real = -13.remainder( -100)
 |---------------------
 | check i1:101,  i2:99,  i3:-99, i4:-101, i5:100,i6:-100, i7:-100,  i8:100, i9:1,    i10:3, i11:13 ,  i12:13,
 
@@ -175,7 +175,7 @@
   plus :int = x+1
   minus:int =x-1
   multi:int =x*100
-  rema :int =x%10
+  rema :int =x.remainder(10)
 |---------------------
 | set x:1,         
 | check plus:2, minus:0, multi:100, rema:1     
@@ -195,7 +195,7 @@
   minus:real = x-1
   multi:real = x*100
   divide:real = x/10
-  rema:real   = x%10
+  rema:real   = x.remainder(10)
   pow:real    = x**2
 |---------------------
 | set x:1,         
@@ -219,9 +219,9 @@
   m1 :real = x*1
   m2 :real = x*1.0
   m3 :real = x*x
-  r1 :real = x%1
-  r2 :real = x%1.0
-  r3 :real = x%x
+  r1 :real = x.remainder(1)
+  r2 :real = x.remainder(1.0)
+  r3 :real = x.remainder(x)
 |---------------------
 | set x:1,         
 | check p1:1.0, p2:1.0, p3:2.0, m1:1.0, m2:1.0, m3:1.0, r1:0.0, r2:0.0, r3:0.0

@@ -12,7 +12,7 @@ namespace Funny.Tests
         [TestCase("y = 0x2",BaseVarType.Int32)]
         [TestCase("y = 0x2*3",BaseVarType.Int32)]
         [TestCase("y = 2**3",BaseVarType.Real)]
-        [TestCase("y = 0x2%3",BaseVarType.Int32)]
+        [TestCase("y = 0x2.remainder(3)", BaseVarType.Int32)]
 
         [TestCase("y = 4/3",BaseVarType.Real)]
         [TestCase("y = 0x4- 3",BaseVarType.Int32)]
@@ -29,8 +29,8 @@ namespace Funny.Tests
         [TestCase("y = 4/0.2",BaseVarType.Real)]
         [TestCase("y = 2**0.3",BaseVarType.Real)]
         [TestCase("y = 0.2**2",BaseVarType.Real)]
-        [TestCase("y = 0.2%2",BaseVarType.Real)]
-        [TestCase("y = 3%0.2",BaseVarType.Real)]
+        [TestCase("y = 0.2.remainder(2)", BaseVarType.Real)]
+        [TestCase("y = 3.remainder(0.2)", BaseVarType.Real)]
 
         [TestCase("y = 0xfF  ",BaseVarType.Int32)]
         [TestCase("y = 0x00_Ff  ",BaseVarType.Int32)]
@@ -464,7 +464,7 @@ namespace Funny.Tests
         public void RemainsOfTwoIntegersTest(string inputTypes, BaseVarType expectedOutputType)
         {
             var runtime = FunBuilder.Build(
-                $"a:{inputTypes}; b:{inputTypes}; y = a % b");
+                $"a:{inputTypes}; b:{inputTypes}; y = a .remainder(b)");
             Assert.AreEqual(expectedOutputType, runtime.Outputs.Single(o => o.Name == "y").Type.BaseType);
         }
         

@@ -210,7 +210,7 @@ newCount = if (not done) x+1 else x
 | in x:real[]
 | out  ysum:real, ymulti: real, ymin: real, ymax:real 
 |------------------------
-  getOdds(x)= x.filter{it%2==0}
+  getOdds(x)= x.filter{it.remainder(2)==0}
   mymax(x,y) = if (x>y) x else y
 
   ysum   = x.getOdds().sum()

@@ -103,8 +103,9 @@ namespace NFun.Tokenization
             {"do",    TokType.Reserved},
             {"while", TokType.Reserved},
             {"until", TokType.Reserved},
-
-            // {"bad",   TokType.Reserved},
+            {"%", TokType.Reserved},
+            {"mod", TokType.Reserved},
+            {"rem", TokType.Reserved},
             {"fail",   TokType.Reserved},
             {"error",   TokType.Reserved},
             {"oops",   TokType.Reserved},
@@ -264,7 +265,7 @@ namespace NFun.Tokenization
                 case '|': return Tok.New(TokType.BitOr, position, position + 1);
                 case '/': return Tok.New(TokType.Div, position, position + 1);
                 case '+': return Tok.New(TokType.Plus, position, position + 1);
-                case '%': return Tok.New(TokType.Rema, position, position + 1);
+                //case '%': return Tok.New(TokType.Rema, position, position + 1);
                 case '(': return Tok.New(TokType.Obr, position, position + 1);
                 case ')': return Tok.New(TokType.Cbr, position, position + 1);
                 case '[': return Tok.New(TokType.ArrOBr, position, position + 1);
