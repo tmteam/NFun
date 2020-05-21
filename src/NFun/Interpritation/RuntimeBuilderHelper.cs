@@ -21,7 +21,7 @@ namespace NFun.Interpritation
             this UserFunctionDefenitionSyntaxNode functionSyntax,
             VarType[] argTypes, 
             VarType returnType,
-            IFunctionDicitionary functionsDictionary,
+            IFunctionDictionary functionsDictionary,
             TypeInferenceResults results, 
             TicTypesConverter converter)
         {
@@ -58,7 +58,7 @@ namespace NFun.Interpritation
         }
 
         public static TypeInferenceResults SolveBodyOrThrow(SyntaxTree syntaxTree,
-            IFunctionDicitionary functionsDictionary)
+            IFunctionDictionary functionsDictionary)
         {
             try
             {

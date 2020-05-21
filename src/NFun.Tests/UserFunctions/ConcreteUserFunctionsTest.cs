@@ -29,7 +29,7 @@ namespace Funny.Tests.UserFunctions
 
         public void TypedConstantEquation_NonRecursiveFunction(string expr, object expected)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             runtime.Calculate().AssertReturns(VarVal.New("y", expected));
         }
 
@@ -39,7 +39,7 @@ namespace Funny.Tests.UserFunctions
         [TestCase("div2(a,b) = a/b  \r mult2(a,b) = a*b         \r y = mult2(3,4)+div2(4,2)", 14)]
         public void ConstantEquation_NonRecursiveGenericFunction(string expr, double expected)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             runtime.Calculate().AssertReturns(0.00001, VarVal.New("y", expected));
         }
         [TestCase("_inc(a) = a+1.0\r y = _inc(2.0)",3.0)]
@@ -47,14 +47,14 @@ namespace Funny.Tests.UserFunctions
         [TestCase("div2(a,b) = a/b  \r div3(a,b,c) = div2(a,b)/c\r y = div3(16,4,2)",2)]
         public void ConstantEquation_NonRecursiveFunction(string expr, double expected)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             runtime.Calculate().AssertReturns(0.00001, VarVal.New("y", expected));
         }
 
         [TestCase("plus3(a,b,c) = plus2(a,b)+c \r plus2(a,b) = a+b  \r y = plus3(16,4,2)",22)]
         public void ConstantEquation_ReversedImplementationsOfFunctions(string expr, double expected)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             runtime.Calculate().AssertReturns(0.00001, VarVal.New("y", expected));
         }
 
@@ -86,7 +86,7 @@ namespace Funny.Tests.UserFunctions
                           i:int[]  = [1,4,3,2,5].bubbleSort()";
 
 
-            FunBuilder.BuildDefault(expr).Calculate()
+            FunBuilder.Build(expr).Calculate()
                 .AssertReturns(VarVal.New("i", new[] { 1, 2, 3, 4, 5 }));
 
         }
@@ -149,7 +149,7 @@ namespace Funny.Tests.UserFunctions
         [TestCase("y:real(x):real= 1")]
 
         public void ObviousFails(string expr){
-            Assert.Throws<FunParseException>(()=>FunBuilder.BuildDefault(expr));
+            Assert.Throws<FunParseException>(()=>FunBuilder.Build(expr));
         }
     }
 }

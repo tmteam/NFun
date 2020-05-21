@@ -67,7 +67,7 @@ namespace Funny.Tests
         [TestCase("y = [1.0,2.0]==[1.0,2.0]", true)]
         public void ConstantArrayOperatorsTest(string expr, object expected)
         {
-            FunBuilder.BuildDefault(expr).Calculate().AssertReturns(VarVal.New("y", expected));
+            FunBuilder.Build(expr).Calculate().AssertReturns(VarVal.New("y", expected));
         }
 
         [TestCase("a = 2.0 \r b=3.0 \r  y = [1.0,a,b] ", new[]{1.0,2.0,3.0})]
@@ -78,7 +78,7 @@ namespace Funny.Tests
         [TestCase("a = false  \r y = if (a) [1.0] else [2.0, 3.0]", new[]{2.0,3.0})]
         public void ConstantCalculableArrayTest(string expr, object expected)
         {
-            FunBuilder.BuildDefault(expr).Calculate().AssertHas(VarVal.New("y", expected));
+            FunBuilder.Build(expr).Calculate().AssertHas(VarVal.New("y", expected));
         }
         
         [TestCase("[1,'2',3.0,4,5.2, true, false, 7.2]",new object[]{1.0,"2",3.0,4.0,5.2,true,false,7.2})]
@@ -89,7 +89,7 @@ namespace Funny.Tests
         [TestCase ("y(x) = x # some comment \r[1]",new[]{1.0})]
         [TestCase ("y(x) = x # some comment \r[1..3]",new[]{1.0,2,3})]
         public void AnonymousConstantArrayTest(string expr, object expected) 
-            => FunBuilder.BuildDefault(expr).Calculate().AssertOutEquals(expected);
+            => FunBuilder.Build(expr).Calculate().AssertOutEquals(expected);
 
         [Test]
         public void IntersectToDimArrayTest()
@@ -97,7 +97,7 @@ namespace Funny.Tests
             var expression = "y = [[1.0,2.0],[3.0,4.0],[5.0]] . intersect ([[3.0,4.0],[1.0],[5.0],[4.0]])";
             var expected = new[] {new [] {3.0, 4.0},new[]{5.0}};
 
-            FunBuilder.BuildDefault(expression).Calculate().AssertReturns(VarVal.New("y", expected));
+            FunBuilder.Build(expression).Calculate().AssertReturns(VarVal.New("y", expected));
         }
         
 
@@ -111,7 +111,7 @@ namespace Funny.Tests
         [TestCase(0.5, "y= [1.0..3.0..x]", new[] {1.0, 1.5, 2.0, 2.5, 3.0})]
         public void SingleVqtInputEquation_CheckOutputValues(object val, string expr, object expected)
         {
-            FunBuilder.BuildDefault(expr).Calculate(VarVal.New("x",val)).AssertHas(VarVal.New("y", expected));
+            FunBuilder.Build(expr).Calculate(VarVal.New("x",val)).AssertHas(VarVal.New("y", expected));
         }
 
 
@@ -122,7 +122,7 @@ namespace Funny.Tests
             var expression = "y = [[1.0,2.0],[3.0,4.0]]. except([[3.0,4.0],[1.0],[4.0]])";
             var expected = new[] {new [] {1.0, 2.0}};
 
-            FunBuilder.BuildDefault(expression).Calculate().AssertReturns(VarVal.New("y", expected));
+            FunBuilder.Build(expression).Calculate().AssertReturns(VarVal.New("y", expected));
         }
         
         [Test]
@@ -136,7 +136,7 @@ namespace Funny.Tests
             var expectedType = VarType.ArrayOf(VarType.ArrayOf(VarType.Real));
             var expression = " y= [[1.0,2.0],[3.0,4.0],[5.0]]";
             
-            var runtime = FunBuilder.BuildDefault(expression);
+            var runtime = FunBuilder.Build(expression);
             var res = runtime.Calculate().Get("y");
             Assert.AreEqual(expectedType, res.Type);
             AssertMultiDimentionalEquals(res, expected);
@@ -152,7 +152,7 @@ namespace Funny.Tests
             var expectedType = VarType.ArrayOf(VarType.ArrayOf(VarType.Real));
             var expression = " y= [[1,2],[3,4]].concat([[5.0]])";
             
-            var runtime = FunBuilder.BuildDefault(expression);
+            var runtime = FunBuilder.Build(expression);
             var res = runtime.Calculate().Get("y");
             Assert.AreEqual(expectedType, res.Type);
             AssertMultiDimentionalEquals(res, expected);
@@ -169,7 +169,7 @@ namespace Funny.Tests
             var expectedOutput = x;
             var expression = "x:int[][]\r y= x";
             
-            var runtime = FunBuilder.BuildDefault(expression);
+            var runtime = FunBuilder.Build(expression);
             var res = runtime.Calculate(VarVal.New("x", x)).Get("y");
             Assert.AreEqual(expectedType, res.Type);
             AssertMultiDimentionalEquals(res, expectedOutput);
@@ -193,7 +193,7 @@ namespace Funny.Tests
 
             var expression = "x:int[][]\r y= x.concat(x)";
             
-            var runtime = FunBuilder.BuildDefault(expression);
+            var runtime = FunBuilder.Build(expression);
             var res = runtime.Calculate(VarVal.New("x", x)).Get("y");
             Assert.AreEqual(expectedType, res.Type);
             AssertMultiDimentionalEquals(res, expectedOutput);
@@ -209,7 +209,7 @@ size      = concat.count()
 possum   = x.filter{it>0}.fold{it1+it2}
 filtrat   = x.filter{it> filt} # filt - input variable
 ";
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             var res = runtime.Calculate(VarVal.New("x", new[]{5,6,7,8}),
                 VarVal.New("filt", 2)
                 );
@@ -255,7 +255,7 @@ filtrat   = x.filter{it> filt} # filt - input variable
   
         public void ObviouslyFailsOnParse(string expr) =>
             Assert.Throws<FunParseException>(
-                () => FunBuilder.BuildDefault(expr));
+                () => FunBuilder.Build(expr));
 
       
         [TestCase("y = [1..2..-2]")]
@@ -269,6 +269,6 @@ filtrat   = x.filter{it> filt} # filt - input variable
         [TestCase("y = ['a', 'b'][2]")]
         public void ObviouslyFailsOnRuntime(string expr) =>
             Assert.Throws<FunRuntimeException>(
-                ()=> FunBuilder.BuildDefault(expr).Calculate());
+                ()=> FunBuilder.Build(expr).Calculate());
     }
 }

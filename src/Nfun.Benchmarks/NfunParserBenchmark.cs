@@ -19,7 +19,7 @@ namespace Nfun.Benchmarks
         public void Setup()
         {
             _scripts = new Scripts();
-            _dictionary = BaseFunctions.GetDefaultDictionary();
+            _dictionary = BaseFunctions.CreateDefaultDictionary();
         }
 
         private SyntaxTree Parse(string expr)

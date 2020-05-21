@@ -10,62 +10,70 @@ using NFun.Tokenization;
 
 namespace NFun
 {
-    public  class FunBuilder
+    public interface IFunBuilder
     {
-        private readonly string _text;
-        private IFunctionDicitionary _dicitionary;
-        public static FunBuilder With(string text) => new FunBuilder(text);
-        public FunBuilder With(IFunctionDicitionary dictionary)
+        FunRuntime Build();
+    }
+    public class FunBuilderWithDictionary:IFunBuilder
+    {
+        private readonly string _script;
+        private readonly IFunctionDictionary _functionDictionary;
+
+        internal FunBuilderWithDictionary(string script, IFunctionDictionary functionDictionary)
         {
-            _dicitionary = dictionary;
+            _script = script;
+            _functionDictionary = functionDictionary;
+        }
+
+        public FunRuntime Build() => RuntimeBuilder.Build(_script, _functionDictionary);
+    }
+
+    public class FunBuilderWithConcreteFunctions : IFunBuilder
+    {
+        private readonly string _script;
+        private readonly FunctionDictionary _functionDictionary;
+
+        internal FunBuilderWithConcreteFunctions(string script)
+        {
+            _script = script;
+            _functionDictionary = BaseFunctions.CreateDefaultDictionary();
+        }
+        public FunBuilderWithConcreteFunctions WithFunctions(params IFunctionSignature[] functions)
+        {
+            foreach (var function in functions)
+            {
+                _functionDictionary.AddOrThrow(function);
+            }
+            
             return this;
         }
 
+        public FunRuntime Build() => RuntimeBuilder.Build(_script, _functionDictionary);
+    }
+    public  class FunBuilder : IFunBuilder
+    {
+        private readonly string _text;
+        public static FunBuilder With(string text) => new FunBuilder(text);
         private FunBuilder(string text)
         {
             _text = text;
         }
-
-        readonly List<FunctionBase> _functions = new List<FunctionBase>();
-        readonly List<GenericFunctionBase> _genericFunctions= new List<GenericFunctionBase>();
-        public FunBuilder WithFunctions(params FunctionBase[] functions)
+        public FunBuilderWithDictionary With(IFunctionDictionary dictionary)
         {
-            _functions.AddRange(functions);
-            return this;
-        }
-        public FunBuilder WithFunctions(params GenericFunctionBase[] functions)
-        {
-            _genericFunctions.AddRange(functions);
-            return this;
+            return  new FunBuilderWithDictionary(_text, dictionary);
         }
 
-        public FunRuntime Build()
+       
+
+        public FunBuilderWithConcreteFunctions WithFunctions(params IFunctionSignature[] functions)
         {
-            var flow = Tokenizer.ToFlow(_text);
-            var syntaxTree = Parser.Parse(flow);
-
-            //Set node numbers
-            syntaxTree.ComeOver(new SetNodeNumberVisitor());
-            
-            var functionsDictionary = _dicitionary??CreateFunctionsDictionary();
-
-            return RuntimeBuilder.Build(syntaxTree, functionsDictionary);
+            FunBuilderWithConcreteFunctions builder = new FunBuilderWithConcreteFunctions(_text);
+            return builder.WithFunctions(functions);
         }
 
-        /// <summary>
-        /// Creates functions dictionary that contains build in and custom functions
-        /// </summary>
-        private FunctionDictionary CreateFunctionsDictionary()
-        {
-            var functionsDictionary = BaseFunctions.GetDefaultDictionary();
-            foreach (var predefinedFunction in _functions)
-                functionsDictionary.Add(predefinedFunction);
-            foreach (var genericFunctionBase in _genericFunctions)
-                functionsDictionary.Add(genericFunctionBase);
-            return functionsDictionary;
-        }        
-        
-        public static FunRuntime BuildDefault(string text)
-            => FunBuilder.With(text).Build();
+        public FunRuntime Build() => RuntimeBuilder.Build(_text, BaseFunctions.CreateDefaultDictionary());
+
+        public static FunRuntime Build(string text) =>
+            RuntimeBuilder.Build(text, BaseFunctions.CreateDefaultDictionary());
     }
 }

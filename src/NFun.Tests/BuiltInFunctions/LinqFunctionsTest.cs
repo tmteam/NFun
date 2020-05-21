@@ -48,7 +48,7 @@ namespace Funny.Tests.BuiltInFunctions
         [TestCase("y:int = [1,2,3,4,5,6,7].filter({it%2==0}).fold{0}", 0)]
         public void HiOrderFunConstantEquatation(string expr, object expected)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             runtime.Calculate()
                 .AssertReturns(VarVal.New("y", expected));
         }
@@ -154,7 +154,7 @@ namespace Funny.Tests.BuiltInFunctions
         [TestCase("y = 123.toText().reverse()", "321")]
         public void ConstantEquationWithGenericPredefinedFunction(string expr, object expected)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             runtime.Calculate()
                 .AssertReturns(0.00001, VarVal.New("y", expected));
         }
@@ -166,7 +166,7 @@ namespace Funny.Tests.BuiltInFunctions
 
         public void FailsOnRuntime(string expr)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             Assert.Throws<FunRuntimeException>(
                 () => runtime.Calculate());
         }

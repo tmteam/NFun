@@ -80,7 +80,7 @@ y = tostring(x)", "y", "not supported")]
         public void Real_SingleEquationWithSingleInput(object xVal, string expression, string outputName,
             object outputValue)
         {
-            var runtime = FunBuilder.BuildDefault(expression);
+            var runtime = FunBuilder.Build(expression);
             Assert.AreEqual(1, runtime.Inputs.Length);
             Assert.AreEqual(1, runtime.Outputs.Length);
             runtime.Calculate(VarVal.New("x", xVal))
@@ -139,7 +139,7 @@ y = tostring(x)", "y", "not supported")]
         [TestCase("y = [1..4].all{it>2}#false", "y", false)]
         public void Constant(string expr, string outputName, object val)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             Assert.AreEqual(0, runtime.Inputs.Length);
             Assert.AreEqual(1, runtime.Outputs.Length);
             runtime.Calculate()
@@ -155,7 +155,7 @@ y = tostring(x)", "y", "not supported")]
         [TestCase("a =[0..10][1]; b=[0..5][2]; c=[0..5][3];",   new[]{"a","b","c"}, new object[]{1.0, 2.0, 3.0})]
         public void SomeConstantInExpression(string expr, string[] outputNames, object[] constantValues)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             var calculateResult = runtime.Calculate();
             for (var item=0; item < outputNames.Length; item++)
             {
@@ -177,7 +177,7 @@ x-
     10
 
 ";
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             Assert.AreEqual(1, runtime.Inputs.Length);
             Assert.AreEqual(1, runtime.Outputs.Length);
             runtime.Calculate(VarVal.New("x", 2.5))
@@ -191,7 +191,7 @@ x-
             var expr = @"
 sum = x1+x2
 dif = x1-x2";
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             Assert.AreEqual(2, runtime.Inputs.Length);
             Assert.AreEqual(2, runtime.Outputs.Length);
             runtime.Calculate(VarVal.New("x1", 10.0), VarVal.New("x2", 2.5))
@@ -211,7 +211,7 @@ y2 = x1 and true # == x1
 y3 = x1 == false 
 y4 = not(x1 and x2 or x3)
 ";
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             Assert.AreEqual(3, runtime.Inputs.Length);
             Assert.AreEqual(4, runtime.Outputs.Length);
             runtime.Calculate(
@@ -235,7 +235,7 @@ y4 = not(x1 and x2 or x3)
       //  [TestCase("y = 'hi '.strConcat(u) #text", BaseVarType.Text)]
         public void Single_Equation_OutputTypeTest(string expression, BaseVarType primitiveType)
         {
-            var runtime = FunBuilder.BuildDefault(expression);
+            var runtime = FunBuilder.Build(expression);
             Assert.AreEqual(1, runtime.Outputs.Length);
             var output = runtime.Outputs[0];
             Assert.AreEqual(primitiveType, output.Type.BaseType);
@@ -247,7 +247,7 @@ y4 = not(x1 and x2 or x3)
             var expr = @"
 yprivate   = 0.1 * xpublic 
 yPublic   = yprivate + xpublic";
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             runtime.Calculate(VarVal.New("xpublic", 10.0))
                 .AssertReturns(
                     VarVal.New("yprivate", 1.0),
@@ -258,7 +258,7 @@ yPublic   = yprivate + xpublic";
         [TestCase(" x:real[] \r y = x.filter(x => x< 2 ) # error.")]
         public void ObviousFails(string expr)
         {
-            Assert.Throws<FunParseException>(() => FunBuilder.BuildDefault(expr));
+            Assert.Throws<FunParseException>(() => FunBuilder.Build(expr));
         }
 
         [TestCase(" y:int = convert('string')")]
@@ -267,7 +267,7 @@ yPublic   = yprivate + xpublic";
         public void ObviousFailsOnRuntime(string expr)
         {
             Assert.Throws<FunRuntimeException>(
-                () => FunBuilder.BuildDefault(expr).Calculate());
+                () => FunBuilder.Build(expr).Calculate());
         }
     }
 }

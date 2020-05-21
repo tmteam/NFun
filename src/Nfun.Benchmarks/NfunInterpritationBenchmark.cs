@@ -16,7 +16,7 @@ namespace Nfun.Benchmarks
         public void Setup()
         {
             _scripts = new Scripts();
-            _dictionary = BaseFunctions.GetDefaultDictionary();
+            _dictionary = BaseFunctions.CreateDefaultDictionary();
         }
         [Benchmark(Description = "dotnet [1.1000].SUM()", Baseline = true)]
         public int BaseLineDotnetTest1000() => Enumerable.Range(1, 1000).Sum();

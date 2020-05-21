@@ -32,18 +32,18 @@ namespace Nfun.Benchmarks
         {
             var scripts = new Scripts();
 
-            _const_true_runtime      = FunBuilder.BuildDefault(scripts.ConstTrue);
-            _const_1_runtime         = FunBuilder.BuildDefault(scripts.Const1);
-            _const_text_runtime      = FunBuilder.BuildDefault(scripts.ConstText);
-            _const_boolArray_runtime = FunBuilder.BuildDefault(scripts.ConstBoolArray);
-            _const_realArray_runtime = FunBuilder.BuildDefault(scripts.ConstRealArray);
-            _const_Kxb_runtime       = FunBuilder.BuildDefault(scripts.ConstKxb);
-            _const_multiplyArrays_runtime = FunBuilder.BuildDefault(scripts.MultiplyArrayItems);
-            _const_sum_1000_runtime  = FunBuilder.BuildDefault(scripts.ConstThousandSum);
-            _const_dummyBubbleSort_runtime = FunBuilder.BuildDefault(scripts.DummyBubbleSort);
-            _const_everything_runtime = FunBuilder.BuildDefault(scripts.Everything);
+            _const_true_runtime      = FunBuilder.Build(scripts.ConstTrue);
+            _const_1_runtime         = FunBuilder.Build(scripts.Const1);
+            _const_text_runtime      = FunBuilder.Build(scripts.ConstText);
+            _const_boolArray_runtime = FunBuilder.Build(scripts.ConstBoolArray);
+            _const_realArray_runtime = FunBuilder.Build(scripts.ConstRealArray);
+            _const_Kxb_runtime       = FunBuilder.Build(scripts.ConstKxb);
+            _const_multiplyArrays_runtime = FunBuilder.Build(scripts.MultiplyArrayItems);
+            _const_sum_1000_runtime  = FunBuilder.Build(scripts.ConstThousandSum);
+            _const_dummyBubbleSort_runtime = FunBuilder.Build(scripts.DummyBubbleSort);
+            _const_everything_runtime = FunBuilder.Build(scripts.Everything);
             
-            _varkxb_runtime = FunBuilder.BuildDefault(scripts.VarKxb);
+            _varkxb_runtime = FunBuilder.Build(scripts.VarKxb);
 
             value = VarVal.New("x",100);
             Expression<Func<double, double>> ex = x => 10 * x + 1;

@@ -12,7 +12,7 @@ namespace Nfun.ModuleTests
 {
     
     [TestFixture]
-    class MetafunctionsTest
+    class CustomMetafunctionsTest
     {
         [TestCase("x:anything; isCapital(x)", "x", false)]
         [TestCase("X:anything; isCapital(X)", "X", true)]

@@ -455,7 +455,7 @@ namespace NFun.ParseErrors
         public static Exception CannotParseNumber(string val, Interval interval)
             => new FunParseException(530, $"Cannot parse number '{val}'", interval);
 
-        public static Exception FunctionOverloadNotFound(FunCallSyntaxNode node, IFunctionDicitionary functions)
+        public static Exception FunctionOverloadNotFound(FunCallSyntaxNode node, IFunctionDictionary functions)
         {
             var candidates =  functions.SearchAllFunctionsIgnoreCase(node.Id, node.Args.Length);
             StringBuilder msg = new StringBuilder($"Function '{node.Id}({string.Join(",", node.Args.Select(a => "_"))})' is not found. ");

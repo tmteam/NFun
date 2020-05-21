@@ -105,7 +105,7 @@ namespace Funny.Tests
         public void NumbersConstantEquation(string expr, object expected)
         {
             //y = 0_i16
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             var res = runtime.Calculate();
             res.AssertHas(VarVal.New("y", expected));
         }
@@ -138,7 +138,7 @@ namespace Funny.Tests
 
         public void DiscreeteConstantEquataion(string expr, bool expected)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             runtime.Calculate()
                 .AssertReturns(new VarVal("y", expected, VarType.Bool));
         }
@@ -167,7 +167,7 @@ namespace Funny.Tests
 
         public void SingleVariableEquation(string expr, double arg, double expected)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             runtime.Calculate(VarVal.New("x",arg))
                 .AssertReturns(0.00001, VarVal.New("y", expected));
         }
@@ -179,7 +179,7 @@ namespace Funny.Tests
         [TestCase("if (x<3) true else false",2.0,true)]
         [TestCase("y(x) = x*2 \r y(x) * y(4.0)",3.0, 48.0)]
         public void AnonymousExpressionSingleVariableEquatation(string expr, double arg, object expected) 
-            => FunBuilder.BuildDefault(expr).Calculate(VarVal.New("x", arg)).AssertOutEquals(expected);
+            => FunBuilder.Build(expr).Calculate(VarVal.New("x", arg)).AssertOutEquals(expected);
 
         [TestCase("y = ()")]
         [TestCase("y = )")]
@@ -240,7 +240,7 @@ namespace Funny.Tests
         [TestCase("y = 91111111111111111111111111111111111111")]
         public void ObviouslyFails(string expr) =>
             Assert.Throws<FunParseException>(
-                ()=> FunBuilder.BuildDefault(expr));
+                ()=> FunBuilder.Build(expr));
 
         [TestCase("y = x1+x2",2,3,5)]
         [TestCase("y = 2*x1*x2",3,6, 36)]
@@ -248,7 +248,7 @@ namespace Funny.Tests
         [TestCase("y = (x1+x2)/4",2,2,1)]
         public void TwoVariablesEquation(string expr, double arg1, double arg2, double expected)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             var res = runtime.Calculate(
                 VarVal.New("x1", arg1),
                 VarVal.New("x2", arg2));
@@ -263,7 +263,7 @@ namespace Funny.Tests
         [TestCase("y = in1/2 + (in2*in3)",new []{"in1","in2", "in3"})]
         public void InputVarablesListWithAutoTypesIsCorrect(string expr, string[] inputNames)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             var inputs = inputNames.Select(i => new VarInfo(
                 isOutput: false, 
                 type: VarType.Real, 
@@ -281,7 +281,7 @@ namespace Funny.Tests
         [TestCase("x:bool \r z:bool \r y = x and z","y", BaseVarType.Bool)]
         public void OutputVarablesListIsCorrect(string expr, string output, BaseVarType type)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
                         
             CollectionAssert.AreEquivalent(
                 new[]{new VarInfo(

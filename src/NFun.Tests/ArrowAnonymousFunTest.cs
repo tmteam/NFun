@@ -54,7 +54,7 @@ namespace Funny.Tests
 
         public void AnonymousFunctions_ConstantEquation(string expr, object expected)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             CollectionAssert.IsEmpty(runtime.Inputs,"Unexpected inputs on constant equations");
             runtime.Calculate()
                 .AssertHas(VarVal.New("y", expected));
@@ -66,7 +66,7 @@ namespace Funny.Tests
         [TestCase( "y = [1.0,2.0,3.0].fold((i,j)-> i*x1 - j*x2)",0.0,0.0, 0.0)]
         public void AnonymousFunctions_TwoArgumentsEquation(string expr, double x1,double x2, object expected)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             runtime.Calculate(
                     VarVal.New("x1", x1),
                     VarVal.New("x2", x2))
@@ -81,7 +81,7 @@ namespace Funny.Tests
         [TestCase( @"y = [1.0,2.0,3.0].fold((i,j)->i+j+x)",2.0,10.0)]
         public void AnonymousFunctions_SingleArgumentEquation(string expr, double arg, object expected)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             runtime.Calculate(VarVal.New("x", arg))
                 .AssertReturns(0.00001, VarVal.New("y", expected));
         }
@@ -89,7 +89,7 @@ namespace Funny.Tests
         [TestCase( "z = x*2\r y = [1.0,2.0,3.0].map((i)-> i*z)",1.0, new[]{2.0,4.0, 6.0}, 2.0)]
         public void AnonymousFunctions_SingleArgument_twoEquations(string expr, double arg, object yExpected, object zExpected)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             runtime.Calculate(VarVal.New("x", arg))
                 .AssertReturns(0.00001, 
                     VarVal.New("y", yExpected),
@@ -115,7 +115,7 @@ namespace Funny.Tests
         public void ObviouslyFailsOnParse(string expr)
         {
             var ex = Assert.Throws<FunParseException>(
-                () => FunBuilder.BuildDefault(expr));
+                () => FunBuilder.Build(expr));
             Console.WriteLine($"Captured error: \r{ex}");
         }
     }

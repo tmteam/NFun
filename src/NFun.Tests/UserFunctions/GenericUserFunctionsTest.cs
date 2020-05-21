@@ -51,7 +51,7 @@ namespace Funny.Tests.UserFunctions
         [TestCase(@"car2(g) = g(2,4); y = car2(min)    ", 2.0)]
         public void ConstantEquation(string expr, object expected)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             runtime.Calculate().AssertReturns(VarVal.New("y", expected));
         }
 
@@ -64,7 +64,7 @@ namespace Funny.Tests.UserFunctions
                   "b:int  = sum(1,2,3);", 6.0, 6)]
         public void ConstantEquationWithTwoUsesOfGenerics(string expr, object expectedA, object expectedB)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             runtime.Calculate()
                 .AssertHas(VarVal.New("a", expectedA))
                 .AssertHas(VarVal.New("b", expectedB));
@@ -81,7 +81,7 @@ namespace Funny.Tests.UserFunctions
   
                 userfun = max(1, 2, 3)
                 builtin = max(1, 2)";
-            FunBuilder.BuildDefault(expr).Calculate()
+            FunBuilder.Build(expr).Calculate()
                 .AssertReturns(VarVal.New("userfun", 3.0), VarVal.New("builtin", 2.0));
         }
 
@@ -94,7 +94,7 @@ namespace Funny.Tests.UserFunctions
                             else fact(n - 1) * n
 
                 res = [0..4].map(fact)";
-            FunBuilder.BuildDefault(expr).Calculate()
+            FunBuilder.Build(expr).Calculate()
                 .AssertHas(VarVal.New("res", new[] { 0.0, 1.0, 2, 6, 24 }));
 
         }
@@ -113,7 +113,7 @@ namespace Funny.Tests.UserFunctions
              ] 
 
   res:int = origin.maxOfMatrix()";
-            FunBuilder.BuildDefault(expr).Calculate()
+            FunBuilder.Build(expr).Calculate()
                 .AssertHas(VarVal.New("res", 42));
         }
 
@@ -134,7 +134,7 @@ namespace Funny.Tests.UserFunctions
              ] 
 
   res:int = origin.maxOfMatrix()";
-            FunBuilder.BuildDefault(expr).Calculate()
+            FunBuilder.Build(expr).Calculate()
                 .AssertHas(VarVal.New("res", 42));
         }
 
@@ -163,7 +163,7 @@ namespace Funny.Tests.UserFunctions
 ";
 
 
-            FunBuilder.BuildDefault(expr).Calculate()
+            FunBuilder.Build(expr).Calculate()
                 .AssertReturns(
                     VarVal.New("i", new[] { 1, 2, 3, 4, 5 }),
                     VarVal.New("r", new[] { 1.0, 2.0, 3.0, 4.0, 5.0 }));

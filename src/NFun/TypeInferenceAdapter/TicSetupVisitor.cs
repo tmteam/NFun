@@ -19,13 +19,13 @@ namespace NFun.TypeInferenceAdapter
     {
         private readonly VariableScopeAliasTable _aliasScope;
         private readonly GraphBuilder _ticTypeGraph;
-        private readonly IFunctionDicitionary _dictionary;
+        private readonly IFunctionDictionary _dictionary;
         private readonly TypeInferenceResultsBuilder _resultsBuilder;
 
         public static bool Run(
             IEnumerable<ISyntaxNode> nodes, 
             GraphBuilder builder, 
-            IFunctionDicitionary dictionary,
+            IFunctionDictionary dictionary,
             TypeInferenceResultsBuilder resultsBuilder)
         {
             var visitor = new TicSetupVisitor(builder, dictionary, resultsBuilder);
@@ -36,7 +36,7 @@ namespace NFun.TypeInferenceAdapter
             }
             return true;
         }
-        internal TicSetupVisitor(GraphBuilder ticTypeGraph,  IFunctionDicitionary dictionary,
+        internal TicSetupVisitor(GraphBuilder ticTypeGraph,  IFunctionDictionary dictionary,
             TypeInferenceResultsBuilder resultsBuilder)
         {
             _aliasScope = new VariableScopeAliasTable();

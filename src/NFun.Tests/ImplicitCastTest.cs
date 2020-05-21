@@ -50,7 +50,7 @@ namespace Funny.Tests
         public void Allowed_ImplicitNumbersCast(string typeFrom, object valueFrom, string typeTo, object valueTo)
         {
             var expr = $"conv(a:{typeTo}):{typeTo} = a; x:{typeFrom}; y = conv(x)";
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
 
             runtime.Calculate(VarVal.New("x", valueFrom)).AssertReturns(VarVal.New("y", valueTo));
         }
@@ -102,7 +102,7 @@ namespace Funny.Tests
         public void Allowed_NumberConstantImplicitCast(string constant, string typeTo)
         {
             var expr = $"conv(a:{typeTo}):{typeTo} = a; y = conv({constant})";
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             Assert.AreEqual(typeTo.ToLower(), runtime.Outputs.Single().Type.ToString().ToLower());
         }
 
@@ -161,7 +161,7 @@ namespace Funny.Tests
         public void ObviousFails_ImplicitNumbersCast(string typeFrom, string typeTo)
         {
             Assert.Throws<FunParseException>(
-                () => FunBuilder.BuildDefault("x:{typefrom}; y:{typeTo} = x"));
+                () => FunBuilder.Build("x:{typefrom}; y:{typeTo} = x"));
         }
 
         [TestCase("-1", "uint8")]
@@ -185,7 +185,7 @@ namespace Funny.Tests
         {
             TraceLog.IsEnabled = true;
             var expr = $"customConvert(a:{typeTo}):{typeTo} = a; y = customConvert({constant})";
-            Assert.Throws<FunParseException>(() => FunBuilder.BuildDefault(expr).Update());
+            Assert.Throws<FunParseException>(() => FunBuilder.Build(expr).Update());
         }
     }
 }

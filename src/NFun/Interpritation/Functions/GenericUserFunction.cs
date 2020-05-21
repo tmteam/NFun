@@ -14,14 +14,14 @@ namespace NFun.Interpritation.Functions
     {
         private readonly TypeInferenceResults _typeInferenceResults;
         private UserFunctionDefenitionSyntaxNode _syntaxNode;
-        private IFunctionDicitionary _dictionary;
+        private IFunctionDictionary _dictionary;
 
         private Constrains[] _constrainsMap;
 
         public static GenericUserFunction Create(
             TypeInferenceResults typeInferenceResults,
             UserFunctionDefenitionSyntaxNode syntaxNode,
-            IFunctionDicitionary dictionary)
+            IFunctionDictionary dictionary)
         {
             var ticGenerics = typeInferenceResults.Generics;
             var langConstrains = new GenericConstrains[ticGenerics.Length];
@@ -62,7 +62,7 @@ namespace NFun.Interpritation.Functions
         private GenericUserFunction(
             TypeInferenceResults typeInferenceResults,
             UserFunctionDefenitionSyntaxNode syntaxNode,
-            IFunctionDicitionary dictionary,
+            IFunctionDictionary dictionary,
             GenericConstrains[] constrains,
             VarType returnType,
             VarType[] argTypes

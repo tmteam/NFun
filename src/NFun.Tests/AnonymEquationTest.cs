@@ -16,7 +16,7 @@ namespace Funny.Tests
         [TestCase("f()= (2); (1)", 1.0)]
 
         public void ConstantEquation(string script, object expected) 
-            => FunBuilder.BuildDefault(script).Calculate().AssertOutEquals(expected);
+            => FunBuilder.Build(script).Calculate().AssertOutEquals(expected);
 
         [TestCase("1", 1.0)]
         [TestCase("0x1", 1)]
@@ -37,7 +37,7 @@ namespace Funny.Tests
         [TestCase("y(x) = x \r y(3.0)", 3.0)]
         [TestCase("y(x) = x*2 \r y(3.0)  \r z(j) = j*j", 6.0)]
         public void AnonymousExpressionConstantEquatation(string expr, object expected)
-            => FunBuilder.BuildDefault(expr).Calculate().AssertOutEquals(expected);
+            => FunBuilder.Build(expr).Calculate().AssertOutEquals(expected);
     }
 
 

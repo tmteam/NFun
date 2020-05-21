@@ -125,7 +125,7 @@ namespace Funny.Tests
         public void SingleEquation_Runtime_OutputTypeCalculatesCorrect(string expr, BaseVarType type)
         {
             
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             var res = runtime.Calculate();
             Assert.AreEqual(1, res.Results.Length);
             Assert.AreEqual(VarType.PrimitiveOf(type), res.Results.First().Type);
@@ -153,7 +153,7 @@ namespace Funny.Tests
         [TestCase("(if(true) [1,2] else [])[0]", BaseVarType.Real)]
         public void SingleEquations_Parsing_OutputTypesCalculateCorrect(string expr, BaseVarType type)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             Assert.AreEqual(type, runtime.Outputs.Single().Type.BaseType);
         }
         [TestCase("f(n, iter)  = f(n, iter+1).concat((n >iter).toText())")]
@@ -220,7 +220,7 @@ namespace Funny.Tests
 
         public void EquationTypes_SolvesSomehow(string expr)
         {
-            Assert.DoesNotThrow(()=>FunBuilder.BuildDefault(expr));
+            Assert.DoesNotThrow(()=>FunBuilder.Build(expr));
         }
         
         [TestCase("y:int = 1\rz:int=2", BaseVarType.Int32, BaseVarType.Int32)]
@@ -248,7 +248,7 @@ namespace Funny.Tests
         
         public void TwinEquations_Runtime_OutputTypesCalculateCorrect(string expr, BaseVarType ytype,BaseVarType ztype)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             var res = runtime.Calculate();
             var y = res.Get("y");
             Assert.AreEqual(VarType.PrimitiveOf(ytype),y.Type,"y");
@@ -280,7 +280,7 @@ namespace Funny.Tests
         [TestCase("x:bool; a:real =x")]
         public void ObviouslyFailsWithParse(string expr) =>
             Assert.Throws<FunParseException>(
-                () => FunBuilder.BuildDefault(expr));
+                () => FunBuilder.Build(expr));
 
         [TestCase(new []{1,2},    "x:int[]\r y= x", new []{1,2})]        
         [TestCase(new []{1,2},    "x:int[]\r y= x.concat(x)", new []{1,2,1,2})]
@@ -304,7 +304,7 @@ namespace Funny.Tests
         
         public void SingleInputTypedEquation(object x,  string expr, object y)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             var res = runtime.Calculate(VarVal.New("x", x));
             Assert.AreEqual(1, res.Results.Length);
             Assert.AreEqual(y, res.Results.First().Value);
@@ -323,7 +323,7 @@ namespace Funny.Tests
 
         public void ConstantTypedEquation(string expr, object y)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             var res = runtime.Calculate();
             Assert.AreEqual(1, res.Results.Length);
             Assert.AreEqual(y, res.Results.First().Value);   
@@ -340,7 +340,7 @@ namespace Funny.Tests
         [TestCase("fib(x) = if(x<3) 1 else fib(x-1)+fib(x-2)")]
         public void RecFunction_TypeSolved(string expr)
         {
-            Assert.DoesNotThrow(()=> FunBuilder.BuildDefault(expr));
+            Assert.DoesNotThrow(()=> FunBuilder.Build(expr));
         }
         [TestCase("byte",   (byte)1,   BaseVarType.UInt8)]
         [TestCase("uint8",  (byte)1,   BaseVarType.UInt8)]
@@ -357,7 +357,7 @@ namespace Funny.Tests
         [TestCase("int64[]", new long[]{1,2,3},BaseVarType.ArrayOf)]
         public void OutputEqualsInput(string type, object expected, BaseVarType baseVarType)
         {
-            var runtime = FunBuilder.BuildDefault($"x:{type}\r  y = x");
+            var runtime = FunBuilder.Build($"x:{type}\r  y = x");
             var res = runtime.Calculate(VarVal.New("x", expected));
             res.AssertReturns(VarVal.New("y", expected));
             Assert.AreEqual(baseVarType, res.Get("y").Type.BaseType);
@@ -365,7 +365,7 @@ namespace Funny.Tests
         [Test]
         public void OutputEqualsTextInput()
         {
-            var runtime = FunBuilder.BuildDefault($"x:text;  y = x");
+            var runtime = FunBuilder.Build($"x:text;  y = x");
             var res = runtime.Calculate(VarVal.New("x", "1"));
             res.AssertReturns(VarVal.New("y", "1"));
             Assert.AreEqual(VarType.Text, res.Get("y").Type);
@@ -405,7 +405,7 @@ namespace Funny.Tests
         
         public void IntegersBitwiseOperatorTest(string inputTypes, string function, BaseVarType expectedOutputType)
         {
-            var runtime = FunBuilder.BuildDefault(
+            var runtime = FunBuilder.Build(
                 $"a:{inputTypes}; b:{inputTypes}; c=a{function}b;");
             Assert.AreEqual(expectedOutputType, runtime.Outputs.Single().Type.BaseType);
         }
@@ -423,7 +423,7 @@ namespace Funny.Tests
         
         public void IntegersBitwiseInvertTest(string inputTypes, BaseVarType expectedOutputType)
         {
-            var runtime = FunBuilder.BuildDefault(
+            var runtime = FunBuilder.Build(
                 $"a:{inputTypes}; b:{inputTypes}; c= ~a");
             Assert.AreEqual(expectedOutputType, runtime.Outputs.Single().Type.BaseType);
         }
@@ -433,7 +433,7 @@ namespace Funny.Tests
         [TestCase("int64",  BaseVarType.Int64)]
         public void SummOfTwoIntegersTest(string inputTypes, BaseVarType expectedOutputType)
         {
-            var runtime = FunBuilder.BuildDefault(
+            var runtime = FunBuilder.Build(
                 $"a:{inputTypes}; b:{inputTypes}; y = a + b");
             Assert.AreEqual(expectedOutputType, runtime.Outputs.Single(o => o.Name == "y").Type.BaseType);
         }
@@ -443,7 +443,7 @@ namespace Funny.Tests
         [TestCase("int64",  BaseVarType.Int64)]
         public void DifferenceOfTwoIntegersTest(string inputTypes, BaseVarType expectedOutputType)
         {
-            var runtime = FunBuilder.BuildDefault(
+            var runtime = FunBuilder.Build(
                 $"a:{inputTypes}; b:{inputTypes}; y = a - b");
             Assert.AreEqual(expectedOutputType, runtime.Outputs.Single(o => o.Name == "y").Type.BaseType);
         }
@@ -453,7 +453,7 @@ namespace Funny.Tests
         [TestCase("int64",  BaseVarType.Int64)]
         public void MultiplyOfTwoIntegersTest(string inputTypes, BaseVarType expectedOutputType)
         {
-            var runtime = FunBuilder.BuildDefault(
+            var runtime = FunBuilder.Build(
                 $"a:{inputTypes}; b:{inputTypes}; y = a * b");
             Assert.AreEqual(expectedOutputType, runtime.Outputs.Single(o => o.Name == "y").Type.BaseType);
         }
@@ -463,7 +463,7 @@ namespace Funny.Tests
         [TestCase("int64",  BaseVarType.Int64)]
         public void RemainsOfTwoIntegersTest(string inputTypes, BaseVarType expectedOutputType)
         {
-            var runtime = FunBuilder.BuildDefault(
+            var runtime = FunBuilder.Build(
                 $"a:{inputTypes}; b:{inputTypes}; y = a % b");
             Assert.AreEqual(expectedOutputType, runtime.Outputs.Single(o => o.Name == "y").Type.BaseType);
         }
@@ -474,7 +474,7 @@ namespace Funny.Tests
         [TestCase("x:int; y:real = x",  BaseVarType.Real)]
 
         public void OutputType_checkOutputTest(string expression,  BaseVarType expectedType){
-            var runtime = FunBuilder.BuildDefault(expression);
+            var runtime = FunBuilder.Build(expression);
             Assert.AreEqual(expectedType, runtime.Outputs.Single(o => o.Name == "y").Type.BaseType);
         }
         
@@ -483,7 +483,7 @@ namespace Funny.Tests
         [TestCase("y:bool = x", "x", BaseVarType.Bool)]
         [TestCase("x:int; y:real = x+a", "a", BaseVarType.Real)]
         public void OutputType_checkInputTest(string expression, string variable, BaseVarType expectedType){
-            var runtime = FunBuilder.BuildDefault(expression);
+            var runtime = FunBuilder.Build(expression);
             Assert.AreEqual(expectedType, runtime.Inputs.Single(o => o.Name == variable).Type.BaseType);
         }
 
@@ -494,7 +494,7 @@ namespace Funny.Tests
         [TestCase("a:int = 5; y:real = a+x",2.5,7.5)]
         public void OutputType_runtimeTest(string expression, object xValue, object expectedY)
         {
-            FunBuilder.BuildDefault(expression)
+            FunBuilder.Build(expression)
                 .Calculate(VarVal.New("x", xValue))
                 .AssertHas(VarVal.New("y", expectedY));
         }

@@ -21,9 +21,9 @@ namespace Funny.Tests
 
             var functions = new FunctionDictionary();
             foreach (var predefinedFunction in BaseFunctions.ConcreteFunctions)
-                functions.Add(predefinedFunction);
+                functions.TryAdd(predefinedFunction);
             foreach (var predefinedFunction in BaseFunctions.GenericFunctions)
-                functions.Add(predefinedFunction);
+                functions.TryAdd(predefinedFunction);
 
             return RuntimeBuilder.Build(tree, functions);
         }

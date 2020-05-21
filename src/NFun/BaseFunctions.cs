@@ -7,13 +7,13 @@ namespace NFun
 {
     public static class BaseFunctions
     {
-        public static FunctionDictionary GetDefaultDictionary()
+        public static FunctionDictionary CreateDefaultDictionary()
         {
             var functionsDictionary = new FunctionDictionary();
             foreach (var predefinedFunction in ConcreteFunctions)
-                functionsDictionary.Add(predefinedFunction);
+                functionsDictionary.TryAdd(predefinedFunction);
             foreach (var genericFunctionBase in GenericFunctions)
-                functionsDictionary.Add(genericFunctionBase);
+                functionsDictionary.TryAdd(genericFunctionBase);
             return functionsDictionary;
         }
         public static GenericFunctionBase[] GenericFunctions { get; } =

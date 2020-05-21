@@ -10,7 +10,7 @@ namespace Funny.Tests
         [Test]
         public void SeveralLinesBeforeSingleEquation_Calculates()
         {
-            var runtime = FunBuilder.BuildDefault(
+            var runtime = FunBuilder.Build(
                 @"
                 
                 y = 1.0");
@@ -20,7 +20,7 @@ namespace Funny.Tests
         [Test]
         public void SeveralLinesAfterуEqual_Calculates()
         {
-            var runtime = FunBuilder.BuildDefault("y =\r\r 1.0");
+            var runtime = FunBuilder.Build("y =\r\r 1.0");
             runtime.Calculate().AssertReturns(VarVal.New("y",1.0));
         }
         
@@ -49,7 +49,7 @@ namespace Funny.Tests
         [TestCase("y:int = ;(;2;+;3;)*(;3;)", 15)]
         public void SeveralLinesBetweenNodes_Calculates(string expr, int expected)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             runtime.Calculate().AssertReturns(VarVal.New("y",expected));
         }
         
@@ -59,14 +59,14 @@ namespace Funny.Tests
         [TestCase(@"y:int = 1;;;;")]
         public void SeveralLinesAfterSingleEquation_Calculates(string expr)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             runtime.Calculate().AssertReturns(VarVal.New("y",1));
         }
         
         [Test]
         public void SeveralLinesBetweenEveryStatement_Calculates()
         {
-            var runtime = FunBuilder.BuildDefault(
+            var runtime = FunBuilder.Build(
                 @"
                     y :int
                     
@@ -84,14 +84,14 @@ namespace Funny.Tests
         [TestCase(";;y:int;=;;1;;")]
         public void TabulationEverywhere_Calculates(string expr)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             runtime.Calculate().AssertReturns(VarVal.New("y",1));
         }
         
         [Test]
         public void TwoEquationsOnOneLineFails()
         {
-            Assert.DoesNotThrow(()=> FunBuilder.BuildDefault("y=1; z=5"));
+            Assert.DoesNotThrow(()=> FunBuilder.Build("y=1; z=5"));
         }
     }
 }

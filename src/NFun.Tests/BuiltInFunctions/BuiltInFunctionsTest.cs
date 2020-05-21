@@ -73,7 +73,7 @@ namespace Funny.Tests.BuiltInFunctions
         public void ConvertIntegersFunctionsTest(string inputType, object inputValue, string outputType, object expectedOutput)
         {
             var expr = $"x:{inputType}; y:{outputType} = convert(x)";
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             runtime.Calculate(VarVal.New("x", inputValue))
                 .AssertReturns(VarVal.New("y", expectedOutput));
         }
@@ -106,7 +106,7 @@ namespace Funny.Tests.BuiltInFunctions
         [TestCase("toUnicode('hi there')", new[] { 0x68, 00, 0x69, 00, 0x20, 00, 0x74, 00, 0x68, 00, 0x65, 00, 0x72, 00, 0x65, 00 })]
         [TestCase("toUtf8('hi there')", new[] { 0x68, 0x69, 0x20, 0x74, 0x68, 0x65, 0x72, 0x65 })]
         public void ConstantConvertTest(string expr, object expected)
-            => FunBuilder.BuildDefault(expr).Calculate().AssertOutEquals(expected);
+            => FunBuilder.Build(expr).Calculate().AssertOutEquals(expected);
 
 
         [TestCase("y:int= convert(1.2)", 1)]
@@ -135,7 +135,7 @@ namespace Funny.Tests.BuiltInFunctions
         [TestCase("y:byte[]=convert(0xFA00FA)", new byte[] { 250, 0, 250, 0 })]
         [TestCase("y:byte[]=convert('hi there')", new byte[] { 0x68, 00, 0x69, 00, 0x20, 00, 0x74, 00, 0x68, 00, 0x65, 00, 0x72, 00, 0x65, 00 })]
         public void ConstantConvertFunctionTest(string expr, object expected)
-            => FunBuilder.BuildDefault(expr).Calculate().AssertHas(VarVal.New("y", expected));
+            => FunBuilder.Build(expr).Calculate().AssertHas(VarVal.New("y", expected));
     }
     [TestFixture]
     public class BuiltInFunctionsTest
@@ -234,7 +234,7 @@ namespace Funny.Tests.BuiltInFunctions
         [TestCase("range(7,10)",new []{7.0,8,9,10})]
         [TestCase("range(1,10,2.0)",new []{1.0,3.0,5.0,7.0,9.0})]
         public void ConstantEquationWithPredefinedFunction(string expr, object expected)
-            =>FunBuilder.BuildDefault(expr).Calculate().AssertOutEquals(0.00001, expected);
+            =>FunBuilder.Build(expr).Calculate().AssertOutEquals(0.00001, expected);
         
         [TestCase((long)42, "x:int64\r y = x.add(1)", (long)43)]
         [TestCase((long)42, "x:int64\r y = max(1,x)", (long)42)]
@@ -242,7 +242,7 @@ namespace Funny.Tests.BuiltInFunctions
         [TestCase((long)42, "x:int64\r y = min(100,x)", (long)42)]
         public void SingleVariableEquation(object input, string expr, object expected)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             runtime.Calculate(VarVal.New("x", input))
                 .AssertReturns(VarVal.New("y", expected));
         }
@@ -264,7 +264,7 @@ namespace Funny.Tests.BuiltInFunctions
         //[TestCase("y = abs(x-toInt(4))",1,3)]
         public void EquationWithPredefinedFunction(string expr, object arg, object expected)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             runtime.Calculate(VarVal.New("x", arg))
                 .AssertReturns(0.00001, VarVal.New("y", expected));
         }
@@ -293,7 +293,7 @@ namespace Funny.Tests.BuiltInFunctions
         [TestCase("y = [1,2] in [1,2,3,4]")]
         public void ObviouslyFails(string expr) =>
             Assert.Throws<FunParseException>(
-                () => FunBuilder.BuildDefault(expr));
+                () => FunBuilder.Build(expr));
 
     
     }

@@ -31,7 +31,7 @@ namespace Funny.Tests
 
         public void SingleVariableEquation(string expr, double arg, double expected)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             var ySource = runtime.GetAllVariableSources().First(vs => vs.IsOutput && vs.Name == "y");
             var xSource = runtime.GetAllVariableSources().First(vs => !vs.IsOutput && vs.Name == "x");
             xSource.Value = arg;

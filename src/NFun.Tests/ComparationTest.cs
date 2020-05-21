@@ -69,7 +69,7 @@ namespace Funny.Tests
         [TestCase("'avatar'== 'bigben' ", false)]
         [TestCase("'avatar'!= 'bigben' ", true)]
         public void Equal(string expr, object expected)
-            => FunBuilder.BuildDefault(expr).Calculate().AssertOutEquals(expected);
+            => FunBuilder.Build(expr).Calculate().AssertOutEquals(expected);
 
         [TestCase("1!=0", true)]
         [TestCase("0!=1", true)]
@@ -101,7 +101,7 @@ namespace Funny.Tests
         [TestCase("'avatar'>  'avatar' ", false)]
 
         public void Compare(string expr, bool expected)
-            => FunBuilder.BuildDefault(expr).Calculate().AssertOutEquals(expected);
+            => FunBuilder.Build(expr).Calculate().AssertOutEquals(expected);
 
 
     }

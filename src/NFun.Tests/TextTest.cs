@@ -60,7 +60,7 @@ namespace Funny.Tests
 
         public void TextConstantEquation(string expr, object expected) =>
             FunBuilder
-                .BuildDefault(expr)
+                .Build(expr)
                 .Calculate()
                 .AssertReturns(VarVal.New("y", expected));
 
@@ -70,7 +70,7 @@ namespace Funny.Tests
 
         public void SingleVariableEquation(object input, string expr, object expected) =>
             FunBuilder
-                .BuildDefault(expr)
+                .Build(expr)
                 .Calculate(VarVal.New("x", input))
                 .AssertReturns(VarVal.New("y", expected));
 
@@ -102,7 +102,7 @@ namespace Funny.Tests
         [TestCase("y='pre \\{lalala\\} after'","pre {lalala} after")]
         public void EscapedTest(string expr,string expected) =>
             FunBuilder
-                .BuildDefault(expr)
+                .Build(expr)
                 .Calculate()
                 .AssertReturns(VarVal.New("y", expected));
 
@@ -143,6 +143,6 @@ namespace Funny.Tests
         [TestCase("y='pre {0}''fin'")]
         [TestCase("y='pre {0}''mid{1}fin'")]
         public void ObviousFails(string expr) =>
-            Assert.Throws<FunParseException>(() => FunBuilder.BuildDefault(expr));
+            Assert.Throws<FunParseException>(() => FunBuilder.Build(expr));
     }
 }

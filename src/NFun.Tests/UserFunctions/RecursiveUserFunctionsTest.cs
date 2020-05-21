@@ -19,7 +19,7 @@ namespace Funny.Tests.UserFunctions
             string text =
                 @"fact(n):int = if(n<=1) 1 else fact(n-1)*n
                   y = fact(x)";
-            var runtime = FunBuilder.BuildDefault(text);
+            var runtime = FunBuilder.Build(text);
             runtime.Calculate(VarVal.New("x", x)).AssertReturns(0.00001, VarVal.New("y", y));
         }
         [TestCase(1, 1)]
@@ -33,7 +33,7 @@ namespace Funny.Tests.UserFunctions
             string text =
                 @"fact(n) = if(n<=1) 1 else fact(n-1)*n
                   y = fact(x)";
-            var runtime = FunBuilder.BuildDefault(text);
+            var runtime = FunBuilder.Build(text);
             runtime.Calculate(VarVal.New("x", x)).AssertReturns(0.00001, VarVal.New("y", y));
         }
         [TestCase(1, 1)]
@@ -54,7 +54,7 @@ namespace Funny.Tests.UserFunctions
                     
                    fib(n) = if (n<3) 1 else fibrec(n-1,2,1,1)
                    y = fib(x)";
-            var runtime = FunBuilder.BuildDefault(text);
+            var runtime = FunBuilder.Build(text);
             runtime.Calculate(VarVal.New("x", x)).AssertReturns(0.00001, VarVal.New("y", y));
         }
 
@@ -73,7 +73,7 @@ namespace Funny.Tests.UserFunctions
                 @"  
                    fib(n) = if (n<3) 1 else fib(n-1)+fib(n-2)
                    y = fib(x)";
-            var runtime = FunBuilder.BuildDefault(text);
+            var runtime = FunBuilder.Build(text);
             runtime.Calculate(VarVal.New("x", x)).AssertReturns(0.00001, VarVal.New("y", y));
         }
 
@@ -88,7 +88,7 @@ namespace Funny.Tests.UserFunctions
                    fib(n:int):int = if (n<3) 1 else fib(n-1)+fib(n-2)
                    x:int
                    y = fib(x)";
-            var runtime = FunBuilder.BuildDefault(text);
+            var runtime = FunBuilder.Build(text);
             runtime.Calculate(VarVal.New("x", x)).AssertReturns(VarVal.New("y", y));
         }
 
@@ -97,7 +97,7 @@ namespace Funny.Tests.UserFunctions
         public void StackOverflow_throws_FunStackOverflow(string text)
         {
             Assert.Throws<FunRuntimeStackoverflowException>(
-                () => FunBuilder.BuildDefault(text).Calculate());
+                () => FunBuilder.Build(text).Calculate());
         }
 
         [TestCase(
@@ -107,7 +107,7 @@ namespace Funny.Tests.UserFunctions
 
         public void ConstantEquationOfReal_RecFunctions(string expr, double expected)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             runtime.Calculate().AssertReturns(0.00001, VarVal.New("y", expected));
         }
 
@@ -124,7 +124,7 @@ namespace Funny.Tests.UserFunctions
                                     else 1
                     
                    y = fact(x)";
-            var runtime = FunBuilder.BuildDefault(text);
+            var runtime = FunBuilder.Build(text);
             runtime.Calculate(VarVal.New("x", x)).AssertReturns(0.00001, VarVal.New("y", y));
         }
 
@@ -144,7 +144,7 @@ namespace Funny.Tests.UserFunctions
                     
                    fib(n:int) = if (n<3) 1 else fibrec(n-1,2,1,1)
                    y = fib(x)";
-            var runtime = FunBuilder.BuildDefault(text);
+            var runtime = FunBuilder.Build(text);
             runtime.Calculate(VarVal.New("x", x)).AssertReturns(0.00001, VarVal.New("y", y));
         }
 
@@ -164,7 +164,7 @@ namespace Funny.Tests.UserFunctions
                     
                    fib(n) = if (n<3) 1 else fibrec(n-1,2,1,1)
                    y = fib(x)";
-            var runtime = FunBuilder.BuildDefault(text);
+            var runtime = FunBuilder.Build(text);
             runtime.Calculate(VarVal.New("x", x)).AssertReturns(0.00001, VarVal.New("y", y));
         }
 
@@ -184,7 +184,7 @@ namespace Funny.Tests.UserFunctions
                     
                    fib(n) = if (n<3) 1 else fibrec(n-1,2,1,1)
                    y = fib(x)";
-            var runtime = FunBuilder.BuildDefault(text);
+            var runtime = FunBuilder.Build(text);
             runtime.Calculate(VarVal.New("x", x)).AssertReturns(0.00001, VarVal.New("y", y));
         }
     }

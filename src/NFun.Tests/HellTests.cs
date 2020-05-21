@@ -18,7 +18,7 @@ namespace Funny.Tests
             
             res:int =  t.foreachi {if (it1>t[it2]) it1 else t[it2]} ";
 
-            FunBuilder.BuildDefault(expr).Calculate(
+            FunBuilder.Build(expr).Calculate(
                 VarVal.New("t",new[]{1,2,7,34,1,2}))
                 .AssertReturns(VarVal.New("res",34));
         }
@@ -33,7 +33,7 @@ namespace Funny.Tests
 
             res:int =  t.foreachi {max(it1,t,it2)}";
 
-            FunBuilder.BuildDefault(expr).Calculate(
+            FunBuilder.Build(expr).Calculate(
                     VarVal.New("t", new[] { 1, 2, 7, 34, 1, 2 }))
                 .AssertReturns(VarVal.New("res", 34));
         }
@@ -45,7 +45,7 @@ namespace Funny.Tests
 
             res:int =  t.foreachi{ max(it1,t[it2])}";
 
-            FunBuilder.BuildDefault(expr).Calculate(
+            FunBuilder.Build(expr).Calculate(
                     VarVal.New("t", new[] { 1, 2, 7, 34, 1, 2 }))
                 .AssertReturns(VarVal.New("res", 34));
         }
@@ -54,7 +54,7 @@ namespace Funny.Tests
         public void ConcatExperiments()
         {
             var expr = "'res: '.concat((n >5).toText())";
-            FunBuilder.BuildDefault(expr).Calculate(VarVal.New("n",1.0)).AssertOutEquals("res: False");
+            FunBuilder.Build(expr).Calculate(VarVal.New("n",1.0)).AssertOutEquals("res: False");
         }
 
         [Test]
@@ -64,7 +64,7 @@ namespace Funny.Tests
             var expr = @"   swapIfNotSorted(c, i)
   	                        =	if   (c[i]<c[i+1]) c
   		                        else c.set(i, 1)";
-            FunBuilder.BuildDefault(expr);
+            FunBuilder.Build(expr);
 
         }
         [Test]
@@ -80,7 +80,7 @@ namespace Funny.Tests
   	                        =	if   (c[i]<c[i+1]) c
   		                        else c.swap(i, i+1)";
 
-            FunBuilder.BuildDefault(expr);
+            FunBuilder.Build(expr);
         }
         [Test]
         public void foldOfHiOrder2()
@@ -95,7 +95,7 @@ namespace Funny.Tests
                           onelineSort(input) =  
   	                        [0..input.count()].fold(input, swapIfNotSorted)";
 
-            FunBuilder.BuildDefault(expr);
+            FunBuilder.Build(expr);
         }
 
         [Test]
@@ -110,7 +110,7 @@ namespace Funny.Tests
                           # and swap every unsorted values
                           onelineSort(input) = [0..input.count()].fold(input, swapIfNotSorted)";
 
-            FunBuilder.BuildDefault(expr);
+            FunBuilder.Build(expr);
         }
 
         [Test]
@@ -131,7 +131,7 @@ namespace Funny.Tests
                           onelineSort(input) =  
   	                        [0..input.count()].fold(input, swapIfNotSorted)";
 
-            FunBuilder.BuildDefault(expr);
+            FunBuilder.Build(expr);
         }
 
         [Test]
@@ -162,7 +162,7 @@ namespace Funny.Tests
                           i:int[]  = [1,4,3,2,5].bubbleSort()";
 
 
-            FunBuilder.BuildDefault(expr).Calculate()
+            FunBuilder.Build(expr).Calculate()
                 .AssertReturns(VarVal.New("i", new[] { 1, 2, 3, 4, 5 }));
 
         }
@@ -198,7 +198,7 @@ namespace Funny.Tests
                           mySum(a,b) = a + b  
                           j =  [0..100].map{(ins[1]+ it- ins[2])/it}.fold(mySum);
                    ";
-            var res = FunBuilder.BuildDefault(expr).Calculate();
+            var res = FunBuilder.Build(expr).Calculate();
 
         }
     }

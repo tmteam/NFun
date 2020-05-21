@@ -17,14 +17,14 @@ namespace NFun.Interpritation
 {
     public sealed class ExpressionBuilderVisitor: ISyntaxNodeVisitor<IExpressionNode> {
         
-        private readonly IFunctionDicitionary _functions;
+        private readonly IFunctionDictionary _functions;
         private readonly VariableDictionary _variables;
         private readonly TypeInferenceResults _typeInferenceResults;
         private readonly TicTypesConverter _typesConverter;
 
         public static IExpressionNode BuildExpression(
             ISyntaxNode node,
-            IFunctionDicitionary functions,
+            IFunctionDictionary functions,
             VariableDictionary variables, 
             TypeInferenceResults typeInferenceResults, 
             TicTypesConverter typesConverter) =>
@@ -32,7 +32,7 @@ namespace NFun.Interpritation
 
         public static IExpressionNode BuildExpression(
             ISyntaxNode node,
-            IFunctionDicitionary functions,
+            IFunctionDictionary functions,
             VarType outputType,
             VariableDictionary variables, 
             TypeInferenceResults typeInferenceResults, 
@@ -47,7 +47,7 @@ namespace NFun.Interpritation
         }
 
         private ExpressionBuilderVisitor(
-            IFunctionDicitionary functions, 
+            IFunctionDictionary functions, 
             VariableDictionary variables,
             TypeInferenceResults typeInferenceResults, 
             TicTypesConverter typesConverter)

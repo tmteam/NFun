@@ -1,17 +1,18 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using NFun.Interpritation.Functions;
 
 namespace NFun.Interpritation
 {
-    public sealed class ScopeFunctionDictionary : IFunctionDicitionary
+    public sealed class ScopeFunctionDictionary : IFunctionDictionary
     {
-        private readonly IFunctionDicitionary _originalDictionary;
+        private readonly IFunctionDictionary _originalDictionary;
         private readonly Dictionary<string, IFunctionSignature> _functions
             = new Dictionary<string, IFunctionSignature>();
         private readonly Dictionary<string, List<IFunctionSignature>> _overloads
             = new Dictionary<string, List<IFunctionSignature>>();
-        public ScopeFunctionDictionary(IFunctionDicitionary originalDictionary)
+        public ScopeFunctionDictionary(IFunctionDictionary originalDictionary)
         {
             _originalDictionary = originalDictionary;
         }
@@ -63,7 +64,7 @@ namespace NFun.Interpritation
         private static string GetOverloadName(string name, int argCount)
             => name + " " + argCount;
     }
-    public interface IFunctionDicitionary
+    public interface IFunctionDictionary
     {
         IList<IFunctionSignature> SearchAllFunctionsIgnoreCase(string name, int argCount);
 
@@ -71,7 +72,7 @@ namespace NFun.Interpritation
         IFunctionSignature GetOrNull(string name, int argCount);
     }
 
-    public sealed class FunctionDictionary: IFunctionDicitionary
+    public sealed class FunctionDictionary: IFunctionDictionary
     {
         private readonly Dictionary<string, IFunctionSignature> _functions 
             = new Dictionary<string, IFunctionSignature>();
@@ -105,7 +106,13 @@ namespace NFun.Interpritation
             _functions.TryGetValue(overloadName, out var signature);
             return signature;
         }
-        public bool Add(IFunctionSignature function)
+
+        public void AddOrThrow(IFunctionSignature function)
+        {
+            if(!TryAdd(function))
+                throw new InvalidOperationException($"function with signature {GetOverloadName(function.Name, function.ArgTypes.Length)} already exists");
+        }
+        public bool TryAdd(IFunctionSignature function)
         {
             var name = GetOverloadName(function.Name, function.ArgTypes.Length);
             if (_functions.ContainsKey(name))

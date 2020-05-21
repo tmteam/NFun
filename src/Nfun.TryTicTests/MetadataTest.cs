@@ -17,7 +17,7 @@ namespace Funny.Tests
         [TestCase("g(a:int) = a; y = g(a)*3 ","g",false)]
         public void ConcreteUserFunction_IsReturnTypeStrictTypedMetadata(string expr, string functionName, bool expectedIsStrictType)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             var funDefenition = runtime.UserFunctions.OfType<ConcreteUserFunction>().First(u => u.Name == functionName);
             Assert.AreEqual(expectedIsStrictType, funDefenition.IsReturnTypeStrictlyTyped);
         }
@@ -33,7 +33,7 @@ namespace Funny.Tests
             string argName, 
             bool expectedIsStrictType)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             var funDefenition = runtime.UserFunctions.OfType<ConcreteUserFunction>().First(u => u.Name == functionName);
             var argDefenition = funDefenition.Variables.First(v => v.Name == argName);
             Assert.AreEqual(expectedIsStrictType, argDefenition.IsStrictTyped);
@@ -45,7 +45,7 @@ namespace Funny.Tests
         [TestCase("a:int; y = a*b*c ","b",false)]
         public void InputVariable_IsStrictTypedMetadata(string expr, string varName, bool expectedIsStrictType)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             var variableInfo = runtime.Inputs.First(i => i.Name == varName);
             Assert.AreEqual(expectedIsStrictType, variableInfo.IsStrictTyped);
         }
@@ -59,7 +59,7 @@ namespace Funny.Tests
         [TestCase("y:int[] = a ","y",true)]
         public void OutputVariable_IsStrictTypedMetadata(string expr, string varName, bool expectedIsStrictType)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             var variableInfo = runtime.Outputs.First(i => i.Name == varName);
             Assert.AreEqual(expectedIsStrictType, variableInfo.IsStrictTyped);
         }

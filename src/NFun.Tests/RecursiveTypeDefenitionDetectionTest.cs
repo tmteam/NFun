@@ -46,7 +46,7 @@ namespace Funny.Tests
         [TestCase("f(t) = t[0][0][0][t[0][0]]")]
         public void ObviouslyFailsWithRecursiveTypeDefenitionOfArray(string expr) =>
           Assert.Throws<FunParseException>(
-              () => FunBuilder.BuildDefault(expr));
+              () => FunBuilder.Build(expr));
 
         [TestCase("g(f) = f(f)")]
         [TestCase("g(f) = f(f(f))")]
@@ -57,7 +57,7 @@ namespace Funny.Tests
 
         public void ObviouslyFailsWithRecursiveTypeDefenitionOfFunctionalVar(string expr) =>
             Assert.Throws<FunParseException>(
-                () => FunBuilder.BuildDefault(expr));
+                () => FunBuilder.Build(expr));
 
     }
 }

@@ -42,12 +42,12 @@ namespace Funny.Tests
                 foreach (var inputs in allCombinations)
                 {
                     var actual = FunBuilder
-                        .BuildDefault(actualExpr)
+                        .Build(actualExpr)
                         .Calculate(inputs)
                         .GetValueOf("y");
 
                     var expected = FunBuilder
-                        .BuildDefault(expectedExpr)
+                        .Build(expectedExpr)
                         .Calculate(inputs)
                         .GetValueOf("y");
 
@@ -78,12 +78,12 @@ namespace Funny.Tests
                 foreach (var inputs in allCombinations)
                 {
                     var actual = FunBuilder
-                        .BuildDefault(actualExpr)
+                        .Build(actualExpr)
                         .Calculate(inputs)
                         .GetValueOf("y");
 
                     var expected = FunBuilder
-                        .BuildDefault(expectedExpr)
+                        .Build(expectedExpr)
                         .Calculate(inputs)
                         .GetValueOf("y");
 
@@ -121,10 +121,10 @@ namespace Funny.Tests
 
         public void ConstantCalculationPriorities(string actualExpr, string expectedExpr)
         {
-            var expected = FunBuilder.BuildDefault(expectedExpr).Calculate().Get("y");
+            var expected = FunBuilder.Build(expectedExpr).Calculate().Get("y");
             
             FunBuilder
-                .BuildDefault(actualExpr)
+                .Build(actualExpr)
                 .Calculate()
                 .AssertReturns(new VarVal("y", expected.Value, expected.Type));
         }

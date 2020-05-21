@@ -4,9 +4,11 @@ using NFun.Exceptions;
 using NFun.Interpritation.Functions;
 using NFun.ParseErrors;
 using NFun.Runtime;
+using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tic;
+using NFun.Tokenization;
 using NFun.TypeInferenceAdapter;
 using NFun.TypeInferenceCalculator;
 using NFun.TypeInferenceCalculator.Errors;
@@ -15,9 +17,18 @@ namespace NFun.Interpritation
 {
     public static class RuntimeBuilder
     {
+        public static FunRuntime Build(string script, IFunctionDictionary functionDictionary)
+        {
+            var flow = Tokenizer.ToFlow(script);
+            var syntaxTree = Parser.Parse(flow);
+
+            //Set node numbers
+            syntaxTree.ComeOver(new SetNodeNumberVisitor());
+            return Build(syntaxTree, functionDictionary);
+        }
         public static FunRuntime Build(
             SyntaxTree syntaxTree,
-            IFunctionDicitionary functionsDictionary)
+            IFunctionDictionary functionsDictionary)
         {
             var userFunctionsList = new List<IFunctionSignature>();
             #region build user functions
@@ -95,7 +106,7 @@ namespace NFun.Interpritation
 
         private static Equation BuildEquationAndPutItToVariables(
             EquationSyntaxNode equation,
-            IFunctionDicitionary functionsDictionary, 
+            IFunctionDictionary functionsDictionary, 
             VariableDictionary variables, 
             TypeInferenceResults typeInferenceResults)
         {

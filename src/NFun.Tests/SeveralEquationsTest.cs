@@ -14,7 +14,7 @@ namespace Funny.Tests
         [TestCase("y = 2*3\r z= 1 + (1 + 4)/2 - (3 +2)*(3 -1)",6.0,-6.5)]
         public void TwinConstantEquations(string expr, object expectedY, object expectedZ)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             runtime.Calculate()
                 .AssertReturns(
                     VarVal.New("y", expectedY),
@@ -25,7 +25,7 @@ namespace Funny.Tests
         [TestCase("y = x/2\r z=2*x",2, 1.0,4.0)]
         public void TwinEquationsWithSingleVariable(string expr, double x, object expectedY, object expectedZ)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             runtime.Calculate(VarVal.New("x", x))
                 .AssertReturns(
                     VarVal.New("y", expectedY),
@@ -39,7 +39,7 @@ namespace Funny.Tests
         [TestCase("in1:real; in2:real;y = in1/2 + in2\r z=2 + in2",new []{"in1","in2"})]
         public void TwinEquations_inputStrictVarablesListIsCorrect(string expr, string[] inputNames)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             var inputs = inputNames.Select(i => new VarInfo(false, VarType.Real, i,true)).ToArray();
             CollectionAssert.AreEquivalent(inputs, runtime.Inputs);
         }
@@ -50,7 +50,7 @@ namespace Funny.Tests
         [TestCase("y = in1/2 + in2\r z=2 + in2",new []{"in1","in2"})]
         public void TwinEquations_inputAutoVarablesListIsCorrect(string expr, string[] inputNames)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             var inputs = inputNames.Select(i => new VarInfo(false, VarType.Real, i,false)).ToArray();
             CollectionAssert.AreEquivalent(inputs, runtime.Inputs);
         }
@@ -58,7 +58,7 @@ namespace Funny.Tests
         [TestCase("a:real \r y = a*a\r z=y", new []{"a"})]
         public void TwinDependentEquationsWithStrictRealTypes_inputVarsListIsCorrect(string expr, string[] inputNames)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             var inputs = inputNames.Select(i => new VarInfo(
                 isOutput: false,  
                 type: VarType.Real,  
@@ -74,7 +74,7 @@ namespace Funny.Tests
         [TestCase("y = in1/2 + in2\r z=2*y + in2",new []{"in1","in2"})]
         public void TwinDependentEquationsWithAutoRealTypes_inputVarsListIsCorrect(string expr, string[] inputNames)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             var inputs = inputNames.Select(i => new VarInfo(
                 isOutput: false,  
                 type: VarType.Real,  
@@ -91,7 +91,7 @@ namespace Funny.Tests
         [TestCase("y = 1\r z=y*2",       1.0,2.0)]
         public void TwinDependentConstantEquations_CalculatesCorrect(string expr,  object expectedY, object expectedZ)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             runtime.Calculate()
                 .AssertReturns(
                     VarVal.New("y", expectedY),
@@ -104,7 +104,7 @@ namespace Funny.Tests
         [TestCase(2, "y = x/2\r z=2*y+x",   1,4)]
         public void TwinDependentEquationsWithSingleVariable_CalculatesCorrect(double x, string expr,  double expectedY, double expectedZ)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             runtime.Calculate(VarVal.New("x", x))
                 .AssertReturns(
                     VarVal.New("y", expectedY),
@@ -117,7 +117,7 @@ namespace Funny.Tests
         [TestCase("o3 = 2 \ro2 = o3*2 \ro1 = o2*2\r ",8, 4, 2)]
         public void ThreeDependentConstantEquations_CalculatesCorrect(string expr,  double o1, double o2, double o3)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             runtime.Calculate()
                 .AssertReturns(
                     VarVal.New("o1", o1),
@@ -130,7 +130,7 @@ namespace Funny.Tests
         [TestCase(2,"o1 = x/2\r o3 = x \ro2 = o3",1.0, 2.0, 2.0)]
         public void ThreeDependentEquationsWithSingleVariable_CalculatesCorrect(double x,string expr,  object o1, object o2, object o3)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             runtime.Calculate(VarVal.New("x", x))
                 .AssertReturns(
                     VarVal.New("o1", o1),
@@ -141,7 +141,7 @@ namespace Funny.Tests
         [Test]
         public void DependentCaseableEquations()
         {
-            var runtime = FunBuilder.BuildDefault("yPub = 2\r y2 = 3 +yPub");
+            var runtime = FunBuilder.Build("yPub = 2\r y2 = 3 +yPub");
             runtime.Calculate()
                 .AssertReturns(
                     VarVal.New("yPub", 2.0),
@@ -152,7 +152,7 @@ namespace Funny.Tests
         [Test]
         public void ComplexDependentConstantsEquations_CalculatesCorrect()
         {
-            var runtime = FunBuilder.BuildDefault(
+            var runtime = FunBuilder.Build(
                 @"o1 = 1
                   o2 = o1*2
                   o3 = o2*2
@@ -184,7 +184,7 @@ namespace Funny.Tests
         [TestCase("y1 = 3 y1 = 4")]
         public void ObviouslyFails(string expr)
         {
-            Assert.Throws<FunParseException>(()=> FunBuilder.BuildDefault(expr));
+            Assert.Throws<FunParseException>(()=> FunBuilder.Build(expr));
         }
     }
 }

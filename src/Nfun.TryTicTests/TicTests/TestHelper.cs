@@ -47,9 +47,9 @@ namespace Nfun.ModuleTests.TicTests
 
             var functions = new FunctionDictionary();
             foreach (var predefinedFunction in BaseFunctions.ConcreteFunctions)
-                functions.Add(predefinedFunction);
+                functions.TryAdd(predefinedFunction);
             foreach (var predefinedFunction in BaseFunctions.GenericFunctions)
-                functions.Add(predefinedFunction);
+                functions.TryAdd(predefinedFunction);
 
             TicSetupVisitor.Run(tree.Children, graph, functions, resultsBuilder);
             return graph.Solve();
@@ -66,9 +66,9 @@ namespace Nfun.ModuleTests.TicTests
 
             var functions = new FunctionDictionary();
             foreach (var predefinedFunction in BaseFunctions.ConcreteFunctions)
-                functions.Add(predefinedFunction);
+                functions.TryAdd(predefinedFunction);
             foreach (var predefinedFunction in BaseFunctions.GenericFunctions)
-                functions.Add(predefinedFunction);
+                functions.TryAdd(predefinedFunction);
 
             var resultsBuilder = new TypeInferenceResultsBuilder();
 

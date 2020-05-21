@@ -14,12 +14,12 @@ namespace Funny.Tests
         [TestCase("testFun(x) = x \r testFun(3.0)", 3.0)]
         [TestCase("y(x) = x*2 \r y(3.0)  \r z(jamboJet) = jamboJet*jamboJet", 6.0)]
         public void ConstantEquatation(string expr, object expected) 
-            => FunBuilder.BuildDefault(expr).Calculate().AssertOutEquals(expected);
+            => FunBuilder.Build(expr).Calculate().AssertOutEquals(expected);
 
         [Test]
         public void DependentVariableEquations()
         {
-            var runtime = FunBuilder.BuildDefault("yPub = 2\r y2 = 3 +yPub");
+            var runtime = FunBuilder.Build("yPub = 2\r y2 = 3 +yPub");
             runtime.Calculate()
                 .AssertReturns(
                     VarVal.New("yPub", 2.0),
@@ -37,7 +37,7 @@ namespace Funny.Tests
 
         public void ObviouslyFails(string expr) =>
             Assert.Throws<FunParseException>(
-                () => FunBuilder.BuildDefault(expr));
+                () => FunBuilder.Build(expr));
 
     }
 }

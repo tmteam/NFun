@@ -31,7 +31,7 @@ z = true")]
 
         public void SingleLineCommentsOnMultipleConstantEquatations(string expr)
         {
-            var runtime = FunBuilder.BuildDefault(expr);
+            var runtime = FunBuilder.Build(expr);
             runtime.Calculate()
                 .AssertReturns(
                     VarVal.New("y", 1.0),
@@ -50,6 +50,6 @@ z = true")]
 
         public void ObviouslyFails(string expr) =>
             Assert.Throws<FunParseException>(
-                ()=> FunBuilder.BuildDefault(expr));
+                ()=> FunBuilder.Build(expr));
     }
 }
