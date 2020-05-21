@@ -8,7 +8,6 @@ namespace NFun.Runtime
 {
     public class VariableDictionary
     {
-        
         private readonly Dictionary<string,VariableUsages> _variables 
             = new Dictionary<string, VariableUsages>();
 

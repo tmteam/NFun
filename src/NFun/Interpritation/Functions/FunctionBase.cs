@@ -29,7 +29,8 @@ namespace NFun.Interpritation.Functions
                 var toType = ArgTypes[i];
                 var fromType = argNode.Type;
                 var castedNode = argNode;
-                if (fromType != toType)
+                
+                if (fromType != toType && !(argNode is MetaInfoExpressionNode))
                 {
                     var converter = VarTypeConverter.GetConverterOrThrow(fromType, toType, argNode.Interval);
                     castedNode = new CastExpressionNode(argNode, toType, converter,argNode.Interval);

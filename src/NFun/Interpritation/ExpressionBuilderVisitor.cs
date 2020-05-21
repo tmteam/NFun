@@ -129,13 +129,9 @@ namespace NFun.Interpritation
                         throw ErrorFactory.AnonymousFunctionArgumentDuplicates(varNode, arrowAnonymFunNode.Defenition);
                 }
             }
-
-        
             var body = arrowAnonymFunNode.Body;
             return BuildAnonymousFunction(arrowAnonymFunNode.Interval, body, localVariables, arguments);
         }
-
-     
 
         public IExpressionNode Visit(ArraySyntaxNode node)
         {
@@ -206,13 +202,13 @@ namespace NFun.Interpritation
 
         public IExpressionNode Visit(MetaInfoSyntaxNode node)
         {
+            //registrate var node
+            GetOrAddVariableNode(node.VariableSyntaxNode);
             var id = node.VariableSyntaxNode.Id;
             if (!_typeInferenceResults.HasVariable(id))
                 throw FunParseException.ErrorStubToDo($"Variable {id} not exist in the scope");
             return new MetaInfoExpressionNode(_variables, id , node.Interval);
-        }
-
-        
+         }
 
         public IExpressionNode Visit(IfThenElseSyntaxNode node)
         {
@@ -349,7 +345,6 @@ namespace NFun.Interpritation
         
         private IExpressionNode GetOrAddVariableNode(VariableSyntaxNode varNode)
         {
-           
             var funVariable = _typeInferenceResults.GetFunctionalVariableOrNull(varNode.OrderNumber);
             if (funVariable != null)
             {

@@ -452,7 +452,8 @@ namespace NFun.TypeInferenceAdapter
             return true;
         }
         public bool Visit(ListOfExpressionsSyntaxNode node) => VisitChildren(node);
-        public bool Visit(MetaInfoSyntaxNode node) => true;
+        public bool Visit(MetaInfoSyntaxNode node) => Visit(node.VariableSyntaxNode);//variable node is a child of metaInfoNode;
+          
 
         #region privates
         private RefTo[] InitializeGenericTypes(GenericConstrains[] constrains)
