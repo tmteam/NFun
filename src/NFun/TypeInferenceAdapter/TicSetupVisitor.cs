@@ -405,39 +405,38 @@ namespace NFun.TypeInferenceAdapter
             //need to know what type of argument is expected - is it variableId, or functionId?
             //if it is function - how many arguments are expected ? 
             var argType = _parentFunctionArgType;
-            if (argType.BaseType == BaseVarType.Fun)// functional argument is expected
+            if (argType.BaseType == BaseVarType.Fun) // functional argument is expected
             {
                 var argsCount = argType.FunTypeSpecification.Inputs.Length;
                 var signature = _dictionary.GetOrNull(id, argsCount);
-                if (signature == null)
+                if (signature != null)
                 {
-                    node.IdType = NamedIdNodeType.UnknownFunction;
+
+
+                    if (signature is GenericFunctionBase genericFunction)
+                    {
+                        var generics = InitializeGenericTypes(genericFunction.GenericDefenitions);
+                        _resultsBuilder.RememberGenericCallArguments(node.OrderNumber, generics);
+
+                        _ticTypeGraph.SetVarType($"g'{argsCount}'{id}",
+                            genericFunction.GetTicFunType(generics));
+                        _ticTypeGraph.SetVar($"g'{argsCount}'{id}", node.OrderNumber);
+
+                        node.IdType = NamedIdNodeType.GenericFunction;
+                        node.IdContent = new FunctionalVariableCallInfo(signature, generics);
+                    }
+                    else
+                    {
+                        _ticTypeGraph.SetVarType($"f'{argsCount}'{id}", signature.GetTicFunType());
+                        _ticTypeGraph.SetVar($"f'{argsCount}'{id}", node.OrderNumber);
+
+                        node.IdType = NamedIdNodeType.ConcreteFunction;
+                        node.IdContent = new FunctionalVariableCallInfo(signature, null);
+                    }
+
+                    _resultsBuilder.RememberFunctionalVariable(node.OrderNumber, signature);
                     return true;
                 }
-
-                if (signature is GenericFunctionBase genericFunction)
-                {
-                    var generics = InitializeGenericTypes(genericFunction.GenericDefenitions);
-                    _resultsBuilder.RememberGenericCallArguments(node.OrderNumber, generics);
-
-                    _ticTypeGraph.SetVarType($"g'{argsCount}'{id}",
-                        genericFunction.GetTicFunType(generics));
-                    _ticTypeGraph.SetVar($"g'{argsCount}'{id}", node.OrderNumber);
-
-                    node.IdType = NamedIdNodeType.GenericFunction;
-                    node.IdContent = new FunctionalVariableCallInfo(signature, generics);
-                }
-                else
-                {
-                    _ticTypeGraph.SetVarType($"f'{argsCount}'{id}", signature.GetTicFunType());
-                    _ticTypeGraph.SetVar($"f'{argsCount}'{id}", node.OrderNumber);
-
-                    node.IdType = NamedIdNodeType.GenericFunction;
-                    node.IdContent = new FunctionalVariableCallInfo(signature, null);
-                }
-
-                _resultsBuilder.RememberFunctionalVariable(node.OrderNumber, signature);
-                return true;
             }
             // At this point we are sure - ID is not a function
 
@@ -460,11 +459,15 @@ namespace NFun.TypeInferenceAdapter
                 else
                     throw new InvalidOperationException("Type " + constant.Type + " is not supported for constants");
             }
-            //ID is variable
-            var localId = _aliasScope.GetVariableAlias(node.Id);
-            _ticTypeGraph.SetVar(localId, node.OrderNumber);
-            
-            node.IdType = NamedIdNodeType.Variable;
+            else
+            {
+                //ID is variable
+                var localId = _aliasScope.GetVariableAlias(node.Id);
+                _ticTypeGraph.SetVar(localId, node.OrderNumber);
+
+                node.IdType = NamedIdNodeType.Variable;
+            }
+
             return true;
         }
         public bool Visit(TypedVarDefSyntaxNode node)
