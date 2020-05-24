@@ -25,7 +25,7 @@ namespace Funny.Tests
             foreach (var predefinedFunction in BaseFunctions.GenericFunctions)
                 functions.TryAdd(predefinedFunction);
 
-            return RuntimeBuilder.Build(tree, functions);
+            return RuntimeBuilder.Build(tree, functions, new EmptyConstantList());
         }
         public static void AssertReturns(this CalculationResult result, double delta, params VarVal[] vars)
         {

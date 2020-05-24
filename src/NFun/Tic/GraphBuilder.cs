@@ -80,6 +80,8 @@ namespace NFun.Tic
                 throw new InvalidOperationException();
         }
 
+        public bool HasNamedNode(string s) => _variables.ContainsKey(s);
+
         public void SetVarType(string s, IState state)
         {
             var node = GetNamedNode(s);

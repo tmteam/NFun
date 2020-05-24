@@ -51,7 +51,7 @@ namespace NFun.SyntaxParsing
                 }
                 else if (flow.IsCurrent(TokType.Def) || flow.IsCurrent(TokType.Colon))
                 {
-                    if (e is VariableSyntaxNode variable)
+                    if (e is NamedIdSyntaxNode variable)
                         ReadEquation(variable, variable.Id);
                     //Fun call can be used as fun defenition
                     else if (e is FunCallSyntaxNode fun && !fun.IsOperator)
@@ -112,7 +112,7 @@ namespace NFun.SyntaxParsing
             {
                 if (headNodeChild is TypedVarDefSyntaxNode varDef)
                     arguments.Add(varDef);
-                else if(headNodeChild is VariableSyntaxNode varSyntax)
+                else if(headNodeChild is NamedIdSyntaxNode varSyntax)
                     arguments.Add(new TypedVarDefSyntaxNode(varSyntax.Id, headNodeChild.OutputType, headNodeChild.Interval));
                 else    
                     throw ErrorFactory.WrongFunctionArgumentDefenition(fun, headNodeChild);

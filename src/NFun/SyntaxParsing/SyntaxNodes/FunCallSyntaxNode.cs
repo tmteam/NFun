@@ -36,7 +36,7 @@ namespace NFun.SyntaxParsing.SyntaxNodes
         /// </summary>
         public LangFunctionSignature SignatureOfOverload { get; set; }
 
-        public void TransformToMetafunction(VariableSyntaxNode node) 
+        public void TransformToMetafunction(NamedIdSyntaxNode node) 
             => Args[0] = new MetaInfoSyntaxNode(node);
     }
 }

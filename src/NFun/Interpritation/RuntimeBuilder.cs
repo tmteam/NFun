@@ -17,18 +17,19 @@ namespace NFun.Interpritation
 {
     public static class RuntimeBuilder
     {
-        public static FunRuntime Build(string script, IFunctionDictionary functionDictionary)
+        public static FunRuntime Build(string script, IFunctionDictionary functionDictionary, IConstantList constants)
         {
             var flow = Tokenizer.ToFlow(script);
             var syntaxTree = Parser.Parse(flow);
 
             //Set node numbers
             syntaxTree.ComeOver(new SetNodeNumberVisitor());
-            return Build(syntaxTree, functionDictionary);
+            return Build(syntaxTree, functionDictionary, constants);
         }
         public static FunRuntime Build(
             SyntaxTree syntaxTree,
-            IFunctionDictionary functionsDictionary)
+            IFunctionDictionary functionsDictionary, 
+            IConstantList constants)
         {
             var userFunctionsList = new List<IFunctionSignature>();
             #region build user functions
@@ -43,7 +44,10 @@ namespace NFun.Interpritation
             //build user functions
             foreach (var functionSyntaxNode in functionSolveOrder)
             {
-                var userFun =BuildFunctionAndPutItToDictionary(functionSyntaxNode, scopeFunctionDictionary);
+                var userFun = BuildFunctionAndPutItToDictionary(
+                    functionSyntaxNode: functionSyntaxNode, 
+                    constants: constants, 
+                    functionsDictionary: scopeFunctionDictionary);
                 userFunctionsList.Add(userFun);
             }
 
@@ -51,7 +55,7 @@ namespace NFun.Interpritation
 
             #region solve body types
             //Solve types for all equations nodes
-            var bodyTypeSolving = RuntimeBuilderHelper.SolveBodyOrThrow(syntaxTree, scopeFunctionDictionary);
+            var bodyTypeSolving = RuntimeBuilderHelper.SolveBodyOrThrow(syntaxTree, scopeFunctionDictionary, constants);
 
             foreach (var syntaxNode in syntaxTree.Children)
             {
@@ -155,6 +159,7 @@ namespace NFun.Interpritation
 
         private static IFunctionSignature BuildFunctionAndPutItToDictionary(
             UserFunctionDefenitionSyntaxNode functionSyntaxNode,
+            IConstantList constants,
             ScopeFunctionDictionary functionsDictionary)
         {
             TraceLog.WriteLine($"\r\n====BUILD {functionSyntaxNode.Id}(..) ====");
@@ -166,8 +171,12 @@ namespace NFun.Interpritation
 
             try
             {
-                if (!TicSetupVisitor.Run(new[] {functionSyntaxNode}, graphBuider, functionsDictionary,
-                    resultsBuilder))
+                if (!TicSetupVisitor.Run(
+                    nodes: new[] {functionSyntaxNode}, 
+                    ticGraph:  graphBuider, 
+                    functions: functionsDictionary, 
+                    constants: constants,
+                    results:   resultsBuilder))
                     throw FunParseException.ErrorStubToDo($"Function '{functionSyntaxNode.Id}' is not solved");
                 
                 // solve the types

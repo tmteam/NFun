@@ -342,7 +342,7 @@ namespace NFun.SyntaxParsing
                     var anonFun = ReadSuperAnonymousFunction(flow);
                     //super-anonymous-function
                     // x =  { /*body*/ }
-                    if (!(leftNode is VariableSyntaxNode idNode))
+                    if (!(leftNode is NamedIdSyntaxNode idNode))
                         throw FunParseException.ErrorStubToDo("unexpected anonymous function");
                     
                     leftNode = SyntaxNodeFactory.FunCall(idNode.Id, new[] {anonFun}, 

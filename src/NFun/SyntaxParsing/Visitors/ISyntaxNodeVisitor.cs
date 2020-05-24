@@ -22,7 +22,7 @@ namespace NFun.SyntaxParsing.Visitors
         T Visit(TypedVarDefSyntaxNode node);
         T Visit(UserFunctionDefenitionSyntaxNode node);
         T Visit(VarDefenitionSyntaxNode node);
-        T Visit(VariableSyntaxNode node);
+        T Visit(NamedIdSyntaxNode node);
         T Visit(ResultFunCallSyntaxNode node);
         T Visit(MetaInfoSyntaxNode anonymFunNode);
         T Visit(SuperAnonymFunctionSyntaxNode arrowAnonymFunNode);
