@@ -9,13 +9,13 @@ namespace NFun.SyntaxParsing.SyntaxNodes
 {
     public class MetaInfoSyntaxNode: ISyntaxNode
     {
-        public VariableSyntaxNode VariableSyntaxNode { get; }
+        public NamedIdSyntaxNode NamedIdSyntaxNode { get; }
 
-        public MetaInfoSyntaxNode(VariableSyntaxNode variableSyntaxNode)
+        public MetaInfoSyntaxNode(NamedIdSyntaxNode namedIdSyntaxNode)
         {
-            VariableSyntaxNode = variableSyntaxNode;
-            Interval = VariableSyntaxNode.Interval;
-            OrderNumber = VariableSyntaxNode.OrderNumber;
+            NamedIdSyntaxNode = namedIdSyntaxNode;
+            Interval = NamedIdSyntaxNode.Interval;
+            OrderNumber = NamedIdSyntaxNode.OrderNumber;
             IsInBrackets = false;
         }
         public VarType OutputType { get; set; }
@@ -24,6 +24,6 @@ namespace NFun.SyntaxParsing.SyntaxNodes
         public Interval Interval { get; set; }
         public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
 
-        public IEnumerable<ISyntaxNode> Children => new[] {VariableSyntaxNode};
+        public IEnumerable<ISyntaxNode> Children => new[] {NamedIdSyntaxNode};
     }
 }

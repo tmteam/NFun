@@ -58,7 +58,7 @@ namespace NFun.Interpritation
         }
 
         public static TypeInferenceResults SolveBodyOrThrow(SyntaxTree syntaxTree,
-            IFunctionDictionary functionsDictionary)
+            IFunctionDictionary functions, IConstantList constants)
         {
             try
             {
@@ -69,7 +69,7 @@ namespace NFun.Interpritation
 
                 //to build body - we have to skip all user-function-syntax-nodes
                 var bodyNodes = syntaxTree.Nodes.Where(n => !(n is UserFunctionDefenitionSyntaxNode));
-                if(!TicSetupVisitor.Run(bodyNodes, typeGraph, functionsDictionary, resultBuilder))
+                if(!TicSetupVisitor.Run(bodyNodes, typeGraph, functions, constants, resultBuilder))
                     throw ErrorFactory.TypesNotSolved(syntaxTree);
 
                 var bodyTypeSolving = typeGraph.Solve();

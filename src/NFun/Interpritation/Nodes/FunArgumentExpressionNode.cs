@@ -13,7 +13,7 @@ namespace NFun.Interpritation.Nodes
         {
             switch (node)
             {
-                case VariableSyntaxNode varNode:
+                case NamedIdSyntaxNode varNode:
                     return new FunArgumentExpressionNode(
                         name:     varNode.Id, 
                         type:     node.OutputType, 

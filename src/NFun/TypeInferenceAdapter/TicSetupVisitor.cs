@@ -12,6 +12,7 @@ using NFun.Tic;
 using NFun.Tic.SolvingStates;
 using NFun.TypeInferenceCalculator;
 using NFun.Types;
+using Array = NFun.Tic.SolvingStates.Array;
 
 namespace NFun.TypeInferenceAdapter
 {
@@ -20,15 +21,17 @@ namespace NFun.TypeInferenceAdapter
         private readonly VariableScopeAliasTable _aliasScope;
         private readonly GraphBuilder _ticTypeGraph;
         private readonly IFunctionDictionary _dictionary;
+        private readonly IConstantList _constants;
         private readonly TypeInferenceResultsBuilder _resultsBuilder;
 
         public static bool Run(
             IEnumerable<ISyntaxNode> nodes, 
-            GraphBuilder builder, 
-            IFunctionDictionary dictionary,
-            TypeInferenceResultsBuilder resultsBuilder)
+            GraphBuilder ticGraph, 
+            IFunctionDictionary functions,
+            IConstantList constants,
+            TypeInferenceResultsBuilder results)
         {
-            var visitor = new TicSetupVisitor(builder, dictionary, resultsBuilder);
+            var visitor = new TicSetupVisitor(ticGraph, functions, constants, results);
             foreach (var syntaxNode in nodes)
             {
                 if (!syntaxNode.Accept(visitor))
@@ -36,11 +39,15 @@ namespace NFun.TypeInferenceAdapter
             }
             return true;
         }
-        internal TicSetupVisitor(GraphBuilder ticTypeGraph,  IFunctionDictionary dictionary,
+        internal TicSetupVisitor(
+            GraphBuilder ticTypeGraph,  
+            IFunctionDictionary dictionary,
+            IConstantList constants,
             TypeInferenceResultsBuilder resultsBuilder)
         {
             _aliasScope = new VariableScopeAliasTable();
             _dictionary = dictionary;
+            _constants = constants;
             _resultsBuilder = resultsBuilder;
             _ticTypeGraph = ticTypeGraph;
         }
@@ -152,7 +159,7 @@ namespace NFun.TypeInferenceAdapter
                         _ticTypeGraph.SetVarType(anonymName, ticType);
                     }
                 }
-                else if (syntaxNode is VariableSyntaxNode varNode)
+                else if (syntaxNode is NamedIdSyntaxNode varNode)
                 {
                     originName = varNode.Id;
                     anonymName = MakeAnonVariableName(node, originName);
@@ -171,7 +178,7 @@ namespace NFun.TypeInferenceAdapter
                 var syntaxNode = node.ArgumentsDefenition[i];
                 if (syntaxNode is TypedVarDefSyntaxNode typed)
                     aliasNames[i] = _aliasScope.GetVariableAlias(typed.Id);
-                else if (syntaxNode is VariableSyntaxNode varNode)
+                else if (syntaxNode is NamedIdSyntaxNode varNode)
                     aliasNames[i] = _aliasScope.GetVariableAlias(varNode.Id);
             }
 
@@ -205,7 +212,7 @@ namespace NFun.TypeInferenceAdapter
             if (signature is GenericMetafunction)
             {
                 //If it is Metafunction - need to transform origin node to metafunction
-                var firstArg = node.Args[0] as VariableSyntaxNode;
+                var firstArg = node.Args[0] as NamedIdSyntaxNode;
                 if (firstArg == null)
                     throw FunParseException.ErrorStubToDo("first arg should be variable");
                 node.TransformToMetafunction(firstArg);
@@ -389,9 +396,10 @@ namespace NFun.TypeInferenceAdapter
 
             return true;
         }
-        public bool Visit(VariableSyntaxNode node)
+        public bool Visit(NamedIdSyntaxNode node)
         {
-            Trace(node, $"VAR {node.Id} ");
+            var id = node.Id;
+            Trace(node, $"VAR {id} ");
 
             //nfun syntax allows multiple variables to have the same name depending on whether they are functions or not
             //need to know what type of argument is expected - is it variableId, or functionId?
@@ -400,33 +408,63 @@ namespace NFun.TypeInferenceAdapter
             if (argType.BaseType == BaseVarType.Fun)// functional argument is expected
             {
                 var argsCount = argType.FunTypeSpecification.Inputs.Length;
-                var signature = _dictionary.GetOrNull(node.Id, argsCount);
-                if (signature != null)
+                var signature = _dictionary.GetOrNull(id, argsCount);
+                if (signature == null)
                 {
-                    if (signature is GenericFunctionBase genericFunction)
-                    {
-                        var generics = InitializeGenericTypes(genericFunction.GenericDefenitions);
-                        _resultsBuilder.RememberGenericCallArguments(node.OrderNumber, generics);
-
-                        _ticTypeGraph.SetVarType($"g'{argsCount}'{node.Id}",
-                            genericFunction.GetTicFunType(generics));
-                        _ticTypeGraph.SetVar($"g'{argsCount}'{node.Id}", node.OrderNumber);
-
-                    }
-                    else
-                    {
-                        _ticTypeGraph.SetVarType($"f'{argsCount}'{node.Id}", signature.GetTicFunType());
-                        _ticTypeGraph.SetVar($"f'{argsCount}'{node.Id}", node.OrderNumber);
-                    }
-
-                    _resultsBuilder.RememberFunctionalVariable(node.OrderNumber, signature);
+                    node.IdType = NamedIdNodeType.UnknownFunction;
                     return true;
                 }
-            }
 
-            // usual argument is expected
+                if (signature is GenericFunctionBase genericFunction)
+                {
+                    var generics = InitializeGenericTypes(genericFunction.GenericDefenitions);
+                    _resultsBuilder.RememberGenericCallArguments(node.OrderNumber, generics);
+
+                    _ticTypeGraph.SetVarType($"g'{argsCount}'{id}",
+                        genericFunction.GetTicFunType(generics));
+                    _ticTypeGraph.SetVar($"g'{argsCount}'{id}", node.OrderNumber);
+
+                    node.IdType = NamedIdNodeType.GenericFunction;
+                    node.IdContent = new FunctionalVariableCallInfo(signature, generics);
+                }
+                else
+                {
+                    _ticTypeGraph.SetVarType($"f'{argsCount}'{id}", signature.GetTicFunType());
+                    _ticTypeGraph.SetVar($"f'{argsCount}'{id}", node.OrderNumber);
+
+                    node.IdType = NamedIdNodeType.GenericFunction;
+                    node.IdContent = new FunctionalVariableCallInfo(signature, null);
+                }
+
+                _resultsBuilder.RememberFunctionalVariable(node.OrderNumber, signature);
+                return true;
+            }
+            // At this point we are sure - ID is not a function
+
+            // ID can be constant or variable
+            // if ID exists in ticTypeGraph - then ID is Variable
+            // else if ID exists in constant list - then ID is constant
+            // else ID is variable
+
+            if (!_ticTypeGraph.HasNamedNode(id) && _constants.TryGetConstant(id, out var constant))
+            {
+                //ID is constant 
+                node.IdType = NamedIdNodeType.Constant;
+                node.IdContent = constant;
+
+                var titype = constant.Type.ConvertToTiType();
+                if(titype is Primitive primitive)
+                    _ticTypeGraph.SetConst(node.OrderNumber, primitive);
+                else if (titype is Array array && array.Element is Primitive primitiveElement)
+                    _ticTypeGraph.SetArrayConst(node.OrderNumber, primitiveElement);
+                else
+                    throw new InvalidOperationException("Type " + constant.Type + " is not supported for constants");
+            }
+            //ID is variable
             var localId = _aliasScope.GetVariableAlias(node.Id);
             _ticTypeGraph.SetVar(localId, node.OrderNumber);
+            
+            node.IdType = NamedIdNodeType.Variable;
             return true;
         }
         public bool Visit(TypedVarDefSyntaxNode node)
@@ -452,8 +490,7 @@ namespace NFun.TypeInferenceAdapter
             return true;
         }
         public bool Visit(ListOfExpressionsSyntaxNode node) => VisitChildren(node);
-        public bool Visit(MetaInfoSyntaxNode node) => Visit(node.VariableSyntaxNode);//variable node is a child of metaInfoNode;
-          
+        public bool Visit(MetaInfoSyntaxNode node) => Visit(node.NamedIdSyntaxNode);//variable node is a child of metaInfoNode;
 
         #region privates
         private RefTo[] InitializeGenericTypes(GenericConstrains[] constrains)

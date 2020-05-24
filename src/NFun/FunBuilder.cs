@@ -1,12 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using NFun.Interpritation;
 using NFun.Interpritation.Functions;
 using NFun.Runtime;
-using NFun.SyntaxParsing;
-using NFun.SyntaxParsing.Visitors;
-using NFun.Tokenization;
 
 namespace NFun
 {
@@ -25,7 +19,7 @@ namespace NFun
             _functionDictionary = functionDictionary;
         }
 
-        public FunRuntime Build() => RuntimeBuilder.Build(_script, _functionDictionary);
+        public FunRuntime Build() => RuntimeBuilder.Build(_script, _functionDictionary, new EmptyConstantList());
     }
 
     public class FunBuilderWithConcreteFunctions : IFunBuilder
@@ -48,7 +42,7 @@ namespace NFun
             return this;
         }
 
-        public FunRuntime Build() => RuntimeBuilder.Build(_script, _functionDictionary);
+        public FunRuntime Build() => RuntimeBuilder.Build(_script, _functionDictionary, new EmptyConstantList());
     }
     public  class FunBuilder : IFunBuilder
     {
@@ -71,9 +65,9 @@ namespace NFun
             return builder.WithFunctions(functions);
         }
 
-        public FunRuntime Build() => RuntimeBuilder.Build(_text, BaseFunctions.CreateDefaultDictionary());
+        public FunRuntime Build() => RuntimeBuilder.Build(_text, BaseFunctions.CreateDefaultDictionary(), new EmptyConstantList());
 
         public static FunRuntime Build(string text) =>
-            RuntimeBuilder.Build(text, BaseFunctions.CreateDefaultDictionary());
+            RuntimeBuilder.Build(text, BaseFunctions.CreateDefaultDictionary(), new EmptyConstantList());
     }
 }

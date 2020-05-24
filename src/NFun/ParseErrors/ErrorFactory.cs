@@ -443,10 +443,10 @@ namespace NFun.ParseErrors
                     node.Interval);
             return new FunParseException(523, $"Ambiguous function call", node?.Interval ?? Interval.Empty);
         }
-        public static Exception FunctionNameAndVariableNameConflict(VariableSyntaxNode varName)
+        public static Exception FunctionNameAndVariableNameConflict(NamedIdSyntaxNode varName)
             => new FunParseException(524, $"Function with name: {varName.Id} can be used in expression because it's name conflict with function that exists in scope. Declare input variable", varName.Interval);
 
-        public static Exception AmbiguousFunctionChoise(VariableSyntaxNode varName)
+        public static Exception AmbiguousFunctionChoise(NamedIdSyntaxNode varName)
             =>  new FunParseException(526,$"Several functions with name: {varName.Id} can be used in expression. Did you mean input variable instead of function?", varName.Interval);
         
         public static Exception ArrayInitializerTypeMismatch(VarType stepType, ISyntaxNode node)
@@ -498,7 +498,7 @@ namespace NFun.ParseErrors
         public static Exception AnonymousFunctionArgumentDuplicates(FunArgumentExpressionNode argNode,ISyntaxNode funDefenition)
             => new FunParseException(557, $"'Argument name '{argNode.Name}' of anonymous fun duplicates ", argNode.Interval);
 
-        public static Exception AnonymousFunctionArgumentDuplicates(VariableSyntaxNode argNode,ISyntaxNode funDefenition)
+        public static Exception AnonymousFunctionArgumentDuplicates(NamedIdSyntaxNode argNode,ISyntaxNode funDefenition)
             => new FunParseException(560, $"'Argument name '{argNode.Id}' of anonymous fun duplicates ", argNode.Interval);
         public static Exception AnonymousFunctionArgumentDuplicates(TypedVarDefSyntaxNode argNode,ISyntaxNode funDefenition)
             => new FunParseException(563, $"'Argument '{argNode.Id}:{argNode.VarType}' of anonymous fun duplicates ", argNode.Interval);

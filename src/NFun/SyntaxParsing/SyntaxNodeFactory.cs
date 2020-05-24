@@ -15,7 +15,7 @@ namespace NFun.SyntaxParsing
         public static IfCaseSyntaxNode IfThen(ISyntaxNode condition, ISyntaxNode expression, int start, int end)
             => new IfCaseSyntaxNode(condition,expression,Interval.New(start, end));
         public static ISyntaxNode Var(Tok token) 
-            => new VariableSyntaxNode(token.Value, token.Interval); 
+            => new NamedIdSyntaxNode(token.Value, token.Interval); 
         public static ISyntaxNode Constant(object value, VarType type, Interval interval) 
             => new ConstantSyntaxNode(value, type, interval);
         public static ISyntaxNode IntGenericConstant(ulong value, Interval interval)

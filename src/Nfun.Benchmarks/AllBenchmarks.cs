@@ -6,7 +6,6 @@ using NUnit.Framework;
 
 namespace Nfun.Benchmarks
 {
- 
     [TestFixture]
     public class AllBenchmarks
     {

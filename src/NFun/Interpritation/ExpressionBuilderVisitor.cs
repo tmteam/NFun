@@ -202,9 +202,12 @@ namespace NFun.Interpritation
 
         public IExpressionNode Visit(MetaInfoSyntaxNode node)
         {
+            if (node.NamedIdSyntaxNode.IdType != NamedIdNodeType.Variable)
+                throw FunParseException.ErrorStubToDo("Only variables are allowed as argument of metafunctions");
+            
             //registrate var node
-            GetOrAddVariableNode(node.VariableSyntaxNode);
-            var id = node.VariableSyntaxNode.Id;
+            GetOrAddVariableNode(node.NamedIdSyntaxNode);
+            var id = node.NamedIdSyntaxNode.Id;
             if (!_typeInferenceResults.HasVariable(id))
                 throw FunParseException.ErrorStubToDo($"Variable {id} not exist in the scope");
             return new MetaInfoExpressionNode(_variables, id , node.Interval);
@@ -241,11 +244,11 @@ namespace NFun.Interpritation
             var type = _typesConverter.Convert(_typeInferenceResults.SyntaxNodeTypes[node.OrderNumber]);
             //All integer values are encoded by ulong (if it is ulong) or long otherwise
             if(node.Value is long l)
-                return ValueExpressionNode.CreateConcrete(type, l, node.Interval);
+                return ConstantExpressionNode.CreateConcrete(type, l, node.Interval);
             else if (node.Value is ulong u)
-                return ValueExpressionNode.CreateConcrete(type, u, node.Interval);
+                return ConstantExpressionNode.CreateConcrete(type, u, node.Interval);
             else //other types have their own clr-types
-                return new ValueExpressionNode(node.Value, type, node.Interval);
+                return new ConstantExpressionNode(node.Value, type, node.Interval);
         }
 
         public IExpressionNode Visit(GenericIntSyntaxNode node)
@@ -253,18 +256,25 @@ namespace NFun.Interpritation
             var type = _typesConverter.Convert(_typeInferenceResults.SyntaxNodeTypes[node.OrderNumber]);
 
             if (node.Value is long l) 
-                return ValueExpressionNode.CreateConcrete(type, l, node.Interval);
+                return ConstantExpressionNode.CreateConcrete(type, l, node.Interval);
             else if (node.Value is ulong u)
-                return ValueExpressionNode.CreateConcrete(type, u, node.Interval);
+                return ConstantExpressionNode.CreateConcrete(type, u, node.Interval);
             else if (node.Value is double d)
-                return new ValueExpressionNode(node.Value, type, node.Interval);                
+                return new ConstantExpressionNode(node.Value, type, node.Interval);                
             else
                 throw new ImpossibleException($"Generic syntax node has wrong value type: {node.Value.GetType().Name}");
             
         }
         
-        public IExpressionNode Visit(VariableSyntaxNode node)
-            => GetOrAddVariableNode(node);
+        public IExpressionNode Visit(NamedIdSyntaxNode node)
+        {
+            if (node.IdType == NamedIdNodeType.Constant)
+            {
+                var varVal = (VarVal)node.IdContent;
+                return new ConstantExpressionNode(varVal.Value, varVal.Type, node.Interval);
+            }
+            return GetOrAddVariableNode(node);
+        }
 
         #region not an expression
         public IExpressionNode Visit(EquationSyntaxNode node) 
@@ -343,7 +353,7 @@ namespace NFun.Interpritation
         private IExpressionNode ReadNode(ISyntaxNode node) 
             => node.Accept(this);
         
-        private IExpressionNode GetOrAddVariableNode(VariableSyntaxNode varNode)
+        private IExpressionNode GetOrAddVariableNode(NamedIdSyntaxNode varNode)
         {
             var funVariable = _typeInferenceResults.GetFunctionalVariableOrNull(varNode.OrderNumber);
             if (funVariable != null)
