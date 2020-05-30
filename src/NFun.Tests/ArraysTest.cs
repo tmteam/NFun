@@ -16,12 +16,7 @@ namespace Funny.Tests
         [TestCase("y = [4..1]", new[]{4.0,3,2,1})]
         [TestCase("y:uint[] = [1..4]", new uint[] { 1, 2, 3, 4 })]
         [TestCase("y:uint[] = [4..1]", new uint[] { 4, 3, 2, 1 })]
-        [TestCase("y:int[] = [1..7..2]", new[]{1,3,5,7})]
-        [TestCase("y:int[] = [7..1..2]", new[]{7,5,3,1})]
-        [TestCase("y:int[] = [1..8..2]", new[]{1,3,5,7})]
-        [TestCase("y = [1.0..3.0..0.5]", new[]{1.0,1.5,2.0,2.5,3.0})]
-        [TestCase("y = [3.0..1.0..0.5]", new[]{3.0,2.5,2.0,1.5, 1.0})]
-        [TestCase("y = [1..3..0.5]", new[]{1.0,1.5,2.0,2.5,3.0})]
+      
         [TestCase("y:int[] = [1..1]", new[]{1})]
         [TestCase("y:int[] = [1,2,3,4]", new[]{1,2,3,4})]
         [TestCase("y = [0x1]", new[]{1})]
@@ -69,7 +64,17 @@ namespace Funny.Tests
         {
             FunBuilder.Build(expr).Calculate().AssertReturns(VarVal.New("y", expected));
         }
-
+        [Ignore("Step array initialization is disabled")]
+        [TestCase("y:int[] = [1..7..2]", new[]{1,3,5,7})]
+        [TestCase("y:int[] = [7..1..2]", new[]{7,5,3,1})]
+        [TestCase("y:int[] = [1..8..2]", new[]{1,3,5,7})]
+        [TestCase("y = [1.0..3.0..0.5]", new[]{1.0,1.5,2.0,2.5,3.0})]
+        [TestCase("y = [3.0..1.0..0.5]", new[]{3.0,2.5,2.0,1.5, 1.0})]
+        [TestCase("y = [1..3..0.5]", new[]{1.0,1.5,2.0,2.5,3.0})]
+        public void ConstantStepArrayInitTest(string expr, object expected)
+        {
+            FunBuilder.Build(expr).Calculate().AssertReturns(VarVal.New("y", expected));
+        }
         [TestCase("a = 2.0 \r b=3.0 \r  y = [1.0,a,b] ", new[]{1.0,2.0,3.0})]
         [TestCase("a = 2.0 \r b=3.0 \r y = [a,b] ", new[]{2.0,3.0})]
         [TestCase("a = 2.0 \r b=3.0 \r y = [a+1,b+2] ", new[]{3.0,5.0})]
@@ -107,9 +112,9 @@ namespace Funny.Tests
         [TestCase(3, "y= [1..5][x]", 4.0)]
         [TestCase(true, "y= (if(x) [1,2] else [])[0]", 1.0)]
 
-        [TestCase(2, "x:int; y= [1..6..x]", new[] {1, 3, 5})]
-        [TestCase(0.5, "y= [1.0..3.0..x]", new[] {1.0, 1.5, 2.0, 2.5, 3.0})]
-        public void SingleVqtInputEquation_CheckOutputValues(object val, string expr, object expected)
+        //[TestCase(2, "x:int; y= [1..6..x]", new[] {1, 3, 5})]
+        //[TestCase(0.5, "y= [1.0..3.0..x]", new[] {1.0, 1.5, 2.0, 2.5, 3.0})]
+        public void SingleInputEquation_CheckOutputValues(object val, string expr, object expected)
         {
             FunBuilder.Build(expr).Calculate(VarVal.New("x",val)).AssertHas(VarVal.New("y", expected));
         }
@@ -252,12 +257,6 @@ filtrat   = x.filter{it> filt} # filt - input variable
         [TestCase("y = [2,1] in [1,2,3]")]
         [TestCase("y = [1,5,2] in [1,2,3]")]
         [TestCase("y = x\r[2]")]
-  
-        public void ObviouslyFailsOnParse(string expr) =>
-            Assert.Throws<FunParseException>(
-                () => FunBuilder.Build(expr));
-
-      
         [TestCase("y = [1..2..-2]")]
         [TestCase("y = [1..2..0]")]
         [TestCase("y = [4..1..-2]")]
@@ -265,6 +264,12 @@ filtrat   = x.filter{it> filt} # filt - input variable
         [TestCase("y = [4..1..-2.0]")]
         [TestCase("y = [1..4..-2.0]")]
         [TestCase("y = [1..4..0]")]
+        public void ObviouslyFailsOnParse(string expr) =>
+            Assert.Throws<FunParseException>(
+                () => FunBuilder.Build(expr));
+
+      
+       
         [TestCase("y = [0..10][11]")]
         [TestCase("y = ['a', 'b'][2]")]
         public void ObviouslyFailsOnRuntime(string expr) =>

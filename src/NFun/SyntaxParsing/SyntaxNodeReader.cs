@@ -578,6 +578,8 @@ namespace NFun.SyntaxParsing
                     }
                     if (!flow.MoveIf(TokType.ArrCBr, out var closeBracket))
                         throw ErrorFactory.ArrayIntervalInitializeCbrMissed(openBracket, flow.Current, true);
+
+                    throw FunParseException.ErrorStubToDo("initialize array with step is not supported now ");
                     return SyntaxNodeFactory.OperatorFun(
                         name:     CoreFunNames.RangeName,
                         children: new[] {list[0], secondArg, thirdArg}, 

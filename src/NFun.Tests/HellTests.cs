@@ -186,7 +186,7 @@ namespace Funny.Tests
                           #body  
                           ins:int[]  = [1,5,3,5,6,1,2,100,0,3,2,10,3,50,6,42,43,53]
                           rns:real[] = ins
-                          tns  = ins.filter{it.remainder(2)==0}.map(toText).concat(['vasa','kate'])
+                          tns  = ins.filter{it.rema(2)==0}.map(toText).concat(['vasa','kate'])
                         
                           i  = ins.bubbleSort() == ins.reverse().sort()
                           r  = rns.bubbleSort() == rns.sort()

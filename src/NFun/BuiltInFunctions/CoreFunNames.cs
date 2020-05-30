@@ -7,7 +7,6 @@ namespace NFun.BuiltInFunctions
         public const string GetElementName = "get";
         public const string SliceName = "slice";
         public const string RangeName = "range";
-        public const string RangeStepName = "rangeWithStep";
         public const string Substract = "substract";
         public const string BitOr = "bitor";
         public const string BitXor = "bitxor";
@@ -15,7 +14,7 @@ namespace NFun.BuiltInFunctions
         public const string Multiply = "multiply";
         public const string Divide = "divide";
         public const string Pow = "pow";
-        public const string Remainder = "remainder";
+        public const string Remainder = "rema";
         public const string And = "and";
         public const string Or = "or";
         public const string Xor = "xor";

@@ -21,7 +21,7 @@ namespace Funny.Tests.BuiltInFunctions
                      y = map([1,2,3],ii)", new[] { 1, 4, 9 })]
         [TestCase(@"ii(x:int):real = x/2
                      y = map([1,2,3],ii)", new[] { 0.5, 1.0, 1.5 })]
-        [TestCase(@"isodd(x:int):bool = (x.remainder(2)) == 0
+        [TestCase(@"isodd(x:int):bool = (x.rema(2)) == 0
                      y = map([1,2,3],isodd)", new[] { false, true, false })]
         [TestCase(@"toS1(t:text, x:int):text = t.concat(x.toText())
                      y = fold([1,2,3], ':', toS1)", ":123")]
@@ -35,17 +35,17 @@ namespace Funny.Tests.BuiltInFunctions
                      y = fold([1,2,3], iSum)", 6)]
         [TestCase(@"iSum(r:int, x:int):int = r+x
                      y = fold([100], iSum)", 100)]
-        [TestCase("y:int = [1,2,3,4,5,6,7].filter({it.remainder(2)==0}).sum()", 12)]
-        [TestCase("y:int = [1,2,3,4,5,6,7].filter({it.remainder(2)==0}).fold({it1+it2+1})", 14)]
-        [TestCase("y:int = [1,2,3,4,5,6,7].filter({it.remainder(2)==0}).fold({it1+it2+1})", 14)]
-        [TestCase("y:int = [1,2,3,4,5,6,7].filter({it.remainder(2)==0}).fold(min)", 2)]
-        [TestCase("y:int = [1,2,3,4,5,6,7].filter({it.remainder(2)==0}).fold(max)", 6)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter({it.rema(2)==0}).sum()", 12)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter({it.rema(2)==0}).fold({it1+it2+1})", 14)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter({it.rema(2)==0}).fold({it1+it2+1})", 14)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter({it.rema(2)==0}).fold(min)", 2)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter({it.rema(2)==0}).fold(max)", 6)]
         [TestCase("y:int = [1,2,3,4].fold {it1+it2}", 10)]
         [TestCase("y:int = [1,2,3,4,5,6,7].fold(max)", 7)]
         [TestCase("y:int = [1,2,3,4,5,6,7].fold{if(it1>it2) it1 else it2}", 7)]
-        [TestCase("y:int = [1,2,3,4,5,6,7].filter({it.remainder(2)==0}).fold{if(it1>it2) it1 else it2}", 6)]
-        [TestCase("y:int = [1,2,3,4,5,6,7].filter({it.remainder(2)==0}).fold{0}", 0)]
-        [TestCase("y:int = [1,2,3,4,5,6,7].filter({it.remainder(2)==0}).fold{0}", 0)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter({it.rema(2)==0}).fold{if(it1>it2) it1 else it2}", 6)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter({it.rema(2)==0}).fold{0}", 0)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter({it.rema(2)==0}).fold{0}", 0)]
         public void HiOrderFunConstantEquatation(string expr, object expected)
         {
             var runtime = FunBuilder.Build(expr);
