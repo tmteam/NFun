@@ -126,6 +126,7 @@
         <e p="NFun.0.7.1.nupkg" t="Include" />
         <e p="NFun.0.8.0.nupkg" t="Include" />
         <e p="NFun.0.8.1.nupkg" t="Include" />
+        <e p="NFun.0.8.2.nupkg" t="Include" />
         <e p="NFun.csproj" t="IncludeRecursive" />
         <e p="NFun.csproj.DotSettings" t="Include" />
         <e p="NFun.nuspec" t="Include" />
