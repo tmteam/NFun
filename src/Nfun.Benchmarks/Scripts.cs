@@ -11,7 +11,7 @@ namespace Nfun.Benchmarks
         public readonly string ConstRealArray = "[1, 2, 3, 4, 5, 6, 7]";
 
 
-        public readonly string ConstThousandSum = "[1..1000..1.0].sum()";
+       // public readonly string ConstThousandSum = "[1..1000..1.0].sum()";
 
         public readonly string MultiplyArrayItems = @"multi(a,b) = 
                               if(a.count()!=b.count()) []
@@ -67,7 +67,7 @@ namespace Nfun.Benchmarks
                           #body  
                           ins:int[]  = [1,5,3,5,6,0x1,2,0b100,0,3,2,10,3,50,6,42,43,53]
                           rns:real[] = ins
-                          tns  = ins.filter{it.remainder(2)==0}.map(toText).concat(['vasa','kate', '21*2 = {21*2}'])
+                          tns  = ins.filter{it.rema(2)==0}.map(toText).concat(['vasa','kate', '21*2 = {21*2}'])
                         
                           i  = ins.bubbleSort() == ins.reverse().sort()
                           r  = rns.bubbleSort() == rns.sort()
@@ -78,7 +78,8 @@ namespace Nfun.Benchmarks
 
                           mySum(a,b) = a + b  
                           j =  [0..100].map{(ins[1]+ it- ins[2])/sin(it)}.fold(mySum);    
-                          m =  [0..20000..2].sum()
+                          #uncomment when steps gonna be fixed
+						  #m =  [0..20000..2].sum()
 ";
 
     }

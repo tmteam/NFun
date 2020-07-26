@@ -6,12 +6,11 @@ namespace NFun.Tokenization
     public class Tok
     {
         private Tok(TokType type,string value, Interval interval)
-         {
+        {
             Value = value;
             Type = type;
             Interval = interval;
         }
-         
         public static Tok New(TokType type, int start, int finish)
             => new Tok(type,"",new Interval(start,finish));
 

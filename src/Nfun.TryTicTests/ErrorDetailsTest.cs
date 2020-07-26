@@ -56,8 +56,8 @@ namespace Funny.Tests
       //  [TestCase("x:bool\ry=","sin(x)","")]
         [TestCase("y(x:int):bool = if (true) true else ", "x","")]
         [TestCase("y(x) = ","z"," +x")]
-        [TestCase("","y(x,x)","=x+1")]
-        [TestCase("","y(x,x,z)","=x+1")]
+        [TestCase("","y(x,x)=","x+1")]
+        [TestCase("","y(x,x,z)=","x+1")]
         [TestCase("m =","[1.0,2.0].foold((i,x)->i+1)","")]
 
         [TestCase("[1.0,2.0].fold((i,","i",")->i+1)")]
@@ -112,20 +112,20 @@ namespace Funny.Tests
         }
 
         [TestCase("q=[1.0"," ","2.0]")]
-        [TestCase("q=[1,2,","3","")]
-        [TestCase("q=[1,2,3",",","")]
-        [TestCase("q=[1,2,3"," ","")]
-        [TestCase("q=[1,2,3","  ","")]
-        [TestCase("m=[1,2,3",",","")]
-        [TestCase("m=[1,2,3",",,","")]
-        [TestCase("m=[1,2,3",",","]")]
-        [TestCase("m=[1,2,3"," ","4]")]
-        [TestCase("m=[1,2,3,","123anc",",4]")]
-        [TestCase("m=[1,2,3,","123anc","]")]
-        [TestCase("m=[1,2,3,","y = 12",",4]")]
-        [TestCase("m=[1,2,3","   ","4] @ [5,6]")]
-        [TestCase("s=[1,2",", ,","3,4]")]
-        [TestCase("s=[1,2",",,","3,4]")]
+        [TestCase("q=[2,2,","3","")]
+        [TestCase("q=[3,2,3",",","")]
+        [TestCase("q=[4,2,3"," ","")]
+        [TestCase("q=[5,2,3","  ","")]
+        [TestCase("m=[6,2,3",",","")]
+        [TestCase("m=[7,2,3",",,","")]
+        [TestCase("m=[8,2,3",",]","")]
+        [TestCase("m=[9,2,3"," ","4]")]
+        [TestCase("m=[10,2,3,","123anc",",4]")]
+        [TestCase("m=[11,2,3,","123anc","]")]
+        [TestCase("m=[12,2,3,","y = 12,","4]")]
+        [TestCase("m=[13,2,3","   ","4] @ [5,6]")]
+        [TestCase("s=[14,2",", ,","3,4]")]
+        [TestCase("s=[15,2",",,","3,4]")]
         [TestCase("s=[",",","]")]
         [TestCase("s=[",",","2]")]
         [TestCase("s=[",",",",2]")]
@@ -139,7 +139,6 @@ namespace Funny.Tests
         {
             var value = beforeError + errorBody + afterError;
             Console.WriteLine(value);
-
             try
             {
                 FunBuilder.With(value)

@@ -5,6 +5,9 @@ namespace NFun.Tokenization
 {
     public class TokFlow
     {
+        private static readonly Tok PreviousBeforeFlowTok = Tok.New(TokType.NotAToken, 0, 0);
+        private static readonly Tok CurrentAfterEofFlowTok = Tok.New(TokType.Eof, 0, 0);
+        
         private readonly Tok[] _tokens;
 
         public TokFlow(IEnumerable<Tok> tokens)
@@ -17,7 +20,7 @@ namespace NFun.Tokenization
 
         public Tok[] MoveUntilOneOfThe(params TokType[] types)
         {
-            List<Tok> results = new List<Tok>();
+            var results = new List<Tok>();
             while (!IsDone)
             {
                 MoveNext();
@@ -30,27 +33,35 @@ namespace NFun.Tokenization
         }
 
         public int CurrentTokenPosition => _currentPos;
-        public Tok Current => IsDone ? null : _tokens[_currentPos];
+        public Tok Current => IsDone ? CurrentAfterEofFlowTok : _tokens[_currentPos];
         public bool IsStart => _currentPos == 0;
-        public Tok Previous => IsStart ? null : _tokens[_currentPos - 1];
-        public bool SkipNewLines()
+        public Tok Previous => IsStart ? PreviousBeforeFlowTok : _tokens[_currentPos - 1];
+        public void SkipNewLines()
         {
-            bool result = false;
-            while (!IsDone && IsCurrent(TokType.NewLine))
-            {
+            while (!IsDone && IsCurrent(TokType.NewLine)) 
                 MoveNext();
-                result = true;
-            }
-
-            return result;
         }
 
-        public bool IsCurrent(TokType type) 
-            => Current?.Type == type;
+        public bool IsCurrent(TokType type)
+        {
+            if (IsDone) return type == TokType.Eof;
+            
+            return _tokens[_currentPos].Type == type;
+        }
 
-      
+
         public Tok Peek => PeekNext(1);
-        public int Position => Current?.Start?? _tokens.LastOrDefault()?.Finish?? 0;
+        public int Position
+        {
+            get
+            {
+                if (!IsDone)
+                    return Current.Finish;
+                if (_tokens.Length == 0)
+                    return 0;
+                return _tokens[_tokens.Length - 1].Finish;
+            }
+        }
 
         public Tok PeekNext(int offset)
         {
@@ -78,6 +89,5 @@ namespace NFun.Tokenization
                 return false;
             return _tokens[_currentPos - 1].Type == tokType;
         }
-        
     }
 }

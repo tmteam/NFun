@@ -47,8 +47,8 @@ namespace Nfun.Benchmarks
         [Benchmark(Description = "array multiply")]
         public void ArrayMulti() => Parse(_scripts.MultiplyArrayItems);
 
-        [Benchmark(Description = "sum1000")]
-        public void Sum1000() => Parse(_scripts.ConstThousandSum);
+        //[Benchmark(Description = "sum1000")]
+        //public void Sum1000() => Parse(_scripts.ConstThousandSum);
 
         [Benchmark(Description = "dummy Bubble")]
         public void DummyBubble() => Parse(_scripts.DummyBubbleSort);

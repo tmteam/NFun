@@ -11,6 +11,11 @@ namespace NFun.Tokenization
 
         public Interval(int start, int finish)
         {
+            #if DEBUG
+            if(start>finish)
+                throw new InvalidOperationException("Start is greater then finish");
+            #endif
+            
             Start = start;
             Finish = finish;
         }

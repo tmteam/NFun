@@ -78,14 +78,14 @@ namespace Nfun.Benchmarks
                 .Build();
         }
 
-        [Benchmark(Description = "sum1000")]
+        /*[Benchmark(Description = "sum1000")]
         public void Sum1000()
         {
             FunBuilder
                 .With(_scripts.ConstThousandSum)
                 .With(_dictionary)
                 .Build();
-        }
+        }*/
 
         [Benchmark(Description = "dummy Bubble")]
         public void DummyBubble()

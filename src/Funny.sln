@@ -27,6 +27,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Benchmarks", "Benchmarks", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nfun.Benchmarks", "Nfun.Benchmarks\Nfun.Benchmarks.csproj", "{0CCF0A43-4C78-4B17-B538-C8013423430B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nfun.InfinityProfiling", "Nfun.InfinityProfiling\Nfun.InfinityProfiling.csproj", "{EEEFCEE7-1C53-4C68-8280-30089AB8D392}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -73,6 +75,10 @@ Global
 		{0CCF0A43-4C78-4B17-B538-C8013423430B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0CCF0A43-4C78-4B17-B538-C8013423430B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0CCF0A43-4C78-4B17-B538-C8013423430B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EEEFCEE7-1C53-4C68-8280-30089AB8D392}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EEEFCEE7-1C53-4C68-8280-30089AB8D392}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EEEFCEE7-1C53-4C68-8280-30089AB8D392}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EEEFCEE7-1C53-4C68-8280-30089AB8D392}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -82,6 +88,7 @@ Global
 		{DB452DDE-D067-4B7E-95BD-423FD77BCDC7} = {AD33CA54-5018-4BEB-80A2-984016CBA484}
 		{40C6C361-6E91-485E-9A43-7844956AB245} = {AD33CA54-5018-4BEB-80A2-984016CBA484}
 		{0CCF0A43-4C78-4B17-B538-C8013423430B} = {F055674B-868D-4DCA-8761-481124E630B6}
+		{EEEFCEE7-1C53-4C68-8280-30089AB8D392} = {F055674B-868D-4DCA-8761-481124E630B6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {4ECD34A8-46A8-48EE-82A4-45A9C6A2327B}
