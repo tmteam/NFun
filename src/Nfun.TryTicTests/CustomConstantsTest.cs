@@ -26,6 +26,23 @@ namespace Nfun.ModuleTests
             var result = runtime.Calculate();
             Assert.AreEqual(Math.PI, result.GetValueOf("y"));
         }
+        
+        [Test]
+        public void UseConstant_WithDefaultBuiderConstantAppears()
+        {
+            var constants = new ConstantList();
+            constants.AddConstant(VarVal.New("pi", Math.PI));
+
+            var runtime = FunBuilder
+                .With("y = pi")
+                .With(constants)
+                .Build();
+
+            Assert.AreEqual(0, runtime.Inputs.Length);
+
+            var result = runtime.Calculate();
+            Assert.AreEqual(Math.PI, result.GetValueOf("y"));
+        }
 
         [Test]
         public void OverrideConstantWithOutputVariable_constantNotUsed()

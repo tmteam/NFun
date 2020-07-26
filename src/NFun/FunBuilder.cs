@@ -53,31 +53,25 @@ namespace NFun
     {
         private readonly string _text;
         public static FunBuilder With(string text) => new FunBuilder(text);
-        private FunBuilder(string text)
-        {
-            _text = text;
-        }
+        private FunBuilder(string text) => _text = text;
 
         private IConstantList _constants = null;
         public FunBuilder With(IConstantList constants)
         {
-            this._constants = constants;
+            _constants = constants;
             return this;
         }
-        public FunBuilderWithDictionary With(IFunctionDictionary dictionary)
-        {
-            return  new FunBuilderWithDictionary(_text, dictionary, _constants);
-        }
-
-       
+        public FunBuilderWithDictionary With(IFunctionDictionary dictionary) 
+            => new FunBuilderWithDictionary(_text, dictionary, _constants);
 
         public FunBuilderWithConcreteFunctions WithFunctions(params IFunctionSignature[] functions)
         {
-            FunBuilderWithConcreteFunctions builder = new FunBuilderWithConcreteFunctions(_text, _constants);
+            var builder = new FunBuilderWithConcreteFunctions(_text, _constants);
             return builder.WithFunctions(functions);
         }
 
-        public FunRuntime Build() => RuntimeBuilder.Build(_text, BaseFunctions.CreateDefaultDictionary(), new EmptyConstantList());
+        public FunRuntime Build() 
+            => RuntimeBuilder.Build(_text, BaseFunctions.CreateDefaultDictionary(), _constants??new EmptyConstantList());
 
         public static FunRuntime Build(string text) =>
             RuntimeBuilder.Build(text, BaseFunctions.CreateDefaultDictionary(), new EmptyConstantList());
