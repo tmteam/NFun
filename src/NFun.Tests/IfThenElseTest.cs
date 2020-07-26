@@ -10,6 +10,47 @@ namespace Funny.Tests
     [TestFixture]
     public class IfThenElseTest
     {
+        [Test]
+        public void Nested2IfThenElseParsing()
+        {
+            var expr = @"y =
+	if (true) 
+		if (true) 1
+		else 4 	
+	else 5
+";
+            FunBuilder.Build(expr);
+        }
+        [Test]
+        public void Nested3IfThenElseParsing()
+        {
+            var expr = @"y =
+	if (true) 
+		if (true)
+		 	if (true) 2
+		 	else 3
+		else 4 	
+	else 5
+";
+            FunBuilder.Build(expr);
+        }
+        
+        [Test]
+        public void Nested4IfThenElseParsing()
+        {
+            var expr = @"y =
+	if (true) 
+		if (true) 
+		 	if (true)
+                if (true) 3		 	
+                else 4
+            else 5
+		else 6 	
+	else 7
+";
+            FunBuilder.Build(expr);
+        }
+     
         [TestCase(1,0,0,1)]
         [TestCase(2,1,0,2)]
         [TestCase(2,2,0,3)]

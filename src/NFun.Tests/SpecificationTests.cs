@@ -183,7 +183,7 @@ x-
             runtime.Calculate(VarVal.New("x", 2.5))
                 .AssertReturns(VarVal.New("y", 15.0));
         }
-
+ 
 
         [Test]
         public void Multiple_equations()
