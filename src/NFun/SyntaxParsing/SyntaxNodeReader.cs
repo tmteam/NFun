@@ -472,10 +472,11 @@ namespace NFun.SyntaxParsing
                     flow.Position);
             }
             
-            index = index ?? SyntaxNodeFactory.Constant(0, VarType.Int32, Interval.New(openBraket.Start, colon.Finish));
+            index = index?? 
+                    SyntaxNodeFactory.Constant(0, VarType.Int32, new Interval(openBraket.Start, colon.Finish));
             
             var end = ReadNodeOrNull(flow)?? 
-                      SyntaxNodeFactory.Constant(int.MaxValue, VarType.Int32, Interval.New(colon.Finish, flow.Position));
+                      SyntaxNodeFactory.Constant(int.MaxValue, VarType.Int32, new Interval(colon.Finish, flow.Position));
             
             if (!flow.MoveIf(TokType.Colon, out _))
             {
@@ -724,7 +725,8 @@ namespace NFun.SyntaxParsing
                 || !flow.MoveIf(TokType.Cbr, out var cbr))
                 throw ErrorFactory.FunctionArgumentError(functionResultNode.ToString(), obrId, flow);
 
-            return  new ResultFunCallSyntaxNode(functionResultNode,arguments.ToArray(),  Interval.New(functionResultNode.Interval.Start, cbr.Finish));
+            return  new ResultFunCallSyntaxNode(functionResultNode,arguments.ToArray(),  
+                new Interval(functionResultNode.Interval.Start, cbr.Finish));
         }
 
         private static bool TryReadNodeList(TokFlow flow, out List<ISyntaxNode> read)

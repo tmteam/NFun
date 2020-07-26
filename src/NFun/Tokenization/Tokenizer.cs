@@ -9,8 +9,14 @@ namespace NFun.Tokenization
     class InterpolationLayer
     {
         public char OpenQuoteSymbol;
+        /// <summary>
+        /// Difference between open and close interpolation brackets count
+        /// </summary>
         public int FigureBracketsDiff;
     }
+    /// <summary>
+    /// Turns input string into sequence of tokens
+    /// </summary>
     public class Tokenizer
     {
         #region statics
@@ -31,7 +37,7 @@ namespace NFun.Tokenization
             }
         }
         
-        private static readonly Dictionary<string, TokType> _keywords = new Dictionary<string, TokType>
+        private static readonly Dictionary<string, TokType> Keywords = new Dictionary<string, TokType>
         {
             {"in", TokType.In},
 
@@ -63,6 +69,7 @@ namespace NFun.Tokenization
             
             {"anything", TokType.AnythingType},
 
+            //Reserved kewords:
             {"%", TokType.Reserved},
             {"_", TokType.Reserved},
 
@@ -83,7 +90,7 @@ namespace NFun.Tokenization
             {"error",   TokType.Reserved},
 
             {"from", TokType.Reserved},
-            {"finaly", TokType.Reserved},
+            {"finally", TokType.Reserved},
             {"for",   TokType.Reserved},
             {"fail",   TokType.Reserved},
             {"int8", TokType.Reserved},
@@ -148,9 +155,9 @@ namespace NFun.Tokenization
             for (; finish < str.Length && (IsLetter(str[finish]) || IsDigit(str[finish])); finish++){}
 
             var word = str.Substring(position, finish - position);
-            //is id a keyword
-            if (_keywords.ContainsKey(word))
-                return Tok.New(_keywords[word], word, position, finish);
+            //is it id or keyword
+            if (Keywords.ContainsKey(word))
+                return Tok.New(Keywords[word], word, position, finish);
             else
                 return Tok.New(TokType.Id, word,position, finish);
         }
@@ -324,7 +331,7 @@ namespace NFun.Tokenization
         }
 
         private bool _isInIterpolation = false;
-        private Stack<InterpolationLayer> _interpolationLayers = new Stack<InterpolationLayer>();
+        private readonly Stack<InterpolationLayer> _interpolationLayers = new Stack<InterpolationLayer>();
 
         private Tok TryReadNext(string str, int position)
         {

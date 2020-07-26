@@ -18,7 +18,7 @@ namespace NFun.SyntaxParsing.SyntaxNodes
             Expression = expression;
             Attributes = attributes;
             IsInBrackets = false;
-            Interval = Interval.New(start, expression.Interval.Finish);
+            Interval = new Interval(start, expression.Interval.Finish);
         }
 
         public TypedVarDefSyntaxNode TypeSpecificationOrNull { get; set; } = null;

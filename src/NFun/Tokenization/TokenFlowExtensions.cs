@@ -29,7 +29,8 @@ namespace NFun.Tokenization
             }
             return ans.ToArray();
         }
-        public static VarAttribute ReadAttributeOrThrow(this TokFlow flow)
+
+        private static VarAttribute ReadAttributeOrThrow(this TokFlow flow)
         {
             var start = flow.Current.Start;
             flow.MoveNext();

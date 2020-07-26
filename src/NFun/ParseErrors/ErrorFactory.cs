@@ -583,7 +583,7 @@ namespace NFun.ParseErrors
 
         public static Exception FunctionTypesNotSolved(UserFunctionDefenitionSyntaxNode node)
             => new FunParseException(603,$"Function {node.GetFunAlias()} has invalid arguments or output type. Check function body expression",
-                Interval.New(node.Head.Interval.Start, node.Body.Interval.Start));        
+                new Interval(node.Head.Interval.Start, node.Body.Interval.Start));        
 
         public static Exception OutputDefenitionDuplicates(EquationSyntaxNode node)
             => new FunParseException(606,$"Output variable {node.Id} defenition duplicates",node.Interval);        

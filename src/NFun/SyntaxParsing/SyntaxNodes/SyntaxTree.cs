@@ -28,9 +28,9 @@ namespace NFun.SyntaxParsing.SyntaxNodes
         {
             get
             {
-                var start = Nodes.Select(i => i.Interval.Start).Min();
+                var start  = Nodes.Select(i => i.Interval.Start).Min();
                 var finish = Nodes.Select(i => i.Interval.Finish).Max();
-                return Interval.New(start, finish);
+                return new Interval(start, finish);
             }
             set => throw new System.NotImplementedException();
         }

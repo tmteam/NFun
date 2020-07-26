@@ -23,29 +23,13 @@ namespace NFun.Tokenization
 
             var longVal = ParseLongValue(val);
 
-            /* todo uiXXiXX  
-            if (longVal >= 0)
-            {
-                if (longVal <= byte.MaxValue)
-                    return ((byte) longVal, VarType.UInt8);
-                if(longVal <= UInt16.MaxValue)
-                    return ((UInt16) longVal, VarType.UInt16);
-            }
-            else
-            {
-                if(longVal > Int16.MinValue)
-                    return ((Int16) longVal, VarType.Int16);
-            }
-            */
-            if( longVal<Int32.MinValue)
+        
+            if( longVal < Int32.MinValue)
                 return ( longVal, VarType.Int64);
-            if (longVal > Int32.MaxValue)
-            {
-                //if (longVal > UInt32.MaxValue)
-                //    return (longVal, VarType.Int64);
+            else if (longVal > Int32.MaxValue)
                 return (longVal, VarType.Int64);
-            }
-            return (longVal, VarType.Int32);
+            else 
+                return (longVal, VarType.Int32);
         }
 
         private static long ParseLongValue(string val)
@@ -151,13 +135,11 @@ namespace NFun.Tokenization
                     throw FunParseException.ErrorStubToDo($"\"{tokType}\" is missing at end of stream");
                 else
                     throw FunParseException.ErrorStubToDo($"\"{tokType}\" is missing at end of stream");
-                //prev.Start, prev.Finish);
             }
 
             if (!cur.Is(tokType))
                 throw FunParseException.ErrorStubToDo(
                     $"\"{tokType}\" is missing but was \"{cur}\"");
-                    //cur.Start, cur.Finish);
             
             flow.MoveNext();
             return cur;
