@@ -39,10 +39,12 @@ namespace NFun.BuiltInFunctions
         public RoundToIntFunction() : base("round", VarType.Int32,VarType.Real){}
         public override object Calc(object[] args) => (int)Math.Round(((double)args[0]));
     }
+    
     public class RoundToRealFunction: FunctionBase {
         public RoundToRealFunction() : base("round", VarType.Real,VarType.Real,VarType.Int32){}
-        public override object Calc(object[] args) => Math.Round(((double)args[0]),((int)args[1]));
+        public override object Calc(object[] args) => Math.Round((double)args[0],(int)args[1]);
     }
+    
     public class SignFunction: FunctionBase {
         public SignFunction() : base("sign", VarType.Int32,VarType.Real){}
         public override object Calc(object[] args) =>  Math.Sign(((double)args[0]));

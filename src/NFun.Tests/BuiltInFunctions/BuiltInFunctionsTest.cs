@@ -184,16 +184,17 @@ namespace Funny.Tests.BuiltInFunctions
         //[TestCase("floor(-0.12)", -1)]
         //[TestCase("floor(-7.1)", -8)]
         //[TestCase("floor(-7.6)", -8)]
-        //[TestCase("round(1.66666,1)", 1.7)]
-        //[TestCase("round(1.222,2)", 1.22)]
-        //[TestCase("round(1.66666)", 2)]
-        //[TestCase("round(1.2)", 1)]
-
+        
 
         //[TestCase("sign(-5)", -1)]
         //[TestCase("sign(-5.0)", -1)]
         //[TestCase("sign(5)", 1)]
         //[TestCase("sign(5.2)", 1)]
+        [TestCase("round(1.66666,1)", 1.7)]
+        [TestCase("round(1.222,2)", 1.22)]
+        [TestCase("round(1.66666,0)", 2.0)]
+        [TestCase("round(1.2,0)", 1.0)]
+
         [TestCase("min(0.5, 1)", 0.5)]
         [TestCase("[1,2,3].count()", 3)]
         [TestCase("['1','2','3'].count()", 3)]

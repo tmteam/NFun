@@ -119,7 +119,7 @@ namespace NFun
             //new FloorFunction(),
             //new CeilFunction(),
             //new RoundToIntFunction(),
-            //new RoundToRealFunction(),
+            new RoundToRealFunction(),
             //new SignFunction(),
 
             //new ToIntFromRealFunction("toInt"),
