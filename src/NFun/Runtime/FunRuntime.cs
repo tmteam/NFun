@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NFun.Interpritation;
 using NFun.Interpritation.Functions;
+using NFun.Runtime.Arrays;
 using NFun.Types;
 
 namespace NFun.Runtime
@@ -29,11 +30,27 @@ namespace NFun.Runtime
             _variables = variables;
             UserFunctions = userFunctions;
         }
+        public object this[string key]
+        {
+            set
+            {
+                object v;
+                if (value is string str)
+                    v = new TextFunArray(str);
+                else if (value is Array arr)
+                    v = new ImmutableFunArray(arr);
+                else
+                    v = value;
+
+                _variables.GetSourceOrNull(key).SetConvertedValue(v);
+            }
+            //get => _variables.GetSourceOrNull(key).Value;
+        }
 
         public void Update()
         {
-            foreach (var e in _equations)
-                e.CalcExpression();
+            for (int i = 0; i < _equations.Count; i++) 
+                _equations[i].CalcExpression();
         }
         public CalculationResult Calculate(params VarVal[] vars)
         {

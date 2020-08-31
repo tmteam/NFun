@@ -77,7 +77,6 @@
           <e p="CoreFunNames.cs" t="Include" />
           <e p="GenericMathFunctions.cs" t="Include" />
           <e p="Metafunctions.cs" t="Include" />
-          <e p="NewFunctions.cs" t="Include" />
           <e p="RealMathFunctions.cs" t="Include" />
           <e p="TextFunctions.cs" t="Include" />
         </e>
@@ -343,6 +342,25 @@
           </e>
         </e>
         <e p="TestHelper.cs" t="Include" />
+      </e>
+      <e p="Nfun.InfinityProfiling" t="IncludeRecursive">
+        <e p="bin" t="ExcludeRecursive" />
+        <e p="IProfileSet.cs" t="Include" />
+        <e p="Nfun.InfinityProfiling.csproj" t="IncludeRecursive" />
+        <e p="obj" t="ExcludeRecursive">
+          <e p="Debug" t="Include">
+            <e p="netcoreapp3.1" t="Include">
+              <e p="Nfun.InfinityProfiling.AssemblyInfo.cs" t="Include" />
+            </e>
+          </e>
+        </e>
+        <e p="ProfileBuildAllSet.cs" t="Include" />
+        <e p="ProfileCalculateSet.cs" t="Include" />
+        <e p="ProfileParserSet.cs" t="Include" />
+        <e p="ProfileTools.cs" t="Include" />
+        <e p="ProfileUpdateSet.cs" t="Include" />
+        <e p="Program.cs" t="Include" />
+        <e p="Scripts.cs" t="Include" />
       </e>
       <e p="NFun.Tests" t="IncludeRecursive">
         <e p="AnonymEquationTest.cs" t="Include" />

@@ -64,10 +64,9 @@ namespace Funny.Tests
                 .Calculate()
                 .AssertReturns(VarVal.New("y", expected));
 
-
         [TestCase(42,"y = x.toText().concat('lalala')", "42lalala")]
         [TestCase(42, "y = 'pre{x-1*2}mid{x*x/x}fin'", "pre40mid42fin")]
-
+        [TestCase("abc", "y:text = concat(x,x)", "abcabc")]
         public void SingleVariableEquation(object input, string expr, object expected) =>
             FunBuilder
                 .Build(expr)

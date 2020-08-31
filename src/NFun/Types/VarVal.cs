@@ -104,7 +104,7 @@ namespace NFun.Types
         public static VarVal New(string name, double value) 
             => new VarVal(name, value, VarType.Real);
         public static VarVal New(string name, string value) 
-            => new VarVal(name, value, VarType.Text);
+            => new VarVal(name, new TextFunArray(value), VarType.Text);
         public static VarVal New(string name, char value)
             => new VarVal(name, value, VarType.Char);
         public  static VarType ToVarType(Type t)
