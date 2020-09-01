@@ -17,6 +17,9 @@ namespace NFun.Interpritation
 {
     public static class RuntimeBuilder
     {
+        private static readonly List<IFunctionSignature> _emptyUserFunctionsList 
+            = new List<IFunctionSignature>();
+
         public static FunRuntime Build(string script, IFunctionDictionary functionDictionary, IConstantList constants)
         {
             var flow = Tokenizer.ToFlow(script);
@@ -31,7 +34,6 @@ namespace NFun.Interpritation
             IFunctionDictionary functionsDictionary, 
             IConstantList constants)
         {
-            var userFunctionsList = new List<IFunctionSignature>();
             #region build user functions
             //get topology sort of the functions call
             //result is the order of functions that need to be compiled
@@ -39,25 +41,37 @@ namespace NFun.Interpritation
             //Then those functions will be compiled
             //that refer to already compiled functions
             var functionSolveOrder = syntaxTree.FindFunctionSolvingOrderOrThrow();
-            
-            var scopeFunctionDictionary = new ScopeFunctionDictionary(functionsDictionary);
-            //build user functions
-            foreach (var functionSyntaxNode in functionSolveOrder)
+            List<IFunctionSignature> userFunctionsList;
+            IFunctionDictionary functionDictionary;
+            if (functionSolveOrder.Length == 0)
             {
-                var userFun = BuildFunctionAndPutItToDictionary(
-                    functionSyntaxNode: functionSyntaxNode, 
-                    constants: constants, 
-                    functionsDictionary: scopeFunctionDictionary);
-                userFunctionsList.Add(userFun);
+                functionDictionary = functionsDictionary;
+                userFunctionsList = _emptyUserFunctionsList;
+            }
+            else
+            {
+                userFunctionsList = new List<IFunctionSignature>();
+
+                var scopeFunctionDictionary = new ScopeFunctionDictionary(functionsDictionary);
+                functionDictionary = scopeFunctionDictionary;
+                //build user functions
+                foreach (var functionSyntaxNode in functionSolveOrder)
+                {
+                    var userFun = BuildFunctionAndPutItToDictionary(
+                        functionSyntaxNode: functionSyntaxNode,
+                        constants: constants,
+                        functionsDictionary: scopeFunctionDictionary);
+                    userFunctionsList.Add(userFun);
+                }
             }
 
             #endregion
 
             #region solve body types
             //Solve types for all equations nodes
-            var bodyTypeSolving = RuntimeBuilderHelper.SolveBodyOrThrow(syntaxTree, scopeFunctionDictionary, constants);
+            var bodyTypeSolving = RuntimeBuilderHelper.SolveBodyOrThrow(syntaxTree, functionDictionary, constants);
 
-            foreach (var syntaxNode in syntaxTree.Children)
+            foreach (var syntaxNode in syntaxTree.Nodes)
             {
                 //function nodes were solved above
                 if (syntaxNode is UserFunctionDefenitionSyntaxNode)
@@ -78,7 +92,7 @@ namespace NFun.Interpritation
             {
                 if (treeNode is EquationSyntaxNode node)
                 {
-                    var equation = BuildEquationAndPutItToVariables(node, scopeFunctionDictionary, variables, bodyTypeSolving);
+                    var equation = BuildEquationAndPutItToVariables(node, functionDictionary, variables, bodyTypeSolving);
                     equations.Add(equation);
                     if (equation.Id.ToLower().StartsWith("it"))
                         throw FunParseException.ErrorStubToDo("variable cannot starts with 'it'");
@@ -162,8 +176,9 @@ namespace NFun.Interpritation
             IConstantList constants,
             ScopeFunctionDictionary functionsDictionary)
         {
+#if DEBUG
             TraceLog.WriteLine($"\r\n====BUILD {functionSyntaxNode.Id}(..) ====");
-
+#endif
             ////introduce function variable
             var graphBuider = new GraphBuilder();
             var resultsBuilder = new TypeInferenceResultsBuilder();

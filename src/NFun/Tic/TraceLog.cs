@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 using NFun.Tic.SolvingStates;
 
@@ -7,7 +8,7 @@ namespace NFun.TypeInferenceCalculator
 {
     public static class TraceLog
     {
-        public static bool IsEnabled { get; set; }
+        public static bool IsEnabled { get; set; } = false;
 
         public static void Write(Func<string> locator)
         {
@@ -45,11 +46,13 @@ namespace NFun.TypeInferenceCalculator
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Write(string message)
         {
             if(IsEnabled)
                 Console.Write(message);
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteLine(string message)
         {
             if (IsEnabled)

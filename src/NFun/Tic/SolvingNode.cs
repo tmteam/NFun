@@ -67,12 +67,16 @@ namespace NFun.Tic
             if(!TraceLog.IsEnabled)
                 return;
             
-            TraceLog.Write($"{Name}:", ConsoleColor.Green);
-            TraceLog.Write(State.Description);
-            if (Ancestors.Any())
-                TraceLog.Write( "  <=" + string.Join(",", Ancestors.Select(a=>a.Name)));
-
-            TraceLog.WriteLine();
+#if DEBUG
+            if (TraceLog.IsEnabled)
+            {
+                TraceLog.Write($"{Name}:", ConsoleColor.Green);
+                TraceLog.Write(State.Description);
+                if (Ancestors.Any())
+                    TraceLog.Write("  <=" + string.Join(",", Ancestors.Select(a => a.Name)));
+                TraceLog.WriteLine();
+            }
+#endif
         }
 
 

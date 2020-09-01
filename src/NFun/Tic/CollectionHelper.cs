@@ -1,16 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
-namespace NFun.TypeInferenceCalculator
+namespace NFun.Tic
 {
     public static class CollectionHelper
     {
         public static T GetOrEnlarge<T>(this List<T> list, int index)
         {
-            while (list.Count<=index) 
-                list.Add(default);
-
+            if (list.Count <= index)
+            {
+                list.Capacity = index+1;
+                while (list.Count<=index) 
+                    list.Add(default);
+            }
             return list[index];
         }
     }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using NFun.Exceptions;
 using NFun.Interpritation;
 using NFun.Interpritation.Functions;
@@ -39,7 +40,8 @@ namespace NFun.TypeInferenceAdapter
             }
             return true;
         }
-        internal TicSetupVisitor(
+
+        private TicSetupVisitor(
             GraphBuilder ticTypeGraph,  
             IFunctionDictionary dictionary,
             IConstantList constants,
@@ -56,9 +58,9 @@ namespace NFun.TypeInferenceAdapter
         public bool Visit(EquationSyntaxNode node)
         {
             VisitChildren(node);
-
+#if DEBUG
             Trace(node, $"{node.Id}:{node.OutputType} = {node.Expression.OrderNumber}");
-
+#endif
             if (node.OutputTypeSpecified)
             {
                 var type = node.OutputType.ConvertToTiType();
@@ -84,8 +86,10 @@ namespace NFun.TypeInferenceAdapter
             if (node.ReturnType != VarType.Empty)
                 returnType = (IType) node.ReturnType.ConvertToTiType();
 
+            #if DEBUG
             TraceLog.WriteLine(
                 $"Enter {node.OrderNumber}. UFun {node.Id}({string.Join(",", argNames)})->{node.Body.OrderNumber}:{returnType?.ToString() ?? "empty"}");
+            #endif
             var fun = _ticTypeGraph.SetFunDef(
                 name: node.Id + "'" + node.Args.Count,
                 returnId: node.Body.OrderNumber,
@@ -101,7 +105,9 @@ namespace NFun.TypeInferenceAdapter
             VisitChildren(node);
 
             var elementIds = node.Expressions.Select(e => e.OrderNumber).ToArray();
+#if DEBUG
             Trace(node, $"[{string.Join(",", elementIds)}]");
+#endif
             _ticTypeGraph.SetSoftArrayInit(
                 node.OrderNumber,
                 node.Expressions.Select(e => e.OrderNumber).ToArray()
@@ -136,7 +142,9 @@ namespace NFun.TypeInferenceAdapter
             }
 
             VisitChildren(node);
+#if DEBUG
             Trace(node, $"f({string.Join(" ", originArgNames)}):{node.OutputType}= {{{node.OrderNumber}}}");
+#endif
             _ticTypeGraph.CreateLambda(node.Body.OrderNumber, node.OrderNumber, aliasArgNames);
 
             _aliasScope.ExitScope();
@@ -182,8 +190,9 @@ namespace NFun.TypeInferenceAdapter
                     aliasNames[i] = _aliasScope.GetVariableAlias(varNode.Id);
             }
 
+#if DEBUG
             Trace(node, $"f({string.Join(" ", aliasNames)}):{node.OutputType}= {{{node.OrderNumber}}}");
-
+#endif
             if (node.OutputType == VarType.Empty)
                 _ticTypeGraph.CreateLambda(node.Body.OrderNumber, node.OrderNumber, aliasNames);
             else
@@ -235,7 +244,9 @@ namespace NFun.TypeInferenceAdapter
             {
                 //Call user-function if it is being built at the same time as the current expression is being built
                 //for example: recursive calls, or if function relates to global variables
+#if DEBUG
                 Trace(node, $"Call UF{node.Id}({string.Join(",", ids)})");
+#endif
                 _ticTypeGraph.SetCall(userFunction, ids);
                 //in the case of generic user function  - we dont know generic arg types yet 
                 //we need to remember generic TIC signature to used it at the end of interpritation
@@ -247,13 +258,16 @@ namespace NFun.TypeInferenceAdapter
             if (signature == null)
             {
                 //Functional variable
+#if DEBUG
                 Trace(node, $"Call hi order {node.Id}({string.Join(",", ids)})");
+#endif
                 _ticTypeGraph.SetCall(node.Id, ids);
                 return true;
             }
             //Normal function call
+#if DEBUG
             Trace(node, $"Call {node.Id}({string.Join(",", ids)})");
-
+#endif
             RefTo[] genericTypes;
             if (signature is GenericFunctionBase t)
             {
@@ -291,7 +305,11 @@ namespace NFun.TypeInferenceAdapter
             var conditions = node.Ifs.Select(i => i.Condition.OrderNumber).ToArray();
             var expressions = node.Ifs.Select(i => i.Expression.OrderNumber).Append(node.ElseExpr.OrderNumber)
                 .ToArray();
+
+            #if DEBUG
             Trace(node, $"if({string.Join(",", conditions)}): {string.Join(",", expressions)}");
+            #endif
+
             _ticTypeGraph.SetIfElse(
                 conditions,
                 expressions,
@@ -301,7 +319,9 @@ namespace NFun.TypeInferenceAdapter
         public bool Visit(IfCaseSyntaxNode node) => VisitChildren(node);
         public bool Visit(ConstantSyntaxNode node)
         {
+#if DEBUG
             Trace(node, $"Constant {node.Value}:{node.ClrTypeName}");
+#endif
             var type = LangTiHelper.ConvertToTiType(node.OutputType);
 
             if (type is Primitive p)
@@ -314,8 +334,9 @@ namespace NFun.TypeInferenceAdapter
         }
         public bool Visit(GenericIntSyntaxNode node)
         {
+#if DEBUG
             Trace(node, $"IntConst {node.Value}:{(node.IsHexOrBin ? "hex" : "int")}");
-
+#endif
             if (node.IsHexOrBin)
             {
                 //hex or bin constant
@@ -399,8 +420,9 @@ namespace NFun.TypeInferenceAdapter
         public bool Visit(NamedIdSyntaxNode node)
         {
             var id = node.Id;
+#if DEBUG
             Trace(node, $"VAR {id} ");
-
+#endif
             //nfun syntax allows multiple variables to have the same name depending on whether they are functions or not
             //need to know what type of argument is expected - is it variableId, or functionId?
             //if it is function - how many arguments are expected ? 
@@ -474,7 +496,9 @@ namespace NFun.TypeInferenceAdapter
         {
             VisitChildren(node);
 
+#if DEBUG
             Trace(node, $"Tvar {node.Id}:{node.VarType}  ");
+#endif
             if (node.VarType != VarType.Empty)
             {
                 var type = node.VarType.ConvertToTiType();
@@ -487,7 +511,9 @@ namespace NFun.TypeInferenceAdapter
         {
             VisitChildren(node);
 
+#if DEBUG
             Trace(node, $"VarDef {node.Id}:{node.VarType}  ");
+#endif
             var type = node.VarType.ConvertToTiType();
             _ticTypeGraph.SetVarType(node.Id, type);
             return true;
@@ -510,11 +536,13 @@ namespace NFun.TypeInferenceAdapter
 
             return genericTypes;
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Trace(ISyntaxNode node, string text)
         {
+#if DEBUG
             if (TraceLog.IsEnabled)
                 TraceLog.WriteLine($"Exit:{node.OrderNumber}. {text} ");
+#endif
         }
         private static string MakeAnonVariableName(ISyntaxNode node, string id)
             => LangTiHelper.GetArgAlias("anonymous_" + node.OrderNumber, id);

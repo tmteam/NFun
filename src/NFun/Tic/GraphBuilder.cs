@@ -323,14 +323,12 @@ namespace NFun.Tic
                     }
 
                     case SortStatus.Sorted:
-                        if (TraceLog.IsEnabled)
-                        {
+#if DEBUG
                             TraceLog.WriteLine("Toposort results: ", ConsoleColor.Green);
                             TraceLog.WriteLine(string.Join("->", result.Order.Select(r => r.Name)));
                             TraceLog.WriteLine("Refs:" + string.Join(",", result.Refs.Select(r => r.Name)));
-
-                        }
-                        return result.Order.Union(result.Refs).ToArray();
+#endif
+                    return result.Order.Union(result.Refs).ToArray();
                 }
             }
         }
@@ -368,7 +366,7 @@ namespace NFun.Tic
             }
 
             var sorted = Toposort();
-
+#if DEBUG
             if (TraceLog.IsEnabled)
             {
                 TraceLog.WriteLine("Decycled:");
@@ -376,8 +374,10 @@ namespace NFun.Tic
                 TraceLog.WriteLine();
                 TraceLog.WriteLine("Set up");
             }
+#endif
 
             SolvingFunctions.SetUpwardsLimits(sorted);
+#if DEBUG
             if (TraceLog.IsEnabled)
             {
                 PrintTrace();
@@ -385,13 +385,18 @@ namespace NFun.Tic
                 TraceLog.WriteLine();
                 TraceLog.WriteLine("Set down");
             }
+            #endif
+
 
             SolvingFunctions.SetDownwardsLimits(sorted);
+#if DEBUG
+
             if(TraceLog.IsEnabled)
                 PrintTrace();
-
+#endif
             DestructionFunctions.Destruction(sorted);
 
+#if DEBUG
             if (TraceLog.IsEnabled)
             {
                 TraceLog.WriteLine();
@@ -399,11 +404,12 @@ namespace NFun.Tic
                 PrintTrace();
                 TraceLog.WriteLine("Finalize");
             }
+#endif
 
             var results = DestructionFunctions.FinalizeUp(sorted, 
                 _outputNodes.ToArray(),
                 _inputNodes.ToArray());
-
+#if DEBUG
             if (TraceLog.IsEnabled)
             {
 
@@ -419,7 +425,7 @@ namespace NFun.Tic
                 foreach (var namedNode in results.NamedNodes)
                     TraceLog.WriteLine("    " + namedNode);
             }
-
+#endif
             return results;
         }
         private void SetCall(SolvingNode functionNode, int[] argThenReturnIds)
@@ -525,6 +531,7 @@ namespace NFun.Tic
             _syntaxNodes[id] = res;
             return res;
         }
+        
         private void RegistrateCompositeType(ICompositeType composite)
         {
             foreach (var member in composite.Members)

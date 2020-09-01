@@ -25,8 +25,9 @@ namespace NFun.Interpritation
             TypeInferenceResults results, 
             TicTypesConverter converter)
         {
+#if DEBUG
             TraceLog.WriteLine($"\r\n====BUILD CONCRETE {functionSyntax.Id}(..) ====");
-
+#endif
             var vars = new VariableDictionary();
             for (int i = 0; i < functionSyntax.Args.Count; i++)
             {
@@ -62,7 +63,9 @@ namespace NFun.Interpritation
         {
             try
             {
+#if DEBUG
                 TraceLog.WriteLine("\r\n====BODY====");
+#endif
 
                 var resultBuilder = new TypeInferenceResultsBuilder();
                 var typeGraph = new GraphBuilder();

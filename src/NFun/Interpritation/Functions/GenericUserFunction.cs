@@ -36,11 +36,11 @@ namespace NFun.Interpritation.Functions
 
             var argTypes = ticSignature.Args.Select(a => signatureConverter.Convert(a)).ToArray();
             var retType = signatureConverter.Convert(ticSignature.ReturnType);
-            if (TraceLog.IsEnabled)
-            {
-                TraceLog.WriteLine($"CREATE GENERIC FUN {syntaxNode.Id}({string.Join(",",argTypes)}):{retType}");
+#if DEBUG
+
+            TraceLog.WriteLine($"CREATE GENERIC FUN {syntaxNode.Id}({string.Join(",",argTypes)}):{retType}");
                 TraceLog.WriteLine($"    ...where {string.Join(", ", langConstrains)}");
-            }
+#endif
             var function =  new GenericUserFunction(typeInferenceResults, syntaxNode, dictionary, langConstrains, retType, argTypes);
             return function;
         }

@@ -196,14 +196,18 @@ namespace NFun.Tic
 
                     if (originalOne != node)
                     {
+#if DEBUG
                         TraceLog.WriteLine($"\t{node.Name}->fold ref");
+#endif
                         node.State = new RefTo(originalOne);
                     }
 
                     if (originalOne.State is IType)
                     {
                         node.State = originalOne.State;
+#if DEBUG
                         TraceLog.WriteLine($"\t{node.Name}->concretize ref to {node.State}");
+#endif                        
                     }
                 }
                 
@@ -211,9 +215,13 @@ namespace NFun.Tic
                 {
                     if (composite.Members.Any(m => m.State is RefTo))
                     {
+#if DEBUG
                         TraceLog.Write($"\t{node.Name}->simplify composite ");
+#endif
                         node.State = composite.GetNonReferenced();
+#if DEBUG
                         TraceLog.Write($"{composite}->{node.State} \r\n");
+#endif
                     }
 
                     foreach (var member in ((ICompositeType) node.State).Members)
@@ -286,6 +294,8 @@ namespace NFun.Tic
                 .Except(outputTypes)
                 .ToArray(); 
             
+#if DEBUG
+
             if (TraceLog.IsEnabled && notSolved.Any())
             {
                 TraceLog.WriteLine($"Finalize. outputs {outputTypes.Count}");
@@ -295,6 +305,7 @@ namespace NFun.Tic
                 TraceLog.WriteLine($"\r\nFinalize. solve {notSolved.Length}");
                 foreach (var solving in notSolved) solving.PrintToConsole();
             }
+#endif
             //try to solve them
             foreach (var node in notSolved)
                 node.State = ((Constrains)node.State).SolveCovariant();
