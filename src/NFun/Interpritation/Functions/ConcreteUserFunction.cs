@@ -4,6 +4,7 @@ using System.Linq;
 using NFun.Exceptions;
 using NFun.Interpritation.Nodes;
 using NFun.Runtime;
+using NFun.Types;
 
 namespace NFun.Interpritation.Functions
 {
@@ -12,16 +13,27 @@ namespace NFun.Interpritation.Functions
         public VariableSource[] Variables { get; }
         public bool IsReturnTypeStrictlyTyped { get; }
         private readonly IExpressionNode _expression;
-            
-        public ConcreteUserFunction(
+
+        public static ConcreteUserFunction Create(string name,
+            VariableSource[] variables,
+            bool isReturnTypeStrictlyTyped,
+            IExpressionNode expression)
+        {
+            var argTypes = new VarType[variables.Length];
+            for (int i = 0; i < variables.Length; i++) 
+                argTypes[i] = variables[i].Type;
+            return new ConcreteUserFunction(name, variables, isReturnTypeStrictlyTyped, expression, argTypes);
+        }
+
+        private ConcreteUserFunction(
             string name, 
             VariableSource[] variables,
             bool isReturnTypeStrictlyTyped,
-            IExpressionNode expression) 
+            IExpressionNode expression, VarType[] argTypes) 
             : base(
                 name, 
                 expression.Type,
-                variables.Select(v=>v.Type).ToArray())
+                argTypes)
         {
             Variables = variables;
             IsReturnTypeStrictlyTyped = isReturnTypeStrictlyTyped;

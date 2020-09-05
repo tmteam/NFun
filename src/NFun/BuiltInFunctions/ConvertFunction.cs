@@ -82,8 +82,17 @@ namespace NFun.BuiltInFunctions
             return null;
         }
 
-        private ImmutableFunArray ToBoolArray(byte[] array) 
-            => new ImmutableFunArray(new BitArray(array).Cast<bool>().ToArray());
+        private ImmutableFunArray ToBoolArray(byte[] array)
+        {
+            var bitArray = new BitArray(array);
+            var arr = new bool[bitArray.Length];
+            for (int i = 0; i < arr.Length; i++)
+            {
+                arr[i] = bitArray[i];
+            }
+            return new ImmutableFunArray(arr);
+        }
+
 
         private Func<object, object> CreateSerializerOrNull(VarType from)
         {
@@ -184,7 +193,9 @@ namespace NFun.BuiltInFunctions
                 if (val.Count > 4)
                     throw new FunRuntimeException("Array is too long");
                 if (val.Count == 4)
+                {
                     return val.Select(Convert.ToByte).ToArray();
+                }
                 
                 return val.Concat(new int[4 - val.Count].Cast<object>()).Select(Convert.ToByte).ToArray();
             }

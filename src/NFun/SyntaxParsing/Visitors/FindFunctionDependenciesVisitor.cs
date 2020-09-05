@@ -6,7 +6,7 @@ namespace NFun.SyntaxParsing.Visitors
     public class FindFunctionDependenciesVisitor: EnterVisitorBase
     {
         private readonly Dictionary<string, int> _userFunctionsNames;
-        private List<int> _dependencies = new List<int>();
+        private readonly List<int> _dependencies = new List<int>();
         
         public int[] GetFoundDependencies() => _dependencies.ToArray();
         public FindFunctionDependenciesVisitor(Dictionary<string, int> userFunctionsNames)

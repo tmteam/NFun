@@ -28,7 +28,7 @@ namespace NFun.TypeInferenceCalculator
         public SolvingNode[] TypeVariables { get; }
         public SolvingNode[] NamedNodes { get; }
         public SolvingNode[] SyntaxNodes { get; }
-        public Constrains[] GetAllGenerics => AllNodes.Select(a => a?.State).OfType<Constrains>().ToArray();
+        public IEnumerable<Constrains> GetAllGenerics => AllNodes.Select(a => a?.State).OfType<Constrains>();
         public IState[] GetSyntaxNodes() => SyntaxNodes.Select(s => s?.State).ToArray();
 
         public Dictionary<string, IState> GetAllNamedNodes()

@@ -710,10 +710,14 @@ namespace NFun.SyntaxParsing
                     start, head.Value, flow.Position, pipedVal);
             }
 
-            if(pipedVal!=null)
-                arguments.Insert(0,pipedVal);
             
-            return SyntaxNodeFactory.FunCall(head.Value, arguments.ToArray(), start, flow.Position);
+            if(pipedVal==null)
+                return SyntaxNodeFactory.FunCall(head.Value, arguments.ToArray(), start, flow.Position);
+            
+            var args = new ISyntaxNode[arguments.Count + 1];
+            args[0] = pipedVal;
+            arguments.CopyTo(args,1);
+            return SyntaxNodeFactory.FunCall(head.Value, args, start, flow.Position);
         }
         private static ISyntaxNode ReadResultCall(TokFlow flow, ISyntaxNode functionResultNode)
         {

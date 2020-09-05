@@ -13,10 +13,10 @@ namespace NFun.Interpritation.Functions
     public class GenericUserFunction : GenericFunctionBase
     {
         private readonly TypeInferenceResults _typeInferenceResults;
-        private UserFunctionDefenitionSyntaxNode _syntaxNode;
-        private IFunctionDictionary _dictionary;
+        private readonly UserFunctionDefenitionSyntaxNode _syntaxNode;
+        private readonly IFunctionDictionary _dictionary;
 
-        private Constrains[] _constrainsMap;
+        private readonly Constrains[] _constrainsMap;
 
         public static GenericUserFunction Create(
             TypeInferenceResults typeInferenceResults,
@@ -34,7 +34,9 @@ namespace NFun.Interpritation.Functions
             var ticSignature = (Fun)typeInferenceResults.GetVariableType(ticFunName);
             var signatureConverter = TicTypesConverter.GenericSignatureConverter(ticGenerics);
 
-            var argTypes = ticSignature.Args.Select(a => signatureConverter.Convert(a)).ToArray();
+            var argTypes = new VarType[ticSignature.ArgNodes.Length];
+            for (var i = 0; i < ticSignature.ArgNodes.Length; i++)
+                argTypes[i] = signatureConverter.Convert(ticSignature.ArgNodes[i].State);
             var retType = signatureConverter.Convert(ticSignature.ReturnType);
 #if DEBUG
 

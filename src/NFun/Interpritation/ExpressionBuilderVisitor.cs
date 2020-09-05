@@ -79,14 +79,14 @@ namespace NFun.Interpritation
             //Capture all outerscope variables
             var localVariables = new VariableDictionary(_variables.GetAllSources());
             
-            var arguments = new List<VariableSource>();
+            var arguments = new VariableSource[argNames.Length];
             for (var i = 0; i < argNames.Length; i++)
             {
                 var arg = argNames[i];
                 var type = outputTypeFunDefenition.Inputs[i];
                 var source = VariableSource.CreateWithoutStrictTypeLabel(arg, type);
                 //collect argument
-                arguments.Add(source);
+                arguments[i] = source;
                 //add argument to local scope
                 //if argument with it* name already exist - replace it
                 localVariables.AddOrReplace(source);
@@ -110,14 +110,16 @@ namespace NFun.Interpritation
             //Capture all outerscope variables
             var localVariables = new VariableDictionary(_variables.GetAllSources());
             
-            var arguments = new List<VariableSource>();
+            var arguments = new VariableSource[argumentLexNodes.Length];
+            var argIndex = 0;
             foreach (var arg in argumentLexNodes)
             {
                 //Convert argument node
                 var varNode = FunArgumentExpressionNode.CreateWith(arg);
                 var source = VariableSource.CreateWithStrictTypeLabel(varNode.Name, varNode.Type, arg.Interval);
                 //collect argument
-                arguments.Add(source);
+                arguments[argIndex] = source;
+                argIndex++;
                 //add argument to local scope
                 if (!localVariables.TryAdd(source))
                 {   //Check for duplicated arg-names
@@ -301,7 +303,7 @@ namespace NFun.Interpritation
         #endregion
 
         private IExpressionNode BuildAnonymousFunction(Interval interval, ISyntaxNode body,
-            VariableDictionary localVariables, List<VariableSource> arguments)
+            VariableDictionary localVariables, VariableSource[] arguments)
         {
             var sources = localVariables.GetAllSources();
             var originVariables = new string[sources.Length];
@@ -320,9 +322,9 @@ namespace NFun.Interpritation
             foreach (var newVar in closured)
                 _variables.TryAdd(newVar); //add full usage info to allow analyze outer errors
 
-            var fun = new ConcreteUserFunction(
+            var fun = ConcreteUserFunction.Create(
                 name: "anonymous",
-                variables: arguments.ToArray(),
+                variables: arguments,
                 isReturnTypeStrictlyTyped: false,
                 expression: expr);
             return new FunVariableExpressionNode(fun, interval);

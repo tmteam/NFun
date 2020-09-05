@@ -70,7 +70,7 @@ namespace NFun.TypeInferenceAdapter
                     case Array array:
                         return VarType.ArrayOf(Convert(array.Element));
                     case Fun fun:
-                        return VarType.Fun(Convert(fun.ReturnType), fun.Args.Select(Convert).ToArray());
+                        return VarType.Fun(Convert(fun.ReturnType), fun.ArgNodes.SelectToArray(a=>Convert(a.State)));
                     default:
                         throw new NotSupportedException();
                 }
@@ -101,7 +101,7 @@ namespace NFun.TypeInferenceAdapter
                     case Array array:
                         return VarType.ArrayOf(Convert(array.Element));
                     case Fun fun:
-                        return VarType.Fun(Convert(fun.ReturnType), fun.Args.Select(Convert).ToArray());
+                        return VarType.Fun(Convert(fun.ReturnType), fun.ArgNodes.SelectToArray(a=>Convert(a.State)));
                     default:
                         throw new NotSupportedException();
                 }
@@ -137,7 +137,7 @@ namespace NFun.TypeInferenceAdapter
                     case Array array:
                         return VarType.ArrayOf(Convert(array.Element));
                     case Fun fun:
-                        return VarType.Fun(Convert(fun.ReturnType), fun.Args.Select(Convert).ToArray());
+                        return VarType.Fun(Convert(fun.ReturnType), fun.ArgNodes.SelectToArray(a=>Convert(a.State)));
                     default:
                         throw new NotSupportedException();
                 }

@@ -476,9 +476,17 @@ namespace NFun.Tic
                 if (arrayEDesc.IsSolved)
                     return arrayEDesc;
 
-                var nrArgNodes = arrayEDesc.ArgNodes.Select(n => n.GetNonReference()).ToArray();
+                //For - perfomance
+                bool allArgsAreSolved = true;
+                var nrArgNodes = new SolvingNode[arrayEDesc.ArgNodes.Length];
+                for (int i = 0; i < arrayEDesc.ArgNodes.Length; i++)
+                {
+                    nrArgNodes[i] = arrayEDesc.ArgNodes[i].GetNonReference();
+                    allArgsAreSolved = allArgsAreSolved && nrArgNodes[i].IsSolved;
+                }
+                
                 var nrRetNode = arrayEDesc.RetNode.GetNonReference();
-                if (nrArgNodes.All(n => n.IsSolved) && nrRetNode.IsSolved)
+                if (allArgsAreSolved && nrRetNode.IsSolved)
                     return Fun.Of(nrArgNodes, nrRetNode);
             }
             return null;

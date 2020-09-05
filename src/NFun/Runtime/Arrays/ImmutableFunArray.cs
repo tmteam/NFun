@@ -9,7 +9,7 @@ namespace NFun.Runtime.Arrays
 {
     public class ImmutableFunArray: IFunArray
     {
-        public static ImmutableFunArray Empty => new ImmutableFunArray(new object[0]);
+        public static readonly ImmutableFunArray Empty = new ImmutableFunArray(new object[0]);
         public static ImmutableFunArray By(IEnumerable<object> values) 
             => new ImmutableFunArray(values.ToArray());
 

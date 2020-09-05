@@ -50,7 +50,7 @@ namespace NFun.Interpritation
             vars.ThrowIfSomeVariablesNotExistsInTheList(
                 functionSyntax.Args.Select(a => a.Id));
 
-            var function = new ConcreteUserFunction(
+            var function = ConcreteUserFunction.Create(
                 name: functionSyntax.Id,
                 variables: vars.GetAllSources(),
                 isReturnTypeStrictlyTyped: functionSyntax.ReturnType != VarType.Empty,

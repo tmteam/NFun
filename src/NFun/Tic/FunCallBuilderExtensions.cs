@@ -7,7 +7,8 @@ namespace NFun.Tic
     {
         public static void SetCall(this GraphBuilder builder, Primitive ofTheCall, params int[] argumentsThenResult)
         {
-            var types = argumentsThenResult.Select(s => (IState)ofTheCall).ToArray();
+            var types = new IState[argumentsThenResult.Length];
+            for (int i = 0; i < types.Length; i++) types[i] = ofTheCall;
             builder.SetCall(types, argumentsThenResult);
         }
 

@@ -120,7 +120,9 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var arr = ((IFunArray)args[0]).As<IComparable>().ToArray();
+            var funArray =  (IFunArray) args[0];
+            
+            var arr = funArray.As<IComparable>().ToArray();
             Array.Sort(arr);
             return new ImmutableFunArray(arr);
         }
@@ -135,7 +137,7 @@ namespace NFun.BuiltInFunctions
         public override object Calc(object[] args)
             => GetMedian(((IFunArray)args[0]).As<IComparable>());
 
-        public static IComparable GetMedian(IEnumerable<IComparable> source)
+        private static IComparable GetMedian(IEnumerable<IComparable> source)
         {
             // Create a copy of the input, and sort the copy
             var temp = source.ToArray();

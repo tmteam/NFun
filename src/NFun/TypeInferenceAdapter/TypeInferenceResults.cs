@@ -16,7 +16,7 @@ namespace NFun.TypeInferenceAdapter
         readonly List<IFunctionSignature> _functionalVariable = new List<IFunctionSignature>();
         readonly List<Fun> _recursiveCalls = new List<Fun>();
 
-        readonly Dictionary<string, Fun> userFunctionSignatures = new Dictionary<string, Fun>();
+        readonly Dictionary<string, Fun> _userFunctionSignatures = new Dictionary<string, Fun>();
 
         private Dictionary<string, IState> _namedNodes = null;
         private IState[] _syntaxNodeTypes = null;
@@ -32,7 +32,7 @@ namespace NFun.TypeInferenceAdapter
         public Fun GetUserFunctionSignature(string id, int argsCount)
         {
             string name = id + "'" + argsCount;
-            userFunctionSignatures.TryGetValue(name, out var res);
+            _userFunctionSignatures.TryGetValue(name, out var res);
             return res;
 ;        }
         public IFunctionSignature GetSignatureOrNull(int id)
@@ -42,7 +42,7 @@ namespace NFun.TypeInferenceAdapter
             return _functionSignatures[id];
         }
         public void RememberUserFunctionSignature(string name, Fun signature) 
-            => userFunctionSignatures.Add(name+"'"+signature.ArgsCount, signature);
+            => _userFunctionSignatures.Add(name+"'"+signature.ArgsCount, signature);
 
         public void RememberFunctionalVariable(int id, IFunctionSignature signature)
         {
@@ -68,6 +68,7 @@ namespace NFun.TypeInferenceAdapter
         }
         public TypeInferenceResults Build()
         {
+            //todo remove ToArray allocations
             return new TypeInferenceResults(
                 genericFunctionTypes: _genericFunctionTypes.ToArray(), 
                 syntaxNodeTypes: _syntaxNodeTypes, 

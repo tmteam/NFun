@@ -104,13 +104,13 @@ namespace NFun.TypeInferenceAdapter
         {
             VisitChildren(node);
 
-            var elementIds = node.Expressions.Select(e => e.OrderNumber).ToArray();
+            var elementIds = node.Expressions.SelectToArray(e => e.OrderNumber);
 #if DEBUG
             Trace(node, $"[{string.Join(",", elementIds)}]");
 #endif
             _ticTypeGraph.SetSoftArrayInit(
                 node.OrderNumber,
-                node.Expressions.Select(e => e.OrderNumber).ToArray()
+                node.Expressions.SelectToArray(e => e.OrderNumber)
             );
             return true;
         }
@@ -302,9 +302,10 @@ namespace NFun.TypeInferenceAdapter
         {
             VisitChildren(node);
 
-            var conditions = node.Ifs.Select(i => i.Condition.OrderNumber).ToArray();
-            var expressions = node.Ifs.Select(i => i.Expression.OrderNumber).Append(node.ElseExpr.OrderNumber)
-                .ToArray();
+            var conditions = node.Ifs.SelectToArray(i => i.Condition.OrderNumber);
+            var expressions = node.Ifs.SelectToArrayAndAppendTail(
+                tail:    node.ElseExpr.OrderNumber,
+                mapFunc: i => i.Expression.OrderNumber);
 
             #if DEBUG
             Trace(node, $"if({string.Join(",", conditions)}): {string.Join(",", expressions)}");
