@@ -35,7 +35,7 @@
         <e p="ConsoleRender.cs" t="Include" />
         <e p="ConsoleUseParser.csproj" t="IncludeRecursive" />
         <e p="obj" t="ExcludeRecursive">
-          <e p="Release" t="Include">
+          <e p="Debug" t="Include">
             <e p="netcoreapp2.2" t="Include">
               <e p="ConsoleUseParser.AssemblyInfo.cs" t="Include" />
             </e>
@@ -52,7 +52,7 @@
         </e>
         <e p="FuspecHandler.csproj" t="IncludeRecursive" />
         <e p="obj" t="ExcludeRecursive">
-          <e p="Release" t="Include">
+          <e p="Debug" t="Include">
             <e p="netcoreapp2.2" t="Include">
               <e p="FuspecHandler.AssemblyInfo.cs" t="Include" />
             </e>
@@ -132,7 +132,7 @@
         <e p="NFun.nuspec" t="Include" />
         <e p="nuget.exe" t="Include" />
         <e p="obj" t="ExcludeRecursive">
-          <e p="Release" t="Include">
+          <e p="Debug" t="Include">
             <e p="netstandard2.0" t="Include">
               <e p="NFun.AssemblyInfo.cs" t="Include" />
             </e>
@@ -144,8 +144,12 @@
         </e>
         <e p="Runtime" t="Include">
           <e p="Arrays" t="Include">
+            <e p="ArrayTools.cs" t="Include" />
+            <e p="EnumerableFunArray.cs" t="Include" />
             <e p="IFunArray.cs" t="Include" />
             <e p="ImmutableFunArray.cs" t="Include" />
+            <e p="RangeEnumerator.cs" t="Include" />
+            <e p="RangeFunArray.cs" t="Include" />
             <e p="TextFunArray.cs" t="Include" />
           </e>
           <e p="CalculationResult.cs" t="Include" />
@@ -266,7 +270,7 @@
         <e p="NfunParserBenchmark.cs" t="Include" />
         <e p="NfunUpdateBenchmark.cs" t="Include" />
         <e p="obj" t="ExcludeRecursive">
-          <e p="Release" t="Include">
+          <e p="Debug" t="Include">
             <e p="netcoreapp3.0" t="Include">
               <e p="Nfun.Benchmarks.AssemblyInfo.cs" t="Include" />
             </e>
@@ -280,7 +284,7 @@
         <e p="NFun.Console.csproj" t="IncludeRecursive" />
         <e p="NFun.Console.csproj.DotSettings" t="Include" />
         <e p="obj" t="ExcludeRecursive">
-          <e p="Release" t="Include">
+          <e p="Debug" t="Include">
             <e p="netcoreapp2.1" t="Include">
               <e p="NFun.Console.AssemblyInfo.cs" t="Include" />
             </e>
@@ -292,7 +296,7 @@
         <e p="bin" t="ExcludeRecursive" />
         <e p="NFun.Fuspec.csproj" t="IncludeRecursive" />
         <e p="obj" t="ExcludeRecursive">
-          <e p="Release" t="Include">
+          <e p="Debug" t="Include">
             <e p="netcoreapp2.2" t="Include">
               <e p="NFun.Fuspec.AssemblyInfo.cs" t="Include" />
             </e>
@@ -335,7 +339,7 @@
         </e>
         <e p="NFun.Fuspectests.csproj" t="IncludeRecursive" />
         <e p="obj" t="ExcludeRecursive">
-          <e p="Release" t="Include">
+          <e p="Debug" t="Include">
             <e p="netcoreapp2.2" t="Include">
               <e p="NFun.Fuspectests.AssemblyInfo.cs" t="Include" />
               <e p="NFun.Fuspectests.Program.cs" t="Include" />
@@ -349,7 +353,7 @@
         <e p="IProfileSet.cs" t="Include" />
         <e p="Nfun.InfinityProfiling.csproj" t="IncludeRecursive" />
         <e p="obj" t="ExcludeRecursive">
-          <e p="Release" t="Include">
+          <e p="Debug" t="Include">
             <e p="netcoreapp3.1" t="Include">
               <e p="Nfun.InfinityProfiling.AssemblyInfo.cs" t="Include" />
             </e>
@@ -386,7 +390,7 @@
         <e p="NFun.Tests.csproj" t="IncludeRecursive" />
         <e p="NfunUpdateTest.cs" t="Include" />
         <e p="obj" t="ExcludeRecursive">
-          <e p="Release" t="Include">
+          <e p="Debug" t="Include">
             <e p="netcoreapp2.1" t="Include">
               <e p="NFun.Tests.AssemblyInfo.cs" t="Include" />
             </e>
@@ -434,7 +438,7 @@
         <e p="IncorrectNodesOrderTest.cs" t="Include" />
         <e p="NFun.Tic.Tests.csproj" t="IncludeRecursive" />
         <e p="obj" t="ExcludeRecursive">
-          <e p="Release" t="Include">
+          <e p="Debug" t="Include">
             <e p="netcoreapp3.0" t="Include">
               <e p="NFun.Tic.Tests.AssemblyInfo.cs" t="Include" />
             </e>
@@ -463,7 +467,7 @@
         <e p="MetadataTest.cs" t="Include" />
         <e p="Nfun.ModuleTests.csproj" t="IncludeRecursive" />
         <e p="obj" t="ExcludeRecursive">
-          <e p="Release" t="Include">
+          <e p="Debug" t="Include">
             <e p="netcoreapp3.0" t="Include">
               <e p="Nfun.ModuleTests.AssemblyInfo.cs" t="Include" />
             </e>

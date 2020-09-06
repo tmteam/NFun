@@ -19,7 +19,15 @@ namespace NFun.Interpritation.Nodes
         }
         public Interval Interval { get; }
         public VarType Type { get; }
+
         public object Calc()
-            => ImmutableFunArray.By(_elements.Select(e => e.Calc()));
+        {
+            var arr = new object[_elements.Length];
+            for (int i = 0; i < _elements.Length; i++)
+            {
+                arr[i] = _elements[i].Calc();
+            }
+            return new ImmutableFunArray(arr);
+        }
     }
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using NFun;
 using NFun.Interpritation;
 using NFun.Runtime;
+using NFun.Runtime.Arrays;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Types;
 using NUnit.Framework;
@@ -51,8 +52,17 @@ namespace Funny.Tests
         {
             var res = result.Results.FirstOrDefault(r => r.Name == variable.Name);
             Assert.IsFalse(res.IsEmpty, $"Variable \"{variable.Name}\" not found");
+            if (variable.Value is IFunArray funArray)
+            {
+                if (res.Value is IFunArray resFunArray)
+                {
+                    Assert.IsTrue(TypeHelper.AreEquivalent(funArray, resFunArray),
+                            $"Var \"{variable}\" expected: {ToStringSmart(variable.Value)}, but was: {ToStringSmart(res.Value)}");
+                    return result;
+                }
+            }
             Assert.AreEqual(variable.Type, res.Type, $"Variable \"{variable.Name}\" has wrong type");
-
+            
             if (variable.Type == VarType.Real)
                 Assert.AreEqual((double) variable.Value, (double)res.Value, delta,
                     $"Var \"{variable}\" expected: {variable.Value}, but was: {res.Value}");

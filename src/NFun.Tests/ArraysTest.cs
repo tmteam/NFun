@@ -223,7 +223,7 @@ filtrat   = x.filter{it> filt} # filt - input variable
         {
             for (int i = 0; i < expectedOutput.Length; i++)
             {
-                var enumerable = (ImmutableFunArray)res.Value;
+                var enumerable = (IFunArray)res.Value;
                 var array = enumerable.GetElementOrNull(i);
 
                 for (int j = 0; j < expectedOutput[i].Length; j++)

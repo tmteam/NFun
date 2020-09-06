@@ -59,8 +59,20 @@ namespace NFun.Types
                     to.ArrayTypeSpecification.VarType);
                 if (elementConverter == null)
                     return null;
-
-                return o => ImmutableFunArray.By(((IFunArray)o).Select(elementConverter));
+                
+                
+                return o =>
+                {
+                    var origin = (IFunArray) o;
+                    var array = new object[origin.Count];
+                    int index = 0;
+                    foreach (var e in origin)
+                    {
+                        array[index] = elementConverter(e);
+                        index++;
+                    }
+                    return new ImmutableFunArray(array);
+                };
             }
             return null;
         }

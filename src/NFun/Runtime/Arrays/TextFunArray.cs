@@ -101,6 +101,8 @@ namespace NFun.Runtime.Arrays
             throw new InvalidCastException($"Cannot cast Text to {typeof(T).Name}[]");
         }
 
+        public Array ClrArray => _text.ToCharArray();
+
         public int Count => _text.Length;
         public string Text => _text;
 

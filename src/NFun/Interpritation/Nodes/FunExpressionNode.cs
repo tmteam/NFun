@@ -16,16 +16,17 @@ namespace NFun.Interpritation.Nodes
             _fun = fun;
             _argsNodes = argsNodes;
             Interval = interval;
+            _argsCount = argsNodes.Length;
         }
-        
+        private readonly int _argsCount;
         public Interval Interval { get; }
         public VarType Type => _fun.ReturnType;
         public object Calc()
         {
-            var args = new object[_argsNodes.Length];
-            for (int i = 0; i < args.Length; i++) 
-                args[i] = _argsNodes[i].Calc();
-            return _fun.Calc(args);
+            var _args = new object[_argsCount];
+            for (int i = 0; i < _argsCount; i++) 
+                _args[i] = _argsNodes[i].Calc();
+            return _fun.Calc(_args);
         }
     }
 }
