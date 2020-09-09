@@ -58,7 +58,7 @@ namespace Funny.Tests
             _calc = calc;
         }
 
-        public override object Calc(object[] args) => _calc(args);
+        protected override object Calc(object[] args) => _calc(args);
     }
 
     public class  FunctionMock: FunctionBase

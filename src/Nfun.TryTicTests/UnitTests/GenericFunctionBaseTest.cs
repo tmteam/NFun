@@ -169,7 +169,7 @@ namespace Nfun.ModuleTests.UnitTests
         {
         }
 
-        public override object Calc(object[] args) => throw new NotImplementedException();
+        protected override object Calc(object[] args) => throw new NotImplementedException();
     }
     public class ReturnSelfGenericFunctionDefenition : GenericFunctionBase
     {
@@ -177,6 +177,6 @@ namespace Nfun.ModuleTests.UnitTests
         {
         }
 
-        public override object Calc(object[] args) => args.First();
+        protected override object Calc(object[] args) => args.First();
     }
 }

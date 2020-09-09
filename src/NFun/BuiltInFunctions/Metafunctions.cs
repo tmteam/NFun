@@ -38,9 +38,9 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override object Calc(object[] args) => throw new NotImplementedException();
+        protected override object Calc(object[] args) => throw new NotImplementedException();
 
-        public override FunctionBase CreateConcrete(VarType[] concreteTypes)
+        public override IConcreteFunction CreateConcrete(VarType[] concreteTypes)
         {
             return new ConcreteMetaFunction(
                 name: Name,

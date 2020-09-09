@@ -72,7 +72,7 @@ namespace Nfun.ModuleTests
         {
         }
 
-        public override object Calc(object[] args) 
+        protected override object Calc(object[] args) 
             => throw new InvalidOperationException();
     }
     class PapaFunction : FunctionBase

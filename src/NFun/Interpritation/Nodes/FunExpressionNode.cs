@@ -6,6 +6,23 @@ using NFun.Types;
 
 namespace NFun.Interpritation.Nodes
 {
+    public class FunOf2ArgsExpressionNode : IExpressionNode
+    {
+        private readonly FunctionWithTwoArgs _fun;
+        private readonly IExpressionNode arg1;
+        private readonly IExpressionNode arg2;
+
+        public FunOf2ArgsExpressionNode(FunctionWithTwoArgs fun, IExpressionNode[] argsNodes, Interval interval)
+        {
+            _fun = fun;
+            arg1 = argsNodes[0];
+            arg2 = argsNodes[1];
+            Interval = interval;
+        }
+        public Interval Interval { get; }
+        public VarType Type => _fun.ReturnType;
+        public object Calc() => _fun.Calc(arg1.Calc(), arg2.Calc());
+    }
     public class FunExpressionNode : IExpressionNode
     {
         private readonly FunctionBase _fun;

@@ -61,7 +61,7 @@ namespace Nfun.ModuleTests
     {
         public PreviousOr() : base("previousOr", VarType.Generic(0), VarType.Generic(0), VarType.Generic(0)) { }
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
         {
             var source = args[0] as VariableSource;
             if (source.Value == null)
@@ -75,7 +75,7 @@ namespace Nfun.ModuleTests
         {
         }
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
         {
             var source = args[0] as VariableSource;
             return source.Value;
@@ -87,7 +87,7 @@ namespace Nfun.ModuleTests
         {
         }
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
         {
             var source = args[0] as VariableSource;
             return source.Name.ToUpper() == source.Name;

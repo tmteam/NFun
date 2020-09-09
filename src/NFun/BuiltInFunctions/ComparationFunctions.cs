@@ -10,7 +10,7 @@ namespace NFun.BuiltInFunctions
     public class NotEqualFunction : GenericFunctionBase
     {
         public NotEqualFunction() : base(CoreFunNames.NotEqual, VarType.Bool, VarType.Generic(0), VarType.Generic(0)) { }
-        public override object Calc(object[] args) => !TypeHelper.AreEqual(args[0], args[1]);
+        protected override object Calc(object[] args) => !TypeHelper.AreEqual(args[0], args[1]);
     }
 
     public class EqualFunction : GenericFunctionBase
@@ -19,7 +19,7 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override object Calc(object[] args) 
+        protected override object Calc(object[] args) 
             => TypeHelper.AreEqual(args[0], args[1]);
 
     }
@@ -28,7 +28,7 @@ namespace NFun.BuiltInFunctions
     {
         public MoreFunction() : base(CoreFunNames.More, GenericConstrains.Comparable,VarType.Bool, VarType.Generic(0), VarType.Generic(0)){}
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
         {
             var a = ((IComparable)args[0]);
             var b = ((IComparable)args[1]);
@@ -39,7 +39,7 @@ namespace NFun.BuiltInFunctions
     {
         public MoreOrEqualFunction() : base(CoreFunNames.MoreOrEqual, GenericConstrains.Comparable , VarType.Bool, VarType.Generic(0), VarType.Generic(0)) { }
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
         {
             var a = ((IComparable)args[0]);
             var b = ((IComparable)args[1]);
@@ -50,7 +50,7 @@ namespace NFun.BuiltInFunctions
     {
         public LessFunction() : base(CoreFunNames.Less, GenericConstrains.Comparable , VarType.Bool, VarType.Generic(0), VarType.Generic(0)) { }
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
         {
             var a = ((IComparable)args[0]);
             var b = ((IComparable)args[1]);
@@ -61,7 +61,7 @@ namespace NFun.BuiltInFunctions
     {
         public LessOrEqualFunction() : base(CoreFunNames.LessOrEqual, GenericConstrains.Comparable , VarType.Bool, VarType.Generic(0), VarType.Generic(0)) { }
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
         {
             var a = ((IComparable)args[0]);
             var b = ((IComparable)args[1]);
@@ -72,7 +72,7 @@ namespace NFun.BuiltInFunctions
     {
         public MinFunction() : base("min", GenericConstrains.Comparable, VarType.Generic(0), VarType.Generic(0), VarType.Generic(0)) { }
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
         {
             var a = ((IComparable)args[0]);
             var b = ((IComparable)args[1]);
@@ -85,7 +85,7 @@ namespace NFun.BuiltInFunctions
     {
         public MaxFunction() : base("max", GenericConstrains.Comparable, VarType.Generic(0), VarType.Generic(0), VarType.Generic(0)) { }
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
         {
             var a = ((IComparable)args[0]);
             var b = ((IComparable)args[1]);

@@ -160,7 +160,7 @@ namespace NFun.Interpritation
                  return CreateFunctionCall(node, ConcreteHiOrderFunction.Create(functionalVariableSource));
             }
 
-            if (someFunc is FunctionBase f) //concrete function
+            if (someFunc is IConcreteFunction f) //concrete function
                 return CreateFunctionCall(node, f);
 
             if (someFunc is GenericFunctionBase genericFunction) //generic function
@@ -330,7 +330,7 @@ namespace NFun.Interpritation
             return new FunVariableExpressionNode(fun, interval);
         }
 
-        private IExpressionNode CreateFunctionCall(IFunCallSyntaxNode node, FunctionBase function)
+        private IExpressionNode CreateFunctionCall(IFunCallSyntaxNode node, IConcreteFunction function)
         {
             var children = new List<IExpressionNode>();
             foreach (var argLexNode in node.Args)
@@ -371,7 +371,7 @@ namespace NFun.Interpritation
                         genericArgs[i] = _typesConverter.Convert(genericTypes[i]);
 
                     var function = genericFunction.CreateConcrete(genericArgs); 
-                    return new FunVariableExpressionNode(function, varNode.Interval);
+                    return new FunVariableExpressionNode((FunctionBase) function, varNode.Interval);
 
                 }
                 else if (funVariable is FunctionBase concrete)

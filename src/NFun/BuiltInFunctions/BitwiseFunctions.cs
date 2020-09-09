@@ -10,7 +10,7 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override FunctionBase CreateConcrete(VarType[] concreteTypes)
+        public override IConcreteFunction CreateConcrete(VarType[] concreteTypes)
         {
             switch (concreteTypes[0].BaseType)
             {
@@ -26,7 +26,7 @@ namespace NFun.BuiltInFunctions
             }
         }
 
-        public override object Calc(object[] args) => throw new System.NotImplementedException();
+        protected override object Calc(object[] args) => throw new System.NotImplementedException();
         public class Int16Function : FunctionBase {
             public Int16Function() : base(CoreFunNames.BitOr, VarType.Int16, VarType.Int16, VarType.Int16) { }
             public override object Calc(object[] args) => ((short)args[0]) | ((short)args[1]);
@@ -63,7 +63,7 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override FunctionBase CreateConcrete(VarType[] concreteTypes)
+        public override IConcreteFunction CreateConcrete(VarType[] concreteTypes)
         {
             switch (concreteTypes[0].BaseType)
             {
@@ -79,7 +79,7 @@ namespace NFun.BuiltInFunctions
             }
         }
 
-        public override object Calc(object[] args) => throw new System.NotImplementedException();
+        protected override object Calc(object[] args) => throw new System.NotImplementedException();
         public class Int16Function : FunctionBase
         {
             public Int16Function() : base(CoreFunNames.BitOr, VarType.Int16, VarType.Int16, VarType.Int16) { }
@@ -123,7 +123,7 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override FunctionBase CreateConcrete(VarType[] concreteTypes)
+        public override IConcreteFunction CreateConcrete(VarType[] concreteTypes)
         {
             switch (concreteTypes[0].BaseType)
             {
@@ -139,7 +139,7 @@ namespace NFun.BuiltInFunctions
             }
         }
 
-        public override object Calc(object[] args) => throw new System.NotImplementedException();
+        protected override object Calc(object[] args) => throw new System.NotImplementedException();
         public class Int16Function : FunctionBase{
             public Int16Function() : base(CoreFunNames.BitAnd, VarType.Int16, VarType.Int16, VarType.Int16) { }
             public override object Calc(object[] args) => ((short)args[0]) & ((short)args[1]);
@@ -176,7 +176,7 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override FunctionBase CreateConcrete(VarType[] concreteTypes)
+        public override IConcreteFunction CreateConcrete(VarType[] concreteTypes)
         {
             switch (concreteTypes[0].BaseType)
             {
@@ -192,7 +192,7 @@ namespace NFun.BuiltInFunctions
             }
         }
 
-        public override object Calc(object[] args) => throw new System.NotImplementedException();
+        protected override object Calc(object[] args) => throw new System.NotImplementedException();
         public class Int16Function : FunctionBase
         {
             public Int16Function() : base(CoreFunNames.BitInverse, VarType.Int16, VarType.Int16) { }
@@ -237,7 +237,7 @@ namespace NFun.BuiltInFunctions
             VarType.Generic(0), 
             VarType.Generic(0), 
             VarType.UInt8) { }
-        public override FunctionBase CreateConcrete(VarType[] concreteTypes)
+        public override IConcreteFunction CreateConcrete(VarType[] concreteTypes)
         {
             switch (concreteTypes[0].BaseType)
             {
@@ -249,7 +249,8 @@ namespace NFun.BuiltInFunctions
                     throw new ArgumentOutOfRangeException();
             }
         }
-        public override object Calc(object[] args) => throw new InvalidOperationException();
+
+        protected override object Calc(object[] args) => throw new InvalidOperationException();
 
         public class Int32Function : FunctionBase {
             public Int32Function() : base(CoreFunNames.BitShiftLeft, VarType.Int32, VarType.Int32, VarType.UInt8) { }
@@ -277,7 +278,7 @@ namespace NFun.BuiltInFunctions
             VarType.Generic(0),
             VarType.UInt8)
         { }
-        public override FunctionBase CreateConcrete(VarType[] concreteTypes)
+        public override IConcreteFunction CreateConcrete(VarType[] concreteTypes)
         {
             switch (concreteTypes[0].BaseType)
             {
@@ -289,7 +290,8 @@ namespace NFun.BuiltInFunctions
                     throw new ArgumentOutOfRangeException();
             }
         }
-        public override object Calc(object[] args) => throw new InvalidOperationException();
+
+        protected override object Calc(object[] args) => throw new InvalidOperationException();
 
         public class Int32Function : FunctionBase {
             public Int32Function() : base(CoreFunNames.BitShiftRight, VarType.Int32, VarType.Int32, VarType.UInt8) { }

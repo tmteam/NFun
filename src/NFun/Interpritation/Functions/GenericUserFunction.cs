@@ -76,7 +76,7 @@ namespace NFun.Interpritation.Functions
             _dictionary = dictionary;
         }
         Dictionary<string, FunctionBase> _concreteFunctionsCache = new Dictionary<string, FunctionBase>();
-        public override FunctionBase CreateConcrete(VarType[] concreteTypes)
+        public override IConcreteFunction CreateConcrete(VarType[] concreteTypes)
         {
             var id = string.Join(",", concreteTypes);
             if (_concreteFunctionsCache.TryGetValue(id, out var alreadyExists))
@@ -111,7 +111,7 @@ namespace NFun.Interpritation.Functions
             return function;
         }
 
-        public override object Calc(object[] args) => throw new NotImplementedException();
+        protected override object Calc(object[] args) => throw new NotImplementedException();
     }
    
 }

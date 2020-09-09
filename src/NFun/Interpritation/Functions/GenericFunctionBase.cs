@@ -45,6 +45,7 @@ namespace NFun.Interpritation.Functions
             IsComparable = isComparable;
         }
     }
+    
     public abstract class GenericFunctionBase: IFunctionSignature
     {
         public GenericConstrains[] GenericDefenitions { get; }
@@ -100,10 +101,10 @@ namespace NFun.Interpritation.Functions
 
 
         public VarType ReturnType { get; }
-        
-        public abstract object Calc(object[] args);
 
-        public virtual FunctionBase CreateConcrete(VarType[] concreteTypesMap) =>
+        protected abstract object Calc(object[] args);
+
+        public virtual IConcreteFunction CreateConcrete(VarType[] concreteTypesMap) =>
             new ConcreteGenericFunction(
                 calc: Calc,
                 name: Name,

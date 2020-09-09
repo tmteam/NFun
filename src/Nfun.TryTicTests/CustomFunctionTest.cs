@@ -27,7 +27,7 @@ namespace Nfun.ModuleTests
         {
         }
         // T Log<T>(T, string)
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
         {
             Console.WriteLine(args[1]);
             return args[0];

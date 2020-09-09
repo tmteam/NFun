@@ -16,7 +16,7 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
         {
             var arr = (IFunArray) args[0];
             var ans = arr.GetElementOrNull(arr.Count-1);
@@ -32,7 +32,7 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
         {
             var arr = (IFunArray)args[0];
             var ans =  arr.GetElementOrNull(0);
@@ -48,7 +48,7 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
             => ((IFunArray)args[0]).Count;
     }
     public class MapFunction : GenericFunctionBase
@@ -60,7 +60,7 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
         {
             var arr = (IFunArray)args[0];
             var map = args[1] as FunctionBase;
@@ -77,7 +77,8 @@ namespace NFun.BuiltInFunctions
             VarType.ArrayOf(VarType.Generic(0)))
         {
         }
-        public override object Calc(object[] args)
+
+        protected override object Calc(object[] args)
         {
             var val = args[0];
             var arr = (IFunArray)args[1];
@@ -95,7 +96,7 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
         {
             var start = ((int)args[1]);
             if(start<0)
@@ -118,7 +119,7 @@ namespace NFun.BuiltInFunctions
     {
         public SortFunction() : base("sort", GenericConstrains.Comparable, VarType.ArrayOf(VarType.Generic(0)), VarType.ArrayOf(VarType.Generic(0))) { }
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
         {
             var funArray =  (IFunArray) args[0];
             
@@ -134,7 +135,7 @@ namespace NFun.BuiltInFunctions
 
         }
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
             => GetMedian(((IFunArray)args[0]).As<IComparable>());
 
         private static IComparable GetMedian(IEnumerable<IComparable> source)
@@ -155,7 +156,7 @@ namespace NFun.BuiltInFunctions
     {
         public MaxElementFunction() : base("max", GenericConstrains.Comparable, VarType.Generic(0), VarType.ArrayOf(VarType.Generic(0))) {}
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
         {
             var array = (IFunArray) args[0];
             return array.As<IComparable>().Max();
@@ -165,7 +166,7 @@ namespace NFun.BuiltInFunctions
     {
         public MinElementFunction() : base("min", GenericConstrains.Comparable, VarType.Generic(0), VarType.ArrayOf(VarType.Generic(0))) { }
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
         {
             var array = (IFunArray)args[0];
             return array.As<IComparable>().Min();
@@ -178,10 +179,10 @@ namespace NFun.BuiltInFunctions
         public MultiSumFunction() : base(id, GenericConstrains.Arithmetical, VarType.Generic(0), VarType.ArrayOf(VarType.Generic(0))){
         }
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
             =>  throw new NotSupportedException();        
 
-        public override FunctionBase CreateConcrete(VarType[] concreteTypes)
+        public override IConcreteFunction CreateConcrete(VarType[] concreteTypes)
         {
             switch (concreteTypes[0].BaseType)
             {
@@ -269,7 +270,7 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override FunctionBase CreateConcrete(VarType[] concreteTypes)
+        public override IConcreteFunction CreateConcrete(VarType[] concreteTypes)
         {
             switch (concreteTypes[0].BaseType)
             {
@@ -294,7 +295,7 @@ namespace NFun.BuiltInFunctions
             }
         }
 
-        public override object Calc(object[] args) => throw new NotImplementedException();
+        protected override object Calc(object[] args) => throw new NotImplementedException();
 
         private const string id = "range";
         class Int16Function : FunctionBase
@@ -455,7 +456,7 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override FunctionBase CreateConcrete(VarType[] concreteTypes)
+        public override IConcreteFunction CreateConcrete(VarType[] concreteTypes)
         {
             switch (concreteTypes[0].BaseType)
             {
@@ -473,7 +474,7 @@ namespace NFun.BuiltInFunctions
             }
         }
 
-        public override object Calc(object[] args) => throw new NotImplementedException();
+        protected override object Calc(object[] args) => throw new NotImplementedException();
 
         private const string id = "rangeWithStep";
         class Int16Function : FunctionBase
@@ -659,7 +660,7 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
         {
             var start = ((int)args[1]);
             if(start<0)
@@ -685,7 +686,7 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
         {
             var index = ((int)args[1]);
             if(index<0)
@@ -710,7 +711,7 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
         {
             var arr = (IFunArray)args[0];
 
@@ -735,7 +736,7 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
         {
             var arr = (IFunArray)args[0];
             var factor = args[1] ;
@@ -758,7 +759,7 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
         {
             var arr = (IFunArray)args[0];
             var chunkSize = ((int)args[1]);
@@ -780,7 +781,7 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
         {
             var arr = (IFunArray)args[0];
             return new EnumerableFunArray(arr.SelectMany(o => (IFunArray) o));
@@ -795,7 +796,7 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
         {
             var arr = (IFunArray)args[0];
             if(arr.Count==0)
@@ -816,7 +817,8 @@ namespace NFun.BuiltInFunctions
             VarType.Fun(
                     returnType: VarType.Generic(1), VarType.Generic(1), VarType.Generic(0)))
         {}
-        public override object Calc(object[] args)
+
+        protected override object Calc(object[] args)
         {
             var arr = (IFunArray)args[0];
             var defaultValue = args[1];
@@ -835,7 +837,7 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
         {
             var arr1 = (IFunArray)args[0];
             var arr2 = (IFunArray)args[1];
@@ -851,7 +853,7 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
         {
             var arr1 = (IFunArray)args[0];
             var arr2 = (IFunArray)args[1];
@@ -867,7 +869,7 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
         {
             var arr1 = (IFunArray)args[0];
             var arr2 = (IFunArray)args[1];
@@ -883,7 +885,7 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
         {
             var arr1 = (IFunArray)args[0];
             var arr2 = (IFunArray)args[1];
@@ -901,7 +903,7 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
         {
             var arr1 = (IFunArray)args[0];
             var arr2 = args[1];
@@ -919,7 +921,7 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
         {
             var arr1 = (IFunArray)args[0];
             var arr2 = (IFunArray)args[1];
@@ -936,7 +938,7 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
         {
             var arr = (IFunArray)args[0];
             var filter = args[1] as FunctionBase;
@@ -953,7 +955,7 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
         {
             var arr = (IFunArray)args[0];
             return arr.Count>0;
@@ -968,7 +970,7 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
         {
             var arr = (IFunArray)args[0];
             var filter = args[1] as FunctionBase;
@@ -985,7 +987,7 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
         {
             var arr = (IFunArray)args[0];
             var filter = args[1] as FunctionBase;
@@ -1002,7 +1004,7 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
         {
             var arr = (IFunArray)args[0];
             var filter = args[1] as FunctionBase;
@@ -1019,7 +1021,7 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
         {
             var first = args[0];
             return new EnumerableFunArray(Enumerable.Repeat(first, ((int)args[1])));
@@ -1033,7 +1035,7 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
         {
             var arr  = (IFunArray) args[0];
             return new EnumerableFunArray(arr.Reverse());
@@ -1048,7 +1050,7 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
         {
             return ((IFunArray)args[0]).Slice(null,((int)args[1])-1,1);
         }
@@ -1062,7 +1064,7 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override object Calc(object[] args)
+        protected override object Calc(object[] args)
         {
             return ((IFunArray)args[0]).Slice(((int)args[1]),null,1);
         }

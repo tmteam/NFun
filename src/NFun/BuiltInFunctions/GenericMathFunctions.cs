@@ -14,7 +14,7 @@ namespace NFun.BuiltInFunctions
 
         public RemainderFunction() : this(CoreFunNames.Remainder) { }
 
-        public override FunctionBase CreateConcrete(VarType[] concreteTypes)
+        public override IConcreteFunction CreateConcrete(VarType[] concreteTypes)
         {
             switch (concreteTypes[0].BaseType)
             {
@@ -31,7 +31,7 @@ namespace NFun.BuiltInFunctions
             }
         }
 
-        public override object Calc(object[] args) => ((double)args[0]) + ((double)args[1]);
+        protected override object Calc(object[] args) => ((double)args[0]) + ((double)args[1]);
         public class RealFunction : FunctionBase
         {
             public RealFunction() : base(CoreFunNames.Add, VarType.Real, VarType.Real, VarType.Real) { }
@@ -81,7 +81,7 @@ namespace NFun.BuiltInFunctions
             GenericConstrains.SignedNumber,
             VarType.Generic(0), VarType.Generic(0))
         { }
-        public override FunctionBase CreateConcrete(VarType[] concreteTypes)
+        public override IConcreteFunction CreateConcrete(VarType[] concreteTypes)
         {
             switch (concreteTypes[0].BaseType)
             {
@@ -95,7 +95,7 @@ namespace NFun.BuiltInFunctions
         }
 
         private const string id = "abs";
-        public override object Calc(object[] args) => throw new InvalidOperationException();
+        protected override object Calc(object[] args) => throw new InvalidOperationException();
         public class RealFunction : FunctionBase
         {
             public RealFunction() : base(id, VarType.Real, VarType.Real) { }
@@ -126,7 +126,7 @@ namespace NFun.BuiltInFunctions
             GenericConstrains.SignedNumber,
             VarType.Generic(0), VarType.Generic(0))
         { }
-        public override FunctionBase CreateConcrete(VarType[] concreteTypes)
+        public override IConcreteFunction CreateConcrete(VarType[] concreteTypes)
         {
             switch (concreteTypes[0].BaseType)
             {
@@ -137,10 +137,9 @@ namespace NFun.BuiltInFunctions
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-            return base.CreateConcrete(concreteTypes);
         }
 
-        public override object Calc(object[] args) => ((double)args[0]) + ((double)args[1]);
+        protected override object Calc(object[] args) => ((double)args[0]) + ((double)args[1]);
         public class RealFunction : FunctionBase
         {
             public RealFunction() : base(CoreFunNames.Negate, VarType.Real, VarType.Real) { }
@@ -173,7 +172,7 @@ namespace NFun.BuiltInFunctions
 
         public AddFunction() : this(CoreFunNames.Add) { }
 
-        public override FunctionBase CreateConcrete(VarType[] concreteTypes)
+        public override IConcreteFunction CreateConcrete(VarType[] concreteTypes)
         {
             switch (concreteTypes[0].BaseType)
             {
@@ -187,10 +186,9 @@ namespace NFun.BuiltInFunctions
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-            return base.CreateConcrete(concreteTypes);
         }
 
-        public override object Calc(object[] args) => ((double)args[0]) + ((double)args[1]);
+        protected override object Calc(object[] args) => ((double)args[0]) + ((double)args[1]);
         public class RealFunction : FunctionBase
         {
             public RealFunction() : base(CoreFunNames.Add, VarType.Real, VarType.Real, VarType.Real) { }
@@ -228,7 +226,7 @@ namespace NFun.BuiltInFunctions
         public SubstractFunction(string name) : base(name, GenericConstrains.Arithmetical, VarType.Generic(0), VarType.Generic(0), VarType.Generic(0)) { }
         public SubstractFunction() : this(CoreFunNames.Substract) { }
 
-        public override FunctionBase CreateConcrete(VarType[] concreteTypes)
+        public override IConcreteFunction CreateConcrete(VarType[] concreteTypes)
         {
             switch (concreteTypes[0].BaseType)
             {
@@ -245,7 +243,7 @@ namespace NFun.BuiltInFunctions
             }
         }
 
-        public override object Calc(object[] args) => ((double)args[0]) - ((double)args[1]);
+        protected override object Calc(object[] args) => ((double)args[0]) - ((double)args[1]);
         public class RealFunction : FunctionBase
         {
             public RealFunction() : base(CoreFunNames.Substract, VarType.Real, VarType.Real, VarType.Real) { }
@@ -297,7 +295,7 @@ namespace NFun.BuiltInFunctions
         public MultiplyFunction(string name) : base(name, GenericConstrains.Arithmetical, VarType.Generic(0), VarType.Generic(0), VarType.Generic(0)) { }
         public MultiplyFunction() : this(CoreFunNames.Multiply) { }
 
-        public override FunctionBase CreateConcrete(VarType[] concreteTypes)
+        public override IConcreteFunction CreateConcrete(VarType[] concreteTypes)
         {
             switch (concreteTypes[0].BaseType)
             {
@@ -311,7 +309,7 @@ namespace NFun.BuiltInFunctions
             }
         }
 
-        public override object Calc(object[] args) => ((double)args[0]) * ((double)args[1]);
+        protected override object Calc(object[] args) => ((double)args[0]) * ((double)args[1]);
         public class RealFunction : FunctionBase
         {
             public RealFunction() : base(CoreFunNames.Substract, VarType.Real, VarType.Real, VarType.Real) { }

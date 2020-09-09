@@ -19,7 +19,7 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override FunctionBase CreateConcrete(VarType[] concreteTypes)
+        public override IConcreteFunction CreateConcrete(VarType[] concreteTypes)
         {
             var from = concreteTypes[1];
             var to = concreteTypes[0];
@@ -182,7 +182,8 @@ namespace NFun.BuiltInFunctions
                 }
             }
         }
-        public override object Calc(object[] args) => throw new NotSupportedException();
+
+        protected override object Calc(object[] args) => throw new NotSupportedException();
 
 
         private static byte[] GetArrayOfSize(object array, int size)
