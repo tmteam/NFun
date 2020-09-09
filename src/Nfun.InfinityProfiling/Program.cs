@@ -15,6 +15,21 @@ namespace Nfun.InfinityProfiling
             Console.WriteLine("Build in loop");
             Console.WriteLine("Press esc to exit");
 
+            Action<IProfileSet> runner;
+            bool runOnlySimpliest = true;
+            int reportTime;
+
+            if (runOnlySimpliest)
+            {
+                runner = ProfileTools.RunSimpliest;
+                reportTime = 6000;
+            }
+            else
+            {
+                runner = ProfileTools.RunAll;
+                reportTime = 600;
+            }
+
             var buildBench = new ProfileBuildAllSet();
             var parseBench = new ProfileParserSet();
             var updateBench = new ProfileUpdateSet();
@@ -22,15 +37,14 @@ namespace Nfun.InfinityProfiling
 
             for (int i = 0; i < 3; i++)
             {
-                ProfileTools.RunAll(parseBench);
-                ProfileTools.RunAll(buildBench);
-                ProfileTools.RunAll(updateBench);
-                ProfileTools.RunAll(calculateBench);
+                runner(parseBench);
+                runner(buildBench);
+                runner(updateBench);
+                runner(calculateBench);
             }
             
             int measurementsCount = 0;
             int historyCount = 10;
-            int reportTime = 600;
             
             var parseStopWatch = new Stopwatch();
             var parseHistory = new LinkedList<double>();
@@ -50,19 +64,19 @@ namespace Nfun.InfinityProfiling
             for (int iterations = 1; !Console.KeyAvailable || Console.ReadKey().Key != ConsoleKey.Escape ; iterations++)
             {
                 parseStopWatch.Start();
-                ProfileTools.RunAll(parseBench);
+                runner(parseBench);
                 parseStopWatch.Stop();
                 
                 buildStopWatch.Start();
-                ProfileTools.RunAll(buildBench);
+                runner(buildBench);
                 buildStopWatch.Stop();
                 
                 updateStopWatch.Start();
-                ProfileTools.RunAll(updateBench);
+                runner(updateBench);
                 updateStopWatch.Stop();
 
                 calcStopWatch.Start();
-                ProfileTools.RunAll(calculateBench);
+                runner(calculateBench);
                 calcStopWatch.Stop();
                 
                 if (iterations >= reportTime)
@@ -91,7 +105,7 @@ namespace Nfun.InfinityProfiling
                     Console.WriteLine();
                     Console.WriteLine($"------ Iteration #{measurementsCount} in {(int)total.TotalMilliseconds} ms ------");
 
-                    Console.WriteLine($"          |   %   | VAL ips | AVG ips | MIN ips | MAX ips |  RMS  |");
+                    Console.WriteLine($"          |    %    |  VAL ips |  AVG ips  |  MIN ips  |  MAX ips  |   RMS  |");
                     PrintResults("parse    ", buildAndRunTime, parseHistory,         iterations);
                     PrintResults("interprt ", buildAndRunTime, interpritateHistory,  iterations);
                     //PrintResults("build all", buildAndRunTime, buildHistory,         iterations);
@@ -117,12 +131,12 @@ namespace Nfun.InfinityProfiling
             var current = history.Last.Value;
             
             Console.WriteLine($"{name} |  " +
-                              $"{100*current/ratioTime.TotalMilliseconds:00.00}% |"+
-                              $"{1000 * iterations / current:0000.0} |  " +
-                              $"{1000 * iterations / avg:0000.0} |  " +
-                              $"{1000 * iterations / max:0000.0} |  " +
-                              $"{1000 * iterations / min:0000.0} |  " +
-                              $"{rms * 100 / iterations:000}  |  ");
+                              $"{100*current/ratioTime.TotalMilliseconds:00.00}% | "+
+                              $"{1000 * iterations / current:000000.0} |  " +
+                              $"{1000 * iterations / avg:000000.0} |  " +
+                              $"{1000 * iterations / max:000000.0} |  " +
+                              $"{1000 * iterations / min:000000.0} |  " +
+                              $"{rms * 1000 / iterations:0000}  |  ");
         }
     }
     

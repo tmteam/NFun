@@ -9,6 +9,20 @@ namespace Nfun.InfinityProfiling
             list.AddLast(value);
             while (list.Count>maxSize) list.RemoveFirst();
         }
+        public static void RunSimpliest(IProfileSet set)
+        {
+            set.Const1();
+            set.ConstText();
+            set.ConstTrue();
+            set.ConstBoolArray();
+            set.ConstRealArray();
+            set.CalcBool();
+            set.CalcKxb();
+            set.CalcReal();
+            set.CalcText();
+            set.CalcFourArgs();
+            set.CalcRealArray();
+        }
         public static void RunAll(IProfileSet set)
         {
             set.Const1();

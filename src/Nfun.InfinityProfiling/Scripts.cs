@@ -86,7 +86,5 @@ namespace Nfun.InfinityProfiling
                           #uncomment when steps gonna be fixed
 						  #m =  [0..20000..2].sum()
 ";
-
-
     }
 }
