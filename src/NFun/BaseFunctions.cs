@@ -85,7 +85,7 @@ namespace NFun
             new ReverseGenericFunctionDefenition(),
         };
 
-        public static FunctionBase[] ConcreteFunctions { get; } =
+        public static IConcreteFunction[] ConcreteFunctions { get; } =
         {
             new NotFunction(),
             new AndFunction(),

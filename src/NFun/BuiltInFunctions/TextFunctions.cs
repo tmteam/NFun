@@ -7,13 +7,13 @@ using NFun.Types;
 
 namespace NFun.BuiltInFunctions
 {
-    public class ConcatTextsFunction : FunctionBase
+    public class ConcatTextsFunction : FunctionWithSingleArg
     {
         public ConcatTextsFunction() : base(CoreFunNames.ConcatTexts, VarType.Text,VarType.ArrayOf(VarType.Text)) { }
 
-        public override object Calc(object[] args)
+        public override object Calc(object a)
         {
-            var strings = args.GetListOfStringOrThrow(0);
+            var strings = TypeHelper.GetListOfStringOrThrow(a);
             return new TextFunArray(string.Join("", strings));
         }
     }

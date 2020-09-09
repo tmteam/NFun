@@ -103,7 +103,7 @@ namespace Nfun.InfinityProfiling
                     
                     Console.Clear(); 
                     Console.WriteLine();
-                    Console.WriteLine($"------ Iteration #{measurementsCount} in {(int)total.TotalMilliseconds} ms ------");
+                    Console.WriteLine($"------ {(runOnlySimpliest? "Simple":"Full")} iteration #{measurementsCount} in {(int)total.TotalMilliseconds} ms ------");
 
                     Console.WriteLine($"          |    %    |  VAL ips |  AVG ips  |  MIN ips  |  MAX ips  |   RMS  |");
                     PrintResults("parse    ", buildAndRunTime, parseHistory,         iterations);

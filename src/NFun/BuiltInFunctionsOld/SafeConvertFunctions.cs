@@ -10,10 +10,9 @@ using NFun.Types;
 
 namespace NFun.BuiltInFunctions
 {
-    public class ToTextFunction : FunctionBase
+    public class ToTextFunction : FunctionWithSingleArg
     {
         public ToTextFunction() : base(CoreFunNames.ToText, VarType.Text, VarType.Anything) { }
-        public override object Calc(object[] args) => new TextFunArray(ToText(args[0]));
 
         string ToText(object val)
         {
@@ -23,6 +22,11 @@ namespace NFun.BuiltInFunctions
                 return d.ToString(CultureInfo.InvariantCulture);
             else
                 return val.ToString();
+        }
+
+        public override object Calc(object a)
+        {
+            return new TextFunArray(ToText(a));
         }
     }
     /*

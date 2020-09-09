@@ -140,11 +140,13 @@ namespace NFun.BuiltInFunctions
         }
 
         protected override object Calc(object[] args) => ((double)args[0]) + ((double)args[1]);
-        public class RealFunction : FunctionBase
+
+        private class RealFunction : FunctionWithSingleArg
         {
             public RealFunction() : base(CoreFunNames.Negate, VarType.Real, VarType.Real) { }
 
-            public override object Calc(object[] args) => -((double)args[0]);
+            public object Calc(object[] args) => -((double)args[0]);
+            public override object Calc(object a) => -(double) a;
         }
         public class Int16Function : FunctionBase
         {
@@ -189,35 +191,37 @@ namespace NFun.BuiltInFunctions
         }
 
         protected override object Calc(object[] args) => ((double)args[0]) + ((double)args[1]);
-        public class RealFunction : FunctionBase
+
+        private class RealFunction : FunctionWithTwoArgs
         {
             public RealFunction() : base(CoreFunNames.Add, VarType.Real, VarType.Real, VarType.Real) { }
-
-            public override object Calc(object[] args) => ((double)args[0]) + ((double)args[1]);
+            public override object Calc(object a, object b)  => ((double)a) + ((double)b);
         }
-        public class Int16Function : FunctionBase {
+        public class Int16Function : FunctionWithTwoArgs {
             public Int16Function() : base(CoreFunNames.Add, VarType.Int16, VarType.Int16, VarType.Int16) { }
-            public override object Calc(object[] args) => (short)((short)args[0]) + ((short)args[1]);
+            public override object Calc(object a, object b)  => ((Int16)a) + ((Int16)b);
         }
-        public class Int32Function : FunctionBase {
+        public class Int32Function : FunctionWithTwoArgs {
             public Int32Function() : base(CoreFunNames.Add, VarType.Int32, VarType.Int32, VarType.Int32) { }
-            public override object Calc(object[] args) => ((int)args[0]) + ((int)args[1]);
+            public override object Calc(object a, object b)  => ((int)a) + ((int)b);
         }
-        public class Int64Function : FunctionBase {
+        public class Int64Function : FunctionWithTwoArgs {
             public Int64Function() : base(CoreFunNames.Add, VarType.Int64, VarType.Int64, VarType.Int64) { }
-            public override object Calc(object[] args) => ((long)args[0]) + ((long)args[1]);
+            public override object Calc(object a, object b)  => ((long)a) + ((long)b);
+
         }
-        public class UInt16Function : FunctionBase {
+        public class UInt16Function : FunctionWithTwoArgs {
             public UInt16Function() : base(CoreFunNames.Add, VarType.UInt16, VarType.UInt16, VarType.UInt16) { }
-            public override object Calc(object[] args) => (ushort)(((ushort)args[0]) + ((ushort)args[1]));
+            public override object Calc(object a, object b)  => ((UInt16)a) + ((UInt16)b);
         }
-        public class UInt32Function : FunctionBase {
+        public class UInt32Function : FunctionWithTwoArgs {
             public  UInt32Function() : base(CoreFunNames.Add, VarType.UInt32, VarType.UInt32, VarType.UInt32){}
-            public override object Calc(object[] args) => (uint)(((uint)args[0]) + ((uint)args[1]));
+            public override object Calc(object a, object b)  => ((uint)a) + ((uint)b);
+
         }
-        public class UInt64Function : FunctionBase {
+        public class UInt64Function : FunctionWithTwoArgs {
             public  UInt64Function() : base(CoreFunNames.Add, VarType.UInt64, VarType.UInt64, VarType.UInt64) { }
-            public override object Calc(object[] args) => (ulong)(((ulong)args[0]) + (ulong)args[1]);
+            public override object Calc(object a, object b)  => ((ulong)a) + ((ulong)b);
         }
     }
 
@@ -244,21 +248,22 @@ namespace NFun.BuiltInFunctions
         }
 
         protected override object Calc(object[] args) => ((double)args[0]) - ((double)args[1]);
-        public class RealFunction : FunctionBase
+
+        private class RealFunction : FunctionWithTwoArgs
         {
             public RealFunction() : base(CoreFunNames.Substract, VarType.Real, VarType.Real, VarType.Real) { }
 
-            public override object Calc(object[] args) => ((double)args[0]) - ((double)args[1]);
+            public override object Calc(object a, object b) => ((double) a) - ((double) b);
         }
         public class Int16Function : FunctionBase
         {
             public Int16Function() : base(CoreFunNames.Substract, VarType.Int16, VarType.Int16, VarType.Int16) { }
             public override object Calc(object[] args) => (short)((short)args[0]) - ((short)args[1]);
         }
-        public class Int32Function : FunctionBase
+        public class Int32Function : FunctionWithTwoArgs
         {
             public Int32Function() : base(CoreFunNames.Substract, VarType.Int32, VarType.Int32, VarType.Int32) { }
-            public override object Calc(object[] args) => ((int)args[0]) - ((int)args[1]);
+            public override object Calc(object a, object b) => ((int) a) - ((int) b);
         }
         public class Int64Function : FunctionBase
         {
@@ -310,17 +315,18 @@ namespace NFun.BuiltInFunctions
         }
 
         protected override object Calc(object[] args) => ((double)args[0]) * ((double)args[1]);
-        public class RealFunction : FunctionBase
+
+        private class RealFunction : FunctionWithTwoArgs
         {
             public RealFunction() : base(CoreFunNames.Substract, VarType.Real, VarType.Real, VarType.Real) { }
 
-            public override object Calc(object[] args) => ((double)args[0]) * ((double)args[1]);
+            public override object Calc(object a, object b) => ((double) a) * ((double) b);
         }
      
-        public class Int32Function : FunctionBase
+        public class Int32Function : FunctionWithTwoArgs
         {
             public Int32Function() : base(CoreFunNames.Substract, VarType.Int32, VarType.Int32, VarType.Int32) { }
-            public override object Calc(object[] args) => ((int)args[0]) * ((int)args[1]);
+            public override object Calc(object a, object b) => (int) a * (int) b;
         }
         public class Int64Function : FunctionBase
         {

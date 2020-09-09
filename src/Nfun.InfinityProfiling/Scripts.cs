@@ -7,7 +7,6 @@ namespace Nfun.InfinityProfiling
         public const string ConstText = "'let us make some fun!'";
         public const string ConstBoolArray = "y=[true, false, true, true,true,false,false]";
         public const string ConstRealArray = "y=[1,2,3,4,5,6,7,7,8,10]";
-        public const string ConstKxb = "y = 10 * 100.0 + 1";
 
         public const string CalcKxb = "y = 10 * x + 1";
         public const string CalcReal = "y:real = x";

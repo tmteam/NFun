@@ -313,17 +313,18 @@ namespace NFun.BuiltInFunctions
                 else
                     for (var i = start; i >= end; i -= 1)
                         result.Add(i);
+                
                 return new ImmutableFunArray(result.ToArray());
             }
         }
-        class Int32Function : FunctionBase
+        class Int32Function : FunctionWithTwoArgs
         {
             public Int32Function() : base(id, VarType.ArrayOf(VarType.Int32), VarType.Int32, VarType.Int32) { }
 
-            public override object Calc(object[] args)
+            public override object Calc(object a, object b)
             {
-                var start = ((int)args[0]);
-                var end = ((int)args[1]);
+                var start = ((int)a);
+                var end = ((int)b);
                 var result = new List<int>();
 
                 if (start < end)
@@ -332,8 +333,7 @@ namespace NFun.BuiltInFunctions
                 else
                     for (int i = start; i >= end; i -= 1)
                         result.Add(i);
-                return new ImmutableFunArray(result.ToArray());
-            }
+                return new ImmutableFunArray(result.ToArray());            }
         }
         class Int64Function : FunctionBase
         {

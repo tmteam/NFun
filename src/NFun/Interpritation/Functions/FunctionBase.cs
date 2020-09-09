@@ -6,9 +6,43 @@ using NFun.Types;
 
 namespace NFun.Interpritation.Functions
 {
+    public abstract class FunctionWithSingleArg : IConcreteFunction
+    {
+        protected FunctionWithSingleArg(string name, VarType returnType, VarType argType)
+        {
+            Name = name;
+            ArgTypes = new[] {argType};
+            ReturnType = returnType;
+        }
+
+        public string Name { get; }
+        public VarType[] ArgTypes { get; }
+        public VarType ReturnType { get; }
+        public abstract object Calc(object a);
+
+        public IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children, Interval interval)
+        {
+            var i = 0;
+            var argNode = children[0];
+            var toType = ArgTypes[i];
+            var fromType = argNode.Type;
+            var castedNode = argNode;
+
+            if (fromType != toType && !(argNode is MetaInfoExpressionNode))
+            {
+                var converter = VarTypeConverter.GetConverterOrThrow(fromType, toType, argNode.Interval);
+                castedNode = new CastExpressionNode(argNode, toType, converter, argNode.Interval);
+            }
+
+            i++;
+
+            return new FunOfSingleArgExpressionNode(this, castedNode, interval);
+        }
+    }
+
     public abstract class FunctionWithTwoArgs : IConcreteFunction
     {
-        protected FunctionWithTwoArgs(string name,  VarType returnType, VarType[] argTypes)
+        protected FunctionWithTwoArgs(string name,  VarType returnType, params VarType[] argTypes)
         {
             Name = name;
             ArgTypes = argTypes;
@@ -40,7 +74,7 @@ namespace NFun.Interpritation.Functions
                 i++;
             }
 
-            return new FunOf2ArgsExpressionNode(this, castedChildren, interval);
+            return new FunOf2ArgsExpressionNode(this, castedChildren[0], castedChildren[1], interval);
         }
 
         
