@@ -11,7 +11,6 @@ namespace NFun.SyntaxParsing.Visitors
         public virtual VisitorEnterResult Visit(EquationSyntaxNode node)=> DefaultVisitEnter(node);
         public virtual VisitorEnterResult Visit(FunCallSyntaxNode node)=> DefaultVisitEnter(node);
         public virtual VisitorEnterResult Visit(ResultFunCallSyntaxNode node) => DefaultVisitEnter(node);
-        public virtual VisitorEnterResult Visit(MetaInfoSyntaxNode node) => DefaultVisitEnter(node);
         public virtual VisitorEnterResult Visit(SuperAnonymFunctionSyntaxNode node) => DefaultVisitEnter(node);
         public virtual VisitorEnterResult Visit(IfThenElseSyntaxNode node)=> DefaultVisitEnter(node);
         public virtual VisitorEnterResult Visit(IfCaseSyntaxNode node)=> DefaultVisitEnter(node);

@@ -202,18 +202,6 @@ namespace NFun.Interpritation
             return CreateFunctionCall(node, function);
         }
 
-        public IExpressionNode Visit(MetaInfoSyntaxNode node)
-        {
-            if (node.NamedIdSyntaxNode.IdType != NamedIdNodeType.Variable)
-                throw FunParseException.ErrorStubToDo("Only variables are allowed as argument of metafunctions");
-            
-            //registrate var node
-            GetOrAddVariableNode(node.NamedIdSyntaxNode);
-            var id = node.NamedIdSyntaxNode.Id;
-            if (!_typeInferenceResults.HasVariable(id))
-                throw FunParseException.ErrorStubToDo($"Variable {id} not exist in the scope");
-            return new MetaInfoExpressionNode(_variables, id , node.Interval);
-         }
 
         public IExpressionNode Visit(IfThenElseSyntaxNode node)
         {
@@ -275,7 +263,66 @@ namespace NFun.Interpritation
                 var varVal = (VarVal)node.IdContent;
                 return new ConstantExpressionNode(varVal.Value, varVal.Type, node.Interval);
             }
-            return GetOrAddVariableNode(node);
+
+            var funVariable = _typeInferenceResults.GetFunctionalVariableOrNull(node.OrderNumber);
+            if (funVariable != null)
+            {
+                if (funVariable is IGenericFunction genericFunction)
+                {
+                    var genericTypes = _typeInferenceResults.GetGenericCallArguments(node.OrderNumber);
+                    if (genericTypes == null)
+                        throw new ImpossibleException($"MJ79. Generic function is missed at {node.OrderNumber}:  {node.Id}`{genericFunction.Name} ");
+
+                    var genericArgs = new VarType[genericTypes.Length];
+                    for (int i = 0; i < genericTypes.Length; i++)
+                        genericArgs[i] = _typesConverter.Convert(genericTypes[i]);
+
+                    var function = genericFunction.CreateConcrete(genericArgs); 
+                    return new FunVariableExpressionNode(function, node.Interval);
+
+                }
+                else if (funVariable is IConcreteFunction concrete)
+                    return new FunVariableExpressionNode(concrete, node.Interval);
+            }
+            
+            var lower = node.Id;
+            if (_variables.GetSourceOrNull(lower) == null)
+            {
+                //if it is not a variable it might be a functional-variable
+                var funVars = _functions.GetOverloads(lower);
+                if (funVars.Count > 0)
+                {
+                    var specification = node.OutputType.FunTypeSpecification;
+                    if (specification == null)
+                        throw ErrorFactory.FunctionNameAndVariableNameConflict(node);
+
+                    if (funVars.Count > 1)
+                    {
+                        //several function with such name are appliable
+                        var result = funVars.Where(f =>
+                                f.ReturnType == specification.Output && f.ArgTypes.SequenceEqual(specification.Inputs))
+                            .ToList();
+                        if (result.Count == 0)
+                            throw ErrorFactory.FunctionIsNotExists(node);
+                        if (result.Count > 1)
+                            throw ErrorFactory.AmbiguousFunctionChoise(node);
+                        if (result[0] is IConcreteFunction ff)
+                            return new FunVariableExpressionNode(ff, node.Interval);
+                        else
+                            throw new NotImplementedException("GenericsAreNotSupp");
+                    }
+
+                    if (funVars.Count == 1)
+                    {
+                        if (funVars[0] is IConcreteFunction ff)
+                            return new FunVariableExpressionNode(ff, node.Interval);
+                    }
+                }
+            }
+            var node1 = _variables.CreateVarNode(node.Id, node.Interval, node.OutputType);
+            if(node1.Source.Name!= node.Id)
+                throw ErrorFactory.InputNameWithDifferentCase(node.Id, node1.Source.Name, node.Interval);
+            return node1;
         }
 
         #region not an expression
@@ -354,68 +401,5 @@ namespace NFun.Interpritation
 
         private IExpressionNode ReadNode(ISyntaxNode node) 
             => node.Accept(this);
-        
-        private IExpressionNode GetOrAddVariableNode(NamedIdSyntaxNode varNode)
-        {
-            var funVariable = _typeInferenceResults.GetFunctionalVariableOrNull(varNode.OrderNumber);
-            if (funVariable != null)
-            {
-                if (funVariable is IGenericFunction genericFunction)
-                {
-                    var genericTypes = _typeInferenceResults.GetGenericCallArguments(varNode.OrderNumber);
-                    if (genericTypes == null)
-                        throw new ImpossibleException($"MJ79. Generic function is missed at {varNode.OrderNumber}:  {varNode.Id}`{genericFunction.Name} ");
-
-                    var genericArgs = new VarType[genericTypes.Length];
-                    for (int i = 0; i < genericTypes.Length; i++)
-                        genericArgs[i] = _typesConverter.Convert(genericTypes[i]);
-
-                    var function = genericFunction.CreateConcrete(genericArgs); 
-                    return new FunVariableExpressionNode(function, varNode.Interval);
-
-                }
-                else if (funVariable is IConcreteFunction concrete)
-                    return new FunVariableExpressionNode(concrete, varNode.Interval);
-            }
-            
-            var lower = varNode.Id;
-            if (_variables.GetSourceOrNull(lower) == null)
-            {
-                //if it is not a variable it might be a functional-variable
-                var funVars = _functions.GetOverloads(lower);
-                if (funVars.Count > 0)
-                {
-                    var specification = varNode.OutputType.FunTypeSpecification;
-                    if (specification == null)
-                        throw ErrorFactory.FunctionNameAndVariableNameConflict(varNode);
-
-                    if (funVars.Count > 1)
-                    {
-                        //several function with such name are appliable
-                        var result = funVars.Where(f =>
-                                f.ReturnType == specification.Output && f.ArgTypes.SequenceEqual(specification.Inputs))
-                            .ToList();
-                        if (result.Count == 0)
-                            throw ErrorFactory.FunctionIsNotExists(varNode);
-                        if (result.Count > 1)
-                            throw ErrorFactory.AmbiguousFunctionChoise(varNode);
-                        if (result[0] is IConcreteFunction ff)
-                            return new FunVariableExpressionNode(ff, varNode.Interval);
-                        else
-                            throw new NotImplementedException("GenericsAreNotSupp");
-                    }
-
-                    if (funVars.Count == 1)
-                    {
-                        if (funVars[0] is IConcreteFunction ff)
-                            return new FunVariableExpressionNode(ff, varNode.Interval);
-                    }
-                }
-            }
-            var node = _variables.CreateVarNode(varNode.Id, varNode.Interval, varNode.OutputType);
-            if(node.Source.Name!= varNode.Id)
-                throw ErrorFactory.InputNameWithDifferentCase(varNode.Id, node.Source.Name, varNode.Interval);
-            return node;
-        }
     }
 }

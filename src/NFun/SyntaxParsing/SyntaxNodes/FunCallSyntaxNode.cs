@@ -35,8 +35,5 @@ namespace NFun.SyntaxParsing.SyntaxNodes
         /// Setted after Ti-algorithm applied 
         /// </summary>
         public LangFunctionSignature SignatureOfOverload { get; set; }
-
-        public void TransformToMetafunction(NamedIdSyntaxNode node) 
-            => Args[0] = new MetaInfoSyntaxNode(node);
     }
 }
