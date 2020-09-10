@@ -31,8 +31,6 @@ namespace NFun.Interpritation.Nodes
         public object Calc()
         {
             var res = _origin.Calc();
-            if (res is IFunConvertable c && Type!= VarType.Anything)
-                return _converter(c.GetValue());
             return _converter(res);
         }
     }

@@ -253,7 +253,6 @@
           <e p="AdditionalTypeSpecification.cs" t="Include" />
           <e p="BaseVarType.cs" t="Include" />
           <e p="FunTypeSpecification.cs" t="Include" />
-          <e p="IFunConvertable.cs" t="Include" />
           <e p="TypeHelper.cs" t="Include" />
           <e p="VarInfo.cs" t="Include" />
           <e p="VarType.cs" t="Include" />

@@ -56,15 +56,17 @@ namespace NFun.Runtime
 
         public void SetConvertedValue(object valueValue)
         {
-            //Unboxing special value
-            if (valueValue is IFunConvertable c)
+            if (Type.BaseType.GetClrType() == valueValue.GetType())
             {
-                Value = c;
+                Value = valueValue;
                 return;
             }
-            
             switch (Type.BaseType)
             {
+                case BaseVarType.ArrayOf:
+                case BaseVarType.Any:
+                    Value = valueValue;
+                    break;
                 case BaseVarType.Bool:
                     Value = Convert.ToBoolean(valueValue);
                     break;
@@ -94,10 +96,6 @@ namespace NFun.Runtime
                     break;
                 case BaseVarType.Char:
                     Value = valueValue?.ToString() ?? "";
-                    break;
-                case BaseVarType.ArrayOf:
-                case BaseVarType.Any:
-                    Value = valueValue;
                     break;
                 default:
                     throw new NotSupportedException();

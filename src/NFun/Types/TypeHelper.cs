@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using NFun.Runtime;
 using NFun.Runtime.Arrays;
 
@@ -9,6 +10,33 @@ namespace NFun.Types
 {
     public static class TypeHelper
     {
+
+        static TypeHelper()
+        {
+            FunToClrTypesMap = new[]
+            {
+                null,
+                typeof(char),
+                typeof(bool),
+                typeof(byte),
+                typeof(ushort),
+                typeof(uint),
+                typeof(ulong),
+                typeof(short),
+                typeof(int),
+                typeof(long),
+                typeof(double),
+                null,
+                null,
+                null,
+                typeof(object)
+            };
+        }
+        private static readonly Type[] FunToClrTypesMap;
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Type GetClrType (this BaseVarType varType) => FunToClrTypesMap[(int) varType];
+
         public static string GetFunSignature<T>(string name, T returnType, IEnumerable<T> arguments)
             => name + "(" + string.Join(",", arguments) + "):" + returnType;
         public static string GetFunSignature<T>(T returnType, IEnumerable<T> arguments)
