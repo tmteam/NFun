@@ -7,7 +7,7 @@ namespace NFun.TypeInferenceCalculator
 {
     public class FinalizationResults
     {
-        public FinalizationResults(SolvingNode[] typeVariables, SolvingNode[] namedNodes, SolvingNode[] syntaxNodes)
+        public FinalizationResults(HashSet<SolvingNode> typeVariables, IList<SolvingNode> namedNodes, IList<SolvingNode> syntaxNodes)
         {
             TypeVariables = typeVariables;
             NamedNodes = namedNodes;
@@ -25,9 +25,9 @@ namespace NFun.TypeInferenceCalculator
         public IEnumerable<SolvingNode> Generics => AllNodes.Where(t => t?.State is Constrains);
         public int GenericsCount => AllNodes.Count(t => t?.State is Constrains);
 
-        public SolvingNode[] TypeVariables { get; }
-        public SolvingNode[] NamedNodes { get; }
-        public SolvingNode[] SyntaxNodes { get; }
+        private HashSet<SolvingNode> TypeVariables { get; }
+        private IList<SolvingNode> NamedNodes { get; }
+        private IList<SolvingNode> SyntaxNodes { get; }
         public IEnumerable<Constrains> GetAllGenerics => AllNodes.Select(a => a?.State).OfType<Constrains>();
         public IState[] GetSyntaxNodes() => SyntaxNodes.Select(s => s?.State).ToArray();
 

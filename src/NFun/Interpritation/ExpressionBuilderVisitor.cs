@@ -305,7 +305,7 @@ namespace NFun.Interpritation
         private IExpressionNode BuildAnonymousFunction(Interval interval, ISyntaxNode body,
             VariableDictionary localVariables, VariableSource[] arguments)
         {
-            var sources = localVariables.GetAllSources();
+            var sources = localVariables.GetAllSources().ToArray();
             var originVariables = new string[sources.Length];
             for (int i = 0; i < originVariables.Length; i++) originVariables[i] = sources[i].Name;
 

@@ -28,7 +28,7 @@ namespace NFun.Interpritation
 #if DEBUG
             TraceLog.WriteLine($"\r\n====BUILD CONCRETE {functionSyntax.Id}(..) ====");
 #endif
-            var vars = new VariableDictionary();
+            var vars = new VariableDictionary(functionSyntax.Args.Count);
             for (int i = 0; i < functionSyntax.Args.Count; i++)
             {
                 var variableSource = RuntimeBuilderHelper.CreateVariableSourceForArgument(
@@ -52,7 +52,7 @@ namespace NFun.Interpritation
 
             var function = ConcreteUserFunction.Create(
                 name: functionSyntax.Id,
-                variables: vars.GetAllSources(),
+                variables: vars.GetAllSources().ToArray(),
                 isReturnTypeStrictlyTyped: functionSyntax.ReturnType != VarType.Empty,
                 expression: bodyExpression);
             return function;

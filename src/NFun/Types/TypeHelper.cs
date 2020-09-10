@@ -41,11 +41,7 @@ namespace NFun.Types
             => name + "(" + string.Join(",", arguments) + "):" + returnType;
         public static string GetFunSignature<T>(T returnType, IEnumerable<T> arguments)
             => "(" + string.Join(",", arguments) + "):" + returnType;
-       
-        public static IEnumerable<string> GetListOfStringOrThrow(object arr)
-        {
-             return ((IFunArray) arr).Select(TypeHelper.GetTextOrThrow);
-        }
+
         public static IEnumerable<string> GetListOfStringOrThrow(this object[] arr, int index) => ((IFunArray) arr[index]).Select(TypeHelper.GetTextOrThrow);
 
         public static string GetTextOrThrow(object obj)

@@ -181,7 +181,7 @@ namespace NFun.Tic
 
         #region Finalize
         public static FinalizationResults FinalizeUp(SolvingNode[] toposortedNodes, 
-            SolvingNode[] outputNodes, SolvingNode[] inputNodes)
+            IEnumerable<SolvingNode> outputNodes, IEnumerable<SolvingNode> inputNodes)
         {
             var typeVariables = new HashSet<SolvingNode>();
             var namedNodes = new List<SolvingNode>();
@@ -229,8 +229,9 @@ namespace NFun.Tic
                 }
             }
 
-            foreach (var node in toposortedNodes.Reverse())
+            for (int i = toposortedNodes.Length - 1; i >= 0; i--)
             {
+                var node = toposortedNodes[i];
                 Finalize(node);
 
                 foreach (var member in node.GetAllLeafTypes())
@@ -254,13 +255,13 @@ namespace NFun.Tic
             }
 
             SolveUselessGenerics(toposortedNodes, outputNodes, inputNodes);
-            return new FinalizationResults(typeVariables.ToArray(), namedNodes.ToArray(), syntaxNodes.ToArray());
+            return new FinalizationResults(typeVariables, namedNodes, syntaxNodes);
         }
 
         private static void SolveUselessGenerics(
-            SolvingNode[] toposortedNodes,
-            SolvingNode[] outputNodes,
-            SolvingNode[] inputNodes)
+            IEnumerable<SolvingNode> toposortedNodes,
+            IEnumerable<SolvingNode> outputNodes,
+            IEnumerable<SolvingNode> inputNodes)
         {
 
             //All not solved output types

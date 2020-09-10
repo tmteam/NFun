@@ -406,9 +406,7 @@ namespace NFun.Tic
             }
 #endif
 
-            var results = DestructionFunctions.FinalizeUp(sorted, 
-                _outputNodes.ToArray(),
-                _inputNodes.ToArray());
+            var results = DestructionFunctions.FinalizeUp(sorted, _outputNodes, _inputNodes);
 #if DEBUG
             if (TraceLog.IsEnabled)
             {

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using NFun.Interpritation.Nodes;
@@ -8,33 +9,39 @@ namespace NFun.Runtime
 {
     public class VariableDictionary
     {
-        private readonly Dictionary<string,VariableUsages> _variables 
-            = new Dictionary<string, VariableUsages>();
+        private readonly Dictionary<string, VariableUsages> _variables;
 
-        public VariableDictionary(){}
+        public VariableDictionary()
+        {
+            _variables = new Dictionary<string, VariableUsages>(StringComparer.OrdinalIgnoreCase);
+        }
+
+        public VariableDictionary(int capacity)
+        {
+            _variables = new Dictionary<string, VariableUsages>(capacity, StringComparer.OrdinalIgnoreCase);
+        }
         
         public VariableDictionary(IEnumerable<VariableSource> sources)
         {
+            _variables = new Dictionary<string, VariableUsages>(StringComparer.OrdinalIgnoreCase);
+
             foreach (var variableSource in sources)
             {
-                _variables.Add(variableSource.Name.ToLower(), new VariableUsages(variableSource));
+                _variables.Add(variableSource.Name, new VariableUsages(variableSource));
             }
         }
         
-        public void AddOrReplace(VariableSource source)
-        {
-            var lower = source.Name.ToLower();
-            _variables[lower] = new VariableUsages(source);
-        }
+        public void AddOrReplace(VariableSource source) => _variables[source.Name] = new VariableUsages(source);
+
         /// <summary>
         /// Returns false if variable is already registered
         /// </summary>
         public bool TryAdd(VariableSource source)
         {
-            var lower = source.Name.ToLower();
-            if (_variables.ContainsKey(lower))
+            var name = source.Name;
+            if (_variables.ContainsKey(name))
                 return false;
-            _variables.Add(lower, new VariableUsages(source));
+            _variables.Add(name, new VariableUsages(source));
             return true;
         }
         
@@ -43,19 +50,19 @@ namespace NFun.Runtime
         /// </summary>
         public bool TryAdd(VariableUsages usages)
         {
-            var lower = usages.Source.Name.ToLower();
-
-            if (_variables.ContainsKey(lower))
+            var name = usages.Source.Name;
+            if (_variables.ContainsKey(name))
                 return false;
-            _variables.Add(lower, usages);
+            _variables.Add(name, usages);
             return true;
         }
             
         public VariableSource GetSourceOrNull(string id)
         {
-            if (!_variables.TryGetValue(id.ToLower(), out var v)) 
+            if (!_variables.TryGetValue(id, out var v)) 
                 return null;
             
+            //Check strings case
             if (v.Source.Name != id)
                 return null;
             
@@ -64,14 +71,14 @@ namespace NFun.Runtime
         
         public VariableExpressionNode CreateVarNode(string id, Interval interval, VarType type)
         {
-            var name = id.ToLower();
-            if (!_variables.ContainsKey(name))
+            if (!_variables.TryGetValue(id, out  var usage))
             {
                 var source = VariableSource.CreateWithoutStrictTypeLabel(id, type);
-                _variables.Add(name, new VariableUsages(source));
+                usage = new VariableUsages(source);
+                _variables.Add(id, usage);
             }
-            var node = new VariableExpressionNode(_variables[name].Source,interval);
-            _variables[name].Usages.AddLast(node);
+            var node = new VariableExpressionNode(usage.Source,interval);
+            usage.Usages.AddLast(node);
             return node;
         }
 
@@ -85,13 +92,14 @@ namespace NFun.Runtime
 
             return null;
         }
+        
         public VariableUsages GetUsages(string id) 
-            => _variables[id.ToLower()];
+            => _variables[id];
 
-        public VariableUsages[] GetAllUsages() 
-            => _variables.Values.ToArray();
+        public IEnumerable<VariableUsages> GetAllUsages() 
+            => _variables.Values.AsEnumerable();
 
-        public VariableSource[] GetAllSources() 
-            => _variables.Values.Select(v => v.Source).ToArray();
+        public IEnumerable<VariableSource> GetAllSources() 
+            => _variables.Values.Select(v => v.Source);
     }
 }

@@ -1,6 +1,6 @@
 using System;
 using System.Linq;
-using System.Xml.Schema;
+using System.Text;
 using NFun.Interpritation.Functions;
 using NFun.Runtime.Arrays;
 using NFun.Types;
@@ -13,8 +13,13 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object a)
         {
-            var strings = TypeHelper.GetListOfStringOrThrow(a);
-            return new TextFunArray(string.Join("", strings));
+            var sb = new StringBuilder();
+            foreach (var subElement in (IFunArray) a)
+            {
+                var text = TypeHelper.GetTextOrThrow(subElement);
+                sb.Append(text);
+            }
+            return new TextFunArray(sb.ToString());
         }
     }
     public class FormatTextFunction : FunctionWithManyArguments

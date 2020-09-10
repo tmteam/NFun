@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using NFun.Tic.SolvingStates;
 using NFun.TypeInferenceCalculator;
 using Array = NFun.Tic.SolvingStates.Array;
@@ -32,7 +31,7 @@ namespace NFun.Tic
         public SolvingNodeType Type { get; }
         public List<SolvingNode> Ancestors { get; } = new List<SolvingNode>();
         public List<SolvingNode> MemberOf { get; } = new List<SolvingNode>();
-        public bool IsSolved => State is Primitive || (State as Array)?.IsSolved == true;
+        public bool IsSolved => _state is Primitive || (_state as Array)?.IsSolved == true;
 
         public IState State
         {
@@ -56,10 +55,10 @@ namespace NFun.Tic
         public string Name { get; }
         public override string ToString()
         {
-            if (Name == State.ToString())
+            if (Name == _state.ToString())
                 return Name;
             else 
-                return $"{Name}:{State}";
+                return $"{Name}:{_state}";
         }
 
         public void PrintToConsole()

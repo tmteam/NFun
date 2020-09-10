@@ -39,7 +39,17 @@ namespace NFun.Tic.Toposort
             //Do toposort
             var graph = ConvertToArrayGraph(nonReferenceNOdes);
             var sorted = GraphTools.SortTopology(graph);
-            var order = sorted.NodeNames.Select(n => nonReferenceNOdes[n.To]).Reverse().ToArray();
+
+            
+            //var order = sorted.NodeNames.Select(n => nonReferenceNOdes[n.To]).Reverse().ToArray();
+            var order = new SolvingNode[sorted.NodeNames.Count];
+            int pos = 0;
+            for (int i = sorted.NodeNames.Count - 1; i >= 0; i--)
+            {
+                var nodeName = sorted.NodeNames[i];
+                order[pos] = nonReferenceNOdes[nodeName.To];
+                pos++;
+            }
             
             return new NodeSortResult(order, referenceNodes, 
                 sorted.HasLoop
@@ -109,13 +119,18 @@ namespace NFun.Tic.Toposort
             {
                 var refList = FindRefNodesGraph(nodes);
 
-                var arrayOfRefList = refList.ToArray();
-                var refGraph = ConvertToRefArrayGraph(arrayOfRefList);
+                var refGraph = ConvertToRefArrayGraph(refList);
                 var refTopology = GraphTools.SortTopology(refGraph);
                 if (!refTopology.HasLoop)
                     return;
-                
-                var refCycle = refTopology.NodeNames.Select(n => nodes[n.To]).ToArray();
+
+                //var refCycle = refTopology.NodeNames.Select(n => nodes[n.To]).ToArray();
+                var refCycle = new SolvingNode[refTopology.NodeNames.Count];
+                for (int i = 0; i < refCycle.Length; i++)
+                {
+                    var to = refTopology.NodeNames[i].To;
+                    refCycle[i] = nodes[to];
+                }
                 SolvingFunctions.MergeGroup(refCycle);
             }
         }
@@ -136,11 +151,16 @@ namespace NFun.Tic.Toposort
             return refList;
         }
 
-        public static Edge[][] ConvertToRefArrayGraph(SolvingNode[] allNodes)
+        public static Edge[][] ConvertToRefArrayGraph(LinkedList<SolvingNode> allNodes)
         {
-            var graph = new LinkedList<Edge>[allNodes.Length];
-            for (int i = 0; i < allNodes.Length; i++)
-                allNodes[i].GraphId = i;
+            var graph = new LinkedList<Edge>[allNodes.Count];
+
+            int i = 0;
+            foreach (var solvingNode in allNodes)
+            {
+                solvingNode.GraphId = i;
+                i++;
+            }
 
             foreach (var node in allNodes)
             {

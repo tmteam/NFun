@@ -68,15 +68,14 @@ namespace NFun.TypeInferenceAdapter
         }
         public TypeInferenceResults Build()
         {
-            //todo remove ToArray allocations
             return new TypeInferenceResults(
                 genericFunctionTypes: _genericFunctionTypes.ToArray(), 
                 syntaxNodeTypes: _syntaxNodeTypes, 
                 generics: _constrainses.ToArray(),
                 namedNodes: _namedNodes,
-                functionSignatures: _functionSignatures.ToArray(),
-                functionalVariables: _functionalVariable.ToArray(),
-                recursiveCalls: _recursiveCalls.ToArray()
+                functionSignatures: _functionSignatures,
+                functionalVariables: _functionalVariable,
+                recursiveCalls: _recursiveCalls
                 );
         }
 
@@ -89,7 +88,6 @@ namespace NFun.TypeInferenceAdapter
         private void SetNamedNodes(Dictionary<string, IState> namedNodes) 
             => _namedNodes = namedNodes;
 
-
         public void RememberRecursiveCall(int id, Fun userFunction)
         {
             while (_recursiveCalls.Count <= id)
@@ -100,18 +98,18 @@ namespace NFun.TypeInferenceAdapter
     public class TypeInferenceResults
     {
         private Dictionary<string, IState> _namedNodes;
-        private readonly IFunctionSignature[] _functions;
-        private readonly IFunctionSignature[] _functionalVariables;
-        private readonly Fun[] _recursiveCalls;
+        private readonly IList<IFunctionSignature> _functions;
+        private readonly IList<IFunctionSignature> _functionalVariables;
+        private readonly IList<Fun> _recursiveCalls;
 
         public TypeInferenceResults(
             RefTo[][] genericFunctionTypes, 
             IState[] syntaxNodeTypes, 
             Constrains[] generics,
             Dictionary<string, IState> namedNodes,
-            IFunctionSignature[] functionSignatures,
-            IFunctionSignature[] functionalVariables, 
-            Fun[] recursiveCalls
+            IList<IFunctionSignature> functionSignatures,
+            IList<IFunctionSignature> functionalVariables, 
+            IList<Fun> recursiveCalls
             )
         {
             GenericFunctionTypes = genericFunctionTypes;
@@ -124,13 +122,13 @@ namespace NFun.TypeInferenceAdapter
         }
         public IFunctionSignature GetSignatureOrNull(int id)
         {
-            if (_functions.Length <= id)
+            if (_functions.Count <= id)
                 return null;
             return _functions[id];
         }
         public IFunctionSignature GetFunctionalVariableOrNull(int id)
         {
-            if (_functionalVariables.Length <= id)
+            if (_functionalVariables.Count <= id)
                 return null;
             return _functionalVariables[id];
         }
@@ -142,7 +140,7 @@ namespace NFun.TypeInferenceAdapter
         }
         public Fun GetRecursiveCallOrNull(int id)
         {
-            if (_recursiveCalls.Length <= id)
+            if (_recursiveCalls.Count <= id)
                 return null;
             return _recursiveCalls[id];
         }

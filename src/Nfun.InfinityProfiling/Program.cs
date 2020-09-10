@@ -13,7 +13,7 @@ namespace Nfun.InfinityProfiling
             Console.WriteLine("Press esc to exit");
 
             Action<IProfileSet> runner;
-            bool runOnlySimpliest = true;
+            bool runOnlySimpliest = false;
             int reportTime;
 
             RunAll(runOnlySimpliest);
