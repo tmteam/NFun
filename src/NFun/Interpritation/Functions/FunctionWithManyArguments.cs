@@ -20,6 +20,10 @@ namespace NFun.Interpritation.Functions
         public VarType ReturnType { get; }
         public abstract object Calc(object a);
 
+        public object Calc(object[] parameters)
+            => Calc(parameters[0]);
+
+
         public IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children, Interval interval)
         {
             var i = 0;
@@ -39,7 +43,7 @@ namespace NFun.Interpritation.Functions
             return new FunOfSingleArgExpressionNode(this, castedNode, interval);
         }
     }
-
+        
     public abstract class FunctionWithTwoArgs : IConcreteFunction
     {
         protected FunctionWithTwoArgs(string name,  VarType returnType, params VarType[] argTypes)
@@ -52,7 +56,9 @@ namespace NFun.Interpritation.Functions
         public VarType[] ArgTypes { get; }
         public VarType ReturnType { get; }
         public abstract object Calc(object a, object b);
-        
+
+        public object Calc(object[] parameters) => Calc(parameters[0], parameters[1]);
+
         public IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children,  Interval interval)
         {
             var castedChildren = new IExpressionNode[children.Count];
@@ -76,15 +82,12 @@ namespace NFun.Interpritation.Functions
 
             return new FunOf2ArgsExpressionNode(this, castedChildren[0], castedChildren[1], interval);
         }
-
-        
-
     }
-    public abstract class FunctionBase: IConcreteFunction
+    public abstract class FunctionWithManyArguments: IConcreteFunction
     {
         public string Name { get; }
         public VarType[] ArgTypes { get; }
-        protected FunctionBase(string name,  VarType returnType, params VarType[] argTypes)
+        protected FunctionWithManyArguments(string name,  VarType returnType, params VarType[] argTypes)
         {
             Name = name;
             ArgTypes = argTypes;
@@ -114,7 +117,7 @@ namespace NFun.Interpritation.Functions
                 i++;
             }
 
-            return new FunExpressionNode(this, castedChildren, interval);
+            return new FunOfManyArgsExpressionNode(this, castedChildren, interval);
         }
 
         public override string ToString() 

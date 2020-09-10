@@ -75,7 +75,7 @@ namespace Nfun.ModuleTests
         protected override object Calc(object[] args) 
             => throw new InvalidOperationException();
     }
-    class PapaFunction : FunctionBase
+    class PapaFunction : FunctionWithManyArguments
     {
         public const string PapaReturn = "papa is here";
         public PapaFunction(string name) : base(name, VarType.Text)
@@ -84,7 +84,7 @@ namespace Nfun.ModuleTests
 
         public override object Calc(object[] args) => PapaReturn;
     }
-    class MamaFunction: FunctionBase
+    class MamaFunction: FunctionWithManyArguments
     {
         public const string MamaReturn = "mama called";
 

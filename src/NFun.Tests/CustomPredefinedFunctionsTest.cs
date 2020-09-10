@@ -61,7 +61,7 @@ namespace Funny.Tests
         protected override object Calc(object[] args) => _calc(args);
     }
 
-    public class  FunctionMock: FunctionBase
+    public class  FunctionMock: FunctionWithManyArguments
     {
         private readonly Func<object[], object> _calc;
 

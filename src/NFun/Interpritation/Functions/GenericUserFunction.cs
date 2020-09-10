@@ -75,7 +75,7 @@ namespace NFun.Interpritation.Functions
             _syntaxNode = syntaxNode;
             _dictionary = dictionary;
         }
-        Dictionary<string, FunctionBase> _concreteFunctionsCache = new Dictionary<string, FunctionBase>();
+        Dictionary<string, IConcreteFunction> _concreteFunctionsCache = new Dictionary<string, IConcreteFunction>();
         public override IConcreteFunction CreateConcrete(VarType[] concreteTypes)
         {
             var id = string.Join(",", concreteTypes);

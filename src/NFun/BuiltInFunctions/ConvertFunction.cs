@@ -162,7 +162,7 @@ namespace NFun.BuiltInFunctions
             
             return null;
         }
-        class ConcreteConverter:FunctionBase
+        class ConcreteConverter:FunctionWithManyArguments
         {
             private readonly Func<object, object> _converter;
 
@@ -182,9 +182,6 @@ namespace NFun.BuiltInFunctions
                 }
             }
         }
-
-        protected override object Calc(object[] args) => throw new NotSupportedException();
-
 
         private static byte[] GetArrayOfSize(object array, int size)
         {

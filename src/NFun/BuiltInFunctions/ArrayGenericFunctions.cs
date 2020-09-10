@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NFun.Interpritation.Functions;
-using NFun.ParseErrors;
 using NFun.Runtime.Arrays;
 using NFun.Types;
 
@@ -40,7 +39,7 @@ namespace NFun.BuiltInFunctions
         }
     }
 
-    public class CountFunction : GenericFunctionBase
+    public class CountFunction : GenericFunctionWithSingleArgument
     {
         public CountFunction() : base("count",
             VarType.Int32,
@@ -48,10 +47,10 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        protected override object Calc(object[] args)
-            => ((IFunArray)args[0]).Count;
+        protected override object Calc(object a)
+            => ((IFunArray)a).Count;
     }
-    public class MapFunction : GenericFunctionBase
+    public class MapFunction : GenericFunctionWithTwoArguments
     {
         public MapFunction() : base("map",
             VarType.ArrayOf(VarType.Generic(1)),
@@ -60,13 +59,16 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        protected override object Calc(object[] args)
+        protected override object Calc(object a, object b)
         {
-            var arr = (IFunArray)args[0];
-            var map = args[1] as FunctionBase;
-
-            var res = new EnumerableFunArray(arr.Select(a => map.Calc(new[] { a })));
-            return res;
+            var arr = (IFunArray)a;
+            
+            if(b is FunctionWithSingleArg mapFunc)
+                return new EnumerableFunArray(arr.Select(e=>mapFunc.Calc(e)));
+            
+            var map = (IConcreteFunction)b;
+            
+            return new EnumerableFunArray(arr.Select(e => map.Calc(new[] { e })));
         }
     }
     public class IsInSingleGenericFunctionDefenition : GenericFunctionBase
@@ -179,8 +181,6 @@ namespace NFun.BuiltInFunctions
         public MultiSumFunction() : base(id, GenericConstrains.Arithmetical, VarType.Generic(0), VarType.ArrayOf(VarType.Generic(0))){
         }
 
-        protected override object Calc(object[] args)
-            =>  throw new NotSupportedException();        
 
         public override IConcreteFunction CreateConcrete(VarType[] concreteTypes)
         {
@@ -198,13 +198,13 @@ namespace NFun.BuiltInFunctions
             }
         }
 
-        public class RealFunction : FunctionBase
+        public class RealFunction : FunctionWithManyArguments
         {
             public RealFunction() : base(id, VarType.Real, VarType.ArrayOf(VarType.Real)) { }
 
             public override object Calc(object[] args) => ((IFunArray) args[0]).As<double>().Sum();
         }
-        public class Int16Function : FunctionBase
+        public class Int16Function : FunctionWithManyArguments
         {
             public Int16Function() : base(id, VarType.Int16, VarType.ArrayOf(VarType.Int16)) { }
             public override object Calc(object[] args)
@@ -215,17 +215,17 @@ namespace NFun.BuiltInFunctions
                 return answer;
             }
         }
-        public class Int32Function : FunctionBase
+        public class Int32Function : FunctionWithManyArguments
         {
             public Int32Function() : base(id, VarType.Int32, VarType.ArrayOf(VarType.Int32)) { }
             public override object Calc(object[] args) => ((IFunArray) args[0]).As<int>().Sum();
         }
-        public class Int64Function : FunctionBase
+        public class Int64Function : FunctionWithManyArguments
         {
             public Int64Function() : base(id, VarType.Int64, VarType.ArrayOf(VarType.Int64)) { }
             public override object Calc(object[] args) => ((IFunArray) args[0]).As<long>().Sum();
         }
-        public class UInt16Function : FunctionBase
+        public class UInt16Function : FunctionWithManyArguments
         {
             public UInt16Function() : base(id, VarType.UInt16, VarType.ArrayOf(VarType.UInt16)) { }
             public override object Calc(object[] args)
@@ -236,7 +236,7 @@ namespace NFun.BuiltInFunctions
                 return answer;
             }
         }
-        public class UInt32Function : FunctionBase
+        public class UInt32Function : FunctionWithManyArguments
         {
             public UInt32Function() : base(id, VarType.UInt32, VarType.ArrayOf(VarType.UInt32)) { }
             public override object Calc(object[] args)
@@ -247,7 +247,7 @@ namespace NFun.BuiltInFunctions
                 return answer;
             }
         }
-        public class UInt64Function : FunctionBase
+        public class UInt64Function : FunctionWithManyArguments
         {
             public UInt64Function() : base(id, VarType.UInt64, VarType.ArrayOf(VarType.UInt64)) { }
             public override object Calc(object[] args)
@@ -295,10 +295,8 @@ namespace NFun.BuiltInFunctions
             }
         }
 
-        protected override object Calc(object[] args) => throw new NotImplementedException();
-
         private const string id = "range";
-        class Int16Function : FunctionBase
+        class Int16Function : FunctionWithManyArguments
         {
             public Int16Function() : base(id, VarType.ArrayOf(VarType.Int16), VarType.Int16, VarType.Int16) { }
             public override object Calc(object[] args)
@@ -335,7 +333,7 @@ namespace NFun.BuiltInFunctions
                         result.Add(i);
                 return new ImmutableFunArray(result.ToArray());            }
         }
-        class Int64Function : FunctionBase
+        class Int64Function : FunctionWithManyArguments
         {
             public Int64Function() : base(id, VarType.ArrayOf(VarType.Int64), VarType.Int64, VarType.Int64) { }
 
@@ -354,7 +352,7 @@ namespace NFun.BuiltInFunctions
                 return new ImmutableFunArray(result.ToArray());
             }
         }
-        class UInt8Function : FunctionBase
+        class UInt8Function : FunctionWithManyArguments
         {
             public UInt8Function() : base(id, VarType.ArrayOf(VarType.UInt8), VarType.UInt8, VarType.UInt8) { }
             public override object Calc(object[] args)
@@ -372,7 +370,7 @@ namespace NFun.BuiltInFunctions
                 return new ImmutableFunArray(result.ToArray());
             }
         }
-        class UInt16Function : FunctionBase
+        class UInt16Function : FunctionWithManyArguments
         {
             public UInt16Function() : base(id, VarType.ArrayOf(VarType.UInt16), VarType.UInt16, VarType.UInt16) { }
             public override object Calc(object[] args)
@@ -390,7 +388,7 @@ namespace NFun.BuiltInFunctions
                 return new ImmutableFunArray(result.ToArray());
             }
         }
-        class UInt32Function : FunctionBase
+        class UInt32Function : FunctionWithManyArguments
         {
             public UInt32Function() : base(id, VarType.ArrayOf(VarType.UInt32), VarType.UInt32, VarType.UInt32) { }
             public override object Calc(object[] args)
@@ -408,7 +406,7 @@ namespace NFun.BuiltInFunctions
                 return new ImmutableFunArray(result.ToArray());
             }
         }
-        class UInt64Function : FunctionBase
+        class UInt64Function : FunctionWithManyArguments
         {
             public UInt64Function() : base(id, VarType.ArrayOf(VarType.UInt64), VarType.UInt64, VarType.UInt64) { }
 
@@ -427,7 +425,7 @@ namespace NFun.BuiltInFunctions
                 return new ImmutableFunArray(result.ToArray());
             }
         }
-        class RealFunction : FunctionBase
+        class RealFunction : FunctionWithManyArguments
         {
             public RealFunction() : base(id, VarType.ArrayOf(VarType.Real), VarType.Real, VarType.Real) { }
 
@@ -474,10 +472,8 @@ namespace NFun.BuiltInFunctions
             }
         }
 
-        protected override object Calc(object[] args) => throw new NotImplementedException();
-
         private const string id = "rangeWithStep";
-        class Int16Function : FunctionBase
+        class Int16Function : FunctionWithManyArguments
         {
             public Int16Function() : base(id, VarType.ArrayOf(VarType.Int16), VarType.Int16, VarType.Int16, VarType.Int16) { }
             public override object Calc(object[] args)
@@ -498,7 +494,7 @@ namespace NFun.BuiltInFunctions
                 return new ImmutableFunArray(result.ToArray());
             }
         }
-        class Int32Function : FunctionBase
+        class Int32Function : FunctionWithManyArguments
         {
             public Int32Function() : base(id, VarType.ArrayOf(VarType.Int32), VarType.Int32, VarType.Int32, VarType.Int32) { }
 
@@ -521,7 +517,7 @@ namespace NFun.BuiltInFunctions
 
             }
         }
-        class Int64Function : FunctionBase
+        class Int64Function : FunctionWithManyArguments
         {
             public Int64Function() : base(id, VarType.ArrayOf(VarType.Int64), VarType.Int64, VarType.Int64, VarType.Int64) { }
 
@@ -544,7 +540,7 @@ namespace NFun.BuiltInFunctions
 
             }
         }
-        class UInt8Function : FunctionBase
+        class UInt8Function : FunctionWithManyArguments
         {
             public UInt8Function() : base(id, VarType.ArrayOf(VarType.UInt8), VarType.UInt8, VarType.UInt8, VarType.UInt8) { }
             public override object Calc(object[] args)
@@ -565,7 +561,7 @@ namespace NFun.BuiltInFunctions
                 return new ImmutableFunArray(result.ToArray());
             }
         }
-        class UInt16Function : FunctionBase
+        class UInt16Function : FunctionWithManyArguments
         {
             public UInt16Function() : base(id, VarType.ArrayOf(VarType.UInt16), VarType.UInt16, VarType.UInt16, VarType.UInt16) { }
             public override object Calc(object[] args)
@@ -586,7 +582,7 @@ namespace NFun.BuiltInFunctions
                 return new ImmutableFunArray(result.ToArray());
             }
         }
-        class UInt32Function : FunctionBase
+        class UInt32Function : FunctionWithManyArguments
         {
             public UInt32Function() : base(id, VarType.ArrayOf(VarType.UInt32), VarType.UInt32, VarType.UInt32, VarType.UInt32) { }
             public override object Calc(object[] args)
@@ -607,7 +603,7 @@ namespace NFun.BuiltInFunctions
                 return new ImmutableFunArray(result.ToArray());
             }
         }
-        class UInt64Function : FunctionBase
+        class UInt64Function : FunctionWithManyArguments
         {
             public UInt64Function() : base(id, VarType.ArrayOf(VarType.UInt64), VarType.UInt64, VarType.UInt64, VarType.UInt64) { }
             public override object Calc(object[] args)
@@ -628,7 +624,7 @@ namespace NFun.BuiltInFunctions
                 return new ImmutableFunArray(result.ToArray());
             }
         }
-        class RealFunction : FunctionBase
+        class RealFunction : FunctionWithManyArguments
         {
             public RealFunction() : base(id, VarType.ArrayOf(VarType.Real), VarType.Real, VarType.Real, VarType.Real) { }
             public override object Calc(object[] args)
@@ -677,7 +673,7 @@ namespace NFun.BuiltInFunctions
             return arr.Slice(start, (end==int.MaxValue?null:(int?)end), null);
         }
     }
-    public class GetGenericFunctionDefenition : GenericFunctionBase
+    public class GetGenericFunctionDefenition : GenericFunctionWithTwoArguments
     {
         public GetGenericFunctionDefenition() : base(CoreFunNames.GetElementName, 
             VarType.Generic(0),
@@ -686,13 +682,13 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        protected override object Calc(object[] args)
+        protected override object Calc(object a, object b)
         {
-            var index = ((int)args[1]);
+            var index = ((int)b);
             if(index<0)
                 throw new FunRuntimeException("Argument out of range");
                 
-            var arr = (IFunArray)args[0];
+            var arr = (IFunArray)a;
             var res =arr.GetElementOrNull(index);
             
             if(res==null)
@@ -802,7 +798,7 @@ namespace NFun.BuiltInFunctions
             if(arr.Count==0)
                 throw new FunRuntimeException("Input array is empty");
             
-            var fold = args[1] as FunctionBase;
+            var fold = (IConcreteFunction) args[1];
             
             var res = arr.Aggregate((a,b)=>fold.Calc(new []{a,b}));
             return res; 
@@ -822,7 +818,7 @@ namespace NFun.BuiltInFunctions
         {
             var arr = (IFunArray)args[0];
             var defaultValue = args[1];
-            var fold = args[2] as FunctionBase;
+            var fold = (IConcreteFunction) args[2];
             
             var res = arr.Aggregate(defaultValue, (a,b)=>fold.Calc(new []{a,b}));
             return res; 
@@ -876,7 +872,7 @@ namespace NFun.BuiltInFunctions
             return new EnumerableFunArray(arr1.Intersect(arr2));
         }
     }
-    public class ConcatArraysGenericFunctionDefenition : GenericFunctionBase
+    public class ConcatArraysGenericFunctionDefenition : GenericFunctionWithTwoArguments
     {
         public ConcatArraysGenericFunctionDefenition() : base("concat", 
             VarType.ArrayOf(VarType.Generic(0)),
@@ -885,10 +881,10 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        protected override object Calc(object[] args)
+        protected override object Calc(object a, object b)
         {
-            var arr1 = (IFunArray)args[0];
-            var arr2 = (IFunArray)args[1];
+            var arr1 = (IFunArray)a;
+            var arr2 = (IFunArray)b;
             var res = new EnumerableFunArray(arr1.Concat(arr2));
             return res;
         }
@@ -941,7 +937,7 @@ namespace NFun.BuiltInFunctions
         protected override object Calc(object[] args)
         {
             var arr = (IFunArray)args[0];
-            var filter = args[1] as FunctionBase;
+            var filter = (IConcreteFunction) args[1];
 
             return arr.Count(a => (bool)filter.Calc(new[] { a }));
         }
@@ -961,7 +957,7 @@ namespace NFun.BuiltInFunctions
             return arr.Count>0;
         }
     }
-    public class AnyGenericFunctionDefenition : GenericFunctionBase
+    public class AnyGenericFunctionDefenition : GenericFunctionWithTwoArguments
     {
         public AnyGenericFunctionDefenition() : base("any", 
             VarType.Bool,
@@ -970,12 +966,15 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        protected override object Calc(object[] args)
+        protected override object Calc(object a, object b)
         {
-            var arr = (IFunArray)args[0];
-            var filter = args[1] as FunctionBase;
+            var arr    = (IFunArray)a;
 
-            return arr.Any(a => (bool) filter.Calc(new[] {a}));
+            if(b is FunctionWithSingleArg predicate)
+                return arr.Any(e=>(bool)predicate.Calc(e));
+
+            var filter = (IConcreteFunction) b;
+            return arr.Any(e => (bool) filter.Calc(new[] {e}));
         }
     }
     public class AllGenericFunctionDefenition : GenericFunctionBase
@@ -990,12 +989,12 @@ namespace NFun.BuiltInFunctions
         protected override object Calc(object[] args)
         {
             var arr = (IFunArray)args[0];
-            var filter = args[1] as FunctionBase;
+            var filter = (IConcreteFunction) args[1];
 
             return arr.All(a => (bool) filter.Calc(new[] {a}));
         }
     }
-    public class FilterGenericFunctionDefenition : GenericFunctionBase
+    public class FilterGenericFunctionDefenition : GenericFunctionWithTwoArguments
     {
         public FilterGenericFunctionDefenition() : base("filter", 
             VarType.ArrayOf(VarType.Generic(0)),
@@ -1004,12 +1003,14 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        protected override object Calc(object[] args)
+        protected override object Calc(object a, object b)
         {
-            var arr = (IFunArray)args[0];
-            var filter = args[1] as FunctionBase;
+            var arr    = (IFunArray)a;
+            if(b is FunctionWithSingleArg predicate)
+                return new EnumerableFunArray(arr.Where(e=>(bool)predicate.Calc(e)));
+            var filter = (IConcreteFunction)b;
             
-            return new EnumerableFunArray(arr.Where(a=>(bool)filter.Calc(new []{a})));
+            return new EnumerableFunArray(arr.Where(e=>(bool)filter.Calc(new []{e})));
         }
     }
     public class RepeatGenericFunctionDefenition : GenericFunctionBase
@@ -1024,7 +1025,7 @@ namespace NFun.BuiltInFunctions
         protected override object Calc(object[] args)
         {
             var first = args[0];
-            return new EnumerableFunArray(Enumerable.Repeat(first, ((int)args[1])));
+            return new EnumerableFunArray(Enumerable.Repeat(first, (int)args[1]));
         }
     }
     public class ReverseGenericFunctionDefenition: GenericFunctionBase

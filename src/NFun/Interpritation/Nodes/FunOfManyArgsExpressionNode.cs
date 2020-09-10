@@ -38,12 +38,12 @@ namespace NFun.Interpritation.Nodes
         public VarType Type => _fun.ReturnType;
         public object Calc() => _fun.Calc(arg1.Calc(), arg2.Calc());
     }
-    public class FunExpressionNode : IExpressionNode
+    public class FunOfManyArgsExpressionNode : IExpressionNode
     {
-        private readonly FunctionBase _fun;
+        private readonly FunctionWithManyArguments _fun;
         private readonly IExpressionNode[] _argsNodes;
 
-        public FunExpressionNode(FunctionBase fun, IExpressionNode[] argsNodes, Interval interval)
+        public FunOfManyArgsExpressionNode(FunctionWithManyArguments fun, IExpressionNode[] argsNodes, Interval interval)
         {
             _fun = fun;
             _argsNodes = argsNodes;

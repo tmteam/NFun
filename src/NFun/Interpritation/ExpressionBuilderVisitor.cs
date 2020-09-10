@@ -163,7 +163,7 @@ namespace NFun.Interpritation
             if (someFunc is IConcreteFunction f) //concrete function
                 return CreateFunctionCall(node, f);
 
-            if (someFunc is GenericFunctionBase genericFunction) //generic function
+            if (someFunc is IGenericFunction genericFunction) //generic function
             {
                 VarType[] genericArgs;
 
@@ -360,7 +360,7 @@ namespace NFun.Interpritation
             var funVariable = _typeInferenceResults.GetFunctionalVariableOrNull(varNode.OrderNumber);
             if (funVariable != null)
             {
-                if (funVariable is GenericFunctionBase genericFunction)
+                if (funVariable is IGenericFunction genericFunction)
                 {
                     var genericTypes = _typeInferenceResults.GetGenericCallArguments(varNode.OrderNumber);
                     if (genericTypes == null)
@@ -371,10 +371,10 @@ namespace NFun.Interpritation
                         genericArgs[i] = _typesConverter.Convert(genericTypes[i]);
 
                     var function = genericFunction.CreateConcrete(genericArgs); 
-                    return new FunVariableExpressionNode((FunctionBase) function, varNode.Interval);
+                    return new FunVariableExpressionNode(function, varNode.Interval);
 
                 }
-                else if (funVariable is FunctionBase concrete)
+                else if (funVariable is IConcreteFunction concrete)
                     return new FunVariableExpressionNode(concrete, varNode.Interval);
             }
             
@@ -399,7 +399,7 @@ namespace NFun.Interpritation
                             throw ErrorFactory.FunctionIsNotExists(varNode);
                         if (result.Count > 1)
                             throw ErrorFactory.AmbiguousFunctionChoise(varNode);
-                        if (result[0] is FunctionBase ff)
+                        if (result[0] is IConcreteFunction ff)
                             return new FunVariableExpressionNode(ff, varNode.Interval);
                         else
                             throw new NotImplementedException("GenericsAreNotSupp");
@@ -407,7 +407,7 @@ namespace NFun.Interpritation
 
                     if (funVars.Count == 1)
                     {
-                        if (funVars[0] is FunctionBase ff)
+                        if (funVars[0] is IConcreteFunction ff)
                             return new FunVariableExpressionNode(ff, varNode.Interval);
                     }
                 }

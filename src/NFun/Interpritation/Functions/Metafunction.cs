@@ -10,7 +10,7 @@ namespace NFun.Interpritation.Functions
 
         }
     }
-    public abstract class Metafunction : FunctionBase
+    public abstract class Metafunction : FunctionWithManyArguments
     {
         public Metafunction(string name, VarType returnType, params VarType[] argTypes) : base(name, returnType, argTypes)
         {

@@ -56,8 +56,7 @@ namespace NFun.Runtime
         {
             foreach (var value in vars)
             {
-                var varName = value.Name;
-                var source = _variables.GetSourceOrNull(varName);
+                var source = _variables.GetSourceOrNull(value.Name);
                 if(source==null)
                     throw new ArgumentException($"unexpected input '{value.Name}'");
                 source.SetConvertedValue(value.Value);

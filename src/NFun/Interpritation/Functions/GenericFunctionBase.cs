@@ -2,51 +2,100 @@ using System;
 using System.Linq;
 using System.Security.Cryptography;
 using NFun.ParseErrors;
-using NFun.Tic.SolvingStates;
 using NFun.Types;
 
 namespace NFun.Interpritation.Functions
 {
-    public struct GenericConstrains
+    public interface IGenericFunction : IFunctionSignature
     {
-        public readonly Primitive Ancestor;
-        public readonly Primitive Descendant;
-        public bool IsComparable;
-        public override string ToString()
+        IConcreteFunction CreateConcrete(VarType[] concreteTypesMap);
+
+        /// <summary>
+        /// calculates generic call arguments  based on a concrete call signature
+        /// </summary> 
+        VarType[] CalcGenericArgTypeList(FunTypeSpecification funTypeSpecification);
+    }
+
+    public abstract class GenericFunctionWithSingleArgument : GenericFunctionBase
+    {
+        protected GenericFunctionWithSingleArgument(string name, VarType returnType, params VarType[] argTypes) : base(
+            name, returnType, argTypes)
         {
-            if (Ancestor == null && Descendant == null && IsComparable)
-                return "<>";
-            return $"[{Descendant}..{Ancestor}]" + (IsComparable ? "<>" : "");
         }
 
-        public static readonly GenericConstrains Comparable =new GenericConstrains(null,null,true);
-        public static readonly GenericConstrains Any 
-            = new GenericConstrains(null, null, false);
-        public static readonly GenericConstrains Arithmetical
-            = new GenericConstrains(Primitive.Real, Primitive.U24, false);
-        public static readonly GenericConstrains Integers
-            = new GenericConstrains(Primitive.I96, null, false);
-        public static readonly GenericConstrains Integers3264
-            = new GenericConstrains(Primitive.I96, Primitive.U24, false);
-        public static readonly GenericConstrains Integers32
-            = new GenericConstrains(Primitive.I48, null, false);
-        public static readonly GenericConstrains SignedNumber
-            = new GenericConstrains(Primitive.Real, Primitive.I16, false);
-        public static readonly GenericConstrains Numbers
-            = new GenericConstrains(Primitive.Real, null, false);
-
-        public static GenericConstrains FromTicConstrains(Constrains constrains)
-            =>new GenericConstrains(constrains.Ancestor , constrains.Descedant as Primitive, constrains.IsComparable);
-
-        public GenericConstrains(Primitive ancestor = null, Primitive descendant = null, bool isComparable = false)
+        protected GenericFunctionWithSingleArgument(string name, GenericConstrains[] genericDefenitions,
+            VarType returnType, params VarType[] argTypes) : base(name, genericDefenitions, returnType, argTypes)
         {
-            Ancestor = ancestor;
-            Descendant = descendant;
-            IsComparable = isComparable;
+        }
+
+        protected GenericFunctionWithSingleArgument(string name, GenericConstrains genericDefenition,
+            VarType returnType, params VarType[] argTypes) : base(name, genericDefenition, returnType, argTypes)
+        {
+        }
+
+        protected abstract object Calc(object a);
+
+        public override IConcreteFunction CreateConcrete(VarType[] concreteTypesMap) =>
+            new ConcreteImplementationWithSingleArg(
+                calc: Calc,
+                name: Name,
+                returnType: VarType.SubstituteConcreteTypes(ReturnType, concreteTypesMap),
+                argType: SubstitudeArgTypes(concreteTypesMap)[0]);
+
+        private class ConcreteImplementationWithSingleArg : FunctionWithSingleArg
+        {
+            private readonly Func<object, object> _calc;
+
+            public ConcreteImplementationWithSingleArg(
+                Func<object, object> calc,
+                string name, VarType returnType, VarType argType) : base(name, returnType, argType)
+            {
+                _calc = calc;
+            }
+
+            public override object Calc(object a) => _calc(a);
+        }
+    }
+
+    public abstract class GenericFunctionWithTwoArguments : GenericFunctionBase
+    {
+        protected GenericFunctionWithTwoArguments(string name, VarType returnType, params VarType[] argTypes) : base(name, returnType, argTypes)
+        {
+        }
+
+        protected GenericFunctionWithTwoArguments(string name, GenericConstrains[] genericDefenitions, VarType returnType, params VarType[] argTypes) : base(name, genericDefenitions, returnType, argTypes)
+        {
+        }
+
+        protected GenericFunctionWithTwoArguments(string name, GenericConstrains genericDefenition, VarType returnType, params VarType[] argTypes) : base(name, genericDefenition, returnType, argTypes)
+        {
+        }
+
+        protected abstract object Calc(object a, object b);
+        
+        public override IConcreteFunction CreateConcrete(VarType[] concreteTypesMap) =>
+            new ConcreteImplementationWithTwoArgs(
+                calc: Calc,
+                name: Name,
+                returnType: VarType.SubstituteConcreteTypes(ReturnType, concreteTypesMap),
+                argTypes:   SubstitudeArgTypes(concreteTypesMap));
+
+        private class ConcreteImplementationWithTwoArgs : FunctionWithTwoArgs
+        {
+            private readonly Func<object, object, object> _calc;
+
+            public ConcreteImplementationWithTwoArgs( 
+                Func<object,object,object> calc,
+                string name, VarType returnType, params VarType[] argTypes) : base(name, returnType, argTypes)
+            {
+                _calc = calc;
+            }
+
+            public override object Calc(object a, object b) => _calc(a, b);
         }
     }
     
-    public abstract class GenericFunctionBase: IFunctionSignature
+    public abstract class GenericFunctionBase: IGenericFunction
     {
         public GenericConstrains[] GenericDefenitions { get; }
         protected readonly int _maxGenericId;
@@ -102,16 +151,16 @@ namespace NFun.Interpritation.Functions
 
         public VarType ReturnType { get; }
 
-        protected abstract object Calc(object[] args);
+        protected virtual object Calc(object[] args) => throw new NotImplementedException();
 
         public virtual IConcreteFunction CreateConcrete(VarType[] concreteTypesMap) =>
             new ConcreteGenericFunction(
                 calc: Calc,
                 name: Name,
                 returnType: VarType.SubstituteConcreteTypes(ReturnType, concreteTypesMap),
-                argTypes: SubstitudeArgTypes(concreteTypesMap));
+                argTypes:   SubstitudeArgTypes(concreteTypesMap));
 
-        private VarType[] SubstitudeArgTypes(VarType[] concreteTypes)
+        protected VarType[] SubstitudeArgTypes(VarType[] concreteTypes)
         {
             var concreteArgTypes = new VarType[ArgTypes.Length];
             for (int i = 0; i < concreteArgTypes.Length; i++)
@@ -119,7 +168,7 @@ namespace NFun.Interpritation.Functions
             return concreteArgTypes;
         }
 
-        public FunctionBase CreateConcreteOrNull(VarType outputType, params VarType[] concreteArgTypes)
+        public IConcreteFunction CreateConcreteOrNull(VarType outputType, params VarType[] concreteArgTypes)
         {
             if (concreteArgTypes.Length != ArgTypes.Length)
                 return null;
@@ -203,7 +252,7 @@ namespace NFun.Interpritation.Functions
             => TypeHelper.GetFunSignature(Name, ReturnType, ArgTypes);
 
 
-        public class ConcreteGenericFunction: FunctionBase
+        public class ConcreteGenericFunction: FunctionWithManyArguments
         {
             private Func<object[], object> _calc;
 

@@ -32,43 +32,43 @@ namespace NFun.BuiltInFunctions
         }
 
         protected override object Calc(object[] args) => ((double)args[0]) + ((double)args[1]);
-        public class RealFunction : FunctionBase
+        public class RealFunction : FunctionWithManyArguments
         {
             public RealFunction() : base(CoreFunNames.Add, VarType.Real, VarType.Real, VarType.Real) { }
 
             public override object Calc(object[] args) => ((double)args[0]) % ((double)args[1]);
         }
-        public class Int16Function : FunctionBase
+        public class Int16Function : FunctionWithManyArguments
         {
             public Int16Function() : base(CoreFunNames.Add, VarType.Int16, VarType.Int16, VarType.Int16) { }
             public override object Calc(object[] args) => (short)((short)args[0]) % ((short)args[1]);
         }
-        public class Int32Function : FunctionBase
+        public class Int32Function : FunctionWithManyArguments
         {
             public Int32Function() : base(CoreFunNames.Add, VarType.Int32, VarType.Int32, VarType.Int32) { }
             public override object Calc(object[] args) => ((int)args[0]) % ((int)args[1]);
         }
-        public class Int64Function : FunctionBase
+        public class Int64Function : FunctionWithManyArguments
         {
             public Int64Function() : base(CoreFunNames.Add, VarType.Int64, VarType.Int64, VarType.Int64) { }
             public override object Calc(object[] args) => ((long)args[0]) % ((long)args[1]);
         }
-        public class UInt8Function : FunctionBase
+        public class UInt8Function : FunctionWithManyArguments
         {
             public UInt8Function() : base(CoreFunNames.Add, VarType.UInt8, VarType.UInt8, VarType.UInt8) { }
             public override object Calc(object[] args) => (byte)(((byte)args[0]) % ((byte)args[1]));
         }
-        public class UInt16Function : FunctionBase
+        public class UInt16Function : FunctionWithManyArguments
         {
             public UInt16Function() : base(CoreFunNames.Add, VarType.UInt16, VarType.UInt16, VarType.UInt16) { }
             public override object Calc(object[] args) => (ushort)(((ushort)args[0]) % ((ushort)args[1]));
         }
-        public class UInt32Function : FunctionBase
+        public class UInt32Function : FunctionWithManyArguments
         {
             public UInt32Function() : base(CoreFunNames.Add, VarType.UInt32, VarType.UInt32, VarType.UInt32) { }
             public override object Calc(object[] args) => (uint)(((uint)args[0]) % ((uint)args[1]));
         }
-        public class UInt64Function : FunctionBase
+        public class UInt64Function : FunctionWithManyArguments
         {
             public UInt64Function() : base(CoreFunNames.Add, VarType.UInt64, VarType.UInt64, VarType.UInt64) { }
             public override object Calc(object[] args) => (ulong)(((ulong)args[0]) % (ulong)args[1]);
@@ -95,24 +95,23 @@ namespace NFun.BuiltInFunctions
         }
 
         private const string id = "abs";
-        protected override object Calc(object[] args) => throw new InvalidOperationException();
-        public class RealFunction : FunctionBase
+        public class RealFunction : FunctionWithManyArguments
         {
             public RealFunction() : base(id, VarType.Real, VarType.Real) { }
 
             public override object Calc(object[] args) => Math.Abs(((double)args[0]));
         }
-        public class Int16Function : FunctionBase
+        public class Int16Function : FunctionWithManyArguments
         {
             public Int16Function() : base(id, VarType.Int16, VarType.Int16) { }
             public override object Calc(object[] args) => (short)Math.Abs(((short)args[0]));
         }
-        public class Int32Function : FunctionBase
+        public class Int32Function : FunctionWithManyArguments
         {
             public Int32Function() : base(id, VarType.Int32, VarType.Int32) { }
             public override object Calc(object[] args) => Math.Abs(((int)args[0]));
         }
-        public class Int64Function : FunctionBase
+        public class Int64Function : FunctionWithManyArguments
         {
             public Int64Function() : base(id, VarType.Int64, VarType.Int64) { }
             public override object Calc(object[] args) => Math.Abs(((long)args[0]));
@@ -139,8 +138,6 @@ namespace NFun.BuiltInFunctions
             }
         }
 
-        protected override object Calc(object[] args) => ((double)args[0]) + ((double)args[1]);
-
         private class RealFunction : FunctionWithSingleArg
         {
             public RealFunction() : base(CoreFunNames.Negate, VarType.Real, VarType.Real) { }
@@ -148,17 +145,17 @@ namespace NFun.BuiltInFunctions
             public object Calc(object[] args) => -((double)args[0]);
             public override object Calc(object a) => -(double) a;
         }
-        public class Int16Function : FunctionBase
+        public class Int16Function : FunctionWithManyArguments
         {
             public Int16Function() : base(CoreFunNames.Negate, VarType.Int16, VarType.Int16) { }
             public override object Calc(object[] args) => (short)-((short)args[1]);
         }
-        public class Int32Function : FunctionBase
+        public class Int32Function : FunctionWithManyArguments
         {
             public Int32Function() : base(CoreFunNames.Negate, VarType.Int32, VarType.Int32) { }
             public override object Calc(object[] args) => -((int)args[1]);
         }
-        public class Int64Function : FunctionBase
+        public class Int64Function : FunctionWithManyArguments
         {
             public Int64Function() : base(CoreFunNames.Negate, VarType.Int64, VarType.Int64) { }
             public override object Calc(object[] args) => -((long)args[1]);
@@ -189,9 +186,7 @@ namespace NFun.BuiltInFunctions
                     throw new ArgumentOutOfRangeException();
             }
         }
-
-        protected override object Calc(object[] args) => ((double)args[0]) + ((double)args[1]);
-
+        
         private class RealFunction : FunctionWithTwoArgs
         {
             public RealFunction() : base(CoreFunNames.Add, VarType.Real, VarType.Real, VarType.Real) { }
@@ -246,16 +241,14 @@ namespace NFun.BuiltInFunctions
                     throw new ArgumentOutOfRangeException();
             }
         }
-
-        protected override object Calc(object[] args) => ((double)args[0]) - ((double)args[1]);
-
+        
         private class RealFunction : FunctionWithTwoArgs
         {
             public RealFunction() : base(CoreFunNames.Substract, VarType.Real, VarType.Real, VarType.Real) { }
 
             public override object Calc(object a, object b) => ((double) a) - ((double) b);
         }
-        public class Int16Function : FunctionBase
+        public class Int16Function : FunctionWithManyArguments
         {
             public Int16Function() : base(CoreFunNames.Substract, VarType.Int16, VarType.Int16, VarType.Int16) { }
             public override object Calc(object[] args) => (short)((short)args[0]) - ((short)args[1]);
@@ -265,29 +258,29 @@ namespace NFun.BuiltInFunctions
             public Int32Function() : base(CoreFunNames.Substract, VarType.Int32, VarType.Int32, VarType.Int32) { }
             public override object Calc(object a, object b) => ((int) a) - ((int) b);
         }
-        public class Int64Function : FunctionBase
+        public class Int64Function : FunctionWithManyArguments
         {
             public Int64Function() : base(CoreFunNames.Substract, VarType.Int64, VarType.Int64, VarType.Int64) { }
 
             public override object Calc(object[] args) => ((long)args[0]) - ((long)args[1]);
         }
-        public class UInt8Function : FunctionBase
+        public class UInt8Function : FunctionWithManyArguments
         {
             public UInt8Function() : base(CoreFunNames.Substract, VarType.UInt16, VarType.UInt8, VarType.UInt8) { }
 
             public override object Calc(object[] args) => (byte)(((byte)args[0]) - ((byte)args[1]));
         }
-        public class UInt16Function : FunctionBase
+        public class UInt16Function : FunctionWithManyArguments
         {
             public UInt16Function() : base(CoreFunNames.Substract, VarType.UInt16, VarType.UInt16, VarType.UInt16) { }
             public override object Calc(object[] args) => (ushort)(((ushort)args[0]) - ((ushort)args[1]));
         }
-        public class UInt32Function : FunctionBase
+        public class UInt32Function : FunctionWithManyArguments
         {
             public UInt32Function() : base(CoreFunNames.Substract, VarType.UInt32, VarType.UInt32, VarType.UInt32) { }
             public override object Calc(object[] args) => (uint)(((uint)args[0]) - ((uint)args[1]));
         }
-        public class UInt64Function : FunctionBase
+        public class UInt64Function : FunctionWithManyArguments
         {
             public UInt64Function() : base(CoreFunNames.Substract, VarType.UInt64, VarType.UInt64, VarType.UInt64) { }
 
@@ -313,9 +306,7 @@ namespace NFun.BuiltInFunctions
                     throw new ArgumentOutOfRangeException();
             }
         }
-
-        protected override object Calc(object[] args) => ((double)args[0]) * ((double)args[1]);
-
+        
         private class RealFunction : FunctionWithTwoArgs
         {
             public RealFunction() : base(CoreFunNames.Substract, VarType.Real, VarType.Real, VarType.Real) { }
@@ -328,19 +319,19 @@ namespace NFun.BuiltInFunctions
             public Int32Function() : base(CoreFunNames.Substract, VarType.Int32, VarType.Int32, VarType.Int32) { }
             public override object Calc(object a, object b) => (int) a * (int) b;
         }
-        public class Int64Function : FunctionBase
+        public class Int64Function : FunctionWithManyArguments
         {
             public Int64Function() : base(CoreFunNames.Substract, VarType.Int64, VarType.Int64, VarType.Int64) { }
 
             public override object Calc(object[] args) => ((long)args[0]) * ((long)args[1]);
         }
       
-        public class UInt32Function : FunctionBase
+        public class UInt32Function : FunctionWithManyArguments
         {
             public UInt32Function() : base(CoreFunNames.Substract, VarType.UInt32, VarType.UInt32, VarType.UInt32) { }
             public override object Calc(object[] args) => (uint)(((uint)args[0]) * ((uint)args[1]));
         }
-        public class UInt64Function : FunctionBase
+        public class UInt64Function : FunctionWithManyArguments
         {
             public UInt64Function() : base(CoreFunNames.Substract, VarType.UInt64, VarType.UInt64, VarType.UInt64) { }
 

@@ -8,11 +8,11 @@ using NFun.Types;
 
 namespace NFun.Interpritation.Functions
 {
-    public class ConcreteHiOrderFunctionWithSyntaxNode : FunctionBase
+    public class ConcreteHiOrderFunctionWithSyntaxNode : FunctionWithManyArguments
     {
         private readonly IExpressionNode _source;
 
-        public static FunctionBase Create(IExpressionNode funSource)
+        public static FunctionWithManyArguments Create(IExpressionNode funSource)
         {
             var signature = funSource.Type.FunTypeSpecification;
             if(signature==null)
@@ -30,13 +30,13 @@ namespace NFun.Interpritation.Functions
 
 
 
-        public override object Calc(object[] args) => ((FunctionBase)_source.Calc()).Calc(args);
+        public override object Calc(object[] args) => ((IConcreteFunction)_source.Calc()).Calc(args);
     }
-    public class ConcreteHiOrderFunction: FunctionBase
+    public class ConcreteHiOrderFunction: FunctionWithManyArguments
     {
         private readonly VariableSource _source;
 
-        public static FunctionBase Create(VariableSource varSource)
+        public static FunctionWithManyArguments Create(VariableSource varSource)
         {
             return new ConcreteHiOrderFunction(
                 varSource, 
@@ -50,6 +50,6 @@ namespace NFun.Interpritation.Functions
 
        
 
-        public override object Calc(object[] args) => ((FunctionBase) _source.Value).Calc(args);
+        public override object Calc(object[] args) => ((IConcreteFunction) _source.Value).Calc(args);
     }
 }

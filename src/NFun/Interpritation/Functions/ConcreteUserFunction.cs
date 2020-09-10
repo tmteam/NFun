@@ -8,7 +8,7 @@ using NFun.Types;
 
 namespace NFun.Interpritation.Functions
 {
-    public class ConcreteUserFunction : FunctionBase
+    public class ConcreteUserFunction : FunctionWithManyArguments
     {
         public VariableSource[] Variables { get; }
         public bool IsReturnTypeStrictlyTyped { get; }

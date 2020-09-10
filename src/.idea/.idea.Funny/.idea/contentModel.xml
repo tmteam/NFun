@@ -100,7 +100,8 @@
             <e p="ConcreteHiOrderFunction.cs" t="Include" />
             <e p="ConcreteUserFunction.cs" t="Include" />
             <e p="ConcreteUserFunctionPrototype.cs" t="Include" />
-            <e p="FunctionBase.cs" t="Include" />
+            <e p="FunctionWithManyArguments.cs" t="Include" />
+            <e p="GenericConstrains.cs" t="Include" />
             <e p="GenericFunctionBase.cs" t="Include" />
             <e p="GenericUserFunction.cs" t="Include" />
             <e p="IFunctionSignature.cs" t="Include" />
@@ -113,7 +114,7 @@
             <e p="CastExpressionNode.cs" t="Include" />
             <e p="ConstantExpressionNode.cs" t="Include" />
             <e p="FunArgumentExpressionNode.cs" t="Include" />
-            <e p="FunExpressionNode.cs" t="Include" />
+            <e p="FunOfManyArgsExpressionNode.cs" t="Include" />
             <e p="FunVariableExpressionNode.cs" t="Include" />
             <e p="IExpressionNode.cs" t="Include" />
             <e p="IfElseExpressionNode.cs" t="Include" />

@@ -17,7 +17,7 @@ namespace NFun.BuiltInFunctions
             return new TextFunArray(string.Join("", strings));
         }
     }
-    public class FormatTextFunction : FunctionBase
+    public class FormatTextFunction : FunctionWithManyArguments
     {
         public FormatTextFunction() : base("format", VarType.Text, VarType.Text, VarType.ArrayOf(VarType.Anything)) { }
 
@@ -29,7 +29,7 @@ namespace NFun.BuiltInFunctions
             return new TextFunArray(result);
         }
     }
-    public class SortTextFunction : FunctionBase
+    public class SortTextFunction : FunctionWithManyArguments
     {
         public SortTextFunction() : base("sort", VarType.ArrayOf(VarType.Text), VarType.ArrayOf(VarType.Text)){}
 
@@ -40,14 +40,14 @@ namespace NFun.BuiltInFunctions
             return new ImmutableFunArray(arr.Select(s=>new TextFunArray(s)).ToArray());
         }
     }
-    public class TrimFunction : FunctionBase
+    public class TrimFunction : FunctionWithManyArguments
     {
         public TrimFunction() : base("trim",VarType.Text,VarType.Text){}
 
         public override object Calc(object[] args) => args.GetTextOrThrow(0).Trim();
     }
     
-    public class TrimStartFunction : FunctionBase
+    public class TrimStartFunction : FunctionWithManyArguments
     {
         public TrimStartFunction() : base("trimStart",VarType.Text,VarType.Text){
         }
@@ -55,14 +55,14 @@ namespace NFun.BuiltInFunctions
         public override object Calc(object[] args) => args.GetTextOrThrow(0).TrimStart();
     }
     
-    public class TrimEndFunction : FunctionBase
+    public class TrimEndFunction : FunctionWithManyArguments
     {
         public TrimEndFunction() : base("trimEnd",VarType.Text,VarType.Text){}
         public override object Calc(object[] args) => args.GetTextOrThrow(0).TrimEnd();
     }
     
     
-    public class SplitFunction : FunctionBase
+    public class SplitFunction : FunctionWithManyArguments
     {
         public SplitFunction() : base("split",
             VarType.ArrayOf(VarType.Text), 
@@ -78,7 +78,7 @@ namespace NFun.BuiltInFunctions
     }
     
     
-    public class JoinFunction : FunctionBase
+    public class JoinFunction : FunctionWithManyArguments
     {
         public JoinFunction() : base("join",VarType.Text,VarType.ArrayOf(VarType.Text),VarType.Text)
         {

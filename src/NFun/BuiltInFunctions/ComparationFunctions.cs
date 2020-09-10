@@ -13,14 +13,14 @@ namespace NFun.BuiltInFunctions
         protected override object Calc(object[] args) => !TypeHelper.AreEqual(args[0], args[1]);
     }
 
-    public class EqualFunction : GenericFunctionBase
+    public class EqualFunction : GenericFunctionWithTwoArguments
     {
         public EqualFunction() : base(CoreFunNames.Equal, VarType.Bool, VarType.Generic(0), VarType.Generic(0))
         {
         }
 
-        protected override object Calc(object[] args) 
-            => TypeHelper.AreEqual(args[0], args[1]);
+        protected override object Calc(object a, object b)
+            => TypeHelper.AreEqual(a,b);
 
     }
 
@@ -30,8 +30,8 @@ namespace NFun.BuiltInFunctions
 
         protected override object Calc(object[] args)
         {
-            var a = ((IComparable)args[0]);
-            var b = ((IComparable)args[1]);
+            var a = (IComparable)args[0];
+            var b = (IComparable)args[1];
             return a.CompareTo(b)==1;
         }
     }
@@ -41,20 +41,20 @@ namespace NFun.BuiltInFunctions
 
         protected override object Calc(object[] args)
         {
-            var a = ((IComparable)args[0]);
-            var b = ((IComparable)args[1]);
+            var a = (IComparable)args[0];
+            var b = (IComparable)args[1];
             return a.CompareTo(b) != -1;
         }
     }
-    public class LessFunction : GenericFunctionBase
+    public class LessFunction : GenericFunctionWithTwoArguments
     {
         public LessFunction() : base(CoreFunNames.Less, GenericConstrains.Comparable , VarType.Bool, VarType.Generic(0), VarType.Generic(0)) { }
 
-        protected override object Calc(object[] args)
+        protected override object Calc(object arg1, object arg2)
         {
-            var a = ((IComparable)args[0]);
-            var b = ((IComparable)args[1]);
-            return a.CompareTo(b) == -1;
+            var left = (IComparable)arg1;
+            var right = (IComparable)arg2;
+            return left.CompareTo(right) == -1;
         }
     }
     public class LessOrEqualFunction : GenericFunctionBase
@@ -63,8 +63,8 @@ namespace NFun.BuiltInFunctions
 
         protected override object Calc(object[] args)
         {
-            var a = ((IComparable)args[0]);
-            var b = ((IComparable)args[1]);
+            var a = (IComparable)args[0];
+            var b = (IComparable)args[1];
             return a.CompareTo(b) != 1;
         }
     }
@@ -74,8 +74,8 @@ namespace NFun.BuiltInFunctions
 
         protected override object Calc(object[] args)
         {
-            var a = ((IComparable)args[0]);
-            var b = ((IComparable)args[1]);
+            var a = (IComparable)args[0];
+            var b = (IComparable)args[1];
             if (a.CompareTo(b) != 1) return a;
             return b;
         }
@@ -87,8 +87,8 @@ namespace NFun.BuiltInFunctions
 
         protected override object Calc(object[] args)
         {
-            var a = ((IComparable)args[0]);
-            var b = ((IComparable)args[1]);
+            var a = (IComparable)args[0];
+            var b = (IComparable)args[1];
             if (a.CompareTo(b) == 1) return a;
             return b;
         }

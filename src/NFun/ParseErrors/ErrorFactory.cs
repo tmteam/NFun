@@ -489,7 +489,7 @@ namespace NFun.ParseErrors
         public static Exception IfConditionIsNotBool(IExpressionNode condition) 
             => new FunParseException(548,"if Condition has to be boolean but was "+ condition.Type, condition.Interval);
 
-        public static Exception InvalidOutputType(FunctionBase function, Interval interval) 
+        public static Exception InvalidOutputType(IFunctionSignature function, Interval interval) 
             => new FunParseException(551, $"'{function.ReturnType}' is not supported as output parameter of {function.Name}()", interval);
 
         public static Exception FunctionArgumentDuplicates(UserFunctionDefenitionSyntaxNode lexFunction, TypedVarDefSyntaxNode lexFunctionArg) 

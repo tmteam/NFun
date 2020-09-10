@@ -7,9 +7,9 @@ namespace NFun.Interpritation.Nodes
 {
     public class FunVariableExpressionNode : IExpressionNode
     {
-        private readonly FunctionBase _value;
+        private readonly IConcreteFunction _value;
 
-        public FunVariableExpressionNode(FunctionBase fun, Interval interval)
+        public FunVariableExpressionNode(IConcreteFunction fun, Interval interval)
         {
             _value = fun;
             Interval = interval;

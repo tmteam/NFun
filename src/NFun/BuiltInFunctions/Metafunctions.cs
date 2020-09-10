@@ -37,9 +37,7 @@ namespace NFun.BuiltInFunctions
         public GetValOrDefault() : base("defa", VarType.Generic(0), VarType.Anything)
         {
         }
-
-        protected override object Calc(object[] args) => throw new NotImplementedException();
-
+        
         public override IConcreteFunction CreateConcrete(VarType[] concreteTypes)
         {
             return new ConcreteMetaFunction(
@@ -50,7 +48,7 @@ namespace NFun.BuiltInFunctions
                     .ToArray());
         }
 
-        public class ConcreteMetaFunction : FunctionBase
+        public class ConcreteMetaFunction : FunctionWithManyArguments
         {
             private readonly VarType _genericArg;
 
