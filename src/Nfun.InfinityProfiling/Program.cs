@@ -8,38 +8,56 @@ namespace Nfun.InfinityProfiling
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Build in loop");
-            Console.WriteLine("Press esc to exit");
+            Console.WriteLine("NFUN A-Profiler ");
+            while (RunOnOfModes())
+            {
+            }
+        }
 
-            var choise = EnterUserChoise();
-            if(choise== ProfileMode.DoNotProfile)
-                return;
+        private static bool RunOnOfModes()
+        {
+            var choice = EnterUserChoise();
+            if (choice == ProfileMode.DoNotProfile)
+                return false;
+
             Console.WriteLine("Profiling...");
-            switch (choise)
+            Console.WriteLine("Press [esc] to stop");
+
+            switch (choice)
             {
                 case ProfileMode.BuildAndCalcAll:
-                    ProfileModes.RunAll(false); break;
+                    ProfileModes.RunAll(false);
+                    break;
                 case ProfileMode.ParseAll:
-                    ProfileModes.RunParse(false);  break;
+                    ProfileModes.RunParse(false);
+                    break;
                 case ProfileMode.BuildAll:
-                    ProfileModes.RunBuild(false);  break;
+                    ProfileModes.RunBuild(false);
+                    break;
                 case ProfileMode.CalcAll:
-                    ProfileModes.RunCalc(false); break;
+                    ProfileModes.RunCalc(false);
+                    break;
                 case ProfileMode.BuildAndCalcBasics:
-                    ProfileModes.RunAll(true); break;
-                case ProfileMode.CalcBasicis:
-                    ProfileModes.RunCalc(false); break;
-                case ProfileMode.ParseBasicis:
-                    ProfileModes.RunParse(true);  break;
-                case ProfileMode.BuildBasicis:
-                    ProfileModes.RunBuild(true); break;
+                    ProfileModes.RunAll(true);
+                    break;
+                case ProfileMode.CalcBasics:
+                    ProfileModes.RunCalc(true);
+                    break;
+                case ProfileMode.ParseBasics:
+                    ProfileModes.RunParse(true);
+                    break;
+                case ProfileMode.BuildBasics:
+                    ProfileModes.RunBuild(true);
+                    break;
                 case ProfileMode.DoNotProfile:
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-            Console.WriteLine("Build stopped. Bye bye");
+
+            return true;
         }
+
         private enum ProfileMode
         {
             DoNotProfile,
@@ -48,9 +66,9 @@ namespace Nfun.InfinityProfiling
             BuildAndCalcAll,
             CalcAll,
             BuildAndCalcBasics,
-            CalcBasicis,
-            ParseBasicis,
-            BuildBasicis
+            CalcBasics,
+            ParseBasics,
+            BuildBasics
         }
         
         private static ProfileMode EnterUserChoise()
@@ -58,7 +76,7 @@ namespace Nfun.InfinityProfiling
             while (true)
             {
                 Console.WriteLine("Choose profiling mode:");
-                Console.WriteLine("[ENTER] All. Parse+Build+Calculation");
+                Console.WriteLine("[ENTER] All. Build+Calc");
                 Console.WriteLine("[1] All. Build+Calc");
 
                 Console.WriteLine("[2] All. Parse");
@@ -95,13 +113,13 @@ namespace Nfun.InfinityProfiling
                         return ProfileMode.BuildAndCalcBasics;
                     case ConsoleKey.D6:
                     case ConsoleKey.NumPad6:
-                        return ProfileMode.ParseBasicis;
+                        return ProfileMode.ParseBasics;
                     case ConsoleKey.D7:
                     case ConsoleKey.NumPad7:
-                        return ProfileMode.BuildBasicis;
+                        return ProfileMode.BuildBasics;
                     case ConsoleKey.D8:
                     case ConsoleKey.NumPad8:
-                        return ProfileMode.CalcBasicis;
+                        return ProfileMode.CalcBasics;
                     case ConsoleKey.Escape:
                         return ProfileMode.DoNotProfile;
                 }

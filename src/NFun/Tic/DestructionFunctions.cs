@@ -52,9 +52,11 @@ namespace NFun.Tic
                 return;
             }
 
+#if DEBUG
             var originAnc = nonRefAncestor.ToString();
             var originDes = nonRefDescendant.ToString();
             TraceLog.WriteLine(()=>$"-dm: {originAnc} => {originDes}");
+#endif
 
 
             switch (nonRefAncestor.State)
@@ -173,8 +175,9 @@ namespace NFun.Tic
                     break;
                 }
             }
-
+#if DEBUG
             TraceLog.WriteLine(()=>$"    {originAnc} + {originDes} = {nonRefDescendant.State}");
+#endif
         }
 
         #endregion
@@ -257,7 +260,8 @@ namespace NFun.Tic
             SolveUselessGenerics(toposortedNodes, outputNodes, inputNodes);
             return new FinalizationResults(typeVariables, namedNodes, syntaxNodes);
         }
-
+        
+        //todo perfomance hotspot
         private static void SolveUselessGenerics(
             IEnumerable<SolvingNode> toposortedNodes,
             IEnumerable<SolvingNode> outputNodes,

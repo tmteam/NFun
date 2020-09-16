@@ -20,7 +20,7 @@ namespace Nfun.InfinityProfiling
             else
             {
                 runner = ProfileTools.RunAllExamples;
-                reportTime = 2_000;
+                reportTime = 5_000;
             }
 
             var calculateBench = new ProfileCalculateSet();
@@ -297,7 +297,7 @@ namespace Nfun.InfinityProfiling
 
         private static void PrintFooter()
         {
-            Console.WriteLine("\r\nPress [esc] to exit");
+            Console.WriteLine("\r\nPress [esc] to stop");
         }
 
         private static void PrintResults(string name, TimeSpan ratioTime, LinkedList<double> history,
