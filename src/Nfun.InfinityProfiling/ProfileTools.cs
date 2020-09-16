@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Nfun.InfinityProfiling.Sets;
 
 namespace Nfun.InfinityProfiling
 {
@@ -9,36 +10,43 @@ namespace Nfun.InfinityProfiling
             list.AddLast(value);
             while (list.Count>maxSize) list.RemoveFirst();
         }
-        public static void RunSimpliest(IProfileSet set)
+        public static void RunFastExamples(IProfileSet set)
         {
             set.Const1();
             set.ConstText();
             set.ConstTrue();
             set.ConstBoolArray();
             set.ConstRealArray();
-            set.CalcBool();
+            set.CalcSingleBool();
             set.CalcKxb();
-            set.CalcReal();
-            set.CalcText();
+            set.CalcSingleReal();
+            set.CalcSingleText();
             set.CalcFourArgs();
             set.CalcRealArray();
+            set.ConstBool();
+            set.ConstInterpolation();
+            set.ConstGenericFunc();
+            set.ConstSquareEquation();
+            set.CalcIntOp();
+            set.CalcRealOp();
+            set.CalcBoolOp();
+            set.CalcTextOp();
+            set.CalcInterpolation();
+            set.CalcGenericFunc();
+            set.CalcSquareEquation();
         }
-        public static void RunAll(IProfileSet set)
+
+        public static void RunAllExamples(IProfileSet set)
         {
-            set.Const1();
+            RunFastExamples(set);
+            RunSlowExamples(set);
+        }
+
+        public static void RunSlowExamples(IProfileSet set)
+        {
             set.ConstEverything();
-            set.ConstText();
-            set.ConstTrue();
-            set.ConstBoolArray();
             set.ConstDummyBubble();
             set.ConstMultiArrays();
-            set.ConstRealArray();
-            set.CalcBool();
-            set.CalcKxb();
-            set.CalcReal();
-            set.CalcText();
-            set.CalcFourArgs();
-            set.CalcRealArray();
         }
     }
 }

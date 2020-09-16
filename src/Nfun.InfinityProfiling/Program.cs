@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 
 namespace Nfun.InfinityProfiling
@@ -12,181 +11,99 @@ namespace Nfun.InfinityProfiling
             Console.WriteLine("Build in loop");
             Console.WriteLine("Press esc to exit");
 
-            Action<IProfileSet> runner;
-            bool runOnlySimpliest = false;
-            int reportTime;
-
-            RunAll(runOnlySimpliest);
+            var choise = EnterUserChoise();
+            if(choise== ProfileMode.DoNotProfile)
+                return;
+            Console.WriteLine("Profiling...");
+            switch (choise)
+            {
+                case ProfileMode.BuildAndCalcAll:
+                    ProfileModes.RunAll(false); break;
+                case ProfileMode.ParseAll:
+                    ProfileModes.RunParse(false);  break;
+                case ProfileMode.BuildAll:
+                    ProfileModes.RunBuild(false);  break;
+                case ProfileMode.CalcAll:
+                    ProfileModes.RunCalc(false); break;
+                case ProfileMode.BuildAndCalcBasics:
+                    ProfileModes.RunAll(true); break;
+                case ProfileMode.CalcBasicis:
+                    ProfileModes.RunCalc(false); break;
+                case ProfileMode.ParseBasicis:
+                    ProfileModes.RunParse(true);  break;
+                case ProfileMode.BuildBasicis:
+                    ProfileModes.RunBuild(true); break;
+                case ProfileMode.DoNotProfile:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
             Console.WriteLine("Build stopped. Bye bye");
         }
-
-        private static void RunCalculation(bool runOnlySimpliest)
+        private enum ProfileMode
         {
-            Action<IProfileSet> runner;
-            int reportTime;
-            if (runOnlySimpliest)
-            {
-                runner = ProfileTools.RunSimpliest;
-                reportTime = 100_000;
-            }
-            else
-            {
-                runner = ProfileTools.RunAll;
-                reportTime = 1_000;
-            }
-
-            var calculateBench = new ProfileCalculateSet();
-
-            for (int i = 0; i < 3; i++)
-            {
-                runner(calculateBench);
-            }
-
-            int measurementsCount = 0;
-            int historyCount = 10;
-
-            var calcStopWatch = new Stopwatch();
-            var calcHistory = new LinkedList<double>();
-
-
-            for (int iterations = 1; !Console.KeyAvailable || Console.ReadKey().Key != ConsoleKey.Escape; iterations++)
-            {
-              
-                calcStopWatch.Start();
-                runner(calculateBench);
-                calcStopWatch.Stop();
-
-                if (iterations >= reportTime)
-                {
-                    measurementsCount++;
-
-                    calcHistory.AddAndTruncate(calcStopWatch.Elapsed.TotalMilliseconds, historyCount);
-
-                    var total = calcStopWatch.Elapsed;
-                    var buildAndRunTime = calcStopWatch.Elapsed;
-
-                    calcStopWatch.Reset();
-
-
-                    Console.Clear();
-                    Console.WriteLine();
-                    Console.WriteLine(
-                        $"------ {(runOnlySimpliest ? "Simple" : "Full")} iteration #{measurementsCount} in {(int) total.TotalMilliseconds} ms ------");
-
-                    Console.WriteLine($"          |    %    |  VAL ips |  AVG ips  |  MIN ips  |  MAX ips  |   RMS  |");
-                    PrintResults("calculate", buildAndRunTime, calcHistory, iterations);
-
-                    Console.WriteLine("\r\nPress [esc] to exit");
-
-
-                    iterations = 1;
-                }
-            }
+            DoNotProfile,
+            ParseAll,
+            BuildAll,
+            BuildAndCalcAll,
+            CalcAll,
+            BuildAndCalcBasics,
+            CalcBasicis,
+            ParseBasicis,
+            BuildBasicis
         }
-
-        private static void RunAll(bool runOnlySimpliest)
+        
+        private static ProfileMode EnterUserChoise()
         {
-            Action<IProfileSet> runner;
-            int reportTime;
-            if (runOnlySimpliest)
+            while (true)
             {
-                runner = ProfileTools.RunSimpliest;
-                reportTime = 6000;
-            }
-            else
-            {
-                runner = ProfileTools.RunAll;
-                reportTime = 600;
-            }
+                Console.WriteLine("Choose profiling mode:");
+                Console.WriteLine("[ENTER] All. Parse+Build+Calculation");
+                Console.WriteLine("[1] All. Build+Calc");
 
-            var buildBench = new ProfileBuildAllSet();
-            var parseBench = new ProfileParserSet();
-            var updateBench = new ProfileUpdateSet();
-            var calculateBench = new ProfileCalculateSet();
+                Console.WriteLine("[2] All. Parse");
+                Console.WriteLine("[3] All. Build");
+                Console.WriteLine("[4] All. Calc");
 
-            for (int i = 0; i < 3; i++)
-            {
-                runner(parseBench);
-                runner(buildBench);
-                runner(updateBench);
-                runner(calculateBench);
-            }
+                Console.WriteLine("[5] Basics. Build+Calc");
 
-            int measurementsCount = 0;
-            int historyCount = 10;
+                Console.WriteLine("[6] Basics. Parse");
+                Console.WriteLine("[7] Basics. Build");
+                Console.WriteLine("[8] Basics. Calc");
 
-            var parseStopWatch = new Stopwatch();
-            var parseHistory = new LinkedList<double>();
-
-            var buildStopWatch = new Stopwatch();
-            var buildHistory = new LinkedList<double>();
-
-            var interpritateHistory = new LinkedList<double>();
-
-            var updateStopWatch = new Stopwatch();
-            var updateHistory = new LinkedList<double>();
-
-            var calcStopWatch = new Stopwatch();
-            var calcHistory = new LinkedList<double>();
-
-
-            for (int iterations = 1; !Console.KeyAvailable || Console.ReadKey().Key != ConsoleKey.Escape; iterations++)
-            {
-                parseStopWatch.Start();
-                runner(parseBench);
-                parseStopWatch.Stop();
-
-                buildStopWatch.Start();
-                runner(buildBench);
-                buildStopWatch.Stop();
-
-                updateStopWatch.Start();
-                runner(updateBench);
-                updateStopWatch.Stop();
-
-                calcStopWatch.Start();
-                runner(calculateBench);
-                calcStopWatch.Stop();
-
-                if (iterations >= reportTime)
+                Console.WriteLine("[ESC] Exit");
+                Console.Write("Enter your choice: ");
+                var key = Console.ReadKey();
+                Console.WriteLine();
+                switch (key.Key)
                 {
-                    measurementsCount++;
-
-                    parseHistory.AddAndTruncate(parseStopWatch.Elapsed.TotalMilliseconds, historyCount);
-                    buildHistory.AddAndTruncate(buildStopWatch.Elapsed.TotalMilliseconds, historyCount);
-
-                    interpritateHistory.AddAndTruncate(buildStopWatch.Elapsed.TotalMilliseconds -
-                                                       parseStopWatch.Elapsed.TotalMilliseconds, historyCount);
-
-                    updateHistory.AddAndTruncate(updateStopWatch.Elapsed.TotalMilliseconds, historyCount);
-                    calcHistory.AddAndTruncate(calcStopWatch.Elapsed.TotalMilliseconds, historyCount);
-
-                    var total = parseStopWatch.Elapsed + buildStopWatch.Elapsed + updateStopWatch.Elapsed +
-                                calcStopWatch.Elapsed;
-                    var buildAndRunTime = buildStopWatch.Elapsed + calcStopWatch.Elapsed;
-
-                    parseStopWatch.Reset();
-                    buildStopWatch.Reset();
-                    updateStopWatch.Reset();
-                    calcStopWatch.Reset();
-
-
-                    Console.Clear();
-                    Console.WriteLine();
-                    Console.WriteLine(
-                        $"------ {(runOnlySimpliest ? "Simple" : "Full")} iteration #{measurementsCount} in {(int) total.TotalMilliseconds} ms ------");
-
-                    Console.WriteLine($"          |    %    |  VAL ips |  AVG ips  |  MIN ips  |  MAX ips  |   RMS  |");
-                    PrintResults("parse    ", buildAndRunTime, parseHistory, iterations);
-                    PrintResults("interprt ", buildAndRunTime, interpritateHistory, iterations);
-                    //PrintResults("build all", buildAndRunTime, buildHistory,         iterations);
-                    //PrintResults("update   ", buildAndRunTime, updateHistory,        iterations);
-                    PrintResults("calculate", buildAndRunTime, calcHistory, iterations);
-
-                    Console.WriteLine("\r\nPress [esc] to exit");
-
-
-                    iterations = 1;
+                    case ConsoleKey.Enter:
+                    case ConsoleKey.D1:
+                    case ConsoleKey.NumPad1:
+                        return ProfileMode.BuildAndCalcAll;
+                    case ConsoleKey.D2:
+                    case ConsoleKey.NumPad2:
+                        return ProfileMode.ParseAll;
+                    case ConsoleKey.D3:
+                    case ConsoleKey.NumPad3:
+                        return ProfileMode.BuildAll;
+                    case ConsoleKey.D4:
+                    case ConsoleKey.NumPad4:
+                        return ProfileMode.CalcAll;
+                    case ConsoleKey.D5:
+                    case ConsoleKey.NumPad5:
+                        return ProfileMode.BuildAndCalcBasics;
+                    case ConsoleKey.D6:
+                    case ConsoleKey.NumPad6:
+                        return ProfileMode.ParseBasicis;
+                    case ConsoleKey.D7:
+                    case ConsoleKey.NumPad7:
+                        return ProfileMode.BuildBasicis;
+                    case ConsoleKey.D8:
+                    case ConsoleKey.NumPad8:
+                        return ProfileMode.CalcBasicis;
+                    case ConsoleKey.Escape:
+                        return ProfileMode.DoNotProfile;
                 }
             }
         }
@@ -209,5 +126,4 @@ namespace Nfun.InfinityProfiling
                               $"{rms * 1000 / iterations:0000}  |  ");
         }
     }
-    
 }

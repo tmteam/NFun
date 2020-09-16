@@ -350,7 +350,6 @@
       </e>
       <e p="Nfun.InfinityProfiling" t="IncludeRecursive">
         <e p="bin" t="ExcludeRecursive" />
-        <e p="IProfileSet.cs" t="Include" />
         <e p="Nfun.InfinityProfiling.csproj" t="IncludeRecursive" />
         <e p="obj" t="ExcludeRecursive">
           <e p="Release" t="Include">
@@ -359,13 +358,18 @@
             </e>
           </e>
         </e>
-        <e p="ProfileBuildAllSet.cs" t="Include" />
-        <e p="ProfileCalculateSet.cs" t="Include" />
-        <e p="ProfileParserSet.cs" t="Include" />
+        <e p="ProfileModes.cs" t="Include" />
         <e p="ProfileTools.cs" t="Include" />
-        <e p="ProfileUpdateSet.cs" t="Include" />
         <e p="Program.cs" t="Include" />
         <e p="Scripts.cs" t="Include" />
+        <e p="Sets" t="Include">
+          <e p="IProfileSet.cs" t="Include" />
+          <e p="ProfileBuildAllSet.cs" t="Include" />
+          <e p="ProfileCalculateSet.cs" t="Include" />
+          <e p="ProfileParserSet.cs" t="Include" />
+          <e p="ProfileUpdateSet.cs" t="Include" />
+          <e p="Scripts.cs" t="Include" />
+        </e>
       </e>
       <e p="NFun.Tests" t="IncludeRecursive">
         <e p="AnonymEquationTest.cs" t="Include" />
