@@ -41,10 +41,10 @@ namespace NFun.Runtime.Arrays
         {
             if (ClrArray is char[] str)
                 return new string(str);
+            
             return ArrayTools.JoinElementsToFunString(_values);
         }
 
-        //todo perfomance hotspot
         public IEnumerator<object> GetEnumerator()
         {
             foreach (var t in _values)

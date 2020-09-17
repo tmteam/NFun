@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Numerics;
-using System.Runtime.InteropServices;
 using NFun.BuiltInFunctions;
 using NFun.Exceptions;
 using NFun.ParseErrors;
-using NFun.Runtime;
 using NFun.Runtime.Arrays;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
@@ -398,7 +396,7 @@ namespace NFun.SyntaxParsing
 
                     var start = openInterpolationToken.Start;
                     var finish = flow.Current.Finish;
-                    /*switch (concatinations.Count)
+                    switch (concatinations.Count)
                     {
                         //Cases for 1, 2 and 3 args are most common.
                         //Here is an optimization for these cases. 
@@ -410,12 +408,12 @@ namespace NFun.SyntaxParsing
                         case 3:
                             return SyntaxNodeFactory.FunCall(CoreFunNames.Concat3Texts, concatinations.ToArray(),start, finish);
                         default:
-                        {*/
+                        {
                             var arrayOfTexts = SyntaxNodeFactory.Array(concatinations.ToArray(), start, finish);
                             return SyntaxNodeFactory.FunCall(CoreFunNames.ConcatArrayOfTexts, new[] { arrayOfTexts },
                                 start, finish);
-                        //}
-                    //}
+                        }
+                    }
                 }
                 //interpolation continuation
                 // }...{

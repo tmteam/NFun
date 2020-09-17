@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 using NFun.Tic.SolvingStates;
 using NFun.Types;
@@ -21,7 +22,23 @@ namespace NFun.Runtime.Arrays
                     sb.Append(",");
                 }
                 first = false;
-                sb.Append(TypeHelper.ToFunText(item));
+                sb.Append(TypeHelper.GetFunText(item));
+            }
+            sb.Append("]");
+            return sb.ToString();
+        }
+        public static string JoinElementsToFunString(IEnumerable<object> enumerable)
+        {
+            var sb = new StringBuilder("[");
+            bool first = true;
+            foreach (var item in enumerable)
+            {
+                if (!first)
+                {
+                    sb.Append(",");
+                }
+                first = false;
+                sb.Append(TypeHelper.GetFunText(item));
             }
             sb.Append("]");
             return sb.ToString();

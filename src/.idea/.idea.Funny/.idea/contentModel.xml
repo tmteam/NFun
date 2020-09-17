@@ -92,12 +92,6 @@
           <e p="ImpossibleException.cs" t="Include" />
         </e>
         <e p="FunBuilder.cs" t="Include" />
-        <e p="Girsu" t="Include">
-          <e p="DiyFp.cs" t="Include" />
-          <e p="Grisu.cs" t="Include" />
-          <e p="GrisuDouble.cs" t="Include" />
-          <e p="PowersOfTenCache.cs" t="Include" />
-        </e>
         <e p="Helper.cs" t="Include" />
         <e p="Interpritation" t="Include">
           <e p="Equation.cs" t="Include" />

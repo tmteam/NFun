@@ -13,7 +13,6 @@ namespace NFun.SyntaxParsing.SyntaxNodes
 
         public ISyntaxNode[] Nodes { get; }
         
-        //todo perfomance use ilist instead of array
         public SyntaxTree(ISyntaxNode[] nodes)
         {
             Nodes = nodes;

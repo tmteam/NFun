@@ -14,7 +14,7 @@ namespace NFun.BuiltInFunctions
     {
         public ToTextFunction() : base(CoreFunNames.ToText, VarType.Text, VarType.Anything) { }
 
-        public override object Calc(object a) => new TextFunArray(TypeHelper.ToFunText(a));
+        public override object Calc(object a) => new TextFunArray(TypeHelper.GetFunText(a));
     }
     /*
     public class ToInt16FromInt16Function : FunctionBase

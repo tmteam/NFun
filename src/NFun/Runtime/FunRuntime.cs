@@ -49,8 +49,8 @@ namespace NFun.Runtime
 
         public void Update()
         {
-            foreach (var t in _equations)
-                t.CalcExpression();
+            for (int i = 0; i < _equations.Count; i++) 
+                _equations[i].CalcExpression();
         }
         public CalculationResult Calculate(params VarVal[] vars)
         {

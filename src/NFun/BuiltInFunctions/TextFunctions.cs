@@ -16,7 +16,7 @@ namespace NFun.BuiltInFunctions
             var sb = new StringBuilder();
             foreach (var subElement in (IFunArray) a)
             {
-                sb.Append(TypeHelper.ToFunText(subElement));
+                sb.Append(TypeHelper.GetFunText(subElement));
             }
             return new TextFunArray(sb.ToString());
         }
@@ -26,7 +26,7 @@ namespace NFun.BuiltInFunctions
         public Concat2TextsFunction() : base(CoreFunNames.Concat2Texts, VarType.Text,VarType.Anything,VarType.Anything) { }
 
         public override object Calc(object a, object b) 
-            => new TextFunArray(TypeHelper.ToFunText(a) + TypeHelper.ToFunText(b));
+            => new TextFunArray(TypeHelper.GetFunText(a) + TypeHelper.GetFunText(b));
     }
     
     public class Concat3TextsFunction : FunctionWithManyArguments
@@ -37,7 +37,7 @@ namespace NFun.BuiltInFunctions
         {
             var sb = new StringBuilder();
             foreach (var subElement in  args) 
-                sb.Append(TypeHelper.ToFunText(subElement));
+                sb.Append(TypeHelper.GetFunText(subElement));
             return new TextFunArray(sb.ToString());
         }
     }
@@ -49,22 +49,12 @@ namespace NFun.BuiltInFunctions
         public override object Calc(object[] args)
         {
             var template = args.GetTextOrThrow(0);
-            var formatArguments = ((IFunArray) args[1]);
+            var formatArguments = (IFunArray) args[1];
             var result = string.Format(template, formatArguments);
             return new TextFunArray(result);
         }
     }
-    public class SortTextFunction : FunctionWithManyArguments
-    {
-        public SortTextFunction() : base("sort", VarType.ArrayOf(VarType.Text), VarType.ArrayOf(VarType.Text)){}
-
-        public override object Calc(object[] args)
-        {
-            var arr = args.GetListOfStringOrThrow(0).ToArray();
-            Array.Sort(arr, StringComparer.InvariantCulture);
-            return new ImmutableFunArray(arr.Select(s=>new TextFunArray(s)).ToArray());
-        }
-    }
+  
     public class TrimFunction : FunctionWithManyArguments
     {
         public TrimFunction() : base("trim",VarType.Text,VarType.Text){}
@@ -103,17 +93,18 @@ namespace NFun.BuiltInFunctions
     }
     
     
-    public class JoinFunction : FunctionWithManyArguments
+    public class JoinFunction : FunctionWithTwoArgs
     {
         public JoinFunction() : base("join",VarType.Text,VarType.ArrayOf(VarType.Text),VarType.Text)
         {
-            
         }
-        public override object Calc(object[] args)
+
+        public override object Calc(object a, object b)
         {
-            var listOfStrings = args.GetListOfStringOrThrow(0);
-            var arg = string.Join(args.GetTextOrThrow(1), listOfStrings);
-            return new TextFunArray(arg);
+            var arr       = (IFunArray) a;
+            var separator = (IFunArray) b;
+            var join = string.Join(separator.ToText(), arr.Select(TypeHelper.GetFunText));
+            return new TextFunArray(join);
         }
     }
 }

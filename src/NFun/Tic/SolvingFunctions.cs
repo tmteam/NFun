@@ -475,7 +475,7 @@ namespace NFun.Tic
                 if (arrayEDesc.IsSolved)
                     return arrayEDesc;
 
-                //For - perfomance
+                //For perfomance
                 bool allArgsAreSolved = true;
                 var nrArgNodes = new SolvingNode[arrayEDesc.ArgNodes.Length];
                 for (int i = 0; i < arrayEDesc.ArgNodes.Length; i++)

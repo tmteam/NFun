@@ -1,19 +1,14 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using GrisuDotNet;
-using NFun.Runtime;
 using NFun.Runtime.Arrays;
 
 namespace NFun.Types
 {
     public static class TypeHelper
     {
-
         static TypeHelper()
         {
             FunToClrTypesMap = new[]
@@ -61,17 +56,12 @@ namespace NFun.Types
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static string ToFunText(object obj)
+        internal static string GetFunText(object obj)
         {
             if (obj is IFunArray funArray)
                 return funArray.ToText();
             if (obj is double dbl)
-            {
-                StringBuilder sb = new StringBuilder();
-                GrisuDotNet.Grisu.DoubleToString(dbl, sb);
-                return sb.ToString();
-            }
-
+                return dbl.ToString(CultureInfo.InvariantCulture);
             return obj.ToString();
         }
         
