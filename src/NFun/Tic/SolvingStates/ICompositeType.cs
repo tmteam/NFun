@@ -11,6 +11,10 @@ namespace NFun.Tic.SolvingStates
     public interface ICompositeType : IType
     {
         ICompositeType GetNonReferenced();
+        /// <summary>
+        /// State of any Member node is 'RefTo'
+        /// </summary>
+        bool HasAnyReferenceMember { get; }
         IEnumerable<SolvingNode> Members { get; }
         IEnumerable<SolvingNode> AllLeafTypes { get; }
     }

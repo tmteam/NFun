@@ -169,21 +169,19 @@ namespace NFun.Tic
             foreach (var id in elementIds)
             {
                 elementType.BecomeReferenceFor(GetOrCreateNode(id));
-                elementType.MemberOf.Add(resultNode);
+                elementType.IsMemberOfAnything = true;
             }
             return new RefTo(elementType);
         }
-        public RefTo SetSoftArrayInit(int resultIds, params int[] elementIds)
+        public void SetSoftArrayInit(int resultIds, IEnumerable<int> elementIds)
         {
             var elementType = CreateVarType();
-            var resultNode = GetOrCreateArrayNode(resultIds, elementType);
-
+            GetOrCreateArrayNode(resultIds, elementType);
             foreach (var id in elementIds)
             {
                 GetOrCreateNode(id).Ancestors.Add(elementType);
-                elementType.MemberOf.Add(resultNode);
+                elementType.IsMemberOfAnything = true;
             }
-            return new RefTo(elementType);
         }
         /// <summary>
         /// Set function call, where function variable (or expression) placed at bodyId

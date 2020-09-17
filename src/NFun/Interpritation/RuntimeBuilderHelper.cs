@@ -71,7 +71,7 @@ namespace NFun.Interpritation
                 var typeGraph = new GraphBuilder();
 
                 //to build body - we have to skip all user-function-syntax-nodes
-                var bodyNodes = syntaxTree.Children.Where(n => !(n is UserFunctionDefenitionSyntaxNode));
+                var bodyNodes = syntaxTree.Nodes.Where(n => !(n is UserFunctionDefenitionSyntaxNode));
                 if(!TicSetupVisitor.Run(bodyNodes, typeGraph, functions, constants, resultBuilder))
                     throw ErrorFactory.TypesNotSolved(syntaxTree);
 

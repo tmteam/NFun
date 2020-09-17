@@ -130,7 +130,7 @@ namespace NFun.Tic.Tests
 
             Assert.AreEqual(2, result.GenericsCount);
 
-            var generics = result.Generics.ToArray();
+            var generics = result.GenericNodes.ToArray();
 
             generics[0].AssertGenericType(null, null, false);
             generics[1].AssertGenericType(null, null, false);

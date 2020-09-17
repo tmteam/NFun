@@ -104,13 +104,13 @@ namespace NFun.TypeInferenceAdapter
         {
             VisitChildren(node);
 
-            var elementIds = node.Expressions.SelectToArray(e => e.OrderNumber);
 #if DEBUG
+            var elementIds = node.Expressions.SelectToArray(e => e.OrderNumber);
             Trace(node, $"[{string.Join(",", elementIds)}]");
 #endif
             _ticTypeGraph.SetSoftArrayInit(
                 node.OrderNumber,
-                node.Expressions.SelectToArray(e => e.OrderNumber)
+                node.Expressions.Select(e => e.OrderNumber)
             );
             return true;
         }
@@ -434,8 +434,6 @@ namespace NFun.TypeInferenceAdapter
                 var signature = _dictionary.GetOrNull(id, argsCount);
                 if (signature != null)
                 {
-
-
                     if (signature is GenericFunctionBase genericFunction)
                     {
                         var generics = InitializeGenericTypes(genericFunction.GenericDefenitions);

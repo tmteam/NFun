@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using NFun.Tic.SolvingStates;
 using NFun.TypeInferenceCalculator;
@@ -31,7 +32,7 @@ namespace NFun.Tic
 
         public SolvingNodeType Type { get; }
         public List<SolvingNode> Ancestors { get; } = new List<SolvingNode>();
-        public List<SolvingNode> MemberOf { get; } = new List<SolvingNode>();
+        public bool IsMemberOfAnything { get; set; }
         public bool IsSolved => _state is Primitive || (_state as Array)?.IsSolved == true;
 
         public IState State
@@ -39,18 +40,15 @@ namespace NFun.Tic
             get => _state;
             set
             {
-                //todo perfomance hotspot
-                
-                if(value == null)
-                    throw new InvalidOperationException();
-                if(IsSolved && !value.Equals(_state))
-                    throw new InvalidOperationException("Node is already solved");
+                Debug.Assert(value != null);
+                Debug.Assert(!(IsSolved && !value.Equals(_state)),"Node is already solved");
 
                 if (value is Array array)
-                    array.ElementNode.MemberOf.Add(this);
-                else if(value is RefTo refTo && refTo.Node== this)
-                    throw new InvalidOperationException("Self referencing node");
-
+                    array.ElementNode.IsMemberOfAnything = true;
+                else
+                {
+                    Debug.Assert(!(value is RefTo refTo && refTo.Node== this),"Self referencing node");
+                }
                 _state = value;
             }
         }

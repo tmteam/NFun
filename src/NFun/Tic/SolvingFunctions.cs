@@ -138,8 +138,7 @@ namespace NFun.Tic
                     foreach (var member in composite.Members)
                         HandleUpwardLimits(member);
             }
-            //todo perfomance hotspot (memberOf.Any())
-            foreach (var node in toposortedNodes.Where(n => !n.MemberOf.Any()))
+            foreach (var node in toposortedNodes.Where(n => !n.IsMemberOfAnything))
                 HandleUpwardLimits(node);
         }
 
@@ -300,7 +299,7 @@ namespace NFun.Tic
             for (int i = toposortedNodes.Length - 1; i >= 0; i--)
             {
                 var descendant = toposortedNodes[i];
-                if (descendant.MemberOf.Any())
+                if (descendant.IsMemberOfAnything)
                     continue;
 
                 Downwards(descendant);

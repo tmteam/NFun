@@ -203,7 +203,7 @@ namespace NFun.Interpritation
             resultsBuilder.SetResults(types);
             var typeInferenceResuls = resultsBuilder.Build();
 
-            if (types.GenericsCount == 0)
+            if (!types.HasGenerics)
             {
                 #region concreteFunction
 

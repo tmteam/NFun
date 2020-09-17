@@ -332,13 +332,7 @@ namespace NFun.Interpritation
         
         private IExpressionNode CreateFunctionCall(IFunCallSyntaxNode node, IConcreteFunction function)
         {
-            var children = new List<IExpressionNode>();
-            //todo perfomance hotspot
-            foreach (var argLexNode in node.Args)
-            {
-                var argNode = ReadNode(argLexNode);
-                children.Add(argNode);
-            }
+            var children = node.Args.SelectToArray(ReadNode);
             var converted = function.CreateWithConvertionOrThrow(children, node.Interval);
             if (converted.Type != node.OutputType)
             {

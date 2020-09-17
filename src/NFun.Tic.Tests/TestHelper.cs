@@ -69,9 +69,8 @@ namespace NFun.Tic.Tests
         public static SolvingNode AssertAndGetSingleGeneric(this FinalizationResults result, Primitive desc,
             Primitive anc, bool isComparable = false)
         {
-            Assert.AreEqual(1, result.GenericsCount,"Incorrect generics count");
-            var genericNode = result.Generics.Single();
-
+            Assert.AreEqual(1, result.GenericsStates.Count(),"Incorrect generics count");
+            var genericNode = result.GenericNodes.Single();
             AssertGenericType(genericNode, desc, anc, isComparable);
             return genericNode;
         }
@@ -80,7 +79,23 @@ namespace NFun.Tic.Tests
         {
             AssertGenericType(node, Primitive.U24, Primitive.Real, false);
         }
+        public static void AssertGenericType(this IState state, Primitive desc, Primitive anc,
+            bool isComparable = false)
+        {
+            var generic = state as Constrains;
+            Assert.IsNotNull(generic);
+            if (desc == null)
+                Assert.IsFalse(generic.HasDescendant);
+            else
+                Assert.AreEqual(desc, generic.Descedant,"Actual generic type is "+generic);
 
+            if (anc == null)
+                Assert.IsFalse(generic.HasAncestor);
+            else
+                Assert.AreEqual(anc, generic.Ancestor);
+
+            Assert.AreEqual(isComparable, generic.IsComparable,"IsComparable claim missed");
+        }
         public static void AssertGenericType(this SolvingNode node, Primitive desc, Primitive anc,
             bool isComparable = false)
         {
@@ -100,7 +115,7 @@ namespace NFun.Tic.Tests
         }
 
         public static void AssertNoGenerics(this FinalizationResults results) 
-            => Assert.AreEqual(0, results.GenericsCount,"Unexpected generic types");
+            => Assert.IsFalse(results.HasGenerics,"Unexpected generic types");
 
         public static void AssertNamedEqualToArrayOf(this FinalizationResults results, object typeOrNode, params string[] varNames)
         {

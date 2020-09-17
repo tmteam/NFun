@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 
@@ -258,7 +259,7 @@ namespace NFun.Tic.Tests
 
             var result = graph.Solve();
             
-            Assert.AreEqual(0,result.GenericsCount);
+            Assert.AreEqual(0,result.GenericsStates.Count());
             result.AssertNamed(Primitive.I32, "a");
             result.AssertNamed(Primitive.Real, "b");
             result.AssertNamed(Primitive.Real, "y");

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using NFun.Interpritation.Functions;
+using NFun.Tic;
 using NFun.Tic.SolvingStates;
 using NFun.TypeInferenceCalculator;
 
@@ -21,13 +22,8 @@ namespace NFun.TypeInferenceAdapter
         private Dictionary<string, IState> _namedNodes = null;
         private IState[] _syntaxNodeTypes = null;
 
-        public void RememberGenericCallArguments(int id, RefTo[] types)
-        {
-            while (_genericFunctionTypes.Count<=id) 
-                _genericFunctionTypes.Add(null);
-
-            _genericFunctionTypes[id] = types;
-        }
+        public void RememberGenericCallArguments(int id, RefTo[] types) 
+            => _genericFunctionTypes.EnlargeAndSet(id, types);
 
         public Fun GetUserFunctionSignature(string id, int argsCount)
         {
@@ -44,28 +40,17 @@ namespace NFun.TypeInferenceAdapter
         public void RememberUserFunctionSignature(string name, Fun signature) 
             => _userFunctionSignatures.Add(name+"'"+signature.ArgsCount, signature);
 
-        public void RememberFunctionalVariable(int id, IFunctionSignature signature)
-        {
-            while (_functionalVariable.Count <= id)
-                _functionalVariable.Add(null);
-            _functionalVariable[id] = signature;
-        }
-        public void RememberFunctionCall(int id, IFunctionSignature signature)
-        {
-            while (_functionSignatures.Count <= id)
-                _functionSignatures.Add(null);
-            _functionSignatures[id] = signature;
-        }
-        //todo perfomance hotspot
+        public void RememberFunctionalVariable(int id, IFunctionSignature signature) 
+            => _functionalVariable.EnlargeAndSet(id, signature);
+
+        public void RememberFunctionCall(int id, IFunctionSignature signature) 
+            => _functionSignatures.EnlargeAndSet(id, signature);
+
         public void SetResults(FinalizationResults bodyTypeSolving)
         {
-            SetSyntaxNodeTypes(bodyTypeSolving.GetSyntaxNodes());
-            foreach (var generic in bodyTypeSolving.GetAllGenerics)
-            {
-                AddGenericType(generic);
-            }
-
-            SetNamedNodes(bodyTypeSolving.GetAllNamedNodes());
+            _syntaxNodeTypes = bodyTypeSolving.GetSyntaxNodeStates();
+            _namedNodes      = bodyTypeSolving.GetAllNamedNodeStates();
+            _constrainses.AddRange(bodyTypeSolving.GenericsStates);
         }
         public TypeInferenceResults Build()
         {
@@ -80,25 +65,12 @@ namespace NFun.TypeInferenceAdapter
                 );
         }
 
-        private void SetSyntaxNodeTypes(IState[] syntaxNodeTypes) 
-            => _syntaxNodeTypes = syntaxNodeTypes;
-
-        private void AddGenericType(Constrains constrains) 
-            => _constrainses.Add(constrains);
-
-        private void SetNamedNodes(Dictionary<string, IState> namedNodes) 
-            => _namedNodes = namedNodes;
-
-        public void RememberRecursiveCall(int id, Fun userFunction)
-        {
-            while (_recursiveCalls.Count <= id)
-                _recursiveCalls.Add(null);
-            _recursiveCalls[id] = userFunction;
-        }
+        public void RememberRecursiveCall(int id, Fun userFunction) 
+            => _recursiveCalls.EnlargeAndSet(id, userFunction);
     }
     public class TypeInferenceResults
     {
-        private Dictionary<string, IState> _namedNodes;
+        private readonly Dictionary<string, IState> _namedNodes;
         private readonly IList<IFunctionSignature> _functions;
         private readonly IList<IFunctionSignature> _functionalVariables;
         private readonly IList<Fun> _recursiveCalls;

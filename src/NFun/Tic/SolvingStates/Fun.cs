@@ -135,6 +135,24 @@ namespace NFun.Tic.SolvingStates
             return new Fun(nonRefArgNodes, RetNode.GetNonReference());
         }
 
+        /// <summary>
+        /// State of any Member node is 'RefTo'
+        /// </summary>
+        public bool HasAnyReferenceMember
+        {
+            get
+            {
+                if (RetNode.State is RefTo)
+                    return true;
+                foreach (var arg in ArgNodes)
+                {
+                    if (arg.State is RefTo)
+                        return true;
+                }
+                return false;
+            }
+        }
+
         public IEnumerable<SolvingNode> Members => ArgNodes.Append(RetNode);
 
         public IEnumerable<SolvingNode> AllLeafTypes

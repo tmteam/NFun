@@ -82,6 +82,8 @@ namespace NFun.Tic.SolvingStates
         public ICompositeType GetNonReferenced() 
             => Array.Of(ElementNode.GetNonReference());
 
+        public bool HasAnyReferenceMember => ElementNode.State is RefTo;
+
         public IEnumerable<SolvingNode> Members => new[] {ElementNode};
 
         public IEnumerable<SolvingNode> AllLeafTypes

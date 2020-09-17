@@ -83,7 +83,7 @@ namespace NFun.Tic.Toposort
                     concretesBuffer.AddLast(node);
                     if (node.State is ICompositeType composite)
                     {
-                        if (composite.Members.Any(m => m.State is RefTo))
+                        if (composite.HasAnyReferenceMember)
                             node.State = composite.GetNonReferenced();
                     }
 

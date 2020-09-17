@@ -20,7 +20,7 @@ namespace NFun.Tic
 
                 if (node.State is ICompositeType composite)
                 {
-                    if (composite.Members.Any(m => m.State is RefTo))
+                    if (composite.HasAnyReferenceMember)
                         node.State = composite.GetNonReferenced();
 
                     foreach (var member in composite.Members)
@@ -36,7 +36,7 @@ namespace NFun.Tic
             for (int i = toposorteNodes.Length - 1; i >= 0; i--)
             {
                 var descendant = toposorteNodes[i];
-                if (descendant.MemberOf.Any())
+                if (descendant.IsMemberOfAnything)
                     continue;
                 Destruction(descendant);
             }
@@ -216,7 +216,7 @@ namespace NFun.Tic
                 
                 if (node.State is ICompositeType composite)
                 {
-                    if (composite.Members.Any(m => m.State is RefTo))
+                    if (composite.HasAnyReferenceMember)
                     {
 #if DEBUG
                         TraceLog.Write($"\t{node.Name}->simplify composite ");
@@ -251,9 +251,7 @@ namespace NFun.Tic
                 else if (node.Type == SolvingNodeType.SyntaxNode)
                 {
                     var nodeId = int.Parse(node.Name);
-                    while (syntaxNodes.Count <= nodeId)
-                        syntaxNodes.Add(null);
-                    syntaxNodes[nodeId] = node;
+                    syntaxNodes.EnlargeAndSet(nodeId, node);
                 }
             }
 
@@ -261,62 +259,77 @@ namespace NFun.Tic
             return new FinalizationResults(typeVariables, namedNodes, syntaxNodes);
         }
         
-        //todo perfomance hotspot
         private static void SolveUselessGenerics(
             IEnumerable<SolvingNode> toposortedNodes,
             IEnumerable<SolvingNode> outputNodes,
             IEnumerable<SolvingNode> inputNodes)
         {
 
+            //We have to solve all generic types that are not output
+            
+            var outputTypes = GetAllNotSolvedOutputTypes(outputNodes);
+
+            foreach (var node in GetAllNotSolvedContravariantLeafs(inputNodes))
+            {
+                //if contravariant not in output type list then
+                //solve it and add to output types
+                if(outputTypes.Add(node))
+                    node.State = ((Constrains) node.State).SolveContravariant();
+            }
+
+            //Input covariant types that NOT referenced and are not members of any output types
+            foreach (var node in toposortedNodes)
+            {
+                if(!(node.State is Constrains c))
+                    continue;
+                if(outputTypes.Contains(node))
+                    continue;
+                node.State = c.SolveCovariant();
+            }
+            /*     
+     #if DEBUG
+     
+                 if (TraceLog.IsEnabled && notSolved.Any())
+                 {
+                     TraceLog.WriteLine($"Finalize. outputs {outputTypes.Count}");
+                     foreach (var outputType in outputTypes) outputType.PrintToConsole();
+                     TraceLog.WriteLine($"Contravariants: {contravariants.Length}");
+                     foreach (var contra in contravariants) contra.PrintToConsole();
+                     TraceLog.WriteLine($"\r\nFinalize. solve {notSolved.Length}");
+                     foreach (var solving in notSolved) solving.PrintToConsole();
+                 }
+     #endif
+     */
+        }
+        
+        private static HashSet<SolvingNode> GetAllNotSolvedOutputTypes(IEnumerable<SolvingNode> outputNodes)
+        {
+            var answer = new HashSet<SolvingNode>();
+            foreach (var outputType in outputNodes
+                .SelectMany(GetAllOutputTypes)
+                .Where(t => t.State is Constrains))
+            {
+                answer.Add(outputType);
+            }
+
+            return answer;
             //All not solved output types
-            var outputTypes = outputNodes
+            /*var outputTypes = outputNodes
                 .SelectMany(GetAllOutputTypes)
                 .Where(t => t.State is Constrains)
                 .Distinct()
                 .ToList();
-
-            //Not solved contravariant types
-            var contravariants = inputNodes
-                .Where(t => t.State is Fun)
-                .SelectMany(t => ((Fun) t.State).ArgNodes)
-                .SelectMany(n=>n.GetAllLeafTypes())
-                .Where(t => t.State is Constrains)
-                .Except(outputTypes)
-                .Distinct()
-                .ToArray();
-
-            //try to solve them
-            foreach (var node in contravariants)
-            {
-                outputTypes.Add(node);
-                node.State = ((Constrains) node.State).SolveContravariant();
-            }
-
-
-            //Input covariant types that NOT referenced and are not members of any output types
-            var notSolved = toposortedNodes
-                .Where(t => t.State is Constrains)
-                .Except(outputTypes)
-                .ToArray(); 
-            
-#if DEBUG
-
-            if (TraceLog.IsEnabled && notSolved.Any())
-            {
-                TraceLog.WriteLine($"Finalize. outputs {outputTypes.Count}");
-                foreach (var outputType in outputTypes) outputType.PrintToConsole();
-                TraceLog.WriteLine($"Contravariants: {contravariants.Length}");
-                foreach (var contra in contravariants) contra.PrintToConsole();
-                TraceLog.WriteLine($"\r\nFinalize. solve {notSolved.Length}");
-                foreach (var solving in notSolved) solving.PrintToConsole();
-            }
-#endif
-            //try to solve them
-            foreach (var node in notSolved)
-                node.State = ((Constrains)node.State).SolveCovariant();
+            return outputTypes;*/
         }
 
         #endregion
+
+        private static IEnumerable<SolvingNode> GetAllNotSolvedContravariantLeafs(this IEnumerable<SolvingNode> nodes) =>
+            nodes
+                .Where(t => t.State is Fun)
+                .SelectMany(t => ((Fun) t.State).ArgNodes)
+                .SelectMany(n => n.GetAllLeafTypes())
+                .Where(t => t.State is Constrains);
 
         private static IEnumerable<SolvingNode> GetAllLeafTypes(this SolvingNode node)
         {

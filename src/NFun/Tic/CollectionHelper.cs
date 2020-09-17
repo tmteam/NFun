@@ -14,5 +14,19 @@ namespace NFun.Tic
             }
             return list[index];
         }
+        public static void EnlargeAndSet<T>(this List<T> list, int index, T value)
+        {
+            if (list.Count <= index)
+            {
+                list.Capacity = index+1;
+                while (list.Count<index) 
+                    list.Add(default);
+                list.Add(value);
+            }
+            else
+            {
+                list[index] = value;
+            }
+        }
     }
 }
