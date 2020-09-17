@@ -1,5 +1,8 @@
 using System;
+using System.Collections;
+using System.Text;
 using NFun.Tic.SolvingStates;
+using NFun.Types;
 
 namespace NFun.Runtime.Arrays
 {
@@ -7,6 +10,22 @@ namespace NFun.Runtime.Arrays
     {
         public static readonly ImmutableFunArray Empty = new ImmutableFunArray(new object[0]);
 
+        public static string JoinElementsToFunString(IEnumerable enumerable)
+        {
+            var sb = new StringBuilder("[");
+            bool first = true;
+            foreach (var item in enumerable)
+            {
+                if (!first)
+                {
+                    sb.Append(",");
+                }
+                first = false;
+                sb.Append(TypeHelper.ToFunText(item));
+            }
+            sb.Append("]");
+            return sb.ToString();
+        }
         public static IFunArray SliceToImmutable(this System.Array array, int? startIndex, int? endIndex, int? step)
         {
             if (array.Length == 0)

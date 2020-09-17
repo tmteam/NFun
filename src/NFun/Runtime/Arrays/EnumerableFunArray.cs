@@ -28,13 +28,11 @@ namespace NFun.Runtime.Arrays
         
         public object GetElementOrNull(int index) => _origin.ElementAtOrDefault(index);
 
-        public bool IsEquivalent(IFunArray array)
-        {
-            return TypeHelper.AreEquivalent(this, array);
-        }
+        public bool IsEquivalent(IFunArray array) => TypeHelper.AreEquivalent(this, array);
 
         public IEnumerable<T> As<T>() => _origin.Cast<T>();
 
         public Array ClrArray => _origin.ToArray();
+        public string ToText() => ArrayTools.JoinElementsToFunString(_origin);
     }
 }

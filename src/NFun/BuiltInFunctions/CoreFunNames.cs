@@ -33,7 +33,19 @@ namespace NFun.BuiltInFunctions
         public static string Format = "@Format";
         public static string ToText = "toText";
         //UsedInInterpolation
-        public static string ConcatTexts = "@concatTexts";
+        
+        /// <summary>
+        /// General concat text function for array of texts
+        /// </summary>
+        public static string ConcatArrayOfTexts = "@concatTexts";
+        /// <summary>
+        /// Concat two texts function. Optimized vertion for 2-arg case
+        /// </summary>
+        public static string Concat2Texts = "@concat2Texts";
+        /// <summary>
+        /// Concat three texts function. Optimized vertion for 3-arg case
+        /// </summary>
+        public static string Concat3Texts = "@concat3Texts";
 
     }
 }

@@ -102,15 +102,13 @@ namespace NFun.Runtime.Arrays
         }
 
         public Array ClrArray => _text.ToCharArray();
-
+        public string ToText() => _text;
         public int Count => _text.Length;
-        public string Text => _text;
-
         public override string ToString() => _text;
         public int CompareTo(object obj)
         {
             if (obj is TextFunArray t2)
-                return string.Compare(Text, t2.Text, StringComparison.Ordinal);
+                return string.Compare(_text, t2._text, StringComparison.Ordinal);
             return 0;
         }
     }

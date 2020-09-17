@@ -364,10 +364,11 @@ namespace NFun.SyntaxParsing
             var concatinations = new List<ISyntaxNode>();
             //Open interpolation string
             // '...{ 
-            concatinations.Add(SyntaxNodeFactory.Constant(
-                new TextFunArray(openInterpolationToken.Value), 
-                VarType.Text,
-                openInterpolationToken.Interval));
+            if(openInterpolationToken.Value!= String.Empty)
+                concatinations.Add(SyntaxNodeFactory.Constant(
+                    new TextFunArray(openInterpolationToken.Value), 
+                    VarType.Text,
+                    openInterpolationToken.Interval));
 
             while (true)
             {
@@ -386,17 +387,35 @@ namespace NFun.SyntaxParsing
                 // }...'
                 if (flow.Current.Type is TokType.TextCloseInterpolation)
                 {
-                    concatinations.Add(SyntaxNodeFactory.Constant(
-                        new TextFunArray(flow.Current.Value),
-                        VarType.Text,
-                        flow.Current.Interval));
+                    if (flow.Current.Value != String.Empty)
+                    {
+                        concatinations.Add(SyntaxNodeFactory.Constant(
+                            new TextFunArray(flow.Current.Value),
+                            VarType.Text,
+                            flow.Current.Interval));
+                    }
                     flow.MoveNext();
-                    var arrayOfTexts = SyntaxNodeFactory.Array(concatinations.ToArray(), openInterpolationToken.Start,
-                        flow.Current.Finish);
 
-                    return SyntaxNodeFactory.FunCall(CoreFunNames.ConcatTexts, new[] { arrayOfTexts },
-                        openInterpolationToken.Start,
-                        flow.Current.Finish);
+                    var start = openInterpolationToken.Start;
+                    var finish = flow.Current.Finish;
+                    /*switch (concatinations.Count)
+                    {
+                        //Cases for 1, 2 and 3 args are most common.
+                        //Here is an optimization for these cases. 
+                        //
+                        case 1:
+                            return SyntaxNodeFactory.FunCall(CoreFunNames.ToText, concatinations.ToArray(), start, finish);
+                        case 2:
+                            return SyntaxNodeFactory.FunCall(CoreFunNames.Concat2Texts, concatinations.ToArray(),start, finish);
+                        case 3:
+                            return SyntaxNodeFactory.FunCall(CoreFunNames.Concat3Texts, concatinations.ToArray(),start, finish);
+                        default:
+                        {*/
+                            var arrayOfTexts = SyntaxNodeFactory.Array(concatinations.ToArray(), start, finish);
+                            return SyntaxNodeFactory.FunCall(CoreFunNames.ConcatArrayOfTexts, new[] { arrayOfTexts },
+                                start, finish);
+                        //}
+                    //}
                 }
                 //interpolation continuation
                 // }...{

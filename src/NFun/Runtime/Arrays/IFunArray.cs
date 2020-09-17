@@ -12,5 +12,6 @@ namespace NFun.Runtime.Arrays
     bool IsEquivalent(IFunArray array);
     IEnumerable<T> As<T>();
     Array ClrArray { get; }
+    string ToText();
     }
 }

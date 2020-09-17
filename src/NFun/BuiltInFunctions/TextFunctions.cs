@@ -7,21 +7,41 @@ using NFun.Types;
 
 namespace NFun.BuiltInFunctions
 {
-    public class ConcatTextsFunction : FunctionWithSingleArg
+    public class ConcatArrayOfTextsFunction : FunctionWithSingleArg
     {
-        public ConcatTextsFunction() : base(CoreFunNames.ConcatTexts, VarType.Text,VarType.ArrayOf(VarType.Text)) { }
+        public ConcatArrayOfTextsFunction() : base(CoreFunNames.ConcatArrayOfTexts, VarType.Text,VarType.ArrayOf(VarType.Anything)) { }
 
         public override object Calc(object a)
         {
             var sb = new StringBuilder();
             foreach (var subElement in (IFunArray) a)
             {
-                var text = TypeHelper.GetTextOrThrow(subElement);
-                sb.Append(text);
+                sb.Append(TypeHelper.ToFunText(subElement));
             }
             return new TextFunArray(sb.ToString());
         }
     }
+    public class Concat2TextsFunction : FunctionWithTwoArgs
+    {
+        public Concat2TextsFunction() : base(CoreFunNames.Concat2Texts, VarType.Text,VarType.Anything,VarType.Anything) { }
+
+        public override object Calc(object a, object b) 
+            => new TextFunArray(TypeHelper.ToFunText(a) + TypeHelper.ToFunText(b));
+    }
+    
+    public class Concat3TextsFunction : FunctionWithManyArguments
+    {
+        public Concat3TextsFunction() : base(CoreFunNames.Concat3Texts, VarType.Text,VarType.Anything,VarType.Anything,VarType.Anything) { }
+
+        public override object Calc(object[] args)
+        {
+            var sb = new StringBuilder();
+            foreach (var subElement in  args) 
+                sb.Append(TypeHelper.ToFunText(subElement));
+            return new TextFunArray(sb.ToString());
+        }
+    }
+    
     public class FormatTextFunction : FunctionWithManyArguments
     {
         public FormatTextFunction() : base("format", VarType.Text, VarType.Text, VarType.ArrayOf(VarType.Anything)) { }

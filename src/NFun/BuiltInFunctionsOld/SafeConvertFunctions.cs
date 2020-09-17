@@ -14,20 +14,7 @@ namespace NFun.BuiltInFunctions
     {
         public ToTextFunction() : base(CoreFunNames.ToText, VarType.Text, VarType.Anything) { }
 
-        string ToText(object val)
-        {
-            if (val is ImmutableFunArray f)
-                return $"[{string.Join(",", f.Select(ToText))}]";
-            if (val is double d)
-                return d.ToString(CultureInfo.InvariantCulture);
-            else
-                return val.ToString();
-        }
-
-        public override object Calc(object a)
-        {
-            return new TextFunArray(ToText(a));
-        }
+        public override object Calc(object a) => new TextFunArray(TypeHelper.ToFunText(a));
     }
     /*
     public class ToInt16FromInt16Function : FunctionBase

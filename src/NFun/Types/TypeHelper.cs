@@ -1,8 +1,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
+using GrisuDotNet;
 using NFun.Runtime;
 using NFun.Runtime.Arrays;
 
@@ -48,24 +51,35 @@ namespace NFun.Types
         {
             var e = (IFunArray)obj;
             if (e is TextFunArray t)
-                return t.Text;
+                return t.ToText();
             if (e is ImmutableFunArray f)
                 return new string((char[])f.Values);
-            
             char[] result = new char[e.Count];
-            for (int i = 0; i < e.Count; i++)
-            {
-                result[i] = (char)e.GetElementOrNull(i);
-            }
+            for (int i = 0; i < e.Count; i++) 
+                result[i] = (char) e.GetElementOrNull(i);
             return new string(result);
         }
 
-      
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static string ToFunText(object obj)
+        {
+            if (obj is IFunArray funArray)
+                return funArray.ToText();
+            if (obj is double dbl)
+            {
+                StringBuilder sb = new StringBuilder();
+                GrisuDotNet.Grisu.DoubleToString(dbl, sb);
+                return sb.ToString();
+            }
+
+            return obj.ToString();
+        }
+        
         public static string GetTextOrThrow(this object[] arr, int index)
         {
             var e = (IFunArray)arr[index];
             if (e is TextFunArray t)
-                return t.Text;
+                return t.ToText();
             if (e is ImmutableFunArray f)
             {
                 if(f.Values is char[] carr)

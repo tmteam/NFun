@@ -61,5 +61,7 @@ namespace NFun.Runtime.Arrays
                 return _clrArray;
             }
         }
+
+        public string ToText() => ArrayTools.JoinElementsToFunString(ClrArray);
     }
 }

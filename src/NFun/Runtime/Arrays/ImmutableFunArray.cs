@@ -37,6 +37,12 @@ namespace NFun.Runtime.Arrays
         }
 
         public Array ClrArray => _values;
+        public string ToText()
+        {
+            if (ClrArray is char[] str)
+                return new string(str);
+            return ArrayTools.JoinElementsToFunString(_values);
+        }
 
         //todo perfomance hotspot
         public IEnumerator<object> GetEnumerator()
