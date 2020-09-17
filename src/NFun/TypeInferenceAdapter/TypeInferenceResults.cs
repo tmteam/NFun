@@ -93,12 +93,6 @@ namespace NFun.TypeInferenceAdapter
             _functionalVariables = functionalVariables;
             _recursiveCalls = recursiveCalls;
         }
-        public IFunctionSignature GetSignatureOrNull(int id)
-        {
-            if (_functions.Count <= id)
-                return null;
-            return _functions[id];
-        }
         public IFunctionSignature GetFunctionalVariableOrNull(int id)
         {
             if (_functionalVariables.Count <= id)
@@ -128,7 +122,6 @@ namespace NFun.TypeInferenceAdapter
             return SyntaxNodeTypes[id];
         }
 
-        public bool HasVariable(string name) => _namedNodes.ContainsKey(name);
         public IState GetVariableType(string name) => _namedNodes[name];
     }
 }

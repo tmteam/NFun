@@ -46,10 +46,6 @@ namespace NFun.Runtime
         public string Name { get; }
 
         public Interval? TypeSpecificationIntervalOrNull { get; }
-        /// <summary>
-        /// You can add any data here to use it in metafunctions
-        /// </summary>
-        public object ClientMetaData { get; set; }
         public bool IsOutput { get; set; }
         public VarType Type { get; }
         public object Value { get; set; }

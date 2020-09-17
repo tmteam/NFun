@@ -32,7 +32,7 @@ namespace NFun.Interpritation.Functions
             var fromType = argNode.Type;
             var castedNode = argNode;
 
-            if (fromType != toType && !(argNode is MetaInfoExpressionNode))
+            if (fromType != toType)
             {
                 var converter = VarTypeConverter.GetConverterOrThrow(fromType, toType, argNode.Interval);
                 castedNode = new CastExpressionNode(argNode, toType, converter, argNode.Interval);
@@ -70,7 +70,7 @@ namespace NFun.Interpritation.Functions
                 var fromType = argNode.Type;
                 var castedNode = argNode;
                 
-                if (fromType != toType && !(argNode is MetaInfoExpressionNode))
+                if (fromType != toType)
                 {
                     var converter = VarTypeConverter.GetConverterOrThrow(fromType, toType, argNode.Interval);
                     castedNode = new CastExpressionNode(argNode, toType, converter,argNode.Interval);
@@ -107,7 +107,7 @@ namespace NFun.Interpritation.Functions
                 var fromType = argNode.Type;
                 var castedNode = argNode;
                 
-                if (fromType != toType && !(argNode is MetaInfoExpressionNode))
+                if (fromType != toType)
                 {
                     var converter = VarTypeConverter.GetConverterOrThrow(fromType, toType, argNode.Interval);
                     castedNode = new CastExpressionNode(argNode, toType, converter,argNode.Interval);

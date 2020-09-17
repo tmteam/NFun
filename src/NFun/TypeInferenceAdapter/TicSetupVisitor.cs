@@ -218,15 +218,7 @@ namespace NFun.TypeInferenceAdapter
         public bool Visit(FunCallSyntaxNode node)
         {
             var signature = _dictionary.GetOrNull(node.Id, node.Args.Length);
-            if (signature is GenericMetafunction)
-            {
-                //If it is Metafunction - need to transform origin node to metafunction
-                var firstArg = node.Args[0] as NamedIdSyntaxNode;
-                if (firstArg == null)
-                    throw FunParseException.ErrorStubToDo("first arg should be variable");
-                node.TransformToMetafunction(firstArg);
-            }
-
+           
             for (int i = 0; i < node.Args.Length; i++)
             {
                 if (signature != null)
@@ -518,7 +510,6 @@ namespace NFun.TypeInferenceAdapter
             return true;
         }
         public bool Visit(ListOfExpressionsSyntaxNode node) => VisitChildren(node);
-        public bool Visit(MetaInfoSyntaxNode node) => Visit(node.NamedIdSyntaxNode);//variable node is a child of metaInfoNode;
 
         #region privates
         private RefTo[] InitializeGenericTypes(GenericConstrains[] constrains)

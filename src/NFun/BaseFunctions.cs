@@ -18,7 +18,6 @@ namespace NFun
         }
         public static GenericFunctionBase[] GenericFunctions { get; } =
         {
-            new GetValOrDefault(),
             new ConvertFunction(),
 
             new EqualFunction(),
@@ -176,11 +175,11 @@ namespace NFun
             new TrimEndFunction(),
             new SplitFunction(),
             new JoinFunction(),
+
+            //Interpolation functions:
             new ConcatArrayOfTextsFunction(),
             new Concat2TextsFunction(),
             new Concat3TextsFunction(),
-
-            new GetVarTextInfoMetafunction()
         };
     }
 }

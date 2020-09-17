@@ -76,7 +76,6 @@
           <e p="ConvertFunction.cs" t="Include" />
           <e p="CoreFunNames.cs" t="Include" />
           <e p="GenericMathFunctions.cs" t="Include" />
-          <e p="Metafunctions.cs" t="Include" />
           <e p="RealMathFunctions.cs" t="Include" />
           <e p="TextFunctions.cs" t="Include" />
         </e>
@@ -106,7 +105,6 @@
             <e p="GenericFunctionBase.cs" t="Include" />
             <e p="GenericUserFunction.cs" t="Include" />
             <e p="IFunctionSignature.cs" t="Include" />
-            <e p="Metafunction.cs" t="Include" />
           </e>
           <e p="IConstantList.cs" t="Include" />
           <e p="IFunctionDictionary.cs" t="Include" />
@@ -121,7 +119,6 @@
             <e p="FunVariableExpressionNode.cs" t="Include" />
             <e p="IExpressionNode.cs" t="Include" />
             <e p="IfElseExpressionNode.cs" t="Include" />
-            <e p="MetaInfoExpressionNode.cs" t="Include" />
             <e p="VariableExpressionNode.cs" t="Include" />
           </e>
           <e p="RuntimeBuilder.cs" t="Include" />
@@ -179,7 +176,6 @@
             <e p="IfCaseSyntaxNode.cs" t="Include" />
             <e p="IfThenElseSyntaxNode.cs" t="Include" />
             <e p="ListOfExpressionsSyntaxNode.cs" t="Include" />
-            <e p="MetaInfoSyntaxNode.cs" t="Include" />
             <e p="NamedIdSyntaxNode.cs" t="Include" />
             <e p="ResultCallSyntaxNode.cs" t="Include" />
             <e p="SuperAnonymFunctionSyntaxNode.cs" t="Include" />
@@ -470,7 +466,6 @@
         <e p="BuilderTest.cs" t="Include" />
         <e p="CustomConstantsTest.cs" t="Include" />
         <e p="CustomFunctionTest.cs" t="Include" />
-        <e p="CustomMetafunctionsTest.cs" t="Include" />
         <e p="ErrorDetailsTest.cs" t="Include" />
         <e p="MetadataTest.cs" t="Include" />
         <e p="Nfun.ModuleTests.csproj" t="IncludeRecursive" />
