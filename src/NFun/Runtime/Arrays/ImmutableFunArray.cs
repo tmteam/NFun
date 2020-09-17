@@ -38,6 +38,7 @@ namespace NFun.Runtime.Arrays
 
         public Array ClrArray => _values;
 
+        //todo perfomance hotspot
         public IEnumerator<object> GetEnumerator()
         {
             foreach (var t in _values)

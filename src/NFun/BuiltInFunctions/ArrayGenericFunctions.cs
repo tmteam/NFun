@@ -67,7 +67,7 @@ namespace NFun.BuiltInFunctions
                 return new EnumerableFunArray(arr.Select(e=>mapFunc.Calc(e)));
             
             var map = (IConcreteFunction)b;
-            
+                
             return new EnumerableFunArray(arr.Select(e => map.Calc(new[] { e })));
         }
     }
@@ -783,27 +783,30 @@ namespace NFun.BuiltInFunctions
             return new EnumerableFunArray(arr.SelectMany(o => (IFunArray) o));
         }
     }
-    public class FoldGenericFunctionDefenition : GenericFunctionBase
+
+    public class FoldGenericFunctionDefenition : GenericFunctionWithTwoArguments
     {
-        public FoldGenericFunctionDefenition() : base("fold",new [] {GenericConstrains.Any}, 
+        public FoldGenericFunctionDefenition() : base("fold", new[] {GenericConstrains.Any},
             VarType.Generic(0),
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.Fun(VarType.Generic(0), VarType.Generic(0), VarType.Generic(0)))
         {
         }
 
-        protected override object Calc(object[] args)
+        protected override object Calc(object arg1, object arg2)
         {
-            var arr = (IFunArray)args[0];
-            if(arr.Count==0)
+            var arr = (IFunArray) arg1;
+            if (arr.Count == 0)
                 throw new FunRuntimeException("Input array is empty");
-            
-            var fold = (IConcreteFunction) args[1];
-            
-            var res = arr.Aggregate((a,b)=>fold.Calc(new []{a,b}));
-            return res; 
+            if (arg2 is FunctionWithTwoArgs fold2)
+                return arr.Aggregate((a, b) => fold2.Calc(a, b));
+
+            var fold = (IConcreteFunction) arg2;
+
+            return arr.Aggregate((a, b) => fold.Calc(new[] {a, b}));
         }
     }
+
     public class foldWithDefaultsGenericFunctionDefenition : GenericFunctionBase
     {
         public foldWithDefaultsGenericFunctionDefenition() : base("fold", 
@@ -818,10 +821,13 @@ namespace NFun.BuiltInFunctions
         {
             var arr = (IFunArray)args[0];
             var defaultValue = args[1];
+
             var fold = (IConcreteFunction) args[2];
-            
-            var res = arr.Aggregate(defaultValue, (a,b)=>fold.Calc(new []{a,b}));
-            return res; 
+
+            if (fold is FunctionWithTwoArgs fold2)
+                return arr.Aggregate(defaultValue, (a,b)=>fold2.Calc(a, b));
+            else
+                return arr.Aggregate(defaultValue, (a,b)=>fold.Calc(new []{a,b}));
         }
     }
     public class UniteGenericFunctionDefenition : GenericFunctionBase

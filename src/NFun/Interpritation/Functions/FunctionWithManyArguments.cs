@@ -80,7 +80,7 @@ namespace NFun.Interpritation.Functions
                 i++;
             }
 
-            return new FunOf2ArgsExpressionNode(this, castedChildren[0], castedChildren[1], interval);
+            return new FunOfTwoArgsExpressionNode(this, castedChildren[0], castedChildren[1], interval);
         }
     }
     public abstract class FunctionWithManyArguments: IConcreteFunction

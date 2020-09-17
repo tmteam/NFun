@@ -1,16 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using NFun.Interpritation.Functions;
-using NFun.Runtime.Arrays;
 using NFun.Types;
 
 namespace NFun.BuiltInFunctions
 {
-    public class NotEqualFunction : GenericFunctionBase
+    public class NotEqualFunction : GenericFunctionWithTwoArguments
     {
         public NotEqualFunction() : base(CoreFunNames.NotEqual, VarType.Bool, VarType.Generic(0), VarType.Generic(0)) { }
-        protected override object Calc(object[] args) => !TypeHelper.AreEqual(args[0], args[1]);
+        protected override object Calc(object a, object b)=> !TypeHelper.AreEqual(a, b);
     }
 
     public class EqualFunction : GenericFunctionWithTwoArguments
@@ -52,7 +49,7 @@ namespace NFun.BuiltInFunctions
 
         protected override object Calc(object arg1, object arg2)
         {
-            var left = (IComparable)arg1;
+            var left  = (IComparable)arg1;
             var right = (IComparable)arg2;
             return left.CompareTo(right) == -1;
         }
@@ -81,16 +78,15 @@ namespace NFun.BuiltInFunctions
         }
     }
   
-    public class MaxFunction : GenericFunctionBase
+    public class MaxFunction : GenericFunctionWithTwoArguments
     {
         public MaxFunction() : base("max", GenericConstrains.Comparable, VarType.Generic(0), VarType.Generic(0), VarType.Generic(0)) { }
 
-        protected override object Calc(object[] args)
+        protected override object Calc(object a, object b)
         {
-            var a = (IComparable)args[0];
-            var b = (IComparable)args[1];
-            if (a.CompareTo(b) == 1) return a;
-            return b;
+            var arg1 = (IComparable)a;
+            var arg2 = (IComparable)b;
+            return arg1.CompareTo(arg2) == 1 ? a : b;
         }
     }
 }

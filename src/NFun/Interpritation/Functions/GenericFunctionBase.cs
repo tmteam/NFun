@@ -71,6 +71,8 @@ namespace NFun.Interpritation.Functions
         {
         }
 
+        protected override object Calc(object[] args) => Calc(new[] {args[0], args[1]});
+
         protected abstract object Calc(object a, object b);
         
         public override IConcreteFunction CreateConcrete(VarType[] concreteTypesMap) =>
