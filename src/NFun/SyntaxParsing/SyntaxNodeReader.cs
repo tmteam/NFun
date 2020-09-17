@@ -20,56 +20,24 @@ namespace NFun.SyntaxParsing
     /// </summary>
     public static class SyntaxNodeReader
     {
+        
         static SyntaxNodeReader()
         {
-            // ReSharper disable once UseObjectOrCollectionInitializer
-            var priorities = new List<TokType[]>();
-            priorities.Add(new []
+            var priorities = new List<TokType[]>(7)
             {
-                TokType.AnonymFun,
-                TokType.ArrOBr,
-                TokType.PipeForward,
-                TokType.Obr
-            });
-            
-            priorities.Add(new[]{TokType.Pow});
+                new[] {TokType.AnonymFun, TokType.ArrOBr, TokType.PipeForward, TokType.Obr},
+                new[] {TokType.Pow},
+                new[] {TokType.Mult, TokType.Div, TokType.Rema,},
+                new[] {TokType.Plus, TokType.Minus, TokType.BitShiftLeft, TokType.BitShiftRight},
+                new[]
+                {
+                    TokType.BitAnd, TokType.BitXor, TokType.In, TokType.Equal, TokType.NotEqual, TokType.More,
+                    TokType.Less, TokType.MoreOrEqual, TokType.LessOrEqual,
+                },
+                new[] {TokType.And, TokType.ArrConcat},
+                new[] {TokType.Or, TokType.Xor, TokType.BitOr}
+            };
 
-            priorities.Add( new []{
-                TokType.Mult,
-                TokType.Div,
-                TokType.Rema,
-            });
-            priorities.Add(new[]
-            {
-                TokType.Plus,
-                TokType.Minus,
-                TokType.BitShiftLeft, 
-                TokType.BitShiftRight
-            });
-            priorities.Add(new[]
-            {
-                TokType.BitAnd,
-                TokType.BitXor,
-                TokType.In,
-                TokType.Equal,
-                TokType.NotEqual,
-                TokType.More,
-                TokType.Less,
-                TokType.MoreOrEqual,
-                TokType.LessOrEqual,
-            });
-            
-            priorities.Add( new []{
-               TokType.And,
-               TokType.ArrConcat
-            });
-            
-            priorities.Add( new [] {
-                TokType.Or,
-                TokType.Xor,
-                TokType.BitOr
-            });
-            
             for (byte i = 0; i < priorities.Count; i++)
             {
                 foreach (var tokType in priorities[i])         

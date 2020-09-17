@@ -137,8 +137,8 @@ namespace NFun.Interpritation
 
         public IExpressionNode Visit(ArraySyntaxNode node)
         {
-            var nodes = new IExpressionNode[node.Expressions.Length];
-            for (int i = 0; i< node.Expressions.Length; i++)
+            var nodes = new IExpressionNode[node.Expressions.Count];
+            for (int i = 0; i< node.Expressions.Count; i++)
                 nodes[i] = ReadNode(node.Expressions[i]);
 
             return new ArrayExpressionNode(nodes,node.Interval, node.OutputType);
@@ -329,10 +329,11 @@ namespace NFun.Interpritation
                 expression: expr);
             return new FunVariableExpressionNode(fun, interval);
         }
-
+        
         private IExpressionNode CreateFunctionCall(IFunCallSyntaxNode node, IConcreteFunction function)
         {
             var children = new List<IExpressionNode>();
+            //todo perfomance hotspot
             foreach (var argLexNode in node.Args)
             {
                 var argNode = ReadNode(argLexNode);

@@ -12,7 +12,8 @@ namespace NFun.SyntaxParsing.SyntaxNodes
         public int OrderNumber { get; set; }
 
         public ISyntaxNode[] Nodes { get; }
-
+        
+        //todo perfomance use ilist instead of array
         public SyntaxTree(ISyntaxNode[] nodes)
         {
             Nodes = nodes;

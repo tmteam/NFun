@@ -56,6 +56,7 @@ namespace NFun.TypeInferenceAdapter
                 _functionSignatures.Add(null);
             _functionSignatures[id] = signature;
         }
+        //todo perfomance hotspot
         public void SetResults(FinalizationResults bodyTypeSolving)
         {
             SetSyntaxNodeTypes(bodyTypeSolving.GetSyntaxNodes());
@@ -158,5 +159,4 @@ namespace NFun.TypeInferenceAdapter
         public bool HasVariable(string name) => _namedNodes.ContainsKey(name);
         public IState GetVariableType(string name) => _namedNodes[name];
     }
-
 }

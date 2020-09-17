@@ -13,7 +13,7 @@ namespace NFun.Tic
     public class GraphBuilder
     {
         private readonly Dictionary<string, SolvingNode> _variables = new Dictionary<string, SolvingNode>();
-        private readonly List<SolvingNode> _syntaxNodes = new List<SolvingNode>();
+        private readonly List<SolvingNode> _syntaxNodes;
         private readonly List<SolvingNode> _typeVariables = new List<SolvingNode>();
         private int _varNodeId = 0;
         private readonly List<SolvingNode> _outputNodes = new List<SolvingNode>();
@@ -21,8 +21,13 @@ namespace NFun.Tic
 
         public RefTo InitializeVarNode(IType desc = null, Primitive anc = null, bool isComparable = false) 
             => new RefTo(CreateVarType(new Constrains(desc, anc){IsComparable =  isComparable}));
-      
 
+        //todo perfomance hotspot list capacity
+        public GraphBuilder()
+        {
+            _syntaxNodes = new List<SolvingNode>(16);
+        }
+        
         #region set primitives
 
         public void SetVar(string name, int node)
@@ -282,6 +287,8 @@ namespace NFun.Tic
             exprNode.Ancestors.Add(defNode);
         }
         #endregion
+        
+        //todo perfomance hotspot
         public SolvingNode[] Toposort()
         {
             int iteration = 0;
@@ -411,7 +418,7 @@ namespace NFun.Tic
             if (TraceLog.IsEnabled)
             {
 
-                TraceLog.WriteLine($"Type variables: {results.TypeVariables.Length}");
+                TraceLog.WriteLine($"Type variables: {results.TypeVariables.Count()}");
                 foreach (var typeVariable in results.TypeVariables)
                     TraceLog.WriteLine("    " + typeVariable);
 

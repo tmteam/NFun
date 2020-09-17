@@ -138,7 +138,7 @@ namespace NFun.Tic
                     foreach (var member in composite.Members)
                         HandleUpwardLimits(member);
             }
-
+            //todo perfomance hotspot (memberOf.Any())
             foreach (var node in toposortedNodes.Where(n => !n.MemberOf.Any()))
                 HandleUpwardLimits(node);
         }

@@ -10,9 +10,9 @@ namespace NFun.SyntaxParsing.SyntaxNodes
         public VarType OutputType { get; set; }
         public int OrderNumber { get; set; }
 
-        public ISyntaxNode[] Expressions { get; }
+        public IList<ISyntaxNode> Expressions { get; }
 
-        public ArraySyntaxNode(ISyntaxNode[] expressions, Interval interval)
+        public ArraySyntaxNode(IList<ISyntaxNode> expressions, Interval interval)
         {
             Expressions = expressions;
             Interval = interval;

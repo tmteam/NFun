@@ -96,6 +96,7 @@
         <e p="Interpritation" t="Include">
           <e p="Equation.cs" t="Include" />
           <e p="ExpressionBuilderVisitor.cs" t="Include" />
+          <e p="FunctionDictionary.cs" t="Include" />
           <e p="Functions" t="Include">
             <e p="ConcreteHiOrderFunction.cs" t="Include" />
             <e p="ConcreteUserFunction.cs" t="Include" />
@@ -123,6 +124,7 @@
           </e>
           <e p="RuntimeBuilder.cs" t="Include" />
           <e p="RuntimeBuilderHelper.cs" t="Include" />
+          <e p="ScopeFunctionDictionary.cs" t="Include" />
         </e>
         <e p="NFun.0.7.1.nupkg" t="Include" />
         <e p="NFun.0.8.0.nupkg" t="Include" />

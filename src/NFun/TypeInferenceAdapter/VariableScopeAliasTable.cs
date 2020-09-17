@@ -10,8 +10,10 @@ namespace NFun.TypeInferenceAdapter
     {
         public VariableScopeAliasTable()
         {
-            _variableAliasesStack = new List<Dictionary<string, string>>();
-            _variableAliasesStack.Add(new Dictionary<string, string>());
+            _variableAliasesStack = new List<Dictionary<string, string>>
+            {
+                new Dictionary<string, string>()
+            };
         }
         
         private readonly List<Dictionary<string, string>> _variableAliasesStack;

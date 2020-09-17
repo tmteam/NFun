@@ -11,10 +11,10 @@ namespace NFun
 {
     public static class ValueParser
     {
-        public static (object, VarType) ParseValue(string text)
+        public static object  ParseValue(string text)
         {
             var flow = Tokenizer.ToFlow(text);
-            return ParseValue(flow);
+            return ParseValue(flow).Item1;
         }
         public static (object, VarType) ParseValue(this Tokenization.TokFlow flow)
         {
@@ -33,9 +33,9 @@ namespace NFun
                 return ParseGenericIntConstant(intGeneric);
             if (syntaxNode is ArraySyntaxNode array)
             {
-                List<object> items = new List<object>();
+                var items = new List<object>(array.Expressions.Count);
                 VarType? unifiedType = null;
-                foreach (var child in array.Children)
+                foreach (var child in array.Expressions)
                 {
                     var (value, childVarType) =  ParseSyntaxNode(child);
                     if (!unifiedType.HasValue)

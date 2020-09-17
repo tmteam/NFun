@@ -17,7 +17,7 @@ namespace NFun.Interpritation
 {
     public static class RuntimeBuilder
     {
-        private static readonly List<IFunctionSignature> _emptyUserFunctionsList 
+        private static readonly List<IFunctionSignature> EmptyUserFunctionsList 
             = new List<IFunctionSignature>();
 
         public static FunRuntime Build(string script, IFunctionDictionary functionDictionary, IConstantList constants)
@@ -46,7 +46,7 @@ namespace NFun.Interpritation
             if (functionSolveOrder.Length == 0)
             {
                 functionDictionary = functionsDictionary;
-                userFunctionsList = _emptyUserFunctionsList;
+                userFunctionsList = EmptyUserFunctionsList;
             }
             else
             {
@@ -57,6 +57,7 @@ namespace NFun.Interpritation
                 //build user functions
                 foreach (var functionSyntaxNode in functionSolveOrder)
                 {
+                    //todo list capacity
                     var userFun = BuildFunctionAndPutItToDictionary(
                         functionSyntaxNode: functionSyntaxNode,
                         constants: constants,

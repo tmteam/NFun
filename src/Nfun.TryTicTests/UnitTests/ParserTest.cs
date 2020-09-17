@@ -33,8 +33,8 @@ namespace Nfun.ModuleTests.UnitTests
         {
             var eq   = Parser.Parse(Tokenizer.ToFlow(text));
 
-            Assert.AreEqual(1, eq.Nodes.Count(n=>n is UserFunctionDefenitionSyntaxNode));
-            var fun = eq.Nodes.OfType<UserFunctionDefenitionSyntaxNode>().First();
+            Assert.AreEqual(1, eq.Children.Count(n=>n is UserFunctionDefenitionSyntaxNode));
+            var fun = eq.Children.OfType<UserFunctionDefenitionSyntaxNode>().First();
             
             Assert.Multiple(() =>
             {
@@ -55,19 +55,19 @@ namespace Nfun.ModuleTests.UnitTests
                 ";
             var eq   = Parser.Parse(Tokenizer.ToFlow(text));
 
-            var functions = eq.Nodes.OfType<UserFunctionDefenitionSyntaxNode>();
+            var functions = eq.Children.OfType<UserFunctionDefenitionSyntaxNode>();
             
             Assert.Multiple(()=>
             {
                 Assert.AreEqual(2, functions.Count());
-                Assert.AreEqual(4, eq.Nodes.Length);
+                Assert.AreEqual(4, eq.Children.Count());
             });
             
             var maxf = functions.Single(f => f.Id == "max");
             var max3f = functions.Single(f => f.Id == "max3");
 
-            var y1Equation = eq.Nodes.OfType<EquationSyntaxNode>().Single(e => e.Id == "y1");
-            var y2Equation = eq.Nodes.OfType<EquationSyntaxNode>().Single(e => e.Id == "y2");
+            var y1Equation = eq.Children.OfType<EquationSyntaxNode>().Single(e => e.Id == "y1");
+            var y2Equation = eq.Children.OfType<EquationSyntaxNode>().Single(e => e.Id == "y2");
             
             AssertParsed(maxf,"if (x>y) x else y", "x","y" );
             AssertParsed(max3f,"max(x,max(y,z))", "x","y","z" );

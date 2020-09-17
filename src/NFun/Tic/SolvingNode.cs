@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using NFun.Tic.SolvingStates;
 using NFun.TypeInferenceCalculator;
 using Array = NFun.Tic.SolvingStates.Array;
@@ -38,6 +39,8 @@ namespace NFun.Tic
             get => _state;
             set
             {
+                //todo perfomance hotspot
+                
                 if(value == null)
                     throw new InvalidOperationException();
                 if(IsSolved && !value.Equals(_state))

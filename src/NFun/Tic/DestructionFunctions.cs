@@ -187,7 +187,7 @@ namespace NFun.Tic
             IEnumerable<SolvingNode> outputNodes, IEnumerable<SolvingNode> inputNodes)
         {
             var typeVariables = new HashSet<SolvingNode>();
-            var namedNodes = new List<SolvingNode>();
+            var namedNodes  = new List<SolvingNode>();
             var syntaxNodes = new List<SolvingNode>(toposortedNodes.Length);
             void Finalize(SolvingNode node)
             {

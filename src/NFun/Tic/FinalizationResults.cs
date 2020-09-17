@@ -7,33 +7,42 @@ namespace NFun.TypeInferenceCalculator
 {
     public class FinalizationResults
     {
+        
+        private readonly HashSet<SolvingNode> _typeVariables;
+
+        private readonly IList<SolvingNode> _namedNodes;
+
+        private readonly IList<SolvingNode> _syntaxNodes;
         public FinalizationResults(HashSet<SolvingNode> typeVariables, IList<SolvingNode> namedNodes, IList<SolvingNode> syntaxNodes)
         {
-            TypeVariables = typeVariables;
-            NamedNodes = namedNodes;
-            SyntaxNodes = syntaxNodes;
+            _typeVariables = typeVariables;
+            _namedNodes = namedNodes;
+            _syntaxNodes = syntaxNodes;
         }
 
         public SolvingNode GetVariableNode(string variableName) =>
-            NamedNodes.First(n => n.Name == "T" + variableName);
+            _namedNodes.First(n => n.Name == "T" + variableName);
         public IState GetVariable(string variableName) =>
-            NamedNodes.First(n => n.Name == "T" + variableName).State;
+            _namedNodes.First(n => n.Name == "T" + variableName).State;
         public SolvingNode GetSyntaxNodeOrNull(int syntaxNode) =>
-            SyntaxNodes.FirstOrDefault(n => n?.Name == syntaxNode.ToString());
+            _syntaxNodes.FirstOrDefault(n => n?.Name == syntaxNode.ToString());
 
-        private IEnumerable<SolvingNode> AllNodes => TypeVariables.Union(NamedNodes).Union(SyntaxNodes);
+        private IEnumerable<SolvingNode> AllNodes => _typeVariables.Union(_namedNodes).Union(_syntaxNodes);
+        
+        
         public IEnumerable<SolvingNode> Generics => AllNodes.Where(t => t?.State is Constrains);
         public int GenericsCount => AllNodes.Count(t => t?.State is Constrains);
+        public IEnumerable<SolvingNode> TypeVariables => _typeVariables;
+        public IEnumerable<SolvingNode> NamedNodes => _namedNodes;
 
-        private HashSet<SolvingNode> TypeVariables { get; }
-        private IList<SolvingNode> NamedNodes { get; }
-        private IList<SolvingNode> SyntaxNodes { get; }
+        public  IEnumerable<SolvingNode> SyntaxNodes => _syntaxNodes;
+
         public IEnumerable<Constrains> GetAllGenerics => AllNodes.Select(a => a?.State).OfType<Constrains>();
-        public IState[] GetSyntaxNodes() => SyntaxNodes.Select(s => s?.State).ToArray();
+        public IState[] GetSyntaxNodes() => _syntaxNodes.Select(s => s?.State).ToArray();
 
         public Dictionary<string, IState> GetAllNamedNodes()
         {
-            return NamedNodes.ToDictionary(
+            return _namedNodes.ToDictionary(
                 n =>
                 {
                     if (n.Name.StartsWith("T"))

@@ -23,7 +23,8 @@ namespace NFun.SyntaxParsing
         private bool _startOfTheLine = false;
         private int _exprStartPosition = 0;
         private VarAttribute[] _attributes;
-        public Parser(TokFlow flow)
+
+        private Parser(TokFlow flow)
         {
             _flow = flow;
         }

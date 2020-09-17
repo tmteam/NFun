@@ -22,7 +22,7 @@ namespace NFun.SyntaxParsing
             => new GenericIntSyntaxNode(value, false, interval);
         public static ISyntaxNode HexOrBinIntConstant(ulong value, Interval interval)
             => new GenericIntSyntaxNode(value, true, interval);
-        public static ISyntaxNode Array(ISyntaxNode[] elements, int start, int end)
+        public static ISyntaxNode Array(IList<ISyntaxNode> elements, int start, int end)
             => new ArraySyntaxNode(elements, new Interval(start,end));
         public static ISyntaxNode ListOf(ISyntaxNode[] elements, Interval interval, bool hasBrackets) 
             => new ListOfExpressionsSyntaxNode(elements, hasBrackets, interval);
