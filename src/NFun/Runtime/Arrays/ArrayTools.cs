@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using NFun.Tic.SolvingStates;
 using NFun.Types;
@@ -29,6 +30,24 @@ namespace NFun.Runtime.Arrays
         }
         public static string JoinElementsToFunString(IEnumerable<object> enumerable)
         {
+            bool allAreChars = true;
+            int count = 0;
+            foreach (var item in enumerable)
+            {
+                count++;
+                if (!(item is char)) 
+                    allAreChars = false;
+            }
+            if (allAreChars)
+            {
+                var chars = new char[count];
+                int i = 0;
+                foreach (var item in enumerable)
+                {
+                    chars[i] = (char) item;
+                }   
+                return new string(chars);
+            }
             var sb = new StringBuilder("[");
             bool first = true;
             foreach (var item in enumerable)

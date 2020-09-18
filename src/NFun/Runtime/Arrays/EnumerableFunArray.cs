@@ -33,6 +33,9 @@ namespace NFun.Runtime.Arrays
         public IEnumerable<T> As<T>() => _origin.Cast<T>();
 
         public Array ClrArray => _origin.ToArray();
-        public string ToText() => ArrayTools.JoinElementsToFunString(_origin);
+        public string ToText()
+        {
+            return ArrayTools.JoinElementsToFunString(_origin);
+        }
     }
 }
