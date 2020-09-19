@@ -79,11 +79,6 @@
           <e p="RealMathFunctions.cs" t="Include" />
           <e p="TextFunctions.cs" t="Include" />
         </e>
-        <e p="BuiltInFunctionsOld" t="Include">
-          <e p="MathFunctions.cs" t="Include" />
-          <e p="SafeConvertFunctions.cs" t="Include" />
-          <e p="UnsafeConvertFunctions.cs" t="Include" />
-        </e>
         <e p="Exceptions" t="Include">
           <e p="FunParseException.cs" t="Include" />
           <e p="FunRuntimeException.cs" t="Include" />

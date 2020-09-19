@@ -58,12 +58,19 @@ namespace Nfun.CompareToOthers
             
             for (int i = 0; i < batchCount; i++)
             {
+                GC.Collect(0);
                 evaluateTs    += BenchHelper.Measure(buildEva,batchIterations);
+                GC.Collect(0);
                 lambdaTs      += BenchHelper.Measure(buildLambda,batchIterations);
+                GC.Collect(0);
                 funTs         += BenchHelper.Measure(buildFun,  batchIterations);
+                GC.Collect(0);
                 calcEvaluateTs+= BenchHelper.Measure(calcEva,batchIterations);
+                GC.Collect(0);
                 calcLambdaTs  += BenchHelper.Measure(calcLambda,batchIterations);
+                GC.Collect(0);
                 calcFunTs     += BenchHelper.Measure(calcFun,  batchIterations);
+                GC.Collect(0);
                 bcPy          += BenchHelper.Measure(buildNCalcPy, batchIterations);
             }
 

@@ -8,11 +8,11 @@ using NFun.Types;
 
 namespace NFun.BuiltInFunctions
 {
-    public class AverageFunction : FunctionWithManyArguments
+    public class AverageFunction : FunctionWithSingleArg
     {
         public AverageFunction() : base("avg", VarType.Real, VarType.ArrayOf(VarType.Real)) { }
-        public override object Calc(object[] args) =>
-            ((IFunArray)args[0]).As<double>().Average();
+        public override object Calc(object a) =>
+            ((IFunArray)a).As<double>().Average();
     }
 
 

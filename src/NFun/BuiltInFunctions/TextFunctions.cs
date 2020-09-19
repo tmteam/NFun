@@ -7,6 +7,12 @@ using NFun.Types;
 
 namespace NFun.BuiltInFunctions
 {
+    public class ToTextFunction : FunctionWithSingleArg
+    {
+        public ToTextFunction() : base(CoreFunNames.ToText, VarType.Text, VarType.Anything) { }
+
+        public override object Calc(object a) => new TextFunArray(TypeHelper.GetFunText(a));
+    }
     public class ConcatArrayOfTextsFunction : FunctionWithSingleArg
     {
         public ConcatArrayOfTextsFunction() : base(CoreFunNames.ConcatArrayOfTexts, VarType.Text,VarType.ArrayOf(VarType.Anything)) { }
@@ -55,41 +61,41 @@ namespace NFun.BuiltInFunctions
         }
     }
   
-    public class TrimFunction : FunctionWithManyArguments
+    public class TrimFunction : FunctionWithSingleArg
     {
         public TrimFunction() : base("trim",VarType.Text,VarType.Text){}
 
-        public override object Calc(object[] args) => args.GetTextOrThrow(0).Trim();
+        public override object Calc(object a) => ((IFunArray) a).ToText().TrimStart().AsFunText();
     }
     
-    public class TrimStartFunction : FunctionWithManyArguments
+    public class TrimStartFunction : FunctionWithSingleArg
     {
-        public TrimStartFunction() : base("trimStart",VarType.Text,VarType.Text){
-        }
+        public TrimStartFunction() : base("trimStart",VarType.Text,VarType.Text){ }
 
-        public override object Calc(object[] args) => args.GetTextOrThrow(0).TrimStart();
+        public override object Calc(object a) => ((IFunArray) a).ToText().TrimStart().AsFunText();
     }
     
-    public class TrimEndFunction : FunctionWithManyArguments
+    public class TrimEndFunction : FunctionWithSingleArg
     {
         public TrimEndFunction() : base("trimEnd",VarType.Text,VarType.Text){}
-        public override object Calc(object[] args) => args.GetTextOrThrow(0).TrimEnd();
+        public override object Calc(object a) => ((IFunArray) a).ToText().TrimEnd().AsFunText();
     }
     
     
-    public class SplitFunction : FunctionWithManyArguments
+    public class SplitFunction : FunctionWithTwoArgs
     {
         public SplitFunction() : base("split",
             VarType.ArrayOf(VarType.Text), 
             VarType.Text,
             VarType.Text){
         }
-        public override object Calc(object[] args)
-            => new ImmutableFunArray(
-                args.GetTextOrThrow(0)
-                .Split( new[] {args.GetTextOrThrow(1)}, StringSplitOptions.RemoveEmptyEntries)
-                .Select(s=>new TextFunArray(s))
-                .ToArray());
+
+        public override object Calc(object a, object b) =>
+            new ImmutableFunArray(
+                TypeHelper.GetFunText(a)
+                    .Split( new[] {TypeHelper.GetFunText(b)}, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(s=>new TextFunArray(s))
+                    .ToArray());
     }
     
     

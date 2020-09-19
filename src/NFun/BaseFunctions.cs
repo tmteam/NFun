@@ -65,7 +65,7 @@ namespace NFun
             new SliceGenericFunctionDefenition(),
             new SliceWithStepGenericFunctionDefenition(),
             new FindGenericFunctionDefenition(),
-            new foldWithDefaultsGenericFunctionDefenition(),
+            new FoldWithDefaultsGenericFunctionDefenition(),
             new FoldGenericFunctionDefenition(),
             new TakeGenericFunctionDefenition(),
             new SkipGenericFunctionDefenition(),
@@ -115,23 +115,8 @@ namespace NFun
             new Log10Function(),
             new ToTextFunction(),
 
-            //new FloorFunction(),
-            //new CeilFunction(),
-            //new RoundToIntFunction(),
+         
             new RoundToRealFunction(),
-            //new SignFunction(),
-
-            //new ToIntFromRealFunction("toInt"),
-            //new ToIntFromRealFunction(),
-            //new ToIntFromTextFunction("toInt"),
-            //new ToIntFromTextFunction(),
-
-            //new ToIntFromBytesFunction(),
-            //new ToRealFromTextFunction(),
-            //new ToUtf8Function(),
-            //new ToUnicodeFunction(),
-            //new ToBytesFromIntFunction(),
-            //new ToBitsFromIntFunction(), 
                 
             //We need these function to allow user convert numbers.
             //a = toInt16(b) #no matter what is b - it will be casted

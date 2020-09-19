@@ -24,8 +24,10 @@ namespace Funny.Tests.BuiltInFunctions
         [TestCase("y = ' hi world '.trimEnd()", " hi world")]
         [TestCase("y = ' hi world'.trimEnd()", " hi world")]
         [TestCase("y = 'hi world  '.trimEnd()", "hi world")]
+        [TestCase("y = ' hi world '.trimStart().trimEnd().split(' ')", new[]{"hi","world"})]
         [TestCase("y = '  hi world  '.trimEnd()", "  hi world")]
         [TestCase("y = 'hi world'.trim()", "hi world")]
+
         public void ConstantEquationWithGenericPredefinedFunction(string expr, object expected)
         {
             var runtime = FunBuilder.Build(expr);

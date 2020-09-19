@@ -162,7 +162,7 @@ namespace NFun.BuiltInFunctions
             
             return null;
         }
-        class ConcreteConverter:FunctionWithManyArguments
+        class ConcreteConverter:FunctionWithSingleArg
         {
             private readonly Func<object, object> _converter;
 
@@ -170,15 +170,15 @@ namespace NFun.BuiltInFunctions
             {
                 _converter = converter;
             }
-            public override object Calc(object[] args)
+            public override object Calc(object a)
             {
                 try
                 {
-                    return _converter(args[0]);
+                    return _converter(a);
                 }
                 catch (Exception e)
                 {
-                    throw new FunRuntimeException($"Cannot convert {args[0]} to type {this.ReturnType}", e);
+                    throw new FunRuntimeException($"Cannot convert {a} to type {this.ReturnType}", e);
                 }
             }
         }

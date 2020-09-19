@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using NFun.Interpritation.Functions;
 using NFun.Types;
 
@@ -41,47 +39,52 @@ namespace NFun.BuiltInFunctions
         public override object Calc(object a) => Math.Tan((double) a);
     }
 
-    public class Atan2Function : FunctionWithManyArguments
+    public class Atan2Function : FunctionWithTwoArgs
     {
         public Atan2Function() : base("atan2", VarType.Real, VarType.Real, VarType.Real) { }
-        public override object Calc(object[] args) => Math.Atan2((double)args[0], (double)args[0]);
+        public override object Calc(object a, object b) => Math.Atan2((double)a, (double)b);
     }
     public class AtanFunction : FunctionWithSingleArg
     {
         public AtanFunction() : base("atan", VarType.Real, VarType.Real) { }
         public override object Calc(object a) => Math.Atan((double)a);
     }
-    public class AsinFunction : FunctionWithManyArguments
+    public class AsinFunction : FunctionWithSingleArg
     {
         public AsinFunction() : base("asin", VarType.Real, VarType.Real) { }
-        public override object Calc(object[] args) => Math.Asin((double)args[0]);
+        public override object Calc(object a) => Math.Asin((double)a);
     }
-    public class AcosFunction : FunctionWithManyArguments
+    public class AcosFunction : FunctionWithSingleArg
     {
         public AcosFunction() : base("acos", VarType.Real, VarType.Real) { }
-        public override object Calc(object[] args) => Math.Acos((double)args[0]);
+        public override object Calc(object a) => Math.Acos((double)a);
     }
-    public class ExpFunction : FunctionWithManyArguments
+    public class ExpFunction : FunctionWithSingleArg
     {
         public ExpFunction() : base("exp", VarType.Real, VarType.Real) { }
-        public override object Calc(object[] args) => Math.Exp((double)args[0]);
+        public override object Calc(object a) => Math.Exp((double)a);
     }
-    public class LogEFunction : FunctionWithManyArguments
+    public class LogEFunction : FunctionWithSingleArg
     {
         public LogEFunction() : base("log", VarType.Real, VarType.Real) { }
-        public override object Calc(object[] args) => Math.Log((double)args[0]);
+        public override object Calc(object a) => Math.Log((double)a);
     }
 
-    public class LogFunction : FunctionWithManyArguments
+    public class LogFunction : FunctionWithTwoArgs
     {
         public LogFunction() : base("log", VarType.Real, VarType.Real, VarType.Real) { }
-        public override object Calc(object[] args) => Math.Log((double)args[0], (double)args[1]);
+        public override object Calc(object a, object b) => Math.Log((double)a, (double)b);
     }
 
-    public class Log10Function : FunctionWithManyArguments
+    public class Log10Function : FunctionWithSingleArg
     {
         public Log10Function() : base("log10", VarType.Real, VarType.Real) { }
-        public override object Calc(object[] args) => Math.Log10((double)args[0]);
+        public override object Calc(object a) => Math.Log10((double)a);
+    }
+    
+    public class RoundToRealFunction: FunctionWithTwoArgs {
+        public RoundToRealFunction() : base("round", VarType.Real,VarType.Real,VarType.Int32){}
+        public override object Calc(object a, object b) => Math.Round((double)a,(int)b);
     }
 
     #endregion
