@@ -278,6 +278,18 @@
         </e>
         <e p="Scripts.cs" t="Include" />
       </e>
+      <e p="Nfun.CompareToOthers" t="IncludeRecursive">
+        <e p="bin" t="ExcludeRecursive" />
+        <e p="Nfun.CompareToOthers.csproj" t="IncludeRecursive" />
+        <e p="obj" t="ExcludeRecursive">
+          <e p="Release" t="Include">
+            <e p="netcoreapp3.1" t="Include">
+              <e p="Nfun.CompareToOthers.AssemblyInfo.cs" t="Include" />
+            </e>
+          </e>
+        </e>
+        <e p="Program.cs" t="Include" />
+      </e>
       <e p="NFun.Console" t="IncludeRecursive">
         <e p="bin" t="ExcludeRecursive" />
         <e p="LICENSE" t="Include" />
