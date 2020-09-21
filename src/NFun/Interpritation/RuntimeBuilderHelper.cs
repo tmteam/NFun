@@ -120,8 +120,10 @@ namespace NFun.Interpritation
         /// </summary>
         public static UserFunctionDefenitionSyntaxNode[] FindFunctionSolvingOrderOrThrow(this SyntaxTree syntaxTree)
         {
-            var userFunctions = syntaxTree.Children.OfType<UserFunctionDefenitionSyntaxNode>().ToList();
-
+            var userFunctions = syntaxTree.Children.OfType<UserFunctionDefenitionSyntaxNode>().ToArray();
+            if(userFunctions.Length==0)
+                return new UserFunctionDefenitionSyntaxNode[0];
+            
             var userFunctionsNames = new Dictionary<string, int>();
             int i = 0;
             foreach (var userFunction in userFunctions)

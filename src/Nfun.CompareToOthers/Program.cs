@@ -22,12 +22,6 @@ namespace Nfun.CompareToOthers
             int batchIterations = 10_00;
             var ex1 = "(4 * 12 / 7) + ((9 * 2) / 8)";
             int batchCount = 100;
-
-
-            while (true)
-            {
-                FunBuilder.Build(ex1);
-            }
             
             var engine = Python.CreateEngine();
             

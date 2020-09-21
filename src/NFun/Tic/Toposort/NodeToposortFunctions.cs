@@ -7,7 +7,7 @@ namespace NFun.Tic.Toposort
 {
     public class NodeSortResult
     {
-        public NodeSortResult(SolvingNode[] order, SolvingNode[] refs, SortStatus status)
+        public NodeSortResult(SolvingNode[] order, IList<SolvingNode> refs, SortStatus status)
         {
             Order = order;
             Refs = refs;
@@ -15,7 +15,7 @@ namespace NFun.Tic.Toposort
         }
 
         public SolvingNode[] Order { get; }
-        public SolvingNode[] Refs { get; }
+        public IList<SolvingNode> Refs { get; }
         public SortStatus Status { get; }
     }
 
@@ -59,7 +59,7 @@ namespace NFun.Tic.Toposort
                 : SortStatus.Sorted);
         }
 
-        private static void MergeAllReferences(SolvingNode[] nodes, out SolvingNode[] refs, out SolvingNode[] concretes)
+        private static void MergeAllReferences(SolvingNode[] nodes, out IList<SolvingNode> refs, out IList<SolvingNode> concretes)
         {
             refs = null;
             concretes = null;
@@ -89,8 +89,8 @@ namespace NFun.Tic.Toposort
                 }
             }
 
-            refs = references.ToArray();
-            concretes = concretesBuffer.ToArray();
+            refs = references;
+            concretes = concretesBuffer;
         }
     
         
@@ -184,12 +184,12 @@ namespace NFun.Tic.Toposort
                     graph[to].Add(Edge.ReferenceTo(from));
                 }
             }
-            return graph.Select(g => g?.ToArray()).ToArray();
+            return ToTwinArray(graph);
         }
-        public static Edge[][] ConvertToArrayGraph(SolvingNode[] allNodes)
+        public static Edge[][] ConvertToArrayGraph(IList<SolvingNode> allNodes)
         {
-            var graph = new List<Edge>[allNodes.Length];
-            for (int i = 0; i < allNodes.Length; i++)
+            var graph = new List<Edge>[allNodes.Count];
+            for (int i = 0; i < allNodes.Count; i++)
                 allNodes[i].GraphId = i;
 
             foreach (var node in allNodes)
@@ -229,7 +229,18 @@ namespace NFun.Tic.Toposort
                 }
             }
 
-            return graph.Select(g => g?.ToArray()).ToArray();
+            return ToTwinArray(graph);
+        }
+
+
+        private static Edge[][] ToTwinArray(List<Edge>[] graph)
+        {
+            Edge[][] ans =new Edge[graph.Length][];
+            for (int i = 0; i < graph.Length; i++)
+            {
+                ans[i] = graph[i].ToArray();
+            }
+            return ans;
         }
     }
 }
