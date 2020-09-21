@@ -5,7 +5,6 @@ using NFun.Tic.SolvingStates;
 using NFun.TypeInferenceCalculator;
 using NFun.TypeInferenceCalculator.Errors;
 using NUnit.Framework;
-using Array = NFun.Tic.SolvingStates.Array;
 
 namespace NFun.Tic.Tests
 {
@@ -54,7 +53,7 @@ namespace NFun.Tic.Tests
 
             }
         }
-            public static void AssertAreGenerics(this FinalizationResults result, SolvingNode targetGenericNode,
+            public static void AssertAreGenerics(this FinalizationResults result, TicNode targetGenericNode,
             params string[] varNames)
         {
             foreach (var varName in varNames)
@@ -63,11 +62,11 @@ namespace NFun.Tic.Tests
             }
         }
 
-        public static SolvingNode AssertAndGetSingleArithGeneric(this FinalizationResults result)
-            => AssertAndGetSingleGeneric(result, Primitive.U24, Primitive.Real, false);
+        public static TicNode AssertAndGetSingleArithGeneric(this FinalizationResults result)
+            => AssertAndGetSingleGeneric(result, StatePrimitive.U24, StatePrimitive.Real, false);
 
-        public static SolvingNode AssertAndGetSingleGeneric(this FinalizationResults result, Primitive desc,
-            Primitive anc, bool isComparable = false)
+        public static TicNode AssertAndGetSingleGeneric(this FinalizationResults result, StatePrimitive desc,
+            StatePrimitive anc, bool isComparable = false)
         {
             Assert.AreEqual(1, result.GenericsStates.Count(),"Incorrect generics count");
             var genericNode = result.GenericNodes.Single();
@@ -75,14 +74,14 @@ namespace NFun.Tic.Tests
             return genericNode;
         }
 
-        public static void AssertGenericTypeIsArith(this SolvingNode node)
+        public static void AssertGenericTypeIsArith(this TicNode node)
         {
-            AssertGenericType(node, Primitive.U24, Primitive.Real, false);
+            AssertGenericType(node, StatePrimitive.U24, StatePrimitive.Real, false);
         }
-        public static void AssertGenericType(this IState state, Primitive desc, Primitive anc,
+        public static void AssertGenericType(this ITicNodeState state, StatePrimitive desc, StatePrimitive anc,
             bool isComparable = false)
         {
-            var generic = state as Constrains;
+            var generic = state as ConstrainsState;
             Assert.IsNotNull(generic);
             if (desc == null)
                 Assert.IsFalse(generic.HasDescendant);
@@ -96,10 +95,10 @@ namespace NFun.Tic.Tests
 
             Assert.AreEqual(isComparable, generic.IsComparable,"IsComparable claim missed");
         }
-        public static void AssertGenericType(this SolvingNode node, Primitive desc, Primitive anc,
+        public static void AssertGenericType(this TicNode node, StatePrimitive desc, StatePrimitive anc,
             bool isComparable = false)
         {
-            var generic = node.State as Constrains;
+            var generic = node.State as ConstrainsState;
             Assert.IsNotNull(generic);
             if (desc == null)
                 Assert.IsFalse(generic.HasDescendant);
@@ -122,10 +121,10 @@ namespace NFun.Tic.Tests
             foreach (var varName in varNames)
             {
                 var node = results.GetVariableNode(varName).GetNonReference();
-                if (node.State is Array array)
+                if (node.State is StateArray array)
                 {
                     var element = array.ElementNode;
-                    if (typeOrNode is Primitive concrete)
+                    if (typeOrNode is StatePrimitive concrete)
                         Assert.IsTrue(concrete.Equals(element.State));
                     else
                         Assert.AreEqual(typeOrNode, array.ElementNode);
@@ -136,14 +135,14 @@ namespace NFun.Tic.Tests
                 }
             }
         }
-        public static void AssertNamed(this FinalizationResults results, IType type, params string[] varNames)
+        public static void AssertNamed(this FinalizationResults results, ITypeState type, params string[] varNames)
         {
             foreach (var varName in varNames)
             {
                 Assert.AreEqual(type, results.GetVariableNode(varName).GetNonReference().State);
             }
         }
-        public static void AssertNode(this FinalizationResults results, IType type, params int[] nodeIds)
+        public static void AssertNode(this FinalizationResults results, ITypeState type, params int[] nodeIds)
         {
             foreach (var id in nodeIds)
             {
@@ -151,7 +150,7 @@ namespace NFun.Tic.Tests
             }
 
         }
-        public static void AssertNode(this FinalizationResults results, SolvingNode generic, params int[] nodeIds)
+        public static void AssertNode(this FinalizationResults results, TicNode generic, params int[] nodeIds)
         {
             foreach (var id in nodeIds)
             {

@@ -14,11 +14,11 @@ namespace NFun.Tic.Tests
 
             //x = 16i
             var graph = new GraphBuilder();
-            graph.SetConst(2, Primitive.I32);
+            graph.SetConst(2, StatePrimitive.I32);
             graph.SetDef("x", 2);
             var result = graph.Solve();
             result.AssertNoGenerics();
-            result.AssertNamed(Primitive.I32, "x");
+            result.AssertNamed(StatePrimitive.I32, "x");
         }
         [Test]
         public void ArithmeticIfIncorrectOrder()
@@ -30,7 +30,7 @@ namespace NFun.Tic.Tests
             graph.SetVar("a", 4);
             graph.SetVar("x", 5);
             graph.SetVar("z", 7);
-            graph.SetIntConst(8, Primitive.U8);
+            graph.SetIntConst(8, StatePrimitive.U8);
             graph.SetArith(7, 8, 6);
             graph.SetIfElse(new[] { 4 }, new[] { 5, 6 }, 2);
             graph.SetDef("y", 2);
@@ -39,7 +39,7 @@ namespace NFun.Tic.Tests
 
             var generic = result.AssertAndGetSingleArithGeneric();
             result.AssertAreGenerics(generic, "y", "x", "z");
-            result.AssertNamed(Primitive.Bool, "a");
+            result.AssertNamed(StatePrimitive.Bool, "a");
         }
         [Test]
         public void ArithmeticIfIncorrectOrderAndApplySequence()
@@ -60,7 +60,7 @@ Exit:1. y:Empty = 2
             graph.SetVar("a", 4);
             graph.SetVar("x", 5);
             graph.SetVar("z", 7);
-            graph.SetIntConst(8, Primitive.U8);
+            graph.SetIntConst(8, StatePrimitive.U8);
             graph.SetArith(7, 8, 6);
             graph.SetIfElse(new[] { 4 }, new[] { 5, 6 }, 2);
             graph.SetDef("y", 2);
@@ -69,7 +69,7 @@ Exit:1. y:Empty = 2
 
             var generic = result.AssertAndGetSingleArithGeneric();
             result.AssertAreGenerics(generic, "y", "x", "z");
-            result.AssertNamed(Primitive.Bool, "a");
+            result.AssertNamed(StatePrimitive.Bool, "a");
         }
     }
 }

@@ -32,12 +32,12 @@ namespace NFun.Tic.SolvingStates
     }
 
   
-    public class Primitive: IType, IState
+    public class StatePrimitive: ITypeState, ITicNodeState
     {
-        private static Primitive[] _integer;
-        private static Primitive[] _uint;
+        private static StatePrimitive[] _integer;
+        private static StatePrimitive[] _uint;
 
-        static Primitive()
+        static StatePrimitive()
         {
             _uint = new[]
             {
@@ -62,7 +62,7 @@ namespace NFun.Tic.SolvingStates
             };
         }
 
-        public Primitive(PrimitiveTypeName name)
+        public StatePrimitive(PrimitiveTypeName name)
         {
             Name = name;
         }
@@ -85,26 +85,26 @@ namespace NFun.Tic.SolvingStates
             }
         }
 
-        public static Primitive Any { get; } = new Primitive(PrimitiveTypeName.Any);
-        public static Primitive Bool { get; } = new Primitive(PrimitiveTypeName.Bool);
-        public static Primitive Char { get; } = new Primitive(PrimitiveTypeName.Char);
-        public static Primitive Real { get; } = new Primitive(PrimitiveTypeName.Real);
-        public static Primitive I96 { get; } = new Primitive(PrimitiveTypeName.I96);
-        public static Primitive I64 { get; } = new Primitive(PrimitiveTypeName.I64);
-        public static Primitive I48 { get; } = new Primitive(PrimitiveTypeName.I48);
-        public static Primitive I32 { get; } = new Primitive(PrimitiveTypeName.I32);
-        public static Primitive I24 { get; } = new Primitive(PrimitiveTypeName.I24);
-        public static Primitive I16 { get; } = new Primitive(PrimitiveTypeName.I16);
-        public static Primitive U64 { get; } = new Primitive(PrimitiveTypeName.U64);
-        public static Primitive U48 { get; } = new Primitive(PrimitiveTypeName.U48);
-        public static Primitive U32 { get; } = new Primitive(PrimitiveTypeName.U32);
-        public static Primitive U24 { get; } = new Primitive(PrimitiveTypeName.U24);
-        public static Primitive U16 { get; } = new Primitive(PrimitiveTypeName.U16);
-        public static Primitive U12 { get; } = new Primitive(PrimitiveTypeName.U12);
-        public static Primitive U8 { get; } = new Primitive(PrimitiveTypeName.U8);
+        public static StatePrimitive Any { get; } = new StatePrimitive(PrimitiveTypeName.Any);
+        public static StatePrimitive Bool { get; } = new StatePrimitive(PrimitiveTypeName.Bool);
+        public static StatePrimitive Char { get; } = new StatePrimitive(PrimitiveTypeName.Char);
+        public static StatePrimitive Real { get; } = new StatePrimitive(PrimitiveTypeName.Real);
+        public static StatePrimitive I96 { get; } = new StatePrimitive(PrimitiveTypeName.I96);
+        public static StatePrimitive I64 { get; } = new StatePrimitive(PrimitiveTypeName.I64);
+        public static StatePrimitive I48 { get; } = new StatePrimitive(PrimitiveTypeName.I48);
+        public static StatePrimitive I32 { get; } = new StatePrimitive(PrimitiveTypeName.I32);
+        public static StatePrimitive I24 { get; } = new StatePrimitive(PrimitiveTypeName.I24);
+        public static StatePrimitive I16 { get; } = new StatePrimitive(PrimitiveTypeName.I16);
+        public static StatePrimitive U64 { get; } = new StatePrimitive(PrimitiveTypeName.U64);
+        public static StatePrimitive U48 { get; } = new StatePrimitive(PrimitiveTypeName.U48);
+        public static StatePrimitive U32 { get; } = new StatePrimitive(PrimitiveTypeName.U32);
+        public static StatePrimitive U24 { get; } = new StatePrimitive(PrimitiveTypeName.U24);
+        public static StatePrimitive U16 { get; } = new StatePrimitive(PrimitiveTypeName.U16);
+        public static StatePrimitive U12 { get; } = new StatePrimitive(PrimitiveTypeName.U12);
+        public static StatePrimitive U8 { get; } = new StatePrimitive(PrimitiveTypeName.U8);
         public bool IsComparable => IsNumeric || Name == PrimitiveTypeName.Char;
 
-        public bool CanBeImplicitlyConvertedTo(Primitive type)
+        public bool CanBeImplicitlyConvertedTo(StatePrimitive type)
         {
             if (type.Name == PrimitiveTypeName.Any)
                 return true;
@@ -122,7 +122,7 @@ namespace NFun.Tic.SolvingStates
             return true;
         }
 
-        public Primitive GetFirstCommonDescendantOrNull(Primitive other)
+        public StatePrimitive GetFirstCommonDescendantOrNull(StatePrimitive other)
         {
             if (this.Equals(other))
                 return this;
@@ -143,15 +143,15 @@ namespace NFun.Tic.SolvingStates
             var layer = intType.Layer + 1;
             return _uint[layer-3];
         }
-        public IType GetLastCommonAncestorOrNull(IType otherType)
+        public ITypeState GetLastCommonAncestorOrNull(ITypeState otherType)
         {
-            var primitive = otherType as Primitive;
+            var primitive = otherType as StatePrimitive;
             if (primitive == null)
                 return Any;
             return GetLastCommonPrimitiveAncestor(primitive);
         }
 
-        public Primitive GetLastCommonPrimitiveAncestor(Primitive other)
+        public StatePrimitive GetLastCommonPrimitiveAncestor(StatePrimitive other)
         {
             if (this.Equals(other))
                 return this;
@@ -176,7 +176,7 @@ namespace NFun.Tic.SolvingStates
             throw new InvalidOperationException();
         }
 
-        public override bool Equals(object obj) => (obj as Primitive)?.Name == Name;
+        public override bool Equals(object obj) => (obj as StatePrimitive)?.Name == Name;
         public string Description => Name.ToString();
     }
 }

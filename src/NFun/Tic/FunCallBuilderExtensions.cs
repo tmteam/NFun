@@ -5,19 +5,19 @@ namespace NFun.Tic
 {
     public static class FunCallBuilderExtensions
     {
-        public static void SetCall(this GraphBuilder builder, Primitive ofTheCall, params int[] argumentsThenResult)
+        public static void SetCall(this GraphBuilder builder, StatePrimitive ofTheCall, params int[] argumentsThenResult)
         {
-            var types = new IState[argumentsThenResult.Length];
+            var types = new ITicNodeState[argumentsThenResult.Length];
             for (int i = 0; i < types.Length; i++) types[i] = ofTheCall;
             builder.SetCall(types, argumentsThenResult);
         }
 
-        public static RefTo SetEquality(this GraphBuilder builder, int leftId, int rightId, int resultId)
+        public static StateRefTo SetEquality(this GraphBuilder builder, int leftId, int rightId, int resultId)
         {
             var t = builder.InitializeVarNode();
             
             builder.SetCall(
-                argThenReturnTypes: new IState []{t, t, Primitive.Bool},
+                argThenReturnTypes: new ITicNodeState []{t, t, StatePrimitive.Bool},
                 argThenReturnIds: new []{leftId, rightId, resultId});
             return t;
         }
@@ -27,34 +27,34 @@ namespace NFun.Tic
             var t = builder.InitializeVarNode(isComparable: true);
 
             builder.SetCall(
-                argThenReturnTypes: new IState[] { t, t, Primitive.Bool },
+                argThenReturnTypes: new ITicNodeState[] { t, t, StatePrimitive.Bool },
                 argThenReturnIds: new[] { leftId, rightId, resultId });
         }
         
         public static void SetBitwiseInvert(this GraphBuilder builder, int argId, int resultId)
         {
-            var t = builder.InitializeVarNode(Primitive.U8, Primitive.I96);
+            var t = builder.InitializeVarNode(StatePrimitive.U8, StatePrimitive.I96);
 
             builder.SetCall(
-                argThenReturnTypes: new IState[] { t, t },
+                argThenReturnTypes: new ITicNodeState[] { t, t },
                 argThenReturnIds: new[] { argId, resultId});
         }
 
         public static void SetBitwise(this GraphBuilder builder, int leftId, int rightId, int resultId)
         {
-            var t = builder.InitializeVarNode(Primitive.U8, Primitive.I96);
+            var t = builder.InitializeVarNode(StatePrimitive.U8, StatePrimitive.I96);
 
             builder.SetCall(
-                argThenReturnTypes: new IState[] { t, t,t },
+                argThenReturnTypes: new ITicNodeState[] { t, t,t },
                 argThenReturnIds: new[] { leftId,rightId, resultId });
         }
 
         public static void SetBitShift(this GraphBuilder builder, int leftId, int rightId, int resultId)
         {
-            var t = builder.InitializeVarNode(Primitive.U24, Primitive.I96);
+            var t = builder.InitializeVarNode(StatePrimitive.U24, StatePrimitive.I96);
 
             builder.SetCall(
-                argThenReturnTypes: new IState[] { t, Primitive.I48, t },
+                argThenReturnTypes: new ITicNodeState[] { t, StatePrimitive.I48, t },
                 argThenReturnIds: new[] { leftId, rightId, resultId });
         }
 
@@ -62,25 +62,25 @@ namespace NFun.Tic
         {
 
             builder.SetCall(
-                argThenReturnTypes: new IState[] { Primitive.Bool, Primitive.Bool, Primitive.Bool},
+                argThenReturnTypes: new ITicNodeState[] { StatePrimitive.Bool, StatePrimitive.Bool, StatePrimitive.Bool},
                 argThenReturnIds: new[] { leftId, rightId, resultId });
         }
 
         public static void SetArith(this GraphBuilder builder, int leftId, int rightId, int resultId)
         {
-            var t = builder.InitializeVarNode(Primitive.U24, Primitive.Real);
+            var t = builder.InitializeVarNode(StatePrimitive.U24, StatePrimitive.Real);
 
             builder.SetCall(
-                argThenReturnTypes: new IState[] { t, t, t },
+                argThenReturnTypes: new ITicNodeState[] { t, t, t },
                 argThenReturnIds: new[] { leftId, rightId, resultId });
         }
 
         public static void SetNegateCall(this GraphBuilder builder,int argId, int resultId)
         {
-            var t = builder.InitializeVarNode(Primitive.I16, Primitive.Real);
+            var t = builder.InitializeVarNode(StatePrimitive.I16, StatePrimitive.Real);
 
             builder.SetCall(
-                argThenReturnTypes: new IState[] { t, t },
+                argThenReturnTypes: new ITicNodeState[] { t, t },
                 argThenReturnIds: new[] { argId, resultId });
         }
 
@@ -89,35 +89,35 @@ namespace NFun.Tic
         {
             var varNode = builder.InitializeVarNode();
             builder.SetCall(
-                new IState []{Array.Of(varNode), Primitive.I32, varNode },new []{arrArgId,indexArgId, resId});
+                new ITicNodeState []{StateArray.Of(varNode), StatePrimitive.I32, varNode },new []{arrArgId,indexArgId, resId});
         }
         
         public static void SetConcatCall(this GraphBuilder builder, int firstId, int secondId, int resultId)
         {
             var varNode = builder.InitializeVarNode();
             
-            builder.SetCall(new IState[]
+            builder.SetCall(new ITicNodeState[]
             {
-                Array.Of(varNode),Array.Of(varNode),Array.Of(varNode),
+                StateArray.Of(varNode),StateArray.Of(varNode),StateArray.Of(varNode),
             }, new []{firstId, secondId, resultId});
 
         }
 
         public static void SetSumCall(this GraphBuilder builder, int argId, int resultId)
         {
-            var varNode = builder.InitializeVarNode(Primitive.U24, Primitive.Real);
+            var varNode = builder.InitializeVarNode(StatePrimitive.U24, StatePrimitive.Real);
 
-            builder.SetCall(new IState[]{Array.Of(varNode), varNode}, new []{argId,resultId});
+            builder.SetCall(new ITicNodeState[]{StateArray.Of(varNode), varNode}, new []{argId,resultId});
         }
         public static void SetIsAny(this GraphBuilder builder, int arrId, int funId, int resultId)
         {
             var inNode = builder.InitializeVarNode();
             if (inNode != null)
-                builder.SetCall(new IState[]
+                builder.SetCall(new ITicNodeState[]
                 {
-                    Array.Of(inNode),
-                    Fun.Of(returnType: Primitive.Bool, argType: inNode),
-                    Primitive.Bool,
+                    StateArray.Of(inNode),
+                    StateFun.Of(returnType: StatePrimitive.Bool, argType: inNode),
+                    StatePrimitive.Bool,
                 }, new[] {arrId, funId, resultId});
         }
 
@@ -125,10 +125,10 @@ namespace NFun.Tic
         {
             var inNode = builder.InitializeVarNode();
             if (inNode != null)
-                builder.SetCall(new IState[]
+                builder.SetCall(new ITicNodeState[]
                 {
-                    Array.Of(inNode),
-                    Fun.Of(returnType: Primitive.Bool, argType: inNode),
+                    StateArray.Of(inNode),
+                    StateFun.Of(returnType: StatePrimitive.Bool, argType: inNode),
                     inNode,
                 }, new[] { arrId, funId, resultId });
         }
@@ -137,19 +137,19 @@ namespace NFun.Tic
         {
             var inNode = builder.InitializeVarNode();
             var outNode = builder.InitializeVarNode();
-            builder.SetCall(new IState[]{Array.Of(inNode), Fun.Of(
+            builder.SetCall(new ITicNodeState[]{StateArray.Of(inNode), StateFun.Of(
                 returnType: outNode, 
                 argType: inNode), 
-                Array.Of(outNode)}, new []{arrId,funId, resultId});
+                StateArray.Of(outNode)}, new []{arrId,funId, resultId});
         }
         public static void SetfoldCall(this GraphBuilder graph, int arrId, int funId, int returnId)
         {
             var generic = graph.InitializeVarNode();
 
-            graph.SetCall(new IState[]
+            graph.SetCall(new ITicNodeState[]
             {
-                Array.Of(generic),
-                Fun.Of(new[] {generic, generic}, generic),
+                StateArray.Of(generic),
+                StateFun.Of(new[] {generic, generic}, generic),
                 generic
             }, new[] { arrId, funId, returnId });
         }
@@ -158,14 +158,14 @@ namespace NFun.Tic
         {
             var tOfCount = graph.InitializeVarNode();
             //count
-            graph.SetCall(new IState[] { Array.Of(tOfCount), Primitive.I32 }, new[] { argId, resId });
+            graph.SetCall(new ITicNodeState[] { StateArray.Of(tOfCount), StatePrimitive.I32 }, new[] { argId, resId });
         }
 
         public static void SetRangeCall(this GraphBuilder graph, int fromId, int toId, int resId)
         {
-            var generic = graph.InitializeVarNode(anc: Primitive.I48);
+            var generic = graph.InitializeVarNode(anc: StatePrimitive.I48);
             //range
-            graph.SetCall(new IState[] { generic, generic, Array.Of(generic) }, new[] { fromId, toId, resId });
+            graph.SetCall(new ITicNodeState[] { generic, generic, StateArray.Of(generic) }, new[] { fromId, toId, resId });
 
         }
         public static void SetfoldCall(this GraphBuilder graph, int arrId, int defId, int funId, int resId)
@@ -173,11 +173,11 @@ namespace NFun.Tic
             var tRes = graph.InitializeVarNode();
             var tArg = graph.InitializeVarNode();
             //fold call   fold( T[], G, (G,T)->G )->G 
-            graph.SetCall(new IState[]
+            graph.SetCall(new ITicNodeState[]
                 {
-                    Array.Of(tArg), 
+                    StateArray.Of(tArg), 
                     tRes, 
-                    Fun.Of(new IState[] { tRes, tArg }, tRes), 
+                    StateFun.Of(new ITicNodeState[] { tRes, tArg }, tRes), 
                     tRes
                 },
                 new[] { arrId, defId, funId, resId });
@@ -188,10 +188,10 @@ namespace NFun.Tic
             var inT = graph.InitializeVarNode();
             var outT = graph.InitializeVarNode();
 
-            graph.SetCall(new IState[]
+            graph.SetCall(new ITicNodeState[]
             {
-                Array.Of(inT),
-                Fun.Of(new[] {outT,inT}, outT),
+                StateArray.Of(inT),
+                StateFun.Of(new[] {outT,inT}, outT),
                 outT
             }, new[] { arrId, funId, returnId });
         }
@@ -199,7 +199,7 @@ namespace NFun.Tic
         public static void SetReverse(this GraphBuilder graph, int arrId, int resultId)
         {
             var t = graph.InitializeVarNode();
-            graph.SetCall(new[] { Array.Of(t), Array.Of(t) }, new[] { arrId, resultId });
+            graph.SetCall(new[] { StateArray.Of(t), StateArray.Of(t) }, new[] { arrId, resultId });
         }
     }
 }

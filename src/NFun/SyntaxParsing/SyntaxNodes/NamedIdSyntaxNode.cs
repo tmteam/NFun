@@ -19,13 +19,13 @@ namespace NFun.SyntaxParsing.SyntaxNodes
 
     public class FunctionalVariableCallInfo
     {
-        public FunctionalVariableCallInfo(IFunctionSignature signature, RefTo[] referenceToGenericArguments)
+        public FunctionalVariableCallInfo(IFunctionSignature signature, StateRefTo[] referenceToGenericArguments)
         {
             Signature = signature;
             ReferenceToGenericArguments = referenceToGenericArguments;
         }
         public readonly IFunctionSignature Signature;
-        public RefTo[] ReferenceToGenericArguments;
+        public StateRefTo[] ReferenceToGenericArguments;
     }
     /// <summary>
     /// Variable or constant or function

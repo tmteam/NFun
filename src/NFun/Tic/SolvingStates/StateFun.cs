@@ -4,89 +4,89 @@ using System.Linq;
 
 namespace NFun.Tic.SolvingStates
 {
-    public class Fun : ICompositeType, IType, IState
+    public class StateFun : ICompositeTypeState, ITypeState, ITicNodeState
     {
-        public static Fun Of(IState[] argTypes, IState returnType)
+        public static StateFun Of(ITicNodeState[] argTypes, ITicNodeState returnType)
         {
-            SolvingNode[] argNodes = new SolvingNode[argTypes.Length];
-            SolvingNode retNode = null;
+            TicNode[] argNodes = new TicNode[argTypes.Length];
+            TicNode retNode = null;
 
-            if (returnType is IType rt)
-                retNode = SolvingNode.CreateTypeNode(rt);
-            else if (returnType is RefTo retRef)
+            if (returnType is ITypeState rt)
+                retNode = TicNode.CreateTypeNode(rt);
+            else if (returnType is StateRefTo retRef)
                 retNode = retRef.Node;
             else
                 throw new InvalidOperationException();
 
             for (int i = 0; i < argTypes.Length; i++)
             {
-                if (argTypes[i] is IType at)
-                    argNodes[i] = SolvingNode.CreateTypeNode(at);
-                else if (argTypes[i] is RefTo aRef)
+                if (argTypes[i] is ITypeState at)
+                    argNodes[i] = TicNode.CreateTypeNode(at);
+                else if (argTypes[i] is StateRefTo aRef)
                     argNodes[i] = aRef.Node;
                 else
                     throw new InvalidOperationException();
             }
             
 
-            return new Fun(argNodes,retNode);
+            return new StateFun(argNodes,retNode);
         }
-        public static Fun Of(IState argType,IState returnType) 
+        public static StateFun Of(ITicNodeState argType,ITicNodeState returnType) 
             => Of(new[] { argType },returnType );
 
-        public static Fun Of(IType[] argTypes,IType retType)
+        public static StateFun Of(ITypeState[] argTypes,ITypeState retType)
         {
-            var argNodes = new SolvingNode[argTypes.Length];
-            for (int i = 0; i < argTypes.Length; i++) argNodes[i] = SolvingNode.CreateTypeNode(argTypes[i]);
-            return new Fun(
+            var argNodes = new TicNode[argTypes.Length];
+            for (int i = 0; i < argTypes.Length; i++) argNodes[i] = TicNode.CreateTypeNode(argTypes[i]);
+            return new StateFun(
                 argNodes: argNodes,
-                retNode: SolvingNode.CreateTypeNode(retType));
+                retNode: TicNode.CreateTypeNode(retType));
         }
-        public static Fun Of(SolvingNode[] argNodes,SolvingNode returnNode)
-            => new Fun(argNodes,returnNode);
-        public static Fun Of(SolvingNode argNode,SolvingNode returnNode) 
-            => new Fun(new []{argNode},returnNode);
+        public static StateFun Of(TicNode[] argNodes,TicNode returnNode)
+            => new StateFun(argNodes,returnNode);
+        public static StateFun Of(TicNode argNode,TicNode returnNode) 
+            => new StateFun(new []{argNode},returnNode);
 
-        private Fun(SolvingNode[] argNodes,SolvingNode retNode)
+        private StateFun(TicNode[] argNodes,TicNode retNode)
         {
             ArgNodes = argNodes;
             RetNode = retNode;
         }
 
-        public IState ReturnType => RetNode.State;
-        public IState GetArgType(int index) => ArgNodes[index].State;
-        public SolvingNode RetNode { get; }
-        public SolvingNode[] ArgNodes { get; }
-        public IEnumerable<IState> Args => ArgNodes.Select(a => a.State);
+        public ITicNodeState ReturnType => RetNode.State;
+        public ITicNodeState GetArgType(int index) => ArgNodes[index].State;
+        public TicNode RetNode { get; }
+        public TicNode[] ArgNodes { get; }
+        public IEnumerable<ITicNodeState> Args => ArgNodes.Select(a => a.State);
 
         public int ArgsCount => ArgNodes.Length;
         public bool IsSolved => RetNode.IsSolved && ArgNodes.All(n=>n.IsSolved);
-        public IType GetLastCommonAncestorOrNull(IType otherType)
+        public ITypeState GetLastCommonAncestorOrNull(ITypeState otherType)
         {
-            var funType = otherType as Fun;
+            var funType = otherType as StateFun;
             
             if (funType == null)
-                return Primitive.Any;
+                return StatePrimitive.Any;
 
             if (funType.ArgsCount != ArgsCount)
-                return Primitive.Any;
+                return StatePrimitive.Any;
 
-            if (!(ReturnType is IType returnType))
+            if (!(ReturnType is ITypeState returnType))
                 return null;
-            if (!(funType.ReturnType is IType returnTypeB))
+            if (!(funType.ReturnType is ITypeState returnTypeB))
                 return null;
             if (!returnType.IsSolved || !returnTypeB.IsSolved)
                 return null;
             
             var returnAnc = returnType.GetLastCommonAncestorOrNull(returnTypeB);
 
-            IType[] argTypes = new IType[ArgsCount];
+            ITypeState[] argTypes = new ITypeState[ArgsCount];
 
             for (int i = 0; i < ArgsCount; i++)
             {
                 var aArg = GetArgType(i);
                 var bArg = funType.GetArgType(i);
-                if (!(aArg is IType typeA && bArg is IType typeB))
+                if (!(aArg is ITypeState typeA && bArg is ITypeState typeB))
                     return null;
 
 
@@ -95,7 +95,7 @@ namespace NFun.Tic.SolvingStates
 
                 if(typeA.Equals(typeB))
                         argTypes[i] = typeA;
-                else if (aArg is Primitive primitiveA && bArg is Primitive primitiveB)
+                else if (aArg is StatePrimitive primitiveA && bArg is StatePrimitive primitiveB)
                 {
                     var argDesc = primitiveA.GetFirstCommonDescendantOrNull(primitiveB);
                     if (argDesc == null)
@@ -108,12 +108,12 @@ namespace NFun.Tic.SolvingStates
 
         }
 
-        public bool CanBeImplicitlyConvertedTo(Primitive type) 
-            => type.Equals(Primitive.Any);
+        public bool CanBeImplicitlyConvertedTo(StatePrimitive type) 
+            => type.Equals(StatePrimitive.Any);
 
         public override bool Equals(object obj)
         {
-            if (!(obj is Fun fun))
+            if (!(obj is StateFun fun))
                 return false;
             if(fun.ArgsCount != ArgsCount)
                 return false;
@@ -127,12 +127,12 @@ namespace NFun.Tic.SolvingStates
             return fun.ReturnType.Equals(ReturnType);
         }
 
-        public ICompositeType GetNonReferenced()
+        public ICompositeTypeState GetNonReferenced()
         {
-            var nonRefArgNodes = new SolvingNode[ArgNodes.Length];
+            var nonRefArgNodes = new TicNode[ArgNodes.Length];
             for (int i = 0; i < ArgNodes.Length; i++) nonRefArgNodes[i] = ArgNodes[i].GetNonReference();
             
-            return new Fun(nonRefArgNodes, RetNode.GetNonReference());
+            return new StateFun(nonRefArgNodes, RetNode.GetNonReference());
         }
 
         /// <summary>
@@ -142,26 +142,26 @@ namespace NFun.Tic.SolvingStates
         {
             get
             {
-                if (RetNode.State is RefTo)
+                if (RetNode.State is StateRefTo)
                     return true;
                 foreach (var arg in ArgNodes)
                 {
-                    if (arg.State is RefTo)
+                    if (arg.State is StateRefTo)
                         return true;
                 }
                 return false;
             }
         }
 
-        public IEnumerable<SolvingNode> Members => ArgNodes.Append(RetNode);
+        public IEnumerable<TicNode> Members => ArgNodes.Append(RetNode);
 
-        public IEnumerable<SolvingNode> AllLeafTypes
+        public IEnumerable<TicNode> AllLeafTypes
         {
             get
             {
                 foreach (var member in Members)
                 {
-                    if (member.State is ICompositeType composite)
+                    if (member.State is ICompositeTypeState composite)
                     {
                         foreach (var leaf in composite.AllLeafTypes)
                         {

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using NFun.Tic.Errors;
 using NFun.Tic.SolvingStates;
-using Array = NFun.Tic.SolvingStates.Array;
 
 namespace NFun.Tic
 {
@@ -11,26 +10,26 @@ namespace NFun.Tic
     {
         #region Merges
 
-        public static IState GetMergedStateOrNull(IState stateA, IState stateB)
+        public static ITicNodeState GetMergedStateOrNull(ITicNodeState stateA, ITicNodeState stateB)
         {
-            if (stateB is Constrains c && c.NoConstrains)
+            if (stateB is ConstrainsState c && c.NoConstrains)
                 return stateA;
 
-            if (stateA is IType typeA && typeA.IsSolved)
+            if (stateA is ITypeState typeA && typeA.IsSolved)
             {
-                if (stateB is IType typeB && typeB.IsSolved)
+                if (stateB is ITypeState typeB && typeB.IsSolved)
                     return !typeB.Equals(typeA) ? null : typeA;
 
-                if (stateB is Constrains constrainsB)
+                if (stateB is ConstrainsState constrainsB)
                     return !constrainsB.Fits(typeA) ? null : typeA;
             }
 
             switch (stateA)
             {
-                case Array arrayA when stateB is Array arrayB:
+                case StateArray arrayA when stateB is StateArray arrayB:
                     Merge(arrayA.ElementNode, arrayB.ElementNode);
                     return arrayA;
-                case Fun funA when stateB is Fun funB:
+                case StateFun funA when stateB is StateFun funB:
                 {
                     if (funA.ArgsCount != funB.ArgsCount)
                         return null;
@@ -41,11 +40,11 @@ namespace NFun.Tic
                     return funA;
                 }
 
-                case Constrains constrainsA when stateB is Constrains constrainsB:
+                case ConstrainsState constrainsA when stateB is ConstrainsState constrainsB:
                     return constrainsB.MergeOrNull(constrainsA);
-                case Constrains _: 
+                case ConstrainsState _: 
                     return GetMergedStateOrNull(stateB, stateA);
-                case RefTo refA:
+                case StateRefTo refA:
                 {
                     var state = GetMergedStateOrNull(refA.Node.State, stateB);
                     if (state == null) return null;
@@ -53,14 +52,14 @@ namespace NFun.Tic
                     return stateA;
                 }
             }
-            if (stateB is RefTo)
+            if (stateB is StateRefTo)
                 return GetMergedStateOrNull(stateB, stateA);
 
             return null;
         }
 
 
-        public static void Merge(SolvingNode main, SolvingNode secondary)
+        public static void Merge(TicNode main, TicNode secondary)
         {
             if(main==secondary)
                 return;
@@ -70,7 +69,7 @@ namespace NFun.Tic
                 throw TicErrors.CannotMerge(main, secondary);
 
             main.State = res;
-            if (res is IType t && t.IsSolved)
+            if (res is ITypeState t && t.IsSolved)
             {
                 secondary.State = res;
                 return;
@@ -78,10 +77,10 @@ namespace NFun.Tic
 
             main.Ancestors.AddRange(secondary.Ancestors);
             secondary.Ancestors.Clear();
-            secondary.State = new RefTo(main);
+            secondary.State = new StateRefTo(main);
         }
 
-        public static void MergeGroup(SolvingNode[] cycleRoute)
+        public static void MergeGroup(TicNode[] cycleRoute)
         {
             var main = cycleRoute.First();
 
@@ -90,7 +89,7 @@ namespace NFun.Tic
                 if (current == main)
                     continue;
 
-                if (current.State is RefTo refState)
+                if (current.State is StateRefTo refState)
                 {
                     if (!cycleRoute.Contains(refState.Node))
                         throw new InvalidOperationException();
@@ -107,7 +106,7 @@ namespace NFun.Tic
                 current.Ancestors.Clear();
 
                 if (!current.IsSolved)
-                    current.State = new RefTo(main);
+                    current.State = new StateRefTo(main);
             }
 
             var newAncestors = main.Ancestors.Distinct()
@@ -124,9 +123,9 @@ namespace NFun.Tic
 
         #region Upward 
 
-        public static void SetUpwardsLimits(SolvingNode[] toposortedNodes)
+        public static void SetUpwardsLimits(TicNode[] toposortedNodes)
         {
-            void HandleUpwardLimits(SolvingNode node)
+            void HandleUpwardLimits(TicNode node)
             {
                 for (var index = 0; index < node.Ancestors.Count; index++)
                 {
@@ -134,7 +133,7 @@ namespace NFun.Tic
                     ancestor.State = SetUpwardsLimits(node, ancestor);
                 }
 
-                if(node.State is ICompositeType composite)
+                if(node.State is ICompositeTypeState composite)
                     foreach (var member in composite.Members)
                         HandleUpwardLimits(member);
             }
@@ -142,14 +141,14 @@ namespace NFun.Tic
                 HandleUpwardLimits(node);
         }
 
-        private static IState SetUpwardsLimits(SolvingNode descendant, SolvingNode ancestor)
+        private static ITicNodeState SetUpwardsLimits(TicNode descendant, TicNode ancestor)
         {
             #region handle refto cases. 
 
             if (ancestor == descendant)
                 return ancestor.State;
 
-            if (ancestor.State is RefTo referenceAnc)
+            if (ancestor.State is StateRefTo referenceAnc)
             {
                 if (descendant.Ancestors.Contains(ancestor))
                 {
@@ -162,7 +161,7 @@ namespace NFun.Tic
                 return referenceAnc;
             }
 
-            if (descendant.State is RefTo referenceDesc)
+            if (descendant.State is StateRefTo referenceDesc)
             {
                 if (descendant.Ancestors.Contains(ancestor))
                 {
@@ -177,18 +176,18 @@ namespace NFun.Tic
 
             #endregion
 
-            if (descendant.State is IType typeDesc)
+            if (descendant.State is ITypeState typeDesc)
             {
                 switch (ancestor.State)
                 {
-                    case Primitive concreteAnc:
+                    case StatePrimitive concreteAnc:
                     {
                         if (!typeDesc.CanBeImplicitlyConvertedTo(concreteAnc))
                             throw TicErrors.IncompatibleTypes(ancestor, descendant);
                         return ancestor.State;
                     }
 
-                    case Constrains constrainsAnc:
+                    case ConstrainsState constrainsAnc:
                     {
                         var result = constrainsAnc.GetCopy();
                         result.AddDescedant(typeDesc);
@@ -196,9 +195,9 @@ namespace NFun.Tic
                                throw TicErrors.IncompatibleTypes(ancestor, descendant);
                     }
 
-                    case Array arrayAnc:
+                    case StateArray arrayAnc:
                     {
-                        if (!(typeDesc is Array arrayDesc))
+                        if (!(typeDesc is StateArray arrayDesc))
                             throw TicErrors.IncompatibleTypes(ancestor, descendant);
 
 
@@ -207,9 +206,9 @@ namespace NFun.Tic
                         return ancestor.State;
                     }
 
-                    case Fun fun:
+                    case StateFun fun:
                     {
-                        if (!(typeDesc is Fun funDesc))
+                        if (!(typeDesc is StateFun funDesc))
                             throw TicErrors.IncompatibleTypes(ancestor, descendant);
                         if (funDesc.ArgsCount != fun.ArgsCount)
                             throw TicErrors.IncompatibleFunSignatures(ancestor, descendant);
@@ -228,11 +227,11 @@ namespace NFun.Tic
                 }
             }
 
-            if (descendant.State is Constrains constrainsDesc)
+            if (descendant.State is ConstrainsState constrainsDesc)
             {
                 switch (ancestor.State)
                 {
-                    case Primitive concreteAnc:
+                    case StatePrimitive concreteAnc:
                     {
                         if (constrainsDesc.HasDescendant &&
                             constrainsDesc.Descedant?.CanBeImplicitlyConvertedTo(concreteAnc) != true)
@@ -240,14 +239,14 @@ namespace NFun.Tic
                         return ancestor.State;
                     }
 
-                    case Constrains constrainsAnc:
+                    case ConstrainsState constrainsAnc:
                     {
                         var result = constrainsAnc.GetCopy();
                         result.AddDescedant(constrainsDesc.Descedant);
                         return result.GetOptimizedOrNull()
                                ?? throw TicErrors.IncompatibleNodes(ancestor, descendant);
                     }
-                    case Array arrayAnc:
+                    case StateArray arrayAnc:
                     {
                         var result = TransformToArrayOrNull(descendant.Name, constrainsDesc)
                                 ?? throw TicErrors.IncompatibleNodes(ancestor, descendant);
@@ -258,7 +257,7 @@ namespace NFun.Tic
                         return ancestor.State;
                     }
 
-                    case Fun funAnc:
+                    case StateFun funAnc:
                     {
                         var result = TransformToFunOrNull(descendant.Name, constrainsDesc, funAnc)
                                      ?? throw TicErrors.IncompatibleNodes(ancestor, descendant);
@@ -284,11 +283,11 @@ namespace NFun.Tic
 
         #region Downward
 
-        public static void SetDownwardsLimits(SolvingNode[] toposortedNodes)
+        public static void SetDownwardsLimits(TicNode[] toposortedNodes)
         {
-            void Downwards(SolvingNode descendant)
+            void Downwards(TicNode descendant)
             {
-                if(descendant.State is ICompositeType composite)
+                if(descendant.State is ICompositeTypeState composite)
                     foreach (var member in composite.Members)
                         Downwards(member);
                 
@@ -306,29 +305,29 @@ namespace NFun.Tic
             }
         }
 
-        private static IState SetDownwardsLimits(SolvingNode descendant, SolvingNode ancestor)
+        private static ITicNodeState SetDownwardsLimits(TicNode descendant, TicNode ancestor)
         {
             #region handle refTo case
 
             if (descendant == ancestor)
                 return descendant.State;
 
-            if (descendant.State is RefTo referenceDesc)
+            if (descendant.State is StateRefTo referenceDesc)
             {
                 referenceDesc.Node.State = SetDownwardsLimits(descendant, referenceDesc.Node);
                 return referenceDesc;
             }
 
-            if (ancestor.State is RefTo referenceAnc)
+            if (ancestor.State is StateRefTo referenceAnc)
             {
                 return SetDownwardsLimits(referenceAnc.Node, descendant);
             }
 
             #endregion
 
-            if (ancestor.State is Array ancArray)
+            if (ancestor.State is StateArray ancArray)
             {
-                if (descendant.State is Constrains constr)
+                if (descendant.State is ConstrainsState constr)
                 {
                     var result = TransformToArrayOrNull(descendant.Name, constr)
                             ?? throw TicErrors.CanntoBecomeFunction(ancestor, descendant);
@@ -337,7 +336,7 @@ namespace NFun.Tic
                     descendant.Ancestors.Remove(ancestor);
                 }
 
-                if (descendant.State is Array desArray)
+                if (descendant.State is StateArray desArray)
                 {
                     desArray.ElementNode.State = SetDownwardsLimits(desArray.ElementNode, ancArray.ElementNode);
                     return descendant.State;
@@ -345,9 +344,9 @@ namespace NFun.Tic
                 throw TicErrors.CanntoBecomeArray(ancestor, descendant);
             }
 
-            if (ancestor.State is Fun ancFun)
+            if (ancestor.State is StateFun ancFun)
             {
-                if (descendant.State is Constrains constr)
+                if (descendant.State is ConstrainsState constr)
                 {
                     var result = TransformToFunOrNull(descendant.Name, constr, ancFun);
                     if (result == null)
@@ -355,7 +354,7 @@ namespace NFun.Tic
                     descendant.State = result;
                 }
 
-                if (descendant.State is Fun desArray)
+                if (descendant.State is StateFun desArray)
                 {
                     if (desArray.ArgsCount != ancFun.ArgsCount)
                         throw TicErrors.IncompatibleFunSignatures(ancestor, descendant);
@@ -370,27 +369,27 @@ namespace NFun.Tic
                 throw TicErrors.CanntoBecomeFunction(ancestor, descendant);
             }
 
-            Primitive up = null;
-            if (ancestor.State is Primitive concreteAnc) up = concreteAnc;
-            else if (ancestor.State is Constrains constrainsAnc)
+            StatePrimitive up = null;
+            if (ancestor.State is StatePrimitive concreteAnc) up = concreteAnc;
+            else if (ancestor.State is ConstrainsState constrainsAnc)
             {
                 if (constrainsAnc.HasAncestor) up = constrainsAnc.Ancestor;
                 else return descendant.State;
             }
-            else if (ancestor.State is Array) return descendant.State;
-            else if (ancestor.State is Fun) return descendant.State;
+            else if (ancestor.State is StateArray) return descendant.State;
+            else if (ancestor.State is StateFun) return descendant.State;
 
             if (up == null)
                 throw TicErrors.IncompatibleNodes(ancestor, descendant);
 
-            if (descendant.State is IType concreteDesc)
+            if (descendant.State is ITypeState concreteDesc)
             {
                 if (!concreteDesc.CanBeImplicitlyConvertedTo(up))
                     throw TicErrors.IncompatibleTypes(ancestor, descendant);
                 return descendant.State;
             }
 
-            if (descendant.State is Constrains constrainsDesc)
+            if (descendant.State is ConstrainsState constrainsDesc)
             {
                 constrainsDesc.AddAncestor(up);
                 return constrainsDesc.GetOptimizedOrNull()
@@ -403,11 +402,11 @@ namespace NFun.Tic
 
         #endregion
 
-        public static void BecomeReferenceFor(this SolvingNode referencedNode, SolvingNode original)
+        public static void BecomeReferenceFor(this TicNode referencedNode, TicNode original)
         {
             referencedNode = referencedNode.GetNonReference();
             original = original.GetNonReference();
-            if (referencedNode.Type == SolvingNodeType.SyntaxNode)
+            if (referencedNode.Type == TicNodeType.SyntaxNode)
                 Merge(original, referencedNode);
             else
                 Merge(referencedNode, original);
@@ -416,11 +415,11 @@ namespace NFun.Tic
         /// <summary>
         /// Transform constrains state to array state
         /// </summary>
-        private static Array TransformToArrayOrNull(string descNodeName, Constrains descendant)
+        private static StateArray TransformToArrayOrNull(string descNodeName, ConstrainsState descendant)
         {
             if (descendant.NoConstrains)
             {
-                var constrains = new Constrains();
+                var constrains = new ConstrainsState();
                 string eName;
 
                 if (descNodeName.StartsWith("T") && descNodeName.Length > 1)
@@ -428,16 +427,16 @@ namespace NFun.Tic
                 else
                     eName = "e" + descNodeName.ToLower() + "'";
 
-                var node = new SolvingNode(eName, constrains, SolvingNodeType.TypeVariable);
-                return new Array(node);
+                var node = new TicNode(eName, constrains, TicNodeType.TypeVariable);
+                return new StateArray(node);
             }
-            else if (descendant.HasDescendant && descendant.Descedant is Array arrayEDesc)
+            else if (descendant.HasDescendant && descendant.Descedant is StateArray arrayEDesc)
             {
-                if (arrayEDesc.Element is RefTo)
+                if (arrayEDesc.Element is StateRefTo)
                 {
                     var origin = arrayEDesc.ElementNode.GetNonReference();
                     if (origin.IsSolved)
-                        return new Array(origin);
+                        return new StateArray(origin);
                 }
                 else if (arrayEDesc.ElementNode.IsSolved)
                 {
@@ -451,25 +450,25 @@ namespace NFun.Tic
         /// <summary>
         /// Transform constrains to fun state
         /// </summary>
-        private static Fun TransformToFunOrNull(string descNodeName, Constrains descendant, Fun ancestor)
+        private static StateFun TransformToFunOrNull(string descNodeName, ConstrainsState descendant, StateFun ancestor)
         {
             if (descendant.NoConstrains)
             {
-                var argNodes = new SolvingNode[ancestor.ArgsCount];
+                var argNodes = new TicNode[ancestor.ArgsCount];
                 for (int i = 0; i < ancestor.ArgsCount; i++)
                 {
-                    var argNode = new SolvingNode("a'"+ descNodeName +"'"+i, new Constrains(), SolvingNodeType.TypeVariable);
+                    var argNode = new TicNode("a'"+ descNodeName +"'"+i, new ConstrainsState(), TicNodeType.TypeVariable);
                     argNode.Ancestors.Add(ancestor.ArgNodes[i]);
                     argNodes[i] = argNode;
                 }
 
-                var retNode = new SolvingNode("r'"+ descNodeName, new Constrains(), SolvingNodeType.TypeVariable);
+                var retNode = new TicNode("r'"+ descNodeName, new ConstrainsState(), TicNodeType.TypeVariable);
                 retNode.Ancestors.Add(ancestor.RetNode);
 
-                return Fun.Of(argNodes, retNode);
+                return StateFun.Of(argNodes, retNode);
             }
 
-            if (descendant.Descedant is Fun arrayEDesc
+            if (descendant.Descedant is StateFun arrayEDesc
                 && arrayEDesc.ArgsCount == ancestor.ArgsCount)
             {
                 if (arrayEDesc.IsSolved)
@@ -477,7 +476,7 @@ namespace NFun.Tic
 
                 //For perfomance
                 bool allArgsAreSolved = true;
-                var nrArgNodes = new SolvingNode[arrayEDesc.ArgNodes.Length];
+                var nrArgNodes = new TicNode[arrayEDesc.ArgNodes.Length];
                 for (int i = 0; i < arrayEDesc.ArgNodes.Length; i++)
                 {
                     nrArgNodes[i] = arrayEDesc.ArgNodes[i].GetNonReference();
@@ -486,7 +485,7 @@ namespace NFun.Tic
                 
                 var nrRetNode = arrayEDesc.RetNode.GetNonReference();
                 if (allArgsAreSolved && nrRetNode.IsSolved)
-                    return Fun.Of(nrArgNodes, nrRetNode);
+                    return StateFun.Of(nrArgNodes, nrRetNode);
             }
             return null;
         }

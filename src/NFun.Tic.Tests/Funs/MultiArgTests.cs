@@ -2,7 +2,6 @@
 using NFun.Tic.SolvingStates;
 using NFun.TypeInferenceCalculator.Errors;
 using NUnit.Framework;
-using Array = NFun.Tic.SolvingStates.Array;
 
 namespace NFun.Tic.Tests.Funs
 {
@@ -28,8 +27,8 @@ namespace NFun.Tic.Tests.Funs
             var t = result.AssertAndGetSingleArithGeneric();
 
             result.AssertAreGenerics(t, "y","la","lb");
-            result.AssertNamed(Array.Of(t), "x");
-            result.AssertNode(Fun.Of(new []{t,t}, t), 4);
+            result.AssertNamed(StateArray.Of(t), "x");
+            result.AssertNode(StateFun.Of(new []{t,t}, t), 4);
         }
 
         [Test]
@@ -43,7 +42,7 @@ namespace NFun.Tic.Tests.Funs
             graph.SetVar("la", 1);
             graph.SetVar("lb", 2);
             graph.SetArith(1, 2, 3);
-            graph.CreateLambda(3, 4, Primitive.I64, "la", "lb");
+            graph.CreateLambda(3, 4, StatePrimitive.I64, "la", "lb");
             graph.SetfoldCall(0, 4, 5);
             graph.SetDef("y", 5);
 
@@ -52,9 +51,9 @@ namespace NFun.Tic.Tests.Funs
             result.AssertNoGenerics();
 
 
-            result.AssertNamed(Primitive.I64, "y", "la", "lb");
-            result.AssertNamed(Array.Of(Primitive.I64), "x");
-            result.AssertNode(Fun.Of(new[] { Primitive.I64, Primitive.I64 }, Primitive.I64), 4);
+            result.AssertNamed(StatePrimitive.I64, "y", "la", "lb");
+            result.AssertNamed(StateArray.Of(StatePrimitive.I64), "x");
+            result.AssertNode(StateFun.Of(new[] { StatePrimitive.I64, StatePrimitive.I64 }, StatePrimitive.I64), 4);
         }
 
 
@@ -72,16 +71,16 @@ namespace NFun.Tic.Tests.Funs
             graph.SetArith(1, 2, 3);
             graph.CreateLambda(3, 4, "la", "lb");
             graph.SetfoldCall(0, 4, 5);
-            graph.SetVarType("y", Primitive.U32);
+            graph.SetVarType("y", StatePrimitive.U32);
             graph.SetDef("y", 5);
 
             var result = graph.Solve();
 
             result.AssertNoGenerics();
 
-            result.AssertNamed(Primitive.U32, "y", "la", "lb");
-            result.AssertNamed(Array.Of(Primitive.U32), "x");
-            result.AssertNode(Fun.Of(new[] { Primitive.U32, Primitive.U32 }, Primitive.U32), 4);
+            result.AssertNamed(StatePrimitive.U32, "y", "la", "lb");
+            result.AssertNamed(StateArray.Of(StatePrimitive.U32), "x");
+            result.AssertNode(StateFun.Of(new[] { StatePrimitive.U32, StatePrimitive.U32 }, StatePrimitive.U32), 4);
         }
 
         [Test]
@@ -91,7 +90,7 @@ namespace NFun.Tic.Tests.Funs
             //x:u32[]; y = fold(x, f(a,b)=a+b)
             var graph = new GraphBuilder();
 
-            graph.SetVarType("y", Primitive.U32);
+            graph.SetVarType("y", StatePrimitive.U32);
             graph.SetVar("x", 0);
             graph.SetVar("la", 1);
             graph.SetVar("lb", 2);
@@ -104,9 +103,9 @@ namespace NFun.Tic.Tests.Funs
 
             result.AssertNoGenerics();
 
-            result.AssertNamed(Primitive.U32, "y", "la", "lb");
-            result.AssertNamed(Array.Of(Primitive.U32), "x");
-            result.AssertNode(Fun.Of(new[] { Primitive.U32, Primitive.U32 }, Primitive.U32), 4);
+            result.AssertNamed(StatePrimitive.U32, "y", "la", "lb");
+            result.AssertNamed(StateArray.Of(StatePrimitive.U32), "x");
+            result.AssertNode(StateFun.Of(new[] { StatePrimitive.U32, StatePrimitive.U32 }, StatePrimitive.U32), 4);
         }
 
 
@@ -121,7 +120,7 @@ namespace NFun.Tic.Tests.Funs
             graph.SetVar("x", 0);
             graph.SetVar("la", 1);
             graph.SetVar("lb", 2);
-            graph.SetCall(new []{Primitive.Real, Primitive.Bool},new []{2,3});
+            graph.SetCall(new []{StatePrimitive.Real, StatePrimitive.Bool},new []{2,3});
             graph.SetBoolCall(1,3,4);
             graph.CreateLambda(4, 5, "la", "lb");
             graph.SetFoldCall(0, 5, 6);
@@ -130,9 +129,9 @@ namespace NFun.Tic.Tests.Funs
 
             result.AssertNoGenerics();
     
-            result.AssertNamed(Array.Of(Primitive.Real), "x");
-            result.AssertNamed(Primitive.Real, "lb");
-            result.AssertNamed(Primitive.Bool, "la","y");
+            result.AssertNamed(StateArray.Of(StatePrimitive.Real), "x");
+            result.AssertNamed(StatePrimitive.Real, "lb");
+            result.AssertNamed(StatePrimitive.Bool, "la","y");
         }
         [Test]
         public void Fold_ConcreteLambda_GetSum()
@@ -143,10 +142,10 @@ namespace NFun.Tic.Tests.Funs
 
             graph.SetVar("x", 0);
             graph.SetVar("la", 1);
-            graph.SetVarType("lb", Primitive.I32);
+            graph.SetVarType("lb", StatePrimitive.I32);
             graph.SetVar("lb", 2);
             graph.SetArith(1, 2, 3);
-            graph.CreateLambda(3, 4, Primitive.I64, "la", "lb");
+            graph.CreateLambda(3, 4, StatePrimitive.I64, "la", "lb");
             graph.SetFoldCall( 0, 4, 5);
             graph.SetDef("y", 5);
 
@@ -154,10 +153,10 @@ namespace NFun.Tic.Tests.Funs
 
             result.AssertNoGenerics();
 
-            result.AssertNamed(Primitive.I64, "y", "la");
-            result.AssertNamed(Primitive.I32, "lb");
-            result.AssertNamed(Array.Of(Primitive.I32), "x");
-            result.AssertNode(Fun.Of(new[] { Primitive.I64, Primitive.I32}, Primitive.I64), 4);
+            result.AssertNamed(StatePrimitive.I64, "y", "la");
+            result.AssertNamed(StatePrimitive.I32, "lb");
+            result.AssertNamed(StateArray.Of(StatePrimitive.I32), "x");
+            result.AssertNode(StateFun.Of(new[] { StatePrimitive.I64, StatePrimitive.I32}, StatePrimitive.I64), 4);
         }
 
         [Test]
@@ -169,12 +168,12 @@ namespace NFun.Tic.Tests.Funs
 
             graph.SetVar("x", 0);
             graph.SetVar("la", 1);
-            graph.SetVarType("lb", Primitive.I32);
+            graph.SetVarType("lb", StatePrimitive.I32);
             graph.SetVar("lb", 2);
             graph.SetArith(1, 2, 3);
             TestHelper.AssertThrowsTicError(() =>
             {
-                graph.CreateLambda(3, 4, Primitive.I64, "la", "lb");
+                graph.CreateLambda(3, 4, StatePrimitive.I64, "la", "lb");
                 graph.SetfoldCall(0, 4, 5);
                 graph.SetDef("y", 5);
                 graph.Solve();

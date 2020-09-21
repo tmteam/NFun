@@ -3,7 +3,6 @@ using NFun.Tic.SolvingStates;
 using NFun.TypeInferenceCalculator;
 using NFun.TypeInferenceCalculator.Errors;
 using NUnit.Framework;
-using Array = NFun.Tic.SolvingStates.Array;
 
 namespace NFun.Tic.Tests
 {
@@ -30,12 +29,12 @@ namespace NFun.Tic.Tests
         {
             //y:bool; y = y
             var graph = new GraphBuilder();
-            graph.SetVarType("y", Primitive.Bool);
+            graph.SetVarType("y", StatePrimitive.Bool);
             graph.SetVar("y", 0);
             graph.SetDef("y", 0);
             var result = graph.Solve();
             result.AssertNoGenerics();
-            result.AssertNamed(Primitive.Bool, "y");
+            result.AssertNamed(StatePrimitive.Bool, "y");
         }
 
         [Test]
@@ -45,11 +44,11 @@ namespace NFun.Tic.Tests
             var graph = new GraphBuilder();
             graph.SetVar("y", 0);
             graph.SetDef("y", 0);
-            graph.SetIntConst(1, Primitive.U8);
+            graph.SetIntConst(1, StatePrimitive.U8);
             graph.SetDef("y", 1);
 
             var result = graph.Solve();
-            var generic = result.AssertAndGetSingleGeneric(Primitive.U8, Primitive.Real);
+            var generic = result.AssertAndGetSingleGeneric(StatePrimitive.U8, StatePrimitive.Real);
             result.AssertAreGenerics(generic, "y");
         }
         
@@ -58,13 +57,13 @@ namespace NFun.Tic.Tests
         {
             //y = 1; y =y
             var graph = new GraphBuilder();
-            graph.SetIntConst(0, Primitive.U8);
+            graph.SetIntConst(0, StatePrimitive.U8);
             graph.SetDef("y", 0);
             graph.SetVar("y", 1);
             graph.SetDef("y", 1);
 
             var result = graph.Solve();
-            var generic = result.AssertAndGetSingleGeneric(Primitive.U8, Primitive.Real);
+            var generic = result.AssertAndGetSingleGeneric(StatePrimitive.U8, StatePrimitive.Real);
             result.AssertAreGenerics(generic, "y");
         }
         
@@ -94,7 +93,7 @@ namespace NFun.Tic.Tests
             //    0      1      2
             //c:bool; a = b; b = c; c = a
             var graph = new GraphBuilder();
-            graph.SetVarType("c", Primitive.Bool);
+            graph.SetVarType("c", StatePrimitive.Bool);
             graph.SetVar("b", 0);
             graph.SetDef("a", 0);
 
@@ -106,7 +105,7 @@ namespace NFun.Tic.Tests
 
             var result = graph.Solve();
             result.AssertNoGenerics();
-            result.AssertNamed(Primitive.Bool, "a", "b", "c");
+            result.AssertNamed(StatePrimitive.Bool, "a", "b", "c");
         }
 
         [Test]
@@ -121,7 +120,7 @@ namespace NFun.Tic.Tests
 
             var result = graph.Solve();
             var res = result.AssertAndGetSingleGeneric(null,null);
-            result.AssertNamed(Array.Of(res) , "x");
+            result.AssertNamed(StateArray.Of(res) , "x");
         }
         
         [Test]
@@ -138,7 +137,7 @@ namespace NFun.Tic.Tests
             graph.SetDef("x", 4);
             var result = graph.Solve();
             var res = result.AssertAndGetSingleGeneric(null, null);
-            result.AssertNamed(Array.Of(res), "x");
+            result.AssertNamed(StateArray.Of(res), "x");
         }
 
         [Test]
@@ -149,14 +148,14 @@ namespace NFun.Tic.Tests
             var graph = new GraphBuilder();
             graph.SetVar("x", 0);
             graph.SetVar("la", 1);
-            graph.SetIntConst(2, Primitive.U8);
+            graph.SetIntConst(2, StatePrimitive.U8);
             graph.SetArith(1,2,3);
             graph.CreateLambda(3,4,"la");
             graph.SetMap(0,4,5);
             graph.SetDef("x", 5);
             var result = graph.Solve();
             var res = result.AssertAndGetSingleArithGeneric();
-            result.AssertNamed(Array.Of(res), "x");
+            result.AssertNamed(StateArray.Of(res), "x");
         }
 
         [Test]
@@ -167,14 +166,14 @@ namespace NFun.Tic.Tests
             var graph = new GraphBuilder();
             graph.SetVar("x", 0);
             graph.SetVar("la", 1);
-            graph.SetIntConst(2, Primitive.U8);
+            graph.SetIntConst(2, StatePrimitive.U8);
             graph.SetArith(1, 2, 3);
-            graph.CreateLambda(3, 4, Primitive.I64, "la");
+            graph.CreateLambda(3, 4, StatePrimitive.I64, "la");
             graph.SetMap(0, 4, 5);
             graph.SetDef("x", 5);
             var result = graph.Solve();
             result.AssertNoGenerics();
-            result.AssertNamed(Array.Of(Primitive.I64), "x");
+            result.AssertNamed(StateArray.Of(StatePrimitive.I64), "x");
         }
 
         [Test]
@@ -184,16 +183,16 @@ namespace NFun.Tic.Tests
             //x = x.map(f(a):i64=a+1)
             var graph = new GraphBuilder();
             graph.SetVar("x", 0);
-            graph.SetVarType("la", Primitive.I64);
+            graph.SetVarType("la", StatePrimitive.I64);
             graph.SetVar("la", 1);
-            graph.SetIntConst(2, Primitive.U8);
+            graph.SetIntConst(2, StatePrimitive.U8);
             graph.SetArith(1, 2, 3);
             graph.CreateLambda(3, 4,  "la");
             graph.SetMap(0, 4, 5);
             graph.SetDef("x", 5);
             var result = graph.Solve();
             result.AssertNoGenerics();
-            result.AssertNamed(Array.Of(Primitive.I64), "x");
+            result.AssertNamed(StateArray.Of(StatePrimitive.I64), "x");
         }
         [Test]
         public void Array_referencesItselfWithMap_DefTypeIsConcrete()
@@ -201,17 +200,17 @@ namespace NFun.Tic.Tests
             //          0  5  4    132         
             //x:i64[] = x.map(f(a)=a+1)
             var graph = new GraphBuilder();
-            graph.SetVarType("x",Array.Of(Primitive.I64));
+            graph.SetVarType("x",StateArray.Of(StatePrimitive.I64));
             graph.SetVar("x", 0);
             graph.SetVar("la", 1);
-            graph.SetIntConst(2, Primitive.U8);
+            graph.SetIntConst(2, StatePrimitive.U8);
             graph.SetArith(1, 2, 3);
             graph.CreateLambda(3, 4, "la");
             graph.SetMap(0, 4, 5);
             graph.SetDef("x", 5);
             var result = graph.Solve();
             result.AssertNoGenerics();
-            result.AssertNamed(Array.Of(Primitive.I64), "x");
+            result.AssertNamed(StateArray.Of(StatePrimitive.I64), "x");
         }
 
         [Test]
@@ -220,10 +219,10 @@ namespace NFun.Tic.Tests
             //          0  5  4    132         
             //x:int = x.map(f(a)=a+1)
             var graph = new GraphBuilder();
-            graph.SetVarType("x", Primitive.I64);
+            graph.SetVarType("x", StatePrimitive.I64);
             graph.SetVar("x", 0);
             graph.SetVar("la", 1);
-            graph.SetIntConst(2, Primitive.U8);
+            graph.SetIntConst(2, StatePrimitive.U8);
             graph.SetArith(1, 2, 3);
             graph.CreateLambda(3, 4, "la");
             TestHelper.AssertThrowsTicError(() =>
@@ -240,10 +239,10 @@ namespace NFun.Tic.Tests
             //          0  5  4    132         
             //x:bool[] = x.map(f(a)=a+1)
             var graph = new GraphBuilder();
-            graph.SetVarType("x", Array.Of(Primitive.Bool));
+            graph.SetVarType("x", StateArray.Of(StatePrimitive.Bool));
             graph.SetVar("x", 0);
             graph.SetVar("la", 1);
-            graph.SetIntConst(2, Primitive.U8);
+            graph.SetIntConst(2, StatePrimitive.U8);
             graph.SetArith(1, 2, 3);
             graph.CreateLambda(3, 4, "la");
             TestHelper.AssertThrowsTicError(() =>
@@ -260,15 +259,15 @@ namespace NFun.Tic.Tests
             //x = [ get(x,0) , 1]
             var graph = new GraphBuilder();
             graph.SetVar("x", 0);
-            graph.SetIntConst(1, Primitive.U8);
+            graph.SetIntConst(1, StatePrimitive.U8);
             graph.SetArrGetCall(0,1,2);
-            graph.SetIntConst(3, Primitive.U8);
+            graph.SetIntConst(3, StatePrimitive.U8);
             graph.SetStrictArrayInit(4,2, 3);
             graph.SetDef("x", 4);
             var res = graph.Solve();
             
-            var t = res.AssertAndGetSingleGeneric(Primitive.U8, Primitive.Real);
-            res.AssertNamed(Array.Of(t),"x");
+            var t = res.AssertAndGetSingleGeneric(StatePrimitive.U8, StatePrimitive.Real);
+            res.AssertNamed(StateArray.Of(t),"x");
         }
         [Test]
         public void Array_ReqursiveDefenition_throws()
@@ -345,7 +344,7 @@ namespace NFun.Tic.Tests
             var graph = new GraphBuilder();
             graph.SetVar("t", 0);
             graph.SetVar("t", 1);
-            graph.SetConst(2, Primitive.I32);
+            graph.SetConst(2, StatePrimitive.I32);
             graph.SetArrGetCall(1,2,3);
             TestHelper.AssertThrowsRecursiveTicTypedDefenition(() =>
             {

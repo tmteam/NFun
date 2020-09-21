@@ -4,8 +4,8 @@ namespace NFun.Interpritation.Functions
 {
     public struct GenericConstrains
     {
-        public readonly Primitive Ancestor;
-        public readonly Primitive Descendant;
+        public readonly StatePrimitive Ancestor;
+        public readonly StatePrimitive Descendant;
         public bool IsComparable;
         public override string ToString()
         {
@@ -18,22 +18,22 @@ namespace NFun.Interpritation.Functions
         public static readonly GenericConstrains Any 
             = new GenericConstrains(null, null, false);
         public static readonly GenericConstrains Arithmetical
-            = new GenericConstrains(Primitive.Real, Primitive.U24, false);
+            = new GenericConstrains(StatePrimitive.Real, StatePrimitive.U24, false);
         public static readonly GenericConstrains Integers
-            = new GenericConstrains(Primitive.I96, null, false);
+            = new GenericConstrains(StatePrimitive.I96, null, false);
         public static readonly GenericConstrains Integers3264
-            = new GenericConstrains(Primitive.I96, Primitive.U24, false);
+            = new GenericConstrains(StatePrimitive.I96, StatePrimitive.U24, false);
         public static readonly GenericConstrains Integers32
-            = new GenericConstrains(Primitive.I48, null, false);
+            = new GenericConstrains(StatePrimitive.I48, null, false);
         public static readonly GenericConstrains SignedNumber
-            = new GenericConstrains(Primitive.Real, Primitive.I16, false);
+            = new GenericConstrains(StatePrimitive.Real, StatePrimitive.I16, false);
         public static readonly GenericConstrains Numbers
-            = new GenericConstrains(Primitive.Real, null, false);
+            = new GenericConstrains(StatePrimitive.Real, null, false);
 
-        public static GenericConstrains FromTicConstrains(Constrains constrains)
-            =>new GenericConstrains(constrains.Ancestor , constrains.Descedant as Primitive, constrains.IsComparable);
+        public static GenericConstrains FromTicConstrains(ConstrainsState constrainsState)
+            =>new GenericConstrains(constrainsState.Ancestor , constrainsState.Descedant as StatePrimitive, constrainsState.IsComparable);
 
-        public GenericConstrains(Primitive ancestor = null, Primitive descendant = null, bool isComparable = false)
+        public GenericConstrains(StatePrimitive ancestor = null, StatePrimitive descendant = null, bool isComparable = false)
         {
             Ancestor = ancestor;
             Descendant = descendant;

@@ -6,15 +6,15 @@ namespace NFun.Tic.Errors
 {
     public static class TicErrors
     {
-        private static bool TryFindSyntaxNode(SolvingNode ancestor, SolvingNode descendant, out int syntaxNode)
+        private static bool TryFindSyntaxNode(TicNode ancestor, TicNode descendant, out int syntaxNode)
         {
             syntaxNode = -1;
-            if (descendant.Type == SolvingNodeType.SyntaxNode)
+            if (descendant.Type == TicNodeType.SyntaxNode)
             {
                 syntaxNode= int.Parse(descendant.Name);
                 return true;
             }
-            if (ancestor.Type == SolvingNodeType.SyntaxNode)
+            if (ancestor.Type == TicNodeType.SyntaxNode)
             {
                 syntaxNode = int.Parse(ancestor.Name);
                 return true;
@@ -22,15 +22,15 @@ namespace NFun.Tic.Errors
 
             return false;
         }
-        private static bool TryFindNamedNode(SolvingNode ancestor, SolvingNode descendant, out string nodeName)
+        private static bool TryFindNamedNode(TicNode ancestor, TicNode descendant, out string nodeName)
         {
             nodeName = "";
-            if (descendant.Type == SolvingNodeType.Named)
+            if (descendant.Type == TicNodeType.Named)
             {
                 nodeName = descendant.Name;
                 return true;
             }
-            if (ancestor.Type == SolvingNodeType.SyntaxNode)
+            if (ancestor.Type == TicNodeType.SyntaxNode)
             {
                 nodeName = ancestor.Name;
                 return true;
@@ -38,7 +38,7 @@ namespace NFun.Tic.Errors
 
             return false;
         }
-        public static Exception IncompatibleNodes(SolvingNode ancestor, SolvingNode descendant)
+        public static Exception IncompatibleNodes(TicNode ancestor, TicNode descendant)
         {
             if (TryFindSyntaxNode(ancestor, descendant, out int id))
                 return new ImcompatibleAncestorSyntaxNodeException(id, ancestor.State, descendant.State);
@@ -47,42 +47,42 @@ namespace NFun.Tic.Errors
             return new TicNoDetailsException();
         }
 
-        public static Exception IncompatibleTypes(SolvingNode ancestor, SolvingNode descendant)
+        public static Exception IncompatibleTypes(TicNode ancestor, TicNode descendant)
             => IncompatibleNodes(ancestor, descendant);
-        public static Exception CanntoBecomeFunction(SolvingNode ancestor, SolvingNode target)
+        public static Exception CanntoBecomeFunction(TicNode ancestor, TicNode target)
             => IncompatibleNodes(ancestor, target);
-        public static Exception CanntoBecomeArray(SolvingNode ancestor, SolvingNode target)
+        public static Exception CanntoBecomeArray(TicNode ancestor, TicNode target)
             => IncompatibleNodes(ancestor, target);
-        public static Exception IncompatibleFunSignatures(SolvingNode ancestor, SolvingNode descendant)
+        public static Exception IncompatibleFunSignatures(TicNode ancestor, TicNode descendant)
             => IncompatibleNodes(ancestor, descendant);
 
-        public static Exception InvalidFunctionalVarableSignature(SolvingNode targetNode)
+        public static Exception InvalidFunctionalVarableSignature(TicNode targetNode)
         {
             return new TicNoDetailsException();
         }
-        public static Exception CannotMerge(SolvingNode a, SolvingNode b)
+        public static Exception CannotMerge(TicNode a, TicNode b)
             => IncompatibleNodes(a, b);
-        public static Exception CannotMergeGroup(SolvingNode[] group, SolvingNode a, SolvingNode b)
+        public static Exception CannotMergeGroup(TicNode[] group, TicNode a, TicNode b)
             => IncompatibleNodes(a, b);
-        public static Exception RecursiveTypeDefenition(SolvingNode[] group)
+        public static Exception RecursiveTypeDefenition(TicNode[] group)
         {
             List<string> listOfNames = new List<string>();
             List<int> listOfNodes = new List<int>();
 
             foreach (var node in group)
             {
-                if (node.Type == SolvingNodeType.Named) 
+                if (node.Type == TicNodeType.Named) 
                     listOfNames.Add(node.Name);
-                else if(node.Type== SolvingNodeType.SyntaxNode)
+                else if(node.Type== TicNodeType.SyntaxNode)
                     listOfNodes.Add(int.Parse(node.Name));
             }
             return new RecursiveTypeDefenitionException(listOfNames.ToArray(), listOfNodes.ToArray());
         }
-        public static Exception CannotSetState(SolvingNode node, IState b)
+        public static Exception CannotSetState(TicNode node, ITicNodeState b)
         {
-            if(node.Type== SolvingNodeType.SyntaxNode)
+            if(node.Type== TicNodeType.SyntaxNode)
                 return new ImcompatibleAncestorSyntaxNodeException(Int32.Parse(node.Name), node.State, b);
-            if (node.Type == SolvingNodeType.Named)
+            if (node.Type == TicNodeType.Named)
                 return new ImcompatibleAncestorNamedNodeException(node.Name, node.State, b);
             return new TicNoDetailsException();
         }

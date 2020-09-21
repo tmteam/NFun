@@ -4,7 +4,6 @@ using System.Text;
 using NFun.Tic.SolvingStates;
 using NFun.TypeInferenceCalculator;
 using NUnit.Framework;
-using Array = NFun.Tic.SolvingStates.Array;
 
 namespace NFun.Tic.Tests.Funs
 {
@@ -24,12 +23,12 @@ namespace NFun.Tic.Tests.Funs
             graph.SetVar("input", 0);
 
             graph.SetSizeOfArrayCall(0, 1 );  //count
-            graph.SetIntConst(2, Primitive.U8);
+            graph.SetIntConst(2, StatePrimitive.U8);
             graph.SetRangeCall(2, 1, 3);      //range
             graph.SetVar("input", 4);
 
             var tOfSwap = graph.InitializeVarNode(isComparable: true);
-            graph.SetVarType("swapIfNotSorted", Fun.Of(new IState[] { Array.Of(tOfSwap), Primitive.I32 }, Array.Of(tOfSwap)));
+            graph.SetVarType("swapIfNotSorted", StateFun.Of(new ITicNodeState[] { StateArray.Of(tOfSwap), StatePrimitive.I32 }, StateArray.Of(tOfSwap)));
             graph.SetVar("swapIfNotSorted", 5);
 
             graph.SetfoldCall(3, 4, 5, 6);
@@ -37,7 +36,7 @@ namespace NFun.Tic.Tests.Funs
 
             var result = graph.Solve();
             var generic = result.AssertAndGetSingleGeneric(null, null, true);
-            result.AssertNamed(Array.Of(generic), "sorted", "input");
+            result.AssertNamed(StateArray.Of(generic), "sorted", "input");
         }
 
         [Test]
@@ -51,15 +50,15 @@ namespace NFun.Tic.Tests.Funs
             graph.SetVar("input",0);
             var tOfCount = graph.InitializeVarNode();
             //count
-            graph.SetCall(new IState[]{Array.Of(tOfCount), Primitive.I32}, new[]{0,1});
-            graph.SetIntConst(2, Primitive.U8);
+            graph.SetCall(new ITicNodeState[]{StateArray.Of(tOfCount), StatePrimitive.I32}, new[]{0,1});
+            graph.SetIntConst(2, StatePrimitive.U8);
             //range
-            graph.SetCall(new IState[] {Primitive.I32, Primitive.I32, Array.Of(Primitive.I32)}, new []{2,1,3});
+            graph.SetCall(new ITicNodeState[] {StatePrimitive.I32, StatePrimitive.I32, StateArray.Of(StatePrimitive.I32)}, new []{2,1,3});
             graph.SetVar("input", 4);
 
             var tOfSwap = graph.InitializeVarNode(isComparable:true);
 
-            graph.SetVarType("swapIfNotSorted", Fun.Of(new IState[]{Array.Of(tOfSwap), Primitive.I32}, Array.Of(tOfSwap)));
+            graph.SetVarType("swapIfNotSorted", StateFun.Of(new ITicNodeState[]{StateArray.Of(tOfSwap), StatePrimitive.I32}, StateArray.Of(tOfSwap)));
             graph.SetVar("swapIfNotSorted",5);
 
             graph.SetfoldCall(3,4,5,6);
@@ -67,7 +66,7 @@ namespace NFun.Tic.Tests.Funs
             
             var result = graph.Solve();
             var generic = result.AssertAndGetSingleGeneric(null, null, true);
-            result.AssertNamed(Array.Of(generic),"sorted","input");
+            result.AssertNamed(StateArray.Of(generic),"sorted","input");
         }
 
         [Test]
@@ -80,14 +79,14 @@ namespace NFun.Tic.Tests.Funs
             var graph = new GraphBuilder();
 
 
-            graph.SetIntConst(0, Primitive.U8);
-            graph.SetIntConst(1, Primitive.U8);
-            graph.SetCall(new IState[] { Primitive.I32, Primitive.I32, Array.Of(Primitive.I32) }, new[] { 1, 0, 2 });
+            graph.SetIntConst(0, StatePrimitive.U8);
+            graph.SetIntConst(1, StatePrimitive.U8);
+            graph.SetCall(new ITicNodeState[] { StatePrimitive.I32, StatePrimitive.I32, StateArray.Of(StatePrimitive.I32) }, new[] { 1, 0, 2 });
             graph.SetVar("input", 3);
 
             var tOfSwap = graph.InitializeVarNode(isComparable: true);
 
-            graph.SetVarType("swapIfNotSorted", Fun.Of(new IState[] { Array.Of(tOfSwap), Primitive.I32 }, Array.Of(tOfSwap)));
+            graph.SetVarType("swapIfNotSorted", StateFun.Of(new ITicNodeState[] { StateArray.Of(tOfSwap), StatePrimitive.I32 }, StateArray.Of(tOfSwap)));
             graph.SetVar("swapIfNotSorted", 4);
 
             graph.SetfoldCall(2, 3, 4, 5);
@@ -95,7 +94,7 @@ namespace NFun.Tic.Tests.Funs
 
             var result = graph.Solve();
             var generic = result.AssertAndGetSingleGeneric(null, null, true);
-            result.AssertNamed(Array.Of(generic), "sorted", "input");
+            result.AssertNamed(StateArray.Of(generic), "sorted", "input");
         }
     }
 }

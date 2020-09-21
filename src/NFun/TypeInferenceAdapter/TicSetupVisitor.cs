@@ -13,7 +13,6 @@ using NFun.Tic;
 using NFun.Tic.SolvingStates;
 using NFun.TypeInferenceCalculator;
 using NFun.Types;
-using Array = NFun.Tic.SolvingStates.Array;
 
 namespace NFun.TypeInferenceAdapter
 {
@@ -82,9 +81,9 @@ namespace NFun.TypeInferenceAdapter
                     _ticTypeGraph.SetVarType(arg.Id, arg.VarType.ConvertToTiType());
             }
 
-            IType returnType = null;
+            ITypeState returnType = null;
             if (node.ReturnType != VarType.Empty)
-                returnType = (IType) node.ReturnType.ConvertToTiType();
+                returnType = (ITypeState) node.ReturnType.ConvertToTiType();
 
             #if DEBUG
             TraceLog.WriteLine(
@@ -197,7 +196,7 @@ namespace NFun.TypeInferenceAdapter
                 _ticTypeGraph.CreateLambda(node.Body.OrderNumber, node.OrderNumber, aliasNames);
             else
             {
-                var retType = (IType)node.OutputType.ConvertToTiType();
+                var retType = (ITypeState)node.OutputType.ConvertToTiType();
                 _ticTypeGraph.CreateLambda(
                     node.Body.OrderNumber,
                     node.OrderNumber,
@@ -260,7 +259,7 @@ namespace NFun.TypeInferenceAdapter
 #if DEBUG
             Trace(node, $"Call {node.Id}({string.Join(",", ids)})");
 #endif
-            RefTo[] genericTypes;
+            StateRefTo[] genericTypes;
             if (signature is GenericFunctionBase t)
             {
                 //Optimization
@@ -268,9 +267,9 @@ namespace NFun.TypeInferenceAdapter
                 genericTypes = InitializeGenericTypes(t.GenericDefenitions);
                 _resultsBuilder.RememberGenericCallArguments(node.OrderNumber, genericTypes);
             }
-            else genericTypes = new RefTo[0];
+            else genericTypes = new StateRefTo[0];
 
-            var types = new IState[signature.ArgTypes.Length + 1];
+            var types = new ITicNodeState[signature.ArgTypes.Length + 1];
             for (int i = 0; i < signature.ArgTypes.Length; i++)
                 types[i] = signature.ArgTypes[i].ConvertToTiType(genericTypes);
             types[types.Length - 1] = signature.ReturnType.ConvertToTiType(genericTypes);
@@ -317,9 +316,9 @@ namespace NFun.TypeInferenceAdapter
 #endif
             var type = LangTiHelper.ConvertToTiType(node.OutputType);
 
-            if (type is Primitive p)
+            if (type is StatePrimitive p)
                 _ticTypeGraph.SetConst(node.OrderNumber, p);
-            else if (type is Tic.SolvingStates.Array a && a.Element is Primitive primitiveElement)
+            else if (type is Tic.SolvingStates.StateArray a && a.Element is StatePrimitive primitiveElement)
                 _ticTypeGraph.SetArrayConst(node.OrderNumber, primitiveElement);
             else
                 throw new InvalidOperationException("Complex constant type is not supported");
@@ -342,12 +341,12 @@ namespace NFun.TypeInferenceAdapter
                     {
                         //negative constant
                         if (l >= Int16.MinValue)
-                            _ticTypeGraph.SetIntConst(node.OrderNumber, Primitive.I16, Primitive.I64,
-                                Primitive.I32);
+                            _ticTypeGraph.SetIntConst(node.OrderNumber, StatePrimitive.I16, StatePrimitive.I64,
+                                StatePrimitive.I32);
                         else if (l >= Int32.MinValue)
-                            _ticTypeGraph.SetIntConst(node.OrderNumber, Primitive.I32, Primitive.I64,
-                                Primitive.I32);
-                        else _ticTypeGraph.SetConst(node.OrderNumber, Primitive.I64);
+                            _ticTypeGraph.SetIntConst(node.OrderNumber, StatePrimitive.I32, StatePrimitive.I64,
+                                StatePrimitive.I32);
+                        else _ticTypeGraph.SetConst(node.OrderNumber, StatePrimitive.I64);
                         return true;
                     }
                 }
@@ -358,25 +357,25 @@ namespace NFun.TypeInferenceAdapter
 
                 //positive constant
                 if (actualValue <= byte.MaxValue)
-                    _ticTypeGraph.SetIntConst(node.OrderNumber, Primitive.U8, Primitive.I96, Primitive.I32);
+                    _ticTypeGraph.SetIntConst(node.OrderNumber, StatePrimitive.U8, StatePrimitive.I96, StatePrimitive.I32);
                 else if (actualValue <= (ulong)Int16.MaxValue)
-                    _ticTypeGraph.SetIntConst(node.OrderNumber, Primitive.U12, Primitive.I96, Primitive.I32);
+                    _ticTypeGraph.SetIntConst(node.OrderNumber, StatePrimitive.U12, StatePrimitive.I96, StatePrimitive.I32);
                 else if (actualValue <= (ulong)UInt16.MaxValue)
-                    _ticTypeGraph.SetIntConst(node.OrderNumber, Primitive.U16, Primitive.I96, Primitive.I32);
+                    _ticTypeGraph.SetIntConst(node.OrderNumber, StatePrimitive.U16, StatePrimitive.I96, StatePrimitive.I32);
                 else if (actualValue <= (ulong)Int32.MaxValue)
-                    _ticTypeGraph.SetIntConst(node.OrderNumber, Primitive.U24, Primitive.I96, Primitive.I32);
+                    _ticTypeGraph.SetIntConst(node.OrderNumber, StatePrimitive.U24, StatePrimitive.I96, StatePrimitive.I32);
                 else if (actualValue <= (ulong)UInt32.MaxValue)
-                    _ticTypeGraph.SetIntConst(node.OrderNumber, Primitive.U32, Primitive.I96, Primitive.I64);
+                    _ticTypeGraph.SetIntConst(node.OrderNumber, StatePrimitive.U32, StatePrimitive.I96, StatePrimitive.I64);
                 else if (actualValue <= (ulong)Int64.MaxValue)
-                    _ticTypeGraph.SetIntConst(node.OrderNumber, Primitive.U48, Primitive.I96, Primitive.I64);
+                    _ticTypeGraph.SetIntConst(node.OrderNumber, StatePrimitive.U48, StatePrimitive.I96, StatePrimitive.I64);
                 else
-                    _ticTypeGraph.SetConst(node.OrderNumber, Primitive.U64);
+                    _ticTypeGraph.SetConst(node.OrderNumber, StatePrimitive.U64);
             }
             else
             {
                 //1,2,3
                 //Can be u8:<c:<real
-                Primitive descedant;
+                StatePrimitive descedant;
                 ulong actualValue;
                 if (node.Value is long l)
                 {
@@ -384,9 +383,9 @@ namespace NFun.TypeInferenceAdapter
                     else
                     {
                         //negative constant
-                        if (l >= Int16.MinValue) descedant = Primitive.I16;
-                        else if (l >= Int32.MinValue) descedant = Primitive.I32;
-                        else descedant = Primitive.I64;
+                        if (l >= Int16.MinValue) descedant = StatePrimitive.I16;
+                        else if (l >= Int32.MinValue) descedant = StatePrimitive.I32;
+                        else descedant = StatePrimitive.I64;
                         _ticTypeGraph.SetIntConst(node.OrderNumber, descedant);
                         return true;
                     }
@@ -397,13 +396,13 @@ namespace NFun.TypeInferenceAdapter
                     throw new ImpossibleException("Generic token has to be ulong or long");
 
                 //positive constant
-                if (actualValue <= byte.MaxValue) descedant = Primitive.U8;
-                else if (actualValue <= (ulong)Int16.MaxValue) descedant = Primitive.U12;
-                else if (actualValue <= (ulong)UInt16.MaxValue) descedant = Primitive.U16;
-                else if (actualValue <= (ulong)Int32.MaxValue) descedant = Primitive.U24;
-                else if (actualValue <= (ulong)UInt32.MaxValue) descedant = Primitive.U32;
-                else if (actualValue <= (ulong)Int64.MaxValue) descedant = Primitive.U48;
-                else descedant = Primitive.U64;
+                if (actualValue <= byte.MaxValue) descedant = StatePrimitive.U8;
+                else if (actualValue <= (ulong)Int16.MaxValue) descedant = StatePrimitive.U12;
+                else if (actualValue <= (ulong)UInt16.MaxValue) descedant = StatePrimitive.U16;
+                else if (actualValue <= (ulong)Int32.MaxValue) descedant = StatePrimitive.U24;
+                else if (actualValue <= (ulong)UInt32.MaxValue) descedant = StatePrimitive.U32;
+                else if (actualValue <= (ulong)Int64.MaxValue) descedant = StatePrimitive.U48;
+                else descedant = StatePrimitive.U64;
                 _ticTypeGraph.SetIntConst(node.OrderNumber, descedant);
 
             }
@@ -465,9 +464,9 @@ namespace NFun.TypeInferenceAdapter
                 node.IdContent = constant;
 
                 var titype = constant.Type.ConvertToTiType();
-                if(titype is Primitive primitive)
+                if(titype is StatePrimitive primitive)
                     _ticTypeGraph.SetConst(node.OrderNumber, primitive);
-                else if (titype is Array array && array.Element is Primitive primitiveElement)
+                else if (titype is StateArray array && array.Element is StatePrimitive primitiveElement)
                     _ticTypeGraph.SetArrayConst(node.OrderNumber, primitiveElement);
                 else
                     throw new InvalidOperationException("Type " + constant.Type + " is not supported for constants");
@@ -512,9 +511,9 @@ namespace NFun.TypeInferenceAdapter
         public bool Visit(ListOfExpressionsSyntaxNode node) => VisitChildren(node);
 
         #region privates
-        private RefTo[] InitializeGenericTypes(GenericConstrains[] constrains)
+        private StateRefTo[] InitializeGenericTypes(GenericConstrains[] constrains)
         {
-            var genericTypes = new RefTo[constrains.Length];
+            var genericTypes = new StateRefTo[constrains.Length];
             for (int i = 0; i < constrains.Length; i++)
             {
                 var def = constrains[i];

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using NFun.Tic.SolvingStates;
 using NFun.Types;
-using Array = NFun.Tic.SolvingStates.Array;
 
 namespace NFun.TypeInferenceAdapter
 {
@@ -12,35 +11,35 @@ namespace NFun.TypeInferenceAdapter
         public static readonly TicTypesConverter Concrete 
             = new OnlyConcreteTypesConverter();
 
-        public static TicTypesConverter GenericSignatureConverter(Constrains[] constrainsMap) 
+        public static TicTypesConverter GenericSignatureConverter(ConstrainsState[] constrainsMap) 
             => new ConstrainsConverter(constrainsMap);
 
-        public static TicTypesConverter ReplaceGenericTypesConverter(Constrains[] constrainsMap, IList<VarType> genericArgs)
+        public static TicTypesConverter ReplaceGenericTypesConverter(ConstrainsState[] constrainsMap, IList<VarType> genericArgs)
             => new GenericMapConverter(constrainsMap, genericArgs);
 
-        public abstract VarType Convert(IState type);
+        public abstract VarType Convert(ITicNodeState type);
 
 
         class OnlyConcreteTypesConverter : TicTypesConverter
         {
-            public override VarType Convert(IState type)
+            public override VarType Convert(ITicNodeState type)
             {
                 switch (type)
                 {
-                    case RefTo refTo:
+                    case StateRefTo refTo:
                         return Convert(refTo.Element);
-                    case Primitive primitive:
+                    case StatePrimitive primitive:
                         return ToConcrete(primitive.Name);
-                    case Constrains constrains when constrains.Prefered != null:
+                    case ConstrainsState constrains when constrains.Prefered != null:
                         return ToConcrete(constrains.Prefered.Name);
-                    case Constrains constrains when !constrains.HasAncestor:
+                    case ConstrainsState constrains when !constrains.HasAncestor:
                         {
                             if (constrains.IsComparable)
                                 return VarType.Real;
                             return VarType.Anything;
                         }
 
-                    case Constrains constrains:
+                    case ConstrainsState constrains:
                         {
                             if (constrains.Ancestor.Name.HasFlag(PrimitiveTypeName._isAbstract))
                             {
@@ -48,13 +47,13 @@ namespace NFun.TypeInferenceAdapter
                                 {
                                     case PrimitiveTypeName.I96:
                                         {
-                                            if (constrains.HasDescendant || constrains.Descedant.CanBeImplicitlyConvertedTo(Primitive.I32))
+                                            if (constrains.HasDescendant || constrains.Descedant.CanBeImplicitlyConvertedTo(StatePrimitive.I32))
                                                 return VarType.Int32;
                                             return VarType.Int64;
                                         }
                                     case PrimitiveTypeName.I48:
                                         {
-                                            if (constrains.HasDescendant || constrains.Descedant.CanBeImplicitlyConvertedTo(Primitive.I32))
+                                            if (constrains.HasDescendant || constrains.Descedant.CanBeImplicitlyConvertedTo(StatePrimitive.I32))
                                                 return VarType.Int32;
                                             return VarType.UInt32;
                                         }
@@ -67,9 +66,9 @@ namespace NFun.TypeInferenceAdapter
                             return ToConcrete(constrains.Ancestor.Name);
                         }
 
-                    case Array array:
+                    case StateArray array:
                         return VarType.ArrayOf(Convert(array.Element));
-                    case Fun fun:
+                    case StateFun fun:
                         return VarType.Fun(Convert(fun.ReturnType), fun.ArgNodes.SelectToArray(a=>Convert(a.State)));
                     default:
                         throw new NotSupportedException();
@@ -81,26 +80,26 @@ namespace NFun.TypeInferenceAdapter
 
         class ConstrainsConverter : TicTypesConverter
         {
-            private readonly Constrains[] _constrainsMap;
+            private readonly ConstrainsState[] _constrainsMap;
 
-            public ConstrainsConverter(Constrains[] constrainsMap) => _constrainsMap = constrainsMap;
+            public ConstrainsConverter(ConstrainsState[] constrainsMap) => _constrainsMap = constrainsMap;
 
-            public override VarType Convert(IState type)
+            public override VarType Convert(ITicNodeState type)
             {
                 switch (type)
                 {
-                    case RefTo refTo: 
+                    case StateRefTo refTo: 
                         return Convert(refTo.Element);
-                    case Primitive primitive:
+                    case StatePrimitive primitive:
                         return ToConcrete(primitive.Name);
-                    case Constrains constrains:
+                    case ConstrainsState constrains:
                         var index = System.Array.IndexOf(_constrainsMap,constrains);
                         if(index==-1)
                             throw new InvalidOperationException("Unknown constrains");
                         return VarType.Generic(index);
-                    case Array array:
+                    case StateArray array:
                         return VarType.ArrayOf(Convert(array.Element));
-                    case Fun fun:
+                    case StateFun fun:
                         return VarType.Fun(Convert(fun.ReturnType), fun.ArgNodes.SelectToArray(a=>Convert(a.State)));
                     default:
                         throw new NotSupportedException();
@@ -110,33 +109,33 @@ namespace NFun.TypeInferenceAdapter
 
         class GenericMapConverter : TicTypesConverter
         {
-            private readonly Constrains[] _constrainsMap;
+            private readonly ConstrainsState[] _constrainsMap;
             private readonly IList<VarType> _argTypes;
 
-            public GenericMapConverter(Constrains[] constrainsMap, IList<VarType> argTypes)
+            public GenericMapConverter(ConstrainsState[] constrainsMap, IList<VarType> argTypes)
             {
                 _constrainsMap = constrainsMap;
                 _argTypes = argTypes;
             }
 
-            public override VarType Convert(IState type)
+            public override VarType Convert(ITicNodeState type)
             {
                 switch (type)
                 {
-                    case RefTo refTo:
+                    case StateRefTo refTo:
                         return Convert(refTo.Element);
-                    case Primitive primitive:
+                    case StatePrimitive primitive:
                         return ToConcrete(primitive.Name);
                     //case Constrains constrains when constrains.Prefered != null:
                     //    return ToConcrete(constrains.Prefered.Name);
-                    case Constrains constrains:
+                    case ConstrainsState constrains:
                         var index = System.Array.IndexOf(_constrainsMap, constrains);
                         if (index == -1)
                             throw new InvalidOperationException("Unknown constrains");
                         return _argTypes[index];
-                    case Array array:
+                    case StateArray array:
                         return VarType.ArrayOf(Convert(array.Element));
-                    case Fun fun:
+                    case StateFun fun:
                         return VarType.Fun(Convert(fun.ReturnType), fun.ArgNodes.SelectToArray(a=>Convert(a.State)));
                     default:
                         throw new NotSupportedException();

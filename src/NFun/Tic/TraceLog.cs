@@ -49,24 +49,30 @@ namespace NFun.TypeInferenceCalculator
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Write(string message)
         {
+#if DEBUG
             if(IsEnabled)
                 Console.Write(message);
+#endif
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteLine(string message)
         {
+#if DEBUG
             if (IsEnabled)
                 Console.WriteLine(message);
+#endif
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Write(string locator, ConsoleColor green)
         {
+#if DEBUG
             if (IsEnabled)
             {
                 Console.ForegroundColor = green;
                 Console.Write(locator);
                 Console.ResetColor();
             }
+#endif
         }
     }
 }

@@ -1,41 +1,44 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
+using System.Threading;
 using NFun.Tic.SolvingStates;
 using NFun.TypeInferenceCalculator;
-using Array = NFun.Tic.SolvingStates.Array;
 
 namespace NFun.Tic
 {
-    public enum SolvingNodeType
+    public enum TicNodeType
     {
         Named,
         SyntaxNode,
         TypeVariable
     }
 
-    public class SolvingNode
+    public class TicNode
     {
         internal bool Registrated = false;
-        private IState _state;
+        private ITicNodeState _state;
         public int GraphId { get; set; } = -1;
-        public static SolvingNode CreateTypeNode(IType type) 
-            => new SolvingNode(type.ToString(), type, SolvingNodeType.TypeVariable);
+        public static TicNode CreateTypeNode(ITypeState type) 
+            => new TicNode(type.ToString(), type, TicNodeType.TypeVariable);
 
-        public SolvingNode(string name, IState state, SolvingNodeType type)
+        private static int _interlockedId = 0;
+        private readonly int Uid = 0;
+
+        public TicNode(string name, ITicNodeState state, TicNodeType type)
         {
+            Uid =  Interlocked.Increment(ref _interlockedId);
+            
             Name = name;
             State = state;
             Type = type;
         }
 
-        public SolvingNodeType Type { get; }
-        public List<SolvingNode> Ancestors { get; } = new List<SolvingNode>();
+        public TicNodeType Type { get; }
+        public List<TicNode> Ancestors { get; } = new List<TicNode>();
         public bool IsMemberOfAnything { get; set; }
-        public bool IsSolved => _state is Primitive || (_state as Array)?.IsSolved == true;
+        public bool IsSolved => _state is StatePrimitive || (_state as StateArray)?.IsSolved == true;
 
-        public IState State
+        public ITicNodeState State
         {
             get => _state;
             set
@@ -43,11 +46,11 @@ namespace NFun.Tic
                 Debug.Assert(value != null);
                 Debug.Assert(!(IsSolved && !value.Equals(_state)),"Node is already solved");
 
-                if (value is Array array)
+                if (value is StateArray array)
                     array.ElementNode.IsMemberOfAnything = true;
                 else
                 {
-                    Debug.Assert(!(value is RefTo refTo && refTo.Node== this),"Self referencing node");
+                    Debug.Assert(!(value is StateRefTo refTo && refTo.Node== this),"Self referencing node");
                 }
                 _state = value;
             }
@@ -80,33 +83,33 @@ namespace NFun.Tic
         }
 
 
-        public bool TryBecomeConcrete(Primitive primitive)
+        public bool TryBecomeConcrete(StatePrimitive primitiveState)
         {
-            if (this.State is Primitive oldConcrete)
-                return oldConcrete.Equals(primitive);
-            if (this.State is Constrains constrains)
+            if (this.State is StatePrimitive oldConcrete)
+                return oldConcrete.Equals(primitiveState);
+            if (this.State is ConstrainsState constrains)
             {
-                if (!constrains.Fits(primitive))
+                if (!constrains.Fits(primitiveState))
                     return false;
-                this.State = primitive;
+                this.State = primitiveState;
                 return true;
             }
 
             return false;
         }
-        public bool TrySetAncestor(Primitive anc)
+        public bool TrySetAncestor(StatePrimitive anc)
         {
-            if (anc.Equals(Primitive.Any))
+            if (anc.Equals(StatePrimitive.Any))
                 return true;
             var node = this;
-            if (node.State is RefTo)
+            if (node.State is StateRefTo)
                 node = node.GetNonReference();
 
-            if (node.State is Primitive oldConcrete)
+            if (node.State is StatePrimitive oldConcrete)
             {
                 return oldConcrete.CanBeImplicitlyConvertedTo(anc);
             }
-            else if (node.State is Constrains constrains)
+            else if (node.State is ConstrainsState constrains)
             {
                 if (!constrains.TryAddAncestor(anc))
                     return false;
@@ -118,17 +121,18 @@ namespace NFun.Tic
             };
             return false;
         }
-        public SolvingNode GetNonReference()
+        public TicNode GetNonReference()
         {
             var result = this;
-            if (result.State is RefTo referenceA)
+            if (result.State is StateRefTo referenceA)
             {
                 result = referenceA.Node;
-                if (result.State is RefTo)
+                if (result.State is StateRefTo)
                     return result.GetNonReference();
             }
 
             return result;
         }
+        public override int GetHashCode() => Uid;
     }
 }

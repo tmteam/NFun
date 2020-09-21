@@ -2,7 +2,6 @@
 using NFun.Tic.SolvingStates;
 using NFun.TypeInferenceCalculator.Errors;
 using NUnit.Framework;
-using Array = NFun.Tic.SolvingStates.Array;
 
 namespace NFun.Tic.Tests.Arrays
 {
@@ -29,13 +28,13 @@ namespace NFun.Tic.Tests.Arrays
             //     3  2 0,  1  
             //y = sum([ 1, -1]) 
             var graph = new GraphBuilder();
-            graph.SetIntConst(0, Primitive.U8);
-            graph.SetIntConst(1, Primitive.I16);
+            graph.SetIntConst(0, StatePrimitive.U8);
+            graph.SetIntConst(1, StatePrimitive.I16);
             graph.SetStrictArrayInit(2, 0, 1);
             graph.SetSumCall(2,3);
             graph.SetDef("y", 3);
             var result = graph.Solve();
-            var generic = result.AssertAndGetSingleGeneric(Primitive.I32, Primitive.Real);
+            var generic = result.AssertAndGetSingleGeneric(StatePrimitive.I32, StatePrimitive.Real);
             result.AssertAreGenerics(generic, "y");
         }
 
@@ -47,12 +46,12 @@ namespace NFun.Tic.Tests.Arrays
             var graph = new GraphBuilder();
             graph.SetVar("x", 0);
             graph.SetSumCall(0, 1);
-            graph.SetVarType("y", Primitive.U32);
+            graph.SetVarType("y", StatePrimitive.U32);
             graph.SetDef("y", 1);
             var result = graph.Solve();
             result.AssertNoGenerics();
-            result.AssertNamedEqualToArrayOf(Primitive.U32, "x");
-            result.AssertNamed(Primitive.U32, "y");
+            result.AssertNamedEqualToArrayOf(StatePrimitive.U32, "x");
+            result.AssertNamed(StatePrimitive.U32, "y");
         }
 
         [Test(Description = "y:char = x.sum()")]
@@ -65,7 +64,7 @@ namespace NFun.Tic.Tests.Arrays
 
             graph.SetVar("x", 0);
             graph.SetSumCall(0, 1);
-            graph.SetVarType("y", Primitive.Char);
+            graph.SetVarType("y", StatePrimitive.Char);
             TestHelper.AssertThrowsTicError(() =>
             {
                 graph.SetDef("y", 1);
@@ -79,14 +78,14 @@ namespace NFun.Tic.Tests.Arrays
             //               2 0
             //x:int[]; y = sum(x) 
             var graph = new GraphBuilder();
-            graph.SetVarType("x", Array.Of(Primitive.I32));
+            graph.SetVarType("x", StateArray.Of(StatePrimitive.I32));
             graph.SetVar("x", 0);
             graph.SetSumCall(0, 1);
             graph.SetDef("y", 1);
             var result = graph.Solve();
             result.AssertNoGenerics();
-            result.AssertNamedEqualToArrayOf(Primitive.I32, "x");
-            result.AssertNamed(Primitive.I32, "y");
+            result.AssertNamedEqualToArrayOf(StatePrimitive.I32, "x");
+            result.AssertNamed(StatePrimitive.I32, "y");
         }
 
         [Test(Description = "x:int[]; y:real = x.sum()")]
@@ -95,15 +94,15 @@ namespace NFun.Tic.Tests.Arrays
             //                   2  0
             //x:int[]; y:real = sum(x) 
             var graph = new GraphBuilder();
-            graph.SetVarType("x", Array.Of(Primitive.I32));
+            graph.SetVarType("x", StateArray.Of(StatePrimitive.I32));
             graph.SetVar("x", 0);
             graph.SetSumCall(0, 1);
-            graph.SetVarType("y", Primitive.Real);
+            graph.SetVarType("y", StatePrimitive.Real);
             graph.SetDef("y", 1);
             var result = graph.Solve();
             result.AssertNoGenerics();
-            result.AssertNamedEqualToArrayOf(Primitive.I32, "x");
-            result.AssertNamed(Primitive.Real, "y");
+            result.AssertNamedEqualToArrayOf(StatePrimitive.I32, "x");
+            result.AssertNamed(StatePrimitive.Real, "y");
         }
 
         [Test(Description = "x:real[]; y:int = x[0]")]
@@ -112,10 +111,10 @@ namespace NFun.Tic.Tests.Arrays
             //                   1  0
             //x:real[]; y:int = sum(x) 
             var graph = new GraphBuilder();
-            graph.SetVarType("x", Array.Of(Primitive.Real));
+            graph.SetVarType("x", StateArray.Of(StatePrimitive.Real));
             graph.SetVar("x", 0);
             graph.SetSumCall(0, 1);
-            graph.SetVarType("y", Primitive.I32);
+            graph.SetVarType("y", StatePrimitive.I32);
             TestHelper.AssertThrowsTicError(() =>
             {
                 graph.SetDef("y", 1);

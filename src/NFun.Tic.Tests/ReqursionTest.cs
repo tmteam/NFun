@@ -21,12 +21,12 @@ namespace NFun.Tic.Tests
             var fun = graph.SetFunDef("y",3, null, "x");
             graph.SetVar("x", 0);
             graph.SetCall(fun, 0, 1);
-            graph.SetConst(2, Primitive.I32);
+            graph.SetConst(2, StatePrimitive.I32);
             graph.SetArith(1, 2, 3);
             var result = graph.Solve();
             result.AssertNoGenerics();
-            Assert.AreEqual(fun.ReturnType, Primitive.I32);
-            Assert.AreEqual(fun.Args.First(), Primitive.Any);
+            Assert.AreEqual(fun.ReturnType, StatePrimitive.I32);
+            Assert.AreEqual(fun.Args.First(), StatePrimitive.Any);
             //var generic = result.AssertAndGetSingleGeneric(null, null, false);
             //Assert.AreEqual(fun.ReturnType, Primitive.I32);
             //Assert.AreEqual(fun.Args.First(), generic.State);
@@ -39,7 +39,7 @@ namespace NFun.Tic.Tests
             var graph = new GraphBuilder();
             
             var fun = graph.SetFunDef("y", 5, null, "x");
-            graph.SetConst(0, Primitive.Real);
+            graph.SetConst(0, StatePrimitive.Real);
             graph.SetVar("x", 1);
             graph.SetArith(0,1,2);
             
@@ -49,8 +49,8 @@ namespace NFun.Tic.Tests
             graph.SetArith(2, 4, 5);
             var result = graph.Solve();
             result.AssertNoGenerics();
-            Assert.AreEqual(fun.ReturnType, Primitive.Real);
-            Assert.AreEqual(fun.Args.First(), Primitive.Real);
+            Assert.AreEqual(fun.ReturnType, StatePrimitive.Real);
+            Assert.AreEqual(fun.Args.First(), StatePrimitive.Real);
         }
         [Test]
         public void ReqursiveWithGeneric()
@@ -59,7 +59,7 @@ namespace NFun.Tic.Tests
             //expr |y(x) = if true: y(x) | x 
             var graph = new GraphBuilder();
             var fun = graph.SetFunDef("y",4, null, "x");
-            graph.SetConst(0, Primitive.Bool);
+            graph.SetConst(0, StatePrimitive.Bool);
             graph.SetVar("x", 1);
             graph.SetCall(fun, 1, 2);
             graph.SetVar("x", 3);

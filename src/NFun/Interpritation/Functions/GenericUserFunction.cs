@@ -16,7 +16,7 @@ namespace NFun.Interpritation.Functions
         private readonly UserFunctionDefenitionSyntaxNode _syntaxNode;
         private readonly IFunctionDictionary _dictionary;
 
-        private readonly Constrains[] _constrainsMap;
+        private readonly ConstrainsState[] _constrainsMap;
 
         public static GenericUserFunction Create(
             TypeInferenceResults typeInferenceResults,
@@ -31,7 +31,7 @@ namespace NFun.Interpritation.Functions
                 langConstrains[i] = GenericConstrains.FromTicConstrains(ticConstrains);
             }
             var ticFunName = syntaxNode.Id + "'" + syntaxNode.Args.Count;
-            var ticSignature = (Fun)typeInferenceResults.GetVariableType(ticFunName);
+            var ticSignature = (StateFun)typeInferenceResults.GetVariableType(ticFunName);
             var signatureConverter = TicTypesConverter.GenericSignatureConverter(ticGenerics);
 
             var argTypes = new VarType[ticSignature.ArgNodes.Length];
@@ -53,7 +53,7 @@ namespace NFun.Interpritation.Functions
 
             for (var i = 0; i < function._constrainsMap.Length; i++)
             {
-                var anc = function._constrainsMap[i].Ancestor ?? Primitive.Any;
+                var anc = function._constrainsMap[i].Ancestor ?? StatePrimitive.Any;
                 var concrete = TicTypesConverter.ToConcrete(anc.Name);
                 varType[i] =concrete;
             }

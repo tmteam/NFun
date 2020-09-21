@@ -11,21 +11,21 @@ namespace NFun.TypeInferenceAdapter
 {
     public class TypeInferenceResultsBuilder
     {
-        readonly List<RefTo[]> _genericFunctionTypes = new List<RefTo[]>();
-        readonly List<Constrains> _constrainses = new List<Constrains>();
+        readonly List<StateRefTo[]> _genericFunctionTypes = new List<StateRefTo[]>();
+        readonly List<ConstrainsState> _constrainses = new List<ConstrainsState>();
         readonly List<IFunctionSignature> _functionSignatures = new List<IFunctionSignature>();
         readonly List<IFunctionSignature> _functionalVariable = new List<IFunctionSignature>();
-        readonly List<Fun> _recursiveCalls = new List<Fun>();
+        readonly List<StateFun> _recursiveCalls = new List<StateFun>();
 
-        readonly Dictionary<string, Fun> _userFunctionSignatures = new Dictionary<string, Fun>();
+        readonly Dictionary<string, StateFun> _userFunctionSignatures = new Dictionary<string, StateFun>();
 
-        private Dictionary<string, IState> _namedNodes = null;
-        private IState[] _syntaxNodeTypes = null;
+        private Dictionary<string, ITicNodeState> _namedNodes = null;
+        private ITicNodeState[] _syntaxNodeTypes = null;
 
-        public void RememberGenericCallArguments(int id, RefTo[] types) 
+        public void RememberGenericCallArguments(int id, StateRefTo[] types) 
             => _genericFunctionTypes.EnlargeAndSet(id, types);
 
-        public Fun GetUserFunctionSignature(string id, int argsCount)
+        public StateFun GetUserFunctionSignature(string id, int argsCount)
         {
             string name = id + "'" + argsCount;
             _userFunctionSignatures.TryGetValue(name, out var res);
@@ -37,7 +37,7 @@ namespace NFun.TypeInferenceAdapter
                 return null;
             return _functionSignatures[id];
         }
-        public void RememberUserFunctionSignature(string name, Fun signature) 
+        public void RememberUserFunctionSignature(string name, StateFun signature) 
             => _userFunctionSignatures.Add(name+"'"+signature.ArgsCount, signature);
 
         public void RememberFunctionalVariable(int id, IFunctionSignature signature) 
@@ -65,24 +65,24 @@ namespace NFun.TypeInferenceAdapter
                 );
         }
 
-        public void RememberRecursiveCall(int id, Fun userFunction) 
+        public void RememberRecursiveCall(int id, StateFun userFunction) 
             => _recursiveCalls.EnlargeAndSet(id, userFunction);
     }
     public class TypeInferenceResults
     {
-        private readonly Dictionary<string, IState> _namedNodes;
+        private readonly Dictionary<string, ITicNodeState> _namedNodes;
         private readonly IList<IFunctionSignature> _functions;
         private readonly IList<IFunctionSignature> _functionalVariables;
-        private readonly IList<Fun> _recursiveCalls;
+        private readonly IList<StateFun> _recursiveCalls;
 
         public TypeInferenceResults(
-            RefTo[][] genericFunctionTypes, 
-            IState[] syntaxNodeTypes, 
-            Constrains[] generics,
-            Dictionary<string, IState> namedNodes,
+            StateRefTo[][] genericFunctionTypes, 
+            ITicNodeState[] syntaxNodeTypes, 
+            ConstrainsState[] generics,
+            Dictionary<string, ITicNodeState> namedNodes,
             IList<IFunctionSignature> functionSignatures,
             IList<IFunctionSignature> functionalVariables, 
-            IList<Fun> recursiveCalls
+            IList<StateFun> recursiveCalls
             )
         {
             GenericFunctionTypes = genericFunctionTypes;
@@ -99,29 +99,29 @@ namespace NFun.TypeInferenceAdapter
                 return null;
             return _functionalVariables[id];
         }
-        public IState[] GetGenericCallArguments(int id)
+        public ITicNodeState[] GetGenericCallArguments(int id)
         {
             if (GenericFunctionTypes.Length <= id)
                 return null;
             return GenericFunctionTypes[id];
         }
-        public Fun GetRecursiveCallOrNull(int id)
+        public StateFun GetRecursiveCallOrNull(int id)
         {
             if (_recursiveCalls.Count <= id)
                 return null;
             return _recursiveCalls[id];
         }
-        public IState[][] GenericFunctionTypes { get; }
-        public IState[] SyntaxNodeTypes{ get; }
-        public Constrains[] Generics { get; }
+        public ITicNodeState[][] GenericFunctionTypes { get; }
+        public ITicNodeState[] SyntaxNodeTypes{ get; }
+        public ConstrainsState[] Generics { get; }
 
-        public IState GetSyntaxNodeTypeOrNull(int id)
+        public ITicNodeState GetSyntaxNodeTypeOrNull(int id)
         {
             if (SyntaxNodeTypes.Length <= id)
                 return null;
             return SyntaxNodeTypes[id];
         }
 
-        public IState GetVariableType(string name) => _namedNodes[name];
+        public ITicNodeState GetVariableType(string name) => _namedNodes[name];
     }
 }

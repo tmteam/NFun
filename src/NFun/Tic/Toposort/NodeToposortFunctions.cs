@@ -7,15 +7,15 @@ namespace NFun.Tic.Toposort
 {
     public class NodeSortResult
     {
-        public NodeSortResult(SolvingNode[] order, IList<SolvingNode> refs, SortStatus status)
+        public NodeSortResult(TicNode[] order, IList<TicNode> refs, SortStatus status)
         {
             Order = order;
             Refs = refs;
             Status = status;
         }
 
-        public SolvingNode[] Order { get; }
-        public IList<SolvingNode> Refs { get; }
+        public TicNode[] Order { get; }
+        public IList<TicNode> Refs { get; }
         public SortStatus Status { get; }
     }
 
@@ -27,7 +27,7 @@ namespace NFun.Tic.Toposort
     }
     public static class NodeToposortFunctions
     {
-        public static NodeSortResult Toposort(SolvingNode[] nodes)
+        public static NodeSortResult Toposort(TicNode[] nodes)
         {
             //The node list probably contains reference loops
             //We need to remove these loops to avoid Stackoverflow exceptions 
@@ -42,7 +42,7 @@ namespace NFun.Tic.Toposort
 
             
             //var order = sorted.NodeNames.Select(n => nonReferenceNOdes[n.To]).Reverse().ToArray();
-            var order = new SolvingNode[sorted.NodeNames.Count];
+            var order = new TicNode[sorted.NodeNames.Count];
             int pos = 0;
             for (int i = sorted.NodeNames.Count - 1; i >= 0; i--)
             {
@@ -59,15 +59,15 @@ namespace NFun.Tic.Toposort
                 : SortStatus.Sorted);
         }
 
-        private static void MergeAllReferences(SolvingNode[] nodes, out IList<SolvingNode> refs, out IList<SolvingNode> concretes)
+        private static void MergeAllReferences(TicNode[] nodes, out IList<TicNode> refs, out IList<TicNode> concretes)
         {
             refs = null;
             concretes = null;
-            var references = new List<SolvingNode>();
-            var concretesBuffer = new List<SolvingNode>();
+            var references = new List<TicNode>();
+            var concretesBuffer = new List<TicNode>();
             foreach (var node in nodes)
             {
-                if (node.State is RefTo refTo)
+                if (node.State is StateRefTo refTo)
                 {
                     references.Add(node);
                     var real = node.GetNonReference();
@@ -75,12 +75,12 @@ namespace NFun.Tic.Toposort
                     node.Ancestors.Clear();
 
                     if (refTo.Node != real)
-                        node.State = new RefTo(real);
+                        node.State = new StateRefTo(real);
                 }
                 else
                 {
                     concretesBuffer.Add(node);
-                    if (node.State is ICompositeType composite)
+                    if (node.State is ICompositeTypeState composite)
                     {
                         if (composite.HasAnyReferenceMember)
                             node.State = composite.GetNonReferenced();
@@ -94,11 +94,11 @@ namespace NFun.Tic.Toposort
         }
     
         
-        private static void AppendNonReferencedToList(IList<SolvingNode> nodes, List<SolvingNode> targetList)
+        private static void AppendNonReferencedToList(IList<TicNode> nodes, List<TicNode> targetList)
         {
             foreach (var node in nodes)
             {
-                if (node.State is RefTo)
+                if (node.State is StateRefTo)
                     targetList.Add(node.GetNonReference());
                 else
                     targetList.Add(node);
@@ -108,19 +108,19 @@ namespace NFun.Tic.Toposort
         /// <summary>
         /// Replaces every item in the list with it non referenced node
         /// </summary>
-        private static void ReplaceWithNonReferences(List<SolvingNode> nodes)
+        private static void ReplaceWithNonReferences(List<TicNode> nodes)
         {
             for (int i = 0; i < nodes.Count; i++)
             {
                 var node = nodes[i];
-                if (node.State is RefTo)
+                if (node.State is StateRefTo)
                     nodes[i] = node.GetNonReference();
             }
         }
         
 
 
-        private static void RemoveRefenceLoops(SolvingNode[] nodes)
+        private static void RemoveRefenceLoops(TicNode[] nodes)
         {
             while (true)
             {
@@ -131,7 +131,7 @@ namespace NFun.Tic.Toposort
                 if (!refTopology.HasLoop)
                     return;
 
-                var refCycle = new SolvingNode[refTopology.NodeNames.Count];
+                var refCycle = new TicNode[refTopology.NodeNames.Count];
                 for (int i = 0; i < refCycle.Length; i++)
                 {
                     var to = refTopology.NodeNames[i].To;
@@ -141,15 +141,15 @@ namespace NFun.Tic.Toposort
             }
         }
 
-        private static List<SolvingNode> FindRefNodesGraph(SolvingNode[] nodes)
+        private static List<TicNode> FindRefNodesGraph(TicNode[] nodes)
         {
-            var refList = new List<SolvingNode>();
+            var refList = new List<TicNode>();
             foreach (var node in nodes)
             {
-                if (node.State is RefTo refTo)
+                if (node.State is StateRefTo refTo)
                 {
                     refList.Add(node);
-                    if (!(refTo.Node.State is RefTo))
+                    if (!(refTo.Node.State is StateRefTo))
                         refList.Add(refTo.Node);
                 }
             }
@@ -157,7 +157,7 @@ namespace NFun.Tic.Toposort
             return refList;
         }
 
-        public static Edge[][] ConvertToRefArrayGraph(List<SolvingNode> allNodes)
+        public static Edge[][] ConvertToRefArrayGraph(List<TicNode> allNodes)
         {
             var graph = new List<Edge>[allNodes.Count];
 
@@ -170,7 +170,7 @@ namespace NFun.Tic.Toposort
 
             foreach (var node in allNodes)
             {
-                if (node.State is RefTo reference)
+                if (node.State is StateRefTo reference)
                 {
                     var from = node.GraphId;
                     var to = reference.Node.GraphId;
@@ -186,7 +186,7 @@ namespace NFun.Tic.Toposort
             }
             return ToTwinArray(graph);
         }
-        public static Edge[][] ConvertToArrayGraph(IList<SolvingNode> allNodes)
+        public static Edge[][] ConvertToArrayGraph(IList<TicNode> allNodes)
         {
             var graph = new List<Edge>[allNodes.Count];
             for (int i = 0; i < allNodes.Count; i++)
@@ -198,7 +198,7 @@ namespace NFun.Tic.Toposort
                 if (from < 0)
                     throw new InvalidOperationException();
 
-                if (node.State is RefTo)
+                if (node.State is StateRefTo)
                     throw new InvalidOperationException();
                 
                 if (graph[@from] == null)
@@ -210,11 +210,11 @@ namespace NFun.Tic.Toposort
                     graph[from].Add(Edge.AncestorTo(ancId));
                 }
                 
-                if (node.State is ICompositeType composite)
+                if (node.State is ICompositeTypeState composite)
                 {
                     foreach (var member in composite.Members)
                     {
-                        if(member.State is RefTo)
+                        if(member.State is StateRefTo)
                             throw new InvalidOperationException();
                         
                         var mfrom = member.GraphId;

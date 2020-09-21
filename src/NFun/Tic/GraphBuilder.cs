@@ -6,26 +6,25 @@ using NFun.Tic.SolvingStates;
 using NFun.Tic.Toposort;
 using NFun.TypeInferenceCalculator;
 using NFun.TypeInferenceCalculator.Errors;
-using Array = NFun.Tic.SolvingStates.Array;
 
 namespace NFun.Tic
 {
     public class GraphBuilder
     {
-        private readonly Dictionary<string, SolvingNode> _variables = new Dictionary<string, SolvingNode>();
-        private readonly List<SolvingNode> _syntaxNodes;
-        private readonly List<SolvingNode> _typeVariables = new List<SolvingNode>();
+        private readonly Dictionary<string, TicNode> _variables = new Dictionary<string, TicNode>();
+        private readonly List<TicNode> _syntaxNodes;
+        private readonly List<TicNode> _typeVariables = new List<TicNode>();
         private int _varNodeId = 0;
-        private readonly List<SolvingNode> _outputNodes = new List<SolvingNode>();
-        private readonly List<SolvingNode> _inputNodes = new List<SolvingNode>();
+        private readonly List<TicNode> _outputNodes = new List<TicNode>();
+        private readonly List<TicNode> _inputNodes = new List<TicNode>();
 
-        public RefTo InitializeVarNode(IType desc = null, Primitive anc = null, bool isComparable = false) 
-            => new RefTo(CreateVarType(new Constrains(desc, anc){IsComparable =  isComparable}));
+        public StateRefTo InitializeVarNode(ITypeState desc = null, StatePrimitive anc = null, bool isComparable = false) 
+            => new StateRefTo(CreateVarType(new ConstrainsState(desc, anc){IsComparable =  isComparable}));
 
         //todo perfomance hotspot list capacity
         public GraphBuilder()
         {
-            _syntaxNodes = new List<SolvingNode>(16);
+            _syntaxNodes = new List<TicNode>(16);
         }
         
         #region set primitives
@@ -34,7 +33,7 @@ namespace NFun.Tic
         {
             var namedNode = GetNamedNode(name);
             var idNode = GetOrCreateNode(node);
-            if (idNode.State is Constrains)
+            if (idNode.State is ConstrainsState)
             {
                 namedNode.Ancestors.Add(idNode);
             }
@@ -55,21 +54,21 @@ namespace NFun.Tic
             }
 
             foreach (var condId in conditions)
-                SetOrCreatePrimitive(condId, Primitive.Bool);
+                SetOrCreatePrimitive(condId, StatePrimitive.Bool);
         }
 
 
-        public void SetConst(int id, Primitive type) 
+        public void SetConst(int id, StatePrimitive type) 
             => SetOrCreatePrimitive(id, type);
 
-        public void SetIntConst(int id, Primitive desc)
-            => SetIntConst(id, desc, Primitive.Real, Primitive.Real);
-        public bool TrySetIntConst(int id, Primitive desc)
-            => TrySetIntConst(id, desc, Primitive.Real, Primitive.Real);
-        public bool TrySetIntConst(int id, Primitive desc, Primitive anc, Primitive prefered)
+        public void SetIntConst(int id, StatePrimitive desc)
+            => SetIntConst(id, desc, StatePrimitive.Real, StatePrimitive.Real);
+        public bool TrySetIntConst(int id, StatePrimitive desc)
+            => TrySetIntConst(id, desc, StatePrimitive.Real, StatePrimitive.Real);
+        public bool TrySetIntConst(int id, StatePrimitive desc, StatePrimitive anc, StatePrimitive prefered)
         {
             var node = GetOrCreateNode(id);
-            if (node.State is Constrains constrains)
+            if (node.State is ConstrainsState constrains)
             {
                 constrains.AddAncestor(anc);
                 constrains.AddDescedant(desc);
@@ -79,7 +78,7 @@ namespace NFun.Tic
 
             return false;
         }
-        public void SetIntConst(int id, Primitive desc, Primitive anc, Primitive prefered)
+        public void SetIntConst(int id, StatePrimitive desc, StatePrimitive anc, StatePrimitive prefered)
         {
             if (!TrySetIntConst(id, desc,anc, prefered))
                 throw new InvalidOperationException();
@@ -87,16 +86,16 @@ namespace NFun.Tic
 
         public bool HasNamedNode(string s) => _variables.ContainsKey(s);
 
-        public void SetVarType(string s, IState state)
+        public void SetVarType(string s, ITicNodeState state)
         {
             var node = GetNamedNode(s);
 
-            if (state is Primitive primitive)
+            if (state is StatePrimitive primitive)
             {
                 if (!node.TryBecomeConcrete(primitive))
                     throw new InvalidOperationException();
             }
-            else if (state is ICompositeType composite)
+            else if (state is ICompositeTypeState composite)
             {
                 RegistrateCompositeType(composite);
                 node.State = state;
@@ -105,20 +104,20 @@ namespace NFun.Tic
                 throw new InvalidOperationException();
         }
         
-        public void SetArrayConst(int id, Primitive elementType)
+        public void SetArrayConst(int id, StatePrimitive elementType)
         {
             var eNode = CreateVarType(elementType);
             var node = GetOrCreateNode(id);
-            if (node.State is Constrains c)
+            if (node.State is ConstrainsState c)
             {
-                var arrayOf = Array.Of(eNode);
+                var arrayOf = StateArray.Of(eNode);
                 if (c.Fits(arrayOf))
                 {
                     node.State = arrayOf;
                     return;
                 }
             }
-            else if (node.State is Array a)
+            else if (node.State is StateArray a)
             {
                 if(a.Element.Equals(elementType))
                     return;
@@ -132,7 +131,7 @@ namespace NFun.Tic
             var ret  = GetOrCreateNode(returnId);
             SetOrCreateLambda(lambdaId, args,ret);
         }
-        public void CreateLambda(int returnId, int lambdaId,IType returnType, params string[] varNames)
+        public void CreateLambda(int returnId, int lambdaId,ITypeState returnType, params string[] varNames)
         {
             var args   = GetNamedNodes(varNames);
             var exprId = GetOrCreateNode(returnId);
@@ -142,17 +141,17 @@ namespace NFun.Tic
             SetOrCreateLambda(lambdaId, args, returnTypeNode);
         }
 
-        public Fun SetFunDef(string name, int returnId, IType returnType = null, params string[] varNames)
+        public StateFun SetFunDef(string name, int returnId, ITypeState returnType = null, params string[] varNames)
         {
             var args   = GetNamedNodes(varNames);
             var exprId = GetOrCreateNode(returnId);
             var returnTypeNode = CreateVarType(returnType);
             //expr<=returnType<= ...
             exprId.Ancestors.Add(returnTypeNode);
-            var fun = Fun.Of(args, returnTypeNode);
+            var fun = StateFun.Of(args, returnTypeNode);
 
             var node = GetNamedNode(name);
-            if(!(node.State is Constrains c) || !c.NoConstrains)
+            if(!(node.State is ConstrainsState c) || !c.NoConstrains)
                 throw new InvalidOperationException("variable "+ name+ "already declared");
             node.State = fun;
             _outputNodes.Add(returnTypeNode);
@@ -161,7 +160,7 @@ namespace NFun.Tic
 
         }
 
-        public RefTo SetStrictArrayInit(int resultIds, params int[] elementIds)
+        public StateRefTo SetStrictArrayInit(int resultIds, params int[] elementIds)
         {
             var elementType = CreateVarType();
             var resultNode = GetOrCreateArrayNode(resultIds, elementType);
@@ -171,7 +170,7 @@ namespace NFun.Tic
                 elementType.BecomeReferenceFor(GetOrCreateNode(id));
                 elementType.IsMemberOfAnything = true;
             }
-            return new RefTo(elementType);
+            return new StateRefTo(elementType);
         }
         public void SetSoftArrayInit(int resultIds, IEnumerable<int> elementIds)
         {
@@ -204,30 +203,30 @@ namespace NFun.Tic
         /// <summary>
         /// Set function call, of already known functional type 
         /// </summary>
-        public void SetCall(Fun fun, params int[] argThenReturnIds)
+        public void SetCall(StateFun funState, params int[] argThenReturnIds)
         {
-            if (fun.ArgsCount != argThenReturnIds.Length - 1)
+            if (funState.ArgsCount != argThenReturnIds.Length - 1)
                 throw new ArgumentException("Sizes of type and id array have to be equal");
 
-            RegistrateCompositeType(fun);
+            RegistrateCompositeType(funState);
 
-            for (int i = 0; i < fun.ArgsCount; i++)
+            for (int i = 0; i < funState.ArgsCount; i++)
             {
-                var state = fun.ArgNodes[i].State;
-                if (state is Constrains)
-                    state = new RefTo(fun.ArgNodes[i]);
+                var state = funState.ArgNodes[i].State;
+                if (state is ConstrainsState)
+                    state = new StateRefTo(funState.ArgNodes[i]);
                 SetCallArgument(state, argThenReturnIds[i]);
             }
 
             var returnId = argThenReturnIds[argThenReturnIds.Length - 1];
             var returnNode = GetOrCreateNode(returnId);
-            SolvingFunctions.Merge(fun.RetNode,returnNode);
+            SolvingFunctions.Merge(funState.RetNode,returnNode);
         }
 
         /// <summary>
         /// Set function call, with function signature
         /// </summary>
-        public void SetCall(IState[] argThenReturnTypes, int[] argThenReturnIds)
+        public void SetCall(ITicNodeState[] argThenReturnTypes, int[] argThenReturnIds)
         {
             if(argThenReturnTypes.Length!=argThenReturnIds.Length)
                 throw new ArgumentException("Sizes of type and id array have to be equal");
@@ -243,19 +242,19 @@ namespace NFun.Tic
                                ?? throw TicErrors.CannotSetState(returnNode, returnType);
         }
 
-        private void SetCallArgument(IState type, int argId)
+        private void SetCallArgument(ITicNodeState type, int argId)
         {
             var node = GetOrCreateNode(argId);
 
             switch (type)
             {
-                case Primitive primitive:
+                case StatePrimitive primitive:
                 {
                     if (!node.TrySetAncestor(primitive))
                         throw TicErrors.CannotSetState(node, primitive);
                     break;
                 }
-                case ICompositeType composite:
+                case ICompositeTypeState composite:
                 {
                     RegistrateCompositeType(composite);
 
@@ -263,7 +262,7 @@ namespace NFun.Tic
                     node.Ancestors.Add(ancestor);
                     break;
                 }
-                case RefTo refTo:
+                case StateRefTo refTo:
                 {
                     node.Ancestors.Add(refTo.Node);
                     break;
@@ -279,7 +278,7 @@ namespace NFun.Tic
             var defNode = GetNamedNode(name);
             _outputNodes.Add(defNode);
 
-            if (exprNode.State is Primitive primitive && defNode.State is Constrains constrains)
+            if (exprNode.State is StatePrimitive primitive && defNode.State is ConstrainsState constrains)
                     constrains.Prefered = primitive;
 
             exprNode.Ancestors.Add(defNode);
@@ -287,7 +286,7 @@ namespace NFun.Tic
         #endregion
         
         //todo perfomance hotspot
-        public SolvingNode[] Toposort()
+        public TicNode[] Toposort()
         {
             int iteration = 0;
             while (true)
@@ -343,17 +342,17 @@ namespace NFun.Tic
             if(!TraceLog.IsEnabled)
                 return;
             
-            var alreadyPrinted = new HashSet<SolvingNode>();
+            var alreadyPrinted = new HashSet<TicNode>();
 
             var allNodes = _syntaxNodes.Union(_variables.Select(v => v.Value)).Union(_typeVariables);
 
-            void ReqPrintNode(SolvingNode node)
+            void ReqPrintNode(TicNode node)
             {
                 if(node==null)
                     return;
                 if(alreadyPrinted.Contains(node))
                     return;
-                if(node.State is Array arr)
+                if(node.State is StateArray arr)
                     ReqPrintNode(arr.ElementNode);
                 node.PrintToConsole();
                 alreadyPrinted.Add(node);
@@ -431,15 +430,15 @@ namespace NFun.Tic
 #endif
             return results;
         }
-        private void SetCall(SolvingNode functionNode, int[] argThenReturnIds)
+        private void SetCall(TicNode functionNode, int[] argThenReturnIds)
         {
             var id = argThenReturnIds[argThenReturnIds.Length - 1];
 
             var state = functionNode.State;
-            if (state is RefTo r)
+            if (state is StateRefTo r)
                 state = r.Node.State;
 
-            if (state is Fun fun)
+            if (state is StateFun fun)
             {
                 if (fun.ArgsCount != argThenReturnIds.Length - 1)
                     throw TicErrors.InvalidFunctionalVarableSignature(functionNode);
@@ -447,15 +446,15 @@ namespace NFun.Tic
                 SetCall(fun, argThenReturnIds);
 
             }
-            else if (state is Constrains constrains)
+            else if (state is ConstrainsState constrains)
             {
                 var idNode = GetOrCreateNode(id);
 
-                var genericArgs = new SolvingNode[argThenReturnIds.Length - 1];
+                var genericArgs = new TicNode[argThenReturnIds.Length - 1];
                 for (int i = 0; i < argThenReturnIds.Length - 1; i++)
                     genericArgs[i] = CreateVarType();
 
-                var newFunVar = Fun.Of(genericArgs, idNode);
+                var newFunVar = StateFun.Of(genericArgs, idNode);
                 if (!constrains.Fits(newFunVar))
                     throw new InvalidOperationException("naaa");
                 functionNode.State = newFunVar;
@@ -466,29 +465,29 @@ namespace NFun.Tic
                 throw new InvalidOperationException($"po po. functionNode.State is {functionNode.State}");
         }
 
-        private SolvingNode[] GetNamedNodes(string[] names)
+        private TicNode[] GetNamedNodes(string[] names)
         {
-            var ans = new SolvingNode[names.Length];
+            var ans = new TicNode[names.Length];
             for (int i = 0; i < names.Length; i++)
                 ans[i] = GetNamedNode(names[i]);
 
             return ans;
         }
-            private SolvingNode GetNamedNode(string name)
+            private TicNode GetNamedNode(string name)
         {
             if (_variables.TryGetValue(name, out var varnode))
             {
                 return varnode;
             }
 
-            var ans = new SolvingNode("T" + name, new Constrains(), SolvingNodeType.Named) { Registrated = true };
+            var ans = new TicNode("T" + name, new ConstrainsState(), TicNodeType.Named) { Registrated = true };
             _variables.Add(name, ans);
             return ans;
         }
 
-        private void SetOrCreateLambda(int lambdaId, SolvingNode[] args,SolvingNode ret)
+        private void SetOrCreateLambda(int lambdaId, TicNode[] args,TicNode ret)
         {
-            var fun = Fun.Of(args, ret);
+            var fun = StateFun.Of(args, ret);
 
             var alreadyExists = _syntaxNodes.GetOrEnlarge(lambdaId);
             if (alreadyExists != null)
@@ -498,66 +497,66 @@ namespace NFun.Tic
             }
             else
             {
-                var res = new SolvingNode(lambdaId.ToString(), fun, SolvingNodeType.SyntaxNode) {Registrated = true};
+                var res = new TicNode(lambdaId.ToString(), fun, TicNodeType.SyntaxNode) {Registrated = true};
                 _syntaxNodes[lambdaId] = res;
             }
         }
 
-        private void SetOrCreatePrimitive(int id, Primitive type)
+        private void SetOrCreatePrimitive(int id, StatePrimitive type)
         {
             var node = GetOrCreateNode(id);
             if (!node.TryBecomeConcrete(type))
                 throw TicErrors.CannotSetState(node, type);
         }
 
-        private SolvingNode GetOrCreateArrayNode(int id, SolvingNode elementType)
+        private TicNode GetOrCreateArrayNode(int id, TicNode elementType)
         {
             var alreadyExists = _syntaxNodes.GetOrEnlarge(id);
             if (alreadyExists != null)
             {
-                alreadyExists.State = SolvingFunctions.GetMergedStateOrNull(new Array(elementType), alreadyExists.State)
-                                      ?? throw TicErrors.CannotSetState(elementType, new Array(elementType));
+                alreadyExists.State = SolvingFunctions.GetMergedStateOrNull(new StateArray(elementType), alreadyExists.State)
+                                      ?? throw TicErrors.CannotSetState(elementType, new StateArray(elementType));
                 return alreadyExists;
             }
 
-            var res = new SolvingNode(id.ToString(), new Array(elementType), SolvingNodeType.SyntaxNode) { Registrated = true};
+            var res = new TicNode(id.ToString(), new StateArray(elementType), TicNodeType.SyntaxNode) { Registrated = true};
             _syntaxNodes[id] = res;
             return res;
         }
-        private SolvingNode GetOrCreateNode(int id)
+        private TicNode GetOrCreateNode(int id)
         {
             var alreadyExists = _syntaxNodes.GetOrEnlarge(id);
             if (alreadyExists != null)
                 return alreadyExists;
 
-            var res = new SolvingNode(id.ToString(), new Constrains(), SolvingNodeType.SyntaxNode) {Registrated = true};
+            var res = new TicNode(id.ToString(), new ConstrainsState(), TicNodeType.SyntaxNode) {Registrated = true};
             _syntaxNodes[id] = res;
             return res;
         }
         
-        private void RegistrateCompositeType(ICompositeType composite)
+        private void RegistrateCompositeType(ICompositeTypeState composite)
         {
             foreach (var member in composite.Members)
             {
                 if (!member.Registrated)
                 {
                     member.Registrated = true;
-                    if (member.State is ICompositeType c)
+                    if (member.State is ICompositeTypeState c)
                         RegistrateCompositeType(c);
                     _typeVariables.Add(member);
 
                 }
             }
         }
-        private SolvingNode CreateVarType(IState state = null)
+        private TicNode CreateVarType(ITicNodeState state = null)
         {
-            if (state is ICompositeType composite)
+            if (state is ICompositeTypeState composite)
                 RegistrateCompositeType(composite);
 
-            var varNode = new SolvingNode(
+            var varNode = new TicNode(
                     name: "V" + _varNodeId,
-                    state: state ?? new Constrains(),
-                    type: SolvingNodeType.TypeVariable)
+                    state: state ?? new ConstrainsState(),
+                    type: TicNodeType.TypeVariable)
                 {Registrated = true};
             _varNodeId++;
             _typeVariables.Add(varNode);

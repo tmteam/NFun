@@ -14,15 +14,15 @@ namespace NFun.Tic.Tests
             var graph = new GraphBuilder();
 
             graph.SetVar("a", 0);
-            graph.SetIntConst(1, Primitive.U8);
-            graph.SetIntConst(2, Primitive.U8);
+            graph.SetIntConst(1, StatePrimitive.U8);
+            graph.SetIntConst(2, StatePrimitive.U8);
             graph.SetIfElse(new []{0},new []{1,2},3);
             graph.SetDef("y",3);
             var result = graph.Solve();
 
-            var generic = result.AssertAndGetSingleGeneric(Primitive.U8, Primitive.Real);
+            var generic = result.AssertAndGetSingleGeneric(StatePrimitive.U8, StatePrimitive.Real);
             result.AssertAreGenerics(generic, "y");
-            result.AssertNamed(Primitive.Bool,"a");
+            result.AssertNamed(StatePrimitive.Bool,"a");
         }
 
         [Test]
@@ -33,15 +33,15 @@ namespace NFun.Tic.Tests
 
             var graph = new GraphBuilder();
 
-            graph.SetConst(0, Primitive.Bool);
-            graph.SetIntConst(1, Primitive.U8);
+            graph.SetConst(0, StatePrimitive.Bool);
+            graph.SetIntConst(1, StatePrimitive.U8);
             graph.SetVar("x", 2);
             graph.SetIfElse(new[] { 0 }, new[] { 1, 2 }, 3);
             graph.SetDef("y", 3);
 
             var result = graph.Solve();
 
-            var generic = result.AssertAndGetSingleGeneric(Primitive.U8, Primitive.Real, false);
+            var generic = result.AssertAndGetSingleGeneric(StatePrimitive.U8, StatePrimitive.Real, false);
             result.AssertAreGenerics(generic, "y", "x");
         }
 
@@ -56,7 +56,7 @@ namespace NFun.Tic.Tests
             graph.SetVar("a", 0);
             graph.SetVar("x",1);
             graph.SetVar("z",2);
-            graph.SetIntConst(3, Primitive.U8);
+            graph.SetIntConst(3, StatePrimitive.U8);
             graph.SetArith(2,3,4);
 
             graph.SetIfElse(new[] { 0 }, new[] { 1, 4 }, 5);
@@ -66,7 +66,7 @@ namespace NFun.Tic.Tests
 
             var generic = result.AssertAndGetSingleArithGeneric();
             result.AssertAreGenerics(generic, "y","x","z");
-            result.AssertNamed(Primitive.Bool, "a");
+            result.AssertNamed(StatePrimitive.Bool, "a");
         }
 
         [Test(Description = "y = if (a) x else z ")]
@@ -77,7 +77,7 @@ namespace NFun.Tic.Tests
 
             var graph = new GraphBuilder();
 
-            graph.SetConst(0, Primitive.Bool);
+            graph.SetConst(0, StatePrimitive.Bool);
             graph.SetVar("x",1);
             graph.SetVar("z",2);
             graph.SetIfElse(new[] { 0 }, new[] { 1, 2 }, 3);
@@ -97,7 +97,7 @@ namespace NFun.Tic.Tests
 
             var graph = new GraphBuilder();
 
-            graph.SetConst(0, Primitive.Bool);
+            graph.SetConst(0, StatePrimitive.Bool);
             graph.SetVar("x", 1);
             graph.SetVar("x", 2);
             graph.SetIfElse(new[] { 0 }, new[] { 1, 2 }, 3);
@@ -126,7 +126,7 @@ namespace NFun.Tic.Tests
             var result = graph.Solve();
 
             result.AssertNoGenerics();
-            result.AssertNamed(Primitive.Bool,"x","y");
+            result.AssertNamed(StatePrimitive.Bool,"x","y");
         }
 
         [Test]
@@ -137,8 +137,8 @@ namespace NFun.Tic.Tests
 
             var graph = new GraphBuilder();
 
-            graph.SetConst(0, Primitive.Bool);
-            graph.SetIntConst(1, Primitive.U8);
+            graph.SetConst(0, StatePrimitive.Bool);
+            graph.SetIntConst(1, StatePrimitive.U8);
             graph.SetVar("x", 2);
             graph.SetIfElse(new []{0}, new []{1,2}, 3);
             graph.SetDef("y1", 3);
@@ -147,7 +147,7 @@ namespace NFun.Tic.Tests
             graph.SetDef("y2", 4);
 
             graph.SetVar("y1", 5);
-            graph.SetIntConst(6, Primitive.U8);
+            graph.SetIntConst(6, StatePrimitive.U8);
             graph.SetArith(5,6,7);
             graph.SetDef("y3", 7);
 

@@ -2,7 +2,6 @@
 using NFun.Tic.SolvingStates;
 using NFun.TypeInferenceCalculator.Errors;
 using NUnit.Framework;
-using Array = NFun.Tic.SolvingStates.Array;
 
 namespace NFun.Tic.Tests.Funs
 {
@@ -14,18 +13,18 @@ namespace NFun.Tic.Tests.Funs
             //     6  1 0    5  243
             //y = Any([ 1i ], x->x==0)
             var graph = new GraphBuilder();
-            graph.SetConst(0, Primitive.I32);
+            graph.SetConst(0, StatePrimitive.I32);
             graph.SetStrictArrayInit(1, 0);
             graph.SetVar("lx",2);
-            graph.SetIntConst(3, Primitive.U8);
+            graph.SetIntConst(3, StatePrimitive.U8);
             graph.SetEquality(2,3,4);
             graph.CreateLambda(4,5,"lx");
             graph.SetIsAny(1,5,6);
             graph.SetDef("y", 6);
             var result = graph.Solve();
             result.AssertNoGenerics();
-            result.AssertNamed(Primitive.I32, "lx");
-            result.AssertNode(Fun.Of(argType: Primitive.I32, Primitive.Bool), 5);
+            result.AssertNamed(StatePrimitive.I32, "lx");
+            result.AssertNode(StateFun.Of(argType: StatePrimitive.I32, StatePrimitive.Bool), 5);
         }
         [Test]
         public void Anything_WithStrictArrayAndLambdaArg()
@@ -33,19 +32,19 @@ namespace NFun.Tic.Tests.Funs
             //     6  1 0         5  2 4 3
             //y = Any([ 1i ], x:int->x== 0)
             var graph = new GraphBuilder();
-            graph.SetConst(0, Primitive.I32);
+            graph.SetConst(0, StatePrimitive.I32);
             graph.SetStrictArrayInit(1, 0);
-            graph.SetVarType("lx", Primitive.I32);
+            graph.SetVarType("lx", StatePrimitive.I32);
             graph.SetVar("lx", 2);
-            graph.SetIntConst(3, Primitive.U8);
+            graph.SetIntConst(3, StatePrimitive.U8);
             graph.SetEquality(2, 3, 4);
             graph.CreateLambda(4, 5, "lx");
             graph.SetIsAny(1, 5, 6);
             graph.SetDef("y", 6);
             var result = graph.Solve();
             result.AssertNoGenerics();
-            result.AssertNamed(Primitive.I32, "lx");
-            result.AssertNode(Fun.Of(Primitive.I32, Primitive.Bool), 5);
+            result.AssertNamed(StatePrimitive.I32, "lx");
+            result.AssertNode(StateFun.Of(StatePrimitive.I32, StatePrimitive.Bool), 5);
         }
 
         [Test]
@@ -54,11 +53,11 @@ namespace NFun.Tic.Tests.Funs
             //     6  1 0          5  243
             //y = Any([ 1.0 ], x:int->x==0)
             var graph = new GraphBuilder();
-            graph.SetConst(0, Primitive.Real);
+            graph.SetConst(0, StatePrimitive.Real);
             graph.SetStrictArrayInit(1, 0);
-            graph.SetVarType("lx", Primitive.I32);
+            graph.SetVarType("lx", StatePrimitive.I32);
             graph.SetVar("lx", 2);
-            graph.SetIntConst(3, Primitive.U8);
+            graph.SetIntConst(3, StatePrimitive.U8);
             graph.SetEquality(2, 3, 4);
             TestHelper.AssertThrowsTicError(() =>
             {
@@ -77,19 +76,19 @@ namespace NFun.Tic.Tests.Funs
             //     6  1 0     5       2 4 3
             //y = Any([ 1i ], x:real->x ==0)
             var graph = new GraphBuilder();
-            graph.SetConst(0, Primitive.I32);
+            graph.SetConst(0, StatePrimitive.I32);
             graph.SetStrictArrayInit(1, 0);
-            graph.SetVarType("lx", Primitive.Real);
+            graph.SetVarType("lx", StatePrimitive.Real);
             graph.SetVar("lx", 2);
-            graph.SetIntConst(3, Primitive.U8);
+            graph.SetIntConst(3, StatePrimitive.U8);
             graph.SetEquality(2, 3, 4);
             graph.CreateLambda(4, 5, "lx");
             graph.SetIsAny(1, 5, 6);
             graph.SetDef("y", 6);
             var result = graph.Solve();
             result.AssertNoGenerics();
-            result.AssertNamed(Primitive.Real, "lx");
-            result.AssertNode(Fun.Of(Primitive.Real, Primitive.Bool), 5);
+            result.AssertNamed(StatePrimitive.Real, "lx");
+            result.AssertNode(StateFun.Of(StatePrimitive.Real, StatePrimitive.Bool), 5);
         }
         [Test]
         public void Anything_WithBoolArray()
@@ -104,9 +103,9 @@ namespace NFun.Tic.Tests.Funs
             graph.SetDef("y", 3);
             var result = graph.Solve();
             result.AssertNoGenerics();
-            result.AssertNamed(Array.Of(Primitive.Bool), "a");
-            result.AssertNamed(Primitive.Bool, "2lx");
-            result.AssertNode(Fun.Of(Primitive.Bool,Primitive.Bool), 2);
+            result.AssertNamed(StateArray.Of(StatePrimitive.Bool), "a");
+            result.AssertNamed(StatePrimitive.Bool, "2lx");
+            result.AssertNode(StateFun.Of(StatePrimitive.Bool,StatePrimitive.Bool), 2);
 
         }
 
@@ -117,13 +116,13 @@ namespace NFun.Tic.Tests.Funs
             //y = Any(a, isNan)
             var graph = new GraphBuilder();
             graph.SetVar("a", 0);
-            graph.SetVarType("isNan", Fun.Of(Primitive.Real,Primitive.Bool));
+            graph.SetVarType("isNan", StateFun.Of(StatePrimitive.Real,StatePrimitive.Bool));
             graph.SetVar("isNan", 1);
             graph.SetIsAny(0, 1, 2);
             graph.SetDef("y", 2);
             var result = graph.Solve();
             result.AssertNoGenerics();
-            result.AssertNamed(Array.Of(Primitive.Real), "a");
+            result.AssertNamed(StateArray.Of(StatePrimitive.Real), "a");
         }
 
         [Test]
@@ -132,9 +131,9 @@ namespace NFun.Tic.Tests.Funs
             //              2  0   1
             //a:int[]; y = Any(a, isNan)
             var graph = new GraphBuilder();
-            graph.SetVarType("a", Array.Of(Primitive.I32));
+            graph.SetVarType("a", StateArray.Of(StatePrimitive.I32));
             graph.SetVar("a", 0);
-            graph.SetVarType("isNan", Fun.Of(Primitive.Real,Primitive.Bool));
+            graph.SetVarType("isNan", StateFun.Of(StatePrimitive.Real,StatePrimitive.Bool));
             graph.SetVar("isNan", 1);
             graph.SetIsAny(0, 1, 2);
             graph.SetDef("y", 2);

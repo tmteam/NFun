@@ -6,10 +6,10 @@ namespace NFun.Tic.Errors
     public class ImcompatibleAncestorNamedNodeException : TicException
     {
         public string NodeName { get; }
-        public IState Ancestor { get; }
-        public IState Descendant { get; }
+        public ITicNodeState Ancestor { get; }
+        public ITicNodeState Descendant { get; }
 
-        public ImcompatibleAncestorNamedNodeException(string nodeName, IState ancestor, IState descendant) : base($"Incompatible ancestor {ancestor}=>{descendant} at node {nodeName}")
+        public ImcompatibleAncestorNamedNodeException(string nodeName, ITicNodeState ancestor, ITicNodeState descendant) : base($"Incompatible ancestor {ancestor}=>{descendant} at node {nodeName}")
         {
             NodeName = nodeName;
             Ancestor = ancestor;
