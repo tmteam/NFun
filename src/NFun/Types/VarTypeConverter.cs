@@ -10,6 +10,60 @@ namespace NFun.Types
 {
     public static class VarTypeConverter
     {
+        private static readonly bool[,] PrimitiveConvertMap;
+        static VarTypeConverter()
+        {
+            PrimitiveConvertMap = new bool [15, 15];
+            //every type can be converted to itself
+            for (int i = 1; i < 15; i++)
+                PrimitiveConvertMap[i, i] = true;
+            //except arrays and funs
+            PrimitiveConvertMap[(int)BaseVarType.ArrayOf,(int)BaseVarType.ArrayOf] = false;
+            PrimitiveConvertMap[(int)BaseVarType.Fun,(int)BaseVarType.Fun] = false;
+
+            //every type can be converted to any
+            for (int i = 1; i < 15; i++)
+                PrimitiveConvertMap[i, (int)BaseVarType.Any] = true;
+            for (int i = (int) BaseVarType.UInt8; i < (int) BaseVarType.Real; i++)
+            {
+                //every number can be converted to real
+                PrimitiveConvertMap[i, (int)BaseVarType.Real] = true;
+                //every number can be converted from u8
+                PrimitiveConvertMap[(int)BaseVarType.UInt8,i] = true;
+            }
+            
+            PrimitiveConvertMap[(int)BaseVarType.UInt16,(int)BaseVarType.UInt32] = true;
+            PrimitiveConvertMap[(int)BaseVarType.UInt16,(int)BaseVarType.UInt64] = true;
+            PrimitiveConvertMap[(int)BaseVarType.UInt16,(int)BaseVarType.Int32] = true;
+            PrimitiveConvertMap[(int)BaseVarType.UInt16,(int)BaseVarType.Int64] = true;
+
+            PrimitiveConvertMap[(int)BaseVarType.UInt32,(int)BaseVarType.UInt64] = true;
+            PrimitiveConvertMap[(int)BaseVarType.UInt32,(int)BaseVarType.Int64] = true;
+
+            PrimitiveConvertMap[(int)BaseVarType.Int16,(int)BaseVarType.Int32] = true;
+            PrimitiveConvertMap[(int)BaseVarType.Int16,(int)BaseVarType.Int64] = true;
+
+            PrimitiveConvertMap[(int)BaseVarType.Int32,(int)BaseVarType.Int64] = true;
+
+            /*
+             * Empty = 0,
+        Char =  1,
+        Bool  = 2,
+        UInt8 = 3,
+        UInt16 = 4,
+        UInt32 = 5,
+        UInt64 = 6,
+        Int16  =7,
+        Int32 = 8,
+        Int64 = 9,
+        Real = 10,
+        ArrayOf = 11,
+        Fun = 12,
+        Generic = 13,
+        Any  = 14,
+             * 
+             */
+        }
         public static readonly Func<object, object> ToInt8   = (o => Convert.ToSByte(o));
         public static readonly Func<object, object> ToInt16  = (o => Convert.ToInt16(o));
         public static readonly Func<object, object> ToInt32  = (o => Convert.ToInt32(o));
@@ -88,79 +142,91 @@ namespace NFun.Types
 
         public static bool IsNumeric(this BaseVarType varType) 
             => varType >= BaseVarType.UInt8 && varType <= BaseVarType.Real;
-
+            
+        
         public static bool CanBeConverted(VarType from, VarType to)
         {
-            var fromBase = from.BaseType;
-            if (fromBase == BaseVarType.Empty)
-                return false;
             if (to.IsText)
                 return true;
-            switch (to.BaseType)
+            if (to.BaseType == BaseVarType.ArrayOf && from.BaseType== BaseVarType.ArrayOf)
             {
-                case BaseVarType.Any:
-                case BaseVarType.Char:
-                    return true;
-                case BaseVarType.Fun:
-                case BaseVarType.ArrayOf when fromBase != BaseVarType.ArrayOf:
-                    return false;
-                case BaseVarType.ArrayOf:
-                    return CanBeConverted(
-                        @from: @from.ArrayTypeSpecification.VarType, 
-                        to: to.ArrayTypeSpecification.VarType);
+                return CanBeConverted(
+                    @from: @from.ArrayTypeSpecification.VarType,
+                    to: to.ArrayTypeSpecification.VarType);
             }
+            //todo fun-convertion
+            return PrimitiveConvertMap[(int)from.BaseType,(int)to.BaseType];
             
-            if (fromBase == to.BaseType)
+            /*var fromBase = from.BaseType;
+        if (fromBase == BaseVarType.Empty)
+            return false;
+        if (to.IsText)
+            return true;
+        switch (to.BaseType)
+        {
+            case BaseVarType.Any:
+            case BaseVarType.Char:
                 return true;
+            case BaseVarType.Fun:
+            case BaseVarType.ArrayOf when fromBase != BaseVarType.ArrayOf:
+                return false;
+            case BaseVarType.ArrayOf:
+                return CanBeConverted(
+                    @from: @from.ArrayTypeSpecification.VarType, 
+                    to: to.ArrayTypeSpecification.VarType);
+        }
+        
+        if (fromBase == to.BaseType)
+            return true;
 
-            switch (to.BaseType)
-            {
-                case BaseVarType.UInt16:
-                    return fromBase == BaseVarType.UInt8;
-                case BaseVarType.UInt32:
-                    return fromBase == BaseVarType.UInt8 || fromBase == BaseVarType.UInt16;
-                case BaseVarType.UInt64:
-                    return fromBase == BaseVarType.UInt8
-                           || fromBase == BaseVarType.UInt16
-                           || fromBase == BaseVarType.UInt32;
-                case BaseVarType.Int16:
-                    return  fromBase == BaseVarType.UInt8;
-                case BaseVarType.Int32:
-                    return 
-                           fromBase == BaseVarType.UInt8
-                           || fromBase == BaseVarType.Int16
-                           || fromBase == BaseVarType.UInt16;
-                case BaseVarType.Int64:
-                    return 
-                              fromBase == BaseVarType.UInt8
-                           || fromBase == BaseVarType.Int16
-                           || fromBase == BaseVarType.UInt16
-                           || fromBase == BaseVarType.Int32
-                           || fromBase == BaseVarType.UInt32;
+        switch (to.BaseType)
+        {
+            case BaseVarType.UInt16:
+                return fromBase == BaseVarType.UInt8;
+            case BaseVarType.UInt32:
+                return fromBase == BaseVarType.UInt8 || fromBase == BaseVarType.UInt16;
+            case BaseVarType.UInt64:
+                return fromBase == BaseVarType.UInt8
+                       || fromBase == BaseVarType.UInt16
+                       || fromBase == BaseVarType.UInt32;
+            case BaseVarType.Int16:
+                return  fromBase == BaseVarType.UInt8;
+            case BaseVarType.Int32:
+                return 
+                       fromBase == BaseVarType.UInt8
+                       || fromBase == BaseVarType.Int16
+                       || fromBase == BaseVarType.UInt16;
+            case BaseVarType.Int64:
+                return 
+                          fromBase == BaseVarType.UInt8
+                       || fromBase == BaseVarType.Int16
+                       || fromBase == BaseVarType.UInt16
+                       || fromBase == BaseVarType.Int32
+                       || fromBase == BaseVarType.UInt32;
 
-                case BaseVarType.Real:
-                    return fromBase.IsNumeric();
-                case BaseVarType.ArrayOf:
-                    if (fromBase != BaseVarType.ArrayOf)
-                        return false;
-                    return CanBeConverted(
-                        @from: from.ArrayTypeSpecification.VarType, 
-                        to: to.ArrayTypeSpecification.VarType);
-                case BaseVarType.Empty:
+            case BaseVarType.Real:
+                return fromBase.IsNumeric();
+            case BaseVarType.ArrayOf:
+                if (fromBase != BaseVarType.ArrayOf)
                     return false;
-                case BaseVarType.Bool:
-                    return false;
-                case BaseVarType.UInt8:
-                    return false;
-                case BaseVarType.Any:
-                    return true;
-                case BaseVarType.Fun:
-                    return false;    
-                case BaseVarType.Generic:
-                    return false;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+                return CanBeConverted(
+                    @from: from.ArrayTypeSpecification.VarType, 
+                    to: to.ArrayTypeSpecification.VarType);
+            case BaseVarType.Empty:
+                return false;
+            case BaseVarType.Bool:
+                return false;
+            case BaseVarType.UInt8:
+                return false;
+            case BaseVarType.Any:
+                return true;
+            case BaseVarType.Fun:
+                return false;    
+            case BaseVarType.Generic:
+                return false;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }*/
         }
     }
 }
