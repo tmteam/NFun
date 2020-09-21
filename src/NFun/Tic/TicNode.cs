@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using NFun.Tic.SolvingStates;
 using NFun.TypeInferenceCalculator;
@@ -18,13 +19,26 @@ namespace NFun.Tic
         internal bool Registrated = false;
         private ITicNodeState _state;
         public int GraphId { get; set; } = -1;
-        public static TicNode CreateTypeNode(ITypeState type) 
+        public static TicNode CreateTypeVariableNode(ITypeState type) 
             => new TicNode(type.ToString(), type, TicNodeType.TypeVariable);
 
         private static int _interlockedId = 0;
         private readonly int Uid = 0;
 
-        public TicNode(string name, ITicNodeState state, TicNodeType type)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static TicNode CreateSyntaxNode(int id, ITicNodeState state, bool registrated = false)
+            => new TicNode(id, state, TicNodeType.SyntaxNode) {Registrated = registrated};
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static  TicNode CreateNamedNode(string name, ITicNodeState state) 
+            => new TicNode(name, state, TicNodeType.Named) { Registrated = true };
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static TicNode CreateTypeVariableNode(string name, ITicNodeState state, bool registrated = false)
+            => new TicNode(name, state, TicNodeType.TypeVariable) {Registrated = registrated};
+        
+        private TicNode(object name, ITicNodeState state, TicNodeType type)
         {
             Uid =  Interlocked.Increment(ref _interlockedId);
             
@@ -56,11 +70,11 @@ namespace NFun.Tic
             }
         }
 
-        public string Name { get; }
+        public object Name { get; }
         public override string ToString()
         {
             if (Name == _state.ToString())
-                return Name;
+                return Name.ToString();
             else 
                 return $"{Name}:{_state}";
         }

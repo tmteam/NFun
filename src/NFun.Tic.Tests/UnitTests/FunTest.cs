@@ -89,8 +89,8 @@ namespace NFun.Tic.Tests.UnitTests
         [Test]
         public void GetLastCommonAncestorOrNull_NotConcreteTypes_ReturnsNull()
         {
-            var funA = StateFun.Of(CreateConstrainsNode(), TicNode.CreateTypeNode(StatePrimitive.I32));
-            var funB = StateFun.Of(CreateConstrainsNode(), TicNode.CreateTypeNode(StatePrimitive.I32));
+            var funA = StateFun.Of(CreateConstrainsNode(), TicNode.CreateTypeVariableNode(StatePrimitive.I32));
+            var funB = StateFun.Of(CreateConstrainsNode(), TicNode.CreateTypeVariableNode(StatePrimitive.I32));
 
             Assert.IsNull(funA.GetLastCommonAncestorOrNull(funB));
             Assert.IsNull(funB.GetLastCommonAncestorOrNull(funA));
@@ -99,7 +99,7 @@ namespace NFun.Tic.Tests.UnitTests
         [Test]
         public void GetLastCommonAncestorOrNull_ConcreteAndNotConcreteType_ReturnsNull()
         {
-            var funA     = StateFun.Of(CreateConstrainsNode(), TicNode.CreateTypeNode(StatePrimitive.I32));
+            var funA     = StateFun.Of(CreateConstrainsNode(), TicNode.CreateTypeVariableNode(StatePrimitive.I32));
             var funB     = StateFun.Of(StatePrimitive.U16, StatePrimitive.U64);
 
             Assert.IsNull(funA.GetLastCommonAncestorOrNull(funB));
@@ -107,6 +107,6 @@ namespace NFun.Tic.Tests.UnitTests
         }
 
         private TicNode CreateConstrainsNode()
-            => new TicNode("", new ConstrainsState(), TicNodeType.TypeVariable);
+            => TicNode.CreateTypeVariableNode("", new ConstrainsState());
     }
 }

@@ -12,7 +12,7 @@ namespace NFun.Tic.SolvingStates
             TicNode retNode = null;
 
             if (returnType is ITypeState rt)
-                retNode = TicNode.CreateTypeNode(rt);
+                retNode = TicNode.CreateTypeVariableNode(rt);
             else if (returnType is StateRefTo retRef)
                 retNode = retRef.Node;
             else
@@ -21,7 +21,7 @@ namespace NFun.Tic.SolvingStates
             for (int i = 0; i < argTypes.Length; i++)
             {
                 if (argTypes[i] is ITypeState at)
-                    argNodes[i] = TicNode.CreateTypeNode(at);
+                    argNodes[i] = TicNode.CreateTypeVariableNode(at);
                 else if (argTypes[i] is StateRefTo aRef)
                     argNodes[i] = aRef.Node;
                 else
@@ -37,10 +37,10 @@ namespace NFun.Tic.SolvingStates
         public static StateFun Of(ITypeState[] argTypes,ITypeState retType)
         {
             var argNodes = new TicNode[argTypes.Length];
-            for (int i = 0; i < argTypes.Length; i++) argNodes[i] = TicNode.CreateTypeNode(argTypes[i]);
+            for (int i = 0; i < argTypes.Length; i++) argNodes[i] = TicNode.CreateTypeVariableNode(argTypes[i]);
             return new StateFun(
                 argNodes: argNodes,
-                retNode: TicNode.CreateTypeNode(retType));
+                retNode: TicNode.CreateTypeVariableNode(retType));
         }
         public static StateFun Of(TicNode[] argNodes,TicNode returnNode)
             => new StateFun(argNodes,returnNode);

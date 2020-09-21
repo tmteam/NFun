@@ -19,11 +19,9 @@ namespace NFun.Tic
         }
 
         public TicNode GetVariableNode(string variableName) =>
-            _namedNodes.First(n => n.Name == "T" + variableName);
-        public ITicNodeState GetVariable(string variableName) =>
-            _namedNodes.First(n => n.Name == "T" + variableName).State;
+            _namedNodes.First(n => n.Name.Equals(variableName));
         public TicNode GetSyntaxNodeOrNull(int syntaxNode) =>
-            _syntaxNodes.FirstOrDefault(n => n?.Name == syntaxNode.ToString());
+            _syntaxNodes.FirstOrDefault(n => n.Name.Equals(syntaxNode));
 
         /// <summary>
         /// Gap for tests
@@ -94,12 +92,7 @@ namespace NFun.Tic
         public Dictionary<string, ITicNodeState> GetAllNamedNodeStates()
         {
             return _namedNodes.ToDictionary(
-                n =>
-                {
-                    if (n.Name.StartsWith("T"))
-                        return n.Name.Substring(1);
-                    return n.Name;
-                },
+                n => n.Name.ToString(),
                 n => n.State
             );
         }

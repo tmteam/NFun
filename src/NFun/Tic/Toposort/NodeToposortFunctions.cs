@@ -238,7 +238,7 @@ namespace NFun.Tic.Toposort
             Edge[][] ans =new Edge[graph.Length][];
             for (int i = 0; i < graph.Length; i++)
             {
-                ans[i] = graph[i].ToArray();
+                ans[i] = graph[i]?.ToArray()??new Edge[0];
             }
             return ans;
         }

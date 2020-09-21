@@ -34,7 +34,7 @@ namespace NFun.Tic.Tests.UnitTests
 
 
         private TicNode CreateConstrainsNode()
-            => new TicNode("", new ConstrainsState(), TicNodeType.TypeVariable);
+            =>  TicNode.CreateTypeVariableNode("", new ConstrainsState());
 
     }
 }

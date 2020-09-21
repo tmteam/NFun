@@ -415,19 +415,16 @@ namespace NFun.Tic
         /// <summary>
         /// Transform constrains state to array state
         /// </summary>
-        private static StateArray TransformToArrayOrNull(string descNodeName, ConstrainsState descendant)
+        private static StateArray TransformToArrayOrNull(object descNodeName, ConstrainsState descendant)
         {
             if (descendant.NoConstrains)
             {
                 var constrains = new ConstrainsState();
                 string eName;
 
-                if (descNodeName.StartsWith("T") && descNodeName.Length > 1)
-                    eName = "e" + descNodeName.Substring(1).ToLower() + "'";
-                else
-                    eName = "e" + descNodeName.ToLower() + "'";
+                eName = "e" + descNodeName.ToString().ToLower() + "'";
 
-                var node = new TicNode(eName, constrains, TicNodeType.TypeVariable);
+                var node = TicNode.CreateTypeVariableNode(eName, constrains);
                 return new StateArray(node);
             }
             else if (descendant.HasDescendant && descendant.Descedant is StateArray arrayEDesc)
@@ -450,19 +447,19 @@ namespace NFun.Tic
         /// <summary>
         /// Transform constrains to fun state
         /// </summary>
-        private static StateFun TransformToFunOrNull(string descNodeName, ConstrainsState descendant, StateFun ancestor)
+        private static StateFun TransformToFunOrNull(object descNodeName, ConstrainsState descendant, StateFun ancestor)
         {
             if (descendant.NoConstrains)
             {
                 var argNodes = new TicNode[ancestor.ArgsCount];
                 for (int i = 0; i < ancestor.ArgsCount; i++)
                 {
-                    var argNode = new TicNode("a'"+ descNodeName +"'"+i, new ConstrainsState(), TicNodeType.TypeVariable);
+                    var argNode = TicNode.CreateTypeVariableNode("a'"+ descNodeName +"'"+i, new ConstrainsState());
                     argNode.Ancestors.Add(ancestor.ArgNodes[i]);
                     argNodes[i] = argNode;
                 }
 
-                var retNode = new TicNode("r'"+ descNodeName, new ConstrainsState(), TicNodeType.TypeVariable);
+                var retNode = TicNode.CreateTypeVariableNode("r'"+ descNodeName, new ConstrainsState());
                 retNode.Ancestors.Add(ancestor.RetNode);
 
                 return StateFun.Of(argNodes, retNode);

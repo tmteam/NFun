@@ -473,14 +473,14 @@ namespace NFun.Tic
 
             return ans;
         }
-            private TicNode GetNamedNode(string name)
+        private TicNode GetNamedNode(string name)
         {
             if (_variables.TryGetValue(name, out var varnode))
             {
                 return varnode;
             }
 
-            var ans = new TicNode("T" + name, new ConstrainsState(), TicNodeType.Named) { Registrated = true };
+            var ans = TicNode.CreateNamedNode(name, new ConstrainsState());
             _variables.Add(name, ans);
             return ans;
         }
@@ -497,7 +497,7 @@ namespace NFun.Tic
             }
             else
             {
-                var res = new TicNode(lambdaId.ToString(), fun, TicNodeType.SyntaxNode) {Registrated = true};
+                var res = TicNode.CreateSyntaxNode(lambdaId, fun, true);
                 _syntaxNodes[lambdaId] = res;
             }
         }
@@ -519,7 +519,7 @@ namespace NFun.Tic
                 return alreadyExists;
             }
 
-            var res = new TicNode(id.ToString(), new StateArray(elementType), TicNodeType.SyntaxNode) { Registrated = true};
+            var res = TicNode.CreateSyntaxNode(id, new StateArray(elementType),true);
             _syntaxNodes[id] = res;
             return res;
         }
@@ -529,7 +529,7 @@ namespace NFun.Tic
             if (alreadyExists != null)
                 return alreadyExists;
 
-            var res = new TicNode(id.ToString(), new ConstrainsState(), TicNodeType.SyntaxNode) {Registrated = true};
+            var res = TicNode.CreateSyntaxNode(id, new ConstrainsState(),true);
             _syntaxNodes[id] = res;
             return res;
         }
@@ -553,11 +553,10 @@ namespace NFun.Tic
             if (state is ICompositeTypeState composite)
                 RegistrateCompositeType(composite);
 
-            var varNode = new TicNode(
+            var varNode =  TicNode.CreateTypeVariableNode(
                     name: "V" + _varNodeId,
                     state: state ?? new ConstrainsState(),
-                    type: TicNodeType.TypeVariable)
-                {Registrated = true};
+                    true);
             _varNodeId++;
             _typeVariables.Add(varNode);
             return varNode;

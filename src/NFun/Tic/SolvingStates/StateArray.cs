@@ -23,7 +23,7 @@ namespace NFun.Tic.SolvingStates
             => new StateArray(node);
 
         public static StateArray Of(ITypeState type) 
-            => new StateArray(TicNode.CreateTypeNode(type));
+            => new StateArray(TicNode.CreateTypeVariableNode(type));
 
         public TicNode ElementNode { get; }
         public bool IsSolved

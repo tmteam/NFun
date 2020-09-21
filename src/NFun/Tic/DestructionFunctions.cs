@@ -250,7 +250,7 @@ namespace NFun.Tic
                     namedNodes.Add(node);
                 else if (node.Type == TicNodeType.SyntaxNode)
                 {
-                    var nodeId = int.Parse(node.Name);
+                    var nodeId = (int)node.Name;
                     syntaxNodes.EnlargeAndSet(nodeId, node);
                 }
             }

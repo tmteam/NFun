@@ -11,6 +11,6 @@
         public ITicNodeState Element => Node.State; 
         public TicNode Node { get; }
         public override string ToString() => $"ref({Node.Name})";
-        public string Description => Node.Name;
+        public string Description => Node.Name.ToString();
     }
 }

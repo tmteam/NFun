@@ -11,18 +11,18 @@ namespace NFun.Tic.Errors
             syntaxNode = -1;
             if (descendant.Type == TicNodeType.SyntaxNode)
             {
-                syntaxNode= int.Parse(descendant.Name);
+                syntaxNode= (int)descendant.Name;
                 return true;
             }
             if (ancestor.Type == TicNodeType.SyntaxNode)
             {
-                syntaxNode = int.Parse(ancestor.Name);
+                syntaxNode = (int)ancestor.Name;
                 return true;
             }
 
             return false;
         }
-        private static bool TryFindNamedNode(TicNode ancestor, TicNode descendant, out string nodeName)
+        private static bool TryFindNamedNode(TicNode ancestor, TicNode descendant, out object nodeName)
         {
             nodeName = "";
             if (descendant.Type == TicNodeType.Named)
@@ -43,7 +43,7 @@ namespace NFun.Tic.Errors
             if (TryFindSyntaxNode(ancestor, descendant, out int id))
                 return new ImcompatibleAncestorSyntaxNodeException(id, ancestor.State, descendant.State);
             if (TryFindNamedNode(ancestor, descendant, out var named))
-                return new ImcompatibleAncestorNamedNodeException(named, ancestor.State, descendant.State);
+                return new ImcompatibleAncestorNamedNodeException(named.ToString(), ancestor.State, descendant.State);
             return new TicNoDetailsException();
         }
 
@@ -72,18 +72,18 @@ namespace NFun.Tic.Errors
             foreach (var node in group)
             {
                 if (node.Type == TicNodeType.Named) 
-                    listOfNames.Add(node.Name);
+                    listOfNames.Add(node.Name.ToString());
                 else if(node.Type== TicNodeType.SyntaxNode)
-                    listOfNodes.Add(int.Parse(node.Name));
+                    listOfNodes.Add((int)node.Name);
             }
             return new RecursiveTypeDefenitionException(listOfNames.ToArray(), listOfNodes.ToArray());
         }
         public static Exception CannotSetState(TicNode node, ITicNodeState b)
         {
             if(node.Type== TicNodeType.SyntaxNode)
-                return new ImcompatibleAncestorSyntaxNodeException(Int32.Parse(node.Name), node.State, b);
+                return new ImcompatibleAncestorSyntaxNodeException((int)node.Name, node.State, b);
             if (node.Type == TicNodeType.Named)
-                return new ImcompatibleAncestorNamedNodeException(node.Name, node.State, b);
+                return new ImcompatibleAncestorNamedNodeException(node.Name.ToString(), node.State, b);
             return new TicNoDetailsException();
         }
     }

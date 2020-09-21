@@ -52,7 +52,7 @@ namespace NFun.Tic.Tests.Funs
             var t = result.AssertAndGetSingleGeneric(null, null);
 
             result.AssertAreGenerics(t, "x");
-            result.AssertNamed(StateFun.Of(t,TicNode.CreateTypeNode(StatePrimitive.I32)), "f");
+            result.AssertNamed(StateFun.Of(t,TicNode.CreateTypeVariableNode(StatePrimitive.I32)), "f");
             result.AssertNamed(StatePrimitive.I32, "return");
         }
 
