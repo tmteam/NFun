@@ -52,6 +52,8 @@ namespace NFun
     public  class FunBuilder : IFunBuilder
     {
         private readonly string _text;
+        
+        
         public static FunBuilder With(string text) => new FunBuilder(text);
         private FunBuilder(string text) => _text = text;
 
@@ -71,9 +73,9 @@ namespace NFun
         }
 
         public FunRuntime Build() 
-            => RuntimeBuilder.Build(_text, BaseFunctions.CreateDefaultDictionary(), _constants??new EmptyConstantList());
+            => RuntimeBuilder.Build(_text, BaseFunctions.DefaultDictionary, _constants??new EmptyConstantList());
 
         public static FunRuntime Build(string text) =>
-            RuntimeBuilder.Build(text, BaseFunctions.CreateDefaultDictionary(), new EmptyConstantList());
+            RuntimeBuilder.Build(text, BaseFunctions.DefaultDictionary, new EmptyConstantList());
     }
 }

@@ -7,6 +7,12 @@ namespace NFun
 {
     public static class BaseFunctions
     {
+        public static readonly IFunctionDictionary DefaultDictionary;
+
+        static BaseFunctions()
+        {
+            DefaultDictionary = CreateDefaultDictionary();
+        }
         public static FunctionDictionary CreateDefaultDictionary()
         {
             var functionsDictionary = new FunctionDictionary();
