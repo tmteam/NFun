@@ -11,13 +11,13 @@ namespace Nfun.InfinityProfiling.Sets
         private SyntaxTree Parse(string expr) => Parser.Parse(Tokenizer.ToFlow(expr));
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void ConstTrue() => Parse(Scripts.ConstTrue);
+        public void PrimitivesConstTrue() => Parse(Scripts.ConstTrue);
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void ConstBool() => Parse(Scripts.ConstBoolOp);
+        public void PrimitivesConstBool() => Parse(Scripts.ConstBoolOp);
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void Const1() => Parse(Scripts.Const1);
+        public void PrimitivesConst1() => Parse(Scripts.Const1);
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
         public void ConstText() => Parse(Scripts.ConstText);
@@ -38,22 +38,39 @@ namespace Nfun.InfinityProfiling.Sets
         public void ConstSquareEquation() => Parse(Scripts.ConstSquareEquation);
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void CalcSingleBool()=> Parse(Scripts.CalcSingleBool);
+
+        public void PrimitiveConstIntSimpleArithmetics() => Parse(Scripts.PrimitiveConstIntSimpleArithmetics);
+        [MethodImpl(MethodImplOptions.NoOptimization)]
+
+        public void PrimitiveConstRealSimpleArithmetics() => Parse(Scripts.PrimitiveConstRealSimpleArithmetics);
+        [MethodImpl(MethodImplOptions.NoOptimization)]
+
+        public void PrimitiveConstBoolSimpleArithmetics() => Parse(Scripts.PrimitiveConstBoolSimpleArithmetics);
+        [MethodImpl(MethodImplOptions.NoOptimization)]
+
+        public void PrimitiveCalcReal2Var() => Parse(Scripts.PrimitiveCalcReal2Var);
+        [MethodImpl(MethodImplOptions.NoOptimization)]
+
+        public void PrimitiveCalcInt2Var()=> Parse(Scripts.PrimitiveCalcInt2Var);
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void CalcSingleReal()=> Parse(Scripts.CalcSingleReal);
+        public void PrimitiveCalcSingleBool()=> Parse(Scripts.CalcSingleBool);
+
+        [MethodImpl(MethodImplOptions.NoOptimization)]
+        public void PrimitiveCalcSingleReal()=> Parse(Scripts.CalcSingleReal);
+
+      
+        [MethodImpl(MethodImplOptions.NoOptimization)]
+        public void PrimitiveCalcIntOp() => Parse(Scripts.CalcIntOp);
+
+        [MethodImpl(MethodImplOptions.NoOptimization)]
+        public void PrimitiveCalcRealOp() => Parse(Scripts.CalcRealOp);
+
+        [MethodImpl(MethodImplOptions.NoOptimization)]
+        public void PrimitiveCalcBoolOp() => Parse(Scripts.CalcBoolOp);
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
         public void CalcSingleText()=> Parse(Scripts.CalcSingleText);
-
-        [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void CalcIntOp() => Parse(Scripts.CalcIntOp);
-
-        [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void CalcRealOp() => Parse(Scripts.CalcRealOp);
-
-        [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void CalcBoolOp() => Parse(Scripts.CalcBoolOp);
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
         public void CalcTextOp() => Parse(Scripts.CalcTextOp);
@@ -68,7 +85,7 @@ namespace Nfun.InfinityProfiling.Sets
         public void CalcSquareEquation() => Parse(Scripts.CalcSquareEquation);
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void CalcKxb()=> Parse(Scripts.CalcKxb);
+        public void PrimitivesCalcKxb()=> Parse(Scripts.CalcKxb);
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
         public void CalcRealArray()=> Parse(Scripts.CalcRealArray);
@@ -77,11 +94,11 @@ namespace Nfun.InfinityProfiling.Sets
         public void CalcFourArgs()=> Parse(Scripts.CalcFourArgs);
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void ConstMultiArrays()=> Parse(Scripts.MultiplyArrayItems);
+        public void ComplexConstMultiArrays()=> Parse(Scripts.MultiplyArrayItems);
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void ConstDummyBubble() => Parse(Scripts.DummyBubbleSort);
+        public void ComplexDummyBubble() => Parse(Scripts.DummyBubbleSort);
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void ConstEverything() => Parse(Scripts.Everything);
+        public void ComplexConstEverything() => Parse(Scripts.Everything);
     }
 }

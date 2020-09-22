@@ -6,22 +6,25 @@ using Nfun.InfinityProfiling.Sets;
 
 namespace Nfun.InfinityProfiling
 {
+    public enum ProfileSet {
+        Primitives,
+        Middle,
+        Complex,
+        All        
+    }
     public static class ProfileModes
     {
-        public static void RunCalc(bool runOnlySimpliest)
+        public static void RunCalc(ProfileSet set)
         {
-            Action<IProfileSet> runner;
-            int reportTime;
-            if (runOnlySimpliest)
+            var runner = ProfileTools.GetSet(set);
+            var reportTime = set switch
             {
-                runner = ProfileTools.RunFastExamples;
-                reportTime = 100_000;
-            }
-            else
-            {
-                runner = ProfileTools.RunAllExamples;
-                reportTime = 5_000;
-            }
+                ProfileSet.Primitives => 1_000_000,
+                ProfileSet.Middle     => 80000,
+                ProfileSet.Complex    => 10000,
+                ProfileSet.All => 2000,
+                _ => throw new ArgumentOutOfRangeException(nameof(set), set, null)
+            };
 
             var calculateBench = new ProfileCalculateSet();
 
@@ -55,7 +58,7 @@ namespace Nfun.InfinityProfiling
 
                     calcStopWatch.Reset();
 
-                    PrintHeader("CALC", runOnlySimpliest, measurementsCount, total);
+                    PrintHeader("CALC", set, measurementsCount, total);
                     PrintResults("calculate", buildAndRunTime, calcHistory, iterations);
                     PrintFooter();
 
@@ -65,22 +68,18 @@ namespace Nfun.InfinityProfiling
         }
 
 
-        public static void RunParse(bool runOnlySimpliest)
+        public static void RunParse(ProfileSet set)
         {
-
-            Action<IProfileSet> runner;
-            int reportTime;
-            if (runOnlySimpliest)
+            var runner = ProfileTools.GetSet(set);
+            var reportTime = set switch
             {
-                runner = ProfileTools.RunFastExamples;
-                reportTime = 10000;
-            }
-            else
-            {
-                runner = ProfileTools.RunAllExamples;
-                reportTime = 5000;
-            }
-
+                ProfileSet.Primitives => 10000,
+                ProfileSet.Middle => 5000,
+                ProfileSet.Complex => 1000,
+                ProfileSet.All => 2000,
+                _ => throw new ArgumentOutOfRangeException(nameof(set), set, null)
+            };
+            
             var parseBench = new ProfileParserSet();
 
             for (int i = 0; i < 3; i++)
@@ -107,7 +106,7 @@ namespace Nfun.InfinityProfiling
 
                     parseHistory.AddAndTruncate(parseStopWatch.Elapsed.TotalMilliseconds, historyCount);
 
-                    PrintHeader("PARSE", runOnlySimpliest, measurementsCount, parseStopWatch.Elapsed);
+                    PrintHeader("PARSE", set, measurementsCount, parseStopWatch.Elapsed);
                     PrintResults("parse    ", parseStopWatch.Elapsed, parseHistory, iterations);
                     PrintFooter();
                     parseStopWatch.Reset();
@@ -118,20 +117,18 @@ namespace Nfun.InfinityProfiling
         }
 
 
-        public static void RunAll(bool runOnlySimpliest)
+        public static void RunAll(ProfileSet set)
         {
-            Action<IProfileSet> runner;
-            int reportTime;
-            if (runOnlySimpliest)
+            var runner = ProfileTools.GetSet(set);
+            var reportTime = set switch
             {
-                runner = ProfileTools.RunFastExamples;
-                reportTime = 1500;
-            }
-            else
-            {
-                runner = ProfileTools.RunAllExamples;
-                reportTime = 500;
-            }
+                ProfileSet.Primitives => 4000,
+                ProfileSet.Middle => 1500,
+                ProfileSet.Complex => 500,
+                ProfileSet.All => 500,
+                _ => throw new ArgumentOutOfRangeException(nameof(set), set, null)
+            };
+
 
             var buildBench = new ProfileBuildAllSet();
             var parseBench = new ProfileParserSet();
@@ -204,7 +201,7 @@ namespace Nfun.InfinityProfiling
                     updateStopWatch.Reset();
                     calcStopWatch.Reset();
 
-                    PrintHeader("everything", runOnlySimpliest, measurementsCount, total);
+                    PrintHeader("everything", set, measurementsCount, total);
                     PrintResults("parse    ", buildAndRunTime, parseHistory, iterations);
                     PrintResults("interprt ", buildAndRunTime, interpritateHistory, iterations);
                     PrintResults("calculate", buildAndRunTime, calcHistory, iterations);
@@ -217,20 +214,18 @@ namespace Nfun.InfinityProfiling
         }
 
 
-        public static void RunBuild(bool runOnlySimpliest)
+        public static void RunBuild(ProfileSet set)
         {
-            Action<IProfileSet> runner;
-            int reportTime;
-            if (runOnlySimpliest)
+            var runner = ProfileTools.GetSet(set);
+            var reportTime = set switch
             {
-                runner = ProfileTools.RunFastExamples;
-                reportTime = 1500;
-            }
-            else
-            {
-                runner = ProfileTools.RunAllExamples;
-                reportTime = 1000;
-            }
+                ProfileSet.Primitives => 2000,
+                ProfileSet.Middle => 1500,
+                ProfileSet.Complex => 1000,
+                ProfileSet.All => 600,
+                _ => throw new ArgumentOutOfRangeException(nameof(set), set, null)
+            };
+
 
             var buildBench = new ProfileBuildAllSet();
             var parseBench = new ProfileParserSet();
@@ -275,7 +270,7 @@ namespace Nfun.InfinityProfiling
 
                     parseStopWatch.Reset();
                     buildStopWatch.Reset();
-                    PrintHeader("build", runOnlySimpliest, measurementsCount, total);
+                    PrintHeader("build", set, measurementsCount, total);
                     PrintResults("parse    ", total, parseHistory, iterations);
                     PrintResults("interprt ", total, interpritateHistory, iterations);
                     PrintFooter();
@@ -285,12 +280,12 @@ namespace Nfun.InfinityProfiling
             }
         }
 
-        private static void PrintHeader(string name, bool runOnlySimpliest, int measurementsCount, TimeSpan total)
+        private static void PrintHeader(string name, ProfileSet set, int measurementsCount, TimeSpan total)
         {
             Console.Clear();
             Console.WriteLine();
             Console.WriteLine(
-                $"------ {name} {(runOnlySimpliest ? "basics" : "all")} iteration #{measurementsCount} in {(int) total.TotalMilliseconds} ms ------");
+                $"------ {name} {(set)} iteration #{measurementsCount} in {(int) total.TotalMilliseconds} ms ------");
 
             Console.WriteLine($"          |    %    |  VAL ips |  AVG ips  |  MIN ips  |  MAX ips  |   RMS  |");
         }
