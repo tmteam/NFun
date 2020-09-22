@@ -4,62 +4,155 @@ namespace NFun.Tic.SolvingStates
 {
     public enum PrimitiveTypeName
     {
-        Any = _IsPrimitive,
-
-        _IsPrimitive = 1<<0,
-        _IsNumber    = 1<<1,
-        _IsUint      = 1<<2,
         _isAbstract  = 1<<3,
-        
-        Char = _IsPrimitive | 1<<5 | 1<<9,
-        Bool = _IsPrimitive | 1<<5 | 2<<9,
+        _isNumber  = 1<<2,
 
-        Real = _IsPrimitive | _IsNumber | 1 << 5,
-        I96  = _IsPrimitive | _IsNumber | 2 << 5 | _isAbstract,
-        I64  = _IsPrimitive | _IsNumber | 3 << 5,
-        I48  = _IsPrimitive | _IsNumber | 4 << 5 | _isAbstract,
-        I32  = _IsPrimitive | _IsNumber | 5 << 5,
-        I24  = _IsPrimitive | _IsNumber | 6 << 5 | _isAbstract,
-        I16  = _IsPrimitive | _IsNumber | 7 << 5,
-
-        U64  = _IsPrimitive | _IsNumber | _IsUint | 3 << 5,
-        U48  = _IsPrimitive | _IsNumber | _IsUint | 4 << 5 | _isAbstract,
-        U32  = _IsPrimitive | _IsNumber | _IsUint | 5 << 5,
-        U24  = _IsPrimitive | _IsNumber | _IsUint | 6 << 5 | _isAbstract,
-        U16  = _IsPrimitive | _IsNumber | _IsUint | 7 << 5,
-        U12  = _IsPrimitive | _IsNumber | _IsUint | 8 << 5 | _isAbstract,
-        U8   = _IsPrimitive | _IsNumber | _IsUint | 9 << 5,
+        Any = 0,
+        Char =   1  << 6,
+        Bool =   2  << 6,
+        Real =   3  << 6| _isNumber,
+        I96  =   4  << 6| _isNumber | _isAbstract,
+        I64  =   5  << 6| _isNumber,
+        I48  =   6  << 6| _isNumber | _isAbstract,
+        I32  =   7  << 6| _isNumber,
+        I24  =   8  << 6| _isNumber | _isAbstract,
+        I16  =   9  << 6| _isNumber,
+        U64  =   10 << 6| _isNumber,
+        U48  =   11 << 6| _isNumber | _isAbstract,
+        U32  =   12 << 6| _isNumber,
+        U24  =   13 << 6| _isNumber | _isAbstract,
+        U16  =   14 << 6| _isNumber,
+        U12  =   15 << 6| _isNumber | _isAbstract,
+        U8   =   16 << 6| _isNumber,
     }
 
   
     public class StatePrimitive: ITypeState, ITicNodeState
     {
-        private static StatePrimitive[] _integer;
-        private static StatePrimitive[] _uint;
+        private static readonly StatePrimitive[] NumberToTypeMap;
+        private static readonly StatePrimitive[,] LcaMap;
+        private static readonly StatePrimitive[,] FcdMap;
 
         static StatePrimitive()
         {
-            _uint = new[]
-            {
+            const int maxVal = 17;
+            LcaMap = new StatePrimitive [17, 17];
+            FcdMap = new StatePrimitive [17, 17];
 
-                U64,
-                U48,
-                U32,
-                U24,
-                U16,
-                U12,
-                U8
+            NumberToTypeMap = new[] {
+                Any, //0
+                Char,//1
+                Bool,//2
+                Real,//3
+                I96, //4
+                I64, //5
+                I48, //6
+                I32, //7
+                I24, //8
+                I16, //9
+                U64, //10
+                U48, //11
+                U32, //12
+                U24, //13
+                U16, //14
+                U12, //15
+                U8,  //16
             };
-            _integer = new[]
+           
+            //by default - any lca returns any
+            for (int i = 0; i < maxVal; i++)
+                for (int j = 0; j < maxVal; j++)
+                    LcaMap[i, j] = Any;
+
+            for (int i = 1; i < maxVal; i++) {
+                //x ^ x = x
+                LcaMap[i, i] = NumberToTypeMap[i];
+                //x _ x = x
+                FcdMap[i, i] = NumberToTypeMap[i];
+                //x _ any = x
+                FcdMap[i, Any.Order] = NumberToTypeMap[i];
+            }
+            for (int i = Real.Order; i < maxVal; i++) {
+                //number ^ real = real
+                LcaMap[Real.Order, i] = Real;
+                //number _ real = number
+                FcdMap[Real.Order, i] = NumberToTypeMap[i];
+            }
+            for (int i = I96.Order; i < maxVal; i++) {
+                //i96 ^ int = i96
+                LcaMap[I96.Order, i] = I96;
+                //i96 _ int = int
+                FcdMap[I96.Order, i] = NumberToTypeMap[i];
+            }
+            //all uints
+            for (int anc = U64.Order; anc <= U8.Order; anc++) {
+                for (int desc = anc; desc <= U8.Order; desc++)
+                {
+                    //u64 ^ u32 = u64
+                    LcaMap[anc, desc] = NumberToTypeMap[anc];
+                    //u64 _ u32 = u32
+                    FcdMap[anc, desc] = NumberToTypeMap[desc];
+                }
+            }
+            //all ints
+            for (int anc = I64.Order; anc <= I16.Order; anc++) {
+                for (int desc = anc; desc <= I16.Order; desc++)
+                {
+                    //I64 ^ i32 = I64
+                    LcaMap[anc, desc] = NumberToTypeMap[anc];
+                    //I64 _ i32 = i32
+                    FcdMap[anc, desc] = NumberToTypeMap[desc];
+                }
+            }
+            
+            for (int i = 5; i < 16; i++)
             {
-                Real,
-                I96,
-                I64,
-                I48,
-                I32,
-                I24,
-                I16
-            };
+                //u8 ^ number = number
+                LcaMap[U8.Order, i] = NumberToTypeMap[i];
+                //u8 _ number = U8
+                FcdMap[U8.Order, i] = U8;
+            }
+            for (int i = 5; i < 15; i++)
+            {
+                //u12 ^ number = number
+                LcaMap[U12.Order, i] = NumberToTypeMap[i];
+                //u12 _ number = u12
+                FcdMap[U12.Order, i] = U12;
+            }
+            
+            
+            //U32 ^ I64 = I64...
+            //U32 _ I64 = U32...
+            LcaMap[U16.Order, I32.Order] = I32;
+            LcaMap[U16.Order, I48.Order] = I48;
+            LcaMap[U16.Order, I64.Order] = I64;
+            FcdMap[U16.Order, I32.Order] = U16;
+            FcdMap[U16.Order, I48.Order] = U16;
+            FcdMap[U16.Order, I64.Order] = U16;
+            
+            LcaMap[U24.Order, I32.Order] = I32;
+            LcaMap[U24.Order, I48.Order] = I48;
+            LcaMap[U24.Order, I64.Order] = I64;
+            FcdMap[U24.Order, I32.Order] = U24;
+            FcdMap[U24.Order, I48.Order] = U24;
+            FcdMap[U24.Order, I64.Order] = U24;
+
+            LcaMap[U32.Order, I48.Order] = I48;
+            LcaMap[U32.Order, I64.Order] = I64;
+            FcdMap[U32.Order, I48.Order] = U32;
+            FcdMap[U32.Order, I64.Order] = U32;
+
+            LcaMap[U48.Order, I64.Order] = I64;
+            FcdMap[U48.Order, I64.Order] = U48;
+
+            for (int row = 1; row < 17; row++)
+            {
+                for (int col = 0; col < row; col++)
+                {
+                    LcaMap[col, row] = LcaMap[row, col];
+                    FcdMap[col, row] = FcdMap[row, col];
+                }
+            }
         }
 
         public StatePrimitive(PrimitiveTypeName name)
@@ -70,9 +163,9 @@ namespace NFun.Tic.SolvingStates
         public PrimitiveTypeName Name { get; }
 
         public bool IsSolved => true;
-        public bool IsNumeric => Name.HasFlag(PrimitiveTypeName._IsNumber);
+        public bool IsNumeric => Name.HasFlag(PrimitiveTypeName._isNumber);
         
-        private int Layer => (int)((int)Name >>5 & 0b1111);
+        private int Order => (int)((int)Name >>6 & 0b1111);
 
         public override string ToString()
         {
@@ -84,7 +177,6 @@ namespace NFun.Tic.SolvingStates
                 default: return Name.ToString();
             }
         }
-
         public static StatePrimitive Any { get; } = new StatePrimitive(PrimitiveTypeName.Any);
         public static StatePrimitive Bool { get; } = new StatePrimitive(PrimitiveTypeName.Bool);
         public static StatePrimitive Char { get; } = new StatePrimitive(PrimitiveTypeName.Char);
@@ -106,43 +198,14 @@ namespace NFun.Tic.SolvingStates
 
         public bool CanBeImplicitlyConvertedTo(StatePrimitive type)
         {
-            if (type.Name == PrimitiveTypeName.Any)
-                return true;
-            if (this.Equals(type))
-                return true;
-            if (!this.IsNumeric || !type.IsNumeric)
-                return false;
-            //So both are numbers
-            if (type.Name == PrimitiveTypeName.Real)
-                return true;
-            if (this.Layer <= type.Layer)
-                return false;
-            if (type.Name.HasFlag(PrimitiveTypeName._IsUint))
-                return this.Name.HasFlag(PrimitiveTypeName._IsUint);
-            return true;
+            var a = this.Order;
+            var b = type.Order;
+            return Equals(LcaMap[a, b], type); 
         }
 
-        public StatePrimitive GetFirstCommonDescendantOrNull(StatePrimitive other)
-        {
-            if (this.Equals(other))
-                return this;
+        public StatePrimitive GetFirstCommonDescendantOrNull(StatePrimitive other) 
+            => FcdMap[this.Order, other.Order];
 
-            if (other.CanBeImplicitlyConvertedTo(this))
-                return other;
-            if (this.CanBeImplicitlyConvertedTo(other))
-                return this;
-            
-            if (!other.IsNumeric || !this.IsNumeric)
-                return null;
-
-            var intType = other;
-
-            if (other.Name.HasFlag(PrimitiveTypeName._IsUint))
-                intType = this;
-
-            var layer = intType.Layer + 1;
-            return _uint[layer-3];
-        }
         public ITypeState GetLastCommonAncestorOrNull(ITypeState otherType)
         {
             var primitive = otherType as StatePrimitive;
@@ -153,27 +216,9 @@ namespace NFun.Tic.SolvingStates
 
         public StatePrimitive GetLastCommonPrimitiveAncestor(StatePrimitive other)
         {
-            if (this.Equals(other))
-                return this;
-            
-            if (!other.IsNumeric || !this.IsNumeric)
-                return Any;
-            if (other.CanBeImplicitlyConvertedTo(this))
-                return this;
-            if (this.CanBeImplicitlyConvertedTo(other))
-                return other;
-
-            var uintType = this;
-            if (other.Name.HasFlag(PrimitiveTypeName._IsUint))
-                uintType = other;
-
-            for (int i = uintType.Layer; i >= 1; i--)
-            {
-                if (uintType.CanBeImplicitlyConvertedTo(_integer[i]))
-                    return _integer[i];
-            }
-
-            throw new InvalidOperationException();
+            var a = this.Order;
+            var b = other.Order;
+            return LcaMap[a, b];
         }
 
         public override bool Equals(object obj) => (obj as StatePrimitive)?.Name == Name;
