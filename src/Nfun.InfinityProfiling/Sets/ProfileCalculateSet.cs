@@ -34,10 +34,21 @@ namespace Nfun.InfinityProfiling.Sets
         private readonly FunRuntime _constInterpolation;
         private readonly FunRuntime _constSquareEquation;
         private readonly FunRuntime _constGenericFunc;
-
+        private readonly FunRuntime _primitiveConstIntSimpleArithmetics;
+        private readonly FunRuntime _primitiveConstRealSimpleArithmetics;
+        private readonly FunRuntime _primitiveConstBoolSimpleArithmetics;
+        private readonly FunRuntime _primitiveCalcReal2Var;
+        private readonly FunRuntime _primitiveCalcInt2Var;
         public ProfileCalculateSet()
         {
+
             _dictionary = BaseFunctions.CreateDefaultDictionary();
+            _primitiveConstIntSimpleArithmetics = Build(Scripts.PrimitiveConstIntSimpleArithmetics);
+            _primitiveConstRealSimpleArithmetics = Build(Scripts.PrimitiveConstRealSimpleArithmetics);
+            _primitiveConstBoolSimpleArithmetics = Build(Scripts.PrimitiveConstBoolSimpleArithmetics);
+            _primitiveCalcReal2Var = Build(Scripts.PrimitiveCalcReal2Var);
+            _primitiveCalcInt2Var = Build(Scripts.PrimitiveCalcInt2Var);
+
             _calcIntOp = Build(Scripts.CalcIntOp);
             _calcRealOp = Build(Scripts.CalcRealOp);
             _calcBoolOp = Build(Scripts.CalcBoolOp);
@@ -70,13 +81,13 @@ namespace Nfun.InfinityProfiling.Sets
         private FunRuntime Build(string expr) => FunBuilder.With(expr).With(_dictionary).Build();
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void ConstTrue() => _constTrueRuntime.Calculate();
+        public void PrimitivesConstTrue() => _constTrueRuntime.Calculate();
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void ConstBool() => _constBool.Calculate();
+        public void PrimitivesConstBool() => _constBool.Calculate();
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void Const1() => _const1Runtime.Calculate();
+        public void PrimitivesConst1() => _const1Runtime.Calculate();
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
         public void ConstText() => _constTextRuntime.Calculate();
@@ -96,21 +107,36 @@ namespace Nfun.InfinityProfiling.Sets
         public void ConstSquareEquation() => _constSquareEquation.Calculate();
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void CalcSingleBool() => _calcSingleBool.Calculate(VarVal.New("x",true));
+        public void PrimitiveConstIntSimpleArithmetics() => _primitiveConstIntSimpleArithmetics.Calculate();
+        [MethodImpl(MethodImplOptions.NoOptimization)]
+
+        public void PrimitiveConstRealSimpleArithmetics() => _primitiveConstRealSimpleArithmetics.Calculate();
+        [MethodImpl(MethodImplOptions.NoOptimization)]
+
+        public void PrimitiveConstBoolSimpleArithmetics() => _primitiveConstBoolSimpleArithmetics.Calculate();
+        [MethodImpl(MethodImplOptions.NoOptimization)]
+
+        public void PrimitiveCalcReal2Var() => _primitiveCalcReal2Var.Calculate(VarVal.New("a",42.1),VarVal.New("b",24.0));
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void CalcSingleReal() => _calcReal.Calculate(VarVal.New("x", 42.1));
+        public void PrimitiveCalcInt2Var() => _primitiveCalcInt2Var.Calculate(VarVal.New("a",42),VarVal.New("b",24));
+
+        [MethodImpl(MethodImplOptions.NoOptimization)]
+        public void PrimitiveCalcSingleBool() => _calcSingleBool.Calculate(VarVal.New("x",true));
+
+        [MethodImpl(MethodImplOptions.NoOptimization)]
+        public void PrimitiveCalcSingleReal() => _calcReal.Calculate(VarVal.New("x", 42.1));
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
         public void CalcSingleText()=> _calcText.Calculate(VarVal.New("x", "kavabanga"));
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void CalcIntOp() => _calcIntOp.Calculate(VarVal.New("x",1));
+        public void PrimitiveCalcIntOp() => _calcIntOp.Calculate(VarVal.New("x",1));
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void CalcRealOp() => _calcRealOp.Calculate(VarVal.New("x",2.0));
+        public void PrimitiveCalcRealOp() => _calcRealOp.Calculate(VarVal.New("x",2.0));
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void CalcBoolOp()=> _calcBoolOp.Calculate(VarVal.New("x",true));
+        public void PrimitiveCalcBoolOp()=> _calcBoolOp.Calculate(VarVal.New("x",true));
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
         public void CalcTextOp() => _calcTextOp.Calculate(VarVal.New("x","vasa"));
@@ -125,7 +151,7 @@ namespace Nfun.InfinityProfiling.Sets
         public void CalcSquareEquation() => _calcSquareEquation.Calculate(VarVal.New("a",1.0),VarVal.New("b",10.1),VarVal.New("c",1.2));
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void CalcKxb()=> _calcKxb.Calculate(VarVal.New("x", 12.3));
+        public void PrimitivesCalcKxb()=> _calcKxb.Calculate(VarVal.New("x", 12.3));
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
         public void CalcRealArray()=> _calcRealArray.Calculate(VarVal.New("x", 3.14));
@@ -137,10 +163,10 @@ namespace Nfun.InfinityProfiling.Sets
             VarVal.New("d", "kotopes")
             );
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void ConstMultiArrays()=> _constMultiplyArrayItems.Calculate();
+        public void ComplexConstMultiArrays()=> _constMultiplyArrayItems.Calculate();
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void ConstDummyBubble() => _constDummyBubbleSort.Calculate();
+        public void ComplexDummyBubble() => _constDummyBubbleSort.Calculate();
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void ConstEverything() => _constEverything.Calculate();
+        public void ComplexConstEverything() => _constEverything.Calculate();
     }
 }

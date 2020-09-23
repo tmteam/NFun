@@ -2,7 +2,14 @@ namespace Nfun.InfinityProfiling.Sets
 {
     public static class Scripts
     {
-        public static string ConstTrue { get; } = "true";
+
+	    public static string PrimitiveConstIntSimpleArithmetics { get; } = "out:int =(4 * 12).rema(7) + ((9 * 2) + 8)";
+	    public static string PrimitiveConstRealSimpleArithmetics { get; } = "(4 * 12).rema(7) + ((9 * 2) / 8)";
+	    public static string PrimitiveConstBoolSimpleArithmetics { get; } = "(2 == 2 * 5) and ((1 / 3.1) * 3 == 1)";
+	    public static string PrimitiveCalcReal2Var { get; } = "out:real =a*7+b";
+	    public static string PrimitiveCalcInt2Var { get; } = "out:int =a*7+b";
+
+	    public static string ConstTrue { get; } = "true";
         public static string ConstBoolOp { get; }= "true and false or not true";
         public static string Const1 { get; }= "1";
         public static string ConstText { get; }= "'let us make some fun!'";
