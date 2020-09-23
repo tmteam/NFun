@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using IronPython.Hosting;
 using NCalc;
 using NFun;
@@ -38,6 +37,7 @@ namespace Nfun.CompareToOthers
             Action calcLambda = () => lambda();
             Action calcFun   = () => funrt.Calculate();
             
+            Console.WriteLine("Heating");
             BenchHelper.Measure(buildEva,batchIterations);
             BenchHelper.Measure(buildLambda,batchIterations);
             BenchHelper.Measure(buildFun,  batchIterations);
@@ -55,9 +55,12 @@ namespace Nfun.CompareToOthers
             var calcLambdaTs   = TimeSpan.Zero;
             var calcFunTs      = TimeSpan.Zero;
             var bcPy           = TimeSpan.Zero;
-            
-            for (int i = 0; i < batchCount; i++)
+
+            Console.WriteLine("Iterating");
+            int i = 0;
+            while (true)
             {
+                i++;
                 GC.Collect(0);
                 evaluateTs    += BenchHelper.Measure(buildEva,batchIterations);
                 GC.Collect(0);
@@ -72,137 +75,24 @@ namespace Nfun.CompareToOthers
                 calcFunTs     += BenchHelper.Measure(calcFun,  batchIterations);
                 GC.Collect(0);
                 bcPy          += BenchHelper.Measure(buildNCalcPy, batchIterations);
+                if (i > batchCount)
+                {
+                    i = 0;
+                    Console.Clear();
+                    Console.WriteLine($"{batchCount} iterations done");                    
+                    Console.WriteLine($"build nfun:     {funTs.TotalMilliseconds}");
+                    Console.WriteLine($"build evaluate: {evaluateTs.TotalMilliseconds}");
+                    Console.WriteLine($"build lambda:   {lambdaTs.TotalMilliseconds}");
+
+                    Console.WriteLine($"calc nfun:     {calcFunTs.TotalMilliseconds}");
+                    Console.WriteLine($"calc evaluate: {calcEvaluateTs.TotalMilliseconds}");
+                    Console.WriteLine($"calc lambda:   {calcLambdaTs.TotalMilliseconds}");
+            
+                    Console.WriteLine($"python     :   {bcPy.TotalMilliseconds}");
+                    funTs = evaluateTs = lambdaTs = calcFunTs = calcEvaluateTs = calcLambdaTs = bcPy = TimeSpan.Zero;
+                }
             }
 
-            Console.WriteLine($"build nfun:     {funTs.TotalMilliseconds}");
-            Console.WriteLine($"build evaluate: {evaluateTs.TotalMilliseconds}");
-            Console.WriteLine($"build lambda:   {lambdaTs.TotalMilliseconds}");
-
-            Console.WriteLine($"calc nfun:     {calcFunTs.TotalMilliseconds}");
-            Console.WriteLine($"calc evaluate: {calcEvaluateTs.TotalMilliseconds}");
-            Console.WriteLine($"calc lambda:   {calcLambdaTs.TotalMilliseconds}");
-            
-            Console.WriteLine($"python     :   {bcPy.TotalMilliseconds}");
-
         }
     }
-    
-    
-       public class Performance
-    {
-        private const int Iterations = 100000;
-
-        private class Context
-        {
-            public int Param1 { get; set; }
-            public int Param2 { get; set; }
-
-            public int Foo(int a, int b) => Math.Min(a, b);
-        }
-
-       // [Theory]
-       // [InlineData("(4 * 12 / 7) + ((9 * 2) % 8)")]
-       // [InlineData("5 * 2 = 2 * 5 && (1 / 3.0) * 3 = 1")]
-        public void Arithmetics(string formula)
-        {
-            var expression = new Expression(formula);
-            var lambda = expression.ToLambda<object>();
-
-            var m1 = Measure(() => expression.Evaluate());
-            var m2 = Measure(() => lambda());
-
-            PrintResult(formula, m1, m2);
-        }
-
-       // [Theory]
-       // [InlineData("[Param1] * 7 + [Param2]")]
-        public void ParameterAccess(string formula)
-        {
-            var expression = new Expression(formula);
-            var lambda = expression.ToLambda<Context, int>();
-
-            var context = new Context {Param1 = 4, Param2 = 9};
-            expression.Parameters["Param1"] = 4;
-            expression.Parameters["Param2"] = 9;
-
-            var m1 = Measure(() => expression.Evaluate());
-            var m2 = Measure(() => lambda(context));
-
-            PrintResult(formula, m1, m2);
-        }
-
-       // [Theory]
-       // [InlineData("[Param1] * 7 + [Param2]")]
-        public void DynamicParameterAccess(string formula)
-        {
-            var expression = new Expression(formula);
-            var lambda = expression.ToLambda<Context, int>();
-
-            var context = new Context { Param1 = 4, Param2 = 9 };
-            expression.EvaluateParameter += (name, args) =>
-            {
-                if (name == "Param1") args.Result = context.Param1;
-                if (name == "Param2") args.Result = context.Param2;
-            };
-
-            var m1 = Measure(() => expression.Evaluate());
-            var m2 = Measure(() => lambda(context));
-
-            PrintResult(formula, m1, m2);
-        }
-
-       // [Theory]
-       // [InlineData("Foo([Param1] * 7, [Param2])")]
-        public void FunctionWithDynamicParameterAccess(string formula)
-        {
-            var expression = new Expression(formula);
-            var lambda = expression.ToLambda<Context, int>();
-
-            var context = new Context { Param1 = 4, Param2 = 9 };
-            expression.EvaluateParameter += (name, args) =>
-            {
-                if (name == "Param1") args.Result = context.Param1;
-                if (name == "Param2") args.Result = context.Param2;
-            };
-            expression.EvaluateFunction += (name, args) =>
-            {
-                if (name == "Foo")
-                {
-                    var param = args.EvaluateParameters();
-                    args.Result = context.Foo((int) param[0], (int) param[1]);
-                }
-            };
-
-            var m1 = Measure(() => expression.Evaluate());
-            var m2 = Measure(() => lambda(context));
-
-            PrintResult(formula, m1, m2);
-        }
-
-        private static TimeSpan Measure(Action a) => BenchHelper.Measure(a, Iterations);
-
-        private static void PrintResult(string formula, TimeSpan m1, TimeSpan m2)
-        {
-            Console.WriteLine(new string('-', 60));
-            Console.WriteLine("Formula: {0}", formula);
-            Console.WriteLine("Expression: {0:N} evaluations / sec", Iterations / m1.TotalSeconds);
-            Console.WriteLine("Lambda: {0:N} evaluations / sec", Iterations / m2.TotalSeconds);
-            Console.WriteLine("Lambda Speedup: {0:P}%", (Iterations / m2.TotalSeconds) / (Iterations / m1.TotalSeconds) - 1);
-            Console.WriteLine(new string('-', 60));
-        }
-    }
-
-
-       public static class BenchHelper
-       {
-           public static TimeSpan Measure(Action action, int iterations)
-           {
-               var sw = new Stopwatch();
-               sw.Start();
-               for (int i = 0; i < iterations; i++)
-                   action();
-               sw.Stop();
-               return sw.Elapsed;
-           }
-       }
 }
