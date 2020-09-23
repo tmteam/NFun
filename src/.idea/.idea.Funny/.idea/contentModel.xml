@@ -210,6 +210,7 @@
           <e p="SolvingStates" t="Include">
             <e p="ConstrainsState.cs" t="Include" />
             <e p="ICompositeTypeState.cs" t="Include" />
+            <e p="PrimitiveTypeName.cs" t="Include" />
             <e p="StateArray.cs" t="Include" />
             <e p="StateFun.cs" t="Include" />
             <e p="StatePrimitive.cs" t="Include" />

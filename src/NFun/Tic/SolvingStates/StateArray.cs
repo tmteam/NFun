@@ -41,7 +41,6 @@ namespace NFun.Tic.SolvingStates
 
         public ITicNodeState Element => ElementNode.State;
 
-
         public override string ToString()
         {
             if(ElementNode.IsSolved)
@@ -73,9 +72,7 @@ namespace NFun.Tic.SolvingStates
         public override bool Equals(object obj)
         {
             if (obj is StateArray arr)
-            {
                 return arr.Element.Equals(this.Element);
-            }
             return false;
         }
 

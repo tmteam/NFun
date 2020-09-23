@@ -110,7 +110,7 @@ namespace NFun.Tic.Tests.UnitTests
         [TestCase(PrimitiveTypeName.I64, PrimitiveTypeName.I48, PrimitiveTypeName.I64)]
         [TestCase(PrimitiveTypeName.I64, PrimitiveTypeName.I32, PrimitiveTypeName.I64)]
         [TestCase(PrimitiveTypeName.I64, PrimitiveTypeName.I24, PrimitiveTypeName.I64)]
-        [TestCase(PrimitiveTypeName.I64, PrimitiveTypeName.I16, PrimitiveTypeName.I16)]
+        [TestCase(PrimitiveTypeName.I64, PrimitiveTypeName.I16, PrimitiveTypeName.I64)]
         [TestCase(PrimitiveTypeName.I64, PrimitiveTypeName.U64, PrimitiveTypeName.I96)]
         [TestCase(PrimitiveTypeName.I64, PrimitiveTypeName.U48, PrimitiveTypeName.I64)]
         [TestCase(PrimitiveTypeName.I64, PrimitiveTypeName.U32, PrimitiveTypeName.I64)]
@@ -121,7 +121,7 @@ namespace NFun.Tic.Tests.UnitTests
    
         [TestCase(PrimitiveTypeName.I48, PrimitiveTypeName.I32, PrimitiveTypeName.I48)]
         [TestCase(PrimitiveTypeName.I48, PrimitiveTypeName.I24, PrimitiveTypeName.I48)]
-        [TestCase(PrimitiveTypeName.I48, PrimitiveTypeName.I16, PrimitiveTypeName.I16)]
+        [TestCase(PrimitiveTypeName.I48, PrimitiveTypeName.I16, PrimitiveTypeName.I48)]
         [TestCase(PrimitiveTypeName.I48, PrimitiveTypeName.U64, PrimitiveTypeName.I96)]
         [TestCase(PrimitiveTypeName.I48, PrimitiveTypeName.U48, PrimitiveTypeName.I64)]
         [TestCase(PrimitiveTypeName.I48, PrimitiveTypeName.U32, PrimitiveTypeName.I48)]
@@ -231,8 +231,11 @@ namespace NFun.Tic.Tests.UnitTests
         [TestCase(PrimitiveTypeName.U64)]
         public void GetFirstCommonDescendantToAnyReturnsSelf(PrimitiveTypeName type)
         {
-            var result =  new StatePrimitive(type).GetLastCommonPrimitiveAncestor(StatePrimitive.Any).Name;
+            var result =  new StatePrimitive(type).GetFirstCommonDescendantOrNull(StatePrimitive.Any).Name;
             Assert.AreEqual(type,result);
+            var reversed =  StatePrimitive.Any.GetFirstCommonDescendantOrNull(new StatePrimitive(type)).Name;
+            Assert.AreEqual(type,reversed);
+
         }
 
         
@@ -315,8 +318,8 @@ namespace NFun.Tic.Tests.UnitTests
         [TestCase(PrimitiveTypeName.I64, PrimitiveTypeName.U12, PrimitiveTypeName.U12)]
         [TestCase(PrimitiveTypeName.I64, PrimitiveTypeName.U8 , PrimitiveTypeName.U8 )]
    
-        [TestCase(PrimitiveTypeName.I48, PrimitiveTypeName.I32, PrimitiveTypeName.I48)]
-        [TestCase(PrimitiveTypeName.I48, PrimitiveTypeName.I24, PrimitiveTypeName.I48)]
+        [TestCase(PrimitiveTypeName.I48, PrimitiveTypeName.I32, PrimitiveTypeName.I32)]
+        [TestCase(PrimitiveTypeName.I48, PrimitiveTypeName.I24, PrimitiveTypeName.I24)]
         [TestCase(PrimitiveTypeName.I48, PrimitiveTypeName.I16, PrimitiveTypeName.I16)]
         [TestCase(PrimitiveTypeName.I48, PrimitiveTypeName.U64, PrimitiveTypeName.U32)]
         [TestCase(PrimitiveTypeName.I48, PrimitiveTypeName.U48, PrimitiveTypeName.U32)]
@@ -381,9 +384,9 @@ namespace NFun.Tic.Tests.UnitTests
         [TestCase(PrimitiveTypeName.U12, PrimitiveTypeName.U8,  PrimitiveTypeName.U8)]
         public void GetFirstCommonDescedant(PrimitiveTypeName a, PrimitiveTypeName b, PrimitiveTypeName expected)
         {
-            var result = new StatePrimitive(a).GetFirstCommonDescendantOrNull(new StatePrimitive(b)).Name;
+            var result = new StatePrimitive(a).GetFirstCommonDescendantOrNull(new StatePrimitive(b))?.Name;
             Assert.AreEqual(expected, result);
-            var revresult = new StatePrimitive(b).GetFirstCommonDescendantOrNull(new StatePrimitive(a)).Name;
+            var revresult = new StatePrimitive(b).GetFirstCommonDescendantOrNull(new StatePrimitive(a))?.Name;
             Assert.AreEqual(expected, revresult);
         }
 
