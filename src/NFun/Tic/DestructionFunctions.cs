@@ -184,7 +184,7 @@ namespace NFun.Tic
         #endregion
 
         #region Finalize
-        public static FinalizationResults FinalizeUp(
+        public static TicResults FinalizeUp(
             TicNode[] toposortedNodes, 
             IEnumerable<TicNode> outputNodes, IEnumerable<TicNode> inputNodes)
         {
@@ -257,7 +257,7 @@ namespace NFun.Tic
             }
 
             SolveUselessGenerics(toposortedNodes, outputNodes, inputNodes);
-            return new FinalizationResults(typeVariables, namedNodes, syntaxNodes);
+            return new TicResults(typeVariables, namedNodes, syntaxNodes);
         }
         
         private static void SolveUselessGenerics(

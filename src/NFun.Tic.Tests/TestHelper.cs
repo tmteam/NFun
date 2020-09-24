@@ -53,7 +53,7 @@ namespace NFun.Tic.Tests
 
             }
         }
-            public static void AssertAreGenerics(this FinalizationResults result, TicNode targetGenericNode,
+            public static void AssertAreGenerics(this TicResults result, TicNode targetGenericNode,
             params string[] varNames)
         {
             foreach (var varName in varNames)
@@ -62,10 +62,10 @@ namespace NFun.Tic.Tests
             }
         }
 
-        public static TicNode AssertAndGetSingleArithGeneric(this FinalizationResults result)
+        public static TicNode AssertAndGetSingleArithGeneric(this TicResults result)
             => AssertAndGetSingleGeneric(result, StatePrimitive.U24, StatePrimitive.Real, false);
 
-        public static TicNode AssertAndGetSingleGeneric(this FinalizationResults result, StatePrimitive desc,
+        public static TicNode AssertAndGetSingleGeneric(this TicResults result, StatePrimitive desc,
             StatePrimitive anc, bool isComparable = false)
         {
             Assert.AreEqual(1, result.GenericsStates.Count(),"Incorrect generics count");
@@ -113,10 +113,10 @@ namespace NFun.Tic.Tests
             Assert.AreEqual(isComparable, generic.IsComparable,"IsComparable claim missed");
         }
 
-        public static void AssertNoGenerics(this FinalizationResults results) 
+        public static void AssertNoGenerics(this TicResults results) 
             => Assert.IsFalse(results.HasGenerics,"Unexpected generic types");
 
-        public static void AssertNamedEqualToArrayOf(this FinalizationResults results, object typeOrNode, params string[] varNames)
+        public static void AssertNamedEqualToArrayOf(this TicResults results, object typeOrNode, params string[] varNames)
         {
             foreach (var varName in varNames)
             {
@@ -135,14 +135,14 @@ namespace NFun.Tic.Tests
                 }
             }
         }
-        public static void AssertNamed(this FinalizationResults results, ITypeState type, params string[] varNames)
+        public static void AssertNamed(this TicResults results, ITypeState type, params string[] varNames)
         {
             foreach (var varName in varNames)
             {
                 Assert.AreEqual(type, results.GetVariableNode(varName).GetNonReference().State);
             }
         }
-        public static void AssertNode(this FinalizationResults results, ITypeState type, params int[] nodeIds)
+        public static void AssertNode(this TicResults results, ITypeState type, params int[] nodeIds)
         {
             foreach (var id in nodeIds)
             {
@@ -150,7 +150,7 @@ namespace NFun.Tic.Tests
             }
 
         }
-        public static void AssertNode(this FinalizationResults results, TicNode generic, params int[] nodeIds)
+        public static void AssertNode(this TicResults results, TicNode generic, params int[] nodeIds)
         {
             foreach (var id in nodeIds)
             {

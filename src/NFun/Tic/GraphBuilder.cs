@@ -365,7 +365,7 @@ namespace NFun.Tic
                 ReqPrintNode(node);
         }
        
-        public FinalizationResults Solve()
+        public TicResults Solve()
         {
             if (TraceLog.IsEnabled) {
                 PrintTrace();

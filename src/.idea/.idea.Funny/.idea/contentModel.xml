@@ -203,7 +203,6 @@
             <e p="TicException.cs" t="Include" />
             <e p="TicNoDetailsException.cs" t="Include" />
           </e>
-          <e p="FinalizationResults.cs" t="Include" />
           <e p="FunCallBuilderExtensions.cs" t="Include" />
           <e p="GraphBuilder.cs" t="Include" />
           <e p="SolvingFunctions.cs" t="Include" />
@@ -217,6 +216,7 @@
             <e p="StateRefTo.cs" t="Include" />
           </e>
           <e p="TicNode.cs" t="Include" />
+          <e p="TicResults.cs" t="Include" />
           <e p="Toposort" t="Include">
             <e p="Edge.cs" t="Include" />
             <e p="GraphTools.cs" t="Include" />

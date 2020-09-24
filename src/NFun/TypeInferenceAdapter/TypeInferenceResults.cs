@@ -1,26 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using NFun.Interpritation.Functions;
 using NFun.Tic;
 using NFun.Tic.SolvingStates;
-using NFun.TypeInferenceCalculator;
 
 namespace NFun.TypeInferenceAdapter
 {
     public class TypeInferenceResultsBuilder
     {
         readonly List<StateRefTo[]> _genericFunctionTypes = new List<StateRefTo[]>();
-        readonly List<ConstrainsState> _constrainses = new List<ConstrainsState>();
-        readonly List<IFunctionSignature> _functionSignatures = new List<IFunctionSignature>();
         readonly List<IFunctionSignature> _functionalVariable = new List<IFunctionSignature>();
         readonly List<StateFun> _recursiveCalls = new List<StateFun>();
-
         readonly Dictionary<string, StateFun> _userFunctionSignatures = new Dictionary<string, StateFun>();
 
-        private Dictionary<string, ITicNodeState> _namedNodes = null;
-        private ITicNodeState[] _syntaxNodeTypes = null;
+        private TicResults _bodyTypeSolving;
 
         public void RememberGenericCallArguments(int id, StateRefTo[] types) 
             => _genericFunctionTypes.EnlargeAndSet(id, types);
@@ -31,35 +23,20 @@ namespace NFun.TypeInferenceAdapter
             _userFunctionSignatures.TryGetValue(name, out var res);
             return res;
 ;        }
-        public IFunctionSignature GetSignatureOrNull(int id)
-        {
-            if (_functionSignatures.Count <= id)
-                return null;
-            return _functionSignatures[id];
-        }
+      
         public void RememberUserFunctionSignature(string name, StateFun signature) 
             => _userFunctionSignatures.Add(name+"'"+signature.ArgsCount, signature);
 
         public void RememberFunctionalVariable(int id, IFunctionSignature signature) 
             => _functionalVariable.EnlargeAndSet(id, signature);
 
-        public void RememberFunctionCall(int id, IFunctionSignature signature) 
-            => _functionSignatures.EnlargeAndSet(id, signature);
+        public void SetResults(TicResults bodyTypeSolving) => _bodyTypeSolving = bodyTypeSolving;
 
-        public void SetResults(FinalizationResults bodyTypeSolving)
-        {
-            _syntaxNodeTypes = bodyTypeSolving.GetSyntaxNodeStates();
-            _namedNodes      = bodyTypeSolving.GetAllNamedNodeStates();
-            _constrainses.AddRange(bodyTypeSolving.GenericsStates);
-        }
         public TypeInferenceResults Build()
         {
             return new TypeInferenceResults(
+                bodyTypeSolving:_bodyTypeSolving,
                 genericFunctionTypes: _genericFunctionTypes.ToArray(), 
-                syntaxNodeTypes: _syntaxNodeTypes, 
-                generics: _constrainses.ToArray(),
-                namedNodes: _namedNodes,
-                functionSignatures: _functionSignatures,
                 functionalVariables: _functionalVariable,
                 recursiveCalls: _recursiveCalls
                 );
@@ -70,26 +47,18 @@ namespace NFun.TypeInferenceAdapter
     }
     public class TypeInferenceResults
     {
-        private readonly Dictionary<string, ITicNodeState> _namedNodes;
-        private readonly IList<IFunctionSignature> _functions;
+        private readonly TicResults _bodyTypeSolving;
         private readonly IList<IFunctionSignature> _functionalVariables;
         private readonly IList<StateFun> _recursiveCalls;
 
         public TypeInferenceResults(
-            StateRefTo[][] genericFunctionTypes, 
-            ITicNodeState[] syntaxNodeTypes, 
-            ConstrainsState[] generics,
-            Dictionary<string, ITicNodeState> namedNodes,
-            IList<IFunctionSignature> functionSignatures,
-            IList<IFunctionSignature> functionalVariables, 
-            IList<StateFun> recursiveCalls
-            )
+            TicResults bodyTypeSolving, 
+            StateRefTo[][] genericFunctionTypes,
+            IList<IFunctionSignature> functionalVariables,
+            IList<StateFun> recursiveCalls)
         {
             GenericFunctionTypes = genericFunctionTypes;
-            SyntaxNodeTypes = syntaxNodeTypes;
-            Generics = generics;
-            _namedNodes = namedNodes;
-            _functions = functionSignatures;
+            _bodyTypeSolving = bodyTypeSolving;
             _functionalVariables = functionalVariables;
             _recursiveCalls = recursiveCalls;
         }
@@ -112,16 +81,15 @@ namespace NFun.TypeInferenceAdapter
             return _recursiveCalls[id];
         }
         public ITicNodeState[][] GenericFunctionTypes { get; }
-        public ITicNodeState[] SyntaxNodeTypes{ get; }
-        public ConstrainsState[] Generics { get; }
+        public ConstrainsState[] Generics => _bodyTypeSolving.GenericsStates;
 
         public ITicNodeState GetSyntaxNodeTypeOrNull(int id)
         {
-            if (SyntaxNodeTypes.Length <= id)
-                return null;
-            return SyntaxNodeTypes[id];
+            var node = _bodyTypeSolving.GetSyntaxNodeOrNull(id);
+            return node?.State;
         }
 
-        public ITicNodeState GetVariableType(string name) => _namedNodes[name];
+        public ITicNodeState GetVariableType(string name) 
+            => _bodyTypeSolving.GetVariableNode(name).State;
     }
 }

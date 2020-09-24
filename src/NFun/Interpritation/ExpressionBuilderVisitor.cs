@@ -231,7 +231,7 @@ namespace NFun.Interpritation
 
         public IExpressionNode Visit(ConstantSyntaxNode node)
         {
-            var type = _typesConverter.Convert(_typeInferenceResults.SyntaxNodeTypes[node.OrderNumber]);
+            var type = _typesConverter.Convert(_typeInferenceResults.GetSyntaxNodeTypeOrNull(node.OrderNumber));
             //All integer values are encoded by ulong (if it is ulong) or long otherwise
             if(node.Value is long l)
                 return ConstantExpressionNode.CreateConcrete(type, l, node.Interval);
@@ -243,7 +243,7 @@ namespace NFun.Interpritation
 
         public IExpressionNode Visit(GenericIntSyntaxNode node)
         {
-            var type = _typesConverter.Convert(_typeInferenceResults.SyntaxNodeTypes[node.OrderNumber]);
+            var type = _typesConverter.Convert(_typeInferenceResults.GetSyntaxNodeTypeOrNull(node.OrderNumber));
 
             if (node.Value is long l) 
                 return ConstantExpressionNode.CreateConcrete(type, l, node.Interval);
