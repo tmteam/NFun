@@ -64,7 +64,7 @@ namespace NFun.Tic.Toposort
             refs = null;
             concretes = null;
             var references = new List<TicNode>();
-            var concretesBuffer = new List<TicNode>();
+            var concretesBuffer = new List<TicNode>(nodes.Length);
             foreach (var node in nodes)
             {
                 if (node.State is StateRefTo refTo)
@@ -96,6 +96,7 @@ namespace NFun.Tic.Toposort
         
         private static void AppendNonReferencedToList(IList<TicNode> nodes, List<TicNode> targetList)
         {
+            targetList.Capacity = targetList.Count + nodes.Count;
             foreach (var node in nodes)
             {
                 if (node.State is StateRefTo)
@@ -186,7 +187,8 @@ namespace NFun.Tic.Toposort
             }
             return ToTwinArray(graph);
         }
-        public static Edge[][] ConvertToArrayGraph(IList<TicNode> allNodes)
+
+        private static Edge[][] ConvertToArrayGraph(IList<TicNode> allNodes)
         {
             var graph = new List<Edge>[allNodes.Count];
             for (int i = 0; i < allNodes.Count; i++)
@@ -201,8 +203,7 @@ namespace NFun.Tic.Toposort
                 if (node.State is StateRefTo)
                     throw new InvalidOperationException();
                 
-                if (graph[@from] == null)
-                    graph[@from] = new List<Edge>();
+                graph[@from] = graph[@from] ?? new List<Edge>();
 
                 foreach (var anc in node.Ancestors)
                 {
@@ -222,8 +223,7 @@ namespace NFun.Tic.Toposort
                         if (mfrom < 0)
                             continue;
 
-                        if (graph[mfrom] == null)
-                            graph[mfrom] = new List<Edge>();
+                        graph[mfrom] = graph[mfrom] ?? new List<Edge>();
                         graph[mfrom].Add(Edge.MemberOf(from));
                     }
                 }

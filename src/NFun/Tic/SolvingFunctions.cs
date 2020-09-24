@@ -147,7 +147,8 @@ namespace NFun.Tic
 
             if (ancestor == descendant)
                 return ancestor.State;
-
+            
+/*
             if (ancestor.State is StateRefTo referenceAnc)
             {
                 if (descendant.Ancestors.Contains(ancestor))
@@ -172,7 +173,7 @@ namespace NFun.Tic
 
                 ancestor.State = SetUpwardsLimits(referenceDesc.Node, ancestor);
                 return ancestor.State;
-            }
+            }*/
 
             #endregion
 

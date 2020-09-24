@@ -286,23 +286,24 @@ namespace NFun.Tic
         #endregion
         
         //todo perfomance hotspot
-        public TicNode[] Toposort()
+        private void Toposort(out TicNode[] nonReferenceOrdered, out IList<TicNode> references)
         {
             int iteration = 0;
             while (true)
             {
 
                 var allNodes = _syntaxNodes
-                    .Where(s=>s!=null)
+                    .Where(s => s != null)
                     .Concat(_variables.Values)
                     .Concat(_typeVariables)
                     .ToArray();
-                
+
                 if (iteration > allNodes.Length * allNodes.Length)
                     throw new InvalidOperationException("Infinite cycle detected. Types cannot be solved");
                 iteration++;
 
                 var result = NodeToposortFunctions.Toposort(allNodes);
+
 
                 switch (result.Status)
                 {
@@ -311,7 +312,7 @@ namespace NFun.Tic
                     {
                         var cycle = result.Order;
                         TraceLog.WriteLine("Found cycle: ", ConsoleColor.Yellow);
-                        TraceLog.WriteLine(()=>string.Join("->", cycle.Select(r => r.Name)));
+                        TraceLog.WriteLine(() => string.Join("->", cycle.Select(r => r.Name)));
 
                         //main node. every other node has to reference on it
                         SolvingFunctions.MergeGroup(cycle);
@@ -332,7 +333,9 @@ namespace NFun.Tic
                             TraceLog.WriteLine(string.Join("->", result.Order.Select(r => r.Name)));
                             TraceLog.WriteLine("Refs:" + string.Join(",", result.Refs.Select(r => r.Name)));
 #endif
-                    return result.Order.Union(result.Refs).ToArray();
+                        nonReferenceOrdered = result.Order;
+                        references = result.Refs;
+                        return;
                 }
             }
         }
@@ -369,7 +372,7 @@ namespace NFun.Tic
                 TraceLog.WriteLine();
             }
 
-            var sorted = Toposort();
+            Toposort(out var sorted, out var references);
 #if DEBUG
             if (TraceLog.IsEnabled)
             {
@@ -409,8 +412,8 @@ namespace NFun.Tic
                 TraceLog.WriteLine("Finalize");
             }
 #endif
-
-            var results = DestructionFunctions.FinalizeUp(sorted, _outputNodes, _inputNodes);
+            
+            var results = DestructionFunctions.FinalizeUp(sorted.Union(references).ToArray(), _outputNodes, _inputNodes);
 #if DEBUG
             if (TraceLog.IsEnabled)
             {

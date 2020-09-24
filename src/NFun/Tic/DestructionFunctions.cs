@@ -184,7 +184,8 @@ namespace NFun.Tic
         #endregion
 
         #region Finalize
-        public static FinalizationResults FinalizeUp(TicNode[] toposortedNodes, 
+        public static FinalizationResults FinalizeUp(
+            TicNode[] toposortedNodes, 
             IEnumerable<TicNode> outputNodes, IEnumerable<TicNode> inputNodes)
         {
             var typeVariables = new HashSet<TicNode>();
