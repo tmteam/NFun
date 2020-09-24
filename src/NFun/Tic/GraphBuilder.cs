@@ -365,7 +365,7 @@ namespace NFun.Tic
                 ReqPrintNode(node);
         }
        
-        public TicResults Solve()
+        public ITicResults Solve()
         {
             if (TraceLog.IsEnabled) {
                 PrintTrace();
@@ -401,7 +401,7 @@ namespace NFun.Tic
             if(TraceLog.IsEnabled)
                 PrintTrace();
 #endif
-            DestructionFunctions.Destruction(sorted);
+           bool allTypesAreSolved = DestructionFunctions.Destruction(sorted);
 
 #if DEBUG
             if (TraceLog.IsEnabled)
@@ -413,25 +413,13 @@ namespace NFun.Tic
             }
 #endif
             
-            var results = DestructionFunctions.FinalizeUp(sorted.Union(references).ToArray(), _outputNodes, _inputNodes);
-#if DEBUG
-            if (TraceLog.IsEnabled)
+            if (allTypesAreSolved)
+                return new TicResultsWithoutGenerics(sorted.Concat(references), sorted.Length);
+            else
             {
-
-                TraceLog.WriteLine($"Type variables: {results.TypeVariables.Count()}");
-                foreach (var typeVariable in results.TypeVariables)
-                    TraceLog.WriteLine("    " + typeVariable);
-
-                TraceLog.WriteLine($"Syntax node types: ");
-                foreach (var syntaxNode in results.SyntaxNodes.Where(s => s != null))
-                    TraceLog.WriteLine("    " + syntaxNode);
-
-                TraceLog.WriteLine($"Named node types: ");
-                foreach (var namedNode in results.NamedNodes)
-                    TraceLog.WriteLine("    " + namedNode);
+                return DestructionFunctions.FinalizeUp(sorted.Union(references).ToArray(), _outputNodes,
+                    _inputNodes);
             }
-#endif
-            return results;
         }
         private void SetCall(TicNode functionNode, int[] argThenReturnIds)
         {

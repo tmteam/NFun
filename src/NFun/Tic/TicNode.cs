@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using NFun.Tic.SolvingStates;
@@ -50,7 +52,8 @@ namespace NFun.Tic
         public TicNodeType Type { get; }
         public List<TicNode> Ancestors { get; } = new List<TicNode>();
         public bool IsMemberOfAnything { get; set; }
-        public bool IsSolved => _state is StatePrimitive || (_state as StateArray)?.IsSolved == true;
+        public bool IsSolved 
+            => _state is StatePrimitive || (_state as StateArray)?.IsSolved == true;
 
         public ITicNodeState State
         {

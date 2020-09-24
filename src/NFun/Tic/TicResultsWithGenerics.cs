@@ -1,17 +1,17 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using NFun.Tic.SolvingStates;
 
 namespace NFun.Tic
 {
-    public class TicResults
+    public class TicResultsWithGenerics : ITicResults
     {
         private readonly HashSet<TicNode> _typeVariables;
 
         private readonly IList<TicNode> _namedNodes;
 
         private readonly IList<TicNode> _syntaxNodes;
-        public TicResults(HashSet<TicNode> typeVariables, IList<TicNode> namedNodes, IList<TicNode> syntaxNodes)
+        public TicResultsWithGenerics(HashSet<TicNode> typeVariables, IList<TicNode> namedNodes, IList<TicNode> syntaxNodes)
         {
             _typeVariables = typeVariables;
             _namedNodes = namedNodes;

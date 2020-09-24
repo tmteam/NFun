@@ -12,7 +12,7 @@ namespace NFun.TypeInferenceAdapter
         readonly List<StateFun> _recursiveCalls = new List<StateFun>();
         readonly Dictionary<string, StateFun> _userFunctionSignatures = new Dictionary<string, StateFun>();
 
-        private TicResults _bodyTypeSolving;
+        private ITicResults _bodyTypeSolving;
 
         public void RememberGenericCallArguments(int id, StateRefTo[] types) 
             => _genericFunctionTypes.EnlargeAndSet(id, types);
@@ -30,7 +30,7 @@ namespace NFun.TypeInferenceAdapter
         public void RememberFunctionalVariable(int id, IFunctionSignature signature) 
             => _functionalVariable.EnlargeAndSet(id, signature);
 
-        public void SetResults(TicResults bodyTypeSolving) => _bodyTypeSolving = bodyTypeSolving;
+        public void SetResults(ITicResults bodyTypeSolving) => _bodyTypeSolving = bodyTypeSolving;
 
         public TypeInferenceResults Build()
         {
@@ -47,12 +47,12 @@ namespace NFun.TypeInferenceAdapter
     }
     public class TypeInferenceResults
     {
-        private readonly TicResults _bodyTypeSolving;
+        private readonly ITicResults _bodyTypeSolving;
         private readonly IList<IFunctionSignature> _functionalVariables;
         private readonly IList<StateFun> _recursiveCalls;
 
         public TypeInferenceResults(
-            TicResults bodyTypeSolving, 
+            ITicResults bodyTypeSolving, 
             StateRefTo[][] genericFunctionTypes,
             IList<IFunctionSignature> functionalVariables,
             IList<StateFun> recursiveCalls)

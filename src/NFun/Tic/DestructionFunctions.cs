@@ -11,7 +11,7 @@ namespace NFun.Tic
     {
         #region Destructiont
 
-        public static void Destruction(TicNode[] toposorteNodes)
+        public static bool Destruction(TicNode[] toposorteNodes)
         {
             void Destruction(TicNode node)
             {
@@ -32,13 +32,17 @@ namespace NFun.Tic
                 }
             }
 
+            int notSolvedCount = 0;
             for (int i = toposorteNodes.Length - 1; i >= 0; i--)
             {
                 var descendant = toposorteNodes[i];
                 if (descendant.IsMemberOfAnything)
                     continue;
                 Destruction(descendant);
+                if (!descendant.IsSolved)
+                    notSolvedCount++;
             }
+            return notSolvedCount == 0;
         }
 
         public static void TryMergeDestructive(TicNode descendantNode, TicNode ancestorNode)
@@ -58,8 +62,6 @@ namespace NFun.Tic
             var originDes = nonRefDescendant.ToString();
             TraceLog.WriteLine(()=>$"-dm: {originAnc} => {originDes}");
 #endif
-
-
             switch (nonRefAncestor.State)
             {
                 case StatePrimitive concreteAnc:
@@ -184,7 +186,7 @@ namespace NFun.Tic
         #endregion
 
         #region Finalize
-        public static TicResults FinalizeUp(
+        public static ITicResults FinalizeUp(
             TicNode[] toposortedNodes, 
             IEnumerable<TicNode> outputNodes, IEnumerable<TicNode> inputNodes)
         {
@@ -234,6 +236,7 @@ namespace NFun.Tic
                 }
             }
 
+            int genericNodesCount = 0;
             for (int i = toposortedNodes.Length - 1; i >= 0; i--)
             {
                 var node = toposortedNodes[i];
@@ -250,14 +253,16 @@ namespace NFun.Tic
                 if (node.Type == TicNodeType.Named)
                     namedNodes.Add(node);
                 else if (node.Type == TicNodeType.SyntaxNode)
-                {
-                    var nodeId = (int)node.Name;
-                    syntaxNodes.EnlargeAndSet(nodeId, node);
-                }
-            }
+                    syntaxNodes.EnlargeAndSet((int)node.Name, node);
 
+                if (!node.IsSolved)
+                    genericNodesCount++;
+            }
+            if (genericNodesCount == 0)
+                return new TicResultsWithoutGenerics(namedNodes, syntaxNodes);
+            
             SolveUselessGenerics(toposortedNodes, outputNodes, inputNodes);
-            return new TicResults(typeVariables, namedNodes, syntaxNodes);
+            return new TicResultsWithGenerics(typeVariables, namedNodes, syntaxNodes);
         }
         
         private static void SolveUselessGenerics(

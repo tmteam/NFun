@@ -183,7 +183,7 @@ namespace NFun.Interpritation
             ////introduce function variable
             var graphBuider = new GraphBuilder();
             var resultsBuilder = new TypeInferenceResultsBuilder();
-            TicResults types;
+            ITicResults types;
 
             try
             {
