@@ -94,7 +94,7 @@ namespace Nfun.CompareToOthers
             PrintResult(formula, m1, m2);
         }
 
-        private static TimeSpan Measure(Action a) => BenchHelper.Measure(a, Iterations);
+        private static TimeSpan Measure(Action a) => BenchHelper.Measure(a, Iterations, out _);
 
         private static void PrintResult(string formula, TimeSpan m1, TimeSpan m2)
         {

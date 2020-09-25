@@ -38,13 +38,13 @@ namespace Nfun.CompareToOthers
             Action calcFun   = () => funrt.Calculate();
             
             Console.WriteLine("Heating");
-            BenchHelper.Measure(buildEva,batchIterations);
-            BenchHelper.Measure(buildLambda,batchIterations);
-            BenchHelper.Measure(buildFun,  batchIterations);
-            BenchHelper.Measure(calcEva,batchIterations);
-            BenchHelper.Measure(calcLambda,batchIterations);
-            BenchHelper.Measure(calcFun,  batchIterations);
-            BenchHelper.Measure(buildNCalcPy,  batchIterations);
+            BenchHelper.Measure(buildEva,batchIterations, out _);
+            BenchHelper.Measure(buildLambda,batchIterations, out _);
+            BenchHelper.Measure(buildFun,  batchIterations, out _);
+            BenchHelper.Measure(calcEva,batchIterations, out _);
+            BenchHelper.Measure(calcLambda,batchIterations, out _);
+            BenchHelper.Measure(calcFun,  batchIterations, out _);
+            BenchHelper.Measure(buildNCalcPy,  batchIterations, out _);
 
             
             var evaluateTs = TimeSpan.Zero;
@@ -54,42 +54,35 @@ namespace Nfun.CompareToOthers
             var calcEvaluateTs = TimeSpan.Zero;
             var calcLambdaTs   = TimeSpan.Zero;
             var calcFunTs      = TimeSpan.Zero;
-            var bcPy           = TimeSpan.Zero;
-
+            var bcPyTs           = TimeSpan.Zero;
+            
             Console.WriteLine("Iterating");
             int i = 0;
             while (true)
             {
                 i++;
-                GC.Collect(0);
-                evaluateTs    += BenchHelper.Measure(buildEva,batchIterations);
-                GC.Collect(0);
-                lambdaTs      += BenchHelper.Measure(buildLambda,batchIterations);
-                GC.Collect(0);
-                funTs         += BenchHelper.Measure(buildFun,  batchIterations);
-                GC.Collect(0);
-                calcEvaluateTs+= BenchHelper.Measure(calcEva,batchIterations);
-                GC.Collect(0);
-                calcLambdaTs  += BenchHelper.Measure(calcLambda,batchIterations);
-                GC.Collect(0);
-                calcFunTs     += BenchHelper.Measure(calcFun,  batchIterations);
-                GC.Collect(0);
-                bcPy          += BenchHelper.Measure(buildNCalcPy, batchIterations);
+                evaluateTs    += BenchHelper.Measure(buildEva,batchIterations, out var evaluateAlloc);
+                lambdaTs      += BenchHelper.Measure(buildLambda,batchIterations,out var lambdaAlloc);
+                funTs         += BenchHelper.Measure(buildFun,  batchIterations,out var funAlloc);
+                calcEvaluateTs+= BenchHelper.Measure(calcEva,batchIterations,out var calcEvaluateAlloc);
+                calcLambdaTs  += BenchHelper.Measure(calcLambda,batchIterations,out var calcLambdaAlloc);
+                calcFunTs     += BenchHelper.Measure(calcFun,  batchIterations,out var calcFunAlloc);
+                bcPyTs          += BenchHelper.Measure(buildNCalcPy, batchIterations,out var bcPyAlloc);
                 if (i > batchCount)
                 {
                     i = 0;
                     Console.Clear();
                     Console.WriteLine($"{batchCount} iterations done");                    
-                    Console.WriteLine($"build nfun:     {funTs.TotalMilliseconds}");
-                    Console.WriteLine($"build evaluate: {evaluateTs.TotalMilliseconds}");
-                    Console.WriteLine($"build lambda:   {lambdaTs.TotalMilliseconds}");
+                    Console.WriteLine($"build nfun:     {funTs.TotalMilliseconds}   {funAlloc}");
+                    Console.WriteLine($"build evaluate: {evaluateTs.TotalMilliseconds}    {evaluateAlloc}");
+                    Console.WriteLine($"build lambda:   {lambdaTs.TotalMilliseconds}   {lambdaAlloc}");
 
-                    Console.WriteLine($"calc nfun:     {calcFunTs.TotalMilliseconds}");
-                    Console.WriteLine($"calc evaluate: {calcEvaluateTs.TotalMilliseconds}");
-                    Console.WriteLine($"calc lambda:   {calcLambdaTs.TotalMilliseconds}");
+                    Console.WriteLine($"calc nfun:     {calcFunTs.TotalMilliseconds}   {calcFunAlloc}");
+                    Console.WriteLine($"calc evaluate: {calcEvaluateTs.TotalMilliseconds}   {calcEvaluateAlloc}");
+                    Console.WriteLine($"calc lambda:   {calcLambdaTs.TotalMilliseconds}   {calcLambdaAlloc}");
             
-                    Console.WriteLine($"python     :   {bcPy.TotalMilliseconds}");
-                    funTs = evaluateTs = lambdaTs = calcFunTs = calcEvaluateTs = calcLambdaTs = bcPy = TimeSpan.Zero;
+                    Console.WriteLine($"python     :   {bcPyTs.TotalMilliseconds}    {bcPyAlloc}");
+                    funTs = evaluateTs = lambdaTs = calcFunTs = calcEvaluateTs = calcLambdaTs = bcPyTs = TimeSpan.Zero;
                 }
             }
 
