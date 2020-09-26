@@ -14,8 +14,4 @@ namespace NFun.BuiltInFunctions
         public override object Calc(object a) =>
             ((IFunArray)a).As<double>().Average();
     }
-
-
-
-    
 }

@@ -11,7 +11,8 @@ namespace NFun.SyntaxParsing.SyntaxNodes
         public int OrderNumber { get; set; }
         public VarType ReturnType { get; }
         public FunCallSyntaxNode Head { get; }
-
+        
+        public bool IsRecursive { get; set; } = true;
         public UserFunctionDefenitionSyntaxNode(
             IList<TypedVarDefSyntaxNode> arguments, 
             FunCallSyntaxNode headNode, 

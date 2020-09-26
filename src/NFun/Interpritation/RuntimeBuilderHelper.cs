@@ -51,6 +51,7 @@ namespace NFun.Interpritation
                 functionSyntax.Args.Select(a => a.Id));
 
             var function = ConcreteUserFunction.Create(
+                isRecursive: functionSyntax.IsRecursive,
                 name: functionSyntax.Id,
                 variables: vars.GetAllSources().ToArray(),
                 isReturnTypeStrictlyTyped: functionSyntax.ReturnType != VarType.Empty,
@@ -122,7 +123,7 @@ namespace NFun.Interpritation
         {
             var userFunctions = syntaxTree.Children.OfType<UserFunctionDefenitionSyntaxNode>().ToArray();
             if(userFunctions.Length==0)
-                return new UserFunctionDefenitionSyntaxNode[0];
+                return userFunctions;
             
             var userFunctionsNames = new Dictionary<string, int>();
             int i = 0;
@@ -139,9 +140,12 @@ namespace NFun.Interpritation
             int j = 0;
             foreach (var userFunction in userFunctions)
             {
-                var visitor = new FindFunctionDependenciesVisitor(userFunctionsNames);
+                var visitor = new FindFunctionDependenciesVisitor(userFunction.GetFunAlias(), userFunctionsNames);
                 if (!userFunction.ComeOver(visitor))
                     throw new InvalidOperationException("User fun come over");
+                
+                userFunction.IsRecursive = visitor.HasSelfRecursion;
+
                 dependenciesGraph[j] = visitor.GetFoundDependencies();
                 j++;
             }
@@ -150,7 +154,10 @@ namespace NFun.Interpritation
 
             var functionSolveOrder = new UserFunctionDefenitionSyntaxNode[sortResults.NodeNames.Length];
             for (int k = 0; k < sortResults.NodeNames.Length; k++)
-                functionSolveOrder[k] = userFunctions[sortResults.NodeNames[k]];
+            {
+                var id = sortResults.NodeNames[k];
+                functionSolveOrder[k] = userFunctions[id];
+            }
             
             if (sortResults.HasCycle)
                 //if functions has cycle, then function sovle order is cycled

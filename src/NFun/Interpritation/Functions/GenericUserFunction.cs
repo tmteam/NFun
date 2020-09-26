@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tic.SolvingStates;
 using NFun.TypeInferenceAdapter;
-using NFun.TypeInferenceCalculator;
 using NFun.Types;
 
 namespace NFun.Interpritation.Functions

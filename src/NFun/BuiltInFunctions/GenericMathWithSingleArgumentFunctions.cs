@@ -28,7 +28,6 @@ namespace NFun.BuiltInFunctions
         {
             public RealFunction() : base(CoreFunNames.Negate, VarType.Real, VarType.Real) { }
 
-            public object Calc(object a, object b) => -((double)a);
             public override object Calc(object a) => -(double) a;
         }
         public class Int16Function : FunctionWithTwoArgs

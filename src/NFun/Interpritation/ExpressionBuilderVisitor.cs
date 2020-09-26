@@ -370,6 +370,7 @@ namespace NFun.Interpritation
                 _variables.TryAdd(newVar); //add full usage info to allow analyze outer errors
 
             var fun = ConcreteUserFunction.Create(
+                isRecursive: false,
                 name: "anonymous",
                 variables: arguments,
                 isReturnTypeStrictlyTyped: false,
