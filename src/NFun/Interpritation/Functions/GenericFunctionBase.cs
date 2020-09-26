@@ -100,7 +100,8 @@ namespace NFun.Interpritation.Functions
     public abstract class GenericFunctionBase: IGenericFunction
     {
         public GenericConstrains[] GenericDefenitions { get; }
-        protected readonly int _maxGenericId;
+        
+        private readonly int _maxGenericId;
         public string Name { get; }
         public VarType[] ArgTypes { get; }
 

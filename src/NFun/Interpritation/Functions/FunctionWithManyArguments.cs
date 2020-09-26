@@ -52,9 +52,14 @@ namespace NFun.Interpritation.Functions
             ArgTypes = argTypes;
             ReturnType = returnType;
         }
-        public string Name { get; }
-        public VarType[] ArgTypes { get; }
-        public VarType ReturnType { get; }
+
+        internal FunctionWithTwoArgs()
+        {
+            
+        }
+        public string Name { get; internal set; }
+        public VarType[] ArgTypes { get;internal set; }
+        public VarType ReturnType { get; internal set;}
         public abstract object Calc(object a, object b);
 
         public object Calc(object[] parameters) => Calc(parameters[0], parameters[1]);

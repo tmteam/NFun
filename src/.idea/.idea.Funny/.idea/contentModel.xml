@@ -75,7 +75,8 @@
           <e p="ComparationFunctions.cs" t="Include" />
           <e p="ConvertFunction.cs" t="Include" />
           <e p="CoreFunNames.cs" t="Include" />
-          <e p="GenericMathFunctions.cs" t="Include" />
+          <e p="GenericMathWithSingleArgumentFunctions.cs" t="Include" />
+          <e p="GenericMathWithTwoArgsFunctions.cs" t="Include" />
           <e p="RealMathFunctions.cs" t="Include" />
           <e p="TextFunctions.cs" t="Include" />
         </e>
