@@ -4,12 +4,27 @@ using System.Linq.Expressions;
 using BenchmarkDotNet.Attributes;
 using NFun;
 using NFun.Interpritation;
+using NFun.Runtime;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
 
 namespace Nfun.Benchmarks
 {
+    public class SimplestArithmCalcBenchmark
+    {
+        private string _expression;
+        private FunRuntime _runtime;
+        [GlobalSetup]
+        public void Setup()
+        {
+            _expression = "(4 * 12 / 7) + ((9 * 2) / 8)";
+            _runtime = FunBuilder.Build(_expression);
+        }
+        [Benchmark]
+        public void Update() => _runtime.Update();
+        //public void Calculate() => _runtime.Update();
+    }
     public class NfunParserBenchmark
     {
         private FunctionDictionary _dictionary;
