@@ -15,14 +15,34 @@ namespace Nfun.Benchmarks
     {
         private string _expression;
         private FunRuntime _runtime;
+        private FunBuilderWithDictionary _builder;
+
         [GlobalSetup]
         public void Setup()
         {
             _expression = "(4 * 12 / 7) + ((9 * 2) / 8)";
             _runtime = FunBuilder.Build(_expression);
+            _builder = FunBuilder
+                .With(_expression)
+                .With(BaseFunctions.CreateDefaultDictionary());
+            
         }
-        [Benchmark]
-        public void Update() => _runtime.Update();
+
+        [Benchmark()]
+        public void Build() => _builder.Build();
+
+        [Benchmark()]
+        public void Calc10000()
+        {
+            for (int i = 0; i < 10000; i++)
+            {
+                _runtime.Calculate();
+            }
+        }
+
+        [Benchmark()]
+        public void Update1() => _runtime.Update();
+
         //public void Calculate() => _runtime.Update();
     }
     public class NfunParserBenchmark
