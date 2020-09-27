@@ -15,7 +15,7 @@ namespace NFun.Types
         {
             var baseType = ToVarType(typeof(T));
             var vartype = VarType.ArrayOf(baseType);
-            return new VarVal(name, new ImmutableFunArray(value), vartype);
+            return new VarVal(name, new ImmutableFunArray(value, baseType), vartype);
         }
         public static VarVal New<T>(string name, IEnumerable<T> value)
         {
@@ -24,7 +24,7 @@ namespace NFun.Types
             if (value is IFunArray a)
                 return  new VarVal(name, a, vartype);
             else
-                return new VarVal(name, new ImmutableFunArray(value.ToArray()), vartype);
+                return new VarVal(name, new ImmutableFunArray(value.ToArray(),baseType), vartype);
         }
 
         public static VarVal New(string name, object value)

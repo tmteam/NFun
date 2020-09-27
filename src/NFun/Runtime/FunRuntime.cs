@@ -38,7 +38,10 @@ namespace NFun.Runtime
                 if (value is string str)
                     v = new TextFunArray(str);
                 else if (value is Array arr)
-                    v = new ImmutableFunArray(arr);
+                {
+                    throw new NotImplementedException();
+                    v = new ImmutableFunArray(arr,VarType.Anything);
+                }
                 else
                     v = value;
 

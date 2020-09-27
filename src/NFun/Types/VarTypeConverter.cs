@@ -125,7 +125,7 @@ namespace NFun.Types
                         array[index] = elementConverter(e);
                         index++;
                     }
-                    return new ImmutableFunArray(array);
+                    return new ImmutableFunArray(array, to.ArrayTypeSpecification.VarType);
                 };
             }
             return null;

@@ -50,25 +50,43 @@ namespace NFun.BuiltInFunctions
         protected override object Calc(object a)
             => ((IFunArray)a).Count;
     }
-    public class MapFunction : GenericFunctionWithTwoArguments
+    public class MapFunction : GenericFunctionBase
     {
         public MapFunction() : base("map",
             VarType.ArrayOf(VarType.Generic(1)),
+            
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.Fun(VarType.Generic(1), VarType.Generic(0)))
         {
         }
-
-        protected override object Calc(object a, object b)
+        public override IConcreteFunction CreateConcrete(VarType[] concreteTypesMap)
         {
-            var arr = (IFunArray)a;
+            var res = new ConcreteMap
+            {
+                Name = Name,
+                ArgTypes = new[]
+                {
+                    VarType.ArrayOf(concreteTypesMap[0]),
+                    VarType.Fun(concreteTypesMap[1], concreteTypesMap[0])
+                },
+                ReturnType = VarType.ArrayOf(concreteTypesMap[1])
+            };
+            return res;
+        }
+
+        class ConcreteMap: FunctionWithTwoArgs
+        {
+            public override object Calc(object a, object b)
+            {
+                var arr = (IFunArray)a;
+                var type = ReturnType.ArrayTypeSpecification.VarType;            
+                if(b is FunctionWithSingleArg mapFunc)
+                    return new EnumerableFunArray(arr.Select(e=>mapFunc.Calc(e)),type);
             
-            if(b is FunctionWithSingleArg mapFunc)
-                return new EnumerableFunArray(arr.Select(e=>mapFunc.Calc(e)));
-            
-            var map = (IConcreteFunction)b;
+                var map = (IConcreteFunction)b;
                 
-            return new EnumerableFunArray(arr.Select(e => map.Calc(new[] { e })));
+                return new EnumerableFunArray(arr.Select(e => map.Calc(new[] { e })),type);
+            }
         }
     }
     public class IsInSingleGenericFunctionDefenition : GenericFunctionBase
@@ -127,7 +145,7 @@ namespace NFun.BuiltInFunctions
             
             var arr = funArray.As<IComparable>().ToArray();
             Array.Sort(arr);
-            return new ImmutableFunArray(arr);
+            return new ImmutableFunArray(arr, funArray.ElementType);
         }
     }
     public class MedianFunction : GenericFunctionBase
@@ -312,7 +330,7 @@ namespace NFun.BuiltInFunctions
                     for (var i = start; i >= end; i -= 1)
                         result.Add(i);
                 
-                return new ImmutableFunArray(result.ToArray());
+                return new ImmutableFunArray(result.ToArray(), VarType.Int16);
             }
         }
         class Int32Function : FunctionWithTwoArgs
@@ -719,9 +737,10 @@ namespace NFun.BuiltInFunctions
                 throw new FunRuntimeException("Argument out of range");
             var val = args[2];
 
-            var newArr = arr.ClrArray;
+            var newArr = new object[arr.ClrArray.Length];
+             arr.ClrArray.CopyTo(newArr,0);
             newArr.SetValue(val, index);
-            return new ImmutableFunArray(newArr);
+            return new ImmutableFunArray(newArr,arr.ElementType);
         }
     }
     public class FindGenericFunctionDefenition : GenericFunctionWithTwoArguments
@@ -762,12 +781,14 @@ namespace NFun.BuiltInFunctions
             var chunkSize = ((int)b);
             if(chunkSize<=0)
                 throw new FunRuntimeException("Chunk size is "+chunkSize+". It has to be positive");
-
+            
+            var originInputType = VarType.ArrayOf(arr.ElementType);
+            
             var res = arr
                 .Select((x, i) => new {Index = i, Value = x})
                 .GroupBy(x => x.Index / chunkSize)
-                .Select(x => new EnumerableFunArray(x.Select(v => v.Value)));
-            return new EnumerableFunArray(res);
+                .Select(x => new EnumerableFunArray(x.Select(v => v.Value),originInputType));
+            return new EnumerableFunArray(res, VarType.ArrayOf(originInputType));
         }
     }
     public class FlatGenericFunctionDefenition : GenericFunctionWithSingleArgument
@@ -781,7 +802,9 @@ namespace NFun.BuiltInFunctions
         protected override object Calc(object a)
         {
             var arr = (IFunArray)a;
-            return new EnumerableFunArray(arr.SelectMany(o => (IFunArray) o));
+            var originInputType = arr.ElementType.ArrayTypeSpecification.VarType;
+
+            return new EnumerableFunArray(arr.SelectMany(o => (IFunArray) o),originInputType);
         }
     }
 
@@ -844,7 +867,7 @@ namespace NFun.BuiltInFunctions
         {
             var arr1 = (IFunArray)a;
             var arr2 = (IFunArray)b;
-            return new EnumerableFunArray(arr1.Union(arr2));
+            return new EnumerableFunArray(arr1.Union(arr2),arr1.ElementType);
         }
     }
     public class UniqueGenericFunctionDefenition : GenericFunctionWithTwoArguments
@@ -860,7 +883,7 @@ namespace NFun.BuiltInFunctions
         {
             var arr1 = (IFunArray)a;
             var arr2 = (IFunArray)b;
-            return new EnumerableFunArray(arr1.Except(arr2).Concat(arr2.Except(arr1)));
+            return new EnumerableFunArray(arr1.Except(arr2).Concat(arr2.Except(arr1)),arr1.ElementType);
         }
     }
     public class IntersectGenericFunctionDefenition : GenericFunctionWithTwoArguments
@@ -876,7 +899,7 @@ namespace NFun.BuiltInFunctions
         {
             var arr1 = (IFunArray)a;
             var arr2 = (IFunArray)b;
-            return new EnumerableFunArray(arr1.Intersect(arr2));
+            return new EnumerableFunArray(arr1.Intersect(arr2),arr1.ElementType);
         }
     }
     public class ConcatArraysGenericFunctionDefenition : GenericFunctionWithTwoArguments
@@ -892,7 +915,7 @@ namespace NFun.BuiltInFunctions
         {
             var arr1 = (IFunArray)a;
             var arr2 = (IFunArray)b;
-            var res = new EnumerableFunArray(arr1.Concat(arr2));
+            var res = new EnumerableFunArray(arr1.Concat(arr2),arr1.ElementType);
             return res;
         }
     }
@@ -910,7 +933,7 @@ namespace NFun.BuiltInFunctions
         {
             var arr1 = (IFunArray)a;
             var arr2 = b;
-            var res = new EnumerableFunArray(arr1.Append(arr2));
+            var res = new EnumerableFunArray(arr1.Append(arr2),arr1.ElementType);
             return res;
         }
     }
@@ -928,7 +951,7 @@ namespace NFun.BuiltInFunctions
         {
             var arr1 = (IFunArray)a;
             var arr2 = (IFunArray)b;
-            return new EnumerableFunArray(arr1.Except(arr2));
+            return new EnumerableFunArray(arr1.Except(arr2),arr1.ElementType);
         }
     }
 
@@ -1011,13 +1034,13 @@ namespace NFun.BuiltInFunctions
         {
             var arr    = (IFunArray)a;
             if(b is FunctionWithSingleArg predicate)
-                return new EnumerableFunArray(arr.Where(e=>(bool)predicate.Calc(e)));
+                return new EnumerableFunArray(arr.Where(e=>(bool)predicate.Calc(e)),arr.ElementType);
             var filter = (IConcreteFunction)b;
             
-            return new EnumerableFunArray(arr.Where(e=>(bool)filter.Calc(new []{e})));
+            return new EnumerableFunArray(arr.Where(e=>(bool)filter.Calc(new []{e})),arr.ElementType);
         }
     }
-    public class RepeatGenericFunctionDefenition : GenericFunctionWithTwoArguments
+    public class RepeatGenericFunctionDefenition : GenericFunctionBase
     {
         public RepeatGenericFunctionDefenition() : base("repeat",
             VarType.ArrayOf(VarType.Generic(0)), 
@@ -1026,8 +1049,22 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        protected override object Calc(object a, object b) 
-            => new EnumerableFunArray(Enumerable.Repeat(a, (int)b));
+        public override IConcreteFunction CreateConcrete(VarType[] concreteTypesMap)
+        {
+            var res = new ConcreteRepeat
+            {
+                Name = Name,
+                ArgTypes = new[] {concreteTypesMap[0], VarType.Int32,},
+                ReturnType = VarType.ArrayOf(concreteTypesMap[0])
+            };
+            return res;
+        }
+
+        class ConcreteRepeat: FunctionWithTwoArgs
+        {
+            public override object Calc(object a, object b) 
+                => new EnumerableFunArray(Enumerable.Repeat(a, (int)b), this.ArgTypes[0]);
+        }
     }
     public class ReverseGenericFunctionDefenition: GenericFunctionWithSingleArgument
     {
@@ -1040,7 +1077,7 @@ namespace NFun.BuiltInFunctions
         protected override object Calc(object a)
         {
             var arr  = (IFunArray) a;
-            return new EnumerableFunArray(arr.Reverse());
+            return new EnumerableFunArray(arr.Reverse(),arr.ElementType);
         }
     }
     public class TakeGenericFunctionDefenition: GenericFunctionWithTwoArguments

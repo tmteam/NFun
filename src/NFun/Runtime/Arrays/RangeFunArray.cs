@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace NFun.Runtime.Arrays
 {
-    public class RangeFunArray : IFunArray
+   /* public class RangeFunArray : IFunArray
     {
         private readonly int _start;
         private readonly int _count;
@@ -63,5 +63,5 @@ namespace NFun.Runtime.Arrays
         }
 
         public string ToText() => ArrayTools.JoinElementsToFunString(ClrArray);
-    }
+    }*/
 }

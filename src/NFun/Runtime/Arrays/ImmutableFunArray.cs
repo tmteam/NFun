@@ -9,21 +9,38 @@ namespace NFun.Runtime.Arrays
 {
     public class ImmutableFunArray: IFunArray
     {
-        public static ImmutableFunArray By(IEnumerable<object> values) 
-            => new ImmutableFunArray(values.ToArray());
-
-        private readonly Array _values;
+        public VarType ElementType { get; }
+        private Array _values;
         private int _hash = 0;
       
-        public ImmutableFunArray(Array values)
+        public ImmutableFunArray(object[] values):this(values, VarType.Anything) {}
+        public ImmutableFunArray(bool[] values):this(values, VarType.Bool) {}
+        public ImmutableFunArray(byte[] values):this(values, VarType.UInt8) {}
+        public ImmutableFunArray(ushort[] values):this(values, VarType.UInt16) {}
+        public ImmutableFunArray(uint[] values):this(values, VarType.UInt32) {}
+        public ImmutableFunArray(ulong[] values):this(values, VarType.UInt64) {}
+        public ImmutableFunArray(short[] values):this(values, VarType.Int16) {}
+        public ImmutableFunArray(int[] values):this(values, VarType.Int32) {}
+        public ImmutableFunArray(long[] values):this(values, VarType.Int64) {}
+        public ImmutableFunArray(double[] values) : this(values, VarType.Real) { }
+
+        public ImmutableFunArray(Array values, VarType elementType)
         {
+            ElementType = elementType;
             _values = values;
             Count = _values.Length;
         }
-        public ImmutableFunArray(params ImmutableFunArray[] values)
+        /*public ImmutableFunArray(params ImmutableFunArray[] values)
         {
             _values = values;
             Count = _values.Length;
+        }*/
+        
+        public ImmutableFunArray(VarType elementType, params ImmutableFunArray[] values)
+        {
+            _values = values;
+            Count = _values.Length;
+            ElementType = elementType;
         }
         
         public int Count { get; }
@@ -39,9 +56,16 @@ namespace NFun.Runtime.Arrays
         public Array ClrArray => _values;
         public string ToText()
         {
-            if (ClrArray is char[] str)
+            if (_values is char[] str)
                 return new string(str);
-            
+            if (ElementType == VarType.Char)
+            {
+                var newArray = new char[_values.Length];
+                ClrArray.CopyTo(newArray,0);
+                _values = newArray;
+                return new string(newArray);
+            }
+
             return ArrayTools.JoinElementsToFunString(_values);
         }
 
@@ -54,7 +78,7 @@ namespace NFun.Runtime.Arrays
         IEnumerator IEnumerable.GetEnumerator() => _values.GetEnumerator();
 
         public IFunArray Slice(int? startIndex, int? endIndex, int? step) =>
-            ArrayTools.SliceToImmutable(_values, startIndex, endIndex, step);
+            ArrayTools.SliceToImmutable(_values, ElementType, startIndex, endIndex, step);
 
         public object GetElementOrNull(int index) => index >= _values.Length ? null : _values.GetValue(index);
 

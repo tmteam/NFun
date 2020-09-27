@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using NFun;
 using NFun.Interpritation.Functions;
@@ -20,7 +21,7 @@ namespace Funny.Tests
                 .With($"y = {customName}('{arg}')")
                 .WithFunctions(
                 new FunctionMock(
-                    args => (args.GetTextOrThrow(0)).Length, 
+                    args => ((IFunArray)args[0]).Count, 
                     customName, 
                     VarType.Int32, 
                     VarType.Text)).Build();
@@ -39,8 +40,8 @@ namespace Funny.Tests
                 .With($"y = {customName}({arg})")
                 .WithFunctions(
                     new GenericFunctionMock(
-                        args => ImmutableFunArray.By(((ImmutableFunArray)args[0])
-                            .Where((_, i) => i % 2 == 0)),
+                        args => new EnumerableFunArray(((IEnumerable<object>)args[0])
+                            .Where((_, i) => i % 2 == 0), VarType.Anything),
                         customName,
                         VarType.ArrayOf(VarType.Generic(0)),
                         VarType.ArrayOf(VarType.Generic(0))))

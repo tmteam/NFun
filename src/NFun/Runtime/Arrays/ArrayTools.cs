@@ -10,7 +10,7 @@ namespace NFun.Runtime.Arrays
 {
     public static class ArrayTools
     {
-        public static readonly ImmutableFunArray Empty = new ImmutableFunArray(new object[0]);
+        public static readonly ImmutableFunArray Empty = new ImmutableFunArray(new object[0], VarType.Anything);
         public static TextFunArray AsFunText(this  string txt)=> new TextFunArray(txt);
         public static string JoinElementsToFunString(IEnumerable enumerable)
         {
@@ -62,14 +62,17 @@ namespace NFun.Runtime.Arrays
             sb.Append("]");
             return sb.ToString();
         }
-        public static IFunArray SliceToImmutable(this System.Array array, int? startIndex, int? endIndex, int? step)
+        public static IFunArray SliceToImmutable(
+            Array array,
+            VarType elementType,
+            int? startIndex, int? endIndex, int? step)
         {
             if (array.Length == 0)
-                return new ImmutableFunArray(array);
+                return new ImmutableFunArray(array,elementType);
             
             var start = startIndex ?? 0;
             if(start > array.Length-1) 
-                return Empty;
+                return new ImmutableFunArray(new Object[0], elementType);
             
             var end = array.Length - 1;
             if(endIndex.HasValue)
@@ -88,7 +91,7 @@ namespace NFun.Runtime.Arrays
                 for (int i = start, index = 0; i <= end; i+= step.Value, index++)
                     newArr[index] = array.GetValue(i);
             }
-            return new ImmutableFunArray(newArr);
+            return new ImmutableFunArray(newArr,elementType);
         }   
     }
 }

@@ -54,7 +54,7 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var template = args.GetTextOrThrow(0);
+            var template = ((IFunArray)args[0]).ToText();
             var formatArguments = (IFunArray) args[1];
             var result = string.Format(template, formatArguments);
             return new TextFunArray(result);
@@ -95,7 +95,7 @@ namespace NFun.BuiltInFunctions
                 TypeHelper.GetFunText(a)
                     .Split( new[] {TypeHelper.GetFunText(b)}, StringSplitOptions.RemoveEmptyEntries)
                     .Select(s=>new TextFunArray(s))
-                    .ToArray());
+                    .ToArray(), VarType.Text);
     }
     
     
