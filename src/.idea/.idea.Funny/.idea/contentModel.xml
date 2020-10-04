@@ -121,7 +121,6 @@
           <e p="RuntimeBuilderHelper.cs" t="Include" />
           <e p="ScopeFunctionDictionary.cs" t="Include" />
         </e>
-        <e p="Jet" t="Include" />
         <e p="NFun.0.7.1.nupkg" t="Include" />
         <e p="NFun.0.8.0.nupkg" t="Include" />
         <e p="NFun.0.8.1.nupkg" t="Include" />
