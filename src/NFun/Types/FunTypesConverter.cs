@@ -17,12 +17,17 @@ namespace NFun.Types
             if (clrType.IsArray)
             {
                 var elementType = clrType.GetElementType();
-                if(elementType == typeof(char))
-                    converter =  new StringFunTypesConverter();
-                if(TryGetSpecificConverter(elementType, out var elementConverter))
-                    converter = new ArrayFunTypesComplexConverter(elementConverter);
+                if (elementType == typeof(object)) {
+                    //if type is object than we can convert objects only at runtime
+                    //
+                    converter = new ArrayOfAnythingFunTypesConverter();
+                }
+                else if(elementType == typeof(char))
+                    converter =  new CharArrayFunTypesConverter();
+                else if(TryGetSpecificConverter(elementType, out var elementConverter))
+                    converter = new ArrayOfCompositesFunTypesConverter(elementConverter);
                 else
-                    converter = new ArrayFunTypesConverter(VarVal.ToPrimitiveFunType(elementType));
+                    converter = new ArrayOfPrimitivesFunTypesConverter(VarVal.ToPrimitiveFunType(elementType));
                 return true;
             }
             return false;
@@ -35,12 +40,11 @@ namespace NFun.Types
         public VarType FunType { get; }
         public abstract object ToFunObject(object clrObject);
     }
-
-    public class ArrayFunTypesComplexConverter : FunTypesConverter
+    public class ArrayOfCompositesFunTypesConverter : FunTypesConverter
     {
         private readonly FunTypesConverter _elementConverter;
 
-        public ArrayFunTypesComplexConverter(FunTypesConverter elementConverter) 
+        public ArrayOfCompositesFunTypesConverter(FunTypesConverter elementConverter) 
             : base(VarType.ArrayOf(elementConverter.FunType))
         {
             _elementConverter = elementConverter;
@@ -58,28 +62,41 @@ namespace NFun.Types
         }
     }
     
-    public class ArrayFunTypesConverter : FunTypesConverter
+    public class ArrayOfAnythingFunTypesConverter : FunTypesConverter
     {
-        public ArrayFunTypesConverter(VarType elementType) 
-            : base(VarType.ArrayOf(elementType))
-        {
-        }
+        public ArrayOfAnythingFunTypesConverter() 
+            : base(VarType.ArrayOf(VarType.Anything)) { }
 
-        public override object ToFunObject(object clrObject) 
-            => new ImmutableFunArray(((Array) clrObject));
+        public override object ToFunObject(object clrObject)
+        {
+            var array = clrObject as Array;
+            object[] converted = new object[array.Length]; 
+            for (int i = 0; i < array.Length; i++)
+            {
+                var element = array.GetValue(i);
+                if (TryGetSpecificConverter(element.GetType(), out var specific))
+                    converted[i] = specific.ToFunObject(element);
+                else
+                    converted[i] = element;
+            }
+            return new ImmutableFunArray(converted);
+        }
+    }
+    
+    public class ArrayOfPrimitivesFunTypesConverter : FunTypesConverter
+    {
+        public ArrayOfPrimitivesFunTypesConverter(VarType elementType) : base(VarType.ArrayOf(elementType)) { }
+
+        public override object ToFunObject(object clrObject) => new ImmutableFunArray(((Array) clrObject));
     }
     public class CharArrayFunTypesConverter: FunTypesConverter
     {
-        public CharArrayFunTypesConverter() : base(VarType.Text)
-        {
-        }
+        public CharArrayFunTypesConverter() : base(VarType.Text) { }
         public override object ToFunObject(object clrObject) => new TextFunArray(new string((char[]) clrObject));
     }
     public class StringFunTypesConverter: FunTypesConverter
     {
-        public StringFunTypesConverter() : base(VarType.Text)
-        {
-        }
+        public StringFunTypesConverter() : base(VarType.Text) { }
         public override object ToFunObject(object clrObject) => new TextFunArray(clrObject.ToString());
     }
 }
