@@ -13,76 +13,28 @@ namespace NFun.Types
     {
         public static VarVal New<T>(string name, T[] value)
         {
-            var baseType = ToVarType(typeof(T));
-            var vartype = VarType.ArrayOf(baseType);
-            return new VarVal(name, new ImmutableFunArray(value, baseType), vartype);
+            FunTypesConverter.TryGetSpecificConverter(typeof(T[]), out var specificConverter);
+            var funValue = specificConverter.ToFunObject(value);
+            var funType = specificConverter.FunType;
+            return new VarVal(name,funValue,funType);
         }
-        public static VarVal New<T>(string name, IEnumerable<T> value)
-        {
-            var baseType = ToVarType(typeof(T));
-            var vartype = VarType.ArrayOf(baseType);
-            if (value is IFunArray a)
-                return  new VarVal(name, a, vartype);
-            else
-                return new VarVal(name, new ImmutableFunArray(value.ToArray(),baseType), vartype);
-        }
+        public static VarVal New<T>(string name, IEnumerable<T> value) 
+            => New(name, value.ToArray());
 
         public static VarVal New(string name, object value)
         {
-            switch (value)
+            var clrType = value.GetType();
+            if (FunTypesConverter.TryGetSpecificConverter(clrType, out var specificConverter))
             {
-                case byte ui8:
-                    return New(name, ui8);
-                case ushort ui16:
-                    return New(name, ui16);
-                case uint ui32:
-                    return New(name, ui32);
-                case ulong ui64:
-                    return New(name, ui64);
-                case sbyte i8:
-                    return New(name, i8);
-                case short i16:
-                    return New(name, i16);
-                case int i32:
-                    return New(name, i32);
-                case long i64:
-                    return New(name, i64);
-                case double d:
-                    return New(name, d);
-                case bool b:
-                    return New(name, b);
-                case string s:
-                    return New(name, s);
-                case char c:
-                    return New(name, c);
-                case double[] arrDbl:
-                    return New(name, arrDbl);
-                case string[] arrStr:
-                    return New(name, arrStr);
-                case bool[]  arrBool:
-                    return New(name, arrBool);
-                case IFunArray funArray:
-                    return New(name, funArray);
+                var funValue = specificConverter.ToFunObject(value);
+                var funType  = specificConverter.FunType;
+                return new VarVal(name,funValue,funType);
             }
-
-            var type = value.GetType();
-            if(type== typeof(short[]))
-                return New(name, (short[])value);
-            if (type == typeof(int[]))
-                return New(name, (int[])value);
-            if (type == typeof(long[]))
-                return New(name, (long[])value);
-            if (type == typeof(byte[]))
-                return New(name, (byte[])value);
-            if (type == typeof(ushort[]))
-                return New(name, (ushort[])value);
-            if (type == typeof(uint[]))
-                return New(name, (uint[])value);
-            if (type == typeof(ulong[]))
-                return New(name, (uint[])value);
-            if (type == typeof(object[]))
-                return New(name, (object[])value);
-            return new VarVal(name, value, VarType.Anything);
+            else
+            {
+                var funType = ToPrimitiveFunType(clrType);
+                return new VarVal(name, value, funType);
+            }
         }
         public static VarVal New(string name, bool value) 
             => new VarVal(name, value, VarType.Bool);
@@ -107,7 +59,8 @@ namespace NFun.Types
             => new VarVal(name, new TextFunArray(value), VarType.Text);
         public static VarVal New(string name, char value)
             => new VarVal(name, value, VarType.Char);
-        public  static VarType ToVarType(Type t)
+
+        public static VarType ToPrimitiveFunType(Type t)
         {
             if (t == typeof(object))
                 return VarType.Anything;
@@ -133,12 +86,7 @@ namespace NFun.Types
                 return VarType.Bool;
             if (t== typeof(char))
                 return VarType.Char;
-            if (t.IsArray)
-            {
-                var eType = t.GetElementType();
-                return VarType.ArrayOf(ToVarType(eType));
-            }
-            throw new ArgumentException($"Type {t.Name} is not supported");
+            return VarType.Anything;
         }
         
         public readonly string Name;

@@ -121,6 +121,7 @@
           <e p="RuntimeBuilderHelper.cs" t="Include" />
           <e p="ScopeFunctionDictionary.cs" t="Include" />
         </e>
+        <e p="Jet" t="Include" />
         <e p="NFun.0.7.1.nupkg" t="Include" />
         <e p="NFun.0.8.0.nupkg" t="Include" />
         <e p="NFun.0.8.1.nupkg" t="Include" />
@@ -251,6 +252,7 @@
         <e p="Types" t="Include">
           <e p="AdditionalTypeSpecification.cs" t="Include" />
           <e p="BaseVarType.cs" t="Include" />
+          <e p="FunTypesConverter.cs" t="Include" />
           <e p="FunTypeSpecification.cs" t="Include" />
           <e p="TypeHelper.cs" t="Include" />
           <e p="VarInfo.cs" t="Include" />
