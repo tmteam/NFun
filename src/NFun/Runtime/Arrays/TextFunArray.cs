@@ -2,14 +2,13 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
-using NFun.BuiltInFunctions;
 using NFun.Types;
 
 namespace NFun.Runtime.Arrays
 {
     public class TextFunArray : IFunArray, IComparable
     {
-        public static readonly TextFunArray EmptyText 
+        private static readonly TextFunArray EmptyText 
             = new TextFunArray("");
 
         private readonly string _text;
@@ -103,6 +102,7 @@ namespace NFun.Runtime.Arrays
 
         public Array ClrArray => _text.ToCharArray();
         public string ToText() => _text;
+        public VarType ElementType => VarType.Char;
         public int Count => _text.Length;
         public override string ToString() => _text;
         public int CompareTo(object obj)

@@ -1,15 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Runtime.Serialization;
+using NFun.Exceptions;
 using Nfun.Fuspec.Parser.FuspecParserErrors;
 using Nfun.Fuspec.Parser.Model;
 using NFun.Fuspec.Parser.Interfaces;
 using NFun.ParseErrors;
-using NFun.Tokenization;
-using NFun.Types;
 using ParcerV1;
 using static Nfun.Fuspec.Parser.FuspecParserHelper;
 
@@ -21,10 +18,10 @@ namespace Nfun.Fuspec.Parser
     {
         private InputText _inputText;
         private TestCaseBuilder _testCaseBuilder= new TestCaseBuilder();
-        private List<FuspecTestCase> _fuspecTestCases =  new List<FuspecTestCase>();
+        private readonly List<FuspecTestCase> _fuspecTestCases =  new List<FuspecTestCase>();
         private List<string> _script = new List<string>();
         private List<ISetCheckData> _setChecks = new List<ISetCheckData>();
-        private List<FuspecParserError> _errors = new List<FuspecParserError>();
+        private readonly List<FuspecParserError> _errors = new List<FuspecParserError>();
 
         internal FuspecTestCases Read(InputText inputText)
         {

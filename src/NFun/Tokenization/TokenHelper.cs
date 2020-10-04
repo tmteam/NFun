@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using System.Linq;
+using NFun.Exceptions;
 using NFun.ParseErrors;
 using NFun.Types;
 

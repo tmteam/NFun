@@ -13,7 +13,7 @@ namespace Nfun.ModuleTests.UnitTests
         [Test]
         public void ReturnSelfFunction_PrimitiveType_ResultTypesAreCorrect()
         {
-            var rpt = new ReturnSelfGenericFunctionDefenition();
+            var rpt = new ReturnSelfGenericFunctionDefinition();
             var function = rpt.CreateConcreteOrNull(VarType.Bool,VarType.Bool);
             Assert.Multiple(() =>
             {
@@ -26,7 +26,7 @@ namespace Nfun.ModuleTests.UnitTests
         public void ReturnSelfFunction_ArrayType_ResultTypesAreCorrect()
         {
             var arrayOfBool = VarType.ArrayOf(VarType.Bool);
-            var rpt = new ReturnSelfGenericFunctionDefenition();
+            var rpt = new ReturnSelfGenericFunctionDefinition();
             var function = rpt.CreateConcreteOrNull(arrayOfBool,arrayOfBool);
             Assert.IsNotNull(function);
             Assert.Multiple(() =>
@@ -39,7 +39,7 @@ namespace Nfun.ModuleTests.UnitTests
         [Test]
         public void Repeat_PrimitiveType_ResultTypesAreCorrect()
         {
-            var rpt = new RepeatGenericFunctionDefenition();
+            var rpt = new RepeatGenericFunctionDefinition();
             var function = rpt.CreateConcreteOrNull(VarType.ArrayOf(VarType.Bool), VarType.Bool, VarType.Int32);
             Assert.IsNotNull(function);
             Assert.Multiple(() =>
@@ -77,7 +77,7 @@ namespace Nfun.ModuleTests.UnitTests
         [Test]
         public void Take_PrimitiveType_ResultTypesAreCorrect()
         {
-            var rpt = new TakeGenericFunctionDefenition();
+            var rpt = new TakeGenericFunctionDefinition();
             var function = rpt.CreateConcreteOrNull(
                  VarType.ArrayOf(VarType.Bool),
                  VarType.ArrayOf(VarType.Bool), 
@@ -94,7 +94,7 @@ namespace Nfun.ModuleTests.UnitTests
         [Test]
         public void Take_ArrayType_ResultTypesAreCorrect()
         {
-            var rpt = new TakeGenericFunctionDefenition();
+            var rpt = new TakeGenericFunctionDefinition();
             var arrayOfBool = VarType.ArrayOf(VarType.Bool);
             var function = rpt.CreateConcreteOrNull(
                 VarType.ArrayOf(arrayOfBool),
@@ -117,7 +117,7 @@ namespace Nfun.ModuleTests.UnitTests
         public void GetRnd_GenericEqualsOutputType(
             BaseVarType returnType, BaseVarType firstArg, BaseVarType secondArg)
         {
-            var rpt = new GetRandomElementFuncDefenition();
+            var rpt = new GetRandomElementFuncDefinition();
             var function = rpt.CreateConcreteOrNull(
                 VarType.PrimitiveOf(returnType),
                 VarType.PrimitiveOf(firstArg), 
@@ -137,7 +137,7 @@ namespace Nfun.ModuleTests.UnitTests
         public void GetRnd_ArgAreIncostistent_ReturnsNull(
             BaseVarType returnType, BaseVarType firstArg, BaseVarType secondArg)
         {
-            var rpt = new GetRandomElementFuncDefenition();
+            var rpt = new GetRandomElementFuncDefinition();
             var function = rpt.CreateConcreteOrNull(
                 VarType.PrimitiveOf(returnType),
                 VarType.PrimitiveOf(firstArg), 
@@ -148,7 +148,7 @@ namespace Nfun.ModuleTests.UnitTests
         [Test]
         public void GetRnd_RealInt_Real_GenericEqualsReal()
         {
-            var rpt = new GetRandomElementFuncDefenition();
+            var rpt = new GetRandomElementFuncDefinition();
             var function = rpt.CreateConcreteOrNull(
                 VarType.Real,
                 VarType.Int32, 
@@ -162,18 +162,18 @@ namespace Nfun.ModuleTests.UnitTests
         }
     }
 
-    public class GetRandomElementFuncDefenition : GenericFunctionBase
+    public class GetRandomElementFuncDefinition : GenericFunctionBase
     {
-        public GetRandomElementFuncDefenition() : base("__retSelf",
+        public GetRandomElementFuncDefinition() : base("__retSelf",
             VarType.Generic(0), VarType.Generic(0),VarType.Generic(0))
         {
         }
 
         protected override object Calc(object[] args) => throw new NotImplementedException();
     }
-    public class ReturnSelfGenericFunctionDefenition : GenericFunctionBase
+    public class ReturnSelfGenericFunctionDefinition : GenericFunctionBase
     {
-        public ReturnSelfGenericFunctionDefenition() : base("__retSelf", VarType.Generic(0), VarType.Generic(0))
+        public ReturnSelfGenericFunctionDefinition() : base("__retSelf", VarType.Generic(0), VarType.Generic(0))
         {
         }
 

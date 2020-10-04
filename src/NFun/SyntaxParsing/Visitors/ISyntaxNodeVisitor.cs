@@ -2,7 +2,7 @@ using NFun.SyntaxParsing.SyntaxNodes;
 
 namespace NFun.SyntaxParsing.Visitors
 {
-    public interface ISyntaxNodeVisitor<T>
+    public interface ISyntaxNodeVisitor<out T>
     {
         T Visit(ArrowAnonymFunctionSyntaxNode arrowAnonymFunNode);
         T Visit(ArraySyntaxNode node);
@@ -15,8 +15,8 @@ namespace NFun.SyntaxParsing.Visitors
         T Visit(GenericIntSyntaxNode node);
         T Visit(SyntaxTree node);
         T Visit(TypedVarDefSyntaxNode node);
-        T Visit(UserFunctionDefenitionSyntaxNode node);
-        T Visit(VarDefenitionSyntaxNode node);
+        T Visit(UserFunctionDefinitionSyntaxNode node);
+        T Visit(VarDefinitionSyntaxNode node);
         T Visit(NamedIdSyntaxNode node);
         T Visit(ResultFunCallSyntaxNode node);
         T Visit(SuperAnonymFunctionSyntaxNode arrowAnonymFunNode);

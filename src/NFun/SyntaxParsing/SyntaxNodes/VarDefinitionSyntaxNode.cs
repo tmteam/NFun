@@ -5,7 +5,7 @@ using NFun.Types;
 
 namespace NFun.SyntaxParsing.SyntaxNodes
 {
-    public class VarDefenitionSyntaxNode : ISyntaxNode
+    public class VarDefinitionSyntaxNode : ISyntaxNode
     {
         public VarType OutputType { get; set; }
         public int OrderNumber { get; set; }
@@ -14,7 +14,7 @@ namespace NFun.SyntaxParsing.SyntaxNodes
         public VarType VarType { get; }
         public VarAttribute[] Attributes { get; }
 
-        public VarDefenitionSyntaxNode(TypedVarDefSyntaxNode node, VarAttribute[] attributes = null)
+        public VarDefinitionSyntaxNode(TypedVarDefSyntaxNode node, VarAttribute[] attributes = null)
         {
             Id = node.Id;
             VarType = node.VarType;

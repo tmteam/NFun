@@ -6,7 +6,6 @@ using NFun.SyntaxParsing.Visitors;
 using NFun.Tic;
 using NFun.Tic.SolvingStates;
 using NFun.TypeInferenceAdapter;
-using NFun.TypeInferenceCalculator;
 using NUnit.Framework;
 
 namespace Nfun.ModuleTests.TicTests

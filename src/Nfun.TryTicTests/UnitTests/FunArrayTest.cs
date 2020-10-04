@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Linq;
 using NFun.Runtime.Arrays;
+using NFun.Types;
 using NUnit.Framework;
 
 namespace Nfun.ModuleTests.UnitTests
@@ -58,16 +59,16 @@ namespace Nfun.ModuleTests.UnitTests
         [Test]
         public void IntArr_BothEmpty_IsEquivalentReturnsTrue()
         {
-            var a1 = new ImmutableFunArray(new object[0]);
-            var a2 = new ImmutableFunArray(new object[0]);
+            var a1 = new ImmutableFunArray(new object[0], VarType.Anything);
+            var a2 = new ImmutableFunArray(new object[0], VarType.Anything);
             Assert.IsTrue(a1.IsEquivalent(a2));
         }
         
         [Test]
         public void IntArrOfArr_BothEmpty_IsEquivalentReturnsTrue()
         {
-            var a1 = new ImmutableFunArray(new object[0]);
-            var a2 = new ImmutableFunArray(new object[0]);
+            var a1 = new ImmutableFunArray(new object[0],VarType.Anything);
+            var a2 = new ImmutableFunArray(new object[0],VarType.Anything);
             Assert.IsTrue(a1.IsEquivalent(a2));
         }
         
@@ -76,14 +77,16 @@ namespace Nfun.ModuleTests.UnitTests
         {
 
             var a1 = new ImmutableFunArray(
-                new ImmutableFunArray(new object[0]),
-                new ImmutableFunArray(new object[] {1, 2}),
-                new ImmutableFunArray(new object[] {1, 2,3})
+                VarType.Anything,
+                new ImmutableFunArray(new int[0]),
+                new ImmutableFunArray(new int[] {1, 2}),
+                new ImmutableFunArray(new int[] {1, 2,3})
                 );
             var a2 = new ImmutableFunArray(
-                new ImmutableFunArray(new object[0]),
-                new ImmutableFunArray(new object[] {1, 2}),
-                new ImmutableFunArray(new object[] {1, 2,3})
+                VarType.Anything,
+                new ImmutableFunArray(new int[0]),
+                new ImmutableFunArray(new int[] {1, 2}),
+                new ImmutableFunArray(new int[] {1, 2,3})
             );
 
             Assert.IsTrue(a1.IsEquivalent(a2));
@@ -93,14 +96,16 @@ namespace Nfun.ModuleTests.UnitTests
         {
 
             var a1 = new ImmutableFunArray(
-                new ImmutableFunArray(new object[0]),
-                new ImmutableFunArray(new object[] {1, 2}),
-                new ImmutableFunArray(new object[] {1, 2,3})
+                VarType.Anything,
+                new ImmutableFunArray(new object[0],VarType.Anything),
+                new ImmutableFunArray(new object[] {1, 2},VarType.Anything),
+                new ImmutableFunArray(new object[] {1, 2,3},VarType.Anything)
             );
             var a2 = new ImmutableFunArray(
-                new ImmutableFunArray(new object[0]),
-                new ImmutableFunArray(new object[] {1, 2}),
-                new ImmutableFunArray(new object[] {1, 2})
+                VarType.Int64,
+                new ImmutableFunArray(new object[0],VarType.Anything),
+                new ImmutableFunArray(new object[] {1, 2},VarType.Anything),
+                new ImmutableFunArray(new object[] {1, 2},VarType.Anything)
             );
 
             Assert.IsFalse(a1.IsEquivalent(a2));
@@ -110,14 +115,16 @@ namespace Nfun.ModuleTests.UnitTests
         {
 
             var a1 = new ImmutableFunArray(
-                new ImmutableFunArray(new object[0]),
-                new ImmutableFunArray(new object[] {"1", "2"}),
-                new ImmutableFunArray(new object[] {"1", "2","3"})
+                VarType.Anything,
+                new ImmutableFunArray(new object[0],VarType.Anything),
+                new ImmutableFunArray(new object[] {"1", "2"},VarType.Anything),
+                new ImmutableFunArray(new object[] {"1", "2","3"},VarType.Anything)
             );
             var a2 = new ImmutableFunArray(
-                new ImmutableFunArray(new object[0]),
-                new ImmutableFunArray(new object[] {"1", "2"}),
-                new ImmutableFunArray(new object[] {"1", "2","3"})
+                VarType.Anything,
+                new ImmutableFunArray(new object[0],VarType.Anything),
+                new ImmutableFunArray(new object[] {"1", "2"},VarType.Anything),
+                new ImmutableFunArray(new object[] {"1", "2","3"},VarType.Anything)
             );
 
             Assert.IsTrue(a1.IsEquivalent(a2));
@@ -127,9 +134,11 @@ namespace Nfun.ModuleTests.UnitTests
         public void ExceptMultiDimensional()
         {
             var a1 = new ImmutableFunArray(
+                VarType.Anything,
                 new ImmutableFunArray(new[] {1.0, 2.0}),
                 new ImmutableFunArray(new[] {3.0, 4.0}));
             var a2 = new ImmutableFunArray(
+                VarType.Anything,
                 new ImmutableFunArray(new[] {3.0, 4.0}),
                 new ImmutableFunArray(new[] {1.0}),
                 new ImmutableFunArray(new[] {4.0})
@@ -153,14 +162,16 @@ namespace Nfun.ModuleTests.UnitTests
         {
 
             var a1 = new ImmutableFunArray(
-                new ImmutableFunArray(new object[0]),
-                new ImmutableFunArray(new object[] {"1", "2"}),
-                new ImmutableFunArray(new object[] {"1", "2","3"})
+                VarType.Anything,
+                new ImmutableFunArray(new object[0],VarType.Anything),
+                new ImmutableFunArray(new object[] {"1", "2"},VarType.Anything),
+                new ImmutableFunArray(new object[] {"1", "2","3"},VarType.Anything)
             );
             var a2 = new ImmutableFunArray(
-                new ImmutableFunArray(new object[]{"lalala"}),
-                new ImmutableFunArray(new object[] {"1", "2"}),
-                new ImmutableFunArray(new object[] {"1", "2","3"})
+                VarType.Anything,
+                new ImmutableFunArray(new object[]{"lalala"},VarType.Anything),
+                new ImmutableFunArray(new object[] {"1", "2"},VarType.Anything),
+                new ImmutableFunArray(new object[] {"1", "2","3"},VarType.Anything)
             );
 
             Assert.IsFalse(a1.IsEquivalent(a2));

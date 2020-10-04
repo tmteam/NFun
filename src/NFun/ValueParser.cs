@@ -16,7 +16,7 @@ namespace NFun
             var flow = Tokenizer.ToFlow(text);
             return ParseValue(flow).Item1;
         }
-        public static (object, VarType) ParseValue(this Tokenization.TokFlow flow)
+        public static (object, VarType) ParseValue(this TokFlow flow)
         {
 
            var syntaxNode = SyntaxNodeReader.ReadNodeOrNull(flow);

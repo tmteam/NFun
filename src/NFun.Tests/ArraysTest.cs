@@ -2,6 +2,7 @@ using System.Collections;
 using System.Linq;
 using NFun;
 using NFun.BuiltInFunctions;
+using NFun.Exceptions;
 using NFun.ParseErrors;
 using NFun.Runtime.Arrays;
 using NFun.Types;
@@ -99,7 +100,8 @@ namespace Funny.Tests
         [Test]
         public void IntersectToDimArrayTest()
         {
-            var expression = "y = [[1.0,2.0],[3.0,4.0],[5.0]] . intersect ([[3.0,4.0],[1.0],[5.0],[4.0]])";
+            var expression = "y = [[1.0,2.0],[3.0,4.0],[5.0]]." +
+                             " intersect ([[3.0,4.0],[1.0],[5.0],[4.0]])";
             var expected = new[] {new [] {3.0, 4.0},new[]{5.0}};
 
             FunBuilder.Build(expression).Calculate().AssertReturns(VarVal.New("y", expected));

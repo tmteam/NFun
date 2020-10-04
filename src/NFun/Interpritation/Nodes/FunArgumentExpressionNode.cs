@@ -24,7 +24,7 @@ namespace NFun.Interpritation.Nodes
                         type:     typeVarNode.VarType, 
                         interval: node.Interval);
                 default:
-                    throw ErrorFactory.InvalidArgTypeDefenition(node);
+                    throw ErrorFactory.InvalidArgTypeDefinition(node);
             }
         }
 

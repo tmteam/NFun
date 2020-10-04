@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using NFun.Runtime.Arrays;
 
@@ -34,26 +33,10 @@ namespace NFun.Types
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Type GetClrType (this BaseVarType varType) => FunToClrTypesMap[(int) varType];
-
         public static string GetFunSignature<T>(string name, T returnType, IEnumerable<T> arguments)
             => name + "(" + string.Join(",", arguments) + "):" + returnType;
         public static string GetFunSignature<T>(T returnType, IEnumerable<T> arguments)
             => "(" + string.Join(",", arguments) + "):" + returnType;
-
-        public static IEnumerable<string> GetListOfStringOrThrow(this object[] arr, int index) => ((IFunArray) arr[index]).Select(TypeHelper.GetTextOrThrow);
-
-        public static string GetTextOrThrow(object obj)
-        {
-            var e = (IFunArray)obj;
-            if (e is TextFunArray t)
-                return t.ToText();
-            if (e is ImmutableFunArray f)
-                return new string((char[])f.Values);
-            char[] result = new char[e.Count];
-            for (int i = 0; i < e.Count; i++) 
-                result[i] = (char) e.GetElementOrNull(i);
-            return new string(result);
-        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static string GetFunText(object obj)
@@ -65,29 +48,6 @@ namespace NFun.Types
             return obj.ToString();
         }
         
-        public static string GetTextOrThrow(this object[] arr, int index)
-        {
-            var e = (IFunArray)arr[index];
-            if (e is TextFunArray t)
-                return t.ToText();
-            if (e is ImmutableFunArray f)
-            {
-                if(f.Values is char[] carr)
-                    return new string(carr);
-                var str = new char[f.Count];
-                for (int i = 0; i < f.Count; i++) 
-                    str[i] = (char) f.Values.GetValue(i);
-                return new string(str);
-            }
-
-            char [] result = new char[e.Count];
-            for (int i = 0; i < e.Count; i++)
-            {
-                result[i] = (char) e.GetElementOrNull(i);
-            }
-            return new string(result);
-        }
-     
         public static bool AreEqual(object left, object right)
         {
             if (left is IFunArray le)
@@ -118,7 +78,5 @@ namespace NFun.Types
 
             return true;
         }
-
-        
     }
 }

@@ -11,7 +11,6 @@ using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tic;
 using NFun.Tic.SolvingStates;
-using NFun.TypeInferenceCalculator;
 using NFun.Types;
 
 namespace NFun.TypeInferenceAdapter
@@ -69,7 +68,7 @@ namespace NFun.TypeInferenceAdapter
             _ticTypeGraph.SetDef(node.Id, node.Expression.OrderNumber);
             return true;
         }
-        public bool Visit(UserFunctionDefenitionSyntaxNode node)
+        public bool Visit(UserFunctionDefinitionSyntaxNode node)
         {
             var argNames = new string[node.Args.Count];
             int i = 0;
@@ -152,7 +151,7 @@ namespace NFun.TypeInferenceAdapter
         public bool Visit(ArrowAnonymFunctionSyntaxNode node)
         {
             _aliasScope.EnterScope(node.OrderNumber);
-            foreach (var syntaxNode in node.ArgumentsDefenition)
+            foreach (var syntaxNode in node.ArgumentsDefinition)
             {
                 string originName;
                 string anonymName;
@@ -179,10 +178,10 @@ namespace NFun.TypeInferenceAdapter
 
             VisitChildren(node);
             
-            var aliasNames = new string[node.ArgumentsDefenition.Length];
-            for (var i = 0; i < node.ArgumentsDefenition.Length; i++)
+            var aliasNames = new string[node.ArgumentsDefinition.Length];
+            for (var i = 0; i < node.ArgumentsDefinition.Length; i++)
             {
-                var syntaxNode = node.ArgumentsDefenition[i];
+                var syntaxNode = node.ArgumentsDefinition[i];
                 if (syntaxNode is TypedVarDefSyntaxNode typed)
                     aliasNames[i] = _aliasScope.GetVariableAlias(typed.Id);
                 else if (syntaxNode is NamedIdSyntaxNode varNode)
@@ -264,7 +263,7 @@ namespace NFun.TypeInferenceAdapter
             {
                 //Optimization
                 //Remember generic arguments to use it again at the built time
-                genericTypes = InitializeGenericTypes(t.GenericDefenitions);
+                genericTypes = InitializeGenericTypes(t.GenericDefinitions);
                 _resultsBuilder.RememberGenericCallArguments(node.OrderNumber, genericTypes);
             }
             else genericTypes = new StateRefTo[0];
@@ -427,7 +426,7 @@ namespace NFun.TypeInferenceAdapter
                 {
                     if (signature is GenericFunctionBase genericFunction)
                     {
-                        var generics = InitializeGenericTypes(genericFunction.GenericDefenitions);
+                        var generics = InitializeGenericTypes(genericFunction.GenericDefinitions);
                         _resultsBuilder.RememberGenericCallArguments(node.OrderNumber, generics);
 
                         _ticTypeGraph.SetVarType($"g'{argsCount}'{id}",
@@ -497,7 +496,7 @@ namespace NFun.TypeInferenceAdapter
 
             return true;
         }
-        public bool Visit(VarDefenitionSyntaxNode node)
+        public bool Visit(VarDefinitionSyntaxNode node)
         {
             VisitChildren(node);
 

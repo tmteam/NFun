@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.IO.Enumeration;
 using System.Linq;
 using Nfun.Fuspec.Parser.FuspecParserErrors;
 using NFun.BuiltInFunctions;
+using NFun.Exceptions;
 using NFun.ParseErrors;
 
 namespace FuspecHandler

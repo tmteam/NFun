@@ -3,6 +3,7 @@ using System.Collections;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using NFun.Exceptions;
 using NFun.Interpritation.Functions;
 using NFun.ParseErrors;
 using NFun.Runtime.Arrays;
@@ -78,7 +79,7 @@ namespace NFun.BuiltInFunctions
             }
 
             if (from.IsText)
-                return o => ToBoolArray(Encoding.Unicode.GetBytes(TypeHelper.GetTextOrThrow(o)));
+                return o => ToBoolArray(Encoding.Unicode.GetBytes(((IFunArray)o).ToText()));
             return null;
         }
 
@@ -111,7 +112,7 @@ namespace NFun.BuiltInFunctions
             }
 
             if (from.IsText)
-                return o => new ImmutableFunArray(Encoding.Unicode.GetBytes(TypeHelper.GetTextOrThrow(o)));
+                return o => new ImmutableFunArray(Encoding.Unicode.GetBytes(((IFunArray)o).ToText()));
             return null;
         }
 
@@ -119,24 +120,24 @@ namespace NFun.BuiltInFunctions
         {
             switch (to.BaseType)
             {
-                case BaseVarType.Char: return o =>  char.Parse(TypeHelper.GetTextOrThrow(0));
+                case BaseVarType.Char: return o =>  char.Parse(((IFunArray)(object) 0).ToText());
                 case BaseVarType.Bool: return o =>
                 {
-                    var str =TypeHelper.GetTextOrThrow(o);
+                    var str =((IFunArray)o).ToText();
                     if (string.Equals(str, "true", StringComparison.OrdinalIgnoreCase))  return true;
                     if (string.Equals(str, "1", StringComparison.OrdinalIgnoreCase))     return true;
                     if (string.Equals(str, "false", StringComparison.OrdinalIgnoreCase)) return false;
                     if (string.Equals(str, "0", StringComparison.Ordinal))               return false;
                     return null;
                 };
-                case BaseVarType.UInt8: return o => byte.Parse(TypeHelper.GetTextOrThrow(o));
-                case BaseVarType.UInt16: return o => ushort.Parse(TypeHelper.GetTextOrThrow(o));
-                case BaseVarType.UInt32: return o => UInt32.Parse(TypeHelper.GetTextOrThrow(o));
-                case BaseVarType.UInt64: return o => UInt64.Parse(TypeHelper.GetTextOrThrow(o));
-                case BaseVarType.Int16: return o => UInt16.Parse(TypeHelper.GetTextOrThrow(o));
-                case BaseVarType.Int32: return o => Int32.Parse(TypeHelper.GetTextOrThrow(o));
-                case BaseVarType.Int64: return o => Int64.Parse(TypeHelper.GetTextOrThrow(o));
-                case BaseVarType.Real: return o => double.Parse(TypeHelper.GetTextOrThrow(o), CultureInfo.InvariantCulture);
+                case BaseVarType.UInt8: return o => byte.Parse(((IFunArray)o).ToText());
+                case BaseVarType.UInt16: return o => ushort.Parse(((IFunArray)o).ToText());
+                case BaseVarType.UInt32: return o => UInt32.Parse(((IFunArray)o).ToText());
+                case BaseVarType.UInt64: return o => UInt64.Parse(((IFunArray)o).ToText());
+                case BaseVarType.Int16: return o => UInt16.Parse(((IFunArray)o).ToText());
+                case BaseVarType.Int32: return o => Int32.Parse(((IFunArray)o).ToText());
+                case BaseVarType.Int64: return o => Int64.Parse(((IFunArray)o).ToText());
+                case BaseVarType.Real: return o => double.Parse(((IFunArray)o).ToText(), CultureInfo.InvariantCulture);
             }
 
             return null;
@@ -158,7 +159,7 @@ namespace NFun.BuiltInFunctions
             }
 
             if (to.IsText)
-                return o => new ImmutableFunArray(Encoding.Unicode.GetBytes(TypeHelper.GetTextOrThrow(o)));
+                return o => new ImmutableFunArray(Encoding.Unicode.GetBytes(((IFunArray)o).ToText()));
             
             return null;
         }
@@ -182,7 +183,7 @@ namespace NFun.BuiltInFunctions
                 }
             }
         }
-
+        //todo wtf?
         private static byte[] GetArrayOfSize(object array, int size)
         {
             var val = (IFunArray) array;

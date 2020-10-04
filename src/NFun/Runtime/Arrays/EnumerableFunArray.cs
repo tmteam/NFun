@@ -10,19 +10,21 @@ namespace NFun.Runtime.Arrays
     {
         private readonly IEnumerable<object> _origin;
 
-        public EnumerableFunArray(IEnumerable<object> origin)
+        public EnumerableFunArray(IEnumerable<object> origin, VarType elementType)
         {
             _origin = origin;
+            ElementType = elementType;
         }
         public IEnumerator<object> GetEnumerator() => _origin.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
+        public VarType ElementType { get; }
         public int Count => _origin.Count();
         public IFunArray Slice(int? startIndex, int? endIndex, int? step)
         {
             var array = _origin.ToArray();
-            return ArrayTools.SliceToImmutable(array, startIndex, endIndex, step);
+            return ArrayTools.SliceToImmutable(array,ElementType, startIndex, endIndex, step);
         }
         
         
@@ -35,6 +37,11 @@ namespace NFun.Runtime.Arrays
         public Array ClrArray => _origin.ToArray();
         public string ToText()
         {
+            if (ElementType == VarType.Char)
+            {
+                var array = _origin.OfType<char>().ToArray();
+                 return new string(array);
+            }
             return ArrayTools.JoinElementsToFunString(_origin);
         }
     }

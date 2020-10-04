@@ -1,9 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Text;
-using NFun.Tic.SolvingStates;
+﻿using NFun.Tic.SolvingStates;
 using NFun.TypeInferenceCalculator;
 using NUnit.Framework;
-using Array = System.Array;
 
 namespace NFun.Tic.Tests
 {

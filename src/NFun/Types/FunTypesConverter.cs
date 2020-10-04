@@ -58,12 +58,13 @@ namespace NFun.Types
             {
                 converted[i] = _elementConverter.ToFunObject(array.GetValue(i));
             }
-            return new ImmutableFunArray(converted);
+            return new ImmutableFunArray(converted,_elementConverter.FunType);
         }
     }
     
     public class ArrayOfAnythingFunTypesConverter : FunTypesConverter
     {
+
         public ArrayOfAnythingFunTypesConverter() 
             : base(VarType.ArrayOf(VarType.Anything)) { }
 
@@ -79,20 +80,28 @@ namespace NFun.Types
                 else
                     converted[i] = element;
             }
-            return new ImmutableFunArray(converted);
+            return new ImmutableFunArray(converted, VarType.Anything);
         }
     }
     
     public class ArrayOfPrimitivesFunTypesConverter : FunTypesConverter
     {
-        public ArrayOfPrimitivesFunTypesConverter(VarType elementType) : base(VarType.ArrayOf(elementType)) { }
+        private readonly VarType _elementType;
+        public ArrayOfPrimitivesFunTypesConverter(VarType elementType) : base(VarType.ArrayOf(elementType))
+        {
+            _elementType = elementType;
+        }
 
-        public override object ToFunObject(object clrObject) => new ImmutableFunArray(((Array) clrObject));
+        public override object ToFunObject(object clrObject) 
+            => new ImmutableFunArray(((Array) clrObject),_elementType);
     }
     public class CharArrayFunTypesConverter: FunTypesConverter
     {
-        public CharArrayFunTypesConverter() : base(VarType.Text) { }
-        public override object ToFunObject(object clrObject) => new TextFunArray(new string((char[]) clrObject));
+        public CharArrayFunTypesConverter() : base(VarType.Text)
+        {
+        }
+        public override object ToFunObject(object clrObject) 
+            => new TextFunArray(new string((char[]) clrObject));
     }
     public class StringFunTypesConverter: FunTypesConverter
     {

@@ -54,7 +54,7 @@ namespace NFun.Tic.SolvingStates
         }
 
         public ITicNodeState ReturnType => RetNode.State;
-        public ITicNodeState GetArgType(int index) => ArgNodes[index].State;
+        private ITicNodeState GetArgType(int index) => ArgNodes[index].State;
         public TicNode RetNode { get; }
         public TicNode[] ArgNodes { get; }
         public IEnumerable<ITicNodeState> Args => ArgNodes.Select(a => a.State);

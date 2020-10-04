@@ -8,9 +8,8 @@ using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tic;
+using NFun.Tic.Errors;
 using NFun.TypeInferenceAdapter;
-using NFun.TypeInferenceCalculator;
-using NFun.TypeInferenceCalculator.Errors;
 using NFun.Types;
 
 namespace NFun.Interpritation
@@ -18,7 +17,7 @@ namespace NFun.Interpritation
     public static class RuntimeBuilderHelper
     {
         public static ConcreteUserFunction BuildConcrete(
-            this UserFunctionDefenitionSyntaxNode functionSyntax,
+            this UserFunctionDefinitionSyntaxNode functionSyntax,
             VarType[] argTypes, 
             VarType returnType,
             IFunctionDictionary functionsDictionary,
@@ -72,7 +71,7 @@ namespace NFun.Interpritation
                 var typeGraph = new GraphBuilder();
 
                 //to build body - we have to skip all user-function-syntax-nodes
-                var bodyNodes = syntaxTree.Nodes.Where(n => !(n is UserFunctionDefenitionSyntaxNode));
+                var bodyNodes = syntaxTree.Nodes.Where(n => !(n is UserFunctionDefinitionSyntaxNode));
                 if(!TicSetupVisitor.Run(bodyNodes, typeGraph, functions, constants, resultBuilder))
                     throw ErrorFactory.TypesNotSolved(syntaxTree);
 
@@ -119,9 +118,9 @@ namespace NFun.Interpritation
         /// <summary>
         /// Gets order of calculating the functions, based on its co using.
         /// </summary>
-        public static UserFunctionDefenitionSyntaxNode[] FindFunctionSolvingOrderOrThrow(this SyntaxTree syntaxTree)
+        public static UserFunctionDefinitionSyntaxNode[] FindFunctionSolvingOrderOrThrow(this SyntaxTree syntaxTree)
         {
-            var userFunctions = syntaxTree.Children.OfType<UserFunctionDefenitionSyntaxNode>().ToArray();
+            var userFunctions = syntaxTree.Children.OfType<UserFunctionDefinitionSyntaxNode>().ToArray();
             if(userFunctions.Length==0)
                 return userFunctions;
             
@@ -152,7 +151,7 @@ namespace NFun.Interpritation
 
             var sortResults = GraphTools.SortCycledTopology(dependenciesGraph);
 
-            var functionSolveOrder = new UserFunctionDefenitionSyntaxNode[sortResults.NodeNames.Length];
+            var functionSolveOrder = new UserFunctionDefinitionSyntaxNode[sortResults.NodeNames.Length];
             for (int k = 0; k < sortResults.NodeNames.Length; k++)
             {
                 var id = sortResults.NodeNames[k];

@@ -1,11 +1,6 @@
 using System;
-using System.Linq;
-using NFun.Interpritation;
 using NFun.Interpritation.Functions;
-using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
-using NFun.SyntaxParsing.Visitors;
-using NFun.Tic;
 using NFun.Tic.SolvingStates;
 using NFun.Types;
 
@@ -18,7 +13,7 @@ namespace NFun.TypeInferenceAdapter
         public static string GetFunAlias(string funId, int argsCount)
             =>  funId + "(" + argsCount+")";
 
-        public static string GetFunAlias(this UserFunctionDefenitionSyntaxNode syntaxNode)
+        public static string GetFunAlias(this UserFunctionDefinitionSyntaxNode syntaxNode)
             => GetFunAlias(syntaxNode.Id, syntaxNode.Args.Count);
 
         public static ITicNodeState GetTicFunType(this IFunctionSignature functionBase)

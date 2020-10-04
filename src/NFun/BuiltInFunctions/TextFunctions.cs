@@ -54,7 +54,7 @@ namespace NFun.BuiltInFunctions
 
         public override object Calc(object[] args)
         {
-            var template = args.GetTextOrThrow(0);
+            var template = ((IFunArray)args[0]).ToText();
             var formatArguments = (IFunArray) args[1];
             var result = string.Format(template, formatArguments);
             return new TextFunArray(result);
@@ -90,14 +90,15 @@ namespace NFun.BuiltInFunctions
             VarType.Text){
         }
 
+
         public override object Calc(object a, object b)
         {
             var inputString = TypeHelper.GetFunText(a);
-            var delimeter   = TypeHelper.GetFunText(b);
+            var delimeter = TypeHelper.GetFunText(b);
             return new ImmutableFunArray(
-                    inputString.Split(new[] {delimeter}, StringSplitOptions.RemoveEmptyEntries)
+                inputString.Split(new[] {delimeter}, StringSplitOptions.RemoveEmptyEntries)
                     .Select(s => new TextFunArray(s))
-                    .ToArray());
+                    .ToArray(), VarType.Text);
         }
     }
     

@@ -21,17 +21,6 @@ namespace NFun.Tic.SolvingStates
             return result;
         }
 
-        public StatePrimitive TrySolveOrNull()
-        {
-            if (Prefered != null && Fits(Prefered))
-                return Prefered;
-            if (IsComparable)
-                return null;
-            if (HasAncestor)
-                return Ancestor;
-            
-            return StatePrimitive.Any;
-        }
         public bool Fits(ITypeState type)
         {
             if (HasAncestor)

@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Text;
-using NFun.Tic.SolvingStates;
 
-namespace NFun.TypeInferenceCalculator
+namespace NFun.Tic
 {
     public static class TraceLog
     {

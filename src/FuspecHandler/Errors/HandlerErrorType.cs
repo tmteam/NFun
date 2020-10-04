@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace FuspecHandler.Errors
+﻿namespace FuspecHandler.Errors
 {
     public enum HandlerErrorType
     {

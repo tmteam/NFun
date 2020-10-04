@@ -27,23 +27,32 @@ namespace Nfun.Benchmarks
                 .With(BaseFunctions.CreateDefaultDictionary());
             
         }
+        [Benchmark()]
+        public TokFlow Lexing() => Tokenizer.ToFlow(_expression);
+
+        [Benchmark]
+        public SyntaxTree Parsing()
+        {
+            var flow = Tokenizer.ToFlow(_expression);
+            return NFun.SyntaxParsing.Parser.Parse(flow);
+        }
 
         [Benchmark()]
-        public void Build() => _builder.Build();
+        public void Building() => _builder.Build();
 
-        [Benchmark()]
+        /*[Benchmark()]
         public void Calc10000()
         {
             for (int i = 0; i < 10000; i++)
             {
                 _runtime.Calculate();
             }
-        }
+        }*/
 
         [Benchmark()]
-        public void Update1() => _runtime.Update();
-
-        //public void Calculate() => _runtime.Update();
+        public void Updating() => _runtime.Update();
+        [Benchmark()]
+        public CalculationResult Calculate() => _runtime.Calculate();
     }
     public class NfunParserBenchmark
     {

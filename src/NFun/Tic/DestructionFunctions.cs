@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using NFun.Tic.Errors;
 using NFun.Tic.SolvingStates;
-using NFun.TypeInferenceCalculator;
 
 namespace NFun.Tic
 {
@@ -45,7 +44,7 @@ namespace NFun.Tic
             return notSolvedCount == 0;
         }
 
-        public static void TryMergeDestructive(TicNode descendantNode, TicNode ancestorNode)
+        private static void TryMergeDestructive(TicNode descendantNode, TicNode ancestorNode)
         {
             var nonRefAncestor = ancestorNode.GetNonReference();
             var nonRefDescendant = descendantNode.GetNonReference();
@@ -365,7 +364,7 @@ namespace NFun.Tic
             }
         }
 
-        public static void ThrowIfTypeIsRecursive(this TicNode node)
+        private static void ThrowIfTypeIsRecursive(this TicNode node)
         {
             switch (node.State)
             {
@@ -383,7 +382,7 @@ namespace NFun.Tic
         private static void ThrowIfTypeIsRecursive(this TicNode node, HashSet<TicNode> nodes)
         {
             if (!nodes.Add(node))
-                throw TicErrors.RecursiveTypeDefenition(nodes.ToArray());
+                throw TicErrors.RecursiveTypeDefinition(nodes.ToArray());
             if (node.State is StateRefTo r)
                 ThrowIfTypeIsRecursive(r.Node, nodes);
             else if (node.State is ICompositeTypeState composite)

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using NFun.SyntaxParsing.SyntaxNodes;
 
 namespace NFun.SyntaxParsing.Visitors
@@ -18,8 +17,8 @@ namespace NFun.SyntaxParsing.Visitors
         public virtual bool Visit(GenericIntSyntaxNode node) => true;
         public virtual bool Visit(SyntaxTree node) => true;
         public virtual bool Visit(TypedVarDefSyntaxNode node) => true;
-        public virtual bool Visit(UserFunctionDefenitionSyntaxNode node) => true;
-        public virtual bool Visit(VarDefenitionSyntaxNode node) => true;
+        public virtual bool Visit(UserFunctionDefinitionSyntaxNode node) => true;
+        public virtual bool Visit(VarDefinitionSyntaxNode node) => true;
         public virtual bool Visit(NamedIdSyntaxNode node) => true;
         
     }

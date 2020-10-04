@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using Nfun.Fuspec.Parser.FuspecParserErrors;
 using Nfun.Fuspec.Parser.Model;
 using NFun.Fuspec.Parser.Interfaces;
 using NFun.Types;

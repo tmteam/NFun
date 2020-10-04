@@ -1,11 +1,12 @@
 ﻿using NFun;
+using NFun.Exceptions;
 using NFun.ParseErrors;
 using NUnit.Framework;
 
 namespace Funny.Tests
 {
     [TestFixture]
-    public class RecursiveTypeDefenitionDetectionTest
+    public class RecursiveTypeDefinitionDetectionTest
     {
         [TestCase("y = t.concat(t[0])")]
         [TestCase("y = t.concat(t[0][0])")]
@@ -44,7 +45,7 @@ namespace Funny.Tests
         [TestCase("f(t) = t[0][0][t[0]]")]
         [TestCase("f(t) = t[0][0][0][t[0]]")]
         [TestCase("f(t) = t[0][0][0][t[0][0]]")]
-        public void ObviouslyFailsWithRecursiveTypeDefenitionOfArray(string expr) =>
+        public void ObviouslyFailsWithRecursiveTypeDefinitionOfArray(string expr) =>
           Assert.Throws<FunParseException>(
               () => FunBuilder.Build(expr));
 
@@ -55,7 +56,7 @@ namespace Funny.Tests
         [TestCase("g(f) = f(f[0])")]
         [TestCase("g(f) = f(f())")]
 
-        public void ObviouslyFailsWithRecursiveTypeDefenitionOfFunctionalVar(string expr) =>
+        public void ObviouslyFailsWithRecursiveTypeDefinitionOfFunctionalVar(string expr) =>
             Assert.Throws<FunParseException>(
                 () => FunBuilder.Build(expr));
 

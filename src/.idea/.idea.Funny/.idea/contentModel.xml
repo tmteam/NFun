@@ -148,7 +148,6 @@
             <e p="IFunArray.cs" t="Include" />
             <e p="ImmutableFunArray.cs" t="Include" />
             <e p="RangeEnumerator.cs" t="Include" />
-            <e p="RangeFunArray.cs" t="Include" />
             <e p="TextFunArray.cs" t="Include" />
           </e>
           <e p="CalculationResult.cs" t="Include" />
@@ -178,8 +177,8 @@
             <e p="SuperAnonymFunctionSyntaxNode.cs" t="Include" />
             <e p="SyntaxTree.cs" t="Include" />
             <e p="TypedVarDefSyntaxNode.cs" t="Include" />
-            <e p="UserFunctionDefenitionSyntaxNode.cs" t="Include" />
-            <e p="VarDefenitionSyntaxNode.cs" t="Include" />
+            <e p="UserFunctionDefinitionSyntaxNode.cs" t="Include" />
+            <e p="VarDefinitionSyntaxNode.cs" t="Include" />
           </e>
           <e p="TopologySortResults.cs" t="Include" />
           <e p="VarAttribute.cs" t="Include" />
@@ -198,9 +197,9 @@
           <e p="CollectionHelper.cs" t="Include" />
           <e p="DestructionFunctions.cs" t="Include" />
           <e p="Errors" t="Include">
-            <e p="ImcompatibleAncestorNamedNodeException.cs" t="Include" />
-            <e p="ImcompatibleAncestorSyntaxNodeException.cs" t="Include" />
-            <e p="RecursiveTypeDefenitionException.cs" t="Include" />
+            <e p="IncompatibleAncestorNamedNodeException.cs" t="Include" />
+            <e p="IncompatibleAncestorSyntaxNodeException.cs" t="Include" />
+            <e p="RecursiveTypeDefinitionException.cs" t="Include" />
             <e p="TicErrors.cs" t="Include" />
             <e p="TicException.cs" t="Include" />
             <e p="TicNoDetailsException.cs" t="Include" />
@@ -242,7 +241,6 @@
         <e p="TypeInferenceAdapter" t="Include">
           <e p="ApplyTiResultEnterVisitor.cs" t="Include" />
           <e p="ApplyTiResultsExitVisitor.cs" t="Include" />
-          <e p="LangFunctionSignature.cs" t="Include" />
           <e p="LangTiHelper.cs" t="Include" />
           <e p="TicSetupVisitor.cs" t="Include" />
           <e p="TicTypesConverter.cs" t="Include" />
@@ -417,7 +415,7 @@
         </e>
         <e p="OperatorPrioritiesTest.cs" t="Include" />
         <e p="PipeForwardTest.cs" t="Include" />
-        <e p="RecursiveTypeDefenitionDetectionTest.cs" t="Include" />
+        <e p="RecursiveTypeDefinitionDetectionTest.cs" t="Include" />
         <e p="SeveralEquationsTest.cs" t="Include" />
         <e p="SingleEquatationTest.cs" t="Include" />
         <e p="SpecificationTests.cs" t="Include" />

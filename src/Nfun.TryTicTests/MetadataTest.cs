@@ -18,8 +18,8 @@ namespace Funny.Tests
         public void ConcreteUserFunction_IsReturnTypeStrictTypedMetadata(string expr, string functionName, bool expectedIsStrictType)
         {
             var runtime = FunBuilder.Build(expr);
-            var funDefenition = runtime.UserFunctions.OfType<ConcreteUserFunction>().First(u => u.Name == functionName);
-            Assert.AreEqual(expectedIsStrictType, funDefenition.IsReturnTypeStrictlyTyped);
+            var funDefinition = runtime.UserFunctions.OfType<ConcreteUserFunction>().First(u => u.Name == functionName);
+            Assert.AreEqual(expectedIsStrictType, funDefinition.IsReturnTypeStrictlyTyped);
         }
         
         [TestCase("myfun1(a):int = a; y = x*3 ",                   "myfun1","a",false)]
@@ -34,9 +34,9 @@ namespace Funny.Tests
             bool expectedIsStrictType)
         {
             var runtime = FunBuilder.Build(expr);
-            var funDefenition = runtime.UserFunctions.OfType<ConcreteUserFunction>().First(u => u.Name == functionName);
-            var argDefenition = funDefenition.Variables.First(v => v.Name == argName);
-            Assert.AreEqual(expectedIsStrictType, argDefenition.IsStrictTyped);
+            var funDefinition = runtime.UserFunctions.OfType<ConcreteUserFunction>().First(u => u.Name == functionName);
+            var argDefinition = funDefinition.Variables.First(v => v.Name == argName);
+            Assert.AreEqual(expectedIsStrictType, argDefinition.IsStrictTyped);
         }
         
         [TestCase("y = x*3 ","x",false)]

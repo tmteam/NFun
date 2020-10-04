@@ -1,4 +1,3 @@
-using Nfun.Fuspec.Parser.Model;
 using ParcerV1;
 
 namespace Nfun.Fuspec.Parser.FuspecParserErrors

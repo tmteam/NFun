@@ -1,6 +1,4 @@
-﻿using NFun.TypeInferenceCalculator.Errors;
-
-namespace NFun.Tic.Errors
+﻿namespace NFun.Tic.Errors
 {
     public class TicNoDetailsException : TicException
     {

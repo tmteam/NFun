@@ -33,8 +33,8 @@ namespace Nfun.ModuleTests.UnitTests
         {
             var eq   = Parser.Parse(Tokenizer.ToFlow(text));
 
-            Assert.AreEqual(1, eq.Children.Count(n=>n is UserFunctionDefenitionSyntaxNode));
-            var fun = eq.Children.OfType<UserFunctionDefenitionSyntaxNode>().First();
+            Assert.AreEqual(1, eq.Children.Count(n=>n is UserFunctionDefinitionSyntaxNode));
+            var fun = eq.Children.OfType<UserFunctionDefinitionSyntaxNode>().First();
             
             Assert.Multiple(() =>
             {
@@ -55,7 +55,7 @@ namespace Nfun.ModuleTests.UnitTests
                 ";
             var eq   = Parser.Parse(Tokenizer.ToFlow(text));
 
-            var functions = eq.Children.OfType<UserFunctionDefenitionSyntaxNode>();
+            var functions = eq.Children.OfType<UserFunctionDefinitionSyntaxNode>();
             
             Assert.Multiple(()=>
             {
@@ -76,7 +76,7 @@ namespace Nfun.ModuleTests.UnitTests
 
         }
         
-        private void AssertParsed(UserFunctionDefenitionSyntaxNode fun,string expectedExpr, params string[] variables)
+        private void AssertParsed(UserFunctionDefinitionSyntaxNode fun,string expectedExpr, params string[] variables)
         {
             Assert.Multiple(() =>
             {

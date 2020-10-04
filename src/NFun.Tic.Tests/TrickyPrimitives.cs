@@ -1,8 +1,6 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using NFun.Tic.SolvingStates;
 using NFun.TypeInferenceCalculator;
-using NFun.TypeInferenceCalculator.Errors;
 using NUnit.Framework;
 
 namespace NFun.Tic.Tests

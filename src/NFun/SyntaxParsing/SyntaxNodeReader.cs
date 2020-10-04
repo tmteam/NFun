@@ -199,7 +199,7 @@ namespace NFun.SyntaxParsing
                 // 'id { it*2 }'
                 if (flow.IsCurrent(TokType.FiObr))
                     return ReadFunctionCall(flow, headToken);
-                // variable with type defenition
+                // variable with type definition
                 //'id:int'
                 if (flow.IsCurrent(TokType.Colon))
                 {

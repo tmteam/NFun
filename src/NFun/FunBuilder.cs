@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using NFun.Interpritation;
 using NFun.Interpritation.Functions;
 using NFun.Runtime;

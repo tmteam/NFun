@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using NFun.Runtime;
 using NFun.Runtime.Arrays;
 
 namespace NFun.Types
@@ -18,8 +15,6 @@ namespace NFun.Types
             var funType = specificConverter.FunType;
             return new VarVal(name,funValue,funType);
         }
-        public static VarVal New<T>(string name, IEnumerable<T> value) 
-            => New(name, value.ToArray());
 
         public static VarVal New(string name, object value)
         {

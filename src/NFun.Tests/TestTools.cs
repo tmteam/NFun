@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Linq;
-using NFun;
-using NFun.Interpritation;
 using NFun.Runtime;
 using NFun.Runtime.Arrays;
-using NFun.SyntaxParsing.Visitors;
 using NFun.Types;
 using NUnit.Framework;
 
@@ -13,21 +10,6 @@ namespace Funny.Tests
 {
     public static class TestTools
     {
-        public static FunRuntime Build(string equation)
-        {
-            var flow = NFun.Tokenization.Tokenizer.ToFlow(equation);
-            var tree = NFun.SyntaxParsing.Parser.Parse(flow);
-            tree.ComeOver(new SetNodeNumberVisitor(0));
-
-
-            var functions = new FunctionDictionary();
-            foreach (var predefinedFunction in BaseFunctions.ConcreteFunctions)
-                functions.TryAdd(predefinedFunction);
-            foreach (var predefinedFunction in BaseFunctions.GenericFunctions)
-                functions.TryAdd(predefinedFunction);
-
-            return RuntimeBuilder.Build(tree, functions, new EmptyConstantList());
-        }
         public static void AssertReturns(this CalculationResult result, double delta, params VarVal[] vars)
         {
             Assert.AreEqual(vars.Length, result.Results.Length, $"output variables mismatch: {string.Join(",", result.Results)}");
@@ -79,9 +61,7 @@ namespace Funny.Tests
             if (v is char[] c)
                 return new string(c);
             if (v is IEnumerable en)
-            {
                 return "{" + string.Join(",", en.Cast<object>().Select(ToStringSmart)) + "}";
-            }
 
             return v.ToString();
         }

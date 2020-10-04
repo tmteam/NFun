@@ -19,7 +19,7 @@ namespace NFun.SyntaxParsing
         /// <summary>
         /// Gets topology sorted in form of indexes [ParentNodeName ->  ChildrenNames[] ]
         /// O(N)
-        /// If Circular dependencies found -  returns circle route insead of sorted order
+        /// If Circular dependencies found -  returns circle route instead of sorted order
         /// </summary>
         /// <returns>topology sorted node indexes from source to drain or first cycle route</returns>
         public static TopologySortResults SortTopology(int[][] graph) 
@@ -93,7 +93,7 @@ namespace NFun.SyntaxParsing
         private readonly int[][] _graph;
         private readonly NodeState[] _nodeStates;
         private readonly int[] _route;
-        private Queue<int> _cycleRoute = new Queue<int>();
+        private readonly Queue<int> _cycleRoute = new Queue<int>();
 
         private int _processedCount = 0;
 

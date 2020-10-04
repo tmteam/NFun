@@ -9,13 +9,12 @@ namespace NFun.Tic.Toposort
         Equal,
         Member
     }
-    public struct Edge
+    public readonly struct Edge
     {
         public readonly int To;
         public readonly EdgeType Type;
         public static Edge AncestorTo(int to) => new Edge(to, EdgeType.Ancestor);
         public static Edge ReferenceTo(int to) => new Edge(to, EdgeType.Equal);
-        public static Edge RootOf(int to) => new Edge(to, EdgeType.Root);
         public static Edge MemberOf(int to) => new Edge(to, EdgeType.Member);
 
 

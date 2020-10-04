@@ -1,8 +1,6 @@
 ﻿using NFun.Fuspec.Parser.Interfaces;
 using NFun.Types;
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Nfun.Fuspec.Parser.Model
 {

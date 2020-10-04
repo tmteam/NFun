@@ -1,6 +1,5 @@
 ﻿using System;
 using NFun.Tic.SolvingStates;
-using NFun.TypeInferenceCalculator.Errors;
 using NUnit.Framework;
 
 namespace NFun.Tic.Tests.Arrays
