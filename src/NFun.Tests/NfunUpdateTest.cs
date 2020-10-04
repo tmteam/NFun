@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 using NFun;
-using NFun.Types;
 using NUnit.Framework;
 
 namespace Funny.Tests

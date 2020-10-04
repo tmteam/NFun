@@ -5,7 +5,7 @@ using NFun.Types;
 
 namespace NFun.SyntaxParsing.SyntaxNodes
 {
-    public class UserFunctionDefenitionSyntaxNode: ISyntaxNode
+    public class UserFunctionDefinitionSyntaxNode: ISyntaxNode
     {
         public VarType OutputType { get; set; }
         public int OrderNumber { get; set; }
@@ -13,7 +13,7 @@ namespace NFun.SyntaxParsing.SyntaxNodes
         public FunCallSyntaxNode Head { get; }
         
         public bool IsRecursive { get; set; } = true;
-        public UserFunctionDefenitionSyntaxNode(
+        public UserFunctionDefinitionSyntaxNode(
             IList<TypedVarDefSyntaxNode> arguments, 
             FunCallSyntaxNode headNode, 
             ISyntaxNode expression, 

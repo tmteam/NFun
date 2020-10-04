@@ -1,4 +1,5 @@
 using NFun.BuiltInFunctions;
+using NFun.Exceptions;
 using NFun.Runtime;
 using NFun.Tokenization;
 using NFun.Types;

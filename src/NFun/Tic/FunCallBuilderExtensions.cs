@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using NFun.Tic.SolvingStates;
+﻿using NFun.Tic.SolvingStates;
 
 namespace NFun.Tic
 {
@@ -199,7 +198,7 @@ namespace NFun.Tic
         public static void SetReverse(this GraphBuilder graph, int arrId, int resultId)
         {
             var t = graph.InitializeVarNode();
-            graph.SetCall(new[] { StateArray.Of(t), StateArray.Of(t) }, new[] { arrId, resultId });
+            graph.SetCall(new ITicNodeState[] { StateArray.Of(t), StateArray.Of(t) }, new[] { arrId, resultId });
         }
     }
 }

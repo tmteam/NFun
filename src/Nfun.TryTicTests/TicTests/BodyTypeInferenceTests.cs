@@ -320,9 +320,9 @@ namespace Nfun.ModuleTests.TicTests
         }
 
         [Test]
-        public void ReqursiveTypeDefenitionThrows()
+        public void ReqursiveTypeDefinitionThrows()
         {
-            Assert.Throws<NFun.Tic.Errors.RecursiveTypeDefenitionException>(
+            Assert.Throws<NFun.Tic.Errors.RecursiveTypeDefinitionException>(
                 ()=>TestHelper.Solve("y = t.concat(t[0])"));
         }
 

@@ -17,7 +17,7 @@ namespace NFun.ParseErrors
             {
                 if (child == headNodeChild)
                     sb.Append("???");
-                if (child is VarDefenitionSyntaxNode varDef)
+                if (child is VarDefinitionSyntaxNode varDef)
                     sb.Append(varDef.Id);
                 else if (child is NamedIdSyntaxNode varSyntax)
                     sb.Append(varSyntax.Id);
@@ -144,7 +144,7 @@ namespace NFun.ParseErrors
             if (flow.Current.Is(closeBrack))
                 //everything seems fine...
                 return new ExprListError(
-                    ExprListErrorType.TotalyWrongDefenition, 
+                    ExprListErrorType.TotalyWrongDefinition, 
                     list, new Interval(obrStart, flow.Current.Finish));
             
             if (!list.Any())
@@ -196,7 +196,6 @@ namespace NFun.ParseErrors
                     new Interval(errorStart, flow.Position));
             }   
             //LastArgument is a part of error
-            var argumentsWithoutLastStub = CreateArgumentsStub(arguments.Take(arguments.Count-1));
             return new ExprListError(
                 ExprListErrorType.LastArgumentIsInvalid, 
                 arguments,
@@ -224,7 +223,7 @@ namespace NFun.ParseErrors
     {
         FirstElementMissed = 538,
         ElementMissed = 539,
-        TotalyWrongDefenition = 541,
+        TotalyWrongDefinition = 541,
         SingleOpenBracket = 542,
         SepIsMissing = 543,
         ArgumentIsInvalid = 544,

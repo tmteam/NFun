@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using NFun.Exceptions;
 using NFun.Interpritation;
 using NFun.Interpritation.Functions;
 using NFun.Interpritation.Nodes;
@@ -10,10 +11,8 @@ using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tic.Errors;
-using NFun.Tic.SolvingStates;
 using NFun.Tokenization;
 using NFun.TypeInferenceAdapter;
-using NFun.TypeInferenceCalculator.Errors;
 using NFun.Types;
 
 namespace NFun.ParseErrors
@@ -217,16 +216,16 @@ namespace NFun.ParseErrors
                 interval);
             
         public static Exception UnknownValueAtStartOfExpression(int exprStart, Tok flowCurrent) 
-            => new FunParseException(315,$"Unexpected symbol {ErrorsHelper.ToText(flowCurrent)}. Equation, anonymous equation, function or type defenition expected.", exprStart, flowCurrent.Finish);
+            => new FunParseException(315,$"Unexpected symbol {ErrorsHelper.ToText(flowCurrent)}. Equation, anonymous equation, function or type definition expected.", exprStart, flowCurrent.Finish);
         
-        public static Exception ExpressionBeforeTheDefenition(int exprStart, ISyntaxNode expression, Tok flowCurrent)
-            => new FunParseException(318,$"Unexpected expression {ErrorsHelper.ToShortText(expression)} before defenition. Equation, anonymous equation, function or type defenition expected.", exprStart, flowCurrent.Finish);
+        public static Exception ExpressionBeforeTheDefinition(int exprStart, ISyntaxNode expression, Tok flowCurrent)
+            => new FunParseException(318,$"Unexpected expression {ErrorsHelper.ToShortText(expression)} before definition. Equation, anonymous equation, function or type definition expected.", exprStart, flowCurrent.Finish);
 
-        public static Exception FunctionDefenitionHasToStartFromNewLine(int exprStart, ISyntaxNode lexNode, Tok flowCurrent)
-            => throw new FunParseException(321, $"Function defenition has start from new line. {Nl}Example : y:int{Nl}m(x) = x+1", exprStart, flowCurrent.Finish);
+        public static Exception FunctionDefinitionHasToStartFromNewLine(int exprStart, ISyntaxNode lexNode, Tok flowCurrent)
+            => throw new FunParseException(321, $"Function definition has start from new line. {Nl}Example : y:int{Nl}m(x) = x+1", exprStart, flowCurrent.Finish);
 
-        public static Exception DefenitionHasToStartFromNewLine(int exprStart, ISyntaxNode lexNode, Tok flowCurrent)
-            => throw new FunParseException(324, $"Defenition has start from new line. {Nl}Example : y:int{Nl}j = y+1 #j = y:int+1", exprStart, flowCurrent.Finish);
+        public static Exception DefinitionHasToStartFromNewLine(int exprStart, ISyntaxNode lexNode, Tok flowCurrent)
+            => throw new FunParseException(324, $"Definition has start from new line. {Nl}Example : y:int{Nl}j = y+1 #j = y:int+1", exprStart, flowCurrent.Finish);
 
 
         public static Exception AnonymousExpressionHasToStartFromNewLine(int exprStart, ISyntaxNode lexNode, Tok flowCurrent)
@@ -234,11 +233,11 @@ namespace NFun.ParseErrors
         
         public static Exception OnlyOneAnonymousExpressionAllowed(int exprStart, ISyntaxNode lexNode, Tok flowCurrent)
             =>   throw new FunParseException(330,$"Only one anonymous equation allowed", exprStart, flowCurrent.Finish);
-        public static Exception UnexpectedBracketsOnFunDefenition(FunCallSyntaxNode headNode, int start, int finish)
-            => new FunParseException(333, $"Unexpected brackets on function defenition ({headNode.Id}(...))=... {Nl}Example: {headNode.Id}(...)=...", 
+        public static Exception UnexpectedBracketsOnFunDefinition(FunCallSyntaxNode headNode, int start, int finish)
+            => new FunParseException(333, $"Unexpected brackets on function definition ({headNode.Id}(...))=... {Nl}Example: {headNode.Id}(...)=...", 
                 start, finish);
         
-        public static Exception WrongFunctionArgumentDefenition(FunCallSyntaxNode headNode, ISyntaxNode headNodeChild)
+        public static Exception WrongFunctionArgumentDefinition(FunCallSyntaxNode headNode, ISyntaxNode headNodeChild)
         {
             var sb = ErrorsHelper.ToFailureFunString(headNode, headNodeChild);
             return new FunParseException(336,
@@ -246,7 +245,7 @@ namespace NFun.ParseErrors
                     headNodeChild.Interval);
         }
         
-        public static Exception FunctionArgumentInBracketDefenition(FunCallSyntaxNode headNode, ISyntaxNode headNodeChild,
+        public static Exception FunctionArgumentInBracketDefinition(FunCallSyntaxNode headNode, ISyntaxNode headNodeChild,
             Tok flowCurrent)
         {
             if (flowCurrent == null) throw new ArgumentNullException(nameof(flowCurrent));
@@ -288,8 +287,8 @@ namespace NFun.ParseErrors
                     return new FunParseException(404,
                         $"[{argStubs},???, ..] <- element missed {Nl}Remove ',' or place element before it", 
                         res.Interval);
-                case ExprListErrorType.TotalyWrongDefenition:
-                    return new FunParseException(407, "Wrong array defenition ", res.Interval);
+                case ExprListErrorType.TotalyWrongDefinition:
+                    return new FunParseException(407, "Wrong array definition ", res.Interval);
                 case ExprListErrorType.SingleOpenBracket:
                     return new FunParseException(410,
                         $"[ <- unexpected array symbol{Nl} Did you mean array initialization [,], slice [::] or indexing [i]?", 
@@ -330,7 +329,7 @@ namespace NFun.ParseErrors
                     return new FunParseException(428,
                         $"{id}({argStubs},???, ..) <- element missed {Nl}Remove ',' or place element before it", 
                         res.Interval);
-                case ExprListErrorType.TotalyWrongDefenition:
+                case ExprListErrorType.TotalyWrongDefinition:
                     return new FunParseException(431, "Wrong function call", res.Interval);
                 case ExprListErrorType.SingleOpenBracket:
                     return new FunParseException(434,
@@ -371,7 +370,7 @@ namespace NFun.ParseErrors
                     return new FunParseException(452,
                         $"({argStubs},???, ..) <- element missed {Nl}Remove ',' or place element before it", 
                         res.Interval);
-                case ExprListErrorType.TotalyWrongDefenition:
+                case ExprListErrorType.TotalyWrongDefinition:
                     return new FunParseException(455, "Wrong expression", res.Interval);
                 case ExprListErrorType.SingleOpenBracket:
                     return new FunParseException(458,
@@ -414,11 +413,11 @@ namespace NFun.ParseErrors
         public static Exception ImpossibleCast(VarType from,VarType to, Interval interval)
             => new FunParseException(506, $"Unable to cast from {from} to {to}", interval);
       
-        public static Exception InvalidArgTypeDefenition(ISyntaxNode argumentNode) 
+        public static Exception InvalidArgTypeDefinition(ISyntaxNode argumentNode) 
             => new FunParseException(509, ErrorsHelper.ToShortText(argumentNode) + " is  not valid fun arg", argumentNode.Interval);
 
-        public static Exception AnonymousFunDefenitionIsMissing(ISyntaxNode node)
-            => new FunParseException(512, "Anonymous fun defenition is missing", node.Interval);
+        public static Exception AnonymousFunDefinitionIsMissing(ISyntaxNode node)
+            => new FunParseException(512, "Anonymous fun definition is missing", node.Interval);
 
         public static Exception AnonymousFunBodyIsMissing(ISyntaxNode node)
             => new FunParseException(515, "Anonymous fun body is missing", node.Interval);
@@ -482,7 +481,7 @@ namespace NFun.ParseErrors
             return new FunParseException(542,$"Unknown variables \"{string.Join(", ", values)}\"",values.First().Interval);
         }
 
-        public static Exception FunctionAlreadyExist(UserFunctionDefenitionSyntaxNode userFun) 
+        public static Exception FunctionAlreadyExist(UserFunctionDefinitionSyntaxNode userFun) 
             => new FunParseException(545,$"Function  {ErrorsHelper.Signature(userFun.Id, userFun.Args)} already exist", 
                 new Interval( userFun.Head.Interval.Start,userFun.Body.Interval.Finish));
 
@@ -492,23 +491,23 @@ namespace NFun.ParseErrors
         public static Exception InvalidOutputType(IFunctionSignature function, Interval interval) 
             => new FunParseException(551, $"'{function.ReturnType}' is not supported as output parameter of {function.Name}()", interval);
 
-        public static Exception FunctionArgumentDuplicates(UserFunctionDefenitionSyntaxNode lexFunction, TypedVarDefSyntaxNode lexFunctionArg) 
+        public static Exception FunctionArgumentDuplicates(UserFunctionDefinitionSyntaxNode lexFunction, TypedVarDefSyntaxNode lexFunctionArg) 
             => new FunParseException(554, $"'Argument name '{lexFunctionArg.Id}' duplicates at  {ErrorsHelper.Signature(lexFunction.Id, lexFunction.Args)} ", lexFunction.Head.Interval);
 
-        public static Exception AnonymousFunctionArgumentDuplicates(FunArgumentExpressionNode argNode,ISyntaxNode funDefenition)
+        public static Exception AnonymousFunctionArgumentDuplicates(FunArgumentExpressionNode argNode,ISyntaxNode funDefinition)
             => new FunParseException(557, $"'Argument name '{argNode.Name}' of anonymous fun duplicates ", argNode.Interval);
 
-        public static Exception AnonymousFunctionArgumentDuplicates(NamedIdSyntaxNode argNode,ISyntaxNode funDefenition)
+        public static Exception AnonymousFunctionArgumentDuplicates(NamedIdSyntaxNode argNode,ISyntaxNode funDefinition)
             => new FunParseException(560, $"'Argument name '{argNode.Id}' of anonymous fun duplicates ", argNode.Interval);
-        public static Exception AnonymousFunctionArgumentDuplicates(TypedVarDefSyntaxNode argNode,ISyntaxNode funDefenition)
+        public static Exception AnonymousFunctionArgumentDuplicates(TypedVarDefSyntaxNode argNode,ISyntaxNode funDefinition)
             => new FunParseException(563, $"'Argument '{argNode.Id}:{argNode.VarType}' of anonymous fun duplicates ", argNode.Interval);
 
         public static Exception AnonymousFunctionArgumentConflictsWithOuterScope(string argName, Interval defInterval)
             => new FunParseException(566, $"'Argument name '{argName}' of anonymous fun conflicts with outer scope variable. It is denied for your safety.", defInterval);
-        public static Exception AnonymousFunDefenitionIsIncorrect(ArrowAnonymFunctionSyntaxNode arrowAnonymFunNode)
-            => new FunParseException(569, $"'Anonym fun defenition is incorrect ", arrowAnonymFunNode.Interval);
+        public static Exception AnonymousFunDefinitionIsIncorrect(ArrowAnonymFunctionSyntaxNode arrowAnonymFunNode)
+            => new FunParseException(569, $"'Anonym fun definition is incorrect ", arrowAnonymFunNode.Interval);
         
-        public static Exception ComplexRecursion(UserFunctionDefenitionSyntaxNode[] functionSolveOrder)
+        public static Exception ComplexRecursion(UserFunctionDefinitionSyntaxNode[] functionSolveOrder)
         {
             var callOrder = string.Join("->", functionSolveOrder.Select(s => s.Id + "(..)"));
             return new FunParseException(572, $"Complex recursion found: {callOrder} ", functionSolveOrder.First().Interval);
@@ -581,14 +580,14 @@ namespace NFun.ParseErrors
         public static Exception TypesNotSolved(ISyntaxNode syntaxNode)
             => new FunParseException(600,$"Types cannot be solved ",syntaxNode.Interval);        
 
-        public static Exception FunctionTypesNotSolved(UserFunctionDefenitionSyntaxNode node)
+        public static Exception FunctionTypesNotSolved(UserFunctionDefinitionSyntaxNode node)
             => new FunParseException(603,$"Function {node.GetFunAlias()} has invalid arguments or output type. Check function body expression",
                 new Interval(node.Head.Interval.Start, node.Body.Interval.Start));        
 
-        public static Exception OutputDefenitionDuplicates(EquationSyntaxNode node)
-            => new FunParseException(606,$"Output variable {node.Id} defenition duplicates",node.Interval);        
+        public static Exception OutputDefinitionDuplicates(EquationSyntaxNode node)
+            => new FunParseException(606,$"Output variable {node.Id} definition duplicates",node.Interval);        
     
-        public static Exception OutputDefenitionTypeIsNotSolved(EquationSyntaxNode node)
+        public static Exception OutputDefinitionTypeIsNotSolved(EquationSyntaxNode node)
             => new FunParseException(609,$"Output variable '{node.Id}' type is incorrect",node.Interval);        
 
         #endregion
@@ -596,28 +595,28 @@ namespace NFun.ParseErrors
 
         public static Exception TranslateTicError(TicException ticException, ISyntaxNode syntaxNodeToSearch)
         {
-            if (ticException is ImcompatibleAncestorSyntaxNodeException syntaxNodeEx)
+            if (ticException is IncompatibleAncestorSyntaxNodeException syntaxNodeEx)
             {
                 var concreteNode = SyntaxTreeDeepFieldSearch.FindNodeByOrderNumOrNull(syntaxNodeToSearch, syntaxNodeEx.SyntaxNodeId);
                 if (concreteNode != null)
                     return new FunParseException(601, $"Types cannot be solved: {ticException.Message} ", concreteNode.Interval);
             }
-            else if (ticException is ImcompatibleAncestorNamedNodeException namedNodeEx)
+            else if (ticException is IncompatibleAncestorNamedNodeException namedNodeEx)
             {
-                var concreteNode = SyntaxTreeDeepFieldSearch.FindVarDefenitionOrNull(syntaxNodeToSearch, namedNodeEx.NodeName);
+                var concreteNode = SyntaxTreeDeepFieldSearch.FindVarDefinitionOrNull(syntaxNodeToSearch, namedNodeEx.NodeName);
                 if (concreteNode != null)
                     return new FunParseException(602, $"Types cannot be solved: {ticException.Message} ", concreteNode.Interval);
             }
-            else if (ticException is RecursiveTypeDefenitionException e)
+            else if (ticException is RecursiveTypeDefinitionException e)
             {
                 foreach (var nodeName in e.NodeNames)
                 {
                     var concreteNode =
-                        SyntaxTreeDeepFieldSearch.FindVarDefenitionOrNull(syntaxNodeToSearch, nodeName);
+                        SyntaxTreeDeepFieldSearch.FindVarDefinitionOrNull(syntaxNodeToSearch, nodeName);
                     if (concreteNode != null)
                     {
                         return new FunParseException(603,
-                            $"Recursive type defenition: {string.Join("->", e.NodeNames)} ", concreteNode.Interval);
+                            $"Recursive type definition: {string.Join("->", e.NodeNames)} ", concreteNode.Interval);
                     }
                 }
 
@@ -625,7 +624,7 @@ namespace NFun.ParseErrors
                 {
                     var concreteNode = SyntaxTreeDeepFieldSearch.FindNodeByOrderNumOrNull(syntaxNodeToSearch, nodeId);
                     if (concreteNode != null)
-                        return new FunParseException(603, $"Recursive type defenition detected", concreteNode.Interval);
+                        return new FunParseException(603, $"Recursive type definition detected", concreteNode.Interval);
                 }
             }
             return TypesNotSolved(syntaxNodeToSearch);

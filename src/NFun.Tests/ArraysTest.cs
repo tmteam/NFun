@@ -2,6 +2,7 @@ using System.Collections;
 using System.Linq;
 using NFun;
 using NFun.BuiltInFunctions;
+using NFun.Exceptions;
 using NFun.ParseErrors;
 using NFun.Runtime.Arrays;
 using NFun.Types;

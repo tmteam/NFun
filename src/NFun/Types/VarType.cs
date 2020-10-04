@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace NFun.Types
 {
-    public struct VarType
+    public readonly struct VarType
     {
         public override int GetHashCode()
         {
@@ -139,7 +139,7 @@ namespace NFun.Types
         }
 
         /// <summary>
-        /// Substitude concrete types to generic type defenition (if it is)
+        /// Substitude concrete types to generic type definition (if it is)
         ///
         /// Example:
         /// generic:   Fun(T1, int)-> T0[];   solved: {int, text}

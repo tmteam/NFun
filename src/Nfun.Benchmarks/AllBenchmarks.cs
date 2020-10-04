@@ -1,5 +1,3 @@
-using System.Linq;
-using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Running;
 using NUnit.Framework;
 // ReSharper disable InconsistentNaming

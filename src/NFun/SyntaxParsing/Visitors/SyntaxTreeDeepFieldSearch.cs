@@ -17,16 +17,16 @@ namespace NFun.SyntaxParsing.Visitors
             }
             return null;
         }
-        public static ISyntaxNode FindVarDefenitionOrNull(this ISyntaxNode root, string nodeName)
+        public static ISyntaxNode FindVarDefinitionOrNull(this ISyntaxNode root, string nodeName)
         {
             if (root is TypedVarDefSyntaxNode v && v.Id == nodeName)
                 return root;
-            if (root is VarDefenitionSyntaxNode vd && vd.Id == nodeName)
+            if (root is VarDefinitionSyntaxNode vd && vd.Id == nodeName)
                 return root;
 
             foreach (var child in root.Children)
             {
-                var result = FindVarDefenitionOrNull(child, nodeName);
+                var result = FindVarDefinitionOrNull(child, nodeName);
                 if (result != null)
                     return result;
             }
@@ -48,30 +48,6 @@ namespace NFun.SyntaxParsing.Visitors
                     return false;
             }
             return root.Accept(exitVisitor);
-        }
-
-        private static bool ComeOver(this ISyntaxNode root, 
-            ISyntaxNode parent, int childNumber,
-            ISyntaxNodeVisitor<VisitorEnterResult> enterVisitor,
-            ISyntaxNodeVisitor<bool> exitVisitor)
-        {
-            var enterResult = root.Accept(enterVisitor);
-
-            if (enterResult == VisitorEnterResult.Failed)
-                return false;
-            if (enterResult == VisitorEnterResult.Skip)
-                return true;
-
-            int i = 0;
-            foreach (var child in root.Children)
-            {
-                if (!child.ComeOver(root, i, enterVisitor, exitVisitor))
-                    return false;
-                i++;
-
-            }
-            var res = root.Accept(exitVisitor);
-            return res;
         }
 
         public static bool ComeOver(this ISyntaxNode root, ISyntaxNodeVisitor<VisitorEnterResult> enterVisitor)

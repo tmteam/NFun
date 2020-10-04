@@ -1,13 +1,11 @@
 using System;
 using System.Collections.Generic;
-using Nfun.Fuspec.Parser.Model;
-using ParcerV1;
 
 namespace FuspecHandler
 {
     public class TypeAndValuesException: Exception
     {
-        private List<string> messages;
+        private readonly List<string> messages;
         public string[] Messages=>messages.ToArray();
 
         public TypeAndValuesException() => messages= new List<string>();

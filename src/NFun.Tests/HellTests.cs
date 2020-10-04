@@ -1,4 +1,5 @@
 ﻿using NFun;
+using NFun.Tic;
 using NFun.TypeInferenceCalculator;
 using NFun.Types;
 using NUnit.Framework;

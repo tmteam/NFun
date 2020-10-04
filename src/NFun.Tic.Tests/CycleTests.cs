@@ -1,7 +1,5 @@
-﻿using System;
-using NFun.Tic.SolvingStates;
+﻿using NFun.Tic.SolvingStates;
 using NFun.TypeInferenceCalculator;
-using NFun.TypeInferenceCalculator.Errors;
 using NUnit.Framework;
 
 namespace NFun.Tic.Tests
@@ -270,14 +268,14 @@ namespace NFun.Tic.Tests
             res.AssertNamed(StateArray.Of(t),"x");
         }
         [Test]
-        public void Array_ReqursiveDefenition_throws()
+        public void Array_ReqursiveDefinition_throws()
         {
             //    1 0              
             //x = [ x]
             var graph = new GraphBuilder();
             graph.SetVar("x", 0);
             graph.SetStrictArrayInit(1,0);
-            TestHelper.AssertThrowsRecursiveTicTypedDefenition(() =>
+            TestHelper.AssertThrowsRecursiveTicTypedDefinition(() =>
             {
                 graph.SetDef("x", 1);
                 graph.Solve();
@@ -286,7 +284,7 @@ namespace NFun.Tic.Tests
         }
 
         [Test]
-        public void Array_TwinReqursiveDefenition_throws()
+        public void Array_TwinReqursiveDefinition_throws()
         {
             //    2 0 1              
             //x = [ x,x]
@@ -294,7 +292,7 @@ namespace NFun.Tic.Tests
             graph.SetVar("x", 0);
             graph.SetVar("x", 1);
             graph.SetStrictArrayInit(2, 0,1);
-            TestHelper.AssertThrowsRecursiveTicTypedDefenition(() =>
+            TestHelper.AssertThrowsRecursiveTicTypedDefinition(() =>
             {
                 graph.SetDef("x", 2);
                 graph.Solve();
@@ -302,7 +300,7 @@ namespace NFun.Tic.Tests
             });
         }
        [Test]
-       public void Array_ComplexReqursiveDefenition_throws()
+       public void Array_ComplexReqursiveDefinition_throws()
        {
            //    2 1 0             
            //x = [ [ x]]
@@ -310,7 +308,7 @@ namespace NFun.Tic.Tests
            graph.SetVar("x", 0);
            graph.SetStrictArrayInit(1, 0);
            graph.SetStrictArrayInit(2, 1);
-           TestHelper.AssertThrowsRecursiveTicTypedDefenition(() =>
+           TestHelper.AssertThrowsRecursiveTicTypedDefinition(() =>
            {
                graph.SetDef("x", 2);
                graph.Solve();
@@ -318,7 +316,7 @@ namespace NFun.Tic.Tests
            });
        }
         [Test]
-        public void Array_ComplexReqursiveDefenition2_throws()
+        public void Array_ComplexReqursiveDefinition2_throws()
         {
             //    4 1 0  3 2           
             //x = [ [ a],[ x]]
@@ -328,7 +326,7 @@ namespace NFun.Tic.Tests
             graph.SetVar("x", 2);
             graph.SetStrictArrayInit(3, 2);
             graph.SetStrictArrayInit(4, 1,3);
-            TestHelper.AssertThrowsRecursiveTicTypedDefenition(() =>
+            TestHelper.AssertThrowsRecursiveTicTypedDefinition(() =>
             {
                 graph.SetDef("x", 4);
                 graph.Solve();
@@ -336,7 +334,7 @@ namespace NFun.Tic.Tests
             });
         }
         [Test]
-        public void Array_recursiveConcatDefenition_throws()
+        public void Array_recursiveConcatDefinition_throws()
         {
             //     4     0   3  1 2
             //y = concat(t, get(t,0i))
@@ -346,7 +344,7 @@ namespace NFun.Tic.Tests
             graph.SetVar("t", 1);
             graph.SetConst(2, StatePrimitive.I32);
             graph.SetArrGetCall(1,2,3);
-            TestHelper.AssertThrowsRecursiveTicTypedDefenition(() =>
+            TestHelper.AssertThrowsRecursiveTicTypedDefinition(() =>
             {
                 graph.SetConcatCall(0, 3, 4);
                 graph.SetDef("y", 4);

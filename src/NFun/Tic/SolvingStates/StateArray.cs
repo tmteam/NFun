@@ -33,7 +33,7 @@ namespace NFun.Tic.SolvingStates
                 if (Element is StateArray arr)
                 {
                     if (arr.ElementNode == ElementNode)
-                        throw new InvalidOperationException("Imposible reqursive defenition");
+                        throw new InvalidOperationException("Impossible recursive definition");
                 }
                 return (Element as ITypeState)?.IsSolved == true;
             }

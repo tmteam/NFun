@@ -1,8 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using NFun.ParseErrors;
-using NFun.Runtime;
 using NFun.Runtime.Arrays;
 using NFun.Tokenization;
 
@@ -64,17 +61,17 @@ namespace NFun.Types
              * 
              */
         }
-        public static readonly Func<object, object> ToInt8   = (o => Convert.ToSByte(o));
-        public static readonly Func<object, object> ToInt16  = (o => Convert.ToInt16(o));
-        public static readonly Func<object, object> ToInt32  = (o => Convert.ToInt32(o));
-        public static readonly Func<object, object> ToInt64  = (o => Convert.ToInt64(o));
-        public static readonly Func<object, object> ToUInt8  = (o => Convert.ToByte(o));
-        public static readonly Func<object, object> ToUInt16 = (o => Convert.ToUInt16(o));
-        public static readonly Func<object, object> ToUInt32 = (o => Convert.ToUInt32(o));
-        public static readonly Func<object, object> ToUInt64 = (o => Convert.ToUInt64(o));
-        public static readonly Func<object, object> ToReal   = (o => Convert.ToDouble(o));
-        public static readonly Func<object, object> ToText   = (o => o?.ToString() ?? "");
-        public static readonly Func<object, object> ToAny    = (o => o);
+        private static readonly Func<object, object> ToInt8   = (o => Convert.ToSByte(o));
+        private static readonly Func<object, object> ToInt16  = (o => Convert.ToInt16(o));
+        private static readonly Func<object, object> ToInt32  = (o => Convert.ToInt32(o));
+        private static readonly Func<object, object> ToInt64  = (o => Convert.ToInt64(o));
+        private static readonly Func<object, object> ToUInt8  = (o => Convert.ToByte(o));
+        private static readonly Func<object, object> ToUInt16 = (o => Convert.ToUInt16(o));
+        private static readonly Func<object, object> ToUInt32 = (o => Convert.ToUInt32(o));
+        private static readonly Func<object, object> ToUInt64 = (o => Convert.ToUInt64(o));
+        private static readonly Func<object, object> ToReal   = (o => Convert.ToDouble(o));
+        private static readonly Func<object, object> ToText   = (o => o?.ToString() ?? "");
+        private static readonly Func<object, object> ToAny    = (o => o);
 
         public static Func<object, object> GetConverterOrNull(VarType from, VarType to)
         {
@@ -151,8 +148,8 @@ namespace NFun.Types
             if (to.BaseType == BaseVarType.ArrayOf && from.BaseType== BaseVarType.ArrayOf)
             {
                 return CanBeConverted(
-                    @from: @from.ArrayTypeSpecification.VarType,
-                    to: to.ArrayTypeSpecification.VarType);
+                    from: from.ArrayTypeSpecification.VarType,
+                    to:     to.ArrayTypeSpecification.VarType);
             }
             //todo fun-convertion
             return PrimitiveConvertMap[(int)from.BaseType,(int)to.BaseType];

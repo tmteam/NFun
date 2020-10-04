@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using NFun.Tic.SolvingStates;
-using NFun.TypeInferenceCalculator;
 
 namespace NFun.Tic
 {
@@ -25,7 +22,7 @@ namespace NFun.Tic
             => new TicNode(type.ToString(), type, TicNodeType.TypeVariable);
 
         private static int _interlockedId = 0;
-        private readonly int Uid = 0;
+        private readonly int _uid = 0;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TicNode CreateSyntaxNode(int id, ITicNodeState state, bool registrated = false)
@@ -42,7 +39,7 @@ namespace NFun.Tic
         
         private TicNode(object name, ITicNodeState state, TicNodeType type)
         {
-            Uid =  Interlocked.Increment(ref _interlockedId);
+            _uid =  Interlocked.Increment(ref _interlockedId);
             
             Name = name;
             State = state;
@@ -150,6 +147,6 @@ namespace NFun.Tic
 
             return result;
         }
-        public override int GetHashCode() => Uid;
+        public override int GetHashCode() => _uid;
     }
 }

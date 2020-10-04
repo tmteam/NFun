@@ -50,7 +50,7 @@ namespace NFun.TypeInferenceAdapter
         }
 
 
-        public override VisitorEnterResult Visit(UserFunctionDefenitionSyntaxNode node) 
+        public override VisitorEnterResult Visit(UserFunctionDefinitionSyntaxNode node) 
             => VisitorEnterResult.Continue;
     }
 }

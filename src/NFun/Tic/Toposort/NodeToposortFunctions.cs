@@ -54,7 +54,7 @@ namespace NFun.Tic.Toposort
             return new NodeSortResult(order, referenceNodes, 
                 sorted.HasLoop
                 ? sorted.NodeNames.Any(n => n.Type == EdgeType.Member)
-                    ? SortStatus.MemebershipCycle // if any edge is of membership type, than recursive type defenition found. Example t = t[0]
+                    ? SortStatus.MemebershipCycle // if any edge is of membership type, than recursive type definition found. Example t = t[0]
                     : SortStatus.AncestorCycle    // Ancestor cycle found.  Example: x = x+1. 
                 : SortStatus.Sorted);
         }
@@ -158,7 +158,7 @@ namespace NFun.Tic.Toposort
             return refList;
         }
 
-        public static Edge[][] ConvertToRefArrayGraph(List<TicNode> allNodes)
+        private static Edge[][] ConvertToRefArrayGraph(List<TicNode> allNodes)
         {
             var graph = new List<Edge>[allNodes.Count];
 

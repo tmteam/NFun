@@ -1,4 +1,5 @@
 using System;
+using NFun.Exceptions;
 using NFun.ParseErrors;
 using NFun.Tokenization;
 using NUnit.Framework;

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using NFun.Exceptions;
 using NFun.Interpritation.Functions;
 using NFun.ParseErrors;
 using NFun.Runtime.Arrays;
@@ -182,7 +183,7 @@ namespace NFun.BuiltInFunctions
                 }
             }
         }
-
+        //todo wtf?
         private static byte[] GetArrayOfSize(object array, int size)
         {
             var val = (IFunArray) array;

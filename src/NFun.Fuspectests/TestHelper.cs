@@ -1,11 +1,9 @@
 ﻿using Nfun.Fuspec.Parser;
 using Nfun.Fuspec.Parser.Model;
 using NUnit.Framework;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace NFun.Fuspectests
 {

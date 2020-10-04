@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using NFun.Exceptions;
 using NFun.ParseErrors;
 
 namespace NFun.Tokenization
@@ -69,7 +69,7 @@ namespace NFun.Tokenization
             
             {"anything", TokType.AnythingType},
 
-            //Reserved kewords:
+            //Reserved keywords:
             {"%", TokType.Reserved},
             {"_", TokType.Reserved},
 
@@ -264,14 +264,14 @@ namespace NFun.Tokenization
                 case '{':
                     {
 
-                        if (_isInIterpolation)
+                        if (_isInInterpolation)
                             _interpolationLayers.Peek().FigureBracketsDiff++;
                         return Tok.New(TokType.FiObr, position, position + 1);
                     }
 
                 case '}':
                     {
-                        if (_isInIterpolation)
+                        if (_isInInterpolation)
                         {
                             if (_interpolationLayers.Peek().FigureBracketsDiff == 0)
                                 return ReadText(str, position);
@@ -330,7 +330,7 @@ namespace NFun.Tokenization
             }
         }
 
-        private bool _isInIterpolation = false;
+        private bool _isInInterpolation = false;
         private readonly Stack<InterpolationLayer> _interpolationLayers = new Stack<InterpolationLayer>();
 
         private Tok TryReadNext(string str, int position)
@@ -375,12 +375,12 @@ namespace NFun.Tokenization
         private Tok ReadText(string str, int startPosition)
         {
             var openQuoteSymbol = str[startPosition];
-            bool closeIntepolation = false;
+            bool closeInterpolation = false;
             if (openQuoteSymbol == '}')
             {
-                closeIntepolation = true;
+                closeInterpolation = true;
                 openQuoteSymbol = _interpolationLayers.Pop().OpenQuoteSymbol;
-                _isInIterpolation = _interpolationLayers.Count > 0;
+                _isInInterpolation = _interpolationLayers.Count > 0;
             }
 
             var expectedClosingSymbol = openQuoteSymbol;
@@ -396,11 +396,11 @@ namespace NFun.Tokenization
             var closeQuoteSymbol = str[endPosition];
             if (closeQuoteSymbol == '{')
             {
-                _isInIterpolation = true;
+                _isInInterpolation = true;
                 var layer = new InterpolationLayer() {FigureBracketsDiff = 0, OpenQuoteSymbol = openQuoteSymbol};
                 _interpolationLayers.Push(layer);
                 
-                if(closeIntepolation)
+                if(closeInterpolation)
                     return Tok.New(TokType.TextMidInterpolation, result, startPosition, endPosition + 1);
                 else
                     return Tok.New(TokType.TextOpenInterpolation, result, startPosition, endPosition + 1);
@@ -409,7 +409,7 @@ namespace NFun.Tokenization
             {
                 if (closeQuoteSymbol != expectedClosingSymbol)
                     throw ErrorFactory.ClosingQuoteIsMissed(expectedClosingSymbol, startPosition, endPosition);
-                if (closeIntepolation)
+                if (closeInterpolation)
                     return Tok.New(TokType.TextCloseInterpolation, result, startPosition, endPosition + 1);
                 else
                     return Tok.New(TokType.Text, result, startPosition, endPosition + 1);

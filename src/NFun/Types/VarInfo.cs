@@ -1,9 +1,8 @@
-using System;
 using NFun.SyntaxParsing;
 
 namespace NFun.Types
 {
-    public struct VarInfo
+    public readonly struct VarInfo
     {
         public readonly bool IsOutput;
         public readonly VarType Type;

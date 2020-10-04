@@ -19,8 +19,8 @@ namespace NFun.SyntaxParsing.Visitors
         public virtual VisitorEnterResult Visit(GenericIntSyntaxNode node) => DefaultVisitEnter(node);
         public virtual VisitorEnterResult Visit(SyntaxTree node)=> DefaultVisitEnter(node);
         public virtual VisitorEnterResult Visit(TypedVarDefSyntaxNode node)=> DefaultVisitEnter(node);
-        public virtual VisitorEnterResult Visit(UserFunctionDefenitionSyntaxNode node)=> DefaultVisitEnter(node);
-        public virtual VisitorEnterResult Visit(VarDefenitionSyntaxNode node)=> DefaultVisitEnter(node);
+        public virtual VisitorEnterResult Visit(UserFunctionDefinitionSyntaxNode node)=> DefaultVisitEnter(node);
+        public virtual VisitorEnterResult Visit(VarDefinitionSyntaxNode node)=> DefaultVisitEnter(node);
         public virtual VisitorEnterResult Visit(NamedIdSyntaxNode node)=> DefaultVisitEnter(node);
     }
 }

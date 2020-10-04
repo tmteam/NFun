@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using NFun.Tic.SolvingStates;
+﻿using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 
 namespace NFun.Tic.Tests

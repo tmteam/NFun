@@ -1,5 +1,4 @@
-﻿using System;
-using NFun.Tic.SolvingStates;
+﻿using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 
 namespace NFun.Tic.Tests.UnitTests

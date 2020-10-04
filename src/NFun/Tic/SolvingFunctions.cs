@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using NFun.Tic.Errors;
 using NFun.Tic.SolvingStates;
@@ -127,6 +126,9 @@ namespace NFun.Tic
         {
             void HandleUpwardLimits(TicNode node)
             {
+                
+                // ReSharper disable once ForCanBeConvertedToForeach
+                //We has to use for, because collection can be modified
                 for (var index = 0; index < node.Ancestors.Count; index++)
                 {
                     var ancestor = node.Ancestors[index];
@@ -331,7 +333,7 @@ namespace NFun.Tic
                 if (descendant.State is ConstrainsState constr)
                 {
                     var result = TransformToArrayOrNull(descendant.Name, constr)
-                            ?? throw TicErrors.CanntoBecomeFunction(ancestor, descendant);
+                            ?? throw TicErrors.CannotBecomeFunction(ancestor, descendant);
                     result.ElementNode.Ancestors.Add(ancArray.ElementNode);
                     descendant.State = result;
                     descendant.Ancestors.Remove(ancestor);
@@ -342,7 +344,7 @@ namespace NFun.Tic
                     desArray.ElementNode.State = SetDownwardsLimits(desArray.ElementNode, ancArray.ElementNode);
                     return descendant.State;
                 }
-                throw TicErrors.CanntoBecomeArray(ancestor, descendant);
+                throw TicErrors.CannotBecomeArray(ancestor, descendant);
             }
 
             if (ancestor.State is StateFun ancFun)
@@ -351,7 +353,7 @@ namespace NFun.Tic
                 {
                     var result = TransformToFunOrNull(descendant.Name, constr, ancFun);
                     if (result == null)
-                        throw TicErrors.CanntoBecomeFunction(ancestor, descendant);
+                        throw TicErrors.CannotBecomeFunction(ancestor, descendant);
                     descendant.State = result;
                 }
 
@@ -367,7 +369,7 @@ namespace NFun.Tic
                     return descendant.State;
                 }
 
-                throw TicErrors.CanntoBecomeFunction(ancestor, descendant);
+                throw TicErrors.CannotBecomeFunction(ancestor, descendant);
             }
 
             StatePrimitive up = null;
@@ -421,9 +423,7 @@ namespace NFun.Tic
             if (descendant.NoConstrains)
             {
                 var constrains = new ConstrainsState();
-                string eName;
-
-                eName = "e" + descNodeName.ToString().ToLower() + "'";
+                var eName = "e" + descNodeName.ToString().ToLower() + "'";
 
                 var node = TicNode.CreateTypeVariableNode(eName, constrains);
                 return new StateArray(node);

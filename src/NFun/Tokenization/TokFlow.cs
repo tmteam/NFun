@@ -63,7 +63,7 @@ namespace NFun.Tokenization
             }
         }
 
-        public Tok PeekNext(int offset)
+        private Tok PeekNext(int offset)
         {
             if (_tokens.Length <= (_currentPos + offset + 1))
                 return null;

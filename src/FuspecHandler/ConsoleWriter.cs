@@ -1,6 +1,7 @@
 using System;
 using Nfun.Fuspec.Parser.FuspecParserErrors;
 using NFun.BuiltInFunctions;
+using NFun.Exceptions;
 using NFun.ParseErrors;
 
 namespace FuspecHandler

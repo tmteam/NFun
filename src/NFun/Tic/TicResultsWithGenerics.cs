@@ -40,20 +40,20 @@ namespace NFun.Tic
         {
             get
             {
-                //For perfomance optimization
+                //For performance optimization
                 foreach (var node in _typeVariables)
                 {
-                    if (node?.State is ConstrainsState c)
+                    if (node?.State is ConstrainsState)
                         return true;
                 }
                 foreach (var node in _namedNodes)
                 {
-                    if (node?.State is ConstrainsState c)
+                    if (node?.State is ConstrainsState)
                         return true;
                 }
                 foreach (var node in _syntaxNodes)
                 {
-                    if (node?.State is ConstrainsState c)
+                    if (node?.State is ConstrainsState)
                         return true;
                 }
 
@@ -63,7 +63,7 @@ namespace NFun.Tic
         /// <summary>
         /// GAP for tests
         /// </summary>
-        public int GenericsCount => GenericsStates.Count();
+        public int GenericsCount => GenericsStates.Length;
 
         private ConstrainsState[] _genericsStates = null;
 

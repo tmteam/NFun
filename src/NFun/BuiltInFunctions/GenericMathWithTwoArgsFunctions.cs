@@ -10,8 +10,8 @@ namespace NFun.BuiltInFunctions
 
         protected ArithmeticalGenericFunctionOfTwoArgsBase(
             string name,
-            GenericConstrains genericDefenition
-        ) : base(name, genericDefenition, VarType.Generic(0), VarType.Generic(0), VarType.Generic(0))
+            GenericConstrains genericDefinition
+        ) : base(name, genericDefinition, VarType.Generic(0), VarType.Generic(0), VarType.Generic(0))
         {
             _functions = new IConcreteFunction[15];
 

@@ -28,24 +28,21 @@ namespace NFun.TypeInferenceAdapter
             return false;
         }
 
-        public bool AddVariableAlias(string originName, string alias)
+        public void AddVariableAlias(string originName, string alias)
         {
             var currentFrame = _variableAliasesStack[_variableAliasesStack.Count - 1];
-            if (currentFrame.ContainsKey(originName))
-                return false;
+            if (currentFrame.ContainsKey(originName)) return;
             currentFrame.Add(originName, alias);
-            return true;
         }
-        public string AddVariableAlias(int node, string variableName)
+        public void AddVariableAlias(int node, string variableName)
         {
             var currentFrame = _variableAliasesStack[_variableAliasesStack.Count - 1];
             var alias = MakeAlias(node, variableName);
             if (currentFrame.ContainsKey(variableName))
             {
-                throw new InvalidOperationException("varable name already exist");
+                throw new InvalidOperationException("variable name already exist");
             }
             currentFrame.Add(variableName, alias);
-            return alias;
         }
         public string GetVariableAlias(string origin)
         {

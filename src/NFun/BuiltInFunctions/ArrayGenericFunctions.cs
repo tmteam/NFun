@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NFun.Exceptions;
 using NFun.Interpritation.Functions;
 using NFun.Runtime.Arrays;
 using NFun.Types;
@@ -89,9 +90,9 @@ namespace NFun.BuiltInFunctions
             }
         }
     }
-    public class IsInSingleGenericFunctionDefenition : GenericFunctionBase
+    public class IsInSingleGenericFunctionDefinition : GenericFunctionBase
     {
-        public IsInSingleGenericFunctionDefenition() : base(CoreFunNames.In, 
+        public IsInSingleGenericFunctionDefinition() : base(CoreFunNames.In, 
             VarType.Bool,
             VarType.Generic(0), 
             VarType.ArrayOf(VarType.Generic(0)))
@@ -105,9 +106,9 @@ namespace NFun.BuiltInFunctions
             return arr.Any(a => TypeHelper.AreEqual(a, val));
         }
     }
-    public class SliceWithStepGenericFunctionDefenition : GenericFunctionBase
+    public class SliceWithStepGenericFunctionDefinition : GenericFunctionBase
     {
-        public SliceWithStepGenericFunctionDefenition() : base(CoreFunNames.SliceName, 
+        public SliceWithStepGenericFunctionDefinition() : base(CoreFunNames.SliceName, 
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.Int32,
@@ -195,8 +196,8 @@ namespace NFun.BuiltInFunctions
 
     public class MultiSumFunction : GenericFunctionBase
     {
-        public const string id = "sum";
-        public MultiSumFunction() : base(id, GenericConstrains.Arithmetical, VarType.Generic(0), VarType.ArrayOf(VarType.Generic(0))){
+        private const string Id = "sum";
+        public MultiSumFunction() : base(Id, GenericConstrains.Arithmetical, VarType.Generic(0), VarType.ArrayOf(VarType.Generic(0))){
         }
 
 
@@ -218,13 +219,13 @@ namespace NFun.BuiltInFunctions
 
         public class RealFunction : FunctionWithSingleArg
         {
-            public RealFunction() : base(id, VarType.Real, VarType.ArrayOf(VarType.Real)) { }
+            public RealFunction() : base(Id, VarType.Real, VarType.ArrayOf(VarType.Real)) { }
 
             public override object Calc(object a) => ((IFunArray)a).As<double>().Sum();
         }
         public class Int16Function : FunctionWithSingleArg
         {
-            public Int16Function() : base(id, VarType.Int16, VarType.ArrayOf(VarType.Int16)) { }
+            public Int16Function() : base(Id, VarType.Int16, VarType.ArrayOf(VarType.Int16)) { }
             public override object Calc(object a)
             {
                 short answer = 0;
@@ -235,17 +236,17 @@ namespace NFun.BuiltInFunctions
         }
         public class Int32Function : FunctionWithSingleArg
         {
-            public Int32Function() : base(id, VarType.Int32, VarType.ArrayOf(VarType.Int32)) { }
+            public Int32Function() : base(Id, VarType.Int32, VarType.ArrayOf(VarType.Int32)) { }
             public override object Calc(object a) => ((IFunArray) a).As<int>().Sum();
         }
         public class Int64Function : FunctionWithSingleArg
         {
-            public Int64Function() : base(id, VarType.Int64, VarType.ArrayOf(VarType.Int64)) { }
+            public Int64Function() : base(Id, VarType.Int64, VarType.ArrayOf(VarType.Int64)) { }
             public override object Calc(object a) => ((IFunArray) a).As<long>().Sum();
         }
         public class UInt16Function : FunctionWithSingleArg
         {
-            public UInt16Function() : base(id, VarType.UInt16, VarType.ArrayOf(VarType.UInt16)) { }
+            public UInt16Function() : base(Id, VarType.UInt16, VarType.ArrayOf(VarType.UInt16)) { }
             public override object Calc(object a)
             {
                 ushort answer = 0;
@@ -256,7 +257,7 @@ namespace NFun.BuiltInFunctions
         }
         public class UInt32Function : FunctionWithSingleArg
         {
-            public UInt32Function() : base(id, VarType.UInt32, VarType.ArrayOf(VarType.UInt32)) { }
+            public UInt32Function() : base(Id, VarType.UInt32, VarType.ArrayOf(VarType.UInt32)) { }
             public override object Calc(object a)
             {
                 uint answer = 0;
@@ -267,7 +268,7 @@ namespace NFun.BuiltInFunctions
         }
         public class UInt64Function : FunctionWithSingleArg
         {
-            public UInt64Function() : base(id, VarType.UInt64, VarType.ArrayOf(VarType.UInt64)) { }
+            public UInt64Function() : base(Id, VarType.UInt64, VarType.ArrayOf(VarType.UInt64)) { }
             public override object Calc(object a)
             {
                 ulong answer = 0;
@@ -297,9 +298,9 @@ namespace NFun.BuiltInFunctions
                 case BaseVarType.UInt16:
                     return new UInt16Function();
                 case BaseVarType.UInt32:
-                    return new RangeFunction.UInt32Function();
+                    return new UInt32Function();
                 case BaseVarType.UInt64:
-                    return new RangeFunction.UInt64Function();
+                    return new UInt64Function();
                 case BaseVarType.Int16:
                     return new Int16Function();
                 case BaseVarType.Int32:
@@ -307,7 +308,7 @@ namespace NFun.BuiltInFunctions
                 case BaseVarType.Int64:
                     return new Int64Function();
                 case BaseVarType.Real:
-                    return new RangeFunction.RealFunction();
+                    return new RealFunction();
                 default:
                     throw new NotSupportedException();
             }
@@ -665,9 +666,9 @@ namespace NFun.BuiltInFunctions
             }
         }
     }
-    public class SliceGenericFunctionDefenition : GenericFunctionBase
+    public class SliceGenericFunctionDefinition : GenericFunctionBase
     {
-        public SliceGenericFunctionDefenition() : base(CoreFunNames.SliceName, 
+        public SliceGenericFunctionDefinition() : base(CoreFunNames.SliceName, 
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.Int32,
@@ -692,9 +693,9 @@ namespace NFun.BuiltInFunctions
             return arr.Slice(start, (end==int.MaxValue?null:(int?)end), null);
         }
     }
-    public class GetGenericFunctionDefenition : GenericFunctionWithTwoArguments
+    public class GetGenericFunctionDefinition : GenericFunctionWithTwoArguments
     {
-        public GetGenericFunctionDefenition() : base(CoreFunNames.GetElementName, 
+        public GetGenericFunctionDefinition() : base(CoreFunNames.GetElementName, 
             VarType.Generic(0),
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.Int32)
@@ -715,10 +716,10 @@ namespace NFun.BuiltInFunctions
             return res;
         }
     }
-    public class SetGenericFunctionDefenition : GenericFunctionBase
+    public class SetGenericFunctionDefinition : GenericFunctionBase
     {
         
-        public SetGenericFunctionDefenition() : base("set", 
+        public SetGenericFunctionDefinition() : base("set", 
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.Int32,
@@ -743,9 +744,9 @@ namespace NFun.BuiltInFunctions
             return new ImmutableFunArray(newArr,arr.ElementType);
         }
     }
-    public class FindGenericFunctionDefenition : GenericFunctionWithTwoArguments
+    public class FindGenericFunctionDefinition : GenericFunctionWithTwoArguments
     {
-        public FindGenericFunctionDefenition() : base("find", 
+        public FindGenericFunctionDefinition() : base("find", 
             VarType.Int32,
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.Generic(0))
@@ -766,9 +767,9 @@ namespace NFun.BuiltInFunctions
             return -1;
         }
     }
-    public class ChunkGenericFunctionDefenition : GenericFunctionWithTwoArguments
+    public class ChunkGenericFunctionDefinition : GenericFunctionWithTwoArguments
     {
-        public ChunkGenericFunctionDefenition() : base("chunk", 
+        public ChunkGenericFunctionDefinition() : base("chunk", 
             VarType.ArrayOf(VarType.ArrayOf(VarType.Generic(0))),
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.Int32)
@@ -791,9 +792,9 @@ namespace NFun.BuiltInFunctions
             return new EnumerableFunArray(res, VarType.ArrayOf(originInputType));
         }
     }
-    public class FlatGenericFunctionDefenition : GenericFunctionWithSingleArgument
+    public class FlatGenericFunctionDefinition : GenericFunctionWithSingleArgument
     {
-        public FlatGenericFunctionDefenition() : base("flat", 
+        public FlatGenericFunctionDefinition() : base("flat", 
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.ArrayOf(VarType.Generic(0))))
         {
@@ -808,9 +809,9 @@ namespace NFun.BuiltInFunctions
         }
     }
 
-    public class FoldGenericFunctionDefenition : GenericFunctionWithTwoArguments
+    public class FoldGenericFunctionDefinition : GenericFunctionWithTwoArguments
     {
-        public FoldGenericFunctionDefenition() : base("fold", new[] {GenericConstrains.Any},
+        public FoldGenericFunctionDefinition() : base("fold", new[] {GenericConstrains.Any},
             VarType.Generic(0),
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.Fun(VarType.Generic(0), VarType.Generic(0), VarType.Generic(0)))
@@ -831,9 +832,9 @@ namespace NFun.BuiltInFunctions
         }
     }
 
-    public class FoldWithDefaultsGenericFunctionDefenition : GenericFunctionBase
+    public class FoldWithDefaultsGenericFunctionDefinition : GenericFunctionBase
     {
-        public FoldWithDefaultsGenericFunctionDefenition() : base("fold", 
+        public FoldWithDefaultsGenericFunctionDefinition() : base("fold", 
             returnType: VarType.Generic(1),
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.Generic(1),
@@ -854,9 +855,9 @@ namespace NFun.BuiltInFunctions
                 return arr.Aggregate(defaultValue, (a,b)=>fold.Calc(new []{a,b}));
         }
     }
-    public class UniteGenericFunctionDefenition : GenericFunctionWithTwoArguments
+    public class UniteGenericFunctionDefinition : GenericFunctionWithTwoArguments
     {
-        public UniteGenericFunctionDefenition() : base("unite", 
+        public UniteGenericFunctionDefinition() : base("unite", 
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)))
@@ -870,9 +871,9 @@ namespace NFun.BuiltInFunctions
             return new EnumerableFunArray(arr1.Union(arr2),arr1.ElementType);
         }
     }
-    public class UniqueGenericFunctionDefenition : GenericFunctionWithTwoArguments
+    public class UniqueGenericFunctionDefinition : GenericFunctionWithTwoArguments
     {
-        public UniqueGenericFunctionDefenition() : base("unique", 
+        public UniqueGenericFunctionDefinition() : base("unique", 
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)))
@@ -886,9 +887,9 @@ namespace NFun.BuiltInFunctions
             return new EnumerableFunArray(arr1.Except(arr2).Concat(arr2.Except(arr1)),arr1.ElementType);
         }
     }
-    public class IntersectGenericFunctionDefenition : GenericFunctionWithTwoArguments
+    public class IntersectGenericFunctionDefinition : GenericFunctionWithTwoArguments
     {
-        public IntersectGenericFunctionDefenition() : base("intersect", 
+        public IntersectGenericFunctionDefinition() : base("intersect", 
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)))
@@ -902,9 +903,9 @@ namespace NFun.BuiltInFunctions
             return new EnumerableFunArray(arr1.Intersect(arr2),arr1.ElementType);
         }
     }
-    public class ConcatArraysGenericFunctionDefenition : GenericFunctionWithTwoArguments
+    public class ConcatArraysGenericFunctionDefinition : GenericFunctionWithTwoArguments
     {
-        public ConcatArraysGenericFunctionDefenition() : base("concat", 
+        public ConcatArraysGenericFunctionDefinition() : base("concat", 
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)))
@@ -920,9 +921,9 @@ namespace NFun.BuiltInFunctions
         }
     }
 
-    public class AppendGenericFunctionDefenition : GenericFunctionWithTwoArguments
+    public class AppendGenericFunctionDefinition : GenericFunctionWithTwoArguments
     {
-        public AppendGenericFunctionDefenition() : base("append",
+        public AppendGenericFunctionDefinition() : base("append",
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.Generic(0))
@@ -938,9 +939,9 @@ namespace NFun.BuiltInFunctions
         }
     }
 
-    public class SubstractArraysGenericFunctionDefenition : GenericFunctionWithTwoArguments
+    public class SubstractArraysGenericFunctionDefinition : GenericFunctionWithTwoArguments
     {
-        public SubstractArraysGenericFunctionDefenition() : base("except", 
+        public SubstractArraysGenericFunctionDefinition() : base("except", 
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)))
@@ -955,9 +956,9 @@ namespace NFun.BuiltInFunctions
         }
     }
 
-    public class CountOfGenericFunctionDefenition : GenericFunctionWithTwoArguments
+    public class CountOfGenericFunctionDefinition : GenericFunctionWithTwoArguments
     {
-        public CountOfGenericFunctionDefenition() : base("count",
+        public CountOfGenericFunctionDefinition() : base("count",
             VarType.Int32,
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.Fun(VarType.Bool, VarType.Generic(0)))
@@ -973,9 +974,9 @@ namespace NFun.BuiltInFunctions
         }
     }
 
-    public class HasAnyGenericFunctionDefenition : GenericFunctionWithSingleArgument
+    public class HasAnyGenericFunctionDefinition : GenericFunctionWithSingleArgument
     {
-        public HasAnyGenericFunctionDefenition() : base("any",
+        public HasAnyGenericFunctionDefinition() : base("any",
             VarType.Bool,
             VarType.ArrayOf(VarType.Generic(0)))
         {
@@ -984,9 +985,9 @@ namespace NFun.BuiltInFunctions
         protected override object Calc(object a) 
             => ((IFunArray)a).Count>0;
     }
-    public class AnyGenericFunctionDefenition : GenericFunctionWithTwoArguments
+    public class AnyGenericFunctionDefinition : GenericFunctionWithTwoArguments
     {
-        public AnyGenericFunctionDefenition() : base("any", 
+        public AnyGenericFunctionDefinition() : base("any", 
             VarType.Bool,
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.Fun(VarType.Bool, VarType.Generic(0)))
@@ -1004,9 +1005,9 @@ namespace NFun.BuiltInFunctions
             return arr.Any(e => (bool) filter.Calc(new[] {e}));
         }
     }
-    public class AllGenericFunctionDefenition : GenericFunctionWithTwoArguments
+    public class AllGenericFunctionDefinition : GenericFunctionWithTwoArguments
     {
-        public AllGenericFunctionDefenition() : base("all", 
+        public AllGenericFunctionDefinition() : base("all", 
             VarType.Bool,
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.Fun(VarType.Bool, VarType.Generic(0)))
@@ -1021,9 +1022,9 @@ namespace NFun.BuiltInFunctions
             return arr.All(e => (bool) filter.Calc(new[] {e}));
         }
     }
-    public class FilterGenericFunctionDefenition : GenericFunctionWithTwoArguments
+    public class FilterGenericFunctionDefinition : GenericFunctionWithTwoArguments
     {
-        public FilterGenericFunctionDefenition() : base("filter", 
+        public FilterGenericFunctionDefinition() : base("filter", 
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.ArrayOf(VarType.Generic(0)),
             VarType.Fun(VarType.Bool, VarType.Generic(0)))
@@ -1040,9 +1041,9 @@ namespace NFun.BuiltInFunctions
             return new EnumerableFunArray(arr.Where(e=>(bool)filter.Calc(new []{e})),arr.ElementType);
         }
     }
-    public class RepeatGenericFunctionDefenition : GenericFunctionBase
+    public class RepeatGenericFunctionDefinition : GenericFunctionBase
     {
-        public RepeatGenericFunctionDefenition() : base("repeat",
+        public RepeatGenericFunctionDefinition() : base("repeat",
             VarType.ArrayOf(VarType.Generic(0)), 
             VarType.Generic(0), 
             VarType.Int32)
@@ -1066,9 +1067,9 @@ namespace NFun.BuiltInFunctions
                 => new EnumerableFunArray(Enumerable.Repeat(a, (int)b), this.ArgTypes[0]);
         }
     }
-    public class ReverseGenericFunctionDefenition: GenericFunctionWithSingleArgument
+    public class ReverseGenericFunctionDefinition: GenericFunctionWithSingleArgument
     {
-        public ReverseGenericFunctionDefenition() : base("reverse", 
+        public ReverseGenericFunctionDefinition() : base("reverse", 
             VarType.ArrayOf(VarType.Generic(0)), 
             VarType.ArrayOf(VarType.Generic(0)))
         {
@@ -1080,9 +1081,9 @@ namespace NFun.BuiltInFunctions
             return new EnumerableFunArray(arr.Reverse(),arr.ElementType);
         }
     }
-    public class TakeGenericFunctionDefenition: GenericFunctionWithTwoArguments
+    public class TakeGenericFunctionDefinition: GenericFunctionWithTwoArguments
     {
-        public TakeGenericFunctionDefenition() : base("take", 
+        public TakeGenericFunctionDefinition() : base("take", 
             VarType.ArrayOf(VarType.Generic(0)), 
             VarType.ArrayOf(VarType.Generic(0)), 
             VarType.Int32)
@@ -1092,9 +1093,9 @@ namespace NFun.BuiltInFunctions
         protected override object Calc(object a, object b) 
             => ((IFunArray)a).Slice(null,((int)b)-1,1);
     }
-    public class SkipGenericFunctionDefenition: GenericFunctionWithTwoArguments
+    public class SkipGenericFunctionDefinition: GenericFunctionWithTwoArguments
     {
-        public SkipGenericFunctionDefenition() : base("skip", 
+        public SkipGenericFunctionDefinition() : base("skip", 
             VarType.ArrayOf(VarType.Generic(0)), 
             VarType.ArrayOf(VarType.Generic(0)), 
             VarType.Int32)

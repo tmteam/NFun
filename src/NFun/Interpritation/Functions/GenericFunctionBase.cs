@@ -1,7 +1,5 @@
 using System;
 using System.Linq;
-using System.Security.Cryptography;
-using NFun.ParseErrors;
 using NFun.Types;
 
 namespace NFun.Interpritation.Functions
@@ -23,13 +21,13 @@ namespace NFun.Interpritation.Functions
         {
         }
 
-        protected GenericFunctionWithSingleArgument(string name, GenericConstrains[] genericDefenitions,
-            VarType returnType, params VarType[] argTypes) : base(name, genericDefenitions, returnType, argTypes)
+        protected GenericFunctionWithSingleArgument(string name, GenericConstrains[] genericDefinitions,
+            VarType returnType, params VarType[] argTypes) : base(name, genericDefinitions, returnType, argTypes)
         {
         }
 
-        protected GenericFunctionWithSingleArgument(string name, GenericConstrains genericDefenition,
-            VarType returnType, params VarType[] argTypes) : base(name, genericDefenition, returnType, argTypes)
+        protected GenericFunctionWithSingleArgument(string name, GenericConstrains genericDefinition,
+            VarType returnType, params VarType[] argTypes) : base(name, genericDefinition, returnType, argTypes)
         {
         }
 
@@ -63,15 +61,15 @@ namespace NFun.Interpritation.Functions
         {
         }
 
-        protected GenericFunctionWithTwoArguments(string name, GenericConstrains[] genericDefenitions, VarType returnType, params VarType[] argTypes) : base(name, genericDefenitions, returnType, argTypes)
+        protected GenericFunctionWithTwoArguments(string name, GenericConstrains[] genericDefinitions, VarType returnType, params VarType[] argTypes) : base(name, genericDefinitions, returnType, argTypes)
         {
         }
 
-        protected GenericFunctionWithTwoArguments(string name, GenericConstrains genericDefenition, VarType returnType, params VarType[] argTypes) : base(name, genericDefenition, returnType, argTypes)
+        protected GenericFunctionWithTwoArguments(string name, GenericConstrains genericDefinition, VarType returnType, params VarType[] argTypes) : base(name, genericDefinition, returnType, argTypes)
         {
         }
 
-        protected override object Calc(object[] args) => Calc(new[] {args[0], args[1]});
+        protected override object Calc(object[] args) => Calc(args[0], args[1]);
 
         protected abstract object Calc(object a, object b);
         
@@ -99,7 +97,7 @@ namespace NFun.Interpritation.Functions
     
     public abstract class GenericFunctionBase: IGenericFunction
     {
-        public GenericConstrains[] GenericDefenitions { get; }
+        public GenericConstrains[] GenericDefinitions { get; }
         
         private readonly int _maxGenericId;
         public string Name { get; }
@@ -117,19 +115,19 @@ namespace NFun.Interpritation.Functions
                 if (!maxGenericId.HasValue)
                     throw new InvalidOperationException($"Type {name} has wrong generic defenition");
 
-                GenericDefenitions = new GenericConstrains[maxGenericId.Value + 1];
+                GenericDefinitions = new GenericConstrains[maxGenericId.Value + 1];
 
                 for (int i = 0; i <= maxGenericId; i++)
-                    GenericDefenitions[i] = GenericConstrains.Any;
+                    GenericDefinitions[i] = GenericConstrains.Any;
                 _maxGenericId = maxGenericId.Value;
         }
-        protected GenericFunctionBase(string name, GenericConstrains[] genericDefenitions, VarType returnType,
+        protected GenericFunctionBase(string name, GenericConstrains[] genericDefinitions, VarType returnType,
             params VarType[] argTypes)
         {
             Name = name;
             ArgTypes = argTypes;
             ReturnType = returnType;
-            GenericDefenitions = genericDefenitions;
+            GenericDefinitions = genericDefinitions;
             var maxGenericId = argTypes
                 .Append(returnType)
                 .Max(i => i.SearchMaxGenericTypeId());
@@ -137,13 +135,13 @@ namespace NFun.Interpritation.Functions
                 throw new InvalidOperationException($"Type {name} has wrong generic defenition");
         }
 
-        protected GenericFunctionBase(string name, GenericConstrains genericDefenition, VarType returnType,
+        protected GenericFunctionBase(string name, GenericConstrains genericDefinition, VarType returnType,
             params VarType[] argTypes)
         {
             Name = name;
             ArgTypes = argTypes;
             ReturnType = returnType;
-            GenericDefenitions = new []{genericDefenition};
+            GenericDefinitions = new []{genericDefinition};
             var maxGenericId = argTypes
                 .Append(returnType)
                 .Max(i => i.SearchMaxGenericTypeId());
@@ -213,7 +211,7 @@ namespace NFun.Interpritation.Functions
         /// </summary> 
         public VarType[] CalcGenericArgTypeList(FunTypeSpecification funTypeSpecification)
         {
-            var result = new VarType[GenericDefenitions.Length];
+            var result = new VarType[GenericDefinitions.Length];
             SubstitudeType(ReturnType, funTypeSpecification.Output);
 
             for (int i = 0; i < funTypeSpecification.Inputs.Length; i++)
@@ -257,7 +255,7 @@ namespace NFun.Interpritation.Functions
 
         public class ConcreteGenericFunction: FunctionWithManyArguments
         {
-            private Func<object[], object> _calc;
+            private readonly Func<object[], object> _calc;
 
             public ConcreteGenericFunction(Func<object[],object> calc, string name,  VarType returnType, params VarType[] argTypes) 
                 : base(TypeHelper.GetFunSignature(name,returnType,argTypes), returnType, argTypes)

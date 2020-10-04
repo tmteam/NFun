@@ -8,20 +8,20 @@ namespace NFun.SyntaxParsing.SyntaxNodes
 {
     public class ArrowAnonymFunctionSyntaxNode : ISyntaxNode
     {
-        public ISyntaxNode[] ArgumentsDefenition { get; }    
-        public ISyntaxNode Defenition { get; }
+        public ISyntaxNode[] ArgumentsDefinition { get; }    
+        public ISyntaxNode Definition { get; }
         public ISyntaxNode Body { get; }
 
-        public ArrowAnonymFunctionSyntaxNode(ISyntaxNode defenition, ISyntaxNode body, Interval interval)
+        public ArrowAnonymFunctionSyntaxNode(ISyntaxNode definition, ISyntaxNode body, Interval interval)
         {
-            if (defenition is ListOfExpressionsSyntaxNode list)
+            if (definition is ListOfExpressionsSyntaxNode list)
                 //it can be comlex: (x1,x2,x3)=>...
-                ArgumentsDefenition = list.Expressions;
+                ArgumentsDefinition = list.Expressions;
             else
                 //or primitive: x1 => ...
-                ArgumentsDefenition = new[] {defenition};
+                ArgumentsDefinition = new[] {definition};
             
-            Defenition = defenition;
+            Definition = definition;
             Body = body;
             Interval = interval;
         }
@@ -31,6 +31,6 @@ namespace NFun.SyntaxParsing.SyntaxNodes
         public bool IsInBrackets { get; set; }
         public Interval Interval { get; set; }
         public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
-        public IEnumerable<ISyntaxNode> Children => ArgumentsDefenition.Append(Body);
+        public IEnumerable<ISyntaxNode> Children => ArgumentsDefinition.Append(Body);
     }
 }

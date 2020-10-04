@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
@@ -8,8 +7,8 @@ namespace NFun.SyntaxParsing
 {
     public static class SyntaxNodeFactory
     {
-        public static ISyntaxNode AnonymFun(ISyntaxNode defenition, ISyntaxNode body)
-            => new ArrowAnonymFunctionSyntaxNode(defenition, body, new Interval(defenition.Interval.Start, body.Interval.Finish));
+        public static ISyntaxNode AnonymFun(ISyntaxNode definition, ISyntaxNode body)
+            => new ArrowAnonymFunctionSyntaxNode(definition, body, new Interval(definition.Interval.Start, body.Interval.Finish));
         public static ISyntaxNode IfElse(IfCaseSyntaxNode[] ifThenNodes, ISyntaxNode elseResult, int start, int end) 
             => new IfThenElseSyntaxNode(ifThenNodes, elseResult, new Interval(start, end));
         public static IfCaseSyntaxNode IfThen(ISyntaxNode condition, ISyntaxNode expression, int start, int end)

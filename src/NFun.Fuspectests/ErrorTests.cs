@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using Nfun.Fuspec.Parser;
 using Nfun.Fuspec.Parser.Model;
-using NFun.Types;
 using NUnit.Framework;
 using ParcerV1;
 

@@ -1,8 +1,6 @@
 using System.Collections.Generic;
-using NFun.Interpritation.Functions;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
-using NFun.TypeInferenceAdapter;
 using NFun.Types;
 
 namespace NFun.SyntaxParsing.SyntaxNodes
@@ -30,10 +28,6 @@ namespace NFun.SyntaxParsing.SyntaxNodes
         public bool IsOperator { get; }
         public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
         public IEnumerable<ISyntaxNode> Children => Args;
-        /// <summary>
-        /// Concrete Function Signature.
-        /// Setted after Ti-algorithm applied 
-        /// </summary>
-        public LangFunctionSignature SignatureOfOverload { get; set; }
+        
     }
 }

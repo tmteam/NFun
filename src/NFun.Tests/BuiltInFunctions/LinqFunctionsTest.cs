@@ -1,5 +1,6 @@
 ﻿using NFun;
 using NFun.BuiltInFunctions;
+using NFun.Exceptions;
 using NFun.Types;
 using NUnit.Framework;
 

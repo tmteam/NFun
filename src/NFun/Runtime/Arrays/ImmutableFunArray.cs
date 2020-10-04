@@ -5,15 +5,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using NFun.Types;
 
-namespace NFun.Runtime.Arrays
-{
-    public class ImmutableFunArray: IFunArray
-    {
+namespace NFun.Runtime.Arrays {
+    public class ImmutableFunArray: IFunArray {
         public VarType ElementType { get; }
         private Array _values;
         private int _hash = 0;
       
-        public ImmutableFunArray(object[] values):this(values, VarType.Anything) {}
         public ImmutableFunArray(bool[] values):this(values, VarType.Bool) {}
         public ImmutableFunArray(byte[] values):this(values, VarType.UInt8) {}
         public ImmutableFunArray(ushort[] values):this(values, VarType.UInt16) {}
@@ -30,11 +27,6 @@ namespace NFun.Runtime.Arrays
             _values = values;
             Count = _values.Length;
         }
-        /*public ImmutableFunArray(params ImmutableFunArray[] values)
-        {
-            _values = values;
-            Count = _values.Length;
-        }*/
         
         public ImmutableFunArray(VarType elementType, params ImmutableFunArray[] values)
         {
@@ -44,7 +36,6 @@ namespace NFun.Runtime.Arrays
         }
         
         public int Count { get; }
-        public Array Values => _values;
         public IEnumerable<T> As<T>()
         {
             foreach (var value in _values)

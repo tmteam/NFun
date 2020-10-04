@@ -1,9 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using NFun.Tic.SolvingStates;
 using NFun.Types;
 
 namespace NFun.Runtime.Arrays

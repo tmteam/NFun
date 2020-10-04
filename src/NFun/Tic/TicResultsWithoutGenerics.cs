@@ -9,9 +9,9 @@ namespace NFun.Tic
         private readonly List<TicNode> _namedNodes;
         private readonly List<TicNode> _syntaxNodes;
 
-        public TicResultsWithoutGenerics(IEnumerable<TicNode> nodes, int synaxNodeCapacity)
+        public TicResultsWithoutGenerics(IEnumerable<TicNode> nodes, int syntaxNodeCapacity)
         {
-            _syntaxNodes = new List<TicNode>(synaxNodeCapacity);
+            _syntaxNodes = new List<TicNode>(syntaxNodeCapacity);
              _namedNodes = new List<TicNode>();
             foreach (var node in nodes)
             {

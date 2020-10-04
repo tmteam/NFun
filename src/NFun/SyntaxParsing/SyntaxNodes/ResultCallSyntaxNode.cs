@@ -1,9 +1,6 @@
-using System;
 using System.Collections.Generic;
-using NFun.BuiltInFunctions;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
-using NFun.TypeInferenceAdapter;
 using NFun.Types;
 
 namespace NFun.SyntaxParsing.SyntaxNodes
@@ -34,11 +31,5 @@ namespace NFun.SyntaxParsing.SyntaxNodes
                     yield return node;
             }
         }
-
-        /// <summary>
-        /// Concrete Function Signature.
-        /// Setted after Ti-algorithm applied 
-        /// </summary>
-        public LangFunctionSignature SignatureOfOverload { get; set; }
     }
 }

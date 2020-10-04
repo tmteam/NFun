@@ -54,11 +54,11 @@ namespace NFun.SyntaxParsing
                 {
                     if (e is NamedIdSyntaxNode variable)
                         ReadEquation(variable, variable.Id);
-                    //Fun call can be used as fun defenition
+                    //Fun call can be used as fun definition
                     else if (e is FunCallSyntaxNode fun && !fun.IsOperator)
                         ReadUserFunction(fun);
                     else
-                        throw ErrorFactory.ExpressionBeforeTheDefenition(_exprStartPosition, e, flow.Current);
+                        throw ErrorFactory.ExpressionBeforeTheDefinition(_exprStartPosition, e, flow.Current);
                 }
                 else
                     ReadAnonymousEquation(e);
@@ -70,7 +70,7 @@ namespace NFun.SyntaxParsing
         /// Like i:int
         /// </summary>
         private void ReadInputVariableSpecification(TypedVarDefSyntaxNode typed) 
-            => _nodes.Add(new VarDefenitionSyntaxNode(typed, _attributes));
+            => _nodes.Add(new VarDefinitionSyntaxNode(typed, _attributes));
         /// <summary>
         /// Read anonymous equation. Throws if at least one other equation exists
         /// </summary>
@@ -100,13 +100,13 @@ namespace NFun.SyntaxParsing
         private void ReadUserFunction( FunCallSyntaxNode fun)
         {
             if (!_startOfTheLine)
-                throw ErrorFactory.FunctionDefenitionHasToStartFromNewLine(_exprStartPosition, fun, _flow.Current);
+                throw ErrorFactory.FunctionDefinitionHasToStartFromNewLine(_exprStartPosition, fun, _flow.Current);
             if (_attributes.Any())
                 throw ErrorFactory.AttributeOnFunction(fun);
             
             var id = fun.Id;
             if (fun.IsInBrackets)
-                throw ErrorFactory.UnexpectedBracketsOnFunDefenition( fun, _exprStartPosition,_flow.Previous.Finish);
+                throw ErrorFactory.UnexpectedBracketsOnFunDefinition( fun, _exprStartPosition,_flow.Previous.Finish);
 
             var arguments = new List<TypedVarDefSyntaxNode>();
             foreach (var headNodeChild in fun.Args)
@@ -116,10 +116,10 @@ namespace NFun.SyntaxParsing
                 else if(headNodeChild is NamedIdSyntaxNode varSyntax)
                     arguments.Add(new TypedVarDefSyntaxNode(varSyntax.Id, headNodeChild.OutputType, headNodeChild.Interval));
                 else    
-                    throw ErrorFactory.WrongFunctionArgumentDefenition(fun, headNodeChild);
+                    throw ErrorFactory.WrongFunctionArgumentDefinition(fun, headNodeChild);
               
                 if(headNodeChild.IsInBrackets)    
-                    throw ErrorFactory.FunctionArgumentInBracketDefenition(fun, headNodeChild, _flow.Current);
+                    throw ErrorFactory.FunctionArgumentInBracketDefinition(fun, headNodeChild, _flow.Current);
             }
 
             var outputType = VarType.Empty;
@@ -139,7 +139,7 @@ namespace NFun.SyntaxParsing
                     new Interval(def.Start, finish));
             }
 
-            var functionNode =  new UserFunctionDefenitionSyntaxNode(arguments, fun, expression, outputType );
+            var functionNode =  new UserFunctionDefinitionSyntaxNode(arguments, fun, expression, outputType );
             
             _nodes.Add(functionNode);
         }
@@ -152,7 +152,7 @@ namespace NFun.SyntaxParsing
             if (_hasAnonymousEquation)
                 throw ErrorFactory.UnexpectedExpression(_nodes.OfType<EquationSyntaxNode>().Single());
             if (!_startOfTheLine)
-                throw ErrorFactory.DefenitionHasToStartFromNewLine(_exprStartPosition, equationHeader, _flow.Current);
+                throw ErrorFactory.DefinitionHasToStartFromNewLine(_exprStartPosition, equationHeader, _flow.Current);
             
             _flow.MoveNext();
             var equation = ReadEquationBody(id);

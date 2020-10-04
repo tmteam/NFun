@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
-using NFun.BuiltInFunctions;
 using NFun.Types;
 
 namespace NFun.Runtime.Arrays

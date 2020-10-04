@@ -1,7 +1,7 @@
 using System;
 using NFun.Tokenization;
 
-namespace NFun.ParseErrors
+namespace NFun.Exceptions
 {
     public class FunParseException : Exception
     {

@@ -4,8 +4,6 @@ using System.Linq;
 using NFun.Tic.Errors;
 using NFun.Tic.SolvingStates;
 using NFun.Tic.Toposort;
-using NFun.TypeInferenceCalculator;
-using NFun.TypeInferenceCalculator.Errors;
 
 namespace NFun.Tic
 {
@@ -21,7 +19,7 @@ namespace NFun.Tic
         public StateRefTo InitializeVarNode(ITypeState desc = null, StatePrimitive anc = null, bool isComparable = false) 
             => new StateRefTo(CreateVarType(new ConstrainsState(desc, anc){IsComparable =  isComparable}));
 
-        //todo perfomance hotspot list capacity
+        //todo performance hotspot list capacity
         public GraphBuilder()
         {
             _syntaxNodes = new List<TicNode>(16);
@@ -163,7 +161,7 @@ namespace NFun.Tic
         public StateRefTo SetStrictArrayInit(int resultIds, params int[] elementIds)
         {
             var elementType = CreateVarType();
-            var resultNode = GetOrCreateArrayNode(resultIds, elementType);
+            GetOrCreateArrayNode(resultIds, elementType);
 
             foreach (var id in elementIds)
             {
@@ -285,7 +283,7 @@ namespace NFun.Tic
         }
         #endregion
         
-        //todo perfomance hotspot
+        //todo performance hotspot
         private void Toposort(out TicNode[] nonReferenceOrdered, out IList<TicNode> references)
         {
             int iteration = 0;
@@ -307,7 +305,7 @@ namespace NFun.Tic
 
                 switch (result.Status)
                 {
-                    case SortStatus.MemebershipCycle: throw TicErrors.RecursiveTypeDefenition(result.Order.ToArray());
+                    case SortStatus.MemebershipCycle: throw TicErrors.RecursiveTypeDefinition(result.Order.ToArray());
                     case SortStatus.AncestorCycle:
                     {
                         var cycle = result.Order;
@@ -500,19 +498,18 @@ namespace NFun.Tic
                 throw TicErrors.CannotSetState(node, type);
         }
 
-        private TicNode GetOrCreateArrayNode(int id, TicNode elementType)
+        private void GetOrCreateArrayNode(int id, TicNode elementType)
         {
             var alreadyExists = _syntaxNodes.GetOrEnlarge(id);
             if (alreadyExists != null)
             {
                 alreadyExists.State = SolvingFunctions.GetMergedStateOrNull(new StateArray(elementType), alreadyExists.State)
                                       ?? throw TicErrors.CannotSetState(elementType, new StateArray(elementType));
-                return alreadyExists;
+                return;
             }
 
             var res = TicNode.CreateSyntaxNode(id, new StateArray(elementType),true);
             _syntaxNodes[id] = res;
-            return res;
         }
         private TicNode GetOrCreateNode(int id)
         {

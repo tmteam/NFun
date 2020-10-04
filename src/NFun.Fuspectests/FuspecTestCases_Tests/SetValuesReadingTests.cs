@@ -2,10 +2,7 @@
 using NFun.Types;
 using NUnit.Framework;
 using ParcerV1;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace NFun.Fuspectests.FuspecTestCasesTests
 {

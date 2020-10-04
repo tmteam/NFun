@@ -8,10 +8,9 @@ using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tic;
+using NFun.Tic.Errors;
 using NFun.Tokenization;
 using NFun.TypeInferenceAdapter;
-using NFun.TypeInferenceCalculator;
-using NFun.TypeInferenceCalculator.Errors;
 
 namespace NFun.Interpritation
 {
@@ -75,7 +74,7 @@ namespace NFun.Interpritation
             foreach (var syntaxNode in syntaxTree.Nodes)
             {
                 //function nodes were solved above
-                if (syntaxNode is UserFunctionDefenitionSyntaxNode)
+                if (syntaxNode is UserFunctionDefinitionSyntaxNode)
                     continue;
 
                 //set types to nodes
@@ -98,7 +97,7 @@ namespace NFun.Interpritation
                     if (equation.Id.ToLower().StartsWith("it"))
                         throw FunParseException.ErrorStubToDo("variable cannot starts with 'it'");
                 }
-                else if (treeNode is VarDefenitionSyntaxNode varDef)
+                else if (treeNode is VarDefinitionSyntaxNode varDef)
                 {
                     if (varDef.Id.ToLower().StartsWith("it"))
                         throw FunParseException.ErrorStubToDo("variable cannot starts with 'it'");
@@ -114,7 +113,7 @@ namespace NFun.Interpritation
                         throw ErrorFactory.VariableIsDeclaredAfterUsing(allUsages);
                     }
                 }
-                else if (treeNode is UserFunctionDefenitionSyntaxNode)
+                else if (treeNode is UserFunctionDefinitionSyntaxNode)
                     continue;//user function was built above
                 else
                     throw new InvalidOperationException($"Type {treeNode} is not supported as tree root");
@@ -173,7 +172,7 @@ namespace NFun.Interpritation
 
 
         private static IFunctionSignature BuildFunctionAndPutItToDictionary(
-            UserFunctionDefenitionSyntaxNode functionSyntaxNode,
+            UserFunctionDefinitionSyntaxNode functionSyntaxNode,
             IConstantList constants,
             ScopeFunctionDictionary functionsDictionary)
         {

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using NFun.Types;
 
 namespace Nfun.Fuspec.Parser
 {
@@ -11,7 +10,7 @@ namespace Nfun.Fuspec.Parser
         public bool Eof => _listOfString.Count <= _index;
         public string CurrentLine => _listOfString[_index];
         private int _index=0;
-        private List<string> _listOfString = new List<string>();
+        private readonly List<string> _listOfString = new List<string>();
         
         public static InputText Read(StreamReader streamReader)
         {

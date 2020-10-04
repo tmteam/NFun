@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using NFun.Exceptions;
 using NFun.Interpritation.Functions;
@@ -60,16 +59,16 @@ namespace NFun.Interpritation
 
         public IExpressionNode Visit(SuperAnonymFunctionSyntaxNode arrowAnonymFunNode)
         {
-            var outputTypeFunDefenition = arrowAnonymFunNode.OutputType.FunTypeSpecification;
-            if(outputTypeFunDefenition==null)
-                throw new ImpossibleException("Fun defenition expected");
+            var outputTypeFunDefinition = arrowAnonymFunNode.OutputType.FunTypeSpecification;
+            if(outputTypeFunDefinition==null)
+                throw new ImpossibleException("Fun definition expected");
             string[] argNames = null;
-            if (outputTypeFunDefenition.Inputs.Length == 1)
+            if (outputTypeFunDefinition.Inputs.Length == 1)
                 argNames = new[] {"it"};
             else
             {
-                argNames = new string[outputTypeFunDefenition.Inputs.Length];
-                for (int i = 0; i < outputTypeFunDefenition.Inputs.Length; i++)
+                argNames = new string[outputTypeFunDefinition.Inputs.Length];
+                for (int i = 0; i < outputTypeFunDefinition.Inputs.Length; i++)
                 {
                     argNames[i] = $"it{i + 1}";
                 }
@@ -83,7 +82,7 @@ namespace NFun.Interpritation
             for (var i = 0; i < argNames.Length; i++)
             {
                 var arg = argNames[i];
-                var type = outputTypeFunDefenition.Inputs[i];
+                var type = outputTypeFunDefinition.Inputs[i];
                 var source = VariableSource.CreateWithoutStrictTypeLabel(arg, type);
                 //collect argument
                 arguments[i] = source;
@@ -97,14 +96,14 @@ namespace NFun.Interpritation
         }
         public IExpressionNode Visit(ArrowAnonymFunctionSyntaxNode arrowAnonymFunNode)
         {
-            if (arrowAnonymFunNode.Defenition==null)
-                throw ErrorFactory.AnonymousFunDefenitionIsMissing(arrowAnonymFunNode);
+            if (arrowAnonymFunNode.Definition==null)
+                throw ErrorFactory.AnonymousFunDefinitionIsMissing(arrowAnonymFunNode);
 
             if(arrowAnonymFunNode.Body==null)
                 throw ErrorFactory.AnonymousFunBodyIsMissing(arrowAnonymFunNode);
             
             //Anonym fun arguments list
-            var argumentLexNodes = arrowAnonymFunNode.ArgumentsDefenition;
+            var argumentLexNodes = arrowAnonymFunNode.ArgumentsDefinition;
             
             //Prepare local variable scope
             //Capture all outerscope variables
@@ -128,7 +127,7 @@ namespace NFun.Interpritation
                     if (_variables.GetSourceOrNull(varNode.Name) != null)
                         throw ErrorFactory.AnonymousFunctionArgumentConflictsWithOuterScope(varNode.Name, arrowAnonymFunNode.Interval);
                     else //else it is duplicated arg name
-                        throw ErrorFactory.AnonymousFunctionArgumentDuplicates(varNode, arrowAnonymFunNode.Defenition);
+                        throw ErrorFactory.AnonymousFunctionArgumentDuplicates(varNode, arrowAnonymFunNode.Definition);
                 }
             }
             var body = arrowAnonymFunNode.Body;
@@ -341,10 +340,10 @@ namespace NFun.Interpritation
         public IExpressionNode Visit(TypedVarDefSyntaxNode node)
             => ThrowNotAnExpression(node);
 
-        public IExpressionNode Visit(UserFunctionDefenitionSyntaxNode node)
+        public IExpressionNode Visit(UserFunctionDefinitionSyntaxNode node)
             => ThrowNotAnExpression(node);
 
-        public IExpressionNode Visit(VarDefenitionSyntaxNode node)
+        public IExpressionNode Visit(VarDefinitionSyntaxNode node)
             => ThrowNotAnExpression(node);
 
         #endregion

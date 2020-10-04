@@ -1,5 +1,4 @@
 using System;
-using System.IO.Enumeration;
 using Nfun.Fuspec.Parser.Model;
 using NFun.Types;
 

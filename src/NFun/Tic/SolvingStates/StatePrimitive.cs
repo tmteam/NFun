@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace NFun.Tic.SolvingStates
+﻿namespace NFun.Tic.SolvingStates
 {
     public class StatePrimitive: ITypeState, ITicNodeState
     {

@@ -11,14 +11,14 @@ namespace NFun.Interpritation.Functions
     public class GenericUserFunction : GenericFunctionBase
     {
         private readonly TypeInferenceResults _typeInferenceResults;
-        private readonly UserFunctionDefenitionSyntaxNode _syntaxNode;
+        private readonly UserFunctionDefinitionSyntaxNode _syntaxNode;
         private readonly IFunctionDictionary _dictionary;
 
         private readonly ConstrainsState[] _constrainsMap;
 
         public static GenericUserFunction Create(
             TypeInferenceResults typeInferenceResults,
-            UserFunctionDefenitionSyntaxNode syntaxNode,
+            UserFunctionDefinitionSyntaxNode syntaxNode,
             IFunctionDictionary dictionary)
         {
             var ticGenerics = typeInferenceResults.Generics;
@@ -61,7 +61,7 @@ namespace NFun.Interpritation.Functions
 
         private GenericUserFunction(
             TypeInferenceResults typeInferenceResults,
-            UserFunctionDefenitionSyntaxNode syntaxNode,
+            UserFunctionDefinitionSyntaxNode syntaxNode,
             IFunctionDictionary dictionary,
             GenericConstrains[] constrains,
             VarType returnType,
@@ -73,7 +73,8 @@ namespace NFun.Interpritation.Functions
             _syntaxNode = syntaxNode;
             _dictionary = dictionary;
         }
-        Dictionary<string, IConcreteFunction> _concreteFunctionsCache = new Dictionary<string, IConcreteFunction>();
+
+        readonly Dictionary<string, IConcreteFunction> _concreteFunctionsCache = new Dictionary<string, IConcreteFunction>();
         public override IConcreteFunction CreateConcrete(VarType[] concreteTypes)
         {
             var id = string.Join(",", concreteTypes);

@@ -35,8 +35,8 @@ namespace NFun.SyntaxParsing.Visitors
             => $"'{node.Id}:{node.VarType}";
 
 
-        public string Visit(UserFunctionDefenitionSyntaxNode node) => $"{node.Id}(...) = ...";
-        public string Visit(VarDefenitionSyntaxNode node) => $"'{node.Id}:{node.VarType}";
+        public string Visit(UserFunctionDefinitionSyntaxNode node) => $"{node.Id}(...) = ...";
+        public string Visit(VarDefinitionSyntaxNode node) => $"'{node.Id}:{node.VarType}";
 
         public string Visit(NamedIdSyntaxNode node) => node.Id;
         public string Visit(ResultFunCallSyntaxNode node) => $"{node.ResultExpression.Accept(this)}(...)";

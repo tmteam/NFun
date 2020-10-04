@@ -2,7 +2,7 @@
 
 namespace NFun.Tic.Toposort
 {
-    public struct TopologySortResults
+    public readonly struct TopologySortResults
     {
         /// <summary>
         /// Topological sort order if has no cycle
