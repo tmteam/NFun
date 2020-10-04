@@ -65,7 +65,7 @@ namespace NFun.BuiltInFunctions
     {
         public TrimFunction() : base("trim",VarType.Text,VarType.Text){}
 
-        public override object Calc(object a) => ((IFunArray) a).ToText().TrimStart().AsFunText();
+        public override object Calc(object a) => ((IFunArray) a).ToText().Trim().AsFunText();
     }
     
     public class TrimStartFunction : FunctionWithSingleArg
@@ -90,12 +90,15 @@ namespace NFun.BuiltInFunctions
             VarType.Text){
         }
 
-        public override object Calc(object a, object b) =>
-            new ImmutableFunArray(
-                TypeHelper.GetFunText(a)
-                    .Split( new[] {TypeHelper.GetFunText(b)}, StringSplitOptions.RemoveEmptyEntries)
-                    .Select(s=>new TextFunArray(s))
+        public override object Calc(object a, object b)
+        {
+            var inputString = TypeHelper.GetFunText(a);
+            var delimeter   = TypeHelper.GetFunText(b);
+            return new ImmutableFunArray(
+                    inputString.Split(new[] {delimeter}, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(s => new TextFunArray(s))
                     .ToArray());
+        }
     }
     
     
