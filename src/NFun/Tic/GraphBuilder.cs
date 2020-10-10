@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using NFun.Tic.Errors;
 using NFun.Tic.SolvingStates;
@@ -226,8 +227,7 @@ namespace NFun.Tic
         /// </summary>
         public void SetCall(ITicNodeState[] argThenReturnTypes, int[] argThenReturnIds)
         {
-            if(argThenReturnTypes.Length!=argThenReturnIds.Length)
-                throw new ArgumentException("Sizes of type and id array have to be equal");
+            Debug.Assert(argThenReturnTypes.Length==argThenReturnIds.Length);
 
             for (int i = 0; i < argThenReturnIds.Length - 1; i++)
                 SetCallArgument(argThenReturnTypes[i], argThenReturnIds[i]);
@@ -399,7 +399,7 @@ namespace NFun.Tic
             if(TraceLog.IsEnabled)
                 PrintTrace();
 #endif
-           bool allTypesAreSolved = DestructionFunctions.Destruction(sorted);
+           bool allTypesAreSolved = SolvingFunctions.Destruction(sorted);
 
 #if DEBUG
             if (TraceLog.IsEnabled)
@@ -412,12 +412,14 @@ namespace NFun.Tic
 #endif
             
             if (allTypesAreSolved)
-                return new TicResultsWithoutGenerics(sorted.Concat(references), sorted.Length);
-            else
-            {
-                return DestructionFunctions.FinalizeUp(sorted.Union(references).ToArray(), _outputNodes,
-                    _inputNodes);
-            }
+                return new TicResultsWithoutGenerics(
+                    nodes: sorted.Concat(references), 
+                    syntaxNodeCapacity: sorted.Length);
+            
+            return FunalizeFunctions.FinalizeUp(
+                toposortedNodes: sorted.Union(references).ToArray(), 
+                outputNodes: _outputNodes,
+                inputNodes: _inputNodes);
         }
         private void SetCall(TicNode functionNode, int[] argThenReturnIds)
         {

@@ -215,7 +215,7 @@ namespace NFun.TypeInferenceAdapter
         private VarType _parentFunctionArgType = VarType.Empty;
         public bool Visit(FunCallSyntaxNode node)
         {
-            var signature = _dictionary.GetOrNull(node.Id, node.Args.Length);
+            var signature =  _dictionary.GetOrNull(node.Id, node.Args.Length);
             node.FunctionSignature = signature;
             
             for (int i = 0; i < node.Args.Length; i++)
@@ -535,8 +535,18 @@ namespace NFun.TypeInferenceAdapter
         }
         private static string MakeAnonVariableName(ISyntaxNode node, string id)
             => LangTiHelper.GetArgAlias("anonymous_" + node.OrderNumber, id);
-        private bool VisitChildren(ISyntaxNode node) 
-            => node.Children.All(child => child.Accept(this));
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private bool VisitChildren(ISyntaxNode node)
+        {
+            foreach (var child in node.Children)
+            {
+                if (!child.Accept(this)) 
+                    return false;
+            }
+
+            return true;
+        }
+
         #endregion
 
     }

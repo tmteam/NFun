@@ -59,15 +59,6 @@ namespace NFun.Tic
             get => _state;
             set
             {
-                if (value == null)
-                {
-                    
-                }
-
-                if (IsSolved && !value.Equals(_state))
-                {
-                    
-                }
                 Debug.Assert(value != null);
                 Debug.Assert(!(IsSolved && !value.Equals(_state)),"Node is already solved");
 

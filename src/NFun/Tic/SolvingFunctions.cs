@@ -176,11 +176,54 @@ namespace NFun.Tic
                 return;
 
             if (!ancestor.State.ApplyDescendant(PushConstraintsFunctions.Singletone, ancestor, descendant))
-            {
                 throw TicErrors.IncompatibleNodes(ancestor, descendant);
+        }
+        
+        public static bool Destruction(TicNode[] toposorteNodes)
+        {
+            int notSolvedCount = 0;
+            for (int i = toposorteNodes.Length - 1; i >= 0; i--)
+            {
+                var descendant = toposorteNodes[i];
+                if (descendant.IsMemberOfAnything)
+                    continue;
+                DestructionRecursive(descendant);
+                if (!descendant.IsSolved)
+                    notSolvedCount++;
+            }
+            return notSolvedCount == 0;
+        }
+
+        private static void DestructionRecursive(TicNode node)
+        {
+            node.ThrowIfTypeIsRecursive();
+
+            if (node.State is ICompositeState composite)
+            {
+                if (composite.HasAnyReferenceMember) node.State = composite.GetNonReferenced();
+
+                foreach (var member in composite.Members) DestructionRecursive(member);
+            }
+
+            foreach (var ancestor in node.Ancestors.ToArray())
+            {
+                Destruction(node, ancestor);
             }
         }
 
+        public static void Destruction(TicNode descendantNode, TicNode ancestorNode)
+        {
+            var nonRefAncestor = ancestorNode.GetNonReference();
+            var nonRefDescendant = descendantNode.GetNonReference();
+            if (nonRefDescendant == nonRefAncestor)
+                return;
+
+            nonRefAncestor.State.ApplyDescendant(
+                DestructionFunctions.Singletone, 
+                nonRefAncestor,
+                nonRefDescendant);
+        }
+        
 
         public static void BecomeReferenceFor(this TicNode referencedNode, TicNode original)
         {
