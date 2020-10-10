@@ -21,9 +21,9 @@ namespace NFun.Tic.SolvingStates
     public interface ITicNodeState
     {
         string Description { get; }
-        bool ApplyDescendant(IStateFunctionsSet visitor, TicNode ancestorNode, TicNode descendantNode);
-        bool Apply(IStateFunctionsSet visitor, TicNode ancestorNode, TicNode descendantNode, StatePrimitive ancestor);
-        bool Apply(IStateFunctionsSet visitor, TicNode ancestorNode, TicNode descendantNode, ConstrainsState ancestor);
-        bool Apply(IStateFunctionsSet visitor, TicNode ancestorNode, TicNode descendantNode, ICompositeState ancestor);
+        bool ApplyDescendant(IStateCombinationFunctions visitor, TicNode ancestorNode, TicNode descendantNode);
+        bool Apply(IStateCombinationFunctions visitor, TicNode ancestorNode, TicNode descendantNode, StatePrimitive ancestor);
+        bool Apply(IStateCombinationFunctions visitor, TicNode ancestorNode, TicNode descendantNode, ConstrainsState ancestor);
+        bool Apply(IStateCombinationFunctions visitor, TicNode ancestorNode, TicNode descendantNode, ICompositeState ancestor);
     }
 }

@@ -2,9 +2,9 @@ using NFun.Tic.SolvingStates;
 
 namespace NFun.Tic
 {
-    public class ConstraintDownFunctionsSet : IStateFunctionsSet
+    public class PushConstraintsFunctions : IStateCombinationFunctions
     {
-        public static IStateFunctionsSet Singletone { get; } = new ConstraintDownFunctionsSet();
+        public static IStateCombinationFunctions Singletone { get; } = new PushConstraintsFunctions();
         public bool Apply(StatePrimitive ancestor, StatePrimitive descendant, TicNode _, TicNode __)
             => descendant.CanBeImplicitlyConvertedTo(ancestor);
 
@@ -56,7 +56,7 @@ namespace NFun.Tic
                 result.ElementNode.Ancestors.Add(ancArray.ElementNode);
                 descendantNode.State = result;
                 descendantNode.Ancestors.Remove(ancestorNode);
-                SolvingFunctions.SetDownwardsLimits(result.ElementNode, ancArray.ElementNode);
+                SolvingFunctions.PushConstraints(result.ElementNode, ancArray.ElementNode);
                 return true;
             }
 
@@ -81,7 +81,7 @@ namespace NFun.Tic
             if (ancestor is StateArray ancArray)
             {
                 var descArray = (StateArray) descendant;
-                SolvingFunctions.SetDownwardsLimits(descArray.ElementNode, ancArray.ElementNode);
+                SolvingFunctions.PushConstraints(descArray.ElementNode, ancArray.ElementNode);
                 return true;
             }
 
@@ -100,9 +100,9 @@ namespace NFun.Tic
         private static void ConstraintDownFunTypeArguments(StateFun descFun, StateFun ancFun)
         {
             for (int i = 0; i < descFun.ArgsCount; i++)
-                SolvingFunctions.SetDownwardsLimits(descFun.ArgNodes[i], ancFun.ArgNodes[i]);
+                SolvingFunctions.PushConstraints(descFun.ArgNodes[i], ancFun.ArgNodes[i]);
 
-            SolvingFunctions.SetDownwardsLimits(descFun.RetNode, ancFun.RetNode);
+            SolvingFunctions.PushConstraints(descFun.RetNode, ancFun.RetNode);
         }
     }
 }

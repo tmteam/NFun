@@ -289,13 +289,13 @@ namespace NFun.Tic.SolvingStates
 
         public string Description => ToString();
 
-        public bool ApplyDescendant(IStateFunctionsSet visitor, TicNode ancestorNode, TicNode descendantNode) =>
+        public bool ApplyDescendant(IStateCombinationFunctions visitor, TicNode ancestorNode, TicNode descendantNode) =>
             descendantNode.State.Apply(visitor, ancestorNode, descendantNode, this);
-        public bool Apply(IStateFunctionsSet visitor, TicNode ancestorNode, TicNode descendantNode, StatePrimitive ancestor)
+        public bool Apply(IStateCombinationFunctions visitor, TicNode ancestorNode, TicNode descendantNode, StatePrimitive ancestor)
             => visitor.Apply(ancestor,this,ancestorNode, descendantNode);
-        public bool Apply(IStateFunctionsSet visitor, TicNode ancestorNode, TicNode descendantNode, ConstrainsState ancestor)
+        public bool Apply(IStateCombinationFunctions visitor, TicNode ancestorNode, TicNode descendantNode, ConstrainsState ancestor)
             => visitor.Apply( ancestor,this,ancestorNode, descendantNode);
-        public bool Apply(IStateFunctionsSet visitor, TicNode ancestorNode, TicNode descendantNode, ICompositeState ancestor)
+        public bool Apply(IStateCombinationFunctions visitor, TicNode ancestorNode, TicNode descendantNode, ICompositeState ancestor)
             => visitor.Apply(ancestor,this,ancestorNode, descendantNode);
     }
 }

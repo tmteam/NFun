@@ -377,23 +377,23 @@ namespace NFun.Tic
                 TraceLog.WriteLine("Decycled:");
                 PrintTrace();
                 TraceLog.WriteLine();
-                TraceLog.WriteLine("Set up");
+                TraceLog.WriteLine("Pull constraints");
             }
 #endif
 
-            SolvingFunctions.SetUpwardsLimits(sorted);
+            SolvingFunctions.PullConstraints(sorted);
 #if DEBUG
             if (TraceLog.IsEnabled)
             {
                 PrintTrace();
 
                 TraceLog.WriteLine();
-                TraceLog.WriteLine("Set down");
+                TraceLog.WriteLine("Push constraints");
             }
             #endif
 
 
-            SolvingFunctions.SetDownwardsLimits(sorted);
+            SolvingFunctions.PushConstraints(sorted);
 #if DEBUG
 
             if(TraceLog.IsEnabled)

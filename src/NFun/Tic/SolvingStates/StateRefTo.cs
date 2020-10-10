@@ -13,16 +13,16 @@
         public override string ToString() => $"ref({Node.Name})";
         public string Description => Node.Name.ToString();
 
-        public bool ApplyDescendant(IStateFunctionsSet visitor, TicNode ancestorNode, TicNode descendantNode) => false;
+        public bool ApplyDescendant(IStateCombinationFunctions visitor, TicNode ancestorNode, TicNode descendantNode) => false;
         
 
-        public bool Apply(IStateFunctionsSet visitor, TicNode ancestorNode, TicNode descendantNode, StatePrimitive ancestor)
+        public bool Apply(IStateCombinationFunctions visitor, TicNode ancestorNode, TicNode descendantNode, StatePrimitive ancestor)
             => false;
 
-        public bool Apply(IStateFunctionsSet visitor, TicNode ancestorNode, TicNode descendantNode, ConstrainsState ancestor)
+        public bool Apply(IStateCombinationFunctions visitor, TicNode ancestorNode, TicNode descendantNode, ConstrainsState ancestor)
             => false;
 
-        public bool Apply(IStateFunctionsSet visitor, TicNode ancestorNode, TicNode descendantNode, ICompositeState ancestor)
+        public bool Apply(IStateCombinationFunctions visitor, TicNode ancestorNode, TicNode descendantNode, ICompositeState ancestor)
             => false;
     }
 }

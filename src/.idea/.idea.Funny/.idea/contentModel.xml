@@ -194,7 +194,7 @@
         </e>
         <e p="Tic" t="Include">
           <e p="CollectionHelper.cs" t="Include" />
-          <e p="ConstraintDownFunctionsSet.cs" t="Include" />
+          <e p="DestructionCombinationFunctions.cs" t="Include" />
           <e p="DestructionFunctions.cs" t="Include" />
           <e p="Errors" t="Include">
             <e p="IncompatibleAncestorNamedNodeException.cs" t="Include" />
@@ -206,8 +206,10 @@
           </e>
           <e p="FunCallBuilderExtensions.cs" t="Include" />
           <e p="GraphBuilder.cs" t="Include" />
-          <e p="IStateFunctionsSet.cs" t="Include" />
+          <e p="IStateCombinationFunctions.cs" t="Include" />
           <e p="ITicResults.cs" t="Include" />
+          <e p="PullConstraintsFunctions.cs" t="Include" />
+          <e p="PushConstraintsFunctions.cs" t="Include" />
           <e p="SolvingFunctions.cs" t="Include" />
           <e p="SolvingStates" t="Include">
             <e p="ConstrainsState.cs" t="Include" />
@@ -229,7 +231,6 @@
           </e>
           <e p="TraceLog.cs" t="Include" />
           <e p="UpwardFunctions.cs" t="Include" />
-          <e p="СonstraintUpFunctionsSet.cs" t="Include" />
         </e>
         <e p="Tokenization" t="Include">
           <e p="Interval.cs" t="Include" />

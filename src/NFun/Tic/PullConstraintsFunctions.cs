@@ -3,9 +3,9 @@ using NFun.Tic.SolvingStates;
 
 namespace NFun.Tic
 {
-    public class СonstraintUpFunctionsSet: IStateFunctionsSet
+    public class PullConstraintsFunctions: IStateCombinationFunctions
     {
-        public static IStateFunctionsSet SingleTone { get; } = new СonstraintUpFunctionsSet();
+        public static IStateCombinationFunctions SingleTone { get; } = new PullConstraintsFunctions();
         
         public bool Apply(StatePrimitive ancestor, StatePrimitive descendant, TicNode _, TicNode __) =>
             descendant.CanBeImplicitlyConvertedTo(ancestor);

@@ -121,17 +121,17 @@ namespace NFun.Tic
 
         #endregion
 
-        public static void SetUpwardsLimits(TicNode[] toposortedNodes)
+        public static void PullConstraints(TicNode[] toposortedNodes)
         {
             foreach (var node in toposortedNodes)
             {
                 if(node.IsMemberOfAnything)
                     continue;
-                HandleUpwardLimits(node);
+                PullConstraintsRecursive(node);
             }
         }
 
-        private static void HandleUpwardLimits(TicNode descendant)
+        private static void PullConstraintsRecursive(TicNode descendant)
         {
             // ReSharper disable once ForCanBeConvertedToForeach
             //We have to use for, because collection can be modified
@@ -139,18 +139,16 @@ namespace NFun.Tic
             {
                 var ancestor = descendant.Ancestors[index];
                 if (descendant == ancestor) continue;
-                var res = ancestor.State.ApplyDescendant(СonstraintUpFunctionsSet.SingleTone, ancestor, descendant);
+                var res = ancestor.State.ApplyDescendant(PullConstraintsFunctions.SingleTone, ancestor, descendant);
                 if (!res) throw TicErrors.IncompatibleTypes(ancestor, descendant);
             }
 
             if (descendant.State is ICompositeState composite)
                 foreach (var member in composite.Members)
-                    HandleUpwardLimits(member);
+                    PullConstraintsRecursive(member);
         }
 
-        #region Downward
-
-        public static void SetDownwardsLimits(TicNode[] toposortedNodes)
+        public static void PushConstraints(TicNode[] toposortedNodes)
         {
             for (int i = toposortedNodes.Length - 1; i >= 0; i--)
             {
@@ -158,32 +156,31 @@ namespace NFun.Tic
                 if (descendant.IsMemberOfAnything)
                     continue;
 
-                Downwards(descendant);
+                PushConstraintsRecursive(descendant);
             }
         }
 
-        private static void Downwards(TicNode descendant)
+        private static void PushConstraintsRecursive(TicNode descendant)
         {
             if (descendant.State is ICompositeState composite)
                 foreach (var member in composite.Members)
-                    Downwards(member);
+                    PushConstraintsRecursive(member);
 
             foreach (var ancestor in descendant.Ancestors.ToArray()) 
-                SetDownwardsLimits(descendant, ancestor);
+                PushConstraints(descendant, ancestor);
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void SetDownwardsLimits(TicNode descendant, TicNode ancestor)
+        public static void PushConstraints(TicNode descendant, TicNode ancestor)
         {
             if (descendant == ancestor)
                 return;
 
-            if (!ancestor.State.ApplyDescendant(ConstraintDownFunctionsSet.Singletone, ancestor, descendant))
+            if (!ancestor.State.ApplyDescendant(PushConstraintsFunctions.Singletone, ancestor, descendant))
             {
                 throw TicErrors.IncompatibleNodes(ancestor, descendant);
             }
         }
 
-        #endregion
 
         public static void BecomeReferenceFor(this TicNode referencedNode, TicNode original)
         {

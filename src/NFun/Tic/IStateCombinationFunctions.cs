@@ -2,7 +2,7 @@ using NFun.Tic.SolvingStates;
 
 namespace NFun.Tic
 {
-    public interface IStateFunctionsSet
+    public interface IStateCombinationFunctions
     {
         bool Apply(
             StatePrimitive ancestor,
