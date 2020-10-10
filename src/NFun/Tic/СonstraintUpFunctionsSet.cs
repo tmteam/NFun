@@ -11,7 +11,6 @@ namespace NFun.Tic
             descendant.CanBeImplicitlyConvertedTo(ancestor);
         public bool Apply(StatePrimitive ancestor, ConstrainsState descendant, TicNode _, TicNode __) 
             => !descendant.HasDescendant || descendant.Descedant.CanBeImplicitlyConvertedTo(ancestor);
-
         public bool Apply(StatePrimitive ancestor, ICompositeState descendant, TicNode _, TicNode __) 
             => descendant.CanBeImplicitlyConvertedTo(ancestor);
         public bool Apply(ConstrainsState ancestor, StatePrimitive descendant, TicNode ancestorNode, TicNode descendantNode)
