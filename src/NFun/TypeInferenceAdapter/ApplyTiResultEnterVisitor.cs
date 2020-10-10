@@ -22,21 +22,6 @@ namespace NFun.TypeInferenceAdapter
             node.OutputType = _tiToLangTypeConverter.Convert(type);
             return VisitorEnterResult.Continue;
         }
-        public override VisitorEnterResult Visit(IfThenElseSyntaxNode node){
-            var result = DefaultVisitEnter(node);
-            return result;
-        }
-        public override VisitorEnterResult Visit(FunCallSyntaxNode node)
-        {
-            var result = DefaultVisitEnter(node);
-            if (result != VisitorEnterResult.Continue)
-                return result;
-            
-            //Get overload from Ti - algorithm
-            //var overload = _solving.GetFunctionOverload(node.OrderNumber, _tiToLangTypeConverter);
-            //node.SignatureOfOverload = overload;
-            return  result;
-        }
 
         protected override VisitorEnterResult DefaultVisitEnter(ISyntaxNode node)
         {

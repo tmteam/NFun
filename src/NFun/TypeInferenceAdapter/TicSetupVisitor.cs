@@ -216,7 +216,8 @@ namespace NFun.TypeInferenceAdapter
         public bool Visit(FunCallSyntaxNode node)
         {
             var signature = _dictionary.GetOrNull(node.Id, node.Args.Length);
-           
+            node.FunctionSignature = signature;
+            
             for (int i = 0; i < node.Args.Length; i++)
             {
                 if (signature != null)

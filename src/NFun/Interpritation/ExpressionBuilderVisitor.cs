@@ -147,7 +147,8 @@ namespace NFun.Interpritation
         {
             var id = node.Id;
             
-            var someFunc = _functions.GetOrNull(id, node.Args.Length);
+            var someFunc = node.FunctionSignature ?? _functions.GetOrNull(id, node.Args.Length);
+            
             if (someFunc is null)
             {
                 //todo move to variable syntax node
@@ -169,7 +170,7 @@ namespace NFun.Interpritation
                 var genericTypes = _typeInferenceResults.GetGenericCallArguments(node.OrderNumber);
                 if (genericTypes == null)
                 {
-                    // Generuc call arguments are unknown  in case of  generic recursion function . 
+                    // Generic call arguments are unknown  in case of  generic recursion function . 
                     // Take it from type inference results in this case
                     var recCallSignature =  _typeInferenceResults.GetRecursiveCallOrNull(node.OrderNumber);
                     //if generic call arguments not exist in type inference result - it is NFUN core error

@@ -67,22 +67,7 @@ namespace NFun.Interpritation
 
             #endregion
 
-            #region solve body types
-            //Solve types for all equations nodes
-            var bodyTypeSolving = RuntimeBuilderHelper.SolveBodyOrThrow(syntaxTree, functionDictionary, constants);
-
-            foreach (var syntaxNode in syntaxTree.Nodes)
-            {
-                //function nodes were solved above
-                if (syntaxNode is UserFunctionDefinitionSyntaxNode)
-                    continue;
-
-                //set types to nodes
-                syntaxNode.ComeOver(
-                    enterVisitor: new ApplyTiResultEnterVisitor(bodyTypeSolving, TicTypesConverter.Concrete),
-                    exitVisitor: new ApplyTiResultsExitVisitor());
-            }
-            #endregion
+            var bodyTypeSolving = SolveBodyTypes(syntaxTree, constants, functionDictionary);
 
             #region build body
             var variables = new VariableDictionary();
@@ -120,6 +105,33 @@ namespace NFun.Interpritation
             }
             #endregion
             return new FunRuntime(equations, variables, userFunctionsList);
+        }
+
+        
+        private static TypeInferenceResults SolveBodyTypes(SyntaxTree syntaxTree, IConstantList constants,
+            IFunctionDictionary functionDictionary)
+        {
+            return SolveBodyTypeWithTypeInferenceCalculator(syntaxTree, constants, functionDictionary);
+        }
+
+        private static TypeInferenceResults SolveBodyTypeWithTypeInferenceCalculator(SyntaxTree syntaxTree,
+            IConstantList constants, IFunctionDictionary functionDictionary)
+        {
+            var bodyTypeSolving = RuntimeBuilderHelper.SolveBodyOrThrow(syntaxTree, functionDictionary, constants);
+
+            foreach (var syntaxNode in syntaxTree.Nodes)
+            {
+                //function nodes were solved above
+                if (syntaxNode is UserFunctionDefinitionSyntaxNode)
+                    continue;
+
+                //set types to nodes
+                syntaxNode.ComeOver(
+                    enterVisitor: new ApplyTiResultEnterVisitor(bodyTypeSolving, TicTypesConverter.Concrete),
+                    exitVisitor: new ApplyTiResultsExitVisitor());
+            }
+
+            return bodyTypeSolving;
         }
 
         private static Equation BuildEquationAndPutItToVariables(

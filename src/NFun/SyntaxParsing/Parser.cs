@@ -101,7 +101,7 @@ namespace NFun.SyntaxParsing
         {
             if (!_startOfTheLine)
                 throw ErrorFactory.FunctionDefinitionHasToStartFromNewLine(_exprStartPosition, fun, _flow.Current);
-            if (_attributes.Any())
+            if (_attributes.Length>0)
                 throw ErrorFactory.AttributeOnFunction(fun);
             
             var id = fun.Id;
