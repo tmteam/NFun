@@ -93,7 +93,7 @@ namespace NFun.Tic
                 if (!node.TryBecomeConcrete(primitive))
                     throw new InvalidOperationException();
             }
-            else if (state is ICompositeTypeState composite)
+            else if (state is ICompositeState composite)
             {
                 RegistrateCompositeType(composite);
                 node.State = state;
@@ -252,7 +252,7 @@ namespace NFun.Tic
                         throw TicErrors.CannotSetState(node, primitive);
                     break;
                 }
-                case ICompositeTypeState composite:
+                case ICompositeState composite:
                 {
                     RegistrateCompositeType(composite);
 
@@ -522,14 +522,14 @@ namespace NFun.Tic
             return res;
         }
         
-        private void RegistrateCompositeType(ICompositeTypeState composite)
+        private void RegistrateCompositeType(ICompositeState composite)
         {
             foreach (var member in composite.Members)
             {
                 if (!member.Registrated)
                 {
                     member.Registrated = true;
-                    if (member.State is ICompositeTypeState c)
+                    if (member.State is ICompositeState c)
                         RegistrateCompositeType(c);
                     _typeVariables.Add(member);
 
@@ -538,7 +538,7 @@ namespace NFun.Tic
         }
         private TicNode CreateVarType(ITicNodeState state = null)
         {
-            if (state is ICompositeTypeState composite)
+            if (state is ICompositeState composite)
                 RegistrateCompositeType(composite);
 
             var varNode =  TicNode.CreateTypeVariableNode(

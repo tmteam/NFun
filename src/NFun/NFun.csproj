@@ -4,6 +4,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageVersion>0.82</PackageVersion>
         <Version>0.8.1</Version>
+        <LangVersion>8</LangVersion>
     </PropertyGroup>
 
 </Project>

@@ -119,178 +119,39 @@ namespace NFun.Tic
         }
 
         #endregion
-
-        #region Upward 
-
+        
         public static void SetUpwardsLimits(TicNode[] toposortedNodes)
         {
-            void HandleUpwardLimits(TicNode node)
+            void HandleUpwardLimits(TicNode descendant)
             {
                 
                 // ReSharper disable once ForCanBeConvertedToForeach
-                //We has to use for, because collection can be modified
-                for (var index = 0; index < node.Ancestors.Count; index++)
+                //We have to use for, because collection can be modified
+                for (var index = 0; index < descendant.Ancestors.Count; index++)
                 {
-                    var ancestor = node.Ancestors[index];
-                    ancestor.State = SetUpwardsLimits(node, ancestor);
+                    var ancestor = descendant.Ancestors[index];
+                    if(descendant==ancestor)
+                        continue;
+                    var res =  ancestor.State.ApplyDescendant(СonstraintUpFunctionsSet.SingleTone, ancestor, descendant);
+                    if(!res)
+                        throw TicErrors.IncompatibleTypes(ancestor, descendant);
                 }
 
-                if(node.State is ICompositeTypeState composite)
+                if(descendant.State is ICompositeState composite)
                     foreach (var member in composite.Members)
                         HandleUpwardLimits(member);
             }
             foreach (var node in toposortedNodes.Where(n => !n.IsMemberOfAnything))
                 HandleUpwardLimits(node);
         }
-
-        private static ITicNodeState SetUpwardsLimits(TicNode descendant, TicNode ancestor)
-        {
-            #region handle refto cases. 
-
-            if (ancestor == descendant)
-                return ancestor.State;
-            
-/*
-            if (ancestor.State is StateRefTo referenceAnc)
-            {
-                if (descendant.Ancestors.Contains(ancestor))
-                {
-                    descendant.Ancestors.Remove(ancestor);
-                    if (descendant != referenceAnc.Node)
-                        descendant.Ancestors.Add(referenceAnc.Node);
-                }
-
-                referenceAnc.Node.State = SetUpwardsLimits(descendant, referenceAnc.Node);
-                return referenceAnc;
-            }
-
-            if (descendant.State is StateRefTo referenceDesc)
-            {
-                if (descendant.Ancestors.Contains(ancestor))
-                {
-                    descendant.Ancestors.Remove(ancestor);
-                    if (referenceDesc.Node != ancestor)
-                        referenceDesc.Node.Ancestors.Add(ancestor);
-                }
-
-                ancestor.State = SetUpwardsLimits(referenceDesc.Node, ancestor);
-                return ancestor.State;
-            }*/
-
-            #endregion
-
-            if (descendant.State is ITypeState typeDesc)
-            {
-                switch (ancestor.State)
-                {
-                    case StatePrimitive concreteAnc:
-                    {
-                        if (!typeDesc.CanBeImplicitlyConvertedTo(concreteAnc))
-                            throw TicErrors.IncompatibleTypes(ancestor, descendant);
-                        return ancestor.State;
-                    }
-
-                    case ConstrainsState constrainsAnc:
-                    {
-                        var result = constrainsAnc.GetCopy();
-                        result.AddDescedant(typeDesc);
-                        return result.GetOptimizedOrNull()??
-                               throw TicErrors.IncompatibleTypes(ancestor, descendant);
-                    }
-
-                    case StateArray arrayAnc:
-                    {
-                        if (!(typeDesc is StateArray arrayDesc))
-                            throw TicErrors.IncompatibleTypes(ancestor, descendant);
-
-
-                        descendant.Ancestors.Remove(ancestor);
-                        arrayDesc.ElementNode.Ancestors.Add(arrayAnc.ElementNode);
-                        return ancestor.State;
-                    }
-
-                    case StateFun fun:
-                    {
-                        if (!(typeDesc is StateFun funDesc))
-                            throw TicErrors.IncompatibleTypes(ancestor, descendant);
-                        if (funDesc.ArgsCount != fun.ArgsCount)
-                            throw TicErrors.IncompatibleFunSignatures(ancestor, descendant);
-
-                        descendant.Ancestors.Remove(ancestor);
-
-                        funDesc.RetNode.Ancestors.Add(fun.RetNode);
-                        for (int i = 0; i < funDesc.ArgsCount; i++)
-                            fun.ArgNodes[i].Ancestors.Add(funDesc.ArgNodes[i]);
-
-                        return ancestor.State;
-                    }
-
-                    default:
-                        throw new NotSupportedException();
-                }
-            }
-
-            if (descendant.State is ConstrainsState constrainsDesc)
-            {
-                switch (ancestor.State)
-                {
-                    case StatePrimitive concreteAnc:
-                    {
-                        if (constrainsDesc.HasDescendant &&
-                            constrainsDesc.Descedant?.CanBeImplicitlyConvertedTo(concreteAnc) != true)
-                            throw TicErrors.IncompatibleNodes(ancestor, descendant);
-                        return ancestor.State;
-                    }
-
-                    case ConstrainsState constrainsAnc:
-                    {
-                        var result = constrainsAnc.GetCopy();
-                        result.AddDescedant(constrainsDesc.Descedant);
-                        return result.GetOptimizedOrNull()
-                               ?? throw TicErrors.IncompatibleNodes(ancestor, descendant);
-                    }
-                    case StateArray arrayAnc:
-                    {
-                        var result = TransformToArrayOrNull(descendant.Name, constrainsDesc)
-                                ?? throw TicErrors.IncompatibleNodes(ancestor, descendant);
-
-                        result.ElementNode.Ancestors.Add(arrayAnc.ElementNode);
-                        descendant.State = result;
-                        descendant.Ancestors.Remove(ancestor);
-                        return ancestor.State;
-                    }
-
-                    case StateFun funAnc:
-                    {
-                        var result = TransformToFunOrNull(descendant.Name, constrainsDesc, funAnc)
-                                     ?? throw TicErrors.IncompatibleNodes(ancestor, descendant);
-
-                        result.RetNode.Ancestors.Add(funAnc.RetNode);
-                        for (int i = 0; i < result.ArgsCount; i++)
-                            result.ArgNodes[i].Ancestors.Add(funAnc.ArgNodes[i]);
-                        descendant.State = result;
-                        descendant.Ancestors.Remove(ancestor);
-                        return ancestor.State;
-                    }
-
-                    default:
-                        throw new NotSupportedException(
-                            $"Ancestor type {ancestor.State.GetType().Name} is not supported");
-                }
-            }
-
-            throw new NotSupportedException($"Descendant type {descendant.State.GetType().Name} is not supported");
-        }
-
-        #endregion
-
+        
         #region Downward
 
         public static void SetDownwardsLimits(TicNode[] toposortedNodes)
         {
             void Downwards(TicNode descendant)
             {
-                if(descendant.State is ICompositeTypeState composite)
+                if(descendant.State is ICompositeState composite)
                     foreach (var member in composite.Members)
                         Downwards(member);
                 
@@ -418,7 +279,7 @@ namespace NFun.Tic
         /// <summary>
         /// Transform constrains state to array state
         /// </summary>
-        private static StateArray TransformToArrayOrNull(object descNodeName, ConstrainsState descendant)
+        public static StateArray TransformToArrayOrNull(object descNodeName, ConstrainsState descendant)
         {
             if (descendant.NoConstrains)
             {
@@ -448,7 +309,7 @@ namespace NFun.Tic
         /// <summary>
         /// Transform constrains to fun state
         /// </summary>
-        private static StateFun TransformToFunOrNull(object descNodeName, ConstrainsState descendant, StateFun ancestor)
+        public static StateFun TransformToFunOrNull(object descNodeName, ConstrainsState descendant, StateFun ancestor)
         {
             if (descendant.NoConstrains)
             {
@@ -487,7 +348,5 @@ namespace NFun.Tic
             }
             return null;
         }
-
-       
     }
 }

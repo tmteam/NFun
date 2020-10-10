@@ -16,7 +16,7 @@ namespace NFun.Tic
             {
                 node.ThrowIfTypeIsRecursive();
 
-                if (node.State is ICompositeTypeState composite)
+                if (node.State is ICompositeState composite)
                 {
                     if (composite.HasAnyReferenceMember)
                         node.State = composite.GetNonReferenced();
@@ -217,7 +217,7 @@ namespace NFun.Tic
                     }
                 }
                 
-                if (node.State is ICompositeTypeState composite)
+                if (node.State is ICompositeState composite)
                 {
                     if (composite.HasAnyReferenceMember)
                     {
@@ -230,7 +230,7 @@ namespace NFun.Tic
 #endif
                     }
 
-                    foreach (var member in ((ICompositeTypeState) node.State).Members)
+                    foreach (var member in ((ICompositeState) node.State).Members)
                         Finalize(member);
                 }
             }
@@ -340,7 +340,7 @@ namespace NFun.Tic
         {
             switch (node.State)
             {
-                case ICompositeTypeState composite:
+                case ICompositeState composite:
                     return composite.AllLeafTypes;
                 case StateRefTo _:
                     return new[] { node.GetNonReference() };
@@ -372,7 +372,7 @@ namespace NFun.Tic
                 case ConstrainsState _:
                     return;
                 case StateRefTo _:
-                case ICompositeTypeState _:
+                case ICompositeState _:
                     ThrowIfTypeIsRecursive(node, new HashSet<TicNode>());
                     return;
                 default:
@@ -385,7 +385,7 @@ namespace NFun.Tic
                 throw TicErrors.RecursiveTypeDefinition(nodes.ToArray());
             if (node.State is StateRefTo r)
                 ThrowIfTypeIsRecursive(r.Node, nodes);
-            else if (node.State is ICompositeTypeState composite)
+            else if (node.State is ICompositeState composite)
             {
                 foreach (var compositeMember in composite.Members)
                 {

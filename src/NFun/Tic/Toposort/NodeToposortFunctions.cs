@@ -80,7 +80,7 @@ namespace NFun.Tic.Toposort
                 else
                 {
                     concretesBuffer.Add(node);
-                    if (node.State is ICompositeTypeState composite)
+                    if (node.State is ICompositeState composite)
                     {
                         if (composite.HasAnyReferenceMember)
                             node.State = composite.GetNonReferenced();
@@ -211,7 +211,7 @@ namespace NFun.Tic.Toposort
                     graph[from].Add(Edge.AncestorTo(ancId));
                 }
                 
-                if (node.State is ICompositeTypeState composite)
+                if (node.State is ICompositeState composite)
                 {
                     foreach (var member in composite.Members)
                     {
