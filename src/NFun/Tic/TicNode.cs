@@ -17,7 +17,9 @@ namespace NFun.Tic
 
     public class TicNode
     {
+        internal int VisitMark = -1;
         internal bool Registrated = false;
+
         private ITicNodeState _state;
         public int GraphId { get; set; } = -1;
         public static TicNode CreateTypeVariableNode(ITypeState type) 

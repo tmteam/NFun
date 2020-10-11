@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using NFun.Tic.Errors;
 using NFun.Tic.SolvingStates;
 
@@ -11,7 +12,7 @@ namespace NFun.Tic
         #region Finalize
         public static ITicResults FinalizeUp(
             TicNode[] toposortedNodes, 
-            IEnumerable<TicNode> outputNodes, 
+            IReadOnlyList<TicNode> outputNodes, 
             IEnumerable<TicNode> inputNodes)
         {
             var typeVariables = new HashSet<TicNode>();
@@ -49,26 +50,25 @@ namespace NFun.Tic
 
         private static void FinalizeRecursive(TicNode node)
         {
-            node.ThrowIfTypeIsRecursive();
-
-            if (node.State is StateRefTo)
+            if (node.State is StateRefTo refTo)
             {
-                var originalOne = node.GetNonReference();
+                SolvingFunctions.ThrowIfTypeIsRecursive(refTo.Node);
 
-                if (originalOne != node) 
-                    node.State = new StateRefTo(originalOne);
+                var originalOne = refTo.Node.GetNonReference();
 
                 if (originalOne.State is ITypeState) 
                     node.State = originalOne.State;
+                else if (originalOne != refTo.Node) 
+                    node.State = new StateRefTo(originalOne);
             }
 
             if (node.State is ICompositeState composite)
             {
-                if (composite.HasAnyReferenceMember)
-                {
+                SolvingFunctions.ThrowIfTypeIsRecursive(node);
+                
+                if (composite.HasAnyReferenceMember) 
                     node.State = composite.GetNonReferenced();
-                }
-
+                
                 foreach (var member in ((ICompositeState) node.State).Members) 
                     FinalizeRecursive(member);
             }
@@ -76,7 +76,7 @@ namespace NFun.Tic
 
         private static void SolveUselessGenerics(
             IEnumerable<TicNode> toposortedNodes,
-            IEnumerable<TicNode> outputNodes,
+            IReadOnlyList<TicNode> outputNodes,
             IEnumerable<TicNode> inputNodes)
         {
             //We have to solve all generic types that are not output
@@ -118,13 +118,14 @@ namespace NFun.Tic
         private static HashSet<TicNode> GetAllNotSolvedOutputTypes(IEnumerable<TicNode> outputNodes)
         {
             var answer = new HashSet<TicNode>();
-            foreach (var outputType in outputNodes
-                .SelectMany(GetAllOutputTypes)
-                .Where(t => t.State is ConstrainsState))
+            foreach (var node in outputNodes)
             {
-                answer.Add(outputType);
+                foreach (var outputType in node.GetAllOutputTypes())
+                {
+                    if(outputType.State is ConstrainsState)
+                        answer.Add(outputType);
+                }
             }
-
             return answer;
             //All not solved output types
             /*var outputTypes = outputNodes
@@ -170,37 +171,6 @@ namespace NFun.Tic
                 default:
                     return new[] { node };
             }
-        }
-
-        public static void ThrowIfTypeIsRecursive(this TicNode node)
-        {
-            switch (node.State)
-            {
-                case StatePrimitive _:
-                case ConstrainsState _:
-                    return;
-                case StateRefTo _:
-                case ICompositeState _:
-                    ThrowIfTypeIsRecursive(node, new HashSet<TicNode>());
-                    return;
-                default:
-                    throw new NotSupportedException();
-            }
-        }
-        private static void ThrowIfTypeIsRecursive(this TicNode node, HashSet<TicNode> nodes)
-        {
-            if (!nodes.Add(node))
-                throw TicErrors.RecursiveTypeDefinition(nodes.ToArray());
-            if (node.State is StateRefTo r)
-                ThrowIfTypeIsRecursive(r.Node, nodes);
-            else if (node.State is ICompositeState composite)
-            {
-                foreach (var compositeMember in composite.Members)
-                {
-                    ThrowIfTypeIsRecursive(compositeMember, nodes);
-                }
-            }
-            nodes.Remove(node);
         }
     }
 }

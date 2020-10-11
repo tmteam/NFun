@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using NFun.Tic.Errors;
@@ -196,7 +197,7 @@ namespace NFun.Tic
 
         private static void DestructionRecursive(TicNode node)
         {
-            node.ThrowIfTypeIsRecursive();
+            ThrowIfTypeIsRecursive(node);
 
             if (node.State is ICompositeState composite)
             {
@@ -306,6 +307,66 @@ namespace NFun.Tic
                     return StateFun.Of(nrArgNodes, nrRetNode);
             }
             return null;
+        }
+
+
+        public static void ThrowIfTypeIsRecursive(TicNode node)
+        {
+            switch (node.State)
+            {
+                case StateRefTo refTo:
+                    ThrowIfTypeIsRecursive(refTo.Node, 1);
+                    break;
+                case ICompositeState composite:
+                    foreach (var member in composite.Members) 
+                        ThrowIfTypeIsRecursive(member, 1);
+                    break;
+                default:
+                    return;
+            }
+            
+            static void ThrowIfTypeIsRecursive(TicNode node, int bypassNumber)
+            {
+                if (node.VisitMark == bypassNumber)
+                {
+                    var route = new HashSet<TicNode>();
+                    FindRecursionTypeRoute(node, route);
+                    throw TicErrors.RecursiveTypeDefinition(route.ToArray());
+                }
+                node.VisitMark = bypassNumber;
+                switch (node.State)
+                {
+                    case StateRefTo refTo:
+                        ThrowIfTypeIsRecursive(refTo.Node, bypassNumber);
+                        break;
+                    case ICompositeState composite:
+                        foreach (var member in composite.Members) 
+                            ThrowIfTypeIsRecursive(member, bypassNumber);
+                        break;
+                }
+                node.VisitMark = 0;
+            
+            }
+            
+            static bool FindRecursionTypeRoute(TicNode node, HashSet<TicNode> nodes)
+            {
+                if (!nodes.Add(node))
+                    return true;
+            
+                if (node.State is StateRefTo r)
+                    return FindRecursionTypeRoute(r.Node, nodes);
+            
+                if (node.State is ICompositeState composite)
+                {
+                    foreach (var compositeMember in composite.Members)
+                    {
+                        if (FindRecursionTypeRoute(compositeMember, nodes))
+                            return true;
+                    }
+                }
+                nodes.Remove(node);
+                return false;
+            }
         }
     }
 }
