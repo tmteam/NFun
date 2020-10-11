@@ -217,19 +217,19 @@ namespace NFun.TypeInferenceAdapter
         {
             var signature =  _dictionary.GetOrNull(node.Id, node.Args.Length);
             node.FunctionSignature = signature;
-            
+            //Apply visitor to child types
             for (int i = 0; i < node.Args.Length; i++)
             {
                 if (signature != null)
                     _parentFunctionArgType = signature.ArgTypes[i];
                 node.Args[i].Accept(this);
             }
-
+            //Setup ids arrays
             var ids = new int[node.Args.Length + 1];
             for (int i = 0; i < node.Args.Length; i++)
                 ids[i] = node.Args[i].OrderNumber;
             ids[ids.Length - 1] = node.OrderNumber;
-
+            
             var userFunction = _resultsBuilder.GetUserFunctionSignature(node.Id, node.Args.Length);
             if (userFunction != null)
             {
@@ -259,12 +259,22 @@ namespace NFun.TypeInferenceAdapter
 #if DEBUG
             Trace(node, $"Call {node.Id}({string.Join(",", ids)})");
 #endif
+            if (signature is PureGenericFunctionBase pure)
+            {
+                // Сase of (T,T):T signatures
+                // This case is very common, so its call is optimized
+                var genericType = InitializeGenericType(pure.Constrainses[0]);
+                _resultsBuilder.RememberGenericCallArguments(node.OrderNumber, new[]{genericType});
+                _ticTypeGraph.SetCall(genericType, ids);
+                return true;
+            }
             StateRefTo[] genericTypes;
             if (signature is GenericFunctionBase t)
             {
-                //Optimization
-                //Remember generic arguments to use it again at the built time
-                genericTypes = InitializeGenericTypes(t.GenericDefinitions);
+                // Optimization
+                // Remember generic arguments to use it again at the built time
+                genericTypes = InitializeGenericTypes(t.Constrainses);
+                // save refernces to generic types, for use at 'apply tic results' step 
                 _resultsBuilder.RememberGenericCallArguments(node.OrderNumber, genericTypes);
             }
             else genericTypes = new StateRefTo[0];
@@ -427,7 +437,7 @@ namespace NFun.TypeInferenceAdapter
                 {
                     if (signature is GenericFunctionBase genericFunction)
                     {
-                        var generics = InitializeGenericTypes(genericFunction.GenericDefinitions);
+                        var generics = InitializeGenericTypes(genericFunction.Constrainses);
                         _resultsBuilder.RememberGenericCallArguments(node.OrderNumber, generics);
 
                         _ticTypeGraph.SetVarType($"g'{argsCount}'{id}",
@@ -514,17 +524,18 @@ namespace NFun.TypeInferenceAdapter
         private StateRefTo[] InitializeGenericTypes(GenericConstrains[] constrains)
         {
             var genericTypes = new StateRefTo[constrains.Length];
-            for (int i = 0; i < constrains.Length; i++)
-            {
-                var def = constrains[i];
-                genericTypes[i] = _ticTypeGraph.InitializeVarNode(
-                    def.Descendant,
-                    def.Ancestor,
-                    def.IsComparable);
-            }
+            for (int i = 0; i < constrains.Length; i++) 
+                genericTypes[i] = InitializeGenericType(constrains[i]);
 
             return genericTypes;
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private StateRefTo InitializeGenericType(GenericConstrains constrains) =>
+            _ticTypeGraph.InitializeVarNode(
+                constrains.Descendant,
+                constrains.Ancestor,
+                constrains.IsComparable);
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Trace(ISyntaxNode node, string text)
         {

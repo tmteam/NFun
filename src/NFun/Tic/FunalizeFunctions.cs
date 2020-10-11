@@ -11,59 +11,18 @@ namespace NFun.Tic
         #region Finalize
         public static ITicResults FinalizeUp(
             TicNode[] toposortedNodes, 
-            IEnumerable<TicNode> outputNodes, IEnumerable<TicNode> inputNodes)
+            IEnumerable<TicNode> outputNodes, 
+            IEnumerable<TicNode> inputNodes)
         {
             var typeVariables = new HashSet<TicNode>();
             var namedNodes  = new List<TicNode>();
             var syntaxNodes = new List<TicNode>(toposortedNodes.Length);
-            void Finalize(TicNode node)
-            {
-                node.ThrowIfTypeIsRecursive();
-
-                if (node.State is StateRefTo)
-                {
-                    var originalOne = node.GetNonReference();
-
-                    if (originalOne != node)
-                    {
-#if DEBUG
-                        TraceLog.WriteLine($"\t{node.Name}->fold ref");
-#endif
-                        node.State = new StateRefTo(originalOne);
-                    }
-
-                    if (originalOne.State is ITypeState)
-                    {
-                        node.State = originalOne.State;
-#if DEBUG
-                        TraceLog.WriteLine($"\t{node.Name}->concretize ref to {node.State}");
-#endif                        
-                    }
-                }
-                
-                if (node.State is ICompositeState composite)
-                {
-                    if (composite.HasAnyReferenceMember)
-                    {
-#if DEBUG
-                        TraceLog.Write($"\t{node.Name}->simplify composite ");
-#endif
-                        node.State = composite.GetNonReferenced();
-#if DEBUG
-                        TraceLog.Write($"{composite}->{node.State} \r\n");
-#endif
-                    }
-
-                    foreach (var member in ((ICompositeState) node.State).Members)
-                        Finalize(member);
-                }
-            }
 
             int genericNodesCount = 0;
             for (int i = toposortedNodes.Length - 1; i >= 0; i--)
             {
                 var node = toposortedNodes[i];
-                Finalize(node);
+                FinalizeRecursive(node);
 
                 foreach (var member in node.GetAllLeafTypes())
                 {
@@ -87,15 +46,40 @@ namespace NFun.Tic
             SolveUselessGenerics(toposortedNodes, outputNodes, inputNodes);
             return new TicResultsWithGenerics(typeVariables, namedNodes, syntaxNodes);
         }
-        
+
+        private static void FinalizeRecursive(TicNode node)
+        {
+            node.ThrowIfTypeIsRecursive();
+
+            if (node.State is StateRefTo)
+            {
+                var originalOne = node.GetNonReference();
+
+                if (originalOne != node) 
+                    node.State = new StateRefTo(originalOne);
+
+                if (originalOne.State is ITypeState) 
+                    node.State = originalOne.State;
+            }
+
+            if (node.State is ICompositeState composite)
+            {
+                if (composite.HasAnyReferenceMember)
+                {
+                    node.State = composite.GetNonReferenced();
+                }
+
+                foreach (var member in ((ICompositeState) node.State).Members) 
+                    FinalizeRecursive(member);
+            }
+        }
+
         private static void SolveUselessGenerics(
             IEnumerable<TicNode> toposortedNodes,
             IEnumerable<TicNode> outputNodes,
             IEnumerable<TicNode> inputNodes)
         {
-
             //We have to solve all generic types that are not output
-            
             var outputTypes = GetAllNotSolvedOutputTypes(outputNodes);
 
             foreach (var node in GetAllNotSolvedContravariantLeafs(inputNodes))

@@ -1,9 +1,11 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace NFun.Tic
 {
     public static class CollectionHelper
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T GetOrEnlarge<T>(this List<T> list, int index)
         {
             if (list.Count <= index)
