@@ -119,6 +119,8 @@ namespace NFun.Interpritation
         {
             var bodyTypeSolving = RuntimeBuilderHelper.SolveBodyOrThrow(syntaxTree, functionDictionary, constants);
 
+            var enterVisitor = new ApplyTiResultEnterVisitor(bodyTypeSolving, TicTypesConverter.Concrete);
+            var exitVisitor = new ApplyTiResultsExitVisitor();
             foreach (var syntaxNode in syntaxTree.Nodes)
             {
                 //function nodes were solved above
@@ -126,9 +128,7 @@ namespace NFun.Interpritation
                     continue;
 
                 //set types to nodes
-                syntaxNode.ComeOver(
-                    enterVisitor: new ApplyTiResultEnterVisitor(bodyTypeSolving, TicTypesConverter.Concrete),
-                    exitVisitor: new ApplyTiResultsExitVisitor());
+                syntaxNode.ComeOver(enterVisitor, exitVisitor);
             }
 
             return bodyTypeSolving;

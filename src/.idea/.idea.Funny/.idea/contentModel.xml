@@ -194,7 +194,6 @@
         </e>
         <e p="Tic" t="Include">
           <e p="CollectionHelper.cs" t="Include" />
-          <e p="DestructionFunctions.cs" t="Include" />
           <e p="Errors" t="Include">
             <e p="IncompatibleAncestorNamedNodeException.cs" t="Include" />
             <e p="IncompatibleAncestorSyntaxNodeException.cs" t="Include" />
@@ -203,18 +202,25 @@
             <e p="TicException.cs" t="Include" />
             <e p="TicNoDetailsException.cs" t="Include" />
           </e>
+          <e p="FunalizeFunctions.cs" t="Include" />
           <e p="FunCallBuilderExtensions.cs" t="Include" />
           <e p="GraphBuilder.cs" t="Include" />
           <e p="ITicResults.cs" t="Include" />
           <e p="SolvingFunctions.cs" t="Include" />
           <e p="SolvingStates" t="Include">
             <e p="ConstrainsState.cs" t="Include" />
-            <e p="ICompositeTypeState.cs" t="Include" />
+            <e p="ICompositeState.cs" t="Include" />
             <e p="PrimitiveTypeName.cs" t="Include" />
             <e p="StateArray.cs" t="Include" />
             <e p="StateFun.cs" t="Include" />
             <e p="StatePrimitive.cs" t="Include" />
             <e p="StateRefTo.cs" t="Include" />
+          </e>
+          <e p="Stages" t="Include">
+            <e p="DestructionFunctions.cs" t="Include" />
+            <e p="IStateCombinationFunctions.cs" t="Include" />
+            <e p="PullConstraintsFunctions.cs" t="Include" />
+            <e p="PushConstraintsFunctions.cs" t="Include" />
           </e>
           <e p="TicNode.cs" t="Include" />
           <e p="TicResultsWithGenerics.cs" t="Include" />
@@ -299,6 +305,18 @@
           <e p="Release" t="Include">
             <e p="netcoreapp2.1" t="Include">
               <e p="NFun.Console.AssemblyInfo.cs" t="Include" />
+            </e>
+          </e>
+        </e>
+        <e p="Program.cs" t="Include" />
+      </e>
+      <e p="Nfun.Experiments" t="IncludeRecursive">
+        <e p="bin" t="ExcludeRecursive" />
+        <e p="Nfun.Experiments.csproj" t="IncludeRecursive" />
+        <e p="obj" t="ExcludeRecursive">
+          <e p="Release" t="Include">
+            <e p="netcoreapp3.1" t="Include">
+              <e p="Nfun.Experiments.AssemblyInfo.cs" t="Include" />
             </e>
           </e>
         </e>

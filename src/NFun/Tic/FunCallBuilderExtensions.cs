@@ -33,25 +33,18 @@ namespace NFun.Tic
         public static void SetBitwiseInvert(this GraphBuilder builder, int argId, int resultId)
         {
             var t = builder.InitializeVarNode(StatePrimitive.U8, StatePrimitive.I96);
-
-            builder.SetCall(
-                argThenReturnTypes: new ITicNodeState[] { t, t },
-                argThenReturnIds: new[] { argId, resultId});
+            builder.SetCall(t,new[] { argId,  resultId });
         }
 
         public static void SetBitwise(this GraphBuilder builder, int leftId, int rightId, int resultId)
         {
             var t = builder.InitializeVarNode(StatePrimitive.U8, StatePrimitive.I96);
-
-            builder.SetCall(
-                argThenReturnTypes: new ITicNodeState[] { t, t,t },
-                argThenReturnIds: new[] { leftId,rightId, resultId });
+            builder.SetCall(t,new[] { leftId, rightId, resultId });
         }
 
         public static void SetBitShift(this GraphBuilder builder, int leftId, int rightId, int resultId)
         {
             var t = builder.InitializeVarNode(StatePrimitive.U24, StatePrimitive.I96);
-
             builder.SetCall(
                 argThenReturnTypes: new ITicNodeState[] { t, StatePrimitive.I48, t },
                 argThenReturnIds: new[] { leftId, rightId, resultId });
@@ -59,28 +52,19 @@ namespace NFun.Tic
 
         public static void SetBoolCall(this GraphBuilder builder, int leftId, int rightId, int resultId)
         {
-
-            builder.SetCall(
-                argThenReturnTypes: new ITicNodeState[] { StatePrimitive.Bool, StatePrimitive.Bool, StatePrimitive.Bool},
-                argThenReturnIds: new[] { leftId, rightId, resultId });
+            builder.SetCall(StatePrimitive.Bool, new[] {leftId, rightId, resultId});
         }
-
+            
         public static void SetArith(this GraphBuilder builder, int leftId, int rightId, int resultId)
         {
             var t = builder.InitializeVarNode(StatePrimitive.U24, StatePrimitive.Real);
-
-            builder.SetCall(
-                argThenReturnTypes: new ITicNodeState[] { t, t, t },
-                argThenReturnIds: new[] { leftId, rightId, resultId });
+            builder.SetCall(t,new[] { leftId, rightId, resultId });
         }
 
         public static void SetNegateCall(this GraphBuilder builder,int argId, int resultId)
         {
             var t = builder.InitializeVarNode(StatePrimitive.I16, StatePrimitive.Real);
-
-            builder.SetCall(
-                argThenReturnTypes: new ITicNodeState[] { t, t },
-                argThenReturnIds: new[] { argId, resultId });
+            builder.SetCall(t,new[] { argId, resultId });
         }
 
         

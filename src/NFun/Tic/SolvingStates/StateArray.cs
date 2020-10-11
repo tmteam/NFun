@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace NFun.Tic.SolvingStates
 {
-    public class StateArray: ICompositeTypeState, ITypeState, ITicNodeState
+    public class StateArray: ICompositeState, ITypeState, ITicNodeState
     {
         public StateArray(TicNode elementNode)
         {
@@ -76,7 +76,7 @@ namespace NFun.Tic.SolvingStates
             return false;
         }
 
-        public ICompositeTypeState GetNonReferenced() 
+        public ICompositeState GetNonReferenced() 
             => StateArray.Of(ElementNode.GetNonReference());
 
         public bool HasAnyReferenceMember => ElementNode.State is StateRefTo;
@@ -87,12 +87,23 @@ namespace NFun.Tic.SolvingStates
         {
             get
             {
-                if (ElementNode.State is ICompositeTypeState composite)
+                if (ElementNode.State is ICompositeState composite)
                     return composite.AllLeafTypes;
                 return new[] {ElementNode};
             }
         }
 
         public string Description => "arr(" + ElementNode.Name + ")";
+        
+        public bool ApplyDescendant(IStateCombinationFunctions visitor, TicNode ancestorNode, TicNode descendantNode) =>
+            descendantNode.State.Apply(visitor, ancestorNode, descendantNode, this);
+        public bool Apply(IStateCombinationFunctions visitor, TicNode ancestorNode, TicNode descendantNode,
+            StatePrimitive ancestor)
+            => visitor.Apply(ancestor,this,ancestorNode, descendantNode);
+        public bool Apply(IStateCombinationFunctions visitor, TicNode ancestorNode, TicNode descendantNode, ConstrainsState ancestor)
+            => visitor.Apply( ancestor,this,ancestorNode, descendantNode);
+        public bool Apply(IStateCombinationFunctions visitor, TicNode ancestorNode, TicNode descendantNode, ICompositeState ancestor)
+            => visitor.Apply(ancestor,this,ancestorNode, descendantNode);
+
     }
 }

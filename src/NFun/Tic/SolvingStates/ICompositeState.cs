@@ -8,9 +8,9 @@ namespace NFun.Tic.SolvingStates
         ITypeState GetLastCommonAncestorOrNull(ITypeState otherType);
         bool CanBeImplicitlyConvertedTo(StatePrimitive type);
     }
-    public interface ICompositeTypeState : ITypeState
+    public interface ICompositeState : ITypeState
     {
-        ICompositeTypeState GetNonReferenced();
+        ICompositeState GetNonReferenced();
         /// <summary>
         /// State of any Member node is 'RefTo'
         /// </summary>
@@ -21,6 +21,9 @@ namespace NFun.Tic.SolvingStates
     public interface ITicNodeState
     {
         string Description { get; }
+        bool ApplyDescendant(IStateCombinationFunctions visitor, TicNode ancestorNode, TicNode descendantNode);
+        bool Apply(IStateCombinationFunctions visitor, TicNode ancestorNode, TicNode descendantNode, StatePrimitive ancestor);
+        bool Apply(IStateCombinationFunctions visitor, TicNode ancestorNode, TicNode descendantNode, ConstrainsState ancestor);
+        bool Apply(IStateCombinationFunctions visitor, TicNode ancestorNode, TicNode descendantNode, ICompositeState ancestor);
     }
-   
 }

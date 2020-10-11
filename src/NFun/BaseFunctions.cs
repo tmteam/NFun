@@ -61,7 +61,6 @@ namespace NFun
             new RangeFunction(),
             new RangeStepFunction(),
             new MultiSumFunction(),
-            // new ConcatArraysGenericFunctionDefinition(CoreFunNames.ArrConcat), 
             new ConcatArraysGenericFunctionDefinition(),
             new AppendGenericFunctionDefinition(),
             new SetGenericFunctionDefinition(),

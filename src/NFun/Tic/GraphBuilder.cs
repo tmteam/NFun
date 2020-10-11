@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using NFun.Tic.Errors;
 using NFun.Tic.SolvingStates;
 using NFun.Tic.Toposort;
@@ -93,7 +95,7 @@ namespace NFun.Tic
                 if (!node.TryBecomeConcrete(primitive))
                     throw new InvalidOperationException();
             }
-            else if (state is ICompositeTypeState composite)
+            else if (state is ICompositeState composite)
             {
                 RegistrateCompositeType(composite);
                 node.State = state;
@@ -222,12 +224,27 @@ namespace NFun.Tic
         }
 
         /// <summary>
+        /// Set pure generic function call
+        /// for signatures like (T,T...):T.
+        ///
+        /// Optimized version of setCall([],[]) 
+        /// </summary>
+        public void SetCall(StateRefTo generic, int[] argThenReturnIds)
+        {
+            for (int i = 0; i < argThenReturnIds.Length - 1; i++)
+                SetCallArgument(generic, argThenReturnIds[i]);
+
+            var returnId = argThenReturnIds[argThenReturnIds.Length - 1];
+            //Since we know that the type refers to a generic type,
+            // in most case we can immediately create a node with this type.
+            MergeOrSetNode(returnId, generic);
+        }
+        /// <summary>
         /// Set function call, with function signature
         /// </summary>
         public void SetCall(ITicNodeState[] argThenReturnTypes, int[] argThenReturnIds)
         {
-            if(argThenReturnTypes.Length!=argThenReturnIds.Length)
-                throw new ArgumentException("Sizes of type and id array have to be equal");
+            Debug.Assert(argThenReturnTypes.Length==argThenReturnIds.Length);
 
             for (int i = 0; i < argThenReturnIds.Length - 1; i++)
                 SetCallArgument(argThenReturnTypes[i], argThenReturnIds[i]);
@@ -240,35 +257,7 @@ namespace NFun.Tic
                                ?? throw TicErrors.CannotSetState(returnNode, returnType);
         }
 
-        private void SetCallArgument(ITicNodeState type, int argId)
-        {
-            var node = GetOrCreateNode(argId);
-
-            switch (type)
-            {
-                case StatePrimitive primitive:
-                {
-                    if (!node.TrySetAncestor(primitive))
-                        throw TicErrors.CannotSetState(node, primitive);
-                    break;
-                }
-                case ICompositeTypeState composite:
-                {
-                    RegistrateCompositeType(composite);
-
-                    var ancestor = CreateVarType(composite);
-                    node.Ancestors.Add(ancestor);
-                    break;
-                }
-                case StateRefTo refTo:
-                {
-                    node.Ancestors.Add(refTo.Node);
-                    break;
-                }
-
-                default: throw new NotSupportedException();
-            }
-        }
+       
 
         public void SetDef(string name, int rightNodeId)
         {
@@ -377,29 +366,29 @@ namespace NFun.Tic
                 TraceLog.WriteLine("Decycled:");
                 PrintTrace();
                 TraceLog.WriteLine();
-                TraceLog.WriteLine("Set up");
+                TraceLog.WriteLine("Pull constraints");
             }
 #endif
 
-            SolvingFunctions.SetUpwardsLimits(sorted);
+            SolvingFunctions.PullConstraints(sorted);
 #if DEBUG
             if (TraceLog.IsEnabled)
             {
                 PrintTrace();
 
                 TraceLog.WriteLine();
-                TraceLog.WriteLine("Set down");
+                TraceLog.WriteLine("Push constraints");
             }
             #endif
 
 
-            SolvingFunctions.SetDownwardsLimits(sorted);
+            SolvingFunctions.PushConstraints(sorted);
 #if DEBUG
 
             if(TraceLog.IsEnabled)
                 PrintTrace();
 #endif
-           bool allTypesAreSolved = DestructionFunctions.Destruction(sorted);
+           bool allTypesAreSolved = SolvingFunctions.Destruction(sorted);
 
 #if DEBUG
             if (TraceLog.IsEnabled)
@@ -412,13 +401,56 @@ namespace NFun.Tic
 #endif
             
             if (allTypesAreSolved)
-                return new TicResultsWithoutGenerics(sorted.Concat(references), sorted.Length);
-            else
+                return new TicResultsWithoutGenerics(
+                    nodes: sorted.Concat(references), 
+                    syntaxNodeCapacity: sorted.Length);
+            
+            return FunalizeFunctions.FinalizeUp(
+                toposortedNodes: sorted.Union(references).ToArray(), 
+                outputNodes: _outputNodes,
+                inputNodes: _inputNodes);
+        }
+        
+        /// <summary>
+        /// Optimized version of SetCallArgument for ref cases
+        /// Not sure how necessary this optimization is
+        /// </summary>
+        private void SetCallArgument(StateRefTo type, int argId)
+        {
+            var node = GetOrCreateNode(argId);
+            node.Ancestors.Add(type.Node);
+        }
+        
+        private void SetCallArgument(ITicNodeState type, int argId)
+        {
+            var node = GetOrCreateNode(argId);
+
+            switch (type)
             {
-                return DestructionFunctions.FinalizeUp(sorted.Union(references).ToArray(), _outputNodes,
-                    _inputNodes);
+                case StatePrimitive primitive:
+                {
+                    if (!node.TrySetAncestor(primitive))
+                        throw TicErrors.CannotSetState(node, primitive);
+                    break;
+                }
+                case ICompositeState composite:
+                {
+                    RegistrateCompositeType(composite);
+
+                    var ancestor = CreateVarType(composite);
+                    node.Ancestors.Add(ancestor);
+                    break;
+                }
+                case StateRefTo refTo:
+                {
+                    node.Ancestors.Add(refTo.Node);
+                    break;
+                }
+
+                default: throw new NotSupportedException();
             }
         }
+        
         private void SetCall(TicNode functionNode, int[] argThenReturnIds)
         {
             var id = argThenReturnIds[argThenReturnIds.Length - 1];
@@ -511,6 +543,10 @@ namespace NFun.Tic
             var res = TicNode.CreateSyntaxNode(id, new StateArray(elementType),true);
             _syntaxNodes[id] = res;
         }
+        /// <summary>
+        /// Returns already exists syntax node id, or creates new one with empty constraints
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private TicNode GetOrCreateNode(int id)
         {
             var alreadyExists = _syntaxNodes.GetOrEnlarge(id);
@@ -521,15 +557,33 @@ namespace NFun.Tic
             _syntaxNodes[id] = res;
             return res;
         }
+        /// <summary>
+        /// Merge already exists syntax node id,
+        /// or creates new one with specified type
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void MergeOrSetNode(int id, StateRefTo type)
+        {
+            var alreadyExists = _syntaxNodes.GetOrEnlarge(id);
+            if (alreadyExists == null)
+            {
+                var res = TicNode.CreateSyntaxNode(id, type, true);
+                _syntaxNodes[id] = res;
+                return;
+            }
+
+            alreadyExists.State = SolvingFunctions.GetMergedStateOrNull(alreadyExists.State, type)
+                                  ?? throw TicErrors.CannotSetState(alreadyExists, type);
+        }
         
-        private void RegistrateCompositeType(ICompositeTypeState composite)
+        private void RegistrateCompositeType(ICompositeState composite)
         {
             foreach (var member in composite.Members)
             {
                 if (!member.Registrated)
                 {
                     member.Registrated = true;
-                    if (member.State is ICompositeTypeState c)
+                    if (member.State is ICompositeState c)
                         RegistrateCompositeType(c);
                     _typeVariables.Add(member);
 
@@ -538,7 +592,7 @@ namespace NFun.Tic
         }
         private TicNode CreateVarType(ITicNodeState state = null)
         {
-            if (state is ICompositeTypeState composite)
+            if (state is ICompositeState composite)
                 RegistrateCompositeType(composite);
 
             var varNode =  TicNode.CreateTypeVariableNode(

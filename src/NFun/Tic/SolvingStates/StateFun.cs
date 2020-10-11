@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace NFun.Tic.SolvingStates
 {
-    public class StateFun : ICompositeTypeState, ITypeState, ITicNodeState
+    public class StateFun : ICompositeState, ITypeState, ITicNodeState
     {
         public static StateFun Of(ITicNodeState[] argTypes, ITicNodeState returnType)
         {
@@ -127,7 +127,7 @@ namespace NFun.Tic.SolvingStates
             return fun.ReturnType.Equals(ReturnType);
         }
 
-        public ICompositeTypeState GetNonReferenced()
+        public ICompositeState GetNonReferenced()
         {
             var nonRefArgNodes = new TicNode[ArgNodes.Length];
             for (int i = 0; i < ArgNodes.Length; i++) nonRefArgNodes[i] = ArgNodes[i].GetNonReference();
@@ -161,7 +161,7 @@ namespace NFun.Tic.SolvingStates
             {
                 foreach (var member in Members)
                 {
-                    if (member.State is ICompositeTypeState composite)
+                    if (member.State is ICompositeState composite)
                     {
                         foreach (var leaf in composite.AllLeafTypes)
                         {
@@ -185,5 +185,16 @@ namespace NFun.Tic.SolvingStates
         }
 
         public string Description => $"({string.Join(",", ArgNodes.Select(a => a.Name))})->{RetNode.Name}";
+        
+        public bool ApplyDescendant(IStateCombinationFunctions visitor, TicNode ancestorNode, TicNode descendantNode) =>
+            descendantNode.State.Apply(visitor, ancestorNode, descendantNode, this);
+        public bool Apply(IStateCombinationFunctions visitor, TicNode ancestorNode, TicNode descendantNode,
+            StatePrimitive ancestor)
+            => visitor.Apply(ancestor,this,ancestorNode, descendantNode);
+        public bool Apply(IStateCombinationFunctions visitor, TicNode ancestorNode, TicNode descendantNode, ConstrainsState ancestor)
+            => visitor.Apply( ancestor,this,ancestorNode, descendantNode);
+        public bool Apply(IStateCombinationFunctions visitor, TicNode ancestorNode, TicNode descendantNode, ICompositeState ancestor)
+            => visitor.Apply(ancestor,this,ancestorNode, descendantNode);
+
     }
 }

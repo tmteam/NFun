@@ -138,7 +138,11 @@ namespace NFun.BuiltInFunctions
     }
     public class SortFunction : GenericFunctionBase
     {
-        public SortFunction() : base("sort", GenericConstrains.Comparable, VarType.ArrayOf(VarType.Generic(0)), VarType.ArrayOf(VarType.Generic(0))) { }
+        public SortFunction() : base("sort", GenericConstrains.Comparable,
+            VarType.ArrayOf(VarType.Generic(0)), VarType.ArrayOf(VarType.Generic(0)))
+        {
+            
+        }
 
         protected override object Calc(object[] args)
         {

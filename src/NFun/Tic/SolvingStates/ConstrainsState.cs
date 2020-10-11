@@ -286,6 +286,16 @@ namespace NFun.Tic.SolvingStates
                 res += Prefered + "!";
             return res;
         }
+
         public string Description => ToString();
+
+        public bool ApplyDescendant(IStateCombinationFunctions visitor, TicNode ancestorNode, TicNode descendantNode) =>
+            descendantNode.State.Apply(visitor, ancestorNode, descendantNode, this);
+        public bool Apply(IStateCombinationFunctions visitor, TicNode ancestorNode, TicNode descendantNode, StatePrimitive ancestor)
+            => visitor.Apply(ancestor,this,ancestorNode, descendantNode);
+        public bool Apply(IStateCombinationFunctions visitor, TicNode ancestorNode, TicNode descendantNode, ConstrainsState ancestor)
+            => visitor.Apply( ancestor,this,ancestorNode, descendantNode);
+        public bool Apply(IStateCombinationFunctions visitor, TicNode ancestorNode, TicNode descendantNode, ICompositeState ancestor)
+            => visitor.Apply(ancestor,this,ancestorNode, descendantNode);
     }
 }

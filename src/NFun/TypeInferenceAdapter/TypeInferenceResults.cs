@@ -19,6 +19,8 @@ namespace NFun.TypeInferenceAdapter
 
         public StateFun GetUserFunctionSignature(string id, int argsCount)
         {
+            if (_userFunctionSignatures.Count == 0)
+                return null;
             string name = id + "'" + argsCount;
             _userFunctionSignatures.TryGetValue(name, out var res);
             return res;

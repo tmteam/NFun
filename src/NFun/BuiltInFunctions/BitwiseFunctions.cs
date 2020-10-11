@@ -4,9 +4,9 @@ using NFun.Types;
 
 namespace NFun.BuiltInFunctions
 {
-    public class BitOrFunction : GenericFunctionBase
+    public class BitOrFunction : PureGenericFunctionBase
     {
-        public BitOrFunction() : base(CoreFunNames.BitOr, GenericConstrains.Integers, VarType.Generic(0), VarType.Generic(0), VarType.Generic(0))
+        public BitOrFunction() : base(CoreFunNames.BitOr, GenericConstrains.Integers, 2)
         {
         }
 
@@ -62,9 +62,9 @@ namespace NFun.BuiltInFunctions
             public override object Calc(object a, object b) => ( (ulong) a | (ulong) b);
         }
     }
-    public class BitXorFunction : GenericFunctionBase
+    public class BitXorFunction : PureGenericFunctionBase
     {
-        public BitXorFunction() : base(CoreFunNames.BitXor, GenericConstrains.Integers, VarType.Generic(0), VarType.Generic(0), VarType.Generic(0))
+        public BitXorFunction() : base(CoreFunNames.BitXor, GenericConstrains.Integers, 2)
         {
         }
 
@@ -120,9 +120,9 @@ namespace NFun.BuiltInFunctions
             public override object Calc(object a, object b) => ( (ulong) a ^ (ulong) b);
         }
     }
-    public class BitAndFunction : GenericFunctionBase
+    public class BitAndFunction : PureGenericFunctionBase
     {
-        public BitAndFunction() : base(CoreFunNames.BitAnd, GenericConstrains.Integers, VarType.Generic(0), VarType.Generic(0), VarType.Generic(0))
+        public BitAndFunction() : base(CoreFunNames.BitAnd, GenericConstrains.Integers,2)
         {
         }
 
@@ -178,9 +178,9 @@ namespace NFun.BuiltInFunctions
             public override object Calc(object a, object b) => ( (ulong) a & (ulong) b);
         }
     }
-    public class BitInverseFunction : GenericFunctionBase
+    public class BitInverseFunction : PureGenericFunctionBase
     {
-        public BitInverseFunction() : base(CoreFunNames.BitInverse, GenericConstrains.Integers, VarType.Generic(0), VarType.Generic(0))
+        public BitInverseFunction() : base(CoreFunNames.BitInverse, GenericConstrains.Integers,1)
         {
         }
 
