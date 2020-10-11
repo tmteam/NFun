@@ -81,10 +81,10 @@ namespace NFun.Tic
             secondary.State = new StateRefTo(main);
         }
 
-        public static void MergeGroup(TicNode[] cycleRoute)
+        public static void MergeGroup(IEnumerable<TicNode> cycleRoute)
         {
             var main = cycleRoute.First();
-
+            
             foreach (var current in cycleRoute)
             {
                 if (current == main)
@@ -99,7 +99,7 @@ namespace NFun.Tic
                 {
                     //merge main and current
                     main.State = GetMergedStateOrNull(main.State, current.State)
-                                 ?? throw TicErrors.CannotMergeGroup(cycleRoute, main, current);
+                                 ?? throw TicErrors.CannotMergeGroup(cycleRoute.ToArray(), main, current);
 
                 }
 

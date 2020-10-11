@@ -5,7 +5,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using NFun.Tic.Errors;
 using NFun.Tic.SolvingStates;
-using NFun.Tic.Toposort;
 
 namespace NFun.Tic
 {
@@ -272,61 +271,20 @@ namespace NFun.Tic
         }
         #endregion
         
-        //todo performance hotspot
         private void Toposort(out TicNode[] nonReferenceOrdered, out IList<TicNode> references)
         {
-            int iteration = 0;
-            while (true)
-            {
-
-                var allNodes = _syntaxNodes
-                    .Where(s => s != null)
-                    .Concat(_variables.Values)
-                    .Concat(_typeVariables)
-                    .ToArray();
-
-                if (iteration > allNodes.Length * allNodes.Length)
-                    throw new InvalidOperationException("Infinite cycle detected. Types cannot be solved");
-                iteration++;
-
-                var result = NodeToposortFunctions.Toposort(allNodes);
-
-
-                switch (result.Status)
-                {
-                    case SortStatus.MemebershipCycle: throw TicErrors.RecursiveTypeDefinition(result.Order.ToArray());
-                    case SortStatus.AncestorCycle:
-                    {
-                        var cycle = result.Order;
-                        TraceLog.WriteLine("Found cycle: ", ConsoleColor.Yellow);
-                        TraceLog.WriteLine(() => string.Join("->", cycle.Select(r => r.Name)));
-
-                        //main node. every other node has to reference on it
-                        SolvingFunctions.MergeGroup(cycle);
-
-                        if (TraceLog.IsEnabled)
-                        {
-                            TraceLog.WriteLine($"Cycle normalization results: ", ConsoleColor.Green);
-                            foreach (var solvingNode in cycle)
-                                solvingNode.PrintToConsole();
-                        }
-
-                        break;
-                    }
-
-                    case SortStatus.Sorted:
-#if DEBUG
-                            TraceLog.WriteLine("Toposort results: ", ConsoleColor.Green);
-                            TraceLog.WriteLine(string.Join("->", result.Order.Select(r => r.Name)));
-                            TraceLog.WriteLine("Refs:" + string.Join(",", result.Refs.Select(r => r.Name)));
-#endif
-                        nonReferenceOrdered = result.Order;
-                        references = result.Refs;
-                        return;
-                }
-            }
+            var toposortAlgorithm = new NodeToposort(
+                capacity:_syntaxNodes.Count+ _variables.Count+ _typeVariables.Count);
+            
+            foreach (var node in _syntaxNodes)      toposortAlgorithm.AddToTopology(node); 
+            foreach (var node in _variables.Values) toposortAlgorithm.AddToTopology(node); 
+            foreach (var node in _typeVariables)    toposortAlgorithm.AddToTopology(node);
+            
+            toposortAlgorithm.OptimizeTopology();
+            nonReferenceOrdered = toposortAlgorithm.NonReferenceOrdered;
+            references = toposortAlgorithm.References;
         }
-
+       
         public void PrintTrace()
         {
             if(!TraceLog.IsEnabled)
@@ -354,51 +312,12 @@ namespace NFun.Tic
        
         public ITicResults Solve()
         {
-            if (TraceLog.IsEnabled) {
-                PrintTrace();
-                TraceLog.WriteLine();
-            }
-
             Toposort(out var sorted, out var references);
-#if DEBUG
-            if (TraceLog.IsEnabled)
-            {
-                TraceLog.WriteLine("Decycled:");
-                PrintTrace();
-                TraceLog.WriteLine();
-                TraceLog.WriteLine("Pull constraints");
-            }
-#endif
 
             SolvingFunctions.PullConstraints(sorted);
-#if DEBUG
-            if (TraceLog.IsEnabled)
-            {
-                PrintTrace();
-
-                TraceLog.WriteLine();
-                TraceLog.WriteLine("Push constraints");
-            }
-            #endif
-
-
             SolvingFunctions.PushConstraints(sorted);
-#if DEBUG
-
-            if(TraceLog.IsEnabled)
-                PrintTrace();
-#endif
-           bool allTypesAreSolved = SolvingFunctions.Destruction(sorted);
-
-#if DEBUG
-            if (TraceLog.IsEnabled)
-            {
-                TraceLog.WriteLine();
-                TraceLog.WriteLine("Destruct Down");
-                PrintTrace();
-                TraceLog.WriteLine("Finalize");
-            }
-#endif
+            
+            bool allTypesAreSolved = SolvingFunctions.Destruction(sorted);
             
             if (allTypesAreSolved)
                 return new TicResultsWithoutGenerics(

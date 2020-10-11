@@ -28,7 +28,8 @@ namespace NFun.Interpritation
             syntaxTree.ComeOver(new SetNodeNumberVisitor());
             return Build(syntaxTree, functionDictionary, constants);
         }
-        public static FunRuntime Build(
+
+        private static FunRuntime Build(
             SyntaxTree syntaxTree,
             IFunctionDictionary functionsDictionary, 
             IConstantList constants)
