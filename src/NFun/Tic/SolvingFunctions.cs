@@ -333,6 +333,8 @@ namespace NFun.Tic
                     FindRecursionTypeRoute(node, route);
                     throw TicErrors.RecursiveTypeDefinition(route.ToArray());
                 }
+
+                var markBefore = node.VisitMark;
                 node.VisitMark = bypassNumber;
                 switch (node.State)
                 {
@@ -344,7 +346,7 @@ namespace NFun.Tic
                             ThrowIfTypeIsRecursive(member, bypassNumber);
                         break;
                 }
-                node.VisitMark = 0;
+                node.VisitMark = markBefore;
             
             }
             

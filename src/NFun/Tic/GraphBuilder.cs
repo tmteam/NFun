@@ -315,6 +315,7 @@ namespace NFun.Tic
             Toposort(out var sorted, out var references);
 
             SolvingFunctions.PullConstraints(sorted);
+            
             SolvingFunctions.PushConstraints(sorted);
             
             bool allTypesAreSolved = SolvingFunctions.Destruction(sorted);

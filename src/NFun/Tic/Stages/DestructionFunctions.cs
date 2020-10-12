@@ -37,7 +37,7 @@ namespace NFun.Tic
 
         public bool Apply(ConstrainsState ancestor, ConstrainsState descendant, TicNode ancestorNode, TicNode descendantNode)
         {
-            TraceLog.Write("c+c: ");
+            //TraceLog.Write("c+c: ");
 
             var result = ancestor.MergeOrNull(descendant);
             if (result == null)
