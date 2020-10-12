@@ -11,13 +11,13 @@ namespace NFun.Tic
     {
         #region Finalize
         public static ITicResults FinalizeUp(
-            TicNode[] toposortedNodes, 
-            IReadOnlyList<TicNode> outputNodes, 
-            IEnumerable<TicNode> inputNodes)
+            TicNode[] toposortedNodes,
+            IReadOnlyList<TicNode> outputNodes,
+            IEnumerable<TicNode> inputNodes,
+            List<TicNode> syntaxNodes, 
+            Dictionary<string, TicNode> namedNodes)
         {
             var typeVariables = new List<TicNode>();
-            var namedNodes  = new List<TicNode>();
-            var syntaxNodes = new List<TicNode>(toposortedNodes.Length);
 
             int genericNodesCount = 0;
             const int typeVariableVisitedMark = 123;
@@ -37,14 +37,10 @@ namespace NFun.Tic
                     }
                 }
 
-                if (node.Type == TicNodeType.Named)
-                    namedNodes.Add(node);
-                else if (node.Type == TicNodeType.SyntaxNode)
-                    syntaxNodes.EnlargeAndSet((int)node.Name, node);
-
                 if (!node.IsSolved)
                     genericNodesCount++;
             }
+            
             if (genericNodesCount == 0)
                 return new TicResultsWithoutGenerics(namedNodes, syntaxNodes);
             

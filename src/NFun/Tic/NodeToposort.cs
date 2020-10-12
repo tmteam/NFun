@@ -13,7 +13,7 @@ namespace NFun.Tic
     public class NodeToposort
     {
         public TicNode[] NonReferenceOrdered { get; private set; }
-        public IList<TicNode> References { get; private set; }
+        //public TicNode[] References { get; private set; }
 
         private Stack<TicNode> _path;
         private int _refenceNodesCount = 0;
@@ -27,9 +27,9 @@ namespace NFun.Tic
         {
             //at this moment we have garanties that graph has no cycles
             NonReferenceOrdered = new TicNode[_path.Count- _refenceNodesCount];
-            var refs = new TicNode[_refenceNodesCount];
+            //var refs = new TicNode[_refenceNodesCount];
             var nonRefId = 0;
-            var refId = 0;
+            //var refId = 0;
             foreach (var node in _path)
             {
                 for (var i = 0; i < node.Ancestors.Count; i++)
@@ -44,8 +44,8 @@ namespace NFun.Tic
                     foreach (var refAncestor in node.Ancestors) 
                         refTo.Node.Ancestors.Add(refAncestor);
                     node.Ancestors.Clear();
-                    refs[refId]=node;
-                    refId++;
+                    //refs[refId]=node;
+                    //refId++;
                 }
                 else
                 {
@@ -56,7 +56,7 @@ namespace NFun.Tic
                         node.State = composite.GetNonReferenced();
                 }
             }
-            References = refs;
+            //References = refs;
         }
 
         private Stack<TicNode> _cycle = null;

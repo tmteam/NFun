@@ -6,30 +6,17 @@ namespace NFun.Tic
 {
     public class TicResultsWithoutGenerics : ITicResults
     {
-        private readonly List<TicNode> _namedNodes;
+        private readonly Dictionary<string,TicNode> _namedNodes;
         private readonly List<TicNode> _syntaxNodes;
 
-        public TicResultsWithoutGenerics(IEnumerable<TicNode> nodes, int syntaxNodeCapacity)
-        {
-            _syntaxNodes = new List<TicNode>(syntaxNodeCapacity);
-             _namedNodes = new List<TicNode>();
-            foreach (var node in nodes)
-            {
-                if (node.Type == TicNodeType.Named)
-                    _namedNodes.Add(node);
-                else if (node.Type == TicNodeType.SyntaxNode)
-                    _syntaxNodes.EnlargeAndSet((int)node.Name, node);
-            }
-        }
-
-        public TicResultsWithoutGenerics(List<TicNode> namedNodes, List<TicNode> syntaxNodes)
+        public TicResultsWithoutGenerics(Dictionary<string,TicNode> namedNodes, List<TicNode> syntaxNodes)
         {
             _namedNodes = namedNodes;
             _syntaxNodes = syntaxNodes;
         }
 
         public TicNode GetVariableNode(string variableName) 
-            => _namedNodes.First(n => n.Name.Equals(variableName));
+            => _namedNodes[variableName];
 
         public TicNode GetSyntaxNodeOrNull(int syntaxNode)
         {

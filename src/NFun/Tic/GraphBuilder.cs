@@ -256,8 +256,6 @@ namespace NFun.Tic
                                ?? throw TicErrors.CannotSetState(returnNode, returnType);
         }
 
-       
-
         public void SetDef(string name, int rightNodeId)
         {
             var exprNode = GetOrCreateNode(rightNodeId);
@@ -271,7 +269,7 @@ namespace NFun.Tic
         }
         #endregion
         
-        private void Toposort(out TicNode[] nonReferenceOrdered, out IList<TicNode> references)
+        private TicNode[] Toposort()
         {
             var toposortAlgorithm = new NodeToposort(
                 capacity:_syntaxNodes.Count+ _variables.Count+ _typeVariables.Count);
@@ -281,8 +279,7 @@ namespace NFun.Tic
             foreach (var node in _typeVariables)    toposortAlgorithm.AddToTopology(node);
             
             toposortAlgorithm.OptimizeTopology();
-            nonReferenceOrdered = toposortAlgorithm.NonReferenceOrdered;
-            references = toposortAlgorithm.References;
+            return toposortAlgorithm.NonReferenceOrdered;
         }
        
         public void PrintTrace()
@@ -312,23 +309,23 @@ namespace NFun.Tic
        
         public ITicResults Solve()
         {
-            Toposort(out var sorted, out var references);
+            var sorted = Toposort();
 
             SolvingFunctions.PullConstraints(sorted);
             
             SolvingFunctions.PushConstraints(sorted);
             
             bool allTypesAreSolved = SolvingFunctions.Destruction(sorted);
-            
+
             if (allTypesAreSolved)
-                return new TicResultsWithoutGenerics(
-                    nodes: sorted.Concat(references), 
-                    syntaxNodeCapacity: sorted.Length);
+                return new TicResultsWithoutGenerics(_variables, _syntaxNodes);
             
             return FunalizeFunctions.FinalizeUp(
-                toposortedNodes: sorted.Concat(references).ToArray(), 
-                outputNodes: _outputNodes,
-                inputNodes: _inputNodes);
+                toposortedNodes: sorted,
+                outputNodes:  _outputNodes,
+                inputNodes:   _inputNodes, 
+                syntaxNodes:  _syntaxNodes,
+                namedNodes:   _variables);
         }
         
         /// <summary>

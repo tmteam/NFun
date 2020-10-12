@@ -134,7 +134,6 @@ namespace NFun.Tic.SolvingStates
         }
         public void AddDescedant(ITypeState type)
         {
-            
             if(type==null)
                 return;
             if(!type.IsSolved)
@@ -161,6 +160,7 @@ namespace NFun.Tic.SolvingStates
             {
                 IsComparable = this.IsComparable || constrainsState.IsComparable
             };
+            
             result.AddDescedant(constrainsState.Descedant);
 
             if (!result.TryAddAncestor(constrainsState.Ancestor))
