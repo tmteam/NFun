@@ -53,8 +53,7 @@ namespace NFun.Tic
         public TicNodeType Type { get; }
         public List<TicNode> Ancestors { get; } = new List<TicNode>();
         public bool IsMemberOfAnything { get; set; }
-        public bool IsSolved 
-            => _state is StatePrimitive || (_state as StateArray)?.IsSolved == true;
+        public bool IsSolved => _state.IsSolved;
 
         public ITicNodeState State
         {

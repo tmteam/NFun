@@ -149,6 +149,8 @@ namespace NFun.Tic.SolvingStates
                     Descedant = ancestor;
             }
         }
+
+        public bool IsSolved => false;
         public StatePrimitive Prefered { get; set; }
         public bool IsComparable { get; set; }
         public bool NoConstrains => !HasDescendant && !HasAncestor && !IsComparable;

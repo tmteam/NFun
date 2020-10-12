@@ -7,6 +7,7 @@
             Node = node;
         }
 
+        public bool IsSolved => false;
         public ITicNodeState GetNonReference() => Node.GetNonReference().State;
         public ITicNodeState Element => Node.State; 
         public TicNode Node { get; }

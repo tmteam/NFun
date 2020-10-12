@@ -226,12 +226,6 @@
           <e p="TicNode.cs" t="Include" />
           <e p="TicResultsWithGenerics.cs" t="Include" />
           <e p="TicResultsWithoutGenerics.cs" t="Include" />
-          <e p="Toposort" t="Include">
-            <e p="Edge.cs" t="Include" />
-            <e p="GraphTools.cs" t="Include" />
-            <e p="NodeToposortFunctions.cs" t="Include" />
-            <e p="TopologySortResults.cs" t="Include" />
-          </e>
           <e p="TraceLog.cs" t="Include" />
         </e>
         <e p="Tokenization" t="Include">
@@ -484,7 +478,6 @@
         <e p="TrickyPrimitives.cs" t="Include" />
         <e p="UnitTests" t="Include">
           <e p="FunTest.cs" t="Include" />
-          <e p="GraphToolsTopologySortTest.cs" t="Include" />
           <e p="ITypeTest.cs" t="Include" />
           <e p="NodeToposortFunctionsTest.cs" t="Include" />
           <e p="PrimitiveTypeTest.cs" t="Include" />

@@ -26,19 +26,7 @@ namespace NFun.Tic.SolvingStates
             => new StateArray(TicNode.CreateTypeVariableNode(type));
 
         public TicNode ElementNode { get; }
-        public bool IsSolved
-        {
-            get
-            {
-                if (Element is StateArray arr)
-                {
-                    if (arr.ElementNode == ElementNode)
-                        throw new InvalidOperationException("Impossible recursive definition");
-                }
-                return (Element as ITypeState)?.IsSolved == true;
-            }
-        }
-
+        public bool IsSolved => Element.IsSolved;
         public ITicNodeState Element => ElementNode.State;
 
         public override string ToString()

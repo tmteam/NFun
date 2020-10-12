@@ -4,7 +4,6 @@ namespace NFun.Tic.SolvingStates
 {
     public interface ITypeState : ITicNodeState
     {
-        bool IsSolved { get; }
         ITypeState GetLastCommonAncestorOrNull(ITypeState otherType);
         bool CanBeImplicitlyConvertedTo(StatePrimitive type);
     }
@@ -20,6 +19,7 @@ namespace NFun.Tic.SolvingStates
     }
     public interface ITicNodeState
     {
+        bool IsSolved { get; }
         string Description { get; }
         bool ApplyDescendant(IStateCombinationFunctions visitor, TicNode ancestorNode, TicNode descendantNode);
         bool Apply(IStateCombinationFunctions visitor, TicNode ancestorNode, TicNode descendantNode, StatePrimitive ancestor);
