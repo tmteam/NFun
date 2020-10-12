@@ -6,12 +6,12 @@ namespace NFun.Tic
 {
     public class TicResultsWithGenerics : ITicResults
     {
-        private readonly HashSet<TicNode> _typeVariables;
+        private readonly IList<TicNode> _typeVariables;
 
         private readonly IList<TicNode> _namedNodes;
 
         private readonly IList<TicNode> _syntaxNodes;
-        public TicResultsWithGenerics(HashSet<TicNode> typeVariables, IList<TicNode> namedNodes, IList<TicNode> syntaxNodes)
+        public TicResultsWithGenerics(IList<TicNode> typeVariables, IList<TicNode> namedNodes, IList<TicNode> syntaxNodes)
         {
             _typeVariables = typeVariables;
             _namedNodes = namedNodes;

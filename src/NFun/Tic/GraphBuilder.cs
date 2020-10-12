@@ -315,6 +315,7 @@ namespace NFun.Tic
             Toposort(out var sorted, out var references);
 
             SolvingFunctions.PullConstraints(sorted);
+            
             SolvingFunctions.PushConstraints(sorted);
             
             bool allTypesAreSolved = SolvingFunctions.Destruction(sorted);
@@ -325,7 +326,7 @@ namespace NFun.Tic
                     syntaxNodeCapacity: sorted.Length);
             
             return FunalizeFunctions.FinalizeUp(
-                toposortedNodes: sorted.Union(references).ToArray(), 
+                toposortedNodes: sorted.Concat(references).ToArray(), 
                 outputNodes: _outputNodes,
                 inputNodes: _inputNodes);
         }
