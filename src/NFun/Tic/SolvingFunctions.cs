@@ -59,7 +59,6 @@ namespace NFun.Tic
             return null;
         }
 
-
         public static void Merge(TicNode main, TicNode secondary)
         {
             if(main==secondary)
@@ -100,9 +99,8 @@ namespace NFun.Tic
                     //merge main and current
                     main.State = GetMergedStateOrNull(main.State, current.State)
                                  ?? throw TicErrors.CannotMergeGroup(cycleRoute.ToArray(), main, current);
-
                 }
-
+                
                 main.Ancestors.AddRange(current.Ancestors);
                 current.Ancestors.Clear();
 
@@ -166,7 +164,18 @@ namespace NFun.Tic
             if (descendant.State is ICompositeState composite)
                 foreach (var member in composite.Members)
                     PushConstraintsRecursive(member);
-
+            
+            // Micro optimization. Ancestors.Count ==0 and Ancestors.Count ==1 are most common cases
+            // use these cases to avoid ToArray Call
+            var ancSize = descendant.Ancestors.Count;
+            if(ancSize==0) 
+                return;
+            if (ancSize == 1) {
+                PushConstraints(descendant, descendant.Ancestors[0]);
+                return;
+            }
+            // we have to use ToArray() call, because some ancestors can be removed from descendant.Ancestors
+            // during the operation  
             foreach (var ancestor in descendant.Ancestors.ToArray()) 
                 PushConstraints(descendant, ancestor);
         }
@@ -206,10 +215,22 @@ namespace NFun.Tic
                 foreach (var member in composite.Members) DestructionRecursive(member);
             }
 
-            foreach (var ancestor in node.Ancestors.ToArray())
-            {
-                Destruction(node, ancestor);
+            // micro optimization. node.Ancestors.ToArray() is very expensive operation
+            // but cases of 0 or 1 ancestors are most common
+                        
+            var ancSize = node.Ancestors.Count;
+            if(ancSize==0)
+                return;
+
+            if (node.Ancestors.Count == 1) {
+                Destruction(node, node.Ancestors[0]);
+                return;
             }
+
+            // We have to use ToArray() option, since some node ancestors can be removed
+            // during the operation
+            foreach (var ancestor in node.Ancestors.ToArray()) 
+                Destruction(node, ancestor);
         }
 
         public static void Destruction(TicNode descendantNode, TicNode ancestorNode)
@@ -440,12 +461,10 @@ namespace NFun.Tic
             IReadOnlyList<TicNode> outputNodes,
             IEnumerable<TicNode> inputNodes)
         {
-            
             //We have to solve all generic types that are not output
 
             const int outputTypeMark = 77;
             // Firstly - get all outputs
-            var outputTypes = new List<TicNode>();
             foreach (var outputNode in outputNodes)
             {
                 foreach (var outputType in outputNode.GetAllOutputTypes())
@@ -453,8 +472,6 @@ namespace NFun.Tic
                     if(outputType.VisitMark== outputTypeMark)
                         continue;
                     outputType.VisitMark = outputTypeMark;
-                    if(outputType.State is ConstrainsState)
-                        outputTypes.Add(outputType);
                 }
             }
 
@@ -472,7 +489,6 @@ namespace NFun.Tic
                         //if contravariant not in output type list then
                         //solve it and add to output types
                         leafNode.State = ((ConstrainsState) leafNode.State).SolveContravariant();
-                        outputTypes.Add(leafNode);
                     }
                 }
             }
