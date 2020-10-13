@@ -154,7 +154,7 @@ namespace NFun.Tic
             foreach (var id in elementIds)
             {
                 elementType.BecomeReferenceFor(GetOrCreateNode(id));
-                elementType.IsMemberOfAnything = true;
+               // elementType.IsMemberOfAnything = true;
             }
             return new StateRefTo(elementType);
         }
@@ -165,7 +165,7 @@ namespace NFun.Tic
             foreach (var id in elementIds)
             {
                 GetOrCreateNode(id).Ancestors.Add(elementType);
-                elementType.IsMemberOfAnything = true;
+                //elementType.IsMemberOfAnything = true;
             }
         }
         /// <summary>

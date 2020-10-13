@@ -79,7 +79,7 @@ namespace NFun.Tic
             secondary.Ancestors.Clear();
             secondary.State = new StateRefTo(main);
         }
-
+        
         public static void MergeGroup(IEnumerable<TicNode> cycleRoute)
         {
             var main = cycleRoute.First();
@@ -124,15 +124,15 @@ namespace NFun.Tic
         {
             foreach (var node in toposortedNodes)
             {
-                if(node.IsMemberOfAnything)
-                    continue;
+                //if(node.IsMemberOfAnything)
+                //    continue;
                 PullConstraintsRecursive(node);
             }
         }
 
         private static void PullConstraintsRecursive(TicNode descendant)
         {
-            // ReSharper disable once ForCanBeConvertedToForeach
+           // ReSharper disable once ForCanBeConvertedToForeach
             //We have to use for, because collection can be modified
             for (var index = 0; index < descendant.Ancestors.Count; index++)
             {
@@ -151,11 +151,10 @@ namespace NFun.Tic
         {
             for (int i = toposortedNodes.Length - 1; i >= 0; i--)
             {
-                var descendant = toposortedNodes[i];
-                if (descendant.IsMemberOfAnything)
-                    continue;
-
-                PushConstraintsRecursive(descendant);
+                //var descendant = toposortedNodes[i];
+                //if (descendant.IsMemberOfAnything)
+                //    continue;
+                PushConstraintsRecursive(toposortedNodes[i]);
             }
         }
 
@@ -195,8 +194,8 @@ namespace NFun.Tic
             for (int i = toposorteNodes.Length - 1; i >= 0; i--)
             {
                 var descendant = toposorteNodes[i];
-                if (descendant.IsMemberOfAnything)
-                    continue;
+                //if (descendant.IsMemberOfAnything)
+                //    continue;
                 DestructionRecursive(descendant);
                 if (!descendant.IsSolved)
                     notSolvedCount++;
