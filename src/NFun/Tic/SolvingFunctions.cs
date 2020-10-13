@@ -130,21 +130,35 @@ namespace NFun.Tic
             }
         }
 
-        private static void PullConstraintsRecursive(TicNode descendant)
+        private static void PullConstraintsRecursive(TicNode node)
         {
-            // ReSharper disable once ForCanBeConvertedToForeach
-            //We have to use for, because collection can be modified
-            for (var index = 0; index < descendant.Ancestors.Count; index++)
+            // micro optimization. node.Ancestors.ToArray() is very expensive operation
+            // but cases of 0 or 1 ancestors are most common
+            var ancSize = node.Ancestors.Count;
+            if (ancSize == 1)
             {
-                var ancestor = descendant.Ancestors[index];
-                if (descendant == ancestor) continue;
-                var res = ancestor.State.ApplyDescendant(PullConstraintsFunctions.SingleTone, ancestor, descendant);
-                if (!res) throw TicErrors.IncompatibleTypes(ancestor, descendant);
+                PullConstrains(node, node.Ancestors[0]);
             }
-
-            if (descendant.State is ICompositeState composite)
+            else if (ancSize > 0)
+            {
+                // We have to use ToArray() option, since some node ancestors can be removed
+                // during the operation
+                foreach (var ancestor in node.Ancestors.ToArray())
+                {
+                    PullConstrains(node, ancestor);
+                }
+            }
+            if (node.State is ICompositeState composite)
                 foreach (var member in composite.Members)
                     PullConstraintsRecursive(member);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void PullConstrains(TicNode descendant, TicNode ancestor)
+        {
+            if (descendant == ancestor) return;
+            var res = ancestor.State.ApplyDescendant(PullConstraintsFunctions.SingleTone, ancestor, descendant);
+            if (!res) throw TicErrors.IncompatibleTypes(ancestor, descendant);
         }
 
         public static void PushConstraints(TicNode[] toposortedNodes)
@@ -159,25 +173,26 @@ namespace NFun.Tic
             }
         }
 
-        private static void PushConstraintsRecursive(TicNode descendant)
+        private static void PushConstraintsRecursive(TicNode node)
         {
-            if (descendant.State is ICompositeState composite)
+            if (node.State is ICompositeState composite)
                 foreach (var member in composite.Members)
                     PushConstraintsRecursive(member);
             
-            // Micro optimization. Ancestors.Count ==0 and Ancestors.Count ==1 are most common cases
-            // use these cases to avoid ToArray Call
-            var ancSize = descendant.Ancestors.Count;
-            if(ancSize==0) 
-                return;
-            if (ancSize == 1) {
-                PushConstraints(descendant, descendant.Ancestors[0]);
-                return;
+            // micro optimization. node.Ancestors.ToArray() is very expensive operation
+            // but cases of 0 or 1 ancestors are most common
+            var ancSize = node.Ancestors.Count;
+            if (ancSize == 1)
+            {
+                PushConstraints(node, node.Ancestors[0]);
             }
-            // we have to use ToArray() call, because some ancestors can be removed from descendant.Ancestors
-            // during the operation  
-            foreach (var ancestor in descendant.Ancestors.ToArray()) 
-                PushConstraints(descendant, ancestor);
+            else if (ancSize > 0)
+            {
+                // We have to use ToArray() option, since some node ancestors can be removed
+                // during the operation
+                foreach (var ancestor in node.Ancestors.ToArray())
+                    PushConstraints(node, ancestor);
+            }
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void PushConstraints(TicNode descendant, TicNode ancestor)
@@ -217,20 +232,18 @@ namespace NFun.Tic
 
             // micro optimization. node.Ancestors.ToArray() is very expensive operation
             // but cases of 0 or 1 ancestors are most common
-                        
             var ancSize = node.Ancestors.Count;
-            if(ancSize==0)
-                return;
-
-            if (node.Ancestors.Count == 1) {
+            if (ancSize == 1)
+            {
                 Destruction(node, node.Ancestors[0]);
-                return;
             }
-
-            // We have to use ToArray() option, since some node ancestors can be removed
-            // during the operation
-            foreach (var ancestor in node.Ancestors.ToArray()) 
-                Destruction(node, ancestor);
+            else if (ancSize > 0)
+            {
+                // We have to use ToArray() option, since some node ancestors can be removed
+                // during the operation
+                foreach (var ancestor in node.Ancestors.ToArray())
+                    Destruction(node, ancestor);
+            }
         }
 
         public static void Destruction(TicNode descendantNode, TicNode ancestorNode)
