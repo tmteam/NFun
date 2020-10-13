@@ -90,6 +90,8 @@ namespace NFun.Tic
                 _refenceNodesCount++;
                 if (!AddToTopology(refTo.Node))
                 {
+                    // VisitNodeInCycle rolls back graph
+                    // so we need to decrement counter
                     _refenceNodesCount--;
                     // this node is part of cycle
                     return VisitNodeInCycle(node);

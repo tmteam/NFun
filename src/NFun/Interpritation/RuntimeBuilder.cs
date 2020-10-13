@@ -160,7 +160,8 @@ namespace NFun.Interpritation
             
             outputVariableSource.IsOutput = true;
 
-            var itVariable = variables.VariableOrNullThatStartsWith("it");
+            
+            var itVariable = variables.GetSuperAnonymousVariableOrNull();
             if (itVariable != null)
                 throw FunParseException.ErrorStubToDo("Variable cannot starts with it");
 

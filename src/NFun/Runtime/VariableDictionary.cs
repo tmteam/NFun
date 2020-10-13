@@ -82,24 +82,18 @@ namespace NFun.Runtime
             return node;
         }
 
-        public VariableUsages VariableOrNullThatStartsWith(string prefix)
+        public VariableUsages GetSuperAnonymousVariableOrNull()
         {
             foreach (var key in _variables.Keys)
             {
-                if (key.StartsWith(prefix))
+                if (Helper.DoesItLooksLikeSuperAnonymousVariable(key))
                     return _variables[key];
             }
-
             return null;
         }
         
-        public VariableUsages GetUsages(string id) 
-            => _variables[id];
-
-        public IEnumerable<VariableUsages> GetAllUsages() 
-            => _variables.Values.AsEnumerable();
-
-        public IEnumerable<VariableSource> GetAllSources() 
-            => _variables.Values.Select(v => v.Source);
+        public VariableUsages GetUsages(string id) => _variables[id];
+        public IEnumerable<VariableUsages> GetAllUsages() => _variables.Values.AsEnumerable();
+        public IEnumerable<VariableSource> GetAllSources() => _variables.Values.Select(v => v.Source);
     }
 }

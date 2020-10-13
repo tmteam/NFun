@@ -10,9 +10,19 @@ namespace NFun.Tic
 {
     public enum TicNodeType
     {
-        Named,
-        SyntaxNode,
-        TypeVariable
+        /// <summary>
+        /// input or output variable of expression
+        /// TicNode's name equals to variable name
+        /// </summary>
+        Named = 2,
+        /// <summary>
+        /// Syntax node. TicNode's name equals to node's order number
+        /// </summary>
+        SyntaxNode = 4,
+        /// <summary>
+        /// Generic type from function/constant signature or created in process of solving. 
+        /// </summary>
+        TypeVariable = 8,
     }
 
     public class TicNode
@@ -21,7 +31,6 @@ namespace NFun.Tic
         internal bool Registrated = false;
 
         private ITicNodeState _state;
-        public int GraphId { get; set; } = -1;
         public static TicNode CreateTypeVariableNode(ITypeState type) 
             => new TicNode(type.ToString(), type, TicNodeType.TypeVariable);
 
@@ -33,8 +42,8 @@ namespace NFun.Tic
             => new TicNode(id, state, TicNodeType.SyntaxNode) {Registrated = registrated};
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static  TicNode CreateNamedNode(string name, ITicNodeState state) 
-            => new TicNode(name, state, TicNodeType.Named) { Registrated = true };
+        public static  TicNode CreateNamedNode(object name, ITicNodeState state) 
+            => new TicNode(name, state, TicNodeType.Named) {Registrated = true};
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -44,12 +53,10 @@ namespace NFun.Tic
         private TicNode(object name, ITicNodeState state, TicNodeType type)
         {
             _uid =  Interlocked.Increment(ref _interlockedId);
-            
             Name = name;
             State = state;
             Type = type;
         }
-
         public TicNodeType Type { get; }
         public List<TicNode> Ancestors { get; } = new List<TicNode>();
         public bool IsMemberOfAnything { get; set; }
@@ -99,19 +106,18 @@ namespace NFun.Tic
 #endif
         }
 
-
         public bool TryBecomeConcrete(StatePrimitive primitiveState)
         {
-            if (this.State is StatePrimitive oldConcrete)
+            if (_state is StatePrimitive oldConcrete)
                 return oldConcrete.Equals(primitiveState);
-            if (this.State is ConstrainsState constrains)
+            if (_state is ConstrainsState constrains)
             {
-                if (!constrains.Fits(primitiveState))
-                    return false;
-                this.State = primitiveState;
-                return true;
+                if (constrains.Fits(primitiveState))
+                {
+                    _state = primitiveState;
+                    return true;
+                }
             }
-
             return false;
         }
         public bool TrySetAncestor(StatePrimitive anc)
