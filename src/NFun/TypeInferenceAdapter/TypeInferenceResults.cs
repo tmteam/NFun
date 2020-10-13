@@ -10,7 +10,7 @@ namespace NFun.TypeInferenceAdapter
         readonly List<StateRefTo[]> _genericFunctionTypes = new List<StateRefTo[]>();
         readonly List<IFunctionSignature> _functionalVariable = new List<IFunctionSignature>();
         readonly List<StateFun> _recursiveCalls = new List<StateFun>();
-        readonly Dictionary<string, StateFun> _userFunctionSignatures = new Dictionary<string, StateFun>();
+        readonly SmallStringDictionary<StateFun> _userFunctionSignatures = new SmallStringDictionary<StateFun>();
 
         private ITicResults _bodyTypeSolving;
 

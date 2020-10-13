@@ -397,7 +397,7 @@ namespace NFun.Tic
             IReadOnlyList<TicNode> outputNodes,
             IEnumerable<TicNode> inputNodes,
             List<TicNode> syntaxNodes, 
-            Dictionary<string, TicNode> namedNodes)
+            SmallStringDictionary<TicNode> namedNodes)
         {
             var typeVariables = new List<TicNode>();
 

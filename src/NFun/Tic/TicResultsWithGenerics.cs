@@ -8,12 +8,12 @@ namespace NFun.Tic
     {
         private readonly IList<TicNode> _typeVariables;
 
-        private readonly Dictionary<string, TicNode> _namedNodes;
+        private readonly SmallStringDictionary<TicNode> _namedNodes;
 
         private readonly IList<TicNode> _syntaxNodes;
         public TicResultsWithGenerics(
             IList<TicNode> typeVariables, 
-            Dictionary<string, TicNode> namedNodes, 
+            SmallStringDictionary<TicNode> namedNodes, 
             IList<TicNode> syntaxNodes)
         {
             _typeVariables = typeVariables;
@@ -49,9 +49,9 @@ namespace NFun.Tic
                     if (node?.State is ConstrainsState)
                         return true;
                 }
-                foreach (var node in _namedNodes)
+                foreach (var node in _namedNodes.ValuesWithDefaults)
                 {
-                    if (node.Value.State is ConstrainsState)
+                    if (node?.State is ConstrainsState)
                         return true;
                 }
                 foreach (var node in _syntaxNodes)
@@ -83,9 +83,9 @@ namespace NFun.Tic
                             states.Add(c);
                     }
 
-                    foreach (var node in _namedNodes)
+                    foreach (var node in _namedNodes.ValuesWithDefaults)
                     {
-                        if (node.Value.State is ConstrainsState c)
+                        if (node?.State is ConstrainsState c)
                             states.Add(c);
                     }
 

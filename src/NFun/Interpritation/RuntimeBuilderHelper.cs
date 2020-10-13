@@ -96,7 +96,7 @@ namespace NFun.Interpritation
             if(userFunctions.Length==0)
                 return userFunctions;
             
-            var userFunctionsNames = new Dictionary<string, int>();
+            var userFunctionsNames = new SmallStringDictionary<int>();
             int i = 0;
             foreach (var userFunction in userFunctions)
             {

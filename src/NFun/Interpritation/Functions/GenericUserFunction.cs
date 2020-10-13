@@ -75,7 +75,8 @@ namespace NFun.Interpritation.Functions
             _dictionary = dictionary;
         }
 
-        readonly Dictionary<string, IConcreteFunction> _concreteFunctionsCache = new Dictionary<string, IConcreteFunction>();
+        readonly SmallStringDictionary<IConcreteFunction> _concreteFunctionsCache 
+            = new SmallStringDictionary<IConcreteFunction>();
         public override IConcreteFunction CreateConcrete(VarType[] concreteTypes)
         {
             var id = string.Join(",", concreteTypes);

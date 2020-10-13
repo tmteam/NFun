@@ -6,7 +6,7 @@
 
         <RootNamespace>Funny.Tests</RootNamespace>
 
-        <TargetFramework>netcoreapp2.1</TargetFramework>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
     </PropertyGroup>
 
     <ItemGroup>

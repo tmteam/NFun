@@ -10,7 +10,7 @@ namespace NFun.Tic
 {
     public class GraphBuilder
     {
-        private readonly Dictionary<string, TicNode> _variables = new Dictionary<string, TicNode>();
+        private readonly SmallStringDictionary<TicNode> _variables = new SmallStringDictionary<TicNode>();
         private readonly List<TicNode> _syntaxNodes;
         private readonly List<TicNode> _typeVariables = new List<TicNode>();
         private int _varNodeId = 0;
@@ -276,9 +276,13 @@ namespace NFun.Tic
             var toposortAlgorithm = new NodeToposort(
                 capacity:_syntaxNodes.Count+ _variables.Count+ _typeVariables.Count);
             
-            foreach (var node in _syntaxNodes)      toposortAlgorithm.AddToTopology(node); 
-            foreach (var node in _variables.Values) toposortAlgorithm.AddToTopology(node); 
-            foreach (var node in _typeVariables)    toposortAlgorithm.AddToTopology(node);
+            foreach (var node in _syntaxNodes)      
+                toposortAlgorithm.AddToTopology(node);
+            foreach (var node in _variables.ValuesWithDefaults)
+                if (node != null)
+                    toposortAlgorithm.AddToTopology(node);
+            foreach (var node in _typeVariables)    
+                toposortAlgorithm.AddToTopology(node);
             
             toposortAlgorithm.OptimizeTopology();
             return toposortAlgorithm.NonReferenceOrdered;
@@ -479,7 +483,7 @@ namespace NFun.Tic
         public void PrintTrace() =>
             SolvingFunctions.PrintTrace(
                 _syntaxNodes
-                    .Union(_variables.Select(v => v.Value))
+                    .Union(_variables.Values)
                     .Union(_typeVariables));
     }
 }

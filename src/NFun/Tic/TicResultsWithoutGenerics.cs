@@ -6,10 +6,10 @@ namespace NFun.Tic
 {
     public class TicResultsWithoutGenerics : ITicResults
     {
-        private readonly Dictionary<string,TicNode> _namedNodes;
+        private readonly SmallStringDictionary<TicNode> _namedNodes;
         private readonly List<TicNode> _syntaxNodes;
 
-        public TicResultsWithoutGenerics(Dictionary<string,TicNode> namedNodes, List<TicNode> syntaxNodes)
+        public TicResultsWithoutGenerics(SmallStringDictionary<TicNode> namedNodes, List<TicNode> syntaxNodes)
         {
             _namedNodes = namedNodes;
             _syntaxNodes = syntaxNodes;

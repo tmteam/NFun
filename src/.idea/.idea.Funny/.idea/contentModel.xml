@@ -214,6 +214,7 @@
           <e p="GraphBuilder.cs" t="Include" />
           <e p="ITicResults.cs" t="Include" />
           <e p="NodeToposort.cs" t="Include" />
+          <e p="SmallDic.cs" t="Include" />
           <e p="SolvingFunctions.cs" t="Include" />
           <e p="SolvingStates" t="Include">
             <e p="ConstrainsState.cs" t="Include" />
@@ -270,6 +271,7 @@
       <e p="Nfun.Benchmarks" t="IncludeRecursive">
         <e p="AllBenchmarks.cs" t="Include" />
         <e p="bin" t="ExcludeRecursive" />
+        <e p="FastDicBench.cs" t="Include" />
         <e p="Nfun.Benchmarks.csproj" t="IncludeRecursive" />
         <e p="NfunCalculateBenchmark.cs" t="Include" />
         <e p="NfunInterpritationBenchmark.cs" t="Include" />
@@ -427,7 +429,7 @@
         <e p="NfunUpdateTest.cs" t="Include" />
         <e p="obj" t="ExcludeRecursive">
           <e p="Release" t="Include">
-            <e p="netcoreapp2.1" t="Include">
+            <e p="netcoreapp3.1" t="Include">
               <e p="NFun.Tests.AssemblyInfo.cs" t="Include" />
             </e>
           </e>

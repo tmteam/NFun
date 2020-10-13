@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using NFun.Tic;
 
 namespace NFun.TypeInferenceAdapter
 {
@@ -10,13 +11,13 @@ namespace NFun.TypeInferenceAdapter
     {
         public VariableScopeAliasTable()
         {
-            _variableAliasesStack = new List<Dictionary<string, string>>
+            _variableAliasesStack = new List<SmallStringDictionary<string>>
             {
-                new Dictionary<string, string>()
+                new SmallStringDictionary<string>()
             };
         }
         
-        private readonly List<Dictionary<string, string>> _variableAliasesStack;
+        private readonly List<SmallStringDictionary<string>> _variableAliasesStack;
         
         public bool HasVariable(string variableName)
         {
@@ -56,11 +57,18 @@ namespace NFun.TypeInferenceAdapter
 
         public void EnterScope(int nodeNumber, IList<string> scopeVariables = null)
         {
-            var dictionary = new Dictionary<string,string>();
+            SmallStringDictionary<string> dictionary;
             if(scopeVariables!=null)
+            {
+                dictionary = new SmallStringDictionary<string>(scopeVariables.Count);
                 foreach (var scopeVariable in scopeVariables)
                     dictionary.Add(scopeVariable, MakeAlias(nodeNumber, scopeVariable));
-
+            }
+            else
+            {
+                dictionary = new SmallStringDictionary<string>();
+            }
+            
             _variableAliasesStack.Add(dictionary);
         }
         public void ExitScope()
