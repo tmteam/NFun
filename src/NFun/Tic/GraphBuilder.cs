@@ -20,14 +20,10 @@ namespace NFun.Tic
         public StateRefTo InitializeVarNode(ITypeState desc = null, StatePrimitive anc = null, bool isComparable = false) 
             => new StateRefTo(CreateVarType(new ConstrainsState(desc, anc){IsComparable =  isComparable}));
 
-        //todo performance hotspot list capacity
-        public GraphBuilder()
-        {
-            _syntaxNodes = new List<TicNode>(16);
-        }
+        public GraphBuilder() => _syntaxNodes = new List<TicNode>(16);
+        public GraphBuilder(int maxSyntaxNodeId) => _syntaxNodes = new List<TicNode>(maxSyntaxNodeId);
         
         #region set primitives
-
         public void SetVar(string name, int node)
         {
             var namedNode = GetNamedNode(name);
@@ -43,7 +39,7 @@ namespace NFun.Tic
             }
         }
         
-        public void SetIfElse( int[] conditions, int[] expressions, int resultId)
+        public void SetIfElse(int[] conditions, int[] expressions, int resultId)
         {
             var result = GetOrCreateNode(resultId);
             foreach (var exprId in expressions)
@@ -56,15 +52,13 @@ namespace NFun.Tic
                 SetOrCreatePrimitive(condId, StatePrimitive.Bool);
         }
 
-
         public void SetConst(int id, StatePrimitive type) 
             => SetOrCreatePrimitive(id, type);
 
         public void SetIntConst(int id, StatePrimitive desc)
             => SetIntConst(id, desc, StatePrimitive.Real, StatePrimitive.Real);
-        public bool TrySetIntConst(int id, StatePrimitive desc)
-            => TrySetIntConst(id, desc, StatePrimitive.Real, StatePrimitive.Real);
-        public bool TrySetIntConst(int id, StatePrimitive desc, StatePrimitive anc, StatePrimitive prefered)
+
+        public void SetIntConst(int id, StatePrimitive desc, StatePrimitive anc, StatePrimitive prefered)
         {
             var node = GetOrCreateNode(id);
             if (node.State is ConstrainsState constrains)
@@ -72,14 +66,8 @@ namespace NFun.Tic
                 constrains.AddAncestor(anc);
                 constrains.AddDescedant(desc);
                 constrains.Prefered = prefered;
-                return true;
             }
-
-            return false;
-        }
-        public void SetIntConst(int id, StatePrimitive desc, StatePrimitive anc, StatePrimitive prefered)
-        {
-            if (!TrySetIntConst(id, desc,anc, prefered))
+            else
                 throw new InvalidOperationException();
         }
 
@@ -156,7 +144,6 @@ namespace NFun.Tic
             _outputNodes.Add(returnTypeNode);
             _inputNodes.AddRange(args);
             return fun;
-
         }
 
         public StateRefTo SetStrictArrayInit(int resultIds, params int[] elementIds)
@@ -184,19 +171,14 @@ namespace NFun.Tic
         /// <summary>
         /// Set function call, where function variable (or expression) placed at bodyId
         /// </summary>
-        public void SetCall(int bodyId, params int[] argThenReturnIds)
-        {
-            var node = GetOrCreateNode(bodyId);
-            SetCall(node, argThenReturnIds);
-        }
+        public void SetCall(int bodyId, params int[] argThenReturnIds) 
+            => SetCall(GetOrCreateNode(bodyId), argThenReturnIds);
+
         /// <summary>
         /// Set function call, of function variable with id of name
         /// </summary>
-        public void SetCall(string name, params int[] argThenReturnIds)
-        {
-            var namedNode =GetNamedNode(name);
-            SetCall(namedNode, argThenReturnIds);
-        }
+        public void SetCall(string name, params int[] argThenReturnIds) 
+            => SetCall(GetNamedNode(name), argThenReturnIds);
 
 
         /// <summary>
@@ -269,44 +251,6 @@ namespace NFun.Tic
         }
         #endregion
         
-        private TicNode[] Toposort()
-        {
-            var toposortAlgorithm = new NodeToposort(
-                capacity:_syntaxNodes.Count+ _variables.Count+ _typeVariables.Count);
-            
-            foreach (var node in _syntaxNodes)      toposortAlgorithm.AddToTopology(node); 
-            foreach (var node in _variables.Values) toposortAlgorithm.AddToTopology(node); 
-            foreach (var node in _typeVariables)    toposortAlgorithm.AddToTopology(node);
-            
-            toposortAlgorithm.OptimizeTopology();
-            return toposortAlgorithm.NonReferenceOrdered;
-        }
-       
-        public void PrintTrace()
-        {
-            if(!TraceLog.IsEnabled)
-                return;
-            
-            var alreadyPrinted = new HashSet<TicNode>();
-
-            var allNodes = _syntaxNodes.Union(_variables.Select(v => v.Value)).Union(_typeVariables);
-
-            void ReqPrintNode(TicNode node)
-            {
-                if(node==null)
-                    return;
-                if(alreadyPrinted.Contains(node))
-                    return;
-                if(node.State is StateArray arr)
-                    ReqPrintNode(arr.ElementNode);
-                node.PrintToConsole();
-                alreadyPrinted.Add(node);
-            }
-
-            foreach (var node in allNodes)
-                ReqPrintNode(node);
-        }
-       
         public ITicResults Solve()
         {
             var sorted = Toposort();
@@ -320,14 +264,25 @@ namespace NFun.Tic
             if (allTypesAreSolved)
                 return new TicResultsWithoutGenerics(_variables, _syntaxNodes);
             
-            return FunalizeFunctions.FinalizeUp(
+            return SolvingFunctions.Finalize(
                 toposortedNodes: sorted,
                 outputNodes:  _outputNodes,
                 inputNodes:   _inputNodes, 
                 syntaxNodes:  _syntaxNodes,
                 namedNodes:   _variables);
         }
-        
+        private TicNode[] Toposort()
+        {
+            var toposortAlgorithm = new NodeToposort(
+                capacity:_syntaxNodes.Count+ _variables.Count+ _typeVariables.Count);
+            
+            foreach (var node in _syntaxNodes)      toposortAlgorithm.AddToTopology(node); 
+            foreach (var node in _variables.Values) toposortAlgorithm.AddToTopology(node); 
+            foreach (var node in _typeVariables)    toposortAlgorithm.AddToTopology(node);
+            
+            toposortAlgorithm.OptimizeTopology();
+            return toposortAlgorithm.NonReferenceOrdered;
+        }
         /// <summary>
         /// Optimized version of SetCallArgument for ref cases
         /// Not sure how necessary this optimization is
@@ -520,5 +475,11 @@ namespace NFun.Tic
             _typeVariables.Add(varNode);
             return varNode;
         }
+        
+        public void PrintTrace() =>
+            SolvingFunctions.PrintTrace(
+                _syntaxNodes
+                    .Union(_variables.Select(v => v.Value))
+                    .Union(_typeVariables));
     }
 }

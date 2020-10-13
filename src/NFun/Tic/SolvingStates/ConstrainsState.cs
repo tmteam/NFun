@@ -11,15 +11,12 @@ namespace NFun.Tic.SolvingStates
             Ancestor = anc;
         }
 
-        public ConstrainsState GetCopy()
-        {
-            var result = new ConstrainsState(Descedant, Ancestor)
+        public ConstrainsState GetCopy() =>
+            new ConstrainsState(Descedant, Ancestor)
             {
                 IsComparable = this.IsComparable,
                 Prefered = this.Prefered
             };
-            return result;
-        }
 
         public bool Fits(ITypeState type)
         {

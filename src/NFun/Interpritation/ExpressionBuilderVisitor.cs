@@ -362,9 +362,10 @@ namespace NFun.Interpritation
             var closured = localVariables.GetAllUsages()
                 .Where(s => !originVariables.Contains(s.Source.Name))
                 .ToList();
-            var itVar = closured.FirstOrDefault(c => c.Source.Name.StartsWith("it", StringComparison.OrdinalIgnoreCase));
-            if (itVar != null) 
+            
+            if(closured.Any(c => Helper.DoesItLooksLikeSuperAnonymousVariable(c.Source.Name)))
                 throw FunParseException.ErrorStubToDo("Unexpected it* variable");
+            
             //Add closured vars to outer-scope dictionary
             foreach (var newVar in closured)
                 _variables.TryAdd(newVar); //add full usage info to allow analyze outer errors

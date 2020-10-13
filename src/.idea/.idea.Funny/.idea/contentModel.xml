@@ -94,13 +94,20 @@
           <e p="FunctionDictionary.cs" t="Include" />
           <e p="Functions" t="Include">
             <e p="ConcreteHiOrderFunction.cs" t="Include" />
+            <e p="ConcreteRecursiveUserFunction.cs" t="Include" />
             <e p="ConcreteUserFunction.cs" t="Include" />
             <e p="ConcreteUserFunctionPrototype.cs" t="Include" />
             <e p="FunctionWithManyArguments.cs" t="Include" />
+            <e p="FunctionWithSingleArg.cs" t="Include" />
+            <e p="FunctionWithTwoArgs.cs" t="Include" />
             <e p="GenericConstrains.cs" t="Include" />
             <e p="GenericFunctionBase.cs" t="Include" />
+            <e p="GenericFunctionWithSingleArgument.cs" t="Include" />
+            <e p="GenericFunctionWithTwoArguments.cs" t="Include" />
             <e p="GenericUserFunction.cs" t="Include" />
             <e p="IFunctionSignature.cs" t="Include" />
+            <e p="IGenericFunction.cs" t="Include" />
+            <e p="PureGenericFunctionBase.cs" t="Include" />
           </e>
           <e p="IConstantList.cs" t="Include" />
           <e p="IFunctionDictionary.cs" t="Include" />

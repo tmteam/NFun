@@ -25,7 +25,9 @@ namespace NFun.Interpritation
             var syntaxTree = Parser.Parse(flow);
 
             //Set node numbers
-            syntaxTree.ComeOver(new SetNodeNumberVisitor());
+            var setNodeNumberVisitor = new SetNodeNumberVisitor();
+            syntaxTree.ComeOver(setNodeNumberVisitor);
+            syntaxTree.MaxNodeId = setNodeNumberVisitor.LastUsedNumber;
             return Build(syntaxTree, functionDictionary, constants);
         }
 
@@ -41,16 +43,16 @@ namespace NFun.Interpritation
             //Then those functions will be compiled
             //that refer to already compiled functions
             var functionSolveOrder = syntaxTree.FindFunctionSolvingOrderOrThrow();
-            List<IFunctionSignature> userFunctionsList;
+            List<IFunctionSignature> userFunctions;
             IFunctionDictionary functionDictionary;
             if (functionSolveOrder.Length == 0)
             {
                 functionDictionary = functionsDictionary;
-                userFunctionsList = EmptyUserFunctionsList;
+                userFunctions = EmptyUserFunctionsList;
             }
             else
             {
-                userFunctionsList = new List<IFunctionSignature>();
+                userFunctions = new List<IFunctionSignature>();
 
                 var scopeFunctionDictionary = new ScopeFunctionDictionary(functionsDictionary);
                 functionDictionary = scopeFunctionDictionary;
@@ -62,7 +64,7 @@ namespace NFun.Interpritation
                         functionSyntaxNode: functionSyntaxNode,
                         constants: constants,
                         functionsDictionary: scopeFunctionDictionary);
-                    userFunctionsList.Add(userFun);
+                    userFunctions.Add(userFun);
                 }
             }
 
@@ -80,12 +82,12 @@ namespace NFun.Interpritation
                 {
                     var equation = BuildEquationAndPutItToVariables(node, functionDictionary, variables, bodyTypeSolving);
                     equations.Add(equation);
-                    if (equation.Id.ToLower().StartsWith("it"))
+                    if (Helper.DoesItLooksLikeSuperAnonymousVariable(equation.Id))
                         throw FunParseException.ErrorStubToDo("variable cannot starts with 'it'");
                 }
                 else if (treeNode is VarDefinitionSyntaxNode varDef)
                 {
-                    if (varDef.Id.ToLower().StartsWith("it"))
+                    if (Helper.DoesItLooksLikeSuperAnonymousVariable(varDef.Id))
                         throw FunParseException.ErrorStubToDo("variable cannot starts with 'it'");
 
                     var variableSource = VariableSource.CreateWithStrictTypeLabel(
@@ -105,18 +107,15 @@ namespace NFun.Interpritation
                     throw new InvalidOperationException($"Type {treeNode} is not supported as tree root");
             }
             #endregion
-            return new FunRuntime(equations, variables, userFunctionsList);
+            
+            return new FunRuntime(equations, variables, userFunctions);
         }
 
-        
-        private static TypeInferenceResults SolveBodyTypes(SyntaxTree syntaxTree, IConstantList constants,
+
+        private static TypeInferenceResults SolveBodyTypes(
+            SyntaxTree syntaxTree,
+            IConstantList constants, 
             IFunctionDictionary functionDictionary)
-        {
-            return SolveBodyTypeWithTypeInferenceCalculator(syntaxTree, constants, functionDictionary);
-        }
-
-        private static TypeInferenceResults SolveBodyTypeWithTypeInferenceCalculator(SyntaxTree syntaxTree,
-            IConstantList constants, IFunctionDictionary functionDictionary)
         {
             var bodyTypeSolving = RuntimeBuilderHelper.SolveBodyOrThrow(syntaxTree, functionDictionary, constants);
 
@@ -199,8 +198,8 @@ namespace NFun.Interpritation
 
             try
             {
-                if (!TicSetupVisitor.Run(
-                    nodes: new[] {functionSyntaxNode}, 
+                if (!TicSetupVisitor.SetupTicForUserFunction(
+                    userFunctionNode: functionSyntaxNode, 
                     ticGraph:  graphBuider, 
                     functions: functionsDictionary, 
                     constants: constants,

@@ -23,20 +23,34 @@ namespace NFun.TypeInferenceAdapter
         private readonly IConstantList _constants;
         private readonly TypeInferenceResultsBuilder _resultsBuilder;
 
-        public static bool Run(
-            IEnumerable<ISyntaxNode> nodes, 
+        public static bool SetupTicForBody(
+            SyntaxTree tree, 
             GraphBuilder ticGraph, 
             IFunctionDictionary functions,
             IConstantList constants,
             TypeInferenceResultsBuilder results)
         {
             var visitor = new TicSetupVisitor(ticGraph, functions, constants, results);
-            foreach (var syntaxNode in nodes)
+            foreach (var syntaxNode in tree.Children)
             {
+                if(syntaxNode is UserFunctionDefinitionSyntaxNode)
+                    continue;
+                
                 if (!syntaxNode.Accept(visitor))
                     return false;
             }
             return true;
+        }
+        
+        public static bool SetupTicForUserFunction(
+            UserFunctionDefinitionSyntaxNode userFunctionNode, 
+            GraphBuilder ticGraph, 
+            IFunctionDictionary functions,
+            IConstantList constants,
+            TypeInferenceResultsBuilder results)
+        {
+            var visitor = new TicSetupVisitor(ticGraph, functions, constants, results);
+            return userFunctionNode.Accept(visitor);
         }
 
         private TicSetupVisitor(

@@ -37,5 +37,6 @@ namespace NFun.SyntaxParsing.SyntaxNodes
         public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
 
         public IEnumerable<ISyntaxNode> Children => Nodes;
+        public int MaxNodeId { get; set; } = -1;
     }
 }

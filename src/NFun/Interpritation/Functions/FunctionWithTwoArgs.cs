@@ -5,18 +5,25 @@ using NFun.Types;
 
 namespace NFun.Interpritation.Functions
 {
-    public abstract class FunctionWithManyArguments: IConcreteFunction
+    public abstract class FunctionWithTwoArgs : IConcreteFunction
     {
-        public string Name { get; }
-        public VarType[] ArgTypes { get; }
-        protected FunctionWithManyArguments(string name,  VarType returnType, params VarType[] argTypes)
+        protected FunctionWithTwoArgs(string name,  VarType returnType, params VarType[] argTypes)
         {
             Name = name;
             ArgTypes = argTypes;
             ReturnType = returnType;
         }
-        public VarType ReturnType { get; }
-        public abstract object Calc(object[] args);
+
+        internal FunctionWithTwoArgs()
+        {
+            
+        }
+        public string Name { get; internal set; }
+        public VarType[] ArgTypes { get;internal set; }
+        public VarType ReturnType { get; internal set;}
+        public abstract object Calc(object a, object b);
+
+        public object Calc(object[] parameters) => Calc(parameters[0], parameters[1]);
 
         public IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children,  Interval interval)
         {
@@ -39,12 +46,7 @@ namespace NFun.Interpritation.Functions
                 i++;
             }
 
-            return new FunOfManyArgsExpressionNode(this, castedChildren, interval);
+            return new FunOfTwoArgsExpressionNode(this, castedChildren[0], castedChildren[1], interval);
         }
-
-        public override string ToString() 
-            => $"fun {TypeHelper.GetFunSignature(Name, ReturnType, ArgTypes)}";
     }
-        
-   
 }

@@ -49,7 +49,7 @@ namespace Nfun.ModuleTests.TicTests
             foreach (var predefinedFunction in BaseFunctions.GenericFunctions)
                 functions.TryAdd(predefinedFunction);
 
-            TicSetupVisitor.Run(tree.Children, graph, functions, new EmptyConstantList(), resultsBuilder);
+            TicSetupVisitor.SetupTicForBody(tree, graph, functions, new EmptyConstantList(), resultsBuilder);
             return graph.Solve();
         }
         public static TypeInferenceResults SolveAndGetResults(string equation)
@@ -70,7 +70,7 @@ namespace Nfun.ModuleTests.TicTests
 
             var resultsBuilder = new TypeInferenceResultsBuilder();
 
-            TicSetupVisitor.Run(tree.Children, graph, functions, new EmptyConstantList(), resultsBuilder);
+            TicSetupVisitor.SetupTicForBody(tree, graph, functions, new EmptyConstantList(), resultsBuilder);
 
             var res =  graph.Solve();
             resultsBuilder.SetResults(res);

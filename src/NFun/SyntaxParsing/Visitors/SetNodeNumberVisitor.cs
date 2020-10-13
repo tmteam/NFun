@@ -4,7 +4,7 @@ namespace NFun.SyntaxParsing.Visitors
     public class SetNodeNumberVisitor: EnterVisitorBase
     {
         private int _lastNum;
-
+        public int LastUsedNumber => _lastNum;
         public SetNodeNumberVisitor(int startNum = 0)
         {
             _lastNum = startNum;

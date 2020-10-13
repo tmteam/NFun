@@ -24,9 +24,6 @@ namespace NFun.Interpritation
             TypeInferenceResults results, 
             TicTypesConverter converter)
         {
-#if DEBUG
-            TraceLog.WriteLine($"\r\n====BUILD CONCRETE {functionSyntax.Id}(..) ====");
-#endif
             var vars = new VariableDictionary(functionSyntax.Args.Count);
             for (int i = 0; i < functionSyntax.Args.Count; i++)
             {
@@ -58,21 +55,17 @@ namespace NFun.Interpritation
             return function;
         }
 
-        public static TypeInferenceResults SolveBodyOrThrow(SyntaxTree syntaxTree,
-            IFunctionDictionary functions, IConstantList constants)
+        public static TypeInferenceResults SolveBodyOrThrow(
+            SyntaxTree syntaxTree,
+            IFunctionDictionary functions, 
+            IConstantList constants)
         {
             try
             {
-#if DEBUG
-                TraceLog.WriteLine("\r\n====BODY====");
-#endif
-
                 var resultBuilder = new TypeInferenceResultsBuilder();
-                var typeGraph = new GraphBuilder();
+                var typeGraph = new GraphBuilder(syntaxTree.MaxNodeId);
 
-                //to build body - we have to skip all user-function-syntax-nodes
-                var bodyNodes = syntaxTree.Nodes.Where(n => !(n is UserFunctionDefinitionSyntaxNode));
-                if(!TicSetupVisitor.Run(bodyNodes, typeGraph, functions, constants, resultBuilder))
+                if(!TicSetupVisitor.SetupTicForBody(syntaxTree, typeGraph, functions, constants, resultBuilder))
                     throw ErrorFactory.TypesNotSolved(syntaxTree);
 
                 var bodyTypeSolving = typeGraph.Solve();
@@ -84,29 +77,8 @@ namespace NFun.Interpritation
             catch (TicException e) { throw ErrorFactory.TranslateTicError(e, syntaxTree); }
 
         }
-        //public static void ThrowIfNotSolved(ISyntaxNode functionSyntaxNode, TiResult types)
-        //{
-        //    if (types.IsSolved) return;
-        //    var failedNodeOrNull = functionSyntaxNode.GetDescendantNodeOrNull(types.FailedNodeId);
-        //    ThrowTiError(functionSyntaxNode, types.Result, failedNodeOrNull);
-        //}
 
-        //private static void ThrowTiError(ISyntaxNode root, TiSolveResult result,ISyntaxNode failedNodeOrNull)
-        //{
-        //    switch (result)
-        //    {
-        //        case TiSolveResult.Solved:
-        //            throw new InvalidOperationException();
-        //        case TiSolveResult.NotSolvedOverloadWithSeveralCandidates:
-        //            throw ErrorFactory.AmbiguousFunctionChoise(failedNodeOrNull);
-        //        case TiSolveResult.NotSolvedNoFunctionFits:
-        //            throw ErrorFactory.FunctionIsNotExists(failedNodeOrNull);
-        //        default:
-        //            throw ErrorFactory.TypesNotSolved(root);
-        //    }
-        //}
-
-        public static void ThrowIfSomeVariablesNotExistsInTheList(this VariableDictionary resultVariables, IEnumerable<string> list )
+        private static void ThrowIfSomeVariablesNotExistsInTheList(this VariableDictionary resultVariables, IEnumerable<string> list )
         {
             var unknownVariables = resultVariables.GetAllUsages()
                 .Where(u=> !list.Contains(u.Source.Name)).ToList();
@@ -159,12 +131,13 @@ namespace NFun.Interpritation
             }
             
             if (sortResults.HasCycle)
-                //if functions has cycle, then function sovle order is cycled
+                //if functions has cycle, then function solve order is cycled
                 throw ErrorFactory.ComplexRecursion(functionSolveOrder);
           
             return functionSolveOrder;
         }
-        public static VariableSource CreateVariableSourceForArgument(
+
+        private static VariableSource CreateVariableSourceForArgument(
             TypedVarDefSyntaxNode argSyntax,
             VarType actualType)
         {

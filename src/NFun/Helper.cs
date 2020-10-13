@@ -6,6 +6,18 @@ namespace NFun
 {
     static class Helper
     {
+        public static bool DoesItLooksLikeSuperAnonymousVariable(string id)
+        {
+            if (id.Length < 2)
+                return false;
+            if (id[0] != 'i' && id[0] != 'I')
+                return false;
+            if (id[1] != 't' && id[1] != 'T')
+                return false;
+            if (id.Length == 2)
+                return true;
+            return char.IsDigit(id[2]);
+        }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TOut[] SelectToArray<TIn, TOut>(this TIn[] input, Func<TIn, TOut> mapFunc)
         {
