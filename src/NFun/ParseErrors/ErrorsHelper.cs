@@ -95,7 +95,7 @@ namespace NFun.ParseErrors
                 case TokType.RealType:return "real";
                 case TokType.BoolType:return "bool";
                 case TokType.AnythingType:return "anything";
-                case TokType.PipeForward:return ".";
+                case TokType.Dot:return ".";
                 case TokType.AnonymFun:return "=>";
                 default:
                     return tok.Type.ToString().ToLower();

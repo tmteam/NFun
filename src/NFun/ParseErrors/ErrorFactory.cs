@@ -58,7 +58,7 @@ namespace NFun.ParseErrors
         public static Exception NotAToken(Tok token)
             => throw new FunParseException(216,$"'{token.Value}' is not valid fun element. What did you mean?", token.Interval);
         
-        public static Exception FunctionNameIsMissedAfterPipeForward(Tok token)
+        public static Exception FunctionOrStructMemberNameIsMissedAfterDot(Tok token)
             => throw new FunParseException(219,$"Function name expected after '.'{Nl} Example: [1,2].myFunction()",token.Interval);
 
         public static Exception ArrayIndexOrSliceExpected(Tok openBraket)

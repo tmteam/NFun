@@ -55,6 +55,10 @@ namespace NFun.Tokenization
         /// </summary>
         FiObr,
         /// <summary>
+        /// -{
+        /// </summary>
+        StructObr,
+        /// <summary>
         ///  }
         /// </summary>
         FiCbr,
@@ -133,11 +137,12 @@ namespace NFun.Tokenization
         /// <summary>
         /// .
         /// </summary>
-        PipeForward,
+        Dot,
         /// <summary>
         /// ->
         /// </summary>
         AnonymFun,
+        
         
         Reserved
     }

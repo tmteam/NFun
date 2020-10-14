@@ -23,7 +23,7 @@ namespace NFun.SyntaxParsing
         {
             var priorities = new List<TokType[]>(7)
             {
-                new[] {TokType.AnonymFun, TokType.ArrOBr, TokType.PipeForward, TokType.Obr},
+                new[] {TokType.AnonymFun, TokType.ArrOBr, TokType.Dot, TokType.Obr},
                 new[] {TokType.Pow},
                 new[] {TokType.Mult, TokType.Div, TokType.Rema,},
                 new[] {TokType.Plus, TokType.Minus, TokType.BitShiftLeft, TokType.BitShiftRight},
@@ -160,6 +160,9 @@ namespace NFun.SyntaxParsing
             }
             if (flow.MoveIf(TokType.FiObr))
                 return ReadSuperAnonymousFunction(flow);
+            if (flow.MoveIf(TokType.StructObr))
+                return ReadStruct(flow);
+
             if (flow.MoveIf(TokType.True, out var trueTok))
                 return SyntaxNodeFactory.Constant(true, VarType.Bool,  trueTok.Interval);
             if (flow.MoveIf(TokType.False, out var falseTok))
@@ -280,11 +283,12 @@ namespace NFun.SyntaxParsing
 
                     leftNode = ReadArraySliceNode(flow,leftNode);
                 }
-                else if (opToken.Type == TokType.PipeForward)
+                else if (opToken.Type == TokType.Dot)
                 {
                     flow.MoveNext();
                     if(!flow.MoveIf(TokType.Id, out var id))
-                        throw ErrorFactory.FunctionNameIsMissedAfterPipeForward(opToken);
+                        throw ErrorFactory.FunctionOrStructMemberNameIsMissedAfterDot(opToken);
+                    // it can be struct member or function call
                     leftNode =  ReadFunctionCall(flow, id, leftNode);       
                 }
                 else if (opToken.Type == TokType.AnonymFun)
@@ -353,6 +357,42 @@ namespace NFun.SyntaxParsing
             if (!flow.MoveIf(TokType.FiCbr))
                 throw ErrorFactory.SuperAnonymousFunctionIsNotClose(body.Interval.Start, flow.CurrentTokenPosition);
             return new SuperAnonymFunctionSyntaxNode(body);
+        }
+        
+        private static ISyntaxNode ReadStruct(TokFlow flow)
+        {
+            var begin = flow.Position;
+
+            var equations = new List<EquationSyntaxNode>();
+            while (true)
+            {
+                flow.SkipNewLines();
+
+                if(flow.MoveIf(TokType.FiCbr))
+                    break;
+
+                if (!flow.MoveIf(TokType.Id)) 
+                    throw FunParseException.ErrorStubToDo("id missed");
+                
+                var id = flow.Current;
+
+                VarType type = VarType.Empty;
+                if (flow.MoveIf(TokType.Colon)) 
+                    type = flow.ReadVarType();
+                
+                if (!flow.MoveIf(TokType.Def)) throw FunParseException.ErrorStubToDo("def missed");
+                flow.SkipNewLines();
+                var body = ReadNodeOrNull(flow);
+                if(body==null)
+                    throw FunParseException.ErrorStubToDo("body, missed");
+                var equation = new EquationSyntaxNode(id.Value, id.Start, body, new VarAttribute[0]);
+                equations.Add(equation);
+            }
+            var end = flow.Position;
+
+            if(equations.Count==0)
+                throw FunParseException.ErrorStubToDo("emptyStruct");
+            return SyntaxNodeFactory.Struct(equations, new Interval(begin, end));
         }
 
         public static ISyntaxNode ReadInterpolationText(TokFlow flow)
