@@ -16,7 +16,8 @@ namespace NFun.Interpritation.Functions
         private readonly IFunctionDictionary _dictionary;
 
         private readonly ConstrainsState[] _constrainsMap;
-
+        public int BuiltCount { get; private set; }
+        
         public static GenericUserFunction Create(
             TypeInferenceResults typeInferenceResults,
             UserFunctionDefinitionSyntaxNode syntaxNode,
@@ -78,6 +79,8 @@ namespace NFun.Interpritation.Functions
         readonly Dictionary<string, IConcreteFunction> _concreteFunctionsCache = new Dictionary<string, IConcreteFunction>();
         public override IConcreteFunction CreateConcrete(VarType[] concreteTypes)
         {
+            BuiltCount++;
+            
             var id = string.Join(",", concreteTypes);
             if (_concreteFunctionsCache.TryGetValue(id, out var alreadyExists))
                 return alreadyExists;
@@ -89,8 +92,8 @@ namespace NFun.Interpritation.Functions
             var returnType = funType.FunTypeSpecification.Output;
             var argTypes = funType.FunTypeSpecification.Inputs;
 
-            //Create function prototype and put it to cache for recursive cases
-            //If the function is recursive - function will take recursive prototype from cache
+            // Create a function prototype and put it to cache for recursive cases
+            // If the function is recursive - function will take recursive prototype from cache
             var concretePrototype = new ConcreteUserFunctionPrototype(Name, returnType, argTypes);
             _concreteFunctionsCache.Add(id, concretePrototype);
 

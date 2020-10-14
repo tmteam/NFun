@@ -1,6 +1,7 @@
 ﻿ using System.Collections.Generic;
+ using NFun.Tic.Stages;
 
-namespace NFun.Tic.SolvingStates
+ namespace NFun.Tic.SolvingStates
 {
     public interface ITypeState : ITicNodeState
     {
@@ -21,9 +22,9 @@ namespace NFun.Tic.SolvingStates
     {
         bool IsSolved { get; }
         string Description { get; }
-        bool ApplyDescendant(IStateCombinationFunctions visitor, TicNode ancestorNode, TicNode descendantNode);
-        bool Apply(IStateCombinationFunctions visitor, TicNode ancestorNode, TicNode descendantNode, StatePrimitive ancestor);
-        bool Apply(IStateCombinationFunctions visitor, TicNode ancestorNode, TicNode descendantNode, ConstrainsState ancestor);
-        bool Apply(IStateCombinationFunctions visitor, TicNode ancestorNode, TicNode descendantNode, ICompositeState ancestor);
+        bool ApplyDescendant(IStateCombination2dimensionalVisitor visitor, TicNode ancestorNode, TicNode descendantNode);
+        bool Apply(IStateCombination2dimensionalVisitor visitor, TicNode ancestorNode, TicNode descendantNode, StatePrimitive ancestor);
+        bool Apply(IStateCombination2dimensionalVisitor visitor, TicNode ancestorNode, TicNode descendantNode, ConstrainsState ancestor);
+        bool Apply(IStateCombination2dimensionalVisitor visitor, TicNode ancestorNode, TicNode descendantNode, ICompositeState ancestor);
     }
 }

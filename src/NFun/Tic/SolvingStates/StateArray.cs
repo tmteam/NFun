@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using NFun.Tic.Stages;
 
 namespace NFun.Tic.SolvingStates
 {
@@ -83,14 +84,14 @@ namespace NFun.Tic.SolvingStates
 
         public string Description => "arr(" + ElementNode.Name + ")";
         
-        public bool ApplyDescendant(IStateCombinationFunctions visitor, TicNode ancestorNode, TicNode descendantNode) =>
+        public bool ApplyDescendant(IStateCombination2dimensionalVisitor visitor, TicNode ancestorNode, TicNode descendantNode) =>
             descendantNode.State.Apply(visitor, ancestorNode, descendantNode, this);
-        public bool Apply(IStateCombinationFunctions visitor, TicNode ancestorNode, TicNode descendantNode,
+        public bool Apply(IStateCombination2dimensionalVisitor visitor, TicNode ancestorNode, TicNode descendantNode,
             StatePrimitive ancestor)
             => visitor.Apply(ancestor,this,ancestorNode, descendantNode);
-        public bool Apply(IStateCombinationFunctions visitor, TicNode ancestorNode, TicNode descendantNode, ConstrainsState ancestor)
+        public bool Apply(IStateCombination2dimensionalVisitor visitor, TicNode ancestorNode, TicNode descendantNode, ConstrainsState ancestor)
             => visitor.Apply( ancestor,this,ancestorNode, descendantNode);
-        public bool Apply(IStateCombinationFunctions visitor, TicNode ancestorNode, TicNode descendantNode, ICompositeState ancestor)
+        public bool Apply(IStateCombination2dimensionalVisitor visitor, TicNode ancestorNode, TicNode descendantNode, ICompositeState ancestor)
             => visitor.Apply(ancestor,this,ancestorNode, descendantNode);
 
     }

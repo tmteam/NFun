@@ -154,6 +154,19 @@ else 'not supported' ", 2, "two")]
             Assert.AreEqual(1, res.Results.Length);
             Assert.AreEqual(expected, res.Results.First().Value);
         }
+
+        [Test]
+        public void IfElseAsExpression()
+        {
+            var expr = @"i:int  = 42 * if (x>0) x else -1
+                           arri = [if(x>0) x else -x, if(x<0) -1 else 1 ]";
+            var runtime = FunBuilder.Build(expr);
+            var res = runtime.Calculate(VarVal.New("x",10));
+            res.AssertHas(VarVal.New("i", 420));
+            res.AssertHas(VarVal.New("arri", new[]{10,1}));
+
+
+        }
         [TestCase("y = if (3) else 4")]
         [TestCase("y = if 1 3")]
         [TestCase("y = if true then 3")]

@@ -6,15 +6,15 @@ namespace NFun.Tic
 {
     public class TicResultsWithGenerics : ITicResults
     {
-        private readonly IList<TicNode> _typeVariables;
+        private readonly IReadOnlyList<TicNode> _typeVariables;
 
         private readonly Dictionary<string, TicNode> _namedNodes;
 
-        private readonly IList<TicNode> _syntaxNodes;
+        private readonly IReadOnlyList<TicNode> _syntaxNodes;
         public TicResultsWithGenerics(
-            IList<TicNode> typeVariables, 
+            IReadOnlyList<TicNode> typeVariables, 
             Dictionary<string, TicNode> namedNodes, 
-            IList<TicNode> syntaxNodes)
+            IReadOnlyList<TicNode> syntaxNodes)
         {
             _typeVariables = typeVariables;
             _namedNodes = namedNodes;
@@ -38,35 +38,14 @@ namespace NFun.Tic
                 .Union(_namedNodes.Values)
                 .Union(_syntaxNodes)
                 .Where(t => t?.State is ConstrainsState);
-
-        public bool HasGenerics
-        {
-            get
-            {
-                //For performance optimization
-                foreach (var node in _typeVariables)
-                {
-                    if (node?.State is ConstrainsState)
-                        return true;
-                }
-                foreach (var node in _namedNodes)
-                {
-                    if (node.Value.State is ConstrainsState)
-                        return true;
-                }
-                foreach (var node in _syntaxNodes)
-                {
-                    if (node?.State is ConstrainsState)
-                        return true;
-                }
-
-                return false;
-            }
-        }
         /// <summary>
         /// GAP for tests
         /// </summary>
         public int GenericsCount => GenericsStates.Length;
+        
+        public bool HasGenerics => GenericsStates.Length > 0;
+
+      
 
         private ConstrainsState[] _genericsStates = null;
 
@@ -74,29 +53,28 @@ namespace NFun.Tic
         {
             get
             {
-                if (_genericsStates == null)
+                if (_genericsStates != null) return _genericsStates;
+                
+                var states = new List<ConstrainsState>();
+                foreach (var node in _typeVariables)
                 {
-                    List<ConstrainsState> states = new List<ConstrainsState>();
-                    foreach (var node in _typeVariables)
-                    {
-                        if (node?.State is ConstrainsState c)
-                            states.Add(c);
-                    }
-
-                    foreach (var node in _namedNodes)
-                    {
-                        if (node.Value.State is ConstrainsState c)
-                            states.Add(c);
-                    }
-
-                    foreach (var node in _syntaxNodes)
-                    {
-                        if (node?.State is ConstrainsState c)
-                            states.Add(c);
-                    }
-
-                    _genericsStates = states.ToArray();
+                    if (node?.State is ConstrainsState c)
+                        states.Add(c);
                 }
+
+                foreach (var node in _namedNodes)
+                {
+                    if (node.Value.State is ConstrainsState c)
+                        states.Add(c);
+                }
+
+                foreach (var node in _syntaxNodes)
+                {
+                    if (node?.State is ConstrainsState c)
+                        states.Add(c);
+                }
+
+                _genericsStates = states.ToArray();
                 return _genericsStates;
             }
         }

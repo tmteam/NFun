@@ -1,3 +1,4 @@
+using System;
 using NFun;
 using NFun.Exceptions;
 using NFun.ParseErrors;
@@ -209,6 +210,7 @@ namespace Funny.Tests.BuiltInFunctions
         [TestCase("avg([1,2,3])",2.0)]
         [TestCase("avg([1.0,2.0,6.0])",3.0)]
         [TestCase("sum([1.0,2,3])",6.0)]
+
         [TestCase("sum([1.0,2.5,6.0])", 9.5)]
         [TestCase("max([1.0,10.5,6.0])",10.5)]
         [TestCase("max([1,-10,0.0])",1.0)]
@@ -242,6 +244,33 @@ namespace Funny.Tests.BuiltInFunctions
         [TestCase((long)42, "x:int64\r y = max(1,x)", (long)42)]
         [TestCase((long)42, "x:int64\r y = min(1,x)", (long)1)]
         [TestCase((long)42, "x:int64\r y = min(100,x)", (long)42)]
+        
+        [TestCase((ulong)42, "x:uint64\r y = x.add(1)",   (ulong)43)]
+        [TestCase((ulong)42, "x:uint64\r y = max(1,x)",   (ulong)42)]
+        [TestCase((ulong)42, "x:uint64\r y = min(1,x)",   (ulong)1)]
+        [TestCase((ulong)42, "x:uint64\r y = min(100,x)", (ulong)42)]
+        
+        [TestCase((int)42, "x:int32\r y = x.add(1)",   (int)43)]
+        [TestCase((int)42, "x:int32\r y = max(1,x)",   (int)42)]
+        [TestCase((int)42, "x:int32\r y = min(1,x)",   (int)1)]
+        [TestCase((int)42, "x:int32\r y = min(100,x)", (int)42)]
+        
+        [TestCase((uint)42, "x:uint32\r y = x.add(1)",   (uint)43)]
+        [TestCase((uint)42, "x:uint32\r y = max(1,x)",   (uint)42)]
+        [TestCase((uint)42, "x:uint32\r y = min(1,x)",   (uint)1)]
+        [TestCase((uint)42, "x:uint32\r y = min(100,x)", (uint)42)]
+        
+        [TestCase((byte)42, "x:byte\r y = max(1,x)",   (byte)42)]
+        [TestCase((byte)42, "x:byte\r y = min(1,x)",   (byte)1)]
+        [TestCase((byte)42, "x:byte\r y = min(100,x)", (byte)42)]
+        
+        [TestCase((Int16)42, "x:int16\r y = max(1,x)",   (Int16)42)]
+        [TestCase((Int16)42, "x:int16\r y = min(1,x)",   (Int16)1)]
+        [TestCase((Int16)42, "x:int16\r y = min(100,x)", (Int16)42)]
+        
+        [TestCase((UInt16)42, "x:uint16\r y = max(1,x)",   (UInt16)42)]
+        [TestCase((UInt16)42, "x:uint16\r y = min(1,x)",   (UInt16)1)]
+        [TestCase((UInt16)42, "x:uint16\r y = min(100,x)", (UInt16)42)]
         public void SingleVariableEquation(object input, string expr, object expected)
         {
             var runtime = FunBuilder.Build(expr);
@@ -290,6 +319,8 @@ namespace Funny.Tests.BuiltInFunctions
         [TestCase("y = avg(['1','2','3'])")]
        // [TestCase("y= max([])")]
         [TestCase("y= max(1,2,3)")]
+        [TestCase("y= ~1.5")]
+
         [TestCase("y= max(1,true)")]
         [TestCase("y= max(1,(j)->j)")]
         [TestCase("y = [1,2] in [1,2,3,4]")]

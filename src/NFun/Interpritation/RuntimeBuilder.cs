@@ -107,7 +107,16 @@ namespace NFun.Interpritation
                     throw new InvalidOperationException($"Type {treeNode} is not supported as tree root");
             }
             #endregion
-            
+
+            foreach (var userFunction in userFunctions)
+            {
+                if (userFunction is GenericUserFunction generic && generic.BuiltCount == 0)
+                {
+                    // Generic function is declared but concrete was not built.
+                    // We have to build it at least once to search all possible errors
+                    GenericUserFunction.CreateSomeConcrete(generic);
+                }
+            }                           
             return new FunRuntime(equations, variables, userFunctions);
         }
 
@@ -252,9 +261,6 @@ namespace NFun.Interpritation
             {
                 var function = GenericUserFunction.Create(typeInferenceResuls, functionSyntaxNode, functionsDictionary);
                 functionsDictionary.Add(function);
-                //We have to interpritate function at least once, to find all errors
-                //todo skip it if body uses the function to reduce expression built time
-                GenericUserFunction.CreateSomeConcrete(function);
                 
                 return function;
             }

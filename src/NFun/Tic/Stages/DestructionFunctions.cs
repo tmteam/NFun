@@ -1,8 +1,8 @@
 using NFun.Tic.SolvingStates;
 
-namespace NFun.Tic
+namespace NFun.Tic.Stages
 {
-    public class DestructionFunctions : IStateCombinationFunctions
+    public class DestructionFunctions : IStateCombination2dimensionalVisitor
     {
         public static DestructionFunctions Singletone { get; } = new DestructionFunctions();
         public bool Apply(StatePrimitive ancestor, StatePrimitive descendant, TicNode _, TicNode __)
@@ -12,8 +12,6 @@ namespace NFun.Tic
         {
             if (descendant.Fits(ancestor))
             {
-                TraceLog.Write("p+c: ");
-                
                 if (descendant.Prefered != null && descendant.Fits(descendant.Prefered))
                     descendantNode.State = descendant.Prefered;
                 else
@@ -27,18 +25,12 @@ namespace NFun.Tic
 
         public bool Apply(ConstrainsState ancestor, StatePrimitive descendant, TicNode ancestorNode, TicNode descendantNode)
         {
-            if (ancestor.Fits(descendant))
-            {
-                TraceLog.Write("c+p: ");
-                ancestorNode.State = descendant;
-            }
+            if (ancestor.Fits(descendant)) ancestorNode.State = descendant;
             return true;
         }
 
         public bool Apply(ConstrainsState ancestor, ConstrainsState descendant, TicNode ancestorNode, TicNode descendantNode)
         {
-            //TraceLog.Write("c+c: ");
-
             var result = ancestor.MergeOrNull(descendant);
             if (result == null)
                 return true;
@@ -66,11 +58,8 @@ namespace NFun.Tic
 
         public bool Apply(ConstrainsState ancestor, ICompositeState descendant, TicNode ancestorNode, TicNode descendantNode)
         {
-            TraceLog.Write("c+af: ");
-            if (ancestor.Fits(descendant))
-            {
+            if (ancestor.Fits(descendant)) 
                 ancestorNode.State = new StateRefTo(descendantNode);
-            }
             return true;
         }
 
@@ -79,11 +68,8 @@ namespace NFun.Tic
 
         public bool Apply(ICompositeState ancestor, ConstrainsState descendant, TicNode ancestorNode, TicNode descendantNode)
         {
-            if (descendant.Fits(ancestor))
-            {
-                TraceLog.Write("a+c: ");
+            if (descendant.Fits(ancestor)) 
                 descendantNode.State = new StateRefTo(ancestorNode);
-            }
             return true;
         }
 
@@ -92,10 +78,7 @@ namespace NFun.Tic
             if (ancestor is StateArray ancArray)
             {
                 if (descendant is StateArray descArray)
-                {
-                    TraceLog.Write("a+a: ");
                     SolvingFunctions.Destruction(descArray.ElementNode, ancArray.ElementNode);
-                }
                 return true;
             }
             if (ancestor is StateFun ancFun)

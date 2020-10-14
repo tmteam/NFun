@@ -180,7 +180,6 @@ namespace NFun.Tic
         public void SetCall(string name, params int[] argThenReturnIds) 
             => SetCall(GetNamedNode(name), argThenReturnIds);
 
-
         /// <summary>
         /// Set function call, of already known functional type 
         /// </summary>

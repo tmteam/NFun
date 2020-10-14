@@ -259,7 +259,6 @@ namespace NFun.TypeInferenceAdapter
                 return true;
             }
 
-
             if (signature == null)
             {
                 //Functional variable
@@ -276,7 +275,7 @@ namespace NFun.TypeInferenceAdapter
             if (signature is PureGenericFunctionBase pure)
             {
                 // Сase of (T,T):T signatures
-                // This case is very common, so its call is optimized
+                // This case is most common, so the call is optimized
                 var genericType = InitializeGenericType(pure.Constrainses[0]);
                 _resultsBuilder.RememberGenericCallArguments(node.OrderNumber, new[]{genericType});
                 _ticTypeGraph.SetCall(genericType, ids);

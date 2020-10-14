@@ -1,10 +1,10 @@
 using NFun.Tic.SolvingStates;
 
-namespace NFun.Tic
+namespace NFun.Tic.Stages
 {
-    public class PushConstraintsFunctions : IStateCombinationFunctions
+    public class PushConstraintsFunctions : IStateCombination2dimensionalVisitor
     {
-        public static IStateCombinationFunctions Singletone { get; } = new PushConstraintsFunctions();
+        public static IStateCombination2dimensionalVisitor Singletone { get; } = new PushConstraintsFunctions();
         public bool Apply(StatePrimitive ancestor, StatePrimitive descendant, TicNode _, TicNode __)
             => descendant.CanBeImplicitlyConvertedTo(ancestor);
 

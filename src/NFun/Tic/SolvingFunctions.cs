@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using NFun.Tic.Errors;
 using NFun.Tic.SolvingStates;
+using NFun.Tic.Stages;
 
 namespace NFun.Tic
 {
@@ -221,7 +222,7 @@ namespace NFun.Tic
 
         private static void DestructionRecursive(TicNode node)
         {
-            ThrowIfTypeIsRecursive(node);
+            ThrowIfRecursiveTypeDefenition(node);
 
             if (node.State is ICompositeState composite)
             {
@@ -344,22 +345,22 @@ namespace NFun.Tic
         }
 
 
-        public static void ThrowIfTypeIsRecursive(TicNode node)
+        private static void ThrowIfRecursiveTypeDefenition(TicNode node)
         {
             switch (node.State)
             {
                 case StateRefTo refTo:
-                    ThrowIfTypeIsRecursive(refTo.Node, 1);
+                    ThrowIfRecursiveTypeDefenitionRecursive(refTo.Node, 1);
                     break;
                 case ICompositeState composite:
                     foreach (var member in composite.Members) 
-                        ThrowIfTypeIsRecursive(member, 1);
+                        ThrowIfRecursiveTypeDefenitionRecursive(member, 1);
                     break;
                 default:
                     return;
             }
             
-            static void ThrowIfTypeIsRecursive(TicNode node, int bypassNumber)
+            static void ThrowIfRecursiveTypeDefenitionRecursive(TicNode node, int bypassNumber)
             {
                 if (node.VisitMark == bypassNumber)
                 {
@@ -373,11 +374,11 @@ namespace NFun.Tic
                 switch (node.State)
                 {
                     case StateRefTo refTo:
-                        ThrowIfTypeIsRecursive(refTo.Node, bypassNumber);
+                        ThrowIfRecursiveTypeDefenitionRecursive(refTo.Node, bypassNumber);
                         break;
                     case ICompositeState composite:
                         foreach (var member in composite.Members) 
-                            ThrowIfTypeIsRecursive(member, bypassNumber);
+                            ThrowIfRecursiveTypeDefenitionRecursive(member, bypassNumber);
                         break;
                 }
                 node.VisitMark = markBefore;
@@ -408,8 +409,8 @@ namespace NFun.Tic
         public static ITicResults Finalize(
             TicNode[] toposortedNodes,
             IReadOnlyList<TicNode> outputNodes,
-            IEnumerable<TicNode> inputNodes,
-            List<TicNode> syntaxNodes, 
+            IReadOnlyList<TicNode> inputNodes,
+            IReadOnlyList<TicNode> syntaxNodes, 
             Dictionary<string, TicNode> namedNodes)
         {
             var typeVariables = new List<TicNode>();
@@ -447,7 +448,7 @@ namespace NFun.Tic
         {
             if (node.State is StateRefTo refTo)
             {
-                SolvingFunctions.ThrowIfTypeIsRecursive(refTo.Node);
+                SolvingFunctions.ThrowIfRecursiveTypeDefenition(refTo.Node);
 
                 var originalOne = refTo.Node.GetNonReference();
 
@@ -459,7 +460,7 @@ namespace NFun.Tic
 
             if (node.State is ICompositeState composite)
             {
-                SolvingFunctions.ThrowIfTypeIsRecursive(node);
+                SolvingFunctions.ThrowIfRecursiveTypeDefenition(node);
                 
                 if (composite.HasAnyReferenceMember) 
                     node.State = composite.GetNonReferenced();
