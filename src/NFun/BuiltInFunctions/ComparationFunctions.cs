@@ -65,16 +65,15 @@ namespace NFun.BuiltInFunctions
             return a.CompareTo(b) != 1;
         }
     }
-    public class MinFunction : GenericFunctionBase
+    public class MinFunction : GenericFunctionWithTwoArguments
     {
         public MinFunction() : base("min", GenericConstrains.Comparable, VarType.Generic(0), VarType.Generic(0), VarType.Generic(0)) { }
 
-        protected override object Calc(object[] args)
+        protected override object Calc(object a, object b)
         {
-            var a = (IComparable)args[0];
-            var b = (IComparable)args[1];
-            if (a.CompareTo(b) != 1) return a;
-            return b;
+            var arg1 = (IComparable)a;
+            var arg2 = (IComparable)b;
+            return arg1.CompareTo(arg2) == 1 ? a : b;
         }
     }
   
@@ -86,7 +85,7 @@ namespace NFun.BuiltInFunctions
         {
             var arg1 = (IComparable)a;
             var arg2 = (IComparable)b;
-            return arg1.CompareTo(arg2) == 1 ? a : b;
+            return arg1.CompareTo(arg2) == 1 ? b : a;
         }
     }
 }

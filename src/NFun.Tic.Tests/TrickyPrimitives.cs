@@ -74,8 +74,6 @@ namespace NFun.Tic.Tests
         }
 
         [Test(Description = "y = isNan(x); z = ~x")]
-        //[Ignore("Обобщенный вход без выхода")]
-
         public void SimpleConcreteFunctionWithVariableThatLimitisAfterwards()
         {
             //node |    1     0       3        2

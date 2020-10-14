@@ -261,14 +261,17 @@ namespace Funny.Tests.BuiltInFunctions
         [TestCase((uint)42, "x:uint32\r y = min(100,x)", (uint)42)]
         
         [TestCase((byte)42, "x:byte\r y = max(1,x)",   (byte)42)]
+        [TestCase((byte)42, "x:byte\r y = max(100,x)", (byte)100)]
         [TestCase((byte)42, "x:byte\r y = min(1,x)",   (byte)1)]
         [TestCase((byte)42, "x:byte\r y = min(100,x)", (byte)42)]
         
         [TestCase((Int16)42, "x:int16\r y = max(1,x)",   (Int16)42)]
+        [TestCase((Int16)42, "x:int16\r y = max(100,x)", (Int16)100)]
         [TestCase((Int16)42, "x:int16\r y = min(1,x)",   (Int16)1)]
         [TestCase((Int16)42, "x:int16\r y = min(100,x)", (Int16)42)]
         
         [TestCase((UInt16)42, "x:uint16\r y = max(1,x)",   (UInt16)42)]
+        [TestCase((UInt16)42, "x:uint16\r y = max(100,x)", (UInt16)100)]
         [TestCase((UInt16)42, "x:uint16\r y = min(1,x)",   (UInt16)1)]
         [TestCase((UInt16)42, "x:uint16\r y = min(100,x)", (UInt16)42)]
         public void SingleVariableEquation(object input, string expr, object expected)
@@ -277,11 +280,8 @@ namespace Funny.Tests.BuiltInFunctions
             runtime.Calculate(VarVal.New("x", input))
                 .AssertReturns(VarVal.New("y", expected));
         }
-    
-
         
         [TestCase("y = abs(x)",1.0,1.0)]
-
         [TestCase("y = abs(-x)",-1.0,1.0)]
         [TestCase("y = add(x,0x2)",1,3)]
         [TestCase("y = add(0x1,x)",2,3)]

@@ -1,7 +1,7 @@
+using System;
 using System.Linq;
 using NFun;
 using NFun.Exceptions;
-using NFun.ParseErrors;
 using NFun.Types;
 using NUnit.Framework;
 
@@ -58,6 +58,34 @@ namespace Funny.Tests
         
         [TestCase("y = 0xFFFFFFFF | 0x0",(long)0xFFFFFFFF)]
         [TestCase("y = 0xFFFFFFFF | 0xFFFFFFFF",(long)0xFFFFFFFF)]
+        [TestCase("y:int16 = ~1",         (Int16)(-2))]
+        [TestCase("y:int16 = ~-1",        (Int16)0)]
+        [TestCase("y:int16 = ~0xF0F",     (Int16) (-3856))]
+        [TestCase("y:uint16 = ~1",        (UInt16)0xFFFE)]
+        [TestCase("y:uint16 = ~0xF0F0",   (UInt16)0x0F0F)]
+        [TestCase("y = ~1",               (int)-2)]
+        [TestCase("y = ~-1",              (int)0)]
+        [TestCase("y:int = ~1",           (int)-2)]
+        [TestCase("y:int = ~-1",          (int)0)]
+        [TestCase("y:int = ~0x00F0F0F0",  (int)-15790321)]
+        [TestCase("y:uint = ~1",          (uint)0xFFFFFFFE)]
+        [TestCase("y:uint = ~0xF0F0F0F0", (uint)0xF0F0F0F)]
+       
+        [TestCase("y:int64 = ~1",           (long)-2)]
+        [TestCase("y:int64 = ~-1",          (long) 0)]
+        [TestCase("y:int64 = ~0xF0F0F0F0",  (long)-4042322161)]
+        [TestCase("y:uint64 = ~1",          (ulong)0xFFFF_FFFF_FFFF_FFFE)]
+        [TestCase("y:uint64 = ~0xF0F0F0F0", (ulong)0xFFFF_FFFF_0F0F_0F0F)]
+        
+        [TestCase("y = 1 == ~~1",         true)]
+        [TestCase("y = 0 == ~~0",         true)]
+        [TestCase("y = -1 == ~~-1",       true)]
+        [TestCase("y = 0xA == ~~0xA",     true)]
+        [TestCase("y = -0xA == ~~-0xA",   true)]
+
+        [TestCase("y = 0xABCD_EF01 == ~~0xABCD_EF01",  true)]
+        [TestCase("y = -0xABCD_EF01 == ~~-0xABCD_EF01",true)]
+
         //todo
         //[TestCase("y = ~0.toByte()",(byte)255)]
         //[TestCase("y = ~1.toByte()",(byte)254)]
@@ -164,13 +192,147 @@ namespace Funny.Tests
         [TestCase("y = -x ",0.3,-0.3)]
         [TestCase("y = -(-(-x))",2,-2)]
         [TestCase("y = x/0.2",1,5)]
-
-        public void SingleVariableEquation(string expr, double arg, double expected)
+        public void SingleRealVariableEquation(string expr, double arg, double expected)
         {
             var runtime = FunBuilder.Build(expr);
             runtime.Calculate(VarVal.New("x",arg))
                 .AssertReturns(0.00001, VarVal.New("y", expected));
         }
+
+        [TestCase("x:real; y = x>42", (double)1, false)]
+        [TestCase("x:real; y = x>42", (double)42,false)]
+        [TestCase("x:real; y = x>42", (double)43,true)]
+        [TestCase("x:real; y = x>=42",(double)1, false)]
+        [TestCase("x:real; y = x>=42",(double)42,true)]
+        [TestCase("x:real; y = x>=42",(double)43,true)]
+        [TestCase("x:real; y = x<42", (double)1, true)]
+        [TestCase("x:real; y = x<42", (double)42,false)]
+        [TestCase("x:real; y = x<42", (double)43,false)]
+        [TestCase("x:real; y = x<=42",(double)1, true)]
+        [TestCase("x:real; y = x<=42",(double)42,true)]
+        [TestCase("x:real; y = x<=42",(double)43,false)]
+        [TestCase("x:real; y = x==42",(double)1, false)]
+        [TestCase("x:real; y = x==42",(double)42,true)]
+        [TestCase("x:real; y = x==42",(double)43,false)]
+        
+        [TestCase("x:int64; y = x>42", (long)1, false)]
+        [TestCase("x:int64; y = x>42", (long)42,false)]
+        [TestCase("x:int64; y = x>42", (long)43,true)]
+        [TestCase("x:int64; y = x>=42",(long)1, false)]
+        [TestCase("x:int64; y = x>=42",(long)42,true)]
+        [TestCase("x:int64; y = x>=42",(long)43,true)]
+        [TestCase("x:int64; y = x<42", (long)1, true)]
+        [TestCase("x:int64; y = x<42", (long)42,false)]
+        [TestCase("x:int64; y = x<42", (long)43,false)]
+        [TestCase("x:int64; y = x<=42",(long)1, true)]
+        [TestCase("x:int64; y = x<=42",(long)42,true)]
+        [TestCase("x:int64; y = x<=42",(long)43,false)]
+        [TestCase("x:int64; y = x==42",(long)1, false)]
+        [TestCase("x:int64; y = x==42",(long)42,true)]
+        [TestCase("x:int64; y = x==42",(long)43,false)]
+        
+        [TestCase("x:uint64; y = x>42", (ulong)1, false)]
+        [TestCase("x:uint64; y = x>42", (ulong)42,false)]
+        [TestCase("x:uint64; y = x>42", (ulong)43,true)]
+        [TestCase("x:uint64; y = x>=42",(ulong)1, false)]
+        [TestCase("x:uint64; y = x>=42",(ulong)42,true)]
+        [TestCase("x:uint64; y = x>=42",(ulong)43,true)]
+        [TestCase("x:uint64; y = x<42", (ulong)1, true)]
+        [TestCase("x:uint64; y = x<42", (ulong)42,false)]
+        [TestCase("x:uint64; y = x<42", (ulong)43,false)]
+        [TestCase("x:uint64; y = x<=42",(ulong)1, true)]
+        [TestCase("x:uint64; y = x<=42",(ulong)42,true)]
+        [TestCase("x:uint64; y = x<=42",(ulong)43,false)]
+        [TestCase("x:uint64; y = x==42",(ulong)1, false)]
+        [TestCase("x:uint64; y = x==42",(ulong)42,true)]
+        [TestCase("x:uint64; y = x==42",(ulong)43,false)]
+        
+        [TestCase("x:int; y = x>42", 1, false)]
+        [TestCase("x:int; y = x>42", 42,false)]
+        [TestCase("x:int; y = x>42", 43,true)]
+        [TestCase("x:int; y = x>=42",1, false)]
+        [TestCase("x:int; y = x>=42",42,true)]
+        [TestCase("x:int; y = x>=42",43,true)]
+        [TestCase("x:int; y = x<42", 1, true)]
+        [TestCase("x:int; y = x<42", 42,false)]
+        [TestCase("x:int; y = x<42", 43,false)]
+        [TestCase("x:int; y = x<=42",1, true)]
+        [TestCase("x:int; y = x<=42",42,true)]
+        [TestCase("x:int; y = x<=42",43,false)]
+        [TestCase("x:int; y = x==42",1, false)]
+        [TestCase("x:int; y = x==42",42,true)]
+        [TestCase("x:int; y = x==42",43,false)]
+
+        [TestCase("x:uint; y = x>42", (uint)1, false)]
+        [TestCase("x:uint; y = x>42", (uint)42,false)]
+        [TestCase("x:uint; y = x>42", (uint)43,true)]
+        [TestCase("x:uint; y = x>=42",(uint)1, false)]
+        [TestCase("x:uint; y = x>=42",(uint)42,true)]
+        [TestCase("x:uint; y = x>=42",(uint)43,true)]
+        [TestCase("x:uint; y = x<42", (uint)1, true)]
+        [TestCase("x:uint; y = x<42", (uint)42,false)]
+        [TestCase("x:uint; y = x<42", (uint)43,false)]
+        [TestCase("x:uint; y = x<=42",(uint)1, true)]
+        [TestCase("x:uint; y = x<=42",(uint)42,true)]
+        [TestCase("x:uint; y = x<=42",(uint)43,false)]
+        [TestCase("x:uint; y = x==42",(uint)1, false)]
+        [TestCase("x:uint; y = x==42",(uint)42,true)]
+        [TestCase("x:uint; y = x==42",(uint)43,false)]
+        
+        [TestCase("x:int16; y = x>42", (Int16)1, false)]
+        [TestCase("x:int16; y = x>42", (Int16)42,false)]
+        [TestCase("x:int16; y = x>42", (Int16)43,true)]
+        [TestCase("x:int16; y = x>=42",(Int16)1, false)]
+        [TestCase("x:int16; y = x>=42",(Int16)42,true)]
+        [TestCase("x:int16; y = x>=42",(Int16)43,true)]
+        [TestCase("x:int16; y = x<42", (Int16)1, true)]
+        [TestCase("x:int16; y = x<42", (Int16)42,false)]
+        [TestCase("x:int16; y = x<42", (Int16)43,false)]
+        [TestCase("x:int16; y = x<=42",(Int16)1, true)]
+        [TestCase("x:int16; y = x<=42",(Int16)42,true)]
+        [TestCase("x:int16; y = x<=42",(Int16)43,false)]
+        [TestCase("x:int16; y = x==42",(Int16)1, false)]
+        [TestCase("x:int16; y = x==42",(Int16)42,true)]
+        [TestCase("x:int16; y = x==42",(Int16)43,false)]
+
+        [TestCase("x:uint16; y = x>42", (UInt16)1, false)]
+        [TestCase("x:uint16; y = x>42", (UInt16)42,false)]
+        [TestCase("x:uint16; y = x>42", (UInt16)43,true)]
+        [TestCase("x:uint16; y = x>=42",(UInt16)1, false)]
+        [TestCase("x:uint16; y = x>=42",(UInt16)42,true)]
+        [TestCase("x:uint16; y = x>=42",(UInt16)43,true)]
+        [TestCase("x:uint16; y = x<42", (UInt16)1, true)]
+        [TestCase("x:uint16; y = x<42", (UInt16)42,false)]
+        [TestCase("x:uint16; y = x<42", (UInt16)43,false)]
+        [TestCase("x:uint16; y = x<=42",(UInt16)1, true)]
+        [TestCase("x:uint16; y = x<=42",(UInt16)42,true)]
+        [TestCase("x:uint16; y = x<=42",(UInt16)43,false)]
+        [TestCase("x:uint16; y = x==42",(UInt16)1, false)]
+        [TestCase("x:uint16; y = x==42",(UInt16)42,true)]
+        [TestCase("x:uint16; y = x==42",(UInt16)43,false)]
+        
+        [TestCase("x:byte; y = x>42", (byte)1, false)]
+        [TestCase("x:byte; y = x>42", (byte)42,false)]
+        [TestCase("x:byte; y = x>42", (byte)43,true)]
+        [TestCase("x:byte; y = x>=42",(byte)1, false)]
+        [TestCase("x:byte; y = x>=42",(byte)42,true)]
+        [TestCase("x:byte; y = x>=42",(byte)43,true)]
+        [TestCase("x:byte; y = x<42", (byte)1, true)]
+        [TestCase("x:byte; y = x<42", (byte)42,false)]
+        [TestCase("x:byte; y = x<42", (byte)43,false)]
+        [TestCase("x:byte; y = x<=42",(byte)1, true)]
+        [TestCase("x:byte; y = x<=42",(byte)42,true)]
+        [TestCase("x:byte; y = x<=42",(byte)43,false)]
+        [TestCase("x:byte; y = x==42",(byte)1, false)]
+        [TestCase("x:byte; y = x==42",(byte)42,true)]
+        [TestCase("x:byte; y = x==42",(byte)43,false)]
+        public void SingleVariableEquation(string expr, object arg, object expected)
+        {
+            var runtime = FunBuilder.Build(expr);
+            runtime.Calculate(VarVal.New("x",arg))
+                .AssertReturns(0.00001, VarVal.New("y", expected));
+        }
+        
         [TestCase("x:real\r x",2.0,2.0)]
         [TestCase("x== 2.0",2.0,true)]
         [TestCase("x:real \rx*3",2.0,6.0)]
@@ -238,6 +400,9 @@ namespace Funny.Tests
         [TestCase("y = y+x")]
         [TestCase("a: int a=4")]
         [TestCase("y = 91111111111111111111111111111111111111")]
+        [TestCase("y = ~")]
+        [TestCase("y = ~-")]
+        [TestCase("y = ~1.5")]
         public void ObviouslyFails(string expr) =>
             Assert.Throws<FunParseException>(
                 ()=> FunBuilder.Build(expr));
