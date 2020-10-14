@@ -480,5 +480,10 @@ namespace NFun.Tic
                 _syntaxNodes
                     .Union(_variables.Select(v => v.Value))
                     .Union(_typeVariables));
+
+        public void SetReadField(int structId,  int opId,string fieldName)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

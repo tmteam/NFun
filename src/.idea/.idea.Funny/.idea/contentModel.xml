@@ -180,7 +180,9 @@
             <e p="IfThenElseSyntaxNode.cs" t="Include" />
             <e p="ListOfExpressionsSyntaxNode.cs" t="Include" />
             <e p="NamedIdSyntaxNode.cs" t="Include" />
+            <e p="ReadFieldSyntaxNode.cs" t="Include" />
             <e p="ResultCallSyntaxNode.cs" t="Include" />
+            <e p="StructSyntaxNode.cs" t="Include" />
             <e p="SuperAnonymFunctionSyntaxNode.cs" t="Include" />
             <e p="SyntaxTree.cs" t="Include" />
             <e p="TypedVarDefSyntaxNode.cs" t="Include" />
@@ -222,6 +224,7 @@
             <e p="StateFun.cs" t="Include" />
             <e p="StatePrimitive.cs" t="Include" />
             <e p="StateRefTo.cs" t="Include" />
+            <e p="StateStruct.cs" t="Include" />
           </e>
           <e p="Stages" t="Include">
             <e p="DestructionFunctions.cs" t="Include" />
@@ -481,6 +484,9 @@
           </e>
         </e>
         <e p="ReqursionTest.cs" t="Include" />
+        <e p="Structs" t="Include">
+          <e p="StructTest.cs" t="Include" />
+        </e>
         <e p="TestHelper.cs" t="Include" />
         <e p="TrickyPrimitives.cs" t="Include" />
         <e p="UnitTests" t="Include">
