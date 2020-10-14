@@ -211,17 +211,46 @@ namespace Funny.Tests.BuiltInFunctions
         [TestCase("avg([1.0,2.0,6.0])",3.0)]
         [TestCase("sum([1.0,2,3])",6.0)]
 
+        [TestCase("out:int64 = sum([1,2,3])",(long)6)]
+        [TestCase("out:uint64= sum([1,2,3])",(ulong)6)]
+        [TestCase("out:int   = sum([1,2,3])",(int)6)]
+        [TestCase("out:uint  = sum([1,2,3])",(uint)6)]
         [TestCase("sum([1.0,2.5,6.0])", 9.5)]
         [TestCase("max([1.0,10.5,6.0])",10.5)]
         [TestCase("max([1,-10,0.0])",1.0)]
         [TestCase("max(1.0,3.4)",3.4)]
         [TestCase("max(0x4,3)",4)]
+        [TestCase("out:int64  = max([1,10,6])",(long)10)]
+        [TestCase("out:uint64 = max([1,10,6])",(ulong)10)]
+        [TestCase("out:int    = max([1,10,6])",10)]
+        [TestCase("out:uint   = max([1,10,6])",(uint)10)]
+        [TestCase("out:int16  = max([1,10,6])",(short)10)]
+        [TestCase("out:uint16 = max([1,10,6])",(ushort)10)]
+        [TestCase("out:byte   = max([1,10,6])",(byte)10)]
+        
         [TestCase("min([1.0,10.5,6.0])",1.0)]
         [TestCase("min([0x1,-10,0])",-10)]
         [TestCase("min(1.0,3.4)",1.0)]
         [TestCase("min(4,0x3)",3)]
+        [TestCase("out:int64  = min([1,10,6])",(long)1)]
+        [TestCase("out:uint64 = min([1,10,6])",(ulong)1)]
+        [TestCase("out:int    = min([1,10,6])",1)]
+        [TestCase("out:uint   = min([1,10,6])",(uint)1)]
+        [TestCase("out:int16  = min([1,10,6])",(short)1)]
+        [TestCase("out:uint16 = min([1,10,6])",(ushort)1)]
+        [TestCase("out:byte   = min([1,10,6])",(byte)1)]
+        
         [TestCase("median([1.0,10.5,6.0])",6.0)]
-        [TestCase("median([1,-10,0])",0.0)]        
+        [TestCase("median([1,-10,0])",0.0)]       
+        
+        [TestCase("out:int64  = median([1,10,6])",(long)6)]
+        [TestCase("out:uint64 = median([1,10,6])",(ulong)6)]
+        [TestCase("out:int32  = median([1,10,6])",(int)6)]
+        [TestCase("out:uint32 = median([1,10,6])",(uint)6)]
+        [TestCase("out:int16  = median([1,10,6])",(Int16)6)]
+        [TestCase("out:uint16 = median([1,10,6])",(UInt16)6)]
+        [TestCase("out:uint8  = median([1,10,6])",(byte)6)]
+        
         [TestCase("[1.0,2.0,3.0].any()",true)]
         [TestCase("['a'].any()", true)]
         [TestCase("[1..10].filter{it>3}.any()", true)]
@@ -233,8 +262,24 @@ namespace Funny.Tests.BuiltInFunctions
         [TestCase("any([])",false)]
         [TestCase("[0x4,0x3,0x5,0x1].sort()",new []{1,3,4,5})]
         [TestCase("[4.0,3.0,5.0,1.0].sort()",new []{1.0,3.0,4.0,5.0})]
+        [TestCase("out:int64[]  = [4,3,5,1].sort()",new long[]{1,3,4,5})]
+        [TestCase("out:uint64[] = [4,3,5,1].sort()",new ulong[]{1,3,4,5})]
+        [TestCase("out:int32[]  = [4,3,5,1].sort()",new int[]{1,3,4,5})]
+        [TestCase("out:uint32[] = [4,3,5,1].sort()",new UInt32[]{1,3,4,5})]
+        [TestCase("out:int16[]  = [4,3,5,1].sort()",new Int16[]{1,3,4,5})]
+        [TestCase("out:uint16[] = [4,3,5,1].sort()",new UInt16[]{1,3,4,5})]
+        [TestCase("out:uint8[]  = [4,3,5,1].sort()",new Byte[]{1,3,4,5})]
+        
         [TestCase("['4.0','3.0','5.0','1.0'].sort()",new []{"1.0","3.0","4.0","5.0"})]
-        [TestCase("range(0,5)",new []{0.0,1,2,3,4,5})]
+        [TestCase("out:real[]   = range(0,5)",new []{0.0,1,2,3,4,5})]
+        [TestCase("out:int64[]  = range(0,5)",new long[]{0,1,2,3,4,5})]
+        [TestCase("out:uint64[] = range(0,5)",new ulong[]{0,1,2,3,4,5})]
+        [TestCase("out:int32[]  = range(0,5)",new int[]{0,1,2,3,4,5})]
+        [TestCase("out:uint32[] = range(0,5)",new UInt32[]{0,1,2,3,4,5})]
+        [TestCase("out:int16[]  = range(0,5)",new Int16[]{0,1,2,3,4,5})]
+        [TestCase("out:uint16[] = range(0,5)",new UInt16[]{0,1,2,3,4,5})]
+        [TestCase("out:uint8[]  = range(0,5)",new Byte[]{0,1,2,3,4,5})]
+
         [TestCase("range(7,10)",new []{7.0,8,9,10})]
         [TestCase("range(1,10,2.0)",new []{1.0,3.0,5.0,7.0,9.0})]
         public void ConstantEquationWithPredefinedFunction(string expr, object expected)
@@ -280,9 +325,13 @@ namespace Funny.Tests.BuiltInFunctions
             runtime.Calculate(VarVal.New("x", input))
                 .AssertReturns(VarVal.New("y", expected));
         }
-        
-        [TestCase("y = abs(x)",1.0,1.0)]
-        [TestCase("y = abs(-x)",-1.0,1.0)]
+
+        [TestCase("y:real  = abs(-x)", -1.0,1.0)]
+        [TestCase("y:real  = abs(x)",1.0,1.0)]
+        [TestCase("y:int64 = abs(x)",(long)-1,(long)1)]
+        [TestCase("y:int32 = abs(x)",(int)-1,(int)1)]
+        [TestCase("y:int16 = abs(x)",(Int16)(-1),(Int16)1)]
+
         [TestCase("y = add(x,0x2)",1,3)]
         [TestCase("y = add(0x1,x)",2,3)]
         [TestCase("y = add(add(x,x),add(x,x))",1.0,4.0)]
@@ -327,7 +376,5 @@ namespace Funny.Tests.BuiltInFunctions
         public void ObviouslyFails(string expr) =>
             Assert.Throws<FunParseException>(
                 () => FunBuilder.Build(expr));
-
-    
     }
 }

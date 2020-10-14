@@ -29,7 +29,7 @@ namespace NFun.BuiltInFunctions
         {
             var a = (IComparable)args[0];
             var b = (IComparable)args[1];
-            return a.CompareTo(b)==1;
+            return a.CompareTo(b) > 0;
         }
     }
     public class MoreOrEqualFunction : GenericFunctionBase
@@ -40,7 +40,7 @@ namespace NFun.BuiltInFunctions
         {
             var a = (IComparable)args[0];
             var b = (IComparable)args[1];
-            return a.CompareTo(b) != -1;
+            return a.CompareTo(b) >= 0;
         }
     }
     public class LessFunction : GenericFunctionWithTwoArguments
@@ -51,7 +51,7 @@ namespace NFun.BuiltInFunctions
         {
             var left  = (IComparable)arg1;
             var right = (IComparable)arg2;
-            return left.CompareTo(right) == -1;
+            return left.CompareTo(right) <0;
         }
     }
     public class LessOrEqualFunction : GenericFunctionBase
@@ -62,30 +62,54 @@ namespace NFun.BuiltInFunctions
         {
             var a = (IComparable)args[0];
             var b = (IComparable)args[1];
-            return a.CompareTo(b) != 1;
+            return a.CompareTo(b) <= 0;
         }
     }
-    public class MinFunction : GenericFunctionWithTwoArguments
+    public class MinFunction : PureGenericFunctionBase
     {
-        public MinFunction() : base("min", GenericConstrains.Comparable, VarType.Generic(0), VarType.Generic(0), VarType.Generic(0)) { }
+        public MinFunction() : base("min", GenericConstrains.Comparable, 2) { }
 
-        protected override object Calc(object a, object b)
+        public override IConcreteFunction CreateConcrete(VarType[] concreteTypesMap)
         {
-            var arg1 = (IComparable)a;
-            var arg2 = (IComparable)b;
-            return arg1.CompareTo(arg2) == 1 ? a : b;
+            var generic = concreteTypesMap[0];
+            FunctionWithTwoArgs function  = new MinConcreteFunction();
+            function.Setup(Name,generic);
+            return function;
+        }
+        class MinConcreteFunction: FunctionWithTwoArgs
+        {
+            public override object Calc(object a, object b)
+            {
+                var arg1 = (IComparable)a;
+                var arg2 = (IComparable)b;
+                return arg1.CompareTo(arg2) >0 ? b : a;
+            }
         }
     }
   
-    public class MaxFunction : GenericFunctionWithTwoArguments
+  
+    public class MaxFunction : PureGenericFunctionBase
     {
-        public MaxFunction() : base("max", GenericConstrains.Comparable, VarType.Generic(0), VarType.Generic(0), VarType.Generic(0)) { }
+        public MaxFunction() : base("max", GenericConstrains.Comparable, 2) { }
 
-        protected override object Calc(object a, object b)
+        public override IConcreteFunction CreateConcrete(VarType[] concreteTypesMap)
         {
-            var arg1 = (IComparable)a;
-            var arg2 = (IComparable)b;
-            return arg1.CompareTo(arg2) == 1 ? b : a;
+            var generic = concreteTypesMap[0];
+            FunctionWithTwoArgs function  = new MaxConcreteFunction();
+            function.Setup(Name,generic);
+            return function;
+        }
+        class MaxConcreteFunction: FunctionWithTwoArgs
+        {
+            public override object Calc(object a, object b)
+            {
+                var arg1 = (IComparable)a;
+                var arg2 = (IComparable)b;
+                var result =  arg1.CompareTo(arg2) > 0 ? a : b;
+                return result;
+            }
         }
     }
+    
+   
 }

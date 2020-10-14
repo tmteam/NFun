@@ -20,9 +20,7 @@ namespace NFun.BuiltInFunctions
         protected void Setup(VarType type, FunctionWithTwoArgs function)
         {
             _functions[(int) type.BaseType] = function;
-            function.Name = Name;
-            function.ArgTypes = new[] {type, type};
-            function.ReturnType = type;
+            function.Setup(Name, type);
         }
 
         public override IConcreteFunction CreateConcrete(VarType[] concreteTypesMap)

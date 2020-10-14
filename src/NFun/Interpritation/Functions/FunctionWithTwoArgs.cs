@@ -18,6 +18,13 @@ namespace NFun.Interpritation.Functions
         {
             
         }
+
+        internal void Setup(string name, VarType type)
+        {
+            Name = Name;
+            ArgTypes = new[] {type, type};
+            ReturnType = type;
+        }
         public string Name { get; internal set; }
         public VarType[] ArgTypes { get;internal set; }
         public VarType ReturnType { get; internal set;}

@@ -21,6 +21,15 @@ namespace Funny.Tests
         [TestCase("y = 2 ", 2.0)]
         [TestCase("y = 2  ", 2.0)]
         [TestCase("y = -1",-1.0)]
+        [TestCase("y:int64 = -1",(Int64)(-1.0))]
+        [TestCase("y:int32 = -1",(Int32)(-1.0))]
+        [TestCase("y:int16 = -1",(Int16)(-1.0))]
+        
+        [TestCase("y:real  = -(1)",(double)(-1.0))]
+        [TestCase("y:int64 = -(1)",(Int64)(-1.0))]
+        [TestCase("y:int32 = -(1)",(Int32)(-1.0))]
+        [TestCase("y:int16 = -(1)",(Int16)(-1.0))]
+        
         [TestCase("y = -0x1 ",-1)]
         [TestCase("y = -1+2", 1.0)]
         [TestCase("y = -(1+2)",-3.0)]

@@ -97,9 +97,7 @@ namespace Funny.Tests
         [TestCase("'avatar'>= 'avatar' ", true)]
         [TestCase("'avatar'>  'avatar' ", false)]
 
-        public void Compare(string expr, bool expected)
+        public void ConstantEquation(string expr, bool expected)
             => FunBuilder.Build(expr).Calculate().AssertOutEquals(expected);
-
-
     }
 }
