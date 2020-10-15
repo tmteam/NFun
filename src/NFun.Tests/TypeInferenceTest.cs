@@ -500,5 +500,40 @@ namespace Funny.Tests
                 .AssertHas(VarVal.New("y", expectedY));
         }
         
+        [TestCase("y = 1", new string[0])]        
+        [TestCase("y = x*1.0", new []{"x"})]
+        [TestCase("y = x/2",new []{"x"})]
+        [TestCase("y = in1/2+ in2",new []{"in1","in2"})]
+        [TestCase("y = in1/2 + (in2*in3)",new []{"in1","in2", "in3"})]
+        public void InputVarablesListWithAutoTypesIsCorrect(string expr, string[] inputNames)
+        {
+            var runtime = FunBuilder.Build(expr);
+            var inputs = inputNames.Select(i => new VarInfo(
+                isOutput: false, 
+                type: VarType.Real, 
+                name: i, 
+                isStrictTyped: false)).ToArray();
+            CollectionAssert.AreEquivalent(inputs, runtime.Inputs);
+        }
+        
+        [TestCase("0x1", "out", BaseVarType.Int32)]        
+        [TestCase("1.0", "out", BaseVarType.Real)]        
+        [TestCase("1", "out", BaseVarType.Real)]
+        [TestCase("true", "out", BaseVarType.Bool)]        
+        [TestCase("z = x", "z", BaseVarType.Any)]
+        [TestCase("y = x/2","y", BaseVarType.Real)]
+        [TestCase("x:bool \r z:bool \r y = x and z","y", BaseVarType.Bool)]
+        public void OutputVarablesListIsCorrect(string expr, string output, BaseVarType type)
+        {
+            var runtime = FunBuilder.Build(expr);
+                        
+            CollectionAssert.AreEquivalent(
+                new[]{new VarInfo(
+                    isOutput: true, 
+                    type: VarType.PrimitiveOf(type), 
+                    name: output, 
+                    isStrictTyped: false)}, 
+                runtime.Outputs);
+        }
     }
 }

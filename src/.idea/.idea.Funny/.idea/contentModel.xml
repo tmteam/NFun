@@ -415,9 +415,10 @@
         </e>
         <e p="CaseSensivityTest.cs" t="Include" />
         <e p="CommentsTest.cs" t="Include" />
-        <e p="ComparationTest.cs" t="Include" />
-        <e p="CustomPredefinedFunctionsTest.cs" t="Include" />
+        <e p="ConstantsTest.cs" t="Include" />
+        <e p="CustomFunctionsTest.cs" t="Include" />
         <e p="EquatationsFormattingTest.cs" t="Include" />
+        <e p="ExplicitCastTest.cs" t="Include" />
         <e p="HellTests.cs" t="Include" />
         <e p="IfThenElseTest.cs" t="Include" />
         <e p="ImplicitCastTest.cs" t="Include" />
@@ -431,13 +432,18 @@
             </e>
           </e>
         </e>
-        <e p="OperatorPrioritiesTest.cs" t="Include" />
+        <e p="Operators" t="Include">
+          <e p="ArithmeticalOperatorsTest.cs" t="Include" />
+          <e p="BooleanOperatorsTest.cs" t="Include" />
+          <e p="CompareOperatorsTest.cs" t="Include" />
+          <e p="IntegerBitOperatorsTest.cs" t="Include" />
+          <e p="OperatorPrioritiesTest.cs" t="Include" />
+        </e>
         <e p="PipeForwardTest.cs" t="Include" />
         <e p="RecursiveTypeDefinitionDetectionTest.cs" t="Include" />
         <e p="SeveralEquationsTest.cs" t="Include" />
-        <e p="SingleEquatationTest.cs" t="Include" />
         <e p="SpecificationTests.cs" t="Include" />
-        <e p="SuperArrowAnonymousFunTest.cs" t="Include" />
+        <e p="SuperAnonymousFunTest.cs" t="Include" />
         <e p="TestTools.cs" t="Include" />
         <e p="TextTest.cs" t="Include" />
         <e p="TypeInferenceTest.cs" t="Include" />
