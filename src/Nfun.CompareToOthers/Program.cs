@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using IronPython.Hosting;
 using Microsoft.Scripting.Hosting;
 using Microsoft.Scripting.Runtime;
@@ -49,17 +50,17 @@ namespace Nfun.CompareToOthers
             Action calcFun   = () => funrt.Calculate();*/
             
             
-            var pyEx1 = "10*x*x + 12*x + 1";
-            var funEx1 = "x:real; out:real = 10*x*x + 12*x + 1";
-            var ncalcEx1 = "10*[x]*[x] + 12*[x] + 1";
+            var pyEx1 = "10*x + 1";
+            var funEx1 = "x:real; out:real = 10*x+ 1";
+            var ncalcEx1 = "10*[x] + 1";
 
             var pyscope =  engine.CreateScope(new Dictionary<string, object>() {{"x", 42}});
             Action buildEva    = () => new Expression(expression: ncalcEx1);
             Action buildLambda = () => new Expression(expression: ncalcEx1).ToLambda<ExpressionContext,Double>();
             Action buildFun    = () => FunBuilder.Build(text: funEx1);
+            pyscope.SetVariable("x",12.0);
             Action pythonBuildNRun = () =>
             {
-                pyscope.SetVariable("x",12.0);
                 engine.Execute(expression: pyEx1,pyscope);
             };
 
@@ -67,13 +68,17 @@ namespace Nfun.CompareToOthers
             var expression = new Expression(expression: ncalcEx1);
             var lambda = expression.ToLambda<ExpressionContext,Double>();
             var funrt = FunBuilder.Build(text: funEx1);
+            expression.Parameters["x"] = 12.0;
             Action calcEva = () =>
             {
-                expression.Parameters["x"] = 12.0;
                 expression.Evaluate();
             };
-            Action calcLambda = () => lambda(new ExpressionContext(){ x = 12});
-            Action calcFun   = ()  => funrt.Calculate(VarVal.New("x",12.0));
+            var context = new ExpressionContext() {x = 12};
+            Action calcLambda = () => lambda(context);
+            var source = funrt.GetAllVariableSources().First(x => x.Name == "x");
+            source.Value = 12.0;
+            
+            Action calcFun   = ()  => funrt.Update();
             
             MeasureAll(
                 buildEva: buildEva, 

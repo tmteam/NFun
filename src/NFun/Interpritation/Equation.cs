@@ -23,6 +23,9 @@ namespace NFun.Interpritation
             OutputVariableSource.Value = val.Value;
             return val;
         }
+
+        public void UpdateExpression() 
+            => OutputVariableSource.InternalValue = Expression.Calc();
         public override string ToString() => $"\"{Id}\" equation";
     }
 }
