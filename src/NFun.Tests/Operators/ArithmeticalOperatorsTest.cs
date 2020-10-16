@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using NFun;
 using NFun.Exceptions;
 using NFun.Types;
@@ -108,6 +107,8 @@ namespace Funny.Tests.Operators
         [TestCase("y:uint32 = 100+0",   (UInt32)(100))]
         [TestCase("y:uint32 = 0+100",   (UInt32)(100))]
         [TestCase("y:uint32 = 0+0",     (UInt32)(0))]
+        [TestCase("y:int32 = 2+(-2147483647)",              -2147483645)]
+        [TestCase("y:int64 = 2+(-9223372036854775808)",     -9223372036854775806)]
         public void ConstantAddition(string expression, object expected)
             => TestTools.AssertConstantCalc("y",expression, expected);
 
@@ -150,6 +151,11 @@ namespace Funny.Tests.Operators
         [TestCase("y:uint32 = 2-1",     (UInt32) 1)]
         [TestCase("y:uint32 = 100-0",   (UInt32)(100))]
         [TestCase("y:uint32 = 0-0",     (UInt32)(0))]
+
+        [TestCase("y:int32 = 2-2147483646",     (Int32)(-2147483644))]
+        [TestCase("y:int64 = 2-9223372036854775807",     (Int64)(-9223372036854775805))]
+
+        [TestCase("y:int64 = 9223372036854775807-9223372036854775807",     (Int64)(0))]
         public void ConstantSubstraction(string expression, object expected)
             => TestTools.AssertConstantCalc("y",expression, expected);
 

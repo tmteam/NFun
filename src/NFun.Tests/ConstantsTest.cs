@@ -18,18 +18,23 @@ namespace Funny.Tests
         [TestCase("y:uint32 = 143",(UInt32)(143))]
         [TestCase("y:uint16 = 143",(UInt16)(143))]
         
-        [TestCase("y:int16 = 32767", (Int16)(32767))]
-        [TestCase("y:int16 = -32768",(Int16)(-32768))]
-        [TestCase("y:int32 = 2147483647", (Int32)(2147483647))]
-        [TestCase("y:int32 = -2147483648",(Int32)(-2147483648))]
-        [TestCase("y:int64 = 9223372036854775807", (Int64)(9223372036854775807))]
-        [TestCase("y:int64 = -9223372036854775808",(Int64)(-9223372036854775808))]
+        [TestCase("y:int16 = 32767", Int16.MaxValue)]
+        [TestCase("y:int16 = -32768",Int16.MinValue)]
+        [TestCase("y:int32 = 2147483647", Int32.MaxValue)]
+        [TestCase("y:int32 = -2147483648",Int32.MinValue)]
+        [TestCase("y:int64 = 9223372036854775807", Int64.MaxValue)]
+        [TestCase("y:int64 = -9223372036854775808",Int64.MinValue)]
 
         
-        [TestCase("y:byte   = 255",(byte)(0xFF))]
-        [TestCase("y:uint16 = 65535",(UInt16)(0xFFFF))]
-        [TestCase("y:uint32 = 4294967295",(UInt32)(0xFFFF_FFFF))]
-        [TestCase("y:uint64 = 18446744073709551615", (UInt64)0xFFFFFFFF_FFFFFFFF)]
+        [TestCase("y:byte   = 255",byte.MaxValue)]
+        [TestCase("y:uint16 = 65535",UInt16.MaxValue)]
+        [TestCase("y:uint32 = 4294967295",UInt32.MaxValue)]
+        [TestCase("y:uint64 = 18446744073709551615", UInt64.MaxValue)]
+        
+        [TestCase("y:byte   = 0xFF",byte.MaxValue)]
+        [TestCase("y:uint16 = 0xFFFF",UInt16.MaxValue)]
+        [TestCase("y:uint32 = 0xFFFF_FFFF",UInt32.MaxValue)]
+        [TestCase("y:uint64 = 0xFFFF_FFFF_FFFF_FFFF", UInt64.MaxValue)]
         
         [TestCase("y:int16 = 0",  (Int16)0)]
         [TestCase("y:int32 = 0",  (Int32)(0))]
@@ -150,10 +155,10 @@ namespace Funny.Tests
         [TestCase("y:bool = 1.0")]
         [TestCase("y:bool = 'vasa'")]
       
-        [TestCase("y:uint64 = 0xFFFFFFFF_FFFFFFFF")]
+        [TestCase("y:uint64 = 0x1FFFF_FFFF_FFFF_FFFF")]
         [TestCase("y:uint64 = 0xFFFFFFFFF_FFFFFFFF")]
-        [TestCase("y:int64 = 0xF000000_00000000")]
-        [TestCase("y:int64 = 0x10000000_00000000")]
+        [TestCase("y:int64 = 0xF000_0000_00000000")]
+        [TestCase("y:int64 = 0x1_0000_0000_00000000")]
         [TestCase("y:uint32 = 0x1FFFFFFFF")]
         [TestCase("y:int32 = 0xFFFF_FFFF")]
         [TestCase("y:uint16 = 0x1FFFF")]
@@ -167,7 +172,10 @@ namespace Funny.Tests
         [TestCase("y:int32 = 2147483648")]
         [TestCase("y:int32 = -2147483649")]
         [TestCase("y:int64 = 9223372036854775808")]
+        [TestCase("y:int64 = 9223372036854775809")]
+        [TestCase("y:int64 = 19223372036854775809")]
         [TestCase("y:int64 = -9223372036854775809")]
+        [TestCase("y:int64 = -19223372036854775809")]
         public void ObviouslyFails(string expr) =>
             Assert.Throws<FunParseException>(()=> FunBuilder.Build(expr));
     }

@@ -42,12 +42,6 @@ namespace Nfun.Experiments
 ";
         static void Main(string[] args)
         {
-            byte a = 42;
-            byte b = 1;
-
-            var direct = Comparer.Default.Compare(a, b);
-            var revers = Comparer.Default.Compare(b, a);
-            
             Console.WriteLine("Hello World!");
             var ex1 = "10*x*x + 12*x + 1";
             var ex2 = "if(a>0) 10*x*x + 12*x + 1 else 0";
