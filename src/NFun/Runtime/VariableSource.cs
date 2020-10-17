@@ -25,6 +25,7 @@ namespace NFun.Runtime
             Interval typeSpecificationIntervalOrNull, 
             VarAttribute[] attributes = null)
         {
+            InternalValue = type.GetDefaultValueOrNull();
             IsStrictTyped = true;
             TypeSpecificationIntervalOrNull = typeSpecificationIntervalOrNull;
             Attributes = attributes ?? new VarAttribute[0];
@@ -32,8 +33,10 @@ namespace NFun.Runtime
             Type = type;
             IsOutput = false;
         }
-        public VariableSource(string name, VarType type,  VarAttribute[] attributes = null)
+
+        private VariableSource(string name, VarType type,  VarAttribute[] attributes = null)
         {
+            InternalValue = type.GetDefaultValueOrNull();
             IsStrictTyped = false;
             Attributes = attributes??new VarAttribute[0];
             Name = name;
