@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Linq;
 using NFun;
@@ -109,6 +110,41 @@ namespace Funny.Tests
         
 
         [TestCase(3, "y= [1..x]", new[] {1.0, 2, 3})]
+        [TestCase( (Int64)42, "x:int64;   y:real[]= [1,2,x]", new[] {1.0, 2.0, 42.0})]
+        [TestCase( (Int32)42, "x:int32;   y:real[]= [1,2,x]", new[] {1.0, 2.0, 42.0})]
+        [TestCase( (Int16)42, "x:int16;   y:real[]= [1,2,x]", new[] {1.0, 2.0, 42.0})]
+        [TestCase((UInt64)42, "x:uint64;  y:real[]= [1,2,x]", new[] {1.0, 2.0, 42.0})]
+        [TestCase((UInt32)42, "x:uint32;  y:real[]= [1,2,x]", new[] {1.0, 2.0, 42.0})]
+        [TestCase((UInt16)42, "x:uint16;  y:real[]= [1,2,x]", new[] {1.0, 2.0, 42.0})]
+        [TestCase((byte)  42, "x:byte;    y:real[]= [1,2,x]", new[] {1.0, 2.0, 42.0})]
+
+        [TestCase( (Int64)42, "x:int64;   y:int64[]= [1,2,x]", new long[] {1,2,42})]
+        [TestCase( (Int32)42, "x:int32;   y:int64[]= [1,2,x]", new long[] {1,2,42})]
+        [TestCase( (Int16)42, "x:int16;   y:int64[]= [1,2,x]", new long[] {1,2,42})]
+        [TestCase((UInt32)42, "x:uint32;  y:int64[]= [1,2,x]", new long[] {1,2,42})]
+        [TestCase((UInt16)42, "x:uint16;  y:int64[]= [1,2,x]", new long[] {1,2,42})]
+        [TestCase((byte)  42, "x:byte;    y:int64[]= [1,2,x]", new long[] {1,2,42})]
+         
+        [TestCase( (Int32)42, "x:int32;   y:int32[]= [1,2,x]", new int[] {1,2,42})]
+        [TestCase( (Int16)42, "x:int16;   y:int32[]= [1,2,x]", new int[] {1,2,42})]
+        [TestCase((UInt16)42, "x:uint16;  y:int32[]= [1,2,x]", new int[] {1,2,42})]
+        [TestCase((byte)  42, "x:byte;    y:int32[]= [1,2,x]", new int[] {1,2,42})]
+        
+        [TestCase((Int16)42, "x:int16;    y:int16[]= [1,2,x]", new Int16[] {1,2,42})]
+        [TestCase((byte)  42, "x:byte;    y:int16[]= [1,2,x]", new Int16[] {1,2,42})]
+        
+        [TestCase((UInt64)42, "x:uint64;  y:uint64[]= [1,2,x]", new UInt64[] {1,2,42})]
+        [TestCase((UInt32)42, "x:uint32;  y:uint64[]= [1,2,x]", new UInt64[] {1,2,42})]
+        [TestCase((UInt16)42, "x:uint16;  y:uint64[]= [1,2,x]", new UInt64[] {1,2,42})]
+        [TestCase((byte)  42, "x:byte;    y:uint64[]= [1,2,x]", new UInt64[] {1,2,42})]
+        
+        [TestCase((UInt32)42, "x:uint32;  y:uint32[]= [1,2,x]", new UInt32[] {1,2,42})]
+        [TestCase((UInt16)42, "x:uint16;  y:uint32[]= [1,2,x]", new UInt32[] {1,2,42})]
+        [TestCase((byte)  42, "x:byte;    y:uint32[]= [1,2,x]", new UInt32[] {1,2,42})]
+        
+        [TestCase((UInt16)42, "x:uint16;  y:uint16[]= [1,2,x]", new UInt16[] {1,2,42})]
+        [TestCase((byte)  42, "x:byte;    y:uint16[]= [1,2,x]", new UInt16[] {1,2,42})]
+        
         [TestCase(3, "y= [x..7]", new[] {3.0, 4, 5, 6, 7})]
         [TestCase(3, "y:int[]= [x,2,3]", new[] {3, 2, 3})]
         [TestCase(3, "y= [1..5][x]", 4.0)]

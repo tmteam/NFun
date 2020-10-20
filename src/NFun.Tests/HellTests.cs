@@ -166,6 +166,32 @@ namespace Funny.Tests
                 .AssertReturns(VarVal.New("i", new[] { 1, 2, 3, 4, 5 }));
 
         }
+
+        [Test]
+        public void ManyOutputsTest()
+        {
+            var expr ="x:int; " +
+                      "i = x; " +
+                      "r = x*100.0; " +
+                      "t = x.toText(); " +
+                      "tr = x.toText().reverse(); " +
+                      "ia = [1,2,3,x];" +
+                      "ir = [1.0, 2.0, x];" +
+                      "c = 123;" +
+                      "d = 'mama ja pokakal';" +
+                      "etext = ''";
+            var res = FunBuilder.Build(expr).Calculate(VarVal.New("x",42));
+            res.AssertHas(VarVal.New("i", 42));
+            res.AssertHas(VarVal.New("r", 4200.0));
+            res.AssertHas(VarVal.New("t", "42"));
+            res.AssertHas(VarVal.New("tr", "24"));
+            res.AssertHas(VarVal.New("ia", new int[]{1,2,3,42}));
+            res.AssertHas(VarVal.New("ir", new []{1.0,2.0,42.0}));
+            res.AssertHas(VarVal.New("c", 123.0));
+            res.AssertHas(VarVal.New("d", "mama ja pokakal"));
+            res.AssertHas(VarVal.New("etext", ""));
+
+        }
         [Test]
         public void TestEverything()
         {
