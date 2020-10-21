@@ -136,11 +136,15 @@ namespace NFun.Interpritation
 
         public IExpressionNode Visit(ArraySyntaxNode node)
         {
-            var nodes = new IExpressionNode[node.Expressions.Count];
-            for (int i = 0; i< node.Expressions.Count; i++)
-                nodes[i] = ReadNode(node.Expressions[i]);
+            var elements = new IExpressionNode[node.Expressions.Count];
+            var expectedElementType = node.OutputType.ArrayTypeSpecification.VarType;
+            for (int i = 0; i < node.Expressions.Count; i++)
+            {
+                var elementNode = ReadNode(node.Expressions[i]);
+                elements[i] = CastExpressionNode.GetConvertedOrOriginOrThrow(elementNode, expectedElementType);
+            }
 
-            return new ArrayExpressionNode(nodes,node.Interval, node.OutputType);
+            return new ArrayExpressionNode(elements,node.Interval, node.OutputType);
         }
 
         public IExpressionNode Visit(FunCallSyntaxNode node)

@@ -248,5 +248,24 @@ namespace NFun.Tic.Tests.Arrays
             result.AssertNoGenerics();
             result.AssertNamed(StateArray.Of(StateArray.Of(StatePrimitive.I32)), "y");
         }
+        [Test]
+        public void TwoDimention_AnyUpcastArray_ConcreteDef()
+        {
+            //           3 0 2 1 
+            // y:any[] = [1i,[1r]]
+            var graph = new GraphBuilder();
+            graph.SetConst(0, StatePrimitive.I32);
+            graph.SetConst(1, StatePrimitive.Real);
+            graph.SetSoftArrayInit(2, 1);
+            graph.SetSoftArrayInit(3, 0, 2);
+            graph.SetVarType("y", StateArray.Of(StateArray.Of(StatePrimitive.Any)));
+            graph.SetDef("y", 3);
+            var result = graph.Solve();
+            result.AssertNoGenerics();
+            result.AssertNamed(StateArray.Of(StateArray.Of(StatePrimitive.Any)), "y");
+            result.AssertNode(StateArray.Of(StateArray.Of(StatePrimitive.Any)), 3);
+            result.AssertNode(StateArray.Of(StatePrimitive.Real), 2);
+
+        }
     }
 }

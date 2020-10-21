@@ -158,7 +158,7 @@ namespace NFun.Tic
             }
             return new StateRefTo(elementType);
         }
-        public void SetSoftArrayInit(int resultIds, IEnumerable<int> elementIds)
+        public void SetSoftArrayInit(int resultIds, params int[] elementIds)
         {
             var elementType = CreateVarType();
             GetOrCreateArrayNode(resultIds, elementType);

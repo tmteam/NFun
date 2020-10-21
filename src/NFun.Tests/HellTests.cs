@@ -56,6 +56,26 @@ namespace Funny.Tests
             var expr = "'res: '.concat((n >5).toText())";
             FunBuilder.Build(expr).Calculate(VarVal.New("n",1.0)).AssertOutEquals("res: False");
         }
+        [Test]
+        public void ArrayWithUpcast_lambdaConstCalculate()
+        {
+            var expr = "x:byte = 42; y:real[] = [1,2,x].map {it+1}";
+            FunBuilder.Build(expr).Calculate().AssertHas(VarVal.New("y",new []{2.0,3.0, 43.0}));
+        }
+        
+        [Test]
+        public void TwinArrayWithUpcast_lambdaSum()
+        {
+            var expr = "x:byte = 4; y:real = [[0,1],[2,3],[x]].map {sum(it)}.sum()";
+            FunBuilder.Build(expr).Calculate().AssertHas(VarVal.New("y",10.0));
+        }
+        
+        [Test]
+        public void TwinArrayWithUpcast_lambdaConstCalculate()
+        {
+            var expr = "x:byte = 5; y:real = [[0,1],[2,3],[x]].map {it.map{it+1}.sum()}.sum()";
+            FunBuilder.Build(expr).Calculate().AssertHas(VarVal.New("y",16.0));
+        }
 
         [Test]
 
@@ -181,16 +201,18 @@ namespace Funny.Tests
                       "d = 'mama ja pokakal';" +
                       "etext = ''";
             var res = FunBuilder.Build(expr).Calculate(VarVal.New("x",42));
-            res.AssertHas(VarVal.New("i", 42));
-            res.AssertHas(VarVal.New("r", 4200.0));
-            res.AssertHas(VarVal.New("t", "42"));
-            res.AssertHas(VarVal.New("tr", "24"));
-            res.AssertHas(VarVal.New("ia", new int[]{1,2,3,42}));
-            res.AssertHas(VarVal.New("ir", new []{1.0,2.0,42.0}));
-            res.AssertHas(VarVal.New("c", 123.0));
-            res.AssertHas(VarVal.New("d", "mama ja pokakal"));
-            res.AssertHas(VarVal.New("etext", ""));
-
+            Assert.Multiple(() =>
+            {
+                res.AssertHas(VarVal.New("i", 42));
+                res.AssertHas(VarVal.New("r", 4200.0));
+                res.AssertHas(VarVal.New("t", "42"));
+                res.AssertHas(VarVal.New("tr", "24"));
+                res.AssertHas(VarVal.New("ia", new int[] {1, 2, 3, 42}));
+                res.AssertHas(VarVal.New("ir", new[] {1.0, 2.0, 42.0}));
+                res.AssertHas(VarVal.New("c", 123.0));
+                res.AssertHas(VarVal.New("d", "mama ja pokakal"));
+                res.AssertHas(VarVal.New("etext", ""));
+            });
         }
         [Test]
         public void TestEverything()

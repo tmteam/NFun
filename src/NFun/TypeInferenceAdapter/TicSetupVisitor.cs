@@ -115,15 +115,13 @@ namespace NFun.TypeInferenceAdapter
         public bool Visit(ArraySyntaxNode node)
         {
             VisitChildren(node);
-
+            var elementIds = new int[node.Expressions.Count];
+            for (int i = 0; i < node.Expressions.Count; i++) 
+                elementIds[i] = node.Expressions[i].OrderNumber;
 #if DEBUG
-            var elementIds = node.Expressions.SelectToArray(e => e.OrderNumber);
             Trace(node, $"[{string.Join(",", elementIds)}]");
 #endif
-            _ticTypeGraph.SetSoftArrayInit(
-                node.OrderNumber,
-                node.Expressions.Select(e => e.OrderNumber)
-            );
+            _ticTypeGraph.SetSoftArrayInit(node.OrderNumber, elementIds);
             return true;
         }
         public bool Visit(SuperAnonymFunctionSyntaxNode node)
