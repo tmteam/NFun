@@ -134,6 +134,7 @@ namespace NFun.Tic.SolvingStates
         {
             if(type==null)
                 return;
+            
             if(!type.IsSolved)
                 return;
 

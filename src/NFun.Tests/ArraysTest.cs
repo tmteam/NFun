@@ -176,13 +176,29 @@ namespace Funny.Tests
         [TestCase("out = [true,[1]]")]
         [TestCase("out = [1,'vasa']")]
         [TestCase("out = ['vasa',1.5]")]
-        public void ConstantTwinAnyArrayInterpritatesWell(string expr)
+        public void ConstantTwinAnyArrayWithUpcast(string expr)
         {
             var result = FunBuilder.Build(expr).Calculate().Get("out");
             Assert.AreEqual(result.Type, VarType.ArrayOf(VarType.Anything));            
         }
         [Test]
-        public void ConstantTrippleAnyArray()
+        public void ConstantTwinRealArrayWithUpcast()
+        {
+            var expr = "out = [[0x1],[1.0]]";
+            var result = FunBuilder.Build(expr).Calculate().Get("out");
+            Assert.AreEqual(VarType.ArrayOf(VarType.ArrayOf(VarType.Real)),result.Type);            
+        }
+        
+        [Test]
+        public void ConstantTwinAnyArrayWithUpcast()
+        {
+            var expr = "out = [[0x1],[1.0],[true]]";
+            var result = FunBuilder.Build(expr).Calculate().Get("out");
+            Assert.AreEqual(VarType.ArrayOf(VarType.ArrayOf(VarType.Anything)),result.Type);            
+        }
+        
+        [Test]
+        public void ConstantTrippleAnyArrayWithUpcast()
         {
             var expr = "out:anything = [false,0,1,'vasa',[1,2,[10000,2]]]";
             var result = FunBuilder.Build(expr).Calculate().GetValueOf("out");

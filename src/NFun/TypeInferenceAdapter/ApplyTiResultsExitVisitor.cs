@@ -7,7 +7,18 @@ using NFun.Types;
 namespace NFun.TypeInferenceAdapter
 {
     public class ApplyTiResultsExitVisitor: ExitVisitorBase{
-
+        public override bool Visit(ArraySyntaxNode node)
+        {
+            var elementType = node.OutputType.ArrayTypeSpecification.VarType;
+            if (elementType == VarType.Anything) 
+                return true;
+            foreach (var child in node.Children)
+            {
+                if(child.OutputType!= elementType)
+                    throw ErrorFactory.VariousArrayElementTypes(node);
+            }
+            return true;
+        }
 
         public override bool Visit(IfThenElseSyntaxNode node)
         {
