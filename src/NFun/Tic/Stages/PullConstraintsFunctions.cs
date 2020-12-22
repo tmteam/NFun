@@ -51,6 +51,20 @@ namespace NFun.Tic.Stages
                 descendantNode.State = result;
                 descendantNode.Ancestors.Remove(ancestorNode);
             }
+            else if (ancestor is StateStruct ancStruct)
+            {
+                var result = SolvingFunctions.TransformToStructOrNull(
+                    descendantNode.Name, descendant, ancStruct);
+                if (result == null)
+                    return false;
+                foreach (var ancField in ancStruct.Fields)
+                {
+                    var descField = result.GetFieldOrNull(ancField.Key);
+                    descField.Ancestors.Add(ancField.Value);
+                }
+                descendantNode.State = result;
+                descendantNode.Ancestors.Remove(ancestorNode);
+            }
             return true;
         }
 

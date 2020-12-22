@@ -12,7 +12,7 @@ namespace NFun.Tic.Tests.Structs
             //y:int = a . name
             var graph = new GraphBuilder();
             graph.SetVar("a",    0);
-            graph.SetReadField(0, 2, "name");
+            graph.SetFieldAccess(0, 2, "name");
             graph.SetVarType("y", StatePrimitive.I32);
             graph.SetDef("y", 2);
             
@@ -33,12 +33,12 @@ namespace NFun.Tic.Tests.Structs
 
             var graph = new GraphBuilder();
             graph.SetVar("a",    0);
-            graph.SetReadField(0, 2, "name");
+            graph.SetFieldAccess(0, 2, "name");
             graph.SetVarType("y", StatePrimitive.I32);
             graph.SetDef("y", 2);
 
             graph.SetVar("a",    3);
-            graph.SetReadField(3, 5, "age");
+            graph.SetFieldAccess(3, 5, "age");
             graph.SetVarType("z", StatePrimitive.Real);
             graph.SetDef("z", 5);
 

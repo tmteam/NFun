@@ -248,6 +248,18 @@ namespace NFun.Tic
 
             exprNode.Ancestors.Add(defNode);
         }
+        
+        public void SetFieldAccess(int structNodeId, int opId, string fieldName)
+        {
+            var stateStruct = GetOrCreateStructNode(structNodeId);
+            var memberNode = stateStruct.Members.FirstOrDefault(m => m.Name.Equals(fieldName));
+            if (memberNode == null)
+            {
+                memberNode = CreateVarType();
+                stateStruct.AddField(fieldName, memberNode);
+            }
+            MergeOrSetNode(opId,new StateRefTo(memberNode));
+        }
         #endregion
         
         public ITicResults Solve()
@@ -419,6 +431,21 @@ namespace NFun.Tic
             var res = TicNode.CreateSyntaxNode(id, new StateArray(elementType),true);
             _syntaxNodes[id] = res;
         }
+        private StateStruct GetOrCreateStructNode(int id)
+        {
+            var alreadyExists = _syntaxNodes.GetOrEnlarge(id);
+            if (alreadyExists != null)
+            {
+                alreadyExists.State = SolvingFunctions.GetMergedStateOrNull(new StateStruct(), alreadyExists.State)
+                                      ?? throw TicErrors.CannotSetState(alreadyExists, new StateStruct());
+                return (StateStruct)alreadyExists.State;
+            }
+
+            var res = TicNode.CreateSyntaxNode(id, new StateStruct(),true);
+            _syntaxNodes[id] = res;
+            return (StateStruct) res.State;
+
+        }
         /// <summary>
         /// Returns already exists syntax node id, or creates new one with empty constraints
         /// </summary>
@@ -489,9 +516,6 @@ namespace NFun.Tic
                     .Union(_typeVariables));
         }
 
-        public void SetReadField(int structId,  int opId,string fieldName)
-        {
-            throw new NotImplementedException();
-        }
+        
     }
 }

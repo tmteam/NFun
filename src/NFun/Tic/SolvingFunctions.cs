@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tic.Errors;
 using NFun.Tic.SolvingStates;
 using NFun.Tic.Stages;
@@ -322,28 +323,63 @@ namespace NFun.Tic
                 return StateFun.Of(argNodes, retNode);
             }
 
-            if (descendant.Descedant is StateFun arrayEDesc
-                && arrayEDesc.ArgsCount == ancestor.ArgsCount)
+            if (descendant.Descedant is StateFun funDesc
+                && funDesc.ArgsCount == ancestor.ArgsCount)
             {
-                if (arrayEDesc.IsSolved)
-                    return arrayEDesc;
+                if (funDesc.IsSolved)
+                    return funDesc;
 
-                //For perfomance
+                // For perfomance
                 bool allArgsAreSolved = true;
-                var nrArgNodes = new TicNode[arrayEDesc.ArgNodes.Length];
-                for (int i = 0; i < arrayEDesc.ArgNodes.Length; i++)
+                var nrArgNodes = new TicNode[funDesc.ArgNodes.Length];
+                for (int i = 0; i < funDesc.ArgNodes.Length; i++)
                 {
-                    nrArgNodes[i] = arrayEDesc.ArgNodes[i].GetNonReference();
+                    nrArgNodes[i] = funDesc.ArgNodes[i].GetNonReference();
                     allArgsAreSolved = allArgsAreSolved && nrArgNodes[i].IsSolved;
                 }
                 
-                var nrRetNode = arrayEDesc.RetNode.GetNonReference();
+                var nrRetNode = funDesc.RetNode.GetNonReference();
                 if (allArgsAreSolved && nrRetNode.IsSolved)
                     return StateFun.Of(nrArgNodes, nrRetNode);
             }
             return null;
         }
+        /// <summary>
+        /// Transform constrains to struct state
+        /// </summary>
+        public static StateStruct TransformToStructOrNull(object descNodeName, ConstrainsState descendant, StateStruct ancStruct)
+        {
+            if (descendant.NoConstrains)
+            {
+                var newFields = new Dictionary<string,TicNode>(ancStruct.MembersCount);
+                foreach (var field in ancStruct.Fields)
+                {
+                    newFields.Add(
+                        key:   field.Key,
+                        value: TicNode.CreateTypeVariableNode( descNodeName +"."+field.Key, new ConstrainsState()));
+                }
+                return new StateStruct(newFields);
+            }
+            else if (descendant.HasDescendant && descendant.Descedant is StateStruct structDesc)
+            {
+                //descendant is struct.
+                if (structDesc.IsSolved)
+                    return structDesc; //if it is solved - return it
+                
+                // For perfomance
+                bool allFieldsAreSolved = true;
 
+                var newFields = new Dictionary<string,TicNode>(structDesc.MembersCount);
+                foreach (var field in structDesc.Fields)
+                {
+                    var nrField = field.Value.GetNonReference();
+                    allFieldsAreSolved = allFieldsAreSolved && nrField.IsSolved;
+                    newFields.Add(field.Key, nrField);
+                }
+                return new StateStruct(newFields);
+            }
+            return null;
+        }
 
         private static void ThrowIfRecursiveTypeDefenition(TicNode node)
         {
@@ -579,5 +615,7 @@ namespace NFun.Tic
 #endif
 
         }
+
+   
     }
 }
