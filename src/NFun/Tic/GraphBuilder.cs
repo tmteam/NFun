@@ -158,7 +158,7 @@ namespace NFun.Tic
             }
             return new StateRefTo(elementType);
         }
-        public void SetSoftArrayInit(int resultIds, IEnumerable<int> elementIds)
+        public void SetSoftArrayInit(int resultIds, params int[] elementIds)
         {
             var elementType = CreateVarType();
             GetOrCreateArrayNode(resultIds, elementType);
@@ -252,13 +252,18 @@ namespace NFun.Tic
         
         public ITicResults Solve()
         {
+            PrintTrace("0. Solving");
+
             var sorted = Toposort();
+            PrintTrace("1. Toposorted");
 
             SolvingFunctions.PullConstraints(sorted);
-            
+            PrintTrace("2. PullConstraints");
             SolvingFunctions.PushConstraints(sorted);
+            PrintTrace("3. PushConstraints");
             
             bool allTypesAreSolved = SolvingFunctions.Destruction(sorted);
+            PrintTrace("4. Destructed");
 
             if (allTypesAreSolved)
                 return new TicResultsWithoutGenerics(_variables, _syntaxNodes);
@@ -474,12 +479,15 @@ namespace NFun.Tic
             _typeVariables.Add(varNode);
             return varNode;
         }
-        
-        public void PrintTrace() =>
+
+        public void PrintTrace(string name)
+        {
+            TraceLog.WriteLine($"\r\nTrace for {name}");
             SolvingFunctions.PrintTrace(
                 _syntaxNodes
                     .Union(_variables.Select(v => v.Value))
                     .Union(_typeVariables));
+        }
 
         public void SetReadField(int structId,  int opId,string fieldName)
         {

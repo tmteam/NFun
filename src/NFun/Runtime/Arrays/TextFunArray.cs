@@ -8,7 +8,7 @@ namespace NFun.Runtime.Arrays
 {
     public class TextFunArray : IFunArray, IComparable
     {
-        private static readonly TextFunArray EmptyText 
+        public static readonly TextFunArray Empty 
             = new TextFunArray("");
 
         private readonly string _text;
@@ -40,7 +40,7 @@ namespace NFun.Runtime.Arrays
                 endIndex = null;
 
             if (startIndex > _text.Length - 1)
-                return EmptyText;
+                return Empty;
 
             if (step.HasValue)
             {

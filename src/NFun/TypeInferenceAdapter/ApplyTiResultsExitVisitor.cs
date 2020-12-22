@@ -8,7 +8,6 @@ namespace NFun.TypeInferenceAdapter
 {
     public class ApplyTiResultsExitVisitor: ExitVisitorBase{
 
-
         public override bool Visit(IfThenElseSyntaxNode node)
         {
             if (node.OutputType != VarType.Anything) 

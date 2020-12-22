@@ -4,7 +4,7 @@ using NFun.Tic.Stages;
 
 namespace NFun.Tic.SolvingStates
 {
-    public class ConstrainsState: ITicNodeState
+    public class ConstrainsState: ITicNodeState 
     {
         public ConstrainsState(ITypeState desc = null, StatePrimitive anc = null)
         {
@@ -134,6 +134,7 @@ namespace NFun.Tic.SolvingStates
         {
             if(type==null)
                 return;
+            
             if(!type.IsSolved)
                 return;
 

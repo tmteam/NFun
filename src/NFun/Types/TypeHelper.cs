@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using NFun.Exceptions;
 using NFun.Runtime.Arrays;
 
 namespace NFun.Types
@@ -28,7 +29,28 @@ namespace NFun.Types
                 null,
                 typeof(object)
             };
+            
+            DefaultPrimitiveValues = new[]
+            {
+                null,
+                default(char),
+                default(bool),
+                default(byte),
+                default(ushort),
+                default(uint),
+                default(ulong),
+                default(short),
+                default(int),
+                default(long),
+                default(double),
+                null,
+                null,
+                null,
+                new object(),
+            };
         }
+
+        private static readonly object[] DefaultPrimitiveValues;
         private static readonly Type[] FunToClrTypesMap;
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -47,7 +69,22 @@ namespace NFun.Types
                 return dbl.ToString(CultureInfo.InvariantCulture);
             return obj.ToString();
         }
-        
+
+        public static object GetDefaultValueOrNull(this VarType type)
+        {
+            var defaultValue  =  DefaultPrimitiveValues[(int) type.BaseType];
+            if (defaultValue != null)
+                return defaultValue;
+            if (type.ArrayTypeSpecification!=null)
+            {
+                var arr = type.ArrayTypeSpecification;
+                if (arr.VarType.BaseType == BaseVarType.Char)
+                    return TextFunArray.Empty;
+                return new ImmutableFunArray(new object[0], arr.VarType);
+            }
+
+            return null;
+        }
         public static bool AreEqual(object left, object right)
         {
             if (left is IFunArray le)

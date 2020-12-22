@@ -104,7 +104,7 @@ namespace NFun.SyntaxParsing
                 if (flow.IsPrevious(TokType.Minus))
                     throw ErrorFactory.MinusDuplicates(flow.Previous, flow.Current);
                 flow.MoveNext();
-                
+               
                 var nextNode = ReadAtomicNodeOrNull(flow);
                 if (nextNode == null)
                     throw ErrorFactory.UnaryArgumentIsMissing(flow.Current);
@@ -114,22 +114,25 @@ namespace NFun.SyntaxParsing
                 {
                     switch (constant.Value)
                     {
-                        case ulong u64 when u64 > long.MaxValue:
-                            throw FunParseException.ErrorStubToDo("Token overflow 1");
+                        case double d:
+                            return new ConstantSyntaxNode(-d, constant.OutputType, interval);
                         case ulong u64:
                             return new ConstantSyntaxNode(-(long)u64, constant.OutputType, interval);
                         case long i64:
                             return new ConstantSyntaxNode(-i64, constant.OutputType, interval);
-                        case double d:
-                            return new ConstantSyntaxNode(-d, constant.OutputType, interval);
                     }
                 }
                 else if (nextNode is GenericIntSyntaxNode g)
                 {
+                    const ulong i64AbsMinValue = 9223372036854775808;
                     switch (g.Value)
                     {
-                        case ulong u64 when u64 > long.MaxValue:
-                            throw FunParseException.ErrorStubToDo("Token overflow 2");
+                        case ulong u64 when  u64>= i64AbsMinValue:
+                        {
+                            if (u64 > i64AbsMinValue)
+                                throw FunParseException.ErrorStubToDo("i64 overflow");
+                            return new GenericIntSyntaxNode( long.MinValue, g.IsHexOrBin, interval);
+                        }
                         case ulong u64:
                             return new GenericIntSyntaxNode(-(long)u64, g.IsHexOrBin, interval);
                         case long i64:
@@ -173,9 +176,19 @@ namespace NFun.SyntaxParsing
                 if (val[1] == 'b')      dimensions = 2;
                 else if (val[1] == 'x') dimensions = 16;
                 else throw new ImpossibleException("Hex or bin constant has invalid format: "+val);
-                
-                var uval = Convert.ToUInt64(val.Replace("_",null).Substring(2), dimensions);
-                return SyntaxNodeFactory.HexOrBinIntConstant(uval, binVal.Interval);
+                var substr = val.Replace("_", null).Substring(2);
+
+                if (dimensions == 16)
+                {
+                    if (UInt64.TryParse(substr, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var h16))
+                        return SyntaxNodeFactory.HexOrBinIntConstant(h16, binVal.Interval);
+                    
+                    throw FunParseException.ErrorStubToDo("u64 overflow");
+                }
+                if(substr.Length>64)
+                    throw FunParseException.ErrorStubToDo("u64 overflow");
+
+                return SyntaxNodeFactory.HexOrBinIntConstant(Convert.ToUInt64(substr, 2), binVal.Interval);
             }
 
             if (flow.MoveIf(TokType.IntNumber, out var intVal))

@@ -15,7 +15,7 @@ namespace NFun.Tic.SolvingStates
 
         public StateStruct() => _nodes = new Dictionary<string, TicNode>();
 
-        public StateStruct(string name, StatePrimitive node) => _nodes = new Dictionary<string, TicNode>{{name, node}};
+        public StateStruct(string name, TicNode node) => _nodes = new Dictionary<string, TicNode>{{name, node}};
 
         public bool IsSolved { get; }
         public string Description => "Struct";
@@ -43,8 +43,9 @@ namespace NFun.Tic.SolvingStates
             throw new NotImplementedException();
         }
 
-        public bool CanBeImplicitlyConvertedTo(StatePrimitive type) => type == StatePrimitive.Any;
+        public bool CanBeImplicitlyConvertedTo(StatePrimitive type) => type.Equals(StatePrimitive.Any);
 
-        public static ITypeState WithField(string name, StatePrimitive type) => new StateStruct(name, type);
+        public static ITypeState WithField(string name, StatePrimitive type) 
+            => new StateStruct(name, TicNode.CreateNamedNode(type.ToString(),type));
     }
 }

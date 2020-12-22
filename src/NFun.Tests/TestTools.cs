@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Linq;
+using NFun;
 using NFun.Runtime;
 using NFun.Runtime.Arrays;
 using NFun.Types;
@@ -10,6 +11,26 @@ namespace Funny.Tests
 {
     public static class TestTools
     {
+        
+        public static void AssertVarCalc(
+            string inputName,
+            object inputValue,
+            string outputName,
+            string expression, object expected)
+        {
+            var runtime = FunBuilder.Build(expression);
+            var res = runtime.Calculate(VarVal.New(inputName, inputValue));
+            res.AssertHas(VarVal.New(outputName, expected));
+        }
+        public static void AssertConstantCalc(string varName,string expression, object expected)
+        {
+            var runtime = FunBuilder.Build(expression);
+            var res = runtime.Calculate();
+            if(expected is double)
+                res.AssertHas(VarVal.New(varName, expected), delta:0.0001);
+            else
+                res.AssertHas(VarVal.New(varName, expected));
+        }
         public static void AssertReturns(this CalculationResult result, double delta, params VarVal[] vars)
         {
             Assert.AreEqual(vars.Length, result.Results.Length, $"output variables mismatch: {string.Join(",", result.Results)}");

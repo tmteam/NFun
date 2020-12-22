@@ -7,6 +7,8 @@ namespace NFun.Runtime
 {
     public class VariableSource
     {
+        internal object InternalValue;
+
         public static VariableSource CreateWithStrictTypeLabel( string name, 
             VarType type, 
             Interval typeSpecificationIntervalOrNull, 
@@ -23,6 +25,7 @@ namespace NFun.Runtime
             Interval typeSpecificationIntervalOrNull, 
             VarAttribute[] attributes = null)
         {
+            InternalValue = type.GetDefaultValueOrNull();
             IsStrictTyped = true;
             TypeSpecificationIntervalOrNull = typeSpecificationIntervalOrNull;
             Attributes = attributes ?? new VarAttribute[0];
@@ -30,8 +33,10 @@ namespace NFun.Runtime
             Type = type;
             IsOutput = false;
         }
-        public VariableSource(string name, VarType type,  VarAttribute[] attributes = null)
+
+        private VariableSource(string name, VarType type,  VarAttribute[] attributes = null)
         {
+            InternalValue = type.GetDefaultValueOrNull();
             IsStrictTyped = false;
             Attributes = attributes??new VarAttribute[0];
             Name = name;
@@ -48,7 +53,12 @@ namespace NFun.Runtime
         public Interval? TypeSpecificationIntervalOrNull { get; }
         public bool IsOutput { get; set; }
         public VarType Type { get; }
-        public object Value { get; set; }
+
+        public object Value
+        {
+            get => InternalValue;
+            set => InternalValue = value;
+        }
 
         public void SetConvertedValue(object valueValue)
         {
