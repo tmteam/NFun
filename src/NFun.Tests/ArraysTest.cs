@@ -218,8 +218,6 @@ namespace Funny.Tests
 
         }
         
-        
-        
         [TestCase("byte")]
         [TestCase("uint16")]
         [TestCase("uint32")]
@@ -246,7 +244,6 @@ namespace Funny.Tests
             var i = 0;
             foreach (var item in (IEnumerable<object>) res)
             {
-                
                 var item2 =(item as IEnumerable<object>);
                 var j = 0;
                 foreach (var actual in item2)
