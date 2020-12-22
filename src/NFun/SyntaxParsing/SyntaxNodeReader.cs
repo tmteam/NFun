@@ -378,16 +378,14 @@ namespace NFun.SyntaxParsing
 
             var equations = new List<EquationSyntaxNode>();
             while (true)
-            {
+            { 
                 flow.SkipNewLines();
 
                 if(flow.MoveIf(TokType.FiCbr))
                     break;
 
-                if (!flow.MoveIf(TokType.Id)) 
+                if (!flow.MoveIf(TokType.Id, out var idToken)) 
                     throw FunParseException.ErrorStubToDo("id missed");
-                
-                var id = flow.Current;
 
                 VarType type = VarType.Empty;
                 if (flow.MoveIf(TokType.Colon)) 
@@ -398,7 +396,7 @@ namespace NFun.SyntaxParsing
                 var body = ReadNodeOrNull(flow);
                 if(body==null)
                     throw FunParseException.ErrorStubToDo("body, missed");
-                var equation = new EquationSyntaxNode(id.Value, id.Start, body, new VarAttribute[0]);
+                var equation = new EquationSyntaxNode(idToken.Value, idToken.Start, body, new VarAttribute[0]);
                 equations.Add(equation);
             }
             var end = flow.Position;

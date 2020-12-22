@@ -62,7 +62,7 @@ namespace Nfun.ModuleTests.UnitTests
         [Test]
         public void TwinIntArrayGenericInitialization()
         {
-            var val = new int[][] {new int[]{ 0, 1, 2 },new int[]{ 3, 4, 5 } };
+            var val = new [] {new int[]{ 0, 1, 2 },new int[]{ 3, 4, 5 } };
             var varVal = VarVal.New("y", val);
             var firstArray = ((IFunArray) varVal.Value).ToArray();
             var secondArray = ((IFunArray) firstArray[0]).ToArray();
