@@ -249,6 +249,7 @@ namespace NFun.Tic.Tests.Arrays
             result.AssertNamed(StateArray.Of(StateArray.Of(StatePrimitive.I32)), "y");
         }
         [Test]
+        [Ignore("complex lca")]
         public void TwoDimention_AnyUpcastArray_ConcreteDef()
         {
             TraceLog.IsEnabled = true;

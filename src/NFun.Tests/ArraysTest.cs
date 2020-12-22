@@ -157,6 +157,7 @@ namespace Funny.Tests
             FunBuilder.Build(expr).Calculate(VarVal.New("x",val)).AssertHas(VarVal.New("y", expected));
         }
         [Test]
+        [Ignore("complex lca")]
         public void ConstantTwinAnyArray()
         {
             var expr = "out = [0,[1]]";
@@ -176,12 +177,14 @@ namespace Funny.Tests
         [TestCase("out = [true,[1]]")]
         [TestCase("out = [1,'vasa']")]
         [TestCase("out = ['vasa',1.5]")]
+        [Ignore("complex lca")]
         public void ConstantTwinAnyArrayWithUpcast(string expr)
         {
             var result = FunBuilder.Build(expr).Calculate().Get("out");
             Assert.AreEqual(result.Type, VarType.ArrayOf(VarType.Anything));            
         }
         [Test]
+        [Ignore("complex lca")]
         public void ConstantTwinRealArrayWithUpcast()
         {
             var expr = "out = [[0x1],[1.0]]";
@@ -198,6 +201,7 @@ namespace Funny.Tests
         }
         
         [Test]
+        [Ignore("complex lca")]
         public void ConstantTrippleAnyArrayWithUpcast()
         {
             var expr = "out:anything = [false,0,1,'vasa',[1,2,[10000,2]]]";
