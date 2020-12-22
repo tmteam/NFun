@@ -13,12 +13,9 @@ namespace Nfun.ModuleTests.ParserTests
         public void SingleElementConstStruct()
         {
             var text = @" @{ a = 1 }";
-            var tree   = Parser.Parse(Tokenizer.ToFlow(text));
-            var eq = ((EquationSyntaxNode)tree.Children.First()).Children.First();
-            Assert.IsInstanceOf<StructSyntaxNode>(eq);
-            Assert.AreEqual(1, eq.Children.Count());
-            
-            AssertGenericIntConstantDefenition(eq.Children.First(),"a",(ulong)1);
+            var structSyntaxNode = ParserTestHelper.ParseSingleEquation<StructSyntaxNode>(text);
+            Assert.AreEqual(1, structSyntaxNode.Children.Count());
+            AssertGenericIntConstantDefenition(structSyntaxNode.Children.First(),"a",(ulong)1);
         }
         
         [Test]
@@ -26,12 +23,12 @@ namespace Nfun.ModuleTests.ParserTests
         {
             var text = @" @{ a = 1; b = 2 }";
             var tree   = Parser.Parse(Tokenizer.ToFlow(text));
-            var eq = ((EquationSyntaxNode)tree.Children.First()).Children.First();
-            Assert.IsInstanceOf<StructSyntaxNode>(eq);
-            Assert.AreEqual(2, eq.Children.Count());
+            var structSyntaxNode = ParserTestHelper.ParseSingleEquation<StructSyntaxNode>(text);
+
+            Assert.AreEqual(2, structSyntaxNode.Children.Count());
             
-            AssertGenericIntConstantDefenition(eq.Children.First(),"a",(ulong)1);
-            AssertGenericIntConstantDefenition(eq.Children.Skip(1).First(),"b",(ulong)2);
+            AssertGenericIntConstantDefenition(structSyntaxNode.Children.First(),"a",(ulong)1);
+            AssertGenericIntConstantDefenition(structSyntaxNode.Children.Skip(1).First(),"b",(ulong)2);
         }
         
         [TestCase("@{a 2}")]

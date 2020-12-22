@@ -301,8 +301,12 @@ namespace NFun.SyntaxParsing
                     flow.MoveNext();
                     if(!flow.MoveIf(TokType.Id, out var id))
                         throw ErrorFactory.FunctionOrStructMemberNameIsMissedAfterDot(opToken);
-                    // it can be struct member or function call
-                    leftNode =  ReadFunctionCall(flow, id, leftNode);       
+                    // Open bracket. It means call
+                    var next = flow.Current?.Type;
+                    if (next == TokType.Obr || next == TokType.FiObr)
+                        leftNode = ReadFunctionCall(flow, id, leftNode);
+                    else //else it is struct field
+                        leftNode = SyntaxNodeFactory.FieldAccess(leftNode, id);
                 }
                 else if (opToken.Type == TokType.AnonymFun)
                 {
@@ -363,6 +367,8 @@ namespace NFun.SyntaxParsing
                 }
             }
         }
+
+        
 
         private static ISyntaxNode ReadSuperAnonymousFunction(TokFlow flow)
         {

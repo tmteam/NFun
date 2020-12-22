@@ -182,6 +182,7 @@
             <e p="NamedIdSyntaxNode.cs" t="Include" />
             <e p="ReadFieldSyntaxNode.cs" t="Include" />
             <e p="ResultCallSyntaxNode.cs" t="Include" />
+            <e p="StructFieldAccessSyntaxNode.cs" t="Include" />
             <e p="StructSyntaxNode.cs" t="Include" />
             <e p="SuperAnonymFunctionSyntaxNode.cs" t="Include" />
             <e p="SyntaxTree.cs" t="Include" />
@@ -521,6 +522,8 @@
         </e>
         <e p="ParserTests" t="Include">
           <e p="GeneralParserTest.cs" t="Include" />
+          <e p="ParserTestHelper.cs" t="Include" />
+          <e p="StructFieldAccessSyntaxNodeParserTest.cs" t="Include" />
           <e p="StructSyntaxNodeTest.cs" t="Include" />
         </e>
         <e p="TicTests" t="Include">
