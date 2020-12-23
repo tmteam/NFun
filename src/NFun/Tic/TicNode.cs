@@ -68,8 +68,8 @@ namespace NFun.Tic
             set
             {
                 Debug.Assert(value != null);
-                Debug.Assert(_state==null || !(IsSolved && !value.Equals(_state)),"Node is already solved");
-
+                Debug.Assert(_state==null || !(IsSolved && !value.Equals(_state) && !(value is StateStruct)),"Node is already solved");
+                
                 if (value is StateArray array)
                     array.ElementNode.IsMemberOfAnything = true;
                 else

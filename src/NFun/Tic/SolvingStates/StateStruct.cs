@@ -15,6 +15,17 @@ namespace NFun.Tic.SolvingStates
         //todo remove to make State Struct immutable
         public void AddField(string name, TicNode memberNode) 
             => _nodes.Add(name, memberNode);
+
+        public StateStruct With(string name, TicNode memberNode)
+        {
+            var newDic = new Dictionary<string, TicNode>(_nodes.Count + 1);
+            foreach (var field in _nodes)
+            {
+                newDic.Add(field.Key, field.Value);
+            }
+            newDic.Add(name, memberNode);
+            return new StateStruct(newDic);
+        }
         public IEnumerable<KeyValuePair<string, TicNode>> Fields => _nodes;
         
         private readonly Dictionary<string, TicNode> _nodes;

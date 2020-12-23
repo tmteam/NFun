@@ -350,17 +350,9 @@ namespace NFun.Tic
         public static StateStruct TransformToStructOrNull(object descNodeName, ConstrainsState descendant, StateStruct ancStruct)
         {
             if (descendant.NoConstrains)
-            {
-                var newFields = new Dictionary<string,TicNode>(ancStruct.MembersCount);
-                foreach (var field in ancStruct.Fields)
-                {
-                    newFields.Add(
-                        key:   field.Key,
-                        value: TicNode.CreateTypeVariableNode( descNodeName +"."+field.Key, new ConstrainsState()));
-                }
-                return new StateStruct(newFields);
-            }
-            else if (descendant.HasDescendant && descendant.Descedant is StateStruct structDesc)
+                return ancStruct;
+            
+            if (descendant.HasDescendant && descendant.Descedant is StateStruct structDesc)
             {
                 //descendant is struct.
                 if (structDesc.IsSolved)

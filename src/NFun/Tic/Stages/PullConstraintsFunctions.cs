@@ -53,6 +53,7 @@ namespace NFun.Tic.Stages
             }
             else if (ancestor is StateStruct ancStruct)
             {
+         
                 var result = SolvingFunctions.TransformToStructOrNull(
                     descendantNode.Name, descendant, ancStruct);
                 if (result == null)
@@ -75,7 +76,6 @@ namespace NFun.Tic.Stages
             if (ancestor is StateArray ancArray)
             {
                 var descArray = (StateArray) descendant;
-                descendantNode.Ancestors.Remove(ancestorNode);
                 descArray.ElementNode.Ancestors.Add(ancArray.ElementNode);
             }
             else if (ancestor is StateFun ancFun)
@@ -84,12 +84,25 @@ namespace NFun.Tic.Stages
 
                 if (descFun.ArgsCount != ancFun.ArgsCount)
                     return false;
-                descendantNode.Ancestors.Remove(ancestorNode);
-
                 descFun.RetNode.Ancestors.Add(ancFun.RetNode);
                 for (int i = 0; i < descFun.ArgsCount; i++)
                     ancFun.ArgNodes[i].Ancestors.Add(descFun.ArgNodes[i]);
             }
+            if (ancestor is StateStruct ancStruct)
+            {
+                var descStruct = (StateStruct) descendant;
+                // desc node has to have all ancestors fields that has exast same type as desc type
+                // (implicit field convertion is not allowed)
+                foreach (var ancField in ancStruct.Fields)
+                {
+                    var descField = descStruct.GetFieldOrNull(ancField.Key);
+                    if (descField == null)
+                        descStruct = descStruct.With(ancField.Key, ancField.Value);
+                    else
+                        SolvingFunctions.Merge(ancField.Value, descField);
+                }
+            }
+            descendantNode.Ancestors.Remove(ancestorNode);
 
             return true;
         }
