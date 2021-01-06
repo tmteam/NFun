@@ -5,9 +5,9 @@ using NFun.Types;
 
 namespace NFun.SyntaxParsing.SyntaxNodes
 {
-    public class StructSyntaxNode: ISyntaxNode
+    public class StructInitSyntaxNode: ISyntaxNode
     {
-        public StructSyntaxNode(List<EquationSyntaxNode> equations, Interval interval)
+        public StructInitSyntaxNode(List<EquationSyntaxNode> equations, Interval interval)
         {
             Equations = equations;
             Interval = interval;
@@ -20,7 +20,8 @@ namespace NFun.SyntaxParsing.SyntaxNodes
         {
             throw new System.NotImplementedException();
         }
-        private List<EquationSyntaxNode> Equations;
+        
+        public IReadOnlyList<EquationSyntaxNode> Equations;
         public IEnumerable<ISyntaxNode> Children => Equations;
     }
 }

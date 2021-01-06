@@ -39,12 +39,17 @@ namespace NFun.Tic.SolvingStates
                     return false;
                 return true;
             }
-            else if (type is StateArray array)
+
+            if (type is ICompositeState)
             {
                 if (IsComparable)
                     return false;
                 if (!HasDescendant)
                     return true;
+            }
+            
+            if (type is StateArray array)
+            {
                 if (!(Descedant is StateArray descArray))
                     return false;
                 if (array.Element.Equals(descArray.Element))
@@ -53,17 +58,27 @@ namespace NFun.Tic.SolvingStates
                     return false;
                 return false;
             }
-            else if (type is StateFun fun)
+            if (type is StateFun fun)
             {
-                if (IsComparable)
-                    return false;
-                if (!HasDescendant)
-                    return true;
                 if (!(Descedant is StateFun descfun))
                     return false;
                 if (fun.Members.SequenceEqual(descfun.Members))
                     return true;
                 if (!fun.IsSolved || !descfun.IsSolved)
+                    return false;
+                
+            }
+            else if (type is StateStruct str)
+            {
+                if (IsComparable)
+                    return false;
+                if (!HasDescendant)
+                    return true;
+                if (!(Descedant is StateStruct descStruct))
+                    return false;
+                if (str.Members.SequenceEqual(descStruct.Members))
+                    return true;
+                if (!str.IsSolved || !descStruct.IsSolved)
                     return false;
             }
             throw new NotSupportedException();

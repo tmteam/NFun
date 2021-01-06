@@ -251,7 +251,7 @@ namespace NFun.Tic
         
         public void SetFieldAccess(int structNodeId, int opId, string fieldName)
         {
-            var node = GetOrCreateStructNode(structNodeId);
+            var node = GetOrCreateStructNode(structNodeId, new StateStruct());
             var state = (StateStruct) node.State;
             var memberNode = state.Members.FirstOrDefault(m => m.Name.Equals(fieldName));
             if (memberNode == null)
@@ -260,6 +260,17 @@ namespace NFun.Tic
                 node.State = state.With(fieldName, memberNode);
             }
             MergeOrSetNode(opId,new StateRefTo(memberNode));
+        }
+
+        public void SetStructInit(string[] fieldNames, int[] fieldExpressionIds, int id)
+        {
+            var fields = new Dictionary<string,TicNode>(fieldNames.Length);
+            for (int i = 0; i < fieldNames.Length; i++)
+            {
+                fields.Add(fieldNames[i], GetOrCreateNode(fieldExpressionIds[i]));
+            }
+
+            GetOrCreateStructNode(id, new StateStruct(fields));
         }
         #endregion
         
@@ -432,17 +443,17 @@ namespace NFun.Tic
             var res = TicNode.CreateSyntaxNode(id, new StateArray(elementType),true);
             _syntaxNodes[id] = res;
         }
-        private TicNode GetOrCreateStructNode(int id)
+        private TicNode GetOrCreateStructNode(int id, StateStruct stateStruct)
         {
             var alreadyExists = _syntaxNodes.GetOrEnlarge(id);
             if (alreadyExists != null)
             {
-                alreadyExists.State = SolvingFunctions.GetMergedStateOrNull(new StateStruct(), alreadyExists.State)
-                                      ?? throw TicErrors.CannotSetState(alreadyExists, new StateStruct());
+                alreadyExists.State = SolvingFunctions.GetMergedStateOrNull(stateStruct, alreadyExists.State)
+                                      ?? throw TicErrors.CannotSetState(alreadyExists, stateStruct);
                 return alreadyExists;
             }
 
-            var res = TicNode.CreateSyntaxNode(id, new StateStruct(),true);
+            var res = TicNode.CreateSyntaxNode(id, stateStruct,true);
             _syntaxNodes[id] = res;
             return res;
 
@@ -517,6 +528,5 @@ namespace NFun.Tic
                     .Union(_typeVariables));
         }
 
-        
     }
 }

@@ -6,24 +6,21 @@ using NFun.Types;
 
 namespace NFun.SyntaxParsing.SyntaxNodes
 {
-    public class ReadFieldSyntaxNode : ISyntaxNode
+    public class SyntaxFieldAccessSyntaxNode : ISyntaxNode
     {
-        public ReadFieldSyntaxNode(string fieldName)
+        public SyntaxFieldAccessSyntaxNode( ISyntaxNode source,string fieldName, Interval interval)
         {
             FieldName = fieldName;
+            Source = source;
+            Interval = interval;
         }
-
         public VarType OutputType { get; set; }
-        
         public string FieldName { get; }
+        public ISyntaxNode Source { get; }
         public int OrderNumber { get; set; }
         public bool IsInBrackets { get; set; }
         public Interval Interval { get; set; }
-        public T Accept<T>(ISyntaxNodeVisitor<T> visitor)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public IEnumerable<ISyntaxNode> Children => Enumerable.Empty<ISyntaxNode>();
+        public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
+        public IEnumerable<ISyntaxNode> Children => new[] {Source};
     }
 }

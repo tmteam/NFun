@@ -12,19 +12,19 @@ namespace Nfun.ModuleTests.ParserTests
         public void SingleFieldAccess()
         {
             var text = @"a.b";
-            var node = ParserTestHelper.ParseSingleEquation<StructFieldAccessSyntaxNode>(text);
-            Assert.AreEqual("a", node.Child.AssertType<NamedIdSyntaxNode>().Id);
+            var node = ParserTestHelper.ParseSingleEquation<SyntaxFieldAccessSyntaxNode>(text);
+            Assert.AreEqual("a", node.Source.AssertType<NamedIdSyntaxNode>().Id);
             Assert.AreEqual("b", node.FieldName);
         }
         [Test]
         public void ChainOf2FieldAccess()
         {
             var text = @"a.b.c";
-            var node = ParserTestHelper.ParseSingleEquation<StructFieldAccessSyntaxNode>(text);
+            var node = ParserTestHelper.ParseSingleEquation<SyntaxFieldAccessSyntaxNode>(text);
             Assert.AreEqual("c", node.FieldName);
-            var childAccess = node.Child.AssertType<StructFieldAccessSyntaxNode>();
+            var childAccess = node.Source.AssertType<SyntaxFieldAccessSyntaxNode>();
             
-            Assert.AreEqual("a", childAccess.Child.AssertType<NamedIdSyntaxNode>().Id);
+            Assert.AreEqual("a", childAccess.Source.AssertType<NamedIdSyntaxNode>().Id);
             Assert.AreEqual("b", childAccess.FieldName);
         }
         
@@ -32,13 +32,13 @@ namespace Nfun.ModuleTests.ParserTests
         public void ChainOf3FieldAccess()
         {
             var text = @"a.b.c.d";
-            var root = ParserTestHelper.ParseSingleEquation<StructFieldAccessSyntaxNode>(text);
+            var root = ParserTestHelper.ParseSingleEquation<SyntaxFieldAccessSyntaxNode>(text);
             Assert.AreEqual("d", root.FieldName);
-            var childAccess = root.Child.AssertType<StructFieldAccessSyntaxNode>();
+            var childAccess = root.Source.AssertType<SyntaxFieldAccessSyntaxNode>();
             Assert.AreEqual("c", childAccess.FieldName);
-            var childOfChildAccess = childAccess.Child.AssertType<StructFieldAccessSyntaxNode>();
+            var childOfChildAccess = childAccess.Source.AssertType<SyntaxFieldAccessSyntaxNode>();
             Assert.AreEqual("b", childOfChildAccess.FieldName);
-            Assert.AreEqual("a", childOfChildAccess.Child.AssertType<NamedIdSyntaxNode>().Id);
+            Assert.AreEqual("a", childOfChildAccess.Source.AssertType<NamedIdSyntaxNode>().Id);
         }
         [Test]
         public void SingleFieldWithPipeFunctionCall()
@@ -46,10 +46,10 @@ namespace Nfun.ModuleTests.ParserTests
             var text = @"a.b.f()";  //equal f(mem(a,b))
             var node = ParserTestHelper.ParseSingleEquation<FunCallSyntaxNode>(text);
             Assert.AreEqual(1, node.Args.Length);
-            var synode = node.Args[0] as StructFieldAccessSyntaxNode;
+            var synode = node.Args[0] as SyntaxFieldAccessSyntaxNode;
             Assert.IsNotNull(synode);
             
-            Assert.AreEqual("a", synode.Child.AssertType<NamedIdSyntaxNode>().Id);
+            Assert.AreEqual("a", synode.Source.AssertType<NamedIdSyntaxNode>().Id);
             Assert.AreEqual("b", synode.FieldName);
         }
         
@@ -67,17 +67,17 @@ namespace Nfun.ModuleTests.ParserTests
 
             var jCall = ParserTestHelper.ParseSingleEquation<FunCallSyntaxNode>(text);
             Assert.AreEqual("j",jCall.Id);
-            var ifield = jCall.Args[0].AssertType<StructFieldAccessSyntaxNode>("i");
+            var ifield = jCall.Args[0].AssertType<SyntaxFieldAccessSyntaxNode>("i");
             Assert.AreEqual("i", ifield.FieldName);
-            var hfield = ifield.Child.AssertType<StructFieldAccessSyntaxNode>("h");
+            var hfield = ifield.Source.AssertType<SyntaxFieldAccessSyntaxNode>("h");
             Assert.AreEqual("h", hfield.FieldName);
-            var gCall = hfield.Child.AssertType<FunCallSyntaxNode>("g");
+            var gCall = hfield.Source.AssertType<FunCallSyntaxNode>("g");
             Assert.AreEqual("g",gCall.Id);
             var fCall = gCall.Args[0].AssertType<FunCallSyntaxNode>("f");
             Assert.AreEqual("f",fCall.Id);
-            var bfield = fCall.Args[0].AssertType<StructFieldAccessSyntaxNode>("b");
+            var bfield = fCall.Args[0].AssertType<SyntaxFieldAccessSyntaxNode>("b");
             Assert.AreEqual("b",bfield.FieldName);
-            var aVar = bfield.Child.AssertType<NamedIdSyntaxNode>("a");
+            var aVar = bfield.Source.AssertType<NamedIdSyntaxNode>("a");
             Assert.AreEqual("a",aVar.Id);
         }
     }

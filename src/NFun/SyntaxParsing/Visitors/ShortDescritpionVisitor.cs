@@ -29,18 +29,18 @@ namespace NFun.SyntaxParsing.Visitors
             }
             return $"{node.Value}";
         }
-
         public string Visit(SyntaxTree node) => "Fun equations";
         public string Visit(TypedVarDefSyntaxNode node)
             => $"'{node.Id}:{node.VarType}";
-
-
         public string Visit(UserFunctionDefinitionSyntaxNode node) => $"{node.Id}(...) = ...";
         public string Visit(VarDefinitionSyntaxNode node) => $"'{node.Id}:{node.VarType}";
-
         public string Visit(NamedIdSyntaxNode node) => node.Id;
         public string Visit(ResultFunCallSyntaxNode node) => $"{node.ResultExpression.Accept(this)}(...)";
         public string Visit(SuperAnonymFunctionSyntaxNode node) => "{" + node.Body.Accept(this) + "}";
+        public string Visit(SyntaxFieldAccessSyntaxNode node) => $".{node.FieldName}";
+        public string Visit(StructInitSyntaxNode node)
+            => $"@{{ {string.Join("; ", node.Equations.Select(f => $"{f.Id}={f.Expression.Accept(this)}"))}}}";
+
         public string Visit(GenericIntSyntaxNode node) => node.Value.ToString();
     }
 }

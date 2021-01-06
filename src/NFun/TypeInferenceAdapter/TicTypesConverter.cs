@@ -18,7 +18,6 @@ namespace NFun.TypeInferenceAdapter
 
         public abstract VarType Convert(ITicNodeState type);
 
-
         class OnlyConcreteTypesConverter : TicTypesConverter
         {
             public override VarType Convert(ITicNodeState type)
@@ -37,7 +36,6 @@ namespace NFun.TypeInferenceAdapter
                                 return VarType.Real;
                             return VarType.Anything;
                         }
-
                     case ConstrainsState constrains:
                         {
                             if (constrains.Ancestor.Name.HasFlag(PrimitiveTypeName._isAbstract))
@@ -69,6 +67,8 @@ namespace NFun.TypeInferenceAdapter
                         return VarType.ArrayOf(Convert(array.Element));
                     case StateFun fun:
                         return VarType.Fun(Convert(fun.ReturnType), fun.ArgNodes.SelectToArray(a=>Convert(a.State)));
+                    case StateStruct str:
+                        throw new NotImplementedException();
                     default:
                         throw new NotSupportedException();
                 }

@@ -13,7 +13,7 @@ namespace Nfun.ModuleTests.ParserTests
         public void SingleElementConstStruct()
         {
             var text = @" @{ a = 1 }";
-            var structSyntaxNode = ParserTestHelper.ParseSingleEquation<StructSyntaxNode>(text);
+            var structSyntaxNode = ParserTestHelper.ParseSingleEquation<StructInitSyntaxNode>(text);
             Assert.AreEqual(1, structSyntaxNode.Children.Count());
             AssertGenericIntConstantDefenition(structSyntaxNode.Children.First(),"a",(ulong)1);
         }
@@ -23,7 +23,7 @@ namespace Nfun.ModuleTests.ParserTests
         {
             var text = @" @{ a = 1; b = 2 }";
             var tree   = Parser.Parse(Tokenizer.ToFlow(text));
-            var structSyntaxNode = ParserTestHelper.ParseSingleEquation<StructSyntaxNode>(text);
+            var structSyntaxNode = ParserTestHelper.ParseSingleEquation<StructInitSyntaxNode>(text);
 
             Assert.AreEqual(2, structSyntaxNode.Children.Count());
             

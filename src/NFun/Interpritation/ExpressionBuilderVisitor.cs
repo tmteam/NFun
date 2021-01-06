@@ -94,6 +94,17 @@ namespace NFun.Interpritation
             var body = arrowAnonymFunNode.Body;
             return BuildAnonymousFunction(arrowAnonymFunNode.Interval, body, localVariables, arguments);
         }
+
+        public IExpressionNode Visit(SyntaxFieldAccessSyntaxNode arrowAnonymFunNode)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IExpressionNode Visit(StructInitSyntaxNode arrowAnonymFunNode)
+        {
+            throw new NotImplementedException();
+        }
+
         public IExpressionNode Visit(ArrowAnonymFunctionSyntaxNode arrowAnonymFunNode)
         {
             if (arrowAnonymFunNode.Definition==null)

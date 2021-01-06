@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using NFun.Runtime.Arrays;
 
 namespace NFun.Types
@@ -13,9 +14,9 @@ namespace NFun.Types
                 converter = new StringFunTypesConverter();
                 return true;
             }
-
             if (clrType.IsArray)
             {
+                
                 var elementType = clrType.GetElementType();
                 if (elementType == typeof(object)) {
                     //if type is object than we can convert objects only at runtime
@@ -95,6 +96,7 @@ namespace NFun.Types
         public override object ToFunObject(object clrObject) 
             => new ImmutableFunArray(((Array) clrObject),_elementType);
     }
+
     public class CharArrayFunTypesConverter: FunTypesConverter
     {
         public CharArrayFunTypesConverter() : base(VarType.Text)
@@ -103,6 +105,7 @@ namespace NFun.Types
         public override object ToFunObject(object clrObject) 
             => new TextFunArray(new string((char[]) clrObject));
     }
+    
     public class StringFunTypesConverter: FunTypesConverter
     {
         public StringFunTypesConverter() : base(VarType.Text) { }

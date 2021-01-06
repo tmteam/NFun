@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using NFun.Exceptions;
@@ -160,6 +159,21 @@ namespace NFun.TypeInferenceAdapter
             _aliasScope.ExitScope();
             return true;
         }
+
+        public bool Visit(SyntaxFieldAccessSyntaxNode node)
+        {
+            _ticTypeGraph.SetFieldAccess(node.Source.OrderNumber, node.OrderNumber,node.FieldName);
+            return true;
+        }
+
+        public bool Visit(StructInitSyntaxNode node)
+        {
+            _ticTypeGraph.SetStructInit(
+                node.Equations.Select(f=>f.Id).ToArray(), 
+                node.Equations.Select(f=>f.Expression.OrderNumber).ToArray(), node.OrderNumber);
+            return true;
+        }
+
         public bool Visit(ArrowAnonymFunctionSyntaxNode node)
         {
             _aliasScope.EnterScope(node.OrderNumber);
