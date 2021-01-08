@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NFun.Runtime.Arrays;
 
 namespace NFun.Types
@@ -33,13 +34,30 @@ namespace NFun.Types
             }
             return false;
         }
+        protected FunTypesConverter()
+        {
+        }
         protected FunTypesConverter(VarType funType)
         {
             FunType = funType;
         }
 
-        public VarType FunType { get; }
+        public VarType FunType { get; protected set; }
         public abstract object ToFunObject(object clrObject);
+    }
+
+    public class StructFunTypesConverter : FunTypesConverter
+    {
+        public StructFunTypesConverter(Dictionary<string,object> value) {
+            this.FunType = VarType.StructOf(
+                value.ToDictionary(v => v.Key,
+                    v => VarVal.New("", v.Value).Type));
+        }
+
+        public override object ToFunObject(object clrObject)
+        {
+            return clrObject;
+        }
     }
     public class ArrayOfCompositesFunTypesConverter : FunTypesConverter
     {
@@ -65,7 +83,6 @@ namespace NFun.Types
     
     public class ArrayOfAnythingFunTypesConverter : FunTypesConverter
     {
-
         public ArrayOfAnythingFunTypesConverter() 
             : base(VarType.ArrayOf(VarType.Anything)) { }
 

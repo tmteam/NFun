@@ -176,5 +176,32 @@ namespace Nfun.ModuleTests.UnitTests
 
             Assert.IsFalse(a1.IsEquivalent(a2));
         }
+
+        [TestCase("")]
+        [TestCase(" ")]
+        [TestCase(" a ")]
+        [TestCase("1")]
+        [TestCase("lalala")]
+        [TestCase("фбв")]
+        public void Equal_TextArrayReturnsTrue(string text)
+        {
+            var arr1 = text.AsFunText();
+            var arr2 = text.AsFunText();
+            Assert.IsTrue(arr1.Equals(arr2));
+        }
+        
+        
+        [TestCase(""," ")]
+        [TestCase(" ","1")]
+        [TestCase(" a ","a")]
+        [TestCase("1","1 ")]
+        [TestCase("lalala","lalal")]
+        [TestCase("фбв","фбва")]
+        public void Equal_TextArrayReturnsFalse(string text1,string text2)
+        {
+            var arr1 = text1.AsFunText();
+            var arr2 = text2.AsFunText();
+            Assert.IsFalse(arr1.Equals(arr2));
+        }
     }
 }

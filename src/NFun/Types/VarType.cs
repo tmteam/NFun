@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using NFun.Tic.SolvingStates;
 
 namespace NFun.Types
 {
@@ -30,7 +32,14 @@ namespace NFun.Types
         public static VarType Int64 => new VarType(BaseVarType.Int64);
         public static VarType Real => new VarType(BaseVarType.Real);
         public static VarType  Text =>  ArrayOf(Char);
-        
+        public static VarType StructOf(Dictionary<string, VarType> fields) 
+            => new VarType(fields);
+        public static VarType StructOf(string fieldName, VarType fieldType) 
+            => new VarType(new Dictionary<string, VarType>{{fieldName,fieldType}});
+        public static VarType StructOf(string fieldName1, VarType fieldType1,string fieldName2, VarType fieldType2) 
+            => new VarType(new Dictionary<string, VarType>{{fieldName1,fieldType1},{fieldName2,fieldType2}});
+
+
         public static VarType ArrayOf(VarType type) => new VarType(type);
 
         public static VarType Fun(VarType returnType, params VarType[] inputTypes)
@@ -44,6 +53,7 @@ namespace NFun.Types
             BaseType = BaseVarType.Fun;
             ArrayTypeSpecification = null;
             GenericId = null;
+            StructTypeSpecification = null;
         }
         
         private VarType(int genericId)
@@ -51,12 +61,15 @@ namespace NFun.Types
             BaseType = BaseVarType.Generic;
             FunTypeSpecification = null;
             ArrayTypeSpecification = null;
+            StructTypeSpecification = null;
             GenericId = genericId;
         }
 
         private VarType(BaseVarType baseType)
         {
             BaseType = baseType;
+            StructTypeSpecification = null;
+
             FunTypeSpecification = null;
             ArrayTypeSpecification = null;
             GenericId = null;
@@ -65,17 +78,29 @@ namespace NFun.Types
         private VarType(VarType arrayElementType)
         {
             BaseType = BaseVarType.ArrayOf;
+            StructTypeSpecification = null;
             FunTypeSpecification = null;
             ArrayTypeSpecification = new AdditionalTypeSpecification(arrayElementType);
             GenericId = null;
         }
 
+        private VarType(Dictionary<string, VarType> arrayElementType)
+        {
+            BaseType = BaseVarType.Struct;
+            StructTypeSpecification = arrayElementType;
+            FunTypeSpecification = null;
+            ArrayTypeSpecification = null;
+            GenericId = null;
+
+        }
         public bool IsText => BaseType == BaseVarType.ArrayOf &&
                               ArrayTypeSpecification.VarType.BaseType == BaseVarType.Char;
         public readonly BaseVarType BaseType;
+        public readonly Dictionary<string, VarType> StructTypeSpecification;
         public readonly AdditionalTypeSpecification ArrayTypeSpecification;
         public readonly FunTypeSpecification FunTypeSpecification;
         public readonly int? GenericId;
+
 
         public static bool operator ==(VarType obj1, VarType obj2)
             => obj1.Equals(obj2);

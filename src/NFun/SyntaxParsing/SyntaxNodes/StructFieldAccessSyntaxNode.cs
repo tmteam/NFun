@@ -6,9 +6,9 @@ using NFun.Types;
 
 namespace NFun.SyntaxParsing.SyntaxNodes
 {
-    public class SyntaxFieldAccessSyntaxNode : ISyntaxNode
+    public class StructFieldAccessSyntaxNode : ISyntaxNode
     {
-        public SyntaxFieldAccessSyntaxNode( ISyntaxNode source,string fieldName, Interval interval)
+        public StructFieldAccessSyntaxNode( ISyntaxNode source,string fieldName, Interval interval)
         {
             FieldName = fieldName;
             Source = source;

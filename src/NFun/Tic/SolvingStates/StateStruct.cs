@@ -12,9 +12,6 @@ namespace NFun.Tic.SolvingStates
             _nodes.TryGetValue(fieldName, out var res);
             return res;
         }
-        //todo remove to make State Struct immutable
-        public void AddField(string name, TicNode memberNode) 
-            => _nodes.Add(name, memberNode);
 
         public StateStruct With(string name, TicNode memberNode)
         {

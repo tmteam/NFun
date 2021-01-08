@@ -25,8 +25,8 @@
     <e p="C:\Users\Xiaomi\.nuget\packages\nunit3testadapter\3.13.0\build\netcoreapp1.0\nunit.engine.netstandard.dll" t="Include" />
     <e p="C:\Users\Xiaomi\.nuget\packages\nunit3testadapter\3.13.0\build\netcoreapp1.0\NUnit3.TestAdapter.dll" t="Include" />
     <e p="C:\Users\Xiaomi\.nuget\packages\nunit3testadapter\3.13.0\build\netcoreapp1.0\NUnit3.TestAdapter.pdb" t="Include" />
-    <e p="C:\Users\Xiaomi\AppData\local\JetBrains\Rider2020.1\extResources" t="IncludeRecursive" />
-    <e p="C:\Users\Xiaomi\AppData\local\JetBrains\Rider2020.1\resharper-host\local\Transient\ReSharperHost\v201\SolutionCaches\_Funny.1298071450.00" t="ExcludeRecursive" />
+    <e p="C:\Users\Xiaomi\AppData\local\JetBrains\Rider2020.2\extResources" t="IncludeRecursive" />
+    <e p="C:\Users\Xiaomi\AppData\local\JetBrains\Rider2020.2\resharper-host\local\Transient\Rider\v202\SolutionCaches\_Funny.1298071450.00" t="ExcludeRecursive" />
     <e p="T:\Code\NFun\src" t="IncludeFlat">
       <e p="Benchmarks" t="Include" />
       <e p="ConsoleUseParser" t="IncludeRecursive">
@@ -123,6 +123,8 @@
             <e p="FunVariableExpressionNode.cs" t="Include" />
             <e p="IExpressionNode.cs" t="Include" />
             <e p="IfElseExpressionNode.cs" t="Include" />
+            <e p="StructFieldAccessExpressionNode.cs" t="Include" />
+            <e p="StructInitExpressionNode.cs" t="Include" />
             <e p="VariableExpressionNode.cs" t="Include" />
           </e>
           <e p="RuntimeBuilder.cs" t="Include" />
@@ -158,6 +160,7 @@
             <e p="TextFunArray.cs" t="Include" />
           </e>
           <e p="CalculationResult.cs" t="Include" />
+          <e p="FunnyStruct.cs" t="Include" />
           <e p="FunRuntime.cs" t="Include" />
           <e p="VariableDictionary.cs" t="Include" />
           <e p="VariableSource.cs" t="Include" />
@@ -181,9 +184,9 @@
             <e p="ListOfExpressionsSyntaxNode.cs" t="Include" />
             <e p="NamedIdSyntaxNode.cs" t="Include" />
             <e p="ResultCallSyntaxNode.cs" t="Include" />
+            <e p="StructFieldAccessSyntaxNode.cs" t="Include" />
             <e p="StructInitSyntaxNode.cs" t="Include" />
             <e p="SuperAnonymFunctionSyntaxNode.cs" t="Include" />
-            <e p="SyntaxFieldAccessSyntaxNode.cs" t="Include" />
             <e p="SyntaxTree.cs" t="Include" />
             <e p="TypedVarDefSyntaxNode.cs" t="Include" />
             <e p="UserFunctionDefinitionSyntaxNode.cs" t="Include" />

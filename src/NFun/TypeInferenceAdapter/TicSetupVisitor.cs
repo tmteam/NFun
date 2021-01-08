@@ -160,17 +160,21 @@ namespace NFun.TypeInferenceAdapter
             return true;
         }
 
-        public bool Visit(SyntaxFieldAccessSyntaxNode node)
+        public bool Visit(StructFieldAccessSyntaxNode node)
         {
+            if (!node.Source.Accept(this))
+                return false;
             _ticTypeGraph.SetFieldAccess(node.Source.OrderNumber, node.OrderNumber,node.FieldName);
             return true;
         }
 
         public bool Visit(StructInitSyntaxNode node)
         {
+            if (!VisitChildren(node))
+                return false;
             _ticTypeGraph.SetStructInit(
-                node.Equations.Select(f=>f.Id).ToArray(), 
-                node.Equations.Select(f=>f.Expression.OrderNumber).ToArray(), node.OrderNumber);
+                node.Fields.Select(f=>f.Name).ToArray(), 
+                node.Fields.Select(f=>f.Node.OrderNumber).ToArray(), node.OrderNumber);
             return true;
         }
 

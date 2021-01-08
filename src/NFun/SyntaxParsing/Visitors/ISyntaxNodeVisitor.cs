@@ -20,7 +20,7 @@ namespace NFun.SyntaxParsing.Visitors
         T Visit(NamedIdSyntaxNode node);
         T Visit(ResultFunCallSyntaxNode node);
         T Visit(SuperAnonymFunctionSyntaxNode arrowAnonymFunNode);
-        T Visit(SyntaxFieldAccessSyntaxNode node);
+        T Visit(StructFieldAccessSyntaxNode node);
         T Visit(StructInitSyntaxNode node);
     }
 }

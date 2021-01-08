@@ -34,7 +34,7 @@ namespace NFun.SyntaxParsing
         public static ISyntaxNode Struct(List<EquationSyntaxNode> equations, Interval interval)
             => new StructInitSyntaxNode(equations, interval);
         public static ISyntaxNode FieldAccess( ISyntaxNode leftNode,Tok memberId) =>
-            new SyntaxFieldAccessSyntaxNode(leftNode, memberId.Value,
+            new StructFieldAccessSyntaxNode(leftNode, memberId.Value,
                 new Interval(leftNode.Interval.Start, memberId.Finish));
     }
 }

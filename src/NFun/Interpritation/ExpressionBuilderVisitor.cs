@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using NFun.Exceptions;
 using NFun.Interpritation.Functions;
@@ -21,7 +22,7 @@ namespace NFun.Interpritation
         private readonly TypeInferenceResults _typeInferenceResults;
         private readonly TicTypesConverter _typesConverter;
 
-        public static IExpressionNode BuildExpression(
+        private static IExpressionNode BuildExpression(
             ISyntaxNode node,
             IFunctionDictionary functions,
             VariableDictionary variables, 
@@ -95,14 +96,23 @@ namespace NFun.Interpritation
             return BuildAnonymousFunction(arrowAnonymFunNode.Interval, body, localVariables, arguments);
         }
 
-        public IExpressionNode Visit(SyntaxFieldAccessSyntaxNode arrowAnonymFunNode)
-        {
-            throw new NotImplementedException();
-        }
+        public IExpressionNode Visit(StructFieldAccessSyntaxNode node) 
+            => new StructFieldAccessExpressionNode(node.FieldName,ReadNode(node.Source),node.Interval);
 
-        public IExpressionNode Visit(StructInitSyntaxNode arrowAnonymFunNode)
+        public IExpressionNode Visit(StructInitSyntaxNode node)
         {
-            throw new NotImplementedException();
+            var types = new Dictionary<string,VarType>(node.Fields.Count);
+            var names = new string[node.Fields.Count];
+            var nodes = new IExpressionNode[node.Fields.Count];
+            
+            for (int i = 0; i < node.Fields.Count; i++)
+            {
+                var field = node.Fields[i];
+                nodes[i] = ReadNode(field.Node);
+                names[i] = field.Name;
+                types.Add(field.Name,field.Node.OutputType);
+            }            
+            return new StructInitExpressionNode(names,nodes,node.Interval,VarType.StructOf(types));
         }
 
         public IExpressionNode Visit(ArrowAnonymFunctionSyntaxNode arrowAnonymFunNode)
@@ -181,12 +191,12 @@ namespace NFun.Interpritation
             if (someFunc is IGenericFunction genericFunction) //generic function
             {
                 VarType[] genericArgs;
-
+                // Generic function type arguments usually stored in tic results
                 var genericTypes = _typeInferenceResults.GetGenericCallArguments(node.OrderNumber);
                 if (genericTypes == null)
                 {
-                    // Generic call arguments are unknown  in case of  generic recursion function . 
-                    // Take it from type inference results in this case
+                    // Generic call arguments are unknown  in case of generic recursion function . 
+                    // Take them from type inference results
                     var recCallSignature =  _typeInferenceResults.GetRecursiveCallOrNull(node.OrderNumber);
                     //if generic call arguments not exist in type inference result - it is NFUN core error
                     if(recCallSignature==null)

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NFun.Tic.SolvingStates;
 using NFun.Types;
 
@@ -68,7 +69,7 @@ namespace NFun.TypeInferenceAdapter
                     case StateFun fun:
                         return VarType.Fun(Convert(fun.ReturnType), fun.ArgNodes.SelectToArray(a=>Convert(a.State)));
                     case StateStruct str:
-                        throw new NotImplementedException();
+                        return VarType.StructOf(str.Fields.ToDictionary(f => f.Key, f => Convert(f.Value.State)));
                     default:
                         throw new NotSupportedException();
                 }
