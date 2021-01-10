@@ -70,6 +70,7 @@ namespace NFun.Runtime
             switch (Type.BaseType)
             {
                 case BaseVarType.ArrayOf:
+                case BaseVarType.Struct:
                 case BaseVarType.Any:
                     Value = valueValue;
                     break;
@@ -104,7 +105,7 @@ namespace NFun.Runtime
                     Value = valueValue?.ToString() ?? "";
                     break;
                 default:
-                    throw new NotSupportedException();
+                    throw new NotSupportedException($"type '{Type.BaseType}' is not supported as primitive type");
             }
         }
     }

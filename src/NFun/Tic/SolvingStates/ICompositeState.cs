@@ -20,6 +20,13 @@
     }
     public interface ITicNodeState
     {
+        /// <summary>
+        /// This type is not solved or can be changed
+        /// </summary>
+        bool IsMutable { get; }
+        /// <summary>
+        /// This type and all dependent type are solved.
+        /// </summary>
         bool IsSolved { get; }
         string Description { get; }
         bool ApplyDescendant(IStateCombination2dimensionalVisitor visitor, TicNode ancestorNode, TicNode descendantNode);

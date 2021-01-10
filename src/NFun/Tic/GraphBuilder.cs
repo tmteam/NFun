@@ -253,7 +253,7 @@ namespace NFun.Tic
         {
             var node = GetOrCreateStructNode(structNodeId, new StateStruct());
             var state = (StateStruct) node.State;
-            var memberNode = state.Members.FirstOrDefault(m => m.Name.Equals(fieldName));
+            var memberNode = state.GetFieldOrNull(fieldName);
             if (memberNode == null)
             {
                 memberNode = CreateVarType();

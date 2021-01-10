@@ -61,6 +61,7 @@ namespace NFun.Tic
         public List<TicNode> Ancestors { get; } = new List<TicNode>();
         public bool IsMemberOfAnything { get; set; }
         public bool IsSolved => _state.IsSolved;
+        public bool IsMutable => _state.IsMutable;
 
         public ITicNodeState State
         {
@@ -68,7 +69,7 @@ namespace NFun.Tic
             set
             {
                 Debug.Assert(value != null);
-                Debug.Assert(_state==null || !(IsSolved && !value.Equals(_state) && !(value is StateStruct)),"Node is already solved");
+                Debug.Assert(_state==null || IsMutable || value.Equals(_state),"Node is already solved");
                 
                 if (value is StateArray array)
                     array.ElementNode.IsMemberOfAnything = true;

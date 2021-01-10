@@ -62,6 +62,8 @@ namespace NFun.Tic.SolvingStates
 
         public int ArgsCount => ArgNodes.Length;
         public bool IsSolved => RetNode.IsSolved && ArgNodes.All(n=>n.IsSolved);
+        public bool IsMutable => !IsSolved;
+
         public ITypeState GetLastCommonAncestorOrNull(ITypeState otherType)
         {
             var funType = otherType as StateFun;

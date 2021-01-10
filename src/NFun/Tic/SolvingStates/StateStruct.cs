@@ -34,6 +34,7 @@ namespace NFun.Tic.SolvingStates
         public StateStruct(string name, TicNode node) => _nodes = new Dictionary<string, TicNode>{{name, node}};
 
         public bool IsSolved => _nodes.All(n => n.Value.IsSolved);
+        public bool IsMutable => true;
         public string Description => "Struct";
         public bool ApplyDescendant(IStateCombination2dimensionalVisitor visitor, TicNode ancestorNode, TicNode descendantNode) =>
             descendantNode.State.Apply(visitor, ancestorNode, descendantNode, this);

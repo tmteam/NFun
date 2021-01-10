@@ -10,6 +10,8 @@ namespace NFun.Tic.SolvingStates
         }
 
         public bool IsSolved => false;
+        public bool IsMutable => !IsSolved;
+
         public ITicNodeState GetNonReference() => Node.GetNonReference().State;
         public ITicNodeState Element => Node.State; 
         public TicNode Node { get; }

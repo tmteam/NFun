@@ -8,7 +8,8 @@ namespace NFun.Tic.Errors
         public ITicNodeState Ancestor { get; }
         public ITicNodeState Descendant { get; }
 
-        public IncompatibleAncestorSyntaxNodeException(int syntaxNodeId, ITicNodeState ancestor, ITicNodeState descendant): base($"Incompatible ancestor {ancestor}=>{descendant} at node {syntaxNodeId}")
+        public IncompatibleAncestorSyntaxNodeException(int syntaxNodeId, ITicNodeState ancestor, ITicNodeState descendant)
+            : base($"Incompatible ancestor {ancestor}=>{descendant} at node {syntaxNodeId}")
         {
             SyntaxNodeId = syntaxNodeId;
             Ancestor = ancestor;

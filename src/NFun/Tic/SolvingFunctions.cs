@@ -18,9 +18,9 @@ namespace NFun.Tic
             if (stateB is ConstrainsState c && c.NoConstrains)
                 return stateA;
 
-            if (stateA is ITypeState typeA && typeA.IsSolved)
+            if (stateA is ITypeState typeA && !typeA.IsMutable)
             {
-                if (stateB is ITypeState typeB && typeB.IsSolved)
+                if (stateB is ITypeState typeB && !typeB.IsMutable)
                     return !typeB.Equals(typeA) ? null : typeA;
 
                 if (stateB is ConstrainsState constrainsB)
@@ -42,7 +42,24 @@ namespace NFun.Tic
                     Merge(funA.RetNode, funB.RetNode);
                     return funA;
                 }
+                case StateStruct strA when stateB is StateStruct strB:
+                {
+                    var result = new Dictionary<string, TicNode>();
+                    foreach (var aField in strA.Fields)
+                    {
+                        var bNode = strB.GetFieldOrNull(aField.Key);
+                        if(bNode!=null)
+                            Merge(aField.Value, bNode);
+                        result.Add(aField.Key, aField.Value);
+                    }
 
+                    foreach (var bField in strB.Fields)
+                    {
+                        if(!result.ContainsKey(bField.Key))
+                            result.Add(bField.Key,bField.Value);
+                    }
+                    return new StateStruct(result);
+                }
                 case ConstrainsState constrainsA when stateB is ConstrainsState constrainsB:
                     return constrainsB.MergeOrNull(constrainsA);
                 case ConstrainsState _: 
@@ -54,6 +71,7 @@ namespace NFun.Tic
                     refA.Node.State = state;
                     return stateA;
                 }
+                
             }
             if (stateB is StateRefTo)
                 return GetMergedStateOrNull(stateB, stateA);
