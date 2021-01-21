@@ -252,7 +252,7 @@ namespace NFun.Tic
         public void SetFieldAccess(int structNodeId, int opId, string fieldName)
         {
             var node = GetOrCreateStructNode(structNodeId, new StateStruct());
-            var state = (StateStruct) node.State;
+            var state = (StateStruct) node.GetNonReference().State;
             var memberNode = state.GetFieldOrNull(fieldName);
             if (memberNode == null)
             {
