@@ -58,13 +58,14 @@ namespace NFun.Tic.Stages
                     descendantNode.Name, descendant, ancStruct);
                 if (result == null)
                     return false;
+                //todo seems repeat TransformToStructOrNull code
                 foreach (var ancField in ancStruct.Fields)
                 {
                     var descField = result.GetFieldOrNull(ancField.Key);
                     descField.Ancestors.Add(ancField.Value);
                 }
                 descendantNode.State = result;
-                descendantNode.Ancestors.Remove(ancestorNode);
+                //descendantNode.Ancestors.Remove(ancestorNode);
             }
             return true;
         }
@@ -77,6 +78,8 @@ namespace NFun.Tic.Stages
             {
                 var descArray = (StateArray) descendant;
                 descArray.ElementNode.Ancestors.Add(ancArray.ElementNode);
+                descendantNode.Ancestors.Remove(ancestorNode);
+
             }
             else if (ancestor is StateFun ancFun)
             {
@@ -87,8 +90,10 @@ namespace NFun.Tic.Stages
                 descFun.RetNode.Ancestors.Add(ancFun.RetNode);
                 for (int i = 0; i < descFun.ArgsCount; i++)
                     ancFun.ArgNodes[i].Ancestors.Add(descFun.ArgNodes[i]);
+                descendantNode.Ancestors.Remove(ancestorNode);
+
             }
-            if (ancestor is StateStruct ancStruct)
+            else if (ancestor is StateStruct ancStruct)
             {
                 var descStruct = (StateStruct) descendant;
                 // desc node has to have all ancestors fields that has exast same type as desc type
@@ -97,12 +102,13 @@ namespace NFun.Tic.Stages
                 {
                     var descField = descStruct.GetFieldOrNull(ancField.Key);
                     if (descField == null)
-                        descStruct = descStruct.With(ancField.Key, ancField.Value);
+                    {
+                        descendantNode.State = descStruct.With(ancField.Key, ancField.Value);
+                    }
                     else
                         SolvingFunctions.Merge(ancField.Value, descField);
                 }
             }
-            descendantNode.Ancestors.Remove(ancestorNode);
 
             return true;
         }

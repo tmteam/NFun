@@ -88,8 +88,25 @@ namespace Funny.Tests
                 .Build("y:anything = @{age = 42; name = 'vasa'}.name")
                 .Calculate()
                 .AssertReturns(VarVal.New("y",(object)"vasa"));
+        
+        
         [Test]
-        public void MultipleFieldAccess()
+        public void TwoFieldsAccess()
+        {
+            var result =FunBuilder
+                .Build("y1:int = a.age; y2:real = a.size")
+                .Calculate(VarVal.New("a",
+                    new FunnyStruct(new Dictionary<string, object> {
+                        {"age", 42}, {"size", 1.1}
+                    }), VarType.StructOf(new Dictionary<string, VarType> {
+                        {"age", VarType.Int32}, {"size", VarType.Real}
+                    })));
+            result.AssertHas(VarVal.New("y1", 42));
+            result.AssertHas(VarVal.New("y2", 1.1));
+        }
+        
+        [Test]
+        public void ThreeFieldsAccess()
         {
             var result =FunBuilder
                 .Build("agei:int = a.age; sizer = a.size+12.0; name = a.name")
@@ -103,7 +120,40 @@ namespace Funny.Tests
                     })));
             result.AssertHas(VarVal.New("agei", 42));
             result.AssertHas(VarVal.New("sizer", 13.1));
-            result.AssertHas(VarVal.New("name", "vasa"));
+            result.AssertHas(new VarVal("name", "vasa", VarType.Anything));
         }
+        
+        /*
+         *TODO
+         * 
+a = @{b = 1; c=2}
+y = a.b + a.c
+
+a = @{b = x; c=2}
+y = a.b + a.c
+
+a = @{b = 1; c=x}
+y = a.b + a.c
+
+a = @{b = x; c=x}
+y = a.b + a.c
+
+a = @{b = x; c=x}
+b = @{d = a; e = a.x}
+y = b.d.x + e.x
+
+
+a = @{b= [1,2,3]; c = 'vasa'}
+d = @{e = 'lala'; f = a}
+y = d.f.b[1]
+
+a = @{b= [x,2,3]; c = 'vasa'}
+d = @{e = 'lala'; f = a}
+y = d.f.b[0]
+
+
+a = [@{age = 42; name = 'vasa'}, @{age = 21; name = 'peta'}]
+y = a[1].age
+         */
     }
 }

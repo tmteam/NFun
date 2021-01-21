@@ -44,8 +44,13 @@ namespace NFun.Tic.Tests.Structs
             var result = graph.Solve();
             
             result.AssertNoGenerics();
-            result.AssertNamed(StateStruct.WithField("name", StatePrimitive.I32),"a");
+            result.AssertNamed(new StateStruct(new Dictionary<string, TicNode>
+            {
+                {"name", TicNode.CreateTypeVariableNode(StatePrimitive.I32)},
+                {"age", TicNode.CreateTypeVariableNode(StatePrimitive.Real)}}), 
+                "a");
             result.AssertNamed(StatePrimitive.I32, "y");
+            result.AssertNamed(StatePrimitive.Real, "z");
         }
         
         [Test]

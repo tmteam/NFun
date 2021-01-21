@@ -94,6 +94,14 @@ namespace NFun.Tic.Stages
                     }
                 }
             }
+
+            if (ancestor is StateStruct ancStruct)
+            {
+                if (descendant is StateStruct descStruct)
+                {
+                    ancestorNode.State = new StateRefTo(descendantNode);
+                }
+            }
             return true;
         }
     }
