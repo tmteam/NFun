@@ -15,7 +15,7 @@ namespace Nfun.ModuleTests.ParserTests
             var text = @" @{ a = 1 }";
             var structSyntaxNode = ParserTestHelper.ParseSingleEquation<StructInitSyntaxNode>(text);
             Assert.AreEqual(1, structSyntaxNode.Children.Count());
-            AssertGenericIntConstantDefenition(structSyntaxNode.Children.First(),"a",(ulong)1);
+            AssertGenericIntConstantDefenition(structSyntaxNode.Fields.First(),"a",(ulong)1);
         }
         
         [Test]
@@ -27,8 +27,8 @@ namespace Nfun.ModuleTests.ParserTests
 
             Assert.AreEqual(2, structSyntaxNode.Children.Count());
             
-            AssertGenericIntConstantDefenition(structSyntaxNode.Children.First(),"a",(ulong)1);
-            AssertGenericIntConstantDefenition(structSyntaxNode.Children.Skip(1).First(),"b",(ulong)2);
+            AssertGenericIntConstantDefenition(structSyntaxNode.Fields.First(),"a",(ulong)1);
+            AssertGenericIntConstantDefenition(structSyntaxNode.Fields.Skip(1).First(),"b",(ulong)2);
         }
         
         [TestCase("@{a 2}")]
@@ -40,13 +40,11 @@ namespace Nfun.ModuleTests.ParserTests
         public void ObviousFailed(string text) 
             => Assert.Throws<FunParseException>(()=> Parser.Parse(Tokenizer.ToFlow(text)));
 
-        private static void AssertGenericIntConstantDefenition(ISyntaxNode eq, string varName, object val)
+        private static void AssertGenericIntConstantDefenition(FieldDefenition eq, string varName, object val)
         {
-            Assert.IsInstanceOf<EquationSyntaxNode>(eq);
-            var equation = (EquationSyntaxNode) eq;
-            Assert.AreEqual(varName, equation.Id);
-            Assert.IsInstanceOf<GenericIntSyntaxNode>(equation.Expression);
-            Assert.AreEqual(val, ((GenericIntSyntaxNode) equation.Expression).Value);
+            Assert.AreEqual(varName, eq.Name);
+            Assert.IsInstanceOf<GenericIntSyntaxNode>(eq.Node);
+            Assert.AreEqual(val, ((GenericIntSyntaxNode) eq.Node).Value);
         }
     }
 }

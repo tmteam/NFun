@@ -99,6 +99,12 @@ namespace NFun.Tic.Stages
             {
                 if (descendant is StateStruct descStruct)
                 {
+                    foreach (var ancField in ancStruct.Fields)
+                    {
+                        var descFieldNode = descStruct.GetFieldOrNull(ancField.Key);
+                        SolvingFunctions.Destruction(descFieldNode, ancField.Value);
+
+                    }
                     ancestorNode.State = new StateRefTo(descendantNode);
                 }
             }

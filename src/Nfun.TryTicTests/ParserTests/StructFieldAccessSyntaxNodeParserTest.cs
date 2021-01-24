@@ -80,5 +80,19 @@ namespace Nfun.ModuleTests.ParserTests
             var aVar = bfield.Source.AssertType<NamedIdSyntaxNode>("a");
             Assert.AreEqual("a",aVar.Id);
         }
+        
+        
+        [TestCase("-a.b")]
+        [TestCase("~a.b")]
+        [TestCase("not a.b")]
+
+        public void UnaryOperatorBeforeFieldAccess(string text)
+        {
+            var negateNode = ParserTestHelper.ParseSingleEquation<FunCallSyntaxNode>(text);
+            Assert.IsTrue(negateNode.IsOperator);
+            var fieldAccNode = negateNode.Args[0].AssertType<StructFieldAccessSyntaxNode>();
+            Assert.AreEqual("a", fieldAccNode.Source.AssertType<NamedIdSyntaxNode>().Id);
+            Assert.AreEqual("b", fieldAccNode.FieldName);
+        }
     }
 }

@@ -96,5 +96,52 @@ namespace NFun.Tic.Tests.Structs
             var dField = bField.GetFieldOrNull("d").State as StatePrimitive;
             Assert.AreEqual(StatePrimitive.Real.Name,  dField.Name);
         }
+
+        [Test]
+        public void TwinFieldAccess()
+        {
+            //    1 2   0 
+            //y = a . b . c"
+
+            var graph = new GraphBuilder();
+
+            graph.SetVar("a",    1);
+            graph.SetFieldAccess(1, 2, "b");
+            graph.SetFieldAccess(2, 0, "f");
+            graph.SetDef("y", 4);
+            
+            var result = graph.Solve();
+            var generic =result.AssertAndGetSingleGeneric(null,null);
+            Assert.AreEqual("y", generic.Name);
+        }
+
+        [Test]
+        public void TwinNestedStructCrossAccess()
+        {
+            //    1     2      3
+            //d = @{f = @{b= true}};
+            //
+            //    5 6   4  
+            //y = d . f . b"
+            
+            
+            
+            var graph = new GraphBuilder();
+            graph.SetConst(3, StatePrimitive.Bool);
+            graph.SetStructInit(new[]{"b"},new[]{3}, 2);
+            graph.SetStructInit(new[]{"f"},new[]{2}, 1);
+            graph.SetDef("d", 1);
+
+            graph.SetVar("d",    5);
+            graph.SetFieldAccess(5, 6, "f");
+            graph.SetFieldAccess(6, 4, "b");
+
+            graph.SetDef("y", 4);
+            
+            var result = graph.Solve();
+            result.AssertNoGenerics();
+            result.AssertNamed(StatePrimitive.Bool, "y");
+        }
+
     }
 }

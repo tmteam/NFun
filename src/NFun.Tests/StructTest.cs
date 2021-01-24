@@ -151,7 +151,30 @@ namespace Funny.Tests
                 .Build("a = @{b = 1; c=2}; y = a.b + a.c")
                 .Calculate()
                 .AssertHas(VarVal.New("y", 3.0));
-        
+        [Test]
+        public void NegateFieldAccess() =>
+            FunBuilder
+                .Build("a = @{b = 1}; y = -a.b")
+                .Calculate()
+                .AssertHas(VarVal.New("y", -1.0));
+        [Test]
+        public void NegateFieldAccessWithBrackets() =>
+            FunBuilder
+                .Build("a = @{b = 1}; y = -(a.b)")
+                .Calculate()
+                .AssertHas(VarVal.New("y", -1.0));
+        [Test]
+        public void DoubleNegateFieldAccessWithBrackets() =>
+            FunBuilder
+                .Build("a = @{b = 1}; y = -(-a.b)")
+                .Calculate()
+                .AssertHas(VarVal.New("y", 1.0));
+        [Test]
+        public void ArithmFieldAccess() =>
+            FunBuilder
+                .Build("a = @{b = 1}; y = -1* (a.b)")
+                .Calculate()
+                .AssertHas(VarVal.New("y", -1.0));
         [Test]
         public void VarAccessCreated() =>
             FunBuilder
@@ -208,12 +231,48 @@ namespace Funny.Tests
                 .AssertHas(VarVal.New("y", 2.0));
         
         [Test]
+        public void ConstAccessDoubleNestedCreated() =>
+            FunBuilder
+                .Build("d = @{f = @{b= 2.0}}; y = d.f.b")
+                .Calculate()
+                .AssertHas(VarVal.New("y", 2.0));
+        [Test]
+        public void ConstAccessFourNestedCreated() =>
+            FunBuilder
+                .Build("d = @{f1 = @{f2= @{f3= @{f4= 2.0}}}};" +
+                       "y = d.f1.f2.f3.f4")
+                .Calculate()
+                .AssertHas(VarVal.New("y", 2.0));
+        
+        [Test]
+        public void ConstAccessFourNested() =>
+            FunBuilder
+                .Build("y = @{f1 = @{f2= @{f3= @{f4= 2.0}}}}.f1.f2.f3.f4")
+                .Calculate()
+                .AssertHas(VarVal.New("y", 2.0));
+        
+        [Test]
         public void VarAccessNestedCreatedComposite() =>
+            FunBuilder
+                .Build( "a = @{b= [x,2,3]};" +
+                        "y = a.b[0]")
+                .Calculate(VarVal.New("x",42.0))
+                .AssertHas(VarVal.New("y", 42.0));
+        
+        [Test]
+        public void VarAccessNestedCreatedComposite2() =>
             FunBuilder
                 .Build( "a = @{b= [x,2,3]};" +
                         "y = -a.b[0]")
                 .Calculate(VarVal.New("x",42.0))
                 .AssertHas(VarVal.New("y", -42.0));
+        [Test]
+        public void VarAccessNestedCreatedComposite3() =>
+            FunBuilder
+                .Build( "a = @{b= [x,2,3]};" +
+                        "y = a.b[0]-1")
+                .Calculate(VarVal.New("x",42.0))
+                .AssertHas(VarVal.New("y", 41.0));
         
         [Test]
         public void VarAccessDoubleNestedCreatedComposite() =>

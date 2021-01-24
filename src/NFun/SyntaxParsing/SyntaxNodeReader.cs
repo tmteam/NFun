@@ -45,13 +45,15 @@ namespace NFun.SyntaxParsing
             MaxPriority = priorities.Count - 1;
         }
 
+        private static readonly int MinPriority = 0;
+
         private static readonly int MaxPriority;
 
         private static readonly Dictionary<TokType, byte> Priorities
             = new Dictionary<TokType, byte>();
 
         private static readonly Dictionary<TokType, string> OperatorFunNames
-            = new Dictionary<TokType, string>()
+            = new Dictionary<TokType, string> ()
             {
                 {TokType.Plus, CoreFunNames.Add},
                 {TokType.Minus,CoreFunNames.Substract},
@@ -105,7 +107,7 @@ namespace NFun.SyntaxParsing
                     throw ErrorFactory.MinusDuplicates(flow.Previous, flow.Current);
                 flow.MoveNext();
                
-                var nextNode = ReadAtomicNodeOrNull(flow);
+                var nextNode = ReadNodeOrNull(flow,MinPriority);
                 if (nextNode == null)
                     throw ErrorFactory.UnaryArgumentIsMissing(flow.Current);
 
@@ -252,7 +254,7 @@ namespace NFun.SyntaxParsing
         public static ISyntaxNode ReadNodeOrNull(TokFlow flow, int priority)
         {
             //Lower priority is the special case
-            if (priority == 0)
+            if (priority< MinPriority)
                 return ReadAtomicNodeOrNull(flow);
 
             //starting with left Node
