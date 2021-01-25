@@ -76,7 +76,7 @@ namespace NFun.Tic.Tests.Structs
         public void NestedStructConstructor()
         {
             //    4       0        3     1       2
-            //y = @{ a = 12i, b = @{c = true,d = 1.0 } 
+            //y = @{ a = 12i, b = @{c = true,d = 1.0 } }
             var graph = new GraphBuilder();
             graph.SetConst(0, StatePrimitive.I32);
             graph.SetConst(1, StatePrimitive.Bool); 
@@ -114,6 +114,25 @@ namespace NFun.Tic.Tests.Structs
             var generic =result.AssertAndGetSingleGeneric(null,null);
             Assert.AreEqual("y", generic.Name);
         }
+        
+        [Test]
+        public void ConcreteTwinFieldAccess()
+        {
+            //    1 2   0 
+            //y:int = a . b . c"
+
+            var graph = new GraphBuilder();
+
+            graph.SetVar("a",    1);
+            graph.SetFieldAccess(1, 2, "b");
+            graph.SetFieldAccess(2, 0, "f");
+            graph.SetVarType("y", StatePrimitive.I32);
+            graph.SetDef("y", 4);
+            
+            var result = graph.Solve();
+            result.AssertNoGenerics();
+            result.AssertNamed(StatePrimitive.I32, "y");
+        }
 
         [Test]
         public void TwinNestedStructCrossAccess()
@@ -123,9 +142,7 @@ namespace NFun.Tic.Tests.Structs
             //
             //    5 6   4  
             //y = d . f . b"
-            
-            
-            
+            TraceLog.IsEnabled = true;
             var graph = new GraphBuilder();
             graph.SetConst(3, StatePrimitive.Bool);
             graph.SetStructInit(new[]{"b"},new[]{3}, 2);
@@ -133,8 +150,12 @@ namespace NFun.Tic.Tests.Structs
             graph.SetDef("d", 1);
 
             graph.SetVar("d",    5);
+            graph.PrintTrace("after D");
             graph.SetFieldAccess(5, 6, "f");
+            graph.PrintTrace("after f");
+
             graph.SetFieldAccess(6, 4, "b");
+            graph.PrintTrace("after b");
 
             graph.SetDef("y", 4);
             

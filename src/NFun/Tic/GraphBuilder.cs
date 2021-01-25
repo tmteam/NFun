@@ -251,12 +251,15 @@ namespace NFun.Tic
         
         public void SetFieldAccess(int structNodeId, int opId, string fieldName)
         {
-            var node = GetOrCreateStructNode(structNodeId, new StateStruct());
-            var state = (StateStruct) node.GetNonReference().State;
+            var node = GetOrCreateStructNode(structNodeId, new StateStruct())
+                .GetNonReference();
+            
+            var state = (StateStruct) node.State;
             var memberNode = state.GetFieldOrNull(fieldName);
             if (memberNode == null)
             {
                 memberNode = CreateVarType();
+                //if origin node is reference node - than we should change
                 node.State = state.With(fieldName, memberNode);
             }
             MergeOrSetNode(opId,new StateRefTo(memberNode));

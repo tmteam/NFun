@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using NFun;
+using NFun.Exceptions;
 using NFun.Runtime;
 using NFun.Runtime.Arrays;
+using NFun.Tic;
 using NFun.Types;
 using NUnit.Framework;
 
@@ -194,15 +196,45 @@ namespace Funny.Tests
                 .Build("a = @{b = x; c=x}; y = a.b + a.c")
                 .Calculate(VarVal.New("x",42.0))
                 .AssertHas(VarVal.New("y", 84.0));
-        
+
         [Test]
-        public void ConstantAccessNestedCreated() =>
+        public void ConstantAccessNestedCreated()
+        {
+            TraceLog.IsEnabled = true;
             FunBuilder
                 .Build("a = @{b = 24; c=25}; " +
                        "b = @{d = a; e = a.c; f = 3}; " +
                        "y = b.d.b + b.e + b.f")
                 .Calculate()
                 .AssertHas(VarVal.New("y", 52.0));
+        }
+        
+        [Test]
+        public void ConstantAccessNestedCreatedSimple()
+        {
+            TraceLog.IsEnabled = true;
+            FunBuilder
+                .Build("a = @{b = 24; c=25}; " +
+                       "b = @{d = a; e = a.c}; " +
+                       "y = b.d.b + b.e")
+                .Calculate()
+                .AssertHas(VarVal.New("y", 49.0));
+        }
+        
+        
+        [Test]
+        public void ConstantAccessManyNestedCreatedHellTest()
+        {
+            TraceLog.IsEnabled = true;
+            FunBuilder
+                .Build("a1 = @{af1_24 = 24; af2_1=1}; " +
+                       "b2 = @{bf1 = a1; bf2_1 = a1.af2_1}; " +
+                       "c3 = @{cf1_1 = b2.bf2_1; cf2_24 = a1.af1_24}; " +
+                       "e4 = @{ef1 = a1.af1_24; ef2 = b2.bf2_1; ef3 = a1;  ef4_24 = c3.cf2_24}; " +
+                       "y = a1.af1_24 + b2.bf1.af2_1 + c3.cf2_24 + e4.ef4_24")
+                .Calculate()
+                .AssertHas(VarVal.New("y", 98.0));
+        }
 
         [Test]
         public void VarAccessNestedCreated() =>
@@ -290,5 +322,17 @@ namespace Funny.Tests
                         "y = a[1].name;")
                 .Calculate()
                 .AssertHas(VarVal.New("y","peta"));
+        
+        
+        
+        [TestCase("y = @{a = y}")]
+        [TestCase("y = @{b = c; a = y}")]
+        [TestCase("y = @{a = y.a}")]
+        [TestCase("y = @{a = @{ b = y}}")]
+        [TestCase("y = @{a = @{ b = y.a}}")]
+        [TestCase("y = @{a = @{ b = y.a.b}}")]
+        [TestCase("y1 = @{a = y2}; y2 = @{a = y1}")]
+        public void ObviousFails(string expr) 
+            => Assert.Throws<FunParseException>(()=>FunBuilder.Build(expr));
     }
 }

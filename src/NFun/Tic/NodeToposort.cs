@@ -44,8 +44,6 @@ namespace NFun.Tic
                     foreach (var refAncestor in node.Ancestors) 
                         refTo.Node.Ancestors.Add(refAncestor);
                     node.Ancestors.Clear();
-                    //refs[refId]=node;
-                    //refId++;
                 }
                 else
                 {
@@ -56,7 +54,6 @@ namespace NFun.Tic
                         node.State = composite.GetNonReferenced();
                 }
             }
-            //References = refs;
         }
 
         private Stack<TicNode> _cycle = null;

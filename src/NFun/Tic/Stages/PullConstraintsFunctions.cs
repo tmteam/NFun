@@ -54,8 +54,7 @@ namespace NFun.Tic.Stages
             else if (ancestor is StateStruct ancStruct)
             {
          
-                var result = SolvingFunctions.TransformToStructOrNull(
-                    descendantNode.Name, descendant, ancStruct);
+                var result = SolvingFunctions.TransformToStructOrNull(descendant, ancStruct);
                 if (result == null)
                     return false;
                 //todo seems repeat TransformToStructOrNull code
@@ -102,9 +101,7 @@ namespace NFun.Tic.Stages
                 {
                     var descField = descStruct.GetFieldOrNull(ancField.Key);
                     if (descField == null)
-                    {
                         descendantNode.State = descStruct.With(ancField.Key, ancField.Value);
-                    }
                     else
                         SolvingFunctions.Merge(ancField.Value, descField);
                 }

@@ -219,7 +219,7 @@ namespace NFun.Tic
         {
             if (descendant == ancestor)
                 return;
-
+            
             if (!ancestor.State.ApplyDescendant(PushConstraintsFunctions.Singletone, ancestor, descendant))
                 throw TicErrors.IncompatibleNodes(ancestor, descendant);
         }
@@ -365,7 +365,7 @@ namespace NFun.Tic
         /// <summary>
         /// Transform constrains to struct state
         /// </summary>
-        public static StateStruct TransformToStructOrNull(object descNodeName, ConstrainsState descendant, StateStruct ancStruct)
+        public static StateStruct TransformToStructOrNull(ConstrainsState descendant, StateStruct ancStruct)
         {
             if (descendant.NoConstrains)
                 return ancStruct;

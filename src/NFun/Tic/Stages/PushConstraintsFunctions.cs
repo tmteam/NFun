@@ -77,24 +77,29 @@ namespace NFun.Tic.Stages
             // y:user = a:[..]  # 'a' has to be a struct, that converts to type of 'user'
             if (ancestor is StateStruct ancStruct)
             {
-                var descStruct = SolvingFunctions.TransformToStructOrNull(descendantNode.Name, descendant, ancStruct);
+                var descStruct = SolvingFunctions.TransformToStructOrNull(descendant, ancStruct);
                 if (descStruct == null)
                     return false;
                 descendantNode.State = descStruct;
 
-                return PushFieldsConstains(ancStruct, descStruct);
+                if (TryMergeStructFields(ancStruct, descStruct))
+                {
+                    descendantNode.Ancestors.Remove(ancestorNode);
+                    return true;
+                }
             }
             return false;
         }
 
-        private static bool PushFieldsConstains(StateStruct ancStruct, StateStruct descStruct)
+        private static bool TryMergeStructFields(StateStruct ancStruct, StateStruct descStruct)
         {
             foreach (var ancField in ancStruct.Fields)
             {
                 TicNode descFieldNode = descStruct.GetFieldOrNull(ancField.Key);
                 if (descFieldNode == null)
                     return false;
-                SolvingFunctions.PushConstraints(descFieldNode, ancField.Value);
+                //  i m not sure why - but it is very important to set descFieldNode as main merge node... 
+                SolvingFunctions.Merge(descFieldNode, ancField.Value);
             }
 
             return true;
@@ -122,12 +127,7 @@ namespace NFun.Tic.Stages
             }
             if (ancestor is StateStruct ancStruct)
             {
-                var descStruct = (StateStruct) descendant;
-                var res =  PushFieldsConstains(ancStruct, descStruct);
-                if (res)
-                    return true;
-                else
-                    return false;
+                return TryMergeStructFields(ancStruct, (StateStruct) descendant);
             }
             return false;
         }

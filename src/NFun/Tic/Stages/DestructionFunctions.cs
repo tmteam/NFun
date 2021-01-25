@@ -1,3 +1,4 @@
+using NFun.Exceptions;
 using NFun.Tic.SolvingStates;
 
 namespace NFun.Tic.Stages
@@ -102,8 +103,17 @@ namespace NFun.Tic.Stages
                     foreach (var ancField in ancStruct.Fields)
                     {
                         var descFieldNode = descStruct.GetFieldOrNull(ancField.Key);
-                        SolvingFunctions.Destruction(descFieldNode, ancField.Value);
-
+                        if (descFieldNode == null)
+                        {
+                            //todo!!
+                            //throw new ImpossibleException(
+                            //    $"Struct descendant '{descendantNode.Name}:{descendant}' of node '{ancestorNode.Name}:{ancestor}' miss field '{ancField.Key}'");
+                            descendantNode.State = descStruct.With(ancField.Key, ancField.Value);
+                        }
+                        else
+                        {
+                            SolvingFunctions.Destruction(descFieldNode, ancField.Value);
+                        }
                     }
                     ancestorNode.State = new StateRefTo(descendantNode);
                 }
