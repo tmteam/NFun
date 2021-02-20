@@ -68,6 +68,10 @@ namespace NFun.Tic
             get => _state;
             set
             {
+                if (value is StateRefTo refa && refa.Node == this)
+                {
+                    
+                }
                 Debug.Assert(value != null);
                 Debug.Assert(_state==null || IsMutable || value.Equals(_state),"Node is already solved");
                 

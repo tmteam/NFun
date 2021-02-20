@@ -18,7 +18,8 @@ namespace NFun.Tic.SolvingStates
         public override string ToString() => $"ref({Node.Name})";
         public string Description => Node.Name.ToString();
 
-        public bool ApplyDescendant(IStateCombination2dimensionalVisitor visitor, TicNode ancestorNode, TicNode descendantNode) => false;
+        public bool ApplyDescendant(IStateCombination2dimensionalVisitor visitor, TicNode ancestorNode, TicNode descendantNode) 
+            => false;
         
 
         public bool Apply(IStateCombination2dimensionalVisitor visitor, TicNode ancestorNode, TicNode descendantNode, StatePrimitive ancestor)

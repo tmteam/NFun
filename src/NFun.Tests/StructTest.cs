@@ -202,9 +202,9 @@ namespace Funny.Tests
         {
             TraceLog.IsEnabled = true;
             FunBuilder
-                .Build("a = @{b = 24; c=25}; " +
-                       "b = @{d = a; e = a.c; f = 3}; " +
-                       "y = b.d.b + b.e + b.f")
+                .Build("first = @{b = 24; c=25}; " +
+                       "second = @{d = first; e = first.c; f = 3}; " +
+                       "y = second.d.b + second.e + second.f")
                 .Calculate()
                 .AssertHas(VarVal.New("y", 52.0));
         }
@@ -214,13 +214,25 @@ namespace Funny.Tests
         {
             TraceLog.IsEnabled = true;
             FunBuilder
-                .Build("a = @{b = 24; c=25}; " +
-                       "b = @{d = a; e = a.c}; " +
-                       "y = b.d.b + b.e")
+                .Build("first = @{b = 24; c=25}; " +
+                       "second = @{d = first; e = first.c}; " +
+                       "y = second.d.b + second.e")
                 .Calculate()
                 .AssertHas(VarVal.New("y", 49.0));
         }
         
+        
+        [Test]
+        public void ConstantAccessNestedCreatedSuperSimple()
+        {
+            TraceLog.IsEnabled = true;
+            FunBuilder
+                .Build("first = @{b = 24}; " +
+                       "second = @{d = 1.0; e = first.b}; " +
+                       "y = second.e")
+                .Calculate()
+                .AssertHas(VarVal.New("y", 24.0));
+        }
         
         [Test]
         public void ConstantAccessManyNestedCreatedHellTest()
