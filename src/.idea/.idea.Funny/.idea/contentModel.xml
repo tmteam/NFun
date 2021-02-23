@@ -218,6 +218,7 @@
           <e p="GraphBuilder.cs" t="Include" />
           <e p="ITicResults.cs" t="Include" />
           <e p="NodeToposort.cs" t="Include" />
+          <e p="NodeToposort2.cs" t="Include" />
           <e p="SolvingFunctions.cs" t="Include" />
           <e p="SolvingStates" t="Include">
             <e p="ConstrainsState.cs" t="Include" />
@@ -533,6 +534,8 @@
           <e p="BodyTypeInferenceTests.cs" t="Include" />
           <e p="TestHelper.cs" t="Include" />
         </e>
+        <e p="Toposort2Test.cs" t="Include" />
+        <e p="ToposortTest.cs" t="Include" />
         <e p="UnitTests" t="Include">
           <e p="AliasTableTest.cs" t="Include" />
           <e p="FunArrayTest.cs" t="Include" />

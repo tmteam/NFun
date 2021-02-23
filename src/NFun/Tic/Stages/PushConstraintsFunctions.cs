@@ -58,9 +58,15 @@ namespace NFun.Tic.Stages
                 var result = SolvingFunctions.TransformToArrayOrNull(descendantNode.Name, descendant);
                 if (result == null)
                     return false;
-                result.ElementNode.Ancestors.Add(ancArray.ElementNode);
+                if (result.ElementNode == ancArray.ElementNode)
+                {
+                    descendantNode.RemoveAncestor(ancestorNode);
+                    return true;
+                }
+                
+                result.ElementNode.AddAncestor(ancArray.ElementNode);
                 descendantNode.State = result;
-                descendantNode.Ancestors.Remove(ancestorNode);
+                descendantNode.RemoveAncestor(ancestorNode);
                 SolvingFunctions.PushConstraints(result.ElementNode, ancArray.ElementNode);
                 return true;
             }
@@ -70,8 +76,12 @@ namespace NFun.Tic.Stages
                 var descFun = SolvingFunctions.TransformToFunOrNull(descendantNode.Name, descendant, ancFun);
                 if (descFun == null)
                     return false;
-                descendantNode.State = descFun;
-                PushFunTypeArgumentsConstraints(descFun, ancFun);
+                if (!descendantNode.State.Equals(descFun))
+                {
+                    descendantNode.State = descFun;
+                    PushFunTypeArgumentsConstraints(descFun, ancFun);
+                }
+
                 return true;
             }
             // y:user = a:[..]  # 'a' has to be a struct, that converts to type of 'user'
@@ -80,11 +90,15 @@ namespace NFun.Tic.Stages
                 var descStruct = SolvingFunctions.TransformToStructOrNull(descendant, ancStruct);
                 if (descStruct == null)
                     return false;
+                if (!descendantNode.State.Equals(descStruct))
+                {
+                    descendantNode.RemoveAncestor(ancestorNode);
+                    return true;
+                }
                 descendantNode.State = descStruct;
-
                 if (TryMergeStructFields(ancStruct, descStruct))
                 {
-                    descendantNode.Ancestors.Remove(ancestorNode);
+                    descendantNode.RemoveAncestor(ancestorNode);
                     return true;
                 }
             }

@@ -391,6 +391,7 @@ namespace NFun.Tic.Tests
         [Test]
         public void CircularDependenciesWithEquation_SingleGenericFound()
         {
+            TraceLog.IsEnabled = true;
             //    021      354   
             //a = b*c; b = c*a; 
 
@@ -403,6 +404,30 @@ namespace NFun.Tic.Tests
             graph.SetVar("c", 3);
             graph.SetVar("a", 4);
             graph.SetArith(3, 4, 5);
+            graph.SetDef("b", 5);
+
+            var result = graph.Solve();
+            var generic = result.AssertAndGetSingleArithGeneric();
+            result.AssertAreGenerics(generic, "a", "b","c");
+        }
+        
+        [Test]
+        public void CircularDependenciesWithEquation_ReversedInputOrder_SingleGenericFound()
+        {
+            TraceLog.IsEnabled = true;
+            //    021      354   
+            //a = b*c; b = c*a; 
+
+            var graph = new GraphBuilder();
+
+            graph.SetArith(0,1,2);
+            graph.SetVar("b", 0);
+            graph.SetVar("c", 1);
+            graph.SetDef("a", 2);
+
+            graph.SetArith(3, 4, 5);
+            graph.SetVar("c", 3);
+            graph.SetVar("a", 4);
             graph.SetDef("b", 5);
 
             var result = graph.Solve();

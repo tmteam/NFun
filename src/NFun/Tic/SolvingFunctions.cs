@@ -95,8 +95,8 @@ namespace NFun.Tic
                 return;
             }
 
-            main.Ancestors.AddRange(secondary.Ancestors);
-            secondary.Ancestors.Clear();
+            main.AddAncestors(secondary.Ancestors.Where(a=>a!=main));
+            secondary.ClearAncestors();
             secondary.State = new StateRefTo(main);
         }
 
@@ -121,8 +121,8 @@ namespace NFun.Tic
                                  ?? throw TicErrors.CannotMergeGroup(cycleRoute.ToArray(), main, current);
                 }
                 
-                main.Ancestors.AddRange(current.Ancestors);
-                current.Ancestors.Clear();
+                main.AddAncestors(current.Ancestors.Where(c=>c!=main));
+                current.ClearAncestors();
 
                 if (!current.IsSolved)
                     current.State = new StateRefTo(main);
@@ -134,8 +134,8 @@ namespace NFun.Tic
                 .Distinct()
                 .ToList();
 
-            main.Ancestors.Clear();
-            main.Ancestors.AddRange(newAncestors);
+            main.ClearAncestors();
+            main.AddAncestors(newAncestors);
         }
 
         #endregion
@@ -331,12 +331,12 @@ namespace NFun.Tic
                 for (int i = 0; i < ancestor.ArgsCount; i++)
                 {
                     var argNode = TicNode.CreateTypeVariableNode("a'"+ descNodeName +"'"+i, new ConstrainsState());
-                    argNode.Ancestors.Add(ancestor.ArgNodes[i]);
+                    argNode.AddAncestor(ancestor.ArgNodes[i]);
                     argNodes[i] = argNode;
                 }
 
                 var retNode = TicNode.CreateTypeVariableNode("r'"+ descNodeName, new ConstrainsState());
-                retNode.Ancestors.Add(ancestor.RetNode);
+                retNode.AddAncestor(ancestor.RetNode);
 
                 return StateFun.Of(argNodes, retNode);
             }
