@@ -53,7 +53,7 @@ namespace NFun.Tic.Stages
                 descendantNode.State = result;
                 ancestorNode.State = new StateRefTo(descendantNode);
             }
-            descendantNode.Ancestors.Remove(ancestorNode);
+            descendantNode.RemoveAncestor(ancestorNode);
             return true;
         }
 

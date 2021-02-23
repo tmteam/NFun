@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using NFun.Exceptions;
 using NFun.Tic.SolvingStates;
 
 namespace NFun.Tic
@@ -58,7 +59,45 @@ namespace NFun.Tic
             Type = type;
         }
         public TicNodeType Type { get; }
-        public List<TicNode> Ancestors { get; } = new List<TicNode>();
+
+        #region Ancestors
+
+        
+        public void AddAncestor(TicNode node)
+        {
+            if(node==this)
+                throw new ImpossibleException("CircularAncestor");
+
+            _ancestors.Add(node);
+        }
+
+        public void AddAncestors(IEnumerable<TicNode> nodes)
+        {
+            if (nodes.Any(n=>n== this))
+            {
+                throw new ImpossibleException("CircularAncestor");
+            }
+            _ancestors.AddRange(nodes);
+        }
+
+        public void RemoveAncestor(TicNode node)
+        {
+            _ancestors.Remove(node);
+        }
+
+        public void SetAncestor(int index, TicNode node)
+        {
+            if (node == this)
+            {
+                throw new ImpossibleException("CircularAncestor");
+            }
+            _ancestors[index] = node;
+        }
+        
+        private  List<TicNode> _ancestors = new List<TicNode>();
+        public IReadOnlyList<TicNode> Ancestors => _ancestors;
+        #endregion
+
         public bool IsMemberOfAnything { get; set; }
         public bool IsSolved => _state.IsSolved;
         public bool IsMutable => _state.IsMutable;
@@ -160,5 +199,9 @@ namespace NFun.Tic
         }
         public override int GetHashCode() => _uid;
 
+        public void ClearAncestors()
+        {
+            _ancestors.Clear();
+        }
     }
 }

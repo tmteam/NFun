@@ -114,6 +114,7 @@ namespace NFun.Tic.Tests.Arrays
         [Test]
         public void CompareConcreteAndGenericEmptyArray()
         {
+            TraceLog.IsEnabled = true;
             //    1 0   3  2         
             //y = [1.0] == []
             var graph = new GraphBuilder();

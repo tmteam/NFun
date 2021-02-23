@@ -30,7 +30,7 @@ namespace NFun.Tic
             var idNode = GetOrCreateNode(node);
             if (idNode.State is ConstrainsState)
             {
-                namedNode.Ancestors.Add(idNode);
+                namedNode.AddAncestor(idNode);
             }
             else
             {
@@ -123,7 +123,7 @@ namespace NFun.Tic
             var args   = GetNamedNodes(varNames);
             var exprId = GetOrCreateNode(returnId);
             var returnTypeNode = CreateVarType(returnType);
-            exprId.Ancestors.Add(returnTypeNode);
+            exprId.AddAncestor(returnTypeNode);
             //expr<=returnType<= ...
             SetOrCreateLambda(lambdaId, args, returnTypeNode);
         }
@@ -134,7 +134,7 @@ namespace NFun.Tic
             var exprId = GetOrCreateNode(returnId);
             var returnTypeNode = CreateVarType(returnType);
             //expr<=returnType<= ...
-            exprId.Ancestors.Add(returnTypeNode);
+            exprId.AddAncestor(returnTypeNode);
             var fun = StateFun.Of(args, returnTypeNode);
 
             var node = GetNamedNode(name);
@@ -164,7 +164,7 @@ namespace NFun.Tic
             GetOrCreateArrayNode(resultIds, elementType);
             foreach (var id in elementIds)
             {
-                GetOrCreateNode(id).Ancestors.Add(elementType);
+                GetOrCreateNode(id).AddAncestor(elementType);
                 elementType.IsMemberOfAnything = true;
             }
         }
@@ -246,7 +246,7 @@ namespace NFun.Tic
             if (exprNode.State is StatePrimitive primitive && defNode.State is ConstrainsState constrains)
                     constrains.Prefered = primitive;
 
-            exprNode.Ancestors.Add(defNode);
+            exprNode.AddAncestor(defNode);
         }
         
         public void SetFieldAccess(int structNodeId, int opId, string fieldName)
@@ -283,11 +283,15 @@ namespace NFun.Tic
 
             var sorted = Toposort();
             PrintTrace("1. Toposorted");
+            PrintTrace("1. Toposorted", sorted);
 
             SolvingFunctions.PullConstraints(sorted);
             PrintTrace("2. PullConstraints");
+            PrintTrace("2. PullConstraints", sorted);
+
             SolvingFunctions.PushConstraints(sorted);
             PrintTrace("3. PushConstraints");
+            PrintTrace("3. PushConstraints", sorted);
             
             bool allTypesAreSolved = SolvingFunctions.Destruction(sorted);
             PrintTrace("4. Destructed");
@@ -321,7 +325,7 @@ namespace NFun.Tic
         private void SetCallArgument(StateRefTo type, int argId)
         {
             var node = GetOrCreateNode(argId);
-            node.Ancestors.Add(type.Node);
+            node.AddAncestor(type.Node);
         }
         
         private void SetCallArgument(ITicNodeState type, int argId)
@@ -341,12 +345,12 @@ namespace NFun.Tic
                     RegistrateCompositeType(composite);
 
                     var ancestor = CreateVarType(composite);
-                    node.Ancestors.Add(ancestor);
+                    node.AddAncestor(ancestor);
                     break;
                 }
                 case StateRefTo refTo:
                 {
-                    node.Ancestors.Add(refTo.Node);
+                    node.AddAncestor(refTo.Node);
                     break;
                 }
 
@@ -529,6 +533,12 @@ namespace NFun.Tic
                 _syntaxNodes
                     .Union(_variables.Select(v => v.Value))
                     .Union(_typeVariables));
+        }
+        
+        public void PrintTrace(string name, IEnumerable<TicNode> sorted)
+        {
+            TraceLog.WriteLine($"\r\n Sorted trace for {name}");
+            SolvingFunctions.PrintTrace(sorted);
         }
 
     }

@@ -10,20 +10,28 @@ using NFun.Tic.SolvingStates;
 
 namespace NFun.Tic
 {
-    public class NodeToposort
+    public class NodeToposort2
     {
         public TicNode[] NonReferenceOrdered { get; private set; }
 
         private Stack<TicNode> _path;
+        private List<TicNode> _allNodes;
+
         private int _refenceNodesCount = 0;
 
-        public NodeToposort(int capacity)
+        public NodeToposort2(int capacity)
         {
-            _path = new Stack<TicNode>(capacity);            
+            _allNodes = new List<TicNode>(capacity);
+            //_path = new Stack<TicNode>(capacity);            
         }
         
         public void OptimizeTopology()
         {
+            _path = new Stack<TicNode>(_allNodes.Count);
+            
+            foreach (var nonReferenceNode in _allNodes) {
+                Visit(nonReferenceNode);
+            }
             //at this moment we have garanties that graph has no cycles
             NonReferenceOrdered = new TicNode[_path.Count- _refenceNodesCount];
             var nonRefId = 0;
@@ -53,6 +61,24 @@ namespace NFun.Tic
             }
         }
 
+        private void Resorting()
+        {
+            _path.Clear();
+            
+            foreach (var node in NonReferenceOrdered) 
+                node.VisitMark = NotVisited;
+            
+            foreach (var node in NonReferenceOrdered) 
+                Visit(node);
+
+            int pathIndex = 0;
+            foreach (var node in _path)
+            {
+                NonReferenceOrdered[pathIndex] = node;
+                pathIndex++;
+            }
+        }
+
         private Stack<TicNode> _cycle = null;
         private TicNode _cycleInitiator = null;
         
@@ -60,7 +86,31 @@ namespace NFun.Tic
         private const int IsVisited = -42;
         private const int NotVisited = 0;
 
-        public bool AddToTopology(TicNode node)
+        public void AddToTopology(TicNode node)
+        {
+            if(node==null)
+                return;
+            for (var i = 0; i < node.Ancestors.Count; i++)
+            {
+                var ancestor = node.Ancestors[i];
+                if (ancestor.State is StateRefTo ancrRefTo) 
+                    node.SetAncestor(i,ancrRefTo.Node.GetNonReference());
+            }
+            if (node.State is StateRefTo refTo)
+            {
+                foreach (var refAncestor in node.Ancestors) 
+                    refTo.Node.AddAncestor(refAncestor);
+                node.ClearAncestors();
+                _refenceNodesCount++;
+            }
+            else
+            {
+                _allNodes.Add(node);
+            }
+        }
+        
+        
+        private bool Visit(TicNode node)
         {
             if (node == null)
                 return true;
@@ -77,12 +127,14 @@ namespace NFun.Tic
                 _cycleInitiator = node;
                 return false;
             }
+            
+            
             node.VisitMark = InProcess;
 
             if (node.State is StateRefTo refTo)
             {
                 _refenceNodesCount++;
-                if (!AddToTopology(refTo.Node))
+                if (!Visit(refTo.Node))
                 {
                     // VisitNodeInCycle rolls back graph
                     // so we need to decrement counter
@@ -94,12 +146,12 @@ namespace NFun.Tic
             else if (node.State is ICompositeState composite)
             {
                 foreach (var member in composite.Members)
-                    if (!AddToTopology(member)) 
+                    if (!Visit(member)) 
                         ThrowRecursiveTypeDefenition(node);
             }
                 
             foreach (var ancestor in node.Ancestors) 
-                if(!AddToTopology(ancestor)) 
+                if(!Visit(ancestor)) 
                     return VisitNodeInCycle(node);
                 
             _path.Push(node);
@@ -134,7 +186,7 @@ namespace NFun.Tic
             _cycle = null;
             _cycleInitiator = null;
             // continue toposort algorithm
-            return AddToTopology(node);
+            return Visit(node);
 
             // Whole cycle is not found yet            
             // step back

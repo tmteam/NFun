@@ -240,12 +240,60 @@ namespace Funny.Tests
             TraceLog.IsEnabled = true;
             FunBuilder
                 .Build("a1 = @{af1_24 = 24; af2_1=1}; " +
+                       
                        "b2 = @{bf1 = a1; bf2_1 = a1.af2_1}; " +
                        "c3 = @{cf1_1 = b2.bf2_1; cf2_24 = a1.af1_24}; " +
                        "e4 = @{ef1 = a1.af1_24; ef2 = b2.bf2_1; ef3 = a1;  ef4_24 = c3.cf2_24}; " +
                        "y = a1.af1_24 + b2.bf1.af2_1 + c3.cf2_24 + e4.ef4_24")
                 .Calculate()
                 .AssertHas(VarVal.New("y", 98.0));
+        }
+        
+        [Test]
+        public void ConstantAccess3EquationNested()
+        {
+            TraceLog.IsEnabled = true;
+            FunBuilder
+                .Build("a1 = @{af1_24 = 24; af2_1=1}; " +
+                       "b2 = @{bf1 = a1; bf2_1 = a1.af2_1}; " +
+                       "y = a1.af1_24 + b2.bf1.af2_1 + b2.bf2_1 + a1.af1_24")
+                .Calculate()
+                .AssertHas(VarVal.New("y", 50.0));
+        }
+        
+        [Test]
+        public void ConstantAccess3EquationNested3()
+        {
+            TraceLog.IsEnabled = true;
+            FunBuilder
+                .Build("a1 = @{af1_24 = 24; af2_1=1}; " +
+                       "b2 = @{bf1 = a1; bf2_1 = a1.af2_1}; " +
+                       "y = a1.af1_24 + b2.bf1.af2_1 + a1.af1_24")
+                .Calculate()
+                .AssertHas(VarVal.New("y", 50.0));
+        }
+        
+        [Test]
+        public void ConstantTwinAccess()
+        {
+            TraceLog.IsEnabled = true;
+            FunBuilder
+                .Build("a1 = @{af1_24 = 24}; " +
+                       "y = a1.af1_24 + a1.af1_24")
+                .Calculate()
+                .AssertHas(VarVal.New("y", 48.0));
+        }
+        
+        [Test]
+        public void ConstantAccess3EquationNested2()
+        {
+            TraceLog.IsEnabled = true;
+            FunBuilder
+                .Build("a1 = @{af1_24 = 24; af2_1=1}; " +
+                       "b2 = @{bf1 = a1; bf2_1 = a1.af2_1}; " +
+                       "y = a1.af1_24 + b2.bf1.af2_1 + b2.bf2_1")
+                .Calculate()
+                .AssertHas(VarVal.New("y", 26.0));
         }
 
         [Test]
