@@ -507,6 +507,7 @@
           <e p="NodeToposortFunctionsTest.cs" t="Include" />
           <e p="PrimitiveTypeTest.cs" t="Include" />
           <e p="SolvingFunctionsTest.cs" t="Include" />
+          <e p="Toposort2Test.cs" t="Include" />
         </e>
         <e p="UserFunctionsTest.cs" t="Include" />
       </e>
@@ -531,12 +532,10 @@
           <e p="StructFieldAccessSyntaxNodeParserTest.cs" t="Include" />
           <e p="StructSyntaxNodeTest.cs" t="Include" />
         </e>
-        <e p="SolvingFunctionsTest.cs" t="Include" />
         <e p="TicTests" t="Include">
           <e p="BodyTypeInferenceTests.cs" t="Include" />
           <e p="TestHelper.cs" t="Include" />
         </e>
-        <e p="Toposort2Test.cs" t="Include" />
         <e p="UnitTests" t="Include">
           <e p="AliasTableTest.cs" t="Include" />
           <e p="FunArrayTest.cs" t="Include" />

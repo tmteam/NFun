@@ -30,7 +30,7 @@ namespace NFun.Tic
             switch (stateA)
             {
                 case StateArray arrayA when stateB is StateArray arrayB:
-                    Merge(arrayA.ElementNode, arrayB.ElementNode);
+                    MergeInplace(arrayA.ElementNode, arrayB.ElementNode);
                     return arrayA;
                 case StateFun funA when stateB is StateFun funB:
                 {
@@ -38,8 +38,8 @@ namespace NFun.Tic
                         return null;
 
                     for (int i = 0; i < funA.ArgsCount; i++)
-                        Merge(funA.ArgNodes[i], funB.ArgNodes[i]);
-                    Merge(funA.RetNode, funB.RetNode);
+                        MergeInplace(funA.ArgNodes[i], funB.ArgNodes[i]);
+                    MergeInplace(funA.RetNode, funB.RetNode);
                     return funA;
                 }
                 case StateStruct strA when stateB is StateStruct strB:
@@ -49,7 +49,7 @@ namespace NFun.Tic
                     {
                         var bNode = strB.GetFieldOrNull(aField.Key);
                         if(bNode!=null)
-                            Merge(aField.Value, bNode);
+                            MergeInplace(aField.Value, bNode);
                         result.Add(aField.Key, aField.Value);
                     }
 
@@ -79,15 +79,17 @@ namespace NFun.Tic
             return null;
         }
 
-        public static void Merge(TicNode main, TicNode secondary)
+        public static void MergeInplace(TicNode main, TicNode secondary)
         {
             if(main==secondary)
                 return;
-            
             var res = GetMergedStateOrNull(main.State, secondary.State);
             if (res == null)
                 throw TicErrors.CannotMerge(main, secondary);
-
+            
+            if(main.State.Equals(res))
+                return;
+            
             main.State = res;
             if (res is ITypeState t && t.IsSolved)
             {
@@ -292,9 +294,9 @@ namespace NFun.Tic
             referencedNode = referencedNode.GetNonReference();
             original = original.GetNonReference();
             if (referencedNode.Type == TicNodeType.SyntaxNode)
-                Merge(original, referencedNode);
+                MergeInplace(original, referencedNode);
             else
-                Merge(referencedNode, original);
+                MergeInplace(referencedNode, original);
         }
 
         /// <summary>

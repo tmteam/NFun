@@ -200,7 +200,7 @@ namespace NFun.Tic
 
             var returnId = argThenReturnIds[argThenReturnIds.Length - 1];
             var returnNode = GetOrCreateNode(returnId);
-            SolvingFunctions.Merge(funState.RetNode,returnNode);
+            SolvingFunctions.MergeInplace(funState.RetNode,returnNode);
         }
 
         /// <summary>

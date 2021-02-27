@@ -113,7 +113,7 @@ namespace NFun.Tic.Stages
                 if (descFieldNode == null)
                     return false;
                 //  i m not sure why - but it is very important to set descFieldNode as main merge node... 
-                SolvingFunctions.Merge(descFieldNode, ancField.Value);
+                SolvingFunctions.MergeInplace(descFieldNode, ancField.Value);
             }
 
             return true;

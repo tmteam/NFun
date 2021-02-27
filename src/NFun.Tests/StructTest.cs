@@ -283,6 +283,16 @@ namespace Funny.Tests
                 .Calculate()
                 .AssertHas(VarVal.New("y", 48.0));
         }
+        [Test]
+        public void ConstantTwinAccess2()
+        {
+            TraceLog.IsEnabled = true;
+            FunBuilder
+                .Build("a1 = @{af1_24 = 24.0}; " +
+                       "y = a1.af1_24 + a1.af1_24")
+                .Calculate()
+                .AssertHas(VarVal.New("y", 48.0));
+        }
         
         [Test]
         public void ConstantAccess3EquationNested2()

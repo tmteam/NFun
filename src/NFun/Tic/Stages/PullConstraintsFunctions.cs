@@ -109,7 +109,7 @@ namespace NFun.Tic.Stages
                     if (descField == null)
                         descendantNode.State = descStruct.With(ancField.Key, ancField.Value);
                     else
-                        SolvingFunctions.Merge(ancField.Value, descField);
+                        SolvingFunctions.MergeInplace(ancField.Value, descField);
                 }
             }
 
