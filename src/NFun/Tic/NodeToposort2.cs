@@ -169,31 +169,31 @@ namespace NFun.Tic
             }
         }
 
-        
+
 
         private bool Visit(TicNode node)
         {
             _visitDepth++;
             if (_visitDepth > 1000)
                 throw new InvalidOperationException($"Toposort stack overflow. Node: {node}");
-            
+
             if (node == null)
                 return true;
             if (node.VisitMark == IsVisited)
             {
                 // if node is already visited then skip it
                 return true;
-            }  
+            }
+
             if (node.VisitMark == InProcess)
             {
                 // Node is visiting, that means cycle found
                 // initialize cycle collecting process
-                _cycle = new Stack<TicNode>(_path.Count+1);
+                _cycle = new Stack<TicNode>(_path.Count + 1);
                 _cycleInitiator = node;
                 return false;
             }
-            
-            
+
             node.VisitMark = InProcess;
 
             if (node.State is StateRefTo refTo)
@@ -211,14 +211,18 @@ namespace NFun.Tic
             else if (node.State is ICompositeState composite)
             {
                 foreach (var member in composite.Members)
-                    if (!Visit(member)) 
+                    if (!Visit(member))
                         ThrowRecursiveTypeDefenition(node);
             }
-                
-            foreach (var ancestor in node.Ancestors) 
-                if(!Visit(ancestor)) 
+
+            for (var i = 0; i < node.Ancestors.Count; i++)
+            {
+                var ancestor = node.Ancestors[i];
+                if (!Visit(ancestor))
                     return VisitNodeInCycle(node);
-                
+            }
+
+
             _path.Push(node);
             node.VisitMark = IsVisited;
             return true;
@@ -246,10 +250,7 @@ namespace NFun.Tic
             // (a<= b <= c = a)  =>  (a = b = c) 
                 
             var merged = SolvingFunctions.MergeGroup(_cycle.Reverse());
-            //foreach (var item in _cycle)
-            //    item.VisitMark = IsVisited;
-            //merged.VisitMark = NotVisited;
-
+          
             // Cycle is merged
             _cycle = null;
             _cycleInitiator = null;

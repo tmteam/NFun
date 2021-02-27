@@ -99,11 +99,18 @@ namespace NFun.Tic
             secondary.ClearAncestors();
             secondary.State = new StateRefTo(main);
         }
-
+        /// <summary>
+        /// Merge all node states. First non ref state (or first state) called 'main'
+        /// 'main' state takes all constrains and ancestors
+        ///
+        /// All other nodes refs to 'main'
+        ///
+        /// Returns 'main'
+        /// </summary>
         public static TicNode MergeGroup(IEnumerable<TicNode> cycleRoute)
         {
-            var main = cycleRoute.First();
-            
+            var main = cycleRoute.FirstOrDefault(c=>!(c.State is StateRefTo))
+                       ?? cycleRoute.First();
             foreach (var current in cycleRoute)
             {
                 if (current == main)
@@ -128,8 +135,7 @@ namespace NFun.Tic
                     current.State = new StateRefTo(main);
             }
 
-            var newAncestors = main.Ancestors.Distinct()
-                .SelectMany(r => r.Ancestors)
+            var newAncestors = main.Ancestors
                 .Where(r => !cycleRoute.Contains(r))
                 .Distinct()
                 .ToList();

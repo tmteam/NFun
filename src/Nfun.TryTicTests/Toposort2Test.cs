@@ -47,17 +47,22 @@ namespace Nfun.ModuleTests
         [Test]
         public void AncestorMultiCycle()
         {
-            //V2[a b] -> n  -> 12        -> V2 
-            //        -> 16 -> V3 [a..b] -> n	 
-            var v2 = CreateNode("v2");
-            var v3 = CreateNode("v3");
+            
+            //V2 -> n  -> 13 -> V2 
+            //   -> 16 -> V3 -> n	 
+            
+            //cycle 1:
+            //1) v2->n->13->v2  merges as 'X'
+            
+            //cycle 2:
+            //2)  X -> 16 -> v3 -> X
+            
+            var v2 = CreateNode("v2",new ConstrainsState(StatePrimitive.I32, StatePrimitive.Real));
+            var v3 = CreateNode("v3",new ConstrainsState(StatePrimitive.I24, StatePrimitive.Real));
 
             var i13 = CreateNode("13");
             var i16 = CreateNode("16");
             var n   = CreateNode("n");
-
-            v2.State = new ConstrainsState(StatePrimitive.I32, StatePrimitive.Real);
-            v3.State = new ConstrainsState(StatePrimitive.I24, StatePrimitive.Real);
             
             v2 .AddAncestor(n);
             n  .AddAncestor(i13);
@@ -70,7 +75,7 @@ namespace Nfun.ModuleTests
             algorithm.AddMany(v2,i13,i16,v3,n);
             algorithm.OptimizeTopology();
             
-            AssertHasNoAncestorCycle(v2,v3,n, i13,i16);
+            AssertHaveNoAncestorCycles(v2,v3,n, i13,i16);
 
             Assert.AreEqual(1,algorithm.NonReferenceOrdered.Length);
             var theNode = algorithm.NonReferenceOrdered[0];
@@ -81,22 +86,22 @@ namespace Nfun.ModuleTests
         [Test]
         public void AncestorAndRefMultiCycle()
         {
-            //V2[i32..r] -> n  ==> 12        -> V2 
-            //        <== 16 -> V3 [i24..r] -> n	 
-            var v2 = CreateNode("v2");
-            var v3 = CreateNode("v3");
+            //V2   -> n  ==> 13 -> V2 
+            //  |<== 16   -> V3 -> n	 
+            
+            
+            var v2 = CreateNode("v2",new ConstrainsState(StatePrimitive.I32, StatePrimitive.Real));
+            var v3 = CreateNode("v3",new ConstrainsState(StatePrimitive.I24, StatePrimitive.Real));
 
             var i13 = CreateNode("13");
             var i16 = CreateNode("16");
             var n   = CreateNode("n");
 
-            v2.State = new ConstrainsState(StatePrimitive.I32, StatePrimitive.Real);
-            v3.State = new ConstrainsState(StatePrimitive.I24, StatePrimitive.Real);
-            
             v2 .AddAncestor(n);
             n.State   = new StateRefTo(i13);
             i13.AddAncestor(v2);
             v2 .AddAncestor(i16);
+            i16.AddAncestor(v3);
             i16.State = new StateRefTo(v2);
             v3 .AddAncestor(n);
 
@@ -104,12 +109,96 @@ namespace Nfun.ModuleTests
             algorithm.AddMany(v2,i13,i16,v3,n);
             algorithm.OptimizeTopology();
             
-            AssertHasNoAncestorCycle(v2,v3,n, i13,i16);
+            AssertHaveNoAncestorCycles(v2,v3,n, i13,i16);
 
             Assert.AreEqual(1,algorithm.NonReferenceOrdered.Length);
             var theNode = algorithm.NonReferenceOrdered[0];
             Assert.IsInstanceOf<ConstrainsState>(theNode.State);
             Assert.AreEqual(new ConstrainsState(StatePrimitive.I32, StatePrimitive.Real), theNode.State);
+        }
+
+        [Test]
+        public void AncestorAndRefMultiCycle_allAncestorsMoveToMerged()
+        {
+            //V2   -> n  ==> 13 -> V2 
+            //  |<== 16   -> V3 -> n	 
+            
+            // Each of nodes has its own ancestor
+            // all these 'side' -ancestors has to move to main node
+            
+            var v2 = CreateNode("v2",new ConstrainsState(StatePrimitive.I32, StatePrimitive.Real));
+            var v3 = CreateNode("v3",new ConstrainsState(StatePrimitive.I24, StatePrimitive.Real));
+
+            var i13 = CreateNode("13");
+            var i16 = CreateNode("16");
+            var n   = CreateNode("n");
+            
+            v2 .AddAncestor(n);
+            n.State   = new StateRefTo(i13);
+            i13.AddAncestor(v2);
+            v2 .AddAncestor(i16);
+            i16.AddAncestor(v3);
+            i16.State = new StateRefTo(v2);
+            v3 .AddAncestor(n);
+
+            var ancestors = new[]
+                {CreateNode("anc1"), CreateNode("anc2"), CreateNode("anc3"), CreateNode("anc4"), CreateNode("anc5")};
+            v2 .AddAncestor(ancestors[0]);            
+            n  .AddAncestor(ancestors[1]);            
+            i13.AddAncestor(ancestors[2]);            
+            v2 .AddAncestor(ancestors[3]);            
+            i16.AddAncestor(ancestors[4]);            
+            
+            var algorithm = new NodeToposort2(6);
+            algorithm.AddMany(v2,i13,i16,v3,n);
+            algorithm.AddMany(ancestors);
+            algorithm.OptimizeTopology();
+            
+            AssertHaveNoAncestorCycles(v2,v3,n, i13,i16);
+            AssertHaveNoAncestorCycles(ancestors);
+
+            Assert.AreEqual(1+ancestors.Length ,algorithm.NonReferenceOrdered.Length);
+            var theNode = algorithm.NonReferenceOrdered[0];
+            Assert.IsInstanceOf<ConstrainsState>(theNode.State);
+            Assert.AreEqual(new ConstrainsState(StatePrimitive.I32, StatePrimitive.Real), theNode.State);
+            CollectionAssert.AreEquivalent(ancestors, theNode.Ancestors);
+        }
+
+        
+        [Test]
+        public void AncestorAndRefMultiCycle2()
+        {
+            //V2   -> n  ==> 13 <== V2 
+            //         |-> 16  ==> V3 -> n	 
+            
+            // After adding - all references should dissapear
+            // So the graph has to look like:
+            // v2->13->v2
+            //  |->v3->13
+            
+            var v2 = CreateNode("v2");
+            var v3 = CreateNode("v3");
+
+            var i13 = CreateNode("13");
+            var i16 = CreateNode("16");
+            var n   = CreateNode("n");
+
+            v2 .AddAncestor(n);
+            n.State   = new StateRefTo(i13);
+            v2.State = new StateRefTo(i13);
+            n.AddAncestor(i16);
+            i16.State = new StateRefTo(v3);
+            v3 .AddAncestor(n);
+
+            var algorithm = new NodeToposort2(6);
+            algorithm.AddMany(v2,i13,i16,v3,n);
+            algorithm.OptimizeTopology();
+            
+            AssertHaveNoAncestorCycles(v2,v3,n, i13,i16);
+
+            Assert.AreEqual(1,algorithm.NonReferenceOrdered.Length);
+            var theNode = algorithm.NonReferenceOrdered[0];
+            Assert.IsInstanceOf<ConstrainsState>(theNode.State);
         }
         
         [Test]
@@ -135,9 +224,9 @@ namespace Nfun.ModuleTests
             algorithm.AddMany(v2,i16,n);
             algorithm.OptimizeTopology();
             
-            AssertHasNoAncestorCycle(v2);
-            AssertHasNoAncestorCycle(n);
-            AssertHasNoAncestorCycle(i16);
+            AssertHaveNoAncestorCycles(v2);
+            AssertHaveNoAncestorCycles(n);
+            AssertHaveNoAncestorCycles(i16);
             
             Assert.AreEqual(1,algorithm.NonReferenceOrdered.Length);
             var theNode = algorithm.NonReferenceOrdered[0];
@@ -365,7 +454,7 @@ namespace Nfun.ModuleTests
             Assert.IsEmpty( n3.Ancestors);
         }
 
-        private static void AssertHasNoAncestorCycle(params TicNode[] targetNodes)
+        private static void AssertHaveNoAncestorCycles(params TicNode[] targetNodes)
         {
             foreach (var targetNode in targetNodes)
             {
@@ -392,7 +481,7 @@ namespace Nfun.ModuleTests
             Assert.Less(less,more);
 
         }
-        private static TicNode CreateNode(string name) 
-            => TicNode.CreateNamedNode(name, new ConstrainsState());
+        private static TicNode CreateNode(string name, ITicNodeState state = null) 
+            => TicNode.CreateNamedNode(name, state??new ConstrainsState());
     }
 }
