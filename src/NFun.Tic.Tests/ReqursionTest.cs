@@ -21,8 +21,8 @@ namespace NFun.Tic.Tests
             graph.SetArith(1, 2, 3);
             var result = graph.Solve();
             result.AssertNoGenerics();
-            Assert.AreEqual(fun.ReturnType, StatePrimitive.I32);
-            Assert.AreEqual(fun.Args.First(), StatePrimitive.Any);
+            Assert.AreEqual( StatePrimitive.I32,fun.ReturnType);
+            Assert.AreEqual( StatePrimitive.Any,fun.Args.First());
             //var generic = result.AssertAndGetSingleGeneric(null, null, false);
             //Assert.AreEqual(fun.ReturnType, Primitive.I32);
             //Assert.AreEqual(fun.Args.First(), generic.State);
