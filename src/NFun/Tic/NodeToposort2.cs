@@ -245,15 +245,17 @@ namespace NFun.Tic
                 
             // (a<= b <= c = a)  =>  (a = b = c) 
                 
-            SolvingFunctions.MergeGroup(_cycle.Reverse());
-            foreach (var item in _cycle)
-                item.VisitMark = IsVisited;
+            var merged = SolvingFunctions.MergeGroup(_cycle.Reverse());
+            //foreach (var item in _cycle)
+            //    item.VisitMark = IsVisited;
+            //merged.VisitMark = NotVisited;
 
             // Cycle is merged
             _cycle = null;
             _cycleInitiator = null;
+            
             // continue toposort algorithm
-            return Visit(node);
+            return Visit(merged);
 
             // Whole cycle is not found yet            
             // step back

@@ -305,6 +305,28 @@ namespace NFun.Tic.SolvingStates
         }
 
         public string Description => ToString();
+        public override bool Equals(object obj)
+        {
+            if (!(obj is  ConstrainsState constrainsState))
+                return false;
+
+            if (HasAncestor != constrainsState.HasAncestor)
+                return false;
+            if (HasAncestor && !constrainsState.Ancestor.Equals(Ancestor)) 
+                return false;
+
+            if (HasDescendant != constrainsState.HasDescendant)
+                return false;
+            if (HasDescendant && !constrainsState.Descedant.Equals(Descedant)) 
+                return false;
+            
+            if ((Prefered != null) != (constrainsState.Prefered != null))
+                return false;
+            if (Prefered != null && !constrainsState.Prefered!.Equals(Prefered))
+                return false;
+            
+            return IsComparable==constrainsState.IsComparable;
+        }
 
         public bool ApplyDescendant(IStateCombination2dimensionalVisitor visitor, TicNode ancestorNode, TicNode descendantNode) =>
             descendantNode.State.Apply(visitor, ancestorNode, descendantNode, this);

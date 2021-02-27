@@ -530,6 +530,7 @@
           <e p="StructFieldAccessSyntaxNodeParserTest.cs" t="Include" />
           <e p="StructSyntaxNodeTest.cs" t="Include" />
         </e>
+        <e p="SolvingFunctionsTest.cs" t="Include" />
         <e p="TicTests" t="Include">
           <e p="BodyTypeInferenceTests.cs" t="Include" />
           <e p="TestHelper.cs" t="Include" />
@@ -543,6 +544,7 @@
           <e p="GraphToolsTest_CycledTopologySort.cs" t="Include" />
           <e p="GraphToolsTest_TopologySort.cs" t="Include" />
           <e p="QuotationReaderTest.cs" t="Include" />
+          <e p="TicStatesTest.cs" t="Include" />
           <e p="TokenHelperTest.cs" t="Include" />
           <e p="TokenizerTest.cs" t="Include" />
           <e p="ValueParserTest.cs" t="Include" />

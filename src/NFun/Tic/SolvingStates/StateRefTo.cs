@@ -20,15 +20,19 @@ namespace NFun.Tic.SolvingStates
 
         public bool ApplyDescendant(IStateCombination2dimensionalVisitor visitor, TicNode ancestorNode, TicNode descendantNode) 
             => false;
-        
-
         public bool Apply(IStateCombination2dimensionalVisitor visitor, TicNode ancestorNode, TicNode descendantNode, StatePrimitive ancestor)
             => false;
-
         public bool Apply(IStateCombination2dimensionalVisitor visitor, TicNode ancestorNode, TicNode descendantNode, ConstrainsState ancestor)
             => false;
-
         public bool Apply(IStateCombination2dimensionalVisitor visitor, TicNode ancestorNode, TicNode descendantNode, ICompositeState ancestor)
             => false;
+
+        public override bool Equals(object obj)
+        {
+            if (!(obj is StateRefTo refTo))
+                return false;
+            
+            return Node.Equals(refTo.Node);
+        }
     }
 }

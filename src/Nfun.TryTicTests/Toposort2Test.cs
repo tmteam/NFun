@@ -47,8 +47,8 @@ namespace Nfun.ModuleTests
         [Test]
         public void AncestorMultiCycle()
         {
-            //V2[a b] => n  => 12        => V2 
-            //        => 16 => V3 [a..b] => n	 
+            //V2[a b] -> n  -> 12        -> V2 
+            //        -> 16 -> V3 [a..b] -> n	 
             var v2 = CreateNode("v2");
             var v3 = CreateNode("v3");
 
@@ -70,12 +70,41 @@ namespace Nfun.ModuleTests
             algorithm.AddMany(v2,i13,i16,v3,n);
             algorithm.OptimizeTopology();
             
+            AssertHasNoAncestorCycle(v2,v3,n, i13,i16);
+
+            Assert.AreEqual(1,algorithm.NonReferenceOrdered.Length);
+            var theNode = algorithm.NonReferenceOrdered[0];
+            Assert.IsInstanceOf<ConstrainsState>(theNode.State);
+            Assert.AreEqual(new ConstrainsState(StatePrimitive.I32, StatePrimitive.Real), theNode.State);
+        }
+        
+        [Test]
+        public void AncestorAndRefMultiCycle()
+        {
+            //V2[i32..r] -> n  ==> 12        -> V2 
+            //        <== 16 -> V3 [i24..r] -> n	 
+            var v2 = CreateNode("v2");
+            var v3 = CreateNode("v3");
+
+            var i13 = CreateNode("13");
+            var i16 = CreateNode("16");
+            var n   = CreateNode("n");
+
+            v2.State = new ConstrainsState(StatePrimitive.I32, StatePrimitive.Real);
+            v3.State = new ConstrainsState(StatePrimitive.I24, StatePrimitive.Real);
             
-            AssertHasNoAncestorCycle(v2);
-            AssertHasNoAncestorCycle(v3);
-            AssertHasNoAncestorCycle(n);
-            AssertHasNoAncestorCycle(i13);
-            AssertHasNoAncestorCycle(i16);
+            v2 .AddAncestor(n);
+            n.State   = new StateRefTo(i13);
+            i13.AddAncestor(v2);
+            v2 .AddAncestor(i16);
+            i16.State = new StateRefTo(v2);
+            v3 .AddAncestor(n);
+
+            var algorithm = new NodeToposort2(6);
+            algorithm.AddMany(v2,i13,i16,v3,n);
+            algorithm.OptimizeTopology();
+            
+            AssertHasNoAncestorCycle(v2,v3,n, i13,i16);
 
             Assert.AreEqual(1,algorithm.NonReferenceOrdered.Length);
             var theNode = algorithm.NonReferenceOrdered[0];
@@ -336,9 +365,12 @@ namespace Nfun.ModuleTests
             Assert.IsEmpty( n3.Ancestors);
         }
 
-        private static void AssertHasNoAncestorCycle(TicNode targetNode)
+        private static void AssertHasNoAncestorCycle(params TicNode[] targetNodes)
         {
-            AssertHasNoAncestorCycleReq(new HashSet<TicNode>(), targetNode);
+            foreach (var targetNode in targetNodes)
+            {
+                AssertHasNoAncestorCycleReq(new HashSet<TicNode>(), targetNode);
+            }
             
             static void AssertHasNoAncestorCycleReq(HashSet<TicNode> route, TicNode targetNode)
             {

@@ -100,7 +100,7 @@ namespace NFun.Tic
             secondary.State = new StateRefTo(main);
         }
 
-        public static void MergeGroup(IEnumerable<TicNode> cycleRoute)
+        public static TicNode MergeGroup(IEnumerable<TicNode> cycleRoute)
         {
             var main = cycleRoute.First();
             
@@ -136,6 +136,7 @@ namespace NFun.Tic
 
             main.ClearAncestors();
             main.AddAncestors(newAncestors);
+            return main;
         }
 
         #endregion
