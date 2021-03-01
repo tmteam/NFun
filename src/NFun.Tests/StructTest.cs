@@ -467,7 +467,65 @@ namespace Funny.Tests
                         "y = a[1].name;")
                 .Calculate()
                 .AssertHas(VarVal.New("y","peta"));
+       
+        [Test]
+        public void CallGenericFunctionFieldAccess() =>
+            FunBuilder
+                .Build( "f(x) = x.age;" +
+                        "x1= @{age = 12};" +
+                        "x2= @{age = true};" +
+                        "r = f(x1); b = f(x2);")
+                .Calculate()
+                .AssertHas(VarVal.New("r",12.0))
+                .AssertHas(VarVal.New("b",true));
+
+        [Test]
+        public void CallConcreteFunctionFieldAccess() =>
+            FunBuilder
+                .Build("f(x):int = x.age;" +
+                       "x1= @{age = 12};" +
+                       "r = f(x1); ")
+                .Calculate()
+                .AssertHas(VarVal.New("r", 12));
         
+        [Test]
+        public void CallConcreteFunctionManyFieldsAccess() =>
+            FunBuilder
+                .Build("f(x):int = x.age+ x.size;" +
+                       "x1= @{age = 12; size = 24};" +
+                       "r = f(x1); ")
+                .Calculate()
+                .AssertHas(VarVal.New("r", 36));
+        
+        [Test]
+        public void CallConcreteFunctionWithAdditionalFields() =>
+            FunBuilder
+                .Build("f(x):int = x.size;" +
+                       "x1= @{age = 12; size = 24; name = 'vasa'};" +
+                       "r = f(x1);")
+                .Calculate()
+                .AssertHas(VarVal.New("r", 24));
+        
+        
+        [Test]
+        public void CallGenericFunctionWithAdditionalFields() =>
+            FunBuilder
+                .Build("f(x) = x.size;" +
+                       "x1= @{age = 12; size = 24; name = 'vasa'};" +
+                       "r = f(x1);")
+                .Calculate()
+                .AssertHas(VarVal.New("r", 24.0));
+
+        
+        [Test]
+        public void CallComplexFunction() =>
+            FunBuilder
+                .Build( "f(x) = x[1].name;" +
+                        "a = [@{age = 42; name = 'vasa'}, @{age = 21; name = 'peta'}];" +
+                        "y = f(a);")
+                .Calculate()
+                .AssertHas(VarVal.New("y","peta"));
+
         
         [TestCase("y = @{a = 1}; z = y.b")]
         [TestCase("y = @{a = 1}.b")]
