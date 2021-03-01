@@ -107,19 +107,13 @@ namespace NFun.Tic
             get => _state;
             set
             {
-                if (value is StateRefTo refa && refa.Node == this)
-                {
-                    
-                }
                 Debug.Assert(value != null);
                 Debug.Assert(_state==null || IsMutable || value.Equals(_state),"Node is already solved");
                 
                 if (value is StateArray array)
                     array.ElementNode.IsMemberOfAnything = true;
                 else
-                {
-                    Debug.Assert(!(value is StateRefTo refTo && refTo.Node== this),"Self referencing node");
-                }
+                    Debug.Assert(!(value is StateRefTo refTo && refTo.Node == this), "Self referencing node");
                 _state = value;
             }
         }

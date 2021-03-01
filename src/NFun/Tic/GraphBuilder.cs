@@ -534,8 +534,8 @@ namespace NFun.Tic
                     .Union(_variables.Select(v => v.Value))
                     .Union(_typeVariables));
         }
-        
-        public void PrintTrace(string name, IEnumerable<TicNode> sorted)
+
+        private void PrintTrace(string name, IEnumerable<TicNode> sorted)
         {
             TraceLog.WriteLine($"\r\n Sorted trace for {name}");
             SolvingFunctions.PrintTrace(sorted);

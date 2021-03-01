@@ -246,7 +246,7 @@ namespace Funny.Tests
                        "e4 = @{ef1 = a1.af1_24; ef2 = b2.bf2_1; ef3 = a1;  ef4_24 = c3.cf2_24}; " +
                        "y = a1.af1_24 + b2.bf1.af2_1 + c3.cf2_24 + e4.ef4_24")
                 .Calculate()
-                .AssertHas(VarVal.New("y", 98.0));
+                .AssertHas(VarVal.New("y", 73.0));
         }
         
         [Test]
@@ -270,7 +270,7 @@ namespace Funny.Tests
                        "b2 = @{bf1 = a1; bf2_1 = a1.af2_1}; " +
                        "y = a1.af1_24 + b2.bf1.af2_1 + a1.af1_24")
                 .Calculate()
-                .AssertHas(VarVal.New("y", 50.0));
+                .AssertHas(VarVal.New("y", 49.0));
         }
         
         [Test]
@@ -278,8 +278,8 @@ namespace Funny.Tests
         {
             TraceLog.IsEnabled = true;
             FunBuilder
-                .Build("a1 = @{af1_24 = 24}; " +
-                       "y = a1.af1_24 + a1.af1_24")
+                .Build("str = @{field = 24}; " +
+                       "y = str.field + str.field")
                 .Calculate()
                 .AssertHas(VarVal.New("y", 48.0));
         }

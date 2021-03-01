@@ -16,6 +16,10 @@ namespace NFun.Tic.SolvingStates
 
         public StateStruct With(string name, TicNode memberNode)
         {
+            if (memberNode.State is StateRefTo)
+            {
+                
+            }
             var newDic = new Dictionary<string, TicNode>(_nodes.Count + 1);
             foreach (var field in _nodes)
             {

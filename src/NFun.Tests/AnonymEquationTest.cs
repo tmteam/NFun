@@ -42,6 +42,7 @@ namespace Funny.Tests
         [TestCase("8 == 1 == 0",false)]
         [TestCase("true == 1",false)]
         [TestCase("if (2<3) true else false", true)]
+        [TestCase("if (false) true else false", false)]
         [TestCase("y(x) = x*2 \r y(3.0) * y(4.0)", 48.0)]
         [TestCase("y(x) = x \r y(3.0)", 3.0)]
         [TestCase("y(x) = x*2 \r y(3.0)  \r z(j) = j*j", 6.0)]

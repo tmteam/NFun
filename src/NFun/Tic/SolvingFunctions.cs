@@ -83,12 +83,12 @@ namespace NFun.Tic
         {
             if(main==secondary)
                 return;
+           
+            if(secondary.GetNonReference()==main)
+                return;
             var res = GetMergedStateOrNull(main.State, secondary.State);
             if (res == null)
                 throw TicErrors.CannotMerge(main, secondary);
-            
-            if(main.State.Equals(res))
-                return;
             
             main.State = res;
             if (res is ITypeState t && t.IsSolved)
@@ -96,7 +96,6 @@ namespace NFun.Tic
                 secondary.State = res;
                 return;
             }
-
             main.AddAncestors(secondary.Ancestors.Where(a=>a!=main));
             secondary.ClearAncestors();
             secondary.State = new StateRefTo(main);

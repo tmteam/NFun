@@ -39,7 +39,7 @@ namespace NFun.Tic.Tests.UnitTests
             Assert.IsTrue(funA.Equals(funB));
         }
         [Test]
-        public void NonConcreteTypes_DifferentNodes_EqualsReturnsTrue()
+        public void NonConcreteTypes_DifferentNodes_EqualsReturnsFalse()
         {
             var retNodeA = CreateConstrainsNode();
             var retNodeB = CreateConstrainsNode();

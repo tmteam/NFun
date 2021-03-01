@@ -123,8 +123,18 @@ namespace NFun.Tic.SolvingStates
 
             for (int i = 0; i < ArgsCount; i++)
             {
-                if (!fun.GetArgType(i).Equals(GetArgType(i)))
-                    return false;
+                var funArg = fun.ArgNodes[i];
+                var myArg = ArgNodes[i];
+                if (funArg.IsMutable || myArg.IsMutable)
+                {
+                    if(funArg != myArg)
+                        return false;
+                }
+                else
+                {
+                    if (!funArg.GetNonReference().State.Equals(myArg.GetNonReference().State))
+                        return false;
+                }
             }
 
             return fun.ReturnType.Equals(ReturnType);
