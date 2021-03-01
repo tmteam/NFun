@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using NFun;
 using NFun.Exceptions;
 using NFun.Runtime;
@@ -268,7 +269,7 @@ namespace Funny.Tests
                        "x2 = @{cField = x1.aField}; " +
                        "y = x1.aField  + x1.aField")
                 .Calculate()
-                .AssertHas(VarVal.New("y", 73.0));
+                .AssertHas(VarVal.New("y", 48.0));
         }
         [Test]
         public void ConstantAccessManyNestedCreatedHellTest4()
@@ -341,36 +342,31 @@ namespace Funny.Tests
                 .AssertHas(VarVal.New("y", 49.0));
         }
         
-        [Test]
-        public void ConstantTwinAccess()
+        [TestCase(1)]
+        [TestCase(2)]
+        [TestCase(3)]
+        [TestCase(42)]
+        public void ConstantNCountAccessConcrete(int n)
         {
             TraceLog.IsEnabled = true;
             FunBuilder
-                .Build("str = @{field = 24}; " +
-                       "y = str.field + str.field")
+                .Build("str = @{field = 1.0}; " +
+                       $"y = {string.Join("+", Enumerable.Range(0,n).Select(_=>"str.field"))}")
                 .Calculate()
-                .AssertHas(VarVal.New("y", 48.0));
+                .AssertHas(VarVal.New("y", (double)n));
         }
-        
-        [Test]
-        public void ConstantTripleAccess()
+        [TestCase(1)]
+        [TestCase(2)]
+        [TestCase(3)]
+        [TestCase(42)]
+        public void ConstantNCountAccess(int n)
         {
             TraceLog.IsEnabled = true;
             FunBuilder
-                .Build("str = @{field = 24}; " +
-                       "y = str.field + str.field + str.field")
+                .Build("str = @{field = 1}; " +
+                       $"y = {string.Join("+", Enumerable.Range(0,n).Select(_=>"str.field"))}")
                 .Calculate()
-                .AssertHas(VarVal.New("y", 72.0));
-        }
-        [Test]
-        public void ConstantTwinAccessConcrete()
-        {
-            TraceLog.IsEnabled = true;
-            FunBuilder
-                .Build("str = @{field = 24.0}; " +
-                       "y = str.field + str.field")
-                .Calculate()
-                .AssertHas(VarVal.New("y", 48.0));
+                .AssertHas(VarVal.New("y", (double)n));
         }
         
         [Test]
@@ -473,7 +469,9 @@ namespace Funny.Tests
                 .AssertHas(VarVal.New("y","peta"));
         
         
-        
+        [TestCase("y = @{a = 1}; z = y.b")]
+        [TestCase("y = @{a = 1}.b")]
+        [TestCase("f(x) = x.a; y = f(@{missing = 1})")]
         [TestCase("y = @{a = y}")]
         [TestCase("y = @{b = c; a = y}")]
         [TestCase("y = @{a = y.a}")]

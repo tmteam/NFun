@@ -110,7 +110,13 @@ namespace NFun.Tic.Stages
                     if (descField == null)
                         descendantNode.State = descStruct.With(ancField.Key, ancField.Value);
                     else
+                    {
                         SolvingFunctions.MergeInplace(ancField.Value, descField);
+                        if (ancField.Value.State is StateRefTo) 
+                            ancestorNode.State = ancestor.GetNonReferenced();
+                        if (descField.State is StateRefTo)
+                            descendantNode.State = descendant.GetNonReferenced();
+                    }
                 }
                // descendantNode.RemoveAncestor(ancestorNode);
             }
