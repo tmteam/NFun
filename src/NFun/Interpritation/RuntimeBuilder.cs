@@ -129,7 +129,7 @@ namespace NFun.Interpritation
             var bodyTypeSolving = RuntimeBuilderHelper.SolveBodyOrThrow(syntaxTree, functionDictionary, constants);
 
             var enterVisitor = new ApplyTiResultEnterVisitor(bodyTypeSolving, TicTypesConverter.Concrete);
-            var exitVisitor = new ApplyTiResultsExitVisitor();
+            var exitVisitor  = new ApplyTiResultsExitVisitor();
             foreach (var syntaxNode in syntaxTree.Nodes)
             {
                 //function nodes were solved above

@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.CompilerServices;
 using NFun.Tic.SolvingStates;
 
@@ -57,15 +58,15 @@ namespace NFun.Tic.Stages
                 var result = SolvingFunctions.TransformToStructOrNull(descendant, ancStruct);
                 if (result == null)
                     return false;
-                //todo seems repeat TransformToStructOrNull code
-                foreach (var ancField in ancStruct.Fields)
+                //todo Зачем это тут, если и так структура ссылается на оригинальные поля?
+                /*foreach (var ancField in ancStruct.Fields)
                 {
                     var descField = result.GetFieldOrNull(ancField.Key);
                     if (descField != ancField.Value)
                     {
                         descField.AddAncestor(ancField.Value);
                     }
-                }
+                }*/
                 descendantNode.State = result;
                 //descendantNode.RemoveAncestor(ancestorNode);
             }
@@ -111,6 +112,11 @@ namespace NFun.Tic.Stages
                     else
                         SolvingFunctions.MergeInplace(ancField.Value, descField);
                 }
+               // descendantNode.RemoveAncestor(ancestorNode);
+            }
+            else
+            {
+                throw new NotSupportedException($"Composite type {ancestor.GetType().Name} is not supported");
             }
 
             return true;

@@ -240,11 +240,23 @@ namespace Funny.Tests
             TraceLog.IsEnabled = true;
             FunBuilder
                 .Build("a1 = @{af1_24 = 24; af2_1=1}; " +
-                       
                        "b2 = @{bf1 = a1; bf2_1 = a1.af2_1}; " +
                        "c3 = @{cf1_1 = b2.bf2_1; cf2_24 = a1.af1_24}; " +
                        "e4 = @{ef1 = a1.af1_24; ef2 = b2.bf2_1; ef3 = a1;  ef4_24 = c3.cf2_24}; " +
                        "y = a1.af1_24 + b2.bf1.af2_1 + c3.cf2_24 + e4.ef4_24")
+                .Calculate()
+                .AssertHas(VarVal.New("y", 73.0));
+        }
+        [Test]
+        public void ConstantAccessManyNestedCreatedHellTest2()
+        {
+            TraceLog.IsEnabled = true;
+            FunBuilder
+                .Build("a1 = @{af1_24 = 24; af2_1=1}; " +
+                       "b2 = @{bf2_1 = 1}; " +
+                       "c3 = @{cf1_1 = b2.bf2_1; cf2_24 = 24}; " +
+                       "e4 = @{ef1 = a1.af1_24; ef2 = b2.bf2_1; ef3 = a1;  ef4_24 = c3.cf2_24}; " +
+                       "y = a1.af1_24 + 1 + c3.cf2_24 + e4.ef4_24")
                 .Calculate()
                 .AssertHas(VarVal.New("y", 73.0));
         }
@@ -284,12 +296,12 @@ namespace Funny.Tests
                 .AssertHas(VarVal.New("y", 48.0));
         }
         [Test]
-        public void ConstantTwinAccess2()
+        public void ConstantTwinAccessConcrete()
         {
             TraceLog.IsEnabled = true;
             FunBuilder
-                .Build("a1 = @{af1_24 = 24.0}; " +
-                       "y = a1.af1_24 + a1.af1_24")
+                .Build("str = @{field = 24.0}; " +
+                       "y = str.field + str.field")
                 .Calculate()
                 .AssertHas(VarVal.New("y", 48.0));
         }

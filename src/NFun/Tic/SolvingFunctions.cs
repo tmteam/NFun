@@ -78,12 +78,22 @@ namespace NFun.Tic
 
             return null;
         }
-
+        /// <summary>
+        /// Merge two nodes. Both of them become equiualent.
+        ///
+        /// In complex situation, 'secondary' node becomes reference to 'main' node, if it is possible
+        /// </summary>
         public static void MergeInplace(TicNode main, TicNode secondary)
         {
             if(main==secondary)
                 return;
-           
+            if (main.State is StateRefTo)
+            {
+                var nonreferenceMain = main.GetNonReference();
+                var nonreferenceSecondary = secondary.GetNonReference();
+                MergeInplace(nonreferenceMain, nonreferenceSecondary);
+                return;
+            }
             if(secondary.GetNonReference()==main)
                 return;
             var res = GetMergedStateOrNull(main.State, secondary.State);
