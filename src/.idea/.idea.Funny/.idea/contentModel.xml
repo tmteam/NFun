@@ -451,7 +451,11 @@
         <e p="RecursiveTypeDefinitionDetectionTest.cs" t="Include" />
         <e p="SeveralEquationsTest.cs" t="Include" />
         <e p="SpecificationTests.cs" t="Include" />
-        <e p="StructTest.cs" t="Include" />
+        <e p="Structs" t="Include">
+          <e p="Struct.BodyTest.cs" t="Include" />
+          <e p="Struct.ConcreteFunctionTest.cs" t="Include" />
+          <e p="Struct.GenericFunctionTest.cs" t="Include" />
+        </e>
         <e p="SuperAnonymousFunTest.cs" t="Include" />
         <e p="TestTools.cs" t="Include" />
         <e p="TextTest.cs" t="Include" />

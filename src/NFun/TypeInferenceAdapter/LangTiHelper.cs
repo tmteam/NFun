@@ -1,6 +1,8 @@
 using System;
+using System.Linq;
 using NFun.Interpritation.Functions;
 using NFun.SyntaxParsing.SyntaxNodes;
+using NFun.Tic;
 using NFun.Tic.SolvingStates;
 using NFun.Types;
 
@@ -51,7 +53,7 @@ namespace NFun.TypeInferenceAdapter
                 case BaseVarType.Empty: 
                     throw new InvalidOperationException();
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException($"Var type '{origin}' is not supported");
             }
         }
         public static ITicNodeState ConvertToTiType(this VarType origin, StateRefTo[] genericMap)
@@ -66,6 +68,11 @@ namespace NFun.TypeInferenceAdapter
                     return StateFun.Of(
                         argTypes:   origin.FunTypeSpecification.Inputs.SelectToArray(type => ConvertToTiType(type, genericMap)),
                         returnType: ConvertToTiType(origin.FunTypeSpecification.Output, genericMap));
+                case BaseVarType.Struct:
+                    return new StateStruct(
+                        origin.StructTypeSpecification.ToDictionary(
+                            keySelector: s => s.Key,
+                            elementSelector: v => TicNode.CreateTypeVariableNode((ITypeState)v.Value.ConvertToTiType())));
                 default:
                     return origin.ConvertToTiType();
             }

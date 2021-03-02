@@ -84,6 +84,8 @@ namespace NFun.Interpritation
                     equations.Add(equation);
                     if (Helper.DoesItLooksLikeSuperAnonymousVariable(equation.Id))
                         throw FunParseException.ErrorStubToDo("variable cannot starts with 'it'");
+                    if(TraceLog.IsEnabled)
+                        TraceLog.WriteLine($"\r\nEQUATION: {equation.Id}:{equation.Expression.Type} = ... \r\n");
                 }
                 else if (treeNode is VarDefinitionSyntaxNode varDef)
                 {
@@ -100,6 +102,8 @@ namespace NFun.Interpritation
                         var allUsages = variables.GetUsages(variableSource.Name);
                         throw ErrorFactory.VariableIsDeclaredAfterUsing(allUsages);
                     }
+                    if(TraceLog.IsEnabled)
+                        TraceLog.WriteLine($"\r\nVARIABLE: {variableSource.Name}:{variableSource.Type} = ... \r\n");
                 }
                 else if (treeNode is UserFunctionDefinitionSyntaxNode)
                     continue;//user function was built above
@@ -240,7 +244,8 @@ namespace NFun.Interpritation
 
                 var returnType = funType.FunTypeSpecification.Output;
                 var argTypes = funType.FunTypeSpecification.Inputs;
-
+                if (TraceLog.IsEnabled) 
+                    TraceLog.WriteLine($"\r\n=====> Generic {functionSyntaxNode.Id} {funType}");
                 //make function prototype
                 var prototype = new ConcreteUserFunctionPrototype(functionSyntaxNode.Id, returnType, argTypes);
                 //add prototype to dictionary for future use
@@ -261,7 +266,8 @@ namespace NFun.Interpritation
             {
                 var function = GenericUserFunction.Create(typeInferenceResuls, functionSyntaxNode, functionsDictionary);
                 functionsDictionary.Add(function);
-                
+                if (TraceLog.IsEnabled) 
+                    TraceLog.WriteLine($"\r\n=====> Concrete {functionSyntaxNode.Id} {function}");
                 return function;
             }
         }

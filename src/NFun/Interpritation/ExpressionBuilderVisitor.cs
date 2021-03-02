@@ -9,6 +9,7 @@ using NFun.Runtime;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
+using NFun.Tic;
 using NFun.Tokenization;
 using NFun.TypeInferenceAdapter;
 using NFun.Types;
@@ -43,9 +44,9 @@ namespace NFun.Interpritation
             if (result.Type == outputType)
                 return result;
             var converter = VarTypeConverter.GetConverterOrThrow(result.Type, outputType, node.Interval);
+            
             return new CastExpressionNode(result, outputType, converter, node.Interval);
         }
-
         private ExpressionBuilderVisitor(
             IFunctionDictionary functions, 
             VariableDictionary variables,

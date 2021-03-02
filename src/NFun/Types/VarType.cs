@@ -282,11 +282,11 @@ namespace NFun.Types
                 case BaseVarType.Fun:
                     var iId = FunTypeSpecification.Inputs.Select(i => i.SearchMaxGenericTypeId()).Max();
                     var oId = FunTypeSpecification.Output.SearchMaxGenericTypeId();
-                    if (!iId.HasValue)
-                        return oId;
-                    if (!oId.HasValue)
-                        return iId;
+                    if (!iId.HasValue) return oId;
+                    if (!oId.HasValue) return iId;
                     return Math.Max(iId.Value, oId.Value);
+                case BaseVarType.Struct:
+                    return StructTypeSpecification.Values.Select(i => i.SearchMaxGenericTypeId()).Max();
                 case BaseVarType.Generic:
                     return GenericId;
                 default:
@@ -294,21 +294,17 @@ namespace NFun.Types
             }
         }
 
-        public override string ToString()
-        {
-            switch (BaseType)
+        public override string ToString() =>
+            BaseType switch
             {
-                case BaseVarType.ArrayOf:
-                    return ArrayTypeSpecification.VarType + "[]";
-                case BaseVarType.Fun:
-                    return $"({string.Join(",", FunTypeSpecification.Inputs)})->{FunTypeSpecification.Output}";
-                case BaseVarType.Generic:
-                    return "T_" + GenericId;
-                default:
-                    return BaseType.ToString();
-            }
-        }
-        
+                BaseVarType.ArrayOf => ArrayTypeSpecification.VarType + "[]",
+                BaseVarType.Fun => $"({string.Join(",", FunTypeSpecification.Inputs)})->{FunTypeSpecification.Output}",
+                BaseVarType.Struct =>
+                    $"@{{{string.Join(";", StructTypeSpecification.Select(s => s.Key + ":" + s.Value))}}}",
+                BaseVarType.Generic => "T_" + GenericId,
+                _ => BaseType.ToString()
+            };
+
         public bool CanBeConvertedTo(VarType to)
             => VarTypeConverter.CanBeConverted(this, to);
     }

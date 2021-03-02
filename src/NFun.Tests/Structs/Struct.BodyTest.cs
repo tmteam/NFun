@@ -8,9 +8,9 @@ using NFun.Tic;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace Funny.Tests
+namespace Funny.Tests.Structs
 {
-    public class StructTest
+    public class StructBodyTest
     {
         [Test]
         public void SingleFieldStructInitialization() =>
@@ -178,6 +178,19 @@ namespace Funny.Tests
                 .Build("a = @{b = 1}; y = -1* (a.b)")
                 .Calculate()
                 .AssertHas(VarVal.New("y", -1.0));
+        
+        [Test]
+        public void ConcreteArithmFieldAccess() =>
+            FunBuilder
+                .Build("a = @{b = 1}; y:int = -1* (a.b)")
+                .Calculate()
+                .AssertHas(VarVal.New("y", -1));
+        [Test]
+        public void ConcreteFieldAccess() =>
+            FunBuilder
+                .Build("a = @{b = 1}; y:int = a.b")
+                .Calculate()
+                .AssertHas(VarVal.New("y", 1));
         [Test]
         public void VarAccessCreated() =>
             FunBuilder
@@ -467,65 +480,7 @@ namespace Funny.Tests
                         "y = a[1].name;")
                 .Calculate()
                 .AssertHas(VarVal.New("y","peta"));
-       
-        [Test]
-        public void CallGenericFunctionFieldAccess() =>
-            FunBuilder
-                .Build( "f(x) = x.age;" +
-                        "x1= @{age = 12};" +
-                        "x2= @{age = true};" +
-                        "r = f(x1); b = f(x2);")
-                .Calculate()
-                .AssertHas(VarVal.New("r",12.0))
-                .AssertHas(VarVal.New("b",true));
-
-        [Test]
-        public void CallConcreteFunctionFieldAccess() =>
-            FunBuilder
-                .Build("f(x):int = x.age;" +
-                       "x1= @{age = 12};" +
-                       "r = f(x1); ")
-                .Calculate()
-                .AssertHas(VarVal.New("r", 12));
-        
-        [Test]
-        public void CallConcreteFunctionManyFieldsAccess() =>
-            FunBuilder
-                .Build("f(x):int = x.age+ x.size;" +
-                       "x1= @{age = 12; size = 24};" +
-                       "r = f(x1); ")
-                .Calculate()
-                .AssertHas(VarVal.New("r", 36));
-        
-        [Test]
-        public void CallConcreteFunctionWithAdditionalFields() =>
-            FunBuilder
-                .Build("f(x):int = x.size;" +
-                       "x1= @{age = 12; size = 24; name = 'vasa'};" +
-                       "r = f(x1);")
-                .Calculate()
-                .AssertHas(VarVal.New("r", 24));
-        
-        
-        [Test]
-        public void CallGenericFunctionWithAdditionalFields() =>
-            FunBuilder
-                .Build("f(x) = x.size;" +
-                       "x1= @{age = 12; size = 24; name = 'vasa'};" +
-                       "r = f(x1);")
-                .Calculate()
-                .AssertHas(VarVal.New("r", 24.0));
-
-        
-        [Test]
-        public void CallComplexFunction() =>
-            FunBuilder
-                .Build( "f(x) = x[1].name;" +
-                        "a = [@{age = 42; name = 'vasa'}, @{age = 21; name = 'peta'}];" +
-                        "y = f(a);")
-                .Calculate()
-                .AssertHas(VarVal.New("y","peta"));
-
+      
         
         [Test]
         public void GenericLambdaInStruct() =>
@@ -536,45 +491,8 @@ namespace Funny.Tests
                 .Calculate()
                 .AssertHas(VarVal.New("y",7.0));
 
-        
-        [Test]
-        public void GenericStructFunctionReturn() =>
-            FunBuilder
-                .Build( 
-                    "f(x) = @{res = x}; "+
-                    "r = f(42).res;" +
-                    "txt = f('try').res")
-                .Calculate()
-                .AssertHas(VarVal.New("r",42.0))
-                .AssertHas(VarVal.New("txt","try"));
-
-        [Test]
-        public void ConstrainedGenericStructFunctionReturn() =>
-            FunBuilder
-                .Build(
-                    "f(x) = @{twice = x+x; dec = x-1}; " +
-                    "t = f(42).twice;" +
-                    "d = f(123).dec")
-                .Calculate()
-                .AssertHas(VarVal.New("t", 84.0))
-                .AssertHas(VarVal.New("t", 122.0));
-
-        
-        [Test]
-        public void ConcreteStructFunctionReturn() =>
-            FunBuilder
-                .Build(
-                    "f(x:uint32) = @{twice = x+x; dec = x-1}; " +
-                    "t = f(42).twice;" +
-                    "d = f(123).dec")
-                .Calculate()
-                .AssertHas(VarVal.New("t", (uint)84))
-                .AssertHas(VarVal.New("t", (uint)122));
-
-
         [TestCase("y = @{a = 1}; z = y.b")]
         [TestCase("y = @{a = 1}.b")]
-        [TestCase("f(x) = x.a; y = f(@{missing = 1})")]
         [TestCase("y = @{a = y}")]
         [TestCase("y = @a = y}")]
         [TestCase("y = @{a = y")]

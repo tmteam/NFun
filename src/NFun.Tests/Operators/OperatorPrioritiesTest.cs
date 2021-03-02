@@ -3,7 +3,7 @@ using NFun;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace Funny.Tests
+namespace Funny.Tests.Operators
 {
     [TestFixture]
     public class OperatorPrioritiesTest
