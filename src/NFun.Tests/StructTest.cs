@@ -527,10 +527,63 @@ namespace Funny.Tests
                 .AssertHas(VarVal.New("y","peta"));
 
         
+        [Test]
+        public void GenericLambdaInStruct() =>
+            FunBuilder
+                .Build( 
+                        "a = @{dec = {it-1}; inc = {it+1};};" +
+                        "y = a.inc(1) + a.inc(2) + a.dec(3)")
+                .Calculate()
+                .AssertHas(VarVal.New("y",7.0));
+
+        
+        [Test]
+        public void GenericStructFunctionReturn() =>
+            FunBuilder
+                .Build( 
+                    "f(x) = @{res = x}; "+
+                    "r = f(42).res;" +
+                    "txt = f('try').res")
+                .Calculate()
+                .AssertHas(VarVal.New("r",42.0))
+                .AssertHas(VarVal.New("txt","try"));
+
+        [Test]
+        public void ConstrainedGenericStructFunctionReturn() =>
+            FunBuilder
+                .Build(
+                    "f(x) = @{twice = x+x; dec = x-1}; " +
+                    "t = f(42).twice;" +
+                    "d = f(123).dec")
+                .Calculate()
+                .AssertHas(VarVal.New("t", 84.0))
+                .AssertHas(VarVal.New("t", 122.0));
+
+        
+        [Test]
+        public void ConcreteStructFunctionReturn() =>
+            FunBuilder
+                .Build(
+                    "f(x:uint32) = @{twice = x+x; dec = x-1}; " +
+                    "t = f(42).twice;" +
+                    "d = f(123).dec")
+                .Calculate()
+                .AssertHas(VarVal.New("t", (uint)84))
+                .AssertHas(VarVal.New("t", (uint)122));
+
+
         [TestCase("y = @{a = 1}; z = y.b")]
         [TestCase("y = @{a = 1}.b")]
         [TestCase("f(x) = x.a; y = f(@{missing = 1})")]
         [TestCase("y = @{a = y}")]
+        [TestCase("y = @a = y}")]
+        [TestCase("y = @{a = y")]
+        [TestCase("y = @{a == y}")]
+        [TestCase("y = @{a != y}")]
+        [TestCase("y = @{ = y}")]
+        [TestCase("y = @{ {= y}")]
+        [TestCase("y = @{{}")]
+        [TestCase("y = @{a=b=c}")]
         [TestCase("y = @{b = c; a = y}")]
         [TestCase("y = @{a = y.a}")]
         [TestCase("y = @{a = @{ b = y}}")]
