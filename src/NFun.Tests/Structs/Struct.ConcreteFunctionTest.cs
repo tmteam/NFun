@@ -152,7 +152,7 @@ namespace Funny.Tests.Structs
         public void ConcreteFactorialReq_ReturnStruct(int x, int y)
         {
             string text =
-                @"fact(n):int = if(n<=1) @{res = 1} else @{res = fact(n-1).res*n}
+                @"fact(n:int) = if(n<=1) @{res = 1} else @{res = fact(n-1).res*n }
                   y = fact(x).res";
             var runtime = FunBuilder.Build(text);
             runtime.Calculate(VarVal.New("x", x)).AssertReturns(0.00001, VarVal.New("y", y));
@@ -163,7 +163,7 @@ namespace Funny.Tests.Structs
         public void ConcreteFactorialReq_ArgIsStruct(int x, int y)
         {
             string text =
-                @"fact(n):int = if(n.val<=1) 1 else fact(@{n=val-1})*n.val
+                @"fact(n):int = if(n.val<=1) 1 else fact(@{n=n.val-1}) * n.val;
                   y = fact(@{n=x})";
             var runtime = FunBuilder.Build(text);
             runtime.Calculate(VarVal.New("x", x)).AssertReturns(0.00001, VarVal.New("y", y));

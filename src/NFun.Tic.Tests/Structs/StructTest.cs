@@ -163,6 +163,39 @@ namespace NFun.Tic.Tests.Structs
             result.AssertNoGenerics();
             result.AssertNamed(StatePrimitive.Bool, "y");
         }
+        [Test]
+        public void FunCallWithStruct_StructTypeSolved()
+        {
+            // f( input:@{field:int} ):bool
+            //
+            //     1         2
+            // x = @(field = 1)
+            //     4 3
+            // y = f(x)
+            
+            TraceLog.IsEnabled = true;
+            
+            var graph = new GraphBuilder();
+            
+            graph.SetIntConst(2, StatePrimitive.U8, StatePrimitive.Real, StatePrimitive.Real);
+            graph.SetStructInit(new[]{"field"},new[]{2}, 1);
+            graph.SetDef("x", 1);
 
+            graph.SetVar("x",  3);
+            graph.SetCall(new ITicNodeState[]
+            {
+                new StateStruct("field", TicNode.CreateTypeVariableNode(StatePrimitive.I32)),
+                StatePrimitive.Bool
+            }, new[] { 3, 4});
+            graph.SetDef("y", 4);
+            
+            var result = graph.Solve();
+            result.AssertNoGenerics();
+            result.AssertNamed(StatePrimitive.Bool, "y");
+            
+            var xStruct =result.GetVariableNode("x").State as StateStruct;
+            var field = xStruct.GetFieldOrNull("field").State as StatePrimitive;
+            Assert.AreEqual(StatePrimitive.I32,  field);
+        }
     }
 }

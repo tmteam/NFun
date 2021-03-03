@@ -90,7 +90,7 @@ namespace NFun.Tic.Stages
                 var descStruct = SolvingFunctions.TransformToStructOrNull(descendant, ancStruct);
                 if (descStruct == null)
                     return false;
-                if (!descendantNode.State.Equals(descStruct))
+                if (descendantNode.State.Equals(descStruct))
                 {
                     descendantNode.RemoveAncestor(ancestorNode);
                     return true;
