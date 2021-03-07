@@ -8,8 +8,6 @@ namespace Funny.Tests.Structs
 {
     public class StructConcreteFunctionsTest
     {
-         
-        
         [Test]
         public void CallConcreteFunctionFieldAccess()
         {
@@ -169,7 +167,25 @@ namespace Funny.Tests.Structs
             runtime.Calculate(VarVal.New("x", x)).AssertReturns(0.00001, VarVal.New("y", y));
         }
         
+        [Test]
+        public void SingleStructFunction_WithConcrete_ReturnsCouncrete() =>
+            FunBuilder
+                .Build(
+                    "f(x:real) = @{res = x}; " +
+                    "r = f(42.0).res;")
+                .Calculate()
+                .AssertHas(VarVal.New("r", 42.0));
+        [Test]
+        public void CallFunctionWithFieldIndexing() =>
+            FunBuilder
+                .Build("f(x):byte = x.item[1];" +
+                       "x1= @{item = [1,2,3] };" +
+                       "r = f(x1);")
+                .Calculate()
+                .AssertHas(VarVal.New("r", (byte)2));
+        
         [TestCase("f(x):int = x.a; y = f(@{missing = 1})")]
+        [TestCase("f(x):real = @{res = x}")]
         public void ObviousFails(string expr) 
             => Assert.Throws<FunParseException>(()=>FunBuilder.Build(expr));
     }

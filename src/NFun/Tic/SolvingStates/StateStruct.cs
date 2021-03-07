@@ -32,6 +32,22 @@ namespace NFun.Tic.SolvingStates
         
         private readonly Dictionary<string, TicNode> _nodes;
 
+        public static StateStruct Of(IEnumerable<KeyValuePair<string, ITicNodeState>> fields)
+        {
+            var nodeFields = new Dictionary<string, TicNode>();
+            foreach (var field in fields)
+            {
+                TicNode node = null;
+                if (field.Value is ITypeState at)
+                    node = TicNode.CreateTypeVariableNode(at);
+                else if (field.Value is StateRefTo aRef)
+                    node = aRef.Node;
+                else
+                    throw new InvalidOperationException();
+                nodeFields.Add(field.Key, node);
+            }
+            return new StateStruct(nodeFields);
+        }
         public StateStruct(Dictionary<string, TicNode> fields) 
             => _nodes = fields;
 

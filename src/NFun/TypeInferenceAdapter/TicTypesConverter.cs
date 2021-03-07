@@ -84,26 +84,27 @@ namespace NFun.TypeInferenceAdapter
 
             public ConstrainsConverter(ConstrainsState[] constrainsMap) => _constrainsMap = constrainsMap;
 
-            public override VarType Convert(ITicNodeState type)
-            {
-                switch (type)
+            public override VarType Convert(ITicNodeState type) =>
+                type switch
                 {
-                    case StateRefTo refTo: 
-                        return Convert(refTo.Element);
-                    case StatePrimitive primitive:
-                        return ToConcrete(primitive.Name);
-                    case ConstrainsState constrains:
-                        var index = System.Array.IndexOf(_constrainsMap,constrains);
-                        if(index==-1)
-                            throw new InvalidOperationException("Unknown constrains");
-                        return VarType.Generic(index);
-                    case StateArray array:
-                        return VarType.ArrayOf(Convert(array.Element));
-                    case StateFun fun:
-                        return VarType.Fun(Convert(fun.ReturnType), fun.ArgNodes.SelectToArray(a=>Convert(a.State)));
-                    default:
-                        throw new NotSupportedException();
-                }
+                    StateRefTo refTo => Convert(refTo.Element),
+                    StatePrimitive primitive => ToConcrete(primitive.Name),
+                    ConstrainsState constrains => VarType.Generic(GetGenericIndexOrThrow(constrains)),
+                    StateArray array => VarType.ArrayOf(Convert(array.Element)),
+                    StateFun fun => VarType.Fun(Convert(fun.ReturnType),
+                        fun.ArgNodes.SelectToArray(a => Convert(a.State))),
+                    StateStruct strct => VarType.StructOf(strct.Fields.ToDictionary(
+                        keySelector:     f => f.Key,
+                        elementSelector: f => Convert(f.Value.GetNonReference().State))),
+                    _ => throw new NotSupportedException($"State {type} is not supported for convertion to Fun type")
+                };
+
+            private int GetGenericIndexOrThrow(ConstrainsState constrains)
+            {
+                var index = System.Array.IndexOf(_constrainsMap, constrains);
+                if (index == -1)
+                    throw new InvalidOperationException("Unknown constrains");
+                return index;
             }
         }
 
@@ -137,6 +138,10 @@ namespace NFun.TypeInferenceAdapter
                         return VarType.ArrayOf(Convert(array.Element));
                     case StateFun fun:
                         return VarType.Fun(Convert(fun.ReturnType), fun.ArgNodes.SelectToArray(a=>Convert(a.State)));
+                    case StateStruct @struct:
+                        return VarType.StructOf(@struct.Fields.ToDictionary(
+                            f => f.Key,
+                            f => Convert(f.Value.State)));
                     default:
                         throw new NotSupportedException();
                 }

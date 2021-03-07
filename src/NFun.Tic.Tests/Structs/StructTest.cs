@@ -6,6 +6,7 @@ namespace NFun.Tic.Tests.Structs
 {
     public class StructTest
     {
+        
         [Test]
         public void SingleStrictStructMember()
         {
@@ -52,9 +53,9 @@ namespace NFun.Tic.Tests.Structs
             result.AssertNamed(StatePrimitive.I32, "y");
             result.AssertNamed(StatePrimitive.Real, "z");
         }
-        
+       
         [Test]
-        public void StructConstructor()
+        public void StructConstructor_WithStrictFields()
         {
             //    2       0       1
             //y = @{ a = 12i, b = 1.0} 
@@ -70,6 +71,23 @@ namespace NFun.Tic.Tests.Structs
                 {"a", TicNode.CreateNamedNode("a",StatePrimitive.I32)},
                 {"b", TicNode.CreateNamedNode("b",StatePrimitive.Real)}
             }),"y");
+        }
+        
+        [Test]
+        public void StructConstructor_WithGenericField()
+        {
+            TraceLog.IsEnabled = true;
+            //    1      0      
+            //y = @{ a = x,} 
+            var graph = new GraphBuilder();
+            graph.SetVar("x",0);
+            graph.SetStructInit(new[]{"a"},new[]{0}, 1);
+            graph.SetDef("y", 1);
+            var result = graph.Solve();
+            var generic = result.AssertAndGetSingleGeneric(null,null);
+            result.AssertAreGenerics(generic,"x");
+            result.AssertNamed(
+                new StateStruct("a", generic), "y");
         }
         
         [Test]
@@ -118,7 +136,7 @@ namespace NFun.Tic.Tests.Structs
         [Test]
         public void ConcreteTwinFieldAccess()
         {
-            //    1 2   0 
+            //         1 2   0 
             //y:int = a . b . c"
 
             var graph = new GraphBuilder();
@@ -163,6 +181,7 @@ namespace NFun.Tic.Tests.Structs
             result.AssertNoGenerics();
             result.AssertNamed(StatePrimitive.Bool, "y");
         }
+        
         [Test]
         public void FunCallWithStruct_StructTypeSolved()
         {
@@ -196,6 +215,136 @@ namespace NFun.Tic.Tests.Structs
             var xStruct =result.GetVariableNode("x").State as StateStruct;
             var field = xStruct.GetFieldOrNull("field").State as StatePrimitive;
             Assert.AreEqual(StatePrimitive.I32,  field);
+        }
+        
+        [Test]
+        public void FunCallReturnsGenericStruct_WithGenericConstant()
+        {
+            // f(x) = @{res = x}
+            //        1 0   2
+            //    y = f(42).res
+            TraceLog.IsEnabled = true;
+            
+            var graph = new GraphBuilder();
+            graph.SetIntConst(0, StatePrimitive.U8, StatePrimitive.Real, StatePrimitive.Real);
+            var varnode = graph.InitializeVarNode();
+            
+            graph.SetCall(new ITicNodeState[]{
+                varnode,
+                new StateStruct("res", varnode.Node),
+            }, new[] { 0, 1});
+            graph.SetFieldAccess(1,2,"res");
+            graph.SetDef("y", 2);
+            
+            var result = graph.Solve();
+            var generic = result.AssertAndGetSingleGeneric(StatePrimitive.U8, StatePrimitive.Real,false);
+            result.AssertAreGenerics(generic, "y");
+        }
+        
+        [Test]
+        public void FunCallReturnsGenericStruct_WithConcreteConstant()
+        {
+            // f(x) = @{res = x}
+            //        1 0     2 
+            //    y = f(42.0).res
+            TraceLog.IsEnabled = true;
+            
+            var graph = new GraphBuilder();
+            graph.SetConst(0,  StatePrimitive.Real);
+            var varnode = graph.InitializeVarNode();
+            
+            graph.SetCall(new ITicNodeState[]{
+                varnode,
+                new StateStruct("res", varnode.Node),
+            }, new[] { 0, 1});
+            graph.SetFieldAccess(1,2,"res");
+            graph.SetDef("y", 2);
+            
+            var result = graph.Solve();
+            result.AssertNoGenerics();
+            result.AssertNamed(StatePrimitive.Real, "y");
+        }
+
+      
+        [Test]
+        public void SingleFieldGenericExpression()
+        {
+            //        1  0
+            // y = x.field
+            
+            TraceLog.IsEnabled = true;
+            
+            var graph = new GraphBuilder();
+            
+            graph.SetVar("x",    1);
+            graph.SetFieldAccess(1, 0, "field");
+            graph.SetDef("y", 0);
+            
+            var result = graph.Solve();
+            var generic = result.AssertAndGetSingleGeneric(null, null, false);
+            var xStruct =result.GetVariableNode("x").State as StateStruct;
+            var fieldNode = xStruct.GetFieldOrNull("field").GetNonReference();
+            Assert.AreEqual(generic, fieldNode);
+        }
+        
+        [Test]
+        public void UserFunDefinition_SingleFieldExpression()
+        {
+            //        2  1
+            // f(x) = x.field
+            
+            TraceLog.IsEnabled = true;
+            
+            var graph = new GraphBuilder();
+
+            var fun = graph.SetFunDef(
+                name:    "f'1", 
+                returnId: 1, 
+                returnType: null, 
+                varNames: new[]{"x"});
+
+            graph.SetVar("x",    2);
+            graph.SetFieldAccess(2, 1, "field");
+            
+            var result = graph.Solve();
+            var generic = result.AssertAndGetSingleGeneric(null, null, false).GetNonReference();
+            var xStruct =result.GetVariableNode("x").State as StateStruct;
+            var fieldNode = xStruct.GetFieldOrNull("field").GetNonReference();
+            Assert.AreEqual(generic, fieldNode);
+            
+            Assert.AreEqual(fun.RetNode, generic);
+            Assert.AreEqual(fun.ArgNodes[0].State, xStruct);
+        }
+        
+        [Test]
+        public void ComparableFieldsGenericExpression()
+        {
+            //     1 0   4    3 2 
+            // y = x.a   <    x.b
+            
+            TraceLog.IsEnabled = true;
+            
+            var graph = new GraphBuilder();
+            
+            graph.SetVar("x",    1);
+            graph.SetFieldAccess(1, 0, "a");
+            
+            graph.SetVar("x",    3);
+            graph.SetFieldAccess(3, 2, "b");
+            
+            graph.SetComparable(0,2,4);
+            graph.SetDef("y", 4);
+            
+            var result = graph.Solve();
+            var generic = result.AssertAndGetSingleGeneric(null, null, true);
+                        
+            var xStruct =result.GetVariableNode("x").State as StateStruct;
+            var aFieldNode = xStruct!.GetFieldOrNull("a").GetNonReference();
+            var bFieldNode = xStruct!.GetFieldOrNull("b").GetNonReference();
+
+            Assert.AreEqual(generic, aFieldNode);
+            Assert.AreEqual(generic, bFieldNode);
+            result.AssertNamed(StatePrimitive.Bool, "y");
         }
     }
 }

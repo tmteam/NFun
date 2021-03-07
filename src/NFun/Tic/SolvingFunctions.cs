@@ -542,7 +542,7 @@ namespace NFun.Tic
             //We have to solve all generic types that are not output
 
             const int outputTypeMark = 77;
-            // Firstly - get all outputs
+            // Firstly - get all outputs and mark them with output mark
             foreach (var outputNode in outputNodes)
             {
                 foreach (var outputType in outputNode.GetAllOutputTypes())
@@ -608,13 +608,15 @@ namespace NFun.Tic
             switch (node.State)
             {
                 case StateFun fun:
-                    return new[] { fun.RetNode };
+                    return new[] { fun.RetNode }; //TODO retNode.AllLeafType?
                 case StateArray array:
                     return array.AllLeafTypes;
+                case StateStruct @struct:
+                    return @struct.AllLeafTypes;
                 case StateRefTo _:
-                    return new[] { node.GetNonReference() };
+                    return new[] { node.GetNonReference() }; //TODO AllLeafType?
                 default:
-                    return new[] { node };
+                    return new[] { node }; //TODO retNode.AllLeafType?
             }
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

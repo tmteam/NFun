@@ -30,7 +30,7 @@ namespace Funny.Tests.Structs
                 .AssertHas(VarVal.New("r", -12.0));
         }
         [Test]
-        public void CallGenericFunctionMultipleFieldOfTextAccess()
+        public void CallGenericFunctionMultipleFieldOfArrayAccess_PipeForward()
         {
             TraceLog.IsEnabled = true;
             FunBuilder
@@ -44,6 +44,65 @@ namespace Funny.Tests.Structs
 
         }
         
+        [Test]
+        public void CallGenericFunctionMultipleFieldOfArrayAccess()
+        {
+            TraceLog.IsEnabled = true;
+            FunBuilder
+                .Build("f(x) = concat(x.a, x.b);" +
+                       "x1= @{a = 'mama'; b = 'popo'};" +
+                       "t = f(x1);" +
+                       "iarr = f(@{a=[1,2,3]; b = [4,5,6]})")
+                .Calculate()
+                .AssertHas(VarVal.New("t", "mamapopo"))
+                .AssertHas(VarVal.New("iarr", new[]{1.0,2.0,3.0,4.0,5.0,6.0}));
+
+        }
+        
+        [Test]
+        public void CallGenericFunctionMultipleFieldOfTextAccess()
+        {
+            TraceLog.IsEnabled = true;
+            FunBuilder
+                .Build("f(x) = concat(x.a, x.b);" +
+                       "t = f(@{a = 'mama'; b = 'popo'});")
+                .Calculate()
+                .AssertHas(VarVal.New("t", "mamapopo"));
+
+        }
+        [Test]
+        public void CallGenericFunctionMultipleFieldOfRealArrayAccess()
+        {
+            TraceLog.IsEnabled = true;
+            FunBuilder
+                .Build("f(x) = concat(x.a, x.b);" +
+                       "x1= @{a = 'mama'; b = 'popo'};" +
+                       "iarr = f(@{a=[1,2,3]; b = [4,5,6]})")
+                .Calculate()
+                .AssertHas(VarVal.New("iarr", new[]{1.0,2.0,3.0,4.0,5.0,6.0}));
+
+        }
+
+        [Test]
+        public void CallGenericFunctionMultipleFieldOfConcreteIntArrayAccess()
+        {
+            TraceLog.IsEnabled = true;
+            FunBuilder
+                .Build("f(x) = concat(x.a, x.b);" +
+                       "iarr:int[] = f(@{a=[1,2,3]; b = [4,5,6]})")
+                .Calculate()
+                .AssertHas(VarVal.New("iarr", new[]{1,2,3,4,5,6}));
+        }
+
+        [Test]
+        public void CallGenericFunctionWithFieldIndexing() =>
+            FunBuilder
+                .Build("f(x) = x.item[1];" +
+                       "x1= @{item = [1,2,3] };" +
+                       "r = f(x1);")
+                .Calculate()
+                .AssertHas(VarVal.New("r", 2.0));
+
         [Test]
         public void CallGenericFunctionWithAdditionalFields() =>
             FunBuilder
@@ -75,6 +134,28 @@ namespace Funny.Tests.Structs
                 .Calculate()
                 .AssertHas(VarVal.New("r",42.0))
                 .AssertHas(VarVal.New("txt","try"));
+
+        [Test]
+        public void SingleGenericStructFunctionReturn() =>
+            FunBuilder
+                .Build(
+                    "f(x) = @{res = x}; " +
+                    "r = f(42).res;")
+                .Calculate()
+                .AssertHas(VarVal.New("r", 42.0));
+
+        [Test]
+        public void SingleGenericStructFunction_WithConcrete_ReturnsCouncrete()
+        {
+            TraceLog.IsEnabled = true;
+            
+            FunBuilder
+                .Build(
+                    "f(x) = @{res = x}; " +
+                    "r = f(42.0).res;")
+                .Calculate()
+                .AssertHas(VarVal.New("r", 42.0));
+        }
 
         [Test]
         public void ConstrainedGenericStructFunctionReturn() =>
