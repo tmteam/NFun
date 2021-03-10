@@ -45,7 +45,13 @@ namespace NFun.Tic.Tests
             var result = graph.Solve();
             var generic = result.AssertAndGetSingleGeneric(null, null, true);
             result.AssertNamed(SolvingStates.StateArray.Of(generic), "input");
-            result.AssertNamed(StateFun.Of(SolvingStates.StateArray.Of(generic), SolvingStates.StateArray.Of(generic)), "sortOneTime");
+            var expectedType= StateFun.Of(StateArray.Of(generic.GetNonReference()),
+                StateArray.Of(generic));
+            //todo
+            //Assert.AreEqual(expectedType, result.GetVariableNode("sortOneTime").State.ToString());
+            result.AssertNamed(
+                StateFun.Of(StateArray.Of(generic.GetNonReference()), 
+                StateArray.Of(generic)), "sortOneTime");
         }
 
         [Test]

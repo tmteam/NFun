@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tic.Errors;
 using NFun.Tic.SolvingStates;
 using NFun.Tic.Stages;
