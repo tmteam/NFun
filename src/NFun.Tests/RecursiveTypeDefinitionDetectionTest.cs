@@ -8,6 +8,12 @@ namespace Funny.Tests
     [TestFixture]
     public class RecursiveTypeDefinitionDetectionTest
     {
+        [TestCase("r(x) = r(x.i)")]
+        [TestCase("r(x) = @{f = r(x)}")]
+        public void ObviouslyFailsWithRecursiveTypeDefinitionOfStruct(string expr) =>
+            Assert.Throws<FunParseException>(
+                () => FunBuilder.Build(expr));
+        
         [TestCase("y = t.concat(t[0])")]
         [TestCase("y = t.concat(t[0][0])")]
         [TestCase("y = t.concat(t[0][0][0])")]
