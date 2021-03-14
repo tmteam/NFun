@@ -118,7 +118,7 @@ namespace NFun.Tic.Stages
                             descendantNode.State = descendant.GetNonReferenced();
                     }
                 }
-               // descendantNode.RemoveAncestor(ancestorNode);
+                // descendantNode.RemoveAncestor(ancestorNode);
             }
             else
             {

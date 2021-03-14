@@ -160,11 +160,13 @@ namespace Funny.Tests.Structs
         [TestCase(6, 720)]
         public void ConcreteFactorialReq_ArgIsStruct(int x, int y)
         {
+            TraceLog.IsEnabled = true;
             string text =
-                @"fact(n):int = if(n.val<=1) 1 else fact(@{n=n.val-1}) * n.val;
-                  y = fact(@{n=x})";
+                @"fact(n):int = if(n.field<=1) 1 else fact(@{field=n.field-1}) * n.field;
+                  y = fact(@{field=x})";
             var runtime = FunBuilder.Build(text);
-            runtime.Calculate(VarVal.New("x", x)).AssertReturns(0.00001, VarVal.New("y", y));
+            runtime.Calculate(VarVal.New("x", x))
+                .AssertReturns(0.00001, VarVal.New("y", y));
         }
         
         [Test]
@@ -186,6 +188,10 @@ namespace Funny.Tests.Structs
         
         [TestCase("f(x):int = x.a; y = f(@{missing = 1})")]
         [TestCase("f(x):real = @{res = x}")]
+        [TestCase(@"fact(n):int = if(n.field<=1) 1 else fact(@{field=n.field-1}) * n.field;
+                  y = fact(@{a=x})")]
+        [TestCase(@"f(n):int = n.field;
+                  y = fact(@{nonExistingField=x})")]
         public void ObviousFails(string expr) 
             => Assert.Throws<FunParseException>(()=>FunBuilder.Build(expr));
     }

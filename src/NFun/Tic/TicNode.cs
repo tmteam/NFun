@@ -34,6 +34,8 @@ namespace NFun.Tic
         private ITicNodeState _state;
         public static TicNode CreateTypeVariableNode(ITypeState type) 
             => new TicNode(type.ToString(), type, TicNodeType.TypeVariable);
+        public static TicNode CreateTypeVariableNode(string name, ITypeState type) 
+            => new TicNode(name, type, TicNodeType.TypeVariable);
 
         private static int _interlockedId = 0;
         private readonly int _uid = 0;

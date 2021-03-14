@@ -40,7 +40,7 @@ namespace Funny.Tests.Structs
                        "iarr = f(@{a=[1,2,3]; b = [4,5,6]})")
                 .Calculate()
                 .AssertHas(VarVal.New("t", "mamapopo"))
-                .AssertHas(VarVal.New("iarr", new[]{1,2,3,4,5,6}));
+                .AssertHas(VarVal.New("iarr", new[]{1.0,2,3,4,5,6}));
 
         }
         
@@ -92,6 +92,27 @@ namespace Funny.Tests.Structs
                        "iarr:int[] = f(@{a=[1,2,3]; b = [4,5,6]})")
                 .Calculate()
                 .AssertHas(VarVal.New("iarr", new[]{1,2,3,4,5,6}));
+        }
+        
+        [Test]
+        public void CallGenericFunctionMultipleFieldOfConcreteRealsArrayAccess()
+        {
+            TraceLog.IsEnabled = true;
+            FunBuilder
+                .Build("f(x) = concat(x.a, x.b);" +
+                       "iarr:real[] = f( @{a=[1.0,2.0,3.0]; b = [4.0,5.0,6.0]} )")
+                .Calculate()
+                .AssertHas(VarVal.New("iarr", new[]{1.0,2,3,4,5,6}));
+        }
+        [Test]
+        public void CallGenericFunctionSingleFieldOfConcreteRealsArrayAccess()
+        {
+            TraceLog.IsEnabled = true;
+            FunBuilder
+                .Build("f(x) = reverse(x.a);" +
+                       "y:real[] = f( @{a=[1.0,2.0]} )")
+                .Calculate()
+                .AssertHas(VarVal.New("y", new[]{2.0,1.0}));
         }
 
         [Test]
@@ -185,13 +206,18 @@ namespace Funny.Tests.Structs
         public void GenericFactorialReq_ArgIsStruct(int x, double y)
         {
             string text =
-                @"fact(n) = if(n.val<=1) 1 else fact(@{n=val-1})*n.val
-                  y = fact(@{n=x})";
+                @"fact(n) = if(n.field<=1) 1 else fact(@{field=n.field-1})*n.field
+                  y = fact(@{field=x})";
             var runtime = FunBuilder.Build(text);
             runtime.Calculate(VarVal.New("x", x)).AssertReturns(0.00001, VarVal.New("y", y));
         }
 
         [TestCase("f(x) = x.a; y = f(@{missing = 1})")]
+        [TestCase(@"fact(n) = if(n.field<=1) 1 else fact(@{field=n.field-1}) * n.field;
+                  y = fact(@{a=x})")]
+        [TestCase(@"f(n) = n.field;
+                  y = fact(@{nonExistingField=x})")]
+        [TestCase(@"fact(n) = if(n.field<=1) 1 else fact(@{field=n.field-1})*n.nonExistingField")]
         public void ObviousFails(string expr) 
             => Assert.Throws<FunParseException>(()=>FunBuilder.Build(expr));
     }
