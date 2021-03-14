@@ -186,7 +186,8 @@ namespace Funny.Tests.Structs
                 .Calculate()
                 .AssertHas(VarVal.New("r", (byte)2));
         
-        [TestCase("f(x):int = x.a; y = f(@{missing = 1})")]
+        [TestCase("f(x):int = x.a; y = f(@{x = true})")]
+        [TestCase("f(x):int = x.a; y:bool = f(@{missing = 1})")]
         [TestCase("f(x):real = @{res = x}")]
         [TestCase(@"fact(n):int = if(n.field<=1) 1 else fact(@{field=n.field-1}) * n.field;
                   y = fact(@{a=x})")]

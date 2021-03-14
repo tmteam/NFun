@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using NFun.Exceptions;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tic.SolvingStates;
 using NFun.Tokenization;
@@ -11,7 +12,15 @@ namespace NFun.SyntaxParsing.SyntaxNodes
     {
         public StructInitSyntaxNode(List<EquationSyntaxNode> equations, Interval interval)
         {
-            Fields = equations.Select(e=>new FieldDefenition(e.Id,e.Expression)).ToList();
+            var _fields = new List<FieldDefenition>(equations.Count);
+            foreach (var equation in equations)
+            {
+                if (equation.TypeSpecificationOrNull != null)
+                    throw FunParseException.ErrorStubToDo("Field type specification is not supported yet");
+                _fields.Add(new FieldDefenition(equation.Id,equation.Expression));
+            }
+
+            Fields = _fields;
             Interval = interval;
         }
         public VarType OutputType { get; set; }

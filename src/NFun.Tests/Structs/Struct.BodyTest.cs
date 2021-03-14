@@ -509,6 +509,13 @@ namespace Funny.Tests.Structs
         [TestCase("y = @{a = @{ b = y}}")]
         [TestCase("y = @{a = @{ b = y.a}}")]
         [TestCase("y = @{a = @{ b = y.a.b}}")]
+        [TestCase("y = @{a = y}")]
+        [TestCase("y = @{a = y-1}")]
+     
+        [TestCase("y = @{a:int = 0}")]
+        [TestCase("y = @{a:int = 'test'}")]
+        [TestCase("y = @{a:bool = false}")]
+
         [TestCase("y1 = @{a = y2}; y2 = @{a = y1}")]
         public void ObviousFails(string expr) 
             => Assert.Throws<FunParseException>(()=>FunBuilder.Build(expr));

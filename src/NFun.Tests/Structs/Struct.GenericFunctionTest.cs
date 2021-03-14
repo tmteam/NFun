@@ -214,6 +214,7 @@ namespace Funny.Tests.Structs
 
         [TestCase("f(x) = x.a; y = f(@{nonExistField = 1})")]
         [TestCase("f(x) = x.a; y = f(@{})")]
+        [TestCase("f(x) = x.a; y:bool = f(@{x = 1})")]
 
         [TestCase(@"fact(n) = if(n.field<=1) 1 else fact(@{field=n.field-1}) * n.field;
                   y = fact(@{a=x})")]

@@ -396,8 +396,11 @@ namespace NFun.SyntaxParsing
                     throw FunParseException.ErrorStubToDo("id missed");
 
                 VarType type = VarType.Empty;
-                if (flow.MoveIf(TokType.Colon)) 
+                if (flow.MoveIf(TokType.Colon))
+                {
                     type = flow.ReadVarType();
+                    throw FunParseException.ErrorStubToDo($"Field type specification {idToken.Value}:{type} is not supported yet");
+                }
                 
                 if (!flow.MoveIf(TokType.Def)) throw FunParseException.ErrorStubToDo("def missed");
                 flow.SkipNewLines();
@@ -405,6 +408,7 @@ namespace NFun.SyntaxParsing
                 if(body==null)
                     throw FunParseException.ErrorStubToDo("body, missed");
                 var equation = new EquationSyntaxNode(idToken.Value, idToken.Start, body, new VarAttribute[0]);
+                
                 equations.Add(equation);
             }
             var end = flow.Position;
