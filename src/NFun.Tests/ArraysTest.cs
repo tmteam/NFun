@@ -5,6 +5,7 @@ using System.Linq;
 using NFun;
 using NFun.Exceptions;
 using NFun.Runtime.Arrays;
+using NFun.Tic;
 using NFun.Types;
 using NUnit.Framework;
 
@@ -182,6 +183,13 @@ namespace Funny.Tests
             Assert.AreEqual(1.0, arr2.ElementAt(0));
         }
 
+        [TestCase("out:anything[] = [0,[1]]")]
+        [TestCase("out:anything[] = [[1],0]")]
+        [TestCase("out:anything[] = [[true],0]")]
+        [TestCase("out:anything[] = [[1],true]")]
+        [TestCase("out:anything[] = [true,[1]]")]
+        [TestCase("out:anything[] = [1,'vasa']")]
+        [TestCase("out:anything[] = ['vasa',1.5]")]
         [TestCase("out = [0,[1]]")]
         [TestCase("out = [[1],0]")]
         [TestCase("out = [[true],0]")]
@@ -191,6 +199,7 @@ namespace Funny.Tests
         [TestCase("out = ['vasa',1.5]")]
         public void ConstantTwinAnyArrayWithUpcast(string expr)
         {
+            TraceLog.IsEnabled = true;
             var result = FunBuilder.Build(expr).Calculate().Get("out");
             Assert.AreEqual(result.Type, VarType.ArrayOf(VarType.Anything));            
         }

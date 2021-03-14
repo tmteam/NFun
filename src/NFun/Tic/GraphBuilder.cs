@@ -291,8 +291,9 @@ namespace NFun.Tic
 
             SolvingFunctions.PushConstraints(sorted);
             PrintTrace("3. PushConstraints");
-            PrintTrace("3. PushConstraints", sorted);
-            
+            PrintTrace("3. PushConstraints", sorted); 
+            todo Array_ComplexReqursiveDefinition_throws
+
             bool allTypesAreSolved = SolvingFunctions.Destruction(sorted);
             PrintTrace("4. Destructed");
 

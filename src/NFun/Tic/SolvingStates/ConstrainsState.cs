@@ -107,7 +107,7 @@ namespace NFun.Tic.SolvingStates
         public ITypeState Descedant { get; private set; }
 
         public bool HasAncestor => Ancestor!=null;
-        public bool HasDescendant => Descedant!=null;
+        public bool HasDescendant => (Descedant!=null);
 
         public bool TryAddAncestor(StatePrimitive type)
         {
@@ -133,9 +133,9 @@ namespace NFun.Tic.SolvingStates
         }
         public void AddDescedant(StatePrimitive type)
         {
-
             if (type == null)
                 return;
+           
             if (Descedant == null)
                 Descedant = type;
             else
@@ -145,14 +145,19 @@ namespace NFun.Tic.SolvingStates
                     Descedant = ancestor;
             }
         }
+
+        private ITypeState _unsolvedType = null;
         public void AddDescedant(ITypeState type)
         {
             if(type==null)
                 return;
-            
-            if(!type.IsSolved)
+            /*if (!type.IsSolved)
+            {
+                //Descedant = type;
+                _unsolvedType = type;
                 return;
-
+            }*/
+            
             if (Descedant == null)
                 Descedant = type;
             else
