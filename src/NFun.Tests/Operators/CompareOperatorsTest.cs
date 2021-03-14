@@ -24,10 +24,9 @@ namespace Funny.Tests.Operators
         [TestCase("[false,0,1,'peta',[1,2,3]]==[false,0,1,'vasa',[1,2,3]]", false)]
         [TestCase("[false,0,1,'peta',[1,2,3]]!=[false,0,1,'vasa',[1,2,3]]", true)]
 
-        //[Ignore("complex lca")]
-        //[TestCase("[false,0,1,'vasa',[1,2,[1,2]]]==[false,0,1,'vasa',[1,2,[1,2]]]", true)]
-        //[TestCase("[false,0,1,'vasa',[1,2,[10000,2]]]==[false,0,1,'vasa',[1,2,[1,2]]]", false)]
-        //[TestCase("[false,0,1,'vasa',[1,2,[10000,2]]]!=[false,0,1,'vasa',[1,2,[1,2]]]", true)]
+        [TestCase("[false,0,1,'vasa',[1,2,[1,2]]]==[false,0,1,'vasa',[1,2,[1,2]]]", true)]
+        [TestCase("[false,0,1,'vasa',[1,2,[10000,2]]]==[false,0,1,'vasa',[1,2,[1,2]]]", false)]
+        [TestCase("[false,0,1,'vasa',[1,2,[10000,2]]]!=[false,0,1,'vasa',[1,2,[1,2]]]", true)]
 
 
         [TestCase("[false,0,1]==[false,0,1]", true)]
