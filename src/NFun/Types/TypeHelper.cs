@@ -27,7 +27,8 @@ namespace NFun.Types
                 null,
                 null,
                 null,
-                typeof(object)
+                typeof(object),
+                null,
             };
             
             DefaultPrimitiveValues = new[]
@@ -47,6 +48,7 @@ namespace NFun.Types
                 null,
                 null,
                 new object(),
+                null,
             };
         }
 

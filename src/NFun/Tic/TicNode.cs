@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using NFun.Exceptions;
 using NFun.Tic.SolvingStates;
 
 namespace NFun.Tic
@@ -33,6 +34,8 @@ namespace NFun.Tic
         private ITicNodeState _state;
         public static TicNode CreateTypeVariableNode(ITypeState type) 
             => new TicNode(type.ToString(), type, TicNodeType.TypeVariable);
+        public static TicNode CreateTypeVariableNode(string name, ITypeState type) 
+            => new TicNode(name, type, TicNodeType.TypeVariable);
 
         private static int _interlockedId = 0;
         private readonly int _uid = 0;
@@ -58,9 +61,48 @@ namespace NFun.Tic
             Type = type;
         }
         public TicNodeType Type { get; }
-        public List<TicNode> Ancestors { get; } = new List<TicNode>();
+
+        #region Ancestors
+
+        
+        public void AddAncestor(TicNode node)
+        {
+            if(node==this)
+                throw new ImpossibleException("CircularAncestor");
+
+            _ancestors.Add(node);
+        }
+
+        public void AddAncestors(IEnumerable<TicNode> nodes)
+        {
+            if (nodes.Any(n=>n== this))
+            {
+                throw new ImpossibleException("CircularAncestor");
+            }
+            _ancestors.AddRange(nodes);
+        }
+
+        public void RemoveAncestor(TicNode node)
+        {
+            _ancestors.Remove(node);
+        }
+
+        public void SetAncestor(int index, TicNode node)
+        {
+            if (node == this)
+            {
+                throw new ImpossibleException("CircularAncestor");
+            }
+            _ancestors[index] = node;
+        }
+        
+        private  List<TicNode> _ancestors = new List<TicNode>();
+        public IReadOnlyList<TicNode> Ancestors => _ancestors;
+        #endregion
+
         public bool IsMemberOfAnything { get; set; }
         public bool IsSolved => _state.IsSolved;
+        public bool IsMutable => _state.IsMutable;
 
         public ITicNodeState State
         {
@@ -68,14 +110,12 @@ namespace NFun.Tic
             set
             {
                 Debug.Assert(value != null);
-                Debug.Assert(_state==null || !(IsSolved && !value.Equals(_state)),"Node is already solved");
-
+                Debug.Assert(_state==null || IsMutable || value.Equals(_state),"Node is already solved");
+                
                 if (value is StateArray array)
                     array.ElementNode.IsMemberOfAnything = true;
                 else
-                {
-                    Debug.Assert(!(value is StateRefTo refTo && refTo.Node== this),"Self referencing node");
-                }
+                    Debug.Assert(!(value is StateRefTo refTo && refTo.Node == this), "Self referencing node");
                 _state = value;
             }
         }
@@ -95,14 +135,11 @@ namespace NFun.Tic
                 return;
             
 #if DEBUG
-            if (TraceLog.IsEnabled)
-            {
                 TraceLog.Write($"{Name}:", ConsoleColor.Green);
                 TraceLog.Write(State.Description);
                 if (Ancestors.Any())
                     TraceLog.Write("  <=" + string.Join(",", Ancestors.Select(a => a.Name)));
                 TraceLog.WriteLine();
-            }
 #endif
         }
 
@@ -157,5 +194,10 @@ namespace NFun.Tic
             return result;
         }
         public override int GetHashCode() => _uid;
+
+        public void ClearAncestors()
+        {
+            _ancestors.Clear();
+        }
     }
 }

@@ -28,6 +28,8 @@ namespace NFun.Tic.SolvingStates
 
         public TicNode ElementNode { get; }
         public bool IsSolved => Element.IsSolved;
+        public bool IsMutable => !IsSolved;
+
         public ITicNodeState Element => ElementNode.State;
 
         public override string ToString()

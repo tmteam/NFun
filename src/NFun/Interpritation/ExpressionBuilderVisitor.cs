@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using NFun.Exceptions;
 using NFun.Interpritation.Functions;
@@ -8,6 +9,7 @@ using NFun.Runtime;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
+using NFun.Tic;
 using NFun.Tokenization;
 using NFun.TypeInferenceAdapter;
 using NFun.Types;
@@ -21,7 +23,7 @@ namespace NFun.Interpritation
         private readonly TypeInferenceResults _typeInferenceResults;
         private readonly TicTypesConverter _typesConverter;
 
-        public static IExpressionNode BuildExpression(
+        private static IExpressionNode BuildExpression(
             ISyntaxNode node,
             IFunctionDictionary functions,
             VariableDictionary variables, 
@@ -42,9 +44,9 @@ namespace NFun.Interpritation
             if (result.Type == outputType)
                 return result;
             var converter = VarTypeConverter.GetConverterOrThrow(result.Type, outputType, node.Interval);
+            
             return new CastExpressionNode(result, outputType, converter, node.Interval);
         }
-
         private ExpressionBuilderVisitor(
             IFunctionDictionary functions, 
             VariableDictionary variables,
@@ -94,6 +96,42 @@ namespace NFun.Interpritation
             var body = arrowAnonymFunNode.Body;
             return BuildAnonymousFunction(arrowAnonymFunNode.Interval, body, localVariables, arguments);
         }
+
+        public IExpressionNode Visit(StructFieldAccessSyntaxNode node)
+        {
+            var structNode = ReadNode(node.Source);
+            //Funtic allows default values for not specified types 
+            // so call:
+            //  y = @{}.missingField
+            // is allowed, but it semantically incorrect
+            
+            if (!structNode.Type.StructTypeSpecification.ContainsKey(node.FieldName))
+                throw FunParseException.ErrorStubToDo($"Access to non exist field {node.FieldName}");
+            return new StructFieldAccessExpressionNode(node.FieldName, structNode, node.Interval);
+        }
+
+        public IExpressionNode Visit(StructInitSyntaxNode node)
+        {
+            var types = new Dictionary<string,VarType>(node.Fields.Count);
+            var names = new string[node.Fields.Count];
+            var nodes = new IExpressionNode[node.Fields.Count];
+            
+            for (int i = 0; i < node.Fields.Count; i++)
+            {
+                var field = node.Fields[i];
+                nodes[i] = ReadNode(field.Node);
+                names[i] = field.Name;
+                types.Add(field.Name,field.Node.OutputType);
+            }
+
+            foreach (var field in node.OutputType.StructTypeSpecification)
+            {
+                if (!types.ContainsKey(field.Key))
+                    throw FunParseException.ErrorStubToDo($"Field {field.Key} is missed in struct");
+            }
+            return new StructInitExpressionNode(names,nodes,node.Interval,VarType.StructOf(types));
+        }
+
         public IExpressionNode Visit(ArrowAnonymFunctionSyntaxNode arrowAnonymFunNode)
         {
             if (arrowAnonymFunNode.Definition==null)
@@ -136,11 +174,15 @@ namespace NFun.Interpritation
 
         public IExpressionNode Visit(ArraySyntaxNode node)
         {
-            var nodes = new IExpressionNode[node.Expressions.Count];
-            for (int i = 0; i< node.Expressions.Count; i++)
-                nodes[i] = ReadNode(node.Expressions[i]);
+            var elements = new IExpressionNode[node.Expressions.Count];
+            var expectedElementType = node.OutputType.ArrayTypeSpecification.VarType;
+            for (int i = 0; i < node.Expressions.Count; i++)
+            {
+                var elementNode = ReadNode(node.Expressions[i]);
+                elements[i] = CastExpressionNode.GetConvertedOrOriginOrThrow(elementNode, expectedElementType);
+            }
 
-            return new ArrayExpressionNode(nodes,node.Interval, node.OutputType);
+            return new ArrayExpressionNode(elements,node.Interval, node.OutputType);
         }
 
         public IExpressionNode Visit(FunCallSyntaxNode node)
@@ -166,12 +208,12 @@ namespace NFun.Interpritation
             if (someFunc is IGenericFunction genericFunction) //generic function
             {
                 VarType[] genericArgs;
-
+                // Generic function type arguments usually stored in tic results
                 var genericTypes = _typeInferenceResults.GetGenericCallArguments(node.OrderNumber);
                 if (genericTypes == null)
                 {
-                    // Generic call arguments are unknown  in case of  generic recursion function . 
-                    // Take it from type inference results in this case
+                    // Generic call arguments are unknown  in case of generic recursion function . 
+                    // Take them from type inference results
                     var recCallSignature =  _typeInferenceResults.GetRecursiveCallOrNull(node.OrderNumber);
                     //if generic call arguments not exist in type inference result - it is NFUN core error
                     if(recCallSignature==null)

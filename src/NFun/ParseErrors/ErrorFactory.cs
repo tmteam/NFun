@@ -58,7 +58,7 @@ namespace NFun.ParseErrors
         public static Exception NotAToken(Tok token)
             => throw new FunParseException(216,$"'{token.Value}' is not valid fun element. What did you mean?", token.Interval);
         
-        public static Exception FunctionNameIsMissedAfterPipeForward(Tok token)
+        public static Exception FunctionOrStructMemberNameIsMissedAfterDot(Tok token)
             => throw new FunParseException(219,$"Function name expected after '.'{Nl} Example: [1,2].myFunction()",token.Interval);
 
         public static Exception ArrayIndexOrSliceExpected(Tok openBraket)
@@ -527,21 +527,10 @@ namespace NFun.ParseErrors
             
             //Lca defined only in TI. It is kind of hack
             var hmTypes = allExpressions.Select(a => a.OutputType.ConvertToTiType()).ToArray();
-            var currentLca = hmTypes[0];
-            
-            for (int i = 1; i < hmTypes.Length; i++)
-            {
-                throw new NotImplementedException();
-                //currentLca = TiType.GetLca(new[]{currentLca, hmTypes[i]});
-                //if (currentLca.Name.Equals(TiTypeName.Any))
-                //{
-                //    failedInterval = allExpressions[i].Interval;
-                //    break;
-                //}
-            }
             
             return new FunParseException(575, $"'If-else expressions contains different type. " +
-                                              $"Specify toAny() cast if the result should be of 'any' type ", 
+                                              $"Specify toAny() cast if the result should be of 'any' type. "+
+                $"Actual types: {string.Join(",", hmTypes.Select(m=>m.Description))}", 
                 failedInterval);
         }
         public static Exception VariousArrayElementTypes(ArraySyntaxNode arraySyntaxNode) {

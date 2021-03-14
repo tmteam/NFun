@@ -38,16 +38,16 @@ namespace Nfun.ModuleTests.UnitTests
         [TestCase("x:int64", TokType.Id, TokType.Colon, TokType.Int64Type)]
         [TestCase("x:text", TokType.Id, TokType.Colon, TokType.TextType)]
         [TestCase("x:bool", TokType.Id, TokType.Colon, TokType.BoolType)]
-        [TestCase("x.y", TokType.Id, TokType.PipeForward, TokType.Id)]
+        [TestCase("x.y", TokType.Id, TokType.Dot, TokType.Id)]
         [TestCase("x.y(1).z", TokType.Id,
-            TokType.PipeForward, TokType.Id, TokType.Obr, TokType.IntNumber, TokType.Cbr,
-            TokType.PipeForward, TokType.Id)]
+            TokType.Dot, TokType.Id, TokType.Obr, TokType.IntNumber, TokType.Cbr,
+            TokType.Dot, TokType.Id)]
         [TestCase("[0..1]", TokType.ArrOBr, TokType.IntNumber, TokType.TwoDots, TokType.IntNumber, TokType.ArrCBr)]
         [TestCase("[0..1..2]",
             TokType.ArrOBr,
             TokType.IntNumber, TokType.TwoDots, TokType.IntNumber, TokType.TwoDots, TokType.IntNumber,
             TokType.ArrCBr)]
-        [TestCase("0.", TokType.IntNumber, TokType.PipeForward)]
+        [TestCase("0.", TokType.IntNumber, TokType.Dot)]
         [TestCase("0.1", TokType.RealNumber)]
         
         [TestCase("0xFF", TokType.HexOrBinaryNumber)]
@@ -56,11 +56,11 @@ namespace Nfun.ModuleTests.UnitTests
         [TestCase("0b001", TokType.HexOrBinaryNumber)]
         [TestCase("0b001_0", TokType.HexOrBinaryNumber)]
 
-        [TestCase("0xFF.a", TokType.HexOrBinaryNumber, TokType.PipeForward, TokType.Id)]
-        [TestCase("0xFF_01.a", TokType.HexOrBinaryNumber, TokType.PipeForward, TokType.Id)]
+        [TestCase("0xFF.a", TokType.HexOrBinaryNumber, TokType.Dot, TokType.Id)]
+        [TestCase("0xFF_01.a", TokType.HexOrBinaryNumber, TokType.Dot, TokType.Id)]
 
-        [TestCase("0b001.a", TokType.HexOrBinaryNumber, TokType.PipeForward, TokType.Id)]
-        [TestCase("0b001_0.a", TokType.HexOrBinaryNumber, TokType.PipeForward, TokType.Id)]
+        [TestCase("0b001.a", TokType.HexOrBinaryNumber, TokType.Dot, TokType.Id)]
+        [TestCase("0b001_0.a", TokType.HexOrBinaryNumber, TokType.Dot, TokType.Id)]
 
         [TestCase("0xFF)", TokType.HexOrBinaryNumber, TokType.Cbr)]
         [TestCase("0xFF_01)", TokType.HexOrBinaryNumber, TokType.Cbr)]
@@ -72,15 +72,13 @@ namespace Nfun.ModuleTests.UnitTests
         [TestCase("(0b001)",   TokType.Obr, TokType.HexOrBinaryNumber, TokType.Cbr)]
         [TestCase("(0b001_0)", TokType.Obr, TokType.HexOrBinaryNumber, TokType.Cbr)]
 
-
         [TestCase("0x", TokType.NotAToken)]
         [TestCase("0b", TokType.NotAToken)]
         [TestCase("0bFF", TokType.NotAToken)]
         [TestCase("0xGG", TokType.NotAToken)]
-        [TestCase("0x.y", TokType.NotAToken, TokType.PipeForward, TokType.Id)]
-        [TestCase("0b.y", TokType.NotAToken, TokType.PipeForward, TokType.Id)]
-        [TestCase("0xGG.y", TokType.NotAToken, TokType.PipeForward, TokType.Id)]
-
+        [TestCase("0x.y", TokType.NotAToken, TokType.Dot, TokType.Id)]
+        [TestCase("0b.y", TokType.NotAToken, TokType.Dot, TokType.Id)]
+        [TestCase("0xGG.y", TokType.NotAToken, TokType.Dot, TokType.Id)]
 
         [TestCase("0x)", TokType.NotAToken, TokType.Cbr)]
         [TestCase("0b)", TokType.NotAToken, TokType.Cbr)]
@@ -105,8 +103,8 @@ namespace Nfun.ModuleTests.UnitTests
         [TestCase(@"true #", TokType.True)]
         [TestCase(@"true #comment", TokType.True)]
         [TestCase("0.fun()",
-            TokType.IntNumber, TokType.PipeForward, TokType.Id, TokType.Obr, TokType.Cbr)]
-        [TestCase("1.y", TokType.IntNumber, TokType.PipeForward, TokType.Id)]
+            TokType.IntNumber, TokType.Dot, TokType.Id, TokType.Obr, TokType.Cbr)]
+        [TestCase("1.y", TokType.IntNumber, TokType.Dot, TokType.Id)]
         [TestCase("y = 1; z = 2.0",
             TokType.Id, TokType.Def, TokType.IntNumber,
             TokType.NewLine,
@@ -173,6 +171,16 @@ namespace Nfun.ModuleTests.UnitTests
             TokType.TextOpenInterpolation, TokType.IntNumber, TokType.TextCloseInterpolation,
             //}after'
             TokType.TextCloseInterpolation)]
+        
+        [TestCase("@{a =1 }", TokType.StructObr, TokType.Id, TokType.Def, TokType.IntNumber, TokType.FiCbr)]
+        [TestCase("out = @{a =1; b = 2 }", 
+            TokType.Id,TokType.Def,
+            TokType.StructObr, 
+            TokType.Id, TokType.Def, TokType.IntNumber, 
+            TokType.NewLine,
+            TokType.Id, TokType.Def, TokType.IntNumber, 
+            TokType.FiCbr)]
+
         public void TokenFlowIsCorrect_ExpectEof(string exp, params TokType[] expected) 
         {
             var tokens = new List<TokType>();

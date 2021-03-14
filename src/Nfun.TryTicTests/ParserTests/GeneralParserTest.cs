@@ -4,10 +4,10 @@ using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
 using NUnit.Framework;
 
-namespace Nfun.ModuleTests.UnitTests
+namespace Nfun.ModuleTests.ParserTests
 {
     [TestFixture]
-    public class ParserTest
+    public class GeneralParserTest
     {
         /*
         [TestCase("y = 1+x", "1+x")]

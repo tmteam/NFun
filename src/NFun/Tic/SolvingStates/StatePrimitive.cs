@@ -22,6 +22,8 @@ namespace NFun.Tic.SolvingStates
 
         public PrimitiveTypeName Name { get; }
         public bool IsSolved => true;
+        public bool IsMutable => false;
+
         public bool IsNumeric => Name.HasFlag(PrimitiveTypeName._isNumber);
         private int Order => (int)Name>>6;
         public override string ToString()

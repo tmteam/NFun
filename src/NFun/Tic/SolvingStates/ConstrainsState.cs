@@ -4,7 +4,7 @@ using NFun.Tic.Stages;
 
 namespace NFun.Tic.SolvingStates
 {
-    public class ConstrainsState: ITicNodeState
+    public class ConstrainsState: ITicNodeState 
     {
         public ConstrainsState(ITypeState desc = null, StatePrimitive anc = null)
         {
@@ -39,12 +39,17 @@ namespace NFun.Tic.SolvingStates
                     return false;
                 return true;
             }
-            else if (type is StateArray array)
+
+            if (type is ICompositeState)
             {
                 if (IsComparable)
                     return false;
                 if (!HasDescendant)
                     return true;
+            }
+            
+            if (type is StateArray array)
+            {
                 if (!(Descedant is StateArray descArray))
                     return false;
                 if (array.Element.Equals(descArray.Element))
@@ -53,17 +58,27 @@ namespace NFun.Tic.SolvingStates
                     return false;
                 return false;
             }
-            else if (type is StateFun fun)
+            if (type is StateFun fun)
             {
-                if (IsComparable)
-                    return false;
-                if (!HasDescendant)
-                    return true;
                 if (!(Descedant is StateFun descfun))
                     return false;
                 if (fun.Members.SequenceEqual(descfun.Members))
                     return true;
                 if (!fun.IsSolved || !descfun.IsSolved)
+                    return false;
+                
+            }
+            else if (type is StateStruct str)
+            {
+                if (IsComparable)
+                    return false;
+                if (!HasDescendant)
+                    return true;
+                if (!(Descedant is StateStruct descStruct))
+                    return false;
+                if (str.Members.SequenceEqual(descStruct.Members))
+                    return true;
+                if (!str.IsSolved || !descStruct.IsSolved)
                     return false;
             }
             throw new NotSupportedException();
@@ -134,6 +149,7 @@ namespace NFun.Tic.SolvingStates
         {
             if(type==null)
                 return;
+            
             if(!type.IsSolved)
                 return;
 
@@ -148,6 +164,7 @@ namespace NFun.Tic.SolvingStates
         }
 
         public bool IsSolved => false;
+        public bool IsMutable => true;
         public StatePrimitive Prefered { get; set; }
         public bool IsComparable { get; set; }
         public bool NoConstrains => !HasDescendant && !HasAncestor && !IsComparable;
@@ -288,6 +305,28 @@ namespace NFun.Tic.SolvingStates
         }
 
         public string Description => ToString();
+        public override bool Equals(object obj)
+        {
+            if (!(obj is  ConstrainsState constrainsState))
+                return false;
+
+            if (HasAncestor != constrainsState.HasAncestor)
+                return false;
+            if (HasAncestor && !constrainsState.Ancestor.Equals(Ancestor)) 
+                return false;
+
+            if (HasDescendant != constrainsState.HasDescendant)
+                return false;
+            if (HasDescendant && !constrainsState.Descedant.Equals(Descedant)) 
+                return false;
+            
+            if ((Prefered != null) != (constrainsState.Prefered != null))
+                return false;
+            if (Prefered != null && !constrainsState.Prefered!.Equals(Prefered))
+                return false;
+            
+            return IsComparable==constrainsState.IsComparable;
+        }
 
         public bool ApplyDescendant(IStateCombination2dimensionalVisitor visitor, TicNode ancestorNode, TicNode descendantNode) =>
             descendantNode.State.Apply(visitor, ancestorNode, descendantNode, this);

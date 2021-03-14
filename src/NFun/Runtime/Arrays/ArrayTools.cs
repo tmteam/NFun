@@ -10,6 +10,7 @@ namespace NFun.Runtime.Arrays
     {
         public static readonly ImmutableFunArray Empty = new ImmutableFunArray(new object[0], VarType.Anything);
         public static TextFunArray AsFunText(this  string txt)=> new TextFunArray(txt);
+
         public static string JoinElementsToFunString(IEnumerable enumerable)
         {
             var sb = new StringBuilder("[");

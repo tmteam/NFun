@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using NFun.Interpritation.Functions;
 using NFun.SyntaxParsing.SyntaxNodes;
+using NFun.Tic;
 using NFun.Tic.SolvingStates;
 using NFun.Types;
 
@@ -16,78 +19,54 @@ namespace NFun.TypeInferenceAdapter
         public static string GetFunAlias(this UserFunctionDefinitionSyntaxNode syntaxNode)
             => GetFunAlias(syntaxNode.Id, syntaxNode.Args.Count);
 
-        public static ITicNodeState GetTicFunType(this IFunctionSignature functionBase)
-        {
-            return StateFun.Of(
+        public static ITicNodeState GetTicFunType(this IFunctionSignature functionBase) =>
+            StateFun.Of(
                 functionBase.ArgTypes.SelectToArray(a => a.ConvertToTiType()),
                 functionBase.ReturnType.ConvertToTiType());
-        }
+
         public static ITicNodeState GetTicFunType(this GenericFunctionBase functionBase, StateRefTo[] genericMap) =>
             StateFun.Of(
                 functionBase.ArgTypes.SelectToArray(a => a.ConvertToTiType(genericMap)),
                 functionBase.ReturnType.ConvertToTiType(genericMap));
-        public static ITicNodeState ConvertToTiType(this VarType origin)
-        {
-            switch (origin.BaseType)
+        public static ITicNodeState ConvertToTiType(this VarType origin) =>
+            origin.BaseType switch
             {
-                case BaseVarType.Bool:   return StatePrimitive.Bool;
-                case BaseVarType.Int16:  return StatePrimitive.I16;
-                case BaseVarType.Int32:  return StatePrimitive.I32;
-                case BaseVarType.Int64:  return StatePrimitive.I64;
-                case BaseVarType.UInt8:  return StatePrimitive.U8;
-                case BaseVarType.UInt16: return StatePrimitive.U16;
-                case BaseVarType.UInt32: return StatePrimitive.U32;
-                case BaseVarType.UInt64: return StatePrimitive.U64;
-                case BaseVarType.Real:   return StatePrimitive.Real;
-                case BaseVarType.Char:   return StatePrimitive.Char;
-                case BaseVarType.Any:    return StatePrimitive.Any;
-                case BaseVarType.ArrayOf: return Tic.SolvingStates.StateArray.Of(ConvertToTiType(origin.ArrayTypeSpecification.VarType));
-                case BaseVarType.Fun: 
-                    return StateFun.Of(
-                        argTypes: origin.FunTypeSpecification.Inputs.SelectToArray(ConvertToTiType), 
-                        returnType: ConvertToTiType(origin.FunTypeSpecification.Output));
-                case BaseVarType.Generic: 
-                    throw new InvalidOperationException("Generic types cannot be used directly");
-                case BaseVarType.Empty: 
-                    throw new InvalidOperationException();
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
-        public static ITicNodeState ConvertToTiType(this VarType origin, StateRefTo[] genericMap)
-        {
-            switch (origin.BaseType)
-            {
-                case BaseVarType.Generic: 
-                    return genericMap[origin.GenericId.Value];
-                case BaseVarType.ArrayOf:
-                    return Tic.SolvingStates.StateArray.Of(ConvertToTiType(origin.ArrayTypeSpecification.VarType, genericMap));
-                case BaseVarType.Fun:
-                    return StateFun.Of(
-                        argTypes:   origin.FunTypeSpecification.Inputs.SelectToArray(type => ConvertToTiType(type, genericMap)),
-                        returnType: ConvertToTiType(origin.FunTypeSpecification.Output, genericMap));
-                default:
-                    return origin.ConvertToTiType();
-            }
-        }
-        //public static VarType GetVarType(this IState result, string varId, TiToLangTypeConverter converter)
-        //    => converter.ToSimpleType( result.GetVarType(varId));
-        //public static LangFunctionSignature GetFunctionOverload(this TiResult result, int nodeId,TiToLangTypeConverter converter)
-        //{
-        //    var overloadHmSignature = result.GetFunctionOverload(nodeId);
-        //    if (overloadHmSignature == null)
-        //        return null;
-        //    return new LangFunctionSignature(
-        //        converter.ToSimpleType(overloadHmSignature.ReturnType), 
-        //        overloadHmSignature.ArgTypes.Select(o=>converter.ToSimpleType(o)).ToArray());
-        //}
+                BaseVarType.Bool => StatePrimitive.Bool,
+                BaseVarType.Int16 => StatePrimitive.I16,
+                BaseVarType.Int32 => StatePrimitive.I32,
+                BaseVarType.Int64 => StatePrimitive.I64,
+                BaseVarType.UInt8 => StatePrimitive.U8,
+                BaseVarType.UInt16 => StatePrimitive.U16,
+                BaseVarType.UInt32 => StatePrimitive.U32,
+                BaseVarType.UInt64 => StatePrimitive.U64,
+                BaseVarType.Real => StatePrimitive.Real,
+                BaseVarType.Char => StatePrimitive.Char,
+                BaseVarType.Any => StatePrimitive.Any,
+                BaseVarType.ArrayOf => StateArray.Of(
+                    ConvertToTiType(origin.ArrayTypeSpecification.VarType)),
+                BaseVarType.Fun => StateFun.Of(
+                    argTypes: origin.FunTypeSpecification.Inputs.SelectToArray(ConvertToTiType),
+                    returnType: ConvertToTiType(origin.FunTypeSpecification.Output)),
+                BaseVarType.Struct => StateStruct.Of(origin.StructTypeSpecification.Select(d =>
+                    new KeyValuePair<string, ITicNodeState>(d.Key, ConvertToTiType(d.Value)))),
+                _ => throw new ArgumentOutOfRangeException($"Var type '{origin}' is not supported for convertion to FunTicType")
+            };
 
-        /*public static VarType GetNodeTypeOrEmpty(this FinalizationResults result, int nodeId, TiToLangTypeConverter converter)
-        {
-            var hmType = result.GetNodeTypeOrNull(nodeId);
-            if (hmType == null)
-                return VarType.Empty;
-            return converter.ToSimpleType(hmType);
-        }*/
+        public static ITicNodeState ConvertToTiType(this VarType origin, StateRefTo[] genericMap) =>
+            origin.BaseType switch
+            {
+                BaseVarType.Generic => genericMap[origin.GenericId.Value],
+                BaseVarType.ArrayOf => Tic.SolvingStates.StateArray.Of(
+                    ConvertToTiType(origin.ArrayTypeSpecification.VarType, genericMap)),
+                BaseVarType.Fun => StateFun.Of(
+                    argTypes: origin.FunTypeSpecification.Inputs.SelectToArray(
+                        type => ConvertToTiType(type, genericMap)),
+                    returnType: ConvertToTiType(origin.FunTypeSpecification.Output, genericMap)),
+                BaseVarType.Struct => StateStruct.Of(
+                    origin.StructTypeSpecification.Select(s=> new KeyValuePair<string, ITicNodeState>(
+                        key:   s.Key,
+                        value: ConvertToTiType(s.Value, genericMap)))),
+                _ => origin.ConvertToTiType()
+            };
     }
 }

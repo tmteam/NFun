@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using NFun.Exceptions;
@@ -115,15 +114,13 @@ namespace NFun.TypeInferenceAdapter
         public bool Visit(ArraySyntaxNode node)
         {
             VisitChildren(node);
-
+            var elementIds = new int[node.Expressions.Count];
+            for (int i = 0; i < node.Expressions.Count; i++) 
+                elementIds[i] = node.Expressions[i].OrderNumber;
 #if DEBUG
-            var elementIds = node.Expressions.SelectToArray(e => e.OrderNumber);
             Trace(node, $"[{string.Join(",", elementIds)}]");
 #endif
-            _ticTypeGraph.SetSoftArrayInit(
-                node.OrderNumber,
-                node.Expressions.Select(e => e.OrderNumber)
-            );
+            _ticTypeGraph.SetSoftArrayInit(node.OrderNumber, elementIds);
             return true;
         }
         public bool Visit(SuperAnonymFunctionSyntaxNode node)
@@ -162,6 +159,25 @@ namespace NFun.TypeInferenceAdapter
             _aliasScope.ExitScope();
             return true;
         }
+
+        public bool Visit(StructFieldAccessSyntaxNode node)
+        {
+            if (!node.Source.Accept(this))
+                return false;
+            _ticTypeGraph.SetFieldAccess(node.Source.OrderNumber, node.OrderNumber,node.FieldName);
+            return true;
+        }
+
+        public bool Visit(StructInitSyntaxNode node)
+        {
+            if (!VisitChildren(node))
+                return false;
+            _ticTypeGraph.SetStructInit(
+                node.Fields.Select(f=>f.Name).ToArray(), 
+                node.Fields.Select(f=>f.Node.OrderNumber).ToArray(), node.OrderNumber);
+            return true;
+        }
+
         public bool Visit(ArrowAnonymFunctionSyntaxNode node)
         {
             _aliasScope.EnterScope(node.OrderNumber);

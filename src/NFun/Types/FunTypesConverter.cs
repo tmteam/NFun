@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using NFun.Runtime.Arrays;
 
 namespace NFun.Types
@@ -13,9 +15,9 @@ namespace NFun.Types
                 converter = new StringFunTypesConverter();
                 return true;
             }
-
             if (clrType.IsArray)
             {
+                
                 var elementType = clrType.GetElementType();
                 if (elementType == typeof(object)) {
                     //if type is object than we can convert objects only at runtime
@@ -32,13 +34,30 @@ namespace NFun.Types
             }
             return false;
         }
+        protected FunTypesConverter()
+        {
+        }
         protected FunTypesConverter(VarType funType)
         {
             FunType = funType;
         }
 
-        public VarType FunType { get; }
+        public VarType FunType { get; protected set; }
         public abstract object ToFunObject(object clrObject);
+    }
+
+    public class StructFunTypesConverter : FunTypesConverter
+    {
+        public StructFunTypesConverter(Dictionary<string,object> value) {
+            this.FunType = VarType.StructOf(
+                value.ToDictionary(v => v.Key,
+                    v => VarVal.New("", v.Value).Type));
+        }
+
+        public override object ToFunObject(object clrObject)
+        {
+            return clrObject;
+        }
     }
     public class ArrayOfCompositesFunTypesConverter : FunTypesConverter
     {
@@ -64,7 +83,6 @@ namespace NFun.Types
     
     public class ArrayOfAnythingFunTypesConverter : FunTypesConverter
     {
-
         public ArrayOfAnythingFunTypesConverter() 
             : base(VarType.ArrayOf(VarType.Anything)) { }
 
@@ -95,6 +113,7 @@ namespace NFun.Types
         public override object ToFunObject(object clrObject) 
             => new ImmutableFunArray(((Array) clrObject),_elementType);
     }
+
     public class CharArrayFunTypesConverter: FunTypesConverter
     {
         public CharArrayFunTypesConverter() : base(VarType.Text)
@@ -103,6 +122,7 @@ namespace NFun.Types
         public override object ToFunObject(object clrObject) 
             => new TextFunArray(new string((char[]) clrObject));
     }
+    
     public class StringFunTypesConverter: FunTypesConverter
     {
         public StringFunTypesConverter() : base(VarType.Text) { }

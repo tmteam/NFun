@@ -13,7 +13,6 @@ namespace NFun.Tic
     public class NodeToposort
     {
         public TicNode[] NonReferenceOrdered { get; private set; }
-        //public TicNode[] References { get; private set; }
 
         private Stack<TicNode> _path;
         private int _refenceNodesCount = 0;
@@ -27,25 +26,21 @@ namespace NFun.Tic
         {
             //at this moment we have garanties that graph has no cycles
             NonReferenceOrdered = new TicNode[_path.Count- _refenceNodesCount];
-            //var refs = new TicNode[_refenceNodesCount];
             var nonRefId = 0;
-            //var refId = 0;
             foreach (var node in _path)
             {
                 for (var i = 0; i < node.Ancestors.Count; i++)
                 {
                     var ancestor = node.Ancestors[i];
                     if (ancestor.State is StateRefTo ancrRefTo) 
-                        node.Ancestors[i] = ancrRefTo.Node.GetNonReference();
+                        node.SetAncestor(i,ancrRefTo.Node.GetNonReference());
                 }
 
                 if (node.State is StateRefTo refTo)
-                {
+                { 
                     foreach (var refAncestor in node.Ancestors) 
-                        refTo.Node.Ancestors.Add(refAncestor);
-                    node.Ancestors.Clear();
-                    //refs[refId]=node;
-                    //refId++;
+                        refTo.Node.AddAncestor(refAncestor);
+                    node.ClearAncestors();
                 }
                 else
                 {
@@ -56,7 +51,6 @@ namespace NFun.Tic
                         node.State = composite.GetNonReferenced();
                 }
             }
-            //References = refs;
         }
 
         private Stack<TicNode> _cycle = null;
@@ -66,6 +60,15 @@ namespace NFun.Tic
         private const int IsVisited = -42;
         private const int NotVisited = 0;
 
+        public bool AddToTopology(params TicNode[] nodes)
+        {
+            foreach (var node in nodes)
+            {
+                if (!AddToTopology(node))
+                    return false;
+            }
+            return true;
+        }
         public bool AddToTopology(TicNode node)
         {
             if (node == null)
@@ -102,7 +105,6 @@ namespace NFun.Tic
                 foreach (var member in composite.Members)
                     if (!AddToTopology(member)) 
                         ThrowRecursiveTypeDefenition(node);
-
             }
                 
             foreach (var ancestor in node.Ancestors) 

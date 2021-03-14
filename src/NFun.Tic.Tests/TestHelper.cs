@@ -133,21 +133,42 @@ namespace NFun.Tic.Tests
                 }
             }
         }
-        public static void AssertNamed(this ITicResults results, ITypeState type, params string[] varNames)
+        public static void AssertNamed(this ITicResults results, ITypeState expectedState, params string[] varNames)
         {
             foreach (var varName in varNames)
             {
-                Assert.AreEqual(type, results.GetVariableNode(varName).GetNonReference().State);
+                AssertNodeStateEqualToState(
+                    expected: expectedState, 
+                    actual:   results.GetVariableNode(varName).State, 
+                    id:       varName);
             }
+        }
+
+        private static ITicNodeState GetNonReferencedState(ITicNodeState state)
+        {
+            if (state is StatePrimitive)
+                return state;
+            if(state is ConstrainsState)
+                return state;
+            if (state is StateRefTo refTo)
+                return GetNonReferencedState(refTo.Node.State);
+            if (state is ICompositeState compositeState)
+                return compositeState.GetNonReferenced();
+            throw new NotSupportedException();
         }
         public static void AssertNode(this ITicResults results, ITypeState type, params int[] nodeIds)
         {
             foreach (var id in nodeIds)
             {
-                Assert.AreEqual(type, results.GetSyntaxNodeOrNull(id).GetNonReference().State);
+                var actual = results.GetSyntaxNodeOrNull(id).State;
+                AssertNodeStateEqualToState(type, actual, id);
             }
-
         }
+
+        private static void AssertNodeStateEqualToState(ITypeState expected, ITicNodeState actual, object id) =>
+            Assert.IsTrue(AreStatesEqualByValue(actual, expected),
+                $"States are not equal for '{id}': \r\nExpected: {expected}\r\nActual: {actual}");
+
         public static void AssertNode(this ITicResults results, TicNode generic, params int[] nodeIds)
         {
             foreach (var id in nodeIds)
@@ -155,6 +176,35 @@ namespace NFun.Tic.Tests
                 Assert.AreEqual(generic.GetNonReference(), results.GetSyntaxNodeOrNull(id).GetNonReference());
             }
 
+        }
+
+        private static bool AreStatesEqualByValue(ITicNodeState a, ITicNodeState b)
+        {
+            while (a is StateRefTo arefTo) a = arefTo.Node.State;
+            while (b is StateRefTo brefTo) b = brefTo.Node.State;
+            
+            if (a.GetType() != b.GetType())
+                return false;
+            
+            if (a is StatePrimitive)
+                return a.Equals(b);
+            if(a is ConstrainsState)
+                return a.Equals(b);
+            if (a is ICompositeState aComposite && b is ICompositeState bComposite)
+            {
+                var aMembers = aComposite.Members.ToArray();
+                var bMembers = bComposite.Members.ToArray();
+                if (aMembers.Length != bMembers.Length)
+                    return false;
+                for (int i = 0; i < aMembers.Length; i++)
+                {
+                    if (!AreStatesEqualByValue(aMembers[i].State, bMembers[i].State))
+                        return false;
+                }
+                return true;
+            }
+
+            return false;
         }
     }
 }

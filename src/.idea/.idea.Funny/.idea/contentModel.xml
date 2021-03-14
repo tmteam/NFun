@@ -1,33 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ContentModelStore">
-    <e p="C:\Users\Xiaomi\.nuget\packages\microsoft.diagnostics.tracing.traceevent\2.0.49\lib\native\amd64" t="Include">
+    <e p="$USER_HOME$/.nuget/packages/microsoft.diagnostics.tracing.traceevent/2.0.49/lib/native/amd64" t="Include">
       <e p="KernelTraceControl.dll" t="Include" />
       <e p="msdia140.dll" t="Include" />
     </e>
-    <e p="C:\Users\Xiaomi\.nuget\packages\microsoft.diagnostics.tracing.traceevent\2.0.49\lib\native\x86" t="Include">
+    <e p="$USER_HOME$/.nuget/packages/microsoft.diagnostics.tracing.traceevent/2.0.49/lib/native/x86" t="Include">
       <e p="KernelTraceControl.dll" t="Include" />
       <e p="KernelTraceControl.Win61.dll" t="Include" />
       <e p="msdia140.dll" t="Include" />
     </e>
-    <e p="C:\Users\Xiaomi\.nuget\packages\microsoft.diagnostics.tracing.traceevent\2.0.49\lib\netstandard1.6\Dia2Lib.dll" t="Include" />
-    <e p="C:\Users\Xiaomi\.nuget\packages\microsoft.diagnostics.tracing.traceevent\2.0.49\lib\netstandard1.6\OSExtensions.dll" t="Include" />
-    <e p="C:\Users\Xiaomi\.nuget\packages\microsoft.diagnostics.tracing.traceevent\2.0.49\lib\netstandard1.6\TraceReloggerLib.dll" t="Include" />
-    <e p="C:\Users\Xiaomi\.nuget\packages\microsoft.net.test.sdk\16.1.1\build\netcoreapp1.0" t="Include">
+    <e p="$USER_HOME$/.nuget/packages/microsoft.diagnostics.tracing.traceevent/2.0.49/lib/netstandard1.6/Dia2Lib.dll" t="Include" />
+    <e p="$USER_HOME$/.nuget/packages/microsoft.diagnostics.tracing.traceevent/2.0.49/lib/netstandard1.6/OSExtensions.dll" t="Include" />
+    <e p="$USER_HOME$/.nuget/packages/microsoft.diagnostics.tracing.traceevent/2.0.49/lib/netstandard1.6/TraceReloggerLib.dll" t="Include" />
+    <e p="$USER_HOME$/.nuget/packages/microsoft.net.test.sdk/16.1.1/build/netcoreapp1.0" t="Include">
       <e p="Microsoft.NET.Test.Sdk.Program.cs" t="Include" />
     </e>
-    <e p="C:\Users\Xiaomi\.nuget\packages\microsoft.net.test.sdk\16.2.0\build\netcoreapp1.0" t="Include">
+    <e p="$USER_HOME$/.nuget/packages/microsoft.net.test.sdk/16.2.0/build/netcoreapp1.0" t="Include">
       <e p="Microsoft.NET.Test.Sdk.Program.cs" t="Include" />
     </e>
-    <e p="C:\Users\Xiaomi\.nuget\packages\nunit3testadapter\3.11.0\build\netcoreapp1.0\nunit.engine.netstandard.dll" t="Include" />
-    <e p="C:\Users\Xiaomi\.nuget\packages\nunit3testadapter\3.11.0\build\netcoreapp1.0\NUnit3.TestAdapter.dll" t="Include" />
-    <e p="C:\Users\Xiaomi\.nuget\packages\nunit3testadapter\3.11.0\build\netcoreapp1.0\NUnit3.TestAdapter.pdb" t="Include" />
-    <e p="C:\Users\Xiaomi\.nuget\packages\nunit3testadapter\3.13.0\build\netcoreapp1.0\nunit.engine.netstandard.dll" t="Include" />
-    <e p="C:\Users\Xiaomi\.nuget\packages\nunit3testadapter\3.13.0\build\netcoreapp1.0\NUnit3.TestAdapter.dll" t="Include" />
-    <e p="C:\Users\Xiaomi\.nuget\packages\nunit3testadapter\3.13.0\build\netcoreapp1.0\NUnit3.TestAdapter.pdb" t="Include" />
-    <e p="C:\Users\Xiaomi\AppData\local\JetBrains\Rider2020.1\extResources" t="IncludeRecursive" />
-    <e p="C:\Users\Xiaomi\AppData\local\JetBrains\Rider2020.1\resharper-host\local\Transient\ReSharperHost\v201\SolutionCaches\_Funny.1298071450.00" t="ExcludeRecursive" />
-    <e p="T:\Code\NFun\src" t="IncludeFlat">
+    <e p="$USER_HOME$/.nuget/packages/nunit3testadapter/3.11.0/build/netcoreapp1.0/nunit.engine.netstandard.dll" t="Include" />
+    <e p="$USER_HOME$/.nuget/packages/nunit3testadapter/3.11.0/build/netcoreapp1.0/NUnit3.TestAdapter.dll" t="Include" />
+    <e p="$USER_HOME$/.nuget/packages/nunit3testadapter/3.11.0/build/netcoreapp1.0/NUnit3.TestAdapter.pdb" t="Include" />
+    <e p="$USER_HOME$/.nuget/packages/nunit3testadapter/3.13.0/build/netcoreapp1.0/nunit.engine.netstandard.dll" t="Include" />
+    <e p="$USER_HOME$/.nuget/packages/nunit3testadapter/3.13.0/build/netcoreapp1.0/NUnit3.TestAdapter.dll" t="Include" />
+    <e p="$USER_HOME$/.nuget/packages/nunit3testadapter/3.13.0/build/netcoreapp1.0/NUnit3.TestAdapter.pdb" t="Include" />
+    <e p="$PROJECT_DIR$" t="IncludeFlat">
       <e p="Benchmarks" t="Include" />
       <e p="ConsoleUseParser" t="IncludeRecursive">
         <e p="arrays.fuspec" t="Include" />
@@ -35,7 +33,7 @@
         <e p="ConsoleRender.cs" t="Include" />
         <e p="ConsoleUseParser.csproj" t="IncludeRecursive" />
         <e p="obj" t="ExcludeRecursive">
-          <e p="Release" t="Include">
+          <e p="Debug" t="Include">
             <e p="netcoreapp2.2" t="Include">
               <e p="ConsoleUseParser.AssemblyInfo.cs" t="Include" />
             </e>
@@ -53,7 +51,7 @@
         </e>
         <e p="FuspecHandler.csproj" t="IncludeRecursive" />
         <e p="obj" t="ExcludeRecursive">
-          <e p="Release" t="Include">
+          <e p="Debug" t="Include">
             <e p="netcoreapp2.2" t="Include">
               <e p="FuspecHandler.AssemblyInfo.cs" t="Include" />
             </e>
@@ -123,22 +121,19 @@
             <e p="FunVariableExpressionNode.cs" t="Include" />
             <e p="IExpressionNode.cs" t="Include" />
             <e p="IfElseExpressionNode.cs" t="Include" />
+            <e p="StructFieldAccessExpressionNode.cs" t="Include" />
+            <e p="StructInitExpressionNode.cs" t="Include" />
             <e p="VariableExpressionNode.cs" t="Include" />
           </e>
           <e p="RuntimeBuilder.cs" t="Include" />
           <e p="RuntimeBuilderHelper.cs" t="Include" />
           <e p="ScopeFunctionDictionary.cs" t="Include" />
         </e>
-        <e p="NFun.0.7.1.nupkg" t="Include" />
-        <e p="NFun.0.8.0.nupkg" t="Include" />
-        <e p="NFun.0.8.1.nupkg" t="Include" />
-        <e p="NFun.0.8.2.nupkg" t="Include" />
         <e p="NFun.csproj" t="IncludeRecursive" />
         <e p="NFun.csproj.DotSettings" t="Include" />
         <e p="NFun.nuspec" t="Include" />
-        <e p="nuget.exe" t="Include" />
         <e p="obj" t="ExcludeRecursive">
-          <e p="Release" t="Include">
+          <e p="Debug" t="Include">
             <e p="netstandard2.0" t="Include">
               <e p="NFun.AssemblyInfo.cs" t="Include" />
             </e>
@@ -158,6 +153,7 @@
             <e p="TextFunArray.cs" t="Include" />
           </e>
           <e p="CalculationResult.cs" t="Include" />
+          <e p="FunnyStruct.cs" t="Include" />
           <e p="FunRuntime.cs" t="Include" />
           <e p="VariableDictionary.cs" t="Include" />
           <e p="VariableSource.cs" t="Include" />
@@ -181,6 +177,8 @@
             <e p="ListOfExpressionsSyntaxNode.cs" t="Include" />
             <e p="NamedIdSyntaxNode.cs" t="Include" />
             <e p="ResultCallSyntaxNode.cs" t="Include" />
+            <e p="StructFieldAccessSyntaxNode.cs" t="Include" />
+            <e p="StructInitSyntaxNode.cs" t="Include" />
             <e p="SuperAnonymFunctionSyntaxNode.cs" t="Include" />
             <e p="SyntaxTree.cs" t="Include" />
             <e p="TypedVarDefSyntaxNode.cs" t="Include" />
@@ -213,6 +211,8 @@
           <e p="GraphBuilder.cs" t="Include" />
           <e p="ITicResults.cs" t="Include" />
           <e p="NodeToposort.cs" t="Include" />
+          <e p="NodeToposort2.cs" t="Include" />
+          <e p="RefCycleSearchAlgorithm.cs" t="Include" />
           <e p="SolvingFunctions.cs" t="Include" />
           <e p="SolvingStates" t="Include">
             <e p="ConstrainsState.cs" t="Include" />
@@ -222,6 +222,7 @@
             <e p="StateFun.cs" t="Include" />
             <e p="StatePrimitive.cs" t="Include" />
             <e p="StateRefTo.cs" t="Include" />
+            <e p="StateStruct.cs" t="Include" />
           </e>
           <e p="Stages" t="Include">
             <e p="DestructionFunctions.cs" t="Include" />
@@ -275,7 +276,7 @@
         <e p="NfunParserBenchmark.cs" t="Include" />
         <e p="NfunUpdateBenchmark.cs" t="Include" />
         <e p="obj" t="ExcludeRecursive">
-          <e p="Release" t="Include">
+          <e p="Debug" t="Include">
             <e p="netcoreapp3.0" t="Include">
               <e p="Nfun.Benchmarks.AssemblyInfo.cs" t="Include" />
             </e>
@@ -289,7 +290,7 @@
         <e p="NCalcPerformance.cs" t="Include" />
         <e p="Nfun.CompareToOthers.csproj" t="IncludeRecursive" />
         <e p="obj" t="ExcludeRecursive">
-          <e p="Release" t="Include">
+          <e p="Debug" t="Include">
             <e p="netcoreapp3.1" t="Include">
               <e p="Nfun.CompareToOthers.AssemblyInfo.cs" t="Include" />
             </e>
@@ -303,7 +304,7 @@
         <e p="NFun.Console.csproj" t="IncludeRecursive" />
         <e p="NFun.Console.csproj.DotSettings" t="Include" />
         <e p="obj" t="ExcludeRecursive">
-          <e p="Release" t="Include">
+          <e p="Debug" t="Include">
             <e p="netcoreapp2.1" t="Include">
               <e p="NFun.Console.AssemblyInfo.cs" t="Include" />
             </e>
@@ -315,7 +316,7 @@
         <e p="bin" t="ExcludeRecursive" />
         <e p="Nfun.Experiments.csproj" t="IncludeRecursive" />
         <e p="obj" t="ExcludeRecursive">
-          <e p="Release" t="Include">
+          <e p="Debug" t="Include">
             <e p="netcoreapp3.1" t="Include">
               <e p="Nfun.Experiments.AssemblyInfo.cs" t="Include" />
             </e>
@@ -327,7 +328,7 @@
         <e p="bin" t="ExcludeRecursive" />
         <e p="NFun.Fuspec.csproj" t="IncludeRecursive" />
         <e p="obj" t="ExcludeRecursive">
-          <e p="Release" t="Include">
+          <e p="Debug" t="Include">
             <e p="netcoreapp2.2" t="Include">
               <e p="NFun.Fuspec.AssemblyInfo.cs" t="Include" />
             </e>
@@ -370,7 +371,7 @@
         </e>
         <e p="NFun.Fuspectests.csproj" t="IncludeRecursive" />
         <e p="obj" t="ExcludeRecursive">
-          <e p="Release" t="Include">
+          <e p="Debug" t="Include">
             <e p="netcoreapp2.2" t="Include">
               <e p="NFun.Fuspectests.AssemblyInfo.cs" t="Include" />
               <e p="NFun.Fuspectests.Program.cs" t="Include" />
@@ -383,7 +384,7 @@
         <e p="bin" t="ExcludeRecursive" />
         <e p="Nfun.InfinityProfiling.csproj" t="IncludeRecursive" />
         <e p="obj" t="ExcludeRecursive">
-          <e p="Release" t="Include">
+          <e p="Debug" t="Include">
             <e p="netcoreapp3.1" t="Include">
               <e p="Nfun.InfinityProfiling.AssemblyInfo.cs" t="Include" />
             </e>
@@ -426,7 +427,7 @@
         <e p="NFun.Tests.csproj" t="IncludeRecursive" />
         <e p="NfunUpdateTest.cs" t="Include" />
         <e p="obj" t="ExcludeRecursive">
-          <e p="Release" t="Include">
+          <e p="Debug" t="Include">
             <e p="netcoreapp2.1" t="Include">
               <e p="NFun.Tests.AssemblyInfo.cs" t="Include" />
             </e>
@@ -443,6 +444,11 @@
         <e p="RecursiveTypeDefinitionDetectionTest.cs" t="Include" />
         <e p="SeveralEquationsTest.cs" t="Include" />
         <e p="SpecificationTests.cs" t="Include" />
+        <e p="Structs" t="Include">
+          <e p="Struct.BodyTest.cs" t="Include" />
+          <e p="Struct.ConcreteFunctionTest.cs" t="Include" />
+          <e p="Struct.GenericFunctionTest.cs" t="Include" />
+        </e>
         <e p="SuperAnonymousFunTest.cs" t="Include" />
         <e p="TestTools.cs" t="Include" />
         <e p="TextTest.cs" t="Include" />
@@ -480,13 +486,16 @@
         <e p="IncorrectNodesOrderTest.cs" t="Include" />
         <e p="NFun.Tic.Tests.csproj" t="IncludeRecursive" />
         <e p="obj" t="ExcludeRecursive">
-          <e p="Release" t="Include">
+          <e p="Debug" t="Include">
             <e p="netcoreapp3.0" t="Include">
               <e p="NFun.Tic.Tests.AssemblyInfo.cs" t="Include" />
             </e>
           </e>
         </e>
         <e p="ReqursionTest.cs" t="Include" />
+        <e p="Structs" t="Include">
+          <e p="StructTest.cs" t="Include" />
+        </e>
         <e p="TestHelper.cs" t="Include" />
         <e p="TrickyPrimitives.cs" t="Include" />
         <e p="UnitTests" t="Include">
@@ -495,6 +504,7 @@
           <e p="NodeToposortFunctionsTest.cs" t="Include" />
           <e p="PrimitiveTypeTest.cs" t="Include" />
           <e p="SolvingFunctionsTest.cs" t="Include" />
+          <e p="Toposort2Test.cs" t="Include" />
         </e>
         <e p="UserFunctionsTest.cs" t="Include" />
       </e>
@@ -507,11 +517,17 @@
         <e p="MetadataTest.cs" t="Include" />
         <e p="Nfun.ModuleTests.csproj" t="IncludeRecursive" />
         <e p="obj" t="ExcludeRecursive">
-          <e p="Release" t="Include">
+          <e p="Debug" t="Include">
             <e p="netcoreapp3.0" t="Include">
               <e p="Nfun.ModuleTests.AssemblyInfo.cs" t="Include" />
             </e>
           </e>
+        </e>
+        <e p="ParserTests" t="Include">
+          <e p="GeneralParserTest.cs" t="Include" />
+          <e p="ParserTestHelper.cs" t="Include" />
+          <e p="StructFieldAccessSyntaxNodeParserTest.cs" t="Include" />
+          <e p="StructSyntaxNodeTest.cs" t="Include" />
         </e>
         <e p="TicTests" t="Include">
           <e p="BodyTypeInferenceTests.cs" t="Include" />
@@ -523,8 +539,8 @@
           <e p="GenericFunctionBaseTest.cs" t="Include" />
           <e p="GraphToolsTest_CycledTopologySort.cs" t="Include" />
           <e p="GraphToolsTest_TopologySort.cs" t="Include" />
-          <e p="ParserTest.cs" t="Include" />
           <e p="QuotationReaderTest.cs" t="Include" />
+          <e p="TicStatesTest.cs" t="Include" />
           <e p="TokenHelperTest.cs" t="Include" />
           <e p="TokenizerTest.cs" t="Include" />
           <e p="ValueParserTest.cs" t="Include" />
@@ -535,5 +551,7 @@
       <e p="packages" t="ExcludeRecursive" />
       <e p="Tests" t="Include" />
     </e>
+    <e p="$USER_HOME$/Library/Caches/JetBrains/Rider2020.3/extResources" t="IncludeRecursive" />
+    <e p="$USER_HOME$/Library/Caches/JetBrains/Rider2020.3/resharper-host/local/Transient/Rider/v203/SolutionCaches/_Funny.-382858759.00" t="ExcludeRecursive" />
   </component>
 </project>

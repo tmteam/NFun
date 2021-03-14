@@ -111,5 +111,12 @@ namespace NFun.Runtime.Arrays
                 return string.Compare(_text, t2._text, StringComparison.Ordinal);
             return 0;
         }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is TextFunArray t)
+                return t._text == _text;
+            return false;
+        }
     }
 }

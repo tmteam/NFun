@@ -1,3 +1,4 @@
+using System;
 using NFun.Exceptions;
 using NFun.ParseErrors;
 using NFun.SyntaxParsing;
@@ -27,6 +28,11 @@ namespace NFun.TypeInferenceAdapter
                 node.OutputType = _tiToLangTypeConverter.Convert(type);
             
             return VisitorEnterResult.Continue;
+        }
+
+        public override VisitorEnterResult Visit(NamedIdSyntaxNode node)
+        {
+            return base.Visit(node);
         }
 
         public override VisitorEnterResult Visit(EquationSyntaxNode node)

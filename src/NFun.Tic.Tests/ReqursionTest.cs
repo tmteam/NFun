@@ -21,11 +21,9 @@ namespace NFun.Tic.Tests
             graph.SetArith(1, 2, 3);
             var result = graph.Solve();
             result.AssertNoGenerics();
-            Assert.AreEqual(fun.ReturnType, StatePrimitive.I32);
-            Assert.AreEqual(fun.Args.First(), StatePrimitive.Any);
-            //var generic = result.AssertAndGetSingleGeneric(null, null, false);
-            //Assert.AreEqual(fun.ReturnType, Primitive.I32);
-            //Assert.AreEqual(fun.Args.First(), generic.State);
+            var nonReferencedFun = (StateFun) fun.GetNonReferenced();
+            Assert.AreEqual( StatePrimitive.I32,nonReferencedFun.ReturnType);
+            Assert.AreEqual( StatePrimitive.Any,nonReferencedFun.Args.First());
         }
         [Test]
         public void ReqursiveWithoutGenerics()

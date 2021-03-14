@@ -75,7 +75,6 @@ namespace NFun.Interpritation
                 return resultBuilder.Build();
             }
             catch (TicException e) { throw ErrorFactory.TranslateTicError(e, syntaxTree); }
-
         }
 
         private static void ThrowIfSomeVariablesNotExistsInTheList(this VariableDictionary resultVariables, IEnumerable<string> list )

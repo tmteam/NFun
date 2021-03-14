@@ -3,18 +3,15 @@ using NFun.Types;
 
 namespace NFun.BuiltInFunctions
 {
-
     public class ArithmeticalGenericFunctionOfTwoArgsBase : PureGenericFunctionBase
     {
         private readonly IConcreteFunction[] _functions;
-
         protected ArithmeticalGenericFunctionOfTwoArgsBase(
             string name,
             GenericConstrains constrains
         ) : base(name, constrains,  2)
         {
             _functions = new IConcreteFunction[15];
-
         }
 
         protected void Setup(VarType type, FunctionWithTwoArgs function)

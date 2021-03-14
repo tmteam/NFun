@@ -293,8 +293,12 @@ namespace NFun.Tokenization
                 case ']': return Tok.New(TokType.ArrCBr, position, position + 1);
                 case ':': return Tok.New(TokType.Colon, position, position + 1);
                 case '~': return Tok.New(TokType.BitInverse, position, position + 1);
+                case '@' when next == '{':
+                    return Tok.New(TokType.StructObr, position, position + 2);
                 case '-' when next == '-':
                     return Tok.New(TokType.Attribute, position, position + 2);
+                case '-' when next == '{':
+                    return Tok.New(TokType.StructObr, position, position + 2);
                 case '-' when next == '>':
                     return Tok.New(TokType.AnonymFun, position, position + 2);
                 case '-':
@@ -322,7 +326,7 @@ namespace NFun.Tokenization
                 case '.' when next == '.':
                     return Tok.New(TokType.TwoDots, position, position + 2);
                 case '.':
-                    return Tok.New(TokType.PipeForward, position, position + 1);
+                    return Tok.New(TokType.Dot, position, position + 1);
                 case '!' when next == '=':
                     return Tok.New(TokType.NotEqual, position, position + 2);
                 default:

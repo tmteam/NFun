@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.CompilerServices;
 using NFun.Tic.SolvingStates;
 
@@ -35,9 +36,9 @@ namespace NFun.Tic.Stages
                 var result = SolvingFunctions.TransformToArrayOrNull(descendantNode.Name, descendant);
                 if (result == null)
                     return false;
-                result.ElementNode.Ancestors.Add(ancArray.ElementNode);
+                result.ElementNode.AddAncestor(ancArray.ElementNode);
                 descendantNode.State = result;
-                descendantNode.Ancestors.Remove(ancestorNode);
+                descendantNode.RemoveAncestor(ancestorNode);
             }
             else if (ancestor is StateFun ancFun)
             {
@@ -45,11 +46,29 @@ namespace NFun.Tic.Stages
                     descendantNode.Name, descendant, ancFun);
                 if (result == null)
                     return false;
-                result.RetNode.Ancestors.Add(ancFun.RetNode);
+                result.RetNode.AddAncestor(ancFun.RetNode);
                 for (int i = 0; i < result.ArgsCount; i++)
-                    result.ArgNodes[i].Ancestors.Add(ancFun.ArgNodes[i]);
+                    result.ArgNodes[i].AddAncestor(ancFun.ArgNodes[i]);
                 descendantNode.State = result;
-                descendantNode.Ancestors.Remove(ancestorNode);
+                descendantNode.RemoveAncestor(ancestorNode);
+            }
+            else if (ancestor is StateStruct ancStruct)
+            {
+         
+                var result = SolvingFunctions.TransformToStructOrNull(descendant, ancStruct);
+                if (result == null)
+                    return false;
+                //todo Зачем это тут, если и так структура ссылается на оригинальные поля?
+                /*foreach (var ancField in ancStruct.Fields)
+                {
+                    var descField = result.GetFieldOrNull(ancField.Key);
+                    if (descField != ancField.Value)
+                    {
+                        descField.AddAncestor(ancField.Value);
+                    }
+                }*/
+                descendantNode.State = result;
+                //descendantNode.RemoveAncestor(ancestorNode);
             }
             return true;
         }
@@ -61,8 +80,12 @@ namespace NFun.Tic.Stages
             if (ancestor is StateArray ancArray)
             {
                 var descArray = (StateArray) descendant;
-                descendantNode.Ancestors.Remove(ancestorNode);
-                descArray.ElementNode.Ancestors.Add(ancArray.ElementNode);
+                if (descArray.ElementNode != ancArray.ElementNode)
+                {
+                    descArray.ElementNode.AddAncestor(ancArray.ElementNode);
+                }
+                descendantNode.RemoveAncestor(ancestorNode);
+
             }
             else if (ancestor is StateFun ancFun)
             {
@@ -70,11 +93,36 @@ namespace NFun.Tic.Stages
 
                 if (descFun.ArgsCount != ancFun.ArgsCount)
                     return false;
-                descendantNode.Ancestors.Remove(ancestorNode);
-
-                descFun.RetNode.Ancestors.Add(ancFun.RetNode);
+                descFun.RetNode.AddAncestor(ancFun.RetNode);
                 for (int i = 0; i < descFun.ArgsCount; i++)
-                    ancFun.ArgNodes[i].Ancestors.Add(descFun.ArgNodes[i]);
+                    ancFun.ArgNodes[i].AddAncestor(descFun.ArgNodes[i]);
+                descendantNode.RemoveAncestor(ancestorNode);
+
+            }
+            else if (ancestor is StateStruct ancStruct)
+            {
+                var descStruct = (StateStruct) descendant;
+                // desc node has to have all ancestors fields that has exast same type as desc type
+                // (implicit field convertion is not allowed)
+                foreach (var ancField in ancStruct.Fields)
+                {
+                    var descField = descStruct.GetFieldOrNull(ancField.Key);
+                    if (descField == null)
+                        descendantNode.State = descStruct.With(ancField.Key, ancField.Value);
+                    else
+                    {
+                        SolvingFunctions.MergeInplace(ancField.Value, descField);
+                        if (ancField.Value.State is StateRefTo) 
+                            ancestorNode.State = ancestor.GetNonReferenced();
+                        if (descField.State is StateRefTo)
+                            descendantNode.State = descendant.GetNonReferenced();
+                    }
+                }
+                // descendantNode.RemoveAncestor(ancestorNode);
+            }
+            else
+            {
+                throw new NotSupportedException($"Composite type {ancestor.GetType().Name} is not supported");
             }
 
             return true;

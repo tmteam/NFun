@@ -1,3 +1,4 @@
+using NFun.Exceptions;
 using NFun.Tic.SolvingStates;
 
 namespace NFun.Tic.Stages
@@ -52,7 +53,7 @@ namespace NFun.Tic.Stages
                 descendantNode.State = result;
                 ancestorNode.State = new StateRefTo(descendantNode);
             }
-            descendantNode.Ancestors.Remove(ancestorNode);
+            descendantNode.RemoveAncestor(ancestorNode);
             return true;
         }
 
@@ -92,6 +93,29 @@ namespace NFun.Tic.Stages
                             SolvingFunctions.Destruction(descFun.ArgNodes[i], ancFun.ArgNodes[i]);
                         SolvingFunctions.Destruction(ancFun.RetNode, descFun.RetNode);
                     }
+                }
+            }
+
+            if (ancestor is StateStruct ancStruct)
+            {
+                if (descendant is StateStruct descStruct)
+                {
+                    foreach (var ancField in ancStruct.Fields)
+                    {
+                        var descFieldNode = descStruct.GetFieldOrNull(ancField.Key);
+                        if (descFieldNode == null)
+                        {
+                            //todo!!
+                            //throw new ImpossibleException(
+                            //    $"Struct descendant '{descendantNode.Name}:{descendant}' of node '{ancestorNode.Name}:{ancestor}' miss field '{ancField.Key}'");
+                            descendantNode.State = descStruct.With(ancField.Key, ancField.Value);
+                        }
+                        else
+                        {
+                            SolvingFunctions.Destruction(descFieldNode, ancField.Value);
+                        }
+                    }
+                    ancestorNode.State = new StateRefTo(descendantNode);
                 }
             }
             return true;

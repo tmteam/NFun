@@ -17,9 +17,9 @@ namespace NFun.Tic
             if (stateB is ConstrainsState c && c.NoConstrains)
                 return stateA;
 
-            if (stateA is ITypeState typeA && typeA.IsSolved)
+            if (stateA is ITypeState typeA && !typeA.IsMutable)
             {
-                if (stateB is ITypeState typeB && typeB.IsSolved)
+                if (stateB is ITypeState typeB && !typeB.IsMutable)
                     return !typeB.Equals(typeA) ? null : typeA;
 
                 if (stateB is ConstrainsState constrainsB)
@@ -29,7 +29,7 @@ namespace NFun.Tic
             switch (stateA)
             {
                 case StateArray arrayA when stateB is StateArray arrayB:
-                    Merge(arrayA.ElementNode, arrayB.ElementNode);
+                    MergeInplace(arrayA.ElementNode, arrayB.ElementNode);
                     return arrayA;
                 case StateFun funA when stateB is StateFun funB:
                 {
@@ -37,11 +37,28 @@ namespace NFun.Tic
                         return null;
 
                     for (int i = 0; i < funA.ArgsCount; i++)
-                        Merge(funA.ArgNodes[i], funB.ArgNodes[i]);
-                    Merge(funA.RetNode, funB.RetNode);
+                        MergeInplace(funA.ArgNodes[i], funB.ArgNodes[i]);
+                    MergeInplace(funA.RetNode, funB.RetNode);
                     return funA;
                 }
+                case StateStruct strA when stateB is StateStruct strB:
+                {
+                    var result = new Dictionary<string, TicNode>();
+                    foreach (var aField in strA.Fields)
+                    {
+                        var bNode = strB.GetFieldOrNull(aField.Key);
+                        if(bNode!=null)
+                            MergeInplace(aField.Value, bNode);
+                        result.Add(aField.Key, aField.Value);
+                    }
 
+                    foreach (var bField in strB.Fields)
+                    {
+                        if(!result.ContainsKey(bField.Key))
+                            result.Add(bField.Key,bField.Value);
+                    }
+                    return new StateStruct(result);
+                }
                 case ConstrainsState constrainsA when stateB is ConstrainsState constrainsB:
                     return constrainsB.MergeOrNull(constrainsA);
                 case ConstrainsState _: 
@@ -53,38 +70,57 @@ namespace NFun.Tic
                     refA.Node.State = state;
                     return stateA;
                 }
+                
             }
             if (stateB is StateRefTo)
                 return GetMergedStateOrNull(stateB, stateA);
 
             return null;
         }
-
-        public static void Merge(TicNode main, TicNode secondary)
+        /// <summary>
+        /// Merge two nodes. Both of them become equiualent.
+        ///
+        /// In complex situation, 'secondary' node becomes reference to 'main' node, if it is possible
+        /// </summary>
+        public static void MergeInplace(TicNode main, TicNode secondary)
         {
             if(main==secondary)
                 return;
-            
+            if (main.State is StateRefTo)
+            {
+                var nonreferenceMain = main.GetNonReference();
+                var nonreferenceSecondary = secondary.GetNonReference();
+                MergeInplace(nonreferenceMain, nonreferenceSecondary);
+                return;
+            }
+            if(secondary.GetNonReference()==main)
+                return;
             var res = GetMergedStateOrNull(main.State, secondary.State);
             if (res == null)
                 throw TicErrors.CannotMerge(main, secondary);
-
+            
             main.State = res;
             if (res is ITypeState t && t.IsSolved)
             {
                 secondary.State = res;
                 return;
             }
-
-            main.Ancestors.AddRange(secondary.Ancestors);
-            secondary.Ancestors.Clear();
+            main.AddAncestors(secondary.Ancestors.Where(a=>a!=main));
+            secondary.ClearAncestors();
             secondary.State = new StateRefTo(main);
         }
-
-        public static void MergeGroup(IEnumerable<TicNode> cycleRoute)
+        /// <summary>
+        /// Merge all node states. First non ref state (or first state) called 'main'
+        /// 'main' state takes all constrains and ancestors
+        ///
+        /// All other nodes refs to 'main'
+        ///
+        /// Returns 'main'
+        /// </summary>
+        public static TicNode MergeGroup(IEnumerable<TicNode> cycleRoute)
         {
-            var main = cycleRoute.First();
-            
+            var main = cycleRoute.FirstOrDefault(c=>!(c.State is StateRefTo))
+                       ?? cycleRoute.First();
             foreach (var current in cycleRoute)
             {
                 if (current == main)
@@ -102,21 +138,21 @@ namespace NFun.Tic
                                  ?? throw TicErrors.CannotMergeGroup(cycleRoute.ToArray(), main, current);
                 }
                 
-                main.Ancestors.AddRange(current.Ancestors);
-                current.Ancestors.Clear();
+                main.AddAncestors(current.Ancestors.Where(c=>c!=main));
+                current.ClearAncestors();
 
                 if (!current.IsSolved)
                     current.State = new StateRefTo(main);
             }
 
-            var newAncestors = main.Ancestors.Distinct()
-                .SelectMany(r => r.Ancestors)
+            var newAncestors = main.Ancestors
                 .Where(r => !cycleRoute.Contains(r))
                 .Distinct()
                 .ToList();
 
-            main.Ancestors.Clear();
-            main.Ancestors.AddRange(newAncestors);
+            main.ClearAncestors();
+            main.AddAncestors(newAncestors);
+            return main;
         }
 
         #endregion
@@ -200,7 +236,7 @@ namespace NFun.Tic
         {
             if (descendant == ancestor)
                 return;
-
+            
             if (!ancestor.State.ApplyDescendant(PushConstraintsFunctions.Singletone, ancestor, descendant))
                 throw TicErrors.IncompatibleNodes(ancestor, descendant);
         }
@@ -266,9 +302,9 @@ namespace NFun.Tic
             referencedNode = referencedNode.GetNonReference();
             original = original.GetNonReference();
             if (referencedNode.Type == TicNodeType.SyntaxNode)
-                Merge(original, referencedNode);
+                MergeInplace(original, referencedNode);
             else
-                Merge(referencedNode, original);
+                MergeInplace(referencedNode, original);
         }
 
         /// <summary>
@@ -312,38 +348,65 @@ namespace NFun.Tic
                 for (int i = 0; i < ancestor.ArgsCount; i++)
                 {
                     var argNode = TicNode.CreateTypeVariableNode("a'"+ descNodeName +"'"+i, new ConstrainsState());
-                    argNode.Ancestors.Add(ancestor.ArgNodes[i]);
+                    argNode.AddAncestor(ancestor.ArgNodes[i]);
                     argNodes[i] = argNode;
                 }
 
                 var retNode = TicNode.CreateTypeVariableNode("r'"+ descNodeName, new ConstrainsState());
-                retNode.Ancestors.Add(ancestor.RetNode);
+                retNode.AddAncestor(ancestor.RetNode);
 
                 return StateFun.Of(argNodes, retNode);
             }
 
-            if (descendant.Descedant is StateFun arrayEDesc
-                && arrayEDesc.ArgsCount == ancestor.ArgsCount)
+            if (descendant.Descedant is StateFun funDesc
+                && funDesc.ArgsCount == ancestor.ArgsCount)
             {
-                if (arrayEDesc.IsSolved)
-                    return arrayEDesc;
+                if (funDesc.IsSolved)
+                    return funDesc;
 
-                //For perfomance
+                // For perfomance
                 bool allArgsAreSolved = true;
-                var nrArgNodes = new TicNode[arrayEDesc.ArgNodes.Length];
-                for (int i = 0; i < arrayEDesc.ArgNodes.Length; i++)
+                var nrArgNodes = new TicNode[funDesc.ArgNodes.Length];
+                for (int i = 0; i < funDesc.ArgNodes.Length; i++)
                 {
-                    nrArgNodes[i] = arrayEDesc.ArgNodes[i].GetNonReference();
+                    nrArgNodes[i] = funDesc.ArgNodes[i].GetNonReference();
                     allArgsAreSolved = allArgsAreSolved && nrArgNodes[i].IsSolved;
                 }
                 
-                var nrRetNode = arrayEDesc.RetNode.GetNonReference();
+                var nrRetNode = funDesc.RetNode.GetNonReference();
                 if (allArgsAreSolved && nrRetNode.IsSolved)
                     return StateFun.Of(nrArgNodes, nrRetNode);
             }
             return null;
         }
+        /// <summary>
+        /// Transform constrains to struct state
+        /// </summary>
+        public static StateStruct TransformToStructOrNull(ConstrainsState descendant, StateStruct ancStruct)
+        {
+            if (descendant.NoConstrains)
+                return ancStruct;
+            
+            if (descendant.HasDescendant && descendant.Descedant is StateStruct structDesc)
+            {
+                //descendant is struct.
+                if (structDesc.IsSolved)
+                    return structDesc; //if it is solved - return it
+                
+                // For perfomance
+                bool allFieldsAreSolved = true;
 
+                var newFields = new Dictionary<string,TicNode>(structDesc.MembersCount);
+                foreach (var field in structDesc.Fields)
+                {
+                    var nrField = field.Value.GetNonReference();
+                    allFieldsAreSolved = allFieldsAreSolved && nrField.IsSolved;
+                    newFields.Add(field.Key, nrField);
+                }
+                return new StateStruct(newFields);
+            }
+            return null;
+        }
 
         private static void ThrowIfRecursiveTypeDefenition(TicNode node)
         {
@@ -478,7 +541,7 @@ namespace NFun.Tic
             //We have to solve all generic types that are not output
 
             const int outputTypeMark = 77;
-            // Firstly - get all outputs
+            // Firstly - get all outputs and mark them with output mark
             foreach (var outputNode in outputNodes)
             {
                 foreach (var outputType in outputNode.GetAllOutputTypes())
@@ -544,13 +607,15 @@ namespace NFun.Tic
             switch (node.State)
             {
                 case StateFun fun:
-                    return new[] { fun.RetNode };
+                    return new[] { fun.RetNode }; //TODO retNode.AllLeafType?
                 case StateArray array:
                     return array.AllLeafTypes;
+                case StateStruct @struct:
+                    return @struct.AllLeafTypes;
                 case StateRefTo _:
-                    return new[] { node.GetNonReference() };
+                    return new[] { node.GetNonReference() }; //TODO AllLeafType?
                 default:
-                    return new[] { node };
+                    return new[] { node }; //TODO retNode.AllLeafType?
             }
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -579,5 +644,7 @@ namespace NFun.Tic
 #endif
 
         }
+
+   
     }
 }

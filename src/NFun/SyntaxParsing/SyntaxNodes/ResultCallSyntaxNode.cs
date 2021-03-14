@@ -15,7 +15,6 @@ namespace NFun.SyntaxParsing.SyntaxNodes
         }
         public VarType OutputType { get; set; }
         public int OrderNumber { get; set; }
-
         public bool IsInBrackets { get; set; }
         public ISyntaxNode ResultExpression { get; }
         public ISyntaxNode[] Args { get; }

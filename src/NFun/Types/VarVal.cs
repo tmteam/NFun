@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using NFun.Runtime;
 using NFun.Runtime.Arrays;
 
 namespace NFun.Types
@@ -54,6 +56,19 @@ namespace NFun.Types
             => new VarVal(name, new TextFunArray(value), VarType.Text);
         public static VarVal New(string name, char value)
             => new VarVal(name, value, VarType.Char);
+        public static VarVal New(string name, FunnyStruct values, VarType type)
+            => new VarVal(name, values, type);
+
+        public static VarVal New(string name, FunnyStruct values)
+        {
+            var subTypes = new Dictionary<string,VarType>();
+            foreach (var field in values.Fields)
+            {
+                subTypes.Add(field.Key,New("", field.Value).Type);
+            }
+
+            return new VarVal(name, values, VarType.StructOf(subTypes));
+        }
 
         public static VarType ToPrimitiveFunType(Type t)
         {

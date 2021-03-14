@@ -8,8 +8,8 @@ namespace NFun.Tic.Tests.Funs
         [Test]
         public void Anything_WithStrictArrayArg()
         {
-            //     6  1 0    5  243
-            //y = Any([ 1i ], x->x==0)
+            //     6  1 0     5  2  4 3
+            //y = Any([ 1i ], x->x == 0)
             var graph = new GraphBuilder();
             graph.SetConst(0, StatePrimitive.I32);
             graph.SetStrictArrayInit(1, 0);

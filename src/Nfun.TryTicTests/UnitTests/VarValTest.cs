@@ -34,24 +34,24 @@ namespace Nfun.ModuleTests.UnitTests
             Assert.AreEqual(typeof(uint), ((IFunArray) varVal.Value).ToArray()[0].GetType());
             Assert.AreEqual(VarType.ArrayOf(VarType.UInt32), varVal.Type);
         }
-        [Test]
-        public void IntArrayNewObjectInitialization()
+        
+        [Test] public void IntArrayNewObjectInitialization()
         {
             object val = new int[] { 0, 1, 2 };
             var varVal = VarVal.New("y", val);
             Assert.AreEqual(typeof(int), ((IFunArray) varVal.Value).ToArray()[0].GetType());
             Assert.AreEqual(VarType.ArrayOf(VarType.Int32), varVal.Type);
         }
-        [Test]
-        public void UintArrayGenericInitialization()
+        
+        [Test] public void UintArrayGenericInitialization()
         {
             var val = new uint[] { 0, 1, 2 };
             var varVal = VarVal.New("y", val);
             Assert.AreEqual(typeof(uint), ((IFunArray) varVal.Value).ToArray()[0].GetType());
             Assert.AreEqual(VarType.ArrayOf(VarType.UInt32), varVal.Type);
         }
-        [Test]
-        public void IntArrayGenericInitialization()
+        
+        [Test] public void IntArrayGenericInitialization()
         {
             var val = new int[] { 0, 1, 2 };
             var varVal = VarVal.New("y", val);
@@ -59,10 +59,9 @@ namespace Nfun.ModuleTests.UnitTests
             Assert.AreEqual(VarType.ArrayOf(VarType.Int32), varVal.Type);
         }
         
-        [Test]
-        public void TwinIntArrayGenericInitialization()
+        [Test] public void TwinIntArrayGenericInitialization()
         {
-            var val = new int[][] {new int[]{ 0, 1, 2 },new int[]{ 3, 4, 5 } };
+            var val = new [] {new int[]{ 0, 1, 2 },new int[]{ 3, 4, 5 } };
             var varVal = VarVal.New("y", val);
             var firstArray = ((IFunArray) varVal.Value).ToArray();
             var secondArray = ((IFunArray) firstArray[0]).ToArray();
