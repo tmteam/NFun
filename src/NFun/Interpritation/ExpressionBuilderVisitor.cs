@@ -97,8 +97,18 @@ namespace NFun.Interpritation
             return BuildAnonymousFunction(arrowAnonymFunNode.Interval, body, localVariables, arguments);
         }
 
-        public IExpressionNode Visit(StructFieldAccessSyntaxNode node) 
-            => new StructFieldAccessExpressionNode(node.FieldName,ReadNode(node.Source),node.Interval);
+        public IExpressionNode Visit(StructFieldAccessSyntaxNode node)
+        {
+            var structNode = ReadNode(node.Source);
+            //Funtic allows default values for not specified types 
+            // so call:
+            //  y = @{}.missingField
+            // is allowed, but it semantically incorrect
+            
+            if (!structNode.Type.StructTypeSpecification.ContainsKey(node.FieldName))
+                throw FunParseException.ErrorStubToDo($"Access to non exist field {node.FieldName}");
+            return new StructFieldAccessExpressionNode(node.FieldName, structNode, node.Interval);
+        }
 
         public IExpressionNode Visit(StructInitSyntaxNode node)
         {
@@ -112,7 +122,13 @@ namespace NFun.Interpritation
                 nodes[i] = ReadNode(field.Node);
                 names[i] = field.Name;
                 types.Add(field.Name,field.Node.OutputType);
-            }            
+            }
+
+            foreach (var field in node.OutputType.StructTypeSpecification)
+            {
+                if (!types.ContainsKey(field.Key))
+                    throw FunParseException.ErrorStubToDo($"Field {field.Key} is missed in struct");
+            }
             return new StructInitExpressionNode(names,nodes,node.Interval,VarType.StructOf(types));
         }
 

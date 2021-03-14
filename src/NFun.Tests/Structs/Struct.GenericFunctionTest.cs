@@ -212,7 +212,9 @@ namespace Funny.Tests.Structs
             runtime.Calculate(VarVal.New("x", x)).AssertReturns(0.00001, VarVal.New("y", y));
         }
 
-        [TestCase("f(x) = x.a; y = f(@{missing = 1})")]
+        [TestCase("f(x) = x.a; y = f(@{nonExistField = 1})")]
+        [TestCase("f(x) = x.a; y = f(@{})")]
+
         [TestCase(@"fact(n) = if(n.field<=1) 1 else fact(@{field=n.field-1}) * n.field;
                   y = fact(@{a=x})")]
         [TestCase(@"f(n) = n.field;
