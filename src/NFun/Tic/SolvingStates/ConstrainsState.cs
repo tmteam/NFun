@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using NFun.Runtime.Arrays;
 using NFun.Tic.Stages;
 
 namespace NFun.Tic.SolvingStates
@@ -16,7 +17,8 @@ namespace NFun.Tic.SolvingStates
             new ConstrainsState(Descedant, Ancestor)
             {
                 IsComparable = this.IsComparable,
-                Prefered = this.Prefered
+                Prefered = this.Prefered,
+                _basicUnsolvedDescType = this._basicUnsolvedDescType
             };
 
         public bool Fits(ITypeState type)
@@ -135,7 +137,7 @@ namespace NFun.Tic.SolvingStates
         {
             if (type == null)
                 return;
-           
+         
             if (Descedant == null)
                 Descedant = type;
             else
@@ -145,18 +147,38 @@ namespace NFun.Tic.SolvingStates
                     Descedant = ancestor;
             }
         }
+        private enum BasicDescType
+        {
+            None,
+            IsArray,
+            IsFunction,
+            IsStruct,
+        }
+        private BasicDescType _basicUnsolvedDescType = BasicDescType.None;
 
-        private ITypeState _unsolvedType = null;
+        private BasicDescType ToBasicDescType(ITicNodeState state) => state switch
+            {
+                StateRefTo refTo => ToBasicDescType(refTo.GetNonReference()),
+                StateFun    _    => BasicDescType.IsFunction,
+                StateArray  _    => BasicDescType.IsArray,
+                StateStruct _    => BasicDescType.IsStruct,
+                _ => BasicDescType.None
+            };
+
         public void AddDescedant(ITypeState type)
         {
             if(type==null)
                 return;
-            /*if (!type.IsSolved)
+            
+            if (!type.IsSolved)
             {
-                //Descedant = type;
-                _unsolvedType = type;
+                var descType = ToBasicDescType(type);
+                if (_basicUnsolvedDescType!= BasicDescType.None && descType != _basicUnsolvedDescType)
+                    Descedant = StatePrimitive.Any;
+                
+                _basicUnsolvedDescType = descType;
                 return;
-            }*/
+            }
             
             if (Descedant == null)
                 Descedant = type;
@@ -172,15 +194,32 @@ namespace NFun.Tic.SolvingStates
         public bool IsMutable => true;
         public StatePrimitive Prefered { get; set; }
         public bool IsComparable { get; set; }
-        public bool NoConstrains => !HasDescendant && !HasAncestor && !IsComparable;
+        public bool NoConstrains => !HasDescendant && !HasAncestor && !IsComparable ;
 
         public ITicNodeState MergeOrNull(ConstrainsState constrainsState)
         {
             var result = new ConstrainsState(Descedant,Ancestor)
             {
-                IsComparable = this.IsComparable || constrainsState.IsComparable
+                IsComparable = this.IsComparable || constrainsState.IsComparable,
             };
-            
+
+            if (result._basicUnsolvedDescType == BasicDescType.None)
+            {
+                result._basicUnsolvedDescType = constrainsState._basicUnsolvedDescType;
+            }
+            else if (constrainsState._basicUnsolvedDescType == BasicDescType.None)
+            {
+                result._basicUnsolvedDescType = _basicUnsolvedDescType;
+            }
+            else if(constrainsState._basicUnsolvedDescType== this._basicUnsolvedDescType)
+            {
+                result._basicUnsolvedDescType = _basicUnsolvedDescType;
+            }
+            else if (constrainsState._basicUnsolvedDescType != _basicUnsolvedDescType)
+            {
+                result.AddDescedant(StatePrimitive.Any);
+            }
+
             result.AddDescedant(constrainsState.Descedant);
 
             if (!result.TryAddAncestor(constrainsState.Ancestor))
@@ -267,6 +306,9 @@ namespace NFun.Tic.SolvingStates
         {
             if (IsComparable)
             {
+                if (_basicUnsolvedDescType != BasicDescType.None)
+                    return null;
+                
                 if (Descedant != null)
                 {
                     if (Descedant.Equals(StatePrimitive.Char))
@@ -284,6 +326,20 @@ namespace NFun.Tic.SolvingStates
                 }
             }
 
+            if (HasDescendant && _basicUnsolvedDescType != BasicDescType.None)
+            {
+                //Workaround
+                // We cannot determine situations, when several unsolved descs exist.
+                // But if unsolved descs are from different families (like array vs struct)
+                // it means that only one common possible ancestor is 'ANY'
+                
+                // Suitable for cases like [true, [1,2,3]] or [{it*2}, @{x = 12}]
+                
+                if (ToBasicDescType(Descedant) != _basicUnsolvedDescType)
+                {
+                    Descedant = StatePrimitive.Any;
+                }
+            }
             if (HasAncestor && HasDescendant)
             {
                 if (Ancestor.Equals(Descedant))

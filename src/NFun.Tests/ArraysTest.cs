@@ -227,7 +227,7 @@ namespace Funny.Tests
 
             var arr1 = (IEnumerable<object>) result;
             Assert.AreEqual(5, arr1.Count());
-            Assert.AreEqual(true, arr1.ElementAt(0));
+            Assert.AreEqual(false, arr1.ElementAt(0));
             Assert.AreEqual(0.0, arr1.ElementAt(1));
             Assert.AreEqual(1.0, arr1.ElementAt(2));
             Assert.AreEqual("vasa", (arr1.ElementAt(3) as IFunArray).ToText());
@@ -421,12 +421,14 @@ filtrat   = x.filter{it> filt} # filt - input variable
         [TestCase("y = [4..1..-2.0]")]
         [TestCase("y = [1..4..-2.0]")]
         [TestCase("y = [1..4..0]")]
-        public void ObviouslyFailsOnParse(string expr) =>
+        public void ObviouslyFailsOnParse(string expr)
+        {
+            TraceLog.IsEnabled = true;
             Assert.Throws<FunParseException>(
                 () => FunBuilder.Build(expr));
+        }
 
-      
-       
+
         [TestCase("y = [0..10][11]")]
         [TestCase("y = ['a', 'b'][2]")]
         public void ObviouslyFailsOnRuntime(string expr) =>
