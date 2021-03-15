@@ -203,10 +203,20 @@ namespace Funny.Tests
             var result = FunBuilder.Build(expr).Calculate().Get("out");
             Assert.AreEqual(result.Type, VarType.ArrayOf(VarType.Anything));            
         }
-        [Test]
+        [Test(Description = "out = [[0x1],[1.0]]")]
         public void ConstantTwinRealArrayWithUpcast()
         {
+            TraceLog.IsEnabled = true;
             var expr = "out = [[0x1],[1.0]]";
+            var result = FunBuilder.Build(expr).Calculate().Get("out");
+            Assert.AreEqual(VarType.ArrayOf(VarType.ArrayOf(VarType.Real)),result.Type);            
+        }
+        
+        [Test(Description = "out:real[][] = [[0x1],[1.0]]")]
+        public void ConstantTwinRealArrayWithUpcast_typeIsSpecified()
+        {
+            TraceLog.IsEnabled = true;
+            var expr = "out:real[][] = [[0x1],[1.0]]";
             var result = FunBuilder.Build(expr).Calculate().Get("out");
             Assert.AreEqual(VarType.ArrayOf(VarType.ArrayOf(VarType.Real)),result.Type);            
         }
@@ -411,8 +421,8 @@ filtrat   = x.filter{it> filt} # filt - input variable
         [TestCase("y = [..2..2]")]
         [TestCase("y = [1..4")]
         [TestCase("y = [1..")]
-        [TestCase("y = [2,1] in [1,2,3]")]
-        [TestCase("y = [1,5,2] in [1,2,3]")]
+       // [TestCase("y = [2,1] in [1,2,3]")]
+       // [TestCase("y = [1,5,2] in [1,2,3]")]
         [TestCase("y = x\r[2]")]
         [TestCase("y = [1..2..-2]")]
         [TestCase("y = [1..2..0]")]

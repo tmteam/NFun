@@ -362,6 +362,8 @@ namespace NFun.Tic.SolvingStates
                 res += "<>";
             if (Prefered != null)
                 res += Prefered + "!";
+            if (_basicUnsolvedDescType != BasicDescType.None)
+                res +="("+ _basicUnsolvedDescType.ToString()[2]+")";
             return res;
         }
 
