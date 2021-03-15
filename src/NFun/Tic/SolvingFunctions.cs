@@ -322,6 +322,7 @@ namespace NFun.Tic
             }
             else if (descendant.HasDescendant && descendant.Descedant is StateArray arrayEDesc)
             {
+                
                 if (arrayEDesc.Element is StateRefTo)
                 {
                     var origin = arrayEDesc.ElementNode.GetNonReference();
@@ -410,20 +411,30 @@ namespace NFun.Tic
 
         private static void ThrowIfRecursiveTypeDefenition(TicNode node)
         {
-            switch (node.State)
+
+            ThrowIfStateHasRecursiveTypeDefeinitionReq(node.State, 1);
+
+            static void ThrowIfStateHasRecursiveTypeDefeinitionReq(ITicNodeState state, int bypassNumber)
             {
-                case StateRefTo refTo:
-                    ThrowIfRecursiveTypeDefenitionRecursive(refTo.Node, 1);
-                    break;
-                case ICompositeState composite:
-                    foreach (var member in composite.Members) 
-                        ThrowIfRecursiveTypeDefenitionRecursive(member, 1);
-                    break;
-                default:
-                    return;
+                switch (state)
+                {
+                    case StateRefTo refTo:
+                        ThrowIfNodeHasRecursiveTypeDefenitionReq(refTo.Node, 1);
+                        break;
+                    case ICompositeState composite:
+                        foreach (var member in composite.Members) 
+                            ThrowIfNodeHasRecursiveTypeDefenitionReq(member, 1);
+                        break;
+                    case ConstrainsState constrains:
+                        if(constrains.HasDescendant)
+                            ThrowIfStateHasRecursiveTypeDefeinitionReq(constrains.Descedant, 1);
+                        if(constrains.HasAncestor)
+                            ThrowIfStateHasRecursiveTypeDefeinitionReq(constrains.Ancestor, 1);
+                        break;
+                }
             }
             
-            static void ThrowIfRecursiveTypeDefenitionRecursive(TicNode node, int bypassNumber)
+            static void ThrowIfNodeHasRecursiveTypeDefenitionReq(TicNode node, int bypassNumber)
             {
                 if (node.VisitMark == bypassNumber)
                 {
@@ -434,16 +445,7 @@ namespace NFun.Tic
 
                 var markBefore = node.VisitMark;
                 node.VisitMark = bypassNumber;
-                switch (node.State)
-                {
-                    case StateRefTo refTo:
-                        ThrowIfRecursiveTypeDefenitionRecursive(refTo.Node, bypassNumber);
-                        break;
-                    case ICompositeState composite:
-                        foreach (var member in composite.Members) 
-                            ThrowIfRecursiveTypeDefenitionRecursive(member, bypassNumber);
-                        break;
-                }
+                ThrowIfStateHasRecursiveTypeDefeinitionReq(node.State,bypassNumber);
                 node.VisitMark = markBefore;
             
             }
@@ -468,7 +470,7 @@ namespace NFun.Tic
                 return false;
             }
         }
-          #region Finalize
+        #region Finalize
         public static ITicResults Finalize(
             TicNode[] toposortedNodes,
             IReadOnlyList<TicNode> outputNodes,
