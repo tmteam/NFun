@@ -203,11 +203,14 @@ namespace Funny.Tests
             var result = FunBuilder.Build(expr).Calculate().Get("out");
             Assert.AreEqual(result.Type, VarType.ArrayOf(VarType.Anything));            
         }
-        [Test(Description = "out = [[0x1],[1.0]]")]
-        public void ConstantTwinRealArrayWithUpcast()
+        [TestCase("out = [[0x1],[1.0]]")]
+        [TestCase("out = [[1.0],[0x1]]")]
+        [TestCase("out = [[0x1],[1.0],[0x1]]")]
+        [TestCase("out = [[1.0],[0x1],[1.0]]")]
+
+        public void ConstantTwinRealArrayWithUpcast_returnsArrayOfReal(string expr)
         {
             TraceLog.IsEnabled = true;
-            var expr = "out = [[0x1],[1.0]]";
             var result = FunBuilder.Build(expr).Calculate().Get("out");
             Assert.AreEqual(VarType.ArrayOf(VarType.ArrayOf(VarType.Real)),result.Type);            
         }

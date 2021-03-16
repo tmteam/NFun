@@ -34,7 +34,7 @@ namespace NFun.Tic.Stages
         {
             var result = ancestor.MergeOrNull(descendant);
             if (result == null)
-                return true;
+                return false;
 
             if (result is StatePrimitive)
             {
@@ -59,8 +59,12 @@ namespace NFun.Tic.Stages
 
         public bool Apply(ConstrainsState ancestor, ICompositeState descendant, TicNode ancestorNode, TicNode descendantNode)
         {
-            if (ancestor.Fits(descendant)) 
+            //todo Check all nonrefchildren of constrains?
+            if (ancestor.Fits(descendant))
+            {
                 ancestorNode.State = new StateRefTo(descendantNode);
+                descendantNode.RemoveAncestor(ancestorNode);
+            }
             return true;
         }
 
@@ -69,8 +73,11 @@ namespace NFun.Tic.Stages
 
         public bool Apply(ICompositeState ancestor, ConstrainsState descendant, TicNode ancestorNode, TicNode descendantNode)
         {
-            if (descendant.Fits(ancestor)) 
+            if (descendant.Fits(ancestor))
+            {
                 descendantNode.State = new StateRefTo(ancestorNode);
+                descendantNode.RemoveAncestor(ancestorNode);
+            }
             return true;
         }
 
@@ -79,9 +86,10 @@ namespace NFun.Tic.Stages
             if (ancestor is StateArray ancArray)
             {
                 if (descendant is StateArray descArray)
-                    SolvingFunctions.Destruction(descArray.ElementNode, ancArray.ElementNode);
+                    return SolvingFunctions.Destruction(descArray.ElementNode, ancArray.ElementNode);
                 return true;
             }
+            
             if (ancestor is StateFun ancFun)
             {
                 if (descendant is StateFun descFun)

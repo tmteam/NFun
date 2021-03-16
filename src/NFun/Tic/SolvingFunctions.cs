@@ -283,14 +283,14 @@ namespace NFun.Tic
             }
         }
 
-        public static void Destruction(TicNode descendantNode, TicNode ancestorNode)
+        public static bool Destruction(TicNode descendantNode, TicNode ancestorNode)
         {
             var nonRefAncestor = ancestorNode.GetNonReference();
             var nonRefDescendant = descendantNode.GetNonReference();
             if (nonRefDescendant == nonRefAncestor)
-                return;
+                return true;
 
-            nonRefAncestor.State.ApplyDescendant(
+            return nonRefAncestor.State.ApplyDescendant(
                 DestructionFunctions.Singletone, 
                 nonRefAncestor,
                 nonRefDescendant);
@@ -644,9 +644,6 @@ namespace NFun.Tic
             foreach (var node in nodes)
                 ReqPrintNode(node);
 #endif
-
         }
-
-   
     }
 }
