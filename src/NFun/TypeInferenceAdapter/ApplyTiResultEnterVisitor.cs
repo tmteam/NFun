@@ -1,6 +1,3 @@
-using System;
-using NFun.Exceptions;
-using NFun.ParseErrors;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
@@ -29,11 +26,7 @@ namespace NFun.TypeInferenceAdapter
             
             return VisitorEnterResult.Continue;
         }
-
-        public override VisitorEnterResult Visit(NamedIdSyntaxNode node)
-        {
-            return base.Visit(node);
-        }
+        
 
         public override VisitorEnterResult Visit(EquationSyntaxNode node)
         {
