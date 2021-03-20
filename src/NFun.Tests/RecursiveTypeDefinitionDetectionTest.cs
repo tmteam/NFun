@@ -1,6 +1,7 @@
 ﻿using NFun;
 using NFun.Exceptions;
 using NFun.ParseErrors;
+using NFun.Tic;
 using NUnit.Framework;
 
 namespace Funny.Tests
@@ -10,10 +11,15 @@ namespace Funny.Tests
     {
         [TestCase("r(x) = r(x.i)")]
         [TestCase("r(x) = @{f = r(x)}")]
-        public void ObviouslyFailsWithRecursiveTypeDefinitionOfStruct(string expr) =>
-            Assert.Throws<FunParseException>(
+        [TestCase("f(x) = x.age; y1 = f(user); y2 = f(user.child)")]
+        public void ObviouslyFailsWithRecursiveTypeDefinitionOfStruct(string expr)
+        {
+            TraceLog.IsEnabled = true;
+            var e = Assert.Throws<FunParseException>(
                 () => FunBuilder.Build(expr));
-        
+            TraceLog.Write($"Error: {e}");
+        }
+
         [TestCase("y = t.concat(t[0])")]
         [TestCase("y = t.concat(t[0][0])")]
         [TestCase("y = t.concat(t[0][0][0])")]
