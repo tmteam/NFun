@@ -405,6 +405,7 @@
       </e>
       <e p="NFun.Tests" t="IncludeRecursive">
         <e p="AnonymEquationTest.cs" t="Include" />
+        <e p="AprioriTypesTest.cs" t="Include" />
         <e p="ArraysTest.cs" t="Include" />
         <e p="ArrowAnonymousFunTest.cs" t="Include" />
         <e p="AttributesTest.cs" t="Include" />

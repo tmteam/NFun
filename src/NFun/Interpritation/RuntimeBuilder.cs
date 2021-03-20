@@ -9,18 +9,29 @@ using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tic;
 using NFun.Tic.Errors;
+using NFun.Tic.SolvingStates;
 using NFun.Tokenization;
 using NFun.TypeInferenceAdapter;
+using NFun.Types;
 
 namespace NFun.Interpritation
 {
+    public class AprioriTypesMap
+    {
+        public static AprioriTypesMap Empty = new AprioriTypesMap();
+        public Dictionary<string, VarType> InputTypesMap { get; } = new Dictionary<string, VarType>();
+        public Dictionary<string, VarType> OutputTypesMap { get; } = new Dictionary<string, VarType>();
+
+    }
     public static class RuntimeBuilder
     {
         private static readonly List<IFunctionSignature> EmptyUserFunctionsList 
             = new List<IFunctionSignature>();
 
-        public static FunRuntime Build(string script, IFunctionDictionary functionDictionary, IConstantList constants)
+        public static FunRuntime Build(string script, IFunctionDictionary functionDictionary, IConstantList constants, AprioriTypesMap aprioriTypesMap = null)
         {
+            aprioriTypesMap ??= AprioriTypesMap.Empty;
+            
             var flow = Tokenizer.ToFlow(script);
             var syntaxTree = Parser.Parse(flow);
 
@@ -28,13 +39,14 @@ namespace NFun.Interpritation
             var setNodeNumberVisitor = new SetNodeNumberVisitor();
             syntaxTree.ComeOver(setNodeNumberVisitor);
             syntaxTree.MaxNodeId = setNodeNumberVisitor.LastUsedNumber;
-            return Build(syntaxTree, functionDictionary, constants);
+            return Build(syntaxTree, functionDictionary, constants, aprioriTypesMap);
         }
 
         private static FunRuntime Build(
             SyntaxTree syntaxTree,
             IFunctionDictionary functionsDictionary, 
-            IConstantList constants)
+            IConstantList constants, 
+            AprioriTypesMap aprioriTypesMap)
         {
             #region build user functions
             //get topology sort of the functions call
@@ -70,7 +82,7 @@ namespace NFun.Interpritation
 
             #endregion
 
-            var bodyTypeSolving = SolveBodyTypes(syntaxTree, constants, functionDictionary);
+            var bodyTypeSolving = SolveBodyTypes(syntaxTree, constants, functionDictionary, aprioriTypesMap);
 
             #region build body
             var variables = new VariableDictionary();
@@ -128,9 +140,11 @@ namespace NFun.Interpritation
         private static TypeInferenceResults SolveBodyTypes(
             SyntaxTree syntaxTree,
             IConstantList constants, 
-            IFunctionDictionary functionDictionary)
+            IFunctionDictionary functionDictionary, 
+            AprioriTypesMap aprioriTypes)
         {
-            var bodyTypeSolving = RuntimeBuilderHelper.SolveBodyOrThrow(syntaxTree, functionDictionary, constants);
+            var bodyTypeSolving = RuntimeBuilderHelper.SolveBodyOrThrow(
+                syntaxTree, functionDictionary, constants, aprioriTypes);
 
             var enterVisitor = new ApplyTiResultEnterVisitor(bodyTypeSolving, TicTypesConverter.Concrete);
             var exitVisitor  = new ApplyTiResultsExitVisitor();

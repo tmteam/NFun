@@ -1,6 +1,7 @@
 using NFun.Interpritation;
 using NFun.Interpritation.Functions;
 using NFun.Runtime;
+using NFun.Types;
 
 namespace NFun
 {
@@ -29,11 +30,13 @@ namespace NFun
         private readonly string _script;
         private readonly IConstantList _constants;
         private readonly FunctionDictionary _functionDictionary;
+        private readonly AprioriTypesMap _aprioriTypesMap; 
 
-        internal FunBuilderWithConcreteFunctions(string script, IConstantList constants)
+        internal FunBuilderWithConcreteFunctions(string script, IConstantList constants, AprioriTypesMap aprioriTypesMap)
         {
             _script = script;
             _constants = constants;
+            _aprioriTypesMap = aprioriTypesMap;
             _functionDictionary = BaseFunctions.CreateDefaultDictionary();
         }
         public FunBuilderWithConcreteFunctions WithFunctions(params IFunctionSignature[] functions)
@@ -57,6 +60,7 @@ namespace NFun
         private FunBuilder(string text) => _text = text;
 
         private IConstantList _constants = null;
+        private readonly AprioriTypesMap _aprioriTypesMap = new AprioriTypesMap(); 
         public FunBuilder With(IConstantList constants)
         {
             _constants = constants;
@@ -67,14 +71,26 @@ namespace NFun
 
         public FunBuilderWithConcreteFunctions WithFunctions(params IFunctionSignature[] functions)
         {
-            var builder = new FunBuilderWithConcreteFunctions(_text, _constants);
+            var builder = new FunBuilderWithConcreteFunctions(_text, _constants, _aprioriTypesMap);
             return builder.WithFunctions(functions);
         }
 
         public FunRuntime Build() 
-            => RuntimeBuilder.Build(_text, BaseFunctions.DefaultDictionary, _constants??new EmptyConstantList());
+            => RuntimeBuilder.Build(_text, BaseFunctions.DefaultDictionary, _constants??new EmptyConstantList(), _aprioriTypesMap);
 
         public static FunRuntime Build(string text) =>
             RuntimeBuilder.Build(text, BaseFunctions.DefaultDictionary, new EmptyConstantList());
+        
+        public FunBuilder WithAprioriInput(string s, VarType type)
+        {
+            _aprioriTypesMap.InputTypesMap.Add(s,type);
+            return this;
+        }
+
+        public FunBuilder WithAprioriOutput(string s, VarType type)
+        {
+            _aprioriTypesMap.OutputTypesMap.Add(s,type);
+            return this;
+        }
     }
 }

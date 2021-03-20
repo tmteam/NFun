@@ -58,14 +58,21 @@ namespace NFun.Interpritation
         public static TypeInferenceResults SolveBodyOrThrow(
             SyntaxTree syntaxTree,
             IFunctionDictionary functions, 
-            IConstantList constants)
+            IConstantList constants, 
+            AprioriTypesMap aprioriTypes)
         {
             try
             {
                 var resultBuilder = new TypeInferenceResultsBuilder();
                 var typeGraph = new GraphBuilder(syntaxTree.MaxNodeId);
 
-                if(!TicSetupVisitor.SetupTicForBody(syntaxTree, typeGraph, functions, constants, resultBuilder))
+                if(!TicSetupVisitor.SetupTicForBody(
+                    tree:      syntaxTree, 
+                    ticGraph:  typeGraph, 
+                    functions: functions, 
+                    constants: constants, 
+                    aprioriTypes: aprioriTypes, 
+                    results:   resultBuilder))
                     throw ErrorFactory.TypesNotSolved(syntaxTree);
 
                 var bodyTypeSolving = typeGraph.Solve();

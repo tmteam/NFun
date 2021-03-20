@@ -27,9 +27,11 @@ namespace NFun.TypeInferenceAdapter
             GraphBuilder ticGraph, 
             IFunctionDictionary functions,
             IConstantList constants,
+            AprioriTypesMap aprioriTypes,
             TypeInferenceResultsBuilder results)
         {
-            var visitor = new TicSetupVisitor(ticGraph, functions, constants, results);
+            var visitor = new TicSetupVisitor(ticGraph, functions, constants, results, aprioriTypes);
+            
             foreach (var syntaxNode in tree.Children)
             {
                 if(syntaxNode is UserFunctionDefinitionSyntaxNode)
@@ -48,21 +50,27 @@ namespace NFun.TypeInferenceAdapter
             IConstantList constants,
             TypeInferenceResultsBuilder results)
         {
-            var visitor = new TicSetupVisitor(ticGraph, functions, constants, results);
+            var visitor = new TicSetupVisitor(ticGraph, functions, constants, results, AprioriTypesMap.Empty);
             return userFunctionNode.Accept(visitor);
         }
 
-        private TicSetupVisitor(
-            GraphBuilder ticTypeGraph,  
+        private TicSetupVisitor(GraphBuilder ticTypeGraph,
             IFunctionDictionary dictionary,
             IConstantList constants,
-            TypeInferenceResultsBuilder resultsBuilder)
+            TypeInferenceResultsBuilder resultsBuilder, 
+            AprioriTypesMap aprioriTypesMap)
         {
+            
             _aliasScope = new VariableScopeAliasTable();
             _dictionary = dictionary;
             _constants = constants;
             _resultsBuilder = resultsBuilder;
             _ticTypeGraph = ticTypeGraph;
+            
+            foreach (var apriori in aprioriTypesMap.InputTypesMap)
+                _ticTypeGraph.SetVarType(apriori.Key, apriori.Value.ConvertToTiType());
+            foreach (var apriori in aprioriTypesMap.OutputTypesMap)
+                _ticTypeGraph.SetVarType(apriori.Key, apriori.Value.ConvertToTiType());
         }
 
         public bool Visit(SyntaxTree node) => VisitChildren(node);
@@ -491,7 +499,7 @@ namespace NFun.TypeInferenceAdapter
             }
             // At this point we are sure - ID is not a function
 
-            // ID can be constant or variable
+            // ID can be constant or apriori variable or usual (not apriori) variable 
             // if ID exists in ticTypeGraph - then ID is Variable
             // else if ID exists in constant list - then ID is constant
             // else ID is variable

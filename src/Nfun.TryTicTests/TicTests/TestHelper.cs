@@ -49,7 +49,14 @@ namespace Nfun.ModuleTests.TicTests
             foreach (var predefinedFunction in BaseFunctions.GenericFunctions)
                 functions.TryAdd(predefinedFunction);
 
-            TicSetupVisitor.SetupTicForBody(tree, graph, functions, new EmptyConstantList(), resultsBuilder);
+            TicSetupVisitor.SetupTicForBody(
+                tree:         tree, 
+                ticGraph:     graph, 
+                functions:    functions, 
+                constants:    new EmptyConstantList(), 
+                aprioriTypes: AprioriTypesMap.Empty, 
+                results:      resultsBuilder);
+            
             return graph.Solve();
         }
         public static TypeInferenceResults SolveAndGetResults(string equation)
@@ -70,7 +77,13 @@ namespace Nfun.ModuleTests.TicTests
 
             var resultsBuilder = new TypeInferenceResultsBuilder();
 
-            TicSetupVisitor.SetupTicForBody(tree, graph, functions, new EmptyConstantList(), resultsBuilder);
+            TicSetupVisitor.SetupTicForBody(
+                tree:      tree, 
+                ticGraph:  graph, 
+                functions: functions, 
+                constants: new EmptyConstantList(), 
+                aprioriTypes: AprioriTypesMap.Empty,  
+                results:   resultsBuilder);
 
             var res =  graph.Solve();
             resultsBuilder.SetResults(res);

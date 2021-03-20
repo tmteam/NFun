@@ -231,6 +231,7 @@ namespace Funny.Tests
         }
         
         [Test]
+        [Ignore("Composite LCA")]
         public void ConstantTwinAnyArrayWithUpcast()
         {
             var expr = "out = [[0x1],[1.0],[true]]";

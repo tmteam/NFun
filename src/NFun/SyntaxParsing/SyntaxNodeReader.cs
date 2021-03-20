@@ -95,7 +95,7 @@ namespace NFun.SyntaxParsing
         /// or returns null if underlying syntax cannot be represented as atomic node
         /// (EOF for example)
         /// /// </summary>
-        public static  ISyntaxNode ReadAtomicNodeOrNull(TokFlow flow)
+        private static  ISyntaxNode ReadAtomicNodeOrNull(TokFlow flow)
         {
             flow.SkipNewLines();
 
@@ -251,7 +251,7 @@ namespace NFun.SyntaxParsing
         /// or returns null if underlying syntax cannot be represented as node
         /// (EOF for example)
         /// </summary>
-        public static ISyntaxNode ReadNodeOrNull(TokFlow flow, int priority)
+        private static ISyntaxNode ReadNodeOrNull(TokFlow flow, int priority)
         {
             //Lower priority is the special case
             if (priority< MinPriority)
@@ -370,8 +370,6 @@ namespace NFun.SyntaxParsing
             }
         }
 
-        
-
         private static ISyntaxNode ReadSuperAnonymousFunction(TokFlow flow)
         {
             var body = ReadNodeOrNull(flow);
@@ -418,15 +416,15 @@ namespace NFun.SyntaxParsing
             return SyntaxNodeFactory.Struct(equations, new Interval(begin, end));
         }
 
-        public static ISyntaxNode ReadInterpolationText(TokFlow flow)
+        private static ISyntaxNode ReadInterpolationText(TokFlow flow)
         {
             var openInterpolationToken = flow.MoveIfOrThrow(TokType.TextOpenInterpolation);
             //interpolation
-            var concatinations = new List<ISyntaxNode>();
+            var concatenations = new List<ISyntaxNode>();
             //Open interpolation string
             // '...{ 
             if(openInterpolationToken.Value!= String.Empty)
-                concatinations.Add(SyntaxNodeFactory.Constant(
+                concatenations.Add(SyntaxNodeFactory.Constant(
                     new TextFunArray(openInterpolationToken.Value), 
                     VarType.Text,
                     openInterpolationToken.Interval));
@@ -437,11 +435,11 @@ namespace NFun.SyntaxParsing
                 //{...} 
                 var allNext = ReadNodeOrNull(flow);
                 if (allNext == null)
-                    throw ErrorFactory.InterpolationExpressionIsMissing(concatinations.Last());
+                    throw ErrorFactory.InterpolationExpressionIsMissing(concatenations.Last());
 
                 var toText = SyntaxNodeFactory.FunCall(CoreFunNames.ToText, new[] { allNext }, allNext.Interval.Start,
                     allNext.Interval.Finish);
-                concatinations.Add(toText);
+                concatenations.Add(toText);
 
 
                 //interpolation end
@@ -450,7 +448,7 @@ namespace NFun.SyntaxParsing
                 {
                     if (flow.Current.Value != String.Empty)
                     {
-                        concatinations.Add(SyntaxNodeFactory.Constant(
+                        concatenations.Add(SyntaxNodeFactory.Constant(
                             new TextFunArray(flow.Current.Value),
                             VarType.Text,
                             flow.Current.Interval));
@@ -459,20 +457,20 @@ namespace NFun.SyntaxParsing
 
                     var start = openInterpolationToken.Start;
                     var finish = flow.Current.Finish;
-                    switch (concatinations.Count)
+                    switch (concatenations.Count)
                     {
                         //Cases for 1, 2 and 3 args are most common.
                         //Here is an optimization for these cases. 
                         //
                         case 1:
-                            return SyntaxNodeFactory.FunCall(CoreFunNames.ToText, concatinations.ToArray(), start, finish);
+                            return SyntaxNodeFactory.FunCall(CoreFunNames.ToText, concatenations.ToArray(), start, finish);
                         case 2:
-                            return SyntaxNodeFactory.FunCall(CoreFunNames.Concat2Texts, concatinations.ToArray(),start, finish);
+                            return SyntaxNodeFactory.FunCall(CoreFunNames.Concat2Texts, concatenations.ToArray(),start, finish);
                         case 3:
-                            return SyntaxNodeFactory.FunCall(CoreFunNames.Concat3Texts, concatinations.ToArray(),start, finish);
+                            return SyntaxNodeFactory.FunCall(CoreFunNames.Concat3Texts, concatenations.ToArray(),start, finish);
                         default:
                         {
-                            var arrayOfTexts = SyntaxNodeFactory.Array(concatinations.ToArray(), start, finish);
+                            var arrayOfTexts = SyntaxNodeFactory.Array(concatenations.ToArray(), start, finish);
                             return SyntaxNodeFactory.FunCall(CoreFunNames.ConcatArrayOfTexts, new[] { arrayOfTexts },
                                 start, finish);
                         }
@@ -482,7 +480,7 @@ namespace NFun.SyntaxParsing
                 // }...{
                 else if (flow.Current.Type is TokType.TextMidInterpolation)
                 {
-                    concatinations.Add(SyntaxNodeFactory.Constant(
+                    concatenations.Add(SyntaxNodeFactory.Constant(
                         new TextFunArray(flow.Current.Value),
                         VarType.Text,
                         openInterpolationToken.Interval));
@@ -496,7 +494,7 @@ namespace NFun.SyntaxParsing
         /// <summary>
         /// Read array index or array slice node
         /// </summary>
-        public static ISyntaxNode ReadArraySliceNode(TokFlow flow, ISyntaxNode arrayNode)
+        private static ISyntaxNode ReadArraySliceNode(TokFlow flow, ISyntaxNode arrayNode)
         {
             var openBraket = flow.Current;
             flow.MoveNext();
@@ -520,8 +518,7 @@ namespace NFun.SyntaxParsing
                     flow.Position);
             }
             
-            index = index?? 
-                    SyntaxNodeFactory.Constant(0, VarType.Int32, new Interval(openBraket.Start, colon.Finish));
+            index ??= SyntaxNodeFactory.Constant(0, VarType.Int32, new Interval(openBraket.Start, colon.Finish));
             
             var end = ReadNodeOrNull(flow)?? 
                       SyntaxNodeFactory.Constant(int.MaxValue, VarType.Int32, new Interval(colon.Finish, flow.Position));
@@ -554,7 +551,7 @@ namespace NFun.SyntaxParsing
         /// <summary>
         /// Read list of nodes separated by comma
         /// </summary>
-        public static IList<ISyntaxNode> ReadNodeList(TokFlow flow)
+        private static IList<ISyntaxNode> ReadNodeList(TokFlow flow)
         {
             var list = new List<ISyntaxNode>();
             int start = flow.Current.Start;
@@ -579,7 +576,7 @@ namespace NFun.SyntaxParsing
         /// <param name="flow"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        public static ISyntaxNode ReadInitializeArrayNode(TokFlow flow)
+        private static ISyntaxNode ReadInitializeArrayNode(TokFlow flow)
         {
             var startTokenNum = flow.CurrentTokenPosition;
             var openBracket = flow.MoveIfOrThrow(TokType.ArrOBr);
@@ -654,7 +651,7 @@ namespace NFun.SyntaxParsing
         /// Read nodes enlisted in the brackets
         /// (a,b,c)
         /// </summary>
-        public static ISyntaxNode ReadBrackedNodeList(TokFlow flow)
+        private static ISyntaxNode ReadBrackedNodeList(TokFlow flow)
         {
             int start = flow.Current.Start;
             int obrId = flow.CurrentTokenPosition;
@@ -677,7 +674,7 @@ namespace NFun.SyntaxParsing
         /// <summary>
         /// Read if-then-if-then-else node
         /// </summary>
-        public static ISyntaxNode ReadIfThenElseNode(TokFlow flow)
+        private static ISyntaxNode ReadIfThenElseNode(TokFlow flow)
         {
             int ifElseStart = flow.Position;
             var ifThenNodes = new List<IfCaseSyntaxNode>();
