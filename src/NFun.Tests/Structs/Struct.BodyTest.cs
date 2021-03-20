@@ -511,7 +511,6 @@ namespace Funny.Tests.Structs
         [TestCase("y = @{a = @{ b = y.a.b}}")]
         [TestCase("y = @{a = y}")]
         [TestCase("y = @{a = y-1}")]
-     
         [TestCase("y = @{a:int = 0}")]
         [TestCase("y = @{a:int = 'test'}")]
         [TestCase("y = @{a:bool = false}")]

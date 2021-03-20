@@ -18,6 +18,15 @@ namespace Funny.Tests.Structs
                 .Calculate()
                 .AssertHas(VarVal.New("r",12.0))
                 .AssertHas(VarVal.New("b",true));
+
+        
+        [Test]
+        [Ignore("Undefined behaviour")]
+        public void CallToAllowedReqTypeDef() =>
+            FunBuilder
+                .Build("f(x) = x.age; y1 = f(user); y2 = f(user.child[0])");
+
+        
         [Test]
         public void CallGenericFunctionFieldNegate()
         {
