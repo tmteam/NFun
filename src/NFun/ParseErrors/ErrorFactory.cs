@@ -621,5 +621,8 @@ namespace NFun.ParseErrors
 
         public static Exception SuperAnonymousFunctionIsNotClose(int anonymousStart, int anonymousFinish) 
             => FunParseException.ErrorStubToDo("SuperAnonymousFunctionIsNotClose");
+
+        public static Exception VariableIsAlreadyDeclared(string nodeId, Interval nodeInterval)
+            => FunParseException.ErrorStubToDo($"Variable {nodeId} is already declared");
     }
 }

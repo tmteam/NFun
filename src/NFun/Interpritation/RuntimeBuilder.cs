@@ -12,17 +12,9 @@ using NFun.Tic.Errors;
 using NFun.Tic.SolvingStates;
 using NFun.Tokenization;
 using NFun.TypeInferenceAdapter;
-using NFun.Types;
 
 namespace NFun.Interpritation
 {
-    public class AprioriTypesMap
-    {
-        public static AprioriTypesMap Empty = new AprioriTypesMap();
-        public Dictionary<string, VarType> InputTypesMap { get; } = new Dictionary<string, VarType>();
-        public Dictionary<string, VarType> OutputTypesMap { get; } = new Dictionary<string, VarType>();
-
-    }
     public static class RuntimeBuilder
     {
         private static readonly List<IFunctionSignature> EmptyUserFunctionsList 

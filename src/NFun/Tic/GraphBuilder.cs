@@ -75,20 +75,27 @@ namespace NFun.Tic
 
         public void SetVarType(string s, ITicNodeState state)
         {
+            if(!TrySetVarType(s, state))
+                throw new InvalidOperationException();
+        }
+        
+        public bool TrySetVarType(string s, ITicNodeState state)
+        {
             var node = GetNamedNode(s);
 
             if (state is StatePrimitive primitive)
             {
-                if (!node.TryBecomeConcrete(primitive))
-                    throw new InvalidOperationException();
+                return node.TryBecomeConcrete(primitive);
             }
-            else if (state is ICompositeState composite)
+
+            if (state is ICompositeState composite)
             {
                 RegistrateCompositeType(composite);
                 node.State = state;
+                return true;
             }
-            else
-                throw new InvalidOperationException();
+
+            return false;
         }
         
         public void SetArrayConst(int id, StatePrimitive elementType)

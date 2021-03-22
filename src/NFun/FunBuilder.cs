@@ -81,15 +81,10 @@ namespace NFun
         public static FunRuntime Build(string text) =>
             RuntimeBuilder.Build(text, BaseFunctions.DefaultDictionary, new EmptyConstantList());
         
-        public FunBuilder WithAprioriInput(string s, VarType type)
-        {
-            _aprioriTypesMap.InputTypesMap.Add(s,type);
-            return this;
-        }
 
-        public FunBuilder WithAprioriOutput(string s, VarType type)
+        public FunBuilder WithApriori(string s, VarType type)
         {
-            _aprioriTypesMap.OutputTypesMap.Add(s,type);
+            _aprioriTypesMap.Add(s,type);
             return this;
         }
     }

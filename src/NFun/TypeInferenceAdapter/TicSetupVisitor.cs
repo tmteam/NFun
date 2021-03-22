@@ -67,9 +67,7 @@ namespace NFun.TypeInferenceAdapter
             _resultsBuilder = resultsBuilder;
             _ticTypeGraph = ticTypeGraph;
             
-            foreach (var apriori in aprioriTypesMap.InputTypesMap)
-                _ticTypeGraph.SetVarType(apriori.Key, apriori.Value.ConvertToTiType());
-            foreach (var apriori in aprioriTypesMap.OutputTypesMap)
+            foreach (var apriori in aprioriTypesMap)
                 _ticTypeGraph.SetVarType(apriori.Key, apriori.Value.ConvertToTiType());
         }
 
@@ -83,7 +81,8 @@ namespace NFun.TypeInferenceAdapter
             if (node.OutputTypeSpecified)
             {
                 var type = node.OutputType.ConvertToTiType();
-                _ticTypeGraph.SetVarType(node.Id, type);
+                if (!_ticTypeGraph.TrySetVarType(node.Id, type))
+                    throw ErrorFactory.VariableIsAlreadyDeclared(node.Id, node.Interval);
             }
 
             _ticTypeGraph.SetDef(node.Id, node.Expression.OrderNumber);
@@ -97,7 +96,7 @@ namespace NFun.TypeInferenceAdapter
             {
                 argNames[i] = arg.Id;
                 i++;
-                if (arg.VarType != VarType.Empty)
+                if (arg.VarType != VarType.Empty) 
                     _ticTypeGraph.SetVarType(arg.Id, arg.VarType.ConvertToTiType());
             }
 
@@ -539,7 +538,8 @@ namespace NFun.TypeInferenceAdapter
             if (node.VarType != VarType.Empty)
             {
                 var type = node.VarType.ConvertToTiType();
-                _ticTypeGraph.SetVarType(node.Id, type);
+                if (!_ticTypeGraph.TrySetVarType(node.Id, type))
+                    throw ErrorFactory.VariableIsAlreadyDeclared(node.Id, node.Interval);
             }
 
             return true;
@@ -552,7 +552,8 @@ namespace NFun.TypeInferenceAdapter
             Trace(node, $"VarDef {node.Id}:{node.VarType}  ");
 #endif
             var type = node.VarType.ConvertToTiType();
-            _ticTypeGraph.SetVarType(node.Id, type);
+            if(!_ticTypeGraph.TrySetVarType(node.Id, type))
+                throw ErrorFactory.VariableIsAlreadyDeclared(node.Id, node.Interval);
             return true;
         }
         public bool Visit(ListOfExpressionsSyntaxNode node) => VisitChildren(node);
