@@ -71,5 +71,20 @@ namespace NFun.Runtime
             
             return new CalculationResult(ans);
         }
+        
+        public CalculationResult CalculateSafe(params VarVal[] vars)
+        {
+            foreach (var value in vars)
+            {
+                var source = _variables.GetSourceOrNull(value.Name);
+                source?.SetConvertedValue(value.Value);
+            }
+            
+            var ans = new VarVal[_equations.Count];
+            for (int i = 0; i < _equations.Count; i++) 
+                ans[i] = _equations[i].CalcExpression();
+            
+            return new CalculationResult(ans);
+        }
     }
 }

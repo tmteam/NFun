@@ -10,7 +10,6 @@ namespace NFun.Interpritation
         public void Add(string id, VarType type) => _typesMap.Add(id, type);
 
         private readonly Dictionary<string, VarType> _typesMap  = new Dictionary<string, VarType>();
-
         public IEnumerator<KeyValuePair<string, VarType>> GetEnumerator() => _typesMap.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => _typesMap.GetEnumerator();
     }

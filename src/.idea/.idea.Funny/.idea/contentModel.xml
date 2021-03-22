@@ -85,6 +85,9 @@
           <e p="FunRuntimeStackoverflowException.cs" t="Include" />
           <e p="ImpossibleException.cs" t="Include" />
         </e>
+        <e p="FluentApi" t="Include">
+          <e p="Fun.cs" t="Include" />
+        </e>
         <e p="FunBuilder.cs" t="Include" />
         <e p="Helper.cs" t="Include" />
         <e p="Interpritation" t="Include">
@@ -516,6 +519,7 @@
         <e p="CustomConstantsTest.cs" t="Include" />
         <e p="CustomFunctionTest.cs" t="Include" />
         <e p="ErrorDetailsTest.cs" t="Include" />
+        <e p="FluentApiTest.cs" t="Include" />
         <e p="MetadataTest.cs" t="Include" />
         <e p="Nfun.ModuleTests.csproj" t="IncludeRecursive" />
         <e p="obj" t="ExcludeRecursive">

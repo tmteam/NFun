@@ -44,6 +44,7 @@ namespace NFun.Types
 
         public VarType FunType { get; protected set; }
         public abstract object ToFunObject(object clrObject);
+        //public abstract T FromFunObject<T>(object funObject) where T: new();
     }
 
     public class StructFunTypesConverter : FunTypesConverter
@@ -101,7 +102,16 @@ namespace NFun.Types
             return new ImmutableFunArray(converted, VarType.Anything);
         }
     }
-    
+
+    public class PrimitiveTypeConverter : FunTypesConverter
+    {
+        public PrimitiveTypeConverter(VarType varType): base(varType)
+        {
+            
+        }
+
+        public override object ToFunObject(object clrObject) => clrObject;
+    }
     public class ArrayOfPrimitivesFunTypesConverter : FunTypesConverter
     {
         private readonly VarType _elementType;
