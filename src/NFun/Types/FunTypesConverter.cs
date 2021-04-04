@@ -47,19 +47,7 @@ namespace NFun.Types
         //public abstract T FromFunObject<T>(object funObject) where T: new();
     }
 
-    public class StructFunTypesConverter : FunTypesConverter
-    {
-        public StructFunTypesConverter(Dictionary<string,object> value) {
-            this.FunType = VarType.StructOf(
-                value.ToDictionary(v => v.Key,
-                    v => VarVal.New("", v.Value).Type));
-        }
-
-        public override object ToFunObject(object clrObject)
-        {
-            return clrObject;
-        }
-    }
+   
     public class ArrayOfCompositesFunTypesConverter : FunTypesConverter
     {
         private readonly FunTypesConverter _elementConverter;

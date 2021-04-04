@@ -72,8 +72,6 @@ namespace NFun.Types
 
         public static VarType ToPrimitiveFunType(Type t)
         {
-            if (t == typeof(object))
-                return VarType.Anything;
             if(t== typeof(byte))
                 return VarType.UInt8;
             if(t== typeof(ushort))

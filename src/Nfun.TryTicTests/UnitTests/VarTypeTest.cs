@@ -476,5 +476,45 @@ namespace Nfun.ModuleTests.UnitTests
             var maxCount = genericType.SearchMaxGenericTypeId();
             Assert.AreEqual(2, maxCount);
         }
+
+        [Test]
+        public void TwoStructTypesWithNoMembersAreEqual()
+        {
+            var empty1 = VarType.StructOf();
+            var empty2 = VarType.StructOf();
+            Assert.AreEqual(empty1,empty2);
+        }
+        
+        [Test]
+        public void TwoStructTypesWithSingleMemberAreEqual()
+        {
+            var t1 = VarType.StructOf("name", VarType.Text);
+            var t2 = VarType.StructOf("name", VarType.Text);
+            Assert.AreEqual(t1,t2);
+        }
+        
+        
+        [Test]
+        public void TwoStructTypesWithSingleMemberOfDifferentTypesAreNotEqual()
+        {
+            var t1 = VarType.StructOf("name", VarType.Text);
+            var t2 = VarType.StructOf("name", VarType.Int32);
+            Assert.AreNotEqual(t1,t2);
+        }
+        
+        [Test]
+        public void TwoStructTypesWithSingleMemberOfDifferentNamesAreNotEqual()
+        {
+            var t1 = VarType.StructOf("name", VarType.Text);
+            var t2 = VarType.StructOf("nick", VarType.Text);
+            Assert.AreNotEqual(t1,t2);
+        }
+        [Test]
+        public void EmptyStructTypeAndSingleMemeberTypesAreNotEqual()
+        {
+            var t1 = VarType.StructOf("name", VarType.Text);
+            var t2 = VarType.StructOf();
+            Assert.AreNotEqual(t1,t2);
+        }
     }
 }

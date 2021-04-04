@@ -11,8 +11,10 @@ namespace NFun.Types
         {
             unchecked
             {
-                return ((int) BaseType * 397) ^
-                       (ArrayTypeSpecification != null ? ArrayTypeSpecification.GetHashCode() : 0);
+                return ((int) BaseType * 397) ^ (ArrayTypeSpecification?.GetHashCode()
+                                                 ??FunTypeSpecification?.GetHashCode()
+                                                 ??StructTypeSpecification?.GetHashCode()
+                                                 ??0);
             }
         }
 
@@ -34,6 +36,8 @@ namespace NFun.Types
         public static VarType  Text =>  ArrayOf(Char);
         public static VarType StructOf(Dictionary<string, VarType> fields) 
             => new VarType(fields);
+        public static VarType StructOf(params (string,VarType)[] fields) 
+            => new VarType(fields.ToDictionary(f=>f.Item1, f=>f.Item2));
         public static VarType StructOf(string fieldName, VarType fieldType) 
             => new VarType(new Dictionary<string, VarType>{{fieldName,fieldType}});
         public static VarType StructOf(string fieldName1, VarType fieldType1,string fieldName2, VarType fieldType2) 
@@ -155,9 +159,17 @@ namespace NFun.Types
 
                     return true;
                 }
-
                 case BaseVarType.Generic:
                     return GenericId == obj.GenericId;
+                case BaseVarType.Struct:
+                    foreach (var thisField in StructTypeSpecification)
+                    {
+                        if (!obj.StructTypeSpecification.TryGetValue(thisField.Key, out var otherValue))
+                            return false;
+                        if (!thisField.Value.Equals(otherValue))
+                            return false;
+                    }
+                    return StructTypeSpecification.Count == obj.StructTypeSpecification.Count;
                 default:
                     return true;
             }
