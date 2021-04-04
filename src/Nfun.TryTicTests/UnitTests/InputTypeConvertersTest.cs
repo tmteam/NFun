@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Runtime.InteropServices;
 using NFun.Runtime;
 using NFun.Runtime.Arrays;
 using NFun.Types;
@@ -22,7 +21,7 @@ namespace Nfun.ModuleTests
         public void ConvertPrimitiveType(object primitiveValue, BaseVarType expectedTypeName)
         {
             var clrType = primitiveValue.GetType();
-            var converter = InputFunnyConverter.GetConverter(clrType);
+            var converter = FunnyTypeConverters.GetInputConverter(clrType);
             Assert.AreEqual(expectedTypeName, converter.FunnyType.BaseType);
             var convertedValue = converter.ToFunObject(primitiveValue);
             Assert.AreEqual(primitiveValue, convertedValue);
@@ -40,7 +39,7 @@ namespace Nfun.ModuleTests
         public void ConvertPrimitiveTypeArrays(object primitiveValue, BaseVarType expectedTypeName)
         {
             var clrType = primitiveValue.GetType();
-            var converter = InputFunnyConverter.GetConverter(clrType);
+            var converter = FunnyTypeConverters.GetInputConverter(clrType);
 
             Assert.AreEqual(VarType.ArrayOf(VarType.PrimitiveOf(expectedTypeName)), converter.FunnyType);
             var convertedValue = converter.ToFunObject(primitiveValue);
@@ -51,7 +50,7 @@ namespace Nfun.ModuleTests
         [TestCase("value")]
         public void ConvertString(string value)
         {
-            var converter = InputFunnyConverter.GetConverter(typeof(string));
+            var converter = FunnyTypeConverters.GetInputConverter(typeof(string));
 
             Assert.AreEqual(VarType.Text, converter.FunnyType);
             Assert.AreEqual(new TextFunArray(value), converter.ToFunObject(value));
@@ -63,7 +62,7 @@ namespace Nfun.ModuleTests
                 "vasa", "kata", ""
             };
             
-            var converter = InputFunnyConverter.GetConverter(inputValue.GetType());
+            var converter = FunnyTypeConverters.GetInputConverter(inputValue.GetType());
 
             Assert.AreEqual(VarType.ArrayOf(VarType.Text), converter.FunnyType);
             Assert.AreEqual(new ImmutableFunArray(
@@ -78,7 +77,7 @@ namespace Nfun.ModuleTests
                 new object[] {2, 1, "kate"},
                 new object[] { }
             };
-            var converter = InputFunnyConverter.GetConverter(inputValue.GetType());
+            var converter = FunnyTypeConverters.GetInputConverter(inputValue.GetType());
             Assert.AreEqual(VarType.ArrayOf(VarType.ArrayOf(VarType.Anything)), converter.FunnyType);
             var value = converter.ToFunObject(inputValue);
             Assert.IsInstanceOf<ImmutableFunArray>(value);
@@ -89,7 +88,7 @@ namespace Nfun.ModuleTests
         public void StructType()
         {
             var inputUser = new UserMoqType("vasa", 42, 17.1);
-            var converter = InputFunnyConverter.GetConverter(inputUser.GetType());
+            var converter = FunnyTypeConverters.GetInputConverter(inputUser.GetType());
             Assert.AreEqual(VarType.StructOf(
                 ("name",VarType.Text),
                 ("age",VarType.Int32), 
@@ -112,7 +111,7 @@ namespace Nfun.ModuleTests
                 new UserMoqType("kata", 40, -17.1)
             };
             
-            var converter = InputFunnyConverter.GetConverter(inputUsers.GetType());
+            var converter = FunnyTypeConverters.GetInputConverter(inputUsers.GetType());
             Assert.AreEqual(
                 VarType.ArrayOf(VarType.StructOf(
                 ("name",VarType.Text),
@@ -131,7 +130,7 @@ namespace Nfun.ModuleTests
         public void RequrisiveType_Throws()
         {
             NodeMoqType obj = new NodeMoqType("vasa", new NodeMoqType("peta"));
-            Assert.Throws<ArgumentException>(()=> InputFunnyConverter.GetConverter(obj.GetType()));
+            Assert.Throws<ArgumentException>(()=> FunnyTypeConverters.GetInputConverter(obj.GetType()));
         }
     }
 

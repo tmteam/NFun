@@ -262,9 +262,11 @@
           <e p="AdditionalTypeSpecification.cs" t="Include" />
           <e p="BaseVarType.cs" t="Include" />
           <e p="FunnyConverter.cs" t="Include" />
+          <e p="FunnyTypeConverters.cs" t="Include" />
           <e p="FunTypesConverter.cs" t="Include" />
           <e p="FunTypeSpecification.cs" t="Include" />
           <e p="InputFunnyConverters.cs" t="Include" />
+          <e p="IOutputFunnyConverters.cs" t="Include" />
           <e p="TypeHelper.cs" t="Include" />
           <e p="VarInfo.cs" t="Include" />
           <e p="VarType.cs" t="Include" />
@@ -548,6 +550,7 @@
           <e p="GraphToolsTest_CycledTopologySort.cs" t="Include" />
           <e p="GraphToolsTest_TopologySort.cs" t="Include" />
           <e p="InputTypeConvertersTest.cs" t="Include" />
+          <e p="OutputTypeConvertersTest.cs" t="Include" />
           <e p="QuotationReaderTest.cs" t="Include" />
           <e p="TicStatesTest.cs" t="Include" />
           <e p="TokenHelperTest.cs" t="Include" />

@@ -5,6 +5,7 @@ namespace Nfun.ModuleTests
 {
     class UserInputModel
     {
+     
         public UserInputModel(string name = "vasa", int age = 22, double size = 13.5, float iq = 50)
         {
             Name = name;
