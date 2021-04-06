@@ -82,6 +82,9 @@ namespace NFun.Types
     public class StringTypesInputFunnyConverter: IinputFunnyConverter {
         public VarType FunnyType { get; }
         public StringTypesInputFunnyConverter() => FunnyType = VarType.Text;
-        public object ToFunObject(object clrObject) => new TextFunArray(clrObject.ToString());
+        public object ToFunObject(object clrObject) 
+            => clrObject==null
+                ?TextFunArray.Empty
+                :new TextFunArray(clrObject.ToString());
     }
 }
