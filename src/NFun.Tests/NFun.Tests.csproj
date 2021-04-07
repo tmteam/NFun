@@ -4,9 +4,9 @@
 
         <IsPackable>false</IsPackable>
 
-        <RootNamespace>Funny.Tests</RootNamespace>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
 
-        <TargetFramework>netcoreapp2.1</TargetFramework>
+        <LangVersion>8</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>

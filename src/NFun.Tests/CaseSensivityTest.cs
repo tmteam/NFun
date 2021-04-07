@@ -1,10 +1,8 @@
-using NFun;
 using NFun.Exceptions;
-using NFun.ParseErrors;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace Funny.Tests
+namespace NFun.Tests
 {
     [TestFixture]
     public class CaseSensivityTest

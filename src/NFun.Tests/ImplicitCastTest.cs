@@ -1,11 +1,10 @@
 using System.Linq;
-using NFun;
 using NFun.Exceptions;
 using NFun.Tic;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace Funny.Tests
+namespace NFun.Tests
 {
     [TestFixture]
     public class ImplicitCastTest{

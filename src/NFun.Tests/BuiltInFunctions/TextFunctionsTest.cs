@@ -1,8 +1,7 @@
-﻿using NFun;
-using NFun.Types;
+﻿using NFun.Types;
 using NUnit.Framework;
 
-namespace Funny.Tests.BuiltInFunctions
+namespace NFun.Tests.BuiltInFunctions
 {
     class TextFunctionsTest
     {

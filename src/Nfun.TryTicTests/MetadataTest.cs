@@ -3,7 +3,7 @@ using NFun;
 using NFun.Interpritation.Functions;
 using NUnit.Framework;
 
-namespace Funny.Tests
+namespace NFun.ModuleTests
 {
     public class MetadataTest
     {

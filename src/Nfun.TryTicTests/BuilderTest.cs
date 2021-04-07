@@ -4,7 +4,7 @@ using NFun.Interpritation.Functions;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace Nfun.ModuleTests
+namespace NFun.ModuleTests
 {
     public class BuilderTest
     {

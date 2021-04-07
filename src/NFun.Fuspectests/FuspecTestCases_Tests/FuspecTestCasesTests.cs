@@ -1,14 +1,14 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Nfun.Fuspec.Parser;
-using Nfun.Fuspec.Parser.Model;
+using NFun.Fuspec.Parser;
+using NFun.Fuspec.Parser.Model;
 using NUnit.Framework;
 using ParcerV1;
 
 namespace NFun.Fuspectests.FuspecTestCasesTests
 {
-    public class sFuspecTestCasesTests
+    public class FuspecTestCasesTests
     {
         private FuspecTestCases _fuspecTestCases;
 

@@ -3,7 +3,7 @@ using NFun.Tokenization;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace Nfun.ModuleTests.UnitTests
+namespace NFun.ModuleTests.UnitTests
 {
     [TestFixture]
     public class TokenHelperTest

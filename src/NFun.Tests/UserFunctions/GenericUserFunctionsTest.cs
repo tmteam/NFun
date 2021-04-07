@@ -1,8 +1,7 @@
-using NFun;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace Funny.Tests.UserFunctions
+namespace NFun.Tests.UserFunctions
 {
     [TestFixture]
     public class GenericUserFunctionsTest

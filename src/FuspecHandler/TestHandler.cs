@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Nfun.Fuspec.Parser;
-using Nfun.Fuspec.Parser.Model;
+using NFun.Fuspec.Parser;
+using NFun.Fuspec.Parser.Model;
 using NFun;
-using Nfun.Fuspec.Parser.FuspecParserErrors;
+using NFun.Fuspec.Parser.FuspecParserErrors;
 using NFun.Types;
 using NFun.Runtime;
 
@@ -120,7 +120,7 @@ namespace FuspecHandler
 
                     foreach (var res in results.Results)
                     {
-                        //cравниваем полученные значения и сheck
+                        //cпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅheck
                     }
                 }*/
             }
@@ -155,7 +155,7 @@ namespace FuspecHandler
                     messages.Add($"Error of SetCheckTypes in {numberOfSetCheckKit} SetCheckkit:\n\r\t\t\t" +
                         "Value( " + varVal.ToString() + " )" + " - not found this valueName in script!");
                 else 
-                // сравнение типов!
+                // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ!
 
                 {
              /*       string scriptForCheckType = ($"{varVal.Name} : {scriptType.Single().Type} = {varVal.Value}").ToLower(); 

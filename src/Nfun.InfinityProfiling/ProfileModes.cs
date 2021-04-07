@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Nfun.InfinityProfiling.Sets;
+using NFun.InfinityProfiling.Sets;
 
-namespace Nfun.InfinityProfiling
+namespace NFun.InfinityProfiling
 {
     public enum ProfileSet {
         Primitives,

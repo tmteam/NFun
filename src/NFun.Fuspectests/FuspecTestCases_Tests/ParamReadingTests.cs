@@ -1,4 +1,4 @@
-﻿using Nfun.Fuspec.Parser.Model;
+﻿using NFun.Fuspec.Parser.Model;
 using NUnit.Framework;
 using ParcerV1;
 using System.Linq;

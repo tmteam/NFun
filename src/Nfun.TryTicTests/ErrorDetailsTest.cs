@@ -1,10 +1,9 @@
 using System;
 using NFun;
 using NFun.Exceptions;
-using NFun.ParseErrors;
 using NUnit.Framework;
 
-namespace Funny.Tests
+namespace NFun.ModuleTests
 {
 
     [TestFixture]

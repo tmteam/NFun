@@ -1,9 +1,8 @@
-using NFun;
 using NFun.Exceptions;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace Funny.Tests.UserFunctions
+namespace NFun.Tests.UserFunctions
 {
     [TestFixture]
     public class RecursiveUserFunctionsTest

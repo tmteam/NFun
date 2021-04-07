@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using Nfun.InfinityProfiling.Sets;
+using NFun.InfinityProfiling.Sets;
 
-namespace Nfun.InfinityProfiling
+namespace NFun.InfinityProfiling
 {
     public static class ProfileTools
     {

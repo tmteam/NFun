@@ -1,9 +1,8 @@
 using System;
-using NFun;
 using NFun.Exceptions;
 using NUnit.Framework;
 
-namespace Funny.Tests
+namespace NFun.Tests
 {
     public class ConstantsTest
     {

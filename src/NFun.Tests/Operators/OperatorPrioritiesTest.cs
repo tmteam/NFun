@@ -1,9 +1,8 @@
 using System.Collections.Generic;
-using NFun;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace Funny.Tests.Operators
+namespace NFun.Tests.Operators
 {
     [TestFixture]
     public class OperatorPrioritiesTest

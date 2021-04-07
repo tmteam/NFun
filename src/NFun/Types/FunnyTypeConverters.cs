@@ -132,5 +132,10 @@ namespace NFun.Types
             }
             return new PrimitiveTypeOutputFunnyConverter(VarType.Anything);
         }
+
+        public static IOutputFunnyConverter GetOutputConverter(VarType funnyType)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

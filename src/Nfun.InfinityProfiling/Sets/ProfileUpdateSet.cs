@@ -3,7 +3,7 @@ using NFun;
 using NFun.Interpritation;
 using NFun.Runtime;
 
-namespace Nfun.InfinityProfiling.Sets
+namespace NFun.InfinityProfiling.Sets
 {
     public class ProfileUpdateSet: IProfileSet
     {

@@ -1,7 +1,7 @@
 using NFun;
 using NUnit.Framework;
 
-namespace Nfun.ModuleTests.UnitTests
+namespace NFun.ModuleTests.UnitTests
 {
     [TestFixture]
     public class ValueParserTest

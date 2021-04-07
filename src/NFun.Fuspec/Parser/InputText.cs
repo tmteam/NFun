@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-namespace Nfun.Fuspec.Parser
+namespace NFun.Fuspec.Parser
 {
     public class InputText
     {

@@ -3,7 +3,7 @@
 i7 8th. xiaomi mi pro.
 .NET Core 3.0.0 (CoreCLR 4.700.19.46205, CoreFX 4.700.19.46214), X64 RyuJIT; GC = Concurrent Workstation
 
-Nfun update
+NFun update
 |                  Method |        Mean |     Error |    StdDev | Ratio |
 |------------------------ |------------:|----------:|----------:|------:|
 | 'dotnet [1.1000].SUM()' | 4,809.11 ns | 80.193 ns | 75.013 ns |  1.00 |
@@ -12,7 +12,7 @@ Nfun update
 |     'kxb with var calc' |   118.61 ns |  1.403 ns |  1.378 ns |  0.02 |
 
 
-Nfun calculate
+NFun calculate
 |                  Method |              Mean |          Error |         StdDev |   Ratio | RatioSD |
 |------------------------ |------------------:|---------------:|---------------:|--------:|--------:|
 | 'dotnet [1.1000].SUM()' |    12,704.4152 ns |    207.9027 ns |    447.5324 ns |   1.000 |    0.00 |
@@ -30,7 +30,7 @@ Nfun calculate
 |       'dotnet kxb calc' |         0.6266 ns |      0.0234 ns |      0.0358 ns |   0.000 |    0.00 |
 
 
-Nfun interptitate
+NFun interptitate
 |                  Method |         Mean |      Error |     StdDev |  Ratio | RatioSD |
 |------------------------ |-------------:|-----------:|-----------:|-------:|--------:|
 | 'dotnet [1.1000].SUM()' |     4.986 us |  0.0332 us |  0.0294 us |   1.00 |    0.00 |
@@ -48,7 +48,7 @@ Nfun interptitate
 |      'Dotnet kxb build' |    75.398 us |  1.3984 us |  3.2962 us |  15.33 |    0.49 |
 
 
-Nfun parser
+NFun parser
 |                  Method |        Mean |       Error |      StdDev | Ratio | RatioSD |
 |------------------------ |------------:|------------:|------------:|------:|--------:|
 | 'dotnet [1.1000].SUM()' |  5,016.1 ns |    57.71 ns |    45.06 ns |  1.00 |    0.00 |

@@ -4,6 +4,10 @@
     <TargetFramework>netcoreapp3.0</TargetFramework>
 
     <IsPackable>false</IsPackable>
+
+    <AssemblyName>NFun.ModuleTests</AssemblyName>
+
+    <RootNamespace>NFun.ModuleTests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

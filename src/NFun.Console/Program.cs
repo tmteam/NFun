@@ -2,12 +2,9 @@
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using NFun;
-using NFun.BuiltInFunctions;
 using NFun.Exceptions;
-using NFun.ParseErrors;
 
-namespace Funny
+namespace NFun.ConsoleApp
 {
     class Program
     {

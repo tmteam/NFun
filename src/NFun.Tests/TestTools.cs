@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections;
 using System.Linq;
-using NFun;
 using NFun.Runtime;
 using NFun.Runtime.Arrays;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace Funny.Tests
+namespace NFun.Tests
 {
     public static class TestTools
     {

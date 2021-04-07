@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
-using Nfun.Fuspec.Parser.Model;
 using NFun.Fuspec.Parser.Interfaces;
+using NFun.Fuspec.Parser.Model;
 using NFun.Types;
 
-namespace Nfun.Fuspec.Parser
+namespace NFun.Fuspec.Parser
 {
     class TestCaseBuilder
     {

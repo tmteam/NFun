@@ -4,7 +4,7 @@ using NFun.Interpritation;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace Nfun.ModuleTests
+namespace NFun.ModuleTests
 {
     [TestFixture]
     class CustomConstantsTest

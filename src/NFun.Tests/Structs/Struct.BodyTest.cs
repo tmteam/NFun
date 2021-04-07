@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using NFun;
 using NFun.Exceptions;
 using NFun.Runtime;
 using NFun.Runtime.Arrays;
@@ -8,7 +7,7 @@ using NFun.Tic;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace Funny.Tests.Structs
+namespace NFun.Tests.Structs
 {
     public class StructBodyTest
     {

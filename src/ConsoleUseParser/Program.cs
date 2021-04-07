@@ -1,8 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using Nfun.Fuspec.Parser;
-using Nfun.Fuspec.Parser.FuspecParserErrors;
+using NFun.Fuspec.Parser;
+using NFun.Fuspec.Parser.FuspecParserErrors;
 
 namespace ConsoleUseParser
 {

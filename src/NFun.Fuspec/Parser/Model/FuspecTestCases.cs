@@ -1,7 +1,7 @@
 using System.Linq;
-using Nfun.Fuspec.Parser.FuspecParserErrors;
+using NFun.Fuspec.Parser.FuspecParserErrors;
 
-namespace Nfun.Fuspec.Parser.Model
+namespace NFun.Fuspec.Parser.Model
 {
     internal class FuspecTestCases
     {

@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.IO;
-using Nfun.Fuspec.Parser.Model;
+using NFun.Fuspec.Parser.Model;
 
-namespace Nfun.Fuspec.Parser
+namespace NFun.Fuspec.Parser
 {
     public static class FuspecParser
     {

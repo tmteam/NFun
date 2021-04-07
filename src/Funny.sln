@@ -21,17 +21,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FuspecHandler", "FuspecHand
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NFun.Tic.Tests", "NFun.Tic.Tests\NFun.Tic.Tests.csproj", "{DB452DDE-D067-4B7E-95BD-423FD77BCDC7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nfun.ModuleTests", "Nfun.TryTicTests\Nfun.ModuleTests.csproj", "{40C6C361-6E91-485E-9A43-7844956AB245}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NFun.ModuleTests", "Nfun.TryTicTests\NFun.ModuleTests.csproj", "{40C6C361-6E91-485E-9A43-7844956AB245}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Benchmarks", "Benchmarks", "{F055674B-868D-4DCA-8761-481124E630B6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Nfun.Benchmarks", "Nfun.Benchmarks\Nfun.Benchmarks.csproj", "{0CCF0A43-4C78-4B17-B538-C8013423430B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NFun.Benchmarks", "NFun.Benchmarks\NFun.Benchmarks.csproj", "{0CCF0A43-4C78-4B17-B538-C8013423430B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nfun.InfinityProfiling", "Nfun.InfinityProfiling\Nfun.InfinityProfiling.csproj", "{EEEFCEE7-1C53-4C68-8280-30089AB8D392}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nfun.CompareToOthers", "Nfun.CompareToOthers\Nfun.CompareToOthers.csproj", "{1E9979C6-9EBE-4E48-9069-05ED1B3D77E5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFun.CompareToOthers", "NFun.CompareToOthers\NFun.CompareToOthers.csproj", "{1E9979C6-9EBE-4E48-9069-05ED1B3D77E5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nfun.Experiments", "Nfun.Experiments\Nfun.Experiments.csproj", "{780F7E9E-4123-40A8-AEB5-23DC24377BAB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFun.Experiments", "NFun.Experiments\NFun.Experiments.csproj", "{780F7E9E-4123-40A8-AEB5-23DC24377BAB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Fuspec", "Fuspec", "{C86A273C-DF0E-4606-9016-8CA5678B98EE}"
 EndProject

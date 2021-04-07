@@ -1,8 +1,6 @@
-﻿using NFun;
-using NFun.Types;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 
-namespace Funny.Tests
+namespace NFun.Tests
 {
     class AnonymEquationTest
     {

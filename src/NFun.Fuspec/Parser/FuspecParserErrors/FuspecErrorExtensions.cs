@@ -1,6 +1,6 @@
 using ParcerV1;
 
-namespace Nfun.Fuspec.Parser.FuspecParserErrors
+namespace NFun.Fuspec.Parser.FuspecParserErrors
 {
     public static class FuspecErrorTypeExtensions
     {

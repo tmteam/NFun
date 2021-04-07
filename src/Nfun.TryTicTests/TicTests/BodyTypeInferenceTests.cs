@@ -2,7 +2,7 @@
 using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 
-namespace Nfun.ModuleTests.TicTests
+namespace NFun.ModuleTests.TicTests
 {
     public class BodyTypeInferenceTests
     {

@@ -5,7 +5,7 @@ using NFun;
 using NFun.Tokenization;
 using NFun.Types;
 
-namespace Nfun.Fuspec.Parser
+namespace NFun.Fuspec.Parser
 {
     internal static class FuspecParserHelper
     {

@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using NFun.Exceptions;
-using Nfun.Fuspec.Parser.FuspecParserErrors;
-using Nfun.Fuspec.Parser.Model;
+using NFun.Fuspec.Parser.FuspecParserErrors;
 using NFun.Fuspec.Parser.Interfaces;
+using NFun.Fuspec.Parser.Model;
 using NFun.ParseErrors;
 using ParcerV1;
-using static Nfun.Fuspec.Parser.FuspecParserHelper;
+using static NFun.Fuspec.Parser.FuspecParserHelper;
 
-[assembly: InternalsVisibleTo("Nfun.Fuspectests")]
+[assembly: InternalsVisibleTo("NFun.Fuspectests")]
 
-namespace Nfun.Fuspec.Parser
+namespace NFun.Fuspec.Parser
 {
     class TestCasesReader
     {

@@ -1,10 +1,8 @@
-﻿using NFun;
-using NFun.Exceptions;
-using NFun.ParseErrors;
+﻿using NFun.Exceptions;
 using NFun.Tic;
 using NUnit.Framework;
 
-namespace Funny.Tests
+namespace NFun.Tests
 {
     [TestFixture]
     public class RecursiveTypeDefinitionDetectionTest

@@ -1,6 +1,6 @@
 using NUnit.Framework;
 
-namespace Funny.Tests.Operators
+namespace NFun.Tests.Operators
 {
     public class BooleanOperatorsTest
     {

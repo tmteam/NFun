@@ -8,14 +8,10 @@ namespace NFun.Runtime.Arrays
 {
     public class TextFunArray : IFunArray, IComparable
     {
-        public static readonly TextFunArray Empty 
-            = new TextFunArray("");
+        public static readonly TextFunArray Empty = new("");
 
         private readonly string _text;
-        public TextFunArray(string text)
-        {
-            _text = text;
-        }
+        public TextFunArray(string text) => _text = text;
         public IEnumerator<object> GetEnumerator() => new FunCharEnumerator(_text.GetEnumerator());
 
         private class FunCharEnumerator : IEnumerator<object>

@@ -8,7 +8,7 @@ using NCalc;
 using NFun;
 using NFun.Types;
 
-namespace Nfun.CompareToOthers
+namespace NFun.CompareToOthers
 {
     class Program
     {

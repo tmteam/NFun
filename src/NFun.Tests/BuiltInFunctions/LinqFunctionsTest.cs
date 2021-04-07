@@ -1,10 +1,8 @@
-﻿using NFun;
-using NFun.BuiltInFunctions;
-using NFun.Exceptions;
+﻿using NFun.Exceptions;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace Funny.Tests.BuiltInFunctions
+namespace NFun.Tests.BuiltInFunctions
 {
     class LinqFunctionsTest
     {

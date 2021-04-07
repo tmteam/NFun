@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Nfun.InfinityProfiling
+namespace NFun.InfinityProfiling
 {
     class Program
     {

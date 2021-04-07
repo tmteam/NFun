@@ -2,7 +2,7 @@
 using NFun.Types;
 using System.Collections.Generic;
 
-namespace Nfun.Fuspec.Parser.Model
+namespace NFun.Fuspec.Parser.Model
 {
     public class CheckData: ISetCheckData
     {

@@ -1,4 +1,4 @@
-namespace Nfun.InfinityProfiling
+namespace NFun.InfinityProfiling
 {
     public static class Scripts
     {

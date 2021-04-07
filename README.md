@@ -1,9 +1,9 @@
-# Nfun
+# NFun
 Not yet a program language
 
 Expressions Evaluator for .NET
 
-To install Nfun, run the following command in the Package Manager Console:
+To install NFun, run the following command in the Package Manager Console:
 
 ```
 PM> Install-Package NFun 

@@ -4,7 +4,7 @@ using NFun.Interpritation;
 using NFun.Runtime;
 using NFun.Types;
 
-namespace Nfun.InfinityProfiling.Sets
+namespace NFun.InfinityProfiling.Sets
 {
     public class ProfileCalculateSet: IProfileSet
     {

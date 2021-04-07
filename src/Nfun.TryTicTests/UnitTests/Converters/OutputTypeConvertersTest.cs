@@ -4,7 +4,7 @@ using NFun.Runtime.Arrays;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace Nfun.ModuleTests.UnitTests.Converters
+namespace NFun.ModuleTests.UnitTests.Converters
 {
     public class OutputTypeConvertersTest
     {

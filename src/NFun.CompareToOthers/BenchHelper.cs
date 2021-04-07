@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics;
 
-namespace Nfun.CompareToOthers
+namespace NFun.CompareToOthers
 {
     public static class BenchHelper
     {

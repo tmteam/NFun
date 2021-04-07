@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Linq;
-using NFun;
 using NUnit.Framework;
 
-namespace Funny.Tests
+namespace NFun.Tests
 {
     class NfunUpdateTest
     {

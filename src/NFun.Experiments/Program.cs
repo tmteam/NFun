@@ -2,7 +2,7 @@
 using System.Collections;
 using NFun;
 
-namespace Nfun.Experiments
+namespace NFun.Experiments
 {
     class Program
     {

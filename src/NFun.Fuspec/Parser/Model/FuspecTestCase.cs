@@ -1,7 +1,7 @@
 using NFun.Fuspec.Parser.Interfaces;
 using NFun.Types;
 
-namespace Nfun.Fuspec.Parser.Model
+namespace NFun.Fuspec.Parser.Model
 {
     public class FuspecTestCase
     {

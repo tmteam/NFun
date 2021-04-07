@@ -7,9 +7,9 @@ using NFun.Runtime;
 using NFun.Types;
 // ReSharper disable InconsistentNaming
 
-namespace Nfun.Benchmarks
+namespace NFun.Benchmarks
 {
-    public class NfunCalculateBenchmark
+    public class NFunCalculateBenchmark
     {
         private FunRuntime _varkxb_runtime;
         private FunRuntime _const_true_runtime;

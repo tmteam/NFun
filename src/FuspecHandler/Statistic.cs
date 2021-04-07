@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Nfun.Fuspec.Parser.FuspecParserErrors;
+using NFun.Fuspec.Parser.FuspecParserErrors;
 using NFun.BuiltInFunctions;
 using NFun.Exceptions;
 using NFun.ParseErrors;

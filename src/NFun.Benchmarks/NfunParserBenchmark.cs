@@ -9,7 +9,7 @@ using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
 
-namespace Nfun.Benchmarks
+namespace NFun.Benchmarks
 {
     public class SimplestArithmCalcBenchmark
     {

@@ -3,7 +3,7 @@ using System.Text.Json;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace Nfun.ModuleTests.UnitTests.Converters
+namespace NFun.ModuleTests.UnitTests.Converters
 {
     public class IOTypeConvertersTest
     {
@@ -84,18 +84,8 @@ namespace Nfun.ModuleTests.UnitTests.Converters
             var outputConverter = FunnyTypeConverters.GetOutputConverter(originClrObject.GetType());
             var funObject = inputConverter.ToFunObject(originClrObject);
             var clrObject = outputConverter.ToClrObject(funObject);
-            Assert.IsTrue(AreSame(originClrObject, clrObject));
+            Assert.IsTrue(TestHelper.AreSame(originClrObject, clrObject));
         }
-        private bool AreSame(object a, object b)
-        {
-            if (a == null || b == null)
-                return false;
-            if (a.GetType() != b.GetType())
-                return false;
-            var ajson = JsonSerializer.Serialize(a);
-            var bjson = JsonSerializer.Serialize(b);
-            Console.WriteLine($"Comparing object. \r\norigin: \r\n{ajson}\r\nexpected: \r\n{bjson}");
-            return ajson.Equals(bjson);
-        }
+      
     }
 }

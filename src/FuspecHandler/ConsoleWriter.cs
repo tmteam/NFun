@@ -1,5 +1,5 @@
 using System;
-using Nfun.Fuspec.Parser.FuspecParserErrors;
+using NFun.Fuspec.Parser.FuspecParserErrors;
 using NFun.BuiltInFunctions;
 using NFun.Exceptions;
 using NFun.ParseErrors;

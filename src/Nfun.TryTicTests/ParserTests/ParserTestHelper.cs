@@ -4,7 +4,7 @@ using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
 using NUnit.Framework;
 
-namespace Nfun.ModuleTests.ParserTests
+namespace NFun.ModuleTests.ParserTests
 {
     public static class ParserTestHelper
     {

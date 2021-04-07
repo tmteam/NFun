@@ -1,10 +1,8 @@
 using System.Linq;
-using NFun;
 using NFun.Exceptions;
-using NFun.ParseErrors;
 using NUnit.Framework;
 
-namespace Funny.Tests
+namespace NFun.Tests
 {
     [TestFixture]
     public class AttributesTest

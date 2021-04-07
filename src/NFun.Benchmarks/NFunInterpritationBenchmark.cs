@@ -5,9 +5,9 @@ using BenchmarkDotNet.Attributes;
 using NFun;
 using NFun.Interpritation;
 
-namespace Nfun.Benchmarks
+namespace NFun.Benchmarks
 {
-    public class NfunInterpritationBenchmark
+    public class NFunInterpritationBenchmark
     {
         private FunctionDictionary _dictionary;
         private Scripts _scripts;

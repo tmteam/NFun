@@ -1,13 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NFun;
 using NFun.Interpritation.Functions;
 using NFun.Runtime.Arrays;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace Funny.Tests
+namespace NFun.Tests
 {
     [TestFixture]
     public class CustomPredefinedFunctionsTest

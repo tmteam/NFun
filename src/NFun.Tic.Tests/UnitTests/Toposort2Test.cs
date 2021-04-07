@@ -5,7 +5,7 @@ using NFun.Tic;
 using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 
-namespace Nfun.ModuleTests
+namespace NFun.ModuleTests
 {
     public class Toposort2Test
     {

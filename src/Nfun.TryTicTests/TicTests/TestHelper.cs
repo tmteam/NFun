@@ -8,7 +8,7 @@ using NFun.Tic.SolvingStates;
 using NFun.TypeInferenceAdapter;
 using NUnit.Framework;
 
-namespace Nfun.ModuleTests.TicTests
+namespace NFun.ModuleTests.TicTests
 {
     public static class TestHelper
     {

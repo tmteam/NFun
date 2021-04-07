@@ -1,4 +1,4 @@
-namespace Nfun.Fuspec.Parser
+namespace NFun.Fuspec.Parser
 {
     public class Constants
     {

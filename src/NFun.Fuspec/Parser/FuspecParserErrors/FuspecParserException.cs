@@ -1,6 +1,6 @@
 using System;
 
-namespace Nfun.Fuspec.Parser.FuspecParserErrors
+namespace NFun.Fuspec.Parser.FuspecParserErrors
 {
     public class FuspecParserException : ArgumentException
     {

@@ -1,7 +1,7 @@
 using System;
 using NCalc;
 
-namespace Nfun.CompareToOthers
+namespace NFun.CompareToOthers
 {
     public class NCalcPerformance
     {
