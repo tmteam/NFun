@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Linq;
+using System.Text.Json;
 using NFun.Runtime;
 using NFun.Runtime.Arrays;
 using NFun.Types;
@@ -84,6 +85,18 @@ namespace NFun.Tests
                 return "{" + string.Join(",", en.Cast<object>().Select(ToStringSmart)) + "}";
 
             return v.ToString();
+        }
+        
+        public static bool AreSame(object a, object b)
+        {
+            if (a == null || b == null)
+                return false;
+            if (a.GetType() != b.GetType())
+                return false;
+            var ajson = JsonSerializer.Serialize(a);
+            var bjson = JsonSerializer.Serialize(b);
+            Console.WriteLine($"Comparing object. \r\norigin: \r\n{ajson}\r\nexpected: \r\n{bjson}");
+            return ajson.Equals(bjson);
         }
 
     }

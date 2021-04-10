@@ -175,6 +175,8 @@ namespace NFun.Types
             }
         }
 
+        public bool IsNumeric() 
+            => BaseType >= BaseVarType.UInt8 && BaseType <= BaseVarType.Real;
         /// <summary>
         /// Substitude concrete types to generic type definition (if it is)
         ///

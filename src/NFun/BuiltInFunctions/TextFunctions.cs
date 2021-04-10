@@ -105,7 +105,7 @@ namespace NFun.BuiltInFunctions
     
     public class JoinFunction : FunctionWithTwoArgs
     {
-        public JoinFunction() : base("join",VarType.Text,VarType.ArrayOf(VarType.Text),VarType.Text)
+        public JoinFunction() : base("join",VarType.Text,VarType.ArrayOf(VarType.Anything),VarType.Text)
         {
         }
 
