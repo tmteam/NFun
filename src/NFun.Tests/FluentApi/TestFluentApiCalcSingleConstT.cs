@@ -86,20 +86,20 @@ namespace NFun.Tests.FluentApi
         [TestCase("x:int = 2")]
         [TestCase("a = 12; b = 32; x = a*b")]
         public void NoOutputSpecified_throws(string expr) 
-            => Assert.Catch(() => Funny.Calc<UserInputModel>(expr));
+            => Assert.Throws<FunInvalidUsageTODOException>(() => Funny.Calc<UserInputModel>(expr));
 
         [Test]
         public void OutputTypeContainsNoEmptyConstructor_throws() =>
-            Assert.Catch(() => Funny.Calc<UserInputModel>(
+            Assert.Throws<FunInvalidUsageTODOException>(() => Funny.Calc<UserInputModel>(
                 "@{name = 'alaska'}"));
 
         [TestCase("[1..4].filter{it>age}.map{it**2}")]
         [TestCase("age>someUnknownvariable")]
         public void UseUnknownInput_throws(string expression) =>
-            Assert.Catch(() => Funny.Calc<object>(expression));
-        [TestCase("[1..4].filter{it>age}.map{it**2}")]
+            Assert.Throws<FunInvalidUsageTODOException>(() => Funny.Calc<object>(expression));
+        [TestCase("[1..4].filter{it>age}.map{it*it}.any{it>12}")]
         [TestCase("age>someUnknownvariable")]
         public void UseUnknownInputWithWrongIntOutputType_throws(string expression) =>
-            Assert.Catch(() => Funny.Calc<int>(expression));
+            Assert.Throws<FunInvalidUsageTODOException>(() => Funny.Calc<bool>(expression));
     }
 }

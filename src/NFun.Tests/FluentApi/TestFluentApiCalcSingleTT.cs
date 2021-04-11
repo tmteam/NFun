@@ -94,15 +94,15 @@ namespace NFun.Tests.FluentApi
         [TestCase("a = 12; b = 32; x = a*b")]
         [TestCase("y = age")]
         public void NoOutputSpecified_throws(string expr) 
-            => Assert.Catch(() => Funny.Calc<UserInputModel,int>(expr,new UserInputModel(age:42)));
+            => Assert.Throws<FunInvalidUsageTODOException>(() => Funny.Calc<UserInputModel,int>(expr,new UserInputModel(age:42)));
         [Test]
         public void OutputTypeContainsNoEmptyConstructor_throws() =>
-            Assert.Catch(() => Funny.Calc<UserInputModel, ModelWithoutEmptyConstructor>(
+            Assert.Throws<FunInvalidUsageTODOException>(() => Funny.Calc<UserInputModel, ModelWithoutEmptyConstructor>(
                 "@{name = name}"
                 , new UserInputModel("vasa")));
         [Test]
         public void UseUnknownInput_throws() =>
-            Assert.Catch(() =>
+            Assert.Throws<FunInvalidUsageTODOException>(() =>
                 Funny.Calc<UserInputModel, bool>("age>someUnknownvariable", new UserInputModel(age: 22)));
     }
 }

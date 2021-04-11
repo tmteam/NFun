@@ -101,7 +101,7 @@ namespace NFun.ModuleTests.UnitTests.Converters
                 new UserMoqType("peta", 41, 17.0),
                 new UserMoqType("kata", 40, -17.1)
             };
-            Assert.Throws<InvalidOperationException>(()=> FunnyTypeConverters.GetOutputConverter(inputUsers.GetType()));
+            Assert.Catch(()=> FunnyTypeConverters.GetOutputConverter(inputUsers.GetType()));
         }
         [Test]
         public void ArrayOfStructTypes()

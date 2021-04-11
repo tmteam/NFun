@@ -71,16 +71,16 @@ namespace NFun.Tests.FluentApi
         [TestCase("x:int = 2")]
         [TestCase("a = 12; b = 32; x = a*b")]
         public void NoOutputSpecified_throws(string expr) 
-            => Assert.Catch(() => Funny.Calc(expr));
+            => Assert.Throws<FunInvalidUsageTODOException>(() => Funny.Calc(expr));
         [Test]
         public void OutputTypeContainsNoEmptyConstructor_throws() =>
-            Assert.Catch(() => Funny.Calc(
+            Assert.Throws<FunInvalidUsageTODOException>(() => Funny.Calc(
                 "@{name = 'alaska'}"));
 
         [TestCase("@{id = age; items = [1,2,3,4].map{'{it}'}; price = 21*2}")]
         [TestCase("[1..4].filter{it>age}.map{it**2}")]
         [TestCase("age>someUnknownvariable")]
         public void UseUnknownInput_throws(string expression) =>
-            Assert.Catch(() => Funny.Calc(expression));
+            Assert.Throws<FunInvalidUsageTODOException>(() => Funny.Calc(expression));
     }
 }

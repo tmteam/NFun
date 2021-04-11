@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using NFun.FluentApi;
 
 namespace NFun.Types
 {
@@ -103,7 +104,7 @@ namespace NFun.Types
             if (properties.Any())
             {
                 if (clrType.GetConstructor(Type.EmptyTypes) == null)
-                    throw new InvalidOperationException($"Type '{clrType.Name}' contains no parameterless constructor");
+                    throw new FunInvalidUsageTODOException($"Type '{clrType.Name}' contains no parameterless constructor");
                 var propertiesConverters =
                     new (string, IOutputFunnyConverter, PropertyInfo)[properties.Length];
                 int readPropertiesCount = 0;
@@ -147,7 +148,7 @@ namespace NFun.Types
                     return new ClrArrayOutputFunnyConverter(arrayType, elementConverter);
                 }
                 default:
-                    throw new NotSupportedException($"type {funnyType} is not supported for dynamic convertion");
+                    throw new FunInvalidUsageTODOException($"type {funnyType} is not supported for dynamic convertion");
             }
         }
     }
