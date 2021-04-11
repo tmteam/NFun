@@ -1,4 +1,4 @@
-namespace NFun.ModuleTests.FluentApi
+namespace NFun.Tests.FluentApi
 {
     class ContractOutputModel {
         public int Id { get; set; }

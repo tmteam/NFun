@@ -5,13 +5,16 @@ namespace NFun.Runtime
 {
     public class FunnyStruct
     {
-        public IEnumerable<KeyValuePair<string, object>> Fields => _values;
-        public static FunnyStruct Create(string name, object value) => new FunnyStruct(new Dictionary<string, object>{{name,value}});
-        public static FunnyStruct Create(string name1, object value1,string name2, object value2) 
-            => new FunnyStruct(new Dictionary<string, object>{{name1,value1},{name2,value2}});
+        public static FunnyStruct Create(params (string,object)[] fields) =>
+            new (
+                fields.ToDictionary(f => f.Item1, f => f.Item2)
+            );
 
+        public static FunnyStruct Create(string name, object value) => new FunnyStruct(new Dictionary<string, object>{{name,value}});
+      
         private readonly Dictionary<string, object> _values;
-        public FunnyStruct(Dictionary<string,object> values) => _values = values;
+        internal FunnyStruct(Dictionary<string,object> values) => _values = values;
+        
         public object GetValue(string field) => _values[field];
         public override string ToString() 
             => "@{ "+string.Join("; ", _values.Select(v=> $"{v.Key}={v.Value}"))+" }";

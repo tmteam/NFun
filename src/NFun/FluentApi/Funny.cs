@@ -11,15 +11,19 @@ namespace NFun.FluentApi
     {
         public static object Calc(string expression)
         {
-            var result = FunBuilder
+            var runtime = FunBuilder
                 .With(expression)
-                .Build()
-                .CalculateSafe();
+                .Build();
+            if (runtime.Inputs.Any())
+                throw new ArgumentException("TODO");
+            
+            var result = runtime.CalculateSafe();
             return GetClrOut(result);
         }
         public static TOutput Calc<TOutput>(string expression)
         {
             var builder = FunBuilder.With(expression);
+            
             return CalcOutput<TOutput>(builder, Span<VarVal>.Empty);
         }
         public static object Calc<TInput>(string expression, TInput input)
@@ -27,22 +31,16 @@ namespace NFun.FluentApi
             var builder = FunBuilder.With(expression);
             var inputVals = SetupInputs(input, builder);
             var runtime = builder.Build();
-
+            var varsAsArray = inputVals.ToArray();
+            if (runtime.Inputs.Any(i => varsAsArray.All(v => !v.Name.Equals(i.Name.ToLower()))))
+                throw new ArgumentException("TODO");
+                
             var resultOutput = runtime.Outputs.FirstOrDefault(o => o.Name == Parser.AnonymousEquationId);
             if (resultOutput.Name != Parser.AnonymousEquationId)
                 throw new ArgumentException();
             
             var result = runtime.CalculateSafe(inputVals);
             return GetClrOut(result);
-        }
-
-        private static object GetClrOut(CalculationResult result)
-        {
-            var outResult = result.Get(Parser.AnonymousEquationId);
-
-            return FunnyTypeConverters
-                .GetOutputConverter(outResult.Type)
-                .ToClrObject(outResult);
         }
 
         public static TOutput Calc<TInput, TOutput>(string expression, TInput input)
@@ -52,12 +50,26 @@ namespace NFun.FluentApi
 
             return CalcOutput<TOutput>(builder, inputValues);
         }
+        
+        private static object GetClrOut(CalculationResult result)
+        {
+            var outResult = result.Get(Parser.AnonymousEquationId);
+
+            return FunnyTypeConverters
+                .GetOutputConverter(outResult.Type)
+                .ToClrObject(outResult.Value);
+        }
 
         private static TOutput CalcOutput<TOutput>(FunBuilder builder, Span<VarVal> inputValues)
         {
             var outputConverter = FunnyTypeConverters.GetOutputConverter(typeof(TOutput));
             builder.WithApriori(Parser.AnonymousEquationId, outputConverter.FunnyType);
             var runtime = builder.Build();
+
+            var varsAsArray = inputValues.ToArray();
+            if (runtime.Inputs.Any(i => varsAsArray.All(v => !v.Name.Equals(i.Name.ToLower()))))
+                throw new ArgumentException("TODO");
+
             var result = runtime.CalculateSafe(inputValues);
             var outResult = result.Get(Parser.AnonymousEquationId);
             return (TOutput) outputConverter.ToClrObject(outResult.Value);

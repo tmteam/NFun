@@ -67,7 +67,7 @@ namespace NFun.Tests
         [TestCase(@"call10(f,x) = {f(x,it)}; y =  max.call10(3)(2)", 3.0)]
         [TestCase(@"call11() = {it}; y =  call11()(2)", 2.0)]
         [TestCase(@"call12 = {it}; y =  call12(2)", 2.0)]
-
+        [TestCase("ids:int[]=[1,2,3,4]; age:int = 1;  ;y:int[] = ids.filter{it>age}.map{it+1}",new int[]{3,4,5})]
         public void AnonymousFunctions_ConstantEquation(string expr, object expected)
         {
             var runtime = FunBuilder.Build(expr);
@@ -75,6 +75,7 @@ namespace NFun.Tests
             runtime.Calculate()
                 .AssertHas(VarVal.New("y", expected));
         }
+
         [TestCase( "y = [1.0,2.0,3.0].map{it*x1*x2}",3.0,4.0, new []{12.0,24.0,36.0})]
         [TestCase( "x1:int\rx2:int\ry = [1,2,3].map{it*x1*x2}",3,4, new []{12,24,36})]
         [TestCase( "y = [1.0,2.0,3.0].fold{it1*x1 - it2*x2}",2.0,3.0, -17.0)]
@@ -146,11 +147,6 @@ namespace NFun.Tests
         [TestCase( "y = [x,2.0,3.0].all({it >1.0}")]
         [TestCase("y:int[] = [-1,-2,0,1,2,3].filter {it>0}.map{it1*it2}.map{it1*it2}")]
         [TestCase("y = [-1,-2,0,1,2,3].filter {it>0}.map{it1*it2}.map{it1*it2}")]
-        public void ObviouslyFailsOnParse(string expr)
-        {
-            var ex = Assert.Throws<FunParseException>(
-                () => FunBuilder.Build(expr));
-            Console.WriteLine($"Captured error: \r{ex}");
-        }
+        public void ObviouslyFailsOnParse(string expr) => TestTools.AssertObviousFailsOnParse(expr);
     }
 }

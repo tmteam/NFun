@@ -146,9 +146,6 @@ namespace NFun.Tests.UserFunctions
         [TestCase("y:real(x)= 1")]
         [TestCase("y:real(x:real)= 1")]
         [TestCase("y:real(x):real= 1")]
-
-        public void ObviousFails(string expr){
-            Assert.Throws<FunParseException>(()=>FunBuilder.Build(expr));
-        }
+        public void ObviousFails(string expr)=> TestTools.AssertObviousFailsOnParse(expr);
     }
 }

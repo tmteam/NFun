@@ -1,7 +1,7 @@
 using NFun.FluentApi;
 using NUnit.Framework;
 
-namespace NFun.ModuleTests.FluentApi
+namespace NFun.Tests.FluentApi
 {
     public class TestFluentApiCalcSingleConstT
     {
@@ -16,14 +16,14 @@ namespace NFun.ModuleTests.FluentApi
         public void IoComplexTypeTransforms()
         {
             var result = Funny.Calc<ContractOutputModel>(
-                "@{id = age; items = [1,2,3,4].map{'{it}'}; price = 21*2}");
+                "@{id = 13; items = [1,2,3,4].map{'{it}'}; price = 21*2}");
             var expected = new ContractOutputModel
             {
                 Id = 13,
                 Items = new[] {"1", "2", "3", "4"},
                 Price = 42
             };
-            Assert.IsTrue(TestHelper.AreSame(expected, result));
+            Assert.IsTrue(TestTools.AreSame(expected, result));
         }
 
         [Test]
@@ -34,9 +34,9 @@ namespace NFun.ModuleTests.FluentApi
         }
 
         [Test]
-        public void ReturnsIntArray()
+        public void ReturnsRealArray()
         {
-            var result = Funny.Calc<int[]>("[1..4].filter{it>age}.map{it**2}");
+            var result = Funny.Calc<double[]>("[1..4].filter{it>1}.map{it**2}");
             Assert.AreEqual(new[] {4, 9, 16}, result);
         }
 
@@ -44,7 +44,7 @@ namespace NFun.ModuleTests.FluentApi
         public void ReturnsText()
         {
             var result = Funny.Calc<string>("[1..4].reverse().join(',')");
-            Assert.AreEqual("4321", result);
+            Assert.AreEqual("4,3,2,1", result);
         }
 
         [Test]
@@ -81,14 +81,25 @@ namespace NFun.ModuleTests.FluentApi
             }, result);
         }
 
+        [TestCase("")]
+        [TestCase("x:int;")]
+        [TestCase("x:int = 2")]
+        [TestCase("a = 12; b = 32; x = a*b")]
+        public void NoOutputSpecified_throws(string expr) 
+            => Assert.Catch(() => Funny.Calc<UserInputModel>(expr));
+
         [Test]
         public void OutputTypeContainsNoEmptyConstructor_throws() =>
             Assert.Catch(() => Funny.Calc<UserInputModel>(
                 "@{name = 'alaska'}"));
 
-        [Test]
-        public void UseUnknownInput_throws() =>
-            Assert.Catch(() =>
-                Funny.Calc<bool>("age>someUnknownvariable"));
+        [TestCase("[1..4].filter{it>age}.map{it**2}")]
+        [TestCase("age>someUnknownvariable")]
+        public void UseUnknownInput_throws(string expression) =>
+            Assert.Catch(() => Funny.Calc<object>(expression));
+        [TestCase("[1..4].filter{it>age}.map{it**2}")]
+        [TestCase("age>someUnknownvariable")]
+        public void UseUnknownInputWithWrongIntOutputType_throws(string expression) =>
+            Assert.Catch(() => Funny.Calc<int>(expression));
     }
 }

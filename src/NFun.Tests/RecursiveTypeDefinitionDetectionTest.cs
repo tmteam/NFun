@@ -11,12 +11,7 @@ namespace NFun.Tests
         [TestCase("r(x) = @{f = r(x)}")]
         [TestCase("f(x) = x.age; y1 = f(user); y2 = f(user.child)")]
         public void ObviouslyFailsWithRecursiveTypeDefinitionOfStruct(string expr)
-        {
-            TraceLog.IsEnabled = true;
-            var e = Assert.Throws<FunParseException>(
-                () => FunBuilder.Build(expr));
-            TraceLog.Write($"Error: {e}");
-        }
+            => TestTools.AssertObviousFailsOnParse(expr);
 
         [TestCase("y = t.concat(t[0])")]
         [TestCase("y = t.concat(t[0][0])")]
@@ -55,20 +50,14 @@ namespace NFun.Tests
         [TestCase("f(t) = t[0][0][t[0]]")]
         [TestCase("f(t) = t[0][0][0][t[0]]")]
         [TestCase("f(t) = t[0][0][0][t[0][0]]")]
-        public void ObviouslyFailsWithRecursiveTypeDefinitionOfArray(string expr) =>
-          Assert.Throws<FunParseException>(
-              () => FunBuilder.Build(expr));
-
+        public void ObviouslyFailsWithRecursiveTypeDefinitionOfArray(string expr) => TestTools.AssertObviousFailsOnParse(expr);
         [TestCase("g(f) = f(f)")]
         [TestCase("g(f) = f(f(f))")]
         [TestCase("g(f) = f(f(f(f)))")]
         [TestCase("g(f) = f(f[0])")]
         [TestCase("g(f) = f(f[0])")]
         [TestCase("g(f) = f(f())")]
-
-        public void ObviouslyFailsWithRecursiveTypeDefinitionOfFunctionalVar(string expr) =>
-            Assert.Throws<FunParseException>(
-                () => FunBuilder.Build(expr));
+        public void ObviouslyFailsWithRecursiveTypeDefinitionOfFunctionalVar(string expr) => TestTools.AssertObviousFailsOnParse(expr);
 
     }
 }

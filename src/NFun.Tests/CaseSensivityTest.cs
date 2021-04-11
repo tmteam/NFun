@@ -34,9 +34,6 @@ namespace NFun.Tests
         [TestCase("x = X+ y")]
         [TestCase("test = Test + tEst")]
 
-        public void ObviouslyFails(string expr) =>
-            Assert.Throws<FunParseException>(
-                () => FunBuilder.Build(expr));
-
+        public void ObviouslyFails(string expr) => TestTools.AssertObviousFailsOnParse(expr);
     }
 }

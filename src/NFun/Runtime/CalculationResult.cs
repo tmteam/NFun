@@ -32,5 +32,10 @@ namespace NFun.Runtime
             }
             throw new ArgumentException(name);
         }
+
+        public override string ToString()
+        {
+            return string.Join("\r\n",Results);
+        }
     }
 }

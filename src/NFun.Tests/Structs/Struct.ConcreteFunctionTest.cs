@@ -192,7 +192,6 @@ namespace NFun.Tests.Structs
                   y = fact(@{a=x})")]
         [TestCase(@"f(n):int = n.field;
                   y = fact(@{nonExistingField=x})")]
-        public void ObviousFails(string expr) 
-            => Assert.Throws<FunParseException>(()=>FunBuilder.Build(expr));
+        public void ObviousFails(string expr)=> TestTools.AssertObviousFailsOnParse(expr);
     }
 }

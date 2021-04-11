@@ -10,6 +10,11 @@ namespace NFun.Types
     /// </summary>
     public struct VarVal
     {
+        public static VarVal NewStruct(string name, object value)
+        {
+            var converter = FunnyTypeConverters.GetInputConverter(value.GetType());
+            return new VarVal(name, converter.ToFunObject(value), converter.FunnyType);
+        }
         public static VarVal New<T>(string name, T[] value)
         {
             FunTypesConverter.TryGetSpecificConverter(typeof(T[]), out var specificConverter);
@@ -58,18 +63,7 @@ namespace NFun.Types
             => new VarVal(name, value, VarType.Char);
         public static VarVal New(string name, FunnyStruct values, VarType type)
             => new VarVal(name, values, type);
-
-        public static VarVal New(string name, FunnyStruct values)
-        {
-            var subTypes = new Dictionary<string,VarType>();
-            foreach (var field in values.Fields)
-            {
-                subTypes.Add(field.Key,New("", field.Value).Type);
-            }
-
-            return new VarVal(name, values, VarType.StructOf(subTypes));
-        }
-
+        
         public static VarType ToPrimitiveFunType(Type t)
         {
             if(t== typeof(byte))

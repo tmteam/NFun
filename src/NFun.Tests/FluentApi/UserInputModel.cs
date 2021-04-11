@@ -1,4 +1,4 @@
-namespace NFun.ModuleTests.FluentApi
+namespace NFun.Tests.FluentApi
 {
     class UserInputModel
     {

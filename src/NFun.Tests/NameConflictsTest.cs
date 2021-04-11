@@ -33,7 +33,6 @@ namespace NFun.Tests
         [TestCase("foo(x) = x +1\r y=foo*3 ")]
         [TestCase("\r y=foo*3 \r foo(x) = x +1")]
         [TestCase("foo(x) = x +1\r foo*3 ")]
-        public void ObviousFails(string expr)
-            => Assert.Throws<FunParseException>(() => FunBuilder.Build(expr));
+        public void ObviousFails(string expr) => TestTools.AssertObviousFailsOnParse(expr);
     }
 }

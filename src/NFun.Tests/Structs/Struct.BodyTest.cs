@@ -16,25 +16,28 @@ namespace NFun.Tests.Structs
             FunBuilder
                 .Build("y = @{a = 1.0}")
                 .Calculate()
-                .AssertReturns(VarVal.New("y", FunnyStruct.Create("a",1.0)));
+                .AssertReturns(VarVal.NewStruct("y", new{a =1.0}));
 
         [Test]
         public void TwoFieldStructInitialization() =>
             FunBuilder
                 .Build("y = @{a = 1.0; b ='vasa'}")
                 .Calculate()
-                .AssertReturns(VarVal.New("y", FunnyStruct.Create("a", 1.0, "b", "vasa".AsFunText()))); 
-        
+                .AssertReturns(VarVal.NewStruct("y",
+                    new {a = 1.0, b = "vasa"}));
+
+
         [Test]
         public void ThreeFieldStructInitializationWithCalculation() =>
             FunBuilder
                 .Build("y = @{a = 1.0; b ='vasa'; c = 12*5.0}")
                 .Calculate()
-                .AssertReturns(VarVal.New("y", new FunnyStruct(new Dictionary<string,object> {
-                    {"a",1.0},
-                    {"b","vasa".AsFunText()},
-                    {"c",60.0},
-                })));
+                .AssertReturns(VarVal.NewStruct("y", new
+                    {
+                        a = 1.0,
+                        b = "vasa",
+                        c = 60.0
+                    }));
 
         [Test]
         public void ConstAccessNested() =>
@@ -70,14 +73,18 @@ namespace NFun.Tests.Structs
                        "  c = 12*5.0" +
                        "}")
                 .Calculate()
-                .AssertReturns(VarVal.New("y",new FunnyStruct(new Dictionary<string,object> {
-                    {"a",true},
-                    {"b",new FunnyStruct(new Dictionary<string,object> {
-                        {"c", new ImmutableFunArray(new []{1.0,2.0,3.0})},
-                        {"d",false}
-                    })},
-                    {"c",60.0}
-                })));
+                .AssertReturns(VarVal.NewStruct("y", new
+                {
+                    a = true,
+                    b = new
+                    {
+                        c = new []{1.0,2.0,3.0},
+                        d = false
+                        
+                    },
+                    c = 60.0
+                }));
+                
         
         
         [Test]
@@ -117,14 +124,14 @@ namespace NFun.Tests.Structs
         [Test]
         public void TwoFieldsAccess()
         {
-            var result =FunBuilder
+            var result = FunBuilder
                 .Build("y1:int = a.age; y2:real = a.size")
-                .Calculate(VarVal.New("a",
-                    new FunnyStruct(new Dictionary<string, object> {
-                        {"age", 42}, {"size", 1.1}
-                    }), VarType.StructOf(new Dictionary<string, VarType> {
-                        {"age", VarType.Int32}, {"size", VarType.Real}
-                    })));
+                .Calculate(VarVal.NewStruct("a", 
+                    new
+                    {
+                        age = 42,
+                        size = 1.1
+                    }));
             result.AssertHas(VarVal.New("y1", 42));
             result.AssertHas(VarVal.New("y2", 1.1));
         }
@@ -132,16 +139,14 @@ namespace NFun.Tests.Structs
         [Test]
         public void ThreeFieldsAccess()
         {
-            var result =FunBuilder
+            var result = FunBuilder
                 .Build("agei:int = a.age; sizer = a.size+12.0; name = a.name")
-                .Calculate(VarVal.New("a",
-                    new FunnyStruct(new Dictionary<string, object>
-                    {
-                        {"age", 42}, {"size", 1.1}, {"name", "vasa"}
-                    }), VarType.StructOf(new Dictionary<string, VarType>
-                    {
-                        {"age", VarType.Int32}, {"size", VarType.Real}, {"name", VarType.Anything}
-                    })));
+                .Calculate(VarVal.NewStruct("a", new
+                {
+                    age = 42,
+                    size = 1.1,
+                    name = "vasa"
+                }));
             result.AssertHas(VarVal.New("agei", 42));
             result.AssertHas(VarVal.New("sizer", 13.1));
             result.AssertHas(new VarVal("name", "vasa", VarType.Anything));
@@ -515,7 +520,6 @@ namespace NFun.Tests.Structs
         [TestCase("y = @{a:bool = false}")]
 
         [TestCase("y1 = @{a = y2}; y2 = @{a = y1}")]
-        public void ObviousFails(string expr) 
-            => Assert.Throws<FunParseException>(()=>FunBuilder.Build(expr));
+        public void ObviousFails(string expr) => TestTools.AssertObviousFailsOnParse(expr);
     }
 }

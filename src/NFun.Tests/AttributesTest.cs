@@ -82,8 +82,7 @@ namespace NFun.Tests
         [TestCase("\r y = 2  \r--('',3) \r z = 5")]
         [TestCase("\r y = 2  \r--(') \r z = 5")]
 
-        public void ObviouslyFails(string expr) =>
-            Assert.Throws<FunParseException>(
-                ()=> FunBuilder.Build(expr));
+        public void ObviouslyFails(string expr) => TestTools.AssertObviousFailsOnParse(expr);
+
     }
 }

@@ -252,10 +252,7 @@ yPublic   = yprivate + xpublic";
 
         [TestCase(" y1 = [1,’2’,3,4]      # error")]
         [TestCase(" x:real[] \r y = x.filter(x => x< 2 ) # error.")]
-        public void ObviousFails(string expr)
-        {
-            Assert.Throws<FunParseException>(() => FunBuilder.Build(expr));
-        }
+        public void ObviousFails(string expr) => TestTools.AssertObviousFailsOnParse(expr);
 
         [TestCase(" y:int = convert('string')")]
         [TestCase(" y:int = convert('string')")]

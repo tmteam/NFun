@@ -271,15 +271,15 @@ namespace NFun.Tests
         [TestCase("x:real \r y = [1..10][::x]")]
         [TestCase("y = x \r x:real ")]
         [TestCase("z:real \r  y = x+z \r x:real ")]
-        [TestCase("y= [1,2,3].fold{'{it1}!'}")]
+        //todo: What is expected ?!
+        //[TestCase("y= [1,2,3].fold{'{it1}!'}")]
         [TestCase("a:int \r a=4")]
         [TestCase("a:int a=4")]
         [TestCase("a:real =false")]
         [TestCase("a:real =false")]
         [TestCase("x:bool; a:real =x")]
-        public void ObviouslyFailsWithParse(string expr) =>
-            Assert.Throws<FunParseException>(
-                () => FunBuilder.Build(expr));
+        public void ObviouslyFailsWithParse(string expr) => TestTools.AssertObviousFailsOnParse(expr);
+        
 
         [TestCase(new []{1,2},    "x:int[]\r y= x", new []{1,2})]        
         [TestCase(new []{1,2},    "x:int[]\r y= x.concat(x)", new []{1,2,1,2})]

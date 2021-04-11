@@ -175,7 +175,7 @@ namespace NFun.Tests
         [TestCase("y:int64 = 19223372036854775809")]
         [TestCase("y:int64 = -9223372036854775809")]
         [TestCase("y:int64 = -19223372036854775809")]
-        public void ObviouslyFails(string expr) =>
-            Assert.Throws<FunParseException>(()=> FunBuilder.Build(expr));
+        public void ObviouslyFails(string expr) => TestTools.AssertObviousFailsOnParse(expr);
+
     }
 }

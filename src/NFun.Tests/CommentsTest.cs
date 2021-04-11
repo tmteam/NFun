@@ -46,9 +46,7 @@ z = true")]
 
         [TestCase("y =#here is a comment y 1.0\r z = true")]
         [TestCase("y = 2.0\r z = #here is a comment/ true")]
+        public void ObviouslyFails(string expr) => TestTools.AssertObviousFailsOnParse(expr);
 
-        public void ObviouslyFails(string expr) =>
-            Assert.Throws<FunParseException>(
-                ()=> FunBuilder.Build(expr));
     }
 }

@@ -441,12 +441,8 @@ filtrat   = x.filter{it> filt} # filt - input variable
         [TestCase("y = [1..4..-2.0]")]
         [TestCase("y = [1..4..0]")]
         public void ObviouslyFailsOnParse(string expr)
-        {
-            TraceLog.IsEnabled = true;
-            Assert.Throws<FunParseException>(
-                () => FunBuilder.Build(expr));
-        }
-
+        => TestTools.AssertObviousFailsOnParse(expr);
+        
 
         [TestCase("y = [0..10][11]")]
         [TestCase("y = ['a', 'b'][2]")]

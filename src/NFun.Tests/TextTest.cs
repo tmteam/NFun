@@ -140,7 +140,6 @@ namespace NFun.Tests
         [TestCase("y={0}'hello'world'")]
         [TestCase("y='pre {0}''fin'")]
         [TestCase("y='pre {0}''mid{1}fin'")]
-        public void ObviousFails(string expr) =>
-            Assert.Throws<FunParseException>(() => FunBuilder.Build(expr));
+        public void ObviousFails(string expr)  => TestTools.AssertObviousFailsOnParse(expr);
     }
 }

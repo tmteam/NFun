@@ -327,9 +327,7 @@ namespace NFun.Tests.Operators
         [TestCase("y = y")]
         [TestCase("y = y+x")]
         [TestCase("a: int a=4")]
-        public void ObviouslyFails(string expr) =>
-            Assert.Throws<FunParseException>(
-                ()=> FunBuilder.Build(expr));
+        public void ObviouslyFails(string expr) => TestTools.AssertObviousFailsOnParse(expr);
       
         
     }

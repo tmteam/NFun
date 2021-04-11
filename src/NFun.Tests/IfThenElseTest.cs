@@ -184,8 +184,7 @@ else 'not supported' ", 2, "two")]
         [TestCase("y = if (2>1)  3 else true")]
         [TestCase("y = if (2>1)  3 if 2<1 then true else 1")]
         [TestCase("y = if (2>1)  false if 2<1 then true else 1")]
-        public void ObviouslyFails(string expr) =>
-            Assert.Throws<FunParseException>(
-                () => FunBuilder.Build(expr));
+        public void ObviouslyFails(string expr) => TestTools.AssertObviousFailsOnParse(expr);
+
     }
 }

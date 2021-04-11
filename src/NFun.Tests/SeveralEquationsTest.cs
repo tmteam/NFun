@@ -181,9 +181,6 @@ namespace NFun.Tests
         [TestCase("set a=4")]
         [TestCase("y1 = 3 y2 = 4")]
         [TestCase("y1 = 3 y1 = 4")]
-        public void ObviouslyFails(string expr)
-        {
-            Assert.Throws<FunParseException>(()=> FunBuilder.Build(expr));
-        }
+        public void ObviouslyFails(string expr) => TestTools.AssertObviousFailsOnParse(expr);
     }
 }

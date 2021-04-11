@@ -66,14 +66,6 @@ namespace NFun.Tests
         [TestCase(@"y = f.4")]
         [TestCase(@"y = f|")]
         [TestCase(@"y = [1,2,3].max")]
-        public void ObviousFails(string expr)
-        {
-            try
-            {
-                FunBuilder.Build(expr);
-                Assert.Fail("No parse error");
-            }
-            catch (FunParseException) { }
-        }
+        public void ObviousFails(string expr) => TestTools.AssertObviousFailsOnParse(expr);
     }
 }

@@ -236,7 +236,7 @@ namespace NFun.Tests.Operators
         public void Oops(string expr)
         {
             var rt = FunBuilder.Build(expr);
-            Assert.Throws<FunParseException>(
+            Assert.Throws<FunRuntimeException>(
                 ()=> rt.Calculate());
         }
         [TestCase("y = ^2")]

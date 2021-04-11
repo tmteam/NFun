@@ -112,10 +112,7 @@ namespace NFun.Tests
         [TestCase( "z = [-x,-x,-x] \r  y = z.all((z)-> z < 0.0)")]
         [TestCase( "y = [x,2.0,3.0].all((x)-> x >1.0)")]
         public void ObviouslyFailsOnParse(string expr)
-        {
-            var ex = Assert.Throws<FunParseException>(
-                () => FunBuilder.Build(expr));
-            Console.WriteLine($"Captured error: \r{ex}");
-        }
+            => TestTools.AssertObviousFailsOnParse(expr);
+
     }
 }

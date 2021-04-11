@@ -101,7 +101,6 @@ namespace NFun.ModuleTests.UnitTests.Converters
                 new UserMoqType("peta", 41, 17.0),
                 new UserMoqType("kata", 40, -17.1)
             };
-            
             Assert.Throws<InvalidOperationException>(()=> FunnyTypeConverters.GetOutputConverter(inputUsers.GetType()));
         }
         [Test]
@@ -124,13 +123,13 @@ namespace NFun.ModuleTests.UnitTests.Converters
 
         [Test]
         public void RequrisiveType_Throws() 
-            => Assert.Throws<ArgumentException>(()=> FunnyTypeConverters.GetOutputConverter(typeof(NodeMoqOutputType)));
+            => Assert.Catch(()=> FunnyTypeConverters.GetOutputConverter(typeof(NodeMoqRecursiveOutputType)));
     }
 
-    class NodeMoqOutputType
+    class NodeMoqRecursiveOutputType
     {
         public string Name { get; set; }
-        public NodeMoqType[] Children { get; set; }
+        public NodeMoqRecursiveOutputType[] Children { get; set; }
     }
     class UserMoqOutputType   
     {
