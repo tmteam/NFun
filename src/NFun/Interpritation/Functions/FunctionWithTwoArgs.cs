@@ -14,14 +14,11 @@ namespace NFun.Interpritation.Functions
             ReturnType = returnType;
         }
 
-        internal FunctionWithTwoArgs()
-        {
-            
-        }
+        internal FunctionWithTwoArgs() { }
 
         internal void Setup(string name, VarType type)
         {
-            Name = Name;
+            Name = name;
             ArgTypes = new[] {type, type};
             ReturnType = type;
         }

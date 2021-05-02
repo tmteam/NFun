@@ -96,6 +96,6 @@ namespace NFun.Tests
         }
         
         
-        private void AssertFunParseError(FunBuilder builder) => Assert.Throws<FunParseException>(() => builder.Build());
+        private void AssertFunParseError(IFunBuilder builder) => Assert.Throws<FunParseException>(() => builder.Build());
     }
 }

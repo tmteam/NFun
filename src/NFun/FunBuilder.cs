@@ -5,16 +5,28 @@ using NFun.Types;
 
 namespace NFun
 {
+    public abstract class FunBuilderBase:IFunBuilder
+    {
+        protected string _script;
+        protected IFunctionDictionary _functionDictionary;
+        protected IConstantList _constants;
+        protected AprioriTypesMap _apriori = new();
+        
+        public IFunBuilder WithApriori(string s, VarType type)
+        {
+            _apriori.Add(s,type);
+            return this;
+        }
+
+        public abstract FunRuntime Build();
+    }
     public interface IFunBuilder
     {
+        IFunBuilder WithApriori(string s, VarType type);
         FunRuntime Build();
     }
-    public class FunBuilderWithDictionary:IFunBuilder
+    public class FunBuilderWithDictionary:FunBuilderBase
     {
-        private readonly string _script;
-        private readonly IFunctionDictionary _functionDictionary;
-        private readonly IConstantList _constants;
-
         internal FunBuilderWithDictionary(string script, IFunctionDictionary functionDictionary, IConstantList constants)
         {
             _script = script;
@@ -22,21 +34,19 @@ namespace NFun
             _constants = constants;
         }
 
-        public FunRuntime Build() => RuntimeBuilder.Build(_script, _functionDictionary, _constants??new EmptyConstantList());
+        public override FunRuntime Build() 
+            => RuntimeBuilder.Build(_script, _functionDictionary, _constants??new EmptyConstantList(), _apriori);
     }
 
-    public class FunBuilderWithConcreteFunctions : IFunBuilder
+    public class FunBuilderWithConcreteFunctions : FunBuilderBase
     {
-        private readonly string _script;
-        private readonly IConstantList _constants;
         private readonly FunctionDictionary _functionDictionary;
-        private readonly AprioriTypesMap _aprioriTypesMap; 
 
         internal FunBuilderWithConcreteFunctions(string script, IConstantList constants, AprioriTypesMap aprioriTypesMap)
         {
             _script = script;
             _constants = constants;
-            _aprioriTypesMap = aprioriTypesMap;
+            _apriori = aprioriTypesMap;
             _functionDictionary = BaseFunctions.CreateDefaultDictionary();
         }
         public FunBuilderWithConcreteFunctions WithFunctions(params IFunctionSignature[] functions)
@@ -49,43 +59,31 @@ namespace NFun
             return this;
         }
 
-        public FunRuntime Build() => RuntimeBuilder.Build(_script, _functionDictionary, _constants??new EmptyConstantList());
+        public override FunRuntime Build() => RuntimeBuilder.Build(_script, _functionDictionary, _constants??new EmptyConstantList());
     }
-    public  class FunBuilder : IFunBuilder
+    public  class FunBuilder : FunBuilderBase
     {
-        private readonly string _text;
-        
-        
         public static FunBuilder With(string text) => new FunBuilder(text);
-        private FunBuilder(string text) => _text = text;
-
-        private IConstantList _constants = null;
-        private readonly AprioriTypesMap _aprioriTypesMap = new AprioriTypesMap(); 
+        private FunBuilder(string text) => _script = text;
+        
         public FunBuilder With(IConstantList constants)
         {
             _constants = constants;
             return this;
         }
         public FunBuilderWithDictionary With(IFunctionDictionary dictionary) 
-            => new FunBuilderWithDictionary(_text, dictionary, _constants);
+            => new(_script, dictionary, _constants);
 
         public FunBuilderWithConcreteFunctions WithFunctions(params IFunctionSignature[] functions)
         {
-            var builder = new FunBuilderWithConcreteFunctions(_text, _constants, _aprioriTypesMap);
+            var builder = new FunBuilderWithConcreteFunctions(_script, _constants, _apriori);
             return builder.WithFunctions(functions);
         }
 
-        public FunRuntime Build() 
-            => RuntimeBuilder.Build(_text, BaseFunctions.DefaultDictionary, _constants??new EmptyConstantList(), _aprioriTypesMap);
+        public override FunRuntime Build() 
+            => RuntimeBuilder.Build(_script, BaseFunctions.DefaultDictionary, _constants??new EmptyConstantList(), _apriori);
 
         public static FunRuntime Build(string text) =>
             RuntimeBuilder.Build(text, BaseFunctions.DefaultDictionary, new EmptyConstantList());
-        
-
-        public FunBuilder WithApriori(string s, VarType type)
-        {
-            _aprioriTypesMap.Add(s,type);
-            return this;
-        }
     }
 }
