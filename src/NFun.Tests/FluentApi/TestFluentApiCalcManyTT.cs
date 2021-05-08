@@ -1,3 +1,4 @@
+using NFun.Exceptions;
 using NFun.FluentApi;
 using NUnit.Framework;
 
@@ -5,10 +6,11 @@ namespace NFun.Tests.FluentApi
 {
     public class TestFluentApiCalcManyTT
     {
-        [Test]
-        public void MapContracts() =>
-            CalcInDifferentWays(expr:"id = age*2; items = ids.map(toText);  Price = 42.1",
-                input:new UserInputModel("vasa", 13, ids:new []{1,2,3}), 
+        [TestCase("id = age*2; items = ids.map(toText);  Price = 42.1")]
+        [TestCase("ID = age*2; Items = iDs.map(toText);  price = 42.1")]
+        public void MapContracts(string expr) =>
+            CalcInDifferentWays(expr,
+                input:   new UserInputModel("vasa", 13, ids:new []{1,2,3}), 
                 expected:new ContractOutputModel {Id = 26, Items = new[] {"1", "2", "3"}, Price = 42.1});
 
         [Test]
@@ -25,7 +27,7 @@ namespace NFun.Tests.FluentApi
         
         [Test]
         public void OutputFieldIsConstCharArray() =>
-            CalcInDifferentWays("Chars = 'test'", new UserInputModel(), new ModelWithCharArray
+            CalcInDifferentWays("chars = 'test'", new UserInputModel(), new ModelWithCharArray
             {
                 Chars = new[]{'t','e','s','t'}
             });
@@ -79,6 +81,11 @@ namespace NFun.Tests.FluentApi
             Assert.AreEqual(new ContractOutputModel().Price, result.Price);
             CollectionAssert.AreEqual(new ContractOutputModel().Items, result.Items);
         }
+        [TestCase("Id = age*Age; ")]
+        [TestCase("Id = 321; Price = ID;")]
+        public void UseDifferentInputCase_throws(string expression) =>
+            Assert.Throws<FunParseException>(
+                () => Funny.CalcMany<UserInputModel,ContractOutputModel>(expression, new UserInputModel()));
         
         private void CalcInDifferentWays<TInput,TOutput>(string expr, TInput input, TOutput expected) 
             where TOutput : new()

@@ -12,11 +12,12 @@ namespace NFun.Tests.FluentApi
             Assert.AreEqual(true, result);
         }
 
-        [Test]
-        public void IoComplexTypeTransforms()
+        [TestCase("@{id = 13; items = [1,2,3,4].map{'{it}'}; price = 21*2}")]
+        [TestCase("@{Id = 13; Items = [1,2,3,4].map{'{it}'}; Price = 21*2}")]
+
+        public void IoComplexTypeTransforms(string expr)
         {
-            var result = Funny.Calc<ContractOutputModel>(
-                "@{id = 13; items = [1,2,3,4].map{'{it}'}; price = 21*2}");
+            var result = Funny.Calc<ContractOutputModel>(expr);
             var expected = new ContractOutputModel
             {
                 Id = 13,

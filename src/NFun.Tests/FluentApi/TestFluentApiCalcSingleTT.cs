@@ -1,3 +1,4 @@
+using NFun.Exceptions;
 using NFun.FluentApi;
 using NUnit.Framework;
 
@@ -5,6 +6,7 @@ namespace NFun.Tests.FluentApi
 {
     public class TestFluentApiCalcSingleTT
     {
+        [TestCase("(Age == 13) and (NAME == 'vasa')",true)]
         [TestCase("(age == 13) and (name == 'vasa')",true)]
         [TestCase("(age != 13) or (name != 'vasa')",false)]
         [TestCase("'{name}{age}'.reverse()=='31asav'",true)]
@@ -29,6 +31,7 @@ namespace NFun.Tests.FluentApi
         public void ReturnsInt(string expr, int expected) 
             => CalcInDifferentWays(expr,new UserInputModel("vasa", 13, size: 21, iq: 12, 1, 2, 3, 4),expected);
 
+        [TestCase("IDS.filter{it>aGe}.map{it*it}",new[] {10201,10404})]
         [TestCase("ids.filter{it>age}.map{it*it}",new[] {10201,10404})]
         [TestCase("ids.filter{it>2}",new[]{101,102})]
         [TestCase("out:int[]=ids.filter{it>age}.map{it*it}",new[]{10201,10404})]
@@ -41,10 +44,13 @@ namespace NFun.Tests.FluentApi
             {
                 Letters = new[]{'t','e','s','t'}
             }, new []{"tset"});
-        
+
+        [TestCase("IDS.reverse().join(',')","4,3,2,1")]
+        [TestCase("Ids.reverse().join(',')","4,3,2,1")]
         [TestCase("ids.reverse().join(',')","4,3,2,1")]
         [TestCase("'Hello world'","Hello world")]
         [TestCase("'{name}{age}'.reverse()","31asav")]
+        [TestCase("'{Name}{Age}'.reverse()","31asav")]
         [TestCase("name.reverse()","asav")]
 
         public void ReturnsText(string expr, string expected) 
@@ -100,6 +106,11 @@ namespace NFun.Tests.FluentApi
         [TestCase("y = age")]
         public void NoOutputSpecified_throws(string expr) 
             => Assert.Throws<FunInvalidUsageTODOException>(() => Funny.Calc<UserInputModel,int>(expr,new UserInputModel(age:42)));
+        
+        [TestCase("age*AGE")]
+        public void UseDifferentInputCase_throws(string expression) =>
+            Assert.Throws<FunParseException>(() => Funny.Calc<UserInputModel,int>(expression, new UserInputModel(age: 22)));
+        
         [Test]
         public void OutputTypeContainsNoEmptyConstructor_throws() =>
             Assert.Throws<FunInvalidUsageTODOException>(() => Funny.Calc<UserInputModel, ModelWithoutEmptyConstructor>(

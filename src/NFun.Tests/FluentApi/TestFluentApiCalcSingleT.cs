@@ -1,3 +1,4 @@
+using NFun.Exceptions;
 using NFun.FluentApi;
 using NUnit.Framework;
 
@@ -5,9 +6,14 @@ namespace NFun.Tests.FluentApi
 {
     public class TestFluentApiCalcSingleT
     {
+        [TestCase("age",13)]
+        [TestCase("Age",13)]
+        [TestCase("(Age == 13) and (Name == 'vasa')",true)]
+        [TestCase("(AGE == 13) and (NAME == 'vasa')",true)]
         [TestCase("(age == 13) and (name == 'vasa')",true)]
         [TestCase("(age != 13) or (name != 'vasa')",false)]
         [TestCase("name.reverse()","asav")]
+        [TestCase("'{name}{Age}'.reverse()","31asav")]
         [TestCase("'{name}{age}'.reverse()","31asav")]
         [TestCase("'{name}{age}'.reverse()=='31asav'",true)]
         [TestCase("'mama'=='{name}{age}'.reverse()",false)]
@@ -64,7 +70,10 @@ namespace NFun.Tests.FluentApi
         public void UseUnknownInput_throws(string expression) =>
             Assert.Throws<FunInvalidUsageTODOException>(() =>
                 Funny.Calc(expression, new UserInputModel(age: 22)));
-        
+
+        [TestCase("age>AGE")]
+        public void UseDifferentInputCase_throws(string expression) =>
+            Assert.Throws<FunParseException>(() => Funny.Calc(expression, new UserInputModel(age: 22)));
         private static void CalcInDifferentWays<TInput>(string expr, object expected, TInput input)
         {
             //CALC

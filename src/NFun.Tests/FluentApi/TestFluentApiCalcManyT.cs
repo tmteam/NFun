@@ -1,3 +1,4 @@
+using NFun.Exceptions;
 using NFun.FluentApi;
 using NUnit.Framework;
 
@@ -16,8 +17,7 @@ namespace NFun.Tests.FluentApi
 
         [Test]
         public void OutputFieldIsConstCharArray() =>
-            Assert.IsTrue(TestTools.AreSame(new ModelWithCharArray
-            {
+            Assert.IsTrue(TestTools.AreSame(new ModelWithCharArray {
                 Chars = new[] {'t', 'e', 's', 't'}
             }, Funny.CalcMany<ModelWithCharArray>("Chars = 'test'")));
         
@@ -33,6 +33,10 @@ namespace NFun.Tests.FluentApi
         [Test]
         public void UnknownInputIdUsed_throws() 
             => Assert.Throws<FunInvalidUsageTODOException>(()=> Funny.CalcMany<ContractOutputModel>("id = someInput"));
+        
+        [TestCase("id = 42; price = ID")]
+        public void UseDifferentInputCase_throws(string expression) =>
+            Assert.Throws<FunParseException>(() => Funny.CalcMany<ContractOutputModel>(expression));
         
         [Test]
         public void SomeFieldInitialized_DefaultValuesInUninitalizedFields() {
