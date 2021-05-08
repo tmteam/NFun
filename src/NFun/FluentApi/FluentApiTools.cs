@@ -84,32 +84,7 @@ namespace NFun.FluentApi
             
             return (TOutput) outputConverter.ToClrObject(outResult.Value);
         }
-
-        public  static Span<VarVal> SetupInputs<TInput>(TInput input, IFunBuilder builder)
-        {
-            var inputProperties = typeof(TInput).GetProperties(BindingFlags.Instance | BindingFlags.Public);
-            var inputVarVals = new VarVal[inputProperties.Length];
-            int actualInputsCount = 0;
-            for (var i = 0; i < inputProperties.Length; i++)
-            {
-                var inputProperty = inputProperties[i];
-                if (!inputProperty.CanRead)
-                    continue;
-                var converter = FunnyTypeConverters.GetInputConverter(inputProperty.PropertyType);
-                var inputName = inputProperty.Name.ToLower();
-                builder.WithApriori(inputName, converter.FunnyType);
-                inputVarVals[i] = new VarVal(
-                    inputName,
-                    converter.ToFunObject(inputProperty.GetValue(input)),
-                    converter.FunnyType
-                );
-                actualInputsCount++;
-            }
-
-            var inputVals = inputVarVals.AsSpan(0, actualInputsCount);
-            return inputVals;
-        }
-
+        
         public static VarVal[] GetInputValues<TInput>(Memory<(string, IinputFunnyConverter, PropertyInfo)> inputMap, TInput value)
         {
             var span = inputMap.Span;

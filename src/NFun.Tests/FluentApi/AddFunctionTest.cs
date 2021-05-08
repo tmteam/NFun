@@ -6,13 +6,7 @@ namespace NFun.Tests.FluentApi
 {
     public class AddFunctionTest
     {
-        class ModelWithInt{ public int id { get; set; }}
-
-        class ComplexModel
-        {
-            public ModelWithInt a { get; set; }
-            public ModelWithInt b { get; set; }
-        } 
+     
         [Test]
         public void Smoke()
         {
@@ -38,9 +32,9 @@ namespace NFun.Tests.FluentApi
                 .WithFunction("csumm", (ComplexModel m) => m.a.id+ m.b.id)
                 .CreateContextFor<ModelWithInt, int>();
             
-            Func<ModelWithInt, int> lambda = context.Build(
+            var lambda = context.Build(
                 @"csumm(
-                            @the{
+                            @{
                                 a= @{id= 10}
                                 b= @{id= 20}
                             })");
@@ -49,5 +43,8 @@ namespace NFun.Tests.FluentApi
             
             Assert.AreEqual(result,30);
         }
+        
+        
+        
     }
 }

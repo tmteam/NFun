@@ -143,6 +143,8 @@ namespace NFun.Types
                 case BaseVarType.Any:    return new PrimitiveTypeOutputFunnyConverter(funnyType, typeof(object));
                 case BaseVarType.ArrayOf:
                 {
+                    if (funnyType.IsText)
+                        return new StringOutputFunnyConverter();
                     var elementConverter = GetOutputConverter(funnyType.ArrayTypeSpecification.VarType);
                     var arrayType =elementConverter.ClrType.MakeArrayType();
                     return new ClrArrayOutputFunnyConverter(arrayType, elementConverter);

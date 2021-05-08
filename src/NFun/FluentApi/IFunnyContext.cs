@@ -19,10 +19,12 @@ namespace NFun.FluentApi
         public Func<TInput, object> Build(string expression)
         {
             var builder = _builder.CreateRuntimeBuilder(expression);
+            var inputsMap = FluentApiTools.SetupAprioriInputs<TInput>(builder);
+            var runtime = builder.Build();
+            
             return (input) =>
             {
-                var inputVals = FluentApiTools.SetupInputs(input, builder);
-                var runtime = builder.Build();
+                var inputVals =FluentApiTools.GetInputValues(inputsMap, input);
                 var varsAsArray = inputVals.ToArray();
                 if (runtime.Inputs.Any(i => varsAsArray.All(v => !v.Name.Equals(i.Name.ToLower()))))
                     throw new FunInvalidUsageTODOException();

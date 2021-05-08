@@ -6,23 +6,22 @@ namespace NFun.Tests.FluentApi
     public class TestFluentApiCalcManyTT
     {
         [Test]
-        public void MapContracts()
-        {
-            var result = Funny.CalcMany<UserInputModel, ContractOutputModel>(
-                expression: "id = age*2; items = ids.map(toText);  Price = 42.1", 
-                input: new UserInputModel("vasa", 13, ids:new []{1,2,3}));
-            TestTools.AreSame(new ContractOutputModel {Id = 26, Items = new[] {"1", "2", "3"}, Price = 42.1}, result);
-        }
+        public void MapContracts() =>
+            CalcInManyWays(expr:"id = age*2; items = ids.map(toText);  Price = 42.1",
+                input:new UserInputModel("vasa", 13, ids:new []{1,2,3}), 
+                expected:new ContractOutputModel {Id = 26, Items = new[] {"1", "2", "3"}, Price = 42.1});
 
         [Test]
-        public void FullConstInitialization()
-        {
-            var result = Funny.CalcMany<UserInputModel,ContractOutputModel>(
-                "id = 42; items = ['vasa','kate']; price = 42.1", new UserInputModel());
-            Assert.AreEqual(42, result.Id);
-            Assert.AreEqual(42.1, result.Price);
-            CollectionAssert.AreEqual(new[]{"vasa","kate"}, result.Items);
-        }
+        public void FullConstInitialization() =>
+            CalcInManyWays("id = 42; items = ['vasa','kate']; price = 42.1", new UserInputModel(),
+                new ContractOutputModel
+                {
+                    Id = 42,
+                    Price = 42.1,
+                    Items = new[] {"vasa", "kate"}
+                }
+            );
+
         [Test]
         public void NofieldsInitialized_throws() 
             => Assert.Throws<FunInvalidUsageTODOException>(()=>  
@@ -46,6 +45,28 @@ namespace NFun.Tests.FluentApi
             Assert.AreEqual(321, result.Id);
             Assert.AreEqual(new ContractOutputModel().Price, result.Price);
             CollectionAssert.AreEqual(new ContractOutputModel().Items, result.Items);
+        }
+        
+        private void CalcInManyWays(string expr, UserInputModel input, ContractOutputModel expected)
+        {
+            var result1 = Funny.CalcMany<UserInputModel, ContractOutputModel>(expr, input);
+            var context = Funny.ForCalcMany<UserInputModel, ContractOutputModel>();
+            var result2 = context.Calc(expr, input);
+            var result3 = context.Calc(expr, input);
+            var lambda1 = context.Build(expr);
+            var result4 = lambda1(input);
+            var result5 = lambda1(input);
+            var lambda2 = context.Build(expr);
+            var result6 = lambda2(input);
+            var result7 = lambda2(input);
+            
+            Assert.IsTrue(TestTools.AreSame(expected, result1));
+            Assert.IsTrue(TestTools.AreSame(expected, result2));
+            Assert.IsTrue(TestTools.AreSame(expected, result3));
+            Assert.IsTrue(TestTools.AreSame(expected, result4));
+            Assert.IsTrue(TestTools.AreSame(expected, result5));
+            Assert.IsTrue(TestTools.AreSame(expected, result6));
+            Assert.IsTrue(TestTools.AreSame(expected, result7));
         }
     }
 }

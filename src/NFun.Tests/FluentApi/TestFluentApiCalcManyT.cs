@@ -5,13 +5,6 @@ namespace NFun.Tests.FluentApi
 {
     public class TestFluentApiCalcManyT
     {
-        /*
-         *ContractOutputModel
-                - public int Id { get; set; }
-                - public string[] Items { get; set; }
-                - public double Price { get; set; }
-         * 
-         */
         [Test]
         public void FullInitialization()
         {

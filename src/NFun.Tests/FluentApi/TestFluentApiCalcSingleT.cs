@@ -5,62 +5,45 @@ namespace NFun.Tests.FluentApi
 {
     public class TestFluentApiCalcSingleT
     {
-        [Test]
-        public void Smoke()
-        {
-            var input = new UserInputModel("vasa", 13);
-            var result = Funny.Calc("(age == 13) and (name == 'vasa')", input);
-            Assert.AreEqual(true, result);
-        }
+        [TestCase("(age == 13) and (name == 'vasa')",true)]
+        [TestCase("(age != 13) or (name != 'vasa')",false)]
+        [TestCase("name.reverse()","asav")]
+        [TestCase("'{name}{age}'.reverse()","31asav")]
+        [TestCase("'{name}{age}'.reverse()=='31asav'",true)]
+        [TestCase("'mama'=='{name}{age}'.reverse()",false)]
+        [TestCase("'hello world'","hello world")]
+        [TestCase("1",1.0)]
+        [TestCase("ids.count{it>2}",2)]
+        [TestCase("ids.filter{it>2}",new[]{101,102})]
+        [TestCase("out:int[]=ids.filter{it>age}.map{it*it}",new[]{10201,10404})]
+        [TestCase("ids.reverse().join(',')","102,101,2,1")]
+        [TestCase("['Hello','world']",new[]{"Hello","world"})]
+        [TestCase("ids.map{it.toText()}",new[]{"1","2","101","102"})]
+        public void GeneralUserInputModelTest(string expr, object expected){
+            var input = new UserInputModel(
+                name:"vasa",
+                age: 13,
+                size: 13.5,  
+                iq: 50,
+                ids: new[]{1,2,101,102});
+            //CALC
+            var result = Funny.Calc(expr, input);
+            Assert.AreEqual(expected, result);
+            //Context+calc
+            var context = Funny.ForCalc<UserInputModel>();
+            var result2 = context.Calc(expr, input);
+            Assert.AreEqual(expected, result2);
+            var result3 = context.Calc(expr, input);
+            Assert.AreEqual(expected, result3);
+            //lambda
+            var lambda = context.Build(expr);
+            var result4 = lambda(input);
+            Assert.AreEqual(expected, result4);
+            var result5 = lambda(input);
+            Assert.AreEqual(expected, result5);
 
-        [Test]
-        public void ArrayTransforms()
-        {
-            var result = Funny.Calc(
-                "ids.count{it>2}", new UserInputModel("vasa", 13, size: 21, iq: 12, 1, 2, 3, 4));
-            Assert.AreEqual(2, result);
         }
-
-        [Test]
-        public void ReturnsIntArray()
-        {
-            var result = Funny.Calc(
-                "ids.filter{it>age}.map{it**2}", new UserInputModel("vasa", 1, size: 21, iq: 1, 1, 2, 3, 4));
-            Assert.AreEqual(new[] {4, 9, 16}, result);
-        }
-
-        [Test]
-        public void ReturnsText()
-        {
-            var result = Funny.Calc(
-                "ids.reverse().join(',')", new UserInputModel("vasa", 13, size: 21, iq: 1, 1, 2, 3, 4));
-            Assert.AreEqual("4,3,2,1", result);
-        }
-
-        [Test]
-        public void ReturnsConstantText()
-        {
-            var result = Funny.Calc(
-                "'Hello world'", new UserInputModel("vasa", 13, size: 21, iq: 1, 1, 2, 3, 4));
-            Assert.AreEqual("Hello world", result);
-        }
-
-        [Test]
-        public void ReturnsConstantArrayOfTexts()
-        {
-            var result = Funny.Calc(
-                "['Hello','world']", new UserInputModel("vasa", 13, size: 21, iq: 1, 1, 2, 3, 4));
-            Assert.AreEqual(new[] {"Hello", "world"}, result);
-        }
-
-        [Test]
-        public void ReturnsArrayOfTexts()
-        {
-            var result = Funny.Calc(
-                "ids.map{it.toText()} ", new UserInputModel("vasa", 13, size: 21, iq: 1, 1, 2, 3, 4));
-            Assert.AreEqual(new[] {"1", "2", "3", "4"}, result);
-        }
-
+        
         [Test]
         public void ReturnsComplexIntArrayConstant()
         {
@@ -73,6 +56,7 @@ namespace NFun.Tests.FluentApi
                 new[] {new int[0]}
             }, result);
         }
+        
         [TestCase("")]
         [TestCase("x:int;")]
         [TestCase("x:int = 2")]
