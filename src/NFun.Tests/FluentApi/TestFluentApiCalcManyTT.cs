@@ -7,13 +7,13 @@ namespace NFun.Tests.FluentApi
     {
         [Test]
         public void MapContracts() =>
-            CalcInManyWays(expr:"id = age*2; items = ids.map(toText);  Price = 42.1",
+            CalcInDifferentWays(expr:"id = age*2; items = ids.map(toText);  Price = 42.1",
                 input:new UserInputModel("vasa", 13, ids:new []{1,2,3}), 
                 expected:new ContractOutputModel {Id = 26, Items = new[] {"1", "2", "3"}, Price = 42.1});
 
         [Test]
         public void FullConstInitialization() =>
-            CalcInManyWays("id = 42; items = ['vasa','kate']; price = 42.1", new UserInputModel(),
+            CalcInDifferentWays("id = 42; items = ['vasa','kate']; price = 42.1", new UserInputModel(),
                 new ContractOutputModel
                 {
                     Id = 42,
@@ -22,16 +22,49 @@ namespace NFun.Tests.FluentApi
                 }
             );
 
+        
+        [Test]
+        public void OutputFieldIsConstCharArray() =>
+            CalcInDifferentWays("Chars = 'test'", new UserInputModel(), new ModelWithCharArray
+            {
+                Chars = new[]{'t','e','s','t'}
+            });
+        
+        
+        [Test]
+        public void InputAndOutputFieldsAreCharArrays() =>
+            CalcInDifferentWays("Chars = letters.reverse()", new ModelWithCharArray2
+            {
+                Letters = new[]{'t','e','s','t'}
+            }, new ModelWithCharArray
+            {
+                Chars = new[]{'t','s','e','t'}
+            });
+        
+        [Test]
+        public void InputFieldIsCharArray() =>
+            CalcInDifferentWays("items = [letters.reverse()]", new ModelWithCharArray2
+            {
+                Letters = new[]{'t','e','s','t'}
+            }, new ContractOutputModel
+            {
+                Items = new[]{"tset"}
+            });
+        
         [Test]
         public void NofieldsInitialized_throws() 
             => Assert.Throws<FunInvalidUsageTODOException>(()=>  
-                Funny.CalcMany<UserInputModel,ContractOutputModel>("someField1 = age; somefield2 = 2", new UserInputModel()));
+                Funny.CalcMany<UserInputModel,ContractOutputModel>(
+                    expression: "someField1 = age; somefield2 = 2", 
+                    input: new UserInputModel()));
+        
         [TestCase("13.1")]
         [TestCase("age")]
         [TestCase("ids")]
         public void AnonymousEquation_throws(string expr) 
             => Assert.Throws<FunInvalidUsageTODOException>(
                 ()=> Funny.CalcMany<UserInputModel,ContractOutputModel>(expr, new UserInputModel()));
+        
         [Test]
         public void UnknownInputIdUsed_throws() 
             => Assert.Throws<FunInvalidUsageTODOException>(
@@ -47,10 +80,11 @@ namespace NFun.Tests.FluentApi
             CollectionAssert.AreEqual(new ContractOutputModel().Items, result.Items);
         }
         
-        private void CalcInManyWays(string expr, UserInputModel input, ContractOutputModel expected)
+        private void CalcInDifferentWays<TInput,TOutput>(string expr, TInput input, TOutput expected) 
+            where TOutput : new()
         {
-            var result1 = Funny.CalcMany<UserInputModel, ContractOutputModel>(expr, input);
-            var context = Funny.ForCalcMany<UserInputModel, ContractOutputModel>();
+            var result1 = Funny.CalcMany<TInput, TOutput>(expr, input);
+            var context = Funny.ForCalcMany<TInput, TOutput>();
             var result2 = context.Calc(expr, input);
             var result3 = context.Calc(expr, input);
             var lambda1 = context.Build(expr);

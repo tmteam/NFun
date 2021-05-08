@@ -5,54 +5,15 @@ namespace NFun.Tests.FluentApi
 {
     public class TestFluentApiCalcSingleObjectConst
     {
-        [Test]
-        public void Smoke()
-        {
-            var result = Funny.Calc("(13 == 13) and ('vasa' == 'vasa')");
-            Assert.AreEqual(true, result);
-        }
-        
-        [Test]
-        public void ArrayTransforms()
-        {
-            var result = Funny.Calc("[1,2,3,4].count{it>2}");
-            Assert.AreEqual(2, result);
-        }
-
-        [Test]
-        public void ReturnsIntArray()
-        {
-            var result = Funny.Calc("[1..4].filter{it>2}.map{it**2}");
-            Assert.AreEqual(new[] {9.0, 16.0}, result);
-        }
-
-        [Test]
-        public void ReturnsText()
-        {
-            var result = Funny.Calc("[1..4].reverse().join(',')");
-            Assert.AreEqual("4,3,2,1", result);
-        }
-
-        [Test]
-        public void ReturnsConstantText()
-        {
-            var result = Funny.Calc("'Hello world'");
-            Assert.AreEqual("Hello world", result);
-        }
-
-        [Test]
-        public void ReturnsConstantArrayOfTexts()
-        {
-            var result = Funny.Calc("['Hello','world']");
-            Assert.AreEqual(new[] {"Hello", "world"}, result);
-        }
-
-        [Test]
-        public void ReturnsArrayOfTexts()
-        {
-            var result = Funny.Calc("[1..4].map{it.toText()}");
-            Assert.AreEqual(new[] {"1", "2", "3", "4"}, result);
-        }
+        [TestCase("(13 == 13) and ('vasa' == 'vasa')",true)]
+        [TestCase("[1,2,3,4].count{it>2}",2)]
+        [TestCase("[1..4].filter{it>2}.map{it**2}",new[] {9.0, 16.0})]
+        [TestCase("[1..4].reverse().join(',')","4,3,2,1")]
+        [TestCase("'Hello world'","Hello world")]
+        [TestCase("['Hello','world']",new[] {"Hello", "world"})]
+        [TestCase("[1..4].map{it.toText()}",new[] {"1", "2", "3", "4"})]
+        public void GeneralCalcTest(string expr, object expected) => 
+            Assert.AreEqual(expected, Funny.Calc(expr));
 
         [Test]
         public void ReturnsComplexIntArrayConstant()

@@ -34,7 +34,14 @@ namespace NFun.Tests.FluentApi
         [TestCase("out:int[]=ids.filter{it>age}.map{it*it}",new[]{10201,10404})]
         public void ReturnsIntArray(string expr, int[] expected) 
             => CalcInDifferentWays(expr,new UserInputModel("vasa", 2, size: 21, iq: 1, 1, 2, 101, 102),expected);
-
+        
+        [Test]
+        public void InputFieldIsCharArray() =>
+            CalcInDifferentWays("[letters.reverse()]", new ModelWithCharArray2
+            {
+                Letters = new[]{'t','e','s','t'}
+            }, new []{"tset"});
+        
         [TestCase("ids.reverse().join(',')","4,3,2,1")]
         [TestCase("'Hello world'","Hello world")]
         [TestCase("'{name}{age}'.reverse()","31asav")]
@@ -51,10 +58,10 @@ namespace NFun.Tests.FluentApi
                 input:    new UserInputModel("vasa", 13, size: 21, iq: 1, 1, 2, 101, 102),
                 expected: expected);
 
-        private static void CalcInDifferentWays<TOuttput>(string expr, UserInputModel input,TOuttput expected)
+        private static void CalcInDifferentWays<TInput,TOutput>(string expr, TInput input,TOutput expected)
         {
-            var result1 = Funny.Calc<UserInputModel, TOuttput>(expr, input);
-            var context = Funny.ForCalc<UserInputModel, TOuttput>();
+            var result1 = Funny.Calc<TInput, TOutput>(expr, input);
+            var context = Funny.ForCalc<TInput, TOutput>();
             var result2 = context.Calc(expr, input);
             var result3 = context.Calc(expr, input);
             var lambda1 = context.Build(expr);

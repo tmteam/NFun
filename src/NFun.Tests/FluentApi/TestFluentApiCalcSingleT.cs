@@ -19,30 +19,19 @@ namespace NFun.Tests.FluentApi
         [TestCase("ids.reverse().join(',')","102,101,2,1")]
         [TestCase("['Hello','world']",new[]{"Hello","world"})]
         [TestCase("ids.map{it.toText()}",new[]{"1","2","101","102"})]
-        public void GeneralUserInputModelTest(string expr, object expected){
-            var input = new UserInputModel(
+        public void GeneralUserInputModelTest(string expr, object expected) =>
+            CalcInDifferentWays(expr, expected, new UserInputModel(
                 name:"vasa",
                 age: 13,
                 size: 13.5,  
                 iq: 50,
-                ids: new[]{1,2,101,102});
-            //CALC
-            var result = Funny.Calc(expr, input);
-            Assert.AreEqual(expected, result);
-            //Context+calc
-            var context = Funny.ForCalc<UserInputModel>();
-            var result2 = context.Calc(expr, input);
-            Assert.AreEqual(expected, result2);
-            var result3 = context.Calc(expr, input);
-            Assert.AreEqual(expected, result3);
-            //lambda
-            var lambda = context.Build(expr);
-            var result4 = lambda(input);
-            Assert.AreEqual(expected, result4);
-            var result5 = lambda(input);
-            Assert.AreEqual(expected, result5);
+                ids: new[]{1,2,101,102}));
 
-        }
+
+        [Test]
+        public void InputFieldIsCharArray() =>
+            CalcInDifferentWays("[letters.reverse()]", new[]{"test"}
+            , new ModelWithCharArray2{Letters =  new []{'t','s','e','t'}});
         
         [Test]
         public void ReturnsComplexIntArrayConstant()
@@ -75,5 +64,32 @@ namespace NFun.Tests.FluentApi
         public void UseUnknownInput_throws(string expression) =>
             Assert.Throws<FunInvalidUsageTODOException>(() =>
                 Funny.Calc(expression, new UserInputModel(age: 22)));
+        
+        private static void CalcInDifferentWays<TInput>(string expr, object expected, TInput input)
+        {
+            //CALC
+            var result1 = Funny.Calc(expr, input);
+            //Context+calc
+            var context = Funny.ForCalc<TInput>();
+            var result2 = context.Calc(expr, input);
+            var result3 = context.Calc(expr, input);
+
+            //lambda
+            var lambda1 = context.Build(expr);
+            var result4 = lambda1(input);
+            var result5 = lambda1(input);
+
+            var lambda2 = context.Build(expr);
+            var result6 = lambda1(input);
+            var result7 = lambda1(input);
+            
+            Assert.AreEqual(expected, result1);
+            Assert.AreEqual(expected, result2);
+            Assert.AreEqual(expected, result3);
+            Assert.AreEqual(expected, result4);
+            Assert.AreEqual(expected, result5);
+            Assert.AreEqual(expected, result6);
+            Assert.AreEqual(expected, result7);
+        }
     }
 }

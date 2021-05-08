@@ -67,6 +67,10 @@ namespace NFun.Tests.FluentApi
             var result = Funny.Calc<string[]>("[1..4].map{it.toText()}");
             Assert.AreEqual(new[] {"1", "2", "3", "4"}, result);
         }
+        
+        [Test]
+        public void ReturnsArrayOfChars() 
+            => Assert.AreEqual(new[] {'T','e','s','t'}, Funny.Calc<char[]>("'Test'"));
 
         [Test]
         public void ReturnsComplexIntArrayConstant()

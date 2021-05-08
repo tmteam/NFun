@@ -13,6 +13,14 @@ namespace NFun.Tests.FluentApi
             Assert.AreEqual(42.1, result.Price);
             CollectionAssert.AreEqual(new[]{"vasa","kate"}, result.Items);
         }
+
+        [Test]
+        public void OutputFieldIsConstCharArray() =>
+            Assert.IsTrue(TestTools.AreSame(new ModelWithCharArray
+            {
+                Chars = new[] {'t', 'e', 's', 't'}
+            }, Funny.CalcMany<ModelWithCharArray>("Chars = 'test'")));
+        
         
         [Test]
         public void NofieldsInitialized_throws() 

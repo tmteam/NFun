@@ -1,5 +1,28 @@
 namespace NFun.Tests.FluentApi
 {
+    public class ModelWithCharArray
+    {
+        public char[] Chars { get; set; }
+    }
+    public class ModelWithCharArray2
+    {
+        public char[] Letters { get; set; }
+    }
+    public class ModelWithoutEmptyConstructor
+    {
+        public ModelWithoutEmptyConstructor( string name)
+        {
+            Name = name;
+         
+        }
+        public string Name { get; }
+    }
+    class ContractOutputModel
+    {
+        public int Id { get; set; } = 123;
+        public string[] Items { get; set; } = {"default"};
+        public double Price { get; set; } = 12.3;
+    }
     class ModelWithInt{ public int id { get; set; }}
 
     class ComplexModel
