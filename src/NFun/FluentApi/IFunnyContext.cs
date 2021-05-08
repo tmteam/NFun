@@ -98,15 +98,7 @@ namespace NFun.FluentApi
             };
         }
     }
-    
-    public interface IConstantFunnyContext {
-        object Calc(string expression);
-    }
-    
-    public interface IConstantFunnyContext<TOutput> {
-        TOutput Calc(string expression);
-    }
-    
+
     public interface IFunnyContext<TInput> {
         object Calc(string expression, TInput input);
         Func<TInput, object> Build(string expression);

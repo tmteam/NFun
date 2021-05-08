@@ -10,12 +10,12 @@ namespace NFun.Tic
 {
     public class GraphBuilder
     {
-        private readonly Dictionary<string, TicNode> _variables = new Dictionary<string, TicNode>();
+        private readonly Dictionary<string, TicNode> _variables = new(StringComparer.OrdinalIgnoreCase);
         private readonly List<TicNode> _syntaxNodes;
-        private readonly List<TicNode> _typeVariables = new List<TicNode>();
+        private readonly List<TicNode> _typeVariables = new();
         private int _varNodeId = 0;
-        private readonly List<TicNode> _outputNodes = new List<TicNode>();
-        private readonly List<TicNode> _inputNodes = new List<TicNode>();
+        private readonly List<TicNode> _outputNodes = new();
+        private readonly List<TicNode> _inputNodes = new();
 
         public StateRefTo InitializeVarNode(ITypeState desc = null, StatePrimitive anc = null, bool isComparable = false) 
             => new StateRefTo(CreateVarType(new ConstrainsState(desc, anc){IsComparable =  isComparable}));

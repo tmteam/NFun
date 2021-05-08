@@ -13,8 +13,7 @@ namespace NFun.Tests.FluentApi
         }
 
         [TestCase("@{id = 13; items = [1,2,3,4].map{'{it}'}; price = 21*2}")]
-        [TestCase("@{Id = 13; Items = [1,2,3,4].map{'{it}'}; Price = 21*2}")]
-
+        //[TestCase("@{Id = 13; Items = [1,2,3,4].map{'{it}'}; Price = 21*2}")]
         public void IoComplexTypeTransforms(string expr)
         {
             var result = Funny.Calc<ContractOutputModel>(expr);

@@ -57,18 +57,9 @@ namespace NFun.Runtime
             return true;
         }
             
-        public VariableSource GetSourceOrNull(string id)
-        {
-            if (!_variables.TryGetValue(id, out var v)) 
-                return null;
-            
-            //Check strings case
-            if (v.Source.Name != id)
-                return null;
-            
-            return v.Source;
-        }
-        
+        public VariableSource GetSourceOrNull(string id) => 
+            _variables.TryGetValue(id, out var v) ? v.Source:null;
+
         public VariableExpressionNode CreateVarNode(string id, Interval interval, VarType type)
         {
             if (!_variables.TryGetValue(id, out  var usage))
