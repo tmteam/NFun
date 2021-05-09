@@ -23,7 +23,37 @@ namespace NFun
             _concreteFunctions.Add(LambdaWrapperFactory.Create(name, function));
             return this;
         }
-
+        
+        public FunnyContextBuilder WithFunction<Tin1,Tin2,TOut>(string name, Func<Tin1,Tin2,TOut> function)
+        {
+            _concreteFunctions.Add(LambdaWrapperFactory.Create(name, function));
+            return this;
+        }
+        public FunnyContextBuilder WithFunction<Tin1,Tin2,Tin3,TOut>(string name, Func<Tin1,Tin2,Tin3,TOut> function)
+        {
+            _concreteFunctions.Add(LambdaWrapperFactory.Create(name, function));
+            return this;
+        }
+        public FunnyContextBuilder WithFunction<Tin1,Tin2,Tin3,Tin4,TOut>(string name, Func<Tin1,Tin2,Tin3,Tin4,TOut> function)
+        {
+            _concreteFunctions.Add(LambdaWrapperFactory.Create(name, function));
+            return this;
+        }
+        public FunnyContextBuilder WithFunction<Tin1,Tin2,Tin3,Tin4,Tin5,TOut>(string name, Func<Tin1,Tin2,Tin3,Tin4,Tin5,TOut> function)
+        {
+            _concreteFunctions.Add(LambdaWrapperFactory.Create(name, function));
+            return this;
+        }
+        public FunnyContextBuilder WithFunction<Tin1,Tin2,Tin3,Tin4,Tin5,Tin6,TOut>(string name, Func<Tin1,Tin2,Tin3,Tin4,Tin5,Tin6,TOut> function)
+        {
+            _concreteFunctions.Add(LambdaWrapperFactory.Create(name, function));
+            return this;
+        }
+        public FunnyContextBuilder WithFunction<Tin1,Tin2,Tin3,Tin4,Tin5,Tin6,Tin7,TOut>(string name, Func<Tin1,Tin2,Tin3,Tin4,Tin5,Tin6,Tin7,TOut> function)
+        {
+            _concreteFunctions.Add(LambdaWrapperFactory.Create(name, function));
+            return this;
+        }
         internal IFunBuilder CreateRuntimeBuilder(string expression)
         {
             IFunBuilder builder = FunBuilder.With(expression);

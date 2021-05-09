@@ -68,6 +68,18 @@ namespace NFun
              => new FunnyContextBuilder().WithConstant(id, value);
          public static FunnyContextBuilder WithFunction<Tin, TOut>(string id, Func<Tin, TOut> function)
              => new FunnyContextBuilder().WithFunction(id,function);
+         public static FunnyContextBuilder WithFunction<Tin1,Tin2,TOut>(string id, Func<Tin1,Tin2,TOut> function)
+             => new FunnyContextBuilder().WithFunction(id,function);
+         public static FunnyContextBuilder WithFunction<Tin1,Tin2,Tin3,TOut>(string id, Func<Tin1,Tin2,Tin3,TOut> function)
+             => new FunnyContextBuilder().WithFunction(id,function);
+         public static FunnyContextBuilder WithFunction<Tin1,Tin2,Tin3,Tin4,TOut>(string id, Func<Tin1,Tin2,Tin3,Tin4,TOut> function)
+             => new FunnyContextBuilder().WithFunction(id,function);
+         public static FunnyContextBuilder WithFunction<Tin1,Tin2,Tin3,Tin4,Tin5,TOut>(string id, Func<Tin1,Tin2,Tin3,Tin4,Tin5,TOut> function)
+             => new FunnyContextBuilder().WithFunction(id,function);
+         public static FunnyContextBuilder WithFunction<Tin1,Tin2,Tin3,Tin4,Tin5,Tin6,TOut>(string id, Func<Tin1,Tin2,Tin3,Tin4,Tin5,Tin6,TOut> function)
+             => new FunnyContextBuilder().WithFunction(id,function);
+         public static FunnyContextBuilder WithFunction<Tin1,Tin2,Tin3,Tin4,Tin5,Tin6,Tin7,TOut>(string id, Func<Tin1,Tin2,Tin3,Tin4,Tin5,Tin6,Tin7,TOut> function)
+             => new FunnyContextBuilder().WithFunction(id,function);
          #endregion
     }
 }
