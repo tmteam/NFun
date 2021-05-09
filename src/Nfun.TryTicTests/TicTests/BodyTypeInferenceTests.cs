@@ -2,11 +2,10 @@
 using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 
-namespace NFun.ModuleTests.TicTests
+namespace NFun.UnitTests.TicTests
 {
     public class BodyTypeInferenceTests
     {
-      
         [Test]
         public void SetGenericConstant()
         {
@@ -325,8 +324,5 @@ namespace NFun.ModuleTests.TicTests
             Assert.Throws<NFun.Tic.Errors.RecursiveTypeDefinitionException>(
                 ()=>TestHelper.Solve("y = t.concat(t[0])"));
         }
-        
-        
-
-}
+    }
 }

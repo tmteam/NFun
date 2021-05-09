@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.29009.5
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NFun.Console", "NFun.Console\NFun.Console.csproj", "{C14AEA34-D6AD-4D33-A56C-0522CD3106C2}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NFun.Tests", "NFun.Tests\NFun.Tests.csproj", "{500BA4AF-E96C-458A-A6E2-4650E9663520}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NFun.SyntaxTests", "NFun.SyntaxTests\NFun.SyntaxTests.csproj", "{500BA4AF-E96C-458A-A6E2-4650E9663520}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NFun", "NFun\NFun.csproj", "{A9B5CF03-3CC0-4631-88C8-6BFB8AA4D88F}"
 EndProject
@@ -21,7 +21,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FuspecHandler", "FuspecHand
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NFun.Tic.Tests", "NFun.Tic.Tests\NFun.Tic.Tests.csproj", "{DB452DDE-D067-4B7E-95BD-423FD77BCDC7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NFun.ModuleTests", "Nfun.TryTicTests\NFun.ModuleTests.csproj", "{40C6C361-6E91-485E-9A43-7844956AB245}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NFun.UnitTests", "Nfun.TryTicTests\NFun.UnitTests.csproj", "{40C6C361-6E91-485E-9A43-7844956AB245}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Benchmarks", "Benchmarks", "{F055674B-868D-4DCA-8761-481124E630B6}"
 EndProject
@@ -34,6 +34,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFun.Experiments", "NFun.Experiments\NFun.Experiments.csproj", "{780F7E9E-4123-40A8-AEB5-23DC24377BAB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Fuspec", "Fuspec", "{C86A273C-DF0E-4606-9016-8CA5678B98EE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFun.ApiTests", "NFun.ApiTests\NFun.ApiTests.csproj", "{F2DB406A-F2A9-4A8A-A56A-5E10B6F9F97B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFun.TestTools", "NFun.TestTools\NFun.TestTools.csproj", "{10B4A50C-C1B8-4D69-ABA6-6AE3E5D244A3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -93,6 +97,14 @@ Global
 		{780F7E9E-4123-40A8-AEB5-23DC24377BAB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{780F7E9E-4123-40A8-AEB5-23DC24377BAB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{780F7E9E-4123-40A8-AEB5-23DC24377BAB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F2DB406A-F2A9-4A8A-A56A-5E10B6F9F97B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F2DB406A-F2A9-4A8A-A56A-5E10B6F9F97B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F2DB406A-F2A9-4A8A-A56A-5E10B6F9F97B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F2DB406A-F2A9-4A8A-A56A-5E10B6F9F97B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{10B4A50C-C1B8-4D69-ABA6-6AE3E5D244A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{10B4A50C-C1B8-4D69-ABA6-6AE3E5D244A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{10B4A50C-C1B8-4D69-ABA6-6AE3E5D244A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{10B4A50C-C1B8-4D69-ABA6-6AE3E5D244A3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -109,6 +121,8 @@ Global
 		{D450D8F4-6584-40A4-813B-7DAA09B99B4A} = {C86A273C-DF0E-4606-9016-8CA5678B98EE}
 		{39943B97-69B5-4474-8EA0-18F14C7317EE} = {C86A273C-DF0E-4606-9016-8CA5678B98EE}
 		{DE205EB9-4BE3-413E-9AC1-6D37D3452E0E} = {C86A273C-DF0E-4606-9016-8CA5678B98EE}
+		{F2DB406A-F2A9-4A8A-A56A-5E10B6F9F97B} = {AD33CA54-5018-4BEB-80A2-984016CBA484}
+		{10B4A50C-C1B8-4D69-ABA6-6AE3E5D244A3} = {AD33CA54-5018-4BEB-80A2-984016CBA484}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {4ECD34A8-46A8-48EE-82A4-45A9C6A2327B}

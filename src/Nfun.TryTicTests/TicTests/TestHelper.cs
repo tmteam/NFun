@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using NFun;
 using NFun.Interpritation;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tic;
@@ -8,7 +7,7 @@ using NFun.Tic.SolvingStates;
 using NFun.TypeInferenceAdapter;
 using NUnit.Framework;
 
-namespace NFun.ModuleTests.TicTests
+namespace NFun.UnitTests.TicTests
 {
     public static class TestHelper
     {
