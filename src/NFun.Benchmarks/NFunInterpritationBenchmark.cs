@@ -9,7 +9,7 @@ namespace NFun.Benchmarks
 {
     public class NFunInterpritationBenchmark
     {
-        private FunctionDictionary _dictionary;
+        private FlatMutableFunctionDictionary _dictionary;
         private Scripts _scripts;
      
         [GlobalSetup]

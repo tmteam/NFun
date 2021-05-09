@@ -7,7 +7,7 @@ namespace NFun.InfinityProfiling.Sets
 {
     public class ProfileBuildAllSet: IProfileSet
     {
-        private readonly FunctionDictionary _dictionary;
+        private readonly FlatMutableFunctionDictionary _dictionary;
 
         public ProfileBuildAllSet() => _dictionary = BaseFunctions.CreateDefaultDictionary();
 

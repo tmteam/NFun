@@ -1,8 +1,7 @@
 using NFun.Exceptions;
-using NFun.FluentApi;
 using NUnit.Framework;
 
-namespace NFun.Tests.FluentApi
+namespace NFun.Tests.Api
 {
     public class TestFluentApiCalcSingleObjectConst
     {

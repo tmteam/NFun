@@ -1,11 +1,9 @@
 using System;
-using System.Linq;
-using NFun.Exceptions;
 using NFun.ParseErrors;
 using NFun.SyntaxParsing;
 using NFun.Types;
 
-namespace NFun.FluentApi
+namespace NFun
 {
     class FunnyContext<TInput> : IFunnyContext<TInput>
     {

@@ -4,10 +4,11 @@ using NFun.Exceptions;
 using NFun.ParseErrors;
 using NFun.Types;
 
-namespace NFun.FluentApi
+namespace NFun
 {
     public static class Funny
     {
+        public static HardcoreBuilder Hardcore { get; } = new HardcoreBuilder();
         #region calcs
 
         public static object Calc(string expression)

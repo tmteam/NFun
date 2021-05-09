@@ -1,13 +1,12 @@
 using System;
 using System.Linq;
 using System.Reflection;
-using NFun.Exceptions;
 using NFun.ParseErrors;
 using NFun.Runtime;
 using NFun.SyntaxParsing;
 using NFun.Types;
 
-namespace NFun.FluentApi
+namespace NFun
 {
     internal static class FluentApiTools
     {

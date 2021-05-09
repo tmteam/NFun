@@ -12,9 +12,9 @@ namespace NFun
         {
             DefaultDictionary = CreateDefaultDictionary();
         }
-        public static FunctionDictionary CreateDefaultDictionary()
+        public static FlatMutableFunctionDictionary CreateDefaultDictionary()
         {
-            var functionsDictionary = new FunctionDictionary();
+            var functionsDictionary = new FlatMutableFunctionDictionary();
             foreach (var predefinedFunction in ConcreteFunctions)
                 functionsDictionary.TryAdd(predefinedFunction);
             foreach (var genericFunctionBase in GenericFunctions)

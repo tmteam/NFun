@@ -5,7 +5,7 @@ using NFun.Interpritation;
 using NFun.Interpritation.Functions;
 using NFun.Types;
 
-namespace NFun.FluentApi
+namespace NFun
 {
     public class FunnyContextBuilder
     {

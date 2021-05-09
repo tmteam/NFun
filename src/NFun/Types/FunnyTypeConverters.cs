@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Reflection;
 using NFun.Exceptions;
-using NFun.FluentApi;
 using NFun.ParseErrors;
 
 namespace NFun.Types

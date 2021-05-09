@@ -1,10 +1,9 @@
 using System;
-using NFun.FluentApi;
 using NUnit.Framework;
 
-namespace NFun.Tests.FluentApi
+namespace NFun.Tests.Api
 {
-    public class AddFunctionTest
+    public class TestFluentApiAddFunctionTest
     {
      
         [Test]

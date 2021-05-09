@@ -43,7 +43,7 @@ namespace NFun.ModuleTests.TicTests
             var graph = new GraphBuilder();
             var resultsBuilder = new TypeInferenceResultsBuilder();
 
-            var functions = new FunctionDictionary();
+            var functions = new FlatMutableFunctionDictionary();
             foreach (var predefinedFunction in BaseFunctions.ConcreteFunctions)
                 functions.TryAdd(predefinedFunction);
             foreach (var predefinedFunction in BaseFunctions.GenericFunctions)
@@ -69,7 +69,7 @@ namespace NFun.ModuleTests.TicTests
 
             var graph = new GraphBuilder();
 
-            var functions = new FunctionDictionary();
+            var functions = new FlatMutableFunctionDictionary();
             foreach (var predefinedFunction in BaseFunctions.ConcreteFunctions)
                 functions.TryAdd(predefinedFunction);
             foreach (var predefinedFunction in BaseFunctions.GenericFunctions)

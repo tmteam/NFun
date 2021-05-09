@@ -7,7 +7,7 @@ namespace NFun.InfinityProfiling.Sets
 {
     public class ProfileUpdateSet: IProfileSet
     {
-        private readonly FunctionDictionary _dictionary;
+        private readonly FlatMutableFunctionDictionary _dictionary;
         private readonly FunRuntime _constTrue;
         private readonly FunRuntime _const1;
         private readonly FunRuntime _constSingleText;

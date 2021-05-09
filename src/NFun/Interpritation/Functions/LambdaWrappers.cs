@@ -24,7 +24,6 @@ namespace NFun.Interpritation.Functions
         public static IConcreteFunction Create<Tin1, Tin2,Tin3, Tin4,Tin5,Tin6, Tout>(string name, Func<Tin1, Tin2,Tin3,Tin4,Tin5,Tin6, Tout> function)
             => throw new NotImplementedException();
         
-        
         public static IConcreteFunction Create<Tin1, Tin2,Tin3, Tin4,Tin5,Tin6, Tin7, Tout>(string name, Func<Tin1, Tin2,Tin3,Tin4,Tin5,Tin6,Tin7, Tout> function)
             => throw new NotImplementedException();
     }

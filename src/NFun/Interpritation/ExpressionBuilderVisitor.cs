@@ -194,7 +194,6 @@ namespace NFun.Interpritation
             if (someFunc is null)
             {
                 //todo move to variable syntax node
-
                 //hi order function
                  var functionalVariableSource = _variables.GetSourceOrNull(id);
                  if (functionalVariableSource?.Type.FunTypeSpecification == null)

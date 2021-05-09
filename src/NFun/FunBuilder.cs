@@ -40,26 +40,26 @@ namespace NFun
 
     public class FunBuilderWithConcreteFunctions : FunBuilderBase
     {
-        private readonly FunctionDictionary _functionDictionary;
+        private readonly FlatMutableFunctionDictionary _flatMutableFunctionDictionary;
 
         internal FunBuilderWithConcreteFunctions(string script, IConstantList constants, AprioriTypesMap aprioriTypesMap)
         {
             _script = script;
             _constants = constants;
             _apriori = aprioriTypesMap;
-            _functionDictionary = BaseFunctions.CreateDefaultDictionary();
+            _flatMutableFunctionDictionary = BaseFunctions.CreateDefaultDictionary();
         }
         public FunBuilderWithConcreteFunctions WithFunctions(params IFunctionSignature[] functions)
         {
             foreach (var function in functions)
             {
-                _functionDictionary.AddOrThrow(function);
+                _flatMutableFunctionDictionary.AddOrThrow(function);
             }
             
             return this;
         }
 
-        public override FunRuntime Build() => RuntimeBuilder.Build(_script, _functionDictionary, _constants??new EmptyConstantList());
+        public override FunRuntime Build() => RuntimeBuilder.Build(_script, _flatMutableFunctionDictionary, _constants??new EmptyConstantList());
     }
     public  class FunBuilder : FunBuilderBase
     {

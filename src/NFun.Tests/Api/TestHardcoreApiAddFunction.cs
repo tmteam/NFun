@@ -6,24 +6,23 @@ using NFun.Runtime.Arrays;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.Tests
+namespace NFun.Tests.Api
 {
-    [TestFixture]
-    public class CustomPredefinedFunctionsTest
+    public class TestHardcoreApiAddFunction
     {
         [Test]
         public void CustomNonGenericFunction_CallsWell()
         {
             string customName = "lenofstr";
             string arg = "some very good string";
-            var runtime = FunBuilder
-                .With($"y = {customName}('{arg}')")
+            var runtime = Funny.Hardcore
                 .WithFunctions(
                 new FunctionMock(
                     args => ((IFunArray)args[0]).Count, 
                     customName, 
                     VarType.Int32, 
-                    VarType.Text)).Build();
+                    VarType.Text))
+                .Build($"y = {customName}('{arg}')");
            
             runtime.Calculate().AssertReturns(VarVal.New("y", arg.Length));
         }
@@ -35,8 +34,7 @@ namespace NFun.Tests
         public void CustomGenericFunction_EachSecond_WorksFine(string arg, object expected)
         {
             string customName = "each_second";
-            var runtime = FunBuilder
-                .With($"y = {customName}({arg})")
+            var runtime = Funny.Hardcore
                 .WithFunctions(
                     new GenericFunctionMock(
                         args => new EnumerableFunArray(((IEnumerable<object>)args[0])
@@ -44,10 +42,51 @@ namespace NFun.Tests
                         customName,
                         VarType.ArrayOf(VarType.Generic(0)),
                         VarType.ArrayOf(VarType.Generic(0))))
-                .Build();
+                .Build($"y = {customName}({arg})");
             runtime.Calculate().AssertReturns(VarVal.New("y", expected));
         }
+        [Test]
+        public void IsVarNameCapital_returnsBool()
+        {
+            var result = Funny.Hardcore
+                .WithFunctions(new LogFunction())
+                .Build("y = 1.writeLog('hello')")
+                .Calculate();
+            Assert.AreEqual(1.0, result.GetValueOf("y"));
+        }
+        [Test]
+        public void Use1ArgLambda()
+        {
+            var result = Funny.Hardcore
+                .WithFunction("sqra", (int i) => i*i)
+                .Build("y = sqra(10)")
+                .Calculate();
+            Assert.AreEqual(100, result.GetValueOf("y"));
+        }
+        [Test]
+        [Ignore("Not implemented yet")]
+        public void Use2ArgLambda()
+        {
+            var result = Funny.Hardcore
+                .WithFunction("conca", (string t1, string t2) => t1+t2)
+                .Build("y = 'hello'.conca(' ').conca('world')")
+                .Calculate();
+            Assert.AreEqual("hello world", result.GetValueOf("y"));
+        }
+    }
 
+    public class LogFunction : GenericFunctionBase
+    {
+
+        public LogFunction() : base("writeLog", VarType.Generic(0), VarType.Generic(0), VarType.Text)
+        {
+        }
+        // T Log<T>(T, string)
+        protected override object Calc(object[] args)
+        {
+            Console.WriteLine(args[1]);
+            return args[0];
+        }
     }
     public class GenericFunctionMock: GenericFunctionBase
     {

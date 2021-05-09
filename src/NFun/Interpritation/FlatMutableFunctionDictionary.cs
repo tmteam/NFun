@@ -1,17 +1,27 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NFun.Interpritation.Functions;
 
 namespace NFun.Interpritation
 {
-    public sealed class FunctionDictionary: IFunctionDictionary
+    public sealed class FlatMutableFunctionDictionary: IFunctionDictionary
     {
-        private readonly Dictionary<string, IFunctionSignature> _functions 
-            = new Dictionary<string, IFunctionSignature>();
+        private readonly Dictionary<string, IFunctionSignature> _functions;
+        //TODO - OVERLOADS?!?!
+        private readonly Dictionary<string, List<IFunctionSignature>> _overloads;
 
-        private readonly Dictionary<string, List<IFunctionSignature>> _overloads
-            = new Dictionary<string, List<IFunctionSignature>>();
+        public FlatMutableFunctionDictionary()
+        {
+            _functions = new();
+            _overloads = new();
+        }
 
+        private FlatMutableFunctionDictionary(Dictionary<string, IFunctionSignature> functions,Dictionary<string, List<IFunctionSignature>> overloads )
+        {
+            _functions = functions;
+            _overloads = overloads;
+        }
         public IList<IFunctionSignature> SearchAllFunctionsIgnoreCase(string name, int argCount)
         {
             var lowerName = GetOverloadName(name.ToLower(),argCount);
@@ -37,6 +47,18 @@ namespace NFun.Interpritation
             var overloadName = GetOverloadName(name, argCount);
             _functions.TryGetValue(overloadName, out var signature);
             return signature;
+        }
+
+        public FlatMutableFunctionDictionary CloneWith(IFunctionSignature[] functions)
+        {
+            var newFunctions =new Dictionary<string, IFunctionSignature>(_functions);
+            var newOverloads = _overloads.ToDictionary(
+                o => o.Key,
+                o => o.Value.ToList());
+            var dic = new FlatMutableFunctionDictionary(newFunctions, newOverloads);
+            foreach (var function in functions) 
+                dic.AddOrThrow(function);
+            return dic;
         }
 
         public void AddOrThrow(IFunctionSignature function)
