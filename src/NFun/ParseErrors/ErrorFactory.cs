@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using NFun.Exceptions;
 using NFun.Interpritation;
@@ -514,7 +515,26 @@ namespace NFun.ParseErrors
         }
         #endregion
 
+        #region InvalidFluentUsage
+
+        public static FunParseException UnknownInputs(IEnumerable<VariableUsages> variableUsage,
+            VarInfo[] expectedInputs) =>
+            new(605, "Some inputs are unknown", Interval.Empty);
+
+        public static FunParseException NoOutputVariablesSetted(
+            Memory<(string, IOutputFunnyConverter, PropertyInfo)> expectedOutputs)
+            => new (609,"No output values were setted", Interval.Empty);
+
+        public static FunParseException OutputIsUnset(VarType expectedOutputType)
+            => new(612, $"Output is not set. Anonymous of type '{expectedOutputType.ToString()}' equation or '{Parser.AnonymousEquationId}' variable expected", Interval.Empty);
+
+        public static FunParseException OutputIsUnset()
+            => new (615,
+                $"Output is not set. Anonymous equation or '{Parser.AnonymousEquationId}' variable expected", Interval.Empty);
+        public static FunParseException TypeCannotBeUsedAsOutputNfunType(VarType funnyType) 
+            => new (618,$"type {funnyType} is not supported for dynamic convertion", Interval.Empty);
         
+        #endregion
         public static Exception VariousIfElementTypes(IfThenElseSyntaxNode ifThenElse)
         {
             var allExpressions  = ifThenElse.Ifs
@@ -581,7 +601,8 @@ namespace NFun.ParseErrors
 
         #endregion
 
-
+        
+        
         public static Exception TranslateTicError(TicException ticException, ISyntaxNode syntaxNodeToSearch)
         {
             if (ticException is IncompatibleAncestorSyntaxNodeException syntaxNodeEx)
@@ -618,7 +639,10 @@ namespace NFun.ParseErrors
             }
             return TypesNotSolved(syntaxNodeToSearch);
         }
-
+        
+        
+        
+        
         public static Exception SuperAnonymousFunctionIsNotClose(int anonymousStart, int anonymousFinish) 
             => FunParseException.ErrorStubToDo("SuperAnonymousFunctionIsNotClose");
 

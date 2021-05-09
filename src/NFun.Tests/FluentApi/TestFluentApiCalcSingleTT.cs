@@ -100,12 +100,11 @@ namespace NFun.Tests.FluentApi
             );
 
         [TestCase("")]
-        [TestCase("x:int;")]
         [TestCase("x:int = 2")]
         [TestCase("a = 12; b = 32; x = a*b")]
         [TestCase("y = age")]
         public void NoOutputSpecified_throws(string expr) 
-            => Assert.Throws<FunInvalidUsageTODOException>(() => Funny.Calc<UserInputModel,int>(expr,new UserInputModel(age:42)));
+            => Assert.Throws<FunParseException>(() => Funny.Calc<UserInputModel,int>(expr,new UserInputModel(age:42)));
         
         [TestCase("age*AGE")]
         public void UseDifferentInputCase_throws(string expression) =>
@@ -113,12 +112,14 @@ namespace NFun.Tests.FluentApi
         
         [Test]
         public void OutputTypeContainsNoEmptyConstructor_throws() =>
-            Assert.Throws<FunInvalidUsageTODOException>(() => Funny.Calc<UserInputModel, ModelWithoutEmptyConstructor>(
+            Assert.Throws<FunInvalidUsageException>(() => Funny.Calc<UserInputModel, ModelWithoutEmptyConstructor>(
                 "@{name = name}"
                 , new UserInputModel("vasa")));
-        [Test]
-        public void UseUnknownInput_throws() =>
-            Assert.Throws<FunInvalidUsageTODOException>(() =>
-                Funny.Calc<UserInputModel, bool>("age>someUnknownvariable", new UserInputModel(age: 22)));
+        
+        [TestCase("age>someUnknownvariable")]
+        [TestCase("x:int;")]
+        public void UseUnknownInput_throws(string expr) =>
+            Assert.Throws<FunParseException>(() =>
+                Funny.Calc<UserInputModel, bool>(expr, new UserInputModel(age: 22)));
     }
 }

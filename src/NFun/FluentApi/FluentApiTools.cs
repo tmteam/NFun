@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using NFun.Exceptions;
+using NFun.ParseErrors;
 using NFun.Runtime;
 using NFun.SyntaxParsing;
 using NFun.Types;
@@ -29,7 +31,7 @@ namespace NFun.FluentApi
             }
 
             if (settedCount == 0)
-                throw new FunInvalidUsageTODOException("no output values were setted");
+                throw ErrorFactory.NoOutputVariablesSetted(outputs);
             return answer;
         }
 
@@ -61,30 +63,31 @@ namespace NFun.FluentApi
         public  static object GetClrOut(CalculationResult result)
         {
             if (!result.TryGet(Parser.AnonymousEquationId, out var outResult))
-                throw new FunInvalidUsageTODOException("output is not set");
+                throw ErrorFactory.OutputIsUnset();
             
             return FunnyTypeConverters
                 .GetOutputConverter(outResult.Type)
                 .ToClrObject(outResult.Value);
         }
 
-        public  static TOutput CalcSingleOutput<TOutput>(IFunBuilder builder, Span<VarVal> inputValues)
+        public  static TOutput CalcSingleOutput<TOutput>(IFunBuilder builder)
         {
             var outputConverter = FunnyTypeConverters.GetOutputConverter(typeof(TOutput));
             builder.WithApriori(Parser.AnonymousEquationId, outputConverter.FunnyType);
             var runtime = builder.Build();
+            if (runtime.Inputs.Any())
+                throw ErrorFactory.UnknownInputs(runtime.GetInputVariableUsages(), new VarInfo[0]);
 
-            var varsAsArray = inputValues.ToArray();
-            if (runtime.Inputs.Any(i => varsAsArray.All(v => !v.Name.Equals(i.Name.ToLower()))))
-                throw new FunInvalidUsageTODOException();
-
-            var result = runtime.CalculateSafe(inputValues);
+            var result = runtime.CalculateSafe(Span<VarVal>.Empty);
+            
             if (!result.TryGet(Parser.AnonymousEquationId, out var outResult))
-                throw new FunInvalidUsageTODOException("out value is missed");
+                throw ErrorFactory.OutputIsUnset(outputConverter.FunnyType);
             
             return (TOutput) outputConverter.ToClrObject(outResult.Value);
         }
+
         
+
         public static VarVal[] GetInputValues<TInput>(Memory<(string, IinputFunnyConverter, PropertyInfo)> inputMap, TInput value)
         {
             var span = inputMap.Span;
@@ -127,6 +130,36 @@ namespace NFun.FluentApi
             }
 
             return inputTypes.AsMemory(0, actualInputsCount);
+        }
+        internal static void ThrowIfHasUnknownInputs(FunRuntime runtime, Memory<(string, IinputFunnyConverter, PropertyInfo)> expectedInputs)
+        {
+            var span = expectedInputs.Span;
+            foreach (var actualInput in runtime.Inputs)
+            {
+                bool known = false;
+                for (var i = 0; i < span.Length; i++)
+                {
+                    if (span[i].Item1.Equals(actualInput.Name, StringComparison.OrdinalIgnoreCase))
+                    {
+                        known = true;
+                        break;
+                    }
+                }
+
+                if (!known)
+                {
+                    throw ErrorFactory.UnknownInputs(
+                        runtime.GetInputVariableUsages(),
+                        expectedInputs: expectedInputs
+                            .ToArray()
+                            .Select(e=>new VarInfo(
+                                isOutput: false,
+                                type: e.Item2.FunnyType,
+                                name: e.Item1,
+                                isStrictTyped: true))
+                            .ToArray());
+                }
+            }
         }
     }
 }

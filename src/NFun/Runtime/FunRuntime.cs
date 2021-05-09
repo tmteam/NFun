@@ -4,13 +4,15 @@ using System.Linq;
 using NFun.Interpritation;
 using NFun.Interpritation.Functions;
 using NFun.Runtime.Arrays;
+using NFun.SyntaxParsing;
 using NFun.Types;
 
 namespace NFun.Runtime
 {
     public class FunRuntime
     {
-        public IEnumerable<VariableSource> GetAllVariableSources() => _variables.GetAllSources();
+        public IEnumerable<VariableUsages> GetInputVariableUsages() => _variables.GetAllUsages().Where(u=>!u.Source.IsOutput);
+        public IEnumerable<VariableSource> GetAllVariableSources()  => _variables.GetAllSources();
         public VarInfo[] Inputs => _variables.GetAllSources()
             .Where(v => !v.IsOutput)
             .Select(s => new VarInfo(false,  s.Type,s.Name, s.IsStrictTyped, s.Attributes)).ToArray();
@@ -19,6 +21,10 @@ namespace NFun.Runtime
             .Where(v => v.IsOutput)
             .Select(s => new VarInfo(true,  s.Type,s.Name, s.IsStrictTyped, s.Attributes)).ToArray();
 
+        public bool HasDefaultOutput => _variables
+            .GetAllSources()
+            .Any(s =>
+                s.IsOutput && string.Equals(s.Name, Parser.AnonymousEquationId, StringComparison.OrdinalIgnoreCase));
         public IEnumerable<IFunctionSignature> UserFunctions { get; }
 
         private readonly IList<Equation> _equations;

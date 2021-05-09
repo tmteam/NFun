@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NFun.Tic.SolvingStates;
 
 namespace NFun.Types
 {
@@ -18,38 +17,38 @@ namespace NFun.Types
             }
         }
 
-        public static VarType Empty => new VarType();
-        public static VarType PrimitiveOf(BaseVarType baseType) => new VarType(baseType);
-        public static VarType Anything => new VarType(BaseVarType.Any);
-        public static VarType Bool => new VarType(BaseVarType.Bool);
-        public static VarType Char => new VarType(BaseVarType.Char);
+        public static VarType Empty => new();
+        public static VarType PrimitiveOf(BaseVarType baseType) => new(baseType);
+        public static VarType Anything => new(BaseVarType.Any);
+        public static VarType Bool => new(BaseVarType.Bool);
+        public static VarType Char => new(BaseVarType.Char);
 
-        public static VarType UInt8 => new VarType(BaseVarType.UInt8);
-        public static VarType UInt16 => new VarType(BaseVarType.UInt16);
-        public static VarType UInt32 => new VarType(BaseVarType.UInt32);
-        public static VarType UInt64 => new VarType(BaseVarType.UInt64);
+        public static VarType UInt8 => new(BaseVarType.UInt8);
+        public static VarType UInt16 => new(BaseVarType.UInt16);
+        public static VarType UInt32 => new(BaseVarType.UInt32);
+        public static VarType UInt64 => new(BaseVarType.UInt64);
 
-        public static VarType Int16 => new VarType(BaseVarType.Int16);
-        public static VarType Int32 => new VarType(BaseVarType.Int32);
-        public static VarType Int64 => new VarType(BaseVarType.Int64);
-        public static VarType Real => new VarType(BaseVarType.Real);
+        public static VarType Int16 => new(BaseVarType.Int16);
+        public static VarType Int32 => new(BaseVarType.Int32);
+        public static VarType Int64 => new(BaseVarType.Int64);
+        public static VarType Real => new(BaseVarType.Real);
         public static VarType  Text =>  ArrayOf(Char);
         public static VarType StructOf(Dictionary<string, VarType> fields) 
-            => new VarType(fields);
+            => new(fields);
         public static VarType StructOf(params (string,VarType)[] fields) 
-            => new VarType(fields.ToDictionary(f=>f.Item1, f=>f.Item2));
+            => new(fields.ToDictionary(f=>f.Item1, f=>f.Item2));
         public static VarType StructOf(string fieldName, VarType fieldType) 
-            => new VarType(new Dictionary<string, VarType>{{fieldName,fieldType}});
+            => new(new Dictionary<string, VarType>{{fieldName,fieldType}});
         public static VarType StructOf(string fieldName1, VarType fieldType1,string fieldName2, VarType fieldType2) 
-            => new VarType(new Dictionary<string, VarType>{{fieldName1,fieldType1},{fieldName2,fieldType2}});
+            => new(new Dictionary<string, VarType>{{fieldName1,fieldType1},{fieldName2,fieldType2}});
 
 
-        public static VarType ArrayOf(VarType type) => new VarType(type);
+        public static VarType ArrayOf(VarType type) => new(type);
 
         public static VarType Fun(VarType returnType, params VarType[] inputTypes)
-            => new VarType(output: returnType, inputs: inputTypes);
+            => new(output: returnType, inputs: inputTypes);
 
-        public static VarType Generic(int genericId) => new VarType(genericId);
+        public static VarType Generic(int genericId) => new(genericId);
 
         private VarType(VarType output, VarType[] inputs)
         {
@@ -104,8 +103,7 @@ namespace NFun.Types
         public readonly AdditionalTypeSpecification ArrayTypeSpecification;
         public readonly FunTypeSpecification FunTypeSpecification;
         public readonly int? GenericId;
-
-
+        
         public static bool operator ==(VarType obj1, VarType obj2)
             => obj1.Equals(obj2);
 

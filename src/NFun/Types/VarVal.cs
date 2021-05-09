@@ -39,30 +39,30 @@ namespace NFun.Types
             }
         }
         public static VarVal New(string name, bool value) 
-            => new VarVal(name, value, VarType.Bool);
+            => new(name, value, VarType.Bool);
         public static VarVal New(string name, short value) 
-            => new VarVal(name, value, VarType.Int16);
+            => new(name, value, VarType.Int16);
         public static VarVal New(string name, int value) 
-            => new VarVal(name, value, VarType.Int32);
+            => new(name, value, VarType.Int32);
         public static VarVal New(string name, long value) 
-            => new VarVal(name, value, VarType.Int64);
+            => new(name, value, VarType.Int64);
         
         public static VarVal New(string name, byte value) 
-            => new VarVal(name, value, VarType.UInt8);
+            => new(name, value, VarType.UInt8);
         public static VarVal New(string name, ushort value) 
-            => new VarVal(name, value, VarType.UInt16);
+            => new(name, value, VarType.UInt16);
         public static VarVal New(string name, uint value) 
-            => new VarVal(name, value, VarType.UInt32);
+            => new(name, value, VarType.UInt32);
         public static VarVal New(string name, ulong value) 
-            => new VarVal(name, value, VarType.UInt64);
+            => new(name, value, VarType.UInt64);
         public static VarVal New(string name, double value) 
-            => new VarVal(name, value, VarType.Real);
+            => new(name, value, VarType.Real);
         public static VarVal New(string name, string value) 
-            => new VarVal(name, new TextFunArray(value), VarType.Text);
+            => new(name, new TextFunArray(value), VarType.Text);
         public static VarVal New(string name, char value)
-            => new VarVal(name, value, VarType.Char);
+            => new(name, value, VarType.Char);
         public static VarVal New(string name, FunnyStruct values, VarType type)
-            => new VarVal(name, values, type);
+            => new(name, values, type);
         
         public static VarType ToPrimitiveFunType(Type t)
         {

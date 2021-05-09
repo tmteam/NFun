@@ -9,11 +9,11 @@ namespace NFun.FluentApi
 {
     public class FunnyContextBuilder
     {
-        internal static readonly FunnyContextBuilder Empty = new FunnyContextBuilder();
+        internal static readonly FunnyContextBuilder Empty = new();
         
-        private List<(string, object)> _constantList = new List<(string, object)>();
-        private List<IConcreteFunction> _concreteFunctions = new List<IConcreteFunction>();
-        public FunnyContextBuilder AddConstant(string id, object value) {
+        private readonly List<(string, object)> _constantList = new();
+        private readonly List<IConcreteFunction> _concreteFunctions = new();
+        public FunnyContextBuilder WithConstant(string id, object value) {
             _constantList.Add((id,value));
             return this;
         }
@@ -33,7 +33,6 @@ namespace NFun.FluentApi
                 foreach (var constant in _constantList)
                 {
                     var converter = FunnyTypeConverters.GetInputConverter(constant.Item2.GetType());
-                    var funValue = converter.ToFunObject(constant.Item2);
                     constants.AddConstant(new VarVal(constant.Item1,constant.Item2,converter.FunnyType));   
                 }
                 builder = ((FunBuilder) builder).With(constants);
@@ -41,15 +40,14 @@ namespace NFun.FluentApi
             if (_concreteFunctions.Any())
                 builder = ((FunBuilder) builder).WithFunctions(_concreteFunctions.ToArray());
 
-            
             return builder;
         }
         
-        public IFunnyContext<TInput, TOutput> CreateContextFor<TInput, TOutput>() 
+        public IFunnyContext<TInput, TOutput> ForCalc<TInput, TOutput>() 
             => new FunnyContextSingle<TInput, TOutput>(this);
         public IFunnyContext<TInput, TOutput> ForCalcMany<TInput, TOutput>() where TOutput : new()
             => new FunnyContextMany<TInput, TOutput>(this);
-        public IFunnyContext<TInput> CreateContextFor<TInput>()
+        public IFunnyContext<TInput> ForCalc<TInput>()
             => new FunnyContext<TInput>(this);
     }
 }

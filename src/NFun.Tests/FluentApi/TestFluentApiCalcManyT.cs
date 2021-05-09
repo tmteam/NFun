@@ -24,17 +24,18 @@ namespace NFun.Tests.FluentApi
         
         [Test]
         public void NofieldsInitialized_throws() 
-            => Assert.Throws<FunInvalidUsageTODOException>(()=>  Funny.CalcMany<ContractOutputModel>("someField1 = 13.1; somefield2 = 2"));
+            => Assert.Throws<FunParseException>(()=>  Funny.CalcMany<ContractOutputModel>("someField1 = 13.1; somefield2 = 2"));
 
         [Test]
         public void AnonymousEquation_throws() 
-            => Assert.Throws<FunInvalidUsageTODOException>(()=> Funny.CalcMany<ContractOutputModel>("13.1"));
+            => Assert.Throws<FunParseException>(()=> Funny.CalcMany<ContractOutputModel>("13.1"));
 
         [Test]
         public void UnknownInputIdUsed_throws() 
-            => Assert.Throws<FunInvalidUsageTODOException>(()=> Funny.CalcMany<ContractOutputModel>("id = someInput"));
+            => Assert.Throws<FunParseException>(()=> Funny.CalcMany<ContractOutputModel>("id = someInput"));
         
         [TestCase("id = 42; price = ID")]
+        [TestCase("id = 42; ID = 13")]
         public void UseDifferentInputCase_throws(string expression) =>
             Assert.Throws<FunParseException>(() => Funny.CalcMany<ContractOutputModel>(expression));
         

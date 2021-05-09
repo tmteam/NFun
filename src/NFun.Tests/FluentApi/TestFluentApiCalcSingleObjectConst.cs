@@ -1,3 +1,4 @@
+using NFun.Exceptions;
 using NFun.FluentApi;
 using NUnit.Framework;
 
@@ -28,20 +29,21 @@ namespace NFun.Tests.FluentApi
             }, result);
         }
         [TestCase("")]
-        [TestCase("x:int;")]
         [TestCase("x:int = 2")]
         [TestCase("a = 12; b = 32; x = a*b")]
         public void NoOutputSpecified_throws(string expr) 
-            => Assert.Throws<FunInvalidUsageTODOException>(() => Funny.Calc(expr));
+            => Assert.Throws<FunParseException>(() => Funny.Calc(expr));
         [Test]
         public void OutputTypeContainsNoEmptyConstructor_throws() =>
-            Assert.Throws<FunInvalidUsageTODOException>(() => Funny.Calc(
+            Assert.Throws<FunParseException>(() => Funny.Calc(
                 "@{name = 'alaska'}"));
 
         [TestCase("@{id = age; items = [1,2,3,4].map{'{it}'}; price = 21*2}")]
         [TestCase("[1..4].filter{it>age}.map{it**2}")]
         [TestCase("age>someUnknownvariable")]
+        [TestCase("x:int;")]
+
         public void UseUnknownInput_throws(string expression) =>
-            Assert.Throws<FunInvalidUsageTODOException>(() => Funny.Calc(expression));
+            Assert.Throws<FunParseException>(() => Funny.Calc(expression));
     }
 }

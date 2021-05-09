@@ -1,7 +1,8 @@
 using System;
 using System.Linq;
+using NFun.Exceptions;
+using NFun.ParseErrors;
 using NFun.SyntaxParsing;
-using NFun.Tic.SolvingStates;
 using NFun.Types;
 
 namespace NFun.FluentApi
@@ -21,18 +22,16 @@ namespace NFun.FluentApi
             var builder = _builder.CreateRuntimeBuilder(expression);
             var inputsMap = FluentApiTools.SetupAprioriInputs<TInput>(builder);
             var runtime = builder.Build();
+            if(!runtime.HasDefaultOutput)
+                throw ErrorFactory.OutputIsUnset();
+            FluentApiTools.ThrowIfHasUnknownInputs(runtime,inputsMap);
             
-            return (input) =>
+            return input =>
             {
                 var inputVals =FluentApiTools.GetInputValues(inputsMap, input);
-                var varsAsArray = inputVals.ToArray();
-                if (runtime.Inputs.Any(i => varsAsArray.All(v => !v.Name.Equals(i.Name.ToLower()))))
-                    throw new FunInvalidUsageTODOException();
-
-                var resultOutput = runtime.Outputs.FirstOrDefault(o => o.Name == Parser.AnonymousEquationId);
-                if (resultOutput.Name != Parser.AnonymousEquationId)
-                    throw new FunInvalidUsageTODOException("out value is missed");
-
+                //var varsAsArray = inputVals.ToArray();
+                // if (runtime.Inputs.Any(i => varsAsArray.All(v => !v.Name.Equals(i.Name.ToLower()))))
+                //     throw new FunInvalidUsageException();
                 var result = runtime.CalculateSafe(inputVals);
                 return FluentApiTools.GetClrOut(result);
             };
@@ -54,9 +53,8 @@ namespace NFun.FluentApi
             var inputsMap = FluentApiTools.SetupAprioriInputs<TInput>(builder);
             var outputs = FluentApiTools.SetupManyAprioriOutputs<TOutput>(builder);
             var runtime = builder.Build();
-            if (runtime.Inputs.Any(i => inputsMap.ToArray().All(v => !v.Item1.Equals(i.Name.ToLower()))))
-                throw new FunInvalidUsageTODOException();
-            
+            FluentApiTools.ThrowIfHasUnknownInputs(runtime,inputsMap);
+
             return input =>
             {
                 
@@ -85,16 +83,19 @@ namespace NFun.FluentApi
             builder.WithApriori(Parser.AnonymousEquationId, outputConverter.FunnyType);
             var runtime = builder.Build();
 
-            if (runtime.Inputs.Any(i => inputsMap.ToArray().All(v => !v.Item1.Equals(i.Name.ToLower()))))
-                throw new FunInvalidUsageTODOException();
+            FluentApiTools.ThrowIfHasUnknownInputs(runtime,inputsMap);
             
-            return input =>
+            if(!runtime.HasDefaultOutput)
+                throw ErrorFactory.OutputIsUnset(outputConverter.FunnyType);
+                
+            return input => 
             {
                 var inputValues = FluentApiTools.GetInputValues(inputsMap, input);
-                var result = runtime.CalculateSafe(inputValues);
-                if (!result.TryGet(Parser.AnonymousEquationId, out var outResult))
-                    throw new FunInvalidUsageTODOException("out value is missed");
-                return (TOutput) outputConverter.ToClrObject(outResult.Value);
+                var result = runtime
+                    .CalculateSafe(inputValues)
+                    .Get(Parser.AnonymousEquationId)
+                    .Value;
+                return (TOutput) outputConverter.ToClrObject(result);
             };
         }
     }

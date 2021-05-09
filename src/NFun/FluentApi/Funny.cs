@@ -1,5 +1,7 @@
 using System;
 using System.Linq;
+using NFun.Exceptions;
+using NFun.ParseErrors;
 using NFun.Types;
 
 namespace NFun.FluentApi
@@ -14,7 +16,9 @@ namespace NFun.FluentApi
                 .With(expression)
                 .Build();
             if (runtime.Inputs.Any())
-                throw new FunInvalidUsageTODOException();
+                throw ErrorFactory.UnknownInputs(
+                    runtime.GetInputVariableUsages(),
+                    new VarInfo[0]);
             
             var result = runtime.CalculateSafe();
             return FluentApiTools.GetClrOut(result);
@@ -22,7 +26,7 @@ namespace NFun.FluentApi
         public static TOutput Calc<TOutput>(string expression)
         {
             var builder = FunBuilder.With(expression);
-            return FluentApiTools.CalcSingleOutput<TOutput>(builder, Span<VarVal>.Empty);
+            return FluentApiTools.CalcSingleOutput<TOutput>(builder);
         }
         
         public static object Calc<TInput>(string expression, TInput input) 
@@ -39,7 +43,7 @@ namespace NFun.FluentApi
 
             var runtime = builder.Build();
             if (runtime.Inputs.Any())
-                throw new FunInvalidUsageTODOException();
+                throw ErrorFactory.UnknownInputs(runtime.GetInputVariableUsages(), new VarInfo[0]);
             
             var calcResults = runtime.CalculateSafe();
             return FluentApiTools.CreateOutputValueFromResults<TOutput>(outputs, calcResults);
@@ -59,11 +63,10 @@ namespace NFun.FluentApi
         #endregion
         
         #region builder
-         public static FunnyContextBuilder AddConstant(string id, object value) 
-             => new FunnyContextBuilder().AddConstant(id, value);
+         public static FunnyContextBuilder WithConstant(string id, object value) 
+             => new FunnyContextBuilder().WithConstant(id, value);
          public static FunnyContextBuilder WithFunction<Tin, TOut>(string id, Func<Tin, TOut> function)
              => new FunnyContextBuilder().WithFunction(id,function);
-
-        #endregion
+         #endregion
     }
 }

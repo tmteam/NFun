@@ -55,7 +55,7 @@ namespace NFun.Tests.FluentApi
         
         [Test]
         public void NofieldsInitialized_throws() 
-            => Assert.Throws<FunInvalidUsageTODOException>(()=>  
+            => Assert.Throws<FunParseException>(()=>  
                 Funny.CalcMany<UserInputModel,ContractOutputModel>(
                     expression: "someField1 = age; somefield2 = 2", 
                     input: new UserInputModel()));
@@ -64,12 +64,12 @@ namespace NFun.Tests.FluentApi
         [TestCase("age")]
         [TestCase("ids")]
         public void AnonymousEquation_throws(string expr) 
-            => Assert.Throws<FunInvalidUsageTODOException>(
+            => Assert.Throws<FunParseException>(
                 ()=> Funny.CalcMany<UserInputModel,ContractOutputModel>(expr, new UserInputModel()));
         
         [Test]
         public void UnknownInputIdUsed_throws() 
-            => Assert.Throws<FunInvalidUsageTODOException>(
+            => Assert.Throws<FunParseException>(
                 ()=> Funny.CalcMany<UserInputModel,ContractOutputModel>(
                     "id = someInput*age", new UserInputModel()));
     

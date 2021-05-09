@@ -13,7 +13,7 @@ namespace NFun.Tests.FluentApi
             var context = Funny
                 .WithFunction("myHello", (int i) => $"Hello mr #{i}")
                 .WithFunction("myInc", (int i) => i + 1)
-                .CreateContextFor<ModelWithInt, string>();
+                .ForCalc<ModelWithInt, string>();
             
             Func<ModelWithInt, string> lambda = context.Build("out = myHello(myInc(id))");
 
@@ -30,7 +30,7 @@ namespace NFun.Tests.FluentApi
             var context = Funny
                 .WithFunction("myHello", (int i) => $"Hello mr #{i}")
                 .WithFunction("csumm", (ComplexModel m) => m.a.id+ m.b.id)
-                .CreateContextFor<ModelWithInt, int>();
+                .ForCalc<ModelWithInt, int>();
             
             var lambda = context.Build(
                 @"csumm(

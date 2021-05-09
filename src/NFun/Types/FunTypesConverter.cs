@@ -34,17 +34,14 @@ namespace NFun.Types
             }
             return false;
         }
-        protected FunTypesConverter()
-        {
-        }
+       
         protected FunTypesConverter(VarType funType)
         {
             FunType = funType;
         }
 
-        public VarType FunType { get; protected set; }
+        public VarType FunType { get; }
         public abstract object ToFunObject(object clrObject);
-        //public abstract T FromFunObject<T>(object funObject) where T: new();
     }
 
    
@@ -91,15 +88,6 @@ namespace NFun.Types
         }
     }
 
-    public class PrimitiveTypeConverter : FunTypesConverter
-    {
-        public PrimitiveTypeConverter(VarType varType): base(varType)
-        {
-            
-        }
-
-        public override object ToFunObject(object clrObject) => clrObject;
-    }
     public class ArrayOfPrimitivesFunTypesConverter : FunTypesConverter
     {
         private readonly VarType _elementType;
