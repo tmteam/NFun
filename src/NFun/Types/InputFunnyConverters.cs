@@ -79,9 +79,9 @@ namespace NFun.Types
         public object ToFunObject(object clrObject) => clrObject;
     }
     
-    public class StringTypesInputFunnyConverter: IinputFunnyConverter {
+    public class StringTypeInputFunnyConverter: IinputFunnyConverter {
         public VarType FunnyType { get; }
-        public StringTypesInputFunnyConverter() => FunnyType = VarType.Text;
+        public StringTypeInputFunnyConverter() => FunnyType = VarType.Text;
         public object ToFunObject(object clrObject) 
             => clrObject==null
                 ?TextFunArray.Empty

@@ -29,9 +29,9 @@ namespace NFun.Tests
             var runtime = FunBuilder.Build(expr);
             var ySource = runtime.GetAllVariableSources().First(vs => vs.IsOutput && vs.Name == "y");
             var xSource = runtime.GetAllVariableSources().First(vs => !vs.IsOutput && vs.Name == "x");
-            xSource.Value = arg;
+            xSource.FunnyValue = arg;
             runtime.Update();
-            Assert.AreEqual(expected, ySource.Value);
+            Assert.AreEqual(expected, ySource.FunnyValue);
         }
         
         
@@ -63,7 +63,7 @@ namespace NFun.Tests
             var runtime = FunBuilder.Build(expr);
             var ySource = runtime.GetAllVariableSources().First(vs => vs.IsOutput && vs.Name == "y");
             runtime.Update();
-            Assert.AreEqual(expected, ySource.Value);
+            Assert.AreEqual(expected, ySource.FunnyValue);
         }
     }
 }

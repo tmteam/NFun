@@ -21,7 +21,7 @@ namespace NFun.Benchmarks
             _const_Kxb_runtime = FunBuilder.Build(scripts.ConstKxb);
             _varkxb_runtime = FunBuilder.Build(scripts.VarKxb);
             var x = _varkxb_runtime.GetAllVariableSources().First(v => !v.IsOutput);
-            x.Value = 100.0;
+            x.FunnyValue = 100.0;
         }
         [Benchmark(Description = "dotnet [1.1000].SUM()", Baseline = true)]
         public int BaselineDotnetTest1000() => Enumerable.Range(1, 1000).Sum();

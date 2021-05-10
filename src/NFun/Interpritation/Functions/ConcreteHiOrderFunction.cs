@@ -47,6 +47,6 @@ namespace NFun.Interpritation.Functions
 
        
 
-        public override object Calc(object[] args) => ((IConcreteFunction) _source.Value).Calc(args);
+        public override object Calc(object[] args) => ((IConcreteFunction) _source.FunnyValue).Calc(args);
     }
 }

@@ -6,51 +6,51 @@ namespace NFun.SyntaxTests
 {
     public class ConstantsTest
     {
-        [TestCase("y = 2",2.0)]
-        [TestCase("y:int64 = -1",(Int64)(-1.0))]
-        [TestCase("y:int32 = -1",(Int32)(-1.0))]
-        [TestCase("y:int16 = -1",(Int16)(-1.0))]
-        [TestCase("y:int64 = 143",(Int64)(143))]
-        [TestCase("y:int32 = 143",(Int32)(143))]
-        [TestCase("y:int16 = 143",(Int16)(143))]
-        [TestCase("y:uint64 = 143",(UInt64)(143))]
-        [TestCase("y:uint32 = 143",(UInt32)(143))]
-        [TestCase("y:uint16 = 143",(UInt16)(143))]
-        
+        [TestCase("y = 2", 2.0)]
+        [TestCase("y:int64 = -1", (Int64) (-1.0))]
+        [TestCase("y:int32 = -1", (Int32) (-1.0))]
+        [TestCase("y:int16 = -1", (Int16) (-1.0))]
+        [TestCase("y:int64 = 143", (Int64) (143))]
+        [TestCase("y:int32 = 143", (Int32) (143))]
+        [TestCase("y:int16 = 143", (Int16) (143))]
+        [TestCase("y:uint64 = 143", (UInt64) (143))]
+        [TestCase("y:uint32 = 143", (UInt32) (143))]
+        [TestCase("y:uint16 = 143", (UInt16) (143))]
+
         [TestCase("y:int16 = 32767", Int16.MaxValue)]
-        [TestCase("y:int16 = -32768",Int16.MinValue)]
+        [TestCase("y:int16 = -32768", Int16.MinValue)]
         [TestCase("y:int32 = 2147483647", Int32.MaxValue)]
-        [TestCase("y:int32 = -2147483648",Int32.MinValue)]
+        [TestCase("y:int32 = -2147483648", Int32.MinValue)]
         [TestCase("y:int64 = 9223372036854775807", Int64.MaxValue)]
-        [TestCase("y:int64 = -9223372036854775808",Int64.MinValue)]
+        [TestCase("y:int64 = -9223372036854775808", Int64.MinValue)]
 
-        
-        [TestCase("y:byte   = 255",byte.MaxValue)]
-        [TestCase("y:uint16 = 65535",UInt16.MaxValue)]
-        [TestCase("y:uint32 = 4294967295",UInt32.MaxValue)]
+
+        [TestCase("y:byte   = 255", byte.MaxValue)]
+        [TestCase("y:uint16 = 65535", UInt16.MaxValue)]
+        [TestCase("y:uint32 = 4294967295", UInt32.MaxValue)]
         [TestCase("y:uint64 = 18446744073709551615", UInt64.MaxValue)]
-        
-        [TestCase("y:byte   = 0xFF",byte.MaxValue)]
-        [TestCase("y:uint16 = 0xFFFF",UInt16.MaxValue)]
-        [TestCase("y:uint32 = 0xFFFF_FFFF",UInt32.MaxValue)]
-        [TestCase("y:uint64 = 0xFFFF_FFFF_FFFF_FFFF", UInt64.MaxValue)]
-        
-        [TestCase("y:int16 = 0",  (Int16)0)]
-        [TestCase("y:int32 = 0",  (Int32)(0))]
-        [TestCase("y:int64 = 0",  (Int64)0)]
-        
-        [TestCase("y:byte = 0",  (byte)0)]
-        [TestCase("y:uint16 = 0", (UInt16)0)]
-        [TestCase("y:uint32 = 0", (UInt32)(0))]
-        [TestCase("y:uint64 = 0", (UInt64)0)]
 
-        [TestCase("y = 0.2",0.2)]
-        [TestCase("y = 11.222  ",11.222)]
+        [TestCase("y:byte   = 0xFF", byte.MaxValue)]
+        [TestCase("y:uint16 = 0xFFFF", UInt16.MaxValue)]
+        [TestCase("y:uint32 = 0xFFFF_FFFF", UInt32.MaxValue)]
+        [TestCase("y:uint64 = 0xFFFF_FFFF_FFFF_FFFF", UInt64.MaxValue)]
+
+        [TestCase("y:int16 = 0", (Int16) 0)]
+        [TestCase("y:int32 = 0", (Int32) (0))]
+        [TestCase("y:int64 = 0", (Int64) 0)]
+
+        [TestCase("y:byte = 0", (byte) 0)]
+        [TestCase("y:uint16 = 0", (UInt16) 0)]
+        [TestCase("y:uint32 = 0", (UInt32) (0))]
+        [TestCase("y:uint64 = 0", (UInt64) 0)]
+
+        [TestCase("y = 0.2", 0.2)]
+        [TestCase("y = 11.222  ", 11.222)]
         [TestCase("y = 1111  ", 1111.0)]
         [TestCase("y = 11_11  ", 1111.0)]
-        [TestCase("y = 1.1_11  ",1.111)]
-        public void NumericConstantEqualsExpected(string expression, object expected) 
-            => TestHelper.AssertConstantCalc("y",expression, expected);
+        [TestCase("y = 1.1_11  ", 1.111)]
+        public void NumericConstantEqualsExpected(string expression, object expected) =>
+            expression.AssertReturns("y", expected);
         
         [TestCase("y = 0xfF  ",255)]
         [TestCase("y = 0x00_Ff  ",255)]
@@ -130,10 +130,9 @@ namespace NFun.SyntaxTests
             if (index == -1) index = expression.IndexOf("0b", StringComparison.Ordinal);
             index += 2;
             var upperExpression = expression.Substring(0, index) + expression.Substring(index).ToUpper();
-            TestHelper.AssertConstantCalc("y", upperExpression, expected);
+            upperExpression.AssertReturns("y", expected);
             var lowerExpression = expression.Substring(0, index) + expression.Substring(index).ToLower();
-            TestHelper.AssertConstantCalc("y", upperExpression, expected);
-            
+            lowerExpression.AssertReturns("y", expected);
         }
 
         [TestCase("y = 91111111111111111111111111111111111111")]
@@ -175,7 +174,7 @@ namespace NFun.SyntaxTests
         [TestCase("y:int64 = 19223372036854775809")]
         [TestCase("y:int64 = -9223372036854775809")]
         [TestCase("y:int64 = -19223372036854775809")]
-        public void ObviouslyFails(string expr) => TestHelper.AssertObviousFailsOnParse(expr);
+        public void ObviouslyFails(string expr) => expr.AssertObviousFailsOnParse();
 
     }
 }

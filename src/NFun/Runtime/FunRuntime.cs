@@ -51,7 +51,7 @@ namespace NFun.Runtime
                 else
                     v = value;
 
-                _variables.GetSourceOrNull(key).SetConvertedValue(v);
+                _variables.GetSourceOrNull(key).SetClrValue(v);
             }
             //get => _variables.GetSourceOrNull(key).Value;
         }
@@ -61,6 +61,32 @@ namespace NFun.Runtime
             for (int i = 0; i < _equations.Count; i++) 
                 _equations[i].UpdateExpression();
         }
+
+        public CalculationResult Calc(string id, object clrValue) => Calc((id, clrValue));
+    
+        public CalculationResult Calc(params (string id, object clrValue)[] values)
+        {
+            foreach (var value in values)
+            {
+                if (value.clrValue == null)
+                    throw new ArgumentException($"Value for '{value.id}' cannot be null");
+                
+                var source = _variables.GetSourceOrNull(value.id);
+                if(source==null)
+                    throw new ArgumentException($"unexpected input '{value.id}'");
+                var converter =FunnyTypeConverters.GetInputConverter(value.clrValue.GetType());
+                //if(converter.FunnyType!=source.Type)
+                //    throw new ArgumentException($"Input '{value.id}' has wrong type. " +
+                //                                $"Expected {source.Type} but was {converter.FunnyType}");
+                
+                source.FunnyValue = converter.ToFunObject(value.clrValue);
+            }
+            var ans = new VarVal[_equations.Count];
+            for (int i = 0; i < _equations.Count; i++) 
+                ans[i] = _equations[i].CalcExpression();
+            
+            return new CalculationResult(ans);
+        }
         public CalculationResult Calculate(params VarVal[] vars)
         {
             foreach (var value in vars)
@@ -68,7 +94,7 @@ namespace NFun.Runtime
                 var source = _variables.GetSourceOrNull(value.Name);
                 if(source==null)
                     throw new ArgumentException($"unexpected input '{value.Name}'");
-                source.SetConvertedValue(value.Value);
+                source.SetClrValue(value.Value);
             }
             
             var ans = new VarVal[_equations.Count];
@@ -83,7 +109,7 @@ namespace NFun.Runtime
             foreach (var value in vars)
             {
                 var source = _variables.GetSourceOrNull(value.Name);
-                source?.SetConvertedValue(value.Value);
+                source?.SetClrValue(value.Value);
             }
             
             var ans = new VarVal[_equations.Count];
@@ -97,7 +123,7 @@ namespace NFun.Runtime
             foreach (var value in vars)
             {
                 var source = _variables.GetSourceOrNull(value.Name);
-                source?.SetConvertedValue(value.Value);
+                source?.SetClrValue(value.Value);
             }
             
             var ans = new VarVal[_equations.Count];

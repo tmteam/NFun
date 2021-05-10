@@ -41,19 +41,11 @@ namespace NFun.SyntaxTests
         [TestCase(" f(x:int):int = x+1 \r y = 4.f().f().f()", 7)]
         [TestCase("  f(x:int):int = x*x \r y = -(4.f())", -16)]
         [TestCase(" f(x:int):int = x*x \r y = 4.f() == f(4)", true)]
-        public void ConstantSingleVariableTest(string expr, object expected)
-        {
-            var runtime = FunBuilder.Build(expr);
-            runtime.Calculate()
-                .AssertReturns(VarVal.New("y", expected));
-        }
+        public void ConstantSingleVariableTest(string expr, object expected) => expr.AssertReturns("y", expected);
+
         [TestCase("x1 = 2; x2 = 1; y = -x1.max(x2)", -2.0)]
-        public void ConstantTest(string expr, object yExpected)
-        {
-            var runtime = FunBuilder.Build(expr);
-            runtime.Calculate()
-                .AssertHas(VarVal.New("y", yExpected));
-        }
+        public void ConstantTest(string expr, object yExpected) => expr.AssertHas("y",yExpected);
+
         [TestCase(@"f(x:int):int = x*x y = 4.f)")]
         [TestCase(@"f(x:int):int = x*x y = 4.f( == f(4)")]
         [TestCase(@"f(x:int):int = x*x y = 4.f(,) == f(4)")]
@@ -66,6 +58,6 @@ namespace NFun.SyntaxTests
         [TestCase(@"y = f.4")]
         [TestCase(@"y = f|")]
         [TestCase(@"y = [1,2,3].max")]
-        public void ObviousFails(string expr) => TestHelper.AssertObviousFailsOnParse(expr);
+        public void ObviousFails(string expr) => expr.AssertObviousFailsOnParse();
     }
 }

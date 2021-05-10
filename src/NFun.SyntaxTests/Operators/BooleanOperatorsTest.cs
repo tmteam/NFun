@@ -25,6 +25,6 @@ namespace NFun.SyntaxTests.Operators
         [TestCase("y = not not true",  true)]
         [TestCase("y = false or not false", true)]
         public void ConstantBoolCalc(string expression, bool expected)
-            => TestHelper.AssertConstantCalc("y", expression, expected);
+            => expression.AssertReturns("y",expected);
     }
 }

@@ -7,64 +7,62 @@ namespace NFun.Runtime
 {
     public class VariableSource
     {
-        internal object InternalValue;
+        internal object InternalFunnyValue;
 
         public static VariableSource CreateWithStrictTypeLabel( string name, 
             VarType type, 
-            Interval typeSpecificationIntervalOrNull, 
+            Interval typeSpecificationIntervalOrNull,
+            bool isOutput,
             VarAttribute[] attributes = null)
-            => new VariableSource(name, type, typeSpecificationIntervalOrNull, attributes);
+            => new (name, type, typeSpecificationIntervalOrNull, isOutput, attributes);
 
         public static VariableSource CreateWithoutStrictTypeLabel(
-            string name, VarType type,  VarAttribute[] attributes = null)
-            => new VariableSource(name, type, attributes);
+            string name, VarType type, bool isOutput,  VarAttribute[] attributes = null)
+            => new(name, type, isOutput, attributes);
 
         private VariableSource(
             string name, 
             VarType type, 
             Interval typeSpecificationIntervalOrNull, 
+            bool isOutput,
             VarAttribute[] attributes = null)
         {
-            InternalValue = type.GetDefaultValueOrNull();
+            IsOutput = isOutput;
+            InternalFunnyValue = type.GetDefaultValueOrNull();
             IsStrictTyped = true;
             TypeSpecificationIntervalOrNull = typeSpecificationIntervalOrNull;
             Attributes = attributes ?? new VarAttribute[0];
             Name = name;
             Type = type;
-            IsOutput = false;
         }
 
-        private VariableSource(string name, VarType type,  VarAttribute[] attributes = null)
+        private VariableSource(string name, VarType type,bool isOutput,  VarAttribute[] attributes = null)
         {
-            InternalValue = type.GetDefaultValueOrNull();
+            IsOutput = isOutput;
+            InternalFunnyValue = type.GetDefaultValueOrNull();
             IsStrictTyped = false;
             Attributes = attributes??new VarAttribute[0];
             Name = name;
             Type = type;
-            IsOutput = false;
         }
-    
         public bool IsStrictTyped { get; }
-
         public VarAttribute[] Attributes { get; }
-        
         public string Name { get; }
-
-        public Interval? TypeSpecificationIntervalOrNull { get; }
-        public bool IsOutput { get; set; }
+        internal Interval? TypeSpecificationIntervalOrNull { get; }
+        public bool IsOutput { get; }
         public VarType Type { get; }
 
-        public object Value
+        public object FunnyValue
         {
-            get => InternalValue;
-            set => InternalValue = value;
+            get => InternalFunnyValue;
+            set => InternalFunnyValue = value;
         }
-
-        public void SetConvertedValue(object valueValue)
+        
+        public void SetClrValue(object valueValue)
         {
             if (Type.BaseType.GetClrType() == valueValue.GetType())
             {
-                Value = valueValue;
+                FunnyValue = valueValue;
                 return;
             }
             switch (Type.BaseType)
@@ -72,37 +70,37 @@ namespace NFun.Runtime
                 case BaseVarType.ArrayOf:
                 case BaseVarType.Struct:
                 case BaseVarType.Any:
-                    Value = valueValue;
+                    FunnyValue = valueValue;
                     break;
                 case BaseVarType.Bool:
-                    Value = Convert.ToBoolean(valueValue);
+                    FunnyValue = Convert.ToBoolean(valueValue);
                     break;
                 case BaseVarType.Int16:
-                    Value = Convert.ToInt16(valueValue);
+                    FunnyValue = Convert.ToInt16(valueValue);
                     break;
                 case BaseVarType.Int32:
-                    Value = Convert.ToInt32(valueValue);
+                    FunnyValue = Convert.ToInt32(valueValue);
                     break;
                 case BaseVarType.Int64:
-                    Value = Convert.ToInt64(valueValue);
+                    FunnyValue = Convert.ToInt64(valueValue);
                     break;
                 case BaseVarType.UInt8:
-                    Value = Convert.ToByte(valueValue);
+                    FunnyValue = Convert.ToByte(valueValue);
                     break;
                 case BaseVarType.UInt16:
-                    Value = Convert.ToUInt16(valueValue);
+                    FunnyValue = Convert.ToUInt16(valueValue);
                     break;
                 case BaseVarType.UInt32:
-                    Value = Convert.ToUInt32(valueValue);
+                    FunnyValue = Convert.ToUInt32(valueValue);
                     break;
                 case BaseVarType.UInt64:
-                    Value = Convert.ToUInt64(valueValue);
+                    FunnyValue = Convert.ToUInt64(valueValue);
                     break;
                 case BaseVarType.Real:
-                    Value = Convert.ToDouble(valueValue);
+                    FunnyValue = Convert.ToDouble(valueValue);
                     break;
                 case BaseVarType.Char:
-                    Value = valueValue?.ToString() ?? "";
+                    FunnyValue = valueValue?.ToString() ?? "";
                     break;
                 default:
                     throw new NotSupportedException($"type '{Type.BaseType}' is not supported as primitive type");

@@ -81,7 +81,7 @@ y = tostring(x)", "y", "not supported")]
             Assert.AreEqual(1, runtime.Inputs.Length);
             Assert.AreEqual(1, runtime.Outputs.Length);
             runtime.Calculate(VarVal.New("x", xVal))
-                .AssertReturns(VarVal.New(outputName, outputValue));
+                .OLD_AssertReturns(VarVal.New(outputName, outputValue));
         }
 
         [TestCase("y = 1", "y", 1.0)]
@@ -136,11 +136,10 @@ y = tostring(x)", "y", "not supported")]
         [TestCase("y = [1..4].all{it>2}#false", "y", false)]
         public void Constant(string expr, string outputName, object val)
         {
-            var runtime = FunBuilder.Build(expr);
+            var runtime = expr.Build();
             Assert.AreEqual(0, runtime.Inputs.Length);
             Assert.AreEqual(1, runtime.Outputs.Length);
-            runtime.Calculate()
-                .AssertReturns(VarVal.New(outputName, val));
+            runtime.Calc().AssertReturns(outputName, val);
         }
 
         [TestCase("a=1; b=2; c=3;",                             new[]{"a","b","c"}, new object[]{1.0, 2.0, 3.0})]
@@ -152,8 +151,7 @@ y = tostring(x)", "y", "not supported")]
         [TestCase("a =[0..10][1]; b=[0..5][2]; c=[0..5][3];",   new[]{"a","b","c"}, new object[]{1.0, 2.0, 3.0})]
         public void SomeConstantInExpression(string expr, string[] outputNames, object[] constantValues)
         {
-            var runtime = FunBuilder.Build(expr);
-            var calculateResult = runtime.Calculate();
+            var calculateResult = expr.Calc();
             for (var item=0; item < outputNames.Length; item++)
             {
                 var expectedVal = VarVal.New(outputNames[item], constantValues[item]);
@@ -174,11 +172,10 @@ x-
     10
 
 ";
-            var runtime = FunBuilder.Build(expr);
+            var runtime = expr.Build();
             Assert.AreEqual(1, runtime.Inputs.Length);
             Assert.AreEqual(1, runtime.Outputs.Length);
-            runtime.Calculate(VarVal.New("x", 2.5))
-                .AssertReturns(VarVal.New("y", 15.0));
+            runtime.Calc("x", 2.5).AssertReturns("y", 15.0);
         }
  
 
@@ -188,11 +185,10 @@ x-
             var expr = @"
 sum = x1+x2
 dif = x1-x2";
-            var runtime = FunBuilder.Build(expr);
+            var runtime = expr.Build();
             Assert.AreEqual(2, runtime.Inputs.Length);
             Assert.AreEqual(2, runtime.Outputs.Length);
-            runtime.Calculate(VarVal.New("x1", 10.0), VarVal.New("x2", 2.5))
-                .AssertReturns(VarVal.New("sum", 12.5), VarVal.New("dif", 7.5));
+            runtime.Calc(("x1", 10.0),("x2", 2.5)).AssertReturns(("sum", 12.5), ("dif", 7.5));
         }
 
         [Test]
@@ -208,17 +204,17 @@ y2 = x1 and true # == x1
 y3 = x1 == false 
 y4 = not(x1 and x2 or x3)
 ";
-            var runtime = FunBuilder.Build(expr);
+            var runtime = expr.Build();
             Assert.AreEqual(3, runtime.Inputs.Length);
             Assert.AreEqual(4, runtime.Outputs.Length);
-            runtime.Calculate(
-                    VarVal.New("x1", true),
-                    VarVal.New("x2", false),
-                    VarVal.New("x3", true))
-                .AssertReturns(VarVal.New("y1", false),
-                    VarVal.New("y2", true),
-                    VarVal.New("y3", false),
-                    VarVal.New("y4", false));
+            runtime.Calc(
+                    ("x1", true),
+                    ("x2", false),
+                    ("x3", true))
+                .AssertReturns(("y1", false),
+                    ("y2", true),
+                    ("y3", false),
+                    ("y4", false));
         }
 
         [TestCase("y = a / b", BaseVarType.Real)]
@@ -232,36 +228,26 @@ y4 = not(x1 and x2 or x3)
       //  [TestCase("y = 'hi '.strConcat(u) #text", BaseVarType.Text)]
         public void Single_Equation_OutputTypeTest(string expression, BaseVarType primitiveType)
         {
-            var runtime = FunBuilder.Build(expression);
+            var runtime = expression.Build();
             Assert.AreEqual(1, runtime.Outputs.Length);
             var output = runtime.Outputs[0];
             Assert.AreEqual(primitiveType, output.Type.BaseType);
         }
 
         [Test]
-        public void CalculationWithAttributes()
-        {
-            var expr = @"
+        public void CalculationWithAttributes() =>
+            @"
 yprivate   = 0.1 * xpublic 
-yPublic   = yprivate + xpublic";
-            var runtime = FunBuilder.Build(expr);
-            runtime.Calculate(VarVal.New("xpublic", 10.0))
-                .AssertReturns(
-                    VarVal.New("yprivate", 1.0),
-                    VarVal.New("yPublic", 11.0));
-        }
+yPublic   = yprivate + xpublic"
+                .Calc("xpublic", 10.0).AssertReturns(("yprivate", 1.0), ("yPublic", 11.0));
 
         [TestCase(" y1 = [1,’2’,3,4]      # error")]
         [TestCase(" x:real[] \r y = x.filter(x => x< 2 ) # error.")]
-        public void ObviousFails(string expr) => TestHelper.AssertObviousFailsOnParse(expr);
+        public void ObviousFails(string expr) => expr.AssertObviousFailsOnParse();
 
         [TestCase(" y:int = convert('string')")]
         [TestCase(" y:int = convert('string')")]
         [TestCase(" y = [1,2,3][4]")]
-        public void ObviousFailsOnRuntime(string expr)
-        {
-            Assert.Throws<FunRuntimeException>(
-                () => FunBuilder.Build(expr).Calculate());
-        }
+        public void ObviousFailsOnRuntime(string expr) => Assert.Throws<FunRuntimeException>(() => expr.Calc());
     }
 }

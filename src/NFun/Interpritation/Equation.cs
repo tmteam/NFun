@@ -20,12 +20,12 @@ namespace NFun.Interpritation
         public VarVal CalcExpression()
         {
             var val  = new VarVal(Id, Expression.Calc(), Expression.Type);
-            OutputVariableSource.Value = val.Value;
+            OutputVariableSource.FunnyValue = val.Value;
             return val;
         }
 
-        public void UpdateExpression() 
-            => OutputVariableSource.InternalValue = Expression.Calc();
+        internal void UpdateExpression() 
+            => OutputVariableSource.InternalFunnyValue = Expression.Calc();
         public override string ToString() => $"\"{Id}\" equation";
     }
 }

@@ -28,14 +28,9 @@ y = 1.0
 #comment5
 z = true")]
 
-        public void SingleLineCommentsOnMultipleConstantEquatations(string expr)
-        {
-            var runtime = FunBuilder.Build(expr);
-            runtime.Calculate()
-                .AssertReturns(
-                    VarVal.New("y", 1.0),
-                    VarVal.New("z", true));
-        }
+        public void SingleLineCommentsOnMultipleConstantEquatations(string expr) =>
+            expr.AssertReturns(("y", 1.0), ("z", true));
+
         [TestCase("y = /*here is a comment  z = true")]
         [TestCase("y = 1.0 here is a comment*/\r z = true")]
         [TestCase("y = 1.0\r z#here is a comment*/  = true")]
@@ -46,7 +41,7 @@ z = true")]
 
         [TestCase("y =#here is a comment y 1.0\r z = true")]
         [TestCase("y = 2.0\r z = #here is a comment/ true")]
-        public void ObviouslyFails(string expr) => TestHelper.AssertObviousFailsOnParse(expr);
+        public void ObviouslyFails(string expr) => expr.AssertObviousFailsOnParse();
 
     }
 }

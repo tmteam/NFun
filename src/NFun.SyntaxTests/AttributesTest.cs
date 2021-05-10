@@ -28,7 +28,7 @@ namespace NFun.SyntaxTests
             string[] attribute)
         {
             
-            var runtime =FunBuilder.Build(expression);
+            var runtime =expression.Build();
             var varInfo = runtime.Outputs.Union(runtime.Inputs).SingleOrDefault(o => o.Name == variable);
             Assert.IsNotNull(varInfo);
 
@@ -57,7 +57,7 @@ namespace NFun.SyntaxTests
             , string variable,
             string attribute, object value)
         {
-            var runtime =FunBuilder.Build(expression);
+            var runtime =expression.Build();
             var varInfo = runtime.Outputs.Union(runtime.Inputs).SingleOrDefault(o => o.Name == variable);
             Assert.IsNotNull(varInfo);
 
@@ -82,7 +82,7 @@ namespace NFun.SyntaxTests
         [TestCase("\r y = 2  \r--('',3) \r z = 5")]
         [TestCase("\r y = 2  \r--(') \r z = 5")]
 
-        public void ObviouslyFails(string expr) => TestHelper.AssertObviousFailsOnParse(expr);
+        public void ObviouslyFails(string expr) => expr.AssertObviousFailsOnParse();
 
     }
 }

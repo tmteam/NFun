@@ -68,7 +68,7 @@ namespace NFun.SyntaxTests.Operators
         [TestCase("'avatar'== 'bigben' ", false)]
         [TestCase("'avatar'!= 'bigben' ", true)]
         public void ConstantEquality(string expr, object expected)
-            => TestHelper.AssertConstantCalc("out", expr, expected);
+            => expr.AssertReturns("out",expected);
 
         [TestCase("1!=0", true)]
         [TestCase("0!=1", true)]
@@ -109,7 +109,7 @@ namespace NFun.SyntaxTests.Operators
         [TestCase("5<=5", true)]
 
         public void ConstantEquation(string expr, bool expected)
-            => TestHelper.AssertConstantCalc("out", expr, expected);
+            => expr.AssertReturns("out",expected);
         
         
         [TestCase("x:real; y = x>42", (double)1, false)]
@@ -239,11 +239,7 @@ namespace NFun.SyntaxTests.Operators
         [TestCase("x:byte; y = x==42",(byte)1, false)]
         [TestCase("x:byte; y = x==42",(byte)42,true)]
         [TestCase("x:byte; y = x==42",(byte)43,false)]
-        public void SingleVariableEquation(string expr, object arg, object expected)
-        {
-            var runtime = FunBuilder.Build(expr);
-            runtime.Calculate(VarVal.New("x",arg))
-                .AssertReturns(0.00001, VarVal.New("y", expected));
-        }
+        public void SingleVariableEquation(string expr, object arg, object expected) => 
+            expr.Calc("x",arg).AssertReturns("y",expected);
     }
 }

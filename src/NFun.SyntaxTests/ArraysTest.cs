@@ -62,10 +62,8 @@ namespace NFun.SyntaxTests
         [TestCase("y = [1.0]==[1.0]", true)]
         [TestCase("y = [1.0]!=[1.0]", false)]
         [TestCase("y = [1.0,2.0]==[1.0,2.0]", true)]
-        public void ConstantArrayOperatorsTest(string expr, object expected)
-        {
-            FunBuilder.Build(expr).Calculate().AssertReturns(VarVal.New("y", expected));
-        }
+        public void ConstantArrayOperatorsTest(string expr, object expected) => expr.AssertReturns("y", expected);
+
         [Ignore("Step array initialization is disabled")]
         [TestCase("y:int[] = [1..7..2]", new[]{1,3,5,7})]
         [TestCase("y:int[] = [7..1..2]", new[]{7,5,3,1})]
@@ -73,30 +71,25 @@ namespace NFun.SyntaxTests
         [TestCase("y = [1.0..3.0..0.5]", new[]{1.0,1.5,2.0,2.5,3.0})]
         [TestCase("y = [3.0..1.0..0.5]", new[]{3.0,2.5,2.0,1.5, 1.0})]
         [TestCase("y = [1..3..0.5]", new[]{1.0,1.5,2.0,2.5,3.0})]
-        public void ConstantStepArrayInitTest(string expr, object expected)
-        {
-            FunBuilder.Build(expr).Calculate().AssertReturns(VarVal.New("y", expected));
-        }
+        public void ConstantStepArrayInitTest(string expr, object expected) => expr.AssertReturns("y", expected);
+
         [TestCase("a = 2.0 \r b=3.0 \r  y = [1.0,a,b] ", new[]{1.0,2.0,3.0})]
         [TestCase("a = 2.0 \r b=3.0 \r y = [a,b] ", new[]{2.0,3.0})]
         [TestCase("a = 2.0 \r b=3.0 \r y = [a+1,b+2] ", new[]{3.0,5.0})]
         [TestCase("a = 2.0 \r b=3.0 \r y = [a*0,b*0] ", new[]{0.0,0.0})]
         [TestCase("a = true  \ry = if (a) [1.0] else [2.0, 3.0] ", new[]{1.0})]
         [TestCase("a = false  \r y = if (a) [1.0] else [2.0, 3.0]", new[]{2.0,3.0})]
-        public void ConstantCalculableArrayTest(string expr, object expected)
-        {
-            FunBuilder.Build(expr).Calculate().AssertHas(VarVal.New("y", expected));
-        }
-        
-        [TestCase("[1,'2',3.0,4,5.2, true, false, 7.2]",new object[]{1.0,"2",3.0,4.0,5.2,true,false,7.2})]
-        [TestCase("if (true) [1.0] else [2.0, 3.0] ", new[]{1.0})]
-        [TestCase("if (false) [1.0] else [2.0, 3.0]", new[]{2.0,3.0})]
-        [TestCase ("y(x) = x \r[1]",new[]{1.0})]
-        [TestCase ("y(x) = x \r[1..3]",new[]{1.0,2,3})]
-        [TestCase ("y(x) = x # some comment \r[1]",new[]{1.0})]
-        [TestCase ("y(x) = x # some comment \r[1..3]",new[]{1.0,2,3})]
-        public void AnonymousConstantArrayTest(string expr, object expected) 
-            => FunBuilder.Build(expr).Calculate().AssertOutEquals(expected);
+        public void ConstantCalculableArrayTest(string expr, object expected) => expr.AssertHas("y", expected);
+
+        [TestCase("[1,'2',3.0,4,5.2, true, false, 7.2]", new object[] {1.0, "2", 3.0, 4.0, 5.2, true, false, 7.2})]
+        [TestCase("if (true) [1.0] else [2.0, 3.0] ", new[] {1.0})]
+        [TestCase("if (false) [1.0] else [2.0, 3.0]", new[] {2.0, 3.0})]
+        [TestCase("y(x) = x \r[1]", new[] {1.0})]
+        [TestCase("y(x) = x \r[1..3]", new[] {1.0, 2, 3})]
+        [TestCase("y(x) = x # some comment \r[1]", new[] {1.0})]
+        [TestCase("y(x) = x # some comment \r[1..3]", new[] {1.0, 2, 3})]
+        public void AnonymousConstantArrayTest(string expr, object expected)
+            => expr.AssertOut(expected);
 
         [Test]
         public void IntersectToDimArrayTest()
@@ -104,12 +97,11 @@ namespace NFun.SyntaxTests
             var expression = "y = [[1.0,2.0],[3.0,4.0],[5.0]]." +
                              " intersect ([[3.0,4.0],[1.0],[5.0],[4.0]])";
             var expected = new[] {new [] {3.0, 4.0},new[]{5.0}};
-
-            FunBuilder.Build(expression).Calculate().AssertReturns(VarVal.New("y", expected));
+            expression.AssertReturns("y", expected);
         }
         
 
-        [TestCase(3, "y= [1..x]", new[] {1.0, 2, 3})]
+        [TestCase(3.0, "y= [1..x]", new[] {1.0, 2, 3})]
         [TestCase( (Int64)42, "x:int64;   y:real[]= [1,2,x]", new[] {1.0, 2.0, 42.0})]
         [TestCase( (Int32)42, "x:int32;   y:real[]= [1,2,x]", new[] {1.0, 2.0, 42.0})]
         [TestCase( (Int16)42, "x:int16;   y:real[]= [1,2,x]", new[] {1.0, 2.0, 42.0})]
@@ -146,22 +138,21 @@ namespace NFun.SyntaxTests
         [TestCase((byte)  42, "x:byte;    y:uint16[]= [1,2,x]", new UInt16[] {1,2,42})]
         
 
-        [TestCase(3, "y= [x..7]", new[] {3.0, 4, 5, 6, 7})]
+        [TestCase(3.0, "y= [x..7]", new[] {3.0, 4, 5, 6, 7})]
         [TestCase(3, "y:int[]= [x,2,3]", new[] {3, 2, 3})]
         [TestCase(3, "y= [1..5][x]", 4.0)]
         [TestCase(true, "y= (if(x) [1,2] else [])[0]", 1.0)]
 
         //[TestCase(2, "x:int; y= [1..6..x]", new[] {1, 3, 5})]
         //[TestCase(0.5, "y= [1.0..3.0..x]", new[] {1.0, 1.5, 2.0, 2.5, 3.0})]
-        public void SingleInputEquation_CheckOutputValues(object val, string expr, object expected)
-        {
-            FunBuilder.Build(expr).Calculate(VarVal.New("x",val)).AssertHas(VarVal.New("y", expected));
-        }
+        public void SingleInputEquation_CheckOutputValues(object val, string expr, object expected) => 
+            expr.Calc("x",val).AssertHas("y", expected);
+
         [Test]
         public void ConstantTwinAnyArray_NoTypeSpecification()
         {
             var expr = "out = [0,[1]]";
-            var result = FunBuilder.Build(expr).Calculate().Get("out");
+            var result = expr.Calc().Get("out");
             Assert.AreEqual(result.Type, VarType.ArrayOf(VarType.Anything));            
             var arr1 = (IEnumerable<object>) result.Value;
             Assert.AreEqual(2, arr1.Count());
@@ -174,7 +165,7 @@ namespace NFun.SyntaxTests
         public void ConstantTwinAnyArray_WithTypeSpecification()
         {
             var expr = "out:anything[] = [0,[1]]";
-            var result = FunBuilder.Build(expr).Calculate().Get("out");
+            var result = expr.Calc().Get("out");
             Assert.AreEqual(result.Type, VarType.ArrayOf(VarType.Anything));            
             var arr1 = (IEnumerable<object>) result.Value;
             Assert.AreEqual(2, arr1.Count());
@@ -200,7 +191,7 @@ namespace NFun.SyntaxTests
         public void ConstantTwinAnyArrayWithUpcast(string expr)
         {
             TraceLog.IsEnabled = true;
-            var result = FunBuilder.Build(expr).Calculate().Get("out");
+            var result = expr.Calc().Get("out");
             Assert.AreEqual(result.Type, VarType.ArrayOf(VarType.Anything));            
         }
         [TestCase("out = [[0x1],[1.0]]")]
@@ -212,7 +203,7 @@ namespace NFun.SyntaxTests
         {
             TraceLog.IsEnabled = true;
 
-            Assert.Throws<FunParseException>(() => FunBuilder.Build(expr));
+            Assert.Throws<FunParseException>(() => expr.Build());
             //todo Support type inference
             /*
             var result = FunBuilder.Build(expr).Calculate().Get("out");
@@ -226,7 +217,7 @@ namespace NFun.SyntaxTests
         {
             TraceLog.IsEnabled = true;
             var expr = "out:real[][] = [[0x1],[1.0]]";
-            var result = FunBuilder.Build(expr).Calculate().Get("out");
+            var result = expr.Calc().Get("out");
             Assert.AreEqual(VarType.ArrayOf(VarType.ArrayOf(VarType.Real)),result.Type);            
         }
         
@@ -235,7 +226,7 @@ namespace NFun.SyntaxTests
         public void ConstantTwinAnyArrayWithUpcast()
         {
             var expr = "out = [[0x1],[1.0],[true]]";
-            var result = FunBuilder.Build(expr).Calculate().Get("out");
+            var result = expr.Calc().Get("out");
             Assert.AreEqual(VarType.ArrayOf(VarType.ArrayOf(VarType.Anything)),result.Type);            
         }
         
@@ -243,7 +234,7 @@ namespace NFun.SyntaxTests
         public void ConstantTrippleAnyArrayWithUpcast()
         {
             var expr = "out:anything = [false,0,1,'vasa',[1,2,[10000,2]]]";
-            var result = FunBuilder.Build(expr).Calculate().GetValueOf("out");
+            var result = expr.Calc().GetValueOf("out");
 
             var arr1 = (IEnumerable<object>) result;
             Assert.AreEqual(5, arr1.Count());
@@ -272,10 +263,7 @@ namespace NFun.SyntaxTests
         {
             var expr = $"x:{downType};    y:real[][]= [[1],[2,3,x],[x]]";
 
-            var res = FunBuilder
-                .Build(expr)
-                .Calculate(VarVal.New("x", 42.0))
-                .GetValueOf("y");
+            var res = expr.Calc("x", 42.0).GetValueOf("y");
            
             var expected = new[]
             {
@@ -299,14 +287,10 @@ namespace NFun.SyntaxTests
         }
 
         [Test]
-        public void ExceptToDimArrayTest()
-        {
-            var expression = "y = [[1.0,2.0],[3.0,4.0]]. except([[3.0,4.0],[1.0],[4.0]])";
-            var expected = new[] {new [] {1.0, 2.0}};
+        public void ExceptToDimArrayTest() => 
+            "y = [[1.0,2.0],[3.0,4.0]]. except([[3.0,4.0],[1.0],[4.0]])"
+                .AssertReturns("y",new[] {new [] {1.0, 2.0}});
 
-            FunBuilder.Build(expression).Calculate().AssertReturns(VarVal.New("y", expected));
-        }
-        
         [Test]
         public void TwoDimConstatantTest()
         {
@@ -318,8 +302,7 @@ namespace NFun.SyntaxTests
             var expectedType = VarType.ArrayOf(VarType.ArrayOf(VarType.Real));
             var expression = " y= [[1.0,2.0],[3.0,4.0],[5.0]]";
             
-            var runtime = FunBuilder.Build(expression);
-            var res = runtime.Calculate().Get("y");
+            var res = expression.Calc().Get("y");
             Assert.AreEqual(expectedType, res.Type);
             AssertMultiDimentionalEquals(res, expected);
         }
@@ -334,8 +317,7 @@ namespace NFun.SyntaxTests
             var expectedType = VarType.ArrayOf(VarType.ArrayOf(VarType.Real));
             var expression = " y= [[1,2],[3,4]].concat([[5.0]])";
             
-            var runtime = FunBuilder.Build(expression);
-            var res = runtime.Calculate().Get("y");
+            var res = expression.Calc().Get("y");
             Assert.AreEqual(expectedType, res.Type);
             AssertMultiDimentionalEquals(res, expected);
         }
@@ -351,8 +333,7 @@ namespace NFun.SyntaxTests
             var expectedOutput = x;
             var expression = "x:int[][]\r y= x";
             
-            var runtime = FunBuilder.Build(expression);
-            var res = runtime.Calculate(VarVal.New("x", x)).Get("y");
+            var res = expression.Calc("x", x).Get("y");
             Assert.AreEqual(expectedType, res.Type);
             AssertMultiDimentionalEquals(res, expectedOutput);
         }
@@ -375,8 +356,7 @@ namespace NFun.SyntaxTests
 
             var expression = "x:int[][]\r y= x.concat(x)";
             
-            var runtime = FunBuilder.Build(expression);
-            var res = runtime.Calculate(VarVal.New("x", x)).Get("y");
+            var res = expression.Calc("x", x).Get("y");
             Assert.AreEqual(expectedType, res.Type);
             AssertMultiDimentionalEquals(res, expectedOutput);
         }
@@ -391,10 +371,7 @@ size      = concat.count()
 possum   = x.filter{it>0}.fold{it1+it2}
 filtrat   = x.filter{it> filt} # filt - input variable
 ";
-            var runtime = FunBuilder.Build(expr);
-            var res = runtime.Calculate(VarVal.New("x", new[]{5,6,7,8}),
-                VarVal.New("filt", 2)
-                );
+           expr.Calc(("x", new[]{5,6,7,8}), ("filt", 2));
         }
         private static void AssertMultiDimentionalEquals(VarVal res, int[][] expectedOutput)
         {
@@ -442,13 +419,12 @@ filtrat   = x.filter{it> filt} # filt - input variable
         [TestCase("y = [1..4..-2.0]")]
         [TestCase("y = [1..4..0]")]
         public void ObviouslyFailsOnParse(string expr)
-        => TestHelper.AssertObviousFailsOnParse(expr);
-        
+        => expr.AssertObviousFailsOnParse();
+       
 
         [TestCase("y = [0..10][11]")]
         [TestCase("y = ['a', 'b'][2]")]
         public void ObviouslyFailsOnRuntime(string expr) =>
-            Assert.Throws<FunRuntimeException>(
-                ()=> FunBuilder.Build(expr).Calculate());
+            Assert.Throws<FunRuntimeException>(()=> expr.Calc());
     }
 }

@@ -11,9 +11,7 @@ namespace NFun.SyntaxTests
         [TestCase("f(x)= x; (f(42))", 42.0)]
         [TestCase("f(x)= (x); (f(42))", 42.0)]
         [TestCase("f()= (2); (1)", 1.0)]
-
-        public void ConstantEquation(string expr, object expected)
-            => TestHelper.AssertConstantCalc("out", expr, expected);
+        public void ConstantEquation(string expr, object expected) => expr.AssertOut(expected);
 
         [TestCase("x:real\r x", 2.0, 2.0)]
         [TestCase("x== 2.0", 2.0, true)]
@@ -23,7 +21,7 @@ namespace NFun.SyntaxTests
         [TestCase("if (x<3) true else false", 2.0, true)]
         [TestCase("y(x) = x*2 \r y(x) * y(4.0)", 3.0, 48.0)]
         public void AnonymousExpressionSingleVariableEquatation(string expr, double arg, object expected)
-            => TestHelper.AssertVarCalc("x", arg, "out", expr, expected);
+            => expr.Calc("x",arg).AssertOut(expected);
 
         
         [TestCase("1", 1.0)]
@@ -46,8 +44,6 @@ namespace NFun.SyntaxTests
         [TestCase("y(x) = x \r y(3.0)", 3.0)]
         [TestCase("y(x) = x*2 \r y(3.0)  \r z(j) = j*j", 6.0)]
         public void AnonymousExpressionConstantEquatation(string expr, object expected)
-            => TestHelper.AssertConstantCalc("out", expr, expected);
+            => expr.AssertOut(expected);
     }
-
-
 }

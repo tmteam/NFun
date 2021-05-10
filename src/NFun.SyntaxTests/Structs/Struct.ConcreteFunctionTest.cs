@@ -16,7 +16,7 @@ namespace NFun.SyntaxTests.Structs
                        "x1= @{age = 12};" +
                        "r = f(x1); ")
                 .Calculate()
-                .AssertHas(VarVal.New("r", 12));
+                .OLD_AssertHas(VarVal.New("r", 12));
         }
         [Test]
         public void CallConcreteFunctionFieldOfIntNegate()
@@ -27,7 +27,7 @@ namespace NFun.SyntaxTests.Structs
                        "x1= @{age = 12};" +
                        "r = f(x1); ")
                 .Calculate()
-                .AssertHas(VarVal.New("r", -12));
+                .OLD_AssertHas(VarVal.New("r", -12));
         }
         [Test]
         public void CallConcreteFunctionFieldOfBoolNot()
@@ -38,7 +38,7 @@ namespace NFun.SyntaxTests.Structs
                        "x1= @{hasPenis = true};" +
                        "r = f(x1); ")
                 .Calculate()
-                .AssertHas(VarVal.New("r", false));
+                .OLD_AssertHas(VarVal.New("r", false));
         }
         [Test]
         public void CallConcreteFunctionMultipleFieldOfI64Access()
@@ -49,7 +49,7 @@ namespace NFun.SyntaxTests.Structs
                        "x1= @{a = 12; b = -1};" +
                        "r = f(x1);")
                 .Calculate()
-                .AssertHas(VarVal.New("r", (long)11));
+                .OLD_AssertHas(VarVal.New("r", (long)11));
         }
         
         [Test]
@@ -61,7 +61,7 @@ namespace NFun.SyntaxTests.Structs
                        "x1= @{a = 12; b = -1};" +
                        "r = f(x1);")
                 .Calculate()
-                .AssertHas(VarVal.New("r", 11.0));
+                .OLD_AssertHas(VarVal.New("r", 11.0));
         }
         
         [Test]
@@ -73,7 +73,7 @@ namespace NFun.SyntaxTests.Structs
                        "x1= @{a = true; b = true};" +
                        "r = f(x1);")
                 .Calculate()
-                .AssertHas(VarVal.New("r", true));
+                .OLD_AssertHas(VarVal.New("r", true));
         }
         [Test]
         public void CallConcreteNestedFunctionSingleFieldOfTextAccess()
@@ -84,7 +84,7 @@ namespace NFun.SyntaxTests.Structs
                        "x1 = @{a = @{m1='mama'}};" +
                        "r = f(x1);")
                 .Calculate()
-                .AssertHas(VarVal.New("r", "mamapopo"));
+                .OLD_AssertHas(VarVal.New("r", "mamapopo"));
         }
         [Test]
         public void CallConcreteFunctionMultipleFieldOfTextAccess()
@@ -95,7 +95,7 @@ namespace NFun.SyntaxTests.Structs
                        "x1= @{a = 'mama'; b = 'popo'};" +
                        "r = f(x1);")
                 .Calculate()
-                .AssertHas(VarVal.New("r", "mamapopo"));
+                .OLD_AssertHas(VarVal.New("r", "mamapopo"));
         }
         
         
@@ -108,7 +108,7 @@ namespace NFun.SyntaxTests.Structs
                        "x1 = @{a = @{m1='mama'}; b = @{m2='popo'}};" +
                        "r = f(x1);")
                 .Calculate()
-                .AssertHas(VarVal.New("r", "mamapopo"));
+                .OLD_AssertHas(VarVal.New("r", "mamapopo"));
         }
         [Test]
         public void CallConcreteFunctionManyFieldsAccess()
@@ -119,7 +119,7 @@ namespace NFun.SyntaxTests.Structs
                        "x1= @{age = 12; size = 24};" +
                        "r = f(x1); ")
                 .Calculate()
-                .AssertHas(VarVal.New("r", 36));
+                .OLD_AssertHas(VarVal.New("r", 36));
         }
 
         [Test]
@@ -129,7 +129,7 @@ namespace NFun.SyntaxTests.Structs
                        "x1= @{age = 12; size = 24; name = 'vasa'};" +
                        "r = f(x1);")
                 .Calculate()
-                .AssertHas(VarVal.New("r", 24));
+                .OLD_AssertHas(VarVal.New("r", 24));
         
         
         
@@ -141,8 +141,8 @@ namespace NFun.SyntaxTests.Structs
                     "t = f(42).twice;" +
                     "d = f(123).dec")
                 .Calculate()
-                .AssertHas(VarVal.New("t", (uint)84))
-                .AssertHas(VarVal.New("d", (uint)122));
+                .OLD_AssertHas(VarVal.New("t", (uint)84))
+                .OLD_AssertHas(VarVal.New("d", (uint)122));
         [TestCase(1, 1)]
         [TestCase(3, 6)]
         [TestCase(6, 720)]
@@ -152,7 +152,7 @@ namespace NFun.SyntaxTests.Structs
                 @"fact(n:int) = if(n<=1) @{res = 1} else @{res = fact(n-1).res*n }
                   y = fact(x).res";
             var runtime = FunBuilder.Build(text);
-            runtime.Calculate(VarVal.New("x", x)).AssertReturns(0.00001, VarVal.New("y", y));
+            runtime.Calculate(VarVal.New("x", x)).OLD_AssertReturns(0.00001, VarVal.New("y", y));
         }
         [TestCase(1, 1)]
         [TestCase(3, 6)]
@@ -165,7 +165,7 @@ namespace NFun.SyntaxTests.Structs
                   y = fact(@{field=x})";
             var runtime = FunBuilder.Build(text);
             runtime.Calculate(VarVal.New("x", x))
-                .AssertReturns(0.00001, VarVal.New("y", y));
+                .OLD_AssertReturns(0.00001, VarVal.New("y", y));
         }
         
         [Test]
@@ -175,7 +175,7 @@ namespace NFun.SyntaxTests.Structs
                     "f(x:real) = @{res = x}; " +
                     "r = f(42.0).res;")
                 .Calculate()
-                .AssertHas(VarVal.New("r", 42.0));
+                .OLD_AssertHas(VarVal.New("r", 42.0));
         [Test]
         public void CallFunctionWithFieldIndexing() =>
             FunBuilder
@@ -183,7 +183,7 @@ namespace NFun.SyntaxTests.Structs
                        "x1= @{item = [1,2,3] };" +
                        "r = f(x1);")
                 .Calculate()
-                .AssertHas(VarVal.New("r", (byte)2));
+                .OLD_AssertHas(VarVal.New("r", (byte)2));
         
         [TestCase("f(x):int = x.a; y = f(@{x = true})")]
         [TestCase("f(x):int = x.a; y:bool = f(@{missing = 1})")]
@@ -192,6 +192,6 @@ namespace NFun.SyntaxTests.Structs
                   y = fact(@{a=x})")]
         [TestCase(@"f(n):int = n.field;
                   y = fact(@{nonExistingField=x})")]
-        public void ObviousFails(string expr)=> TestHelper.AssertObviousFailsOnParse(expr);
+        public void ObviousFails(string expr)=> expr.AssertObviousFailsOnParse();
     }
 }

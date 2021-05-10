@@ -25,7 +25,7 @@ namespace NFun.ApiTests
                     VarType.Text))
                 .Build($"y = {customName}('{arg}')");
            
-            runtime.Calculate().AssertReturns(VarVal.New("y", arg.Length));
+            runtime.Calculate().OLD_AssertReturns(VarVal.New("y", arg.Length));
         }
 
         [TestCase("[0x1,2,3,4]", new[] { 1, 3 })]
@@ -44,7 +44,7 @@ namespace NFun.ApiTests
                         VarType.ArrayOf(VarType.Generic(0)),
                         VarType.ArrayOf(VarType.Generic(0))))
                 .Build($"y = {customName}({arg})");
-            runtime.Calculate().AssertReturns(VarVal.New("y", expected));
+            runtime.Calculate().OLD_AssertReturns(VarVal.New("y", expected));
         }
         [Test]
         public void IsVarNameCapital_returnsBool()

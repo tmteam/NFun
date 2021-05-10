@@ -100,6 +100,7 @@ namespace NFun.Interpritation
                         varDef.Id,
                         varDef.VarType,
                         varDef.Interval,
+                        isOutput:false,
                         varDef.Attributes);
                     if (!variables.TryAdd(variableSource))
                     {
@@ -173,13 +174,15 @@ namespace NFun.Interpritation
                     name: equation.Id, 
                     type: equation.OutputType, 
                     typeSpecificationIntervalOrNull: equation.TypeSpecificationOrNull.Interval, 
-                    attributes: equation.Attributes);
+                    attributes: equation.Attributes, 
+                    isOutput:true);
             else
-                outputVariableSource = VariableSource.CreateWithoutStrictTypeLabel(equation.Id, equation.OutputType, equation.Attributes);
-            
-            outputVariableSource.IsOutput = true;
+                outputVariableSource = VariableSource.CreateWithoutStrictTypeLabel(
+                    name: equation.Id, 
+                    type: equation.OutputType, 
+                    isOutput: true,
+                    equation.Attributes);
 
-            
             var itVariable = variables.GetSuperAnonymousVariableOrNull();
             if (itVariable != null)
                 throw FunParseException.ErrorStubToDo("Variable cannot starts with it");

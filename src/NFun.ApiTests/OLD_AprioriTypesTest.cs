@@ -11,12 +11,12 @@ namespace NFun.Tests
         [Test]
         public void AprioriInputSpecified_CalcsWithCorrectType()
         {
-            var runtime = FunBuilder
-                .With("y = x")
-                .WithApriori("x", VarType.Text)
-                .Build();
+            var runtime = Funny.Hardcore
+                .WithApriori<string>("x")
+                .Build("y = x");
+                
             var res = runtime.Calculate(VarVal.New("x","test"));
-            res.AssertReturns(VarVal.New("y","test"));
+            res.OLD_AssertReturns(VarVal.New("y","test"));
             Assert.AreEqual(VarType.Text, runtime.Inputs[0].Type,"input");
             Assert.AreEqual(VarType.Text, runtime.Outputs[0].Type,"output");
         }
@@ -29,7 +29,7 @@ namespace NFun.Tests
                 .WithApriori("x", VarType.Text)
                 .Build();
             var res = runtime.Calculate(VarVal.New("x","test"));
-            res.AssertReturns(VarVal.New("y","test"));
+            res.OLD_AssertReturns(VarVal.New("y","test"));
             Assert.AreEqual(VarType.Text, runtime.Inputs[0].Type,"input");
             Assert.AreEqual(VarType.Text, runtime.Outputs[0].Type,"output");
         }
@@ -42,7 +42,7 @@ namespace NFun.Tests
                 .WithApriori("y", VarType.Text)
                 .Build();
             var res = runtime.Calculate(VarVal.New("x","test"));
-            res.AssertReturns(VarVal.New("y","test"));
+            res.OLD_AssertReturns(VarVal.New("y","test"));
             Assert.AreEqual(VarType.Text, runtime.Inputs[0].Type,"input");
             Assert.AreEqual(VarType.Text, runtime.Outputs[0].Type,"output");
 
@@ -57,7 +57,7 @@ namespace NFun.Tests
                 .WithApriori("alfa", VarType.Text)
                 .Build();
             var res = runtime.Calculate(VarVal.New("x","test"));
-            res.AssertReturns(VarVal.New("y","test"));
+            res.OLD_AssertReturns(VarVal.New("y","test"));
             Assert.AreEqual(VarType.Text, runtime.Inputs[0].Type,"input");
             Assert.AreEqual(VarType.Text, runtime.Outputs[0].Type,"output");
         }

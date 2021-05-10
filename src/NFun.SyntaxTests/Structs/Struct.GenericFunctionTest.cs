@@ -15,8 +15,8 @@ namespace NFun.SyntaxTests.Structs
                         "x2= @{age = true};" +
                         "r = f(x1); b = f(x2);")
                 .Calculate()
-                .AssertHas(VarVal.New("r",12.0))
-                .AssertHas(VarVal.New("b",true));
+                .OLD_AssertHas(VarVal.New("r",12.0))
+                .OLD_AssertHas(VarVal.New("b",true));
 
         
         [Test]
@@ -35,7 +35,7 @@ namespace NFun.SyntaxTests.Structs
                        "x1= @{age = 12};" +
                        "r = f(x1); ")
                 .Calculate()
-                .AssertHas(VarVal.New("r", -12.0));
+                .OLD_AssertHas(VarVal.New("r", -12.0));
         }
         [Test]
         public void CallGenericFunctionMultipleFieldOfArrayAccess_PipeForward()
@@ -47,8 +47,8 @@ namespace NFun.SyntaxTests.Structs
                        "t = f(x1);" +
                        "iarr = f(@{a=[1,2,3]; b = [4,5,6]})")
                 .Calculate()
-                .AssertHas(VarVal.New("t", "mamapopo"))
-                .AssertHas(VarVal.New("iarr", new[]{1.0,2,3,4,5,6}));
+                .OLD_AssertHas(VarVal.New("t", "mamapopo"))
+                .OLD_AssertHas(VarVal.New("iarr", new[]{1.0,2,3,4,5,6}));
 
         }
         
@@ -62,8 +62,8 @@ namespace NFun.SyntaxTests.Structs
                        "t = f(x1);" +
                        "iarr = f(@{a=[1,2,3]; b = [4,5,6]})")
                 .Calculate()
-                .AssertHas(VarVal.New("t", "mamapopo"))
-                .AssertHas(VarVal.New("iarr", new[]{1.0,2.0,3.0,4.0,5.0,6.0}));
+                .OLD_AssertHas(VarVal.New("t", "mamapopo"))
+                .OLD_AssertHas(VarVal.New("iarr", new[]{1.0,2.0,3.0,4.0,5.0,6.0}));
 
         }
         
@@ -75,7 +75,7 @@ namespace NFun.SyntaxTests.Structs
                 .Build("f(x) = concat(x.a, x.b);" +
                        "t = f(@{a = 'mama'; b = 'popo'});")
                 .Calculate()
-                .AssertHas(VarVal.New("t", "mamapopo"));
+                .OLD_AssertHas(VarVal.New("t", "mamapopo"));
 
         }
         [Test]
@@ -87,7 +87,7 @@ namespace NFun.SyntaxTests.Structs
                        "x1= @{a = 'mama'; b = 'popo'};" +
                        "iarr = f(@{a=[1,2,3]; b = [4,5,6]})")
                 .Calculate()
-                .AssertHas(VarVal.New("iarr", new[]{1.0,2.0,3.0,4.0,5.0,6.0}));
+                .OLD_AssertHas(VarVal.New("iarr", new[]{1.0,2.0,3.0,4.0,5.0,6.0}));
 
         }
 
@@ -99,7 +99,7 @@ namespace NFun.SyntaxTests.Structs
                 .Build("f(x) = concat(x.a, x.b);" +
                        "iarr:int[] = f(@{a=[1,2,3]; b = [4,5,6]})")
                 .Calculate()
-                .AssertHas(VarVal.New("iarr", new[]{1,2,3,4,5,6}));
+                .OLD_AssertHas(VarVal.New("iarr", new[]{1,2,3,4,5,6}));
         }
         
         [Test]
@@ -110,7 +110,7 @@ namespace NFun.SyntaxTests.Structs
                 .Build("f(x) = concat(x.a, x.b);" +
                        "iarr:real[] = f( @{a=[1.0,2.0,3.0]; b = [4.0,5.0,6.0]} )")
                 .Calculate()
-                .AssertHas(VarVal.New("iarr", new[]{1.0,2,3,4,5,6}));
+                .OLD_AssertHas(VarVal.New("iarr", new[]{1.0,2,3,4,5,6}));
         }
         [Test]
         public void CallGenericFunctionSingleFieldOfConcreteRealsArrayAccess()
@@ -120,7 +120,7 @@ namespace NFun.SyntaxTests.Structs
                 .Build("f(x) = reverse(x.a);" +
                        "y:real[] = f( @{a=[1.0,2.0]} )")
                 .Calculate()
-                .AssertHas(VarVal.New("y", new[]{2.0,1.0}));
+                .OLD_AssertHas(VarVal.New("y", new[]{2.0,1.0}));
         }
 
         [Test]
@@ -130,7 +130,7 @@ namespace NFun.SyntaxTests.Structs
                        "x1= @{item = [1,2,3] };" +
                        "r = f(x1);")
                 .Calculate()
-                .AssertHas(VarVal.New("r", 2.0));
+                .OLD_AssertHas(VarVal.New("r", 2.0));
 
         [Test]
         public void CallGenericFunctionWithAdditionalFields() =>
@@ -139,7 +139,7 @@ namespace NFun.SyntaxTests.Structs
                        "x1= @{age = 12; size = 24; name = 'vasa'};" +
                        "r = f(x1);")
                 .Calculate()
-                .AssertHas(VarVal.New("r", 24.0));
+                .OLD_AssertHas(VarVal.New("r", 24.0));
 
         
         [Test]
@@ -149,7 +149,7 @@ namespace NFun.SyntaxTests.Structs
                         "a = [@{age = 42; name = 'vasa'}, @{age = 21; name = 'peta'}];" +
                         "y = f(a);")
                 .Calculate()
-                .AssertHas(VarVal.New("y","peta"));
+                .OLD_AssertHas(VarVal.New("y","peta"));
 
         
         
@@ -161,8 +161,8 @@ namespace NFun.SyntaxTests.Structs
                     "r = f(42).res;" +
                     "txt = f('try').res")
                 .Calculate()
-                .AssertHas(VarVal.New("r",42.0))
-                .AssertHas(VarVal.New("txt","try"));
+                .OLD_AssertHas(VarVal.New("r",42.0))
+                .OLD_AssertHas(VarVal.New("txt","try"));
 
         [Test]
         public void SingleGenericStructFunctionReturn() =>
@@ -171,7 +171,7 @@ namespace NFun.SyntaxTests.Structs
                     "f(x) = @{res = x}; " +
                     "r = f(42).res;")
                 .Calculate()
-                .AssertHas(VarVal.New("r", 42.0));
+                .OLD_AssertHas(VarVal.New("r", 42.0));
 
         [Test]
         public void SingleGenericStructFunction_WithConcrete_ReturnsCouncrete()
@@ -183,7 +183,7 @@ namespace NFun.SyntaxTests.Structs
                     "f(x) = @{res = x}; " +
                     "r = f(42.0).res;")
                 .Calculate()
-                .AssertHas(VarVal.New("r", 42.0));
+                .OLD_AssertHas(VarVal.New("r", 42.0));
         }
 
         [Test]
@@ -194,8 +194,8 @@ namespace NFun.SyntaxTests.Structs
                     "t = f(42).twice;" +
                     "d = f(123).dec")
                 .Calculate()
-                .AssertHas(VarVal.New("t", 84.0))
-                .AssertHas(VarVal.New("d", 122.0));
+                .OLD_AssertHas(VarVal.New("t", 84.0))
+                .OLD_AssertHas(VarVal.New("d", 122.0));
 
         [TestCase(1, 1)]
         [TestCase(3, 6)]
@@ -206,7 +206,7 @@ namespace NFun.SyntaxTests.Structs
                 @"fact(n) = if(n<=1) @{res = 1} else @{res = fact(n-1).res*n}
                   y = fact(x).res";
             var runtime = FunBuilder.Build(text);
-            runtime.Calculate(VarVal.New("x", x)).AssertReturns(0.00001, VarVal.New("y", y));
+            runtime.Calculate(VarVal.New("x", x)).OLD_AssertReturns(0.00001, VarVal.New("y", y));
         }
         [TestCase(1, 1)]
         [TestCase(3, 6)]
@@ -217,7 +217,7 @@ namespace NFun.SyntaxTests.Structs
                 @"fact(n) = if(n.field<=1) 1 else fact(@{field=n.field-1})*n.field
                   y = fact(@{field=x})";
             var runtime = FunBuilder.Build(text);
-            runtime.Calculate(VarVal.New("x", x)).AssertReturns(0.00001, VarVal.New("y", y));
+            runtime.Calculate(VarVal.New("x", x)).OLD_AssertReturns(0.00001, VarVal.New("y", y));
         }
 
         [TestCase("f(x) = x.a; y = f(@{nonExistField = 1})")]
@@ -229,6 +229,6 @@ namespace NFun.SyntaxTests.Structs
         [TestCase(@"f(n) = n.field;
                   y = fact(@{nonExistingField=x})")]
         [TestCase(@"fact(n) = if(n.field<=1) 1 else fact(@{field=n.field-1})*n.nonExistingField")]
-        public void ObviousFails(string expr)=> TestHelper.AssertObviousFailsOnParse(expr);
+        public void ObviousFails(string expr)=> expr.AssertObviousFailsOnParse();
     }
 }

@@ -50,59 +50,48 @@ namespace NFun.SyntaxTests
         [TestCase("y = 'pre {'p{42-1*2}m{21-1+10*3}a'} mid {'p{42-2}m{21-1}a'} fin'", "pre p40m50a mid p40m20a fin")]
         [TestCase("y = 'pre1{'pre2{2-2}after2'}after1'", "pre1pre20after2after1")]
         [TestCase("y = 'pre1 {'inside'} after1'", "pre1 inside after1")]
-        [TestCase("y = 'pre'.concat((1+2).toText())","pre3")]
-        [TestCase("y = 'ab'.concat(toText(1+2))", "ab3" )]
-        [TestCase("y = 'a b '.concat(toText(1+2)).split(' ')", new[] { "a", "b", "3" })]
-        [TestCase("y = 'a b '.concat((1+2).toText()).split(' ')", new[]{"a","b","3"})]
-        [TestCase("y = 'a b c'.split(' ')", new[] { "a", "b", "c" })]
-        [TestCase("y = 'a b '.concat('c').split(' ')", new[] { "a", "b", "c" })]
-
-        public void TextConstantEquation(string expr, object expected) =>
-            FunBuilder
-                .Build(expr)
-                .Calculate()
-                .AssertReturns(VarVal.New("y", expected));
+        [TestCase("y = 'pre'.concat((1+2).toText())", "pre3")]
+        [TestCase("y = 'ab'.concat(toText(1+2))", "ab3")]
+        [TestCase("y = 'a b '.concat(toText(1+2)).split(' ')", new[] {"a", "b", "3"})]
+        [TestCase("y = 'a b '.concat((1+2).toText()).split(' ')", new[] {"a", "b", "3"})]
+        [TestCase("y = 'a b c'.split(' ')", new[] {"a", "b", "c"})]
+        [TestCase("y = 'a b '.concat('c').split(' ')", new[] {"a", "b", "c"})]
+        public void TextConstantEquation(string expr, object expected) => expr.AssertReturns(expected);
 
         [TestCase(42,"y = x.toText().concat('lalala')", "42lalala")]
-        [TestCase(42, "y = 'pre{x-1*2}mid{x*x/x}fin'", "pre40mid42fin")]
+        [TestCase(42.0, "y = 'pre{x-1*2}mid{x*x/x}fin'", "pre40mid42fin")]
+        [TestCase(42, "x:int; y = 'pre{x-1*2}mid{x*x/x}fin'", "pre40mid42fin")]
         [TestCase("abc", "y:text = concat(x,x)", "abcabc")]
-        public void SingleVariableEquation(object input, string expr, object expected) =>
-            FunBuilder
-                .Build(expr)
-                .Calculate(VarVal.New("x", input))
-                .AssertReturns(VarVal.New("y", expected));
+        public void SingleVariableEquation(object input, string expr, object expected) => expr.Calc("x",input).AssertReturns(expected);
 
-        [TestCase("y='  \\\\'","  \\")]
-        [TestCase("y='\\t'","\t")]
-        [TestCase("y='\\n'","\n")]
-        [TestCase("y='\\''","'")]
-        [TestCase("y='\\r'","\r")]
-        [TestCase("y='\\v'","\v")]
-        [TestCase("y='\\f'","\f")]
-        [TestCase("y='\\\"'","\"")]
-        [TestCase("y='\\\\'","\\")]
-        [TestCase("y='e\\''","e'")]
-        [TestCase("y='#\\r'","#\r")]
-        [TestCase("y=' \\r\r'"," \r\r")]
-        [TestCase("y='\\r\r'","\r\r")]
-        [TestCase("y='  \\\\  '","  \\  ")]
-        [TestCase("y='John: \\'fuck you!\\', he stops.'", "John: 'fuck you!', he stops.") ]
-        [TestCase("y='w\\t'","w\t")]
-        [TestCase("y='w\\\\\\t'","w\\\t")]
-        [TestCase("y='q\\t'","q\t")]
-        [TestCase("y='w\\\"'","w\"")]
-        [TestCase("y=' \\r'"," \r")]
-        [TestCase("y='\t \\n'","\t \n")]
-        [TestCase("y='q\\tg'","q\tg")]
-        [TestCase("y='e\\\\mm\\''","e\\mm'")]
-        [TestCase("y=' \\r\r'"," \r\r")]
-        [TestCase("y='\t \\n\n'","\t \n\n")]
-        [TestCase("y='pre \\{lalala\\} after'","pre {lalala} after")]
-        public void EscapedTest(string expr,string expected) =>
-            FunBuilder
-                .Build(expr)
-                .Calculate()
-                .AssertReturns(VarVal.New("y", expected));
+        [TestCase("y='  \\\\'", "  \\")]
+        [TestCase("y='\\t'", "\t")]
+        [TestCase("y='\\n'", "\n")]
+        [TestCase("y='\\''", "'")]
+        [TestCase("y='\\r'", "\r")]
+        [TestCase("y='\\v'", "\v")]
+        [TestCase("y='\\f'", "\f")]
+        [TestCase("y='\\\"'", "\"")]
+        [TestCase("y='\\\\'", "\\")]
+        [TestCase("y='e\\''", "e'")]
+        [TestCase("y='#\\r'", "#\r")]
+        [TestCase("y=' \\r\r'", " \r\r")]
+        [TestCase("y='\\r\r'", "\r\r")]
+        [TestCase("y='  \\\\  '", "  \\  ")]
+        [TestCase("y='John: \\'fuck you!\\', he stops.'", "John: 'fuck you!', he stops.")]
+        [TestCase("y='w\\t'", "w\t")]
+        [TestCase("y='w\\\\\\t'", "w\\\t")]
+        [TestCase("y='q\\t'", "q\t")]
+        [TestCase("y='w\\\"'", "w\"")]
+        [TestCase("y=' \\r'", " \r")]
+        [TestCase("y='\t \\n'", "\t \n")]
+        [TestCase("y='q\\tg'", "q\tg")]
+        [TestCase("y='e\\\\mm\\''", "e\\mm'")]
+        [TestCase("y=' \\r\r'", " \r\r")]
+        [TestCase("y='\t \\n\n'", "\t \n\n")]
+        [TestCase("y='pre \\{lalala\\} after'", "pre {lalala} after")]
+        public void EscapedTest(string expr, string expected) => expr.AssertReturns(expected);
+
 
         [TestCase("y='hell")]
         [TestCase("y=hell'")]
@@ -140,6 +129,6 @@ namespace NFun.SyntaxTests
         [TestCase("y={0}'hello'world'")]
         [TestCase("y='pre {0}''fin'")]
         [TestCase("y='pre {0}''mid{1}fin'")]
-        public void ObviousFails(string expr)  => TestHelper.AssertObviousFailsOnParse(expr);
+        public void ObviousFails(string expr)  => expr.AssertObviousFailsOnParse();
     }
 }

@@ -8,6 +8,7 @@ namespace NFun.Types
 {
     public static class FunnyTypeConverters
     {
+        
         public static IinputFunnyConverter GetInputConverter(Type clrType) => GetInputConverter(clrType, 0);
  
         private static IinputFunnyConverter GetInputConverter(Type clrType, int reqDeepthCheck)
@@ -16,7 +17,7 @@ namespace NFun.Types
                 throw new ArgumentException("Too nested input object");
             
             if (clrType == typeof(string))
-                return new StringTypesInputFunnyConverter();
+                return new StringTypeInputFunnyConverter();
 
             if (clrType.IsArray)
             {

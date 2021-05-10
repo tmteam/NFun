@@ -48,9 +48,7 @@ namespace NFun.SyntaxTests
         public void Allowed_ImplicitNumbersCast(string typeFrom, object valueFrom, string typeTo, object valueTo)
         {
             var expr = $"conv(a:{typeTo}):{typeTo} = a; x:{typeFrom}; y = conv(x)";
-            var runtime = FunBuilder.Build(expr);
-
-            runtime.Calculate(VarVal.New("x", valueFrom)).AssertReturns(VarVal.New("y", valueTo));
+            expr.Calc("x", valueFrom).AssertReturns("y",valueTo);
         }
 
         [TestCase("1", "uint8")]
@@ -100,7 +98,7 @@ namespace NFun.SyntaxTests
         public void Allowed_NumberConstantImplicitCast(string constant, string typeTo)
         {
             var expr = $"conv(a:{typeTo}):{typeTo} = a; y = conv({constant})";
-            var runtime = FunBuilder.Build(expr);
+            var runtime = expr.Build();
             Assert.AreEqual(typeTo.ToLower(), runtime.Outputs.Single().Type.ToString().ToLower());
         }
 
@@ -157,7 +155,7 @@ namespace NFun.SyntaxTests
         [TestCase("uint64", "int64")]
         [TestCase("real", "int64")]
         public void ObviousFails_ImplicitNumbersCast(string typeFrom, string typeTo)
-            => TestHelper.AssertObviousFailsOnParse("x:{typefrom}; y:{typeTo} = x");
+            => "x:{typefrom}; y:{typeTo} = x".AssertObviousFailsOnParse();
 
 
         [TestCase("-1", "uint8")]
@@ -178,7 +176,6 @@ namespace NFun.SyntaxTests
         [TestCase("0xFFFF_FFFF", "int32")]
         [TestCase("0x1_0000_0000", "uint32")]
         public void ObviousFails_NumberConstantImplicitCast(string constant, string typeTo)
-            => TestHelper.AssertObviousFailsOnParse(
-                $"customConvert(a:{typeTo}):{typeTo} = a; y = customConvert({constant})");
+            => $"customConvert(a:{typeTo}):{typeTo} = a; y = customConvert({constant})".AssertObviousFailsOnParse();
     }
 }

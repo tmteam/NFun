@@ -1,5 +1,6 @@
 using System;
 using NFun.Exceptions;
+using NFun.TestTools;
 using NUnit.Framework;
 
 namespace NFun.SyntaxTests
@@ -129,8 +130,7 @@ namespace NFun.SyntaxTests
             Console.WriteLine(value);
             try
             {
-                FunBuilder.With(value)
-                    .Build();
+                value.Build();
                 Assert.Fail("Exception was not raised");
             }
             catch (FunParseException e) when (e.Start != -1)

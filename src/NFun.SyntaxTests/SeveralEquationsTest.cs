@@ -11,26 +11,14 @@ namespace NFun.SyntaxTests
         [TestCase("y = 1.0\r z = true", 1.0, true)]
         [TestCase("y = 2\r z=3",2.0,3.0)]
         [TestCase("y = 2*3\r z= 1 + (1 + 4)/2 - (3 +2)*(3 -1)",6.0,-6.5)]
-        public void TwinConstantEquations(string expr, object expectedY, object expectedZ)
-        {
-            var runtime = FunBuilder.Build(expr);
-            runtime.Calculate()
-                .AssertReturns(
-                    VarVal.New("y", expectedY),
-                    VarVal.New("z", expectedZ));
-        }
-        
+        public void TwinConstantEquations(string expr, object expectedY, object expectedZ) => 
+            expr.AssertReturns(("y", expectedY), ("z", expectedZ));
+
         [TestCase("y = x*0.5\r z=3",2, 1.0,3.0)]
         [TestCase("y = x/2\r z=2*x",2, 1.0,4.0)]
-        public void TwinEquationsWithSingleVariable(string expr, double x, object expectedY, object expectedZ)
-        {
-            var runtime = FunBuilder.Build(expr);
-            runtime.Calculate(VarVal.New("x", x))
-                .AssertReturns(
-                    VarVal.New("y", expectedY),
-                    VarVal.New("z", expectedZ));        
-        }
-        
+        public void TwinEquationsWithSingleVariable(string expr, double x, object expectedY, object expectedZ) =>
+            expr.Calc("x", x).AssertReturns(("y", expectedY), ("z", expectedZ));
+
         [TestCase("x:real\r y = x\r z=x", new []{"x"})]
         [TestCase("y = 1\r z=2", new string[0])]        
         [TestCase("x:real\r y = x/2\r z=2*x",new []{"x"})]
@@ -38,9 +26,8 @@ namespace NFun.SyntaxTests
         [TestCase("in1:real; in2:real;y = in1/2 + in2\r z=2 + in2",new []{"in1","in2"})]
         public void TwinEquations_inputStrictVarablesListIsCorrect(string expr, string[] inputNames)
         {
-            var runtime = FunBuilder.Build(expr);
             var inputs = inputNames.Select(i => new VarInfo(false, VarType.Real, i,true)).ToArray();
-            CollectionAssert.AreEquivalent(inputs, runtime.Inputs);
+            CollectionAssert.AreEquivalent(inputs, expr.Build().Inputs);
         }
         
         [TestCase("y = 1\r z=2", new string[0])]        
@@ -49,21 +36,19 @@ namespace NFun.SyntaxTests
         [TestCase("y = in1/2 + in2\r z=2 + in2",new []{"in1","in2"})]
         public void TwinEquations_inputAutoVarablesListIsCorrect(string expr, string[] inputNames)
         {
-            var runtime = FunBuilder.Build(expr);
             var inputs = inputNames.Select(i => new VarInfo(false, VarType.Real, i,false)).ToArray();
-            CollectionAssert.AreEquivalent(inputs, runtime.Inputs);
+            CollectionAssert.AreEquivalent(inputs, expr.Build().Inputs);
         }
         [TestCase("x:real \r y = x\r z=y", new []{"x"})]
         [TestCase("a:real \r y = a*a\r z=y", new []{"a"})]
         public void TwinDependentEquationsWithStrictRealTypes_inputVarsListIsCorrect(string expr, string[] inputNames)
         {
-            var runtime = FunBuilder.Build(expr);
             var inputs = inputNames.Select(i => new VarInfo(
                 isOutput: false,  
                 type: VarType.Real,  
                 name: i, 
                 isStrictTyped: true)).ToArray();
-            CollectionAssert.AreEquivalent(inputs, runtime.Inputs);
+            CollectionAssert.AreEquivalent(inputs, expr.Build().Inputs);
         }
         
         [TestCase("y = 1.0\r z=y", new string[0])]        
@@ -73,13 +58,12 @@ namespace NFun.SyntaxTests
         [TestCase("y = in1/2 + in2\r z=2*y + in2",new []{"in1","in2"})]
         public void TwinDependentEquationsWithAutoRealTypes_inputVarsListIsCorrect(string expr, string[] inputNames)
         {
-            var runtime = FunBuilder.Build(expr);
             var inputs = inputNames.Select(i => new VarInfo(
                 isOutput: false,  
                 type: VarType.Real,  
                 name: i, 
                 isStrictTyped: false)).ToArray();
-            CollectionAssert.AreEquivalent(inputs, runtime.Inputs);
+            CollectionAssert.AreEquivalent(inputs, expr.Build().Inputs);
         }
             
         
@@ -88,91 +72,52 @@ namespace NFun.SyntaxTests
         [TestCase("y = true\r z=y",       true,true)]
         [TestCase("y = 1\r z=y",         1.0,1.0)]
         [TestCase("y = 1\r z=y*2",       1.0,2.0)]
-        public void TwinDependentConstantEquations_CalculatesCorrect(string expr,  object expectedY, object expectedZ)
-        {
-            var runtime = FunBuilder.Build(expr);
-            runtime.Calculate()
-                .AssertReturns(
-                    VarVal.New("y", expectedY),
-                    VarVal.New("z", expectedZ));
-        }
+        public void TwinDependentConstantEquations_CalculatesCorrect(string expr,  object expectedY, object expectedZ) => 
+            expr.AssertReturns(("y", expectedY), ("z", expectedZ));
 
-        
+
         [TestCase(2, "x:real\r y = x\r z=y",         2,2)]
         [TestCase(2, "y = x/2\r z=2*y",     1,2)]
         [TestCase(2, "y = x/2\r z=2*y+x",   1,4)]
-        public void TwinDependentEquationsWithSingleVariable_CalculatesCorrect(double x, string expr,  double expectedY, double expectedZ)
-        {
-            var runtime = FunBuilder.Build(expr);
-            runtime.Calculate(VarVal.New("x", x))
-                .AssertReturns(
-                    VarVal.New("y", expectedY),
-                    VarVal.New("z", expectedZ));
-        }
-        
+        public void TwinDependentEquationsWithSingleVariable_CalculatesCorrect(double x, string expr,  double expectedY, double expectedZ) =>
+            expr.Calc("x", x).AssertReturns(("y", expectedY), ("z", expectedZ));
+
         [TestCase("o1 = 1\r o2=o1\r o3 = 0", 1, 1, 0)]
         [TestCase("o1 = 1\r o2 = o1+1\r o3=2*o1*o2",1, 2, 4)]
         [TestCase("o1 = 1\r o3 = 2.0 \r o2 = o3",1, 2.0, 2.0)]
         [TestCase("o3 = 2 \ro2 = o3*2 \ro1 = o2*2\r ",8, 4, 2)]
-        public void ThreeDependentConstantEquations_CalculatesCorrect(string expr,  double o1, double o2, double o3)
-        {
-            var runtime = FunBuilder.Build(expr);
-            runtime.Calculate()
-                .AssertReturns(
-                    VarVal.New("o1", o1),
-                    VarVal.New("o2", o2),
-                    VarVal.New("o3", o3));
-        }
-        
+        public void ThreeDependentConstantEquations_CalculatesCorrect(string expr,  double o1, double o2, double o3) => 
+            expr.AssertReturns(("o1", o1), ("o2", o2), ("o3", o3));
+
         [TestCase(2,"x:real\r o1 = x\r o2=o1\r o3 = 0", 2.0, 2.0, 0.0)]
         [TestCase(2,"o1 = x/2\r o2 = o1+1\r o3=2*o1*o2",1.0, 2.0, 4.0)]
         [TestCase(2,"o1 = x/2\r o3 = x \ro2 = o3",1.0, 2.0, 2.0)]
-        public void ThreeDependentEquationsWithSingleVariable_CalculatesCorrect(double x,string expr,  object o1, object o2, object o3)
-        {
-            var runtime = FunBuilder.Build(expr);
-            runtime.Calculate(VarVal.New("x", x))
-                .AssertReturns(
-                    VarVal.New("o1", o1),
-                    VarVal.New("o2", o2),
-                    VarVal.New("o3", o3));
-        }
-        
+        public void ThreeDependentEquationsWithSingleVariable_CalculatesCorrect(double x,string expr,  object o1, object o2, object o3) => 
+            expr.Calc("x", x).AssertReturns(("o1", o1), ("o2", o2), ("o3", o3));
+
         [Test]
-        public void DependentCaseableEquations()
-        {
-            var runtime = FunBuilder.Build("yPub = 2\r y2 = 3 +yPub");
-            runtime.Calculate()
-                .AssertReturns(
-                    VarVal.New("yPub", 2.0),
-                    VarVal.New("y2", 5.0));
-        }
-        
-        
+        public void DependentCaseableEquations() => 
+            "yPub = 2\r y2 = 3 +yPub".AssertReturns(("yPub", 2.0), ("y2", 5.0));
+
         [Test]
-        public void ComplexDependentConstantsEquations_CalculatesCorrect()
-        {
-            var runtime = FunBuilder.Build(
-                @"o1 = 1
-                  o2 = o1*2
-                  o3 = o2*2
-                  o4 = o1/2
-                  o5 = 0
-                  o6 = o4+o3
-                  o7 = true
-                  o8 = o7 xor true");
-            
-            runtime.Calculate()
+        public void ComplexDependentConstantsEquations_CalculatesCorrect() =>
+            @"o1 = 1
+            o2 = o1*2
+            o3 = o2*2
+            o4 = o1/2
+            o5 = 0
+            o6 = o4+o3
+            o7 = true
+            o8 = o7 xor true"
                 .AssertReturns(
-                    VarVal.New("o1", 1.0),
-                    VarVal.New("o2", 2.0),
-                    VarVal.New("o3", 4.0),
-                    VarVal.New("o4", 0.5),
-                    VarVal.New("o5", 0.0),
-                    VarVal.New("o6", 4.5),
-                    VarVal.New("o7", true),
-                    VarVal.New("o8", false)
-                    );
-        }
+                    ("o1", 1.0),
+                    ("o2", 2.0),
+                    ("o3", 4.0),
+                    ("o4", 0.5),
+                    ("o5", 0.0),
+                    ("o6", 4.5),
+                    ("o7", true),
+                    ("o8", false));
 
         [TestCase("o1 = o2\r o2=o1")]
         [TestCase("o1 = o3\r o2 = o1\r o3 = o2")]
@@ -181,6 +126,6 @@ namespace NFun.SyntaxTests
         [TestCase("set a=4")]
         [TestCase("y1 = 3 y2 = 4")]
         [TestCase("y1 = 3 y1 = 4")]
-        public void ObviouslyFails(string expr) => TestHelper.AssertObviousFailsOnParse(expr);
+        public void ObviouslyFails(string expr) => expr.AssertObviousFailsOnParse();
     }
 }

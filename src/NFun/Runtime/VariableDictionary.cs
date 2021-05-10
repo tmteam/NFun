@@ -64,7 +64,7 @@ namespace NFun.Runtime
         {
             if (!_variables.TryGetValue(id, out  var usage))
             {
-                var source = VariableSource.CreateWithoutStrictTypeLabel(id, type);
+                var source = VariableSource.CreateWithoutStrictTypeLabel(id, type,false);
                 usage = new VariableUsages(source);
                 _variables.Add(id, usage);
             }

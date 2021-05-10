@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using NFun.Exceptions;
 using NFun.Runtime;
 using NFun.Runtime.Arrays;
+using NFun.SyntaxParsing;
 using NFun.Tic;
 using NFun.Types;
 using NUnit.Framework;
@@ -13,27 +15,7 @@ namespace NFun.TestTools
 {
     public static class TestHelper
     {
-        
-        public static void AssertVarCalc(
-            string inputName,
-            object inputValue,
-            string outputName,
-            string expression, object expected)
-        {
-            var runtime = FunBuilder.Build(expression);
-            var res = runtime.Calculate(VarVal.New(inputName, inputValue));
-            res.AssertHas(VarVal.New(outputName, expected));
-        }
-        public static void AssertConstantCalc(string varName,string expression, object expected)
-        {
-            var runtime = FunBuilder.Build(expression);
-            var res = runtime.Calculate();
-            if(expected is double)
-                res.AssertHas(VarVal.New(varName, expected), delta:0.0001);
-            else
-                res.AssertHas(VarVal.New(varName, expected));
-        }
-        public static void AssertReturns(this CalculationResult result, double delta, params VarVal[] vars)
+        public static void OLD_AssertReturns(this CalculationResult result, double delta, params VarVal[] vars)
         {
             Assert.AreEqual(vars.Length, result.Results.Length, $"output variables mismatch: {string.Join(",", result.Results)}");
             Assert.Multiple(() =>
@@ -41,19 +23,69 @@ namespace NFun.TestTools
                 foreach (var expected in vars)
                 {
                     Console.WriteLine("Passing: " + expected);
-                    AssertHas(result, expected, delta);
+                    OLD_AssertHas(result, expected, delta);
                 }
             });
         }
-        public static void AssertReturns(this CalculationResult result, params VarVal[] vars) 
-            => AssertReturns(result, 0, vars);
+        public static CalculationResult Calc(this string expr, string id, object val) => FunBuilder.Build(expr).Calc((id,val));
+
+        public static CalculationResult Calc(this string expr, params (string id, object val)[] values) => FunBuilder.Build(expr).Calc(values);
+        public static FunRuntime Build(this string expr) => FunBuilder.Build(expr);
+
+        public static void AssertOut(this CalculationResult result, object expected) => AssertReturns(result, Parser.AnonymousEquationId, expected);
+        public static void AssertOut(this string expr, object expected) => expr.Calc().AssertReturns(Parser.AnonymousEquationId, expected);
+        public static void AssertReturns(this string expr, object expected) => expr.Calc().AssertReturns(expected);
+        public static void AssertReturns(this string expr,params (string id, object val)[] values) => expr.Calc().AssertReturns(values);
+        public static void AssertReturns(this string expr,string id, object val) => AssertReturns(expr,new[]{(id,val)});
+
+        public static void AssertReturns(this CalculationResult result, object expected)
+        {
+            Assert.AreEqual(1, result.Results.Length,
+                $"Many output variables found: {string.Join(",", result.Results)}");
+            AssertHas(result, (result.Results[0].Name, expected));
+        }
+
+        public static void AssertReturns(this CalculationResult result, string id, object expected)
+            => AssertReturns(result, (id, expected));
+            public static void AssertReturns(this CalculationResult result, params (string id, object val)[] values) =>
+            Assert.Multiple(() =>
+            {
+                AssertHas(result, values);
+                Assert.AreEqual(values.Length, result.Results.Length,
+                    $"output variables mismatch: {string.Join(",", result.Results)}");
+            });
+
+            public static void AssertHas(this string expr, string id, object val) => expr.Calc().AssertHas((id, val));
+            public static void AssertHas(this string expr, params(string id, object val)[] values) => expr.Calc().AssertHas(values);
+            
+
+            public static void AssertHas(this CalculationResult result, string id, object val)
+                => AssertHas(result, (id, val));
+
+        public static void AssertHas(this CalculationResult result, params (string id, object val)[] values)
+        {
+            foreach (var value in values)
+            {
+                var resultValue = result.GetClr(value.id);
+                Assert.IsNotNull(resultValue, $"Output variable \"{value.id}\" not found");
+                Assert.AreEqual(value.val.GetType(), resultValue.GetType(),
+                    $"Variable \"{value.id}\" has wrong type. Actual Funny type is: {result.Get(value.id).Type}");
+                if (!AreSame(value.val, resultValue))
+                    Assert.Fail(
+                        $"Var \"{value.id}\" expected: {ToStringSmart(value.val)}, but was: {ToStringSmart(resultValue)}");
+            }
+        }
+
+
+        public static void OLD_AssertReturns(this CalculationResult result, params VarVal[] vars) 
+            => OLD_AssertReturns(result, 0, vars);
 
         public static void AssertOutEquals(this CalculationResult result, object val)
-            => AssertReturns(result, 0, VarVal.New("out", val));
+            => OLD_AssertReturns(result, 0, VarVal.New("out", val));
 
-        public static void AssertOutEquals(this CalculationResult result, double delta, object val)
-            => AssertReturns(result, delta, VarVal.New("out", val));
-        public static CalculationResult AssertHas(this CalculationResult result, VarVal expected, double delta = 0)
+        public static void OLD_AssertOutEquals(this CalculationResult result, double delta, object val)
+            => OLD_AssertReturns(result, delta, VarVal.New("out", val));
+        public static CalculationResult OLD_AssertHas(this CalculationResult result, VarVal expected, double delta = 0)
         {
             var res = result.Results.FirstOrDefault(r => r.Name == expected.Name);
             Assert.IsFalse(res.IsEmpty, $"Variable \"{expected.Name}\" not found");
@@ -83,10 +115,11 @@ namespace NFun.TestTools
                 return v.ToString();
             if (v is char[] c)
                 return new string(c);
+            if (!v.GetType().IsClass)
+                return v.ToString();
             if (v is IEnumerable en)
-                return "{" + string.Join(",", en.Cast<object>().Select(ToStringSmart)) + "}";
-
-            return v.ToString();
+                return "[" + string.Join(",", en.Cast<object>().Select(ToStringSmart)) + "]";
+            return JsonSerializer.Serialize(v);
         }
         
         public static bool AreSame(object a, object b)
@@ -95,13 +128,45 @@ namespace NFun.TestTools
                 return false;
             if (a.GetType() != b.GetType())
                 return false;
+            if (a is string astr)
+            {
+                var bstr = (string) b;
+                return astr.Equals(bstr);
+            }
+            if (a is double resultD)
+            {
+                var expectedD = (double) b;
+                return Math.Abs(resultD - expectedD) < 0.01;
+            }
+
+            if (a is Array arra)
+            {
+                var arrb = (Array) b;
+                var arrayOfA =arra.Cast<object>().ToArray();
+                var arrayOfB =arrb.Cast<object>().ToArray();
+                if (arrayOfA.Length != arrayOfB.Length)
+                    return false;
+                for (int i = 0; i < arrayOfA.Length; i++)
+                {
+                    if (!AreSame(arrayOfA[i], arrayOfB[i]))
+                        return false;
+                }
+                return true;
+            }
+            if (a is IEnumerable)
+                throw new NotSupportedException($"type {a.GetType().Name} is not supported");
+            if (a is IList)
+                throw new NotSupportedException($"type {a.GetType().Name} is not supported");
+            if(a is Delegate)
+                throw new NotSupportedException($"type {a.GetType().Name} is not supported");
+            
             var ajson = JsonSerializer.Serialize(a);
             var bjson = JsonSerializer.Serialize(b);
-            Console.WriteLine($"Comparing object. \r\norigin: \r\n{ajson}\r\nexpected: \r\n{bjson}");
             return ajson.Equals(bjson);
         }
+        
 
-        public static void AssertObviousFailsOnParse(string expression)
+        public static void AssertObviousFailsOnParse(this string expression)
         {
             TraceLog.IsEnabled = true;
             try

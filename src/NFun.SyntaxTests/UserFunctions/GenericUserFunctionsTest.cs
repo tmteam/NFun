@@ -49,11 +49,7 @@ namespace NFun.SyntaxTests.UserFunctions
                    y =  choose(max, min, true, 1,2)", 2.0)]
         [TestCase(@"car0(g) = g(2,4); y = car0(max)    ", 4.0)]
         [TestCase(@"car2(g) = g(2,4); y = car2(min)    ", 2.0)]
-        public void ConstantEquation(string expr, object expected)
-        {
-            var runtime = FunBuilder.Build(expr);
-            runtime.Calculate().AssertReturns(VarVal.New("y", expected));
-        }
+        public void ConstantEquation(string expr, object expected) => expr.AssertReturns("y",expected);
 
         [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y = choise(0x1,2.0,true)",1.0)]
         [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y = choise(0x1,2.0,false)",2.0)]
@@ -73,8 +69,7 @@ namespace NFun.SyntaxTests.UserFunctions
         
         public void ConstantEquationWithUpcast(string expr, object expected)
         {
-            var runtime = FunBuilder.Build(expr);
-            var result = runtime.Calculate().GetValueOf("y");
+            var result = expr.Calc().GetValueOf("y");
             Assert.IsTrue(TypeHelper.AreEqual(result, expected), $"result: {result} expected: {expected}");
         }
         
@@ -85,47 +80,33 @@ namespace NFun.SyntaxTests.UserFunctions
         [TestCase("sum(a,b,c) = a+b+c; " +
                   "a:real = sum(1,2,3);" +
                   "b:int  = sum(1,2,3);", 6.0, 6)]
-        public void ConstantEquationWithTwoUsesOfGenerics(string expr, object expectedA, object expectedB)
-        {
-            var runtime = FunBuilder.Build(expr);
-            runtime.Calculate()
-                .AssertHas(VarVal.New("a", expectedA))
-                .AssertHas(VarVal.New("b", expectedB));
-        }
+        public void ConstantEquationWithTwoUsesOfGenerics(string expr, object expectedA, object expectedB) => 
+            expr.AssertHas(("a", expectedA),("b", expectedB));
 
         [Test]
-        public void SelectOverload()
-        {
-            var expr =
-                @"  
+        public void SelectOverload() =>
+            @"  
                 #custom user function max(r r r) overloads
                 #built in function max(r r)
                 max(i, j, k) = i.max(j).max(k)
   
                 userfun = max(1, 2, 3)
-                builtin = max(1, 2)";
-            FunBuilder.Build(expr).Calculate()
-                .AssertReturns(VarVal.New("userfun", 3.0), VarVal.New("builtin", 2.0));
-        }
+                builtin = max(1, 2)"
+                .AssertReturns(("userfun", 3.0), ("builtin", 2.0));
 
         [Test]
-        public void GenericRecursive()
-        {
-            var expr =
-                @"fact(n) = if (n==0) 0
+        public void GenericRecursive() =>
+            @"fact(n) = if (n==0) 0
                             if (n == 1) 1
                             else fact(n - 1) * n
 
-                res = [0..4].map(fact)";
-            FunBuilder.Build(expr).Calculate()
-                .AssertHas(VarVal.New("res", new[] { 0.0, 1.0, 2, 6, 24 }));
-
-        }
+                res = [0..4].map(fact)"
+                .AssertHas("res", new[] { 0.0, 1.0, 2, 6, 24 });
 
         [Test]
         public void TwinGenericFunCall()
         {
-            var expr = @"maxOfArray(t) = t.fold(max)
+            @"maxOfArray(t) = t.fold(max)
 
            maxOfMatrix(t) = t.map(maxOfArray).maxOfArray()
 
@@ -135,9 +116,7 @@ namespace NFun.SyntaxTests.UserFunctions
               [01,15,18]
              ] 
 
-  res:int = origin.maxOfMatrix()";
-            FunBuilder.Build(expr).Calculate()
-                .AssertHas(VarVal.New("res", 42));
+  res:int = origin.maxOfMatrix()".AssertHas("res", 42);
         }
 
         [Ignore("UB")]
@@ -157,14 +136,13 @@ namespace NFun.SyntaxTests.UserFunctions
              ] 
 
   res:int = origin.maxOfMatrix()";
-            FunBuilder.Build(expr).Calculate()
-                .AssertHas(VarVal.New("res", 42));
+            expr.AssertHas("res", 42);
         }
 
         [Test]
         public void GenericBubbleSort()
         {
-            var expr = @"twiceSet(arr,i,j,ival,jval)
+            @"twiceSet(arr,i,j,ival,jval)
   	                        = arr.set(i,ival).set(j,jval)
 
                           swap(arr, i, j) 
@@ -182,15 +160,8 @@ namespace NFun.SyntaxTests.UserFunctions
                           bubbleSort(input)= [0..input.count()-1].fold(input){onelineSort(it1)}
 
                           i:int[]  = [1,4,3,2,5].bubbleSort()
-                          r:real[] = [1,4,3,2,5].bubbleSort()
-";
-
-
-            FunBuilder.Build(expr).Calculate()
-                .AssertReturns(
-                    VarVal.New("i", new[] { 1, 2, 3, 4, 5 }),
-                    VarVal.New("r", new[] { 1.0, 2.0, 3.0, 4.0, 5.0 }));
-
+                          r:real[] = [1,4,3,2,5].bubbleSort()"
+                .AssertReturns(("i", new[] { 1, 2, 3, 4, 5 }), ("r", new[] { 1.0, 2.0, 3.0, 4.0, 5.0 }));
         }
     }
 }

@@ -10,46 +10,38 @@ namespace NFun.SyntaxTests
     public class IfThenElseTest
     {
         [Test]
-        public void Nested2IfThenElseParsing()
-        {
-            var expr = @"y =
-	if (true) 
-		if (true) 1
-		else 4 	
-	else 5
-";
-            FunBuilder.Build(expr);
-        }
+        public void Nested2IfThenElseParsing() =>
+            @"y =
+	            if (true) 
+		            if (true) 1
+		            else 4 	
+	            else 5
+            ".Build();
+
         [Test]
-        public void Nested3IfThenElseParsing()
-        {
-            var expr = @"y =
-	if (true) 
-		if (true)
-		 	if (true) 2
-		 	else 3
-		else 4 	
-	else 5
-";
-            FunBuilder.Build(expr);
-        }
-        
+        public void Nested3IfThenElseParsing() =>
+            @"y =
+	            if (true) 
+		            if (true)
+		 	            if (true) 2
+		 	            else 3
+		            else 4 	
+	            else 5
+            ".Build();
+
         [Test]
-        public void Nested4IfThenElseParsing()
-        {
-            var expr = @"y =
-	if (true) 
-		if (true) 
-		 	if (true)
-                if (true) 3		 	
-                else 4
-            else 5
-		else 6 	
-	else 7
-";
-            FunBuilder.Build(expr);
-        }
-     
+        public void Nested4IfThenElseParsing() =>
+            @"y =
+	            if (true) 
+		            if (true) 
+		 	            if (true)
+                            if (true) 3		 	
+                            else 4
+                        else 5
+		            else 6 	
+	            else 7
+            ".Build();
+
         [TestCase(1,0,0,1)]
         [TestCase(2,1,0,2)]
         [TestCase(2,2,0,3)]
@@ -60,9 +52,8 @@ namespace NFun.SyntaxTests
         [TestCase(3,9,0,8)]
         [TestCase(9,4,0,9)]
         [TestCase(9,9,0,10)]
-        public void NestedIfThenElse(double x1, double x2, double x3, double expected)
-        {
-            var expr = @"
+        public void NestedIfThenElse(double x1, double x2, double x3, double expected) =>
+            @"
                 y = if (x1 == 1) 1 
                     if (x1 == 2)
                         if (x2 == 1) 2
@@ -75,16 +66,10 @@ namespace NFun.SyntaxTests
                         if (x2 == 2) 7
                         else 8 	
                     else if (x2 == 4) 9 
-                         else 10";
-            var runtime = FunBuilder.Build(expr);
-               
-            runtime.Calculate(
-                    VarVal.New("x1",Convert.ToDouble(x1)),
-                    VarVal.New("x2",Convert.ToDouble(x2)), 
-                    VarVal.New("x3",Convert.ToDouble(x3)))
-                .AssertReturns(VarVal.New("y", expected));
-        }
-        
+                         else 10"
+                .Calc(("x1",Convert.ToDouble(x1)), ("x2",Convert.ToDouble(x2)), ("x3",Convert.ToDouble(x3)))
+                .AssertReturns("y",expected);
+
         [TestCase("y = if (1<2 )10 else -10", 10)]
         [TestCase("y = if (1>2 )-10 else 10", 10)]
         [TestCase("y = if (2>1 )10 else -10", 10)]
@@ -94,8 +79,7 @@ namespace NFun.SyntaxTests
         [TestCase("y = if (1>2 )10\r if (1<2) -10\r else 0", -10)]
         public void ConstantIntEquation(string expr, int expected)
         {
-            var runtime = FunBuilder.Build(expr);
-            var res = runtime.Calculate();
+            var res = expr.Calc();
             Assert.AreEqual(1, res.Results.Length);
             Assert.AreEqual(expected, res.Results.First().Value);
         }
@@ -104,13 +88,11 @@ namespace NFun.SyntaxTests
         [TestCase("y = if (true) true \r if (false) false else true", true)]
         public void ConstantBoolEquation(string expr, bool expected)
         {
-            var runtime = FunBuilder.Build(expr);
-            var res = runtime.Calculate();
+            var res = expr.Calc();
             Assert.AreEqual(1, res.Results.Length);
             Assert.AreEqual(expected, res.Results.First().Value);
         }
 
-       
         [TestCase(@"
 if (x == 0) 'zero'
 else 'positive' ", 2, "positive")]
@@ -147,8 +129,7 @@ else 'not supported' ", 2, "two")]
         [TestCase("y = if (1>2 )10.0\r if (1<2)-10.0\r else 0.0", -10.0)]
         public void ConstantRealEquation(string expr, double expected)
         {
-            var runtime = FunBuilder.Build(expr);
-            var res = runtime.Calculate();
+            var res = expr.Calc();
             Assert.AreEqual(1, res.Results.Length);
             Assert.AreEqual(expected, res.Results.First().Value);
         }
@@ -158,10 +139,9 @@ else 'not supported' ", 2, "two")]
         {
             var expr = @"i:int  = 42 * if (x>0) x else -1
                            arri = [if(x>0) x else -x, if(x<0) -1 else 1 ]";
-            var runtime = FunBuilder.Build(expr);
-            var res = runtime.Calculate(VarVal.New("x",10));
-            res.AssertHas(VarVal.New("i", 420));
-            res.AssertHas(VarVal.New("arri", new[]{10,1}));
+            var res = expr.Calc("x",10);
+            res.OLD_AssertHas(VarVal.New("i", 420));
+            res.OLD_AssertHas(VarVal.New("arri", new[]{10,1}));
 
 
         }
@@ -184,7 +164,6 @@ else 'not supported' ", 2, "two")]
         [TestCase("y = if (2>1)  3 else true")]
         [TestCase("y = if (2>1)  3 if 2<1 then true else 1")]
         [TestCase("y = if (2>1)  false if 2<1 then true else 1")]
-        public void ObviouslyFails(string expr) => TestHelper.AssertObviousFailsOnParse(expr);
-
+        public void ObviouslyFails(string expr) => expr.AssertObviousFailsOnParse();
     }
 }

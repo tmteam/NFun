@@ -12,18 +12,11 @@ namespace NFun.SyntaxTests
         [TestCase("teastyVar(x) = x \r  teastyVAR(x,y) =x+y\r teastyVAR(3.0,4.0)", 7.0)]
         [TestCase("testFun(x) = x \r testFun(3.0)", 3.0)]
         [TestCase("y(x) = x*2 \r y(3.0)  \r z(jamboJet) = jamboJet*jamboJet", 6.0)]
-        public void ConstantEquatation(string expr, object expected) 
-            => FunBuilder.Build(expr).Calculate().AssertOutEquals(expected);
+        public void ConstantEquatation(string expr, object expected) => expr.AssertOut(expected);
 
         [Test]
-        public void DependentVariableEquations()
-        {
-            var runtime = FunBuilder.Build("yPub = 2\r y2 = 3 +yPub");
-            runtime.Calculate()
-                .AssertReturns(
-                    VarVal.New("yPub", 2.0),
-                    VarVal.New("y2", 5.0));
-        }
+        public void DependentVariableEquations() => 
+            "yPub = 2\r y2 = 3 +yPub".AssertReturns(("yPub", 2.0), ("y2", 5.0));
 
         [TestCase("[1.0].fold((X,x)->x)")]
         [TestCase("test = 2.0\r tESt = 3.0")]
@@ -33,7 +26,6 @@ namespace NFun.SyntaxTests
         [TestCase("x = X")]
         [TestCase("x = X+ y")]
         [TestCase("test = Test + tEst")]
-
-        public void ObviouslyFails(string expr) => TestHelper.AssertObviousFailsOnParse(expr);
+        public void ObviouslyFails(string expr) => expr.AssertObviousFailsOnParse();
     }
 }

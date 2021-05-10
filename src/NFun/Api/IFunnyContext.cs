@@ -55,7 +55,6 @@ namespace NFun
 
             return input =>
             {
-                
                 var inputValues = FluentApiTools.GetInputValues(inputsMap, input);
                 var calcResults = runtime.CalculateSafe(inputValues);
                 return FluentApiTools.CreateOutputValueFromResults<TOutput>(outputs, calcResults);

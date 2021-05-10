@@ -56,7 +56,7 @@ namespace NFun.SyntaxTests.Operators
         [TestCase("y:uint8 = 0xFF & 0",(byte)0)]
         [TestCase("y:uint8 = 0 & 0xFF",(byte)0)]
         public void ConstantBitAnd(string expression, object expected) 
-            => TestHelper.AssertConstantCalc("y",expression, expected);
+            => expression.AssertReturns("y",expected);
         
         [TestCase("y = 0 | 2",2)]
         [TestCase("y = 1 | 2",3)]
@@ -111,7 +111,7 @@ namespace NFun.SyntaxTests.Operators
         [TestCase("y:uint8 = 0xFF | 0",(byte)0xFF)]
         [TestCase("y:uint8 = 0 | 0xFF",(byte)0xFF)]
         public void ConstantBitOr(string expression, object expected) 
-            => TestHelper.AssertConstantCalc("y",expression, expected);
+            => expression.AssertReturns("y",expected);
 
         [TestCase("y:int64 = 0 ^ 1",(Int64)1)]
         [TestCase("y:int64 = 1 ^ 0",(Int64)1)]
@@ -163,7 +163,7 @@ namespace NFun.SyntaxTests.Operators
         [TestCase("y:uint8 = 0xFF ^ 0",(byte)0xFF)]
         [TestCase("y:uint8 = 0 ^ 0xFF",(byte)0xFF)]
         public void ConstantBitXor(string expression, object expected) 
-            => TestHelper.AssertConstantCalc("y",expression, expected);
+            => expression.AssertReturns("y",expected);
         
         [TestCase("y = 1 << 3",8)]
         [TestCase("y = 8 >> 3",1)]
@@ -186,7 +186,7 @@ namespace NFun.SyntaxTests.Operators
         //[TestCase("y:byte = 1 << 3",(byte)8)]
         //[TestCase("y:byte = 8 >> 3",(byte)1)]
         public void ConstantBitShift(string expression, object expected) 
-            => TestHelper.AssertConstantCalc("y",expression, expected);
+            => expression.AssertReturns("y",expected);
         
         [TestCase("y:int16 = ~1",         (Int16)(-2))]
         [TestCase("y:int16 = ~-1",        (Int16)0)]
@@ -216,7 +216,7 @@ namespace NFun.SyntaxTests.Operators
         [TestCase("y = 0xABCD_EF01 == ~~0xABCD_EF01",  true)]
         [TestCase("y = -0xABCD_EF01 == ~~-0xABCD_EF01",true)]
         public void ConstantBitInvert(string expression, object expected) 
-            => TestHelper.AssertConstantCalc("y",expression, expected);
+            => expression.AssertReturns("y",expected);
 
         // Todo ui16 i16, u8 does not support shift.
         // Should they?
@@ -234,12 +234,9 @@ namespace NFun.SyntaxTests.Operators
         [TestCase("y:uint64 = 0x1<<65")]
         [TestCase("y:int32 = 0x1<<33")]
         [TestCase("y:int64 = 0x1<<65")]*/
-        public void Oops(string expr)
-        {
-            var rt = FunBuilder.Build(expr);
-            Assert.Throws<FunRuntimeException>(
-                ()=> rt.Calculate());
-        }
+        public void Oops(string expr) =>
+            Assert.Throws<FunRuntimeException>(()=> expr.Calc());
+
         [TestCase("y = ^2")]
         [TestCase("y = 2^^")]
         [TestCase("y = ^^2")]
@@ -249,8 +246,6 @@ namespace NFun.SyntaxTests.Operators
         [TestCase("y = ~")]
         [TestCase("y = ~-")]
         [TestCase("y = ~1.5")]
-        public void ObviouslyFails(string expr) =>
-            Assert.Throws<FunParseException>(
-                ()=> FunBuilder.Build(expr));
+        public void ObviouslyFails(string expr) => expr.AssertObviousFailsOnParse();
     }
 }

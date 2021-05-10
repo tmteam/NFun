@@ -29,7 +29,7 @@ namespace NFun.SyntaxTests.BuiltInFunctions
         {
             var runtime = FunBuilder.Build(expr);
             runtime.Calculate()
-                .AssertReturns(VarVal.New("y", expected));
+                .OLD_AssertReturns(VarVal.New("y", expected));
         }
     }
 }

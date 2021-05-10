@@ -25,7 +25,6 @@ namespace NFun.SyntaxTests.Operators
         
         [TestCase("y=(x1!=0)  == (x2!=0) !=  (x3!=0)","y=((x1!=0)==(x2!=0)) !=  (x3!=0)")]
         [TestCase("y=(x1!=0)  != (x2!=0)  == (x3!=0)","y=((x1!=0)!=(x2!=0))  == (x3!=0)")]
-
         
         public void DiscreetePriorities(string actualExpr, string expectedExpr)
         {
@@ -126,7 +125,7 @@ namespace NFun.SyntaxTests.Operators
             FunBuilder
                 .Build(actualExpr)
                 .Calculate()
-                .AssertReturns(new VarVal("y", expected.Value, expected.Type));
+                .OLD_AssertReturns(new VarVal("y", expected.Value, expected.Type));
         }
         
     }

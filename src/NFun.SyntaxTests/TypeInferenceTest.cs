@@ -123,9 +123,7 @@ namespace NFun.SyntaxTests
         //    y = [1..20].map(supsum).sum().round()", BaseVarType.Int32)]
         public void SingleEquation_Runtime_OutputTypeCalculatesCorrect(string expr, BaseVarType type)
         {
-            
-            var runtime = FunBuilder.Build(expr);
-            var res = runtime.Calculate();
+            var res = expr.Calc();
             Assert.AreEqual(1, res.Results.Length);
             Assert.AreEqual(VarType.PrimitiveOf(type), res.Results.First().Type);
         }
@@ -150,11 +148,9 @@ namespace NFun.SyntaxTests
         //    @"someRec3(n, iter) = someRec3(n, iter+1).strConcat(n >iter)
         //  y = someRec3(9,2)[0]", BaseVarType.Char)]
         [TestCase("(if(true) [1,2] else [])[0]", BaseVarType.Real)]
-        public void SingleEquations_Parsing_OutputTypesCalculateCorrect(string expr, BaseVarType type)
-        {
-            var runtime = FunBuilder.Build(expr);
-            Assert.AreEqual(type, runtime.Outputs.Single().Type.BaseType);
-        }
+        public void SingleEquations_Parsing_OutputTypesCalculateCorrect(string expr, BaseVarType type) => 
+            Assert.AreEqual(type, expr.Build().Outputs.Single().Type.BaseType);
+
         [TestCase("f(n, iter)  = f(n, iter+1).concat((n >iter).toText())")]
         [TestCase("f1(n, iter) = f1(n+1, iter).concat((n >iter).toText())")]
         [TestCase("f2(n, iter) = n > iter and f2(n,iter)")]
@@ -216,12 +212,8 @@ namespace NFun.SyntaxTests
         [TestCase( "y = [x, -x]")]
         [TestCase( "y = [-x,-x,-x].all{it < 0.0}")]
         [TestCase( "[x, -x]")]
+        public void EquationTypes_SolvesSomehow(string expr) => Assert.DoesNotThrow(()=>expr.Build());
 
-        public void EquationTypes_SolvesSomehow(string expr)
-        {
-            Assert.DoesNotThrow(()=>FunBuilder.Build(expr));
-        }
-        
         [TestCase("y:int = 1\rz:int=2", BaseVarType.Int32, BaseVarType.Int32)]
         [TestCase("y = 2.0\rz:int=2", BaseVarType.Real, BaseVarType.Int32)]
         [TestCase("y = true\rz=false",BaseVarType.Bool, BaseVarType.Bool)]
@@ -247,8 +239,7 @@ namespace NFun.SyntaxTests
         
         public void TwinEquations_Runtime_OutputTypesCalculateCorrect(string expr, BaseVarType ytype,BaseVarType ztype)
         {
-            var runtime = FunBuilder.Build(expr);
-            var res = runtime.Calculate();
+            var res = expr.Calc();
             var y = res.Get("y");
             Assert.AreEqual(VarType.PrimitiveOf(ytype),y.Type,"y");
             var z = res.Get("z");
@@ -278,7 +269,7 @@ namespace NFun.SyntaxTests
         [TestCase("a:real =false")]
         [TestCase("a:real =false")]
         [TestCase("x:bool; a:real =x")]
-        public void ObviouslyFailsWithParse(string expr) => TestHelper.AssertObviousFailsOnParse(expr);
+        public void ObviouslyFailsWithParse(string expr) => expr.AssertObviousFailsOnParse();
         
 
         [TestCase(new []{1,2},    "x:int[]\r y= x", new []{1,2})]        
@@ -303,8 +294,7 @@ namespace NFun.SyntaxTests
         
         public void SingleInputTypedEquation(object x,  string expr, object y)
         {
-            var runtime = FunBuilder.Build(expr);
-            var res = runtime.Calculate(VarVal.New("x", x));
+            var res = expr.Calc("x", x);
             Assert.AreEqual(1, res.Results.Length);
             Assert.AreEqual(y, res.Results.First().Value);
         }
@@ -322,8 +312,7 @@ namespace NFun.SyntaxTests
 
         public void ConstantTypedEquation(string expr, object y)
         {
-            var runtime = FunBuilder.Build(expr);
-            var res = runtime.Calculate();
+            var res = expr.Calc();
             Assert.AreEqual(1, res.Results.Length);
             Assert.AreEqual(y, res.Results.First().Value);   
         }
@@ -339,7 +328,7 @@ namespace NFun.SyntaxTests
         [TestCase("fib(x) = if(x<3) 1 else fib(x-1)+fib(x-2)")]
         public void RecFunction_TypeSolved(string expr)
         {
-            Assert.DoesNotThrow(()=> FunBuilder.Build(expr));
+            Assert.DoesNotThrow(()=> expr.Build());
         }
         [TestCase("byte",   (byte)1,   BaseVarType.UInt8)]
         [TestCase("uint8",  (byte)1,   BaseVarType.UInt8)]
@@ -356,17 +345,15 @@ namespace NFun.SyntaxTests
         [TestCase("int64[]", new long[]{1,2,3},BaseVarType.ArrayOf)]
         public void OutputEqualsInput(string type, object expected, BaseVarType baseVarType)
         {
-            var runtime = FunBuilder.Build($"x:{type}\r  y = x");
-            var res = runtime.Calculate(VarVal.New("x", expected));
-            res.AssertReturns(VarVal.New("y", expected));
+            var res = $"x:{type}\r  y = x".Calc("x",expected);
+            res.AssertReturns(expected);
             Assert.AreEqual(baseVarType, res.Get("y").Type.BaseType);
         }
         [Test]
         public void OutputEqualsTextInput()
         {
-            var runtime = FunBuilder.Build($"x:text;  y = x");
-            var res = runtime.Calculate(VarVal.New("x", "1"));
-            res.AssertReturns(VarVal.New("y", "1"));
+            var res = "x:text;  y = x".Calc("x", "1");
+            res.AssertReturns("y", "1");
             Assert.AreEqual(VarType.Text, res.Get("y").Type);
         }
         
@@ -404,8 +391,7 @@ namespace NFun.SyntaxTests
         
         public void IntegersBitwiseOperatorTest(string inputTypes, string function, BaseVarType expectedOutputType)
         {
-            var runtime = FunBuilder.Build(
-                $"a:{inputTypes}; b:{inputTypes}; c=a{function}b;");
+            var runtime = $"a:{inputTypes}; b:{inputTypes}; c=a{function}b;".Build();
             Assert.AreEqual(expectedOutputType, runtime.Outputs.Single().Type.BaseType);
         }
         
@@ -422,8 +408,7 @@ namespace NFun.SyntaxTests
         
         public void IntegersBitwiseInvertTest(string inputTypes, BaseVarType expectedOutputType)
         {
-            var runtime = FunBuilder.Build(
-                $"a:{inputTypes}; b:{inputTypes}; c= ~a");
+            var runtime = $"a:{inputTypes}; b:{inputTypes}; c= ~a".Build();
             Assert.AreEqual(expectedOutputType, runtime.Outputs.Single().Type.BaseType);
         }
         
@@ -432,8 +417,7 @@ namespace NFun.SyntaxTests
         [TestCase("int64",  BaseVarType.Int64)]
         public void SummOfTwoIntegersTest(string inputTypes, BaseVarType expectedOutputType)
         {
-            var runtime = FunBuilder.Build(
-                $"a:{inputTypes}; b:{inputTypes}; y = a + b");
+            var runtime = $"a:{inputTypes}; b:{inputTypes}; y = a + b".Build();
             Assert.AreEqual(expectedOutputType, runtime.Outputs.Single(o => o.Name == "y").Type.BaseType);
         }
         
@@ -442,8 +426,7 @@ namespace NFun.SyntaxTests
         [TestCase("int64",  BaseVarType.Int64)]
         public void DifferenceOfTwoIntegersTest(string inputTypes, BaseVarType expectedOutputType)
         {
-            var runtime = FunBuilder.Build(
-                $"a:{inputTypes}; b:{inputTypes}; y = a - b");
+            var runtime = $"a:{inputTypes}; b:{inputTypes}; y = a - b".Build();
             Assert.AreEqual(expectedOutputType, runtime.Outputs.Single(o => o.Name == "y").Type.BaseType);
         }
         
@@ -452,8 +435,7 @@ namespace NFun.SyntaxTests
         [TestCase("int64",  BaseVarType.Int64)]
         public void MultiplyOfTwoIntegersTest(string inputTypes, BaseVarType expectedOutputType)
         {
-            var runtime = FunBuilder.Build(
-                $"a:{inputTypes}; b:{inputTypes}; y = a * b");
+            var runtime = $"a:{inputTypes}; b:{inputTypes}; y = a * b".Build();
             Assert.AreEqual(expectedOutputType, runtime.Outputs.Single(o => o.Name == "y").Type.BaseType);
         }
         
@@ -462,8 +444,7 @@ namespace NFun.SyntaxTests
         [TestCase("int64",  BaseVarType.Int64)]
         public void RemainsOfTwoIntegersTest(string inputTypes, BaseVarType expectedOutputType)
         {
-            var runtime = FunBuilder.Build(
-                $"a:{inputTypes}; b:{inputTypes}; y = a .rema(b)");
+            var runtime = $"a:{inputTypes}; b:{inputTypes}; y = a .rema(b)".Build();
             Assert.AreEqual(expectedOutputType, runtime.Outputs.Single(o => o.Name == "y").Type.BaseType);
         }
         
@@ -473,7 +454,7 @@ namespace NFun.SyntaxTests
         [TestCase("x:int; y:real = x",  BaseVarType.Real)]
 
         public void OutputType_checkOutputTest(string expression,  BaseVarType expectedType){
-            var runtime = FunBuilder.Build(expression);
+            var runtime = expression.Build();
             Assert.AreEqual(expectedType, runtime.Outputs.Single(o => o.Name == "y").Type.BaseType);
         }
         
@@ -482,7 +463,7 @@ namespace NFun.SyntaxTests
         [TestCase("y:bool = x", "x", BaseVarType.Bool)]
         [TestCase("x:int; y:real = x+a", "a", BaseVarType.Real)]
         public void OutputType_checkInputTest(string expression, string variable, BaseVarType expectedType){
-            var runtime = FunBuilder.Build(expression);
+            var runtime = expression.Build();
             Assert.AreEqual(expectedType, runtime.Inputs.Single(o => o.Name == variable).Type.BaseType);
         }
 
@@ -491,13 +472,9 @@ namespace NFun.SyntaxTests
         [TestCase("z:real[] = x; y = z",new[]{1.0,2.0,3.0},new[]{1.0,2.0,3.0})]
         [TestCase("y:int[] = x.reverse();",new[]{1,2,3},new[]{3,2,1})]
         [TestCase("a:int = 5; y:real = a+x",2.5,7.5)]
-        public void OutputType_runtimeTest(string expression, object xValue, object expectedY)
-        {
-            FunBuilder.Build(expression)
-                .Calculate(VarVal.New("x", xValue))
-                .AssertHas(VarVal.New("y", expectedY));
-        }
-        
+        public void OutputType_runtimeTest(string expression, object xValue, object expectedY) => 
+            expression.Calc("x",xValue).AssertHas("y", expectedY);
+
         [TestCase("y = 1", new string[0])]        
         [TestCase("y = x*1.0", new []{"x"})]
         [TestCase("y = x/2",new []{"x"})]
@@ -505,13 +482,12 @@ namespace NFun.SyntaxTests
         [TestCase("y = in1/2 + (in2*in3)",new []{"in1","in2", "in3"})]
         public void InputVarablesListWithAutoTypesIsCorrect(string expr, string[] inputNames)
         {
-            var runtime = FunBuilder.Build(expr);
             var inputs = inputNames.Select(i => new VarInfo(
                 isOutput: false, 
                 type: VarType.Real, 
                 name: i, 
                 isStrictTyped: false)).ToArray();
-            CollectionAssert.AreEquivalent(inputs, runtime.Inputs);
+            CollectionAssert.AreEquivalent(inputs, expr.Build().Inputs);
         }
         
         [TestCase("0x1", "out", BaseVarType.Int32)]        
@@ -521,17 +497,13 @@ namespace NFun.SyntaxTests
         [TestCase("z = x", "z", BaseVarType.Any)]
         [TestCase("y = x/2","y", BaseVarType.Real)]
         [TestCase("x:bool \r z:bool \r y = x and z","y", BaseVarType.Bool)]
-        public void OutputVarablesListIsCorrect(string expr, string output, BaseVarType type)
-        {
-            var runtime = FunBuilder.Build(expr);
-                        
+        public void OutputVarablesListIsCorrect(string expr, string output, BaseVarType type) =>
             CollectionAssert.AreEquivalent(
                 new[]{new VarInfo(
                     isOutput: true, 
                     type: VarType.PrimitiveOf(type), 
                     name: output, 
                     isStrictTyped: false)}, 
-                runtime.Outputs);
-        }
+                expr.Build().Outputs);
     }
 }

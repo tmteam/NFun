@@ -26,36 +26,24 @@ namespace NFun.SyntaxTests.UserFunctions
         [TestCase("arr(a:text[]):text[] = a.concat(a) \r  y = arr(['qwe','rty'])",new[]{"qwe","rty","qwe","rty"})]
         [TestCase(@"car2(g):real = g(2.0,4.0); y = car2(max)    ", 4.0)]
 
-        public void TypedConstantEquation_NonRecursiveFunction(string expr, object expected)
-        {
-            var runtime = FunBuilder.Build(expr);
-            runtime.Calculate().AssertReturns(VarVal.New("y", expected));
-        }
+        public void TypedConstantEquation_NonRecursiveFunction(string expr, object expected) => 
+            expr.AssertReturns("y",expected);
 
         [TestCase("_inc(a) = a+1\r y = _inc(2)", 3)]
         [TestCase("_inc(y) = y+1\r y = _inc(2)", 3)]
         [TestCase("mult2(a,b) = a*b \r y = mult2(3,4)+1", 13)]
         [TestCase("div2(a,b) = a/b  \r mult2(a,b) = a*b         \r y = mult2(3,4)+div2(4,2)", 14)]
-        public void ConstantEquation_NonRecursiveGenericFunction(string expr, double expected)
-        {
-            var runtime = FunBuilder.Build(expr);
-            runtime.Calculate().AssertReturns(0.00001, VarVal.New("y", expected));
-        }
+        public void ConstantEquation_NonRecursiveGenericFunction(string expr, double expected) => 
+            expr.AssertReturns("y",expected);
+
         [TestCase("_inc(a) = a+1.0\r y = _inc(2.0)",3.0)]
-      
         [TestCase("div2(a,b) = a/b  \r div3(a,b,c) = div2(a,b)/c\r y = div3(16,4,2)",2)]
-        public void ConstantEquation_NonRecursiveFunction(string expr, double expected)
-        {
-            var runtime = FunBuilder.Build(expr);
-            runtime.Calculate().AssertReturns(0.00001, VarVal.New("y", expected));
-        }
+        public void ConstantEquation_NonRecursiveFunction(string expr, double expected) => 
+            expr.AssertReturns("y",expected);
 
         [TestCase("plus3(a,b,c) = plus2(a,b)+c \r plus2(a,b) = a+b  \r y = plus3(16,4,2)",22)]
-        public void ConstantEquation_ReversedImplementationsOfFunctions(string expr, double expected)
-        {
-            var runtime = FunBuilder.Build(expr);
-            runtime.Calculate().AssertReturns(0.00001, VarVal.New("y", expected));
-        }
+        public void ConstantEquation_ReversedImplementationsOfFunctions(string expr, double expected) => 
+            expr.AssertReturns("y",expected);
 
         [Test]
         public void BubbleSortConcrete()
@@ -83,11 +71,7 @@ namespace NFun.SyntaxTests.UserFunctions
 
                           
                           i:int[]  = [1,4,3,2,5].bubbleSort()";
-
-
-            FunBuilder.Build(expr).Calculate()
-                .AssertReturns(VarVal.New("i", new[] { 1, 2, 3, 4, 5 }));
-
+            expr.AssertReturns("i", new[] { 1, 2, 3, 4, 5 });
         }
 
         [TestCase("y = f(1)\r f(x) = g(x) \r g(x) = f(x)")]
@@ -146,6 +130,6 @@ namespace NFun.SyntaxTests.UserFunctions
         [TestCase("y:real(x)= 1")]
         [TestCase("y:real(x:real)= 1")]
         [TestCase("y:real(x):real= 1")]
-        public void ObviousFails(string expr)=> TestHelper.AssertObviousFailsOnParse(expr);
+        public void ObviousFails(string expr)=> expr.AssertObviousFailsOnParse();
     }
 }

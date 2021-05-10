@@ -50,7 +50,7 @@ namespace NFun.SyntaxTests.BuiltInFunctions
         {
             var runtime = FunBuilder.Build(expr);
             runtime.Calculate()
-                .AssertReturns(VarVal.New("y", expected));
+                .OLD_AssertReturns(VarVal.New("y", expected));
         }
 
         [TestCase("y:int[] = take([1,2,3,4,5],3)", new[] { 1, 2, 3 })]
@@ -156,7 +156,7 @@ namespace NFun.SyntaxTests.BuiltInFunctions
         {
             var runtime = FunBuilder.Build(expr);
             runtime.Calculate()
-                .AssertReturns(0.00001, VarVal.New("y", expected));
+                .OLD_AssertReturns(0.00001, VarVal.New("y", expected));
         }
 
         [TestCase("y = [1..100].chunk(-1)")]

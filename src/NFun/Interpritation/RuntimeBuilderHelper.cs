@@ -148,11 +148,16 @@ namespace NFun.Interpritation
             VarType actualType)
         {
             if(argSyntax.VarType != VarType.Empty)
-                return VariableSource.CreateWithStrictTypeLabel(argSyntax.Id, actualType, argSyntax.Interval);
+                return VariableSource.CreateWithStrictTypeLabel(
+                    name: argSyntax.Id, 
+                    type: actualType, 
+                    typeSpecificationIntervalOrNull: argSyntax.Interval, 
+                    isOutput: false);
             else
                 return VariableSource.CreateWithoutStrictTypeLabel(
                     name: argSyntax.Id,
-                    type: actualType);
+                    type: actualType, 
+                    isOutput: false);
         }
     }
 }

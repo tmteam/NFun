@@ -37,6 +37,20 @@ namespace NFun.Runtime
             }
             throw new KeyNotFoundException($"value {name} is not found in calculation results");
         }
+
+        public object GetClr(string name)
+        {
+            foreach (var equationResult in Results)
+            {
+                if (String.Equals(equationResult.Name, name,
+                    StringComparison.CurrentCultureIgnoreCase))
+                {
+                    var converter = FunnyTypeConverters.GetOutputConverter(equationResult.Type);
+                    return converter.ToClrObject(equationResult.Value);
+                }
+            }
+            throw new KeyNotFoundException($"value {name} is not found in calculation results");
+        }
         public object GetValueOf(string name)
         {
             foreach (var equationResult in Results)
