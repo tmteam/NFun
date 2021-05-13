@@ -14,13 +14,13 @@ namespace NFun.BuiltInFunctions
         {
             switch (concreteTypes[0].BaseType)
             {
-                case BaseVarType.UInt8: return new UInt8Function();
+                case BaseVarType.UInt8:  return new UInt8Function();
                 case BaseVarType.UInt16: return new UInt16Function();
                 case BaseVarType.UInt32: return new UInt32Function();
                 case BaseVarType.UInt64: return new UInt64Function();
-                case BaseVarType.Int16: return new Int16Function();
-                case BaseVarType.Int32: return new Int32Function();
-                case BaseVarType.Int64: return new Int64Function();
+                case BaseVarType.Int16:  return new Int16Function();
+                case BaseVarType.Int32:  return new Int32Function();
+                case BaseVarType.Int64:  return new Int64Function();
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -28,7 +28,7 @@ namespace NFun.BuiltInFunctions
 
         private class Int16Function : FunctionWithTwoArgs {
             public Int16Function() : base(CoreFunNames.BitOr, VarType.Int16, VarType.Int16, VarType.Int16) { }
-            public override object Calc(object a, object b) =>  (short) a | (short) b;
+            public override object Calc(object a, object b) =>  (short)((short) a | (short) b);
         }
 
         private class Int32Function : FunctionWithTwoArgs {
@@ -86,7 +86,7 @@ namespace NFun.BuiltInFunctions
 
         private class Int16Function : FunctionWithTwoArgs {
             public Int16Function() : base(CoreFunNames.BitXor, VarType.Int16, VarType.Int16, VarType.Int16) { }
-            public override object Calc(object a, object b) =>  (short) a ^ (short) b;
+            public override object Calc(object a, object b) => (short)((short) a ^ (short) b);
         }
 
         private class Int32Function : FunctionWithTwoArgs {
@@ -144,7 +144,7 @@ namespace NFun.BuiltInFunctions
 
         private class Int16Function : FunctionWithTwoArgs {
             public Int16Function() : base(CoreFunNames.BitAnd, VarType.Int16, VarType.Int16, VarType.Int16) { }
-            public override object Calc(object a, object b) =>  (short) a & (short) b;
+            public override object Calc(object a, object b) =>  (short)((short) a & (short) b);
         }
 
         private class Int32Function : FunctionWithTwoArgs {

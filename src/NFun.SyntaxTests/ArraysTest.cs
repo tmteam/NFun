@@ -82,6 +82,7 @@ namespace NFun.SyntaxTests
         public void ConstantCalculableArrayTest(string expr, object expected) => expr.AssertHas("y", expected);
 
         [TestCase("[1,'2',3.0,4,5.2, true, false, 7.2]", new object[] {1.0, "2", 3.0, 4.0, 5.2, true, false, 7.2})]
+        [TestCase("[1,'23',4.0,5, true]", new object[] {1.0, "2", 3.0, 4.0, 5.2, true, false, 7.2})]
         [TestCase("if (true) [1.0] else [2.0, 3.0] ", new[] {1.0})]
         [TestCase("if (false) [1.0] else [2.0, 3.0]", new[] {2.0, 3.0})]
         [TestCase("y(x) = x \r[1]", new[] {1.0})]
