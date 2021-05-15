@@ -63,7 +63,7 @@ namespace NFun.ApiTests
         [Test]
         public void OutputTypeContainsNoEmptyConstructor_throws() =>
             Assert.Throws<FunParseException>(() => Funny.Calc(
-                "@{name = name}"
+                "the{name = name}"
                 , new UserInputModel("vasa")));
 
         [TestCase("age>someUnknownvariable")]

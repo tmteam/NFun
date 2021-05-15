@@ -17,7 +17,7 @@ namespace NFun.Runtime
         
         public object GetValue(string field) => _values[field];
         public override string ToString() 
-            => "@{ "+string.Join("; ", _values.Select(v=> $"{v.Key}={v.Value}"))+" }";
+            => "the{ "+string.Join("; ", _values.Select(v=> $"{v.Key}={v.Value}"))+" }";
 
         public override bool Equals(object obj)
         {

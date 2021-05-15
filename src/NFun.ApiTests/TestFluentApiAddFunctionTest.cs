@@ -121,9 +121,9 @@ namespace NFun.ApiTests
             
             var lambda = context.Build(
                 @"csumm(
-                            @{
-                                a= @{id= 10}
-                                b= @{id= 20}
+                            the{
+                                a= the{id= 10}
+                                b= the{id= 20}
                             })");
 
             var result =  lambda(new ModelWithInt{id = 42});

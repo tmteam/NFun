@@ -39,7 +39,7 @@ namespace NFun.SyntaxParsing.Visitors
         public string Visit(SuperAnonymFunctionSyntaxNode node) => "{" + node.Body.Accept(this) + "}";
         public string Visit(StructFieldAccessSyntaxNode node) => $".{node.FieldName}";
         public string Visit(StructInitSyntaxNode node)
-            => $"@{{ {string.Join("; ", node.Fields.Select(f => $"{f.Name}={f.Node.Accept(this)}"))}}}";
+            => $"the{{ {string.Join("; ", node.Fields.Select(f => $"{f.Name}={f.Node.Accept(this)}"))}}}";
 
         public string Visit(GenericIntSyntaxNode node) => node.Value.ToString();
     }

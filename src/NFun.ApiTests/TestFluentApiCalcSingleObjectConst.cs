@@ -35,9 +35,9 @@ namespace NFun.ApiTests
         [Test]
         public void OutputTypeContainsNoEmptyConstructor_throws() =>
             Assert.Throws<FunParseException>(() => Funny.Calc(
-                "@{name = 'alaska'}"));
+                "the{name = 'alaska'}"));
 
-        [TestCase("@{id = age; items = [1,2,3,4].map{'{it}'}; price = 21*2}")]
+        [TestCase("the{id = age; items = [1,2,3,4].map{'{it}'}; price = 21*2}")]
         [TestCase("[1..4].filter{it>age}.map{it**2}")]
         [TestCase("age>someUnknownvariable")]
         [TestCase("x:int;")]

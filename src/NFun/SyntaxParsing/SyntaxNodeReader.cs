@@ -165,7 +165,7 @@ namespace NFun.SyntaxParsing
             }
             if (flow.MoveIf(TokType.FiObr))
                 return ReadSuperAnonymousFunction(flow);
-            if (flow.MoveIf(TokType.StructObr))
+            if (flow.MoveIf(TokType.The))
                 return ReadStruct(flow);
 
             if (flow.MoveIf(TokType.True, out var trueTok))
@@ -380,6 +380,8 @@ namespace NFun.SyntaxParsing
         
         private static ISyntaxNode ReadStruct(TokFlow flow)
         {
+            if (!flow.MoveIf(TokType.FiObr))
+                throw FunParseException.ErrorStubToDo("{ is expected");
             var begin = flow.Position;
 
             var equations = new List<EquationSyntaxNode>();

@@ -13,8 +13,8 @@ namespace NFun.ApiTests
             Assert.AreEqual(true, result);
         }
 
-        [TestCase("@{id = 13; items = [1,2,3,4].map{'{it}'}; price = 21*2}")]
-        //[TestCase("@{Id = 13; Items = [1,2,3,4].map{'{it}'}; Price = 21*2}")]
+        [TestCase("the{id = 13; items = [1,2,3,4].map{'{it}'}; price = 21*2}")]
+        //[TestCase("the{Id = 13; Items = [1,2,3,4].map{'{it}'}; Price = 21*2}")]
         public void IoComplexTypeTransforms(string expr)
         {
             var result = Funny.Calc<ContractOutputModel>(expr);
@@ -96,7 +96,7 @@ namespace NFun.ApiTests
         [Test]
         public void OutputTypeContainsNoEmptyConstructor_throws() =>
             Assert.Throws<FunInvalidUsageException>(() => Funny.Calc<UserInputModel>(
-                "@{name = 'alaska'}"));
+                "the{name = 'alaska'}"));
 
         [TestCase("[1..4].filter{it>age}.map{it**2}")]
         [TestCase("age>someUnknownvariable")]

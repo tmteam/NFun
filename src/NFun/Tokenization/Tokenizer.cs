@@ -21,7 +21,7 @@ namespace NFun.Tokenization
     {
         #region statics
         public static TokFlow ToFlow(string input) 
-            => new TokFlow(ToTokens(input));
+            => new(ToTokens(input));
 
         public static IEnumerable<Tok> ToTokens(string input)
         {
@@ -37,9 +37,10 @@ namespace NFun.Tokenization
             }
         }
         
-        private static readonly Dictionary<string, TokType> Keywords = new Dictionary<string, TokType>
+        private static readonly Dictionary<string, TokType> Keywords = new()
         {
             {"in", TokType.In},
+            {"the",   TokType.The},
 
             {"and",   TokType.And},
             {"or",    TokType.Or},
@@ -50,7 +51,7 @@ namespace NFun.Tokenization
             {"else",  TokType.Else},
             {"true",  TokType.True},
             {"false", TokType.False},
-            
+
             {"text", TokType.TextType},
             {"bool", TokType.BoolType},
             {"real", TokType.RealType},
@@ -68,7 +69,7 @@ namespace NFun.Tokenization
             {"uint64", TokType.UInt64Type},
             
             {"anything", TokType.AnythingType},
-
+            
             //Reserved keywords:
             {"%", TokType.Reserved},
             {"_", TokType.Reserved},
@@ -254,7 +255,7 @@ namespace NFun.Tokenization
         {
             char? next = position < str.Length - 1
                     ? str[position + 1]
-                    : (char?)null;
+                    : null;
 
             switch (current)
             {
@@ -293,49 +294,29 @@ namespace NFun.Tokenization
                 case ']': return Tok.New(TokType.ArrCBr, position, position + 1);
                 case ':': return Tok.New(TokType.Colon, position, position + 1);
                 case '~': return Tok.New(TokType.BitInverse, position, position + 1);
-                case '@' when next == '{':
-                    return Tok.New(TokType.StructObr, position, position + 2);
-                case '-' when next == '-':
-                    return Tok.New(TokType.Attribute, position, position + 2);
-                case '-' when next == '{':
-                    return Tok.New(TokType.StructObr, position, position + 2);
-                case '-' when next == '>':
-                    return Tok.New(TokType.AnonymFun, position, position + 2);
-                case '-':
-                    return Tok.New(TokType.Minus, position, position + 1);
-                case '*' when next == '*':
-                    return Tok.New(TokType.Pow, position, position + 2);
-                case '*':
-                    return Tok.New(TokType.Mult, position, position + 1);
-                case '>' when next == '=':
-                    return Tok.New(TokType.MoreOrEqual, position, position + 2);
-                case '>' when next == '>':
-                    return Tok.New(TokType.BitShiftRight, position, position + 2);
-                case '>':
-                    return Tok.New(TokType.More, position, position + 1);
-                case '<' when next == '=':
-                    return Tok.New(TokType.LessOrEqual, position, position + 2);
-                case '<' when next == '<':
-                    return Tok.New(TokType.BitShiftLeft, position, position + 2);
-                case '<':
-                    return Tok.New(TokType.Less, position, position + 1);
-                case '=' when next == '=':
-                    return Tok.New(TokType.Equal, position, position + 2);
-                case '=':
-                    return Tok.New(TokType.Def, position, position + 1);
-                case '.' when next == '.':
-                    return Tok.New(TokType.TwoDots, position, position + 2);
-                case '.':
-                    return Tok.New(TokType.Dot, position, position + 1);
-                case '!' when next == '=':
-                    return Tok.New(TokType.NotEqual, position, position + 2);
+                case '-' when next == '-': return Tok.New(TokType.Attribute, position, position + 2);
+                case '-' when next == '>': return Tok.New(TokType.AnonymFun, position, position + 2);
+                case '-':                  return Tok.New(TokType.Minus, position, position + 1);
+                case '*' when next == '*': return Tok.New(TokType.Pow, position, position + 2);
+                case '*':                  return Tok.New(TokType.Mult, position, position + 1);
+                case '>' when next == '=': return Tok.New(TokType.MoreOrEqual, position, position + 2);
+                case '>' when next == '>': return Tok.New(TokType.BitShiftRight, position, position + 2);
+                case '>':                  return Tok.New(TokType.More, position, position + 1);
+                case '<' when next == '=': return Tok.New(TokType.LessOrEqual, position, position + 2);
+                case '<' when next == '<': return Tok.New(TokType.BitShiftLeft, position, position + 2);
+                case '<':                  return Tok.New(TokType.Less, position, position + 1);
+                case '=' when next == '=': return Tok.New(TokType.Equal, position, position + 2);
+                case '=':                  return Tok.New(TokType.Def, position, position + 1);
+                case '.' when next == '.': return Tok.New(TokType.TwoDots, position, position + 2);
+                case '.':                  return Tok.New(TokType.Dot, position, position + 1);
+                case '!' when next == '=': return Tok.New(TokType.NotEqual, position, position + 2);
                 default:
                     return null;
             }
         }
 
         private bool _isInInterpolation = false;
-        private readonly Stack<InterpolationLayer> _interpolationLayers = new Stack<InterpolationLayer>();
+        private readonly Stack<InterpolationLayer> _interpolationLayers = new();
 
         private Tok TryReadNext(string str, int position)
         {

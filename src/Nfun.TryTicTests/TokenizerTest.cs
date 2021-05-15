@@ -172,10 +172,11 @@ namespace NFun.UnitTests
             //}after'
             TokType.TextCloseInterpolation)]
         
-        [TestCase("@{a =1 }", TokType.StructObr, TokType.Id, TokType.Def, TokType.IntNumber, TokType.FiCbr)]
-        [TestCase("out = @{a =1; b = 2 }", 
+        [TestCase("the{a =1 }", TokType.The, TokType.FiObr, TokType.Id, TokType.Def, TokType.IntNumber, TokType.FiCbr)]
+        [TestCase("out = the{a =1; b = 2 }", 
             TokType.Id,TokType.Def,
-            TokType.StructObr, 
+            TokType.The, 
+            TokType.FiObr, 
             TokType.Id, TokType.Def, TokType.IntNumber, 
             TokType.NewLine,
             TokType.Id, TokType.Def, TokType.IntNumber, 

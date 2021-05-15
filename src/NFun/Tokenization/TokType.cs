@@ -54,10 +54,7 @@ namespace NFun.Tokenization
         /// {
         /// </summary>
         FiObr,
-        /// <summary>
-        /// -{
-        /// </summary>
-        StructObr,
+        
         /// <summary>
         ///  }
         /// </summary>
@@ -142,8 +139,7 @@ namespace NFun.Tokenization
         /// ->
         /// </summary>
         AnonymFun,
-        
-        
+        The,
         Reserved
     }
 }

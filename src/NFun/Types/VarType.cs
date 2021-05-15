@@ -312,7 +312,7 @@ namespace NFun.Types
                 BaseVarType.ArrayOf => ArrayTypeSpecification.VarType + "[]",
                 BaseVarType.Fun => $"({string.Join(",", FunTypeSpecification.Inputs)})->{FunTypeSpecification.Output}",
                 BaseVarType.Struct =>
-                    $"@{{{string.Join(";", StructTypeSpecification.Select(s => s.Key + ":" + s.Value))}}}",
+                    $"the{{{string.Join(";", StructTypeSpecification.Select(s => s.Key + ":" + s.Value))}}}",
                 BaseVarType.Generic => "T_" + GenericId,
                 _ => BaseType.ToString()
             };
