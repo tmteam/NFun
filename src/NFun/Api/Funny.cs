@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using NFun.Exceptions;
+using NFun.Interpritation;
 using NFun.ParseErrors;
 using NFun.Types;
 
@@ -8,14 +9,12 @@ namespace NFun
 {
     public static class Funny
     {
-        public static HardcoreBuilder Hardcore { get; } = new HardcoreBuilder();
+        public static HardcoreBuilder Hardcore { get; } = new();
         #region calcs
 
         public static object Calc(string expression)
         {
-            var runtime = FunBuilder
-                .With(expression)
-                .Build();
+            var runtime = RuntimeBuilder.Build(expression, BaseFunctions.DefaultDictionary);
             if (runtime.Inputs.Any())
                 throw ErrorFactory.UnknownInputs(
                     runtime.GetInputVariableUsages(),
@@ -26,8 +25,7 @@ namespace NFun
         }
         public static TOutput Calc<TOutput>(string expression)
         {
-            var builder = FunBuilder.With(expression);
-            return FluentApiTools.CalcSingleOutput<TOutput>(builder);
+            return FluentApiTools.CalcSingleOutput<TOutput>(expression);
         }
         
         public static object Calc<TInput>(string expression, TInput input) 
@@ -38,11 +36,10 @@ namespace NFun
 
         public static TOutput CalcMany<TOutput>(string expression) where TOutput: new()
         {
-            var builder = FunBuilder.With(expression);
-            
-            var outputs = FluentApiTools.SetupManyAprioriOutputs<TOutput>(builder);
+            var apriories = AprioriTypesMap.Empty; 
+            var outputs   = FluentApiTools.SetupManyAprioriOutputs<TOutput>(apriories);
 
-            var runtime = builder.Build();
+            var runtime = RuntimeBuilder.Build(expression, BaseFunctions.DefaultDictionary, aprioriTypesMap:apriories);
             if (runtime.Inputs.Any())
                 throw ErrorFactory.UnknownInputs(runtime.GetInputVariableUsages(), new VarInfo[0]);
             

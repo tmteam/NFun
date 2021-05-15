@@ -47,7 +47,7 @@ namespace NFun.Experiments
             var ex2 = "if(a>0) 10*x*x + 12*x + 1 else 0";
             while (true)
             {
-                FunBuilder.Build(Everything);
+                Funny.Hardcore.Build(Everything);
             }
         }
     }

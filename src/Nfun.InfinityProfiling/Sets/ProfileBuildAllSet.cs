@@ -7,12 +7,8 @@ namespace NFun.InfinityProfiling.Sets
 {
     public class ProfileBuildAllSet: IProfileSet
     {
-        private readonly FlatMutableFunctionDictionary _dictionary;
-
-        public ProfileBuildAllSet() => _dictionary = BaseFunctions.CreateDefaultDictionary();
-
         [MethodImpl(MethodImplOptions.AggressiveInlining|MethodImplOptions.NoOptimization)]     
-        private FunRuntime Build(string expr) => FunBuilder.With(expr).With(_dictionary).Build();
+        private FunRuntime Build(string expr) => Funny.Hardcore.Build(expr);
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
 

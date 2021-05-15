@@ -57,7 +57,7 @@ namespace NFun.CompareToOthers
             var pyscope =  engine.CreateScope(new Dictionary<string, object>() {{"x", 42}});
             Action buildEva    = () => new Expression(expression: ncalcEx1);
             Action buildLambda = () => new Expression(expression: ncalcEx1).ToLambda<ExpressionContext,Double>();
-            Action buildFun    = () => FunBuilder.Build(text: funEx1);
+            Action buildFun    = () => Funny.Hardcore.Build(funEx1);
             pyscope.SetVariable("x",12.0);
             Action pythonBuildNRun = () =>
             {
@@ -67,7 +67,7 @@ namespace NFun.CompareToOthers
             
             var expression = new Expression(expression: ncalcEx1);
             var lambda = expression.ToLambda<ExpressionContext,Double>();
-            var funrt = FunBuilder.Build(text: funEx1);
+            var funrt = Funny.Hardcore.Build(funEx1);
             expression.Parameters["x"] = 12.0;
             Action calcEva = () =>
             {

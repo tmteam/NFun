@@ -473,7 +473,7 @@ namespace NFun.SyntaxTests
         [TestCase("y:int[] = x.reverse();",new[]{1,2,3},new[]{3,2,1})]
         [TestCase("a:int = 5; y:real = a+x",2.5,7.5)]
         public void OutputType_runtimeTest(string expression, object xValue, object expectedY) => 
-            expression.Calc("x",xValue).AssertHas("y", expectedY);
+            expression.Calc("x",xValue).AssertResultHas("y", expectedY);
 
         [TestCase("y = 1", new string[0])]        
         [TestCase("y = x*1.0", new []{"x"})]

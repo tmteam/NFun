@@ -27,10 +27,10 @@ namespace NFun.TestTools
                 }
             });
         }
-        public static CalculationResult Calc(this string expr, string id, object val) => FunBuilder.Build(expr).Calc((id,val));
+        public static CalculationResult Calc(this string expr, string id, object val) => Funny.Hardcore.Build(expr).Calc((id,val));
 
-        public static CalculationResult Calc(this string expr, params (string id, object val)[] values) => FunBuilder.Build(expr).Calc(values);
-        public static FunRuntime Build(this string expr) => FunBuilder.Build(expr);
+        public static CalculationResult Calc(this string expr, params (string id, object val)[] values) => Funny.Hardcore.Build(expr).Calc(values);
+        public static FunRuntime Build(this string expr) => Funny.Hardcore.Build(expr);
 
         public static void AssertOut(this CalculationResult result, object expected) => AssertReturns(result, Parser.AnonymousEquationId, expected);
         public static void AssertOut(this string expr, object expected) => expr.Calc().AssertReturns(Parser.AnonymousEquationId, expected);
@@ -42,7 +42,7 @@ namespace NFun.TestTools
         {
             Assert.AreEqual(1, result.Results.Length,
                 $"Many output variables found: {string.Join(",", result.Results)}");
-            AssertHas(result, (result.Results[0].Name, expected));
+            AssertResultHas(result, (result.Results[0].Name, expected));
         }
 
         public static void AssertReturns(this CalculationResult result, string id, object expected)
@@ -50,19 +50,19 @@ namespace NFun.TestTools
             public static void AssertReturns(this CalculationResult result, params (string id, object val)[] values) =>
             Assert.Multiple(() =>
             {
-                AssertHas(result, values);
+                AssertResultHas(result, values);
                 Assert.AreEqual(values.Length, result.Results.Length,
                     $"output variables mismatch: {string.Join(",", result.Results)}");
             });
 
-            public static void AssertHas(this string expr, string id, object val) => expr.Calc().AssertHas((id, val));
-            public static void AssertHas(this string expr, params(string id, object val)[] values) => expr.Calc().AssertHas(values);
+            public static void AssertResultHas(this string expr, string id, object val) => expr.Calc().AssertResultHas((id, val));
+            public static void AssertResultHas(this string expr, params(string id, object val)[] values) => expr.Calc().AssertResultHas(values);
             
 
-            public static void AssertHas(this CalculationResult result, string id, object val)
-                => AssertHas(result, (id, val));
+            public static void AssertResultHas(this CalculationResult result, string id, object val)
+                => AssertResultHas(result, (id, val));
 
-        public static void AssertHas(this CalculationResult result, params (string id, object val)[] values)
+        public static void AssertResultHas(this CalculationResult result, params (string id, object val)[] values)
         {
             foreach (var value in values)
             {
@@ -164,14 +164,20 @@ namespace NFun.TestTools
             var bjson = JsonSerializer.Serialize(b);
             return ajson.Equals(bjson);
         }
-        
+
+
+        public static void AssertObviousFailsOnRuntime(this string expression)
+        {
+            var runtime = expression.Build();
+            Assert.Catch<FunRuntimeException>(() => runtime.Calculate());
+        }
 
         public static void AssertObviousFailsOnParse(this string expression)
         {
             TraceLog.IsEnabled = true;
             try
             {
-                var runtime = FunBuilder.Build(expression);
+                var runtime = Funny.Hardcore.Build(expression);
                 if (runtime.Inputs.Length > 0)
                 {
                     Assert.Fail($"Expression parsed without any errors");
@@ -188,6 +194,20 @@ namespace NFun.TestTools
                     Assert.Fail($"Const expression succesfully build. Executrion failed with error: {e}");
                     return;
                 }
+            }
+            catch (FunParseException ex)
+            {
+                Assert.Pass($"Fun parse error: {ex}");
+                return;
+            }
+        }
+        public static void AssertObviousFailsOnParse(Action action)
+        {
+            TraceLog.IsEnabled = true;
+            try
+            {
+                action();
+                Assert.Fail($"Expression parsed without any errors");
             }
             catch (FunParseException ex)
             {

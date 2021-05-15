@@ -140,43 +140,43 @@ namespace NFun.SyntaxTests.Structs
 
         [Test]
         public void ConstantAccessCreated() =>
-            "a = @{b = 1; c=2}; y = a.b + a.c".AssertHas("y", 3.0);
+            "a = @{b = 1; c=2}; y = a.b + a.c".AssertResultHas("y", 3.0);
 
         [Test]
         public void NegateFieldAccess() =>
-            "a = @{b = 1}; y = -a.b".AssertHas("y", -1.0);
+            "a = @{b = 1}; y = -a.b".AssertResultHas("y", -1.0);
 
         [Test]
         public void NegateFieldAccessWithBrackets() =>
-            "a = @{b = 1}; y = -(a.b)".AssertHas("y",-1.0);
+            "a = @{b = 1}; y = -(a.b)".AssertResultHas("y",-1.0);
 
         [Test]
         public void DoubleNegateFieldAccessWithBrackets() =>
-            "a = @{b = 1}; y = -(-a.b)".AssertHas("y", 1.0);
+            "a = @{b = 1}; y = -(-a.b)".AssertResultHas("y", 1.0);
         
         [Test]
         public void ArithmFieldAccess() =>
-            "a = @{b = 1}; y = -1* (a.b)".AssertHas("y",-1.0);
+            "a = @{b = 1}; y = -1* (a.b)".AssertResultHas("y",-1.0);
 
         [Test]
         public void ConcreteArithmFieldAccess() =>
-            "a = @{b = 1}; y:int = -1* (a.b)".AssertHas("y", -1);
+            "a = @{b = 1}; y:int = -1* (a.b)".AssertResultHas("y", -1);
         
         [Test]
         public void ConcreteFieldAccess() =>
-            "a = @{b = 1}; y:int = a.b".AssertHas("y",1);
+            "a = @{b = 1}; y:int = a.b".AssertResultHas("y",1);
 
         [Test]
         public void VarAccessCreated() =>
-            "a = @{b = x; c=2}; y = a.b + a.c".Calc("x",42.0).AssertHas("y",44.0);
+            "a = @{b = x; c=2}; y = a.b + a.c".Calc("x",42.0).AssertResultHas("y",44.0);
 
         [Test]
         public void VarAccessCreatedInverted() =>
-            "a = @{b = 55; c=x}; y = a.b + a.c".Calc("x",42.0).AssertHas("y",97.0);
+            "a = @{b = 55; c=x}; y = a.b + a.c".Calc("x",42.0).AssertResultHas("y",97.0);
         
         [Test]
         public void VarTwinAccessCreated() =>
-            "a = @{b = x; c=x}; y = a.b + a.c".Calc("x",42.0).AssertHas("y",84.0);
+            "a = @{b = x; c=x}; y = a.b + a.c".Calc("x",42.0).AssertResultHas("y",84.0);
 
         [Test]
         public void ConstantAccessNestedCreated()
@@ -186,7 +186,7 @@ namespace NFun.SyntaxTests.Structs
             ("first = @{b = 24; c=25}; " +
              "second = @{d = first; e = first.c; f = 3}; " +
              "y = second.d.b + second.e + second.f")
-                .AssertHas("y", 52.0);
+                .AssertResultHas("y", 52.0);
         }
 
         [Test]
@@ -195,7 +195,7 @@ namespace NFun.SyntaxTests.Structs
             TraceLog.IsEnabled = true;
             ("first = @{b = 24; c=25}; " +
              "second = @{d = first; e = first.c}; " +
-             "y = second.d.b + second.e").AssertHas("y", 49.0);
+             "y = second.d.b + second.e").AssertResultHas("y", 49.0);
         }
 
 
@@ -205,7 +205,7 @@ namespace NFun.SyntaxTests.Structs
             TraceLog.IsEnabled = true;
             ("first = @{b = 24}; " +
              "second = @{d = 1.0; e = first.b}; " +
-             "y = second.e").AssertHas("y", 24.0);
+             "y = second.e").AssertResultHas("y", 24.0);
         }
 
         [Test]
@@ -216,7 +216,7 @@ namespace NFun.SyntaxTests.Structs
              "b2 = @{bf1 = a1; bf2_1 = a1.af2_1}; " +
              "c3 = @{cf1_1 = b2.bf2_1; cf2_24 = a1.af1_24}; " +
              "e4 = @{ef1 = a1.af1_24; ef2 = b2.bf2_1; ef3 = a1;  ef4_24 = c3.cf2_24}; " +
-             "y = a1.af1_24 + b2.bf1.af2_1 + c3.cf2_24 + e4.ef4_24").AssertHas("y", 73.0);
+             "y = a1.af1_24 + b2.bf1.af2_1 + c3.cf2_24 + e4.ef4_24").AssertResultHas("y", 73.0);
         }
 
         [Test]
@@ -226,7 +226,7 @@ namespace NFun.SyntaxTests.Structs
             ("a1 = @{af1_24 = 24; af2_1=1}; " +
              "b2 = @{bf1 = a1; bf2_1 = a1.af2_1}; " +
              "c3 = @{cf1_1 = b2.bf2_1; cf2_24 = a1.af1_24}; " +
-             "y = a1.af1_24 + b2.bf1.af2_1 + c3.cf2_24 + a1.af1_24").AssertHas("y", 73.0);
+             "y = a1.af1_24 + b2.bf1.af2_1 + c3.cf2_24 + a1.af1_24").AssertResultHas("y", 73.0);
         }
 
         [Test]
@@ -235,7 +235,7 @@ namespace NFun.SyntaxTests.Structs
             TraceLog.IsEnabled = true;
             ("x1 = @{aField = 24;}; " +
              "x2 = @{cField = x1.aField}; " +
-             "y = x1.aField  + x1.aField").AssertHas("y", 48.0);
+             "y = x1.aField  + x1.aField").AssertResultHas("y", 48.0);
         }
 
         [Test]
@@ -244,7 +244,7 @@ namespace NFun.SyntaxTests.Structs
             TraceLog.IsEnabled = true;
             ("a1 = @{af1_24 = 24; af2_1=1}; " +
              "b2 = @{bf1 = a1; bf2_1 = a1.af2_1}; " +
-             "y = a1.af1_24 + b2.bf1.af2_1 + b2.bf2_1 + a1.af1_24").AssertHas("y", 50.0);
+             "y = a1.af1_24 + b2.bf1.af2_1 + b2.bf2_1 + a1.af1_24").AssertResultHas("y", 50.0);
         }
 
         [Test]
@@ -253,7 +253,7 @@ namespace NFun.SyntaxTests.Structs
             TraceLog.IsEnabled = true;
             ("a1 = @{af1_24 = 24; af2_1=1}; " +
              "b2 = @{bf1 = a1; bf2_1 = a1.af2_1}; " +
-             "y = a1.af1_24 + b2.bf1.af2_1 + b2.bf2_1 + a1.af1_24").AssertHas("y", 50.0);
+             "y = a1.af1_24 + b2.bf1.af2_1 + b2.bf2_1 + a1.af1_24").AssertResultHas("y", 50.0);
         }
 
         [Test]
@@ -262,7 +262,7 @@ namespace NFun.SyntaxTests.Structs
             TraceLog.IsEnabled = true;
             ("a1 = @{af1_24 = 24; af2_1=1}; " +
              "b2 = @{bf1 = a1; bf2_1 = a1.af2_1}; " +
-             "y = a1.af1_24 + b2.bf1.af2_1").AssertHas("y", 25.0);
+             "y = a1.af1_24 + b2.bf1.af2_1").AssertResultHas("y", 25.0);
         }
 
         [Test]
@@ -273,7 +273,7 @@ namespace NFun.SyntaxTests.Structs
              "b2 = @{bf2_1 = 1}; " +
              "c3 = @{cf1_1 = b2.bf2_1; cf2_24 = 24}; " +
              "e4 = @{ef1 = a1.af1_24; ef2 = b2.bf2_1; ef3 = a1;  ef4_24 = c3.cf2_24}; " +
-             "y = a1.af1_24 + 1 + c3.cf2_24 + e4.ef4_24").AssertHas("y", 73.0);
+             "y = a1.af1_24 + 1 + c3.cf2_24 + e4.ef4_24").AssertResultHas("y", 73.0);
         }
 
         [Test]
@@ -282,7 +282,7 @@ namespace NFun.SyntaxTests.Structs
             TraceLog.IsEnabled = true;
             ("a1 = @{af1_24 = 24; af2_1=1}; " +
              "b2 = @{bf1 = a1; bf2_1 = a1.af2_1}; " +
-             "y = a1.af1_24 + b2.bf1.af2_1 + b2.bf2_1 + a1.af1_24").AssertHas("y", 50.0);
+             "y = a1.af1_24 + b2.bf1.af2_1 + b2.bf2_1 + a1.af1_24").AssertResultHas("y", 50.0);
         }
 
         [Test]
@@ -291,7 +291,7 @@ namespace NFun.SyntaxTests.Structs
             TraceLog.IsEnabled = true;
             ("a1 = @{af1_24 = 24; af2_1=1}; " +
              "b2 = @{bf1 = a1; bf2_1 = a1.af2_1}; " +
-             "y = a1.af1_24 + b2.bf1.af2_1 + a1.af1_24").AssertHas("y", 49.0);
+             "y = a1.af1_24 + b2.bf1.af2_1 + a1.af1_24").AssertResultHas("y", 49.0);
         }
 
         [TestCase(1)]
@@ -303,7 +303,7 @@ namespace NFun.SyntaxTests.Structs
             TraceLog.IsEnabled = true;
             ("str = @{field = 1.0}; " +
              $"y = {string.Join("+", Enumerable.Range(0, n).Select(_ => "str.field"))}")
-                .AssertHas("y", (double) n);
+                .AssertResultHas("y", (double) n);
 
         }
 
@@ -316,7 +316,7 @@ namespace NFun.SyntaxTests.Structs
             TraceLog.IsEnabled = true;
             ("str = @{field = 1}; " +
              $"y = {string.Join("+", Enumerable.Range(0, n).Select(_ => "str.field"))}")
-                .AssertHas("y", (double) n);
+                .AssertResultHas("y", (double) n);
         }
 
         [Test]
@@ -326,7 +326,7 @@ namespace NFun.SyntaxTests.Structs
             ("a1 = @{af1_24 = 24; af2_1=1}; " +
              "b2 = @{bf1 = a1; bf2_1 = a1.af2_1}; " +
              "y = a1.af1_24 + b2.bf1.af2_1 + b2.bf2_1")
-                .AssertHas("y", 26.0);
+                .AssertResultHas("y", 26.0);
         }
 
         [Test]
@@ -335,66 +335,66 @@ namespace NFun.SyntaxTests.Structs
                        "b = @{d = a; e = a.c; f = 3}; " +
                        "y = b.d.b + b.e + b.f")
                 .Calc("x",42.0)
-            .AssertHas("y", 87.0);
+            .AssertResultHas("y", 87.0);
         
         [Test]
         public void ConstAccessNestedCreatedComposite() =>
             ( "a = @{b= [1,2,3]};" +
                         "y = a.b[1]")
                 .Calc()
-            .AssertHas("y", 2.0);
+            .AssertResultHas("y", 2.0);
         
         [Test]
         public void ConstAccessDoubleNestedCreatedComposite() =>
             ( "a = @{b= [1,2,3]; c = 'vasa'};" +
                         "d = @{e = 'lala'; f = a};" +
                         "y = d.f.b[1]")
-                .AssertHas("y", 2.0);
+                .AssertResultHas("y", 2.0);
         
         [Test]
-        public void ConstAccessDoubleNestedCreated() => "d = @{f = @{b= 2.0}}; y = d.f.b".AssertHas("y", 2.0);
+        public void ConstAccessDoubleNestedCreated() => "d = @{f = @{b= 2.0}}; y = d.f.b".AssertResultHas("y", 2.0);
         [Test]
         public void ConstAccessFourNestedCreated() =>
             ("d = @{f1 = @{f2= @{f3= @{f4= 2.0}}}};" +
-                       "y = d.f1.f2.f3.f4").AssertHas("y", 2.0);
+                       "y = d.f1.f2.f3.f4").AssertResultHas("y", 2.0);
 
         [Test]
         public void ConstAccessFourNested() =>
-            "y = @{f1 = @{f2= @{f3= @{f4= 2.0}}}}.f1.f2.f3.f4".AssertHas("y", 2.0);
+            "y = @{f1 = @{f2= @{f3= @{f4= 2.0}}}}.f1.f2.f3.f4".AssertResultHas("y", 2.0);
 
         [Test]
         public void VarAccessNestedCreatedComposite() => 
-            "a = @{b= [x,2,3]}; y = a.b[0]".Calc("x",42.0).AssertHas("y", 42.0);
+            "a = @{b= [x,2,3]}; y = a.b[0]".Calc("x",42.0).AssertResultHas("y", 42.0);
         
         [Test]
         public void VarAccessNestedCreatedComposite2() =>
             "a = @{b= [x,2,3]};y = -a.b[0]"
                 .Calc("x",42.0)
-                .AssertHas("y", -42.0);
+                .AssertResultHas("y", -42.0);
         [Test]
         public void VarAccessNestedCreatedComposite3() =>
              "a = @{b= [x,2,3]};y = a.b[0]-1"
                 .Calc("x",42.0)
-                .AssertHas("y", 41.0);
+                .AssertResultHas("y", 41.0);
         
         [Test]
         public void VarAccessDoubleNestedCreatedComposite() =>
             ( "a = @{b= [x,2,3]; c = 'vasa'};" +
                         "d = @{e = 'lala'; f = a};" +
-                        "y = -d.f.b[0]").Calc("x",42.0).AssertHas("y", -42.0);
+                        "y = -d.f.b[0]").Calc("x",42.0).AssertResultHas("y", -42.0);
         
         [Test]
         public void ConstAccessArrayOfStructs() =>
             ("a = [@{age = 42; name = 'vasa'}, @{age = 21; name = 'peta'}];" +
                         "y = a[1].name;")
-            .AssertHas("y","peta");
+            .AssertResultHas("y","peta");
       
         
         [Test]
         [Ignore("Syntax collision with pipe forward")]
         public void GenericLambdaInStruct() =>
             "a = @{dec = {it-1}; inc = {it+1};};y = a.inc(1) + a.inc(2) + a.dec(3)"
-                .AssertHas("y",7.0);
+                .AssertResultHas("y",7.0);
 
         [TestCase("y = @{a = 1}; z = y.b")]
         [TestCase("x =  @{a = 1}; y = x.b")]

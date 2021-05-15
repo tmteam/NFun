@@ -11,6 +11,7 @@ namespace NFun.Interpritation
 
     public class EmptyConstantList : IConstantList
     {
+        public static EmptyConstantList Instance = new ();
         public bool TryGetConstant(string id, out VarVal constant)
         {
             constant = default;

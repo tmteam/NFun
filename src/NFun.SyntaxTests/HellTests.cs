@@ -59,11 +59,11 @@ namespace NFun.SyntaxTests
         
         [Test]
         public void TwinArrayWithUpcast_lambdaSum() => 
-            "x:byte = 4; y:real = [[0,1],[2,3],[x]].map {sum(it)}.sum()".AssertHas("y", 10.0);
+            "x:byte = 4; y:real = [[0,1],[2,3],[x]].map {sum(it)}.sum()".AssertResultHas("y", 10.0);
 
         [Test]
         public void TwinArrayWithUpcast_lambdaConstCalculate() => 
-            "x:byte = 5; y:real = [[0,1],[2,3],[x]].map {it.map{it+1}.sum()}.sum()".AssertHas("y", 16.0);
+            "x:byte = 5; y:real = [[0,1],[2,3],[x]].map {it.map{it+1}.sum()}.sum()".AssertResultHas("y", 16.0);
 
         [Test]
 
@@ -161,7 +161,7 @@ namespace NFun.SyntaxTests
             "c = 123;" +
             "d = 'mama ja pokakal';" +
             "etext = ''")
-                .Calc("x",42).AssertHas(
+                .Calc("x",42).AssertResultHas(
                     ("i", 42),
                     ("r", 4200.0),
                     ("t", "42"),

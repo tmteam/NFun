@@ -32,18 +32,18 @@ namespace NFun.Benchmarks
         {
             var scripts = new Scripts();
 
-            _const_true_runtime      = FunBuilder.Build(scripts.ConstTrue);
-            _const_1_runtime         = FunBuilder.Build(scripts.Const1);
-            _const_text_runtime      = FunBuilder.Build(scripts.ConstText);
-            _const_boolArray_runtime = FunBuilder.Build(scripts.ConstBoolArray);
-            _const_realArray_runtime = FunBuilder.Build(scripts.ConstRealArray);
-            _const_Kxb_runtime       = FunBuilder.Build(scripts.ConstKxb);
-            _const_multiplyArrays_runtime = FunBuilder.Build(scripts.MultiplyArrayItems);
+            _const_true_runtime      = Funny.Hardcore.Build(scripts.ConstTrue);
+            _const_1_runtime         = Funny.Hardcore.Build(scripts.Const1);
+            _const_text_runtime      = Funny.Hardcore.Build(scripts.ConstText);
+            _const_boolArray_runtime = Funny.Hardcore.Build(scripts.ConstBoolArray);
+            _const_realArray_runtime = Funny.Hardcore.Build(scripts.ConstRealArray);
+            _const_Kxb_runtime       = Funny.Hardcore.Build(scripts.ConstKxb);
+            _const_multiplyArrays_runtime = Funny.Hardcore.Build(scripts.MultiplyArrayItems);
            // _const_sum_1000_runtime  = FunBuilder.Build(scripts.ConstThousandSum);
-            _const_dummyBubbleSort_runtime = FunBuilder.Build(scripts.DummyBubbleSort);
-            _const_everything_runtime = FunBuilder.Build(scripts.Everything);
+            _const_dummyBubbleSort_runtime = Funny.Hardcore.Build(scripts.DummyBubbleSort);
+            _const_everything_runtime = Funny.Hardcore.Build(scripts.Everything);
             
-            _varkxb_runtime = FunBuilder.Build(scripts.VarKxb);
+            _varkxb_runtime = Funny.Hardcore.Build(scripts.VarKxb);
 
             value = VarVal.New("x",100);
             Expression<Func<double, double>> ex = x => 10 * x + 1;

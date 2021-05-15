@@ -66,6 +66,7 @@ namespace NFun.Runtime
     
         public CalculationResult Calc(params (string id, object clrValue)[] values)
         {
+            //todo value convertion or error in such a case: Input: int, expected: double 
             foreach (var value in values)
             {
                 if (value.clrValue == null)
@@ -75,6 +76,7 @@ namespace NFun.Runtime
                 if(source==null)
                     throw new ArgumentException($"unexpected input '{value.id}'");
                 var converter =FunnyTypeConverters.GetInputConverter(value.clrValue.GetType());
+                //todo what to do in such a case: Input: int, expected: double ?
                 //if(converter.FunnyType!=source.Type)
                 //    throw new ArgumentException($"Input '{value.id}' has wrong type. " +
                 //                                $"Expected {source.Type} but was {converter.FunnyType}");

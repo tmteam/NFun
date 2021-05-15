@@ -79,7 +79,7 @@ namespace NFun.SyntaxTests
         [TestCase("a = 2.0 \r b=3.0 \r y = [a*0,b*0] ", new[]{0.0,0.0})]
         [TestCase("a = true  \ry = if (a) [1.0] else [2.0, 3.0] ", new[]{1.0})]
         [TestCase("a = false  \r y = if (a) [1.0] else [2.0, 3.0]", new[]{2.0,3.0})]
-        public void ConstantCalculableArrayTest(string expr, object expected) => expr.AssertHas("y", expected);
+        public void ConstantCalculableArrayTest(string expr, object expected) => expr.AssertResultHas("y", expected);
 
         [TestCase("[1,'2',3.0,4,5.2, true, false, 7.2]", new object[] {1.0, "2", 3.0, 4.0, 5.2, true, false, 7.2})]
         [TestCase("[1,'23',4.0,5, true]", new object[] {1.0, "2", 3.0, 4.0, 5.2, true, false, 7.2})]
@@ -147,7 +147,7 @@ namespace NFun.SyntaxTests
         //[TestCase(2, "x:int; y= [1..6..x]", new[] {1, 3, 5})]
         //[TestCase(0.5, "y= [1.0..3.0..x]", new[] {1.0, 1.5, 2.0, 2.5, 3.0})]
         public void SingleInputEquation_CheckOutputValues(object val, string expr, object expected) => 
-            expr.Calc("x",val).AssertHas("y", expected);
+            expr.Calc("x",val).AssertResultHas("y", expected);
 
         [Test]
         public void ConstantTwinAnyArray_NoTypeSpecification()

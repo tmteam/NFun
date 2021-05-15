@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using NFun.Interpritation;
 using NFun.ParseErrors;
 using NFun.Runtime;
 using NFun.SyntaxParsing;
@@ -34,7 +35,8 @@ namespace NFun
             return answer;
         }
 
-        public  static Memory<(string, IOutputFunnyConverter, PropertyInfo)> SetupManyAprioriOutputs<TOutput>(IFunBuilder builder) where TOutput : new()
+        
+        public  static Memory<(string, IOutputFunnyConverter, PropertyInfo)> SetupManyAprioriOutputs<TOutput>(AprioriTypesMap aprioriTypesMap) where TOutput : new()
         {
             var outputProperties = typeof(TOutput).GetProperties(BindingFlags.Instance | BindingFlags.Public);
             var outputVarVals = new (string, IOutputFunnyConverter, PropertyInfo)[outputProperties.Length];
@@ -47,7 +49,7 @@ namespace NFun
                 var converter = FunnyTypeConverters.GetOutputConverter(outputProperty.PropertyType);
                 var outputName = outputProperty.Name.ToLower();
 
-                builder.WithApriori(outputName, converter.FunnyType);
+                aprioriTypesMap.Add(outputName, converter.FunnyType);
                 outputVarVals[actualOutputsCount] = new(
                     outputName,
                     converter,
@@ -69,11 +71,15 @@ namespace NFun
                 .ToClrObject(outResult.Value);
         }
 
-        public  static TOutput CalcSingleOutput<TOutput>(IFunBuilder builder)
+        public  static TOutput CalcSingleOutput<TOutput>(string expression)
         {
+            
             var outputConverter = FunnyTypeConverters.GetOutputConverter(typeof(TOutput));
-            builder.WithApriori(Parser.AnonymousEquationId, outputConverter.FunnyType);
-            var runtime = builder.Build();
+            var apriories = AprioriTypesMap.Empty;
+            apriories.Add(Parser.AnonymousEquationId, outputConverter.FunnyType);
+            
+            var runtime = RuntimeBuilder.Build(expression,  BaseFunctions.DefaultDictionary,EmptyConstantList.Instance, apriories);
+            
             if (runtime.Inputs.Any())
                 throw ErrorFactory.UnknownInputs(runtime.GetInputVariableUsages(), new VarInfo[0]);
 
@@ -103,9 +109,8 @@ namespace NFun
             }
             return inputVarVals;
         }
-        
         public  static Memory<(string, IinputFunnyConverter, PropertyInfo)> 
-            SetupAprioriInputs<TInput>(IFunBuilder builder)
+            SetupAprioriInputs<TInput>(AprioriTypesMap apriories)
         {
             var inputProperties = typeof(TInput).GetProperties(BindingFlags.Instance | BindingFlags.Public);
             var inputTypes = new (string, IinputFunnyConverter, PropertyInfo)[inputProperties.Length];
@@ -119,7 +124,7 @@ namespace NFun
                 var converter = FunnyTypeConverters.GetInputConverter(inputProperty.PropertyType);
                 var inputName = inputProperty.Name.ToLower();
                 
-                builder.WithApriori(inputName, converter.FunnyType);
+                apriories.Add(inputName, converter.FunnyType);
                 inputTypes[i] = new (
                     inputName,
                     converter,
@@ -130,6 +135,7 @@ namespace NFun
 
             return inputTypes.AsMemory(0, actualInputsCount);
         }
+       
         internal static void ThrowIfHasUnknownInputs(FunRuntime runtime, Memory<(string, IinputFunnyConverter, PropertyInfo)> expectedInputs)
         {
             var span = expectedInputs.Span;

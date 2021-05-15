@@ -20,7 +20,7 @@ namespace NFun.Interpritation
         private static readonly List<IFunctionSignature> EmptyUserFunctionsList 
             = new List<IFunctionSignature>();
 
-        public static FunRuntime Build(string script, IFunctionDictionary functionDictionary, IConstantList constants, AprioriTypesMap aprioriTypesMap = null)
+        public static FunRuntime Build(string script, IFunctionDictionary functionDictionary, IConstantList constants =null, AprioriTypesMap aprioriTypesMap = null)
         {
             aprioriTypesMap ??= AprioriTypesMap.Empty;
             
@@ -31,7 +31,7 @@ namespace NFun.Interpritation
             var setNodeNumberVisitor = new SetNodeNumberVisitor();
             syntaxTree.ComeOver(setNodeNumberVisitor);
             syntaxTree.MaxNodeId = setNodeNumberVisitor.LastUsedNumber;
-            return Build(syntaxTree, functionDictionary, constants, aprioriTypesMap);
+            return Build(syntaxTree, functionDictionary, constants??EmptyConstantList.Instance, aprioriTypesMap);
         }
 
         private static FunRuntime Build(

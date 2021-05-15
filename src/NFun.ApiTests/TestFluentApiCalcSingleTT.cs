@@ -1,3 +1,4 @@
+using System;
 using NFun.Exceptions;
 using NFun.TestTools;
 using NUnit.Framework;
@@ -14,6 +15,21 @@ namespace NFun.ApiTests
         public void ReturnsBoolean(string expr, bool expected) => 
             CalcInDifferentWays(expr,new UserInputModel("vasa", 13),expected);
 
+        [Test]
+        public void BuildLambdaTwoTimes()
+        {
+            var context1 = Funny.ForCalc<ModelWithInt, string>();
+            var context2 = Funny.ForCalc<ModelWithInt, string>();
+            
+            Func<ModelWithInt, string> lambda1 = context1.Build("'{id}'");
+            Func<ModelWithInt, string> lambda2 = context2.Build("'{id}'");
+
+            var result1 =  lambda1(new ModelWithInt{id = 42});
+            var result2 =  lambda2(new ModelWithInt{id = 1});
+            Assert.AreEqual(result1,"42");
+            Assert.AreEqual(result2,"1");
+        }
+        
         [Test]
         public void IoComplexTypeTransforms() =>
             CalcInDifferentWays(expr: "@{id = age; items = ids.map{'{it}'}; price = size*2}",

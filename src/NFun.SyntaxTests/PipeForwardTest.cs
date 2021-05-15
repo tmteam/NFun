@@ -44,7 +44,7 @@ namespace NFun.SyntaxTests
         public void ConstantSingleVariableTest(string expr, object expected) => expr.AssertReturns("y", expected);
 
         [TestCase("x1 = 2; x2 = 1; y = -x1.max(x2)", -2.0)]
-        public void ConstantTest(string expr, object yExpected) => expr.AssertHas("y",yExpected);
+        public void ConstantTest(string expr, object yExpected) => expr.AssertResultHas("y",yExpected);
 
         [TestCase(@"f(x:int):int = x*x y = 4.f)")]
         [TestCase(@"f(x:int):int = x*x y = 4.f( == f(4)")]

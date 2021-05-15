@@ -5,19 +5,27 @@ using NFun.Interpritation.Functions;
 
 namespace NFun.Interpritation
 {
-    public sealed class FlatMutableFunctionDictionary: IFunctionDictionary
+    
+    public sealed class ImmutableFunctionDictionary: IFunctionDictionary
     {
         private readonly Dictionary<string, IFunctionSignature> _functions;
         //TODO - OVERLOADS?!?!
         private readonly Dictionary<string, List<IFunctionSignature>> _overloads;
 
-        public FlatMutableFunctionDictionary()
+        private ImmutableFunctionDictionary()
         {
             _functions = new();
             _overloads = new();
         }
-
-        private FlatMutableFunctionDictionary(Dictionary<string, IFunctionSignature> functions,Dictionary<string, List<IFunctionSignature>> overloads )
+        public ImmutableFunctionDictionary(IConcreteFunction[] concretes, GenericFunctionBase[] generics)
+        {
+            _functions = new(concretes.Length+generics.Length);
+            _overloads = new();
+            foreach (var concrete in concretes) TryAdd(concrete);
+            foreach (var generic in generics)   TryAdd(generic);
+            
+        }
+        private ImmutableFunctionDictionary(Dictionary<string, IFunctionSignature> functions,Dictionary<string, List<IFunctionSignature>> overloads )
         {
             _functions = functions;
             _overloads = overloads;
@@ -49,24 +57,23 @@ namespace NFun.Interpritation
             return signature;
         }
 
-        public FlatMutableFunctionDictionary CloneWith(IFunctionSignature[] functions)
+        public ImmutableFunctionDictionary CloneWith(params IFunctionSignature[] functions)
         {
             var newFunctions =new Dictionary<string, IFunctionSignature>(_functions);
             var newOverloads = _overloads.ToDictionary(
                 o => o.Key,
                 o => o.Value.ToList());
-            var dic = new FlatMutableFunctionDictionary(newFunctions, newOverloads);
-            foreach (var function in functions) 
-                dic.AddOrThrow(function);
+            var dic = new ImmutableFunctionDictionary(newFunctions, newOverloads);
+            foreach (var function in functions)
+            {
+                if(!dic.TryAdd(function))
+                    throw new InvalidOperationException($"function with signature {GetOverloadName(function.Name, function.ArgTypes.Length)} already exists");
+            }
+
             return dic;
         }
 
-        public void AddOrThrow(IFunctionSignature function)
-        {
-            if(!TryAdd(function))
-                throw new InvalidOperationException($"function with signature {GetOverloadName(function.Name, function.ArgTypes.Length)} already exists");
-        }
-        public bool TryAdd(IFunctionSignature function)
+        private bool TryAdd(IFunctionSignature function)
         {
             var name = GetOverloadName(function.Name, function.ArgTypes.Length);
             if (_functions.ContainsKey(name))

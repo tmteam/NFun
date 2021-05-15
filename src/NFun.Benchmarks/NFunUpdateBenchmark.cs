@@ -17,9 +17,9 @@ namespace NFun.Benchmarks
         {
             var scripts = new Scripts();
 
-            _const_true_runtime = FunBuilder.Build(scripts.ConstTrue);
-            _const_Kxb_runtime = FunBuilder.Build(scripts.ConstKxb);
-            _varkxb_runtime = FunBuilder.Build(scripts.VarKxb);
+            _const_true_runtime = Funny.Hardcore.Build(scripts.ConstTrue);
+            _const_Kxb_runtime = Funny.Hardcore.Build(scripts.ConstKxb);
+            _varkxb_runtime = Funny.Hardcore.Build(scripts.VarKxb);
             var x = _varkxb_runtime.GetAllVariableSources().First(v => !v.IsOutput);
             x.FunnyValue = 100.0;
         }

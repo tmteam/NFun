@@ -71,7 +71,7 @@ namespace NFun.SyntaxTests
         {
             var runtime = expr.Build();
             CollectionAssert.IsEmpty(runtime.Inputs,"Unexpected inputs on constant equations");
-            runtime.Calculate().AssertHas("y", expected);
+            runtime.Calculate().AssertResultHas("y", expected);
         }
 
         [TestCase( "y = [1.0,2.0,3.0].map{it*x1*x2}",3.0,4.0, new []{12.0,24.0,36.0})]

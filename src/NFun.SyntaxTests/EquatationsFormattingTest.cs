@@ -66,6 +66,6 @@ namespace NFun.SyntaxTests
 
         [Test]
         public void TwoEquationsOnOneLineFails() => 
-            Assert.DoesNotThrow(()=> FunBuilder.Build("y=1; z=5"));
+            Assert.DoesNotThrow(()=> "y=1; z=5".Build());
     }
 }

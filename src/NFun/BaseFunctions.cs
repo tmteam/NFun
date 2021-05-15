@@ -6,21 +6,13 @@ namespace NFun
 {
     public static class BaseFunctions
     {
-        public static readonly IFunctionDictionary DefaultDictionary;
+        public static readonly ImmutableFunctionDictionary DefaultDictionary;
 
         static BaseFunctions()
         {
-            DefaultDictionary = CreateDefaultDictionary();
+            DefaultDictionary = new(ConcreteFunctions,GenericFunctions);
         }
-        public static FlatMutableFunctionDictionary CreateDefaultDictionary()
-        {
-            var functionsDictionary = new FlatMutableFunctionDictionary();
-            foreach (var predefinedFunction in ConcreteFunctions)
-                functionsDictionary.TryAdd(predefinedFunction);
-            foreach (var genericFunctionBase in GenericFunctions)
-                functionsDictionary.TryAdd(genericFunctionBase);
-            return functionsDictionary;
-        }
+
         public static GenericFunctionBase[] GenericFunctions { get; } =
         {
             new ConvertFunction(),

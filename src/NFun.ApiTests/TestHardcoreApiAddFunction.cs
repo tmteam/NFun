@@ -17,7 +17,7 @@ namespace NFun.ApiTests
             string customName = "lenofstr";
             string arg = "some very good string";
             var runtime = Funny.Hardcore
-                .WithFunctions(
+                .WithFunction(
                 new FunctionMock(
                     args => ((IFunArray)args[0]).Count, 
                     customName, 
@@ -36,7 +36,7 @@ namespace NFun.ApiTests
         {
             string customName = "each_second";
             var runtime = Funny.Hardcore
-                .WithFunctions(
+                .WithFunction(
                     new GenericFunctionMock(
                         args => new EnumerableFunArray(((IEnumerable<object>)args[0])
                             .Where((_, i) => i % 2 == 0), VarType.Anything),
@@ -50,7 +50,7 @@ namespace NFun.ApiTests
         public void IsVarNameCapital_returnsBool()
         {
             var result = Funny.Hardcore
-                .WithFunctions(new LogFunction())
+                .WithFunction(new LogFunction())
                 .Build("y = 1.writeLog('hello')")
                 .Calculate();
             Assert.AreEqual(1.0, result.GetValueOf("y"));

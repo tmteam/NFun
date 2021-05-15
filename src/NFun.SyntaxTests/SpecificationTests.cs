@@ -77,7 +77,7 @@ y = tostring(x)", "y", "not supported")]
         public void Real_SingleEquationWithSingleInput(object xVal, string expression, string outputName,
             object outputValue)
         {
-            var runtime = FunBuilder.Build(expression);
+            var runtime = Funny.Hardcore.Build(expression);
             Assert.AreEqual(1, runtime.Inputs.Length);
             Assert.AreEqual(1, runtime.Outputs.Length);
             runtime.Calculate(VarVal.New("x", xVal))

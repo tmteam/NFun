@@ -42,16 +42,10 @@ namespace NFun.UnitTests.TicTests
             var graph = new GraphBuilder();
             var resultsBuilder = new TypeInferenceResultsBuilder();
 
-            var functions = new FlatMutableFunctionDictionary();
-            foreach (var predefinedFunction in BaseFunctions.ConcreteFunctions)
-                functions.TryAdd(predefinedFunction);
-            foreach (var predefinedFunction in BaseFunctions.GenericFunctions)
-                functions.TryAdd(predefinedFunction);
-
             TicSetupVisitor.SetupTicForBody(
                 tree:         tree, 
                 ticGraph:     graph, 
-                functions:    functions, 
+                functions:    BaseFunctions.DefaultDictionary, 
                 constants:    new EmptyConstantList(), 
                 aprioriTypes: AprioriTypesMap.Empty, 
                 results:      resultsBuilder);
@@ -68,11 +62,7 @@ namespace NFun.UnitTests.TicTests
 
             var graph = new GraphBuilder();
 
-            var functions = new FlatMutableFunctionDictionary();
-            foreach (var predefinedFunction in BaseFunctions.ConcreteFunctions)
-                functions.TryAdd(predefinedFunction);
-            foreach (var predefinedFunction in BaseFunctions.GenericFunctions)
-                functions.TryAdd(predefinedFunction);
+            var functions = BaseFunctions.DefaultDictionary;
 
             var resultsBuilder = new TypeInferenceResultsBuilder();
 

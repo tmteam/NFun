@@ -101,24 +101,27 @@ if (x == 0) [0.0]
 if (x == 1) [0.0,1.0]
 if (x == 2) [0.0,1.0,2.0]
 if (x == 3) [0.0,1.0,2.0,3.0]
-else [0.0,0.0,0.0] ", 2, new[]{0.0,1.0,2.0})]
+else [0.0,0.0,0.0] ", 2, new[] {0.0, 1.0, 2.0})]
         [TestCase(@"
 if (x==0) ['0']
 if (x==1) ['0','1']
 if (x==2) ['0','1','2']
 if (x==3) ['0','1','2','3']
-else ['0','0','0'] ", 2, new[]{"0","1","2"})]
-        
+else ['0','0','0'] ", 2, new[] {"0", "1", "2"})]
+
         [TestCase(@"
 if (x == 0) 'zero'
 if (x == 1) 'one'
 if (x == 2) 'two'
 else 'not supported' ", 2, "two")]
-        [TestCase("if (x==1) [1,2,3] else []", 1, new[] { 1.0, 2, 3 })]
+        [TestCase("if (x==1) [1,2,3] else []", 1, new[] {1.0, 2, 3})]
         [TestCase("if (x==1) [1,2,3] else []", 0, new double[0])]
-        public void SingleVariableEquatation(string expression, int x, object expected) 
-            => FunBuilder.Build(expression).Calculate(VarVal.New("x", x))
-                .AssertOutEquals(expected);
+        public void SingleVariableEquatation(string expression, int x, object expected)
+            => Funny.Hardcore
+                .WithApriori<int>("x")
+                .Build(expression)
+                .Calc("x", x)
+                .AssertOut(expected);
 
         [TestCase("y = if (1<2 )10 else -10.0", 10.0)]
         [TestCase("y = if (1>2 )-10.0 else 10", 10.0)]

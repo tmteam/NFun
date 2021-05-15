@@ -4,6 +4,7 @@ using NUnit.Framework;
 namespace NFun.ApiTests
 {
     public class TestFluentApiAddConstant {
+        
         [Test]
         public void Smoke()
         {
@@ -18,6 +19,7 @@ namespace NFun.ApiTests
             Assert.AreEqual(result1,"vasa's id is 42 and age is 100");
             Assert.AreEqual(result2,"vasa's id is 1 and age is 100");
         }
+        
         
         [TestCase("id","id")]
         [TestCase("Id","id")]
@@ -55,9 +57,6 @@ namespace NFun.ApiTests
             Assert.AreEqual(result1.Id,42);
             var result2 =  lambda(new UserInputModel(age: 11));
             Assert.AreEqual(result2.Id,11);
-
         }
-        
-        
     }
 }

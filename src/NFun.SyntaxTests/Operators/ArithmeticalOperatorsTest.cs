@@ -64,7 +64,7 @@ namespace NFun.SyntaxTests.Operators
         [TestCase("y:uint64 = x*3",  (UInt64) 4,  (UInt64) 12)]
         [TestCase("y:uint32 = x*3",  (UInt32) 4,  (UInt32) 12)]
         public void VarMultiply(string expression,object input,  object expected) 
-            => expression.Calc("x",input).AssertHas("y",expected);
+            => expression.Calc("x",input).AssertResultHas("y",expected);
 
         [TestCase("y = 2+3", 5.0)]
         [TestCase("y = -2+-4", -6.0)]
@@ -122,7 +122,7 @@ namespace NFun.SyntaxTests.Operators
         [TestCase("y:uint64 = x+3",  (UInt64) 4,  (UInt64) 7)]
         [TestCase("y:uint32 = x+3",  (UInt32) 4,  (UInt32) 7)]
         public void VarAddition(string expression,object input,  object expected) 
-            => expression.Calc("x",input).AssertHas("y",expected);
+            => expression.Calc("x",input).AssertResultHas("y",expected);
 
         
         [TestCase("y = 2-3", -1.0)]
@@ -168,7 +168,7 @@ namespace NFun.SyntaxTests.Operators
         [TestCase("y:uint64 = x-3",  (UInt64) 4,  (UInt64) 1)]
         [TestCase("y:uint32 = x-3",  (UInt32) 4,  (UInt32) 1)]
         public void VarSubstract(string expression,object input,  object expected) 
-            => expression.Calc("x",input).AssertHas("y",expected);
+            => expression.Calc("x",input).AssertResultHas("y",expected);
         
         [TestCase("y = 4/2",2.0)]
         [TestCase("y = 2/4",0.5)]
@@ -189,7 +189,7 @@ namespace NFun.SyntaxTests.Operators
         [TestCase("y = -2/x",-2.0, 1.0)]
         [TestCase("y = -2/-x",-2.0, -1.0)]
         public void VarDivision(string expression,object input,  object expected) 
-            => expression.Calc("x",input).AssertHas("y",expected);
+            => expression.Calc("x",input).AssertResultHas("y",expected);
         
         [TestCase("y = 4**2",16.0)]
         [TestCase("y = 2**4",16.0)]
@@ -210,7 +210,7 @@ namespace NFun.SyntaxTests.Operators
         [TestCase("y = x**-1",1.0, 1.0)]
         [TestCase("y = x**x",0.0, 1.0)]
         public void VarPow(string expression,object input,  object expected) 
-            => expression.Calc("x",input).AssertHas("y",expected);
+            => expression.Calc("x",input).AssertResultHas("y",expected);
         
         [TestCase("y = -1",-1.0)]
         [TestCase("y:real  = -(1)",(double)(-1.0))]
@@ -251,7 +251,7 @@ namespace NFun.SyntaxTests.Operators
         [TestCase("y = x1*4/x2",2,2,4)]
         [TestCase("y = (x1+x2)/4",2,2,1)]
         public void TwoVariablesEquation(string expr, double arg1, double arg2, double expected) => 
-            expr.Calc(("x1",arg1),("x2",arg2)).AssertHas("y",expected);
+            expr.Calc(("x1",arg1),("x2",arg2)).AssertResultHas("y",expected);
 
         [Ignore("TODO Arithmetical oops")]
         [TestCase("y:uint64 = 2-3")]

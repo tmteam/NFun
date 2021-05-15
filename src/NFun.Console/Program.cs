@@ -22,7 +22,7 @@ namespace NFun.ConsoleApp
                 {
                     Stopwatch calcSw;
                     Stopwatch build = Stopwatch.StartNew();
-                    var runtime = FunBuilder.With(expression).Build();
+                    var runtime = Funny.Hardcore.Build(expression);
                     build.Stop();
                     Console.WriteLine($"Built in {build.Elapsed.TotalMilliseconds}");
 

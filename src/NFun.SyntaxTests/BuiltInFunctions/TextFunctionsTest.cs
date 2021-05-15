@@ -25,11 +25,7 @@ namespace NFun.SyntaxTests.BuiltInFunctions
         [TestCase("y = '  hi world  '.trimEnd()", "  hi world")]
         [TestCase("y = 'hi world'.trim()", "hi world")]
 
-        public void ConstantEquationWithGenericPredefinedFunction(string expr, object expected)
-        {
-            var runtime = FunBuilder.Build(expr);
-            runtime.Calculate()
-                .OLD_AssertReturns(VarVal.New("y", expected));
-        }
+        public void ConstantEquationWithGenericPredefinedFunction(string expr, object expected) => 
+            expr.AssertReturns("y",expected);
     }
 }

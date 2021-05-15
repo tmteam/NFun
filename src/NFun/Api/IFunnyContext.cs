@@ -1,4 +1,5 @@
 using System;
+using NFun.Interpritation;
 using NFun.ParseErrors;
 using NFun.SyntaxParsing;
 using NFun.Types;
@@ -17,9 +18,10 @@ namespace NFun
             => Build(expression)(input);
         public Func<TInput, object> Build(string expression)
         {
-            var builder = _builder.CreateRuntimeBuilder(expression);
-            var inputsMap = FluentApiTools.SetupAprioriInputs<TInput>(builder);
-            var runtime = builder.Build();
+            var apriories = AprioriTypesMap.Empty;
+            var inputsMap = FluentApiTools.SetupAprioriInputs<TInput>(apriories);
+            
+            var runtime =  _builder.CreateRuntime(expression,apriories);
             if(!runtime.HasDefaultOutput)
                 throw ErrorFactory.OutputIsUnset();
             FluentApiTools.ThrowIfHasUnknownInputs(runtime,inputsMap);
@@ -47,12 +49,11 @@ namespace NFun
         public TOutput Calc(string expression, TInput input) => Build(expression)(input);
         public Func<TInput, TOutput> Build(string expression)
         {
-            var builder = _builder.CreateRuntimeBuilder(expression);
-            var inputsMap = FluentApiTools.SetupAprioriInputs<TInput>(builder);
-            var outputs = FluentApiTools.SetupManyAprioriOutputs<TOutput>(builder);
-            var runtime = builder.Build();
+            var apriories = AprioriTypesMap.Empty;
+            var inputsMap = FluentApiTools.SetupAprioriInputs<TInput>(apriories);
+            var outputs = FluentApiTools.SetupManyAprioriOutputs<TOutput>(apriories);
+            var runtime =  _builder.CreateRuntime(expression, apriories);
             FluentApiTools.ThrowIfHasUnknownInputs(runtime,inputsMap);
-
             return input =>
             {
                 var inputValues = FluentApiTools.GetInputValues(inputsMap, input);
@@ -73,12 +74,12 @@ namespace NFun
         public TOutput Calc(string expression, TInput input) => Build(expression)(input);
         public Func<TInput, TOutput> Build(string expression)
         {
-            var builder = _builder.CreateRuntimeBuilder(expression);
-            var inputsMap = FluentApiTools.SetupAprioriInputs<TInput>(builder);
-            
+            var apriories = AprioriTypesMap.Empty;
+            var inputsMap = FluentApiTools.SetupAprioriInputs<TInput>(apriories);
+
             var outputConverter = FunnyTypeConverters.GetOutputConverter(typeof(TOutput));
-            builder.WithApriori(Parser.AnonymousEquationId, outputConverter.FunnyType);
-            var runtime = builder.Build();
+            apriories.Add(Parser.AnonymousEquationId, outputConverter.FunnyType);
+            var runtime = _builder.CreateRuntime(expression,  apriories);
 
             FluentApiTools.ThrowIfHasUnknownInputs(runtime,inputsMap);
             

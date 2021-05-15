@@ -12,7 +12,7 @@ namespace NFun.ApiTests
         {
             var runtime = Funny.Hardcore
                 .WithConstants(VarVal.New("pipi", Math.PI))
-                .WithFunctions(new LogFunction())
+                .WithFunction(new LogFunction())
                 .Build("y = pipi");
             Assert.AreEqual(0, runtime.Inputs.Length);
 
@@ -36,7 +36,7 @@ namespace NFun.ApiTests
         {
             var runtime = Funny.Hardcore
                 .WithConstant("pipi", Math.PI)
-                .WithFunctions(new LogFunction())
+                .WithFunction(new LogFunction())
                 .Build("y = pipi");
             Assert.AreEqual(0, runtime.Inputs.Length);
 
@@ -50,7 +50,7 @@ namespace NFun.ApiTests
             var runtime = Funny.Hardcore
                 .WithConstant("one", 1)
                 .WithConstant("two", 2)
-                .WithFunctions(new LogFunction())
+                .WithFunction(new LogFunction())
                 .Build("y = one+two");
             Assert.AreEqual(0, runtime.Inputs.Length);
             Assert.AreEqual(3, runtime.Calculate().GetValueOf("y"));
@@ -71,7 +71,7 @@ namespace NFun.ApiTests
         {
             var runtime = Funny.Hardcore
                 .WithConstant("pi", Math.PI)
-                .WithFunctions(new LogFunction())
+                .WithFunction(new LogFunction())
                 .Build("pi = 3; y = pi");
             
             Assert.AreEqual(0, runtime.Inputs.Length);

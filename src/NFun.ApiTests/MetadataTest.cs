@@ -1,10 +1,11 @@
 using System.Linq;
 using NFun.Interpritation.Functions;
+using NFun.TestTools;
 using NUnit.Framework;
 
 namespace NFun.ApiTests
 {
-    public class OLD_MetadataTest
+    public class MetadataTest
     {
         [TestCase("myfun1(a):int = a; y = x*3 ",               "myfun1",true)]
         [TestCase("myfun2(a,b):real = a+b; y = myfun2(x,z)*3 ","myfun2",true)]
@@ -16,8 +17,11 @@ namespace NFun.ApiTests
         [TestCase("g(a:int) = a; y = g(a)*3 ","g",false)]
         public void ConcreteUserFunction_IsReturnTypeStrictTypedMetadata(string expr, string functionName, bool expectedIsStrictType)
         {
-            var runtime = FunBuilder.Build(expr);
-            var funDefinition = runtime.UserFunctions.OfType<ConcreteUserFunction>().First(u => u.Name == functionName);
+            var funDefinition = expr
+                .Build()
+                .UserFunctions
+                .OfType<ConcreteUserFunction>()
+                .First(u => u.Name == functionName);
             Assert.AreEqual(expectedIsStrictType, funDefinition.IsReturnTypeStrictlyTyped);
         }
         
@@ -32,9 +36,13 @@ namespace NFun.ApiTests
             string argName, 
             bool expectedIsStrictType)
         {
-            var runtime = FunBuilder.Build(expr);
-            var funDefinition = runtime.UserFunctions.OfType<ConcreteUserFunction>().First(u => u.Name == functionName);
-            var argDefinition = funDefinition.Variables.First(v => v.Name == argName);
+            var argDefinition = expr
+                .Build()
+                .UserFunctions
+                .OfType<ConcreteUserFunction>()
+                .First(u => u.Name == functionName)
+                .Variables
+                .First(v => v.Name == argName);
             Assert.AreEqual(expectedIsStrictType, argDefinition.IsStrictTyped);
         }
         
@@ -44,8 +52,7 @@ namespace NFun.ApiTests
         [TestCase("a:int; y = a*b*c ","b",false)]
         public void InputVariable_IsStrictTypedMetadata(string expr, string varName, bool expectedIsStrictType)
         {
-            var runtime = FunBuilder.Build(expr);
-            var variableInfo = runtime.Inputs.First(i => i.Name == varName);
+            var variableInfo = expr.Build().Inputs.First(i => i.Name == varName);
             Assert.AreEqual(expectedIsStrictType, variableInfo.IsStrictTyped);
         }
         
@@ -58,8 +65,7 @@ namespace NFun.ApiTests
         [TestCase("y:int[] = a ","y",true)]
         public void OutputVariable_IsStrictTypedMetadata(string expr, string varName, bool expectedIsStrictType)
         {
-            var runtime = FunBuilder.Build(expr);
-            var variableInfo = runtime.Outputs.First(i => i.Name == varName);
+            var variableInfo = expr.Build().Outputs.First(i => i.Name == varName);
             Assert.AreEqual(expectedIsStrictType, variableInfo.IsStrictTyped);
         }
     }

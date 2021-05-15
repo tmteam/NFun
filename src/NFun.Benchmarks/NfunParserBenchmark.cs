@@ -15,16 +15,14 @@ namespace NFun.Benchmarks
     {
         private string _expression;
         private FunRuntime _runtime;
-        private FunBuilderWithDictionary _builder;
+        private HardcoreBuilder _builder;
 
         [GlobalSetup]
         public void Setup()
         {
             _expression = "(4 * 12 / 7) + ((9 * 2) / 8)";
-            _runtime = FunBuilder.Build(_expression);
-            _builder = FunBuilder
-                .With(_expression)
-                .With(BaseFunctions.CreateDefaultDictionary());
+            _runtime = Funny.Hardcore.Build(_expression);
+            _builder = Funny.Hardcore;
             
         }
         [Benchmark()]
@@ -38,7 +36,7 @@ namespace NFun.Benchmarks
         }
 
         [Benchmark()]
-        public void Building() => _builder.Build();
+        public void Building() => _builder.Build(_expression);
 
         /*[Benchmark()]
         public void Calc10000()
@@ -56,14 +54,14 @@ namespace NFun.Benchmarks
     }
     public class NfunParserBenchmark
     {
-        private FlatMutableFunctionDictionary _dictionary;
+        private ImmutableFunctionDictionary _dictionary;
         private Scripts _scripts;
      
         [GlobalSetup]
         public void Setup()
         {
             _scripts = new Scripts();
-            _dictionary = BaseFunctions.CreateDefaultDictionary();
+            _dictionary = BaseFunctions.DefaultDictionary;
         }
 
         private SyntaxTree Parse(string expr)
@@ -90,21 +88,13 @@ namespace NFun.Benchmarks
         public void ConstKxb() => Parse(_scripts.ConstKxb);
         [Benchmark(Description = "array multiply")]
         public void ArrayMulti() => Parse(_scripts.MultiplyArrayItems);
-
-        //[Benchmark(Description = "sum1000")]
-        //public void Sum1000() => Parse(_scripts.ConstThousandSum);
-
         [Benchmark(Description = "dummy Bubble")]
         public void DummyBubble() => Parse(_scripts.DummyBubbleSort);
-
         [Benchmark(Description = "Everything")]
         public void Everything() => Parse(_scripts.Everything);
-
         [Benchmark(Description = "kxb with var")]
         public void KxbNoTypes() => Parse(_scripts.VarKxb);
-
         [Benchmark(Description = "Dotnet kxb build")]
-
         public Func<double, double> DotnetKxb()
         {
             Expression<Func<double, double>> ex = x => 10*x+1;

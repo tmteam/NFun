@@ -7,7 +7,7 @@ namespace NFun.InfinityProfiling.Sets
 {
     public class ProfileUpdateSet: IProfileSet
     {
-        private readonly FlatMutableFunctionDictionary _dictionary;
+        private readonly ImmutableFunctionDictionary _dictionary;
         private readonly FunRuntime _constTrue;
         private readonly FunRuntime _const1;
         private readonly FunRuntime _constSingleText;
@@ -40,7 +40,7 @@ namespace NFun.InfinityProfiling.Sets
         private readonly FunRuntime _primitiveCalcInt2Var;
         public ProfileUpdateSet()
         {
-            _dictionary = BaseFunctions.CreateDefaultDictionary();
+            _dictionary = BaseFunctions.DefaultDictionary;
             _calcIntOp = Build(Scripts.CalcIntOp);
             _calcRealOp = Build(Scripts.CalcRealOp);
             _calcBoolOp = Build(Scripts.CalcBoolOp);
@@ -110,12 +110,10 @@ namespace NFun.InfinityProfiling.Sets
             _calcInterpolation["b"] = 1.0;
 
             _calcSingleBool["x"] = true;
-            
         }
 
-        private FunRuntime Build(string expr) => FunBuilder.With(expr).With(_dictionary).Build();
+        private FunRuntime Build(string expr) => Funny.Hardcore.Build(expr);
 
-        
         [MethodImpl(MethodImplOptions.NoOptimization)]
         public void PrimitiveConstIntSimpleArithmetics() => _primitiveConstIntSimpleArithmetics.Update();
         [MethodImpl(MethodImplOptions.NoOptimization)]

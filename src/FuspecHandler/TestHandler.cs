@@ -44,7 +44,7 @@ namespace FuspecHandler
                             {
                                 try
                                 {
-                                    var runtime = FunBuilder.With(fus.Script).Build();
+                                    var runtime = Funny.Hardcore.Build(fus.Script);
                                     CkeckTypesAndValues(runtime,fus);
                                     RunOneTest(runtime, fus);
                                     _consoleWriter.PrintOkTest();

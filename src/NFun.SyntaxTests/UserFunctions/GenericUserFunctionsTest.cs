@@ -81,7 +81,7 @@ namespace NFun.SyntaxTests.UserFunctions
                   "a:real = sum(1,2,3);" +
                   "b:int  = sum(1,2,3);", 6.0, 6)]
         public void ConstantEquationWithTwoUsesOfGenerics(string expr, object expectedA, object expectedB) => 
-            expr.AssertHas(("a", expectedA),("b", expectedB));
+            expr.AssertResultHas(("a", expectedA),("b", expectedB));
 
         [Test]
         public void SelectOverload() =>
@@ -101,7 +101,7 @@ namespace NFun.SyntaxTests.UserFunctions
                             else fact(n - 1) * n
 
                 res = [0..4].map(fact)"
-                .AssertHas("res", new[] { 0.0, 1.0, 2, 6, 24 });
+                .AssertResultHas("res", new[] { 0.0, 1.0, 2, 6, 24 });
 
         [Test]
         public void TwinGenericFunCall()
@@ -116,7 +116,7 @@ namespace NFun.SyntaxTests.UserFunctions
               [01,15,18]
              ] 
 
-  res:int = origin.maxOfMatrix()".AssertHas("res", 42);
+  res:int = origin.maxOfMatrix()".AssertResultHas("res", 42);
         }
 
         [Ignore("UB")]
@@ -136,7 +136,7 @@ namespace NFun.SyntaxTests.UserFunctions
              ] 
 
   res:int = origin.maxOfMatrix()";
-            expr.AssertHas("res", 42);
+            expr.AssertResultHas("res", 42);
         }
 
         [Test]

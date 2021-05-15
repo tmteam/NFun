@@ -46,12 +46,8 @@ namespace NFun.SyntaxTests.BuiltInFunctions
         [TestCase("y:int = [1,2,3,4,5,6,7].filter({it.rema(2)==0}).fold{if(it1>it2) it1 else it2}", 6)]
         [TestCase("y:int = [1,2,3,4,5,6,7].filter({it.rema(2)==0}).fold{0}", 0)]
         [TestCase("y:int = [1,2,3,4,5,6,7].filter({it.rema(2)==0}).fold{0}", 0)]
-        public void HiOrderFunConstantEquatation(string expr, object expected)
-        {
-            var runtime = FunBuilder.Build(expr);
-            runtime.Calculate()
-                .OLD_AssertReturns(VarVal.New("y", expected));
-        }
+        public void HiOrderFunConstantEquatation(string expr, object expected) 
+            => expr.AssertReturns("y",expected);
 
         [TestCase("y:int[] = take([1,2,3,4,5],3)", new[] { 1, 2, 3 })]
         [TestCase("y = take([1.0,2.0,3.0,4.0,5.0],4)", new[] { 1.0, 2.0, 3.0, 4.0 })]
@@ -152,23 +148,14 @@ namespace NFun.SyntaxTests.BuiltInFunctions
         [TestCase("y = '12'.map(toText)", new[] { "1", "2" })]
         [TestCase("y = 'c b a'.split(' ').sort().join(' ')", "a b c")]
         [TestCase("y = 123.toText().reverse()", "321")]
-        public void ConstantEquationWithGenericPredefinedFunction(string expr, object expected)
-        {
-            var runtime = FunBuilder.Build(expr);
-            runtime.Calculate()
-                .OLD_AssertReturns(0.00001, VarVal.New("y", expected));
-        }
+        public void ConstantEquationWithGenericPredefinedFunction(string expr, object expected) => 
+            expr.AssertReturns("y",expected);
 
         [TestCase("y = [1..100].chunk(-1)")]
         [TestCase("y = [1..100].chunk(0)")]
         [TestCase(@"iSum(r:int, x:int):int = r+x
                      y = fold([100][1:1], iSum)")]
 
-        public void FailsOnRuntime(string expr)
-        {
-            var runtime = FunBuilder.Build(expr);
-            Assert.Throws<FunRuntimeException>(
-                () => runtime.Calculate());
-        }
+        public void FailsOnRuntime(string expr) => expr.AssertObviousFailsOnRuntime();
     }
 }

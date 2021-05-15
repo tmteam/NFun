@@ -7,9 +7,9 @@ namespace NFun.Interpritation
 {
     public class AprioriTypesMap:IEnumerable<KeyValuePair<string, VarType>>
     {
-        public static AprioriTypesMap Empty = new ();
-
-        public AprioriTypesMap()
+        public static AprioriTypesMap Empty  => new ();
+        //todo - make apriori immutable
+        private AprioriTypesMap()
         {
             _typesMap = new(StringComparer.OrdinalIgnoreCase);
         }

@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Linq;
+using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.Tests
+namespace NFun.ApiTests
 {
     class NfunUpdateTest
     {
@@ -26,7 +27,7 @@ namespace NFun.Tests
 
         public void SingleVariableEquation(string expr, double arg, double expected)
         {
-            var runtime = FunBuilder.Build(expr);
+            var runtime = expr.Build();
             var ySource = runtime.GetAllVariableSources().First(vs => vs.IsOutput && vs.Name == "y");
             var xSource = runtime.GetAllVariableSources().First(vs => !vs.IsOutput && vs.Name == "x");
             xSource.FunnyValue = arg;
@@ -60,7 +61,7 @@ namespace NFun.Tests
         [TestCase("y = -(-(-x))", 0.0)]
         public void InputNotSet_SingleVariableEquation(string expr, object expected)
         {
-            var runtime = FunBuilder.Build(expr);
+            var runtime = expr.Build();
             var ySource = runtime.GetAllVariableSources().First(vs => vs.IsOutput && vs.Name == "y");
             runtime.Update();
             Assert.AreEqual(expected, ySource.FunnyValue);
