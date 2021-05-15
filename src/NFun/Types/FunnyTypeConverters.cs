@@ -8,7 +8,6 @@ namespace NFun.Types
 {
     public static class FunnyTypeConverters
     {
-        
         public static IinputFunnyConverter GetInputConverter(Type clrType) => GetInputConverter(clrType, 0);
  
         private static IinputFunnyConverter GetInputConverter(Type clrType, int reqDeepthCheck)
@@ -154,33 +153,6 @@ namespace NFun.Types
                 default:
                     throw ErrorFactory.TypeCannotBeUsedAsOutputNfunType(funnyType);
             }
-        }
-        
-        internal static VarType ToPrimitiveFunType(Type t)
-        {
-            if(t== typeof(byte))
-                return VarType.UInt8;
-            if(t== typeof(ushort))
-                return VarType.UInt16;
-            if (t == typeof(uint))
-                return VarType.UInt32;
-            if (t== typeof(ulong))    
-                return VarType.UInt64;
-            if(t== typeof(short))
-                return VarType.Int16;
-            if (t == typeof(int))
-                return VarType.Int32;
-            if (t== typeof(long))    
-                return VarType.Int64;
-            if (t == typeof(double))
-                return VarType.Real;
-            if (t == typeof(string))
-                return VarType.Text;
-            if (t == typeof(bool))
-                return VarType.Bool;
-            if (t== typeof(char))
-                return VarType.Char;
-            return VarType.Anything;
         }
     }
 }
