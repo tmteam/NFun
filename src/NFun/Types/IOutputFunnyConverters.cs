@@ -12,6 +12,29 @@ namespace NFun.Types
         public object ToClrObject(object funObject);
     }
 
+    public class AnythingTypeOutputFunnyConverter : IOutputFunnyConverter
+    {
+        public AnythingTypeOutputFunnyConverter(Type clrType) => ClrType = clrType;
+
+        public Type ClrType { get; }
+        public VarType FunnyType { get; } = VarType.Anything;
+        public object ToClrObject(object funObject)
+        {
+            if (funObject is IFunArray funArray)
+            {
+                if (funObject is TextFunArray txt)
+                    return txt.ToString();
+                
+                var outConverter = FunnyTypeConverters.GetOutputConverter(VarType.ArrayOf(funArray.ElementType));
+                return outConverter.ToClrObject(funObject);
+            }
+
+            if (funObject is FunnyStruct str)
+                return str.ToString();
+            
+            return funObject;
+        }
+    }
     public class PrimitiveTypeOutputFunnyConverter:IOutputFunnyConverter {
         public Type ClrType { get; }
         public VarType FunnyType { get;  }

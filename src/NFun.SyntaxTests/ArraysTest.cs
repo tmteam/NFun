@@ -82,7 +82,7 @@ namespace NFun.SyntaxTests
         public void ConstantCalculableArrayTest(string expr, object expected) => expr.AssertResultHas("y", expected);
 
         [TestCase("[1,'2',3.0,4,5.2, true, false, 7.2]", new object[] {1.0, "2", 3.0, 4.0, 5.2, true, false, 7.2})]
-        [TestCase("[1,'23',4.0,5, true]", new object[] {1.0, "2", 3.0, 4.0, 5.2, true, false, 7.2})]
+        [TestCase("[1,'23',4.0,0x5, true]", new object[] {1.0, "23",  4.0, 5, true})]
         [TestCase("if (true) [1.0] else [2.0, 3.0] ", new[] {1.0})]
         [TestCase("if (false) [1.0] else [2.0, 3.0]", new[] {2.0, 3.0})]
         [TestCase("y(x) = x \r[1]", new[] {1.0})]
@@ -90,7 +90,21 @@ namespace NFun.SyntaxTests
         [TestCase("y(x) = x # some comment \r[1]", new[] {1.0})]
         [TestCase("y(x) = x # some comment \r[1..3]", new[] {1.0, 2, 3})]
         public void AnonymousConstantArrayTest(string expr, object expected)
-            => expr.AssertOut(expected);
+                => expr.AssertOut(expected);
+
+        [Test]
+        public void CompositeArrayOfAnyTest() =>
+            "[1,'23',[],['a','bc'],[[]], 4.0,0x5, false]".AssertOut(new object[]
+            {
+                1.0,
+                "23",
+                new object[0], 
+                new[]{"a","bc"}, 
+                new[]{new object[0]},
+                4.0, 
+                5,
+                false
+            });
 
         [Test]
         public void IntersectToDimArrayTest()

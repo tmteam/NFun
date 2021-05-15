@@ -91,9 +91,9 @@ namespace NFun.Types
                 return new ClrArrayOutputFunnyConverter(clrType, elementConverter);
             }
            
-            if (clrType == typeof(byte))    return new PrimitiveTypeOutputFunnyConverter(VarType.UInt8, clrType);
-            if (clrType == typeof(UInt16))  return new PrimitiveTypeOutputFunnyConverter(VarType.UInt16, clrType);
-            if (clrType == typeof(UInt32))  return new PrimitiveTypeOutputFunnyConverter(VarType.UInt32, clrType);
+            if (clrType == typeof(byte))    return  new PrimitiveTypeOutputFunnyConverter(VarType.UInt8, clrType);
+            if (clrType == typeof(UInt16))  return  new PrimitiveTypeOutputFunnyConverter(VarType.UInt16, clrType);
+            if (clrType == typeof(UInt32))  return  new PrimitiveTypeOutputFunnyConverter(VarType.UInt32, clrType);
             if (clrType == typeof(UInt64))  return  new PrimitiveTypeOutputFunnyConverter(VarType.UInt64,clrType);
             if (clrType == typeof(Int16))   return  new PrimitiveTypeOutputFunnyConverter(VarType.Int16,clrType);
             if (clrType == typeof(Int32))   return  new PrimitiveTypeOutputFunnyConverter(VarType.Int32,clrType);
@@ -125,7 +125,7 @@ namespace NFun.Types
                 }
                 return new StructOutputFunnyConverter(clrType, propertiesConverters,readPropertiesCount);
             }
-            return new PrimitiveTypeOutputFunnyConverter(VarType.Anything,clrType);
+            return new AnythingTypeOutputFunnyConverter(clrType);
         }
 
         public static IOutputFunnyConverter GetOutputConverter(VarType funnyType)
@@ -142,7 +142,7 @@ namespace NFun.Types
                 case BaseVarType.Int32:  return new PrimitiveTypeOutputFunnyConverter(funnyType, typeof(int));
                 case BaseVarType.Int64:  return new PrimitiveTypeOutputFunnyConverter(funnyType, typeof(long));
                 case BaseVarType.Real:   return new PrimitiveTypeOutputFunnyConverter(funnyType, typeof(double));
-                case BaseVarType.Any:    return new PrimitiveTypeOutputFunnyConverter(funnyType, typeof(object));
+                case BaseVarType.Any:    return new AnythingTypeOutputFunnyConverter(typeof(object));
                 case BaseVarType.ArrayOf:
                 {
                     if (funnyType.IsText)

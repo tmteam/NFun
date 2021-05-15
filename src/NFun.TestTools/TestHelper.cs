@@ -47,7 +47,7 @@ namespace NFun.TestTools
 
         public static void AssertReturns(this CalculationResult result, string id, object expected)
             => AssertReturns(result, (id, expected));
-            public static void AssertReturns(this CalculationResult result, params (string id, object val)[] values) =>
+        public static void AssertReturns(this CalculationResult result, params (string id, object val)[] values) =>
             Assert.Multiple(() =>
             {
                 AssertResultHas(result, values);
@@ -72,7 +72,8 @@ namespace NFun.TestTools
                     $"Variable \"{value.id}\" has wrong type. Actual Funny type is: {result.Get(value.id).Type}");
                 if (!AreSame(value.val, resultValue))
                     Assert.Fail(
-                        $"Var \"{value.id}\" expected: {ToStringSmart(value.val)}, but was: {ToStringSmart(resultValue)}");
+                        $"Var \"{value.id}\" expected: {ToStringSmart(value.val)}, but was: {ToStringSmart(resultValue)}\r\n" +
+                        $"clr expected: { JsonSerializer.Serialize(value.val)}, clr actual: {JsonSerializer.Serialize(resultValue)}");
             }
         }
 

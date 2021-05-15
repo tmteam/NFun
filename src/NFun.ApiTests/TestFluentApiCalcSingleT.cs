@@ -17,6 +17,7 @@ namespace NFun.ApiTests
         [TestCase("'{name}{age}'.reverse()=='31asav'",true)]
         [TestCase("'mama'=='{name}{age}'.reverse()",false)]
         [TestCase("'hello world'","hello world")]
+        [TestCase("out:anything ='hello world'","hello world")]
         [TestCase("1",1.0)]
         [TestCase("ids.count{it>2}",2)]
         [TestCase("ids.filter{it>2}",new[]{101,102})]
@@ -88,8 +89,8 @@ namespace NFun.ApiTests
             var result5 = lambda1(input);
 
             var lambda2 = context.Build(expr);
-            var result6 = lambda1(input);
-            var result7 = lambda1(input);
+            var result6 = lambda2(input);
+            var result7 = lambda2(input);
             
             Assert.AreEqual(expected, result1);
             Assert.AreEqual(expected, result2);
