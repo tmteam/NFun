@@ -33,5 +33,7 @@ namespace NFun.Interpritation.Nodes
             var res = _origin.Calc();
             return _converter(res);
         }
+
+        public IExpressionNode Fork(ForkScope scope) => new CastExpressionNode(_origin.Fork(scope), Type, _converter, Interval);
     }
 }

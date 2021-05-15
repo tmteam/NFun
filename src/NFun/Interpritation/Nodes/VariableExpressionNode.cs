@@ -18,6 +18,9 @@ namespace NFun.Interpritation.Nodes
         public Interval Interval { get; }
         public VarType Type => Source.Type;
         public object Calc() => Source.InternalFunnyValue;
+        public IExpressionNode Fork(ForkScope scope) => 
+            new VariableExpressionNode(scope.ForkVariableSource(Source), Interval);
+
         public override string ToString() => $"{Source.Name}: {Source.FunnyValue}";
 
     }

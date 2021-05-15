@@ -32,7 +32,15 @@ namespace NFun.Interpritation.Nodes
             }
             return _elseNode.Calc();
         }
+
         public VarType Type { get; }
         public Interval Interval { get; }
+
+        public IExpressionNode Fork(ForkScope scope) => new IfElseExpressionNode(
+            ifExpressionNodes: _ifExpressionNodes.Fork(scope),
+            conditionNodes:    _conditionNodes.Fork(scope), 
+            elseNode: _elseNode.Fork(scope), 
+            interval: Interval, 
+            type: Type);
     }
 }

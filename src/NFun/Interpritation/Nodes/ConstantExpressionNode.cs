@@ -50,5 +50,6 @@ namespace NFun.Interpritation.Nodes
         public VarType Type { get; }
         public Interval Interval { get; }
         public object Calc() => _value;
+        public IExpressionNode Fork(ForkScope scope) => this;
     }
 }

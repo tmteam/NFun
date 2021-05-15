@@ -18,5 +18,6 @@ namespace NFun.Interpritation.Nodes
         public Interval Interval { get; }
         public VarType Type => _fun.ReturnType;
         public object Calc() => _fun.Calc(_arg1.Calc());
+        public IExpressionNode Fork(ForkScope scope) => new FunOfSingleArgExpressionNode(_fun, _arg1.Fork(scope), Interval);
     }
 }

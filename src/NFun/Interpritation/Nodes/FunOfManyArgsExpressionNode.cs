@@ -26,5 +26,8 @@ namespace NFun.Interpritation.Nodes
                 args[i] = _argsNodes[i].Calc();
             return _fun.Calc(args);
         }
+
+        public IExpressionNode Fork(ForkScope scope) => 
+            new FunOfManyArgsExpressionNode(_fun, _argsNodes.Fork(scope), Interval);
     }
 }

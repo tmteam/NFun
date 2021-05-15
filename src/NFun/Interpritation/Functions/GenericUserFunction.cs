@@ -76,7 +76,7 @@ namespace NFun.Interpritation.Functions
             _dictionary = dictionary;
         }
 
-        readonly Dictionary<string, IConcreteFunction> _concreteFunctionsCache = new Dictionary<string, IConcreteFunction>();
+        readonly Dictionary<string, IConcreteFunction> _concreteFunctionsCache = new();
         public override IConcreteFunction CreateConcrete(VarType[] concreteTypes)
         {
             BuiltCount++;

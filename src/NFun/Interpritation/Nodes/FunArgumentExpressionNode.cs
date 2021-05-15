@@ -41,7 +41,8 @@ namespace NFun.Interpritation.Nodes
         
         
         public object Calc() => throw new InvalidOperationException();
-        
+        public IExpressionNode Fork(ForkScope scope) => this;
+
         public override string ToString() => $"{Name}: {Type}";
     }
 }

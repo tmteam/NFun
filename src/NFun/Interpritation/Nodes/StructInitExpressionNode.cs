@@ -28,5 +28,8 @@ namespace NFun.Interpritation.Nodes
             
             return new FunnyStruct(fields);
         }
+
+        public IExpressionNode Fork(ForkScope scope) =>
+            new StructInitExpressionNode(_fieldNames, _elements.Fork(scope), Interval, Type);
     }
 }

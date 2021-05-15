@@ -173,7 +173,7 @@ namespace NFun.Interpritation
                 outputVariableSource = VariableSource.CreateWithStrictTypeLabel(
                     name: equation.Id, 
                     type: equation.OutputType, 
-                    typeSpecificationIntervalOrNull: equation.TypeSpecificationOrNull.Interval, 
+                    typeSpecificationInterval: equation.TypeSpecificationOrNull.Interval, 
                     attributes: equation.Attributes, 
                     isOutput:true);
             else

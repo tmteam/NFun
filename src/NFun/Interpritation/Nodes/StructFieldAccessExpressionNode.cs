@@ -18,5 +18,6 @@ namespace NFun.Interpritation.Nodes
         public Interval Interval { get; }
         public VarType Type { get; }
         public object Calc() => ((FunnyStruct) _source.Calc()).GetValue(_fieldName);
+        public IExpressionNode Fork(ForkScope scope) => new StructFieldAccessExpressionNode(_fieldName, _source.Fork(scope), Interval);
     }
 }

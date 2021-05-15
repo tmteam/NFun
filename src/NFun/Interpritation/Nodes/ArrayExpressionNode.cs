@@ -26,5 +26,7 @@ namespace NFun.Interpritation.Nodes
             }
             return new ImmutableFunArray(arr, Type.ArrayTypeSpecification.VarType);
         }
+
+        public IExpressionNode Fork(ForkScope scope) => new ArrayExpressionNode(_elements.Fork(scope), Interval, Type);
     }
 }

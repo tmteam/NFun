@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NFun.Interpritation.Functions;
+using NFun.Interpritation.Nodes;
 using NFun.ParseErrors;
 using NFun.Runtime;
 using NFun.SyntaxParsing;
@@ -16,6 +17,13 @@ namespace NFun.Interpritation
 {
     public static class RuntimeBuilderHelper
     {
+        public static IExpressionNode[] Fork(this IExpressionNode[] nodes, ForkScope scope)
+        {
+            var res = new IExpressionNode[nodes.Length];
+            for (var i = 0; i < res.Length; i++) 
+                res[i] = nodes[i].Fork(scope);
+            return res;
+        }
         public static ConcreteUserFunction BuildConcrete(
             this UserFunctionDefinitionSyntaxNode functionSyntax,
             VarType[] argTypes, 
@@ -142,7 +150,7 @@ namespace NFun.Interpritation
           
             return functionSolveOrder;
         }
-
+        
         private static VariableSource CreateVariableSourceForArgument(
             TypedVarDefSyntaxNode argSyntax,
             VarType actualType)
@@ -151,7 +159,7 @@ namespace NFun.Interpritation
                 return VariableSource.CreateWithStrictTypeLabel(
                     name: argSyntax.Id, 
                     type: actualType, 
-                    typeSpecificationIntervalOrNull: argSyntax.Interval, 
+                    typeSpecificationInterval: argSyntax.Interval, 
                     isOutput: false);
             else
                 return VariableSource.CreateWithoutStrictTypeLabel(

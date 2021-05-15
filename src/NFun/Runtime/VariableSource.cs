@@ -11,19 +11,19 @@ namespace NFun.Runtime
 
         public static VariableSource CreateWithStrictTypeLabel( string name, 
             VarType type, 
-            Interval typeSpecificationIntervalOrNull,
+            Interval typeSpecificationInterval,
             bool isOutput,
             VarAttribute[] attributes = null)
-            => new (name, type, typeSpecificationIntervalOrNull, isOutput, attributes);
+            => new (name, type, typeSpecificationInterval, isOutput, attributes);
 
         public static VariableSource CreateWithoutStrictTypeLabel(
             string name, VarType type, bool isOutput,  VarAttribute[] attributes = null)
             => new(name, type, isOutput, attributes);
-
+        
         private VariableSource(
             string name, 
             VarType type, 
-            Interval typeSpecificationIntervalOrNull, 
+            Interval? typeSpecificationIntervalOrNull, 
             bool isOutput,
             VarAttribute[] attributes = null)
         {
@@ -35,7 +35,7 @@ namespace NFun.Runtime
             Name = name;
             Type = type;
         }
-
+        
         private VariableSource(string name, VarType type,bool isOutput,  VarAttribute[] attributes = null)
         {
             IsOutput = isOutput;
@@ -57,7 +57,9 @@ namespace NFun.Runtime
             get => InternalFunnyValue;
             set => InternalFunnyValue = value;
         }
-        
+
+        public VariableSource Fork() => new(Name, Type, TypeSpecificationIntervalOrNull, IsOutput, Attributes);
+
         public void SetClrValue(object valueValue)
         {
             if (Type.BaseType.GetClrType() == valueValue.GetType())
@@ -106,5 +108,7 @@ namespace NFun.Runtime
                     throw new NotSupportedException($"type '{Type.BaseType}' is not supported as primitive type");
             }
         }
+        
+        
     }
 }

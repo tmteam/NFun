@@ -134,5 +134,17 @@ namespace NFun.Runtime
             
             return new CalculationResult(ans);
         }
+        
+        public FunRuntime Fork()
+        {
+            var scope =new ForkScope(_variables);
+            var newEquations =_equations.SelectToArray(e => e.Fork(scope));
+            return new FunRuntime(newEquations, scope.GetVariables() , UserFunctions);
+            
+            //UserFunctions
+            //_equations = equations;
+            //_variables = variables;
+            //UserFunctions = userFunctions;
+        }
     }
 }

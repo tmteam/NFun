@@ -24,6 +24,8 @@ namespace NFun.Interpritation
             return val;
         }
 
+        public Equation Fork(ForkScope scope) => new(Id, Expression.Fork(scope), scope.ForkVariableSource(OutputVariableSource));
+
         internal void UpdateExpression() 
             => OutputVariableSource.InternalFunnyValue = Expression.Calc();
         public override string ToString() => $"\"{Id}\" equation";
