@@ -13,44 +13,44 @@ namespace NFun.SyntaxTests.Structs
         public void SingleFieldStructInitialization() =>
             "y = the{a = 1.0}"
                 .Calc()
-                .OLD_AssertReturns(VarVal.NewStruct("y", new{a =1.0}));
+                .AssertReturns("y", new{a =1.0});
 
         [Test]
         public void TwoFieldStructInitialization() =>
             "y = the{a = 1.0; b ='vasa'}"
                 .Calc()
-                .OLD_AssertReturns(VarVal.NewStruct("y",
-                    new {a = 1.0, b = "vasa"}));
+                .AssertReturns("y",
+                    new {a = 1.0, b = "vasa"});
 
 
         [Test]
         public void ThreeFieldStructInitializationWithCalculation() =>
             "y = the{a = 1.0; b ='vasa'; c = 12*5.0}"
                 .Calc()
-                .OLD_AssertReturns(VarVal.NewStruct("y", new
+                .AssertReturns("y", new
                     {
                         a = 1.0,
                         b = "vasa",
                         c = 60.0
-                    }));
+                    });
 
         [Test]
         public void ConstAccessNested() =>
             "y = the{ b = 'foo'}.b"
                 .Calc()
-                .OLD_AssertReturns(VarVal.New("y", "foo"));
+                .AssertReturns("y", "foo");
         
         [Test]
         public void ConstAccessNestedComposite() =>
             "y = the{ b = [1,2,3]}.b[1]"
                 .Calc()
-                .OLD_AssertReturns(VarVal.New("y", 2.0));
+                .AssertReturns("y", 2.0);
         
         [Test]
         public void ConstAccessDoubleNestedComposite() =>
             "y = the{ a1 = the{b2 = [1,2,3]}}.a1.b2[1]"
                 .Calc()
-                .OLD_AssertReturns(VarVal.New("y", 2.0));
+                .AssertReturns("y", 2.0);
         
 
         [Test]
@@ -63,7 +63,7 @@ namespace NFun.SyntaxTests.Structs
                        "        }" +
                        "  c = 12*5.0" +
                        "}").Calc()
-                .OLD_AssertReturns(VarVal.NewStruct("y", new
+                .AssertReturns("y", new
                 {
                     a = true,
                     b = new
@@ -73,70 +73,64 @@ namespace NFun.SyntaxTests.Structs
                         
                     },
                     c = 60.0
-                }));
-                
-        
-        
+                });
+
+
+
         [Test]
         public void SingleFieldAccess() =>
             "y:int = a.age"
                 .Build()
-                .Calculate(VarVal.New("a",FunnyStruct.Create("age",42),VarType.StructOf("age",VarType.Int32)))
-                .OLD_AssertReturns(VarVal.New("y",42));
+                .Calc(("a", new
+                {
+                    age = 42
+                })).AssertReturns("y", 42);
         
         [Test]
         public void AccessToNestedFieldsWithExplicitTi() =>
             "y:int = the{age = 42; name = 'vasa'}.age"
                 .Calc()
-                .OLD_AssertReturns(VarVal.New("y",42));
+                .AssertReturns("y",42);
         [Test]
         public void AccessToNestedFields() =>
             "y = the{age = 42; name = 'vasa'}.age"
                 .Calc()
-                .OLD_AssertReturns(VarVal.New("y",42.0));
+                .AssertReturns("y",42.0);
         [Test]
         public void AccessToNestedFields2() =>
             "y = the{age = 42; name = 'vasa'}.name"
                 .Calc()
-                .OLD_AssertReturns(VarVal.New("y","vasa"));
+                .AssertReturns("y","vasa");
         
         [Test]
         public void AccessToNestedFieldsWithExplicitTi2() =>
             "y:anything = the{age = 42; name = 'vasa'}.name"
                 .Calc()
-                .OLD_AssertReturns(VarVal.New("y",(object)"vasa"));
+                .AssertReturns("y",(object)"vasa");
         
         
         [Test]
-        public void TwoFieldsAccess()
-        {
-            var result = "y1:int = a.age; y2:real = a.size"
+        public void TwoFieldsAccess() =>
+            "y1:int = a.age; y2:real = a.size"
                 .Build()
-                .Calculate(VarVal.NewStruct("a", 
+                .Calc("a", 
                     new
                     {
                         age = 42,
                         size = 1.1
-                    }));
-            result.OLD_AssertHas(VarVal.New("y1", 42));
-            result.OLD_AssertHas(VarVal.New("y2", 1.1));
-        }
-        
+                    })
+                .AssertReturns(("y1", 42),("y2", 1.1));
+
         [Test]
-        public void ThreeFieldsAccess()
-        {
-            var result = "agei:int = a.age; sizer = a.size+12.0; name = a.name"
+        public void ThreeFieldsAccess() =>
+            "agei:int = a.age; sizer = a.size+12.0; name = a.name"
                 .Build()
-                .Calculate(VarVal.NewStruct("a", new
+                .Calc("a", new
                 {
                     age = 42,
                     size = 1.1,
                     name = "vasa"
-                }));
-            result.OLD_AssertHas(VarVal.New("agei", 42));
-            result.OLD_AssertHas(VarVal.New("sizer", 13.1));
-            result.OLD_AssertHas(new VarVal("name", "vasa", VarType.Anything));
-        }
+                }).AssertReturns(("agei", 42), ("sizer", 13.1), ("name", "vasa"));
 
         [Test]
         public void ConstantAccessCreated() =>

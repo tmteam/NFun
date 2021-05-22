@@ -16,11 +16,9 @@ namespace NFun.Runtime
             _variables = new Dictionary<string, VariableUsages>(StringComparer.OrdinalIgnoreCase);
         }
 
-        public VariableDictionary(int capacity)
-        {
+        public VariableDictionary(int capacity) => 
             _variables = new Dictionary<string, VariableUsages>(capacity, StringComparer.OrdinalIgnoreCase);
-        }
-        
+
         public VariableDictionary(IEnumerable<VariableSource> sources)
         {
             _variables = new Dictionary<string, VariableUsages>(StringComparer.OrdinalIgnoreCase);
@@ -84,7 +82,40 @@ namespace NFun.Runtime
         }
         
         public VariableUsages GetUsages(string id) => _variables[id];
-        public IEnumerable<VariableUsages> GetAllUsages() => _variables.Values.AsEnumerable();
-        public IEnumerable<VariableSource> GetAllSources() => _variables.Values.Select(v => v.Source);
+        public VariableUsages[] GetAllUsages()
+        {
+            var sources = new VariableUsages[_variables.Count];
+            var i = 0;
+            foreach (var variable in _variables)
+            {
+                sources[i] = variable.Value;
+                i++;
+            }
+            return sources;
+        }
+
+        public VariableSource[] GetAllSources()
+        {
+            var sources = new VariableSource[_variables.Count];
+            var i = 0;
+            foreach (var variable in _variables)
+            {
+                sources[i] = variable.Value.Source;
+                i++;
+            }
+            return sources;
+        }
+
+        public IFunnyVariable[] GetAllVariables()
+        {
+            var variables = new IFunnyVariable[_variables.Count];
+            var i = 0;
+            foreach (var variable in _variables)
+            {
+                variables[i] = variable.Value.GetVariable();
+                i++;
+            }
+            return variables;
+        }
     }
 }

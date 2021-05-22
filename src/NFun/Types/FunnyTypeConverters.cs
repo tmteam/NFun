@@ -8,6 +8,44 @@ namespace NFun.Types
 {
     public static class FunnyTypeConverters
     {
+        public static IinputFunnyConverter GetInputConverter(VarType funnyType)
+            => GetInputConverter(funnyType, 0);
+
+        private static IinputFunnyConverter GetInputConverter(VarType funnyType, int reqDeepthCheck)
+        {
+            if (reqDeepthCheck > 100)
+                throw new ArgumentException("Too nested input object");
+            
+            switch (funnyType.BaseType)
+            {
+                case BaseVarType.Char:
+                case BaseVarType.Bool:
+                case BaseVarType.UInt8:
+                case BaseVarType.UInt16:
+                case BaseVarType.UInt32:
+                case BaseVarType.UInt64:
+                case BaseVarType.Int16:
+                case BaseVarType.Int32:
+                case BaseVarType.Int64:
+                case BaseVarType.Real:
+                    return new PrimitiveTypeInputFunnyConverter(funnyType);
+                case BaseVarType.ArrayOf:
+                    if (funnyType.IsText)
+                        return new StringTypeInputFunnyConverter();
+                    var elementConverter = GetInputConverter(funnyType.ArrayTypeSpecification.VarType, reqDeepthCheck+1);
+                    return new ClrArrayInputTypeFunnyConverter(elementConverter);
+                case BaseVarType.Any:
+                    return new DynamicTypeInputFunnyConverter();
+                case BaseVarType.Empty:
+                case BaseVarType.Fun:
+                case BaseVarType.Generic:
+                case BaseVarType.Struct:
+                default:
+                    throw new NotSupportedException($"type {funnyType} is not supported for input convertion");
+            }
+        }
+
+
         public static IinputFunnyConverter GetInputConverter(Type clrType) => GetInputConverter(clrType, 0);
  
         private static IinputFunnyConverter GetInputConverter(Type clrType, int reqDeepthCheck)
@@ -124,7 +162,7 @@ namespace NFun.Types
                 }
                 return new StructOutputFunnyConverter(clrType, propertiesConverters,readPropertiesCount);
             }
-            return new AnythingTypeOutputFunnyConverter(clrType);
+            return new DynamicTypeOutputFunnyConverter(clrType);
         }
 
         public static IOutputFunnyConverter GetOutputConverter(VarType funnyType)
@@ -141,7 +179,7 @@ namespace NFun.Types
                 case BaseVarType.Int32:  return new PrimitiveTypeOutputFunnyConverter(funnyType, typeof(int));
                 case BaseVarType.Int64:  return new PrimitiveTypeOutputFunnyConverter(funnyType, typeof(long));
                 case BaseVarType.Real:   return new PrimitiveTypeOutputFunnyConverter(funnyType, typeof(double));
-                case BaseVarType.Any:    return new AnythingTypeOutputFunnyConverter(typeof(object));
+                case BaseVarType.Any:    return new DynamicTypeOutputFunnyConverter(typeof(object));
                 case BaseVarType.ArrayOf:
                 {
                     if (funnyType.IsText)

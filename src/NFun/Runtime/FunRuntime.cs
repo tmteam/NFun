@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using NFun.Interpritation;
 using NFun.Interpritation.Functions;
-using NFun.Runtime.Arrays;
 using NFun.SyntaxParsing;
 using NFun.Types;
 
@@ -12,7 +11,8 @@ namespace NFun.Runtime
     public class FunRuntime
     {
         public IEnumerable<VariableUsages> GetInputVariableUsages() => _variables.GetAllUsages().Where(u=>!u.Source.IsOutput);
-        public IEnumerable<VariableSource> GetAllVariableSources()  => _variables.GetAllSources();
+        public IFunnyVariable[] GetAllVariables()  => _variables.GetAllVariables();
+
         public VarInfo[] Inputs => _variables.GetAllSources()
             .Where(v => !v.IsOutput)
             .Select(s => new VarInfo(false,  s.Type,s.Name, s.IsStrictTyped, s.Attributes)).ToArray();
@@ -40,21 +40,29 @@ namespace NFun.Runtime
         {
             set
             {
-                object v;
-                if (value is string str)
-                    v = new TextFunArray(str);
-                else if (value is Array arr)
-                {
-                    throw new NotImplementedException();
-                    v = new ImmutableFunArray(arr,VarType.Anything);
-                }
-                else
-                    v = value;
-
-                _variables.GetSourceOrNull(key).SetClrValue(v);
+                var usage =_variables.GetUsages(key);
+                if(usage==null)
+                    throw new KeyNotFoundException($"Variable '{key}' not found in scope");
+                        
+                var input =usage.GetVariable() as IFunnyInput;
+                if (input == null)
+                    throw new KeyNotFoundException($"Variable '{key}' is output and cannot be written");
+                input.SetValue(value);
             }
-            //get => _variables.GetSourceOrNull(key).Value;
+            get
+            {
+                var usage =_variables.GetUsages(key);
+                if(usage==null)
+                    throw new KeyNotFoundException($"Variable '{key}' not found in scope");
+                var output =usage.GetVariable() as IFunnyOutput;
+                if (output == null)
+                    throw new KeyNotFoundException($"Variable '{key}' is input and cannot be read");
+                return output.GetValue();
+            }
         }
+
+        public IFunnyVariable GetVariable(string name) => 
+            _variables.GetUsages(name)?.GetVariable()??throw new KeyNotFoundException($"Variable {name} not found");
 
         public void Update()
         {
@@ -69,19 +77,21 @@ namespace NFun.Runtime
             //todo value convertion or error in such a case: Input: int, expected: double 
             foreach (var value in values)
             {
-                if (value.clrValue == null)
-                    throw new ArgumentException($"Value for '{value.id}' cannot be null");
-                
-                var source = _variables.GetSourceOrNull(value.id);
-                if(source==null)
-                    throw new ArgumentException($"unexpected input '{value.id}'");
-                var converter =FunnyTypeConverters.GetInputConverter(value.clrValue.GetType());
-                //todo what to do in such a case: Input: int, expected: double ?
-                //if(converter.FunnyType!=source.Type)
-                //    throw new ArgumentException($"Input '{value.id}' has wrong type. " +
-                //                                $"Expected {source.Type} but was {converter.FunnyType}");
-                
-                source.FunnyValue = converter.ToFunObject(value.clrValue);
+                this[value.id] = value.clrValue;
+                //
+                // if (value.clrValue == null)
+                //     throw new ArgumentException($"Value for '{value.id}' cannot be null");
+                //
+                // var source = _variables.GetSourceOrNull(value.id);
+                // if(source==null)
+                //     throw new ArgumentException($"unexpected input '{value.id}'");
+                // var converter =FunnyTypeConverters.GetInputConverter(value.clrValue.GetType());
+                // //todo what to do in such a case: Input: int, expected: double ?
+                // //if(converter.FunnyType!=source.Type)
+                // //    throw new ArgumentException($"Input '{value.id}' has wrong type. " +
+                // //                                $"Expected {source.Type} but was {converter.FunnyType}");
+                //
+                // source.FunnyValue = converter.ToFunObject(value.clrValue);
             }
             var ans = new VarVal[_equations.Count];
             for (int i = 0; i < _equations.Count; i++) 
@@ -89,24 +99,8 @@ namespace NFun.Runtime
             
             return new CalculationResult(ans);
         }
-        public CalculationResult Calculate(params VarVal[] vars)
-        {
-            foreach (var value in vars)
-            {
-                var source = _variables.GetSourceOrNull(value.Name);
-                if(source==null)
-                    throw new ArgumentException($"unexpected input '{value.Name}'");
-                source.SetClrValue(value.Value);
-            }
-            
-            var ans = new VarVal[_equations.Count];
-            for (int i = 0; i < _equations.Count; i++) 
-                ans[i] = _equations[i].CalcExpression();
-            
-            return new CalculationResult(ans);
-        }
-        
-        public CalculationResult CalculateSafe(params VarVal[] vars)
+
+        internal CalculationResult CalculateSafe(params VarVal[] vars)
         {
             foreach (var value in vars)
             {

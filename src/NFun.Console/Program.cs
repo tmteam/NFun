@@ -34,7 +34,7 @@ namespace NFun.ConsoleApp
                     else
                     {
                         calcSw = Stopwatch.StartNew();
-                        var res = runtime.Calculate();
+                        var res = runtime.Calc();
                         calcSw.Stop();
                         Console.WriteLine($"Calc in {calcSw.Elapsed.TotalMilliseconds}");
                         Console.WriteLine("Results:");

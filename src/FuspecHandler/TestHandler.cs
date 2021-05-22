@@ -82,7 +82,7 @@ namespace FuspecHandler
             foreach (var checkOrSetKit in fus.SetChecks)
             {
                 numberOfKit++;
-                if (checkOrSetKit is SetData setKit)
+                if (checkOrSetKit is SetData)
                     outputInputException.AddErrorMessage(CompareSetCheckTypesAndGetMessageOrNull(numberOfKit, checkOrSetKit.ValuesKit, runtime.Inputs));
                 else
                     outputInputException.AddErrorMessage(CompareSetCheckTypesAndGetMessageOrNull(numberOfKit, checkOrSetKit.ValuesKit, runtime.Outputs));
@@ -100,7 +100,7 @@ namespace FuspecHandler
             var setKit = new SetData();
 
             if (!runtime.Inputs.Any())
-                runtime.Calculate();
+                runtime.Calc();
 
             foreach (var checkOrSetKit in fus.SetChecks)
             {
@@ -108,7 +108,7 @@ namespace FuspecHandler
                 if (checkOrSetKit is SetData)
                 {
                     setKit = (SetData)checkOrSetKit;
-                    runtime.Calculate(setKit.ValuesKit);
+                    runtime.Calc(setKit.ValuesKit.Select(v=>(v.Name,v.Value)).ToArray());
                 }
           /*      if (checkOrSetKit is CheckData checkKit)
                 {

@@ -20,8 +20,8 @@ namespace NFun.Benchmarks
             _const_true_runtime = Funny.Hardcore.Build(scripts.ConstTrue);
             _const_Kxb_runtime = Funny.Hardcore.Build(scripts.ConstKxb);
             _varkxb_runtime = Funny.Hardcore.Build(scripts.VarKxb);
-            var x = _varkxb_runtime.GetAllVariableSources().First(v => !v.IsOutput);
-            x.FunnyValue = 100.0;
+            var x = _varkxb_runtime.GetAllVariables().OfType<IFunnyInput>().First();
+            x.SetValue(100.0);
         }
         [Benchmark(Description = "dotnet [1.1000].SUM()", Baseline = true)]
         public int BaselineDotnetTest1000() => Enumerable.Range(1, 1000).Sum();

@@ -80,8 +80,9 @@ y = tostring(x)", "y", "not supported")]
             var runtime = Funny.Hardcore.Build(expression);
             Assert.AreEqual(1, runtime.Inputs.Length);
             Assert.AreEqual(1, runtime.Outputs.Length);
-            runtime.Calculate(VarVal.New("x", xVal))
-                .OLD_AssertReturns(VarVal.New(outputName, outputValue));
+            runtime
+                .Calc("x", xVal)
+                .AssertReturns(outputName, outputValue);
         }
 
         [TestCase("y = 1", "y", 1.0)]

@@ -25,7 +25,7 @@ namespace NFun.ApiTests
                     VarType.Text))
                 .Build($"y = {customName}('{arg}')");
            
-            runtime.Calculate().OLD_AssertReturns(VarVal.New("y", arg.Length));
+            runtime.Calc().AssertReturns("y", arg.Length);
         }
 
         [TestCase("[0x1,2,3,4]", new[] { 1, 3 })]
@@ -44,85 +44,77 @@ namespace NFun.ApiTests
                         VarType.ArrayOf(VarType.Generic(0)),
                         VarType.ArrayOf(VarType.Generic(0))))
                 .Build($"y = {customName}({arg})");
-            runtime.Calculate().OLD_AssertReturns(VarVal.New("y", expected));
+            runtime.Calc().AssertReturns("y", expected);
         }
         [Test]
-        public void IsVarNameCapital_returnsBool()
-        {
-            var result = Funny.Hardcore
+        public void IsVarNameCapital_returnsBool() =>
+            Funny
+                .Hardcore
                 .WithFunction(new LogFunction())
                 .Build("y = 1.writeLog('hello')")
-                .Calculate();
-            Assert.AreEqual(1.0, result.GetValueOf("y"));
-        }
+                .Calc().AssertReturns("y",1.0);
+
         [Test]
-        public void Use1ArgLambda()
-        {
-            var result = Funny.Hardcore
+        public void Use1ArgLambda() =>
+            Funny.Hardcore
                 .WithFunction("sqra", (int i) => i*i)
                 .Build("y = sqra(10)")
-                .Calculate();
-            Assert.AreEqual(100, result.GetValueOf("y"));
-        }
+                .Calc()
+                .AssertReturns("y",100);
+
         [Test]
-        public void Use2ArgLambda()
-        {
-            var result = Funny.Hardcore
+        public void Use2ArgLambda() =>
+            Funny
+                .Hardcore
                 .WithFunction("conca", (string t1, string t2) => t1+t2)
                 .Build("y = 'hello'.conca(' ').conca('world')")
-                .Calculate();
-            Assert.AreEqual("hello world", result.GetValueOf("y"));
-        }
-        
+                .Calc().AssertReturns("y","hello world");
+
         [Test]
-        public void Use3ArgLambda()
-        {
-            var result = Funny.Hardcore
-                .WithFunction("conca", (string t1, string t2,string t3) 
-                    => t1+t2+t3)
+        public void Use3ArgLambda() =>
+            Funny.Hardcore
+                .WithFunction("conca", (string t1, string t2, string t3)
+                    => t1 + t2 + t3)
                 .Build("y = conca('1','2','3')")
-                .Calculate();
-            Assert.AreEqual("123", result.GetValueOf("y"));
-        }
+                .Calc().AssertReturns("y", "123");
+
         [Test]
-        public void Use4ArgLambda()
-        {
-            var result = Funny.Hardcore
+        public void Use4ArgLambda() =>
+            Funny.Hardcore
                 .WithFunction("conca", (string t1, string t2,string t3,string t4) 
                     => t1+t2+t3+t4)
                 .Build("y = conca('1','2','3','4')")
-                .Calculate();
-            Assert.AreEqual("1234", result.GetValueOf("y"));
-        }
+                .Calc().AssertReturns("y", "1234");
+
         [Test]
-        public void Use5ArgLambda()
-        {
-            var result = Funny.Hardcore
+        public void Use5ArgLambda() =>
+            Funny
+                .Hardcore
                 .WithFunction("conca", (string t1, string t2,string t3,string t4,string t5) 
                     => t1+t2+t3+t4+t5)
                 .Build("y = conca('1','2','3','4','5')")
-                .Calculate();
-            Assert.AreEqual("12345", result.GetValueOf("y"));
-        }
+                .Calc()
+                .AssertReturns("y","12345");
+
         [Test]
-        public void Use6ArgLambda()
-        {
-            var result = Funny.Hardcore
+        public void Use6ArgLambda() =>
+            Funny
+                .Hardcore
                 .WithFunction("conca", (string t1, string t2,string t3,string t4,string t5,string t6) 
                     => t1+t2+t3+t4+t5+t6)
                 .Build("y = conca('1','2','3','4','5','6')")
-                .Calculate();
-            Assert.AreEqual("123456", result.GetValueOf("y"));
-        }
+                .Calc().AssertReturns("y","123456");
+
         [Test]
         public void Use7ArgLambda()
         {
-            var result = Funny.Hardcore
+            Funny
+                .Hardcore
                 .WithFunction("conca", (string t1, string t2,string t3,string t4,string t5,string t6,string t7) 
                     => t1+t2+t3+t4+t5+t6+t7)
                 .Build("y = conca('1','2','3','4','5','6','7')")
-                .Calculate();
-            Assert.AreEqual("1234567", result.GetValueOf("y"));
+                .Calc()
+                .AssertReturns("y","1234567");
         }
     }
 

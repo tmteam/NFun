@@ -125,7 +125,7 @@ namespace NFun.SyntaxTests.Operators
 
         public void ConstantCalculationPriorities(string actualExpr, string expectedExpr)
         {
-            var expected = Funny.Hardcore.Build(expectedExpr).Calculate().GetClr("y");
+            var expected = Funny.Hardcore.Build(expectedExpr).Calc().GetClr("y");
             actualExpr.AssertReturns("y", expected);
         }
     }

@@ -71,8 +71,17 @@ namespace NFun.Types
             return new ImmutableFunArray(funnyObjects, FunnyType.ArrayTypeSpecification.VarType);
         }
     }
-    
-    
+
+    public class DynamicTypeInputFunnyConverter : IinputFunnyConverter
+    {
+        public VarType FunnyType => VarType.Anything;
+        public object ToFunObject(object clrObject)
+        {
+            var converter = FunnyTypeConverters.GetInputConverter(clrObject.GetType());
+            return converter.ToFunObject(clrObject);
+        }
+    }
+
     public class PrimitiveTypeInputFunnyConverter : IinputFunnyConverter {
         public VarType FunnyType { get; }
         public PrimitiveTypeInputFunnyConverter(VarType funnyType) => FunnyType = funnyType;

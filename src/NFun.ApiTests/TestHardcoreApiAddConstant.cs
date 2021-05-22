@@ -1,5 +1,6 @@
 using System;
 using NFun.Interpritation;
+using NFun.TestTools;
 using NFun.Types;
 using NUnit.Framework;
 
@@ -7,29 +8,25 @@ namespace NFun.ApiTests
 {
     public class TestHardcoreApiAddConstant
     {
-       [Test]
+        [Test]
         public void UseConstant_inputNotAppears()
         {
             var runtime = Funny.Hardcore
-                .WithConstants(VarVal.New("pipi", Math.PI))
+                .WithConstants(("pipi", Math.PI))
                 .WithFunction(new LogFunction())
                 .Build("y = pipi");
             Assert.AreEqual(0, runtime.Inputs.Length);
-
-            var result = runtime.Calculate();
-            Assert.AreEqual(Math.PI, result.GetValueOf("y"));
+            runtime.Calc().AssertReturns("y", Math.PI);
         }
-        
+
         [Test]
-        public void UseConstantWithOp()
-        {
-            var runtime = Funny.Hardcore
-                .WithConstants(new VarVal("one", 1, VarType.Int32))
-                .Build("y = -one");
-
-            var result = runtime.Calculate();
-            Assert.AreEqual(-1, result.GetValueOf("y"));
-        }
+        public void UseConstantWithOp() =>
+            Funny
+                .Hardcore
+                .WithConstants(("one", 1))
+                .Build("y = -one")
+                .Calc()
+                .AssertReturns("y", -1);
 
         [Test]
         public void UseClrConstant_inputNotAppears()
@@ -40,10 +37,9 @@ namespace NFun.ApiTests
                 .Build("y = pipi");
             Assert.AreEqual(0, runtime.Inputs.Length);
 
-            var result = runtime.Calculate();
-            Assert.AreEqual(Math.PI, result.GetValueOf("y"));
+            runtime.Calc().AssertReturns("y", Math.PI);
         }
-        
+
         [Test]
         public void UseTwoClrConstants()
         {
@@ -53,17 +49,17 @@ namespace NFun.ApiTests
                 .WithFunction(new LogFunction())
                 .Build("y = one+two");
             Assert.AreEqual(0, runtime.Inputs.Length);
-            Assert.AreEqual(3, runtime.Calculate().GetValueOf("y"));
+            runtime.Calc().AssertReturns("y", 3);
         }
 
         [Test]
         public void UseTwoNfunConstants()
         {
             var runtime = Funny.Hardcore
-                .WithConstants(new VarVal("one",1,VarType.Int32),new VarVal("two",2,VarType.Int32))
+                .WithConstants(("one",1),("two",2))
                 .Build("y = one+two");
             Assert.AreEqual(0, runtime.Inputs.Length);
-            Assert.AreEqual(3, runtime.Calculate().GetValueOf("y"));
+            runtime.Calc().AssertReturns("y",3);
         }
 
         [Test]
@@ -73,11 +69,9 @@ namespace NFun.ApiTests
                 .WithConstant("pi", Math.PI)
                 .WithFunction(new LogFunction())
                 .Build("pi = 3; y = pi");
-            
-            Assert.AreEqual(0, runtime.Inputs.Length);
 
-            var result = runtime.Calculate();
-            Assert.AreEqual(3.0,  result.GetValueOf("y"));
+            Assert.AreEqual(0, runtime.Inputs.Length);
+            runtime.Calc().AssertReturns("y", 3.0);
         }
 
         [Test]
@@ -89,9 +83,7 @@ namespace NFun.ApiTests
                 .WithConstant("pi", Math.PI)
                 .Build("pi:int; y = pi");
             Assert.AreEqual(1, runtime.Inputs.Length);
-
-            var result = runtime.Calculate(VarVal.New("pi", 2));
-            Assert.AreEqual(2, result.GetValueOf("y"));
+            runtime.Calc("pi", 2).AssertReturns("y",2);
         }   
     }
 }

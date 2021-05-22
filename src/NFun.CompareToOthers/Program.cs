@@ -75,9 +75,8 @@ namespace NFun.CompareToOthers
             };
             var context = new ExpressionContext() {x = 12};
             Action calcLambda = () => lambda(context);
-            var source = funrt.GetAllVariableSources().First(x => x.Name == "x");
-            source.FunnyValue = 12.0;
             
+            funrt["x"] = 12.0;
             Action calcFun   = ()  => funrt.Update();
             
             MeasureAll(

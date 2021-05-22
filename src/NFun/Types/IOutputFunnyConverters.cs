@@ -12,9 +12,9 @@ namespace NFun.Types
         public object ToClrObject(object funObject);
     }
 
-    public class AnythingTypeOutputFunnyConverter : IOutputFunnyConverter
+    public class DynamicTypeOutputFunnyConverter : IOutputFunnyConverter
     {
-        public AnythingTypeOutputFunnyConverter(Type clrType) => ClrType = clrType;
+        public DynamicTypeOutputFunnyConverter(Type clrType) => ClrType = clrType;
 
         public Type ClrType { get; }
         public VarType FunnyType { get; } = VarType.Anything;

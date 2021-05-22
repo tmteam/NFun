@@ -29,8 +29,9 @@ namespace NFun
             var varval = new VarVal(id, converter.ToFunObject(clrValue), converter.FunnyType);
             return new(_immutableFunctionDictionary, _constants.CloneWith(varval), _apriori);
         }
-        public HardcoreBuilder WithConstants(params  VarVal[] funValues) => 
-            new(_immutableFunctionDictionary, _constants.CloneWith(funValues), _apriori);
+        public HardcoreBuilder WithConstants(params (string,object)[] funValues) => 
+            new(_immutableFunctionDictionary, _constants.CloneWith(
+                funValues.SelectToArray(a=>VarVal.New(a.Item1,a.Item2))), _apriori);
         public HardcoreBuilder WithApriori(string id, VarType type) => 
             new(_immutableFunctionDictionary, _constants, _apriori.CloneWith(id, type));
         public HardcoreBuilder WithApriori<T>(string id) =>

@@ -50,18 +50,16 @@ namespace NFun.Benchmarks
         [Benchmark()]
         public void Updating() => _runtime.Update();
         [Benchmark()]
-        public CalculationResult Calculate() => _runtime.Calculate();
+        public CalculationResult Calculate() => _runtime.Calc();
     }
     public class NfunParserBenchmark
     {
-        private ImmutableFunctionDictionary _dictionary;
         private Scripts _scripts;
-     
+
         [GlobalSetup]
         public void Setup()
         {
             _scripts = new Scripts();
-            _dictionary = BaseFunctions.DefaultDictionary;
         }
 
         private SyntaxTree Parse(string expr)

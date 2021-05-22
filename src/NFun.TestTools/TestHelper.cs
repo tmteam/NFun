@@ -15,18 +15,6 @@ namespace NFun.TestTools
 {
     public static class TestHelper
     {
-        public static void OLD_AssertReturns(this CalculationResult result, double delta, params VarVal[] vars)
-        {
-            Assert.AreEqual(vars.Length, result.Results.Length, $"output variables mismatch: {string.Join(",", result.Results)}");
-            Assert.Multiple(() =>
-            {
-                foreach (var expected in vars)
-                {
-                    Console.WriteLine("Passing: " + expected);
-                    OLD_AssertHas(result, expected, delta);
-                }
-            });
-        }
         public static CalculationResult Calc(this string expr, string id, object val) => Funny.Hardcore.Build(expr).Calc((id,val));
 
         public static CalculationResult Calc(this string expr, params (string id, object val)[] values) => Funny.Hardcore.Build(expr).Calc(values);
@@ -75,39 +63,6 @@ namespace NFun.TestTools
                         $"Var \"{value.id}\" expected: {ToStringSmart(value.val)}, but was: {ToStringSmart(resultValue)}\r\n" +
                         $"clr expected: { JsonSerializer.Serialize(value.val)}, clr actual: {JsonSerializer.Serialize(resultValue)}");
             }
-        }
-
-
-        public static void OLD_AssertReturns(this CalculationResult result, params VarVal[] vars) 
-            => OLD_AssertReturns(result, 0, vars);
-
-        public static void AssertOutEquals(this CalculationResult result, object val)
-            => OLD_AssertReturns(result, 0, VarVal.New("out", val));
-
-        public static void OLD_AssertOutEquals(this CalculationResult result, double delta, object val)
-            => OLD_AssertReturns(result, delta, VarVal.New("out", val));
-        public static CalculationResult OLD_AssertHas(this CalculationResult result, VarVal expected, double delta = 0)
-        {
-            var res = result.Results.FirstOrDefault(r => r.Name == expected.Name);
-            Assert.IsFalse(res.IsEmpty, $"Variable \"{expected.Name}\" not found");
-            if (expected.Value is IFunArray funArray)
-            {
-                if (res.Value is IFunArray resFunArray)
-                {
-                    Assert.IsTrue(TypeHelper.AreEquivalent(funArray, resFunArray),
-                            $"Var \"{expected}\" expected: {ToStringSmart(expected.Value)}, but was: {ToStringSmart(res.Value)}");
-                    return result;
-                }
-            }
-            Assert.AreEqual(expected.Type, res.Type, $"Variable \"{expected.Name}\" has wrong type");
-            
-            if (expected.Type == VarType.Real)
-                Assert.AreEqual((double) expected.Value, (double)res.Value, delta,
-                    $"Var \"{expected}\" expected: {expected.Value}, but was: {res.Value}");
-            else
-                Assert.AreEqual(expected.Value, res.Value,
-                    $"Var \"{expected}\" expected: {ToStringSmart(expected.Value)}, but was: {ToStringSmart(res.Value)}");
-            return result;
         }
 
         private static string ToStringSmart(object v)
@@ -170,7 +125,7 @@ namespace NFun.TestTools
         public static void AssertObviousFailsOnRuntime(this string expression)
         {
             var runtime = expression.Build();
-            Assert.Catch<FunRuntimeException>(() => runtime.Calculate());
+            Assert.Catch<FunRuntimeException>(() => runtime.Calc());
         }
 
         public static void AssertObviousFailsOnParse(this string expression)
@@ -186,7 +141,7 @@ namespace NFun.TestTools
                 }
                 try
                 {
-                    var result = runtime.Calculate();
+                    var result = runtime.Calc();
                     Assert.Fail($"Const expression succesfully executed. Result: {result}");
                     return;
                 }

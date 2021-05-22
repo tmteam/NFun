@@ -14,10 +14,10 @@ namespace NFun.ApiTests
                 .WithApriori<string>("x")
                 .Build("y = x");
                 
-            var res = runtime.Calculate(VarVal.New("x","test"));
-            res.OLD_AssertReturns(VarVal.New("y","test"));
-            Assert.AreEqual(VarType.Text, runtime.Inputs[0].Type,"input");
-            Assert.AreEqual(VarType.Text, runtime.Outputs[0].Type,"output");
+            var res = runtime.Calc("x","test");
+            res.AssertReturns("y","test");
+            Assert.AreEqual(VarType.Text, runtime.GetVariable("input").Type);
+            Assert.AreEqual(VarType.Text, runtime.GetVariable("output").Type);
         }
         
         [Test]

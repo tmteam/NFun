@@ -10,11 +10,6 @@ namespace NFun.Types
     /// </summary>
     public struct VarVal
     {
-        public static VarVal NewStruct(string name, object value)
-        {
-            var converter = FunnyTypeConverters.GetInputConverter(value.GetType());
-            return new VarVal(name, converter.ToFunObject(value), converter.FunnyType);
-        }
         public static VarVal New<T>(string name, T[] value)
         {
             var converter =FunnyTypeConverters.GetInputConverter(typeof(T[]));
@@ -52,12 +47,10 @@ namespace NFun.Types
             => new(name, value, VarType.Char);
         public static VarVal New(string name, FunnyStruct values, VarType type)
             => new(name, values, type);
-
         
         public readonly string Name;
         public readonly object Value;
         public readonly VarType Type;
-        public bool IsEmpty => this.Name == null && this.Type == VarType.Empty;
 
         public VarVal(string name, object value, VarType type)
         {

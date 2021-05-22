@@ -138,16 +138,12 @@ else 'not supported' ", 2, "two")]
         }
 
         [Test]
-        public void IfElseAsExpression()
-        {
-            var expr = @"i:int  = 42 * if (x>0) x else -1
-                           arri = [if(x>0) x else -x, if(x<0) -1 else 1 ]";
-            var res = expr.Calc("x",10);
-            res.OLD_AssertHas(VarVal.New("i", 420));
-            res.OLD_AssertHas(VarVal.New("arri", new[]{10,1}));
+        public void IfElseAsExpression() =>
+            @"i:int  = 42 * if (x>0) x else -1
+                arri = [if(x>0) x else -x, if(x<0) -1 else 1 ]"
+                .Calc("x",10)
+                .AssertResultHas(("i", 420),("arri", new[]{10,1}));
 
-
-        }
         [TestCase("y = if (3) else 4")]
         [TestCase("y = if 1 3")]
         [TestCase("y = if true then 3")]
