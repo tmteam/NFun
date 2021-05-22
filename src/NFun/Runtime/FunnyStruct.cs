@@ -3,18 +3,24 @@ using System.Linq;
 
 namespace NFun.Runtime
 {
-    public class FunnyStruct
+    public interface IReadonlyFunnyStruct
+    {
+        IEnumerable<(string,object)> Fields { get; }
+        object GetValue(string field);
+    }
+    
+    public class FunnyStruct:IReadonlyFunnyStruct
     {
         public static FunnyStruct Create(params (string,object)[] fields) =>
             new (
                 fields.ToDictionary(f => f.Item1, f => f.Item2)
             );
-
-        public static FunnyStruct Create(string name, object value) => new FunnyStruct(new Dictionary<string, object>{{name,value}});
-      
+        
         private readonly Dictionary<string, object> _values;
         internal FunnyStruct(Dictionary<string,object> values) => _values = values;
-        
+
+        public IEnumerable<(string, object)> Fields => _values.Select(v => (v.Key, v.Value));
+
         public object GetValue(string field) => _values[field];
         public override string ToString() 
             => "the{ "+string.Join("; ", _values.Select(v=> $"{v.Key}={v.Value}"))+" }";

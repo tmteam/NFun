@@ -43,11 +43,9 @@ namespace NFun.Runtime
                 var usage =_variables.GetUsages(key);
                 if(usage==null)
                     throw new KeyNotFoundException($"Variable '{key}' not found in scope");
-                        
-                var input =usage.GetVariable() as IFunnyInput;
-                if (input == null)
-                    throw new KeyNotFoundException($"Variable '{key}' is output and cannot be written");
-                input.SetValue(value);
+                
+                var converter = FunnyTypeConverters.GetInputConverter(value.GetType());
+                usage.Source.InternalFunnyValue = converter.ToFunObject(value);
             }
             get
             {
@@ -85,7 +83,7 @@ namespace NFun.Runtime
                 // var source = _variables.GetSourceOrNull(value.id);
                 // if(source==null)
                 //     throw new ArgumentException($"unexpected input '{value.id}'");
-                // var converter =FunnyTypeConverters.GetInputConverter(value.clrValue.GetType());
+                // v;
                 // //todo what to do in such a case: Input: int, expected: double ?
                 // //if(converter.FunnyType!=source.Type)
                 // //    throw new ArgumentException($"Input '{value.id}' has wrong type. " +

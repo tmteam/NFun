@@ -44,7 +44,7 @@ else if (x > 0) 1
 else if (x ==0) 0
 else 123
 ", "out", 1.0)]
-        [TestCase(-400, @"
+        [TestCase(-400.0, @"
 # if это выражение 
 y = 1+ 15 *  if (x < 0 ) -1
 		  if (x > 0)  1

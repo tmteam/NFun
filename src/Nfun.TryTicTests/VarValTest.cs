@@ -6,7 +6,7 @@ using NUnit.Framework;
 
 namespace NFun.UnitTests
 {
-    [TestFixture]
+   /* [TestFixture]
     public class VarValTest
     {
         [Test]
@@ -99,11 +99,11 @@ namespace NFun.UnitTests
         /*[Test] public void ArrayOfAnythingWithTwoSubarraysTypeMapping()  
             => AssertVarTypeMapping(new object[]{ new  Int16[]{1,2,3}, new Int32[]{1,2,3}},
                 VarType.ArrayOf(VarType.ArrayOf(VarType.Anything)));*/
-
+/*
         private void AssertVarTypeMapping(object value, VarType expected)
         {
             var variable = VarVal.New("a", value);
             Assert.AreEqual(expected,variable.Type);
         }
-    }
+    }*/
 }

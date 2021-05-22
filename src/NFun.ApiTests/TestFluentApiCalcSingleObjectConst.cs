@@ -1,4 +1,6 @@
+using System.Linq;
 using NFun.Exceptions;
+using NFun.Runtime;
 using NUnit.Framework;
 
 namespace NFun.ApiTests
@@ -27,15 +29,25 @@ namespace NFun.ApiTests
                 new[] {new int[0]}
             }, result);
         }
+        
+        
+        [Test]
+        public void OutputTypeIsStruct_returnsFunnyStruct()
+        {
+            var str = Funny.Calc(
+                "the{name = 'alaska'}");
+            Assert.IsInstanceOf<IReadonlyFunnyStruct>(str);
+            var rs = (str as IReadonlyFunnyStruct);
+            Assert.AreEqual(1, rs.Fields.Count());    
+            Assert.AreEqual("alaska", rs.GetValue("name"));
+        }
+
         [TestCase("")]
         [TestCase("x:int = 2")]
         [TestCase("a = 12; b = 32; x = a*b")]
         public void NoOutputSpecified_throws(string expr) 
             => Assert.Throws<FunParseException>(() => Funny.Calc(expr));
-        [Test]
-        public void OutputTypeContainsNoEmptyConstructor_throws() =>
-            Assert.Throws<FunParseException>(() => Funny.Calc(
-                "the{name = 'alaska'}"));
+        
 
         [TestCase("the{id = age; items = [1,2,3,4].map{'{it}'}; price = 21*2}")]
         [TestCase("[1..4].filter{it>age}.map{it**2}")]

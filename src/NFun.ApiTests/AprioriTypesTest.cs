@@ -16,8 +16,8 @@ namespace NFun.ApiTests
                 
             var res = runtime.Calc("x","test");
             res.AssertReturns("y","test");
-            Assert.AreEqual(VarType.Text, runtime.GetVariable("input").Type);
-            Assert.AreEqual(VarType.Text, runtime.GetVariable("output").Type);
+            Assert.AreEqual(VarType.Text, runtime.GetVariable("x").Type);
+            Assert.AreEqual(VarType.Text, runtime.GetVariable("y").Type);
         }
         
         [Test]

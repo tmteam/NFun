@@ -56,8 +56,16 @@ namespace NFun.TestTools
             {
                 var resultValue = result.GetClr(value.id);
                 Assert.IsNotNull(resultValue, $"Output variable \"{value.id}\" not found");
+                if (resultValue is IReadonlyFunnyStruct @struct)
+                {
+                    var converted = FunnyTypeConverters.GetInputConverter(value.val.GetType()).ToFunObject(value.val);
+                    Assert.AreEqual(converted,@struct);
+                    return;
+                }
+
                 Assert.AreEqual(value.val.GetType(), resultValue.GetType(),
                     $"Variable \"{value.id}\" has wrong type. Actual Funny type is: {result.Get(value.id).Type}");
+
                 if (!AreSame(value.val, resultValue))
                     Assert.Fail(
                         $"Var \"{value.id}\" expected: {ToStringSmart(value.val)}, but was: {ToStringSmart(resultValue)}\r\n" +

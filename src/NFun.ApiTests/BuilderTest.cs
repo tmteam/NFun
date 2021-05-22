@@ -1,5 +1,6 @@
 ﻿using System;
 using NFun.Interpritation.Functions;
+using NFun.Runtime.Arrays;
 using NFun.TestTools;
 using NFun.Types;
 using NUnit.Framework;
@@ -42,15 +43,13 @@ namespace NFun.ApiTests
 
 
         [Test]
-        public void CreateWithCustomDictionary()
-        {
-            var dictionary = NFun.BaseFunctions.DefaultDictionary.CloneWith(new MamaFunction("mama"));
-            Funny.Hardcore
-                .WithFunctions(dictionary)
+        public void CreateWithCustomDictionary() =>
+            Funny
+                .Hardcore
+                .WithFunctions(BaseFunctions.DefaultDictionary.CloneWith(new MamaFunction("mama")))
                 .Build("y = mama()")
-                .Calc().AssertReturns("y", MamaFunction.MamaReturn);
-
-        }
+                .Calc()
+                .AssertReturns("y", MamaFunction.MamaReturn);
 
         class GenericWithNoArgFunction : GenericFunctionBase
         {
@@ -81,7 +80,7 @@ namespace NFun.ApiTests
             {
             }
 
-            public override object Calc(object[] args) => MamaReturn;
+            public override object Calc(object[] args) => new TextFunArray(MamaReturn);
         }
     }
 }

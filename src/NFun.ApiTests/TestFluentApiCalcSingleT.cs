@@ -1,4 +1,6 @@
+using System.Linq;
 using NFun.Exceptions;
+using NFun.Runtime;
 using NUnit.Framework;
 
 namespace NFun.ApiTests
@@ -40,6 +42,18 @@ namespace NFun.ApiTests
             , new ModelWithCharArray2{Letters =  new []{'t','s','e','t'}});
         
         [Test]
+        public void OutputTypeIsStruct_returnsFunnyStruct()
+        {
+            var str = Funny.Calc(
+                "the{name = 'alaska'}", new UserInputModel("vasa"));
+            Assert.IsInstanceOf<IReadonlyFunnyStruct>(str);
+            var rs = (str as IReadonlyFunnyStruct);
+            Assert.AreEqual(1, rs.Fields.Count());    
+            Assert.AreEqual("alaska", rs.GetValue("name"));
+        }
+
+        
+        [Test]
         public void ReturnsComplexIntArrayConstant()
         {
             var result = Funny.Calc(
@@ -60,12 +74,7 @@ namespace NFun.ApiTests
         public void NoOutputSpecified_throws(string expr) 
             => Assert.Throws<FunParseException>(() => Funny.Calc(expr,new UserInputModel("vasa")));
         
-        [Test]
-        public void OutputTypeContainsNoEmptyConstructor_throws() =>
-            Assert.Throws<FunParseException>(() => Funny.Calc(
-                "the{name = name}"
-                , new UserInputModel("vasa")));
-
+        
         [TestCase("age>someUnknownvariable")]
         public void UseUnknownInput_throws(string expression) =>
             Assert.Throws<FunParseException>(() =>
