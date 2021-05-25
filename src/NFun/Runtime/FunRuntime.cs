@@ -76,20 +76,6 @@ namespace NFun.Runtime
             foreach (var value in values)
             {
                 this[value.id] = value.clrValue;
-                //
-                // if (value.clrValue == null)
-                //     throw new ArgumentException($"Value for '{value.id}' cannot be null");
-                //
-                // var source = _variables.GetSourceOrNull(value.id);
-                // if(source==null)
-                //     throw new ArgumentException($"unexpected input '{value.id}'");
-                // v;
-                // //todo what to do in such a case: Input: int, expected: double ?
-                // //if(converter.FunnyType!=source.Type)
-                // //    throw new ArgumentException($"Input '{value.id}' has wrong type. " +
-                // //                                $"Expected {source.Type} but was {converter.FunnyType}");
-                //
-                // source.FunnyValue = converter.ToFunObject(value.clrValue);
             }
             var ans = new VarVal[_equations.Count];
             for (int i = 0; i < _equations.Count; i++) 

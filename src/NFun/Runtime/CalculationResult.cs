@@ -6,16 +6,18 @@ namespace NFun.Runtime
 {
     public sealed class CalculationResult
     {
-        public CalculationResult(VarVal[] results)
+        public CalculationResult(VarVal[] resultsOld)
         {
-            Results = results;
+            ResultsOld = resultsOld;
         }
 
-        public VarVal[] Results { get; }
+        public int Count => ResultsOld.Length;
+        
+        public VarVal[] ResultsOld { get; }
 
         public bool  TryGet(string name, out VarVal result)
         {
-            foreach (var equationResult in Results)
+            foreach (var equationResult in ResultsOld)
             {
                 if (String.Equals(equationResult.Name, name,
                     StringComparison.CurrentCultureIgnoreCase))
@@ -29,7 +31,7 @@ namespace NFun.Runtime
         }
         public VarVal Get(string name)
         {
-            foreach (var equationResult in Results)
+            foreach (var equationResult in ResultsOld)
             {
                 if (String.Equals(equationResult.Name, name, 
                     StringComparison.CurrentCultureIgnoreCase))
@@ -40,7 +42,7 @@ namespace NFun.Runtime
 
         public object GetClr(string name)
         {
-            foreach (var equationResult in Results)
+            foreach (var equationResult in ResultsOld)
             {
                 if (String.Equals(equationResult.Name, name,
                     StringComparison.CurrentCultureIgnoreCase))
@@ -53,7 +55,7 @@ namespace NFun.Runtime
         }
         public object GetValueOf(string name)
         {
-            foreach (var equationResult in Results)
+            foreach (var equationResult in ResultsOld)
             {
                 if (String.Equals(equationResult.Name, name, 
                     StringComparison.CurrentCultureIgnoreCase))
@@ -62,6 +64,6 @@ namespace NFun.Runtime
             throw new KeyNotFoundException($"value {name} is not found in calculation results");
         }
 
-        public override string ToString() => string.Join("\r\n",Results);
+        public override string ToString() => string.Join("\r\n",ResultsOld);
     }
 }

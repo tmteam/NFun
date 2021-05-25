@@ -38,7 +38,7 @@ namespace NFun.ConsoleApp
                         calcSw.Stop();
                         Console.WriteLine($"Calc in {calcSw.Elapsed.TotalMilliseconds}");
                         Console.WriteLine("Results:");
-                        foreach (var result in res.Results)
+                        foreach (var result in res.ResultsOld)
                             Console.WriteLine(result.Name + ": " + result.Value + " (" + result.Type + ")");
                     }
                 }

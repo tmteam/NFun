@@ -63,8 +63,7 @@ namespace NFun
                 var cl = new ConstantList();
                 foreach (var constant in _constantList)
                 {
-                    var converter = FunnyTypeConverters.GetInputConverter(constant.Item2.GetType());
-                    cl.AddConstant(new VarVal(constant.Item1,constant.Item2,converter.FunnyType));   
+                    cl.AddConstant(constant.Item1,constant.Item2);
                 }
                 constants = cl;
             }

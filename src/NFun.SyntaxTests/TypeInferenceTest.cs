@@ -123,9 +123,9 @@ namespace NFun.SyntaxTests
         //    y = [1..20].map(supsum).sum().round()", BaseVarType.Int32)]
         public void SingleEquation_Runtime_OutputTypeCalculatesCorrect(string expr, BaseVarType type)
         {
-            var res = expr.Calc();
-            Assert.AreEqual(1, res.Results.Length);
-            Assert.AreEqual(VarType.PrimitiveOf(type), res.Results.First().Type);
+            var clrtype = FunnyTypeConverters.GetOutputConverter(VarType.PrimitiveOf(type)).ClrType;
+            
+            expr.Calc().AssertResultIs(clrtype);
         }
 
         [TestCase(
@@ -292,12 +292,8 @@ namespace NFun.SyntaxTests
         //[TestCase("1", "y= x.strConcat(1)", "11")]        
         [TestCase(true, "x:bool\r y= x and true", true)] 
         
-        public void SingleInputTypedEquation(object x,  string expr, object y)
-        {
-            var res = expr.Calc("x", x);
-            Assert.AreEqual(1, res.Results.Length);
-            Assert.AreEqual(y, res.Results.First().Value);
-        }
+        public void SingleInputTypedEquation(object x,  string expr, object y) => 
+            expr.Calc("x", x).AssertReturns(y);
 
         [TestCase("y:int[]= [1,2,3].map{it*it}", new[]{1,4,9})] 
         [TestCase("y:int[]= [1,2,3].map{it}", new[]{1,2,3})] 
@@ -310,12 +306,8 @@ namespace NFun.SyntaxTests
         [TestCase("y:int= [1,2,3].fold{it1}", 1)] 
         [TestCase("y:int= [1,2,3].fold{it1+1}", 3)] 
 
-        public void ConstantTypedEquation(string expr, object y)
-        {
-            var res = expr.Calc();
-            Assert.AreEqual(1, res.Results.Length);
-            Assert.AreEqual(y, res.Results.First().Value);   
-        }
+        public void ConstantTypedEquation(string expr, object y) => 
+            expr.Calc().AssertReturns(y);
 
 
         [TestCase("y(x) = y(x)")]
@@ -326,10 +318,9 @@ namespace NFun.SyntaxTests
         [TestCase("y(x:int) = y(x)+1")]
         [TestCase("y(x) = y(x-1)+y(x-2)")]
         [TestCase("fib(x) = if(x<3) 1 else fib(x-1)+fib(x-2)")]
-        public void RecFunction_TypeSolved(string expr)
-        {
+        public void RecFunction_TypeSolved(string expr) => 
             Assert.DoesNotThrow(()=> expr.Build());
-        }
+
         [TestCase("byte",   (byte)1,   BaseVarType.UInt8)]
         [TestCase("uint8",  (byte)1,   BaseVarType.UInt8)]
         [TestCase("uint16", (UInt16)1, BaseVarType.UInt16)]
@@ -341,20 +332,28 @@ namespace NFun.SyntaxTests
         [TestCase("int64",  (long)1,   BaseVarType.Int64)]
         [TestCase("real",          1.0,BaseVarType.Real)]
         [TestCase("bool",         true,BaseVarType.Bool)]
-        [TestCase("int[]", new []{1,2,3},BaseVarType.ArrayOf)]
-        [TestCase("int64[]", new long[]{1,2,3},BaseVarType.ArrayOf)]
         public void OutputEqualsInput(string type, object expected, BaseVarType baseVarType)
         {
             var res = $"x:{type}\r  y = x".Calc("x",expected);
             res.AssertReturns(expected);
-            Assert.AreEqual(baseVarType, res.Get("y").Type.BaseType);
+            res.AssertResultIs(("y",GetClrType(VarType.PrimitiveOf(baseVarType))));
         }
+
+        [TestCase("int[]", new[] {1, 2, 3}, BaseVarType.Int32)]
+        [TestCase("int64[]", new long[] {1, 2, 3}, BaseVarType.Int64)]
+        public void OutputEqualsInputArray(string type, object expected, BaseVarType arrayType)
+        {
+            var res = $"x:{type}\r  y = x".Calc("x", expected);
+            res.AssertReturns(expected);
+            res.AssertResultIs(("y", GetClrType(VarType.ArrayOf(VarType.PrimitiveOf(arrayType)))));
+        }
+        
         [Test]
         public void OutputEqualsTextInput()
         {
             var res = "x:text;  y = x".Calc("x", "1");
             res.AssertReturns("y", "1");
-            Assert.AreEqual(VarType.Text, res.Get("y").Type);
+            res.AssertResultIs(("y",typeof(string)));
         }
         
         [TestCase("byte",   "&", BaseVarType.UInt8)]
@@ -505,5 +504,8 @@ namespace NFun.SyntaxTests
                     name: output, 
                     isStrictTyped: false)}, 
                 expr.Build().Outputs);
+        
+        private static Type GetClrType(VarType funnyType) => 
+            FunnyTypeConverters.GetOutputConverter(funnyType).ClrType;
     }
 }

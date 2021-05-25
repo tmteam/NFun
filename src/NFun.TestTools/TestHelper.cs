@@ -15,40 +15,75 @@ namespace NFun.TestTools
 {
     public static class TestHelper
     {
-        public static CalculationResult Calc(this string expr, string id, object val) => Funny.Hardcore.Build(expr).Calc((id,val));
+        public static CalculationResult Calc(this string expr, string id, object val) =>
+            Funny.Hardcore.Build(expr).Calc((id, val));
 
-        public static CalculationResult Calc(this string expr, params (string id, object val)[] values) => Funny.Hardcore.Build(expr).Calc(values);
+        public static CalculationResult Calc(this string expr, params (string id, object val)[] values) =>
+            Funny.Hardcore.Build(expr).Calc(values);
+
         public static FunRuntime Build(this string expr) => Funny.Hardcore.Build(expr);
 
-        public static void AssertOut(this CalculationResult result, object expected) => AssertReturns(result, Parser.AnonymousEquationId, expected);
-        public static void AssertOut(this string expr, object expected) => expr.Calc().AssertReturns(Parser.AnonymousEquationId, expected);
+        public static void AssertOut(this CalculationResult result, object expected) =>
+            AssertReturns(result, Parser.AnonymousEquationId, expected);
+
+        public static void AssertOut(this string expr, object expected) =>
+            expr.Calc().AssertReturns(Parser.AnonymousEquationId, expected);
+
         public static void AssertReturns(this string expr, object expected) => expr.Calc().AssertReturns(expected);
-        public static void AssertReturns(this string expr,params (string id, object val)[] values) => expr.Calc().AssertReturns(values);
-        public static void AssertReturns(this string expr,string id, object val) => AssertReturns(expr,new[]{(id,val)});
+
+        public static void AssertReturns(this string expr, params (string id, object val)[] values) =>
+            expr.Calc().AssertReturns(values);
+
+        public static void AssertReturns(this string expr, string id, object val) =>
+            AssertReturns(expr, new[] {(id, val)});
 
         public static void AssertReturns(this CalculationResult result, object expected)
         {
-            Assert.AreEqual(1, result.Results.Length,
-                $"Many output variables found: {string.Join(",", result.Results)}");
-            AssertResultHas(result, (result.Results[0].Name, expected));
+            Assert.AreEqual(1, result.Count,
+                $"Many output variables found: {string.Join(",", result.ResultsOld)}");
+            AssertResultHas(result, (result.ResultsOld[0].Name, expected));
         }
 
         public static void AssertReturns(this CalculationResult result, string id, object expected)
             => AssertReturns(result, (id, expected));
+
         public static void AssertReturns(this CalculationResult result, params (string id, object val)[] values) =>
             Assert.Multiple(() =>
             {
                 AssertResultHas(result, values);
-                Assert.AreEqual(values.Length, result.Results.Length,
-                    $"output variables mismatch: {string.Join(",", result.Results)}");
+                Assert.AreEqual(values.Length, result.Count,
+                    $"output variables mismatch: {string.Join(",", result.ResultsOld)}");
             });
 
-            public static void AssertResultHas(this string expr, string id, object val) => expr.Calc().AssertResultHas((id, val));
-            public static void AssertResultHas(this string expr, params(string id, object val)[] values) => expr.Calc().AssertResultHas(values);
-            
+        public static void AssertResultHas(this string expr, string id, object val) =>
+            expr.Calc().AssertResultHas((id, val));
 
-            public static void AssertResultHas(this CalculationResult result, string id, object val)
-                => AssertResultHas(result, (id, val));
+        public static void AssertResultHas(this string expr, params (string id, object val)[] values) =>
+            expr.Calc().AssertResultHas(values);
+
+
+        public static void AssertResultHas(this CalculationResult result, string id, object val)
+            => AssertResultHas(result, (id, val));
+
+        public static void AssertResultIs(this CalculationResult result, params (string id, Type type)[] types)
+        {
+            if (result.Count != types.Length)
+                Assert.Fail($"Unexpected outputs. Expected {types.Length} but was {result.Count}");
+            foreach (var value in types)
+            {
+                var resultValue = result.GetClr(value.id);
+                Assert.IsNotNull(resultValue, $"Output variable \"{value.id}\" not found");
+                Assert.AreEqual(value.type, resultValue.GetType(),
+                    $"Output variable \"{value.id}\" has wrong clr type {resultValue.GetType()}");
+            }
+        }
+
+        public static void AssertResultIs(this CalculationResult result, Type type)
+        {
+            var res = result.ResultsOld.FirstOrDefault();
+            Assert.IsNotNull(res, "no results found");
+            AssertResultIs(result, (res.Name, type));
+        }
 
         public static void AssertResultHas(this CalculationResult result, params (string id, object val)[] values)
         {
@@ -59,7 +94,7 @@ namespace NFun.TestTools
                 if (resultValue is IReadonlyFunnyStruct @struct)
                 {
                     var converted = FunnyTypeConverters.GetInputConverter(value.val.GetType()).ToFunObject(value.val);
-                    Assert.AreEqual(converted,@struct);
+                    Assert.AreEqual(converted, @struct);
                     return;
                 }
 
@@ -69,7 +104,7 @@ namespace NFun.TestTools
                 if (!AreSame(value.val, resultValue))
                     Assert.Fail(
                         $"Var \"{value.id}\" expected: {ToStringSmart(value.val)}, but was: {ToStringSmart(resultValue)}\r\n" +
-                        $"clr expected: { JsonSerializer.Serialize(value.val)}, clr actual: {JsonSerializer.Serialize(resultValue)}");
+                        $"clr expected: {JsonSerializer.Serialize(value.val)}, clr actual: {JsonSerializer.Serialize(resultValue)}");
             }
         }
 
@@ -85,7 +120,7 @@ namespace NFun.TestTools
                 return "[" + string.Join(",", en.Cast<object>().Select(ToStringSmart)) + "]";
             return JsonSerializer.Serialize(v);
         }
-        
+
         public static bool AreSame(object a, object b)
         {
             if (a == null || b == null)
@@ -97,6 +132,7 @@ namespace NFun.TestTools
                 var bstr = (string) b;
                 return astr.Equals(bstr);
             }
+
             if (a is double resultD)
             {
                 var expectedD = (double) b;
@@ -106,8 +142,8 @@ namespace NFun.TestTools
             if (a is Array arra)
             {
                 var arrb = (Array) b;
-                var arrayOfA =arra.Cast<object>().ToArray();
-                var arrayOfB =arrb.Cast<object>().ToArray();
+                var arrayOfA = arra.Cast<object>().ToArray();
+                var arrayOfB = arrb.Cast<object>().ToArray();
                 if (arrayOfA.Length != arrayOfB.Length)
                     return false;
                 for (int i = 0; i < arrayOfA.Length; i++)
@@ -115,15 +151,17 @@ namespace NFun.TestTools
                     if (!AreSame(arrayOfA[i], arrayOfB[i]))
                         return false;
                 }
+
                 return true;
             }
+
             if (a is IEnumerable)
                 throw new NotSupportedException($"type {a.GetType().Name} is not supported");
             if (a is IList)
                 throw new NotSupportedException($"type {a.GetType().Name} is not supported");
-            if(a is Delegate)
+            if (a is Delegate)
                 throw new NotSupportedException($"type {a.GetType().Name} is not supported");
-            
+
             var ajson = JsonSerializer.Serialize(a);
             var bjson = JsonSerializer.Serialize(b);
             return ajson.Equals(bjson);
@@ -147,6 +185,7 @@ namespace NFun.TestTools
                     Assert.Fail($"Expression parsed without any errors");
                     return;
                 }
+
                 try
                 {
                     var result = runtime.Calc();
@@ -165,6 +204,7 @@ namespace NFun.TestTools
                 return;
             }
         }
+
         public static void AssertObviousFailsOnParse(Action action)
         {
             TraceLog.IsEnabled = true;

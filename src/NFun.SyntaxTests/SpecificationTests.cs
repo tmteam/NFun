@@ -155,9 +155,9 @@ y = tostring(x)", "y", "not supported")]
             var calculateResult = expr.Calc();
             for (var item=0; item < outputNames.Length; item++)
             {
-                var expectedVal = VarVal.New(outputNames[item], constantValues[item]);
-                var actualVal   = calculateResult.Results[item];
-                Assert.AreEqual(expectedVal.Value, actualVal.Value); 
+                var val = constantValues[item];
+                var name = outputNames[item];
+                calculateResult.AssertResultHas(name,val);
             }
         }
         

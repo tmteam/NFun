@@ -90,9 +90,7 @@ namespace NFun
             
             return (TOutput) outputConverter.ToClrObject(outResult.Value);
         }
-
         
-
         public static VarVal[] GetInputValues<TInput>(Memory<(string, IinputFunnyConverter, PropertyInfo)> inputMap, TInput value)
         {
             var span = inputMap.Span;

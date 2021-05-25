@@ -9,6 +9,9 @@ namespace NFun.Types
 {
     public static class FunnyTypeConverters
     {
+        public static object ConvertInput(object clrValue) =>
+            GetInputConverter(clrValue.GetType()).ToFunObject(clrValue);
+        
         public static IinputFunnyConverter GetInputConverter(VarType funnyType)
             => GetInputConverter(funnyType, 0);
 
