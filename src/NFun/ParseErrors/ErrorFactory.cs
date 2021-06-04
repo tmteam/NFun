@@ -643,7 +643,7 @@ namespace NFun.ParseErrors
         
         
         
-        public static Exception SuperAnonymousFunctionIsNotClose(int anonymousStart, int anonymousFinish) 
+        public static Exception UndoneAnonymousFunction(int anonymousStart, int anonymousFinish) 
             => FunParseException.ErrorStubToDo("SuperAnonymousFunctionIsNotClose");
 
         public static Exception VariableIsAlreadyDeclared(string nodeId, Interval nodeInterval)

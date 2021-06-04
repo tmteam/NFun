@@ -49,11 +49,9 @@ namespace NFun.SyntaxParsing
 
         private static readonly int MaxPriority;
 
-        private static readonly Dictionary<TokType, byte> Priorities
-            = new Dictionary<TokType, byte>();
+        private static readonly Dictionary<TokType, byte> Priorities = new();
 
-        private static readonly Dictionary<TokType, string> OperatorFunNames
-            = new Dictionary<TokType, string> ()
+        private static readonly Dictionary<TokType, string> OperatorFunNames = new()
             {
                 {TokType.Plus, CoreFunNames.Add},
                 {TokType.Minus,CoreFunNames.Substract},
@@ -163,8 +161,8 @@ namespace NFun.SyntaxParsing
                     CoreFunNames.Not, 
                     new []{node},start, node.Interval.Finish);
             }
-            if (flow.MoveIf(TokType.FiObr))
-                return ReadSuperAnonymousFunction(flow);
+            if (flow.MoveIf(TokType.Fun))
+                return ReadFunAnonymousFunction(flow);
             if (flow.MoveIf(TokType.The))
                 return ReadStruct(flow);
 
@@ -213,10 +211,10 @@ namespace NFun.SyntaxParsing
                 // 'id(1,2)'
                 if (flow.IsCurrent(TokType.Obr)) 
                     return ReadFunctionCall(flow, headToken);
-                //fun call with super anonymous argument
-                // 'id { it*2 }'
-                if (flow.IsCurrent(TokType.FiObr))
-                    return ReadFunctionCall(flow, headToken);
+                // //fun call with super anonymous argument
+                // // 'id { it*2 }'
+                // if (flow.IsCurrent(TokType.FiObr))
+                //     return ReadFunctionCall(flow, headToken);
                 // variable with type definition
                 //'id:int'
                 if (flow.IsCurrent(TokType.Colon))
@@ -326,18 +324,18 @@ namespace NFun.SyntaxParsing
                     // (expr)(arg1, ... argN)
                     leftNode = ReadResultCall(flow, leftNode);
                 }
-                else if (opToken.Type == TokType.FiObr)
-                {
-                    var anonFun = ReadSuperAnonymousFunction(flow);
-                    //super-anonymous-function
-                    // x =  { /*body*/ }
-                    if (!(leftNode is NamedIdSyntaxNode idNode))
-                        throw FunParseException.ErrorStubToDo("unexpected anonymous function");
-                    
-                    leftNode = SyntaxNodeFactory.FunCall(idNode.Id, new[] {anonFun}, 
-                        start: idNode.Interval.Start, 
-                        end:   anonFun.Interval.Finish);
-                }
+                // else if (opToken.Type == TokType.FiObr)
+                // {
+                //     var anonFun = ReadFunAnonymousFunction(flow);
+                //     //super-anonymous-function
+                //     // x =  { /*body*/ }
+                //     if (!(leftNode is NamedIdSyntaxNode idNode))
+                //         throw FunParseException.ErrorStubToDo("unexpected anonymous function");
+                //     
+                //     leftNode = SyntaxNodeFactory.FunCall(idNode.Id, new[] {anonFun}, 
+                //         start: idNode.Interval.Start, 
+                //         end:   anonFun.Interval.Finish);
+                // }
                 else
                 {
                     flow.MoveNext();
@@ -370,11 +368,13 @@ namespace NFun.SyntaxParsing
             }
         }
 
-        private static ISyntaxNode ReadSuperAnonymousFunction(TokFlow flow)
+        private static ISyntaxNode ReadFunAnonymousFunction(TokFlow flow)
         {
+            var pos = flow.Position;
             var body = ReadNodeOrNull(flow);
-            if (!flow.MoveIf(TokType.FiCbr))
-                throw ErrorFactory.SuperAnonymousFunctionIsNotClose(body.Interval.Start, flow.CurrentTokenPosition);
+            if (body == null)
+                throw ErrorFactory.UndoneAnonymousFunction(pos, flow.CurrentTokenPosition);
+            
             return new SuperAnonymFunctionSyntaxNode(body);
         }
         
@@ -738,19 +738,19 @@ namespace NFun.SyntaxParsing
                     || !flow.MoveIf(TokType.Cbr, out _))
                     throw ErrorFactory.FunctionArgumentError(head.Value, obrId, flow);
 
-                if (flow.MoveIf(TokType.FiObr))
-                {
-                    //super-anonymous-style-function as last param of function
-                    // out =  fold(x,0){ /*body*/ }
-                    arguments.Add(ReadSuperAnonymousFunction(flow));
-                }
+                // if (flow.MoveIf(TokType.FiObr))
+                // {
+                //     //super-anonymous-style-function as last param of function
+                //     // out =  fold(x,0){ /*body*/ }
+                //     arguments.Add(ReadFunAnonymousFunction(flow));
+                // }
             }
-            else if (flow.MoveIf(TokType.FiObr))
-            {
-                //super-anonymous-style-function instead of params of function
-                // out =  myFun{ /*body*/ }
-                arguments = new List<ISyntaxNode> { ReadSuperAnonymousFunction(flow)};
-            } 
+            // else if (flow.MoveIf(TokType.FiObr))
+            // {
+            //     //super-anonymous-style-function instead of params of function
+            //     // out =  myFun{ /*body*/ }
+            //     arguments = new List<ISyntaxNode> { ReadFunAnonymousFunction(flow)};
+            // } 
             else
             {
                 throw ErrorFactory.FunctionCallObrMissed(

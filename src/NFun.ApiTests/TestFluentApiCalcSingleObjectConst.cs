@@ -7,12 +7,12 @@ namespace NFun.ApiTests
     public class TestFluentApiCalcSingleObjectConst
     {
         [TestCase("(13 == 13) and ('vasa' == 'vasa')",true)]
-        [TestCase("[1,2,3,4].count{it>2}",2)]
-        [TestCase("[1..4].filter{it>2}.map{it**2}",new[] {9.0, 16.0})]
+        [TestCase("[1,2,3,4].count(rule it>2)",2)]
+        [TestCase("[1..4].filter(rule it>2).map(rule it**2)",new[] {9.0, 16.0})]
         [TestCase("[1..4].reverse().join(',')","4,3,2,1")]
         [TestCase("'Hello world'","Hello world")]
         [TestCase("['Hello','world']",new[] {"Hello", "world"})]
-        [TestCase("[1..4].map{it.toText()}",new[] {"1", "2", "3", "4"})]
+        [TestCase("[1..4].map(rule it.toText())",new[] {"1", "2", "3", "4"})]
         public void GeneralCalcTest(string expr, object expected) => 
             Assert.AreEqual(expected, Funny.Calc(expr));
 
@@ -48,8 +48,8 @@ namespace NFun.ApiTests
             => Assert.Throws<FunParseException>(() => Funny.Calc(expr));
         
 
-        [TestCase("the{id = age; items = [1,2,3,4].map{'{it}'}; price = 21*2}")]
-        [TestCase("[1..4].filter{it>age}.map{it**2}")]
+        [TestCase("the{id = age; items = [1,2,3,4].map(rule '{it}'); price = 21*2}")]
+        [TestCase("[1..4].filter(rule it>age).map(rule it**2)")]
         [TestCase("age>someUnknownvariable")]
         [TestCase("x:int;")]
 

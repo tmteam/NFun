@@ -108,7 +108,7 @@
   	not (true xor false and true),
   	true and false xor true,
   	not (true xor true or false)
-  ].all{it}
+  ].all(rule it)
 |---------------------
 | check out: true
 

@@ -140,6 +140,7 @@ namespace NFun.Tokenization
         /// </summary>
         AnonymFun,
         The,
+        Fun,
         Reserved
     }
 }

@@ -25,7 +25,7 @@ y = 'a+b = {a+b}, c = {c}'.toUpper()
 y = a[0] + a[1]
 
 # Linq
-y = a.reverse().filter {it>2}
+y = a.reverse().filter (rule it>2)
 
 # Working with structs
 y = if(a.hasName) a.name 

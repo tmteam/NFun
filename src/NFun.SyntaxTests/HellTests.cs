@@ -16,7 +16,7 @@ namespace NFun.SyntaxTests
             var expr = @" 
             foreachi(arr, f) = [0..arr.count()-1].fold(arr[0], f)
             
-            res:int =  t.foreachi {if (it1>t[it2]) it1 else t[it2]} ";
+            res:int =  t.foreachi (rule if (it1>t[it2]) it1 else t[it2]) ";
 
             expr.Calc("t", new[] {1, 2, 7, 34, 1, 2})
                 .AssertReturns("res", 34);
@@ -30,7 +30,7 @@ namespace NFun.SyntaxTests
 
             max(a, t, i) = max(a, t[i])             
 
-            res:int =  t.foreachi {max(it1,t,it2)}";
+            res:int =  t.foreachi (rule max(it1,t,it2))";
             expr.Calc("t", new[] { 1, 2, 7, 34, 1, 2 }).AssertReturns("res", 34);
         }
         [Test]
@@ -39,7 +39,7 @@ namespace NFun.SyntaxTests
             var expr = @" 
             foreachi(arr, f) = [0..arr.count()-1].fold(arr[0], f)
 
-            res:int =  t.foreachi{ max(it1,t[it2])}";
+            res:int =  t.foreachi(rule max(it1,t[it2]))";
             expr.Calc("t", new[] { 1, 2, 7, 34, 1, 2 }).AssertReturns("res", 34);
         }
 
@@ -50,7 +50,7 @@ namespace NFun.SyntaxTests
         [Test]
         public void ArrayWithUpcast_lambdaConstCalculate()
         {
-            var expr = "x:byte = 42; y:real[] = [1,2,x].map {it+1}";
+            var expr = "x:byte = 42; y:real[] = [1,2,x].map (rule it+1}";
             Assert.Throws<FunParseException>(() => expr.Build());
             //todo Support upcast
             //FunBuilder.Build(expr).Calculate().AssertHas(VarVal.New("y",new []{2.0,3.0, 43.0}));
@@ -58,11 +58,11 @@ namespace NFun.SyntaxTests
         
         [Test]
         public void TwinArrayWithUpcast_lambdaSum() => 
-            "x:byte = 4; y:real = [[0,1],[2,3],[x]].map {sum(it)}.sum()".AssertResultHas("y", 10.0);
+            "x:byte = 4; y:real = [[0,1],[2,3],[x]].map (rule sum(it)).sum()".AssertResultHas("y", 10.0);
 
         [Test]
         public void TwinArrayWithUpcast_lambdaConstCalculate() => 
-            "x:byte = 5; y:real = [[0,1],[2,3],[x]].map {it.map{it+1}.sum()}.sum()".AssertResultHas("y", 16.0);
+            "x:byte = 5; y:real = [[0,1],[2,3],[x]].map (rule it.map(rule it+1).sum()).sum()".AssertResultHas("y", 16.0);
 
         [Test]
 
@@ -144,7 +144,7 @@ namespace NFun.SyntaxTests
   	                [0..input.count()-1]
   		                .fold(
   			                input, 
-  			                {onelineSort(it1)})
+  			                rule onelineSort(it1))
 
                   i:int[]  = [1,4,3,2,5].bubbleSort()".AssertReturns("i", new[] { 1, 2, 3, 4, 5 });
 
@@ -187,22 +187,22 @@ namespace NFun.SyntaxTests
                           # run thru array and swap every unsorted values
                           onelineSort(input) =  [0..input.count()-2].fold(input, swapIfNotSorted)		
 
-                          bubbleSort(input)= [0..input.count()-1].fold(input, {onelineSort(it1)})
+                          bubbleSort(input)= [0..input.count()-1].fold(input, rule onelineSort(it1))
 
                           #body  
                           ins:int[]  = [1,5,3,5,6,1,2,100,0,3,2,10,3,50,6,42,43,53]
                           rns:real[] = ins
-                          tns  = ins.filter{it.rema(2)==0}.map(toText).concat(['vasa','kate'])
+                          tns  = ins.filter(rule it.rema(2)==0).map(toText).concat(['vasa','kate'])
                         
                           i  = ins.bubbleSort() == ins.reverse().sort()
                           r  = rns.bubbleSort() == rns.sort()
                           t  = tns == tns
 
                           myOr(a,b):bool = a or b  
-                          k =  [0..100].map{i and r or t xor i}.fold(myOr)
+                          k =  [0..100].map(rule i and r or t xor i).fold(myOr)
 
                           mySum(a,b) = a + b  
-                          j =  [0..100].map{(ins[1]+ it- ins[2])/it}.fold(mySum);
+                          j =  [0..100].map(rule (ins[1]+ it- ins[2])/it).fold(mySum);
                    ";
             var res = expr.Calc();
 

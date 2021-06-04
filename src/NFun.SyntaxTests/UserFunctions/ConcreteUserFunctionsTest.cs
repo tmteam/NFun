@@ -66,7 +66,7 @@ namespace NFun.SyntaxTests.UserFunctions
   	                        [0..input.count()-1]
   		                        .fold(
   			                        input, 
-  			                        {onelineSort(it1)})
+  			                        rule onelineSort(it1))
 
                           
                           i:int[]  = [1,4,3,2,5].bubbleSort()";

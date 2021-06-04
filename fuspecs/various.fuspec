@@ -178,8 +178,8 @@
  	= [1,'2',3.0,4,5.2, true, false, 7.2]
 
  res = smth
- 		.filter{isReal(it)}
- 		.map{toReal(it)}[::2]
+ 		.filter(rule isReal(it)}
+ 		.map(rule toReal(it)}[::2]
 |---------------------
 | check res:[5.2,7.2]
 
@@ -210,11 +210,11 @@ newCount = if (not done) x+1 else x
 | in x:real[]
 | out  ysum:real, ymulti: real, ymin: real, ymax:real 
 |------------------------
-  getOdds(x)= x.filter{it.remainder(2)==0}
+  getOdds(x)= x.filter(rule it.remainder(2)==0}
   mymax(x,y) = if (x>y) x else y
 
   ysum   = x.getOdds().sum()
-  ymulti = x.getOdds().fold{it1*it2}
+  ymulti = x.getOdds().fold(rule it1*it2)
   ymin   = x.getOdds().fold(min)
   ymax   = x.getOdds().fold(mymax)
 |---------------------
@@ -229,7 +229,7 @@ newCount = if (not done) x+1 else x
 |************************
   
   transpon(x) = [0..x[0].count()-1]
-                .map( col-> x.map {it[col]} )
+                .map( col-> x.map (rule it[col]))
 
   orig1 = 
        [[1,2,3],
@@ -256,7 +256,7 @@ newCount = if (not done) x+1 else x
   multi(a,b) = 
       if(a.count()!=b.count()) []
       else
-          [0..a.count()-1].map{a[it]*b[it]}  
+          [0..a.count()-1].map(rule a[it]*b[it]) 
 
   a =  [1,2,3]
   b =  [4,5,6]
@@ -314,7 +314,7 @@ newCount = if (not done) x+1 else x
               [01,15,18]
              ] 
 
-  res = origin.map{it.fold(max)}.fold(max)
+  res = origin.map(rule it.fold(max)}.fold(max)
 |---------------------
 | check res: 42 
 
@@ -396,7 +396,7 @@ newCount = if (not done) x+1 else x
              ]
           ] 
 
-  res = origin.map{it.map(max).max()}.max()
+  res = origin.map(rule it.map(max).max()}.max()
 
 |---------------------
 | check res: 100 
