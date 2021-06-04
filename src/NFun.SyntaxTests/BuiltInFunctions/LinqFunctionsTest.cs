@@ -1,6 +1,4 @@
-﻿using NFun.Exceptions;
-using NFun.TestTools;
-using NFun.Types;
+﻿using NFun.TestTools;
 using NUnit.Framework;
 
 namespace NFun.SyntaxTests.BuiltInFunctions

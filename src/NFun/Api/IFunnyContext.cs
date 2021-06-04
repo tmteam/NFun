@@ -29,9 +29,6 @@ namespace NFun
             return input =>
             {
                 var inputVals =FluentApiTools.GetInputValues(inputsMap, input);
-                //var varsAsArray = inputVals.ToArray();
-                // if (runtime.Inputs.Any(i => varsAsArray.All(v => !v.Name.Equals(i.Name.ToLower()))))
-                //     throw new FunInvalidUsageException();
                 var result = runtime.CalculateSafe(inputVals);
                 return FluentApiTools.GetClrOut(result);
             };
@@ -85,15 +82,14 @@ namespace NFun
             
             if(!runtime.HasDefaultOutput)
                 throw ErrorFactory.OutputIsUnset(outputConverter.FunnyType);
-                
+            var outVariable = runtime.GetVariable(Parser.AnonymousEquationId);
+            
+            
             return input => 
             {
                 var inputValues = FluentApiTools.GetInputValues(inputsMap, input);
-                var result = runtime
-                    .CalculateSafe(inputValues)
-                    .Get(Parser.AnonymousEquationId)
-                    .Value;
-                return (TOutput) outputConverter.ToClrObject(result);
+                runtime.CalculateSafe(inputValues);
+                return (TOutput) outputConverter.ToClrObject(outVariable.FunnyValue);
             };
         }
     }

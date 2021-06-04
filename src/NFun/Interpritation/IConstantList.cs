@@ -5,7 +5,7 @@ namespace NFun.Interpritation
 {
     public interface IConstantList
     {
-        bool TryGetConstant(string id, out VarVal constant);
+        public bool TryGetConstant(string id, out VarVal constant);
         IConstantList CloneWith(params (string id, object value)[] values);
     }
 

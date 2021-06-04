@@ -28,8 +28,8 @@ namespace NFun.Types
             (string, VarType)[] fieldTypes = new (string, VarType)[_readPropertiesCount];
             for (int i = 0; i < readPropertiesCount; i++)
             {
-                var converter = propertiesConverters[i];
-                fieldTypes[i] = (converter.Item1, converter.Item2.FunnyType);
+                var (name, converter, _) = propertiesConverters[i];
+                fieldTypes[i] = (name, converter.FunnyType);
             }
             FunnyType = VarType.StructOf(fieldTypes);
         }
@@ -62,7 +62,7 @@ namespace NFun.Types
         public object ToFunObject(object clrObject)
         {
             var array = clrObject as Array;
-            object[] funnyObjects = new object[array.Length];
+            var funnyObjects = new object[array.Length];
             for (int i = 0; i < array.Length; i++)
             {
                 var val = array.GetValue(i);

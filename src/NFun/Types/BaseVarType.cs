@@ -18,6 +18,6 @@ namespace NFun.Types
         Fun = 12,
         Generic = 13,
         Any  = 14,
-        Struct  =15,
+        Struct  =15
     }
 }

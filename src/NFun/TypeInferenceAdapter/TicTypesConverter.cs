@@ -78,7 +78,7 @@ namespace NFun.TypeInferenceAdapter
            
         }
 
-        class ConstrainsConverter : TicTypesConverter
+        private class ConstrainsConverter : TicTypesConverter
         {
             private readonly ConstrainsState[] _constrainsMap;
 
@@ -108,7 +108,7 @@ namespace NFun.TypeInferenceAdapter
             }
         }
 
-        class GenericMapConverter : TicTypesConverter
+        private class GenericMapConverter : TicTypesConverter
         {
             private readonly ConstrainsState[] _constrainsMap;
             private readonly IList<VarType> _argTypes;

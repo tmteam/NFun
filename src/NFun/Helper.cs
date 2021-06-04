@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 
 namespace NFun
 {
-    static class Helper
+    internal static class Helper
     {
         public static bool DoesItLooksLikeSuperAnonymousVariable(string id)
         {
@@ -21,11 +21,9 @@ namespace NFun
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TOut[] SelectToArray<TIn, TOut>(this TIn[] input, Func<TIn, TOut> mapFunc)
         {
-            TOut[] ans = new TOut[input.Length];
+            var ans = new TOut[input.Length];
             for (int i = 0; i < input.Length; i++)
-            {
                 ans[i] = mapFunc(input[i]);
-            }
             return ans;
         }
         

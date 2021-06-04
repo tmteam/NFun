@@ -64,17 +64,17 @@ namespace NFun.Types
              * 
              */
         }
-        private static readonly Func<object, object> ToInt8   = (o => Convert.ToSByte(o));
-        private static readonly Func<object, object> ToInt16  = (o => Convert.ToInt16(o));
-        private static readonly Func<object, object> ToInt32  = (o => Convert.ToInt32(o));
-        private static readonly Func<object, object> ToInt64  = (o => Convert.ToInt64(o));
-        private static readonly Func<object, object> ToUInt8  = (o => Convert.ToByte(o));
-        private static readonly Func<object, object> ToUInt16 = (o => Convert.ToUInt16(o));
-        private static readonly Func<object, object> ToUInt32 = (o => Convert.ToUInt32(o));
-        private static readonly Func<object, object> ToUInt64 = (o => Convert.ToUInt64(o));
-        private static readonly Func<object, object> ToReal   = (o => Convert.ToDouble(o));
-        private static readonly Func<object, object> ToText   = (o => new TextFunArray(o?.ToString() ?? ""));
-        private static readonly Func<object, object> NoConvertion    = (o => o);
+        private static readonly Func<object, object> ToInt8   = o => Convert.ToSByte(o);
+        private static readonly Func<object, object> ToInt16  = o => Convert.ToInt16(o);
+        private static readonly Func<object, object> ToInt32  = o => Convert.ToInt32(o);
+        private static readonly Func<object, object> ToInt64  = o => Convert.ToInt64(o);
+        private static readonly Func<object, object> ToUInt8  = o => Convert.ToByte(o);
+        private static readonly Func<object, object> ToUInt16 = o => Convert.ToUInt16(o);
+        private static readonly Func<object, object> ToUInt32 = o => Convert.ToUInt32(o);
+        private static readonly Func<object, object> ToUInt64 = o => Convert.ToUInt64(o);
+        private static readonly Func<object, object> ToReal   = o => Convert.ToDouble(o);
+        private static readonly Func<object, object> ToText   = o => new TextFunArray(o?.ToString() ?? "");
+        private static readonly Func<object, object> NoConvertion    = o => o;
 
         public static Func<object, object> GetConverterOrNull(VarType from, VarType to)
         {
@@ -186,20 +186,29 @@ namespace NFun.Types
 
         public static bool CanBeConverted(VarType from, VarType to)
         {
-            if (to.IsText)
-                return true;
-            if (to.BaseType == from.BaseType)
+            while (true)
             {
-                if (to.BaseType == BaseVarType.ArrayOf)
-                    return CanBeConverted(
-                        from: from.ArrayTypeSpecification.VarType,
-                        to: to.ArrayTypeSpecification.VarType);
-                //Check for Fun and struct types is quite expensive, so there is no big reason to write optimized code  
-                if (to.BaseType == BaseVarType.Fun)    return GetConverterOrNull(from, to) != null;
-                if (to.BaseType == BaseVarType.Struct) return GetConverterOrNull(from, to) != null;
+                if (to.IsText) return true;
+                if (to.BaseType == from.BaseType)
+                {
+                    switch (to.BaseType)
+                    {
+                        case BaseVarType.ArrayOf:
+                            @from = @from.ArrayTypeSpecification.VarType;
+                            to = to.ArrayTypeSpecification.VarType;
+                            continue;
+                        //Check for Fun and struct types is quite expensive, so there is no big reason to write optimized code  
+                        case BaseVarType.Fun:
+                            return GetConverterOrNull(@from, to) != null;
+                        case BaseVarType.Struct:
+                            return GetConverterOrNull(@from, to) != null;
+                    }
+                }
+
+                return PrimitiveConvertMap[(int) from.BaseType, (int) to.BaseType];
             }
-            return PrimitiveConvertMap[(int)from.BaseType,(int)to.BaseType];
         }
+
         class ConcreteFunctionWithConvertation : IConcreteFunction
         {
             private readonly IConcreteFunction _origin;
@@ -207,7 +216,11 @@ namespace NFun.Types
             private readonly Func<object, object>[] _inputConverters;
             private readonly Func<object, object> _outputConverter;
 
-            public ConcreteFunctionWithConvertation(IConcreteFunction origin, FunTypeSpecification resultType, Func<object,object>[] inputConverters, Func<object,object> outputConverter)
+            public ConcreteFunctionWithConvertation(
+                IConcreteFunction origin, 
+                FunTypeSpecification resultType, 
+                Func<object,object>[] inputConverters, 
+                Func<object,object> outputConverter)
             {
                 _origin = origin;
                 _resultType = resultType;

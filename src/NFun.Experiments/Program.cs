@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections;
-using NFun;
 
 namespace NFun.Experiments
 {

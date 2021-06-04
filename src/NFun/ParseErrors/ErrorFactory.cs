@@ -458,7 +458,7 @@ namespace NFun.ParseErrors
         public static Exception FunctionOverloadNotFound(FunCallSyntaxNode node, IFunctionDictionary functions)
         {
             var candidates =  functions.SearchAllFunctionsIgnoreCase(node.Id, node.Args.Length);
-            StringBuilder msg = new StringBuilder($"Function '{node.Id}({string.Join(",", node.Args.Select(a => "_"))})' is not found. ");
+            StringBuilder msg = new StringBuilder($"Function '{node.Id}({string.Join(",", node.Args.Select(_ => "_"))})' is not found. ");
             if (candidates.Any())
             {
                 var candidate = candidates.First();

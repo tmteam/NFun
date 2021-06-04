@@ -7,10 +7,10 @@ namespace NFun.TypeInferenceAdapter
 {
     public class TypeInferenceResultsBuilder
     {
-        readonly List<StateRefTo[]> _genericFunctionTypes = new List<StateRefTo[]>();
-        readonly List<IFunctionSignature> _functionalVariable = new List<IFunctionSignature>();
-        readonly List<StateFun> _recursiveCalls = new List<StateFun>();
-        readonly Dictionary<string, StateFun> _userFunctionSignatures = new Dictionary<string, StateFun>();
+        private readonly List<StateRefTo[]> _genericFunctionTypes = new();
+        private readonly List<IFunctionSignature> _functionalVariable = new();
+        private readonly List<StateFun> _recursiveCalls = new();
+        private readonly Dictionary<string, StateFun> _userFunctionSignatures = new();
 
         private ITicResults _bodyTypeSolving;
 
@@ -36,7 +36,7 @@ namespace NFun.TypeInferenceAdapter
 
         public TypeInferenceResults Build()
         {
-            return new TypeInferenceResults(
+            return new(
                 bodyTypeSolving:_bodyTypeSolving,
                 genericFunctionTypes: _genericFunctionTypes.ToArray(), 
                 functionalVariables: _functionalVariable,
@@ -64,32 +64,26 @@ namespace NFun.TypeInferenceAdapter
             _functionalVariables = functionalVariables;
             _recursiveCalls = recursiveCalls;
         }
-        public IFunctionSignature GetFunctionalVariableOrNull(int id)
-        {
-            if (_functionalVariables.Count <= id)
-                return null;
-            return _functionalVariables[id];
-        }
-        public ITicNodeState[] GetGenericCallArguments(int id)
-        {
-            if (GenericFunctionTypes.Length <= id)
-                return null;
-            return GenericFunctionTypes[id];
-        }
-        public StateFun GetRecursiveCallOrNull(int id)
-        {
-            if (_recursiveCalls.Count <= id)
-                return null;
-            return _recursiveCalls[id];
-        }
+        public IFunctionSignature GetFunctionalVariableOrNull(int id) => 
+            _functionalVariables.Count <= id 
+                ? null 
+                : _functionalVariables[id];
+
+        public ITicNodeState[] GetGenericCallArguments(int id) =>
+            GenericFunctionTypes.Length <= id 
+                ? null 
+                : GenericFunctionTypes[id];
+
+        public StateFun GetRecursiveCallOrNull(int id) =>
+            _recursiveCalls.Count <= id 
+                ? null 
+                : _recursiveCalls[id];
+        
         public ITicNodeState[][] GenericFunctionTypes { get; }
         public ConstrainsState[] Generics => _bodyTypeSolving.GenericsStates;
 
         public ITicNodeState GetSyntaxNodeTypeOrNull(int id)
-        {
-            var node = _bodyTypeSolving.GetSyntaxNodeOrNull(id);
-            return node?.State;
-        }
+            => _bodyTypeSolving.GetSyntaxNodeOrNull(id)?.State;
 
         public ITicNodeState GetVariableType(string name) 
             => _bodyTypeSolving.GetVariableNode(name).State;

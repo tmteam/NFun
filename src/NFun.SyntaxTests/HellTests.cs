@@ -1,7 +1,6 @@
 ﻿using NFun.Exceptions;
 using NFun.TestTools;
 using NFun.Tic;
-using NFun.Types;
 using NUnit.Framework;
 
 namespace NFun.SyntaxTests

@@ -44,7 +44,7 @@ namespace NFun.Interpritation.Functions
         protected void SetVariables(object[] args)
         {
             for (int i = 0; i < args.Length; i++)
-                Variables[i].FunnyValue=  args[i];
+                Variables[i].InternalFunnyValue=  args[i];
         }
         public override object Calc(object[] args)
         {

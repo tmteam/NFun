@@ -426,7 +426,7 @@ namespace NFun.UnitTests
                 VarType.Real,
                 VarType.ArrayOf(VarType.Int32),
                 VarType.ArrayOf(VarType.ArrayOf(VarType.Text)),
-                VarType.Fun(VarType.ArrayOf(VarType.Int32), VarType.ArrayOf(VarType.Text)),
+                VarType.Fun(VarType.ArrayOf(VarType.Int32), VarType.ArrayOf(VarType.Text))
             };
             foreach (var concreteType in concreteTypes)
             {

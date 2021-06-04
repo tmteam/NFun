@@ -1,6 +1,5 @@
-using System.Linq;
+using System.Collections.Generic;
 using NFun.Exceptions;
-using NFun.Runtime;
 using NUnit.Framework;
 
 namespace NFun.ApiTests
@@ -36,10 +35,10 @@ namespace NFun.ApiTests
         {
             var str = Funny.Calc(
                 "the{name = 'alaska'}");
-            Assert.IsInstanceOf<IReadonlyFunnyStruct>(str);
-            var rs = (str as IReadonlyFunnyStruct);
-            Assert.AreEqual(1, rs.Fields.Count());    
-            Assert.AreEqual("alaska", rs.GetValue("name"));
+            Assert.IsInstanceOf<IReadOnlyDictionary<string,object>>(str);
+            var rs = str as IReadOnlyDictionary<string,object>;
+            Assert.AreEqual(1, rs.Count);    
+            Assert.AreEqual("alaska", rs["name"]);
         }
 
         [TestCase("")]

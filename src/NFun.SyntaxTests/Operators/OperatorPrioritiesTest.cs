@@ -44,12 +44,12 @@ namespace NFun.SyntaxTests.Operators
                     var actual = Funny.Hardcore
                         .Build(actualExpr)
                         .Calc(inputs)
-                        .GetValueOf("y");
+                        .Get("y");
 
                     var expected = Funny.Hardcore
                         .Build(expectedExpr)
                         .Calc(inputs)
-                        .GetValueOf("y");
+                        .Get("y");
 
                     if (!actual.Equals(expected))
                         Assert.Fail($"On x1={inputs[0].Item2} x2={inputs[1].Item2} x3={inputs[2].Item2}\r" +
@@ -83,12 +83,12 @@ namespace NFun.SyntaxTests.Operators
                     var actual = Funny.Hardcore
                         .Build(actualExpr)
                         .Calc(inputs)
-                        .GetValueOf("y");
+                        .Get("y");
 
                     var expected = Funny.Hardcore
                         .Build(expectedExpr)
                         .Calc(inputs)
-                        .GetValueOf("y");
+                        .Get("y");
 
                     if (!actual.Equals(expected))
                         Assert.Fail($"On x1={inputs[0].Item2} x2={inputs[1].Item2} x3={inputs[2].Item2}\r" +
@@ -125,7 +125,7 @@ namespace NFun.SyntaxTests.Operators
 
         public void ConstantCalculationPriorities(string actualExpr, string expectedExpr)
         {
-            var expected = Funny.Hardcore.Build(expectedExpr).Calc().GetClr("y");
+            var expected = Funny.Hardcore.Build(expectedExpr).Calc().Get("y");
             actualExpr.AssertReturns("y", expected);
         }
     }

@@ -231,7 +231,7 @@ namespace NFun.Tic.Tests.Structs
             
             graph.SetCall(new ITicNodeState[]{
                 varnode,
-                new StateStruct("res", varnode.Node),
+                new StateStruct("res", varnode.Node)
             }, new[] { 0, 1});
             graph.SetFieldAccess(1,2,"res");
             graph.SetDef("y", 2);
@@ -255,7 +255,7 @@ namespace NFun.Tic.Tests.Structs
             
             graph.SetCall(new ITicNodeState[]{
                 varnode,
-                new StateStruct("res", varnode.Node),
+                new StateStruct("res", varnode.Node)
             }, new[] { 0, 1});
             graph.SetFieldAccess(1,2,"res");
             graph.SetDef("y", 2);

@@ -33,7 +33,7 @@ namespace NFun
         public HardcoreBuilder WithApriori<T>(string id) =>
             WithApriori(id, FunnyTypeConverters.GetInputConverter(typeof(T)).FunnyType);
         public HardcoreBuilder WithFunction(IFunctionSignature function) => 
-            new( _immutableFunctionDictionary.CloneWith(new[]{ function}), _constants,  _apriori);
+            new( _immutableFunctionDictionary.CloneWith(function), _constants,  _apriori);
         public HardcoreBuilder WithFunctions(params IFunctionSignature[] functions) => 
             new( _immutableFunctionDictionary.CloneWith(functions), _constants,  _apriori);
         public HardcoreBuilder WithFunctions(ImmutableFunctionDictionary functionDictionary) =>

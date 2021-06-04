@@ -2,9 +2,8 @@ using System;
 using System.Linq;
 using System.Linq.Expressions;
 using BenchmarkDotNet.Attributes;
-using NFun;
 using NFun.Runtime;
-using NFun.Types;
+
 // ReSharper disable InconsistentNaming
 
 namespace NFun.Benchmarks

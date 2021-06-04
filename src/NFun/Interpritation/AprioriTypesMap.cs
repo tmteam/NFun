@@ -8,7 +8,6 @@ namespace NFun.Interpritation
     public class AprioriTypesMap:IEnumerable<KeyValuePair<string, VarType>>
     {
         public static AprioriTypesMap Empty  => new ();
-        //todo - make apriori immutable
         private AprioriTypesMap()
         {
             _typesMap = new(StringComparer.OrdinalIgnoreCase);
@@ -26,11 +25,8 @@ namespace NFun.Interpritation
 
         public AprioriTypesMap CloneWith(string name, VarType type)
         {
-            var dicCopy = new Dictionary<string, VarType>(_typesMap);
-            dicCopy.Add(name, type);
+            var dicCopy = new Dictionary<string, VarType>(_typesMap) {{name, type}};
             return new AprioriTypesMap(dicCopy);
         }
-            
-        
     }
 }

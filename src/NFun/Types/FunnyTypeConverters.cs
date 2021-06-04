@@ -1,9 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using NFun.Exceptions;
 using NFun.ParseErrors;
-using NFun.Runtime;
 
 namespace NFun.Types
 {
@@ -44,7 +44,6 @@ namespace NFun.Types
                 case BaseVarType.Fun:
                 case BaseVarType.Generic:
                 case BaseVarType.Struct:
-                    
                 default:
                     throw new NotSupportedException($"type {funnyType} is not supported for input convertion");
             }
@@ -194,10 +193,9 @@ namespace NFun.Types
                     return new ClrArrayOutputFunnyConverter(arrayType, elementConverter);
                 }
                 // If output type is struct, but clr type is unknown (for ex in case of hardcore calc)
-                // return funny struct as IReadonlyFunnyStruct interface
-                // It looks like dictionary - and it is best we can do for a client
+                // return funny struct as IReadOnlyDictionary<string,object> interface
                 case BaseVarType.Struct: return new PrimitiveTypeOutputFunnyConverter(funnyType,
-                    typeof(IReadonlyFunnyStruct));
+                    typeof(IReadOnlyDictionary<string,object>));
                 default:
                     throw ErrorFactory.TypeCannotBeUsedAsOutputNfunType(funnyType);
             }

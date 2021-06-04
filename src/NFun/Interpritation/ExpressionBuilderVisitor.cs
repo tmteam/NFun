@@ -9,7 +9,6 @@ using NFun.Runtime;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
-using NFun.Tic;
 using NFun.Tokenization;
 using NFun.TypeInferenceAdapter;
 using NFun.Types;

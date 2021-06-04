@@ -5,7 +5,30 @@ using NFun.Types;
 
 namespace NFun.Runtime
 {
-    public class VariableSource
+    public interface IFunnyVar
+    {
+        string Name { get; }
+        bool IsReadonly { get; }
+        VarAttribute[] Attributes { get; }
+        VarType Type { get; }
+        /// <summary>
+        /// internal representation of value
+        /// </summary>
+        object FunnyValue { get; }
+        
+        /// <summary>
+        /// Converts clr value with default input converter and setup it to variable
+        /// </summary>
+        /// <param name="value"></param>
+        void SetClrValue(object value);
+        
+        /// <summary>
+        /// Converts current funnyValue with default output converter
+        /// </summary>
+        object GetClrValue();
+    }
+    
+    public class VariableSource:IFunnyVar
     {
         internal object InternalFunnyValue;
 
@@ -46,23 +69,19 @@ namespace NFun.Runtime
             Type = type;
         }
         public bool IsStrictTyped { get; }
+        public bool IsReadonly => !IsOutput;
         public VarAttribute[] Attributes { get; }
         public string Name { get; }
         internal Interval? TypeSpecificationIntervalOrNull { get; }
         public bool IsOutput { get; }
         public VarType Type { get; }
 
-        public object FunnyValue
+        public object FunnyValue => InternalFunnyValue;
+        public void SetClrValue(object value)
         {
-            get => InternalFunnyValue;
-            set => InternalFunnyValue = value;
-        }
-        
-        public void SetClrValue(object valueValue)
-        {
-            if (Type.BaseType.GetClrType() == valueValue.GetType())
+            if (Type.BaseType.GetClrType() == value.GetType())
             {
-                FunnyValue = valueValue;
+                InternalFunnyValue = value;
                 return;
             }
             switch (Type.BaseType)
@@ -70,41 +89,43 @@ namespace NFun.Runtime
                 case BaseVarType.ArrayOf:
                 case BaseVarType.Struct:
                 case BaseVarType.Any:
-                    FunnyValue = valueValue;
+                    InternalFunnyValue = value;
                     break;
                 case BaseVarType.Bool:
-                    FunnyValue = Convert.ToBoolean(valueValue);
+                    InternalFunnyValue = Convert.ToBoolean(value);
                     break;
                 case BaseVarType.Int16:
-                    FunnyValue = Convert.ToInt16(valueValue);
+                    InternalFunnyValue = Convert.ToInt16(value);
                     break;
                 case BaseVarType.Int32:
-                    FunnyValue = Convert.ToInt32(valueValue);
+                    InternalFunnyValue = Convert.ToInt32(value);
                     break;
                 case BaseVarType.Int64:
-                    FunnyValue = Convert.ToInt64(valueValue);
+                    InternalFunnyValue = Convert.ToInt64(value);
                     break;
                 case BaseVarType.UInt8:
-                    FunnyValue = Convert.ToByte(valueValue);
+                    InternalFunnyValue = Convert.ToByte(value);
                     break;
                 case BaseVarType.UInt16:
-                    FunnyValue = Convert.ToUInt16(valueValue);
+                    InternalFunnyValue = Convert.ToUInt16(value);
                     break;
                 case BaseVarType.UInt32:
-                    FunnyValue = Convert.ToUInt32(valueValue);
+                    InternalFunnyValue = Convert.ToUInt32(value);
                     break;
                 case BaseVarType.UInt64:
-                    FunnyValue = Convert.ToUInt64(valueValue);
+                    InternalFunnyValue = Convert.ToUInt64(value);
                     break;
                 case BaseVarType.Real:
-                    FunnyValue = Convert.ToDouble(valueValue);
+                    InternalFunnyValue = Convert.ToDouble(value);
                     break;
                 case BaseVarType.Char:
-                    FunnyValue = valueValue?.ToString() ?? "";
+                    InternalFunnyValue = value?.ToString() ?? "";
                     break;
                 default:
                     throw new NotSupportedException($"type '{Type.BaseType}' is not supported as primitive type");
             }
         }
+
+        public object GetClrValue() => FunnyTypeConverters.GetOutputConverter(Type).ToClrObject(InternalFunnyValue);
     }
 }

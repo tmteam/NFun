@@ -1,7 +1,5 @@
-using System;
 using NFun.Interpritation.Functions;
 using NFun.Types;
-using NUnit.Framework;
 
 namespace NFun.UnitTests
 {

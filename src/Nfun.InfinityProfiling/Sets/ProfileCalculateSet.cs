@@ -1,8 +1,5 @@
 using System.Runtime.CompilerServices;
-using NFun;
-using NFun.Interpritation;
 using NFun.Runtime;
-using NFun.Types;
 
 namespace NFun.InfinityProfiling.Sets
 {

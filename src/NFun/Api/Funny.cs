@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using NFun.Exceptions;
 using NFun.Interpritation;
 using NFun.ParseErrors;
 using NFun.Types;
@@ -23,11 +22,9 @@ namespace NFun
             var result = runtime.CalculateSafe();
             return FluentApiTools.GetClrOut(result);
         }
-        public static TOutput Calc<TOutput>(string expression)
-        {
-            return FluentApiTools.CalcSingleOutput<TOutput>(expression);
-        }
-        
+        public static TOutput Calc<TOutput>(string expression) 
+            => FluentApiTools.CalcSingleOutput<TOutput>(expression);
+
         public static object Calc<TInput>(string expression, TInput input) 
             => ForCalc<TInput>().Calc(expression, input);
 

@@ -25,12 +25,12 @@ namespace NFun.SyntaxParsing
             {
                 new[] {TokType.AnonymFun, TokType.ArrOBr, TokType.Dot, TokType.Obr},
                 new[] {TokType.Pow},
-                new[] {TokType.Mult, TokType.Div, TokType.Rema,},
+                new[] {TokType.Mult, TokType.Div, TokType.Rema},
                 new[] {TokType.Plus, TokType.Minus, TokType.BitShiftLeft, TokType.BitShiftRight},
                 new[]
                 {
                     TokType.BitAnd, TokType.BitXor, TokType.In, TokType.Equal, TokType.NotEqual, TokType.More,
-                    TokType.Less, TokType.MoreOrEqual, TokType.LessOrEqual,
+                    TokType.Less, TokType.MoreOrEqual, TokType.LessOrEqual
                 },
                 new[] {TokType.And, TokType.ArrConcat},
                 new[] {TokType.Or, TokType.Xor, TokType.BitOr}
@@ -81,7 +81,7 @@ namespace NFun.SyntaxParsing
                 {TokType.BitShiftLeft, CoreFunNames.BitShiftLeft},
                 {TokType.BitShiftRight,CoreFunNames.BitShiftRight},
                 {TokType.ArrConcat,    CoreFunNames.ArrConcat},
-                {TokType.In,           CoreFunNames.In},
+                {TokType.In,           CoreFunNames.In}
             };
         
         public static ISyntaxNode ReadNodeOrNull(TokFlow flow)

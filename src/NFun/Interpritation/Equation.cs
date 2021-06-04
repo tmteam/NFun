@@ -20,7 +20,7 @@ namespace NFun.Interpritation
         public VarVal CalcExpression()
         {
             var val  = new VarVal(Id, Expression.Calc(), Expression.Type);
-            OutputVariableSource.FunnyValue = val.Value;
+            OutputVariableSource.InternalFunnyValue = val.Value;
             return val;
         }
 

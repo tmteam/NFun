@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.CompilerServices;
-using NFun.Exceptions;
 using NFun.Runtime.Arrays;
 
 namespace NFun.Types
@@ -28,7 +27,7 @@ namespace NFun.Types
                 null,
                 null,
                 typeof(object),
-                null,
+                null
             };
             
             DefaultPrimitiveValues = new[]
@@ -48,7 +47,7 @@ namespace NFun.Types
                 null,
                 null,
                 new object(),
-                null,
+                null
             };
         }
 
@@ -77,28 +76,23 @@ namespace NFun.Types
             var defaultValue  =  DefaultPrimitiveValues[(int) type.BaseType];
             if (defaultValue != null)
                 return defaultValue;
-            if (type.ArrayTypeSpecification!=null)
-            {
-                var arr = type.ArrayTypeSpecification;
-                if (arr.VarType.BaseType == BaseVarType.Char)
-                    return TextFunArray.Empty;
-                return new ImmutableFunArray(new object[0], arr.VarType);
-            }
+            if (type.ArrayTypeSpecification == null) 
+                return null;
+            
+            var arr = type.ArrayTypeSpecification;
+            if (arr.VarType.BaseType == BaseVarType.Char)
+                return TextFunArray.Empty;
+            return new ImmutableFunArray(new object[0], arr.VarType);
 
-            return null;
         }
         public static bool AreEqual(object left, object right)
         {
             if (left is IFunArray le)
             {
-                if (!(right is IFunArray re))
-                    return false;
-                return AreEquivalent(le, re);
+                return right is IFunArray re && AreEquivalent(le, re);
             }
 
-            if (left.GetType() == right.GetType())
-                return left.Equals(right);
-            return false;
+            return left.GetType() == right.GetType() && left.Equals(right);
         }
 
         public static bool AreEquivalent(IFunArray a, IFunArray b)

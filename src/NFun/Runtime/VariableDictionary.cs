@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using NFun.Interpritation.Nodes;
 using NFun.Tokenization;
 using NFun.Types;
@@ -104,18 +103,6 @@ namespace NFun.Runtime
                 i++;
             }
             return sources;
-        }
-
-        public IFunnyVariable[] GetAllVariables()
-        {
-            var variables = new IFunnyVariable[_variables.Count];
-            var i = 0;
-            foreach (var variable in _variables)
-            {
-                variables[i] = variable.Value.GetVariable();
-                i++;
-            }
-            return variables;
         }
     }
 }

@@ -30,16 +30,14 @@ namespace NFun.ApiTests
         }
 
         [Test]
-        public void WithFunctions_functionWithSameSignatureExists_functionIsOverrided()
-        {
+        public void WithFunctions_functionWithSameSignatureExists_functionIsOverrided() =>
             Assert.AreEqual(PapaFunction.PapaReturn,
                 Funny
                     .Hardcore
                     .WithFunction(new PapaFunction("myFun")) //override base function
                     .Build("y = myFun()")
                     .Calc()
-                    .GetValueOf("y"));
-        }
+                    .Get("y"));
 
 
         [Test]
@@ -69,7 +67,7 @@ namespace NFun.ApiTests
             {
             }
 
-            public override object Calc(object[] args) => PapaReturn;
+            public override object Calc(object[] args) => new TextFunArray(PapaReturn);
         }
 
         class MamaFunction : FunctionWithManyArguments

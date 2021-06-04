@@ -114,7 +114,7 @@ namespace NFun.Tic.SolvingStates
                 U24, //13
                 U16, //14
                 U12, //15
-                U8, //16
+                U8 //16
             };
 
             //by default - any lca returns any

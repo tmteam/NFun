@@ -217,21 +217,21 @@ namespace NFun.Tic.Tests.UnitTests
                     new Dictionary<string, TicNode>
                     {
                         {"i", TicNode.CreateTypeVariableNode(StatePrimitive.I32)},
-                        {"r", TicNode.CreateTypeVariableNode(StatePrimitive.Real)},
+                        {"r", TicNode.CreateTypeVariableNode(StatePrimitive.Real)}
                     }
                 ),
                 new StateStruct(
                     new Dictionary<string, TicNode>
                     {
                         {"r", TicNode.CreateTypeVariableNode(StatePrimitive.Real)},
-                        {"b", TicNode.CreateTypeVariableNode(StatePrimitive.Bool)},
+                        {"b", TicNode.CreateTypeVariableNode(StatePrimitive.Bool)}
                     }));
             var expected = new StateStruct(
                 new Dictionary<string, TicNode>
                 {
                     {"i", TicNode.CreateTypeVariableNode(StatePrimitive.I32)},
                     {"r", TicNode.CreateTypeVariableNode(StatePrimitive.Real)},
-                    {"b", TicNode.CreateTypeVariableNode(StatePrimitive.Bool)},
+                    {"b", TicNode.CreateTypeVariableNode(StatePrimitive.Bool)}
                 });
             
             Assert.AreEqual(res, expected);
@@ -243,7 +243,7 @@ namespace NFun.Tic.Tests.UnitTests
                 new Dictionary<string, TicNode>
                 {
                     {"i", TicNode.CreateTypeVariableNode(StatePrimitive.I32)},
-                    {"r", TicNode.CreateTypeVariableNode(StatePrimitive.Real)},
+                    {"r", TicNode.CreateTypeVariableNode(StatePrimitive.Real)}
                 }
             );
                 
@@ -254,7 +254,7 @@ namespace NFun.Tic.Tests.UnitTests
                 new Dictionary<string, TicNode>
                 {
                     {"i", TicNode.CreateTypeVariableNode(StatePrimitive.I32)},
-                    {"r", TicNode.CreateTypeVariableNode(StatePrimitive.Real)},
+                    {"r", TicNode.CreateTypeVariableNode(StatePrimitive.Real)}
                 });
             
             Assert.AreEqual(res, expected);

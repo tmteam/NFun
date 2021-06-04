@@ -1,12 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using IronPython.Hosting;
-using Microsoft.Scripting.Hosting;
-using Microsoft.Scripting.Runtime;
 using NCalc;
-using NFun;
-using NFun.Types;
 
 namespace NFun.CompareToOthers
 {

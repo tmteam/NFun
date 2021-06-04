@@ -16,4 +16,9 @@
       </None>
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Remove="ConsoleRender.cs" />
+      <Compile Remove="Program.cs" />
+    </ItemGroup>
+
 </Project>

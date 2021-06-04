@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using NFun.Runtime;
-using NFun.Tic.SolvingStates;
 using NFun.Tokenization;
 using NFun.Types;
 

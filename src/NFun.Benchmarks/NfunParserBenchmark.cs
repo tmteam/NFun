@@ -2,8 +2,6 @@ using System;
 using System.Linq;
 using System.Linq.Expressions;
 using BenchmarkDotNet.Attributes;
-using NFun;
-using NFun.Interpritation;
 using NFun.Runtime;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;

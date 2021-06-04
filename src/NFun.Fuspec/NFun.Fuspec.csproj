@@ -9,4 +9,16 @@
       <ProjectReference Include="..\NFun\NFun.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Remove="Parser\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Remove="Parser\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Parser\**" />
+    </ItemGroup>
+
 </Project>

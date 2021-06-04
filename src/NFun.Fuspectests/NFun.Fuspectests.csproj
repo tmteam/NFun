@@ -18,4 +18,18 @@
       <ProjectReference Include="..\NFun.Fuspec\NFun.Fuspec.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Remove="FuspecTestCases_Tests\**" />
+      <Compile Remove="ErrorTests.cs" />
+      <Compile Remove="TestHelper.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Remove="FuspecTestCases_Tests\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="FuspecTestCases_Tests\**" />
+    </ItemGroup>
+
 </Project>

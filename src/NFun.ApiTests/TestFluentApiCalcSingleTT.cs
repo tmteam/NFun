@@ -90,8 +90,8 @@ namespace NFun.ApiTests
             var result4 = lambda1(input);
             var result5 = lambda1(input);
             var lambda2 = context.Build(expr);
-            var result6 = lambda1(input);
-            var result7 = lambda1(input);
+            var result6 = lambda2(input);
+            var result7 = lambda2(input);
 
             Assert.IsTrue(TestHelper.AreSame(expected, result1));
             Assert.IsTrue(TestHelper.AreSame(expected, result2));

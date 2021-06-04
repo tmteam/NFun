@@ -22,10 +22,9 @@ namespace NFun
             for (int i = 0; i < outputs.Length; i++)
             {
                 var (outName, outConverter, outProperty) = span[i];
-                if (calcResults.TryGet(outName, out var actualOutput))
+                if (calcResults.TryGet(outName, outConverter, out var actualOutput))
                 {
-                    var clrValue = outConverter.ToClrObject(actualOutput.Value);
-                    outProperty.SetValue(answer, clrValue);
+                    outProperty.SetValue(answer, actualOutput);
                     settedCount++;
                 }
             }
@@ -61,19 +60,15 @@ namespace NFun
             return outputVarVals.AsMemory(0,actualOutputsCount);
         }
 
-        public  static object GetClrOut(CalculationResult result)
+        internal static object GetClrOut(CalculationResult result)
         {
             if (!result.TryGet(Parser.AnonymousEquationId, out var outResult))
                 throw ErrorFactory.OutputIsUnset();
-            
-            return FunnyTypeConverters
-                .GetOutputConverter(outResult.Type)
-                .ToClrObject(outResult.Value);
+            return outResult;
         }
 
         public  static TOutput CalcSingleOutput<TOutput>(string expression)
         {
-            
             var outputConverter = FunnyTypeConverters.GetOutputConverter(typeof(TOutput));
             var apriories = AprioriTypesMap.Empty;
             apriories.Add(Parser.AnonymousEquationId, outputConverter.FunnyType);
@@ -85,10 +80,10 @@ namespace NFun
 
             var result = runtime.CalculateSafe(Span<VarVal>.Empty);
             
-            if (!result.TryGet(Parser.AnonymousEquationId, out var outResult))
+            if (!result.TryGet(Parser.AnonymousEquationId,outputConverter, out var outResult))
                 throw ErrorFactory.OutputIsUnset(outputConverter.FunnyType);
             
-            return (TOutput) outputConverter.ToClrObject(outResult.Value);
+            return (TOutput) outResult;
         }
         
         public static VarVal[] GetInputValues<TInput>(Memory<(string, IinputFunnyConverter, PropertyInfo)> inputMap, TInput value)

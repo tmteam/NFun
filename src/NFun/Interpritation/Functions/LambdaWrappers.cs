@@ -71,7 +71,7 @@ namespace NFun.Interpritation.Functions
             ArgTypes = new[]
             {
                 _arg1.FunnyType,
-                _arg2.FunnyType,
+                _arg2.FunnyType
             };
             ReturnType = _resultConverter.FunnyType;
         }
@@ -104,7 +104,7 @@ namespace NFun.Interpritation.Functions
             {
                 _arg1.FunnyType,
                 _arg2.FunnyType,
-                _arg3.FunnyType,
+                _arg3.FunnyType
             };
             ReturnType = _resultConverter.FunnyType;
         }
@@ -141,7 +141,7 @@ namespace NFun.Interpritation.Functions
                 _arg1.FunnyType,
                 _arg2.FunnyType,
                 _arg3.FunnyType,
-                _arg4.FunnyType,
+                _arg4.FunnyType
             };
             ReturnType = _resultConverter.FunnyType;
         }
@@ -182,7 +182,7 @@ namespace NFun.Interpritation.Functions
                 _arg2.FunnyType,
                 _arg3.FunnyType,
                 _arg4.FunnyType,
-                _arg5.FunnyType,
+                _arg5.FunnyType
             };
             ReturnType = _resultConverter.FunnyType;
         }
@@ -228,7 +228,7 @@ namespace NFun.Interpritation.Functions
                 _arg3.FunnyType,
                 _arg4.FunnyType,
                 _arg5.FunnyType,
-                _arg6.FunnyType,
+                _arg6.FunnyType
             };
             ReturnType = _resultConverter.FunnyType;
         }

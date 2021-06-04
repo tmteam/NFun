@@ -11,7 +11,6 @@ namespace NFun.Runtime
     public class FunRuntime
     {
         public IEnumerable<VariableUsages> GetInputVariableUsages() => _variables.GetAllUsages().Where(u=>!u.Source.IsOutput);
-        public IFunnyVariable[] GetAllVariables()  => _variables.GetAllVariables();
 
         public VarInfo[] Inputs => _variables.GetAllSources()
             .Where(v => !v.IsOutput)
@@ -52,20 +51,22 @@ namespace NFun.Runtime
                 var usage =_variables.GetUsages(key);
                 if(usage==null)
                     throw new KeyNotFoundException($"Variable '{key}' not found in scope");
-                var output =usage.GetVariable() as IFunnyOutput;
-                if (output == null)
+                var output =usage.Source;
+                if (output.IsReadonly)
                     throw new KeyNotFoundException($"Variable '{key}' is input and cannot be read");
-                return output.GetValue();
+                return output.GetClrValue();
             }
         }
-
-        public IFunnyVariable GetVariable(string name) => 
-            _variables.GetUsages(name)?.GetVariable()??throw new KeyNotFoundException($"Variable {name} not found");
-
+        
+        public IReadOnlyList<IFunnyVar> GetVariables() => 
+            _variables.GetAllSources();
+        public IFunnyVar GetVariable(string name) => 
+            _variables.GetUsages(name)?.Source ??throw new KeyNotFoundException($"Variable {name} not found");
+        
         public void Update()
         {
-            for (int i = 0; i < _equations.Count; i++) 
-                _equations[i].UpdateExpression();
+            foreach (var equation in _equations)
+                equation.UpdateExpression();
         }
 
         public CalculationResult Calc(string id, object clrValue) => Calc((id, clrValue));
@@ -89,7 +90,8 @@ namespace NFun.Runtime
             foreach (var value in vars)
             {
                 var source = _variables.GetSourceOrNull(value.Name);
-                source?.SetClrValue(value.Value);
+                if(source!=null)
+                    source.InternalFunnyValue = value.Value;
             }
             
             var ans = new VarVal[_equations.Count];
@@ -103,7 +105,8 @@ namespace NFun.Runtime
             foreach (var value in vars)
             {
                 var source = _variables.GetSourceOrNull(value.Name);
-                source?.SetClrValue(value.Value);
+                if(source!=null)
+                    source.InternalFunnyValue = value.Value;
             }
             
             var ans = new VarVal[_equations.Count];

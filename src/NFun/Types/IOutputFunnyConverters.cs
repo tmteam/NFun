@@ -51,7 +51,7 @@ namespace NFun.Types
         public Type ClrType { get; }
         public VarType FunnyType { get; } = VarType.Text;
         public StringOutputFunnyConverter() => ClrType = typeof(string);
-        public object ToClrObject(object funObject) => (funObject as IFunArray).ToText();
+        public object ToClrObject(object funObject) => ((IFunArray) funObject).ToText();
     }
 
     public class ClrArrayOutputFunnyConverter : IOutputFunnyConverter
@@ -81,7 +81,7 @@ namespace NFun.Types
     {
         public Type ClrType { get; }
         private readonly (string, IOutputFunnyConverter, PropertyInfo)[] _propertiesConverters;
-        private readonly int _writePropertiesCount;
+
         public StructOutputFunnyConverter(
             Type clrType,
             (string, IOutputFunnyConverter, PropertyInfo)[] propertiesConverters,
@@ -89,12 +89,11 @@ namespace NFun.Types
         {
             ClrType = clrType;
             _propertiesConverters = propertiesConverters;
-            _writePropertiesCount = writePropertiesCount;
-            (string, VarType)[] fieldTypes = new (string, VarType)[_writePropertiesCount];
+            var fieldTypes = new (string, VarType)[writePropertiesCount];
             for (int i = 0; i < writePropertiesCount; i++)
             {
-                var converter = propertiesConverters[i];
-                fieldTypes[i] = (converter.Item1, converter.Item2.FunnyType);
+                var (name, outputFunnyConverter, _) = propertiesConverters[i];
+                fieldTypes[i] = (name, outputFunnyConverter.FunnyType);
             }
             FunnyType = VarType.StructOf(fieldTypes);
         }

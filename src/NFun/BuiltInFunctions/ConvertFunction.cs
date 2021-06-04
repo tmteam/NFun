@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using NFun.Exceptions;
 using NFun.Interpritation.Functions;
-using NFun.ParseErrors;
 using NFun.Runtime.Arrays;
 using NFun.Types;
 
@@ -116,32 +115,29 @@ namespace NFun.BuiltInFunctions
             return null;
         }
 
-        private Func<object, object> CreateParserOrNull(VarType to)
-        {
-            switch (to.BaseType)
+        private Func<object, object> CreateParserOrNull(VarType to) =>
+            to.BaseType switch
             {
-                case BaseVarType.Char: return o =>  char.Parse(((IFunArray)(object) 0).ToText());
-                case BaseVarType.Bool: return o =>
+                BaseVarType.Bool => o =>
                 {
-                    var str =((IFunArray)o).ToText();
-                    if (string.Equals(str, "true", StringComparison.OrdinalIgnoreCase))  return true;
-                    if (string.Equals(str, "1", StringComparison.OrdinalIgnoreCase))     return true;
+                    var str = ((IFunArray) o).ToText();
+                    if (string.Equals(str, "true", StringComparison.OrdinalIgnoreCase)) return true;
+                    if (string.Equals(str, "1", StringComparison.OrdinalIgnoreCase)) return true;
                     if (string.Equals(str, "false", StringComparison.OrdinalIgnoreCase)) return false;
-                    if (string.Equals(str, "0", StringComparison.Ordinal))               return false;
+                    if (string.Equals(str, "0", StringComparison.Ordinal)) return false;
                     return null;
-                };
-                case BaseVarType.UInt8: return o => byte.Parse(((IFunArray)o).ToText());
-                case BaseVarType.UInt16: return o => ushort.Parse(((IFunArray)o).ToText());
-                case BaseVarType.UInt32: return o => UInt32.Parse(((IFunArray)o).ToText());
-                case BaseVarType.UInt64: return o => UInt64.Parse(((IFunArray)o).ToText());
-                case BaseVarType.Int16: return o => UInt16.Parse(((IFunArray)o).ToText());
-                case BaseVarType.Int32: return o => Int32.Parse(((IFunArray)o).ToText());
-                case BaseVarType.Int64: return o => Int64.Parse(((IFunArray)o).ToText());
-                case BaseVarType.Real: return o => double.Parse(((IFunArray)o).ToText(), CultureInfo.InvariantCulture);
-            }
+                },
+                BaseVarType.UInt8  => o => byte.Parse(((IFunArray) o).ToText()),
+                BaseVarType.UInt16 => o => ushort.Parse(((IFunArray) o).ToText()),
+                BaseVarType.UInt32 => o => UInt32.Parse(((IFunArray) o).ToText()),
+                BaseVarType.UInt64 => o => UInt64.Parse(((IFunArray) o).ToText()),
+                BaseVarType.Int16  => o => UInt16.Parse(((IFunArray) o).ToText()),
+                BaseVarType.Int32  => o => Int32.Parse(((IFunArray) o).ToText()),
+                BaseVarType.Int64  => o => Int64.Parse(((IFunArray) o).ToText()),
+                BaseVarType.Real   => o => double.Parse(((IFunArray) o).ToText(), CultureInfo.InvariantCulture),
+                _ => null
+            };
 
-            return null;
-        }
         private Func<object, object> CreateDeserializerOrNull(VarType to)
         {
             switch (to.BaseType)

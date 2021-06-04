@@ -1,10 +1,4 @@
-﻿using System;
-using System.Linq;
-using NFun.Runtime.Arrays;
-using NFun.Types;
-using NUnit.Framework;
-
-namespace NFun.UnitTests
+﻿namespace NFun.UnitTests
 {
    /* [TestFixture]
     public class VarValTest

@@ -1,15 +1,10 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace NFun.Runtime
 {
-    public interface IReadonlyFunnyStruct
-    {
-        IEnumerable<(string,object)> Fields { get; }
-        object GetValue(string field);
-    }
-    
-    public class FunnyStruct:IReadonlyFunnyStruct
+    public class FunnyStruct: IReadOnlyDictionary<string, object>
     {
         public static FunnyStruct Create(params (string,object)[] fields) =>
             new (
@@ -18,12 +13,14 @@ namespace NFun.Runtime
         
         private readonly Dictionary<string, object> _values;
         internal FunnyStruct(Dictionary<string,object> values) => _values = values;
-
-        public IEnumerable<(string, object)> Fields => _values.Select(v => (v.Key, v.Value));
-
+        
         public object GetValue(string field) => _values[field];
         public override string ToString() 
-            => "the{ "+string.Join("; ", _values.Select(v=> $"{v.Key}={v.Value}"))+" }";
+            => "the{ "+string.Join(", ", _values.Select(v=> $"{v.Key}={v.Value}"))+" }";
+
+        IEnumerator IEnumerable.GetEnumerator() => _values.GetEnumerator();
+
+        public IEnumerator<KeyValuePair<string, object>> GetEnumerator() => _values.GetEnumerator();
 
         public override bool Equals(object obj)
         {
@@ -39,5 +36,15 @@ namespace NFun.Runtime
             }
             return true;
         }
+
+        public int Count => _values.Count;
+        public bool ContainsKey(string key) => _values.ContainsKey(key);
+
+
+        public bool TryGetValue(string key, out object value) => _values.TryGetValue(key, out value);
+
+        public object this[string key] => _values[key];
+        public IEnumerable<string> Keys => _values.Keys;
+        public IEnumerable<object> Values => _values.Values;
     }
 }

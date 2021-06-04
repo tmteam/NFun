@@ -215,61 +215,60 @@ namespace NFun.Types
             }
         }
 
-        public static bool TrySolveGenericTypes(VarType[] genericArguments, VarType genericType, VarType concreteType,
-            bool strict = false)
+        public static bool TrySolveGenericTypes(VarType[] genericArguments, VarType genericType, VarType concreteType, bool strict = false)
         {
-            switch (genericType.BaseType)
+            while (true)
             {
-                case BaseVarType.Generic:
+                switch (genericType.BaseType)
                 {
-                    var id = genericType.GenericId.Value;
-                    if (genericArguments[id].BaseType == BaseVarType.Empty)
+                    case BaseVarType.Generic:
                     {
-                        genericArguments[id] = concreteType;
-                    }
-                    else if (genericArguments[id] != concreteType)
-                    {
-                        if (genericArguments[id].CanBeConvertedTo(concreteType))
+                        var id = genericType.GenericId.Value;
+                        if (genericArguments[id].BaseType == BaseVarType.Empty)
                         {
                             genericArguments[id] = concreteType;
-                            return true;
+                        }
+                        else if (genericArguments[id] != concreteType)
+                        {
+                            if (genericArguments[id].CanBeConvertedTo(concreteType))
+                            {
+                                genericArguments[id] = concreteType;
+                                return true;
+                            }
+
+                            if (strict) return false;
+
+                            if (!concreteType.CanBeConvertedTo(genericArguments[id])) return false;
                         }
 
-                        if (strict)
-                            return false;
-
-                        if (!concreteType.CanBeConvertedTo(genericArguments[id]))
-                            return false;
+                        return true;
                     }
-
-                    return true;
-                }
-                case BaseVarType.ArrayOf when concreteType.BaseType != BaseVarType.ArrayOf:
-                    return false;
-                case BaseVarType.ArrayOf:
-                    return TrySolveGenericTypes(genericArguments, genericType.ArrayTypeSpecification.VarType,
-                        concreteType.ArrayTypeSpecification.VarType);
-                case BaseVarType.Fun when concreteType.BaseType != BaseVarType.Fun:
-                    return false;
-                case BaseVarType.Fun:
-                {
-                    var genericFun = genericType.FunTypeSpecification;
-                    var concreteFun = concreteType.FunTypeSpecification;
-
-                    if (!TrySolveGenericTypes(genericArguments, genericFun.Output, concreteFun.Output))
+                    case BaseVarType.ArrayOf when concreteType.BaseType != BaseVarType.ArrayOf:
                         return false;
-                    if (concreteFun.Inputs.Length != genericFun.Inputs.Length)
+                    case BaseVarType.ArrayOf:
+                        genericType = genericType.ArrayTypeSpecification.VarType;
+                        concreteType = concreteType.ArrayTypeSpecification.VarType;
+                        strict = false;
+                        continue;
+                    case BaseVarType.Fun when concreteType.BaseType != BaseVarType.Fun:
                         return false;
-                    for (int i = 0; i < concreteFun.Inputs.Length; i++)
+                    case BaseVarType.Fun:
                     {
-                        if (!TrySolveGenericTypes(genericArguments, genericFun.Inputs[i], concreteFun.Inputs[i]))
-                            return false;
-                    }
+                        var genericFun = genericType.FunTypeSpecification;
+                        var concreteFun = concreteType.FunTypeSpecification;
 
-                    return true;
+                        if (!TrySolveGenericTypes(genericArguments, genericFun.Output, concreteFun.Output)) return false;
+                        if (concreteFun.Inputs.Length != genericFun.Inputs.Length) return false;
+                        for (int i = 0; i < concreteFun.Inputs.Length; i++)
+                        {
+                            if (!TrySolveGenericTypes(genericArguments, genericFun.Inputs[i], concreteFun.Inputs[i])) return false;
+                        }
+
+                        return true;
+                    }
+                    default:
+                        return concreteType.CanBeConvertedTo(genericType);
                 }
-                default:
-                    return concreteType.CanBeConvertedTo(genericType);
             }
         }
 

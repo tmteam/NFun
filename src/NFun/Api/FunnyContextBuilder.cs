@@ -4,7 +4,6 @@ using System.Linq;
 using NFun.Interpritation;
 using NFun.Interpritation.Functions;
 using NFun.Runtime;
-using NFun.Types;
 
 namespace NFun
 {

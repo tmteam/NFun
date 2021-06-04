@@ -69,7 +69,7 @@ namespace NFun.SyntaxTests.UserFunctions
         
         public void ConstantEquationWithUpcast(string expr, object expected)
         {
-            var result = expr.Calc().GetValueOf("y");
+            var result = expr.Calc().Get("y");
             Assert.IsTrue(TypeHelper.AreEqual(result, expected), $"result: {result} expected: {expected}");
         }
         

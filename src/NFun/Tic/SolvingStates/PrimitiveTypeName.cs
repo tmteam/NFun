@@ -21,7 +21,7 @@ namespace NFun.Tic.SolvingStates
         U8   =   16 << 6| _isNumber,
         
         _isAbstract  = 1<<3,
-        _isNumber  = 1<<2,
+        _isNumber  = 1<<2
 
     }
 }

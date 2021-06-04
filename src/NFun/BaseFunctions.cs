@@ -10,10 +10,10 @@ namespace NFun
 
         static BaseFunctions()
         {
-            DefaultDictionary = new(ConcreteFunctions,GenericFunctions);
+            DefaultDictionary = new ImmutableFunctionDictionary(ConcreteFunctions,GenericFunctions);
         }
 
-        public static GenericFunctionBase[] GenericFunctions { get; } =
+        private static GenericFunctionBase[] GenericFunctions { get; } =
         {
             new ConvertFunction(),
 
@@ -76,10 +76,10 @@ namespace NFun
             new AllGenericFunctionDefinition(),
             new HasAnyGenericFunctionDefinition(),
             new AnyGenericFunctionDefinition(),
-            new ReverseGenericFunctionDefinition(),
+            new ReverseGenericFunctionDefinition()
         };
 
-        public static IConcreteFunction[] ConcreteFunctions { get; } =
+        private static IConcreteFunction[] ConcreteFunctions { get; } =
         {
             new NotFunction(),
             new AndFunction(),
@@ -159,7 +159,7 @@ namespace NFun
             //Interpolation functions:
             new ConcatArrayOfTextsFunction(),
             new Concat2TextsFunction(),
-            new Concat3TextsFunction(),
+            new Concat3TextsFunction()
         };
     }
 }

@@ -23,7 +23,7 @@ namespace NFun.Tic
         /// <summary>
         /// Generic type from function/constant signature or created in process of solving. 
         /// </summary>
-        TypeVariable = 8,
+        TypeVariable = 8
     }
 
     public class TicNode
@@ -34,8 +34,6 @@ namespace NFun.Tic
         private ITicNodeState _state;
         public static TicNode CreateTypeVariableNode(ITypeState type) 
             => new TicNode(type.ToString(), type, TicNodeType.TypeVariable);
-        public static TicNode CreateTypeVariableNode(string name, ITypeState type) 
-            => new TicNode(name, type, TicNodeType.TypeVariable);
 
         private static int _interlockedId = 0;
         private readonly int _uid = 0;
@@ -76,27 +74,21 @@ namespace NFun.Tic
         public void AddAncestors(IEnumerable<TicNode> nodes)
         {
             if (nodes.Any(n=>n== this))
-            {
                 throw new ImpossibleException("CircularAncestor");
-            }
             _ancestors.AddRange(nodes);
         }
 
-        public void RemoveAncestor(TicNode node)
-        {
+        public void RemoveAncestor(TicNode node) => 
             _ancestors.Remove(node);
-        }
 
         public void SetAncestor(int index, TicNode node)
         {
             if (node == this)
-            {
                 throw new ImpossibleException("CircularAncestor");
-            }
             _ancestors[index] = node;
         }
         
-        private  List<TicNode> _ancestors = new List<TicNode>();
+        private  List<TicNode> _ancestors = new();
         public IReadOnlyList<TicNode> Ancestors => _ancestors;
         #endregion
 
@@ -123,10 +115,9 @@ namespace NFun.Tic
         public object Name { get; }
         public override string ToString()
         {
-            if (Name == _state.ToString())
-                return Name.ToString();
-            else 
-                return $"{Name}:{_state}";
+            return Name.Equals(_state.ToString()) 
+                ? Name.ToString() 
+                : $"{Name}:{_state}";
         }
 
         public void PrintToConsole()

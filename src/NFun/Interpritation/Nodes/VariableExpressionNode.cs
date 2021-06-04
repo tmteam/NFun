@@ -1,5 +1,3 @@
-using NFun.BuiltInFunctions;
-using NFun.Exceptions;
 using NFun.Runtime;
 using NFun.Tokenization;
 using NFun.Types;
@@ -18,7 +16,7 @@ namespace NFun.Interpritation.Nodes
         public Interval Interval { get; }
         public VarType Type => Source.Type;
         public object Calc() => Source.InternalFunnyValue;
-        public override string ToString() => $"{Source.Name}: {Source.FunnyValue}";
+        public override string ToString() => $"{Source.Name}: {Source.InternalFunnyValue}";
 
     }
 }

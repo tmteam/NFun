@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text.Json;
 using NFun.Exceptions;
 using NFun.Runtime;
-using NFun.Runtime.Arrays;
 using NFun.SyntaxParsing;
 using NFun.Tic;
 using NFun.Types;
@@ -40,8 +39,8 @@ namespace NFun.TestTools
         public static void AssertReturns(this CalculationResult result, object expected)
         {
             Assert.AreEqual(1, result.Count,
-                $"Many output variables found: {string.Join(",", result.ResultsOld)}");
-            AssertResultHas(result, (result.ResultsOld[0].Name, expected));
+                $"Many output variables found: {string.Join(",", result.Results.Select(r=>r.Item1))}");
+            AssertResultHas(result, (result.Results.First().Item1, expected));
         }
 
         public static void AssertReturns(this CalculationResult result, string id, object expected)
@@ -52,7 +51,7 @@ namespace NFun.TestTools
             {
                 AssertResultHas(result, values);
                 Assert.AreEqual(values.Length, result.Count,
-                    $"output variables mismatch: {string.Join(",", result.ResultsOld)}");
+                    $"output variables mismatch: {string.Join(",", result.Results.Select(r=>r.Item1))}");
             });
 
         public static void AssertResultHas(this string expr, string id, object val) =>
@@ -71,7 +70,7 @@ namespace NFun.TestTools
                 Assert.Fail($"Unexpected outputs. Expected {types.Length} but was {result.Count}");
             foreach (var value in types)
             {
-                var resultValue = result.GetClr(value.id);
+                var resultValue = result.Get(value.id);
                 Assert.IsNotNull(resultValue, $"Output variable \"{value.id}\" not found");
                 Assert.AreEqual(value.type, resultValue.GetType(),
                     $"Output variable \"{value.id}\" has wrong clr type {resultValue.GetType()}");
@@ -80,18 +79,18 @@ namespace NFun.TestTools
 
         public static void AssertResultIs(this CalculationResult result, Type type)
         {
-            var res = result.ResultsOld.FirstOrDefault();
+            var res = result.Results.FirstOrDefault();
             Assert.IsNotNull(res, "no results found");
-            AssertResultIs(result, (res.Name, type));
+            AssertResultIs(result, (res.Item1, type));
         }
 
         public static void AssertResultHas(this CalculationResult result, params (string id, object val)[] values)
         {
             foreach (var value in values)
             {
-                var resultValue = result.GetClr(value.id);
+                var resultValue = result.Get(value.id);
                 Assert.IsNotNull(resultValue, $"Output variable \"{value.id}\" not found");
-                if (resultValue is IReadonlyFunnyStruct @struct)
+                if (resultValue is IReadOnlyDictionary<string,object> @struct)
                 {
                     var converted = FunnyTypeConverters.GetInputConverter(value.val.GetType()).ToFunObject(value.val);
                     Assert.AreEqual(converted, @struct);
@@ -99,7 +98,7 @@ namespace NFun.TestTools
                 }
 
                 Assert.AreEqual(value.val.GetType(), resultValue.GetType(),
-                    $"Variable \"{value.id}\" has wrong type. Actual Funny type is: {result.Get(value.id).Type}");
+                    $"Variable \"{value.id}\" has wrong type. Actual type is: {resultValue.GetType()}");
 
                 if (!AreSame(value.val, resultValue))
                     Assert.Fail(

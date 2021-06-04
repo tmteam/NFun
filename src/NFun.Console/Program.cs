@@ -38,8 +38,8 @@ namespace NFun.ConsoleApp
                         calcSw.Stop();
                         Console.WriteLine($"Calc in {calcSw.Elapsed.TotalMilliseconds}");
                         Console.WriteLine("Results:");
-                        foreach (var result in res.ResultsOld)
-                            Console.WriteLine(result.Name + ": " + result.Value + " (" + result.Type + ")");
+                        foreach (var result in res.Results)
+                            Console.WriteLine(result.Item1 + ": " + result.Item2 + " (" + result.Item2.GetType() + ")");
                     }
                 }
                 catch (FunRuntimeException e)

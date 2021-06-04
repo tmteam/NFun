@@ -52,6 +52,7 @@ namespace NFun
             }
             throw new NotSupportedException($"syntax node {syntaxNode.GetType().Name} is not supported");
         }
+        
         private static (object, VarType) ParseGenericIntConstant(GenericIntSyntaxNode constant)
         {
             if (constant.IsHexOrBin)
@@ -75,25 +76,21 @@ namespace NFun
                 //1,2,3..
                 if (constant.Value is long l)
                     return ((double) l, VarType.Real);
-                else if (constant.Value is ulong u)
+                if (constant.Value is ulong u)
                     return ((double)u, VarType.Real);
-                else
-                    throw new NotSupportedException();
-            }
-        }
-        private static (object, VarType) ParseConstant(ConstantSyntaxNode constant)
-        {
-
-            switch (constant.Value)
-            {
-                case int i:      return (i, VarType.Int32);
-                case uint ui:    return (ui, VarType.UInt32);
-                case double d:   return (d, VarType.Real);
-                case TextFunArray str: return (str.ToString(), VarType.Text);
-                case bool b:     return (b, VarType.Bool);
                 
+                throw new NotSupportedException();
             }
-            throw  new ArgumentOutOfRangeException();
         }
+        private static (object, VarType) ParseConstant(ConstantSyntaxNode constant) =>
+            constant.Value switch
+            {
+                int i    => (i, VarType.Int32),
+                uint ui  => (ui, VarType.UInt32),
+                double d => (d, VarType.Real),
+                TextFunArray str => (str.ToString(), VarType.Text),
+                bool b => (b, VarType.Bool),
+                _ => throw new ArgumentOutOfRangeException()
+            };
     }
 }

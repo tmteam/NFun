@@ -133,7 +133,7 @@ namespace NFun.Tokenization
             {"while", TokType.Reserved},
             {"when", TokType.Reserved},
             {"until", TokType.Reserved},
-            {"unless", TokType.Reserved},
+            {"unless", TokType.Reserved}
 
         };
         

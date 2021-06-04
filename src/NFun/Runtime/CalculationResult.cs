@@ -1,48 +1,58 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NFun.Types;
 
 namespace NFun.Runtime
 {
     public sealed class CalculationResult
     {
-        public CalculationResult(VarVal[] resultsOld)
+        public CalculationResult(VarVal[] rawResults)
         {
-            ResultsOld = resultsOld;
+            RawResults = rawResults;
         }
 
-        public int Count => ResultsOld.Length;
-        
-        public VarVal[] ResultsOld { get; }
+        public int Count => RawResults.Length;
 
-        public bool  TryGet(string name, out VarVal result)
+        public IEnumerable<(string, object)> Results => RawResults.Select(r =>
+            (r.Name,
+            FunnyTypeConverters.GetOutputConverter(r.Type).ToClrObject(r.Value)));
+
+        private VarVal[] RawResults { get; } 
+        
+        public bool TryGet(string name, out object result)
         {
-            foreach (var equationResult in ResultsOld)
+            foreach (var equationResult in RawResults)
             {
                 if (String.Equals(equationResult.Name, name,
                     StringComparison.CurrentCultureIgnoreCase))
                 {
-                    result = equationResult;
+                    result = FunnyTypeConverters.GetOutputConverter(equationResult.Type).ToClrObject(equationResult.Value);
                     return true;
                 }
             }
             result = default;
             return false;
         }
-        public VarVal Get(string name)
+        
+        public bool TryGet(string name, IOutputFunnyConverter converter, out object result)
         {
-            foreach (var equationResult in ResultsOld)
+            foreach (var equationResult in RawResults)
             {
-                if (String.Equals(equationResult.Name, name, 
+                if (String.Equals(equationResult.Name, name,
                     StringComparison.CurrentCultureIgnoreCase))
-                    return equationResult;
+                {
+                    result = converter.ToClrObject(equationResult.Value);
+                    return true;
+                }
             }
-            throw new KeyNotFoundException($"value {name} is not found in calculation results");
+            result = default;
+            return false;
         }
 
-        public object GetClr(string name)
+        public object Get(string name)
         {
-            foreach (var equationResult in ResultsOld)
+            foreach (var equationResult in RawResults)
             {
                 if (String.Equals(equationResult.Name, name,
                     StringComparison.CurrentCultureIgnoreCase))
@@ -53,17 +63,7 @@ namespace NFun.Runtime
             }
             throw new KeyNotFoundException($"value {name} is not found in calculation results");
         }
-        public object GetValueOf(string name)
-        {
-            foreach (var equationResult in ResultsOld)
-            {
-                if (String.Equals(equationResult.Name, name, 
-                    StringComparison.CurrentCultureIgnoreCase))
-                    return equationResult.Value;
-            }
-            throw new KeyNotFoundException($"value {name} is not found in calculation results");
-        }
 
-        public override string ToString() => string.Join("\r\n",ResultsOld);
+        public override string ToString() => string.Join("\r\n",RawResults);
     }
 }

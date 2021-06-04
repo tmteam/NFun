@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using NFun.Interpritation.Functions;
 using NFun.SyntaxParsing.SyntaxNodes;
-using NFun.Tic;
 using NFun.Tic.SolvingStates;
 using NFun.Types;
 
@@ -56,7 +55,7 @@ namespace NFun.TypeInferenceAdapter
             origin.BaseType switch
             {
                 BaseVarType.Generic => genericMap[origin.GenericId.Value],
-                BaseVarType.ArrayOf => Tic.SolvingStates.StateArray.Of(
+                BaseVarType.ArrayOf => StateArray.Of(
                     ConvertToTiType(origin.ArrayTypeSpecification.VarType, genericMap)),
                 BaseVarType.Fun => StateFun.Of(
                     argTypes: origin.FunTypeSpecification.Inputs.SelectToArray(

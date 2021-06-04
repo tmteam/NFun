@@ -11,7 +11,7 @@ namespace NFun.UnitTests.GraphTools
         {
             var graph = new[]
             {
-                From(0),
+                From(0)
             };
             var res = SyntaxParsing.GraphTools.SortTopology(graph);
             AssertHasCycle(new []{0}, res);
@@ -23,7 +23,7 @@ namespace NFun.UnitTests.GraphTools
             var graph = new[]
             {
                 From(1),
-                From(0),
+                From(0)
             };
             var res = SyntaxParsing.GraphTools.SortTopology(graph);
             AssertHasCycle(new []{0,1}, res);
@@ -36,7 +36,7 @@ namespace NFun.UnitTests.GraphTools
                 From(3),
                 From(0),
                 From(1),
-                From(2),
+                From(2)
             };
             var res = SyntaxParsing.GraphTools.SortTopology(graph);
             AssertHasCycle(new []{0,1,2,3}, res);
@@ -56,7 +56,7 @@ namespace NFun.UnitTests.GraphTools
                 From(3),
                 From(4),
                 From(5),
-                From(6),
+                From(6)
             };
             var res = SyntaxParsing.GraphTools.SortTopology(graph);
             AssertHasCycle(new []{3,4,5}, res);
@@ -112,7 +112,7 @@ namespace NFun.UnitTests.GraphTools
                 NoParents,
                 NoParents,
                 NoParents,
-                From(5,3),
+                From(5,3)
             };
             var res = SyntaxParsing.GraphTools.SortTopology(graph);
             AssertHasRoute(new[]{1,4,5,3,6,0,2}, res);

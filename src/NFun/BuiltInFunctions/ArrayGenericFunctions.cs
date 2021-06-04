@@ -318,10 +318,10 @@ namespace NFun.BuiltInFunctions
             }
         }
 
-        private const string id = "range";
+        private const string Id = "range";
         class Int16Function : FunctionWithTwoArgs
         {
-            public Int16Function() : base(id, VarType.ArrayOf(VarType.Int16), VarType.Int16, VarType.Int16) { }
+            public Int16Function() : base(Id, VarType.ArrayOf(VarType.Int16), VarType.Int16, VarType.Int16) { }
             public override object Calc(object a, object b)
             {
                 var start = ((short)a);
@@ -340,7 +340,7 @@ namespace NFun.BuiltInFunctions
         }
         class Int32Function : FunctionWithTwoArgs
         {
-            public Int32Function() : base(id, VarType.ArrayOf(VarType.Int32), VarType.Int32, VarType.Int32) { }
+            public Int32Function() : base(Id, VarType.ArrayOf(VarType.Int32), VarType.Int32, VarType.Int32) { }
 
             public override object Calc(object a, object b)
             {
@@ -359,7 +359,7 @@ namespace NFun.BuiltInFunctions
         }
         class Int64Function : FunctionWithTwoArgs
         {
-            public Int64Function() : base(id, VarType.ArrayOf(VarType.Int64), VarType.Int64, VarType.Int64) { }
+            public Int64Function() : base(Id, VarType.ArrayOf(VarType.Int64), VarType.Int64, VarType.Int64) { }
 
             public override object Calc(object a, object b)
             {
@@ -378,7 +378,7 @@ namespace NFun.BuiltInFunctions
         }
         class UInt8Function : FunctionWithTwoArgs
         {
-            public UInt8Function() : base(id, VarType.ArrayOf(VarType.UInt8), VarType.UInt8, VarType.UInt8) { }
+            public UInt8Function() : base(Id, VarType.ArrayOf(VarType.UInt8), VarType.UInt8, VarType.UInt8) { }
             public override object Calc(object a, object b)
             {
                 var start = ((byte)a);
@@ -396,7 +396,7 @@ namespace NFun.BuiltInFunctions
         }
         class UInt16Function : FunctionWithTwoArgs
         {
-            public UInt16Function() : base(id, VarType.ArrayOf(VarType.UInt16), VarType.UInt16, VarType.UInt16) { }
+            public UInt16Function() : base(Id, VarType.ArrayOf(VarType.UInt16), VarType.UInt16, VarType.UInt16) { }
             public override object Calc(object a, object b)
             {
                 var start = ((ushort)a);
@@ -414,7 +414,7 @@ namespace NFun.BuiltInFunctions
         }
         class UInt32Function : FunctionWithTwoArgs
         {
-            public UInt32Function() : base(id, VarType.ArrayOf(VarType.UInt32), VarType.UInt32, VarType.UInt32) { }
+            public UInt32Function() : base(Id, VarType.ArrayOf(VarType.UInt32), VarType.UInt32, VarType.UInt32) { }
             public override object Calc(object a, object b)
             {
                 var start = ((uint)a);
@@ -432,7 +432,7 @@ namespace NFun.BuiltInFunctions
         }
         class UInt64Function : FunctionWithTwoArgs
         {
-            public UInt64Function() : base(id, VarType.ArrayOf(VarType.UInt64), VarType.UInt64, VarType.UInt64) { }
+            public UInt64Function() : base(Id, VarType.ArrayOf(VarType.UInt64), VarType.UInt64, VarType.UInt64) { }
 
             public override object Calc(object a, object b)
             {
@@ -451,7 +451,7 @@ namespace NFun.BuiltInFunctions
         }
         class RealFunction : FunctionWithTwoArgs
         {
-            public RealFunction() : base(id, VarType.ArrayOf(VarType.Real), VarType.Real, VarType.Real) { }
+            public RealFunction() : base(Id, VarType.ArrayOf(VarType.Real), VarType.Real, VarType.Real) { }
 
             public override object Calc(object a, object b)
             {
@@ -496,10 +496,10 @@ namespace NFun.BuiltInFunctions
             }
         }
 
-        private const string id = "rangeWithStep";
+        private const string Id = "rangeWithStep";
         class Int16Function : FunctionWithManyArguments
         {
-            public Int16Function() : base(id, VarType.ArrayOf(VarType.Int16), VarType.Int16, VarType.Int16, VarType.Int16) { }
+            public Int16Function() : base(Id, VarType.ArrayOf(VarType.Int16), VarType.Int16, VarType.Int16, VarType.Int16) { }
             public override object Calc(object[] args)
             {
                 var start = ((int)args[0]);
@@ -520,7 +520,7 @@ namespace NFun.BuiltInFunctions
         }
         class Int32Function : FunctionWithManyArguments
         {
-            public Int32Function() : base(id, VarType.ArrayOf(VarType.Int32), VarType.Int32, VarType.Int32, VarType.Int32) { }
+            public Int32Function() : base(Id, VarType.ArrayOf(VarType.Int32), VarType.Int32, VarType.Int32, VarType.Int32) { }
 
             public override object Calc(object[] args)
             {
@@ -543,7 +543,7 @@ namespace NFun.BuiltInFunctions
         }
         class Int64Function : FunctionWithManyArguments
         {
-            public Int64Function() : base(id, VarType.ArrayOf(VarType.Int64), VarType.Int64, VarType.Int64, VarType.Int64) { }
+            public Int64Function() : base(Id, VarType.ArrayOf(VarType.Int64), VarType.Int64, VarType.Int64, VarType.Int64) { }
 
             public override object Calc(object[] args)
             {
@@ -566,7 +566,7 @@ namespace NFun.BuiltInFunctions
         }
         class UInt8Function : FunctionWithManyArguments
         {
-            public UInt8Function() : base(id, VarType.ArrayOf(VarType.UInt8), VarType.UInt8, VarType.UInt8, VarType.UInt8) { }
+            public UInt8Function() : base(Id, VarType.ArrayOf(VarType.UInt8), VarType.UInt8, VarType.UInt8, VarType.UInt8) { }
             public override object Calc(object[] args)
             {
                 var start = ((byte)args[0]);
@@ -587,7 +587,7 @@ namespace NFun.BuiltInFunctions
         }
         class UInt16Function : FunctionWithManyArguments
         {
-            public UInt16Function() : base(id, VarType.ArrayOf(VarType.UInt16), VarType.UInt16, VarType.UInt16, VarType.UInt16) { }
+            public UInt16Function() : base(Id, VarType.ArrayOf(VarType.UInt16), VarType.UInt16, VarType.UInt16, VarType.UInt16) { }
             public override object Calc(object[] args)
             {
                 var start = ((ushort)args[0]);
@@ -608,7 +608,7 @@ namespace NFun.BuiltInFunctions
         }
         class UInt32Function : FunctionWithManyArguments
         {
-            public UInt32Function() : base(id, VarType.ArrayOf(VarType.UInt32), VarType.UInt32, VarType.UInt32, VarType.UInt32) { }
+            public UInt32Function() : base(Id, VarType.ArrayOf(VarType.UInt32), VarType.UInt32, VarType.UInt32, VarType.UInt32) { }
             public override object Calc(object[] args)
             {
                 var start = ((UInt32)args[0]);
@@ -629,7 +629,7 @@ namespace NFun.BuiltInFunctions
         }
         class UInt64Function : FunctionWithManyArguments
         {
-            public UInt64Function() : base(id, VarType.ArrayOf(VarType.UInt64), VarType.UInt64, VarType.UInt64, VarType.UInt64) { }
+            public UInt64Function() : base(Id, VarType.ArrayOf(VarType.UInt64), VarType.UInt64, VarType.UInt64, VarType.UInt64) { }
             public override object Calc(object[] args)
             {
                 var start = ((ulong)args[0]);
@@ -650,7 +650,7 @@ namespace NFun.BuiltInFunctions
         }
         class RealFunction : FunctionWithManyArguments
         {
-            public RealFunction() : base(id, VarType.ArrayOf(VarType.Real), VarType.Real, VarType.Real, VarType.Real) { }
+            public RealFunction() : base(Id, VarType.ArrayOf(VarType.Real), VarType.Real, VarType.Real, VarType.Real) { }
             public override object Calc(object[] args)
             {
                 var start = ((double)args[0]);
@@ -1059,7 +1059,7 @@ namespace NFun.BuiltInFunctions
             var res = new ConcreteRepeat
             {
                 Name = Name,
-                ArgTypes = new[] {concreteTypesMap[0], VarType.Int32,},
+                ArgTypes = new[] {concreteTypesMap[0], VarType.Int32},
                 ReturnType = VarType.ArrayOf(concreteTypesMap[0])
             };
             return res;

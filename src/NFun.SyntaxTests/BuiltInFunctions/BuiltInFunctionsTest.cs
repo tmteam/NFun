@@ -96,7 +96,7 @@ namespace NFun.SyntaxTests.BuiltInFunctions
             true, true, false, true, true, true, true, false,
             false, false, false, false, false, false, false, false,
             false, false, false, false, false, false, false, false,
-            false, false, false, false, false, false, false, false,
+            false, false, false, false, false, false, false, false
         })]
         [TestCase("toBytes(123)", new[] {123, 0, 0, 0})]
         [TestCase("toBytes(1_192_737)", new[] {0x21, 0x33, 0x12, 0})]
@@ -126,7 +126,7 @@ namespace NFun.SyntaxTests.BuiltInFunctions
             true, true, false, true, true, true, true, false,
             false, false, false, false, false, false, false, false,
             false, false, false, false, false, false, false, false,
-            false, false, false, false, false, false, false, false,
+            false, false, false, false, false, false, false, false
         })]
         [TestCase("y:byte[]=convert(0x123)", new byte[] {35, 1, 0, 0})]
         [TestCase("y:byte[]=convert(0xFA00FA)", new byte[] {250, 0, 250, 0})]

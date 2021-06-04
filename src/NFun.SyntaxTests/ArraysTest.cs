@@ -1,9 +1,5 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using NFun.Exceptions;
-using NFun.Runtime.Arrays;
 using NFun.TestTools;
 using NFun.Tic;
 using NFun.Types;
@@ -168,12 +164,8 @@ namespace NFun.SyntaxTests
         {
             var expr = "out = [0,[1]]";
             var result = expr.Calc().Get("out");
-            Assert.AreEqual(result.Type, VarType.ArrayOf(VarType.Anything));            
-            var arr1 = (IEnumerable<object>) result.Value;
-            Assert.AreEqual(2, arr1.Count());
-            Assert.AreEqual(0.0, arr1.ElementAt(0));
-            var arr2 = arr1.ElementAt(1) as IEnumerable<object>;
-            Assert.AreEqual(1.0, arr2.ElementAt(0));
+            Assert.IsInstanceOf<object[]>(result);
+            AssertArraysDeepEquiualent(new object[]{0.0,new double[]{1.0}}, result);
         }
         
         [Test]
@@ -181,12 +173,8 @@ namespace NFun.SyntaxTests
         {
             var expr = "out:anything[] = [0,[1]]";
             var result = expr.Calc().Get("out");
-            Assert.AreEqual(result.Type, VarType.ArrayOf(VarType.Anything));            
-            var arr1 = (IEnumerable<object>) result.Value;
-            Assert.AreEqual(2, arr1.Count());
-            Assert.AreEqual(0.0, arr1.ElementAt(0));
-            var arr2 = arr1.ElementAt(1) as IEnumerable<object>;
-            Assert.AreEqual(1.0, arr2.ElementAt(0));
+            Assert.IsInstanceOf<object[]>(result);
+            AssertArraysDeepEquiualent(new object[]{0.0,new double[]{1.0}}, result);
         }
 
         [TestCase("out:anything[] = [0,[1]]")]
@@ -207,8 +195,9 @@ namespace NFun.SyntaxTests
         {
             TraceLog.IsEnabled = true;
             var result = expr.Calc().Get("out");
-            Assert.AreEqual(result.Type, VarType.ArrayOf(VarType.Anything));            
+            Assert.IsInstanceOf<object[]>(result);
         }
+
         [TestCase("out = [[0x1],[1.0]]")]
         [TestCase("out = [[1.0],[0x1]]")]
         [TestCase("out = [[0x1],[1.0],[0x1]]")]
@@ -233,7 +222,7 @@ namespace NFun.SyntaxTests
             TraceLog.IsEnabled = true;
             var expr = "out:real[][] = [[0x1],[1.0]]";
             var result = expr.Calc().Get("out");
-            Assert.AreEqual(VarType.ArrayOf(VarType.ArrayOf(VarType.Real)),result.Type);            
+            Assert.IsInstanceOf<double[][]>(result);
         }
         
         [Test]
@@ -242,30 +231,36 @@ namespace NFun.SyntaxTests
         {
             var expr = "out = [[0x1],[1.0],[true]]";
             var result = expr.Calc().Get("out");
-            Assert.AreEqual(VarType.ArrayOf(VarType.ArrayOf(VarType.Anything)),result.Type);            
+            Assert.IsInstanceOf<object[][]>(result);
         }
         
         [Test]
         public void ConstantTrippleAnyArrayWithUpcast()
         {
             var expr = "out:anything = [false,0,1,'vasa',[1,2,[10000,2]]]";
-            var result = expr.Calc().GetValueOf("out");
+            var result = expr.Calc().Get("out");
 
-            var arr1 = (IEnumerable<object>) result;
-            Assert.AreEqual(5, arr1.Count());
-            Assert.AreEqual(false, arr1.ElementAt(0));
-            Assert.AreEqual(0.0, arr1.ElementAt(1));
-            Assert.AreEqual(1.0, arr1.ElementAt(2));
-            Assert.AreEqual("vasa", (arr1.ElementAt(3) as IFunArray).ToText());
-            var arr2 = arr1.ElementAt(4) as IEnumerable<object>;
-            Assert.AreEqual(1.0, arr2.ElementAt(0));
-            Assert.AreEqual(2.0, arr2.ElementAt(1));
-            var arr3 = arr2.ElementAt(2) as IEnumerable<object>;
-            Assert.AreEqual(10000.0, arr3.ElementAt(0));
-            Assert.AreEqual(2.0,     arr3.ElementAt(1));
+            var expected = new object[] {false, 0.0, 1.0, "vasa", new Object[] {1.0, 2.0, new double[] {10000, 2.0}}};
+            AssertArraysDeepEquiualent(expected, result);
 
         }
-        
+
+        private void AssertArraysDeepEquiualent<T>(T[] expected, object actual)
+        {
+            Assert.IsInstanceOf<T[]>(actual);
+            var resultArray = actual as T[];
+            Assert.AreEqual(expected.Length, resultArray.Length);
+            for (int i = 0; i < expected.Length; i++)
+            {
+                var o = resultArray[i];
+                var e = expected[i];
+                if (e is T[] ee)
+                    AssertArraysDeepEquiualent(ee, o);
+                else
+                    Assert.AreEqual(e, o);
+            }
+        }
+
         [TestCase("byte")]
         [TestCase("uint16")]
         [TestCase("uint32")]
@@ -278,27 +273,15 @@ namespace NFun.SyntaxTests
         {
             var expr = $"x:{downType};    y:real[][]= [[1],[2,3,x],[x]]";
 
-            var res = expr.Calc("x", 42.0).GetValueOf("y");
-           
+            var res = expr.Calc("x", 42.0).Get("y");
+
             var expected = new[]
             {
-                new [] {1.0},
-                new [] {2.0,3.0, 42.0},
-                new [] {42.0},
+                new[] {1.0},
+                new[] {2.0, 3.0, 42.0},
+                new[] {42.0}
             };
-            var i = 0;
-            foreach (var item in (IEnumerable<object>) res)
-            {
-                var item2 =(item as IEnumerable<object>);
-                var j = 0;
-                foreach (var actual in item2)
-                {
-                    Assert.AreEqual(expected[i][j], actual);                    
-                    Assert.AreEqual(expected[i][j].GetType(), actual.GetType(),$"Invalid type of element '{actual}'");
-                    j++;
-                }
-                i++;
-            }
+            AssertArraysDeepEquiualent(expected, res);
         }
 
         [Test]
@@ -309,17 +292,17 @@ namespace NFun.SyntaxTests
         [Test]
         public void TwoDimConstatantTest()
         {
-            var expected = new int[3][];
+            var expected = new Int32[3][];
             expected[0] = new[] {1, 2};
             expected[1] = new[] {3, 4};
             expected[2] = new[] {5};
             
-            var expectedType = VarType.ArrayOf(VarType.ArrayOf(VarType.Real));
+            var expectedType = typeof(double[][]);
             var expression = " y= [[1.0,2.0],[3.0,4.0],[5.0]]";
             
             var res = expression.Calc().Get("y");
-            Assert.AreEqual(expectedType, res.Type);
-            AssertMultiDimentionalEquals(res, expected);
+            Assert.AreEqual(expectedType, res.GetType());
+            AssertMultiDimentionalEquals(res as double[][] , expected);
         }
         [Test]
         public void TwoDimConcatConstatantTest()
@@ -329,12 +312,11 @@ namespace NFun.SyntaxTests
             expected[1] = new[] {3, 4};
             expected[2] = new[] {5};
             
-            var expectedType = VarType.ArrayOf(VarType.ArrayOf(VarType.Real));
             var expression = " y= [[1,2],[3,4]].concat([[5.0]])";
             
             var res = expression.Calc().Get("y");
-            Assert.AreEqual(expectedType, res.Type);
-            AssertMultiDimentionalEquals(res, expected);
+            Assert.IsInstanceOf<double[][]>(res);
+            AssertMultiDimentionalEquals(res as double[][], expected);
         }
         [Test]
         public void SingleMultiDimVariable_OutputEqualsInput()
@@ -344,13 +326,12 @@ namespace NFun.SyntaxTests
             x[1] = new[] {3, 4};
             x[2] = new[] {5};
             
-            var expectedType = VarType.ArrayOf(VarType.ArrayOf(VarType.Int32));
             var expectedOutput = x;
             var expression = "x:int[][]\r y= x";
             
             var res = expression.Calc("x", x).Get("y");
-            Assert.AreEqual(expectedType, res.Type);
-            AssertMultiDimentionalEquals(res, expectedOutput);
+            Assert.IsInstanceOf<int[][]>(res);
+            AssertMultiDimentionalEquals(res as int[][], expectedOutput);
         }
         [Test]
         public void SingleMultiDimVariable_OutputEqualsTwoInputs()
@@ -372,8 +353,8 @@ namespace NFun.SyntaxTests
             var expression = "x:int[][]\r y= x.concat(x)";
             
             var res = expression.Calc("x", x).Get("y");
-            Assert.AreEqual(expectedType, res.Type);
-            AssertMultiDimentionalEquals(res, expectedOutput);
+            Assert.IsInstanceOf<int[][]>(res);
+            AssertMultiDimentionalEquals(res as int[][], expectedOutput);
         }
         [Test]
         public void ArraysIntegrationTest()
@@ -388,19 +369,12 @@ filtrat   = x.filter{it> filt} # filt - input variable
 ";
            expr.Calc(("x", new[]{5,6,7,8}), ("filt", 2));
         }
-        private static void AssertMultiDimentionalEquals(VarVal res, int[][] expectedOutput)
+        
+        private static void AssertMultiDimentionalEquals<T>(T[][] result, int[][] expectedOutput)
         {
             for (int i = 0; i < expectedOutput.Length; i++)
-            {
-                var enumerable = (IFunArray)res.Value;
-                var array = enumerable.GetElementOrNull(i);
-
                 for (int j = 0; j < expectedOutput[i].Length; j++)
-                {
-                    var element = (array as IEnumerable).Cast<object>().ElementAt(j);
-                    Assert.AreEqual(element, expectedOutput[i][j]);
-                }
-            }
+                    Assert.AreEqual(result[i][j], expectedOutput[i][j]);
         }
         [TestCase("y = [")]
         [TestCase("y = [,]")]

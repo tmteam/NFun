@@ -364,7 +364,7 @@ namespace NFun.TypeInferenceAdapter
 
             if (type is StatePrimitive p)
                 _ticTypeGraph.SetConst(node.OrderNumber, p);
-            else if (type is Tic.SolvingStates.StateArray a && a.Element is StatePrimitive primitiveElement)
+            else if (type is StateArray a && a.Element is StatePrimitive primitiveElement)
                 _ticTypeGraph.SetArrayConst(node.OrderNumber, primitiveElement);
             else
                 throw new InvalidOperationException("Complex constant type is not supported");

@@ -81,7 +81,7 @@ namespace NFun.Tic
             
             builder.SetCall(new ITicNodeState[]
             {
-                StateArray.Of(varNode),StateArray.Of(varNode),StateArray.Of(varNode),
+                StateArray.Of(varNode),StateArray.Of(varNode),StateArray.Of(varNode)
             }, new []{firstId, secondId, resultId});
 
         }
@@ -100,7 +100,7 @@ namespace NFun.Tic
                 {
                     StateArray.Of(inNode),
                     StateFun.Of(returnType: StatePrimitive.Bool, argType: inNode),
-                    StatePrimitive.Bool,
+                    StatePrimitive.Bool
                 }, new[] {arrId, funId, resultId});
         }
 
@@ -112,7 +112,7 @@ namespace NFun.Tic
                 {
                     StateArray.Of(inNode),
                     StateFun.Of(returnType: StatePrimitive.Bool, argType: inNode),
-                    inNode,
+                    inNode
                 }, new[] { arrId, funId, resultId });
         }
 

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Linq;
-using NFun.Runtime;
 using NFun.TestTools;
 using NUnit.Framework;
 
@@ -29,13 +27,13 @@ namespace NFun.ApiTests
         public void SingleVariableEquation(string expr, double arg, double expected)
         {
             var runtime = expr.Build();
-            var ySource = runtime.GetVariable("y") as IFunnyOutput;
-            var xSource = runtime.GetVariable("x") as IFunnyInput;
-            Assert.IsNotNull(ySource);
-            Assert.IsNotNull(xSource);
-            xSource.SetValue(arg);
+            var ySource = runtime.GetVariable("y");
+            var xSource = runtime.GetVariable("x");
+            Assert.IsFalse(ySource.IsReadonly);
+            Assert.IsTrue(xSource.IsReadonly);
+            xSource.SetClrValue(arg);
             runtime.Update();
-            Assert.AreEqual(expected, ySource.GetValue());
+            Assert.AreEqual(expected, ySource.FunnyValue);
         }
         
         
@@ -65,10 +63,10 @@ namespace NFun.ApiTests
         public void InputNotSet_SingleVariableEquation(string expr, object expected)
         {
             var runtime = expr.Build();
-            var ySource = runtime.GetVariable("y") as IFunnyOutput;
+            var ySource = runtime.GetVariable("y");
             Assert.IsNotNull(ySource);
             runtime.Update();
-            Assert.AreEqual(expected, ySource.GetValue());
+            Assert.AreEqual(expected, ySource.GetClrValue());
         }
     }
 }

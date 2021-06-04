@@ -9,14 +9,9 @@ namespace NFun.Interpritation
     public sealed class ImmutableFunctionDictionary: IFunctionDictionary
     {
         private readonly Dictionary<string, IFunctionSignature> _functions;
-        //TODO - OVERLOADS?!?!
+        //TODO - OVERLOADS?!?! O_o_O
         private readonly Dictionary<string, List<IFunctionSignature>> _overloads;
-
-        private ImmutableFunctionDictionary()
-        {
-            _functions = new();
-            _overloads = new();
-        }
+        
         public ImmutableFunctionDictionary(IConcreteFunction[] concretes, GenericFunctionBase[] generics)
         {
             _functions = new(concretes.Length+generics.Length);

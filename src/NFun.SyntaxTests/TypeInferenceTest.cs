@@ -216,7 +216,7 @@ namespace NFun.SyntaxTests
 
         [TestCase("y:int = 1\rz:int=2", BaseVarType.Int32, BaseVarType.Int32)]
         [TestCase("y = 2.0\rz:int=2", BaseVarType.Real, BaseVarType.Int32)]
-        [TestCase("y = true\rz=false",BaseVarType.Bool, BaseVarType.Bool)]
+        [TestCase("y = true\rz=false", BaseVarType.Bool, BaseVarType.Bool)]
 
         [TestCase("y:int = 1\rz=y", BaseVarType.Int32, BaseVarType.Int32)]
         [TestCase("z:int=2 \r y = z", BaseVarType.Int32, BaseVarType.Int32)]
@@ -224,26 +224,26 @@ namespace NFun.SyntaxTests
         [TestCase("z:int=2 \r y = z/2", BaseVarType.Real, BaseVarType.Int32)]
         [TestCase("y:int = 2\rz=y/2", BaseVarType.Int32, BaseVarType.Real)]
 
-        [TestCase("y = 2.0\rz=y",BaseVarType.Real, BaseVarType.Real)]
-        [TestCase("z=2.0 \ry = z",BaseVarType.Real, BaseVarType.Real)]
+        [TestCase("y = 2.0\rz=y", BaseVarType.Real, BaseVarType.Real)]
+        [TestCase("z=2.0 \ry = z", BaseVarType.Real, BaseVarType.Real)]
 
-        [TestCase("y = true\rz=y",BaseVarType.Bool, BaseVarType.Bool)]
-        [TestCase("z=true \r y = z",BaseVarType.Bool, BaseVarType.Bool)]
+        [TestCase("y = true\rz=y", BaseVarType.Bool, BaseVarType.Bool)]
+        [TestCase("z=true \r y = z", BaseVarType.Bool, BaseVarType.Bool)]
 
-        
+
         [TestCase("y:int = 2\r z=y>1", BaseVarType.Int32, BaseVarType.Bool)]
-        [TestCase("z:int=2 \r y = z>1",BaseVarType.Bool, BaseVarType.Int32)]
+        [TestCase("z:int=2 \r y = z>1", BaseVarType.Bool, BaseVarType.Int32)]
 
-        [TestCase("y = 2.0\rz=y>1",BaseVarType.Real, BaseVarType.Bool)]
-        [TestCase("z=2.0 \r y = z>1",BaseVarType.Bool, BaseVarType.Real)]
-        
-        public void TwinEquations_Runtime_OutputTypesCalculateCorrect(string expr, BaseVarType ytype,BaseVarType ztype)
+        [TestCase("y = 2.0\rz=y>1", BaseVarType.Real, BaseVarType.Bool)]
+        [TestCase("z=2.0 \r y = z>1", BaseVarType.Bool, BaseVarType.Real)]
+
+        public void TwinEquations_Runtime_OutputTypesCalculateCorrect(string expr, BaseVarType ytype, BaseVarType ztype)
         {
             var res = expr.Calc();
             var y = res.Get("y");
-            Assert.AreEqual(VarType.PrimitiveOf(ytype),y.Type,"y");
+            Assert.AreEqual(y.GetType(), FunnyTypeConverters.GetOutputConverter(VarType.PrimitiveOf(ytype)).ClrType);
             var z = res.Get("z");
-            Assert.AreEqual(VarType.PrimitiveOf(ztype),z.Type,"z");
+            Assert.AreEqual(z.GetType(), FunnyTypeConverters.GetOutputConverter(VarType.PrimitiveOf(ztype)).ClrType);
         }
 
         [TestCase("x:foo\r y= x and true")]

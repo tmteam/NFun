@@ -10,10 +10,7 @@ namespace NFun.TypeInferenceAdapter
     {
         public VariableScopeAliasTable()
         {
-            _variableAliasesStack = new List<Dictionary<string, string>>
-            {
-                new Dictionary<string, string>()
-            };
+            _variableAliasesStack = new List<Dictionary<string, string>> {new()};
         }
         
         private readonly List<Dictionary<string, string>> _variableAliasesStack;
@@ -30,13 +27,13 @@ namespace NFun.TypeInferenceAdapter
 
         public void AddVariableAlias(string originName, string alias)
         {
-            var currentFrame = _variableAliasesStack[_variableAliasesStack.Count - 1];
+            var currentFrame = _variableAliasesStack[^1];
             if (currentFrame.ContainsKey(originName)) return;
             currentFrame.Add(originName, alias);
         }
         public void AddVariableAlias(int node, string variableName)
         {
-            var currentFrame = _variableAliasesStack[_variableAliasesStack.Count - 1];
+            var currentFrame = _variableAliasesStack[^1];
             var alias = MakeAlias(node, variableName);
             if (currentFrame.ContainsKey(variableName))
             {

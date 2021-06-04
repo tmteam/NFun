@@ -1,4 +1,3 @@
-using System;
 using NFun.Tokenization;
 using NFun.Types;
 using NUnit.Framework;

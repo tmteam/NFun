@@ -10,4 +10,13 @@
       <ProjectReference Include="..\NFun.Fuspec\NFun.Fuspec.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Remove="ConsoleWriter.cs" />
+      <Compile Remove="Program.cs" />
+      <Compile Remove="Statistic.cs" />
+      <Compile Remove="TestCaseResult.cs" />
+      <Compile Remove="TestHandler.cs" />
+      <Compile Remove="TypeAndValuesException.cs" />
+    </ItemGroup>
+
 </Project>

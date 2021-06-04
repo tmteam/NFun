@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using NFun.Runtime.Arrays;
 using NFun.Tic.Stages;
 
 namespace NFun.Tic.SolvingStates
@@ -152,7 +151,7 @@ namespace NFun.Tic.SolvingStates
             None,
             IsArray,
             IsFunction,
-            IsStruct,
+            IsStruct
         }
         private BasicDescType _basicUnsolvedDescType = BasicDescType.None;
 
@@ -200,7 +199,7 @@ namespace NFun.Tic.SolvingStates
         {
             var result = new ConstrainsState(Descedant,Ancestor)
             {
-                IsComparable = this.IsComparable || constrainsState.IsComparable,
+                IsComparable = this.IsComparable || constrainsState.IsComparable
             };
 
             if (result._basicUnsolvedDescType == BasicDescType.None)
