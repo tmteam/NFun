@@ -16,7 +16,7 @@ namespace NFun.Runtime
         
         public object GetValue(string field) => _values[field];
         public override string ToString() 
-            => "the{ "+string.Join(", ", _values.Select(v=> $"{v.Key}={v.Value}"))+" }";
+            => "{ "+string.Join(", ", _values.Select(v=> $"{v.Key}={v.Value}"))+" }";
 
         IEnumerator IEnumerable.GetEnumerator() => _values.GetEnumerator();
 

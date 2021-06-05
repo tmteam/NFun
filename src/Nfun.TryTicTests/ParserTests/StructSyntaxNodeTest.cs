@@ -12,7 +12,7 @@ namespace NFun.UnitTests.ParserTests
         [Test]
         public void SingleElementConstStruct()
         {
-            var text = @" the{ a = 1 }";
+            var text = @" { a = 1 }";
             var structSyntaxNode = ParserTestHelper.ParseSingleEquation<StructInitSyntaxNode>(text);
             Assert.AreEqual(1, structSyntaxNode.Children.Count());
             AssertGenericIntConstantDefenition(structSyntaxNode.Fields.First(),"a",(ulong)1);
@@ -21,7 +21,7 @@ namespace NFun.UnitTests.ParserTests
         [Test]
         public void TwoElementsConstStruct()
         {
-            var text = @" the{ a = 1; b = 2 }";
+            var text = @" { a = 1; b = 2 }";
             var tree   = Parser.Parse(Tokenizer.ToFlow(text));
             var structSyntaxNode = ParserTestHelper.ParseSingleEquation<StructInitSyntaxNode>(text);
 
@@ -31,11 +31,11 @@ namespace NFun.UnitTests.ParserTests
             AssertGenericIntConstantDefenition(structSyntaxNode.Fields.Skip(1).First(),"b",(ulong)2);
         }
         
-        [TestCase("the{a 2}")]
-        [TestCase("the{a =2b=3}")]
-        [TestCase("the{a =2;b3}")]
-        [TestCase("the{a =2;b ==3}")]
-        [TestCase("the{a =2; 3}")]
+        [TestCase("{a 2}")]
+        [TestCase("{a =2b=3}")]
+        [TestCase("{a =2;b3}")]
+        [TestCase("{a =2;b ==3}")]
+        [TestCase("{a =2; 3}")]
 
         public void ObviousFailed(string text) 
             => Assert.Throws<FunParseException>(()=> Parser.Parse(Tokenizer.ToFlow(text)));

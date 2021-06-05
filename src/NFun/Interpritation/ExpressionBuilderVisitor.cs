@@ -101,7 +101,7 @@ namespace NFun.Interpritation
             var structNode = ReadNode(node.Source);
             //Funtic allows default values for not specified types 
             // so call:
-            //  y = the{}.missingField
+            //  y = {}.missingField
             // is allowed, but it semantically incorrect
             
             if (!structNode.Type.StructTypeSpecification.ContainsKey(node.FieldName))

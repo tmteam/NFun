@@ -7,7 +7,7 @@ namespace NFun.SyntaxTests
     public class RecursiveTypeDefinitionDetectionTest
     {
         [TestCase("r(x) = r(x.i)")]
-        [TestCase("r(x) = the{f = r(x)}")]
+        [TestCase("r(x) = {f = r(x)}")]
         [TestCase("f(x) = x.age; y1 = f(user); y2 = f(user.child)")]
         public void ObviouslyFailsWithRecursiveTypeDefinitionOfStruct(string expr)
             => expr.AssertObviousFailsOnParse();

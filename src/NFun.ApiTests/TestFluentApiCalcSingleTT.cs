@@ -32,7 +32,7 @@ namespace NFun.ApiTests
         
         [Test]
         public void IoComplexTypeTransforms() =>
-            CalcInDifferentWays(expr: "the{id = age; items = ids.map(rule '{it}'); price = size*2}",
+            CalcInDifferentWays(expr: "{id = age; items = ids.map(rule '{it}'); price = size*2}",
                 input: new UserInputModel("vasa", 13, size: 21, iq: 12, 1, 2, 3, 4),
                 expected: new ContractOutputModel
                 {
@@ -129,7 +129,7 @@ namespace NFun.ApiTests
         [Test]
         public void OutputTypeContainsNoEmptyConstructor_throws() =>
             Assert.Throws<FunInvalidUsageException>(() => Funny.Calc<UserInputModel, ModelWithoutEmptyConstructor>(
-                "the{name = name}"
+                "{name = name}"
                 , new UserInputModel("vasa")));
         
         [TestCase("age>someUnknownvariable")]

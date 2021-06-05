@@ -56,7 +56,7 @@ namespace NFun.Tic.SolvingStates
 
         public bool IsSolved => _nodes.All(n => n.Value.IsSolved);
         public bool IsMutable => true;
-        public string  Description => "the{" + string.Join("; ", _nodes.Select(n => $"{n.Key}:{n.Value}")) + "}";
+        public string  Description => "{" + string.Join("; ", _nodes.Select(n => $"{n.Key}:{n.Value}")) + "}";
         public bool ApplyDescendant(IStateCombination2dimensionalVisitor visitor, TicNode ancestorNode, TicNode descendantNode) =>
             descendantNode.State.Apply(visitor, ancestorNode, descendantNode, this);
         public bool Apply(IStateCombination2dimensionalVisitor visitor, TicNode ancestorNode, TicNode descendantNode,
@@ -128,6 +128,6 @@ namespace NFun.Tic.SolvingStates
         }
 
         public override string ToString() 
-            => "the{" + string.Join("; ", _nodes.Select(n => $"{n.Key}:{n.Value.State}")) + "}";
+            => "{" + string.Join("; ", _nodes.Select(n => $"{n.Key}:{n.Value.State}")) + "}";
     }
 }

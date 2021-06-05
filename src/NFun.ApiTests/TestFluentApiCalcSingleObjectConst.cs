@@ -34,7 +34,7 @@ namespace NFun.ApiTests
         public void OutputTypeIsStruct_returnsFunnyStruct()
         {
             var str = Funny.Calc(
-                "the{name = 'alaska'}");
+                "{name = 'alaska'}");
             Assert.IsInstanceOf<IReadOnlyDictionary<string,object>>(str);
             var rs = str as IReadOnlyDictionary<string,object>;
             Assert.AreEqual(1, rs.Count);    
@@ -48,7 +48,7 @@ namespace NFun.ApiTests
             => Assert.Throws<FunParseException>(() => Funny.Calc(expr));
         
 
-        [TestCase("the{id = age; items = [1,2,3,4].map(rule '{it}'); price = 21*2}")]
+        [TestCase("{id = age; items = [1,2,3,4].map(rule '{it}'); price = 21*2}")]
         [TestCase("[1..4].filter(rule it>age).map(rule it**2)")]
         [TestCase("age>someUnknownvariable")]
         [TestCase("x:int;")]

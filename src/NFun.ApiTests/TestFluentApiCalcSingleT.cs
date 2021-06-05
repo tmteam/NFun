@@ -44,7 +44,7 @@ namespace NFun.ApiTests
         public void OutputTypeIsStruct_returnsFunnyStruct()
         {
             var str = Funny.Calc(
-                "the{name = 'alaska'}", new UserInputModel("vasa"));
+                "{name = 'alaska'}", new UserInputModel("vasa"));
             Assert.IsInstanceOf<IReadOnlyDictionary<string,object>>(str);
             var rs = (str as IReadOnlyDictionary<string,object>);
             Assert.AreEqual(1, rs.Count);    

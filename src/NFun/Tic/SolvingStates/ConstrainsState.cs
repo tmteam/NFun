@@ -332,7 +332,7 @@ namespace NFun.Tic.SolvingStates
                 // But if unsolved descs are from different families (like array vs struct)
                 // it means that only one common possible ancestor is 'ANY'
                 
-                // Suitable for cases like [true, [1,2,3]] or [{it*2}, the{x = 12}]
+                // Suitable for cases like [true, [1,2,3]] or [{it*2}, {x = 12}]
                 
                 if (ToBasicDescType(Descedant) != _basicUnsolvedDescType)
                 {

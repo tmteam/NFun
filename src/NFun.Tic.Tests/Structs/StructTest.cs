@@ -58,7 +58,7 @@ namespace NFun.Tic.Tests.Structs
         public void StructConstructor_WithStrictFields()
         {
             //    2       0       1
-            //y = the{ a = 12i, b = 1.0} 
+            //y = { a = 12i, b = 1.0} 
             var graph = new GraphBuilder();
             graph.SetConst(0, StatePrimitive.I32);
             graph.SetConst(1, StatePrimitive.Real);
@@ -78,7 +78,7 @@ namespace NFun.Tic.Tests.Structs
         {
             TraceLog.IsEnabled = true;
             //    1      0      
-            //y = the{ a = x,} 
+            //y = { a = x,} 
             var graph = new GraphBuilder();
             graph.SetVar("x",0);
             graph.SetStructInit(new[]{"a"},new[]{0}, 1);
@@ -94,7 +94,7 @@ namespace NFun.Tic.Tests.Structs
         public void NestedStructConstructor()
         {
             //    4       0        3     1       2
-            //y = the{ a = 12i, b = the{c = true,d = 1.0 } }
+            //y = { a = 12i, b = {c = true,d = 1.0 } }
             var graph = new GraphBuilder();
             graph.SetConst(0, StatePrimitive.I32);
             graph.SetConst(1, StatePrimitive.Bool); 
@@ -156,7 +156,7 @@ namespace NFun.Tic.Tests.Structs
         public void TwinNestedStructCrossAccess()
         {
             //    1     2      3
-            //d = the{f = the{b= true}};
+            //d = {f = {b= true}};
             //
             //    5 6   4  
             //y = d . f . b"
@@ -185,7 +185,7 @@ namespace NFun.Tic.Tests.Structs
         [Test]
         public void FunCallWithStruct_StructTypeSolved()
         {
-            // f( input:the{field:int} ):bool
+            // f( input:{field:int} ):bool
             //
             //     1         2
             // x = @(field = 1)
@@ -220,7 +220,7 @@ namespace NFun.Tic.Tests.Structs
         [Test]
         public void FunCallReturnsGenericStruct_WithGenericConstant()
         {
-            // f(x) = the{res = x}
+            // f(x) = {res = x}
             //        1 0   2
             //    y = f(42).res
             TraceLog.IsEnabled = true;
@@ -244,7 +244,7 @@ namespace NFun.Tic.Tests.Structs
         [Test]
         public void FunCallReturnsGenericStruct_WithConcreteConstant()
         {
-            // f(x) = the{res = x}
+            // f(x) = {res = x}
             //        1 0     2 
             //    y = f(42.0).res
             TraceLog.IsEnabled = true;
