@@ -11,8 +11,8 @@ namespace NFun.BuiltInFunctions
     public class LastFunction : GenericFunctionBase
     {
         public LastFunction() : base("last",
-            VarType.Generic(0),
-            VarType.ArrayOf(VarType.Generic(0)))
+            FunnyType.Generic(0),
+            FunnyType.ArrayOf(FunnyType.Generic(0)))
         {
         }
 
@@ -27,8 +27,8 @@ namespace NFun.BuiltInFunctions
     public class FirstFunction : GenericFunctionBase
     {
         public FirstFunction() : base("first",
-            VarType.Generic(0),
-            VarType.ArrayOf(VarType.Generic(0)))
+            FunnyType.Generic(0),
+            FunnyType.ArrayOf(FunnyType.Generic(0)))
         {
         }
 
@@ -43,8 +43,8 @@ namespace NFun.BuiltInFunctions
     public class CountFunction : GenericFunctionWithSingleArgument
     {
         public CountFunction() : base("count",
-            VarType.Int32,
-            VarType.ArrayOf(VarType.Generic(0)))
+            FunnyType.Int32,
+            FunnyType.ArrayOf(FunnyType.Generic(0)))
         {
         }
 
@@ -54,23 +54,23 @@ namespace NFun.BuiltInFunctions
     public class MapFunction : GenericFunctionBase
     {
         public MapFunction() : base("map",
-            VarType.ArrayOf(VarType.Generic(1)),
+            FunnyType.ArrayOf(FunnyType.Generic(1)),
             
-            VarType.ArrayOf(VarType.Generic(0)),
-            VarType.Fun(VarType.Generic(1), VarType.Generic(0)))
+            FunnyType.ArrayOf(FunnyType.Generic(0)),
+            FunnyType.Fun(FunnyType.Generic(1), FunnyType.Generic(0)))
         {
         }
-        public override IConcreteFunction CreateConcrete(VarType[] concreteTypesMap)
+        public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypesMap)
         {
             var res = new ConcreteMap
             {
                 Name = Name,
                 ArgTypes = new[]
                 {
-                    VarType.ArrayOf(concreteTypesMap[0]),
-                    VarType.Fun(concreteTypesMap[1], concreteTypesMap[0])
+                    FunnyType.ArrayOf(concreteTypesMap[0]),
+                    FunnyType.Fun(concreteTypesMap[1], concreteTypesMap[0])
                 },
-                ReturnType = VarType.ArrayOf(concreteTypesMap[1])
+                ReturnType = FunnyType.ArrayOf(concreteTypesMap[1])
             };
             return res;
         }
@@ -80,7 +80,7 @@ namespace NFun.BuiltInFunctions
             public override object Calc(object a, object b)
             {
                 var arr = (IFunArray)a;
-                var type = ReturnType.ArrayTypeSpecification.VarType;            
+                var type = ReturnType.ArrayTypeSpecification.FunnyType;            
                 if(b is FunctionWithSingleArg mapFunc)
                     return new EnumerableFunArray(arr.Select(e=>mapFunc.Calc(e)),type);
             
@@ -93,9 +93,9 @@ namespace NFun.BuiltInFunctions
     public class IsInSingleGenericFunctionDefinition : GenericFunctionBase
     {
         public IsInSingleGenericFunctionDefinition() : base(CoreFunNames.In, 
-            VarType.Bool,
-            VarType.Generic(0), 
-            VarType.ArrayOf(VarType.Generic(0)))
+            FunnyType.Bool,
+            FunnyType.Generic(0), 
+            FunnyType.ArrayOf(FunnyType.Generic(0)))
         {
         }
 
@@ -109,11 +109,11 @@ namespace NFun.BuiltInFunctions
     public class SliceWithStepGenericFunctionDefinition : GenericFunctionBase
     {
         public SliceWithStepGenericFunctionDefinition() : base(CoreFunNames.SliceName, 
-            VarType.ArrayOf(VarType.Generic(0)),
-            VarType.ArrayOf(VarType.Generic(0)),
-            VarType.Int32,
-            VarType.Int32,
-            VarType.Int32)
+            FunnyType.ArrayOf(FunnyType.Generic(0)),
+            FunnyType.ArrayOf(FunnyType.Generic(0)),
+            FunnyType.Int32,
+            FunnyType.Int32,
+            FunnyType.Int32)
         {
         }
 
@@ -139,7 +139,7 @@ namespace NFun.BuiltInFunctions
     public class SortFunction : GenericFunctionBase
     {
         public SortFunction() : base("sort", GenericConstrains.Comparable,
-            VarType.ArrayOf(VarType.Generic(0)), VarType.ArrayOf(VarType.Generic(0)))
+            FunnyType.ArrayOf(FunnyType.Generic(0)), FunnyType.ArrayOf(FunnyType.Generic(0)))
         {
             
         }
@@ -155,7 +155,7 @@ namespace NFun.BuiltInFunctions
     }
     public class MedianFunction : GenericFunctionBase
     {
-        public MedianFunction() : base("median", GenericConstrains.Comparable, VarType.Generic(0), VarType.ArrayOf(VarType.Generic(0)))
+        public MedianFunction() : base("median", GenericConstrains.Comparable, FunnyType.Generic(0), FunnyType.ArrayOf(FunnyType.Generic(0)))
         {
 
         }
@@ -179,7 +179,7 @@ namespace NFun.BuiltInFunctions
     }
     public class MaxElementFunction : GenericFunctionBase
     {
-        public MaxElementFunction() : base("max", GenericConstrains.Comparable, VarType.Generic(0), VarType.ArrayOf(VarType.Generic(0))) {}
+        public MaxElementFunction() : base("max", GenericConstrains.Comparable, FunnyType.Generic(0), FunnyType.ArrayOf(FunnyType.Generic(0))) {}
 
         protected override object Calc(object[] args)
         {
@@ -189,7 +189,7 @@ namespace NFun.BuiltInFunctions
     }
     public class MinElementFunction : GenericFunctionBase
     {
-        public MinElementFunction() : base("min", GenericConstrains.Comparable, VarType.Generic(0), VarType.ArrayOf(VarType.Generic(0))) { }
+        public MinElementFunction() : base("min", GenericConstrains.Comparable, FunnyType.Generic(0), FunnyType.ArrayOf(FunnyType.Generic(0))) { }
 
         protected override object Calc(object[] args)
         {
@@ -201,21 +201,21 @@ namespace NFun.BuiltInFunctions
     public class MultiSumFunction : GenericFunctionBase
     {
         private const string Id = "sum";
-        public MultiSumFunction() : base(Id, GenericConstrains.Arithmetical, VarType.Generic(0), VarType.ArrayOf(VarType.Generic(0))){
+        public MultiSumFunction() : base(Id, GenericConstrains.Arithmetical, FunnyType.Generic(0), FunnyType.ArrayOf(FunnyType.Generic(0))){
         }
 
 
-        public override IConcreteFunction CreateConcrete(VarType[] concreteTypes)
+        public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes)
         {
             switch (concreteTypes[0].BaseType)
             {
-                case BaseVarType.UInt16: return new UInt16Function();
-                case BaseVarType.UInt32: return new UInt32Function();
-                case BaseVarType.UInt64: return new UInt64Function();
-                case BaseVarType.Int16: return new Int16Function();
-                case BaseVarType.Int32: return new Int32Function();
-                case BaseVarType.Int64: return new Int64Function();
-                case BaseVarType.Real: return new RealFunction();
+                case BaseFunnyType.UInt16: return new UInt16Function();
+                case BaseFunnyType.UInt32: return new UInt32Function();
+                case BaseFunnyType.UInt64: return new UInt64Function();
+                case BaseFunnyType.Int16: return new Int16Function();
+                case BaseFunnyType.Int32: return new Int32Function();
+                case BaseFunnyType.Int64: return new Int64Function();
+                case BaseFunnyType.Real: return new RealFunction();
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -223,13 +223,13 @@ namespace NFun.BuiltInFunctions
 
         public class RealFunction : FunctionWithSingleArg
         {
-            public RealFunction() : base(Id, VarType.Real, VarType.ArrayOf(VarType.Real)) { }
+            public RealFunction() : base(Id, FunnyType.Real, FunnyType.ArrayOf(FunnyType.Real)) { }
 
             public override object Calc(object a) => ((IFunArray)a).As<double>().Sum();
         }
         public class Int16Function : FunctionWithSingleArg
         {
-            public Int16Function() : base(Id, VarType.Int16, VarType.ArrayOf(VarType.Int16)) { }
+            public Int16Function() : base(Id, FunnyType.Int16, FunnyType.ArrayOf(FunnyType.Int16)) { }
             public override object Calc(object a)
             {
                 short answer = 0;
@@ -240,17 +240,17 @@ namespace NFun.BuiltInFunctions
         }
         public class Int32Function : FunctionWithSingleArg
         {
-            public Int32Function() : base(Id, VarType.Int32, VarType.ArrayOf(VarType.Int32)) { }
+            public Int32Function() : base(Id, FunnyType.Int32, FunnyType.ArrayOf(FunnyType.Int32)) { }
             public override object Calc(object a) => ((IFunArray) a).As<int>().Sum();
         }
         public class Int64Function : FunctionWithSingleArg
         {
-            public Int64Function() : base(Id, VarType.Int64, VarType.ArrayOf(VarType.Int64)) { }
+            public Int64Function() : base(Id, FunnyType.Int64, FunnyType.ArrayOf(FunnyType.Int64)) { }
             public override object Calc(object a) => ((IFunArray) a).As<long>().Sum();
         }
         public class UInt16Function : FunctionWithSingleArg
         {
-            public UInt16Function() : base(Id, VarType.UInt16, VarType.ArrayOf(VarType.UInt16)) { }
+            public UInt16Function() : base(Id, FunnyType.UInt16, FunnyType.ArrayOf(FunnyType.UInt16)) { }
             public override object Calc(object a)
             {
                 ushort answer = 0;
@@ -261,7 +261,7 @@ namespace NFun.BuiltInFunctions
         }
         public class UInt32Function : FunctionWithSingleArg
         {
-            public UInt32Function() : base(Id, VarType.UInt32, VarType.ArrayOf(VarType.UInt32)) { }
+            public UInt32Function() : base(Id, FunnyType.UInt32, FunnyType.ArrayOf(FunnyType.UInt32)) { }
             public override object Calc(object a)
             {
                 uint answer = 0;
@@ -272,7 +272,7 @@ namespace NFun.BuiltInFunctions
         }
         public class UInt64Function : FunctionWithSingleArg
         {
-            public UInt64Function() : base(Id, VarType.UInt64, VarType.ArrayOf(VarType.UInt64)) { }
+            public UInt64Function() : base(Id, FunnyType.UInt64, FunnyType.ArrayOf(FunnyType.UInt64)) { }
             public override object Calc(object a)
             {
                 ulong answer = 0;
@@ -289,29 +289,29 @@ namespace NFun.BuiltInFunctions
     {
         public RangeFunction() : base(CoreFunNames.RangeName,
             GenericConstrains.Numbers,
-            VarType.ArrayOf(VarType.Generic(0)), VarType.Generic(0), VarType.Generic(0))
+            FunnyType.ArrayOf(FunnyType.Generic(0)), FunnyType.Generic(0), FunnyType.Generic(0))
         {
         }
 
-        public override IConcreteFunction CreateConcrete(VarType[] concreteTypes)
+        public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes)
         {
             switch (concreteTypes[0].BaseType)
             {
-                case BaseVarType.UInt8:
+                case BaseFunnyType.UInt8:
                     return new UInt8Function();
-                case BaseVarType.UInt16:
+                case BaseFunnyType.UInt16:
                     return new UInt16Function();
-                case BaseVarType.UInt32:
+                case BaseFunnyType.UInt32:
                     return new UInt32Function();
-                case BaseVarType.UInt64:
+                case BaseFunnyType.UInt64:
                     return new UInt64Function();
-                case BaseVarType.Int16:
+                case BaseFunnyType.Int16:
                     return new Int16Function();
-                case BaseVarType.Int32:
+                case BaseFunnyType.Int32:
                     return new Int32Function();
-                case BaseVarType.Int64:
+                case BaseFunnyType.Int64:
                     return new Int64Function();
-                case BaseVarType.Real:
+                case BaseFunnyType.Real:
                     return new RealFunction();
                 default:
                     throw new NotSupportedException();
@@ -321,7 +321,7 @@ namespace NFun.BuiltInFunctions
         private const string Id = "range";
         class Int16Function : FunctionWithTwoArgs
         {
-            public Int16Function() : base(Id, VarType.ArrayOf(VarType.Int16), VarType.Int16, VarType.Int16) { }
+            public Int16Function() : base(Id, FunnyType.ArrayOf(FunnyType.Int16), FunnyType.Int16, FunnyType.Int16) { }
             public override object Calc(object a, object b)
             {
                 var start = ((short)a);
@@ -335,12 +335,12 @@ namespace NFun.BuiltInFunctions
                     for (var i = start; i >= end; i -= 1)
                         result.Add(i);
                 
-                return new ImmutableFunArray(result.ToArray(), VarType.Int16);
+                return new ImmutableFunArray(result.ToArray(), FunnyType.Int16);
             }
         }
         class Int32Function : FunctionWithTwoArgs
         {
-            public Int32Function() : base(Id, VarType.ArrayOf(VarType.Int32), VarType.Int32, VarType.Int32) { }
+            public Int32Function() : base(Id, FunnyType.ArrayOf(FunnyType.Int32), FunnyType.Int32, FunnyType.Int32) { }
 
             public override object Calc(object a, object b)
             {
@@ -359,7 +359,7 @@ namespace NFun.BuiltInFunctions
         }
         class Int64Function : FunctionWithTwoArgs
         {
-            public Int64Function() : base(Id, VarType.ArrayOf(VarType.Int64), VarType.Int64, VarType.Int64) { }
+            public Int64Function() : base(Id, FunnyType.ArrayOf(FunnyType.Int64), FunnyType.Int64, FunnyType.Int64) { }
 
             public override object Calc(object a, object b)
             {
@@ -378,7 +378,7 @@ namespace NFun.BuiltInFunctions
         }
         class UInt8Function : FunctionWithTwoArgs
         {
-            public UInt8Function() : base(Id, VarType.ArrayOf(VarType.UInt8), VarType.UInt8, VarType.UInt8) { }
+            public UInt8Function() : base(Id, FunnyType.ArrayOf(FunnyType.UInt8), FunnyType.UInt8, FunnyType.UInt8) { }
             public override object Calc(object a, object b)
             {
                 var start = ((byte)a);
@@ -396,7 +396,7 @@ namespace NFun.BuiltInFunctions
         }
         class UInt16Function : FunctionWithTwoArgs
         {
-            public UInt16Function() : base(Id, VarType.ArrayOf(VarType.UInt16), VarType.UInt16, VarType.UInt16) { }
+            public UInt16Function() : base(Id, FunnyType.ArrayOf(FunnyType.UInt16), FunnyType.UInt16, FunnyType.UInt16) { }
             public override object Calc(object a, object b)
             {
                 var start = ((ushort)a);
@@ -414,7 +414,7 @@ namespace NFun.BuiltInFunctions
         }
         class UInt32Function : FunctionWithTwoArgs
         {
-            public UInt32Function() : base(Id, VarType.ArrayOf(VarType.UInt32), VarType.UInt32, VarType.UInt32) { }
+            public UInt32Function() : base(Id, FunnyType.ArrayOf(FunnyType.UInt32), FunnyType.UInt32, FunnyType.UInt32) { }
             public override object Calc(object a, object b)
             {
                 var start = ((uint)a);
@@ -432,7 +432,7 @@ namespace NFun.BuiltInFunctions
         }
         class UInt64Function : FunctionWithTwoArgs
         {
-            public UInt64Function() : base(Id, VarType.ArrayOf(VarType.UInt64), VarType.UInt64, VarType.UInt64) { }
+            public UInt64Function() : base(Id, FunnyType.ArrayOf(FunnyType.UInt64), FunnyType.UInt64, FunnyType.UInt64) { }
 
             public override object Calc(object a, object b)
             {
@@ -451,7 +451,7 @@ namespace NFun.BuiltInFunctions
         }
         class RealFunction : FunctionWithTwoArgs
         {
-            public RealFunction() : base(Id, VarType.ArrayOf(VarType.Real), VarType.Real, VarType.Real) { }
+            public RealFunction() : base(Id, FunnyType.ArrayOf(FunnyType.Real), FunnyType.Real, FunnyType.Real) { }
 
             public override object Calc(object a, object b)
             {
@@ -474,22 +474,22 @@ namespace NFun.BuiltInFunctions
     {
         public RangeStepFunction() : base(CoreFunNames.RangeName, 
             GenericConstrains.Numbers, 
-            VarType.ArrayOf(VarType.Generic(0)), VarType.Generic(0), VarType.Generic(0), VarType.Generic(0))
+            FunnyType.ArrayOf(FunnyType.Generic(0)), FunnyType.Generic(0), FunnyType.Generic(0), FunnyType.Generic(0))
         {
         }
 
-        public override IConcreteFunction CreateConcrete(VarType[] concreteTypes)
+        public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes)
         {
             switch (concreteTypes[0].BaseType)
             {
-                case BaseVarType.UInt8: return new UInt8Function();
-                case BaseVarType.UInt16: return new UInt16Function();
-                case BaseVarType.UInt32: return new UInt32Function();
-                case BaseVarType.UInt64: return new UInt64Function();
-                case BaseVarType.Int16: return new Int16Function();
-                case BaseVarType.Int32: return new Int32Function();
-                case BaseVarType.Int64: return new Int64Function();
-                case BaseVarType.Real: return new RealFunction();
+                case BaseFunnyType.UInt8: return new UInt8Function();
+                case BaseFunnyType.UInt16: return new UInt16Function();
+                case BaseFunnyType.UInt32: return new UInt32Function();
+                case BaseFunnyType.UInt64: return new UInt64Function();
+                case BaseFunnyType.Int16: return new Int16Function();
+                case BaseFunnyType.Int32: return new Int32Function();
+                case BaseFunnyType.Int64: return new Int64Function();
+                case BaseFunnyType.Real: return new RealFunction();
 
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -499,7 +499,7 @@ namespace NFun.BuiltInFunctions
         private const string Id = "rangeWithStep";
         class Int16Function : FunctionWithManyArguments
         {
-            public Int16Function() : base(Id, VarType.ArrayOf(VarType.Int16), VarType.Int16, VarType.Int16, VarType.Int16) { }
+            public Int16Function() : base(Id, FunnyType.ArrayOf(FunnyType.Int16), FunnyType.Int16, FunnyType.Int16, FunnyType.Int16) { }
             public override object Calc(object[] args)
             {
                 var start = ((int)args[0]);
@@ -520,7 +520,7 @@ namespace NFun.BuiltInFunctions
         }
         class Int32Function : FunctionWithManyArguments
         {
-            public Int32Function() : base(Id, VarType.ArrayOf(VarType.Int32), VarType.Int32, VarType.Int32, VarType.Int32) { }
+            public Int32Function() : base(Id, FunnyType.ArrayOf(FunnyType.Int32), FunnyType.Int32, FunnyType.Int32, FunnyType.Int32) { }
 
             public override object Calc(object[] args)
             {
@@ -543,7 +543,7 @@ namespace NFun.BuiltInFunctions
         }
         class Int64Function : FunctionWithManyArguments
         {
-            public Int64Function() : base(Id, VarType.ArrayOf(VarType.Int64), VarType.Int64, VarType.Int64, VarType.Int64) { }
+            public Int64Function() : base(Id, FunnyType.ArrayOf(FunnyType.Int64), FunnyType.Int64, FunnyType.Int64, FunnyType.Int64) { }
 
             public override object Calc(object[] args)
             {
@@ -566,7 +566,7 @@ namespace NFun.BuiltInFunctions
         }
         class UInt8Function : FunctionWithManyArguments
         {
-            public UInt8Function() : base(Id, VarType.ArrayOf(VarType.UInt8), VarType.UInt8, VarType.UInt8, VarType.UInt8) { }
+            public UInt8Function() : base(Id, FunnyType.ArrayOf(FunnyType.UInt8), FunnyType.UInt8, FunnyType.UInt8, FunnyType.UInt8) { }
             public override object Calc(object[] args)
             {
                 var start = ((byte)args[0]);
@@ -587,7 +587,7 @@ namespace NFun.BuiltInFunctions
         }
         class UInt16Function : FunctionWithManyArguments
         {
-            public UInt16Function() : base(Id, VarType.ArrayOf(VarType.UInt16), VarType.UInt16, VarType.UInt16, VarType.UInt16) { }
+            public UInt16Function() : base(Id, FunnyType.ArrayOf(FunnyType.UInt16), FunnyType.UInt16, FunnyType.UInt16, FunnyType.UInt16) { }
             public override object Calc(object[] args)
             {
                 var start = ((ushort)args[0]);
@@ -608,7 +608,7 @@ namespace NFun.BuiltInFunctions
         }
         class UInt32Function : FunctionWithManyArguments
         {
-            public UInt32Function() : base(Id, VarType.ArrayOf(VarType.UInt32), VarType.UInt32, VarType.UInt32, VarType.UInt32) { }
+            public UInt32Function() : base(Id, FunnyType.ArrayOf(FunnyType.UInt32), FunnyType.UInt32, FunnyType.UInt32, FunnyType.UInt32) { }
             public override object Calc(object[] args)
             {
                 var start = ((UInt32)args[0]);
@@ -629,7 +629,7 @@ namespace NFun.BuiltInFunctions
         }
         class UInt64Function : FunctionWithManyArguments
         {
-            public UInt64Function() : base(Id, VarType.ArrayOf(VarType.UInt64), VarType.UInt64, VarType.UInt64, VarType.UInt64) { }
+            public UInt64Function() : base(Id, FunnyType.ArrayOf(FunnyType.UInt64), FunnyType.UInt64, FunnyType.UInt64, FunnyType.UInt64) { }
             public override object Calc(object[] args)
             {
                 var start = ((ulong)args[0]);
@@ -650,7 +650,7 @@ namespace NFun.BuiltInFunctions
         }
         class RealFunction : FunctionWithManyArguments
         {
-            public RealFunction() : base(Id, VarType.ArrayOf(VarType.Real), VarType.Real, VarType.Real, VarType.Real) { }
+            public RealFunction() : base(Id, FunnyType.ArrayOf(FunnyType.Real), FunnyType.Real, FunnyType.Real, FunnyType.Real) { }
             public override object Calc(object[] args)
             {
                 var start = ((double)args[0]);
@@ -673,10 +673,10 @@ namespace NFun.BuiltInFunctions
     public class SliceGenericFunctionDefinition : GenericFunctionBase
     {
         public SliceGenericFunctionDefinition() : base(CoreFunNames.SliceName, 
-            VarType.ArrayOf(VarType.Generic(0)),
-            VarType.ArrayOf(VarType.Generic(0)),
-            VarType.Int32,
-            VarType.Int32)
+            FunnyType.ArrayOf(FunnyType.Generic(0)),
+            FunnyType.ArrayOf(FunnyType.Generic(0)),
+            FunnyType.Int32,
+            FunnyType.Int32)
         {
         }
 
@@ -700,9 +700,9 @@ namespace NFun.BuiltInFunctions
     public class GetGenericFunctionDefinition : GenericFunctionWithTwoArguments
     {
         public GetGenericFunctionDefinition() : base(CoreFunNames.GetElementName, 
-            VarType.Generic(0),
-            VarType.ArrayOf(VarType.Generic(0)),
-            VarType.Int32)
+            FunnyType.Generic(0),
+            FunnyType.ArrayOf(FunnyType.Generic(0)),
+            FunnyType.Int32)
         {
         }
 
@@ -724,10 +724,10 @@ namespace NFun.BuiltInFunctions
     {
         
         public SetGenericFunctionDefinition() : base("set", 
-            VarType.ArrayOf(VarType.Generic(0)),
-            VarType.ArrayOf(VarType.Generic(0)),
-            VarType.Int32,
-            VarType.Generic(0))
+            FunnyType.ArrayOf(FunnyType.Generic(0)),
+            FunnyType.ArrayOf(FunnyType.Generic(0)),
+            FunnyType.Int32,
+            FunnyType.Generic(0))
         {
         }
 
@@ -751,9 +751,9 @@ namespace NFun.BuiltInFunctions
     public class FindGenericFunctionDefinition : GenericFunctionWithTwoArguments
     {
         public FindGenericFunctionDefinition() : base("find", 
-            VarType.Int32,
-            VarType.ArrayOf(VarType.Generic(0)),
-            VarType.Generic(0))
+            FunnyType.Int32,
+            FunnyType.ArrayOf(FunnyType.Generic(0)),
+            FunnyType.Generic(0))
         {
         }
 
@@ -774,9 +774,9 @@ namespace NFun.BuiltInFunctions
     public class ChunkGenericFunctionDefinition : GenericFunctionWithTwoArguments
     {
         public ChunkGenericFunctionDefinition() : base("chunk", 
-            VarType.ArrayOf(VarType.ArrayOf(VarType.Generic(0))),
-            VarType.ArrayOf(VarType.Generic(0)),
-            VarType.Int32)
+            FunnyType.ArrayOf(FunnyType.ArrayOf(FunnyType.Generic(0))),
+            FunnyType.ArrayOf(FunnyType.Generic(0)),
+            FunnyType.Int32)
         {
         }
 
@@ -787,27 +787,27 @@ namespace NFun.BuiltInFunctions
             if(chunkSize<=0)
                 throw new FunRuntimeException("Chunk size is "+chunkSize+". It has to be positive");
             
-            var originInputType = VarType.ArrayOf(arr.ElementType);
+            var originInputType = FunnyType.ArrayOf(arr.ElementType);
             
             var res = arr
                 .Select((x, i) => new {Index = i, Value = x})
                 .GroupBy(x => x.Index / chunkSize)
                 .Select(x => new EnumerableFunArray(x.Select(v => v.Value),originInputType));
-            return new EnumerableFunArray(res, VarType.ArrayOf(originInputType));
+            return new EnumerableFunArray(res, FunnyType.ArrayOf(originInputType));
         }
     }
     public class FlatGenericFunctionDefinition : GenericFunctionWithSingleArgument
     {
         public FlatGenericFunctionDefinition() : base("flat", 
-            VarType.ArrayOf(VarType.Generic(0)),
-            VarType.ArrayOf(VarType.ArrayOf(VarType.Generic(0))))
+            FunnyType.ArrayOf(FunnyType.Generic(0)),
+            FunnyType.ArrayOf(FunnyType.ArrayOf(FunnyType.Generic(0))))
         {
         }
 
         protected override object Calc(object a)
         {
             var arr = (IFunArray)a;
-            var originInputType = arr.ElementType.ArrayTypeSpecification.VarType;
+            var originInputType = arr.ElementType.ArrayTypeSpecification.FunnyType;
 
             return new EnumerableFunArray(arr.SelectMany(o => (IFunArray) o),originInputType);
         }
@@ -816,9 +816,9 @@ namespace NFun.BuiltInFunctions
     public class FoldGenericFunctionDefinition : GenericFunctionWithTwoArguments
     {
         public FoldGenericFunctionDefinition() : base("fold", new[] {GenericConstrains.Any},
-            VarType.Generic(0),
-            VarType.ArrayOf(VarType.Generic(0)),
-            VarType.Fun(VarType.Generic(0), VarType.Generic(0), VarType.Generic(0)))
+            FunnyType.Generic(0),
+            FunnyType.ArrayOf(FunnyType.Generic(0)),
+            FunnyType.Fun(FunnyType.Generic(0), FunnyType.Generic(0), FunnyType.Generic(0)))
         {
         }
 
@@ -839,11 +839,11 @@ namespace NFun.BuiltInFunctions
     public class FoldWithDefaultsGenericFunctionDefinition : GenericFunctionBase
     {
         public FoldWithDefaultsGenericFunctionDefinition() : base("fold", 
-            returnType: VarType.Generic(1),
-            VarType.ArrayOf(VarType.Generic(0)),
-            VarType.Generic(1),
-            VarType.Fun(
-                    returnType: VarType.Generic(1), VarType.Generic(1), VarType.Generic(0)))
+            returnType: FunnyType.Generic(1),
+            FunnyType.ArrayOf(FunnyType.Generic(0)),
+            FunnyType.Generic(1),
+            FunnyType.Fun(
+                    returnType: FunnyType.Generic(1), FunnyType.Generic(1), FunnyType.Generic(0)))
         {}
 
         protected override object Calc(object[] args)
@@ -862,9 +862,9 @@ namespace NFun.BuiltInFunctions
     public class UniteGenericFunctionDefinition : GenericFunctionWithTwoArguments
     {
         public UniteGenericFunctionDefinition() : base("unite", 
-            VarType.ArrayOf(VarType.Generic(0)),
-            VarType.ArrayOf(VarType.Generic(0)),
-            VarType.ArrayOf(VarType.Generic(0)))
+            FunnyType.ArrayOf(FunnyType.Generic(0)),
+            FunnyType.ArrayOf(FunnyType.Generic(0)),
+            FunnyType.ArrayOf(FunnyType.Generic(0)))
         {
         }
 
@@ -878,9 +878,9 @@ namespace NFun.BuiltInFunctions
     public class UniqueGenericFunctionDefinition : GenericFunctionWithTwoArguments
     {
         public UniqueGenericFunctionDefinition() : base("unique", 
-            VarType.ArrayOf(VarType.Generic(0)),
-            VarType.ArrayOf(VarType.Generic(0)),
-            VarType.ArrayOf(VarType.Generic(0)))
+            FunnyType.ArrayOf(FunnyType.Generic(0)),
+            FunnyType.ArrayOf(FunnyType.Generic(0)),
+            FunnyType.ArrayOf(FunnyType.Generic(0)))
         {
         }
 
@@ -894,9 +894,9 @@ namespace NFun.BuiltInFunctions
     public class IntersectGenericFunctionDefinition : GenericFunctionWithTwoArguments
     {
         public IntersectGenericFunctionDefinition() : base("intersect", 
-            VarType.ArrayOf(VarType.Generic(0)),
-            VarType.ArrayOf(VarType.Generic(0)),
-            VarType.ArrayOf(VarType.Generic(0)))
+            FunnyType.ArrayOf(FunnyType.Generic(0)),
+            FunnyType.ArrayOf(FunnyType.Generic(0)),
+            FunnyType.ArrayOf(FunnyType.Generic(0)))
         {
         }
 
@@ -910,9 +910,9 @@ namespace NFun.BuiltInFunctions
     public class ConcatArraysGenericFunctionDefinition : GenericFunctionWithTwoArguments
     {
         public ConcatArraysGenericFunctionDefinition() : base("concat", 
-            VarType.ArrayOf(VarType.Generic(0)),
-            VarType.ArrayOf(VarType.Generic(0)),
-            VarType.ArrayOf(VarType.Generic(0)))
+            FunnyType.ArrayOf(FunnyType.Generic(0)),
+            FunnyType.ArrayOf(FunnyType.Generic(0)),
+            FunnyType.ArrayOf(FunnyType.Generic(0)))
         {
         }
 
@@ -928,9 +928,9 @@ namespace NFun.BuiltInFunctions
     public class AppendGenericFunctionDefinition : GenericFunctionWithTwoArguments
     {
         public AppendGenericFunctionDefinition() : base("append",
-            VarType.ArrayOf(VarType.Generic(0)),
-            VarType.ArrayOf(VarType.Generic(0)),
-            VarType.Generic(0))
+            FunnyType.ArrayOf(FunnyType.Generic(0)),
+            FunnyType.ArrayOf(FunnyType.Generic(0)),
+            FunnyType.Generic(0))
         {
         }
 
@@ -946,9 +946,9 @@ namespace NFun.BuiltInFunctions
     public class SubstractArraysGenericFunctionDefinition : GenericFunctionWithTwoArguments
     {
         public SubstractArraysGenericFunctionDefinition() : base("except", 
-            VarType.ArrayOf(VarType.Generic(0)),
-            VarType.ArrayOf(VarType.Generic(0)),
-            VarType.ArrayOf(VarType.Generic(0)))
+            FunnyType.ArrayOf(FunnyType.Generic(0)),
+            FunnyType.ArrayOf(FunnyType.Generic(0)),
+            FunnyType.ArrayOf(FunnyType.Generic(0)))
         {
         }
 
@@ -963,9 +963,9 @@ namespace NFun.BuiltInFunctions
     public class CountOfGenericFunctionDefinition : GenericFunctionWithTwoArguments
     {
         public CountOfGenericFunctionDefinition() : base("count",
-            VarType.Int32,
-            VarType.ArrayOf(VarType.Generic(0)),
-            VarType.Fun(VarType.Bool, VarType.Generic(0)))
+            FunnyType.Int32,
+            FunnyType.ArrayOf(FunnyType.Generic(0)),
+            FunnyType.Fun(FunnyType.Bool, FunnyType.Generic(0)))
         {
         }
 
@@ -981,8 +981,8 @@ namespace NFun.BuiltInFunctions
     public class HasAnyGenericFunctionDefinition : GenericFunctionWithSingleArgument
     {
         public HasAnyGenericFunctionDefinition() : base("any",
-            VarType.Bool,
-            VarType.ArrayOf(VarType.Generic(0)))
+            FunnyType.Bool,
+            FunnyType.ArrayOf(FunnyType.Generic(0)))
         {
         }
 
@@ -992,9 +992,9 @@ namespace NFun.BuiltInFunctions
     public class AnyGenericFunctionDefinition : GenericFunctionWithTwoArguments
     {
         public AnyGenericFunctionDefinition() : base("any", 
-            VarType.Bool,
-            VarType.ArrayOf(VarType.Generic(0)),
-            VarType.Fun(VarType.Bool, VarType.Generic(0)))
+            FunnyType.Bool,
+            FunnyType.ArrayOf(FunnyType.Generic(0)),
+            FunnyType.Fun(FunnyType.Bool, FunnyType.Generic(0)))
         {
         }
 
@@ -1012,9 +1012,9 @@ namespace NFun.BuiltInFunctions
     public class AllGenericFunctionDefinition : GenericFunctionWithTwoArguments
     {
         public AllGenericFunctionDefinition() : base("all", 
-            VarType.Bool,
-            VarType.ArrayOf(VarType.Generic(0)),
-            VarType.Fun(VarType.Bool, VarType.Generic(0)))
+            FunnyType.Bool,
+            FunnyType.ArrayOf(FunnyType.Generic(0)),
+            FunnyType.Fun(FunnyType.Bool, FunnyType.Generic(0)))
         {
         }
 
@@ -1029,9 +1029,9 @@ namespace NFun.BuiltInFunctions
     public class FilterGenericFunctionDefinition : GenericFunctionWithTwoArguments
     {
         public FilterGenericFunctionDefinition() : base("filter", 
-            VarType.ArrayOf(VarType.Generic(0)),
-            VarType.ArrayOf(VarType.Generic(0)),
-            VarType.Fun(VarType.Bool, VarType.Generic(0)))
+            FunnyType.ArrayOf(FunnyType.Generic(0)),
+            FunnyType.ArrayOf(FunnyType.Generic(0)),
+            FunnyType.Fun(FunnyType.Bool, FunnyType.Generic(0)))
         {
         }
 
@@ -1048,19 +1048,19 @@ namespace NFun.BuiltInFunctions
     public class RepeatGenericFunctionDefinition : GenericFunctionBase
     {
         public RepeatGenericFunctionDefinition() : base("repeat",
-            VarType.ArrayOf(VarType.Generic(0)), 
-            VarType.Generic(0), 
-            VarType.Int32)
+            FunnyType.ArrayOf(FunnyType.Generic(0)), 
+            FunnyType.Generic(0), 
+            FunnyType.Int32)
         {
         }
 
-        public override IConcreteFunction CreateConcrete(VarType[] concreteTypesMap)
+        public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypesMap)
         {
             var res = new ConcreteRepeat
             {
                 Name = Name,
-                ArgTypes = new[] {concreteTypesMap[0], VarType.Int32},
-                ReturnType = VarType.ArrayOf(concreteTypesMap[0])
+                ArgTypes = new[] {concreteTypesMap[0], FunnyType.Int32},
+                ReturnType = FunnyType.ArrayOf(concreteTypesMap[0])
             };
             return res;
         }
@@ -1074,8 +1074,8 @@ namespace NFun.BuiltInFunctions
     public class ReverseGenericFunctionDefinition: GenericFunctionWithSingleArgument
     {
         public ReverseGenericFunctionDefinition() : base("reverse", 
-            VarType.ArrayOf(VarType.Generic(0)), 
-            VarType.ArrayOf(VarType.Generic(0)))
+            FunnyType.ArrayOf(FunnyType.Generic(0)), 
+            FunnyType.ArrayOf(FunnyType.Generic(0)))
         {
         }
 
@@ -1088,9 +1088,9 @@ namespace NFun.BuiltInFunctions
     public class TakeGenericFunctionDefinition: GenericFunctionWithTwoArguments
     {
         public TakeGenericFunctionDefinition() : base("take", 
-            VarType.ArrayOf(VarType.Generic(0)), 
-            VarType.ArrayOf(VarType.Generic(0)), 
-            VarType.Int32)
+            FunnyType.ArrayOf(FunnyType.Generic(0)), 
+            FunnyType.ArrayOf(FunnyType.Generic(0)), 
+            FunnyType.Int32)
         {
         }
 
@@ -1100,9 +1100,9 @@ namespace NFun.BuiltInFunctions
     public class SkipGenericFunctionDefinition: GenericFunctionWithTwoArguments
     {
         public SkipGenericFunctionDefinition() : base("skip", 
-            VarType.ArrayOf(VarType.Generic(0)), 
-            VarType.ArrayOf(VarType.Generic(0)), 
-            VarType.Int32)
+            FunnyType.ArrayOf(FunnyType.Generic(0)), 
+            FunnyType.ArrayOf(FunnyType.Generic(0)), 
+            FunnyType.Int32)
         {
         }
 

@@ -10,7 +10,7 @@ namespace NFun.Runtime.Arrays
     {
         private readonly IEnumerable<object> _origin;
 
-        public EnumerableFunArray(IEnumerable<object> origin, VarType elementType)
+        public EnumerableFunArray(IEnumerable<object> origin, FunnyType elementType)
         {
             _origin = origin;
             ElementType = elementType;
@@ -19,7 +19,7 @@ namespace NFun.Runtime.Arrays
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-        public VarType ElementType { get; }
+        public FunnyType ElementType { get; }
         public int Count => _origin.Count();
         public IFunArray Slice(int? startIndex, int? endIndex, int? step)
         {
@@ -37,7 +37,7 @@ namespace NFun.Runtime.Arrays
         public Array ClrArray => _origin.ToArray();
         public string ToText()
         {
-            if (ElementType == VarType.Char)
+            if (ElementType == FunnyType.Char)
             {
                 var array = _origin.OfType<char>().ToArray();
                  return new string(array);

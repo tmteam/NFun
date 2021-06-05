@@ -6,7 +6,7 @@ namespace NFun.Interpritation.Nodes
     public interface IExpressionNode
     {
         Interval Interval { get; }
-        VarType Type { get; }
+        FunnyType Type { get; }
         object Calc();
     }
 }

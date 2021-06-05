@@ -4,11 +4,11 @@ namespace NFun.Interpritation.Functions
 {
     public interface IGenericFunction : IFunctionSignature
     {
-        IConcreteFunction CreateConcrete(VarType[] concreteTypesMap);
+        IConcreteFunction CreateConcrete(FunnyType[] concreteTypesMap);
 
         /// <summary>
         /// calculates generic call arguments  based on a concrete call signature
         /// </summary> 
-        VarType[] CalcGenericArgTypeList(FunTypeSpecification funTypeSpecification);
+        FunnyType[] CalcGenericArgTypeList(FunTypeSpecification funTypeSpecification);
     }
 }

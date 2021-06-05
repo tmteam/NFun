@@ -97,7 +97,7 @@ namespace NFun.Interpritation
 
                     var variableSource = VariableSource.CreateWithStrictTypeLabel(
                         varDef.Id,
-                        varDef.VarType,
+                        varDef.FunnyType,
                         varDef.Interval,
                         isOutput:false,
                         varDef.Attributes);

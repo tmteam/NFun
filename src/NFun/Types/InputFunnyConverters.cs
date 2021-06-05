@@ -10,7 +10,7 @@ namespace NFun.Types
     /// Converts CLR type and value into NFun type and value
     /// </summary>
     public interface IinputFunnyConverter {
-        public VarType FunnyType { get; }
+        public FunnyType FunnyType { get; }
         public  object ToFunObject(object clrObject);
     }
     
@@ -25,16 +25,16 @@ namespace NFun.Types
         {
             _propertiesConverters = propertiesConverters;
             _readPropertiesCount = readPropertiesCount;
-            (string, VarType)[] fieldTypes = new (string, VarType)[_readPropertiesCount];
+            (string, FunnyType)[] fieldTypes = new (string, FunnyType)[_readPropertiesCount];
             for (int i = 0; i < readPropertiesCount; i++)
             {
                 var (name, converter, _) = propertiesConverters[i];
                 fieldTypes[i] = (name, converter.FunnyType);
             }
-            FunnyType = VarType.StructOf(fieldTypes);
+            FunnyType = Types.FunnyType.StructOf(fieldTypes);
         }
 
-        public VarType FunnyType { get; }
+        public FunnyType FunnyType { get; }
 
         public object ToFunObject(object clrObject)
         {
@@ -54,10 +54,10 @@ namespace NFun.Types
         private readonly IinputFunnyConverter _elementConverter;
         public ClrArrayInputTypeFunnyConverter(IinputFunnyConverter elementConverter)
         {
-            FunnyType = VarType.ArrayOf(elementConverter.FunnyType);
+            FunnyType = Types.FunnyType.ArrayOf(elementConverter.FunnyType);
             _elementConverter = elementConverter;
         }
-        public VarType FunnyType { get; }
+        public FunnyType FunnyType { get; }
 
         public object ToFunObject(object clrObject)
         {
@@ -68,13 +68,13 @@ namespace NFun.Types
                 var val = array.GetValue(i);
                 funnyObjects[i] = _elementConverter.ToFunObject(val);
             }
-            return new ImmutableFunArray(funnyObjects, FunnyType.ArrayTypeSpecification.VarType);
+            return new ImmutableFunArray(funnyObjects, FunnyType.ArrayTypeSpecification.FunnyType);
         }
     }
 
     public class DynamicTypeInputFunnyConverter : IinputFunnyConverter
     {
-        public VarType FunnyType => VarType.Anything;
+        public FunnyType FunnyType => FunnyType.Anything;
         public object ToFunObject(object clrObject)
         {
             var converter = FunnyTypeConverters.GetInputConverter(clrObject.GetType());
@@ -83,14 +83,14 @@ namespace NFun.Types
     }
 
     public class PrimitiveTypeInputFunnyConverter : IinputFunnyConverter {
-        public VarType FunnyType { get; }
-        public PrimitiveTypeInputFunnyConverter(VarType funnyType) => FunnyType = funnyType;
+        public FunnyType FunnyType { get; }
+        public PrimitiveTypeInputFunnyConverter(FunnyType funnyType) => FunnyType = funnyType;
         public object ToFunObject(object clrObject) => clrObject;
     }
     
     public class StringTypeInputFunnyConverter: IinputFunnyConverter {
-        public VarType FunnyType { get; }
-        public StringTypeInputFunnyConverter() => FunnyType = VarType.Text;
+        public FunnyType FunnyType { get; }
+        public StringTypeInputFunnyConverter() => FunnyType = FunnyType.Text;
         public object ToFunObject(object clrObject) 
             => clrObject==null
                 ?TextFunArray.Empty

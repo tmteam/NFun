@@ -18,7 +18,7 @@ namespace NFun.Interpritation.Nodes
         }
         private readonly int _argsCount;
         public Interval Interval { get; }
-        public VarType Type => _fun.ReturnType;
+        public FunnyType Type => _fun.ReturnType;
         public object Calc()
         {
             var args = new object[_argsCount];

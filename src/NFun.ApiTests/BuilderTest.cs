@@ -51,7 +51,7 @@ namespace NFun.ApiTests
 
         class GenericWithNoArgFunction : GenericFunctionBase
         {
-            public GenericWithNoArgFunction(string name) : base(name, VarType.Generic(0))
+            public GenericWithNoArgFunction(string name) : base(name, FunnyType.Generic(0))
             {
             }
 
@@ -63,7 +63,7 @@ namespace NFun.ApiTests
         {
             public const string PapaReturn = "papa is here";
 
-            public PapaFunction(string name) : base(name, VarType.Text)
+            public PapaFunction(string name) : base(name, FunnyType.Text)
             {
             }
 
@@ -74,7 +74,7 @@ namespace NFun.ApiTests
         {
             public const string MamaReturn = "mama called";
 
-            public MamaFunction(string name) : base(name, VarType.Text)
+            public MamaFunction(string name) : base(name, FunnyType.Text)
             {
             }
 

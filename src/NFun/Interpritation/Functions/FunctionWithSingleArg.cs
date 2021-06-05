@@ -8,7 +8,7 @@ namespace NFun.Interpritation.Functions
     public abstract class FunctionWithSingleArg : IConcreteFunction
     {
         
-        protected FunctionWithSingleArg(string name, VarType returnType, VarType argType)
+        protected FunctionWithSingleArg(string name, FunnyType returnType, FunnyType argType)
         {
             Name = name;
             ArgTypes = new[] {argType};
@@ -20,8 +20,8 @@ namespace NFun.Interpritation.Functions
             
         }
         public string Name { get; internal set; }
-        public VarType[] ArgTypes { get; internal set; }
-        public VarType ReturnType { get; internal set;}
+        public FunnyType[] ArgTypes { get; internal set; }
+        public FunnyType ReturnType { get; internal set;}
         public abstract object Calc(object a);
 
         public object Calc(object[] parameters)

@@ -7,7 +7,7 @@ namespace NFun.SyntaxParsing
 {
     public static class SyntaxNodeFactory
     {
-        public static ISyntaxNode AnonymFun(ISyntaxNode definition, VarType type, ISyntaxNode body)
+        public static ISyntaxNode AnonymFun(ISyntaxNode definition, FunnyType type, ISyntaxNode body)
             => new ArrowAnonymFunctionSyntaxNode(definition, body,type, new Interval(definition.Interval.Start, body.Interval.Finish));
         public static ISyntaxNode IfElse(IfCaseSyntaxNode[] ifThenNodes, ISyntaxNode elseResult, int start, int end) 
             => new IfThenElseSyntaxNode(ifThenNodes, elseResult, new Interval(start, end));
@@ -15,7 +15,7 @@ namespace NFun.SyntaxParsing
             => new IfCaseSyntaxNode(condition,expression,new Interval(start, end));
         public static ISyntaxNode Var(Tok token) 
             => new NamedIdSyntaxNode(token.Value, token.Interval); 
-        public static ISyntaxNode Constant(object value, VarType type, Interval interval) 
+        public static ISyntaxNode Constant(object value, FunnyType type, Interval interval) 
             => new ConstantSyntaxNode(value, type, interval);
         public static ISyntaxNode IntGenericConstant(ulong value, Interval interval)
             => new GenericIntSyntaxNode(value, false, interval);
@@ -25,7 +25,7 @@ namespace NFun.SyntaxParsing
             => new ArraySyntaxNode(elements, new Interval(start,end));
         public static ISyntaxNode ListOf(ISyntaxNode[] elements, Interval interval, bool hasBrackets) 
             => new ListOfExpressionsSyntaxNode(elements, hasBrackets, interval);
-        public static ISyntaxNode TypedVar(string name, VarType type, int start, int end)
+        public static ISyntaxNode TypedVar(string name, FunnyType type, int start, int end)
             => new TypedVarDefSyntaxNode(name, type, new Interval(start,end));
         public static ISyntaxNode FunCall(string name, ISyntaxNode[] children, int start, int end) 
             => new FunCallSyntaxNode(name, children, new Interval(start,end));    

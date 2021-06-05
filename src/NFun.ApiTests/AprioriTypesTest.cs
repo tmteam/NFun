@@ -16,8 +16,8 @@ namespace NFun.ApiTests
                 
             var res = runtime.Calc("x","test");
             res.AssertReturns("y","test");
-            Assert.AreEqual(VarType.Text, runtime.GetVariable("x").Type);
-            Assert.AreEqual(VarType.Text, runtime.GetVariable("y").Type);
+            Assert.AreEqual(FunnyType.Text, runtime.GetVariable("x").Type);
+            Assert.AreEqual(FunnyType.Text, runtime.GetVariable("y").Type);
         }
         
         [Test]
@@ -28,8 +28,8 @@ namespace NFun.ApiTests
                 .Build("x:text; y = x");
             var res = runtime.Calc("x","test");
             res.AssertReturns("y","test");
-            Assert.AreEqual(VarType.Text, runtime.Inputs[0].Type,"input");
-            Assert.AreEqual(VarType.Text, runtime.Outputs[0].Type,"output");
+            Assert.AreEqual(FunnyType.Text, runtime.Inputs[0].Type,"input");
+            Assert.AreEqual(FunnyType.Text, runtime.Outputs[0].Type,"output");
         }
         
         [Test]
@@ -41,8 +41,8 @@ namespace NFun.ApiTests
                     
             var res = runtime.Calc("x","test");
             res.AssertReturns("y","test");
-            Assert.AreEqual(VarType.Text, runtime.Inputs[0].Type,"input");
-            Assert.AreEqual(VarType.Text, runtime.Outputs[0].Type,"output");
+            Assert.AreEqual(FunnyType.Text, runtime.Inputs[0].Type,"input");
+            Assert.AreEqual(FunnyType.Text, runtime.Outputs[0].Type,"output");
 
         }
         
@@ -56,42 +56,42 @@ namespace NFun.ApiTests
 
             var res = runtime.Calc("x","test");
             res.AssertReturns("y","test");
-            Assert.AreEqual(VarType.Text, runtime.Inputs[0].Type,"input");
-            Assert.AreEqual(VarType.Text, runtime.Outputs[0].Type,"output");
+            Assert.AreEqual(FunnyType.Text, runtime.Inputs[0].Type,"input");
+            Assert.AreEqual(FunnyType.Text, runtime.Outputs[0].Type,"output");
         }
 
         [Test]
         public void OutputVarSpecifiedWithDifferentAprioriType_throws() =>
             TestHelper.AssertObviousFailsOnParse(() =>
-                Funny.Hardcore.WithApriori("y", VarType.Text).Build("y:int = x"));
+                Funny.Hardcore.WithApriori("y", FunnyType.Text).Build("y:int = x"));
 
         [Test]
         public void InputVarSpecifiedWithAprioriOutputConflict_throws() =>
             TestHelper.AssertObviousFailsOnParse(() =>
-                Funny.Hardcore.WithApriori("y", VarType.Text).Build("x:int; y = x"));
+                Funny.Hardcore.WithApriori("y", FunnyType.Text).Build("x:int; y = x"));
 
         [Test]
         public void OutputVarSpecifiedHasInputNameWithSameName_throws() =>
             TestHelper.AssertObviousFailsOnParse(() =>
-                Funny.Hardcore.WithApriori("x", VarType.Text).Build("x:int; y = x"));
+                Funny.Hardcore.WithApriori("x", FunnyType.Text).Build("x:int; y = x"));
             
         [Test]
         public void OutputVarSpecifiedHasInputAprioriType_Calculates()
-            => Assert.DoesNotThrow(()=> Funny.Hardcore.WithApriori("x", VarType.Text).Build("y:text = x"));
+            => Assert.DoesNotThrow(()=> Funny.Hardcore.WithApriori("x", FunnyType.Text).Build("y:text = x"));
 
         
         [Test]
         public void SpecifyTwoSameOutputs_throws()  
         {
-            var builder = Funny.Hardcore.WithApriori("y", VarType.Text);
-            Assert.Throws<ArgumentException>(() => builder.WithApriori("y", VarType.Text));
+            var builder = Funny.Hardcore.WithApriori("y", FunnyType.Text);
+            Assert.Throws<ArgumentException>(() => builder.WithApriori("y", FunnyType.Text));
         }
         
         [Test]
         public void SpecifyTwoSameInputs_throws()
         {
-            var builder = Funny.Hardcore.WithApriori("x", VarType.Bool);
-            Assert.Throws<ArgumentException>(() => builder.WithApriori("x", VarType.Text));
+            var builder = Funny.Hardcore.WithApriori("x", FunnyType.Bool);
+            Assert.Throws<ArgumentException>(() => builder.WithApriori("x", FunnyType.Text));
         }
     }
 }

@@ -122,7 +122,7 @@ namespace NFun.SyntaxParsing
                     throw ErrorFactory.FunctionArgumentInBracketDefinition(fun, headNodeChild, _flow.Current);
             }
 
-            var outputType = VarType.Empty;
+            var outputType = FunnyType.Empty;
             if (_flow.MoveIf(TokType.Colon, out _))
                 outputType = _flow.ReadType();
             
@@ -160,7 +160,7 @@ namespace NFun.SyntaxParsing
             if (equationHeader is TypedVarDefSyntaxNode typed)
             {
                 equation.TypeSpecificationOrNull = typed;
-                equation.OutputType = typed.VarType;
+                equation.OutputType = typed.FunnyType;
             }
 
             _nodes.Add(equation);

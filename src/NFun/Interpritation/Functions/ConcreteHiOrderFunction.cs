@@ -19,7 +19,7 @@ namespace NFun.Interpritation.Functions
                 signature.Output,
                 signature.Inputs);
         }
-        private ConcreteHiOrderFunctionWithSyntaxNode(IExpressionNode source, VarType returnType, VarType[] argTypes) 
+        private ConcreteHiOrderFunctionWithSyntaxNode(IExpressionNode source, FunnyType returnType, FunnyType[] argTypes) 
             : base(source.ToString(), returnType, argTypes)
         {
             _source = source;
@@ -40,7 +40,7 @@ namespace NFun.Interpritation.Functions
                 varSource.Type.FunTypeSpecification.Output, 
                 varSource.Type.FunTypeSpecification.Inputs);
         }
-        private ConcreteHiOrderFunction(VariableSource source, VarType returnType, VarType[] argTypes) : base(source.Name,  returnType, argTypes)
+        private ConcreteHiOrderFunction(VariableSource source, FunnyType returnType, FunnyType[] argTypes) : base(source.Name,  returnType, argTypes)
         {
             _source = source;
         }

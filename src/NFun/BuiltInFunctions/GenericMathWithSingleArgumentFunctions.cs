@@ -8,14 +8,14 @@ namespace NFun.BuiltInFunctions
     {
         public InvertFunction() : base(CoreFunNames.Negate, GenericConstrains.SignedNumber, 1) { }
 
-        public override IConcreteFunction CreateConcrete(VarType[] concreteTypes)
+        public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes)
         {
             FunctionWithSingleArg result = concreteTypes[0].BaseType switch
             {
-                BaseVarType.Int16 => new Int16Function(),
-                BaseVarType.Int32 => new Int32Function(),
-                BaseVarType.Int64 => new Int64Function(),
-                BaseVarType.Real => new RealFunction(),
+                BaseFunnyType.Int16 => new Int16Function(),
+                BaseFunnyType.Int32 => new Int32Function(),
+                BaseFunnyType.Int64 => new Int64Function(),
+                BaseFunnyType.Real => new RealFunction(),
                 _ => throw new ArgumentOutOfRangeException()
             };
             result.Name = CoreFunNames.Negate;
@@ -51,13 +51,13 @@ namespace NFun.BuiltInFunctions
                 CoreFunNames.Add,
                 GenericConstrains.Arithmetical)
             {
-                Setup(VarType.UInt16, new UInt16Function());
-                Setup(VarType.UInt32, new UInt32Function());
-                Setup(VarType.UInt64, new UInt64Function());
-                Setup(VarType.Int16, new Int16Function());
-                Setup(VarType.Int32, new Int32Function());
-                Setup(VarType.Int64, new Int64Function());
-                Setup(VarType.Real, new RealFunction());
+                Setup(FunnyType.UInt16, new UInt16Function());
+                Setup(FunnyType.UInt32, new UInt32Function());
+                Setup(FunnyType.UInt64, new UInt64Function());
+                Setup(FunnyType.Int16, new Int16Function());
+                Setup(FunnyType.Int32, new Int32Function());
+                Setup(FunnyType.Int64, new Int64Function());
+                Setup(FunnyType.Real, new RealFunction());
             }
         
         private class RealFunction : FunctionWithTwoArgs
@@ -95,14 +95,14 @@ namespace NFun.BuiltInFunctions
     public class AbsFunction : PureGenericFunctionBase
     {
         public AbsFunction() : base(id, GenericConstrains.SignedNumber,1) { }
-        public override IConcreteFunction CreateConcrete(VarType[] concreteTypes)
+        public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes)
         {
             FunctionWithSingleArg res =  concreteTypes[0].BaseType switch
             {
-                BaseVarType.Int16 => new Int16Function(),
-                BaseVarType.Int32 => new Int32Function(),
-                BaseVarType.Int64 => new Int64Function(),
-                BaseVarType.Real => new RealFunction(),
+                BaseFunnyType.Int16 => new Int16Function(),
+                BaseFunnyType.Int32 => new Int32Function(),
+                BaseFunnyType.Int64 => new Int64Function(),
+                BaseFunnyType.Real => new RealFunction(),
                 _ => throw new ArgumentOutOfRangeException()
             };
             res.Name = Name;

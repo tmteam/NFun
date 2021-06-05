@@ -12,7 +12,7 @@ namespace NFun.SyntaxParsing.SyntaxNodes
         public ISyntaxNode Definition { get; }
         public ISyntaxNode Body { get; }
 
-        public ArrowAnonymFunctionSyntaxNode(ISyntaxNode definition, ISyntaxNode body, VarType returnType, Interval interval)
+        public ArrowAnonymFunctionSyntaxNode(ISyntaxNode definition, ISyntaxNode body, FunnyType returnType, Interval interval)
         {
             if (definition is ListOfExpressionsSyntaxNode list)
                 //it can be comlex: (x1,x2,x3)=>...
@@ -29,8 +29,8 @@ namespace NFun.SyntaxParsing.SyntaxNodes
         /// <summary>
         /// Return type of anonymous function
         /// </summary>
-        public VarType ReturnType { get; }
-        public VarType OutputType { get; set; }
+        public FunnyType ReturnType { get; }
+        public FunnyType OutputType { get; set; }
         public int OrderNumber { get; set; }
         public bool IsInBrackets { get; set; }
         public Interval Interval { get; set; }

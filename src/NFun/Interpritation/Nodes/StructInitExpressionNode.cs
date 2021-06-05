@@ -10,7 +10,7 @@ namespace NFun.Interpritation.Nodes
         private readonly string[] _fieldNames;
         private readonly IExpressionNode[] _elements;
         
-        public StructInitExpressionNode(string[] fieldNames, IExpressionNode[] elements, Interval interval, VarType type)
+        public StructInitExpressionNode(string[] fieldNames, IExpressionNode[] elements, Interval interval, FunnyType type)
         {
             Type = type;
             _fieldNames = fieldNames;
@@ -18,7 +18,7 @@ namespace NFun.Interpritation.Nodes
             Interval = interval;
         }
         public Interval Interval { get; }
-        public VarType Type { get; }
+        public FunnyType Type { get; }
         public object Calc() 
         {
             var fields = new Dictionary<string,object>(_fieldNames.Length);

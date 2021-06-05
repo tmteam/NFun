@@ -7,9 +7,9 @@ namespace NFun.Types
     {
         public readonly string Name;
         public readonly object Value;
-        public readonly VarType Type;
+        public readonly FunnyType Type;
         
-        internal VarVal(string name, object value, VarType type)
+        internal VarVal(string name, object value, FunnyType type)
         {
             Name = name;
             Value = value;

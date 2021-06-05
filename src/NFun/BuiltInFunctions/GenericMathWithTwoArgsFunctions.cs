@@ -14,13 +14,13 @@ namespace NFun.BuiltInFunctions
             _functions = new IConcreteFunction[15];
         }
 
-        protected void Setup(VarType type, FunctionWithTwoArgs function)
+        protected void Setup(FunnyType type, FunctionWithTwoArgs function)
         {
             _functions[(int) type.BaseType] = function;
             function.Setup(Name, type);
         }
 
-        public override IConcreteFunction CreateConcrete(VarType[] concreteTypesMap)
+        public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypesMap)
             => _functions[(int) concreteTypesMap[0].BaseType];
     }
 
@@ -30,14 +30,14 @@ namespace NFun.BuiltInFunctions
             CoreFunNames.Remainder,
             GenericConstrains.Numbers)
         {
-            Setup(VarType.UInt8, new UInt8Function());
-            Setup(VarType.UInt16, new UInt16Function());
-            Setup(VarType.UInt32, new UInt32Function());
-            Setup(VarType.UInt64, new UInt64Function());
-            Setup(VarType.Int16, new Int16Function());
-            Setup(VarType.Int32, new Int32Function());
-            Setup(VarType.Int64, new Int64Function());
-            Setup(VarType.Real, new RealFunction());
+            Setup(FunnyType.UInt8, new UInt8Function());
+            Setup(FunnyType.UInt16, new UInt16Function());
+            Setup(FunnyType.UInt32, new UInt32Function());
+            Setup(FunnyType.UInt64, new UInt64Function());
+            Setup(FunnyType.Int16, new Int16Function());
+            Setup(FunnyType.Int32, new Int32Function());
+            Setup(FunnyType.Int64, new Int64Function());
+            Setup(FunnyType.Real, new RealFunction());
         }
 
         private class RealFunction : FunctionWithTwoArgs
@@ -88,14 +88,14 @@ namespace NFun.BuiltInFunctions
             CoreFunNames.Substract,
             GenericConstrains.Arithmetical)
         {
-            Setup(VarType.UInt8, new UInt8Function());
-            Setup(VarType.UInt16, new UInt16Function());
-            Setup(VarType.UInt32, new UInt32Function());
-            Setup(VarType.UInt64, new UInt64Function());
-            Setup(VarType.Int16, new Int16Function());
-            Setup(VarType.Int32, new Int32Function());
-            Setup(VarType.Int64, new Int64Function());
-            Setup(VarType.Real, new RealFunction());
+            Setup(FunnyType.UInt8, new UInt8Function());
+            Setup(FunnyType.UInt16, new UInt16Function());
+            Setup(FunnyType.UInt32, new UInt32Function());
+            Setup(FunnyType.UInt64, new UInt64Function());
+            Setup(FunnyType.Int16, new Int16Function());
+            Setup(FunnyType.Int32, new Int32Function());
+            Setup(FunnyType.Int64, new Int64Function());
+            Setup(FunnyType.Real, new RealFunction());
 
         }
 
@@ -146,11 +146,11 @@ namespace NFun.BuiltInFunctions
             CoreFunNames.Multiply,
             GenericConstrains.Arithmetical)
         {
-            Setup(VarType.UInt32, new UInt32Function());
-            Setup(VarType.UInt64, new UInt64Function());
-            Setup(VarType.Int32, new Int32Function());
-            Setup(VarType.Int64, new Int64Function());
-            Setup(VarType.Real, new RealFunction());
+            Setup(FunnyType.UInt32, new UInt32Function());
+            Setup(FunnyType.UInt64, new UInt64Function());
+            Setup(FunnyType.Int32, new Int32Function());
+            Setup(FunnyType.Int64, new Int64Function());
+            Setup(FunnyType.Real, new RealFunction());
         }
 
         private class RealFunction : FunctionWithTwoArgs

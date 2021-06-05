@@ -17,7 +17,7 @@ namespace NFun.Interpritation.Functions
             IExpressionNode expression,
             bool isRecursive)
         {
-            var argTypes = new VarType[variables.Length];
+            var argTypes = new FunnyType[variables.Length];
             for (int i = 0; i < variables.Length; i++) 
                 argTypes[i] = variables[i].Type;
             if(isRecursive)
@@ -30,7 +30,7 @@ namespace NFun.Interpritation.Functions
             string name, 
             VariableSource[] variables,
             bool isReturnTypeStrictlyTyped,
-            IExpressionNode expression, VarType[] argTypes) 
+            IExpressionNode expression, FunnyType[] argTypes) 
             : base(
                 name, 
                 expression.Type,

@@ -10,7 +10,7 @@ namespace NFun.Tokenization
     public static class TokenHelper
     {
         /// <exception cref="SystemException">Throws if string contains invalid format</exception>
-        public static (object, VarType) ToConstant(string val)
+        public static (object, FunnyType) ToConstant(string val)
         {
             val = val.Replace("_", null);
 
@@ -18,18 +18,18 @@ namespace NFun.Tokenization
             {
                 if (val.EndsWith("."))
                     throw new FormatException();
-                return (double.Parse(val, CultureInfo.InvariantCulture), VarType.Real);
+                return (double.Parse(val, CultureInfo.InvariantCulture), FunnyType.Real);
             }
 
             var longVal = ParseLongValue(val);
 
         
             if( longVal < Int32.MinValue)
-                return ( longVal, VarType.Int64);
+                return ( longVal, FunnyType.Int64);
             else if (longVal > Int32.MaxValue)
-                return (longVal, VarType.Int64);
+                return (longVal, FunnyType.Int64);
             else 
-                return (longVal, VarType.Int32);
+                return (longVal, FunnyType.Int32);
         }
 
         private static long ParseLongValue(string val)
@@ -54,30 +54,30 @@ namespace NFun.Tokenization
             return long.Parse(val);
         }
 
-        private static VarType ToFunnyType(this Tok token)
+        private static FunnyType ToFunnyType(this Tok token)
         {
             switch (token.Type)
             {
-                case TokType.Int16Type:  return VarType.Int16;
-                case TokType.Int32Type:  return VarType.Int32;
-                case TokType.Int64Type:  return VarType.Int64;
-                case TokType.UInt8Type:  return VarType.UInt8;
-                case TokType.UInt16Type: return VarType.UInt16;
-                case TokType.UInt32Type: return VarType.UInt32;
-                case TokType.UInt64Type: return VarType.UInt64;
-                case TokType.RealType:   return VarType.Real;
-                case TokType.BoolType:   return VarType.Bool;
-                case TokType.TextType:   return VarType.Text;
-                case TokType.AnythingType:  return VarType.Anything;
+                case TokType.Int16Type:  return FunnyType.Int16;
+                case TokType.Int32Type:  return FunnyType.Int32;
+                case TokType.Int64Type:  return FunnyType.Int64;
+                case TokType.UInt8Type:  return FunnyType.UInt8;
+                case TokType.UInt16Type: return FunnyType.UInt16;
+                case TokType.UInt32Type: return FunnyType.UInt32;
+                case TokType.UInt64Type: return FunnyType.UInt64;
+                case TokType.RealType:   return FunnyType.Real;
+                case TokType.BoolType:   return FunnyType.Bool;
+                case TokType.TextType:   return FunnyType.Text;
+                case TokType.AnythingType:  return FunnyType.Anything;
                 case TokType.Id:
-                    if(token.Value=="any") return VarType.Anything;
+                    if(token.Value=="any") return FunnyType.Anything;
                     break;     
             }
             throw ErrorFactory.TypeExpectedButWas(token);
 
         }
 
-        public static VarType ReadType(this TokFlow flow)
+        public static FunnyType ReadType(this TokFlow flow)
         {
             var cur = flow.Current;
             var readType = ToFunnyType(cur);
@@ -94,7 +94,7 @@ namespace NFun.Tokenization
                 lastPosition = flow.Current.Finish;
                 if (!flow.MoveIf(TokType.ArrCBr))
                     throw ErrorFactory.ArrTypeCbrMissed(new Interval(cur.Start, flow.Current.Start));
-                readType = VarType.ArrayOf(readType);
+                readType = FunnyType.ArrayOf(readType);
             }
 
             return readType;

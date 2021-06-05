@@ -8,7 +8,7 @@ namespace NFun.Types
     public interface IOutputFunnyConverter
     {
         public Type ClrType { get; }
-        public VarType FunnyType { get; }
+        public FunnyType FunnyType { get; }
         public object ToClrObject(object funObject);
     }
 
@@ -17,7 +17,7 @@ namespace NFun.Types
         public DynamicTypeOutputFunnyConverter(Type clrType) => ClrType = clrType;
 
         public Type ClrType { get; }
-        public VarType FunnyType { get; } = VarType.Anything;
+        public FunnyType FunnyType { get; } = FunnyType.Anything;
         public object ToClrObject(object funObject)
         {
             if (funObject is IFunArray funArray)
@@ -25,7 +25,7 @@ namespace NFun.Types
                 if (funObject is TextFunArray txt)
                     return txt.ToString();
                 
-                var outConverter = FunnyTypeConverters.GetOutputConverter(VarType.ArrayOf(funArray.ElementType));
+                var outConverter = FunnyTypeConverters.GetOutputConverter(FunnyType.ArrayOf(funArray.ElementType));
                 return outConverter.ToClrObject(funObject);
             }
 
@@ -37,8 +37,8 @@ namespace NFun.Types
     }
     public class PrimitiveTypeOutputFunnyConverter:IOutputFunnyConverter {
         public Type ClrType { get; }
-        public VarType FunnyType { get;  }
-        public PrimitiveTypeOutputFunnyConverter(VarType funnyType, Type clrType)
+        public FunnyType FunnyType { get;  }
+        public PrimitiveTypeOutputFunnyConverter(FunnyType funnyType, Type clrType)
         {
             FunnyType = funnyType;
             ClrType = clrType;
@@ -49,7 +49,7 @@ namespace NFun.Types
 
     public class StringOutputFunnyConverter : IOutputFunnyConverter {
         public Type ClrType { get; }
-        public VarType FunnyType { get; } = VarType.Text;
+        public FunnyType FunnyType { get; } = FunnyType.Text;
         public StringOutputFunnyConverter() => ClrType = typeof(string);
         public object ToClrObject(object funObject) => ((IFunArray) funObject).ToText();
     }
@@ -62,9 +62,9 @@ namespace NFun.Types
         {
             ClrType = clrType;
             _elementConverter = elementConverter;
-            FunnyType = VarType.ArrayOf(elementConverter.FunnyType);
+            FunnyType = Types.FunnyType.ArrayOf(elementConverter.FunnyType);
         }
-        public VarType FunnyType { get; }
+        public FunnyType FunnyType { get; }
         public object ToClrObject(object funObject)
         {
             var funArray = (funObject as IFunArray);
@@ -89,15 +89,15 @@ namespace NFun.Types
         {
             ClrType = clrType;
             _propertiesConverters = propertiesConverters;
-            var fieldTypes = new (string, VarType)[writePropertiesCount];
+            var fieldTypes = new (string, FunnyType)[writePropertiesCount];
             for (int i = 0; i < writePropertiesCount; i++)
             {
                 var (name, outputFunnyConverter, _) = propertiesConverters[i];
                 fieldTypes[i] = (name, outputFunnyConverter.FunnyType);
             }
-            FunnyType = VarType.StructOf(fieldTypes);
+            FunnyType = Types.FunnyType.StructOf(fieldTypes);
         }
-        public VarType FunnyType { get; }
+        public FunnyType FunnyType { get; }
         public object ToClrObject(object funObject)
         {
             var clrObj = Activator.CreateInstance(ClrType);

@@ -24,7 +24,7 @@ namespace NFun.TypeInferenceAdapter
             */
             
             //If upcast is denied:
-            if (node.OutputType == VarType.Anything) 
+            if (node.OutputType == FunnyType.Anything) 
                 return true;
             if (node.Ifs.Any(i => i.Expression.OutputType != node.OutputType)|| node.ElseExpr.OutputType!= node.OutputType)
                 throw ErrorFactory.VariousIfElementTypes(node);
@@ -35,8 +35,8 @@ namespace NFun.TypeInferenceAdapter
         {
             // if upcast is denied
             // This code is active because composite upcast works not very well...
-            var elementType = node.OutputType.ArrayTypeSpecification.VarType;
-            if (elementType == VarType.Anything) 
+            var elementType = node.OutputType.ArrayTypeSpecification.FunnyType;
+            if (elementType == FunnyType.Anything) 
                 return true;
 
             if (node.Children.All(i => i.OutputType == elementType))

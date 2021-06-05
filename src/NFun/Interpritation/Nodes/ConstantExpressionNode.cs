@@ -7,47 +7,47 @@ namespace NFun.Interpritation.Nodes
     public class ConstantExpressionNode: IExpressionNode
     {
         private readonly object _value;
-        public static ConstantExpressionNode CreateConcrete(VarType primitive, ulong value, Interval interval)
+        public static ConstantExpressionNode CreateConcrete(FunnyType primitive, ulong value, Interval interval)
         {
             switch (primitive.BaseType)
             {
-                case BaseVarType.Real:   return new ConstantExpressionNode((double)value, VarType.Real, interval);
-                case BaseVarType.Int64:  return new ConstantExpressionNode((long) value, VarType.Int64, interval);
-                case BaseVarType.Int32:  return new ConstantExpressionNode((int)  value, VarType.Int32, interval);
-                case BaseVarType.Int16:  return new ConstantExpressionNode((short)value, VarType.Int16, interval);
-                case BaseVarType.UInt64: return new ConstantExpressionNode((ulong)value, VarType.UInt64, interval);
-                case BaseVarType.UInt32: return new ConstantExpressionNode((uint)value, VarType.UInt32, interval);
-                case BaseVarType.UInt16: return new ConstantExpressionNode((ushort)value, VarType.UInt16, interval);
-                case BaseVarType.UInt8:  return new ConstantExpressionNode((byte)value, VarType.UInt8, interval);
+                case BaseFunnyType.Real:   return new ConstantExpressionNode((double)value, FunnyType.Real, interval);
+                case BaseFunnyType.Int64:  return new ConstantExpressionNode((long) value, FunnyType.Int64, interval);
+                case BaseFunnyType.Int32:  return new ConstantExpressionNode((int)  value, FunnyType.Int32, interval);
+                case BaseFunnyType.Int16:  return new ConstantExpressionNode((short)value, FunnyType.Int16, interval);
+                case BaseFunnyType.UInt64: return new ConstantExpressionNode((ulong)value, FunnyType.UInt64, interval);
+                case BaseFunnyType.UInt32: return new ConstantExpressionNode((uint)value, FunnyType.UInt32, interval);
+                case BaseFunnyType.UInt16: return new ConstantExpressionNode((ushort)value, FunnyType.UInt16, interval);
+                case BaseFunnyType.UInt8:  return new ConstantExpressionNode((byte)value, FunnyType.UInt8, interval);
                 default:
                     throw new ArgumentOutOfRangeException(nameof(primitive), primitive, null);
             }
         }
-        public static ConstantExpressionNode CreateConcrete(VarType primitive, long value, Interval interval)
+        public static ConstantExpressionNode CreateConcrete(FunnyType primitive, long value, Interval interval)
         {
             switch (primitive.BaseType)
             {
-                case BaseVarType.Real:   return new ConstantExpressionNode((double)value, VarType.Real, interval);
-                case BaseVarType.Int64:  return new ConstantExpressionNode((long) value, VarType.Int64, interval);
-                case BaseVarType.Int32:  return new ConstantExpressionNode((int)  value, VarType.Int32, interval);
-                case BaseVarType.Int16:  return new ConstantExpressionNode((short)value, VarType.Int16, interval);
-                case BaseVarType.UInt64: return new ConstantExpressionNode((ulong)value, VarType.UInt64, interval);
-                case BaseVarType.UInt32: return new ConstantExpressionNode((uint)value, VarType.UInt32, interval);
-                case BaseVarType.UInt16: return new ConstantExpressionNode((ushort)value, VarType.UInt16, interval);
-                case BaseVarType.UInt8:  return new ConstantExpressionNode((byte)value, VarType.UInt8, interval);
+                case BaseFunnyType.Real:   return new ConstantExpressionNode((double)value, FunnyType.Real, interval);
+                case BaseFunnyType.Int64:  return new ConstantExpressionNode((long) value, FunnyType.Int64, interval);
+                case BaseFunnyType.Int32:  return new ConstantExpressionNode((int)  value, FunnyType.Int32, interval);
+                case BaseFunnyType.Int16:  return new ConstantExpressionNode((short)value, FunnyType.Int16, interval);
+                case BaseFunnyType.UInt64: return new ConstantExpressionNode((ulong)value, FunnyType.UInt64, interval);
+                case BaseFunnyType.UInt32: return new ConstantExpressionNode((uint)value, FunnyType.UInt32, interval);
+                case BaseFunnyType.UInt16: return new ConstantExpressionNode((ushort)value, FunnyType.UInt16, interval);
+                case BaseFunnyType.UInt8:  return new ConstantExpressionNode((byte)value, FunnyType.UInt8, interval);
                 default:
                     throw new ArgumentOutOfRangeException(nameof(primitive), primitive, null);
             }
         }
 
-        public ConstantExpressionNode(object objVal, VarType type, Interval interval)
+        public ConstantExpressionNode(object objVal, FunnyType type, Interval interval)
         {
             _value = objVal;
             Interval = interval;
             Type = type;
         }
 
-        public VarType Type { get; }
+        public FunnyType Type { get; }
         public Interval Interval { get; }
         public object Calc() => _value;
     }

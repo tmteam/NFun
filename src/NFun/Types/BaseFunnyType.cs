@@ -1,7 +1,7 @@
 namespace NFun.Types
 {
     
-    public enum BaseVarType
+    public enum BaseFunnyType
     {
         Empty = 0,
         Char =  1,

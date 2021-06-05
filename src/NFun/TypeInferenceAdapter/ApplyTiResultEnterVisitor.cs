@@ -20,7 +20,7 @@ namespace NFun.TypeInferenceAdapter
         {
             var type = _solving.GetSyntaxNodeTypeOrNull(node.OrderNumber);
             if(type==null)
-                node.OutputType = VarType.Empty;
+                node.OutputType = FunnyType.Empty;
             else
                 node.OutputType = _tiToLangTypeConverter.Convert(type);
             
@@ -39,7 +39,7 @@ namespace NFun.TypeInferenceAdapter
         {
             var type = _solving.GetSyntaxNodeTypeOrNull(node.OrderNumber);
             if(type==null)
-                node.OutputType = VarType.Empty;
+                node.OutputType = FunnyType.Empty;
             else
                 node.OutputType = _tiToLangTypeConverter.Convert(type);
             

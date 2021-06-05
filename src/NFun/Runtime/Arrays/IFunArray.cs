@@ -6,7 +6,7 @@ namespace NFun.Runtime.Arrays
 {
     public interface IFunArray : IEnumerable<object>
     {
-        VarType ElementType { get; }
+        FunnyType ElementType { get; }
         int Count { get; }
         IFunArray Slice(int? startIndex, int? endIndex, int? step);
         object GetElementOrNull(int index);

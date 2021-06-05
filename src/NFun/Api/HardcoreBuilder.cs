@@ -28,7 +28,7 @@ namespace NFun
             new(_immutableFunctionDictionary, _constants.CloneWith((id, clrValue)), _apriori);
         public HardcoreBuilder WithConstants(params (string, object)[] funValues) =>
             new(_immutableFunctionDictionary, _constants.CloneWith(funValues), _apriori);
-        public HardcoreBuilder WithApriori(string id, VarType type) => 
+        public HardcoreBuilder WithApriori(string id, FunnyType type) => 
             new(_immutableFunctionDictionary, _constants, _apriori.CloneWith(id, type));
         public HardcoreBuilder WithApriori<T>(string id) =>
             WithApriori(id, FunnyTypeConverters.GetInputConverter(typeof(T)).FunnyType);

@@ -7,7 +7,7 @@ namespace NFun.Interpritation.Functions
 {
     public class ConcreteUserFunctionPrototype: FunctionWithManyArguments
     {
-        public ConcreteUserFunctionPrototype(string name, VarType returnType, VarType[] argTypes) : base(name,  returnType, argTypes)
+        public ConcreteUserFunctionPrototype(string name, FunnyType returnType, FunnyType[] argTypes) : base(name,  returnType, argTypes)
         {
         }
 

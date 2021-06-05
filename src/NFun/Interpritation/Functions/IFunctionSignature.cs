@@ -14,7 +14,7 @@ namespace NFun.Interpritation.Functions
     public interface IFunctionSignature
     {
         string Name { get; }
-        VarType[] ArgTypes { get; }
-        VarType ReturnType { get; }
+        FunnyType[] ArgTypes { get; }
+        FunnyType ReturnType { get; }
     }
 }

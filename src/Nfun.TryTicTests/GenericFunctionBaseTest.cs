@@ -14,18 +14,18 @@ namespace NFun.UnitTests
         public void ReturnSelfFunction_PrimitiveType_ResultTypesAreCorrect()
         {
             var rpt = new ReturnSelfGenericFunctionDefinition();
-            var function = rpt.CreateConcreteOrNull(VarType.Bool,VarType.Bool);
+            var function = rpt.CreateConcreteOrNull(FunnyType.Bool,FunnyType.Bool);
             Assert.Multiple(() =>
             {
-                Assert.AreEqual(VarType.Bool, function.ReturnType);
-                CollectionAssert.AreEquivalent(new[]{VarType.Bool}, function.ArgTypes);
+                Assert.AreEqual(FunnyType.Bool, function.ReturnType);
+                CollectionAssert.AreEquivalent(new[]{FunnyType.Bool}, function.ArgTypes);
             });
         }
         
         [Test]
         public void ReturnSelfFunction_ArrayType_ResultTypesAreCorrect()
         {
-            var arrayOfBool = VarType.ArrayOf(VarType.Bool);
+            var arrayOfBool = FunnyType.ArrayOf(FunnyType.Bool);
             var rpt = new ReturnSelfGenericFunctionDefinition();
             var function = rpt.CreateConcreteOrNull(arrayOfBool,arrayOfBool);
             Assert.IsNotNull(function);
@@ -40,12 +40,12 @@ namespace NFun.UnitTests
         public void Repeat_PrimitiveType_ResultTypesAreCorrect()
         {
             var rpt = new RepeatGenericFunctionDefinition();
-            var function = rpt.CreateConcreteOrNull(VarType.ArrayOf(VarType.Bool), VarType.Bool, VarType.Int32);
+            var function = rpt.CreateConcreteOrNull(FunnyType.ArrayOf(FunnyType.Bool), FunnyType.Bool, FunnyType.Int32);
             Assert.IsNotNull(function);
             Assert.Multiple(() =>
             {
-                Assert.AreEqual(VarType.ArrayOf(VarType.Bool), function.ReturnType);
-                CollectionAssert.AreEquivalent(new[]{VarType.Bool, VarType.Int32}, function.ArgTypes);
+                Assert.AreEqual(FunnyType.ArrayOf(FunnyType.Bool), function.ReturnType);
+                CollectionAssert.AreEquivalent(new[]{FunnyType.Bool, FunnyType.Int32}, function.ArgTypes);
             });
         }
         
@@ -54,21 +54,21 @@ namespace NFun.UnitTests
         {
             var function = new MapFunction()
                 .CreateConcreteOrNull(
-                    VarType.ArrayOf(VarType.Text), 
-                    VarType.ArrayOf(VarType.Int32), 
-                     VarType.Fun(VarType.Text, VarType.Int32));
+                    FunnyType.ArrayOf(FunnyType.Text), 
+                    FunnyType.ArrayOf(FunnyType.Int32), 
+                     FunnyType.Fun(FunnyType.Text, FunnyType.Int32));
 
             Assert.IsNotNull(function);
             
             Assert.Multiple(()=>{
                 Assert.AreEqual(
-                    expected: VarType.ArrayOf(VarType.Text),
+                    expected: FunnyType.ArrayOf(FunnyType.Text),
                     actual: function.ReturnType);
                 CollectionAssert.AreEqual(
                     expected: new[]
                     {
-                        VarType.ArrayOf(VarType.Int32), 
-                        VarType.Fun(VarType.Text, VarType.Int32)
+                        FunnyType.ArrayOf(FunnyType.Int32), 
+                        FunnyType.Fun(FunnyType.Text, FunnyType.Int32)
                     },
                     actual: function.ArgTypes);
             });
@@ -79,15 +79,15 @@ namespace NFun.UnitTests
         {
             var rpt = new TakeGenericFunctionDefinition();
             var function = rpt.CreateConcreteOrNull(
-                 VarType.ArrayOf(VarType.Bool),
-                 VarType.ArrayOf(VarType.Bool), 
-                 VarType.Int32);
+                 FunnyType.ArrayOf(FunnyType.Bool),
+                 FunnyType.ArrayOf(FunnyType.Bool), 
+                 FunnyType.Int32);
             Assert.IsNotNull(function);
 
             Assert.Multiple(() =>
             {
-                Assert.AreEqual(VarType.ArrayOf(VarType.Bool), function.ReturnType);
-                CollectionAssert.AreEquivalent(new[]{VarType.ArrayOf(VarType.Bool), VarType.Int32}, function.ArgTypes);
+                Assert.AreEqual(FunnyType.ArrayOf(FunnyType.Bool), function.ReturnType);
+                CollectionAssert.AreEquivalent(new[]{FunnyType.ArrayOf(FunnyType.Bool), FunnyType.Int32}, function.ArgTypes);
             });
         }
         
@@ -95,34 +95,34 @@ namespace NFun.UnitTests
         public void Take_ArrayType_ResultTypesAreCorrect()
         {
             var rpt = new TakeGenericFunctionDefinition();
-            var arrayOfBool = VarType.ArrayOf(VarType.Bool);
+            var arrayOfBool = FunnyType.ArrayOf(FunnyType.Bool);
             var function = rpt.CreateConcreteOrNull(
-                VarType.ArrayOf(arrayOfBool),
-                VarType.ArrayOf(arrayOfBool), 
-                VarType.Int32);
+                FunnyType.ArrayOf(arrayOfBool),
+                FunnyType.ArrayOf(arrayOfBool), 
+                FunnyType.Int32);
             Assert.IsNotNull(function);
             Assert.Multiple(() =>
             {
-                Assert.AreEqual(VarType.ArrayOf(arrayOfBool), function.ReturnType);
-                CollectionAssert.AreEquivalent(new[]{VarType.ArrayOf(arrayOfBool), VarType.Int32}, function.ArgTypes);
+                Assert.AreEqual(FunnyType.ArrayOf(arrayOfBool), function.ReturnType);
+                CollectionAssert.AreEquivalent(new[]{FunnyType.ArrayOf(arrayOfBool), FunnyType.Int32}, function.ArgTypes);
             });
         }
-        [TestCase(BaseVarType.Real,BaseVarType.Int32,BaseVarType.Int32)]
-        [TestCase(BaseVarType.Real,BaseVarType.Real,BaseVarType.Int32)]
-        [TestCase(BaseVarType.Real,BaseVarType.Int32,BaseVarType.Real)]
+        [TestCase(BaseFunnyType.Real,BaseFunnyType.Int32,BaseFunnyType.Int32)]
+        [TestCase(BaseFunnyType.Real,BaseFunnyType.Real,BaseFunnyType.Int32)]
+        [TestCase(BaseFunnyType.Real,BaseFunnyType.Int32,BaseFunnyType.Real)]
 
-        [TestCase(BaseVarType.Int32,BaseVarType.Int32,BaseVarType.Int32)]
-        [TestCase(BaseVarType.Int64,BaseVarType.Int32,BaseVarType.Int32)]
-        [TestCase(BaseVarType.Any,  BaseVarType.Int32,BaseVarType.Int32)]
+        [TestCase(BaseFunnyType.Int32,BaseFunnyType.Int32,BaseFunnyType.Int32)]
+        [TestCase(BaseFunnyType.Int64,BaseFunnyType.Int32,BaseFunnyType.Int32)]
+        [TestCase(BaseFunnyType.Any,  BaseFunnyType.Int32,BaseFunnyType.Int32)]
         public void GetRnd_GenericEqualsOutputType(
-            BaseVarType returnType, BaseVarType firstArg, BaseVarType secondArg)
+            BaseFunnyType returnType, BaseFunnyType firstArg, BaseFunnyType secondArg)
         {
             var rpt = new GetRandomElementFuncDefinition();
             var function = rpt.CreateConcreteOrNull(
-                VarType.PrimitiveOf(returnType),
-                VarType.PrimitiveOf(firstArg), 
-                VarType.PrimitiveOf(secondArg));
-            var generic = VarType.PrimitiveOf(returnType);
+                FunnyType.PrimitiveOf(returnType),
+                FunnyType.PrimitiveOf(firstArg), 
+                FunnyType.PrimitiveOf(secondArg));
+            var generic = FunnyType.PrimitiveOf(returnType);
             Assert.IsNotNull(function);
             Assert.Multiple(() =>
             {
@@ -130,18 +130,18 @@ namespace NFun.UnitTests
                 CollectionAssert.AreEquivalent(new[]{generic, generic}, function.ArgTypes);
             });
         }
-        [TestCase(BaseVarType.Int32,BaseVarType.Real,BaseVarType.Int32)]
-        [TestCase(BaseVarType.Int32,BaseVarType.Int32,BaseVarType.Real)]
-        [TestCase(BaseVarType.Int64,BaseVarType.Int32,BaseVarType.Real)]
-        [TestCase(BaseVarType.Real,BaseVarType.Any,BaseVarType.Real)]
+        [TestCase(BaseFunnyType.Int32,BaseFunnyType.Real,BaseFunnyType.Int32)]
+        [TestCase(BaseFunnyType.Int32,BaseFunnyType.Int32,BaseFunnyType.Real)]
+        [TestCase(BaseFunnyType.Int64,BaseFunnyType.Int32,BaseFunnyType.Real)]
+        [TestCase(BaseFunnyType.Real,BaseFunnyType.Any,BaseFunnyType.Real)]
         public void GetRnd_ArgAreIncostistent_ReturnsNull(
-            BaseVarType returnType, BaseVarType firstArg, BaseVarType secondArg)
+            BaseFunnyType returnType, BaseFunnyType firstArg, BaseFunnyType secondArg)
         {
             var rpt = new GetRandomElementFuncDefinition();
             var function = rpt.CreateConcreteOrNull(
-                VarType.PrimitiveOf(returnType),
-                VarType.PrimitiveOf(firstArg), 
-                VarType.PrimitiveOf(secondArg));
+                FunnyType.PrimitiveOf(returnType),
+                FunnyType.PrimitiveOf(firstArg), 
+                FunnyType.PrimitiveOf(secondArg));
             Assert.IsNull(function);
         }
         
@@ -150,14 +150,14 @@ namespace NFun.UnitTests
         {
             var rpt = new GetRandomElementFuncDefinition();
             var function = rpt.CreateConcreteOrNull(
-                VarType.Real,
-                VarType.Int32, 
-                VarType.Int32);
+                FunnyType.Real,
+                FunnyType.Int32, 
+                FunnyType.Int32);
             Assert.IsNotNull(function);
             Assert.Multiple(() =>
             {
-                Assert.AreEqual(VarType.Real, function.ReturnType);
-                CollectionAssert.AreEquivalent(new[]{VarType.Real, VarType.Real}, function.ArgTypes);
+                Assert.AreEqual(FunnyType.Real, function.ReturnType);
+                CollectionAssert.AreEquivalent(new[]{FunnyType.Real, FunnyType.Real}, function.ArgTypes);
             });
         }
     }
@@ -165,7 +165,7 @@ namespace NFun.UnitTests
     public class GetRandomElementFuncDefinition : GenericFunctionBase
     {
         public GetRandomElementFuncDefinition() : base("__retSelf",
-            VarType.Generic(0), VarType.Generic(0),VarType.Generic(0))
+            FunnyType.Generic(0), FunnyType.Generic(0),FunnyType.Generic(0))
         {
         }
 
@@ -173,7 +173,7 @@ namespace NFun.UnitTests
     }
     public class ReturnSelfGenericFunctionDefinition : GenericFunctionBase
     {
-        public ReturnSelfGenericFunctionDefinition() : base("__retSelf", VarType.Generic(0), VarType.Generic(0))
+        public ReturnSelfGenericFunctionDefinition() : base("__retSelf", FunnyType.Generic(0), FunnyType.Generic(0))
         {
         }
 

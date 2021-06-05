@@ -22,7 +22,7 @@ namespace NFun.SyntaxParsing.SyntaxNodes
             Fields = fields;
             Interval = interval;
         }
-        public VarType OutputType { get; set; }
+        public FunnyType OutputType { get; set; }
         public int OrderNumber { get; set; }
         public bool IsInBrackets { get; set; }
         public Interval Interval { get; set; }

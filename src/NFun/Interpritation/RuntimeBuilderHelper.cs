@@ -18,8 +18,8 @@ namespace NFun.Interpritation
     {
         public static ConcreteUserFunction BuildConcrete(
             this UserFunctionDefinitionSyntaxNode functionSyntax,
-            VarType[] argTypes, 
-            VarType returnType,
+            FunnyType[] argTypes, 
+            FunnyType returnType,
             IFunctionDictionary functionsDictionary,
             TypeInferenceResults results, 
             TicTypesConverter converter)
@@ -50,7 +50,7 @@ namespace NFun.Interpritation
                 isRecursive: functionSyntax.IsRecursive,
                 name: functionSyntax.Id,
                 variables: vars.GetAllSources().ToArray(),
-                isReturnTypeStrictlyTyped: functionSyntax.ReturnType != VarType.Empty,
+                isReturnTypeStrictlyTyped: functionSyntax.ReturnType != FunnyType.Empty,
                 expression: bodyExpression);
             return function;
         }
@@ -145,9 +145,9 @@ namespace NFun.Interpritation
 
         private static VariableSource CreateVariableSourceForArgument(
             TypedVarDefSyntaxNode argSyntax,
-            VarType actualType)
+            FunnyType actualType)
         {
-            if(argSyntax.VarType != VarType.Empty)
+            if(argSyntax.FunnyType != FunnyType.Empty)
                 return VariableSource.CreateWithStrictTypeLabel(
                     name: argSyntax.Id, 
                     type: actualType, 

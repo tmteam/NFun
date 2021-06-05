@@ -167,9 +167,9 @@ namespace NFun.SyntaxParsing
                 return ReadStruct(flow);
 
             if (flow.MoveIf(TokType.True, out var trueTok))
-                return SyntaxNodeFactory.Constant(true, VarType.Bool,  trueTok.Interval);
+                return SyntaxNodeFactory.Constant(true, FunnyType.Bool,  trueTok.Interval);
             if (flow.MoveIf(TokType.False, out var falseTok))
-                return SyntaxNodeFactory.Constant(false, VarType.Bool,  falseTok.Interval);
+                return SyntaxNodeFactory.Constant(false, FunnyType.Bool,  falseTok.Interval);
             if (flow.MoveIf(TokType.HexOrBinaryNumber, out var binVal)) {//0xff, 0b01
                 var val = binVal.Value;
                 int dimensions;
@@ -202,9 +202,9 @@ namespace NFun.SyntaxParsing
             }
 
             if (flow.MoveIf(TokType.RealNumber, out var realVal))       //1.0
-                return SyntaxNodeFactory.Constant(double.Parse(realVal.Value.Replace("_", String.Empty), CultureInfo.InvariantCulture), VarType.Real, realVal.Interval);
+                return SyntaxNodeFactory.Constant(double.Parse(realVal.Value.Replace("_", String.Empty), CultureInfo.InvariantCulture), FunnyType.Real, realVal.Interval);
             if (flow.MoveIf(TokType.Text, out var txt))
-                return SyntaxNodeFactory.Constant(new TextFunArray(txt.Value),VarType.Text,txt.Interval);
+                return SyntaxNodeFactory.Constant(new TextFunArray(txt.Value),FunnyType.Text,txt.Interval);
             if (flow.MoveIf(TokType.Id, out var headToken))
             {
                 //fun call
@@ -215,7 +215,7 @@ namespace NFun.SyntaxParsing
                 // variable with type definition
                 //'id:int'
                 var type = TryReadTypeDef(flow);
-                if (type!= VarType.Empty)
+                if (type!= FunnyType.Empty)
                     return SyntaxNodeFactory.TypedVar(headToken.Value, type, headToken.Start, flow.Position);
                 // just variable
                 // 'id'
@@ -370,7 +370,7 @@ namespace NFun.SyntaxParsing
                 return SyntaxNodeFactory.AnonymFun(definition, returnType, body);
             }
             
-            if (returnType != VarType.Empty)
+            if (returnType != FunnyType.Empty)
             {
                 //If return type is specified, and there is no def after it - than it is an mistake
                 throw FunParseException.ErrorStubToDo("Anonymous function body is missed. Did you forget '=' symbol?");
@@ -397,7 +397,7 @@ namespace NFun.SyntaxParsing
                     throw FunParseException.ErrorStubToDo("id missed");
 
                 var type = TryReadTypeDef(flow);
-                if (type!= VarType.Empty)
+                if (type!= FunnyType.Empty)
                     throw FunParseException.ErrorStubToDo(
                         $"Field type specification {idToken.Value}:{type} is not supported yet");
 
@@ -427,7 +427,7 @@ namespace NFun.SyntaxParsing
             if(openInterpolationToken.Value!= String.Empty)
                 concatenations.Add(SyntaxNodeFactory.Constant(
                     new TextFunArray(openInterpolationToken.Value), 
-                    VarType.Text,
+                    FunnyType.Text,
                     openInterpolationToken.Interval));
 
             while (true)
@@ -451,7 +451,7 @@ namespace NFun.SyntaxParsing
                     {
                         concatenations.Add(SyntaxNodeFactory.Constant(
                             new TextFunArray(flow.Current.Value),
-                            VarType.Text,
+                            FunnyType.Text,
                             flow.Current.Interval));
                     }
                     flow.MoveNext();
@@ -483,7 +483,7 @@ namespace NFun.SyntaxParsing
                 {
                     concatenations.Add(SyntaxNodeFactory.Constant(
                         new TextFunArray(flow.Current.Value),
-                        VarType.Text,
+                        FunnyType.Text,
                         openInterpolationToken.Interval));
                     flow.MoveNext();
                 }
@@ -519,10 +519,10 @@ namespace NFun.SyntaxParsing
                     flow.Position);
             }
             
-            index ??= SyntaxNodeFactory.Constant(0, VarType.Int32, new Interval(openBraket.Start, colon.Finish));
+            index ??= SyntaxNodeFactory.Constant(0, FunnyType.Int32, new Interval(openBraket.Start, colon.Finish));
             
             var end = ReadNodeOrNull(flow)?? 
-                      SyntaxNodeFactory.Constant(int.MaxValue, VarType.Int32, new Interval(colon.Finish, flow.Position));
+                      SyntaxNodeFactory.Constant(int.MaxValue, FunnyType.Int32, new Interval(colon.Finish, flow.Position));
             
             if (!flow.MoveIf(TokType.Colon, out _))
             {
@@ -782,14 +782,14 @@ namespace NFun.SyntaxParsing
         }
 
         
-        private static VarType TryReadTypeDef(TokFlow flow)
+        private static FunnyType TryReadTypeDef(TokFlow flow)
         {
             if (!flow.IsCurrent(TokType.Colon))
-                return VarType.Empty;
+                return FunnyType.Empty;
             
             flow.MoveNext();
             var type = flow.ReadType();
-            if (type == VarType.Empty)
+            if (type == FunnyType.Empty)
                 throw FunParseException.ErrorStubToDo("invalid type definition");
             return type;
         }

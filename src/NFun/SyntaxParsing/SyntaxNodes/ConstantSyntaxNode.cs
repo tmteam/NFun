@@ -7,12 +7,12 @@ namespace NFun.SyntaxParsing.SyntaxNodes
 {
     public class ConstantSyntaxNode : ISyntaxNode
     {
-        public VarType OutputType { get; set; }
+        public FunnyType OutputType { get; set; }
         public int OrderNumber { get; set; }
         
-        public ConstantSyntaxNode(object value, VarType varType, Interval interval)
+        public ConstantSyntaxNode(object value, FunnyType funnyType, Interval interval)
         {
-            OutputType = varType;
+            OutputType = funnyType;
             Interval = interval;
             Value = value;
         }

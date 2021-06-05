@@ -7,17 +7,17 @@ namespace NFun.SyntaxParsing.SyntaxNodes
 {
     public class VarDefinitionSyntaxNode : ISyntaxNode
     {
-        public VarType OutputType { get; set; }
+        public FunnyType OutputType { get; set; }
         public int OrderNumber { get; set; }
 
         public string Id { get; }
-        public VarType VarType { get; }
+        public FunnyType FunnyType { get; }
         public VarAttribute[] Attributes { get; }
 
         public VarDefinitionSyntaxNode(TypedVarDefSyntaxNode node, VarAttribute[] attributes = null)
         {
             Id = node.Id;
-            VarType = node.VarType;
+            FunnyType = node.FunnyType;
             Attributes = attributes??new VarAttribute[0];
             Interval = node.Interval;
         }

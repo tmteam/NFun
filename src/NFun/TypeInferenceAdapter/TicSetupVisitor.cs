@@ -96,12 +96,12 @@ namespace NFun.TypeInferenceAdapter
             {
                 argNames[i] = arg.Id;
                 i++;
-                if (arg.VarType != VarType.Empty) 
-                    _ticTypeGraph.SetVarType(arg.Id, arg.VarType.ConvertToTiType());
+                if (arg.FunnyType != FunnyType.Empty) 
+                    _ticTypeGraph.SetVarType(arg.Id, arg.FunnyType.ConvertToTiType());
             }
 
             ITypeState returnType = null;
-            if (node.ReturnType != VarType.Empty)
+            if (node.ReturnType != FunnyType.Empty)
                 returnType = (ITypeState) node.ReturnType.ConvertToTiType();
 
             #if DEBUG
@@ -198,9 +198,9 @@ namespace NFun.TypeInferenceAdapter
                     //argument has type definition on it
                     originName = typed.Id;
                     anonymName = MakeAnonVariableName(node, originName);
-                    if (!typed.VarType.Equals(VarType.Empty))
+                    if (!typed.FunnyType.Equals(FunnyType.Empty))
                     {
-                        var ticType = typed.VarType.ConvertToTiType();
+                        var ticType = typed.FunnyType.ConvertToTiType();
                         _ticTypeGraph.SetVarType(anonymName, ticType);
                     }
                 }
@@ -231,7 +231,7 @@ namespace NFun.TypeInferenceAdapter
 #if DEBUG
             Trace(node, $"f({string.Join(" ", aliasNames)}):{node.OutputType}= {{{node.OrderNumber}}}");
 #endif
-            if (node.ReturnType == VarType.Empty)
+            if (node.ReturnType == FunnyType.Empty)
                 _ticTypeGraph.CreateLambda(node.Body.OrderNumber, node.OrderNumber, aliasNames);
             else
             {
@@ -252,7 +252,7 @@ namespace NFun.TypeInferenceAdapter
         /// it shows type of argument that currently handling
         /// if it is known
         /// </summary>
-        private VarType _parentFunctionArgType = VarType.Empty;
+        private FunnyType _parentFunctionArgType = FunnyType.Empty;
         public bool Visit(FunCallSyntaxNode node)
         {
             var signature =  _dictionary.GetOrNull(node.Id, node.Args.Length);
@@ -468,7 +468,7 @@ namespace NFun.TypeInferenceAdapter
             //need to know what type of argument is expected - is it variableId, or functionId?
             //if it is function - how many arguments are expected ? 
             var argType = _parentFunctionArgType;
-            if (argType.BaseType == BaseVarType.Fun) // functional argument is expected
+            if (argType.BaseType == BaseFunnyType.Fun) // functional argument is expected
             {
                 var argsCount = argType.FunTypeSpecification.Inputs.Length;
                 var signature = _dictionary.GetOrNull(id, argsCount);
@@ -538,9 +538,9 @@ namespace NFun.TypeInferenceAdapter
 #if DEBUG
             Trace(node, $"Tvar {node.Id}:{node.VarType}  ");
 #endif
-            if (node.VarType != VarType.Empty)
+            if (node.FunnyType != FunnyType.Empty)
             {
-                var type = node.VarType.ConvertToTiType();
+                var type = node.FunnyType.ConvertToTiType();
                 if (!_ticTypeGraph.TrySetVarType(node.Id, type))
                     throw ErrorFactory.VariableIsAlreadyDeclared(node.Id, node.Interval);
             }
@@ -554,7 +554,7 @@ namespace NFun.TypeInferenceAdapter
 #if DEBUG
             Trace(node, $"VarDef {node.Id}:{node.VarType}  ");
 #endif
-            var type = node.VarType.ConvertToTiType();
+            var type = node.FunnyType.ConvertToTiType();
             if(!_ticTypeGraph.TrySetVarType(node.Id, type))
                 throw ErrorFactory.VariableIsAlreadyDeclared(node.Id, node.Interval);
             return true;

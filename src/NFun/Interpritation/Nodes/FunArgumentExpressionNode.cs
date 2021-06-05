@@ -21,14 +21,14 @@ namespace NFun.Interpritation.Nodes
                 case TypedVarDefSyntaxNode typeVarNode:
                     return new FunArgumentExpressionNode(
                         name:     typeVarNode.Id, 
-                        type:     typeVarNode.VarType, 
+                        type:     typeVarNode.FunnyType, 
                         interval: node.Interval);
                 default:
                     throw ErrorFactory.InvalidArgTypeDefinition(node);
             }
         }
 
-        private FunArgumentExpressionNode(string name, VarType type, Interval interval)
+        private FunArgumentExpressionNode(string name, FunnyType type, Interval interval)
         {
             Type = type;
             Interval = interval;
@@ -37,7 +37,7 @@ namespace NFun.Interpritation.Nodes
 
         public string Name { get; }
         public Interval Interval { get; }
-        public VarType Type { get; } 
+        public FunnyType Type { get; } 
         
         
         public object Calc() => throw new InvalidOperationException();

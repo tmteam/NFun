@@ -39,7 +39,7 @@ namespace NFun.Interpritation.Functions
         }
 
 
-        public ConcreteRecursiveUserFunction(string name, VariableSource[] variables, bool isReturnTypeStrictlyTyped, IExpressionNode expression, VarType[] argTypes) : base(name, variables, isReturnTypeStrictlyTyped, expression, argTypes)
+        public ConcreteRecursiveUserFunction(string name, VariableSource[] variables, bool isReturnTypeStrictlyTyped, IExpressionNode expression, FunnyType[] argTypes) : base(name, variables, isReturnTypeStrictlyTyped, expression, argTypes)
         {
         }
     }

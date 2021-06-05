@@ -5,14 +5,14 @@ namespace NFun.Types
     public readonly struct VarInfo
     {
         public readonly bool IsOutput;
-        public readonly VarType Type;
+        public readonly FunnyType Type;
         public readonly string Name;
         public readonly VarAttribute[] Attributes;
         public bool IsStrictTyped { get; }
 
         public VarInfo(
             bool isOutput, 
-            VarType type,
+            FunnyType type,
             string name, 
             bool isStrictTyped,
             VarAttribute[] attributes = null)

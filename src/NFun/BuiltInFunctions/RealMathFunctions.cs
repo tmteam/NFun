@@ -8,82 +8,82 @@ namespace NFun.BuiltInFunctions
 
     public class SqrtFunction : FunctionWithSingleArg
     {
-        public SqrtFunction() : base("sqrt", VarType.Real, VarType.Real) { }
+        public SqrtFunction() : base("sqrt", FunnyType.Real, FunnyType.Real) { }
         public override object Calc(object a) => Math.Sqrt((double) a);
     }
     public class PowRealFunction : FunctionWithTwoArgs
     {
-        public PowRealFunction() : base(CoreFunNames.Pow, VarType.Real, VarType.Real, VarType.Real) { }
+        public PowRealFunction() : base(CoreFunNames.Pow, FunnyType.Real, FunnyType.Real, FunnyType.Real) { }
         public override object Calc(object a, object b) => Math.Pow((double) a, (double) b);
     }
 
     public class DivideRealFunction : FunctionWithTwoArgs
     {
-        public DivideRealFunction() : base(CoreFunNames.Divide, VarType.Real, VarType.Real, VarType.Real) { }
+        public DivideRealFunction() : base(CoreFunNames.Divide, FunnyType.Real, FunnyType.Real, FunnyType.Real) { }
         public override object Calc(object a, object b) => (double) a / (double) b;
     }
     public class CosFunction : FunctionWithSingleArg
     {
-        public CosFunction() : base("cos", VarType.Real, VarType.Real) { }
+        public CosFunction() : base("cos", FunnyType.Real, FunnyType.Real) { }
         public override object Calc(object a) => Math.Cos((double) a);
     }
     public class SinFunction : FunctionWithSingleArg
     {
-        public SinFunction() : base("sin", VarType.Real, VarType.Real) { }
+        public SinFunction() : base("sin", FunnyType.Real, FunnyType.Real) { }
 
         public override object Calc(object a) => Math.Sin((double) a);
     }
     public class TanFunction : FunctionWithSingleArg
     {
-        public TanFunction() : base("tan", VarType.Real, VarType.Real) { }
+        public TanFunction() : base("tan", FunnyType.Real, FunnyType.Real) { }
         public override object Calc(object a) => Math.Tan((double) a);
     }
 
     public class Atan2Function : FunctionWithTwoArgs
     {
-        public Atan2Function() : base("atan2", VarType.Real, VarType.Real, VarType.Real) { }
+        public Atan2Function() : base("atan2", FunnyType.Real, FunnyType.Real, FunnyType.Real) { }
         public override object Calc(object a, object b) => Math.Atan2((double)a, (double)b);
     }
     public class AtanFunction : FunctionWithSingleArg
     {
-        public AtanFunction() : base("atan", VarType.Real, VarType.Real) { }
+        public AtanFunction() : base("atan", FunnyType.Real, FunnyType.Real) { }
         public override object Calc(object a) => Math.Atan((double)a);
     }
     public class AsinFunction : FunctionWithSingleArg
     {
-        public AsinFunction() : base("asin", VarType.Real, VarType.Real) { }
+        public AsinFunction() : base("asin", FunnyType.Real, FunnyType.Real) { }
         public override object Calc(object a) => Math.Asin((double)a);
     }
     public class AcosFunction : FunctionWithSingleArg
     {
-        public AcosFunction() : base("acos", VarType.Real, VarType.Real) { }
+        public AcosFunction() : base("acos", FunnyType.Real, FunnyType.Real) { }
         public override object Calc(object a) => Math.Acos((double)a);
     }
     public class ExpFunction : FunctionWithSingleArg
     {
-        public ExpFunction() : base("exp", VarType.Real, VarType.Real) { }
+        public ExpFunction() : base("exp", FunnyType.Real, FunnyType.Real) { }
         public override object Calc(object a) => Math.Exp((double)a);
     }
     public class LogEFunction : FunctionWithSingleArg
     {
-        public LogEFunction() : base("log", VarType.Real, VarType.Real) { }
+        public LogEFunction() : base("log", FunnyType.Real, FunnyType.Real) { }
         public override object Calc(object a) => Math.Log((double)a);
     }
 
     public class LogFunction : FunctionWithTwoArgs
     {
-        public LogFunction() : base("log", VarType.Real, VarType.Real, VarType.Real) { }
+        public LogFunction() : base("log", FunnyType.Real, FunnyType.Real, FunnyType.Real) { }
         public override object Calc(object a, object b) => Math.Log((double)a, (double)b);
     }
 
     public class Log10Function : FunctionWithSingleArg
     {
-        public Log10Function() : base("log10", VarType.Real, VarType.Real) { }
+        public Log10Function() : base("log10", FunnyType.Real, FunnyType.Real) { }
         public override object Calc(object a) => Math.Log10((double)a);
     }
     
     public class RoundToRealFunction: FunctionWithTwoArgs {
-        public RoundToRealFunction() : base("round", VarType.Real,VarType.Real,VarType.Int32){}
+        public RoundToRealFunction() : base("round", FunnyType.Real,FunnyType.Real,FunnyType.Int32){}
         public override object Calc(object a, object b) => Math.Round((double)a,(int)b);
     }
 

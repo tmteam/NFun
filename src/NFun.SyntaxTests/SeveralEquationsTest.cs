@@ -26,7 +26,7 @@ namespace NFun.SyntaxTests
         [TestCase("in1:real; in2:real;y = in1/2 + in2\r z=2 + in2",new []{"in1","in2"})]
         public void TwinEquations_inputStrictVarablesListIsCorrect(string expr, string[] inputNames)
         {
-            var inputs = inputNames.Select(i => new VarInfo(false, VarType.Real, i,true)).ToArray();
+            var inputs = inputNames.Select(i => new VarInfo(false, FunnyType.Real, i,true)).ToArray();
             CollectionAssert.AreEquivalent(inputs, expr.Build().Inputs);
         }
         
@@ -36,7 +36,7 @@ namespace NFun.SyntaxTests
         [TestCase("y = in1/2 + in2\r z=2 + in2",new []{"in1","in2"})]
         public void TwinEquations_inputAutoVarablesListIsCorrect(string expr, string[] inputNames)
         {
-            var inputs = inputNames.Select(i => new VarInfo(false, VarType.Real, i,false)).ToArray();
+            var inputs = inputNames.Select(i => new VarInfo(false, FunnyType.Real, i,false)).ToArray();
             CollectionAssert.AreEquivalent(inputs, expr.Build().Inputs);
         }
         [TestCase("x:real \r y = x\r z=y", new []{"x"})]
@@ -45,7 +45,7 @@ namespace NFun.SyntaxTests
         {
             var inputs = inputNames.Select(i => new VarInfo(
                 isOutput: false,  
-                type: VarType.Real,  
+                type: FunnyType.Real,  
                 name: i, 
                 isStrictTyped: true)).ToArray();
             CollectionAssert.AreEquivalent(inputs, expr.Build().Inputs);
@@ -60,7 +60,7 @@ namespace NFun.SyntaxTests
         {
             var inputs = inputNames.Select(i => new VarInfo(
                 isOutput: false,  
-                type: VarType.Real,  
+                type: FunnyType.Real,  
                 name: i, 
                 isStrictTyped: false)).ToArray();
             CollectionAssert.AreEquivalent(inputs, expr.Build().Inputs);

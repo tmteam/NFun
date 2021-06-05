@@ -10,10 +10,10 @@ namespace NFun.Interpritation.Functions
         
         private readonly int _maxGenericId;
         public string Name { get; }
-        public VarType[] ArgTypes { get; }
+        public FunnyType[] ArgTypes { get; }
 
-        protected GenericFunctionBase(string name, VarType returnType, 
-            params VarType[] argTypes)
+        protected GenericFunctionBase(string name, FunnyType returnType, 
+            params FunnyType[] argTypes)
         {
             Name = name;
             ArgTypes = argTypes;
@@ -30,8 +30,8 @@ namespace NFun.Interpritation.Functions
                     Constrainses[i] = GenericConstrains.Any;
                 _maxGenericId = maxGenericId.Value;
         }
-        protected GenericFunctionBase(string name, GenericConstrains[] constrainses, VarType returnType,
-            params VarType[] argTypes)
+        protected GenericFunctionBase(string name, GenericConstrains[] constrainses, FunnyType returnType,
+            params FunnyType[] argTypes)
         {
             Name = name;
             ArgTypes = argTypes;
@@ -44,8 +44,8 @@ namespace NFun.Interpritation.Functions
                 throw new InvalidOperationException($"Type {name} has wrong generic defenition");
         }
 
-        protected GenericFunctionBase(string name, GenericConstrains constrains, VarType returnType,
-            params VarType[] argTypes)
+        protected GenericFunctionBase(string name, GenericConstrains constrains, FunnyType returnType,
+            params FunnyType[] argTypes)
         {
             Name = name;
             ArgTypes = argTypes;
@@ -59,35 +59,35 @@ namespace NFun.Interpritation.Functions
         }
 
 
-        public VarType ReturnType { get; }
+        public FunnyType ReturnType { get; }
 
         protected virtual object Calc(object[] args) => throw new NotImplementedException();
 
-        public virtual IConcreteFunction CreateConcrete(VarType[] concreteTypesMap) =>
+        public virtual IConcreteFunction CreateConcrete(FunnyType[] concreteTypesMap) =>
             new ConcreteGenericFunction(
                 calc: Calc,
                 name: Name,
-                returnType: VarType.SubstituteConcreteTypes(ReturnType, concreteTypesMap),
+                returnType: FunnyType.SubstituteConcreteTypes(ReturnType, concreteTypesMap),
                 argTypes:   SubstitudeArgTypes(concreteTypesMap));
 
-        protected VarType[] SubstitudeArgTypes(VarType[] concreteTypes)
+        protected FunnyType[] SubstitudeArgTypes(FunnyType[] concreteTypes)
         {
-            var concreteArgTypes = new VarType[ArgTypes.Length];
+            var concreteArgTypes = new FunnyType[ArgTypes.Length];
             for (int i = 0; i < concreteArgTypes.Length; i++)
-                concreteArgTypes[i] = VarType.SubstituteConcreteTypes(ArgTypes[i], concreteTypes);
+                concreteArgTypes[i] = FunnyType.SubstituteConcreteTypes(ArgTypes[i], concreteTypes);
             return concreteArgTypes;
         }
 
-        public IConcreteFunction CreateConcreteOrNull(VarType outputType, params VarType[] concreteArgTypes)
+        public IConcreteFunction CreateConcreteOrNull(FunnyType outputType, params FunnyType[] concreteArgTypes)
         {
             if (concreteArgTypes.Length != ArgTypes.Length)
                 return null;
             
-            var solvingParams = new VarType[_maxGenericId+1];
+            var solvingParams = new FunnyType[_maxGenericId+1];
 
             for (int i = 0; i < ArgTypes.Length; i++)
             {
-                if (!VarType.TrySolveGenericTypes(
+                if (!FunnyType.TrySolveGenericTypes(
                     genericArguments: solvingParams,
                     genericType: ArgTypes[i],
                     concreteType: concreteArgTypes[i],
@@ -96,7 +96,7 @@ namespace NFun.Interpritation.Functions
                     return null;
             }
 
-            if (!VarType.TrySolveGenericTypes(
+            if (!FunnyType.TrySolveGenericTypes(
                 genericArguments: solvingParams, 
                 genericType: ReturnType, 
                 concreteType: outputType, 
@@ -105,22 +105,22 @@ namespace NFun.Interpritation.Functions
 
             foreach (var solvingParam in solvingParams)
             {
-                if(solvingParam.BaseType== BaseVarType.Empty)
+                if(solvingParam.BaseType== BaseFunnyType.Empty)
                     throw new InvalidOperationException($"Incorrect function defenition: {TypeHelper.GetFunSignature(ReturnType,ArgTypes)}. Not all generic types can be solved");
             }     
             
             return new ConcreteGenericFunction(
                 calc: Calc, 
                 name: Name, 
-                returnType:  VarType.SubstituteConcreteTypes(ReturnType, solvingParams), 
+                returnType:  FunnyType.SubstituteConcreteTypes(ReturnType, solvingParams), 
                 argTypes: SubstitudeArgTypes(solvingParams));
         }
         /// <summary>
         /// calculates generic call arguments  based on a concrete call signature
         /// </summary> 
-        public VarType[] CalcGenericArgTypeList(FunTypeSpecification funTypeSpecification)
+        public FunnyType[] CalcGenericArgTypeList(FunTypeSpecification funTypeSpecification)
         {
-            var result = new VarType[Constrainses.Length];
+            var result = new FunnyType[Constrainses.Length];
             SubstitudeType(ReturnType, funTypeSpecification.Output);
 
             for (int i = 0; i < funTypeSpecification.Inputs.Length; i++)
@@ -130,7 +130,7 @@ namespace NFun.Interpritation.Functions
 
             return result;
 
-            bool SubstitudeType(VarType genericOrConcrete, VarType concrete)
+            bool SubstitudeType(FunnyType genericOrConcrete, FunnyType concrete)
             {
                 var id = genericOrConcrete.GenericId;
                 if (id.HasValue)
@@ -140,8 +140,8 @@ namespace NFun.Interpritation.Functions
                 }
 
                 if (genericOrConcrete.ArrayTypeSpecification != null)
-                    return SubstitudeType(genericOrConcrete.ArrayTypeSpecification.VarType,
-                        concrete.ArrayTypeSpecification.VarType);
+                    return SubstitudeType(genericOrConcrete.ArrayTypeSpecification.FunnyType,
+                        concrete.ArrayTypeSpecification.FunnyType);
 
                 if (genericOrConcrete.FunTypeSpecification != null)
                 {
@@ -166,7 +166,7 @@ namespace NFun.Interpritation.Functions
         {
             private readonly Func<object[], object> _calc;
 
-            public ConcreteGenericFunction(Func<object[],object> calc, string name,  VarType returnType, params VarType[] argTypes) 
+            public ConcreteGenericFunction(Func<object[],object> calc, string name,  FunnyType returnType, params FunnyType[] argTypes) 
                 : base(TypeHelper.GetFunSignature(name,returnType,argTypes), returnType, argTypes)
             {
                 _calc = calc;

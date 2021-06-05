@@ -8,7 +8,7 @@ namespace NFun.SyntaxParsing.SyntaxNodes
 {
     public class SyntaxTree: ISyntaxNode
     {
-        public VarType OutputType { get; set; }
+        public FunnyType OutputType { get; set; }
         public int OrderNumber { get; set; }
 
         public ISyntaxNode[] Nodes { get; }

@@ -8,15 +8,15 @@ namespace NFun.SyntaxParsing.SyntaxNodes
     public class TypedVarDefSyntaxNode : ISyntaxNode
     {
         public int OrderNumber { get; set; }
-        public VarType OutputType { get; set; }
+        public FunnyType OutputType { get; set; }
 
         public string Id { get; }
-        public VarType VarType { get; }
+        public FunnyType FunnyType { get; }
 
-        public TypedVarDefSyntaxNode(string id, VarType varType, Interval interval)
+        public TypedVarDefSyntaxNode(string id, FunnyType funnyType, Interval interval)
         {
             Id = id;
-            VarType = varType;
+            FunnyType = funnyType;
             Interval = interval;
         }
         public bool IsInBrackets { get; set; }

@@ -2,11 +2,11 @@ namespace NFun.Types
 {
     public class AdditionalTypeSpecification
     {
-        public readonly VarType VarType;
+        public readonly FunnyType FunnyType;
 
-        public AdditionalTypeSpecification(VarType varType)
+        public AdditionalTypeSpecification(FunnyType funnyType)
         {
-            VarType = varType;
+            FunnyType = funnyType;
         }
     }
 }

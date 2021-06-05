@@ -10,55 +10,55 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override IConcreteFunction CreateConcrete(VarType[] concreteTypes)
+        public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes)
         {
             switch (concreteTypes[0].BaseType)
             {
-                case BaseVarType.UInt8:  return new UInt8Function();
-                case BaseVarType.UInt16: return new UInt16Function();
-                case BaseVarType.UInt32: return new UInt32Function();
-                case BaseVarType.UInt64: return new UInt64Function();
-                case BaseVarType.Int16:  return new Int16Function();
-                case BaseVarType.Int32:  return new Int32Function();
-                case BaseVarType.Int64:  return new Int64Function();
+                case BaseFunnyType.UInt8:  return new UInt8Function();
+                case BaseFunnyType.UInt16: return new UInt16Function();
+                case BaseFunnyType.UInt32: return new UInt32Function();
+                case BaseFunnyType.UInt64: return new UInt64Function();
+                case BaseFunnyType.Int16:  return new Int16Function();
+                case BaseFunnyType.Int32:  return new Int32Function();
+                case BaseFunnyType.Int64:  return new Int64Function();
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
 
         private class Int16Function : FunctionWithTwoArgs {
-            public Int16Function() : base(CoreFunNames.BitOr, VarType.Int16, VarType.Int16, VarType.Int16) { }
+            public Int16Function() : base(CoreFunNames.BitOr, FunnyType.Int16, FunnyType.Int16, FunnyType.Int16) { }
             public override object Calc(object a, object b) =>  (short)((short) a | (short) b);
         }
 
         private class Int32Function : FunctionWithTwoArgs {
-            public Int32Function() : base(CoreFunNames.BitOr, VarType.Int32, VarType.Int32, VarType.Int32) { }
+            public Int32Function() : base(CoreFunNames.BitOr, FunnyType.Int32, FunnyType.Int32, FunnyType.Int32) { }
             public override object Calc(object a, object b) => (int) a | (int) b;
 
         }
 
         private class Int64Function : FunctionWithTwoArgs {
-            public Int64Function() : base(CoreFunNames.BitOr, VarType.Int64, VarType.Int64, VarType.Int64) { }
+            public Int64Function() : base(CoreFunNames.BitOr, FunnyType.Int64, FunnyType.Int64, FunnyType.Int64) { }
             public override object Calc(object a, object b) => (long) a | (long) b;
         }
 
         private class UInt8Function : FunctionWithTwoArgs {
-            public UInt8Function() : base(CoreFunNames.BitOr, VarType.UInt8, VarType.UInt8, VarType.UInt8) { }
+            public UInt8Function() : base(CoreFunNames.BitOr, FunnyType.UInt8, FunnyType.UInt8, FunnyType.UInt8) { }
             public override object Calc(object a, object b) => (byte)( (byte) a | (byte) b);
         }
 
         private class UInt16Function : FunctionWithTwoArgs {
-            public UInt16Function() : base(CoreFunNames.BitOr, VarType.UInt16, VarType.UInt16, VarType.UInt16) { }
+            public UInt16Function() : base(CoreFunNames.BitOr, FunnyType.UInt16, FunnyType.UInt16, FunnyType.UInt16) { }
             public override object Calc(object a, object b) => (ushort)( (ushort) a | (ushort) b);
         }
 
         private class UInt32Function : FunctionWithTwoArgs {
-            public UInt32Function() : base(CoreFunNames.BitOr, VarType.UInt32, VarType.UInt32, VarType.UInt32) { }
+            public UInt32Function() : base(CoreFunNames.BitOr, FunnyType.UInt32, FunnyType.UInt32, FunnyType.UInt32) { }
             public override object Calc(object a, object b) => ( (uint) a | (uint) b);
         }
 
         private class UInt64Function : FunctionWithTwoArgs {
-            public UInt64Function() : base(CoreFunNames.BitOr, VarType.UInt64, VarType.UInt64, VarType.UInt64) { }
+            public UInt64Function() : base(CoreFunNames.BitOr, FunnyType.UInt64, FunnyType.UInt64, FunnyType.UInt64) { }
             public override object Calc(object a, object b) => ( (ulong) a | (ulong) b);
         }
     }
@@ -68,55 +68,55 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override IConcreteFunction CreateConcrete(VarType[] concreteTypes)
+        public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes)
         {
             switch (concreteTypes[0].BaseType)
             {
-                case BaseVarType.UInt8: return new UInt8Function();
-                case BaseVarType.UInt16: return new UInt16Function();
-                case BaseVarType.UInt32: return new UInt32Function();
-                case BaseVarType.UInt64: return new UInt64Function();
-                case BaseVarType.Int16: return new Int16Function();
-                case BaseVarType.Int32: return new Int32Function();
-                case BaseVarType.Int64: return new Int64Function();
+                case BaseFunnyType.UInt8: return new UInt8Function();
+                case BaseFunnyType.UInt16: return new UInt16Function();
+                case BaseFunnyType.UInt32: return new UInt32Function();
+                case BaseFunnyType.UInt64: return new UInt64Function();
+                case BaseFunnyType.Int16: return new Int16Function();
+                case BaseFunnyType.Int32: return new Int32Function();
+                case BaseFunnyType.Int64: return new Int64Function();
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
 
         private class Int16Function : FunctionWithTwoArgs {
-            public Int16Function() : base(CoreFunNames.BitXor, VarType.Int16, VarType.Int16, VarType.Int16) { }
+            public Int16Function() : base(CoreFunNames.BitXor, FunnyType.Int16, FunnyType.Int16, FunnyType.Int16) { }
             public override object Calc(object a, object b) => (short)((short) a ^ (short) b);
         }
 
         private class Int32Function : FunctionWithTwoArgs {
-            public Int32Function() : base(CoreFunNames.BitXor, VarType.Int32, VarType.Int32, VarType.Int32) { }
+            public Int32Function() : base(CoreFunNames.BitXor, FunnyType.Int32, FunnyType.Int32, FunnyType.Int32) { }
             public override object Calc(object a, object b) => (int) a ^ (int) b;
 
         }
 
         private class Int64Function : FunctionWithTwoArgs {
-            public Int64Function() : base(CoreFunNames.BitXor, VarType.Int64, VarType.Int64, VarType.Int64) { }
+            public Int64Function() : base(CoreFunNames.BitXor, FunnyType.Int64, FunnyType.Int64, FunnyType.Int64) { }
             public override object Calc(object a, object b) => (long) a ^ (long) b;
         }
 
         private class UInt8Function : FunctionWithTwoArgs {
-            public UInt8Function() : base(CoreFunNames.BitXor, VarType.UInt8, VarType.UInt8, VarType.UInt8) { }
+            public UInt8Function() : base(CoreFunNames.BitXor, FunnyType.UInt8, FunnyType.UInt8, FunnyType.UInt8) { }
             public override object Calc(object a, object b) => (byte)( (byte) a ^ (byte) b);
         }
 
         private class UInt16Function : FunctionWithTwoArgs {
-            public UInt16Function() : base(CoreFunNames.BitXor, VarType.UInt16, VarType.UInt16, VarType.UInt16) { }
+            public UInt16Function() : base(CoreFunNames.BitXor, FunnyType.UInt16, FunnyType.UInt16, FunnyType.UInt16) { }
             public override object Calc(object a, object b) => (ushort)( (ushort) a ^ (ushort) b);
         }
 
         private class UInt32Function : FunctionWithTwoArgs {
-            public UInt32Function() : base(CoreFunNames.BitXor, VarType.UInt32, VarType.UInt32, VarType.UInt32) { }
+            public UInt32Function() : base(CoreFunNames.BitXor, FunnyType.UInt32, FunnyType.UInt32, FunnyType.UInt32) { }
             public override object Calc(object a, object b) => ( (uint) a ^ (uint) b);
         }
 
         private class UInt64Function : FunctionWithTwoArgs {
-            public UInt64Function() : base(CoreFunNames.BitXor, VarType.UInt64, VarType.UInt64, VarType.UInt64) { }
+            public UInt64Function() : base(CoreFunNames.BitXor, FunnyType.UInt64, FunnyType.UInt64, FunnyType.UInt64) { }
             public override object Calc(object a, object b) => ( (ulong) a ^ (ulong) b);
         }
     }
@@ -126,55 +126,55 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override IConcreteFunction CreateConcrete(VarType[] concreteTypes)
+        public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes)
         {
             switch (concreteTypes[0].BaseType)
             {
-                case BaseVarType.UInt8: return new UInt8Function();
-                case BaseVarType.UInt16: return new UInt16Function();
-                case BaseVarType.UInt32: return new UInt32Function();
-                case BaseVarType.UInt64: return new UInt64Function();
-                case BaseVarType.Int16: return new Int16Function();
-                case BaseVarType.Int32: return new Int32Function();
-                case BaseVarType.Int64: return new Int64Function();
+                case BaseFunnyType.UInt8: return new UInt8Function();
+                case BaseFunnyType.UInt16: return new UInt16Function();
+                case BaseFunnyType.UInt32: return new UInt32Function();
+                case BaseFunnyType.UInt64: return new UInt64Function();
+                case BaseFunnyType.Int16: return new Int16Function();
+                case BaseFunnyType.Int32: return new Int32Function();
+                case BaseFunnyType.Int64: return new Int64Function();
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
 
         private class Int16Function : FunctionWithTwoArgs {
-            public Int16Function() : base(CoreFunNames.BitAnd, VarType.Int16, VarType.Int16, VarType.Int16) { }
+            public Int16Function() : base(CoreFunNames.BitAnd, FunnyType.Int16, FunnyType.Int16, FunnyType.Int16) { }
             public override object Calc(object a, object b) =>  (short)((short) a & (short) b);
         }
 
         private class Int32Function : FunctionWithTwoArgs {
-            public Int32Function() : base(CoreFunNames.BitAnd, VarType.Int32, VarType.Int32, VarType.Int32) { }
+            public Int32Function() : base(CoreFunNames.BitAnd, FunnyType.Int32, FunnyType.Int32, FunnyType.Int32) { }
             public override object Calc(object a, object b) => (int) a & (int) b;
 
         }
 
         private class Int64Function : FunctionWithTwoArgs {
-            public Int64Function() : base(CoreFunNames.BitAnd, VarType.Int64, VarType.Int64, VarType.Int64) { }
+            public Int64Function() : base(CoreFunNames.BitAnd, FunnyType.Int64, FunnyType.Int64, FunnyType.Int64) { }
             public override object Calc(object a, object b) => (long) a & (long) b;
         }
 
         private class UInt8Function : FunctionWithTwoArgs {
-            public UInt8Function() : base(CoreFunNames.BitAnd, VarType.UInt8, VarType.UInt8, VarType.UInt8) { }
+            public UInt8Function() : base(CoreFunNames.BitAnd, FunnyType.UInt8, FunnyType.UInt8, FunnyType.UInt8) { }
             public override object Calc(object a, object b) => (byte)( (byte) a & (byte) b);
         }
 
         private class UInt16Function : FunctionWithTwoArgs {
-            public UInt16Function() : base(CoreFunNames.BitAnd, VarType.UInt16, VarType.UInt16, VarType.UInt16) { }
+            public UInt16Function() : base(CoreFunNames.BitAnd, FunnyType.UInt16, FunnyType.UInt16, FunnyType.UInt16) { }
             public override object Calc(object a, object b) => (ushort)( (ushort) a & (ushort) b);
         }
 
         private class UInt32Function : FunctionWithTwoArgs {
-            public UInt32Function() : base(CoreFunNames.BitAnd, VarType.UInt32, VarType.UInt32, VarType.UInt32) { }
+            public UInt32Function() : base(CoreFunNames.BitAnd, FunnyType.UInt32, FunnyType.UInt32, FunnyType.UInt32) { }
             public override object Calc(object a, object b) => ( (uint) a & (uint) b);
         }
 
         private class UInt64Function : FunctionWithTwoArgs {
-            public UInt64Function() : base(CoreFunNames.BitAnd, VarType.UInt64, VarType.UInt64, VarType.UInt64) { }
+            public UInt64Function() : base(CoreFunNames.BitAnd, FunnyType.UInt64, FunnyType.UInt64, FunnyType.UInt64) { }
             public override object Calc(object a, object b) => ( (ulong) a & (ulong) b);
         }
     }
@@ -184,17 +184,17 @@ namespace NFun.BuiltInFunctions
         {
         }
 
-        public override IConcreteFunction CreateConcrete(VarType[] concreteTypes)
+        public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes)
         {
             switch (concreteTypes[0].BaseType)
             {
-                case BaseVarType.UInt8: return new UInt8Function();
-                case BaseVarType.UInt16: return new UInt16Function();
-                case BaseVarType.UInt32: return new UInt32Function();
-                case BaseVarType.UInt64: return new UInt64Function();
-                case BaseVarType.Int16: return new Int16Function();
-                case BaseVarType.Int32: return new Int32Function();
-                case BaseVarType.Int64: return new Int64Function();
+                case BaseFunnyType.UInt8: return new UInt8Function();
+                case BaseFunnyType.UInt16: return new UInt16Function();
+                case BaseFunnyType.UInt32: return new UInt32Function();
+                case BaseFunnyType.UInt64: return new UInt64Function();
+                case BaseFunnyType.Int16: return new Int16Function();
+                case BaseFunnyType.Int32: return new Int32Function();
+                case BaseFunnyType.Int64: return new Int64Function();
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -202,37 +202,37 @@ namespace NFun.BuiltInFunctions
 
         public class Int16Function : FunctionWithSingleArg
         {
-            public Int16Function() : base(CoreFunNames.BitInverse, VarType.Int16, VarType.Int16) { }
+            public Int16Function() : base(CoreFunNames.BitInverse, FunnyType.Int16, FunnyType.Int16) { }
             public override object Calc(object a) => (short)~((short)a);
         }
         public class Int32Function : FunctionWithSingleArg
         {
-            public Int32Function() : base(CoreFunNames.BitInverse, VarType.Int32, VarType.Int32) { }
+            public Int32Function() : base(CoreFunNames.BitInverse, FunnyType.Int32, FunnyType.Int32) { }
             public override object Calc(object a) => (int)~((int)a);
         }
         public class Int64Function : FunctionWithSingleArg
         {
-            public Int64Function() : base(CoreFunNames.BitInverse, VarType.Int64, VarType.Int64) { }
+            public Int64Function() : base(CoreFunNames.BitInverse, FunnyType.Int64, FunnyType.Int64) { }
             public override object Calc(object a) => (long)~((long)a);
         }
         public class UInt8Function : FunctionWithSingleArg
         {
-            public UInt8Function() : base(CoreFunNames.BitInverse, VarType.UInt8, VarType.UInt8) { }
+            public UInt8Function() : base(CoreFunNames.BitInverse, FunnyType.UInt8, FunnyType.UInt8) { }
             public override object Calc(object a) => (byte)~((byte)a);
         }
         public class UInt16Function : FunctionWithSingleArg
         {
-            public UInt16Function() : base(CoreFunNames.BitInverse, VarType.UInt16, VarType.UInt16) { }
+            public UInt16Function() : base(CoreFunNames.BitInverse, FunnyType.UInt16, FunnyType.UInt16) { }
             public override object Calc(object a) => (ushort)~((ushort)a);
         }
         public class UInt32Function : FunctionWithSingleArg
         {
-            public UInt32Function() : base(CoreFunNames.BitInverse, VarType.UInt32, VarType.UInt32) { }
+            public UInt32Function() : base(CoreFunNames.BitInverse, FunnyType.UInt32, FunnyType.UInt32) { }
             public override object Calc(object a) => (uint)~((uint)a);
         }
         public class UInt64Function : FunctionWithSingleArg
         {
-            public UInt64Function() : base(CoreFunNames.BitInverse, VarType.UInt64, VarType.UInt64) { }
+            public UInt64Function() : base(CoreFunNames.BitInverse, FunnyType.UInt64, FunnyType.UInt64) { }
             public override object Calc(object a) => (ulong)~(ulong)a;
         }
     }
@@ -241,17 +241,17 @@ namespace NFun.BuiltInFunctions
     {
         public BitShiftLeftFunction() : base(CoreFunNames.BitShiftLeft, 
             GenericConstrains.Integers3264, 
-            VarType.Generic(0), 
-            VarType.Generic(0), 
-            VarType.UInt8) { }
-        public override IConcreteFunction CreateConcrete(VarType[] concreteTypes)
+            FunnyType.Generic(0), 
+            FunnyType.Generic(0), 
+            FunnyType.UInt8) { }
+        public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes)
         {
             switch (concreteTypes[0].BaseType)
             {
-                case BaseVarType.UInt32: return new UInt32Function();
-                case BaseVarType.UInt64: return new UInt64Function();
-                case BaseVarType.Int32: return new Int32Function();
-                case BaseVarType.Int64: return new Int64Function();
+                case BaseFunnyType.UInt32: return new UInt32Function();
+                case BaseFunnyType.UInt64: return new UInt64Function();
+                case BaseFunnyType.Int32: return new Int32Function();
+                case BaseFunnyType.Int64: return new Int64Function();
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -259,20 +259,20 @@ namespace NFun.BuiltInFunctions
 
 
         public class Int32Function : FunctionWithTwoArgs {
-            public Int32Function() : base(CoreFunNames.BitShiftLeft, VarType.Int32, VarType.Int32, VarType.UInt8) { }
+            public Int32Function() : base(CoreFunNames.BitShiftLeft, FunnyType.Int32, FunnyType.Int32, FunnyType.UInt8) { }
             public override object Calc(object a, object b) => ((int)a) << ((byte)b);
         }
         public class Int64Function : FunctionWithTwoArgs {
-            public Int64Function() : base(CoreFunNames.BitShiftLeft, VarType.Int64, VarType.Int64, VarType.UInt8) { }
+            public Int64Function() : base(CoreFunNames.BitShiftLeft, FunnyType.Int64, FunnyType.Int64, FunnyType.UInt8) { }
             public override object Calc(object a, object b) => ((long)a) << ((byte)b);
         }
 
         public class UInt32Function : FunctionWithTwoArgs {
-            public UInt32Function() : base(CoreFunNames.BitShiftLeft, VarType.UInt32, VarType.UInt32, VarType.UInt8) { }
+            public UInt32Function() : base(CoreFunNames.BitShiftLeft, FunnyType.UInt32, FunnyType.UInt32, FunnyType.UInt8) { }
             public override object Calc(object a, object b) => (uint)(((uint)a) << ((byte)b));
         }
         public class UInt64Function : FunctionWithTwoArgs {
-            public UInt64Function() : base(CoreFunNames.BitShiftLeft, VarType.UInt64, VarType.UInt64, VarType.UInt8) { }
+            public UInt64Function() : base(CoreFunNames.BitShiftLeft, FunnyType.UInt64, FunnyType.UInt64, FunnyType.UInt8) { }
             public override object Calc(object a, object b) => (ulong)(((ulong)a) << ((byte)b));
         }
     }
@@ -280,18 +280,18 @@ namespace NFun.BuiltInFunctions
     {
         public BitShiftRightFunction() : base(CoreFunNames.BitShiftRight,
             GenericConstrains.Integers3264,
-            VarType.Generic(0),
-            VarType.Generic(0),
-            VarType.UInt8)
+            FunnyType.Generic(0),
+            FunnyType.Generic(0),
+            FunnyType.UInt8)
         { }
-        public override IConcreteFunction CreateConcrete(VarType[] concreteTypes)
+        public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes)
         {
             switch (concreteTypes[0].BaseType)
             {
-                case BaseVarType.UInt32: return new UInt32Function();
-                case BaseVarType.UInt64: return new UInt64Function();
-                case BaseVarType.Int32: return new Int32Function();
-                case BaseVarType.Int64: return new Int64Function();
+                case BaseFunnyType.UInt32: return new UInt32Function();
+                case BaseFunnyType.UInt64: return new UInt64Function();
+                case BaseFunnyType.Int32: return new Int32Function();
+                case BaseFunnyType.Int64: return new Int64Function();
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -299,20 +299,20 @@ namespace NFun.BuiltInFunctions
 
 
         public class Int32Function : FunctionWithTwoArgs {
-            public Int32Function() : base(CoreFunNames.BitShiftRight, VarType.Int32, VarType.Int32, VarType.UInt8) { }
+            public Int32Function() : base(CoreFunNames.BitShiftRight, FunnyType.Int32, FunnyType.Int32, FunnyType.UInt8) { }
             public override object Calc(object a, object b) => ((int)a) >> ((byte)b);
         }
         public class Int64Function : FunctionWithTwoArgs {
-            public Int64Function() : base(CoreFunNames.BitShiftRight, VarType.Int64, VarType.Int64, VarType.UInt8) { }
+            public Int64Function() : base(CoreFunNames.BitShiftRight, FunnyType.Int64, FunnyType.Int64, FunnyType.UInt8) { }
             public override object Calc(object a, object b) => ((long)a) >> ((byte)b);
         }
 
         public class UInt32Function : FunctionWithTwoArgs {
-            public UInt32Function() : base(CoreFunNames.BitShiftRight, VarType.UInt32, VarType.UInt32, VarType.UInt8) { }
+            public UInt32Function() : base(CoreFunNames.BitShiftRight, FunnyType.UInt32, FunnyType.UInt32, FunnyType.UInt8) { }
             public override object Calc(object a, object b) => (uint)((uint)a >> (byte)b);
         }
         public class UInt64Function : FunctionWithTwoArgs {
-            public UInt64Function() : base(CoreFunNames.BitShiftRight, VarType.UInt64, VarType.UInt64, VarType.UInt8) { }
+            public UInt64Function() : base(CoreFunNames.BitShiftRight, FunnyType.UInt64, FunnyType.UInt64, FunnyType.UInt8) { }
             public override object Calc(object a, object b) => (ulong)((ulong)a >> (byte)b);
         }
     }

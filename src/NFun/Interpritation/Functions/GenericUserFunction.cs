@@ -34,7 +34,7 @@ namespace NFun.Interpritation.Functions
             var ticSignature = (StateFun)typeInferenceResults.GetVariableType(ticFunName);
             var signatureConverter = TicTypesConverter.GenericSignatureConverter(ticGenerics);
 
-            var argTypes = new VarType[ticSignature.ArgNodes.Length];
+            var argTypes = new FunnyType[ticSignature.ArgNodes.Length];
             for (var i = 0; i < ticSignature.ArgNodes.Length; i++)
                 argTypes[i] = signatureConverter.Convert(ticSignature.ArgNodes[i].State);
             var retType = signatureConverter.Convert(ticSignature.ReturnType);
@@ -49,7 +49,7 @@ namespace NFun.Interpritation.Functions
 
         public static void CreateSomeConcrete(GenericUserFunction function)
         {
-            var varType = new VarType[function._constrainsMap.Length];
+            var varType = new FunnyType[function._constrainsMap.Length];
 
             for (var i = 0; i < function._constrainsMap.Length; i++)
             {
@@ -66,8 +66,8 @@ namespace NFun.Interpritation.Functions
             UserFunctionDefinitionSyntaxNode syntaxNode,
             IFunctionDictionary dictionary,
             GenericConstrains[] constrains,
-            VarType returnType,
-            VarType[] argTypes
+            FunnyType returnType,
+            FunnyType[] argTypes
             ) : base(syntaxNode.Id, constrains, returnType, argTypes)
         {
             _typeInferenceResults = typeInferenceResults;
@@ -77,7 +77,7 @@ namespace NFun.Interpritation.Functions
         }
 
         readonly Dictionary<string, IConcreteFunction> _concreteFunctionsCache = new Dictionary<string, IConcreteFunction>();
-        public override IConcreteFunction CreateConcrete(VarType[] concreteTypes)
+        public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes)
         {
             BuiltCount++;
             

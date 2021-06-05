@@ -14,7 +14,7 @@ namespace NFun.Interpritation.Nodes
 
         public VariableSource Source { get; }
         public Interval Interval { get; }
-        public VarType Type => Source.Type;
+        public FunnyType Type => Source.Type;
         public object Calc() => Source.InternalFunnyValue;
         public override string ToString() => $"{Source.Name}: {Source.InternalFunnyValue}";
 

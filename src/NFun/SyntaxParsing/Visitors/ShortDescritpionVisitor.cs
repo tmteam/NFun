@@ -22,7 +22,7 @@ namespace NFun.SyntaxParsing.Visitors
 
         public string Visit(ConstantSyntaxNode node)
         {
-            if (node.OutputType.Equals(VarType.Text))
+            if (node.OutputType.Equals(FunnyType.Text))
             {
                 var str = node.Value.ToString();
                 return $"'{(str.Length > 20 ? (str.Substring(17) + "...") : str)}'";
@@ -31,9 +31,9 @@ namespace NFun.SyntaxParsing.Visitors
         }
         public string Visit(SyntaxTree node) => "Fun equations";
         public string Visit(TypedVarDefSyntaxNode node)
-            => $"'{node.Id}:{node.VarType}";
+            => $"'{node.Id}:{node.FunnyType}";
         public string Visit(UserFunctionDefinitionSyntaxNode node) => $"{node.Id}(...) = ...";
-        public string Visit(VarDefinitionSyntaxNode node) => $"'{node.Id}:{node.VarType}";
+        public string Visit(VarDefinitionSyntaxNode node) => $"'{node.Id}:{node.FunnyType}";
         public string Visit(NamedIdSyntaxNode node) => node.Id;
         public string Visit(ResultFunCallSyntaxNode node) => $"{node.ResultExpression.Accept(this)}(...)";
         public string Visit(SuperAnonymFunctionSyntaxNode node) => "{" + node.Body.Accept(this) + "}";

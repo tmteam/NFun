@@ -33,7 +33,7 @@ namespace NFun.Interpritation
         public static IExpressionNode BuildExpression(
             ISyntaxNode node,
             IFunctionDictionary functions,
-            VarType outputType,
+            FunnyType outputType,
             VariableDictionary variables, 
             TypeInferenceResults typeInferenceResults, 
             TicTypesConverter typesConverter)
@@ -111,7 +111,7 @@ namespace NFun.Interpritation
 
         public IExpressionNode Visit(StructInitSyntaxNode node)
         {
-            var types = new Dictionary<string,VarType>(node.Fields.Count);
+            var types = new Dictionary<string,FunnyType>(node.Fields.Count);
             var names = new string[node.Fields.Count];
             var nodes = new IExpressionNode[node.Fields.Count];
             
@@ -128,7 +128,7 @@ namespace NFun.Interpritation
                 if (!types.ContainsKey(field.Key))
                     throw FunParseException.ErrorStubToDo($"Field {field.Key} is missed in struct");
             }
-            return new StructInitExpressionNode(names,nodes,node.Interval,VarType.StructOf(types));
+            return new StructInitExpressionNode(names,nodes,node.Interval,FunnyType.StructOf(types));
         }
 
         public IExpressionNode Visit(ArrowAnonymFunctionSyntaxNode arrowAnonymFunNode)
@@ -174,7 +174,7 @@ namespace NFun.Interpritation
         public IExpressionNode Visit(ArraySyntaxNode node)
         {
             var elements = new IExpressionNode[node.Expressions.Count];
-            var expectedElementType = node.OutputType.ArrayTypeSpecification.VarType;
+            var expectedElementType = node.OutputType.ArrayTypeSpecification.FunnyType;
             for (int i = 0; i < node.Expressions.Count; i++)
             {
                 var elementNode = ReadNode(node.Expressions[i]);
@@ -205,7 +205,7 @@ namespace NFun.Interpritation
 
             if (someFunc is IGenericFunction genericFunction) //generic function
             {
-                VarType[] genericArgs;
+                FunnyType[] genericArgs;
                 // Generic function type arguments usually stored in tic results
                 var genericTypes = _typeInferenceResults.GetGenericCallArguments(node.OrderNumber);
                 if (genericTypes == null)
@@ -223,7 +223,7 @@ namespace NFun.Interpritation
                 }
                 else
                 {
-                    genericArgs = new VarType[genericTypes.Length];
+                    genericArgs = new FunnyType[genericTypes.Length];
                     for (int i = 0; i < genericTypes.Length; i++) 
                         genericArgs[i] = _typesConverter.Convert(genericTypes[i]);
                 }
@@ -313,7 +313,7 @@ namespace NFun.Interpritation
                     if (genericTypes == null)
                         throw new ImpossibleException($"MJ79. Generic function is missed at {node.OrderNumber}:  {node.Id}`{genericFunction.Name} ");
 
-                    var genericArgs = new VarType[genericTypes.Length];
+                    var genericArgs = new FunnyType[genericTypes.Length];
                     for (int i = 0; i < genericTypes.Length; i++)
                         genericArgs[i] = _typesConverter.Convert(genericTypes[i]);
 

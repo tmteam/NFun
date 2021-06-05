@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace NFun.Types
 {
-    public readonly struct VarType
+    public readonly struct FunnyType
     {
         public override int GetHashCode()
         {
@@ -17,58 +17,56 @@ namespace NFun.Types
             }
         }
 
-        public static VarType Empty => new();
-        public static VarType PrimitiveOf(BaseVarType baseType) => new(baseType);
-        public static VarType Anything => new(BaseVarType.Any);
-        public static VarType Bool => new(BaseVarType.Bool);
-        public static VarType Char => new(BaseVarType.Char);
+        public static FunnyType Empty => new();
+        public static FunnyType PrimitiveOf(BaseFunnyType baseType) => new(baseType);
+        public static FunnyType Anything => new(BaseFunnyType.Any);
+        public static FunnyType Bool => new(BaseFunnyType.Bool);
+        public static FunnyType Char => new(BaseFunnyType.Char);
 
-        public static VarType UInt8 => new(BaseVarType.UInt8);
-        public static VarType UInt16 => new(BaseVarType.UInt16);
-        public static VarType UInt32 => new(BaseVarType.UInt32);
-        public static VarType UInt64 => new(BaseVarType.UInt64);
+        public static FunnyType UInt8 => new(BaseFunnyType.UInt8);
+        public static FunnyType UInt16 => new(BaseFunnyType.UInt16);
+        public static FunnyType UInt32 => new(BaseFunnyType.UInt32);
+        public static FunnyType UInt64 => new(BaseFunnyType.UInt64);
 
-        public static VarType Int16 => new(BaseVarType.Int16);
-        public static VarType Int32 => new(BaseVarType.Int32);
-        public static VarType Int64 => new(BaseVarType.Int64);
-        public static VarType Real => new(BaseVarType.Real);
-        public static VarType  Text =>  ArrayOf(Char);
-        public static VarType StructOf(Dictionary<string, VarType> fields) 
+        public static FunnyType Int16 => new(BaseFunnyType.Int16);
+        public static FunnyType Int32 => new(BaseFunnyType.Int32);
+        public static FunnyType Int64 => new(BaseFunnyType.Int64);
+        public static FunnyType Real => new(BaseFunnyType.Real);
+        public static FunnyType  Text =>  ArrayOf(Char);
+        public static FunnyType StructOf(Dictionary<string, FunnyType> fields) 
             => new(fields);
-        public static VarType StructOf(params (string,VarType)[] fields) 
+        public static FunnyType StructOf(params (string,FunnyType)[] fields) 
             => new(fields.ToDictionary(f=>f.Item1, f=>f.Item2));
-        public static VarType StructOf(string fieldName, VarType fieldType) 
-            => new(new Dictionary<string, VarType>{{fieldName,fieldType}});
-        public static VarType StructOf(string fieldName1, VarType fieldType1,string fieldName2, VarType fieldType2) 
-            => new(new Dictionary<string, VarType>{{fieldName1,fieldType1},{fieldName2,fieldType2}});
+        public static FunnyType StructOf(string fieldName, FunnyType fieldType) 
+            => new(new Dictionary<string, FunnyType>{{fieldName,fieldType}});
 
 
-        public static VarType ArrayOf(VarType type) => new(type);
+        public static FunnyType ArrayOf(FunnyType type) => new(type);
 
-        public static VarType Fun(VarType returnType, params VarType[] inputTypes)
+        public static FunnyType Fun(FunnyType returnType, params FunnyType[] inputTypes)
             => new(output: returnType, inputs: inputTypes);
 
-        public static VarType Generic(int genericId) => new(genericId);
+        public static FunnyType Generic(int genericId) => new(genericId);
 
-        private VarType(VarType output, VarType[] inputs)
+        private FunnyType(FunnyType output, FunnyType[] inputs)
         {
             FunTypeSpecification = new FunTypeSpecification(output, inputs);
-            BaseType = BaseVarType.Fun;
+            BaseType = BaseFunnyType.Fun;
             ArrayTypeSpecification = null;
             GenericId = null;
             StructTypeSpecification = null;
         }
         
-        private VarType(int genericId)
+        private FunnyType(int genericId)
         {
-            BaseType = BaseVarType.Generic;
+            BaseType = BaseFunnyType.Generic;
             FunTypeSpecification = null;
             ArrayTypeSpecification = null;
             StructTypeSpecification = null;
             GenericId = genericId;
         }
 
-        private VarType(BaseVarType baseType)
+        private FunnyType(BaseFunnyType baseType)
         {
             BaseType = baseType;
             StructTypeSpecification = null;
@@ -78,70 +76,70 @@ namespace NFun.Types
             GenericId = null;
         }
 
-        private VarType(VarType arrayElementType)
+        private FunnyType(FunnyType arrayElementType)
         {
-            BaseType = BaseVarType.ArrayOf;
+            BaseType = BaseFunnyType.ArrayOf;
             StructTypeSpecification = null;
             FunTypeSpecification = null;
             ArrayTypeSpecification = new AdditionalTypeSpecification(arrayElementType);
             GenericId = null;
         }
 
-        private VarType(Dictionary<string, VarType> arrayElementType)
+        private FunnyType(Dictionary<string, FunnyType> arrayElementType)
         {
-            BaseType = BaseVarType.Struct;
+            BaseType = BaseFunnyType.Struct;
             StructTypeSpecification = arrayElementType;
             FunTypeSpecification = null;
             ArrayTypeSpecification = null;
             GenericId = null;
 
         }
-        public bool IsText => BaseType == BaseVarType.ArrayOf &&
-                              ArrayTypeSpecification.VarType.BaseType == BaseVarType.Char;
-        public readonly BaseVarType BaseType;
-        public readonly Dictionary<string, VarType> StructTypeSpecification;
+        public bool IsText => BaseType == BaseFunnyType.ArrayOf &&
+                              ArrayTypeSpecification.FunnyType.BaseType == BaseFunnyType.Char;
+        public readonly BaseFunnyType BaseType;
+        public readonly Dictionary<string, FunnyType> StructTypeSpecification;
         public readonly AdditionalTypeSpecification ArrayTypeSpecification;
         public readonly FunTypeSpecification FunTypeSpecification;
         public readonly int? GenericId;
         
-        public static bool operator ==(VarType obj1, VarType obj2)
+        public static bool operator ==(FunnyType obj1, FunnyType obj2)
             => obj1.Equals(obj2);
 
         // this is second one '!='
-        public static bool operator !=(VarType obj1, VarType obj2)
+        public static bool operator !=(FunnyType obj1, FunnyType obj2)
             => !obj1.Equals(obj2);
 
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(null, obj)) return false;
-            return obj is VarType other && Equals(other);
+            return obj is FunnyType other && Equals(other);
         }
 
         // this is third one 'Equals'
-        private bool Equals(VarType obj)
+        private bool Equals(FunnyType obj)
         {
             if (obj.BaseType != BaseType)
                 return false;
 
             switch (BaseType)
             {
-                case BaseVarType.Bool:
+                case BaseFunnyType.Bool:
 
-                case BaseVarType.Int16:
-                case BaseVarType.Int32:
-                case BaseVarType.Int64:
-                case BaseVarType.UInt8:
-                case BaseVarType.UInt16:
-                case BaseVarType.UInt32:
-                case BaseVarType.UInt64:
+                case BaseFunnyType.Int16:
+                case BaseFunnyType.Int32:
+                case BaseFunnyType.Int64:
+                case BaseFunnyType.UInt8:
+                case BaseFunnyType.UInt16:
+                case BaseFunnyType.UInt32:
+                case BaseFunnyType.UInt64:
 
-                case BaseVarType.Real:
-                case BaseVarType.Char:
-                case BaseVarType.Any:
+                case BaseFunnyType.Real:
+                case BaseFunnyType.Char:
+                case BaseFunnyType.Any:
                     return true;
-                case BaseVarType.ArrayOf:
-                    return ArrayTypeSpecification.VarType.Equals(obj.ArrayTypeSpecification.VarType);
-                case BaseVarType.Fun:
+                case BaseFunnyType.ArrayOf:
+                    return ArrayTypeSpecification.FunnyType.Equals(obj.ArrayTypeSpecification.FunnyType);
+                case BaseFunnyType.Fun:
                 {
                     var funA = FunTypeSpecification;
                     var funB = obj.FunTypeSpecification;
@@ -157,9 +155,9 @@ namespace NFun.Types
 
                     return true;
                 }
-                case BaseVarType.Generic:
+                case BaseFunnyType.Generic:
                     return GenericId == obj.GenericId;
-                case BaseVarType.Struct:
+                case BaseFunnyType.Struct:
                     foreach (var thisField in StructTypeSpecification)
                     {
                         if (!obj.StructTypeSpecification.TryGetValue(thisField.Key, out var otherValue))
@@ -174,7 +172,7 @@ namespace NFun.Types
         }
 
         public bool IsNumeric() 
-            => BaseType >= BaseVarType.UInt8 && BaseType <= BaseVarType.Real;
+            => BaseType >= BaseFunnyType.UInt8 && BaseType <= BaseFunnyType.Real;
         /// <summary>
         /// Substitude concrete types to generic type definition (if it is)
         ///
@@ -182,49 +180,49 @@ namespace NFun.Types
         /// generic:   Fun(T1, int)-> T0[];   solved: {int, text}
         /// returns:   Fun(text,int)-> int[];
         /// </summary>
-        public static VarType SubstituteConcreteTypes(VarType genericOrNot, VarType[] solvedTypes)
+        public static FunnyType SubstituteConcreteTypes(FunnyType genericOrNot, FunnyType[] solvedTypes)
         {
             switch (genericOrNot.BaseType)
             {
-                case BaseVarType.Empty:
-                case BaseVarType.Bool:
-                case BaseVarType.Int16:
-                case BaseVarType.Int32:
-                case BaseVarType.Int64:
-                case BaseVarType.UInt8:
-                case BaseVarType.UInt16:
-                case BaseVarType.UInt32:
-                case BaseVarType.UInt64:
-                case BaseVarType.Real:
-                case BaseVarType.Char:
-                case BaseVarType.Any:
+                case BaseFunnyType.Empty:
+                case BaseFunnyType.Bool:
+                case BaseFunnyType.Int16:
+                case BaseFunnyType.Int32:
+                case BaseFunnyType.Int64:
+                case BaseFunnyType.UInt8:
+                case BaseFunnyType.UInt16:
+                case BaseFunnyType.UInt32:
+                case BaseFunnyType.UInt64:
+                case BaseFunnyType.Real:
+                case BaseFunnyType.Char:
+                case BaseFunnyType.Any:
                     return genericOrNot;
-                case BaseVarType.ArrayOf:
-                    return ArrayOf(SubstituteConcreteTypes(genericOrNot.ArrayTypeSpecification.VarType, solvedTypes));
-                case BaseVarType.Fun:
-                    var outputTypes = new VarType[genericOrNot.FunTypeSpecification.Inputs.Length];
+                case BaseFunnyType.ArrayOf:
+                    return ArrayOf(SubstituteConcreteTypes(genericOrNot.ArrayTypeSpecification.FunnyType, solvedTypes));
+                case BaseFunnyType.Fun:
+                    var outputTypes = new FunnyType[genericOrNot.FunTypeSpecification.Inputs.Length];
                     for (int i = 0; i < genericOrNot.FunTypeSpecification.Inputs.Length; i++)
                         outputTypes[i] =
                             SubstituteConcreteTypes(genericOrNot.FunTypeSpecification.Inputs[i], solvedTypes);
                     return Fun(SubstituteConcreteTypes(genericOrNot.FunTypeSpecification.Output, solvedTypes),
                         outputTypes);
-                case BaseVarType.Generic:
+                case BaseFunnyType.Generic:
                     return solvedTypes[genericOrNot.GenericId.Value];
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
 
-        public static bool TrySolveGenericTypes(VarType[] genericArguments, VarType genericType, VarType concreteType, bool strict = false)
+        public static bool TrySolveGenericTypes(FunnyType[] genericArguments, FunnyType genericType, FunnyType concreteType, bool strict = false)
         {
             while (true)
             {
                 switch (genericType.BaseType)
                 {
-                    case BaseVarType.Generic:
+                    case BaseFunnyType.Generic:
                     {
                         var id = genericType.GenericId.Value;
-                        if (genericArguments[id].BaseType == BaseVarType.Empty)
+                        if (genericArguments[id].BaseType == BaseFunnyType.Empty)
                         {
                             genericArguments[id] = concreteType;
                         }
@@ -243,16 +241,16 @@ namespace NFun.Types
 
                         return true;
                     }
-                    case BaseVarType.ArrayOf when concreteType.BaseType != BaseVarType.ArrayOf:
+                    case BaseFunnyType.ArrayOf when concreteType.BaseType != BaseFunnyType.ArrayOf:
                         return false;
-                    case BaseVarType.ArrayOf:
-                        genericType = genericType.ArrayTypeSpecification.VarType;
-                        concreteType = concreteType.ArrayTypeSpecification.VarType;
+                    case BaseFunnyType.ArrayOf:
+                        genericType = genericType.ArrayTypeSpecification.FunnyType;
+                        concreteType = concreteType.ArrayTypeSpecification.FunnyType;
                         strict = false;
                         continue;
-                    case BaseVarType.Fun when concreteType.BaseType != BaseVarType.Fun:
+                    case BaseFunnyType.Fun when concreteType.BaseType != BaseFunnyType.Fun:
                         return false;
-                    case BaseVarType.Fun:
+                    case BaseFunnyType.Fun:
                     {
                         var genericFun = genericType.FunTypeSpecification;
                         var concreteFun = concreteType.FunTypeSpecification;
@@ -276,29 +274,29 @@ namespace NFun.Types
         {
             switch (BaseType)
             {
-                case BaseVarType.Bool:
-                case BaseVarType.Int16:
-                case BaseVarType.Int32:
-                case BaseVarType.Int64:
-                case BaseVarType.UInt8:
-                case BaseVarType.UInt16:
-                case BaseVarType.UInt32:
-                case BaseVarType.UInt64:
-                case BaseVarType.Real:
-                case BaseVarType.Char:
-                case BaseVarType.Any:
+                case BaseFunnyType.Bool:
+                case BaseFunnyType.Int16:
+                case BaseFunnyType.Int32:
+                case BaseFunnyType.Int64:
+                case BaseFunnyType.UInt8:
+                case BaseFunnyType.UInt16:
+                case BaseFunnyType.UInt32:
+                case BaseFunnyType.UInt64:
+                case BaseFunnyType.Real:
+                case BaseFunnyType.Char:
+                case BaseFunnyType.Any:
                     return null;
-                case BaseVarType.ArrayOf:
-                    return ArrayTypeSpecification.VarType.SearchMaxGenericTypeId();
-                case BaseVarType.Fun:
+                case BaseFunnyType.ArrayOf:
+                    return ArrayTypeSpecification.FunnyType.SearchMaxGenericTypeId();
+                case BaseFunnyType.Fun:
                     var iId = FunTypeSpecification.Inputs.Select(i => i.SearchMaxGenericTypeId()).Max();
                     var oId = FunTypeSpecification.Output.SearchMaxGenericTypeId();
                     if (!iId.HasValue) return oId;
                     if (!oId.HasValue) return iId;
                     return Math.Max(iId.Value, oId.Value);
-                case BaseVarType.Struct:
+                case BaseFunnyType.Struct:
                     return StructTypeSpecification.Values.Select(i => i.SearchMaxGenericTypeId()).Max();
-                case BaseVarType.Generic:
+                case BaseFunnyType.Generic:
                     return GenericId;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -308,15 +306,15 @@ namespace NFun.Types
         public override string ToString() =>
             BaseType switch
             {
-                BaseVarType.ArrayOf => ArrayTypeSpecification.VarType + "[]",
-                BaseVarType.Fun => $"({string.Join(",", FunTypeSpecification.Inputs)})->{FunTypeSpecification.Output}",
-                BaseVarType.Struct =>
+                BaseFunnyType.ArrayOf => ArrayTypeSpecification.FunnyType + "[]",
+                BaseFunnyType.Fun => $"({string.Join(",", FunTypeSpecification.Inputs)})->{FunTypeSpecification.Output}",
+                BaseFunnyType.Struct =>
                     $"{{{string.Join(";", StructTypeSpecification.Select(s => s.Key + ":" + s.Value))}}}",
-                BaseVarType.Generic => "T_" + GenericId,
+                BaseFunnyType.Generic => "T_" + GenericId,
                 _ => BaseType.ToString()
             };
 
-        public bool CanBeConvertedTo(VarType to)
+        public bool CanBeConvertedTo(FunnyType to)
             => VarTypeConverter.CanBeConverted(this, to);
     }
 }

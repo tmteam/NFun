@@ -11,7 +11,7 @@ namespace NFun.UnitTests
     class PapaFunction : FunctionWithManyArguments
     {
         public const string PapaReturn = "papa is here";
-        public PapaFunction(string name) : base(name, VarType.Text)
+        public PapaFunction(string name) : base(name, FunnyType.Text)
         {
         }
 
@@ -21,7 +21,7 @@ namespace NFun.UnitTests
     {
         public const string MamaReturn = "mama called";
 
-        public MamaFunction(string name) : base(name, VarType.Text)
+        public MamaFunction(string name) : base(name, FunnyType.Text)
         {
         }
 

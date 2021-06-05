@@ -8,19 +8,19 @@ namespace NFun.Interpritation.Functions
     public abstract class FunctionWithManyArguments: IConcreteFunction
     {
         public string Name { get; }
-        public VarType[] ArgTypes { get;protected set; }
+        public FunnyType[] ArgTypes { get;protected set; }
         
         protected FunctionWithManyArguments(string name)
         {
             Name = name;
         }
-        protected FunctionWithManyArguments(string name,  VarType returnType, params VarType[] argTypes)
+        protected FunctionWithManyArguments(string name,  FunnyType returnType, params FunnyType[] argTypes)
         {
             Name = name;
             ArgTypes = argTypes;
             ReturnType = returnType;
         }
-        public VarType ReturnType { get; protected set; }
+        public FunnyType ReturnType { get; protected set; }
         public abstract object Calc(object[] args);
 
         public IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children,  Interval interval)

@@ -7,7 +7,7 @@ namespace NFun.SyntaxParsing.SyntaxNodes
 {
     public class IfCaseSyntaxNode : ISyntaxNode
     {
-        public VarType OutputType { get; set; }
+        public FunnyType OutputType { get; set; }
         public int OrderNumber { get; set; }
 
         public ISyntaxNode Condition { get; }

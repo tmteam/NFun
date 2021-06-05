@@ -411,7 +411,7 @@ namespace NFun.ParseErrors
         public static Exception NotAnExpression(ISyntaxNode node) 
             => new FunParseException(503,$"{node} is not an expression", node.Interval);
   
-        public static Exception ImpossibleCast(VarType from,VarType to, Interval interval)
+        public static Exception ImpossibleCast(FunnyType from,FunnyType to, Interval interval)
             => new FunParseException(506, $"Unable to cast from {from} to {to}", interval);
       
         public static Exception InvalidArgTypeDefinition(ISyntaxNode argumentNode) 
@@ -449,7 +449,7 @@ namespace NFun.ParseErrors
         public static Exception AmbiguousFunctionChoise(NamedIdSyntaxNode varName)
             =>  new FunParseException(526,$"Several functions with name: {varName.Id} can be used in expression. Did you mean input variable instead of function?", varName.Interval);
         
-        public static Exception ArrayInitializerTypeMismatch(VarType stepType, ISyntaxNode node)
+        public static Exception ArrayInitializerTypeMismatch(FunnyType stepType, ISyntaxNode node)
             => new FunParseException(527,$"Array initializator step has to be int type only but was '{stepType}'. Example: [1..5..2]", node.Interval);
 
         public static Exception CannotParseNumber(string val, Interval interval)
@@ -501,7 +501,7 @@ namespace NFun.ParseErrors
         public static Exception AnonymousFunctionArgumentDuplicates(NamedIdSyntaxNode argNode,ISyntaxNode funDefinition)
             => new FunParseException(560, $"'Argument name '{argNode.Id}' of anonymous fun duplicates ", argNode.Interval);
         public static Exception AnonymousFunctionArgumentDuplicates(TypedVarDefSyntaxNode argNode,ISyntaxNode funDefinition)
-            => new FunParseException(563, $"'Argument '{argNode.Id}:{argNode.VarType}' of anonymous fun duplicates ", argNode.Interval);
+            => new FunParseException(563, $"'Argument '{argNode.Id}:{argNode.FunnyType}' of anonymous fun duplicates ", argNode.Interval);
 
         public static Exception AnonymousFunctionArgumentConflictsWithOuterScope(string argName, Interval defInterval)
             => new FunParseException(566, $"'Argument name '{argName}' of anonymous fun conflicts with outer scope variable. It is denied for your safety.", defInterval);
@@ -525,13 +525,13 @@ namespace NFun.ParseErrors
             Memory<(string, IOutputFunnyConverter, PropertyInfo)> expectedOutputs)
             => new (609,"No output values were setted", Interval.Empty);
 
-        public static FunParseException OutputIsUnset(VarType expectedOutputType)
+        public static FunParseException OutputIsUnset(FunnyType expectedOutputType)
             => new(612, $"Output is not set. Anonymous of type '{expectedOutputType.ToString()}' equation or '{Parser.AnonymousEquationId}' variable expected", Interval.Empty);
 
         public static FunParseException OutputIsUnset()
             => new (615,
                 $"Output is not set. Anonymous equation or '{Parser.AnonymousEquationId}' variable expected", Interval.Empty);
-        public static FunParseException TypeCannotBeUsedAsOutputNfunType(VarType funnyType) 
+        public static FunParseException TypeCannotBeUsedAsOutputNfunType(FunnyType funnyType) 
             => new (618,$"type {funnyType} is not supported for dynamic convertion", Interval.Empty);
         
         #endregion

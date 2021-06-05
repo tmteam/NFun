@@ -98,7 +98,7 @@ namespace NFun.Runtime.Arrays
 
         public Array ClrArray => _text.ToCharArray();
         public string ToText() => _text;
-        public VarType ElementType => VarType.Char;
+        public FunnyType ElementType => FunnyType.Char;
         public int Count => _text.Length;
         public override string ToString() => _text;
         public int CompareTo(object obj)

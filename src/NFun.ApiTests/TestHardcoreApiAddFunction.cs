@@ -21,8 +21,8 @@ namespace NFun.ApiTests
                 new FunctionMock(
                     args => ((IFunArray)args[0]).Count, 
                     customName, 
-                    VarType.Int32, 
-                    VarType.Text))
+                    FunnyType.Int32, 
+                    FunnyType.Text))
                 .Build($"y = {customName}('{arg}')");
            
             runtime.Calc().AssertReturns("y", arg.Length);
@@ -39,10 +39,10 @@ namespace NFun.ApiTests
                 .WithFunction(
                     new GenericFunctionMock(
                         args => new EnumerableFunArray(((IEnumerable<object>)args[0])
-                            .Where((_, i) => i % 2 == 0), VarType.Anything),
+                            .Where((_, i) => i % 2 == 0), FunnyType.Anything),
                         customName,
-                        VarType.ArrayOf(VarType.Generic(0)),
-                        VarType.ArrayOf(VarType.Generic(0))))
+                        FunnyType.ArrayOf(FunnyType.Generic(0)),
+                        FunnyType.ArrayOf(FunnyType.Generic(0))))
                 .Build($"y = {customName}({arg})");
             runtime.Calc().AssertReturns("y", expected);
         }
@@ -121,7 +121,7 @@ namespace NFun.ApiTests
     public class LogFunction : GenericFunctionBase
     {
 
-        public LogFunction() : base("writeLog", VarType.Generic(0), VarType.Generic(0), VarType.Text)
+        public LogFunction() : base("writeLog", FunnyType.Generic(0), FunnyType.Generic(0), FunnyType.Text)
         {
         }
         // T Log<T>(T, string)
@@ -135,7 +135,7 @@ namespace NFun.ApiTests
     {
         private readonly Func<object[], object> _calc;
 
-        public GenericFunctionMock(Func<object[], object> calc,string name, VarType returnType, params VarType[] argTypes) : base(name, returnType, argTypes)
+        public GenericFunctionMock(Func<object[], object> calc,string name, FunnyType returnType, params FunnyType[] argTypes) : base(name, returnType, argTypes)
         {
             _calc = calc;
         }
@@ -147,7 +147,7 @@ namespace NFun.ApiTests
     {
         private readonly Func<object[], object> _calc;
 
-        public FunctionMock(Func<object[], object> calc, string name, VarType returnType, params VarType[] argTypes) 
+        public FunctionMock(Func<object[], object> calc, string name, FunnyType returnType, params FunnyType[] argTypes) 
             : base(name, returnType, argTypes)
         {
             _calc = calc;

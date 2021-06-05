@@ -7,17 +7,17 @@ namespace NFun.UnitTests
     [TestFixture]
     public class TokenHelperTest
     {
-        [TestCase("1",1, BaseVarType.Int32)]
-        [TestCase("0xFF",0xFF, BaseVarType.Int32)]
-        [TestCase("0.1",0.1, BaseVarType.Real)]
-        [TestCase("0xFEDCBA987654321",0xFEDCBA987654321, BaseVarType.Int64)]
-        [TestCase("0xFEDCBA",0xFEDCBA, BaseVarType.Int32)]
-        [TestCase("9876543210",9876543210, BaseVarType.Int64)]
-        [TestCase("-9876543210",-9876543210, BaseVarType.Int64)]
-        [TestCase("2147483647",2147483647, BaseVarType.Int32)]
-        [TestCase("-2147483648",-2147483648, BaseVarType.Int32)]
-        [TestCase("0b1111_1111_1111_1111_1111_1111_1111",0b1111_1111_1111_1111_1111_1111_1111, BaseVarType.Int32)]
-        public void ToConstant_NumberConstant_ParsesWell(string value, object expectedVal, BaseVarType expectedType)
+        [TestCase("1",1, BaseFunnyType.Int32)]
+        [TestCase("0xFF",0xFF, BaseFunnyType.Int32)]
+        [TestCase("0.1",0.1, BaseFunnyType.Real)]
+        [TestCase("0xFEDCBA987654321",0xFEDCBA987654321, BaseFunnyType.Int64)]
+        [TestCase("0xFEDCBA",0xFEDCBA, BaseFunnyType.Int32)]
+        [TestCase("9876543210",9876543210, BaseFunnyType.Int64)]
+        [TestCase("-9876543210",-9876543210, BaseFunnyType.Int64)]
+        [TestCase("2147483647",2147483647, BaseFunnyType.Int32)]
+        [TestCase("-2147483648",-2147483648, BaseFunnyType.Int32)]
+        [TestCase("0b1111_1111_1111_1111_1111_1111_1111",0b1111_1111_1111_1111_1111_1111_1111, BaseFunnyType.Int32)]
+        public void ToConstant_NumberConstant_ParsesWell(string value, object expectedVal, BaseFunnyType expectedType)
         {
             var (obj, type) = TokenHelper.ToConstant(value);
             Assert.AreEqual(expectedVal, obj);
@@ -40,31 +40,31 @@ namespace NFun.UnitTests
         public void ToConstant_SomeCrap_ThrowsFormatException(string value) => 
             Assert.Catch(() => TokenHelper.ToConstant(value));
 
-        [TestCase("int", BaseVarType.Int32)]
-        [TestCase("int;[]", BaseVarType.Int32)]
-        [TestCase("int;[][]", BaseVarType.Int32)]
-        [TestCase("int16", BaseVarType.Int16)]
-        [TestCase("int32", BaseVarType.Int32)]
-        [TestCase("int64", BaseVarType.Int64)]
-        [TestCase("uint", BaseVarType.UInt32)]
-        [TestCase("byte", BaseVarType.UInt8)]
-        [TestCase("int=", BaseVarType.Int32)]
-        [TestCase("int16=", BaseVarType.Int16)]
-        [TestCase("int32=", BaseVarType.Int32)]
-        [TestCase("int64=", BaseVarType.Int64)]
-        [TestCase("uint=", BaseVarType.UInt32)]
-        [TestCase("byte=", BaseVarType.UInt8)]
-        [TestCase("uint16=", BaseVarType.UInt16)]
-        [TestCase("uint32;", BaseVarType.UInt32)]
-        [TestCase("uint64;(", BaseVarType.UInt64)]
-        [TestCase("uint64;a", BaseVarType.UInt64)]
+        [TestCase("int", BaseFunnyType.Int32)]
+        [TestCase("int;[]", BaseFunnyType.Int32)]
+        [TestCase("int;[][]", BaseFunnyType.Int32)]
+        [TestCase("int16", BaseFunnyType.Int16)]
+        [TestCase("int32", BaseFunnyType.Int32)]
+        [TestCase("int64", BaseFunnyType.Int64)]
+        [TestCase("uint", BaseFunnyType.UInt32)]
+        [TestCase("byte", BaseFunnyType.UInt8)]
+        [TestCase("int=", BaseFunnyType.Int32)]
+        [TestCase("int16=", BaseFunnyType.Int16)]
+        [TestCase("int32=", BaseFunnyType.Int32)]
+        [TestCase("int64=", BaseFunnyType.Int64)]
+        [TestCase("uint=", BaseFunnyType.UInt32)]
+        [TestCase("byte=", BaseFunnyType.UInt8)]
+        [TestCase("uint16=", BaseFunnyType.UInt16)]
+        [TestCase("uint32;", BaseFunnyType.UInt32)]
+        [TestCase("uint64;(", BaseFunnyType.UInt64)]
+        [TestCase("uint64;a", BaseFunnyType.UInt64)]
 
-        [TestCase("real", BaseVarType.Real)]
-        [TestCase("real:", BaseVarType.Real)]
-        [TestCase("bool", BaseVarType.Bool)]
-        [TestCase("any", BaseVarType.Any)]
-        public void ReadVarType_PrimitiveTypes(string expr, BaseVarType expected) => 
-            AssertVarType(expr, VarType.PrimitiveOf(expected));
+        [TestCase("real", BaseFunnyType.Real)]
+        [TestCase("real:", BaseFunnyType.Real)]
+        [TestCase("bool", BaseFunnyType.Bool)]
+        [TestCase("any", BaseFunnyType.Any)]
+        public void ReadType_PrimitiveTypes(string expr, BaseFunnyType expected) => 
+            AssertFunnyType(expr, FunnyType.PrimitiveOf(expected));
 
         [TestCase("int8")]
         [TestCase("int10")]
@@ -93,7 +93,7 @@ namespace NFun.UnitTests
         [TestCase("char")]
         [TestCase("char[]")]
         [TestCase("t")]
-        public void ReadVarType_Throws(string expr)
+        public void ReadType_Throws(string expr)
         {
             var flow = Tokenizer.ToFlow(expr);
             Assert.Catch(() => flow.ReadType());
@@ -101,61 +101,61 @@ namespace NFun.UnitTests
         [TestCase("text")]
         [TestCase("text=")]
         [TestCase("text:")]
-        public void ReadTextType(string expr) => AssertVarType(expr,VarType.Text);
+        public void ReadTextType(string expr) => AssertFunnyType(expr,FunnyType.Text);
 
-        [TestCase("int[]", BaseVarType.Int32)]
-        [TestCase("int[]\r", BaseVarType.Int32)]
-        [TestCase("int[]\r[]", BaseVarType.Int32)]
-        [TestCase("int[];[]", BaseVarType.Int32)]
-        [TestCase("int16[]", BaseVarType.Int16)]
+        [TestCase("int[]", BaseFunnyType.Int32)]
+        [TestCase("int[]\r", BaseFunnyType.Int32)]
+        [TestCase("int[]\r[]", BaseFunnyType.Int32)]
+        [TestCase("int[];[]", BaseFunnyType.Int32)]
+        [TestCase("int16[]", BaseFunnyType.Int16)]
 
-        [TestCase("int32[]", BaseVarType.Int32)]
-        [TestCase("int64[]", BaseVarType.Int64)]
-        [TestCase("uint[]", BaseVarType.UInt32)]
-        [TestCase("byte[]", BaseVarType.UInt8)]
-        [TestCase("int[]=", BaseVarType.Int32)]
-        [TestCase("int16[]=", BaseVarType.Int16)]
-        [TestCase("int32[]=", BaseVarType.Int32)]
-        [TestCase("int64[]=", BaseVarType.Int64)]
-        [TestCase("uint[]=", BaseVarType.UInt32)]
-        [TestCase("byte[]=", BaseVarType.UInt8)]
-        [TestCase("uint16[]=", BaseVarType.UInt16)]
-        [TestCase("uint32[];", BaseVarType.UInt32)]
-        [TestCase("uint64[];(", BaseVarType.UInt64)]
-        [TestCase("uint64[];a", BaseVarType.UInt64)]
+        [TestCase("int32[]", BaseFunnyType.Int32)]
+        [TestCase("int64[]", BaseFunnyType.Int64)]
+        [TestCase("uint[]", BaseFunnyType.UInt32)]
+        [TestCase("byte[]", BaseFunnyType.UInt8)]
+        [TestCase("int[]=", BaseFunnyType.Int32)]
+        [TestCase("int16[]=", BaseFunnyType.Int16)]
+        [TestCase("int32[]=", BaseFunnyType.Int32)]
+        [TestCase("int64[]=", BaseFunnyType.Int64)]
+        [TestCase("uint[]=", BaseFunnyType.UInt32)]
+        [TestCase("byte[]=", BaseFunnyType.UInt8)]
+        [TestCase("uint16[]=", BaseFunnyType.UInt16)]
+        [TestCase("uint32[];", BaseFunnyType.UInt32)]
+        [TestCase("uint64[];(", BaseFunnyType.UInt64)]
+        [TestCase("uint64[];a", BaseFunnyType.UInt64)]
 
-        [TestCase("real[]", BaseVarType.Real)]
-        [TestCase("real[]:", BaseVarType.Real)]
-        [TestCase("bool[]", BaseVarType.Bool)]
-        [TestCase("any[]", BaseVarType.Any)]
-        public void ReadArrayType(string expr, BaseVarType elementType) =>
-            AssertVarType(expr, VarType.ArrayOf(VarType.PrimitiveOf(elementType)));
+        [TestCase("real[]", BaseFunnyType.Real)]
+        [TestCase("real[]:", BaseFunnyType.Real)]
+        [TestCase("bool[]", BaseFunnyType.Bool)]
+        [TestCase("any[]", BaseFunnyType.Any)]
+        public void ReadArrayType(string expr, BaseFunnyType elementType) =>
+            AssertFunnyType(expr, FunnyType.ArrayOf(FunnyType.PrimitiveOf(elementType)));
         
-        [TestCase("int[][]", BaseVarType.Int32)]
-        [TestCase("int16[][]", BaseVarType.Int16)]
-        [TestCase("int32[][]", BaseVarType.Int32)]
-        [TestCase("int64[][]", BaseVarType.Int64)]
-        [TestCase("uint[][]", BaseVarType.UInt32)]
-        [TestCase("byte[][]", BaseVarType.UInt8)]
-        [TestCase("int[][]=", BaseVarType.Int32)]
-        [TestCase("int16[][]=", BaseVarType.Int16)]
-        [TestCase("int32[][]=", BaseVarType.Int32)]
-        [TestCase("int64[][]=", BaseVarType.Int64)]
-        [TestCase("uint[][]=", BaseVarType.UInt32)]
-        [TestCase("byte[][]=", BaseVarType.UInt8)]
-        [TestCase("uint16[][]=", BaseVarType.UInt16)]
-        [TestCase("uint32[][];", BaseVarType.UInt32)]
-        [TestCase("uint64[][];(", BaseVarType.UInt64)]
-        [TestCase("uint64[][];a", BaseVarType.UInt64)]
+        [TestCase("int[][]", BaseFunnyType.Int32)]
+        [TestCase("int16[][]", BaseFunnyType.Int16)]
+        [TestCase("int32[][]", BaseFunnyType.Int32)]
+        [TestCase("int64[][]", BaseFunnyType.Int64)]
+        [TestCase("uint[][]", BaseFunnyType.UInt32)]
+        [TestCase("byte[][]", BaseFunnyType.UInt8)]
+        [TestCase("int[][]=", BaseFunnyType.Int32)]
+        [TestCase("int16[][]=", BaseFunnyType.Int16)]
+        [TestCase("int32[][]=", BaseFunnyType.Int32)]
+        [TestCase("int64[][]=", BaseFunnyType.Int64)]
+        [TestCase("uint[][]=", BaseFunnyType.UInt32)]
+        [TestCase("byte[][]=", BaseFunnyType.UInt8)]
+        [TestCase("uint16[][]=", BaseFunnyType.UInt16)]
+        [TestCase("uint32[][];", BaseFunnyType.UInt32)]
+        [TestCase("uint64[][];(", BaseFunnyType.UInt64)]
+        [TestCase("uint64[][];a", BaseFunnyType.UInt64)]
 
-        [TestCase("real[][]", BaseVarType.Real)]
-        [TestCase("real[][]:", BaseVarType.Real)]
-        [TestCase("bool[][]", BaseVarType.Bool)]
-        [TestCase("any[][]", BaseVarType.Any)]
-        public void ReadTwinArrayType(string expr, BaseVarType elementType) =>
-            AssertVarType(expr, VarType.ArrayOf(VarType.ArrayOf(VarType.PrimitiveOf(elementType))));
+        [TestCase("real[][]", BaseFunnyType.Real)]
+        [TestCase("real[][]:", BaseFunnyType.Real)]
+        [TestCase("bool[][]", BaseFunnyType.Bool)]
+        [TestCase("any[][]", BaseFunnyType.Any)]
+        public void ReadTwinArrayType(string expr, BaseFunnyType elementType) =>
+            AssertFunnyType(expr, FunnyType.ArrayOf(FunnyType.ArrayOf(FunnyType.PrimitiveOf(elementType))));
         
-        public void AssertVarType(string expr, VarType expected)
+        public void AssertFunnyType(string expr, FunnyType expected)
         {
             var flow = Tokenizer.ToFlow(expr);
             var actual = flow.ReadType();

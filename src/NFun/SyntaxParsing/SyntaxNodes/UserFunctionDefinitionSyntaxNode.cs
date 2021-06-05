@@ -7,9 +7,9 @@ namespace NFun.SyntaxParsing.SyntaxNodes
 {
     public class UserFunctionDefinitionSyntaxNode: ISyntaxNode
     {
-        public VarType OutputType { get; set; }
+        public FunnyType OutputType { get; set; }
         public int OrderNumber { get; set; }
-        public VarType ReturnType { get; }
+        public FunnyType ReturnType { get; }
         public FunCallSyntaxNode Head { get; }
         
         public bool IsRecursive { get; set; } = true;
@@ -17,7 +17,7 @@ namespace NFun.SyntaxParsing.SyntaxNodes
             IList<TypedVarDefSyntaxNode> arguments, 
             FunCallSyntaxNode headNode, 
             ISyntaxNode expression, 
-            VarType returnType)
+            FunnyType returnType)
         {
             Args = arguments;
             Head = headNode;

@@ -7,7 +7,7 @@ namespace NFun.Interpritation.Functions
 {
     public abstract class FunctionWithTwoArgs : IConcreteFunction
     {
-        protected FunctionWithTwoArgs(string name,  VarType returnType, params VarType[] argTypes)
+        protected FunctionWithTwoArgs(string name,  FunnyType returnType, params FunnyType[] argTypes)
         {
             Name = name;
             ArgTypes = argTypes;
@@ -16,15 +16,15 @@ namespace NFun.Interpritation.Functions
 
         internal FunctionWithTwoArgs() { }
 
-        internal void Setup(string name, VarType type)
+        internal void Setup(string name, FunnyType type)
         {
             Name = name;
             ArgTypes = new[] {type, type};
             ReturnType = type;
         }
         public string Name { get; internal set; }
-        public VarType[] ArgTypes { get;internal set; }
-        public VarType ReturnType { get; internal set;}
+        public FunnyType[] ArgTypes { get;internal set; }
+        public FunnyType ReturnType { get; internal set;}
         public abstract object Calc(object a, object b);
 
         public object Calc(object[] parameters) => Calc(parameters[0], parameters[1]);

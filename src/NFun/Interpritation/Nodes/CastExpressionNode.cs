@@ -6,7 +6,7 @@ namespace NFun.Interpritation.Nodes
 {
     public class CastExpressionNode: IExpressionNode
     {
-        public static IExpressionNode GetConvertedOrOriginOrThrow(IExpressionNode origin, VarType to)
+        public static IExpressionNode GetConvertedOrOriginOrThrow(IExpressionNode origin, FunnyType to)
         {
             if (origin.Type == to)
                 return origin;
@@ -17,7 +17,7 @@ namespace NFun.Interpritation.Nodes
         private readonly Func<object, object> _converter;
         public CastExpressionNode(
             IExpressionNode origin, 
-            VarType targetType, 
+            FunnyType targetType, 
             Func<object, object> converter, 
             Interval interval)
         {
@@ -27,7 +27,7 @@ namespace NFun.Interpritation.Nodes
             Interval = interval;
         }
         public Interval Interval { get; }
-        public VarType Type { get; }
+        public FunnyType Type { get; }
         public object Calc()
         {
             var res = _origin.Calc();

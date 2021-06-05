@@ -5,7 +5,7 @@ using NFun.Types;
 
 namespace NFun.Interpritation
 {
-    public class AprioriTypesMap:IEnumerable<KeyValuePair<string, VarType>>
+    public class AprioriTypesMap:IEnumerable<KeyValuePair<string, FunnyType>>
     {
         public static AprioriTypesMap Empty  => new ();
         private AprioriTypesMap()
@@ -13,19 +13,19 @@ namespace NFun.Interpritation
             _typesMap = new(StringComparer.OrdinalIgnoreCase);
         }
 
-        private AprioriTypesMap(Dictionary<string,VarType> items)
+        private AprioriTypesMap(Dictionary<string,FunnyType> items)
         {
             _typesMap = items;
         }
-        public void Add(string id, VarType type) => _typesMap.Add(id, type);
+        public void Add(string id, FunnyType type) => _typesMap.Add(id, type);
 
-        private readonly Dictionary<string, VarType> _typesMap;
-        public IEnumerator<KeyValuePair<string, VarType>> GetEnumerator() => _typesMap.GetEnumerator();
+        private readonly Dictionary<string, FunnyType> _typesMap;
+        public IEnumerator<KeyValuePair<string, FunnyType>> GetEnumerator() => _typesMap.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => _typesMap.GetEnumerator();
 
-        public AprioriTypesMap CloneWith(string name, VarType type)
+        public AprioriTypesMap CloneWith(string name, FunnyType type)
         {
-            var dicCopy = new Dictionary<string, VarType>(_typesMap) {{name, type}};
+            var dicCopy = new Dictionary<string, FunnyType>(_typesMap) {{name, type}};
             return new AprioriTypesMap(dicCopy);
         }
     }

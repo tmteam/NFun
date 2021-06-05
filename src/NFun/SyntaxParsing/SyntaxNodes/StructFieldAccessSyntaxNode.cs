@@ -13,7 +13,7 @@ namespace NFun.SyntaxParsing.SyntaxNodes
             Source = source;
             Interval = interval;
         }
-        public VarType OutputType { get; set; }
+        public FunnyType OutputType { get; set; }
         public string FieldName { get; }
         public ISyntaxNode Source { get; }
         public int OrderNumber { get; set; }

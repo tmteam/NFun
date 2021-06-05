@@ -10,7 +10,7 @@ namespace NFun.Runtime
         string Name { get; }
         bool IsReadonly { get; }
         VarAttribute[] Attributes { get; }
-        VarType Type { get; }
+        FunnyType Type { get; }
         /// <summary>
         /// internal representation of value
         /// </summary>
@@ -33,19 +33,19 @@ namespace NFun.Runtime
         internal object InternalFunnyValue;
 
         public static VariableSource CreateWithStrictTypeLabel( string name, 
-            VarType type, 
+            FunnyType type, 
             Interval typeSpecificationIntervalOrNull,
             bool isOutput,
             VarAttribute[] attributes = null)
             => new (name, type, typeSpecificationIntervalOrNull, isOutput, attributes);
 
         public static VariableSource CreateWithoutStrictTypeLabel(
-            string name, VarType type, bool isOutput,  VarAttribute[] attributes = null)
+            string name, FunnyType type, bool isOutput,  VarAttribute[] attributes = null)
             => new(name, type, isOutput, attributes);
 
         private VariableSource(
             string name, 
-            VarType type, 
+            FunnyType type, 
             Interval typeSpecificationIntervalOrNull, 
             bool isOutput,
             VarAttribute[] attributes = null)
@@ -59,7 +59,7 @@ namespace NFun.Runtime
             Type = type;
         }
 
-        private VariableSource(string name, VarType type,bool isOutput,  VarAttribute[] attributes = null)
+        private VariableSource(string name, FunnyType type,bool isOutput,  VarAttribute[] attributes = null)
         {
             IsOutput = isOutput;
             InternalFunnyValue = type.GetDefaultValueOrNull();
@@ -74,7 +74,7 @@ namespace NFun.Runtime
         public string Name { get; }
         internal Interval? TypeSpecificationIntervalOrNull { get; }
         public bool IsOutput { get; }
-        public VarType Type { get; }
+        public FunnyType Type { get; }
 
         public object FunnyValue => InternalFunnyValue;
         public void SetClrValue(object value)
@@ -86,39 +86,39 @@ namespace NFun.Runtime
             }
             switch (Type.BaseType)
             {
-                case BaseVarType.ArrayOf:
-                case BaseVarType.Struct:
-                case BaseVarType.Any:
+                case BaseFunnyType.ArrayOf:
+                case BaseFunnyType.Struct:
+                case BaseFunnyType.Any:
                     InternalFunnyValue = value;
                     break;
-                case BaseVarType.Bool:
+                case BaseFunnyType.Bool:
                     InternalFunnyValue = Convert.ToBoolean(value);
                     break;
-                case BaseVarType.Int16:
+                case BaseFunnyType.Int16:
                     InternalFunnyValue = Convert.ToInt16(value);
                     break;
-                case BaseVarType.Int32:
+                case BaseFunnyType.Int32:
                     InternalFunnyValue = Convert.ToInt32(value);
                     break;
-                case BaseVarType.Int64:
+                case BaseFunnyType.Int64:
                     InternalFunnyValue = Convert.ToInt64(value);
                     break;
-                case BaseVarType.UInt8:
+                case BaseFunnyType.UInt8:
                     InternalFunnyValue = Convert.ToByte(value);
                     break;
-                case BaseVarType.UInt16:
+                case BaseFunnyType.UInt16:
                     InternalFunnyValue = Convert.ToUInt16(value);
                     break;
-                case BaseVarType.UInt32:
+                case BaseFunnyType.UInt32:
                     InternalFunnyValue = Convert.ToUInt32(value);
                     break;
-                case BaseVarType.UInt64:
+                case BaseFunnyType.UInt64:
                     InternalFunnyValue = Convert.ToUInt64(value);
                     break;
-                case BaseVarType.Real:
+                case BaseFunnyType.Real:
                     InternalFunnyValue = Convert.ToDouble(value);
                     break;
-                case BaseVarType.Char:
+                case BaseFunnyType.Char:
                     InternalFunnyValue = value?.ToString() ?? "";
                     break;
                 default:

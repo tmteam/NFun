@@ -8,14 +8,14 @@ namespace NFun.Interpritation.Nodes
     {
         private readonly IExpressionNode[] _elements;
         
-        public ArrayExpressionNode(IExpressionNode[] elements, Interval interval, VarType type)
+        public ArrayExpressionNode(IExpressionNode[] elements, Interval interval, FunnyType type)
         {
             Type = type;
             _elements = elements;
             Interval = interval;
         }
         public Interval Interval { get; }
-        public VarType Type { get; }
+        public FunnyType Type { get; }
 
         public object Calc()
         {
@@ -24,7 +24,7 @@ namespace NFun.Interpritation.Nodes
             {
                 arr[i] = _elements[i].Calc();
             }
-            return new ImmutableFunArray(arr, Type.ArrayTypeSpecification.VarType);
+            return new ImmutableFunArray(arr, Type.ArrayTypeSpecification.FunnyType);
         }
     }
 }

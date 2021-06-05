@@ -55,7 +55,7 @@ namespace NFun.Types
         private static readonly Type[] FunToClrTypesMap;
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Type GetClrType (this BaseVarType varType) => FunToClrTypesMap[(int) varType];
+        public static Type GetClrType (this BaseFunnyType funnyType) => FunToClrTypesMap[(int) funnyType];
         public static string GetFunSignature<T>(string name, T returnType, IEnumerable<T> arguments)
             => name + "(" + string.Join(",", arguments) + "):" + returnType;
         public static string GetFunSignature<T>(T returnType, IEnumerable<T> arguments)
@@ -71,7 +71,7 @@ namespace NFun.Types
             return obj.ToString();
         }
 
-        public static object GetDefaultValueOrNull(this VarType type)
+        public static object GetDefaultValueOrNull(this FunnyType type)
         {
             var defaultValue  =  DefaultPrimitiveValues[(int) type.BaseType];
             if (defaultValue != null)
@@ -80,9 +80,9 @@ namespace NFun.Types
                 return null;
             
             var arr = type.ArrayTypeSpecification;
-            if (arr.VarType.BaseType == BaseVarType.Char)
+            if (arr.FunnyType.BaseType == BaseFunnyType.Char)
                 return TextFunArray.Empty;
-            return new ImmutableFunArray(new object[0], arr.VarType);
+            return new ImmutableFunArray(new object[0], arr.FunnyType);
 
         }
         public static bool AreEqual(object left, object right)

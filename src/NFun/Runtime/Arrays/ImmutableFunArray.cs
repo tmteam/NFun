@@ -7,28 +7,28 @@ using NFun.Types;
 
 namespace NFun.Runtime.Arrays {
     public class ImmutableFunArray: IFunArray {
-        public VarType ElementType { get; }
+        public FunnyType ElementType { get; }
         private Array _values;
         private int _hash = 0;
       
-        public ImmutableFunArray(bool[] values):this(values, VarType.Bool) {}
-        public ImmutableFunArray(byte[] values):this(values, VarType.UInt8) {}
-        public ImmutableFunArray(ushort[] values):this(values, VarType.UInt16) {}
-        public ImmutableFunArray(uint[] values):this(values, VarType.UInt32) {}
-        public ImmutableFunArray(ulong[] values):this(values, VarType.UInt64) {}
-        public ImmutableFunArray(short[] values):this(values, VarType.Int16) {}
-        public ImmutableFunArray(int[] values):this(values, VarType.Int32) {}
-        public ImmutableFunArray(long[] values):this(values, VarType.Int64) {}
-        public ImmutableFunArray(double[] values) : this(values, VarType.Real) { }
+        public ImmutableFunArray(bool[] values):this(values, FunnyType.Bool) {}
+        public ImmutableFunArray(byte[] values):this(values, FunnyType.UInt8) {}
+        public ImmutableFunArray(ushort[] values):this(values, FunnyType.UInt16) {}
+        public ImmutableFunArray(uint[] values):this(values, FunnyType.UInt32) {}
+        public ImmutableFunArray(ulong[] values):this(values, FunnyType.UInt64) {}
+        public ImmutableFunArray(short[] values):this(values, FunnyType.Int16) {}
+        public ImmutableFunArray(int[] values):this(values, FunnyType.Int32) {}
+        public ImmutableFunArray(long[] values):this(values, FunnyType.Int64) {}
+        public ImmutableFunArray(double[] values) : this(values, FunnyType.Real) { }
 
-        public ImmutableFunArray(Array values, VarType elementType)
+        public ImmutableFunArray(Array values, FunnyType elementType)
         {
             ElementType = elementType;
             _values = values;
             Count = _values.Length;
         }
         
-        public ImmutableFunArray(VarType elementType, params ImmutableFunArray[] values)
+        public ImmutableFunArray(FunnyType elementType, params ImmutableFunArray[] values)
         {
             _values = values;
             Count = _values.Length;
@@ -49,7 +49,7 @@ namespace NFun.Runtime.Arrays {
         {
             if (_values is char[] str)
                 return new string(str);
-            if (ElementType == VarType.Char)
+            if (ElementType == FunnyType.Char)
             {
                 var newArray = new char[_values.Length];
                 ClrArray.CopyTo(newArray,0);

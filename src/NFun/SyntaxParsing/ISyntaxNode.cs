@@ -7,7 +7,7 @@ namespace NFun.SyntaxParsing
 {
     public interface ISyntaxNode
     {    
-        VarType OutputType { get; set; }
+        FunnyType OutputType { get; set; }
         int OrderNumber { get; set; }
         bool IsInBrackets { get; set; }
         Interval Interval { get; set; }

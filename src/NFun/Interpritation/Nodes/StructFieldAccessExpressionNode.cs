@@ -16,7 +16,7 @@ namespace NFun.Interpritation.Nodes
             Interval = interval;
         }
         public Interval Interval { get; }
-        public VarType Type { get; }
+        public FunnyType Type { get; }
         public object Calc() => ((FunnyStruct) _source.Calc()).GetValue(_fieldName);
     }
 }

@@ -23,7 +23,7 @@ namespace NFun.SyntaxParsing.SyntaxNodes
 
         public TypedVarDefSyntaxNode TypeSpecificationOrNull { get; set; } = null;
         public bool OutputTypeSpecified => TypeSpecificationOrNull != null;
-        public VarType OutputType { get; set; }
+        public FunnyType OutputType { get; set; }
         public int OrderNumber { get; set; }
         public bool IsInBrackets { get; set; }
         public Interval Interval { get; set; }

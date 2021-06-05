@@ -341,7 +341,7 @@ namespace NFun.SyntaxTests
             x[1] = new[] {3, 4};
             x[2] = new[] {5};
             
-            var expectedType = VarType.ArrayOf(VarType.ArrayOf(VarType.Int32));
+            var expectedType = FunnyType.ArrayOf(FunnyType.ArrayOf(FunnyType.Int32));
             var expectedOutput = new int[6][];
             expectedOutput[0] = new[] {1, 2};
             expectedOutput[1] = new[] {3, 4};

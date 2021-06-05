@@ -16,14 +16,14 @@ namespace NFun
             var flow = Tokenizer.ToFlow(text);
             return ParseValue(flow).Item1;
         }
-        public static (object, VarType) ParseValue(this TokFlow flow)
+        public static (object, FunnyType) ParseValue(this TokFlow flow)
         {
 
            var syntaxNode = SyntaxNodeReader.ReadNodeOrNull(flow);
             return ParseSyntaxNode(syntaxNode);
         }
 
-        private static (object, VarType) ParseSyntaxNode(ISyntaxNode syntaxNode)
+        private static (object, FunnyType) ParseSyntaxNode(ISyntaxNode syntaxNode)
         {
             if (syntaxNode == null)
                 throw new ArgumentException();
@@ -34,26 +34,26 @@ namespace NFun
             if (syntaxNode is ArraySyntaxNode array)
             {
                 var items = new List<object>(array.Expressions.Count);
-                VarType? unifiedType = null;
+                FunnyType? unifiedType = null;
                 foreach (var child in array.Expressions)
                 {
                     var (value, childVarType) =  ParseSyntaxNode(child);
                     if (!unifiedType.HasValue)
                         unifiedType = childVarType;
                     else if(unifiedType!= childVarType)
-                        unifiedType = VarType.Anything;
+                        unifiedType = FunnyType.Anything;
                     
                     items.Add(value);
                 }
 
                 if (!items.Any())
-                    return (new object[0], VarType.ArrayOf(VarType.Anything));
-                return (items.ToArray(), VarType.ArrayOf( unifiedType.Value));
+                    return (new object[0], FunnyType.ArrayOf(FunnyType.Anything));
+                return (items.ToArray(), FunnyType.ArrayOf( unifiedType.Value));
             }
             throw new NotSupportedException($"syntax node {syntaxNode.GetType().Name} is not supported");
         }
         
-        private static (object, VarType) ParseGenericIntConstant(GenericIntSyntaxNode constant)
+        private static (object, FunnyType) ParseGenericIntConstant(GenericIntSyntaxNode constant)
         {
             if (constant.IsHexOrBin)
             {
@@ -61,12 +61,12 @@ namespace NFun
                 if (constant.Value is long l)
                 {                    
                     if (l <= int.MaxValue)
-                        return ((int) l, VarType.Int32);
+                        return ((int) l, FunnyType.Int32);
                     else
-                        return (l, VarType.Int64);
+                        return (l, FunnyType.Int64);
                 }
                 else if(constant.Value is ulong u)
-                    return (u, VarType.UInt64);
+                    return (u, FunnyType.UInt64);
                 else
                     throw new NotSupportedException();
                 
@@ -75,21 +75,21 @@ namespace NFun
             {
                 //1,2,3..
                 if (constant.Value is long l)
-                    return ((double) l, VarType.Real);
+                    return ((double) l, FunnyType.Real);
                 if (constant.Value is ulong u)
-                    return ((double)u, VarType.Real);
+                    return ((double)u, FunnyType.Real);
                 
                 throw new NotSupportedException();
             }
         }
-        private static (object, VarType) ParseConstant(ConstantSyntaxNode constant) =>
+        private static (object, FunnyType) ParseConstant(ConstantSyntaxNode constant) =>
             constant.Value switch
             {
-                int i    => (i, VarType.Int32),
-                uint ui  => (ui, VarType.UInt32),
-                double d => (d, VarType.Real),
-                TextFunArray str => (str.ToString(), VarType.Text),
-                bool b => (b, VarType.Bool),
+                int i    => (i, FunnyType.Int32),
+                uint ui  => (ui, FunnyType.UInt32),
+                double d => (d, FunnyType.Real),
+                TextFunArray str => (str.ToString(), FunnyType.Text),
+                bool b => (b, FunnyType.Bool),
                 _ => throw new ArgumentOutOfRangeException()
             };
     }

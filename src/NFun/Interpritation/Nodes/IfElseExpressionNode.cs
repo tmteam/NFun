@@ -13,7 +13,7 @@ namespace NFun.Interpritation.Nodes
             IExpressionNode[] conditionNodes, 
             IExpressionNode elseNode, 
             Interval interval, 
-            VarType type)
+            FunnyType type)
         {
             _ifExpressionNodes = ifExpressionNodes;
             _conditionNodes = conditionNodes;
@@ -32,7 +32,7 @@ namespace NFun.Interpritation.Nodes
             }
             return _elseNode.Calc();
         }
-        public VarType Type { get; }
+        public FunnyType Type { get; }
         public Interval Interval { get; }
     }
 }

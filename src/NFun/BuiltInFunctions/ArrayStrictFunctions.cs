@@ -7,7 +7,7 @@ namespace NFun.BuiltInFunctions
 {
     public class AverageFunction : FunctionWithSingleArg
     {
-        public AverageFunction() : base("avg", VarType.Real, VarType.ArrayOf(VarType.Real)) { }
+        public AverageFunction() : base("avg", FunnyType.Real, FunnyType.ArrayOf(FunnyType.Real)) { }
         public override object Calc(object a) =>
             ((IFunArray)a).As<double>().Average();
     }
