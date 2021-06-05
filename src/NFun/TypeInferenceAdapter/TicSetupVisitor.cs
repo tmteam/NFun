@@ -536,7 +536,7 @@ namespace NFun.TypeInferenceAdapter
             VisitChildren(node);
 
 #if DEBUG
-            Trace(node, $"Tvar {node.Id}:{node.VarType}  ");
+            Trace(node, $"Tvar {node.Id}:{node.FunnyType}  ");
 #endif
             if (node.FunnyType != FunnyType.Empty)
             {
@@ -552,7 +552,7 @@ namespace NFun.TypeInferenceAdapter
             VisitChildren(node);
 
 #if DEBUG
-            Trace(node, $"VarDef {node.Id}:{node.VarType}  ");
+            Trace(node, $"VarDef {node.Id}:{node.FunnyType}  ");
 #endif
             var type = node.FunnyType.ConvertToTiType();
             if(!_ticTypeGraph.TrySetVarType(node.Id, type))

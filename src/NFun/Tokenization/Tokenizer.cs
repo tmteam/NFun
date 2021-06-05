@@ -255,7 +255,7 @@ namespace NFun.Tokenization
         {
             char? next = position < str.Length - 1
                     ? str[position + 1]
-                    : null;
+                    : (char?)null;
 
             switch (current)
             {
