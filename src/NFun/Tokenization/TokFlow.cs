@@ -37,10 +37,15 @@ namespace NFun.Tokenization
         public Tok Current => IsDone ? CurrentAfterEofFlowTok : _tokens[_currentPos];
         public bool IsStart => _currentPos == 0;
         public Tok Previous => IsStart ? PreviousBeforeFlowTok : _tokens[_currentPos - 1];
-        public void SkipNewLines()
+        public bool SkipNewLines()
         {
-            while (!IsDone && IsCurrent(TokType.NewLine)) 
+            bool result = false;
+            while (!IsDone && IsCurrent(TokType.NewLine))
+            {
+                result = true;
                 MoveNext();
+            }
+            return result;
         }
 
         public bool IsCurrent(TokType type)

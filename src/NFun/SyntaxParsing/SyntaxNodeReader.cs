@@ -381,18 +381,19 @@ namespace NFun.SyntaxParsing
         
         private static ISyntaxNode ReadStruct(TokFlow flow)
         {
-            //if (!flow.MoveIf(TokType.FiObr))
-            //    throw FunParseException.ErrorStubToDo("{ is expected");
             var begin = flow.Position;
 
             var equations = new List<EquationSyntaxNode>();
-            while (true)
-            { 
-                flow.SkipNewLines();
+            bool hasAnyDelimeter = true;
+            flow.SkipNewLines();
 
+            while (true)
+            {
                 if(flow.MoveIf(TokType.FiCbr))
                     break;
-
+                if(!hasAnyDelimeter)
+                    throw FunParseException.ErrorStubToDo("No any delimeter between struct fields. " +
+                                                          "Use ',' or new line to separate fields");
                 if (!flow.MoveIf(TokType.Id, out var idToken)) 
                     throw FunParseException.ErrorStubToDo("id missed");
 
@@ -401,14 +402,22 @@ namespace NFun.SyntaxParsing
                     throw FunParseException.ErrorStubToDo(
                         $"Field type specification {idToken.Value}:{type} is not supported yet");
 
-                if (!flow.MoveIf(TokType.Def)) throw FunParseException.ErrorStubToDo("def missed");
+                if (!flow.MoveIf(TokType.Def)) 
+                    throw FunParseException.ErrorStubToDo("missed '='");
                 flow.SkipNewLines();
                 var body = ReadNodeOrNull(flow);
                 if(body==null)
-                    throw FunParseException.ErrorStubToDo("body, missed");
+                    throw FunParseException.ErrorStubToDo("body missed");
                 var equation = new EquationSyntaxNode(idToken.Value, idToken.Start, body, new VarAttribute[0]);
-                
                 equations.Add(equation);
+                //Read node or null may eat last new-line-token
+                hasAnyDelimeter = flow.Previous.Type == TokType.NewLine;
+                //skip ','
+                if (flow.MoveIf(TokType.Sep))
+                    hasAnyDelimeter = true;
+                //skip new lines
+                if (flow.SkipNewLines())
+                    hasAnyDelimeter = true;
             }
             var end = flow.Position;
 

@@ -7,9 +7,13 @@ namespace NFun.SyntaxTests.Structs
 {
     public class StructBodyTest
     {
-        [Test]
-        public void SingleFieldStructInitialization() =>
-            "y = {a = 1.0}"
+        [TestCase("y = {a = 1.0}")]
+        [TestCase("y = {a = 1.0;}")]
+        [TestCase("y = {;a =; 1.0;}")]
+        [TestCase("y = {a = 1.0,}")]
+
+        public void SingleFieldStructInitialization(string expr) =>
+            expr
                 .Calc()
                 .AssertReturns("y", new{a =1.0});
 
@@ -21,9 +25,16 @@ namespace NFun.SyntaxTests.Structs
                     new {a = 1.0, b = "vasa"});
 
 
-        [Test]
-        public void ThreeFieldStructInitializationWithCalculation() =>
-            "y = {a = 1.0; b ='vasa'; c = 12*5.0}"
+        [TestCase("y = {a = 1.0; b ='vasa'; c = 12*5.0}")]
+        [TestCase("y = {a = 1.0;; b ='vasa', c = 12*5.0;}")]
+        [TestCase("y = {a = 1.0, b ='vasa', c = 12*5.0,}")]
+        [TestCase("y = {a = 1.0,; b ='vasa';, c = 12*5.0;,}")]
+        [TestCase("y = {a = 1.0;,; b ='vasa';, c = 12*5.0;,}")]
+        [TestCase("y = {a = 1.0;;;;,; b ='vasa';, c = 12*5.0;,}")]
+        [TestCase("y = {a = 1.0;;,;;; b ='vasa';,c = 12*5.0;;,;;;}")]
+        [TestCase("y = {a = 1.0;;;;;;b ='vasa';;c = 12*5.0;;;;;;}")]
+        public void ThreeFieldStructInitializationWithCalculation(string expr) =>
+            expr
                 .Calc()
                 .AssertReturns("y", new
                     {
@@ -58,7 +69,7 @@ namespace NFun.SyntaxTests.Structs
                        "  b = { " +
                        "           c=[1.0,2.0,3.0];" +
                        "           d=false" +
-                       "        }" +
+                       "        };" +
                        "  c = 12*5.0" +
                        "}").Calc()
                 .AssertReturns("y", new
@@ -409,6 +420,9 @@ namespace NFun.SyntaxTests.Structs
         [TestCase("y = {a = { b = y.a}}")]
         [TestCase("y = {a = { b = y.a.b}}")]
         [TestCase("y = {a = y}")]
+        [TestCase("y = {a = 1,, b=2}")]
+        [TestCase("y = {a = 1 b=2}")]
+        [TestCase("y = {a = 1; b=2,,}")]
         [TestCase("y = {a = y-1}")]
         [TestCase("y = {a:int = 0}")]
         [TestCase("y = {a:int = 'test'}")]
@@ -419,6 +433,7 @@ namespace NFun.SyntaxTests.Structs
         [TestCase("y = the-{a:bool = false}")]
         [TestCase("y = -{a:bool = false}")]
         [TestCase("y1 = {a = y2}; y2 = {a = y1}")]
+        [TestCase("y = {a = 1.0,,}")]
         public void ObviousFails(string expr) => expr.AssertObviousFailsOnParse();
     }
 }

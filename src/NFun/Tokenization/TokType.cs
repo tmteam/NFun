@@ -54,7 +54,6 @@ namespace NFun.Tokenization
         /// {
         /// </summary>
         FiObr,
-        
         /// <summary>
         ///  }
         /// </summary>
@@ -64,10 +63,25 @@ namespace NFun.Tokenization
         /// </summary>
         ArrConcat,
         In,
+        /// <summary>
+        /// |
+        /// </summary>
         BitOr,
+        /// <summary>
+        /// &
+        /// </summary>
         BitAnd,
+        /// <summary>
+        /// ^
+        /// </summary>
         BitXor,
+        /// <summary>
+        /// <<<
+        /// </summary>
         BitShiftLeft,
+        /// <summary>
+        /// >>>
+        /// </summary>
         BitShiftRight,
         BitInverse,
         /// <summary>
@@ -82,8 +96,13 @@ namespace NFun.Tokenization
         /// =
         /// </summary>
         Def,
-        
+        /// <summary>
+        /// ==
+        /// </summary>
         Equal,
+        /// <summary>
+        /// !=
+        /// </summary>
         NotEqual,
         And,
         Or,
