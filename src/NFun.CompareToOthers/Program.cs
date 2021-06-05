@@ -58,7 +58,6 @@ namespace NFun.CompareToOthers
             {
                 engine.Execute(expression: pyEx1,pyscope);
             };
-
             
             var expression = new Expression(expression: ncalcEx1);
             var lambda = expression.ToLambda<ExpressionContext,Double>();
@@ -68,7 +67,7 @@ namespace NFun.CompareToOthers
             {
                 expression.Evaluate();
             };
-            var context = new ExpressionContext() {x = 12};
+            var context = new ExpressionContext {x = 12};
             Action calcLambda = () => lambda(context);
             
             funrt["x"] = 12.0;

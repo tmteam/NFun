@@ -52,7 +52,6 @@ namespace NFun.InfinityProfiling
                 case ProfileMode.BuildPrimitive:
                     ProfileModes.RunBuild(ProfileSet.Primitives);
                     break;
-
                 case ProfileMode.DoNotProfile:
                     break;
 

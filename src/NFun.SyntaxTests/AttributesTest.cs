@@ -7,7 +7,6 @@ namespace NFun.SyntaxTests
     [TestFixture]
     public class AttributesTest
     {
-        
         [TestCase("@private\r x:int\r    y = x", "x",new []{"private"})]
         [TestCase("@foo\r@bar\r x:int\r  z = x", "x",new []{"foo","bar"})]
         [TestCase("some = 1\r@foo\r@bar\r x:int\r z = x", "x",new []{"foo","bar"})]

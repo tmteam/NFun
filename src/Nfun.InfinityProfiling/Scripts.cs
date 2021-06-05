@@ -66,7 +66,7 @@ namespace NFun.InfinityProfiling
                           # run thru array and swap every unsorted values
                           onelineSort(input) = [0..input.count()-2].fold(input, swapIfNotSorted)		
 
-                          bubbleSort(input)  = [0..input.count()-1].fold(input) {onelineSort(it1)}
+                          bubbleSort(input)  = [0..input.count()-1].fold(input, fun onelineSort(it1))
 
                           #body  
                           ins:int[]  = [1,5,3,5,6,0x1,2,0b100,0,3,2,10,3,50,6,42,43,53]
