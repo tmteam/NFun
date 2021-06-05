@@ -96,7 +96,7 @@ namespace NFun.ParseErrors
                 case TokType.BoolType:return "bool";
                 case TokType.AnythingType:return "anything";
                 case TokType.Dot:return ".";
-                case TokType.AnonymFun:return "=>";
+                case TokType.Arrow:return "=>";
                 default:
                     return tok.Type.ToString().ToLower();
             }

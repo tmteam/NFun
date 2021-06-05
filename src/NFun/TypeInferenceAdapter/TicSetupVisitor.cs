@@ -190,10 +190,12 @@ namespace NFun.TypeInferenceAdapter
             _aliasScope.EnterScope(node.OrderNumber);
             foreach (var syntaxNode in node.ArgumentsDefinition)
             {
+                //setup arguments.
                 string originName;
                 string anonymName;
                 if (syntaxNode is TypedVarDefSyntaxNode typed)
                 {
+                    //argument has type definition on it
                     originName = typed.Id;
                     anonymName = MakeAnonVariableName(node, originName);
                     if (!typed.VarType.Equals(VarType.Empty))
@@ -204,6 +206,7 @@ namespace NFun.TypeInferenceAdapter
                 }
                 else if (syntaxNode is NamedIdSyntaxNode varNode)
                 {
+                    //argument has no type definition on it
                     originName = varNode.Id;
                     anonymName = MakeAnonVariableName(node, originName);
                 }
@@ -212,7 +215,7 @@ namespace NFun.TypeInferenceAdapter
 
                 _aliasScope.AddVariableAlias(originName, anonymName);
             }
-
+            
             VisitChildren(node);
             
             var aliasNames = new string[node.ArgumentsDefinition.Length];
@@ -228,11 +231,11 @@ namespace NFun.TypeInferenceAdapter
 #if DEBUG
             Trace(node, $"f({string.Join(" ", aliasNames)}):{node.OutputType}= {{{node.OrderNumber}}}");
 #endif
-            if (node.OutputType == VarType.Empty)
+            if (node.ReturnType == VarType.Empty)
                 _ticTypeGraph.CreateLambda(node.Body.OrderNumber, node.OrderNumber, aliasNames);
             else
             {
-                var retType = (ITypeState)node.OutputType.ConvertToTiType();
+                var retType = (ITypeState)node.ReturnType.ConvertToTiType();
                 _ticTypeGraph.CreateLambda(
                     node.Body.OrderNumber,
                     node.OrderNumber,

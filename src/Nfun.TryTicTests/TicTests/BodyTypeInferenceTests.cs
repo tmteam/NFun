@@ -187,7 +187,7 @@ namespace NFun.UnitTests.TicTests
         [Test]
         public void MapWithLambda()
         {
-            var result = TestHelper.Solve("y  = a.map(i:int->i+1)");
+            var result = TestHelper.Solve("y  = a.map(rule(i:int)=i+1)");
             result.AssertNoGenerics();
             result.AssertNamed(StateArray.Of(StatePrimitive.I32), "y");
             result.AssertNamed(StateArray.Of(StatePrimitive.I32), "a");
@@ -282,7 +282,7 @@ namespace NFun.UnitTests.TicTests
         [Test]
         public void FilterComparable()
         {
-            var result = TestHelper.Solve("y:int[]= [1,2,3].filter(x->x>2)");
+            var result = TestHelper.Solve("y:int[]= [1,2,3].filter(rule it>2)");
             result.AssertNoGenerics();
             result.AssertNamed(StateArray.Of(StatePrimitive.I32),"y");
         }

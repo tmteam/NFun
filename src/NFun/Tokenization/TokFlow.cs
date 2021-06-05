@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace NFun.Tokenization
 {
@@ -88,6 +89,17 @@ namespace NFun.Tokenization
             if (_currentPos <= 0)
                 return false;
             return _tokens[_currentPos - 1].Type == tokType;
+        }
+
+        public override string ToString()
+        {
+            var sb = new StringBuilder("Flow [ ");
+            if (_currentPos > 0)
+                sb.Append($"prev: {Previous.Type}; ");
+            sb.Append($"->cur: {Current.Type}; ");
+            sb.Append($"next: {PeekNext(1)?.Type} ]");
+
+            return sb.ToString();
         }
     }
 }

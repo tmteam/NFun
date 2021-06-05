@@ -138,7 +138,7 @@ namespace NFun.Tokenization
         /// <summary>
         /// ->
         /// </summary>
-        AnonymFun,
+        Arrow,
         FunRule,
         Reserved
     }

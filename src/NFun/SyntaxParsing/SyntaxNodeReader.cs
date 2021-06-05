@@ -23,7 +23,7 @@ namespace NFun.SyntaxParsing
         {
             var priorities = new List<TokType[]>(7)
             {
-                new[] {TokType.AnonymFun, TokType.ArrOBr, TokType.Dot, TokType.Obr},
+                new[] {TokType.ArrOBr, TokType.Dot, TokType.Obr},
                 new[] {TokType.Pow},
                 new[] {TokType.Mult, TokType.Div, TokType.Rema},
                 new[] {TokType.Plus, TokType.Minus, TokType.BitShiftLeft, TokType.BitShiftRight},
@@ -214,12 +214,9 @@ namespace NFun.SyntaxParsing
                 
                 // variable with type definition
                 //'id:int'
-                if (flow.IsCurrent(TokType.Colon))
-                {
-                    flow.MoveNext();
-                    var type = flow.ReadVarType();
+                var type = TryReadTypeDef(flow);
+                if (type!= VarType.Empty)
                     return SyntaxNodeFactory.TypedVar(headToken.Value, type, headToken.Start, flow.Position);
-                }
                 // just variable
                 // 'id'
                 return SyntaxNodeFactory.Var(headToken);
@@ -305,12 +302,6 @@ namespace NFun.SyntaxParsing
                     else //else it is struct field
                         leftNode = SyntaxNodeFactory.FieldAccess(leftNode, id);
                 }
-                else if (opToken.Type == TokType.AnonymFun)
-                {
-                    flow.MoveNext();
-                    var body = ReadNodeOrNull(flow);       
-                    leftNode = SyntaxNodeFactory.AnonymFun(leftNode, body);
-                }
                 else if (opToken.Type == TokType.Obr)
                 {
                     if (flow.IsPrevious(TokType.NewLine))
@@ -359,6 +350,31 @@ namespace NFun.SyntaxParsing
             var body = ReadNodeOrNull(flow);
             if (body == null)
                 throw ErrorFactory.UndoneAnonymousFunction(pos, flow.CurrentTokenPosition);
+
+            var returnType = TryReadTypeDef(flow);
+            if (flow.Current.Is(TokType.Def))
+            {
+                if (!body.IsInBrackets)
+                    throw FunParseException.ErrorStubToDo(
+                        "unexpected '=' symbol. Did you forgot brackets after 'fun' keyword?");
+                
+                flow.MoveNext();
+                flow.SkipNewLines();
+                //full typed defentionion like:
+                // TokType.FunRule (a[:type], b[:type]...)[:type] = body 
+                //so body is just a type definition
+                var definition = body;
+                body = ReadNodeOrNull(flow);
+                if (body == null)
+                    throw ErrorFactory.UndoneAnonymousFunction(pos, flow.CurrentTokenPosition);
+                return SyntaxNodeFactory.AnonymFun(definition, returnType, body);
+            }
+            
+            if (returnType != VarType.Empty)
+            {
+                //If return type is specified, and there is no def after it - than it is an mistake
+                throw FunParseException.ErrorStubToDo("Anonymous function body is missed. Did you forget '=' symbol?");
+            }
             
             return new SuperAnonymFunctionSyntaxNode(body);
         }
@@ -380,13 +396,11 @@ namespace NFun.SyntaxParsing
                 if (!flow.MoveIf(TokType.Id, out var idToken)) 
                     throw FunParseException.ErrorStubToDo("id missed");
 
-                VarType type = VarType.Empty;
-                if (flow.MoveIf(TokType.Colon))
-                {
-                    type = flow.ReadVarType();
-                    throw FunParseException.ErrorStubToDo($"Field type specification {idToken.Value}:{type} is not supported yet");
-                }
-                
+                var type = TryReadTypeDef(flow);
+                if (type!= VarType.Empty)
+                    throw FunParseException.ErrorStubToDo(
+                        $"Field type specification {idToken.Value}:{type} is not supported yet");
+
                 if (!flow.MoveIf(TokType.Def)) throw FunParseException.ErrorStubToDo("def missed");
                 flow.SkipNewLines();
                 var body = ReadNodeOrNull(flow);
@@ -765,6 +779,18 @@ namespace NFun.SyntaxParsing
                     break;
             } while (flow.MoveIf(TokType.Sep, out _));
             return true;
+        }
+
+        private static VarType TryReadTypeDef(TokFlow flow)
+        {
+            if (!flow.IsCurrent(TokType.Colon))
+                return VarType.Empty;
+            
+            flow.MoveNext();
+            var type = flow.ReadVarType();
+            if (type == VarType.Empty)
+                throw FunParseException.ErrorStubToDo("invalid type definition");
+            return type;
         }
     }
 }

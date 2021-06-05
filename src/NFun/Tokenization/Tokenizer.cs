@@ -298,7 +298,7 @@ namespace NFun.Tokenization
                 case ':': return Tok.New(TokType.Colon, position, position + 1);
                 case '~': return Tok.New(TokType.BitInverse, position, position + 1);
                 case '-' when next == '-': return Tok.New(TokType.Attribute, position, position + 2);
-                case '-' when next == '>': return Tok.New(TokType.AnonymFun, position, position + 2);
+                case '-' when next == '>': return Tok.New(TokType.Arrow, position, position + 2);
                 case '-':                  return Tok.New(TokType.Minus, position, position + 1);
                 case '*' when next == '*': return Tok.New(TokType.Pow, position, position + 2);
                 case '*':                  return Tok.New(TokType.Mult, position, position + 1);
