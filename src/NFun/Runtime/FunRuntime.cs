@@ -63,7 +63,7 @@ namespace NFun.Runtime
         public IFunnyVar GetVariable(string name) => 
             _variables.GetUsages(name)?.Source ??throw new KeyNotFoundException($"Variable {name} not found");
         
-        public void Update()
+        public void Run()
         {
             foreach (var equation in _equations)
                 equation.UpdateExpression();

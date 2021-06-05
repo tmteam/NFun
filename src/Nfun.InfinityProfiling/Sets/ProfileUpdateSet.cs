@@ -114,80 +114,80 @@ namespace NFun.InfinityProfiling.Sets
         private FunRuntime Build(string expr) => Funny.Hardcore.Build(expr);
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void PrimitiveConstIntSimpleArithmetics() => _primitiveConstIntSimpleArithmetics.Update();
+        public void PrimitiveConstIntSimpleArithmetics() => _primitiveConstIntSimpleArithmetics.Run();
         [MethodImpl(MethodImplOptions.NoOptimization)]
 
-        public void PrimitiveConstRealSimpleArithmetics() => _primitiveConstRealSimpleArithmetics.Update();
+        public void PrimitiveConstRealSimpleArithmetics() => _primitiveConstRealSimpleArithmetics.Run();
         [MethodImpl(MethodImplOptions.NoOptimization)]
 
-        public void PrimitiveConstBoolSimpleArithmetics() => _primitiveConstBoolSimpleArithmetics.Update();
+        public void PrimitiveConstBoolSimpleArithmetics() => _primitiveConstBoolSimpleArithmetics.Run();
         [MethodImpl(MethodImplOptions.NoOptimization)]
 
-        public void PrimitiveCalcReal2Var() => _primitiveCalcReal2Var.Update();
+        public void PrimitiveCalcReal2Var() => _primitiveCalcReal2Var.Run();
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void PrimitiveCalcInt2Var() => _primitiveCalcInt2Var.Update();
+        public void PrimitiveCalcInt2Var() => _primitiveCalcInt2Var.Run();
 
         
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void PrimitivesConstTrue() => _constTrue.Update();
+        public void PrimitivesConstTrue() => _constTrue.Run();
         
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void PrimitivesConstBool() => _constBool.Update();
+        public void PrimitivesConstBool() => _constBool.Run();
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void PrimitivesConst1() => _const1.Update();
+        public void PrimitivesConst1() => _const1.Run();
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void ConstText() => _constSingleText.Update();
+        public void ConstText() => _constSingleText.Run();
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void ConstBoolArray() => _constBoolArray.Update();
+        public void ConstBoolArray() => _constBoolArray.Run();
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void ConstRealArray() => _constRealArray.Update();
+        public void ConstRealArray() => _constRealArray.Run();
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void ConstInterpolation() => _constInterpolation.Update();
+        public void ConstInterpolation() => _constInterpolation.Run();
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void ConstGenericFunc() => _constGenericFunc.Update();
+        public void ConstGenericFunc() => _constGenericFunc.Run();
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void ConstSquareEquation() => _constSquareEquation.Update();
+        public void ConstSquareEquation() => _constSquareEquation.Run();
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void PrimitiveCalcSingleBool() => _calcSingleBool.Update();
+        public void PrimitiveCalcSingleBool() => _calcSingleBool.Run();
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void PrimitiveCalcSingleReal() => _calcSingleReal.Update();
+        public void PrimitiveCalcSingleReal() => _calcSingleReal.Run();
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void CalcSingleText()=> _calcSingleText.Update();
+        public void CalcSingleText()=> _calcSingleText.Run();
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void PrimitiveCalcIntOp() => _calcIntOp.Update();
+        public void PrimitiveCalcIntOp() => _calcIntOp.Run();
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void PrimitiveCalcRealOp() => _calcRealOp.Update();
+        public void PrimitiveCalcRealOp() => _calcRealOp.Run();
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void PrimitiveCalcBoolOp() => _calcBoolOp.Update();
+        public void PrimitiveCalcBoolOp() => _calcBoolOp.Run();
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void CalcTextOp() => _calcTextOp.Update();
+        public void CalcTextOp() => _calcTextOp.Run();
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void CalcInterpolation() => _calcInterpolation.Update();
+        public void CalcInterpolation() => _calcInterpolation.Run();
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void CalcGenericFunc() => _calcGenericFunc.Update();
+        public void CalcGenericFunc() => _calcGenericFunc.Run();
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void CalcSquareEquation() => _calcSquareEquation.Update();
+        public void CalcSquareEquation() => _calcSquareEquation.Run();
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void PrimitivesCalcKxb()=> _calcKxb.Update();
+        public void PrimitivesCalcKxb()=> _calcKxb.Run();
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void CalcRealArray()=> _calcRealArray.Update();
+        public void CalcRealArray()=> _calcRealArray.Run();
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void CalcFourArgs() => _calcFourArgs.Update();
+        public void CalcFourArgs() => _calcFourArgs.Run();
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void ComplexConstMultiArrays()=> _constMultiplyArrayItems.Update();
+        public void ComplexConstMultiArrays()=> _constMultiplyArrayItems.Run();
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void ComplexDummyBubble() => _constDummyBubbleSort.Update();
+        public void ComplexDummyBubble() => _constDummyBubbleSort.Run();
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void ComplexConstEverything() => _constEverything.Update();
+        public void ComplexConstEverything() => _constEverything.Run();
     }
 }

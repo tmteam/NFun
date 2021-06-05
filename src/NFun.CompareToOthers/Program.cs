@@ -71,7 +71,7 @@ namespace NFun.CompareToOthers
             Action calcLambda = () => lambda(context);
             
             funrt["x"] = 12.0;
-            Action calcFun   = ()  => funrt.Update();
+            Action calcFun   = ()  => funrt.Run();
             
             MeasureAll(
                 buildEva: buildEva, 

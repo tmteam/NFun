@@ -4,7 +4,7 @@ using NUnit.Framework;
 
 namespace NFun.ApiTests
 {
-    class NfunUpdateTest
+    class NfunRunTest
     {
         [TestCase("y = 2*x", 3, 6)]
         [TestCase("y = 2*x", 3.5, 7.0)]
@@ -32,7 +32,7 @@ namespace NFun.ApiTests
             Assert.IsFalse(ySource.IsReadonly);
             Assert.IsTrue(xSource.IsReadonly);
             xSource.SetClrValue(arg);
-            runtime.Update();
+            runtime.Run();
             Assert.AreEqual(expected, ySource.FunnyValue);
         }
         
@@ -65,7 +65,7 @@ namespace NFun.ApiTests
             var runtime = expr.Build();
             var ySource = runtime.GetVariable("y");
             Assert.IsNotNull(ySource);
-            runtime.Update();
+            runtime.Run();
             Assert.AreEqual(expected, ySource.GetClrValue());
         }
     }

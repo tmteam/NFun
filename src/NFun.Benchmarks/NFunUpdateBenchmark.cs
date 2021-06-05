@@ -24,8 +24,8 @@ namespace NFun.Benchmarks
         }
         [Benchmark(Description = "dotnet [1.1000].SUM()", Baseline = true)]
         public int BaselineDotnetTest1000() => Enumerable.Range(1, 1000).Sum();
-        [Benchmark(Description = "true calc")] public void True() => _const_true_runtime.Update();
-        [Benchmark(Description = "const kxb calc")] public void ConstKxb() => _const_Kxb_runtime.Update();
-        [Benchmark(Description = "kxb with var calc")] public void VarKxb() => _varkxb_runtime.Update();
+        [Benchmark(Description = "true calc")] public void True() => _const_true_runtime.Run();
+        [Benchmark(Description = "const kxb calc")] public void ConstKxb() => _const_Kxb_runtime.Run();
+        [Benchmark(Description = "kxb with var calc")] public void VarKxb() => _varkxb_runtime.Run();
     }
 }

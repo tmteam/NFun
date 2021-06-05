@@ -46,7 +46,7 @@ namespace NFun.Benchmarks
         }*/
 
         [Benchmark()]
-        public void Updating() => _runtime.Update();
+        public void Updating() => _runtime.Run();
         [Benchmark()]
         public CalculationResult Calculate() => _runtime.Calc();
     }
