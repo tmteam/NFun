@@ -40,8 +40,7 @@ namespace NFun.Tokenization
         private static readonly Dictionary<string, TokType> Keywords = new()
         {
             {"in",    TokType.In},
-            {"the",   TokType.The},
-            {"rule",  TokType.Fun},
+            {"rule",  TokType.FunRule},
             
             {"and",   TokType.And},
             {"or",    TokType.Or},
@@ -72,6 +71,9 @@ namespace NFun.Tokenization
             {"anything", TokType.AnythingType},
             
             //Reserved keywords:
+            {"the",   TokType.Reserved},
+            {"fun",   TokType.Reserved},
+            
             {"%", TokType.Reserved},
             {"_", TokType.Reserved},
 

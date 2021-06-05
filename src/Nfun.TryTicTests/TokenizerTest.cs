@@ -102,7 +102,7 @@ namespace NFun.UnitTests
         [TestCase(@"true#", TokType.True)]
         [TestCase(@"true #", TokType.True)]
         [TestCase(@"true #comment", TokType.True)]
-        [TestCase("0.fun()",
+        [TestCase("0.foo()",
             TokType.IntNumber, TokType.Dot, TokType.Id, TokType.Obr, TokType.Cbr)]
         [TestCase("1.y", TokType.IntNumber, TokType.Dot, TokType.Id)]
         [TestCase("y = 1; z = 2.0",
@@ -172,7 +172,7 @@ namespace NFun.UnitTests
             //}after'
             TokType.TextCloseInterpolation)]
         
-        [TestCase("{a =1 }", TokType.The, TokType.FiObr, TokType.Id, TokType.Def, TokType.IntNumber, TokType.FiCbr)]
+        [TestCase("{a =1 }",  TokType.FiObr, TokType.Id, TokType.Def, TokType.IntNumber, TokType.FiCbr)]
         [TestCase("out = {a =1; b = 2 }", 
             TokType.Id,TokType.Def,
             TokType.FiObr, 
