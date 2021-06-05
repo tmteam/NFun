@@ -39,5 +39,127 @@ namespace NFun.UnitTests
 
         public void ToConstant_SomeCrap_ThrowsFormatException(string value) => 
             Assert.Catch(() => TokenHelper.ToConstant(value));
+
+        [TestCase("int", BaseVarType.Int32)]
+        [TestCase("int;[]", BaseVarType.Int32)]
+        [TestCase("int;[][]", BaseVarType.Int32)]
+        [TestCase("int16", BaseVarType.Int16)]
+        [TestCase("int32", BaseVarType.Int32)]
+        [TestCase("int64", BaseVarType.Int64)]
+        [TestCase("uint", BaseVarType.UInt32)]
+        [TestCase("byte", BaseVarType.UInt8)]
+        [TestCase("int=", BaseVarType.Int32)]
+        [TestCase("int16=", BaseVarType.Int16)]
+        [TestCase("int32=", BaseVarType.Int32)]
+        [TestCase("int64=", BaseVarType.Int64)]
+        [TestCase("uint=", BaseVarType.UInt32)]
+        [TestCase("byte=", BaseVarType.UInt8)]
+        [TestCase("uint16=", BaseVarType.UInt16)]
+        [TestCase("uint32;", BaseVarType.UInt32)]
+        [TestCase("uint64;(", BaseVarType.UInt64)]
+        [TestCase("uint64;a", BaseVarType.UInt64)]
+
+        [TestCase("real", BaseVarType.Real)]
+        [TestCase("real:", BaseVarType.Real)]
+        [TestCase("bool", BaseVarType.Bool)]
+        [TestCase("any", BaseVarType.Any)]
+        public void ReadVarType_PrimitiveTypes(string expr, BaseVarType expected) => 
+            AssertVarType(expr, VarType.PrimitiveOf(expected));
+
+        [TestCase("int8")]
+        [TestCase("int10")]
+        [TestCase("uint10")]
+        [TestCase("uint9")]
+        [TestCase("uint1")]
+        [TestCase("real32")]
+        [TestCase("asdasd")]
+        [TestCase("a")]
+        [TestCase("")]
+        [TestCase("[[")]
+        [TestCase("|")]
+        [TestCase("*")]
+        [TestCase("fun")]
+        [TestCase("fun(?):?")]
+        [TestCase("fon")]
+        [TestCase("{}")]
+        [TestCase("bool8")]
+        [TestCase("boolean")]
+        [TestCase("int[[;")]
+        [TestCase("int[;]")]
+        [TestCase("int[] []")]
+        [TestCase("int  []")]
+        [TestCase("anything")]
+        [TestCase("default")]
+        [TestCase("char")]
+        [TestCase("char[]")]
+        [TestCase("t")]
+        public void ReadVarType_Throws(string expr)
+        {
+            var flow = Tokenizer.ToFlow(expr);
+            Assert.Catch(() => flow.ReadType());
+        }
+        [TestCase("text")]
+        [TestCase("text=")]
+        [TestCase("text:")]
+        public void ReadTextType(string expr) => AssertVarType(expr,VarType.Text);
+
+        [TestCase("int[]", BaseVarType.Int32)]
+        [TestCase("int[]\r", BaseVarType.Int32)]
+        [TestCase("int[]\r[]", BaseVarType.Int32)]
+        [TestCase("int[];[]", BaseVarType.Int32)]
+        [TestCase("int16[]", BaseVarType.Int16)]
+
+        [TestCase("int32[]", BaseVarType.Int32)]
+        [TestCase("int64[]", BaseVarType.Int64)]
+        [TestCase("uint[]", BaseVarType.UInt32)]
+        [TestCase("byte[]", BaseVarType.UInt8)]
+        [TestCase("int[]=", BaseVarType.Int32)]
+        [TestCase("int16[]=", BaseVarType.Int16)]
+        [TestCase("int32[]=", BaseVarType.Int32)]
+        [TestCase("int64[]=", BaseVarType.Int64)]
+        [TestCase("uint[]=", BaseVarType.UInt32)]
+        [TestCase("byte[]=", BaseVarType.UInt8)]
+        [TestCase("uint16[]=", BaseVarType.UInt16)]
+        [TestCase("uint32[];", BaseVarType.UInt32)]
+        [TestCase("uint64[];(", BaseVarType.UInt64)]
+        [TestCase("uint64[];a", BaseVarType.UInt64)]
+
+        [TestCase("real[]", BaseVarType.Real)]
+        [TestCase("real[]:", BaseVarType.Real)]
+        [TestCase("bool[]", BaseVarType.Bool)]
+        [TestCase("any[]", BaseVarType.Any)]
+        public void ReadArrayType(string expr, BaseVarType elementType) =>
+            AssertVarType(expr, VarType.ArrayOf(VarType.PrimitiveOf(elementType)));
+        
+        [TestCase("int[][]", BaseVarType.Int32)]
+        [TestCase("int16[][]", BaseVarType.Int16)]
+        [TestCase("int32[][]", BaseVarType.Int32)]
+        [TestCase("int64[][]", BaseVarType.Int64)]
+        [TestCase("uint[][]", BaseVarType.UInt32)]
+        [TestCase("byte[][]", BaseVarType.UInt8)]
+        [TestCase("int[][]=", BaseVarType.Int32)]
+        [TestCase("int16[][]=", BaseVarType.Int16)]
+        [TestCase("int32[][]=", BaseVarType.Int32)]
+        [TestCase("int64[][]=", BaseVarType.Int64)]
+        [TestCase("uint[][]=", BaseVarType.UInt32)]
+        [TestCase("byte[][]=", BaseVarType.UInt8)]
+        [TestCase("uint16[][]=", BaseVarType.UInt16)]
+        [TestCase("uint32[][];", BaseVarType.UInt32)]
+        [TestCase("uint64[][];(", BaseVarType.UInt64)]
+        [TestCase("uint64[][];a", BaseVarType.UInt64)]
+
+        [TestCase("real[][]", BaseVarType.Real)]
+        [TestCase("real[][]:", BaseVarType.Real)]
+        [TestCase("bool[][]", BaseVarType.Bool)]
+        [TestCase("any[][]", BaseVarType.Any)]
+        public void ReadTwinArrayType(string expr, BaseVarType elementType) =>
+            AssertVarType(expr, VarType.ArrayOf(VarType.ArrayOf(VarType.PrimitiveOf(elementType))));
+        
+        public void AssertVarType(string expr, VarType expected)
+        {
+            var flow = Tokenizer.ToFlow(expr);
+            var actual = flow.ReadType();
+            Assert.AreEqual(expected,actual);
+        }
     }
 }

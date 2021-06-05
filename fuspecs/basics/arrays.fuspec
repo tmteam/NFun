@@ -140,14 +140,14 @@
 
 |****************************************
 | TEST var type array
-| TAGS array anything
+| TAGS array any
 |************************
   i:int
   t:text
   r:real
-  a:anything
+  a:any
 
-  j:anything[] = [i,t,r,a]
+  j:any[] = [i,t,r,a]
 |------------------
 | set i:1, t:'vasa', r:4.0, a: 'yeah'
 | check j:[1, 'vasa', 4.0, 'yeah']

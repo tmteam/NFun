@@ -124,7 +124,7 @@ namespace NFun.SyntaxParsing
 
             var outputType = VarType.Empty;
             if (_flow.MoveIf(TokType.Colon, out _))
-                outputType = _flow.ReadVarType();
+                outputType = _flow.ReadType();
             
             _flow.SkipNewLines();
             if (!_flow.MoveIf(TokType.Def, out var def))

@@ -781,13 +781,14 @@ namespace NFun.SyntaxParsing
             return true;
         }
 
+        
         private static VarType TryReadTypeDef(TokFlow flow)
         {
             if (!flow.IsCurrent(TokType.Colon))
                 return VarType.Empty;
             
             flow.MoveNext();
-            var type = flow.ReadVarType();
+            var type = flow.ReadType();
             if (type == VarType.Empty)
                 throw FunParseException.ErrorStubToDo("invalid type definition");
             return type;

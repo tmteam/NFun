@@ -67,8 +67,6 @@ namespace NFun.Tokenization
             {"uint32", TokType.UInt32Type},
             {"uint64", TokType.UInt64Type},
             
-            {"anything", TokType.AnythingType},
-            
             //Reserved keywords:
             {"the",   TokType.Reserved},
             {"rule",   TokType.Reserved},

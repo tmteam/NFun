@@ -171,19 +171,19 @@ namespace NFun.SyntaxTests
         [Test]
         public void ConstantTwinAnyArray_WithTypeSpecification()
         {
-            var expr = "out:anything[] = [0,[1]]";
+            var expr = "out:any[] = [0,[1]]";
             var result = expr.Calc().Get("out");
             Assert.IsInstanceOf<object[]>(result);
             AssertArraysDeepEquiualent(new object[]{0.0,new double[]{1.0}}, result);
         }
 
-        [TestCase("out:anything[] = [0,[1]]")]
-        [TestCase("out:anything[] = [[1],0]")]
-        [TestCase("out:anything[] = [[true],0]")]
-        [TestCase("out:anything[] = [[1],true]")]
-        [TestCase("out:anything[] = [true,[1]]")]
-        [TestCase("out:anything[] = [1,'vasa']")]
-        [TestCase("out:anything[] = ['vasa',1.5]")]
+        [TestCase("out:any[] = [0,[1]]")]
+        [TestCase("out:any[] = [[1],0]")]
+        [TestCase("out:any[] = [[true],0]")]
+        [TestCase("out:any[] = [[1],true]")]
+        [TestCase("out:any[] = [true,[1]]")]
+        [TestCase("out:any[] = [1,'vasa']")]
+        [TestCase("out:any[] = ['vasa',1.5]")]
         [TestCase("out = [0,[1]]")]
         [TestCase("out = [[1],0]")]
         [TestCase("out = [[true],0]")]
@@ -237,7 +237,7 @@ namespace NFun.SyntaxTests
         [Test]
         public void ConstantTrippleAnyArrayWithUpcast()
         {
-            var expr = "out:anything = [false,0,1,'vasa',[1,2,[10000,2]]]";
+            var expr = "out:any = [false,0,1,'vasa',[1,2,[10000,2]]]";
             var result = expr.Calc().Get("out");
 
             var expected = new object[] {false, 0.0, 1.0, "vasa", new Object[] {1.0, 2.0, new double[] {10000, 2.0}}};

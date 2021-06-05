@@ -102,7 +102,7 @@ namespace NFun.SyntaxTests.Structs
         
         [Test]
         public void AccessToNestedFieldsWithExplicitTi2() =>
-            "y:anything = {age = 42; name = 'vasa'}.name"
+            "y:any = {age = 42; name = 'vasa'}.name"
                 .Calc()
                 .AssertReturns("y",(object)"vasa");
         

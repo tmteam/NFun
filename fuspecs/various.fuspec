@@ -174,7 +174,7 @@
 | in   n:int[]
 | out  res:int[] 
 |------------------------
- smth: anything[]
+ smth: any[]
  	= [1,'2',3.0,4,5.2, true, false, 7.2]
 
  res = smth

@@ -18,7 +18,7 @@ namespace NFun.ApiTests
         [TestCase("'{name}{age}'.reverse()=='31asav'",true)]
         [TestCase("'mama'=='{name}{age}'.reverse()",false)]
         [TestCase("'hello world'","hello world")]
-        [TestCase("out:anything ='hello world'","hello world")]
+        [TestCase("out:any ='hello world'","hello world")]
         [TestCase("1",1.0)]
         [TestCase("ids.count(fun it>2)",2)]
         [TestCase("ids.filter(fun it>2)",new[]{101,102})]

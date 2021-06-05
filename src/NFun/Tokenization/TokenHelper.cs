@@ -54,36 +54,49 @@ namespace NFun.Tokenization
             return long.Parse(val);
         }
 
-        private static VarType ToVarType(this Tok token) =>
-            token.Type switch
+        private static VarType ToFunnyType(this Tok token)
+        {
+            switch (token.Type)
             {
-                TokType.Int16Type => VarType.Int16,
-                TokType.Int32Type => VarType.Int32,
-                TokType.Int64Type => VarType.Int64,
-                TokType.UInt8Type => VarType.UInt8,
-                TokType.UInt16Type => VarType.UInt16,
-                TokType.UInt32Type => VarType.UInt32,
-                TokType.UInt64Type => VarType.UInt64,
-                TokType.RealType => VarType.Real,
-                TokType.BoolType => VarType.Bool,
-                TokType.TextType => VarType.Text,
-                TokType.AnythingType => VarType.Anything,
-                _ => throw ErrorFactory.TypeExpectedButWas(token)
-            };
+                case TokType.Int16Type:  return VarType.Int16;
+                case TokType.Int32Type:  return VarType.Int32;
+                case TokType.Int64Type:  return VarType.Int64;
+                case TokType.UInt8Type:  return VarType.UInt8;
+                case TokType.UInt16Type: return VarType.UInt16;
+                case TokType.UInt32Type: return VarType.UInt32;
+                case TokType.UInt64Type: return VarType.UInt64;
+                case TokType.RealType:   return VarType.Real;
+                case TokType.BoolType:   return VarType.Bool;
+                case TokType.TextType:   return VarType.Text;
+                case TokType.AnythingType:  return VarType.Anything;
+                case TokType.Id:
+                    if(token.Value=="any") return VarType.Anything;
+                    break;     
+            }
+            throw ErrorFactory.TypeExpectedButWas(token);
 
-        public static VarType ReadVarType(this TokFlow flow)
+        }
+
+        public static VarType ReadType(this TokFlow flow)
         {
             var cur = flow.Current;
-            var readType = ToVarType(cur);
+            var readType = ToFunnyType(cur);
+            
             flow.MoveNext();
-
+            var lastPosition = cur.Finish;
+            
             while (flow.IsCurrent(TokType.ArrOBr))
             {
+                if (flow.Current.Start != lastPosition) 
+                    throw FunParseException.ErrorStubToDo("unexpected space before []");
+                
                 flow.MoveNext();
+                lastPosition = flow.Current.Finish;
                 if (!flow.MoveIf(TokType.ArrCBr))
                     throw ErrorFactory.ArrTypeCbrMissed(new Interval(cur.Start, flow.Current.Start));
                 readType = VarType.ArrayOf(readType);
             }
+
             return readType;
         }
         
