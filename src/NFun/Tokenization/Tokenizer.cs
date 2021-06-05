@@ -5,7 +5,6 @@ using NFun.ParseErrors;
 
 namespace NFun.Tokenization
 {
-
     class InterpolationLayer
     {
         public char OpenQuoteSymbol;
@@ -40,7 +39,7 @@ namespace NFun.Tokenization
         private static readonly Dictionary<string, TokType> Keywords = new()
         {
             {"in",    TokType.In},
-            {"rule",  TokType.FunRule},
+            {"fun",   TokType.FunRule},
             
             {"and",   TokType.And},
             {"or",    TokType.Or},
@@ -57,11 +56,11 @@ namespace NFun.Tokenization
             {"real", TokType.RealType},
            
             {"int16", TokType.Int16Type},
-            {"int", TokType.Int32Type},
+            {"int",   TokType.Int32Type},
             {"int32", TokType.Int32Type},
             {"int64", TokType.Int64Type},
             
-            {"byte",  TokType.UInt8Type},
+            {"byte",   TokType.UInt8Type},
             {"uint8",  TokType.UInt8Type},
             {"uint16", TokType.UInt16Type},
             {"uint",   TokType.UInt32Type},
@@ -72,7 +71,7 @@ namespace NFun.Tokenization
             
             //Reserved keywords:
             {"the",   TokType.Reserved},
-            {"fun",   TokType.Reserved},
+            {"rule",   TokType.Reserved},
             
             {"%", TokType.Reserved},
             {"_", TokType.Reserved},
@@ -80,27 +79,27 @@ namespace NFun.Tokenization
             {"async", TokType.Reserved},
             {"await", TokType.Reserved},
             
-            {"base", TokType.Reserved},
+            {"base",   TokType.Reserved},
             {"bigInt", TokType.Reserved},
 
-            {"char", TokType.Reserved},
-            {"case", TokType.Reserved},
+            {"char",  TokType.Reserved},
+            {"case",  TokType.Reserved},
             {"catch", TokType.Reserved},
 
-            {"date", TokType.Reserved},
+            {"date",    TokType.Reserved},
             {"decimal", TokType.Reserved},
-            {"do",    TokType.Reserved},
+            {"do",      TokType.Reserved},
 
             {"error",   TokType.Reserved},
 
-            {"from", TokType.Reserved},
+            {"from",    TokType.Reserved},
             {"finally", TokType.Reserved},
-            {"for",   TokType.Reserved},
-            {"fail",   TokType.Reserved},
-            {"int8", TokType.Reserved},
-            {"ip", TokType.Reserved},
-            {"import", TokType.Reserved},
-            {"int128", TokType.Reserved},
+            {"for",     TokType.Reserved},
+            {"fail",    TokType.Reserved},
+            {"int8",    TokType.Reserved},
+            {"ip",      TokType.Reserved},
+            {"import",  TokType.Reserved},
+            {"int128",  TokType.Reserved},
 
             {"let", TokType.Reserved},
             {"match", TokType.Reserved},

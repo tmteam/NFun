@@ -33,17 +33,17 @@ namespace NFun.SyntaxTests.BuiltInFunctions
                      y = fold([1,2,3], iSum)", 6)]
         [TestCase(@"iSum(r:int, x:int):int = r+x
                      y = fold([100], iSum)", 100)]
-        [TestCase("y:int = [1,2,3,4,5,6,7].filter((rule it.rema(2)==0)).sum()", 12)]
-        [TestCase("y:int = [1,2,3,4,5,6,7].filter((rule it.rema(2)==0)).fold((rule it1+it2+1))", 14)]
-        [TestCase("y:int = [1,2,3,4,5,6,7].filter(rule it.rema(2)==0).fold(rule it1+it2+1)", 14)]
-        [TestCase("y:int = [1,2,3,4,5,6,7].filter(rule it.rema(2)==0).fold(min)", 2)]
-        [TestCase("y:int = [1,2,3,4,5,6,7].filter((rule it.rema(2)==0)).fold(max)", 6)]
-        [TestCase("y:int = [1,2,3,4].fold (rule it1+it2)", 10)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter((fun it.rema(2)==0)).sum()", 12)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter((fun it.rema(2)==0)).fold((fun it1+it2+1))", 14)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter(fun it.rema(2)==0).fold(fun it1+it2+1)", 14)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter(fun it.rema(2)==0).fold(min)", 2)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter((fun it.rema(2)==0)).fold(max)", 6)]
+        [TestCase("y:int = [1,2,3,4].fold (fun it1+it2)", 10)]
         [TestCase("y:int = [1,2,3,4,5,6,7].fold(max)", 7)]
-        [TestCase("y:int = [1,2,3,4,5,6,7].fold(rule if(it1>it2) it1 else it2)", 7)]
-        [TestCase("y:int = [1,2,3,4,5,6,7].filter((rule it.rema(2)==0)).fold(rule if(it1>it2) it1 else it2)", 6)]
-        [TestCase("y:int = [1,2,3,4,5,6,7].filter((rule it.rema(2)==0)).fold(rule 0)", 0)]
-        [TestCase("y:int = [1,2,3,4,5,6,7].filter((rule it.rema(2)==0)).fold(rule 0)", 0)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].fold(fun if(it1>it2) it1 else it2)", 7)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter((fun it.rema(2)==0)).fold(fun if(it1>it2) it1 else it2)", 6)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter(fun it.rema(2)==0).fold(fun 0)", 0)]
+        [TestCase("y:int = [1,2,3,4,5,6,7].filter((fun it.rema(2)==0)).fold(fun 0)", 0)]
         public void HiOrderFunConstantEquatation(string expr, object expected) 
             => expr.AssertReturns("y",expected);
 

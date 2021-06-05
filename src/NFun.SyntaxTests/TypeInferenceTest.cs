@@ -82,32 +82,32 @@ namespace NFun.SyntaxTests
                    fib(n) = if (n<3) 1 else fibrec(n-1,2,1,1)
                    y = fib(1)", BaseVarType.Int32)]
         [TestCase(@"y = [1..7]
-                        .map(rule it+1)
+                        .map(fun it+1)
                         .sum()", BaseVarType.Real)]
         [TestCase(@"y = [1..8]
-                        .map(rule [it,1].sum())
+                        .map(fun [it,1].sum())
                         .sum()", BaseVarType.Real)]
         [TestCase(@"y = [1..9]
-                        .map(rule [1,it].sum())
+                        .map(fun [1,it].sum())
                         .sum()", BaseVarType.Real)]
         [TestCase(@"y = [1..10]
-                        .map(rule [1..it].sum())
+                        .map(fun [1..it].sum())
                         .sum()", BaseVarType.Real)]
         [TestCase(@"y = [1..11]
-                        .map(rule [1..it].sum())
+                        .map(fun [1..it].sum())
                         .sum()", BaseVarType.Real)]
         [TestCase(@"y = [1..12]
-                        .map(rule [1..it]
-                                .map(rule 2600/it)
+                        .map(fun [1..it]
+                                .map(fun 2600/it)
                                 .sum())
                         .sum()", BaseVarType.Real)]
         [TestCase(@"y = [1..13]
-                        .map(rule [1..10]
-                                .map(rule 2600/it)
+                        .map(fun [1..10]
+                                .map(fun 2600/it)
                                 .sum())
                         .sum()", BaseVarType.Real)]
         [TestCase(@"y = [1..14]
-                        .map(rule it/2)
+                        .map(fun it/2)
                         .sum()", BaseVarType.Real)]
         [TestCase(
             @"div10(x) = 2600/x
@@ -163,19 +163,19 @@ namespace NFun.SyntaxTests
         [TestCase("f9(n) = f9(n and true)")]
         [TestCase("fa(n) = fa(n+1)")]
         [TestCase("fb(n) = n.concat('').fb()")]
-        [TestCase("[a].map(rule it)")]
-        [TestCase("[a].filter(rule it>2)")]
+        [TestCase("[a].map(fun it)")]
+        [TestCase("[a].filter(fun it>2)")]
         [TestCase("[a].reverse()")]
         [TestCase("[a]")]
-        [TestCase("y = [-x].all(rule it<0.0)")]
-        [TestCase("y = [x,x].all(rule it<0.0)")]
-        [TestCase("y = [-x,x].all(rule it<0.0 )")]
-        [TestCase("y = [1,-x].all( rule it<0.0 )")]
-        [TestCase("y = [x,2.0,3.0].all(rule it >1.0)")]
-        [TestCase("y = [1..11].map(rule [1..n].sum())")]
-        [TestCase("y = [1..12].map(rule [1..n].sum()).sum()")]
-        [TestCase("y = [1..11].map(rule [1..i].sum())")]
-        [TestCase("y = [1..12].map(rule [1..i].sum()).sum()")]
+        [TestCase("y = [-x].all(fun it<0.0)")]
+        [TestCase("y = [x,x].all(fun it<0.0)")]
+        [TestCase("y = [-x,x].all(fun it<0.0 )")]
+        [TestCase("y = [1,-x].all( fun it<0.0 )")]
+        [TestCase("y = [x,2.0,3.0].all(fun it >1.0)")]
+        [TestCase("y = [1..11].map(fun [1..n].sum())")]
+        [TestCase("y = [1..12].map(fun [1..n].sum()).sum()")]
+        [TestCase("y = [1..11].map(fun [1..i].sum())")]
+        [TestCase("y = [1..12].map(fun [1..i].sum()).sum()")]
         [TestCase("dsum7(x) = x+x")]
         [TestCase(
             @"dsum8(x) = x+x
@@ -206,11 +206,11 @@ namespace NFun.SyntaxTests
 
         [TestCase( "y1 = -x \r y2 = -x")]
         [TestCase( "y1 = x  \r y2 = -x")]
-        [TestCase( "y = [x,-x].all(rule it<0.0)")]
-        [TestCase( "y = [-x,-x].all(rule it<0.0)")]
-        [TestCase("z = [-x,-x,-x] \r  y = z.all(rule it < 0.0)")]
+        [TestCase( "y = [x,-x].all(fun it<0.0)")]
+        [TestCase( "y = [-x,-x].all(fun it<0.0)")]
+        [TestCase("z = [-x,-x,-x] \r  y = z.all(fun it < 0.0)")]
         [TestCase( "y = [x, -x]")]
-        [TestCase( "y = [-x,-x,-x].all(rule it < 0.0)")]
+        [TestCase( "y = [-x,-x,-x].all(fun it < 0.0)")]
         [TestCase( "[x, -x]")]
         public void EquationTypes_SolvesSomehow(string expr) => Assert.DoesNotThrow(()=>expr.Build());
 
@@ -263,7 +263,7 @@ namespace NFun.SyntaxTests
         [TestCase("y = x \r x:real ")]
         [TestCase("z:real \r  y = x+z \r x:real ")]
         //todo: What is expected ?!
-        //[TestCase("y= [1,2,3].fold(rule '(rule it1}!'}")]
+        //[TestCase("y= [1,2,3].fold(fun '(fun it1}!'}")]
         [TestCase("a:int \r a=4")]
         [TestCase("a:int a=4")]
         [TestCase("a:real =false")]
@@ -295,16 +295,16 @@ namespace NFun.SyntaxTests
         public void SingleInputTypedEquation(object x,  string expr, object y) => 
             expr.Calc("x", x).AssertReturns(y);
 
-        [TestCase("y:int[]= [1,2,3].map(rule it*it)", new[]{1,4,9})] 
-        [TestCase("y:int[]= [1,2,3].map(rule it)", new[]{1,2,3})] 
-        [TestCase("y:int[]= [1,2,3].map(rule 1)", new[]{1,1,1})] 
-        [TestCase("y= [1,2,3].map(rule 'hi')", new[]{"hi","hi","hi"})] 
-        [TestCase("y= [true,true,false].map(rule 'hi')", new[]{"hi","hi","hi"})] 
-        [TestCase("y:int[]= [1,2,3].filter (rule it>2)", new[]{3})] 
-        [TestCase("y:int= [1,2,3].fold(rule it1+it2)", 6)] 
-        [TestCase("y:int= [1,2,3].fold(rule 1)", 1)] 
-        [TestCase("y:int= [1,2,3].fold(rule it1)", 1)] 
-        [TestCase("y:int= [1,2,3].fold(rule it1+1)", 3)] 
+        [TestCase("y:int[]= [1,2,3].map(fun it*it)", new[]{1,4,9})] 
+        [TestCase("y:int[]= [1,2,3].map(fun it)", new[]{1,2,3})] 
+        [TestCase("y:int[]= [1,2,3].map(fun 1)", new[]{1,1,1})] 
+        [TestCase("y= [1,2,3].map(fun 'hi')", new[]{"hi","hi","hi"})] 
+        [TestCase("y= [true,true,false].map(fun 'hi')", new[]{"hi","hi","hi"})] 
+        [TestCase("y:int[]= [1,2,3].filter (fun it>2)", new[]{3})] 
+        [TestCase("y:int= [1,2,3].fold(fun it1+it2)", 6)] 
+        [TestCase("y:int= [1,2,3].fold(fun 1)", 1)] 
+        [TestCase("y:int= [1,2,3].fold(fun it1)", 1)] 
+        [TestCase("y:int= [1,2,3].fold(fun it1+1)", 3)] 
 
         public void ConstantTypedEquation(string expr, object y) => 
             expr.Calc().AssertReturns(y);

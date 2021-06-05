@@ -72,8 +72,8 @@ tostring(v:int):text =
 			else 'not supported' 
 x:int
 y = tostring(x)", "y", "not supported")]
-        [TestCase(2.5, "y = [1.0,2.0,3.0].filter(rule it<x).max()", "y", 2.0)]
-        [TestCase(2.5, "x:real \r y = [1.0,2.0,3.0].filter(rule it<x).max()", "y", 2.0)]
+        [TestCase(2.5, "y = [1.0,2.0,3.0].filter(fun it<x).max()", "y", 2.0)]
+        [TestCase(2.5, "x:real \r y = [1.0,2.0,3.0].filter(fun it<x).max()", "y", 2.0)]
         public void Real_SingleEquationWithSingleInput(object xVal, string expression, string outputName,
             object outputValue)
         {
@@ -132,9 +132,9 @@ y = tostring(x)", "y", "not supported")]
         [TestCase("y:int[] = [0..10][1:3] #[1,2,3]", "y", new[] {1, 2, 3})]
         [TestCase("y:int[] = [0..10][7:] #[7,8,9,10]", "y", new[] {7, 8, 9, 10})]
         [TestCase("y:int[] = [0..10][:2] #[0,1,2]", "y", new[] {0, 1, 2})]
-        [TestCase("y = [1..4].map(rule it/2)#[0.5,1.0,1.5,2.0]", "y", new[] {0.5, 1.0, 1.5, 2.0})]
-        [TestCase("y = [1..4].any(rule it>0)#true", "y", true)]
-        [TestCase("y = [1..4].all(rule it>2)#false", "y", false)]
+        [TestCase("y = [1..4].map(fun it/2)#[0.5,1.0,1.5,2.0]", "y", new[] {0.5, 1.0, 1.5, 2.0})]
+        [TestCase("y = [1..4].any(fun it>0)#true", "y", true)]
+        [TestCase("y = [1..4].all(fun it>2)#false", "y", false)]
         public void Constant(string expr, string outputName, object val)
         {
             var runtime = expr.Build();
