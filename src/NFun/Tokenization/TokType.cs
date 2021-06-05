@@ -113,9 +113,9 @@ namespace NFun.Tokenization
         /// </summary>
         Colon,
         /// <summary>
-        /// '--'
+        /// '@'
         /// </summary>
-        Attribute,
+        MetaInfo,
         /// <summary>
         /// '..'
         /// </summary>

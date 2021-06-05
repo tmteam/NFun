@@ -284,6 +284,7 @@ namespace NFun.Tokenization
                         return Tok.New(TokType.FiCbr, position, position + 1);
                     }
                 case ',': return Tok.New(TokType.Sep, position, position + 1);
+                case '@': return Tok.New(TokType.MetaInfo, position, position + 1);
                 case '&': return Tok.New(TokType.BitAnd, position, position + 1);
                 case '^': return Tok.New(TokType.BitXor, position, position + 1);
                 case '|': return Tok.New(TokType.BitOr, position, position + 1);
@@ -296,7 +297,6 @@ namespace NFun.Tokenization
                 case ']': return Tok.New(TokType.ArrCBr, position, position + 1);
                 case ':': return Tok.New(TokType.Colon, position, position + 1);
                 case '~': return Tok.New(TokType.BitInverse, position, position + 1);
-                case '-' when next == '-': return Tok.New(TokType.Attribute, position, position + 2);
                 case '-' when next == '>': return Tok.New(TokType.Arrow, position, position + 2);
                 case '-':                  return Tok.New(TokType.Minus, position, position + 1);
                 case '*' when next == '*': return Tok.New(TokType.Pow, position, position + 2);

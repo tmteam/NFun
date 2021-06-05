@@ -14,12 +14,12 @@ namespace NFun.Tokenization
         public static VarAttribute[] ReadAttributes(this TokFlow flow)
         {
             var attributes = new VarAttribute[0];
-            if (!flow.IsCurrent(TokType.Attribute))
+            if (!flow.IsCurrent(TokType.MetaInfo))
                 return attributes;
 
             bool newLine = flow.IsStart || flow.Previous.Is(TokType.NewLine);
             var ans = new List<VarAttribute>();
-            while (flow.IsCurrent(TokType.Attribute))
+            while (flow.IsCurrent(TokType.MetaInfo))
             {
                 if (!newLine)
                     throw ErrorFactory.NowNewLineBeforeAttribute(flow);
