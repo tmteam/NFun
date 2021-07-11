@@ -16,8 +16,7 @@ namespace NFun.Tokenization
             _tokens = tokens.ToArray();
         }
 
-        private int _currentPos; 
-        public bool IsDone => _tokens.Length <= _currentPos;
+        public bool IsDone => _tokens.Length <= CurrentTokenPosition;
 
         public Tok[] MoveUntilOneOfThe(params TokType[] types)
         {
@@ -33,10 +32,10 @@ namespace NFun.Tokenization
             return results.ToArray();
         }
 
-        public int CurrentTokenPosition => _currentPos;
-        public Tok Current => IsDone ? CurrentAfterEofFlowTok : _tokens[_currentPos];
-        public bool IsStart => _currentPos == 0;
-        public Tok Previous => IsStart ? PreviousBeforeFlowTok : _tokens[_currentPos - 1];
+        public int CurrentTokenPosition { get; private set; }
+        public Tok Current => IsDone ? CurrentAfterEofFlowTok : _tokens[CurrentTokenPosition];
+        public bool IsStart => CurrentTokenPosition == 0;
+        public Tok Previous => IsStart ? PreviousBeforeFlowTok : _tokens[CurrentTokenPosition - 1];
         public bool SkipNewLines()
         {
             bool result = false;
@@ -52,7 +51,7 @@ namespace NFun.Tokenization
         {
             if (IsDone) return type == TokType.Eof;
             
-            return _tokens[_currentPos].Type == type;
+            return _tokens[CurrentTokenPosition].Type == type;
         }
 
 
@@ -65,41 +64,41 @@ namespace NFun.Tokenization
                     return Current.Finish;
                 if (_tokens.Length == 0)
                     return 0;
-                return _tokens[_tokens.Length - 1].Finish;
+                return _tokens[^1].Finish;
             }
         }
 
         private Tok PeekNext(int offset)
         {
-            if (_tokens.Length <= (_currentPos + offset + 1))
+            if (_tokens.Length <= (CurrentTokenPosition + offset + 1))
                 return null;
-            return _tokens[_currentPos + offset];
+            return _tokens[CurrentTokenPosition + offset];
         }
 
         public void Move(int position)
         {
             if(_tokens.Length<=position)
-                _currentPos = position - 1;
+                CurrentTokenPosition = position - 1;
             else
-                _currentPos = position;
+                CurrentTokenPosition = position;
         }
         public void MoveNext()
         {
             if (!IsDone)
-                _currentPos++;
+                CurrentTokenPosition++;
         }
 
         public bool IsPrevious(TokType tokType)
         {
-            if (_currentPos <= 0)
+            if (CurrentTokenPosition <= 0)
                 return false;
-            return _tokens[_currentPos - 1].Type == tokType;
+            return _tokens[CurrentTokenPosition - 1].Type == tokType;
         }
 
         public override string ToString()
         {
             var sb = new StringBuilder("Flow [ ");
-            if (_currentPos > 0)
+            if (CurrentTokenPosition > 0)
                 sb.Append($"prev: {Previous.Type}; ");
             sb.Append($"->cur: {Current.Type}; ");
             sb.Append($"next: {PeekNext(1)?.Type} ]");

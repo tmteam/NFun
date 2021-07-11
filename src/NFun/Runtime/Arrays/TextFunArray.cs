@@ -50,13 +50,13 @@ namespace NFun.Runtime.Arrays
                 return new TextFunArray(sb.ToString());
             }
 
-            var str = _text;
+            string str;
             if (!startIndex.HasValue)
             {
                 if (!endIndex.HasValue)
                     return this;
 
-                str = _text.Substring(0, endIndex.Value);
+                str = _text[..endIndex.Value];
             }
             else
             {

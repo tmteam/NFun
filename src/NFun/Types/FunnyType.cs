@@ -158,11 +158,11 @@ namespace NFun.Types
                 case BaseFunnyType.Generic:
                     return GenericId == obj.GenericId;
                 case BaseFunnyType.Struct:
-                    foreach (var thisField in StructTypeSpecification)
+                    foreach (var (key, value) in StructTypeSpecification)
                     {
-                        if (!obj.StructTypeSpecification.TryGetValue(thisField.Key, out var otherValue))
+                        if (!obj.StructTypeSpecification.TryGetValue(key, out var otherValue))
                             return false;
-                        if (!thisField.Value.Equals(otherValue))
+                        if (!value.Equals(otherValue))
                             return false;
                     }
                     return StructTypeSpecification.Count == obj.StructTypeSpecification.Count;
@@ -255,11 +255,14 @@ namespace NFun.Types
                         var genericFun = genericType.FunTypeSpecification;
                         var concreteFun = concreteType.FunTypeSpecification;
 
-                        if (!TrySolveGenericTypes(genericArguments, genericFun.Output, concreteFun.Output)) return false;
-                        if (concreteFun.Inputs.Length != genericFun.Inputs.Length) return false;
+                        if (!TrySolveGenericTypes(genericArguments, genericFun.Output, concreteFun.Output)) 
+                            return false;
+                        if (concreteFun.Inputs.Length != genericFun.Inputs.Length) 
+                            return false;
                         for (int i = 0; i < concreteFun.Inputs.Length; i++)
                         {
-                            if (!TrySolveGenericTypes(genericArguments, genericFun.Inputs[i], concreteFun.Inputs[i])) return false;
+                            if (!TrySolveGenericTypes(genericArguments, genericFun.Inputs[i], concreteFun.Inputs[i])) 
+                                return false;
                         }
 
                         return true;

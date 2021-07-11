@@ -25,7 +25,7 @@ namespace NFun.Tic.SolvingStates
 
         public override bool Equals(object obj)
         {
-            if (!(obj is StateRefTo refTo))
+            if (obj is not StateRefTo refTo)
                 return false;
             
             return Node.Equals(refTo.Node);

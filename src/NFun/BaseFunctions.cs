@@ -1,6 +1,6 @@
 using NFun.BuiltInFunctions;
-using NFun.Interpritation;
-using NFun.Interpritation.Functions;
+using NFun.Interpretation;
+using NFun.Interpretation.Functions;
 
 namespace NFun
 {

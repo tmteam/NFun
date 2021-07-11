@@ -12,10 +12,10 @@ namespace NFun.Tokenization
             Interval = interval;
         }
         public static Tok New(TokType type, int start, int finish)
-            => new Tok(type,"",new Interval(start,finish));
+            => new(type,"",new Interval(start,finish));
 
         public static Tok New(TokType  type,  string value,int start,  int finish) 
-            => new Tok(type,value, new Interval(start,finish));
+            => new(type,value, new Interval(start,finish));
 
         public bool Is(TokType type) => type == Type;
         public string Value { get; }

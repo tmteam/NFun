@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using NFun.Interpritation.Nodes;
+using NFun.Interpretation.Nodes;
 
 namespace NFun.Runtime
 {

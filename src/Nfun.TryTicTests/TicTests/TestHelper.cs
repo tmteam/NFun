@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-using NFun.Interpritation;
+using NFun.Interpretation;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tic;
 using NFun.Tic.SolvingStates;

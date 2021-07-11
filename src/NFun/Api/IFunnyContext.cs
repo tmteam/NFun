@@ -1,5 +1,5 @@
 using System;
-using NFun.Interpritation;
+using NFun.Interpretation;
 using NFun.ParseErrors;
 using NFun.SyntaxParsing;
 using NFun.Types;

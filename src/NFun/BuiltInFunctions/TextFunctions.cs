@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 using System.Text;
-using NFun.Interpritation.Functions;
+using NFun.Interpretation.Functions;
 using NFun.Runtime.Arrays;
 using NFun.Types;
 

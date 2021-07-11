@@ -15,6 +15,7 @@ namespace NFun.Types
         public static IinputFunnyConverter GetInputConverter(FunnyType funnyType)
             => GetInputConverter(funnyType, 0);
 
+        // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
         private static IinputFunnyConverter GetInputConverter(FunnyType funnyType, int reqDeepthCheck)
         {
             if (reqDeepthCheck > 100)
@@ -48,10 +49,10 @@ namespace NFun.Types
                     throw new NotSupportedException($"type {funnyType} is not supported for input convertion");
             }
         }
-
-
+        
         public static IinputFunnyConverter GetInputConverter(Type clrType) => GetInputConverter(clrType, 0);
  
+        // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
         private static IinputFunnyConverter GetInputConverter(Type clrType, int reqDeepthCheck)
         {
             if (reqDeepthCheck > 100)
@@ -95,16 +96,15 @@ namespace NFun.Types
                 (string, IinputFunnyConverter, PropertyInfo)[] propertiesConverters =
                     new (string, IinputFunnyConverter, PropertyInfo)[properties.Length];
                 int readPropertiesCount = 0;
-                for (int i = 0; i < properties.Length; i++)
+                foreach (var property in properties)
                 {
-                    var property = properties[i];
                     if(!property.CanRead)
                         continue;
                     if(!property.GetMethod.Attributes.HasFlag(MethodAttributes.Public))
                         continue;
                     var  propertyConverter =GetInputConverter(property.PropertyType, reqDeepthCheck++);
                     propertiesConverters[readPropertiesCount] =
-                        new (property.Name.ToLower(), propertyConverter, property);
+                        new ValueTuple<string, IinputFunnyConverter, PropertyInfo>(property.Name.ToLower(), propertyConverter, property);
                     readPropertiesCount++;
                 }
                     
@@ -113,9 +113,9 @@ namespace NFun.Types
             return new PrimitiveTypeInputFunnyConverter(FunnyType.Any);
         }
 
-
         public static IOutputFunnyConverter GetOutputConverter(Type clrType) => GetOutputConverter(clrType, 0);
 
+        // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
         private static IOutputFunnyConverter GetOutputConverter(Type clrType, int reqDeepthCheck)
         {
             if (reqDeepthCheck > 100)
@@ -151,9 +151,8 @@ namespace NFun.Types
                 var propertiesConverters =
                     new (string, IOutputFunnyConverter, PropertyInfo)[properties.Length];
                 int readPropertiesCount = 0;
-                for (int i = 0; i < properties.Length; i++)
+                foreach (var property in properties)
                 {
-                    var property = properties[i];
                     if(!property.CanWrite)
                         continue;
                     if(!property.GetMethod.Attributes.HasFlag(MethodAttributes.Public))
@@ -161,7 +160,7 @@ namespace NFun.Types
                     var  propertyConverter =GetOutputConverter(property.PropertyType, reqDeepthCheck++);
                     
                     propertiesConverters[readPropertiesCount] =
-                        new (property.Name.ToLower(), propertyConverter, property);
+                        new ValueTuple<string, IOutputFunnyConverter, PropertyInfo>(property.Name.ToLower(), propertyConverter, property);
                     readPropertiesCount++;
                 }
                 return new StructOutputFunnyConverter(clrType, propertiesConverters,readPropertiesCount);

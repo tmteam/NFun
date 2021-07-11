@@ -41,9 +41,8 @@ namespace NFun.Types
             var values = new Dictionary<string, object>(_propertiesConverters.Length);
             for (var i = 0; i < _readPropertiesCount; i++)
             {
-                var propertiesConverter = _propertiesConverters[i];
-                values.Add(propertiesConverter.Item1,
-                    propertiesConverter.Item2.ToFunObject(propertiesConverter.Item3.GetValue(clrObject)));
+                var (key, inputFunnyConverter, propertyInfo) = _propertiesConverters[i];
+                values.Add(key, inputFunnyConverter.ToFunObject(propertyInfo.GetValue(clrObject)));
             }
 
             return new FunnyStruct(values);

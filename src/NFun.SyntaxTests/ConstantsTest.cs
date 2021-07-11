@@ -129,9 +129,9 @@ namespace NFun.SyntaxTests
             var index = expression.IndexOf("0x", StringComparison.Ordinal);
             if (index == -1) index = expression.IndexOf("0b", StringComparison.Ordinal);
             index += 2;
-            var upperExpression = expression.Substring(0, index) + expression.Substring(index).ToUpper();
+            var upperExpression = expression[..index] + expression[index..].ToUpper();
             upperExpression.AssertReturns("y", expected);
-            var lowerExpression = expression.Substring(0, index) + expression.Substring(index).ToLower();
+            var lowerExpression = expression[..index] + expression[index..].ToLower();
             lowerExpression.AssertReturns("y", expected);
         }
 

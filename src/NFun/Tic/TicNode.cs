@@ -33,23 +33,23 @@ namespace NFun.Tic
 
         private ITicNodeState _state;
         public static TicNode CreateTypeVariableNode(ITypeState type) 
-            => new TicNode(type.ToString(), type, TicNodeType.TypeVariable);
+            => new(type.ToString(), type, TicNodeType.TypeVariable);
 
         private static int _interlockedId = 0;
         private readonly int _uid = 0;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TicNode CreateSyntaxNode(int id, ITicNodeState state, bool registrated = false)
-            => new TicNode(id, state, TicNodeType.SyntaxNode) {Registrated = registrated};
+            => new(id, state, TicNodeType.SyntaxNode) {Registrated = registrated};
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static  TicNode CreateNamedNode(object name, ITicNodeState state) 
-            => new TicNode(name, state, TicNodeType.Named) {Registrated = true};
+            => new(name, state, TicNodeType.Named) {Registrated = true};
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TicNode CreateTypeVariableNode(string name, ITicNodeState state, bool registrated = false)
-            => new TicNode(name, state, TicNodeType.TypeVariable) {Registrated = registrated};
+            => new(name, state, TicNodeType.TypeVariable) {Registrated = registrated};
         
         private TicNode(object name, ITicNodeState state, TicNodeType type)
         {
@@ -88,7 +88,7 @@ namespace NFun.Tic
             _ancestors[index] = node;
         }
         
-        private  List<TicNode> _ancestors = new();
+        private readonly List<TicNode> _ancestors = new();
         public IReadOnlyList<TicNode> Ancestors => _ancestors;
         #endregion
 
@@ -169,7 +169,8 @@ namespace NFun.Tic
                     return false;
                 State = optimized;
                 return true;
-            };
+            }
+
             return false;
         }
         public TicNode GetNonReference()

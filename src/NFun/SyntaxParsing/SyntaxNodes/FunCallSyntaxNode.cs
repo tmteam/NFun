@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using NFun.Interpritation.Functions;
+using NFun.Interpretation.Functions;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
 using NFun.Types;

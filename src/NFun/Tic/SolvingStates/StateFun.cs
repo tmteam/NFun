@@ -44,9 +44,9 @@ namespace NFun.Tic.SolvingStates
                 retNode: TicNode.CreateTypeVariableNode(retType));
         }
         public static StateFun Of(TicNode[] argNodes,TicNode returnNode)
-            => new StateFun(argNodes,returnNode);
+            => new(argNodes,returnNode);
         public static StateFun Of(TicNode argNode,TicNode returnNode) 
-            => new StateFun(new []{argNode},returnNode);
+            => new(new []{argNode},returnNode);
 
         private StateFun(TicNode[] argNodes,TicNode retNode)
         {
@@ -74,9 +74,9 @@ namespace NFun.Tic.SolvingStates
             if (funType.ArgsCount != ArgsCount)
                 return StatePrimitive.Any;
 
-            if (!(ReturnType is ITypeState returnType))
+            if (ReturnType is not ITypeState returnType)
                 return null;
-            if (!(funType.ReturnType is ITypeState returnTypeB))
+            if (funType.ReturnType is not ITypeState returnTypeB)
                 return null;
             if (!returnType.IsSolved || !returnTypeB.IsSolved)
                 return null;
@@ -116,7 +116,7 @@ namespace NFun.Tic.SolvingStates
 
         public override bool Equals(object obj)
         {
-            if (!(obj is StateFun fun))
+            if (obj is not StateFun fun)
                 return false;
             if(fun.ArgsCount != ArgsCount)
                 return false;

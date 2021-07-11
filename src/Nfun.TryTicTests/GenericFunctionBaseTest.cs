@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 using NFun.BuiltInFunctions;
-using NFun.Interpritation.Functions;
+using NFun.Interpretation.Functions;
 using NFun.Types;
 using NUnit.Framework;
 

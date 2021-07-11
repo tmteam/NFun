@@ -1,5 +1,5 @@
 using System;
-using NFun.Interpritation;
+using NFun.Interpretation;
 using NFun.TestTools;
 using NUnit.Framework;
 

@@ -484,8 +484,7 @@ namespace NFun.SyntaxTests
             var inputs = inputNames.Select(i => new VarInfo(
                 isOutput: false, 
                 type: FunnyType.Real, 
-                name: i, 
-                isStrictTyped: false)).ToArray();
+                name: i)).ToArray();
             CollectionAssert.AreEquivalent(inputs, expr.Build().Inputs);
         }
         
@@ -501,8 +500,7 @@ namespace NFun.SyntaxTests
                 new[]{new VarInfo(
                     isOutput: true, 
                     type: FunnyType.PrimitiveOf(type), 
-                    name: output, 
-                    isStrictTyped: false)}, 
+                    name: output)}, 
                 expr.Build().Outputs);
         
         private static Type GetClrType(FunnyType funnyType) => 

@@ -30,7 +30,7 @@ namespace NFun.SyntaxParsing
             private readonly int[][] _graph;
             private readonly NodeState[] _nodeStates;
             private readonly int[] _route;
-            private readonly Queue<int> _cycleRoute = new Queue<int>();
+            private readonly Queue<int> _cycleRoute = new();
 
             private int _processedCount = 0;
             public TopologySort(int[][] graph)
@@ -93,7 +93,7 @@ namespace NFun.SyntaxParsing
         private readonly int[][] _graph;
         private readonly NodeState[] _nodeStates;
         private readonly int[] _route;
-        private readonly Queue<int> _cycleRoute = new Queue<int>();
+        private readonly Queue<int> _cycleRoute = new();
 
         private int _processedCount = 0;
 

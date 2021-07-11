@@ -1,5 +1,5 @@
 ﻿using System;
-using NFun.Interpritation.Functions;
+using NFun.Interpretation.Functions;
 using NFun.Runtime.Arrays;
 using NFun.TestTools;
 using NFun.Types;

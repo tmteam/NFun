@@ -8,8 +8,7 @@ namespace NFun.Runtime.Arrays
 {
     public static class ArrayTools
     {
-        public static readonly ImmutableFunArray Empty = new ImmutableFunArray(Array.Empty<object>(), FunnyType.Any);
-        public static TextFunArray AsFunText(this  string txt)=> new TextFunArray(txt);
+        public static TextFunArray AsFunText(this  string txt)=> new (txt);
 
         public static string JoinElementsToFunString(IEnumerable enumerable)
         {
@@ -34,7 +33,7 @@ namespace NFun.Runtime.Arrays
             foreach (var item in enumerable)
             {
                 count++;
-                if (!(item is char)) 
+                if (item is not char) 
                     allAreChars = false;
             }
             if (allAreChars)

@@ -114,7 +114,7 @@ namespace NFun.Tic.SolvingStates
 
         public override bool Equals(object obj)
         {
-            if (!(obj is StateStruct stateStruct)) return false;
+            if (obj is not StateStruct stateStruct) return false;
             
             foreach (var field in _nodes)
             {

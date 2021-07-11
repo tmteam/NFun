@@ -61,7 +61,7 @@ namespace NFun.Tic
                 }
                 case ConstrainsState constrainsA when stateB is ConstrainsState constrainsB:
                     return constrainsB.MergeOrNull(constrainsA);
-                case ConstrainsState _: 
+                case ConstrainsState: 
                     return GetMergedStateOrNull(stateB, stateA);
                 case StateRefTo refA:
                 {
@@ -119,7 +119,7 @@ namespace NFun.Tic
         /// </summary>
         public static TicNode MergeGroup(IEnumerable<TicNode> cycleRoute)
         {
-            var main = cycleRoute.FirstOrDefault(c=>!(c.State is StateRefTo))
+            var main = cycleRoute.FirstOrDefault(c=>c.State is not StateRefTo)
                        ?? cycleRoute.First();
             foreach (var current in cycleRoute)
             {
@@ -398,11 +398,11 @@ namespace NFun.Tic
                 bool allFieldsAreSolved = true;
 
                 var newFields = new Dictionary<string,TicNode>(structDesc.MembersCount);
-                foreach (var field in structDesc.Fields)
+                foreach (var (key, value) in structDesc.Fields)
                 {
-                    var nrField = field.Value.GetNonReference();
+                    var nrField = value.GetNonReference();
                     allFieldsAreSolved = allFieldsAreSolved && nrField.IsSolved;
-                    newFields.Add(field.Key, nrField);
+                    newFields.Add(key, nrField);
                 }
                 return new StateStruct(newFields);
             }
@@ -577,7 +577,7 @@ namespace NFun.Tic
             {
                 if(node.VisitMark== outputTypeMark)
                     continue;
-                if(!(node.State is ConstrainsState c))
+                if(node.State is not ConstrainsState c)
                     continue;
                 node.State = c.SolveCovariant();
             }
@@ -597,7 +597,7 @@ namespace NFun.Tic
             {
                 case ICompositeState composite:
                     return composite.AllLeafTypes;
-                case StateRefTo _:
+                case StateRefTo:
                     return new[] { node.GetNonReference() };
                 default:
                     return new[] { node };
@@ -614,7 +614,7 @@ namespace NFun.Tic
                     return array.AllLeafTypes;
                 case StateStruct @struct:
                     return @struct.AllLeafTypes;
-                case StateRefTo _:
+                case StateRefTo:
                     return new[] { node.GetNonReference() }; //TODO AllLeafType?
                 default:
                     return new[] { node }; //TODO retNode.AllLeafType?

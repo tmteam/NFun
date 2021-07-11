@@ -36,23 +36,23 @@ namespace NFun.Tic.SolvingStates
                 default: return Name.ToString();
             }
         }
-        public static StatePrimitive Any { get; } = new StatePrimitive(PrimitiveTypeName.Any);
-        public static StatePrimitive Bool { get; } = new StatePrimitive(PrimitiveTypeName.Bool);
-        public static StatePrimitive Char { get; } = new StatePrimitive(PrimitiveTypeName.Char);
-        public static StatePrimitive Real { get; } = new StatePrimitive(PrimitiveTypeName.Real);
-        public static StatePrimitive I96 { get; } = new StatePrimitive(PrimitiveTypeName.I96);
-        public static StatePrimitive I64 { get; } = new StatePrimitive(PrimitiveTypeName.I64);
-        public static StatePrimitive I48 { get; } = new StatePrimitive(PrimitiveTypeName.I48);
-        public static StatePrimitive I32 { get; } = new StatePrimitive(PrimitiveTypeName.I32);
-        public static StatePrimitive I24 { get; } = new StatePrimitive(PrimitiveTypeName.I24);
-        public static StatePrimitive I16 { get; } = new StatePrimitive(PrimitiveTypeName.I16);
-        public static StatePrimitive U64 { get; } = new StatePrimitive(PrimitiveTypeName.U64);
-        public static StatePrimitive U48 { get; } = new StatePrimitive(PrimitiveTypeName.U48);
-        public static StatePrimitive U32 { get; } = new StatePrimitive(PrimitiveTypeName.U32);
-        public static StatePrimitive U24 { get; } = new StatePrimitive(PrimitiveTypeName.U24);
-        public static StatePrimitive U16 { get; } = new StatePrimitive(PrimitiveTypeName.U16);
-        public static StatePrimitive U12 { get; } = new StatePrimitive(PrimitiveTypeName.U12);
-        public static StatePrimitive U8 { get; } = new StatePrimitive(PrimitiveTypeName.U8);
+        public static StatePrimitive Any { get; } = new(PrimitiveTypeName.Any);
+        public static StatePrimitive Bool { get; } = new(PrimitiveTypeName.Bool);
+        public static StatePrimitive Char { get; } = new(PrimitiveTypeName.Char);
+        public static StatePrimitive Real { get; } = new(PrimitiveTypeName.Real);
+        public static StatePrimitive I96 { get; } = new(PrimitiveTypeName.I96);
+        public static StatePrimitive I64 { get; } = new(PrimitiveTypeName.I64);
+        public static StatePrimitive I48 { get; } = new(PrimitiveTypeName.I48);
+        public static StatePrimitive I32 { get; } = new(PrimitiveTypeName.I32);
+        public static StatePrimitive I24 { get; } = new(PrimitiveTypeName.I24);
+        public static StatePrimitive I16 { get; } = new(PrimitiveTypeName.I16);
+        public static StatePrimitive U64 { get; } = new(PrimitiveTypeName.U64);
+        public static StatePrimitive U48 { get; } = new(PrimitiveTypeName.U48);
+        public static StatePrimitive U32 { get; } = new(PrimitiveTypeName.U32);
+        public static StatePrimitive U24 { get; } = new(PrimitiveTypeName.U24);
+        public static StatePrimitive U16 { get; } = new(PrimitiveTypeName.U16);
+        public static StatePrimitive U12 { get; } = new(PrimitiveTypeName.U12);
+        public static StatePrimitive U8 { get; } = new(PrimitiveTypeName.U8);
         public bool IsComparable => IsNumeric || Name == PrimitiveTypeName.Char;
 
         public bool CanBeImplicitlyConvertedTo(StatePrimitive type)

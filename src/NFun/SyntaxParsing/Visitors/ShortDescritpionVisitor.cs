@@ -6,8 +6,6 @@ namespace NFun.SyntaxParsing.Visitors
 {
     public class ShortDescritpionVisitor: ISyntaxNodeVisitor<string>
     {
-        public void OnEnterNode(ISyntaxNode parent, int childNum) { }
-
         public string Visit(ArrowAnonymFunctionSyntaxNode arrowAnonymFunNode) => "(..)=>..";
         public string Visit(ArraySyntaxNode node) =>"[...]";
         public string Visit(EquationSyntaxNode node) => $"{node.Id} = ... ";
@@ -25,7 +23,7 @@ namespace NFun.SyntaxParsing.Visitors
             if (node.OutputType.Equals(FunnyType.Text))
             {
                 var str = node.Value.ToString();
-                return $"'{(str.Length > 20 ? (str.Substring(17) + "...") : str)}'";
+                return $"'{(str.Length > 20 ? (str[17..] + "...") : str)}'";
             }
             return $"{node.Value}";
         }

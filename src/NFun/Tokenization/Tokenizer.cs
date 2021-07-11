@@ -320,40 +320,42 @@ namespace NFun.Tokenization
 
         private Tok TryReadNext(string str, int position)
         {
-            if (position >= str.Length)
-                return Tok.New(TokType.Eof, position, position);
+            char current;
 
-            var current = str[position];
-            if (current == '#')
+            //Search for comments, spaces and or eof
+            while (true)
             {
-                var newPosition = SkipComments(str, position);
-                if (newPosition == position)
-                    newPosition++;
-                return TryReadNext(str, newPosition);
+                if (position >= str.Length) return Tok.New(TokType.Eof, position, position);
+
+                current = str[position];
+                if (current == '#')
+                {
+                    var newPosition = SkipComments(str, position);
+                    if (newPosition == position) newPosition++;
+                    position = newPosition;
+                }
+                else if (current == ' ' || current == '\t')
+                {
+                    position = position + 1;
+                }
+                else break;
             }
 
-            if (current == ' ' || current == '\t')
-                return TryReadNext(str, position + 1);
-
-            if (current == 0)
-                return Tok.New(TokType.Eof, "", position, position);
+            if (current == 0) return Tok.New(TokType.Eof, "", position, position);
 
             if (current == '\r' || current == '\n' || current == ';')
                 return Tok.New(TokType.NewLine, current.ToString(), position, position + 1);
 
-            if (IsDigit(current))
-                return ReadNumber(str, position);
+            if (IsDigit(current)) return ReadNumber(str, position);
 
-            if (IsLetter(current))
-                return ReadIdOrKeyword(str, position);
+            if (IsLetter(current)) return ReadIdOrKeyword(str, position);
 
-            if (TryReadUncommonSpecialSymbols(str, position, current) is Tok tok)
-                return tok;
+            if (TryReadUncommonSpecialSymbols(str, position, current) is Tok tok) return tok;
 
-            if (IsQuote(current))
-                return ReadText(str, position);
+            if (IsQuote(current)) return ReadText(str, position);
 
             return Tok.New(TokType.NotAToken, current.ToString(), position, position + 1);
+
         }
 
         /// <exception cref="FunParseException"></exception>
@@ -382,7 +384,7 @@ namespace NFun.Tokenization
             if (closeQuoteSymbol == '{')
             {
                 _isInInterpolation = true;
-                var layer = new InterpolationLayer() {FigureBracketsDiff = 0, OpenQuoteSymbol = openQuoteSymbol};
+                var layer = new InterpolationLayer {FigureBracketsDiff = 0, OpenQuoteSymbol = openQuoteSymbol};
                 _interpolationLayers.Push(layer);
                 
                 if(closeInterpolation)

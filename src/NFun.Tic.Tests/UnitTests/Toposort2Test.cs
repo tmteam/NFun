@@ -26,7 +26,7 @@ namespace NFun.ModuleTests
         [Test]
         public void AddNullToTopology_DoesNotThrow()
         {
-            var algorithm = new NodeToposort2(3);
+            var algorithm = new NodeToposort(3);
             Assert.DoesNotThrow(()=>algorithm.AddToTopology(null));
         }
         
@@ -37,7 +37,7 @@ namespace NFun.ModuleTests
             var a2 = CreateNode("a2");
             a1.State = new StateRefTo(a2);
             a2.State = new StateRefTo(a1);
-            var algorithm = new NodeToposort2(3);
+            var algorithm = new NodeToposort(3);
             algorithm.AddMany(a1,a2);
             algorithm.OptimizeTopology();
             Assert.AreEqual(1,algorithm.NonReferenceOrdered.Length);
@@ -71,7 +71,7 @@ namespace NFun.ModuleTests
             i16.AddAncestor(v3);
             v3 .AddAncestor(n);
 
-            var algorithm = new NodeToposort2(6);
+            var algorithm = new NodeToposort(6);
             algorithm.AddMany(v2,i13,i16,v3,n);
             algorithm.OptimizeTopology();
             
@@ -105,7 +105,7 @@ namespace NFun.ModuleTests
             i16.State = new StateRefTo(v2);
             v3 .AddAncestor(n);
 
-            var algorithm = new NodeToposort2(6);
+            var algorithm = new NodeToposort(6);
             algorithm.AddMany(v2,i13,i16,v3,n);
             algorithm.OptimizeTopology();
             
@@ -149,7 +149,7 @@ namespace NFun.ModuleTests
             v2 .AddAncestor(ancestors[3]);            
             i16.AddAncestor(ancestors[4]);            
             
-            var algorithm = new NodeToposort2(6);
+            var algorithm = new NodeToposort(6);
             algorithm.AddMany(v2,i13,i16,v3,n);
             algorithm.AddMany(ancestors);
             algorithm.OptimizeTopology();
@@ -190,7 +190,7 @@ namespace NFun.ModuleTests
             i16.State = new StateRefTo(v3);
             v3 .AddAncestor(n);
 
-            var algorithm = new NodeToposort2(6);
+            var algorithm = new NodeToposort(6);
             algorithm.AddMany(v2,i13,i16,v3,n);
             algorithm.OptimizeTopology();
             
@@ -220,7 +220,7 @@ namespace NFun.ModuleTests
             v2 .AddAncestor(i16);
             i16.AddAncestor(n);
 
-            var algorithm = new NodeToposort2(3);
+            var algorithm = new NodeToposort(3);
             algorithm.AddMany(v2,i16,n);
             algorithm.OptimizeTopology();
             
@@ -242,7 +242,7 @@ namespace NFun.ModuleTests
             a1.State = new ConstrainsState(StatePrimitive.I32, StatePrimitive.I96);
             a1.AddAncestor(a2);
             a2.AddAncestor(a1);
-            var algorithm = new NodeToposort2(3);
+            var algorithm = new NodeToposort(3);
             algorithm.AddMany(a1,a2);
             algorithm.OptimizeTopology();
             Assert.AreEqual(1,algorithm.NonReferenceOrdered.Length);
@@ -261,7 +261,7 @@ namespace NFun.ModuleTests
             c2.AddAncestor(a2);
             c1.State = new StateRefTo(c2);
             
-            var algorithm = new NodeToposort2(3);
+            var algorithm = new NodeToposort(3);
             algorithm.AddMany(a1,a2,c1,c2);
             algorithm.OptimizeTopology();
 
@@ -291,7 +291,7 @@ namespace NFun.ModuleTests
             n1.AddAncestor(n3);
             n2.AddAncestor(n1);
 
-            var algorithm = new NodeToposort2(3);
+            var algorithm = new NodeToposort(3);
             algorithm.AddToTopology(n1);
             algorithm.AddToTopology(n2);
             algorithm.AddToTopology(n3);
@@ -310,7 +310,7 @@ namespace NFun.ModuleTests
             n1.State = new StateRefTo(n2);
             n2.State = new StateRefTo(n3);
             n3.State = new StateRefTo(n1);
-            var algorithm = new NodeToposort2(3);
+            var algorithm = new NodeToposort(3);
             
             algorithm.AddToTopology(n2);
             algorithm.AddToTopology(n1);
@@ -333,7 +333,7 @@ namespace NFun.ModuleTests
 
             n1.State = new StateRefTo(n2);
             n3.State = new StateRefTo(n1);
-            var algorithm = new NodeToposort2(3);
+            var algorithm = new NodeToposort(3);
             
             algorithm.AddToTopology(n2);
             algorithm.AddToTopology(n1);
@@ -359,7 +359,7 @@ namespace NFun.ModuleTests
             n1.State = new StateRefTo(n2);
             n3.State = new StateRefTo(n1);
             n2.State = new StateRefTo(n4);
-            var algorithm = new NodeToposort2(3);
+            var algorithm = new NodeToposort(3);
             
             algorithm.AddToTopology(n3);
             algorithm.AddToTopology(n2);
@@ -387,7 +387,7 @@ namespace NFun.ModuleTests
             n1.State = new StateRefTo(central);
             n2.State = new StateRefTo(central);
             n3.State = new StateRefTo(central);
-            var algorithm = new NodeToposort2(3);
+            var algorithm = new NodeToposort(3);
             
             algorithm.AddToTopology(n2);
             algorithm.AddToTopology(n1);
@@ -415,7 +415,7 @@ namespace NFun.ModuleTests
             n1.AddAncestor(n3);
             n3.AddAncestor(n2);
 
-            var algorithm = new NodeToposort2(3);
+            var algorithm = new NodeToposort(3);
             
             algorithm.AddToTopology(n2);
             algorithm.AddToTopology(n1);
@@ -441,7 +441,7 @@ namespace NFun.ModuleTests
             n2.AddAncestor(n1);
             n3.AddAncestor(n2);
             
-            var algorithm = new NodeToposort2(3);
+            var algorithm = new NodeToposort(3);
             algorithm.AddToTopology(n1);
             algorithm.AddToTopology(n2);
             algorithm.AddToTopology(n3);

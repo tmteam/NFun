@@ -12,7 +12,7 @@ namespace NFun.SyntaxParsing
         public static ISyntaxNode IfElse(IfCaseSyntaxNode[] ifThenNodes, ISyntaxNode elseResult, int start, int end) 
             => new IfThenElseSyntaxNode(ifThenNodes, elseResult, new Interval(start, end));
         public static IfCaseSyntaxNode IfThen(ISyntaxNode condition, ISyntaxNode expression, int start, int end)
-            => new IfCaseSyntaxNode(condition,expression,new Interval(start, end));
+            => new(condition,expression,new Interval(start, end));
         public static ISyntaxNode Var(Tok token) 
             => new NamedIdSyntaxNode(token.Value, token.Interval); 
         public static ISyntaxNode Constant(object value, FunnyType type, Interval interval) 

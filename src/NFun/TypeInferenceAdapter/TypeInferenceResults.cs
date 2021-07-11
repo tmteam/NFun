@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using NFun.Interpritation.Functions;
+using NFun.Interpretation.Functions;
 using NFun.Tic;
 using NFun.Tic.SolvingStates;
 
@@ -24,7 +24,7 @@ namespace NFun.TypeInferenceAdapter
             string name = id + "'" + argsCount;
             _userFunctionSignatures.TryGetValue(name, out var res);
             return res;
-;        }
+        }
       
         public void RememberUserFunctionSignature(string name, StateFun signature) 
             => _userFunctionSignatures.Add(name+"'"+signature.ArgsCount, signature);
@@ -36,7 +36,7 @@ namespace NFun.TypeInferenceAdapter
 
         public TypeInferenceResults Build()
         {
-            return new(
+            return new TypeInferenceResults(
                 bodyTypeSolving:_bodyTypeSolving,
                 genericFunctionTypes: _genericFunctionTypes.ToArray(), 
                 functionalVariables: _functionalVariable,

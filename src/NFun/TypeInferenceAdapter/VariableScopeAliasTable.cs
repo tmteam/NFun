@@ -64,7 +64,7 @@ namespace NFun.TypeInferenceAdapter
         {
             _variableAliasesStack.RemoveAt(_variableAliasesStack.Count-1);
         }
-        private string MakeAlias(int nodeLayerId, string varName) => nodeLayerId + "::" + varName;
+        private static string MakeAlias(int nodeLayerId, string varName) => nodeLayerId + "::" + varName;
 
     }
 }

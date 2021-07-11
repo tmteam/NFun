@@ -4,7 +4,7 @@ namespace NFun.Tic.Stages
 {
     public class DestructionFunctions : IStateCombination2dimensionalVisitor
     {
-        public static DestructionFunctions Singletone { get; } = new DestructionFunctions();
+        public static DestructionFunctions Singletone { get; } = new();
         public bool Apply(StatePrimitive ancestor, StatePrimitive descendant, TicNode _, TicNode __)
             => true;
 

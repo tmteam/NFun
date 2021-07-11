@@ -4,9 +4,9 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using NFun.Exceptions;
-using NFun.Interpritation;
-using NFun.Interpritation.Functions;
-using NFun.Interpritation.Nodes;
+using NFun.Interpretation;
+using NFun.Interpretation.Functions;
+using NFun.Interpretation.Nodes;
 using NFun.Runtime;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
@@ -478,9 +478,6 @@ namespace NFun.ParseErrors
         internal static Exception FunctionAlreadyExist(UserFunctionDefinitionSyntaxNode userFun) 
             => new FunParseException(545,$"Function  {ErrorsHelper.Signature(userFun.Id, userFun.Args)} already exist", 
                 new Interval( userFun.Head.Interval.Start,userFun.Body.Interval.Finish));
-
-        internal static Exception IfConditionIsNotBool(IExpressionNode condition) 
-            => new FunParseException(548,"if Condition has to be boolean but was "+ condition.Type, condition.Interval);
 
         internal static Exception InvalidOutputType(IFunctionSignature function, Interval interval) 
             => new FunParseException(551, $"'{function.ReturnType}' is not supported as output parameter of {function.Name}()", interval);

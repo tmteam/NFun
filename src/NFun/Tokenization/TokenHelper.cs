@@ -38,7 +38,7 @@ namespace NFun.Tokenization
             {
                 if (val[1] == 'b')
                 {
-                    var uval = Convert.ToUInt64(val.Substring(2), 2);
+                    var uval = Convert.ToUInt64(val[2..], 2);
                     if(uval> long.MaxValue)
                         throw new OverflowException();
                     return (long)uval;

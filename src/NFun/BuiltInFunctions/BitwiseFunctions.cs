@@ -1,5 +1,5 @@
 using System;
-using NFun.Interpritation.Functions;
+using NFun.Interpretation.Functions;
 using NFun.Types;
 
 namespace NFun.BuiltInFunctions

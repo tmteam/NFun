@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using NFun.Exceptions;
-using NFun.Interpritation.Functions;
+using NFun.Interpretation.Functions;
 using NFun.Runtime.Arrays;
 using NFun.Types;
 
@@ -82,7 +82,7 @@ namespace NFun.BuiltInFunctions
             return null;
         }
 
-        private ImmutableFunArray ToBoolArray(byte[] array)
+        private static ImmutableFunArray ToBoolArray(byte[] array)
         {
             var bitArray = new BitArray(array);
             var arr = new bool[bitArray.Length];
@@ -94,7 +94,7 @@ namespace NFun.BuiltInFunctions
         }
 
 
-        private Func<object, object> CreateSerializerOrNull(FunnyType from)
+        private static Func<object, object> CreateSerializerOrNull(FunnyType from)
         {
             switch (from.BaseType)
             {
@@ -115,7 +115,7 @@ namespace NFun.BuiltInFunctions
             return null;
         }
 
-        private Func<object, object> CreateParserOrNull(FunnyType to) =>
+        private static Func<object, object> CreateParserOrNull(FunnyType to) =>
             to.BaseType switch
             {
                 BaseFunnyType.Bool => o =>
@@ -138,7 +138,7 @@ namespace NFun.BuiltInFunctions
                 _ => null
             };
 
-        private Func<object, object> CreateDeserializerOrNull(FunnyType to)
+        private static Func<object, object> CreateDeserializerOrNull(FunnyType to)
         {
             switch (to.BaseType)
             {

@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NFun.Interpritation.Functions;
+using NFun.Interpretation.Functions;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tic.SolvingStates;
 using NFun.Types;

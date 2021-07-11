@@ -1,6 +1,6 @@
 namespace NFun.BuiltInFunctions
 {
-    public class CoreFunNames
+    public static class CoreFunNames
     {
         public const string BitAnd = "bitand";
         public const string Add = "add";

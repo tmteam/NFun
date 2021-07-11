@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
-using NFun.Interpritation;
+using NFun.Interpretation;
 using NFun.ParseErrors;
 using NFun.Runtime;
 using NFun.SyntaxParsing;
@@ -49,7 +49,7 @@ namespace NFun
                 var outputName = outputProperty.Name.ToLower();
 
                 aprioriTypesMap.Add(outputName, converter.FunnyType);
-                outputVarVals[actualOutputsCount] = new(
+                outputVarVals[actualOutputsCount] = new ValueTuple<string, IOutputFunnyConverter, PropertyInfo>(
                     outputName,
                     converter,
                     outputProperty);
@@ -118,7 +118,7 @@ namespace NFun
                 var inputName = inputProperty.Name.ToLower();
                 
                 apriories.Add(inputName, converter.FunnyType);
-                inputTypes[i] = new (
+                inputTypes[i] = new ValueTuple<string, IinputFunnyConverter, PropertyInfo>(
                     inputName,
                     converter,
                     inputProperty
@@ -153,8 +153,7 @@ namespace NFun
                             .Select(e=>new VarInfo(
                                 isOutput: false,
                                 type: e.Item2.FunnyType,
-                                name: e.Item1,
-                                isStrictTyped: true))
+                                name: e.Item1))
                             .ToArray());
                 }
             }

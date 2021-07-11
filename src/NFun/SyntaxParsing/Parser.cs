@@ -15,8 +15,8 @@ namespace NFun.SyntaxParsing
         public static SyntaxTree Parse(TokFlow flow)
             =>new Parser(flow).ParseTree(flow);
         
-        private readonly List<ISyntaxNode> _nodes = new List<ISyntaxNode>();
-        private readonly List<string> _equationNames = new List<string>();
+        private readonly List<ISyntaxNode> _nodes = new();
+        private readonly List<string> _equationNames = new();
         
         //current reader state
         private bool _hasAnonymousEquation = false;

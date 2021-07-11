@@ -43,7 +43,7 @@ namespace NFun.UnitTests.Converters
 
         [Test]
         public void ComplexObject() => AssertFunnyConvert(
-            new SomeUser()
+            new SomeUser
             {
                 Name = "PussyDog",
                 age = 42,

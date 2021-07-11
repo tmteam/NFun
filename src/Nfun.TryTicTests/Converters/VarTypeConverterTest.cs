@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using NFun.Interpritation.Functions;
-using NFun.Interpritation.Nodes;
+using NFun.Interpretation.Functions;
+using NFun.Interpretation.Nodes;
 using NFun.Runtime;
 using NFun.Runtime.Arrays;
 using NFun.Tokenization;

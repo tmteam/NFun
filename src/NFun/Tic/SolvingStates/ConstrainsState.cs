@@ -13,7 +13,7 @@ namespace NFun.Tic.SolvingStates
         }
 
         public ConstrainsState GetCopy() =>
-            new ConstrainsState(Descedant, Ancestor)
+            new(Descedant, Ancestor)
             {
                 IsComparable = this.IsComparable,
                 Prefered = this.Prefered,
@@ -51,7 +51,7 @@ namespace NFun.Tic.SolvingStates
             
             if (type is StateArray array)
             {
-                if (!(Descedant is StateArray descArray))
+                if (Descedant is not StateArray descArray)
                     return false;
                 if (array.Element.Equals(descArray.Element))
                     return true;
@@ -61,7 +61,7 @@ namespace NFun.Tic.SolvingStates
             }
             if (type is StateFun fun)
             {
-                if (!(Descedant is StateFun descfun))
+                if (Descedant is not StateFun descfun)
                     return false;
                 if (fun.Members.SequenceEqual(descfun.Members))
                     return true;
@@ -75,7 +75,7 @@ namespace NFun.Tic.SolvingStates
                     return false;
                 if (!HasDescendant)
                     return true;
-                if (!(Descedant is StateStruct descStruct))
+                if (Descedant is not StateStruct descStruct)
                     return false;
                 if (str.Members.SequenceEqual(descStruct.Members))
                     return true;
@@ -155,12 +155,12 @@ namespace NFun.Tic.SolvingStates
         }
         private BasicDescType _basicUnsolvedDescType = BasicDescType.None;
 
-        private BasicDescType ToBasicDescType(ITicNodeState state) => state switch
+        private static BasicDescType ToBasicDescType(ITicNodeState state) => state switch
             {
                 StateRefTo refTo => ToBasicDescType(refTo.GetNonReference()),
-                StateFun    _    => BasicDescType.IsFunction,
-                StateArray  _    => BasicDescType.IsArray,
-                StateStruct _    => BasicDescType.IsStruct,
+                StateFun => BasicDescType.IsFunction,
+                StateArray => BasicDescType.IsArray,
+                StateStruct => BasicDescType.IsStruct,
                 _ => BasicDescType.None
             };
 
@@ -295,7 +295,7 @@ namespace NFun.Tic.SolvingStates
             {
                 //todo
                 //char[] is comparable!
-                if (!(Descedant is StatePrimitive p) || !p.IsComparable)
+                if (Descedant is not StatePrimitive p || !p.IsComparable)
                     return this;
             }
             return Descedant;
@@ -369,7 +369,7 @@ namespace NFun.Tic.SolvingStates
         public string Description => ToString();
         public override bool Equals(object obj)
         {
-            if (!(obj is  ConstrainsState constrainsState))
+            if (obj is  not ConstrainsState constrainsState)
                 return false;
 
             if (HasAncestor != constrainsState.HasAncestor)

@@ -176,7 +176,7 @@ namespace NFun.SyntaxParsing
                 if (val[1] == 'b')      dimensions = 2;
                 else if (val[1] == 'x') dimensions = 16;
                 else throw new ImpossibleException("Hex or bin constant has invalid format: "+val);
-                var substr = val.Replace("_", null).Substring(2);
+                var substr = val.Replace("_", null)[2..];
 
                 if (dimensions == 16)
                 {

@@ -23,59 +23,63 @@ namespace NFun.TypeInferenceAdapter
         {
             public override FunnyType Convert(ITicNodeState type)
             {
-                switch (type)
+                while (true)
                 {
-                    case StateRefTo refTo:
-                        return Convert(refTo.Element);
-                    case StatePrimitive primitive:
-                        return ToConcrete(primitive.Name);
-                    case ConstrainsState constrains when constrains.Prefered != null:
-                        return ToConcrete(constrains.Prefered.Name);
-                    case ConstrainsState constrains when !constrains.HasAncestor:
+                    switch (type)
+                    {
+                        case StateRefTo refTo:
+                            type = refTo.Element;
+                            continue;
+                        case StatePrimitive primitive:
+                            return ToConcrete(primitive.Name);
+                        case ConstrainsState constrains when constrains.Prefered != null:
+                            return ToConcrete(constrains.Prefered.Name);
+                        case ConstrainsState constrains when !constrains.HasAncestor:
                         {
-                            if (constrains.IsComparable)
-                                return FunnyType.Real;
+                            if (constrains.IsComparable) return FunnyType.Real;
                             return FunnyType.Any;
                         }
-                    case ConstrainsState constrains:
+                        case ConstrainsState constrains:
                         {
                             if (constrains.Ancestor.Name.HasFlag(PrimitiveTypeName._isAbstract))
                             {
                                 switch (constrains.Ancestor.Name)
                                 {
                                     case PrimitiveTypeName.I96:
-                                        {
-                                            if (constrains.HasDescendant || constrains.Descedant.CanBeImplicitlyConvertedTo(StatePrimitive.I32))
-                                                return FunnyType.Int32;
-                                            return FunnyType.Int64;
-                                        }
+                                    {
+                                        if (constrains.HasDescendant || constrains.Descedant.CanBeImplicitlyConvertedTo(StatePrimitive.I32)) return FunnyType.Int32;
+                                        return FunnyType.Int64;
+                                    }
                                     case PrimitiveTypeName.I48:
-                                        {
-                                            if (constrains.HasDescendant || constrains.Descedant.CanBeImplicitlyConvertedTo(StatePrimitive.I32))
-                                                return FunnyType.Int32;
-                                            return FunnyType.UInt32;
-                                        }
-                                    case PrimitiveTypeName.U48: return FunnyType.UInt32;
-                                    case PrimitiveTypeName.U24: return FunnyType.UInt16;
-                                    case PrimitiveTypeName.U12: return FunnyType.UInt8;
-                                    default: throw new NotSupportedException();
+                                    {
+                                        if (constrains.HasDescendant || constrains.Descedant.CanBeImplicitlyConvertedTo(StatePrimitive.I32)) return FunnyType.Int32;
+                                        return FunnyType.UInt32;
+                                    }
+                                    case PrimitiveTypeName.U48:
+                                        return FunnyType.UInt32;
+                                    case PrimitiveTypeName.U24:
+                                        return FunnyType.UInt16;
+                                    case PrimitiveTypeName.U12:
+                                        return FunnyType.UInt8;
+                                    default:
+                                        throw new NotSupportedException();
                                 }
                             }
+
                             return ToConcrete(constrains.Ancestor.Name);
                         }
 
-                    case StateArray array:
-                        return FunnyType.ArrayOf(Convert(array.Element));
-                    case StateFun fun:
-                        return FunnyType.Fun(Convert(fun.ReturnType), fun.ArgNodes.SelectToArray(a=>Convert(a.State)));
-                    case StateStruct str:
-                        return FunnyType.StructOf(str.Fields.ToDictionary(f => f.Key, f => Convert(f.Value.State)));
-                    default:
-                        throw new NotSupportedException();
+                        case StateArray array:
+                            return FunnyType.ArrayOf(Convert(array.Element));
+                        case StateFun fun:
+                            return FunnyType.Fun(Convert(fun.ReturnType), fun.ArgNodes.SelectToArray(a => Convert(a.State)));
+                        case StateStruct str:
+                            return FunnyType.StructOf(str.Fields.ToDictionary(f => f.Key, f => Convert(f.Value.State)));
+                        default:
+                            throw new NotSupportedException();
+                    }
                 }
             }
-
-           
         }
 
         private class ConstrainsConverter : TicTypesConverter
@@ -121,29 +125,30 @@ namespace NFun.TypeInferenceAdapter
 
             public override FunnyType Convert(ITicNodeState type)
             {
-                switch (type)
+                while (true)
                 {
-                    case StateRefTo refTo:
-                        return Convert(refTo.Element);
-                    case StatePrimitive primitive:
-                        return ToConcrete(primitive.Name);
-                    //case Constrains constrains when constrains.Prefered != null:
-                    //    return ToConcrete(constrains.Prefered.Name);
-                    case ConstrainsState constrains:
-                        var index = System.Array.IndexOf(_constrainsMap, constrains);
-                        if (index == -1)
-                            throw new InvalidOperationException("Unknown constrains");
-                        return _argTypes[index];
-                    case StateArray array:
-                        return FunnyType.ArrayOf(Convert(array.Element));
-                    case StateFun fun:
-                        return FunnyType.Fun(Convert(fun.ReturnType), fun.ArgNodes.SelectToArray(a=>Convert(a.State)));
-                    case StateStruct @struct:
-                        return FunnyType.StructOf(@struct.Fields.ToDictionary(
-                            f => f.Key,
-                            f => Convert(f.Value.State)));
-                    default:
-                        throw new NotSupportedException();
+                    switch (type)
+                    {
+                        case StateRefTo refTo:
+                            type = refTo.Element;
+                            continue;
+                        case StatePrimitive primitive:
+                            return ToConcrete(primitive.Name);
+                        //case Constrains constrains when constrains.Prefered != null:
+                        //    return ToConcrete(constrains.Prefered.Name);
+                        case ConstrainsState constrains:
+                            var index = System.Array.IndexOf(_constrainsMap, constrains);
+                            if (index == -1) throw new InvalidOperationException("Unknown constrains");
+                            return _argTypes[index];
+                        case StateArray array:
+                            return FunnyType.ArrayOf(Convert(array.Element));
+                        case StateFun fun:
+                            return FunnyType.Fun(Convert(fun.ReturnType), fun.ArgNodes.SelectToArray(a => Convert(a.State)));
+                        case StateStruct @struct:
+                            return FunnyType.StructOf(@struct.Fields.ToDictionary(f => f.Key, f => Convert(f.Value.State)));
+                        default:
+                            throw new NotSupportedException();
+                    }
                 }
             }
         }

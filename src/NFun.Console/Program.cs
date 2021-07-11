@@ -58,7 +58,7 @@ namespace NFun.ConsoleApp
                     if (e.End != -1)
                     {
                         if (e.Start > 0)
-                            Console.Write(expression.Substring(0, e.Start));
+                            Console.Write(expression[..e.Start]);
 
                         Console.BackgroundColor = ConsoleColor.DarkRed;
                         Console.ForegroundColor = ConsoleColor.White;
@@ -66,7 +66,7 @@ namespace NFun.ConsoleApp
                         Console.Write(e.Interval.SubString(expression));
                         Console.ResetColor();
                         if (expression.Length >= e.End)
-                            Console.Write(expression.Substring(e.End));
+                            Console.Write(expression[e.End..]);
                         Console.WriteLine();
                     }
                 }

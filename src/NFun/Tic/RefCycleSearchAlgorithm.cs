@@ -50,7 +50,7 @@ namespace NFun.Tic
         {
             if (node.VisitMark == _nodeInListMark)
                 return node;
-            if (!(node.State is StateRefTo refTo)) 
+            if (node.State is not StateRefTo refTo) 
                 return node;
             if (node.VisitMark == RefVisitingMark)
                 return null;

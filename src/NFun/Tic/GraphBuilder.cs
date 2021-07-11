@@ -18,7 +18,7 @@ namespace NFun.Tic
         private readonly List<TicNode> _inputNodes = new();
 
         public StateRefTo InitializeVarNode(ITypeState desc = null, StatePrimitive anc = null, bool isComparable = false) 
-            => new StateRefTo(CreateVarType(new ConstrainsState(desc, anc){IsComparable =  isComparable}));
+            => new(CreateVarType(new ConstrainsState(desc, anc){IsComparable =  isComparable}));
 
         public GraphBuilder() => _syntaxNodes = new List<TicNode>(16);
         public GraphBuilder(int maxSyntaxNodeId) => _syntaxNodes = new List<TicNode>(maxSyntaxNodeId);
@@ -145,7 +145,7 @@ namespace NFun.Tic
             var fun = StateFun.Of(args, returnTypeNode);
 
             var node = GetNamedNode(name);
-            if(!(node.State is ConstrainsState c) || !c.NoConstrains)
+            if(node.State is not ConstrainsState c || !c.NoConstrains)
                 throw new InvalidOperationException("variable "+ name+ "already declared");
             node.State = fun;
             _outputNodes.Add(returnTypeNode);
@@ -205,7 +205,7 @@ namespace NFun.Tic
                 SetCallArgument(state, argThenReturnIds[i]);
             }
 
-            var returnId = argThenReturnIds[argThenReturnIds.Length - 1];
+            var returnId = argThenReturnIds[^1];
             var returnNode = GetOrCreateNode(returnId);
             SolvingFunctions.MergeInplace(funState.RetNode,returnNode);
         }
@@ -221,7 +221,7 @@ namespace NFun.Tic
             for (int i = 0; i < argThenReturnIds.Length - 1; i++)
                 SetCallArgument(generic, argThenReturnIds[i]);
 
-            var returnId = argThenReturnIds[argThenReturnIds.Length - 1];
+            var returnId = argThenReturnIds[^1];
             //Since we know that the type refers to a generic type,
             // in most case we can immediately create a node with this type.
             MergeOrSetNode(returnId, generic);
@@ -238,7 +238,7 @@ namespace NFun.Tic
 
             var returnType = argThenReturnTypes[argThenReturnIds.Length - 1];
 
-            var returnId = argThenReturnIds[argThenReturnIds.Length - 1];
+            var returnId = argThenReturnIds[^1];
             var returnNode = GetOrCreateNode(returnId);
             returnNode.State = SolvingFunctions.GetMergedStateOrNull(returnNode.State, returnType)
                                ?? throw TicErrors.CannotSetState(returnNode, returnType);
@@ -315,7 +315,7 @@ namespace NFun.Tic
         }
         private TicNode[] Toposort()
         {
-            var toposortAlgorithm = new NodeToposort2(
+            var toposortAlgorithm = new NodeToposort(
                 capacity:_syntaxNodes.Count+ _variables.Count+ _typeVariables.Count);
             
             foreach (var node in _syntaxNodes)      toposortAlgorithm.AddToTopology(node); 
@@ -367,7 +367,7 @@ namespace NFun.Tic
         
         private void SetCall(TicNode functionNode, int[] argThenReturnIds)
         {
-            var id = argThenReturnIds[argThenReturnIds.Length - 1];
+            var id = argThenReturnIds[^1];
 
             var state = functionNode.State;
             if (state is StateRefTo r)
@@ -542,7 +542,7 @@ namespace NFun.Tic
                     .Union(_typeVariables));
         }
 
-        private void PrintTrace(string name, IEnumerable<TicNode> sorted)
+        private static void PrintTrace(string name, IEnumerable<TicNode> sorted)
         {
             TraceLog.WriteLine($"\r\n Sorted trace for {name}");
             SolvingFunctions.PrintTrace(sorted);

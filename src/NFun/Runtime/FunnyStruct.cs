@@ -24,7 +24,7 @@ namespace NFun.Runtime
 
         public override bool Equals(object obj)
         {
-            if (!(obj is FunnyStruct str))
+            if (obj is not FunnyStruct str)
                 return false;
             if (_values.Count != str._values.Count)
                 return false;

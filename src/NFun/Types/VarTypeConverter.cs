@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using NFun.Interpritation.Functions;
-using NFun.Interpritation.Nodes;
+using NFun.Interpretation.Functions;
+using NFun.Interpretation.Nodes;
 using NFun.ParseErrors;
 using NFun.Runtime.Arrays;
 using NFun.Tokenization;
@@ -163,11 +163,11 @@ namespace NFun.Types
 
             if (from.BaseType == BaseFunnyType.Struct)
             {
-                foreach (var field in to.StructTypeSpecification)
+                foreach (var (key, value) in to.StructTypeSpecification)
                 {
-                    if (!from.StructTypeSpecification.TryGetValue(field.Key, out var fromFieldType))
+                    if (!from.StructTypeSpecification.TryGetValue(key, out var fromFieldType))
                         return null;
-                    if (!field.Value.Equals(fromFieldType))
+                    if (!value.Equals(fromFieldType))
                         return null;
                 }
                 return NoConvertion;

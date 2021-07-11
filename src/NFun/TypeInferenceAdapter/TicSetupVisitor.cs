@@ -2,8 +2,8 @@
 using System.Linq;
 using System.Runtime.CompilerServices;
 using NFun.Exceptions;
-using NFun.Interpritation;
-using NFun.Interpritation.Functions;
+using NFun.Interpretation;
+using NFun.Interpretation.Functions;
 using NFun.ParseErrors;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
@@ -268,7 +268,7 @@ namespace NFun.TypeInferenceAdapter
             var ids = new int[node.Args.Length + 1];
             for (int i = 0; i < node.Args.Length; i++)
                 ids[i] = node.Args[i].OrderNumber;
-            ids[ids.Length - 1] = node.OrderNumber;
+            ids[^1] = node.OrderNumber;
             
             var userFunction = _resultsBuilder.GetUserFunctionSignature(node.Id, node.Args.Length);
             if (userFunction != null)
@@ -321,7 +321,7 @@ namespace NFun.TypeInferenceAdapter
             var types = new ITicNodeState[signature.ArgTypes.Length + 1];
             for (int i = 0; i < signature.ArgTypes.Length; i++)
                 types[i] = signature.ArgTypes[i].ConvertToTiType(genericTypes);
-            types[types.Length - 1] = signature.ReturnType.ConvertToTiType(genericTypes);
+            types[^1] = signature.ReturnType.ConvertToTiType(genericTypes);
 
             _ticTypeGraph.SetCall(types, ids);
             return true;
@@ -333,7 +333,7 @@ namespace NFun.TypeInferenceAdapter
             var ids = new int[node.Args.Length + 1];
             for (int i = 0; i < node.Args.Length; i++)
                 ids[i] = node.Args[i].OrderNumber;
-            ids[ids.Length - 1] = node.OrderNumber;
+            ids[^1] = node.OrderNumber;
 
             _ticTypeGraph.SetCall(node.ResultExpression.OrderNumber, ids);
             return true;
@@ -363,7 +363,7 @@ namespace NFun.TypeInferenceAdapter
 #if DEBUG
             Trace(node, $"Constant {node.Value}:{node.ClrTypeName}");
 #endif
-            var type = LangTiHelper.ConvertToTiType(node.OutputType);
+            var type = node.OutputType.ConvertToTiType();
 
             if (type is StatePrimitive p)
                 _ticTypeGraph.SetConst(node.OrderNumber, p);
@@ -578,7 +578,7 @@ namespace NFun.TypeInferenceAdapter
                 constrains.IsComparable);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void Trace(ISyntaxNode node, string text)
+        private static void Trace(ISyntaxNode node, string text)
         {
 #if DEBUG
             if (TraceLog.IsEnabled)

@@ -29,7 +29,7 @@ namespace NFun.SyntaxParsing.SyntaxNodes
         
         public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
 
-        public IReadOnlyList<FieldDefenition> Fields;
+        public readonly IReadOnlyList<FieldDefenition> Fields;
         public IEnumerable<ISyntaxNode> Children => Fields.Select(e=>e.Node);
     }
 

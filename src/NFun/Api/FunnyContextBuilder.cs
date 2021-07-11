@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NFun.Interpritation;
-using NFun.Interpritation.Functions;
+using NFun.Interpretation;
+using NFun.Interpretation.Functions;
 using NFun.Runtime;
 
 namespace NFun

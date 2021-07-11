@@ -5,21 +5,6 @@ using NFun.Types;
 
 namespace NFun.Runtime
 {
-    enum FunnyVarAccess
-    {
-        NoInfo = 0,
-
-        /// <summary>
-        /// Funny variable is input, so can be modified from the outside before calculation
-        /// </summary>
-        Input = 1 << 0,
-
-        /// <summary>
-        /// Funny variable is output so it can be considered as the result of the calculation
-        /// </summary>
-        Output = 1 << 1,
-    }
-
     public interface IFunnyVar
     {
         string Name { get; }
@@ -72,7 +57,6 @@ namespace NFun.Runtime
         {
             _access = access;
             InternalFunnyValue = type.GetDefaultValueOrNull();
-            IsStrictTyped = true;
             TypeSpecificationIntervalOrNull = typeSpecificationIntervalOrNull;
             Attributes = attributes ?? Array.Empty<VarAttribute>();
             Name = name;
@@ -86,13 +70,11 @@ namespace NFun.Runtime
         {
             _access = access;
             InternalFunnyValue = type.GetDefaultValueOrNull();
-            IsStrictTyped = false;
             Attributes = attributes ?? Array.Empty<VarAttribute>();
             Name = name;
             Type = type;
         }
 
-        public bool IsStrictTyped { get; }
         public VarAttribute[] Attributes { get; }
         public string Name { get; }
         internal Interval? TypeSpecificationIntervalOrNull { get; }
@@ -151,5 +133,20 @@ namespace NFun.Runtime
         }
 
         public object GetClrValue() => FunnyTypeConverters.GetOutputConverter(Type).ToClrObject(InternalFunnyValue);
+    }
+
+    internal enum FunnyVarAccess
+    {
+        NoInfo = 0,
+
+        /// <summary>
+        /// Funny variable is input, so can be modified from the outside before calculation
+        /// </summary>
+        Input = 1 << 0,
+
+        /// <summary>
+        /// Funny variable is output so it can be considered as the result of the calculation
+        /// </summary>
+        Output = 1 << 1,
     }
 }

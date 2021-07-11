@@ -1,21 +1,19 @@
 using System;
 using System.Collections.Generic;
-using NFun.Interpritation.Nodes;
+using NFun.Interpretation.Nodes;
 using NFun.Tokenization;
 using NFun.Types;
 
 namespace NFun.Runtime
 {
-    public class VariableDictionary
+    internal class VariableDictionary
     {
         private readonly Dictionary<string, VariableUsages> _variables;
 
-        public VariableDictionary()
-        {
+        internal VariableDictionary() => 
             _variables = new Dictionary<string, VariableUsages>(StringComparer.OrdinalIgnoreCase);
-        }
 
-        public VariableDictionary(int capacity) => 
+        internal VariableDictionary(int capacity) =>
             _variables = new Dictionary<string, VariableUsages>(capacity, StringComparer.OrdinalIgnoreCase);
 
         internal VariableDictionary(IEnumerable<VariableSource> sources)
@@ -27,7 +25,7 @@ namespace NFun.Runtime
                 _variables.Add(variableSource.Name, new VariableUsages(variableSource));
             }
         }
-        
+
         internal void AddOrReplace(VariableSource source) => _variables[source.Name] = new VariableUsages(source);
 
         /// <summary>
@@ -41,7 +39,7 @@ namespace NFun.Runtime
             _variables.Add(name, new VariableUsages(source));
             return true;
         }
-        
+
         /// <summary>
         /// Returns false if variable is already registered
         /// </summary>
@@ -53,13 +51,13 @@ namespace NFun.Runtime
             _variables.Add(name, usages);
             return true;
         }
-            
-        internal VariableSource GetSourceOrNull(string id) => 
-            _variables.TryGetValue(id, out var v) ? v.Source:null;
+
+        internal VariableSource GetSourceOrNull(string id) =>
+            _variables.TryGetValue(id, out var v) ? v.Source : null;
 
         public VariableExpressionNode CreateVarNode(string id, Interval interval, FunnyType type)
         {
-            if (!_variables.TryGetValue(id, out  var usage))
+            if (!_variables.TryGetValue(id, out var usage))
             {
                 // Variable is not declared yet.
                 // Access to not declared variable means that it is input
@@ -67,7 +65,8 @@ namespace NFun.Runtime
                 usage = new VariableUsages(source);
                 _variables.Add(id, usage);
             }
-            var node = new VariableExpressionNode(usage.Source,interval);
+
+            var node = new VariableExpressionNode(usage.Source, interval);
             usage.Usages.AddLast(node);
             return node;
         }
@@ -79,10 +78,12 @@ namespace NFun.Runtime
                 if (Helper.DoesItLooksLikeSuperAnonymousVariable(key))
                     return _variables[key];
             }
+
             return null;
         }
-        
+
         internal VariableUsages GetUsages(string id) => _variables[id];
+
         internal VariableUsages[] GetAllUsages()
         {
             var sources = new VariableUsages[_variables.Count];
@@ -92,6 +93,7 @@ namespace NFun.Runtime
                 sources[i] = variable.Value;
                 i++;
             }
+
             return sources;
         }
 
@@ -104,6 +106,7 @@ namespace NFun.Runtime
                 sources[i] = variable.Value.Source;
                 i++;
             }
+
             return sources;
         }
     }

@@ -66,7 +66,7 @@ namespace NFun.Tic.Tests.Structs
             graph.SetDef("y", 2);
             var result = graph.Solve();
             result.AssertNoGenerics();
-            result.AssertNamed(new StateStruct(new Dictionary<string, TicNode>()
+            result.AssertNamed(new StateStruct(new Dictionary<string, TicNode>
             {
                 {"a", TicNode.CreateNamedNode("a",StatePrimitive.I32)},
                 {"b", TicNode.CreateNamedNode("b",StatePrimitive.Real)}

@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using NFun.Exceptions;
 using NFun.Tic.Errors;
 using NFun.Tic.SolvingStates;
 
@@ -13,15 +15,26 @@ namespace NFun.Tic
         public TicNode[] NonReferenceOrdered { get; private set; }
 
         private Stack<TicNode> _path;
+        private readonly List<TicNode> _allNodes;
+
         private int _refenceNodesCount = 0;
 
         public NodeToposort(int capacity)
         {
-            _path = new Stack<TicNode>(capacity);            
+            _allNodes = new List<TicNode>(capacity);
+            _searchNonReferenceAlgorithm = new RefCycleSearchAlgorithm(NodeInListMark);
         }
-        
+
+        private int _visitDepth = 0;
         public void OptimizeTopology()
         {
+            //Trying to find ancestor cycles
+            
+            _path = new Stack<TicNode>(_allNodes.Count);
+            
+            foreach (var nonReferenceNode in _allNodes) {
+                Visit(nonReferenceNode);
+            }
             //at this moment we have garanties that graph has no cycles
             NonReferenceOrdered = new TicNode[_path.Count- _refenceNodesCount];
             var nonRefId = 0;
@@ -53,43 +66,70 @@ namespace NFun.Tic
 
         private Stack<TicNode> _cycle = null;
         private TicNode _cycleInitiator = null;
-        
+        private readonly RefCycleSearchAlgorithm _searchNonReferenceAlgorithm;
+
         private const int InProcess = 42;
         private const int IsVisited = -42;
         private const int NotVisited = 0;
 
-        public bool AddToTopology(params TicNode[] nodes)
+        public void AddMany(params TicNode[] nodes)
         {
             foreach (var node in nodes)
             {
-                if (!AddToTopology(node))
-                    return false;
+                AddToTopology(node);
             }
-            return true;
         }
-        public bool AddToTopology(TicNode node)
+
+        private const int NodeInListMark = -33753;
+       
+        public void AddToTopology(TicNode node)
         {
+            if(node==null)
+                return;
+            if (node.VisitMark == NodeInListMark)
+                return;
+            var nonReference 
+                = _searchNonReferenceAlgorithm.GetNonReferenceMergedOrNull(node);
+            
+            if (nonReference!=null && nonReference.VisitMark != NodeInListMark) {
+                nonReference.VisitMark = NodeInListMark;
+                if (nonReference.State is StateRefTo)
+                    throw new ImpossibleException($"Toposort adds reference node to list: {node}");
+                _allNodes.Add(nonReference);
+            }
+        }
+
+
+
+        private bool Visit(TicNode node)
+        {
+            _visitDepth++;
+            if (_visitDepth > 1000)
+                throw new InvalidOperationException($"Toposort stack overflow. Node: {node}");
+
+
             if (node == null)
                 return true;
             if (node.VisitMark == IsVisited)
             {
                 // if node is already visited then skip it
                 return true;
-            }  
+            }
             if (node.VisitMark == InProcess)
             {
                 // Node is visiting, that means cycle found
                 // initialize cycle collecting process
-                _cycle = new Stack<TicNode>(_path.Count+1);
+                _cycle = new Stack<TicNode>(_path.Count + 1);
                 _cycleInitiator = node;
                 return false;
             }
+
             node.VisitMark = InProcess;
 
             if (node.State is StateRefTo refTo)
             {
                 _refenceNodesCount++;
-                if (!AddToTopology(refTo.Node))
+                if (!Visit(refTo.Node))
                 {
                     // VisitNodeInCycle rolls back graph
                     // so we need to decrement counter
@@ -101,14 +141,19 @@ namespace NFun.Tic
             else if (node.State is ICompositeState composite)
             {
                 foreach (var member in composite.Members)
-                    if (!AddToTopology(member)) 
+                    if (!Visit(member))
                         ThrowRecursiveTypeDefenition(node);
             }
-                
-            foreach (var ancestor in node.Ancestors) 
-                if(!AddToTopology(ancestor)) 
+
+            // ReSharper disable once ForCanBeConvertedToForeach
+            for (var i = 0; i < node.Ancestors.Count; i++)
+            {
+                var ancestor = node.Ancestors[i];
+                if (!Visit(ancestor))
                     return VisitNodeInCycle(node);
-                
+            }
+
+
             _path.Push(node);
             node.VisitMark = IsVisited;
             return true;
@@ -135,13 +180,14 @@ namespace NFun.Tic
                 
             // (a<= b <= c = a)  =>  (a = b = c) 
                 
-            SolvingFunctions.MergeGroup(_cycle.Reverse());
-                
+            var merged = SolvingFunctions.MergeGroup(_cycle.Reverse());
+          
             // Cycle is merged
             _cycle = null;
             _cycleInitiator = null;
+            
             // continue toposort algorithm
-            return AddToTopology(node);
+            return Visit(merged);
 
             // Whole cycle is not found yet            
             // step back
