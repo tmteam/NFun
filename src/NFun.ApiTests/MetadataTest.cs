@@ -24,28 +24,7 @@ namespace NFun.ApiTests
                 .First(u => u.Name == functionName);
             Assert.AreEqual(expectedIsStrictType, funDefinition.IsReturnTypeStrictlyTyped);
         }
-        
-        [TestCase("myfun1(a):int = a; y = x*3 ",                   "myfun1","a",false)]
-        [TestCase("myfun2(a,b):real = a+b; y = myfun2(x,z)*3 ",    "myfun2","b",false)]
-        [TestCase("myfun3(a:int) = a; y = x*3 ",                   "myfun3","a",true)]
-        [TestCase("myfun4(a,b:int):real = a+b; y = myfun4(x,z)*3 ","myfun4","b",true)]
-        [TestCase("myfun5(b:int) = b","myfun5","b",true)]
-        public void ConcreteUserFunction_ArgumentIsStrictTypedMetadata(
-            string expr, 
-            string functionName, 
-            string argName, 
-            bool expectedIsStrictType)
-        {
-            var argDefinition = expr
-                .Build()
-                .UserFunctions
-                .OfType<ConcreteUserFunction>()
-                .First(u => u.Name == functionName)
-                .Variables
-                .First(v => v.Name == argName);
-            Assert.AreEqual(expectedIsStrictType, argDefinition.IsStrictTyped);
-        }
-        
+
         [TestCase("y = x*3 ","x",false)]
         [TestCase("x:int; y = x*3 ","x",true)]
         [TestCase("a:int; y = a*b*c ","a",true)]

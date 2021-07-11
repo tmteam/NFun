@@ -9,8 +9,7 @@ namespace NFun.Interpritation.Functions
 {
     public class ConcreteRecursiveUserFunction : ConcreteUserFunction
     {
-        readonly Stack<object[]> _recursiveArgsStack  
-            = new Stack<object[]>();
+        readonly Stack<object[]> _recursiveArgsStack = new();
 
         public override object Calc(object[] args)
         {
@@ -20,7 +19,7 @@ namespace NFun.Interpritation.Functions
                 if (_recursiveArgsStack.Count > 400)
                     throw new FunRuntimeStackoverflowException($"stack overflow on {Name}");
 
-                if (args.Length != Variables.Length)
+                if (args.Length != ArgumentSources.Length)
                     throw new ArgumentException();
                 SetVariables(args);
 
@@ -39,7 +38,9 @@ namespace NFun.Interpritation.Functions
         }
 
 
-        public ConcreteRecursiveUserFunction(string name, VariableSource[] variables, bool isReturnTypeStrictlyTyped, IExpressionNode expression, FunnyType[] argTypes) : base(name, variables, isReturnTypeStrictlyTyped, expression, argTypes)
+        internal ConcreteRecursiveUserFunction(string name, VariableSource[] argumentSources, bool isReturnTypeStrictlyTyped,
+            IExpressionNode expression, FunnyType[] argTypes) : base(name, argumentSources, isReturnTypeStrictlyTyped,
+            expression, argTypes)
         {
         }
     }

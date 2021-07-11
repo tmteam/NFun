@@ -82,7 +82,7 @@ namespace NFun.Types
             var arr = type.ArrayTypeSpecification;
             if (arr.FunnyType.BaseType == BaseFunnyType.Char)
                 return TextFunArray.Empty;
-            return new ImmutableFunArray(new object[0], arr.FunnyType);
+            return new ImmutableFunArray(Array.Empty<object>(), arr.FunnyType);
 
         }
         public static bool AreEqual(object left, object right)

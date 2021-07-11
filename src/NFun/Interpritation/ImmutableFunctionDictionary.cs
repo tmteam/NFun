@@ -42,7 +42,7 @@ namespace NFun.Interpritation
         public IList<IFunctionSignature> GetOverloads(string name)
         {
             if (!_overloads.TryGetValue(name, out var signatures))
-                return new IFunctionSignature[0];
+                return Array.Empty<IFunctionSignature>();
             return signatures;
         }
         public IFunctionSignature GetOrNull(string name, int argCount)

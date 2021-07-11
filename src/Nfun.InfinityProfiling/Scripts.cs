@@ -13,8 +13,8 @@ namespace NFun.InfinityProfiling
         public const string CalcBool = "y:bool = x";
         public const string CalcText = "y:text = x";
         public const string CalcRealArray = "y=[1.0,x,x]";
-        public const string CalcFourArgs =  "y='{(a*b+c)}'.concat(d)";
-        
+        public const string CalcFourArgs = "y='{(a*b+c)}'.concat(d)";
+
         // public readonly string ConstThousandSum = "[1..1000..1.0].sum()";
 
         public const string MultiplyArrayItems = @"multi(a,b) = 
@@ -27,6 +27,7 @@ namespace NFun.InfinityProfiling
                           expected = [4,10,18]     
                           
                           passed = a.multi(b)==expected";
+
         public const string DummyBubbleSort = @" 
   	                       twiceSet(arr,i,j,ival,jval) = arr.set(i,ival).set(j,jval)
 

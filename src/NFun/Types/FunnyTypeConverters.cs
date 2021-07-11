@@ -110,7 +110,7 @@ namespace NFun.Types
                     
                 return new StructTypeInputFunnyConverter(propertiesConverters,readPropertiesCount);
             }
-            return new PrimitiveTypeInputFunnyConverter(FunnyType.Anything);
+            return new PrimitiveTypeInputFunnyConverter(FunnyType.Any);
         }
 
 

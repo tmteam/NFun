@@ -6,13 +6,13 @@ namespace NFun.Interpritation.Nodes
 {
     public class VariableExpressionNode: IExpressionNode
     {
-        public VariableExpressionNode(VariableSource source, Interval interval)
+        internal VariableExpressionNode(VariableSource source, Interval interval)
         {
             Source = source;
             Interval = interval;
         }
 
-        public VariableSource Source { get; }
+        internal VariableSource Source { get; }
         public Interval Interval { get; }
         public FunnyType Type => Source.Type;
         public object Calc() => Source.InternalFunnyValue;

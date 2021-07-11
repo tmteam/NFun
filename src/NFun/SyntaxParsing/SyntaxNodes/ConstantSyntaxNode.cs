@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
@@ -21,7 +22,7 @@ namespace NFun.SyntaxParsing.SyntaxNodes
         public bool IsInBrackets { get; set; }
         public object Value { get; }
         public Interval Interval { get; set; }
-        public IEnumerable<ISyntaxNode> Children => new ISyntaxNode[0];
+        public IEnumerable<ISyntaxNode> Children => Array.Empty<ISyntaxNode>();
         public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
 
     }

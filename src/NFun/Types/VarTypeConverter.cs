@@ -108,7 +108,7 @@ namespace NFun.Types
                 return null;
             if (from.BaseType == BaseFunnyType.ArrayOf)
             {
-                if (to == FunnyType.ArrayOf(FunnyType.Anything))
+                if (to == FunnyType.ArrayOf(FunnyType.Any))
                     return o => o;
 
                 var elementConverter = GetConverterOrNull(

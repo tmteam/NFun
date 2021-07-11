@@ -41,13 +41,13 @@ namespace NFun
                     if (!unifiedType.HasValue)
                         unifiedType = childVarType;
                     else if(unifiedType!= childVarType)
-                        unifiedType = FunnyType.Anything;
+                        unifiedType = FunnyType.Any;
                     
                     items.Add(value);
                 }
 
                 if (!items.Any())
-                    return (new object[0], FunnyType.ArrayOf(FunnyType.Anything));
+                    return (Array.Empty<object>(), FunnyType.ArrayOf(FunnyType.Any));
                 return (items.ToArray(), FunnyType.ArrayOf( unifiedType.Value));
             }
             throw new NotSupportedException($"syntax node {syntaxNode.GetType().Name} is not supported");

@@ -76,7 +76,7 @@ namespace NFun
             var runtime = RuntimeBuilder.Build(expression,  BaseFunctions.DefaultDictionary,EmptyConstantList.Instance, apriories);
             
             if (runtime.Inputs.Any())
-                throw ErrorFactory.UnknownInputs(runtime.GetInputVariableUsages(), new VarInfo[0]);
+                throw ErrorFactory.UnknownInputs(runtime.GetInputVariableUsages(), Array.Empty<VarInfo>());
 
             var result = runtime.CalculateSafe(Span<VarVal>.Empty);
             

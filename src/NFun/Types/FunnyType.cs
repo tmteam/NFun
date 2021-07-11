@@ -19,7 +19,7 @@ namespace NFun.Types
 
         public static FunnyType Empty => new();
         public static FunnyType PrimitiveOf(BaseFunnyType baseType) => new(baseType);
-        public static FunnyType Anything => new(BaseFunnyType.Any);
+        public static FunnyType Any => new(BaseFunnyType.Any);
         public static FunnyType Bool => new(BaseFunnyType.Bool);
         public static FunnyType Char => new(BaseFunnyType.Char);
 

@@ -5,78 +5,101 @@ using NFun.Types;
 
 namespace NFun.Runtime
 {
+    enum FunnyVarAccess
+    {
+        NoInfo = 0,
+
+        /// <summary>
+        /// Funny variable is input, so can be modified from the outside before calculation
+        /// </summary>
+        Input = 1 << 0,
+
+        /// <summary>
+        /// Funny variable is output so it can be considered as the result of the calculation
+        /// </summary>
+        Output = 1 << 1,
+    }
+
     public interface IFunnyVar
     {
         string Name { get; }
-        bool IsReadonly { get; }
         VarAttribute[] Attributes { get; }
         FunnyType Type { get; }
+
         /// <summary>
         /// internal representation of value
         /// </summary>
         object FunnyValue { get; }
-        
+
+        bool IsOutput { get; }
+
         /// <summary>
         /// Converts clr value with default input converter and setup it to variable
         /// </summary>
         /// <param name="value"></param>
         void SetClrValue(object value);
-        
+
         /// <summary>
         /// Converts current funnyValue with default output converter
         /// </summary>
         object GetClrValue();
     }
-    
-    public class VariableSource:IFunnyVar
+
+    internal class VariableSource : IFunnyVar
     {
         internal object InternalFunnyValue;
 
-        public static VariableSource CreateWithStrictTypeLabel( string name, 
-            FunnyType type, 
-            Interval typeSpecificationIntervalOrNull,
-            bool isOutput,
-            VarAttribute[] attributes = null)
-            => new (name, type, typeSpecificationIntervalOrNull, isOutput, attributes);
+        private readonly FunnyVarAccess _access;
 
-        public static VariableSource CreateWithoutStrictTypeLabel(
-            string name, FunnyType type, bool isOutput,  VarAttribute[] attributes = null)
-            => new(name, type, isOutput, attributes);
+        internal static VariableSource CreateWithStrictTypeLabel(
+            string name,
+            FunnyType type,
+            Interval typeSpecificationIntervalOrNull,
+            FunnyVarAccess access,
+            VarAttribute[] attributes = null)
+            => new(name, type, typeSpecificationIntervalOrNull, access, attributes);
+
+        internal static VariableSource CreateWithoutStrictTypeLabel(
+            string name, FunnyType type, FunnyVarAccess access, VarAttribute[] attributes = null)
+            => new(name, type, access, attributes);
 
         private VariableSource(
-            string name, 
-            FunnyType type, 
-            Interval typeSpecificationIntervalOrNull, 
-            bool isOutput,
+            string name,
+            FunnyType type,
+            Interval typeSpecificationIntervalOrNull,
+            FunnyVarAccess access,
             VarAttribute[] attributes = null)
         {
-            IsOutput = isOutput;
+            _access = access;
             InternalFunnyValue = type.GetDefaultValueOrNull();
             IsStrictTyped = true;
             TypeSpecificationIntervalOrNull = typeSpecificationIntervalOrNull;
-            Attributes = attributes ?? new VarAttribute[0];
+            Attributes = attributes ?? Array.Empty<VarAttribute>();
             Name = name;
             Type = type;
         }
 
-        private VariableSource(string name, FunnyType type,bool isOutput,  VarAttribute[] attributes = null)
+        public bool IsOutput => _access.HasFlag(FunnyVarAccess.Output);
+
+
+        private VariableSource(string name, FunnyType type, FunnyVarAccess access, VarAttribute[] attributes = null)
         {
-            IsOutput = isOutput;
+            _access = access;
             InternalFunnyValue = type.GetDefaultValueOrNull();
             IsStrictTyped = false;
-            Attributes = attributes??new VarAttribute[0];
+            Attributes = attributes ?? Array.Empty<VarAttribute>();
             Name = name;
             Type = type;
         }
+
         public bool IsStrictTyped { get; }
-        public bool IsReadonly => !IsOutput;
         public VarAttribute[] Attributes { get; }
         public string Name { get; }
         internal Interval? TypeSpecificationIntervalOrNull { get; }
-        public bool IsOutput { get; }
         public FunnyType Type { get; }
 
         public object FunnyValue => InternalFunnyValue;
+
         public void SetClrValue(object value)
         {
             if (Type.BaseType.GetClrType() == value.GetType())
@@ -84,6 +107,7 @@ namespace NFun.Runtime
                 InternalFunnyValue = value;
                 return;
             }
+
             switch (Type.BaseType)
             {
                 case BaseFunnyType.ArrayOf:

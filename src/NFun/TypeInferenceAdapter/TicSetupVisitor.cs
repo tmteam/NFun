@@ -316,7 +316,7 @@ namespace NFun.TypeInferenceAdapter
                 // save refernces to generic types, for use at 'apply tic results' step 
                 _resultsBuilder.RememberGenericCallArguments(node.OrderNumber, genericTypes);
             }
-            else genericTypes = new StateRefTo[0];
+            else genericTypes = Array.Empty<StateRefTo>();
 
             var types = new ITicNodeState[signature.ArgTypes.Length + 1];
             for (int i = 0; i < signature.ArgTypes.Length; i++)

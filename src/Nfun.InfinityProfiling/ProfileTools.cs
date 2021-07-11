@@ -6,10 +6,10 @@ namespace NFun.InfinityProfiling
 {
     public static class ProfileTools
     {
-        public static void AddAndTruncate<T>( this LinkedList<T> list, T value, int maxSize)
+        public static void AddAndTruncate<T>(this LinkedList<T> list, T value, int maxSize)
         {
             list.AddLast(value);
-            while (list.Count>maxSize) list.RemoveFirst();
+            while (list.Count > maxSize) list.RemoveFirst();
         }
 
         public static Action<IProfileSet> GetSet(ProfileSet set)
@@ -28,13 +28,14 @@ namespace NFun.InfinityProfiling
                     throw new ArgumentOutOfRangeException(nameof(set), set, null);
             }
         }
+
         public static void RunPrimitiveExamples(IProfileSet set)
         {
             set.PrimitiveConstIntSimpleArithmetics();
             set.PrimitiveConstRealSimpleArithmetics();
             set.PrimitiveConstBoolSimpleArithmetics();
-            set.PrimitiveCalcReal2Var ();
-            set.PrimitiveCalcInt2Var ();
+            set.PrimitiveCalcReal2Var();
+            set.PrimitiveCalcInt2Var();
             set.PrimitivesConst1();
             set.PrimitivesConstTrue();
             set.PrimitiveCalcSingleBool();
@@ -62,7 +63,7 @@ namespace NFun.InfinityProfiling
             set.CalcGenericFunc();
             set.CalcSquareEquation();
         }
-        
+
         public static void RunAllExamples(IProfileSet set)
         {
             RunPrimitiveExamples(set);

@@ -79,7 +79,7 @@ namespace NFun.UnitTests
                 returnType: FunnyType.ArrayOf(FunnyType.Fun(FunnyType.Int32, FunnyType.Text)),
                 inputTypes: 
                         new []{
-                            FunnyType.ArrayOf(FunnyType.Anything),
+                            FunnyType.ArrayOf(FunnyType.Any),
                             FunnyType.Fun(
                                 returnType: FunnyType.ArrayOf(FunnyType.Real), 
                                 inputTypes: FunnyType.Fun(
@@ -92,7 +92,7 @@ namespace NFun.UnitTests
                 returnType: FunnyType.ArrayOf(FunnyType.Fun(FunnyType.Int32, FunnyType.Text)),
                 inputTypes: 
                 new []{
-                    FunnyType.ArrayOf(FunnyType.Anything),
+                    FunnyType.ArrayOf(FunnyType.Any),
                     FunnyType.Fun(
                         returnType: FunnyType.ArrayOf(FunnyType.Real), 
                         inputTypes: FunnyType.Fun(

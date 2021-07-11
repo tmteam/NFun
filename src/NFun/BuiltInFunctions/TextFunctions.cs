@@ -9,13 +9,13 @@ namespace NFun.BuiltInFunctions
 {
     public class ToTextFunction : FunctionWithSingleArg
     {
-        public ToTextFunction() : base(CoreFunNames.ToText, FunnyType.Text, FunnyType.Anything) { }
+        public ToTextFunction() : base(CoreFunNames.ToText, FunnyType.Text, FunnyType.Any) { }
 
         public override object Calc(object a) => new TextFunArray(TypeHelper.GetFunText(a));
     }
     public class ConcatArrayOfTextsFunction : FunctionWithSingleArg
     {
-        public ConcatArrayOfTextsFunction() : base(CoreFunNames.ConcatArrayOfTexts, FunnyType.Text,FunnyType.ArrayOf(FunnyType.Anything)) { }
+        public ConcatArrayOfTextsFunction() : base(CoreFunNames.ConcatArrayOfTexts, FunnyType.Text,FunnyType.ArrayOf(FunnyType.Any)) { }
 
         public override object Calc(object a)
         {
@@ -29,7 +29,7 @@ namespace NFun.BuiltInFunctions
     }
     public class Concat2TextsFunction : FunctionWithTwoArgs
     {
-        public Concat2TextsFunction() : base(CoreFunNames.Concat2Texts, FunnyType.Text,FunnyType.Anything,FunnyType.Anything) { }
+        public Concat2TextsFunction() : base(CoreFunNames.Concat2Texts, FunnyType.Text,FunnyType.Any,FunnyType.Any) { }
 
         public override object Calc(object a, object b) 
             => new TextFunArray(TypeHelper.GetFunText(a) + TypeHelper.GetFunText(b));
@@ -37,7 +37,7 @@ namespace NFun.BuiltInFunctions
     
     public class Concat3TextsFunction : FunctionWithManyArguments
     {
-        public Concat3TextsFunction() : base(CoreFunNames.Concat3Texts, FunnyType.Text,FunnyType.Anything,FunnyType.Anything,FunnyType.Anything) { }
+        public Concat3TextsFunction() : base(CoreFunNames.Concat3Texts, FunnyType.Text,FunnyType.Any,FunnyType.Any,FunnyType.Any) { }
 
         public override object Calc(object[] args)
         {
@@ -50,7 +50,7 @@ namespace NFun.BuiltInFunctions
     
     public class FormatTextFunction : FunctionWithManyArguments
     {
-        public FormatTextFunction() : base("format", FunnyType.Text, FunnyType.Text, FunnyType.ArrayOf(FunnyType.Anything)) { }
+        public FormatTextFunction() : base("format", FunnyType.Text, FunnyType.Text, FunnyType.ArrayOf(FunnyType.Any)) { }
 
         public override object Calc(object[] args)
         {
@@ -105,7 +105,7 @@ namespace NFun.BuiltInFunctions
     
     public class JoinFunction : FunctionWithTwoArgs
     {
-        public JoinFunction() : base("join",FunnyType.Text,FunnyType.ArrayOf(FunnyType.Anything),FunnyType.Text)
+        public JoinFunction() : base("join",FunnyType.Text,FunnyType.ArrayOf(FunnyType.Any),FunnyType.Text)
         {
         }
 

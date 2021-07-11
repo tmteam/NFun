@@ -6,13 +6,13 @@ namespace NFun.Interpritation
 {
     public sealed class Equation
     {
-        public VariableSource OutputVariableSource { get; }
+        private readonly VariableSource _outputVariableSource;
         public readonly string Id;
         public readonly IExpressionNode Expression;
 
-        public Equation(string id, IExpressionNode expression, VariableSource outputVariableSource)
+        internal  Equation(string id, IExpressionNode expression, VariableSource outputVariableSource)
         {
-            OutputVariableSource = outputVariableSource;
+            _outputVariableSource = outputVariableSource;
             Id = id;
             Expression = expression;
         }
@@ -20,12 +20,12 @@ namespace NFun.Interpritation
         public VarVal CalcExpression()
         {
             var val  = new VarVal(Id, Expression.Calc(), Expression.Type);
-            OutputVariableSource.InternalFunnyValue = val.Value;
+            _outputVariableSource.InternalFunnyValue = val.Value;
             return val;
         }
 
         internal void UpdateExpression() 
-            => OutputVariableSource.InternalFunnyValue = Expression.Calc();
+            => _outputVariableSource.InternalFunnyValue = Expression.Calc();
         public override string ToString() => $"\"{Id}\" equation";
     }
 }

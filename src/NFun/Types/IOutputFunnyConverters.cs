@@ -17,7 +17,7 @@ namespace NFun.Types
         public DynamicTypeOutputFunnyConverter(Type clrType) => ClrType = clrType;
 
         public Type ClrType { get; }
-        public FunnyType FunnyType { get; } = FunnyType.Anything;
+        public FunnyType FunnyType { get; } = FunnyType.Any;
         public object ToClrObject(object funObject)
         {
             if (funObject is IFunArray funArray)

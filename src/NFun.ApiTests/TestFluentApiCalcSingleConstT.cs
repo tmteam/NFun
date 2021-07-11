@@ -1,3 +1,4 @@
+using System;
 using NFun.Exceptions;
 using NFun.TestTools;
 using NUnit.Framework;
@@ -80,9 +81,9 @@ namespace NFun.ApiTests
                 "[[[1,2],[]],[[3,4]],[[]]]");
             Assert.AreEqual(new[]
             {
-                new[] {new[] {1, 2}, new int[0]},
+                new[] {new[] {1, 2}, Array.Empty<int>()},
                 new[] {new[] {3, 4}},
-                new[] {new int[0]}
+                new[] { Array.Empty<int>() }
             }, result);
         }
 

@@ -6,12 +6,14 @@ using NFun.InfinityProfiling.Sets;
 
 namespace NFun.InfinityProfiling
 {
-    public enum ProfileSet {
+    public enum ProfileSet
+    {
         Primitives,
         Middle,
         Complex,
-        All        
+        All
     }
+
     public static class ProfileModes
     {
         public static void RunCalc(ProfileSet set)
@@ -20,29 +22,25 @@ namespace NFun.InfinityProfiling
             var reportTime = set switch
             {
                 ProfileSet.Primitives => 1_000_000,
-                ProfileSet.Middle     => 80000,
-                ProfileSet.Complex    => 10000,
+                ProfileSet.Middle => 80000,
+                ProfileSet.Complex => 10000,
                 ProfileSet.All => 2000,
                 _ => throw new ArgumentOutOfRangeException(nameof(set), set, null)
             };
 
             var calculateBench = new ProfileCalculateSet();
 
-            for (int i = 0; i < 3; i++)
-            {
-                runner(calculateBench);
-            }
+            for (var i = 0; i < 3; i++) runner(calculateBench);
 
-            int measurementsCount = 0;
-            int historyCount = 10;
+            var measurementsCount = 0;
+            var historyCount = 10;
 
             var calcStopWatch = new Stopwatch();
             var calcHistory = new LinkedList<double>();
 
 
-            for (int iterations = 1; !Console.KeyAvailable || Console.ReadKey().Key != ConsoleKey.Escape; iterations++)
+            for (var iterations = 1; !Console.KeyAvailable || Console.ReadKey().Key != ConsoleKey.Escape; iterations++)
             {
-
                 calcStopWatch.Start();
                 runner(calculateBench);
                 calcStopWatch.Stop();
@@ -79,22 +77,19 @@ namespace NFun.InfinityProfiling
                 ProfileSet.All => 2000,
                 _ => throw new ArgumentOutOfRangeException(nameof(set), set, null)
             };
-            
+
             var parseBench = new ProfileParserSet();
 
-            for (int i = 0; i < 3; i++)
-            {
-                runner(parseBench);
-            }
+            for (var i = 0; i < 3; i++) runner(parseBench);
 
-            int measurementsCount = 0;
-            int historyCount = 10;
+            var measurementsCount = 0;
+            var historyCount = 10;
 
             var parseStopWatch = new Stopwatch();
             var parseHistory = new LinkedList<double>();
 
 
-            for (int iterations = 1; !Console.KeyAvailable || Console.ReadKey().Key != ConsoleKey.Escape; iterations++)
+            for (var iterations = 1; !Console.KeyAvailable || Console.ReadKey().Key != ConsoleKey.Escape; iterations++)
             {
                 parseStopWatch.Start();
                 runner(parseBench);
@@ -135,7 +130,7 @@ namespace NFun.InfinityProfiling
             var updateBench = new ProfileUpdateSet();
             var calculateBench = new ProfileCalculateSet();
 
-            for (int i = 0; i < 3; i++)
+            for (var i = 0; i < 3; i++)
             {
                 runner(parseBench);
                 runner(buildBench);
@@ -143,8 +138,8 @@ namespace NFun.InfinityProfiling
                 runner(calculateBench);
             }
 
-            int measurementsCount = 0;
-            int historyCount = 10;
+            var measurementsCount = 0;
+            var historyCount = 10;
 
             var parseStopWatch = new Stopwatch();
             var parseHistory = new LinkedList<double>();
@@ -161,7 +156,7 @@ namespace NFun.InfinityProfiling
             var calcHistory = new LinkedList<double>();
 
 
-            for (int iterations = 1; !Console.KeyAvailable || Console.ReadKey().Key != ConsoleKey.Escape; iterations++)
+            for (var iterations = 1; !Console.KeyAvailable || Console.ReadKey().Key != ConsoleKey.Escape; iterations++)
             {
                 parseStopWatch.Start();
                 runner(parseBench);
@@ -230,14 +225,14 @@ namespace NFun.InfinityProfiling
             var buildBench = new ProfileBuildAllSet();
             var parseBench = new ProfileParserSet();
 
-            for (int i = 0; i < 3; i++)
+            for (var i = 0; i < 3; i++)
             {
                 runner(parseBench);
                 runner(buildBench);
             }
 
-            int measurementsCount = 0;
-            int historyCount = 10;
+            var measurementsCount = 0;
+            var historyCount = 10;
 
             var parseStopWatch = new Stopwatch();
             var parseHistory = new LinkedList<double>();
@@ -247,7 +242,7 @@ namespace NFun.InfinityProfiling
             var interpritateHistory = new LinkedList<double>();
 
 
-            for (int iterations = 1; !Console.KeyAvailable || Console.ReadKey().Key != ConsoleKey.Escape; iterations++)
+            for (var iterations = 1; !Console.KeyAvailable || Console.ReadKey().Key != ConsoleKey.Escape; iterations++)
             {
                 parseStopWatch.Start();
                 runner(parseBench);
@@ -285,9 +280,9 @@ namespace NFun.InfinityProfiling
             Console.Clear();
             Console.WriteLine();
             Console.WriteLine(
-                $"------ {name} {(set)} iteration #{measurementsCount} in {(int) total.TotalMilliseconds} ms ------");
+                $"------ {name} {set} iteration #{measurementsCount} in {(int)total.TotalMilliseconds} ms ------");
 
-            Console.WriteLine($"          |    %    |  VAL ips |  AVG ips  |  MIN ips  |  MAX ips  |   RMS  |");
+            Console.WriteLine("          |    %    |  VAL ips |  AVG ips  |  MIN ips  |  MAX ips  |   RMS  |");
         }
 
         private static void PrintFooter()

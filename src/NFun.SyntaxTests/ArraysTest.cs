@@ -94,9 +94,9 @@ namespace NFun.SyntaxTests
             {
                 1.0,
                 "23",
-                new object[0], 
+                Array.Empty<object>(), 
                 new[]{"a","bc"}, 
-                new[]{new object[0]},
+                new[] { Array.Empty<object>() },
                 4.0, 
                 5,
                 false

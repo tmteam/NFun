@@ -4,9 +4,9 @@ using System.Linq;
 
 namespace NFun.InfinityProfiling
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             Console.WriteLine("NFUN A-Profiler ");
             while (RunOnOfModes())
@@ -62,23 +62,6 @@ namespace NFun.InfinityProfiling
             return true;
         }
 
-        private enum ProfileMode
-        {
-            DoNotProfile,
-
-            BuildAll,
-            BuildAndCalcAll,
-            CalcAll,
-
-            BuildAndCalcMiddle,
-            CalcMiddle,
-            BuildMidle,
-            
-            BuildAndCalcPrimitive,
-            CalcPrimitive,
-            BuildPrimitive
-        }
-        
         private static ProfileMode EnterUserChoise()
         {
             while (true)
@@ -98,7 +81,7 @@ namespace NFun.InfinityProfiling
                 Console.WriteLine("[8] Primitives. Build");
                 Console.WriteLine("[9] Primitives. Calc");
 
-                
+
                 Console.WriteLine("[ESC] Exit");
                 Console.Write("Enter your choice: ");
                 var key = Console.ReadKey();
@@ -115,36 +98,36 @@ namespace NFun.InfinityProfiling
                     case ConsoleKey.D3:
                     case ConsoleKey.NumPad3:
                         return ProfileMode.CalcAll;
-                    
+
                     case ConsoleKey.D4:
                     case ConsoleKey.NumPad4:
                         return ProfileMode.BuildAndCalcMiddle;
                     case ConsoleKey.D5:
-                    case ConsoleKey.NumPad5: 
+                    case ConsoleKey.NumPad5:
                         return ProfileMode.BuildMidle;
                     case ConsoleKey.D6:
                     case ConsoleKey.NumPad6:
                         return ProfileMode.CalcMiddle;
-                    
-                    
+
+
                     case ConsoleKey.D7:
                     case ConsoleKey.NumPad7:
                         return ProfileMode.BuildAndCalcPrimitive;
                     case ConsoleKey.D8:
-                    case ConsoleKey.NumPad8: 
+                    case ConsoleKey.NumPad8:
                         return ProfileMode.BuildPrimitive;
                     case ConsoleKey.D9:
                     case ConsoleKey.NumPad9:
                         return ProfileMode.CalcPrimitive;
 
-                    
+
                     case ConsoleKey.Escape:
                         return ProfileMode.DoNotProfile;
                 }
             }
         }
 
-        private static void PrintResults(string name, TimeSpan ratioTime,  LinkedList<double> history,
+        private static void PrintResults(string name, TimeSpan ratioTime, LinkedList<double> history,
             int iterations)
         {
             var max = history.Max();
@@ -152,14 +135,31 @@ namespace NFun.InfinityProfiling
             var avg = history.Average();
             var rms = Math.Sqrt(history.Select(h => Math.Pow(avg - h, 2)).Sum());
             var current = history.Last.Value;
-            
+
             Console.WriteLine($"{name} |  " +
-                              $"{100*current/ratioTime.TotalMilliseconds:00.00}% | "+
+                              $"{100 * current / ratioTime.TotalMilliseconds:00.00}% | " +
                               $"{1000 * iterations / current:000000.0} |  " +
                               $"{1000 * iterations / avg:000000.0} |  " +
                               $"{1000 * iterations / max:000000.0} |  " +
                               $"{1000 * iterations / min:000000.0} |  " +
                               $"{rms * 1000 / iterations:0000}  |  ");
+        }
+
+        private enum ProfileMode
+        {
+            DoNotProfile,
+
+            BuildAll,
+            BuildAndCalcAll,
+            CalcAll,
+
+            BuildAndCalcMiddle,
+            CalcMiddle,
+            BuildMidle,
+
+            BuildAndCalcPrimitive,
+            CalcPrimitive,
+            BuildPrimitive
         }
     }
 }

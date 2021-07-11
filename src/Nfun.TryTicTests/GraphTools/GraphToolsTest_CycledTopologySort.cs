@@ -1,3 +1,4 @@
+using System;
 using NFun.SyntaxParsing;
 using NUnit.Framework;
 
@@ -177,14 +178,14 @@ namespace NFun.UnitTests.GraphTools
                 //2,1,0
                 var graph = new[]
                 {
-                    new int[0],
-                    new int[0],
-                    new int[0]
+                    Array.Empty<int>(),
+                    Array.Empty<int>(),
+                    Array.Empty<int>()
                 };
                 var res = SyntaxParsing.GraphTools.SortCycledTopology(graph);
                 AssertHasRoute(new[]{0,1,2}, res);
             }
-            private int[] NoParents => new int[0];
+            private int[] NoParents => Array.Empty<int>();
             private int[] From(params int[] routes) => routes;
             private string ArrayToString(int[] arr)
             {

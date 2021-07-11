@@ -78,7 +78,7 @@ namespace NFun.UnitTests.Converters
                 new object[] { }
             };
             var converter = FunnyTypeConverters.GetOutputConverter(inputValue.GetType());
-            Assert.AreEqual(FunnyType.ArrayOf(FunnyType.ArrayOf(FunnyType.Anything)), converter.FunnyType);
+            Assert.AreEqual(FunnyType.ArrayOf(FunnyType.ArrayOf(FunnyType.Any)), converter.FunnyType);
         }
         
         [Test]

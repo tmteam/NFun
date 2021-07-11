@@ -1,4 +1,5 @@
 ﻿using System;
+using NFun.Runtime;
 using NFun.TestTools;
 using NUnit.Framework;
 
@@ -29,8 +30,8 @@ namespace NFun.ApiTests
             var runtime = expr.Build();
             var ySource = runtime.GetVariable("y");
             var xSource = runtime.GetVariable("x");
-            Assert.IsFalse(ySource.IsReadonly);
-            Assert.IsTrue(xSource.IsReadonly);
+            Assert.IsTrue(ySource.IsOutput);
+            Assert.IsFalse(xSource.IsOutput);
             xSource.SetClrValue(arg);
             runtime.Run();
             Assert.AreEqual(expected, ySource.FunnyValue);

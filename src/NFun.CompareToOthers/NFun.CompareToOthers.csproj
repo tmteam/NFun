@@ -7,12 +7,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="CoreCLR-NCalc" Version="2.2.88" />
-      <PackageReference Include="IronPython" Version="2.7.11-candidate1" />
+        <PackageReference Include="CoreCLR-NCalc" Version="2.2.88"/>
+        <PackageReference Include="IronPython" Version="2.7.11-candidate1"/>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\NFun\NFun.csproj" />
+        <ProjectReference Include="..\NFun\NFun.csproj"/>
     </ItemGroup>
 
 </Project>

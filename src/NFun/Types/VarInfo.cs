@@ -1,3 +1,4 @@
+using System;
 using NFun.SyntaxParsing;
 
 namespace NFun.Types
@@ -21,7 +22,7 @@ namespace NFun.Types
             IsOutput = isOutput;
             Type = type;
             Name = name;
-            Attributes = attributes ??new VarAttribute[0];
+            Attributes = attributes ??Array.Empty<VarAttribute>();
         }
 
         public override bool Equals(object obj)

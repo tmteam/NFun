@@ -68,9 +68,9 @@ namespace NFun.Tokenization
                 case TokType.RealType:   return FunnyType.Real;
                 case TokType.BoolType:   return FunnyType.Bool;
                 case TokType.TextType:   return FunnyType.Text;
-                case TokType.AnythingType:  return FunnyType.Anything;
+                case TokType.AnythingType:  return FunnyType.Any;
                 case TokType.Id:
-                    if(token.Value=="any") return FunnyType.Anything;
+                    if(token.Value=="any") return FunnyType.Any;
                     break;     
             }
             throw ErrorFactory.TypeExpectedButWas(token);

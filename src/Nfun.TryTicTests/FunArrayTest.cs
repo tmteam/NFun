@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Linq;
 using NFun.Runtime.Arrays;
@@ -59,16 +60,16 @@ namespace NFun.UnitTests
         [Test]
         public void IntArr_BothEmpty_IsEquivalentReturnsTrue()
         {
-            var a1 = new ImmutableFunArray(new object[0], FunnyType.Anything);
-            var a2 = new ImmutableFunArray(new object[0], FunnyType.Anything);
+            var a1 = new ImmutableFunArray(Array.Empty<object>(), FunnyType.Any);
+            var a2 = new ImmutableFunArray(Array.Empty<object>(), FunnyType.Any);
             Assert.IsTrue(a1.IsEquivalent(a2));
         }
         
         [Test]
         public void IntArrOfArr_BothEmpty_IsEquivalentReturnsTrue()
         {
-            var a1 = new ImmutableFunArray(new object[0],FunnyType.Anything);
-            var a2 = new ImmutableFunArray(new object[0],FunnyType.Anything);
+            var a1 = new ImmutableFunArray(Array.Empty<object>(),FunnyType.Any);
+            var a2 = new ImmutableFunArray(Array.Empty<object>(),FunnyType.Any);
             Assert.IsTrue(a1.IsEquivalent(a2));
         }
         
@@ -77,14 +78,14 @@ namespace NFun.UnitTests
         {
 
             var a1 = new ImmutableFunArray(
-                FunnyType.Anything,
-                new ImmutableFunArray(new int[0]),
+                FunnyType.Any,
+                new ImmutableFunArray(Array.Empty<int>()),
                 new ImmutableFunArray(new int[] {1, 2}),
                 new ImmutableFunArray(new int[] {1, 2,3})
                 );
             var a2 = new ImmutableFunArray(
-                FunnyType.Anything,
-                new ImmutableFunArray(new int[0]),
+                FunnyType.Any,
+                new ImmutableFunArray(Array.Empty<int>()),
                 new ImmutableFunArray(new int[] {1, 2}),
                 new ImmutableFunArray(new int[] {1, 2,3})
             );
@@ -96,16 +97,16 @@ namespace NFun.UnitTests
         {
 
             var a1 = new ImmutableFunArray(
-                FunnyType.Anything,
-                new ImmutableFunArray(new object[0],FunnyType.Anything),
-                new ImmutableFunArray(new object[] {1, 2},FunnyType.Anything),
-                new ImmutableFunArray(new object[] {1, 2,3},FunnyType.Anything)
+                FunnyType.Any,
+                new ImmutableFunArray(Array.Empty<object>(),FunnyType.Any),
+                new ImmutableFunArray(new object[] {1, 2},FunnyType.Any),
+                new ImmutableFunArray(new object[] {1, 2,3},FunnyType.Any)
             );
             var a2 = new ImmutableFunArray(
                 FunnyType.Int64,
-                new ImmutableFunArray(new object[0],FunnyType.Anything),
-                new ImmutableFunArray(new object[] {1, 2},FunnyType.Anything),
-                new ImmutableFunArray(new object[] {1, 2},FunnyType.Anything)
+                new ImmutableFunArray(Array.Empty<object>(),FunnyType.Any),
+                new ImmutableFunArray(new object[] {1, 2},FunnyType.Any),
+                new ImmutableFunArray(new object[] {1, 2},FunnyType.Any)
             );
 
             Assert.IsFalse(a1.IsEquivalent(a2));
@@ -115,16 +116,16 @@ namespace NFun.UnitTests
         {
 
             var a1 = new ImmutableFunArray(
-                FunnyType.Anything,
-                new ImmutableFunArray(new object[0],FunnyType.Anything),
-                new ImmutableFunArray(new object[] {"1", "2"},FunnyType.Anything),
-                new ImmutableFunArray(new object[] {"1", "2","3"},FunnyType.Anything)
+                FunnyType.Any,
+                new ImmutableFunArray(Array.Empty<object>(),FunnyType.Any),
+                new ImmutableFunArray(new object[] {"1", "2"},FunnyType.Any),
+                new ImmutableFunArray(new object[] {"1", "2","3"},FunnyType.Any)
             );
             var a2 = new ImmutableFunArray(
-                FunnyType.Anything,
-                new ImmutableFunArray(new object[0],FunnyType.Anything),
-                new ImmutableFunArray(new object[] {"1", "2"},FunnyType.Anything),
-                new ImmutableFunArray(new object[] {"1", "2","3"},FunnyType.Anything)
+                FunnyType.Any,
+                new ImmutableFunArray(Array.Empty<object>(),FunnyType.Any),
+                new ImmutableFunArray(new object[] {"1", "2"},FunnyType.Any),
+                new ImmutableFunArray(new object[] {"1", "2","3"},FunnyType.Any)
             );
 
             Assert.IsTrue(a1.IsEquivalent(a2));
@@ -134,11 +135,11 @@ namespace NFun.UnitTests
         public void ExceptMultiDimensional()
         {
             var a1 = new ImmutableFunArray(
-                FunnyType.Anything,
+                FunnyType.Any,
                 new ImmutableFunArray(new[] {1.0, 2.0}),
                 new ImmutableFunArray(new[] {3.0, 4.0}));
             var a2 = new ImmutableFunArray(
-                FunnyType.Anything,
+                FunnyType.Any,
                 new ImmutableFunArray(new[] {3.0, 4.0}),
                 new ImmutableFunArray(new[] {1.0}),
                 new ImmutableFunArray(new[] {4.0})
@@ -162,16 +163,16 @@ namespace NFun.UnitTests
         {
 
             var a1 = new ImmutableFunArray(
-                FunnyType.Anything,
-                new ImmutableFunArray(new object[0],FunnyType.Anything),
-                new ImmutableFunArray(new object[] {"1", "2"},FunnyType.Anything),
-                new ImmutableFunArray(new object[] {"1", "2","3"},FunnyType.Anything)
+                FunnyType.Any,
+                new ImmutableFunArray(Array.Empty<object>(),FunnyType.Any),
+                new ImmutableFunArray(new object[] {"1", "2"},FunnyType.Any),
+                new ImmutableFunArray(new object[] {"1", "2","3"},FunnyType.Any)
             );
             var a2 = new ImmutableFunArray(
-                FunnyType.Anything,
-                new ImmutableFunArray(new object[]{"lalala"},FunnyType.Anything),
-                new ImmutableFunArray(new object[] {"1", "2"},FunnyType.Anything),
-                new ImmutableFunArray(new object[] {"1", "2","3"},FunnyType.Anything)
+                FunnyType.Any,
+                new ImmutableFunArray(new object[]{"lalala"},FunnyType.Any),
+                new ImmutableFunArray(new object[] {"1", "2"},FunnyType.Any),
+                new ImmutableFunArray(new object[] {"1", "2","3"},FunnyType.Any)
             );
 
             Assert.IsFalse(a1.IsEquivalent(a2));

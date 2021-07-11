@@ -78,7 +78,7 @@ namespace NFun.UnitTests.Converters
                 new object[] { }
             };
             var converter = FunnyTypeConverters.GetInputConverter(inputValue.GetType());
-            Assert.AreEqual(FunnyType.ArrayOf(FunnyType.ArrayOf(FunnyType.Anything)), converter.FunnyType);
+            Assert.AreEqual(FunnyType.ArrayOf(FunnyType.ArrayOf(FunnyType.Any)), converter.FunnyType);
             var value = converter.ToFunObject(inputValue);
             Assert.IsInstanceOf<ImmutableFunArray>(value);
             Assert.AreEqual(3,((ImmutableFunArray) value).Count);

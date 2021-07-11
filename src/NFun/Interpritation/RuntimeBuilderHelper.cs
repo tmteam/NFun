@@ -152,12 +152,12 @@ namespace NFun.Interpritation
                     name: argSyntax.Id, 
                     type: actualType, 
                     typeSpecificationIntervalOrNull: argSyntax.Interval, 
-                    isOutput: false);
+                    access: FunnyVarAccess.Input);
             else
                 return VariableSource.CreateWithoutStrictTypeLabel(
                     name: argSyntax.Id,
                     type: actualType, 
-                    isOutput: false);
+                    access: FunnyVarAccess.Input);
         }
     }
 }

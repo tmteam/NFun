@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using NFun.Tic.SolvingStates;
 
 namespace NFun.Tic
@@ -24,9 +25,9 @@ namespace NFun.Tic
             return _syntaxNodes[syntaxNode];
         }
 
-        public IEnumerable<TicNode> GenericNodes { get; } = new TicNode[0];
+        public IEnumerable<TicNode> GenericNodes { get; } = Array.Empty<TicNode>();
         public bool HasGenerics => false;
         public int GenericsCount => 0;
-        public ConstrainsState[] GenericsStates { get; } = new ConstrainsState[0];
+        public ConstrainsState[] GenericsStates { get; } = Array.Empty<ConstrainsState>();
     }
 }

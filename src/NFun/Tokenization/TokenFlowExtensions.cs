@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using NFun.ParseErrors;
 using NFun.SyntaxParsing;
@@ -13,7 +14,7 @@ namespace NFun.Tokenization
 
         public static VarAttribute[] ReadAttributes(this TokFlow flow)
         {
-            var attributes = new VarAttribute[0];
+            var attributes = Array.Empty<VarAttribute>();
             if (!flow.IsCurrent(TokType.MetaInfo))
                 return attributes;
 

@@ -408,7 +408,7 @@ namespace NFun.SyntaxParsing
                 var body = ReadNodeOrNull(flow);
                 if(body==null)
                     throw FunParseException.ErrorStubToDo("body missed");
-                var equation = new EquationSyntaxNode(idToken.Value, idToken.Start, body, new VarAttribute[0]);
+                var equation = new EquationSyntaxNode(idToken.Value, idToken.Start, body, Array.Empty<VarAttribute>());
                 equations.Add(equation);
                 //Read node or null may eat last new-line-token
                 hasAnyDelimeter = flow.Previous.Type == TokType.NewLine;

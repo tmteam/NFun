@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using NFun.Interpritation.Nodes;
 using NFun.Runtime;
@@ -7,11 +8,11 @@ namespace NFun.Interpritation.Functions
 {
     public class ConcreteUserFunction : FunctionWithManyArguments
     {
-        public VariableSource[] Variables { get; }
+        internal VariableSource[] ArgumentSources { get; }
         public bool IsReturnTypeStrictlyTyped { get; }
         protected readonly IExpressionNode Expression;
 
-        public static ConcreteUserFunction Create(string name,
+        internal static ConcreteUserFunction Create(string name,
             VariableSource[] variables,
             bool isReturnTypeStrictlyTyped,
             IExpressionNode expression,
@@ -26,9 +27,9 @@ namespace NFun.Interpritation.Functions
                 return new ConcreteUserFunction(name, variables, isReturnTypeStrictlyTyped, expression, argTypes);
         }
 
-        protected ConcreteUserFunction(
+        internal ConcreteUserFunction(
             string name, 
-            VariableSource[] variables,
+            VariableSource[] argumentSources,
             bool isReturnTypeStrictlyTyped,
             IExpressionNode expression, FunnyType[] argTypes) 
             : base(
@@ -36,7 +37,7 @@ namespace NFun.Interpritation.Functions
                 expression.Type,
                 argTypes)
         {
-            Variables = variables;
+            ArgumentSources = argumentSources;
             IsReturnTypeStrictlyTyped = isReturnTypeStrictlyTyped;
             Expression = expression;
         }
@@ -44,7 +45,7 @@ namespace NFun.Interpritation.Functions
         protected void SetVariables(object[] args)
         {
             for (int i = 0; i < args.Length; i++)
-                Variables[i].InternalFunnyValue=  args[i];
+                ArgumentSources[i].InternalFunnyValue=  args[i];
         }
         public override object Calc(object[] args)
         {

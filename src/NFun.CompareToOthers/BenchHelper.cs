@@ -9,14 +9,14 @@ namespace NFun.CompareToOthers
         {
             GC.WaitForPendingFinalizers();
             GC.Collect(1, GCCollectionMode.Forced);
-            long allocated = GC.GetTotalAllocatedBytes();
+            var allocated = GC.GetTotalAllocatedBytes();
             var sw = new Stopwatch();
             sw.Start();
-            for (int i = 0; i < iterations; i++)
+            for (var i = 0; i < iterations; i++)
                 action();
             sw.Stop();
             GC.Collect(1, GCCollectionMode.Forced);
-            totalAlloc = GC.GetTotalAllocatedBytes()-allocated;
+            totalAlloc = GC.GetTotalAllocatedBytes() - allocated;
             return sw.Elapsed;
         }
     }

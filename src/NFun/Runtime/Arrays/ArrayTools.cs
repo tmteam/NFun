@@ -8,7 +8,7 @@ namespace NFun.Runtime.Arrays
 {
     public static class ArrayTools
     {
-        public static readonly ImmutableFunArray Empty = new ImmutableFunArray(new object[0], FunnyType.Anything);
+        public static readonly ImmutableFunArray Empty = new ImmutableFunArray(Array.Empty<object>(), FunnyType.Any);
         public static TextFunArray AsFunText(this  string txt)=> new TextFunArray(txt);
 
         public static string JoinElementsToFunString(IEnumerable enumerable)
@@ -71,7 +71,7 @@ namespace NFun.Runtime.Arrays
             
             var start = startIndex ?? 0;
             if(start > array.Length-1) 
-                return new ImmutableFunArray(new Object[0], elementType);
+                return new ImmutableFunArray(Array.Empty<object>(), elementType);
             
             var end = array.Length - 1;
             if(endIndex.HasValue)

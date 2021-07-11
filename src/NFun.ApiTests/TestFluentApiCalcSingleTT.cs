@@ -109,9 +109,9 @@ namespace NFun.ApiTests
                 input: new UserInputModel("vasa", 13, size: 21, iq: 1, 1, 2, 3, 4),
                 expected: new[]
                 {
-                    new[] {new[] {1, 2}, new int[0]},
+                    new[] {new[] {1, 2}, Array.Empty<int>()},
                     new[] {new[] {3, 4}},
-                    new[] {new int[0]}
+                    new[] { Array.Empty<int>() }
                 }
             );
 

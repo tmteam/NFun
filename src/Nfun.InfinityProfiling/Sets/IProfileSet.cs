@@ -5,13 +5,13 @@ namespace NFun.InfinityProfiling.Sets
         void PrimitiveConstIntSimpleArithmetics();
         void PrimitiveConstRealSimpleArithmetics();
         void PrimitiveConstBoolSimpleArithmetics();
-        void PrimitiveCalcReal2Var ();
-        void PrimitiveCalcInt2Var ();
+        void PrimitiveCalcReal2Var();
+        void PrimitiveCalcInt2Var();
         void PrimitiveCalcSingleBool();
         void PrimitiveCalcSingleReal();
 
-        void PrimitivesConstTrue(); 
-        void PrimitivesConstBool(); 
+        void PrimitivesConstTrue();
+        void PrimitivesConstBool();
         void PrimitivesConst1();
         void PrimitiveCalcIntOp();
         void PrimitiveCalcRealOp();
@@ -23,7 +23,7 @@ namespace NFun.InfinityProfiling.Sets
         void ConstGenericFunc();
         void ConstSquareEquation();
         void CalcSingleText();
-      
+
         void CalcTextOp();
         void CalcInterpolation();
         void CalcGenericFunc();

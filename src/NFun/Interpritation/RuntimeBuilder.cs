@@ -99,7 +99,7 @@ namespace NFun.Interpritation
                         varDef.Id,
                         varDef.FunnyType,
                         varDef.Interval,
-                        isOutput:false,
+                        FunnyVarAccess.Input,
                         varDef.Attributes);
                     if (!variables.TryAdd(variableSource))
                     {
@@ -173,14 +173,16 @@ namespace NFun.Interpritation
                     name: equation.Id, 
                     type: equation.OutputType, 
                     typeSpecificationIntervalOrNull: equation.TypeSpecificationOrNull.Interval, 
-                    attributes: equation.Attributes, 
-                    isOutput:true);
+                    access: FunnyVarAccess.Output,
+                    attributes: equation.Attributes
+                    );
             else
                 outputVariableSource = VariableSource.CreateWithoutStrictTypeLabel(
                     name: equation.Id, 
                     type: equation.OutputType, 
-                    isOutput: true,
-                    equation.Attributes);
+                    access:  FunnyVarAccess.Output,
+                    equation.Attributes
+                    );
 
             var itVariable = variables.GetSuperAnonymousVariableOrNull();
             if (itVariable != null)

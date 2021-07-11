@@ -7,14 +7,6 @@ namespace NFun.CompareToOthers
     {
         private const int Iterations = 100000;
 
-        private class Context
-        {
-            public int Param1 { get; set; }
-            public int Param2 { get; set; }
-
-            public int Foo(int a, int b) => Math.Min(a, b);
-        }
-
         // [Theory]
         // [InlineData("(4 * 12 / 7) + ((9 * 2) % 8)")]
         // [InlineData("5 * 2 = 2 * 5 && (1 / 3.0) * 3 = 1")]
@@ -36,7 +28,7 @@ namespace NFun.CompareToOthers
             var expression = new Expression(formula);
             var lambda = expression.ToLambda<Context, int>();
 
-            var context = new Context {Param1 = 4, Param2 = 9};
+            var context = new Context { Param1 = 4, Param2 = 9 };
             expression.Parameters["Param1"] = 4;
             expression.Parameters["Param2"] = 9;
 
@@ -84,7 +76,7 @@ namespace NFun.CompareToOthers
                 if (name == "Foo")
                 {
                     var param = args.EvaluateParameters();
-                    args.Result = context.Foo((int) param[0], (int) param[1]);
+                    args.Result = context.Foo((int)param[0], (int)param[1]);
                 }
             };
 
@@ -94,7 +86,10 @@ namespace NFun.CompareToOthers
             PrintResult(formula, m1, m2);
         }
 
-        private static TimeSpan Measure(Action a) => BenchHelper.Measure(a, Iterations, out _);
+        private static TimeSpan Measure(Action a)
+        {
+            return BenchHelper.Measure(a, Iterations, out _);
+        }
 
         private static void PrintResult(string formula, TimeSpan m1, TimeSpan m2)
         {
@@ -102,8 +97,20 @@ namespace NFun.CompareToOthers
             Console.WriteLine("Formula: {0}", formula);
             Console.WriteLine("Expression: {0:N} evaluations / sec", Iterations / m1.TotalSeconds);
             Console.WriteLine("Lambda: {0:N} evaluations / sec", Iterations / m2.TotalSeconds);
-            Console.WriteLine("Lambda Speedup: {0:P}%", (Iterations / m2.TotalSeconds) / (Iterations / m1.TotalSeconds) - 1);
+            Console.WriteLine("Lambda Speedup: {0:P}%",
+                Iterations / m2.TotalSeconds / (Iterations / m1.TotalSeconds) - 1);
             Console.WriteLine(new string('-', 60));
+        }
+
+        private class Context
+        {
+            public int Param1 { get; set; }
+            public int Param2 { get; set; }
+
+            public int Foo(int a, int b)
+            {
+                return Math.Min(a, b);
+            }
         }
     }
 }

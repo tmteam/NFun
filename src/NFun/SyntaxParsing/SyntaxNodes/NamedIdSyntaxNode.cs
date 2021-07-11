@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using NFun.Interpritation.Functions;
 using NFun.SyntaxParsing.Visitors;
@@ -54,7 +55,7 @@ namespace NFun.SyntaxParsing.SyntaxNodes
         public string Id { get; }
         public Interval Interval { get; set; }
         public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);    
-        public IEnumerable<ISyntaxNode> Children => new ISyntaxNode[0];
+        public IEnumerable<ISyntaxNode> Children => Array.Empty<ISyntaxNode>();
 
         public override string ToString() => $"({OrderNumber}) {Id}:{OutputType}";
     }

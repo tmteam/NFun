@@ -84,7 +84,7 @@ namespace NFun.Interpritation
             {
                 var arg = argNames[i];
                 var type = outputTypeFunDefinition.Inputs[i];
-                var source = VariableSource.CreateWithoutStrictTypeLabel(arg, type, false);
+                var source = VariableSource.CreateWithoutStrictTypeLabel(arg, type, FunnyVarAccess.Input);
                 //collect argument
                 arguments[i] = source;
                 //add argument to local scope
@@ -152,7 +152,7 @@ namespace NFun.Interpritation
             {
                 //Convert argument node
                 var varNode = FunArgumentExpressionNode.CreateWith(arg);
-                var source = VariableSource.CreateWithStrictTypeLabel(varNode.Name, varNode.Type, arg.Interval, isOutput:false);
+                var source = VariableSource.CreateWithStrictTypeLabel(varNode.Name, varNode.Type, arg.Interval, FunnyVarAccess.Input);
                 //collect argument
                 arguments[argIndex] = source;
                 argIndex++;

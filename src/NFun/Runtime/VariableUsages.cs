@@ -3,7 +3,7 @@ using NFun.Interpritation.Nodes;
 
 namespace NFun.Runtime
 {
-    public class VariableUsages
+    internal class VariableUsages
     {
         public readonly VariableSource Source;
         public readonly LinkedList<VariableExpressionNode> Usages = new();

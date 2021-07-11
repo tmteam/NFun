@@ -74,7 +74,7 @@ namespace NFun.Types
 
     public class DynamicTypeInputFunnyConverter : IinputFunnyConverter
     {
-        public FunnyType FunnyType => FunnyType.Anything;
+        public FunnyType FunnyType => FunnyType.Any;
         public object ToFunObject(object clrObject)
         {
             var converter = FunnyTypeConverters.GetInputConverter(clrObject.GetType());

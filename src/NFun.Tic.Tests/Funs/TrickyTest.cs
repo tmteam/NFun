@@ -1,4 +1,5 @@
-﻿using NFun.Tic.SolvingStates;
+﻿using System;
+using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 
 namespace NFun.Tic.Tests.Funs
@@ -195,7 +196,7 @@ namespace NFun.Tic.Tests.Funs
 
             var graph = new GraphBuilder();
             var generic = graph.InitializeVarNode();
-            graph.SetCall(StateFun.Of(new ITicNodeState[0],  StateFun.Of(generic, generic)), 0);
+            graph.SetCall(StateFun.Of(Array.Empty<ITicNodeState>(),  StateFun.Of(generic, generic)), 0);
             graph.SetIntConst(1, StatePrimitive.U8);
             graph.SetCall(0, new[] { 1, 2 });
             graph.SetDef("x", 2);

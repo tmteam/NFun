@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
@@ -18,14 +19,14 @@ namespace NFun.SyntaxParsing.SyntaxNodes
         {
             Id = node.Id;
             FunnyType = node.FunnyType;
-            Attributes = attributes??new VarAttribute[0];
+            Attributes = attributes??Array.Empty<VarAttribute>();
             Interval = node.Interval;
         }
         public bool IsInBrackets { get; set; }
         public Interval Interval { get; set; }
         public override string ToString() => Id + ":" + OutputType;
         public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
-        public IEnumerable<ISyntaxNode> Children => new ISyntaxNode[0];
+        public IEnumerable<ISyntaxNode> Children => Array.Empty<ISyntaxNode>();
 
     }
 }

@@ -18,7 +18,7 @@ namespace NFun.Runtime
         public VariableDictionary(int capacity) => 
             _variables = new Dictionary<string, VariableUsages>(capacity, StringComparer.OrdinalIgnoreCase);
 
-        public VariableDictionary(IEnumerable<VariableSource> sources)
+        internal VariableDictionary(IEnumerable<VariableSource> sources)
         {
             _variables = new Dictionary<string, VariableUsages>(StringComparer.OrdinalIgnoreCase);
 
@@ -28,12 +28,12 @@ namespace NFun.Runtime
             }
         }
         
-        public void AddOrReplace(VariableSource source) => _variables[source.Name] = new VariableUsages(source);
+        internal void AddOrReplace(VariableSource source) => _variables[source.Name] = new VariableUsages(source);
 
         /// <summary>
         /// Returns false if variable is already registered
         /// </summary>
-        public bool TryAdd(VariableSource source)
+        internal bool TryAdd(VariableSource source)
         {
             var name = source.Name;
             if (_variables.ContainsKey(name))
@@ -45,7 +45,7 @@ namespace NFun.Runtime
         /// <summary>
         /// Returns false if variable is already registered
         /// </summary>
-        public bool TryAdd(VariableUsages usages)
+        internal bool TryAdd(VariableUsages usages)
         {
             var name = usages.Source.Name;
             if (_variables.ContainsKey(name))
@@ -54,14 +54,16 @@ namespace NFun.Runtime
             return true;
         }
             
-        public VariableSource GetSourceOrNull(string id) => 
+        internal VariableSource GetSourceOrNull(string id) => 
             _variables.TryGetValue(id, out var v) ? v.Source:null;
 
         public VariableExpressionNode CreateVarNode(string id, Interval interval, FunnyType type)
         {
             if (!_variables.TryGetValue(id, out  var usage))
             {
-                var source = VariableSource.CreateWithoutStrictTypeLabel(id, type,false);
+                // Variable is not declared yet.
+                // Access to not declared variable means that it is input
+                var source = VariableSource.CreateWithoutStrictTypeLabel(id, type, FunnyVarAccess.Input);
                 usage = new VariableUsages(source);
                 _variables.Add(id, usage);
             }
@@ -70,7 +72,7 @@ namespace NFun.Runtime
             return node;
         }
 
-        public VariableUsages GetSuperAnonymousVariableOrNull()
+        internal VariableUsages GetSuperAnonymousVariableOrNull()
         {
             foreach (var key in _variables.Keys)
             {
@@ -80,8 +82,8 @@ namespace NFun.Runtime
             return null;
         }
         
-        public VariableUsages GetUsages(string id) => _variables[id];
-        public VariableUsages[] GetAllUsages()
+        internal VariableUsages GetUsages(string id) => _variables[id];
+        internal VariableUsages[] GetAllUsages()
         {
             var sources = new VariableUsages[_variables.Count];
             var i = 0;
@@ -93,7 +95,7 @@ namespace NFun.Runtime
             return sources;
         }
 
-        public VariableSource[] GetAllSources()
+        internal VariableSource[] GetAllSources()
         {
             var sources = new VariableSource[_variables.Count];
             var i = 0;

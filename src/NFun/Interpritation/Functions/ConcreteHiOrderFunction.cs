@@ -33,7 +33,7 @@ namespace NFun.Interpritation.Functions
     {
         private readonly VariableSource _source;
 
-        public static FunctionWithManyArguments Create(VariableSource varSource)
+        internal static FunctionWithManyArguments Create(VariableSource varSource)
         {
             return new ConcreteHiOrderFunction(
                 varSource, 

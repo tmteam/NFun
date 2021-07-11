@@ -35,7 +35,7 @@ namespace NFun.UnitTests.Converters
         [Test] public void ArrayOfObjectsConverts() => AssertFunnyConvert(new object[] {"vasa", 12, false});
         [Test] public void ComplexArrayConverts() => AssertFunnyConvert(new[]
         {
-            new[] {new[]{1,2}, new int[0]},
+            new[] {new[]{1,2}, Array.Empty<int>()},
             new[] {new[]{3}, new[]{4,5,6}}
         });
 
@@ -53,7 +53,7 @@ namespace NFun.UnitTests.Converters
                 lOveRs = new[]{"mikey","cow","spiderman"},
                 Friends = new []
                 {
-                    new SomeUserFriend{age = 31, lOveRs = new string[0], Name = "DIana  "},
+                    new SomeUserFriend{age = 31, lOveRs = Array.Empty<string>(), Name = "DIana  "},
                     new SomeUserFriend{age = 14, lOveRs = new []{"barbie","Ken","Putin"},Name = ""}
                 },
                 BestFriend = new SomeUserFriend{age = 69, lOveRs = new []{"a","b","c",""}, Name = "mr. president"}

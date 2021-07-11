@@ -35,7 +35,7 @@ namespace NFun.TypeInferenceAdapter
                         {
                             if (constrains.IsComparable)
                                 return FunnyType.Real;
-                            return FunnyType.Anything;
+                            return FunnyType.Any;
                         }
                     case ConstrainsState constrains:
                         {
@@ -151,7 +151,7 @@ namespace NFun.TypeInferenceAdapter
         {
             switch (name)
             {
-                case PrimitiveTypeName.Any: return FunnyType.Anything;
+                case PrimitiveTypeName.Any: return FunnyType.Any;
                 case PrimitiveTypeName.Char: return FunnyType.Char;
                 case PrimitiveTypeName.Bool: return FunnyType.Bool;
                 case PrimitiveTypeName.Real: return FunnyType.Real;

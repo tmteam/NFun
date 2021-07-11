@@ -39,7 +39,7 @@ namespace NFun.ApiTests
                 .WithFunction(
                     new GenericFunctionMock(
                         args => new EnumerableFunArray(((IEnumerable<object>)args[0])
-                            .Where((_, i) => i % 2 == 0), FunnyType.Anything),
+                            .Where((_, i) => i % 2 == 0), FunnyType.Any),
                         customName,
                         FunnyType.ArrayOf(FunnyType.Generic(0)),
                         FunnyType.ArrayOf(FunnyType.Generic(0))))

@@ -17,7 +17,7 @@ namespace NFun
             if (runtime.Inputs.Any())
                 throw ErrorFactory.UnknownInputs(
                     runtime.GetInputVariableUsages(),
-                    new VarInfo[0]);
+                    Array.Empty<VarInfo>());
             
             var result = runtime.CalculateSafe();
             return FluentApiTools.GetClrOut(result);
@@ -38,7 +38,7 @@ namespace NFun
 
             var runtime = RuntimeBuilder.Build(expression, BaseFunctions.DefaultDictionary, aprioriTypesMap:apriories);
             if (runtime.Inputs.Any())
-                throw ErrorFactory.UnknownInputs(runtime.GetInputVariableUsages(), new VarInfo[0]);
+                throw ErrorFactory.UnknownInputs(runtime.GetInputVariableUsages(), Array.Empty<VarInfo>());
             
             var calcResults = runtime.CalculateSafe();
             return FluentApiTools.CreateOutputValueFromResults<TOutput>(outputs, calcResults);

@@ -10,7 +10,7 @@ namespace NFun.Runtime
 {
     public class FunRuntime
     {
-        public IEnumerable<VariableUsages> GetInputVariableUsages() => _variables.GetAllUsages().Where(u=>!u.Source.IsOutput);
+        internal IEnumerable<VariableUsages> GetInputVariableUsages() => _variables.GetAllUsages().Where(u=>!u.Source.IsOutput);
 
         public VarInfo[] Inputs => _variables.GetAllSources()
             .Where(v => !v.IsOutput)
@@ -52,8 +52,8 @@ namespace NFun.Runtime
                 if(usage==null)
                     throw new KeyNotFoundException($"Variable '{key}' not found in scope");
                 var output =usage.Source;
-                if (output.IsReadonly)
-                    throw new KeyNotFoundException($"Variable '{key}' is input and cannot be read");
+                if (!output.IsOutput)
+                    throw new KeyNotFoundException($"Variable '{key}' is not output and cannot be read");
                 return output.GetClrValue();
             }
         }
