@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using NFun.Interpretation;
 using NFun.TestTools;
 using NUnit.Framework;
@@ -14,7 +15,7 @@ namespace NFun.ApiTests
                 .WithConstants(("pipi", Math.PI))
                 .WithFunction(new LogFunction())
                 .Build("y = pipi");
-            Assert.AreEqual(0, runtime.Inputs.Length);
+            Assert.IsTrue(runtime.Variables.All(v=>v.IsOutput));
             runtime.Calc().AssertReturns("y", Math.PI);
         }
 
@@ -34,7 +35,7 @@ namespace NFun.ApiTests
                 .WithConstant("pipi", Math.PI)
                 .WithFunction(new LogFunction())
                 .Build("y = pipi");
-            Assert.AreEqual(0, runtime.Inputs.Length);
+            runtime.AssertInputsCount(0);
 
             runtime.Calc().AssertReturns("y", Math.PI);
         }
@@ -47,7 +48,7 @@ namespace NFun.ApiTests
                 .WithConstant("two", 2)
                 .WithFunction(new LogFunction())
                 .Build("y = one+two");
-            Assert.AreEqual(0, runtime.Inputs.Length);
+            runtime.AssertInputsCount(0);
             runtime.Calc().AssertReturns("y", 3);
         }
 
@@ -57,7 +58,7 @@ namespace NFun.ApiTests
             var runtime = Funny.Hardcore
                 .WithConstants(("one",1),("two",2))
                 .Build("y = one+two");
-            Assert.AreEqual(0, runtime.Inputs.Length);
+            runtime.AssertInputsCount(0);
             runtime.Calc().AssertReturns("y",3);
         }
 
@@ -69,7 +70,7 @@ namespace NFun.ApiTests
                 .WithFunction(new LogFunction())
                 .Build("pi = 3; y = pi");
 
-            Assert.AreEqual(0, runtime.Inputs.Length);
+            runtime.AssertInputsCount(0);
             runtime.Calc().AssertReturns(("y", 3.0),("pi",3.0));
         }
 
@@ -81,7 +82,7 @@ namespace NFun.ApiTests
             var runtime = Funny.Hardcore
                 .WithConstant("pi", Math.PI)
                 .Build("pi:int; y = pi");
-            Assert.AreEqual(1, runtime.Inputs.Length);
+            runtime.AssertInputsCount(1);
             runtime.Calc("pi", 2).AssertReturns("y",2);
         }   
     }

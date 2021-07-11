@@ -5,36 +5,36 @@ namespace NFun.InfinityProfiling.Sets
 {
     public class ProfileCalculateSet : IProfileSet
     {
-        private readonly FunRuntime _calcBoolOp;
-        private readonly FunRuntime _calcFourArgs;
-        private readonly FunRuntime _calcGenericFunc;
-        private readonly FunRuntime _calcInterpolation;
-        private readonly FunRuntime _calcIntOp;
-        private readonly FunRuntime _calcKxb;
-        private readonly FunRuntime _calcReal;
-        private readonly FunRuntime _calcRealArray;
-        private readonly FunRuntime _calcRealOp;
-        private readonly FunRuntime _calcSingleBool;
-        private readonly FunRuntime _calcSquareEquation;
-        private readonly FunRuntime _calcText;
-        private readonly FunRuntime _calcTextOp;
-        private readonly FunRuntime _const1Runtime;
-        private readonly FunRuntime _constBool;
-        private readonly FunRuntime _constBoolArrayRuntime;
-        private readonly FunRuntime _constDummyBubbleSort;
-        private readonly FunRuntime _constEverything;
-        private readonly FunRuntime _constGenericFunc;
-        private readonly FunRuntime _constInterpolation;
-        private readonly FunRuntime _constMultiplyArrayItems;
-        private readonly FunRuntime _constRealArrayRuntime;
-        private readonly FunRuntime _constSquareEquation;
-        private readonly FunRuntime _constTextRuntime;
-        private readonly FunRuntime _constTrueRuntime;
-        private readonly FunRuntime _primitiveCalcInt2Var;
-        private readonly FunRuntime _primitiveCalcReal2Var;
-        private readonly FunRuntime _primitiveConstBoolSimpleArithmetics;
-        private readonly FunRuntime _primitiveConstIntSimpleArithmetics;
-        private readonly FunRuntime _primitiveConstRealSimpleArithmetics;
+        private readonly FunnyRuntime _calcBoolOp;
+        private readonly FunnyRuntime _calcFourArgs;
+        private readonly FunnyRuntime _calcGenericFunc;
+        private readonly FunnyRuntime _calcInterpolation;
+        private readonly FunnyRuntime _calcIntOp;
+        private readonly FunnyRuntime _calcKxb;
+        private readonly FunnyRuntime _calcReal;
+        private readonly FunnyRuntime _calcRealArray;
+        private readonly FunnyRuntime _calcRealOp;
+        private readonly FunnyRuntime _calcSingleBool;
+        private readonly FunnyRuntime _calcSquareEquation;
+        private readonly FunnyRuntime _calcText;
+        private readonly FunnyRuntime _calcTextOp;
+        private readonly FunnyRuntime _const1Runtime;
+        private readonly FunnyRuntime _constBool;
+        private readonly FunnyRuntime _constBoolArrayRuntime;
+        private readonly FunnyRuntime _constDummyBubbleSort;
+        private readonly FunnyRuntime _constEverything;
+        private readonly FunnyRuntime _constGenericFunc;
+        private readonly FunnyRuntime _constInterpolation;
+        private readonly FunnyRuntime _constMultiplyArrayItems;
+        private readonly FunnyRuntime _constRealArrayRuntime;
+        private readonly FunnyRuntime _constSquareEquation;
+        private readonly FunnyRuntime _constTextRuntime;
+        private readonly FunnyRuntime _constTrueRuntime;
+        private readonly FunnyRuntime _primitiveCalcInt2Var;
+        private readonly FunnyRuntime _primitiveCalcReal2Var;
+        private readonly FunnyRuntime _primitiveConstBoolSimpleArithmetics;
+        private readonly FunnyRuntime _primitiveConstIntSimpleArithmetics;
+        private readonly FunnyRuntime _primitiveConstRealSimpleArithmetics;
 
         public ProfileCalculateSet()
         {
@@ -258,7 +258,7 @@ namespace NFun.InfinityProfiling.Sets
             _constEverything.Calc();
         }
 
-        private FunRuntime Build(string expr)
+        private FunnyRuntime Build(string expr)
         {
             return Funny.Hardcore.Build(expr);
         }

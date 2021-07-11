@@ -26,10 +26,12 @@ namespace NFun.ConsoleApp
                     build.Stop();
                     Console.WriteLine($"Built in {build.Elapsed.TotalMilliseconds}");
 
-                    if (runtime.Inputs.Any())
+                    if (runtime.Variables.Any(v => !v.IsOutput))
                     {
-                        Console.WriteLine("Inputs: " + string.Join(", ", runtime.Inputs.Select(s => s.ToString())));
-                        Console.WriteLine("Ouputs: " + string.Join(", ", runtime.Outputs.Select(s => s.ToString())));
+                        Console.WriteLine("Inputs: " + string.Join(", ",
+                            runtime.Variables.Where(v => !v.IsOutput).Select(s => s.ToString())));
+                        Console.WriteLine("Ouputs: " + string.Join(", ",
+                            runtime.Variables.Where(v => v.IsOutput).Select(s => s.ToString())));
                     }
                     else
                     {

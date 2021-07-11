@@ -54,7 +54,7 @@ namespace NFun
             _concreteFunctions.Add(LambdaWrapperFactory.Create(name, function));
             return this;
         }
-        internal FunRuntime CreateRuntime(string expression, AprioriTypesMap apriories)
+        internal FunnyRuntime CreateRuntime(string expression, AprioriTypesMap apriories)
         {
             IConstantList constants = null;
             if (_constantList.Any())

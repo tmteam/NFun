@@ -149,7 +149,7 @@ namespace NFun.SyntaxTests
         //  y = someRec3(9,2)[0]", BaseVarType.Char)]
         [TestCase("(if(true) [1,2] else [])[0]", BaseFunnyType.Real)]
         public void SingleEquations_Parsing_OutputTypesCalculateCorrect(string expr, BaseFunnyType type) => 
-            Assert.AreEqual(type, expr.Build().Outputs.Single().Type.BaseType);
+            Assert.AreEqual(type, expr.Build().Variables.Single(v=>v.IsOutput).Type.BaseType);
 
         [TestCase("f(n, iter)  = f(n, iter+1).concat((n >iter).toText())")]
         [TestCase("f1(n, iter) = f1(n+1, iter).concat((n >iter).toText())")]
@@ -391,7 +391,7 @@ namespace NFun.SyntaxTests
         public void IntegersBitwiseOperatorTest(string inputTypes, string function, BaseFunnyType expectedOutputType)
         {
             var runtime = $"a:{inputTypes}; b:{inputTypes}; c=a{function}b;".Build();
-            Assert.AreEqual(expectedOutputType, runtime.Outputs.Single().Type.BaseType);
+            Assert.AreEqual(expectedOutputType, runtime.Variables.Single(v=>v.IsOutput).Type.BaseType);
         }
         
         [TestCase("byte",  BaseFunnyType.UInt8)]
@@ -408,7 +408,7 @@ namespace NFun.SyntaxTests
         public void IntegersBitwiseInvertTest(string inputTypes, BaseFunnyType expectedOutputType)
         {
             var runtime = $"a:{inputTypes}; b:{inputTypes}; c= ~a".Build();
-            Assert.AreEqual(expectedOutputType, runtime.Outputs.Single().Type.BaseType);
+            Assert.AreEqual(expectedOutputType, runtime.Variables.Single(v=>v.IsOutput).Type.BaseType);
         }
         
         [TestCase("int",    BaseFunnyType.Int32)]
@@ -417,7 +417,7 @@ namespace NFun.SyntaxTests
         public void SummOfTwoIntegersTest(string inputTypes, BaseFunnyType expectedOutputType)
         {
             var runtime = $"a:{inputTypes}; b:{inputTypes}; y = a + b".Build();
-            Assert.AreEqual(expectedOutputType, runtime.Outputs.Single(o => o.Name == "y").Type.BaseType);
+            Assert.AreEqual(expectedOutputType, runtime.Variables.Single(v=>v.IsOutput && v.Name == "y").Type.BaseType);
         }
         
         [TestCase("int",    BaseFunnyType.Int32)]
@@ -426,7 +426,7 @@ namespace NFun.SyntaxTests
         public void DifferenceOfTwoIntegersTest(string inputTypes, BaseFunnyType expectedOutputType)
         {
             var runtime = $"a:{inputTypes}; b:{inputTypes}; y = a - b".Build();
-            Assert.AreEqual(expectedOutputType, runtime.Outputs.Single(o => o.Name == "y").Type.BaseType);
+            Assert.AreEqual(expectedOutputType, runtime.Variables.Single(o => o.Name == "y").Type.BaseType);
         }
         
         [TestCase("int",    BaseFunnyType.Int32)]
@@ -435,7 +435,7 @@ namespace NFun.SyntaxTests
         public void MultiplyOfTwoIntegersTest(string inputTypes, BaseFunnyType expectedOutputType)
         {
             var runtime = $"a:{inputTypes}; b:{inputTypes}; y = a * b".Build();
-            Assert.AreEqual(expectedOutputType, runtime.Outputs.Single(o => o.Name == "y").Type.BaseType);
+            Assert.AreEqual(expectedOutputType, runtime.Variables.Single(v=>v.IsOutput && v.Name == "y").Type.BaseType);
         }
         
         [TestCase("int",    BaseFunnyType.Int32)]
@@ -444,7 +444,7 @@ namespace NFun.SyntaxTests
         public void RemainsOfTwoIntegersTest(string inputTypes, BaseFunnyType expectedOutputType)
         {
             var runtime = $"a:{inputTypes}; b:{inputTypes}; y = a .rema(b)".Build();
-            Assert.AreEqual(expectedOutputType, runtime.Outputs.Single(o => o.Name == "y").Type.BaseType);
+            Assert.AreEqual(expectedOutputType, runtime.Variables.Single(v=>v.IsOutput && v.Name == "y").Type.BaseType);
         }
         
         [TestCase("y:real = 1",  BaseFunnyType.Real)]
@@ -454,7 +454,7 @@ namespace NFun.SyntaxTests
 
         public void OutputType_checkOutputTest(string expression,  BaseFunnyType expectedType){
             var runtime = expression.Build();
-            Assert.AreEqual(expectedType, runtime.Outputs.Single(o => o.Name == "y").Type.BaseType);
+            Assert.AreEqual(expectedType, runtime.Variables.Single(v=>v.IsOutput && v.Name == "y").Type.BaseType);
         }
         
         [TestCase("y:real = x+1", "x", BaseFunnyType.Real)]
@@ -463,7 +463,8 @@ namespace NFun.SyntaxTests
         [TestCase("x:int; y:real = x+a", "a", BaseFunnyType.Real)]
         public void OutputType_checkInputTest(string expression, string variable, BaseFunnyType expectedType){
             var runtime = expression.Build();
-            Assert.AreEqual(expectedType, runtime.Inputs.Single(o => o.Name == variable).Type.BaseType);
+            
+            Assert.AreEqual(expectedType, runtime.GetVariable(variable).Type.BaseType);
         }
 
         [TestCase("y:int[] = x",new[]{1,2,3},new[]{1,2,3})]
@@ -474,35 +475,34 @@ namespace NFun.SyntaxTests
         public void OutputType_runtimeTest(string expression, object xValue, object expectedY) => 
             expression.Calc("x",xValue).AssertResultHas("y", expectedY);
 
-        [TestCase("y = 1", new string[0])]        
-        [TestCase("y = x*1.0", new []{"x"})]
-        [TestCase("y = x/2",new []{"x"})]
-        [TestCase("y = in1/2+ in2",new []{"in1","in2"})]
-        [TestCase("y = in1/2 + (in2*in3)",new []{"in1","in2", "in3"})]
+        
+        [TestCase("y = 1", new string[0])]
+        [TestCase("y = x*1.0", new[] { "x" })]
+        [TestCase("y = x/2", new[] { "x" })]
+        [TestCase("y = in1/2+ in2", new[] { "in1", "in2" })]
+        [TestCase("y = in1/2 + (in2*in3)", new[] { "in1", "in2", "in3" })]
         public void InputVarablesListWithAutoTypesIsCorrect(string expr, string[] inputNames)
         {
-            var inputs = inputNames.Select(i => new VarInfo(
-                isOutput: false, 
-                type: FunnyType.Real, 
-                name: i)).ToArray();
-            CollectionAssert.AreEquivalent(inputs, expr.Build().Inputs);
+            var inputs = expr.Build().Variables.Where(i=>!i.IsOutput);
+            Assert.IsTrue(inputs.All(i=>i.Type== FunnyType.Real));
+            CollectionAssert.AreEquivalent(inputNames, inputs.Select(i=>i.Name));
         }
-        
-        [TestCase("0x1", "out", BaseFunnyType.Int32)]        
-        [TestCase("1.0", "out", BaseFunnyType.Real)]        
+
+        [TestCase("0x1", "out", BaseFunnyType.Int32)]
+        [TestCase("1.0", "out", BaseFunnyType.Real)]
         [TestCase("1", "out", BaseFunnyType.Real)]
-        [TestCase("true", "out", BaseFunnyType.Bool)]        
+        [TestCase("true", "out", BaseFunnyType.Bool)]
         [TestCase("z = x", "z", BaseFunnyType.Any)]
-        [TestCase("y = x/2","y", BaseFunnyType.Real)]
-        [TestCase("x:bool \r z:bool \r y = x and z","y", BaseFunnyType.Bool)]
-        public void OutputVarablesListIsCorrect(string expr, string output, BaseFunnyType type) =>
-            CollectionAssert.AreEquivalent(
-                new[]{new VarInfo(
-                    isOutput: true, 
-                    type: FunnyType.PrimitiveOf(type), 
-                    name: output)}, 
-                expr.Build().Outputs);
-        
+        [TestCase("y = x/2", "y", BaseFunnyType.Real)]
+        [TestCase("x:bool \r z:bool \r y = x and z", "y", BaseFunnyType.Bool)]
+        public void OutputVariablesListIsCorrect(string expr, string outputName, BaseFunnyType type)
+        {
+            var runtime = expr.Build();
+            var output = runtime.Variables.Single(v => v.IsOutput);
+            Assert.AreEqual(output.Type, FunnyType.PrimitiveOf(type));
+            Assert.AreEqual(output.Name, outputName);
+        }
+
         private static Type GetClrType(FunnyType funnyType) => 
             FunnyTypeConverters.GetOutputConverter(funnyType).ClrType;
     }

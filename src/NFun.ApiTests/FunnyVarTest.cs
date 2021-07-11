@@ -1,0 +1,117 @@
+using System.Collections.Generic;
+using System.Linq;
+using NFun.TestTools;
+using NFun.Types;
+using NUnit.Framework;
+
+namespace NFun.ApiTests
+{
+    public class FunnyVarTest
+    {
+        [Test]
+        public void GetAllVariables_CheckValues()
+        {
+            var runtime = Funny.Hardcore.Build("out1 = (10.0*x).toText()");
+            var allVariables = runtime.Variables;
+            Assert.AreEqual(2, allVariables.Count);
+
+            var xVar = allVariables.Single(v => v.Name == "x");
+            var out1Var = allVariables.Single(v => v.Name == "out1");
+
+            Assert.AreEqual(false, xVar.IsOutput);
+            Assert.AreEqual(FunnyType.Real, xVar.Type);
+
+            Assert.AreEqual(true, out1Var.IsOutput);
+            Assert.AreEqual("", out1Var.GetClrValue());
+            Assert.AreEqual(FunnyType.Text, out1Var.Type);
+        }
+
+        [Test]
+        public void TryGetVariables_CheckValues()
+        {
+            var runtime = Funny.Hardcore.Build("out1 = (10.0*x).toText()");
+
+            Assert.IsTrue(runtime.TryGetVariable("x", out var xVar));
+            Assert.IsTrue(runtime.TryGetVariable("out1", out var out1Var));
+
+            Assert.AreEqual(false, xVar.IsOutput);
+            Assert.AreEqual(FunnyType.Real, xVar.Type);
+
+            Assert.AreEqual(true, out1Var.IsOutput);
+            Assert.AreEqual("", out1Var.GetClrValue());
+            Assert.AreEqual(FunnyType.Text, out1Var.Type);
+        }
+
+        [Test]
+        public void TryGetVariables_VariableDoesNotExist_ReturnsFalse() => 
+            Assert.IsFalse(Funny.Hardcore.Build("out1 = (10.0*x).toText()").TryGetVariable("missingVar", out _));
+
+        [Test]
+        public void GetVariables_VariableDoesNotExist_throws() =>
+            Assert.Throws<KeyNotFoundException>(() =>
+                Funny.Hardcore.Build("out1 = (10.0*x).toText()").GetVariable("missingVar"));
+
+
+        [Test]
+        public void SetClrValue_OutputVariableChanged()
+        {
+            var runtime = Funny.Hardcore.Build("out1 = (10.0*x).toText()");
+            runtime.TryGetVariable("x", out var xVar);
+            runtime.TryGetVariable("out1", out var out1Var);
+
+            xVar.SetClrValue(42.0);
+
+            runtime.Run();
+
+            Assert.AreEqual(42.0, xVar.FunnyValue);
+            Assert.AreEqual("420", out1Var.GetClrValue());
+        }
+
+        [TestCase("@name(true)\r x:int\r    y = x", "x", "name", true)]
+        [TestCase("@foo\r@bar(123)\r x:int\r  z = x", "x", "bar", 123)]
+        [TestCase("some = 1\r\r@foo(123.5)\r \r x:int\r z = x", "x", "foo", 123.5)]
+
+        [TestCase("@name(false)\r \r    y = x", "y", "name", false)]
+        [TestCase("@foo\r@bar('')\r z = x", "z", "bar", "")]
+        [TestCase("some = 1\r\r@foo(0)\r \r y = x*3", "y", "foo", 0)]
+
+        public void AttributeWithValue_ValueIsCorrect(
+            string expression
+            , string variable,
+            string attribute, object value)
+        {
+            var varInfo = expression.Build().GetVariable(variable);
+            Assert.IsNotNull(varInfo);
+
+            var actual = varInfo.Attributes.SingleOrDefault(v => v.Name == attribute);
+            Assert.IsNotNull(actual);
+            Assert.AreEqual(value, actual.Value);
+        }
+
+        [TestCase("@private\r x:int\r    y = x", "x", new[] { "private" })]
+        [TestCase("@foo\r@bar\r x:int\r  z = x", "x", new[] { "foo", "bar" })]
+        [TestCase("some = 1\r@foo\r@bar\r x:int\r z = x", "x", new[] { "foo", "bar" })]
+        [TestCase("@start\r x:int\r 1*x", "x", new[] { "start" })]
+        [TestCase("@private\r y = x", "y", new[] { "private" })]
+        [TestCase("@foo\r z = x", "z", new[] { "foo" })]
+        [TestCase("@z\r z = x", "z", new[] { "z" })]
+        [TestCase("@foo\r@bar\r z = x", "z", new[] { "foo", "bar" })]
+        [TestCase("some = 1\r@foo\r@bar\r z = x", "z", new[] { "foo", "bar" })]
+        [TestCase("some = 1\r@foo\r@bar\r@aaa\r z = x", "z", new[] { "foo", "bar", "aaa" })]
+        [TestCase("@start\rsome = 1\r@foo\r@bar\r@aaa\r z = x", "some", new[] { "start" })]
+        [TestCase("@start\rsome = 1\r z = x", "z", new string[0])]
+        [TestCase("@start\r 1*x", "out", new[] { "start" })]
+        [TestCase("1*x", "out", new string[0])]
+        public void ValuelessAttributeOnVariables(
+            string expression
+            , string variable,
+            string[] attribute)
+        {
+
+            var varInfo = expression.Build().GetVariable(variable);
+            Assert.IsNotNull(varInfo);
+            CollectionAssert.AreEquivalent(attribute, varInfo.Attributes.Select(v => v.Name));
+            Assert.IsTrue(varInfo.Attributes.All(a => a.Value == null));
+        }
+    }
+}

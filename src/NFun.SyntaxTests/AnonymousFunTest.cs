@@ -59,7 +59,7 @@ namespace NFun.SyntaxTests
         public void AnonymousFunctions_ConstantEquation(string expr, object expected)
         {
             var runtime = expr.Build();
-            CollectionAssert.IsEmpty(runtime.Inputs,"Unexpected inputs on constant equations");
+            runtime.AssertInputsCount(0,"Unexpected inputs on constant equations");
             runtime.Calc().AssertResultHas("y", expected);
         }
         
@@ -149,7 +149,7 @@ namespace NFun.SyntaxTests
         public void SuperAnonymousFunctions_ConstantEquation(string expr, object expected)
         {
             var runtime = expr.Build();
-            CollectionAssert.IsEmpty(runtime.Inputs,"Unexpected inputs on constant equations");
+            runtime.AssertInputsCount(0,"Unexpected inputs on constant equations");
             runtime.Calc().AssertResultHas("y", expected);
         }
 

@@ -19,19 +19,23 @@ namespace NFun.ApiTests
             Assert.AreEqual(FunnyType.Text, runtime.GetVariable("x").Type);
             Assert.AreEqual(FunnyType.Text, runtime.GetVariable("y").Type);
         }
-        
+
         [Test]
         public void InputVariableSpecifiedAndDoesNotConflict_AprioriInputCalcs()
         {
             var runtime = Funny.Hardcore
                 .WithApriori<string>("x")
                 .Build("x:text; y = x");
-            var res = runtime.Calc("x","test");
-            res.AssertReturns("y","test");
-            Assert.AreEqual(FunnyType.Text, runtime.Inputs[0].Type,"input");
-            Assert.AreEqual(FunnyType.Text, runtime.Outputs[0].Type,"output");
+            var res = runtime.Calc("x", "test");
+            res.AssertReturns("y", "test");
+            var input = runtime.GetVariable("x");
+            var output = runtime.GetVariable("y");
+            Assert.IsFalse(input.IsOutput);
+            Assert.IsTrue(output.IsOutput);
+            Assert.AreEqual(FunnyType.Text, input.Type, "input");
+            Assert.AreEqual(FunnyType.Text, output.Type, "output");
         }
-        
+
         [Test]
         public void OutputVarSpecifiedAndDoesNotConflict_AprioriOutputCalcs()
         {
@@ -41,8 +45,8 @@ namespace NFun.ApiTests
                     
             var res = runtime.Calc("x","test");
             res.AssertReturns("y","test");
-            Assert.AreEqual(FunnyType.Text, runtime.Inputs[0].Type,"input");
-            Assert.AreEqual(FunnyType.Text, runtime.Outputs[0].Type,"output");
+            Assert.AreEqual(FunnyType.Text, runtime.GetVariable("x").Type,"input");
+            Assert.AreEqual(FunnyType.Text, runtime.GetVariable("y").Type,"output");
 
         }
         
@@ -56,8 +60,8 @@ namespace NFun.ApiTests
 
             var res = runtime.Calc("x","test");
             res.AssertReturns("y","test");
-            Assert.AreEqual(FunnyType.Text, runtime.Inputs[0].Type,"input");
-            Assert.AreEqual(FunnyType.Text, runtime.Outputs[0].Type,"output");
+            Assert.AreEqual(FunnyType.Text, runtime.GetVariable("x").Type,"input");
+            Assert.AreEqual(FunnyType.Text, runtime.GetVariable("y").Type,"output");
         }
 
         [Test]

@@ -78,8 +78,8 @@ y = tostring(x)", "y", "not supported")]
             object outputValue)
         {
             var runtime = Funny.Hardcore.Build(expression);
-            Assert.AreEqual(1, runtime.Inputs.Length);
-            Assert.AreEqual(1, runtime.Outputs.Length);
+            runtime.AssertInputsCount(1);
+            runtime.AssertOutputsCount(1);
             runtime
                 .Calc("x", xVal)
                 .AssertReturns(outputName, outputValue);
@@ -138,8 +138,8 @@ y = tostring(x)", "y", "not supported")]
         public void Constant(string expr, string outputName, object val)
         {
             var runtime = expr.Build();
-            Assert.AreEqual(0, runtime.Inputs.Length);
-            Assert.AreEqual(1, runtime.Outputs.Length);
+            runtime.AssertInputsCount(0);
+            runtime.AssertOutputsCount(1);
             runtime.Calc().AssertReturns(outputName, val);
         }
 
@@ -174,8 +174,8 @@ x-
 
 ";
             var runtime = expr.Build();
-            Assert.AreEqual(1, runtime.Inputs.Length);
-            Assert.AreEqual(1, runtime.Outputs.Length);
+            runtime.AssertInputsCount(1);
+            runtime.AssertOutputsCount(1);
             runtime.Calc("x", 2.5).AssertReturns("y", 15.0);
         }
  
@@ -187,8 +187,8 @@ x-
 sum = x1+x2
 dif = x1-x2";
             var runtime = expr.Build();
-            Assert.AreEqual(2, runtime.Inputs.Length);
-            Assert.AreEqual(2, runtime.Outputs.Length);
+            runtime.AssertInputsCount(2);
+            runtime.AssertOutputsCount(2);
             runtime.Calc(("x1", 10.0),("x2", 2.5)).AssertReturns(("sum", 12.5), ("dif", 7.5));
         }
 
@@ -206,8 +206,8 @@ y3 = x1 == false
 y4 = not(x1 and x2 or x3)
 ";
             var runtime = expr.Build();
-            Assert.AreEqual(3, runtime.Inputs.Length);
-            Assert.AreEqual(4, runtime.Outputs.Length);
+            runtime.AssertInputsCount(3);
+            runtime.AssertOutputsCount(4);
             runtime.Calc(
                     ("x1", true),
                     ("x2", false),
@@ -230,8 +230,8 @@ y4 = not(x1 and x2 or x3)
         public void Single_Equation_OutputTypeTest(string expression, BaseFunnyType primitiveType)
         {
             var runtime = expression.Build();
-            Assert.AreEqual(1, runtime.Outputs.Length);
-            var output = runtime.Outputs[0];
+            runtime.AssertOutputsCount(1);
+            var output = runtime.GetVariable("y");
             Assert.AreEqual(primitiveType, output.Type.BaseType);
         }
 

@@ -24,47 +24,24 @@ namespace NFun.SyntaxTests
         [TestCase("x:real\r y = x/2\r z=2*x",new []{"x"})]
         [TestCase("in1:real; in2:real; y = in1/2\r z=2+in2",new []{"in1","in2"})]
         [TestCase("in1:real; in2:real;y = in1/2 + in2\r z=2 + in2",new []{"in1","in2"})]
-        public void TwinEquations_inputStrictVarablesListIsCorrect(string expr, string[] inputNames)
-        {
-            var inputs = inputNames.Select(i => new VarInfo(false, FunnyType.Real, i)).ToArray();
-            CollectionAssert.AreEquivalent(inputs, expr.Build().Inputs);
-        }
-        
         [TestCase("y = 1\r z=2", new string[0])]        
         [TestCase("y = x/2\r z=2*x",new []{"x"})]
         [TestCase("y = in1/2\r z=2+in2",new []{"in1","in2"})]
         [TestCase("y = in1/2 + in2\r z=2 + in2",new []{"in1","in2"})]
-        public void TwinEquations_inputAutoVarablesListIsCorrect(string expr, string[] inputNames)
-        {
-            var inputs = inputNames.Select(i => new VarInfo(false, FunnyType.Real, i)).ToArray();
-            CollectionAssert.AreEquivalent(inputs, expr.Build().Inputs);
-        }
         [TestCase("x:real \r y = x\r z=y", new []{"x"})]
         [TestCase("a:real \r y = a*a\r z=y", new []{"a"})]
-        public void TwinDependentEquationsWithStrictRealTypes_inputVarsListIsCorrect(string expr, string[] inputNames)
-        {
-            var inputs = inputNames.Select(i => new VarInfo(
-                isOutput: false,  
-                type: FunnyType.Real,  
-                name: i)).ToArray();
-            CollectionAssert.AreEquivalent(inputs, expr.Build().Inputs);
-        }
-        
         [TestCase("y = 1.0\r z=y", new string[0])]        
         [TestCase("y = x/2\r z=2*y",new []{"x"})]
         [TestCase("y = x/2\r z=2*y+x",new []{"x"})]
         [TestCase("y = in1/2\r z=2*y+in2",new []{"in1","in2"})]
         [TestCase("y = in1/2 + in2\r z=2*y + in2",new []{"in1","in2"})]
-        public void TwinDependentEquationsWithAutoRealTypes_inputVarsListIsCorrect(string expr, string[] inputNames)
+        public void TwinEquations_inputVarablesListIsCorrect(string expr, string[] inputNames)
         {
-            var inputs = inputNames.Select(i => new VarInfo(
-                isOutput: false,  
-                type: FunnyType.Real,  
-                name: i)).ToArray();
-            CollectionAssert.AreEquivalent(inputs, expr.Build().Inputs);
+            var inputs = expr.Build().Variables.Where(i=>!i.IsOutput);
+            Assert.IsTrue(inputs.All(i=>i.Type== FunnyType.Real));
+            CollectionAssert.AreEquivalent(inputNames, inputs.Select(i=>i.Name));
         }
-            
-        
+
         [TestCase("y = 1.0\r z=y",       1.0,1.0)]
         [TestCase("y = 1\r z=y/2",       1.0,0.5)]
         [TestCase("y = true\r z=y",       true,true)]

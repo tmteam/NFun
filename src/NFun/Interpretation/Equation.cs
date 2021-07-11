@@ -17,7 +17,7 @@ namespace NFun.Interpretation
             Expression = expression;
         }
 
-        public VarVal CalcExpression()
+        internal VarVal CalcExpression()
         {
             var val  = new VarVal(Id, Expression.Calc(), Expression.Type);
             _outputVariableSource.InternalFunnyValue = val.Value;

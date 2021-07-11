@@ -507,8 +507,7 @@ namespace NFun.ParseErrors
 
         #region InvalidFluentUsage
 
-        internal static FunParseException UnknownInputs(IEnumerable<VariableUsages> variableUsage,
-            VarInfo[] expectedInputs) =>
+        internal static FunParseException UnknownInputs(IEnumerable<VariableUsages> variableUsage) =>
             new(605, "Some inputs are unknown", Interval.Empty);
 
         internal static FunParseException NoOutputVariablesSetted(

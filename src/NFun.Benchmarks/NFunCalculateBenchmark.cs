@@ -10,19 +10,19 @@ namespace NFun.Benchmarks
 {
     public class NFunCalculateBenchmark
     {
-        private FunRuntime _const_1_runtime;
+        private FunnyRuntime _const_1_runtime;
 
-        private FunRuntime _const_boolArray_runtime;
+        private FunnyRuntime _const_boolArray_runtime;
 
         // private FunRuntime _const_sum_1000_runtime;
-        private FunRuntime _const_dummyBubbleSort_runtime;
-        private FunRuntime _const_everything_runtime;
-        private FunRuntime _const_Kxb_runtime;
-        private FunRuntime _const_multiplyArrays_runtime;
-        private FunRuntime _const_realArray_runtime;
-        private FunRuntime _const_text_runtime;
-        private FunRuntime _const_true_runtime;
-        private FunRuntime _varkxb_runtime;
+        private FunnyRuntime _const_dummyBubbleSort_runtime;
+        private FunnyRuntime _const_everything_runtime;
+        private FunnyRuntime _const_Kxb_runtime;
+        private FunnyRuntime _const_multiplyArrays_runtime;
+        private FunnyRuntime _const_realArray_runtime;
+        private FunnyRuntime _const_text_runtime;
+        private FunnyRuntime _const_true_runtime;
+        private FunnyRuntime _varkxb_runtime;
         private Func<double, double> dotnetEx;
 
         private (string, object) value;

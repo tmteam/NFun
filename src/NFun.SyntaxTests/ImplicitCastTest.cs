@@ -98,7 +98,7 @@ namespace NFun.SyntaxTests
         {
             var expr = $"conv(a:{typeTo}):{typeTo} = a; y = conv({constant})";
             var runtime = expr.Build();
-            Assert.AreEqual(typeTo.ToLower(), runtime.Outputs.Single().Type.ToString().ToLower());
+            Assert.AreEqual(typeTo.ToLower(), runtime.Variables[0].Type.ToString().ToLower());
         }
 
         [TestCase("int16", "uint8")]

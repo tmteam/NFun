@@ -54,7 +54,7 @@ namespace NFun
         public HardcoreBuilder WithFunction<Tin1,Tin2,Tin3,Tin4,Tin5,Tin6,Tin7, TOut>(string name, Func<Tin1,Tin2,Tin3,Tin4,Tin5,Tin6,Tin7, TOut> function) => 
             WithFunctions(LambdaWrapperFactory.Create(name, function));
         
-        public FunRuntime Build(string script) => 
+        public FunnyRuntime Build(string script) => 
             RuntimeBuilder.Build(script, _immutableFunctionDictionary, _constants, _apriori);
     }
 }

@@ -7,7 +7,7 @@ namespace NFun.Runtime
 {
     public sealed class CalculationResult
     {
-        public CalculationResult(VarVal[] rawResults)
+        internal CalculationResult(VarVal[] rawResults)
         {
             RawResults = rawResults;
         }

@@ -81,8 +81,9 @@ namespace NFun.Runtime
 
             return null;
         }
-
+        
         internal VariableUsages GetUsages(string id) => _variables[id];
+        internal bool TryGetUsages(string id, out VariableUsages usage) => _variables.TryGetValue(id, out usage);
 
         internal VariableUsages[] GetAllUsages()
         {

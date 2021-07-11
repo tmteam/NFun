@@ -7,18 +7,10 @@ using NFun.Types;
 
 namespace NFun.Runtime
 {
-    public class FunRuntime
+    public class FunnyRuntime
     {
         internal IEnumerable<VariableUsages> GetInputVariableUsages() =>
             _variables.GetAllUsages().Where(u => !u.Source.IsOutput);
-
-        public VarInfo[] Inputs => _variables.GetAllSources()
-            .Where(v => !v.IsOutput)
-            .Select(s => new VarInfo(false, s.Type, s.Name, s.Attributes)).ToArray();
-
-        public VarInfo[] Outputs => _variables.GetAllSources()
-            .Where(v => v.IsOutput)
-            .Select(s => new VarInfo(true, s.Type, s.Name, s.Attributes)).ToArray();
 
         public bool HasDefaultOutput => _variables
             .GetAllSources()
@@ -28,7 +20,7 @@ namespace NFun.Runtime
         private readonly IList<Equation> _equations;
         private readonly VariableDictionary _variables;
 
-        internal FunRuntime(IList<Equation> equations, VariableDictionary variables)
+        internal FunnyRuntime(IList<Equation> equations, VariableDictionary variables)
         {
             _equations = equations;
             _variables = variables;
@@ -41,7 +33,7 @@ namespace NFun.Runtime
                 var usage = _variables.GetUsages(key);
                 if (usage == null)
                     throw new KeyNotFoundException($"Variable '{key}' not found in scope");
-
+                
                 var converter = FunnyTypeConverters.GetInputConverter(value.GetType());
                 usage.Source.InternalFunnyValue = converter.ToFunObject(value);
             }
@@ -57,11 +49,17 @@ namespace NFun.Runtime
             }
         }
 
-        public IReadOnlyList<IFunnyVar> GetVariables() =>
-            _variables.GetAllSources();
+        public IReadOnlyList<IFunnyVar> Variables => _variables.GetAllSources();
 
         public IFunnyVar GetVariable(string name) =>
             _variables.GetUsages(name)?.Source ?? throw new KeyNotFoundException($"Variable {name} not found");
+
+        public bool TryGetVariable(string name, out IFunnyVar variable)
+        {
+            _variables.TryGetUsages(name, out var usage);
+            variable = usage?.Source;
+            return variable != null;
+        }
 
         public void Run()
         {

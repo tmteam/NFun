@@ -19,7 +19,7 @@ namespace NFun.Interpretation
         private static readonly List<IFunctionSignature> EmptyUserFunctionsList 
             = new();
 
-        public static FunRuntime Build(string script, IFunctionDictionary functionDictionary, IConstantList constants =null, AprioriTypesMap aprioriTypesMap = null)
+        public static FunnyRuntime Build(string script, IFunctionDictionary functionDictionary, IConstantList constants =null, AprioriTypesMap aprioriTypesMap = null)
         {
             aprioriTypesMap ??= AprioriTypesMap.Empty;
             
@@ -33,7 +33,7 @@ namespace NFun.Interpretation
             return Build(syntaxTree, functionDictionary, constants??EmptyConstantList.Instance, aprioriTypesMap);
         }
 
-        private static FunRuntime Build(
+        private static FunnyRuntime Build(
             SyntaxTree syntaxTree,
             IFunctionDictionary functionsDictionary, 
             IConstantList constants, 
@@ -125,7 +125,7 @@ namespace NFun.Interpretation
                     GenericUserFunction.CreateSomeConcrete(generic);
                 }
             }                           
-            return new FunRuntime(equations, variables);
+            return new FunnyRuntime(equations, variables);
         }
 
 

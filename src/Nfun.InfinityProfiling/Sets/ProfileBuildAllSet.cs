@@ -187,7 +187,7 @@ namespace NFun.InfinityProfiling.Sets
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.NoOptimization)]
-        private FunRuntime Build(string expr)
+        private FunnyRuntime Build(string expr)
         {
             return Funny.Hardcore.Build(expr);
         }

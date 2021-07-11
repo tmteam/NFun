@@ -8,9 +8,9 @@ namespace NFun.Benchmarks
 {
     public class NFunUpdateBenchmark
     {
-        private FunRuntime _const_Kxb_runtime;
-        private FunRuntime _const_true_runtime;
-        private FunRuntime _varkxb_runtime;
+        private FunnyRuntime _const_Kxb_runtime;
+        private FunnyRuntime _const_true_runtime;
+        private FunnyRuntime _varkxb_runtime;
 
         [GlobalSetup]
         public void Setup()
@@ -20,7 +20,7 @@ namespace NFun.Benchmarks
             _const_true_runtime = Funny.Hardcore.Build(scripts.ConstTrue);
             _const_Kxb_runtime = Funny.Hardcore.Build(scripts.ConstKxb);
             _varkxb_runtime = Funny.Hardcore.Build(scripts.VarKxb);
-            var x = _varkxb_runtime.GetVariables().First(v => !v.IsOutput);
+            var x = _varkxb_runtime.Variables.First(v => !v.IsOutput);
             x.SetClrValue(100.0);
         }
 

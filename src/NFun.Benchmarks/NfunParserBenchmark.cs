@@ -13,7 +13,7 @@ namespace NFun.Benchmarks
     {
         private HardcoreBuilder _builder;
         private string _expression;
-        private FunRuntime _runtime;
+        private FunnyRuntime _runtime;
 
         [GlobalSetup]
         public void Setup()

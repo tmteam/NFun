@@ -1,5 +1,4 @@
 ﻿using System;
-using NFun.Runtime;
 using NFun.TestTools;
 using NUnit.Framework;
 

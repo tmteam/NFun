@@ -75,8 +75,8 @@ namespace NFun
             
             var runtime = RuntimeBuilder.Build(expression,  BaseFunctions.DefaultDictionary,EmptyConstantList.Instance, apriories);
             
-            if (runtime.Inputs.Any())
-                throw ErrorFactory.UnknownInputs(runtime.GetInputVariableUsages(), Array.Empty<VarInfo>());
+            if (runtime.Variables.Any(v=>!v.IsOutput))
+                throw ErrorFactory.UnknownInputs(runtime.GetInputVariableUsages());
 
             var result = runtime.CalculateSafe(Span<VarVal>.Empty);
             
@@ -129,11 +129,14 @@ namespace NFun
             return inputTypes.AsMemory(0, actualInputsCount);
         }
        
-        internal static void ThrowIfHasUnknownInputs(FunRuntime runtime, Memory<(string, IinputFunnyConverter, PropertyInfo)> expectedInputs)
+        internal static void ThrowIfHasUnknownInputs(FunnyRuntime runtime, Memory<(string, IinputFunnyConverter, PropertyInfo)> expectedInputs)
         {
             var span = expectedInputs.Span;
-            foreach (var actualInput in runtime.Inputs)
+            foreach (var actualInput in runtime.Variables)
             {
+                if(actualInput.IsOutput)
+                    continue;
+                
                 bool known = false;
                 for (var i = 0; i < span.Length; i++)
                 {
@@ -146,15 +149,7 @@ namespace NFun
 
                 if (!known)
                 {
-                    throw ErrorFactory.UnknownInputs(
-                        runtime.GetInputVariableUsages(),
-                        expectedInputs: expectedInputs
-                            .ToArray()
-                            .Select(e=>new VarInfo(
-                                isOutput: false,
-                                type: e.Item2.FunnyType,
-                                name: e.Item1))
-                            .ToArray());
+                    throw ErrorFactory.UnknownInputs(runtime.GetInputVariableUsages());
                 }
             }
         }

@@ -14,10 +14,8 @@ namespace NFun
         public static object Calc(string expression)
         {
             var runtime = RuntimeBuilder.Build(expression, BaseFunctions.DefaultDictionary);
-            if (runtime.Inputs.Any())
-                throw ErrorFactory.UnknownInputs(
-                    runtime.GetInputVariableUsages(),
-                    Array.Empty<VarInfo>());
+            if (runtime.Variables.Any(v=>!v.IsOutput))
+                throw ErrorFactory.UnknownInputs(runtime.GetInputVariableUsages());
             
             var result = runtime.CalculateSafe();
             return FluentApiTools.GetClrOut(result);
@@ -37,8 +35,8 @@ namespace NFun
             var outputs   = FluentApiTools.SetupManyAprioriOutputs<TOutput>(apriories);
 
             var runtime = RuntimeBuilder.Build(expression, BaseFunctions.DefaultDictionary, aprioriTypesMap:apriories);
-            if (runtime.Inputs.Any())
-                throw ErrorFactory.UnknownInputs(runtime.GetInputVariableUsages(), Array.Empty<VarInfo>());
+            if (runtime.Variables.Any(v=>!v.IsOutput))
+                throw ErrorFactory.UnknownInputs(runtime.GetInputVariableUsages());
             
             var calcResults = runtime.CalculateSafe();
             return FluentApiTools.CreateOutputValueFromResults<TOutput>(outputs, calcResults);

@@ -20,7 +20,7 @@ namespace NFun.TestTools
         public static CalculationResult Calc(this string expr, params (string id, object val)[] values) =>
             Funny.Hardcore.Build(expr).Calc(values);
 
-        public static FunRuntime Build(this string expr) => Funny.Hardcore.Build(expr);
+        public static FunnyRuntime Build(this string expr) => Funny.Hardcore.Build(expr);
 
         public static void AssertOut(this CalculationResult result, object expected) =>
             AssertReturns(result, Parser.AnonymousEquationId, expected);
@@ -107,6 +107,18 @@ namespace NFun.TestTools
             }
         }
 
+        public static void AssertInputs(this FunnyRuntime runtime, IEnumerable<IFunnyVar> variables) => 
+            CollectionAssert.AreEquivalent(variables, runtime.Variables.Where(v=>!v.IsOutput));
+
+        public static void AssertOutputs(this FunnyRuntime runtime, IEnumerable<IFunnyVar> variables) => 
+            CollectionAssert.AreEquivalent(variables, runtime.Variables.Where(v=>v.IsOutput));
+
+        public static void AssertInputsCount(this FunnyRuntime runtime, int count, string message ="") => 
+            Assert.AreEqual(count, runtime.Variables.Count(v=>!v.IsOutput), message);
+
+        public static void AssertOutputsCount(this FunnyRuntime runtime, int count) => 
+            Assert.AreEqual(count, runtime.Variables.Count(v=>v.IsOutput));
+
         private static string ToStringSmart(object v)
         {
             if (v is string)
@@ -179,7 +191,7 @@ namespace NFun.TestTools
             try
             {
                 var runtime = Funny.Hardcore.Build(expression);
-                if (runtime.Inputs.Length > 0)
+                if (runtime.Variables.Any(v=>!v.IsOutput))
                 {
                     Assert.Fail($"Expression parsed without any errors");
                     return;
