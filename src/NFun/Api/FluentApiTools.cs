@@ -77,7 +77,7 @@ namespace NFun
             var apriories = AprioriTypesMap.Empty;
             apriories.Add(Parser.AnonymousEquationId, outputConverter.FunnyType);
 
-            var runtime = RuntimeBuilder.Build(expression, BaseFunctions.DefaultDictionary, EmptyConstantList.Instance,
+            var runtime = RuntimeBuilder.Build(expression, BaseFunctions.DefaultFunctions, EmptyConstantList.Instance,
                 apriories);
 
             if (runtime.Variables.Any(v => !v.IsOutput))

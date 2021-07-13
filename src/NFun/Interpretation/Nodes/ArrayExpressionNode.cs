@@ -4,7 +4,7 @@ using NFun.Types;
 
 namespace NFun.Interpretation.Nodes
 {
-    public class ArrayExpressionNode : IExpressionNode
+    internal class ArrayExpressionNode : IExpressionNode
     {
         private readonly IExpressionNode[] _elements;
         

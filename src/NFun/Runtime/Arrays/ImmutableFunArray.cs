@@ -51,7 +51,7 @@ namespace NFun.Runtime.Arrays {
                 return new string(newArray);
             }
 
-            return ArrayTools.JoinElementsToFunString(ClrArray);
+            return FunnyArrayTools.JoinElementsToFunString(ClrArray);
         }
 
         public IEnumerator<object> GetEnumerator()
@@ -63,7 +63,7 @@ namespace NFun.Runtime.Arrays {
         IEnumerator IEnumerable.GetEnumerator() => ClrArray.GetEnumerator();
 
         public IFunArray Slice(int? startIndex, int? endIndex, int? step) =>
-            ArrayTools.SliceToImmutable(ClrArray, ElementType, startIndex, endIndex, step);
+            FunnyArrayTools.SliceToImmutable(ClrArray, ElementType, startIndex, endIndex, step);
 
         public object GetElementOrNull(int index) => index >= ClrArray.Length ? null : ClrArray.GetValue(index);
 

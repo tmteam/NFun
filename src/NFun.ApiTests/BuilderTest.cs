@@ -40,14 +40,14 @@ namespace NFun.ApiTests
                     .Get("y"));
 
 
-        [Test]
-        public void CreateWithCustomDictionary() =>
-            Funny
-                .Hardcore
-                .WithFunctions(BaseFunctions.DefaultDictionary.CloneWith(new MamaFunction("mama")))
-                .Build("y = mama()")
-                .Calc()
-                .AssertReturns("y", MamaFunction.MamaReturn);
+        // [Test]
+        // public void CreateWithCustomDictionary() =>
+        //     Funny
+        //         .Hardcore
+        //         .WithFunctions(BaseFunctions.DefaultDictionary.CloneWith(new MamaFunction("mama")))
+        //         .Build("y = mama()")
+        //         .Calc()
+        //         .AssertReturns("y", MamaFunction.MamaReturn);
 
         class GenericWithNoArgFunction : GenericFunctionBase
         {

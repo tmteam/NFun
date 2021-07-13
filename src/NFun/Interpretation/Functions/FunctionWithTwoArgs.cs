@@ -7,29 +7,32 @@ namespace NFun.Interpretation.Functions
 {
     public abstract class FunctionWithTwoArgs : IConcreteFunction
     {
-        protected FunctionWithTwoArgs(string name,  FunnyType returnType, params FunnyType[] argTypes)
+        protected FunctionWithTwoArgs(string name, FunnyType returnType, params FunnyType[] argTypes)
         {
             Name = name;
             ArgTypes = argTypes;
             ReturnType = returnType;
         }
 
-        internal FunctionWithTwoArgs() { }
+        internal FunctionWithTwoArgs()
+        {
+        }
 
         internal void Setup(string name, FunnyType type)
         {
             Name = name;
-            ArgTypes = new[] {type, type};
+            ArgTypes = new[] { type, type };
             ReturnType = type;
         }
+
         public string Name { get; internal set; }
-        public FunnyType[] ArgTypes { get;internal set; }
-        public FunnyType ReturnType { get; internal set;}
+        public FunnyType[] ArgTypes { get; internal set; }
+        public FunnyType ReturnType { get; internal set; }
         public abstract object Calc(object a, object b);
 
         public object Calc(object[] parameters) => Calc(parameters[0], parameters[1]);
 
-        public IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children,  Interval interval)
+        public IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children, Interval interval)
         {
             var castedChildren = new IExpressionNode[children.Count];
 
@@ -39,11 +42,11 @@ namespace NFun.Interpretation.Functions
                 var toType = ArgTypes[i];
                 var fromType = argNode.Type;
                 var castedNode = argNode;
-                
+
                 if (fromType != toType)
                 {
                     var converter = VarTypeConverter.GetConverterOrThrow(fromType, toType, argNode.Interval);
-                    castedNode = new CastExpressionNode(argNode, toType, converter,argNode.Interval);
+                    castedNode = new CastExpressionNode(argNode, toType, converter, argNode.Interval);
                 }
 
                 castedChildren[i] = castedNode;

@@ -45,7 +45,7 @@ namespace NFun.UnitTests.TicTests
             TicSetupVisitor.SetupTicForBody(
                 tree:         tree, 
                 ticGraph:     graph, 
-                functions:    BaseFunctions.DefaultDictionary, 
+                functions:    BaseFunctions.DefaultFunctions, 
                 constants:    new EmptyConstantList(), 
                 aprioriTypes: AprioriTypesMap.Empty, 
                 results:      resultsBuilder);
@@ -62,14 +62,12 @@ namespace NFun.UnitTests.TicTests
 
             var graph = new GraphBuilder();
 
-            var functions = BaseFunctions.DefaultDictionary;
-
             var resultsBuilder = new TypeInferenceResultsBuilder();
 
             TicSetupVisitor.SetupTicForBody(
                 tree:      tree, 
                 ticGraph:  graph, 
-                functions: functions, 
+                functions: BaseFunctions.DefaultFunctions, 
                 constants: new EmptyConstantList(), 
                 aprioriTypes: AprioriTypesMap.Empty,  
                 results:   resultsBuilder);

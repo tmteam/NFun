@@ -5,13 +5,15 @@ using NFun.Types;
 
 namespace NFun.Interpretation.Functions
 {
-    public class ConcreteUserFunctionPrototype: FunctionWithManyArguments
+    internal class ConcreteUserFunctionPrototype : FunctionWithManyArguments
     {
-        public ConcreteUserFunctionPrototype(string name, FunnyType returnType, FunnyType[] argTypes) : base(name,  returnType, argTypes)
+        public ConcreteUserFunctionPrototype(string name, FunnyType returnType, FunnyType[] argTypes) : base(name,
+            returnType, argTypes)
         {
         }
 
         private ConcreteUserFunction _function;
+
         public void SetActual(ConcreteUserFunction function, Interval interval)
         {
             _function = function;
@@ -22,7 +24,7 @@ namespace NFun.Interpretation.Functions
 
         public override object Calc(object[] args)
         {
-            if(_function== null)
+            if (_function == null)
                 throw new InvalidOperationException("Function prototype cannot be called");
             return _function.Calc(args);
         }

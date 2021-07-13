@@ -16,13 +16,14 @@ namespace NFun.Interpretation
 {
     public static class RuntimeBuilder
     {
-        private static readonly List<IFunctionSignature> EmptyUserFunctionsList 
+        private static readonly List<IFunctionSignature> EmptyUserFunctionsList
             = new();
 
-        public static FunnyRuntime Build(string script, IFunctionDictionary functionDictionary, IConstantList constants =null, AprioriTypesMap aprioriTypesMap = null)
+        public static FunnyRuntime Build(string script, IFunctionDictionary functionDictionary,
+            IConstantList constants = null, AprioriTypesMap aprioriTypesMap = null)
         {
             aprioriTypesMap ??= AprioriTypesMap.Empty;
-            
+
             var flow = Tokenizer.ToFlow(script);
             var syntaxTree = Parser.Parse(flow);
 
@@ -30,16 +31,17 @@ namespace NFun.Interpretation
             var setNodeNumberVisitor = new SetNodeNumberVisitor();
             syntaxTree.ComeOver(setNodeNumberVisitor);
             syntaxTree.MaxNodeId = setNodeNumberVisitor.LastUsedNumber;
-            return Build(syntaxTree, functionDictionary, constants??EmptyConstantList.Instance, aprioriTypesMap);
+            return Build(syntaxTree, functionDictionary, constants ?? EmptyConstantList.Instance, aprioriTypesMap);
         }
 
         private static FunnyRuntime Build(
             SyntaxTree syntaxTree,
-            IFunctionDictionary functionsDictionary, 
-            IConstantList constants, 
+            IFunctionDictionary functionsDictionary,
+            IConstantList constants,
             AprioriTypesMap aprioriTypesMap)
         {
             #region build user functions
+
             //get topology sort of the functions call
             //result is the order of functions that need to be compiled
             //functions that not references other functions have to be compiled firstly
@@ -76,6 +78,7 @@ namespace NFun.Interpretation
             var bodyTypeSolving = SolveBodyTypes(syntaxTree, constants, functionDictionary, aprioriTypesMap);
 
             #region build body
+
             var variables = new VariableDictionary();
             var equations = new List<Equation>();
 
@@ -83,11 +86,12 @@ namespace NFun.Interpretation
             {
                 if (treeNode is EquationSyntaxNode node)
                 {
-                    var equation = BuildEquationAndPutItToVariables(node, functionDictionary, variables, bodyTypeSolving);
+                    var equation =
+                        BuildEquationAndPutItToVariables(node, functionDictionary, variables, bodyTypeSolving);
                     equations.Add(equation);
                     if (Helper.DoesItLooksLikeSuperAnonymousVariable(equation.Id))
                         throw FunParseException.ErrorStubToDo("variable cannot starts with 'it'");
-                    if(TraceLog.IsEnabled)
+                    if (TraceLog.IsEnabled)
                         TraceLog.WriteLine($"\r\nEQUATION: {equation.Id}:{equation.Expression.Type} = ... \r\n");
                 }
                 else if (treeNode is VarDefinitionSyntaxNode varDef)
@@ -106,14 +110,16 @@ namespace NFun.Interpretation
                         var allUsages = variables.GetUsages(variableSource.Name);
                         throw ErrorFactory.VariableIsDeclaredAfterUsing(allUsages);
                     }
-                    if(TraceLog.IsEnabled)
+
+                    if (TraceLog.IsEnabled)
                         TraceLog.WriteLine($"\r\nVARIABLE: {variableSource.Name}:{variableSource.Type} = ... \r\n");
                 }
                 else if (treeNode is UserFunctionDefinitionSyntaxNode)
-                    continue;//user function was built above
+                    continue; //user function was built above
                 else
                     throw new InvalidOperationException($"Type {treeNode} is not supported as tree root");
             }
+
             #endregion
 
             foreach (var userFunction in userFunctions)
@@ -124,22 +130,23 @@ namespace NFun.Interpretation
                     // We have to build it at least once to search all possible errors
                     GenericUserFunction.CreateSomeConcrete(generic);
                 }
-            }                           
+            }
+
             return new FunnyRuntime(equations, variables);
         }
 
 
         private static TypeInferenceResults SolveBodyTypes(
             SyntaxTree syntaxTree,
-            IConstantList constants, 
-            IFunctionDictionary functionDictionary, 
+            IConstantList constants,
+            IFunctionDictionary functionDictionary,
             AprioriTypesMap aprioriTypes)
         {
             var bodyTypeSolving = RuntimeBuilderHelper.SolveBodyOrThrow(
                 syntaxTree, functionDictionary, constants, aprioriTypes);
 
             var enterVisitor = new ApplyTiResultEnterVisitor(bodyTypeSolving, TicTypesConverter.Concrete);
-            var exitVisitor  = new ApplyTiResultsExitVisitor();
+            var exitVisitor = new ApplyTiResultsExitVisitor();
             foreach (var syntaxNode in syntaxTree.Nodes)
             {
                 //function nodes were solved above
@@ -155,34 +162,34 @@ namespace NFun.Interpretation
 
         private static Equation BuildEquationAndPutItToVariables(
             EquationSyntaxNode equation,
-            IFunctionDictionary functionsDictionary, 
-            VariableDictionary variables, 
+            IFunctionDictionary functionsDictionary,
+            VariableDictionary variables,
             TypeInferenceResults typeInferenceResults)
         {
             var expression = ExpressionBuilderVisitor.BuildExpression(
-                node:       equation.Expression, 
-                functions:  functionsDictionary,
+                node: equation.Expression,
+                functions: functionsDictionary,
                 outputType: equation.OutputType,
-                variables:  variables,
-                typeInferenceResults: typeInferenceResults, 
+                variables: variables,
+                typeInferenceResults: typeInferenceResults,
                 typesConverter: TicTypesConverter.Concrete);
-            
+
             VariableSource outputVariableSource;
-            if(equation.OutputTypeSpecified)
+            if (equation.OutputTypeSpecified)
                 outputVariableSource = VariableSource.CreateWithStrictTypeLabel(
-                    name: equation.Id, 
-                    type: equation.OutputType, 
-                    typeSpecificationIntervalOrNull: equation.TypeSpecificationOrNull.Interval, 
+                    name: equation.Id,
+                    type: equation.OutputType,
+                    typeSpecificationIntervalOrNull: equation.TypeSpecificationOrNull.Interval,
                     access: FunnyVarAccess.Output,
                     attributes: equation.Attributes
-                    );
+                );
             else
                 outputVariableSource = VariableSource.CreateWithoutStrictTypeLabel(
-                    name: equation.Id, 
-                    type: equation.OutputType, 
-                    access:  FunnyVarAccess.Output,
+                    name: equation.Id,
+                    type: equation.OutputType,
+                    access: FunnyVarAccess.Output,
                     equation.Attributes
-                    );
+                );
 
             var itVariable = variables.GetSuperAnonymousVariableOrNull();
             if (itVariable != null)
@@ -198,11 +205,11 @@ namespace NFun.Interpretation
                 else
                     throw ErrorFactory.CannotUseOutputValueBeforeItIsDeclared(usages);
             }
-            
-           
+
+
             //ReplaceInputType
-            if(outputVariableSource.Type != expression.Type)
-                throw new ImpossibleException("fitless");            
+            if (outputVariableSource.Type != expression.Type)
+                throw new ImpossibleException("fitless");
             return new Equation(equation.Id, expression, outputVariableSource);
         }
 
@@ -223,17 +230,20 @@ namespace NFun.Interpretation
             try
             {
                 if (!TicSetupVisitor.SetupTicForUserFunction(
-                    userFunctionNode: functionSyntaxNode, 
-                    ticGraph:  graphBuider, 
-                    functions: functionsDictionary, 
+                    userFunctionNode: functionSyntaxNode,
+                    ticGraph: graphBuider,
+                    functions: functionsDictionary,
                     constants: constants,
-                    results:   resultsBuilder))
+                    results: resultsBuilder))
                     throw FunParseException.ErrorStubToDo($"Function '{functionSyntaxNode.Id}' is not solved");
-                
+
                 // solve the types
                 types = graphBuider.Solve();
             }
-            catch (TicException e) { throw ErrorFactory.TranslateTicError(e, functionSyntaxNode);}
+            catch (TicException e)
+            {
+                throw ErrorFactory.TranslateTicError(e, functionSyntaxNode);
+            }
 
             resultsBuilder.SetResults(types);
             var typeInferenceResuls = resultsBuilder.Build();
@@ -254,7 +264,7 @@ namespace NFun.Interpretation
 
                 var returnType = funType.FunTypeSpecification.Output;
                 var argTypes = funType.FunTypeSpecification.Inputs;
-                if (TraceLog.IsEnabled) 
+                if (TraceLog.IsEnabled)
                     TraceLog.WriteLine($"\r\n=====> Generic {functionSyntaxNode.Id} {funType}");
                 //make function prototype
                 var prototype = new ConcreteUserFunctionPrototype(functionSyntaxNode.Id, returnType, argTypes);
@@ -262,21 +272,22 @@ namespace NFun.Interpretation
                 functionsDictionary.TryAdd(prototype);
                 var function =
                     functionSyntaxNode.BuildConcrete(
-                        argTypes:   argTypes, 
-                        returnType: returnType, 
-                        functionsDictionary: functionsDictionary, 
-                        results:    typeInferenceResuls, 
-                        converter:  TicTypesConverter.Concrete);
-                
+                        argTypes: argTypes,
+                        returnType: returnType,
+                        functionsDictionary: functionsDictionary,
+                        results: typeInferenceResuls,
+                        converter: TicTypesConverter.Concrete);
+
                 prototype.SetActual(function, functionSyntaxNode.Interval);
                 return function;
+
                 #endregion
             }
             else
             {
                 var function = GenericUserFunction.Create(typeInferenceResuls, functionSyntaxNode, functionsDictionary);
                 functionsDictionary.TryAdd(function);
-                if (TraceLog.IsEnabled) 
+                if (TraceLog.IsEnabled)
                     TraceLog.WriteLine($"\r\n=====> Concrete {functionSyntaxNode.Id} {function}");
                 return function;
             }

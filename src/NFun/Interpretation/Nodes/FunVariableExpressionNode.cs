@@ -4,7 +4,7 @@ using NFun.Types;
 
 namespace NFun.Interpretation.Nodes
 {
-    public class FunVariableExpressionNode : IExpressionNode
+    internal class FunVariableExpressionNode : IExpressionNode
     {
         private readonly IConcreteFunction _value;
 

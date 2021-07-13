@@ -4,7 +4,7 @@ using NFun.Interpretation.Functions;
 
 namespace NFun.Interpretation
 {
-    public sealed class ScopeFunctionDictionary : IFunctionDictionary
+    internal sealed class ScopeFunctionDictionary : IFunctionDictionary
     {
         private readonly IFunctionDictionary _originalDictionary;
         private readonly Dictionary<string, IFunctionSignature> _functions = new();

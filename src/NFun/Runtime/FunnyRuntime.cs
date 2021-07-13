@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using NFun.Interpretation;
 using NFun.SyntaxParsing;
-using NFun.Types;
 
 namespace NFun.Runtime
 {
@@ -26,14 +25,11 @@ namespace NFun.Runtime
             _variables = variables;
         }
 
-        public IFunnyVar this[string key] =>
-            GetVariable(key);
-
-        public IReadOnlyList<IFunnyVar> Variables => _variables.GetAllSources();
-
-        public IFunnyVar GetVariable(string name) =>
+        public IFunnyVar this[string name] =>
             _variables.GetUsages(name)?.Source ?? throw new KeyNotFoundException($"Variable {name} not found");
 
+        public IReadOnlyList<IFunnyVar> Variables => _variables.GetAllSources();
+        
         public bool TryGetVariable(string name, out IFunnyVar variable)
         {
             _variables.TryGetUsages(name, out var usage);

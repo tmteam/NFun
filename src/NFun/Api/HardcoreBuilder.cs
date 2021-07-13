@@ -36,9 +36,6 @@ namespace NFun
             new( _immutableFunctionDictionary.CloneWith(function), _constants,  _apriori);
         public HardcoreBuilder WithFunctions(params IFunctionSignature[] functions) => 
             new( _immutableFunctionDictionary.CloneWith(functions), _constants,  _apriori);
-        public HardcoreBuilder WithFunctions(ImmutableFunctionDictionary functionDictionary) =>
-            //todo - deletes previous added functions
-            new( functionDictionary, _constants,  _apriori);
         public HardcoreBuilder WithFunction<Tin, TOut>(string name, Func<Tin, TOut> function) => 
             WithFunctions(LambdaWrapperFactory.Create(name, function));
         public HardcoreBuilder WithFunction<Tin1,Tin2, TOut>(string name, Func<Tin1,Tin2, TOut> function) => 

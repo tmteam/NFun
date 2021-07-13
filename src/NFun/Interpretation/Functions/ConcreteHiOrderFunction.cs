@@ -5,7 +5,7 @@ using NFun.Types;
 
 namespace NFun.Interpretation.Functions
 {
-    public class ConcreteHiOrderFunctionWithSyntaxNode : FunctionWithManyArguments
+    internal class ConcreteHiOrderFunctionWithSyntaxNode : FunctionWithManyArguments
     {
         private readonly IExpressionNode _source;
 
@@ -31,7 +31,7 @@ namespace NFun.Interpretation.Functions
         public override object Calc(object[] args) => ((IConcreteFunction)_source.Calc()).Calc(args);
     }
 
-    public class ConcreteHiOrderFunction : FunctionWithManyArguments
+    internal class ConcreteHiOrderFunction : FunctionWithManyArguments
     {
         private readonly VariableSource _source;
 

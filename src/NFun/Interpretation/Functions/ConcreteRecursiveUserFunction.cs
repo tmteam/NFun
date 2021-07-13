@@ -7,7 +7,7 @@ using NFun.Types;
 
 namespace NFun.Interpretation.Functions
 {
-    public class ConcreteRecursiveUserFunction : ConcreteUserFunction
+    internal class ConcreteRecursiveUserFunction : ConcreteUserFunction
     {
         readonly Stack<object[]> _recursiveArgsStack = new();
 
@@ -39,12 +39,12 @@ namespace NFun.Interpretation.Functions
 
 
         internal ConcreteRecursiveUserFunction(
-            string name, 
+            string name,
             VariableSource[] argumentSources,
-            IExpressionNode expression, 
-            FunnyType[] argTypes) 
-            : 
-            base(name, argumentSources,expression, argTypes)
+            IExpressionNode expression,
+            FunnyType[] argTypes)
+            :
+            base(name, argumentSources, expression, argTypes)
         {
         }
     }

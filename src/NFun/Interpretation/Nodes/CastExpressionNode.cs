@@ -4,7 +4,7 @@ using NFun.Types;
 
 namespace NFun.Interpretation.Nodes
 {
-    public class CastExpressionNode: IExpressionNode
+    internal class CastExpressionNode: IExpressionNode
     {
         public static IExpressionNode GetConvertedOrOriginOrThrow(IExpressionNode origin, FunnyType to)
         {

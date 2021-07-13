@@ -10,7 +10,7 @@ namespace NFun.Interpretation.Functions
         object Calc(object[] parameters);
         IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children, Interval interval);
     }
-    
+
     public interface IFunctionSignature
     {
         string Name { get; }

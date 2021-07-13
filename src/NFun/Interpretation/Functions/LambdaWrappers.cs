@@ -3,8 +3,7 @@ using NFun.Types;
 
 namespace NFun.Interpretation.Functions
 {
-
-    public static class LambdaWrapperFactory
+    internal static class LambdaWrapperFactory
     {
         public static IConcreteFunction Create<Tin, Tout>(string name, Func<Tin, Tout> function)
             => new ConcreteLambdaWrapperFunction<Tin, Tout>(name, function);
@@ -14,7 +13,7 @@ namespace NFun.Interpretation.Functions
 
         public static IConcreteFunction Create<Tin1, Tin2, Tin3, Tout>(string name,
             Func<Tin1, Tin2, Tin3, Tout> function)
-            => new ConcreteLambdaWrapperFunction<Tin1, Tin2, Tin3,  Tout>(name, function);
+            => new ConcreteLambdaWrapperFunction<Tin1, Tin2, Tin3, Tout>(name, function);
 
         public static IConcreteFunction Create<Tin1, Tin2, Tin3, Tin4, Tout>(string name,
             Func<Tin1, Tin2, Tin3, Tin4, Tout> function)
@@ -45,12 +44,12 @@ namespace NFun.Interpretation.Functions
             _function = function;
             _argConverter = FunnyTypeConverters.GetOutputConverter(typeof(Tin));
             _resultConverter = FunnyTypeConverters.GetInputConverter(typeof(Tout));
-            ArgTypes = new[] {_argConverter.FunnyType};
+            ArgTypes = new[] { _argConverter.FunnyType };
             ReturnType = _resultConverter.FunnyType;
         }
 
         public override object Calc(object a) =>
-            _resultConverter.ToFunObject(_function((Tin) _argConverter.ToClrObject(a)));
+            _resultConverter.ToFunObject(_function((Tin)_argConverter.ToClrObject(a)));
     }
 
     class ConcreteLambdaWrapperFunction<Tin1, Tin2, Tout> : FunctionWithManyArguments
@@ -78,8 +77,8 @@ namespace NFun.Interpretation.Functions
 
         public override object Calc(object[] args) =>
             _resultConverter.ToFunObject(_function(
-                (Tin1) _arg1.ToClrObject(args[0]),
-                (Tin2) _arg2.ToClrObject(args[1])
+                (Tin1)_arg1.ToClrObject(args[0]),
+                (Tin2)_arg2.ToClrObject(args[1])
             ));
     }
 
@@ -111,9 +110,9 @@ namespace NFun.Interpretation.Functions
 
         public override object Calc(object[] args) =>
             _resultConverter.ToFunObject(_function(
-                (Tin1) _arg1.ToClrObject(args[0]),
-                (Tin2) _arg2.ToClrObject(args[1]),
-                (Tin3) _arg3.ToClrObject(args[2])
+                (Tin1)_arg1.ToClrObject(args[0]),
+                (Tin2)_arg2.ToClrObject(args[1]),
+                (Tin3)_arg3.ToClrObject(args[2])
             ));
     }
 
@@ -148,10 +147,10 @@ namespace NFun.Interpretation.Functions
 
         public override object Calc(object[] args) =>
             _resultConverter.ToFunObject(_function(
-                (Tin1) _arg1.ToClrObject(args[0]),
-                (Tin2) _arg2.ToClrObject(args[1]),
-                (Tin3) _arg3.ToClrObject(args[2]),
-                (Tin4) _arg4.ToClrObject(args[3])
+                (Tin1)_arg1.ToClrObject(args[0]),
+                (Tin2)_arg2.ToClrObject(args[1]),
+                (Tin3)_arg3.ToClrObject(args[2]),
+                (Tin4)_arg4.ToClrObject(args[3])
             ));
     }
 
@@ -189,11 +188,11 @@ namespace NFun.Interpretation.Functions
 
         public override object Calc(object[] args) =>
             _resultConverter.ToFunObject(_function(
-                (Tin1) _arg1.ToClrObject(args[0]),
-                (Tin2) _arg2.ToClrObject(args[1]),
-                (Tin3) _arg3.ToClrObject(args[2]),
-                (Tin4) _arg4.ToClrObject(args[3]),
-                (Tin5) _arg5.ToClrObject(args[4])
+                (Tin1)_arg1.ToClrObject(args[0]),
+                (Tin2)_arg2.ToClrObject(args[1]),
+                (Tin3)_arg3.ToClrObject(args[2]),
+                (Tin4)_arg4.ToClrObject(args[3]),
+                (Tin5)_arg5.ToClrObject(args[4])
             ));
     }
 
@@ -235,12 +234,12 @@ namespace NFun.Interpretation.Functions
 
         public override object Calc(object[] args) =>
             _resultConverter.ToFunObject(_function(
-                (Tin1) _arg1.ToClrObject(args[0]),
-                (Tin2) _arg2.ToClrObject(args[1]),
-                (Tin3) _arg3.ToClrObject(args[2]),
-                (Tin4) _arg4.ToClrObject(args[3]),
-                (Tin5) _arg5.ToClrObject(args[4]),
-                (Tin6) _arg6.ToClrObject(args[5])
+                (Tin1)_arg1.ToClrObject(args[0]),
+                (Tin2)_arg2.ToClrObject(args[1]),
+                (Tin3)_arg3.ToClrObject(args[2]),
+                (Tin4)_arg4.ToClrObject(args[3]),
+                (Tin5)_arg5.ToClrObject(args[4]),
+                (Tin6)_arg6.ToClrObject(args[5])
             ));
     }
 
@@ -285,14 +284,13 @@ namespace NFun.Interpretation.Functions
 
         public override object Calc(object[] args) =>
             _resultConverter.ToFunObject(_function(
-                (Tin1) _arg1.ToClrObject(args[0]),
-                (Tin2) _arg2.ToClrObject(args[1]),
-                (Tin3) _arg3.ToClrObject(args[2]),
-                (Tin4) _arg4.ToClrObject(args[3]),
-                (Tin5) _arg5.ToClrObject(args[4]),
-                (Tin6) _arg6.ToClrObject(args[5]),
-                (Tin7) _arg7.ToClrObject(args[6])
+                (Tin1)_arg1.ToClrObject(args[0]),
+                (Tin2)_arg2.ToClrObject(args[1]),
+                (Tin3)_arg3.ToClrObject(args[2]),
+                (Tin4)_arg4.ToClrObject(args[3]),
+                (Tin5)_arg5.ToClrObject(args[4]),
+                (Tin6)_arg6.ToClrObject(args[5]),
+                (Tin7)_arg7.ToClrObject(args[6])
             ));
     }
-
 }

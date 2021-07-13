@@ -4,7 +4,7 @@ using NFun.Types;
 
 namespace NFun.Interpretation.Nodes
 {
-    public class VariableExpressionNode: IExpressionNode
+    internal class VariableExpressionNode : IExpressionNode
     {
         internal VariableExpressionNode(VariableSource source, Interval interval)
         {
@@ -17,6 +17,5 @@ namespace NFun.Interpretation.Nodes
         public FunnyType Type => Source.Type;
         public object Calc() => Source.InternalFunnyValue;
         public override string ToString() => $"{Source.Name}: {Source.InternalFunnyValue}";
-
     }
 }

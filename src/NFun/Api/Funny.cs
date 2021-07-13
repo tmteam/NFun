@@ -13,7 +13,7 @@ namespace NFun
 
         public static object Calc(string expression)
         {
-            var runtime = RuntimeBuilder.Build(expression, BaseFunctions.DefaultDictionary);
+            var runtime = RuntimeBuilder.Build(expression, BaseFunctions.DefaultFunctions);
             if (runtime.Variables.Any(v=>!v.IsOutput))
                 throw ErrorFactory.UnknownInputs(runtime.GetInputVariableUsages());
             runtime.Run();
@@ -34,7 +34,7 @@ namespace NFun
             var apriories = AprioriTypesMap.Empty; 
             var outputs   = FluentApiTools.SetupManyAprioriOutputs<TOutput>(apriories);
 
-            var runtime = RuntimeBuilder.Build(expression, BaseFunctions.DefaultDictionary, aprioriTypesMap:apriories);
+            var runtime = RuntimeBuilder.Build(expression, BaseFunctions.DefaultFunctions, aprioriTypesMap:apriories);
             if (runtime.Variables.Any(v=>!v.IsOutput))
                 throw ErrorFactory.UnknownInputs(runtime.GetInputVariableUsages());
             

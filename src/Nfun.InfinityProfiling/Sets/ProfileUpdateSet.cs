@@ -31,7 +31,6 @@ namespace NFun.InfinityProfiling.Sets
         private readonly FunnyRuntime _constSingleText;
         private readonly FunnyRuntime _constSquareEquation;
         private readonly FunnyRuntime _constTrue;
-        private readonly ImmutableFunctionDictionary _dictionary;
         private readonly FunnyRuntime _primitiveCalcInt2Var;
         private readonly FunnyRuntime _primitiveCalcReal2Var;
         private readonly FunnyRuntime _primitiveConstBoolSimpleArithmetics;
@@ -40,7 +39,6 @@ namespace NFun.InfinityProfiling.Sets
 
         public ProfileUpdateSet()
         {
-            _dictionary = BaseFunctions.DefaultDictionary;
             _calcIntOp = Build(Scripts.CalcIntOp);
             _calcRealOp = Build(Scripts.CalcRealOp);
             _calcBoolOp = Build(Scripts.CalcBoolOp);

@@ -10,8 +10,8 @@ namespace NFun.Interpretation.Functions
         {
         }
 
-        protected GenericFunctionWithSingleArgument(string name, GenericConstrains[] constrainses,
-            FunnyType returnType, params FunnyType[] argTypes) : base(name, constrainses, returnType, argTypes)
+        protected GenericFunctionWithSingleArgument(string name, GenericConstrains[] constrains,
+            FunnyType returnType, params FunnyType[] argTypes) : base(name, constrains, returnType, argTypes)
         {
         }
 

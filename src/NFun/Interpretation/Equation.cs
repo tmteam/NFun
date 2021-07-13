@@ -16,9 +16,9 @@ namespace NFun.Interpretation
             Expression = expression;
         }
 
-        internal void Run() 
+        internal void Run()
             => _outputVariableSource.InternalFunnyValue = Expression.Calc();
-        
+
         public override string ToString() => $"\"{Id}\" equation";
     }
 }

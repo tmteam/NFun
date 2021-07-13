@@ -9,7 +9,7 @@ namespace NFun.Interpretation.Functions
         {
         }
 
-        protected GenericFunctionWithTwoArguments(string name, GenericConstrains[] constrainses, FunnyType returnType, params FunnyType[] argTypes) : base(name, constrainses, returnType, argTypes)
+        protected GenericFunctionWithTwoArguments(string name, GenericConstrains[] constrains, FunnyType returnType, params FunnyType[] argTypes) : base(name, constrains, returnType, argTypes)
         {
         }
 

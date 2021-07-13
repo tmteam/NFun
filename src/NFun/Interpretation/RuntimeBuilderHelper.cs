@@ -14,14 +14,14 @@ using NFun.Types;
 
 namespace NFun.Interpretation
 {
-    public static class RuntimeBuilderHelper
+    internal static class RuntimeBuilderHelper
     {
         public static ConcreteUserFunction BuildConcrete(
             this UserFunctionDefinitionSyntaxNode functionSyntax,
-            FunnyType[] argTypes, 
+            FunnyType[] argTypes,
             FunnyType returnType,
             IFunctionDictionary functionsDictionary,
-            TypeInferenceResults results, 
+            TypeInferenceResults results,
             TicTypesConverter converter)
         {
             var vars = new VariableDictionary(functionSyntax.Args.Count);
@@ -40,7 +40,7 @@ namespace NFun.Interpretation
                 functions: functionsDictionary,
                 outputType: returnType,
                 variables: vars,
-                typeInferenceResults: results, 
+                typeInferenceResults: results,
                 typesConverter: converter);
 
             vars.ThrowIfSomeVariablesNotExistsInTheList(
@@ -56,8 +56,8 @@ namespace NFun.Interpretation
 
         public static TypeInferenceResults SolveBodyOrThrow(
             SyntaxTree syntaxTree,
-            IFunctionDictionary functions, 
-            IConstantList constants, 
+            IFunctionDictionary functions,
+            IConstantList constants,
             AprioriTypesMap aprioriTypes)
         {
             try
@@ -65,13 +65,13 @@ namespace NFun.Interpretation
                 var resultBuilder = new TypeInferenceResultsBuilder();
                 var typeGraph = new GraphBuilder(syntaxTree.MaxNodeId);
 
-                if(!TicSetupVisitor.SetupTicForBody(
-                    tree:      syntaxTree, 
-                    ticGraph:  typeGraph, 
-                    functions: functions, 
-                    constants: constants, 
-                    aprioriTypes: aprioriTypes, 
-                    results:   resultBuilder))
+                if (!TicSetupVisitor.SetupTicForBody(
+                    tree: syntaxTree,
+                    ticGraph: typeGraph,
+                    functions: functions,
+                    constants: constants,
+                    aprioriTypes: aprioriTypes,
+                    results: resultBuilder))
                     throw ErrorFactory.TypesNotSolved(syntaxTree);
 
                 var bodyTypeSolving = typeGraph.Solve();
@@ -80,27 +80,32 @@ namespace NFun.Interpretation
                 resultBuilder.SetResults(bodyTypeSolving);
                 return resultBuilder.Build();
             }
-            catch (TicException e) { throw ErrorFactory.TranslateTicError(e, syntaxTree); }
+            catch (TicException e)
+            {
+                throw ErrorFactory.TranslateTicError(e, syntaxTree);
+            }
         }
 
-        private static void ThrowIfSomeVariablesNotExistsInTheList(this VariableDictionary resultVariables, IEnumerable<string> list )
+        private static void ThrowIfSomeVariablesNotExistsInTheList(this VariableDictionary resultVariables,
+            IEnumerable<string> list)
         {
             var unknownVariables = resultVariables.GetAllUsages()
-                .Where(u=> !list.Contains(u.Source.Name)).ToList();
+                .Where(u => !list.Contains(u.Source.Name)).ToList();
             if (unknownVariables.Any())
             {
                 throw ErrorFactory.UnknownVariables(unknownVariables.SelectMany(u => u.Usages));
-            }        
+            }
         }
+
         /// <summary>
         /// Gets order of calculating the functions, based on its co using.
         /// </summary>
         public static UserFunctionDefinitionSyntaxNode[] FindFunctionSolvingOrderOrThrow(this SyntaxTree syntaxTree)
         {
             var userFunctions = syntaxTree.Children.OfType<UserFunctionDefinitionSyntaxNode>().ToArray();
-            if(userFunctions.Length==0)
+            if (userFunctions.Length == 0)
                 return userFunctions;
-            
+
             var userFunctionsNames = new Dictionary<string, int>();
             int i = 0;
             foreach (var userFunction in userFunctions)
@@ -119,7 +124,7 @@ namespace NFun.Interpretation
                 var visitor = new FindFunctionDependenciesVisitor(userFunction.GetFunAlias(), userFunctionsNames);
                 if (!userFunction.ComeOver(visitor))
                     throw new InvalidOperationException("User fun come over");
-                
+
                 userFunction.IsRecursive = visitor.HasSelfRecursion;
 
                 dependenciesGraph[j] = visitor.GetFoundDependencies();
@@ -134,11 +139,11 @@ namespace NFun.Interpretation
                 var id = sortResults.NodeNames[k];
                 functionSolveOrder[k] = userFunctions[id];
             }
-            
+
             if (sortResults.HasCycle)
                 //if functions has cycle, then function solve order is cycled
                 throw ErrorFactory.ComplexRecursion(functionSolveOrder);
-          
+
             return functionSolveOrder;
         }
 
@@ -146,16 +151,16 @@ namespace NFun.Interpretation
             TypedVarDefSyntaxNode argSyntax,
             FunnyType actualType)
         {
-            if(argSyntax.FunnyType != FunnyType.Empty)
+            if (argSyntax.FunnyType != FunnyType.Empty)
                 return VariableSource.CreateWithStrictTypeLabel(
-                    name: argSyntax.Id, 
-                    type: actualType, 
-                    typeSpecificationIntervalOrNull: argSyntax.Interval, 
+                    name: argSyntax.Id,
+                    type: actualType,
+                    typeSpecificationIntervalOrNull: argSyntax.Interval,
                     access: FunnyVarAccess.Input);
             else
                 return VariableSource.CreateWithoutStrictTypeLabel(
                     name: argSyntax.Id,
-                    type: actualType, 
+                    type: actualType,
                     access: FunnyVarAccess.Input);
         }
     }

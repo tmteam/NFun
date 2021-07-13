@@ -24,14 +24,12 @@ namespace NFun.Runtime.Arrays
         public IFunArray Slice(int? startIndex, int? endIndex, int? step)
         {
             var array = _origin.ToArray();
-            return ArrayTools.SliceToImmutable(array,ElementType, startIndex, endIndex, step);
+            return FunnyArrayTools.SliceToImmutable(array,ElementType, startIndex, endIndex, step);
         }
         
         
         public object GetElementOrNull(int index) => _origin.ElementAtOrDefault(index);
-
-        public bool IsEquivalent(IFunArray array) => TypeHelper.AreEquivalent(this, array);
-
+        
         public IEnumerable<T> As<T>() => _origin.Cast<T>();
 
         public Array ClrArray => _origin.ToArray();
@@ -42,7 +40,7 @@ namespace NFun.Runtime.Arrays
                 var array = _origin.OfType<char>().ToArray();
                  return new string(array);
             }
-            return ArrayTools.JoinElementsToFunString(_origin);
+            return FunnyArrayTools.JoinElementsToFunString(_origin);
         }
     }
 }

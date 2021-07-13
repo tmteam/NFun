@@ -302,7 +302,7 @@ namespace NFun.TypeInferenceAdapter
             {
                 // Сase of (T,T):T signatures
                 // This case is most common, so the call is optimized
-                var genericType = InitializeGenericType(pure.Constrainses[0]);
+                var genericType = InitializeGenericType(pure.Constrains[0]);
                 _resultsBuilder.RememberGenericCallArguments(node.OrderNumber, new[]{genericType});
                 _ticTypeGraph.SetCall(genericType, ids);
                 return true;
@@ -312,7 +312,7 @@ namespace NFun.TypeInferenceAdapter
             {
                 // Optimization
                 // Remember generic arguments to use it again at the built time
-                genericTypes = InitializeGenericTypes(t.Constrainses);
+                genericTypes = InitializeGenericTypes(t.Constrains);
                 // save refernces to generic types, for use at 'apply tic results' step 
                 _resultsBuilder.RememberGenericCallArguments(node.OrderNumber, genericTypes);
             }
@@ -476,7 +476,7 @@ namespace NFun.TypeInferenceAdapter
                 {
                     if (signature is GenericFunctionBase genericFunction)
                     {
-                        var generics = InitializeGenericTypes(genericFunction.Constrainses);
+                        var generics = InitializeGenericTypes(genericFunction.Constrains);
                         _resultsBuilder.RememberGenericCallArguments(node.OrderNumber, generics);
 
                         _ticTypeGraph.SetVarType($"g'{argsCount}'{id}",

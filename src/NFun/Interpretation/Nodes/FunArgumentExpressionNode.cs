@@ -7,21 +7,21 @@ using NFun.Types;
 
 namespace NFun.Interpretation.Nodes
 {
-    public class FunArgumentExpressionNode : IExpressionNode
+    internal class FunArgumentExpressionNode : IExpressionNode
     {
-        public static  FunArgumentExpressionNode CreateWith(ISyntaxNode node)
+        public static FunArgumentExpressionNode CreateWith(ISyntaxNode node)
         {
             switch (node)
             {
                 case NamedIdSyntaxNode varNode:
                     return new FunArgumentExpressionNode(
-                        name:     varNode.Id, 
-                        type:     node.OutputType, 
+                        name: varNode.Id,
+                        type: node.OutputType,
                         interval: node.Interval);
                 case TypedVarDefSyntaxNode typeVarNode:
                     return new FunArgumentExpressionNode(
-                        name:     typeVarNode.Id, 
-                        type:     typeVarNode.FunnyType, 
+                        name: typeVarNode.Id,
+                        type: typeVarNode.FunnyType,
                         interval: node.Interval);
                 default:
                     throw ErrorFactory.InvalidArgTypeDefinition(node);
@@ -37,11 +37,11 @@ namespace NFun.Interpretation.Nodes
 
         public string Name { get; }
         public Interval Interval { get; }
-        public FunnyType Type { get; } 
-        
-        
+        public FunnyType Type { get; }
+
+
         public object Calc() => throw new InvalidOperationException();
-        
+
         public override string ToString() => $"{Name}: {Type}";
     }
 }

@@ -7,21 +7,20 @@ namespace NFun.Interpretation.Functions
 {
     public abstract class FunctionWithSingleArg : IConcreteFunction
     {
-        
         protected FunctionWithSingleArg(string name, FunnyType returnType, FunnyType argType)
         {
             Name = name;
-            ArgTypes = new[] {argType};
+            ArgTypes = new[] { argType };
             ReturnType = returnType;
         }
 
         protected FunctionWithSingleArg()
         {
-            
         }
+
         public string Name { get; internal set; }
         public FunnyType[] ArgTypes { get; internal set; }
-        public FunnyType ReturnType { get; internal set;}
+        public FunnyType ReturnType { get; internal set; }
         public abstract object Calc(object a);
 
         public object Calc(object[] parameters)

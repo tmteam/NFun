@@ -6,7 +6,7 @@ namespace NFun.Interpretation.Functions
 {
     public abstract class GenericFunctionBase: IGenericFunction
     {
-        public GenericConstrains[] Constrainses { get; }
+        public GenericConstrains[] Constrains { get; }
         
         private readonly int _maxGenericId;
         public string Name { get; }
@@ -24,19 +24,19 @@ namespace NFun.Interpretation.Functions
                 if (!maxGenericId.HasValue)
                     throw new InvalidOperationException($"Type {name} has wrong generic defenition");
 
-                Constrainses = new GenericConstrains[maxGenericId.Value + 1];
+                Constrains = new GenericConstrains[maxGenericId.Value + 1];
 
                 for (int i = 0; i <= maxGenericId; i++)
-                    Constrainses[i] = GenericConstrains.Any;
+                    Constrains[i] = GenericConstrains.Any;
                 _maxGenericId = maxGenericId.Value;
         }
-        protected GenericFunctionBase(string name, GenericConstrains[] constrainses, FunnyType returnType,
+        protected GenericFunctionBase(string name, GenericConstrains[] constrains, FunnyType returnType,
             params FunnyType[] argTypes)
         {
             Name = name;
             ArgTypes = argTypes;
             ReturnType = returnType;
-            Constrainses = constrainses;
+            Constrains = constrains;
             var maxGenericId = argTypes
                 .Append(returnType)
                 .Max(i => i.SearchMaxGenericTypeId());
@@ -50,7 +50,7 @@ namespace NFun.Interpretation.Functions
             Name = name;
             ArgTypes = argTypes;
             ReturnType = returnType;
-            Constrainses = new []{constrains};
+            Constrains = new []{constrains};
             var maxGenericId = argTypes
                 .Append(returnType)
                 .Max(i => i.SearchMaxGenericTypeId());
@@ -120,7 +120,7 @@ namespace NFun.Interpretation.Functions
         /// </summary> 
         public FunnyType[] CalcGenericArgTypeList(FunTypeSpecification funTypeSpecification)
         {
-            var result = new FunnyType[Constrainses.Length];
+            var result = new FunnyType[Constrains.Length];
             SubstitudeType(ReturnType, funTypeSpecification.Output);
 
             for (int i = 0; i < funTypeSpecification.Inputs.Length; i++)

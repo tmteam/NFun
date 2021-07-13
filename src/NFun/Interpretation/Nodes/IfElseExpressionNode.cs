@@ -3,7 +3,7 @@ using NFun.Types;
 
 namespace NFun.Interpretation.Nodes
 {
-    public class IfElseExpressionNode: IExpressionNode
+    internal class IfElseExpressionNode: IExpressionNode
     {
         private readonly IExpressionNode[] _ifExpressionNodes;
         private readonly IExpressionNode[] _conditionNodes;

@@ -4,7 +4,7 @@ using NFun.Types;
 
 namespace NFun.Interpretation.Nodes
 {
-    public class StructFieldAccessExpressionNode : IExpressionNode
+    internal class StructFieldAccessExpressionNode : IExpressionNode
     {
         private readonly string _fieldName;
         private readonly IExpressionNode _source;

@@ -5,7 +5,7 @@ using NFun.Types;
 
 namespace NFun.Interpretation.Nodes
 {
-    public class StructInitExpressionNode : IExpressionNode
+    internal class StructInitExpressionNode : IExpressionNode
     {
         private readonly string[] _fieldNames;
         private readonly IExpressionNode[] _elements;

@@ -4,7 +4,7 @@ using NFun.Types;
 
 namespace NFun.Interpretation.Nodes
 {
-    public class FunOfTwoArgsExpressionNode : IExpressionNode
+    internal class FunOfTwoArgsExpressionNode : IExpressionNode
     {
         private readonly FunctionWithTwoArgs _fun;
         private readonly IExpressionNode _arg1;

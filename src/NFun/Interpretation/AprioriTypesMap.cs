@@ -5,18 +5,20 @@ using NFun.Types;
 
 namespace NFun.Interpretation
 {
-    public class AprioriTypesMap:IEnumerable<KeyValuePair<string, FunnyType>>
+    public class AprioriTypesMap : IEnumerable<KeyValuePair<string, FunnyType>>
     {
-        public static AprioriTypesMap Empty  => new ();
+        public static AprioriTypesMap Empty => new();
+
         private AprioriTypesMap()
         {
             _typesMap = new Dictionary<string, FunnyType>(StringComparer.OrdinalIgnoreCase);
         }
 
-        private AprioriTypesMap(Dictionary<string,FunnyType> items)
+        private AprioriTypesMap(Dictionary<string, FunnyType> items)
         {
             _typesMap = items;
         }
+
         public void Add(string id, FunnyType type) => _typesMap.Add(id, type);
 
         private readonly Dictionary<string, FunnyType> _typesMap;
@@ -25,7 +27,7 @@ namespace NFun.Interpretation
 
         public AprioriTypesMap CloneWith(string name, FunnyType type)
         {
-            var dicCopy = new Dictionary<string, FunnyType>(_typesMap) {{name, type}};
+            var dicCopy = new Dictionary<string, FunnyType>(_typesMap) { { name, type } };
             return new AprioriTypesMap(dicCopy);
         }
     }

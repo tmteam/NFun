@@ -17,7 +17,7 @@ namespace NFun.Interpretation.Functions
 
         private readonly ConstrainsState[] _constrainsMap;
         public int BuiltCount { get; private set; }
-        
+
         public static GenericUserFunction Create(
             TypeInferenceResults typeInferenceResults,
             UserFunctionDefinitionSyntaxNode syntaxNode,
@@ -30,6 +30,7 @@ namespace NFun.Interpretation.Functions
                 var ticConstrains = ticGenerics[i];
                 langConstrains[i] = GenericConstrains.FromTicConstrains(ticConstrains);
             }
+
             var ticFunName = syntaxNode.Id + "'" + syntaxNode.Args.Count;
             var ticSignature = (StateFun)typeInferenceResults.GetVariableType(ticFunName);
             var signatureConverter = TicTypesConverter.GenericSignatureConverter(ticGenerics);
@@ -40,10 +41,11 @@ namespace NFun.Interpretation.Functions
             var retType = signatureConverter.Convert(ticSignature.ReturnType);
 #if DEBUG
 
-            TraceLog.WriteLine($"CREATE GENERIC FUN {syntaxNode.Id}({string.Join(",",argTypes)}):{retType}");
-                TraceLog.WriteLine($"    ...where {string.Join(", ", langConstrains)}");
+            TraceLog.WriteLine($"CREATE GENERIC FUN {syntaxNode.Id}({string.Join(",", argTypes)}):{retType}");
+            TraceLog.WriteLine($"    ...where {string.Join(", ", langConstrains)}");
 #endif
-            var function =  new GenericUserFunction(typeInferenceResults, syntaxNode, dictionary, langConstrains, retType, argTypes);
+            var function = new GenericUserFunction(typeInferenceResults, syntaxNode, dictionary, langConstrains,
+                retType, argTypes);
             return function;
         }
 
@@ -55,7 +57,7 @@ namespace NFun.Interpretation.Functions
             {
                 var anc = function._constrainsMap[i].Ancestor ?? StatePrimitive.Any;
                 var concrete = TicTypesConverter.ToConcrete(anc.Name);
-                varType[i] =concrete;
+                varType[i] = concrete;
             }
 
             function.CreateConcrete(varType);
@@ -68,7 +70,7 @@ namespace NFun.Interpretation.Functions
             GenericConstrains[] constrains,
             FunnyType returnType,
             FunnyType[] argTypes
-            ) : base(syntaxNode.Id, constrains, returnType, argTypes)
+        ) : base(syntaxNode.Id, constrains, returnType, argTypes)
         {
             _typeInferenceResults = typeInferenceResults;
             _constrainsMap = _typeInferenceResults.Generics;
@@ -77,10 +79,11 @@ namespace NFun.Interpretation.Functions
         }
 
         readonly Dictionary<string, IConcreteFunction> _concreteFunctionsCache = new();
+
         public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes)
         {
             BuiltCount++;
-            
+
             var id = string.Join(",", concreteTypes);
             if (_concreteFunctionsCache.TryGetValue(id, out var alreadyExists))
                 return alreadyExists;
@@ -104,17 +107,16 @@ namespace NFun.Interpretation.Functions
                 exitVisitor: new ApplyTiResultsExitVisitor());
 
             var function = _syntaxNode.BuildConcrete(
-                argTypes:   argTypes, 
+                argTypes: argTypes,
                 returnType: returnType,
                 functionsDictionary: _dictionary,
-                results:    _typeInferenceResults, 
-                converter:  converter);
+                results: _typeInferenceResults,
+                converter: converter);
 
-            concretePrototype.SetActual(function,_syntaxNode.Interval);
+            concretePrototype.SetActual(function, _syntaxNode.Interval);
             return function;
         }
 
         protected override object Calc(object[] args) => throw new NotImplementedException();
     }
-   
 }

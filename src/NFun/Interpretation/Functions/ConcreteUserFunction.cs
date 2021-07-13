@@ -5,7 +5,7 @@ using NFun.Types;
 
 namespace NFun.Interpretation.Functions
 {
-    public class ConcreteUserFunction : FunctionWithManyArguments
+    internal class ConcreteUserFunction : FunctionWithManyArguments
     {
         internal VariableSource[] ArgumentSources { get; }
         protected readonly IExpressionNode Expression;

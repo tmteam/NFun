@@ -81,14 +81,7 @@ namespace NFun.Runtime.Arrays
             else
                 return null;
         }
-
-        public bool IsEquivalent(IFunArray array)
-        {
-            if (array is TextFunArray t)
-                return t._text == _text;
-            return TypeHelper.AreEquivalent(this, array);
-        }
-
+        
         public IEnumerable<T> As<T>()
         {
             if (typeof(T) == typeof(char))

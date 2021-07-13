@@ -6,11 +6,11 @@ using NFun.Types;
 
 namespace NFun.Runtime.Arrays
 {
-    public static class ArrayTools
+    public static class FunnyArrayTools
     {
-        public static TextFunArray AsFunText(this  string txt)=> new (txt);
+        public static TextFunArray AsFunText(this string txt) => new(txt);
 
-        public static string JoinElementsToFunString(IEnumerable enumerable)
+        internal static string JoinElementsToFunString(IEnumerable enumerable)
         {
             var sb = new StringBuilder("[");
             bool first = true;
@@ -20,32 +20,38 @@ namespace NFun.Runtime.Arrays
                 {
                     sb.Append(",");
                 }
+
                 first = false;
                 sb.Append(TypeHelper.GetFunText(item));
             }
+
             sb.Append("]");
             return sb.ToString();
         }
-        public static string JoinElementsToFunString(IEnumerable<object> enumerable)
+
+        internal static string JoinElementsToFunString(IEnumerable<object> enumerable)
         {
             bool allAreChars = true;
             int count = 0;
             foreach (var item in enumerable)
             {
                 count++;
-                if (item is not char) 
+                if (item is not char)
                     allAreChars = false;
             }
+
             if (allAreChars)
             {
                 var chars = new char[count];
                 int i = 0;
                 foreach (var item in enumerable)
                 {
-                    chars[i] = (char) item;
-                }   
+                    chars[i] = (char)item;
+                }
+
                 return new string(chars);
             }
+
             var sb = new StringBuilder("[");
             bool first = true;
             foreach (var item in enumerable)
@@ -54,42 +60,46 @@ namespace NFun.Runtime.Arrays
                 {
                     sb.Append(",");
                 }
+
                 first = false;
                 sb.Append(TypeHelper.GetFunText(item));
             }
+
             sb.Append("]");
             return sb.ToString();
         }
-        public static IFunArray SliceToImmutable(
+
+        internal static IFunArray SliceToImmutable(
             Array array,
             FunnyType elementType,
             int? startIndex, int? endIndex, int? step)
         {
             if (array.Length == 0)
-                return new ImmutableFunArray(array,elementType);
-            
+                return new ImmutableFunArray(array, elementType);
+
             var start = startIndex ?? 0;
-            if(start > array.Length-1) 
+            if (start > array.Length - 1)
                 return new ImmutableFunArray(Array.Empty<object>(), elementType);
-            
+
             var end = array.Length - 1;
-            if(endIndex.HasValue)
+            if (endIndex.HasValue)
                 end = endIndex.Value >= array.Length ? array.Length - 1 : endIndex.Value;
             object[] newArr;
             if (step == null || step == 1)
             {
                 var size = end - start + 1;
                 newArr = new object[size];
-                System.Array.Copy(array, start, newArr,  0, size);
+                System.Array.Copy(array, start, newArr, 0, size);
             }
             else
-            {    
-                var size = (int)Math.Floor((end - start) / (double)step)+1;
+            {
+                var size = (int)Math.Floor((end - start) / (double)step) + 1;
                 newArr = new object[size];
-                for (int i = start, index = 0; i <= end; i+= step.Value, index++)
+                for (int i = start, index = 0; i <= end; i += step.Value, index++)
                     newArr[index] = array.GetValue(i);
             }
-            return new ImmutableFunArray(newArr,elementType);
-        }   
+
+            return new ImmutableFunArray(newArr, elementType);
+        }
     }
 }
