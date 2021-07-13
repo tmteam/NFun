@@ -74,193 +74,101 @@ namespace NFun.InfinityProfiling.Sets
         }
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void PrimitivesConstTrue()
-        {
-            _constTrueRuntime.Calc();
-        }
+        public void PrimitivesConstTrue() => _constTrueRuntime.ProfileCalculation();
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void PrimitivesConstBool()
-        {
-            _constBool.Calc();
-        }
+        public void PrimitivesConstBool() => _constBool.ProfileCalculation();
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void PrimitivesConst1()
-        {
-            _const1Runtime.Calc();
-        }
+        public void PrimitivesConst1() => _const1Runtime.ProfileCalculation();
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void ConstText()
-        {
-            _constTextRuntime.Calc();
-        }
+        public void ConstText() => _constTextRuntime.ProfileCalculation();
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void ConstBoolArray()
-        {
-            _constBoolArrayRuntime.Calc();
-        }
+        public void ConstBoolArray() => _constBoolArrayRuntime.ProfileCalculation();
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void ConstRealArray()
-        {
-            _constRealArrayRuntime.Calc();
-        }
+        public void ConstRealArray() => _constRealArrayRuntime.ProfileCalculation();
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void ConstInterpolation()
-        {
-            _constInterpolation.Calc();
-        }
+        public void ConstInterpolation() => _constInterpolation.ProfileCalculation();
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void ConstGenericFunc()
-        {
-            _constGenericFunc.Calc();
-        }
+        public void ConstGenericFunc() => _constGenericFunc.ProfileCalculation();
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void ConstSquareEquation()
-        {
-            _constSquareEquation.Calc();
-        }
+        public void ConstSquareEquation() => _constSquareEquation.ProfileCalculation();
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void PrimitiveConstIntSimpleArithmetics()
-        {
-            _primitiveConstIntSimpleArithmetics.Calc();
-        }
+        public void PrimitiveConstIntSimpleArithmetics() => _primitiveConstIntSimpleArithmetics.ProfileCalculation();
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void PrimitiveConstRealSimpleArithmetics()
-        {
-            _primitiveConstRealSimpleArithmetics.Calc();
-        }
+        public void PrimitiveConstRealSimpleArithmetics() => _primitiveConstRealSimpleArithmetics.ProfileCalculation();
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void PrimitiveConstBoolSimpleArithmetics()
-        {
-            _primitiveConstBoolSimpleArithmetics.Calc();
-        }
+        public void PrimitiveConstBoolSimpleArithmetics() => _primitiveConstBoolSimpleArithmetics.ProfileCalculation();
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void PrimitiveCalcReal2Var()
-        {
-            _primitiveCalcReal2Var.Calc(("a", 42.1), ("b", 24.0));
-        }
+        public void PrimitiveCalcReal2Var() => _primitiveCalcReal2Var.ProfileCalculation(("a", 42.1), ("b", 24.0));
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void PrimitiveCalcInt2Var()
-        {
-            _primitiveCalcInt2Var.Calc(("a", 42), ("b", 24));
-        }
+        public void PrimitiveCalcInt2Var() => _primitiveCalcInt2Var.ProfileCalculation(("a", 42), ("b", 24));
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void PrimitiveCalcSingleBool()
-        {
-            _calcSingleBool.Calc(("x", true));
-        }
+        public void PrimitiveCalcSingleBool() => _calcSingleBool.ProfileCalculation(("x", true));
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void PrimitiveCalcSingleReal()
-        {
-            _calcReal.Calc(("x", 42.1));
-        }
+        public void PrimitiveCalcSingleReal() => _calcReal.ProfileCalculation(("x", 42.1));
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void CalcSingleText()
-        {
-            _calcText.Calc(("x", "kavabanga"));
-        }
+        public void CalcSingleText() => _calcText.ProfileCalculation(("x", "kavabanga"));
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void PrimitiveCalcIntOp()
-        {
-            _calcIntOp.Calc(("x", 1));
-        }
+        public void PrimitiveCalcIntOp() => _calcIntOp.ProfileCalculation(("x", 1));
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void PrimitiveCalcRealOp()
-        {
-            _calcRealOp.Calc(("x", 2.0));
-        }
+        public void PrimitiveCalcRealOp() => _calcRealOp.ProfileCalculation(("x", 2.0));
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void PrimitiveCalcBoolOp()
-        {
-            _calcBoolOp.Calc(("x", true));
-        }
+        public void PrimitiveCalcBoolOp() => _calcBoolOp.ProfileCalculation(("x", true));
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void CalcTextOp()
-        {
-            _calcTextOp.Calc(("x", "vasa"));
-        }
+        public void CalcTextOp() => _calcTextOp.ProfileCalculation(("x", "vasa"));
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void CalcInterpolation()
-        {
-            _calcInterpolation.Calc(("a", 2.0), ("b", 3.4));
-        }
+        public void CalcInterpolation() => _calcInterpolation.ProfileCalculation(("a", 2.0), ("b", 3.4));
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void CalcGenericFunc()
-        {
-            _calcGenericFunc.Calc(("a", 1.0), ("b", 2.0), ("c", 3.0));
-        }
+        public void CalcGenericFunc() => _calcGenericFunc.ProfileCalculation(("a", 1.0), ("b", 2.0), ("c", 3.0));
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void CalcSquareEquation()
-        {
-            _calcSquareEquation.Calc(("a", 1.0), ("b", 10.1), ("c", 1.2));
-        }
+        public void CalcSquareEquation() => _calcSquareEquation.ProfileCalculation(("a", 1.0), ("b", 10.1), ("c", 1.2));
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void PrimitivesCalcKxb()
-        {
-            _calcKxb.Calc(("x", 12.3));
-        }
+        public void PrimitivesCalcKxb() => _calcKxb.ProfileCalculation(("x", 12.3));
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void CalcRealArray()
-        {
-            _calcRealArray.Calc(("x", 3.14));
-        }
+        public void CalcRealArray() => _calcRealArray.ProfileCalculation(("x", 3.14));
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void CalcFourArgs()
-        {
-            _calcFourArgs.Calc(
+        public void CalcFourArgs() =>
+            _calcFourArgs.ProfileCalculation(
                 ("a", 1.1),
                 ("b", 42.1),
                 ("c", 4.1),
                 ("d", "kotopes")
             );
-        }
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void ComplexConstMultiArrays()
-        {
-            _constMultiplyArrayItems.Calc();
-        }
+        public void ComplexConstMultiArrays() => _constMultiplyArrayItems.ProfileCalculation();
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void ComplexDummyBubble()
-        {
-            _constDummyBubbleSort.Calc();
-        }
+        public void ComplexDummyBubble() => _constDummyBubbleSort.ProfileCalculation();
 
         [MethodImpl(MethodImplOptions.NoOptimization)]
-        public void ComplexConstEverything()
-        {
-            _constEverything.Calc();
-        }
+        public void ComplexConstEverything() => _constEverything.ProfileCalculation();
 
-        private FunnyRuntime Build(string expr)
-        {
-            return Funny.Hardcore.Build(expr);
-        }
+        private FunnyRuntime Build(string expr) => Funny.Hardcore.Build(expr);
     }
 }

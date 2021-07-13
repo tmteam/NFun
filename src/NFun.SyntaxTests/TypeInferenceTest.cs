@@ -464,7 +464,7 @@ namespace NFun.SyntaxTests
         public void OutputType_checkInputTest(string expression, string variable, BaseFunnyType expectedType){
             var runtime = expression.Build();
             
-            Assert.AreEqual(expectedType, runtime.GetVariable(variable).Type.BaseType);
+            Assert.AreEqual(expectedType, runtime[variable].Type.BaseType);
         }
 
         [TestCase("y:int[] = x",new[]{1,2,3},new[]{1,2,3})]

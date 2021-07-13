@@ -16,8 +16,8 @@ namespace NFun.ApiTests
                 
             var res = runtime.Calc("x","test");
             res.AssertReturns("y","test");
-            Assert.AreEqual(FunnyType.Text, runtime.GetVariable("x").Type);
-            Assert.AreEqual(FunnyType.Text, runtime.GetVariable("y").Type);
+            Assert.AreEqual(FunnyType.Text, runtime["x"].Type);
+            Assert.AreEqual(FunnyType.Text, runtime["y"].Type);
         }
 
         [Test]
@@ -28,8 +28,8 @@ namespace NFun.ApiTests
                 .Build("x:text; y = x");
             var res = runtime.Calc("x", "test");
             res.AssertReturns("y", "test");
-            var input = runtime.GetVariable("x");
-            var output = runtime.GetVariable("y");
+            var input = runtime["x"];
+            var output = runtime["y"];
             Assert.IsFalse(input.IsOutput);
             Assert.IsTrue(output.IsOutput);
             Assert.AreEqual(FunnyType.Text, input.Type, "input");
@@ -45,8 +45,8 @@ namespace NFun.ApiTests
                     
             var res = runtime.Calc("x","test");
             res.AssertReturns("y","test");
-            Assert.AreEqual(FunnyType.Text, runtime.GetVariable("x").Type,"input");
-            Assert.AreEqual(FunnyType.Text, runtime.GetVariable("y").Type,"output");
+            Assert.AreEqual(FunnyType.Text, runtime["x"].Type,"input");
+            Assert.AreEqual(FunnyType.Text, runtime["y"].Type,"output");
 
         }
         
@@ -60,8 +60,8 @@ namespace NFun.ApiTests
 
             var res = runtime.Calc("x","test");
             res.AssertReturns("y","test");
-            Assert.AreEqual(FunnyType.Text, runtime.GetVariable("x").Type,"input");
-            Assert.AreEqual(FunnyType.Text, runtime.GetVariable("y").Type,"output");
+            Assert.AreEqual(FunnyType.Text, runtime["x"].Type,"input");
+            Assert.AreEqual(FunnyType.Text, runtime["y"].Type,"output");
         }
 
         [Test]

@@ -14,8 +14,24 @@ namespace NFun.TestTools
 {
     public static class TestHelper
     {
+        public static CalculationResult Calc(this FunnyRuntime runtime, string id, object clrValue) => runtime.Calc((id, clrValue));
+
+        
         public static CalculationResult Calc(this string expr, string id, object val) =>
             Funny.Hardcore.Build(expr).Calc((id, val));
+
+        public static CalculationResult Calc(this FunnyRuntime runtime, params (string id, object clrValue)[] values)
+        {
+            foreach (var (id, clrValue) in values)
+            {
+                runtime[id].Value= clrValue;
+            }
+            runtime.Run();
+            var vals = runtime.Variables.Where(v => v.IsOutput).Select(v => new VarVal(v.Name, v.FunnyValue, v.Type))
+                .ToArray();
+            return new CalculationResult(vals);
+        }
+
 
         public static CalculationResult Calc(this string expr, params (string id, object val)[] values) =>
             Funny.Hardcore.Build(expr).Calc(values);

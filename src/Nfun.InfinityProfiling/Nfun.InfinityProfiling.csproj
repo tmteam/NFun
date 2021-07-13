@@ -6,7 +6,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\NFun\NFun.csproj"/>
+        <ProjectReference Include="..\NFun\NFun.csproj" />
     </ItemGroup>
 
 </Project>

@@ -52,76 +52,53 @@ namespace NFun.Benchmarks
         }
 
         [Benchmark(Description = "dotnet [1.1000].SUM()", Baseline = true)]
-        public int BaselineDotnetTest1000()
-        {
-            return Enumerable.Range(1, 3000).Sum();
-        }
+        public int BaselineDotnetTest1000() => Enumerable.Range(1, 3000).Sum();
 
         [Benchmark(Description = "true calc")]
-        public CalculationResult True()
-        {
-            return _const_true_runtime.Calc();
-        }
+        public object True() => Calc(_const_true_runtime);
 
         [Benchmark(Description = "1 calc")]
-        public CalculationResult Const1()
-        {
-            return _const_1_runtime.Calc();
-        }
+        public object Const1() => Calc(_const_1_runtime);
 
         [Benchmark(Description = "text calc")]
-        public CalculationResult Text()
-        {
-            return _const_text_runtime.Calc();
-        }
+        public object Text() => Calc(_const_text_runtime);
 
         [Benchmark(Description = "bool[] calc")]
-        public CalculationResult BoolArray()
-        {
-            return _const_boolArray_runtime.Calc();
-        }
+        public object BoolArray() => Calc(_const_boolArray_runtime);
 
         [Benchmark(Description = "real[] calc")]
-        public CalculationResult RealArray()
-        {
-            return _const_realArray_runtime.Calc();
-        }
+        public object RealArray() => Calc(_const_realArray_runtime);
 
         [Benchmark(Description = "const kxb calc")]
-        public CalculationResult ConstKxb()
-        {
-            return _const_Kxb_runtime.Calc();
-        }
+        public object ConstKxb() => Calc(_const_Kxb_runtime);
 
         [Benchmark(Description = "array multiply calc")]
-        public CalculationResult MultiArrays()
-        {
-            return _const_multiplyArrays_runtime.Calc();
-        }
+        public object MultiArrays() => Calc(_const_multiplyArrays_runtime);
 
         //[Benchmark(Description = "sum1000 calc")] public CalculationResult Sum1000() => _const_sum_1000_runtime.Calculate();
         [Benchmark(Description = "dummy bubble calc")]
-        public CalculationResult DummyBubble()
-        {
-            return _const_dummyBubbleSort_runtime.Calc();
-        }
+        public object DummyBubble() => Calc(_const_dummyBubbleSort_runtime);
 
         [Benchmark(Description = "everything calc")]
-        public CalculationResult Everything()
-        {
-            return _const_everything_runtime.Calc();
-        }
+        public object Everything() => Calc(_const_everything_runtime);
 
         [Benchmark(Description = "kxb with var calc")]
-        public CalculationResult VarKxb()
-        {
-            return _varkxb_runtime.Calc(value);
-        }
+        public object VarKxb() => Calc(_varkxb_runtime);
 
         [Benchmark(Description = "dotnet kxb calc")]
-        public double DotnetKxb()
+        public double DotnetKxb() => dotnetEx(100);
+
+        private object Calc(FunnyRuntime runtime)
         {
-            return dotnetEx(100);
+            runtime.Run();
+
+            foreach (var variable in runtime.Variables)
+            {
+                if (variable.IsOutput)
+                    return variable.Value;
+            }
+
+            return null;
         }
     }
 }

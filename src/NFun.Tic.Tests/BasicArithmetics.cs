@@ -287,7 +287,7 @@ namespace NFun.Tic.Tests
 
             //Assert.AreEqual(0,result.GenericsCount);
             result.AssertNamed(StatePrimitive.I32, "a");
-            //Assert.AreEqual(ConcreteType.Real, result.GetVariable("b"));
+            //Assert.AreEqual(ConcreteType.Real, result["b"));
             result.AssertNamed(StatePrimitive.Real, "y");
         }
         [Test]

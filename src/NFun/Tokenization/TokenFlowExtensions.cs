@@ -12,14 +12,14 @@ namespace NFun.Tokenization
         public static bool IsStartOfTheLine(this TokFlow flow) 
             => flow.IsStart || flow.IsPrevious(TokType.NewLine);
 
-        public static VarAttribute[] ReadAttributes(this TokFlow flow)
+        public static FunnyAttribute[] ReadAttributes(this TokFlow flow)
         {
-            var attributes = Array.Empty<VarAttribute>();
+            var attributes = Array.Empty<FunnyAttribute>();
             if (!flow.IsCurrent(TokType.MetaInfo))
                 return attributes;
 
             bool newLine = flow.IsStart || flow.Previous.Is(TokType.NewLine);
-            var ans = new List<VarAttribute>();
+            var ans = new List<FunnyAttribute>();
             while (flow.IsCurrent(TokType.MetaInfo))
             {
                 if (!newLine)
@@ -31,7 +31,7 @@ namespace NFun.Tokenization
             return ans.ToArray();
         }
 
-        private static VarAttribute ReadAttributeOrThrow(this TokFlow flow)
+        private static FunnyAttribute ReadAttributeOrThrow(this TokFlow flow)
         {
             var start = flow.Current.Start;
             flow.MoveNext();
@@ -67,7 +67,7 @@ namespace NFun.Tokenization
             if(!flow.MoveIf(TokType.NewLine))
                 throw ErrorFactory.NowNewLineAfterAttribute(start, flow);
 
-            return new VarAttribute(id.Value, val);
+            return new FunnyAttribute(id.Value, val);
         }
     }
 }

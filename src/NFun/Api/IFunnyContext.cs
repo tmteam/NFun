@@ -28,9 +28,9 @@ namespace NFun
             
             return input =>
             {
-                var inputVals =FluentApiTools.GetInputValues(inputsMap, input);
-                var result = runtime.CalculateSafe(inputVals);
-                return FluentApiTools.GetClrOut(result);
+                FluentApiTools.SetInputValues(runtime,inputsMap,input);
+                runtime.Run();
+                return FluentApiTools.GetClrOut(runtime);
             };
         }
     }
@@ -53,9 +53,9 @@ namespace NFun
             FluentApiTools.ThrowIfHasUnknownInputs(runtime,inputsMap);
             return input =>
             {
-                var inputValues = FluentApiTools.GetInputValues(inputsMap, input);
-                var calcResults = runtime.CalculateSafe(inputValues);
-                return FluentApiTools.CreateOutputValueFromResults<TOutput>(outputs, calcResults);
+                FluentApiTools.SetInputValues(runtime, inputsMap,input);
+                runtime.Run();
+                return FluentApiTools.CreateOutputValueFromResults<TOutput>(runtime, outputs);
             };
         }
     }
@@ -82,13 +82,13 @@ namespace NFun
             
             if(!runtime.HasDefaultOutput)
                 throw ErrorFactory.OutputIsUnset(outputConverter.FunnyType);
-            var outVariable = runtime.GetVariable(Parser.AnonymousEquationId);
+            var outVariable = runtime[Parser.AnonymousEquationId];
             
             
             return input => 
             {
-                var inputValues = FluentApiTools.GetInputValues(inputsMap, input);
-                runtime.CalculateSafe(inputValues);
+                FluentApiTools.SetInputValues(runtime, inputsMap,input);
+                runtime.Run();
                 return (TOutput) outputConverter.ToClrObject(outVariable.FunnyValue);
             };
         }

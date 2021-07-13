@@ -16,9 +16,9 @@ namespace NFun
             var runtime = RuntimeBuilder.Build(expression, BaseFunctions.DefaultDictionary);
             if (runtime.Variables.Any(v=>!v.IsOutput))
                 throw ErrorFactory.UnknownInputs(runtime.GetInputVariableUsages());
+            runtime.Run();
             
-            var result = runtime.CalculateSafe();
-            return FluentApiTools.GetClrOut(result);
+            return FluentApiTools.GetClrOut(runtime);
         }
         public static TOutput Calc<TOutput>(string expression) 
             => FluentApiTools.CalcSingleOutput<TOutput>(expression);
@@ -38,8 +38,8 @@ namespace NFun
             if (runtime.Variables.Any(v=>!v.IsOutput))
                 throw ErrorFactory.UnknownInputs(runtime.GetInputVariableUsages());
             
-            var calcResults = runtime.CalculateSafe();
-            return FluentApiTools.CreateOutputValueFromResults<TOutput>(outputs, calcResults);
+            runtime.Run();
+            return FluentApiTools.CreateOutputValueFromResults<TOutput>(runtime, outputs);
         }
         
         public static TOutput CalcMany<TInput, TOutput>(string expression, TInput input) where TOutput: new() 

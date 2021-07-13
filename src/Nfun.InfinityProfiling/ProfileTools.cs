@@ -1,11 +1,29 @@
 using System;
 using System.Collections.Generic;
 using NFun.InfinityProfiling.Sets;
+using NFun.Runtime;
 
 namespace NFun.InfinityProfiling
 {
     public static class ProfileTools
     {
+        public static object ProfileCalculation(this FunnyRuntime runtime, params (string id, object clrValue)[] values)
+        {
+            foreach (var (id, clrValue) in values)
+            {
+                runtime[id].Value = clrValue;
+            }
+
+            runtime.Run();
+
+            foreach (var variable in runtime.Variables)
+            {
+                if (variable.IsOutput)
+                    return variable.Value;
+            }
+
+            return null;
+        }
         public static void AddAndTruncate<T>(this LinkedList<T> list, T value, int maxSize)
         {
             list.AddLast(value);

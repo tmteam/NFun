@@ -26,28 +26,8 @@ namespace NFun.Runtime
             _variables = variables;
         }
 
-        public object this[string key]
-        {
-            set
-            {
-                var usage = _variables.GetUsages(key);
-                if (usage == null)
-                    throw new KeyNotFoundException($"Variable '{key}' not found in scope");
-                
-                var converter = FunnyTypeConverters.GetInputConverter(value.GetType());
-                usage.Source.InternalFunnyValue = converter.ToFunObject(value);
-            }
-            get
-            {
-                var usage = _variables.GetUsages(key);
-                if (usage == null)
-                    throw new KeyNotFoundException($"Variable '{key}' not found in scope");
-                var output = usage.Source;
-                if (!output.IsOutput)
-                    throw new KeyNotFoundException($"Variable '{key}' is not output and cannot be read");
-                return output.GetClrValue();
-            }
-        }
+        public IFunnyVar this[string key] =>
+            GetVariable(key);
 
         public IReadOnlyList<IFunnyVar> Variables => _variables.GetAllSources();
 
@@ -64,56 +44,7 @@ namespace NFun.Runtime
         public void Run()
         {
             foreach (var equation in _equations)
-                equation.UpdateExpression();
-        }
-
-        public CalculationResult Calc(string id, object clrValue) => Calc((id, clrValue));
-
-        public CalculationResult Calc(params (string id, object clrValue)[] values)
-        {
-            //todo value convertion or error in such a case: Input: int, expected: double 
-            foreach (var value in values)
-            {
-                this[value.id] = value.clrValue;
-            }
-
-            var ans = new VarVal[_equations.Count];
-            for (int i = 0; i < _equations.Count; i++)
-                ans[i] = _equations[i].CalcExpression();
-
-            return new CalculationResult(ans);
-        }
-
-        internal CalculationResult CalculateSafe(params VarVal[] vars)
-        {
-            foreach (var value in vars)
-            {
-                var source = _variables.GetSourceOrNull(value.Name);
-                if (source != null)
-                    source.InternalFunnyValue = value.Value;
-            }
-
-            var ans = new VarVal[_equations.Count];
-            for (int i = 0; i < _equations.Count; i++)
-                ans[i] = _equations[i].CalcExpression();
-
-            return new CalculationResult(ans);
-        }
-
-        internal CalculationResult CalculateSafe(Span<VarVal> vars)
-        {
-            foreach (var value in vars)
-            {
-                var source = _variables.GetSourceOrNull(value.Name);
-                if (source != null)
-                    source.InternalFunnyValue = value.Value;
-            }
-
-            var ans = new VarVal[_equations.Count];
-            for (int i = 0; i < _equations.Count; i++)
-                ans[i] = _equations[i].CalcExpression();
-
-            return new CalculationResult(ans);
+                equation.Run();
         }
     }
 }

@@ -13,13 +13,13 @@ namespace NFun.SyntaxParsing.SyntaxNodes
 
         public string Id { get; }
         public FunnyType FunnyType { get; }
-        public VarAttribute[] Attributes { get; }
+        public FunnyAttribute[] Attributes { get; }
 
-        public VarDefinitionSyntaxNode(TypedVarDefSyntaxNode node, VarAttribute[] attributes = null)
+        public VarDefinitionSyntaxNode(TypedVarDefSyntaxNode node, FunnyAttribute[] attributes = null)
         {
             Id = node.Id;
             FunnyType = node.FunnyType;
-            Attributes = attributes??Array.Empty<VarAttribute>();
+            Attributes = attributes??Array.Empty<FunnyAttribute>();
             Interval = node.Interval;
         }
         public bool IsInBrackets { get; set; }

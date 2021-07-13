@@ -12,8 +12,9 @@ namespace NFun
     internal static class FluentApiTools
     {
         public static TOutput CreateOutputValueFromResults<TOutput>(
-            Memory<(string, IOutputFunnyConverter, PropertyInfo)> outputs, 
-            CalculationResult calcResults)
+            FunnyRuntime runtime,
+            Memory<(string, IOutputFunnyConverter, PropertyInfo)> outputs
+        )
             where TOutput : new()
         {
             var span = outputs.Span;
@@ -22,9 +23,9 @@ namespace NFun
             for (int i = 0; i < outputs.Length; i++)
             {
                 var (outName, outConverter, outProperty) = span[i];
-                if (calcResults.TryGet(outName, outConverter, out var actualOutput))
+                if (runtime.TryGetVariable(outName, out var actualOutput))
                 {
-                    outProperty.SetValue(answer, actualOutput);
+                    outProperty.SetValue(answer, outConverter.ToClrObject(actualOutput.FunnyValue));
                     settedCount++;
                 }
             }
@@ -34,8 +35,9 @@ namespace NFun
             return answer;
         }
 
-        
-        public  static Memory<(string, IOutputFunnyConverter, PropertyInfo)> SetupManyAprioriOutputs<TOutput>(AprioriTypesMap aprioriTypesMap) where TOutput : new()
+
+        public static Memory<(string, IOutputFunnyConverter, PropertyInfo)> SetupManyAprioriOutputs<TOutput>(
+            AprioriTypesMap aprioriTypesMap) where TOutput : new()
         {
             var outputProperties = typeof(TOutput).GetProperties(BindingFlags.Instance | BindingFlags.Public);
             var outputVarVals = new (string, IOutputFunnyConverter, PropertyInfo)[outputProperties.Length];
@@ -57,58 +59,57 @@ namespace NFun
                 actualOutputsCount++;
             }
 
-            return outputVarVals.AsMemory(0,actualOutputsCount);
+            return outputVarVals.AsMemory(0, actualOutputsCount);
         }
 
-        internal static object GetClrOut(CalculationResult result)
+        internal static object GetClrOut(FunnyRuntime runtime) => GetOut(runtime).Value;
+
+        private static IFunnyVar GetOut(FunnyRuntime runtime)
         {
-            if (!result.TryGet(Parser.AnonymousEquationId, out var outResult))
+            if (!runtime.TryGetVariable(Parser.AnonymousEquationId, out var outResult))
                 throw ErrorFactory.OutputIsUnset();
             return outResult;
         }
 
-        public  static TOutput CalcSingleOutput<TOutput>(string expression)
+        public static TOutput CalcSingleOutput<TOutput>(string expression)
         {
             var outputConverter = FunnyTypeConverters.GetOutputConverter(typeof(TOutput));
             var apriories = AprioriTypesMap.Empty;
             apriories.Add(Parser.AnonymousEquationId, outputConverter.FunnyType);
-            
-            var runtime = RuntimeBuilder.Build(expression,  BaseFunctions.DefaultDictionary,EmptyConstantList.Instance, apriories);
-            
-            if (runtime.Variables.Any(v=>!v.IsOutput))
+
+            var runtime = RuntimeBuilder.Build(expression, BaseFunctions.DefaultDictionary, EmptyConstantList.Instance,
+                apriories);
+
+            if (runtime.Variables.Any(v => !v.IsOutput))
                 throw ErrorFactory.UnknownInputs(runtime.GetInputVariableUsages());
 
-            var result = runtime.CalculateSafe(Span<VarVal>.Empty);
-            
-            if (!result.TryGet(Parser.AnonymousEquationId,outputConverter, out var outResult))
-                throw ErrorFactory.OutputIsUnset(outputConverter.FunnyType);
-            
-            return (TOutput) outResult;
+            runtime.Run();
+
+            return (TOutput)outputConverter.ToClrObject(GetOut(runtime).FunnyValue);
         }
         
-        public static VarVal[] GetInputValues<TInput>(Memory<(string, IinputFunnyConverter, PropertyInfo)> inputMap, TInput value)
+        internal static void SetInputValues<TInput>(FunnyRuntime runtime,
+            Memory<(string, IinputFunnyConverter, PropertyInfo)> inputMap, TInput value)
         {
             var span = inputMap.Span;
-            var inputVarVals = new VarVal[span.Length];
-                
-            for (var i = 0; i < span.Length; i++)
+
+            foreach (var (name, converter, propertyInfo) in span)
             {
-                var (name, converter, propertyInfo) = span[i];
-                inputVarVals[i] = new VarVal(
-                    name,
-                    converter.ToFunObject(propertyInfo.GetValue(value)),
-                    converter.FunnyType
-                );
+                if (!runtime.TryGetVariable(name, out var variable))
+                    continue;
+
+                if (variable is VariableSource source)
+                    source.InternalFunnyValue = converter.ToFunObject(propertyInfo.GetValue(value));
             }
-            return inputVarVals;
         }
-        public  static Memory<(string, IinputFunnyConverter, PropertyInfo)> 
+
+        public static Memory<(string, IinputFunnyConverter, PropertyInfo)>
             SetupAprioriInputs<TInput>(AprioriTypesMap apriories)
         {
             var inputProperties = typeof(TInput).GetProperties(BindingFlags.Instance | BindingFlags.Public);
             var inputTypes = new (string, IinputFunnyConverter, PropertyInfo)[inputProperties.Length];
             int actualInputsCount = 0;
-            
+
             for (var i = 0; i < inputProperties.Length; i++)
             {
                 var inputProperty = inputProperties[i];
@@ -116,7 +117,7 @@ namespace NFun
                     continue;
                 var converter = FunnyTypeConverters.GetInputConverter(inputProperty.PropertyType);
                 var inputName = inputProperty.Name.ToLower();
-                
+
                 apriories.Add(inputName, converter.FunnyType);
                 inputTypes[i] = new ValueTuple<string, IinputFunnyConverter, PropertyInfo>(
                     inputName,
@@ -128,15 +129,16 @@ namespace NFun
 
             return inputTypes.AsMemory(0, actualInputsCount);
         }
-       
-        internal static void ThrowIfHasUnknownInputs(FunnyRuntime runtime, Memory<(string, IinputFunnyConverter, PropertyInfo)> expectedInputs)
+
+        internal static void ThrowIfHasUnknownInputs(FunnyRuntime runtime,
+            Memory<(string, IinputFunnyConverter, PropertyInfo)> expectedInputs)
         {
             var span = expectedInputs.Span;
             foreach (var actualInput in runtime.Variables)
             {
-                if(actualInput.IsOutput)
+                if (actualInput.IsOutput)
                     continue;
-                
+
                 bool known = false;
                 for (var i = 0; i < span.Length; i++)
                 {

@@ -57,11 +57,11 @@ namespace NFun.Benchmarks
             _runtime.Run();
         }
 
-        [Benchmark]
-        public CalculationResult Calculate()
-        {
-            return _runtime.Calc();
-        }
+        // [Benchmark]
+        // public CalculationResult Calculate()
+        // {
+        //     return _runtime.Calc();
+        // }
     }
 
     public class NfunParserBenchmark

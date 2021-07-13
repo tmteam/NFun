@@ -231,7 +231,7 @@ y4 = not(x1 and x2 or x3)
         {
             var runtime = expression.Build();
             runtime.AssertOutputsCount(1);
-            var output = runtime.GetVariable("y");
+            var output = runtime["y"];
             Assert.AreEqual(primitiveType, output.Type.BaseType);
         }
 

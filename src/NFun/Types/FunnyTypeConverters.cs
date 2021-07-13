@@ -9,6 +9,34 @@ namespace NFun.Types
 {
     public static class FunnyTypeConverters
     {
+        public static object ConvertInputOrThrow(object clrValue, FunnyType resultFunnyType)
+        {
+            var clrFromType = clrValue.GetType();
+            if (resultFunnyType.BaseType.GetClrType() == clrFromType)
+                return clrValue;
+
+            var converter = FunnyTypeConverters.GetInputConverter(clrFromType);
+            if (converter.FunnyType == resultFunnyType)
+                return converter.ToFunObject(clrValue);
+
+            //Special slow convertation
+            return resultFunnyType.BaseType switch
+            {
+                BaseFunnyType.Any  => converter.ToFunObject(clrValue),
+                BaseFunnyType.Bool => Convert.ToBoolean(clrValue),
+                BaseFunnyType.Int16 => Convert.ToInt16(clrValue),
+                BaseFunnyType.Int32 => Convert.ToInt32(clrValue),
+                BaseFunnyType.Int64 => Convert.ToInt64(clrValue),
+                BaseFunnyType.UInt8 => Convert.ToByte(clrValue),
+                BaseFunnyType.UInt16 => Convert.ToUInt16(clrValue),
+                BaseFunnyType.UInt32 => Convert.ToUInt32(clrValue),
+                BaseFunnyType.UInt64 => Convert.ToUInt64(clrValue),
+                BaseFunnyType.Real => Convert.ToDouble(clrValue),
+                BaseFunnyType.Char => clrValue?.ToString() ?? "",
+                _ => converter.ToFunObject(clrValue)
+            };
+        }
+
         public static object ConvertInput(object clrValue) =>
             GetInputConverter(clrValue.GetType()).ToFunObject(clrValue);
         

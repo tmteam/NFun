@@ -22,7 +22,7 @@ namespace NFun.ApiTests
             Assert.AreEqual(FunnyType.Real, xVar.Type);
 
             Assert.AreEqual(true, out1Var.IsOutput);
-            Assert.AreEqual("", out1Var.GetClrValue());
+            Assert.AreEqual("", out1Var.Value);
             Assert.AreEqual(FunnyType.Text, out1Var.Type);
         }
 
@@ -38,49 +38,47 @@ namespace NFun.ApiTests
             Assert.AreEqual(FunnyType.Real, xVar.Type);
 
             Assert.AreEqual(true, out1Var.IsOutput);
-            Assert.AreEqual("", out1Var.GetClrValue());
+            Assert.AreEqual("", out1Var.Value);
             Assert.AreEqual(FunnyType.Text, out1Var.Type);
         }
 
         [Test]
-        public void TryGetVariables_VariableDoesNotExist_ReturnsFalse() => 
+        public void TryGetVariables_VariableDoesNotExist_ReturnsFalse() =>
             Assert.IsFalse(Funny.Hardcore.Build("out1 = (10.0*x).toText()").TryGetVariable("missingVar", out _));
 
         [Test]
         public void GetVariables_VariableDoesNotExist_throws() =>
             Assert.Throws<KeyNotFoundException>(() =>
-                Funny.Hardcore.Build("out1 = (10.0*x).toText()").GetVariable("missingVar"));
+            {
+                var _ = Funny.Hardcore.Build("out1 = (10.0*x).toText()")["missingVar"];
+            });
 
 
         [Test]
         public void SetClrValue_OutputVariableChanged()
         {
             var runtime = Funny.Hardcore.Build("out1 = (10.0*x).toText()");
-            runtime.TryGetVariable("x", out var xVar);
-            runtime.TryGetVariable("out1", out var out1Var);
-
-            xVar.SetClrValue(42.0);
-
+            var xVar = runtime["x"];
+            var out1Var = runtime["out1"];
+            xVar.Value = 42.0;
             runtime.Run();
 
             Assert.AreEqual(42.0, xVar.FunnyValue);
-            Assert.AreEqual("420", out1Var.GetClrValue());
+            Assert.AreEqual("420", out1Var.Value);
         }
 
         [TestCase("@name(true)\r x:int\r    y = x", "x", "name", true)]
         [TestCase("@foo\r@bar(123)\r x:int\r  z = x", "x", "bar", 123)]
         [TestCase("some = 1\r\r@foo(123.5)\r \r x:int\r z = x", "x", "foo", 123.5)]
-
         [TestCase("@name(false)\r \r    y = x", "y", "name", false)]
         [TestCase("@foo\r@bar('')\r z = x", "z", "bar", "")]
         [TestCase("some = 1\r\r@foo(0)\r \r y = x*3", "y", "foo", 0)]
-
         public void AttributeWithValue_ValueIsCorrect(
             string expression
             , string variable,
             string attribute, object value)
         {
-            var varInfo = expression.Build().GetVariable(variable);
+            var varInfo = expression.Build()[variable];
             Assert.IsNotNull(varInfo);
 
             var actual = varInfo.Attributes.SingleOrDefault(v => v.Name == attribute);
@@ -107,8 +105,7 @@ namespace NFun.ApiTests
             , string variable,
             string[] attribute)
         {
-
-            var varInfo = expression.Build().GetVariable(variable);
+            var varInfo = expression.Build()[variable];
             Assert.IsNotNull(varInfo);
             CollectionAssert.AreEquivalent(attribute, varInfo.Attributes.Select(v => v.Name));
             Assert.IsTrue(varInfo.Attributes.All(a => a.Value == null));

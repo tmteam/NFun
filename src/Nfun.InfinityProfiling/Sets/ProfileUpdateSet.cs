@@ -75,41 +75,41 @@ namespace NFun.InfinityProfiling.Sets
             _primitiveCalcReal2Var = Build(Scripts.PrimitiveCalcReal2Var);
             _primitiveCalcInt2Var = Build(Scripts.PrimitiveCalcInt2Var);
 
-            _primitiveCalcReal2Var["a"] = 42.1;
-            _primitiveCalcReal2Var["b"] = 24.0;
+            _primitiveCalcReal2Var["a"].Value = 42.1;
+            _primitiveCalcReal2Var["b"].Value = 24.0;
 
-            _primitiveCalcInt2Var["a"] = 42;
-            _primitiveCalcInt2Var["b"] = 24;
+            _primitiveCalcInt2Var["a"].Value = 42;
+            _primitiveCalcInt2Var["b"].Value = 24;
 
-            _calcSingleReal["x"] = 1.0;
-            _calcSingleText["x"] = "foo";
-            _calcBoolOp["x"] = false;
-            _calcKxb["x"] = 42.2;
-            _calcRealArray["x"] = 24.6;
-            _calcFourArgs["a"] = 24.6;
-            _calcFourArgs["b"] = 12.2;
-            _calcFourArgs["c"] = 654.3;
-            _calcFourArgs["d"] = "bbbaaaaa";
-            _calcInterpolation["a"] = 2.0;
-            _calcInterpolation["b"] = 4.0;
+            _calcSingleReal["x"].Value = 1.0;
+            _calcSingleText["x"].Value = "foo";
+            _calcBoolOp["x"].Value = false;
+            _calcKxb["x"].Value = 42.2;
+            _calcRealArray["x"].Value = 24.6;
+            _calcFourArgs["a"].Value = 24.6;
+            _calcFourArgs["b"].Value = 12.2;
+            _calcFourArgs["c"].Value = 654.3;
+            _calcFourArgs["d"].Value = "bbbaaaaa";
+            _calcInterpolation["a"].Value = 2.0;
+            _calcInterpolation["b"].Value = 4.0;
 
-            _calcGenericFunc["a"] = 1.0;
-            _calcGenericFunc["b"] = 2.0;
-            _calcGenericFunc["c"] = 3.0;
+            _calcGenericFunc["a"].Value = 1.0;
+            _calcGenericFunc["b"].Value = 2.0;
+            _calcGenericFunc["c"].Value = 3.0;
 
-            _calcSquareEquation["a"] = 1.0;
-            _calcSquareEquation["b"] = 10.0;
-            _calcSquareEquation["c"] = 1.5;
+            _calcSquareEquation["a"].Value = 1.0;
+            _calcSquareEquation["b"].Value = 10.0;
+            _calcSquareEquation["c"].Value = 1.5;
 
-            _calcIntOp["x"] = 42;
-            _calcRealOp["x"] = 42.0;
-            _calcBoolOp["x"] = true;
-            _calcTextOp["x"] = "vasa";
+            _calcIntOp["x"].Value = 42;
+            _calcRealOp["x"].Value = 42.0;
+            _calcBoolOp["x"].Value = true;
+            _calcTextOp["x"].Value = "vasa";
 
-            _calcInterpolation["a"] = 2.0;
-            _calcInterpolation["b"] = 1.0;
+            _calcInterpolation["a"].Value = 2.0;
+            _calcInterpolation["b"].Value = 1.0;
 
-            _calcSingleBool["x"] = true;
+            _calcSingleBool["x"].Value = true;
         }
 
         [MethodImpl(MethodImplOptions.NoOptimization)]

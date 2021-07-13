@@ -1,8 +1,8 @@
 namespace NFun.SyntaxParsing
 {
-    public class VarAttribute
+    public class FunnyAttribute
     {
-        public VarAttribute(string name,object value)
+        public FunnyAttribute(string name,object value)
         {
             Value = value;
             Name = name;

@@ -21,7 +21,7 @@ namespace NFun.Benchmarks
             _const_Kxb_runtime = Funny.Hardcore.Build(scripts.ConstKxb);
             _varkxb_runtime = Funny.Hardcore.Build(scripts.VarKxb);
             var x = _varkxb_runtime.Variables.First(v => !v.IsOutput);
-            x.SetClrValue(100.0);
+            x.Value = 100.0;
         }
 
         [Benchmark(Description = "dotnet [1.1000].SUM()", Baseline = true)]

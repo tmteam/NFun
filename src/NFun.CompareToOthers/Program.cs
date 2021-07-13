@@ -60,7 +60,7 @@ namespace NFun.CompareToOthers
             var context = new ExpressionContext { x = 12 };
             Action calcLambda = () => lambda(context);
 
-            funrt["x"] = 12.0;
+            funrt["x"].Value = 12.0;
             Action calcFun = () => funrt.Run();
 
             MeasureAll(

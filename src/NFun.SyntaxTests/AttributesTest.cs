@@ -28,7 +28,7 @@ namespace NFun.SyntaxTests
         {
             
             var runtime =expression.Build();
-            var varInfo = runtime.GetVariable(variable);
+            var varInfo = runtime[variable];
             CollectionAssert.AreEquivalent(attribute, varInfo.Attributes.Select(v=>v.Name));
             Assert.IsTrue(varInfo.Attributes.All(a=>a.Value==null));
         }
@@ -55,7 +55,7 @@ namespace NFun.SyntaxTests
             string attribute, object value)
         {
             var runtime =expression.Build();
-            var varInfo = runtime.GetVariable(variable);
+            var varInfo = runtime[variable];
             Assert.IsNotNull(varInfo);
 
             var actual = varInfo.Attributes.SingleOrDefault(v => v.Name== attribute);

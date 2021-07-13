@@ -27,11 +27,11 @@ namespace NFun.ApiTests
         public void SingleVariableEquation(string expr, double arg, double expected)
         {
             var runtime = expr.Build();
-            var ySource = runtime.GetVariable("y");
-            var xSource = runtime.GetVariable("x");
+            var ySource = runtime["y"];
+            var xSource = runtime["x"];
             Assert.IsTrue(ySource.IsOutput);
             Assert.IsFalse(xSource.IsOutput);
-            xSource.SetClrValue(arg);
+            xSource.Value = arg;
             runtime.Run();
             Assert.AreEqual(expected, ySource.FunnyValue);
         }
@@ -63,10 +63,10 @@ namespace NFun.ApiTests
         public void InputNotSet_SingleVariableEquation(string expr, object expected)
         {
             var runtime = expr.Build();
-            var ySource = runtime.GetVariable("y");
+            var ySource = runtime["y"];
             Assert.IsNotNull(ySource);
             runtime.Run();
-            Assert.AreEqual(expected, ySource.GetClrValue());
+            Assert.AreEqual(expected, ySource.Value);
         }
     }
 }

@@ -36,12 +36,14 @@ namespace NFun.ConsoleApp
                     else
                     {
                         calcSw = Stopwatch.StartNew();
-                        var res = runtime.Calc();
+                        runtime.Run();
+
                         calcSw.Stop();
                         Console.WriteLine($"Calc in {calcSw.Elapsed.TotalMilliseconds}");
                         Console.WriteLine("Results:");
-                        foreach (var result in res.Results)
-                            Console.WriteLine(result.Item1 + ": " + result.Item2 + " (" + result.Item2.GetType() + ")");
+                        foreach (var result in runtime.Variables.Where(v => v.IsOutput))
+                            Console.WriteLine(result.Name + ": " + result.Type + " (" +
+                                              result.Value.GetType().Name + ")");
                     }
                 }
                 catch (FunRuntimeException e)

@@ -10,9 +10,9 @@ namespace NFun.SyntaxParsing.SyntaxNodes
         
         public string Id { get; }
         public ISyntaxNode Expression { get; }
-        public VarAttribute[] Attributes { get; }
+        public FunnyAttribute[] Attributes { get; }
 
-        public EquationSyntaxNode(string id, int start, ISyntaxNode expression, VarAttribute[] attributes)
+        public EquationSyntaxNode(string id, int start, ISyntaxNode expression, FunnyAttribute[] attributes)
         {
             Id = id;
             Expression = expression;

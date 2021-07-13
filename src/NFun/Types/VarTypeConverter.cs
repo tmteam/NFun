@@ -76,8 +76,10 @@ namespace NFun.Types
         private static readonly Func<object, object> ToText   = o => new TextFunArray(o?.ToString() ?? "");
         private static readonly Func<object, object> NoConvertion    = o => o;
 
+        
         public static Func<object, object> GetConverterOrNull(FunnyType from, FunnyType to)
         {
+            //todo coverage
             if (to.IsText)
                 return ToText;
             if (to.BaseType == BaseFunnyType.Any)
@@ -99,8 +101,9 @@ namespace NFun.Types
                     case BaseFunnyType.Fun:     
                     case BaseFunnyType.Generic:
                     case BaseFunnyType.Any: break;
+                    //todo other primitive types
                     default:
-                        throw new ArgumentOutOfRangeException();
+                        throw new ArgumentOutOfRangeException(to.BaseType.ToString());
                 }
             }
 

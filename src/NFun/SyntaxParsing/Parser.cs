@@ -22,7 +22,7 @@ namespace NFun.SyntaxParsing
         private bool _hasAnonymousEquation = false;
         private bool _startOfTheLine = false;
         private int _exprStartPosition = 0;
-        private VarAttribute[] _attributes;
+        private FunnyAttribute[] _attributes;
 
         private Parser(TokFlow flow)
         {
