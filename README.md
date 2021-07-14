@@ -1,5 +1,4 @@
-# NFun
-Not yet a program language
+# NFun. Not yet a program language
 
 Expressions Evaluator for .NET
 
@@ -11,44 +10,46 @@ PM> Install-Package NFun
 
 ## What is the NFun?
 
-It is expressions Evaluator for .NET. This is similar to the NCalc package, but it allows you to work not only with mathematical expressions, but also with complex types - arrays, structures, strings, etc.
-
+This is an expression evaluator for .net . It supports working with mathematical expressions as well as with collections, strings and structures. We can say that NFun is similar to NCalc but with a rich type system
 
 ```
 # Creates an expression, that accepts single input 'x' and calculates single output 'y' as result
-y = 2*x+1 
+y1 = 2x+1 
 
 # Strings
-y = 'a+b = {a+b}, c = {c}'.toUpper() 
+y2 = 'a+b = {a+b}, c = {c}'.toUpper() 
 
 # Arrays as input
-y = a[0] + a[1]
+y3 = a[0] + a[1]
 
 # Linq
-y = a.reverse().filter (fun it>2)
+y4 = a.reverse().filter (rule it>2)
 
 # Working with structs
-y = if(a.hasName) a.name 
+y5 = if(a.hasName and a.age <> 42) a.name 
 	else a.alias[0]  
 ```
 
-## NFun is not production ready yet
+## Current state
 
-Now nfun is in early betta stage. This means that the API will change in the future, and not all the functionality is implemented. 
+Now nfun is in betta stage. This means that the API still changes a little and performance is not optimized yet  
 
 ## Usage example
 
 ```
-// NFun Api will change soon
+// Fluent api:
 
-// The Api shown in the example is only used for development purposes
+TODO
 
-var runtime = FunBuilder.Build("y = 2*x+1");
+// Hardcore-script api:
 
-Assert.AreEqual(1, runtime.Inputs.Length);
-Assert.AreEqual(1, runtime.Outputs.Length);
+var runtime = Funny.Hardcore.Build("y = 2*x+1");
 
-var result = runtime.Calculate(VarVal.New("x", 42.0));
+foreach(var variable in runtime.Variables)
+	Console.WriteLine($"Variable {variable.Name}:{variable.Type} {variable.IsOutput?"[OUTPUT]":"[INPUT]"}");
 
-Assert.AreEqual(VarVal.New("x", 85.0),result);
+runtime["x"].Value = 42;
+runtime.Run();
+
+Console.WriteLine($"Result: {runtime["y"].Value}");
 ```
