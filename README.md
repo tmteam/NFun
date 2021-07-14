@@ -1,4 +1,4 @@
-# NFun. Not yet a program language
+# NFun. The larva of the programming language
 
 Expressions Evaluator for .NET
 
