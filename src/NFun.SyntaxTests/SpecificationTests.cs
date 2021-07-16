@@ -1,3 +1,4 @@
+using System;
 using NFun.Exceptions;
 using NFun.TestTools;
 using NFun.Types;
@@ -250,5 +251,49 @@ yPublic   = yprivate + xpublic"
         [TestCase(" y:int = convert('string')")]
         [TestCase(" y = [1,2,3][4]")]
         public void ObviousFailsOnRuntime(string expr) => Assert.Throws<FunRuntimeException>(() => expr.Calc());
+
+        class MyIn
+        {
+            public int Count { get; set; }
+            public string Name { get; set; }
+        }
+        class MyOut
+        {
+            public int Id { get; set; }
+            public bool Flag { get; set; }
+        }
+        
+        [Test]
+        public void CheckExamplesInReadme()
+        {
+            //Let's make some fun
+            object a  = Funny.Calc("42*(3-1)"); // 84 
+            Assert.AreEqual(84,a);
+            int[]  e  = Funny.Calc<int[]>("[1,3,5].reverse()"); //int[]{5,3,1}
+            CollectionAssert.AreEquivalent(new[]{5,3,1},e);
+            
+            string h  = Funny.Calc<MyIn, string>(
+                "if (count>0) name.repeat(count).concat() else 'none'", 
+                new MyIn{Count = 3, Name = "bar"}); //"barbarbar"
+            Assert.AreEqual("barbarbar", h);
+            
+            var f = Funny.ForCalcMany<MyIn,MyOut>().Build(@"
+                            id = count - 1
+                            flag = name != 'test'");
+            MyOut result = f(new MyIn{Count = 100, Name = "kat"}); //MyOut{Id = 99; Flag = true}
+            TestTools.TestHelper.AreSame(new MyOut { Id = 99, Flag = true }, result);
+
+            // Hardcore mode 
+            var runtime = Funny.Hardcore.Build(@"
+                    out1 = out1>2
+                    out2:int = in2.filter(fun it>out1).map(fun it*it)[1]");
+
+            runtime["in1"].Value = 2;
+            runtime["in2"].Value = new[] { 0, 1, 2, 3, 4 };
+            runtime.Run();
+
+            foreach (var v in runtime.Variables)
+                Console.WriteLine($"Variable '{v.Name}'' of type {v.Type} equals {v.Value}");
+        }
     }
 }

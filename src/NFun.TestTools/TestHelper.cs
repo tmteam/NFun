@@ -15,7 +15,6 @@ namespace NFun.TestTools
     public static class TestHelper
     {
         public static CalculationResult Calc(this FunnyRuntime runtime, string id, object clrValue) => runtime.Calc((id, clrValue));
-
         
         public static CalculationResult Calc(this string expr, string id, object val) =>
             Funny.Hardcore.Build(expr).Calc((id, val));
@@ -122,9 +121,6 @@ namespace NFun.TestTools
                         $"clr expected: {JsonSerializer.Serialize(value.val)}, clr actual: {JsonSerializer.Serialize(resultValue)}");
             }
         }
-
-        public static void AssertInputs(this FunnyRuntime runtime, IEnumerable<IFunnyVar> variables) => 
-            CollectionAssert.AreEquivalent(variables, runtime.Variables.Where(v=>!v.IsOutput));
 
         public static void AssertOutputs(this FunnyRuntime runtime, IEnumerable<IFunnyVar> variables) => 
             CollectionAssert.AreEquivalent(variables, runtime.Variables.Where(v=>v.IsOutput));

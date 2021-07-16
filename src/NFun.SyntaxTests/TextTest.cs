@@ -91,6 +91,19 @@ namespace NFun.SyntaxTests
         [TestCase("y='pre \\{lalala\\} after'", "pre {lalala} after")]
         public void EscapedTest(string expr, string expected) => expr.AssertReturns(expected);
 
+        [Test]
+        public void RepeatConcatTest()
+        {
+            var expression = "name.repeat(count).concat()";
+            Funny.Hardcore.Build(expression).Calc(("count", 3), ("name", "foo")).AssertReturns("foofoofoo");
+        }
+        
+        [Test]
+        public void RepeatConcatTest2()
+        {
+            var expression = "if (count>0) name.repeat(count).concat() else 'none'";
+            Funny.Hardcore.Build(expression).Calc(("count", 3), ("name", "foo")).AssertReturns("foofoofoo");
+        }
 
         [TestCase("y='hell")]
         [TestCase("y=hell'")]

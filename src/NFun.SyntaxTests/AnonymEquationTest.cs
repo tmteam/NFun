@@ -23,7 +23,6 @@ namespace NFun.SyntaxTests
         public void AnonymousExpressionSingleVariableEquatation(string expr, double arg, object expected)
             => expr.Calc("x",arg).AssertOut(expected);
 
-        
         [TestCase("1", 1.0)]
         [TestCase("0x1", 1)]
         [TestCase("true", true)]

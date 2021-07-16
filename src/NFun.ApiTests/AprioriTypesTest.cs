@@ -97,5 +97,27 @@ namespace NFun.ApiTests
             var builder = Funny.Hardcore.WithApriori("x", FunnyType.Bool);
             Assert.Throws<ArgumentException>(() => builder.WithApriori("x", FunnyType.Text));
         }
+
+        [Test]
+        public void SpecifyVarWithSameNameAsFunction_RepeatConcatTest()
+        {
+            var expression = "name.repeat(count).concat()";
+            Funny.Hardcore
+                .WithApriori<int>("count")
+                .Build(expression)
+                .Calc(("count", 3), ("name", "foo"))
+                .AssertReturns("foofoofoo");
+        }
+        
+        [Test]
+        public void SpecifyVarWithSameNameAsFunction2_RepeatConcatTest()
+        {
+            var expression = "if (count>0) name.repeat(count).concat() else 'none'";
+            Funny.Hardcore
+                .WithApriori<int>("count")
+                .Build(expression)
+                .Calc(("count", 3), ("name", "foo"))
+                .AssertReturns("foofoofoo");
+        }
     }
 }
