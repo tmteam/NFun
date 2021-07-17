@@ -273,7 +273,7 @@ yPublic   = yprivate + xpublic"
             CollectionAssert.AreEquivalent(new[]{5,3,1},e);
             
             string h  = Funny.Calc<MyIn, string>(
-                "if (count>0) name.repeat(count).concat() else 'none'", 
+                "if (count>0) name.repeat(count).flat() else 'none'", 
                 new MyIn{Count = 3, Name = "bar"}); //"barbarbar"
             Assert.AreEqual("barbarbar", h);
             
@@ -285,7 +285,7 @@ yPublic   = yprivate + xpublic"
 
             // Hardcore mode 
             var runtime = Funny.Hardcore.Build(@"
-                    out1 = out1>2
+                    out1 = in1-1
                     out2:int = in2.filter(fun it>out1).map(fun it*it)[1]");
 
             runtime["in1"].Value = 2;

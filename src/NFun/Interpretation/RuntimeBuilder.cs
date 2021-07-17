@@ -130,6 +130,11 @@ namespace NFun.Interpretation
                     // We have to build it at least once to search all possible errors
                     GenericUserFunction.CreateSomeConcrete(generic);
                 }
+
+                if (variables.TryGetUsages(userFunction.Name, out var usage))
+                {
+                    throw ErrorFactory.FunctionNameAndVariableNameConflict(usage);
+                }
             }
 
             return new FunnyRuntime(equations, variables);

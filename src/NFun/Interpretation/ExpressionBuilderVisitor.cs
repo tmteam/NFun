@@ -329,42 +329,7 @@ namespace NFun.Interpretation
                 else if (funVariable is IConcreteFunction concrete)
                     return new FunVariableExpressionNode(concrete, node.Interval);
             }
-
-            var lower = node.Id;
-            if (_variables.GetSourceOrNull(lower) == null)
-            {
-                //if it is not a variable it might be a functional-variable
-                var funVars = _functions.GetOverloads(lower);
-                if (funVars.Count > 0)
-                {
-                    var specification = node.OutputType.FunTypeSpecification;
-                    if (specification == null)
-                        throw ErrorFactory.FunctionNameAndVariableNameConflict(node);
-
-                    if (funVars.Count > 1)
-                    {
-                        //several function with such name are appliable
-                        var result = funVars.Where(f =>
-                                f.ReturnType == specification.Output && f.ArgTypes.SequenceEqual(specification.Inputs))
-                            .ToList();
-                        if (result.Count == 0)
-                            throw ErrorFactory.FunctionIsNotExists(node);
-                        if (result.Count > 1)
-                            throw ErrorFactory.AmbiguousFunctionChoise(node);
-                        if (result[0] is IConcreteFunction ff)
-                            return new FunVariableExpressionNode(ff, node.Interval);
-                        else
-                            throw new NotImplementedException("GenericsAreNotSupp");
-                    }
-
-                    if (funVars.Count == 1)
-                    {
-                        if (funVars[0] is IConcreteFunction ff)
-                            return new FunVariableExpressionNode(ff, node.Interval);
-                    }
-                }
-            }
-
+            
             var node1 = _variables.CreateVarNode(node.Id, node.Interval, node.OutputType);
             if (node1.Source.Name != node.Id)
                 throw ErrorFactory.InputNameWithDifferentCase(node.Id, node1.Source.Name, node.Interval);

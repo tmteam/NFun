@@ -113,7 +113,7 @@ namespace NFun.TestTools
                 }
 
                 Assert.AreEqual(value.val.GetType(), resultValue.GetType(),
-                    $"Variable \"{value.id}\" has wrong type. Actual type is: {resultValue.GetType()}");
+                    $"Variable \"{value.id}\" has wrong type. Actual type is: {resultValue.GetType()} of value {ToStringSmart(resultValue)}");
 
                 if (!AreSame(value.val, resultValue))
                     Assert.Fail(

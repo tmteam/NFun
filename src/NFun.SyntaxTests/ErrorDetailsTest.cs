@@ -61,8 +61,7 @@ namespace NFun.SyntaxTests
 
         //[TestCase("[1.0,2.0].fold((i,","i",")->i+1)")]
      //   [TestCase("[1.0,2.0].map((i,","i",")->i+1)")]
-        [TestCase("y = ","min","*3 ")]
-        [TestCase("","max","*3 ")]
+        
         [TestCase("foo(x) = x +1\r y=","foo","*3")]
         [TestCase("\r y=","foo","*3 \r foo(x) = x +1")]
         [TestCase("foo(x) = x +1\r ","foo","*3 ")]

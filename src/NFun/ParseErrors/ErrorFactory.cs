@@ -493,10 +493,10 @@ namespace NFun.ParseErrors
             return new FunParseException(523, $"Ambiguous function call", node?.Interval ?? Interval.Empty);
         }
 
-        internal static Exception FunctionNameAndVariableNameConflict(NamedIdSyntaxNode varName)
+        internal static Exception FunctionNameAndVariableNameConflict(VariableUsages usages)
             => new FunParseException(524,
-                $"Function with name: {varName.Id} can be used in expression because it's name conflict with function that exists in scope. Declare input variable",
-                varName.Interval);
+                $"Function with name: {usages.Source.Name} can be used in expression because it's name conflict with function that exists in scope. Declare input variable",
+                usages.Source.TypeSpecificationIntervalOrNull??usages.Usages.FirstOrDefault()?.Interval??Interval.Empty);
 
         internal static Exception AmbiguousFunctionChoise(NamedIdSyntaxNode varName)
             => new FunParseException(526,

@@ -101,7 +101,7 @@ namespace NFun.ApiTests
         [Test]
         public void SpecifyVarWithSameNameAsFunction_RepeatConcatTest()
         {
-            var expression = "name.repeat(count).concat()";
+            var expression = "out:text = name.repeat(count).flat()";
             Funny.Hardcore
                 .WithApriori<int>("count")
                 .Build(expression)
@@ -112,7 +112,7 @@ namespace NFun.ApiTests
         [Test]
         public void SpecifyVarWithSameNameAsFunction2_RepeatConcatTest()
         {
-            var expression = "if (count>0) name.repeat(count).concat() else 'none'";
+            var expression = "if (count>0) name.repeat(count).flat() else 'none'";
             Funny.Hardcore
                 .WithApriori<int>("count")
                 .Build(expression)

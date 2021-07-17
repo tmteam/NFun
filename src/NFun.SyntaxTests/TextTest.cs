@@ -94,14 +94,14 @@ namespace NFun.SyntaxTests
         [Test]
         public void RepeatConcatTest()
         {
-            var expression = "name.repeat(count).concat()";
+            var expression = "out:text = name.repeat(count).flat()";
             Funny.Hardcore.Build(expression).Calc(("count", 3), ("name", "foo")).AssertReturns("foofoofoo");
         }
         
         [Test]
         public void RepeatConcatTest2()
         {
-            var expression = "if (count>0) name.repeat(count).concat() else 'none'";
+            var expression = "if (count>0) name.repeat(count).flat() else 'none'";
             Funny.Hardcore.Build(expression).Calc(("count", 3), ("name", "foo")).AssertReturns("foofoofoo");
         }
 
