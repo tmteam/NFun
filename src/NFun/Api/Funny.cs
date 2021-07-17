@@ -13,7 +13,7 @@ namespace NFun
 
         public static object Calc(string expression)
         {
-            var runtime = RuntimeBuilder.Build(expression, BaseFunctions.DefaultFunctions);
+            var runtime = RuntimeBuilder.Build(expression, BaseFunctions.DefaultFunctions, Dialects.Classic);
             if (runtime.Variables.Any(v=>!v.IsOutput))
                 throw ErrorFactory.UnknownInputs(runtime.GetInputVariableUsages());
             runtime.Run();
@@ -34,7 +34,7 @@ namespace NFun
             var apriories = AprioriTypesMap.Empty; 
             var outputs   = FluentApiTools.SetupManyAprioriOutputs<TOutput>(apriories);
 
-            var runtime = RuntimeBuilder.Build(expression, BaseFunctions.DefaultFunctions, aprioriTypesMap:apriories);
+            var runtime = RuntimeBuilder.Build(expression, BaseFunctions.DefaultFunctions, Dialects.Classic, aprioriTypesMap:apriories);
             if (runtime.Variables.Any(v=>!v.IsOutput))
                 throw ErrorFactory.UnknownInputs(runtime.GetInputVariableUsages());
             
@@ -72,6 +72,10 @@ namespace NFun
              => new FunnyContextBuilder().WithFunction(id,function);
          public static FunnyContextBuilder WithFunction<Tin1,Tin2,Tin3,Tin4,Tin5,Tin6,Tin7,TOut>(string id, Func<Tin1,Tin2,Tin3,Tin4,Tin5,Tin6,Tin7,TOut> function)
              => new FunnyContextBuilder().WithFunction(id,function);
+
+         public static FunnyContextBuilder WithDialect(ClassicDialectSettings dialect)
+             => new FunnyContextBuilder().WithDialect(dialect);
+
          #endregion
     }
 }

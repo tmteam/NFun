@@ -35,6 +35,8 @@ namespace NFun.TestTools
         public static CalculationResult Calc(this string expr, params (string id, object val)[] values) =>
             Funny.Hardcore.Build(expr).Calc(values);
 
+        public static FunnyRuntime BuildWithDialect(this string expr, ClassicDialectSettings dialect) 
+            => Funny.Hardcore.WithDialect(dialect).Build(expr);
         public static FunnyRuntime Build(this string expr) => Funny.Hardcore.Build(expr);
 
         public static void AssertOut(this CalculationResult result, object expected) =>
@@ -197,12 +199,14 @@ namespace NFun.TestTools
             Assert.Catch<FunRuntimeException>(() => runtime.Calc());
         }
 
-        public static void AssertObviousFailsOnParse(this string expression)
+        public static void AssertObviousFailsOnParse(this string expression, ClassicDialectSettings dialect = null)
         {
             TraceLog.IsEnabled = true;
             try
             {
-                var runtime = Funny.Hardcore.Build(expression);
+                var runtime = Funny.Hardcore
+                    .WithDialect(dialect??ClassicDialectSettings.Default)
+                    .Build(expression);
                 if (runtime.Variables.Any(v=>!v.IsOutput))
                 {
                     Assert.Fail($"Expression parsed without any errors");

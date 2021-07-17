@@ -19,8 +19,12 @@ namespace NFun.Interpretation
         private static readonly List<IFunctionSignature> EmptyUserFunctionsList
             = new();
 
-        public static FunnyRuntime Build(string script, IFunctionDictionary functionDictionary,
-            IConstantList constants = null, AprioriTypesMap aprioriTypesMap = null)
+        public static FunnyRuntime Build(
+            string script,
+            IFunctionDictionary functionDictionary,
+            ClassicDialectSettings dialect,
+            IConstantList constants = null,
+            AprioriTypesMap aprioriTypesMap = null)
         {
             aprioriTypesMap ??= AprioriTypesMap.Empty;
 
@@ -31,14 +35,20 @@ namespace NFun.Interpretation
             var setNodeNumberVisitor = new SetNodeNumberVisitor();
             syntaxTree.ComeOver(setNodeNumberVisitor);
             syntaxTree.MaxNodeId = setNodeNumberVisitor.LastUsedNumber;
-            return Build(syntaxTree, functionDictionary, constants ?? EmptyConstantList.Instance, aprioriTypesMap);
+            return Build(
+                syntaxTree, 
+                functionDictionary, 
+                constants ?? EmptyConstantList.Instance, 
+                aprioriTypesMap,
+                dialect);
         }
 
         private static FunnyRuntime Build(
             SyntaxTree syntaxTree,
             IFunctionDictionary functionsDictionary,
             IConstantList constants,
-            AprioriTypesMap aprioriTypesMap)
+            AprioriTypesMap aprioriTypesMap,
+            ClassicDialectSettings dialect)
         {
             #region build user functions
 
@@ -68,7 +78,8 @@ namespace NFun.Interpretation
                     var userFun = BuildFunctionAndPutItToDictionary(
                         functionSyntaxNode: functionSyntaxNode,
                         constants: constants,
-                        functionsDictionary: scopeFunctionDictionary);
+                        functionsDictionary: scopeFunctionDictionary,
+                        dialect: dialect);
                     userFunctions.Add(userFun);
                 }
             }
@@ -87,7 +98,7 @@ namespace NFun.Interpretation
                 if (treeNode is EquationSyntaxNode node)
                 {
                     var equation =
-                        BuildEquationAndPutItToVariables(node, functionDictionary, variables, bodyTypeSolving);
+                        BuildEquationAndPutItToVariables(node, functionDictionary, variables, bodyTypeSolving, dialect);
                     equations.Add(equation);
                     if (Helper.DoesItLooksLikeSuperAnonymousVariable(equation.Id))
                         throw FunParseException.ErrorStubToDo("variable cannot starts with 'it'");
@@ -169,7 +180,8 @@ namespace NFun.Interpretation
             EquationSyntaxNode equation,
             IFunctionDictionary functionsDictionary,
             VariableDictionary variables,
-            TypeInferenceResults typeInferenceResults)
+            TypeInferenceResults typeInferenceResults,
+            ClassicDialectSettings dialect)
         {
             var expression = ExpressionBuilderVisitor.BuildExpression(
                 node: equation.Expression,
@@ -177,7 +189,8 @@ namespace NFun.Interpretation
                 outputType: equation.OutputType,
                 variables: variables,
                 typeInferenceResults: typeInferenceResults,
-                typesConverter: TicTypesConverter.Concrete);
+                typesConverter: TicTypesConverter.Concrete,
+                dialect: dialect);
 
             VariableSource outputVariableSource;
             if (equation.OutputTypeSpecified)
@@ -222,7 +235,8 @@ namespace NFun.Interpretation
         private static IFunctionSignature BuildFunctionAndPutItToDictionary(
             UserFunctionDefinitionSyntaxNode functionSyntaxNode,
             IConstantList constants,
-            ScopeFunctionDictionary functionsDictionary)
+            ScopeFunctionDictionary functionsDictionary,
+            ClassicDialectSettings dialect)
         {
 #if DEBUG
             TraceLog.WriteLine($"\r\n====BUILD {functionSyntaxNode.Id}(..) ====");
@@ -281,7 +295,8 @@ namespace NFun.Interpretation
                         returnType: returnType,
                         functionsDictionary: functionsDictionary,
                         results: typeInferenceResuls,
-                        converter: TicTypesConverter.Concrete);
+                        converter: TicTypesConverter.Concrete,
+                        dialect: dialect);
 
                 prototype.SetActual(function, functionSyntaxNode.Interval);
                 return function;
@@ -290,7 +305,8 @@ namespace NFun.Interpretation
             }
             else
             {
-                var function = GenericUserFunction.Create(typeInferenceResuls, functionSyntaxNode, functionsDictionary);
+                var function = GenericUserFunction.Create(typeInferenceResuls, functionSyntaxNode, functionsDictionary,
+                    dialect);
                 functionsDictionary.TryAdd(function);
                 if (TraceLog.IsEnabled)
                     TraceLog.WriteLine($"\r\n=====> Concrete {functionSyntaxNode.Id} {function}");

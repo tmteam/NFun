@@ -21,14 +21,15 @@ namespace NFun.Interpretation
         private readonly VariableDictionary _variables;
         private readonly TypeInferenceResults _typeInferenceResults;
         private readonly TicTypesConverter _typesConverter;
+        private readonly ClassicDialectSettings _dialect;
 
-        private static IExpressionNode BuildExpression(
-            ISyntaxNode node,
+        private static IExpressionNode BuildExpression(ISyntaxNode node,
             IFunctionDictionary functions,
             VariableDictionary variables,
             TypeInferenceResults typeInferenceResults,
-            TicTypesConverter typesConverter) =>
-            node.Accept(new ExpressionBuilderVisitor(functions, variables, typeInferenceResults, typesConverter));
+            TicTypesConverter typesConverter, 
+            ClassicDialectSettings dialect) =>
+            node.Accept(new ExpressionBuilderVisitor(functions, variables, typeInferenceResults, typesConverter, dialect));
 
         internal static IExpressionNode BuildExpression(
             ISyntaxNode node,
@@ -36,10 +37,11 @@ namespace NFun.Interpretation
             FunnyType outputType,
             VariableDictionary variables,
             TypeInferenceResults typeInferenceResults,
-            TicTypesConverter typesConverter)
+            TicTypesConverter typesConverter, 
+            ClassicDialectSettings dialect)
         {
             var result = node.Accept(
-                new ExpressionBuilderVisitor(functions, variables, typeInferenceResults, typesConverter));
+                new ExpressionBuilderVisitor(functions, variables, typeInferenceResults, typesConverter,dialect));
             if (result.Type == outputType)
                 return result;
             var converter = VarTypeConverter.GetConverterOrThrow(result.Type, outputType, node.Interval);
@@ -51,12 +53,15 @@ namespace NFun.Interpretation
             IFunctionDictionary functions,
             VariableDictionary variables,
             TypeInferenceResults typeInferenceResults,
-            TicTypesConverter typesConverter)
+            TicTypesConverter typesConverter,
+            ClassicDialectSettings dialect)
         {
+            _dialect = dialect;
             _functions = functions;
             _variables = variables;
             _typeInferenceResults = typeInferenceResults;
             _typesConverter = typesConverter;
+            _dialect = dialect;
         }
 
         public IExpressionNode Visit(SuperAnonymFunctionSyntaxNode arrowAnonymFunNode)
@@ -251,17 +256,25 @@ namespace NFun.Interpretation
 
         public IExpressionNode Visit(IfThenElseSyntaxNode node)
         {
+            if (_dialect.IfExpressionSetup == IfExpressionSetup.Deny)
+                throw FunParseException.ErrorStubToDo("If-else expressions are denied for the dialect");
+            
             //expressions
             //if (...) {here} 
             var expressionNodes = new IExpressionNode[node.Ifs.Length];
             //conditions
             // if ( {here} ) ...
             var conditionNodes = new IExpressionNode[node.Ifs.Length];
+            
+            if (_dialect.IfExpressionSetup == IfExpressionSetup.IfElseIf  && node.Ifs.Length > 1)
+                throw FunParseException.ErrorStubToDo("'else' keyword is missing before 'if'");
 
             for (int i = 0; i < expressionNodes.Length; i++)
             {
-                conditionNodes[i] = ReadNode(node.Ifs[i].Condition);
-                var exprNode = ReadNode(node.Ifs[i].Expression);
+                var ifCaseNode = node.Ifs[i];
+                
+                conditionNodes[i] = ReadNode(ifCaseNode.Condition);
+                var exprNode = ReadNode(ifCaseNode.Expression);
                 expressionNodes[i] = CastExpressionNode.GetConvertedOrOriginOrThrow(exprNode, node.OutputType);
             }
 
@@ -368,7 +381,7 @@ namespace NFun.Interpretation
             var originVariables = new string[sources.Length];
             for (int i = 0; i < originVariables.Length; i++) originVariables[i] = sources[i].Name;
 
-            var expr = BuildExpression(body, _functions, localVariables, _typeInferenceResults, _typesConverter);
+            var expr = BuildExpression(body, _functions, localVariables, _typeInferenceResults, _typesConverter, _dialect);
 
             //New variables are new closured
             var closured = localVariables.GetAllUsages()

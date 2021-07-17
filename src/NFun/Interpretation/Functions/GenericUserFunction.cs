@@ -14,6 +14,7 @@ namespace NFun.Interpretation.Functions
         private readonly TypeInferenceResults _typeInferenceResults;
         private readonly UserFunctionDefinitionSyntaxNode _syntaxNode;
         private readonly IFunctionDictionary _dictionary;
+        private readonly ClassicDialectSettings _dialect;
 
         private readonly ConstrainsState[] _constrainsMap;
         public int BuiltCount { get; private set; }
@@ -21,7 +22,8 @@ namespace NFun.Interpretation.Functions
         public static GenericUserFunction Create(
             TypeInferenceResults typeInferenceResults,
             UserFunctionDefinitionSyntaxNode syntaxNode,
-            IFunctionDictionary dictionary)
+            IFunctionDictionary dictionary, 
+            ClassicDialectSettings dialect)
         {
             var ticGenerics = typeInferenceResults.Generics;
             var langConstrains = new GenericConstrains[ticGenerics.Length];
@@ -44,8 +46,14 @@ namespace NFun.Interpretation.Functions
             TraceLog.WriteLine($"CREATE GENERIC FUN {syntaxNode.Id}({string.Join(",", argTypes)}):{retType}");
             TraceLog.WriteLine($"    ...where {string.Join(", ", langConstrains)}");
 #endif
-            var function = new GenericUserFunction(typeInferenceResults, syntaxNode, dictionary, langConstrains,
-                retType, argTypes);
+            var function = new GenericUserFunction(
+                typeInferenceResults, 
+                syntaxNode, 
+                dictionary, 
+                langConstrains,
+                retType, 
+                argTypes,
+                dialect);
             return function;
         }
 
@@ -69,13 +77,15 @@ namespace NFun.Interpretation.Functions
             IFunctionDictionary dictionary,
             GenericConstrains[] constrains,
             FunnyType returnType,
-            FunnyType[] argTypes
+            FunnyType[] argTypes,
+            ClassicDialectSettings dialect
         ) : base(syntaxNode.Id, constrains, returnType, argTypes)
         {
             _typeInferenceResults = typeInferenceResults;
             _constrainsMap = _typeInferenceResults.Generics;
             _syntaxNode = syntaxNode;
             _dictionary = dictionary;
+            _dialect = dialect;
         }
 
         readonly Dictionary<string, IConcreteFunction> _concreteFunctionsCache = new();
@@ -111,7 +121,8 @@ namespace NFun.Interpretation.Functions
                 returnType: returnType,
                 functionsDictionary: _dictionary,
                 results: _typeInferenceResults,
-                converter: converter);
+                converter: converter,
+                dialect: _dialect);
 
             concretePrototype.SetActual(function, _syntaxNode.Interval);
             return function;

@@ -10,9 +10,16 @@ namespace NFun
     public class FunnyContextBuilder
     {
         internal static  FunnyContextBuilder Empty  => new();
-        
+        private ClassicDialectSettings _dialect = ClassicDialectSettings.Default;
         private readonly List<(string, object)> _constantList = new();
         private readonly List<IConcreteFunction> _concreteFunctions = new();
+        
+        public FunnyContextBuilder WithDialect(ClassicDialectSettings dialect)
+        {
+            _dialect = dialect;
+            return this;
+        }
+        
         public FunnyContextBuilder WithConstant(string id, object value) {
             _constantList.Add((id,value));
             return this;
@@ -74,16 +81,16 @@ namespace NFun
 
             return RuntimeBuilder.Build(
                 script: expression,
-                constants: constants??EmptyConstantList.Instance, 
+                constants: constants??EmptyConstantList.Instance,
                 functionDictionary: dic, 
-                aprioriTypesMap: apriories);
+                aprioriTypesMap: apriories, 
+                dialect:_dialect);
         }
         
         public IFunnyContext<TInput, TOutput> ForCalc<TInput, TOutput>() 
             => new FunnyContextSingle<TInput, TOutput>(this);
         public IFunnyContext<TInput, TOutput> ForCalcMany<TInput, TOutput>() where TOutput : new()
             => new FunnyContextMany<TInput, TOutput>(this);
-        public IFunnyContext<TInput> ForCalc<TInput>()
-            => new FunnyContext<TInput>(this);
+
     }
 }

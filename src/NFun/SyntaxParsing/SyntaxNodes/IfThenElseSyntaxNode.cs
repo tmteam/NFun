@@ -13,12 +13,13 @@ namespace NFun.SyntaxParsing.SyntaxNodes
         public IfCaseSyntaxNode[] Ifs { get; }
         public ISyntaxNode ElseExpr { get; }
 
-        public IfThenElseSyntaxNode(IfCaseSyntaxNode[] ifs, ISyntaxNode elseExpr, Interval interval)
+        public IfThenElseSyntaxNode(IfCaseSyntaxNode[] ifs,  ISyntaxNode elseExpr, Interval interval)
         {
             Ifs = ifs;
             ElseExpr = elseExpr;
             Interval = interval;
         }
+        
         public bool IsInBrackets { get; set; }
         public Interval Interval { get; set; }
         public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);

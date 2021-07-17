@@ -22,7 +22,8 @@ namespace NFun.Interpretation
             FunnyType returnType,
             IFunctionDictionary functionsDictionary,
             TypeInferenceResults results,
-            TicTypesConverter converter)
+            TicTypesConverter converter, 
+            ClassicDialectSettings dialect)
         {
             var vars = new VariableDictionary(functionSyntax.Args.Count);
             for (int i = 0; i < functionSyntax.Args.Count; i++)
@@ -41,7 +42,8 @@ namespace NFun.Interpretation
                 outputType: returnType,
                 variables: vars,
                 typeInferenceResults: results,
-                typesConverter: converter);
+                typesConverter: converter, 
+                dialect:dialect);
 
             vars.ThrowIfSomeVariablesNotExistsInTheList(
                 functionSyntax.Args.Select(a => a.Id));
