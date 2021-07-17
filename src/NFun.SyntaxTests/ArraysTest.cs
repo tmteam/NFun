@@ -10,8 +10,8 @@ namespace NFun.SyntaxTests
     [TestFixture]
     public class ArraysTest
     {
-        [TestCase("y = [1..4]", new[]{1.0,2,3,4})]
-        [TestCase("y = [4..1]", new[]{4.0,3,2,1})]
+        [TestCase("y = [1..4]", new[]{1,2,3,4})]
+        [TestCase("y = [4..1]", new[]{4,3,2,1})]
         [TestCase("y:uint[] = [1..4]", new uint[] { 1, 2, 3, 4 })]
         [TestCase("y:uint[] = [4..1]", new uint[] { 4, 3, 2, 1 })]
       
@@ -21,8 +21,9 @@ namespace NFun.SyntaxTests
         [TestCase("y = ['foo','bar']", new []{"foo","bar"})]
         [TestCase("y:int = [0..10][0]", 0)]
         [TestCase("y:int = [0..10][10]", 10)]
-        [TestCase("y = [0..10][0]",   0.0)]
-        [TestCase("y = [0..10][10]", 10.0)]
+        [TestCase("y = [0..10.0][0]",   0.0)]
+        [TestCase("y = [0..10][0]",   0)]
+        [TestCase("y = [0..10][10]", 10)]
         [TestCase("y:int[] = [0..10][2:5]", new[]{2,3,4,5})]
         [TestCase("y:int[] = [0..10][1:1]", new[]{1})]
         [TestCase("y:int[] = [0..10][1:2]", new[]{1,2})]
@@ -77,14 +78,15 @@ namespace NFun.SyntaxTests
         [TestCase("a = false  \r y = if (a) [1.0] else [2.0, 3.0]", new[]{2.0,3.0})]
         public void ConstantCalculableArrayTest(string expr, object expected) => expr.AssertResultHas("y", expected);
 
-        [TestCase("[1,'2',3.0,4,5.2, true, false, 7.2]", new object[] {1.0, "2", 3.0, 4.0, 5.2, true, false, 7.2})]
-        [TestCase("[1,'23',4.0,0x5, true]", new object[] {1.0, "23",  4.0, 5, true})]
+        [TestCase("[1,'2',3.0,4,5.2, true, false, 7.2]", new object[] {1, "2", 3.0, 4, 5.2, true, false, 7.2})]
+        [TestCase("[1,'23',4.0,0x5, true]", new object[] {1, "23",  4.0, 5, true})]
         [TestCase("if (true) [1.0] else [2.0, 3.0] ", new[] {1.0})]
         [TestCase("if (false) [1.0] else [2.0, 3.0]", new[] {2.0, 3.0})]
-        [TestCase("y(x) = x \r[1]", new[] {1.0})]
-        [TestCase("y(x) = x \r[1..3]", new[] {1.0, 2, 3})]
-        [TestCase("y(x) = x # some comment \r[1]", new[] {1.0})]
-        [TestCase("y(x) = x # some comment \r[1..3]", new[] {1.0, 2, 3})]
+        [TestCase("y(x) = x \r[1]", new[] {1})]
+        [TestCase("y(x) = x \r[1..3]", new[] {1, 2, 3})]
+        [TestCase("y(x) = x \r[1.0..3]", new[] {1.0, 2.0, 3.0})]
+        [TestCase("y(x) = x # some comment \r[1]", new[] {1})]
+        [TestCase("y(x) = x # some comment \r[1..3]", new[] {1, 2, 3})]
         public void AnonymousConstantArrayTest(string expr, object expected)
                 => expr.AssertOut(expected);
 
@@ -92,7 +94,7 @@ namespace NFun.SyntaxTests
         public void CompositeArrayOfAnyTest() =>
             "[1,'23',[],['a','bc'],[[]], 4.0,0x5, false]".AssertOut(new object[]
             {
-                1.0,
+                1,
                 "23",
                 Array.Empty<object>(), 
                 new[]{"a","bc"}, 
@@ -112,7 +114,8 @@ namespace NFun.SyntaxTests
         }
         
 
-        [TestCase(3.0, "y= [1..x]", new[] {1.0, 2, 3})]
+        [TestCase(3, "y= [1..x]", new[] {1, 2, 3})]
+        [TestCase(3, "y= [1.0..x]", new[] {1.0, 2, 3})]
         [TestCase( (Int64)42, "x:int64;   y:real[]= [1,2,x]", new[] {1.0, 2.0, 42.0})]
         [TestCase( (Int32)42, "x:int32;   y:real[]= [1,2,x]", new[] {1.0, 2.0, 42.0})]
         [TestCase( (Int16)42, "x:int16;   y:real[]= [1,2,x]", new[] {1.0, 2.0, 42.0})]
@@ -149,10 +152,10 @@ namespace NFun.SyntaxTests
         [TestCase((byte)  42, "x:byte;    y:uint16[]= [1,2,x]", new UInt16[] {1,2,42})]
         
 
-        [TestCase(3.0, "y= [x..7]", new[] {3.0, 4, 5, 6, 7})]
+        [TestCase(3, "y= [x..7]", new[] {3, 4, 5, 6, 7})]
         [TestCase(3, "y:int[]= [x,2,3]", new[] {3, 2, 3})]
-        [TestCase(3, "y= [1..5][x]", 4.0)]
-        [TestCase(true, "y= (if(x) [1,2] else [])[0]", 1.0)]
+        [TestCase(3, "y= [1..5][x]", 4)]
+        [TestCase(true, "y= (if(x) [1,2] else [])[0]", 1)]
 
         //[TestCase(2, "x:int; y= [1..6..x]", new[] {1, 3, 5})]
         //[TestCase(0.5, "y= [1.0..3.0..x]", new[] {1.0, 1.5, 2.0, 2.5, 3.0})]

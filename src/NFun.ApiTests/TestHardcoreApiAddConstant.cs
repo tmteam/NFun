@@ -71,7 +71,7 @@ namespace NFun.ApiTests
                 .Build("pi = 3; y = pi");
 
             runtime.AssertInputsCount(0);
-            runtime.Calc().AssertReturns(("y", 3.0),("pi",3.0));
+            runtime.Calc().AssertReturns(("y", 3),("pi",3));
         }
 
         [Test]

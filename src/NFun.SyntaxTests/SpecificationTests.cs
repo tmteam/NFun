@@ -12,46 +12,46 @@ namespace NFun.SyntaxTests
     [TestFixture]
     public class SpecificationTests
     {
-        [TestCase(10.0, "y = x+1  #addition", "y", 11.0)]
-        [TestCase(10.0, "y = x-1  #subtraction", "y", 9.0)]
-        [TestCase(10.0, "y = x*2  #multiplication", "y", 20.0)]
+        [TestCase(10, "y = x+1  #addition", "y", 11)]
+        [TestCase(10, "y = x-1  #subtraction", "y", 9)]
+        [TestCase(10, "y = x*2  #multiplication", "y", 20)]
         [TestCase(10.0, "y = x/2  #division", "y", 5.0)]
-        [TestCase(10.0, "y = x.rema(3)  #rema", "y", 1.0)]
-        [TestCase(10.0, "y = x**2  #exponentiation", "y", 100.0)]
-        [TestCase(10.0, "y = 10*x +1", "y", 101.0)]
-        [TestCase(10.0, "10*x +1", "out", 101.0)]
+        [TestCase(10, "y = x.rema(3)  #rema", "y", 1)]
+        [TestCase(10.0, "y = x**2.0  #exponentiation", "y", 100.0)]
+        [TestCase(10, "y = 10*x +1", "y", 101)]
+        [TestCase(10.0, "10*x +1", "out", 101)]
         [TestCase(0.0, "y = cos(x)", "y", 1.0)]
         [TestCase(0.0, "y = x.cos()", "y", 1.0)]
        // [TestCase(0.0, "y = x.cos().tan() .abs() .round()", "y", 2)]
         [TestCase(5,   "y:int = x.add(3)", "y", 8)]
-        [TestCase(1.0, "y = x == 0", "y", false)]
-        [TestCase(0.0, "x==0", "out", true)]
-        [TestCase(0.1, "y = x != 0", "y", true)]
-        [TestCase(1.0, "y = not (x == 0)", "y", true)]
-        [TestCase(1.0, "if (x == 0) 0 else 1", "out", 1.0)]
-        [TestCase(55.5, "y = if (x < 0) 0 else x", "y", 55.5)]
-        [TestCase(-42.2, @"
+        [TestCase(1.0, "y = x == 0.0", "y", false)]
+        [TestCase(0, "x==0", "out", true)]
+        [TestCase(1, "y:bool = x != 0", "y", true)]
+        [TestCase(1, "y = not (x == 0)", "y", true)]
+        [TestCase(1, "if (x == 0) 0 else 1", "out", 1)]
+        [TestCase(55, "y = if (x < 0) 0 else x", "y", 55)]
+        [TestCase(-42, @"
 y = if (x < 0) -1 
 if (x == 0)  0
-else 1", "y", -1.0)]
+else 1", "y", -1)]
         [TestCase(-42.2, @"
 if (x < 0) -1 
-if (x ==0)  0
-else 1", "out", -1.0)]
+if (x ==0.0)  0
+else 1.0", "out", -1.0)]
 
-        [TestCase(321.0, @"
+        [TestCase(321, @"
 if (x < 0) -1 
 else if (x > 0) 1
 else if (x ==0) 0
 else 123
-", "out", 1.0)]
-        [TestCase(-400.0, @"
+", "out", 1)]
+        [TestCase(-400, @"
 # if это выражение 
 y = 1+ 15 *  if (x < 0 ) -1
 		  if (x > 0)  1
-		  else 0", "y", -14.0)]
+		  else 0", "y", -14)]
 
-        [TestCase(4.0, @"
+        [TestCase(4, @"
    y =  if (x ==1) 'one'
         if (x ==2) 'two'
         if (x ==3) 'three'
@@ -86,16 +86,15 @@ y = tostring(x)", "y", "not supported")]
                 .AssertReturns(outputName, outputValue);
         }
 
-        [TestCase("y = 1", "y", 1.0)]
-        [TestCase("y = 1", "y", 1.0)]
-        [TestCase("1", "out", 1.0)]
-        [TestCase("y = 1      #1, int", "y", 1.0)]
+        [TestCase("y = 1", "y", 1)]
+        [TestCase("1", "out", 1)]
+        [TestCase("y = 1      #1, int", "y", 1)]
         [TestCase("y = 0xf 	#15, int", "y", 15)]
         [TestCase("y = 0b101  #5, int", "y", 5)]
         [TestCase("y = 1.0    #1, real", "y", 1.0)]
         [TestCase("y = 1.51   #1.51, real", "y", 1.51)]
-        [TestCase("y = 123_321 #123321 int", "y", 123321.0)]
-        [TestCase("y = 123_321_000 #123321000 int", "y", 123321000.0)]
+        [TestCase("y = 123_321 #123321 int", "y", 123321)]
+        [TestCase("y = 123_321_000 #123321000 int", "y", 123321000)]
         [TestCase("y = 12_32_1.1 #12321.1, real", "y", 12321.1)]
         [TestCase("y = 0x123_321 #много, int", "y", 1192737)]
         [TestCase("y = 'string constant'", "y", "string constant")]
@@ -144,13 +143,13 @@ y = tostring(x)", "y", "not supported")]
             runtime.Calc().AssertReturns(outputName, val);
         }
 
-        [TestCase("a=1; b=2; c=3;",                             new[]{"a","b","c"}, new object[]{1.0, 2.0, 3.0})]
-        [TestCase("a = 1; b = 2; c = 3",                        new[]{"a","b","c"}, new object[]{1.0, 2.0, 3.0})]
-        [TestCase("a=1; b = if (a==1) 'one' else 'foo'; c=45;", new[]{"a","b","c"}, new object[]{1.0, "one", 45.0})]
-        [TestCase("a=1; b = if (a == 0) 0 else 1; c = 1",       new[]{"a","b","c"}, new object[]{1.0, 1.0, 1.0})]
+        [TestCase("a=1; b=2; c=3;",                             new[]{"a","b","c"}, new object[]{1, 2, 3})]
+        [TestCase("a = 1; b = 2; c = 3",                        new[]{"a","b","c"}, new object[]{1, 2, 3})]
+        [TestCase("a=1; b = if (a==1) 'one' else 'foo'; c=45;", new[]{"a","b","c"}, new object[]{1, "one", 45})]
+        [TestCase("a=1; b = if (a == 0) 0 else 1; c = 1",       new[]{"a","b","c"}, new object[]{1, 1, 1})]
         [TestCase("a=0; b = cos(a); c = sin(a)",                new[]{"a","b","c"}, new object[]{0.0, 1.0, 0.0})]
-        [TestCase("a = [1,2,3,4].max(); b = [1,2,3,4].min()",   new[]{"a","b"},     new object[]{4.0, 1.0})]
-        [TestCase("a =[0..10][1]; b=[0..5][2]; c=[0..5][3];",   new[]{"a","b","c"}, new object[]{1.0, 2.0, 3.0})]
+        [TestCase("a = [1,2,3,4].max(); b = [1,2,3,4].min()",   new[]{"a","b"},     new object[]{4, 1})]
+        [TestCase("a =[0..10][1]; b=[0..5][2]; c=[0..5][3];",   new[]{"a","b","c"}, new object[]{1, 2, 3})]
         public void SomeConstantInExpression(string expr, string[] outputNames, object[] constantValues)
         {
             var calculateResult = expr.Calc();
@@ -167,7 +166,7 @@ y = tostring(x)", "y", "not supported")]
         {
             var expr = @"
 
-            y = 10
+            y = 10.0
     *
 
 x-

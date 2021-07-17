@@ -66,14 +66,14 @@ namespace NFun.SyntaxTests
                                 p1+p2  
           fib(n) = if (n<3) 1 else fibrec(n-1,2,1,1)
                    
-          y = fib(1)", BaseFunnyType.Real)]
+          y = fib(1)", BaseFunnyType.Int32)]
         [TestCase(
             @"fibrec(n:int, iter, p1,p2) =
                           if (n >iter) fibrec(n, iter+1, p1+p2, p1)
                           else p1+p2  
                     
                    fib(n) = if (n<3) 1 else fibrec(n-1,2,1,1)
-                   y = fib(1)", BaseFunnyType.Real)]
+                   y = fib(1)", BaseFunnyType.Int32)]
         [TestCase(
             @"fibrec(n, iter, p1,p2):int =
                           if (n >iter) fibrec(n, iter+1, p1+p2, p1)
@@ -83,19 +83,19 @@ namespace NFun.SyntaxTests
                    y = fib(1)", BaseFunnyType.Int32)]
         [TestCase(@"y = [1..7]
                         .map(fun it+1)
-                        .sum()", BaseFunnyType.Real)]
+                        .sum()", BaseFunnyType.Int32)]
         [TestCase(@"y = [1..8]
                         .map(fun [it,1].sum())
-                        .sum()", BaseFunnyType.Real)]
+                        .sum()", BaseFunnyType.Int32)]
         [TestCase(@"y = [1..9]
                         .map(fun [1,it].sum())
-                        .sum()", BaseFunnyType.Real)]
+                        .sum()", BaseFunnyType.Int32)]
         [TestCase(@"y = [1..10]
                         .map(fun [1..it].sum())
-                        .sum()", BaseFunnyType.Real)]
+                        .sum()", BaseFunnyType.Int32)]
         [TestCase(@"y = [1..11]
                         .map(fun [1..it].sum())
-                        .sum()", BaseFunnyType.Real)]
+                        .sum()", BaseFunnyType.Int32)]
         [TestCase(@"y = [1..12]
                         .map(fun [1..it]
                                 .map(fun 2600/it)
@@ -134,7 +134,7 @@ namespace NFun.SyntaxTests
                                 someRec(n, iter+1, p1+p2, p1)
                           else 
                                 p1+p2  
-          y = someRec(9,2,1,1)", BaseFunnyType.Real)]
+          y = someRec(9,2,1,1)", BaseFunnyType.Int32)]
 
         [TestCase(
             @"someRec2(n, iter) =
@@ -147,7 +147,7 @@ namespace NFun.SyntaxTests
         //[TestCase(
         //    @"someRec3(n, iter) = someRec3(n, iter+1).strConcat(n >iter)
         //  y = someRec3(9,2)[0]", BaseVarType.Char)]
-        [TestCase("(if(true) [1,2] else [])[0]", BaseFunnyType.Real)]
+        [TestCase("(if(true) [1,2] else [])[0]", BaseFunnyType.Int32)]
         public void SingleEquations_Parsing_OutputTypesCalculateCorrect(string expr, BaseFunnyType type) => 
             Assert.AreEqual(type, expr.Build().Variables.Single(v=>v.IsOutput).Type.BaseType);
 
@@ -282,12 +282,12 @@ namespace NFun.SyntaxTests
         [TestCase(1.0, "x:real\r y= x+1", 2.0)]       
         
         [TestCase(1,    "x:int\r y= x+1", 2)]        
-        [TestCase(1.0, "y= x+1", 2.0)]       
-        [TestCase(2.0, "y= x*1", 2.0)]       
-        [TestCase(1.0, "y= x-1", 0.0)]       
-        [TestCase(1.0, "y= 1+x", 2.0)]       
-        [TestCase(2.0, "y= 1*x", 2.0)]       
-        [TestCase(1.0, "y= 1-x", 0.0)]     
+        [TestCase(1, "y= x+1", 2)]       
+        [TestCase(2, "y= x*1", 2)]       
+        [TestCase(1, "y= x-1", 0)]       
+        [TestCase(1, "y= 1+x", 2)]       
+        [TestCase(2, "y= 1*x", 2)]       
+        [TestCase(1, "y= 1-x", 0)]     
         //todo
         //[TestCase("1", "y= x.strConcat(1)", "11")]        
         [TestCase(true, "x:bool\r y= x and true", true)] 
@@ -490,7 +490,7 @@ namespace NFun.SyntaxTests
 
         [TestCase("0x1", "out", BaseFunnyType.Int32)]
         [TestCase("1.0", "out", BaseFunnyType.Real)]
-        [TestCase("1", "out", BaseFunnyType.Real)]
+        [TestCase("1", "out", BaseFunnyType.Int32)]
         [TestCase("true", "out", BaseFunnyType.Bool)]
         [TestCase("z = x", "z", BaseFunnyType.Any)]
         [TestCase("y = x/2", "y", BaseFunnyType.Real)]

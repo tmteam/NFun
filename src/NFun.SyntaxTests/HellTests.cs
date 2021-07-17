@@ -167,7 +167,7 @@ namespace NFun.SyntaxTests
                     ("tr", "24"),
                     ("ia", new[] {1, 2, 3, 42}),
                     ("ir", new[] {1.0, 2.0, 42.0}),
-                    ("c", 123.0),
+                    ("c", 123),
                     ("d", "mama ja pokakal"),
                     ("etext", "")
                 );

@@ -86,7 +86,7 @@ namespace NFun.Interpretation
 
             #endregion
 
-            var bodyTypeSolving = SolveBodyTypes(syntaxTree, constants, functionDictionary, aprioriTypesMap);
+            var bodyTypeSolving = SolveBodyTypes(syntaxTree, constants, functionDictionary, aprioriTypesMap, dialect);
 
             #region build body
 
@@ -156,10 +156,11 @@ namespace NFun.Interpretation
             SyntaxTree syntaxTree,
             IConstantList constants,
             IFunctionDictionary functionDictionary,
-            AprioriTypesMap aprioriTypes)
+            AprioriTypesMap aprioriTypes, 
+            ClassicDialectSettings dialect)
         {
             var bodyTypeSolving = RuntimeBuilderHelper.SolveBodyOrThrow(
-                syntaxTree, functionDictionary, constants, aprioriTypes);
+                syntaxTree, functionDictionary, constants, aprioriTypes, dialect);
 
             var enterVisitor = new ApplyTiResultEnterVisitor(bodyTypeSolving, TicTypesConverter.Concrete);
             var exitVisitor = new ApplyTiResultsExitVisitor();
@@ -253,7 +254,8 @@ namespace NFun.Interpretation
                     ticGraph: graphBuider,
                     functions: functionsDictionary,
                     constants: constants,
-                    results: resultsBuilder))
+                    results: resultsBuilder, 
+                    dialect: dialect))
                     throw FunParseException.ErrorStubToDo($"Function '{functionSyntaxNode.Id}' is not solved");
 
                 // solve the types

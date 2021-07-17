@@ -5,14 +5,14 @@ namespace NFun.SyntaxTests
 {
     public class NameConflictsTest
     {
-        [TestCase("concat = 1+2","concat",3.0)]
-        [TestCase("min = 1+2","min",3.0)]
+        [TestCase("concat = 1+2.0","concat",3.0)]
+        [TestCase("min = 1+2","min",3)]
         [TestCase("max = 1+0x2","max",3)]
         public void OutputNameOverloadsBuiltinFunctionName(string expr, string output, object expected) => 
             expr.AssertResultHas(output,expected);
 
-        [TestCase("concat = 1+2 \r y = concat*3 ","y", 9.0)]
-        [TestCase("count = 1+2 \r y = count*3 \r ","y", 9.0)]
+        [TestCase("concat = 1+2 \r y = concat*3 ","y", 9)]
+        [TestCase("count = 1+2 \r y = count*3 \r ","y", 9)]
         public void OverloadOutputUsesInOtherEquation(string expr, string output, object expected) 
             => expr.AssertResultHas(output,expected);
         

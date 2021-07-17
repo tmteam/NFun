@@ -10,7 +10,7 @@ namespace NFun.SyntaxTests.Structs
             ("f(x) = x.age;" +
              "x1= {age = 12};" +
              "x2= {age = true};" +
-             "r = f(x1); b = f(x2);").AssertResultHas(("r", 12.0), ("b", true));
+             "r = f(x1); b = f(x2);").AssertResultHas(("r", 12), ("b", true));
 
         [Test]
         [Ignore("Undefined behaviour")]
@@ -22,7 +22,7 @@ namespace NFun.SyntaxTests.Structs
             ("f(x) = -x.age;" +
              "x1= {age = 12};" +
              "r = f(x1); ")
-            .AssertResultHas("r",-12.0);
+            .AssertResultHas("r",-12);
 
         [Test]
         public void CallGenericFunctionMultipleFieldOfArrayAccess_PipeForward() =>
@@ -30,14 +30,14 @@ namespace NFun.SyntaxTests.Structs
              "x1= {a = 'mama'; b = 'popo'};" +
              "t = f(x1);" +
              "iarr = f({a=[1,2,3]; b = [4,5,6]})")
-            .AssertResultHas(("t", "mamapopo"),("iarr", new[]{1.0,2,3,4,5,6}));
+            .AssertResultHas(("t", "mamapopo"),("iarr", new[]{1,2,3,4,5,6}));
 
         [Test]
         public void CallGenericFunctionMultipleFieldOfArrayAccess() =>
             ("f(x) = concat(x.a, x.b);" +
              "x1= {a = 'mama'; b = 'popo'};" +
              "t = f(x1);" +
-             "iarr = f({a=[1,2,3]; b = [4,5,6]})").AssertResultHas(("t", "mamapopo"),("iarr", new[]{1.0,2.0,3.0,4.0,5.0,6.0}));
+             "iarr = f({a=[1,2,3]; b = [4,5,6]})").AssertResultHas(("t", "mamapopo"),("iarr", new[]{1,2,3,4,5,6}));
 
         [Test]
         public void CallGenericFunctionMultipleFieldOfTextAccess() =>
@@ -48,7 +48,7 @@ namespace NFun.SyntaxTests.Structs
         public void CallGenericFunctionMultipleFieldOfRealArrayAccess() =>
             ("f(x) = concat(x.a, x.b);" +
              "x1= {a = 'mama'; b = 'popo'};" +
-             "iarr = f({a=[1,2,3]; b = [4,5,6]})").AssertResultHas("iarr", new[]{1.0,2.0,3.0,4.0,5.0,6.0});
+             "iarr = f({a=[1,2,3]; b = [4,5,6]})").AssertResultHas("iarr", new[]{1,2,3,4,5,6});
 
         [Test]
         public void CallGenericFunctionMultipleFieldOfConcreteIntArrayAccess() =>
@@ -58,7 +58,7 @@ namespace NFun.SyntaxTests.Structs
         [Test]
         public void CallGenericFunctionMultipleFieldOfConcreteRealsArrayAccess() =>
             ("f(x) = concat(x.a, x.b);" +
-             "iarr:real[] = f( {a=[1.0,2.0,3.0]; b = [4.0,5.0,6.0]} )").AssertResultHas("iarr", new[]{1.0,2,3,4,5,6});
+             "iarr:real[] = f( {a=[1,2.0,3.0]; b = [4.0,5.0,6.0]} )").AssertResultHas("iarr", new[]{1.0,2,3,4,5,6});
 
         [Test]
         public void CallGenericFunctionSingleFieldOfConcreteRealsArrayAccess() =>
@@ -69,13 +69,13 @@ namespace NFun.SyntaxTests.Structs
         public void CallGenericFunctionWithFieldIndexing() =>
             ("f(x) = x.item[1];" +
                        "x1= {item = [1,2,3] };" +
-                       "r = f(x1);").AssertResultHas("r", 2.0);
+                       "r = f(x1);").AssertResultHas("r", 2);
 
         [Test]
         public void CallGenericFunctionWithAdditionalFields() =>
             ("f(x) = x.size;" +
              "x1= {age = 12; size = 24; name = 'vasa'};" +
-             "r = f(x1);").AssertResultHas("r", 24.0);
+             "r = f(x1);").AssertResultHas("r", 24);
 
         [Test]
         public void CallComplexFunction() =>
@@ -87,12 +87,12 @@ namespace NFun.SyntaxTests.Structs
         public void GenericStructFunctionReturn() =>
            ("f(x) = {res = x}; "+
             "r = f(42).res;" +
-            "txt = f('try').res").AssertResultHas(("r",42.0),("txt","try"));
+            "txt = f('try').res").AssertResultHas(("r",42),("txt","try"));
 
         [Test]
         public void SingleGenericStructFunctionReturn() =>
             ("f(x) = {res = x}; " +
-             "r = f(42).res;").AssertResultHas("r", 42.0);
+             "r = f(42).res;").AssertResultHas("r", 42);
 
         [Test]
         public void SingleGenericStructFunction_WithConcrete_ReturnsCouncrete() =>
@@ -103,7 +103,7 @@ namespace NFun.SyntaxTests.Structs
         public void ConstrainedGenericStructFunctionReturn() =>
             ("f(x) = {twice = x+x; dec = x-1}; " +
                     "t = f(42).twice;" +
-                    "d = f(123).dec").AssertResultHas(("t", 84.0),("d", 122.0));
+                    "d = f(123).dec").AssertResultHas(("t", 84),("d", 122));
 
         [TestCase(1, 1)]
         [TestCase(3, 6)]

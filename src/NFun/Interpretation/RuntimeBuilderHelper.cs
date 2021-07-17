@@ -60,7 +60,8 @@ namespace NFun.Interpretation
             SyntaxTree syntaxTree,
             IFunctionDictionary functions,
             IConstantList constants,
-            AprioriTypesMap aprioriTypes)
+            AprioriTypesMap aprioriTypes, 
+            ClassicDialectSettings dialect)
         {
             try
             {
@@ -73,7 +74,8 @@ namespace NFun.Interpretation
                     functions: functions,
                     constants: constants,
                     aprioriTypes: aprioriTypes,
-                    results: resultBuilder))
+                    results: resultBuilder, 
+                    dialect:dialect))
                     throw ErrorFactory.TypesNotSolved(syntaxTree);
 
                 var bodyTypeSolving = typeGraph.Solve();

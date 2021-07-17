@@ -15,7 +15,7 @@ namespace NFun.SyntaxTests
 
         [Test]
         public void DependentVariableEquations() => 
-            "yPub = 2\r y2 = 3 +yPub".AssertReturns(("yPub", 2.0), ("y2", 5.0));
+            "yPub = 2\r y2 = 3 +yPub".AssertReturns(("yPub", 2), ("y2", 5));
 
         [TestCase("[1.0].fold((X,x)->x)")]
         [TestCase("test = 2.0\r tESt = 3.0")]

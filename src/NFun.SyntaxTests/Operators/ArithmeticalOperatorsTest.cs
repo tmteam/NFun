@@ -7,8 +7,8 @@ namespace NFun.SyntaxTests.Operators
 {
     public class ArithmeticalOperatorsTest
     {
-        [TestCase("y = 2*3", 6.0)]
-        [TestCase("y = -2*-4", 8.0)]
+        [TestCase("y = 2*3", 6)]
+        [TestCase("y = -2*-4", 8)]
         [TestCase("y = -2.5*4", -10.0)]
         [TestCase("y = 1.5*-3", -4.5)]
         
@@ -53,10 +53,10 @@ namespace NFun.SyntaxTests.Operators
         public void ConstantMultiply(string expression, object expected) 
             => expression.AssertReturns("y",expected);
 
-        [TestCase("y = x*3", 2.5, 7.5)]
-        [TestCase("y = -2*x",1.0, -2.0)]
-        [TestCase("y = x*-2",0.0, 0.0)]
-        [TestCase("y = x*-2",1.5, -3.0)]
+        [TestCase("y = x*3.0", 2.5, 7.5)]
+        [TestCase("y = -2.0*x",1.0, -2.0)]
+        [TestCase("y = x*-2",0, 0)]
+        [TestCase("y = x*-2.0",1.5, -3.0)]
 
         [TestCase("y:int64  = 2*x",  (Int64) 3,  (Int64) 6)]
         [TestCase("y:int32  = x*2",  (Int32) 1,  (Int32) 2)]
@@ -65,8 +65,8 @@ namespace NFun.SyntaxTests.Operators
         public void VarMultiply(string expression,object input,  object expected) 
             => expression.Calc("x",input).AssertResultHas("y",expected);
 
-        [TestCase("y = 2+3", 5.0)]
-        [TestCase("y = -2+-4", -6.0)]
+        [TestCase("y = 2+3", 5)]
+        [TestCase("y = -2+-4", -6)]
         [TestCase("y = -2.5+4", 1.5)]
         [TestCase("y = 1.5+-3", -1.5)]
         
@@ -111,11 +111,10 @@ namespace NFun.SyntaxTests.Operators
         public void ConstantAddition(string expression, object expected)
             => expression.AssertReturns("y",expected);
 
-        [TestCase("y = x+3", 2.5, 5.5)]
-        [TestCase("y = -2+x",1.0, -1.0)]
-        [TestCase("y = x+-2",0.0, -2.0)]
-        [TestCase("y = x+-2",1.5, -0.5)]
-
+        [TestCase("y = x+3", 2, 5)]
+        [TestCase("y = -2+x",1, -1)]
+        [TestCase("y = x+-2",0, -2)]
+        [TestCase("y = x+-2",1, -1)]
         [TestCase("y:int64  = 2+x",  (Int64) 3,  (Int64) 5)]
         [TestCase("y:int32  = x+2",  (Int32) 1,  (Int32) 3)]
         [TestCase("y:uint64 = x+3",  (UInt64) 4,  (UInt64) 7)]
@@ -124,7 +123,7 @@ namespace NFun.SyntaxTests.Operators
             => expression.Calc("x",input).AssertResultHas("y",expected);
 
         
-        [TestCase("y = 2-3", -1.0)]
+        [TestCase("y = 2-3", -1)]
         [TestCase("y = -2.5-4", -6.5)]
         
         [TestCase("y:real = 2-3", -1.0)]
@@ -158,9 +157,12 @@ namespace NFun.SyntaxTests.Operators
         public void ConstantSubstraction(string expression, object expected)
             => expression.AssertReturns("y",expected);
 
-        [TestCase("y = x-3", 2.5, -0.5)]
-        [TestCase("y = -2-x",1.0, -3.0)]
-        [TestCase("y = x-2",0.0, -2.0)]
+        [TestCase("y = x-3.0", 2.5, -0.5)]
+        [TestCase("y = -2.0-x",1.0, -3.0)]
+        [TestCase("y = x-2.0",0.0, -2.0)]
+        [TestCase("y:real = x-3", 2.5, -0.5)]
+        [TestCase("y:real = -2-x",1.0, -3.0)]
+        [TestCase("y:real = x-2",0.0, -2.0)]
 
         [TestCase("y:int64  = 2-x",  (Int64) 3,  (Int64) (-1))]
         [TestCase("y:int32  = x-2",  (Int32) 1,  (Int32) (-1))]
@@ -211,45 +213,55 @@ namespace NFun.SyntaxTests.Operators
         public void VarPow(string expression,object input,  object expected) 
             => expression.Calc("x",input).AssertResultHas("y",expected);
         
-        [TestCase("y = -1",-1.0)]
+        [TestCase("y = -1",-1)]
         [TestCase("y:real  = -(1)",(double)(-1.0))]
         [TestCase("y:int64 = -(1)",(Int64)(-1.0))]
         [TestCase("y:int32 = -(1)",(Int32)(-1.0))]
         [TestCase("y:int16 = -(1)",(Int16)(-1.0))]
         [TestCase("y = -0x1 ",-1)]
-        [TestCase("y = -(-1)", 1.0)]
-        [TestCase("y = -(-(-1))",-1.0)]
+        [TestCase("y = -(-1)", 1)]
+        [TestCase("y = -(-(-1))",-1)]
     
         public void ConstantNegate(string expression, object expected)
             => expression.AssertReturns("y",expected);
 
         [TestCase("y = 1 + 4/2 + 3 +2*3 -1", 11.0)]
         [TestCase("y = 1 + (1 + 4)/2 - (3 +2)*(3 -1)",-6.5)]
-        [TestCase("y = -(1+2)",-3.0)]
-        [TestCase("y = -2*(-4+2)", 4.0)]
+        [TestCase("y = -(1+2)",-3)]
+        [TestCase("y = -2*(-4+2)", 4)]
         public void ConstantExpression(string expression, object expected)
             => expression.AssertReturns("y",expected);
 
-        
-        [TestCase("y = (x + 4/x)",2,4)]
         [TestCase("y = x.rema(3)", 2,2)]
         [TestCase("y = x.rema(4)", 5,1)]
         [TestCase("y = x.rema(-4)", 5,1)]
         [TestCase("y = x.rema(4)", -5,-1)]
         [TestCase("y = x.rema(-4)", -5,-1)]
         [TestCase("y = x.rema(4)", -5,-1)]
-        [TestCase("y = x.rema(2)", -5.2,-1.2)]
-        [TestCase("y = 5.rema(x)", 2.2,0.6)]
-        [TestCase("y = -x ",0.3,-0.3)]
-        [TestCase("y = -(-(-x))",2,-2)]
+        [TestCase("y = -(-(-x))",2.0,-2.0)]
+        public void SingleIntVariableEquation(string expr, object arg, object expected) => 
+            expr.Calc("x",arg).AssertReturns("y", expected);
+        
+        
+        [TestCase("y = (x + 4.0/x)",2,4)]
+        [TestCase("y = x.rema(3.0)", 2,2)]
+        [TestCase("y = x.rema(4.0)", 5,1)]
+        [TestCase("y = x.rema(-4.0)", 5,1)]
+        [TestCase("y = x.rema(4.0)", -5,-1)]
+        [TestCase("y = x.rema(-4.0)", -5,-1)]
+        [TestCase("y = x.rema(4.0)", -5,-1)]
+        [TestCase("y = x.rema(2.0)", -5.2,-1.2)]
+        [TestCase("y = 5.0.rema(x)", 2.2,0.6)]
+        [TestCase("y:real = -x ",0.3,-0.3)]
+        [TestCase("y = -(-(-1.0*x))",2,-2)]
         public void SingleRealVariableEquation(string expr, double arg, double expected) => 
             expr.Calc("x",arg).AssertReturns("y", expected);
 
-        [TestCase("y = x1+x2",2,3,5)]
+        [TestCase("y = x1+x2",2.0,3.0,5.0)]
         [TestCase("y = 2*x1*x2",3,6, 36)]
-        [TestCase("y = x1*4/x2",2,2,4)]
-        [TestCase("y = (x1+x2)/4",2,2,1)]
-        public void TwoVariablesEquation(string expr, double arg1, double arg2, double expected) => 
+        [TestCase("y = x1*4/x2",2.0,2.0,4.0)]
+        [TestCase("y = (x1+x2)/4",2.0,2.0,1.0)]
+        public void TwoVariablesEquation(string expr, object arg1, object arg2, object expected) => 
             expr.Calc(("x1",arg1),("x2",arg2)).AssertResultHas("y",expected);
 
         [Ignore("TODO Arithmetical oops")]

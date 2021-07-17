@@ -48,7 +48,8 @@ namespace NFun.UnitTests.TicTests
                 functions:    BaseFunctions.DefaultFunctions, 
                 constants:    new EmptyConstantList(), 
                 aprioriTypes: AprioriTypesMap.Empty, 
-                results:      resultsBuilder);
+                results:      resultsBuilder, 
+                ClassicDialectSettings.Default);
             
             return graph.Solve();
         }
@@ -70,7 +71,8 @@ namespace NFun.UnitTests.TicTests
                 functions: BaseFunctions.DefaultFunctions, 
                 constants: new EmptyConstantList(), 
                 aprioriTypes: AprioriTypesMap.Empty,  
-                results:   resultsBuilder);
+                results:   resultsBuilder,
+                ClassicDialectSettings.Default);
 
             var res =  graph.Solve();
             resultsBuilder.SetResults(res);

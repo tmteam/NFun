@@ -52,7 +52,7 @@ namespace NFun.ApiTests
                 .Hardcore
                 .WithFunction(new LogFunction())
                 .Build("y = 1.writeLog('hello')")
-                .Calc().AssertReturns("y",1.0);
+                .Calc().AssertReturns("y",1);
 
         [Test]
         public void Use1ArgLambda() =>

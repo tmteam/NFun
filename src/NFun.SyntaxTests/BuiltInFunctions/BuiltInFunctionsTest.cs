@@ -203,6 +203,7 @@ namespace NFun.SyntaxTests.BuiltInFunctions
         [TestCase("avg([1,2,3])", 2.0)]
         [TestCase("avg([1.0,2.0,6.0])", 3.0)]
         [TestCase("sum([1.0,2,3])", 6.0)]
+        [TestCase("[1,2,3].sum()", 6)]
 
         [TestCase("out:int64 = sum([1,2,3])", (long) 6)]
         [TestCase("out:uint64= sum([1,2,3])", (ulong) 6)]
@@ -234,7 +235,8 @@ namespace NFun.SyntaxTests.BuiltInFunctions
         [TestCase("out:byte   = min([1,10,6])", (byte) 1)]
 
         [TestCase("median([1.0,10.5,6.0])", 6.0)]
-        [TestCase("median([1,-10,0])", 0.0)]
+        [TestCase("median([1,-10,0])", 0)]
+        [TestCase("median([1,-10.0,0])", 0)]
 
         [TestCase("out:int64  = median([1,10,6])", (long) 6)]
         [TestCase("out:uint64 = median([1,10,6])", (ulong) 6)]
@@ -248,9 +250,9 @@ namespace NFun.SyntaxTests.BuiltInFunctions
         [TestCase("['a'].any()", true)]
         [TestCase("[1..10].filter(fun it>3).any()", true)]
         [TestCase("[1..10].filter(fun it>10).any()", false)]
-        [TestCase("[1,2,3,4].fold(fun it1+it2)", 10.0)]
-        [TestCase("[1,2,3,4].fold(0,(fun it1+it2))", 10.0)]
-        [TestCase("[1,2,3,4].fold(-10,(fun it1+it2))", 0.0)]
+        [TestCase("[1,2,3,4].fold(fun it1+it2)", 10)]
+        [TestCase("[1,2,3,4].fold(0,(fun it1+it2))", 10)]
+        [TestCase("[1,2,3,4].fold(-10,(fun it1+it2))", 0)]
         [TestCase("[1,2,3,4].fold('', fun '{it1}{it2}')", "1234")]
         [TestCase("any([])", false)]
         [TestCase("[0x4,0x3,0x5,0x1].sort()", new[] {1, 3, 4, 5})]
@@ -273,7 +275,9 @@ namespace NFun.SyntaxTests.BuiltInFunctions
         [TestCase("out:uint16[] = range(0,5)", new UInt16[] {0, 1, 2, 3, 4, 5})]
         [TestCase("out:uint8[]  = range(0,5)", new Byte[] {0, 1, 2, 3, 4, 5})]
 
-        [TestCase("range(7,10)", new[] {7.0, 8, 9, 10})]
+        [TestCase("range(7,10)", new[] {7, 8, 9, 10})]
+        [TestCase("range(7,10.0)", new[] {7.0, 8, 9, 10})]
+        [TestCase("range(7.0,10.0)", new[] {7.0, 8, 9, 10})]
         [TestCase("range(1,10,2.0)", new[] {1.0, 3.0, 5.0, 7.0, 9.0})]
         public void ConstantEquationWithPredefinedFunction(string expr, object expected) => expr.AssertOut(expected);
         
@@ -326,7 +330,8 @@ namespace NFun.SyntaxTests.BuiltInFunctions
         [TestCase("y = abs(x-4.0)",1.0,3.0)]
         //todo
         // [TestCase("x:int; y = abs(toInt(x)-toInt(4))",1,3)]
-        [TestCase("y = abs(x-4)",1.0,3.0)]
+        [TestCase("y = abs(x-4)",1,3)]
+        [TestCase("y = abs(x-4.0)",1.0,3.0)]
         //todo
        //[TestCase("y = abs(toInt(x)-toInt(4))",1,3)]
         //[TestCase("y = abs(x-toInt(4))",1,3)]

@@ -81,7 +81,7 @@ namespace NFun.SyntaxTests.UserFunctions
         [TestCase(
             "fact(a) = if (a<2) 1 else a*fact(a-1) \r y = fact(5)", 5 * 4 * 3 * 2 * 1)]
 
-        public void ConstantEquationOfReal_RecFunctions(string expr, double expected) => 
+        public void ConstantEquationOfReal_RecFunctions(string expr, object expected) => 
             expr.AssertReturns("y", expected);
 
         [TestCase(1, 1)]

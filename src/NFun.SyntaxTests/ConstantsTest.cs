@@ -6,7 +6,6 @@ namespace NFun.SyntaxTests
 {
     public class ConstantsTest
     {
-        [TestCase("y = 2", 2.0)]
         [TestCase("y:int64 = -1", (Int64) (-1.0))]
         [TestCase("y:int32 = -1", (Int32) (-1.0))]
         [TestCase("y:int16 = -1", (Int16) (-1.0))]
@@ -44,10 +43,11 @@ namespace NFun.SyntaxTests
         [TestCase("y:uint32 = 0", (UInt32) (0))]
         [TestCase("y:uint64 = 0", (UInt64) 0)]
 
+        [TestCase("y = 2", 2)]
         [TestCase("y = 0.2", 0.2)]
         [TestCase("y = 11.222  ", 11.222)]
-        [TestCase("y = 1111  ", 1111.0)]
-        [TestCase("y = 11_11  ", 1111.0)]
+        [TestCase("y = 1111  ", 1111)]
+        [TestCase("y = 11_11  ", 1111)]
         [TestCase("y = 1.1_11  ", 1.111)]
         public void NumericConstantEqualsExpected(string expression, object expected) =>
             expression.AssertReturns("y", expected);

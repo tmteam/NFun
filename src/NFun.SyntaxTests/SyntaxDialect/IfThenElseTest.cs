@@ -53,7 +53,7 @@ namespace NFun.SyntaxTests.SyntaxDialect
         [TestCase(3,9,0,8)]
         [TestCase(9,4,0,9)]
         [TestCase(9,9,0,10)]
-        public void NestedIfThenElse_ififelse(double x1, double x2, double x3, double expected) =>
+        public void NestedIfThenElse_ififelse(int x1, int x2, int x3, int expected) =>
             @"
                 y = if (x1 == 1) 1 
                     if (x1 == 2)
@@ -69,7 +69,7 @@ namespace NFun.SyntaxTests.SyntaxDialect
                     else if (x2 == 4) 9 
                          else 10"
                 .BuildWithDialect(Dialects.ModifyClassic(IfExpressionSetup.IfIfElse))
-                .Calc(("x1",Convert.ToDouble(x1)), ("x2",Convert.ToDouble(x2)), ("x3",Convert.ToDouble(x3)))
+                .Calc(("x1",x1), ("x2",x2), ("x3",x3))
                 .AssertReturns("y",expected);
 
         [TestCase(1, 0, 0, 1)]
@@ -82,7 +82,7 @@ namespace NFun.SyntaxTests.SyntaxDialect
         [TestCase(3, 9, 0, 8)]
         [TestCase(9, 4, 0, 9)]
         [TestCase(9, 9, 0, 10)]
-        public void NestedIfThenElse(double x1, double x2, double x3, double expected)
+        public void NestedIfThenElse(int x1, int x2, int x3, int expected)
         {
             var expr = @"
                 y = if (x1 == 1) 1 
@@ -103,7 +103,7 @@ namespace NFun.SyntaxTests.SyntaxDialect
                 Funny.Hardcore
                     .WithDialect(Dialects.ModifyClassic(setup))
                     .Build(expr)
-                    .Calc(("x1", Convert.ToDouble(x1)), ("x2", Convert.ToDouble(x2)), ("x3", Convert.ToDouble(x3)))
+                    .Calc(("x1", x1), ("x2", x2), ("x3", x3))
                     .AssertReturns("y", expected);
             }
         }
@@ -115,14 +115,7 @@ namespace NFun.SyntaxTests.SyntaxDialect
         [TestCase("y = if (2==1)10\r else -10", -10)]
         [TestCase("y = if (2<1 )10 \r if (2>1)  -10 else 0", -10)]
         [TestCase("y = if (1>2 )10\r if (1<2) -10\r else 0", -10)]
-        [TestCase("y = if (1<2 ) 10 else -10", 10, IfExpressionSetup.IfElseIf)]
-        [TestCase("y = if (1>2 )-10 else 10", 10, IfExpressionSetup.IfElseIf)]
-        [TestCase("y = if (2>1 )10 else -10", 10, IfExpressionSetup.IfElseIf)]
-        [TestCase("y = if (2>1 )10\r else -10", 10, IfExpressionSetup.IfElseIf)]
-        [TestCase("y = if (2==1)10\r else -10", -10, IfExpressionSetup.IfElseIf)]
-        [TestCase("y = if (2<1 )10 \r else if (2>1)  -10; else 0", -10, IfExpressionSetup.IfElseIf)]
-        [TestCase("y = if (1>2 )10\r else  if (1<2) -10\r else if(false) -1; else 0", -10, IfExpressionSetup.IfElseIf)]
-        public void ConstantIntEquation(string expr, double expected, IfExpressionSetup setup  = IfExpressionSetup.IfIfElse) 
+        public void ConstantIntEquation(string expr, int expected, IfExpressionSetup setup  = IfExpressionSetup.IfIfElse) 
             => expr.BuildWithDialect(Dialects.ModifyClassic(setup)).Calc().AssertReturns(expected);
 
         [TestCase("y = if (1<2 ) true else false", true)]
@@ -156,8 +149,8 @@ if (x == 0) 'zero'
 if (x == 1) 'one'
 if (x == 2) 'two'
 else 'not supported' ", 2, "two")]
-        [TestCase("if (x==1) [1,2,3] else []", 1, new[] {1.0, 2, 3})]
-        [TestCase("if (x==1) [1,2,3] else []", 0, new double[0])]
+        [TestCase("if (x==1) [1,2,3] else []", 1, new[] {1, 2, 3})]
+        [TestCase("if (x==1) [1,2,3] else []", 0, new int[0])]
         public void SingleVariableEquatation_ififelse(string expression, int x, object expected)
             => Funny.Hardcore
                 .WithApriori<int>("x")
@@ -188,8 +181,8 @@ if (x == 0) 'zero'
 else if (x == 1) 'one'
 else if (x == 2) 'two'
 else 'not supported' ", 2, "two")]
-        [TestCase("if (x==1) [1,2,3] else []", 1, new[] {1.0, 2, 3})]
-        [TestCase("if (x==1) [1,2,3] else []", 0, new double[0])]
+        [TestCase("if (x==1) [1,2,3] else []", 1, new[] {1, 2, 3})]
+        [TestCase("if (x==1) [1,2,3] else []", 0, new int[0])]
         public void SingleVariableEquatation(string expression, int x, object expected)
         {
             foreach (var setup in new[] { IfExpressionSetup.IfIfElse, IfExpressionSetup.IfElseIf })
