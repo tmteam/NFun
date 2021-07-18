@@ -118,7 +118,10 @@ namespace NFun.SyntaxTests.SyntaxDialect
                   "b = {d = a; e = a.c; f = 3}; " +
                   "y = b.d.b + b.e + b.f", 42,87)]
         public void ArgCalcOfTargetType(string expression,int arg, int expected)
-            => Build(expression).Calc("x",Convert(arg)).AssertResultHas("y",Convert(expected));
+        {
+            TraceLog.IsEnabled = true;
+            Build(expression).Calc("x", Convert(arg)).AssertResultHas("y", Convert(expected));
+        }
 
         [TestCase("y = x1+x2+1",2,3,6)]
         [TestCase("y = 2*x1*x2",3,6, 36)]

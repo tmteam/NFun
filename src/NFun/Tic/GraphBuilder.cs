@@ -337,8 +337,19 @@ namespace NFun.Tic
         
         private void SetCallArgument(ITicNodeState type, int argId)
         {
+            var alreadyExistsNode = _syntaxNodes.GetOrEnlarge(argId);
+            if (alreadyExistsNode == null)
+            {
+                var res = TicNode.CreateSyntaxNode(argId, type,true);
+                _syntaxNodes[argId] = res;
+                return;
+            }
+            if (alreadyExistsNode.State is ConstrainsState { HasAncestor: false, HasDescendant: false })
+            {
+                alreadyExistsNode.State = type;
+                return;
+            }
             var node = GetOrCreateNode(argId);
-
             switch (type)
             {
                 case StatePrimitive primitive:
