@@ -1,5 +1,6 @@
 using System;
 using NFun.TestTools;
+using NFun.Tic;
 using NUnit.Framework;
 
 namespace NFun.SyntaxTests.BuiltInFunctions
@@ -212,6 +213,7 @@ namespace NFun.SyntaxTests.BuiltInFunctions
         [TestCase("sum([1.0,2.5,6.0])", 9.5)]
         [TestCase("max([1.0,10.5,6.0])", 10.5)]
         [TestCase("max([1,-10,0.0])", 1.0)]
+        [TestCase("max([1,0.0])", 1.0)]
         [TestCase("max(1.0,3.4)", 3.4)]
         [TestCase("max(0x4,3)", 4)]
         [TestCase("out:int64  = max([1,10,6])", (long) 10)]
@@ -236,7 +238,9 @@ namespace NFun.SyntaxTests.BuiltInFunctions
 
         [TestCase("median([1.0,10.5,6.0])", 6.0)]
         [TestCase("median([1,-10,0])", 0)]
-        [TestCase("median([1,-10.0,0])", 0)]
+        [TestCase("median([1])", 1)]
+        [TestCase("median(['a','b','c'])", "b")]
+        [TestCase("median([1,-10.0,0])", 0.0)]
 
         [TestCase("out:int64  = median([1,10,6])", (long) 6)]
         [TestCase("out:uint64 = median([1,10,6])", (ulong) 6)]
@@ -279,8 +283,12 @@ namespace NFun.SyntaxTests.BuiltInFunctions
         [TestCase("range(7,10.0)", new[] {7.0, 8, 9, 10})]
         [TestCase("range(7.0,10.0)", new[] {7.0, 8, 9, 10})]
         [TestCase("range(1,10,2.0)", new[] {1.0, 3.0, 5.0, 7.0, 9.0})]
-        public void ConstantEquationWithPredefinedFunction(string expr, object expected) => expr.AssertOut(expected);
-        
+        public void ConstantEquationWithPredefinedFunction(string expr, object expected)
+        {
+            TraceLog.IsEnabled = true;
+            expr.AssertOut(expected);
+        }
+
         [TestCase((long)42, "x:int64\r y = x.add(1)", (long)43)]
         [TestCase((long)42, "x:int64\r y = max(1,x)", (long)42)]
         [TestCase((long)42, "x:int64\r y = min(1,x)", (long)1)]

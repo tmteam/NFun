@@ -604,22 +604,17 @@ namespace NFun.Tic
             }
         }
 
-        private static IEnumerable<TicNode> GetAllOutputTypes(this TicNode node)
-        {
-            switch (node.State)
+        private static IEnumerable<TicNode> GetAllOutputTypes(this TicNode node) =>
+            //Todo Method is not tested. What about composite reference+ fun + reference cases?
+            node.State switch
             {
-                case StateFun fun:
-                    return new[] { fun.RetNode }; //TODO retNode.AllLeafType?
-                case StateArray array:
-                    return array.AllLeafTypes;
-                case StateStruct @struct:
-                    return @struct.AllLeafTypes;
-                case StateRefTo:
-                    return new[] { node.GetNonReference() }; //TODO AllLeafType?
-                default:
-                    return new[] { node }; //TODO retNode.AllLeafType?
-            }
-        }
+                StateFun fun => fun.RetNode.GetAllOutputTypes(),
+                StateArray array => array.AllLeafTypes,
+                StateStruct @struct => @struct.AllLeafTypes,
+                StateRefTo => new[] { node.GetNonReference() }, //mb AllLeafType?
+                _ => new[] { node }
+            };
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void PrintTrace(IEnumerable<TicNode> nodes)
         {

@@ -66,14 +66,14 @@ namespace NFun.SyntaxTests
                                 p1+p2  
           fib(n) = if (n<3) 1 else fibrec(n-1,2,1,1)
                    
-          y = fib(1)", BaseFunnyType.Int32)]
+          y:int = fib(1)", BaseFunnyType.Int32)]
         [TestCase(
             @"fibrec(n:int, iter, p1,p2) =
                           if (n >iter) fibrec(n, iter+1, p1+p2, p1)
                           else p1+p2  
                     
                    fib(n) = if (n<3) 1 else fibrec(n-1,2,1,1)
-                   y = fib(1)", BaseFunnyType.Int32)]
+                   y:int = fib(1)", BaseFunnyType.Int32)]
         [TestCase(
             @"fibrec(n, iter, p1,p2):int =
                           if (n >iter) fibrec(n, iter+1, p1+p2, p1)
@@ -81,6 +81,7 @@ namespace NFun.SyntaxTests
                     
                    fib(n) = if (n<3) 1 else fibrec(n-1,2,1,1)
                    y = fib(1)", BaseFunnyType.Int32)]
+        
         [TestCase(@"y = [1..7]
                         .map(fun it+1)
                         .sum()", BaseFunnyType.Int32)]

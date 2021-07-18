@@ -11,12 +11,8 @@ namespace NFun.Tic.Stages
         public bool Apply(StatePrimitive ancestor, ConstrainsState descendant, TicNode ancestorNode, TicNode descendantNode)
         {
             if (descendant.Fits(ancestor))
-            {
-                if (descendant.Prefered != null && descendant.Fits(descendant.Prefered))
-                    descendantNode.State = descendant.Prefered;
-                else
-                    descendantNode.State = ancestor;
-            }
+                descendantNode.State = ancestor;
+            
             return true;
         }
 

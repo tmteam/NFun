@@ -338,14 +338,15 @@ namespace NFun.Tic
         private void SetCallArgument(ITicNodeState type, int argId)
         {
             var node = GetOrCreateNode(argId);
-
             switch (type)
             {
                 case StatePrimitive primitive:
                 {
-                    //if (node.State is ConstrainsState { HasAncestor: false, HasDescendant: false })
-                    //    node.State = type;
-                    //else
+                    if (node.State is ConstrainsState { HasAncestor: false, HasDescendant: false })
+                    {
+                         node.State = type;
+                         return;
+                    }
                     if (!node.TrySetAncestor(primitive))
                         throw TicErrors.CannotSetState(node, primitive);
                     break;
@@ -363,7 +364,6 @@ namespace NFun.Tic
                     node.AddAncestor(refTo.Node);
                     break;
                 }
-
                 default: throw new NotSupportedException();
             }
         }

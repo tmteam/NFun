@@ -1,4 +1,5 @@
 using NFun.TestTools;
+using NFun.Tic;
 using NUnit.Framework;
 
 namespace NFun.SyntaxTests
@@ -54,12 +55,18 @@ namespace NFun.SyntaxTests
         [TestCase(@"call9(f) = fun(i)=f(i); y = (fun(x)=x+1).call9()(2)", 3)]
         [TestCase(@"mult(x)= fun(y)=x*y;    y = mult(2)(3)", 6)]
         [TestCase(@"mult(x)= fun(y)=fun(z)=x*y*z;    y = mult(2)(3)(4)", 24)]
-        [TestCase(@"mult()= fun(x)=fun(y)=fun(z)=x* y*z; y = mult()(2)(3)(4)", 24.0)]
+        [TestCase(@"mult(x)= fun(y)=fun(z)=x*y*z;    y:real = mult(2)(3)(4)", 24.0)]
+        [TestCase(@"mult(x)= fun(y)=fun(z)=x*y*z;    y:int = mult(2)(3)(4)", 24)]
+        [TestCase(@"mult()= fun(x)=fun(y)=fun(z)=x* y*z; y = mult()(2)(3)(4)", 24)]
+        [TestCase(@"mult()= fun(x)=fun(y)=fun(z)=x* y*z; y:int = mult()(2)(3)(4)", 24)]
+        [TestCase(@"mult()= fun(x)=fun(y)=fun(z)=x* y*z; y:real = mult()(2)(3)(4)", 24.0)]
+
         [TestCase(@"y = (fun(x)=x+1)(3.0)", 4.0)]
         [TestCase(@"f = fun(x)=x+1; y = f(3.0)", 4.0)]
         [TestCase(@"f = fun(a)=fun(b)=a+b; y = f(3.0)(5.0)", 8.0)]
         public void AnonymousFunctions_ConstantEquation(string expr, object expected)
         {
+            TraceLog.IsEnabled = true;
             var runtime = expr.Build();
             runtime.AssertInputsCount(0,"Unexpected inputs on constant equations");
             runtime.Calc().AssertResultHas("y", expected);
@@ -123,7 +130,7 @@ namespace NFun.SyntaxTests
         [TestCase("y:int[] = [-1,-2,0,1,2,3].filter(fun it>0).map(fun it*it).map(fun it*it)", new[]{1,16,81})]
         [TestCase("y = [-1,-2,0,1,2,3].filter(fun it>0).filter(fun it>2)", new[]{3})]
         [TestCase("y:int = [-1,-2,0,1,2,3].filter(fun it>0).fold(fun it1+it2)", 6 )]
-        [TestCase("y:real = [-1,-2,0,1,2,3].filter(fun it>0).fold(fun it1+it2)", 6)]
+        [TestCase("y:real = [-1,-2,0,1,2,3].filter(fun it>0).fold(fun it1+it2)", 6.0)]
 
         [TestCase(@"y = [[1,2],[3,4],[5,6]].map(fun  it.map(fun it+1).sum())", new[]{5,9,13})]
         [TestCase(@"y = [[1,2],[3,4],[5,6]].fold(-10, fun it1+ it2.sum())", 11)]

@@ -31,8 +31,8 @@ namespace NFun.SyntaxTests.UserFunctions
         [TestCase("_inc(a) = a+1\r y = _inc(2)", 3)]
         [TestCase("_inc(y) = y+1\r y = _inc(2)", 3)]
         [TestCase("mult2(a,b) = a*b \r y = mult2(3,4)+1", 13)]
-        [TestCase("div2(a,b) = a/b  \r mult2(a,b) = a*b         \r y = mult2(3,4)+div2(4,2)", 14)]
-        public void ConstantEquation_NonRecursiveGenericFunction(string expr, int expected) => 
+        [TestCase("div2(a,b) = a/b  \r mult2(a,b) = a*b         \r y = mult2(3,4)+div2(4,2)", 14.0)]
+        public void ConstantEquation_NonRecursiveGenericFunction(string expr, object expected) => 
             expr.AssertReturns("y",expected);
 
         [TestCase("_inc(a) = a+1.0\r y = _inc(2.0)",3.0)]

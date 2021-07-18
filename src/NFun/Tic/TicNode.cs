@@ -164,6 +164,7 @@ namespace NFun.Tic
             {
                 if (!constrains.TryAddAncestor(anc))
                     return false;
+                constrains.Prefered = anc;
                 var optimized = constrains.GetOptimizedOrNull();
                 if (optimized == null)
                     return false;

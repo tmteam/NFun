@@ -10,7 +10,7 @@ namespace NFun.SyntaxTests
     {
         [TestCase("y = 1.0\r z = true", 1.0, true)]
         [TestCase("y = 2\r z=3",2,3)]
-        [TestCase("y = 2*3\r z= 1 + (1 + 4)/2 - (3 +2)*(3 -1)",6.0,-6.5)]
+        [TestCase("y = 2*3\r z= 1 + (1 + 4)/2 - (3 +2)*(3 -1)",6,-6.5)]
         public void TwinConstantEquations(string expr, object expectedY, object expectedZ) => 
             expr.AssertReturns(("y", expectedY), ("z", expectedZ));
 
@@ -26,7 +26,7 @@ namespace NFun.SyntaxTests
         [TestCase("in1:real; in2:real;y = in1/2 + in2\r z=2 + in2",new []{"in1","in2"})]
         [TestCase("y = 1\r z=2", new string[0])]        
         [TestCase("y = x/2\r z=2*x",new []{"x"})]
-        [TestCase("y = in1/2\r z=2+in2",new []{"in1","in2"})]
+        [TestCase("y = in1/2\r z=2+in2+ in1",new []{"in1","in2"})]
         [TestCase("y = in1/2 + in2\r z=2 + in2",new []{"in1","in2"})]
         [TestCase("x:real \r y = x\r z=y", new []{"x"})]
         [TestCase("a:real \r y = a*a\r z=y", new []{"a"})]
@@ -64,7 +64,7 @@ namespace NFun.SyntaxTests
         public void ThreeDependentConstantEquations_CalculatesCorrect(string expr,  object o1, object o2, object o3) => 
             expr.AssertReturns(("o1", o1), ("o2", o2), ("o3", o3));
 
-        [TestCase(2,"x:real\r o1 = x\r o2=o1\r o3 = 0", 2.0, 2.0, 0.0)]
+        [TestCase(2,"x:real\r o1 = x\r o2=o1\r o3 = 0", 2.0, 2.0, 0)]
         [TestCase(2,"o1 = x/2\r o2 = o1+1\r o3=2*o1*o2",1.0, 2.0, 4.0)]
         [TestCase(2,"o1 = x/2\r o3 = x \ro2 = o3",1.0, 2.0, 2.0)]
         public void ThreeDependentEquationsWithSingleVariable_CalculatesCorrect(object x,string expr,  object o1, object o2, object o3) => 

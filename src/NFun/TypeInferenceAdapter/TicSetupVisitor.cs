@@ -484,11 +484,11 @@ namespace NFun.TypeInferenceAdapter
 
         private StatePrimitive GetPreferedIntConstantType()
         {
-            StatePrimitive prefered = StatePrimitive.Any;
+            StatePrimitive prefered = null;
 
             if (_dialect.IntegerPreferedType == IntegerPreferedType.I32)
                 prefered = StatePrimitive.I32;
-            else if (_dialect.IntegerPreferedType == IntegerPreferedType.I32)
+            else if (_dialect.IntegerPreferedType == IntegerPreferedType.I64)
                 prefered = StatePrimitive.I64;
             else if (_dialect.IntegerPreferedType == IntegerPreferedType.Real)
                 prefered = StatePrimitive.Real;

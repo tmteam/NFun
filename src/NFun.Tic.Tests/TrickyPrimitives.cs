@@ -352,10 +352,9 @@ namespace NFun.Tic.Tests
             graph.Solve();
             
             var result = graph.Solve();
-            var generic = result.AssertAndGetSingleGeneric(StatePrimitive.U8, StatePrimitive.Real);
-            Assert.AreEqual(StatePrimitive.Real,((ConstrainsState)generic.State).Prefered,
-                "Generic state has to prefer Real type, as it used as real argument in function" );
+            result.AssertNoGenerics();
             result.AssertNamed(StatePrimitive.Real, "b");
+            result.AssertNamed(StatePrimitive.Real, "a");
         }
     }
 }
