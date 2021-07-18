@@ -343,6 +343,9 @@ namespace NFun.Tic
             {
                 case StatePrimitive primitive:
                 {
+                    //if (node.State is ConstrainsState { HasAncestor: false, HasDescendant: false })
+                    //    node.State = type;
+                    //else
                     if (!node.TrySetAncestor(primitive))
                         throw TicErrors.CannotSetState(node, primitive);
                     break;

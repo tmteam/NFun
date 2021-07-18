@@ -52,6 +52,7 @@ namespace NFun.SyntaxTests
         [TestCase(@"call7(f, x) = f(x); y = call7(fun(x:real)=x+1.0, 1.0)", 2.0)]
         [TestCase(@"call8(f) = fun(i)=f(i); y = call8(fun(x)=x+1)(2)", 3)]
         [TestCase(@"call9(f) = fun(i)=f(i); y = (fun(x)=x+1).call9()(2)", 3)]
+        [TestCase(@"mult(x)= fun(y)=x*y;    y = mult(2)(3)", 6)]
         [TestCase(@"mult(x)= fun(y)=fun(z)=x*y*z;    y = mult(2)(3)(4)", 24)]
         [TestCase(@"mult()= fun(x)=fun(y)=fun(z)=x* y*z; y = mult()(2)(3)(4)", 24.0)]
         [TestCase(@"y = (fun(x)=x+1)(3.0)", 4.0)]

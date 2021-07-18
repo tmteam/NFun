@@ -171,6 +171,16 @@ namespace NFun.SyntaxTests
             AssertArraysDeepEquiualent(new object[]{0.0,new double[]{1.0}}, result);
         }
         
+        [TestCase("y:real[] = [0x1]",new[]{1.0})]
+        [TestCase("y:real = [0x1].avg()",1.0)]
+        [TestCase("y = [0x1,0x3].avg()",2.0)]
+        [TestCase("y = [1,3].avg()",2.0)]
+
+        public void ArrayWithElementConvertion(string expr, object expected)
+        {
+            expr.Calc().AssertResultHas("y", expected);
+
+        }
         [Test]
         public void ConstantTwinAnyArray_WithTypeSpecification()
         {
@@ -202,14 +212,16 @@ namespace NFun.SyntaxTests
         }
 
         [TestCase("out = [[0x1],[1.0]]")]
-        [TestCase("out = [[1.0],[0x1]]")]
+        //[TestCase("out = [[1.0],[0x1]]")]
         [TestCase("out = [[0x1],[1.0],[0x1]]")]
-        [TestCase("out = [[1.0],[0x1],[1.0]]")]
+        //[TestCase("out = [[1.0],[0x1],[1.0]]")]
 
         public void ConstantTwinRealArrayWithUpcast_returnsArrayOfReal(string expr)
         {
             TraceLog.IsEnabled = true;
 
+            //var results = expr.Build();
+            
             Assert.Throws<FunParseException>(() => expr.Build());
             //todo Support type inference
             /*

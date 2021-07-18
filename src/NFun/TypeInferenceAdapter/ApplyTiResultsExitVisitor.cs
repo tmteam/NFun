@@ -2,6 +2,7 @@ using System.Linq;
 using NFun.ParseErrors;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
+using NFun.Tic;
 using NFun.Types;
 
 namespace NFun.TypeInferenceAdapter
@@ -38,8 +39,10 @@ namespace NFun.TypeInferenceAdapter
             var elementType = node.OutputType.ArrayTypeSpecification.FunnyType;
             if (elementType == FunnyType.Any) 
                 return true;
-
-            if (node.Children.All(i => i.OutputType == elementType))
+            if (node.Expressions.Count == 0)
+                return true;
+            var firstElementType = node.Expressions[0].OutputType;
+            if (node.Children.All(i => i.OutputType == firstElementType))
                 return true;
             
             throw ErrorFactory.VariousArrayElementTypes(node);

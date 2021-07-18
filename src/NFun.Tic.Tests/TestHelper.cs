@@ -112,7 +112,8 @@ namespace NFun.Tic.Tests
         }
 
         public static void AssertNoGenerics(this ITicResults results) 
-            => Assert.AreEqual(0,results.GenericsCount,"Unexpected generic types");
+            => Assert.AreEqual(0,results.GenericsCount,$"Unexpected generic types. Generic nodes: " +
+                                                       $"{string.Join(",",results.GenericNodes)}");
 
         public static void AssertNamedEqualToArrayOf(this ITicResults results, object typeOrNode, params string[] varNames)
         {

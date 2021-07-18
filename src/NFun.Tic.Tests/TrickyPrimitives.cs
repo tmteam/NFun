@@ -332,5 +332,30 @@ namespace NFun.Tic.Tests
                 graph.Solve();
             });
         }
+
+        [TestCase(PrimitiveTypeName.Real)]
+        [TestCase(PrimitiveTypeName.I32)]
+        [TestCase(PrimitiveTypeName.I64)]
+        public void PreferedIntegerInRealFunction(PrimitiveTypeName preferedType)
+        {
+            TraceLog.IsEnabled = true;
+            //" 'a' has to prefer Real type, as it used as real argument in cos function"
+            //node |    0         2  1 
+            //expr |a = 0;   b = cos(a) 
+            
+            var graph = new GraphBuilder();
+            graph.SetIntConst(0, StatePrimitive.U8, StatePrimitive.Real, new StatePrimitive(preferedType));
+            graph.SetDef("a",0);
+            graph.SetVar("a",1);
+            graph.SetCall(StatePrimitive.Real, 1, 2);
+            graph.SetDef("b",2);
+            graph.Solve();
+            
+            var result = graph.Solve();
+            var generic = result.AssertAndGetSingleGeneric(StatePrimitive.U8, StatePrimitive.Real);
+            Assert.AreEqual(StatePrimitive.Real,((ConstrainsState)generic.State).Prefered,
+                "Generic state has to prefer Real type, as it used as real argument in function" );
+            result.AssertNamed(StatePrimitive.Real, "b");
+        }
     }
 }

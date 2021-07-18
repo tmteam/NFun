@@ -626,7 +626,8 @@ namespace NFun.ParseErrors
 
         internal static Exception VariousArrayElementTypes(ArraySyntaxNode arraySyntaxNode)
         {
-            return new FunParseException(578, $"'Various array element types", arraySyntaxNode.Interval);
+            return new FunParseException(578, $"'Various array element types. " +
+                                              $"{arraySyntaxNode.OutputType} = [{string.Join(",", arraySyntaxNode.Expressions.Select(e=>e.OutputType))}]", arraySyntaxNode.Interval);
         }
 
         internal static Exception VariousArrayElementTypes(ISyntaxNode failedArrayElement)

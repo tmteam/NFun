@@ -1,6 +1,7 @@
 using System;
 using NFun.Exceptions;
 using NFun.TestTools;
+using NFun.Tic;
 using NFun.Types;
 using NUnit.Framework;
 
@@ -22,8 +23,8 @@ namespace NFun.SyntaxTests
         [TestCase(10.0, "10*x +1", "out", 101)]
         [TestCase(0.0, "y = cos(x)", "y", 1.0)]
         [TestCase(0.0, "y = x.cos()", "y", 1.0)]
-       // [TestCase(0.0, "y = x.cos().tan() .abs() .round()", "y", 2)]
-        [TestCase(5,   "y:int = x.add(3)", "y", 8)]
+        // [TestCase(0.0, "y = x.cos().tan() .abs() .round()", "y", 2)]
+        [TestCase(5, "y:int = x.add(3)", "y", 8)]
         [TestCase(1.0, "y = x == 0.0", "y", false)]
         [TestCase(0, "x==0", "out", true)]
         [TestCase(1, "y:bool = x != 0", "y", true)]
@@ -38,7 +39,6 @@ else 1", "y", -1)]
 if (x < 0) -1 
 if (x ==0.0)  0
 else 1.0", "out", -1.0)]
-
         [TestCase(321, @"
 if (x < 0) -1 
 else if (x > 0) 1
@@ -50,7 +50,6 @@ else 123
 y = 1+ 15 *  if (x < 0 ) -1
 		  if (x > 0)  1
 		  else 0", "y", -14)]
-
         [TestCase(4, @"
    y =  if (x ==1) 'one'
         if (x ==2) 'two'
@@ -64,7 +63,6 @@ y = 1+ 15 *  if (x < 0 ) -1
         if (x > 9) 'ten or more' 
         if (x.cos()>0)  'cos is positive' 
         else 'negative'", "y", "four")]
-
         [TestCase(3, @"
 tostring(v:int):text =
             if (v == 0) 'zero'
@@ -98,21 +96,22 @@ y = tostring(x)", "y", "not supported")]
         [TestCase("y = 12_32_1.1 #12321.1, real", "y", 12321.1)]
         [TestCase("y = 0x123_321 #много, int", "y", 1192737)]
         [TestCase("y = 'string constant'", "y", "string constant")]
-        [TestCase("y = ['a','b','foo']# ['a','b','foo'] type: text[]","y", new[] {"a", "b", "foo"})]
-        [TestCase("y:int[] = [1,2,3,4]#Int[]", "y", new[] {1, 2, 3, 4})]
-        [TestCase("y:int[] = [1..4] #[1,2,3,4]", "y", new[] {1, 2, 3, 4})]
-      //  [TestCase("y:int[] = [1..7..2]  #[1,3,5,7]", "y", new[] {1, 3, 5, 7})]
-       // [TestCase("y = [1..2.5..0.5]  #[1.0,1.5,2.0,2.5]", "y", new[] {1.0, 1.5, 2.0, 2.5})]
-        [TestCase("y = [1.0,2.0, 3.5] #Real[]", "y", new[] {1.0, 2.0, 3.5})]
-        [TestCase("y:int[] = [1,2,3,4] .concat( [3,4,5,6])  #Concat [1,2,3,4,3,4,5,6]", "y", new[] {1, 2, 3, 4, 3, 4, 5, 6})]
+        [TestCase("y = ['a','b','foo']# ['a','b','foo'] type: text[]", "y", new[] { "a", "b", "foo" })]
+        [TestCase("y:int[] = [1,2,3,4]#Int[]", "y", new[] { 1, 2, 3, 4 })]
+        [TestCase("y:int[] = [1..4] #[1,2,3,4]", "y", new[] { 1, 2, 3, 4 })]
+        //  [TestCase("y:int[] = [1..7..2]  #[1,3,5,7]", "y", new[] {1, 3, 5, 7})]
+        // [TestCase("y = [1..2.5..0.5]  #[1.0,1.5,2.0,2.5]", "y", new[] {1.0, 1.5, 2.0, 2.5})]
+        [TestCase("y = [1.0,2.0, 3.5] #Real[]", "y", new[] { 1.0, 2.0, 3.5 })]
+        [TestCase("y:int[] = [1,2,3,4] .concat( [3,4,5,6])  #Concat [1,2,3,4,3,4,5,6]", "y",
+            new[] { 1, 2, 3, 4, 3, 4, 5, 6 })]
         [TestCase("y = 1 in [1,2,3,4]# true", "y", true)]
         [TestCase("y = 0 in [1,2,3,4] # false", "y", false)]
-        [TestCase("y:int[] = [1,2,3,4].intersect([3,4,5,6])  #[3,4]", "y", new[] {3, 4})]
-        [TestCase("y:int[] = [1,2,3,4].except([3,4,5,6])  #[1,2]", "y", new[] {1, 2})]
-        [TestCase("y:int[] = [1,2,3,4].unite([3,4,5,6])  #[1,2,3,4,5,6]", "y", new[] {1, 2, 3, 4, 5, 6})]
-        [TestCase("y:int[] = [1,2,3,4].unique([3,4,5,6])  # [1,2,5,6]", "y", new[] {1, 2, 5, 6})]
-        [TestCase("y:int[] = [1,2,3,4].take(2)  # [1,2]", "y", new[] {1, 2})]
-        [TestCase("y:int[] = [1,2,3,4].skip(2)  # [3,4]", "y", new[] {3, 4})]
+        [TestCase("y:int[] = [1,2,3,4].intersect([3,4,5,6])  #[3,4]", "y", new[] { 3, 4 })]
+        [TestCase("y:int[] = [1,2,3,4].except([3,4,5,6])  #[1,2]", "y", new[] { 1, 2 })]
+        [TestCase("y:int[] = [1,2,3,4].unite([3,4,5,6])  #[1,2,3,4,5,6]", "y", new[] { 1, 2, 3, 4, 5, 6 })]
+        [TestCase("y:int[] = [1,2,3,4].unique([3,4,5,6])  # [1,2,5,6]", "y", new[] { 1, 2, 5, 6 })]
+        [TestCase("y:int[] = [1,2,3,4].take(2)  # [1,2]", "y", new[] { 1, 2 })]
+        [TestCase("y:int[] = [1,2,3,4].skip(2)  # [3,4]", "y", new[] { 3, 4 })]
         [TestCase("y:int = [1,2,3,4].max()  # 4", "y", 4)]
         [TestCase("y:int = [1,2,3,4].min()  # 1", "y", 1)]
         [TestCase("y:int = [1,2,3,4].median()  # 2", "y", 2)]
@@ -120,47 +119,51 @@ y = tostring(x)", "y", "not supported")]
         [TestCase("y:int = [1,2,3,4].sum()  # 10", "y", 10)]
         [TestCase("y:int = [1,2,3,4].count() # 4", "y", 4)]
         [TestCase("y = [1,2,3,4].any() # true", "y", true)]
-        [TestCase("y:int[] = [3,1,2,3,4].sort() # [1,2,3,3,4]", "y", new[] {1, 2, 3, 3, 4})]
-        [TestCase("y:int[] = [1,2,3,4].reverse() #[4,3,2,1]", "y", new[] {4, 3, 2, 1})]
-        [TestCase("y:int[] = [0..6].set(3, 42) #[0,1,2,42,4,5,6]", "y", new[] {0, 1, 2, 42, 4, 5, 6})]
+        [TestCase("y:int[] = [3,1,2,3,4].sort() # [1,2,3,3,4]", "y", new[] { 1, 2, 3, 3, 4 })]
+        [TestCase("y:int[] = [1,2,3,4].reverse() #[4,3,2,1]", "y", new[] { 4, 3, 2, 1 })]
+        [TestCase("y:int[] = [0..6].set(3, 42) #[0,1,2,42,4,5,6]", "y", new[] { 0, 1, 2, 42, 4, 5, 6 })]
         [TestCase("y = [].any() # false", "y", false)]
-        [TestCase("y:int[] = 1.repeat(3) # [1,1,1]", "y", new[] {1, 1, 1})]
+        [TestCase("y:int[] = 1.repeat(3) # [1,1,1]", "y", new[] { 1, 1, 1 })]
         [TestCase("y = ['foo','bar'].repeat(3).flat()#['foo','bar','foo','bar','foo','bar'] "
-            , "y", new[] {"foo", "bar", "foo", "bar", "foo", "bar"})]
+            , "y", new[] { "foo", "bar", "foo", "bar", "foo", "bar" })]
         [TestCase("y:int = [0..10][0]  #0", "y", 0)]
         [TestCase("y:int = [0..10][1]  #1", "y", 1)]
-        [TestCase("y:int[] = [0..10][1:3] #[1,2,3]", "y", new[] {1, 2, 3})]
-        [TestCase("y:int[] = [0..10][7:] #[7,8,9,10]", "y", new[] {7, 8, 9, 10})]
-        [TestCase("y:int[] = [0..10][:2] #[0,1,2]", "y", new[] {0, 1, 2})]
-        [TestCase("y = [1..4].map(fun it/2)#[0.5,1.0,1.5,2.0]", "y", new[] {0.5, 1.0, 1.5, 2.0})]
+        [TestCase("y:int[] = [0..10][1:3] #[1,2,3]", "y", new[] { 1, 2, 3 })]
+        [TestCase("y:int[] = [0..10][7:] #[7,8,9,10]", "y", new[] { 7, 8, 9, 10 })]
+        [TestCase("y:int[] = [0..10][:2] #[0,1,2]", "y", new[] { 0, 1, 2 })]
+        [TestCase("y = [1..4].map(fun it/2)#[0.5,1.0,1.5,2.0]", "y", new[] { 0.5, 1.0, 1.5, 2.0 })]
         [TestCase("y = [1..4].any(fun it>0)#true", "y", true)]
         [TestCase("y = [1..4].all(fun it>2)#false", "y", false)]
         public void Constant(string expr, string outputName, object val)
         {
+            TraceLog.IsEnabled = true;
             var runtime = expr.Build();
             runtime.AssertInputsCount(0);
             runtime.AssertOutputsCount(1);
             runtime.Calc().AssertReturns(outputName, val);
         }
 
-        [TestCase("a=1; b=2; c=3;",                             new[]{"a","b","c"}, new object[]{1, 2, 3})]
-        [TestCase("a = 1; b = 2; c = 3",                        new[]{"a","b","c"}, new object[]{1, 2, 3})]
-        [TestCase("a=1; b = if (a==1) 'one' else 'foo'; c=45;", new[]{"a","b","c"}, new object[]{1, "one", 45})]
-        [TestCase("a=1; b = if (a == 0) 0 else 1; c = 1",       new[]{"a","b","c"}, new object[]{1, 1, 1})]
-        [TestCase("a=0; b = cos(a); c = sin(a)",                new[]{"a","b","c"}, new object[]{0.0, 1.0, 0.0})]
-        [TestCase("a = [1,2,3,4].max(); b = [1,2,3,4].min()",   new[]{"a","b"},     new object[]{4, 1})]
-        [TestCase("a =[0..10][1]; b=[0..5][2]; c=[0..5][3];",   new[]{"a","b","c"}, new object[]{1, 2, 3})]
+        [TestCase("a=1; b=2; c=3;", new[] { "a", "b", "c" }, new object[] { 1, 2, 3 })]
+        [TestCase("a = 1; b = 2; c = 3", new[] { "a", "b", "c" }, new object[] { 1, 2, 3 })]
+        [TestCase("a=1; b = if (a==1) 'one' else 'foo'; c=45;", new[] { "a", "b", "c" }, new object[] { 1, "one", 45 })]
+        [TestCase("a=1; b = if (a == 0) 0 else 1; c = 1", new[] { "a", "b", "c" }, new object[] { 1, 1, 1 })]
+        [TestCase("a=0; b = cos(a); c = sin(a)", new[] { "a", "b", "c" }, new object[] { 0.0, 1.0, 0.0 })]
+        [TestCase("a=cos(0)", new[] { "a"}, new object[] { 1.0 })]
+        [TestCase("a=0; b = cos(a)", new[] { "a", "b" }, new object[] { 0.0, 1.0})]
+        [TestCase("a = [1,2,3,4].max(); b = [1,2,3,4].min()", new[] { "a", "b" }, new object[] { 4, 1 })]
+        [TestCase("a =[0..10][1]; b=[0..5][2]; c=[0..5][3];", new[] { "a", "b", "c" }, new object[] { 1, 2, 3 })]
         public void SomeConstantInExpression(string expr, string[] outputNames, object[] constantValues)
         {
+            TraceLog.IsEnabled = true;
             var calculateResult = expr.Calc();
-            for (var item=0; item < outputNames.Length; item++)
+            for (var item = 0; item < outputNames.Length; item++)
             {
                 var val = constantValues[item];
                 var name = outputNames[item];
-                calculateResult.AssertResultHas(name,val);
+                calculateResult.AssertResultHas(name, val);
             }
         }
-        
+
         [Test]
         public void Multiline()
         {
@@ -178,7 +181,7 @@ x-
             runtime.AssertOutputsCount(1);
             runtime.Calc("x", 2.5).AssertReturns("y", 15.0);
         }
- 
+
 
         [Test]
         public void Multiple_equations()
@@ -189,7 +192,7 @@ dif = x1-x2";
             var runtime = expr.Build();
             runtime.AssertInputsCount(2);
             runtime.AssertOutputsCount(2);
-            runtime.Calc(("x1", 10.0),("x2", 2.5)).AssertReturns(("sum", 12.5), ("dif", 7.5));
+            runtime.Calc(("x1", 10.0), ("x2", 2.5)).AssertReturns(("sum", 12.5), ("dif", 7.5));
         }
 
         [Test]
@@ -226,7 +229,7 @@ y4 = not(x1 and x2 or x3)
         //  [TestCase("y = 'hi'.strConcat(a) #text", BaseVarType.Text)]
         [TestCase("y = [1,2,3]  #int[]", BaseFunnyType.ArrayOf)]
         [TestCase("y = ['1','2','3']  #text[]", BaseFunnyType.ArrayOf)]
-      //  [TestCase("y = 'hi '.strConcat(u) #text", BaseVarType.Text)]
+        //  [TestCase("y = 'hi '.strConcat(u) #text", BaseVarType.Text)]
         public void Single_Equation_OutputTypeTest(string expression, BaseFunnyType primitiveType)
         {
             var runtime = expression.Build();
@@ -256,30 +259,31 @@ yPublic   = yprivate + xpublic"
             public int Count { get; set; }
             public string Name { get; set; }
         }
+
         class MyOut
         {
             public int Id { get; set; }
             public bool Flag { get; set; }
         }
-        
+
         [Test]
         public void CheckExamplesInReadme()
         {
             //Let's make some fun
-            object a  = Funny.Calc("42*(3-1)"); // 84 
-            Assert.AreEqual(84,a);
-            int[]  e  = Funny.Calc<int[]>("[1,3,5].reverse()"); //int[]{5,3,1}
-            CollectionAssert.AreEquivalent(new[]{5,3,1},e);
-            
-            string h  = Funny.Calc<MyIn, string>(
-                "if (count>0) name.repeat(count).flat() else 'none'", 
-                new MyIn{Count = 3, Name = "bar"}); //"barbarbar"
+            object a = Funny.Calc("42*(3-1)"); // 84 
+            Assert.AreEqual(84, a);
+            int[] e = Funny.Calc<int[]>("[1,3,5].reverse()"); //int[]{5,3,1}
+            CollectionAssert.AreEquivalent(new[] { 5, 3, 1 }, e);
+
+            string h = Funny.Calc<MyIn, string>(
+                "if (count>0) name.repeat(count).flat() else 'none'",
+                new MyIn { Count = 3, Name = "bar" }); //"barbarbar"
             Assert.AreEqual("barbarbar", h);
-            
-            var f = Funny.ForCalcMany<MyIn,MyOut>().Build(@"
+
+            var f = Funny.ForCalcMany<MyIn, MyOut>().Build(@"
                             id = count - 1
                             flag = name != 'test'");
-            MyOut result = f(new MyIn{Count = 100, Name = "kat"}); //MyOut{Id = 99; Flag = true}
+            MyOut result = f(new MyIn { Count = 100, Name = "kat" }); //MyOut{Id = 99; Flag = true}
             TestTools.TestHelper.AreSame(new MyOut { Id = 99, Flag = true }, result);
 
             // Hardcore mode 
