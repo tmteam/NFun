@@ -34,17 +34,15 @@ namespace NFun
                 throw ErrorFactory.NoOutputVariablesSetted(outputs);
             return answer;
         }
-
-
-        public static Memory<(string, IOutputFunnyConverter, PropertyInfo)> SetupManyAprioriOutputs<TOutput>(
+        
+        internal static Memory<(string, IOutputFunnyConverter, PropertyInfo)> SetupManyAprioriOutputs<TOutput>(
             AprioriTypesMap aprioriTypesMap) where TOutput : new()
         {
             var outputProperties = typeof(TOutput).GetProperties(BindingFlags.Instance | BindingFlags.Public);
             var outputVarVals = new (string, IOutputFunnyConverter, PropertyInfo)[outputProperties.Length];
             int actualOutputsCount = 0;
-            for (var i = 0; i < outputProperties.Length; i++)
+            foreach (var outputProperty in outputProperties)
             {
-                var outputProperty = outputProperties[i];
                 if (!outputProperty.CanWrite)
                     continue;
                 var converter = FunnyTypeConverters.GetOutputConverter(outputProperty.PropertyType);
@@ -64,35 +62,13 @@ namespace NFun
 
         internal static object GetClrOut(FunnyRuntime runtime) => GetOut(runtime).Value;
 
-        private static IFunnyVar GetOut(FunnyRuntime runtime)
+        internal static IFunnyVar GetOut(FunnyRuntime runtime)
         {
             if (!runtime.TryGetVariable(Parser.AnonymousEquationId, out var outResult))
                 throw ErrorFactory.OutputIsUnset();
             return outResult;
         }
 
-        public static TOutput CalcSingleOutput<TOutput>(string expression)
-        {
-            var outputConverter = FunnyTypeConverters.GetOutputConverter(typeof(TOutput));
-            var apriories = AprioriTypesMap.Empty;
-            apriories.Add(Parser.AnonymousEquationId, outputConverter.FunnyType);
-
-            var runtime = RuntimeBuilder.Build(
-                expression, 
-                BaseFunctions.DefaultFunctions, 
-                Dialects.Classic,
-                EmptyConstantList.Instance,
-                apriories
-                );
-
-            if (runtime.Variables.Any(v => !v.IsOutput))
-                throw ErrorFactory.UnknownInputs(runtime.GetInputVariableUsages());
-
-            runtime.Run();
-
-            return (TOutput)outputConverter.ToClrObject(GetOut(runtime).FunnyValue);
-        }
-        
         internal static void SetInputValues<TInput>(FunnyRuntime runtime,
             Memory<(string, IinputFunnyConverter, PropertyInfo)> inputMap, TInput value)
         {

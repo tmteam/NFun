@@ -86,6 +86,14 @@ namespace NFun.ApiTests
                 new[] { Array.Empty<int>() }
             }, result);
         }
+        [Test]
+        public void CalcWithBuilder()
+        {
+            var result = Funny
+                .WithConstant("pipi", 6)
+                .WithFunction<double, double>("toto", (d) => d - 1).Calc("toto(pipi)");
+            Assert.AreEqual(5, result);
+        }
 
         [TestCase("")]
         [TestCase("x:int;")]
