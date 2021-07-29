@@ -17,7 +17,7 @@ namespace NFun
         {
             _immutableFunctionDictionary = BaseFunctions.DefaultDictionary;
             _constants = new ConstantList();
-            _apriori = AprioriTypesMap.Empty;
+            _apriori = new AprioriTypesMap();
             _dialect = ClassicDialectSettings.Default;
         }
         

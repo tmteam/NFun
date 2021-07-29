@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Reflection;
 using NFun.Interpretation;
 using NFun.ParseErrors;
@@ -34,7 +33,7 @@ namespace NFun
                 throw ErrorFactory.NoOutputVariablesSetted(outputs);
             return answer;
         }
-        
+
         internal static Memory<(string, IOutputFunnyConverter, PropertyInfo)> SetupManyAprioriOutputs<TOutput>(
             AprioriTypesMap aprioriTypesMap) where TOutput : new()
         {

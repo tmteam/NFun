@@ -92,7 +92,11 @@ namespace NFun.ApiTests
             var lambda2 = context.Build(expr);
             var result6 = lambda2(input);
             var result7 = lambda2(input);
-
+            var result8 = Funny
+                .WithConstant("SomeNotUsedConstant", 42)
+                .ForCalc<TInput, TOutput>()
+                .Calc(expr, input);
+            
             Assert.IsTrue(TestHelper.AreSame(expected, result1));
             Assert.IsTrue(TestHelper.AreSame(expected, result2));
             Assert.IsTrue(TestHelper.AreSame(expected, result3));
@@ -100,6 +104,7 @@ namespace NFun.ApiTests
             Assert.IsTrue(TestHelper.AreSame(expected, result5));
             Assert.IsTrue(TestHelper.AreSame(expected, result6));
             Assert.IsTrue(TestHelper.AreSame(expected, result7));
+            Assert.IsTrue(TestHelper.AreSame(expected, result8));
         }
 
         [Test]

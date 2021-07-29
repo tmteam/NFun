@@ -7,9 +7,7 @@ namespace NFun.Interpretation
 {
     public class AprioriTypesMap : IEnumerable<KeyValuePair<string, FunnyType>>
     {
-        public static AprioriTypesMap Empty => new();
-
-        private AprioriTypesMap()
+        public AprioriTypesMap()
         {
             _typesMap = new Dictionary<string, FunnyType>(StringComparer.OrdinalIgnoreCase);
         }

@@ -22,6 +22,7 @@ namespace NFun.ApiTests
         {
             var result = Funny.Calc(
                 "[[[1,2],[]],[[3,4]],[[]]]");
+            Assert.IsInstanceOf<object[]>(result);
             Assert.AreEqual(new[]
             {
                 new[] {new[] {1, 2}, Array.Empty<int>()},

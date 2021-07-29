@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Reflection;
 using NFun.Interpretation;
 using NFun.ParseErrors;
@@ -7,6 +8,23 @@ using NFun.Types;
 
 namespace NFun
 {
+    public interface IFunnyContext<in TInput>
+    {
+        object Calc(string expression, TInput input);
+        Func<TInput, object> Build(string expression);
+    }
+
+    public interface IFunnyContext<in TInput, out TOutput>
+    {
+        TOutput Calc(string expression, TInput inputModel);
+        Func<TInput, TOutput> Build(string expression);
+    }
+
+    public interface IFunnyConstantContext<out TOutput>
+    {
+        TOutput Calc(string expression);
+    }
+    
     class FunnyContext<TInput> : IFunnyContext<TInput>
     {
         private readonly FunnyContextBuilder _builder;
@@ -16,8 +34,8 @@ namespace NFun
         public FunnyContext(FunnyContextBuilder builder)
         {
             _builder = builder;
-            
-            _apriories = AprioriTypesMap.Empty;
+
+            _apriories = new AprioriTypesMap();
             _inputsMap = FluentApiTools.SetupAprioriInputs<TInput>(_apriories);
         }
 
@@ -50,7 +68,7 @@ namespace NFun
         public FunnyContextMany(FunnyContextBuilder builder)
         {
             _builder = builder;
-            _apriories = AprioriTypesMap.Empty;
+            _apriories = new AprioriTypesMap();
             _inputsMap = FluentApiTools.SetupAprioriInputs<TInput>(_apriories);
             _outputsMap = FluentApiTools.SetupManyAprioriOutputs<TOutput>(_apriories);
         }
@@ -80,7 +98,7 @@ namespace NFun
         public FunnyContextSingle(FunnyContextBuilder builder)
         {
             _builder = builder;
-            _apriories = AprioriTypesMap.Empty;
+            _apriories = new AprioriTypesMap();
             _inputsMap = FluentApiTools.SetupAprioriInputs<TInput>(_apriories);
 
             _outputConverter = FunnyTypeConverters.GetOutputConverter(typeof(TOutput));
@@ -108,16 +126,78 @@ namespace NFun
             };
         }
     }
-
-    public interface IFunnyContext<TInput>
+    
+    class FunnyConstantContextSingle<TOutput> : IFunnyConstantContext<TOutput>
     {
-        object Calc(string expression, TInput input);
-        Func<TInput, object> Build(string expression);
+        private readonly FunnyContextBuilder _builder;
+        private readonly AprioriTypesMap _apriories;
+        private readonly IOutputFunnyConverter _outputConverter;
+
+        public FunnyConstantContextSingle(FunnyContextBuilder builder)
+        {
+            _outputConverter = FunnyTypeConverters.GetOutputConverter(typeof(TOutput));
+            _apriories = new AprioriTypesMap { { Parser.AnonymousEquationId, _outputConverter.FunnyType } };
+            _builder = builder;
+        }
+
+        public TOutput Calc(string expression)
+        {
+            var runtime = _builder.CreateRuntime(expression, _apriories);
+            if (runtime.Variables.Any(v => !v.IsOutput))
+                throw ErrorFactory.UnknownInputs(runtime.GetInputVariableUsages());
+            if (!runtime.HasDefaultOutput)
+                throw ErrorFactory.OutputIsUnset(_outputConverter.FunnyType);
+
+            runtime.Run();
+
+            return (TOutput)_outputConverter.ToClrObject(FluentApiTools.GetOut(runtime).FunnyValue);
+        }
     }
 
-    public interface IFunnyContext<TInput, TOutput>
+    class FunnyConstantContextMany<TOutput> : IFunnyConstantContext<TOutput> where TOutput : new()
     {
-        TOutput Calc(string expression, TInput inputModel);
-        Func<TInput, TOutput> Build(string expression);
+        private readonly FunnyContextBuilder _builder;
+        private readonly AprioriTypesMap _apriories;
+        private readonly Memory<(string, IOutputFunnyConverter, PropertyInfo)> _outputsMap;
+
+        public FunnyConstantContextMany(FunnyContextBuilder builder)
+        {
+            _apriories = new AprioriTypesMap();
+            _outputsMap = FluentApiTools.SetupManyAprioriOutputs<TOutput>(_apriories);
+            _builder = builder;
+        }
+
+        public TOutput Calc(string expression)
+        {
+            var runtime = _builder.CreateRuntime(expression, _apriories);
+            if (runtime.Variables.Any(v=>!v.IsOutput))
+                throw ErrorFactory.UnknownInputs(runtime.GetInputVariableUsages());
+            runtime.Run();
+            return FluentApiTools.CreateOutputValueFromResults<TOutput>(runtime, _outputsMap);
+        }
+    }
+
+    class FunnyConstantContextSingle : IFunnyConstantContext<object>
+    {
+        private readonly FunnyContextBuilder _builder;
+        private static readonly AprioriTypesMap Apriories = new();
+
+        public FunnyConstantContextSingle(FunnyContextBuilder builder)
+        {
+            _builder = builder;
+        }
+
+        public object Calc(string expression)
+        {
+            var runtime = _builder.CreateRuntime(expression, Apriories);
+            if (runtime.Variables.Any(v => !v.IsOutput))
+                throw ErrorFactory.UnknownInputs(runtime.GetInputVariableUsages());
+            if (!runtime.HasDefaultOutput)
+                throw ErrorFactory.OutputIsUnset();
+
+            runtime.Run();
+
+            return FluentApiTools.GetOut(runtime).Value;
+        }
     }
 }

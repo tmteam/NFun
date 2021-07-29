@@ -26,7 +26,7 @@ namespace NFun.Interpretation
             IConstantList constants = null,
             AprioriTypesMap aprioriTypesMap = null)
         {
-            aprioriTypesMap ??= AprioriTypesMap.Empty;
+            aprioriTypesMap ??= new AprioriTypesMap();
 
             var flow = Tokenizer.ToFlow(script);
             var syntaxTree = Parser.Parse(flow);

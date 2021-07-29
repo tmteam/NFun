@@ -54,7 +54,7 @@ namespace NFun.TypeInferenceAdapter
             TypeInferenceResultsBuilder results, 
             ClassicDialectSettings dialect)
         {
-            var visitor = new TicSetupVisitor(ticGraph, functions, constants, results, AprioriTypesMap.Empty, dialect);
+            var visitor = new TicSetupVisitor(ticGraph, functions, constants, results, new AprioriTypesMap(), dialect);
             return userFunctionNode.Accept(visitor);
         }
 

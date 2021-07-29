@@ -86,20 +86,25 @@ namespace NFun.ApiTests
         private static void CalcInDifferentWays<TInput>(string expr, object expected, TInput input)
         {
             //CALC
-            var result1 = Funny.Calc(expr, input);
+            var result1 = Funny.Calc<TInput>(expr, input);
             //Context+calc
             var context = Funny.ForCalc<TInput>();
             var result2 = context.Calc(expr, input);
             var result3 = context.Calc(expr, input);
             var result4 = Funny.WithConstant("SomeNotUsedConstant", 42).Calc(expr, input);
+            var result5 = Funny
+                .WithConstant("SomeNotUsedConstant", 42)
+                .ForCalc<TInput>()
+                .Calc(expr, input);
+            
             //lambda
             var lambda1 = context.Build(expr);
-            var result5 = lambda1(input);
             var result6 = lambda1(input);
+            var result7 = lambda1(input);
             
             var lambda2 = context.Build(expr);
-            var result7 = lambda2(input);
             var result8 = lambda2(input);
+            var result9 = lambda2(input);
 
             Assert.AreEqual(expected, result1);
             Assert.AreEqual(expected, result2);
@@ -109,6 +114,7 @@ namespace NFun.ApiTests
             Assert.AreEqual(expected, result6);
             Assert.AreEqual(expected, result7);
             Assert.AreEqual(expected, result8);
+            Assert.AreEqual(expected, result9);
         }
     }
 }

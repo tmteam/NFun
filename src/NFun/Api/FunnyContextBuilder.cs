@@ -3,10 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NFun.Interpretation;
 using NFun.Interpretation.Functions;
-using NFun.ParseErrors;
 using NFun.Runtime;
-using NFun.SyntaxParsing;
-using NFun.Types;
 
 namespace NFun
 {
@@ -22,6 +19,7 @@ namespace NFun
             _dialect = dialect;
             return this;
         }
+        
         public FunnyContextBuilder WithConstant(string id, object value) {
             _constantList.Add((id,value));
             return this;
@@ -69,50 +67,18 @@ namespace NFun
             => new FunnyContextSingle<TInput, TOutput>(this);
         public IFunnyContext<TInput, TOutput> ForCalcMany<TInput, TOutput>() where TOutput : new()
             => new FunnyContextMany<TInput, TOutput>(this);
-
-
-        public object Calc(string expression)
-        {
-            var runtime = CreateRuntime(expression, AprioriTypesMap.Empty);
-            if (runtime.Variables.Any(v=>!v.IsOutput))
-                throw ErrorFactory.UnknownInputs(runtime.GetInputVariableUsages());
-            
-            runtime.Run();
-            return FluentApiTools.GetClrOut(runtime);
-        }
+        public IFunnyConstantContext<object> ForCalcConstant()
+            => new FunnyConstantContextSingle(this);
+        public IFunnyConstantContext<TOutput> ForCalcConstant<TOutput>()
+            => new FunnyConstantContextSingle<TOutput>(this);
+        public IFunnyConstantContext<TOutput> ForCalcManyConstants<TOutput>() where TOutput : new() 
+            => new FunnyConstantContextMany<TOutput>(this);
         
-        public TOutput Calc<TOutput>(string expression)
-        {
-            var outputConverter = FunnyTypeConverters.GetOutputConverter(typeof(TOutput));
-            var apriories = AprioriTypesMap.Empty;
-            apriories.Add(Parser.AnonymousEquationId, outputConverter.FunnyType);
-
-            var runtime = CreateRuntime(expression, apriories);
-
-            if (runtime.Variables.Any(v => !v.IsOutput))
-                throw ErrorFactory.UnknownInputs(runtime.GetInputVariableUsages());
-
-            runtime.Run();
-            return (TOutput)outputConverter.ToClrObject(FluentApiTools.GetOut(runtime).FunnyValue);
-        }
-
+        public object Calc(string expression) => ForCalcConstant().Calc(expression);
+        public TOutput Calc<TOutput>(string expression) => ForCalcConstant<TOutput>().Calc(expression);
         public object Calc<TInput>(string expression, TInput input) => ForCalc<TInput>().Calc(expression, input);
-        
         public TOutput Calc<TInput, TOutput>(string expression, TInput input)=> ForCalc<TInput, TOutput>().Calc(expression, input);
-
-
-        public TOutput CalcMany<TOutput>(string expression) where TOutput : new()
-        {
-            var apriories = AprioriTypesMap.Empty;
-            var outputs   = FluentApiTools.SetupManyAprioriOutputs<TOutput>(apriories);
-            var runtime = CreateRuntime(expression,apriories);
-            if (runtime.Variables.Any(v=>!v.IsOutput))
-                throw ErrorFactory.UnknownInputs(runtime.GetInputVariableUsages());
-            
-            runtime.Run();
-            return FluentApiTools.CreateOutputValueFromResults<TOutput>(runtime, outputs);
-        }
-
+        public TOutput CalcMany<TOutput>(string expression) where TOutput : new() => ForCalcManyConstants<TOutput>().Calc(expression);
         public TOutput CalcMany<TInput, TOutput>(string expression, TInput input) where TOutput : new()
             => ForCalcMany<TInput, TOutput>().Calc(expression, input);
         
@@ -130,9 +96,9 @@ namespace NFun
             }
 
             ImmutableFunctionDictionary dic = BaseFunctions.DefaultDictionary;
+
             if (_concreteFunctions.Any())
                 dic = dic.CloneWith(_concreteFunctions.ToArray());
-                                        
 
             return RuntimeBuilder.Build(
                 script: expression,

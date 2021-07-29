@@ -47,7 +47,7 @@ namespace NFun.UnitTests.TicTests
                 ticGraph:     graph, 
                 functions:    BaseFunctions.DefaultFunctions, 
                 constants:    new EmptyConstantList(), 
-                aprioriTypes: AprioriTypesMap.Empty, 
+                aprioriTypes: new AprioriTypesMap(), 
                 results:      resultsBuilder, 
                 ClassicDialectSettings.Default);
             
@@ -70,7 +70,7 @@ namespace NFun.UnitTests.TicTests
                 ticGraph:  graph, 
                 functions: BaseFunctions.DefaultFunctions, 
                 constants: new EmptyConstantList(), 
-                aprioriTypes: AprioriTypesMap.Empty,  
+                aprioriTypes: new AprioriTypesMap(),  
                 results:   resultsBuilder,
                 ClassicDialectSettings.Default);
 

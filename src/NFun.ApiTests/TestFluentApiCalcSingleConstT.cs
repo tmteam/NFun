@@ -91,7 +91,8 @@ namespace NFun.ApiTests
         {
             var result = Funny
                 .WithConstant("pipi", 6)
-                .WithFunction<double, double>("toto", (d) => d - 1).Calc("toto(pipi)");
+                .WithFunction<double, double>("toto", (d) => d - 1)
+                .Calc("toto(pipi)");
             Assert.AreEqual(5, result);
         }
 

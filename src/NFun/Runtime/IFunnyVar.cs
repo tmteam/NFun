@@ -93,7 +93,7 @@ namespace NFun.Runtime
         public object Value
         {
             get => FunnyTypeConverters.GetOutputConverter(Type).ToClrObject(InternalFunnyValue);
-            set => InternalFunnyValue = FunnyTypeConverters.ConvertInputOrThrow(value,Type);
+            set => InternalFunnyValue = FunnyTypeConverters.ConvertInputOrThrow(value, Type);
         }
     }
 

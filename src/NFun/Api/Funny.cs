@@ -11,7 +11,7 @@ namespace NFun
         public static object Calc(string expression)
             => FunnyContextBuilder.Empty.Calc(expression);
 
-        public static TOutput Calc<TOutput>(string expression)
+        public static TOutput Calc<TOutput>(string expression) 
             => FunnyContextBuilder.Empty.Calc<TOutput>(expression);
 
         public static object Calc<TInput>(string expression, TInput input)
@@ -29,7 +29,10 @@ namespace NFun
         #endregion
 
         #region forCalc
-
+        
+        public static IFunnyConstantContext<TOutput> ForCalcConstant<TOutput>()
+            => new FunnyConstantContextSingle<TOutput>(FunnyContextBuilder.Empty);
+        
         public static IFunnyContext<TInput, TOutput> ForCalc<TInput, TOutput>()
             => new FunnyContextSingle<TInput, TOutput>(FunnyContextBuilder.Empty);
 
