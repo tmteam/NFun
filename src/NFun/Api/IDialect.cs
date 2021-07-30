@@ -2,28 +2,30 @@ namespace NFun
 {
     public static class Dialects
     {
-        public static ClassicDialectSettings Classic  => ClassicDialectSettings.Default;
-        public static ClassicDialectSettings ModifyClassic(
-            IfExpressionSetup ifExpressionSetup = IfExpressionSetup.IfIfElse, 
-            IntegerPreferedType integerPreferedType = IntegerPreferedType.I32)
-                =>  new (ifExpressionSetup, integerPreferedType);
-    }
-    public class ClassicDialectSettings
-    {
-        public static ClassicDialectSettings Default { get; } =
-            new(IfExpressionSetup.IfIfElse, IntegerPreferedType.I32);
+        public static DialectSettings Origin => DialectSettings.Default;
 
-        public ClassicDialectSettings(IfExpressionSetup ifExpressionSetup, IntegerPreferedType integerPreferedType)
+        public static DialectSettings ModifyOrigin(
+            IfExpressionSetup ifExpressionSetup = IfExpressionSetup.IfIfElse,
+            IntegerPreferredType integerPreferredType = IntegerPreferredType.I32)
+            => new(ifExpressionSetup, integerPreferredType);
+    }
+
+    public sealed class DialectSettings
+    {
+        internal static DialectSettings Default { get; } =
+            new(IfExpressionSetup.IfIfElse, IntegerPreferredType.I32);
+        
+        public DialectSettings(IfExpressionSetup ifExpressionSetup, IntegerPreferredType integerPreferredType)
         {
             IfExpressionSetup = ifExpressionSetup;
-            IntegerPreferedType = integerPreferedType;
+            IntegerPreferredType = integerPreferredType;
         }
 
         public IfExpressionSetup IfExpressionSetup { get; }
-        public IntegerPreferedType IntegerPreferedType { get; }
+        public IntegerPreferredType IntegerPreferredType { get; }
     }
 
-    public enum IntegerPreferedType
+    public enum IntegerPreferredType
     {
         Real,
         I32,

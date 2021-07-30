@@ -36,7 +36,7 @@ namespace NFun.Interpretation.Functions
     {
         private readonly Func<Tin, Tout> _function;
         private readonly IOutputFunnyConverter _argConverter;
-        private readonly IinputFunnyConverter _resultConverter;
+        private readonly IInputFunnyConverter _resultConverter;
 
         public ConcreteLambdaWrapperFunction(string id, Func<Tin, Tout> function)
         {
@@ -58,7 +58,7 @@ namespace NFun.Interpretation.Functions
         private readonly IOutputFunnyConverter _arg1;
         private readonly IOutputFunnyConverter _arg2;
 
-        private readonly IinputFunnyConverter _resultConverter;
+        private readonly IInputFunnyConverter _resultConverter;
 
         public ConcreteLambdaWrapperFunction(string id, Func<Tin1, Tin2, Tout> function) : base(id)
         {
@@ -89,7 +89,7 @@ namespace NFun.Interpretation.Functions
         private readonly IOutputFunnyConverter _arg2;
         private readonly IOutputFunnyConverter _arg3;
 
-        private readonly IinputFunnyConverter _resultConverter;
+        private readonly IInputFunnyConverter _resultConverter;
 
         public ConcreteLambdaWrapperFunction(string id, Func<Tin1, Tin2, Tin3, Tout> function) : base(id)
         {
@@ -124,7 +124,7 @@ namespace NFun.Interpretation.Functions
         private readonly IOutputFunnyConverter _arg3;
         private readonly IOutputFunnyConverter _arg4;
 
-        private readonly IinputFunnyConverter _resultConverter;
+        private readonly IInputFunnyConverter _resultConverter;
 
         public ConcreteLambdaWrapperFunction(string id, Func<Tin1, Tin2, Tin3, Tin4, Tout> function) : base(id)
         {
@@ -163,7 +163,7 @@ namespace NFun.Interpretation.Functions
         private readonly IOutputFunnyConverter _arg4;
         private readonly IOutputFunnyConverter _arg5;
 
-        private readonly IinputFunnyConverter _resultConverter;
+        private readonly IInputFunnyConverter _resultConverter;
 
         public ConcreteLambdaWrapperFunction(string id, Func<Tin1, Tin2, Tin3, Tin4, Tin5, Tout> function) : base(id)
         {
@@ -206,7 +206,7 @@ namespace NFun.Interpretation.Functions
         private readonly IOutputFunnyConverter _arg5;
         private readonly IOutputFunnyConverter _arg6;
 
-        private readonly IinputFunnyConverter _resultConverter;
+        private readonly IInputFunnyConverter _resultConverter;
 
         public ConcreteLambdaWrapperFunction(string id, Func<Tin1, Tin2, Tin3, Tin4, Tin5, Tin6, Tout> function) :
             base(id)
@@ -254,7 +254,7 @@ namespace NFun.Interpretation.Functions
         private readonly IOutputFunnyConverter _arg6;
         private readonly IOutputFunnyConverter _arg7;
 
-        private readonly IinputFunnyConverter _resultConverter;
+        private readonly IInputFunnyConverter _resultConverter;
 
         public ConcreteLambdaWrapperFunction(string id, Func<Tin1, Tin2, Tin3, Tin4, Tin5, Tin6, Tin7, Tout> function) :
             base(id)

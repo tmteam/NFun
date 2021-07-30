@@ -6,20 +6,20 @@ namespace NFun.SyntaxTests.SyntaxDialect
     [TestFixture]
     public class GenericIntConstantIsI32Test : GenericIntConstantTestBase<int>
     {
-        public GenericIntConstantIsI32Test() : base(IntegerPreferedType.I32){}
+        public GenericIntConstantIsI32Test() : base(IntegerPreferredType.I32){}
         protected override int Convert(int value) => value;
     }
     [TestFixture]
     public class GenericIntConstantIsI64Test : GenericIntConstantTestBase<long>
     {
-        public GenericIntConstantIsI64Test() : base(IntegerPreferedType.I64){}
+        public GenericIntConstantIsI64Test() : base(IntegerPreferredType.I64){}
         protected override long Convert(int value) => value;
     }
     
     [TestFixture]
     public class GenericIntConstantIsRealTest : GenericIntConstantTestBase<double>
     {
-        public GenericIntConstantIsRealTest() : base(IntegerPreferedType.Real){}
+        public GenericIntConstantIsRealTest() : base(IntegerPreferredType.Real){}
         protected override double Convert(int value) => value;
         
         [TestCase("y = x+3", 2.5, 5.5)]

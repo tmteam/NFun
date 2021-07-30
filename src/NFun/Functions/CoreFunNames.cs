@@ -1,4 +1,4 @@
-namespace NFun.BuiltInFunctions
+namespace NFun.Functions
 {
     public static class CoreFunNames
     {

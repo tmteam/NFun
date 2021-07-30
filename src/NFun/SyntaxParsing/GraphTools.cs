@@ -5,7 +5,6 @@ namespace NFun.SyntaxParsing
 {
     public static class GraphTools
     {
-
         /// <summary>
         /// Gets topology sorted in form of indexes [ParentNodeName ->  ChildrenNames[] ]
         /// O(N)

@@ -2,7 +2,7 @@ namespace NFun.SyntaxParsing
 {
     public class FunnyAttribute
     {
-        public FunnyAttribute(string name,object value)
+        internal FunnyAttribute(string name,object value)
         {
             Value = value;
             Name = name;

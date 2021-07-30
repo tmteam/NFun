@@ -9,12 +9,12 @@ namespace NFun.ApiTests
         [Test]
         public void SingleVariableFunction()
         {
-            var context = Funny
+            var calculator = Funny
                 .WithFunction("myHello", (int i) => $"Hello mr #{i}")
                 .WithFunction("myInc", (int i) => i + 1)
-                .ForCalc<ModelWithInt, string>();
+                .BuildForCalc<ModelWithInt, string>();
             
-            Func<ModelWithInt, string> lambda = context.Build("out = myHello(myInc(id))");
+            Func<ModelWithInt, string> lambda = calculator.ToLambda("out = myHello(myInc(id))");
 
             var result =  lambda(new ModelWithInt{id = 42});
             Assert.AreEqual(result,"Hello mr #43");
@@ -25,11 +25,11 @@ namespace NFun.ApiTests
         [Test]
         public void TwoVariablesFunction()
         {
-            var context = Funny
+            var calculator = Funny
                 .WithFunction("totxt", (int i1,int i2) => $"{i1},{i2}")
-                .ForCalc<ModelWithInt, string>();
+                .BuildForCalc<ModelWithInt, string>();
             
-            var lambda = context.Build("totxt(id,1)");
+            var lambda = calculator.ToLambda("totxt(id,1)");
 
             var result1 =  lambda(new ModelWithInt{id = 42});
             Assert.AreEqual(result1,"42,1");
@@ -39,12 +39,12 @@ namespace NFun.ApiTests
         [Test]
         public void ThreeVariablesFunction()
         {
-            var context = Funny
+            var calculator = Funny
                 .WithFunction("totxt", 
                     (int i1,int i2,int i3) => $"{i1},{i2},{i3}")
-                .ForCalc<ModelWithInt, string>();
+                .BuildForCalc<ModelWithInt, string>();
             
-            var lambda = context.Build("totxt(id,2,3)");
+            var lambda = calculator.ToLambda("totxt(id,2,3)");
 
             var result1 =  lambda(new ModelWithInt{id = 42});
             Assert.AreEqual(result1,"42,2,3");
@@ -54,12 +54,12 @@ namespace NFun.ApiTests
         [Test]
         public void FourVariablesFunction()
         {
-            var context = Funny
+            var calculator = Funny
                 .WithFunction("totxt", 
                     (int i1,int i2,int i3,int i4) => $"{i1},{i2},{i3},{i4}")
-                .ForCalc<ModelWithInt, string>();
+                .BuildForCalc<ModelWithInt, string>();
             
-            var lambda = context.Build("totxt(id,2,3,4)");
+            var lambda = calculator.ToLambda("totxt(id,2,3,4)");
 
             var result1 =  lambda(new ModelWithInt{id = 42});
             Assert.AreEqual(result1,"42,2,3,4");
@@ -69,12 +69,12 @@ namespace NFun.ApiTests
         [Test]
         public void FiveVariablesFunction()
         {
-            var context = Funny
+            var calculator = Funny
                 .WithFunction("totxt", 
                     (int i1,int i2,int i3,int i4, int i5) => $"{i1},{i2},{i3},{i4},{i5}")
-                .ForCalc<ModelWithInt, string>();
+                .BuildForCalc<ModelWithInt, string>();
             
-            var lambda = context.Build("totxt(id,2,3,4,5)");
+            var lambda = calculator.ToLambda("totxt(id,2,3,4,5)");
 
             var result1 =  lambda(new ModelWithInt{id = 42});
             Assert.AreEqual(result1,"42,2,3,4,5");
@@ -84,12 +84,12 @@ namespace NFun.ApiTests
         [Test]
         public void SixVariablesFunction()
         {
-            var context = Funny
+            var calculator = Funny
                 .WithFunction("totxt", 
                     (int i1,int i2,int i3,int i4, int i5,int i6) => $"{i1},{i2},{i3},{i4},{i5},{i6}")
-                .ForCalc<ModelWithInt, string>();
+                .BuildForCalc<ModelWithInt, string>();
             
-            var lambda = context.Build("totxt(id,2,3,4,5,6)");
+            var lambda = calculator.ToLambda("totxt(id,2,3,4,5,6)");
 
             var result1 =  lambda(new ModelWithInt{id = 42});
             Assert.AreEqual(result1,"42,2,3,4,5,6");
@@ -99,12 +99,12 @@ namespace NFun.ApiTests
         [Test]
         public void SevenVariablesFunction()
         {
-            var context = Funny
+            var calculator = Funny
                 .WithFunction("totxt", 
                     (int i1,int i2,int i3,int i4, int i5,int i6,int i7) => $"{i1},{i2},{i3},{i4},{i5},{i6},{i7}")
-                .ForCalc<ModelWithInt, string>();
+                .BuildForCalc<ModelWithInt, string>();
             
-            var lambda = context.Build("totxt(id,2,3,4,5,6,7)");
+            var lambda = calculator.ToLambda("totxt(id,2,3,4,5,6,7)");
 
             var result1 =  lambda(new ModelWithInt{id = 42});
             Assert.AreEqual(result1,"42,2,3,4,5,6,7");
@@ -114,12 +114,12 @@ namespace NFun.ApiTests
         [Test]
         public void CompositeAccess()
         {
-            var context = Funny
+            var calculator = Funny
                 .WithFunction("myHello", (int i) => $"Hello mr #{i}")
                 .WithFunction("csumm", (ComplexModel m) => m.a.id+ m.b.id)
-                .ForCalc<ModelWithInt, int>();
+                .BuildForCalc<ModelWithInt, int>();
             
-            var lambda = context.Build(
+            var lambda = calculator.ToLambda(
                 @"csumm(
                             {
                                 a= {id= 10}

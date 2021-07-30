@@ -6,7 +6,7 @@ using NFun.Interpretation.Functions;
 using NFun.Runtime.Arrays;
 using NFun.Types;
 
-namespace NFun.BuiltInFunctions
+namespace NFun.Functions
 {
     public class LastFunction : GenericFunctionBase
     {
@@ -20,7 +20,7 @@ namespace NFun.BuiltInFunctions
         {
             var arr = (IFunArray) args[0];
             var ans = arr.GetElementOrNull(arr.Count-1);
-            return ans ?? throw new FunRuntimeException("Array is empty");
+            return ans ?? throw new FunnyRuntimeException("Array is empty");
 
         }
     }
@@ -36,7 +36,7 @@ namespace NFun.BuiltInFunctions
         {
             var arr = (IFunArray)args[0];
             var ans =  arr.GetElementOrNull(0);
-            return ans ?? throw new FunRuntimeException("Array is empty");
+            return ans ?? throw new FunnyRuntimeException("Array is empty");
         }
     }
 
@@ -121,15 +121,15 @@ namespace NFun.BuiltInFunctions
         {
             var start = ((int)args[1]);
             if(start<0)
-                throw new FunRuntimeException("Argument out of range");
+                throw new FunnyRuntimeException("Argument out of range");
             var end = ((int)args[2]);
             if(end<0)
-                throw new FunRuntimeException("Argument out of range");
+                throw new FunnyRuntimeException("Argument out of range");
             if(end!=0 && start>end)
-                throw new FunRuntimeException("Start cannot be more than end");
+                throw new FunnyRuntimeException("Start cannot be more than end");
             var step = ((int)args[3]);
             if(step<0)
-                throw new FunRuntimeException("Argument out of range");
+                throw new FunnyRuntimeException("Argument out of range");
             if (step == 0)
                 step = 1;
             var arr = (IFunArray)args[0];
@@ -203,8 +203,7 @@ namespace NFun.BuiltInFunctions
         private const string Id = "sum";
         public MultiSumFunction() : base(Id, GenericConstrains.Arithmetical, FunnyType.Generic(0), FunnyType.ArrayOf(FunnyType.Generic(0))){
         }
-
-
+        
         public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes)
         {
             switch (concreteTypes[0].BaseType)
@@ -221,13 +220,14 @@ namespace NFun.BuiltInFunctions
             }
         }
 
-        public class RealFunction : FunctionWithSingleArg
+        private class RealFunction : FunctionWithSingleArg
         {
             public RealFunction() : base(Id, FunnyType.Real, FunnyType.ArrayOf(FunnyType.Real)) { }
 
             public override object Calc(object a) => ((IFunArray)a).As<double>().Sum();
         }
-        public class Int16Function : FunctionWithSingleArg
+
+        private class Int16Function : FunctionWithSingleArg
         {
             public Int16Function() : base(Id, FunnyType.Int16, FunnyType.ArrayOf(FunnyType.Int16)) { }
             public override object Calc(object a)
@@ -238,17 +238,20 @@ namespace NFun.BuiltInFunctions
                 return answer;
             }
         }
-        public class Int32Function : FunctionWithSingleArg
+
+        private class Int32Function : FunctionWithSingleArg
         {
             public Int32Function() : base(Id, FunnyType.Int32, FunnyType.ArrayOf(FunnyType.Int32)) { }
             public override object Calc(object a) => ((IFunArray) a).As<int>().Sum();
         }
-        public class Int64Function : FunctionWithSingleArg
+
+        private class Int64Function : FunctionWithSingleArg
         {
             public Int64Function() : base(Id, FunnyType.Int64, FunnyType.ArrayOf(FunnyType.Int64)) { }
             public override object Calc(object a) => ((IFunArray) a).As<long>().Sum();
         }
-        public class UInt16Function : FunctionWithSingleArg
+
+        private class UInt16Function : FunctionWithSingleArg
         {
             public UInt16Function() : base(Id, FunnyType.UInt16, FunnyType.ArrayOf(FunnyType.UInt16)) { }
             public override object Calc(object a)
@@ -259,7 +262,8 @@ namespace NFun.BuiltInFunctions
                 return answer;
             }
         }
-        public class UInt32Function : FunctionWithSingleArg
+
+        private class UInt32Function : FunctionWithSingleArg
         {
             public UInt32Function() : base(Id, FunnyType.UInt32, FunnyType.ArrayOf(FunnyType.UInt32)) { }
             public override object Calc(object a)
@@ -270,7 +274,8 @@ namespace NFun.BuiltInFunctions
                 return answer;
             }
         }
-        public class UInt64Function : FunctionWithSingleArg
+
+        private class UInt64Function : FunctionWithSingleArg
         {
             public UInt64Function() : base(Id, FunnyType.UInt64, FunnyType.ArrayOf(FunnyType.UInt64)) { }
             public override object Calc(object a)
@@ -506,7 +511,7 @@ namespace NFun.BuiltInFunctions
                 var end = ((int)args[1]);
                 var step = ((int)args[2]);
                 if (step <= 0)
-                    throw new FunRuntimeException("Step has to be positive");
+                    throw new FunnyRuntimeException("Step has to be positive");
 
                 var result = new List<int>();
                 if (start < end)
@@ -528,7 +533,7 @@ namespace NFun.BuiltInFunctions
                 var end = ((int)args[1]);
                 var step = ((int)args[2]);
                 if (step <= 0)
-                    throw new FunRuntimeException("Step has to be positive");
+                    throw new FunnyRuntimeException("Step has to be positive");
 
                 var result = new List<int>();
                 if (start < end)
@@ -551,7 +556,7 @@ namespace NFun.BuiltInFunctions
                 var end = ((long)args[1]);
                 var step = ((long)args[2]);
                 if (step <= 0)
-                    throw new FunRuntimeException("Step has to be positive");
+                    throw new FunnyRuntimeException("Step has to be positive");
 
                 var result = new List<long>();
                 if (start < end)
@@ -573,7 +578,7 @@ namespace NFun.BuiltInFunctions
                 var end = ((byte)args[1]);
                 var step = ((byte)args[2]);
                 if (step <= 0)
-                    throw new FunRuntimeException("Step has to be positive");
+                    throw new FunnyRuntimeException("Step has to be positive");
 
                 var result = new List<byte>();
                 if (start < end)
@@ -594,7 +599,7 @@ namespace NFun.BuiltInFunctions
                 var end = ((ushort)args[1]);
                 var step = ((ushort)args[2]);
                 if (step <= 0)
-                    throw new FunRuntimeException("Step has to be positive");
+                    throw new FunnyRuntimeException("Step has to be positive");
 
                 var result = new List<UInt16>();
                 if (start < end)
@@ -615,7 +620,7 @@ namespace NFun.BuiltInFunctions
                 var end = ((UInt32)args[1]);
                 var step = ((uint)args[2]);
                 if (step <= 0)
-                    throw new FunRuntimeException("Step has to be positive");
+                    throw new FunnyRuntimeException("Step has to be positive");
 
                 var result = new List<UInt32>();
                 if (start < end)
@@ -636,7 +641,7 @@ namespace NFun.BuiltInFunctions
                 var end = ((ulong)args[1]);
                 var step = ((ulong)args[2]);
                 if (step <= 0)
-                    throw new FunRuntimeException("Step has to be positive");
+                    throw new FunnyRuntimeException("Step has to be positive");
 
                 var result = new List<UInt64>();
                 if (start < end)
@@ -657,7 +662,7 @@ namespace NFun.BuiltInFunctions
                 var end = ((double)args[1]);
                 var step = ((double)args[2]);
                 if (step <= 0)
-                    throw new FunRuntimeException("Step has to be positive");
+                    throw new FunnyRuntimeException("Step has to be positive");
 
                 var result = new List<double>();
                 if (start < end)
@@ -684,19 +689,20 @@ namespace NFun.BuiltInFunctions
         {
             var start = ((int)args[1]);
             if(start<0)
-                throw new FunRuntimeException("Argument out of range");
+                throw new FunnyRuntimeException("Argument out of range");
 
             var end = ((int)args[2]);
             if(end<0)
-                throw new FunRuntimeException("Argument out of range");
+                throw new FunnyRuntimeException("Argument out of range");
                 
             if(end!=0 && start>end)
-                throw new FunRuntimeException("Start cannot be more than end");
+                throw new FunnyRuntimeException("Start cannot be more than end");
        
             var arr = (IFunArray)args[0];
             return arr.Slice(start, (end==int.MaxValue?null:(int?)end), null);
         }
     }
+    
     public class GetGenericFunctionDefinition : GenericFunctionWithTwoArguments
     {
         public GetGenericFunctionDefinition() : base(CoreFunNames.GetElementName, 
@@ -710,13 +716,13 @@ namespace NFun.BuiltInFunctions
         {
             var index = ((int)b);
             if(index<0)
-                throw new FunRuntimeException("Argument out of range");
+                throw new FunnyRuntimeException("Argument out of range");
                 
             var arr = (IFunArray)a;
             var res =arr.GetElementOrNull(index);
             
             if(res==null)
-                throw new FunRuntimeException("Argument out of range");
+                throw new FunnyRuntimeException("Argument out of range");
             return res;
         }
     }
@@ -737,9 +743,9 @@ namespace NFun.BuiltInFunctions
 
             var index = ((int)args[1]);
             if(index<0)
-                throw new FunRuntimeException("Argument out of range");
+                throw new FunnyRuntimeException("Argument out of range");
             if(index>arr.Count+1)
-                throw new FunRuntimeException("Argument out of range");
+                throw new FunnyRuntimeException("Argument out of range");
             var val = args[2];
 
             var newArr = new object[arr.ClrArray.Length];
@@ -785,7 +791,7 @@ namespace NFun.BuiltInFunctions
             var arr = (IFunArray)a;
             var chunkSize = ((int)b);
             if(chunkSize<=0)
-                throw new FunRuntimeException("Chunk size is "+chunkSize+". It has to be positive");
+                throw new FunnyRuntimeException("Chunk size is "+chunkSize+". It has to be positive");
             
             var originInputType = FunnyType.ArrayOf(arr.ElementType);
             
@@ -826,7 +832,7 @@ namespace NFun.BuiltInFunctions
         {
             var arr = (IFunArray) arg1;
             if (arr.Count == 0)
-                throw new FunRuntimeException("Input array is empty");
+                throw new FunnyRuntimeException("Input array is empty");
             if (arg2 is FunctionWithTwoArgs fold2)
                 return arr.Aggregate((a, b) => fold2.Calc(a, b));
 

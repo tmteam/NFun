@@ -51,7 +51,7 @@ namespace NFun.SyntaxTests
         public void ArrayWithUpcast_lambdaConstCalculate()
         {
             var expr = "x:byte = 42; y:real[] = [1,2,x].map (fun it+1}";
-            Assert.Throws<FunParseException>(() => expr.Build());
+            Assert.Throws<FunnyParseException>(() => expr.Build());
             //todo Support upcast
             //FunBuilder.Build(expr).Calculate().AssertHas(VarVal.New("y",new []{2.0,3.0, 43.0}));
         }

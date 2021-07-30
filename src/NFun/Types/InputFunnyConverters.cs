@@ -9,18 +9,18 @@ namespace NFun.Types
     /// <summary>
     /// Converts CLR type and value into NFun type and value
     /// </summary>
-    public interface IinputFunnyConverter {
+    public interface IInputFunnyConverter {
         public FunnyType FunnyType { get; }
         public  object ToFunObject(object clrObject);
     }
     
     
-    public class StructTypeInputFunnyConverter : IinputFunnyConverter
+    public class StructTypeInputFunnyConverter : IInputFunnyConverter
     {
-        private readonly (string, IinputFunnyConverter, PropertyInfo)[] _propertiesConverters;
+        private readonly (string, IInputFunnyConverter, PropertyInfo)[] _propertiesConverters;
         private readonly int _readPropertiesCount;
 
-        internal StructTypeInputFunnyConverter((string, IinputFunnyConverter, PropertyInfo)[] propertiesConverters,
+        internal StructTypeInputFunnyConverter((string, IInputFunnyConverter, PropertyInfo)[] propertiesConverters,
             int readPropertiesCount)
         {
             _propertiesConverters = propertiesConverters;
@@ -48,10 +48,10 @@ namespace NFun.Types
             return new FunnyStruct(values);
         }
     }
-    public class ClrArrayInputTypeFunnyConverter : IinputFunnyConverter
+    public class ClrArrayInputTypeFunnyConverter : IInputFunnyConverter
     {
-        private readonly IinputFunnyConverter _elementConverter;
-        public ClrArrayInputTypeFunnyConverter(IinputFunnyConverter elementConverter)
+        private readonly IInputFunnyConverter _elementConverter;
+        public ClrArrayInputTypeFunnyConverter(IInputFunnyConverter elementConverter)
         {
             FunnyType = Types.FunnyType.ArrayOf(elementConverter.FunnyType);
             _elementConverter = elementConverter;
@@ -71,7 +71,7 @@ namespace NFun.Types
         }
     }
 
-    public class DynamicTypeInputFunnyConverter : IinputFunnyConverter
+    public class DynamicTypeInputFunnyConverter : IInputFunnyConverter
     {
         public FunnyType FunnyType => FunnyType.Any;
         public object ToFunObject(object clrObject)
@@ -81,13 +81,13 @@ namespace NFun.Types
         }
     }
 
-    public class PrimitiveTypeInputFunnyConverter : IinputFunnyConverter {
+    public class PrimitiveTypeInputFunnyConverter : IInputFunnyConverter {
         public FunnyType FunnyType { get; }
         public PrimitiveTypeInputFunnyConverter(FunnyType funnyType) => FunnyType = funnyType;
         public object ToFunObject(object clrObject) => clrObject;
     }
     
-    public class StringTypeInputFunnyConverter: IinputFunnyConverter {
+    public class StringTypeInputFunnyConverter: IInputFunnyConverter {
         public FunnyType FunnyType { get; }
         public StringTypeInputFunnyConverter() => FunnyType = FunnyType.Text;
         public object ToFunObject(object clrObject) 

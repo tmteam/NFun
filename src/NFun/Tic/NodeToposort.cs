@@ -17,7 +17,7 @@ namespace NFun.Tic
         private Stack<TicNode> _path;
         private readonly List<TicNode> _allNodes;
 
-        private int _refenceNodesCount = 0;
+        private int _referenceNodesCount = 0;
 
         public NodeToposort(int capacity)
         {
@@ -36,7 +36,7 @@ namespace NFun.Tic
                 Visit(nonReferenceNode);
             }
             //at this moment we have garanties that graph has no cycles
-            NonReferenceOrdered = new TicNode[_path.Count- _refenceNodesCount];
+            NonReferenceOrdered = new TicNode[_path.Count- _referenceNodesCount];
             var nonRefId = 0;
             foreach (var node in _path)
             {
@@ -94,7 +94,7 @@ namespace NFun.Tic
             if (nonReference!=null && nonReference.VisitMark != NodeInListMark) {
                 nonReference.VisitMark = NodeInListMark;
                 if (nonReference.State is StateRefTo)
-                    throw new ImpossibleException($"Toposort adds reference node to list: {node}");
+                    throw new NfunImpossibleException($"Toposort adds reference node to list: {node}");
                 _allNodes.Add(nonReference);
             }
         }
@@ -128,12 +128,12 @@ namespace NFun.Tic
 
             if (node.State is StateRefTo refTo)
             {
-                _refenceNodesCount++;
+                _referenceNodesCount++;
                 if (!Visit(refTo.Node))
                 {
                     // VisitNodeInCycle rolls back graph
                     // so we need to decrement counter
-                    _refenceNodesCount--;
+                    _referenceNodesCount--;
                     // this node is part of cycle
                     return VisitNodeInCycle(node);
                 }
@@ -142,7 +142,7 @@ namespace NFun.Tic
             {
                 foreach (var member in composite.Members)
                     if (!Visit(member))
-                        ThrowRecursiveTypeDefenition(node);
+                        ThrowRecursiveTypeDefinition(node);
             }
 
             // ReSharper disable once ForCanBeConvertedToForeach
@@ -159,7 +159,7 @@ namespace NFun.Tic
             return true;
         }
 
-        private void ThrowRecursiveTypeDefenition(TicNode node)
+        private void ThrowRecursiveTypeDefinition(TicNode node)
         {
             _cycle.Push(node);
             throw TicErrors.RecursiveTypeDefinition(_cycle.ToArray());

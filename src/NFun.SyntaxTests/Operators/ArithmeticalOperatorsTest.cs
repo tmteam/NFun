@@ -272,7 +272,7 @@ namespace NFun.SyntaxTests.Operators
         [TestCase("y = 0/0")]
         [TestCase("y:uint32 = 10+-30")]
         [TestCase("y:uint32 = 0-100")]
-        public void Oops(string expression) => Assert.Throws<FunRuntimeException>(() => expression.Calc());
+        public void Oops(string expression) => Assert.Throws<FunnyRuntimeException>(() => expression.Calc());
 
         [TestCase("y = /2")]
         [TestCase("y = )*2")]

@@ -336,7 +336,7 @@ namespace NFun.Tic.Tests
         [TestCase(PrimitiveTypeName.Real)]
         [TestCase(PrimitiveTypeName.I32)]
         [TestCase(PrimitiveTypeName.I64)]
-        public void PreferedIntegerInRealFunction(PrimitiveTypeName preferedType)
+        public void PreferredIntegerInRealFunction(PrimitiveTypeName preferredType)
         {
             TraceLog.IsEnabled = true;
             //" 'a' has to prefer Real type, as it used as real argument in cos function"
@@ -344,7 +344,7 @@ namespace NFun.Tic.Tests
             //expr |a = 0;   b = cos(a) 
             
             var graph = new GraphBuilder();
-            graph.SetIntConst(0, StatePrimitive.U8, StatePrimitive.Real, new StatePrimitive(preferedType));
+            graph.SetIntConst(0, StatePrimitive.U8, StatePrimitive.Real, new StatePrimitive(preferredType));
             graph.SetDef("a",0);
             graph.SetVar("a",1);
             graph.SetCall(StatePrimitive.Real, 1, 2);

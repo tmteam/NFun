@@ -132,7 +132,7 @@ namespace NFun.SyntaxTests
                 value.Build();
                 Assert.Fail("Exception was not raised");
             }
-            catch (FunParseException e) when (e.Start != -1)
+            catch (FunnyParseException e) when (e.Start != -1)
             {
                 Console.WriteLine($"Parse: [FU{e.Code}] {e.Message} [{e.Start},{e.End}]");
                 Console.WriteLine($"Error: [{e.Start},{e.End}]: '{e.Interval.SubString(value)}'");

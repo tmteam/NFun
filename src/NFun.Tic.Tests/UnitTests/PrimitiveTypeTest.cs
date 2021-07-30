@@ -270,7 +270,7 @@ namespace NFun.Tic.Tests.UnitTests
         [TestCase(PrimitiveTypeName.U16, PrimitiveTypeName.Bool)]
         [TestCase(PrimitiveTypeName.U12, PrimitiveTypeName.Bool)]
         [TestCase(PrimitiveTypeName.U8,  PrimitiveTypeName.Bool)]
-        public void GetFirstCommonDescedant_returnsNull(PrimitiveTypeName a, PrimitiveTypeName b)
+        public void GetFirstCommonDescendant_returnsNull(PrimitiveTypeName a, PrimitiveTypeName b)
         {
             var result = new StatePrimitive(a).GetFirstCommonDescendantOrNull(new StatePrimitive(b));
             Assert.IsNull(result);
@@ -382,7 +382,7 @@ namespace NFun.Tic.Tests.UnitTests
         [TestCase(PrimitiveTypeName.U16, PrimitiveTypeName.U8,  PrimitiveTypeName.U8)]
 
         [TestCase(PrimitiveTypeName.U12, PrimitiveTypeName.U8,  PrimitiveTypeName.U8)]
-        public void GetFirstCommonDescedant(PrimitiveTypeName a, PrimitiveTypeName b, PrimitiveTypeName expected)
+        public void GetFirstCommonDescendant(PrimitiveTypeName a, PrimitiveTypeName b, PrimitiveTypeName expected)
         {
             var result = new StatePrimitive(a).GetFirstCommonDescendantOrNull(new StatePrimitive(b))?.Name;
             Assert.AreEqual(expected, result);

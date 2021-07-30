@@ -7,6 +7,7 @@ namespace NFun.SyntaxParsing
         /// First cycle route otherwise
         /// </summary>
         public readonly int[] NodeNames;
+        
         public readonly bool HasCycle;
 
         public TopologySortResults(int[] nodeNames, bool hasCycle)

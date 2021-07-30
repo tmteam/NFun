@@ -11,7 +11,7 @@ namespace NFun.Tic.Stages
         public bool Apply(StatePrimitive ancestor, StatePrimitive descendant, TicNode _, TicNode __) =>
             descendant.CanBeImplicitlyConvertedTo(ancestor);
         public bool Apply(StatePrimitive ancestor, ConstrainsState descendant, TicNode _, TicNode __) 
-            => !descendant.HasDescendant || descendant.Descedant.CanBeImplicitlyConvertedTo(ancestor);
+            => !descendant.HasDescendant || descendant.Descendant.CanBeImplicitlyConvertedTo(ancestor);
         public bool Apply(StatePrimitive ancestor, ICompositeState descendant, TicNode _, TicNode __) 
             => descendant.CanBeImplicitlyConvertedTo(ancestor);
         public bool Apply(ConstrainsState ancestor, StatePrimitive descendant, TicNode ancestorNode, TicNode descendantNode)
@@ -19,7 +19,7 @@ namespace NFun.Tic.Stages
         public bool Apply(ConstrainsState ancestor, ConstrainsState descendant, TicNode ancestorNode, TicNode descendantNode)
         {
             var ancestorCopy = ancestor.GetCopy();
-            ancestorCopy.AddDescedant(descendant.Descedant);
+            ancestorCopy.AddDescendant(descendant.Descendant);
             var result = ancestorCopy.GetOptimizedOrNull();
             if (result == null)
                 return false;
@@ -132,7 +132,7 @@ namespace NFun.Tic.Stages
         private static bool ApplyAncestorConstrains(TicNode ancestorNode, ConstrainsState ancestor, ITypeState typeDesc)
         {
             var ancestorCopy = ancestor.GetCopy();
-            ancestorCopy.AddDescedant(typeDesc);
+            ancestorCopy.AddDescendant(typeDesc);
             var result = ancestorCopy.GetOptimizedOrNull();
             if (result == null)
                 return false;

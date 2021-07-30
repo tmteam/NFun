@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Reflection;
 using NFun.Interpretation;
 using NFun.ParseErrors;
@@ -69,7 +70,7 @@ namespace NFun
         }
 
         internal static void SetInputValues<TInput>(FunnyRuntime runtime,
-            Memory<(string, IinputFunnyConverter, PropertyInfo)> inputMap, TInput value)
+            Memory<(string, IInputFunnyConverter, PropertyInfo)> inputMap, TInput value)
         {
             var span = inputMap.Span;
 
@@ -83,11 +84,11 @@ namespace NFun
             }
         }
 
-        public static Memory<(string, IinputFunnyConverter, PropertyInfo)>
+        public static Memory<(string, IInputFunnyConverter, PropertyInfo)>
             SetupAprioriInputs<TInput>(AprioriTypesMap apriories)
         {
             var inputProperties = typeof(TInput).GetProperties(BindingFlags.Instance | BindingFlags.Public);
-            var inputTypes = new (string, IinputFunnyConverter, PropertyInfo)[inputProperties.Length];
+            var inputTypes = new (string, IInputFunnyConverter, PropertyInfo)[inputProperties.Length];
             int actualInputsCount = 0;
 
             for (var i = 0; i < inputProperties.Length; i++)
@@ -99,7 +100,7 @@ namespace NFun
                 var inputName = inputProperty.Name.ToLower();
 
                 apriories.Add(inputName, converter.FunnyType);
-                inputTypes[i] = new ValueTuple<string, IinputFunnyConverter, PropertyInfo>(
+                inputTypes[i] = new ValueTuple<string, IInputFunnyConverter, PropertyInfo>(
                     inputName,
                     converter,
                     inputProperty
@@ -110,8 +111,18 @@ namespace NFun
             return inputTypes.AsMemory(0, actualInputsCount);
         }
 
+        internal static void ThrowIfHasInputs(FunnyRuntime runtime)
+        {
+            if (runtime.Variables.Any(v => !v.IsOutput))
+                throw ErrorFactory.UnknownInputs(runtime.GetInputVariableUsages());
+        }
+        internal static void ThrowIfHasNoDefaultOutput(FunnyRuntime runtime)
+        {
+            if (!runtime.HasDefaultOutput)
+                throw ErrorFactory.OutputIsUnset();
+        }
         internal static void ThrowIfHasUnknownInputs(FunnyRuntime runtime,
-            Memory<(string, IinputFunnyConverter, PropertyInfo)> expectedInputs)
+            Memory<(string, IInputFunnyConverter, PropertyInfo)> expectedInputs)
         {
             var span = expectedInputs.Span;
             foreach (var actualInput in runtime.Variables)

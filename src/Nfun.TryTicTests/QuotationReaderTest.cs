@@ -65,7 +65,7 @@ namespace NFun.UnitTests
         {
             var prefix = "some prefix ";
             var str = prefix + before + error + after;
-            var ex = Assert.Throws<FunParseException>(() =>
+            var ex = Assert.Throws<FunnyParseException>(() =>
                 QuotationReader.ReadQuotation(str, prefix.Length));
             Console.WriteLine("Origin string to parse: "+ str);
             Console.WriteLine("Parse error: [FU"+ ex.Code+"] "+ex.Message);

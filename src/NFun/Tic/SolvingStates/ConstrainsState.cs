@@ -8,15 +8,15 @@ namespace NFun.Tic.SolvingStates
     {
         public ConstrainsState(ITypeState desc = null, StatePrimitive anc = null)
         {
-            Descedant = desc;
+            Descendant = desc;
             Ancestor = anc;
         }
 
         public ConstrainsState GetCopy() =>
-            new(Descedant, Ancestor)
+            new(Descendant, Ancestor)
             {
                 IsComparable = this.IsComparable,
-                Prefered = this.Prefered,
+                Preferred = this.Preferred,
                 _basicUnsolvedDescType = this._basicUnsolvedDescType
             };
 
@@ -32,7 +32,7 @@ namespace NFun.Tic.SolvingStates
             {
                 if (HasDescendant)
                 {
-                    if (!Descedant.CanBeImplicitlyConvertedTo(primitive))
+                    if (!Descendant.CanBeImplicitlyConvertedTo(primitive))
                         return false;
                 }
 
@@ -51,7 +51,7 @@ namespace NFun.Tic.SolvingStates
             
             if (type is StateArray array)
             {
-                if (Descedant is not StateArray descArray)
+                if (Descendant is not StateArray descArray)
                     return false;
                 if (array.Element.Equals(descArray.Element))
                     return true;
@@ -61,7 +61,7 @@ namespace NFun.Tic.SolvingStates
             }
             if (type is StateFun fun)
             {
-                if (Descedant is not StateFun descfun)
+                if (Descendant is not StateFun descfun)
                     return false;
                 if (fun.Members.SequenceEqual(descfun.Members))
                     return true;
@@ -75,7 +75,7 @@ namespace NFun.Tic.SolvingStates
                     return false;
                 if (!HasDescendant)
                     return true;
-                if (Descedant is not StateStruct descStruct)
+                if (Descendant is not StateStruct descStruct)
                     return false;
                 if (str.Members.SequenceEqual(descStruct.Members))
                     return true;
@@ -95,7 +95,7 @@ namespace NFun.Tic.SolvingStates
 
             if (HasDescendant)
             {
-                if (!Descedant.CanBeImplicitlyConvertedTo(primitiveState))
+                if (!Descendant.CanBeImplicitlyConvertedTo(primitiveState))
                     return false;
             }
 
@@ -105,10 +105,10 @@ namespace NFun.Tic.SolvingStates
         }
 
         public StatePrimitive Ancestor { get; private set; }
-        public ITypeState Descedant { get; private set; }
+        public ITypeState Descendant { get; private set; }
 
         public bool HasAncestor => Ancestor!=null;
-        public bool HasDescendant => (Descedant!=null);
+        public bool HasDescendant => (Descendant!=null);
 
         public bool TryAddAncestor(StatePrimitive type)
         {
@@ -132,18 +132,18 @@ namespace NFun.Tic.SolvingStates
             if(!TryAddAncestor(type))
                 throw new InvalidOperationException();
         }
-        public void AddDescedant(StatePrimitive type)
+        public void AddDescendant(StatePrimitive type)
         {
             if (type == null)
                 return;
          
-            if (Descedant == null)
-                Descedant = type;
+            if (Descendant == null)
+                Descendant = type;
             else
             {
-                var ancestor = Descedant.GetLastCommonAncestorOrNull(type);
+                var ancestor = Descendant.GetLastCommonAncestorOrNull(type);
                 if (ancestor != null)
-                    Descedant = ancestor;
+                    Descendant = ancestor;
             }
         }
         private enum BasicDescType
@@ -164,7 +164,7 @@ namespace NFun.Tic.SolvingStates
                 _ => BasicDescType.None
             };
 
-        public void AddDescedant(ITypeState type)
+        public void AddDescendant(ITypeState type)
         {
             if(type==null)
                 return;
@@ -173,31 +173,31 @@ namespace NFun.Tic.SolvingStates
             {
                 var descType = ToBasicDescType(type);
                 if (_basicUnsolvedDescType!= BasicDescType.None && descType != _basicUnsolvedDescType)
-                    Descedant = StatePrimitive.Any;
+                    Descendant = StatePrimitive.Any;
                 
                 _basicUnsolvedDescType = descType;
                 return;
             }
             
-            if (Descedant == null)
-                Descedant = type;
+            if (Descendant == null)
+                Descendant = type;
             else
             {
-                var ancestor = Descedant.GetLastCommonAncestorOrNull(type);
+                var ancestor = Descendant.GetLastCommonAncestorOrNull(type);
                 if(ancestor!=null)
-                    Descedant = ancestor;
+                    Descendant = ancestor;
             }
         }
 
         public bool IsSolved => false;
         public bool IsMutable => true;
-        public StatePrimitive Prefered { get; set; }
+        public StatePrimitive Preferred { get; set; }
         public bool IsComparable { get; set; }
         public bool NoConstrains => !HasDescendant && !HasAncestor && !IsComparable ;
 
         public ITicNodeState MergeOrNull(ConstrainsState constrainsState)
         {
-            var result = new ConstrainsState(Descedant,Ancestor)
+            var result = new ConstrainsState(Descendant,Ancestor)
             {
                 IsComparable = this.IsComparable || constrainsState.IsComparable
             };
@@ -216,10 +216,10 @@ namespace NFun.Tic.SolvingStates
             }
             else if (constrainsState._basicUnsolvedDescType != _basicUnsolvedDescType)
             {
-                result.AddDescedant(StatePrimitive.Any);
+                result.AddDescendant(StatePrimitive.Any);
             }
 
-            result.AddDescedant(constrainsState.Descedant);
+            result.AddDescendant(constrainsState.Descendant);
 
             if (!result.TryAddAncestor(constrainsState.Ancestor))
                 return null;
@@ -227,7 +227,7 @@ namespace NFun.Tic.SolvingStates
             if (result.HasAncestor && result.HasDescendant)
             {
                 var anc = result.Ancestor;
-                var des = result.Descedant;
+                var des = result.Descendant;
                 if (anc.Equals(des))
                 {
                     if (result.IsComparable && !anc.IsComparable)
@@ -238,20 +238,20 @@ namespace NFun.Tic.SolvingStates
                     return null;
             }
 
-            if (Prefered == null)
-                result.Prefered = constrainsState.Prefered;
-            else if (constrainsState.Prefered == null)
-                result.Prefered = Prefered;
-            else if (constrainsState.Prefered.Equals(Prefered))
-                result.Prefered = Prefered;
-            else if (result.Fits(Prefered) && !result.Fits(constrainsState.Prefered))
-                result.Prefered = Prefered;
+            if (Preferred == null)
+                result.Preferred = constrainsState.Preferred;
+            else if (constrainsState.Preferred == null)
+                result.Preferred = Preferred;
+            else if (constrainsState.Preferred.Equals(Preferred))
+                result.Preferred = Preferred;
+            else if (result.Fits(Preferred) && !result.Fits(constrainsState.Preferred))
+                result.Preferred = Preferred;
             else
-                result.Prefered = constrainsState.Prefered;
+                result.Preferred = constrainsState.Preferred;
             
-            if(result.Prefered!=null)
-                if (!result.Fits(result.Prefered))
-                    result.Prefered = null;
+            if(result.Preferred!=null)
+                if (!result.Fits(result.Preferred))
+                    result.Preferred = null;
 
             return result;
         }
@@ -263,8 +263,8 @@ namespace NFun.Tic.SolvingStates
         /// </summary>
         public ITicNodeState SolveCovariant()
         {
-            if (Prefered != null && Fits(Prefered))
-                return Prefered;
+            if (Preferred != null && Fits(Preferred))
+                return Preferred;
             var ancestor = Ancestor ?? StatePrimitive.Any;
             if (IsComparable)
             {
@@ -273,21 +273,21 @@ namespace NFun.Tic.SolvingStates
                 else 
                     return this;
             }
-            if (Descedant is StateArray)
-                return Descedant;
+            if (Descendant is StateArray)
+                return Descendant;
             return ancestor;
         }
         /// <summary>
         /// Try to infer most CONCRETE type if is possible
         /// Return self otherwise
         ///
-        /// For most cases it means that descedant type will be used
+        /// For most cases it means that descendant type will be used
         /// </summary>
 
         public ITicNodeState SolveContravariant()
         {
-            if (Prefered != null && Fits(Prefered))
-                return Prefered;
+            if (Preferred != null && Fits(Preferred))
+                return Preferred;
             if (!HasDescendant)
                 return this;
 
@@ -295,10 +295,10 @@ namespace NFun.Tic.SolvingStates
             {
                 //todo
                 //char[] is comparable!
-                if (Descedant is not StatePrimitive p || !p.IsComparable)
+                if (Descendant is not StatePrimitive p || !p.IsComparable)
                     return this;
             }
-            return Descedant;
+            return Descendant;
         }
 
         public ITicNodeState GetOptimizedOrNull()
@@ -308,18 +308,18 @@ namespace NFun.Tic.SolvingStates
                 if (_basicUnsolvedDescType != BasicDescType.None)
                     return null;
                 
-                if (Descedant != null)
+                if (Descendant != null)
                 {
-                    if (Descedant.Equals(StatePrimitive.Char))
+                    if (Descendant.Equals(StatePrimitive.Char))
                         return StatePrimitive.Char;
 
-                    if (Descedant is StatePrimitive primitive && primitive.IsNumeric)
+                    if (Descendant is StatePrimitive primitive && primitive.IsNumeric)
                     {
                         if (!TryAddAncestor(StatePrimitive.Real))
                             return null;
                     }
-                    else if (Descedant is StateArray a && a.Element.Equals(StatePrimitive.Char))
-                        return Descedant;
+                    else if (Descendant is StateArray a && a.Element.Equals(StatePrimitive.Char))
+                        return Descendant;
                     else
                         return null;
                 }
@@ -334,21 +334,21 @@ namespace NFun.Tic.SolvingStates
                 
                 // Suitable for cases like [true, [1,2,3]] or [{it*2}, {x = 12}]
                 
-                if (ToBasicDescType(Descedant) != _basicUnsolvedDescType)
+                if (ToBasicDescType(Descendant) != _basicUnsolvedDescType)
                 {
-                    Descedant = StatePrimitive.Any;
+                    Descendant = StatePrimitive.Any;
                 }
             }
             if (HasAncestor && HasDescendant)
             {
-                if (Ancestor.Equals(Descedant))
+                if (Ancestor.Equals(Descendant))
                     return Ancestor;
-                if (!Descedant.CanBeImplicitlyConvertedTo(Ancestor))
+                if (!Descendant.CanBeImplicitlyConvertedTo(Ancestor))
                     return null;
 
             }
 
-            if (Descedant?.Equals(StatePrimitive.Any) == true)
+            if (Descendant?.Equals(StatePrimitive.Any) == true)
                 return StatePrimitive.Any;
 
             return this;
@@ -356,11 +356,11 @@ namespace NFun.Tic.SolvingStates
    
         public override string ToString()
         {
-            var res = $"[{Descedant}..{Ancestor}]";
+            var res = $"[{Descendant}..{Ancestor}]";
             if (IsComparable)
                 res += "<>";
-            if (Prefered != null)
-                res += Prefered + "!";
+            if (Preferred != null)
+                res += Preferred + "!";
             if (_basicUnsolvedDescType != BasicDescType.None)
                 res +="("+ _basicUnsolvedDescType.ToString()[2]+")";
             return res;
@@ -379,12 +379,12 @@ namespace NFun.Tic.SolvingStates
 
             if (HasDescendant != constrainsState.HasDescendant)
                 return false;
-            if (HasDescendant && !constrainsState.Descedant.Equals(Descedant)) 
+            if (HasDescendant && !constrainsState.Descendant.Equals(Descendant)) 
                 return false;
             
-            if ((Prefered != null) != (constrainsState.Prefered != null))
+            if ((Preferred != null) != (constrainsState.Preferred != null))
                 return false;
-            if (Prefered != null && !constrainsState.Prefered!.Equals(Prefered))
+            if (Preferred != null && !constrainsState.Preferred!.Equals(Preferred))
                 return false;
             
             return IsComparable==constrainsState.IsComparable;

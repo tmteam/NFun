@@ -16,7 +16,6 @@ namespace NFun.Tic
         /// GAP for tests
         /// </summary>
         int GenericsCount { get; }
-
         ConstrainsState[] GenericsStates { get; }
     }
 }

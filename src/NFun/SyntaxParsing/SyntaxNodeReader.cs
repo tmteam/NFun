@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Numerics;
-using NFun.BuiltInFunctions;
+using NFun.Functions;
 using NFun.Exceptions;
 using NFun.ParseErrors;
 using NFun.Runtime.Arrays;
@@ -18,7 +18,6 @@ namespace NFun.SyntaxParsing
     /// </summary>
     public static class SyntaxNodeReader
     {
-        
         static SyntaxNodeReader()
         {
             var priorities = new List<TokType[]>(7)
@@ -130,7 +129,7 @@ namespace NFun.SyntaxParsing
                         case ulong u64 when  u64>= i64AbsMinValue:
                         {
                             if (u64 > i64AbsMinValue)
-                                throw FunParseException.ErrorStubToDo("i64 overflow");
+                                throw FunnyParseException.ErrorStubToDo("i64 overflow");
                             return new GenericIntSyntaxNode( long.MinValue, g.IsHexOrBin, interval);
                         }
                         case ulong u64:
@@ -175,7 +174,7 @@ namespace NFun.SyntaxParsing
                 int dimensions;
                 if (val[1] == 'b')      dimensions = 2;
                 else if (val[1] == 'x') dimensions = 16;
-                else throw new ImpossibleException("Hex or bin constant has invalid format: "+val);
+                else throw new NfunImpossibleException("Hex or bin constant has invalid format: "+val);
                 var substr = val.Replace("_", null)[2..];
 
                 if (dimensions == 16)
@@ -183,10 +182,10 @@ namespace NFun.SyntaxParsing
                     if (UInt64.TryParse(substr, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var h16))
                         return SyntaxNodeFactory.HexOrBinIntConstant(h16, binVal.Interval);
                     
-                    throw FunParseException.ErrorStubToDo("u64 overflow");
+                    throw FunnyParseException.ErrorStubToDo("u64 overflow");
                 }
                 if(substr.Length>64)
-                    throw FunParseException.ErrorStubToDo("u64 overflow");
+                    throw FunnyParseException.ErrorStubToDo("u64 overflow");
 
                 return SyntaxNodeFactory.HexOrBinIntConstant(Convert.ToUInt64(substr, 2), binVal.Interval);
             }
@@ -196,7 +195,7 @@ namespace NFun.SyntaxParsing
                 //1,2,3
                 var decVal = BigInteger.Parse(intVal.Value.Replace("_", String.Empty));
                 if (decVal > ulong.MaxValue)
-                    throw FunParseException.ErrorStubToDo("Too big value");
+                    throw FunnyParseException.ErrorStubToDo("Too big value");
                 
                 return SyntaxNodeFactory.IntGenericConstant((ulong)decVal,intVal.Interval);
             }
@@ -355,7 +354,7 @@ namespace NFun.SyntaxParsing
             if (flow.Current.Is(TokType.Def))
             {
                 if (!body.IsInBrackets)
-                    throw FunParseException.ErrorStubToDo(
+                    throw FunnyParseException.ErrorStubToDo(
                         "unexpected '=' symbol. Did you forgot brackets after 'fun' keyword?");
                 
                 flow.MoveNext();
@@ -373,7 +372,7 @@ namespace NFun.SyntaxParsing
             if (returnType != FunnyType.Empty)
             {
                 //If return type is specified, and there is no def after it - than it is an mistake
-                throw FunParseException.ErrorStubToDo("Anonymous function body is missed. Did you forget '=' symbol?");
+                throw FunnyParseException.ErrorStubToDo("Anonymous function body is missed. Did you forget '=' symbol?");
             }
             
             return new SuperAnonymFunctionSyntaxNode(body);
@@ -392,22 +391,22 @@ namespace NFun.SyntaxParsing
                 if(flow.MoveIf(TokType.FiCbr))
                     break;
                 if(!hasAnyDelimeter)
-                    throw FunParseException.ErrorStubToDo("No any delimeter between struct fields. " +
+                    throw FunnyParseException.ErrorStubToDo("No any delimeter between struct fields. " +
                                                           "Use ',' or new line to separate fields");
                 if (!flow.MoveIf(TokType.Id, out var idToken)) 
-                    throw FunParseException.ErrorStubToDo("id missed");
+                    throw FunnyParseException.ErrorStubToDo("id missed");
 
                 var type = TryReadTypeDef(flow);
                 if (type!= FunnyType.Empty)
-                    throw FunParseException.ErrorStubToDo(
+                    throw FunnyParseException.ErrorStubToDo(
                         $"Field type specification {idToken.Value}:{type} is not supported yet");
 
                 if (!flow.MoveIf(TokType.Def)) 
-                    throw FunParseException.ErrorStubToDo("missed '='");
+                    throw FunnyParseException.ErrorStubToDo("missed '='");
                 flow.SkipNewLines();
                 var body = ReadNodeOrNull(flow);
                 if(body==null)
-                    throw FunParseException.ErrorStubToDo("body missed");
+                    throw FunnyParseException.ErrorStubToDo("body missed");
                 var equation = new EquationSyntaxNode(idToken.Value, idToken.Start, body, Array.Empty<FunnyAttribute>());
                 equations.Add(equation);
                 //Read node or null may eat last new-line-token
@@ -422,7 +421,7 @@ namespace NFun.SyntaxParsing
             var end = flow.Position;
 
             if(equations.Count==0)
-                throw FunParseException.ErrorStubToDo("emptyStruct");
+                throw FunnyParseException.ErrorStubToDo("emptyStruct");
             return SyntaxNodeFactory.Struct(equations, new Interval(begin, end));
         }
 
@@ -497,7 +496,7 @@ namespace NFun.SyntaxParsing
                     flow.MoveNext();
                 }
                 else
-                    throw new ImpossibleException("imp328. Invalid interpolation sequence");
+                    throw new NfunImpossibleException("imp328. Invalid interpolation sequence");
             }
         }
 
@@ -632,15 +631,15 @@ namespace NFun.SyntaxParsing
                         throw ErrorFactory.ArrayInitializeStepMissed(
                             openBracket, lastToken, missedVal);
                     }
-                    if (!flow.MoveIf(TokType.ArrCBr, out var closeBracket))
+                    if (!flow.MoveIf(TokType.ArrCBr, out _))
                         throw ErrorFactory.ArrayIntervalInitializeCbrMissed(openBracket, flow.Current, true);
 
-                    throw FunParseException.ErrorStubToDo("initialize array with step is not supported now ");
-                    return SyntaxNodeFactory.OperatorFun(
-                        name:     CoreFunNames.RangeName,
-                        children: new[] {list[0], secondArg, thirdArg}, 
-                        start:    openBracket.Start, 
-                        end:      closeBracket.Finish);
+                    throw FunnyParseException.ErrorStubToDo("initialize array with step is not supported now ");
+                    // return SyntaxNodeFactory.OperatorFun(
+                    //     name:     CoreFunNames.RangeName,
+                    //     children: new[] {list[0], secondArg, thirdArg}, 
+                    //     start:    openBracket.Start, 
+                    //     end:      closeBracket.Finish);
                 }
                 else
                 {
@@ -739,7 +738,7 @@ namespace NFun.SyntaxParsing
         {
             var obrId = flow.CurrentTokenPosition;
             var start = pipedVal?.Interval.Start ?? head.Start;
-            List<ISyntaxNode> arguments = null;
+            List<ISyntaxNode> arguments;
             if (flow.MoveIf(TokType.Obr))
             {
                 if (!TryReadNodeList(flow, out arguments)
@@ -764,7 +763,7 @@ namespace NFun.SyntaxParsing
         {
             var obrId = flow.CurrentTokenPosition;
             if (!flow.MoveIf(TokType.Obr))
-                throw new ImpossibleException("Panic. Something wrong in parser");
+                throw new NfunImpossibleException("Panic. Something wrong in parser");
 
             if (!TryReadNodeList(flow, out var arguments)
                 || !flow.MoveIf(TokType.Cbr, out var cbr))
@@ -799,7 +798,7 @@ namespace NFun.SyntaxParsing
             flow.MoveNext();
             var type = flow.ReadType();
             if (type == FunnyType.Empty)
-                throw FunParseException.ErrorStubToDo("invalid type definition");
+                throw FunnyParseException.ErrorStubToDo("invalid type definition");
             return type;
         }
     }

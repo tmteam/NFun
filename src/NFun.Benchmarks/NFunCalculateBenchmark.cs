@@ -25,9 +25,6 @@ namespace NFun.Benchmarks
         private FunnyRuntime _varkxb_runtime;
         private Func<double, double> dotnetEx;
 
-        private (string, object) value;
-
-
         [GlobalSetup]
         public void Setup()
         {
@@ -46,7 +43,6 @@ namespace NFun.Benchmarks
 
             _varkxb_runtime = Funny.Hardcore.Build(scripts.VarKxb);
 
-            value = ("x", 100);
             Expression<Func<double, double>> ex = x => 10 * x + 1;
             dotnetEx = ex.Compile();
         }

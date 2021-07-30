@@ -40,11 +40,11 @@ namespace NFun.Types
         public static object ConvertInput(object clrValue) =>
             GetInputConverter(clrValue.GetType()).ToFunObject(clrValue);
         
-        public static IinputFunnyConverter GetInputConverter(FunnyType funnyType)
+        public static IInputFunnyConverter GetInputConverter(FunnyType funnyType)
             => GetInputConverter(funnyType, 0);
 
         // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
-        private static IinputFunnyConverter GetInputConverter(FunnyType funnyType, int reqDeepthCheck)
+        private static IInputFunnyConverter GetInputConverter(FunnyType funnyType, int reqDeepthCheck)
         {
             if (reqDeepthCheck > 100)
                 throw new ArgumentException("Too nested input object");
@@ -78,10 +78,10 @@ namespace NFun.Types
             }
         }
         
-        public static IinputFunnyConverter GetInputConverter(Type clrType) => GetInputConverter(clrType, 0);
+        public static IInputFunnyConverter GetInputConverter(Type clrType) => GetInputConverter(clrType, 0);
  
         // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
-        private static IinputFunnyConverter GetInputConverter(Type clrType, int reqDeepthCheck)
+        private static IInputFunnyConverter GetInputConverter(Type clrType, int reqDeepthCheck)
         {
             if (reqDeepthCheck > 100)
                 throw new ArgumentException("Too nested input object");
@@ -121,8 +121,8 @@ namespace NFun.Types
             var properties =  clrType.GetProperties( BindingFlags.Instance | BindingFlags.Public);
             if (properties.Any())
             {
-                (string, IinputFunnyConverter, PropertyInfo)[] propertiesConverters =
-                    new (string, IinputFunnyConverter, PropertyInfo)[properties.Length];
+                (string, IInputFunnyConverter, PropertyInfo)[] propertiesConverters =
+                    new (string, IInputFunnyConverter, PropertyInfo)[properties.Length];
                 int readPropertiesCount = 0;
                 foreach (var property in properties)
                 {
@@ -132,7 +132,7 @@ namespace NFun.Types
                         continue;
                     var  propertyConverter =GetInputConverter(property.PropertyType, reqDeepthCheck++);
                     propertiesConverters[readPropertiesCount] =
-                        new ValueTuple<string, IinputFunnyConverter, PropertyInfo>(property.Name.ToLower(), propertyConverter, property);
+                        new ValueTuple<string, IInputFunnyConverter, PropertyInfo>(property.Name.ToLower(), propertyConverter, property);
                     readPropertiesCount++;
                 }
                     
@@ -175,7 +175,7 @@ namespace NFun.Types
             if (properties.Any())
             {
                 if (clrType.GetConstructor(Type.EmptyTypes) == null)
-                    throw FunInvalidUsageException.OutputTypeConstainsNoParameterlessCtor(clrType);
+                    throw FunnyInvalidUsageException.OutputTypeConstainsNoParameterlessCtor(clrType);
                 var propertiesConverters =
                     new (string, IOutputFunnyConverter, PropertyInfo)[properties.Length];
                 int readPropertiesCount = 0;

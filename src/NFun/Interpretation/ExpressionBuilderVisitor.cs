@@ -21,14 +21,14 @@ namespace NFun.Interpretation
         private readonly VariableDictionary _variables;
         private readonly TypeInferenceResults _typeInferenceResults;
         private readonly TicTypesConverter _typesConverter;
-        private readonly ClassicDialectSettings _dialect;
+        private readonly DialectSettings _dialect;
 
         private static IExpressionNode BuildExpression(ISyntaxNode node,
             IFunctionDictionary functions,
             VariableDictionary variables,
             TypeInferenceResults typeInferenceResults,
             TicTypesConverter typesConverter, 
-            ClassicDialectSettings dialect) =>
+            DialectSettings dialect) =>
             node.Accept(new ExpressionBuilderVisitor(functions, variables, typeInferenceResults, typesConverter, dialect));
 
         internal static IExpressionNode BuildExpression(
@@ -38,7 +38,7 @@ namespace NFun.Interpretation
             VariableDictionary variables,
             TypeInferenceResults typeInferenceResults,
             TicTypesConverter typesConverter, 
-            ClassicDialectSettings dialect)
+            DialectSettings dialect)
         {
             var result = node.Accept(
                 new ExpressionBuilderVisitor(functions, variables, typeInferenceResults, typesConverter,dialect));
@@ -54,7 +54,7 @@ namespace NFun.Interpretation
             VariableDictionary variables,
             TypeInferenceResults typeInferenceResults,
             TicTypesConverter typesConverter,
-            ClassicDialectSettings dialect)
+            DialectSettings dialect)
         {
             _dialect = dialect;
             _functions = functions;
@@ -68,8 +68,8 @@ namespace NFun.Interpretation
         {
             var outputTypeFunDefinition = arrowAnonymFunNode.OutputType.FunTypeSpecification;
             if (outputTypeFunDefinition == null)
-                throw new ImpossibleException("Fun definition expected");
-            string[] argNames = null;
+                throw new NfunImpossibleException("Fun definition expected");
+            string[] argNames;
             if (outputTypeFunDefinition.Inputs.Length == 1)
                 argNames = new[] { "it" };
             else
@@ -111,7 +111,7 @@ namespace NFun.Interpretation
             // is allowed, but it semantically incorrect
 
             if (!structNode.Type.StructTypeSpecification.ContainsKey(node.FieldName))
-                throw FunParseException.ErrorStubToDo($"Access to non exist field {node.FieldName}");
+                throw FunnyParseException.ErrorStubToDo($"Access to non exist field {node.FieldName}");
             return new StructFieldAccessExpressionNode(node.FieldName, structNode, node.Interval);
         }
 
@@ -132,7 +132,7 @@ namespace NFun.Interpretation
             foreach (var field in node.OutputType.StructTypeSpecification)
             {
                 if (!types.ContainsKey(field.Key))
-                    throw FunParseException.ErrorStubToDo($"Field {field.Key} is missed in struct");
+                    throw FunnyParseException.ErrorStubToDo($"Field {field.Key} is missed in struct");
             }
 
             return new StructInitExpressionNode(names, nodes, node.Interval, FunnyType.StructOf(types));
@@ -226,7 +226,7 @@ namespace NFun.Interpretation
                     var recCallSignature = _typeInferenceResults.GetRecursiveCallOrNull(node.OrderNumber);
                     //if generic call arguments not exist in type inference result - it is NFUN core error
                     if (recCallSignature == null)
-                        throw new ImpossibleException($"MJ78. Function {id}`{node.Args.Length} was not found");
+                        throw new NfunImpossibleException($"MJ78. Function {id}`{node.Args.Length} was not found");
 
                     var varTypeCallSignature = _typesConverter.Convert(recCallSignature);
                     //Calculate generic call arguments by concrete function signature
@@ -243,7 +243,7 @@ namespace NFun.Interpretation
                 return CreateFunctionCall(node, function);
             }
 
-            throw new ImpossibleException($"MJ101. Function {id}`{node.Args.Length} type is unknown");
+            throw new NfunImpossibleException($"MJ101. Function {id}`{node.Args.Length} type is unknown");
         }
 
         public IExpressionNode Visit(ResultFunCallSyntaxNode node)
@@ -257,7 +257,7 @@ namespace NFun.Interpretation
         public IExpressionNode Visit(IfThenElseSyntaxNode node)
         {
             if (_dialect.IfExpressionSetup == IfExpressionSetup.Deny)
-                throw FunParseException.ErrorStubToDo("If-else expressions are denied for the dialect");
+                throw FunnyParseException.ErrorStubToDo("If-else expressions are denied for the dialect");
             
             //expressions
             //if (...) {here} 
@@ -267,7 +267,7 @@ namespace NFun.Interpretation
             var conditionNodes = new IExpressionNode[node.Ifs.Length];
             
             if (_dialect.IfExpressionSetup == IfExpressionSetup.IfElseIf  && node.Ifs.Length > 1)
-                throw FunParseException.ErrorStubToDo("'else' keyword is missing before 'if'");
+                throw FunnyParseException.ErrorStubToDo("'else' keyword is missing before 'if'");
 
             for (int i = 0; i < expressionNodes.Length; i++)
             {
@@ -308,10 +308,10 @@ namespace NFun.Interpretation
                 return ConstantExpressionNode.CreateConcrete(type, l, node.Interval);
             else if (node.Value is ulong u)
                 return ConstantExpressionNode.CreateConcrete(type, u, node.Interval);
-            else if (node.Value is double d)
+            else if (node.Value is double)
                 return new ConstantExpressionNode(node.Value, type, node.Interval);
             else
-                throw new ImpossibleException($"Generic syntax node has wrong value type: {node.Value.GetType().Name}");
+                throw new NfunImpossibleException($"Generic syntax node has wrong value type: {node.Value.GetType().Name}");
         }
 
         public IExpressionNode Visit(NamedIdSyntaxNode node)
@@ -329,7 +329,7 @@ namespace NFun.Interpretation
                 {
                     var genericTypes = _typeInferenceResults.GetGenericCallArguments(node.OrderNumber);
                     if (genericTypes == null)
-                        throw new ImpossibleException(
+                        throw new NfunImpossibleException(
                             $"MJ79. Generic function is missed at {node.OrderNumber}:  {node.Id}`{genericFunction.Name} ");
 
                     var genericArgs = new FunnyType[genericTypes.Length];
@@ -389,7 +389,7 @@ namespace NFun.Interpretation
                 .ToList();
 
             if (closured.Any(c => Helper.DoesItLooksLikeSuperAnonymousVariable(c.Source.Name)))
-                throw FunParseException.ErrorStubToDo("Unexpected it* variable");
+                throw FunnyParseException.ErrorStubToDo("Unexpected it* variable");
 
             //Add closured vars to outer-scope dictionary
             foreach (var newVar in closured)

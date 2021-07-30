@@ -8,7 +8,7 @@ using NFun.Tokenization;
 
 namespace NFun.ParseErrors
 {
-    public static class ErrorsHelper
+    internal static class ErrorsHelper
     {
         public static string ToFailureFunString(FunCallSyntaxNode headNode, ISyntaxNode headNodeChild)
         {

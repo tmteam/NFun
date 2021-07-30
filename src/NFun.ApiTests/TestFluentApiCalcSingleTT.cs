@@ -18,11 +18,11 @@ namespace NFun.ApiTests
         [Test]
         public void BuildLambdaTwoTimes()
         {
-            var context1 = Funny.ForCalc<ModelWithInt, string>();
-            var context2 = Funny.ForCalc<ModelWithInt, string>();
+            var calculator1 = Funny.ForCalc<ModelWithInt, string>();
+            var calculator2 = Funny.ForCalc<ModelWithInt, string>();
             
-            Func<ModelWithInt, string> lambda1 = context1.Build("'{id}'");
-            Func<ModelWithInt, string> lambda2 = context2.Build("'{id}'");
+            Func<ModelWithInt, string> lambda1 = calculator1.ToLambda("'{id}'");
+            Func<ModelWithInt, string> lambda2 = calculator2.ToLambda("'{id}'");
 
             var result1 =  lambda1(new ModelWithInt{id = 42});
             var result2 =  lambda2(new ModelWithInt{id = 1});
@@ -83,18 +83,18 @@ namespace NFun.ApiTests
         private static void CalcInDifferentWays<TInput,TOutput>(string expr, TInput input,TOutput expected)
         {
             var result1 = Funny.Calc<TInput, TOutput>(expr, input);
-            var context = Funny.ForCalc<TInput, TOutput>();
-            var result2 = context.Calc(expr, input);
-            var result3 = context.Calc(expr, input);
-            var lambda1 = context.Build(expr);
+            var calculator = Funny.ForCalc<TInput, TOutput>();
+            var result2 = calculator.Calc(expr, input);
+            var result3 = calculator.Calc(expr, input);
+            var lambda1 = calculator.ToLambda(expr);
             var result4 = lambda1(input);
             var result5 = lambda1(input);
-            var lambda2 = context.Build(expr);
+            var lambda2 = calculator.ToLambda(expr);
             var result6 = lambda2(input);
             var result7 = lambda2(input);
             var result8 = Funny
                 .WithConstant("SomeNotUsedConstant", 42)
-                .ForCalc<TInput, TOutput>()
+                .BuildForCalc<TInput, TOutput>()
                 .Calc(expr, input);
             
             Assert.IsTrue(TestHelper.AreSame(expected, result1));
@@ -125,22 +125,22 @@ namespace NFun.ApiTests
         [TestCase("a = 12; b = 32; x = a*b")]
         [TestCase("y = age")]
         public void NoOutputSpecified_throws(string expr) 
-            => Assert.Throws<FunParseException>(() => Funny.Calc<UserInputModel,int>(expr,new UserInputModel(age:42)));
+            => Assert.Throws<FunnyParseException>(() => Funny.Calc<UserInputModel,int>(expr,new UserInputModel(age:42)));
         
         [TestCase("age*AGE")]
         public void UseDifferentInputCase_throws(string expression) =>
-            Assert.Throws<FunParseException>(() => Funny.Calc<UserInputModel,int>(expression, new UserInputModel(age: 22)));
+            Assert.Throws<FunnyParseException>(() => Funny.Calc<UserInputModel,int>(expression, new UserInputModel(age: 22)));
         
         [Test]
         public void OutputTypeContainsNoEmptyConstructor_throws() =>
-            Assert.Throws<FunInvalidUsageException>(() => Funny.Calc<UserInputModel, ModelWithoutEmptyConstructor>(
+            Assert.Throws<FunnyInvalidUsageException>(() => Funny.Calc<UserInputModel, ModelWithoutEmptyConstructor>(
                 "{name = name}"
                 , new UserInputModel("vasa")));
         
         [TestCase("age>someUnknownvariable")]
         [TestCase("x:int;")]
         public void UseUnknownInput_throws(string expr) =>
-            Assert.Throws<FunParseException>(() =>
+            Assert.Throws<FunnyParseException>(() =>
                 Funny.Calc<UserInputModel, bool>(expr, new UserInputModel(age: 22)));
     }
 }

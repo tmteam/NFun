@@ -47,7 +47,7 @@ namespace NFun.ApiTests
         [TestCase("x:int = 2")]
         [TestCase("a = 12; b = 32; x = a*b")]
         public void NoOutputSpecified_throws(string expr) 
-            => Assert.Throws<FunParseException>(() => Funny.Calc(expr));
+            => Assert.Throws<FunnyParseException>(() => Funny.Calc(expr));
         
 
         [TestCase("{id = age; items = [1,2,3,4].map(fun '{it}'); price = 21*2}")]
@@ -56,6 +56,6 @@ namespace NFun.ApiTests
         [TestCase("x:int;")]
 
         public void UseUnknownInput_throws(string expression) =>
-            Assert.Throws<FunParseException>(() => Funny.Calc(expression));
+            Assert.Throws<FunnyParseException>(() => Funny.Calc(expression));
     }
 }

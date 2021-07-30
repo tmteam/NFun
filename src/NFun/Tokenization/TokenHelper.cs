@@ -88,7 +88,7 @@ namespace NFun.Tokenization
             while (flow.IsCurrent(TokType.ArrOBr))
             {
                 if (flow.Current.Start != lastPosition) 
-                    throw FunParseException.ErrorStubToDo("unexpected space before []");
+                    throw FunnyParseException.ErrorStubToDo("unexpected space before []");
                 
                 flow.MoveNext();
                 lastPosition = flow.Current.Finish;
@@ -131,13 +131,13 @@ namespace NFun.Tokenization
             {
                 var prev = flow.Previous;
                 if (prev == null)
-                    throw FunParseException.ErrorStubToDo($"\"{tokType}\" is missing at end of stream");
+                    throw FunnyParseException.ErrorStubToDo($"\"{tokType}\" is missing at end of stream");
                 else
-                    throw FunParseException.ErrorStubToDo($"\"{tokType}\" is missing at end of stream");
+                    throw FunnyParseException.ErrorStubToDo($"\"{tokType}\" is missing at end of stream");
             }
 
             if (!cur.Is(tokType))
-                throw FunParseException.ErrorStubToDo(
+                throw FunnyParseException.ErrorStubToDo(
                     $"\"{tokType}\" is missing but was \"{cur}\"");
             
             flow.MoveNext();

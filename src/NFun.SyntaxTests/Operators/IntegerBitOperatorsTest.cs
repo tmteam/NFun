@@ -240,7 +240,7 @@ namespace NFun.SyntaxTests.Operators
         [TestCase("y:int32 = 0x1<<33")]
         [TestCase("y:int64 = 0x1<<65")]*/
         public void Oops(string expr) =>
-            Assert.Throws<FunRuntimeException>(()=> expr.Calc());
+            Assert.Throws<FunnyRuntimeException>(()=> expr.Calc());
 
         [TestCase("y = ^2")]
         [TestCase("y = 2^^")]

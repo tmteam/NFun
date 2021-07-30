@@ -15,7 +15,7 @@ namespace NFun.SyntaxTests.SyntaxDialect
 		            if (true) 1
 		            else 4 	
 	            else 5
-            ".BuildWithDialect(Dialects.ModifyClassic(dialect));
+            ".BuildWithDialect(Dialects.ModifyOrigin(dialect));
 
         [TestCase(IfExpressionSetup.IfIfElse)]
         [TestCase(IfExpressionSetup.IfElseIf)]
@@ -27,7 +27,7 @@ namespace NFun.SyntaxTests.SyntaxDialect
 		 	            else 3
 		            else 4 	
 	            else 5
-            ".BuildWithDialect(Dialects.ModifyClassic(dialect));
+            ".BuildWithDialect(Dialects.ModifyOrigin(dialect));
 
         [TestCase(IfExpressionSetup.IfIfElse)]
         [TestCase(IfExpressionSetup.IfElseIf)]
@@ -41,7 +41,7 @@ namespace NFun.SyntaxTests.SyntaxDialect
                         else 5
 		            else 6 	
 	            else 7
-            ".BuildWithDialect(Dialects.ModifyClassic(dialect));
+            ".BuildWithDialect(Dialects.ModifyOrigin(dialect));
 
         [TestCase(1,0,0,1)]
         [TestCase(2,1,0,2)]
@@ -68,7 +68,7 @@ namespace NFun.SyntaxTests.SyntaxDialect
                         else 8 	
                     else if (x2 == 4) 9 
                          else 10"
-                .BuildWithDialect(Dialects.ModifyClassic(IfExpressionSetup.IfIfElse))
+                .BuildWithDialect(Dialects.ModifyOrigin(IfExpressionSetup.IfIfElse))
                 .Calc(("x1",x1), ("x2",x2), ("x3",x3))
                 .AssertReturns("y",expected);
 
@@ -101,7 +101,7 @@ namespace NFun.SyntaxTests.SyntaxDialect
             foreach (var setup in new[] { IfExpressionSetup.IfIfElse, IfExpressionSetup.IfElseIf })
             {
                 Funny.Hardcore
-                    .WithDialect(Dialects.ModifyClassic(setup))
+                    .WithDialect(Dialects.ModifyOrigin(setup))
                     .Build(expr)
                     .Calc(("x1", x1), ("x2", x2), ("x3", x3))
                     .AssertReturns("y", expected);
@@ -116,7 +116,7 @@ namespace NFun.SyntaxTests.SyntaxDialect
         [TestCase("y = if (2<1 )10 \r if (2>1)  -10 else 0", -10)]
         [TestCase("y = if (1>2 )10\r if (1<2) -10\r else 0", -10)]
         public void ConstantIntEquation(string expr, int expected, IfExpressionSetup setup  = IfExpressionSetup.IfIfElse) 
-            => expr.BuildWithDialect(Dialects.ModifyClassic(setup)).Calc().AssertReturns(expected);
+            => expr.BuildWithDialect(Dialects.ModifyOrigin(setup)).Calc().AssertReturns(expected);
 
         [TestCase("y = if (1<2 ) true else false", true)]
         [TestCase("y = if (true) true else false", true)]
@@ -126,7 +126,7 @@ namespace NFun.SyntaxTests.SyntaxDialect
         [TestCase("y = if (true) true \r else if (false) false else true", true,IfExpressionSetup.IfElseIf)]
 
         public void ConstantBoolEquation(string expr, bool expected,IfExpressionSetup setup  = IfExpressionSetup.IfIfElse) 
-            => expr.BuildWithDialect(Dialects.ModifyClassic(setup)).Calc().AssertReturns(expected);
+            => expr.BuildWithDialect(Dialects.ModifyOrigin(setup)).Calc().AssertReturns(expected);
 
         [TestCase(@"
 if (x == 0) 'zero'
@@ -154,7 +154,7 @@ else 'not supported' ", 2, "two")]
         public void SingleVariableEquatation_ififelse(string expression, int x, object expected)
             => Funny.Hardcore
                 .WithApriori<int>("x")
-                .WithDialect(Dialects.ModifyClassic(IfExpressionSetup.IfIfElse))
+                .WithDialect(Dialects.ModifyOrigin(IfExpressionSetup.IfIfElse))
                 .Build(expression)
                 .Calc("x", x)
                 .AssertOut(expected);
@@ -189,7 +189,7 @@ else 'not supported' ", 2, "two")]
             {
                 Funny.Hardcore
                     .WithApriori<int>("x")
-                    .WithDialect(Dialects.ModifyClassic(setup))
+                    .WithDialect(Dialects.ModifyOrigin(setup))
                     .Build(expression)
                     .Calc("x", x)
                     .AssertOut(expected);
@@ -207,7 +207,7 @@ else 'not supported' ", 2, "two")]
         {
             foreach (var setup in new[] { IfExpressionSetup.IfIfElse, IfExpressionSetup.IfElseIf })
             {
-                expr.BuildWithDialect(Dialects.ModifyClassic(setup)).Calc().AssertReturns(expected);
+                expr.BuildWithDialect(Dialects.ModifyOrigin(setup)).Calc().AssertReturns(expected);
             }
         }
 
@@ -216,7 +216,7 @@ else 'not supported' ", 2, "two")]
         [TestCase("y = if (1>2 )10.0\r if (1<2)-10.0\r else 0.0", -10.0)]
         public void ConstantRealEquation_ififelse(string expr, double expected)
         {
-            expr.BuildWithDialect(Dialects.ModifyClassic(IfExpressionSetup.IfIfElse))
+            expr.BuildWithDialect(Dialects.ModifyOrigin(IfExpressionSetup.IfIfElse))
                 .Calc()
                 .AssertReturns(expected);
 
@@ -229,7 +229,7 @@ else 'not supported' ", 2, "two")]
             {
                 @"i:int  = 42 * if (x>0) x else -1
                 arri = [if(x>0) x else -x, if(x<0) -1 else 1 ]"
-                    .BuildWithDialect(Dialects.ModifyClassic(setup))
+                    .BuildWithDialect(Dialects.ModifyOrigin(setup))
                     .Calc("x", 10)
                     .AssertResultHas(("i", 420), ("arri", new[] { 10, 1 }));
             }
@@ -259,7 +259,7 @@ else 'not supported' ", 2, "two")]
             foreach (var setup in new[]
                 { IfExpressionSetup.IfIfElse, IfExpressionSetup.IfElseIf, IfExpressionSetup.Deny })
             {
-                expr.AssertObviousFailsOnParse(Dialects.ModifyClassic(setup));
+                expr.AssertObviousFailsOnParse(Dialects.ModifyOrigin(setup));
             }
         }
         [TestCase("y = if (2<1 )10.0\r if (2>1) -10.0 else 0", IfExpressionSetup.IfElseIf)]
@@ -286,6 +286,6 @@ else 'not supported' ", 2, "two")]
                     else if (x2 == 4) 9 
                          else 10", IfExpressionSetup.IfElseIf)]
         public void ObviouslyFails(string expr, IfExpressionSetup setup) => 
-            expr.AssertObviousFailsOnParse(Dialects.ModifyClassic(setup));
+            expr.AssertObviousFailsOnParse(Dialects.ModifyOrigin(setup));
     }
 }

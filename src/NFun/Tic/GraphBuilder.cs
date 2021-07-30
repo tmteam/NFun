@@ -58,14 +58,14 @@ namespace NFun.Tic
         public void SetIntConst(int id, StatePrimitive desc)
             => SetIntConst(id, desc, StatePrimitive.Real, StatePrimitive.Real);
 
-        public void SetIntConst(int id, StatePrimitive desc, StatePrimitive anc, StatePrimitive prefered)
+        public void SetIntConst(int id, StatePrimitive desc, StatePrimitive anc, StatePrimitive preferred)
         {
             var node = GetOrCreateNode(id);
             if (node.State is ConstrainsState constrains)
             {
                 constrains.AddAncestor(anc);
-                constrains.AddDescedant(desc);
-                constrains.Prefered = prefered;
+                constrains.AddDescendant(desc);
+                constrains.Preferred = preferred;
             }
             else
                 throw new InvalidOperationException();
@@ -251,7 +251,7 @@ namespace NFun.Tic
             _outputNodes.Add(defNode);
 
             if (exprNode.State is StatePrimitive primitive && defNode.State is ConstrainsState constrains)
-                    constrains.Prefered = primitive;
+                    constrains.Preferred = primitive;
 
             exprNode.AddAncestor(defNode);
         }

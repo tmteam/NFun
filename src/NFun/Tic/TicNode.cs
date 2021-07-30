@@ -66,7 +66,7 @@ namespace NFun.Tic
         public void AddAncestor(TicNode node)
         {
             if(node==this)
-                throw new ImpossibleException("CircularAncestor");
+                throw new NfunImpossibleException("CircularAncestor");
 
             _ancestors.Add(node);
         }
@@ -74,7 +74,7 @@ namespace NFun.Tic
         public void AddAncestors(IEnumerable<TicNode> nodes)
         {
             if (nodes.Any(n=>n== this))
-                throw new ImpossibleException("CircularAncestor");
+                throw new NfunImpossibleException("CircularAncestor");
             _ancestors.AddRange(nodes);
         }
 
@@ -84,7 +84,7 @@ namespace NFun.Tic
         public void SetAncestor(int index, TicNode node)
         {
             if (node == this)
-                throw new ImpossibleException("CircularAncestor");
+                throw new NfunImpossibleException("CircularAncestor");
             _ancestors[index] = node;
         }
         
@@ -164,7 +164,7 @@ namespace NFun.Tic
             {
                 if (!constrains.TryAddAncestor(anc))
                     return false;
-                constrains.Prefered = anc;
+                constrains.Preferred = anc;
                 var optimized = constrains.GetOptimizedOrNull();
                 if (optimized == null)
                     return false;

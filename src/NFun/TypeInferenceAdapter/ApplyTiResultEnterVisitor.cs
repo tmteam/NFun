@@ -19,6 +19,7 @@ namespace NFun.TypeInferenceAdapter
         public override VisitorEnterResult Visit(GenericIntSyntaxNode node)
         {
             var type = _solving.GetSyntaxNodeTypeOrNull(node.OrderNumber);
+           
             if(type==null)
                 node.OutputType = FunnyType.Empty;
             else

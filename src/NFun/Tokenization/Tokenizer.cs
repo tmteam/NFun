@@ -358,7 +358,7 @@ namespace NFun.Tokenization
 
         }
 
-        /// <exception cref="FunParseException"></exception>
+        /// <exception cref="FunnyParseException"></exception>
         private Tok ReadText(string str, int startPosition)
         {
             var openQuoteSymbol = str[startPosition];

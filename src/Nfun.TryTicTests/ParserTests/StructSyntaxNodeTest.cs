@@ -15,7 +15,7 @@ namespace NFun.UnitTests.ParserTests
             var text = @" { a = 1 }";
             var structSyntaxNode = ParserTestHelper.ParseSingleEquation<StructInitSyntaxNode>(text);
             Assert.AreEqual(1, structSyntaxNode.Children.Count());
-            AssertGenericIntConstantDefenition(structSyntaxNode.Fields.First(),"a",(ulong)1);
+            AssertGenericIntConstantDefinition(structSyntaxNode.Fields.First(),"a",(ulong)1);
         }
         
         [Test]
@@ -27,8 +27,8 @@ namespace NFun.UnitTests.ParserTests
 
             Assert.AreEqual(2, structSyntaxNode.Children.Count());
             
-            AssertGenericIntConstantDefenition(structSyntaxNode.Fields.First(),"a",(ulong)1);
-            AssertGenericIntConstantDefenition(structSyntaxNode.Fields.Skip(1).First(),"b",(ulong)2);
+            AssertGenericIntConstantDefinition(structSyntaxNode.Fields.First(),"a",(ulong)1);
+            AssertGenericIntConstantDefinition(structSyntaxNode.Fields.Skip(1).First(),"b",(ulong)2);
         }
         
         [TestCase("{a 2}")]
@@ -38,9 +38,9 @@ namespace NFun.UnitTests.ParserTests
         [TestCase("{a =2; 3}")]
 
         public void ObviousFailed(string text) 
-            => Assert.Throws<FunParseException>(()=> Parser.Parse(Tokenizer.ToFlow(text)));
+            => Assert.Throws<FunnyParseException>(()=> Parser.Parse(Tokenizer.ToFlow(text)));
 
-        private static void AssertGenericIntConstantDefenition(FieldDefenition eq, string varName, object val)
+        private static void AssertGenericIntConstantDefinition(FieldDefinition eq, string varName, object val)
         {
             Assert.AreEqual(varName, eq.Name);
             Assert.IsInstanceOf<GenericIntSyntaxNode>(eq.Node);

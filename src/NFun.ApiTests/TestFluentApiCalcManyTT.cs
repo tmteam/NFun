@@ -55,7 +55,7 @@ namespace NFun.ApiTests
         
         [Test]
         public void NofieldsInitialized_throws() 
-            => Assert.Throws<FunParseException>(()=>  
+            => Assert.Throws<FunnyParseException>(()=>  
                 Funny.CalcMany<UserInputModel,ContractOutputModel>(
                     expression: "someField1 = age; somefield2 = 2", 
                     input: new UserInputModel()));
@@ -64,12 +64,12 @@ namespace NFun.ApiTests
         [TestCase("age")]
         [TestCase("ids")]
         public void AnonymousEquation_throws(string expr) 
-            => Assert.Throws<FunParseException>(
+            => Assert.Throws<FunnyParseException>(
                 ()=> Funny.CalcMany<UserInputModel,ContractOutputModel>(expr, new UserInputModel()));
         
         [Test]
         public void UnknownInputIdUsed_throws() 
-            => Assert.Throws<FunParseException>(
+            => Assert.Throws<FunnyParseException>(
                 ()=> Funny.CalcMany<UserInputModel,ContractOutputModel>(
                     "id = someInput*age", new UserInputModel()));
     
@@ -84,20 +84,20 @@ namespace NFun.ApiTests
         [TestCase("Id = age*Age; ")]
         [TestCase("Id = 321; Price = ID;")]
         public void UseDifferentInputCase_throws(string expression) =>
-            Assert.Throws<FunParseException>(
+            Assert.Throws<FunnyParseException>(
                 () => Funny.CalcMany<UserInputModel,ContractOutputModel>(expression, new UserInputModel()));
         
         private void CalcInDifferentWays<TInput,TOutput>(string expr, TInput input, TOutput expected) 
             where TOutput : new()
         {
             var result1 = Funny.CalcMany<TInput, TOutput>(expr, input);
-            var context = Funny.ForCalcMany<TInput, TOutput>();
-            var result2 = context.Calc(expr, input);
-            var result3 = context.Calc(expr, input);
-            var lambda1 = context.Build(expr);
+            var calculator = Funny.ForCalcMany<TInput, TOutput>();
+            var result2 = calculator.Calc(expr, input);
+            var result3 = calculator.Calc(expr, input);
+            var lambda1 = calculator.ToLambda(expr);
             var result4 = lambda1(input);
             var result5 = lambda1(input);
-            var lambda2 = context.Build(expr);
+            var lambda2 = calculator.ToLambda(expr);
             var result6 = lambda2(input);
             var result7 = lambda2(input);
             

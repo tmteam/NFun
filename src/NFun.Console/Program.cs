@@ -46,11 +46,11 @@ namespace NFun.ConsoleApp
                                               result.Value.GetType().Name + ")");
                     }
                 }
-                catch (FunRuntimeException e)
+                catch (FunnyRuntimeException e)
                 {
                     Console.WriteLine("Expression cannot be calculated: " + e.Message);
                 }
-                catch (FunParseException e)
+                catch (FunnyParseException e)
                 {
                     Console.BackgroundColor = ConsoleColor.Red;
                     Console.ForegroundColor = ConsoleColor.White;

@@ -11,12 +11,12 @@ namespace NFun.SyntaxParsing.SyntaxNodes
     {
         public StructInitSyntaxNode(List<EquationSyntaxNode> equations, Interval interval)
         {
-            var fields = new List<FieldDefenition>(equations.Count);
+            var fields = new List<FieldDefinition>(equations.Count);
             foreach (var equation in equations)
             {
                 if (equation.TypeSpecificationOrNull != null)
-                    throw FunParseException.ErrorStubToDo("Field type specification is not supported yet");
-                fields.Add(new FieldDefenition(equation.Id,equation.Expression));
+                    throw FunnyParseException.ErrorStubToDo("Field type specification is not supported yet");
+                fields.Add(new FieldDefinition(equation.Id,equation.Expression));
             }
 
             Fields = fields;
@@ -29,13 +29,13 @@ namespace NFun.SyntaxParsing.SyntaxNodes
         
         public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
 
-        public readonly IReadOnlyList<FieldDefenition> Fields;
+        public readonly IReadOnlyList<FieldDefinition> Fields;
         public IEnumerable<ISyntaxNode> Children => Fields.Select(e=>e.Node);
     }
 
-    public class FieldDefenition
+    public class FieldDefinition
     {
-        public FieldDefenition(string name, ISyntaxNode node)
+        public FieldDefinition(string name, ISyntaxNode node)
         {
             Name = name;
             Node = node;

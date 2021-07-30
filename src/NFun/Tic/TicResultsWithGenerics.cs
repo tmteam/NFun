@@ -44,9 +44,7 @@ namespace NFun.Tic
         public int GenericsCount => GenericsStates.Length;
         
         public bool HasGenerics => GenericsStates.Length > 0;
-
-      
-
+        
         private ConstrainsState[] _genericsStates = null;
 
         public ConstrainsState[] GenericsStates

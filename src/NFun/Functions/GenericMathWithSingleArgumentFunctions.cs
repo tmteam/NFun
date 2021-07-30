@@ -2,7 +2,7 @@ using System;
 using NFun.Interpretation.Functions;
 using NFun.Types;
 
-namespace NFun.BuiltInFunctions
+namespace NFun.Functions
 {
     public class InvertFunction : PureGenericFunctionBase
     {

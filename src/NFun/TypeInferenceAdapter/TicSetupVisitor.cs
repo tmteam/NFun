@@ -21,7 +21,7 @@ namespace NFun.TypeInferenceAdapter
         private readonly IFunctionDictionary _dictionary;
         private readonly IConstantList _constants;
         private readonly TypeInferenceResultsBuilder _resultsBuilder;
-        private readonly ClassicDialectSettings _dialect;
+        private readonly DialectSettings _dialect;
 
         public static bool SetupTicForBody(
             SyntaxTree tree,
@@ -30,7 +30,7 @@ namespace NFun.TypeInferenceAdapter
             IConstantList constants,
             AprioriTypesMap aprioriTypes,
             TypeInferenceResultsBuilder results, 
-            ClassicDialectSettings dialect)
+            DialectSettings dialect)
         {
             var visitor = new TicSetupVisitor(ticGraph, functions, constants, results, aprioriTypes, dialect);
 
@@ -52,7 +52,7 @@ namespace NFun.TypeInferenceAdapter
             IFunctionDictionary functions,
             IConstantList constants,
             TypeInferenceResultsBuilder results, 
-            ClassicDialectSettings dialect)
+            DialectSettings dialect)
         {
             var visitor = new TicSetupVisitor(ticGraph, functions, constants, results, new AprioriTypesMap(), dialect);
             return userFunctionNode.Accept(visitor);
@@ -63,7 +63,7 @@ namespace NFun.TypeInferenceAdapter
             IConstantList constants,
             TypeInferenceResultsBuilder resultsBuilder,
             AprioriTypesMap aprioriTypesMap, 
-            ClassicDialectSettings dialect)
+            DialectSettings dialect)
         {
             _aliasScope = new VariableScopeAliasTable();
             _dictionary = dictionary;
@@ -143,8 +143,8 @@ namespace NFun.TypeInferenceAdapter
             _aliasScope.EnterScope(node.OrderNumber);
 
             var argType = _parentFunctionArgType.FunTypeSpecification;
-            string[] originArgNames = null;
-            string[] aliasArgNames = null;
+            string[] originArgNames;
+            string[] aliasArgNames;
 
             if (argType == null || argType.Inputs.Length == 1)
                 originArgNames = new[] { "it" };
@@ -418,7 +418,7 @@ namespace NFun.TypeInferenceAdapter
                 else if (node.Value is ulong u)
                     actualValue = u;
                 else
-                    throw new ImpossibleException("Generic token has to be ulong or long");
+                    throw new NfunImpossibleException("Generic token has to be ulong or long");
 
                 //positive constant
                 if (actualValue <= byte.MaxValue)
@@ -446,7 +446,7 @@ namespace NFun.TypeInferenceAdapter
             {
                 //1,2,3
                 //Can be u8:<c:<real
-                StatePrimitive descedant;
+                StatePrimitive descendant;
                 ulong actualValue;
                 if (node.Value is long l)
                 {
@@ -454,45 +454,45 @@ namespace NFun.TypeInferenceAdapter
                     else
                     {
                         //negative constant
-                        if (l >= Int16.MinValue) descedant = StatePrimitive.I16;
-                        else if (l >= Int32.MinValue) descedant = StatePrimitive.I32;
-                        else descedant = StatePrimitive.I64;
-                        var prefered = GetPreferedIntConstantType();
-                        _ticTypeGraph.SetIntConst(node.OrderNumber, descedant, StatePrimitive.Real, prefered);
+                        if (l >= Int16.MinValue) descendant = StatePrimitive.I16;
+                        else if (l >= Int32.MinValue) descendant = StatePrimitive.I32;
+                        else descendant = StatePrimitive.I64;
+                        var preferred = GetPreferredIntConstantType();
+                        _ticTypeGraph.SetIntConst(node.OrderNumber, descendant, StatePrimitive.Real, preferred);
                         return true;
                     }
                 }
                 else if (node.Value is ulong u)
                     actualValue = u;
                 else
-                    throw new ImpossibleException("Generic token has to be ulong or long");
+                    throw new NfunImpossibleException("Generic token has to be ulong or long");
 
                 //positive constant
-                if (actualValue <= byte.MaxValue) descedant = StatePrimitive.U8;
-                else if (actualValue <= (ulong)Int16.MaxValue) descedant = StatePrimitive.U12;
-                else if (actualValue <= (ulong)UInt16.MaxValue) descedant = StatePrimitive.U16;
-                else if (actualValue <= (ulong)Int32.MaxValue) descedant = StatePrimitive.U24;
-                else if (actualValue <= (ulong)UInt32.MaxValue) descedant = StatePrimitive.U32;
-                else if (actualValue <= (ulong)Int64.MaxValue) descedant = StatePrimitive.U48;
-                else descedant = StatePrimitive.U64;
-                _ticTypeGraph.SetIntConst(node.OrderNumber, descedant, StatePrimitive.Real,
-                    GetPreferedIntConstantType());
+                if (actualValue <= byte.MaxValue) descendant = StatePrimitive.U8;
+                else if (actualValue <= (ulong)Int16.MaxValue) descendant = StatePrimitive.U12;
+                else if (actualValue <= (ulong)UInt16.MaxValue) descendant = StatePrimitive.U16;
+                else if (actualValue <= (ulong)Int32.MaxValue) descendant = StatePrimitive.U24;
+                else if (actualValue <= (ulong)UInt32.MaxValue) descendant = StatePrimitive.U32;
+                else if (actualValue <= (ulong)Int64.MaxValue) descendant = StatePrimitive.U48;
+                else descendant = StatePrimitive.U64;
+                _ticTypeGraph.SetIntConst(node.OrderNumber, descendant, StatePrimitive.Real,
+                    GetPreferredIntConstantType());
             }
 
             return true;
         }
 
-        private StatePrimitive GetPreferedIntConstantType()
+        private StatePrimitive GetPreferredIntConstantType()
         {
-            StatePrimitive prefered = null;
+            StatePrimitive preferred = null;
 
-            if (_dialect.IntegerPreferedType == IntegerPreferedType.I32)
-                prefered = StatePrimitive.I32;
-            else if (_dialect.IntegerPreferedType == IntegerPreferedType.I64)
-                prefered = StatePrimitive.I64;
-            else if (_dialect.IntegerPreferedType == IntegerPreferedType.Real)
-                prefered = StatePrimitive.Real;
-            return prefered;
+            if (_dialect.IntegerPreferredType == IntegerPreferredType.I32)
+                preferred = StatePrimitive.I32;
+            else if (_dialect.IntegerPreferredType == IntegerPreferredType.I64)
+                preferred = StatePrimitive.I64;
+            else if (_dialect.IntegerPreferredType == IntegerPreferredType.Real)
+                preferred = StatePrimitive.Real;
+            return preferred;
         }
 
         public bool Visit(NamedIdSyntaxNode node)

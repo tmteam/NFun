@@ -294,7 +294,7 @@ namespace NFun.Tic.Tests
             result.AssertNamed(StatePrimitive.Real, "y");
         }
         [Test]
-        //[Ignore("Prefered Type")]
+        //[Ignore("Preferred Type")]
         public void UpcastArgType_ArithmOp_EquationSolved()
         {
             //        0        1 3 2       4

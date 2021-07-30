@@ -18,7 +18,7 @@ namespace NFun.Runtime
         FunnyAttribute[] Attributes { get; }
 
         /// <summary>
-        /// Type of variable
+        /// Nfun type of variable
         /// </summary>
         FunnyType Type { get; }
 

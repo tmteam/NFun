@@ -1,7 +1,7 @@
 ﻿using NFun.Interpretation.Functions;
 using NFun.Types;
 
-namespace NFun.BuiltInFunctions
+namespace NFun.Functions
 {
     #region binaries
     public class NotFunction : FunctionWithSingleArg

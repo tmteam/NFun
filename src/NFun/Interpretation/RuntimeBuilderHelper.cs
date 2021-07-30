@@ -23,7 +23,7 @@ namespace NFun.Interpretation
             IFunctionDictionary functionsDictionary,
             TypeInferenceResults results,
             TicTypesConverter converter, 
-            ClassicDialectSettings dialect)
+            DialectSettings dialect)
         {
             var vars = new VariableDictionary(functionSyntax.Args.Count);
             for (int i = 0; i < functionSyntax.Args.Count; i++)
@@ -61,7 +61,7 @@ namespace NFun.Interpretation
             IFunctionDictionary functions,
             IConstantList constants,
             AprioriTypesMap aprioriTypes, 
-            ClassicDialectSettings dialect)
+            DialectSettings dialect)
         {
             try
             {

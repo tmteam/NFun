@@ -15,10 +15,6 @@ namespace NFun.Tic.SolvingStates
 
         public StateStruct With(string name, TicNode memberNode)
         {
-            if (memberNode.State is StateRefTo)
-            {
-                
-            }
             var newDic = new Dictionary<string, TicNode>(_nodes.Count + 1);
             foreach (var field in _nodes)
             {
@@ -36,7 +32,7 @@ namespace NFun.Tic.SolvingStates
             var nodeFields = new Dictionary<string, TicNode>();
             foreach (var field in fields)
             {
-                TicNode node = null;
+                TicNode node;
                 if (field.Value is ITypeState at)
                     node = TicNode.CreateTypeVariableNode(at);
                 else if (field.Value is StateRefTo aRef)

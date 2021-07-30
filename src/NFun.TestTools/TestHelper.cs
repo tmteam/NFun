@@ -37,7 +37,7 @@ namespace NFun.TestTools
         public static CalculationResult Calc(this string expr, params (string id, object val)[] values) =>
             Funny.Hardcore.Build(expr).Calc(values);
 
-        public static FunnyRuntime BuildWithDialect(this string expr, ClassicDialectSettings dialect)
+        public static FunnyRuntime BuildWithDialect(this string expr, DialectSettings dialect)
             => Funny.Hardcore.WithDialect(dialect).Build(expr);
 
         public static FunnyRuntime Build(this string expr) => Funny.Hardcore.Build(expr);
@@ -196,16 +196,16 @@ namespace NFun.TestTools
         public static void AssertObviousFailsOnRuntime(this string expression)
         {
             var runtime = expression.Build();
-            Assert.Catch<FunRuntimeException>(() => runtime.Calc());
+            Assert.Catch<FunnyRuntimeException>(() => runtime.Calc());
         }
 
-        public static void AssertObviousFailsOnParse(this string expression, ClassicDialectSettings dialect = null)
+        public static void AssertObviousFailsOnParse(this string expression, DialectSettings dialect = null)
         {
             TraceLog.IsEnabled = true;
             try
             {
                 var runtime = Funny.Hardcore
-                    .WithDialect(dialect ?? ClassicDialectSettings.Default)
+                    .WithDialect(dialect ?? Dialects.Origin)
                     .Build(expression);
                 if (runtime.Variables.Any(v => !v.IsOutput))
                 {
@@ -225,7 +225,7 @@ namespace NFun.TestTools
                     return;
                 }
             }
-            catch (FunParseException ex)
+            catch (FunnyParseException ex)
             {
                 Assert.Pass($"Fun parse error: {ex}");
                 return;
@@ -240,7 +240,7 @@ namespace NFun.TestTools
                 action();
                 Assert.Fail($"Expression parsed without any errors");
             }
-            catch (FunParseException ex)
+            catch (FunnyParseException ex)
             {
                 Assert.Pass($"Fun parse error: {ex}");
                 return;

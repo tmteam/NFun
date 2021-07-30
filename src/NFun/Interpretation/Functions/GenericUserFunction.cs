@@ -14,7 +14,7 @@ namespace NFun.Interpretation.Functions
         private readonly TypeInferenceResults _typeInferenceResults;
         private readonly UserFunctionDefinitionSyntaxNode _syntaxNode;
         private readonly IFunctionDictionary _dictionary;
-        private readonly ClassicDialectSettings _dialect;
+        private readonly DialectSettings _dialect;
 
         private readonly ConstrainsState[] _constrainsMap;
         public int BuiltCount { get; private set; }
@@ -23,7 +23,7 @@ namespace NFun.Interpretation.Functions
             TypeInferenceResults typeInferenceResults,
             UserFunctionDefinitionSyntaxNode syntaxNode,
             IFunctionDictionary dictionary, 
-            ClassicDialectSettings dialect)
+            DialectSettings dialect)
         {
             var ticGenerics = typeInferenceResults.Generics;
             var langConstrains = new GenericConstrains[ticGenerics.Length];
@@ -78,7 +78,7 @@ namespace NFun.Interpretation.Functions
             GenericConstrains[] constrains,
             FunnyType returnType,
             FunnyType[] argTypes,
-            ClassicDialectSettings dialect
+            DialectSettings dialect
         ) : base(syntaxNode.Id, constrains, returnType, argTypes)
         {
             _typeInferenceResults = typeInferenceResults;

@@ -8,7 +8,7 @@ using NFun.Interpretation.Functions;
 using NFun.Runtime.Arrays;
 using NFun.Types;
 
-namespace NFun.BuiltInFunctions
+namespace NFun.Functions
 {
     public class ConvertFunction : GenericFunctionBase
     {
@@ -58,7 +58,7 @@ namespace NFun.BuiltInFunctions
                     return new ConcreteConverter(parser, from, to);
             }
 
-            throw FunParseException.ErrorStubToDo($"Impossible explicit convertation {from}->{to}");
+            throw FunnyParseException.ErrorStubToDo($"Impossible explicit convertation {from}->{to}");
 
         }
         private Func<object, object> CreateBinarizerOrNull(FunnyType from)
@@ -175,7 +175,7 @@ namespace NFun.BuiltInFunctions
                 }
                 catch (Exception e)
                 {
-                    throw new FunRuntimeException($"Cannot convert {a} to type {this.ReturnType}", e);
+                    throw new FunnyRuntimeException($"Cannot convert {a} to type {this.ReturnType}", e);
                 }
             }
         }
@@ -186,7 +186,7 @@ namespace NFun.BuiltInFunctions
             try
             {
                 if (val.Count > 4)
-                    throw new FunRuntimeException("Array is too long");
+                    throw new FunnyRuntimeException("Array is too long");
                 if (val.Count == 4)
                 {
                     return val.Select(Convert.ToByte).ToArray();
@@ -196,7 +196,7 @@ namespace NFun.BuiltInFunctions
             }
             catch (Exception e)
             {
-                throw new FunRuntimeException($"Array '{val}' cannot be converted into int", e);
+                throw new FunnyRuntimeException($"Array '{val}' cannot be converted into int", e);
             }
         }
     }

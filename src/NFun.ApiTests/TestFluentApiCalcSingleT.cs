@@ -71,38 +71,38 @@ namespace NFun.ApiTests
         [TestCase("a = 12; b = 32; x = a*b")]
         [TestCase("y = name")]
         public void NoOutputSpecified_throws(string expr)
-            => Assert.Throws<FunParseException>(() => Funny.Calc(expr, new UserInputModel("vasa")));
+            => Assert.Throws<FunnyParseException>(() => Funny.Calc(expr, new UserInputModel("vasa")));
 
 
         [TestCase("age>someUnknownvariable")]
         public void UseUnknownInput_throws(string expression) =>
-            Assert.Throws<FunParseException>(() =>
+            Assert.Throws<FunnyParseException>(() =>
                 Funny.Calc(expression, new UserInputModel(age: 22)));
 
         [TestCase("age>AGE")]
         public void UseDifferentInputCase_throws(string expression) =>
-            Assert.Throws<FunParseException>(() => Funny.Calc(expression, new UserInputModel(age: 22)));
+            Assert.Throws<FunnyParseException>(() => Funny.Calc(expression, new UserInputModel(age: 22)));
 
         private static void CalcInDifferentWays<TInput>(string expr, object expected, TInput input)
         {
             //CALC
             var result1 = Funny.Calc<TInput>(expr, input);
-            //Context+calc
-            var context = Funny.ForCalc<TInput>();
-            var result2 = context.Calc(expr, input);
-            var result3 = context.Calc(expr, input);
+            //calculator+calc
+            var calculator = Funny.ForCalc<TInput>();
+            var result2 = calculator.Calc(expr, input);
+            var result3 = calculator.Calc(expr, input);
             var result4 = Funny.WithConstant("SomeNotUsedConstant", 42).Calc(expr, input);
             var result5 = Funny
                 .WithConstant("SomeNotUsedConstant", 42)
-                .ForCalc<TInput>()
+                .BuildForCalc<TInput>()
                 .Calc(expr, input);
             
             //lambda
-            var lambda1 = context.Build(expr);
+            var lambda1 = calculator.ToLambda(expr);
             var result6 = lambda1(input);
             var result7 = lambda1(input);
             
-            var lambda2 = context.Build(expr);
+            var lambda2 = calculator.ToLambda(expr);
             var result8 = lambda2(input);
             var result9 = lambda2(input);
 

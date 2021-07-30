@@ -21,7 +21,5 @@ namespace NFun.SyntaxParsing.SyntaxNodes
         public Interval Interval { get; set; }
         public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
         public IEnumerable<ISyntaxNode> Children => Expressions;
-
-        
     }
 }

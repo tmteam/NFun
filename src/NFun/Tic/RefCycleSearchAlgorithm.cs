@@ -9,6 +9,7 @@ namespace NFun.Tic
         private readonly int _nodeInListMark;
 
         private const int RefVisitingMark = 6782341;
+        
         private const int RefVisitedMark = 672901236;
 
         public TicNode GetNonReferenceMergedOrNull(TicNode node)

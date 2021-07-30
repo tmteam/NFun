@@ -101,21 +101,21 @@ namespace NFun.ApiTests
         [TestCase("x:int = 2")]
         [TestCase("a = 12; b = 32; x = a*b")]
         public void NoOutputSpecified_throws(string expr) 
-            => Assert.Throws<FunInvalidUsageException>(() => Funny.Calc<UserInputModel>(expr));
+            => Assert.Throws<FunnyInvalidUsageException>(() => Funny.Calc<UserInputModel>(expr));
 
         [Test]
         public void OutputTypeContainsNoEmptyConstructor_throws() =>
-            Assert.Throws<FunInvalidUsageException>(() => Funny.Calc<UserInputModel>(
+            Assert.Throws<FunnyInvalidUsageException>(() => Funny.Calc<UserInputModel>(
                 "{name = 'alaska'}"));
 
         [TestCase("[1..4].filter(fun it>age).map(fun it**2)")]
         [TestCase("age>someUnknownvariable")]
         public void UseUnknownInput_throws(string expression) =>
-            Assert.Throws<FunParseException>(() => Funny.Calc<object>(expression));
+            Assert.Throws<FunnyParseException>(() => Funny.Calc<object>(expression));
 
         [TestCase("[1..4].filter(fun it>age).map(fun it*it).any(fun it>12}")]
         [TestCase("age>someUnknownvariable")]
         public void UseUnknownInputWithWrongIntOutputType_throws(string expression) =>
-            Assert.Throws<FunParseException>(() => Funny.Calc<bool>(expression));
+            Assert.Throws<FunnyParseException>(() => Funny.Calc<bool>(expression));
     }
 }

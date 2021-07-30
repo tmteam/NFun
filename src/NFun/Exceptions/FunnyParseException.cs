@@ -3,19 +3,19 @@ using NFun.Tokenization;
 
 namespace NFun.Exceptions
 {
-    public class FunParseException : Exception
+    public class FunnyParseException : Exception
     {
         public int Code { get; }
         public Interval Interval { get; }
         public int Start => Interval.Start;
         public int End => Interval.Finish;
 
-        public FunParseException(int code, string message, Interval interval): base(message)
+        public FunnyParseException(int code, string message, Interval interval): base(message)
         {
             Code = code;
             Interval = interval;
         }
-        public FunParseException(int code, string message, int start, int end): base(message)
+        public FunnyParseException(int code, string message, int start, int end): base(message)
         {
             Code = code;
             Interval = new Interval(start,end);
@@ -25,9 +25,9 @@ namespace NFun.Exceptions
             => $"[FU{Code}] {base.ToString()}";
 
         //todo the error is not implemented yet, but it should -)
-        public static FunParseException ErrorStubToDo(string varAlreadyDeclared)
+        public static FunnyParseException ErrorStubToDo(string varAlreadyDeclared)
         {
-            return new FunParseException(-1, varAlreadyDeclared, 0,0);
+            return new FunnyParseException(-1, varAlreadyDeclared, 0,0);
         }
     }
 }

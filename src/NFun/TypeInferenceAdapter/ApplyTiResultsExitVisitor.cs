@@ -11,19 +11,6 @@ namespace NFun.TypeInferenceAdapter
 
         public override bool Visit(IfThenElseSyntaxNode node)
         {
-            //Old code for composite upcast support:
-            /*
-            if (node.OutputType != VarType.Anything) 
-                return true;
-            
-            if (node.Ifs.Any(i => i.Expression.OutputType == VarType.Anything))
-                return true;
-            if (node.ElseExpr.OutputType == VarType.Anything)
-                return true;
-                
-            throw ErrorFactory.VariousIfElementTypes(node);
-            */
-            
             //If upcast is denied:
             if (node.OutputType == FunnyType.Any) 
                 return true;

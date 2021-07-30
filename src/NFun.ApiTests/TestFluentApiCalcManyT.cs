@@ -24,20 +24,20 @@ namespace NFun.ApiTests
         
         [Test]
         public void NofieldsInitialized_throws() 
-            => Assert.Throws<FunParseException>(()=>  Funny.CalcMany<ContractOutputModel>("someField1 = 13.1; somefield2 = 2"));
+            => Assert.Throws<FunnyParseException>(()=>  Funny.CalcMany<ContractOutputModel>("someField1 = 13.1; somefield2 = 2"));
 
         [Test]
         public void AnonymousEquation_throws() 
-            => Assert.Throws<FunParseException>(()=> Funny.CalcMany<ContractOutputModel>("13.1"));
+            => Assert.Throws<FunnyParseException>(()=> Funny.CalcMany<ContractOutputModel>("13.1"));
 
         [Test]
         public void UnknownInputIdUsed_throws() 
-            => Assert.Throws<FunParseException>(()=> Funny.CalcMany<ContractOutputModel>("id = someInput"));
+            => Assert.Throws<FunnyParseException>(()=> Funny.CalcMany<ContractOutputModel>("id = someInput"));
         
         [TestCase("id = 42; price = ID")]
         [TestCase("id = 42; ID = 13")]
         public void UseDifferentInputCase_throws(string expression) =>
-            Assert.Throws<FunParseException>(() => Funny.CalcMany<ContractOutputModel>(expression));
+            Assert.Throws<FunnyParseException>(() => Funny.CalcMany<ContractOutputModel>(expression));
         
         [Test]
         public void SomeFieldInitialized_DefaultValuesInUninitalizedFields() {

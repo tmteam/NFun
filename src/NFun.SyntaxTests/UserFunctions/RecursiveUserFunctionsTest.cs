@@ -74,7 +74,7 @@ namespace NFun.SyntaxTests.UserFunctions
 
         [TestCase("y = raise(1)\r raise(x) = raise(x)")]
         public void StackOverflow_throws_FunStackOverflow(string text) => 
-            Assert.Throws<FunRuntimeStackoverflowException>(() => text.Calc());
+            Assert.Throws<FunnyRuntimeStackoverflowException>(() => text.Calc());
 
         [TestCase(
             "max3(a,b,c) =  max2(max2(a,b),c) \r max2(a,b)= if (a<b) b else a\r y = max3(16,32,2)", 32)]

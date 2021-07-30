@@ -17,7 +17,7 @@ namespace NFun.Interpretation.Functions
             {
                 _recursiveArgsStack.Push(args);
                 if (_recursiveArgsStack.Count > 400)
-                    throw new FunRuntimeStackoverflowException($"stack overflow on {Name}");
+                    throw new FunnyRuntimeStackoverflowException($"stack overflow on {Name}");
 
                 if (args.Length != ArgumentSources.Length)
                     throw new ArgumentException();

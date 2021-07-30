@@ -39,7 +39,7 @@ namespace NFun.Interpretation.Functions
             = new(StatePrimitive.Real, null, false);
 
         public static GenericConstrains FromTicConstrains(ConstrainsState constrainsState)
-            => new(constrainsState.Ancestor, constrainsState.Descedant as StatePrimitive, constrainsState.IsComparable);
+            => new(constrainsState.Ancestor, constrainsState.Descendant as StatePrimitive, constrainsState.IsComparable);
 
         private GenericConstrains(StatePrimitive ancestor = null, StatePrimitive descendant = null,
             bool isComparable = false)

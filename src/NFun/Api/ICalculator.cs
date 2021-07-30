@@ -8,30 +8,30 @@ using NFun.Types;
 
 namespace NFun
 {
-    public interface IFunnyContext<in TInput>
+    public interface ICalculator<in TInput>
     {
         object Calc(string expression, TInput input);
-        Func<TInput, object> Build(string expression);
+        Func<TInput, object> ToLambda(string expression);
     }
 
-    public interface IFunnyContext<in TInput, out TOutput>
+    public interface ICalculator<in TInput, out TOutput>
     {
         TOutput Calc(string expression, TInput inputModel);
-        Func<TInput, TOutput> Build(string expression);
+        Func<TInput, TOutput> ToLambda(string expression);
     }
 
-    public interface IFunnyConstantContext<out TOutput>
+    public interface IConstantCalculator<out TOutput>
     {
         TOutput Calc(string expression);
     }
     
-    class FunnyContext<TInput> : IFunnyContext<TInput>
+    class Calculator<TInput> : ICalculator<TInput>
     {
-        private readonly FunnyContextBuilder _builder;
+        private readonly FunnyCalculatorBuilder _builder;
         private readonly AprioriTypesMap _apriories;
-        private readonly Memory<(string, IinputFunnyConverter, PropertyInfo)> _inputsMap;
+        private readonly Memory<(string, IInputFunnyConverter, PropertyInfo)> _inputsMap;
 
-        public FunnyContext(FunnyContextBuilder builder)
+        public Calculator(FunnyCalculatorBuilder builder)
         {
             _builder = builder;
 
@@ -40,13 +40,12 @@ namespace NFun
         }
 
         public object Calc(string expression, TInput input)
-            => Build(expression)(input);
+            => ToLambda(expression)(input);
 
-        public Func<TInput, object> Build(string expression)
+        public Func<TInput, object> ToLambda(string expression)
         {
             var runtime = _builder.CreateRuntime(expression, _apriories);
-            if (!runtime.HasDefaultOutput)
-                throw ErrorFactory.OutputIsUnset();
+            FluentApiTools.ThrowIfHasNoDefaultOutput(runtime);
             FluentApiTools.ThrowIfHasUnknownInputs(runtime, _inputsMap);
 
             return input =>
@@ -58,14 +57,14 @@ namespace NFun
         }
     }
 
-    class FunnyContextMany<TInput, TOutput> : IFunnyContext<TInput, TOutput> where TOutput : new()
+    class CalculatorMany<TInput, TOutput> : ICalculator<TInput, TOutput> where TOutput : new()
     {
-        private readonly FunnyContextBuilder _builder;
+        private readonly FunnyCalculatorBuilder _builder;
         private readonly AprioriTypesMap _apriories;
-        private readonly Memory<(string, IinputFunnyConverter, PropertyInfo)> _inputsMap;
+        private readonly Memory<(string, IInputFunnyConverter, PropertyInfo)> _inputsMap;
         private readonly Memory<(string, IOutputFunnyConverter, PropertyInfo)> _outputsMap;
 
-        public FunnyContextMany(FunnyContextBuilder builder)
+        public CalculatorMany(FunnyCalculatorBuilder builder)
         {
             _builder = builder;
             _apriories = new AprioriTypesMap();
@@ -73,9 +72,9 @@ namespace NFun
             _outputsMap = FluentApiTools.SetupManyAprioriOutputs<TOutput>(_apriories);
         }
 
-        public TOutput Calc(string expression, TInput input) => Build(expression)(input);
+        public TOutput Calc(string expression, TInput input) => ToLambda(expression)(input);
 
-        public Func<TInput, TOutput> Build(string expression)
+        public Func<TInput, TOutput> ToLambda(string expression)
         {
             var runtime = _builder.CreateRuntime(expression, _apriories);
             FluentApiTools.ThrowIfHasUnknownInputs(runtime, _inputsMap);
@@ -88,14 +87,14 @@ namespace NFun
         }
     }
 
-    class FunnyContextSingle<TInput, TOutput> : IFunnyContext<TInput, TOutput>
+    class CalculatorSingle<TInput, TOutput> : ICalculator<TInput, TOutput>
     {
-        private readonly FunnyContextBuilder _builder;
+        private readonly FunnyCalculatorBuilder _builder;
         private readonly AprioriTypesMap _apriories;
-        private readonly Memory<(string, IinputFunnyConverter, PropertyInfo)> _inputsMap;
+        private readonly Memory<(string, IInputFunnyConverter, PropertyInfo)> _inputsMap;
         private readonly IOutputFunnyConverter _outputConverter;
 
-        public FunnyContextSingle(FunnyContextBuilder builder)
+        public CalculatorSingle(FunnyCalculatorBuilder builder)
         {
             _builder = builder;
             _apriories = new AprioriTypesMap();
@@ -105,18 +104,16 @@ namespace NFun
             _apriories.Add(Parser.AnonymousEquationId, _outputConverter.FunnyType);
         }
 
-        public TOutput Calc(string expression, TInput input) => Build(expression)(input);
+        public TOutput Calc(string expression, TInput input) => ToLambda(expression)(input);
 
-        public Func<TInput, TOutput> Build(string expression)
+        public Func<TInput, TOutput> ToLambda(string expression)
         {
             var runtime = _builder.CreateRuntime(expression, _apriories);
 
             FluentApiTools.ThrowIfHasUnknownInputs(runtime, _inputsMap);
+            FluentApiTools.ThrowIfHasNoDefaultOutput(runtime);
 
-            if (!runtime.HasDefaultOutput)
-                throw ErrorFactory.OutputIsUnset(_outputConverter.FunnyType);
             var outVariable = runtime[Parser.AnonymousEquationId];
-
 
             return input =>
             {
@@ -127,13 +124,13 @@ namespace NFun
         }
     }
     
-    class FunnyConstantContextSingle<TOutput> : IFunnyConstantContext<TOutput>
+    class ConstantCalculatorSingle<TOutput> : IConstantCalculator<TOutput>
     {
-        private readonly FunnyContextBuilder _builder;
+        private readonly FunnyCalculatorBuilder _builder;
         private readonly AprioriTypesMap _apriories;
         private readonly IOutputFunnyConverter _outputConverter;
 
-        public FunnyConstantContextSingle(FunnyContextBuilder builder)
+        public ConstantCalculatorSingle(FunnyCalculatorBuilder builder)
         {
             _outputConverter = FunnyTypeConverters.GetOutputConverter(typeof(TOutput));
             _apriories = new AprioriTypesMap { { Parser.AnonymousEquationId, _outputConverter.FunnyType } };
@@ -143,24 +140,22 @@ namespace NFun
         public TOutput Calc(string expression)
         {
             var runtime = _builder.CreateRuntime(expression, _apriories);
-            if (runtime.Variables.Any(v => !v.IsOutput))
-                throw ErrorFactory.UnknownInputs(runtime.GetInputVariableUsages());
-            if (!runtime.HasDefaultOutput)
-                throw ErrorFactory.OutputIsUnset(_outputConverter.FunnyType);
-
+            FluentApiTools.ThrowIfHasInputs(runtime);
+            FluentApiTools.ThrowIfHasNoDefaultOutput(runtime);
+            
             runtime.Run();
 
             return (TOutput)_outputConverter.ToClrObject(FluentApiTools.GetOut(runtime).FunnyValue);
         }
     }
 
-    class FunnyConstantContextMany<TOutput> : IFunnyConstantContext<TOutput> where TOutput : new()
+    class ConstantCalculatorMany<TOutput> : IConstantCalculator<TOutput> where TOutput : new()
     {
-        private readonly FunnyContextBuilder _builder;
+        private readonly FunnyCalculatorBuilder _builder;
         private readonly AprioriTypesMap _apriories;
         private readonly Memory<(string, IOutputFunnyConverter, PropertyInfo)> _outputsMap;
 
-        public FunnyConstantContextMany(FunnyContextBuilder builder)
+        public ConstantCalculatorMany(FunnyCalculatorBuilder builder)
         {
             _apriories = new AprioriTypesMap();
             _outputsMap = FluentApiTools.SetupManyAprioriOutputs<TOutput>(_apriories);
@@ -170,19 +165,18 @@ namespace NFun
         public TOutput Calc(string expression)
         {
             var runtime = _builder.CreateRuntime(expression, _apriories);
-            if (runtime.Variables.Any(v=>!v.IsOutput))
-                throw ErrorFactory.UnknownInputs(runtime.GetInputVariableUsages());
+            FluentApiTools.ThrowIfHasInputs(runtime);
             runtime.Run();
             return FluentApiTools.CreateOutputValueFromResults<TOutput>(runtime, _outputsMap);
         }
     }
 
-    class FunnyConstantContextSingle : IFunnyConstantContext<object>
+    class ConstantCalculatorSingle : IConstantCalculator<object>
     {
-        private readonly FunnyContextBuilder _builder;
+        private readonly FunnyCalculatorBuilder _builder;
         private static readonly AprioriTypesMap Apriories = new();
 
-        public FunnyConstantContextSingle(FunnyContextBuilder builder)
+        public ConstantCalculatorSingle(FunnyCalculatorBuilder builder)
         {
             _builder = builder;
         }
@@ -190,10 +184,8 @@ namespace NFun
         public object Calc(string expression)
         {
             var runtime = _builder.CreateRuntime(expression, Apriories);
-            if (runtime.Variables.Any(v => !v.IsOutput))
-                throw ErrorFactory.UnknownInputs(runtime.GetInputVariableUsages());
-            if (!runtime.HasDefaultOutput)
-                throw ErrorFactory.OutputIsUnset();
+            FluentApiTools.ThrowIfHasInputs(runtime);
+            FluentApiTools.ThrowIfHasNoDefaultOutput(runtime);
 
             runtime.Run();
 

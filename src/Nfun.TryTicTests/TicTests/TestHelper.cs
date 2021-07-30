@@ -49,7 +49,7 @@ namespace NFun.UnitTests.TicTests
                 constants:    new EmptyConstantList(), 
                 aprioriTypes: new AprioriTypesMap(), 
                 results:      resultsBuilder, 
-                ClassicDialectSettings.Default);
+                Dialects.Origin);
             
             return graph.Solve();
         }
@@ -72,7 +72,7 @@ namespace NFun.UnitTests.TicTests
                 constants: new EmptyConstantList(), 
                 aprioriTypes: new AprioriTypesMap(),  
                 results:   resultsBuilder,
-                ClassicDialectSettings.Default);
+                Dialects.Origin);
 
             var res =  graph.Solve();
             resultsBuilder.SetResults(res);
@@ -113,7 +113,7 @@ namespace NFun.UnitTests.TicTests
             if (desc == null)
                 Assert.IsFalse(generic.HasDescendant);
             else
-                Assert.AreEqual(desc, generic.Descedant);
+                Assert.AreEqual(desc, generic.Descendant);
 
             if (anc == null)
                 Assert.IsFalse(generic.HasAncestor);

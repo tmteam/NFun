@@ -9,11 +9,11 @@ namespace NFun.SyntaxTests.SyntaxDialect
 {
     public abstract class GenericIntConstantTestBase<T>
     {
-        private ClassicDialectSettings _dialect;
+        private DialectSettings _dialect;
 
-        protected GenericIntConstantTestBase(IntegerPreferedType prefered)
+        protected GenericIntConstantTestBase(IntegerPreferredType preferred)
         {
-            _dialect = Dialects.ModifyClassic(integerPreferedType: prefered);
+            _dialect = Dialects.ModifyOrigin(integerPreferredType: preferred);
         }
 
         [TestCase("y = 2+3", 5)]

@@ -6,8 +6,8 @@ namespace NFun.Tic.Tests.Funs
 {
     public class TrickyTest
     {
-        [SetUp] public void Initiazlize() => TraceLog.IsEnabled = true;
-        [TearDown] public void Finalize() => TraceLog.IsEnabled = false;
+        [SetUp] public void Init() => TraceLog.IsEnabled = true;
+        [TearDown] public void TearDown() => TraceLog.IsEnabled = false;
 
 
         [Test]

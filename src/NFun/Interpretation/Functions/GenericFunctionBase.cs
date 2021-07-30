@@ -22,7 +22,7 @@ namespace NFun.Interpretation.Functions
                     .Append(returnType)
                     .Max(i => i.SearchMaxGenericTypeId());
                 if (!maxGenericId.HasValue)
-                    throw new InvalidOperationException($"Type {name} has wrong generic defenition");
+                    throw new InvalidOperationException($"Type {name} has wrong generic definition");
 
                 Constrains = new GenericConstrains[maxGenericId.Value + 1];
 
@@ -41,7 +41,7 @@ namespace NFun.Interpretation.Functions
                 .Append(returnType)
                 .Max(i => i.SearchMaxGenericTypeId());
             if (!maxGenericId.HasValue)
-                throw new InvalidOperationException($"Type {name} has wrong generic defenition");
+                throw new InvalidOperationException($"Type {name} has wrong generic definition");
         }
 
         protected GenericFunctionBase(string name, GenericConstrains constrains, FunnyType returnType,
@@ -55,7 +55,7 @@ namespace NFun.Interpretation.Functions
                 .Append(returnType)
                 .Max(i => i.SearchMaxGenericTypeId());
             if (!maxGenericId.HasValue)
-                throw new InvalidOperationException($"Type {name} has wrong generic defenition");
+                throw new InvalidOperationException($"Type {name} has wrong generic definition");
         }
 
 
@@ -106,7 +106,7 @@ namespace NFun.Interpretation.Functions
             foreach (var solvingParam in solvingParams)
             {
                 if(solvingParam.BaseType== BaseFunnyType.Empty)
-                    throw new InvalidOperationException($"Incorrect function defenition: {TypeHelper.GetFunSignature(ReturnType,ArgTypes)}. Not all generic types can be solved");
+                    throw new InvalidOperationException($"Incorrect function definition: {TypeHelper.GetFunSignature(ReturnType,ArgTypes)}. Not all generic types can be solved");
             }     
             
             return new ConcreteGenericFunction(

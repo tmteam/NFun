@@ -22,7 +22,7 @@ namespace NFun.Interpretation
         public static FunnyRuntime Build(
             string script,
             IFunctionDictionary functionDictionary,
-            ClassicDialectSettings dialect,
+            DialectSettings dialect,
             IConstantList constants = null,
             AprioriTypesMap aprioriTypesMap = null)
         {
@@ -48,7 +48,7 @@ namespace NFun.Interpretation
             IFunctionDictionary functionsDictionary,
             IConstantList constants,
             AprioriTypesMap aprioriTypesMap,
-            ClassicDialectSettings dialect)
+            DialectSettings dialect)
         {
             #region build user functions
 
@@ -101,14 +101,14 @@ namespace NFun.Interpretation
                         BuildEquationAndPutItToVariables(node, functionDictionary, variables, bodyTypeSolving, dialect);
                     equations.Add(equation);
                     if (Helper.DoesItLooksLikeSuperAnonymousVariable(equation.Id))
-                        throw FunParseException.ErrorStubToDo("variable cannot starts with 'it'");
+                        throw FunnyParseException.ErrorStubToDo("variable cannot starts with 'it'");
                     if (TraceLog.IsEnabled)
                         TraceLog.WriteLine($"\r\nEQUATION: {equation.Id}:{equation.Expression.Type} = ... \r\n");
                 }
                 else if (treeNode is VarDefinitionSyntaxNode varDef)
                 {
                     if (Helper.DoesItLooksLikeSuperAnonymousVariable(varDef.Id))
-                        throw FunParseException.ErrorStubToDo("variable cannot starts with 'it'");
+                        throw FunnyParseException.ErrorStubToDo("variable cannot starts with 'it'");
 
                     var variableSource = VariableSource.CreateWithStrictTypeLabel(
                         varDef.Id,
@@ -157,7 +157,7 @@ namespace NFun.Interpretation
             IConstantList constants,
             IFunctionDictionary functionDictionary,
             AprioriTypesMap aprioriTypes, 
-            ClassicDialectSettings dialect)
+            DialectSettings dialect)
         {
             var bodyTypeSolving = RuntimeBuilderHelper.SolveBodyOrThrow(
                 syntaxTree, functionDictionary, constants, aprioriTypes, dialect);
@@ -182,7 +182,7 @@ namespace NFun.Interpretation
             IFunctionDictionary functionsDictionary,
             VariableDictionary variables,
             TypeInferenceResults typeInferenceResults,
-            ClassicDialectSettings dialect)
+            DialectSettings dialect)
         {
             var expression = ExpressionBuilderVisitor.BuildExpression(
                 node: equation.Expression,
@@ -212,7 +212,7 @@ namespace NFun.Interpretation
 
             var itVariable = variables.GetSuperAnonymousVariableOrNull();
             if (itVariable != null)
-                throw FunParseException.ErrorStubToDo("Variable cannot starts with it");
+                throw FunnyParseException.ErrorStubToDo("Variable cannot starts with it");
 
 
             if (!variables.TryAdd(outputVariableSource))
@@ -228,7 +228,7 @@ namespace NFun.Interpretation
 
             //ReplaceInputType
             if (outputVariableSource.Type != expression.Type)
-                throw new ImpossibleException("fitless");
+                throw new NfunImpossibleException("fitless");
             return new Equation(equation.Id, expression, outputVariableSource);
         }
 
@@ -237,7 +237,7 @@ namespace NFun.Interpretation
             UserFunctionDefinitionSyntaxNode functionSyntaxNode,
             IConstantList constants,
             ScopeFunctionDictionary functionsDictionary,
-            ClassicDialectSettings dialect)
+            DialectSettings dialect)
         {
 #if DEBUG
             TraceLog.WriteLine($"\r\n====BUILD {functionSyntaxNode.Id}(..) ====");
@@ -256,7 +256,7 @@ namespace NFun.Interpretation
                     constants: constants,
                     results: resultsBuilder, 
                     dialect: dialect))
-                    throw FunParseException.ErrorStubToDo($"Function '{functionSyntaxNode.Id}' is not solved");
+                    throw FunnyParseException.ErrorStubToDo($"Function '{functionSyntaxNode.Id}' is not solved");
 
                 // solve the types
                 types = graphBuider.Solve();

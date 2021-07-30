@@ -26,14 +26,14 @@ namespace NFun.CompareToOthers
         public void ParameterAccess(string formula)
         {
             var expression = new Expression(formula);
-            var lambda = expression.ToLambda<Context, int>();
+            var lambda = expression.ToLambda<calculator, int>();
 
-            var context = new Context { Param1 = 4, Param2 = 9 };
+            var calculator = new calculator { Param1 = 4, Param2 = 9 };
             expression.Parameters["Param1"] = 4;
             expression.Parameters["Param2"] = 9;
 
             var m1 = Measure(() => expression.Evaluate());
-            var m2 = Measure(() => lambda(context));
+            var m2 = Measure(() => lambda(calculator));
 
             PrintResult(formula, m1, m2);
         }
@@ -43,17 +43,17 @@ namespace NFun.CompareToOthers
         public void DynamicParameterAccess(string formula)
         {
             var expression = new Expression(formula);
-            var lambda = expression.ToLambda<Context, int>();
+            var lambda = expression.ToLambda<calculator, int>();
 
-            var context = new Context { Param1 = 4, Param2 = 9 };
+            var calculator = new calculator { Param1 = 4, Param2 = 9 };
             expression.EvaluateParameter += (name, args) =>
             {
-                if (name == "Param1") args.Result = context.Param1;
-                if (name == "Param2") args.Result = context.Param2;
+                if (name == "Param1") args.Result = calculator.Param1;
+                if (name == "Param2") args.Result = calculator.Param2;
             };
 
             var m1 = Measure(() => expression.Evaluate());
-            var m2 = Measure(() => lambda(context));
+            var m2 = Measure(() => lambda(calculator));
 
             PrintResult(formula, m1, m2);
         }
@@ -63,25 +63,25 @@ namespace NFun.CompareToOthers
         public void FunctionWithDynamicParameterAccess(string formula)
         {
             var expression = new Expression(formula);
-            var lambda = expression.ToLambda<Context, int>();
+            var lambda = expression.ToLambda<calculator, int>();
 
-            var context = new Context { Param1 = 4, Param2 = 9 };
+            var calculator = new calculator { Param1 = 4, Param2 = 9 };
             expression.EvaluateParameter += (name, args) =>
             {
-                if (name == "Param1") args.Result = context.Param1;
-                if (name == "Param2") args.Result = context.Param2;
+                if (name == "Param1") args.Result = calculator.Param1;
+                if (name == "Param2") args.Result = calculator.Param2;
             };
             expression.EvaluateFunction += (name, args) =>
             {
                 if (name == "Foo")
                 {
                     var param = args.EvaluateParameters();
-                    args.Result = context.Foo((int)param[0], (int)param[1]);
+                    args.Result = calculator.Foo((int)param[0], (int)param[1]);
                 }
             };
 
             var m1 = Measure(() => expression.Evaluate());
-            var m2 = Measure(() => lambda(context));
+            var m2 = Measure(() => lambda(calculator));
 
             PrintResult(formula, m1, m2);
         }
@@ -102,7 +102,7 @@ namespace NFun.CompareToOthers
             Console.WriteLine(new string('-', 60));
         }
 
-        private class Context
+        private class calculator
         {
             public int Param1 { get; set; }
             public int Param2 { get; set; }

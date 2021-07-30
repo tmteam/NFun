@@ -222,7 +222,7 @@ namespace NFun.SyntaxTests
 
             //var results = expr.Build();
             
-            Assert.Throws<FunParseException>(() => expr.Build());
+            Assert.Throws<FunnyParseException>(() => expr.Build());
             //todo Support type inference
             /*
             var result = FunBuilder.Build(expr).Calculate().Get("out");
@@ -429,6 +429,6 @@ filtrat   = x.filter(fun it> filt) # filt - input variable
         [TestCase("y = [0..10][11]")]
         [TestCase("y = ['a', 'b'][2]")]
         public void ObviouslyFailsOnRuntime(string expr) =>
-            Assert.Throws<FunRuntimeException>(()=> expr.Calc());
+            Assert.Throws<FunnyRuntimeException>(()=> expr.Calc());
     }
 }

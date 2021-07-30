@@ -252,7 +252,7 @@ yPublic   = yprivate + xpublic"
         [TestCase(" y:int = convert('string')")]
         [TestCase(" y:int = convert('string')")]
         [TestCase(" y = [1,2,3][4]")]
-        public void ObviousFailsOnRuntime(string expr) => Assert.Throws<FunRuntimeException>(() => expr.Calc());
+        public void ObviousFailsOnRuntime(string expr) => Assert.Throws<FunnyRuntimeException>(() => expr.Calc());
 
         class MyIn
         {
@@ -280,7 +280,7 @@ yPublic   = yprivate + xpublic"
                 new MyIn { Count = 3, Name = "bar" }); //"barbarbar"
             Assert.AreEqual("barbarbar", h);
 
-            var f = Funny.ForCalcMany<MyIn, MyOut>().Build(@"
+            var f = Funny.ForCalcMany<MyIn, MyOut>().ToLambda(@"
                             id = count - 1
                             flag = name != 'test'");
             MyOut result = f(new MyIn { Count = 100, Name = "kat" }); //MyOut{Id = 99; Flag = true}

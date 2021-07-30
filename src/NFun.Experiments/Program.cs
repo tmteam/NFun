@@ -42,8 +42,8 @@ namespace NFun.Experiments
         private static void Main(string[] args)
         {
             Console.WriteLine("Hello World!");
-            var ex1 = "10*x*x + 12*x + 1";
-            var ex2 = "if(a>0) 10*x*x + 12*x + 1 else 0";
+            //var ex1 = "10*x*x + 12*x + 1";
+            //var ex2 = "if(a>0) 10*x*x + 12*x + 1 else 0";
             while (true) Funny.Hardcore.Build(Everything);
         }
     }

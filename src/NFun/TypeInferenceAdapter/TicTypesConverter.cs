@@ -32,8 +32,8 @@ namespace NFun.TypeInferenceAdapter
                             continue;
                         case StatePrimitive primitive:
                             return ToConcrete(primitive.Name);
-                        case ConstrainsState constrains when constrains.Prefered != null:
-                            return ToConcrete(constrains.Prefered.Name);
+                        case ConstrainsState constrains when constrains.Preferred != null:
+                            return ToConcrete(constrains.Preferred.Name);
                         case ConstrainsState constrains when !constrains.HasAncestor:
                         {
                             if (constrains.IsComparable) return FunnyType.Real;
@@ -47,12 +47,12 @@ namespace NFun.TypeInferenceAdapter
                                 {
                                     case PrimitiveTypeName.I96:
                                     {
-                                        if (constrains.HasDescendant || constrains.Descedant.CanBeImplicitlyConvertedTo(StatePrimitive.I32)) return FunnyType.Int32;
+                                        if (constrains.HasDescendant || constrains.Descendant.CanBeImplicitlyConvertedTo(StatePrimitive.I32)) return FunnyType.Int32;
                                         return FunnyType.Int64;
                                     }
                                     case PrimitiveTypeName.I48:
                                     {
-                                        if (constrains.HasDescendant || constrains.Descedant.CanBeImplicitlyConvertedTo(StatePrimitive.I32)) return FunnyType.Int32;
+                                        if (constrains.HasDescendant || constrains.Descendant.CanBeImplicitlyConvertedTo(StatePrimitive.I32)) return FunnyType.Int32;
                                         return FunnyType.UInt32;
                                     }
                                     case PrimitiveTypeName.U48:
@@ -134,8 +134,8 @@ namespace NFun.TypeInferenceAdapter
                             continue;
                         case StatePrimitive primitive:
                             return ToConcrete(primitive.Name);
-                        //case Constrains constrains when constrains.Prefered != null:
-                        //    return ToConcrete(constrains.Prefered.Name);
+                        //case Constrains constrains when constrains.Preferred != null:
+                        //    return ToConcrete(constrains.Preferred.Name);
                         case ConstrainsState constrains:
                             var index = System.Array.IndexOf(_constrainsMap, constrains);
                             if (index == -1) throw new InvalidOperationException("Unknown constrains");
