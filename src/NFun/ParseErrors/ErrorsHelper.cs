@@ -51,56 +51,55 @@ namespace NFun.ParseErrors
         {
             if (!string.IsNullOrWhiteSpace(tok.Value))
                 return tok.Value;
-            switch (tok.Type)
+            return tok.Type switch
             {
-                case TokType.If: return "if";
-                case TokType.Else: return "else";
-                case TokType.Then: return "then";
-                case TokType.Plus: return "+";
-                case TokType.Minus: return "-";
-                case TokType.Div: return "/";
-                case TokType.Rema: return "%";
-                case TokType.Mult: return "*";
-                case TokType.Pow: return "**";
-                case TokType.Obr: return "(";
-                case TokType.Cbr: return ")";
-                case TokType.ArrOBr: return "[";
-                case TokType.ArrCBr: return "]";
-                case TokType.MetaInfo: return "@";
-                case TokType.In: return "in";
-                case TokType.BitOr: return "|";
-                case TokType.BitAnd: return "&";
-                case TokType.BitXor: return "^";
-                case TokType.BitShiftLeft: return "<<";
-                case TokType.BitShiftRight: return ">>";
-                case TokType.BitInverse: return "~";
-                case TokType.Def: return "=";
-                case TokType.Equal: return "==";
-                case TokType.NotEqual: return "!=";
-                case TokType.And: return "and";
-                case TokType.Or: return "or";
-                case TokType.Xor: return "xor";
-                case TokType.Not: return "not";
-                case TokType.Less: return "<";
-                case TokType.More: return ">";
-                case TokType.LessOrEqual: return "<=";
-                case TokType.MoreOrEqual: return ">=";
-                case TokType.Sep: return ",";
-                case TokType.True: return "true";
-                case TokType.False: return "false";
-                case TokType.Colon: return ":";
-                case TokType.TwoDots: return "..";
-                case TokType.TextType: return "text";
-                case TokType.Int32Type: return "int32";
-                case TokType.Int64Type: return "int64";
-                case TokType.RealType: return "real";
-                case TokType.BoolType: return "bool";
-                case TokType.AnythingType: return "anything";
-                case TokType.Dot: return ".";
-                case TokType.Arrow: return "=>";
-                default:
-                    return tok.Type.ToString().ToLower();
-            }
+                TokType.If => "if",
+                TokType.Else => "else",
+                TokType.Then => "then",
+                TokType.Plus => "+",
+                TokType.Minus => "-",
+                TokType.Div => "/",
+                TokType.Rema => "%",
+                TokType.Mult => "*",
+                TokType.Pow => "**",
+                TokType.Obr => "(",
+                TokType.Cbr => ")",
+                TokType.ArrOBr => "[",
+                TokType.ArrCBr => "]",
+                TokType.MetaInfo => "@",
+                TokType.In => "in",
+                TokType.BitOr => "|",
+                TokType.BitAnd => "&",
+                TokType.BitXor => "^",
+                TokType.BitShiftLeft => "<<",
+                TokType.BitShiftRight => ">>",
+                TokType.BitInverse => "~",
+                TokType.Def => "=",
+                TokType.Equal => "==",
+                TokType.NotEqual => "!=",
+                TokType.And => "and",
+                TokType.Or => "or",
+                TokType.Xor => "xor",
+                TokType.Not => "not",
+                TokType.Less => "<",
+                TokType.More => ">",
+                TokType.LessOrEqual => "<=",
+                TokType.MoreOrEqual => ">=",
+                TokType.Sep => ",",
+                TokType.True => "true",
+                TokType.False => "false",
+                TokType.Colon => ":",
+                TokType.TwoDots => "..",
+                TokType.TextType => "text",
+                TokType.Int32Type => "int32",
+                TokType.Int64Type => "int64",
+                TokType.RealType => "real",
+                TokType.BoolType => "bool",
+                TokType.AnythingType => "anything",
+                TokType.Dot => ".",
+                TokType.Arrow => "=>",
+                _ => tok.Type.ToString().ToLower()
+            };
         }
 
         public static ExprListError GetExpressionListError(

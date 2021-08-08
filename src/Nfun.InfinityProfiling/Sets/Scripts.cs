@@ -2,8 +2,8 @@ namespace NFun.InfinityProfiling.Sets
 {
     public static class Scripts
     {
-        public static string PrimitiveConstIntSimpleArithmetics => "out:int =(4 * 12).rema(7) + ((9 * 2) + 8)";
-        public static string PrimitiveConstRealSimpleArithmetics => "(4 * 12).rema(7) + ((9 * 2) / 8)";
+        public static string PrimitiveConstIntSimpleArithmetics => "out:int =(4 * 12) % 7 + ((9 * 2) + 8)";
+        public static string PrimitiveConstRealSimpleArithmetics => "(4 * 12) % 7 + ((9 * 2) / 8)";
         public static string PrimitiveConstBoolSimpleArithmetics => "(2 == 2 * 5) and ((1 / 3.1) * 3 == 1)";
         public static string PrimitiveCalcReal2Var => "out:real =a*7+b";
         public static string PrimitiveCalcInt2Var => "out:int =a*7+b";
@@ -125,7 +125,7 @@ namespace NFun.InfinityProfiling.Sets
                           #body  
                           ins:int[]  = [1,5,3,5,6,0x1,2,0b100,0,3,2,10,3,50,6,42,43,53]
                           rns:real[] = ins
-                          tns  = ins.filter(fun it.rema(2)==0).map(toText).concat(['vasa','kate', '21*2 = {21*2}'])
+                          tns  = ins.filter(fun it%2==0).map(toText).concat(['vasa','kate', '21*2 = {21*2}'])
                         
                           i  = ins.bubbleSort() == ins.reverse().sort()
                           r  = rns.bubbleSort() == rns.sort()

@@ -18,10 +18,6 @@ namespace NFun.Tokenization
         /// 1.0
         /// </summary>
         RealNumber,
-        /// <summary>
-        /// 1L
-        /// </summary>
-        LongNumber,
         Plus,
         Minus,
         Div,
@@ -29,6 +25,9 @@ namespace NFun.Tokenization
         /// Division reminder "%"
         /// </summary>
         Rema,
+        /// <summary>
+        /// *
+        /// </summary>
         Mult,
         /// <summary>
         /// Pow "^"
@@ -59,11 +58,6 @@ namespace NFun.Tokenization
         /// </summary>
         FiCbr,
         /// <summary>
-        /// not used
-        /// </summary>
-        ArrConcat,
-        In,
-        /// <summary>
         /// |
         /// </summary>
         BitOr,
@@ -76,11 +70,11 @@ namespace NFun.Tokenization
         /// </summary>
         BitXor,
         /// <summary>
-        /// <<<
+        /// <<
         /// </summary>
         BitShiftLeft,
         /// <summary>
-        /// >>>
+        /// >>
         /// </summary>
         BitShiftRight,
         BitInverse,
@@ -88,10 +82,6 @@ namespace NFun.Tokenization
         /// x, y, myFun... etc
         /// </summary>
         Id,
-        /// <summary>
-        /// it, it1,it2,it3...
-        /// </summary>
-        Iti,
         /// <summary>
         /// =
         /// </summary>
@@ -112,7 +102,7 @@ namespace NFun.Tokenization
         More,
         LessOrEqual,
         MoreOrEqual,
-        
+        In,
         Eof,
         /// <summary>
         /// ',' symbol
@@ -122,9 +112,7 @@ namespace NFun.Tokenization
         TextOpenInterpolation,
         TextMidInterpolation,
         TextCloseInterpolation,
-
         NotAToken,
-
         True,
         False,
         /// <summary>

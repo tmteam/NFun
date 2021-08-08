@@ -11,7 +11,7 @@ namespace NFun.SyntaxTests
         [TestCase("y = 0x2",BaseFunnyType.Int32)]
         [TestCase("y = 0x2*3",BaseFunnyType.Int32)]
         [TestCase("y = 2**3",BaseFunnyType.Real)]
-        [TestCase("y = 0x2.rema(3)", BaseFunnyType.Int32)]
+        [TestCase("y = 0x2 % 3", BaseFunnyType.Int32)]
 
         [TestCase("y = 4/3",BaseFunnyType.Real)]
         [TestCase("y = 0x4- 3",BaseFunnyType.Int32)]
@@ -28,8 +28,8 @@ namespace NFun.SyntaxTests
         [TestCase("y = 4/0.2",BaseFunnyType.Real)]
         [TestCase("y = 2**0.3",BaseFunnyType.Real)]
         [TestCase("y = 0.2**2",BaseFunnyType.Real)]
-        [TestCase("y = 0.2.rema(2)", BaseFunnyType.Real)]
-        [TestCase("y = 3.rema(0.2)", BaseFunnyType.Real)]
+        [TestCase("y = 0.2 % 2", BaseFunnyType.Real)]
+        [TestCase("y = 3 % 0.2", BaseFunnyType.Real)]
 
         [TestCase("y = 0xfF  ",BaseFunnyType.Int32)]
         [TestCase("y = 0x00_Ff  ",BaseFunnyType.Int32)]
@@ -444,7 +444,7 @@ namespace NFun.SyntaxTests
         [TestCase("int64",  BaseFunnyType.Int64)]
         public void RemainsOfTwoIntegersTest(string inputTypes, BaseFunnyType expectedOutputType)
         {
-            var runtime = $"a:{inputTypes}; b:{inputTypes}; y = a .rema(b)".Build();
+            var runtime = $"a:{inputTypes}; b:{inputTypes}; y = a %b".Build();
             Assert.AreEqual(expectedOutputType, runtime.Variables.Single(v=>v.IsOutput && v.Name == "y").Type.BaseType);
         }
         

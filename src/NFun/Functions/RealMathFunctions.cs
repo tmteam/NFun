@@ -19,7 +19,7 @@ namespace NFun.Functions
 
     public class DivideRealFunction : FunctionWithTwoArgs
     {
-        public DivideRealFunction() : base(CoreFunNames.Divide, FunnyType.Real, FunnyType.Real, FunnyType.Real) { }
+        public DivideRealFunction() : base(CoreFunNames.DivideReal, FunnyType.Real, FunnyType.Real, FunnyType.Real) { }
         public override object Calc(object a, object b) => (double) a / (double) b;
     }
     public class CosFunction : FunctionWithSingleArg

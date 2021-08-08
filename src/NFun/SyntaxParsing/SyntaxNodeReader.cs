@@ -31,7 +31,7 @@ namespace NFun.SyntaxParsing
                     TokType.BitAnd, TokType.BitXor, TokType.In, TokType.Equal, TokType.NotEqual, TokType.More,
                     TokType.Less, TokType.MoreOrEqual, TokType.LessOrEqual
                 },
-                new[] {TokType.And, TokType.ArrConcat},
+                new[] {TokType.And},
                 new[] {TokType.Or, TokType.Xor, TokType.BitOr}
             };
 
@@ -55,7 +55,7 @@ namespace NFun.SyntaxParsing
                 {TokType.Plus, CoreFunNames.Add},
                 {TokType.Minus,CoreFunNames.Substract},
                 {TokType.Mult, CoreFunNames.Multiply},
-                {TokType.Div,  CoreFunNames.Divide},
+                {TokType.Div,  CoreFunNames.DivideReal},
                 {TokType.Rema, CoreFunNames.Remainder},
                 {TokType.Pow,  CoreFunNames.Pow},
 
@@ -77,7 +77,6 @@ namespace NFun.SyntaxParsing
 
                 {TokType.BitShiftLeft, CoreFunNames.BitShiftLeft},
                 {TokType.BitShiftRight,CoreFunNames.BitShiftRight},
-                {TokType.ArrConcat,    CoreFunNames.ArrConcat},
                 {TokType.In,           CoreFunNames.In}
             };
         

@@ -25,7 +25,7 @@ namespace NFun.Tokenization
         public static IEnumerable<Tok> ToTokens(string input)
         {
             var reader = new Tokenizer();
-            for (int i = 0; ;)
+            for (var i = 0; ;)
             {
                 var res = reader.TryReadNext(input, i);
                 yield return res;
@@ -288,7 +288,7 @@ namespace NFun.Tokenization
                 case '|': return Tok.New(TokType.BitOr, position, position + 1);
                 case '/': return Tok.New(TokType.Div, position, position + 1);
                 case '+': return Tok.New(TokType.Plus, position, position + 1);
-                //case '%': return Tok.New(TokType.Rema, position, position + 1);
+                case '%': return Tok.New(TokType.Rema, position, position + 1);
                 case '(': return Tok.New(TokType.Obr, position, position + 1);
                 case ')': return Tok.New(TokType.Cbr, position, position + 1);
                 case '[': return Tok.New(TokType.ArrOBr, position, position + 1);

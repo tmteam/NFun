@@ -148,12 +148,8 @@ namespace NFun.SyntaxTests.BuiltInFunctions
         [TestCase("abs(-0x1)", 1)]
         [TestCase("abs(1.0)", 1.0)]
         [TestCase("abs(-1.0)", 1.0)]
-        [TestCase("add(0x1,2)", 3)]
-        [TestCase("add(add(1,2),add(0x3,4))", 10)]
         [TestCase("abs(0x1-0x4)", 3)]
-        [TestCase("15 - add(abs(1-4), 0x7)", 5)]
-        //[TestCase("pi()",Math.PI)]
-        //[TestCase("e()",Math.E)]
+        [TestCase("15 - min(abs(1-4), 0x7)", 12)]
         [TestCase("sqrt(0x0)", 0.0)]
         [TestCase("sqrt(1.0)", 1.0)]
         [TestCase("sqrt(4.0)", 2.0)]
@@ -289,22 +285,18 @@ namespace NFun.SyntaxTests.BuiltInFunctions
             expr.AssertOut(expected);
         }
 
-        [TestCase((long)42, "x:int64\r y = x.add(1)", (long)43)]
         [TestCase((long)42, "x:int64\r y = max(1,x)", (long)42)]
         [TestCase((long)42, "x:int64\r y = min(1,x)", (long)1)]
         [TestCase((long)42, "x:int64\r y = min(100,x)", (long)42)]
         
-        [TestCase((ulong)42, "x:uint64\r y = x.add(1)",   (ulong)43)]
         [TestCase((ulong)42, "x:uint64\r y = max(1,x)",   (ulong)42)]
         [TestCase((ulong)42, "x:uint64\r y = min(1,x)",   (ulong)1)]
         [TestCase((ulong)42, "x:uint64\r y = min(100,x)", (ulong)42)]
         
-        [TestCase((int)42, "x:int32\r y = x.add(1)",   (int)43)]
         [TestCase((int)42, "x:int32\r y = max(1,x)",   (int)42)]
         [TestCase((int)42, "x:int32\r y = min(1,x)",   (int)1)]
         [TestCase((int)42, "x:int32\r y = min(100,x)", (int)42)]
         
-        [TestCase((uint)42, "x:uint32\r y = x.add(1)",   (uint)43)]
         [TestCase((uint)42, "x:uint32\r y = max(1,x)",   (uint)42)]
         [TestCase((uint)42, "x:uint32\r y = min(1,x)",   (uint)1)]
         [TestCase((uint)42, "x:uint32\r y = min(100,x)", (uint)42)]
@@ -331,10 +323,7 @@ namespace NFun.SyntaxTests.BuiltInFunctions
         [TestCase("y:int64 = abs(x)",(long)-1,(long)1)]
         [TestCase("y:int32 = abs(x)",(int)-1,(int)1)]
         [TestCase("y:int16 = abs(x)",(Int16)(-1),(Int16)1)]
-
-        [TestCase("y = add(x,0x2)",1,3)]
-        [TestCase("y = add(0x1,x)",2,3)]
-        [TestCase("y = add(add(x,x),add(x,x))",1.0,4.0)]
+        
         [TestCase("y = abs(x-4.0)",1.0,3.0)]
         //todo
         // [TestCase("x:int; y = abs(toInt(x)-toInt(4))",1,3)]

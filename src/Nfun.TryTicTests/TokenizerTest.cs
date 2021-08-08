@@ -199,6 +199,7 @@ namespace NFun.UnitTests
         [TestCase("!= ", TokType.NotEqual)]
         [TestCase("/  ", TokType.Div)]
         [TestCase(" * ", TokType.Mult)]
+        [TestCase(" % ", TokType.Rema)]
         [TestCase(" =  ", TokType.Def)]
         public void ToTokens_SingleTokenWithOffsetIsCorrectAndContainsCorrectBounds(string expression, TokType type)
         {

@@ -232,26 +232,26 @@ namespace NFun.SyntaxTests.Operators
         public void ConstantExpression(string expression, object expected)
             => expression.AssertReturns("y",expected);
 
-        [TestCase("y = x.rema(3)", 2,2)]
-        [TestCase("y = x.rema(4)", 5,1)]
-        [TestCase("y = x.rema(-4)", 5,1)]
-        [TestCase("y = x.rema(4)", -5,-1)]
-        [TestCase("y = x.rema(-4)", -5,-1)]
-        [TestCase("y = x.rema(4)", -5,-1)]
+        [TestCase("y = x%3", 2,2)]
+        [TestCase("y = x%4", 5,1)]
+        [TestCase("y = x%-4", 5,1)]
+        [TestCase("y = x%4", -5,-1)]
+        [TestCase("y = x%-4", -5,-1)]
+        [TestCase("y = x%4", -5,-1)]
         [TestCase("y = -(-(-x))",2.0,-2.0)]
         public void SingleIntVariableEquation(string expr, object arg, object expected) => 
             expr.Calc("x",arg).AssertReturns("y", expected);
         
         
         [TestCase("y = (x + 4.0/x)",2,4)]
-        [TestCase("y = x.rema(3.0)", 2,2)]
-        [TestCase("y = x.rema(4.0)", 5,1)]
-        [TestCase("y = x.rema(-4.0)", 5,1)]
-        [TestCase("y = x.rema(4.0)", -5,-1)]
-        [TestCase("y = x.rema(-4.0)", -5,-1)]
-        [TestCase("y = x.rema(4.0)", -5,-1)]
-        [TestCase("y = x.rema(2.0)", -5.2,-1.2)]
-        [TestCase("y = 5.0.rema(x)", 2.2,0.6)]
+        [TestCase("y = x % 3.0", 2,2)]
+        [TestCase("y = x % 4.0", 5,1)]
+        [TestCase("y = x % -4.0", 5,1)]
+        [TestCase("y = x % 4.0", -5,-1)]
+        [TestCase("y = x % -4.0", -5,-1)]
+        [TestCase("y = x % 4.0", -5,-1)]
+        [TestCase("y = x % 2.0", -5.2,-1.2)]
+        [TestCase("y = 5.0 % x", 2.2,0.6)]
         [TestCase("y:real = -x ",0.3,-0.3)]
         [TestCase("y = -(-(-1.0*x))",2,-2)]
         public void SingleRealVariableEquation(string expr, double arg, double expected) => 

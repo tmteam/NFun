@@ -117,12 +117,12 @@ namespace NFun.SyntaxTests.SyntaxDialect
         [TestCase("y = x-3", 2, -1)]
         [TestCase("y = -2-x", 1, -3)]
         [TestCase("y = x-2", 0, -2)]
-        [TestCase("y = x.rema(3)", 2, 2)]
-        [TestCase("y = x.rema(4)", 5, 1)]
-        [TestCase("y = x.rema(-4)", 5, 1)]
-        [TestCase("y = x.rema(4)", -5, -1)]
-        [TestCase("y = x.rema(-4)", -5, -1)]
-        [TestCase("y = x.rema(4)", -5, -1)]
+        [TestCase("y = x % 3", 2, 2)]
+        [TestCase("y = x % 4", 5, 1)]
+        [TestCase("y = x % -4", 5, 1)]
+        [TestCase("y = x % 4", -5, -1)]
+        [TestCase("y = x % -4", -5, -1)]
+        [TestCase("y = x % 4", -5, -1)]
         [TestCase("y = abs(x-4)", 1, 3)]
         [TestCase("a = {b = x; c=x}; " +
                   "b = {d = a; e = a.c; f = 3}; " +
