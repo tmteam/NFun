@@ -318,8 +318,8 @@ namespace NFun.Interpretation
         {
             if (node.IdType == NamedIdNodeType.Constant)
             {
-                var varVal = (VarVal)node.IdContent;
-                return new ConstantExpressionNode(varVal.Value, varVal.Type, node.Interval);
+                var varVal = (ConstantValueAndType)node.IdContent;
+                return new ConstantExpressionNode(varVal.FunnyValue, varVal.Type, node.Interval);
             }
 
             var funVariable = _typeInferenceResults.GetFunctionalVariableOrNull(node.OrderNumber);

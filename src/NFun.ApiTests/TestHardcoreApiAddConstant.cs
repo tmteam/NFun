@@ -77,8 +77,6 @@ namespace NFun.ApiTests
         [Test]
         public void OverrideConstantWithInputVariable_constantNotUsed()
         {
-            var constants = new ConstantList();
-            constants.AddConstant("pi", Math.PI);
             var runtime = Funny.Hardcore
                 .WithConstant("pi", Math.PI)
                 .Build("pi:int; y = pi");

@@ -127,9 +127,7 @@ namespace NFun.SyntaxTests.BuiltInFunctions
         [TestCase("y = [0..1].chunk(7) == [[0,1]]", true)]
         [TestCase("y = [0..6].chunk(2) == [[0,1],[2,3],[4,5],[6]]", true)]
         [TestCase("y = [3..7].chunk(1) == [[3],[4],[5],[6],[7]]", true)]
-
-      
-
+        
         [TestCase("y = [true,false,true].map(toText).join(', ')", "True, False, True")]
         [TestCase("y = [1,2,3,4].map(toText).join(', ')", "1, 2, 3, 4")]
         [TestCase("y = ['1','2','3','4'].join(', ')", "1, 2, 3, 4")]

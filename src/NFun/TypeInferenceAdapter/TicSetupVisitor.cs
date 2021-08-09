@@ -26,6 +26,16 @@ namespace NFun.TypeInferenceAdapter
         public static bool SetupTicForBody(
             SyntaxTree tree,
             GraphBuilder ticGraph,
+            TypeInferenceResultsBuilder results) => SetupTicForBody(
+            tree, ticGraph, 
+            BaseFunctions.DefaultFunctions, 
+            EmptyConstantList.Instance, 
+            new AprioriTypesMap(), 
+            results, Dialects.Origin);
+        
+        internal static bool SetupTicForBody(
+            SyntaxTree tree,
+            GraphBuilder ticGraph,
             IFunctionDictionary functions,
             IConstantList constants,
             AprioriTypesMap aprioriTypes,
@@ -46,7 +56,7 @@ namespace NFun.TypeInferenceAdapter
             return true;
         }
 
-        public static bool SetupTicForUserFunction(
+        internal static bool SetupTicForUserFunction(
             UserFunctionDefinitionSyntaxNode userFunctionNode,
             GraphBuilder ticGraph,
             IFunctionDictionary functions,

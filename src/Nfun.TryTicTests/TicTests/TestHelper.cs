@@ -22,6 +22,7 @@ namespace NFun.UnitTests.TicTests
                 Assert.Fail($"Expected: {expected} but was: {actual}");
             }
         }
+
         public static bool AreSame(ITicNodeState a, ITicNodeState b)
         {
             if (a is StateRefTo r1)
@@ -30,6 +31,7 @@ namespace NFun.UnitTests.TicTests
                 b = r2.Node.GetNonReference().State;
             return a.Equals(b);
         }
+
         public static ITicResults Solve(string equation)
         {
             Console.WriteLine(equation);
@@ -43,16 +45,13 @@ namespace NFun.UnitTests.TicTests
             var resultsBuilder = new TypeInferenceResultsBuilder();
 
             TicSetupVisitor.SetupTicForBody(
-                tree:         tree, 
-                ticGraph:     graph, 
-                functions:    BaseFunctions.DefaultFunctions, 
-                constants:    new EmptyConstantList(), 
-                aprioriTypes: new AprioriTypesMap(), 
-                results:      resultsBuilder, 
-                Dialects.Origin);
-            
+                tree: tree,
+                ticGraph: graph,
+                results: resultsBuilder);
+
             return graph.Solve();
         }
+
         public static TypeInferenceResults SolveAndGetResults(string equation)
         {
             Console.WriteLine(equation);
@@ -66,18 +65,15 @@ namespace NFun.UnitTests.TicTests
             var resultsBuilder = new TypeInferenceResultsBuilder();
 
             TicSetupVisitor.SetupTicForBody(
-                tree:      tree, 
-                ticGraph:  graph, 
-                functions: BaseFunctions.DefaultFunctions, 
-                constants: new EmptyConstantList(), 
-                aprioriTypes: new AprioriTypesMap(),  
-                results:   resultsBuilder,
-                Dialects.Origin);
+                tree: tree,
+                ticGraph: graph,
+                results: resultsBuilder);
 
-            var res =  graph.Solve();
+            var res = graph.Solve();
             resultsBuilder.SetResults(res);
             return resultsBuilder.Build();
         }
+
         public static void AssertAreGenerics(this ITicResults result, TicNode targetGenericNode,
             params string[] varNames)
         {
@@ -93,7 +89,7 @@ namespace NFun.UnitTests.TicTests
         public static TicNode AssertAndGetSingleGeneric(this ITicResults result, StatePrimitive desc,
             StatePrimitive anc, bool isComparable = false)
         {
-            Assert.AreEqual(1, result.GenericsCount,"Incorrect generics count");
+            Assert.AreEqual(1, result.GenericsCount, "Incorrect generics count");
             var genericNode = result.GenericNodes.Single();
 
             AssertGenericType(genericNode, desc, anc, isComparable);
@@ -120,13 +116,14 @@ namespace NFun.UnitTests.TicTests
             else
                 Assert.AreEqual(anc, generic.Ancestor);
 
-            Assert.AreEqual(isComparable, generic.IsComparable,"IsComparable claim missed");
+            Assert.AreEqual(isComparable, generic.IsComparable, "IsComparable claim missed");
         }
 
-        public static void AssertNoGenerics(this ITicResults results) 
-            => Assert.IsFalse(results.HasGenerics,"Unexpected generic types");
+        public static void AssertNoGenerics(this ITicResults results)
+            => Assert.IsFalse(results.HasGenerics, "Unexpected generic types");
 
-        public static void AssertNamedEqualToArrayOf(this ITicResults results, object typeOrNode, params string[] varNames)
+        public static void AssertNamedEqualToArrayOf(this ITicResults results, object typeOrNode,
+            params string[] varNames)
         {
             foreach (var varName in varNames)
             {
@@ -139,12 +136,13 @@ namespace NFun.UnitTests.TicTests
                     else
                         Assert.AreEqual(typeOrNode, array.ElementNode);
                 }
-                else 
+                else
                 {
                     Assert.Fail();
                 }
             }
         }
+
         public static void AssertNamed(this ITicResults results, ITypeState type, params string[] varNames)
         {
             foreach (var varName in varNames)
@@ -152,13 +150,13 @@ namespace NFun.UnitTests.TicTests
                 Assert.AreEqual(type, results.GetVariableNode(varName).GetNonReference().State);
             }
         }
+
         public static void AssertNode(this ITicResults results, ITypeState type, params int[] nodeIds)
         {
             foreach (var id in nodeIds)
             {
                 Assert.AreEqual(type, results.GetSyntaxNodeOrNull(id).GetNonReference().State);
             }
-
         }
     }
 }

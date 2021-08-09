@@ -28,7 +28,7 @@ namespace NFun.TestTools
             }
 
             runtime.Run();
-            var vals = runtime.Variables.Where(v => v.IsOutput).Select(v => new VarVal(v.Name, v.FunnyValue, v.Type))
+            var vals = runtime.Variables.Where(v => v.IsOutput).Select(v => new VariableTypeAndValue(v.Name, v.FunnyValue, v.Type))
                 .ToArray();
             return new CalculationResult(vals);
         }
@@ -246,5 +246,24 @@ namespace NFun.TestTools
                 return;
             }
         }
+        
+       
+    }
+    /// <summary>
+    /// Name type and value of concrete variable 
+    /// </summary>
+    readonly struct VariableTypeAndValue
+    {
+        public readonly string Name;
+        public readonly object Value;
+        public readonly FunnyType Type;
+        
+        public VariableTypeAndValue(string name, object value, FunnyType type)
+        {
+            Name = name;
+            Value = value;
+            Type = type;
+        }
+        public override string ToString() => $"{Name}:{Type} = {Value}";
     }
 }

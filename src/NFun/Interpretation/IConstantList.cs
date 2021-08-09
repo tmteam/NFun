@@ -3,17 +3,20 @@ using NFun.Types;
 
 namespace NFun.Interpretation
 {
-    public interface IConstantList
+    internal interface IConstantList
     {
-        bool TryGetConstant(string id, out VarVal constant);
+        bool TryGetConstant(string id, out ConstantValueAndType constant);
         IConstantList CloneWith(params (string id, object value)[] values);
     }
 
-    public class EmptyConstantList : IConstantList
+    internal class EmptyConstantList : IConstantList
     {
         public static readonly EmptyConstantList Instance = new();
-
-        public bool TryGetConstant(string id, out VarVal constant)
+        private EmptyConstantList()
+        {
+            
+        }
+        public bool TryGetConstant(string id, out ConstantValueAndType constant)
         {
             constant = default;
             return false;
@@ -23,47 +26,47 @@ namespace NFun.Interpretation
             => new ConstantList(values);
     }
 
-    public class ConstantList : IConstantList
+    internal  class ConstantList : IConstantList
     {
         public ConstantList()
         {
-            _dictionary = new Dictionary<string, VarVal>();
+            _dictionary = new Dictionary<string, ConstantValueAndType>();
         }
 
-        private ConstantList(Dictionary<string, VarVal> dictionary)
+        private ConstantList(Dictionary<string, ConstantValueAndType> dictionary)
         {
             _dictionary = dictionary;
         }
 
         internal ConstantList((string id, object value)[] items)
         {
-            _dictionary = new Dictionary<string, VarVal>(items.Length);
+            _dictionary = new Dictionary<string, ConstantValueAndType>(items.Length);
             foreach (var item in items)
             {
                 var converter = FunnyTypeConverters.GetInputConverter(item.value.GetType());
-                _dictionary.Add(item.id, new VarVal(item.id, converter.ToFunObject(item.value), converter.FunnyType));
+                _dictionary.Add(item.id, new ConstantValueAndType(converter.ToFunObject(item.value), converter.FunnyType));
             }
         }
 
-        readonly Dictionary<string, VarVal> _dictionary;
+        readonly Dictionary<string, ConstantValueAndType> _dictionary;
 
         public void AddConstant(string id, object val)
         {
             //constants are readonly so we need to use input converter
             var converter = FunnyTypeConverters.GetInputConverter(val.GetType());
-            _dictionary.Add(id, new VarVal(id, converter.ToFunObject(val), converter.FunnyType));
+            _dictionary.Add(id, new ConstantValueAndType(converter.ToFunObject(val), converter.FunnyType));
         }
 
-        public bool TryGetConstant(string id, out VarVal constant) => _dictionary.TryGetValue(id, out constant);
+        public bool TryGetConstant(string id, out ConstantValueAndType constant) => _dictionary.TryGetValue(id, out constant);
 
         public IConstantList CloneWith(params (string id, object value)[] items)
         {
-            var clone = new Dictionary<string, VarVal>(_dictionary);
+            var clone = new Dictionary<string, ConstantValueAndType>(_dictionary);
 
             foreach (var item in items)
             {
                 var converter = FunnyTypeConverters.GetInputConverter(item.value.GetType());
-                clone.Add(item.id, new VarVal(item.id, converter.ToFunObject(item.value), converter.FunnyType));
+                clone.Add(item.id, new ConstantValueAndType(converter.ToFunObject(item.value), converter.FunnyType));
             }
 
             return new ConstantList(clone);

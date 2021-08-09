@@ -14,12 +14,12 @@ using NFun.TypeInferenceAdapter;
 
 namespace NFun.Interpretation
 {
-    public static class RuntimeBuilder
+    internal static class RuntimeBuilder
     {
         private static readonly List<IFunctionSignature> EmptyUserFunctionsList
             = new();
 
-        public static FunnyRuntime Build(
+        internal static FunnyRuntime Build(
             string script,
             IFunctionDictionary functionDictionary,
             DialectSettings dialect,
