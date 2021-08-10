@@ -24,7 +24,7 @@ namespace NFun.Interpretation.Nodes
             {
                 arr[i] = _elements[i].Calc();
             }
-            return new ImmutableFunArray(arr, Type.ArrayTypeSpecification.FunnyType);
+            return new ImmutableFunnyArray(arr, Type.ArrayTypeSpecification.FunnyType);
         }
     }
 }

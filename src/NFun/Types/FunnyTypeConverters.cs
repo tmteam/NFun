@@ -15,14 +15,14 @@ namespace NFun.Types
             if (resultFunnyType.BaseType.GetClrType() == clrFromType)
                 return clrValue;
 
-            var converter = FunnyTypeConverters.GetInputConverter(clrFromType);
+            var converter = GetInputConverter(resultFunnyType, clrFromType, 0);
             if (converter.FunnyType == resultFunnyType)
                 return converter.ToFunObject(clrValue);
 
             //Special slow convertation
             return resultFunnyType.BaseType switch
             {
-                BaseFunnyType.Any  => converter.ToFunObject(clrValue),
+                BaseFunnyType.Any => converter.ToFunObject(clrValue),
                 BaseFunnyType.Bool => Convert.ToBoolean(clrValue),
                 BaseFunnyType.Int16 => Convert.ToInt16(clrValue),
                 BaseFunnyType.Int32 => Convert.ToInt32(clrValue),
@@ -37,88 +37,52 @@ namespace NFun.Types
             };
         }
 
-        public static object ConvertInput(object clrValue) =>
-            GetInputConverter(clrValue.GetType()).ToFunObject(clrValue);
-        
-        public static IInputFunnyConverter GetInputConverter(FunnyType funnyType)
-            => GetInputConverter(funnyType, 0);
 
         // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
-        private static IInputFunnyConverter GetInputConverter(FunnyType funnyType, int reqDeepthCheck)
+        private static IInputFunnyConverter GetInputConverter(FunnyType funnyType, Type clrTypeOrNull,
+            int reqDeepthCheck)
         {
             if (reqDeepthCheck > 100)
                 throw new ArgumentException("Too nested input object");
-            
-            switch (funnyType.BaseType)
+
+            if (funnyType.IsPrimitive)
             {
-                case BaseFunnyType.Char:
-                case BaseFunnyType.Bool:
-                case BaseFunnyType.UInt8:
-                case BaseFunnyType.UInt16:
-                case BaseFunnyType.UInt32:
-                case BaseFunnyType.UInt64:
-                case BaseFunnyType.Int16:
-                case BaseFunnyType.Int32:
-                case BaseFunnyType.Int64:
-                case BaseFunnyType.Real:
-                    return new PrimitiveTypeInputFunnyConverter(funnyType);
-                case BaseFunnyType.ArrayOf:
-                    if (funnyType.IsText)
-                        return new StringTypeInputFunnyConverter();
-                    var elementConverter = GetInputConverter(funnyType.ArrayTypeSpecification.FunnyType, reqDeepthCheck+1);
-                    return new ClrArrayInputTypeFunnyConverter(elementConverter);
-                case BaseFunnyType.Any:
-                    return new DynamicTypeInputFunnyConverter();
-                case BaseFunnyType.Empty:
-                case BaseFunnyType.Fun:
-                case BaseFunnyType.Generic:
-                case BaseFunnyType.Struct:
-                default:
-                    throw new NotSupportedException($"type {funnyType} is not supported for input convertion");
+                if (clrTypeOrNull != null &&
+                    PrimitiveInputConvertersByType.TryGetValue(clrTypeOrNull, out var byTypeConverter))
+                    return byTypeConverter;
+
+                if (PrimitiveInputConvertersByName.TryGetValue(funnyType.BaseType, out var converter))
+                    return converter;
             }
-        }
-        
-        public static IInputFunnyConverter GetInputConverter(Type clrType) => GetInputConverter(clrType, 0);
- 
-        // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
-        private static IInputFunnyConverter GetInputConverter(Type clrType, int reqDeepthCheck)
-        {
-            if (reqDeepthCheck > 100)
-                throw new ArgumentException("Too nested input object");
-            
-            if (clrType == typeof(string))
+
+            if (funnyType.IsText)
                 return new StringTypeInputFunnyConverter();
 
-            if (clrType.IsArray)
+            if (funnyType.BaseType == BaseFunnyType.ArrayOf)
             {
-                var elementType = clrType.GetElementType();
-                var elementConverter = GetInputConverter(elementType, reqDeepthCheck++);
-                
+                var elementType = clrTypeOrNull?.GetElementType();
+                var elementConverter = GetInputConverter(funnyType.ArrayTypeSpecification.FunnyType, elementType,
+                    reqDeepthCheck++);
                 return new ClrArrayInputTypeFunnyConverter(elementConverter);
             }
-           
-            if (clrType == typeof(byte)) 
-                return new PrimitiveTypeInputFunnyConverter(FunnyType.UInt8);
-            if (clrType == typeof(UInt16)) 
-                return  new PrimitiveTypeInputFunnyConverter(FunnyType.UInt16);
-            if (clrType == typeof(UInt32)) 
-                return  new PrimitiveTypeInputFunnyConverter(FunnyType.UInt32);
-            if (clrType == typeof(UInt64)) 
-                return  new PrimitiveTypeInputFunnyConverter(FunnyType.UInt64);
-            if (clrType == typeof(Int16)) 
-                return  new PrimitiveTypeInputFunnyConverter(FunnyType.Int16);
-            if (clrType == typeof(Int32)) 
-                return  new PrimitiveTypeInputFunnyConverter(FunnyType.Int32);
-            if (clrType == typeof(Int64)) 
-                return  new PrimitiveTypeInputFunnyConverter(FunnyType.Int64);
-            if (clrType == typeof(Double)) 
-                return  new PrimitiveTypeInputFunnyConverter(FunnyType.Real);
-            if (clrType == typeof(Char)) 
-                return  new PrimitiveTypeInputFunnyConverter(FunnyType.Char);
-            if (clrType == typeof(bool)) 
-                return  new PrimitiveTypeInputFunnyConverter(FunnyType.Bool);
-            
-            var properties =  clrType.GetProperties( BindingFlags.Instance | BindingFlags.Public);
+
+            if (funnyType.BaseType != BaseFunnyType.Struct)
+                return new PrimitiveTypeInputFunnyConverter(FunnyType.Any);
+
+            if (clrTypeOrNull == null || typeof(Dictionary<string, object>).IsAssignableFrom(clrTypeOrNull))
+            {
+                var dictionaryFields = new (string, IInputFunnyConverter)[funnyType.StructTypeSpecification.Count];
+                var i = 0;
+                foreach (var field in funnyType.StructTypeSpecification)
+                {
+                    dictionaryFields[i] = new(field.Key, GetInputConverter(field.Value, null, reqDeepthCheck++));
+                    i++;
+                }
+
+                return new DynamicStructTypeInputFunnyConverter(dictionaryFields);
+            }
+
+            var properties = clrTypeOrNull.GetProperties(BindingFlags.Instance | BindingFlags.Public);
             if (properties.Any())
             {
                 (string, IInputFunnyConverter, PropertyInfo)[] propertiesConverters =
@@ -126,18 +90,65 @@ namespace NFun.Types
                 int readPropertiesCount = 0;
                 foreach (var property in properties)
                 {
-                    if(!property.CanRead)
+                    if (!property.CanBeUsedAsFunnyInputProperty())
                         continue;
-                    if(!property.GetMethod.Attributes.HasFlag(MethodAttributes.Public))
+                    if (!funnyType.StructTypeSpecification.TryGetValue(property.Name, out var fieldDef))
                         continue;
-                    var  propertyConverter =GetInputConverter(property.PropertyType, reqDeepthCheck++);
+                    var propertyConverter = GetInputConverter(fieldDef, property.PropertyType, reqDeepthCheck++);
                     propertiesConverters[readPropertiesCount] =
-                        new ValueTuple<string, IInputFunnyConverter, PropertyInfo>(property.Name.ToLower(), propertyConverter, property);
+                        new ValueTuple<string, IInputFunnyConverter, PropertyInfo>(property.Name.ToLower(),
+                            propertyConverter, property);
                     readPropertiesCount++;
                 }
-                    
-                return new StructTypeInputFunnyConverter(propertiesConverters,readPropertiesCount);
+
+                return new StructTypeInputFunnyConverter(propertiesConverters, readPropertiesCount, funnyType);
             }
+
+            return new PrimitiveTypeInputFunnyConverter(FunnyType.Any);
+        }
+
+        public static IInputFunnyConverter GetInputConverter(Type clrType) => GetInputConverter(clrType, 0);
+
+        // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
+        private static IInputFunnyConverter GetInputConverter(Type clrType, int reqDeepthCheck)
+        {
+            if (reqDeepthCheck > 100)
+                throw new ArgumentException("Too nested input object");
+
+            if (clrType == typeof(string))
+                return new StringTypeInputFunnyConverter();
+
+            if (clrType.IsArray)
+            {
+                var elementType = clrType.GetElementType();
+                var elementConverter = GetInputConverter(elementType, reqDeepthCheck++);
+
+                return new ClrArrayInputTypeFunnyConverter(elementConverter);
+            }
+
+            if (PrimitiveInputConvertersByType.TryGetValue(clrType, out var converter))
+                return converter;
+
+            var properties = clrType.GetProperties(BindingFlags.Instance | BindingFlags.Public);
+            if (properties.Any())
+            {
+                (string, IInputFunnyConverter, PropertyInfo)[] propertiesConverters =
+                    new (string, IInputFunnyConverter, PropertyInfo)[properties.Length];
+                int readPropertiesCount = 0;
+                foreach (var property in properties)
+                {
+                    if (!property.CanBeUsedAsFunnyInputProperty())
+                        continue;
+                    var propertyConverter = GetInputConverter(property.PropertyType, reqDeepthCheck++);
+                    propertiesConverters[readPropertiesCount] =
+                        new ValueTuple<string, IInputFunnyConverter, PropertyInfo>(property.Name.ToLower(),
+                            propertyConverter, property);
+                    readPropertiesCount++;
+                }
+
+                return new StructTypeInputFunnyConverter(propertiesConverters, readPropertiesCount);
+            }
+
             return new PrimitiveTypeInputFunnyConverter(FunnyType.Any);
         }
 
@@ -148,7 +159,7 @@ namespace NFun.Types
         {
             if (reqDeepthCheck > 100)
                 throw new ArgumentException("Too nested output object");
-            
+
             if (clrType == typeof(string))
                 return new StringOutputFunnyConverter();
 
@@ -156,22 +167,14 @@ namespace NFun.Types
             {
                 var elementType = clrType.GetElementType();
                 var elementConverter = GetOutputConverter(elementType, reqDeepthCheck++);
-                
+
                 return new ClrArrayOutputFunnyConverter(clrType, elementConverter);
             }
-           
-            if (clrType == typeof(byte))    return  new PrimitiveTypeOutputFunnyConverter(FunnyType.UInt8, clrType);
-            if (clrType == typeof(UInt16))  return  new PrimitiveTypeOutputFunnyConverter(FunnyType.UInt16, clrType);
-            if (clrType == typeof(UInt32))  return  new PrimitiveTypeOutputFunnyConverter(FunnyType.UInt32, clrType);
-            if (clrType == typeof(UInt64))  return  new PrimitiveTypeOutputFunnyConverter(FunnyType.UInt64,clrType);
-            if (clrType == typeof(Int16))   return  new PrimitiveTypeOutputFunnyConverter(FunnyType.Int16,clrType);
-            if (clrType == typeof(Int32))   return  new PrimitiveTypeOutputFunnyConverter(FunnyType.Int32,clrType);
-            if (clrType == typeof(Int64))   return  new PrimitiveTypeOutputFunnyConverter(FunnyType.Int64,clrType);
-            if (clrType == typeof(Double))  return  new PrimitiveTypeOutputFunnyConverter(FunnyType.Real,clrType);
-            if (clrType == typeof(Char))    return  new PrimitiveTypeOutputFunnyConverter(FunnyType.Char,clrType);
-            if (clrType == typeof(bool))    return  new PrimitiveTypeOutputFunnyConverter(FunnyType.Bool,clrType);
-            
-            var properties =  clrType.GetProperties( BindingFlags.Instance | BindingFlags.Public);
+
+            if (PrimitiveOutputConvertersByType.TryGetValue(clrType, out var converter))
+                return converter;
+
+            var properties = clrType.GetProperties(BindingFlags.Instance | BindingFlags.Public);
             if (properties.Any())
             {
                 if (clrType.GetConstructor(Type.EmptyTypes) == null)
@@ -181,51 +184,109 @@ namespace NFun.Types
                 int readPropertiesCount = 0;
                 foreach (var property in properties)
                 {
-                    if(!property.CanWrite)
+                    if(!property.CanBeUsedAsFunnyOutputProperty())
                         continue;
-                    if(!property.GetMethod.Attributes.HasFlag(MethodAttributes.Public))
-                        continue;
-                    var  propertyConverter =GetOutputConverter(property.PropertyType, reqDeepthCheck++);
-                    
+                    var propertyConverter = GetOutputConverter(property.PropertyType, reqDeepthCheck++);
+
                     propertiesConverters[readPropertiesCount] =
-                        new ValueTuple<string, IOutputFunnyConverter, PropertyInfo>(property.Name.ToLower(), propertyConverter, property);
+                        new ValueTuple<string, IOutputFunnyConverter, PropertyInfo>(property.Name.ToLower(),
+                            propertyConverter, property);
                     readPropertiesCount++;
                 }
-                return new StructOutputFunnyConverter(clrType, propertiesConverters,readPropertiesCount);
+
+                return new StructOutputFunnyConverter(clrType, propertiesConverters, readPropertiesCount);
             }
+
             return new DynamicTypeOutputFunnyConverter(clrType);
         }
 
         public static IOutputFunnyConverter GetOutputConverter(FunnyType funnyType)
         {
+            if (PrimitiveOutputConvertersByName.TryGetValue(funnyType.BaseType, out var converter))
+                return converter;
             switch (funnyType.BaseType)
             {
-                case BaseFunnyType.Bool:   return new PrimitiveTypeOutputFunnyConverter(funnyType, typeof(bool));
-                case BaseFunnyType.Char:   return new PrimitiveTypeOutputFunnyConverter(funnyType, typeof(char));
-                case BaseFunnyType.UInt8:  return new PrimitiveTypeOutputFunnyConverter(funnyType, typeof(byte));
-                case BaseFunnyType.UInt16: return new PrimitiveTypeOutputFunnyConverter(funnyType, typeof(ushort));
-                case BaseFunnyType.UInt32: return new PrimitiveTypeOutputFunnyConverter(funnyType, typeof(uint));
-                case BaseFunnyType.UInt64: return new PrimitiveTypeOutputFunnyConverter(funnyType, typeof(ulong));
-                case BaseFunnyType.Int16:  return new PrimitiveTypeOutputFunnyConverter(funnyType, typeof(short));
-                case BaseFunnyType.Int32:  return new PrimitiveTypeOutputFunnyConverter(funnyType, typeof(int));
-                case BaseFunnyType.Int64:  return new PrimitiveTypeOutputFunnyConverter(funnyType, typeof(long));
-                case BaseFunnyType.Real:   return new PrimitiveTypeOutputFunnyConverter(funnyType, typeof(double));
-                case BaseFunnyType.Any:    return new DynamicTypeOutputFunnyConverter(typeof(object));
+                case BaseFunnyType.Any: return new DynamicTypeOutputFunnyConverter(typeof(object));
                 case BaseFunnyType.ArrayOf:
                 {
                     if (funnyType.IsText)
                         return new StringOutputFunnyConverter();
                     var elementConverter = GetOutputConverter(funnyType.ArrayTypeSpecification.FunnyType);
-                    var arrayType =elementConverter.ClrType.MakeArrayType();
+                    var arrayType = elementConverter.ClrType.MakeArrayType();
                     return new ClrArrayOutputFunnyConverter(arrayType, elementConverter);
                 }
                 // If output type is struct, but clr type is unknown (for ex in case of hardcore calc)
-                // return funny struct as IReadOnlyDictionary<string,object> interface
-                case BaseFunnyType.Struct: return new PrimitiveTypeOutputFunnyConverter(funnyType,
-                    typeof(IReadOnlyDictionary<string,object>));
+                // convert funny struct to an IDictionary<string,object>
+                case BaseFunnyType.Struct:
+                    return new StructToDictionaryOutputFunnyConverter(funnyType);
                 default:
                     throw ErrorFactory.TypeCannotBeUsedAsOutputNfunType(funnyType);
             }
         }
+
+        #region predefined converters
+
+        private static readonly IReadOnlyDictionary<BaseFunnyType, IInputFunnyConverter> PrimitiveInputConvertersByName
+            = new Dictionary<BaseFunnyType, IInputFunnyConverter>()
+            {
+                { BaseFunnyType.Bool, new PrimitiveTypeInputFunnyConverter(FunnyType.Bool) },
+                { BaseFunnyType.Char, new PrimitiveTypeInputFunnyConverter(FunnyType.Char) },
+                { BaseFunnyType.UInt8, new PrimitiveTypeInputFunnyConverter(FunnyType.UInt8) },
+                { BaseFunnyType.UInt16, new PrimitiveTypeInputFunnyConverter(FunnyType.UInt16) },
+                { BaseFunnyType.UInt32, new PrimitiveTypeInputFunnyConverter(FunnyType.UInt32) },
+                { BaseFunnyType.UInt64, new PrimitiveTypeInputFunnyConverter(FunnyType.UInt64) },
+                { BaseFunnyType.Int16, new PrimitiveTypeInputFunnyConverter(FunnyType.Int16) },
+                { BaseFunnyType.Int32, new PrimitiveTypeInputFunnyConverter(FunnyType.Int32) },
+                { BaseFunnyType.Int64, new PrimitiveTypeInputFunnyConverter(FunnyType.Int64) },
+                { BaseFunnyType.Real, new PrimitiveTypeInputFunnyConverter(FunnyType.Real) },
+            };
+
+        private static readonly IReadOnlyDictionary<Type, IInputFunnyConverter> PrimitiveInputConvertersByType
+            = new Dictionary<Type, IInputFunnyConverter>()
+            {
+                { typeof(bool), new PrimitiveTypeInputFunnyConverter(FunnyType.Bool) },
+                { typeof(Char), new PrimitiveTypeInputFunnyConverter(FunnyType.Char) },
+                { typeof(byte), new PrimitiveTypeInputFunnyConverter(FunnyType.UInt8) },
+                { typeof(UInt16), new PrimitiveTypeInputFunnyConverter(FunnyType.UInt16) },
+                { typeof(UInt32), new PrimitiveTypeInputFunnyConverter(FunnyType.UInt32) },
+                { typeof(UInt64), new PrimitiveTypeInputFunnyConverter(FunnyType.UInt64) },
+                { typeof(Int16), new PrimitiveTypeInputFunnyConverter(FunnyType.Int16) },
+                { typeof(Int32), new PrimitiveTypeInputFunnyConverter(FunnyType.Int32) },
+                { typeof(Int64), new PrimitiveTypeInputFunnyConverter(FunnyType.Int64) },
+                { typeof(double), new PrimitiveTypeInputFunnyConverter(FunnyType.Real) },
+            };
+
+        private static readonly IReadOnlyDictionary<BaseFunnyType, IOutputFunnyConverter>
+            PrimitiveOutputConvertersByName
+                = new Dictionary<BaseFunnyType, IOutputFunnyConverter>()
+                {
+                    { BaseFunnyType.Bool, new PrimitiveTypeOutputFunnyConverter(FunnyType.Bool, typeof(bool)) },
+                    { BaseFunnyType.Char, new PrimitiveTypeOutputFunnyConverter(FunnyType.Char, typeof(Char)) },
+                    { BaseFunnyType.UInt8, new PrimitiveTypeOutputFunnyConverter(FunnyType.UInt8, typeof(byte)) },
+                    { BaseFunnyType.UInt16, new PrimitiveTypeOutputFunnyConverter(FunnyType.UInt16, typeof(UInt16)) },
+                    { BaseFunnyType.UInt32, new PrimitiveTypeOutputFunnyConverter(FunnyType.UInt32, typeof(UInt32)) },
+                    { BaseFunnyType.UInt64, new PrimitiveTypeOutputFunnyConverter(FunnyType.UInt64, typeof(UInt64)) },
+                    { BaseFunnyType.Int16, new PrimitiveTypeOutputFunnyConverter(FunnyType.Int16, typeof(Int16)) },
+                    { BaseFunnyType.Int32, new PrimitiveTypeOutputFunnyConverter(FunnyType.Int32, typeof(Int32)) },
+                    { BaseFunnyType.Int64, new PrimitiveTypeOutputFunnyConverter(FunnyType.Int64, typeof(Int64)) },
+                    { BaseFunnyType.Real, new PrimitiveTypeOutputFunnyConverter(FunnyType.Real, typeof(double)) },
+                };
+
+        private static readonly IReadOnlyDictionary<Type, IOutputFunnyConverter> PrimitiveOutputConvertersByType
+            = new Dictionary<Type, IOutputFunnyConverter>()
+            {
+                { typeof(bool), new PrimitiveTypeOutputFunnyConverter(FunnyType.Bool, typeof(bool)) },
+                { typeof(Char), new PrimitiveTypeOutputFunnyConverter(FunnyType.Char, typeof(Char)) },
+                { typeof(byte), new PrimitiveTypeOutputFunnyConverter(FunnyType.UInt8, typeof(byte)) },
+                { typeof(UInt16), new PrimitiveTypeOutputFunnyConverter(FunnyType.UInt16, typeof(UInt16)) },
+                { typeof(UInt32), new PrimitiveTypeOutputFunnyConverter(FunnyType.UInt32, typeof(UInt32)) },
+                { typeof(UInt64), new PrimitiveTypeOutputFunnyConverter(FunnyType.UInt64, typeof(UInt64)) },
+                { typeof(Int16), new PrimitiveTypeOutputFunnyConverter(FunnyType.Int16, typeof(Int16)) },
+                { typeof(Int32), new PrimitiveTypeOutputFunnyConverter(FunnyType.Int32, typeof(Int32)) },
+                { typeof(Int64), new PrimitiveTypeOutputFunnyConverter(FunnyType.Int64, typeof(Int64)) },
+                { typeof(double), new PrimitiveTypeOutputFunnyConverter(FunnyType.Real, typeof(double)) },
+            };
+
+        #endregion
     }
 }

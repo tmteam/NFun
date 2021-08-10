@@ -8,7 +8,7 @@ namespace NFun.Runtime.Arrays
 {
     public static class FunnyArrayTools
     {
-        public static TextFunArray AsFunText(this string txt) => new(txt);
+        public static TextFunnyArray AsFunText(this string txt) => new(txt);
 
         internal static string JoinElementsToFunString(IEnumerable enumerable)
         {
@@ -69,17 +69,17 @@ namespace NFun.Runtime.Arrays
             return sb.ToString();
         }
 
-        internal static IFunArray SliceToImmutable(
+        internal static IFunnyArray SliceToImmutable(
             Array array,
             FunnyType elementType,
             int? startIndex, int? endIndex, int? step)
         {
             if (array.Length == 0)
-                return new ImmutableFunArray(array, elementType);
+                return new ImmutableFunnyArray(array, elementType);
 
             var start = startIndex ?? 0;
             if (start > array.Length - 1)
-                return new ImmutableFunArray(Array.Empty<object>(), elementType);
+                return new ImmutableFunnyArray(Array.Empty<object>(), elementType);
 
             var end = array.Length - 1;
             if (endIndex.HasValue)
@@ -99,7 +99,7 @@ namespace NFun.Runtime.Arrays
                     newArr[index] = array.GetValue(i);
             }
 
-            return new ImmutableFunArray(newArr, elementType);
+            return new ImmutableFunnyArray(newArr, elementType);
         }
     }
 }

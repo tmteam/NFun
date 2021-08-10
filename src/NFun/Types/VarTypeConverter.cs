@@ -73,7 +73,9 @@ namespace NFun.Types
         private static readonly Func<object, object> ToUInt32 = o => Convert.ToUInt32(o);
         private static readonly Func<object, object> ToUInt64 = o => Convert.ToUInt64(o);
         private static readonly Func<object, object> ToReal   = o => Convert.ToDouble(o);
-        private static readonly Func<object, object> ToText   = o => new TextFunArray(o?.ToString() ?? "");
+        private static readonly Func<object, object> ToBool = o => Convert.ToBoolean(o);
+        private static readonly Func<object, object> ToChar = o => Convert.ToChar(o);
+        private static readonly Func<object, object> ToText   = o => new TextFunnyArray(o?.ToString() ?? "");
         private static readonly Func<object, object> NoConvertion    = o => o;
 
         
@@ -97,6 +99,8 @@ namespace NFun.Types
                     case BaseFunnyType.Int32:  return ToInt32;
                     case BaseFunnyType.Int64:  return ToInt64;
                     case BaseFunnyType.Real:   return ToReal;
+                    case BaseFunnyType.Bool:   return ToBool;
+                    case BaseFunnyType.Char:   return ToChar;
                     case BaseFunnyType.ArrayOf:
                     case BaseFunnyType.Fun:     
                     case BaseFunnyType.Generic:
@@ -122,7 +126,7 @@ namespace NFun.Types
 
                 return o =>
                 {
-                    var origin = (IFunArray) o;
+                    var origin = (IFunnyArray) o;
                     var array = new object[origin.Count];
                     int index = 0;
                     foreach (var e in origin)
@@ -130,7 +134,7 @@ namespace NFun.Types
                         array[index] = elementConverter(e);
                         index++;
                     }
-                    return new ImmutableFunArray(array, to.ArrayTypeSpecification.FunnyType);
+                    return new ImmutableFunnyArray(array, to.ArrayTypeSpecification.FunnyType);
                 };
             }
             

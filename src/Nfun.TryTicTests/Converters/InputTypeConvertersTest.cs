@@ -53,7 +53,7 @@ namespace NFun.UnitTests.Converters
             var converter = FunnyTypeConverters.GetInputConverter(typeof(string));
 
             Assert.AreEqual(FunnyType.Text, converter.FunnyType);
-            Assert.AreEqual(new TextFunArray(value), converter.ToFunObject(value));
+            Assert.AreEqual(new TextFunnyArray(value), converter.ToFunObject(value));
         }
         [Test]
         public void ConvertArrayOfStrings()
@@ -65,8 +65,8 @@ namespace NFun.UnitTests.Converters
             var converter = FunnyTypeConverters.GetInputConverter(inputValue.GetType());
 
             Assert.AreEqual(FunnyType.ArrayOf(FunnyType.Text), converter.FunnyType);
-            Assert.AreEqual(new ImmutableFunArray(
-                inputValue.Select(i => new TextFunArray(i)).ToArray(),FunnyType.Text),
+            Assert.AreEqual(new ImmutableFunnyArray(
+                inputValue.Select(i => new TextFunnyArray(i)).ToArray(),FunnyType.Text),
                 converter.ToFunObject(inputValue));
         }
         [Test]
@@ -80,8 +80,8 @@ namespace NFun.UnitTests.Converters
             var converter = FunnyTypeConverters.GetInputConverter(inputValue.GetType());
             Assert.AreEqual(FunnyType.ArrayOf(FunnyType.ArrayOf(FunnyType.Any)), converter.FunnyType);
             var value = converter.ToFunObject(inputValue);
-            Assert.IsInstanceOf<ImmutableFunArray>(value);
-            Assert.AreEqual(3,((ImmutableFunArray) value).Count);
+            Assert.IsInstanceOf<ImmutableFunnyArray>(value);
+            Assert.AreEqual(3,((ImmutableFunnyArray) value).Count);
         }
         
         [Test]
@@ -96,7 +96,7 @@ namespace NFun.UnitTests.Converters
             var value = converter.ToFunObject(inputUser);
             Assert.IsInstanceOf<FunnyStruct>(value);
             var converted = (FunnyStruct) value;
-            Assert.AreEqual(inputUser.Name, (converted.GetValue("name") as TextFunArray).ToText());
+            Assert.AreEqual(inputUser.Name, (converted.GetValue("name") as TextFunnyArray).ToText());
             Assert.AreEqual(inputUser.Age, converted.GetValue("age"));
             Assert.AreEqual(inputUser.Size, converted.GetValue("size"));
         }
@@ -118,10 +118,10 @@ namespace NFun.UnitTests.Converters
                 ("age",FunnyType.Int32), 
                 ("size", FunnyType.Real))), converter.FunnyType);
             var value = converter.ToFunObject(inputUsers);
-            Assert.IsInstanceOf<ImmutableFunArray>(value);
-            var secondElememt = ((ImmutableFunArray) value).GetElementOrNull(1) as FunnyStruct;
-            Assert.IsNotNull(secondElememt,((ImmutableFunArray) value).GetElementOrNull(1).GetType().Name +" is wrong type");
-            Assert.AreEqual(inputUsers[1].Name, (secondElememt.GetValue("name") as TextFunArray).ToText());
+            Assert.IsInstanceOf<ImmutableFunnyArray>(value);
+            var secondElememt = ((ImmutableFunnyArray) value).GetElementOrNull(1) as FunnyStruct;
+            Assert.IsNotNull(secondElememt,((ImmutableFunnyArray) value).GetElementOrNull(1).GetType().Name +" is wrong type");
+            Assert.AreEqual(inputUsers[1].Name, (secondElememt.GetValue("name") as TextFunnyArray).ToText());
             Assert.AreEqual(inputUsers[1].Age, secondElememt.GetValue("age"));
             Assert.AreEqual(inputUsers[1].Size, secondElememt.GetValue("size"));
         }

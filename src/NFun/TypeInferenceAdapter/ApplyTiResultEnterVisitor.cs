@@ -5,7 +5,7 @@ using NFun.Types;
 
 namespace NFun.TypeInferenceAdapter
 {
-    public class ApplyTiResultEnterVisitor: EnterVisitorBase
+    public class ApplyTiResultEnterVisitor : EnterVisitorBase
     {
         private readonly TypeInferenceResults _solving;
         private readonly TicTypesConverter _tiToLangTypeConverter;
@@ -15,19 +15,6 @@ namespace NFun.TypeInferenceAdapter
             _solving = solving;
             _tiToLangTypeConverter = tiToLangTypeConverter;
         }
-
-        public override VisitorEnterResult Visit(GenericIntSyntaxNode node)
-        {
-            var type = _solving.GetSyntaxNodeTypeOrNull(node.OrderNumber);
-           
-            if(type==null)
-                node.OutputType = FunnyType.Empty;
-            else
-                node.OutputType = _tiToLangTypeConverter.Convert(type);
-            
-            return VisitorEnterResult.Continue;
-        }
-        
 
         public override VisitorEnterResult Visit(EquationSyntaxNode node)
         {
@@ -39,16 +26,15 @@ namespace NFun.TypeInferenceAdapter
         protected override VisitorEnterResult DefaultVisitEnter(ISyntaxNode node)
         {
             var type = _solving.GetSyntaxNodeTypeOrNull(node.OrderNumber);
-            if(type==null)
-                node.OutputType = FunnyType.Empty;
-            else
-                node.OutputType = _tiToLangTypeConverter.Convert(type);
-            
+            node.OutputType = type == null 
+                ? FunnyType.Empty 
+                : _tiToLangTypeConverter.Convert(type);
+
             return VisitorEnterResult.Continue;
         }
 
 
-        public override VisitorEnterResult Visit(UserFunctionDefinitionSyntaxNode node) 
+        public override VisitorEnterResult Visit(UserFunctionDefinitionSyntaxNode node)
             => VisitorEnterResult.Continue;
     }
 }

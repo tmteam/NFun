@@ -6,12 +6,12 @@ using NFun.Types;
 
 namespace NFun.Runtime.Arrays
 {
-    public class TextFunArray : IFunArray, IComparable
+    public class TextFunnyArray : IFunnyArray, IComparable
     {
-        public static readonly TextFunArray Empty = new("");
+        public static readonly TextFunnyArray Empty = new("");
 
         private readonly string _text;
-        public TextFunArray(string text) => _text = text;
+        public TextFunnyArray(string text) => _text = text;
         public IEnumerator<object> GetEnumerator() => new FunCharEnumerator(_text.GetEnumerator());
 
         private class FunCharEnumerator : IEnumerator<object>
@@ -30,7 +30,7 @@ namespace NFun.Runtime.Arrays
 
         IEnumerator IEnumerable.GetEnumerator() => _text.GetEnumerator();
 
-        public IFunArray Slice(int? startIndex, int? endIndex, int? step)
+        public IFunnyArray Slice(int? startIndex, int? endIndex, int? step)
         {
             if (endIndex == int.MaxValue)
                 endIndex = null;
@@ -47,7 +47,7 @@ namespace NFun.Runtime.Arrays
                 {
                     sb.Append(_text[i]);
                 }
-                return new TextFunArray(sb.ToString());
+                return new TextFunnyArray(sb.ToString());
             }
 
             string str;
@@ -69,7 +69,7 @@ namespace NFun.Runtime.Arrays
                     len = _text.Length - startIndex.Value;
                 str = _text.Substring(startIndex.Value, len);
             }
-            return new TextFunArray(str);
+            return new TextFunnyArray(str);
         }
 
         public object GetElementOrNull(int index)
@@ -96,14 +96,14 @@ namespace NFun.Runtime.Arrays
         public override string ToString() => _text;
         public int CompareTo(object obj)
         {
-            if (obj is TextFunArray t2)
+            if (obj is TextFunnyArray t2)
                 return string.Compare(_text, t2._text, StringComparison.Ordinal);
             return 0;
         }
 
         public override bool Equals(object obj)
         {
-            if (obj is TextFunArray t)
+            if (obj is TextFunnyArray t)
                 return t._text == _text;
             return false;
         }

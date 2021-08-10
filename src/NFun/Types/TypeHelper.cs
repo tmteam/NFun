@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using NFun.Runtime.Arrays;
 
@@ -64,13 +65,19 @@ namespace NFun.Types
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static string GetFunText(object obj)
         {
-            if (obj is IFunArray funArray)
+            if (obj is IFunnyArray funArray)
                 return funArray.ToText();
             if (obj is double dbl)
                 return dbl.ToString(CultureInfo.InvariantCulture);
             return obj.ToString();
         }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static bool CanBeUsedAsFunnyInputProperty(this PropertyInfo property) =>
+            property.CanRead && property.GetMethod.Attributes.HasFlag(MethodAttributes.Public);
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static bool CanBeUsedAsFunnyOutputProperty(this PropertyInfo property) =>
+            property.CanWrite && property.SetMethod.Attributes.HasFlag(MethodAttributes.Public);
         public static object GetDefaultValueOrNull(this FunnyType type)
         {
             var defaultValue  =  DefaultPrimitiveValues[(int) type.BaseType];
@@ -81,21 +88,21 @@ namespace NFun.Types
             
             var arr = type.ArrayTypeSpecification;
             if (arr.FunnyType.BaseType == BaseFunnyType.Char)
-                return TextFunArray.Empty;
-            return new ImmutableFunArray(Array.Empty<object>(), arr.FunnyType);
+                return TextFunnyArray.Empty;
+            return new ImmutableFunnyArray(Array.Empty<object>(), arr.FunnyType);
 
         }
         public static bool AreEqual(object left, object right)
         {
-            if (left is IFunArray le)
+            if (left is IFunnyArray le)
             {
-                return right is IFunArray re && AreEquivalent(le, re);
+                return right is IFunnyArray re && AreEquivalent(le, re);
             }
 
             return left.GetType() == right.GetType() && left.Equals(right);
         }
 
-        public static bool AreEquivalent(IFunArray a, IFunArray b)
+        public static bool AreEquivalent(IFunnyArray a, IFunnyArray b)
         {
             if (a.Count != b.Count)
                 return false;

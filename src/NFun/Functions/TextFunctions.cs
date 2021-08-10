@@ -11,7 +11,7 @@ namespace NFun.Functions
     {
         public ToTextFunction() : base(CoreFunNames.ToText, FunnyType.Text, FunnyType.Any) { }
 
-        public override object Calc(object a) => new TextFunArray(TypeHelper.GetFunText(a));
+        public override object Calc(object a) => new TextFunnyArray(TypeHelper.GetFunText(a));
     }
     public class ConcatArrayOfTextsFunction : FunctionWithSingleArg
     {
@@ -20,11 +20,11 @@ namespace NFun.Functions
         public override object Calc(object a)
         {
             var sb = new StringBuilder();
-            foreach (var subElement in (IFunArray) a)
+            foreach (var subElement in (IFunnyArray) a)
             {
                 sb.Append(TypeHelper.GetFunText(subElement));
             }
-            return new TextFunArray(sb.ToString());
+            return new TextFunnyArray(sb.ToString());
         }
     }
     public class Concat2TextsFunction : FunctionWithTwoArgs
@@ -32,7 +32,7 @@ namespace NFun.Functions
         public Concat2TextsFunction() : base(CoreFunNames.Concat2Texts, FunnyType.Text,FunnyType.Any,FunnyType.Any) { }
 
         public override object Calc(object a, object b) 
-            => new TextFunArray(TypeHelper.GetFunText(a) + TypeHelper.GetFunText(b));
+            => new TextFunnyArray(TypeHelper.GetFunText(a) + TypeHelper.GetFunText(b));
     }
     
     public class Concat3TextsFunction : FunctionWithManyArguments
@@ -44,7 +44,7 @@ namespace NFun.Functions
             var sb = new StringBuilder();
             foreach (var subElement in  args) 
                 sb.Append(TypeHelper.GetFunText(subElement));
-            return new TextFunArray(sb.ToString());
+            return new TextFunnyArray(sb.ToString());
         }
     }
     
@@ -54,10 +54,10 @@ namespace NFun.Functions
 
         public override object Calc(object[] args)
         {
-            var template = ((IFunArray)args[0]).ToText();
-            var formatArguments = (IFunArray) args[1];
+            var template = ((IFunnyArray)args[0]).ToText();
+            var formatArguments = (IFunnyArray) args[1];
             var result = string.Format(template, formatArguments);
-            return new TextFunArray(result);
+            return new TextFunnyArray(result);
         }
     }
   
@@ -65,20 +65,20 @@ namespace NFun.Functions
     {
         public TrimFunction() : base("trim",FunnyType.Text,FunnyType.Text){}
 
-        public override object Calc(object a) => ((IFunArray) a).ToText().Trim().AsFunText();
+        public override object Calc(object a) => ((IFunnyArray) a).ToText().Trim().AsFunText();
     }
     
     public class TrimStartFunction : FunctionWithSingleArg
     {
         public TrimStartFunction() : base("trimStart",FunnyType.Text,FunnyType.Text){ }
 
-        public override object Calc(object a) => ((IFunArray) a).ToText().TrimStart().AsFunText();
+        public override object Calc(object a) => ((IFunnyArray) a).ToText().TrimStart().AsFunText();
     }
     
     public class TrimEndFunction : FunctionWithSingleArg
     {
         public TrimEndFunction() : base("trimEnd",FunnyType.Text,FunnyType.Text){}
-        public override object Calc(object a) => ((IFunArray) a).ToText().TrimEnd().AsFunText();
+        public override object Calc(object a) => ((IFunnyArray) a).ToText().TrimEnd().AsFunText();
     }
     
     
@@ -95,9 +95,9 @@ namespace NFun.Functions
         {
             var inputString = TypeHelper.GetFunText(a);
             var delimeter = TypeHelper.GetFunText(b);
-            return new ImmutableFunArray(
+            return new ImmutableFunnyArray(
                 inputString.Split(new[] {delimeter}, StringSplitOptions.RemoveEmptyEntries)
-                    .Select(s => new TextFunArray(s))
+                    .Select(s => new TextFunnyArray(s))
                     .ToArray(), FunnyType.Text);
         }
     }
@@ -111,10 +111,10 @@ namespace NFun.Functions
 
         public override object Calc(object a, object b)
         {
-            var arr       = (IFunArray) a;
-            var separator = (IFunArray) b;
+            var arr       = (IFunnyArray) a;
+            var separator = (IFunnyArray) b;
             var join = string.Join(separator.ToText(), arr.Select(TypeHelper.GetFunText));
-            return new TextFunArray(join);
+            return new TextFunnyArray(join);
         }
     }
 }

@@ -30,12 +30,12 @@ namespace NFun.UnitTests.Converters
         [Test]
         public void ConvertIntArrayToRealArray()
         {
-            var intArray = new ImmutableFunArray(new[] {1, 2, 3, 4});
+            var intArray = new ImmutableFunnyArray(new[] {1, 2, 3, 4});
             var typeFrom = FunnyType.ArrayOf(FunnyType.Int32);
             var typeTo   = FunnyType.ArrayOf(FunnyType.Real);
             Assert.IsTrue(VarTypeConverter.CanBeConverted(typeFrom,typeTo));
             var coverter = VarTypeConverter.GetConverterOrNull(typeFrom, typeTo);
-            var actual =  coverter(intArray) as IFunArray;
+            var actual =  coverter(intArray) as IFunnyArray;
             Assert.IsNotNull(actual);
             Assert.AreEqual(typeTo.ArrayTypeSpecification.FunnyType, actual.ElementType);
             CollectionAssert.AreEqual(new double[]{1,2,3,4}, actual);
@@ -50,8 +50,8 @@ namespace NFun.UnitTests.Converters
             Func<int,bool> funcFrom = (input) => input > 0;
             var convertedFunc = coverter(new LambdaToFunWrapper<int, bool>(funcFrom)) as IConcreteFunction;
             var result = convertedFunc.Calc(new object[] {((byte) 12)});
-            Assert.IsInstanceOf<IFunArray>(result,$"Actual result is {result}");
-            Assert.AreEqual((result as IFunArray).ToText(),"True");
+            Assert.IsInstanceOf<IFunnyArray>(result,$"Actual result is {result}");
+            Assert.AreEqual((result as IFunnyArray).ToText(),"True");
         }
         [Test]
         public void ConvertStruct()
@@ -60,11 +60,11 @@ namespace NFun.UnitTests.Converters
             var typeFrom   = FunnyType.StructOf(("name", FunnyType.Text),("age", FunnyType.Int32));
             Assert.IsTrue(VarTypeConverter.CanBeConverted(typeFrom,typeTo));
             var coverter = VarTypeConverter.GetConverterOrNull(typeFrom, typeTo);
-            var fromStruct = FunnyStruct.Create(("name", new TextFunArray("vasa")), ("age", 42));
+            var fromStruct = FunnyStruct.Create(("name", new TextFunnyArray("vasa")), ("age", 42));
             var convertedStruct = coverter(fromStruct) as FunnyStruct;
             Assert.IsNotNull(convertedStruct);
-            var val = convertedStruct.GetValue("name") as TextFunArray;
-            Assert.AreEqual(val,new TextFunArray("vasa"));
+            var val = convertedStruct.GetValue("name") as TextFunnyArray;
+            Assert.AreEqual(val,new TextFunnyArray("vasa"));
         }
     
         class LambdaToFunWrapper<Tin,Tout> : IConcreteFunction

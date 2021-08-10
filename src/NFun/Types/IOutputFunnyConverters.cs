@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using NFun.Runtime;
 using NFun.Runtime.Arrays;
@@ -14,21 +15,21 @@ namespace NFun.Types
 
     public class DynamicTypeOutputFunnyConverter : IOutputFunnyConverter
     {
+        public static readonly DynamicTypeOutputFunnyConverter Instance = new(typeof(object));
         public DynamicTypeOutputFunnyConverter(Type clrType) => ClrType = clrType;
-
         public Type ClrType { get; }
         public FunnyType FunnyType { get; } = FunnyType.Any;
         public object ToClrObject(object funObject)
         {
-            if (funObject is IFunArray funArray)
+            if (funObject is IFunnyArray funArray)
             {
-                if (funObject is TextFunArray txt)
+                if (funObject is TextFunnyArray txt)
                     return txt.ToString();
                 
                 var outConverter = FunnyTypeConverters.GetOutputConverter(FunnyType.ArrayOf(funArray.ElementType));
                 return outConverter.ToClrObject(funObject);
             }
-
+                                
             if (funObject is FunnyStruct str)
                 return str.ToString();
             
@@ -51,7 +52,7 @@ namespace NFun.Types
         public Type ClrType { get; }
         public FunnyType FunnyType { get; } = FunnyType.Text;
         public StringOutputFunnyConverter() => ClrType = typeof(string);
-        public object ToClrObject(object funObject) => ((IFunArray) funObject).ToText();
+        public object ToClrObject(object funObject) => ((IFunnyArray) funObject).ToText();
     }
 
     public class ClrArrayOutputFunnyConverter : IOutputFunnyConverter
@@ -67,7 +68,7 @@ namespace NFun.Types
         public FunnyType FunnyType { get; }
         public object ToClrObject(object funObject)
         {
-            var funArray = (funObject as IFunArray);
+            var funArray = (funObject as IFunnyArray);
             var clrArray = Array.CreateInstance(ClrType.GetElementType(), funArray.Count);
             for (int i = 0; i < funArray.Count; i++)
             {
@@ -111,6 +112,32 @@ namespace NFun.Types
                 info.SetValue(clrObj,clrValue);
             }
             return clrObj;
+        }
+    }
+    
+    public class StructToDictionaryOutputFunnyConverter: IOutputFunnyConverter
+    {
+        public StructToDictionaryOutputFunnyConverter(
+            FunnyType type)
+        {
+            FunnyType = type;
+        }
+        public Type ClrType { get; } = typeof(Dictionary<string, object>);
+        public FunnyType FunnyType { get; }
+        public object ToClrObject(object funObject)
+        {
+            var str = funObject as FunnyStruct;
+            var result = new Dictionary<string, object>();
+            if (str == null)
+                return result;
+            foreach (var property in FunnyType.StructTypeSpecification)
+            {
+                if (!str.TryGetValue(property.Key, out var fieldValue))
+                    continue;
+                var converter = FunnyTypeConverters.GetOutputConverter(property.Value);
+                result.Add(property.Key, converter.ToClrObject(fieldValue));
+            }
+            return result;
         }
     }
 }

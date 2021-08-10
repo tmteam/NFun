@@ -6,11 +6,11 @@ using NFun.Types;
 
 namespace NFun.Runtime.Arrays
 {
-    public class EnumerableFunArray : IFunArray
+    public class EnumerableFunnyArray : IFunnyArray
     {
         private readonly IEnumerable<object> _origin;
 
-        public EnumerableFunArray(IEnumerable<object> origin, FunnyType elementType)
+        public EnumerableFunnyArray(IEnumerable<object> origin, FunnyType elementType)
         {
             _origin = origin;
             ElementType = elementType;
@@ -21,7 +21,7 @@ namespace NFun.Runtime.Arrays
 
         public FunnyType ElementType { get; }
         public int Count => _origin.Count();
-        public IFunArray Slice(int? startIndex, int? endIndex, int? step)
+        public IFunnyArray Slice(int? startIndex, int? endIndex, int? step)
         {
             var array = _origin.ToArray();
             return FunnyArrayTools.SliceToImmutable(array,ElementType, startIndex, endIndex, step);

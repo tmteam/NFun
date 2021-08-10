@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using NFun.Exceptions;
 using NFun.TestTools;
 using NFun.Tic;
@@ -293,9 +294,12 @@ yPublic   = yprivate + xpublic"
             runtime["in1"].Value = 2;
             runtime["in2"].Value = new[] { 0, 1, 2, 3, 4 };
             runtime.Run();
-
+            
+            
             foreach (var v in runtime.Variables)
                 Console.WriteLine($"Variable '{v.Name}'' of type {v.Type} equals {v.Value}");
+            Assert.AreEqual(2, runtime.Variables.FirstOrDefault(i => i.Name == "in1")?.Value);
+            Assert.AreEqual(2, runtime["in1"].Value);
         }
     }
 }

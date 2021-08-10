@@ -27,9 +27,10 @@ namespace NFun.Interpretation
             IFunctionDictionary functions,
             VariableDictionary variables,
             TypeInferenceResults typeInferenceResults,
-            TicTypesConverter typesConverter, 
+            TicTypesConverter typesConverter,
             DialectSettings dialect) =>
-            node.Accept(new ExpressionBuilderVisitor(functions, variables, typeInferenceResults, typesConverter, dialect));
+            node.Accept(new ExpressionBuilderVisitor(functions, variables, typeInferenceResults, typesConverter,
+                dialect));
 
         internal static IExpressionNode BuildExpression(
             ISyntaxNode node,
@@ -37,11 +38,11 @@ namespace NFun.Interpretation
             FunnyType outputType,
             VariableDictionary variables,
             TypeInferenceResults typeInferenceResults,
-            TicTypesConverter typesConverter, 
+            TicTypesConverter typesConverter,
             DialectSettings dialect)
         {
             var result = node.Accept(
-                new ExpressionBuilderVisitor(functions, variables, typeInferenceResults, typesConverter,dialect));
+                new ExpressionBuilderVisitor(functions, variables, typeInferenceResults, typesConverter, dialect));
             if (result.Type == outputType)
                 return result;
             var converter = VarTypeConverter.GetConverterOrThrow(result.Type, outputType, node.Interval);
@@ -117,7 +118,7 @@ namespace NFun.Interpretation
 
         public IExpressionNode Visit(StructInitSyntaxNode node)
         {
-            var types = new Dictionary<string, FunnyType>(node.Fields.Count);
+            var types = new Dictionary<string, FunnyType>(node.Fields.Count, FunnyType.StructKeyComparer);
             var names = new string[node.Fields.Count];
             var nodes = new IExpressionNode[node.Fields.Count];
 
@@ -258,21 +259,21 @@ namespace NFun.Interpretation
         {
             if (_dialect.IfExpressionSetup == IfExpressionSetup.Deny)
                 throw FunnyParseException.ErrorStubToDo("If-else expressions are denied for the dialect");
-            
+
             //expressions
             //if (...) {here} 
             var expressionNodes = new IExpressionNode[node.Ifs.Length];
             //conditions
             // if ( {here} ) ...
             var conditionNodes = new IExpressionNode[node.Ifs.Length];
-            
-            if (_dialect.IfExpressionSetup == IfExpressionSetup.IfElseIf  && node.Ifs.Length > 1)
+
+            if (_dialect.IfExpressionSetup == IfExpressionSetup.IfElseIf && node.Ifs.Length > 1)
                 throw FunnyParseException.ErrorStubToDo("'else' keyword is missing before 'if'");
 
             for (int i = 0; i < expressionNodes.Length; i++)
             {
                 var ifCaseNode = node.Ifs[i];
-                
+
                 conditionNodes[i] = ReadNode(ifCaseNode.Condition);
                 var exprNode = ReadNode(ifCaseNode.Expression);
                 expressionNodes[i] = CastExpressionNode.GetConvertedOrOriginOrThrow(exprNode, node.OutputType);
@@ -311,7 +312,8 @@ namespace NFun.Interpretation
             else if (node.Value is double)
                 return new ConstantExpressionNode(node.Value, type, node.Interval);
             else
-                throw new NfunImpossibleException($"Generic syntax node has wrong value type: {node.Value.GetType().Name}");
+                throw new NfunImpossibleException(
+                    $"Generic syntax node has wrong value type: {node.Value.GetType().Name}");
         }
 
         public IExpressionNode Visit(NamedIdSyntaxNode node)
@@ -342,7 +344,7 @@ namespace NFun.Interpretation
                 else if (funVariable is IConcreteFunction concrete)
                     return new FunVariableExpressionNode(concrete, node.Interval);
             }
-            
+
             var node1 = _variables.CreateVarNode(node.Id, node.Interval, node.OutputType);
             if (node1.Source.Name != node.Id)
                 throw ErrorFactory.InputNameWithDifferentCase(node.Id, node1.Source.Name, node.Interval);
@@ -381,7 +383,8 @@ namespace NFun.Interpretation
             var originVariables = new string[sources.Length];
             for (int i = 0; i < originVariables.Length; i++) originVariables[i] = sources[i].Name;
 
-            var expr = BuildExpression(body, _functions, localVariables, _typeInferenceResults, _typesConverter, _dialect);
+            var expr = BuildExpression(body, _functions, localVariables, _typeInferenceResults, _typesConverter,
+                _dialect);
 
             //New variables are new closured
             var closured = localVariables.GetAllUsages()

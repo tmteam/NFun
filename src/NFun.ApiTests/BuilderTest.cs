@@ -40,15 +40,6 @@ namespace NFun.ApiTests
                     .Get("y"));
 
 
-        // [Test]
-        // public void CreateWithCustomDictionary() =>
-        //     Funny
-        //         .Hardcore
-        //         .WithFunctions(BaseFunctions.DefaultDictionary.CloneWith(new MamaFunction("mama")))
-        //         .Build("y = mama()")
-        //         .Calc()
-        //         .AssertReturns("y", MamaFunction.MamaReturn);
-
         class GenericWithNoArgFunction : GenericFunctionBase
         {
             public GenericWithNoArgFunction(string name) : base(name, FunnyType.Generic(0))
@@ -67,7 +58,7 @@ namespace NFun.ApiTests
             {
             }
 
-            public override object Calc(object[] args) => new TextFunArray(PapaReturn);
+            public override object Calc(object[] args) => new TextFunnyArray(PapaReturn);
         }
 
         class MamaFunction : FunctionWithManyArguments
@@ -78,7 +69,7 @@ namespace NFun.ApiTests
             {
             }
 
-            public override object Calc(object[] args) => new TextFunArray(MamaReturn);
+            public override object Calc(object[] args) => new TextFunnyArray(MamaReturn);
         }
     }
 }

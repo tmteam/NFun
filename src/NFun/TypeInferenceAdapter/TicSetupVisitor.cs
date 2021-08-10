@@ -189,7 +189,7 @@ namespace NFun.TypeInferenceAdapter
         {
             if (!node.Source.Accept(this))
                 return false;
-            _ticTypeGraph.SetFieldAccess(node.Source.OrderNumber, node.OrderNumber, node.FieldName);
+            _ticTypeGraph.SetFieldAccess(node.Source.OrderNumber, node.OrderNumber, node.FieldName.ToLower());
             return true;
         }
 
@@ -198,7 +198,7 @@ namespace NFun.TypeInferenceAdapter
             if (!VisitChildren(node))
                 return false;
             _ticTypeGraph.SetStructInit(
-                node.Fields.Select(f => f.Name).ToArray(),
+                node.Fields.Select(f => f.Name.ToLower()).ToArray(),
                 node.Fields.Select(f => f.Node.OrderNumber).ToArray(), node.OrderNumber);
             return true;
         }

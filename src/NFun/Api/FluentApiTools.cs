@@ -43,7 +43,7 @@ namespace NFun
             int actualOutputsCount = 0;
             foreach (var outputProperty in outputProperties)
             {
-                if (!outputProperty.CanWrite)
+                if (!outputProperty.CanBeUsedAsFunnyOutputProperty())
                     continue;
                 var converter = FunnyTypeConverters.GetOutputConverter(outputProperty.PropertyType);
                 var outputName = outputProperty.Name.ToLower();
@@ -94,7 +94,8 @@ namespace NFun
             for (var i = 0; i < inputProperties.Length; i++)
             {
                 var inputProperty = inputProperties[i];
-                if (!inputProperty.CanRead)
+                
+                if (!inputProperty.CanBeUsedAsFunnyInputProperty())
                     continue;
                 var converter = FunnyTypeConverters.GetInputConverter(inputProperty.PropertyType);
                 var inputName = inputProperty.Name.ToLower();

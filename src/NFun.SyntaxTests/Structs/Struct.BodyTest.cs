@@ -411,7 +411,7 @@ namespace NFun.SyntaxTests.Structs
         [Test]
         [Ignore("Syntax collision with pipe forward")]
         public void GenericLambdaInStruct() =>
-            "a = {dec = {it-1}; inc = {it+1};};y = a.inc(1) + a.inc(2) + a.dec(3)"
+            "a = {dec = (fun it-1); inc = (fun it+1);}; y = a.inc(1) + a.inc(2) + a.dec(3)"
                 .AssertResultHas("y",7);
 
         [TestCase("y = {a = 1}; z = y.b")]

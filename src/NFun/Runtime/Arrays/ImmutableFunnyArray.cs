@@ -6,28 +6,28 @@ using System.Linq;
 using NFun.Types;
 
 namespace NFun.Runtime.Arrays {
-    public class ImmutableFunArray: IFunArray {
+    public class ImmutableFunnyArray: IFunnyArray {
         public FunnyType ElementType { get; }
         private int _hash = 0;
       
-        public ImmutableFunArray(bool[] values):this(values, FunnyType.Bool) {}
-        public ImmutableFunArray(byte[] values):this(values, FunnyType.UInt8) {}
-        public ImmutableFunArray(ushort[] values):this(values, FunnyType.UInt16) {}
-        public ImmutableFunArray(uint[] values):this(values, FunnyType.UInt32) {}
-        public ImmutableFunArray(ulong[] values):this(values, FunnyType.UInt64) {}
-        public ImmutableFunArray(short[] values):this(values, FunnyType.Int16) {}
-        public ImmutableFunArray(int[] values):this(values, FunnyType.Int32) {}
-        public ImmutableFunArray(long[] values):this(values, FunnyType.Int64) {}
-        public ImmutableFunArray(double[] values) : this(values, FunnyType.Real) { }
+        public ImmutableFunnyArray(bool[] values):this(values, FunnyType.Bool) {}
+        public ImmutableFunnyArray(byte[] values):this(values, FunnyType.UInt8) {}
+        public ImmutableFunnyArray(ushort[] values):this(values, FunnyType.UInt16) {}
+        public ImmutableFunnyArray(uint[] values):this(values, FunnyType.UInt32) {}
+        public ImmutableFunnyArray(ulong[] values):this(values, FunnyType.UInt64) {}
+        public ImmutableFunnyArray(short[] values):this(values, FunnyType.Int16) {}
+        public ImmutableFunnyArray(int[] values):this(values, FunnyType.Int32) {}
+        public ImmutableFunnyArray(long[] values):this(values, FunnyType.Int64) {}
+        public ImmutableFunnyArray(double[] values) : this(values, FunnyType.Real) { }
 
-        public ImmutableFunArray(Array values, FunnyType elementType)
+        public ImmutableFunnyArray(Array values, FunnyType elementType)
         {
             ElementType = elementType;
             ClrArray = values;
             Count = ClrArray.Length;
         }
         
-        public ImmutableFunArray(FunnyType elementType, params ImmutableFunArray[] values)
+        public ImmutableFunnyArray(FunnyType elementType, params ImmutableFunnyArray[] values)
         {
             ClrArray = values;
             Count = ClrArray.Length;
@@ -62,23 +62,23 @@ namespace NFun.Runtime.Arrays {
 
         IEnumerator IEnumerable.GetEnumerator() => ClrArray.GetEnumerator();
 
-        public IFunArray Slice(int? startIndex, int? endIndex, int? step) =>
+        public IFunnyArray Slice(int? startIndex, int? endIndex, int? step) =>
             FunnyArrayTools.SliceToImmutable(ClrArray, ElementType, startIndex, endIndex, step);
 
         public object GetElementOrNull(int index) => index >= ClrArray.Length ? null : ClrArray.GetValue(index);
 
-        public bool IsEquivalent(IFunArray array) => TypeHelper.AreEquivalent(this, array);
+        public bool IsEquivalent(IFunnyArray array) => TypeHelper.AreEquivalent(this, array);
 
         public override bool Equals(object obj)
         {
-            if (obj is ImmutableFunArray f)
+            if (obj is ImmutableFunnyArray f)
             {
                 return Equals(f);
             }
             return false;
         }
 
-        private bool Equals(ImmutableFunArray other)
+        private bool Equals(ImmutableFunnyArray other)
         {
             if (Count != other.Count)
                 return false;

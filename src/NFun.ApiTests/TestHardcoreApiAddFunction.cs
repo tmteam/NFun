@@ -19,7 +19,7 @@ namespace NFun.ApiTests
             var runtime = Funny.Hardcore
                 .WithFunction(
                 new FunctionMock(
-                    args => ((IFunArray)args[0]).Count, 
+                    args => ((IFunnyArray)args[0]).Count, 
                     customName, 
                     FunnyType.Int32, 
                     FunnyType.Text))
@@ -38,7 +38,7 @@ namespace NFun.ApiTests
             var runtime = Funny.Hardcore
                 .WithFunction(
                     new GenericFunctionMock(
-                        args => new EnumerableFunArray(((IEnumerable<object>)args[0])
+                        args => new EnumerableFunnyArray(((IEnumerable<object>)args[0])
                             .Where((_, i) => i % 2 == 0), FunnyType.Any),
                         customName,
                         FunnyType.ArrayOf(FunnyType.Generic(0)),

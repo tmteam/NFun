@@ -33,12 +33,17 @@ namespace NFun.Types
         public static FunnyType Int64 => new(BaseFunnyType.Int64);
         public static FunnyType Real => new(BaseFunnyType.Real);
         public static FunnyType  Text =>  ArrayOf(Char);
-        public static FunnyType StructOf(Dictionary<string, FunnyType> fields) 
-            => new(fields);
+        public static FunnyType StructOf(Dictionary<string, FunnyType> fields)
+        {
+            if (fields.Comparer != StructKeyComparer)
+                throw new InvalidOperationException("Only FunnyType.StructKeyComparer comparator is allowed");
+            return new(fields);
+        }
+        
         public static FunnyType StructOf(params (string,FunnyType)[] fields) 
-            => new(fields.ToDictionary(f=>f.Item1, f=>f.Item2));
+            => new(fields.ToDictionary(f=>f.Item1, f=>f.Item2,StructKeyComparer));
         public static FunnyType StructOf(string fieldName, FunnyType fieldType) 
-            => new(new Dictionary<string, FunnyType>{{fieldName,fieldType}});
+            => new(new Dictionary<string, FunnyType>(StructKeyComparer) {{fieldName,fieldType}});
 
 
         public static FunnyType ArrayOf(FunnyType type) => new(type);
@@ -47,7 +52,8 @@ namespace NFun.Types
             => new(output: returnType, inputs: inputTypes);
 
         public static FunnyType Generic(int genericId) => new(genericId);
-
+        internal static readonly StringComparer StructKeyComparer = StringComparer.InvariantCultureIgnoreCase;
+            
         private FunnyType(FunnyType output, FunnyType[] inputs)
         {
             FunTypeSpecification = new FunTypeSpecification(output, inputs);
@@ -171,6 +177,8 @@ namespace NFun.Types
             }
         }
 
+        public bool IsPrimitive 
+            => (BaseType >= BaseFunnyType.Char && BaseType <= BaseFunnyType.Real) || BaseType== BaseFunnyType.Any;
         public bool IsNumeric() 
             => BaseType >= BaseFunnyType.UInt8 && BaseType <= BaseFunnyType.Real;
         /// <summary>

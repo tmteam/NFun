@@ -131,6 +131,8 @@ namespace NFun.SyntaxTests.BuiltInFunctions
         })]
         [TestCase("y:byte[]=convert(0x123)", new byte[] {35, 1, 0, 0})]
         [TestCase("y:byte[]=convert(0xFA00FA)", new byte[] {250, 0, 250, 0})]
+        [TestCase("y:bool=convert(1)", true)]
+        [TestCase("y:bool=convert(0)", false)]
         [TestCase("y:byte[]=convert('hi there')",
             new byte[] {0x68, 00, 0x69, 00, 0x20, 00, 0x74, 00, 0x68, 00, 0x65, 00, 0x72, 00, 0x65, 00})]
         public void ConstantConvertFunctionTest(string expr, object expected)

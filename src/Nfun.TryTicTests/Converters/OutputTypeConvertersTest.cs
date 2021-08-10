@@ -42,7 +42,7 @@ namespace NFun.UnitTests.Converters
 
             Assert.AreEqual(FunnyType.ArrayOf(FunnyType.PrimitiveOf(expectedTypeName)), converter.FunnyType);
             var convertedValue = converter.ToClrObject(
-                new ImmutableFunArray(primitiveValue as Array, FunnyType.PrimitiveOf(expectedTypeName)));
+                new ImmutableFunnyArray(primitiveValue as Array, FunnyType.PrimitiveOf(expectedTypeName)));
             Assert.AreEqual(primitiveValue, convertedValue);
         }
         [TestCase("")]
@@ -53,7 +53,7 @@ namespace NFun.UnitTests.Converters
             var converter = FunnyTypeConverters.GetOutputConverter(typeof(string));
             Assert.AreEqual(FunnyType.Text, converter.FunnyType);
             
-            Assert.AreEqual(value, converter.ToClrObject(new TextFunArray(value)));
+            Assert.AreEqual(value, converter.ToClrObject(new TextFunnyArray(value)));
         }
         [Test]
         public void ConvertArrayOfStrings()
@@ -63,8 +63,8 @@ namespace NFun.UnitTests.Converters
             var converter = FunnyTypeConverters.GetOutputConverter(clrValue.GetType());
 
             Assert.AreEqual(FunnyType.ArrayOf(FunnyType.Text), converter.FunnyType);
-            var funValue = new ImmutableFunArray(
-                clrValue.Select(i => new TextFunArray(i)).ToArray(), FunnyType.Text);
+            var funValue = new ImmutableFunnyArray(
+                clrValue.Select(i => new TextFunnyArray(i)).ToArray(), FunnyType.Text);
 
             Assert.AreEqual(clrValue, converter.ToClrObject(funValue));
 

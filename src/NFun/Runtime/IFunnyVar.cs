@@ -87,9 +87,7 @@ namespace NFun.Runtime
         public string Name { get; }
         internal Interval? TypeSpecificationIntervalOrNull { get; }
         public FunnyType Type { get; }
-
         public object FunnyValue => InternalFunnyValue;
-
         public object Value
         {
             get => FunnyTypeConverters.GetOutputConverter(Type).ToClrObject(InternalFunnyValue);

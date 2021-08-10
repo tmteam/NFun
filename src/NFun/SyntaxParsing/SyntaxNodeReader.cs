@@ -202,7 +202,7 @@ namespace NFun.SyntaxParsing
             if (flow.MoveIf(TokType.RealNumber, out var realVal))       //1.0
                 return SyntaxNodeFactory.Constant(double.Parse(realVal.Value.Replace("_", String.Empty), CultureInfo.InvariantCulture), FunnyType.Real, realVal.Interval);
             if (flow.MoveIf(TokType.Text, out var txt))
-                return SyntaxNodeFactory.Constant(new TextFunArray(txt.Value),FunnyType.Text,txt.Interval);
+                return SyntaxNodeFactory.Constant(new TextFunnyArray(txt.Value),FunnyType.Text,txt.Interval);
             if (flow.MoveIf(TokType.Id, out var headToken))
             {
                 //fun call
@@ -433,7 +433,7 @@ namespace NFun.SyntaxParsing
             // '...{ 
             if(openInterpolationToken.Value!= String.Empty)
                 concatenations.Add(SyntaxNodeFactory.Constant(
-                    new TextFunArray(openInterpolationToken.Value), 
+                    new TextFunnyArray(openInterpolationToken.Value), 
                     FunnyType.Text,
                     openInterpolationToken.Interval));
 
@@ -457,7 +457,7 @@ namespace NFun.SyntaxParsing
                     if (flow.Current.Value != String.Empty)
                     {
                         concatenations.Add(SyntaxNodeFactory.Constant(
-                            new TextFunArray(flow.Current.Value),
+                            new TextFunnyArray(flow.Current.Value),
                             FunnyType.Text,
                             flow.Current.Interval));
                     }
@@ -489,7 +489,7 @@ namespace NFun.SyntaxParsing
                 else if (flow.Current.Type is TokType.TextMidInterpolation)
                 {
                     concatenations.Add(SyntaxNodeFactory.Constant(
-                        new TextFunArray(flow.Current.Value),
+                        new TextFunnyArray(flow.Current.Value),
                         FunnyType.Text,
                         openInterpolationToken.Interval));
                     flow.MoveNext();

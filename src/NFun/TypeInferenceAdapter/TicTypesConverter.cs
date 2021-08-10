@@ -74,7 +74,10 @@ namespace NFun.TypeInferenceAdapter
                         case StateFun fun:
                             return FunnyType.Fun(Convert(fun.ReturnType), fun.ArgNodes.SelectToArray(a => Convert(a.State)));
                         case StateStruct str:
-                            return FunnyType.StructOf(str.Fields.ToDictionary(f => f.Key, f => Convert(f.Value.State)));
+                            return FunnyType.StructOf(str.Fields.ToDictionary(
+                                f => f.Key.ToLower(), 
+                                f => Convert(f.Value.State), 
+                                FunnyType.StructKeyComparer));
                         default:
                             throw new NotSupportedException();
                     }
@@ -97,9 +100,10 @@ namespace NFun.TypeInferenceAdapter
                     StateArray array => FunnyType.ArrayOf(Convert(array.Element)),
                     StateFun fun => FunnyType.Fun(Convert(fun.ReturnType),
                         fun.ArgNodes.SelectToArray(a => Convert(a.State))),
-                    StateStruct strct => FunnyType.StructOf(strct.Fields.ToDictionary(
-                        keySelector:     f => f.Key,
-                        elementSelector: f => Convert(f.Value.GetNonReference().State))),
+                    StateStruct @struct => FunnyType.StructOf(@struct.Fields.ToDictionary(
+                        keySelector:     f => f.Key.ToLower(),
+                        elementSelector: f => Convert(f.Value.GetNonReference().State),
+                        FunnyType.StructKeyComparer)),
                     _ => throw new NotSupportedException($"State {type} is not supported for convertion to Fun type")
                 };
 
@@ -145,39 +149,40 @@ namespace NFun.TypeInferenceAdapter
                         case StateFun fun:
                             return FunnyType.Fun(Convert(fun.ReturnType), fun.ArgNodes.SelectToArray(a => Convert(a.State)));
                         case StateStruct @struct:
-                            return FunnyType.StructOf(@struct.Fields.ToDictionary(f => f.Key, f => Convert(f.Value.State)));
+                            return FunnyType.StructOf(@struct.Fields.ToDictionary(
+                                f => f.Key.ToLower(), 
+                                f => Convert(f.Value.State),
+                                FunnyType.StructKeyComparer));
                         default:
                             throw new NotSupportedException();
                     }
                 }
             }
         }
-        public static FunnyType ToConcrete(PrimitiveTypeName name)
-        {
-            switch (name)
+        public static FunnyType ToConcrete(PrimitiveTypeName name) =>
+            name switch
             {
-                case PrimitiveTypeName.Any: return FunnyType.Any;
-                case PrimitiveTypeName.Char: return FunnyType.Char;
-                case PrimitiveTypeName.Bool: return FunnyType.Bool;
-                case PrimitiveTypeName.Real: return FunnyType.Real;
-                case PrimitiveTypeName.I64: return FunnyType.Int64;
-                case PrimitiveTypeName.I32: return FunnyType.Int32;
-                case PrimitiveTypeName.I24: return FunnyType.Int32;
-                case PrimitiveTypeName.I16: return FunnyType.Int16;
-                case PrimitiveTypeName.U64: return FunnyType.UInt64;
-                case PrimitiveTypeName.U32: return FunnyType.UInt32;
-                case PrimitiveTypeName.U16: return FunnyType.UInt16;
-                case PrimitiveTypeName.U8: return FunnyType.UInt8;
-
-                case PrimitiveTypeName.I96: return FunnyType.Int64; /*return VarType.Real;*/
-                case PrimitiveTypeName.I48: return FunnyType.Int32;/*;*/
-                case PrimitiveTypeName.U48: /*return VarType.Int64;*/
-                case PrimitiveTypeName.U24: /*return VarType.Int32;*/
-                case PrimitiveTypeName.U12: /*return VarType.Int16;*/
-                    throw new InvalidOperationException("Cannot cast abstract type " + name);
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
+                PrimitiveTypeName.Any => FunnyType.Any,
+                PrimitiveTypeName.Char => FunnyType.Char,
+                PrimitiveTypeName.Bool => FunnyType.Bool,
+                PrimitiveTypeName.Real => FunnyType.Real,
+                PrimitiveTypeName.I64 => FunnyType.Int64,
+                PrimitiveTypeName.I32 => FunnyType.Int32,
+                PrimitiveTypeName.I24 => FunnyType.Int32,
+                PrimitiveTypeName.I16 => FunnyType.Int16,
+                PrimitiveTypeName.U64 => FunnyType.UInt64,
+                PrimitiveTypeName.U32 => FunnyType.UInt32,
+                PrimitiveTypeName.U16 => FunnyType.UInt16,
+                PrimitiveTypeName.U8 => FunnyType.UInt8,
+                PrimitiveTypeName.I96 => FunnyType.Int64,
+                PrimitiveTypeName.I48 => FunnyType.Int32,
+                PrimitiveTypeName.U48 => 
+                    throw new InvalidOperationException("Cannot cast abstract type " + name),
+                PrimitiveTypeName.U24 => 
+                    throw new InvalidOperationException("Cannot cast abstract type " + name),
+                PrimitiveTypeName.U12 => 
+                    throw new InvalidOperationException("Cannot cast abstract type " + name),
+                _ => throw new ArgumentOutOfRangeException()
+            };
     }
 }
