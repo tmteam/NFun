@@ -70,7 +70,7 @@ namespace NFun.SyntaxTests.UserFunctions
         public void ConstantEquationWithUpcast(string expr, object expected)
         {
             var result = expr.Calc().Get("y");
-            Assert.IsTrue(TypeHelper.AreEqual(result, expected), $"result: {result} expected: {expected}");
+            Assert.IsTrue(TestHelper.AreSame(result,expected), $"result: {result} expected: {expected}");
         }
         
         [TestCase("repeat(a) = a.concat(a); " +

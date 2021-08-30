@@ -8,7 +8,6 @@ namespace NFun.SyntaxTests.BuiltInFunctions
         [TestCase("y:int = [0,7,1,2,3] . fold(max)", 7)]
         [TestCase("y:int = [0x0,7,1,2,3] . fold( fun(a,b)= a+b)", 13)]
         [TestCase("y = [0.0,7.0,1.0,2.0,3.0] . fold(fun(a,b)= a+b)", 13.0)]
-
         [TestCase("mysum(x:int, y:int):int = x+y \r" +
                   "y = [0,7,1,2,3].fold(mysum)", 13)]
         [TestCase(@"rr(x:real):bool = x>10
@@ -44,62 +43,49 @@ namespace NFun.SyntaxTests.BuiltInFunctions
         [TestCase("y:int = [1,2,3,4,5,6,7].filter((fun it%2==0)).fold(fun if(it1>it2) it1 else it2)", 6)]
         [TestCase("y:int = [1,2,3,4,5,6,7].filter(fun it%2==0).fold(fun 0)", 0)]
         [TestCase("y:int = [1,2,3,4,5,6,7].filter((fun it%2==0)).fold(fun 0)", 0)]
-        public void HiOrderFunConstantEquatation(string expr, object expected) 
-            => expr.AssertReturns("y",expected);
+        public void HiOrderFunConstantEquatation(string expr, object expected)
+            => expr.AssertReturns("y", expected);
 
         [TestCase("y:int[] = take([1,2,3,4,5],3)", new[] { 1, 2, 3 })]
         [TestCase("y = take([1.0,2.0,3.0,4.0,5.0],4)", new[] { 1.0, 2.0, 3.0, 4.0 })]
         [TestCase("y = take([1.0,2.0,3.0],20)", new[] { 1.0, 2.0, 3.0 })]
         [TestCase("y = take([1.0,2.0,3.0],0)", new double[0])]
         [TestCase("y = take(skip([1.0,2.0,3.0],1),1)", new[] { 2.0 })]
-
         [TestCase("y:int[] = skip([1,2,3,4,5],3)", new[] { 4, 5 })]
         [TestCase("y = skip(['1','2','3','4','5'],3)", new[] { "4", "5" })]
         [TestCase("y = skip([1.0,2.0,3.0,4.0,5.0],4)", new[] { 5.0 })]
         [TestCase("y = skip([1.0,2.0,3.0],20)", new double[0])]
         [TestCase("y = skip([1.0,2.0,3.0],0)", new[] { 1.0, 2.0, 3.0 })]
-
         [TestCase("y = repeat('abc',3)", new[] { "abc", "abc", "abc" })]
         [TestCase("y = repeat('abc',0)", new string[0])]
-
         [TestCase("mypage(x:int[]):int[] = take(skip(x,1),1) \r y = mypage([1,2,3]) ", new[] { 2 })]
-
         [TestCase("y:int[] = [1,2,3]. reverse()", new[] { 3, 2, 1 })]
         [TestCase("y:int[] = [1,2,3]. reverse() . reverse()", new[] { 1, 2, 3 })]
         [TestCase("y = []. reverse()", new object[0])]
-
         [TestCase("y:int = [1,2,3][1]", 2)]
         [TestCase("y:int = [1,2,3][0]", 1)]
-
         [TestCase("y = [1.0,2.0].concat([3.0,4.0])", new[] { 1.0, 2.0, 3.0, 4.0 })]
         [TestCase("y = [1.0].concat([2.0]).concat([3.0,4.0])", new[] { 1.0, 2.0, 3.0, 4.0 })]
         [TestCase("y = [].concat([])", new object[0])]
-
         [TestCase("y:int[] = [1,2,3].set(1,42)", new[] { 1, 42, 3 })]
-
         [TestCase("y = [1.0] .repeat(3).flat()", new[] { 1.0, 1.0, 1.0 })]
         [TestCase("y = [] .repeat(3).flat()", new object[0])]
         [TestCase("y = ['a','b'] .repeat(3).flat()", new[] { "a", "b", "a", "b", "a", "b" })]
         [TestCase("y = ['a','b'] .repeat(0).flat()", new string[0])]
         [TestCase("y = ['a','b'] .repeat(1).flat()", new[] { "a", "b" })]
-
         [TestCase("y = [1.0,2.0] . unite([3.0,4.0])", new[] { 1.0, 2.0, 3.0, 4.0 })]
         [TestCase("y = [1.0,2.0,3.0]. unite([3.0,4.0])", new[] { 1.0, 2.0, 3.0, 4.0 })]
-
         [TestCase("y = []. intersect([])", new object[0])]
         [TestCase("y = [1.0,4.0,2.0,3.0] .intersect([3.0,4.0])", new[] { 4.0, 3.0 })]
         [TestCase("y = [1.0,4.0,2.0,3.0,4.0] .intersect([3.0,4.0])", new[] { 4.0, 3.0 })]
         [TestCase("y = []. unite([])", new object[0])]
-
         [TestCase("y = [1.0,2.0].unique([3.0,4.0])", new[] { 1.0, 2.0, 3.0, 4.0 })]
         [TestCase("y = [1.0,2.0,3.0].unique([3.0,4.0])", new[] { 1.0, 2.0, 4.0 })]
         [TestCase("y = [3.0,4.0].unique([3.0,4.0])", new double[0])]
         [TestCase("y = [].unique([])", new object[0])]
-
         [TestCase("y = []. except([])", new object[0])]
         [TestCase("y = [1.0,2.0] . except([3.0,4.0])", new[] { 1.0, 2.0 })]
         [TestCase("y = [1.0,2.0,3.0].except([3.0,4.0])", new[] { 1.0, 2.0 })]
-
         [TestCase("y = find([1,2,3], 2)", 1)]
         [TestCase("y = find([1,2,3], 4)", -1)]
         [TestCase("y = find([1,2,-4], -4)", 2)]
@@ -107,14 +93,13 @@ namespace NFun.SyntaxTests.BuiltInFunctions
         [TestCase("y = find([[1,2],[3,4],[5,6]], [3,5])", -1)]
         [TestCase("y = find(['la','LALA','pipi'], 'pipi')", 2)]
         [TestCase("y = find(['la','LALA','pipi'], 'pIpi')", -1)]
-
+        [TestCase("y = find([{id =12},{id = 31},{id = 42}], {id =31})", 1)]
         [TestCase("y:int[] = [[1],[2,3],[4,5,6]].flat()", new[] { 1, 2, 3, 4, 5, 6 })]
         [TestCase("y:int[] = [[1]][1:1].flat()", new int[0])]
         [TestCase("y:int[] = [[1][1:1]].flat()", new int[0])]
         [TestCase("y = flat([['1'],['2','3'],['4','5','6']])", new[] { "1", "2", "3", "4", "5", "6" })]
         [TestCase("y = flat([['1']][1:1])", new string[0])]
         [TestCase("y = flat([['1'][1:1]])", new string[0])]
-
         [TestCase("y = [0..100].chunk(10)[0] == [0..9]", true)]
         [TestCase("y = [0..100].chunk(10)[1] == [10..19]", true)]
         [TestCase("y = [0..100].chunk(10)[9] == [90..99]", true)]
@@ -127,15 +112,12 @@ namespace NFun.SyntaxTests.BuiltInFunctions
         [TestCase("y = [0..1].chunk(7) == [[0,1]]", true)]
         [TestCase("y = [0..6].chunk(2) == [[0,1],[2,3],[4,5],[6]]", true)]
         [TestCase("y = [3..7].chunk(1) == [[3],[4],[5],[6],[7]]", true)]
-        
         [TestCase("y = [true,false,true].map(toText).join(', ')", "True, False, True")]
         [TestCase("y = [1,2,3,4].map(toText).join(', ')", "1, 2, 3, 4")]
         [TestCase("y = ['1','2','3','4'].join(', ')", "1, 2, 3, 4")]
         [TestCase("y = ['1','2','3','4'].join(',')", "1,2,3,4")]
         [TestCase("y = ['01','02','03','04'].join(',')", "01,02,03,04")]
-
         [TestCase("y = ['1'].join(',')", "1")]
-
         [TestCase("y = '1 2 3 4 5'.split(' ')", new[] { "1", "2", "3", "4", "5" })]
         [TestCase("y = ' '.split(' ')", new string[0])]
         [TestCase("y = '1 2 3 4 5'.split(' ').join(',')", "1,2,3,4,5")]
@@ -144,14 +126,13 @@ namespace NFun.SyntaxTests.BuiltInFunctions
         [TestCase("y = '12'.map(toText)", new[] { "1", "2" })]
         [TestCase("y = 'c b a'.split(' ').sort().join(' ')", "a b c")]
         [TestCase("y = 123.toText().reverse()", "321")]
-        public void ConstantEquationWithGenericPredefinedFunction(string expr, object expected) => 
-            expr.AssertReturns("y",expected);
+        public void ConstantEquationWithGenericPredefinedFunction(string expr, object expected) =>
+            expr.AssertReturns("y", expected);
 
         [TestCase("y = [1..100].chunk(-1)")]
         [TestCase("y = [1..100].chunk(0)")]
         [TestCase(@"iSum(r:int, x:int):int = r+x
                      y = fold([100][1:1], iSum)")]
-
         public void FailsOnRuntime(string expr) => expr.AssertObviousFailsOnRuntime();
     }
 }

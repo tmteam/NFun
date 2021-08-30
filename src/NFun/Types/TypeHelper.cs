@@ -7,7 +7,7 @@ using NFun.Runtime.Arrays;
 
 namespace NFun.Types
 {
-    public static class TypeHelper
+    internal static class TypeHelper
     {
         static TypeHelper()
         {
@@ -56,10 +56,10 @@ namespace NFun.Types
         private static readonly Type[] FunToClrTypesMap;
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Type GetClrType (this BaseFunnyType funnyType) => FunToClrTypesMap[(int) funnyType];
-        public static string GetFunSignature<T>(string name, T returnType, IEnumerable<T> arguments)
+        internal static Type GetClrType (this BaseFunnyType funnyType) => FunToClrTypesMap[(int) funnyType];
+        internal static string GetFunSignature<T>(string name, T returnType, IEnumerable<T> arguments)
             => name + "(" + string.Join(",", arguments) + "):" + returnType;
-        public static string GetFunSignature<T>(T returnType, IEnumerable<T> arguments)
+        internal static string GetFunSignature<T>(T returnType, IEnumerable<T> arguments)
             => "(" + string.Join(",", arguments) + "):" + returnType;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -78,7 +78,8 @@ namespace NFun.Types
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static bool CanBeUsedAsFunnyOutputProperty(this PropertyInfo property) =>
             property.CanWrite && property.SetMethod.Attributes.HasFlag(MethodAttributes.Public);
-        public static object GetDefaultValueOrNull(this FunnyType type)
+        
+        internal static object GetDefaultValueOrNull(this FunnyType type)
         {
             var defaultValue  =  DefaultPrimitiveValues[(int) type.BaseType];
             if (defaultValue != null)

@@ -11,18 +11,24 @@ namespace NFun.SyntaxTests.Structs
         [TestCase("y = {a = 1.0;}")]
         [TestCase("y = {;a =; 1.0;}")]
         [TestCase("y = {a = 1.0,}")]
-
         public void SingleFieldStructInitialization(string expr) =>
             expr
                 .Calc()
-                .AssertReturns("y", new{a =1.0});
+                .AssertReturns("y", new { a = 1.0 });
+
+        [Ignore("Lca calculation")]
+        [TestCase("y = [{a =1.0},{id = 31},{id = 42}][0]")]
+        public void StructLca(string expr) =>
+            expr
+                .Calc()
+                .AssertReturns("y", new { a = 1.0 });
 
         [Test]
         public void TwoFieldStructInitialization() =>
             "y = {a = 1.0; b ='vasa'}"
                 .Calc()
                 .AssertReturns("y",
-                    new {a = 1.0, b = "vasa"});
+                    new { a = 1.0, b = "vasa" });
 
 
         [TestCase("y = {a = 1.0; b ='vasa'; c = 12*5.0}")]
@@ -37,53 +43,51 @@ namespace NFun.SyntaxTests.Structs
             expr
                 .Calc()
                 .AssertReturns("y", new
-                    {
-                        a = 1.0,
-                        b = "vasa",
-                        c = 60.0
-                    });
+                {
+                    a = 1.0,
+                    b = "vasa",
+                    c = 60.0
+                });
 
         [Test]
         public void ConstAccessNested() =>
             "y = { b = 'foo'}.b"
                 .Calc()
                 .AssertReturns("y", "foo");
-        
+
         [Test]
         public void ConstAccessNestedComposite() =>
             "y = { b = [1,2,3]}.b[1]"
                 .Calc()
                 .AssertReturns("y", 2);
-        
+
         [Test]
         public void ConstAccessDoubleNestedComposite() =>
             "y = { a1 = {b2 = [1,2,3]}}.a1.b2[1]"
                 .Calc()
                 .AssertReturns("y", 2);
-        
+
 
         [Test]
         public void StructInitializationWithCalculationAndNestedStruct() =>
-           ( "y = {" +
-                       "  a = true;" +
-                       "  b = { " +
-                       "           c=[1.0,2.0,3.0];" +
-                       "           d=false" +
-                       "        };" +
-                       "  c = 12*5.0" +
-                       "}").Calc()
-                .AssertReturns("y", new
+            ("y = {" +
+             "  a = true;" +
+             "  b = { " +
+             "           c=[1.0,2.0,3.0];" +
+             "           d=false" +
+             "        };" +
+             "  c = 12*5.0" +
+             "}").Calc()
+            .AssertReturns("y", new
+            {
+                a = true,
+                b = new
                 {
-                    a = true,
-                    b = new
-                    {
-                        c = new []{1.0,2.0,3.0},
-                        d = false
-                        
-                    },
-                    c = 60.0
-                });
-
+                    c = new[] { 1.0, 2.0, 3.0 },
+                    d = false
+                },
+                c = 60.0
+            });
 
 
         [Test]
@@ -94,46 +98,49 @@ namespace NFun.SyntaxTests.Structs
                 {
                     age = 42
                 })).AssertReturns("y", 42);
-        
+
         [Test]
         public void AccessToNestedFieldsWithExplicitTi() =>
             "y:int = {age = 42; name = 'vasa'}.age"
                 .Calc()
-                .AssertReturns("y",42);
+                .AssertReturns("y", 42);
+
         [Test]
         public void AccessToNestedRealField() =>
             "y = {age = 42.0; name = 'vasa'}.age"
                 .Calc()
-                .AssertReturns("y",42.0);
+                .AssertReturns("y", 42.0);
+
         [Test]
         public void AccessToNestedIntField() =>
             "y = {age = 42; name = 'vasa'}.age"
                 .Calc()
-                .AssertReturns("y",42);
+                .AssertReturns("y", 42);
+
         [Test]
         public void AccessToNestedTextField() =>
             "y = {age = 42; name = 'vasa'}.name"
                 .Calc()
-                .AssertReturns("y","vasa");
-        
+                .AssertReturns("y", "vasa");
+
         [Test]
         public void AccessToNestedFieldsWithExplicitTi2() =>
             "y:any = {age = 42; name = 'vasa'}.name"
                 .Calc()
-                .AssertReturns("y",(object)"vasa");
-        
-        
+                .AssertReturns("y", (object)"vasa");
+
+
         [Test]
         public void TwoFieldsAccess() =>
             "y1:int = a.age; y2:real = a.size"
                 .Build()
-                .Calc("a", 
+                .Calc("a",
                     new
                     {
                         age = 42,
                         size = 1.1
                     })
-                .AssertReturns(("y1", 42),("y2", 1.1));
+                .AssertReturns(("y1", 42), ("y2", 1.1));
 
         [Test]
         public void ThreeFieldsAccess() =>
@@ -153,45 +160,46 @@ namespace NFun.SyntaxTests.Structs
         [Test]
         public void NegateIntFieldAccess() =>
             "a = {b = 1}; y = -a.b".AssertResultHas("y", -1);
-        
+
         [Test]
         public void NegateRealFieldAccess() =>
             "a = {b = 1.0}; y = -a.b".AssertResultHas("y", -1.0);
 
         [Test]
         public void NegateFieldAccessWithBrackets() =>
-            "a = {b = 1}; y = -(a.b)".AssertResultHas("y",-1);
+            "a = {b = 1}; y = -(a.b)".AssertResultHas("y", -1);
 
         [Test]
         public void DoubleNegateIntFieldAccessWithBrackets() =>
             "a = {b = 1}; y = -(-a.b)".AssertResultHas("y", 1);
+
         [Test]
         public void DoubleNegateRealFieldAccessWithBrackets() =>
             "a = {b = 1.0}; y = -(-a.b)".AssertResultHas("y", 1.0);
-        
+
         [Test]
         public void ArithmFieldAccess() =>
-            "a = {b = 1}; y = -1* (a.b)".AssertResultHas("y",-1);
+            "a = {b = 1}; y = -1* (a.b)".AssertResultHas("y", -1);
 
         [Test]
         public void ConcreteArithmFieldAccess() =>
             "a = {b = 1}; y:int = -1* (a.b)".AssertResultHas("y", -1);
-        
+
         [Test]
         public void ConcreteFieldAccess() =>
-            "a = {b = 1}; y:int = a.b".AssertResultHas("y",1);
+            "a = {b = 1}; y:int = a.b".AssertResultHas("y", 1);
 
         [Test]
         public void VarAccessCreated() =>
-            "a = {b = x; c=2}; y = a.b + a.c".Calc("x",42).AssertResultHas("y",44);
+            "a = {b = x; c=2}; y = a.b + a.c".Calc("x", 42).AssertResultHas("y", 44);
 
         [Test]
         public void VarAccessCreatedInverted() =>
-            "a = {b = 55; c=x}; y = a.b + a.c".Calc("x",42).AssertResultHas("y",97);
-        
+            "a = {b = 55; c=x}; y = a.b + a.c".Calc("x", 42).AssertResultHas("y", 97);
+
         [Test]
         public void VarTwinAccessCreated() =>
-            "a = {b = x; c=x}; y = a.b + a.c".Calc("x",42.0).AssertResultHas("y",84.0);
+            "a = {b = x; c=x}; y = a.b + a.c".Calc("x", 42.0).AssertResultHas("y", 84.0);
 
         [Test]
         public void ConstantAccessNestedCreated()
@@ -318,8 +326,7 @@ namespace NFun.SyntaxTests.Structs
             TraceLog.IsEnabled = true;
             ("str = {field = 1.0}; " +
              $"y = {string.Join("+", Enumerable.Range(0, n).Select(_ => "str.field"))}")
-                .AssertResultHas("y", (double) n);
-
+                .AssertResultHas("y", (double)n);
         }
 
         [TestCase(1)]
@@ -331,7 +338,7 @@ namespace NFun.SyntaxTests.Structs
             TraceLog.IsEnabled = true;
             ("str = {field = 1}; " +
              $"y = {string.Join("+", Enumerable.Range(0, n).Select(_ => "str.field"))}")
-                .AssertResultHas("y",  n);
+                .AssertResultHas("y", n);
         }
 
         [Test]
@@ -347,72 +354,76 @@ namespace NFun.SyntaxTests.Structs
         [Test]
         public void VarAccessNestedCreated() =>
             ("a = {b = x; c=x}; " +
-                       "b = {d = a; e = a.c; f = 3}; " +
-                       "y = b.d.b + b.e + b.f")
-                .Calc("x",42)
+             "b = {d = a; e = a.c; f = 3}; " +
+             "y = b.d.b + b.e + b.f")
+            .Calc("x", 42)
             .AssertResultHas("y", 87);
-        
+
         [Test]
         public void ConstAccessNestedCreatedComposite() =>
-            ( "a = {b= [1,2,3]};" +
-                        "y = a.b[1]")
-                .Calc()
+            ("a = {b= [1,2,3]};" +
+             "y = a.b[1]")
+            .Calc()
             .AssertResultHas("y", 2);
-        
+
         [Test]
         public void ConstAccessDoubleNestedCreatedComposite() =>
-            ( "a = {b= [1,2,3]; c = 'vasa'};" +
-                        "d = {e = 'lala'; f = a};" +
-                        "y = d.f.b[1]")
-                .AssertResultHas("y", 2);
-        
+            ("a = {b= [1,2,3]; c = 'vasa'};" +
+             "d = {e = 'lala'; f = a};" +
+             "y = d.f.b[1]")
+            .AssertResultHas("y", 2);
+
         [Test]
         public void ConstAccessDoubleNestedCreated() => "d = {f = {b= 2.0}}; y = d.f.b".AssertResultHas("y", 2.0);
+
         [Test]
         public void ConstAccessFourNestedCreated() =>
             ("d = {f1 = {f2= {f3= {f4= 2.0}}}};" +
-                       "y = d.f1.f2.f3.f4").AssertResultHas("y", 2.0);
+             "y = d.f1.f2.f3.f4").AssertResultHas("y", 2.0);
 
         [Test]
         public void ConstAccessFourNested() =>
             "y = { f1 = {f2= {f3= {f4= 2.0}}}}.f1.f2.f3.f4".AssertResultHas("y", 2.0);
 
+
         [Test]
         public void ConstAccessFourNestedWithSameFieldNames() =>
             "y = { f = {f= {f= {f= 2.0}}}}.f.f.f.f".AssertResultHas("y", 2.0);
+
         [Test]
-        public void VarAccessNestedCreatedComposite() => 
-            "a = { b= [x,2,3]}; y = a.b[0]".Calc("x",42).AssertResultHas("y", 42);
-        
+        public void VarAccessNestedCreatedComposite() =>
+            "a = { b= [x,2,3]}; y = a.b[0]".Calc("x", 42).AssertResultHas("y", 42);
+
         [Test]
         public void VarAccessNestedCreatedComposite2() =>
             "a = {b= [x,2,3]};y = -a.b[0]"
-                .Calc("x",42)
+                .Calc("x", 42)
                 .AssertResultHas("y", -42);
+
         [Test]
         public void VarAccessNestedCreatedComposite3() =>
-             "a = {b= [x,2,3]};y = a.b[0]-1"
-                .Calc("x",42)
+            "a = {b= [x,2,3]};y = a.b[0]-1"
+                .Calc("x", 42)
                 .AssertResultHas("y", 41);
-        
+
         [Test]
         public void VarAccessDoubleNestedCreatedComposite() =>
-            ( "a = {b= [x,2,3]; c = 'vasa'};" +
-                        "d = {e = 'lala'; f = a};" +
-                        "y = -d.f.b[0]").Calc("x",42).AssertResultHas("y", -42);
-        
+            ("a = {b= [x,2,3]; c = 'vasa'};" +
+             "d = {e = 'lala'; f = a};" +
+             "y = -d.f.b[0]").Calc("x", 42).AssertResultHas("y", -42);
+
         [Test]
         public void ConstAccessArrayOfStructs() =>
             ("a = [{age = 42; name = 'vasa'}, {age = 21; name = 'peta'}];" +
-                        "y = a[1].name;")
-            .AssertResultHas("y","peta");
-      
-        
+             "y = a[1].name;")
+            .AssertResultHas("y", "peta");
+
+
         [Test]
         [Ignore("Syntax collision with pipe forward")]
         public void GenericLambdaInStruct() =>
             "a = {dec = (fun it-1); inc = (fun it+1);}; y = a.inc(1) + a.inc(2) + a.dec(3)"
-                .AssertResultHas("y",7);
+                .AssertResultHas("y", 7);
 
         [TestCase("y = {a = 1}; z = y.b")]
         [TestCase("x =  {a = 1}; y = x.b")]

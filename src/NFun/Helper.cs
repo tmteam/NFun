@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
+using NFun.Tic.SolvingStates;
 
 namespace NFun
 {
@@ -18,6 +20,7 @@ namespace NFun
                 return true;
             return char.IsDigit(id[2]);
         }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TOut[] SelectToArray<TIn, TOut>(this TIn[] input, Func<TIn, TOut> mapFunc)
         {
@@ -26,7 +29,6 @@ namespace NFun
                 ans[i] = mapFunc(input[i]);
             return ans;
         }
-        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TOut[] SelectToArray<TIn, TOut>(this IList<TIn> input, Func<TIn, TOut> mapFunc)
         {
