@@ -13,9 +13,9 @@ namespace NFun.ApiTests
             var runtime = Funny.Hardcore
                 .WithApriori<string>("x")
                 .Build("y = x");
-                
-            var res = runtime.Calc("x","test");
-            res.AssertReturns("y","test");
+
+            var res = runtime.Calc("x", "test");
+            res.AssertReturns("y", "test");
             Assert.AreEqual(FunnyType.Text, runtime["x"].Type);
             Assert.AreEqual(FunnyType.Text, runtime["y"].Type);
         }
@@ -40,28 +40,27 @@ namespace NFun.ApiTests
         public void OutputVarSpecifiedAndDoesNotConflict_AprioriOutputCalcs()
         {
             var runtime = Funny.Hardcore
-                    .WithApriori<string>("y")
-                    .Build("x:text; y = x");
-                    
-            var res = runtime.Calc("x","test");
-            res.AssertReturns("y","test");
-            Assert.AreEqual(FunnyType.Text, runtime["x"].Type,"input");
-            Assert.AreEqual(FunnyType.Text, runtime["y"].Type,"output");
+                .WithApriori<string>("y")
+                .Build("x:text; y = x");
 
+            var res = runtime.Calc("x", "test");
+            res.AssertReturns("y", "test");
+            Assert.AreEqual(FunnyType.Text, runtime["x"].Type, "input");
+            Assert.AreEqual(FunnyType.Text, runtime["y"].Type, "output");
         }
-        
-        
+
+
         [Test]
         public void AprioriVariableDoesNotUsed_Calculates()
         {
             var runtime = Funny.Hardcore
                 .WithApriori<string>("alfa")
-                .Build("x:text; y = x");                
+                .Build("x:text; y = x");
 
-            var res = runtime.Calc("x","test");
-            res.AssertReturns("y","test");
-            Assert.AreEqual(FunnyType.Text, runtime["x"].Type,"input");
-            Assert.AreEqual(FunnyType.Text, runtime["y"].Type,"output");
+            var res = runtime.Calc("x", "test");
+            res.AssertReturns("y", "test");
+            Assert.AreEqual(FunnyType.Text, runtime["x"].Type, "input");
+            Assert.AreEqual(FunnyType.Text, runtime["y"].Type, "output");
         }
 
         [Test]
@@ -78,19 +77,19 @@ namespace NFun.ApiTests
         public void OutputVarSpecifiedHasInputNameWithSameName_throws() =>
             TestHelper.AssertObviousFailsOnParse(() =>
                 Funny.Hardcore.WithApriori("x", FunnyType.Text).Build("x:int; y = x"));
-            
+
         [Test]
         public void OutputVarSpecifiedHasInputAprioriType_Calculates()
-            => Assert.DoesNotThrow(()=> Funny.Hardcore.WithApriori("x", FunnyType.Text).Build("y:text = x"));
+            => Assert.DoesNotThrow(() => Funny.Hardcore.WithApriori("x", FunnyType.Text).Build("y:text = x"));
 
-        
+
         [Test]
-        public void SpecifyTwoSameOutputs_throws()  
+        public void SpecifyTwoSameOutputs_throws()
         {
             var builder = Funny.Hardcore.WithApriori("y", FunnyType.Text);
             Assert.Throws<ArgumentException>(() => builder.WithApriori("y", FunnyType.Text));
         }
-        
+
         [Test]
         public void SpecifyTwoSameInputs_throws()
         {
@@ -108,7 +107,7 @@ namespace NFun.ApiTests
                 .Calc(("count", 3), ("name", "foo"))
                 .AssertReturns("foofoofoo");
         }
-        
+
         [Test]
         public void SpecifyVarWithSameNameAsFunction2_RepeatConcatTest()
         {

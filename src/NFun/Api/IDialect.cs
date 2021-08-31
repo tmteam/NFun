@@ -14,7 +14,7 @@ namespace NFun
     {
         internal static DialectSettings Default { get; } =
             new(IfExpressionSetup.IfIfElse, IntegerPreferredType.I32);
-        
+
         public DialectSettings(IfExpressionSetup ifExpressionSetup, IntegerPreferredType integerPreferredType)
         {
             IfExpressionSetup = ifExpressionSetup;

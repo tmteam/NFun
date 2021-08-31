@@ -2,7 +2,7 @@
 
 namespace NFun.Tic.Errors
 {
-    public class IncompatibleAncestorSyntaxNodeException : TicException
+    internal class IncompatibleAncestorSyntaxNodeException : TicException
     {
         public int SyntaxNodeId { get; }
         public ITicNodeState Ancestor { get; }

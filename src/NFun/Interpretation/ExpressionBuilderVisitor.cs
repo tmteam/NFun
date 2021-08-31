@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using NFun.Exceptions;
@@ -69,7 +68,7 @@ namespace NFun.Interpretation
         {
             var outputTypeFunDefinition = arrowAnonymFunNode.OutputType.FunTypeSpecification;
             if (outputTypeFunDefinition == null)
-                throw new NfunImpossibleException("Fun definition expected");
+                throw new NFunImpossibleException("Fun definition expected");
             string[] argNames;
             if (outputTypeFunDefinition.Inputs.Length == 1)
                 argNames = new[] { "it" };
@@ -227,7 +226,7 @@ namespace NFun.Interpretation
                     var recCallSignature = _typeInferenceResults.GetRecursiveCallOrNull(node.OrderNumber);
                     //if generic call arguments not exist in type inference result - it is NFUN core error
                     if (recCallSignature == null)
-                        throw new NfunImpossibleException($"MJ78. Function {id}`{node.Args.Length} was not found");
+                        throw new NFunImpossibleException($"MJ78. Function {id}`{node.Args.Length} was not found");
 
                     var varTypeCallSignature = _typesConverter.Convert(recCallSignature);
                     //Calculate generic call arguments by concrete function signature
@@ -244,7 +243,7 @@ namespace NFun.Interpretation
                 return CreateFunctionCall(node, function);
             }
 
-            throw new NfunImpossibleException($"MJ101. Function {id}`{node.Args.Length} type is unknown");
+            throw new NFunImpossibleException($"MJ101. Function {id}`{node.Args.Length} type is unknown");
         }
 
         public IExpressionNode Visit(ResultFunCallSyntaxNode node)
@@ -312,7 +311,7 @@ namespace NFun.Interpretation
             else if (node.Value is double)
                 return new ConstantExpressionNode(node.Value, type, node.Interval);
             else
-                throw new NfunImpossibleException(
+                throw new NFunImpossibleException(
                     $"Generic syntax node has wrong value type: {node.Value.GetType().Name}");
         }
 
@@ -331,7 +330,7 @@ namespace NFun.Interpretation
                 {
                     var genericTypes = _typeInferenceResults.GetGenericCallArguments(node.OrderNumber);
                     if (genericTypes == null)
-                        throw new NfunImpossibleException(
+                        throw new NFunImpossibleException(
                             $"MJ79. Generic function is missed at {node.OrderNumber}:  {node.Id}`{genericFunction.Name} ");
 
                     var genericArgs = new FunnyType[genericTypes.Length];

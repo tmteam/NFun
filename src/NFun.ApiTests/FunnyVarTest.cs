@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using NFun.TestTools;
 using NFun.Types;
@@ -31,8 +30,10 @@ namespace NFun.ApiTests
         {
             var runtime = Funny.Hardcore.Build("out1 = (10.0*x).toText()");
 
-            Assert.IsTrue(runtime.TryGetVariable("x", out var xVar));
-            Assert.IsTrue(runtime.TryGetVariable("out1", out var out1Var));
+            var xVar = runtime["x"];
+            Assert.IsNotNull(xVar);
+            var out1Var = runtime["out1"];
+            Assert.IsNotNull(out1Var);
 
             Assert.AreEqual(false, xVar.IsOutput);
             Assert.AreEqual(FunnyType.Real, xVar.Type);
@@ -43,16 +44,8 @@ namespace NFun.ApiTests
         }
 
         [Test]
-        public void TryGetVariables_VariableDoesNotExist_ReturnsFalse() =>
-            Assert.IsFalse(Funny.Hardcore.Build("out1 = (10.0*x).toText()").TryGetVariable("missingVar", out _));
-
-        [Test]
-        public void GetVariables_VariableDoesNotExist_throws() =>
-            Assert.Throws<KeyNotFoundException>(() =>
-            {
-                var _ = Funny.Hardcore.Build("out1 = (10.0*x).toText()")["missingVar"];
-            });
-
+        public void GetVariables_VariableDoesNotExist_ReturnsNull() =>
+            Assert.IsNull(Funny.Hardcore.Build("out1 = (10.0*x).toText()")["missingVar"]);
 
         [Test]
         public void SetClrValue_OutputVariableChanged()

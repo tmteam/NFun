@@ -28,6 +28,13 @@ namespace NFun.Runtime
         object FunnyValue { get; }
 
         /// <summary>
+        /// Sets internal value. Fast and unsafe.
+        /// Use it carefully and only for primitive types
+        /// </summary>
+        /// <param name="funnyValue"></param>
+        void SetFunnyValueUnsafe(object funnyValue);
+
+        /// <summary>
         /// The variable is calculated in the script and can be used as one of the results of the script
         /// </summary>
         bool IsOutput { get; }
@@ -40,7 +47,7 @@ namespace NFun.Runtime
 
     internal class VariableSource : IFunnyVar
     {
-        internal object InternalFunnyValue;
+        private object _funnyValue;
 
         private readonly FunnyVarAccess _access;
 
@@ -64,12 +71,14 @@ namespace NFun.Runtime
             FunnyAttribute[] attributes = null)
         {
             _access = access;
-            InternalFunnyValue = type.GetDefaultValueOrNull();
+            _funnyValue = type.GetDefaultValueOrNull();
             TypeSpecificationIntervalOrNull = typeSpecificationIntervalOrNull;
             Attributes = attributes ?? Array.Empty<FunnyAttribute>();
             Name = name;
             Type = type;
         }
+
+        public void SetFunnyValueUnsafe(object funnyValue) => _funnyValue = funnyValue;
 
         public bool IsOutput => _access.HasFlag(FunnyVarAccess.Output);
 
@@ -77,7 +86,7 @@ namespace NFun.Runtime
         private VariableSource(string name, FunnyType type, FunnyVarAccess access, FunnyAttribute[] attributes = null)
         {
             _access = access;
-            InternalFunnyValue = type.GetDefaultValueOrNull();
+            _funnyValue = type.GetDefaultValueOrNull();
             Attributes = attributes ?? Array.Empty<FunnyAttribute>();
             Name = name;
             Type = type;
@@ -87,11 +96,12 @@ namespace NFun.Runtime
         public string Name { get; }
         internal Interval? TypeSpecificationIntervalOrNull { get; }
         public FunnyType Type { get; }
-        public object FunnyValue => InternalFunnyValue;
+        public object FunnyValue => _funnyValue;
+
         public object Value
         {
-            get => FunnyTypeConverters.GetOutputConverter(Type).ToClrObject(InternalFunnyValue);
-            set => InternalFunnyValue = FunnyTypeConverters.ConvertInputOrThrow(value, Type);
+            get => FunnyTypeConverters.GetOutputConverter(Type).ToClrObject(_funnyValue);
+            set => _funnyValue = FunnyTypeConverters.ConvertInputOrThrow(value, Type);
         }
     }
 

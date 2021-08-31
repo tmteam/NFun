@@ -22,9 +22,9 @@ namespace NFun.SyntaxTests.Operators
         [TestCase("y = not true", false)]
         [TestCase("y = not false", true)]
         [TestCase("y = not not false", false)]
-        [TestCase("y = not not true",  true)]
+        [TestCase("y = not not true", true)]
         [TestCase("y = false or not false", true)]
         public void ConstantBoolCalc(string expression, bool expected)
-            => expression.AssertReturns("y",expected);
+            => expression.AssertReturns("y", expected);
     }
 }

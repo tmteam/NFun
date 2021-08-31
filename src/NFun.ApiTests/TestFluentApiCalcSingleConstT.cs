@@ -22,7 +22,7 @@ namespace NFun.ApiTests
             var expected = new ContractOutputModel
             {
                 Id = 13,
-                Items = new[] {"1", "2", "3", "4"},
+                Items = new[] { "1", "2", "3", "4" },
                 Price = 42
             };
             Assert.IsTrue(TestHelper.AreSame(expected, result));
@@ -39,7 +39,7 @@ namespace NFun.ApiTests
         public void ReturnsRealArray()
         {
             var result = Funny.Calc<double[]>("[1..4].filter(fun it>1).map(fun it**2)");
-            Assert.AreEqual(new[] {4, 9, 16}, result);
+            Assert.AreEqual(new[] { 4, 9, 16 }, result);
         }
 
         [Test]
@@ -60,19 +60,19 @@ namespace NFun.ApiTests
         public void ReturnsConstantArrayOfTexts()
         {
             var result = Funny.Calc<string[]>("['Hello','world']");
-            Assert.AreEqual(new[] {"Hello", "world"}, result);
+            Assert.AreEqual(new[] { "Hello", "world" }, result);
         }
 
         [Test]
         public void ReturnsArrayOfTexts()
         {
             var result = Funny.Calc<string[]>("[1..4].map(fun it.toText())");
-            Assert.AreEqual(new[] {"1", "2", "3", "4"}, result);
+            Assert.AreEqual(new[] { "1", "2", "3", "4" }, result);
         }
-        
+
         [Test]
-        public void ReturnsArrayOfChars() 
-            => Assert.AreEqual(new[] {'T','e','s','t'}, Funny.Calc<char[]>("'Test'"));
+        public void ReturnsArrayOfChars()
+            => Assert.AreEqual(new[] { 'T', 'e', 's', 't' }, Funny.Calc<char[]>("'Test'"));
 
         [Test]
         public void ReturnsComplexIntArrayConstant()
@@ -81,11 +81,12 @@ namespace NFun.ApiTests
                 "[[[1,2],[]],[[3,4]],[[]]]");
             Assert.AreEqual(new[]
             {
-                new[] {new[] {1, 2}, Array.Empty<int>()},
-                new[] {new[] {3, 4}},
+                new[] { new[] { 1, 2 }, Array.Empty<int>() },
+                new[] { new[] { 3, 4 } },
                 new[] { Array.Empty<int>() }
             }, result);
         }
+
         [Test]
         public void CalcWithBuilder()
         {
@@ -100,7 +101,7 @@ namespace NFun.ApiTests
         [TestCase("x:int;")]
         [TestCase("x:int = 2")]
         [TestCase("a = 12; b = 32; x = a*b")]
-        public void NoOutputSpecified_throws(string expr) 
+        public void NoOutputSpecified_throws(string expr)
             => Assert.Throws<FunnyInvalidUsageException>(() => Funny.Calc<UserInputModel>(expr));
 
         [Test]

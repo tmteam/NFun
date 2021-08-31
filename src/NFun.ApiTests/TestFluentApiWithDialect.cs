@@ -4,8 +4,8 @@ using NUnit.Framework;
 
 namespace NFun.ApiTests
 {
-    public class TestFluentApiWithDialect {
-
+    public class TestFluentApiWithDialect
+    {
         [Test]
         public void PreferredIntTypeIsI32()
         {
@@ -27,7 +27,7 @@ namespace NFun.ApiTests
             Assert.IsInstanceOf<long>(result);
             Assert.AreEqual(42L, result);
         }
-        
+
         [Test]
         public void PreferredIntTypeIsReal()
         {
@@ -38,22 +38,22 @@ namespace NFun.ApiTests
             Assert.IsInstanceOf<double>(result);
             Assert.AreEqual(42.0, result);
         }
-        
+
         [Test]
         public void DenyIf_EquationWithIfThrows() =>
-            Assert.Throws<FunnyParseException>(()=> Funny
+            Assert.Throws<FunnyParseException>(() => Funny
                 .WithDialect(Dialects.ModifyOrigin(IfExpressionSetup.Deny))
                 .BuildForCalc<ModelWithInt, Object>()
                 .Calc("if(true) false else true", new ModelWithInt()));
-        
+
         [Test]
         public void DenyIfIfElse_EquationWithIfIfElseThrows() =>
-            Assert.Throws<FunnyParseException>(()=> Funny
+            Assert.Throws<FunnyParseException>(() => Funny
                 .WithDialect(Dialects.ModifyOrigin(IfExpressionSetup.IfIfElse))
                 .BuildForCalc<ModelWithInt, Object>()
                 .Calc("if(true) false if(false) true else true", new ModelWithInt()));
-        
-        
+
+
         [TestCase(IfExpressionSetup.Deny)]
         [TestCase(IfExpressionSetup.IfElseIf)]
         [TestCase(IfExpressionSetup.IfIfElse)]
@@ -62,7 +62,7 @@ namespace NFun.ApiTests
                 .WithDialect(Dialects.ModifyOrigin(setup, IntegerPreferredType.I32))
                 .BuildForCalc<ModelWithInt, Object>()
                 .Calc("12", new ModelWithInt()));
-        
+
         [TestCase(IfExpressionSetup.IfElseIf)]
         [TestCase(IfExpressionSetup.IfIfElse)]
         public void EquationWithIfCalculates(IfExpressionSetup setup) =>

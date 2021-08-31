@@ -5,11 +5,10 @@ namespace NFun.Exceptions
     /// <summary>
     /// The thing that should not be...
     /// </summary>
-    internal class NfunImpossibleException: Exception
+    internal class NFunImpossibleException : Exception
     {
-        public NfunImpossibleException(string message): base(message)
+        public NFunImpossibleException(string message) : base(message)
         {
-            
         }
     }
 }

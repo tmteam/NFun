@@ -94,7 +94,7 @@ namespace NFun.Tic
             if (nonReference!=null && nonReference.VisitMark != NodeInListMark) {
                 nonReference.VisitMark = NodeInListMark;
                 if (nonReference.State is StateRefTo)
-                    throw new NfunImpossibleException($"Toposort adds reference node to list: {node}");
+                    throw new NFunImpossibleException($"Toposort adds reference node to list: {node}");
                 _allNodes.Add(nonReference);
             }
         }

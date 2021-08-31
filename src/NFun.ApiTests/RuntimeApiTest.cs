@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using NFun.TestTools;
-using NFun.Types;
 using NUnit.Framework;
 
 namespace NFun.ApiTests
@@ -114,12 +113,12 @@ namespace NFun.ApiTests
             };
 
             runtime.Run();
-            
+
             foreach (var v in runtime.Variables)
                 Console.WriteLine($"Variable '{v.Name}'' of type {v.Type} equals {v.Value}");
             Assert.AreEqual(123, runtime.Variables.FirstOrDefault(i => i.Name == "out4")?.Value);
             Assert.AreEqual(123, runtime["out4"].Value);
-           
+
             Assert.AreEqual("kavabanga", runtime.Variables.FirstOrDefault(i => i.Name == "out5")?.Value);
             Assert.AreEqual("kavabanga", runtime["out5"].Value);
 

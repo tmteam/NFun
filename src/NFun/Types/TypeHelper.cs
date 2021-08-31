@@ -63,14 +63,14 @@ namespace NFun.Types
             => "(" + string.Join(",", arguments) + "):" + returnType;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal static string GetFunText(object obj)
-        {
-            if (obj is IFunnyArray funArray)
-                return funArray.ToText();
-            if (obj is double dbl)
-                return dbl.ToString(CultureInfo.InvariantCulture);
-            return obj.ToString();
-        }
+        internal static string GetFunText(object obj) =>
+            obj switch
+            {
+                IFunnyArray funArray => funArray.ToText(),
+                double dbl => dbl.ToString(CultureInfo.InvariantCulture),
+                _ => obj.ToString()
+            };
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static bool CanBeUsedAsFunnyInputProperty(this PropertyInfo property) =>
             property.CanRead && property.GetMethod.Attributes.HasFlag(MethodAttributes.Public);

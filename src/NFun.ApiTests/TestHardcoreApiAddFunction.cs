@@ -18,13 +18,13 @@ namespace NFun.ApiTests
             string arg = "some very good string";
             var runtime = Funny.Hardcore
                 .WithFunction(
-                new FunctionMock(
-                    args => ((IFunnyArray)args[0]).Count, 
-                    customName, 
-                    FunnyType.Int32, 
-                    FunnyType.Text))
+                    new FunctionMock(
+                        args => ((IFunnyArray)args[0]).Count,
+                        customName,
+                        FunnyType.Int32,
+                        FunnyType.Text))
                 .Build($"y = {customName}('{arg}')");
-           
+
             runtime.Calc().AssertReturns("y", arg.Length);
         }
 
@@ -46,29 +46,30 @@ namespace NFun.ApiTests
                 .Build($"y = {customName}({arg})");
             runtime.Calc().AssertReturns("y", expected);
         }
+
         [Test]
         public void IsVarNameCapital_returnsBool() =>
             Funny
                 .Hardcore
                 .WithFunction(new LogFunction())
                 .Build("y = 1.writeLog('hello')")
-                .Calc().AssertReturns("y",1);
+                .Calc().AssertReturns("y", 1);
 
         [Test]
         public void Use1ArgLambda() =>
             Funny.Hardcore
-                .WithFunction("sqra", (int i) => i*i)
+                .WithFunction("sqra", (int i) => i * i)
                 .Build("y = sqra(10)")
                 .Calc()
-                .AssertReturns("y",100);
+                .AssertReturns("y", 100);
 
         [Test]
         public void Use2ArgLambda() =>
             Funny
                 .Hardcore
-                .WithFunction("conca", (string t1, string t2) => t1+t2)
+                .WithFunction("conca", (string t1, string t2) => t1 + t2)
                 .Build("y = 'hello'.conca(' ').conca('world')")
-                .Calc().AssertReturns("y","hello world");
+                .Calc().AssertReturns("y", "hello world");
 
         [Test]
         public void Use3ArgLambda() =>
@@ -81,8 +82,8 @@ namespace NFun.ApiTests
         [Test]
         public void Use4ArgLambda() =>
             Funny.Hardcore
-                .WithFunction("conca", (string t1, string t2,string t3,string t4) 
-                    => t1+t2+t3+t4)
+                .WithFunction("conca", (string t1, string t2, string t3, string t4)
+                    => t1 + t2 + t3 + t4)
                 .Build("y = conca('1','2','3','4')")
                 .Calc().AssertReturns("y", "1234");
 
@@ -90,40 +91,40 @@ namespace NFun.ApiTests
         public void Use5ArgLambda() =>
             Funny
                 .Hardcore
-                .WithFunction("conca", (string t1, string t2,string t3,string t4,string t5) 
-                    => t1+t2+t3+t4+t5)
+                .WithFunction("conca", (string t1, string t2, string t3, string t4, string t5)
+                    => t1 + t2 + t3 + t4 + t5)
                 .Build("y = conca('1','2','3','4','5')")
                 .Calc()
-                .AssertReturns("y","12345");
+                .AssertReturns("y", "12345");
 
         [Test]
         public void Use6ArgLambda() =>
             Funny
                 .Hardcore
-                .WithFunction("conca", (string t1, string t2,string t3,string t4,string t5,string t6) 
-                    => t1+t2+t3+t4+t5+t6)
+                .WithFunction("conca", (string t1, string t2, string t3, string t4, string t5, string t6)
+                    => t1 + t2 + t3 + t4 + t5 + t6)
                 .Build("y = conca('1','2','3','4','5','6')")
-                .Calc().AssertReturns("y","123456");
+                .Calc().AssertReturns("y", "123456");
 
         [Test]
         public void Use7ArgLambda()
         {
             Funny
                 .Hardcore
-                .WithFunction("conca", (string t1, string t2,string t3,string t4,string t5,string t6,string t7) 
-                    => t1+t2+t3+t4+t5+t6+t7)
+                .WithFunction("conca", (string t1, string t2, string t3, string t4, string t5, string t6, string t7)
+                    => t1 + t2 + t3 + t4 + t5 + t6 + t7)
                 .Build("y = conca('1','2','3','4','5','6','7')")
                 .Calc()
-                .AssertReturns("y","1234567");
+                .AssertReturns("y", "1234567");
         }
     }
 
     public class LogFunction : GenericFunctionBase
     {
-
         public LogFunction() : base("writeLog", FunnyType.Generic(0), FunnyType.Generic(0), FunnyType.Text)
         {
         }
+
         // T Log<T>(T, string)
         protected override object Calc(object[] args)
         {
@@ -131,11 +132,13 @@ namespace NFun.ApiTests
             return args[0];
         }
     }
-    public class GenericFunctionMock: GenericFunctionBase
+
+    public class GenericFunctionMock : GenericFunctionBase
     {
         private readonly Func<object[], object> _calc;
 
-        public GenericFunctionMock(Func<object[], object> calc,string name, FunnyType returnType, params FunnyType[] argTypes) : base(name, returnType, argTypes)
+        public GenericFunctionMock(Func<object[], object> calc, string name, FunnyType returnType,
+            params FunnyType[] argTypes) : base(name, returnType, argTypes)
         {
             _calc = calc;
         }
@@ -143,11 +146,11 @@ namespace NFun.ApiTests
         protected override object Calc(object[] args) => _calc(args);
     }
 
-    public class  FunctionMock: FunctionWithManyArguments
+    public class FunctionMock : FunctionWithManyArguments
     {
         private readonly Func<object[], object> _calc;
 
-        public FunctionMock(Func<object[], object> calc, string name, FunnyType returnType, params FunnyType[] argTypes) 
+        public FunctionMock(Func<object[], object> calc, string name, FunnyType returnType, params FunnyType[] argTypes)
             : base(name, returnType, argTypes)
         {
             _calc = calc;

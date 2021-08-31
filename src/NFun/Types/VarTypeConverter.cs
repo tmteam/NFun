@@ -216,7 +216,7 @@ namespace NFun.Types
             }
         }
 
-        class ConcreteFunctionWithConvertation : IConcreteFunction
+        private class ConcreteFunctionWithConvertation : IConcreteFunction
         {
             private readonly IConcreteFunction _origin;
             private readonly FunTypeSpecification _resultType;

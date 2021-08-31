@@ -32,7 +32,7 @@ namespace NFun.Types
                 BaseFunnyType.UInt32 => Convert.ToUInt32(clrValue),
                 BaseFunnyType.UInt64 => Convert.ToUInt64(clrValue),
                 BaseFunnyType.Real => Convert.ToDouble(clrValue),
-                BaseFunnyType.Char => clrValue?.ToString() ?? "",
+                BaseFunnyType.Char => clrValue.ToString(),
                 _ => converter.ToFunObject(clrValue)
             };
         }
@@ -121,6 +121,7 @@ namespace NFun.Types
             if (clrType.IsArray)
             {
                 var elementType = clrType.GetElementType();
+                // ReSharper disable once RedundantAssignment
                 var elementConverter = GetInputConverter(elementType, reqDeepthCheck++);
 
                 return new ClrArrayInputTypeFunnyConverter(elementConverter);
@@ -166,6 +167,7 @@ namespace NFun.Types
             if (clrType.IsArray)
             {
                 var elementType = clrType.GetElementType();
+                // ReSharper disable once RedundantAssignment
                 var elementConverter = GetOutputConverter(elementType, reqDeepthCheck++);
 
                 return new ClrArrayOutputFunnyConverter(clrType, elementConverter);

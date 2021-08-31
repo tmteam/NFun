@@ -1,8 +1,6 @@
 using System;
-using System.Linq;
 using System.Reflection;
 using NFun.Interpretation;
-using NFun.ParseErrors;
 using NFun.SyntaxParsing;
 using NFun.Types;
 
@@ -24,7 +22,7 @@ namespace NFun
     {
         TOutput Calc(string expression);
     }
-    
+
     class Calculator<TInput> : ICalculator<TInput>
     {
         private readonly FunnyCalculatorBuilder _builder;
@@ -123,7 +121,7 @@ namespace NFun
             };
         }
     }
-    
+
     class ConstantCalculatorSingle<TOutput> : IConstantCalculator<TOutput>
     {
         private readonly FunnyCalculatorBuilder _builder;
@@ -142,7 +140,7 @@ namespace NFun
             var runtime = _builder.CreateRuntime(expression, _apriories);
             FluentApiTools.ThrowIfHasInputs(runtime);
             FluentApiTools.ThrowIfHasNoDefaultOutput(runtime);
-            
+
             runtime.Run();
 
             return (TOutput)_outputConverter.ToClrObject(FluentApiTools.GetOut(runtime).FunnyValue);

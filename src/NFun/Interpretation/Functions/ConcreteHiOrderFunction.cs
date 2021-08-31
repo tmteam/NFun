@@ -13,7 +13,7 @@ namespace NFun.Interpretation.Functions
         {
             var signature = funSource.Type.FunTypeSpecification;
             if (signature == null)
-                throw new NfunImpossibleException("[vaa 13] Functional type specification is missed");
+                throw new NFunImpossibleException("[vaa 13] Functional type specification is missed");
             return new ConcreteHiOrderFunctionWithSyntaxNode(
                 funSource,
                 signature.Output,
@@ -50,6 +50,6 @@ namespace NFun.Interpretation.Functions
         }
 
 
-        public override object Calc(object[] args) => ((IConcreteFunction)_source.InternalFunnyValue).Calc(args);
+        public override object Calc(object[] args) => ((IConcreteFunction)_source.FunnyValue).Calc(args);
     }
 }

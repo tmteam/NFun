@@ -96,12 +96,12 @@ namespace NFun.ApiTests
                 .WithConstant("SomeNotUsedConstant", 42)
                 .BuildForCalc<TInput>()
                 .Calc(expr, input);
-            
+
             //lambda
             var lambda1 = calculator.ToLambda(expr);
             var result6 = lambda1(input);
             var result7 = lambda1(input);
-            
+
             var lambda2 = calculator.ToLambda(expr);
             var result8 = lambda2(input);
             var result9 = lambda2(input);

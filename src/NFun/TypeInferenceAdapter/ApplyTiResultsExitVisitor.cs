@@ -2,7 +2,6 @@ using System.Linq;
 using NFun.ParseErrors;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
-using NFun.Tic;
 using NFun.Types;
 
 namespace NFun.TypeInferenceAdapter

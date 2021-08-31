@@ -11,7 +11,7 @@ namespace NFun
         public static object Calc(string expression)
             => FunnyCalculatorBuilder.Default.Calc(expression);
 
-        public static TOutput Calc<TOutput>(string expression) 
+        public static TOutput Calc<TOutput>(string expression)
             => FunnyCalculatorBuilder.Default.Calc<TOutput>(expression);
 
         public static object Calc<TInput>(string expression, TInput input)
@@ -29,7 +29,7 @@ namespace NFun
         #endregion
 
         #region Calculator factories
-        
+
         public static ICalculator<TInput> ForCalc<TInput>()
             => FunnyCalculatorBuilder.Default.BuildForCalc<TInput>();
 
@@ -38,16 +38,16 @@ namespace NFun
 
         public static ICalculator<TInput, TOutput> ForCalcMany<TInput, TOutput>() where TOutput : new()
             => FunnyCalculatorBuilder.Default.BuildForCalcMany<TInput, TOutput>();
-        
+
         public static IConstantCalculator<object> ForCalcConstant()
             => FunnyCalculatorBuilder.Default.BuildForCalcConstant();
-        
+
         public static IConstantCalculator<TOutput> ForCalcConstant<TOutput>()
             => FunnyCalculatorBuilder.Default.BuildForCalcConstant<TOutput>();
-        
-        public static IConstantCalculator<TOutput> ForCalcManyConstants<TOutput>() where TOutput : new() 
+
+        public static IConstantCalculator<TOutput> ForCalcManyConstants<TOutput>() where TOutput : new()
             => FunnyCalculatorBuilder.Default.BuildForCalcManyConstants<TOutput>();
-        
+
         #endregion
 
         #region builder

@@ -40,7 +40,7 @@ namespace NFun.Interpretation.Functions
         protected void SetVariables(object[] args)
         {
             for (int i = 0; i < args.Length; i++)
-                ArgumentSources[i].InternalFunnyValue = args[i];
+                ArgumentSources[i].SetFunnyValueUnsafe(args[i]);
         }
 
         public override object Calc(object[] args)

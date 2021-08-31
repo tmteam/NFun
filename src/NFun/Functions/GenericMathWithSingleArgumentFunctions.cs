@@ -94,7 +94,7 @@ namespace NFun.Functions
 
     public class AbsFunction : PureGenericFunctionBase
     {
-        public AbsFunction() : base(id, GenericConstrains.SignedNumber,1) { }
+        public AbsFunction() : base(Id, GenericConstrains.SignedNumber,1) { }
         public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes)
         {
             FunctionWithSingleArg res =  concreteTypes[0].BaseType switch
@@ -110,7 +110,7 @@ namespace NFun.Functions
             res.ReturnType = concreteTypes[0];
             return res;
         }
-        private const string id = "abs";
+        private const string Id = "abs";
         private class RealFunction : FunctionWithSingleArg
         {
             public override object Calc(object a) => Math.Abs(((double)a));

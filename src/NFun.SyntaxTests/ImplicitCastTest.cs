@@ -1,4 +1,3 @@
-using System.Linq;
 using NFun.TestTools;
 using NUnit.Framework;
 

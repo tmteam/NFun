@@ -37,7 +37,7 @@ namespace NFun.Types
         {
             if (fields.Comparer != StructKeyComparer)
                 throw new InvalidOperationException("Only FunnyType.StructKeyComparer comparator is allowed");
-            return new(fields);
+            return new FunnyType(fields);
         }
         
         public static FunnyType StructOf(params (string,FunnyType)[] fields) 

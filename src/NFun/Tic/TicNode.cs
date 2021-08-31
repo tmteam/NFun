@@ -16,10 +16,12 @@ namespace NFun.Tic
         /// TicNode's name equals to variable name
         /// </summary>
         Named = 2,
+
         /// <summary>
         /// Syntax node. TicNode's name equals to node's order number
         /// </summary>
         SyntaxNode = 4,
+
         /// <summary>
         /// Generic type from function/constant signature or created in process of solving. 
         /// </summary>
@@ -32,7 +34,8 @@ namespace NFun.Tic
         internal bool Registrated = false;
 
         private ITicNodeState _state;
-        public static TicNode CreateTypeVariableNode(ITypeState type) 
+
+        public static TicNode CreateTypeVariableNode(ITypeState type)
             => new(type.ToString(), type, TicNodeType.TypeVariable);
 
         private static int _interlockedId = 0;
@@ -40,56 +43,57 @@ namespace NFun.Tic
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TicNode CreateSyntaxNode(int id, ITicNodeState state, bool registrated = false)
-            => new(id, state, TicNodeType.SyntaxNode) {Registrated = registrated};
+            => new(id, state, TicNodeType.SyntaxNode) { Registrated = registrated };
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static  TicNode CreateNamedNode(object name, ITicNodeState state) 
-            => new(name, state, TicNodeType.Named) {Registrated = true};
+        public static TicNode CreateNamedNode(object name, ITicNodeState state)
+            => new(name, state, TicNodeType.Named) { Registrated = true };
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TicNode CreateTypeVariableNode(string name, ITicNodeState state, bool registrated = false)
-            => new(name, state, TicNodeType.TypeVariable) {Registrated = registrated};
-        
+            => new(name, state, TicNodeType.TypeVariable) { Registrated = registrated };
+
         private TicNode(object name, ITicNodeState state, TicNodeType type)
         {
-            _uid =  Interlocked.Increment(ref _interlockedId);
+            _uid = Interlocked.Increment(ref _interlockedId);
             Name = name;
             State = state;
             Type = type;
         }
+
         public TicNodeType Type { get; }
 
         #region Ancestors
 
-        
         public void AddAncestor(TicNode node)
         {
-            if(node==this)
-                throw new NfunImpossibleException("CircularAncestor");
+            if (node == this)
+                throw new NFunImpossibleException("CircularAncestor");
 
             _ancestors.Add(node);
         }
 
         public void AddAncestors(IEnumerable<TicNode> nodes)
         {
-            if (nodes.Any(n=>n== this))
-                throw new NfunImpossibleException("CircularAncestor");
+            if (nodes.Any(n => n == this))
+                throw new NFunImpossibleException("CircularAncestor");
             _ancestors.AddRange(nodes);
         }
 
-        public void RemoveAncestor(TicNode node) => 
+        public void RemoveAncestor(TicNode node) =>
             _ancestors.Remove(node);
 
         public void SetAncestor(int index, TicNode node)
         {
             if (node == this)
-                throw new NfunImpossibleException("CircularAncestor");
+                throw new NFunImpossibleException("CircularAncestor");
             _ancestors[index] = node;
         }
-        
+
         private readonly List<TicNode> _ancestors = new();
         public IReadOnlyList<TicNode> Ancestors => _ancestors;
+
         #endregion
 
         public bool IsMemberOfAnything { get; set; }
@@ -102,8 +106,8 @@ namespace NFun.Tic
             set
             {
                 Debug.Assert(value != null);
-                Debug.Assert(_state==null || IsMutable || value.Equals(_state),"Node is already solved");
-                
+                Debug.Assert(_state == null || IsMutable || value.Equals(_state), "Node is already solved");
+
                 if (value is StateArray array)
                     array.ElementNode.IsMemberOfAnything = true;
                 else
@@ -113,24 +117,25 @@ namespace NFun.Tic
         }
 
         public object Name { get; }
+
         public override string ToString()
         {
-            return Name.Equals(_state.ToString()) 
-                ? Name.ToString() 
+            return Name.Equals(_state.ToString())
+                ? Name.ToString()
                 : $"{Name}:{_state}";
         }
 
         public void PrintToConsole()
         {
-            if(!TraceLog.IsEnabled)
+            if (!TraceLog.IsEnabled)
                 return;
-            
+
 #if DEBUG
-                TraceLog.Write($"{Name}:", ConsoleColor.Green);
-                TraceLog.Write(State.Description);
-                if (Ancestors.Any())
-                    TraceLog.Write("  <=" + string.Join(",", Ancestors.Select(a => a.Name)));
-                TraceLog.WriteLine();
+            TraceLog.Write($"{Name}:", ConsoleColor.Green);
+            TraceLog.Write(State.Description);
+            if (Ancestors.Any())
+                TraceLog.Write("  <=" + string.Join(",", Ancestors.Select(a => a.Name)));
+            TraceLog.WriteLine();
 #endif
         }
 
@@ -146,8 +151,10 @@ namespace NFun.Tic
                     return true;
                 }
             }
+
             return false;
         }
+
         public bool TrySetAncestor(StatePrimitive anc)
         {
             if (anc.Equals(StatePrimitive.Any))
@@ -174,6 +181,7 @@ namespace NFun.Tic
 
             return false;
         }
+
         public TicNode GetNonReference()
         {
             var result = this;
@@ -186,6 +194,7 @@ namespace NFun.Tic
 
             return result;
         }
+
         public override int GetHashCode() => _uid;
 
         public void ClearAncestors()

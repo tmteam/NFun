@@ -1,41 +1,38 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using NFun.Interpretation;
-using NFun.SyntaxParsing;
 
 namespace NFun.Runtime
 {
     public class FunnyRuntime
     {
         internal IEnumerable<VariableUsages> GetInputVariableUsages() =>
-            _variables.GetAllUsages().Where(u => !u.Source.IsOutput);
-
-        public bool HasDefaultOutput => _variables
-            .GetAllSources()
-            .Any(s =>
-                s.IsOutput && string.Equals(s.Name, Parser.AnonymousEquationId, StringComparison.OrdinalIgnoreCase));
+            VariableDictionary.GetAllUsages().Where(u => !u.Source.IsOutput);
 
         private readonly IList<Equation> _equations;
-        private readonly VariableDictionary _variables;
+        internal readonly VariableDictionary VariableDictionary;
 
-        internal FunnyRuntime(IList<Equation> equations, VariableDictionary variables)
+        internal FunnyRuntime(IList<Equation> equations, VariableDictionary variableDictionary)
         {
             _equations = equations;
-            _variables = variables;
+            VariableDictionary = variableDictionary;
         }
 
-        public IFunnyVar this[string name] =>
-            _variables.GetUsages(name)?.Source ?? throw new KeyNotFoundException($"Variable {name} not found");
-
-        public IReadOnlyList<IFunnyVar> Variables => _variables.GetAllSources();
-        
-        public bool TryGetVariable(string name, out IFunnyVar variable)
+        /// <summary>
+        /// Returns variable with given name (ignore case). Returns null if variable is not found
+        /// </summary>
+        /// <param name="name"></param>
+        public IFunnyVar this[string name]
         {
-            _variables.TryGetUsages(name, out var usage);
-            variable = usage?.Source;
-            return variable != null;
+            get
+            {
+                if (!VariableDictionary.TryGetUsages(name, out var usage))
+                    return null;
+                return usage?.Source;
+            }
         }
+
+        public IReadOnlyList<IFunnyVar> Variables => VariableDictionary.GetAllSources();
 
         public void Run()
         {

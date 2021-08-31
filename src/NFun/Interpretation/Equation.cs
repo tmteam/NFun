@@ -17,7 +17,7 @@ namespace NFun.Interpretation
         }
 
         internal void Run()
-            => _outputVariableSource.InternalFunnyValue = Expression.Calc();
+            => _outputVariableSource.SetFunnyValueUnsafe(Expression.Calc());
 
         public override string ToString() => $"\"{Id}\" equation";
     }

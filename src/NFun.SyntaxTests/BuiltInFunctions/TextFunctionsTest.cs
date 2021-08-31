@@ -10,21 +10,18 @@ namespace NFun.SyntaxTests.BuiltInFunctions
         [TestCase("y = 'hi world  '.trim()", "hi world")]
         [TestCase("y = '  hi world  '.trim()", "hi world")]
         [TestCase("y = 'hi world'.trim()", "hi world")]
-
         [TestCase("y = ' hi world '.trimStart()", "hi world ")]
         [TestCase("y = ' hi world'.trimStart()", "hi world")]
         [TestCase("y = 'hi world  '.trimStart()", "hi world  ")]
         [TestCase("y = '  hi world  '.trimStart()", "hi world  ")]
         [TestCase("y = 'hi world'.trim()", "hi world")]
-
         [TestCase("y = ' hi world '.trimEnd()", " hi world")]
         [TestCase("y = ' hi world'.trimEnd()", " hi world")]
         [TestCase("y = 'hi world  '.trimEnd()", "hi world")]
-        [TestCase("y = ' hi world '.trimStart().trimEnd().split(' ')", new[]{"hi","world"})]
+        [TestCase("y = ' hi world '.trimStart().trimEnd().split(' ')", new[] { "hi", "world" })]
         [TestCase("y = '  hi world  '.trimEnd()", "  hi world")]
         [TestCase("y = 'hi world'.trim()", "hi world")]
-
-        public void ConstantEquationWithGenericPredefinedFunction(string expr, object expected) => 
-            expr.AssertReturns("y",expected);
+        public void ConstantEquationWithGenericPredefinedFunction(string expr, object expected) =>
+            expr.AssertReturns("y", expected);
     }
 }

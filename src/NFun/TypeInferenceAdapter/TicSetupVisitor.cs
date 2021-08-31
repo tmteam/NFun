@@ -27,19 +27,19 @@ namespace NFun.TypeInferenceAdapter
             SyntaxTree tree,
             GraphBuilder ticGraph,
             TypeInferenceResultsBuilder results) => SetupTicForBody(
-            tree, ticGraph, 
-            BaseFunctions.DefaultFunctions, 
-            EmptyConstantList.Instance, 
-            new AprioriTypesMap(), 
+            tree, ticGraph,
+            BaseFunctions.DefaultFunctions,
+            EmptyConstantList.Instance,
+            new AprioriTypesMap(),
             results, Dialects.Origin);
-        
+
         internal static bool SetupTicForBody(
             SyntaxTree tree,
             GraphBuilder ticGraph,
             IFunctionDictionary functions,
             IConstantList constants,
             AprioriTypesMap aprioriTypes,
-            TypeInferenceResultsBuilder results, 
+            TypeInferenceResultsBuilder results,
             DialectSettings dialect)
         {
             var visitor = new TicSetupVisitor(ticGraph, functions, constants, results, aprioriTypes, dialect);
@@ -61,7 +61,7 @@ namespace NFun.TypeInferenceAdapter
             GraphBuilder ticGraph,
             IFunctionDictionary functions,
             IConstantList constants,
-            TypeInferenceResultsBuilder results, 
+            TypeInferenceResultsBuilder results,
             DialectSettings dialect)
         {
             var visitor = new TicSetupVisitor(ticGraph, functions, constants, results, new AprioriTypesMap(), dialect);
@@ -72,7 +72,7 @@ namespace NFun.TypeInferenceAdapter
             IFunctionDictionary dictionary,
             IConstantList constants,
             TypeInferenceResultsBuilder resultsBuilder,
-            AprioriTypesMap aprioriTypesMap, 
+            AprioriTypesMap aprioriTypesMap,
             DialectSettings dialect)
         {
             _aliasScope = new VariableScopeAliasTable();
@@ -126,7 +126,7 @@ namespace NFun.TypeInferenceAdapter
                 $"Enter {node.OrderNumber}. UFun {node.Id}({string.Join(",", argNames)})->{node.Body.OrderNumber}:{returnType?.ToString() ?? "empty"}");
 #endif
             var fun = _ticTypeGraph.SetFunDef(
-                name: node.Id + "'" + node.Args.Count,
+                name: $"{node.Id}'{node.Args.Count}",
                 returnId: node.Body.OrderNumber,
                 returnType: returnType,
                 varNames: argNames);
@@ -211,25 +211,29 @@ namespace NFun.TypeInferenceAdapter
                 //setup arguments.
                 string originName;
                 string anonymName;
-                if (syntaxNode is TypedVarDefSyntaxNode typed)
+                switch (syntaxNode)
                 {
-                    //argument has type definition on it
-                    originName = typed.Id;
-                    anonymName = MakeAnonVariableName(node, originName);
-                    if (!typed.FunnyType.Equals(FunnyType.Empty))
+                    case TypedVarDefSyntaxNode typed:
                     {
-                        var ticType = typed.FunnyType.ConvertToTiType();
-                        _ticTypeGraph.SetVarType(anonymName, ticType);
+                        //argument has type definition on it
+                        originName = typed.Id;
+                        anonymName = MakeAnonVariableName(node, originName);
+                        if (!typed.FunnyType.Equals(FunnyType.Empty))
+                        {
+                            var ticType = typed.FunnyType.ConvertToTiType();
+                            _ticTypeGraph.SetVarType(anonymName, ticType);
+                        }
+
+                        break;
                     }
+                    case NamedIdSyntaxNode varNode:
+                        //argument has no type definition on it
+                        originName = varNode.Id;
+                        anonymName = MakeAnonVariableName(node, originName);
+                        break;
+                    default:
+                        throw ErrorFactory.AnonymousFunArgumentIsIncorrect(syntaxNode);
                 }
-                else if (syntaxNode is NamedIdSyntaxNode varNode)
-                {
-                    //argument has no type definition on it
-                    originName = varNode.Id;
-                    anonymName = MakeAnonVariableName(node, originName);
-                }
-                else
-                    throw ErrorFactory.AnonymousFunArgumentIsIncorrect(syntaxNode);
 
                 _aliasScope.AddVariableAlias(originName, anonymName);
             }
@@ -428,7 +432,7 @@ namespace NFun.TypeInferenceAdapter
                 else if (node.Value is ulong u)
                     actualValue = u;
                 else
-                    throw new NfunImpossibleException("Generic token has to be ulong or long");
+                    throw new NFunImpossibleException("Generic token has to be ulong or long");
 
                 //positive constant
                 if (actualValue <= byte.MaxValue)
@@ -475,7 +479,7 @@ namespace NFun.TypeInferenceAdapter
                 else if (node.Value is ulong u)
                     actualValue = u;
                 else
-                    throw new NfunImpossibleException("Generic token has to be ulong or long");
+                    throw new NFunImpossibleException("Generic token has to be ulong or long");
 
                 //positive constant
                 if (actualValue <= byte.MaxValue) descendant = StatePrimitive.U8;
@@ -559,13 +563,19 @@ namespace NFun.TypeInferenceAdapter
                 node.IdType = NamedIdNodeType.Constant;
                 node.IdContent = constant;
 
-                var titype = constant.Type.ConvertToTiType();
-                if (titype is StatePrimitive primitive)
-                    _ticTypeGraph.SetConst(node.OrderNumber, primitive);
-                else if (titype is StateArray array && array.Element is StatePrimitive primitiveElement)
-                    _ticTypeGraph.SetArrayConst(node.OrderNumber, primitiveElement);
-                else
-                    throw new InvalidOperationException("Type " + constant.Type + " is not supported for constants");
+                var tiType = constant.Type.ConvertToTiType();
+                switch (tiType)
+                {
+                    case StatePrimitive primitive:
+                        _ticTypeGraph.SetConst(node.OrderNumber, primitive);
+                        break;
+                    case StateArray { Element: StatePrimitive primitiveElement }:
+                        _ticTypeGraph.SetArrayConst(node.OrderNumber, primitiveElement);
+                        break;
+                    default:
+                        throw new InvalidOperationException("Type " + constant.Type +
+                                                            " is not supported for constants");
+                }
             }
             else
             {

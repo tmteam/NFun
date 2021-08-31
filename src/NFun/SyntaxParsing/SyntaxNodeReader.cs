@@ -173,7 +173,7 @@ namespace NFun.SyntaxParsing
                 int dimensions;
                 if (val[1] == 'b')      dimensions = 2;
                 else if (val[1] == 'x') dimensions = 16;
-                else throw new NfunImpossibleException("Hex or bin constant has invalid format: "+val);
+                else throw new NFunImpossibleException("Hex or bin constant has invalid format: "+val);
                 var substr = val.Replace("_", null)[2..];
 
                 if (dimensions == 16)
@@ -495,7 +495,7 @@ namespace NFun.SyntaxParsing
                     flow.MoveNext();
                 }
                 else
-                    throw new NfunImpossibleException("imp328. Invalid interpolation sequence");
+                    throw new NFunImpossibleException("imp328. Invalid interpolation sequence");
             }
         }
 
@@ -762,7 +762,7 @@ namespace NFun.SyntaxParsing
         {
             var obrId = flow.CurrentTokenPosition;
             if (!flow.MoveIf(TokType.Obr))
-                throw new NfunImpossibleException("Panic. Something wrong in parser");
+                throw new NFunImpossibleException("Panic. Something wrong in parser");
 
             if (!TryReadNodeList(flow, out var arguments)
                 || !flow.MoveIf(TokType.Cbr, out var cbr))

@@ -228,7 +228,7 @@ namespace NFun.Interpretation
 
             //ReplaceInputType
             if (outputVariableSource.Type != expression.Type)
-                throw new NfunImpossibleException("fitless");
+                throw new NFunImpossibleException("fitless");
             return new Equation(equation.Id, expression, outputVariableSource);
         }
 

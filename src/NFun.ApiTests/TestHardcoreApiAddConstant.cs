@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using NFun.Interpretation;
 using NFun.TestTools;
 using NUnit.Framework;
 
@@ -15,7 +14,7 @@ namespace NFun.ApiTests
                 .WithConstants(("pipi", Math.PI))
                 .WithFunction(new LogFunction())
                 .Build("y = pipi");
-            Assert.IsTrue(runtime.Variables.All(v=>v.IsOutput));
+            Assert.IsTrue(runtime.Variables.All(v => v.IsOutput));
             runtime.Calc().AssertReturns("y", Math.PI);
         }
 
@@ -56,10 +55,10 @@ namespace NFun.ApiTests
         public void UseTwoNfunConstants()
         {
             var runtime = Funny.Hardcore
-                .WithConstants(("one",1),("two",2))
+                .WithConstants(("one", 1), ("two", 2))
                 .Build("y = one+two");
             runtime.AssertInputsCount(0);
-            runtime.Calc().AssertReturns("y",3);
+            runtime.Calc().AssertReturns("y", 3);
         }
 
         [Test]
@@ -71,7 +70,7 @@ namespace NFun.ApiTests
                 .Build("pi = 3; y = pi");
 
             runtime.AssertInputsCount(0);
-            runtime.Calc().AssertReturns(("y", 3),("pi",3));
+            runtime.Calc().AssertReturns(("y", 3), ("pi", 3));
         }
 
         [Test]
@@ -81,7 +80,7 @@ namespace NFun.ApiTests
                 .WithConstant("pi", Math.PI)
                 .Build("pi:int; y = pi");
             runtime.AssertInputsCount(1);
-            runtime.Calc("pi", 2).AssertReturns("y",2);
-        }   
+            runtime.Calc("pi", 2).AssertReturns("y", 2);
+        }
     }
 }

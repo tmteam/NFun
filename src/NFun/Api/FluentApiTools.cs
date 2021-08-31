@@ -23,11 +23,10 @@ namespace NFun
             for (int i = 0; i < outputs.Length; i++)
             {
                 var (outName, outConverter, outProperty) = span[i];
-                if (runtime.TryGetVariable(outName, out var actualOutput))
-                {
-                    outProperty.SetValue(answer, outConverter.ToClrObject(actualOutput.FunnyValue));
-                    settedCount++;
-                }
+                var actualOutput = runtime[outName];
+                if (actualOutput == null) continue;
+                outProperty.SetValue(answer, outConverter.ToClrObject(actualOutput.FunnyValue));
+                settedCount++;
             }
 
             if (settedCount == 0)
@@ -62,12 +61,8 @@ namespace NFun
 
         internal static object GetClrOut(FunnyRuntime runtime) => GetOut(runtime).Value;
 
-        internal static IFunnyVar GetOut(FunnyRuntime runtime)
-        {
-            if (!runtime.TryGetVariable(Parser.AnonymousEquationId, out var outResult))
-                throw ErrorFactory.OutputIsUnset();
-            return outResult;
-        }
+        internal static IFunnyVar GetOut(FunnyRuntime runtime) =>
+            runtime[Parser.AnonymousEquationId] ?? throw ErrorFactory.OutputIsUnset();
 
         internal static void SetInputValues<TInput>(FunnyRuntime runtime,
             Memory<(string, IInputFunnyConverter, PropertyInfo)> inputMap, TInput value)
@@ -76,11 +71,10 @@ namespace NFun
 
             foreach (var (name, converter, propertyInfo) in span)
             {
-                if (!runtime.TryGetVariable(name, out var variable))
+                if (!runtime.VariableDictionary.TryGetUsages(name, out var variableUsages))
                     continue;
 
-                if (variable is VariableSource source)
-                    source.InternalFunnyValue = converter.ToFunObject(propertyInfo.GetValue(value));
+                variableUsages.Source.SetFunnyValueUnsafe(converter.ToFunObject(propertyInfo.GetValue(value)));
             }
         }
 
@@ -94,7 +88,7 @@ namespace NFun
             for (var i = 0; i < inputProperties.Length; i++)
             {
                 var inputProperty = inputProperties[i];
-                
+
                 if (!inputProperty.CanBeUsedAsFunnyInputProperty())
                     continue;
                 var converter = FunnyTypeConverters.GetInputConverter(inputProperty.PropertyType);
@@ -117,11 +111,13 @@ namespace NFun
             if (runtime.Variables.Any(v => !v.IsOutput))
                 throw ErrorFactory.UnknownInputs(runtime.GetInputVariableUsages());
         }
+
         internal static void ThrowIfHasNoDefaultOutput(FunnyRuntime runtime)
         {
-            if (!runtime.HasDefaultOutput)
+            if (runtime[Parser.AnonymousEquationId]?.IsOutput != true)
                 throw ErrorFactory.OutputIsUnset();
         }
+
         internal static void ThrowIfHasUnknownInputs(FunnyRuntime runtime,
             Memory<(string, IInputFunnyConverter, PropertyInfo)> expectedInputs)
         {
