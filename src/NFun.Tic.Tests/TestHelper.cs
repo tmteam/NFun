@@ -6,7 +6,6 @@ using NUnit.Framework;
 
 namespace NFun.Tic.Tests
 {
-
     public static class TestHelper
     {
         public static void AssertThrowsRecursiveTicTypedDefinition(Action delegateCode)
@@ -22,14 +21,14 @@ namespace NFun.Tic.Tests
             }
             catch (AssertionException)
             {
-
             }
             catch (Exception e)
             {
-                Assert.Fail($"Invalid exception. {e.GetType().Name} was thrown. RecursiveTypeDefinition expected.\r\n{e}");
-
+                Assert.Fail(
+                    $"Invalid exception. {e.GetType().Name} was thrown. RecursiveTypeDefinition expected.\r\n{e}");
             }
         }
+
         public static void AssertThrowsTicError(Action delegateCode)
         {
             try
@@ -43,15 +42,14 @@ namespace NFun.Tic.Tests
             }
             catch (AssertionException)
             {
-
             }
             catch (Exception e)
             {
                 Assert.Fail($"Invalid exception. {e.GetType().Name} was thrown. TicExcpetion expected.\r\n{e}");
-
             }
         }
-            public static void AssertAreGenerics(this ITicResults result, TicNode targetGenericNode,
+
+        public static void AssertAreGenerics(this ITicResults result, TicNode targetGenericNode,
             params string[] varNames)
         {
             foreach (var varName in varNames)
@@ -66,7 +64,7 @@ namespace NFun.Tic.Tests
         public static TicNode AssertAndGetSingleGeneric(this ITicResults result, StatePrimitive desc,
             StatePrimitive anc, bool isComparable = false)
         {
-            Assert.AreEqual(1, result.GenericsStates.Count(),"Incorrect generics count");
+            Assert.AreEqual(1, result.GenericsStates.Count(), "Incorrect generics count");
             var genericNode = result.GenericNodes.Single();
             AssertGenericType(genericNode, desc, anc, isComparable);
             return genericNode;
@@ -76,6 +74,7 @@ namespace NFun.Tic.Tests
         {
             AssertGenericType(node, StatePrimitive.U24, StatePrimitive.Real, false);
         }
+
         public static void AssertGenericType(this ITicNodeState state, StatePrimitive desc, StatePrimitive anc,
             bool isComparable = false)
         {
@@ -84,15 +83,16 @@ namespace NFun.Tic.Tests
             if (desc == null)
                 Assert.IsFalse(generic.HasDescendant);
             else
-                Assert.AreEqual(desc, generic.Descendant,"Actual generic type is "+generic);
+                Assert.AreEqual(desc, generic.Descendant, "Actual generic type is " + generic);
 
             if (anc == null)
                 Assert.IsFalse(generic.HasAncestor);
             else
                 Assert.AreEqual(anc, generic.Ancestor);
 
-            Assert.AreEqual(isComparable, generic.IsComparable,"IsComparable claim missed");
+            Assert.AreEqual(isComparable, generic.IsComparable, "IsComparable claim missed");
         }
+
         public static void AssertGenericType(this TicNode node, StatePrimitive desc, StatePrimitive anc,
             bool isComparable = false)
         {
@@ -101,21 +101,22 @@ namespace NFun.Tic.Tests
             if (desc == null)
                 Assert.IsFalse(generic.HasDescendant);
             else
-                Assert.AreEqual(desc, generic.Descendant,"Actual generic type is "+generic);
+                Assert.AreEqual(desc, generic.Descendant, "Actual generic type is " + generic);
 
             if (anc == null)
                 Assert.IsFalse(generic.HasAncestor);
             else
                 Assert.AreEqual(anc, generic.Ancestor);
 
-            Assert.AreEqual(isComparable, generic.IsComparable,"IsComparable claim missed");
+            Assert.AreEqual(isComparable, generic.IsComparable, "IsComparable claim missed");
         }
 
-        public static void AssertNoGenerics(this ITicResults results) 
-            => Assert.AreEqual(0,results.GenericsCount,$"Unexpected generic types. Generic nodes: " +
-                                                       $"{string.Join(",",results.GenericNodes)}");
+        public static void AssertNoGenerics(this ITicResults results)
+            => Assert.AreEqual(0, results.GenericsCount, $"Unexpected generic types. Generic nodes: " +
+                                                         $"{string.Join(",", results.GenericNodes)}");
 
-        public static void AssertNamedEqualToArrayOf(this ITicResults results, object typeOrNode, params string[] varNames)
+        public static void AssertNamedEqualToArrayOf(this ITicResults results, object typeOrNode,
+            params string[] varNames)
         {
             foreach (var varName in varNames)
             {
@@ -128,35 +129,24 @@ namespace NFun.Tic.Tests
                     else
                         Assert.AreEqual(typeOrNode, array.ElementNode);
                 }
-                else 
+                else
                 {
                     Assert.Fail();
                 }
             }
         }
+
         public static void AssertNamed(this ITicResults results, ITypeState expectedState, params string[] varNames)
         {
             foreach (var varName in varNames)
             {
                 AssertNodeStateEqualToState(
-                    expected: expectedState, 
-                    actual:   results.GetVariableNode(varName).State, 
-                    id:       varName);
+                    expected: expectedState,
+                    actual: results.GetVariableNode(varName).State,
+                    id: varName);
             }
         }
 
-        private static ITicNodeState GetNonReferencedState(ITicNodeState state)
-        {
-            if (state is StatePrimitive)
-                return state;
-            if(state is ConstrainsState)
-                return state;
-            if (state is StateRefTo refTo)
-                return GetNonReferencedState(refTo.Node.State);
-            if (state is ICompositeState compositeState)
-                return compositeState.GetNonReferenced();
-            throw new NotSupportedException();
-        }
         public static void AssertNode(this ITicResults results, ITypeState type, params int[] nodeIds)
         {
             foreach (var id in nodeIds)
@@ -176,20 +166,19 @@ namespace NFun.Tic.Tests
             {
                 Assert.AreEqual(generic.GetNonReference(), results.GetSyntaxNodeOrNull(id).GetNonReference());
             }
-
         }
 
         private static bool AreStatesEqualByValue(ITicNodeState a, ITicNodeState b)
         {
             while (a is StateRefTo arefTo) a = arefTo.Node.State;
             while (b is StateRefTo brefTo) b = brefTo.Node.State;
-            
+
             if (a.GetType() != b.GetType())
                 return false;
-            
+
             if (a is StatePrimitive)
                 return a.Equals(b);
-            if(a is ConstrainsState)
+            if (a is ConstrainsState)
                 return a.Equals(b);
             if (a is ICompositeState aComposite && b is ICompositeState bComposite)
             {
@@ -202,6 +191,7 @@ namespace NFun.Tic.Tests
                     if (!AreStatesEqualByValue(aMembers[i].State, bMembers[i].State))
                         return false;
                 }
+
                 return true;
             }
 

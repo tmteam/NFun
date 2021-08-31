@@ -23,7 +23,7 @@ namespace NFun
         TOutput Calc(string expression);
     }
 
-    class Calculator<TInput> : ICalculator<TInput>
+    internal class Calculator<TInput> : ICalculator<TInput>
     {
         private readonly FunnyCalculatorBuilder _builder;
         private readonly AprioriTypesMap _apriories;
@@ -55,7 +55,7 @@ namespace NFun
         }
     }
 
-    class CalculatorMany<TInput, TOutput> : ICalculator<TInput, TOutput> where TOutput : new()
+    internal class CalculatorMany<TInput, TOutput> : ICalculator<TInput, TOutput> where TOutput : new()
     {
         private readonly FunnyCalculatorBuilder _builder;
         private readonly AprioriTypesMap _apriories;
@@ -85,7 +85,7 @@ namespace NFun
         }
     }
 
-    class CalculatorSingle<TInput, TOutput> : ICalculator<TInput, TOutput>
+    internal class CalculatorSingle<TInput, TOutput> : ICalculator<TInput, TOutput>
     {
         private readonly FunnyCalculatorBuilder _builder;
         private readonly AprioriTypesMap _apriories;
@@ -122,7 +122,7 @@ namespace NFun
         }
     }
 
-    class ConstantCalculatorSingle<TOutput> : IConstantCalculator<TOutput>
+    internal class ConstantCalculatorSingle<TOutput> : IConstantCalculator<TOutput>
     {
         private readonly FunnyCalculatorBuilder _builder;
         private readonly AprioriTypesMap _apriories;
@@ -147,7 +147,7 @@ namespace NFun
         }
     }
 
-    class ConstantCalculatorMany<TOutput> : IConstantCalculator<TOutput> where TOutput : new()
+    internal class ConstantCalculatorMany<TOutput> : IConstantCalculator<TOutput> where TOutput : new()
     {
         private readonly FunnyCalculatorBuilder _builder;
         private readonly AprioriTypesMap _apriories;
@@ -169,7 +169,7 @@ namespace NFun
         }
     }
 
-    class ConstantCalculatorSingle : IConstantCalculator<object>
+    internal class ConstantCalculatorSingle : IConstantCalculator<object>
     {
         private readonly FunnyCalculatorBuilder _builder;
         private static readonly AprioriTypesMap Apriories = new();

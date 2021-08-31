@@ -83,19 +83,17 @@ namespace NFun.Tic
         {
             var node = GetNamedNode(s);
 
-            if (state is StatePrimitive primitive)
+            switch (state)
             {
-                return node.TryBecomeConcrete(primitive);
+                case StatePrimitive primitive:
+                    return node.TryBecomeConcrete(primitive);
+                case ICompositeState composite:
+                    RegistrateCompositeType(composite);
+                    node.State = state;
+                    return true;
+                default:
+                    return false;
             }
-
-            if (state is ICompositeState composite)
-            {
-                RegistrateCompositeType(composite);
-                node.State = state;
-                return true;
-            }
-
-            return false;
         }
         
         public void SetArrayConst(int id, StatePrimitive elementType)

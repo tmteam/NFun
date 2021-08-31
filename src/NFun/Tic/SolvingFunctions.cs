@@ -44,18 +44,18 @@ namespace NFun.Tic
                 case StateStruct strA when stateB is StateStruct strB:
                 {
                     var result = new Dictionary<string, TicNode>();
-                    foreach (var aField in strA.Fields)
+                    foreach (var (key, value) in strA.Fields)
                     {
-                        var bNode = strB.GetFieldOrNull(aField.Key);
+                        var bNode = strB.GetFieldOrNull(key);
                         if(bNode!=null)
-                            MergeInplace(aField.Value, bNode);
-                        result.Add(aField.Key, aField.Value);
+                            MergeInplace(value, bNode);
+                        result.Add(key, value);
                     }
 
-                    foreach (var bField in strB.Fields)
+                    foreach (var (key, value) in strB.Fields)
                     {
-                        if(!result.ContainsKey(bField.Key))
-                            result.Add(bField.Key,bField.Value);
+                        if(!result.ContainsKey(key))
+                            result.Add(key,value);
                     }
                     return new StateStruct(result);
                 }
@@ -451,7 +451,7 @@ namespace NFun.Tic
             
             }
             
-            static bool FindRecursionTypeRoute(TicNode node, HashSet<TicNode> nodes)
+            static bool FindRecursionTypeRoute(TicNode node, ISet<TicNode> nodes)
             {
                 if (!nodes.Add(node))
                     return true;
@@ -514,7 +514,7 @@ namespace NFun.Tic
         {
             if (node.State is StateRefTo refTo)
             {
-                SolvingFunctions.ThrowIfRecursiveTypeDefinition(refTo.Node);
+                ThrowIfRecursiveTypeDefinition(refTo.Node);
 
                 var originalOne = refTo.Node.GetNonReference();
 
@@ -526,7 +526,7 @@ namespace NFun.Tic
 
             if (node.State is ICompositeState composite)
             {
-                SolvingFunctions.ThrowIfRecursiveTypeDefinition(node);
+                ThrowIfRecursiveTypeDefinition(node);
                 
                 if (composite.HasAnyReferenceMember) 
                     node.State = composite.GetNonReferenced();
@@ -592,18 +592,13 @@ namespace NFun.Tic
                 .Where(t => t.State is ConstrainsState);
 
         
-        private static IEnumerable<TicNode> GetAllLeafTypes(this TicNode node)
-        {
-            switch (node.State)
+        private static IEnumerable<TicNode> GetAllLeafTypes(this TicNode node) =>
+            node.State switch
             {
-                case ICompositeState composite:
-                    return composite.AllLeafTypes;
-                case StateRefTo:
-                    return new[] { node.GetNonReference() };
-                default:
-                    return new[] { node };
-            }
-        }
+                ICompositeState composite => composite.AllLeafTypes,
+                StateRefTo => new[] { node.GetNonReference() },
+                _ => new[] { node }
+            };
 
         private static IEnumerable<TicNode> GetAllOutputTypes(this TicNode node) =>
             //Todo Method is not tested. What about composite reference+ fun + reference cases?

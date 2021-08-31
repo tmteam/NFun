@@ -129,10 +129,10 @@ namespace NFun.Interpretation
                 types.Add(field.Name, field.Node.OutputType);
             }
 
-            foreach (var field in node.OutputType.StructTypeSpecification)
+            foreach (var (key, _) in node.OutputType.StructTypeSpecification)
             {
-                if (!types.ContainsKey(field.Key))
-                    throw FunnyParseException.ErrorStubToDo($"Field {field.Key} is missed in struct");
+                if (!types.ContainsKey(key))
+                    throw FunnyParseException.ErrorStubToDo($"Field {key} is missed in struct");
             }
 
             return new StructInitExpressionNode(names, nodes, node.Interval, FunnyType.StructOf(types));
@@ -291,28 +291,27 @@ namespace NFun.Interpretation
         public IExpressionNode Visit(ConstantSyntaxNode node)
         {
             var type = _typesConverter.Convert(_typeInferenceResults.GetSyntaxNodeTypeOrNull(node.OrderNumber));
-            //All integer values are encoded by ulong (if it is ulong) or long otherwise
-            if (node.Value is long l)
-                return ConstantExpressionNode.CreateConcrete(type, l, node.Interval);
-            else if (node.Value is ulong u)
-                return ConstantExpressionNode.CreateConcrete(type, u, node.Interval);
-            else //other types have their own clr-types
-                return new ConstantExpressionNode(node.Value, type, node.Interval);
+            return node.Value switch
+            {
+                //All integer values are encoded by ulong (if it is ulong) or long otherwise
+                long l => ConstantExpressionNode.CreateConcrete(type, l, node.Interval),
+                ulong u => ConstantExpressionNode.CreateConcrete(type, u, node.Interval),
+                _ => new ConstantExpressionNode(node.Value, type, node.Interval)
+            };
         }
 
         public IExpressionNode Visit(GenericIntSyntaxNode node)
         {
             var type = _typesConverter.Convert(_typeInferenceResults.GetSyntaxNodeTypeOrNull(node.OrderNumber));
 
-            if (node.Value is long l)
-                return ConstantExpressionNode.CreateConcrete(type, l, node.Interval);
-            else if (node.Value is ulong u)
-                return ConstantExpressionNode.CreateConcrete(type, u, node.Interval);
-            else if (node.Value is double)
-                return new ConstantExpressionNode(node.Value, type, node.Interval);
-            else
-                throw new NFunImpossibleException(
-                    $"Generic syntax node has wrong value type: {node.Value.GetType().Name}");
+            return node.Value switch
+            {
+                long l => ConstantExpressionNode.CreateConcrete(type, l, node.Interval),
+                ulong u => ConstantExpressionNode.CreateConcrete(type, u, node.Interval),
+                double => new ConstantExpressionNode(node.Value, type, node.Interval),
+                _ => throw new NFunImpossibleException(
+                    $"Generic syntax node has wrong value type: {node.Value.GetType().Name}")
+            };
         }
 
         public IExpressionNode Visit(NamedIdSyntaxNode node)

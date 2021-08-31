@@ -103,19 +103,19 @@ namespace NFun.Tic.Stages
             {
                 if (descendant is StateStruct descStruct)
                 {
-                    foreach (var ancField in ancStruct.Fields)
+                    foreach (var (key, value) in ancStruct.Fields)
                     {
-                        var descFieldNode = descStruct.GetFieldOrNull(ancField.Key);
+                        var descFieldNode = descStruct.GetFieldOrNull(key);
                         if (descFieldNode == null)
                         {
                             //todo!!
                             //throw new ImpossibleException(
                             //    $"Struct descendant '{descendantNode.Name}:{descendant}' of node '{ancestorNode.Name}:{ancestor}' miss field '{ancField.Key}'");
-                            descendantNode.State = descStruct.With(ancField.Key, ancField.Value);
+                            descendantNode.State = descStruct.With(key, value);
                         }
                         else
                         {
-                            SolvingFunctions.Destruction(descFieldNode, ancField.Value);
+                            SolvingFunctions.Destruction(descFieldNode, value);
                         }
                     }
                     ancestorNode.State = new StateRefTo(descendantNode);

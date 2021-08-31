@@ -26,16 +26,14 @@ namespace NFun.Tic.SolvingStates
 
         public bool IsNumeric => Name.HasFlag(PrimitiveTypeName._isNumber);
         private int Order => (int)Name>>6;
-        public override string ToString()
-        {
-            switch (Name)
+        public override string ToString() =>
+            Name switch
             {
-                case PrimitiveTypeName.Char: return "Ch";
-                case PrimitiveTypeName.Bool: return "Bo";
-                case PrimitiveTypeName.Real: return "Re";
-                default: return Name.ToString();
-            }
-        }
+                PrimitiveTypeName.Char => "Ch",
+                PrimitiveTypeName.Bool => "Bo",
+                PrimitiveTypeName.Real => "Re",
+                _ => Name.ToString()
+            };
         public static StatePrimitive Any { get; } = new(PrimitiveTypeName.Any);
         public static StatePrimitive Bool { get; } = new(PrimitiveTypeName.Bool);
         public static StatePrimitive Char { get; } = new(PrimitiveTypeName.Char);
@@ -55,30 +53,17 @@ namespace NFun.Tic.SolvingStates
         public static StatePrimitive U8 { get; } = new(PrimitiveTypeName.U8);
         public bool IsComparable => IsNumeric || Name == PrimitiveTypeName.Char;
 
-        public bool CanBeImplicitlyConvertedTo(StatePrimitive type)
-        {
-            var a = this.Order;
-            var b = type.Order;
-            return Equals(LcaMap[a, b], type); 
-        }
+        public bool CanBeImplicitlyConvertedTo(StatePrimitive type) => Equals(LcaMap[this.Order, type.Order], type);
 
         public StatePrimitive GetFirstCommonDescendantOrNull(StatePrimitive other) 
             => FcdMap[this.Order, other.Order];
 
-        public ITypeState GetLastCommonAncestorOrNull(ITypeState otherType)
-        {
-            var primitive = otherType as StatePrimitive;
-            if (primitive == null)
-                return Any;
-            return GetLastCommonPrimitiveAncestor(primitive);
-        }
+        public ITypeState GetLastCommonAncestorOrNull(ITypeState otherType) =>
+            otherType is StatePrimitive primitive 
+                ? GetLastCommonPrimitiveAncestor(primitive) 
+                : Any;
 
-        public StatePrimitive GetLastCommonPrimitiveAncestor(StatePrimitive other)
-        {
-            var a = this.Order;
-            var b = other.Order;
-            return LcaMap[a, b];
-        }
+        public StatePrimitive GetLastCommonPrimitiveAncestor(StatePrimitive other) => LcaMap[this.Order, other.Order];
 
         public override bool Equals(object obj) => (obj as StatePrimitive)?.Name == Name;
         public override int GetHashCode() => (int) Name;

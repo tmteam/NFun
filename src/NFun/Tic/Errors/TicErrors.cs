@@ -78,13 +78,12 @@ namespace NFun.Tic.Errors
             }
             return new RecursiveTypeDefinitionException(listOfNames.ToArray(), listOfNodes.ToArray());
         }
-        public static Exception CannotSetState(TicNode node, ITicNodeState b)
-        {
-            if(node.Type== TicNodeType.SyntaxNode)
-                return new IncompatibleAncestorSyntaxNodeException((int)node.Name, node.State, b);
-            if (node.Type == TicNodeType.Named)
-                return new IncompatibleAncestorNamedNodeException(node.Name.ToString(), node.State, b);
-            return new TicNoDetailsException();
-        }
+        public static Exception CannotSetState(TicNode node, ITicNodeState b) =>
+            node.Type switch
+            {
+                TicNodeType.SyntaxNode => new IncompatibleAncestorSyntaxNodeException((int)node.Name, node.State, b),
+                TicNodeType.Named => new IncompatibleAncestorNamedNodeException(node.Name.ToString(), node.State, b),
+                _ => new TicNoDetailsException()
+            };
     }
 }

@@ -62,6 +62,7 @@ namespace NFun.Types
             {
                 var elementType = clrTypeOrNull?.GetElementType();
                 var elementConverter = GetInputConverter(funnyType.ArrayTypeSpecification.FunnyType, elementType,
+                    // ReSharper disable once RedundantAssignment
                     reqDeepthCheck++);
                 return new ClrArrayInputTypeFunnyConverter(elementConverter);
             }
@@ -186,7 +187,7 @@ namespace NFun.Types
                 int readPropertiesCount = 0;
                 foreach (var property in properties)
                 {
-                    if(!property.CanBeUsedAsFunnyOutputProperty())
+                    if (!property.CanBeUsedAsFunnyOutputProperty())
                         continue;
                     var propertyConverter = GetOutputConverter(property.PropertyType, reqDeepthCheck++);
 

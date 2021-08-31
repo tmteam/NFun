@@ -61,26 +61,22 @@ namespace NFun.Functions
             throw FunnyParseException.ErrorStubToDo($"Impossible explicit convertation {from}->{to}");
 
         }
-        private Func<object, object> CreateBinarizerOrNull(FunnyType from)
-        {
-            switch (from.BaseType)
+        private static Func<object, object> CreateBinarizerOrNull(FunnyType from) =>
+            @from.BaseType switch
             {
-                case BaseFunnyType.Char:   return o => ToBoolArray(new[] { (byte)(char)o });
-                case BaseFunnyType.Bool:   return o => new ImmutableFunnyArray(new []{(bool)o });
-                case BaseFunnyType.UInt8:  return o => ToBoolArray(new[] { (byte)o });
-                case BaseFunnyType.UInt16: return o => ToBoolArray(BitConverter.GetBytes((ushort)o));
-                case BaseFunnyType.UInt32: return o => ToBoolArray(BitConverter.GetBytes((uint)o));
-                case BaseFunnyType.UInt64: return o => ToBoolArray(BitConverter.GetBytes((long)o));
-                case BaseFunnyType.Int16:  return o => ToBoolArray(BitConverter.GetBytes((short)o));
-                case BaseFunnyType.Int32:  return o => ToBoolArray(BitConverter.GetBytes((int)o));
-                case BaseFunnyType.Int64:  return o => ToBoolArray(BitConverter.GetBytes((long)o));
-                case BaseFunnyType.Real:   return o => ToBoolArray(BitConverter.GetBytes((double)o));
-            }
-
-            if (from.IsText)
-                return o => ToBoolArray(Encoding.Unicode.GetBytes(((IFunnyArray)o).ToText()));
-            return null;
-        }
+                BaseFunnyType.Char => o => ToBoolArray(new[] { (byte)(char)o }),
+                BaseFunnyType.Bool => o => new ImmutableFunnyArray(new[] { (bool)o }),
+                BaseFunnyType.UInt8 => o => ToBoolArray(new[] { (byte)o }),
+                BaseFunnyType.UInt16 => o => ToBoolArray(BitConverter.GetBytes((ushort)o)),
+                BaseFunnyType.UInt32 => o => ToBoolArray(BitConverter.GetBytes((uint)o)),
+                BaseFunnyType.UInt64 => o => ToBoolArray(BitConverter.GetBytes((long)o)),
+                BaseFunnyType.Int16 => o => ToBoolArray(BitConverter.GetBytes((short)o)),
+                BaseFunnyType.Int32 => o => ToBoolArray(BitConverter.GetBytes((int)o)),
+                BaseFunnyType.Int64 => o => ToBoolArray(BitConverter.GetBytes((long)o)),
+                BaseFunnyType.Real => o => ToBoolArray(BitConverter.GetBytes((double)o)),
+                _ when @from.IsText =>  o => ToBoolArray(Encoding.Unicode.GetBytes(((IFunnyArray)o).ToText())),
+                _ => null
+            };
 
         private static ImmutableFunnyArray ToBoolArray(byte[] array)
         {
@@ -185,14 +181,12 @@ namespace NFun.Functions
             var val = (IFunnyArray) array;
             try
             {
-                if (val.Count > 4)
-                    throw new FunnyRuntimeException("Array is too long");
-                if (val.Count == 4)
+                return val.Count switch
                 {
-                    return val.Select(Convert.ToByte).ToArray();
-                }
-                
-                return val.Concat(new int[4 - val.Count].Cast<object>()).Select(Convert.ToByte).ToArray();
+                    > 4 => throw new FunnyRuntimeException("Array is too long"),
+                    4 => val.Select(Convert.ToByte).ToArray(),
+                    _ => val.Concat(new int[4 - val.Count].Cast<object>()).Select(Convert.ToByte).ToArray()
+                };
             }
             catch (Exception e)
             {

@@ -11,15 +11,14 @@ namespace NFun.Tic.SolvingStates
             ElementNode = elementNode;
         }
 
-        public static StateArray Of(ITicNodeState state)
-        {
-            if (state is ITypeState type)
-                return Of(type);
-            if (state is StateRefTo refTo)
-                return Of(refTo.Node);
-            throw new InvalidOperationException();
-        }
-            
+        public static StateArray Of(ITicNodeState state) =>
+            state switch
+            {
+                ITypeState type => Of(type),
+                StateRefTo refTo => Of(refTo.Node),
+                _ => throw new InvalidOperationException()
+            };
+
         public static StateArray Of(TicNode node) 
             => new(node);
 
@@ -42,14 +41,11 @@ namespace NFun.Tic.SolvingStates
 
         public ITypeState GetLastCommonAncestorOrNull(ITypeState otherType)
         {
-            var arrayType = otherType as StateArray;
-            if (arrayType == null)
+            if (otherType is not StateArray arrayType)
                 return StatePrimitive.Any;
-            var elementTypeA = Element as ITypeState;
-            if (elementTypeA == null)
+            if (Element is not ITypeState elementTypeA)
                 return null;
-            var elementTypeB = arrayType.Element as ITypeState;
-            if (elementTypeB == null)
+            if (arrayType.Element is not ITypeState elementTypeB)
                 return null;
             var ancestor = elementTypeA.GetLastCommonAncestorOrNull(elementTypeB);
             if (ancestor == null)

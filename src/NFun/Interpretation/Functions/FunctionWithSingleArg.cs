@@ -14,9 +14,7 @@ namespace NFun.Interpretation.Functions
             ReturnType = returnType;
         }
 
-        protected FunctionWithSingleArg()
-        {
-        }
+        protected FunctionWithSingleArg(){}
 
         public string Name { get; internal set; }
         public FunnyType[] ArgTypes { get; internal set; }
@@ -29,9 +27,8 @@ namespace NFun.Interpretation.Functions
 
         public IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children, Interval interval)
         {
-            var i = 0;
             var argNode = children[0];
-            var toType = ArgTypes[i];
+            var toType = ArgTypes[0];
             var fromType = argNode.Type;
             var castedNode = argNode;
 
@@ -40,8 +37,6 @@ namespace NFun.Interpretation.Functions
                 var converter = VarTypeConverter.GetConverterOrThrow(fromType, toType, argNode.Interval);
                 castedNode = new CastExpressionNode(argNode, toType, converter, argNode.Interval);
             }
-
-            i++;
 
             return new FunOfSingleArgExpressionNode(this, castedNode, interval);
         }

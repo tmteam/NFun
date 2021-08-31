@@ -29,22 +29,23 @@ namespace NFun.Functions
         public const string BitShiftRight = ">>";
         public const string Not = "!";
         public const string Negate = "-negate";
-        public static string ToText = "toText";
-        
+        public const string ToText = "toText";
+
         //UsedInInterpolation:
-        
+
         /// <summary>
         /// General concat text function for array of texts
         /// </summary>
-        public static string ConcatArrayOfTexts = "@concatTexts";
+        public const string ConcatArrayOfTexts = "@concatTexts";
+
         /// <summary>
         /// Concat two texts function. Optimized vertion for 2-arg case
         /// </summary>
-        public static string Concat2Texts = "@concat2Texts";
+        public const string Concat2Texts = "@concat2Texts";
+
         /// <summary>
         /// Concat three texts function. Optimized vertion for 3-arg case
         /// </summary>
-        public static string Concat3Texts = "@concat3Texts";
-
+        public const string Concat3Texts = "@concat3Texts";
     }
 }

@@ -336,7 +336,7 @@ namespace NFun.Tokenization
                 }
                 else if (current == ' ' || current == '\t')
                 {
-                    position = position + 1;
+                    position++;
                 }
                 else break;
             }

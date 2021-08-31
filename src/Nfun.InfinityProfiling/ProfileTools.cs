@@ -32,19 +32,14 @@ namespace NFun.InfinityProfiling
 
         public static Action<IProfileSet> GetSet(ProfileSet set)
         {
-            switch (set)
+            return set switch
             {
-                case ProfileSet.Primitives:
-                    return RunPrimitiveExamples;
-                case ProfileSet.Middle:
-                    return RunMiddleExamples;
-                case ProfileSet.Complex:
-                    return RunComplexExamples;
-                case ProfileSet.All:
-                    return RunAllExamples;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(set), set, null);
-            }
+                ProfileSet.Primitives => RunPrimitiveExamples,
+                ProfileSet.Middle => RunMiddleExamples,
+                ProfileSet.Complex => RunComplexExamples,
+                ProfileSet.All => RunAllExamples,
+                _ => throw new ArgumentOutOfRangeException(nameof(set), set, null)
+            };
         }
 
         public static void RunPrimitiveExamples(IProfileSet set)

@@ -16,9 +16,9 @@ namespace NFun.Tic.SolvingStates
         public StateStruct With(string name, TicNode memberNode)
         {
             var newDic = new Dictionary<string, TicNode>(_nodes.Count + 1);
-            foreach (var field in _nodes)
+            foreach (var (key, value) in _nodes)
             {
-                newDic.Add(field.Key, field.Value.GetNonReference());
+                newDic.Add(key, value.GetNonReference());
             }
 
             newDic.Add(name, memberNode);
@@ -32,16 +32,15 @@ namespace NFun.Tic.SolvingStates
         public static StateStruct Of(IEnumerable<KeyValuePair<string, ITicNodeState>> fields)
         {
             var nodeFields = new Dictionary<string, TicNode>();
-            foreach (var field in fields)
+            foreach (var (key, value) in fields)
             {
-                TicNode node;
-                if (field.Value is ITypeState at)
-                    node = TicNode.CreateTypeVariableNode(at);
-                else if (field.Value is StateRefTo aRef)
-                    node = aRef.Node;
-                else
-                    throw new InvalidOperationException();
-                nodeFields.Add(field.Key, node);
+                var node = value switch
+                {
+                    ITypeState at => TicNode.CreateTypeVariableNode(at),
+                    StateRefTo aRef => aRef.Node,
+                    _ => throw new InvalidOperationException()
+                };
+                nodeFields.Add(key, node);
             }
 
             return new StateStruct(nodeFields);
@@ -121,12 +120,12 @@ namespace NFun.Tic.SolvingStates
         {
             if (obj is not StateStruct stateStruct) return false;
 
-            foreach (var field in _nodes)
+            foreach (var (key, value) in _nodes)
             {
-                var f = stateStruct.GetFieldOrNull(field.Key);
+                var f = stateStruct.GetFieldOrNull(key);
                 if (f == null)
                     return false;
-                if (!f.State.Equals(field.Value.State))
+                if (!f.State.Equals(value.State))
                     return false;
             }
 

@@ -44,7 +44,7 @@ namespace NFun.SyntaxParsing
             MaxPriority = priorities.Count - 1;
         }
 
-        private static readonly int MinPriority = 0;
+        private const int MinPriority = 0;
 
         private static readonly int MaxPriority;
 
@@ -170,10 +170,12 @@ namespace NFun.SyntaxParsing
                 return SyntaxNodeFactory.Constant(false, FunnyType.Bool,  falseTok.Interval);
             if (flow.MoveIf(TokType.HexOrBinaryNumber, out var binVal)) {//0xff, 0b01
                 var val = binVal.Value;
-                int dimensions;
-                if (val[1] == 'b')      dimensions = 2;
-                else if (val[1] == 'x') dimensions = 16;
-                else throw new NFunImpossibleException("Hex or bin constant has invalid format: "+val);
+                var dimensions = val[1] switch
+                {
+                    'b' => 2,
+                    'x' => 16,
+                    _ => throw new NFunImpossibleException("Hex or bin constant has invalid format: " + val)
+                };
                 var substr = val.Replace("_", null)[2..];
 
                 if (dimensions == 16)

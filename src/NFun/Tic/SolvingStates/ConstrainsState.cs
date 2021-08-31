@@ -304,7 +304,7 @@ namespace NFun.Tic.SolvingStates
             {
                 //todo
                 //char[] is comparable!
-                if (Descendant is not StatePrimitive p || !p.IsComparable)
+                if (Descendant is not StatePrimitive { IsComparable: true })
                     return this;
             }
 
@@ -393,7 +393,7 @@ namespace NFun.Tic.SolvingStates
             if (HasDescendant && !constrainsState.Descendant.Equals(Descendant))
                 return false;
 
-            if ((Preferred != null) != (constrainsState.Preferred != null))
+            if (Preferred != null != (constrainsState.Preferred != null))
                 return false;
             if (Preferred != null && !constrainsState.Preferred!.Equals(Preferred))
                 return false;

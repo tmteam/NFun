@@ -20,11 +20,11 @@ namespace NFun.Interpretation
             //code used only in error handling. No need to optimize.
             var lowerName = GetOverloadName(name.ToLower(), argCount);
             var results = new List<IFunctionSignature>();
-            foreach (var function in _functions)
+            foreach (var (key, value) in _functions)
             {
-                if (function.Key.ToLower() == lowerName)
+                if (key.ToLower() == lowerName)
                 {
-                    results.Add(function.Value);
+                    results.Add(value);
                 }
             }
 

@@ -43,10 +43,9 @@ namespace NFun.Runtime.Arrays
             if (allAreChars)
             {
                 var chars = new char[count];
-                int i = 0;
                 foreach (var item in enumerable)
                 {
-                    chars[i] = (char)item;
+                    chars[0] = (char)item;
                 }
 
                 return new string(chars);

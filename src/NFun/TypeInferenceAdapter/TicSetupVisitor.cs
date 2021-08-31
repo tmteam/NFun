@@ -467,10 +467,13 @@ namespace NFun.TypeInferenceAdapter
                     if (l > 0) actualValue = (ulong)l;
                     else
                     {
-                        //negative constant
-                        if (l >= Int16.MinValue) descendant = StatePrimitive.I16;
-                        else if (l >= Int32.MinValue) descendant = StatePrimitive.I32;
-                        else descendant = StatePrimitive.I64;
+                        descendant = l switch
+                        {
+                            //negative constant
+                            >= Int16.MinValue => StatePrimitive.I16,
+                            >= Int32.MinValue => StatePrimitive.I32,
+                            _ => StatePrimitive.I64
+                        };
                         var preferred = GetPreferredIntConstantType();
                         _ticTypeGraph.SetIntConst(node.OrderNumber, descendant, StatePrimitive.Real, preferred);
                         return true;
@@ -496,18 +499,14 @@ namespace NFun.TypeInferenceAdapter
             return true;
         }
 
-        private StatePrimitive GetPreferredIntConstantType()
-        {
-            StatePrimitive preferred = null;
-
-            if (_dialect.IntegerPreferredType == IntegerPreferredType.I32)
-                preferred = StatePrimitive.I32;
-            else if (_dialect.IntegerPreferredType == IntegerPreferredType.I64)
-                preferred = StatePrimitive.I64;
-            else if (_dialect.IntegerPreferredType == IntegerPreferredType.Real)
-                preferred = StatePrimitive.Real;
-            return preferred;
-        }
+        private StatePrimitive GetPreferredIntConstantType() =>
+            _dialect.IntegerPreferredType switch
+            {
+                IntegerPreferredType.I32 => StatePrimitive.I32,
+                IntegerPreferredType.I64 => StatePrimitive.I64,
+                IntegerPreferredType.Real => StatePrimitive.Real,
+                _ => null
+            };
 
         public bool Visit(NamedIdSyntaxNode node)
         {

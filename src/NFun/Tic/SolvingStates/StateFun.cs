@@ -10,23 +10,22 @@ namespace NFun.Tic.SolvingStates
         public static StateFun Of(ITicNodeState[] argTypes, ITicNodeState returnType)
         {
             TicNode[] argNodes = new TicNode[argTypes.Length];
-            TicNode retNode = null;
 
-            if (returnType is ITypeState rt)
-                retNode = TicNode.CreateTypeVariableNode(rt);
-            else if (returnType is StateRefTo retRef)
-                retNode = retRef.Node;
-            else
-                throw new InvalidOperationException();
+            TicNode retNode = returnType switch
+            {
+                ITypeState rt => TicNode.CreateTypeVariableNode(rt),
+                StateRefTo retRef => retRef.Node,
+                _ => throw new InvalidOperationException()
+            };
 
             for (int i = 0; i < argTypes.Length; i++)
             {
-                if (argTypes[i] is ITypeState at)
-                    argNodes[i] = TicNode.CreateTypeVariableNode(at);
-                else if (argTypes[i] is StateRefTo aRef)
-                    argNodes[i] = aRef.Node;
-                else
-                    throw new InvalidOperationException();
+                argNodes[i] = argTypes[i] switch
+                {
+                    ITypeState at => TicNode.CreateTypeVariableNode(at),
+                    StateRefTo aRef => aRef.Node,
+                    _ => throw new InvalidOperationException()
+                };
             }
             
 

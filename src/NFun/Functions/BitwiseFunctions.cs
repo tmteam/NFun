@@ -10,21 +10,18 @@ namespace NFun.Functions
         {
         }
 
-        public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes)
-        {
-            switch (concreteTypes[0].BaseType)
+        public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes) =>
+            concreteTypes[0].BaseType switch
             {
-                case BaseFunnyType.UInt8:  return new UInt8Function();
-                case BaseFunnyType.UInt16: return new UInt16Function();
-                case BaseFunnyType.UInt32: return new UInt32Function();
-                case BaseFunnyType.UInt64: return new UInt64Function();
-                case BaseFunnyType.Int16:  return new Int16Function();
-                case BaseFunnyType.Int32:  return new Int32Function();
-                case BaseFunnyType.Int64:  return new Int64Function();
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
+                BaseFunnyType.UInt8 => new UInt8Function(),
+                BaseFunnyType.UInt16 => new UInt16Function(),
+                BaseFunnyType.UInt32 => new UInt32Function(),
+                BaseFunnyType.UInt64 => new UInt64Function(),
+                BaseFunnyType.Int16 => new Int16Function(),
+                BaseFunnyType.Int32 => new Int32Function(),
+                BaseFunnyType.Int64 => new Int64Function(),
+                _ => throw new ArgumentOutOfRangeException()
+            };
 
         private class Int16Function : FunctionWithTwoArgs {
             public Int16Function() : base(CoreFunNames.BitOr, FunnyType.Int16, FunnyType.Int16, FunnyType.Int16) { }
@@ -68,21 +65,18 @@ namespace NFun.Functions
         {
         }
 
-        public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes)
-        {
-            switch (concreteTypes[0].BaseType)
+        public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes) =>
+            concreteTypes[0].BaseType switch
             {
-                case BaseFunnyType.UInt8: return new UInt8Function();
-                case BaseFunnyType.UInt16: return new UInt16Function();
-                case BaseFunnyType.UInt32: return new UInt32Function();
-                case BaseFunnyType.UInt64: return new UInt64Function();
-                case BaseFunnyType.Int16: return new Int16Function();
-                case BaseFunnyType.Int32: return new Int32Function();
-                case BaseFunnyType.Int64: return new Int64Function();
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
+                BaseFunnyType.UInt8 => new UInt8Function(),
+                BaseFunnyType.UInt16 => new UInt16Function(),
+                BaseFunnyType.UInt32 => new UInt32Function(),
+                BaseFunnyType.UInt64 => new UInt64Function(),
+                BaseFunnyType.Int16 => new Int16Function(),
+                BaseFunnyType.Int32 => new Int32Function(),
+                BaseFunnyType.Int64 => new Int64Function(),
+                _ => throw new ArgumentOutOfRangeException()
+            };
 
         private class Int16Function : FunctionWithTwoArgs {
             public Int16Function() : base(CoreFunNames.BitXor, FunnyType.Int16, FunnyType.Int16, FunnyType.Int16) { }
@@ -126,21 +120,18 @@ namespace NFun.Functions
         {
         }
 
-        public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes)
-        {
-            switch (concreteTypes[0].BaseType)
+        public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes) =>
+            concreteTypes[0].BaseType switch
             {
-                case BaseFunnyType.UInt8: return new UInt8Function();
-                case BaseFunnyType.UInt16: return new UInt16Function();
-                case BaseFunnyType.UInt32: return new UInt32Function();
-                case BaseFunnyType.UInt64: return new UInt64Function();
-                case BaseFunnyType.Int16: return new Int16Function();
-                case BaseFunnyType.Int32: return new Int32Function();
-                case BaseFunnyType.Int64: return new Int64Function();
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
+                BaseFunnyType.UInt8 => new UInt8Function(),
+                BaseFunnyType.UInt16 => new UInt16Function(),
+                BaseFunnyType.UInt32 => new UInt32Function(),
+                BaseFunnyType.UInt64 => new UInt64Function(),
+                BaseFunnyType.Int16 => new Int16Function(),
+                BaseFunnyType.Int32 => new Int32Function(),
+                BaseFunnyType.Int64 => new Int64Function(),
+                _ => throw new ArgumentOutOfRangeException()
+            };
 
         private class Int16Function : FunctionWithTwoArgs {
             public Int16Function() : base(CoreFunNames.BitAnd, FunnyType.Int16, FunnyType.Int16, FunnyType.Int16) { }
@@ -184,21 +175,18 @@ namespace NFun.Functions
         {
         }
 
-        public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes)
-        {
-            switch (concreteTypes[0].BaseType)
+        public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes) =>
+            concreteTypes[0].BaseType switch
             {
-                case BaseFunnyType.UInt8: return new UInt8Function();
-                case BaseFunnyType.UInt16: return new UInt16Function();
-                case BaseFunnyType.UInt32: return new UInt32Function();
-                case BaseFunnyType.UInt64: return new UInt64Function();
-                case BaseFunnyType.Int16: return new Int16Function();
-                case BaseFunnyType.Int32: return new Int32Function();
-                case BaseFunnyType.Int64: return new Int64Function();
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
+                BaseFunnyType.UInt8 => new UInt8Function(),
+                BaseFunnyType.UInt16 => new UInt16Function(),
+                BaseFunnyType.UInt32 => new UInt32Function(),
+                BaseFunnyType.UInt64 => new UInt64Function(),
+                BaseFunnyType.Int16 => new Int16Function(),
+                BaseFunnyType.Int32 => new Int32Function(),
+                BaseFunnyType.Int64 => new Int64Function(),
+                _ => throw new ArgumentOutOfRangeException()
+            };
 
         public class Int16Function : FunctionWithSingleArg
         {
@@ -246,15 +234,14 @@ namespace NFun.Functions
             FunnyType.UInt8) { }
         public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes)
         {
-            switch (concreteTypes[0].BaseType)
+            return concreteTypes[0].BaseType switch
             {
-                case BaseFunnyType.UInt32: return new UInt32Function();
-                case BaseFunnyType.UInt64: return new UInt64Function();
-                case BaseFunnyType.Int32: return new Int32Function();
-                case BaseFunnyType.Int64: return new Int64Function();
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+                BaseFunnyType.UInt32 => new UInt32Function(),
+                BaseFunnyType.UInt64 => new UInt64Function(),
+                BaseFunnyType.Int32 => new Int32Function(),
+                BaseFunnyType.Int64 => new Int64Function(),
+                _ => throw new ArgumentOutOfRangeException()
+            };
         }
 
 
@@ -286,15 +273,14 @@ namespace NFun.Functions
         { }
         public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes)
         {
-            switch (concreteTypes[0].BaseType)
+            return concreteTypes[0].BaseType switch
             {
-                case BaseFunnyType.UInt32: return new UInt32Function();
-                case BaseFunnyType.UInt64: return new UInt64Function();
-                case BaseFunnyType.Int32: return new Int32Function();
-                case BaseFunnyType.Int64: return new Int64Function();
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+                BaseFunnyType.UInt32 => new UInt32Function(),
+                BaseFunnyType.UInt64 => new UInt64Function(),
+                BaseFunnyType.Int32 => new Int32Function(),
+                BaseFunnyType.Int64 => new Int64Function(),
+                _ => throw new ArgumentOutOfRangeException()
+            };
         }
 
 

@@ -31,46 +31,41 @@ namespace NFun.Tic.Stages
         public bool Apply(ICompositeState ancestor, StatePrimitive descendant, TicNode _, TicNode __) => false;
         public bool Apply(ICompositeState ancestor, ConstrainsState descendant, TicNode ancestorNode, TicNode descendantNode)
         {
-            if (ancestor is StateArray ancArray)
+            switch (ancestor)
             {
-                var result = SolvingFunctions.TransformToArrayOrNull(descendantNode.Name, descendant);
-                if (result == null)
-                    return false;
-                result.ElementNode.AddAncestor(ancArray.ElementNode);
-                descendantNode.State = result;
-                descendantNode.RemoveAncestor(ancestorNode);
-            }
-            else if (ancestor is StateFun ancFun)
-            {
-                var result = SolvingFunctions.TransformToFunOrNull(
-                    descendantNode.Name, descendant, ancFun);
-                if (result == null)
-                    return false;
-                result.RetNode.AddAncestor(ancFun.RetNode);
-                for (int i = 0; i < result.ArgsCount; i++)
-                    result.ArgNodes[i].AddAncestor(ancFun.ArgNodes[i]);
-                descendantNode.State = result;
-                descendantNode.RemoveAncestor(ancestorNode);
-            }
-            else if (ancestor is StateStruct ancStruct)
-            {
-         
-                var result = SolvingFunctions.TransformToStructOrNull(descendant, ancStruct);
-                if (result == null)
-                    return false;
-                //todo Зачем это тут, если и так структура ссылается на оригинальные поля?
-                /*foreach (var ancField in ancStruct.Fields)
+                case StateArray ancArray:
                 {
-                    var descField = result.GetFieldOrNull(ancField.Key);
-                    if (descField != ancField.Value)
-                    {
-                        descField.AddAncestor(ancField.Value);
-                    }
-                }*/
-                descendantNode.State = result;
-                //descendantNode.RemoveAncestor(ancestorNode);
+                    var result = SolvingFunctions.TransformToArrayOrNull(descendantNode.Name, descendant);
+                    if (result == null)
+                        return false;
+                    result.ElementNode.AddAncestor(ancArray.ElementNode);
+                    descendantNode.State = result;
+                    descendantNode.RemoveAncestor(ancestorNode);
+                    return true;
+                }
+                case StateFun ancFun:
+                {
+                    var result = SolvingFunctions.TransformToFunOrNull(
+                        descendantNode.Name, descendant, ancFun);
+                    if (result == null)
+                        return false;
+                    result.RetNode.AddAncestor(ancFun.RetNode);
+                    for (int i = 0; i < result.ArgsCount; i++)
+                        result.ArgNodes[i].AddAncestor(ancFun.ArgNodes[i]);
+                    descendantNode.State = result;
+                    descendantNode.RemoveAncestor(ancestorNode);
+                    return true;
+                }
+                case StateStruct ancStruct:
+                {
+                    var result = SolvingFunctions.TransformToStructOrNull(descendant, ancStruct);
+                    if (result == null)
+                        return false;
+                    descendantNode.State = result;
+                    return true;
+                }
+                default: return true;
             }
-            return true;
         }
 
         public bool Apply(ICompositeState ancestor, ICompositeState descendant, TicNode ancestorNode, TicNode descendantNode)

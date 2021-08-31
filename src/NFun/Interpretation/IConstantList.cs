@@ -41,10 +41,10 @@ namespace NFun.Interpretation
         internal ConstantList((string id, object value)[] items)
         {
             _dictionary = new Dictionary<string, ConstantValueAndType>(items.Length);
-            foreach (var item in items)
+            foreach (var (id, value) in items)
             {
-                var converter = FunnyTypeConverters.GetInputConverter(item.value.GetType());
-                _dictionary.Add(item.id, new ConstantValueAndType(converter.ToFunObject(item.value), converter.FunnyType));
+                var converter = FunnyTypeConverters.GetInputConverter(value.GetType());
+                _dictionary.Add(id, new ConstantValueAndType(converter.ToFunObject(value), converter.FunnyType));
             }
         }
 
@@ -63,10 +63,10 @@ namespace NFun.Interpretation
         {
             var clone = new Dictionary<string, ConstantValueAndType>(_dictionary);
 
-            foreach (var item in items)
+            foreach (var (id, value) in items)
             {
-                var converter = FunnyTypeConverters.GetInputConverter(item.value.GetType());
-                clone.Add(item.id, new ConstantValueAndType(converter.ToFunObject(item.value), converter.FunnyType));
+                var converter = FunnyTypeConverters.GetInputConverter(value.GetType());
+                clone.Add(id, new ConstantValueAndType(converter.ToFunObject(value), converter.FunnyType));
             }
 
             return new ConstantList(clone);

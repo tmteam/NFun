@@ -9,24 +9,15 @@ namespace NFun.Interpretation.Nodes
 {
     internal class FunArgumentExpressionNode : IExpressionNode
     {
-        public static FunArgumentExpressionNode CreateWith(ISyntaxNode node)
-        {
-            switch (node)
+        public static FunArgumentExpressionNode CreateWith(ISyntaxNode node) =>
+            node switch
             {
-                case NamedIdSyntaxNode varNode:
-                    return new FunArgumentExpressionNode(
-                        name: varNode.Id,
-                        type: node.OutputType,
-                        interval: node.Interval);
-                case TypedVarDefSyntaxNode typeVarNode:
-                    return new FunArgumentExpressionNode(
-                        name: typeVarNode.Id,
-                        type: typeVarNode.FunnyType,
-                        interval: node.Interval);
-                default:
-                    throw ErrorFactory.InvalidArgTypeDefinition(node);
-            }
-        }
+                NamedIdSyntaxNode varNode => new FunArgumentExpressionNode(name: varNode.Id, type: node.OutputType,
+                    interval: node.Interval),
+                TypedVarDefSyntaxNode typeVarNode => new FunArgumentExpressionNode(name: typeVarNode.Id,
+                    type: typeVarNode.FunnyType, interval: node.Interval),
+                _ => throw ErrorFactory.InvalidArgTypeDefinition(node)
+            };
 
         private FunArgumentExpressionNode(string name, FunnyType type, Interval interval)
         {

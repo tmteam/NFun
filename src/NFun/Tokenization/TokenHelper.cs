@@ -6,7 +6,6 @@ using NFun.Types;
 
 namespace NFun.Tokenization
 {
-    
     public static class TokenHelper
     {
         /// <exception cref="SystemException">Throws if string contains invalid format</exception>
@@ -23,13 +22,12 @@ namespace NFun.Tokenization
 
             var longVal = ParseLongValue(val);
 
-        
-            if( longVal < Int32.MinValue)
-                return ( longVal, FunnyType.Int64);
-            else if (longVal > Int32.MaxValue)
-                return (longVal, FunnyType.Int64);
-            else 
-                return (longVal, FunnyType.Int32);
+            return longVal switch
+            {
+                < Int32.MinValue => (longVal, FunnyType.Int64),
+                > Int32.MaxValue => (longVal, FunnyType.Int64),
+                _ => (longVal, FunnyType.Int32)
+            };
         }
 
         private static long ParseLongValue(string val)
@@ -39,57 +37,53 @@ namespace NFun.Tokenization
                 if (val[1] == 'b')
                 {
                     var uval = Convert.ToUInt64(val[2..], 2);
-                    if(uval> long.MaxValue)
+                    if (uval > long.MaxValue)
                         throw new OverflowException();
                     return (long)uval;
                 }
                 else if (val[1] == 'x')
                 {
-                    var uval =  Convert.ToUInt64(val, 16);
-                    if(uval> long.MaxValue)
+                    var uval = Convert.ToUInt64(val, 16);
+                    if (uval > long.MaxValue)
                         throw new OverflowException();
                     return (long)uval;
                 }
             }
+
             return long.Parse(val);
         }
 
-        private static FunnyType ToFunnyType(this Tok token)
-        {
-            switch (token.Type)
+        private static FunnyType ToFunnyType(this Tok token) =>
+            token.Type switch
             {
-                case TokType.Int16Type:  return FunnyType.Int16;
-                case TokType.Int32Type:  return FunnyType.Int32;
-                case TokType.Int64Type:  return FunnyType.Int64;
-                case TokType.UInt8Type:  return FunnyType.UInt8;
-                case TokType.UInt16Type: return FunnyType.UInt16;
-                case TokType.UInt32Type: return FunnyType.UInt32;
-                case TokType.UInt64Type: return FunnyType.UInt64;
-                case TokType.RealType:   return FunnyType.Real;
-                case TokType.BoolType:   return FunnyType.Bool;
-                case TokType.TextType:   return FunnyType.Text;
-                case TokType.AnythingType:  return FunnyType.Any;
-                case TokType.Id:
-                    if(token.Value=="any") return FunnyType.Any;
-                    break;     
-            }
-            throw ErrorFactory.TypeExpectedButWas(token);
-
-        }
+                TokType.Int16Type => FunnyType.Int16,
+                TokType.Int32Type => FunnyType.Int32,
+                TokType.Int64Type => FunnyType.Int64,
+                TokType.UInt8Type => FunnyType.UInt8,
+                TokType.UInt16Type => FunnyType.UInt16,
+                TokType.UInt32Type => FunnyType.UInt32,
+                TokType.UInt64Type => FunnyType.UInt64,
+                TokType.RealType => FunnyType.Real,
+                TokType.BoolType => FunnyType.Bool,
+                TokType.TextType => FunnyType.Text,
+                TokType.AnythingType => FunnyType.Any,
+                TokType.Id when token.Value == "any" => FunnyType.Any,
+                _ => throw ErrorFactory.TypeExpectedButWas(token)
+            };
 
         public static FunnyType ReadType(this TokFlow flow)
         {
             var cur = flow.Current;
             var readType = ToFunnyType(cur);
-            
+
             flow.MoveNext();
             var lastPosition = cur.Finish;
-            
+
             while (flow.IsCurrent(TokType.ArrOBr))
             {
-                if (flow.Current.Start != lastPosition) 
+                if (flow.Current.Start != lastPosition)
                     throw FunnyParseException.ErrorStubToDo("unexpected space before []");
-                
+
                 flow.MoveNext();
                 lastPosition = flow.Current.Finish;
                 if (!flow.MoveIf(TokType.ArrCBr))
@@ -99,18 +93,15 @@ namespace NFun.Tokenization
 
             return readType;
         }
-        
-       
-        
+
+
         public static bool MoveIf(this TokFlow flow, TokType tokType)
         {
-            if (flow.IsCurrent(tokType))
-            {
-                flow.MoveNext();
-                return true;
-            }
-            return false;
+            if (!flow.IsCurrent(tokType)) return false;
+            flow.MoveNext();
+            return true;
         }
+
         public static bool MoveIf(this TokFlow flow, TokType tokType, out Tok tok)
         {
             if (flow.IsCurrent(tokType))
@@ -119,11 +110,13 @@ namespace NFun.Tokenization
                 flow.MoveNext();
                 return true;
             }
-
-            tok = null;
-            return false;
+            else
+            {
+                tok = null;
+                return false;
+            }
         }
-        
+
         public static Tok MoveIfOrThrow(this TokFlow flow, TokType tokType)
         {
             var cur = flow.Current;
@@ -139,7 +132,7 @@ namespace NFun.Tokenization
             if (!cur.Is(tokType))
                 throw FunnyParseException.ErrorStubToDo(
                     $"\"{tokType}\" is missing but was \"{cur}\"");
-            
+
             flow.MoveNext();
             return cur;
         }

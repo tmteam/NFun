@@ -62,7 +62,8 @@ namespace NFun.ParseErrors
                 leftNode.Interval.Start, @operator.Finish);
 
         internal static Exception OperatorIsUnknown(Tok token)
-            => throw new FunnyParseException(213, $"operator '{ErrorsHelper.ToText(token)}' is unknown", token.Interval);
+            => throw new FunnyParseException(213, $"operator '{ErrorsHelper.ToText(token)}' is unknown",
+                token.Interval);
 
         internal static Exception NotAToken(Tok token)
             => throw new FunnyParseException(216, $"'{token.Value}' is not valid fun element. What did you mean?",
@@ -154,7 +155,8 @@ namespace NFun.ParseErrors
                 $"if (a) b else ???.  Else expression is missing{Nl} Example: if (a) b else c ", ifelseStart, end);
 
         internal static Exception IfKeywordIsMissing(int ifelseStart, int end)
-            => new FunnyParseException(261, $"if (a) b (if) ...  'if' is missing{Nl} Example: if (a) b if (c) d else c ",
+            => new FunnyParseException(261,
+                $"if (a) b (if) ...  'if' is missing{Nl} Example: if (a) b if (c) d else c ",
                 ifelseStart, end);
 
 
@@ -211,7 +213,8 @@ namespace NFun.ParseErrors
                 start, flowCurrent.Finish);
 
         internal static Exception ItIsNotCorrectAttributeValue(Tok next)
-            => new FunnyParseException(294, $"Attribute value 'text' or 'number' or 'boolean' expected, but was '{next}'",
+            => new FunnyParseException(294,
+                $"Attribute value 'text' or 'number' or 'boolean' expected, but was '{next}'",
                 next.Interval);
 
         internal static Exception AttributeCbrMissed(int start, TokFlow flow)
@@ -274,7 +277,8 @@ namespace NFun.ParseErrors
                 flowCurrent.Finish);
 
         internal static Exception OnlyOneAnonymousExpressionAllowed(int exprStart, ISyntaxNode lexNode, Tok flowCurrent)
-            => throw new FunnyParseException(330, $"Only one anonymous equation allowed", exprStart, flowCurrent.Finish);
+            => throw new FunnyParseException(330, $"Only one anonymous equation allowed", exprStart,
+                flowCurrent.Finish);
 
         internal static Exception UnexpectedBracketsOnFunDefinition(FunCallSyntaxNode headNode, int start, int finish)
             => new FunnyParseException(333,
@@ -312,7 +316,8 @@ namespace NFun.ParseErrors
             => new FunnyParseException(348, $"{actualName}<-  input name is same to name  {id}", interval);
 
         internal static Exception InterpolationExpressionIsMissing(ISyntaxNode lastNode)
-            => new FunnyParseException(252, $"  Interpolation expression is missing{Nl} Example: 'before {{...}} after' ",
+            => new FunnyParseException(252,
+                $"  Interpolation expression is missing{Nl} Example: 'before {{...}} after' ",
                 lastNode.Interval);
 
         #endregion
@@ -324,40 +329,30 @@ namespace NFun.ParseErrors
             var res = ErrorsHelper.GetExpressionListError(openBracketTokenPos, flow, TokType.ArrOBr, TokType.ArrCBr);
             var list = res.Parsed;
             var argStubs = ErrorsHelper.CreateArgumentsStub(list);
-            switch (res.Type)
+            return res.Type switch
             {
-                case ExprListErrorType.FirstElementMissed:
-                    return new FunnyParseException(401,
-                        $"[ ??? , ..] <- First element missed {Nl}Remove ',' or place element before it", res.Interval);
-                case ExprListErrorType.ElementMissed:
-                    return new FunnyParseException(404,
-                        $"[{argStubs},???, ..] <- element missed {Nl}Remove ',' or place element before it",
-                        res.Interval);
-                case ExprListErrorType.TotalyWrongDefinition:
-                    return new FunnyParseException(407, "Wrong array definition ", res.Interval);
-                case ExprListErrorType.SingleOpenBracket:
-                    return new FunnyParseException(410,
-                        $"[ <- unexpected array symbol{Nl} Did you mean array initialization [,], slice [::] or indexing [i]?",
-                        res.Interval);
-                case ExprListErrorType.SepIsMissing:
-                    return new FunnyParseException(413,
-                        $"[{argStubs}, ??? , ...  <- Seems like ',' is missing{Nl} Example: [{argStubs}, myArgument, ...]",
-                        res.Interval);
-                case ExprListErrorType.ArgumentIsInvalid:
-                    return new FunnyParseException(416,
-                        $"[{argStubs}, ??? , ...  <- Seems like array argument is invalid{Nl} Example: [{argStubs}, myArgument, ...]",
-                        res.Interval);
-                case ExprListErrorType.CloseBracketIsMissing:
-                    return new FunnyParseException(419,
-                        $"[{argStubs} ??? <- Array close bracket ']' is missing{Nl} Example: [{argStubs}]",
-                        res.Interval);
-                case ExprListErrorType.LastArgumentIsInvalid:
-                    return new FunnyParseException(422,
-                        $"[{ErrorsHelper.CreateArgumentsStub(list.Take(list.Length - 1))} ??? ] <- Seems like array argument is invalid{Nl} Example: [{argStubs}, myArgument, ...]",
-                        res.Interval);
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+                ExprListErrorType.FirstElementMissed => new FunnyParseException(401,
+                    $"[ ??? , ..] <- First element missed {Nl}Remove ',' or place element before it", res.Interval),
+                ExprListErrorType.ElementMissed => new FunnyParseException(404,
+                    $"[{argStubs},???, ..] <- element missed {Nl}Remove ',' or place element before it", res.Interval),
+                ExprListErrorType.TotalyWrongDefinition => new FunnyParseException(407, "Wrong array definition ",
+                    res.Interval),
+                ExprListErrorType.SingleOpenBracket => new FunnyParseException(410,
+                    $"[ <- unexpected array symbol{Nl} Did you mean array initialization [,], slice [::] or indexing [i]?",
+                    res.Interval),
+                ExprListErrorType.SepIsMissing => new FunnyParseException(413,
+                    $"[{argStubs}, ??? , ...  <- Seems like ',' is missing{Nl} Example: [{argStubs}, myArgument, ...]",
+                    res.Interval),
+                ExprListErrorType.ArgumentIsInvalid => new FunnyParseException(416,
+                    $"[{argStubs}, ??? , ...  <- Seems like array argument is invalid{Nl} Example: [{argStubs}, myArgument, ...]",
+                    res.Interval),
+                ExprListErrorType.CloseBracketIsMissing => new FunnyParseException(419,
+                    $"[{argStubs} ??? <- Array close bracket ']' is missing{Nl} Example: [{argStubs}]", res.Interval),
+                ExprListErrorType.LastArgumentIsInvalid => new FunnyParseException(422,
+                    $"[{ErrorsHelper.CreateArgumentsStub(list.Take(list.Length - 1))} ??? ] <- Seems like array argument is invalid{Nl} Example: [{argStubs}, myArgument, ...]",
+                    res.Interval),
+                _ => throw new ArgumentOutOfRangeException()
+            };
         }
 
 
@@ -366,41 +361,31 @@ namespace NFun.ParseErrors
             var res = ErrorsHelper.GetExpressionListError(openBracketTokenPos, flow, TokType.Obr, TokType.Cbr);
             var list = res.Parsed;
             var argStubs = ErrorsHelper.CreateArgumentsStub(list);
-            switch (res.Type)
+            return res.Type switch
             {
-                case ExprListErrorType.FirstElementMissed:
-                    return new FunnyParseException(425,
-                        $"{id}( ??? , ..) <- First element missed {Nl}Remove ',' or place element before it",
-                        res.Interval);
-                case ExprListErrorType.ElementMissed:
-                    return new FunnyParseException(428,
-                        $"{id}({argStubs},???, ..) <- element missed {Nl}Remove ',' or place element before it",
-                        res.Interval);
-                case ExprListErrorType.TotalyWrongDefinition:
-                    return new FunnyParseException(431, "Wrong function call", res.Interval);
-                case ExprListErrorType.SingleOpenBracket:
-                    return new FunnyParseException(434,
-                        $"( <- unexpected bracket{Nl} ?",
-                        res.Interval);
-                case ExprListErrorType.SepIsMissing:
-                    return new FunnyParseException(437,
-                        $"{id}({argStubs}, ??? , ...  <- Seems like ',' is missing{Nl} Example: {id}({argStubs}, myArgument, ...)",
-                        res.Interval);
-                case ExprListErrorType.ArgumentIsInvalid:
-                    return new FunnyParseException(440,
-                        $"{id}({argStubs}, ??? , ...  <- Seems like function call argument is invalid{Nl} Example: {id}({argStubs}, myArgument, ...)",
-                        res.Interval);
-                case ExprListErrorType.CloseBracketIsMissing:
-                    return new FunnyParseException(443,
-                        $"{id}({argStubs}, ??? <- Close bracket ')' is missing{Nl} Example: {id}({argStubs})",
-                        res.Interval);
-                case ExprListErrorType.LastArgumentIsInvalid:
-                    return new FunnyParseException(446,
-                        $"{id}({ErrorsHelper.CreateArgumentsStub(list.Take(list.Length - 1))} ??? ) <- Seems like call argument is invalid{Nl} Example: {id}({argStubs}, myArgument, ...)",
-                        res.Interval);
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+                ExprListErrorType.FirstElementMissed => new FunnyParseException(425,
+                    $"{id}( ??? , ..) <- First element missed {Nl}Remove ',' or place element before it", res.Interval),
+                ExprListErrorType.ElementMissed => new FunnyParseException(428,
+                    $"{id}({argStubs},???, ..) <- element missed {Nl}Remove ',' or place element before it",
+                    res.Interval),
+                ExprListErrorType.TotalyWrongDefinition => new FunnyParseException(431, "Wrong function call",
+                    res.Interval),
+                ExprListErrorType.SingleOpenBracket => new FunnyParseException(434, $"( <- unexpected bracket{Nl} ?",
+                    res.Interval),
+                ExprListErrorType.SepIsMissing => new FunnyParseException(437,
+                    $"{id}({argStubs}, ??? , ...  <- Seems like ',' is missing{Nl} Example: {id}({argStubs}, myArgument, ...)",
+                    res.Interval),
+                ExprListErrorType.ArgumentIsInvalid => new FunnyParseException(440,
+                    $"{id}({argStubs}, ??? , ...  <- Seems like function call argument is invalid{Nl} Example: {id}({argStubs}, myArgument, ...)",
+                    res.Interval),
+                ExprListErrorType.CloseBracketIsMissing => new FunnyParseException(443,
+                    $"{id}({argStubs}, ??? <- Close bracket ')' is missing{Nl} Example: {id}({argStubs})",
+                    res.Interval),
+                ExprListErrorType.LastArgumentIsInvalid => new FunnyParseException(446,
+                    $"{id}({ErrorsHelper.CreateArgumentsStub(list.Take(list.Length - 1))} ??? ) <- Seems like call argument is invalid{Nl} Example: {id}({argStubs}, myArgument, ...)",
+                    res.Interval),
+                _ => throw new ArgumentOutOfRangeException()
+            };
         }
 
         internal static Exception BracketExpressionListError(int openBracketTokenPos, TokFlow flow)
@@ -408,40 +393,29 @@ namespace NFun.ParseErrors
             var res = ErrorsHelper.GetExpressionListError(openBracketTokenPos, flow, TokType.Obr, TokType.Cbr);
             var list = res.Parsed;
             var argStubs = ErrorsHelper.CreateArgumentsStub(list);
-            switch (res.Type)
+            return res.Type switch
             {
-                case ExprListErrorType.FirstElementMissed:
-                    return new FunnyParseException(449,
-                        $"( ??? , ..) <- First element missed {Nl}Remove ',' or place element before it", res.Interval);
-                case ExprListErrorType.ElementMissed:
-                    return new FunnyParseException(452,
-                        $"({argStubs},???, ..) <- element missed {Nl}Remove ',' or place element before it",
-                        res.Interval);
-                case ExprListErrorType.TotalyWrongDefinition:
-                    return new FunnyParseException(455, "Wrong expression", res.Interval);
-                case ExprListErrorType.SingleOpenBracket:
-                    return new FunnyParseException(458,
-                        $"( <- unexpected bracket{Nl} ?",
-                        res.Interval);
-                case ExprListErrorType.SepIsMissing:
-                    return new FunnyParseException(461,
-                        $"({argStubs}, ??? , ...  <- Seems like ',' is missing{Nl} Example: ({argStubs}, myArgument, ...)",
-                        res.Interval);
-                case ExprListErrorType.ArgumentIsInvalid:
-                    return new FunnyParseException(464,
-                        $"({argStubs}, ??? , ...  <- Seems like invalid expressions{Nl} Example: ({argStubs}, myArgument, ...)",
-                        res.Interval);
-                case ExprListErrorType.CloseBracketIsMissing:
-                    return new FunnyParseException(467,
-                        $"({argStubs}, ??? <- Close bracket ')' is missing{Nl} Example:({argStubs})",
-                        res.Interval);
-                case ExprListErrorType.LastArgumentIsInvalid:
-                    return new FunnyParseException(470,
-                        $"({ErrorsHelper.CreateArgumentsStub(list.Take(list.Length - 1))} ??? ) <- Seems like invalid expression{Nl} Example: ({argStubs}, myArgument, ...)",
-                        res.Interval);
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+                ExprListErrorType.FirstElementMissed => new FunnyParseException(449,
+                    $"( ??? , ..) <- First element missed {Nl}Remove ',' or place element before it", res.Interval),
+                ExprListErrorType.ElementMissed => new FunnyParseException(452,
+                    $"({argStubs},???, ..) <- element missed {Nl}Remove ',' or place element before it", res.Interval),
+                ExprListErrorType.TotalyWrongDefinition => new FunnyParseException(455, "Wrong expression",
+                    res.Interval),
+                ExprListErrorType.SingleOpenBracket => new FunnyParseException(458, $"( <- unexpected bracket{Nl} ?",
+                    res.Interval),
+                ExprListErrorType.SepIsMissing => new FunnyParseException(461,
+                    $"({argStubs}, ??? , ...  <- Seems like ',' is missing{Nl} Example: ({argStubs}, myArgument, ...)",
+                    res.Interval),
+                ExprListErrorType.ArgumentIsInvalid => new FunnyParseException(464,
+                    $"({argStubs}, ??? , ...  <- Seems like invalid expressions{Nl} Example: ({argStubs}, myArgument, ...)",
+                    res.Interval),
+                ExprListErrorType.CloseBracketIsMissing => new FunnyParseException(467,
+                    $"({argStubs}, ??? <- Close bracket ')' is missing{Nl} Example:({argStubs})", res.Interval),
+                ExprListErrorType.LastArgumentIsInvalid => new FunnyParseException(470,
+                    $"({ErrorsHelper.CreateArgumentsStub(list.Take(list.Length - 1))} ??? ) <- Seems like invalid expression{Nl} Example: ({argStubs}, myArgument, ...)",
+                    res.Interval),
+                _ => throw new ArgumentOutOfRangeException()
+            };
         }
 
         #endregion
@@ -452,7 +426,7 @@ namespace NFun.ParseErrors
         {
             var expression = result.First().Expression;
             return new FunnyParseException(500, "Cycle dependencies found: "
-                                              + string.Join("->", result.Select(r => r.Id)),
+                                                + string.Join("->", result.Select(r => r.Id)),
                 expression.Interval);
         }
 
@@ -496,7 +470,8 @@ namespace NFun.ParseErrors
         internal static Exception FunctionNameAndVariableNameConflict(VariableUsages usages)
             => new FunnyParseException(524,
                 $"Function with name: {usages.Source.Name} can be used in expression because it's name conflict with function that exists in scope. Declare input variable",
-                usages.Source.TypeSpecificationIntervalOrNull??usages.Usages.FirstOrDefault()?.Interval??Interval.Empty);
+                usages.Source.TypeSpecificationIntervalOrNull ??
+                usages.Usages.FirstOrDefault()?.Interval ?? Interval.Empty);
 
         internal static Exception AmbiguousFunctionChoise(NamedIdSyntaxNode varName)
             => new FunnyParseException(526,
@@ -536,7 +511,8 @@ namespace NFun.ParseErrors
         }
 
         internal static Exception FunctionAlreadyExist(UserFunctionDefinitionSyntaxNode userFun)
-            => new FunnyParseException(545, $"Function  {ErrorsHelper.Signature(userFun.Id, userFun.Args)} already exist",
+            => new FunnyParseException(545,
+                $"Function  {ErrorsHelper.Signature(userFun.Id, userFun.Args)} already exist",
                 new Interval(userFun.Head.Interval.Start, userFun.Body.Interval.Finish));
 
         internal static Exception InvalidOutputType(IFunctionSignature function, Interval interval)
@@ -561,7 +537,8 @@ namespace NFun.ParseErrors
 
         internal static Exception AnonymousFunctionArgumentDuplicates(TypedVarDefSyntaxNode argNode,
             ISyntaxNode funDefinition)
-            => new FunnyParseException(563, $"'Argument '{argNode.Id}:{argNode.FunnyType}' of anonymous fun duplicates ",
+            => new FunnyParseException(563,
+                $"'Argument '{argNode.Id}:{argNode.FunnyType}' of anonymous fun duplicates ",
                 argNode.Interval);
 
         internal static Exception AnonymousFunctionArgumentConflictsWithOuterScope(string argName, Interval defInterval)
@@ -619,15 +596,16 @@ namespace NFun.ParseErrors
             var hmTypes = allExpressions.Select(a => a.OutputType.ConvertToTiType()).ToArray();
 
             return new FunnyParseException(575, $"'If-else expressions contains different type. " +
-                                              $"Specify toAny() cast if the result should be of 'any' type. " +
-                                              $"Actual types: {string.Join(",", hmTypes.Select(m => m.Description))}",
+                                                $"Specify toAny() cast if the result should be of 'any' type. " +
+                                                $"Actual types: {string.Join(",", hmTypes.Select(m => m.Description))}",
                 failedInterval);
         }
 
         internal static Exception VariousArrayElementTypes(ArraySyntaxNode arraySyntaxNode)
         {
             return new FunnyParseException(578, $"'Various array element types. " +
-                                              $"{arraySyntaxNode.OutputType} = [{string.Join(",", arraySyntaxNode.Expressions.Select(e=>e.OutputType))}]", arraySyntaxNode.Interval);
+                                                $"{arraySyntaxNode.OutputType} = [{string.Join(",", arraySyntaxNode.Expressions.Select(e => e.OutputType))}]",
+                arraySyntaxNode.Interval);
         }
 
         internal static Exception VariousArrayElementTypes(ISyntaxNode failedArrayElement)
@@ -649,7 +627,8 @@ namespace NFun.ParseErrors
                            ?? usages.Source.TypeSpecificationIntervalOrNull
                            ?? new Interval();
 
-            return new FunnyParseException(587, $"Cannot use output value '{usages.Source.Name}' before it is declared'",
+            return new FunnyParseException(587,
+                $"Cannot use output value '{usages.Source.Name}' before it is declared'",
                 interval);
         }
 
@@ -713,7 +692,8 @@ namespace NFun.ParseErrors
                 {
                     var concreteNode = SyntaxTreeDeepFieldSearch.FindNodeByOrderNumOrNull(syntaxNodeToSearch, nodeId);
                     if (concreteNode != null)
-                        return new FunnyParseException(603, $"Recursive type definition detected", concreteNode.Interval);
+                        return new FunnyParseException(603, $"Recursive type definition detected",
+                            concreteNode.Interval);
                 }
             }
 

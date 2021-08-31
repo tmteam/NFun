@@ -14,7 +14,7 @@ namespace NFun.Tokenization
         public static (string result, int resultPosition) ReadQuotation(string rawString, int startPosition)
         {
             var sb = new StringBuilder();
-            int lastNonEscaped = startPosition+1;
+            int lastNonEscaped = startPosition + 1;
 
             int i = lastNonEscaped;
             var closeQuotationPosition = 0;
@@ -27,50 +27,50 @@ namespace NFun.Tokenization
                     break;
                 }
 
-                if(rawString[i]!= '\\')
+                if (rawString[i] != '\\')
                     continue;
-                
-                if (lastNonEscaped != i) {
+
+                if (lastNonEscaped != i)
+                {
                     var prev = rawString.Substring(lastNonEscaped, i - lastNonEscaped);
                     sb.Append(prev);
                 }
 
                 if (i == rawString.Length - 1)
                     throw ErrorFactory.BackslashAtEndOfString(i, i + 1);
-                
+
                 var next = rawString[i + 1];
-                char symbol;
-                switch (next)
+                var symbol = next switch
                 {
-                    case '\\': symbol = '\\'; break;
-                    case 'n':  symbol = '\n'; break;
-                    case 'r':  symbol = '\r'; break;
-                    case '\'': symbol = '\''; break;
-                    case '"': symbol = '"'; break;
-                    case 't': symbol = '\t'; break;
-                    case 'f': symbol = '\f'; break;
-                    case 'v': symbol = '\v'; break;
-                    case '{': symbol = '{'; break;
-                    case '}': symbol = '}'; break;
-                    default:
-                        throw ErrorFactory.UnknownEscapeSequence(next.ToString(), i, i+2); 
-                }
+                    '\\' => '\\',
+                    'n' => '\n',
+                    'r' => '\r',
+                    '\'' => '\'',
+                    '"' => '"',
+                    't' => '\t',
+                    'f' => '\f',
+                    'v' => '\v',
+                    '{' => '{',
+                    '}' => '}',
+                    _ => throw ErrorFactory.UnknownEscapeSequence(next.ToString(), i, i + 2)
+                };
                 sb.Append(symbol);
                 i++;
-                lastNonEscaped = i+1;
+                lastNonEscaped = i + 1;
             }
 
             if (closeQuotationPosition == 0)
                 return ("", -1);
 
-            if (lastNonEscaped == startPosition+1)
-                return (rawString.Substring(startPosition + 1, i - startPosition-1), i);
-            
-            if (lastNonEscaped <= rawString.Length-1)
+            if (lastNonEscaped == startPosition + 1)
+                return (rawString.Substring(startPosition + 1, i - startPosition - 1), i);
+
+            if (lastNonEscaped <= rawString.Length - 1)
             {
-                var prev = rawString.Substring(lastNonEscaped,i - lastNonEscaped);
+                var prev = rawString.Substring(lastNonEscaped, i - lastNonEscaped);
                 sb.Append(prev);
             }
+
             return (sb.ToString(), closeQuotationPosition);
         }
     }

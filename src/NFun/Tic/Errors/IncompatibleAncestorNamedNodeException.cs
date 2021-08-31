@@ -2,7 +2,7 @@
 
 namespace NFun.Tic.Errors
 {
-    public class IncompatibleAncestorNamedNodeException : TicException
+    internal class IncompatibleAncestorNamedNodeException : TicException
     {
         public string NodeName { get; }
         public ITicNodeState Ancestor { get; }

@@ -219,21 +219,18 @@ namespace NFun.Functions
         {
         }
 
-        public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes)
-        {
-            switch (concreteTypes[0].BaseType)
+        public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes) =>
+            concreteTypes[0].BaseType switch
             {
-                case BaseFunnyType.UInt16: return new UInt16Function();
-                case BaseFunnyType.UInt32: return new UInt32Function();
-                case BaseFunnyType.UInt64: return new UInt64Function();
-                case BaseFunnyType.Int16: return new Int16Function();
-                case BaseFunnyType.Int32: return new Int32Function();
-                case BaseFunnyType.Int64: return new Int64Function();
-                case BaseFunnyType.Real: return new RealFunction();
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
+                BaseFunnyType.UInt16 => new UInt16Function(),
+                BaseFunnyType.UInt32 => new UInt32Function(),
+                BaseFunnyType.UInt64 => new UInt64Function(),
+                BaseFunnyType.Int16 => new Int16Function(),
+                BaseFunnyType.Int32 => new Int32Function(),
+                BaseFunnyType.Int64 => new Int64Function(),
+                BaseFunnyType.Real => new RealFunction(),
+                _ => throw new ArgumentOutOfRangeException()
+            };
 
         private class RealFunction : FunctionWithSingleArg
         {
@@ -332,30 +329,19 @@ namespace NFun.Functions
         {
         }
 
-        public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes)
-        {
-            switch (concreteTypes[0].BaseType)
+        public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes) =>
+            concreteTypes[0].BaseType switch
             {
-                case BaseFunnyType.UInt8:
-                    return new UInt8Function();
-                case BaseFunnyType.UInt16:
-                    return new UInt16Function();
-                case BaseFunnyType.UInt32:
-                    return new UInt32Function();
-                case BaseFunnyType.UInt64:
-                    return new UInt64Function();
-                case BaseFunnyType.Int16:
-                    return new Int16Function();
-                case BaseFunnyType.Int32:
-                    return new Int32Function();
-                case BaseFunnyType.Int64:
-                    return new Int64Function();
-                case BaseFunnyType.Real:
-                    return new RealFunction();
-                default:
-                    throw new NotSupportedException();
-            }
-        }
+                BaseFunnyType.UInt8 => new UInt8Function(),
+                BaseFunnyType.UInt16 => new UInt16Function(),
+                BaseFunnyType.UInt32 => new UInt32Function(),
+                BaseFunnyType.UInt64 => new UInt64Function(),
+                BaseFunnyType.Int16 => new Int16Function(),
+                BaseFunnyType.Int32 => new Int32Function(),
+                BaseFunnyType.Int64 => new Int64Function(),
+                BaseFunnyType.Real => new RealFunction(),
+                _ => throw new NotSupportedException()
+            };
 
         private const string Id = "range";
 
@@ -546,23 +532,19 @@ namespace NFun.Functions
         {
         }
 
-        public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes)
-        {
-            switch (concreteTypes[0].BaseType)
+        public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes) =>
+            concreteTypes[0].BaseType switch
             {
-                case BaseFunnyType.UInt8: return new UInt8Function();
-                case BaseFunnyType.UInt16: return new UInt16Function();
-                case BaseFunnyType.UInt32: return new UInt32Function();
-                case BaseFunnyType.UInt64: return new UInt64Function();
-                case BaseFunnyType.Int16: return new Int16Function();
-                case BaseFunnyType.Int32: return new Int32Function();
-                case BaseFunnyType.Int64: return new Int64Function();
-                case BaseFunnyType.Real: return new RealFunction();
-
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
+                BaseFunnyType.UInt8 => new UInt8Function(),
+                BaseFunnyType.UInt16 => new UInt16Function(),
+                BaseFunnyType.UInt32 => new UInt32Function(),
+                BaseFunnyType.UInt64 => new UInt64Function(),
+                BaseFunnyType.Int16 => new Int16Function(),
+                BaseFunnyType.Int32 => new Int32Function(),
+                BaseFunnyType.Int64 => new Int64Function(),
+                BaseFunnyType.Real => new RealFunction(),
+                _ => throw new ArgumentOutOfRangeException()
+            };
 
         private const string Id = "rangeWithStep";
 

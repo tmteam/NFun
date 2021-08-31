@@ -28,10 +28,10 @@ namespace NFun.Runtime
                 return false;
             if (_values.Count != str._values.Count)
                 return false;
-            foreach (var field in _values)
+            foreach (var (key, value) in _values)
             {
-                var otherValue = str.GetValue(field.Key);
-                if (!otherValue.Equals(field.Value))
+                var otherValue = str.GetValue(key);
+                if (!otherValue.Equals(value))
                     return false;
             }
             return true;

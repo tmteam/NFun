@@ -55,9 +55,7 @@ namespace NFun.SyntaxParsing
                     case NodeState.Checked:
                         return true;
                     case NodeState.Checking:
-                    {
-                        return false;                        
-                    }
+                        return false;
                     default:
                         _nodeStates[node] = NodeState.Checking;
                         for (int child = 0; child < _graph[node].Length; child++)

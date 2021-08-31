@@ -8,7 +8,6 @@ namespace NFun.Functions
     public class AverageFunction : FunctionWithSingleArg
     {
         public AverageFunction() : base("avg", FunnyType.Real, FunnyType.ArrayOf(FunnyType.Real)) { }
-        public override object Calc(object a) =>
-            ((IFunnyArray)a).As<double>().Average();
+        public override object Calc(object a) => ((IFunnyArray)a).As<double>().Average();
     }
 }
