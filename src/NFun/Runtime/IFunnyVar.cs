@@ -28,19 +28,12 @@ namespace NFun.Runtime
         object FunnyValue { get; }
 
         /// <summary>
-        /// Sets internal value. Fast and unsafe.
-        /// Use it carefully and only for primitive types
-        /// </summary>
-        /// <param name="funnyValue"></param>
-        void SetFunnyValueUnsafe(object funnyValue);
-
-        /// <summary>
         /// The variable is calculated in the script and can be used as one of the results of the script
         /// </summary>
         bool IsOutput { get; }
 
         /// <summary>
-        /// Represents current CLR value of the funny variable
+        /// Represents current CLR value of the funny variable. 
         /// </summary>
         object Value { get; set; }
     }
@@ -98,9 +91,21 @@ namespace NFun.Runtime
         public FunnyType Type { get; }
         public object FunnyValue => _funnyValue;
 
+        private bool _outputConverterLoaded;
+        private IOutputFunnyConverter _outputConverter;
+        
         public object Value
         {
-            get => FunnyTypeConverters.GetOutputConverter(Type).ToClrObject(_funnyValue);
+            get
+            {
+                if (!_outputConverterLoaded)
+                {
+                    _outputConverterLoaded = true;
+                    _outputConverter = FunnyTypeConverters.GetOutputConverter(Type);
+                }
+
+                return _outputConverter.ToClrObject(_funnyValue);
+            }
             set => _funnyValue = FunnyTypeConverters.ConvertInputOrThrow(value, Type);
         }
     }
