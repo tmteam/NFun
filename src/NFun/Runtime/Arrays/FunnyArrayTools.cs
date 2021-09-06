@@ -40,10 +40,9 @@ public static class FunnyArrayTools {
         if (allAreChars)
         {
             var chars = new char[count];
-            foreach (var item in enumerable)
-            {
-                chars[0] = (char)item;
-            }
+            int i = 0;
+            foreach (var item in enumerable) 
+                chars[i++] = (char)item;
 
             return new string(chars);
         }

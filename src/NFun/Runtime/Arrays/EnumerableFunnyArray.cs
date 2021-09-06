@@ -42,6 +42,8 @@ public class EnumerableFunnyArray : IFunnyArray {
 
         return FunnyArrayTools.JoinElementsToFunString(_origin);
     }
+
+    public override string ToString() => FunnyArrayTools.JoinElementsToFunString(_origin);
 }
 
 }

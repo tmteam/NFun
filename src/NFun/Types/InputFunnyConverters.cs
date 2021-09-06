@@ -1,7 +1,9 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using NFun.Exceptions;
 using NFun.Runtime;
 using NFun.Runtime.Arrays;
 
@@ -135,15 +137,24 @@ public class ClrArrayInputTypeFunnyConverter : IInputFunnyConverter {
     public FunnyType FunnyType { get; }
 
     public object ToFunObject(object clrObject) {
-        var array = clrObject as Array;
-        var funnyObjects = new object[array.Length];
-        for (int i = 0; i < array.Length; i++)
+        switch (clrObject)
         {
-            var val = array.GetValue(i);
-            funnyObjects[i] = _elementConverter.ToFunObject(val);
-        }
+            case Array array:
+            {
+                var funnyObjects = new object[array.Length];
+                for (int i = 0; i < array.Length; i++)
+                {
+                    var val = array.GetValue(i);
+                    funnyObjects[i] = _elementConverter.ToFunObject(val);
+                }
 
-        return new ImmutableFunnyArray(funnyObjects, FunnyType.ArrayTypeSpecification.FunnyType);
+                return new ImmutableFunnyArray(funnyObjects, FunnyType.ArrayTypeSpecification.FunnyType);
+            }
+            case string str:
+                return new ImmutableFunnyArray(str.ToCharArray(), FunnyType.ArrayTypeSpecification.FunnyType);
+            default:
+                throw FunnyInvalidUsageException.InputTypeCannotBeConverted(clrObject.GetType(), FunnyType);
+        }
     }
 }
 

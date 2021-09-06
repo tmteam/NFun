@@ -10,7 +10,7 @@ public static class QuotationReader {
     /// <param name="rawString"></param>
     /// <param name="startPosition">open quote position</param>
     /// <returns>result: escaped string, resultPosition: index of closing quote symbol. -1 if no close quote symbol found</returns>
-    public static (string result, int resultPosition) ReadQuotation(string rawString, int startPosition) {
+    public static (string result, int resultPosition) ReadQuotation(string rawString, int startPosition, bool stopAtQuoteSymbols = true) {
         var sb = new StringBuilder();
         int lastNonEscaped = startPosition + 1;
 
@@ -19,7 +19,7 @@ public static class QuotationReader {
         for (; i < rawString.Length; i++)
         {
             var current = rawString[i];
-            if (current == '\'' || current == '"' || current == '{')
+            if ((stopAtQuoteSymbols && (current == '\'' || current == '"')) || current == '{')
             {
                 closeQuotationPosition = i;
                 break;

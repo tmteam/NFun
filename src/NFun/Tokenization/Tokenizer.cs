@@ -162,9 +162,9 @@ public class Tokenizer {
 
     private static bool IsLetter(char val) => val == '_' || (val >= 'a' && val <= 'z') || (val >= 'A' && val <= 'Z');
 
-    private static bool IsDigit(char val) => char.IsDigit(val); // val >= '0' && val <= '9';
+    private static bool IsDigit(char val) => char.IsDigit(val);
 
-    private static bool IsQuote(char val) => val == '\'' || val == '\"';
+    public static bool IsQuote(char val) => val == '\'' || val == '\"';
 
     private static Tok ReadNumber(string str, int position) {
         int dotPosition = -1;
@@ -319,7 +319,7 @@ public class Tokenizer {
     private bool _isInInterpolation = false;
     private readonly Stack<InterpolationLayer> _interpolationLayers = new();
 
-    private Tok TryReadNext(string str, int position) {
+    internal Tok TryReadNext(string str, int position) {
         char current;
 
         //Search for comments, spaces and or eof

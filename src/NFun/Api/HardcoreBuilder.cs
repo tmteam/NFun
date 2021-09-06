@@ -1,7 +1,12 @@
 using System;
+using System.Collections.Generic;
+using System.Text;
+using NFun.Exceptions;
 using NFun.Interpretation;
 using NFun.Interpretation.Functions;
+using NFun.ParseErrors;
 using NFun.Runtime;
+using NFun.Tokenization;
 using NFun.Types;
 
 namespace NFun {
@@ -83,6 +88,71 @@ public class HardcoreBuilder {
 
     public FunnyRuntime Build(string script) =>
         RuntimeBuilder.Build(script, _immutableFunctionDictionary, _dialect, _constants, _apriori);
+
+    public InterpolationCalculator BuildInterpolation(string script) {
+        var texts = new List<string>();
+        var scripts = new List<string>();
+        SeparateInterpolation(script, texts, scripts);
+        var sb = new StringBuilder();
+        for (int i = 0; i < scripts.Count; i++)
+            sb.Append($"___intepol{i}={scripts[i]};;");
+
+        var runtime = Build(sb.ToString());
+        var outputVars = new IFunnyVar[scripts.Count];
+
+        for (int i = 0; i < scripts.Count; i++)
+            outputVars[i] = runtime[$"___intepol{i}"];
+
+        return new InterpolationCalculator(runtime, texts, outputVars);
+    }
+
+    private static void SeparateInterpolation(string script, List<string> texts, List<string> scripts) {
+        int pos = -1;
+        var reader = new Tokenizer();
+        while (true)
+        {
+            var text = "";
+            int endOfText = 0;
+
+            if (pos != -1 || script.Length <= 0 || script[0] != '{')
+            {
+                (text, endOfText) = QuotationReader.ReadQuotation(script, pos, false);
+                if (endOfText == -1)
+                {
+                    texts.Add(script.Substring(pos + 1));
+                    break;
+                }
+            }
+
+            pos = endOfText;
+
+            texts.Add(text);
+
+            var nextSymbol = script[pos];
+            if (nextSymbol != '{')
+                throw new NFunImpossibleException($"Unexpected symbol '{nextSymbol}'");
+
+            int obrCount = 1;
+            pos++;
+            //search end of quotation
+            while (obrCount != 0)
+            {
+                var res = reader.TryReadNext(script, pos);
+                if (res.Type == TokType.FiObr)
+                    obrCount++;
+                else if (res.Type == TokType.FiCbr)
+                    obrCount--;
+                else if (res.Type == TokType.Eof)
+                    throw ErrorFactory.ClosingQuoteIsMissed('}', pos, text.Length);
+
+                pos = res.Finish;
+            }
+
+            scripts.Add(script.Substring(endOfText + 1, pos - endOfText - 2));
+            pos--;
+            //end of script body here!
+        }
+    }
 }
 
 }
