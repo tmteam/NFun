@@ -1,23 +1,22 @@
-namespace NFun.InfinityProfiling
-{
-    public static class Scripts
-    {
-        public const string ConstTrue = "true";
-        public const string Const1 = "1";
-        public const string ConstText = "'let us make some fun!'";
-        public const string ConstBoolArray = "y=[true, false, true, true,true,false,false]";
-        public const string ConstRealArray = "y=[1,2,3,4,5,6,7,7,8,10]";
+namespace NFun.InfinityProfiling {
 
-        public const string CalcKxb = "y = 10 * x + 1";
-        public const string CalcReal = "y:real = x";
-        public const string CalcBool = "y:bool = x";
-        public const string CalcText = "y:text = x";
-        public const string CalcRealArray = "y=[1.0,x,x]";
-        public const string CalcFourArgs = "y='{(a*b+c)}'.concat(d)";
+public static class Scripts {
+    public const string ConstTrue = "true";
+    public const string Const1 = "1";
+    public const string ConstText = "'let us make some fun!'";
+    public const string ConstBoolArray = "y=[true, false, true, true,true,false,false]";
+    public const string ConstRealArray = "y=[1,2,3,4,5,6,7,7,8,10]";
 
-        // public readonly string ConstThousandSum = "[1..1000..1.0].sum()";
+    public const string CalcKxb = "y = 10 * x + 1";
+    public const string CalcReal = "y:real = x";
+    public const string CalcBool = "y:bool = x";
+    public const string CalcText = "y:text = x";
+    public const string CalcRealArray = "y=[1.0,x,x]";
+    public const string CalcFourArgs = "y='{(a*b+c)}'.concat(d)";
 
-        public const string MultiplyArrayItems = @"multi(a,b) = 
+    // public readonly string ConstThousandSum = "[1..1000..1.0].sum()";
+
+    public const string MultiplyArrayItems = @"multi(a,b) = 
                               if(a.count()!=b.count()) []
                               else
                                   [0..a.count()-1].map(fun a[it]*b[it]) 
@@ -28,7 +27,7 @@ namespace NFun.InfinityProfiling
                           
                           passed = a.multi(b)==expected";
 
-        public const string DummyBubbleSort = @" 
+    public const string DummyBubbleSort = @" 
   	                       twiceSet(arr,i,j,ival,jval) = arr.set(i,ival).set(j,jval)
 
                           #swap elements i,j in array arr  
@@ -52,7 +51,7 @@ namespace NFun.InfinityProfiling
                           i:int[]  = [1,5,3,5,6,1,2,100,0,3,2,10,3,50,6,42,43,53].bubbleSort()";
 
 
-        public const string Everything = @"
+    public const string Everything = @"
                           twiceSet(arr,i,j,ival,jval) = arr.set(i,ival).set(j,jval)
 
                           #swap elements i,j in array arr  
@@ -86,5 +85,6 @@ namespace NFun.InfinityProfiling
                           #uncomment when steps gonna be fixed
 						  #m =  [0..20000..2].sum()
 ";
-    }
+}
+
 }

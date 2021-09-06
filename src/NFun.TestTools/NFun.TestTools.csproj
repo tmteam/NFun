@@ -5,11 +5,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\NFun\NFun.csproj" />
+        <ProjectReference Include="..\NFun\NFun.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="NUnit" Version="3.12.0" />
+        <PackageReference Include="NUnit" Version="3.12.0"/>
     </ItemGroup>
 
 </Project>

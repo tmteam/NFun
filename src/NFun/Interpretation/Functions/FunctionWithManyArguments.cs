@@ -3,53 +3,50 @@ using NFun.Interpretation.Nodes;
 using NFun.Tokenization;
 using NFun.Types;
 
-namespace NFun.Interpretation.Functions
-{
-    public abstract class FunctionWithManyArguments : IConcreteFunction
-    {
-        public string Name { get; }
-        public FunnyType[] ArgTypes { get; protected set; }
+namespace NFun.Interpretation.Functions {
 
-        protected FunctionWithManyArguments(string name)
+public abstract class FunctionWithManyArguments : IConcreteFunction {
+    public string Name { get; }
+    public FunnyType[] ArgTypes { get; protected set; }
+
+    protected FunctionWithManyArguments(string name) {
+        Name = name;
+    }
+
+    protected FunctionWithManyArguments(string name, FunnyType returnType, params FunnyType[] argTypes) {
+        Name = name;
+        ArgTypes = argTypes;
+        ReturnType = returnType;
+    }
+
+    public FunnyType ReturnType { get; protected set; }
+    public abstract object Calc(object[] args);
+
+    public IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children, Interval interval) {
+        var castedChildren = new IExpressionNode[children.Count];
+
+        var i = 0;
+        foreach (var argNode in children)
         {
-            Name = name;
-        }
+            var toType = ArgTypes[i];
+            var fromType = argNode.Type;
+            var castedNode = argNode;
 
-        protected FunctionWithManyArguments(string name, FunnyType returnType, params FunnyType[] argTypes)
-        {
-            Name = name;
-            ArgTypes = argTypes;
-            ReturnType = returnType;
-        }
-
-        public FunnyType ReturnType { get; protected set; }
-        public abstract object Calc(object[] args);
-
-        public IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children, Interval interval)
-        {
-            var castedChildren = new IExpressionNode[children.Count];
-
-            var i = 0;
-            foreach (var argNode in children)
+            if (fromType != toType)
             {
-                var toType = ArgTypes[i];
-                var fromType = argNode.Type;
-                var castedNode = argNode;
-
-                if (fromType != toType)
-                {
-                    var converter = VarTypeConverter.GetConverterOrThrow(fromType, toType, argNode.Interval);
-                    castedNode = new CastExpressionNode(argNode, toType, converter, argNode.Interval);
-                }
-
-                castedChildren[i] = castedNode;
-                i++;
+                var converter = VarTypeConverter.GetConverterOrThrow(fromType, toType, argNode.Interval);
+                castedNode = new CastExpressionNode(argNode, toType, converter, argNode.Interval);
             }
 
-            return new FunOfManyArgsExpressionNode(this, castedChildren, interval);
+            castedChildren[i] = castedNode;
+            i++;
         }
 
-        public override string ToString()
-            => $"fun {TypeHelper.GetFunSignature(Name, ReturnType, ArgTypes)}";
+        return new FunOfManyArgsExpressionNode(this, castedChildren, interval);
     }
+
+    public override string ToString()
+        => $"fun {TypeHelper.GetFunSignature(Name, ReturnType, ArgTypes)}";
+}
+
 }

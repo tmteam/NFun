@@ -1,14 +1,13 @@
-namespace NFun.SyntaxParsing
-{
-    public class FunnyAttribute
-    {
-        internal FunnyAttribute(string name,object value)
-        {
-            Value = value;
-            Name = name;
-        }
+namespace NFun.SyntaxParsing {
 
-        public object Value { get;}
-        public string Name { get; }
+public class FunnyAttribute {
+    internal FunnyAttribute(string name, object value) {
+        Value = value;
+        Name = name;
     }
+
+    public object Value { get; }
+    public string Name { get; }
+}
+
 }

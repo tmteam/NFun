@@ -1,38 +1,38 @@
-namespace NFun.InfinityProfiling.Sets
-{
-    public interface IProfileSet
-    {
-        void PrimitiveConstIntSimpleArithmetics();
-        void PrimitiveConstRealSimpleArithmetics();
-        void PrimitiveConstBoolSimpleArithmetics();
-        void PrimitiveCalcReal2Var();
-        void PrimitiveCalcInt2Var();
-        void PrimitiveCalcSingleBool();
-        void PrimitiveCalcSingleReal();
+namespace NFun.InfinityProfiling.Sets {
 
-        void PrimitivesConstTrue();
-        void PrimitivesConstBool();
-        void PrimitivesConst1();
-        void PrimitiveCalcIntOp();
-        void PrimitiveCalcRealOp();
-        void PrimitiveCalcBoolOp();
-        void ConstText();
-        void ConstBoolArray();
-        void ConstRealArray();
-        void ConstInterpolation();
-        void ConstGenericFunc();
-        void ConstSquareEquation();
-        void CalcSingleText();
+public interface IProfileSet {
+    void PrimitiveConstIntSimpleArithmetics();
+    void PrimitiveConstRealSimpleArithmetics();
+    void PrimitiveConstBoolSimpleArithmetics();
+    void PrimitiveCalcReal2Var();
+    void PrimitiveCalcInt2Var();
+    void PrimitiveCalcSingleBool();
+    void PrimitiveCalcSingleReal();
 
-        void CalcTextOp();
-        void CalcInterpolation();
-        void CalcGenericFunc();
-        void CalcSquareEquation();
-        void PrimitivesCalcKxb();
-        void CalcRealArray();
-        void CalcFourArgs();
-        void ComplexConstMultiArrays();
-        void ComplexDummyBubble();
-        void ComplexConstEverything();
-    }
+    void PrimitivesConstTrue();
+    void PrimitivesConstBool();
+    void PrimitivesConst1();
+    void PrimitiveCalcIntOp();
+    void PrimitiveCalcRealOp();
+    void PrimitiveCalcBoolOp();
+    void ConstText();
+    void ConstBoolArray();
+    void ConstRealArray();
+    void ConstInterpolation();
+    void ConstGenericFunc();
+    void ConstSquareEquation();
+    void CalcSingleText();
+
+    void CalcTextOp();
+    void CalcInterpolation();
+    void CalcGenericFunc();
+    void CalcSquareEquation();
+    void PrimitivesCalcKxb();
+    void CalcRealArray();
+    void CalcFourArgs();
+    void ComplexConstMultiArrays();
+    void ComplexDummyBubble();
+    void ComplexConstEverything();
+}
+
 }

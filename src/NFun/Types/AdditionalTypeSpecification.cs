@@ -1,12 +1,11 @@
-namespace NFun.Types
-{
-    public class AdditionalTypeSpecification
-    {
-        public readonly FunnyType FunnyType;
+namespace NFun.Types {
 
-        public AdditionalTypeSpecification(FunnyType funnyType)
-        {
-            FunnyType = funnyType;
-        }
+public class AdditionalTypeSpecification {
+    public readonly FunnyType FunnyType;
+
+    public AdditionalTypeSpecification(FunnyType funnyType) {
+        FunnyType = funnyType;
     }
+}
+
 }

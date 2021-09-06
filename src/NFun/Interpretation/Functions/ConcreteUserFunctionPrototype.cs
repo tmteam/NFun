@@ -3,30 +3,26 @@ using NFun.ParseErrors;
 using NFun.Tokenization;
 using NFun.Types;
 
-namespace NFun.Interpretation.Functions
-{
-    internal class ConcreteUserFunctionPrototype : FunctionWithManyArguments
-    {
-        public ConcreteUserFunctionPrototype(string name, FunnyType returnType, FunnyType[] argTypes) : base(name,
-            returnType, argTypes)
-        {
-        }
+namespace NFun.Interpretation.Functions {
 
-        private ConcreteUserFunction _function;
+internal class ConcreteUserFunctionPrototype : FunctionWithManyArguments {
+    public ConcreteUserFunctionPrototype(string name, FunnyType returnType, FunnyType[] argTypes) : base(name,
+        returnType, argTypes) { }
 
-        public void SetActual(ConcreteUserFunction function, Interval interval)
-        {
-            _function = function;
+    private ConcreteUserFunction _function;
 
-            if (ReturnType != function.ReturnType)
-                throw ErrorFactory.InvalidOutputType(function, interval);
-        }
+    public void SetActual(ConcreteUserFunction function, Interval interval) {
+        _function = function;
 
-        public override object Calc(object[] args)
-        {
-            if (_function == null)
-                throw new InvalidOperationException("Function prototype cannot be called");
-            return _function.Calc(args);
-        }
+        if (ReturnType != function.ReturnType)
+            throw ErrorFactory.InvalidOutputType(function, interval);
     }
+
+    public override object Calc(object[] args) {
+        if (_function == null)
+            throw new InvalidOperationException("Function prototype cannot be called");
+        return _function.Calc(args);
+    }
+}
+
 }

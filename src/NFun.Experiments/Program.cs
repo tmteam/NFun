@@ -1,10 +1,9 @@
 ﻿using System;
 
-namespace NFun.Experiments
-{
-    internal class Program
-    {
-        private static readonly string Everything = @"
+namespace NFun.Experiments {
+
+internal class Program {
+    private static readonly string Everything = @"
                           twiceSet(arr,i,j,ival,jval) = arr.set(i,ival).set(j,jval)
 
                           #swap elements i,j in array arr  
@@ -39,12 +38,12 @@ namespace NFun.Experiments
 						  #m =  [0..20000..2].sum()
 ";
 
-        private static void Main(string[] args)
-        {
-            Console.WriteLine("Hello World!");
-            //var ex1 = "10*x*x + 12*x + 1";
-            //var ex2 = "if(a>0) 10*x*x + 12*x + 1 else 0";
-            while (true) Funny.Hardcore.Build(Everything);
-        }
+    private static void Main(string[] args) {
+        Console.WriteLine("Hello World!");
+        //var ex1 = "10*x*x + 12*x + 1";
+        //var ex2 = "if(a>0) 10*x*x + 12*x + 1 else 0";
+        while (true) Funny.Hardcore.Build(Everything);
     }
+}
+
 }

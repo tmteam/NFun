@@ -1,18 +1,18 @@
 <?xml version="1.0"?>
-<package >
-  <metadata>
-    <id>NFun</id>
-    <version>0.9.1</version>
-    <title>NFun</title>
-    <authors>Tmteam</authors>
-    <owners>Tmteam</owners>
-    <licenseUrl>https://github.com/tmteam/NFun/blob/master/LICENSE</licenseUrl>
-    <projectUrl>https://github.com/tmteam/NFun</projectUrl>
-    <iconUrl>https://github.com/tmteam/NFun/raw/master/Icon.png</iconUrl>
-    <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Pure intepritable fun language for .net applications</description>
-    <releaseNotes>Support structs. Syntax and perfomance improvements.</releaseNotes>
-    <copyright>Copyright 2021</copyright>
-    <tags>Not a functional intepritable language</tags>
-  </metadata>
+<package>
+    <metadata>
+        <id>NFun</id>
+        <version>0.9.1</version>
+        <title>NFun</title>
+        <authors>Tmteam</authors>
+        <owners>Tmteam</owners>
+        <licenseUrl>https://github.com/tmteam/NFun/blob/master/LICENSE</licenseUrl>
+        <projectUrl>https://github.com/tmteam/NFun</projectUrl>
+        <iconUrl>https://github.com/tmteam/NFun/raw/master/Icon.png</iconUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <description>Pure intepritable fun language for .net applications</description>
+        <releaseNotes>Support structs. Syntax and perfomance improvements.</releaseNotes>
+        <copyright>Copyright 2021</copyright>
+        <tags>Not a functional intepritable language</tags>
+    </metadata>
 </package>

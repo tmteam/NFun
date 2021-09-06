@@ -1,18 +1,17 @@
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests.UserFunctions
-{
-    [TestFixture]
-    public class GenericUserFunctionsTest
-    {
-        [TestCase("fake(a) = a\r y = fake(1.0)",1.0)]
-        [TestCase("fake(a) = a\r y = fake(fake(true))",true)]
-        [TestCase("fake(a) = a\r y = 'test'.fake().fake().fake()","test")]
-        [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y = choise(1,2,true)",1)]
-        [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y = choise(1,2,false)",2)]
-        [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y = choise(1,2.0,true)",1.0)]
-        [TestCase(@"choise(a,b,c,d,con1,con2) = 
+namespace NFun.SyntaxTests.UserFunctions {
+
+[TestFixture]
+public class GenericUserFunctionsTest {
+    [TestCase("fake(a) = a\r y = fake(1.0)", 1.0)]
+    [TestCase("fake(a) = a\r y = fake(fake(true))", true)]
+    [TestCase("fake(a) = a\r y = 'test'.fake().fake().fake()", "test")]
+    [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y = choise(1,2,true)", 1)]
+    [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y = choise(1,2,false)", 2)]
+    [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y = choise(1,2.0,true)", 1.0)]
+    [TestCase(@"choise(a,b,c,d,con1,con2) = 
                           if(con1) 
                                 if(con2) a 
                                 else     b
@@ -20,9 +19,8 @@ namespace NFun.SyntaxTests.UserFunctions
                                 if(con2) c
                                 else     d
 
-                    y:int = choise(1,2,3,4,false,true)",3)]
-        
-        [TestCase(@"choise(a,b,c,d,con1,con2) = 
+                    y:int = choise(1,2,3,4,false,true)", 3)]
+    [TestCase(@"choise(a,b,c,d,con1,con2) = 
                           if(con1) 
                                 if(con2) a[0] 
                                 else     b
@@ -31,81 +29,77 @@ namespace NFun.SyntaxTests.UserFunctions
                                 else     d[0]
 
                     y:int = choise([1],2,3,[4,5],false,false)", 4)]
-        
-        [TestCase("mkarr(a,b,c,d,takefirst) = if(takefirst) [a,b] else [c,d]\r y = mkarr(1,2,3,4,false)",new[]{3,4})]
-        [TestCase("repeat(a) = a.concat(a)\r y = [1,2,3].repeat()",new[]{1,2,3,1,2,3})]
-        [TestCase("repeat(a) = a.concat(a)\r y = ['a','b'].repeat().repeat()",new[]{"a","b","a","b","a","b","a","b"})]
-        [TestCase("first(a) = a[0]\r y = [5,4,3].first()",5)]
-        [TestCase("first(a) = a[0]\r y = [[5,4],[3,2],[1]].first()",new[]{5,4})]
-        [TestCase("first(a) = a[0]\r y = [[5.0,4.0],[3.0,2.0],[1.0]].first().first()",5.0)]
-        [TestCase("first(a, f) = a.filter(f)[0] \r y = [1,2,3].first(fun it>1)", 2)]
-        [TestCase("first(a, f) = a.filter(f)[0] \r y = [1.0,2.0,3.0].first(fun it>1)", 2.0)]
-        [TestCase("filtrepeat(a, f) = a.concat(a).filter(f) \r y = [1.0,2.0,3.0].filtrepeat(fun it>1)", new[]{2.0,3.0,2.0,3.0})]
-        [TestCase("concat(a, b,c) = a.concat(b).concat(c) \r y:int[] = concat([1,2],[3,4],[5,6])", new[]{1,2,3,4,5,6})]
-        [TestCase(@"car1(g) = g(2); my(x)=x-1; y =  car1(my)   ", 1)]
-        [TestCase(@"car1(g) = g(2,3,4); my(a,b,c)=a+b+c; y = car1(my)   ", 9)]
-        [TestCase(@"choose(f1, f2,  selector, arg1, arg2) = if(selector) f1(arg1,arg2) else f2(arg1,arg2); 
+    [TestCase("mkarr(a,b,c,d,takefirst) = if(takefirst) [a,b] else [c,d]\r y = mkarr(1,2,3,4,false)", new[] { 3, 4 })]
+    [TestCase("repeat(a) = a.concat(a)\r y = [1,2,3].repeat()", new[] { 1, 2, 3, 1, 2, 3 })]
+    [TestCase("repeat(a) = a.concat(a)\r y = ['a','b'].repeat().repeat()",
+        new[] { "a", "b", "a", "b", "a", "b", "a", "b" })]
+    [TestCase("first(a) = a[0]\r y = [5,4,3].first()", 5)]
+    [TestCase("first(a) = a[0]\r y = [[5,4],[3,2],[1]].first()", new[] { 5, 4 })]
+    [TestCase("first(a) = a[0]\r y = [[5.0,4.0],[3.0,2.0],[1.0]].first().first()", 5.0)]
+    [TestCase("first(a, f) = a.filter(f)[0] \r y = [1,2,3].first(fun it>1)", 2)]
+    [TestCase("first(a, f) = a.filter(f)[0] \r y = [1.0,2.0,3.0].first(fun it>1)", 2.0)]
+    [TestCase("filtrepeat(a, f) = a.concat(a).filter(f) \r y = [1.0,2.0,3.0].filtrepeat(fun it>1)",
+        new[] { 2.0, 3.0, 2.0, 3.0 })]
+    [TestCase("concat(a, b,c) = a.concat(b).concat(c) \r y:int[] = concat([1,2],[3,4],[5,6])",
+        new[] { 1, 2, 3, 4, 5, 6 })]
+    [TestCase(@"car1(g) = g(2); my(x)=x-1; y =  car1(my)   ", 1)]
+    [TestCase(@"car1(g) = g(2,3,4); my(a,b,c)=a+b+c; y = car1(my)   ", 9)]
+    [TestCase(@"choose(f1, f2,  selector, arg1, arg2) = if(selector) f1(arg1,arg2) else f2(arg1,arg2); 
                    y =  choose(max, min, true, 1,2)", 2)]
-        [TestCase(@"car0(g) = g(2,4); y = car0(max)    ", 4)]
-        [TestCase(@"car2(g) = g(2,4); y = car2(min)    ", 2)]
-        public void ConstantEquation(string expr, object expected) => expr.AssertReturns("y",expected);
+    [TestCase(@"car0(g) = g(2,4); y = car0(max)    ", 4)]
+    [TestCase(@"car2(g) = g(2,4); y = car2(min)    ", 2)]
+    public void ConstantEquation(string expr, object expected) => expr.AssertReturns("y", expected);
 
-        [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y = choise(0x1,2.0,true)",1.0)]
-        [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y = choise(0x1,2.0,false)",2.0)]
+    [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y = choise(0x1,2.0,true)", 1.0)]
+    [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y = choise(0x1,2.0,false)", 2.0)]
+    [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y = choise(1,false,true)", 1)]
+    [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y = choise(1,false,false)", false)]
+    //todo         [Ignore("complex lca")]
+    //[TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y = choise(1,[1,2],true)",(object)1.0)]
+    //[TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y = choise(1,[1,2],false)",new double[]{1,2})]
+    //[TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y:any = choise(1,[1,2],true)",(object)1.0)]
+    //[TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y:any = choise(1,[1,2],false)",new double[]{1,2})]
+    [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y:any = choise(0x1,2.0,true)", 1)]
+    [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y:any = choise(0x1,2.0,false)", 2.0)]
+    [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y:any = choise(1,false,true)", 1)]
+    [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y:any = choise(1,false,false)", false)]
+    public void ConstantEquationWithUpcast(string expr, object expected) {
+        var result = expr.Calc().Get("y");
+        Assert.IsTrue(TestHelper.AreSame(result, expected), $"result: {result} expected: {expected}");
+    }
 
-        [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y = choise(1,false,true)",1)]
-        [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y = choise(1,false,false)",false)]
-        //todo         [Ignore("complex lca")]
-        //[TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y = choise(1,[1,2],true)",(object)1.0)]
-        //[TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y = choise(1,[1,2],false)",new double[]{1,2})]
-        //[TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y:any = choise(1,[1,2],true)",(object)1.0)]
-        //[TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y:any = choise(1,[1,2],false)",new double[]{1,2})]
-        
-        [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y:any = choise(0x1,2.0,true)",1)]
-        [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y:any = choise(0x1,2.0,false)",2.0)]
-        [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y:any = choise(1,false,true)",1)]
-        [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y:any = choise(1,false,false)",false)]
-        
-        public void ConstantEquationWithUpcast(string expr, object expected)
-        {
-            var result = expr.Calc().Get("y");
-            Assert.IsTrue(TestHelper.AreSame(result,expected), $"result: {result} expected: {expected}");
-        }
-        
-        [TestCase("repeat(a) = a.concat(a); " +
-                  "a = [1.0].repeat().repeat();" +
-                  "b = ['a'].repeat().repeat();",new double[]{1,1,1,1},new[]{"a", "a" , "a" , "a" })]
-        
-        [TestCase("sum(a,b,c) = a+b+c; " +
-                  "a:real = sum(1,2,3);" +
-                  "b:int  = sum(1,2,3);", 6.0, 6)]
-        public void ConstantEquationWithTwoUsesOfGenerics(string expr, object expectedA, object expectedB) => 
-            expr.AssertResultHas(("a", expectedA),("b", expectedB));
+    [TestCase("repeat(a) = a.concat(a); " +
+              "a = [1.0].repeat().repeat();" +
+              "b = ['a'].repeat().repeat();", new double[] { 1, 1, 1, 1 }, new[] { "a", "a", "a", "a" })]
+    [TestCase("sum(a,b,c) = a+b+c; " +
+              "a:real = sum(1,2,3);" +
+              "b:int  = sum(1,2,3);", 6.0, 6)]
+    public void ConstantEquationWithTwoUsesOfGenerics(string expr, object expectedA, object expectedB) =>
+        expr.AssertResultHas(("a", expectedA), ("b", expectedB));
 
-        [Test]
-        public void SelectOverload() =>
-            @"  
+    [Test]
+    public void SelectOverload() =>
+        @"  
                 #custom user function max(r r r) overloads
                 #built in function max(r r)
                 max(i, j, k) = i.max(j).max(k)
   
                 userfun = max(1, 2, 3)
                 builtin = max(1, 2)"
-                .AssertReturns(("userfun", 3), ("builtin", 2));
+            .AssertReturns(("userfun", 3), ("builtin", 2));
 
-        [Test]
-        public void GenericRecursive() =>
-            @"fact(n) = if (n==0) 0
+    [Test]
+    public void GenericRecursive() =>
+        @"fact(n) = if (n==0) 0
                             if (n == 1) 1
                             else fact(n - 1) * n
 
                 res = [0..4].map(fact)"
-                .AssertResultHas("res", new[] { 0, 1, 2, 6, 24 });
+            .AssertResultHas("res", new[] { 0, 1, 2, 6, 24 });
 
-        [Test]
-        public void TwinGenericFunCall()
-        {
-            @"maxOfArray(t) = t.fold(max)
+    [Test]
+    public void TwinGenericFunCall() {
+        @"maxOfArray(t) = t.fold(max)
 
            maxOfMatrix(t) = t.map(maxOfArray).maxOfArray()
 
@@ -116,13 +110,12 @@ namespace NFun.SyntaxTests.UserFunctions
              ] 
 
   res:int = origin.maxOfMatrix()".AssertResultHas("res", 42);
-        }
+    }
 
-        [Ignore("UB")]
-        [Test]
-        public void TwinGenericWrongOrderFunCall()
-        {
-            var expr = @"
+    [Ignore("UB")]
+    [Test]
+    public void TwinGenericWrongOrderFunCall() {
+        var expr = @"
 
            maxOfMatrix(t) = t.map(maxOfArray).maxOfArray()
             
@@ -135,13 +128,12 @@ namespace NFun.SyntaxTests.UserFunctions
              ] 
 
   res:int = origin.maxOfMatrix()";
-            expr.AssertResultHas("res", 42);
-        }
+        expr.AssertResultHas("res", 42);
+    }
 
-        [Test]
-        public void GenericBubbleSort()
-        {
-            @"twiceSet(arr,i,j,ival,jval)
+    [Test]
+    public void GenericBubbleSort() {
+        @"twiceSet(arr,i,j,ival,jval)
   	                        = arr.set(i,ival).set(j,jval)
 
                           swap(arr, i, j) 
@@ -160,7 +152,8 @@ namespace NFun.SyntaxTests.UserFunctions
 
                           i:int[]  = [1,4,3,2,5].bubbleSort()
                           r:real[] = [1,4,3,2,5].bubbleSort()"
-                .AssertReturns(("i", new[] { 1, 2, 3, 4, 5 }), ("r", new[] { 1.0, 2.0, 3.0, 4.0, 5.0 }));
-        }
+            .AssertReturns(("i", new[] { 1, 2, 3, 4, 5 }), ("r", new[] { 1.0, 2.0, 3.0, 4.0, 5.0 }));
     }
+}
+
 }

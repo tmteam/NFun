@@ -2,22 +2,21 @@ using NFun.Interpretation.Functions;
 using NFun.Tokenization;
 using NFun.Types;
 
-namespace NFun.Interpretation.Nodes
-{
-    internal class FunOfSingleArgExpressionNode : IExpressionNode
-    {
-        private readonly FunctionWithSingleArg _fun;
-        private readonly IExpressionNode _arg1;
+namespace NFun.Interpretation.Nodes {
 
-        public FunOfSingleArgExpressionNode(FunctionWithSingleArg fun, IExpressionNode argsNode, Interval interval)
-        {
-            _fun = fun;
-            _arg1 = argsNode;
-            Interval = interval;
-        }
+internal class FunOfSingleArgExpressionNode : IExpressionNode {
+    private readonly FunctionWithSingleArg _fun;
+    private readonly IExpressionNode _arg1;
 
-        public Interval Interval { get; }
-        public FunnyType Type => _fun.ReturnType;
-        public object Calc() => _fun.Calc(_arg1.Calc());
+    public FunOfSingleArgExpressionNode(FunctionWithSingleArg fun, IExpressionNode argsNode, Interval interval) {
+        _fun = fun;
+        _arg1 = argsNode;
+        Interval = interval;
     }
+
+    public Interval Interval { get; }
+    public FunnyType Type => _fun.ReturnType;
+    public object Calc() => _fun.Calc(_arg1.Calc());
+}
+
 }

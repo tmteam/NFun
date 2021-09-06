@@ -5,186 +5,171 @@ using System.Reflection;
 using NFun.Runtime;
 using NFun.Runtime.Arrays;
 
-namespace NFun.Types
-{
-    /// <summary>
-    /// Converts CLR type and value into NFun type and value
-    /// </summary>
-    public interface IInputFunnyConverter
-    {
-        public FunnyType FunnyType { get; }
-        public object ToFunObject(object clrObject);
-    }
+namespace NFun.Types {
 
-    public class StructTypeInputFunnyConverter : IInputFunnyConverter
-    {
-        private readonly (string, IInputFunnyConverter, PropertyInfo)[] _propertiesConverters;
-        private readonly int _readPropertiesCount;
+/// <summary>
+/// Converts CLR type and value into NFun type and value
+/// </summary>
+public interface IInputFunnyConverter {
+    public FunnyType FunnyType { get; }
+    public object ToFunObject(object clrObject);
+}
 
-        internal StructTypeInputFunnyConverter((string, IInputFunnyConverter, PropertyInfo)[] propertiesConverters,
-            int readPropertiesCount, FunnyType? type = null)
+public class StructTypeInputFunnyConverter : IInputFunnyConverter {
+    private readonly (string, IInputFunnyConverter, PropertyInfo)[] _propertiesConverters;
+    private readonly int _readPropertiesCount;
+
+    internal StructTypeInputFunnyConverter(
+        (string, IInputFunnyConverter, PropertyInfo)[] propertiesConverters,
+        int readPropertiesCount, FunnyType? type = null) {
+        _propertiesConverters = propertiesConverters;
+        _readPropertiesCount = readPropertiesCount;
+
+        if (type == null)
         {
-            _propertiesConverters = propertiesConverters;
-            _readPropertiesCount = readPropertiesCount;
-
-            if (type == null)
+            (string, FunnyType)[] fieldTypes = new (string, FunnyType)[_readPropertiesCount];
+            for (int i = 0; i < readPropertiesCount; i++)
             {
-                (string, FunnyType)[] fieldTypes = new (string, FunnyType)[_readPropertiesCount];
-                for (int i = 0; i < readPropertiesCount; i++)
-                {
-                    var (name, converter, _) = propertiesConverters[i];
-                    fieldTypes[i] = (name, converter.FunnyType);
-                }
-
-                FunnyType = Types.FunnyType.StructOf(fieldTypes);
-            }
-            else
-            {
-                FunnyType = type.Value;
-            }
-        }
-
-        public FunnyType FunnyType { get; }
-
-        public object ToFunObject(object clrObject)
-        {
-            var values = new Dictionary<string, object>(_propertiesConverters.Length);
-            for (var i = 0; i < _readPropertiesCount; i++)
-            {
-                var (key, inputFunnyConverter, propertyInfo) = _propertiesConverters[i];
-                values.Add(key, inputFunnyConverter.ToFunObject(propertyInfo.GetValue(clrObject)));
-            }
-
-            return new FunnyStruct(values);
-        }
-    }
-
-    public class DynamicStructTypeInputFunnyConverter : IInputFunnyConverter
-    {
-        private readonly (string, IInputFunnyConverter)[] _propertiesConverters;
-
-        internal DynamicStructTypeInputFunnyConverter((string, IInputFunnyConverter)[] properties, FunnyType funnyType)
-        {
-            _propertiesConverters = properties;
-            FunnyType = funnyType;
-        }
-
-
-        internal DynamicStructTypeInputFunnyConverter((string, IInputFunnyConverter)[] properties)
-        {
-            _propertiesConverters = properties;
-            (string, FunnyType)[] fieldTypes = new (string, FunnyType)[properties.Length];
-            for (int i = 0; i < properties.Length; i++)
-            {
-                var (name, converter) = properties[i];
+                var (name, converter, _) = propertiesConverters[i];
                 fieldTypes[i] = (name, converter.FunnyType);
             }
 
             FunnyType = Types.FunnyType.StructOf(fieldTypes);
         }
-
-        public FunnyType FunnyType { get; }
-
-        public object ToFunObject(object clrObject)
+        else
         {
-            if (clrObject is IDictionary<string, object> dic)
-                return ConvertFromDictionary(dic);
-            else
-                return ConvertFromSomeClrObject(clrObject);
-        }
-
-        private object ConvertFromSomeClrObject(object clrObject)
-        {
-            if (clrObject == null)
-                throw new InvalidCastException($"Expected: value for {FunnyType} but was null");
-
-            //dynamic convertion is very slow but it is only on option
-            var properties = clrObject.GetType().GetProperties();
-            var values = new Dictionary<string, object>(_propertiesConverters.Length);
-
-            foreach (var (name, converter) in _propertiesConverters)
-            {
-                var property = properties.FirstOrDefault(p =>
-                    p.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase)
-                    && p.CanBeUsedAsFunnyInputProperty());
-                if (property == null)
-                    throw new InvalidCastException(
-                        $"Type {clrObject.GetType().Name} cannot be used for struct, as it contains no readable public property {name}");
-                var value = property.GetValue(clrObject);
-                values.Add(name, converter.ToFunObject(value));
-            }
-
-            return new FunnyStruct(values);
-        }
-
-        private object ConvertFromDictionary(IDictionary<string, object> dic)
-        {
-            var values = new Dictionary<string, object>(_propertiesConverters.Length);
-            foreach (var (name, converter) in _propertiesConverters)
-            {
-                if (!dic.TryGetValue(name, out var value))
-                    throw new InvalidCastException($"field {name} is missing in input dictionary");
-                if (value == null)
-                    throw new InvalidCastException($"field {name} is null");
-                values.Add(name, converter.ToFunObject(value));
-            }
-
-            return new FunnyStruct(values);
+            FunnyType = type.Value;
         }
     }
 
-    public class ClrArrayInputTypeFunnyConverter : IInputFunnyConverter
-    {
-        private readonly IInputFunnyConverter _elementConverter;
+    public FunnyType FunnyType { get; }
 
-        public ClrArrayInputTypeFunnyConverter(IInputFunnyConverter elementConverter)
+    public object ToFunObject(object clrObject) {
+        var values = new Dictionary<string, object>(_propertiesConverters.Length);
+        for (var i = 0; i < _readPropertiesCount; i++)
         {
-            FunnyType = Types.FunnyType.ArrayOf(elementConverter.FunnyType);
-            _elementConverter = elementConverter;
+            var (key, inputFunnyConverter, propertyInfo) = _propertiesConverters[i];
+            values.Add(key, inputFunnyConverter.ToFunObject(propertyInfo.GetValue(clrObject)));
         }
 
-        public FunnyType FunnyType { get; }
+        return new FunnyStruct(values);
+    }
+}
 
-        public object ToFunObject(object clrObject)
+public class DynamicStructTypeInputFunnyConverter : IInputFunnyConverter {
+    private readonly (string, IInputFunnyConverter)[] _propertiesConverters;
+
+    internal DynamicStructTypeInputFunnyConverter((string, IInputFunnyConverter)[] properties, FunnyType funnyType) {
+        _propertiesConverters = properties;
+        FunnyType = funnyType;
+    }
+
+
+    internal DynamicStructTypeInputFunnyConverter((string, IInputFunnyConverter)[] properties) {
+        _propertiesConverters = properties;
+        (string, FunnyType)[] fieldTypes = new (string, FunnyType)[properties.Length];
+        for (int i = 0; i < properties.Length; i++)
         {
-            var array = clrObject as Array;
-            var funnyObjects = new object[array.Length];
-            for (int i = 0; i < array.Length; i++)
-            {
-                var val = array.GetValue(i);
-                funnyObjects[i] = _elementConverter.ToFunObject(val);
-            }
-
-            return new ImmutableFunnyArray(funnyObjects, FunnyType.ArrayTypeSpecification.FunnyType);
+            var (name, converter) = properties[i];
+            fieldTypes[i] = (name, converter.FunnyType);
         }
+
+        FunnyType = Types.FunnyType.StructOf(fieldTypes);
     }
 
-    public class DynamicTypeInputFunnyConverter : IInputFunnyConverter
-    {
-        public FunnyType FunnyType => FunnyType.Any;
+    public FunnyType FunnyType { get; }
 
-        public object ToFunObject(object clrObject)
+    public object ToFunObject(object clrObject) {
+        if (clrObject is IDictionary<string, object> dic)
+            return ConvertFromDictionary(dic);
+        else
+            return ConvertFromSomeClrObject(clrObject);
+    }
+
+    private object ConvertFromSomeClrObject(object clrObject) {
+        if (clrObject == null)
+            throw new InvalidCastException($"Expected: value for {FunnyType} but was null");
+
+        //dynamic convertion is very slow but it is only on option
+        var properties = clrObject.GetType().GetProperties();
+        var values = new Dictionary<string, object>(_propertiesConverters.Length);
+
+        foreach (var (name, converter) in _propertiesConverters)
         {
-            var converter = FunnyTypeConverters.GetInputConverter(clrObject.GetType());
-            return converter.ToFunObject(clrObject);
+            var property = properties.FirstOrDefault(p =>
+                p.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase)
+                && p.CanBeUsedAsFunnyInputProperty());
+            if (property == null)
+                throw new InvalidCastException(
+                    $"Type {clrObject.GetType().Name} cannot be used for struct, as it contains no readable public property {name}");
+            var value = property.GetValue(clrObject);
+            values.Add(name, converter.ToFunObject(value));
         }
+
+        return new FunnyStruct(values);
     }
 
-    public class PrimitiveTypeInputFunnyConverter : IInputFunnyConverter
-    {
-        public FunnyType FunnyType { get; }
-        public PrimitiveTypeInputFunnyConverter(FunnyType funnyType) => FunnyType = funnyType;
-        public object ToFunObject(object clrObject) => clrObject;
+    private object ConvertFromDictionary(IDictionary<string, object> dic) {
+        var values = new Dictionary<string, object>(_propertiesConverters.Length);
+        foreach (var (name, converter) in _propertiesConverters)
+        {
+            if (!dic.TryGetValue(name, out var value))
+                throw new InvalidCastException($"field {name} is missing in input dictionary");
+            if (value == null)
+                throw new InvalidCastException($"field {name} is null");
+            values.Add(name, converter.ToFunObject(value));
+        }
+
+        return new FunnyStruct(values);
+    }
+}
+
+public class ClrArrayInputTypeFunnyConverter : IInputFunnyConverter {
+    private readonly IInputFunnyConverter _elementConverter;
+
+    public ClrArrayInputTypeFunnyConverter(IInputFunnyConverter elementConverter) {
+        FunnyType = Types.FunnyType.ArrayOf(elementConverter.FunnyType);
+        _elementConverter = elementConverter;
     }
 
-    public class StringTypeInputFunnyConverter : IInputFunnyConverter
-    {
-        public FunnyType FunnyType { get; }
-        public StringTypeInputFunnyConverter() => FunnyType = FunnyType.Text;
+    public FunnyType FunnyType { get; }
 
-        public object ToFunObject(object clrObject)
-            => clrObject == null
-                ? TextFunnyArray.Empty
-                : new TextFunnyArray(clrObject.ToString());
+    public object ToFunObject(object clrObject) {
+        var array = clrObject as Array;
+        var funnyObjects = new object[array.Length];
+        for (int i = 0; i < array.Length; i++)
+        {
+            var val = array.GetValue(i);
+            funnyObjects[i] = _elementConverter.ToFunObject(val);
+        }
+
+        return new ImmutableFunnyArray(funnyObjects, FunnyType.ArrayTypeSpecification.FunnyType);
     }
+}
+
+public class DynamicTypeInputFunnyConverter : IInputFunnyConverter {
+    public FunnyType FunnyType => FunnyType.Any;
+
+    public object ToFunObject(object clrObject) {
+        var converter = FunnyTypeConverters.GetInputConverter(clrObject.GetType());
+        return converter.ToFunObject(clrObject);
+    }
+}
+
+public class PrimitiveTypeInputFunnyConverter : IInputFunnyConverter {
+    public FunnyType FunnyType { get; }
+    public PrimitiveTypeInputFunnyConverter(FunnyType funnyType) => FunnyType = funnyType;
+    public object ToFunObject(object clrObject) => clrObject;
+}
+
+public class StringTypeInputFunnyConverter : IInputFunnyConverter {
+    public FunnyType FunnyType { get; }
+    public StringTypeInputFunnyConverter() => FunnyType = FunnyType.Text;
+
+    public object ToFunObject(object clrObject)
+        => clrObject == null
+            ? TextFunnyArray.Empty
+            : new TextFunnyArray(clrObject.ToString());
+}
+
 }

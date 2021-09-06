@@ -5,47 +5,44 @@ using NFun.Interpretation.Nodes;
 using NFun.Runtime;
 using NFun.Types;
 
-namespace NFun.Interpretation.Functions
-{
-    internal class ConcreteRecursiveUserFunction : ConcreteUserFunction
-    {
-        readonly Stack<object[]> _recursiveArgsStack = new();
+namespace NFun.Interpretation.Functions {
 
-        public override object Calc(object[] args)
+internal class ConcreteRecursiveUserFunction : ConcreteUserFunction {
+    readonly Stack<object[]> _recursiveArgsStack = new();
+
+    public override object Calc(object[] args) {
+        try
         {
-            try
-            {
-                _recursiveArgsStack.Push(args);
-                if (_recursiveArgsStack.Count > 400)
-                    throw new FunnyRuntimeStackoverflowException($"stack overflow on {Name}");
+            _recursiveArgsStack.Push(args);
+            if (_recursiveArgsStack.Count > 400)
+                throw new FunnyRuntimeStackoverflowException($"stack overflow on {Name}");
 
-                if (args.Length != ArgumentSources.Length)
-                    throw new ArgumentException();
-                SetVariables(args);
+            if (args.Length != ArgumentSources.Length)
+                throw new ArgumentException();
+            SetVariables(args);
 
-                return Expression.Calc();
-            }
-            finally
-            {
-                //restore variables
-                _recursiveArgsStack.Pop();
-                if (_recursiveArgsStack.Count > 0)
-                {
-                    var previousArgs = _recursiveArgsStack.Peek();
-                    SetVariables(previousArgs);
-                }
-            }
+            return Expression.Calc();
         }
-
-
-        internal ConcreteRecursiveUserFunction(
-            string name,
-            VariableSource[] argumentSources,
-            IExpressionNode expression,
-            FunnyType[] argTypes)
-            :
-            base(name, argumentSources, expression, argTypes)
+        finally
         {
+            //restore variables
+            _recursiveArgsStack.Pop();
+            if (_recursiveArgsStack.Count > 0)
+            {
+                var previousArgs = _recursiveArgsStack.Peek();
+                SetVariables(previousArgs);
+            }
         }
     }
+
+
+    internal ConcreteRecursiveUserFunction(
+        string name,
+        VariableSource[] argumentSources,
+        IExpressionNode expression,
+        FunnyType[] argTypes)
+        :
+        base(name, argumentSources, expression, argTypes) { }
+}
+
 }

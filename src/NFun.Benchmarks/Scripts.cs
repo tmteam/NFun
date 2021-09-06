@@ -1,15 +1,14 @@
-namespace NFun.Benchmarks
-{
-    public class Scripts
-    {
-        public readonly string Const1 = "1";
-        public readonly string ConstBoolArray = "[true, true, false, true, true, false, false]";
-        public readonly string ConstKxb = "y = 10 * 100.0 + 1";
-        public readonly string ConstRealArray = "[1, 2, 3, 4, 5, 6, 7]";
-        public readonly string ConstText = "'let us make some fun!'";
-        public readonly string ConstTrue = "true";
+namespace NFun.Benchmarks {
 
-        public readonly string DummyBubbleSort = @" 
+public class Scripts {
+    public readonly string Const1 = "1";
+    public readonly string ConstBoolArray = "[true, true, false, true, true, false, false]";
+    public readonly string ConstKxb = "y = 10 * 100.0 + 1";
+    public readonly string ConstRealArray = "[1, 2, 3, 4, 5, 6, 7]";
+    public readonly string ConstText = "'let us make some fun!'";
+    public readonly string ConstTrue = "true";
+
+    public readonly string DummyBubbleSort = @" 
   	                       twiceSet(arr,i,j,ival,jval) = arr.set(i,ival).set(j,jval)
 
                           #swap elements i,j in array arr  
@@ -33,7 +32,7 @@ namespace NFun.Benchmarks
                           i:int[]  = [1,5,3,5,6,1,2,100,0,3,2,10,3,50,6,42,43,53].bubbleSort()";
 
 
-        public readonly string Everything = @"
+    public readonly string Everything = @"
                           twiceSet(arr,i,j,ival,jval) = arr.set(i,ival).set(j,jval)
 
                           #swap elements i,j in array arr  
@@ -69,9 +68,9 @@ namespace NFun.Benchmarks
 ";
 
 
-        // public readonly string ConstThousandSum = "[1..1000..1.0].sum()";
+    // public readonly string ConstThousandSum = "[1..1000..1.0].sum()";
 
-        public readonly string MultiplyArrayItems = @"multi(a,b) = 
+    public readonly string MultiplyArrayItems = @"multi(a,b) = 
                               if(a.count()!=b.count()) []
                               else
                                   [0..a.count()-1].map(fun a[it]*b[it]) 
@@ -82,6 +81,7 @@ namespace NFun.Benchmarks
                           
                           passed = a.multi(b)==expected";
 
-        public readonly string VarKxb = "y = 10 * x + 1";
-    }
+    public readonly string VarKxb = "y = 10 * x + 1";
+}
+
 }
