@@ -15,7 +15,7 @@ namespace NFun.Types
             if (resultFunnyType.BaseType.GetClrType() == clrFromType)
                 return clrValue;
 
-            var converter = GetInputConverter(resultFunnyType, clrFromType, 0);
+            var converter = GetInputConverter(resultFunnyType, clrFromType);
             if (converter.FunnyType == resultFunnyType)
                 return converter.ToFunObject(clrValue);
 
@@ -37,6 +37,8 @@ namespace NFun.Types
             };
         }
 
+        public static IInputFunnyConverter GetInputConverter(FunnyType funnyType, Type clrTypeOrNull) =>
+            GetInputConverter(funnyType, clrTypeOrNull, 0);
 
         // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
         private static IInputFunnyConverter GetInputConverter(FunnyType funnyType, Type clrTypeOrNull,
@@ -71,17 +73,7 @@ namespace NFun.Types
                 return new PrimitiveTypeInputFunnyConverter(FunnyType.Any);
 
             if (clrTypeOrNull == null || typeof(Dictionary<string, object>).IsAssignableFrom(clrTypeOrNull))
-            {
-                var dictionaryFields = new (string, IInputFunnyConverter)[funnyType.StructTypeSpecification.Count];
-                var i = 0;
-                foreach (var field in funnyType.StructTypeSpecification)
-                {
-                    dictionaryFields[i] = new(field.Key, GetInputConverter(field.Value, null, reqDeepthCheck++));
-                    i++;
-                }
-
-                return new DynamicStructTypeInputFunnyConverter(dictionaryFields);
-            }
+                return GetDynamicStructInputFunnyConverter(funnyType, reqDeepthCheck++);
 
             var properties = clrTypeOrNull.GetProperties(BindingFlags.Instance | BindingFlags.Public);
             if (properties.Any())
@@ -176,7 +168,12 @@ namespace NFun.Types
 
             if (PrimitiveOutputConvertersByType.TryGetValue(clrType, out var converter))
                 return converter;
-
+            
+            if(clrType== typeof(Dictionary<string,object>))
+                return DynamicStructToDictionaryOutputFunnyConverter.Instance;
+            if(clrType== typeof(IDictionary<string,object>))
+                return DynamicStructToDictionaryOutputFunnyConverter.Instance;
+            
             var properties = clrType.GetProperties(BindingFlags.Instance | BindingFlags.Public);
             if (properties.Any())
             {
@@ -202,7 +199,7 @@ namespace NFun.Types
 
             return new DynamicTypeOutputFunnyConverter(clrType);
         }
-
+        
         public static IOutputFunnyConverter GetOutputConverter(FunnyType funnyType)
         {
             if (PrimitiveOutputConvertersByName.TryGetValue(funnyType.BaseType, out var converter))
@@ -225,6 +222,21 @@ namespace NFun.Types
                 default:
                     throw ErrorFactory.TypeCannotBeUsedAsOutputNfunType(funnyType);
             }
+        }
+        
+
+        private static DynamicStructTypeInputFunnyConverter GetDynamicStructInputFunnyConverter(FunnyType funnyType,
+            int reqDeepthCheck)
+        {
+            var dictionaryFields = new (string, IInputFunnyConverter)[funnyType.StructTypeSpecification.Count];
+            var i = 0;
+            foreach (var field in funnyType.StructTypeSpecification)
+            {
+                dictionaryFields[i] = new(field.Key, GetInputConverter(field.Value, null, reqDeepthCheck++));
+                i++;
+            }
+
+            return new DynamicStructTypeInputFunnyConverter(dictionaryFields, funnyType);
         }
 
         #region predefined converters

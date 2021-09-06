@@ -32,11 +32,25 @@ namespace NFun.ApiTests
             var xSource = runtime["x"];
             Assert.IsTrue(ySource.IsOutput);
             Assert.IsFalse(xSource.IsOutput);
+
             xSource.Value = arg;
             runtime.Run();
             Assert.AreEqual(expected, ySource.FunnyValue);
         }
 
+        [TestCase("y = 4.0 + x", 3, 7)]
+        [TestCase("y = (x + 4/x)", 2, 4)]
+        [TestCase("y = x**3", 2, 8)]
+        public void TypedSingleVariableEquation(string expr, double arg, double expected)
+        {
+            var runtime = expr.Build();
+            var ySource = runtime["y"];
+            var xSource = runtime["x"];
+
+            xSource.GetTypedSetter<double>()(arg);
+            runtime.Run();
+            Assert.AreEqual(expected, ySource.GetTypedGetter<double>()());
+        }
 
         [TestCase("y = 2*x", 0.0)]
         [TestCase("y:real = 2*x", 0.0)]
@@ -128,6 +142,42 @@ namespace NFun.ApiTests
         }
 
         [Test]
+        public void TypedRuntimeWithCompositeTypes_VariablesEnumerationTest()
+        {
+            // Hardcore mode 
+            var runtime = Funny.Hardcore.Build(@"
+                    out3 = {age = 1, name = 'vasa'}    
+                    out4 = in3.field1 + 1
+                    out5:text = in3.field2.child    
+");
+
+            runtime["in3"].GetTypedSetter<Dictionary<string, object>>()
+            (new Dictionary<string, object>
+            {
+                { "field1", 123 },
+                {
+                    "field2", new Dictionary<string, object>
+                    {
+                        { "child", "kavabanga" }
+                    }
+                }
+            });
+
+            runtime.Run();
+
+            Assert.AreEqual(124, runtime.Variables.FirstOrDefault(i => i.Name == "out4")?.GetTypedGetter<int>()());
+            Assert.AreEqual(124, runtime["out4"]?.GetTypedGetter<int>()());
+
+            Assert.AreEqual("kavabanga",
+                runtime.Variables.FirstOrDefault(i => i.Name == "out5")?.GetTypedGetter<string>()());
+            Assert.AreEqual("kavabanga", runtime["out5"]?.GetTypedGetter<string>()());
+
+            Assert.IsNotNull(runtime["out3"].GetTypedGetter<Dictionary<string, object>>());
+            Assert.IsNotNull(runtime.Variables.FirstOrDefault(i => i.Name == "out3")
+                ?.GetTypedGetter<Dictionary<string, object>>());
+        }
+
+        [Test]
         public void RuntimeWithVeryComplexCompositeTypes_VariablesEnumerationTest()
         {
             // Hardcore mode 
@@ -150,6 +200,35 @@ namespace NFun.ApiTests
             Assert.AreEqual(1, item["f1"]);
             Assert.AreEqual("hi", item["f2"]);
             CollectionAssert.AreEquivalent(new[] { 1, 2, 3 }, (int[])item["f3"]);
+        }
+
+        [Test]
+        public void TypedRuntimeWithVeryComplexCompositeTypes_VariablesEnumerationTest()
+        {
+            // Hardcore mode 
+            var runtime = Funny.Hardcore.Build("{age = 1, items = [{f1 = 1, f2 = 'hi', f3 = [1,2,3]}]}");
+
+            runtime.Run();
+
+            var value = runtime.Variables.FirstOrDefault(i => i.Name == "out")
+                ?.GetTypedGetter<Dictionary<string, object>>()();
+            AssertValue(value);
+
+            var getter = runtime["out"].GetTypedGetter<IDictionary<string, object>>();
+
+            AssertValue(getter());
+            AssertValue(getter());
+
+            void AssertValue(IDictionary<string, object> value)
+            {
+                Assert.AreEqual(1, value["age"]);
+                var items = (IDictionary<string, object>[])value["items"];
+                Assert.AreEqual(1, items.Length);
+                var item = items[0];
+                Assert.AreEqual(1, item["f1"]);
+                Assert.AreEqual("hi", item["f2"]);
+                CollectionAssert.AreEquivalent(new[] { 1, 2, 3 }, (int[])item["f3"]);
+            }
         }
     }
 }

@@ -15,7 +15,8 @@ namespace NFun.Types
 
     public class DynamicTypeOutputFunnyConverter : IOutputFunnyConverter
     {
-        public static readonly DynamicTypeOutputFunnyConverter Instance = new(typeof(object));
+        public static DynamicTypeOutputFunnyConverter AnyConverter { get; } = new(typeof(object));
+
         public DynamicTypeOutputFunnyConverter(Type clrType) => ClrType = clrType;
         public Type ClrType { get; }
         public FunnyType FunnyType { get; } = FunnyType.Any;
@@ -28,7 +29,7 @@ namespace NFun.Types
                     FunnyTypeConverters
                         .GetOutputConverter(FunnyType.ArrayOf(funArray.ElementType))
                         .ToClrObject(funObject),
-                FunnyStruct str => str.ToString(),
+                FunnyStruct str => DynamicStructToDictionaryOutputFunnyConverter.Instance.ToClrObject(str),
                 _ => funObject
             };
     }
@@ -147,6 +148,35 @@ namespace NFun.Types
                     continue;
                 var converter = FunnyTypeConverters.GetOutputConverter(property.Value);
                 result.Add(property.Key, converter.ToClrObject(fieldValue));
+            }
+
+            return result;
+        }
+    }
+
+    public class DynamicStructToDictionaryOutputFunnyConverter : IOutputFunnyConverter
+    {
+        public static DynamicStructToDictionaryOutputFunnyConverter Instance { get; } = new();
+
+        private DynamicStructToDictionaryOutputFunnyConverter()
+        {
+        }
+
+        public Type ClrType { get; } = typeof(Dictionary<string, object>);
+
+        public FunnyType FunnyType { get; } =
+            FunnyType.StructOf(new Dictionary<string, FunnyType>(0, FunnyType.StructKeyComparer));
+
+        public object ToClrObject(object funObject)
+        {
+            var str = funObject as FunnyStruct;
+            var result = new Dictionary<string, object>();
+            if (str == null)
+                return result;
+            foreach (var property in str)
+            {
+                var clrObject = DynamicTypeOutputFunnyConverter.AnyConverter.ToClrObject(property.Value);
+                result.Add(property.Key, clrObject);
             }
 
             return result;

@@ -33,10 +33,22 @@ namespace NFun.Runtime
         bool IsOutput { get; }
 
         /// <summary>
-        /// Represents current CLR value of the funny variable. 
+        /// Represents current CLR value of the funny variable.
+        /// In case of multiple use, use GetTypedGetter and GetTypedSetter, since the value get and value set methods can be quite slow
         /// </summary>
         object Value { get; set; }
+
+        /// <summary>
+        /// Returns getter function with a converter to the specified clr type
+        /// </summary>
+        Func<T> GetTypedGetter<T>();
+
+        /// <summary>
+        /// Returns setter function with a converter to the specified clr type
+        /// </summary>
+        Action<T> GetTypedSetter<T>();
     }
+
 
     internal class VariableSource : IFunnyVar
     {
@@ -93,7 +105,7 @@ namespace NFun.Runtime
 
         private bool _outputConverterLoaded;
         private IOutputFunnyConverter _outputConverter;
-        
+
         public object Value
         {
             get
@@ -107,6 +119,34 @@ namespace NFun.Runtime
                 return _outputConverter.ToClrObject(_funnyValue);
             }
             set => _funnyValue = FunnyTypeConverters.ConvertInputOrThrow(value, Type);
+        }
+
+        public Func<T> GetTypedGetter<T>()
+        {
+            if (!IsOutput)
+                throw new NotSupportedException("Cannot create value getter for non output variable");
+            var outputConverter = FunnyTypeConverters.GetOutputConverter(typeof(T));
+            if (outputConverter == null || (Type.IsPrimitive && outputConverter.FunnyType != Type))
+                throw new InvalidOperationException(
+                    $"Funny type {Type} cannot be converted to clr type {typeof(T).Name}");
+            return () => (T)outputConverter.ToClrObject(FunnyValue);
+        }
+
+        public Action<T> GetTypedSetter<T>()
+        {
+            if (IsOutput)
+                throw new NotSupportedException("Cannot create value getter for output variable");
+
+            //var inputConverter = FunnyTypeConverters.GetInputConverter(typeof(T));
+            var inputConverter = FunnyTypeConverters.GetInputConverter(Type, typeof(T));
+
+            if (inputConverter == null || inputConverter.FunnyType != Type)
+            {
+                throw new InvalidOperationException(
+                    $"Funny type {Type} cannot be converted to clr type {typeof(T).Name}");
+            }
+
+            return input => _funnyValue = inputConverter.ToFunObject(input);
         }
     }
 

@@ -16,7 +16,6 @@ namespace NFun.Types
         public object ToFunObject(object clrObject);
     }
 
-
     public class StructTypeInputFunnyConverter : IInputFunnyConverter
     {
         private readonly (string, IInputFunnyConverter, PropertyInfo)[] _propertiesConverters;
@@ -63,6 +62,13 @@ namespace NFun.Types
     public class DynamicStructTypeInputFunnyConverter : IInputFunnyConverter
     {
         private readonly (string, IInputFunnyConverter)[] _propertiesConverters;
+
+        internal DynamicStructTypeInputFunnyConverter((string, IInputFunnyConverter)[] properties, FunnyType funnyType)
+        {
+            _propertiesConverters = properties;
+            FunnyType = funnyType;
+        }
+
 
         internal DynamicStructTypeInputFunnyConverter((string, IInputFunnyConverter)[] properties)
         {

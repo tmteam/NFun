@@ -66,6 +66,7 @@ namespace NFun.TestTools
         public static void AssertReturns(this CalculationResult result, string id, object expected)
             => AssertReturns(result, (id, expected));
 
+        
         public static void AssertReturns(this CalculationResult result, params (string id, object val)[] values) =>
             Assert.Multiple(() =>
             {
@@ -76,7 +77,7 @@ namespace NFun.TestTools
 
         public static void AssertResultHas(this string expr, string id, object val) =>
             expr.Calc().AssertResultHas((id, val));
-
+        
         public static void AssertResultHas(this string expr, params (string id, object val)[] values) =>
             expr.Calc().AssertResultHas(values);
 
