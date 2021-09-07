@@ -6,7 +6,8 @@ using NFun.Types;
 namespace NFun.Interpretation.Functions {
 
 internal class ConcreteUserFunctionPrototype : FunctionWithManyArguments {
-    public ConcreteUserFunctionPrototype(string name, FunnyType returnType, FunnyType[] argTypes) : base(name,
+    public ConcreteUserFunctionPrototype(string name, FunnyType returnType, FunnyType[] argTypes) : base(
+        name,
         returnType, argTypes) { }
 
     private ConcreteUserFunction _function;

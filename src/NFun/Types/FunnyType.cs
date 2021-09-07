@@ -8,10 +8,9 @@ public readonly struct FunnyType {
     public override int GetHashCode() {
         unchecked
         {
-            return ((int)BaseType * 397) ^ (ArrayTypeSpecification?.GetHashCode()
-                                            ?? FunTypeSpecification?.GetHashCode()
-                                            ?? StructTypeSpecification?.GetHashCode()
-                                            ?? 0);
+            return ((int)BaseType * 397) ^
+                   (ArrayTypeSpecification?.GetHashCode() ??
+                    FunTypeSpecification?.GetHashCode() ?? StructTypeSpecification?.GetHashCode() ?? 0);
         }
     }
 
@@ -206,7 +205,8 @@ public readonly struct FunnyType {
                 for (int i = 0; i < genericOrNot.FunTypeSpecification.Inputs.Length; i++)
                     outputTypes[i] =
                         SubstituteConcreteTypes(genericOrNot.FunTypeSpecification.Inputs[i], solvedTypes);
-                return Fun(SubstituteConcreteTypes(genericOrNot.FunTypeSpecification.Output, solvedTypes),
+                return Fun(
+                    SubstituteConcreteTypes(genericOrNot.FunTypeSpecification.Output, solvedTypes),
                     outputTypes);
             case BaseFunnyType.Generic:
                 return solvedTypes[genericOrNot.GenericId.Value];
@@ -314,7 +314,7 @@ public readonly struct FunnyType {
             BaseFunnyType.Struct =>
                 $"{{{string.Join(";", StructTypeSpecification.Select(s => s.Key + ":" + s.Value))}}}",
             BaseFunnyType.Generic => "T_" + GenericId,
-            _ => BaseType.ToString()
+            _                     => BaseType.ToString()
         };
 
     public bool CanBeConvertedTo(FunnyType to)

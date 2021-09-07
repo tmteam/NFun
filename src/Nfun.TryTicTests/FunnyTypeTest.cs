@@ -338,7 +338,8 @@ public class FunnyTypeTest {
         //Solving  T[]
         var solvingTypes = new FunnyType[1];
         var concrete = FunnyType.Int32;
-        FunnyType.TrySolveGenericTypes(solvingTypes,
+        FunnyType.TrySolveGenericTypes(
+            solvingTypes,
             FunnyType.ArrayOf(FunnyType.Generic(0)),
             FunnyType.ArrayOf(concrete));
         Assert.AreEqual(concrete, solvingTypes[0]);
@@ -351,7 +352,8 @@ public class FunnyTypeTest {
         var solvingTypes = new FunnyType[1];
         var concrete = FunnyType.Text;
 
-        FunnyType.TrySolveGenericTypes(solvingTypes,
+        FunnyType.TrySolveGenericTypes(
+            solvingTypes,
             FunnyType.ArrayOf(FunnyType.Fun(FunnyType.Int32, FunnyType.Generic(0))),
             FunnyType.ArrayOf(FunnyType.Fun(FunnyType.Int32, concrete)));
 
@@ -361,7 +363,8 @@ public class FunnyTypeTest {
     [Test]
     public void SolveGenericTypes_ConcreteRealToConcreteInt_ReturnsFalse() {
         //Solving  Array of int SomeFun<T>(T)
-        var result = FunnyType.TrySolveGenericTypes(new FunnyType[1],
+        var result = FunnyType.TrySolveGenericTypes(
+            new FunnyType[1],
             genericType: FunnyType.Int32, concreteType: FunnyType.Real);
         Assert.IsFalse(result);
     }
@@ -373,16 +376,19 @@ public class FunnyTypeTest {
         var solvingTypes = new FunnyType[2];
         var concrete1 = FunnyType.Text;
         var concrete2 = FunnyType.ArrayOf(FunnyType.Int32);
-        FunnyType.TrySolveGenericTypes(solvingTypes,
-            FunnyType.Fun(FunnyType.ArrayOf(FunnyType.Generic(0)), FunnyType.Generic(1),
+        FunnyType.TrySolveGenericTypes(
+            solvingTypes,
+            FunnyType.Fun(
+                FunnyType.ArrayOf(FunnyType.Generic(0)), FunnyType.Generic(1),
                 FunnyType.ArrayOf(FunnyType.Generic(1))),
             FunnyType.Fun(FunnyType.ArrayOf(concrete1), concrete2, FunnyType.ArrayOf(concrete2))
         );
 
-        Assert.Multiple(() => {
-            Assert.AreEqual(concrete1, solvingTypes[0]);
-            Assert.AreEqual(concrete2, solvingTypes[1]);
-        });
+        Assert.Multiple(
+            () => {
+                Assert.AreEqual(concrete1, solvingTypes[0]);
+                Assert.AreEqual(concrete2, solvingTypes[1]);
+            });
     }
 
     [Test]

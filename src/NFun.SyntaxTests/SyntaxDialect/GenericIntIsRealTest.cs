@@ -32,14 +32,16 @@ public abstract class GenericIntConstantTestBase<T> {
     [TestCase("a = {b = 1}; y = -a.b", -1)]
     [TestCase("y = { a1 = {b2 = [1,2,3]}}.a1.b2[1]", 2)]
     [TestCase("y = { b = [1,2,3]}.b[1]", 2)]
-    [TestCase("a1 = {af1_24 = 24; af2_1=1}; " +
-              "b2 = {bf1 = a1; bf2_1 = a1.af2_1}; " +
-              "y = a1.af1_24 + b2.bf1.af2_1 + b2.bf2_1", 26)]
-    [TestCase("a1 = {af1_24 = 24; af2_1=1}; " +
-              "b2 = {bf2_1 = 1}; " +
-              "c3 = {cf1_1 = b2.bf2_1; cf2_24 = 24}; " +
-              "e4 = {ef1 = a1.af1_24; ef2 = b2.bf2_1; ef3 = a1;  ef4_24 = c3.cf2_24}; " +
-              "y = a1.af1_24 + 1 + c3.cf2_24 + e4.ef4_24", 73)]
+    [TestCase(
+        "a1 = {af1_24 = 24; af2_1=1}; " +
+        "b2 = {bf1 = a1; bf2_1 = a1.af2_1}; " +
+        "y = a1.af1_24 + b2.bf1.af2_1 + b2.bf2_1", 26)]
+    [TestCase(
+        "a1 = {af1_24 = 24; af2_1=1}; " +
+        "b2 = {bf2_1 = 1}; " +
+        "c3 = {cf1_1 = b2.bf2_1; cf2_24 = 24}; " +
+        "e4 = {ef1 = a1.af1_24; ef2 = b2.bf2_1; ef3 = a1;  ef4_24 = c3.cf2_24}; " +
+        "y = a1.af1_24 + 1 + c3.cf2_24 + e4.ef4_24", 73)]
     [TestCase("y = 2", 2)]
     [TestCase("y = 1111  ", 1111)]
     [TestCase("y = 11_11  ", 1111)]
@@ -51,7 +53,8 @@ public abstract class GenericIntConstantTestBase<T> {
     [TestCase("y = [1,2,3,4].fold(0,(fun it1+it2))", 10)]
     [TestCase("y = [1,2,3,4].fold(-10,(fun it1+it2))", 0)]
     [TestCase("y = median([1,-10,0])", 0)]
-    [TestCase(@"choose(f1, f2,  selector, arg1, arg2) = if(selector) f1(arg1,arg2) else f2(arg1,arg2); 
+    [TestCase(
+        @"choose(f1, f2,  selector, arg1, arg2) = if(selector) f1(arg1,arg2) else f2(arg1,arg2); 
                    y =  choose(max, min, true, 1,2)", 2)]
     [TestCase("first(a) = a[0]\r y = [5,4,3].first()", 5)]
     [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y = choise(1,2,true)", 1)]
@@ -70,12 +73,14 @@ public abstract class GenericIntConstantTestBase<T> {
     [TestCase(@"y = (((fun it+1)))(3.0)", 4.0)]
     [TestCase("y=median([1.0,10.5,6.0])", 6.0)]
     [TestCase("choise(a,b,takefirst) = if(takefirst) a else b\r y = choise(1,2.0,true)", 1.0)]
-    [TestCase(@"y = [1..3]
+    [TestCase(
+        @"y = [1..3]
                         .map(fun [1..5]
                                 .map(fun 10/it)
                                 .sum())
                         .sum()", 68.5)]
-    [TestCase(@"y = [1..3]
+    [TestCase(
+        @"y = [1..3]
                         .map(fun it/2)
                         .sum()", 3.0)]
     public void NumericConstantReturnsAlwaysReal(string expression, double expected) =>
@@ -92,10 +97,12 @@ public abstract class GenericIntConstantTestBase<T> {
     public void ThreeDependentConstantEquations_CalculatesCorrect(string expr, int o1, int o2, int o3) =>
         Calc(expr).AssertReturns(("o1", Convert(o1)), ("o2", Convert(o2)), ("o3", Convert(o3)));
 
-    [TestCase("f(x) = concat(x.a, x.b);" +
-              "x1= {a = 'mama'; b = 'popo'};" +
-              "y = f({a=[1,2,3]; b = [4,5,6]})", new[] { 1, 2, 3, 4, 5, 6 })]
-    [TestCase("mkarr(a,b,c,d,takefirst) = if(takefirst) [a,b] else [c,d]\r y = mkarr(1,2,3,4,false)",
+    [TestCase(
+        "f(x) = concat(x.a, x.b);" +
+        "x1= {a = 'mama'; b = 'popo'};" +
+        "y = f({a=[1,2,3]; b = [4,5,6]})", new[] { 1, 2, 3, 4, 5, 6 })]
+    [TestCase(
+        "mkarr(a,b,c,d,takefirst) = if(takefirst) [a,b] else [c,d]\r y = mkarr(1,2,3,4,false)",
         new[] { 3, 4 })]
     [TestCase("repeat(a) = a.concat(a)\r y = [1,2,3].repeat()", new[] { 1, 2, 3, 1, 2, 3 })]
     [TestCase("y = [-1,-2,0,1,2,3].filter(fun it>0).map(fun(i)=i*i).map(fun(i)=i*i)", new[] { 1, 16, 81 })]
@@ -122,9 +129,10 @@ public abstract class GenericIntConstantTestBase<T> {
     [TestCase("y = x % -4", -5, -1)]
     [TestCase("y = x % 4", -5, -1)]
     [TestCase("y = abs(x-4)", 1, 3)]
-    [TestCase("a = {b = x; c=x}; " +
-              "b = {d = a; e = a.c; f = 3}; " +
-              "y = b.d.b + b.e + b.f", 42, 87)]
+    [TestCase(
+        "a = {b = x; c=x}; " +
+        "b = {d = a; e = a.c; f = 3}; " +
+        "y = b.d.b + b.e + b.f", 42, 87)]
     public void ArgCalcOfTargetType(string expression, int arg, int expected)
         => Build(expression).Calc("x", Convert(arg)).AssertResultHas("y", Convert(expected));
 
@@ -152,9 +160,9 @@ public abstract class GenericIntConstantTestBase<T> {
     [Test]
     public void OverrideConstantWithOutputVariable_constantNotUsed() {
         var runtime = Funny.Hardcore
-            .WithDialect(_dialect)
-            .WithConstant("pi", Math.PI)
-            .Build("pi = 3; y = pi");
+                           .WithDialect(_dialect)
+                           .WithConstant("pi", Math.PI)
+                           .Build("pi = 3; y = pi");
 
         runtime.AssertInputsCount(0);
         runtime.Calc().AssertReturns(("y", Convert(3)), ("pi", Convert(3)));
@@ -171,27 +179,34 @@ public abstract class GenericIntConstantTestBase<T> {
     [TestCase(42)]
     public void ConstantNCountAccess(int n) {
         TraceLog.IsEnabled = true;
-        Calc("str = {field = 1}; " +
-             $"y = {string.Join("+", Enumerable.Range(0, n).Select(_ => "str.field"))}")
+        Calc(
+                "str = {field = 1}; " +
+                $"y = {string.Join("+", Enumerable.Range(0, n).Select(_ => "str.field"))}")
             .AssertResultHas("y", Convert(n));
     }
 
-    [TestCase(@"y = [1..7]
+    [TestCase(
+        @"y = [1..7]
                         .map(fun it+1)
                         .sum()")]
-    [TestCase(@"y = [1..8]
+    [TestCase(
+        @"y = [1..8]
                         .map(fun [it,1].sum())
                         .sum()")]
-    [TestCase(@"y = [1..9]
+    [TestCase(
+        @"y = [1..9]
                         .map(fun [1,it].sum())
                         .sum()")]
-    [TestCase(@"y = [1..10]
+    [TestCase(
+        @"y = [1..10]
                         .map(fun [1..it].sum())
                         .sum()")]
-    [TestCase(@"y = [1..11]
+    [TestCase(
+        @"y = [1..11]
                         .map(fun [1..it].sum())
                         .sum()")]
-    [TestCase(@"fibrec(n, iter, p1,p2) =
+    [TestCase(
+        @"fibrec(n, iter, p1,p2) =
                           if (n >iter) 
                                 fibrec(n, iter+1, p1+p2, p1)
                           else 

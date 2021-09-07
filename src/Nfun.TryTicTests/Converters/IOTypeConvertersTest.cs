@@ -37,10 +37,11 @@ public class IOTypeConvertersTest {
     public void ArrayOfObjectsConverts() => AssertFunnyConvert(new object[] { "vasa", 12, false });
 
     [Test]
-    public void ComplexArrayConverts() => AssertFunnyConvert(new[] {
-        new[] { new[] { 1, 2 }, Array.Empty<int>() },
-        new[] { new[] { 3 }, new[] { 4, 5, 6 } }
-    });
+    public void ComplexArrayConverts() => AssertFunnyConvert(
+        new[] {
+            new[] { new[] { 1, 2 }, Array.Empty<int>() },
+            new[] { new[] { 3 }, new[] { 4, 5, 6 } }
+        });
 
     [Test]
     public void ObjectConverts() => AssertFunnyConvert(new object());

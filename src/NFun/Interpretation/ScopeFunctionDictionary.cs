@@ -9,9 +9,7 @@ internal sealed class ScopeFunctionDictionary : IFunctionDictionary {
     private readonly Dictionary<string, IFunctionSignature> _functions = new();
     private readonly Dictionary<string, List<IFunctionSignature>> _overloads = new();
 
-    public ScopeFunctionDictionary(IFunctionDictionary originalDictionary) {
-        _originalDictionary = originalDictionary;
-    }
+    public ScopeFunctionDictionary(IFunctionDictionary originalDictionary) { _originalDictionary = originalDictionary; }
 
     public IList<IFunctionSignature> SearchAllFunctionsIgnoreCase(string name, int argCount) {
         //code used only in error handling. No need to optimize.

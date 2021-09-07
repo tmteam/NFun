@@ -8,13 +8,15 @@ public class TestFluentApiCalcManyTT {
     [TestCase("id = age*2; items = ids.map(toText);  Price = 42.1")]
     [TestCase("ID = age*2; Items = iDs.map(toText);  price = 42.1")]
     public void MapContracts(string expr) =>
-        CalcInDifferentWays(expr,
+        CalcInDifferentWays(
+            expr,
             input: new UserInputModel("vasa", 13, ids: new[] { 1, 2, 3 }),
             expected: new ContractOutputModel { Id = 26, Items = new[] { "1", "2", "3" }, Price = 42.1 });
 
     [Test]
     public void FullConstInitialization() =>
-        CalcInDifferentWays("id = 42; items = ['vasa','kate']; price = 42.1", new UserInputModel(),
+        CalcInDifferentWays(
+            "id = 42; items = ['vasa','kate']; price = 42.1", new UserInputModel(),
             new ContractOutputModel {
                 Id = 42,
                 Price = 42.1,
@@ -25,33 +27,37 @@ public class TestFluentApiCalcManyTT {
 
     [Test]
     public void OutputFieldIsConstCharArray() =>
-        CalcInDifferentWays("chars = 'test'", new UserInputModel(), new ModelWithCharArray {
-            Chars = new[] { 't', 'e', 's', 't' }
-        });
+        CalcInDifferentWays(
+            "chars = 'test'", new UserInputModel(), new ModelWithCharArray {
+                Chars = new[] { 't', 'e', 's', 't' }
+            });
 
 
     [Test]
     public void InputAndOutputFieldsAreCharArrays() =>
-        CalcInDifferentWays("Chars = letters.reverse()", new ModelWithCharArray2 {
-            Letters = new[] { 't', 'e', 's', 't' }
-        }, new ModelWithCharArray {
-            Chars = new[] { 't', 's', 'e', 't' }
-        });
+        CalcInDifferentWays(
+            "Chars = letters.reverse()", new ModelWithCharArray2 {
+                Letters = new[] { 't', 'e', 's', 't' }
+            }, new ModelWithCharArray {
+                Chars = new[] { 't', 's', 'e', 't' }
+            });
 
     [Test]
     public void InputFieldIsCharArray() =>
-        CalcInDifferentWays("items = [letters.reverse()]", new ModelWithCharArray2 {
-            Letters = new[] { 't', 'e', 's', 't' }
-        }, new ContractOutputModel {
-            Items = new[] { "tset" }
-        });
+        CalcInDifferentWays(
+            "items = [letters.reverse()]", new ModelWithCharArray2 {
+                Letters = new[] { 't', 'e', 's', 't' }
+            }, new ContractOutputModel {
+                Items = new[] { "tset" }
+            });
 
     [Test]
     public void NofieldsInitialized_throws()
-        => Assert.Throws<FunnyParseException>(() =>
-            Funny.CalcMany<UserInputModel, ContractOutputModel>(
-                expression: "someField1 = age; somefield2 = 2",
-                input: new UserInputModel()));
+        => Assert.Throws<FunnyParseException>(
+            () =>
+                Funny.CalcMany<UserInputModel, ContractOutputModel>(
+                    expression: "someField1 = age; somefield2 = 2",
+                    input: new UserInputModel()));
 
     [TestCase("13.1")]
     [TestCase("age")]

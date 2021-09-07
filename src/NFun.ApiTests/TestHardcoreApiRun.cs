@@ -83,7 +83,8 @@ class RuntimeApiTest {
     [Test]
     public void RuntimeWithSimpleTypes_VariablesEnumerationTest() {
         // Hardcore mode 
-        var runtime = Funny.Hardcore.Build(@"
+        var runtime = Funny.Hardcore.Build(
+            @"
                     out1 = in1-1
                     out2:int = in2.filter(fun it>out1).map(fun it*it)[1]
                     ");
@@ -103,7 +104,8 @@ class RuntimeApiTest {
     [Test]
     public void RuntimeWithCompositeTypes_VariablesEnumerationTest() {
         // Hardcore mode 
-        var runtime = Funny.Hardcore.Build(@"
+        var runtime = Funny.Hardcore.Build(
+            @"
                     out3 = {age = 1, name = 'vasa'}    
                     out4 = in3.field1
                     out5 = in3.field2.child    
@@ -128,40 +130,45 @@ class RuntimeApiTest {
         Assert.AreEqual("kavabanga", runtime["out5"].Value);
 
         Assert.IsInstanceOf<IDictionary<string, object>>(runtime["out3"].Value);
-        Assert.IsInstanceOf<IDictionary<string, object>>(runtime.Variables.FirstOrDefault(i => i.Name == "out3")
-            ?.Value);
+        Assert.IsInstanceOf<IDictionary<string, object>>(
+            runtime.Variables.FirstOrDefault(i => i.Name == "out3")
+                   ?.Value);
     }
 
     [Test]
     public void TypedRuntimeWithCompositeTypes_VariablesEnumerationTest() {
         // Hardcore mode 
-        var runtime = Funny.Hardcore.Build(@"
+        var runtime = Funny.Hardcore.Build(
+            @"
                     out3 = {age = 1, name = 'vasa'}    
                     out4 = in3.field1 + 1
                     out5:text = in3.field2.child    
 ");
 
         runtime["in3"].GetTypedSetter<Dictionary<string, object>>()
-        (new Dictionary<string, object> {
-            { "field1", 123 }, {
-                "field2", new Dictionary<string, object> {
-                    { "child", "kavabanga" }
+        (
+            new Dictionary<string, object> {
+                { "field1", 123 }, {
+                    "field2", new Dictionary<string, object> {
+                        { "child", "kavabanga" }
+                    }
                 }
-            }
-        });
+            });
 
         runtime.Run();
 
         Assert.AreEqual(124, runtime.Variables.FirstOrDefault(i => i.Name == "out4")?.GetTypedGetter<int>()());
         Assert.AreEqual(124, runtime["out4"]?.GetTypedGetter<int>()());
 
-        Assert.AreEqual("kavabanga",
+        Assert.AreEqual(
+            "kavabanga",
             runtime.Variables.FirstOrDefault(i => i.Name == "out5")?.GetTypedGetter<string>()());
         Assert.AreEqual("kavabanga", runtime["out5"]?.GetTypedGetter<string>()());
 
         Assert.IsNotNull(runtime["out3"].GetTypedGetter<Dictionary<string, object>>());
-        Assert.IsNotNull(runtime.Variables.FirstOrDefault(i => i.Name == "out3")
-            ?.GetTypedGetter<Dictionary<string, object>>());
+        Assert.IsNotNull(
+            runtime.Variables.FirstOrDefault(i => i.Name == "out3")
+                   ?.GetTypedGetter<Dictionary<string, object>>());
     }
 
     [Test]
@@ -196,7 +203,7 @@ class RuntimeApiTest {
         runtime.Run();
 
         var value = runtime.Variables.FirstOrDefault(i => i.Name == "out")
-            ?.GetTypedGetter<Dictionary<string, object>>()();
+                           ?.GetTypedGetter<Dictionary<string, object>>()();
         AssertValue(value);
 
         var getter = runtime["out"].GetTypedGetter<IDictionary<string, object>>();

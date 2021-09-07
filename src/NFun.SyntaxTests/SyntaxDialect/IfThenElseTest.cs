@@ -98,10 +98,10 @@ public class IfThenElseTest {
         foreach (var setup in new[] { IfExpressionSetup.IfIfElse, IfExpressionSetup.IfElseIf })
         {
             Funny.Hardcore
-                .WithDialect(Dialects.ModifyOrigin(setup))
-                .Build(expr)
-                .Calc(("x1", x1), ("x2", x2), ("x3", x3))
-                .AssertReturns("y", expected);
+                 .WithDialect(Dialects.ModifyOrigin(setup))
+                 .Build(expr)
+                 .Calc(("x1", x1), ("x2", x2), ("x3", x3))
+                 .AssertReturns("y", expected);
         }
     }
 
@@ -126,22 +126,26 @@ public class IfThenElseTest {
         IfExpressionSetup setup = IfExpressionSetup.IfIfElse)
         => expr.BuildWithDialect(Dialects.ModifyOrigin(setup)).Calc().AssertReturns(expected);
 
-    [TestCase(@"
+    [TestCase(
+        @"
 if (x == 0) 'zero'
 else 'positive' ", 2, "positive")]
-    [TestCase(@"
+    [TestCase(
+        @"
 if (x == 0) [0.0]
 if (x == 1) [0.0,1.0]
 if (x == 2) [0.0,1.0,2.0]
 if (x == 3) [0.0,1.0,2.0,3.0]
 else [0.0,0.0,0.0] ", 2, new[] { 0.0, 1.0, 2.0 })]
-    [TestCase(@"
+    [TestCase(
+        @"
 if (x==0) ['0']
 if (x==1) ['0','1']
 if (x==2) ['0','1','2']
 if (x==3) ['0','1','2','3']
 else ['0','0','0'] ", 2, new[] { "0", "1", "2" })]
-    [TestCase(@"
+    [TestCase(
+        @"
 if (x == 0) 'zero'
 if (x == 1) 'one'
 if (x == 2) 'two'
@@ -150,29 +154,33 @@ else 'not supported' ", 2, "two")]
     [TestCase("if (x==1) [1,2,3] else []", 0, new int[0])]
     public void SingleVariableEquatation_ififelse(string expression, int x, object expected)
         => Funny.Hardcore
-            .WithApriori<int>("x")
-            .WithDialect(Dialects.ModifyOrigin(IfExpressionSetup.IfIfElse))
-            .Build(expression)
-            .Calc("x", x)
-            .AssertOut(expected);
+                .WithApriori<int>("x")
+                .WithDialect(Dialects.ModifyOrigin(IfExpressionSetup.IfIfElse))
+                .Build(expression)
+                .Calc("x", x)
+                .AssertOut(expected);
 
 
-    [TestCase(@"
+    [TestCase(
+        @"
 if (x == 0) 'zero'
 else 'positive' ", 2, "positive")]
-    [TestCase(@"
+    [TestCase(
+        @"
 if (x == 0) [0.0]
 else if (x == 1) [0.0,1.0]
 else if (x == 2) [0.0,1.0,2.0]
 else if (x == 3) [0.0,1.0,2.0,3.0]
 else [0.0,0.0,0.0] ", 2, new[] { 0.0, 1.0, 2.0 })]
-    [TestCase(@"
+    [TestCase(
+        @"
 if (x==0) ['0']
 else if (x==1) ['0','1']
 else if (x==2) ['0','1','2']
 else if (x==3) ['0','1','2','3']
 else ['0','0','0'] ", 2, new[] { "0", "1", "2" })]
-    [TestCase(@"
+    [TestCase(
+        @"
 if (x == 0) 'zero'
 else if (x == 1) 'one'
 else if (x == 2) 'two'
@@ -183,11 +191,11 @@ else 'not supported' ", 2, "two")]
         foreach (var setup in new[] { IfExpressionSetup.IfIfElse, IfExpressionSetup.IfElseIf })
         {
             Funny.Hardcore
-                .WithApriori<int>("x")
-                .WithDialect(Dialects.ModifyOrigin(setup))
-                .Build(expression)
-                .Calc("x", x)
-                .AssertOut(expected);
+                 .WithApriori<int>("x")
+                 .WithDialect(Dialects.ModifyOrigin(setup))
+                 .Build(expression)
+                 .Calc("x", x)
+                 .AssertOut(expected);
         }
     }
 
@@ -261,7 +269,8 @@ else 'not supported' ", 2, "two")]
     [TestCase("if (true) false; if (false) true else false", IfExpressionSetup.Deny)]
     [TestCase("if (true) false; else true", IfExpressionSetup.Deny)]
     [TestCase("if (true) false else true", IfExpressionSetup.Deny)]
-    [TestCase(@"
+    [TestCase(
+        @"
                 y = if (x1 == 1) 1 
                     else if (x1 == 2)
                         if (x2 == 1) 2

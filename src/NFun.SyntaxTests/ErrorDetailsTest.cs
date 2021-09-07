@@ -138,14 +138,15 @@ public class ErrorDetailsTest {
 
             if (e.Start > e.End)
                 Assert.Fail($"[FU{e.Code}] Start is greater than end");
-            Assert.Multiple(() => {
-                Assert.AreEqual(
-                    expected: start,
-                    actual: e.Start, message: $"[FU{e.Code}] Start index");
-                Assert.AreEqual(
-                    expected: end,
-                    actual: e.End, message: $"[FU{e.Code}] End index");
-            });
+            Assert.Multiple(
+                () => {
+                    Assert.AreEqual(
+                        expected: start,
+                        actual: e.Start, message: $"[FU{e.Code}] Start index");
+                    Assert.AreEqual(
+                        expected: end,
+                        actual: e.End, message: $"[FU{e.Code}] End index");
+                });
         }
     }
 }

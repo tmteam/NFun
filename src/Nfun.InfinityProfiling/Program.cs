@@ -131,13 +131,14 @@ internal class Program {
         var rms = Math.Sqrt(history.Select(h => Math.Pow(avg - h, 2)).Sum());
         var current = history.Last.Value;
 
-        Console.WriteLine($"{name} |  " +
-                          $"{100 * current / ratioTime.TotalMilliseconds:00.00}% | " +
-                          $"{1000 * iterations / current:000000.0} |  " +
-                          $"{1000 * iterations / avg:000000.0} |  " +
-                          $"{1000 * iterations / max:000000.0} |  " +
-                          $"{1000 * iterations / min:000000.0} |  " +
-                          $"{rms * 1000 / iterations:0000}  |  ");
+        Console.WriteLine(
+            $"{name} |  " +
+            $"{100 * current / ratioTime.TotalMilliseconds:00.00}% | " +
+            $"{1000 * iterations / current:000000.0} |  " +
+            $"{1000 * iterations / avg:000000.0} |  " +
+            $"{1000 * iterations / max:000000.0} |  " +
+            $"{1000 * iterations / min:000000.0} |  " +
+            $"{rms * 1000 / iterations:0000}  |  ");
     }
 
     private enum ProfileMode {

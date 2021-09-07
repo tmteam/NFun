@@ -14,7 +14,8 @@ public class ToTextFunction : FunctionWithSingleArg {
 }
 
 public class ConcatArrayOfTextsFunction : FunctionWithSingleArg {
-    public ConcatArrayOfTextsFunction() : base(CoreFunNames.ConcatArrayOfTexts, FunnyType.Text,
+    public ConcatArrayOfTextsFunction() : base(
+        CoreFunNames.ConcatArrayOfTexts, FunnyType.Text,
         FunnyType.ArrayOf(FunnyType.Any)) { }
 
     public override object Calc(object a) {
@@ -36,7 +37,8 @@ public class Concat2TextsFunction : FunctionWithTwoArgs {
 }
 
 public class Concat3TextsFunction : FunctionWithManyArguments {
-    public Concat3TextsFunction() : base(CoreFunNames.Concat3Texts, FunnyType.Text, FunnyType.Any, FunnyType.Any,
+    public Concat3TextsFunction() : base(
+        CoreFunNames.Concat3Texts, FunnyType.Text, FunnyType.Any, FunnyType.Any,
         FunnyType.Any) { }
 
     public override object Calc(object[] args) {
@@ -77,7 +79,8 @@ public class TrimEndFunction : FunctionWithSingleArg {
 
 
 public class SplitFunction : FunctionWithTwoArgs {
-    public SplitFunction() : base("split",
+    public SplitFunction() : base(
+        "split",
         FunnyType.ArrayOf(FunnyType.Text),
         FunnyType.Text,
         FunnyType.Text) { }
@@ -88,8 +91,8 @@ public class SplitFunction : FunctionWithTwoArgs {
         var delimeter = TypeHelper.GetFunText(b);
         return new ImmutableFunnyArray(
             inputString.Split(new[] { delimeter }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(s => new TextFunnyArray(s))
-                .ToArray(), FunnyType.Text);
+                       .Select(s => new TextFunnyArray(s))
+                       .ToArray(), FunnyType.Text);
     }
 }
 

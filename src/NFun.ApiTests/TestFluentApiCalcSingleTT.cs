@@ -30,7 +30,8 @@ public class TestFluentApiCalcSingleTT {
 
     [Test]
     public void IoComplexTypeTransforms() =>
-        CalcInDifferentWays(expr: "{id = age; items = ids.map(fun '{it}'); price = size*2}",
+        CalcInDifferentWays(
+            expr: "{id = age; items = ids.map(fun '{it}'); price = size*2}",
             input: new UserInputModel("vasa", 13, size: 21, iq: 12, 1, 2, 3, 4),
             expected: new ContractOutputModel {
                 Id = 13,
@@ -52,9 +53,10 @@ public class TestFluentApiCalcSingleTT {
 
     [Test]
     public void InputFieldIsCharArray() =>
-        CalcInDifferentWays("[letters.reverse()]", new ModelWithCharArray2 {
-            Letters = new[] { 't', 'e', 's', 't' }
-        }, new[] { "tset" });
+        CalcInDifferentWays(
+            "[letters.reverse()]", new ModelWithCharArray2 {
+                Letters = new[] { 't', 'e', 's', 't' }
+            }, new[] { "tset" });
 
     [TestCase("IDS.reverse().join(',')", "4,3,2,1")]
     [TestCase("Ids.reverse().join(',')", "4,3,2,1")]
@@ -86,9 +88,9 @@ public class TestFluentApiCalcSingleTT {
         var result6 = lambda2(input);
         var result7 = lambda2(input);
         var result8 = Funny
-            .WithConstant("SomeNotUsedConstant", 42)
-            .BuildForCalc<TInput, TOutput>()
-            .Calc(expr, input);
+                      .WithConstant("SomeNotUsedConstant", 42)
+                      .BuildForCalc<TInput, TOutput>()
+                      .Calc(expr, input);
 
         Assert.IsTrue(TestHelper.AreSame(expected, result1));
         Assert.IsTrue(TestHelper.AreSame(expected, result2));
@@ -117,25 +119,29 @@ public class TestFluentApiCalcSingleTT {
     [TestCase("a = 12; b = 32; x = a*b")]
     [TestCase("y = age")]
     public void NoOutputSpecified_throws(string expr)
-        => Assert.Throws<FunnyParseException>(() =>
-            Funny.Calc<UserInputModel, int>(expr, new UserInputModel(age: 42)));
+        => Assert.Throws<FunnyParseException>(
+            () =>
+                Funny.Calc<UserInputModel, int>(expr, new UserInputModel(age: 42)));
 
     [TestCase("age*AGE")]
     public void UseDifferentInputCase_throws(string expression) =>
-        Assert.Throws<FunnyParseException>(() =>
-            Funny.Calc<UserInputModel, int>(expression, new UserInputModel(age: 22)));
+        Assert.Throws<FunnyParseException>(
+            () =>
+                Funny.Calc<UserInputModel, int>(expression, new UserInputModel(age: 22)));
 
     [Test]
     public void OutputTypeContainsNoEmptyConstructor_throws() =>
-        Assert.Throws<FunnyInvalidUsageException>(() => Funny.Calc<UserInputModel, ModelWithoutEmptyConstructor>(
-            "{name = name}"
-            , new UserInputModel("vasa")));
+        Assert.Throws<FunnyInvalidUsageException>(
+            () => Funny.Calc<UserInputModel, ModelWithoutEmptyConstructor>(
+                "{name = name}"
+              , new UserInputModel("vasa")));
 
     [TestCase("age>someUnknownvariable")]
     [TestCase("x:int;")]
     public void UseUnknownInput_throws(string expr) =>
-        Assert.Throws<FunnyParseException>(() =>
-            Funny.Calc<UserInputModel, bool>(expr, new UserInputModel(age: 22)));
+        Assert.Throws<FunnyParseException>(
+            () =>
+                Funny.Calc<UserInputModel, bool>(expr, new UserInputModel(age: 22)));
 }
 
 }

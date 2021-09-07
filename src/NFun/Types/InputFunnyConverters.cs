@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -66,19 +65,6 @@ public class DynamicStructTypeInputFunnyConverter : IInputFunnyConverter {
         FunnyType = funnyType;
     }
 
-
-    internal DynamicStructTypeInputFunnyConverter((string, IInputFunnyConverter)[] properties) {
-        _propertiesConverters = properties;
-        (string, FunnyType)[] fieldTypes = new (string, FunnyType)[properties.Length];
-        for (int i = 0; i < properties.Length; i++)
-        {
-            var (name, converter) = properties[i];
-            fieldTypes[i] = (name, converter.FunnyType);
-        }
-
-        FunnyType = Types.FunnyType.StructOf(fieldTypes);
-    }
-
     public FunnyType FunnyType { get; }
 
     public object ToFunObject(object clrObject) {
@@ -98,9 +84,10 @@ public class DynamicStructTypeInputFunnyConverter : IInputFunnyConverter {
 
         foreach (var (name, converter) in _propertiesConverters)
         {
-            var property = properties.FirstOrDefault(p =>
-                p.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase)
-                && p.CanBeUsedAsFunnyInputProperty());
+            var property = properties.FirstOrDefault(
+                p =>
+                    p.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase) &&
+                    p.CanBeUsedAsFunnyInputProperty());
             if (property == null)
                 throw new InvalidCastException(
                     $"Type {clrObject.GetType().Name} cannot be used for struct, as it contains no readable public property {name}");

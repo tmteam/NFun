@@ -136,12 +136,13 @@ public class GraphToolsTest_TopologySort {
         graph[16] = From(15);
 
         var res = SyntaxParsing.GraphTools.SortTopology(graph);
-        AssertHasRoute(new[] {
-            1, 4, 5, 3, 6, 0, 2,
-            9, 11, 12, 8, 10, 13, 7,
-            14,
-            15, 16
-        }, res);
+        AssertHasRoute(
+            new[] {
+                1, 4, 5, 3, 6, 0, 2,
+                9, 11, 12, 8, 10, 13, 7,
+                14,
+                15, 16
+            }, res);
     }
 
     [Test]
@@ -159,19 +160,19 @@ public class GraphToolsTest_TopologySort {
     private int[] NoParents => Array.Empty<int>();
     private int[] From(params int[] routes) => routes;
 
-    private string ArrayToString(int[] arr) {
-        return $"[{string.Join(",", arr)}]";
-    }
+    private string ArrayToString(int[] arr) { return $"[{string.Join(",", arr)}]"; }
 
     private void AssertHasCycle(int[] cycle, TopologySortResults actual) {
         Assert.IsTrue(actual.HasCycle, "Cycle not found");
-        CollectionAssert.AreEqual(cycle, actual.NodeNames,
+        CollectionAssert.AreEqual(
+            cycle, actual.NodeNames,
             $"expected: {ArrayToString(cycle)} but was: {ArrayToString(actual.NodeNames)}");
     }
 
     private void AssertHasRoute(int[] expected, TopologySortResults actual) {
         Assert.IsFalse(actual.HasCycle, "Order not found");
-        CollectionAssert.AreEqual(expected, actual.NodeNames,
+        CollectionAssert.AreEqual(
+            expected, actual.NodeNames,
             $"expected: {ArrayToString(expected)} but was: {ArrayToString(actual.NodeNames)}");
     }
 }

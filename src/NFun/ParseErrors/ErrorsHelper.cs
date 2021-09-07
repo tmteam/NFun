@@ -48,53 +48,53 @@ internal static class ErrorsHelper {
         if (!string.IsNullOrWhiteSpace(tok.Value))
             return tok.Value;
         return tok.Type switch {
-            TokType.If => "if",
-            TokType.Else => "else",
-            TokType.Then => "then",
-            TokType.Plus => "+",
-            TokType.Minus => "-",
-            TokType.Div => "/",
-            TokType.Rema => "%",
-            TokType.Mult => "*",
-            TokType.Pow => "**",
-            TokType.Obr => "(",
-            TokType.Cbr => ")",
-            TokType.ArrOBr => "[",
-            TokType.ArrCBr => "]",
-            TokType.MetaInfo => "@",
-            TokType.In => "in",
-            TokType.BitOr => "|",
-            TokType.BitAnd => "&",
-            TokType.BitXor => "^",
-            TokType.BitShiftLeft => "<<",
-            TokType.BitShiftRight => ">>",
-            TokType.BitInverse => "~",
-            TokType.Def => "=",
-            TokType.Equal => "==",
-            TokType.NotEqual => "!=",
-            TokType.And => "and",
-            TokType.Or => "or",
-            TokType.Xor => "xor",
-            TokType.Not => "not",
-            TokType.Less => "<",
-            TokType.More => ">",
-            TokType.LessOrEqual => "<=",
-            TokType.MoreOrEqual => ">=",
-            TokType.Sep => ",",
-            TokType.True => "true",
-            TokType.False => "false",
-            TokType.Colon => ":",
-            TokType.TwoDots => "..",
-            TokType.TextType => "text",
-            TokType.Int32Type => "int32",
-            TokType.Int64Type => "int64",
-            TokType.RealType => "real",
-            TokType.BoolType => "bool",
-            TokType.AnythingType => "anything",
-            TokType.Dot => ".",
-            TokType.Arrow => "=>",
-            _ => tok.Type.ToString().ToLower()
-        };
+                   TokType.If            => "if",
+                   TokType.Else          => "else",
+                   TokType.Then          => "then",
+                   TokType.Plus          => "+",
+                   TokType.Minus         => "-",
+                   TokType.Div           => "/",
+                   TokType.Rema          => "%",
+                   TokType.Mult          => "*",
+                   TokType.Pow           => "**",
+                   TokType.Obr           => "(",
+                   TokType.Cbr           => ")",
+                   TokType.ArrOBr        => "[",
+                   TokType.ArrCBr        => "]",
+                   TokType.MetaInfo      => "@",
+                   TokType.In            => "in",
+                   TokType.BitOr         => "|",
+                   TokType.BitAnd        => "&",
+                   TokType.BitXor        => "^",
+                   TokType.BitShiftLeft  => "<<",
+                   TokType.BitShiftRight => ">>",
+                   TokType.BitInverse    => "~",
+                   TokType.Def           => "=",
+                   TokType.Equal         => "==",
+                   TokType.NotEqual      => "!=",
+                   TokType.And           => "and",
+                   TokType.Or            => "or",
+                   TokType.Xor           => "xor",
+                   TokType.Not           => "not",
+                   TokType.Less          => "<",
+                   TokType.More          => ">",
+                   TokType.LessOrEqual   => "<=",
+                   TokType.MoreOrEqual   => ">=",
+                   TokType.Sep           => ",",
+                   TokType.True          => "true",
+                   TokType.False         => "false",
+                   TokType.Colon         => ":",
+                   TokType.TwoDots       => "..",
+                   TokType.TextType      => "text",
+                   TokType.Int32Type     => "int32",
+                   TokType.Int64Type     => "int64",
+                   TokType.RealType      => "real",
+                   TokType.BoolType      => "bool",
+                   TokType.AnythingType  => "anything",
+                   TokType.Dot           => ".",
+                   TokType.Arrow         => "=>",
+                   _                     => tok.Type.ToString().ToLower()
+               };
     }
 
     public static ExprListError GetExpressionListError(
@@ -143,7 +143,8 @@ internal static class ErrorsHelper {
                 list, new Interval(obrStart, flow.Current.Finish));
 
         if (!list.Any())
-            return new ExprListError(ExprListErrorType.SingleOpenBracket, list,
+            return new ExprListError(
+                ExprListErrorType.SingleOpenBracket, list,
                 new Interval(obrStart, obrStart + 1));
 
         var position = flow.CurrentTokenPosition;
@@ -151,7 +152,8 @@ internal static class ErrorsHelper {
         flow.Move(position);
 
         if (nextExpression != null) //[x y] <- separator is missed
-            return new ExprListError(ExprListErrorType.SepIsMissing,
+            return new ExprListError(
+                ExprListErrorType.SepIsMissing,
                 list, new Interval(list.Last().Interval.Finish, nextExpression.Interval.Start));
         //[x {some crappy crap here}]
         return SpecifyArrayInitError(list, flow, openBrack, closeBrack);
@@ -165,8 +167,8 @@ internal static class ErrorsHelper {
         flow.SkipNewLines();
 
         var hasAnyBeforeStop = flow.MoveUntilOneOfThe(
-                TokType.Sep, openBrack, closeBrack, TokType.NewLine, TokType.Eof)
-            .Any();
+                                       TokType.Sep, openBrack, closeBrack, TokType.NewLine, TokType.Eof)
+                                   .Any();
 
         if (firstToken.Is(TokType.Sep))
         {

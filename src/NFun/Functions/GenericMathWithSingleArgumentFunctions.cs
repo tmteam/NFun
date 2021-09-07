@@ -9,12 +9,12 @@ public class InvertFunction : PureGenericFunctionBase {
 
     public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes) {
         FunctionWithSingleArg result = concreteTypes[0].BaseType switch {
-            BaseFunnyType.Int16 => new Int16Function(),
-            BaseFunnyType.Int32 => new Int32Function(),
-            BaseFunnyType.Int64 => new Int64Function(),
-            BaseFunnyType.Real => new RealFunction(),
-            _ => throw new ArgumentOutOfRangeException()
-        };
+                                           BaseFunnyType.Int16 => new Int16Function(),
+                                           BaseFunnyType.Int32 => new Int32Function(),
+                                           BaseFunnyType.Int64 => new Int64Function(),
+                                           BaseFunnyType.Real  => new RealFunction(),
+                                           _                   => throw new ArgumentOutOfRangeException()
+                                       };
         result.Name = CoreFunNames.Negate;
         result.ArgTypes = concreteTypes;
         result.ReturnType = concreteTypes[0];
@@ -85,12 +85,12 @@ public class AbsFunction : PureGenericFunctionBase {
 
     public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes) {
         FunctionWithSingleArg res = concreteTypes[0].BaseType switch {
-            BaseFunnyType.Int16 => new Int16Function(),
-            BaseFunnyType.Int32 => new Int32Function(),
-            BaseFunnyType.Int64 => new Int64Function(),
-            BaseFunnyType.Real => new RealFunction(),
-            _ => throw new ArgumentOutOfRangeException()
-        };
+                                        BaseFunnyType.Int16 => new Int16Function(),
+                                        BaseFunnyType.Int32 => new Int32Function(),
+                                        BaseFunnyType.Int64 => new Int64Function(),
+                                        BaseFunnyType.Real  => new RealFunction(),
+                                        _                   => throw new ArgumentOutOfRangeException()
+                                    };
         res.Name = Name;
         res.ArgTypes = concreteTypes;
         res.ReturnType = concreteTypes[0];

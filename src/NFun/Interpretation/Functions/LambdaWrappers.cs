@@ -75,10 +75,11 @@ class ConcreteLambdaWrapperFunction<Tin1, Tin2, Tout> : FunctionWithManyArgument
     }
 
     public override object Calc(object[] args) =>
-        _resultConverter.ToFunObject(_function(
-            (Tin1)_arg1.ToClrObject(args[0]),
-            (Tin2)_arg2.ToClrObject(args[1])
-        ));
+        _resultConverter.ToFunObject(
+            _function(
+                (Tin1)_arg1.ToClrObject(args[0]),
+                (Tin2)_arg2.ToClrObject(args[1])
+            ));
 }
 
 class ConcreteLambdaWrapperFunction<Tin1, Tin2, Tin3, Tout> : FunctionWithManyArguments {
@@ -105,11 +106,12 @@ class ConcreteLambdaWrapperFunction<Tin1, Tin2, Tin3, Tout> : FunctionWithManyAr
     }
 
     public override object Calc(object[] args) =>
-        _resultConverter.ToFunObject(_function(
-            (Tin1)_arg1.ToClrObject(args[0]),
-            (Tin2)_arg2.ToClrObject(args[1]),
-            (Tin3)_arg3.ToClrObject(args[2])
-        ));
+        _resultConverter.ToFunObject(
+            _function(
+                (Tin1)_arg1.ToClrObject(args[0]),
+                (Tin2)_arg2.ToClrObject(args[1]),
+                (Tin3)_arg3.ToClrObject(args[2])
+            ));
 }
 
 class ConcreteLambdaWrapperFunction<Tin1, Tin2, Tin3, Tin4, Tout> : FunctionWithManyArguments {
@@ -139,12 +141,13 @@ class ConcreteLambdaWrapperFunction<Tin1, Tin2, Tin3, Tin4, Tout> : FunctionWith
     }
 
     public override object Calc(object[] args) =>
-        _resultConverter.ToFunObject(_function(
-            (Tin1)_arg1.ToClrObject(args[0]),
-            (Tin2)_arg2.ToClrObject(args[1]),
-            (Tin3)_arg3.ToClrObject(args[2]),
-            (Tin4)_arg4.ToClrObject(args[3])
-        ));
+        _resultConverter.ToFunObject(
+            _function(
+                (Tin1)_arg1.ToClrObject(args[0]),
+                (Tin2)_arg2.ToClrObject(args[1]),
+                (Tin3)_arg3.ToClrObject(args[2]),
+                (Tin4)_arg4.ToClrObject(args[3])
+            ));
 }
 
 class ConcreteLambdaWrapperFunction<Tin1, Tin2, Tin3, Tin4, Tin5, Tout> : FunctionWithManyArguments {
@@ -177,13 +180,14 @@ class ConcreteLambdaWrapperFunction<Tin1, Tin2, Tin3, Tin4, Tin5, Tout> : Functi
     }
 
     public override object Calc(object[] args) =>
-        _resultConverter.ToFunObject(_function(
-            (Tin1)_arg1.ToClrObject(args[0]),
-            (Tin2)_arg2.ToClrObject(args[1]),
-            (Tin3)_arg3.ToClrObject(args[2]),
-            (Tin4)_arg4.ToClrObject(args[3]),
-            (Tin5)_arg5.ToClrObject(args[4])
-        ));
+        _resultConverter.ToFunObject(
+            _function(
+                (Tin1)_arg1.ToClrObject(args[0]),
+                (Tin2)_arg2.ToClrObject(args[1]),
+                (Tin3)_arg3.ToClrObject(args[2]),
+                (Tin4)_arg4.ToClrObject(args[3]),
+                (Tin5)_arg5.ToClrObject(args[4])
+            ));
 }
 
 class ConcreteLambdaWrapperFunction<Tin1, Tin2, Tin3, Tin4, Tin5, Tin6, Tout> : FunctionWithManyArguments {
@@ -220,14 +224,15 @@ class ConcreteLambdaWrapperFunction<Tin1, Tin2, Tin3, Tin4, Tin5, Tin6, Tout> : 
     }
 
     public override object Calc(object[] args) =>
-        _resultConverter.ToFunObject(_function(
-            (Tin1)_arg1.ToClrObject(args[0]),
-            (Tin2)_arg2.ToClrObject(args[1]),
-            (Tin3)_arg3.ToClrObject(args[2]),
-            (Tin4)_arg4.ToClrObject(args[3]),
-            (Tin5)_arg5.ToClrObject(args[4]),
-            (Tin6)_arg6.ToClrObject(args[5])
-        ));
+        _resultConverter.ToFunObject(
+            _function(
+                (Tin1)_arg1.ToClrObject(args[0]),
+                (Tin2)_arg2.ToClrObject(args[1]),
+                (Tin3)_arg3.ToClrObject(args[2]),
+                (Tin4)_arg4.ToClrObject(args[3]),
+                (Tin5)_arg5.ToClrObject(args[4]),
+                (Tin6)_arg6.ToClrObject(args[5])
+            ));
 }
 
 class ConcreteLambdaWrapperFunction<Tin1, Tin2, Tin3, Tin4, Tin5, Tin6, Tin7, Tout> : FunctionWithManyArguments {
@@ -267,15 +272,16 @@ class ConcreteLambdaWrapperFunction<Tin1, Tin2, Tin3, Tin4, Tin5, Tin6, Tin7, To
     }
 
     public override object Calc(object[] args) =>
-        _resultConverter.ToFunObject(_function(
-            (Tin1)_arg1.ToClrObject(args[0]),
-            (Tin2)_arg2.ToClrObject(args[1]),
-            (Tin3)_arg3.ToClrObject(args[2]),
-            (Tin4)_arg4.ToClrObject(args[3]),
-            (Tin5)_arg5.ToClrObject(args[4]),
-            (Tin6)_arg6.ToClrObject(args[5]),
-            (Tin7)_arg7.ToClrObject(args[6])
-        ));
+        _resultConverter.ToFunObject(
+            _function(
+                (Tin1)_arg1.ToClrObject(args[0]),
+                (Tin2)_arg2.ToClrObject(args[1]),
+                (Tin3)_arg3.ToClrObject(args[2]),
+                (Tin4)_arg4.ToClrObject(args[3]),
+                (Tin5)_arg5.ToClrObject(args[4]),
+                (Tin6)_arg6.ToClrObject(args[5]),
+                (Tin7)_arg7.ToClrObject(args[6])
+            ));
 }
 
 }

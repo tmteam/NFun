@@ -21,34 +21,37 @@ public class OperatorPrioritiesTest {
     public void DiscreetePriorities(string actualExpr, string expectedExpr) {
         var allCombinations = new List<(string, object)[]>();
         foreach (var x1 in new[] { 0, 1 })
-        foreach (var x2 in new[] { 0, 1 })
-        foreach (var x3 in new[] { 0, 1 })
-            allCombinations.Add(new (string, object)[] {
-                ("x1", x1),
-                ("x2", x2),
-                ("x3", x3)
+            foreach (var x2 in new[] { 0, 1 })
+                foreach (var x3 in new[] { 0, 1 })
+                    allCombinations.Add(
+                        new (string, object)[] {
+                            ("x1", x1),
+                            ("x2", x2),
+                            ("x3", x3)
+                        });
+
+        Assert.Multiple(
+            () => {
+                foreach (var inputs in allCombinations)
+                {
+                    var actual = Funny.Hardcore
+                                      .Build(actualExpr)
+                                      .Calc(inputs)
+                                      .Get("y");
+
+                    var expected = Funny.Hardcore
+                                        .Build(expectedExpr)
+                                        .Calc(inputs)
+                                        .Get("y");
+
+                    if (!actual.Equals(expected))
+                        Assert.Fail(
+                            $"On x1={inputs[0].Item2} x2={inputs[1].Item2} x3={inputs[2].Item2}\r" +
+                            $"Eq: {actualExpr}\r" +
+                            $"Expected: {expected}\r" +
+                            $"But was: {actual} ");
+                }
             });
-
-        Assert.Multiple(() => {
-            foreach (var inputs in allCombinations)
-            {
-                var actual = Funny.Hardcore
-                    .Build(actualExpr)
-                    .Calc(inputs)
-                    .Get("y");
-
-                var expected = Funny.Hardcore
-                    .Build(expectedExpr)
-                    .Calc(inputs)
-                    .Get("y");
-
-                if (!actual.Equals(expected))
-                    Assert.Fail($"On x1={inputs[0].Item2} x2={inputs[1].Item2} x3={inputs[2].Item2}\r" +
-                                $"Eq: {actualExpr}\r" +
-                                $"Expected: {expected}\r" +
-                                $"But was: {actual} ");
-            }
-        });
     }
 
     [TestCase("y = x1 * x2 > x3 * 2 ", "y = (x1 * x2 )> (x3 * 2)")]
@@ -57,34 +60,37 @@ public class OperatorPrioritiesTest {
     public void ArithmeticVariablePriorities(string actualExpr, string expectedExpr) {
         var allCombinations = new List<(string, object)[]>();
         foreach (var x1 in new[] { 0.0, 1, 2 })
-        foreach (var x2 in new[] { 0.0, 1, 2 })
-        foreach (var x3 in new[] { 0.0, 1, 2 })
-            allCombinations.Add(new (string, object)[] {
-                ("x1", x1),
-                ("x2", x2),
-                ("x3", x3)
+            foreach (var x2 in new[] { 0.0, 1, 2 })
+                foreach (var x3 in new[] { 0.0, 1, 2 })
+                    allCombinations.Add(
+                        new (string, object)[] {
+                            ("x1", x1),
+                            ("x2", x2),
+                            ("x3", x3)
+                        });
+
+        Assert.Multiple(
+            () => {
+                foreach (var inputs in allCombinations)
+                {
+                    var actual = Funny.Hardcore
+                                      .Build(actualExpr)
+                                      .Calc(inputs)
+                                      .Get("y");
+
+                    var expected = Funny.Hardcore
+                                        .Build(expectedExpr)
+                                        .Calc(inputs)
+                                        .Get("y");
+
+                    if (!actual.Equals(expected))
+                        Assert.Fail(
+                            $"On x1={inputs[0].Item2} x2={inputs[1].Item2} x3={inputs[2].Item2}\r" +
+                            $"Eq: {actualExpr}\r" +
+                            $"Expected: {expected}\r" +
+                            $"But was: {actual} ");
+                }
             });
-
-        Assert.Multiple(() => {
-            foreach (var inputs in allCombinations)
-            {
-                var actual = Funny.Hardcore
-                    .Build(actualExpr)
-                    .Calc(inputs)
-                    .Get("y");
-
-                var expected = Funny.Hardcore
-                    .Build(expectedExpr)
-                    .Calc(inputs)
-                    .Get("y");
-
-                if (!actual.Equals(expected))
-                    Assert.Fail($"On x1={inputs[0].Item2} x2={inputs[1].Item2} x3={inputs[2].Item2}\r" +
-                                $"Eq: {actualExpr}\r" +
-                                $"Expected: {expected}\r" +
-                                $"But was: {actual} ");
-            }
-        });
     }
 
     [TestCase("y = 1+2*3", "y = 1+(2*3)")]

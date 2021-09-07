@@ -121,13 +121,15 @@ public class TrickyTest {
         graph.SetArith(0, 1, 2);
         graph.CreateLambda(2, 3, "lx");
         var generic = graph.InitializeVarNode();
-        TestHelper.AssertThrowsTicError(() => {
-            // myFun(f(any):T ):T
-            graph.SetCall(new ITicNodeState[] { StateFun.Of(StatePrimitive.Any, generic), generic }, new[] { 3, 4 });
-            graph.SetDef("y", 4);
-            graph.Solve();
-            Assert.Fail("Impossible equation solved");
-        });
+        TestHelper.AssertThrowsTicError(
+            () => {
+                // myFun(f(any):T ):T
+                graph.SetCall(
+                    new ITicNodeState[] { StateFun.Of(StatePrimitive.Any, generic), generic }, new[] { 3, 4 });
+                graph.SetDef("y", 4);
+                graph.Solve();
+                Assert.Fail("Impossible equation solved");
+            });
     }
 
     [Test]

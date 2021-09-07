@@ -22,13 +22,9 @@ internal class EmptyConstantList : IConstantList {
 }
 
 internal class ConstantList : IConstantList {
-    public ConstantList() {
-        _dictionary = new Dictionary<string, ConstantValueAndType>();
-    }
+    public ConstantList() { _dictionary = new Dictionary<string, ConstantValueAndType>(); }
 
-    private ConstantList(Dictionary<string, ConstantValueAndType> dictionary) {
-        _dictionary = dictionary;
-    }
+    private ConstantList(Dictionary<string, ConstantValueAndType> dictionary) { _dictionary = dictionary; }
 
     internal ConstantList((string id, object value)[] items) {
         _dictionary = new Dictionary<string, ConstantValueAndType>(items.Length);

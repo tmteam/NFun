@@ -10,9 +10,11 @@ namespace NFun.Interpretation.Nodes {
 internal class FunArgumentExpressionNode : IExpressionNode {
     public static FunArgumentExpressionNode CreateWith(ISyntaxNode node) =>
         node switch {
-            NamedIdSyntaxNode varNode => new FunArgumentExpressionNode(name: varNode.Id, type: node.OutputType,
+            NamedIdSyntaxNode varNode => new FunArgumentExpressionNode(
+                name: varNode.Id, type: node.OutputType,
                 interval: node.Interval),
-            TypedVarDefSyntaxNode typeVarNode => new FunArgumentExpressionNode(name: typeVarNode.Id,
+            TypedVarDefSyntaxNode typeVarNode => new FunArgumentExpressionNode(
+                name: typeVarNode.Id,
                 type: typeVarNode.FunnyType, interval: node.Interval),
             _ => throw ErrorFactory.InvalidArgTypeDefinition(node)
         };

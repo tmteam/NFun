@@ -23,9 +23,7 @@ public class Parser {
     private int _exprStartPosition = 0;
     private FunnyAttribute[] _attributes;
 
-    private Parser(TokFlow flow) {
-        _flow = flow;
-    }
+    private Parser(TokFlow flow) { _flow = flow; }
 
     private SyntaxTree ParseTree(TokFlow flow) {
         while (true)
@@ -37,8 +35,8 @@ public class Parser {
             _startOfTheLine = flow.IsStartOfTheLine();
             _exprStartPosition = flow.Current.Start;
 
-            var e = SyntaxNodeReader.ReadNodeOrNull(flow)
-                    ?? throw ErrorFactory.UnknownValueAtStartOfExpression(_exprStartPosition, flow.Current);
+            var e = SyntaxNodeReader.ReadNodeOrNull(flow) ??
+                    throw ErrorFactory.UnknownValueAtStartOfExpression(_exprStartPosition, flow.Current);
 
             if (e is TypedVarDefSyntaxNode typed)
             {
@@ -113,8 +111,10 @@ public class Parser {
             if (headNodeChild is TypedVarDefSyntaxNode varDef)
                 arguments.Add(varDef);
             else if (headNodeChild is NamedIdSyntaxNode varSyntax)
-                arguments.Add(new TypedVarDefSyntaxNode(varSyntax.Id, headNodeChild.OutputType,
-                    headNodeChild.Interval));
+                arguments.Add(
+                    new TypedVarDefSyntaxNode(
+                        varSyntax.Id, headNodeChild.OutputType,
+                        headNodeChild.Interval));
             else
                 throw ErrorFactory.WrongFunctionArgumentDefinition(fun, headNodeChild);
 
@@ -135,7 +135,8 @@ public class Parser {
         {
             int finish = _flow.Peek?.Finish ?? _flow.Position;
 
-            throw ErrorFactory.FunExpressionIsMissed(id, arguments,
+            throw ErrorFactory.FunExpressionIsMissed(
+                id, arguments,
                 new Interval(def.Start, finish));
         }
 

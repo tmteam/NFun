@@ -36,8 +36,10 @@ public class UserFunctionsTest {
         graph.SetVar("input", 4);
 
         var tOfSwap = graph.InitializeVarNode(isComparable: true);
-        graph.SetVarType("swapIfNotSorted",
-            StateFun.Of(new ITicNodeState[] { SolvingStates.StateArray.Of(tOfSwap), StatePrimitive.I32 },
+        graph.SetVarType(
+            "swapIfNotSorted",
+            StateFun.Of(
+                new ITicNodeState[] { SolvingStates.StateArray.Of(tOfSwap), StatePrimitive.I32 },
                 SolvingStates.StateArray.Of(tOfSwap)));
         graph.SetVar("swapIfNotSorted", 5);
 
@@ -46,12 +48,14 @@ public class UserFunctionsTest {
         var result = graph.Solve();
         var generic = result.AssertAndGetSingleGeneric(null, null, true);
         result.AssertNamed(SolvingStates.StateArray.Of(generic), "input");
-        var expectedType = StateFun.Of(StateArray.Of(generic.GetNonReference()),
+        var expectedType = StateFun.Of(
+            StateArray.Of(generic.GetNonReference()),
             StateArray.Of(generic));
         //todo
         //Assert.AreEqual(expectedType, result.GetVariableNode("sortOneTime").State.ToString());
         result.AssertNamed(
-            StateFun.Of(StateArray.Of(generic.GetNonReference()),
+            StateFun.Of(
+                StateArray.Of(generic.GetNonReference()),
                 StateArray.Of(generic)), "sortOneTime");
     }
 
@@ -88,8 +92,10 @@ public class UserFunctionsTest {
         graph.SetVar("input", 22);
         //Exit:23.VAR swapIfNotSorted
         var tOfSwap = graph.InitializeVarNode(isComparable: true);
-        graph.SetVarType("swapIfNotSorted",
-            StateFun.Of(new ITicNodeState[] { SolvingStates.StateArray.Of(tOfSwap), StatePrimitive.I32 },
+        graph.SetVarType(
+            "swapIfNotSorted",
+            StateFun.Of(
+                new ITicNodeState[] { SolvingStates.StateArray.Of(tOfSwap), StatePrimitive.I32 },
                 SolvingStates.StateArray.Of(tOfSwap)));
         graph.SetVar("swapIfNotSorted", 23);
         //Exit:17.Call fold(18, 22, 23, 17)
@@ -98,7 +104,8 @@ public class UserFunctionsTest {
         var result = graph.Solve();
         var generic = result.AssertAndGetSingleGeneric(null, null, true);
         result.AssertNamed(SolvingStates.StateArray.Of(generic), "input");
-        result.AssertNamed(StateFun.Of(SolvingStates.StateArray.Of(generic), SolvingStates.StateArray.Of(generic)),
+        result.AssertNamed(
+            StateFun.Of(SolvingStates.StateArray.Of(generic), SolvingStates.StateArray.Of(generic)),
             "sortOneTime");
     }
 }

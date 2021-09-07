@@ -31,10 +31,10 @@ public class StateStruct : ICompositeState {
         foreach (var (key, value) in fields)
         {
             var node = value switch {
-                ITypeState at => TicNode.CreateTypeVariableNode(at),
-                StateRefTo aRef => aRef.Node,
-                _ => throw new InvalidOperationException()
-            };
+                           ITypeState at   => TicNode.CreateTypeVariableNode(at),
+                           StateRefTo aRef => aRef.Node,
+                           _               => throw new InvalidOperationException()
+                       };
             nodeFields.Add(key, node);
         }
 

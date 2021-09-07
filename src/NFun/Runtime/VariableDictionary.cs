@@ -19,9 +19,7 @@ internal class VariableDictionary {
         _variables = new Dictionary<string, VariableUsages>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var variableSource in sources)
-        {
             _variables.Add(variableSource.Name, new VariableUsages(variableSource));
-        }
     }
 
     internal void AddOrReplace(VariableSource source) => _variables[source.Name] = new VariableUsages(source);

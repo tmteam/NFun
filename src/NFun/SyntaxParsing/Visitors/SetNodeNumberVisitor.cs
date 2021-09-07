@@ -4,9 +4,7 @@ public class SetNodeNumberVisitor : EnterVisitorBase {
     private int _lastNum;
     public int LastUsedNumber => _lastNum;
 
-    public SetNodeNumberVisitor(int startNum = 0) {
-        _lastNum = startNum;
-    }
+    public SetNodeNumberVisitor(int startNum = 0) { _lastNum = startNum; }
 
     protected override VisitorEnterResult DefaultVisitEnter(ISyntaxNode node) {
         node.OrderNumber = _lastNum++;

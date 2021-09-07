@@ -9,9 +9,7 @@ public abstract class FunctionWithManyArguments : IConcreteFunction {
     public string Name { get; }
     public FunnyType[] ArgTypes { get; protected set; }
 
-    protected FunctionWithManyArguments(string name) {
-        Name = name;
-    }
+    protected FunctionWithManyArguments(string name) { Name = name; }
 
     protected FunctionWithManyArguments(string name, FunnyType returnType, params FunnyType[] argTypes) {
         Name = name;

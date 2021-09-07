@@ -27,7 +27,7 @@ public class DynamicTypeOutputFunnyConverter : IOutputFunnyConverter {
                     .GetOutputConverter(FunnyType.ArrayOf(funArray.ElementType))
                     .ToClrObject(funObject),
             FunnyStruct str => DynamicStructToDictionaryOutputFunnyConverter.Instance.ToClrObject(str),
-            _ => funObject
+            _               => funObject
         };
 }
 

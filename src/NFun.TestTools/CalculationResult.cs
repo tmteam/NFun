@@ -6,21 +6,21 @@ using NFun.Types;
 namespace NFun.TestTools {
 
 public sealed class CalculationResult {
-    internal CalculationResult(VariableTypeAndValue[] rawResults) {
-        _rawResults = rawResults;
-    }
+    internal CalculationResult(VariableTypeAndValue[] rawResults) { _rawResults = rawResults; }
 
     public int Count => _rawResults.Length;
 
-    public IEnumerable<(string, object)> Results => _rawResults.Select(r =>
-        (r.Name, FunnyTypeConverters.GetOutputConverter(r.Type).ToClrObject(r.Value)));
+    public IEnumerable<(string, object)> Results => _rawResults.Select(
+        r =>
+            (r.Name, FunnyTypeConverters.GetOutputConverter(r.Type).ToClrObject(r.Value)));
 
     private readonly VariableTypeAndValue[] _rawResults;
 
     public object Get(string name) {
         foreach (var equationResult in _rawResults)
         {
-            if (String.Equals(equationResult.Name, name,
+            if (String.Equals(
+                equationResult.Name, name,
                 StringComparison.CurrentCultureIgnoreCase))
             {
                 var converter = FunnyTypeConverters.GetOutputConverter(equationResult.Type);

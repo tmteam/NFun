@@ -38,7 +38,8 @@ public class EquationsFormattingTest {
     [TestCase("y:int = ;(;2;+;3;)*(;3;)", 15)]
     public void SeveralLinesBetweenNodes_Calculates(string expr, int expected) => expr.AssertReturns("y", expected);
 
-    [TestCase(@"y:int = 1
+    [TestCase(
+        @"y:int = 1
 
                 ")]
     [TestCase(@"y:int = 1;;;;")]

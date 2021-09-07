@@ -30,12 +30,12 @@ public static class ProfileTools {
 
     public static Action<IProfileSet> GetSet(ProfileSet set) {
         return set switch {
-            ProfileSet.Primitives => RunPrimitiveExamples,
-            ProfileSet.Middle => RunMiddleExamples,
-            ProfileSet.Complex => RunComplexExamples,
-            ProfileSet.All => RunAllExamples,
-            _ => throw new ArgumentOutOfRangeException(nameof(set), set, null)
-        };
+                   ProfileSet.Primitives => RunPrimitiveExamples,
+                   ProfileSet.Middle     => RunMiddleExamples,
+                   ProfileSet.Complex    => RunComplexExamples,
+                   ProfileSet.All        => RunAllExamples,
+                   _                     => throw new ArgumentOutOfRangeException(nameof(set), set, null)
+               };
     }
 
     public static void RunPrimitiveExamples(IProfileSet set) {

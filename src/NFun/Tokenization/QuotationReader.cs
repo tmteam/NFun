@@ -10,7 +10,8 @@ public static class QuotationReader {
     /// <param name="rawString"></param>
     /// <param name="startPosition">open quote position</param>
     /// <returns>result: escaped string, resultPosition: index of closing quote symbol. -1 if no close quote symbol found</returns>
-    public static (string result, int resultPosition) ReadQuotation(string rawString, int startPosition, bool stopAtQuoteSymbols = true) {
+    public static (string result, int resultPosition) ReadQuotation(
+        string rawString, int startPosition, bool stopAtQuoteSymbols = true) {
         var sb = new StringBuilder();
         int lastNonEscaped = startPosition + 1;
 
@@ -39,18 +40,18 @@ public static class QuotationReader {
 
             var next = rawString[i + 1];
             var symbol = next switch {
-                '\\' => '\\',
-                'n' => '\n',
-                'r' => '\r',
-                '\'' => '\'',
-                '"' => '"',
-                't' => '\t',
-                'f' => '\f',
-                'v' => '\v',
-                '{' => '{',
-                '}' => '}',
-                _ => throw ErrorFactory.UnknownEscapeSequence(next.ToString(), i, i + 2)
-            };
+                             '\\' => '\\',
+                             'n'  => '\n',
+                             'r'  => '\r',
+                             '\'' => '\'',
+                             '"'  => '"',
+                             't'  => '\t',
+                             'f'  => '\f',
+                             'v'  => '\v',
+                             '{'  => '{',
+                             '}'  => '}',
+                             _    => throw ErrorFactory.UnknownEscapeSequence(next.ToString(), i, i + 2)
+                         };
             sb.Append(symbol);
             i++;
             lastNonEscaped = i + 1;

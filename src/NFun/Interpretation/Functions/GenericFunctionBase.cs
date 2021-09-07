@@ -18,8 +18,8 @@ public abstract class GenericFunctionBase : IGenericFunction {
         ArgTypes = argTypes;
         ReturnType = returnType;
         var maxGenericId = argTypes
-            .Append(returnType)
-            .Max(i => i.SearchMaxGenericTypeId());
+                           .Append(returnType)
+                           .Max(i => i.SearchMaxGenericTypeId());
         if (!maxGenericId.HasValue)
             throw new InvalidOperationException($"Type {name} has wrong generic definition");
 
@@ -38,8 +38,8 @@ public abstract class GenericFunctionBase : IGenericFunction {
         ReturnType = returnType;
         Constrains = constrains;
         var maxGenericId = argTypes
-            .Append(returnType)
-            .Max(i => i.SearchMaxGenericTypeId());
+                           .Append(returnType)
+                           .Max(i => i.SearchMaxGenericTypeId());
         if (!maxGenericId.HasValue)
             throw new InvalidOperationException($"Type {name} has wrong generic definition");
     }
@@ -52,8 +52,8 @@ public abstract class GenericFunctionBase : IGenericFunction {
         ReturnType = returnType;
         Constrains = new[] { constrains };
         var maxGenericId = argTypes
-            .Append(returnType)
-            .Max(i => i.SearchMaxGenericTypeId());
+                           .Append(returnType)
+                           .Max(i => i.SearchMaxGenericTypeId());
         if (!maxGenericId.HasValue)
             throw new InvalidOperationException($"Type {name} has wrong generic definition");
     }
@@ -138,7 +138,8 @@ public abstract class GenericFunctionBase : IGenericFunction {
             }
 
             if (genericOrConcrete.ArrayTypeSpecification != null)
-                return SubstitudeType(genericOrConcrete.ArrayTypeSpecification.FunnyType,
+                return SubstitudeType(
+                    genericOrConcrete.ArrayTypeSpecification.FunnyType,
                     concrete.ArrayTypeSpecification.FunnyType);
 
             if (genericOrConcrete.FunTypeSpecification != null)
@@ -146,7 +147,8 @@ public abstract class GenericFunctionBase : IGenericFunction {
                 SubstitudeType(genericOrConcrete.FunTypeSpecification.Output, concrete.FunTypeSpecification.Output);
                 for (int i = 0; i < genericOrConcrete.FunTypeSpecification.Inputs.Length; i++)
                 {
-                    SubstitudeType(genericOrConcrete.FunTypeSpecification.Inputs[i],
+                    SubstitudeType(
+                        genericOrConcrete.FunTypeSpecification.Inputs[i],
                         concrete.FunTypeSpecification.Inputs[i]);
                 }
 

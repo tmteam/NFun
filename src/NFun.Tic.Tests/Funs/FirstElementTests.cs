@@ -54,12 +54,13 @@ public class AnyElementTests {
         graph.SetVar("lx", 2);
         graph.SetIntConst(3, StatePrimitive.U8);
         graph.SetEquality(2, 3, 4);
-        TestHelper.AssertThrowsTicError(() => {
-            graph.CreateLambda(4, 5, "lx");
-            graph.SetIsAny(1, 5, 6);
-            graph.SetDef("y", 6);
-            graph.Solve();
-        });
+        TestHelper.AssertThrowsTicError(
+            () => {
+                graph.CreateLambda(4, 5, "lx");
+                graph.SetIsAny(1, 5, 6);
+                graph.SetDef("y", 6);
+                graph.Solve();
+            });
     }
 
     [Test]

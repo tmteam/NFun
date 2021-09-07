@@ -64,7 +64,7 @@ public class FunnyVarTest {
     [TestCase("some = 1\r\r@foo(0)\r \r y = x*3", "y", "foo", 0)]
     public void AttributeWithValue_ValueIsCorrect(
         string expression
-        , string variable,
+      , string variable,
         string attribute, object value) {
         var varInfo = expression.Build()[variable];
         Assert.IsNotNull(varInfo);
@@ -90,7 +90,7 @@ public class FunnyVarTest {
     [TestCase("1*x", "out", new string[0])]
     public void ValuelessAttributeOnVariables(
         string expression
-        , string variable,
+      , string variable,
         string[] attribute) {
         var varInfo = expression.Build()[variable];
         Assert.IsNotNull(varInfo);

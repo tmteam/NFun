@@ -5,15 +5,13 @@ using NFun.Tic.Stages;
 namespace NFun.Tic.SolvingStates {
 
 public class StateArray : ICompositeState, ITypeState, ITicNodeState {
-    public StateArray(TicNode elementNode) {
-        ElementNode = elementNode;
-    }
+    public StateArray(TicNode elementNode) { ElementNode = elementNode; }
 
     public static StateArray Of(ITicNodeState state) =>
         state switch {
-            ITypeState type => Of(type),
+            ITypeState type  => Of(type),
             StateRefTo refTo => Of(refTo.Node),
-            _ => throw new InvalidOperationException()
+            _                => throw new InvalidOperationException()
         };
 
     public static StateArray Of(TicNode node)

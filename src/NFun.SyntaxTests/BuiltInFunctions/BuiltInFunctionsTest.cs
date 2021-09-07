@@ -84,15 +84,17 @@ public class ConvertFunctionsTest {
     [TestCase("toReal('-0.123')", -0.123)]
     [TestCase("toReal(1)", 1.0)]
     [TestCase("toReal(-1)", -1.0)]
-    [TestCase("toBits(123)", new[] {
-        true, true, false, true, true, true, true, false,
-        false, false, false, false, false, false, false, false,
-        false, false, false, false, false, false, false, false,
-        false, false, false, false, false, false, false, false
-    })]
+    [TestCase(
+        "toBits(123)", new[] {
+            true, true, false, true, true, true, true, false,
+            false, false, false, false, false, false, false, false,
+            false, false, false, false, false, false, false, false,
+            false, false, false, false, false, false, false, false
+        })]
     [TestCase("toBytes(123)", new[] { 123, 0, 0, 0 })]
     [TestCase("toBytes(1_192_737)", new[] { 0x21, 0x33, 0x12, 0 })]
-    [TestCase("toUnicode('hi there')",
+    [TestCase(
+        "toUnicode('hi there')",
         new[] { 0x68, 00, 0x69, 00, 0x20, 00, 0x74, 00, 0x68, 00, 0x65, 00, 0x72, 00, 0x65, 00 })]
     [TestCase("toUtf8('hi there')", new[] { 0x68, 0x69, 0x20, 0x74, 0x68, 0x65, 0x72, 0x65 })]
     public void ConstantConvertTest(string expr, object expected)
@@ -112,17 +114,19 @@ public class ConvertFunctionsTest {
     [TestCase("y:real = convert('-0.123')", -0.123)]
     [TestCase("y:real = convert(1)", 1.0)]
     [TestCase("y:real = convert(-1)", -1.0)]
-    [TestCase("y:bool[] = convert(0b1111011)", new[] {
-        true, true, false, true, true, true, true, false,
-        false, false, false, false, false, false, false, false,
-        false, false, false, false, false, false, false, false,
-        false, false, false, false, false, false, false, false
-    })]
+    [TestCase(
+        "y:bool[] = convert(0b1111011)", new[] {
+            true, true, false, true, true, true, true, false,
+            false, false, false, false, false, false, false, false,
+            false, false, false, false, false, false, false, false,
+            false, false, false, false, false, false, false, false
+        })]
     [TestCase("y:byte[]=convert(0x123)", new byte[] { 35, 1, 0, 0 })]
     [TestCase("y:byte[]=convert(0xFA00FA)", new byte[] { 250, 0, 250, 0 })]
     [TestCase("y:bool=convert(1)", true)]
     [TestCase("y:bool=convert(0)", false)]
-    [TestCase("y:byte[]=convert('hi there')",
+    [TestCase(
+        "y:byte[]=convert('hi there')",
         new byte[] { 0x68, 00, 0x69, 00, 0x20, 00, 0x74, 00, 0x68, 00, 0x65, 00, 0x72, 00, 0x65, 00 })]
     public void ConstantConvertFunctionTest(string expr, object expected)
         => expr.AssertResultHas("y", expected);

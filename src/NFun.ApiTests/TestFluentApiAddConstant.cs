@@ -7,9 +7,9 @@ public class TestFluentApiAddConstant {
     [Test]
     public void Smoke() {
         var calculator = Funny
-            .WithConstant("age", 100)
-            .WithConstant("name", "vasa")
-            .BuildForCalc<ModelWithInt, string>();
+                         .WithConstant("age", 100)
+                         .WithConstant("name", "vasa")
+                         .BuildForCalc<ModelWithInt, string>();
 
         Func<ModelWithInt, string> lambda = calculator.ToLambda("'{name}\\'s id is {id} and age is {age}'");
         var result1 = lambda(new ModelWithInt { id = 42 });
@@ -25,8 +25,8 @@ public class TestFluentApiAddConstant {
     [TestCase("id", "Id")]
     public void InputNameOverridesConstant(string constantName, string varName) {
         var calculator = Funny
-            .WithConstant(constantName, 100)
-            .BuildForCalc<ModelWithInt, string>();
+                         .WithConstant(constantName, 100)
+                         .BuildForCalc<ModelWithInt, string>();
 
         Func<ModelWithInt, string> lambda = calculator.ToLambda("'id= {" + varName + "}'");
 
@@ -44,8 +44,8 @@ public class TestFluentApiAddConstant {
     [TestCase("id", "Id")]
     public void OutputNameOverridesConstant(string constantName, string varName) {
         var calculator = Funny
-            .WithConstant(constantName, 100)
-            .BuildForCalcMany<UserInputModel, ContractOutputModel>();
+                         .WithConstant(constantName, 100)
+                         .BuildForCalcMany<UserInputModel, ContractOutputModel>();
 
         var lambda = calculator.ToLambda($"{varName}= age");
 

@@ -405,10 +405,12 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
                 {
                     //negative constant
                     if (l >= Int16.MinValue)
-                        _ticTypeGraph.SetIntConst(node.OrderNumber, StatePrimitive.I16, StatePrimitive.I64,
+                        _ticTypeGraph.SetIntConst(
+                            node.OrderNumber, StatePrimitive.I16, StatePrimitive.I64,
                             StatePrimitive.I32);
                     else if (l >= Int32.MinValue)
-                        _ticTypeGraph.SetIntConst(node.OrderNumber, StatePrimitive.I32, StatePrimitive.I64,
+                        _ticTypeGraph.SetIntConst(
+                            node.OrderNumber, StatePrimitive.I32, StatePrimitive.I64,
                             StatePrimitive.I32);
                     else _ticTypeGraph.SetConst(node.OrderNumber, StatePrimitive.I64);
                     return true;
@@ -421,22 +423,28 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
 
             //positive constant
             if (actualValue <= byte.MaxValue)
-                _ticTypeGraph.SetIntConst(node.OrderNumber, StatePrimitive.U8, StatePrimitive.I96,
+                _ticTypeGraph.SetIntConst(
+                    node.OrderNumber, StatePrimitive.U8, StatePrimitive.I96,
                     StatePrimitive.I32);
             else if (actualValue <= (ulong)Int16.MaxValue)
-                _ticTypeGraph.SetIntConst(node.OrderNumber, StatePrimitive.U12, StatePrimitive.I96,
+                _ticTypeGraph.SetIntConst(
+                    node.OrderNumber, StatePrimitive.U12, StatePrimitive.I96,
                     StatePrimitive.I32);
             else if (actualValue <= (ulong)UInt16.MaxValue)
-                _ticTypeGraph.SetIntConst(node.OrderNumber, StatePrimitive.U16, StatePrimitive.I96,
+                _ticTypeGraph.SetIntConst(
+                    node.OrderNumber, StatePrimitive.U16, StatePrimitive.I96,
                     StatePrimitive.I32);
             else if (actualValue <= (ulong)Int32.MaxValue)
-                _ticTypeGraph.SetIntConst(node.OrderNumber, StatePrimitive.U24, StatePrimitive.I96,
+                _ticTypeGraph.SetIntConst(
+                    node.OrderNumber, StatePrimitive.U24, StatePrimitive.I96,
                     StatePrimitive.I32);
             else if (actualValue <= (ulong)UInt32.MaxValue)
-                _ticTypeGraph.SetIntConst(node.OrderNumber, StatePrimitive.U32, StatePrimitive.I96,
+                _ticTypeGraph.SetIntConst(
+                    node.OrderNumber, StatePrimitive.U32, StatePrimitive.I96,
                     StatePrimitive.I64);
             else if (actualValue <= (ulong)Int64.MaxValue)
-                _ticTypeGraph.SetIntConst(node.OrderNumber, StatePrimitive.U48, StatePrimitive.I96,
+                _ticTypeGraph.SetIntConst(
+                    node.OrderNumber, StatePrimitive.U48, StatePrimitive.I96,
                     StatePrimitive.I64);
             else
                 _ticTypeGraph.SetConst(node.OrderNumber, StatePrimitive.U64);
@@ -453,11 +461,11 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
                 else
                 {
                     descendant = l switch {
-                        //negative constant
-                        >= Int16.MinValue => StatePrimitive.I16,
-                        >= Int32.MinValue => StatePrimitive.I32,
-                        _ => StatePrimitive.I64
-                    };
+                                     //negative constant
+                                     >= Int16.MinValue => StatePrimitive.I16,
+                                     >= Int32.MinValue => StatePrimitive.I32,
+                                     _                 => StatePrimitive.I64
+                                 };
                     var preferred = GetPreferredIntConstantType();
                     _ticTypeGraph.SetIntConst(node.OrderNumber, descendant, StatePrimitive.Real, preferred);
                     return true;
@@ -476,7 +484,8 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             else if (actualValue <= (ulong)UInt32.MaxValue) descendant = StatePrimitive.U32;
             else if (actualValue <= (ulong)Int64.MaxValue) descendant = StatePrimitive.U48;
             else descendant = StatePrimitive.U64;
-            _ticTypeGraph.SetIntConst(node.OrderNumber, descendant, StatePrimitive.Real,
+            _ticTypeGraph.SetIntConst(
+                node.OrderNumber, descendant, StatePrimitive.Real,
                 GetPreferredIntConstantType());
         }
 
@@ -485,10 +494,10 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
 
     private StatePrimitive GetPreferredIntConstantType() =>
         _dialect.IntegerPreferredType switch {
-            IntegerPreferredType.I32 => StatePrimitive.I32,
-            IntegerPreferredType.I64 => StatePrimitive.I64,
+            IntegerPreferredType.I32  => StatePrimitive.I32,
+            IntegerPreferredType.I64  => StatePrimitive.I64,
             IntegerPreferredType.Real => StatePrimitive.Real,
-            _ => null
+            _                         => null
         };
 
     public bool Visit(NamedIdSyntaxNode node) {
@@ -511,7 +520,8 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
                     var generics = InitializeGenericTypes(genericFunction.Constrains);
                     _resultsBuilder.RememberGenericCallArguments(node.OrderNumber, generics);
 
-                    _ticTypeGraph.SetVarType($"g'{argsCount}'{id}",
+                    _ticTypeGraph.SetVarType(
+                        $"g'{argsCount}'{id}",
                         genericFunction.GetTicFunType(generics));
                     _ticTypeGraph.SetVar($"g'{argsCount}'{id}", node.OrderNumber);
 
@@ -554,8 +564,10 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
                     _ticTypeGraph.SetArrayConst(node.OrderNumber, primitiveElement);
                     break;
                 default:
-                    throw new InvalidOperationException("Type " + constant.Type +
-                                                        " is not supported for constants");
+                    throw new InvalidOperationException(
+                        "Type " +
+                        constant.Type +
+                        " is not supported for constants");
             }
         }
         else

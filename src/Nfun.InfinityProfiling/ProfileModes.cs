@@ -17,12 +17,12 @@ public static class ProfileModes {
     public static void RunCalc(ProfileSet set) {
         var runner = ProfileTools.GetSet(set);
         var reportTime = set switch {
-            ProfileSet.Primitives => 1_000_000,
-            ProfileSet.Middle => 80000,
-            ProfileSet.Complex => 10000,
-            ProfileSet.All => 2000,
-            _ => throw new ArgumentOutOfRangeException(nameof(set), set, null)
-        };
+                             ProfileSet.Primitives => 1_000_000,
+                             ProfileSet.Middle     => 80000,
+                             ProfileSet.Complex    => 10000,
+                             ProfileSet.All        => 2000,
+                             _                     => throw new ArgumentOutOfRangeException(nameof(set), set, null)
+                         };
 
         var calculateBench = new ProfileCalculateSet();
 
@@ -65,12 +65,12 @@ public static class ProfileModes {
     public static void RunParse(ProfileSet set) {
         var runner = ProfileTools.GetSet(set);
         var reportTime = set switch {
-            ProfileSet.Primitives => 10000,
-            ProfileSet.Middle => 5000,
-            ProfileSet.Complex => 1000,
-            ProfileSet.All => 2000,
-            _ => throw new ArgumentOutOfRangeException(nameof(set), set, null)
-        };
+                             ProfileSet.Primitives => 10000,
+                             ProfileSet.Middle     => 5000,
+                             ProfileSet.Complex    => 1000,
+                             ProfileSet.All        => 2000,
+                             _                     => throw new ArgumentOutOfRangeException(nameof(set), set, null)
+                         };
 
         var parseBench = new ProfileParserSet();
 
@@ -109,12 +109,12 @@ public static class ProfileModes {
     public static void RunAll(ProfileSet set) {
         var runner = ProfileTools.GetSet(set);
         var reportTime = set switch {
-            ProfileSet.Primitives => 4000,
-            ProfileSet.Middle => 1500,
-            ProfileSet.Complex => 500,
-            ProfileSet.All => 500,
-            _ => throw new ArgumentOutOfRangeException(nameof(set), set, null)
-        };
+                             ProfileSet.Primitives => 4000,
+                             ProfileSet.Middle     => 1500,
+                             ProfileSet.Complex    => 500,
+                             ProfileSet.All        => 500,
+                             _                     => throw new ArgumentOutOfRangeException(nameof(set), set, null)
+                         };
 
 
         var buildBench = new ProfileBuildAllSet();
@@ -173,13 +173,16 @@ public static class ProfileModes {
                 parseHistory.AddAndTruncate(parseStopWatch.Elapsed.TotalMilliseconds, historyCount);
                 buildHistory.AddAndTruncate(buildStopWatch.Elapsed.TotalMilliseconds, historyCount);
 
-                interpritateHistory.AddAndTruncate(buildStopWatch.Elapsed.TotalMilliseconds -
-                                                   parseStopWatch.Elapsed.TotalMilliseconds, historyCount);
+                interpritateHistory.AddAndTruncate(
+                    buildStopWatch.Elapsed.TotalMilliseconds -
+                    parseStopWatch.Elapsed.TotalMilliseconds, historyCount);
 
                 updateHistory.AddAndTruncate(updateStopWatch.Elapsed.TotalMilliseconds, historyCount);
                 calcHistory.AddAndTruncate(calcStopWatch.Elapsed.TotalMilliseconds, historyCount);
 
-                var total = parseStopWatch.Elapsed + buildStopWatch.Elapsed + updateStopWatch.Elapsed +
+                var total = parseStopWatch.Elapsed +
+                            buildStopWatch.Elapsed +
+                            updateStopWatch.Elapsed +
                             calcStopWatch.Elapsed;
                 var buildAndRunTime = buildStopWatch.Elapsed + calcStopWatch.Elapsed;
 
@@ -204,12 +207,12 @@ public static class ProfileModes {
     public static void RunBuild(ProfileSet set) {
         var runner = ProfileTools.GetSet(set);
         var reportTime = set switch {
-            ProfileSet.Primitives => 2000,
-            ProfileSet.Middle => 1500,
-            ProfileSet.Complex => 1000,
-            ProfileSet.All => 600,
-            _ => throw new ArgumentOutOfRangeException(nameof(set), set, null)
-        };
+                             ProfileSet.Primitives => 2000,
+                             ProfileSet.Middle     => 1500,
+                             ProfileSet.Complex    => 1000,
+                             ProfileSet.All        => 600,
+                             _                     => throw new ArgumentOutOfRangeException(nameof(set), set, null)
+                         };
 
 
         var buildBench = new ProfileBuildAllSet();
@@ -248,8 +251,9 @@ public static class ProfileModes {
                 parseHistory.AddAndTruncate(parseStopWatch.Elapsed.TotalMilliseconds, historyCount);
                 buildHistory.AddAndTruncate(buildStopWatch.Elapsed.TotalMilliseconds, historyCount);
 
-                interpritateHistory.AddAndTruncate(buildStopWatch.Elapsed.TotalMilliseconds -
-                                                   parseStopWatch.Elapsed.TotalMilliseconds, historyCount);
+                interpritateHistory.AddAndTruncate(
+                    buildStopWatch.Elapsed.TotalMilliseconds -
+                    parseStopWatch.Elapsed.TotalMilliseconds, historyCount);
 
                 var total = parseStopWatch.Elapsed + buildStopWatch.Elapsed;
 
@@ -274,9 +278,7 @@ public static class ProfileModes {
         Console.WriteLine("          |    %    |  VAL ips |  AVG ips  |  MIN ips  |  MAX ips  |   RMS  |");
     }
 
-    private static void PrintFooter() {
-        Console.WriteLine("\r\nPress [esc] to stop");
-    }
+    private static void PrintFooter() { Console.WriteLine("\r\nPress [esc] to stop"); }
 
     private static void PrintResults(
         string name, TimeSpan ratioTime, LinkedList<double> history,
@@ -289,12 +291,13 @@ public static class ProfileModes {
 
         var percents = 100 * current / ratioTime.TotalMilliseconds;
         var formatedPrecents = percents >= 100 ? " ---  " : $"{percents:00.00}%";
-        Console.WriteLine($"{name} |  {formatedPrecents} | " +
-                          $"{1000 * iterations / current:000000.0} |  " +
-                          $"{1000 * iterations / avg:000000.0} |  " +
-                          $"{1000 * iterations / max:000000.0} |  " +
-                          $"{1000 * iterations / min:000000.0} |  " +
-                          $"{rms * 10000 / iterations:0000}  |  ");
+        Console.WriteLine(
+            $"{name} |  {formatedPrecents} | " +
+            $"{1000 * iterations / current:000000.0} |  " +
+            $"{1000 * iterations / avg:000000.0} |  " +
+            $"{1000 * iterations / max:000000.0} |  " +
+            $"{1000 * iterations / min:000000.0} |  " +
+            $"{rms * 10000 / iterations:0000}  |  ");
     }
 }
 

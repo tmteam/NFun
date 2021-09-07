@@ -7,7 +7,8 @@ namespace NFun.SyntaxParsing {
 
 public static class SyntaxNodeFactory {
     public static ISyntaxNode AnonymFun(ISyntaxNode definition, FunnyType type, ISyntaxNode body)
-        => new ArrowAnonymFunctionSyntaxNode(definition, body, type,
+        => new ArrowAnonymFunctionSyntaxNode(
+            definition, body, type,
             new Interval(definition.Interval.Start, body.Interval.Finish));
 
     public static ISyntaxNode IfElse(IfCaseSyntaxNode[] ifThenNodes, ISyntaxNode elseResult, int start, int end)
@@ -47,7 +48,8 @@ public static class SyntaxNodeFactory {
         => new StructInitSyntaxNode(equations, interval);
 
     public static ISyntaxNode FieldAccess(ISyntaxNode leftNode, Tok memberId) =>
-        new StructFieldAccessSyntaxNode(leftNode, memberId.Value,
+        new StructFieldAccessSyntaxNode(
+            leftNode, memberId.Value,
             new Interval(leftNode.Interval.Start, memberId.Finish));
 }
 

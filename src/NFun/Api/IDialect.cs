@@ -2,7 +2,7 @@ namespace NFun {
 
 public static class Dialects {
     public static DialectSettings Origin => DialectSettings.Default;
-    
+
     public static DialectSettings ModifyOrigin(
         IfExpressionSetup ifExpressionSetup = IfExpressionSetup.IfIfElse,
         IntegerPreferredType integerPreferredType = IntegerPreferredType.I32)

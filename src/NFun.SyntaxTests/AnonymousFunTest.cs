@@ -137,7 +137,8 @@ public class AnonymousFunTest {
     [TestCase(@"call10(f,x) = (fun f(x,it)); y =  max.call10(3)(2)", 3)]
     [TestCase(@"call11() = fun it; y =  call11()(2)", 2)]
     [TestCase(@"call12 = (fun it); y =  call12(2)", 2)]
-    [TestCase("ids:int[]=[1,2,3,4]; age:int = 1;  ;y:int[] = ids.filter(fun it>age).map(fun it+1)",
+    [TestCase(
+        "ids:int[]=[1,2,3,4]; age:int = 1;  ;y:int[] = ids.filter(fun it>age).map(fun it+1)",
         new int[] { 3, 4, 5 })]
     public void SuperAnonymousFunctions_ConstantEquation(string expr, object expected) {
         var runtime = expr.Build();

@@ -7,9 +7,7 @@ internal class VariableUsages {
     public readonly VariableSource Source;
     public readonly LinkedList<VariableExpressionNode> Usages = new();
 
-    internal VariableUsages(VariableSource source) {
-        Source = source;
-    }
+    internal VariableUsages(VariableSource source) { Source = source; }
 }
 
 }

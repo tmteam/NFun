@@ -75,32 +75,40 @@ public class TypeInferenceTest {
                     
                    fib(n) = if (n<3) 1 else fibrec(n-1,2,1,1)
                    y = fib(1)", BaseFunnyType.Int32)]
-    [TestCase(@"y = [1..7]
+    [TestCase(
+        @"y = [1..7]
                         .map(fun it+1)
                         .sum()", BaseFunnyType.Int32)]
-    [TestCase(@"y = [1..8]
+    [TestCase(
+        @"y = [1..8]
                         .map(fun [it,1].sum())
                         .sum()", BaseFunnyType.Int32)]
-    [TestCase(@"y = [1..9]
+    [TestCase(
+        @"y = [1..9]
                         .map(fun [1,it].sum())
                         .sum()", BaseFunnyType.Int32)]
-    [TestCase(@"y = [1..10]
+    [TestCase(
+        @"y = [1..10]
                         .map(fun [1..it].sum())
                         .sum()", BaseFunnyType.Int32)]
-    [TestCase(@"y = [1..11]
+    [TestCase(
+        @"y = [1..11]
                         .map(fun [1..it].sum())
                         .sum()", BaseFunnyType.Int32)]
-    [TestCase(@"y = [1..12]
+    [TestCase(
+        @"y = [1..12]
                         .map(fun [1..it]
                                 .map(fun 2600/it)
                                 .sum())
                         .sum()", BaseFunnyType.Real)]
-    [TestCase(@"y = [1..13]
+    [TestCase(
+        @"y = [1..13]
                         .map(fun [1..10]
                                 .map(fun 2600/it)
                                 .sum())
                         .sum()", BaseFunnyType.Real)]
-    [TestCase(@"y = [1..14]
+    [TestCase(
+        @"y = [1..14]
                         .map(fun it/2)
                         .sum()", BaseFunnyType.Real)]
     [TestCase(
@@ -175,7 +183,8 @@ public class TypeInferenceTest {
     [TestCase(
         @"div9(x) = 2600/x
             y = [1..20].map(div9)")]
-    [TestCase(@"div10(x) = 2600/x
+    [TestCase(
+        @"div10(x) = 2600/x
                     y(n) = [1..n].map(div10).sum()")]
     [TestCase(
         @"dsum11(x:int):int = x+x
@@ -183,9 +192,11 @@ public class TypeInferenceTest {
     [TestCase(
         @"dsum12(x:real):real = x+x
             y = [1..20].map(dsum12)")]
-    [TestCase(@"div13(x:int):real = 2600/x
+    [TestCase(
+        @"div13(x:int):real = 2600/x
                     y(n) = [1..n].map(div13).sum()")]
-    [TestCase(@"div14(x:real):real = 2600/x
+    [TestCase(
+        @"div14(x:real):real = 2600/x
                     y(n) = [1..n].map(div14).sum()")]
     [TestCase(
         @"input:int[]

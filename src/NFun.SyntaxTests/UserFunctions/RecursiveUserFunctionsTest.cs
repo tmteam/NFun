@@ -15,7 +15,8 @@ public class RecursiveUserFunctionsTest {
     public void FactorialConcrete(int x, int y) =>
         @"fact(n):int = if(n<=1) 1 else fact(n-1)*n
                y = fact(x)"
-            .Calc("x", x).AssertReturns("y", y);
+            .Calc("x", x)
+            .AssertReturns("y", y);
 
     [TestCase(1, 1)]
     [TestCase(2, 2)]
@@ -26,7 +27,8 @@ public class RecursiveUserFunctionsTest {
     public void FactorialGeneric(double x, double y) =>
         @"fact(n) = if(n<=1) 1 else fact(n-1)*n
               y = fact(x)"
-            .Calc("x", x).AssertReturns("y", y);
+            .Calc("x", x)
+            .AssertReturns("y", y);
 
     [TestCase(1, 1)]
     [TestCase(2, 1)]
@@ -44,7 +46,8 @@ public class RecursiveUserFunctionsTest {
                 
                fib(n) = if (n<3) 1 else fibrec(n-1,2,1,1)
                y = fib(x)"
-            .Calc("x", x).AssertReturns("y", y);
+            .Calc("x", x)
+            .AssertReturns("y", y);
 
     [TestCase(1, 1)]
     [TestCase(2, 1)]
@@ -58,7 +61,8 @@ public class RecursiveUserFunctionsTest {
     public void PrimitiveRecFibonachi(double x, double y) =>
         @" fib(n) = if (n<3) 1 else fib(n-1)+fib(n-2)
                    y = fib(x)"
-            .Calc("x", x).AssertReturns("y", y);
+            .Calc("x", x)
+            .AssertReturns("y", y);
 
     [TestCase(1, 1)]
     [TestCase(3, 2)]
@@ -69,7 +73,8 @@ public class RecursiveUserFunctionsTest {
                    fib(n:int):int = if (n<3) 1 else fib(n-1)+fib(n-2)
                    x:int
                    y = fib(x)"
-            .Calc("x", x).AssertReturns("y", y);
+            .Calc("x", x)
+            .AssertReturns("y", y);
 
     [TestCase("y = raise(1)\r raise(x) = raise(x)")]
     public void StackOverflow_throws_FunStackOverflow(string text) =>
@@ -93,7 +98,8 @@ public class RecursiveUserFunctionsTest {
                                     else 1
                     
               y = fact(x)"
-            .Calc("x", x).AssertReturns("y", y);
+            .Calc("x", x)
+            .AssertReturns("y", y);
 
     [TestCase(1, 1)]
     [TestCase(2, 1)]
@@ -108,7 +114,8 @@ public class RecursiveUserFunctionsTest {
                           else p1+p2  
                     
                    fib(n:int) = if (n<3) 1 else fibrec(n-1,2,1,1)
-                   y = fib(x)".Calc("x", x).AssertReturns("y", y);
+                   y = fib(x)".Calc("x", x)
+                              .AssertReturns("y", y);
 
     [TestCase(1, 1)]
     [TestCase(2, 1)]
@@ -123,7 +130,8 @@ public class RecursiveUserFunctionsTest {
                           else p1+p2  
                     
                    fib(n) = if (n<3) 1 else fibrec(n-1,2,1,1)
-                   y = fib(x)".Calc("x", x).AssertReturns("y", y);
+                   y = fib(x)".Calc("x", x)
+                              .AssertReturns("y", y);
 
     [TestCase(1, 1)]
     [TestCase(2, 1)]
@@ -139,7 +147,8 @@ public class RecursiveUserFunctionsTest {
                     
                    fib(n) = if (n<3) 1 else fibrec(n-1,2,1,1)
                    y = fib(x)"
-            .Calc("x", x).AssertReturns("y", y);
+            .Calc("x", x)
+            .AssertReturns("y", y);
 }
 
 }

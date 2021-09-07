@@ -26,7 +26,8 @@ public class StructBodyTest {
     public void TwoFieldStructInitialization() =>
         "y = {a = 1.0; b ='vasa'}"
             .Calc()
-            .AssertReturns("y",
+            .AssertReturns(
+                "y",
                 new { a = 1.0, b = "vasa" });
 
 
@@ -41,11 +42,12 @@ public class StructBodyTest {
     public void ThreeFieldStructInitializationWithCalculation(string expr) =>
         expr
             .Calc()
-            .AssertReturns("y", new {
-                a = 1.0,
-                b = "vasa",
-                c = 60.0
-            });
+            .AssertReturns(
+                "y", new {
+                    a = 1.0,
+                    b = "vasa",
+                    c = 60.0
+                });
 
     [Test]
     public void ConstAccessNested() =>
@@ -76,23 +78,26 @@ public class StructBodyTest {
          "        };" +
          "  c = 12*5.0" +
          "}").Calc()
-        .AssertReturns("y", new {
-            a = true,
-            b = new {
-                c = new[] { 1.0, 2.0, 3.0 },
-                d = false
-            },
-            c = 60.0
-        });
+             .AssertReturns(
+                 "y", new {
+                     a = true,
+                     b = new {
+                         c = new[] { 1.0, 2.0, 3.0 },
+                         d = false
+                     },
+                     c = 60.0
+                 });
 
 
     [Test]
     public void SingleFieldAccess() =>
         "y:int = a.age"
             .Build()
-            .Calc(("a", new {
-                age = 42
-            })).AssertReturns("y", 42);
+            .Calc(
+                ("a", new {
+                    age = 42
+                }))
+            .AssertReturns("y", 42);
 
     [Test]
     public void AccessToNestedFieldsWithExplicitTi() =>
@@ -129,7 +134,8 @@ public class StructBodyTest {
     public void TwoFieldsAccess() =>
         "y1:int = a.age; y2:real = a.size"
             .Build()
-            .Calc("a",
+            .Calc(
+                "a",
                 new {
                     age = 42,
                     size = 1.1
@@ -140,11 +146,13 @@ public class StructBodyTest {
     public void ThreeFieldsAccess() =>
         "agei:int = a.age; sizer = a.size+12.0; name = a.name"
             .Build()
-            .Calc("a", new {
-                age = 42,
-                size = 1.1,
-                name = "vasa"
-            }).AssertReturns(("agei", 42), ("sizer", 13.1), ("name", "vasa"));
+            .Calc(
+                "a", new {
+                    age = 42,
+                    size = 1.1,
+                    name = "vasa"
+                })
+            .AssertReturns(("agei", 42), ("sizer", 13.1), ("name", "vasa"));
 
     [Test]
     public void ConstantAccessCreated() =>
@@ -388,7 +396,8 @@ public class StructBodyTest {
     public void VarAccessDoubleNestedCreatedComposite() =>
         ("a = {b= [x,2,3]; c = 'vasa'};" +
          "d = {e = 'lala'; f = a};" +
-         "y = -d.f.b[0]").Calc("x", 42).AssertResultHas("y", -42);
+         "y = -d.f.b[0]").Calc("x", 42)
+                         .AssertResultHas("y", -42);
 
     [Test]
     public void ConstAccessArrayOfStructs() =>

@@ -294,10 +294,11 @@ class TrickyPrimitives {
         var graph = new GraphBuilder();
         graph.SetConst(0, StatePrimitive.Real);
         graph.SetVarType("y", StatePrimitive.I32);
-        TestHelper.AssertThrowsTicError(() => {
-            graph.SetDef("y", 0);
-            graph.Solve();
-        });
+        TestHelper.AssertThrowsTicError(
+            () => {
+                graph.SetDef("y", 0);
+                graph.Solve();
+            });
     }
 
     [Test]
@@ -309,11 +310,12 @@ class TrickyPrimitives {
         var graph = new GraphBuilder();
         graph.SetIntConst(0, StatePrimitive.I16, StatePrimitive.Real, StatePrimitive.Real);
 
-        TestHelper.AssertThrowsTicError(() => {
-            graph.SetCall(new ITicNodeState[] { StatePrimitive.U16, StatePrimitive.U16 }, new[] { 0, 1 });
-            graph.SetDef("y", 1);
-            graph.Solve();
-        });
+        TestHelper.AssertThrowsTicError(
+            () => {
+                graph.SetCall(new ITicNodeState[] { StatePrimitive.U16, StatePrimitive.U16 }, new[] { 0, 1 });
+                graph.SetDef("y", 1);
+                graph.Solve();
+            });
     }
 
     [TestCase(PrimitiveTypeName.Real)]

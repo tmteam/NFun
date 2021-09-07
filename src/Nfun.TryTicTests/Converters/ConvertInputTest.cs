@@ -99,15 +99,16 @@ public class ConvertInputTest {
 
     [Test]
     public void NestedConvertionDoesNotThrow() {
-        var result = FunnyTypeConverters.ConvertInputOrThrow(new {
-            age = 42,
-            size = 1.1,
-            name = "vasa"
-        }, FunnyType.StructOf(
-            ("age", FunnyType.Int32),
-            ("size", FunnyType.Real),
-            ("name", FunnyType.Any)
-        ));
+        var result = FunnyTypeConverters.ConvertInputOrThrow(
+            new {
+                age = 42,
+                size = 1.1,
+                name = "vasa"
+            }, FunnyType.StructOf(
+                ("age", FunnyType.Int32),
+                ("size", FunnyType.Real),
+                ("name", FunnyType.Any)
+            ));
         Assert.IsInstanceOf<FunnyStruct>(result);
     }
 }

@@ -68,19 +68,20 @@ public class TestFluentApiCalcSingleConstT {
     public void ReturnsComplexIntArrayConstant() {
         var result = Funny.Calc<int[][][]>(
             "[[[1,2],[]],[[3,4]],[[]]]");
-        Assert.AreEqual(new[] {
-            new[] { new[] { 1, 2 }, Array.Empty<int>() },
-            new[] { new[] { 3, 4 } },
-            new[] { Array.Empty<int>() }
-        }, result);
+        Assert.AreEqual(
+            new[] {
+                new[] { new[] { 1, 2 }, Array.Empty<int>() },
+                new[] { new[] { 3, 4 } },
+                new[] { Array.Empty<int>() }
+            }, result);
     }
 
     [Test]
     public void CalcWithBuilder() {
         var result = Funny
-            .WithConstant("pipi", 6)
-            .WithFunction<double, double>("toto", (d) => d - 1)
-            .Calc("toto(pipi)");
+                     .WithConstant("pipi", 6)
+                     .WithFunction<double, double>("toto", (d) => d - 1)
+                     .Calc("toto(pipi)");
         Assert.AreEqual(5, result);
     }
 
@@ -93,8 +94,9 @@ public class TestFluentApiCalcSingleConstT {
 
     [Test]
     public void OutputTypeContainsNoEmptyConstructor_throws() =>
-        Assert.Throws<FunnyInvalidUsageException>(() => Funny.Calc<UserInputModel>(
-            "{name = 'alaska'}"));
+        Assert.Throws<FunnyInvalidUsageException>(
+            () => Funny.Calc<UserInputModel>(
+                "{name = 'alaska'}"));
 
     [TestCase("[1..4].filter(fun it>age).map(fun it**2)")]
     [TestCase("age>someUnknownvariable")]

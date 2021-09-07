@@ -25,7 +25,8 @@ public class foldTest {
         graph.SetVar("input", 4);
 
         var tOfSwap = graph.InitializeVarNode(isComparable: true);
-        graph.SetVarType("swapIfNotSorted",
+        graph.SetVarType(
+            "swapIfNotSorted",
             StateFun.Of(new ITicNodeState[] { StateArray.Of(tOfSwap), StatePrimitive.I32 }, StateArray.Of(tOfSwap)));
         graph.SetVar("swapIfNotSorted", 5);
 
@@ -50,13 +51,15 @@ public class foldTest {
         graph.SetCall(new ITicNodeState[] { StateArray.Of(tOfCount), StatePrimitive.I32 }, new[] { 0, 1 });
         graph.SetIntConst(2, StatePrimitive.U8);
         //range
-        graph.SetCall(new ITicNodeState[] { StatePrimitive.I32, StatePrimitive.I32, StateArray.Of(StatePrimitive.I32) },
+        graph.SetCall(
+            new ITicNodeState[] { StatePrimitive.I32, StatePrimitive.I32, StateArray.Of(StatePrimitive.I32) },
             new[] { 2, 1, 3 });
         graph.SetVar("input", 4);
 
         var tOfSwap = graph.InitializeVarNode(isComparable: true);
 
-        graph.SetVarType("swapIfNotSorted",
+        graph.SetVarType(
+            "swapIfNotSorted",
             StateFun.Of(new ITicNodeState[] { StateArray.Of(tOfSwap), StatePrimitive.I32 }, StateArray.Of(tOfSwap)));
         graph.SetVar("swapIfNotSorted", 5);
 
@@ -79,13 +82,15 @@ public class foldTest {
 
         graph.SetIntConst(0, StatePrimitive.U8);
         graph.SetIntConst(1, StatePrimitive.U8);
-        graph.SetCall(new ITicNodeState[] { StatePrimitive.I32, StatePrimitive.I32, StateArray.Of(StatePrimitive.I32) },
+        graph.SetCall(
+            new ITicNodeState[] { StatePrimitive.I32, StatePrimitive.I32, StateArray.Of(StatePrimitive.I32) },
             new[] { 1, 0, 2 });
         graph.SetVar("input", 3);
 
         var tOfSwap = graph.InitializeVarNode(isComparable: true);
 
-        graph.SetVarType("swapIfNotSorted",
+        graph.SetVarType(
+            "swapIfNotSorted",
             StateFun.Of(new ITicNodeState[] { StateArray.Of(tOfSwap), StatePrimitive.I32 }, StateArray.Of(tOfSwap)));
         graph.SetVar("swapIfNotSorted", 4);
 

@@ -88,16 +88,17 @@ public class ArraysTest {
 
     [Test]
     public void CompositeArrayOfAnyTest() =>
-        "[1,'23',[],['a','bc'],[[]], 4.0,0x5, false]".AssertOut(new object[] {
-            1,
-            "23",
-            Array.Empty<object>(),
-            new[] { "a", "bc" },
-            new[] { Array.Empty<object>() },
-            4.0,
-            5,
-            false
-        });
+        "[1,'23',[],['a','bc'],[[]], 4.0,0x5, false]".AssertOut(
+            new object[] {
+                1,
+                "23",
+                Array.Empty<object>(),
+                new[] { "a", "bc" },
+                new[] { Array.Empty<object>() },
+                4.0,
+                5,
+                false
+            });
 
     [Test]
     public void IntersectToDimArrayTest() {
@@ -160,9 +161,7 @@ public class ArraysTest {
     [TestCase("y:real = [0x1].avg()", 1.0)]
     [TestCase("y = [0x1,0x3].avg()", 2.0)]
     [TestCase("y = [1,3].avg()", 2.0)]
-    public void ArrayWithElementConvertion(string expr, object expected) {
-        expr.Calc().AssertResultHas("y", expected);
-    }
+    public void ArrayWithElementConvertion(string expr, object expected) { expr.Calc().AssertResultHas("y", expected); }
 
     [Test]
     public void ConstantTwinAnyArray_WithTypeSpecification() {
@@ -358,8 +357,8 @@ filtrat   = x.filter(fun it> filt) # filt - input variable
 
     private static void AssertMultiDimentionalEquals<T>(T[][] result, int[][] expectedOutput) {
         for (int i = 0; i < expectedOutput.Length; i++)
-        for (int j = 0; j < expectedOutput[i].Length; j++)
-            Assert.AreEqual(result[i][j], expectedOutput[i][j]);
+            for (int j = 0; j < expectedOutput[i].Length; j++)
+                Assert.AreEqual(result[i][j], expectedOutput[i][j]);
     }
 
     [TestCase("y = [")]

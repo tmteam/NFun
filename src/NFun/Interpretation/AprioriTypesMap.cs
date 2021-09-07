@@ -6,13 +6,9 @@ using NFun.Types;
 namespace NFun.Interpretation {
 
 public class AprioriTypesMap : IEnumerable<KeyValuePair<string, FunnyType>> {
-    public AprioriTypesMap() {
-        _typesMap = new Dictionary<string, FunnyType>(StringComparer.OrdinalIgnoreCase);
-    }
+    public AprioriTypesMap() { _typesMap = new Dictionary<string, FunnyType>(StringComparer.OrdinalIgnoreCase); }
 
-    private AprioriTypesMap(Dictionary<string, FunnyType> items) {
-        _typesMap = items;
-    }
+    private AprioriTypesMap(Dictionary<string, FunnyType> items) { _typesMap = items; }
 
     private readonly Dictionary<string, FunnyType> _typesMap;
 

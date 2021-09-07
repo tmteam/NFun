@@ -41,7 +41,7 @@ public static class FunnyArrayTools {
         {
             var chars = new char[count];
             int i = 0;
-            foreach (var item in enumerable) 
+            foreach (var item in enumerable)
                 chars[i++] = (char)item;
 
             return new string(chars);

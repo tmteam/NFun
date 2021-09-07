@@ -9,15 +9,19 @@ public class CommentsTest {
     [TestCase("y = 1.0\r#comment\r z = true")]
     [TestCase("y = 1.0\r z = true#here is a comment")]
     [TestCase("y = 1.0\r z = true#here is a comment")]
-    [TestCase(@"y = 1.0 
+    [TestCase(
+        @"y = 1.0 
                     z = true#")]
-    [TestCase(@"y = 1.0 #a
+    [TestCase(
+        @"y = 1.0 #a
                     #b
                     #c
                     z = true#d")]
-    [TestCase(@"y = 1.0 
+    [TestCase(
+        @"y = 1.0 
                     z = true#someComment")]
-    [TestCase(@"
+    [TestCase(
+        @"
 y = 1.0
 #comment1
 #comment2

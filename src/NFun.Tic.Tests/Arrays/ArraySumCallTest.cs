@@ -58,10 +58,11 @@ public class ArraySumCallTest {
         graph.SetVar("x", 0);
         graph.SetSumCall(0, 1);
         graph.SetVarType("y", StatePrimitive.Char);
-        TestHelper.AssertThrowsTicError(() => {
-            graph.SetDef("y", 1);
-            graph.Solve();
-        });
+        TestHelper.AssertThrowsTicError(
+            () => {
+                graph.SetDef("y", 1);
+                graph.Solve();
+            });
     }
 
     [Test(Description = "x:int[]; y = x.sum()")]
@@ -104,10 +105,11 @@ public class ArraySumCallTest {
         graph.SetVar("x", 0);
         graph.SetSumCall(0, 1);
         graph.SetVarType("y", StatePrimitive.I32);
-        TestHelper.AssertThrowsTicError(() => {
-            graph.SetDef("y", 1);
-            graph.Solve();
-        });
+        TestHelper.AssertThrowsTicError(
+            () => {
+                graph.SetDef("y", 1);
+                graph.Solve();
+            });
     }
 }
 

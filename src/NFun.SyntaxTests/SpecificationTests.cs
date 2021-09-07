@@ -30,26 +30,31 @@ public class SpecificationTests {
     [TestCase(1, "y = not (x == 0)", "y", true)]
     [TestCase(1, "if (x == 0) 0 else 1", "out", 1)]
     [TestCase(55, "y = if (x < 0) 0 else x", "y", 55)]
-    [TestCase(-42, @"
+    [TestCase(
+        -42, @"
 y = if (x < 0) -1 
 if (x == 0)  0
 else 1", "y", -1)]
-    [TestCase(-42.2, @"
+    [TestCase(
+        -42.2, @"
 if (x < 0) -1 
 if (x ==0.0)  0
 else 1.0", "out", -1.0)]
-    [TestCase(321, @"
+    [TestCase(
+        321, @"
 if (x < 0) -1 
 else if (x > 0) 1
 else if (x ==0) 0
 else 123
 ", "out", 1)]
-    [TestCase(-400, @"
+    [TestCase(
+        -400, @"
 # if это выражение 
 y = 1+ 15 *  if (x < 0 ) -1
 		  if (x > 0)  1
 		  else 0", "y", -14)]
-    [TestCase(4, @"
+    [TestCase(
+        4, @"
    y =  if (x ==1) 'one'
         if (x ==2) 'two'
         if (x ==3) 'three'
@@ -62,7 +67,8 @@ y = 1+ 15 *  if (x < 0 ) -1
         if (x > 9) 'ten or more' 
         if (x.cos()>0)  'cos is positive' 
         else 'negative'", "y", "four")]
-    [TestCase(3, @"
+    [TestCase(
+        3, @"
 tostring(v:int):text =
             if (v == 0) 'zero'
 			if (v == 1) 'one'
@@ -101,7 +107,8 @@ y = tostring(x)", "y", "not supported")]
     //  [TestCase("y:int[] = [1..7..2]  #[1,3,5,7]", "y", new[] {1, 3, 5, 7})]
     // [TestCase("y = [1..2.5..0.5]  #[1.0,1.5,2.0,2.5]", "y", new[] {1.0, 1.5, 2.0, 2.5})]
     [TestCase("y = [1.0,2.0, 3.5] #Real[]", "y", new[] { 1.0, 2.0, 3.5 })]
-    [TestCase("y:int[] = [1,2,3,4] .concat( [3,4,5,6])  #Concat [1,2,3,4,3,4,5,6]", "y",
+    [TestCase(
+        "y:int[] = [1,2,3,4] .concat( [3,4,5,6])  #Concat [1,2,3,4,3,4,5,6]", "y",
         new[] { 1, 2, 3, 4, 3, 4, 5, 6 })]
     [TestCase("y = 1 in [1,2,3,4]# true", "y", true)]
     [TestCase("y = 0 in [1,2,3,4] # false", "y", false)]
@@ -123,8 +130,9 @@ y = tostring(x)", "y", "not supported")]
     [TestCase("y:int[] = [0..6].set(3, 42) #[0,1,2,42,4,5,6]", "y", new[] { 0, 1, 2, 42, 4, 5, 6 })]
     [TestCase("y = [].any() # false", "y", false)]
     [TestCase("y:int[] = 1.repeat(3) # [1,1,1]", "y", new[] { 1, 1, 1 })]
-    [TestCase("y = ['foo','bar'].repeat(3).flat()#['foo','bar','foo','bar','foo','bar'] "
-        , "y", new[] { "foo", "bar", "foo", "bar", "foo", "bar" })]
+    [TestCase(
+        "y = ['foo','bar'].repeat(3).flat()#['foo','bar','foo','bar','foo','bar'] "
+      , "y", new[] { "foo", "bar", "foo", "bar", "foo", "bar" })]
     [TestCase("y:int = [0..10][0]  #0", "y", 0)]
     [TestCase("y:int = [0..10][1]  #1", "y", 1)]
     [TestCase("y:int[] = [0..10][1:3] #[1,2,3]", "y", new[] { 1, 2, 3 })]
@@ -206,13 +214,14 @@ y4 = not(x1 and x2 or x3)
         runtime.AssertInputsCount(3);
         runtime.AssertOutputsCount(4);
         runtime.Calc(
-                ("x1", true),
-                ("x2", false),
-                ("x3", true))
-            .AssertReturns(("y1", false),
-                ("y2", true),
-                ("y3", false),
-                ("y4", false));
+                   ("x1", true),
+                   ("x2", false),
+                   ("x3", true))
+               .AssertReturns(
+                   ("y1", false),
+                   ("y2", true),
+                   ("y3", false),
+                   ("y4", false));
     }
 
     [TestCase("y = a / b", BaseFunnyType.Real)]
@@ -236,7 +245,8 @@ y4 = not(x1 and x2 or x3)
         @"
 yprivate   = 0.1 * xpublic 
 yPublic   = yprivate + xpublic"
-            .Calc("xpublic", 10.0).AssertReturns(("yprivate", 1.0), ("yPublic", 11.0));
+            .Calc("xpublic", 10.0)
+            .AssertReturns(("yprivate", 1.0), ("yPublic", 11.0));
 
     [TestCase(" y1 = [1,’2’,3,4]      # error")]
     [TestCase(" x:real[] \r y = x.filter(x => x< 2 ) # error.")]
@@ -270,14 +280,17 @@ yPublic   = yprivate + xpublic"
             new MyIn { Count = 3, Name = "bar" }); //"barbarbar"
         Assert.AreEqual("barbarbar", h);
 
-        var f = Funny.ForCalcMany<MyIn, MyOut>().ToLambda(@"
+        var f = Funny.ForCalcMany<MyIn, MyOut>()
+                     .ToLambda(
+                         @"
                             id = count - 1
                             flag = name != 'test'");
         MyOut result = f(new MyIn { Count = 100, Name = "kat" }); //MyOut{Id = 99; Flag = true}
         TestTools.TestHelper.AreSame(new MyOut { Id = 99, Flag = true }, result);
 
         // Hardcore mode 
-        var runtime = Funny.Hardcore.Build(@"
+        var runtime = Funny.Hardcore.Build(
+            @"
                     out1 = in1-1
                     out2:int = in2.filter(fun it>out1).map(fun it*it)[1]");
 

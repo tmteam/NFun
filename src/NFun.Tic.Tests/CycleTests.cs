@@ -212,11 +212,12 @@ class CycleTests {
         graph.SetIntConst(2, StatePrimitive.U8);
         graph.SetArith(1, 2, 3);
         graph.CreateLambda(3, 4, "la");
-        TestHelper.AssertThrowsTicError(() => {
-            graph.SetMap(0, 4, 5);
-            graph.SetDef("x", 5);
-            graph.Solve();
-        });
+        TestHelper.AssertThrowsTicError(
+            () => {
+                graph.SetMap(0, 4, 5);
+                graph.SetDef("x", 5);
+                graph.Solve();
+            });
     }
 
     [Test]
@@ -230,11 +231,12 @@ class CycleTests {
         graph.SetIntConst(2, StatePrimitive.U8);
         graph.SetArith(1, 2, 3);
         graph.CreateLambda(3, 4, "la");
-        TestHelper.AssertThrowsTicError(() => {
-            graph.SetMap(0, 4, 5);
-            graph.SetDef("x", 5);
-            graph.Solve();
-        });
+        TestHelper.AssertThrowsTicError(
+            () => {
+                graph.SetMap(0, 4, 5);
+                graph.SetDef("x", 5);
+                graph.Solve();
+            });
     }
 
     [Test]
@@ -261,11 +263,12 @@ class CycleTests {
         var graph = new GraphBuilder();
         graph.SetVar("x", 0);
         graph.SetStrictArrayInit(1, 0);
-        TestHelper.AssertThrowsRecursiveTicTypedDefinition(() => {
-            graph.SetDef("x", 1);
-            graph.Solve();
-            Assert.Fail("Impossible equation solved");
-        });
+        TestHelper.AssertThrowsRecursiveTicTypedDefinition(
+            () => {
+                graph.SetDef("x", 1);
+                graph.Solve();
+                Assert.Fail("Impossible equation solved");
+            });
     }
 
     [Test]
@@ -276,11 +279,12 @@ class CycleTests {
         graph.SetVar("x", 0);
         graph.SetVar("x", 1);
         graph.SetStrictArrayInit(2, 0, 1);
-        TestHelper.AssertThrowsRecursiveTicTypedDefinition(() => {
-            graph.SetDef("x", 2);
-            graph.Solve();
-            Assert.Fail("Impossible equation solved");
-        });
+        TestHelper.AssertThrowsRecursiveTicTypedDefinition(
+            () => {
+                graph.SetDef("x", 2);
+                graph.Solve();
+                Assert.Fail("Impossible equation solved");
+            });
     }
 
     [Test]
@@ -291,11 +295,12 @@ class CycleTests {
         graph.SetVar("x", 0);
         graph.SetStrictArrayInit(1, 0);
         graph.SetStrictArrayInit(2, 1);
-        TestHelper.AssertThrowsRecursiveTicTypedDefinition(() => {
-            graph.SetDef("x", 2);
-            graph.Solve();
-            Assert.Fail("Impossible equation solved");
-        });
+        TestHelper.AssertThrowsRecursiveTicTypedDefinition(
+            () => {
+                graph.SetDef("x", 2);
+                graph.Solve();
+                Assert.Fail("Impossible equation solved");
+            });
     }
 
     [Test]
@@ -308,11 +313,12 @@ class CycleTests {
         graph.SetVar("x", 2);
         graph.SetStrictArrayInit(3, 2);
         graph.SetStrictArrayInit(4, 1, 3);
-        TestHelper.AssertThrowsRecursiveTicTypedDefinition(() => {
-            graph.SetDef("x", 4);
-            graph.Solve();
-            Assert.Fail("Impossible equation solved");
-        });
+        TestHelper.AssertThrowsRecursiveTicTypedDefinition(
+            () => {
+                graph.SetDef("x", 4);
+                graph.Solve();
+                Assert.Fail("Impossible equation solved");
+            });
     }
 
     [Test]
@@ -325,11 +331,12 @@ class CycleTests {
         graph.SetVar("t", 1);
         graph.SetConst(2, StatePrimitive.I32);
         graph.SetArrGetCall(1, 2, 3);
-        TestHelper.AssertThrowsRecursiveTicTypedDefinition(() => {
-            graph.SetConcatCall(0, 3, 4);
-            graph.SetDef("y", 4);
-            graph.Solve();
-        });
+        TestHelper.AssertThrowsRecursiveTicTypedDefinition(
+            () => {
+                graph.SetConcatCall(0, 3, 4);
+                graph.SetDef("y", 4);
+                graph.Solve();
+            });
     }
 }
 

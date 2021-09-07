@@ -26,7 +26,7 @@ internal static class RuntimeBuilderHelper {
         var vars = new VariableDictionary(functionSyntax.Args.Count);
         for (int i = 0; i < functionSyntax.Args.Count; i++)
         {
-            var variableSource = RuntimeBuilderHelper.CreateVariableSourceForArgument(
+            var variableSource = CreateVariableSourceForArgument(
                 argSyntax: functionSyntax.Args[i],
                 actualType: argTypes[i]);
 
@@ -91,7 +91,8 @@ internal static class RuntimeBuilderHelper {
         this VariableDictionary resultVariables,
         IEnumerable<string> list) {
         var unknownVariables = resultVariables.GetAllUsages()
-            .Where(u => !list.Contains(u.Source.Name)).ToList();
+                                              .Where(u => !list.Contains(u.Source.Name))
+                                              .ToList();
         if (unknownVariables.Any())
         {
             throw ErrorFactory.UnknownVariables(unknownVariables.SelectMany(u => u.Usages));

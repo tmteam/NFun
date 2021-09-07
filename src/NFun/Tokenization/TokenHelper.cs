@@ -21,10 +21,10 @@ public static class TokenHelper {
         var longVal = ParseLongValue(val);
 
         return longVal switch {
-            < Int32.MinValue => (longVal, FunnyType.Int64),
-            > Int32.MaxValue => (longVal, FunnyType.Int64),
-            _ => (longVal, FunnyType.Int32)
-        };
+                   < Int32.MinValue => (longVal, FunnyType.Int64),
+                   > Int32.MaxValue => (longVal, FunnyType.Int64),
+                   _                => (longVal, FunnyType.Int32)
+               };
     }
 
     private static long ParseLongValue(string val) {
@@ -51,19 +51,19 @@ public static class TokenHelper {
 
     private static FunnyType ToFunnyType(this Tok token) =>
         token.Type switch {
-            TokType.Int16Type => FunnyType.Int16,
-            TokType.Int32Type => FunnyType.Int32,
-            TokType.Int64Type => FunnyType.Int64,
-            TokType.UInt8Type => FunnyType.UInt8,
-            TokType.UInt16Type => FunnyType.UInt16,
-            TokType.UInt32Type => FunnyType.UInt32,
-            TokType.UInt64Type => FunnyType.UInt64,
-            TokType.RealType => FunnyType.Real,
-            TokType.BoolType => FunnyType.Bool,
-            TokType.TextType => FunnyType.Text,
-            TokType.AnythingType => FunnyType.Any,
+            TokType.Int16Type                    => FunnyType.Int16,
+            TokType.Int32Type                    => FunnyType.Int32,
+            TokType.Int64Type                    => FunnyType.Int64,
+            TokType.UInt8Type                    => FunnyType.UInt8,
+            TokType.UInt16Type                   => FunnyType.UInt16,
+            TokType.UInt32Type                   => FunnyType.UInt32,
+            TokType.UInt64Type                   => FunnyType.UInt64,
+            TokType.RealType                     => FunnyType.Real,
+            TokType.BoolType                     => FunnyType.Bool,
+            TokType.TextType                     => FunnyType.Text,
+            TokType.AnythingType                 => FunnyType.Any,
             TokType.Id when token.Value == "any" => FunnyType.Any,
-            _ => throw ErrorFactory.TypeExpectedButWas(token)
+            _                                    => throw ErrorFactory.TypeExpectedButWas(token)
         };
 
     public static FunnyType ReadType(this TokFlow flow) {

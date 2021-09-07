@@ -9,8 +9,8 @@ public class AprioriTypesTest {
     [Test]
     public void AprioriInputSpecified_CalcsWithCorrectType() {
         var runtime = Funny.Hardcore
-            .WithApriori<string>("x")
-            .Build("y = x");
+                           .WithApriori<string>("x")
+                           .Build("y = x");
 
         var res = runtime.Calc("x", "test");
         res.AssertReturns("y", "test");
@@ -21,8 +21,8 @@ public class AprioriTypesTest {
     [Test]
     public void InputVariableSpecifiedAndDoesNotConflict_AprioriInputCalcs() {
         var runtime = Funny.Hardcore
-            .WithApriori<string>("x")
-            .Build("x:text; y = x");
+                           .WithApriori<string>("x")
+                           .Build("x:text; y = x");
         var res = runtime.Calc("x", "test");
         res.AssertReturns("y", "test");
         var input = runtime["x"];
@@ -36,8 +36,8 @@ public class AprioriTypesTest {
     [Test]
     public void OutputVarSpecifiedAndDoesNotConflict_AprioriOutputCalcs() {
         var runtime = Funny.Hardcore
-            .WithApriori<string>("y")
-            .Build("x:text; y = x");
+                           .WithApriori<string>("y")
+                           .Build("x:text; y = x");
 
         var res = runtime.Calc("x", "test");
         res.AssertReturns("y", "test");
@@ -49,8 +49,8 @@ public class AprioriTypesTest {
     [Test]
     public void AprioriVariableDoesNotUsed_Calculates() {
         var runtime = Funny.Hardcore
-            .WithApriori<string>("alfa")
-            .Build("x:text; y = x");
+                           .WithApriori<string>("alfa")
+                           .Build("x:text; y = x");
 
         var res = runtime.Calc("x", "test");
         res.AssertReturns("y", "test");
@@ -60,18 +60,21 @@ public class AprioriTypesTest {
 
     [Test]
     public void OutputVarSpecifiedWithDifferentAprioriType_throws() =>
-        TestHelper.AssertObviousFailsOnParse(() =>
-            Funny.Hardcore.WithApriori("y", FunnyType.Text).Build("y:int = x"));
+        TestHelper.AssertObviousFailsOnParse(
+            () =>
+                Funny.Hardcore.WithApriori("y", FunnyType.Text).Build("y:int = x"));
 
     [Test]
     public void InputVarSpecifiedWithAprioriOutputConflict_throws() =>
-        TestHelper.AssertObviousFailsOnParse(() =>
-            Funny.Hardcore.WithApriori("y", FunnyType.Text).Build("x:int; y = x"));
+        TestHelper.AssertObviousFailsOnParse(
+            () =>
+                Funny.Hardcore.WithApriori("y", FunnyType.Text).Build("x:int; y = x"));
 
     [Test]
     public void OutputVarSpecifiedHasInputNameWithSameName_throws() =>
-        TestHelper.AssertObviousFailsOnParse(() =>
-            Funny.Hardcore.WithApriori("x", FunnyType.Text).Build("x:int; y = x"));
+        TestHelper.AssertObviousFailsOnParse(
+            () =>
+                Funny.Hardcore.WithApriori("x", FunnyType.Text).Build("x:int; y = x"));
 
     [Test]
     public void OutputVarSpecifiedHasInputAprioriType_Calculates()
@@ -94,20 +97,20 @@ public class AprioriTypesTest {
     public void SpecifyVarWithSameNameAsFunction_RepeatConcatTest() {
         var expression = "out:text = name.repeat(count).flat()";
         Funny.Hardcore
-            .WithApriori<int>("count")
-            .Build(expression)
-            .Calc(("count", 3), ("name", "foo"))
-            .AssertReturns("foofoofoo");
+             .WithApriori<int>("count")
+             .Build(expression)
+             .Calc(("count", 3), ("name", "foo"))
+             .AssertReturns("foofoofoo");
     }
 
     [Test]
     public void SpecifyVarWithSameNameAsFunction2_RepeatConcatTest() {
         var expression = "if (count>0) name.repeat(count).flat() else 'none'";
         Funny.Hardcore
-            .WithApriori<int>("count")
-            .Build(expression)
-            .Calc(("count", 3), ("name", "foo"))
-            .AssertReturns("foofoofoo");
+             .WithApriori<int>("count")
+             .Build(expression)
+             .Calc(("count", 3), ("name", "foo"))
+             .AssertReturns("foofoofoo");
     }
 }
 

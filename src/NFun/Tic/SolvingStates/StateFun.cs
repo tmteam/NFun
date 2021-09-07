@@ -10,18 +10,18 @@ public class StateFun : ICompositeState, ITypeState, ITicNodeState {
         TicNode[] argNodes = new TicNode[argTypes.Length];
 
         TicNode retNode = returnType switch {
-            ITypeState rt => TicNode.CreateTypeVariableNode(rt),
-            StateRefTo retRef => retRef.Node,
-            _ => throw new InvalidOperationException()
-        };
+                              ITypeState rt     => TicNode.CreateTypeVariableNode(rt),
+                              StateRefTo retRef => retRef.Node,
+                              _                 => throw new InvalidOperationException()
+                          };
 
         for (int i = 0; i < argTypes.Length; i++)
         {
             argNodes[i] = argTypes[i] switch {
-                ITypeState at => TicNode.CreateTypeVariableNode(at),
-                StateRefTo aRef => aRef.Node,
-                _ => throw new InvalidOperationException()
-            };
+                              ITypeState at   => TicNode.CreateTypeVariableNode(at),
+                              StateRefTo aRef => aRef.Node,
+                              _               => throw new InvalidOperationException()
+                          };
         }
 
 

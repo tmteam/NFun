@@ -86,14 +86,16 @@ public class StructConcreteFunctionsTest {
     [TestCase(6, 720)]
     public void ConcreteFactorialReq_ReturnStruct(int x, int y) =>
         @"fact(n:int) = if(n<=1) {res = 1} else {res = fact(n-1).res*n }
-                  y = fact(x).res".Calc("x", x).AssertReturns("y", y);
+                  y = fact(x).res".Calc("x", x)
+                                  .AssertReturns("y", y);
 
     [TestCase(1, 1)]
     [TestCase(3, 6)]
     [TestCase(6, 720)]
     public void ConcreteFactorialReq_ArgIsStruct(int x, int y) =>
         @"fact(n):int = if(n.field<=1) 1 else fact({field=n.field-1}) * n.field;
-                  y = fact({field=x})".Calc("x", x).AssertReturns("y", y);
+                  y = fact({field=x})".Calc("x", x)
+                                      .AssertReturns("y", y);
 
     [Test]
     public void SingleStructFunction_WithConcrete_ReturnsCouncrete() =>
@@ -109,9 +111,11 @@ public class StructConcreteFunctionsTest {
     [TestCase("f(x):int = x.a; y = f({x = true})")]
     [TestCase("f(x):int = x.a; y:bool = f({missing = 1})")]
     [TestCase("f(x):real = {res = x}")]
-    [TestCase(@"fact(n):int = if(n.field<=1) 1 else fact({field=n.field-1}) * n.field;
+    [TestCase(
+        @"fact(n):int = if(n.field<=1) 1 else fact({field=n.field-1}) * n.field;
                   y = fact({a=x})")]
-    [TestCase(@"f(n):int = n.field;
+    [TestCase(
+        @"f(n):int = n.field;
                   y = fact({nonExistingField=x})")]
     public void ObviousFails(string expr) => expr.AssertObviousFailsOnParse();
 }

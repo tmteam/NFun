@@ -188,9 +188,7 @@ public class TicNode {
 
     public override int GetHashCode() => _uid;
 
-    public void ClearAncestors() {
-        _ancestors.Clear();
-    }
+    public void ClearAncestors() { _ancestors.Clear(); }
 }
 
 }

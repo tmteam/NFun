@@ -7,9 +7,9 @@ public class TestFluentApiAddFunctionTest {
     [Test]
     public void SingleVariableFunction() {
         var calculator = Funny
-            .WithFunction("myHello", (int i) => $"Hello mr #{i}")
-            .WithFunction("myInc", (int i) => i + 1)
-            .BuildForCalc<ModelWithInt, string>();
+                         .WithFunction("myHello", (int i) => $"Hello mr #{i}")
+                         .WithFunction("myInc", (int i) => i + 1)
+                         .BuildForCalc<ModelWithInt, string>();
 
         Func<ModelWithInt, string> lambda = calculator.ToLambda("out = myHello(myInc(id))");
 
@@ -23,8 +23,8 @@ public class TestFluentApiAddFunctionTest {
     [Test]
     public void TwoVariablesFunction() {
         var calculator = Funny
-            .WithFunction("totxt", (int i1, int i2) => $"{i1},{i2}")
-            .BuildForCalc<ModelWithInt, string>();
+                         .WithFunction("totxt", (int i1, int i2) => $"{i1},{i2}")
+                         .BuildForCalc<ModelWithInt, string>();
 
         var lambda = calculator.ToLambda("totxt(id,1)");
 
@@ -37,9 +37,10 @@ public class TestFluentApiAddFunctionTest {
     [Test]
     public void ThreeVariablesFunction() {
         var calculator = Funny
-            .WithFunction("totxt",
-                (int i1, int i2, int i3) => $"{i1},{i2},{i3}")
-            .BuildForCalc<ModelWithInt, string>();
+                         .WithFunction(
+                             "totxt",
+                             (int i1, int i2, int i3) => $"{i1},{i2},{i3}")
+                         .BuildForCalc<ModelWithInt, string>();
 
         var lambda = calculator.ToLambda("totxt(id,2,3)");
 
@@ -52,9 +53,10 @@ public class TestFluentApiAddFunctionTest {
     [Test]
     public void FourVariablesFunction() {
         var calculator = Funny
-            .WithFunction("totxt",
-                (int i1, int i2, int i3, int i4) => $"{i1},{i2},{i3},{i4}")
-            .BuildForCalc<ModelWithInt, string>();
+                         .WithFunction(
+                             "totxt",
+                             (int i1, int i2, int i3, int i4) => $"{i1},{i2},{i3},{i4}")
+                         .BuildForCalc<ModelWithInt, string>();
 
         var lambda = calculator.ToLambda("totxt(id,2,3,4)");
 
@@ -67,9 +69,10 @@ public class TestFluentApiAddFunctionTest {
     [Test]
     public void FiveVariablesFunction() {
         var calculator = Funny
-            .WithFunction("totxt",
-                (int i1, int i2, int i3, int i4, int i5) => $"{i1},{i2},{i3},{i4},{i5}")
-            .BuildForCalc<ModelWithInt, string>();
+                         .WithFunction(
+                             "totxt",
+                             (int i1, int i2, int i3, int i4, int i5) => $"{i1},{i2},{i3},{i4},{i5}")
+                         .BuildForCalc<ModelWithInt, string>();
 
         var lambda = calculator.ToLambda("totxt(id,2,3,4,5)");
 
@@ -82,9 +85,10 @@ public class TestFluentApiAddFunctionTest {
     [Test]
     public void SixVariablesFunction() {
         var calculator = Funny
-            .WithFunction("totxt",
-                (int i1, int i2, int i3, int i4, int i5, int i6) => $"{i1},{i2},{i3},{i4},{i5},{i6}")
-            .BuildForCalc<ModelWithInt, string>();
+                         .WithFunction(
+                             "totxt",
+                             (int i1, int i2, int i3, int i4, int i5, int i6) => $"{i1},{i2},{i3},{i4},{i5},{i6}")
+                         .BuildForCalc<ModelWithInt, string>();
 
         var lambda = calculator.ToLambda("totxt(id,2,3,4,5,6)");
 
@@ -97,9 +101,11 @@ public class TestFluentApiAddFunctionTest {
     [Test]
     public void SevenVariablesFunction() {
         var calculator = Funny
-            .WithFunction("totxt",
-                (int i1, int i2, int i3, int i4, int i5, int i6, int i7) => $"{i1},{i2},{i3},{i4},{i5},{i6},{i7}")
-            .BuildForCalc<ModelWithInt, string>();
+                         .WithFunction(
+                             "totxt",
+                             (int i1, int i2, int i3, int i4, int i5, int i6, int i7) =>
+                                 $"{i1},{i2},{i3},{i4},{i5},{i6},{i7}")
+                         .BuildForCalc<ModelWithInt, string>();
 
         var lambda = calculator.ToLambda("totxt(id,2,3,4,5,6,7)");
 
@@ -112,9 +118,9 @@ public class TestFluentApiAddFunctionTest {
     [Test]
     public void CompositeAccess() {
         var calculator = Funny
-            .WithFunction("myHello", (int i) => $"Hello mr #{i}")
-            .WithFunction("csumm", (ComplexModel m) => m.a.id + m.b.id)
-            .BuildForCalc<ModelWithInt, int>();
+                         .WithFunction("myHello", (int i) => $"Hello mr #{i}")
+                         .WithFunction("csumm", (ComplexModel m) => m.a.id + m.b.id)
+                         .BuildForCalc<ModelWithInt, int>();
 
         var lambda = calculator.ToLambda(
             @"csumm(

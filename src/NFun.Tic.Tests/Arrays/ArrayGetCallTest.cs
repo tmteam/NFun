@@ -94,10 +94,11 @@ public class ArrayGetCallTest {
         graph.SetConst(1, StatePrimitive.I32);
         graph.SetArrGetCall(0, 1, 2);
         graph.SetVarType("y", StatePrimitive.I32);
-        TestHelper.AssertThrowsTicError(() => {
-            graph.SetDef("y", 2);
-            graph.Solve();
-        });
+        TestHelper.AssertThrowsTicError(
+            () => {
+                graph.SetDef("y", 2);
+                graph.Solve();
+            });
     }
 
     [Test(Description = "y = x[0][0]")]
@@ -201,11 +202,12 @@ public class ArrayGetCallTest {
         graph.SetVar("x", 0);
         graph.SetConst(1, StatePrimitive.I32);
         graph.SetArrGetCall(0, 1, 2);
-        TestHelper.AssertThrowsTicError(() => {
-            graph.SetVarType("y", StatePrimitive.I16);
-            graph.SetDef("y", 2);
-            graph.Solve();
-        });
+        TestHelper.AssertThrowsTicError(
+            () => {
+                graph.SetVarType("y", StatePrimitive.I16);
+                graph.SetDef("y", 2);
+                graph.Solve();
+            });
     }
 
     [Test(Description = "x:int[][]; y:i16 = x[0][0]")]
@@ -219,11 +221,12 @@ public class ArrayGetCallTest {
         graph.SetArrGetCall(0, 1, 2);
         graph.SetConst(3, StatePrimitive.I32);
         graph.SetArrGetCall(2, 3, 4);
-        TestHelper.AssertThrowsTicError(() => {
-            graph.SetVarType("y", StatePrimitive.I16);
-            graph.SetDef("y", 4);
-            graph.Solve();
-        });
+        TestHelper.AssertThrowsTicError(
+            () => {
+                graph.SetVarType("y", StatePrimitive.I16);
+                graph.SetDef("y", 4);
+                graph.Solve();
+            });
     }
 
     [Test(Description = "x:int[][]; y:i16 = x[0][0]")]

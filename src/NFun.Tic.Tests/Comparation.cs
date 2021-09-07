@@ -82,12 +82,13 @@ class Comparation {
         var graph = new GraphBuilder();
         graph.SetConst(0, StatePrimitive.Real);
         graph.SetConst(1, StatePrimitive.Char);
-        TestHelper.AssertThrowsTicError(() => {
-            graph.SetComparable(0, 1, 2);
-            graph.SetDef("y", 2);
+        TestHelper.AssertThrowsTicError(
+            () => {
+                graph.SetComparable(0, 1, 2);
+                graph.SetDef("y", 2);
 
-            graph.Solve();
-        });
+                graph.Solve();
+            });
     }
 
     [Test]
@@ -99,12 +100,13 @@ class Comparation {
         graph.SetConst(0, StatePrimitive.Char);
         graph.SetConst(1, StatePrimitive.Real);
 
-        TestHelper.AssertThrowsTicError(() => {
-            graph.SetComparable(0, 1, 2);
-            graph.SetDef("y", 2);
+        TestHelper.AssertThrowsTicError(
+            () => {
+                graph.SetComparable(0, 1, 2);
+                graph.SetDef("y", 2);
 
-            graph.Solve();
-        });
+                graph.Solve();
+            });
     }
 }
 

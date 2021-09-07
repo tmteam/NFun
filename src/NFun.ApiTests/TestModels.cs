@@ -11,9 +11,7 @@ public class ModelWithCharArray2 {
 }
 
 public class ModelWithoutEmptyConstructor {
-    public ModelWithoutEmptyConstructor(string name) {
-        Name = name;
-    }
+    public ModelWithoutEmptyConstructor(string name) { Name = name; }
 
     public string Name { get; }
 }

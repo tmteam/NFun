@@ -28,8 +28,10 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         TypeInferenceResults typeInferenceResults,
         TicTypesConverter typesConverter,
         DialectSettings dialect) =>
-        node.Accept(new ExpressionBuilderVisitor(functions, variables, typeInferenceResults, typesConverter,
-            dialect));
+        node.Accept(
+            new ExpressionBuilderVisitor(
+                functions, variables, typeInferenceResults, typesConverter,
+                dialect));
 
     internal static IExpressionNode BuildExpression(
         ISyntaxNode node,
@@ -153,7 +155,8 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         {
             //Convert argument node
             var varNode = FunArgumentExpressionNode.CreateWith(arg);
-            var source = VariableSource.CreateWithStrictTypeLabel(varNode.Name, varNode.Type, arg.Interval,
+            var source = VariableSource.CreateWithStrictTypeLabel(
+                varNode.Name, varNode.Type, arg.Interval,
                 FunnyVarAccess.Input);
             //collect argument
             arguments[argIndex] = source;
@@ -165,7 +168,8 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
                 //If outer-scope contains the conflict variable name
                 if (_variables.GetSourceOrNull(varNode.Name) != null)
-                    throw ErrorFactory.AnonymousFunctionArgumentConflictsWithOuterScope(varNode.Name,
+                    throw ErrorFactory.AnonymousFunctionArgumentConflictsWithOuterScope(
+                        varNode.Name,
                         arrowAnonymFunNode.Interval);
                 else //else it is duplicated arg name
                     throw ErrorFactory.AnonymousFunctionArgumentDuplicates(varNode, arrowAnonymFunNode.Definition);
@@ -281,23 +285,23 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
     public IExpressionNode Visit(ConstantSyntaxNode node) {
         var type = _typesConverter.Convert(_typeInferenceResults.GetSyntaxNodeTypeOrNull(node.OrderNumber));
         return node.Value switch {
-            //All integer values are encoded by ulong (if it is ulong) or long otherwise
-            long l => ConstantExpressionNode.CreateConcrete(type, l, node.Interval),
-            ulong u => ConstantExpressionNode.CreateConcrete(type, u, node.Interval),
-            _ => new ConstantExpressionNode(node.Value, type, node.Interval)
-        };
+                   //All integer values are encoded by ulong (if it is ulong) or long otherwise
+                   long l  => ConstantExpressionNode.CreateConcrete(type, l, node.Interval),
+                   ulong u => ConstantExpressionNode.CreateConcrete(type, u, node.Interval),
+                   _       => new ConstantExpressionNode(node.Value, type, node.Interval)
+               };
     }
 
     public IExpressionNode Visit(GenericIntSyntaxNode node) {
         var type = _typesConverter.Convert(_typeInferenceResults.GetSyntaxNodeTypeOrNull(node.OrderNumber));
 
         return node.Value switch {
-            long l => ConstantExpressionNode.CreateConcrete(type, l, node.Interval),
-            ulong u => ConstantExpressionNode.CreateConcrete(type, u, node.Interval),
-            double => new ConstantExpressionNode(node.Value, type, node.Interval),
-            _ => throw new NFunImpossibleException(
-                $"Generic syntax node has wrong value type: {node.Value.GetType().Name}")
-        };
+                   long l  => ConstantExpressionNode.CreateConcrete(type, l, node.Interval),
+                   ulong u => ConstantExpressionNode.CreateConcrete(type, u, node.Interval),
+                   double  => new ConstantExpressionNode(node.Value, type, node.Interval),
+                   _ => throw new NFunImpossibleException(
+                       $"Generic syntax node has wrong value type: {node.Value.GetType().Name}")
+               };
     }
 
     public IExpressionNode Visit(NamedIdSyntaxNode node) {
@@ -368,13 +372,14 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         var originVariables = new string[sources.Length];
         for (int i = 0; i < originVariables.Length; i++) originVariables[i] = sources[i].Name;
 
-        var expr = BuildExpression(body, _functions, localVariables, _typeInferenceResults, _typesConverter,
+        var expr = BuildExpression(
+            body, _functions, localVariables, _typeInferenceResults, _typesConverter,
             _dialect);
 
         //New variables are new closured
         var closured = localVariables.GetAllUsages()
-            .Where(s => !originVariables.Contains(s.Source.Name))
-            .ToList();
+                                     .Where(s => !originVariables.Contains(s.Source.Name))
+                                     .ToList();
 
         if (closured.Any(c => Helper.DoesItLooksLikeSuperAnonymousVariable(c.Source.Name)))
             throw FunnyParseException.ErrorStubToDo("Unexpected it* variable");

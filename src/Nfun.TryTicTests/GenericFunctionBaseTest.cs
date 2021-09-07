@@ -13,10 +13,11 @@ public class GenericFunctionBaseTest {
     public void ReturnSelfFunction_PrimitiveType_ResultTypesAreCorrect() {
         var rpt = new ReturnSelfGenericFunctionDefinition();
         var function = rpt.CreateConcreteOrNull(FunnyType.Bool, FunnyType.Bool);
-        Assert.Multiple(() => {
-            Assert.AreEqual(FunnyType.Bool, function.ReturnType);
-            CollectionAssert.AreEquivalent(new[] { FunnyType.Bool }, function.ArgTypes);
-        });
+        Assert.Multiple(
+            () => {
+                Assert.AreEqual(FunnyType.Bool, function.ReturnType);
+                CollectionAssert.AreEquivalent(new[] { FunnyType.Bool }, function.ArgTypes);
+            });
     }
 
     [Test]
@@ -25,10 +26,11 @@ public class GenericFunctionBaseTest {
         var rpt = new ReturnSelfGenericFunctionDefinition();
         var function = rpt.CreateConcreteOrNull(arrayOfBool, arrayOfBool);
         Assert.IsNotNull(function);
-        Assert.Multiple(() => {
-            Assert.AreEqual(arrayOfBool, function.ReturnType);
-            CollectionAssert.AreEquivalent(new[] { arrayOfBool }, function.ArgTypes);
-        });
+        Assert.Multiple(
+            () => {
+                Assert.AreEqual(arrayOfBool, function.ReturnType);
+                CollectionAssert.AreEquivalent(new[] { arrayOfBool }, function.ArgTypes);
+            });
     }
 
     [Test]
@@ -36,10 +38,11 @@ public class GenericFunctionBaseTest {
         var rpt = new RepeatGenericFunctionDefinition();
         var function = rpt.CreateConcreteOrNull(FunnyType.ArrayOf(FunnyType.Bool), FunnyType.Bool, FunnyType.Int32);
         Assert.IsNotNull(function);
-        Assert.Multiple(() => {
-            Assert.AreEqual(FunnyType.ArrayOf(FunnyType.Bool), function.ReturnType);
-            CollectionAssert.AreEquivalent(new[] { FunnyType.Bool, FunnyType.Int32 }, function.ArgTypes);
-        });
+        Assert.Multiple(
+            () => {
+                Assert.AreEqual(FunnyType.ArrayOf(FunnyType.Bool), function.ReturnType);
+                CollectionAssert.AreEquivalent(new[] { FunnyType.Bool, FunnyType.Int32 }, function.ArgTypes);
+            });
     }
 
     [Test]
@@ -52,17 +55,18 @@ public class GenericFunctionBaseTest {
 
         Assert.IsNotNull(function);
 
-        Assert.Multiple(() => {
-            Assert.AreEqual(
-                expected: FunnyType.ArrayOf(FunnyType.Text),
-                actual: function.ReturnType);
-            CollectionAssert.AreEqual(
-                expected: new[] {
-                    FunnyType.ArrayOf(FunnyType.Int32),
-                    FunnyType.Fun(FunnyType.Text, FunnyType.Int32)
-                },
-                actual: function.ArgTypes);
-        });
+        Assert.Multiple(
+            () => {
+                Assert.AreEqual(
+                    expected: FunnyType.ArrayOf(FunnyType.Text),
+                    actual: function.ReturnType);
+                CollectionAssert.AreEqual(
+                    expected: new[] {
+                        FunnyType.ArrayOf(FunnyType.Int32),
+                        FunnyType.Fun(FunnyType.Text, FunnyType.Int32)
+                    },
+                    actual: function.ArgTypes);
+            });
     }
 
     [Test]
@@ -74,11 +78,13 @@ public class GenericFunctionBaseTest {
             FunnyType.Int32);
         Assert.IsNotNull(function);
 
-        Assert.Multiple(() => {
-            Assert.AreEqual(FunnyType.ArrayOf(FunnyType.Bool), function.ReturnType);
-            CollectionAssert.AreEquivalent(new[] { FunnyType.ArrayOf(FunnyType.Bool), FunnyType.Int32 },
-                function.ArgTypes);
-        });
+        Assert.Multiple(
+            () => {
+                Assert.AreEqual(FunnyType.ArrayOf(FunnyType.Bool), function.ReturnType);
+                CollectionAssert.AreEquivalent(
+                    new[] { FunnyType.ArrayOf(FunnyType.Bool), FunnyType.Int32 },
+                    function.ArgTypes);
+            });
     }
 
     [Test]
@@ -90,11 +96,13 @@ public class GenericFunctionBaseTest {
             FunnyType.ArrayOf(arrayOfBool),
             FunnyType.Int32);
         Assert.IsNotNull(function);
-        Assert.Multiple(() => {
-            Assert.AreEqual(FunnyType.ArrayOf(arrayOfBool), function.ReturnType);
-            CollectionAssert.AreEquivalent(new[] { FunnyType.ArrayOf(arrayOfBool), FunnyType.Int32 },
-                function.ArgTypes);
-        });
+        Assert.Multiple(
+            () => {
+                Assert.AreEqual(FunnyType.ArrayOf(arrayOfBool), function.ReturnType);
+                CollectionAssert.AreEquivalent(
+                    new[] { FunnyType.ArrayOf(arrayOfBool), FunnyType.Int32 },
+                    function.ArgTypes);
+            });
     }
 
     [TestCase(BaseFunnyType.Real, BaseFunnyType.Int32, BaseFunnyType.Int32)]
@@ -112,10 +120,11 @@ public class GenericFunctionBaseTest {
             FunnyType.PrimitiveOf(secondArg));
         var generic = FunnyType.PrimitiveOf(returnType);
         Assert.IsNotNull(function);
-        Assert.Multiple(() => {
-            Assert.AreEqual(generic, function.ReturnType);
-            CollectionAssert.AreEquivalent(new[] { generic, generic }, function.ArgTypes);
-        });
+        Assert.Multiple(
+            () => {
+                Assert.AreEqual(generic, function.ReturnType);
+                CollectionAssert.AreEquivalent(new[] { generic, generic }, function.ArgTypes);
+            });
     }
 
     [TestCase(BaseFunnyType.Int32, BaseFunnyType.Real, BaseFunnyType.Int32)]
@@ -140,15 +149,17 @@ public class GenericFunctionBaseTest {
             FunnyType.Int32,
             FunnyType.Int32);
         Assert.IsNotNull(function);
-        Assert.Multiple(() => {
-            Assert.AreEqual(FunnyType.Real, function.ReturnType);
-            CollectionAssert.AreEquivalent(new[] { FunnyType.Real, FunnyType.Real }, function.ArgTypes);
-        });
+        Assert.Multiple(
+            () => {
+                Assert.AreEqual(FunnyType.Real, function.ReturnType);
+                CollectionAssert.AreEquivalent(new[] { FunnyType.Real, FunnyType.Real }, function.ArgTypes);
+            });
     }
 }
 
 public class GetRandomElementFuncDefinition : GenericFunctionBase {
-    public GetRandomElementFuncDefinition() : base("__retSelf",
+    public GetRandomElementFuncDefinition() : base(
+        "__retSelf",
         FunnyType.Generic(0), FunnyType.Generic(0), FunnyType.Generic(0)) { }
 
     protected override object Calc(object[] args) => throw new NotImplementedException();

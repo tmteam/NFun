@@ -168,13 +168,15 @@ public class ConcreteArrayFunTest {
         var graph = new GraphBuilder();
         graph.SetVarType("x", StateArray.Of(StatePrimitive.Any));
         graph.SetVar("x", 0);
-        TestHelper.AssertThrowsTicError(() => {
-            graph.SetCall(new ITicNodeState[] { StateArray.Of(StatePrimitive.Real), StatePrimitive.Bool },
-                new[] { 0, 1 });
-            graph.SetDef("y", 1);
-            graph.Solve();
-            Assert.Fail();
-        });
+        TestHelper.AssertThrowsTicError(
+            () => {
+                graph.SetCall(
+                    new ITicNodeState[] { StateArray.Of(StatePrimitive.Real), StatePrimitive.Bool },
+                    new[] { 0, 1 });
+                graph.SetDef("y", 1);
+                graph.Solve();
+                Assert.Fail();
+            });
     }
 }
 

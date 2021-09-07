@@ -21,11 +21,12 @@ public class TestFluentApiCalcSingleObjectConst {
         var result = Funny.Calc(
             "[[[1,2],[]],[[3,4]],[[]]]");
         Assert.IsInstanceOf<object[]>(result);
-        Assert.AreEqual(new[] {
-            new[] { new[] { 1, 2 }, Array.Empty<int>() },
-            new[] { new[] { 3, 4 } },
-            new[] { Array.Empty<int>() }
-        }, result);
+        Assert.AreEqual(
+            new[] {
+                new[] { new[] { 1, 2 }, Array.Empty<int>() },
+                new[] { new[] { 3, 4 } },
+                new[] { Array.Empty<int>() }
+            }, result);
     }
 
 

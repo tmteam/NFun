@@ -19,19 +19,19 @@ public static class FunnyTypeConverters {
 
         //Special slow convertation
         return resultFunnyType.BaseType switch {
-            BaseFunnyType.Any => converter.ToFunObject(clrValue),
-            BaseFunnyType.Bool => Convert.ToBoolean(clrValue),
-            BaseFunnyType.Int16 => Convert.ToInt16(clrValue),
-            BaseFunnyType.Int32 => Convert.ToInt32(clrValue),
-            BaseFunnyType.Int64 => Convert.ToInt64(clrValue),
-            BaseFunnyType.UInt8 => Convert.ToByte(clrValue),
-            BaseFunnyType.UInt16 => Convert.ToUInt16(clrValue),
-            BaseFunnyType.UInt32 => Convert.ToUInt32(clrValue),
-            BaseFunnyType.UInt64 => Convert.ToUInt64(clrValue),
-            BaseFunnyType.Real => Convert.ToDouble(clrValue),
-            BaseFunnyType.Char => clrValue.ToString(),
-            _ => converter.ToFunObject(clrValue)
-        };
+                   BaseFunnyType.Any    => converter.ToFunObject(clrValue),
+                   BaseFunnyType.Bool   => Convert.ToBoolean(clrValue),
+                   BaseFunnyType.Int16  => Convert.ToInt16(clrValue),
+                   BaseFunnyType.Int32  => Convert.ToInt32(clrValue),
+                   BaseFunnyType.Int64  => Convert.ToInt64(clrValue),
+                   BaseFunnyType.UInt8  => Convert.ToByte(clrValue),
+                   BaseFunnyType.UInt16 => Convert.ToUInt16(clrValue),
+                   BaseFunnyType.UInt32 => Convert.ToUInt32(clrValue),
+                   BaseFunnyType.UInt64 => Convert.ToUInt64(clrValue),
+                   BaseFunnyType.Real   => Convert.ToDouble(clrValue),
+                   BaseFunnyType.Char   => clrValue.ToString(),
+                   _                    => converter.ToFunObject(clrValue)
+               };
     }
 
     public static IInputFunnyConverter GetInputConverter(FunnyType funnyType, Type clrTypeOrNull) =>
@@ -60,7 +60,8 @@ public static class FunnyTypeConverters {
         if (funnyType.BaseType == BaseFunnyType.ArrayOf)
         {
             var elementType = clrTypeOrNull?.GetElementType();
-            var elementConverter = GetInputConverter(funnyType.ArrayTypeSpecification.FunnyType, elementType,
+            var elementConverter = GetInputConverter(
+                funnyType.ArrayTypeSpecification.FunnyType, elementType,
                 // ReSharper disable once RedundantAssignment
                 reqDeepthCheck++);
             return new ClrArrayInputTypeFunnyConverter(elementConverter);
@@ -86,7 +87,8 @@ public static class FunnyTypeConverters {
                     continue;
                 var propertyConverter = GetInputConverter(fieldDef, property.PropertyType, reqDeepthCheck++);
                 propertiesConverters[readPropertiesCount] =
-                    new ValueTuple<string, IInputFunnyConverter, PropertyInfo>(property.Name.ToLower(),
+                    new ValueTuple<string, IInputFunnyConverter, PropertyInfo>(
+                        property.Name.ToLower(),
                         propertyConverter, property);
                 readPropertiesCount++;
             }
@@ -131,7 +133,8 @@ public static class FunnyTypeConverters {
                     continue;
                 var propertyConverter = GetInputConverter(property.PropertyType, reqDeepthCheck++);
                 propertiesConverters[readPropertiesCount] =
-                    new ValueTuple<string, IInputFunnyConverter, PropertyInfo>(property.Name.ToLower(),
+                    new ValueTuple<string, IInputFunnyConverter, PropertyInfo>(
+                        property.Name.ToLower(),
                         propertyConverter, property);
                 readPropertiesCount++;
             }
@@ -184,7 +187,8 @@ public static class FunnyTypeConverters {
                 var propertyConverter = GetOutputConverter(property.PropertyType, reqDeepthCheck++);
 
                 propertiesConverters[readPropertiesCount] =
-                    new ValueTuple<string, IOutputFunnyConverter, PropertyInfo>(property.Name.ToLower(),
+                    new ValueTuple<string, IOutputFunnyConverter, PropertyInfo>(
+                        property.Name.ToLower(),
                         propertyConverter, property);
                 readPropertiesCount++;
             }

@@ -47,10 +47,11 @@ class ArrayInit {
         graph.SetConst(1, StatePrimitive.I32);
         graph.SetConst(2, StatePrimitive.I32);
         graph.SetStrictArrayInit(3, 0, 1, 2);
-        TestHelper.AssertThrowsTicError(() => {
-            graph.SetDef("y", 3);
-            graph.Solve();
-        });
+        TestHelper.AssertThrowsTicError(
+            () => {
+                graph.SetDef("y", 3);
+                graph.Solve();
+            });
     }
 
     [Test]

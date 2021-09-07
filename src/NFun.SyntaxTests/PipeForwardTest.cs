@@ -9,24 +9,30 @@ public class PipeForwardTest {
     [TestCase("y = -1.abs()", -1)]
     [TestCase("y = 1.max(2)", 2)]
     [TestCase("y = -2.max(1)", -2)]
-    [TestCase(@"rr(x:real):bool = x>10
+    [TestCase(
+        @"rr(x:real):bool = x>10
                      y = [11.0,20.0,1.0,2.0].filter(rr)", new[] { 11.0, 20.0 })]
-    [TestCase(@"ii(x:int):bool = x>10
+    [TestCase(
+        @"ii(x:int):bool = x>10
                      y = [11,20,1,2].filter(ii)", new[] { 11, 20 })]
-    [TestCase(@"ii(x:int):int = x*x
+    [TestCase(
+        @"ii(x:int):int = x*x
                      y = [1,2,3].map(ii)", new[] { 1, 4, 9 })]
-    [TestCase(@"f(x:int):bool = x>10
+    [TestCase(
+        @"f(x:int):bool = x>10
                      m(x:int):int  = x*x
                      y = [11,20,1,2] 
                             .filter(f)
                             .map(m)", new[] { 121, 400 })]
-    [TestCase(@"f(x:int):bool = x>10
+    [TestCase(
+        @"f(x:int):bool = x>10
                      m(x:int):int  = x*x
                      y = [11,20,1,2] 
                             .filter(f)
                             .map(m)
                             .max()", 400)]
-    [TestCase(@"
+    [TestCase(
+        @"
                      y = [11.0,20.0,1.0,2.0] 
                             . filter(fun it>10.0)
                             . map(fun it*it)

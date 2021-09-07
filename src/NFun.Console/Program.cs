@@ -26,10 +26,16 @@ class Program {
 
                 if (runtime.Variables.Any(v => !v.IsOutput))
                 {
-                    Console.WriteLine("Inputs: " + string.Join(", ",
-                        runtime.Variables.Where(v => !v.IsOutput).Select(s => s.ToString())));
-                    Console.WriteLine("Ouputs: " + string.Join(", ",
-                        runtime.Variables.Where(v => v.IsOutput).Select(s => s.ToString())));
+                    Console.WriteLine(
+                        "Inputs: " +
+                        string.Join(
+                            ", ",
+                            runtime.Variables.Where(v => !v.IsOutput).Select(s => s.ToString())));
+                    Console.WriteLine(
+                        "Ouputs: " +
+                        string.Join(
+                            ", ",
+                            runtime.Variables.Where(v => v.IsOutput).Select(s => s.ToString())));
                 }
                 else
                 {
@@ -40,8 +46,13 @@ class Program {
                     Console.WriteLine($"Calc in {calcSw.Elapsed.TotalMilliseconds}");
                     Console.WriteLine("Results:");
                     foreach (var result in runtime.Variables.Where(v => v.IsOutput))
-                        Console.WriteLine(result.Name + ": " + result.Type + " (" +
-                                          result.Value.GetType().Name + ")");
+                        Console.WriteLine(
+                            result.Name +
+                            ": " +
+                            result.Type +
+                            " (" +
+                            result.Value.GetType().Name +
+                            ")");
                 }
             }
             catch (FunnyRuntimeException e)

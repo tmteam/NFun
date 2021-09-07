@@ -199,7 +199,8 @@ public class Tokenizer {
         if (index < str.Length && IsLetter(str[index]))
         {
             var txtToken = ReadIdOrKeyword(str, index);
-            return Tok.New(TokType.NotAToken, str.Substring(position, txtToken.Finish - position),
+            return Tok.New(
+                TokType.NotAToken, str.Substring(position, txtToken.Finish - position),
                 position, txtToken.Finish);
         }
 

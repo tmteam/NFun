@@ -87,8 +87,8 @@ public static class TicErrors {
     public static Exception CannotSetState(TicNode node, ITicNodeState b) =>
         node.Type switch {
             TicNodeType.SyntaxNode => new IncompatibleAncestorSyntaxNodeException((int)node.Name, node.State, b),
-            TicNodeType.Named => new IncompatibleAncestorNamedNodeException(node.Name.ToString(), node.State, b),
-            _ => new TicNoDetailsException()
+            TicNodeType.Named      => new IncompatibleAncestorNamedNodeException(node.Name.ToString(), node.State, b),
+            _                      => new TicNoDetailsException()
         };
 }
 

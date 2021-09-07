@@ -68,9 +68,10 @@ public static class FunCallBuilderExtensions {
     public static void SetConcatCall(this GraphBuilder builder, int firstId, int secondId, int resultId) {
         var varNode = builder.InitializeVarNode();
 
-        builder.SetCall(new ITicNodeState[] {
-            StateArray.Of(varNode), StateArray.Of(varNode), StateArray.Of(varNode)
-        }, new[] { firstId, secondId, resultId });
+        builder.SetCall(
+            new ITicNodeState[] {
+                StateArray.Of(varNode), StateArray.Of(varNode), StateArray.Of(varNode)
+            }, new[] { firstId, secondId, resultId });
     }
 
     public static void SetSumCall(this GraphBuilder builder, int argId, int resultId) {
@@ -82,42 +83,46 @@ public static class FunCallBuilderExtensions {
     public static void SetIsAny(this GraphBuilder builder, int arrId, int funId, int resultId) {
         var inNode = builder.InitializeVarNode();
         if (inNode != null)
-            builder.SetCall(new ITicNodeState[] {
-                StateArray.Of(inNode),
-                StateFun.Of(returnType: StatePrimitive.Bool, argType: inNode),
-                StatePrimitive.Bool
-            }, new[] { arrId, funId, resultId });
+            builder.SetCall(
+                new ITicNodeState[] {
+                    StateArray.Of(inNode),
+                    StateFun.Of(returnType: StatePrimitive.Bool, argType: inNode),
+                    StatePrimitive.Bool
+                }, new[] { arrId, funId, resultId });
     }
 
     public static void SetGetFirst(this GraphBuilder builder, int arrId, int funId, int resultId) {
         var inNode = builder.InitializeVarNode();
         if (inNode != null)
-            builder.SetCall(new ITicNodeState[] {
-                StateArray.Of(inNode),
-                StateFun.Of(returnType: StatePrimitive.Bool, argType: inNode),
-                inNode
-            }, new[] { arrId, funId, resultId });
+            builder.SetCall(
+                new ITicNodeState[] {
+                    StateArray.Of(inNode),
+                    StateFun.Of(returnType: StatePrimitive.Bool, argType: inNode),
+                    inNode
+                }, new[] { arrId, funId, resultId });
     }
 
     public static void SetMap(this GraphBuilder builder, int arrId, int funId, int resultId) {
         var inNode = builder.InitializeVarNode();
         var outNode = builder.InitializeVarNode();
-        builder.SetCall(new ITicNodeState[] {
-            StateArray.Of(inNode), StateFun.Of(
-                returnType: outNode,
-                argType: inNode),
-            StateArray.Of(outNode)
-        }, new[] { arrId, funId, resultId });
+        builder.SetCall(
+            new ITicNodeState[] {
+                StateArray.Of(inNode), StateFun.Of(
+                    returnType: outNode,
+                    argType: inNode),
+                StateArray.Of(outNode)
+            }, new[] { arrId, funId, resultId });
     }
 
     public static void SetfoldCall(this GraphBuilder graph, int arrId, int funId, int returnId) {
         var generic = graph.InitializeVarNode();
 
-        graph.SetCall(new ITicNodeState[] {
-            StateArray.Of(generic),
-            StateFun.Of(new[] { generic, generic }, generic),
-            generic
-        }, new[] { arrId, funId, returnId });
+        graph.SetCall(
+            new ITicNodeState[] {
+                StateArray.Of(generic),
+                StateFun.Of(new[] { generic, generic }, generic),
+                generic
+            }, new[] { arrId, funId, returnId });
     }
 
     public static void SetSizeOfArrayCall(this GraphBuilder graph, int argId, int resId) {
@@ -136,7 +141,8 @@ public static class FunCallBuilderExtensions {
         var tRes = graph.InitializeVarNode();
         var tArg = graph.InitializeVarNode();
         //fold call   fold( T[], G, (G,T)->G )->G 
-        graph.SetCall(new ITicNodeState[] {
+        graph.SetCall(
+            new ITicNodeState[] {
                 StateArray.Of(tArg),
                 tRes,
                 StateFun.Of(new ITicNodeState[] { tRes, tArg }, tRes),
@@ -149,11 +155,12 @@ public static class FunCallBuilderExtensions {
         var inT = graph.InitializeVarNode();
         var outT = graph.InitializeVarNode();
 
-        graph.SetCall(new ITicNodeState[] {
-            StateArray.Of(inT),
-            StateFun.Of(new[] { outT, inT }, outT),
-            outT
-        }, new[] { arrId, funId, returnId });
+        graph.SetCall(
+            new ITicNodeState[] {
+                StateArray.Of(inT),
+                StateFun.Of(new[] { outT, inT }, outT),
+                outT
+            }, new[] { arrId, funId, returnId });
     }
 
     public static void SetReverse(this GraphBuilder graph, int arrId, int resultId) {

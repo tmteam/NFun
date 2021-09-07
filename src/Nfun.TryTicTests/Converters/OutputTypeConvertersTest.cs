@@ -81,10 +81,11 @@ public class OutputTypeConvertersTest {
     public void StructType() {
         var inputUser = new UserMoqOutputType("vasa", 42, 17.1);
         var converter = FunnyTypeConverters.GetOutputConverter(inputUser.GetType());
-        Assert.AreEqual(FunnyType.StructOf(
-            ("name", FunnyType.Text),
-            ("age", FunnyType.Int32),
-            ("size", FunnyType.Real)), converter.FunnyType);
+        Assert.AreEqual(
+            FunnyType.StructOf(
+                ("name", FunnyType.Text),
+                ("age", FunnyType.Int32),
+                ("size", FunnyType.Real)), converter.FunnyType);
     }
 
     [Test]
@@ -107,10 +108,11 @@ public class OutputTypeConvertersTest {
 
         var converter = FunnyTypeConverters.GetOutputConverter(inputUsers.GetType());
         Assert.AreEqual(
-            FunnyType.ArrayOf(FunnyType.StructOf(
-                ("name", FunnyType.Text),
-                ("age", FunnyType.Int32),
-                ("size", FunnyType.Real))), converter.FunnyType);
+            FunnyType.ArrayOf(
+                FunnyType.StructOf(
+                    ("name", FunnyType.Text),
+                    ("age", FunnyType.Int32),
+                    ("size", FunnyType.Real))), converter.FunnyType);
     }
 
     [Test]

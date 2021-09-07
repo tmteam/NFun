@@ -62,7 +62,8 @@ public class InputTypeConvertersTest {
         var converter = FunnyTypeConverters.GetInputConverter(inputValue.GetType());
 
         Assert.AreEqual(FunnyType.ArrayOf(FunnyType.Text), converter.FunnyType);
-        Assert.AreEqual(new ImmutableFunnyArray(
+        Assert.AreEqual(
+            new ImmutableFunnyArray(
                 inputValue.Select(i => new TextFunnyArray(i)).ToArray(), FunnyType.Text),
             converter.ToFunObject(inputValue));
     }
@@ -85,10 +86,11 @@ public class InputTypeConvertersTest {
     public void StructType() {
         var inputUser = new UserMoqType("vasa", 42, 17.1);
         var converter = FunnyTypeConverters.GetInputConverter(inputUser.GetType());
-        Assert.AreEqual(FunnyType.StructOf(
-            ("name", FunnyType.Text),
-            ("age", FunnyType.Int32),
-            ("size", FunnyType.Real)), converter.FunnyType);
+        Assert.AreEqual(
+            FunnyType.StructOf(
+                ("name", FunnyType.Text),
+                ("age", FunnyType.Int32),
+                ("size", FunnyType.Real)), converter.FunnyType);
         var value = converter.ToFunObject(inputUser);
         Assert.IsInstanceOf<FunnyStruct>(value);
         var converted = (FunnyStruct)value;
@@ -107,14 +109,16 @@ public class InputTypeConvertersTest {
 
         var converter = FunnyTypeConverters.GetInputConverter(inputUsers.GetType());
         Assert.AreEqual(
-            FunnyType.ArrayOf(FunnyType.StructOf(
-                ("name", FunnyType.Text),
-                ("age", FunnyType.Int32),
-                ("size", FunnyType.Real))), converter.FunnyType);
+            FunnyType.ArrayOf(
+                FunnyType.StructOf(
+                    ("name", FunnyType.Text),
+                    ("age", FunnyType.Int32),
+                    ("size", FunnyType.Real))), converter.FunnyType);
         var value = converter.ToFunObject(inputUsers);
         Assert.IsInstanceOf<ImmutableFunnyArray>(value);
         var secondElememt = ((ImmutableFunnyArray)value).GetElementOrNull(1) as FunnyStruct;
-        Assert.IsNotNull(secondElememt,
+        Assert.IsNotNull(
+            secondElememt,
             ((ImmutableFunnyArray)value).GetElementOrNull(1).GetType().Name + " is wrong type");
         Assert.AreEqual(inputUsers[1].Name, (secondElememt.GetValue("name") as TextFunnyArray).ToText());
         Assert.AreEqual(inputUsers[1].Age, secondElememt.GetValue("age"));

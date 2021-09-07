@@ -152,9 +152,7 @@ internal class ConstantCalculatorSingle : IConstantCalculator<object> {
     private readonly FunnyCalculatorBuilder _builder;
     private static readonly AprioriTypesMap Apriori = new();
 
-    public ConstantCalculatorSingle(FunnyCalculatorBuilder builder) {
-        _builder = builder;
-    }
+    public ConstantCalculatorSingle(FunnyCalculatorBuilder builder) { _builder = builder; }
 
     public object Calc(string expression) {
         var runtime = _builder.CreateRuntime(expression, Apriori);

@@ -8,11 +8,13 @@ public abstract class GenericFunctionWithTwoArguments : GenericFunctionBase {
         name, returnType, argTypes) { }
 
     protected GenericFunctionWithTwoArguments(
-        string name, GenericConstrains[] constrains, FunnyType returnType, params FunnyType[] argTypes) : base(name,
+        string name, GenericConstrains[] constrains, FunnyType returnType, params FunnyType[] argTypes) : base(
+        name,
         constrains, returnType, argTypes) { }
 
     protected GenericFunctionWithTwoArguments(
-        string name, GenericConstrains constrains, FunnyType returnType, params FunnyType[] argTypes) : base(name,
+        string name, GenericConstrains constrains, FunnyType returnType, params FunnyType[] argTypes) : base(
+        name,
         constrains, returnType, argTypes) { }
 
     protected override object Calc(object[] args) => Calc(args[0], args[1]);

@@ -30,24 +30,26 @@ public static class LangTiHelper {
 
     public static ITicNodeState ConvertToTiType(this FunnyType origin) =>
         origin.BaseType switch {
-            BaseFunnyType.Bool => StatePrimitive.Bool,
-            BaseFunnyType.Int16 => StatePrimitive.I16,
-            BaseFunnyType.Int32 => StatePrimitive.I32,
-            BaseFunnyType.Int64 => StatePrimitive.I64,
-            BaseFunnyType.UInt8 => StatePrimitive.U8,
+            BaseFunnyType.Bool   => StatePrimitive.Bool,
+            BaseFunnyType.Int16  => StatePrimitive.I16,
+            BaseFunnyType.Int32  => StatePrimitive.I32,
+            BaseFunnyType.Int64  => StatePrimitive.I64,
+            BaseFunnyType.UInt8  => StatePrimitive.U8,
             BaseFunnyType.UInt16 => StatePrimitive.U16,
             BaseFunnyType.UInt32 => StatePrimitive.U32,
             BaseFunnyType.UInt64 => StatePrimitive.U64,
-            BaseFunnyType.Real => StatePrimitive.Real,
-            BaseFunnyType.Char => StatePrimitive.Char,
-            BaseFunnyType.Any => StatePrimitive.Any,
+            BaseFunnyType.Real   => StatePrimitive.Real,
+            BaseFunnyType.Char   => StatePrimitive.Char,
+            BaseFunnyType.Any    => StatePrimitive.Any,
             BaseFunnyType.ArrayOf => StateArray.Of(
                 ConvertToTiType(origin.ArrayTypeSpecification.FunnyType)),
             BaseFunnyType.Fun => StateFun.Of(
                 argTypes: origin.FunTypeSpecification.Inputs.SelectToArray(ConvertToTiType),
                 returnType: ConvertToTiType(origin.FunTypeSpecification.Output)),
-            BaseFunnyType.Struct => StateStruct.Of(origin.StructTypeSpecification.Select(d =>
-                new KeyValuePair<string, ITicNodeState>(d.Key, ConvertToTiType(d.Value)))),
+            BaseFunnyType.Struct => StateStruct.Of(
+                origin.StructTypeSpecification.Select(
+                    d =>
+                        new KeyValuePair<string, ITicNodeState>(d.Key, ConvertToTiType(d.Value)))),
             _ => throw new ArgumentOutOfRangeException(
                 $"Var type '{origin}' is not supported for convertion to FunTicType")
         };
@@ -62,9 +64,10 @@ public static class LangTiHelper {
                     type => ConvertToTiType(type, genericMap)),
                 returnType: ConvertToTiType(origin.FunTypeSpecification.Output, genericMap)),
             BaseFunnyType.Struct => StateStruct.Of(
-                origin.StructTypeSpecification.Select(s => new KeyValuePair<string, ITicNodeState>(
-                    key: s.Key,
-                    value: ConvertToTiType(s.Value, genericMap)))),
+                origin.StructTypeSpecification.Select(
+                    s => new KeyValuePair<string, ITicNodeState>(
+                        key: s.Key,
+                        value: ConvertToTiType(s.Value, genericMap)))),
             _ => origin.ConvertToTiType()
         };
 }

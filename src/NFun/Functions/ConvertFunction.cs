@@ -59,18 +59,18 @@ public class ConvertFunction : GenericFunctionBase {
 
     private static Func<object, object> CreateBinarizerOrNull(FunnyType from) =>
         @from.BaseType switch {
-            BaseFunnyType.Char => o => ToBoolArray(new[] { (byte)(char)o }),
-            BaseFunnyType.Bool => o => new ImmutableFunnyArray(new[] { (bool)o }),
-            BaseFunnyType.UInt8 => o => ToBoolArray(new[] { (byte)o }),
+            BaseFunnyType.Char   => o => ToBoolArray(new[] { (byte)(char)o }),
+            BaseFunnyType.Bool   => o => new ImmutableFunnyArray(new[] { (bool)o }),
+            BaseFunnyType.UInt8  => o => ToBoolArray(new[] { (byte)o }),
             BaseFunnyType.UInt16 => o => ToBoolArray(BitConverter.GetBytes((ushort)o)),
             BaseFunnyType.UInt32 => o => ToBoolArray(BitConverter.GetBytes((uint)o)),
             BaseFunnyType.UInt64 => o => ToBoolArray(BitConverter.GetBytes((long)o)),
-            BaseFunnyType.Int16 => o => ToBoolArray(BitConverter.GetBytes((short)o)),
-            BaseFunnyType.Int32 => o => ToBoolArray(BitConverter.GetBytes((int)o)),
-            BaseFunnyType.Int64 => o => ToBoolArray(BitConverter.GetBytes((long)o)),
-            BaseFunnyType.Real => o => ToBoolArray(BitConverter.GetBytes((double)o)),
-            _ when @from.IsText => o => ToBoolArray(Encoding.Unicode.GetBytes(((IFunnyArray)o).ToText())),
-            _ => null
+            BaseFunnyType.Int16  => o => ToBoolArray(BitConverter.GetBytes((short)o)),
+            BaseFunnyType.Int32  => o => ToBoolArray(BitConverter.GetBytes((int)o)),
+            BaseFunnyType.Int64  => o => ToBoolArray(BitConverter.GetBytes((long)o)),
+            BaseFunnyType.Real   => o => ToBoolArray(BitConverter.GetBytes((double)o)),
+            _ when @from.IsText  => o => ToBoolArray(Encoding.Unicode.GetBytes(((IFunnyArray)o).ToText())),
+            _                    => null
         };
 
     private static ImmutableFunnyArray ToBoolArray(byte[] array) {
@@ -115,15 +115,15 @@ public class ConvertFunction : GenericFunctionBase {
                 if (string.Equals(str, "0", StringComparison.Ordinal)) return false;
                 return null;
             },
-            BaseFunnyType.UInt8 => o => byte.Parse(((IFunnyArray)o).ToText()),
+            BaseFunnyType.UInt8  => o => byte.Parse(((IFunnyArray)o).ToText()),
             BaseFunnyType.UInt16 => o => ushort.Parse(((IFunnyArray)o).ToText()),
             BaseFunnyType.UInt32 => o => UInt32.Parse(((IFunnyArray)o).ToText()),
             BaseFunnyType.UInt64 => o => UInt64.Parse(((IFunnyArray)o).ToText()),
-            BaseFunnyType.Int16 => o => UInt16.Parse(((IFunnyArray)o).ToText()),
-            BaseFunnyType.Int32 => o => Int32.Parse(((IFunnyArray)o).ToText()),
-            BaseFunnyType.Int64 => o => Int64.Parse(((IFunnyArray)o).ToText()),
-            BaseFunnyType.Real => o => double.Parse(((IFunnyArray)o).ToText(), CultureInfo.InvariantCulture),
-            _ => null
+            BaseFunnyType.Int16  => o => UInt16.Parse(((IFunnyArray)o).ToText()),
+            BaseFunnyType.Int32  => o => Int32.Parse(((IFunnyArray)o).ToText()),
+            BaseFunnyType.Int64  => o => Int64.Parse(((IFunnyArray)o).ToText()),
+            BaseFunnyType.Real   => o => double.Parse(((IFunnyArray)o).ToText(), CultureInfo.InvariantCulture),
+            _                    => null
         };
 
     private static Func<object, object> CreateDeserializerOrNull(FunnyType to) {
@@ -150,7 +150,8 @@ public class ConvertFunction : GenericFunctionBase {
     class ConcreteConverter : FunctionWithSingleArg {
         private readonly Func<object, object> _converter;
 
-        public ConcreteConverter(Func<object, object> converter, FunnyType from, FunnyType to) : base("convert", to,
+        public ConcreteConverter(Func<object, object> converter, FunnyType from, FunnyType to) : base(
+            "convert", to,
             from) {
             _converter = converter;
         }
@@ -173,10 +174,10 @@ public class ConvertFunction : GenericFunctionBase {
         try
         {
             return val.Count switch {
-                > 4 => throw new FunnyRuntimeException("Array is too long"),
-                4 => val.Select(Convert.ToByte).ToArray(),
-                _ => val.Concat(new int[4 - val.Count].Cast<object>()).Select(Convert.ToByte).ToArray()
-            };
+                       > 4 => throw new FunnyRuntimeException("Array is too long"),
+                       4   => val.Select(Convert.ToByte).ToArray(),
+                       _   => val.Concat(new int[4 - val.Count].Cast<object>()).Select(Convert.ToByte).ToArray()
+                   };
         }
         catch (Exception e)
         {

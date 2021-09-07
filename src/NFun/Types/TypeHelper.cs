@@ -64,8 +64,8 @@ internal static class TypeHelper {
     internal static string GetFunText(object obj) =>
         obj switch {
             IFunnyArray funArray => funArray.ToText(),
-            double dbl => dbl.ToString(CultureInfo.InvariantCulture),
-            _ => obj.ToString()
+            double dbl           => dbl.ToString(CultureInfo.InvariantCulture),
+            _                    => obj.ToString()
         };
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -5,7 +5,8 @@ using NFun.Types;
 namespace NFun.Functions {
 
 public class NotEqualFunction : GenericFunctionWithTwoArguments {
-    public NotEqualFunction() : base(CoreFunNames.NotEqual, FunnyType.Bool, FunnyType.Generic(0),
+    public NotEqualFunction() : base(
+        CoreFunNames.NotEqual, FunnyType.Bool, FunnyType.Generic(0),
         FunnyType.Generic(0)) { }
 
     protected override object Calc(object a, object b) => !TypeHelper.AreEqual(a, b);
@@ -19,7 +20,8 @@ public class EqualFunction : GenericFunctionWithTwoArguments {
 }
 
 public class MoreFunction : GenericFunctionBase {
-    public MoreFunction() : base(CoreFunNames.More, GenericConstrains.Comparable, FunnyType.Bool, FunnyType.Generic(0),
+    public MoreFunction() : base(
+        CoreFunNames.More, GenericConstrains.Comparable, FunnyType.Bool, FunnyType.Generic(0),
         FunnyType.Generic(0)) { }
 
     protected override object Calc(object[] args) {
@@ -30,7 +32,8 @@ public class MoreFunction : GenericFunctionBase {
 }
 
 public class MoreOrEqualFunction : GenericFunctionBase {
-    public MoreOrEqualFunction() : base(CoreFunNames.MoreOrEqual, GenericConstrains.Comparable, FunnyType.Bool,
+    public MoreOrEqualFunction() : base(
+        CoreFunNames.MoreOrEqual, GenericConstrains.Comparable, FunnyType.Bool,
         FunnyType.Generic(0), FunnyType.Generic(0)) { }
 
     protected override object Calc(object[] args) {
@@ -41,7 +44,8 @@ public class MoreOrEqualFunction : GenericFunctionBase {
 }
 
 public class LessFunction : GenericFunctionWithTwoArguments {
-    public LessFunction() : base(CoreFunNames.Less, GenericConstrains.Comparable, FunnyType.Bool, FunnyType.Generic(0),
+    public LessFunction() : base(
+        CoreFunNames.Less, GenericConstrains.Comparable, FunnyType.Bool, FunnyType.Generic(0),
         FunnyType.Generic(0)) { }
 
     protected override object Calc(object arg1, object arg2) {
@@ -52,7 +56,8 @@ public class LessFunction : GenericFunctionWithTwoArguments {
 }
 
 public class LessOrEqualFunction : GenericFunctionBase {
-    public LessOrEqualFunction() : base(CoreFunNames.LessOrEqual, GenericConstrains.Comparable, FunnyType.Bool,
+    public LessOrEqualFunction() : base(
+        CoreFunNames.LessOrEqual, GenericConstrains.Comparable, FunnyType.Bool,
         FunnyType.Generic(0), FunnyType.Generic(0)) { }
 
     protected override object Calc(object[] args) {

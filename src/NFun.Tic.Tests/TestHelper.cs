@@ -106,8 +106,9 @@ public static class TestHelper {
     }
 
     public static void AssertNoGenerics(this ITicResults results)
-        => Assert.AreEqual(0, results.GenericsCount, $"Unexpected generic types. Generic nodes: " +
-                                                     $"{string.Join(",", results.GenericNodes)}");
+        => Assert.AreEqual(
+            0, results.GenericsCount, $"Unexpected generic types. Generic nodes: " +
+                                      $"{string.Join(",", results.GenericNodes)}");
 
     public static void AssertNamedEqualToArrayOf(
         this ITicResults results, object typeOrNode,
@@ -149,7 +150,8 @@ public static class TestHelper {
     }
 
     private static void AssertNodeStateEqualToState(ITypeState expected, ITicNodeState actual, object id) =>
-        Assert.IsTrue(AreStatesEqualByValue(actual, expected),
+        Assert.IsTrue(
+            AreStatesEqualByValue(actual, expected),
             $"States are not equal for '{id}': \r\nExpected: {expected}\r\nActual: {actual}");
 
     public static void AssertNode(this ITicResults results, TicNode generic, params int[] nodeIds) {

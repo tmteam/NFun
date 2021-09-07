@@ -52,11 +52,12 @@ public class GetFirstTests {
         graph.SetVar("a", 0);
         graph.SetVar("2lx", 1);
         graph.CreateLambda(1, 2, StatePrimitive.Any, "2lx");
-        TestHelper.AssertThrowsTicError(() => {
-            graph.SetGetFirst(0, 2, 3);
-            graph.SetDef("y", 3);
-            graph.Solve();
-        });
+        TestHelper.AssertThrowsTicError(
+            () => {
+                graph.SetGetFirst(0, 2, 3);
+                graph.SetDef("y", 3);
+                graph.Solve();
+            });
     }
 
     [Test]
@@ -91,13 +92,14 @@ public class GetFirstTests {
         graph.SetVar("lx", 2);
         graph.SetIntConst(3, StatePrimitive.U8);
         graph.SetEquality(2, 3, 4);
-        TestHelper.AssertThrowsTicError(() => {
-            graph.CreateLambda(4, 5, "lx");
-            graph.SetGetFirst(1, 5, 6);
-            graph.SetDef("y", 6);
-            graph.Solve();
-            Assert.Fail("Impossible equation solved");
-        });
+        TestHelper.AssertThrowsTicError(
+            () => {
+                graph.CreateLambda(4, 5, "lx");
+                graph.SetGetFirst(1, 5, 6);
+                graph.SetDef("y", 6);
+                graph.Solve();
+                Assert.Fail("Impossible equation solved");
+            });
     }
 
     [Test]

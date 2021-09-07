@@ -9,14 +9,14 @@ public class BitOrFunction : PureGenericFunctionBase {
 
     public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes) =>
         concreteTypes[0].BaseType switch {
-            BaseFunnyType.UInt8 => new UInt8Function(),
+            BaseFunnyType.UInt8  => new UInt8Function(),
             BaseFunnyType.UInt16 => new UInt16Function(),
             BaseFunnyType.UInt32 => new UInt32Function(),
             BaseFunnyType.UInt64 => new UInt64Function(),
-            BaseFunnyType.Int16 => new Int16Function(),
-            BaseFunnyType.Int32 => new Int32Function(),
-            BaseFunnyType.Int64 => new Int64Function(),
-            _ => throw new ArgumentOutOfRangeException()
+            BaseFunnyType.Int16  => new Int16Function(),
+            BaseFunnyType.Int32  => new Int32Function(),
+            BaseFunnyType.Int64  => new Int64Function(),
+            _                    => throw new ArgumentOutOfRangeException()
         };
 
     private class Int16Function : FunctionWithTwoArgs {
@@ -60,14 +60,14 @@ public class BitXorFunction : PureGenericFunctionBase {
 
     public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes) =>
         concreteTypes[0].BaseType switch {
-            BaseFunnyType.UInt8 => new UInt8Function(),
+            BaseFunnyType.UInt8  => new UInt8Function(),
             BaseFunnyType.UInt16 => new UInt16Function(),
             BaseFunnyType.UInt32 => new UInt32Function(),
             BaseFunnyType.UInt64 => new UInt64Function(),
-            BaseFunnyType.Int16 => new Int16Function(),
-            BaseFunnyType.Int32 => new Int32Function(),
-            BaseFunnyType.Int64 => new Int64Function(),
-            _ => throw new ArgumentOutOfRangeException()
+            BaseFunnyType.Int16  => new Int16Function(),
+            BaseFunnyType.Int32  => new Int32Function(),
+            BaseFunnyType.Int64  => new Int64Function(),
+            _                    => throw new ArgumentOutOfRangeException()
         };
 
     private class Int16Function : FunctionWithTwoArgs {
@@ -111,14 +111,14 @@ public class BitAndFunction : PureGenericFunctionBase {
 
     public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes) =>
         concreteTypes[0].BaseType switch {
-            BaseFunnyType.UInt8 => new UInt8Function(),
+            BaseFunnyType.UInt8  => new UInt8Function(),
             BaseFunnyType.UInt16 => new UInt16Function(),
             BaseFunnyType.UInt32 => new UInt32Function(),
             BaseFunnyType.UInt64 => new UInt64Function(),
-            BaseFunnyType.Int16 => new Int16Function(),
-            BaseFunnyType.Int32 => new Int32Function(),
-            BaseFunnyType.Int64 => new Int64Function(),
-            _ => throw new ArgumentOutOfRangeException()
+            BaseFunnyType.Int16  => new Int16Function(),
+            BaseFunnyType.Int32  => new Int32Function(),
+            BaseFunnyType.Int64  => new Int64Function(),
+            _                    => throw new ArgumentOutOfRangeException()
         };
 
     private class Int16Function : FunctionWithTwoArgs {
@@ -162,14 +162,14 @@ public class BitInverseFunction : PureGenericFunctionBase {
 
     public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes) =>
         concreteTypes[0].BaseType switch {
-            BaseFunnyType.UInt8 => new UInt8Function(),
+            BaseFunnyType.UInt8  => new UInt8Function(),
             BaseFunnyType.UInt16 => new UInt16Function(),
             BaseFunnyType.UInt32 => new UInt32Function(),
             BaseFunnyType.UInt64 => new UInt64Function(),
-            BaseFunnyType.Int16 => new Int16Function(),
-            BaseFunnyType.Int32 => new Int32Function(),
-            BaseFunnyType.Int64 => new Int64Function(),
-            _ => throw new ArgumentOutOfRangeException()
+            BaseFunnyType.Int16  => new Int16Function(),
+            BaseFunnyType.Int32  => new Int32Function(),
+            BaseFunnyType.Int64  => new Int64Function(),
+            _                    => throw new ArgumentOutOfRangeException()
         };
 
     public class Int16Function : FunctionWithSingleArg {
@@ -209,7 +209,8 @@ public class BitInverseFunction : PureGenericFunctionBase {
 }
 
 public class BitShiftLeftFunction : GenericFunctionBase {
-    public BitShiftLeftFunction() : base(CoreFunNames.BitShiftLeft,
+    public BitShiftLeftFunction() : base(
+        CoreFunNames.BitShiftLeft,
         GenericConstrains.Integers3264,
         FunnyType.Generic(0),
         FunnyType.Generic(0),
@@ -217,12 +218,12 @@ public class BitShiftLeftFunction : GenericFunctionBase {
 
     public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes) {
         return concreteTypes[0].BaseType switch {
-            BaseFunnyType.UInt32 => new UInt32Function(),
-            BaseFunnyType.UInt64 => new UInt64Function(),
-            BaseFunnyType.Int32 => new Int32Function(),
-            BaseFunnyType.Int64 => new Int64Function(),
-            _ => throw new ArgumentOutOfRangeException()
-        };
+                   BaseFunnyType.UInt32 => new UInt32Function(),
+                   BaseFunnyType.UInt64 => new UInt64Function(),
+                   BaseFunnyType.Int32  => new Int32Function(),
+                   BaseFunnyType.Int64  => new Int64Function(),
+                   _                    => throw new ArgumentOutOfRangeException()
+               };
     }
 
 
@@ -237,14 +238,16 @@ public class BitShiftLeftFunction : GenericFunctionBase {
     }
 
     public class UInt32Function : FunctionWithTwoArgs {
-        public UInt32Function() : base(CoreFunNames.BitShiftLeft, FunnyType.UInt32, FunnyType.UInt32,
+        public UInt32Function() : base(
+            CoreFunNames.BitShiftLeft, FunnyType.UInt32, FunnyType.UInt32,
             FunnyType.UInt8) { }
 
         public override object Calc(object a, object b) => (uint)(((uint)a) << ((byte)b));
     }
 
     public class UInt64Function : FunctionWithTwoArgs {
-        public UInt64Function() : base(CoreFunNames.BitShiftLeft, FunnyType.UInt64, FunnyType.UInt64,
+        public UInt64Function() : base(
+            CoreFunNames.BitShiftLeft, FunnyType.UInt64, FunnyType.UInt64,
             FunnyType.UInt8) { }
 
         public override object Calc(object a, object b) => (ulong)(((ulong)a) << ((byte)b));
@@ -252,7 +255,8 @@ public class BitShiftLeftFunction : GenericFunctionBase {
 }
 
 public class BitShiftRightFunction : GenericFunctionBase {
-    public BitShiftRightFunction() : base(CoreFunNames.BitShiftRight,
+    public BitShiftRightFunction() : base(
+        CoreFunNames.BitShiftRight,
         GenericConstrains.Integers3264,
         FunnyType.Generic(0),
         FunnyType.Generic(0),
@@ -260,12 +264,12 @@ public class BitShiftRightFunction : GenericFunctionBase {
 
     public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes) {
         return concreteTypes[0].BaseType switch {
-            BaseFunnyType.UInt32 => new UInt32Function(),
-            BaseFunnyType.UInt64 => new UInt64Function(),
-            BaseFunnyType.Int32 => new Int32Function(),
-            BaseFunnyType.Int64 => new Int64Function(),
-            _ => throw new ArgumentOutOfRangeException()
-        };
+                   BaseFunnyType.UInt32 => new UInt32Function(),
+                   BaseFunnyType.UInt64 => new UInt64Function(),
+                   BaseFunnyType.Int32  => new Int32Function(),
+                   BaseFunnyType.Int64  => new Int64Function(),
+                   _                    => throw new ArgumentOutOfRangeException()
+               };
     }
 
 
@@ -280,14 +284,16 @@ public class BitShiftRightFunction : GenericFunctionBase {
     }
 
     public class UInt32Function : FunctionWithTwoArgs {
-        public UInt32Function() : base(CoreFunNames.BitShiftRight, FunnyType.UInt32, FunnyType.UInt32,
+        public UInt32Function() : base(
+            CoreFunNames.BitShiftRight, FunnyType.UInt32, FunnyType.UInt32,
             FunnyType.UInt8) { }
 
         public override object Calc(object a, object b) => (uint)((uint)a >> (byte)b);
     }
 
     public class UInt64Function : FunctionWithTwoArgs {
-        public UInt64Function() : base(CoreFunNames.BitShiftRight, FunnyType.UInt64, FunnyType.UInt64,
+        public UInt64Function() : base(
+            CoreFunNames.BitShiftRight, FunnyType.UInt64, FunnyType.UInt64,
             FunnyType.UInt8) { }
 
         public override object Calc(object a, object b) => (ulong)((ulong)a >> (byte)b);

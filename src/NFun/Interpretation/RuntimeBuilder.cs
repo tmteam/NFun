@@ -304,7 +304,8 @@ internal static class RuntimeBuilder {
         }
         else
         {
-            var function = GenericUserFunction.Create(typeInferenceResuls, functionSyntaxNode, functionsDictionary,
+            var function = GenericUserFunction.Create(
+                typeInferenceResuls, functionSyntaxNode, functionsDictionary,
                 dialect);
             functionsDictionary.TryAdd(function);
             if (TraceLog.IsEnabled)

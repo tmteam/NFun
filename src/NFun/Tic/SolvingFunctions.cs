@@ -120,8 +120,7 @@ public static class SolvingFunctions {
     /// Returns 'main'
     /// </summary>
     public static TicNode MergeGroup(IEnumerable<TicNode> cycleRoute) {
-        var main = cycleRoute.FirstOrDefault(c => c.State is not StateRefTo)
-                   ?? cycleRoute.First();
+        var main = cycleRoute.FirstOrDefault(c => c.State is not StateRefTo) ?? cycleRoute.First();
         foreach (var current in cycleRoute)
         {
             if (current == main)
@@ -135,8 +134,8 @@ public static class SolvingFunctions {
             else
             {
                 //merge main and current
-                main.State = GetMergedStateOrNull(main.State, current.State)
-                             ?? throw TicErrors.CannotMergeGroup(cycleRoute.ToArray(), main, current);
+                main.State = GetMergedStateOrNull(main.State, current.State) ??
+                             throw TicErrors.CannotMergeGroup(cycleRoute.ToArray(), main, current);
             }
 
             main.AddAncestors(current.Ancestors.Where(c => c != main));
@@ -147,9 +146,9 @@ public static class SolvingFunctions {
         }
 
         var newAncestors = main.Ancestors
-            .Where(r => !cycleRoute.Contains(r))
-            .Distinct()
-            .ToList();
+                               .Where(r => !cycleRoute.Contains(r))
+                               .Distinct()
+                               .ToList();
 
         main.ClearAncestors();
         main.AddAncestors(newAncestors);
@@ -350,8 +349,7 @@ public static class SolvingFunctions {
             return StateFun.Of(argNodes, retNode);
         }
 
-        if (descendant.Descendant is StateFun funDesc
-            && funDesc.ArgsCount == ancestor.ArgsCount)
+        if (descendant.Descendant is StateFun funDesc && funDesc.ArgsCount == ancestor.ArgsCount)
         {
             if (funDesc.IsSolved)
                 return funDesc;
@@ -578,25 +576,25 @@ public static class SolvingFunctions {
 
     private static IEnumerable<TicNode> GetAllNotSolvedContravariantLeafs(this StateFun fun) =>
         fun.ArgNodes
-            .SelectMany(n => n.GetAllLeafTypes())
-            .Where(t => t.State is ConstrainsState);
+           .SelectMany(n => n.GetAllLeafTypes())
+           .Where(t => t.State is ConstrainsState);
 
 
     private static IEnumerable<TicNode> GetAllLeafTypes(this TicNode node) =>
         node.State switch {
             ICompositeState composite => composite.AllLeafTypes,
-            StateRefTo => new[] { node.GetNonReference() },
-            _ => new[] { node }
+            StateRefTo                => new[] { node.GetNonReference() },
+            _                         => new[] { node }
         };
 
     private static IEnumerable<TicNode> GetAllOutputTypes(this TicNode node) =>
         //Todo Method is not tested. What about composite reference+ fun + reference cases?
         node.State switch {
-            StateFun fun => fun.RetNode.GetAllOutputTypes(),
-            StateArray array => array.AllLeafTypes,
+            StateFun fun        => fun.RetNode.GetAllOutputTypes(),
+            StateArray array    => array.AllLeafTypes,
             StateStruct @struct => @struct.AllLeafTypes,
-            StateRefTo => new[] { node.GetNonReference() }, //mb AllLeafType?
-            _ => new[] { node }
+            StateRefTo          => new[] { node.GetNonReference() }, //mb AllLeafType?
+            _                   => new[] { node }
         };
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

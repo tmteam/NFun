@@ -16,9 +16,7 @@ public class TextFunnyArray : IFunnyArray, IComparable {
     private class FunCharEnumerator : IEnumerator<object> {
         private readonly CharEnumerator _enumerator;
 
-        public FunCharEnumerator(CharEnumerator enumerator) {
-            _enumerator = enumerator;
-        }
+        public FunCharEnumerator(CharEnumerator enumerator) { _enumerator = enumerator; }
 
         public bool MoveNext() => _enumerator.MoveNext();
         public void Reset() => _enumerator.Reset();

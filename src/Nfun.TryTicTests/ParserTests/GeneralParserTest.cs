@@ -34,10 +34,11 @@ public class GeneralParserTest {
         Assert.AreEqual(1, eq.Children.Count(n => n is UserFunctionDefinitionSyntaxNode));
         var fun = eq.Children.OfType<UserFunctionDefinitionSyntaxNode>().First();
 
-        Assert.Multiple(() => {
-            Assert.AreEqual("y", fun.Id);
-            AssertParsed(fun, expectedExpr, variables);
-        });
+        Assert.Multiple(
+            () => {
+                Assert.AreEqual("y", fun.Id);
+                AssertParsed(fun, expectedExpr, variables);
+            });
     }
 
     [Test]
@@ -53,10 +54,11 @@ public class GeneralParserTest {
 
         var functions = eq.Children.OfType<UserFunctionDefinitionSyntaxNode>();
 
-        Assert.Multiple(() => {
-            Assert.AreEqual(2, functions.Count());
-            Assert.AreEqual(4, eq.Children.Count());
-        });
+        Assert.Multiple(
+            () => {
+                Assert.AreEqual(2, functions.Count());
+                Assert.AreEqual(4, eq.Children.Count());
+            });
 
         var maxf = functions.Single(f => f.Id == "max");
         var max3f = functions.Single(f => f.Id == "max3");
@@ -71,10 +73,11 @@ public class GeneralParserTest {
     }
 
     private void AssertParsed(UserFunctionDefinitionSyntaxNode fun, string expectedExpr, params string[] variables) {
-        Assert.Multiple(() => {
-            CollectionAssert.AreEqual(variables, fun.Args.Select(a => a.Id));
-            AssertParsed(fun.Body, expectedExpr);
-        });
+        Assert.Multiple(
+            () => {
+                CollectionAssert.AreEqual(variables, fun.Args.Select(a => a.Id));
+                AssertParsed(fun.Body, expectedExpr);
+            });
     }
 
     private void AssertParsed(ISyntaxNode node, string expectedExpr) {

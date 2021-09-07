@@ -153,12 +153,13 @@ public class ConstrainsState : ITicNodeState {
     private BasicDescType _basicUnsolvedDescType = BasicDescType.None;
 
     private static BasicDescType ToBasicDescType(ITicNodeState state) => state switch {
-        StateRefTo refTo => ToBasicDescType(refTo.GetNonReference()),
-        StateFun => BasicDescType.IsFunction,
-        StateArray => BasicDescType.IsArray,
-        StateStruct => BasicDescType.IsStruct,
-        _ => BasicDescType.None
-    };
+                                                                             StateRefTo refTo => ToBasicDescType(
+                                                                                 refTo.GetNonReference()),
+                                                                             StateFun    => BasicDescType.IsFunction,
+                                                                             StateArray  => BasicDescType.IsArray,
+                                                                             StateStruct => BasicDescType.IsStruct,
+                                                                             _           => BasicDescType.None
+                                                                         };
 
     public void AddDescendant(ITypeState type) {
         if (type == null)

@@ -158,7 +158,8 @@ public class HellTests {
          "c = 123;" +
          "d = 'mama ja pokakal';" +
          "etext = ''")
-        .Calc("x", 42).AssertResultHas(
+        .Calc("x", 42)
+        .AssertResultHas(
             ("i", 42),
             ("r", 4200.0),
             ("t", "42"),

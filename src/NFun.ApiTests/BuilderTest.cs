@@ -10,25 +10,28 @@ namespace NFun.ApiTests {
 public class BuilderTest {
     [Test]
     public void WithFunctions_AddTwoConcreteFunctionsWithSameSignature_throws() {
-        Assert.Throws<InvalidOperationException>(() =>
-            Funny
-                .Hardcore
-                .WithFunction(new PapaFunction("mama"))
-                .WithFunction(new MamaFunction("mama")));
+        Assert.Throws<InvalidOperationException>(
+            () =>
+                Funny
+                    .Hardcore
+                    .WithFunction(new PapaFunction("mama"))
+                    .WithFunction(new MamaFunction("mama")));
     }
 
     [Test]
     public void WithFunctions_ConcreteAndGenericFunctionsWithSameSignature_throws() {
-        Assert.Throws<InvalidOperationException>(() =>
-            Funny
-                .Hardcore
-                .WithFunction(new PapaFunction("mama"))
-                .WithFunction(new GenericWithNoArgFunction("mama")));
+        Assert.Throws<InvalidOperationException>(
+            () =>
+                Funny
+                    .Hardcore
+                    .WithFunction(new PapaFunction("mama"))
+                    .WithFunction(new GenericWithNoArgFunction("mama")));
     }
 
     [Test]
     public void WithFunctions_functionWithSameSignatureExists_functionIsOverrided() =>
-        Assert.AreEqual(PapaFunction.PapaReturn,
+        Assert.AreEqual(
+            PapaFunction.PapaReturn,
             Funny
                 .Hardcore
                 .WithFunction(new PapaFunction("myFun")) //override base function

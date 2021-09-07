@@ -168,28 +168,32 @@ class SolvingFunctionsTest {
 
     [Test]
     public void GetMergedStateOrNull_PrimitiveAndConstrainsThatFit() {
-        var res = SolvingFunctions.GetMergedStateOrNull(StatePrimitive.I32,
+        var res = SolvingFunctions.GetMergedStateOrNull(
+            StatePrimitive.I32,
             new ConstrainsState(StatePrimitive.U24, StatePrimitive.I48));
         Assert.AreEqual(res, StatePrimitive.I32);
     }
 
     [Test]
     public void GetMergedStateOrNull_ConstrainsAndPrimitiveThatFit() {
-        var res = SolvingFunctions.GetMergedStateOrNull(StatePrimitive.I64,
+        var res = SolvingFunctions.GetMergedStateOrNull(
+            StatePrimitive.I64,
             new ConstrainsState(StatePrimitive.I16, StatePrimitive.Real));
         Assert.AreEqual(res, StatePrimitive.I64);
     }
 
     [Test]
     public void GetMergedStateOrNull_ConstrainsThatFitAndPrimitive() {
-        var res = SolvingFunctions.GetMergedStateOrNull(new ConstrainsState(StatePrimitive.U24, StatePrimitive.I48),
+        var res = SolvingFunctions.GetMergedStateOrNull(
+            new ConstrainsState(StatePrimitive.U24, StatePrimitive.I48),
             StatePrimitive.I32);
         Assert.AreEqual(res, StatePrimitive.I32);
     }
 
     [Test]
     public void GetMergedStateOrNull_TwoSameConcreteArrays() {
-        var res = SolvingFunctions.GetMergedStateOrNull(StateArray.Of(StatePrimitive.I32),
+        var res = SolvingFunctions.GetMergedStateOrNull(
+            StateArray.Of(StatePrimitive.I32),
             StateArray.Of(StatePrimitive.I32));
         Assert.AreEqual(res, StateArray.Of(StatePrimitive.I32));
     }

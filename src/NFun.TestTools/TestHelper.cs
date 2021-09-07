@@ -27,8 +27,8 @@ public static class TestHelper {
 
         runtime.Run();
         var vals = runtime.Variables.Where(v => v.IsOutput)
-            .Select(v => new VariableTypeAndValue(v.Name, v.FunnyValue, v.Type))
-            .ToArray();
+                          .Select(v => new VariableTypeAndValue(v.Name, v.FunnyValue, v.Type))
+                          .ToArray();
         return new CalculationResult(vals);
     }
 
@@ -56,7 +56,8 @@ public static class TestHelper {
         AssertReturns(expr, new[] { (id, val) });
 
     public static void AssertReturns(this CalculationResult result, object expected) {
-        Assert.AreEqual(1, result.Count,
+        Assert.AreEqual(
+            1, result.Count,
             $"Many output variables found: {string.Join(",", result.Results.Select(r => r.Item1))}");
         AssertResultHas(result, (result.Results.First().Item1, expected));
     }
@@ -66,11 +67,13 @@ public static class TestHelper {
 
 
     public static void AssertReturns(this CalculationResult result, params (string id, object val)[] values) =>
-        Assert.Multiple(() => {
-            AssertResultHas(result, values);
-            Assert.AreEqual(values.Length, result.Count,
-                $"output variables mismatch: {string.Join(",", result.Results.Select(r => r.Item1))}");
-        });
+        Assert.Multiple(
+            () => {
+                AssertResultHas(result, values);
+                Assert.AreEqual(
+                    values.Length, result.Count,
+                    $"output variables mismatch: {string.Join(",", result.Results.Select(r => r.Item1))}");
+            });
 
     public static void AssertResultHas(this string expr, string id, object val) =>
         expr.Calc().AssertResultHas((id, val));
@@ -89,7 +92,8 @@ public static class TestHelper {
         {
             var resultValue = result.Get(value.id);
             Assert.IsNotNull(resultValue, $"Output variable \"{value.id}\" not found");
-            Assert.AreEqual(value.type, resultValue.GetType(),
+            Assert.AreEqual(
+                value.type, resultValue.GetType(),
                 $"Output variable \"{value.id}\" has wrong clr type {resultValue.GetType()}");
         }
     }
@@ -112,7 +116,8 @@ public static class TestHelper {
                 return;
             }
 
-            Assert.AreEqual(value.val.GetType(), resultValue.GetType(),
+            Assert.AreEqual(
+                value.val.GetType(), resultValue.GetType(),
                 $"Variable \"{value.id}\" has wrong type. Actual type is: {resultValue.GetType()} of value {ToStringSmart(resultValue)}");
 
             if (!AreSame(value.val, resultValue))
@@ -196,8 +201,8 @@ public static class TestHelper {
         try
         {
             var runtime = Funny.Hardcore
-                .WithDialect(dialect ?? Dialects.Origin)
-                .Build(expression);
+                               .WithDialect(dialect ?? Dialects.Origin)
+                               .Build(expression);
             if (runtime.Variables.Any(v => !v.IsOutput))
             {
                 Assert.Fail($"Expression parsed without any errors");

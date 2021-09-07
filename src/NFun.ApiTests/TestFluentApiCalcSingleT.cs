@@ -27,17 +27,19 @@ public class TestFluentApiCalcSingleT {
     [TestCase("['Hello','world']", new[] { "Hello", "world" })]
     [TestCase("ids.map(fun it.toText())", new[] { "1", "2", "101", "102" })]
     public void GeneralUserInputModelTest(string expr, object expected) =>
-        CalcInDifferentWays(expr, expected, new UserInputModel(
-            name: "vasa",
-            age: 13,
-            size: 13.5,
-            iq: 50,
-            ids: new[] { 1, 2, 101, 102 }));
+        CalcInDifferentWays(
+            expr, expected, new UserInputModel(
+                name: "vasa",
+                age: 13,
+                size: 13.5,
+                iq: 50,
+                ids: new[] { 1, 2, 101, 102 }));
 
     [Test]
     public void InputFieldIsCharArray() =>
-        CalcInDifferentWays("[letters.reverse()]", new[] { "test" }
-            , new ModelWithCharArray2 { Letters = new[] { 't', 's', 'e', 't' } });
+        CalcInDifferentWays(
+            "[letters.reverse()]", new[] { "test" }
+          , new ModelWithCharArray2 { Letters = new[] { 't', 's', 'e', 't' } });
 
     [Test]
     public void OutputTypeIsStruct_returnsFunnyStruct() {
@@ -54,11 +56,12 @@ public class TestFluentApiCalcSingleT {
     public void ReturnsComplexIntArrayConstant() {
         var result = Funny.Calc(
             "[[[1,2],[]],[[3,4]],[[]]]", new UserInputModel("vasa", 13, size: 21, iq: 1, 1, 2, 3, 4));
-        Assert.AreEqual(new[] {
-            new[] { new[] { 1, 2 }, Array.Empty<int>() },
-            new[] { new[] { 3, 4 } },
-            new[] { Array.Empty<int>() }
-        }, result);
+        Assert.AreEqual(
+            new[] {
+                new[] { new[] { 1, 2 }, Array.Empty<int>() },
+                new[] { new[] { 3, 4 } },
+                new[] { Array.Empty<int>() }
+            }, result);
     }
 
     [TestCase("")]
@@ -72,8 +75,9 @@ public class TestFluentApiCalcSingleT {
 
     [TestCase("age>someUnknownvariable")]
     public void UseUnknownInput_throws(string expression) =>
-        Assert.Throws<FunnyParseException>(() =>
-            Funny.Calc(expression, new UserInputModel(age: 22)));
+        Assert.Throws<FunnyParseException>(
+            () =>
+                Funny.Calc(expression, new UserInputModel(age: 22)));
 
     [TestCase("age>AGE")]
     public void UseDifferentInputCase_throws(string expression) =>
@@ -88,9 +92,9 @@ public class TestFluentApiCalcSingleT {
         var result3 = calculator.Calc(expr, input);
         var result4 = Funny.WithConstant("SomeNotUsedConstant", 42).Calc(expr, input);
         var result5 = Funny
-            .WithConstant("SomeNotUsedConstant", 42)
-            .BuildForCalc<TInput>()
-            .Calc(expr, input);
+                      .WithConstant("SomeNotUsedConstant", 42)
+                      .BuildForCalc<TInput>()
+                      .Calc(expr, input);
 
         //lambda
         var lambda1 = calculator.ToLambda(expr);

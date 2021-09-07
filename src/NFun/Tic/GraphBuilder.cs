@@ -231,8 +231,8 @@ public class GraphBuilder {
 
         var returnId = argThenReturnIds[^1];
         var returnNode = GetOrCreateNode(returnId);
-        returnNode.State = SolvingFunctions.GetMergedStateOrNull(returnNode.State, returnType)
-                           ?? throw TicErrors.CannotSetState(returnNode, returnType);
+        returnNode.State = SolvingFunctions.GetMergedStateOrNull(returnNode.State, returnType) ??
+                           throw TicErrors.CannotSetState(returnNode, returnType);
     }
 
     public void SetDef(string name, int rightNodeId) {
@@ -416,8 +416,8 @@ public class GraphBuilder {
         var alreadyExists = _syntaxNodes.GetOrEnlarge(lambdaId);
         if (alreadyExists != null)
         {
-            alreadyExists.State = SolvingFunctions.GetMergedStateOrNull(fun, alreadyExists.State)
-                                  ?? throw TicErrors.CannotSetState(alreadyExists, fun);
+            alreadyExists.State = SolvingFunctions.GetMergedStateOrNull(fun, alreadyExists.State) ??
+                                  throw TicErrors.CannotSetState(alreadyExists, fun);
         }
         else
         {
@@ -437,8 +437,8 @@ public class GraphBuilder {
         if (alreadyExists != null)
         {
             alreadyExists.State =
-                SolvingFunctions.GetMergedStateOrNull(new StateArray(elementType), alreadyExists.State)
-                ?? throw TicErrors.CannotSetState(elementType, new StateArray(elementType));
+                SolvingFunctions.GetMergedStateOrNull(new StateArray(elementType), alreadyExists.State) ??
+                throw TicErrors.CannotSetState(elementType, new StateArray(elementType));
             return;
         }
 
@@ -450,8 +450,8 @@ public class GraphBuilder {
         var alreadyExists = _syntaxNodes.GetOrEnlarge(id);
         if (alreadyExists != null)
         {
-            alreadyExists.State = SolvingFunctions.GetMergedStateOrNull(stateStruct, alreadyExists.State)
-                                  ?? throw TicErrors.CannotSetState(alreadyExists, stateStruct);
+            alreadyExists.State = SolvingFunctions.GetMergedStateOrNull(stateStruct, alreadyExists.State) ??
+                                  throw TicErrors.CannotSetState(alreadyExists, stateStruct);
             return alreadyExists;
         }
 
@@ -488,8 +488,8 @@ public class GraphBuilder {
             return;
         }
 
-        alreadyExists.State = SolvingFunctions.GetMergedStateOrNull(alreadyExists.State, type)
-                              ?? throw TicErrors.CannotSetState(alreadyExists, type);
+        alreadyExists.State = SolvingFunctions.GetMergedStateOrNull(alreadyExists.State, type) ??
+                              throw TicErrors.CannotSetState(alreadyExists, type);
     }
 
     private void RegistrateCompositeType(ICompositeState composite) {

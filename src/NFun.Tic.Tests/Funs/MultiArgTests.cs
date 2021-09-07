@@ -161,12 +161,13 @@ public class MultiArgTests {
         graph.SetVarType("lb", StatePrimitive.I32);
         graph.SetVar("lb", 2);
         graph.SetArith(1, 2, 3);
-        TestHelper.AssertThrowsTicError(() => {
-            graph.CreateLambda(3, 4, StatePrimitive.I64, "la", "lb");
-            graph.SetfoldCall(0, 4, 5);
-            graph.SetDef("y", 5);
-            graph.Solve();
-        });
+        TestHelper.AssertThrowsTicError(
+            () => {
+                graph.CreateLambda(3, 4, StatePrimitive.I64, "la", "lb");
+                graph.SetfoldCall(0, 4, 5);
+                graph.SetDef("y", 5);
+                graph.Solve();
+            });
     }
 }
 

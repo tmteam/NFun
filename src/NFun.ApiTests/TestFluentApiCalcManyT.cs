@@ -15,15 +15,18 @@ public class TestFluentApiCalcManyT {
 
     [Test]
     public void OutputFieldIsConstCharArray() =>
-        Assert.IsTrue(TestHelper.AreSame(new ModelWithCharArray {
-            Chars = new[] { 't', 'e', 's', 't' }
-        }, Funny.CalcMany<ModelWithCharArray>("Chars = 'test'")));
+        Assert.IsTrue(
+            TestHelper.AreSame(
+                new ModelWithCharArray {
+                    Chars = new[] { 't', 'e', 's', 't' }
+                }, Funny.CalcMany<ModelWithCharArray>("Chars = 'test'")));
 
 
     [Test]
     public void NofieldsInitialized_throws()
-        => Assert.Throws<FunnyParseException>(() =>
-            Funny.CalcMany<ContractOutputModel>("someField1 = 13.1; somefield2 = 2"));
+        => Assert.Throws<FunnyParseException>(
+            () =>
+                Funny.CalcMany<ContractOutputModel>("someField1 = 13.1; somefield2 = 2"));
 
     [Test]
     public void AnonymousEquation_throws()

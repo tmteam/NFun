@@ -14,9 +14,7 @@ public class StatePrimitive : ITypeState, ITicNodeState {
     }
 
 
-    public StatePrimitive(PrimitiveTypeName name) {
-        Name = name;
-    }
+    public StatePrimitive(PrimitiveTypeName name) { Name = name; }
 
     public PrimitiveTypeName Name { get; }
     public bool IsSolved => true;
@@ -30,7 +28,7 @@ public class StatePrimitive : ITypeState, ITicNodeState {
             PrimitiveTypeName.Char => "Ch",
             PrimitiveTypeName.Bool => "Bo",
             PrimitiveTypeName.Real => "Re",
-            _ => Name.ToString()
+            _                      => Name.ToString()
         };
 
     public static StatePrimitive Any { get; } = new(PrimitiveTypeName.Any);
@@ -111,8 +109,8 @@ public class StatePrimitive : ITypeState, ITicNodeState {
 
         //by default - any lca returns any
         for (int i = 0; i < maxVal; i++)
-        for (int j = 0; j < maxVal; j++)
-            LcaMap[i, j] = Any;
+            for (int j = 0; j < maxVal; j++)
+                LcaMap[i, j] = Any;
 
         //any,char,bool and self
         for (int i = 0; i < maxVal; i++)

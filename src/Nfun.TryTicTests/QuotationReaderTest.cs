@@ -61,8 +61,9 @@ public class QuotationReaderTest {
     public void TextIsNotCorrect_ErrorIntervalAsExpected(string before, string error, string after) {
         var prefix = "some prefix ";
         var str = prefix + before + error + after;
-        var ex = Assert.Throws<FunnyParseException>(() =>
-            QuotationReader.ReadQuotation(str, prefix.Length));
+        var ex = Assert.Throws<FunnyParseException>(
+            () =>
+                QuotationReader.ReadQuotation(str, prefix.Length));
         Console.WriteLine("Origin string to parse: " + str);
         Console.WriteLine("Parse error: [FU" + ex.Code + "] " + ex.Message);
         var foundError = ex.Interval.SubString(str);

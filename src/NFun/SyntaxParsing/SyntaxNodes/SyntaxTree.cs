@@ -12,9 +12,7 @@ public class SyntaxTree : ISyntaxNode {
 
     public ISyntaxNode[] Nodes { get; }
 
-    public SyntaxTree(ISyntaxNode[] nodes) {
-        Nodes = nodes;
-    }
+    public SyntaxTree(ISyntaxNode[] nodes) { Nodes = nodes; }
 
     public bool IsInBrackets
     {
