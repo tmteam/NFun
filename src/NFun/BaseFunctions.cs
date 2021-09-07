@@ -36,6 +36,7 @@ public static class BaseFunctions {
             new InvertFunction(),
             new AbsFunction(),
             new RemainderFunction(),
+            new DivideIntFunction(),
             new AddFunction(),
             new SubstractFunction(),
             new MultiplyFunction(),

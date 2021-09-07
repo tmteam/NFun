@@ -288,6 +288,7 @@ public class Tokenizer {
             case '&': return Tok.New(TokType.BitAnd, position, position + 1);
             case '^': return Tok.New(TokType.BitXor, position, position + 1);
             case '|': return Tok.New(TokType.BitOr, position, position + 1);
+            case '/' when next == '/': return Tok.New(TokType.DivInt, position, position + 2);
             case '/': return Tok.New(TokType.Div, position, position + 1);
             case '+': return Tok.New(TokType.Plus, position, position + 1);
             case '%': return Tok.New(TokType.Rema, position, position + 1);

@@ -21,7 +21,7 @@ public static class SyntaxNodeReader {
         var priorities = new List<TokType[]>(7) {
             new[] { TokType.ArrOBr, TokType.Dot, TokType.Obr },
             new[] { TokType.Pow },
-            new[] { TokType.Mult, TokType.Div, TokType.Rema },
+            new[] { TokType.Mult, TokType.Div, TokType.DivInt, TokType.Rema },
             new[] { TokType.Plus, TokType.Minus, TokType.BitShiftLeft, TokType.BitShiftRight },
             new[] {
                 TokType.BitAnd, TokType.BitXor, TokType.In, TokType.Equal, TokType.NotEqual, TokType.More,
@@ -51,6 +51,7 @@ public static class SyntaxNodeReader {
         { TokType.Minus, CoreFunNames.Substract },
         { TokType.Mult, CoreFunNames.Multiply },
         { TokType.Div, CoreFunNames.DivideReal },
+        { TokType.DivInt, CoreFunNames.DivideInt },
         { TokType.Rema, CoreFunNames.Remainder },
         { TokType.Pow, CoreFunNames.Pow },
 

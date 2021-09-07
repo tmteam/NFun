@@ -19,7 +19,14 @@ public enum TokType {
     RealNumber,
     Plus,
     Minus,
+    /// <summary>
+    /// /
+    /// </summary>
     Div,
+    /// <summary>
+    /// //
+    /// </summary>
+    DivInt,
     /// <summary>
     /// Division reminder "%"
     /// </summary>

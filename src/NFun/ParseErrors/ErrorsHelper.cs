@@ -54,6 +54,7 @@ internal static class ErrorsHelper {
                    TokType.Plus          => "+",
                    TokType.Minus         => "-",
                    TokType.Div           => "/",
+                   TokType.DivInt        => "//",
                    TokType.Rema          => "%",
                    TokType.Mult          => "*",
                    TokType.Pow           => "**",

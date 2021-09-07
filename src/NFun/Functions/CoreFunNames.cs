@@ -12,6 +12,7 @@ internal static class CoreFunNames {
     public const string BitInverse = "~";
     public const string Multiply = "*";
     public const string DivideReal = "/";
+    public const string DivideInt = "//";
     public const string Pow = "**";
     public const string Remainder = "%";
     public const string And = "and";

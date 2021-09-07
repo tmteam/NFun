@@ -215,6 +215,7 @@ public class TokenizerTest {
     [TestCase("*", TokType.Mult)]
     [TestCase("**", TokType.Pow)]
     [TestCase("/", TokType.Div)]
+    [TestCase("//", TokType.DivInt)]
     [TestCase("=", TokType.Def)]
     [TestCase("==", TokType.Equal)]
     [TestCase("else", TokType.Else)]

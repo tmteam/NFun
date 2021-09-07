@@ -99,6 +99,7 @@ public class ArithmeticalOperatorsTest {
     public void ConstantAddition(string expression, object expected)
         => expression.AssertReturns("y", expected);
 
+
     [TestCase("y = x+3", 2, 5)]
     [TestCase("y = -2+x", 1, -1)]
     [TestCase("y = x+-2", 0, -2)]
@@ -161,6 +162,31 @@ public class ArithmeticalOperatorsTest {
     [TestCase("y = 4.5/1.5", 3.0)]
     public void ConstantDivision(string expression, object expected)
         => expression.AssertReturns("y", expected);
+
+    [TestCase("2//x", 2, 1)]
+    [TestCase("out:int64 = 2//x", (long)2, (long)1)]
+    [TestCase("out:uint64 = 2//x", (ulong)2, (ulong)1)]
+    [TestCase("out:int16 = 2//x", (Int16)2, (Int16)1)]
+    [TestCase("out:byte = 2//x", (byte)2, (byte)1)]
+    [TestCase("out:uint16 = 2//x", (UInt16)2, (UInt16)1)]
+    [TestCase("out:uint64 = 2//x", (ulong)2, (ulong)1)]
+    [TestCase("out:uint = 2//x", (uint)3, (uint)0)]
+    [TestCase("out:int16 = x//4", (Int16)3, (Int16)0)]
+    public void DivisionInt(string expr, object argument, object expected) =>
+        expr.Build().Calc("x", argument).AssertOut(expected);
+
+    [TestCase("2%x", 2, 0)]
+    [TestCase("out:int64 = 2%x", (long)3, (long)2)]
+    [TestCase("out:uint64 = 2%x", (ulong)1, (ulong)0)]
+    [TestCase("out:int16 = 2%x", (Int16)5, (Int16)2)]
+    [TestCase("out:byte = 2%x", (byte)2, (byte)0)]
+    [TestCase("out:uint16 = 2%x", (UInt16)2, (UInt16)0)]
+    [TestCase("out:uint64 = 2%x", (ulong)2, (ulong)0)]
+    [TestCase("out:uint = 8%x", (uint)3, (uint)2)]
+    [TestCase("out:int16 = x%4", (Int16)1, (Int16)1)]
+    [TestCase("out:real  = x%4", 5.5, 1.5)]
+    public void Remainder(string expr, object argument, object expected) =>
+        expr.Build().Calc("x", argument).AssertOut(expected);
 
     [TestCase("y = x/3", 1.5, 0.5)]
     [TestCase("y = x/3", -3.0, -1.0)]
