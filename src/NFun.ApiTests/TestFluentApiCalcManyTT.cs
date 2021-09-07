@@ -90,7 +90,7 @@ public class TestFluentApiCalcManyTT {
     private void CalcInDifferentWays<TInput, TOutput>(string expr, TInput input, TOutput expected)
         where TOutput : new() {
         var result1 = Funny.CalcMany<TInput, TOutput>(expr, input);
-        var calculator = Funny.ForCalcMany<TInput, TOutput>();
+        var calculator = Funny.BuildForCalcMany<TInput, TOutput>();
         var result2 = calculator.Calc(expr, input);
         var result3 = calculator.Calc(expr, input);
         var lambda1 = calculator.ToLambda(expr);

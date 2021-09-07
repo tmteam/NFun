@@ -31,22 +31,22 @@ public static class Funny {
 
     #region Calculator factories
 
-    public static ICalculator<TInput> ForCalc<TInput>()
+    public static ICalculator<TInput> BuildForCalc<TInput>()
         => FunnyCalculatorBuilder.Default.BuildForCalc<TInput>();
 
-    public static ICalculator<TInput, TOutput> ForCalc<TInput, TOutput>()
+    public static ICalculator<TInput, TOutput> BuildForCalc<TInput, TOutput>()
         => FunnyCalculatorBuilder.Default.BuildForCalc<TInput, TOutput>();
 
-    public static ICalculator<TInput, TOutput> ForCalcMany<TInput, TOutput>() where TOutput : new()
+    public static ICalculator<TInput, TOutput> BuildForCalcMany<TInput, TOutput>() where TOutput : new()
         => FunnyCalculatorBuilder.Default.BuildForCalcMany<TInput, TOutput>();
 
-    public static IConstantCalculator<object> ForCalcConstant()
+    public static IConstantCalculator<object> BuildForCalcConstant()
         => FunnyCalculatorBuilder.Default.BuildForCalcConstant();
 
-    public static IConstantCalculator<TOutput> ForCalcConstant<TOutput>()
+    public static IConstantCalculator<TOutput> BuildForCalcConstant<TOutput>()
         => FunnyCalculatorBuilder.Default.BuildForCalcConstant<TOutput>();
 
-    public static IConstantCalculator<TOutput> ForCalcManyConstants<TOutput>() where TOutput : new()
+    public static IConstantCalculator<TOutput> BuildForCalcManyConstants<TOutput>() where TOutput : new()
         => FunnyCalculatorBuilder.Default.BuildForCalcManyConstants<TOutput>();
 
     #endregion

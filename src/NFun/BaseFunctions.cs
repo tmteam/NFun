@@ -152,6 +152,8 @@ public static class BaseFunctions {
             new TrimFunction(),
             new TrimStartFunction(),
             new TrimEndFunction(),
+            new ToUpperFunction(),
+            new ToLowerFunction(),
             new SplitFunction(),
             new JoinFunction(),
 

@@ -77,6 +77,16 @@ public class TrimEndFunction : FunctionWithSingleArg {
     public override object Calc(object a) => ((IFunnyArray)a).ToText().TrimEnd().AsFunText();
 }
 
+public class ToUpperFunction : FunctionWithSingleArg {
+    public ToUpperFunction() : base("toUpper", FunnyType.Text, FunnyType.Text) { }
+    public override object Calc(object a) => ((IFunnyArray)a).ToText().ToUpper().AsFunText();
+}
+
+public class ToLowerFunction : FunctionWithSingleArg {
+    public ToLowerFunction() : base("toLower", FunnyType.Text, FunnyType.Text) { }
+    public override object Calc(object a) => ((IFunnyArray)a).ToText().ToLower().AsFunText();
+}
+
 
 public class SplitFunction : FunctionWithTwoArgs {
     public SplitFunction() : base(

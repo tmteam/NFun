@@ -20,6 +20,14 @@ public class ApplyTiResultEnterVisitor : EnterVisitorBase {
         return VisitorEnterResult.Continue;
     }
 
+    public override VisitorEnterResult Visit(NamedIdSyntaxNode node) {
+        //todo - set variable type?
+        return DefaultVisitEnter(node);
+        var type = _solving.GetVariableType(node.Id);
+        node.OutputType = _tiToLangTypeConverter.Convert(type);
+        return VisitorEnterResult.Continue;
+    }
+
     protected override VisitorEnterResult DefaultVisitEnter(ISyntaxNode node) {
         var type = _solving.GetSyntaxNodeTypeOrNull(node.OrderNumber);
         node.OutputType = type == null

@@ -40,7 +40,7 @@ public class TestFluentApiCalcSingleT {
         CalcInDifferentWays(
             "[letters.reverse()]", new[] { "test" }
           , new ModelWithCharArray2 { Letters = new[] { 't', 's', 'e', 't' } });
-
+        
     [Test]
     public void OutputTypeIsStruct_returnsFunnyStruct() {
         var str = Funny.Calc(
@@ -50,7 +50,7 @@ public class TestFluentApiCalcSingleT {
         Assert.AreEqual(1, rs.Count);
         Assert.AreEqual("alaska", rs["name"]);
     }
-
+    
 
     [Test]
     public void ReturnsComplexIntArrayConstant() {
@@ -87,7 +87,7 @@ public class TestFluentApiCalcSingleT {
         //CALC
         var result1 = Funny.Calc<TInput>(expr, input);
         //calculator+calc
-        var calculator = Funny.ForCalc<TInput>();
+        var calculator = Funny.BuildForCalc<TInput>();
         var result2 = calculator.Calc(expr, input);
         var result3 = calculator.Calc(expr, input);
         var result4 = Funny.WithConstant("SomeNotUsedConstant", 42).Calc(expr, input);

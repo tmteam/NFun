@@ -280,7 +280,7 @@ yPublic   = yprivate + xpublic"
             new MyIn { Count = 3, Name = "bar" }); //"barbarbar"
         Assert.AreEqual("barbarbar", h);
 
-        var f = Funny.ForCalcMany<MyIn, MyOut>()
+        var f = Funny.BuildForCalcMany<MyIn, MyOut>()
                      .ToLambda(
                          @"
                             id = count - 1

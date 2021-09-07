@@ -142,6 +142,8 @@ internal class VariableSource : IFunnyVar {
 
         return input => _funnyValue = inputConverter.ToFunObject(input);
     }
+
+    public override string ToString() => $"{(IsOutput ? "Output" : "Input")} {Name}:{Type} = {FunnyValue}";
 }
 
 internal enum FunnyVarAccess {

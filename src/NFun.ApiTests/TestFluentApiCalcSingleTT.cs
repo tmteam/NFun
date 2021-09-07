@@ -15,9 +15,16 @@ public class TestFluentApiCalcSingleTT {
         CalcInDifferentWays(expr, new UserInputModel("vasa", 13), expected);
 
     [Test]
+    public void AccessToInput() {
+        var res = Funny.Calc<ModelWithInt, long>("id+1", new ModelWithInt { id = 54 });
+        Assert.IsInstanceOf<long>(res);
+        Assert.AreEqual(55, res);
+    }
+
+    [Test]
     public void BuildLambdaTwoTimes() {
-        var calculator1 = Funny.ForCalc<ModelWithInt, string>();
-        var calculator2 = Funny.ForCalc<ModelWithInt, string>();
+        var calculator1 = Funny.BuildForCalc<ModelWithInt, string>();
+        var calculator2 = Funny.BuildForCalc<ModelWithInt, string>();
 
         Func<ModelWithInt, string> lambda1 = calculator1.ToLambda("'{id}'");
         Func<ModelWithInt, string> lambda2 = calculator2.ToLambda("'{id}'");
@@ -78,7 +85,7 @@ public class TestFluentApiCalcSingleTT {
 
     private static void CalcInDifferentWays<TInput, TOutput>(string expr, TInput input, TOutput expected) {
         var result1 = Funny.Calc<TInput, TOutput>(expr, input);
-        var calculator = Funny.ForCalc<TInput, TOutput>();
+        var calculator = Funny.BuildForCalc<TInput, TOutput>();
         var result2 = calculator.Calc(expr, input);
         var result3 = calculator.Calc(expr, input);
         var lambda1 = calculator.ToLambda(expr);

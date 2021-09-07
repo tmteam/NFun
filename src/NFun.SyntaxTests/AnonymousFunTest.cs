@@ -1,3 +1,4 @@
+using System;
 using NFun.TestTools;
 using NFun.Tic;
 using NUnit.Framework;
@@ -120,6 +121,15 @@ public class AnonymousFunTest {
     [TestCase("y:int = [-1,-2,0,1,2,3].filter(fun it>0).fold(fun it1+it2)", 6)]
     [TestCase("y:real = [-1,-2,0,1,2,3].filter(fun it>0).fold(fun it1+it2)", 6.0)]
     [TestCase(@"y = [[1,2],[3,4],[5,6]].map(fun  it.map(fun it+1).sum())", new[] { 5, 9, 13 })]
+    [TestCase(@"y = [1,2,3].sum(rule it*it*1.0))", 13.0)]
+    [TestCase(@"y = [1,2,3].sum(rule(int,int):int16 it*it))", (Int16)13)]
+    [TestCase(@"y = [1,2,3].sum(rule(int,int):int32 it*it))", (Int32)13)]
+    [TestCase(@"y = [1,2,3].sum(rule(int,int):int64 it*it))", (Int64)13)]
+    [TestCase(@"y = [1,2,3].sum(rule(int,int):uint16 it*it))", (UInt16)13)]
+    [TestCase(@"y = [1,2,3].sum(rule(int,int):uint32 it*it))", (UInt32)13)]
+    [TestCase(@"y = [1,2,3].sum(rule(int,int):uint64 it*it))", (UInt64)13)]
+    [TestCase(@"y = [1,2,3].sum(rule(int,int):real it*it))", (double)13)]
+    [TestCase(@"y = [{age = 12, size = 24},{age = 22, size = 10}].sum(rule it.size))", 34)]
     [TestCase(@"y = [[1,2],[3,4],[5,6]].fold(-10, fun it1+ it2.sum())", 11)]
     [TestCase(@"y = (fun it+1)(3.0)", 4.0)]
     [TestCase(@"f = (fun it+1); y = f(3.0)", 4.0)]

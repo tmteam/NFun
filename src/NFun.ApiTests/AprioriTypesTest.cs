@@ -7,7 +7,7 @@ namespace NFun.ApiTests {
 
 public class AprioriTypesTest {
     [Test]
-    public void AprioriInputSpecified_CalcsWithCorrectType() {
+    public void AprioriInputOfStringSpecified_CalcsWithCorrectType() {
         var runtime = Funny.Hardcore
                            .WithApriori<string>("x")
                            .Build("y = x");
@@ -16,6 +16,14 @@ public class AprioriTypesTest {
         res.AssertReturns("y", "test");
         Assert.AreEqual(FunnyType.Text, runtime["x"].Type);
         Assert.AreEqual(FunnyType.Text, runtime["y"].Type);
+    }
+
+    [Test]
+    public void AprioriInputOfIntSpecified_inputTypeIsCorrect() {
+        var runtime = Funny.Hardcore
+                           .WithApriori<int>("x")
+                           .Build("y:int64 = x+1");
+        Assert.AreEqual(FunnyType.Int32, runtime["x"].Type);
     }
 
     [Test]

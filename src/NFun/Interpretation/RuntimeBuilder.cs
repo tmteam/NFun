@@ -160,7 +160,7 @@ internal static class RuntimeBuilder {
         DialectSettings dialect) {
         var bodyTypeSolving = RuntimeBuilderHelper.SolveBodyOrThrow(
             syntaxTree, functionDictionary, constants, aprioriTypes, dialect);
-
+        
         var enterVisitor = new ApplyTiResultEnterVisitor(bodyTypeSolving, TicTypesConverter.Concrete);
         var exitVisitor = new ApplyTiResultsExitVisitor();
         foreach (var syntaxNode in syntaxTree.Nodes)
