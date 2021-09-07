@@ -107,11 +107,11 @@ public static class SyntaxNodeReader {
                 switch (constant.Value)
                 {
                     case double d:
-                        return new ConstantSyntaxNode(-d, constant.OutputType, interval);
+                        return SyntaxNodeFactory.Constant(-d, constant.OutputType, interval);
                     case ulong u64:
-                        return new ConstantSyntaxNode(-(long)u64, constant.OutputType, interval);
+                        return SyntaxNodeFactory.Constant(-(long)u64, constant.OutputType, interval);
                     case long i64:
-                        return new ConstantSyntaxNode(-i64, constant.OutputType, interval);
+                        return SyntaxNodeFactory.Constant(-i64, constant.OutputType, interval);
                 }
             }
             else if (nextNode is GenericIntSyntaxNode g)
@@ -123,12 +123,12 @@ public static class SyntaxNodeReader {
                     {
                         if (u64 > i64AbsMinValue)
                             throw FunnyParseException.ErrorStubToDo("i64 overflow");
-                        return new GenericIntSyntaxNode(long.MinValue, g.IsHexOrBin, interval);
+                        return SyntaxNodeFactory.IntGenericConstant(long.MinValue, g.IsHexOrBin, interval);
                     }
                     case ulong u64:
-                        return new GenericIntSyntaxNode(-(long)u64, g.IsHexOrBin, interval);
+                        return SyntaxNodeFactory.IntGenericConstant(-(long)u64, g.IsHexOrBin, interval);
                     case long i64:
-                        return new GenericIntSyntaxNode(-i64, g.IsHexOrBin, interval);
+                        return SyntaxNodeFactory.IntGenericConstant(-i64, g.IsHexOrBin, interval);
                 }
             }
 
@@ -375,7 +375,7 @@ public static class SyntaxNodeReader {
             throw FunnyParseException.ErrorStubToDo("Anonymous function body is missed. Did you forget '=' symbol?");
         }
 
-        return new SuperAnonymFunctionSyntaxNode(body);
+        return SyntaxNodeFactory.SuperAnonymFunction(body);
     }
 
     private static ISyntaxNode ReadStruct(TokFlow flow) {
@@ -407,7 +407,7 @@ public static class SyntaxNodeReader {
             var body = ReadNodeOrNull(flow);
             if (body == null)
                 throw FunnyParseException.ErrorStubToDo("body missed");
-            var equation = new EquationSyntaxNode(idToken.Value, idToken.Start, body, Array.Empty<FunnyAttribute>());
+            var equation = SyntaxNodeFactory.Equation(idToken, body);
             equations.Add(equation);
             //Read node or null may eat last new-line-token
             hasAnyDelimeter = flow.Previous.Type == TokType.NewLine;
@@ -791,9 +791,7 @@ public static class SyntaxNodeReader {
         if (!TryReadNodeList(flow, out var arguments) || !flow.MoveIf(TokType.Cbr, out var cbr))
             throw ErrorFactory.FunctionArgumentError(functionResultNode.ToString(), obrId, flow);
 
-        return new ResultFunCallSyntaxNode(
-            functionResultNode, arguments.ToArray(),
-            new Interval(functionResultNode.Interval.Start, cbr.Finish));
+        return SyntaxNodeFactory.ResultFunCall(functionResultNode, arguments, cbr.Finish);
     }
 
     private static bool TryReadNodeList(TokFlow flow, out List<ISyntaxNode> read) {

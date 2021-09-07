@@ -25,6 +25,8 @@ public readonly struct Interval {
             return String.Empty;
         return origin.Substring(Start, Finish - Start);
     }
+
+    public Interval Append(Interval rightInterval) => new Interval(Start, rightInterval.Finish);
 }
 
 }

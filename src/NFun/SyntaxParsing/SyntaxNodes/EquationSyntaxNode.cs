@@ -9,15 +9,6 @@ public class EquationSyntaxNode : ISyntaxNode {
     public string Id { get; }
     public ISyntaxNode Expression { get; }
     public FunnyAttribute[] Attributes { get; }
-
-    public EquationSyntaxNode(string id, int start, ISyntaxNode expression, FunnyAttribute[] attributes) {
-        Id = id;
-        Expression = expression;
-        Attributes = attributes;
-        IsInBrackets = false;
-        Interval = new Interval(start, expression.Interval.Finish);
-    }
-
     public TypedVarDefSyntaxNode TypeSpecificationOrNull { get; set; } = null;
     public bool OutputTypeSpecified => TypeSpecificationOrNull != null;
     public FunnyType OutputType { get; set; }
@@ -26,6 +17,14 @@ public class EquationSyntaxNode : ISyntaxNode {
     public Interval Interval { get; set; }
     public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
     public IEnumerable<ISyntaxNode> Children => new[] { Expression };
+
+    public EquationSyntaxNode(string id, int start, ISyntaxNode expression, FunnyAttribute[] attributes) {
+        Id = id;
+        Expression = expression;
+        Attributes = attributes;
+        IsInBrackets = false;
+        Interval = new Interval(start, expression.Interval.Finish);
+    }
 }
 
 }

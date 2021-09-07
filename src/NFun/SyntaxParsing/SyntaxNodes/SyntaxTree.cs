@@ -7,13 +7,11 @@ using NFun.Types;
 namespace NFun.SyntaxParsing.SyntaxNodes {
 
 public class SyntaxTree : ISyntaxNode {
-    public FunnyType OutputType { get; set; }
-    public int OrderNumber { get; set; }
-
-    public ISyntaxNode[] Nodes { get; }
-
     public SyntaxTree(ISyntaxNode[] nodes) { Nodes = nodes; }
 
+    public FunnyType OutputType { get; set; }
+    public int OrderNumber { get; set; }
+    public ISyntaxNode[] Nodes { get; }
     public bool IsInBrackets
     {
         get => false;
@@ -30,7 +28,6 @@ public class SyntaxTree : ISyntaxNode {
         set => throw new System.NotImplementedException();
     }
     public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
-
     public IEnumerable<ISyntaxNode> Children => Nodes;
     public int MaxNodeId { get; set; } = -1;
 }

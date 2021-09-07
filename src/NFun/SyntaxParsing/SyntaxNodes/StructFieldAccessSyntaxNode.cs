@@ -6,12 +6,6 @@ using NFun.Types;
 namespace NFun.SyntaxParsing.SyntaxNodes {
 
 public class StructFieldAccessSyntaxNode : ISyntaxNode {
-    public StructFieldAccessSyntaxNode(ISyntaxNode source, string fieldName, Interval interval) {
-        FieldName = fieldName;
-        Source = source;
-        Interval = interval;
-    }
-
     public FunnyType OutputType { get; set; }
     public string FieldName { get; }
     public ISyntaxNode Source { get; }
@@ -20,6 +14,12 @@ public class StructFieldAccessSyntaxNode : ISyntaxNode {
     public Interval Interval { get; set; }
     public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
     public IEnumerable<ISyntaxNode> Children => new[] { Source };
+
+    public StructFieldAccessSyntaxNode(ISyntaxNode source, string fieldName, Interval interval) {
+        FieldName = fieldName;
+        Source = source;
+        Interval = interval;
+    }
 }
 
 }

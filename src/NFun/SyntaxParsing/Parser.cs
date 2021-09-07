@@ -67,7 +67,7 @@ public class Parser {
     /// Like i:int
     /// </summary>
     private void ReadInputVariableSpecification(TypedVarDefSyntaxNode typed)
-        => _nodes.Add(new VarDefinitionSyntaxNode(typed, _attributes));
+        => _nodes.Add(SyntaxNodeFactory.VarDefinition(typed, _attributes));
 
     /// <summary>
     /// Read anonymous equation. Throws if at least one other equation exists
@@ -85,7 +85,7 @@ public class Parser {
             throw ErrorFactory.AnonymousExpressionHasToStartFromNewLine(_exprStartPosition, e, _flow.Current);
 
         //anonymous
-        var equation = new EquationSyntaxNode(AnonymousEquationId, _exprStartPosition, e, _attributes);
+        var equation = SyntaxNodeFactory.Equation(AnonymousEquationId,e,_exprStartPosition, _attributes);
         _hasAnonymousEquation = true;
         _equationNames.Add(equation.Id);
         _nodes.Add(equation);
@@ -112,9 +112,9 @@ public class Parser {
                 arguments.Add(varDef);
             else if (headNodeChild is NamedIdSyntaxNode varSyntax)
                 arguments.Add(
-                    new TypedVarDefSyntaxNode(
+                    SyntaxNodeFactory.TypedVar(
                         varSyntax.Id, headNodeChild.OutputType,
-                        headNodeChild.Interval));
+                        headNodeChild.Interval.Start, headNodeChild.Interval.Finish));
             else
                 throw ErrorFactory.WrongFunctionArgumentDefinition(fun, headNodeChild);
 
@@ -140,7 +140,7 @@ public class Parser {
                 new Interval(def.Start, finish));
         }
 
-        var functionNode = new UserFunctionDefinitionSyntaxNode(arguments, fun, expression, outputType);
+        var functionNode = SyntaxNodeFactory.UserFunctionDef(arguments, fun, expression, outputType);
 
         _nodes.Add(functionNode);
     }
@@ -174,7 +174,7 @@ public class Parser {
         var exNode = SyntaxNodeReader.ReadNodeOrNull(_flow);
         if (exNode == null)
             throw ErrorFactory.VarExpressionIsMissed(start, id, _flow.Current);
-        return new EquationSyntaxNode(id, start, exNode, _attributes);
+        return SyntaxNodeFactory.Equation(id, exNode, start, _attributes);
     }
 }
 

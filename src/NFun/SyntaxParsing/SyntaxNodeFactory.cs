@@ -26,6 +26,9 @@ public static class SyntaxNodeFactory {
     public static ISyntaxNode IntGenericConstant(ulong value, Interval interval)
         => new GenericIntSyntaxNode(value, false, interval);
 
+    public static ISyntaxNode IntGenericConstant(long value, bool isHexOrBin, Interval interval)
+        => new GenericIntSyntaxNode(value, isHexOrBin, interval);
+
     public static ISyntaxNode HexOrBinIntConstant(ulong value, Interval interval)
         => new GenericIntSyntaxNode(value, true, interval);
 
@@ -35,8 +38,8 @@ public static class SyntaxNodeFactory {
     public static ISyntaxNode ListOf(ISyntaxNode[] elements, Interval interval, bool hasBrackets)
         => new ListOfExpressionsSyntaxNode(elements, hasBrackets, interval);
 
-    public static ISyntaxNode TypedVar(string name, FunnyType type, int start, int end)
-        => new TypedVarDefSyntaxNode(name, type, new Interval(start, end));
+    public static TypedVarDefSyntaxNode TypedVar(string name, FunnyType type, int start, int end)
+        => new(name, type, new Interval(start, end));
 
     public static ISyntaxNode FunCall(string name, ISyntaxNode[] children, int start, int end)
         => new FunCallSyntaxNode(name, children, new Interval(start, end));
@@ -51,6 +54,25 @@ public static class SyntaxNodeFactory {
         new StructFieldAccessSyntaxNode(
             leftNode, memberId.Value,
             new Interval(leftNode.Interval.Start, memberId.Finish));
+
+    public static ISyntaxNode SuperAnonymFunction(ISyntaxNode body) => new SuperAnonymFunctionSyntaxNode(body);
+
+    public static EquationSyntaxNode Equation(Tok idToken, ISyntaxNode body) => new(
+        idToken.Value, idToken.Start, body, System.Array.Empty<FunnyAttribute>());
+    public static EquationSyntaxNode Equation(string id, ISyntaxNode body, int start, FunnyAttribute[] attributes) => new(
+        id, start, body, attributes);
+
+    public static ISyntaxNode ResultFunCall(
+        ISyntaxNode functionResultNode, List<ISyntaxNode> arguments, int tokFinish) => new ResultFunCallSyntaxNode(
+        functionResultNode, arguments.ToArray(),
+        new Interval(functionResultNode.Interval.Start, tokFinish));
+
+    public static ISyntaxNode VarDefinition(TypedVarDefSyntaxNode typed, FunnyAttribute[] attributes) =>
+        new VarDefinitionSyntaxNode(typed, attributes);
+
+    public static ISyntaxNode UserFunctionDef(
+        List<TypedVarDefSyntaxNode> arguments, FunCallSyntaxNode fun, ISyntaxNode expression, FunnyType outputType) =>
+        new UserFunctionDefinitionSyntaxNode(arguments, fun, expression, outputType);
 }
 
 }

@@ -38,6 +38,7 @@ public class Tokenizer {
     private static readonly Dictionary<string, TokType> Keywords = new() {
         { "in", TokType.In },
         { "fun", TokType.FunRule },
+        { "rule", TokType.FunRule },
 
         { "and", TokType.And },
         { "or", TokType.Or },
@@ -67,7 +68,6 @@ public class Tokenizer {
 
         //Reserved keywords:
         { "the", TokType.Reserved },
-        { "rule", TokType.Reserved },
 
         { "%", TokType.Reserved },
         { "_", TokType.Reserved },

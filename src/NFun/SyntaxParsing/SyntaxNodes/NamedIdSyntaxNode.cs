@@ -39,22 +39,19 @@ public class NamedIdSyntaxNode : ISyntaxNode {
     /// Content of id. Variable source, Function signature, or Constant value
     /// </summary>
     public object IdContent { get; set; }
-
     public FunnyType OutputType { get; set; }
     public int OrderNumber { get; set; }
-
-    public NamedIdSyntaxNode(string id, Interval interval) {
-        Id = id;
-        Interval = interval;
-    }
-
     public bool IsInBrackets { get; set; }
     public string Id { get; }
     public Interval Interval { get; set; }
     public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
     public IEnumerable<ISyntaxNode> Children => Array.Empty<ISyntaxNode>();
-
     public override string ToString() => $"({OrderNumber}) {Id}:{OutputType}";
+
+    public NamedIdSyntaxNode(string id, Interval interval) {
+        Id = id;
+        Interval = interval;
+    }
 }
 
 }
