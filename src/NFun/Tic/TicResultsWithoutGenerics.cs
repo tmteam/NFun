@@ -13,8 +13,9 @@ public class TicResultsWithoutGenerics : ITicResults {
         _syntaxNodes = syntaxNodes;
     }
 
-    public TicNode GetVariableNode(string variableName)
-        => _namedNodes[variableName];
+    public TicNode GetVariableNode(string variableName) => _namedNodes[variableName];
+
+    public TicNode GetVariableNodeOrNull(string variableName) => _namedNodes.GetValueOrDefault(variableName);
 
     public TicNode GetSyntaxNodeOrNull(int syntaxNode) {
         if (syntaxNode >= _syntaxNodes.Count)

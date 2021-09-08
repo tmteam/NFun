@@ -113,6 +113,13 @@ public class GraphBuilder {
         throw new InvalidOperationException();
     }
 
+    public void SetStructConst(int id, StateStruct @struct) {
+        if (!@struct.IsSolved)
+            throw new InvalidOperationException();
+        GetOrCreateStructNode(id, @struct);
+        RegistrateCompositeType(@struct);
+    }
+
     public void CreateLambda(int returnId, int lambdaId, params string[] varNames) {
         var args = GetNamedNodes(varNames);
         var ret = GetOrCreateNode(returnId);

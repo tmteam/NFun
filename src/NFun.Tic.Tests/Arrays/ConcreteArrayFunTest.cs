@@ -80,13 +80,12 @@ public class ConcreteArrayFunTest {
         graph.SetConst(0, StatePrimitive.Real);
         graph.SetStrictArrayInit(1, 0);
         graph.SetArrayConst(2, StatePrimitive.Char);
-        var generic = graph.SetEquality(1, 2, 3);
+        graph.SetEquality(1, 2, 3);
         graph.SetDef("y", 3);
 
         var res = graph.Solve();
         res.AssertNoGenerics();
         res.AssertNamed(StatePrimitive.Bool, "y");
-        //Assert.AreEqual(Array.Of(Primitive.Any), generic.Element);
     }
 
     [Test]

@@ -83,7 +83,7 @@ public class GenericUserFunctionsTest {
         "a:real = sum(1,2,3);" +
         "b:int  = sum(1,2,3);", 6.0, 6)]
     public void ConstantEquationWithTwoUsesOfGenerics(string expr, object expectedA, object expectedB) =>
-        expr.AssertResultHas(("a", expectedA), ("b", expectedB));
+        expr.AssertResultHas("a", expectedA).AssertResultHas("b", expectedB);
 
     [Test]
     public void SelectOverload() =>

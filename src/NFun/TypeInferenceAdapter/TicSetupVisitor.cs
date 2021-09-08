@@ -563,6 +563,12 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
                 case StateArray { Element: StatePrimitive primitiveElement }:
                     _ticTypeGraph.SetArrayConst(node.OrderNumber, primitiveElement);
                     break;
+                case StateStruct @struct:
+                {
+                    if (@struct.IsSolved) 
+                        _ticTypeGraph.SetStructConst(node.OrderNumber, @struct);
+                    break;
+                }
                 default:
                     throw new InvalidOperationException(
                         "Type " +

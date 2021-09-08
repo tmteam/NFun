@@ -9,7 +9,9 @@ public class StructGenericFunctionTest {
         ("f(x) = x.age;" +
          "x1= {age = 12};" +
          "x2= {age = true};" +
-         "r = f(x1); b = f(x2);").AssertResultHas(("r", 12), ("b", true));
+         "r = f(x1); b = f(x2);")
+        .AssertResultHas("r", 12)
+        .AssertResultHas("b", true);
 
     [Test]
     [Ignore("Undefined behaviour")]
@@ -29,7 +31,8 @@ public class StructGenericFunctionTest {
          "x1= {a = 'mama'; b = 'popo'};" +
          "t = f(x1);" +
          "iarr = f({a=[1,2,3]; b = [4,5,6]})")
-        .AssertResultHas(("t", "mamapopo"), ("iarr", new[] { 1, 2, 3, 4, 5, 6 }));
+        .AssertResultHas("t", "mamapopo")
+        .AssertResultHas("iarr", new[] { 1, 2, 3, 4, 5, 6 });
 
     [Test]
     public void CallGenericFunctionMultipleFieldOfArrayAccess() =>
@@ -37,7 +40,8 @@ public class StructGenericFunctionTest {
          "x1= {a = 'mama'; b = 'popo'};" +
          "t = f(x1);" +
          "iarr = f({a=[1,2,3]; b = [4,5,6]})")
-        .AssertResultHas(("t", "mamapopo"), ("iarr", new[] { 1, 2, 3, 4, 5, 6 }));
+        .AssertResultHas("t", "mamapopo")
+        .AssertResultHas("iarr", new[] { 1, 2, 3, 4, 5, 6 });
 
     [Test]
     public void CallGenericFunctionMultipleFieldOfTextAccess() =>
@@ -88,7 +92,8 @@ public class StructGenericFunctionTest {
     public void GenericStructFunctionReturn() =>
         ("f(x) = {res = x}; " +
          "r = f(42).res;" +
-         "txt = f('try').res").AssertResultHas(("r", 42), ("txt", "try"));
+         "txt = f('try').res").AssertResultHas("r", 42)
+                              .AssertResultHas("txt", "try");
 
     [Test]
     public void SingleGenericStructFunctionReturn() =>
@@ -104,7 +109,8 @@ public class StructGenericFunctionTest {
     public void ConstrainedGenericStructFunctionReturn() =>
         ("f(x) = {twice = x+x; dec = x-1}; " +
          "t = f(42).twice;" +
-         "d = f(123).dec").AssertResultHas(("t", 84), ("d", 122));
+         "d = f(123).dec").AssertResultHas("t", 84)
+                          .AssertResultHas("d", 122);
 
     [TestCase(1, 1)]
     [TestCase(3, 6)]

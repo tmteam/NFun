@@ -79,7 +79,9 @@ public class StructConcreteFunctionsTest {
     public void ConcreteStructFunctionReturn() =>
         ("f(x:uint32) = {twice = x+x; dec = x-1}; " +
          "t = f(42).twice;" +
-         "d = f(123).dec").AssertResultHas(("t", (uint)84), ("d", (uint)122));
+         "d = f(123).dec")
+        .AssertResultHas("t", (uint)84)
+        .AssertResultHas("d", (uint)122);
 
     [TestCase(1, 1)]
     [TestCase(3, 6)]

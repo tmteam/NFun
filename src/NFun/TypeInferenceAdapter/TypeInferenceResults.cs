@@ -81,7 +81,8 @@ public class TypeInferenceResults {
 
     public ITicNodeState GetSyntaxNodeTypeOrNull(int id)
         => _bodyTypeSolving.GetSyntaxNodeOrNull(id)?.State;
-
+    public ITicNodeState GetVariableTypeOrNull(string name)
+        => _bodyTypeSolving.GetVariableNodeOrNull(name)?.State;
     public ITicNodeState GetVariableType(string name)
         => _bodyTypeSolving.GetVariableNode(name).State;
 }

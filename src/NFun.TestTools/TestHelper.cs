@@ -75,15 +75,22 @@ public static class TestHelper {
                     $"output variables mismatch: {string.Join(",", result.Results.Select(r => r.Item1))}");
             });
 
-    public static void AssertResultHas(this string expr, string id, object val) =>
+    public static CalculationResult AssertResultHas(this string expr, string id, object val) =>
         expr.Calc().AssertResultHas((id, val));
 
     public static void AssertResultHas(this string expr, params (string id, object val)[] values) =>
         expr.Calc().AssertResultHas(values);
 
 
-    public static void AssertResultHas(this CalculationResult result, string id, object val)
+    public static CalculationResult AssertResultHas(this CalculationResult result, string id, object val)
         => AssertResultHas(result, (id, val));
+
+    public static FunnyRuntime AssertContains(this FunnyRuntime result, string id, FunnyType type) {
+        var value = result[id];
+        Assert.IsNotNull(value, $"Variable \"{id}\" not found");
+        Assert.AreEqual(type, value.Type, $"Variable \"{id}\" has wrong type");
+        return result;
+    }
 
     public static void AssertResultIs(this CalculationResult result, params (string id, Type type)[] types) {
         if (result.Count != types.Length)
@@ -104,7 +111,8 @@ public static class TestHelper {
         AssertResultIs(result, (res.Item1, type));
     }
 
-    public static void AssertResultHas(this CalculationResult result, params (string id, object val)[] values) {
+    public static CalculationResult AssertResultHas(
+        this CalculationResult result, params (string id, object val)[] values) {
         foreach (var value in values)
         {
             var resultValue = result.Get(value.id);
@@ -113,7 +121,7 @@ public static class TestHelper {
             {
                 var converted = FunnyTypeConverters.GetInputConverter(value.val.GetType()).ToFunObject(value.val);
                 Assert.AreEqual(converted, @struct);
-                return;
+                return result;
             }
 
             Assert.AreEqual(
@@ -125,6 +133,8 @@ public static class TestHelper {
                     $"Var \"{value.id}\" expected: {ToStringSmart(value.val)}, but was: {ToStringSmart(resultValue)}\r\n" +
                     $"clr expected: {JsonSerializer.Serialize(value.val)}, clr actual: {JsonSerializer.Serialize(resultValue)}");
         }
+
+        return result;
     }
 
     public static void AssertInputsCount(this FunnyRuntime runtime, int count, string message = "") =>

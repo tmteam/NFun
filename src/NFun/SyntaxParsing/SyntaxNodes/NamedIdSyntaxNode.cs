@@ -40,6 +40,7 @@ public class NamedIdSyntaxNode : ISyntaxNode {
     /// </summary>
     public object IdContent { get; set; }
     public FunnyType OutputType { get; set; }
+    public FunnyType VariableType { get; set; }
     public int OrderNumber { get; set; }
     public bool IsInBrackets { get; set; }
     public string Id { get; }

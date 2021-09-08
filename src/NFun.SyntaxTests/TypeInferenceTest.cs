@@ -286,6 +286,16 @@ public class TypeInferenceTest {
     public void SingleInputTypedEquation(object x, string expr, object y) =>
         expr.Calc("x", x).AssertReturns(y);
 
+    [Test]
+    public void DifferentTypeUsageOfInputVariable() =>
+        Funny.Hardcore.Build("i64:int64 = x+1; i32:int32 = x+1")
+             .AssertContains("i32", FunnyType.Int32)
+             .AssertContains("i64", FunnyType.Int64)
+             .AssertContains("x", FunnyType.Int32)
+             .Calc("x", 42)
+             .AssertResultHas("i64", 43L)
+             .AssertResultHas("i32", 43);
+
     [TestCase("y:int[]= [1,2,3].map(fun it*it)", new[] { 1, 4, 9 })]
     [TestCase("y:int[]= [1,2,3].map(fun it)", new[] { 1, 2, 3 })]
     [TestCase("y:int[]= [1,2,3].map(fun 1)", new[] { 1, 1, 1 })]

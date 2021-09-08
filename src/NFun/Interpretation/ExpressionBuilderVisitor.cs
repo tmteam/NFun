@@ -332,7 +332,11 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
                 return new FunVariableExpressionNode(concrete, node.Interval);
         }
 
-        var node1 = _variables.CreateVarNode(node.Id, node.Interval, node.OutputType);
+        var vType = node.VariableType.BaseType == BaseFunnyType.Empty
+            ? node.OutputType
+            : node.VariableType;
+        
+        var node1 = _variables.CreateVarNode(node.Id, node.Interval, vType);
         if (node1.Source.Name != node.Id)
             throw ErrorFactory.InputNameWithDifferentCase(node.Id, node1.Source.Name, node.Interval);
         return node1;

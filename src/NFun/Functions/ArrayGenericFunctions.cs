@@ -77,6 +77,62 @@ public class MapFunction : GenericFunctionBase {
     }
 }
 
+
+public class MultiMapSumFunction : GenericFunctionBase {
+    private const string Id = "sum";
+
+    public MultiMapSumFunction() : base(
+        Id,
+        new[] { GenericConstrains.Any, GenericConstrains.Arithmetical },
+        returnType: FunnyType.Generic(1),
+        FunnyType.ArrayOf(FunnyType.Generic(0)),
+        FunnyType.Fun(FunnyType.Generic(1), FunnyType.Generic(0))) { }
+
+    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes) {
+        var concrete = concreteTypes[1].BaseType switch {
+                           BaseFunnyType.UInt32 => new ConcreteMapSumBase((a, b) => (UInt32)a + (UInt32)b, (UInt32)0),
+                           BaseFunnyType.UInt64 => new ConcreteMapSumBase((a, b) => (UInt64)a + (UInt64)b, (UInt64)0),
+                           BaseFunnyType.Int32  => new ConcreteMapSumBase((a, b) => (Int32)a + (Int32)b, 0),
+                           BaseFunnyType.Int64  => new ConcreteMapSumBase((a, b) => (Int64)a + (Int64)b, (Int64)0),
+                           BaseFunnyType.Real   => new ConcreteMapSumBase((a, b) => (double)a + (double)b, (double)0),
+                           _                    => throw new ArgumentOutOfRangeException()
+                       };
+        concrete.Name = Id;
+        concrete.ArgTypes = SubstitudeArgTypes(concreteTypes);
+        concrete.ReturnType = concreteTypes[1];
+        return concrete;
+    }
+
+    class ConcreteMapSumBase : FunctionWithTwoArgs {
+        private readonly Func<object, object, object> _solver;
+        private readonly object _defaultValue;
+
+        public ConcreteMapSumBase(Func<object, object, object> solver, object defaultValue) {
+            _solver = solver;
+            _defaultValue = defaultValue;
+        }
+
+        public override object Calc(object a, object b) {
+            var arr = (IFunnyArray)a;
+            var acc = _defaultValue;
+
+            if (b is FunctionWithSingleArg mapFunc)
+            {
+                foreach (var e in arr.Select(e => mapFunc.Calc(e)))
+                    acc = _solver(acc, e);
+            }
+            else
+            {
+                var map = (IConcreteFunction)b;
+                foreach (var e in arr.Select(e => map.Calc(new[] { e })))
+                    acc = _solver(acc, e);
+            }
+
+            return acc;
+        }
+    }
+}
+
 public class IsInSingleGenericFunctionDefinition : GenericFunctionBase {
     public IsInSingleGenericFunctionDefinition() : base(
         CoreFunNames.In,
@@ -259,90 +315,6 @@ public class MultiSumFunction : GenericFunctionBase {
     }
 }
 
-
-public class MultiMapSumFunction : GenericFunctionBase {
-    private const string Id = "sum";
-
-    public MultiMapSumFunction() : base(
-        Id, GenericConstrains.Arithmetical, 
-        returnType: FunnyType.Generic(0),
-        FunnyType.ArrayOf(FunnyType.Generic(1)), 
-        FunnyType.Fun(FunnyType.Generic(0),FunnyType.Generic(1))) { }
-
-    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes) =>
-        concreteTypes[0].BaseType switch {
-            BaseFunnyType.UInt16 => new UInt16Function(),
-            BaseFunnyType.UInt32 => new UInt32Function(),
-            BaseFunnyType.UInt64 => new UInt64Function(),
-            BaseFunnyType.Int16  => new Int16Function(),
-            BaseFunnyType.Int32  => new Int32Function(),
-            BaseFunnyType.Int64  => new Int64Function(),
-            BaseFunnyType.Real   => new RealFunction(),
-            _                    => throw new ArgumentOutOfRangeException()
-        };
-
-    private class RealFunction : FunctionWithSingleArg {
-        public RealFunction() : base(Id, FunnyType.Real, FunnyType.ArrayOf(FunnyType.Real)) { }
-
-        public override object Calc(object a) => ((IFunnyArray)a).As<double>().Sum();
-    }
-
-    private class Int16Function : FunctionWithSingleArg {
-        public Int16Function() : base(Id, FunnyType.Int16, FunnyType.ArrayOf(FunnyType.Int16)) { }
-
-        public override object Calc(object a) {
-            short answer = 0;
-            foreach (var i in ((IFunnyArray)a).As<short>())
-                answer += i;
-            return answer;
-        }
-    }
-
-    private class Int32Function : FunctionWithSingleArg {
-        public Int32Function() : base(Id, FunnyType.Int32, FunnyType.ArrayOf(FunnyType.Int32)) { }
-
-        public override object Calc(object a) => ((IFunnyArray)a).As<int>().Sum();
-    }
-
-    private class Int64Function : FunctionWithSingleArg {
-        public Int64Function() : base(Id, FunnyType.Int64, FunnyType.ArrayOf(FunnyType.Int64)) { }
-
-        public override object Calc(object a) => ((IFunnyArray)a).As<long>().Sum();
-    }
-
-    private class UInt16Function : FunctionWithSingleArg {
-        public UInt16Function() : base(Id, FunnyType.UInt16, FunnyType.ArrayOf(FunnyType.UInt16)) { }
-
-        public override object Calc(object a) {
-            ushort answer = 0;
-            foreach (var i in ((IFunnyArray)a).As<ushort>())
-                answer += i;
-            return answer;
-        }
-    }
-
-    private class UInt32Function : FunctionWithSingleArg {
-        public UInt32Function() : base(Id, FunnyType.UInt32, FunnyType.ArrayOf(FunnyType.UInt32)) { }
-
-        public override object Calc(object a) {
-            uint answer = 0;
-            foreach (var i in ((IFunnyArray)a).As<uint>())
-                answer += i;
-            return answer;
-        }
-    }
-
-    private class UInt64Function : FunctionWithSingleArg {
-        public UInt64Function() : base(Id, FunnyType.UInt64, FunnyType.ArrayOf(FunnyType.UInt64)) { }
-
-        public override object Calc(object a) {
-            ulong answer = 0;
-            foreach (var i in ((IFunnyArray)a).As<ulong>())
-                answer += i;
-            return answer;
-        }
-    }
-}
 
 public class RangeFunction : GenericFunctionBase {
     public RangeFunction() : base(

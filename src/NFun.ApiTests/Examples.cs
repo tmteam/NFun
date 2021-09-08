@@ -32,7 +32,7 @@ public class Examples {
         string[] arr = Funny.Calc<string[]>("[1,2,3].map(rule 'item {it}')");
         CollectionAssert.AreEquivalent(new[] { "item 1", "item 2", "item 3" }, arr);
 
-        User user = Funny.Calc<User>("{id = 112, age = 42, name = peter.toUpper()}");
+        User user = Funny.Calc<User>("{id = 112, age = 42, name = 'peter'.toUpper(), cars = []}");
         Assert.AreEqual(112, user.Id);
         Assert.AreEqual(42, user.Age);
         Assert.AreEqual("PETER", user.Name);
@@ -43,8 +43,8 @@ public class Examples {
         var user = new User {
             Age = 42, Id = 112, Name = "Alice",
             Cars = new[] {
-                new Car { HoursePower = 140, Id = 321, Price = 5000 },
-                new Car { HoursePower = 315, Id = 322, Price = 7200 }
+                new Car { Power = 140, Id = 321, Price = 5000 },
+                new Car { Power = 315, Id = 322, Price = 7200 }
             }
         };
         //Let's take the user's model as an input, and calculate something
@@ -66,7 +66,7 @@ public class Examples {
 
         //Let's calculate the total cost of machines powerful machines of the user
         long powerfullCarsTotalPrice = Funny.Calc<User, long>(
-            "cars.filter(rule it.hoursePower>300).sum(rule it.price)",
+            "cars.filter(rule it.power>300).sum(rule it.price)",
             user);
         Assert.AreEqual(7200, powerfullCarsTotalPrice);
     }
@@ -76,8 +76,8 @@ public class Examples {
         var user = new User {
             Age = 42, Id = 112, Name = "Alice",
             Cars = new[] {
-                new Car { HoursePower = 140, Id = 321, Price = 5000 },
-                new Car { HoursePower = 315, Id = 322, Price = 7200 }
+                new Car { Power = 140, Id = 321, Price = 5000 },
+                new Car { Power = 315, Id = 322, Price = 7200 }
             }
         };
         //you can calculate several expressions at a time
@@ -143,8 +143,8 @@ public class Examples {
         var user = new User {
             Age = 42, Id = 112, Name = "Alice",
             Cars = new[] {
-                new Car { HoursePower = 140, Id = 321, Price = 5000 },
-                new Car { HoursePower = 315, Id = 322, Price = 7200 }
+                new Car { Power = 140, Id = 321, Price = 5000 },
+                new Car { Power = 315, Id = 322, Price = 7200 }
             }
         };
         return user;
@@ -213,7 +213,7 @@ public class Examples {
         FunnyRuntime rt = Funny.Hardcore
                                .WithConstant("foo", 42)
                                .WithConstant("user", user)
-                               .WithFunction<User, bool>("isAdult", (user) => user.Age >= 18)
+                               .WithFunction<User, bool>("isAdult", user => user.Age >= 18)
                                .WithApriori<double>("x") //variable 'x' should be type of real
                                .Build("adult = user.isAdult(); ans = if(adult) x else 100");
 
@@ -230,8 +230,8 @@ public class Examples {
 
 class Outputs {
     public bool Adult { get; set; }
-    public bool Price { get; set; }
-    public bool NameAndId { get; set; }
+    public double Price { get; set; }
+    public string NameAndId { get; set; }
 }
 
 class User {
@@ -243,7 +243,7 @@ class User {
 
 class Car {
     public long Id { get; set; }
-    public double HoursePower { get; set; }
+    public double Power { get; set; }
     public long Price { get; set; }
 }
 

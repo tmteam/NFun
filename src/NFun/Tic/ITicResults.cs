@@ -5,6 +5,7 @@ namespace NFun.Tic {
 
 public interface ITicResults {
     TicNode GetVariableNode(string variableName);
+    TicNode GetVariableNodeOrNull(string variableName);
     TicNode GetSyntaxNodeOrNull(int syntaxNode);
     /// <summary>
     /// Gap for tests

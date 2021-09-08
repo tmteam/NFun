@@ -70,6 +70,7 @@ public static class BaseFunctions {
             new FlatGenericFunctionDefinition(),
             new ChunkGenericFunctionDefinition(),
             new MapFunction(),
+            new MultiMapSumFunction(),
             new LastFunction(),
             new FirstFunction(),
             new CountFunction(),
