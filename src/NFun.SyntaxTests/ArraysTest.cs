@@ -57,13 +57,12 @@ public class ArraysTest {
     [TestCase("y = [1.0,2.0]==[1.0,2.0]", true)]
     public void ConstantArrayOperatorsTest(string expr, object expected) => expr.AssertReturns("y", expected);
 
-    [Ignore("Step array initialization is disabled")]
-    [TestCase("y:int[] = [1..7..2]", new[] { 1, 3, 5, 7 })]
-    [TestCase("y:int[] = [7..1..2]", new[] { 7, 5, 3, 1 })]
-    [TestCase("y:int[] = [1..8..2]", new[] { 1, 3, 5, 7 })]
-    [TestCase("y = [1.0..3.0..0.5]", new[] { 1.0, 1.5, 2.0, 2.5, 3.0 })]
-    [TestCase("y = [3.0..1.0..0.5]", new[] { 3.0, 2.5, 2.0, 1.5, 1.0 })]
-    [TestCase("y = [1..3..0.5]", new[] { 1.0, 1.5, 2.0, 2.5, 3.0 })]
+    [TestCase("y:int[] = [1..7 step 2]", new[] { 1, 3, 5, 7 })]
+    [TestCase("y:int[] = [7..1 step 2]", new[] { 7, 5, 3, 1 })]
+    [TestCase("y:int[] = [1..8 step 2]", new[] { 1, 3, 5, 7 })]
+    [TestCase("y = [1.0..3.0 step 0.5]", new[] { 1.0, 1.5, 2.0, 2.5, 3.0 })]
+    [TestCase("y = [3.0..1.0 step 0.5]", new[] { 3.0, 2.5, 2.0, 1.5, 1.0 })]
+    [TestCase("y = [1..3 step 0.5]", new[] { 1.0, 1.5, 2.0, 2.5, 3.0 })]
     public void ConstantStepArrayInitTest(string expr, object expected) => expr.AssertReturns("y", expected);
 
     [TestCase("a = 2.0 \r b=3.0 \r  y = [1.0,a,b] ", new[] { 1.0, 2.0, 3.0 })]
@@ -378,6 +377,9 @@ filtrat   = x.filter(fun it> filt) # filt - input variable
     [TestCase("y = ['1'..'4']")]
     [TestCase("y = [1..7..]")]
     [TestCase("y = [1....2]")]
+    [TestCase("y = [1..3..2]")]
+    [TestCase("y = [1..3..2 step 1]")]
+    [TestCase("y = [1 step 2]")]
     [TestCase("y = [..2..2]")]
     [TestCase("y = [1..4")]
     [TestCase("y = [1..")]
@@ -396,6 +398,7 @@ filtrat   = x.filter(fun it> filt) # filt - input variable
 
 
     [TestCase("y = [0..10][11]")]
+    [TestCase("y = [0..1 step 0]")]
     [TestCase("y = ['a', 'b'][2]")]
     public void ObviouslyFailsOnRuntime(string expr) =>
         Assert.Throws<FunnyRuntimeException>(() => expr.Calc());

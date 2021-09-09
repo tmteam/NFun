@@ -133,6 +133,10 @@ public enum TokType {
     /// '..'
     /// </summary>
     TwoDots,
+    /// <summary>
+    /// step
+    /// </summary>
+    Step,
     TextType,
     Int16Type,
     Int32Type,

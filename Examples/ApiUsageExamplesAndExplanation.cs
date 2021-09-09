@@ -1,11 +1,14 @@
 using System;
+using NFun.Exceptions;
 using NFun.Runtime;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.ApiTests {
+namespace NFun.Examples {
 
-public class Examples {
+//Here are examples of using the API. See SyntaxExamples for examples of the syntax
+public class ApiUsageExamples {
+    
     [Test]
     public void ConstantCalculation() {
         // Examples of constant calculations
@@ -121,7 +124,7 @@ public class Examples {
                          .WithConstant("lala", 42)
                          .BuildForCalc<User, long>();
 
-        var user = GetDefaultUser();
+        var user = GetUserModel();
 
         var res1 = calculator.Calc("lala + age - id", user);
         var res2 = calculator.Calc("lala + 2* age", user);
@@ -137,17 +140,6 @@ public class Examples {
         //.BuildForCalcConstant<TOutput>()
         //.BuildForCalcMany<TInput, TOutput>()
         //.BuildForCalcManyConstants<TOutput>()
-    }
-
-    private static User GetDefaultUser() {
-        var user = new User {
-            Age = 42, Id = 112, Name = "Alice",
-            Cars = new[] {
-                new Car { Power = 140, Id = 321, Price = 5000 },
-                new Car { Power = 315, Id = 322, Price = 7200 }
-            }
-        };
-        return user;
     }
 
     [Test]
@@ -209,7 +201,7 @@ public class Examples {
         }
 
         //You can also pre-configure the runtime builder
-        User user = GetDefaultUser();
+        User user = GetUserModel();
         FunnyRuntime rt = Funny.Hardcore
                                .WithConstant("foo", 42)
                                .WithConstant("user", user)
@@ -226,6 +218,52 @@ public class Examples {
         Assert.IsInstanceOf<double>(rt["ans"].Value);
         Assert.AreEqual(42.0, rt["ans"].Value);
     }
+
+    [Test]
+    public void StringInterpolation() {
+        //String interpolation mode is similar to harcore mode, but returns a single string result
+        var inputString = "Name: {name}, Age: {2020 - birthYear}, 2*2={2*2}";
+
+        var calculator = Funny.Hardcore.BuildStringInterpolation(inputString);
+        calculator["name"].Value = "Kate";
+        calculator["birthYear"].Value = 1990;
+        var resultString = calculator.Calculate();
+        Assert.AreEqual(resultString, "Name: Kate, Age: 30, 2*2=4");
+    }
+
+    [Test]
+    public void ErrorsHandling() {
+        //There are three exceptions that are thrown by nfun:
+
+        // 1) parsing errors (incorrect syntax): FunnyParseException
+        Assert.Throws<FunnyParseException>(() => Funny.Calc("-abc-"));
+        Assert.Throws<FunnyParseException>(
+            () => Funny
+                  .WithConstant("foo", 42)
+                  .Calc<User, Outputs>("-abc-", GetUserModel()));
+        Assert.Throws<FunnyParseException>(() => Funny.Hardcore.Build("-abc-"));
+
+        // 2) execution errors: FunnyRuntimeException
+        Assert.Throws<FunnyRuntimeException>(() => Funny.Calc("[1,2,3][4]"));
+        Assert.Throws<FunnyRuntimeException>(() => Funny.Hardcore.Build("[1,2,3][4]").Run());
+
+        // 3) api usage errors: FunnyInvalidUsageException
+        Assert.Throws<FunnyInvalidUsageException>(
+            () => Funny.Calc<User, ModelWithoutParameterlessCtor>("age+1", GetUserModel()));
+    }
+
+    private static User GetUserModel() =>
+        new User {
+            Age = 42, Id = 112, Name = "Alice",
+            Cars = new[] {
+                new Car { Power = 140, Id = 321, Price = 5000 },
+                new Car { Power = 315, Id = 322, Price = 7200 }
+            }
+        };
+}
+
+class ModelWithoutParameterlessCtor {
+    public ModelWithoutParameterlessCtor(int i) { }
 }
 
 class Outputs {

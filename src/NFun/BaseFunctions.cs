@@ -48,6 +48,9 @@ public static class BaseFunctions {
 
             new MedianFunction(),
             new SortFunction(),
+            new SortDescendingFunction(),
+            new SortMapFunction(),
+            new SortMapDescendingFunction(),
             new MinElementFunction(),
             new MaxElementFunction(),
 

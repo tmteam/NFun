@@ -38,7 +38,8 @@ public class InvertFunction : PureGenericFunctionBase {
     }
 }
 
-public class AddFunction : ArithmeticalGenericFunctionOfTwoArgsBase {
+public class 
+    AddFunction : ArithmeticalGenericFunctionOfTwoArgsBase {
     public AddFunction() : base(
         CoreFunNames.Add,
         GenericConstrains.Arithmetical) {

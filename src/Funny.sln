@@ -29,6 +29,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFun.ApiTests", "NFun.ApiTe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFun.TestTools", "NFun.TestTools\NFun.TestTools.csproj", "{10B4A50C-C1B8-4D69-ABA6-6AE3E5D244A3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examples", "..\Examples\Examples.csproj", "{8BD98DD7-2788-449E-AB35-F0E8339C05AD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -79,6 +81,10 @@ Global
 		{10B4A50C-C1B8-4D69-ABA6-6AE3E5D244A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{10B4A50C-C1B8-4D69-ABA6-6AE3E5D244A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{10B4A50C-C1B8-4D69-ABA6-6AE3E5D244A3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8BD98DD7-2788-449E-AB35-F0E8339C05AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8BD98DD7-2788-449E-AB35-F0E8339C05AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8BD98DD7-2788-449E-AB35-F0E8339C05AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8BD98DD7-2788-449E-AB35-F0E8339C05AD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

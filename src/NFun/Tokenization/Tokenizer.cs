@@ -36,6 +36,7 @@ public class Tokenizer {
     }
 
     private static readonly Dictionary<string, TokType> Keywords = new() {
+        { "step", TokType.Step },
         { "in", TokType.In },
         { "fun", TokType.FunRule },
         { "rule", TokType.FunRule },
@@ -65,6 +66,7 @@ public class Tokenizer {
         { "uint", TokType.UInt32Type },
         { "uint32", TokType.UInt32Type },
         { "uint64", TokType.UInt64Type },
+
 
         //Reserved keywords:
         { "the", TokType.Reserved },

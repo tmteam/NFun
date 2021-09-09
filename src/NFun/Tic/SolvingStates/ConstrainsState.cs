@@ -301,7 +301,9 @@ public class ConstrainsState : ITicNodeState {
         if (IsComparable)
         {
             if (_basicUnsolvedDescType != BasicDescType.None)
+            {
                 return null;
+            }
 
             if (Descendant != null)
             {

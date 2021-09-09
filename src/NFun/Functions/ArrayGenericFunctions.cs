@@ -189,6 +189,51 @@ public class SortFunction : GenericFunctionBase {
     }
 }
 
+public class SortDescendingFunction : GenericFunctionBase {
+    public SortDescendingFunction() : base(
+        "sortDescending", GenericConstrains.Comparable,
+        FunnyType.ArrayOf(FunnyType.Generic(0)), FunnyType.ArrayOf(FunnyType.Generic(0))) { }
+
+    protected override object Calc(object[] args) {
+        var funArray = (IFunnyArray)args[0];
+
+        var arr = funArray.As<IComparable>().ToArray();
+        Array.Sort(arr);
+        Array.Reverse(arr);
+        return new ImmutableFunnyArray(arr, funArray.ElementType);
+    }
+}
+
+public class SortMapFunction : GenericFunctionBase {
+    public SortMapFunction() : base(
+        "sort", new[] { GenericConstrains.Any, GenericConstrains.Comparable },
+        FunnyType.ArrayOf(FunnyType.Generic(0)),
+        FunnyType.ArrayOf(FunnyType.Generic(0)), 
+        FunnyType.Fun(FunnyType.Generic(1), FunnyType.Generic(0))) { }
+
+    protected override object Calc(object[] args) {
+        var array = (IFunnyArray)args[0];
+        var map = (IConcreteFunction)args[1];
+        var sorted = array.OrderBy(a => (IComparable)map.Calc(new[] { a })).ToArray();
+        return new ImmutableFunnyArray(sorted, array.ElementType);
+    }
+}
+
+public class SortMapDescendingFunction : GenericFunctionBase {
+    public SortMapDescendingFunction() : base(
+        "sortDescending", new[] { GenericConstrains.Any, GenericConstrains.Comparable },
+        FunnyType.ArrayOf(FunnyType.Generic(0)),
+        FunnyType.ArrayOf(FunnyType.Generic(0)), 
+        FunnyType.Fun(FunnyType.Generic(1), FunnyType.Generic(0))) { }
+
+    protected override object Calc(object[] args) {
+        var array = (IFunnyArray)args[0];
+        var map = (IConcreteFunction)args[1];
+        var sorted = array.OrderByDescending(a => (IComparable)map.Calc(new[] { a })).ToArray();
+        return new ImmutableFunnyArray(sorted, array.ElementType);
+    }
+}
+
 public class MedianFunction : GenericFunctionBase {
     public MedianFunction() : base(
         "median", GenericConstrains.Comparable, FunnyType.Generic(0),

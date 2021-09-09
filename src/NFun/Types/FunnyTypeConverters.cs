@@ -173,10 +173,10 @@ public static class FunnyTypeConverters {
             return DynamicStructToDictionaryOutputFunnyConverter.Instance;
 
         var properties = clrType.GetProperties(BindingFlags.Instance | BindingFlags.Public);
+        if (clrType.GetConstructor(Type.EmptyTypes) == null)
+            throw FunnyInvalidUsageException.OutputTypeConstainsNoParameterlessCtor(clrType);
         if (properties.Any())
         {
-            if (clrType.GetConstructor(Type.EmptyTypes) == null)
-                throw FunnyInvalidUsageException.OutputTypeConstainsNoParameterlessCtor(clrType);
             var propertiesConverters =
                 new (string, IOutputFunnyConverter, PropertyInfo)[properties.Length];
             int readPropertiesCount = 0;

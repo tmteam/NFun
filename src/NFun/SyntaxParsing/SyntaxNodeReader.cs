@@ -606,7 +606,7 @@ public static class SyntaxNodeReader {
         if (!TryReadNodeList(flow, out var list))
             throw ErrorFactory.ArrayInitializeByListError(startTokenNum, flow);
 
-        if (list.Count == 1 && flow.MoveIf(TokType.TwoDots, out var twoDots)) // Range [a..b] or [a..b..c]
+        if (list.Count == 1 && flow.MoveIf(TokType.TwoDots, out var twoDots)) // Range [a..b] or [a..b step c]
         {
             var secondArg = ReadNodeOrNull(flow);
             if (secondArg == null)
@@ -629,12 +629,12 @@ public static class SyntaxNodeReader {
                     openBracket, lastToken, missedVal);
             }
 
-            if (flow.MoveIf(TokType.TwoDots, out var secondTwoDots))
+            if (flow.MoveIf(TokType.Step, out var step))
             {
                 var thirdArg = ReadNodeOrNull(flow);
                 if (thirdArg == null)
                 {
-                    var lastToken = secondTwoDots;
+                    var lastToken = step;
                     var missedVal = flow.Current;
                     if (flow.Current.Is(TokType.ArrCBr))
                     {
@@ -651,15 +651,15 @@ public static class SyntaxNodeReader {
                         openBracket, lastToken, missedVal);
                 }
 
-                if (!flow.MoveIf(TokType.ArrCBr, out _))
+                if (!flow.MoveIf(TokType.ArrCBr, out var closeBracket))
                     throw ErrorFactory.ArrayIntervalInitializeCbrMissed(openBracket, flow.Current, true);
-
-                throw FunnyParseException.ErrorStubToDo("initialize array with step is not supported now ");
-                // return SyntaxNodeFactory.OperatorFun(
-                //     name:     CoreFunNames.RangeName,
-                //     children: new[] {list[0], secondArg, thirdArg}, 
-                //     start:    openBracket.Start, 
-                //     end:      closeBracket.Finish);
+                
+                //throw FunnyParseException.ErrorStubToDo("initialize array with step is not supported now ");
+                return SyntaxNodeFactory.OperatorFun(
+                    name:     CoreFunNames.RangeName,
+                    children: new[] {list[0], secondArg, thirdArg}, 
+                    start:    openBracket.Start, 
+                    end:      closeBracket.Finish);
             }
             else
             {

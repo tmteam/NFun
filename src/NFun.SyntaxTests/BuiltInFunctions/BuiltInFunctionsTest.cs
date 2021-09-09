@@ -242,6 +242,10 @@ public class BuiltInFunctionsTest {
     [TestCase("any([])", false)]
     [TestCase("[0x4,0x3,0x5,0x1].sort()", new[] { 1, 3, 4, 5 })]
     [TestCase("[4.0,3.0,5.0,1.0].sort()", new[] { 1.0, 3.0, 4.0, 5.0 })]
+    [TestCase("['a','hey','what','up'].sort(rule it.count())", new[] { "a", "up", "hey","what" })]
+    [TestCase("['a','hey','what','up'].sortDescending(rule it.count())", new[] { "what", "hey", "up", "a", })]
+    [TestCase("[4.0,3.0,5.0,1.0].sort(rule it%2)", new[] { 4.0, 3.0, 5.0, 1.0 })]
+    [TestCase("[4.0,3.0,5.0,1.0].sortDescending(rule it%2)", new[] { 3.0, 5.0, 1.0, 4.0 })]
     [TestCase("out:int64[]  = [4,3,5,1].sort()", new long[] { 1, 3, 4, 5 })]
     [TestCase("out:uint64[] = [4,3,5,1].sort()", new ulong[] { 1, 3, 4, 5 })]
     [TestCase("out:int32[]  = [4,3,5,1].sort()", new int[] { 1, 3, 4, 5 })]
@@ -266,6 +270,10 @@ public class BuiltInFunctionsTest {
         TraceLog.IsEnabled = true;
         expr.AssertOut(expected);
     }
+
+    [Ignore("Lca merge")]
+    [TestCase("['a','hey','what','up'].sort(rule it.reverse())", new[] { "a", "up", "what", "hey" })]
+    public void MergeComparableArray(string expr, object expected) { expr.AssertOut(expected); }
 
     [TestCase((long)42, "x:int64\r y = max(1,x)", (long)42)]
     [TestCase((long)42, "x:int64\r y = min(1,x)", (long)1)]

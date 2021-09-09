@@ -100,12 +100,12 @@ internal static class ErrorFactory {
 
             return new FunnyParseException(
                 228,
-                $"'[x,..???]. Array hi bound expected but was nothing'{Nl} Example: a[1..2] or a[1..5..2]", start,
+                $"'[x,..???]. Array hi bound expected but was nothing'{Nl} Example: a[1..2] or a[1..5 step 2]", start,
                 finish);
         else
             return new FunnyParseException(
                 231,
-                $"'[x,..???]. Array hi bound expected but was {ErrorsHelper.ToText(missedVal)}'{Nl} Example: a[1..2] or a[1..5..2]",
+                $"'[x,..???]. Array hi bound expected but was {ErrorsHelper.ToText(missedVal)}'{Nl} Example: a[1..2] or a[1..5 step 2]",
                 start, finish);
     }
 
@@ -115,12 +115,12 @@ internal static class ErrorFactory {
         if (string.IsNullOrWhiteSpace(missedVal?.Value))
             return new FunnyParseException(
                 234,
-                $"'[x..y..???]. Array step expected but was nothing'{Nl} Example: a[1..5..2]", start,
+                $"'[x..y step ???]. Array step expected but was nothing'{Nl} Example: a[1..5 step 2]", start,
                 finish);
         else
             return new FunnyParseException(
                 237,
-                $"'[x..y..???]. Array step expected but was {ErrorsHelper.ToText(missedVal)}'{Nl} Example: a[1..5..2]",
+                $"'[x..y step ???]. Array step expected but was {ErrorsHelper.ToText(missedVal)}'{Nl} Example: a[1..5 step 2]",
                 start, finish);
     }
 
@@ -129,7 +129,7 @@ internal static class ErrorFactory {
         int finish = lastToken.Finish;
         return new FunnyParseException(
             240,
-            $"{(hasStep ? "[x..y..step ???]" : "[x..y ???]")}. ']' was missed'{Nl} Example: a[1..5..2]", start,
+            $"{(hasStep ? "[x..y step ???]" : "[x..y ???]")}. ']' was missed'{Nl} Example: a[1..5 step 2]", start,
             finish);
     }
 
@@ -549,7 +549,7 @@ internal static class ErrorFactory {
     internal static Exception ArrayInitializerTypeMismatch(FunnyType stepType, ISyntaxNode node)
         => new FunnyParseException(
             527,
-            $"Array initializator step has to be int type only but was '{stepType}'. Example: [1..5..2]",
+            $"Array initializator step has to be int type only but was '{stepType}'. Example: [1..5 step 2]",
             node.Interval);
 
     internal static Exception CannotParseNumber(string val, Interval interval)
