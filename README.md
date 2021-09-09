@@ -13,21 +13,41 @@ PM> Install-Package NFun
 This is an expression evaluator for .net . It supports working with mathematical expressions as well as with collections, strings and structures. NFun is similar to NCalc but with a rich type system
 
 ```
-# Creates an expression, that accepts single input 'x' and calculates single output 'y' as result
-y1 = 2x+1 
+// Fluent Api
 
-# Strings
-y2 = 'a+b = {a+b}, c = {c}'.toUpper() 
+double d = Funny.Calc<double>("2*10+1") //21  
+string s = Funny.Calc<string>("'Hello world'.reverse()") //"dlrow olleH"
 
-# Arrays as input
-y3 = a[0] + a[1]
+string n = Funny.Calc<User,int> (@"if(age > 18) cars.sum(rule it.cost) 
+				     	else 0")
+User u = Funny.Calc<MyInput,User>(@"
+	age = 2020- birthYear
+	name = if(inputName.count()==0) 'no name' else inputName
+	out = {
+		hasName = inputName.count()==0
+		age = age
+		name = name
+		cars = [{
+			{name = 'lada', cost = 1200, power = 102},
+			{name = 'camaro', cost = 5000, power = 275}
+		}]
+	}");
+				     
+```
 
-# Linq
-y4 = a.reverse().filter (rule it>2)
+```
+//Low level api
 
-# Working with structs
-y5 = if(a.hasName and a.age <> 42) a.name 
-	else a.alias[0]  
+var runtime = Funny.Hardcore.Build("y = 2*x+1");
+
+foreach(var variable in runtime.Variables)
+	Console.WriteLine($"Variable {variable.Name}:{variable.Type} {variable.IsOutput?"[OUTPUT]":"[INPUT]"}");
+
+runtime["x"].Value = 42;
+runtime.Run();
+
+Console.WriteLine($"Result: {runtime["y"].Value}");
+
 ```
 
 ## Guide
@@ -39,23 +59,3 @@ y5 = if(a.hasName and a.age <> 42) a.name
 ## Current state
 
 Now nfun is in pre-release stage  
-
-## Usage example
-
-```
-// Fluent api:
-
-TODO
-
-// Hardcore-script api:
-
-var runtime = Funny.Hardcore.Build("y = 2*x+1");
-
-foreach(var variable in runtime.Variables)
-	Console.WriteLine($"Variable {variable.Name}:{variable.Type} {variable.IsOutput?"[OUTPUT]":"[INPUT]"}");
-
-runtime["x"].Value = 42;
-runtime.Run();
-
-Console.WriteLine($"Result: {runtime["y"].Value}");
-```
