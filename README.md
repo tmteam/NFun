@@ -10,7 +10,7 @@ PM> Install-Package NFun
 
 ## What is the NFun?
 
-This is an expression evaluator for .net . It supports working with mathematical expressions as well as with collections, strings and structures. We can say that NFun is similar to NCalc but with a rich type system
+This is an expression evaluator for .net . It supports working with mathematical expressions as well as with collections, strings and structures. NFun is similar to NCalc but with a rich type system
 
 ```
 # Creates an expression, that accepts single input 'x' and calculates single output 'y' as result
@@ -30,9 +30,15 @@ y5 = if(a.hasName and a.age <> 42) a.name
 	else a.alias[0]  
 ```
 
+## Guide
+
+[API - guide and examples](https://github.com/tmteam/NFun/blob/master/Examples/ApiUsageExamplesAndExplanation.cs)
+
+[Syntax - guide and examples](https://github.com/tmteam/NFun/blob/master/Examples/SyntaxExamplesAndExplanation.cs)
+
 ## Current state
 
-Now nfun is in betta stage. This means that the API still changes a little and performance is not optimized yet  
+Now nfun is in pre-release stage  
 
 ## Usage example
 
