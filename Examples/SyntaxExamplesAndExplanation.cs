@@ -7,38 +7,41 @@ namespace NFun.Examples {
 
 public class SyntaxExamplesAndExplanation {
     [Test]
-    public void Basics() { /*
-        Comments starts with '#'
-        
+    public void Basics() { /*        
         Input variables called 'Inputs'
         Output variables called 'Outputs'
         
-        The names of the inputs and outputs and their types are determined automatically*/
+        The names of the inputs and outputs and their types are determined automatically
+        Comments starts with '#'
+        */
         var r1 = Funny.Hardcore.Build(
             @"
-            #here is the comment
-            y = 10*x +1");
+                # Here is the comment
+                y = 10*x +1 # Here is an expression
+            ");
         Assert.AreEqual(false, r1["x"].IsOutput);
         Assert.AreEqual(true, r1["y"].IsOutput);
 
-        //You can skip the name of the output if there is one. Anonymous output gets the name 'out'
+        // You can skip the name of the output if there is only on expression.
+        // The anonymous output gets the name 'out'
         var r2 = Funny.Hardcore.Build("10 * x + 1");
         Assert.AreEqual(true, r2["out"].IsOutput);
 
-        //Nfun language Is CasE-SEnsiTiVe. But you cannot create two variables with different case
+        // NFun language Is CasE-SEnsiTiVe. But you cannot create two variables with different case
         Assert.Throws<FunnyParseException>(() => Funny.Hardcore.Build("x + X"));
 
-        //The inputs are not necessary, for constant calculation
+        // The inputs are not necessary, for constant calculation
         var r3 = Funny.Hardcore.Build("10+1");
         r3.Run();
         Assert.AreEqual(11, r3["out"].Value);
 
-        //Nfun is sensitive to the fact that each variable definition starts with a new line.
-        //In this case,‘; ’ is the equivalent of a line break
+        // NFun is sensitive to the fact that each variable definition starts with a new line.
+        // In this case, ';' is the equivalent of a line break
         var r5 = Funny.Hardcore.Build(
             @"
-            x=1
-            y = 10");
+                x=1
+                y = 10
+            ");
         Assert.AreEqual(true, r5["x"].IsOutput && r5["y"].IsOutput);
 
         var r6 = Funny.Hardcore.Build("x=1; y = 10");
@@ -62,31 +65,31 @@ public class SyntaxExamplesAndExplanation {
                       1) **
                       2) / * % //
                       3) + -
-         Brackets are used to indicate priorities (as in ordinary mathematics) */
+         Brackets are used to indicate priorities */
         Assert.AreEqual(9, Funny.Calc<double>("(10//2 + (1-12) %3) ** 2"));
     }
 
     [Test]
     public void Flow() {
-        //Script may contains multiple input and outputs
+        // Script may contains multiple input and outputs
         var r1 = Funny.Hardcore.Build(
             @"
-            sum = x1+x2
-            dif = x1-x2
-");
+                sum = x1+x2
+                dif = x1-x2
+            ");
         r1["x1"].Value = 10;
         r1["x2"].Value = 5;
         r1.Run();
         Assert.AreEqual(15, r1["sum"].Value);
         Assert.AreEqual(5, r1["dif"].Value);
 
-        //Outputs can be used in futher calculations
+        // Outputs can be used in further calculations
         Funny.Hardcore.Build(
             @"
-            d  = b**2 - 4*a*c
-            y1 = (-b + d**0.5) /2*a # 'd' used
-            y2 = (-b - d**0.5) /2*a # 'd' used
-");
+                d  = b**2 - 4*a*c
+                y1 = (-b + d**0.5) /2*a # 'd' used
+                y2 = (-b - d**0.5) /2*a # 'd' used
+            ");
     }
 
     [Test]
@@ -103,10 +106,10 @@ public class SyntaxExamplesAndExplanation {
 
         var r3 = Funny.Hardcore.Build(
             @"
-            #Was: y = max(x2, abs (tan (cos (x1))))
-            #Became:
-            y = x1.cos().tan().abs().max(x2)
-");
+                # Origin: y = max(x2, abs(tan(cos(x1))))
+                # Equals to:
+                y = x1.cos().tan().abs().max(x2)
+            ");
         //Some other arithmetics functions:
         //cos(0),sin(0),acos(1),asin(0),atan(0),atan2(0,1)
         //tan(0),exp(0),log(1,10),log(1),log10(1),ceil(7.03),floor(7.03),
@@ -147,8 +150,9 @@ public class SyntaxExamplesAndExplanation {
         // But if you really want to, you can specify the types explicitly
         var r3 = Funny.Hardcore.Build(
             @"
-            a:real
-            y = 2*a+1  # y:real, a:real");
+                a:real
+                y = 2*a+1
+            ");
         Assert.AreEqual(FunnyType.Real, r3["a"].Type);
         Assert.AreEqual(FunnyType.Real, r3["y"].Type);
 
@@ -161,8 +165,9 @@ public class SyntaxExamplesAndExplanation {
         Assert.Throws<FunnyParseException>(
             () => Funny.Hardcore.Build(
                 @"
-                y = x+1
-                x: int # error. type x is declared after its use:"));
+                    y = x+1
+                    x: int # ERROR. type x is declared after its use
+                "));
     }
 
     [Test]
@@ -184,8 +189,7 @@ public class SyntaxExamplesAndExplanation {
         The preferred types are shown above,
         y:byte = 1 
         y:uint16 = 0x1 
-        y:byte = 1.0 # ERROR
-         */
+        y:byte = 1.0 # ERROR */
 
         Assert.AreEqual(1, Funny.Calc<byte>("1"));
         Assert.AreEqual(1000, Funny.Calc<UInt32>("1_000"));
@@ -226,8 +230,9 @@ public class SyntaxExamplesAndExplanation {
         Assert.True(
             Funny.Calc<bool>(
                 @"
-                x1= 12; x2 = 24; x3 =-1; x4 = false 
-                out = x1!=0 and (x2>0 or (x3<0 xor not x4))"));
+                    x1= 12; x2 = 24; x3 =-1; x4 = false 
+                    out = x1!=0 and (x2>0 or (x3<0 xor not x4))
+                "));
     }
 
     [Test]
@@ -244,8 +249,7 @@ public class SyntaxExamplesAndExplanation {
              out = 
                 if (condition) result1
                 if (condition2) result2
-                else result 3
-         */
+                else result 3 */
 
         Assert.AreEqual(42, Funny.Calc("x = 42; out =if (x < 0 ) 0 else x"));
 
@@ -254,24 +258,25 @@ public class SyntaxExamplesAndExplanation {
             @"
                 if (x>12) 'so big'
                 if (x<3)  'so small'
-                else      'it\'s ok!'");
+                else      'it\'s ok!'
+            ");
 
         //Margins are not important, but they may help in perception
         Assert.AreEqual(
             1, Funny.Calc(
                 @"
-                x = 0; x2 = 12
-                out = if (x < 0) 
-                        if (x ==0)
-                            if (x2==300) 15
-                            if (x2==400) 32
-                            else 0
-                        if (x ==1)
-                            if (x2==500) 100
-                            else 44
-                        else 42
-                    else 1
-"));
+                    x = 0; x2 = 12
+                    out = if (x < 0) 
+                            if (x ==0)
+                                if (x2==300) 15
+                                if (x2==400) 32
+                                else 0
+                            if (x ==1)
+                                if (x2==500) 100
+                                else 44
+                            else 42
+                        else 1
+                "));
         //if can be used as usual expression 
         Assert.AreEqual(
             "42 is more than zero", Funny.Calc(
@@ -281,7 +286,8 @@ public class SyntaxExamplesAndExplanation {
                             if (x < 0) 'less than'
                             if (x > 0) 'more than'
                             else 'equal to')
-                        .concat(' zero')"));
+                        .concat(' zero')
+                "));
 
         //If-syntax is customizable. You may deny 'if expression' at all,
         //or allow only 'if - else if - else' style
@@ -295,9 +301,10 @@ public class SyntaxExamplesAndExplanation {
                        .WithDialect(Dialects.ModifyOrigin(IfExpressionSetup.IfElseIf))
                        .Build(
                            @"
-                            if(true)  1 
-                            if(false) 0 
-                            else 0"));
+                                if(true)  1 
+                                if(false) 0 
+                                else 0
+                            "));
     }
 
     [Test]
@@ -344,7 +351,7 @@ public class SyntaxExamplesAndExplanation {
                 x2 = if (des(a,b,c) >0)
                         (-b - des(a,b,c)**0.5)/(2*a)
                      else -1
-        ");
+            ");
         runtime["a"].Value = 1;
         runtime["b"].Value = 10;
         runtime["c"].Value = 0;
@@ -356,10 +363,10 @@ public class SyntaxExamplesAndExplanation {
         Assert.Throws<FunnyParseException>(
             () => Funny.Hardcore.Build(
                 @"
-                f(x) = x + x2 # Error. The variable x2 is not an input for the function f
+                    f(x) = x + x2 # ERROR. The variable x2 is not an input for the function f
 
-                y = f(x1) + x2
-            "));
+                    y = f(x1) + x2
+                "));
     }
 
     [Test]
@@ -487,10 +494,12 @@ public class SyntaxExamplesAndExplanation {
 
         Assert.AreEqual(
             64, Funny.Calc<double>(
-                @"[1,2,3,4]
+                @"
+                    [1,2,3,4]
                         .filter(rule it>2)
                         .map(rule it**3)
-                        .max()"));
+                        .max()
+                "));
 
         Assert.AreEqual(1, Funny.Calc("[5,1,2].sort(rule it)[0]"));
     }
@@ -500,22 +509,22 @@ public class SyntaxExamplesAndExplanation {
         // NFun supports structures
         var runtime = Funny.Hardcore.Build(
             @"
-            # initialization
-            user = {
-                age = 12, 
-                name = 'Kate'
-                cars = [
-                    #single-line initialization
-                    { name = 'Creta',   id = 112, power = 140, price = 5000},
-                    { name = 'Camaro', id = 113, power = 353, price = 10000} 
-                ]
-            }
-            # field access
-            userName = user.name
-            # linq operations
-            slowestCar = user.cars.sort(rule it.power)[0].name
-            totalCost = user.cars.sum(rule it.price)
-");
+                # initialization
+                user = {
+                    age = 12, 
+                    name = 'Kate'
+                    cars = [
+                        #single-line initialization
+                        { name = 'Creta',   id = 112, power = 140, price = 5000},
+                        { name = 'Camaro', id = 113, power = 353, price = 10000} 
+                    ]
+                }
+                # field access
+                userName = user.name
+                # linq operations
+                slowestCar = user.cars.sort(rule it.power)[0].name
+                totalCost = user.cars.sum(rule it.price)
+            ");
         runtime.Run();
         Assert.AreEqual("Creta", runtime["slowestCar"].Value);
         Assert.AreEqual(15000, runtime["totalCost"].Value);
