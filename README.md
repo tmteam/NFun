@@ -1,6 +1,4 @@
-# NFun. The larva of the programming language
-
-Expressions Evaluator for .NET
+# NFun. Expressions Evaluator for .NET
 
 To install NFun, run the following command in the Package Manager Console:
 
@@ -50,6 +48,13 @@ Console.WriteLine($"Result: {runtime["y"].Value}");
 
 ```
 
+## Key features
+
+- Arithmetic, Bitwise, Boolean operators
+- Array, string, numbers, structs and func support 
+- If-expression
+- Strict type system and type-inference algorithm 
+
 ## Guide
 
 [API - guide and examples](https://github.com/tmteam/NFun/blob/master/Examples/ApiUsageExamplesAndExplanation.cs)
@@ -58,4 +63,4 @@ Console.WriteLine($"Result: {runtime["y"].Value}");
 
 ## Current state
 
-Now nfun is in pre-release stage  
+It is about time to try
