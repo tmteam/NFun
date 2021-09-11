@@ -40,12 +40,12 @@ public interface IFunnyVar {
     /// <summary>
     /// Returns getter function with a converter to the specified clr type
     /// </summary>
-    Func<T> GetTypedGetter<T>();
+    Func<T> CreateGetterOf<T>();
 
     /// <summary>
     /// Returns setter function with a converter to the specified clr type
     /// </summary>
-    Action<T> GetTypedSetter<T>();
+    Action<T> CreateSetterOf<T>();
 }
 
 
@@ -117,7 +117,7 @@ internal class VariableSource : IFunnyVar {
         set => _funnyValue = FunnyTypeConverters.ConvertInputOrThrow(value, Type);
     }
 
-    public Func<T> GetTypedGetter<T>() {
+    public Func<T> CreateGetterOf<T>() {
         if (!IsOutput)
             throw new NotSupportedException("Cannot create value getter for non output variable");
         var outputConverter = FunnyTypeConverters.GetOutputConverter(typeof(T));
@@ -127,7 +127,7 @@ internal class VariableSource : IFunnyVar {
         return () => (T)outputConverter.ToClrObject(FunnyValue);
     }
 
-    public Action<T> GetTypedSetter<T>() {
+    public Action<T> CreateSetterOf<T>() {
         if (IsOutput)
             throw new NotSupportedException("Cannot create value getter for output variable");
 

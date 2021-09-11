@@ -179,10 +179,10 @@ public class ApiUsageExamples {
 
         // Accessing the Value property is an expensive operation.
         // In case of reuse, it is better to use access methods
-        Action<double> aSetter = runtime["a"].GetTypedSetter<double>();
-        Action<double> bSetter = runtime["b"].GetTypedSetter<double>();
-        Func<double> yGetter = runtime["y"].GetTypedGetter<double>();
-        Func<double> outGetter = runtime["out"].GetTypedGetter<double>();
+        Action<double> aSetter = runtime["a"].CreateSetterOf<double>();
+        Action<double> bSetter = runtime["b"].CreateSetterOf<double>();
+        Func<double> yGetter   = runtime["y"].CreateGetterOf<double>();
+        Func<double> outGetter = runtime["out"].CreateGetterOf<double>();
 
         for (var i = 0; i < 100; i++)
         {

@@ -2,7 +2,7 @@
 <package>
     <metadata>
         <id>NFun</id>
-        <version>0.9.1</version>
+        <version>0.9.2</version>
         <title>NFun</title>
         <authors>Tmteam</authors>
         <owners>Tmteam</owners>
@@ -10,9 +10,9 @@
         <projectUrl>https://github.com/tmteam/NFun</projectUrl>
         <iconUrl>https://github.com/tmteam/NFun/raw/master/Icon.png</iconUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>Pure intepritable fun language for .net applications</description>
-        <releaseNotes>Support structs. Syntax and perfomance improvements.</releaseNotes>
+        <description>Expresion evaluator for .net applications</description>
+        <releaseNotes>Improve API</releaseNotes>
         <copyright>Copyright 2021</copyright>
-        <tags>Not a functional intepritable language</tags>
+        <tags>Expression Math Evaluation Embedded Language Script</tags>
     </metadata>
 </package>

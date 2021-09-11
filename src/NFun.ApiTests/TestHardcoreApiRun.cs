@@ -44,9 +44,9 @@ class RuntimeApiTest {
         var ySource = runtime["y"];
         var xSource = runtime["x"];
 
-        xSource.GetTypedSetter<double>()(arg);
+        xSource.CreateSetterOf<double>()(arg);
         runtime.Run();
-        Assert.AreEqual(expected, ySource.GetTypedGetter<double>()());
+        Assert.AreEqual(expected, ySource.CreateGetterOf<double>()());
     }
 
     [TestCase("y = 2*x", 0.0)]
@@ -145,7 +145,7 @@ class RuntimeApiTest {
                     out5:text = in3.field2.child    
 ");
 
-        runtime["in3"].GetTypedSetter<Dictionary<string, object>>()
+        runtime["in3"].CreateSetterOf<Dictionary<string, object>>()
         (
             new Dictionary<string, object> {
                 { "field1", 123 }, {
@@ -157,18 +157,18 @@ class RuntimeApiTest {
 
         runtime.Run();
 
-        Assert.AreEqual(124, runtime.Variables.FirstOrDefault(i => i.Name == "out4")?.GetTypedGetter<int>()());
-        Assert.AreEqual(124, runtime["out4"]?.GetTypedGetter<int>()());
+        Assert.AreEqual(124, runtime.Variables.FirstOrDefault(i => i.Name == "out4")?.CreateGetterOf<int>()());
+        Assert.AreEqual(124, runtime["out4"]?.CreateGetterOf<int>()());
 
         Assert.AreEqual(
             "kavabanga",
-            runtime.Variables.FirstOrDefault(i => i.Name == "out5")?.GetTypedGetter<string>()());
-        Assert.AreEqual("kavabanga", runtime["out5"]?.GetTypedGetter<string>()());
+            runtime.Variables.FirstOrDefault(i => i.Name == "out5")?.CreateGetterOf<string>()());
+        Assert.AreEqual("kavabanga", runtime["out5"]?.CreateGetterOf<string>()());
 
-        Assert.IsNotNull(runtime["out3"].GetTypedGetter<Dictionary<string, object>>());
+        Assert.IsNotNull(runtime["out3"].CreateGetterOf<Dictionary<string, object>>());
         Assert.IsNotNull(
             runtime.Variables.FirstOrDefault(i => i.Name == "out3")
-                   ?.GetTypedGetter<Dictionary<string, object>>());
+                   ?.CreateGetterOf<Dictionary<string, object>>());
     }
 
     [Test]
@@ -203,10 +203,10 @@ class RuntimeApiTest {
         runtime.Run();
 
         var value = runtime.Variables.FirstOrDefault(i => i.Name == "out")
-                           ?.GetTypedGetter<Dictionary<string, object>>()();
+                           ?.CreateGetterOf<Dictionary<string, object>>()();
         AssertValue(value);
 
-        var getter = runtime["out"].GetTypedGetter<IDictionary<string, object>>();
+        var getter = runtime["out"].CreateGetterOf<IDictionary<string, object>>();
 
         AssertValue(getter());
         AssertValue(getter());

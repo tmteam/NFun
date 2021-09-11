@@ -22,7 +22,7 @@ public class SyntaxExamplesAndExplanation {
         Assert.AreEqual(false, r1["x"].IsOutput);
         Assert.AreEqual(true, r1["y"].IsOutput);
 
-        // You can skip the name of the output if there is only on expression.
+        // You can skip the name of the output if there is only one expression.
         // The anonymous output gets the name 'out'
         var r2 = Funny.Hardcore.Build("10 * x + 1");
         Assert.AreEqual(true, r2["out"].IsOutput);
@@ -57,8 +57,8 @@ public class SyntaxExamplesAndExplanation {
          y = x-1 # Subtraction
          y = x*2 # Multiplication
          y = x/2 # Division
+         y = x%3 # Remainder of the division
          y = x//2 # Integer division
-         y = x % 3 # Remainder of the division
          y = x**2 # Pow
          
          The priorities of operations are normal: 
@@ -137,7 +137,7 @@ public class SyntaxExamplesAndExplanation {
          - Structs, like {age:int, name:text}  
    
         You don't need to specify the types of variables. They are calculates automatically from the usage.*/
-        var r1 = Funny.Hardcore.Build("y = 2*a+1  # y:int, a:int");
+        var r1 = Funny.Hardcore.Build("y = 2*a+1");
         Assert.AreEqual(FunnyType.Int32, r1["a"].Type);
         Assert.AreEqual(FunnyType.Int32, r1["y"].Type);
 
@@ -317,7 +317,8 @@ public class SyntaxExamplesAndExplanation {
          >>   # bitshift right
          <<   # bitshift left
         
-        All bitwise operators allowed for any integer types*/
+        >>, << operators allowed for types int32, uint32, int64, uiny64
+        |,&,^,~ operators allowed for any integer types*/
 
         Assert.IsTrue(Funny.Calc<bool>("x1 = 42; out = (x1 & (1 << 5)) !=0  #x1 has 5th bit"));
     }
