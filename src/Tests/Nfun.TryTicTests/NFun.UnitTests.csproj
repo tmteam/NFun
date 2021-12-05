@@ -1,22 +1,23 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netcoreapp3.0</TargetFramework>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
 
         <IsPackable>false</IsPackable>
 
-        <RootNamespace>Nfun.Benchmarks</RootNamespace>
+        <AssemblyName>NFun.UnitTests</AssemblyName>
+
+        <RootNamespace>NFun.UnitTests</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="BenchmarkDotNet" Version="0.12.1"/>
         <PackageReference Include="nunit" Version="3.12.0"/>
         <PackageReference Include="NUnit3TestAdapter" Version="3.13.0"/>
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0"/>
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\NFun\NFun.csproj"/>
+        <ProjectReference Include="..\NFun.TestTools\NFun.TestTools.csproj"/>
     </ItemGroup>
 
 </Project>

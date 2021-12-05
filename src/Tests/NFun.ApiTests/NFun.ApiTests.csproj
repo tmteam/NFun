@@ -13,8 +13,8 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\..\NFun\NFun.csproj" />
         <ProjectReference Include="..\NFun.TestTools\NFun.TestTools.csproj" />
-        <ProjectReference Include="..\NFun\NFun.csproj" />
     </ItemGroup>
 
 </Project>

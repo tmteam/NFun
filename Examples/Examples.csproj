@@ -18,4 +18,8 @@
       <ProjectReference Include="..\src\NFun\NFun.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Remove="Program.cs" />
+    </ItemGroup>
+
 </Project>
