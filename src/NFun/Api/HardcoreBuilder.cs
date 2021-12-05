@@ -52,10 +52,7 @@ public class HardcoreBuilder {
 
     public HardcoreBuilder WithFunction(IFunctionSignature function) =>
         new(_immutableFunctionDictionary.CloneWith(function), _constants, _apriori, _dialect);
-
-    public HardcoreBuilder WithFunctions(params IFunctionSignature[] functions) =>
-        new(_immutableFunctionDictionary.CloneWith(functions), _constants, _apriori, _dialect);
-
+    
     public HardcoreBuilder WithFunction<Tin, TOut>(string name, Func<Tin, TOut> function) =>
         WithFunction(LambdaWrapperFactory.Create(name, function));
 
@@ -89,7 +86,7 @@ public class HardcoreBuilder {
     public FunnyRuntime Build(string script) =>
         RuntimeBuilder.Build(script, _immutableFunctionDictionary, _dialect, _constants, _apriori);
 
-    public StringInterpolationCalculator BuildStringInterpolation(string script) =>
+    public StringInterpolationCalculator BuildStringTemplate(string script) =>
         StringInterpolationRuntimeBuilder.Build(script, _immutableFunctionDictionary, _dialect, _constants, _apriori);
 }
 

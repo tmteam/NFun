@@ -4,7 +4,7 @@ using NFun.Types;
 using NUnit.Framework;
 
 namespace NFun.Examples {
-
+// All syntactic constructions are explained here
 public class SyntaxExamplesAndExplanation {
     [Test]
     public void Basics() { /*        
@@ -21,6 +21,7 @@ public class SyntaxExamplesAndExplanation {
             ");
         Assert.AreEqual(false, r1["x"].IsOutput);
         Assert.AreEqual(true, r1["y"].IsOutput);
+        Assert.AreEqual(FunnyType.Int32, r1["y"].Type);
 
         // You can skip the name of the output if there is only one expression.
         // The anonymous output gets the name 'out'

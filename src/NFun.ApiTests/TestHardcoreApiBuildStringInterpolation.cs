@@ -9,7 +9,7 @@ public class TestHardcoreApiBuildStringInterpolation {
     [TestCase("abc", "{concat(x,x)}", "abcabc")]
     [TestCase("abc", "pre {'inner = {x.concat('test of \\{')}'} outer {x}", "pre inner = abctest of { outer abc")]
     public void SingleVariableInterpolation(object input, string expr, string expected) {
-        var calculator = Funny.Hardcore.BuildStringInterpolation(expr);
+        var calculator = Funny.Hardcore.BuildStringTemplate(expr);
         calculator["x"].Value = input;
         var res = calculator.Calculate();
         Assert.AreEqual(expected, res);
@@ -30,7 +30,7 @@ public class TestHardcoreApiBuildStringInterpolation {
     [TestCase("pre1{'pre2{2-2}after2'}after1", "pre1pre20after2after1")]
     [TestCase("pre1 {'inside'} after1", "pre1 inside after1")]
     public void ConstantInterpolation(string expr, string expected) =>
-        Assert.AreEqual(expected, Funny.Hardcore.BuildStringInterpolation(expr).Calculate());
+        Assert.AreEqual(expected, Funny.Hardcore.BuildStringTemplate(expr).Calculate());
 }
 
 }
