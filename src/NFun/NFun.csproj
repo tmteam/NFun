@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.1</TargetFramework>
-        <PackageVersion>0.9.1</PackageVersion>
+        <PackageVersion>0.9.3</PackageVersion>
         <Version>0.8.1</Version>
         <LangVersion>9</LangVersion>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -16,8 +16,8 @@
         <RepositoryUrl>https://github.com/tmteam/NFun</RepositoryUrl>
         <PackageTags>Not a functional intepritable language</PackageTags>
         <PackageReleaseNotes>Support structs. Syntax and perfomance improvements.</PackageReleaseNotes>
-        <AssemblyVersion>0.9.1</AssemblyVersion>
-        <FileVersion>0.9.1</FileVersion>
+        <AssemblyVersion>0.9.3</AssemblyVersion>
+        <FileVersion>0.9.3</FileVersion>
     </PropertyGroup>
 
 </Project>
