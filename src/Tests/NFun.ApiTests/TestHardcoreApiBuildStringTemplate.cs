@@ -2,13 +2,13 @@ using NUnit.Framework;
 
 namespace NFun.ApiTests {
 
-public class TestHardcoreApiBuildStringInterpolation {
+public class TestHardcoreApiBuildStringTemplate {
     [TestCase(42, "{x.toText().concat('lalala')}", "42lalala")]
     [TestCase(42.0, "pre{x-1*2}mid{x*x/x}fin", "pre40mid42fin")]
     [TestCase(42, "pre{x-1*2}mid{x*x/x}fin", "pre40mid42fin")]
     [TestCase("abc", "{concat(x,x)}", "abcabc")]
     [TestCase("abc", "pre {'inner = {x.concat('test of \\{')}'} outer {x}", "pre inner = abctest of { outer abc")]
-    public void SingleVariableInterpolation(object input, string expr, string expected) {
+    public void SingleVariableTemplate(object input, string expr, string expected) {
         var calculator = Funny.Hardcore.BuildStringTemplate(expr);
         calculator["x"].Value = input;
         var res = calculator.Calculate();
@@ -29,7 +29,7 @@ public class TestHardcoreApiBuildStringInterpolation {
     [TestCase("pre {'p{42-1*2}m{21-1+10*3}a'} mid {'p{42-2}m{21-1}a'} fin", "pre p40m50a mid p40m20a fin")]
     [TestCase("pre1{'pre2{2-2}after2'}after1", "pre1pre20after2after1")]
     [TestCase("pre1 {'inside'} after1", "pre1 inside after1")]
-    public void ConstantInterpolation(string expr, string expected) =>
+    public void ConstantTemplate(string expr, string expected) =>
         Assert.AreEqual(expected, Funny.Hardcore.BuildStringTemplate(expr).Calculate());
 }
 

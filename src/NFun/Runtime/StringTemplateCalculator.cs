@@ -5,12 +5,12 @@ using NFun.Types;
 
 namespace NFun.Runtime {
 
-public class StringInterpolationCalculator {
+public class StringTemplateCalculator {
     private readonly FunnyRuntime _runtime;
     private readonly IReadOnlyList<string> _texts;
     private readonly IReadOnlyList<IFunnyVar> _variables;
 
-    public StringInterpolationCalculator(
+    public StringTemplateCalculator(
         FunnyRuntime runtime, IReadOnlyList<string> texts, IReadOnlyList<IFunnyVar> variables) {
         _runtime = runtime;
         _texts = texts;

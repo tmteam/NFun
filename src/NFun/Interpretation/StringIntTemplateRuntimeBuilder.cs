@@ -7,10 +7,10 @@ using NFun.Tokenization;
 
 namespace NFun.Interpretation {
 
-internal static class StringInterpolationRuntimeBuilder {
+internal static class StringIntTemplateRuntimeBuilder {
     private const string AnonymIdPrefix = "___intepol___";
 
-    internal static StringInterpolationCalculator Build(
+    internal static StringTemplateCalculator Build(
         string script,
         IFunctionDictionary functionDictionary,
         DialectSettings dialect,
@@ -18,7 +18,7 @@ internal static class StringInterpolationRuntimeBuilder {
         AprioriTypesMap aprioriTypesMap = null) {
         //not the most effective way to build interpolation runtime
         //but at least it works
-        SeparateInterpolation(script, out var texts, out var scripts);
+        SeparateStringTemplate(script, out var texts, out var scripts);
 
         //create new script with all scripts inside
         var sb = new StringBuilder();
@@ -31,17 +31,17 @@ internal static class StringInterpolationRuntimeBuilder {
         for (int i = 0; i < scripts.Count; i++)
             outputVars[i] = runtime[$"{AnonymIdPrefix}{i}"];
 
-        return new StringInterpolationCalculator(runtime, texts, outputVars);
+        return new StringTemplateCalculator(runtime, texts, outputVars);
     }
 
     /// <summary>
-    /// separates intepolation string to texts and inner scripts
+    /// separates template string to texts and inner scripts
     /// </summary>
     /// <param name="script">origin interpolation text</param>
     /// <param name="texts">texts between scripts</param>
     /// <param name="scripts">scripts between texts</param>
     /// <exception cref="FunParseException"></exception>
-    private static void SeparateInterpolation(string script, out List<string> texts, out List<string> scripts) {
+    private static void SeparateStringTemplate(string script, out List<string> texts, out List<string> scripts) {
         texts = new List<string>();
         scripts = new List<string>();
 

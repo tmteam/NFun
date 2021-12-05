@@ -86,8 +86,8 @@ public class HardcoreBuilder {
     public FunnyRuntime Build(string script) =>
         RuntimeBuilder.Build(script, _immutableFunctionDictionary, _dialect, _constants, _apriori);
 
-    public StringInterpolationCalculator BuildStringTemplate(string script) =>
-        StringInterpolationRuntimeBuilder.Build(script, _immutableFunctionDictionary, _dialect, _constants, _apriori);
+    public StringTemplateCalculator BuildStringTemplate(string script) =>
+        StringIntTemplateRuntimeBuilder.Build(script, _immutableFunctionDictionary, _dialect, _constants, _apriori);
 }
 
 }
