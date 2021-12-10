@@ -77,7 +77,6 @@ public class MapFunction : GenericFunctionBase {
     }
 }
 
-
 public class MultiMapSumFunction : GenericFunctionBase {
     private const string Id = "sum";
 
@@ -359,7 +358,6 @@ public class MultiSumFunction : GenericFunctionBase {
         }
     }
 }
-
 
 public class RangeFunction : GenericFunctionBase {
     public RangeFunction() : base(

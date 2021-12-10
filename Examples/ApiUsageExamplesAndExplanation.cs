@@ -10,8 +10,8 @@ namespace NFun.Examples {
 //
 // Each test in this file is a separate tutorial. Study them sequentially, starting from the first
 public class ApiUsageExamples {
-    // Basics. Calculation of constants 
     [Test]
+    // Calculation of constants 
     public void ConstantCalculation() {
         object a = Funny.Calc("'Hello world'");
         Assert.AreEqual("Hello world", a);
@@ -45,8 +45,8 @@ public class ApiUsageExamples {
         Assert.AreEqual(42, user.Age);
         Assert.AreEqual("PETER", user.Name);
     }
-    // Basics. Single value calculation 
     [Test]
+    // Single value calculation 
     public void CalculationWithInputData() {
         // let's assume that we have a complex user model
         var user = new User {
@@ -73,20 +73,19 @@ public class ApiUsageExamples {
         //and do complex calculations
         //Let's calculate the total cost of the user's cars if he is an adult
         long totalPrice = Funny.Calc<User, long>(
-            "if(age>=18) " +
-            "  cars.sum(rule it.price)" +
-            "else " +
-            "  0", user);
+            "if(age>=18) cars.sum(rule it.price)" +
+            "else 0", user);
         Assert.AreEqual(12200, totalPrice);
 
         //Let's calculate the total cost of powerful cars 
-        long powerfullCarsTotalPrice = Funny.Calc<User, long>(
-            "cars.filter(rule it.power>300).sum(rule it.price)",
+        //following expression equals to C#:
+        //user.Cars.Where(c=>c.Power > 300).Sum(c=>c.Price);
+        long powerfullCarsTotalPrice = Funny.Calc<User, long>("cars.filter(rule it.power>300).sum(rule it.price)",
             user);
         Assert.AreEqual(7200, powerfullCarsTotalPrice);
     }
     
-    //Basics. Multiple values calculation
+    // Multiple values calculation
     [Test]
     public void MultipleCalculations() {
         var user = GetUserModel();
@@ -97,40 +96,71 @@ public class ApiUsageExamples {
         //In this example, the model 'outputs' has the properties 'Adult', 'Price', 'NameAndId'
         Outputs result = Funny.CalcMany<User, Outputs>(
             @"Adult = age>18
-              Price = cars.sum(rule it.price)
-              NameAndId = 'id: {id}, name: {name.toUpper()}'", user);
+              Price = cars.sum(rule it.price)", user);
         Assert.AreEqual(true, result.Adult);
         Assert.AreEqual(12200, result.Price);
-        Assert.AreEqual("id: 112, name: ALICE", result.NameAndId);
     }
-    // FluentApi. Configuring script execution 
+    /*
+     * ********** Fluent API ********** 
+     *
+     * The above examples uses default settings of nfun. 
+     * Fluent Api allows you to override them, like
+     * - add custom functions
+     * - add custom constants
+     * - override default syntax
+     * - override default semantics
+    */
     [Test]
-    public void FluentApi() {
-        //The above examples are suitable just for basic cases
-        //Use the Fluent Api for more complex scenarios.
-        //It allows you to add functions, constants, override default behaviors etc
+    // FluentApi. Add constants and functions 
+    public void FluentApi_CustomConstantsAndFunctions() {
+        //let's add custom constant to script
+        var result = Funny
+                     .WithConstant("foo", 42)
+                     .Calc<int>("foo+1");
+        Assert.AreEqual(result, 43);
 
-        //Add custom constants and functions
+        // You can connect several WithConstant methods into chain,
+        // Every WithConstant call returns 'builder' object
+        var builder = Funny.WithConstant("foo", 42).WithConstant("bar", 100);
+        var result2 = builder.Calc<int>("foo + bar");
+        Assert.AreEqual(result2, 142);
 
-        //assume we have custom function (or method, or Func<...>)
-        Func<int, int, int, int> myFunctionMinOf3
-            = (i1, i2, i3) => Math.Min(Math.Min(i1, i2), i3);
+        //You can do the same with custom function
 
-        var a = Funny
-                .WithConstant("foo", 42)
-                .WithConstant("bar", 2)
-                .WithFunction("minOf3", myFunctionMinOf3)
-                .Calc("minOf3(foo,bar,123) == bar");
+        //assume we have custom function (method or Func<...>)
+        Func<int, int, int> myFunctionMin = (i1, i2) => Math.Min(i1, i2);
+        
+        object a = Funny
+                   .WithConstant("foo", 42)
+                   .WithFunction("myMin", myFunctionMin)
+                   // now you can use 'myMin' function and 'foo' constant in script!
+                   .Calc("myMin(foo,123) == foo");
         Assert.AreEqual(true, a);
-
-        //Also you may override fun-dialiect for your needs
-        var sumResult = Funny.WithDialect(
-                                 Dialects.ModifyOrigin(
-                                     integerPreferredType: IntegerPreferredType.Real))
-                             .Calc("1 + 2");
+    }
+    
+    [Test]
+    // FluentApi. Syntax and semantic customization 
+    public void FluentApi_Dialects() {
+        //Also you may override fun-dialect for your needs
+        
+        //Let's deny if expression at all! 
+        var builder = Funny.WithDialect(Dialects.ModifyOrigin(IfExpressionSetup.Deny));
+        
+        //now you cannot launch script with such an expression
+        Assert.Throws<FunnyParseException>(()=> builder.Calc("if(2>1) true else false"));
+        
+        //Default type of numbers '1' and '2' - is Integer
+        // let's make them Real!
+        object sumResult = Funny.WithDialect(
+                                    Dialects.ModifyOrigin(
+                                        integerPreferredType: IntegerPreferredType.Real))
+                                .Calc("1 + 2");
         Assert.IsInstanceOf<double>(sumResult); //now preferred type of INTEGER constants is REAL
-
-
+    }
+    
+    [Test]
+    // FluentApi. Configuring script execution 
+    public void FluentApi_Build() {
         //BuildForCalcXXX methods allow you to get a customized calculator object for further use.
         //This object is immutable and can be reused, which greatly speeds up the interpretation of expressions
         var calculator = Funny
@@ -155,16 +185,21 @@ public class ApiUsageExamples {
         //.BuildForCalcManyConstants<TOutput>()
     }
     
-    // HardcoreApi. Getting information about variables
+    
+    /*
+    * ********** Hardcore API ********** 
+    *
+    * Use HardcoreApi to access all low level features 
+    * It allows you to work directly with variables, internal values, and the type inference algorithm
+    */
+    
     [Test]
+    // HardcoreApi. Getting information about variables
     public void HardcoreApi_variableInformation() {
-        //Use HardcoreApi to access all low level features 
-        //It allows you to work directly with variables, internal values, and the type inference algorithm
         var runtime = Funny.Hardcore.Build(
             "y:real= a-b; " +
             "out= 2*y/(a+b)"
         );
-        
         //The runtime object contains all the information about the script.
         //Types, names of variables, functions, etc
         Assert.AreEqual(4, runtime.Variables.Count);
@@ -176,15 +211,13 @@ public class ApiUsageExamples {
         Assert.AreEqual(true, outVar.IsOutput);
     }
     
-    // HardcoreApi. Run arbitrary script without input/output models
     [Test]
+    // HardcoreApi. Run arbitrary script
     public void HardcoreApi_RunScript() {
-        //In this example, we run an arbitrary script
         var runtime = Funny.Hardcore.Build(
             "y:real= a-b; " +
             "out= 2*y/(a+b)"
         );
-
         // Set inputs
         runtime["a"].Value = 30;
         runtime["b"].Value = 20;
@@ -192,20 +225,29 @@ public class ApiUsageExamples {
         runtime.Run();
         // Get outputs
         Assert.AreEqual(0.4, runtime["out"].Value);
-
-        // Runtime object can be run many times, but it is not thread-safe
-        var avar = runtime["a"];
-        var bvar = runtime["b"];
-        var yvar = runtime["y"];
-        var outvar = runtime["out"];
+    }
+    
+    [Test]
+    // HardcoreApi. Run arbitrary script many times
+    public void HardcoreApi_RunScriptManytimes() {
+        var runtime = Funny.Hardcore.Build(
+            "y:real= a-b; " +
+            "out= 2*y/(a+b)"
+        );
+        // Runtime object can be ran many times, but it is not thread-safe
+        IFunnyVar avar   = runtime["a"];
+        IFunnyVar bvar   = runtime["b"];
+        IFunnyVar yvar   = runtime["y"];
+        IFunnyVar outvar = runtime["out"];
 
         for (double i = 0; i < 100; i++)
         {
+            //set input values
             avar.Value = i;
             bvar.Value = 42.0;
-
+            // run script
             runtime.Run();
-
+            // get output values
             object y = yvar.Value;
             object o = outvar.Value;
         }
@@ -213,12 +255,12 @@ public class ApiUsageExamples {
     // HardcoreApi. Optimization for multiple script runs
     [Test]
     public void HardcoreApi_RunScriptOptimizations() {
-        //In this example, we are speeding up the re-launch of the script
         var runtime = Funny.Hardcore.Build(
             "y:real= a-b; " +
             "out= 2*y/(a+b)"
         );
-
+        //In this example, we are speeding up the re-launch of the script
+        
         // Accessing the Value property, from previous example is a quite expensive operation.
         // In case of reuse, it is better to create and use access methods
 
