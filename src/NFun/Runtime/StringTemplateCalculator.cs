@@ -35,7 +35,7 @@ public class StringTemplateCalculator {
     /// <summary>
     /// Input variable
     /// </summary>
-    public IEnumerable<IFunnyVar> Variables => _runtime.VariableDictionary.GetAllSources().Where(i => i.IsOutput);
+    public IEnumerable<IFunnyVar> Variables => _runtime.VariableDictionary.GetAllSources().Where(i => !i.IsOutput);
 
     public string Calculate() {
         _runtime.Run();

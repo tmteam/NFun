@@ -87,7 +87,7 @@ public class HardcoreBuilder {
         RuntimeBuilder.Build(script, _immutableFunctionDictionary, _dialect, _constants, _apriori);
 
     public StringTemplateCalculator BuildStringTemplate(string script) =>
-        StringIntTemplateRuntimeBuilder.Build(script, _immutableFunctionDictionary, _dialect, _constants, _apriori);
+        StringTemplateRuntimeBuilder.Build(script, _immutableFunctionDictionary, _dialect, _constants, _apriori);
 }
 
 }

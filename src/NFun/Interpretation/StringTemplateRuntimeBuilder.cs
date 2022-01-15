@@ -7,7 +7,7 @@ using NFun.Tokenization;
 
 namespace NFun.Interpretation {
 
-internal static class StringIntTemplateRuntimeBuilder {
+internal static class StringTemplateRuntimeBuilder {
     private const string AnonymIdPrefix = "___intepol___";
 
     internal static StringTemplateCalculator Build(
