@@ -323,7 +323,7 @@ public class SyntaxExamplesAndExplanation {
 
         Assert.IsTrue(Funny.Calc<bool>("x1 = 42; out = (x1 & (1 << 5)) !=0  #x1 has 5th bit"));
     }
-
+    
     [Test]
     public void UserFunctions() {
         /*
@@ -467,7 +467,7 @@ public class SyntaxExamplesAndExplanation {
         //toLower
         Assert.AreEqual("hey", Funny.Calc("'Hey'.toLower()"));
     }
-
+    
     [Test]
     public void LinqAndRules() {
         /*
@@ -530,6 +530,25 @@ public class SyntaxExamplesAndExplanation {
         runtime.Run();
         Assert.AreEqual("Creta", runtime["slowestCar"].Value);
         Assert.AreEqual(15000, runtime["totalCost"].Value);
+    }
+    
+    [Test]
+    public void DefaultValue() {
+        /* Each type has a default value.
+            
+        It equals 
+        - zero for every numeric type, 
+        - '' for a text, 
+        - empty array for array type,
+        - new object() for any,
+        - structure with default value for every field for struct-type
+        - function that returns default value for a functional type
+                     
+        To use default value - use 'default' keyword             
+         */
+
+        var runtime = Funny.Hardcore.Build("y = if (true) default else 42");
+        Assert.AreEqual(0, runtime["y"].Value);
     }
 }
 
