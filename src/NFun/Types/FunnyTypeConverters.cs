@@ -266,6 +266,8 @@ public static class FunnyTypeConverters {
             { typeof(Int32), new PrimitiveTypeInputFunnyConverter(FunnyType.Int32) },
             { typeof(Int64), new PrimitiveTypeInputFunnyConverter(FunnyType.Int64) },
             { typeof(double), new PrimitiveTypeInputFunnyConverter(FunnyType.Real) },
+            { typeof(float), new FloatToDoubleInputFunnyConverter() },
+            { typeof(Decimal), new DecimalToDoubleInputFunnyConverter() },
         };
 
     private static readonly IReadOnlyDictionary<BaseFunnyType, IOutputFunnyConverter>
@@ -295,6 +297,8 @@ public static class FunnyTypeConverters {
             { typeof(Int32), new PrimitiveTypeOutputFunnyConverter(FunnyType.Int32, typeof(Int32)) },
             { typeof(Int64), new PrimitiveTypeOutputFunnyConverter(FunnyType.Int64, typeof(Int64)) },
             { typeof(double), new PrimitiveTypeOutputFunnyConverter(FunnyType.Real, typeof(double)) },
+            { typeof(float),  new DoubleToFloatTypeOutputFunnyConverter() },
+            { typeof(Decimal), new DoubleToDecimalTypeOutputFunnyConverter() }
         };
 
     #endregion

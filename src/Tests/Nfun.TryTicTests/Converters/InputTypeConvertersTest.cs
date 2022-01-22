@@ -25,6 +25,26 @@ public class InputTypeConvertersTest {
         Assert.AreEqual(primitiveValue, convertedValue);
     }
 
+    [TestCase(0.0)]
+    [TestCase(1.0)]
+    [TestCase(1.5)]
+    [TestCase(-0.5)]
+    public void ConvertFloatType(double origin) => ConvertRealTypes((float)origin, origin);
+    
+    [TestCase(0.0)]
+    [TestCase(1.0)]
+    [TestCase(1.5)]
+    [TestCase(-0.5)]
+    public void ConvertDecimalType(double origin) => ConvertRealTypes(new Decimal(origin), origin);
+    
+    private void ConvertRealTypes(object primitiveValue, double expected) {
+        var clrType = primitiveValue.GetType();
+        var converter = FunnyTypeConverters.GetInputConverter(clrType);
+        Assert.AreEqual(FunnyType.Real, converter.FunnyType);
+        var convertedValue = converter.ToFunObject(primitiveValue);
+        Assert.AreEqual(expected, convertedValue);
+    }
+    
     [TestCase(new byte[] { 1, 2, 3 }, BaseFunnyType.UInt8)]
     [TestCase(new UInt16[] { 1, 2, 3 }, BaseFunnyType.UInt16)]
     [TestCase(new UInt32[] { 1, 2, 3 }, BaseFunnyType.UInt32)]
@@ -84,27 +104,29 @@ public class InputTypeConvertersTest {
 
     [Test]
     public void StructType() {
-        var inputUser = new UserMoqType("vasa", 42, 17.1);
+        var inputUser = new UserMoqType("vasa", 42, 17.1, new Decimal(-42.2));
         var converter = FunnyTypeConverters.GetInputConverter(inputUser.GetType());
         Assert.AreEqual(
             FunnyType.StructOf(
                 ("name", FunnyType.Text),
                 ("age", FunnyType.Int32),
-                ("size", FunnyType.Real)), converter.FunnyType);
+                ("size", FunnyType.Real),
+                ("balance", FunnyType.Real)), converter.FunnyType);
         var value = converter.ToFunObject(inputUser);
         Assert.IsInstanceOf<FunnyStruct>(value);
         var converted = (FunnyStruct)value;
-        Assert.AreEqual(inputUser.Name, (converted.GetValue("name") as TextFunnyArray).ToText());
+        Assert.AreEqual(inputUser.Name, (converted.GetValue("name") as TextFunnyArray)?.ToText());
         Assert.AreEqual(inputUser.Age, converted.GetValue("age"));
         Assert.AreEqual(inputUser.Size, converted.GetValue("size"));
+        Assert.AreEqual(inputUser.Balance, converted.GetValue("balance"));
     }
 
     [Test]
     public void ArrayOfStructTypes() {
         var inputUsers = new[] {
-            new UserMoqType("vasa", 42, 17.1),
-            new UserMoqType("peta", 41, 17.0),
-            new UserMoqType("kata", 40, -17.1)
+            new UserMoqType("vasa", 42, 17.1,  new Decimal(42.1)),
+            new UserMoqType("peta", 41, 17.0,  new Decimal(42.2)),
+            new UserMoqType("kata", 40, -17.1, new Decimal(0))
         };
 
         var converter = FunnyTypeConverters.GetInputConverter(inputUsers.GetType());
@@ -113,7 +135,9 @@ public class InputTypeConvertersTest {
                 FunnyType.StructOf(
                     ("name", FunnyType.Text),
                     ("age", FunnyType.Int32),
-                    ("size", FunnyType.Real))), converter.FunnyType);
+                    ("size", FunnyType.Real),
+                    ("balance", FunnyType.Real))
+            ), converter.FunnyType);
         var value = converter.ToFunObject(inputUsers);
         Assert.IsInstanceOf<ImmutableFunnyArray>(value);
         var secondElememt = ((ImmutableFunnyArray)value).GetElementOrNull(1) as FunnyStruct;
@@ -123,6 +147,7 @@ public class InputTypeConvertersTest {
         Assert.AreEqual(inputUsers[1].Name, (secondElememt.GetValue("name") as TextFunnyArray).ToText());
         Assert.AreEqual(inputUsers[1].Age, secondElememt.GetValue("age"));
         Assert.AreEqual(inputUsers[1].Size, secondElememt.GetValue("size"));
+        Assert.AreEqual(inputUsers[1].Balance, secondElememt.GetValue("balance"));
     }
 
     [Test]
@@ -143,16 +168,20 @@ class NodeMoqType {
 }
 
 class UserMoqType {
-    public UserMoqType(string name, int age, double size) {
+    public UserMoqType(string name, int age, double size, decimal balance) {
         Name = name;
         Age = age;
         Size = size;
+        Balance = balance;
     }
 
     public string Name { get; }
     public int Age { get; }
     public double Size { get; }
+    // ReSharper disable once UnusedMember.Global
     public bool State { set; private get; }
+    public Decimal Balance { get; }
 }
+
 
 }

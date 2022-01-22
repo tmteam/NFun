@@ -43,6 +43,20 @@ public class PrimitiveTypeOutputFunnyConverter : IOutputFunnyConverter {
     public object ToClrObject(object funObject) => funObject;
 }
 
+public class DoubleToFloatTypeOutputFunnyConverter : IOutputFunnyConverter {
+    public Type ClrType { get; } = typeof(float);
+    public FunnyType FunnyType { get; } = FunnyType.Real;
+    public object ToClrObject(object funObject) => (float)(double)funObject;
+}
+
+
+public class DoubleToDecimalTypeOutputFunnyConverter : IOutputFunnyConverter {
+    public Type ClrType { get; } = typeof(Decimal);
+    public FunnyType FunnyType { get; } = FunnyType.Real;
+
+    public object ToClrObject(object funObject) => new Decimal((double)funObject);
+}
+
 public class StringOutputFunnyConverter : IOutputFunnyConverter {
     public Type ClrType { get; }
     public FunnyType FunnyType { get; } = FunnyType.Text;

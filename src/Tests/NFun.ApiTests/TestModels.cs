@@ -1,5 +1,7 @@
 // ReSharper disable All
 
+using System;
+
 namespace NFun.ApiTests {
 
 public class ModelWithCharArray {
@@ -20,7 +22,9 @@ class ContractOutputModel {
     public int Id { get; set; } = 123;
     public string[] Items { get; set; } = { "default" };
     public double Price { get; set; } = 12.3;
+    public Decimal Taxes { get; set; } = Decimal.One;
 }
+
 
 class ModelWithInt {
     public int id { get; set; }
@@ -32,12 +36,13 @@ class ComplexModel {
 }
 
 class UserInputModel {
-    public UserInputModel(string name = "vasa", int age = 22, double size = 13.5, float iq = 50, params int[] ids) {
+    public UserInputModel(string name = "vasa", int age = 22, double size = 13.5, Decimal balance = Decimal.One, float iq = 50,  params int[] ids) {
         Ids = ids;
         Name = name;
         Age = age;
         Size = size;
         Iq = iq;
+        Balance = balance;
     }
 
     public int[] Ids { get; }
@@ -45,6 +50,7 @@ class UserInputModel {
     public int Age { get; }
     public double Size { get; }
     public float Iq { get; }
+    public Decimal Balance { get; }
 }
 
 }

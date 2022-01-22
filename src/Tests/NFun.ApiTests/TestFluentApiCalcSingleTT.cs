@@ -38,25 +38,26 @@ public class TestFluentApiCalcSingleTT {
     [Test]
     public void IoComplexTypeTransforms() =>
         CalcInDifferentWays(
-            expr: "{id = age; items = ids.map(fun '{it}'); price = size*2}",
-            input: new UserInputModel("vasa", 13, size: 21, iq: 12, 1, 2, 3, 4),
+            expr: "{id = age; items = ids.map(fun '{it}'); price = size*2 + balance; taxes = balance}",
+            input: new UserInputModel("vasa", 13, size: 21, balance: new Decimal(1.5), iq: 12, 1, 2, 3, 4),
             expected: new ContractOutputModel {
                 Id = 13,
                 Items = new[] { "1", "2", "3", "4" },
-                Price = 21 * 2
+                Price = 21 * 2 + 1.5,
+                Taxes =  new decimal(1.5)
             });
 
     [TestCase("ids.count(fun it>2)", 2)]
     [TestCase("1", 1)]
     public void ReturnsInt(string expr, int expected)
-        => CalcInDifferentWays(expr, new UserInputModel("vasa", 13, size: 21, iq: 12, 1, 2, 3, 4), expected);
+        => CalcInDifferentWays(expr, new UserInputModel("vasa", 13, size: 21, balance: Decimal.Zero, iq: 12, 1, 2, 3, 4), expected);
 
     [TestCase("IDS.filter(fun it>aGe).map(fun it*it)", new[] { 10201, 10404 })]
     [TestCase("ids.filter(fun it>age).map(fun it*it)", new[] { 10201, 10404 })]
     [TestCase("ids.filter(fun it>2)", new[] { 101, 102 })]
     [TestCase("out:int[]=ids.filter(fun it>age).map(fun it*it)", new[] { 10201, 10404 })]
     public void ReturnsIntArray(string expr, int[] expected)
-        => CalcInDifferentWays(expr, new UserInputModel("vasa", 2, size: 21, iq: 1, 1, 2, 101, 102), expected);
+        => CalcInDifferentWays(expr, new UserInputModel("vasa", 2, size: 21, balance: Decimal.Zero, iq: 1, 1, 2, 101, 102), expected);
 
     [Test]
     public void InputFieldIsCharArray() =>
@@ -73,14 +74,14 @@ public class TestFluentApiCalcSingleTT {
     [TestCase("'{Name}{Age}'.reverse()", "31asav")]
     [TestCase("name.reverse()", "asav")]
     public void ReturnsText(string expr, string expected)
-        => CalcInDifferentWays(expr, new UserInputModel("vasa", 13, size: 21, iq: 1, 1, 2, 3, 4), expected);
+        => CalcInDifferentWays(expr, new UserInputModel("vasa", 13, size: 21, balance: Decimal.Zero, iq: 1, 1, 2, 3, 4), expected);
 
     [TestCase("ids.map(fun it.toText())", new[] { "1", "2", "101", "102" })]
     [TestCase("['Hello','world']", new[] { "Hello", "world" })]
     public void ReturnsArrayOfTexts(string expr, string[] expected)
         => CalcInDifferentWays(
             expr: expr,
-            input: new UserInputModel("vasa", 13, size: 21, iq: 1, 1, 2, 101, 102),
+            input: new UserInputModel("vasa", 13, size: 21, balance: Decimal.Zero, iq: 1, 1, 2, 101, 102),
             expected: expected);
 
     private static void CalcInDifferentWays<TInput, TOutput>(string expr, TInput input, TOutput expected) {
@@ -99,21 +100,21 @@ public class TestFluentApiCalcSingleTT {
                       .BuildForCalc<TInput, TOutput>()
                       .Calc(expr, input);
 
-        Assert.IsTrue(TestHelper.AreSame(expected, result1));
-        Assert.IsTrue(TestHelper.AreSame(expected, result2));
-        Assert.IsTrue(TestHelper.AreSame(expected, result3));
-        Assert.IsTrue(TestHelper.AreSame(expected, result4));
-        Assert.IsTrue(TestHelper.AreSame(expected, result5));
-        Assert.IsTrue(TestHelper.AreSame(expected, result6));
-        Assert.IsTrue(TestHelper.AreSame(expected, result7));
-        Assert.IsTrue(TestHelper.AreSame(expected, result8));
+        Assert.IsTrue(TestHelper.AreSame(expected, result1),$"Funny.Calc<TInput, TOutput>. \r\nExpected: {expected.ToStringSmart()} \r\nActual: {result1.ToStringSmart()}");
+        Assert.IsTrue(TestHelper.AreSame(expected, result2),$"Funny.BuildForCalc<TInput, TOutput>().Calc() #1\r\nExpected: {expected.ToStringSmart()} \r\nActual: {result1.ToStringSmart()} ");
+        Assert.IsTrue(TestHelper.AreSame(expected, result3),$"Funny.BuildForCalc<TInput, TOutput>().Calc() #2\r\nExpected: {expected.ToStringSmart()} \r\nActual: {result1.ToStringSmart()}");
+        Assert.IsTrue(TestHelper.AreSame(expected, result4),$"Funny.BuildForCalc<TInput, TOutput>().ToLambda()(input) #1\r\nExpected: {expected.ToStringSmart()} \r\nActual: {result1.ToStringSmart()}");
+        Assert.IsTrue(TestHelper.AreSame(expected, result5),$"Funny.BuildForCalc<TInput, TOutput>().ToLambda()(input) #2\r\nExpected: {expected.ToStringSmart()} \r\nActual: {result1.ToStringSmart()}");
+        Assert.IsTrue(TestHelper.AreSame(expected, result6),$"Funny.BuildForCalc<TInput, TOutput>().ToLambda #2()(input) #1\r\nExpected: {expected.ToStringSmart()} \r\nActual: {result1.ToStringSmart()}");
+        Assert.IsTrue(TestHelper.AreSame(expected, result7),$"Funny.BuildForCalc<TInput, TOutput>().ToLambda #2()(input) #2\r\nExpected: {expected.ToStringSmart()} \r\nActual: {result1.ToStringSmart()}");
+        Assert.IsTrue(TestHelper.AreSame(expected, result8),$"WithConstant(SomeNotUsedConstant, 42)\r\nExpected: {expected.ToStringSmart()} \r\nActual: {result1.ToStringSmart()}");
     }
 
     [Test]
     public void ReturnsComplexIntArrayConstant() =>
         CalcInDifferentWays(
             expr: "[[[1,2],[]],[[3,4]],[[]]]",
-            input: new UserInputModel("vasa", 13, size: 21, iq: 1, 1, 2, 3, 4),
+            input: new UserInputModel("vasa", 13, size: 21, balance: Decimal.Zero, iq: 1, 1, 2, 3, 4),
             expected: new[] {
                 new[] { new[] { 1, 2 }, Array.Empty<int>() },
                 new[] { new[] { 3, 4 } },

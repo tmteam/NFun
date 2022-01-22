@@ -143,7 +143,7 @@ public static class TestHelper {
     public static void AssertOutputsCount(this FunnyRuntime runtime, int count) =>
         Assert.AreEqual(count, runtime.Variables.Count(v => v.IsOutput));
 
-    private static string ToStringSmart(object v) {
+    public static string ToStringSmart(this object v) {
         if (v is string)
             return v.ToString();
         if (v is char[] c)

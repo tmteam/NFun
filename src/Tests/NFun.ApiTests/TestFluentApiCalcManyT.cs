@@ -1,3 +1,4 @@
+using System;
 using NFun.Exceptions;
 using NFun.TestTools;
 using NUnit.Framework;
@@ -7,9 +8,11 @@ namespace NFun.ApiTests {
 public class TestFluentApiCalcManyT {
     [Test]
     public void FullInitialization() {
-        var result = Funny.CalcMany<ContractOutputModel>("id = 42; items = ['vasa','kate']; price = 42.1");
+        var result = Funny.CalcMany<ContractOutputModel>("id = 42; items = ['vasa','kate']; price = 42.1; taxes = 123.5");
         Assert.AreEqual(42, result.Id);
         Assert.AreEqual(42.1, result.Price);
+        Assert.AreEqual(new Decimal(123.5), result.Taxes);
+
         CollectionAssert.AreEqual(new[] { "vasa", "kate" }, result.Items);
     }
 
@@ -46,6 +49,7 @@ public class TestFluentApiCalcManyT {
         var result = Funny.CalcMany<ContractOutputModel>("id = 321; somenotExisted = 32");
         Assert.AreEqual(321, result.Id);
         Assert.AreEqual(new ContractOutputModel().Price, result.Price);
+        Assert.AreEqual(new ContractOutputModel().Taxes, result.Taxes);
         CollectionAssert.AreEqual(new ContractOutputModel().Items, result.Items);
     }
 }

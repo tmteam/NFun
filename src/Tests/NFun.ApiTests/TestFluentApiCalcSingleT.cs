@@ -55,7 +55,7 @@ public class TestFluentApiCalcSingleT {
     [Test]
     public void ReturnsComplexIntArrayConstant() {
         var result = Funny.Calc(
-            "[[[1,2],[]],[[3,4]],[[]]]", new UserInputModel("vasa", 13, size: 21, iq: 1, 1, 2, 3, 4));
+            "[[[1,2],[]],[[3,4]],[[]]]", new UserInputModel("vasa", 13, size: 21, balance: Decimal.Zero, iq: 1, 1, 2, 3, 4));
         Assert.AreEqual(
             new[] {
                 new[] { new[] { 1, 2 }, Array.Empty<int>() },

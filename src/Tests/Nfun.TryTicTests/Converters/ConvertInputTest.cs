@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using NFun.Runtime;
 using NFun.Runtime.Arrays;
@@ -16,10 +17,15 @@ public class ConvertInputTest {
     [TestCase(42, BaseFunnyType.Int64, (long)42)]
     [TestCase(42.0, BaseFunnyType.Int32, 42)]
     [TestCase(42.0, BaseFunnyType.Real, 42.0)]
+    [TestCase((float)0.5, BaseFunnyType.Real, 0.5)]
     [TestCase((byte)42, BaseFunnyType.Real, 42.0)]
     public void ConvertInputOrThrow_PrimitivesTest(object input, BaseFunnyType target, object expected)
         => Assert.AreEqual(expected, FunnyTypeConverters.ConvertInputOrThrow(input, FunnyType.PrimitiveOf(target)));
 
+    [Test]
+    public void ConvertInputDecimalOrThrow_PrimitivesTest()
+        => Assert.AreEqual(-42.5, FunnyTypeConverters.ConvertInputOrThrow(new Decimal(-42.5), FunnyType.Real));
+    
     [Test]
     public void ConvertComplexInputStructFromDictionariesAndTypes1() {
         var type = FunnyType.StructOf(

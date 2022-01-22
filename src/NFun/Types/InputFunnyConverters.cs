@@ -16,6 +16,44 @@ public interface IInputFunnyConverter {
     public object ToFunObject(object clrObject);
 }
 
+
+
+public class DynamicTypeInputFunnyConverter : IInputFunnyConverter {
+    public FunnyType FunnyType => FunnyType.Any;
+
+    public object ToFunObject(object clrObject) {
+        var converter = FunnyTypeConverters.GetInputConverter(clrObject.GetType());
+        return converter.ToFunObject(clrObject);
+    }
+}
+
+public class PrimitiveTypeInputFunnyConverter : IInputFunnyConverter {
+    public FunnyType FunnyType { get; }
+    public PrimitiveTypeInputFunnyConverter(FunnyType funnyType) => FunnyType = funnyType;
+    public object ToFunObject(object clrObject) => clrObject;
+}
+
+public class StringTypeInputFunnyConverter : IInputFunnyConverter {
+    public FunnyType FunnyType { get; }
+    public StringTypeInputFunnyConverter() => FunnyType = FunnyType.Text;
+
+    public object ToFunObject(object clrObject)
+        => clrObject == null
+            ? TextFunnyArray.Empty
+            : new TextFunnyArray(clrObject.ToString());
+}
+
+public class FloatToDoubleInputFunnyConverter : IInputFunnyConverter {
+    public FunnyType FunnyType { get; } = FunnyType.Real;
+    public object ToFunObject(object clrObject) =>  (double)(float)clrObject;
+}
+
+
+public class DecimalToDoubleInputFunnyConverter : IInputFunnyConverter {
+    public FunnyType FunnyType { get; } = FunnyType.Real;
+    public object ToFunObject(object clrObject) =>  decimal.ToDouble((Decimal)clrObject);
+}
+
 public class StructTypeInputFunnyConverter : IInputFunnyConverter {
     private readonly (string, IInputFunnyConverter, PropertyInfo)[] _propertiesConverters;
     private readonly int _readPropertiesCount;
@@ -143,31 +181,6 @@ public class ClrArrayInputTypeFunnyConverter : IInputFunnyConverter {
                 throw FunnyInvalidUsageException.InputTypeCannotBeConverted(clrObject.GetType(), FunnyType);
         }
     }
-}
-
-public class DynamicTypeInputFunnyConverter : IInputFunnyConverter {
-    public FunnyType FunnyType => FunnyType.Any;
-
-    public object ToFunObject(object clrObject) {
-        var converter = FunnyTypeConverters.GetInputConverter(clrObject.GetType());
-        return converter.ToFunObject(clrObject);
-    }
-}
-
-public class PrimitiveTypeInputFunnyConverter : IInputFunnyConverter {
-    public FunnyType FunnyType { get; }
-    public PrimitiveTypeInputFunnyConverter(FunnyType funnyType) => FunnyType = funnyType;
-    public object ToFunObject(object clrObject) => clrObject;
-}
-
-public class StringTypeInputFunnyConverter : IInputFunnyConverter {
-    public FunnyType FunnyType { get; }
-    public StringTypeInputFunnyConverter() => FunnyType = FunnyType.Text;
-
-    public object ToFunObject(object clrObject)
-        => clrObject == null
-            ? TextFunnyArray.Empty
-            : new TextFunnyArray(clrObject.ToString());
 }
 
 }

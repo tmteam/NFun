@@ -12,13 +12,14 @@ public class TestFluentApiCalcSingleConstT {
         Assert.AreEqual(true, result);
     }
 
-    [TestCase("{id = 13; items = [1,2,3,4].map(fun '{it}'); price = 21*2}")]
-    //[TestCase("{Id = 13; Items = [1,2,3,4].map(fun '{it}'); Price = 21*2}")]
+    [TestCase("{id = 13; items = [1,2,3,4].map(fun '{it}'); price = 21*2; taxes = 0}")]
+    // Todo: Ignore cases in structs: [TestCase("{Id = 13; Items = [1,2,3,4].map(fun '{it}'); Price = 21*2}")]
     public void IoComplexTypeTransforms(string expr) {
         var result = Funny.Calc<ContractOutputModel>(expr);
         var expected = new ContractOutputModel {
             Id = 13,
             Items = new[] { "1", "2", "3", "4" },
+            Taxes = Decimal.Zero,
             Price = 42
         };
         Assert.IsTrue(TestHelper.AreSame(expected, result));

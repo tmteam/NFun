@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using NFun.Runtime.Arrays;
 using NFun.Types;
@@ -24,6 +25,26 @@ public class OutputTypeConvertersTest {
         Assert.AreEqual(primitiveValue, convertedValue);
     }
 
+    [TestCase(0.0)]
+    [TestCase(1.0)]
+    [TestCase(1.5)]
+    [TestCase(-0.5)]
+    public void ConvertFloatType(double origin) => ConvertRealTypes((float)origin, origin);
+    
+    [TestCase(0.0)]
+    [TestCase(1.0)]
+    [TestCase(1.5)]
+    [TestCase(-0.5)]
+    public void ConvertDecimalType(double origin) => ConvertRealTypes(new Decimal(origin), origin);
+
+    private void ConvertRealTypes(object primitiveValue, double origin) {
+        var clrType = primitiveValue.GetType();
+        var converter = FunnyTypeConverters.GetOutputConverter(clrType);
+        Assert.AreEqual(FunnyType.Real, converter.FunnyType);
+        var convertedValue = converter.ToClrObject(origin);
+        Assert.AreEqual(primitiveValue, convertedValue);
+    }
+    
     [TestCase(new byte[] { 1, 2, 3 }, BaseFunnyType.UInt8)]
     [TestCase(new UInt16[] { 1, 2, 3 }, BaseFunnyType.UInt16)]
     [TestCase(new UInt32[] { 1, 2, 3 }, BaseFunnyType.UInt32)]
@@ -79,21 +100,22 @@ public class OutputTypeConvertersTest {
 
     [Test]
     public void StructType() {
-        var inputUser = new UserMoqOutputType("vasa", 42, 17.1);
+        var inputUser = new UserMoqOutputType("vasa", 42, 17.1, Decimal.Zero);
         var converter = FunnyTypeConverters.GetOutputConverter(inputUser.GetType());
         Assert.AreEqual(
             FunnyType.StructOf(
                 ("name", FunnyType.Text),
                 ("age", FunnyType.Int32),
-                ("size", FunnyType.Real)), converter.FunnyType);
+                ("size", FunnyType.Real),
+                ("balance", FunnyType.Real)), converter.FunnyType);
     }
 
     [Test]
     public void ArrayOfStructTypesWithoutNewContructor() {
         var inputUsers = new[] {
-            new UserMoqType("vasa", 42, 17.1),
-            new UserMoqType("peta", 41, 17.0),
-            new UserMoqType("kata", 40, -17.1)
+            new UserMoqType("vasa", 42, 17.1,  new Decimal(31.1)),
+            new UserMoqType("peta", 41, 17.0,  new Decimal(31)),
+            new UserMoqType("kata", 40, -17.1, new Decimal(0))
         };
         Assert.Catch(() => FunnyTypeConverters.GetOutputConverter(inputUsers.GetType()));
     }
@@ -101,9 +123,9 @@ public class OutputTypeConvertersTest {
     [Test]
     public void ArrayOfStructTypes() {
         var inputUsers = new[] {
-            new UserMoqOutputType("vasa", 42, 17.1),
-            new UserMoqOutputType("peta", 41, 17.0),
-            new UserMoqOutputType("kata", 40, -17.1)
+            new UserMoqOutputType("vasa", 42, 17.1, Decimal.One),
+            new UserMoqOutputType("peta", 41, 17.0, Decimal.Zero),
+            new UserMoqOutputType("kata", 40, -17.1, new decimal(42.2))
         };
 
         var converter = FunnyTypeConverters.GetOutputConverter(inputUsers.GetType());
@@ -112,7 +134,9 @@ public class OutputTypeConvertersTest {
                 FunnyType.StructOf(
                     ("name", FunnyType.Text),
                     ("age", FunnyType.Int32),
-                    ("size", FunnyType.Real))), converter.FunnyType);
+                    ("size", FunnyType.Real),
+                    ("balance", FunnyType.Real)
+                )), converter.FunnyType);
     }
 
     [Test]
@@ -121,21 +145,31 @@ public class OutputTypeConvertersTest {
 }
 
 class NodeMoqRecursiveOutputType {
+    // ReSharper disable once UnusedMember.Global
     public string Name { get; set; }
+    // ReSharper disable once UnusedMember.Global
     public NodeMoqRecursiveOutputType[] Children { get; set; }
 }
 
+[SuppressMessage("ReSharper", "UnusedAutoPropertyAccessor.Global")]
+[SuppressMessage("ReSharper", "UnusedMember.Global")]
+[SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
+[SuppressMessage("ReSharper", "AutoPropertyCanBeMadeGetOnly.Global")]
 class UserMoqOutputType {
-    public UserMoqOutputType(string name, int age, double size) {
+    public UserMoqOutputType(string name, int age, double size, Decimal balance) {
         Name = name;
         Age = age;
         Size = size;
+        Balance = balance;
     }
 
     public UserMoqOutputType() { }
     public string Name { get; set; }
     public int Age { get; set; }
     public double Size { get; set; }
+    public decimal Balance { get; set; }
+    // ReSharper disable once UnassignedGetOnlyAutoProperty
+    // ReSharper disable once UnusedMember.Global
     public bool State { get; }
 }
 

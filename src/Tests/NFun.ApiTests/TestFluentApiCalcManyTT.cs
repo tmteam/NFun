@@ -1,3 +1,4 @@
+using System;
 using NFun.Exceptions;
 using NFun.TestTools;
 using NUnit.Framework;
@@ -5,21 +6,22 @@ using NUnit.Framework;
 namespace NFun.ApiTests {
 
 public class TestFluentApiCalcManyTT {
-    [TestCase("id = age*2; items = ids.map(toText);  Price = 42.1")]
-    [TestCase("ID = age*2; Items = iDs.map(toText);  price = 42.1")]
+    [TestCase("id = age*2; items = ids.map(toText);  Price = 42.1 + balance")]
+    [TestCase("ID = age*2; Items = iDs.map(toText);  price = 42.1 + balAncE")]
     public void MapContracts(string expr) =>
         CalcInDifferentWays(
             expr,
-            input: new UserInputModel("vasa", 13, ids: new[] { 1, 2, 3 }),
-            expected: new ContractOutputModel { Id = 26, Items = new[] { "1", "2", "3" }, Price = 42.1 });
+            input: new UserInputModel("vasa", 13, ids: new[] { 1, 2, 3 }, balance: new Decimal(100.1)),
+            expected: new ContractOutputModel { Id = 26, Items = new[] { "1", "2", "3" }, Price = 142.2 });
 
     [Test]
     public void FullConstInitialization() =>
         CalcInDifferentWays(
-            "id = 42; items = ['vasa','kate']; price = 42.1", new UserInputModel(),
+            "id = 42; items = ['vasa','kate']; price = 42.1; taxes = 42.2", new UserInputModel(),
             new ContractOutputModel {
                 Id = 42,
                 Price = 42.1,
+                Taxes = new decimal(42.2),
                 Items = new[] { "vasa", "kate" }
             }
         );
@@ -52,7 +54,7 @@ public class TestFluentApiCalcManyTT {
             });
 
     [Test]
-    public void NofieldsInitialized_throws()
+    public void NoFieldsInitialized_throws()
         => Assert.Throws<FunnyParseException>(
             () =>
                 Funny.CalcMany<UserInputModel, ContractOutputModel>(
