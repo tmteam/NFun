@@ -23,9 +23,7 @@ public class FunnyParseException : Exception {
         => $"[FU{Code}] {base.ToString()}";
 
     //todo the error is not implemented yet, but it should -)
-    public static FunnyParseException ErrorStubToDo(string varAlreadyDeclared) {
-        return new FunnyParseException(-1, varAlreadyDeclared, 0, 0);
-    }
+    internal static FunnyParseException ErrorStubToDo(string message) => new(-1, message, 0, 0);
 }
 
 }
