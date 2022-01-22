@@ -73,7 +73,7 @@ public class StructTypeInputFunnyConverter : IInputFunnyConverter {
                 fieldTypes[i] = (name, converter.FunnyType);
             }
 
-            FunnyType = Types.FunnyType.StructOf(fieldTypes);
+            FunnyType = FunnyType.StructOf(fieldTypes);
         }
         else
         {
@@ -155,7 +155,7 @@ public class ClrArrayInputTypeFunnyConverter : IInputFunnyConverter {
     private readonly IInputFunnyConverter _elementConverter;
 
     public ClrArrayInputTypeFunnyConverter(IInputFunnyConverter elementConverter) {
-        FunnyType = Types.FunnyType.ArrayOf(elementConverter.FunnyType);
+        FunnyType = FunnyType.ArrayOf(elementConverter.FunnyType);
         _elementConverter = elementConverter;
     }
 

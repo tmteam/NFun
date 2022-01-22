@@ -36,14 +36,14 @@ public class VarTypeConverterTest {
         var coverter = VarTypeConverter.GetConverterOrNull(typeFrom, typeTo);
         var actual = coverter(intArray) as IFunnyArray;
         Assert.IsNotNull(actual);
-        Assert.AreEqual(typeTo.ArrayTypeSpecification.FunnyType, actual.ElementType);
+        Assert.AreEqual(typeTo.GetGenericArgument(0), actual.ElementType);
         CollectionAssert.AreEqual(new double[] { 1, 2, 3, 4 }, actual);
     }
 
     [Test]
     public void ConvertFun() {
-        var typeFrom = FunnyType.Fun(FunnyType.Bool, FunnyType.Int32);
-        var typeTo = FunnyType.Fun(FunnyType.Text, FunnyType.UInt8);
+        var typeFrom = FunnyType.FunOf(FunnyType.Bool, FunnyType.Int32);
+        var typeTo = FunnyType.FunOf(FunnyType.Text, FunnyType.UInt8);
         Assert.IsTrue(VarTypeConverter.CanBeConverted(typeFrom, typeTo));
         var coverter = VarTypeConverter.GetConverterOrNull(typeFrom, typeTo);
         Func<int, bool> funcFrom = (input) => input > 0;

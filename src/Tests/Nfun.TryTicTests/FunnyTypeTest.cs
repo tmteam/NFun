@@ -5,13 +5,7 @@ namespace NFun.UnitTests {
 
 [TestFixture]
 public class FunnyTypeTest {
-    [Test]
-    public void Empty_BaseTypeEqualsEmpty() {
-        var typeA = FunnyType.Empty;
-        Assert.AreEqual(BaseFunnyType.Empty, typeA.BaseType);
-    }
-
-
+    
     #region Equals
 
     [Test]
@@ -44,51 +38,51 @@ public class FunnyTypeTest {
 
     [Test]
     public void TwoEqualFunTypes_Equals_ReturnsTrue() {
-        var typeA = FunnyType.Fun(FunnyType.Bool, FunnyType.Int32);
-        var typeB = FunnyType.Fun(FunnyType.Bool, FunnyType.Int32);
+        var typeA = FunnyType.FunOf(FunnyType.Bool, FunnyType.Int32);
+        var typeB = FunnyType.FunOf(FunnyType.Bool, FunnyType.Int32);
         Assert.IsTrue(typeA == typeB);
     }
 
     [Test]
     public void TwoFunTypesWithDifferentInputs_Equals_ReturnsFalse() {
-        var typeA = FunnyType.Fun(FunnyType.Bool, FunnyType.Int32, FunnyType.Int32);
-        var typeB = FunnyType.Fun(FunnyType.Bool, FunnyType.Text, FunnyType.Int32);
+        var typeA = FunnyType.FunOf(FunnyType.Bool, FunnyType.Int32, FunnyType.Int32);
+        var typeB = FunnyType.FunOf(FunnyType.Bool, FunnyType.Text, FunnyType.Int32);
         Assert.IsFalse(typeA == typeB);
     }
 
 
     [Test]
     public void TwoFunTypesWithDifferentOutputs_Equals_ReturnsFalse() {
-        var typeA = FunnyType.Fun(FunnyType.Int32, FunnyType.Text);
-        var typeB = FunnyType.Fun(FunnyType.Bool, FunnyType.Text);
+        var typeA = FunnyType.FunOf(FunnyType.Int32, FunnyType.Text);
+        var typeB = FunnyType.FunOf(FunnyType.Bool, FunnyType.Text);
         Assert.IsFalse(typeA == typeB);
     }
 
 
     [Test]
     public void TwoComplexHiOrderEqualFunTypes_Equals_ReturnsTrue() {
-        var typeA = FunnyType.Fun(
-            returnType: FunnyType.ArrayOf(FunnyType.Fun(FunnyType.Int32, FunnyType.Text)),
+        var typeA = FunnyType.FunOf(
+            returnType: FunnyType.ArrayOf(FunnyType.FunOf(FunnyType.Int32, FunnyType.Text)),
             inputTypes:
             new[] {
                 FunnyType.ArrayOf(FunnyType.Any),
-                FunnyType.Fun(
+                FunnyType.FunOf(
                     returnType: FunnyType.ArrayOf(FunnyType.Real),
-                    inputTypes: FunnyType.Fun(
-                        returnType: FunnyType.Fun(
+                    inputTypes: FunnyType.FunOf(
+                        returnType: FunnyType.FunOf(
                             returnType: FunnyType.ArrayOf(FunnyType.Bool),
                             inputTypes: FunnyType.Bool),
                         inputTypes: FunnyType.Text))
             });
-        var typeB = FunnyType.Fun(
-            returnType: FunnyType.ArrayOf(FunnyType.Fun(FunnyType.Int32, FunnyType.Text)),
+        var typeB = FunnyType.FunOf(
+            returnType: FunnyType.ArrayOf(FunnyType.FunOf(FunnyType.Int32, FunnyType.Text)),
             inputTypes:
             new[] {
                 FunnyType.ArrayOf(FunnyType.Any),
-                FunnyType.Fun(
+                FunnyType.FunOf(
                     returnType: FunnyType.ArrayOf(FunnyType.Real),
-                    inputTypes: FunnyType.Fun(
-                        returnType: FunnyType.Fun(
+                    inputTypes: FunnyType.FunOf(
+                        returnType: FunnyType.FunOf(
                             returnType: FunnyType.ArrayOf(FunnyType.Bool),
                             inputTypes: FunnyType.Bool),
                         inputTypes: FunnyType.Text))
@@ -354,8 +348,8 @@ public class FunnyTypeTest {
 
         FunnyType.TrySolveGenericTypes(
             solvingTypes,
-            FunnyType.ArrayOf(FunnyType.Fun(FunnyType.Int32, FunnyType.Generic(0))),
-            FunnyType.ArrayOf(FunnyType.Fun(FunnyType.Int32, concrete)));
+            FunnyType.ArrayOf(FunnyType.FunOf(FunnyType.Int32, FunnyType.Generic(0))),
+            FunnyType.ArrayOf(FunnyType.FunOf(FunnyType.Int32, concrete)));
 
         Assert.AreEqual(concrete, solvingTypes[0]);
     }
@@ -378,10 +372,10 @@ public class FunnyTypeTest {
         var concrete2 = FunnyType.ArrayOf(FunnyType.Int32);
         FunnyType.TrySolveGenericTypes(
             solvingTypes,
-            FunnyType.Fun(
+            FunnyType.FunOf(
                 FunnyType.ArrayOf(FunnyType.Generic(0)), FunnyType.Generic(1),
                 FunnyType.ArrayOf(FunnyType.Generic(1))),
-            FunnyType.Fun(FunnyType.ArrayOf(concrete1), concrete2, FunnyType.ArrayOf(concrete2))
+            FunnyType.FunOf(FunnyType.ArrayOf(concrete1), concrete2, FunnyType.ArrayOf(concrete2))
         );
 
         Assert.Multiple(
@@ -399,7 +393,7 @@ public class FunnyTypeTest {
             FunnyType.Real,
             FunnyType.ArrayOf(FunnyType.Int32),
             FunnyType.ArrayOf(FunnyType.ArrayOf(FunnyType.Text)),
-            FunnyType.Fun(FunnyType.ArrayOf(FunnyType.Int32), FunnyType.ArrayOf(FunnyType.Text))
+            FunnyType.FunOf(FunnyType.ArrayOf(FunnyType.Int32), FunnyType.ArrayOf(FunnyType.Text))
         };
         foreach (var concreteType in concreteTypes)
         {
@@ -423,12 +417,12 @@ public class FunnyTypeTest {
         var someSolving = new[] { FunnyType.Int32, FunnyType.ArrayOf(FunnyType.Text) };
         // array of (T0[] fun<T0,T1>(double, T1, T0))
         var genericType = FunnyType.ArrayOf(
-            FunnyType.Fun(
+            FunnyType.FunOf(
                 FunnyType.ArrayOf(FunnyType.Generic(0)),
                 FunnyType.Real, FunnyType.Generic(1), FunnyType.Generic(0)));
         ;
         var expected = FunnyType.ArrayOf(
-            FunnyType.Fun(
+            FunnyType.FunOf(
                 FunnyType.ArrayOf(someSolving[0]),
                 FunnyType.Real, someSolving[1], someSolving[0]));
 
@@ -440,7 +434,7 @@ public class FunnyTypeTest {
     public void SearchMaxGenericTypeId_ComplexGenericTypeWithThreeArgs_FindAll() {
         // array of (T0[] fun<T0,T1,T2>(double, T1, T0,T2))
         var genericType = FunnyType.ArrayOf(
-            FunnyType.Fun(
+            FunnyType.FunOf(
                 FunnyType.ArrayOf(FunnyType.Generic(0)),
                 FunnyType.Real, FunnyType.Generic(1), FunnyType.Generic(0), FunnyType.Generic(2)));
         var maxCount = genericType.SearchMaxGenericTypeId();
@@ -456,29 +450,29 @@ public class FunnyTypeTest {
 
     [Test]
     public void TwoStructTypesWithSingleMemberAreEqual() {
-        var t1 = FunnyType.StructOf("name", FunnyType.Text);
-        var t2 = FunnyType.StructOf("name", FunnyType.Text);
+        var t1 = FunnyType.StructOf(("name", FunnyType.Text));
+        var t2 = FunnyType.StructOf(("name", FunnyType.Text));
         Assert.AreEqual(t1, t2);
     }
 
 
     [Test]
     public void TwoStructTypesWithSingleMemberOfDifferentTypesAreNotEqual() {
-        var t1 = FunnyType.StructOf("name", FunnyType.Text);
-        var t2 = FunnyType.StructOf("name", FunnyType.Int32);
+        var t1 = FunnyType.StructOf(("name", FunnyType.Text));
+        var t2 = FunnyType.StructOf(("name", FunnyType.Int32));
         Assert.AreNotEqual(t1, t2);
     }
 
     [Test]
     public void TwoStructTypesWithSingleMemberOfDifferentNamesAreNotEqual() {
-        var t1 = FunnyType.StructOf("name", FunnyType.Text);
-        var t2 = FunnyType.StructOf("nick", FunnyType.Text);
+        var t1 = FunnyType.StructOf(("name", FunnyType.Text));
+        var t2 = FunnyType.StructOf(("nick", FunnyType.Text));
         Assert.AreNotEqual(t1, t2);
     }
 
     [Test]
     public void EmptyStructTypeAndSingleMemeberTypesAreNotEqual() {
-        var t1 = FunnyType.StructOf("name", FunnyType.Text);
+        var t1 = FunnyType.StructOf(("name", FunnyType.Text));
         var t2 = FunnyType.StructOf();
         Assert.AreNotEqual(t1, t2);
     }

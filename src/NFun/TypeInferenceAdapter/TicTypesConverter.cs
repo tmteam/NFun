@@ -74,7 +74,7 @@ public abstract class TicTypesConverter {
                     case StateArray array:
                         return FunnyType.ArrayOf(Convert(array.Element));
                     case StateFun fun:
-                        return FunnyType.Fun(
+                        return FunnyType.FunOf(
                             Convert(fun.ReturnType),
                             fun.ArgNodes.SelectToArray(a => Convert(a.State)));
                     case StateStruct str:
@@ -101,7 +101,7 @@ public abstract class TicTypesConverter {
                 StatePrimitive primitive   => ToConcrete(primitive.Name),
                 ConstrainsState constrains => FunnyType.Generic(GetGenericIndexOrThrow(constrains)),
                 StateArray array           => FunnyType.ArrayOf(Convert(array.Element)),
-                StateFun fun => FunnyType.Fun(
+                StateFun fun => FunnyType.FunOf(
                     Convert(fun.ReturnType),
                     fun.ArgNodes.SelectToArray(a => Convert(a.State))),
                 StateStruct @struct => FunnyType.StructOf(
@@ -148,7 +148,7 @@ public abstract class TicTypesConverter {
                     case StateArray array:
                         return FunnyType.ArrayOf(Convert(array.Element));
                     case StateFun fun:
-                        return FunnyType.Fun(
+                        return FunnyType.FunOf(
                             Convert(fun.ReturnType),
                             fun.ArgNodes.SelectToArray(a => Convert(a.State)));
                     case StateStruct @struct:

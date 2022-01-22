@@ -31,7 +31,7 @@ public class ConvertInputTest {
         var type = FunnyType.StructOf(
             ("age", FunnyType.Int32),
             ("nested", FunnyType.StructOf(
-                "end", FunnyType.Bool)));
+                ("end", FunnyType.Bool))));
         var input = new MockyType {
             Age = 31,
             Nested = new Dictionary<string, object> {
@@ -61,12 +61,12 @@ public class ConvertInputTest {
         var type = FunnyType.StructOf(
             ("i", FunnyType.Int32),
             ("str", FunnyType.StructOf(
-                "arr", FunnyType.ArrayOf(
+                ("arr", FunnyType.ArrayOf(
                     FunnyType.StructOf(
                         ("age", FunnyType.Int32),
                         ("nested", FunnyType.StructOf(
-                            "end", FunnyType.Bool)))
-                ))));
+                            ("end", FunnyType.Bool))))
+                )))));
         var input = new Dictionary<string, object> {
             { "i", 42 }, {
                 "str", new Dictionary<string, object> {

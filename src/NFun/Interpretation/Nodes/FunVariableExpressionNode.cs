@@ -10,7 +10,7 @@ internal class FunVariableExpressionNode : IExpressionNode {
     public FunVariableExpressionNode(IConcreteFunction fun, Interval interval) {
         _value = fun;
         Interval = interval;
-        Type = FunnyType.Fun(_value.ReturnType, _value.ArgTypes);
+        Type = FunnyType.FunOf(_value.ReturnType, _value.ArgTypes);
     }
 
     public Interval Interval { get; }

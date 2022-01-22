@@ -51,7 +51,7 @@ public class GenericFunctionBaseTest {
             .CreateConcreteOrNull(
                 FunnyType.ArrayOf(FunnyType.Text),
                 FunnyType.ArrayOf(FunnyType.Int32),
-                FunnyType.Fun(FunnyType.Text, FunnyType.Int32));
+                FunnyType.FunOf(FunnyType.Text, FunnyType.Int32));
 
         Assert.IsNotNull(function);
 
@@ -63,7 +63,7 @@ public class GenericFunctionBaseTest {
                 CollectionAssert.AreEqual(
                     expected: new[] {
                         FunnyType.ArrayOf(FunnyType.Int32),
-                        FunnyType.Fun(FunnyType.Text, FunnyType.Int32)
+                        FunnyType.FunOf(FunnyType.Text, FunnyType.Int32)
                     },
                     actual: function.ArgTypes);
             });

@@ -49,14 +49,14 @@ public class MapFunction : GenericFunctionBase {
         "map",
         FunnyType.ArrayOf(FunnyType.Generic(1)),
         FunnyType.ArrayOf(FunnyType.Generic(0)),
-        FunnyType.Fun(FunnyType.Generic(1), FunnyType.Generic(0))) { }
+        FunnyType.FunOf(FunnyType.Generic(1), FunnyType.Generic(0))) { }
 
     public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypesMap) {
         var res = new ConcreteMap {
             Name = Name,
             ArgTypes = new[] {
                 FunnyType.ArrayOf(concreteTypesMap[0]),
-                FunnyType.Fun(concreteTypesMap[1], concreteTypesMap[0])
+                FunnyType.FunOf(concreteTypesMap[1], concreteTypesMap[0])
             },
             ReturnType = FunnyType.ArrayOf(concreteTypesMap[1])
         };
@@ -85,7 +85,7 @@ public class MultiMapSumFunction : GenericFunctionBase {
         new[] { GenericConstrains.Any, GenericConstrains.Arithmetical },
         returnType: FunnyType.Generic(1),
         FunnyType.ArrayOf(FunnyType.Generic(0)),
-        FunnyType.Fun(FunnyType.Generic(1), FunnyType.Generic(0))) { }
+        FunnyType.FunOf(FunnyType.Generic(1), FunnyType.Generic(0))) { }
 
     public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes) {
         var concrete = concreteTypes[1].BaseType switch {
@@ -208,7 +208,7 @@ public class SortMapFunction : GenericFunctionBase {
         "sort", new[] { GenericConstrains.Any, GenericConstrains.Comparable },
         FunnyType.ArrayOf(FunnyType.Generic(0)),
         FunnyType.ArrayOf(FunnyType.Generic(0)), 
-        FunnyType.Fun(FunnyType.Generic(1), FunnyType.Generic(0))) { }
+        FunnyType.FunOf(FunnyType.Generic(1), FunnyType.Generic(0))) { }
 
     protected override object Calc(object[] args) {
         var array = (IFunnyArray)args[0];
@@ -223,7 +223,7 @@ public class SortMapDescendingFunction : GenericFunctionBase {
         "sortDescending", new[] { GenericConstrains.Any, GenericConstrains.Comparable },
         FunnyType.ArrayOf(FunnyType.Generic(0)),
         FunnyType.ArrayOf(FunnyType.Generic(0)), 
-        FunnyType.Fun(FunnyType.Generic(1), FunnyType.Generic(0))) { }
+        FunnyType.FunOf(FunnyType.Generic(1), FunnyType.Generic(0))) { }
 
     protected override object Calc(object[] args) {
         var array = (IFunnyArray)args[0];
@@ -868,7 +868,7 @@ public class FoldGenericFunctionDefinition : GenericFunctionWithTwoArguments {
         "fold", new[] { GenericConstrains.Any },
         FunnyType.Generic(0),
         FunnyType.ArrayOf(FunnyType.Generic(0)),
-        FunnyType.Fun(FunnyType.Generic(0), FunnyType.Generic(0), FunnyType.Generic(0))) { }
+        FunnyType.FunOf(FunnyType.Generic(0), FunnyType.Generic(0), FunnyType.Generic(0))) { }
 
     protected override object Calc(object arg1, object arg2) {
         var arr = (IFunnyArray)arg1;
@@ -889,7 +889,7 @@ public class FoldWithDefaultsGenericFunctionDefinition : GenericFunctionBase {
         returnType: FunnyType.Generic(1),
         FunnyType.ArrayOf(FunnyType.Generic(0)),
         FunnyType.Generic(1),
-        FunnyType.Fun(
+        FunnyType.FunOf(
             returnType: FunnyType.Generic(1), FunnyType.Generic(1), FunnyType.Generic(0))) { }
 
     protected override object Calc(object[] args) {
@@ -996,7 +996,7 @@ public class CountOfGenericFunctionDefinition : GenericFunctionWithTwoArguments 
         "count",
         FunnyType.Int32,
         FunnyType.ArrayOf(FunnyType.Generic(0)),
-        FunnyType.Fun(FunnyType.Bool, FunnyType.Generic(0))) { }
+        FunnyType.FunOf(FunnyType.Bool, FunnyType.Generic(0))) { }
 
     protected override object Calc(object a, object b) {
         var arr = (IFunnyArray)a;
@@ -1021,7 +1021,7 @@ public class AnyGenericFunctionDefinition : GenericFunctionWithTwoArguments {
         "any",
         FunnyType.Bool,
         FunnyType.ArrayOf(FunnyType.Generic(0)),
-        FunnyType.Fun(FunnyType.Bool, FunnyType.Generic(0))) { }
+        FunnyType.FunOf(FunnyType.Bool, FunnyType.Generic(0))) { }
 
     protected override object Calc(object a, object b) {
         var arr = (IFunnyArray)a;
@@ -1039,7 +1039,7 @@ public class AllGenericFunctionDefinition : GenericFunctionWithTwoArguments {
         "all",
         FunnyType.Bool,
         FunnyType.ArrayOf(FunnyType.Generic(0)),
-        FunnyType.Fun(FunnyType.Bool, FunnyType.Generic(0))) { }
+        FunnyType.FunOf(FunnyType.Bool, FunnyType.Generic(0))) { }
 
     protected override object Calc(object a, object b) {
         var arr = (IFunnyArray)a;
@@ -1054,7 +1054,7 @@ public class FilterGenericFunctionDefinition : GenericFunctionWithTwoArguments {
         "filter",
         FunnyType.ArrayOf(FunnyType.Generic(0)),
         FunnyType.ArrayOf(FunnyType.Generic(0)),
-        FunnyType.Fun(FunnyType.Bool, FunnyType.Generic(0))) { }
+        FunnyType.FunOf(FunnyType.Bool, FunnyType.Generic(0))) { }
 
     protected override object Calc(object a, object b) {
         var arr = (IFunnyArray)a;
