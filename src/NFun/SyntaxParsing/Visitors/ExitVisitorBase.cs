@@ -11,6 +11,7 @@ public abstract class ExitVisitorBase : ISyntaxNodeVisitor<bool> {
     public virtual bool Visit(SuperAnonymFunctionSyntaxNode node) => true;
     public virtual bool Visit(StructFieldAccessSyntaxNode node) => true;
     public virtual bool Visit(StructInitSyntaxNode node) => true;
+    public bool Visit(DefaultValueSyntaxNode arrowAnonymFunNode) => true;
     public virtual bool Visit(IfThenElseSyntaxNode node) => true;
     public virtual bool Visit(IfCaseSyntaxNode node) => true;
     public virtual bool Visit(ListOfExpressionsSyntaxNode node) => true;

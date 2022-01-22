@@ -16,6 +16,7 @@ public abstract class EnterVisitorBase : ISyntaxNodeVisitor<VisitorEnterResult> 
     public virtual VisitorEnterResult Visit(SuperAnonymFunctionSyntaxNode node) => DefaultVisitEnter(node);
     public virtual VisitorEnterResult Visit(StructFieldAccessSyntaxNode node) => DefaultVisitEnter(node);
     public virtual VisitorEnterResult Visit(StructInitSyntaxNode node) => DefaultVisitEnter(node);
+    public virtual VisitorEnterResult Visit(DefaultValueSyntaxNode node) => DefaultVisitEnter(node);
     public virtual VisitorEnterResult Visit(IfThenElseSyntaxNode node) => DefaultVisitEnter(node);
     public virtual VisitorEnterResult Visit(IfCaseSyntaxNode node) => DefaultVisitEnter(node);
     public virtual VisitorEnterResult Visit(ListOfExpressionsSyntaxNode node) => DefaultVisitEnter(node);

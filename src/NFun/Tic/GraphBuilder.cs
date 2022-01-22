@@ -55,9 +55,12 @@ public class GraphBuilder {
         => SetOrCreatePrimitive(id, type);
 
     public void SetIntConst(int id, StatePrimitive desc)
-        => SetIntConst(id, desc, StatePrimitive.Real, StatePrimitive.Real);
+        => SetGenericConst(id, 
+            desc: desc, 
+            anc: StatePrimitive.Real, 
+            preferred: StatePrimitive.Real);
 
-    public void SetIntConst(int id, StatePrimitive desc, StatePrimitive anc, StatePrimitive preferred) {
+    public void SetGenericConst(int id, StatePrimitive desc = null, StatePrimitive anc = null, StatePrimitive preferred = null) {
         var node = GetOrCreateNode(id);
         if (node.State is ConstrainsState constrains)
         {

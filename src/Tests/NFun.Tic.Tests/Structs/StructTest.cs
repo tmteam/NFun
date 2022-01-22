@@ -189,7 +189,7 @@ public class StructTest {
 
         var graph = new GraphBuilder();
 
-        graph.SetIntConst(2, StatePrimitive.U8, StatePrimitive.Real, StatePrimitive.Real);
+        graph.SetGenericConst(2, StatePrimitive.U8, StatePrimitive.Real, StatePrimitive.Real);
         graph.SetStructInit(new[] { "field" }, new[] { 2 }, 1);
         graph.SetDef("x", 1);
 
@@ -218,7 +218,7 @@ public class StructTest {
         TraceLog.IsEnabled = true;
 
         var graph = new GraphBuilder();
-        graph.SetIntConst(0, StatePrimitive.U8, StatePrimitive.Real, StatePrimitive.Real);
+        graph.SetGenericConst(0, StatePrimitive.U8, StatePrimitive.Real, StatePrimitive.Real);
         var varnode = graph.InitializeVarNode();
 
         graph.SetCall(

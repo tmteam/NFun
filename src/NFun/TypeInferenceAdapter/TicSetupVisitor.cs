@@ -193,6 +193,11 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             node.Fields.Select(f => f.Node.OrderNumber).ToArray(), node.OrderNumber);
         return true;
     }
+    
+    public bool Visit(DefaultValueSyntaxNode node) {
+        _ticTypeGraph.SetGenericConst(node.OrderNumber);
+        return true;
+    }
 
     public bool Visit(ArrowAnonymFunctionSyntaxNode node) {
         _aliasScope.EnterScope(node.OrderNumber);
@@ -405,11 +410,11 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
                 {
                     //negative constant
                     if (l >= Int16.MinValue)
-                        _ticTypeGraph.SetIntConst(
+                        _ticTypeGraph.SetGenericConst(
                             node.OrderNumber, StatePrimitive.I16, StatePrimitive.I64,
                             StatePrimitive.I32);
                     else if (l >= Int32.MinValue)
-                        _ticTypeGraph.SetIntConst(
+                        _ticTypeGraph.SetGenericConst(
                             node.OrderNumber, StatePrimitive.I32, StatePrimitive.I64,
                             StatePrimitive.I32);
                     else _ticTypeGraph.SetConst(node.OrderNumber, StatePrimitive.I64);
@@ -423,27 +428,27 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
 
             //positive constant
             if (actualValue <= byte.MaxValue)
-                _ticTypeGraph.SetIntConst(
+                _ticTypeGraph.SetGenericConst(
                     node.OrderNumber, StatePrimitive.U8, StatePrimitive.I96,
                     StatePrimitive.I32);
             else if (actualValue <= (ulong)Int16.MaxValue)
-                _ticTypeGraph.SetIntConst(
+                _ticTypeGraph.SetGenericConst(
                     node.OrderNumber, StatePrimitive.U12, StatePrimitive.I96,
                     StatePrimitive.I32);
             else if (actualValue <= (ulong)UInt16.MaxValue)
-                _ticTypeGraph.SetIntConst(
+                _ticTypeGraph.SetGenericConst(
                     node.OrderNumber, StatePrimitive.U16, StatePrimitive.I96,
                     StatePrimitive.I32);
             else if (actualValue <= (ulong)Int32.MaxValue)
-                _ticTypeGraph.SetIntConst(
+                _ticTypeGraph.SetGenericConst(
                     node.OrderNumber, StatePrimitive.U24, StatePrimitive.I96,
                     StatePrimitive.I32);
             else if (actualValue <= (ulong)UInt32.MaxValue)
-                _ticTypeGraph.SetIntConst(
+                _ticTypeGraph.SetGenericConst(
                     node.OrderNumber, StatePrimitive.U32, StatePrimitive.I96,
                     StatePrimitive.I64);
             else if (actualValue <= (ulong)Int64.MaxValue)
-                _ticTypeGraph.SetIntConst(
+                _ticTypeGraph.SetGenericConst(
                     node.OrderNumber, StatePrimitive.U48, StatePrimitive.I96,
                     StatePrimitive.I64);
             else
@@ -467,7 +472,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
                                      _                 => StatePrimitive.I64
                                  };
                     var preferred = GetPreferredIntConstantType();
-                    _ticTypeGraph.SetIntConst(node.OrderNumber, descendant, StatePrimitive.Real, preferred);
+                    _ticTypeGraph.SetGenericConst(node.OrderNumber, descendant, StatePrimitive.Real, preferred);
                     return true;
                 }
             }
@@ -484,7 +489,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             else if (actualValue <= (ulong)UInt32.MaxValue) descendant = StatePrimitive.U32;
             else if (actualValue <= (ulong)Int64.MaxValue) descendant = StatePrimitive.U48;
             else descendant = StatePrimitive.U64;
-            _ticTypeGraph.SetIntConst(
+            _ticTypeGraph.SetGenericConst(
                 node.OrderNumber, descendant, StatePrimitive.Real,
                 GetPreferredIntConstantType());
         }

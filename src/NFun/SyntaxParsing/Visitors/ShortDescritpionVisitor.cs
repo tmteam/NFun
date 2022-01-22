@@ -41,7 +41,7 @@ public class ShortDescritpionVisitor : ISyntaxNodeVisitor<string> {
 
     public string Visit(StructInitSyntaxNode node)
         => $"{{ {string.Join("; ", node.Fields.Select(f => $"{f.Name}={f.Node.Accept(this)}"))}}}";
-
+    public string Visit(DefaultValueSyntaxNode node) => "default";
     public string Visit(GenericIntSyntaxNode node) => node.Value.ToString();
 }
 

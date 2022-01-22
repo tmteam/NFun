@@ -233,6 +233,8 @@ public static class SyntaxNodeReader {
         // '[' can be used as array index, only if there is new line
         if (flow.IsCurrent(TokType.ArrOBr))
             return ReadInitializeArrayNode(flow);
+        if (flow.MoveIf(TokType.Default))
+            return SyntaxNodeFactory.DefaultValue;
         if (flow.IsCurrent(TokType.NotAToken))
             throw ErrorFactory.NotAToken(flow.Current);
         return null;
@@ -289,7 +291,7 @@ public static class SyntaxNodeReader {
                 if (flow.IsPrevious(TokType.NewLine))
                     return leftNode;
 
-                leftNode = ReadArraySliceNode(flow, leftNode);
+                leftNode = ReadArraySlice(flow, leftNode);
             }
             else if (opToken.Type == TokType.Dot)
             {
@@ -307,7 +309,7 @@ public static class SyntaxNodeReader {
             {
                 if (flow.IsPrevious(TokType.NewLine))
                     return leftNode;
-                if (!flow.IsPrevious(TokType.Cbr) && !flow.IsPrevious(TokType.FiCbr))
+                if (!flow.IsPrevious(TokType.Cbr) && !flow.IsPrevious(TokType.FiCbr) &&!flow.IsPrevious(TokType.Default))
                     return leftNode;
                 //call result of previous expression:
                 // (expr)(arg1, ... argN)
@@ -514,7 +516,7 @@ public static class SyntaxNodeReader {
     /// <summary>
     /// Read array index or array slice node
     /// </summary>
-    private static ISyntaxNode ReadArraySliceNode(TokFlow flow, ISyntaxNode arrayNode) {
+    private static ISyntaxNode ReadArraySlice(TokFlow flow, ISyntaxNode arrayNode) {
         var openBraket = flow.Current;
         flow.MoveNext();
         var index = ReadNodeOrNull(flow);

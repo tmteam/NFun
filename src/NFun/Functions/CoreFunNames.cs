@@ -1,7 +1,7 @@
 namespace NFun.Functions {
 
 internal static class CoreFunNames {
-    public const string BitAnd = "bitand";
+    public const string BitAnd = "___bitand___";
     public const string Add = "+";
     public const string GetElementName = "[]";
     public const string SliceName = "slice";

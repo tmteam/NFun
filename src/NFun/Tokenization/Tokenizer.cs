@@ -67,6 +67,8 @@ public class Tokenizer {
         { "uint32", TokType.UInt32Type },
         { "uint64", TokType.UInt64Type },
 
+        { "default", TokType.Default },
+
 
         //Reserved keywords:
         { "the", TokType.Reserved },

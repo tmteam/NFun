@@ -157,7 +157,12 @@ public enum TokType {
     /// </summary>
     Arrow,
     FunRule,
-    Reserved
+    /// <summary>
+    /// 'default'
+    /// </summary>
+    Default,
+    Reserved,
+    
 }
 
 }

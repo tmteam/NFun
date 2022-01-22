@@ -6,6 +6,9 @@ using NFun.Types;
 namespace NFun.SyntaxParsing {
 
 public static class SyntaxNodeFactory {
+    
+    public readonly static ISyntaxNode DefaultValue = new DefaultValueSyntaxNode();
+    
     public static ISyntaxNode AnonymFun(ISyntaxNode definition, FunnyType type, ISyntaxNode body)
         => new ArrowAnonymFunctionSyntaxNode(
             definition, body, type,

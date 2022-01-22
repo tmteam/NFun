@@ -308,7 +308,7 @@ class TrickyPrimitives {
         //node |       1        0
         //expr |y = myFunction(-1) 
         var graph = new GraphBuilder();
-        graph.SetIntConst(0, StatePrimitive.I16, StatePrimitive.Real, StatePrimitive.Real);
+        graph.SetGenericConst(0, StatePrimitive.I16, StatePrimitive.Real, StatePrimitive.Real);
 
         TestHelper.AssertThrowsTicError(
             () => {
@@ -328,7 +328,7 @@ class TrickyPrimitives {
         //expr |a = 0;   b = cos(a) 
 
         var graph = new GraphBuilder();
-        graph.SetIntConst(0, StatePrimitive.U8, StatePrimitive.Real, new StatePrimitive(preferredType));
+        graph.SetGenericConst(0, StatePrimitive.U8, StatePrimitive.Real, new StatePrimitive(preferredType));
         graph.SetDef("a", 0);
         graph.SetVar("a", 1);
         graph.SetCall(StatePrimitive.Real, 1, 2);

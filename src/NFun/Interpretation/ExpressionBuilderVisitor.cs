@@ -134,6 +134,11 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
         return new StructInitExpressionNode(names, nodes, node.Interval, FunnyType.StructOf(types));
     }
+    public IExpressionNode Visit(DefaultValueSyntaxNode arrowAnonymFunNode) => 
+        new DefaultValueExpressionNode(
+            arrowAnonymFunNode.OutputType.GetDefaultFunnyValue(), 
+            arrowAnonymFunNode.OutputType, 
+            arrowAnonymFunNode.Interval);
 
     public IExpressionNode Visit(ArrowAnonymFunctionSyntaxNode arrowAnonymFunNode) {
         if (arrowAnonymFunNode.Definition == null)

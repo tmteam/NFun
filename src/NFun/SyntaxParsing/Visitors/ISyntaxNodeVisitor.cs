@@ -21,6 +21,7 @@ public interface ISyntaxNodeVisitor<out T> {
     T Visit(SuperAnonymFunctionSyntaxNode arrowAnonymFunNode);
     T Visit(StructFieldAccessSyntaxNode node);
     T Visit(StructInitSyntaxNode node);
+    T Visit(DefaultValueSyntaxNode arrowAnonymFunNode);
 }
 
 }
