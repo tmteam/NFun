@@ -73,7 +73,6 @@ public class Tokenizer {
         //Reserved keywords:
         { "the", TokType.Reserved },
 
-        { "%", TokType.Reserved },
         { "_", TokType.Reserved },
 
         { "async", TokType.Reserved },
@@ -379,7 +378,7 @@ public class Tokenizer {
         if (startPosition >= str.Length - 1)
             throw ErrorFactory.QuoteAtEndOfString(expectedClosingSymbol, startPosition, startPosition + 1);
 
-        var (result, endPosition) = QuotationReader.ReadQuotation(str, startPosition);
+        var (result, endPosition) = QuotationReader.ReadQuotation(str, startPosition, openQuoteSymbol);
         if (endPosition == -1)
             throw ErrorFactory.ClosingQuoteIsMissed(expectedClosingSymbol, startPosition, str.Length);
 

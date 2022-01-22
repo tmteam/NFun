@@ -54,7 +54,7 @@ internal static class StringTemplateRuntimeBuilder {
 
             if (pos != -1 || script.Length <= 0 || script[0] != '{')
             {
-                (text, endOfText) = QuotationReader.ReadQuotation(script, pos, false);
+                (text, endOfText) = QuotationReader.ReadQuotation(script, pos, null);
                 if (endOfText == -1)
                 {
                     texts.Add(script.Substring(pos + 1));

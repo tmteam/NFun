@@ -35,16 +35,29 @@ public class QuotationReaderTest {
     [TestCase(" \\r\r", " \r\r")]
     [TestCase("\t \\n\n", "\t \n\n")]
     public void TextIsCorrect_EscapedReplacedWell(string origin, string expected) {
-        AssertStringParsed("", "", origin, expected);
-        AssertStringParsed("some prefix", "", origin, expected);
-        AssertStringParsed("", "some postfix", origin, expected);
-        AssertStringParsed("prefix", "postfix", origin, expected);
+        AssertStringParsed("", "", origin, expected,'\'');
+        AssertStringParsed("some prefix", "", origin, expected,'\'');
+        AssertStringParsed("", "some postfix", origin, expected,'\'');
+        AssertStringParsed("prefix", "postfix", origin, expected,'\'');
+        AssertStringParsed("", "", origin, expected,'"');
+        AssertStringParsed("some prefix", "", origin, expected,'"');
+        AssertStringParsed("", "some postfix", origin, expected,'"');
+        AssertStringParsed("prefix", "postfix", origin, expected,'"');
     }
+    [TestCase("\"",'\'')]
+    [TestCase("'",'"')]
+    [TestCase("\"\"",'\'')]
+    [TestCase("'''",'"')]
+    [TestCase("Jimmi said: \"oh my god!\"",'\'')]
+    [TestCase("Jimmi said: 'oh my god!'",'"')]
 
-    private void AssertStringParsed(string prefix, string postfix, string quoted, string expected) {
-        var str = $"'{quoted}'";
+    public void TextIsCorrect_NoEscapeQuoteSymbolParsesWell(string origin, char quoteSymbol) 
+        => AssertStringParsed("", "", origin, origin, quoteSymbol);
+
+    private void AssertStringParsed(string prefix, string postfix, string quoted, string expected, char quoteSymbol) {
+        var str = $"{quoteSymbol}{quoted}{quoteSymbol}";
         var (parsed, end) = QuotationReader.ReadQuotation(
-            prefix + str + postfix, prefix.Length);
+            prefix + str + postfix, prefix.Length, quoteSymbol);
 
         Assert.AreEqual(expected, parsed);
         Assert.AreEqual(str.Length - 1 + prefix.Length, end);
@@ -63,7 +76,7 @@ public class QuotationReaderTest {
         var str = prefix + before + error + after;
         var ex = Assert.Throws<FunnyParseException>(
             () =>
-                QuotationReader.ReadQuotation(str, prefix.Length));
+                QuotationReader.ReadQuotation(str, prefix.Length,'\''));
         Console.WriteLine("Origin string to parse: " + str);
         Console.WriteLine("Parse error: [FU" + ex.Code + "] " + ex.Message);
         var foundError = ex.Interval.SubString(str);
@@ -75,7 +88,7 @@ public class QuotationReaderTest {
     [TestCase("'something \\' some postfix")]
     [TestCase("'")]
     public void CloseQuoteMissing_returnsNegativeOne(string text) {
-        var (result, resultPosition) = QuotationReader.ReadQuotation(text, 0);
+        var (result, resultPosition) = QuotationReader.ReadQuotation(text, 0,'\'');
         Assert.AreEqual(-1, resultPosition);
     }
 }

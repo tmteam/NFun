@@ -7,8 +7,9 @@ public class TestHardcoreApiBuildStringTemplate {
     [TestCase(42, "{x.toText().concat('lalala')}", "42lalala")]
     [TestCase(42.0, "pre{x-1*2}mid{x*x/x}fin", "pre40mid42fin")]
     [TestCase(42, "pre{x-1*2}mid{x*x/x}fin", "pre40mid42fin")]
+    [TestCase(42, "pre{x-1*2}'m\"i'd\"{x*x/x}fin", "pre40'm\"i'd\"42fin")]
     [TestCase("abc", "{concat(x,x)}", "abcabc")]
-    [TestCase("abc", "pre {'inner = {x.concat('test of \\{')}'} outer {x}", "pre inner = abctest of { outer abc")]
+    [TestCase("abc", "'pre \"'{'inner = {x.concat('test of \\{')}'} outer {x}", "'pre \"'inner = abctest of { outer abc")]
     public void SingleVariableTemplate(object input, string expr, string expected) {
         for (int i = 0; i < 10; i++)
         {

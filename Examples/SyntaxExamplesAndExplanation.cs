@@ -440,8 +440,9 @@ public class SyntaxExamplesAndExplanation {
         Assert.AreEqual("hello world", Funny.Calc("'hello '.concat('world')"));
         //control characters \’ \” \t \n \r \f \{ \}
         Assert.AreEqual("name: 'vasa'", Funny.Calc("'name: \\'vasa\\''"));
-
-        //Interpolation
+        //you can use " symbol without escaping, inside single quotation text
+        Assert.AreEqual("name: \"vasa\"", Funny.Calc("'name: \"vasa\"'"));
+        //templates
         Assert.AreEqual("241*2= 482", Funny.Calc("'241*2= {241*2}'"));
         Assert.AreEqual(
             "21*2= 42, arr = [1,2,42]",
