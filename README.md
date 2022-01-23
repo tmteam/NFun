@@ -103,6 +103,13 @@ Low-level hardcore API is also supported
 
 [Syntax - guide and examples](https://github.com/tmteam/NFun/blob/master/Examples/SyntaxExamplesAndExplanation.cs)
 
+[Specification: Basics](https://github.com/tmteam/NFun/blob/Specification/Specs/Base%20syntax.md)
+
+[Specification: Operators](https://github.com/tmteam/NFun/blob/Specification/Specs/Base%20operators.md)
+
+[Specification: Array syntax and semantics](https://github.com/tmteam/NFun/blob/Specification/Specs/Array%20syntax%20and%20semantics.md)
+
+
 ## Let's make some fun
 Now Nfun is in production-ready state with 5000 green tests. Any questions, suggestions, ideas and criticism are welcome.  
 
