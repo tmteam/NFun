@@ -9,7 +9,6 @@ using NFun.ParseErrors;
 using NFun.Runtime.Arrays;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
-using NFun.Types;
 
 namespace NFun.SyntaxParsing {
 
@@ -17,6 +16,14 @@ namespace NFun.SyntaxParsing {
 /// Reads concrete syntax nodes from token flow
 /// </summary>
 public static class SyntaxNodeReader {
+    private const int MinPriority = 0;
+    private const int OperatorBitInversePriority = 1;
+    private const int OperatorNotPriority = 5;
+
+    private static readonly int MaxPriority;
+
+    private static readonly Dictionary<TokType, byte> Priorities = new();
+    
     static SyntaxNodeReader() {
         var priorities = new List<TokType[]>(7) {
             new[] { TokType.ArrOBr, TokType.Dot, TokType.Obr },
@@ -40,11 +47,7 @@ public static class SyntaxNodeReader {
         MaxPriority = priorities.Count - 1;
     }
 
-    private const int MinPriority = 0;
-
-    private static readonly int MaxPriority;
-
-    private static readonly Dictionary<TokType, byte> Priorities = new();
+    
 
     private static readonly Dictionary<TokType, string> OperatorFunNames = new() {
         { TokType.Plus, CoreFunNames.Add },
@@ -139,7 +142,7 @@ public static class SyntaxNodeReader {
 
         if (flow.MoveIf(TokType.BitInverse))
         {
-            var node = ReadNodeOrNull(flow, 1);
+            var node = ReadNodeOrNull(flow, OperatorBitInversePriority);
             if (node == null)
                 throw ErrorFactory.UnaryArgumentIsMissing(flow.Current);
             return SyntaxNodeFactory.OperatorFun(
@@ -149,7 +152,7 @@ public static class SyntaxNodeReader {
 
         if (flow.MoveIf(TokType.Not))
         {
-            var node = ReadNodeOrNull(flow, 5);
+            var node = ReadNodeOrNull(flow, OperatorNotPriority);
             if (node == null)
                 throw ErrorFactory.UnaryArgumentIsMissing(flow.Current);
             return SyntaxNodeFactory.OperatorFun(
@@ -172,8 +175,7 @@ public static class SyntaxNodeReader {
             var dimensions = val[1] switch {
                                  'b' => 2,
                                  'x' => 16,
-                                 _ => throw new NFunImpossibleException(
-                                     "Hex or bin constant has invalid format: " + val)
+                                 _ => throw new NFunImpossibleException("Hex or bin constant has invalid format: " + val)
                              };
             var substr = val.Replace("_", null)[2..];
 
