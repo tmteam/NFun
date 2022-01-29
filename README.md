@@ -2,14 +2,14 @@
 
 To install NFun, run the following command in the Package Manager Console:
 
-```
+```js
 PM> Install-Package NFun 
 ```
 
 ## What is the NFun?
 
 This is an expression evaluator or a mini-script language for .net. It supports working with mathematical expressions as well as with collections, strings, hi-order functions and structures. NFun is quite similar to NCalc but with a rich type system and linq support.
-See the ['How to'](https://github.com/tmteam/NFun#how-to) section for details
+See the ['How to / specifications'](https://github.com/tmteam/NFun#how-to) section for details
 
 Nfun can perform simple evaluations
 ```cs
@@ -97,21 +97,26 @@ Low-level hardcore API is also supported
 - Comments
 - And a lot more Funny stuff
 
-## How to 
+## How to
 
 [API - guide and examples](https://github.com/tmteam/NFun/blob/master/Examples/ApiUsageExamplesAndExplanation.cs)
 
 [Syntax - guide and examples](https://github.com/tmteam/NFun/blob/master/Examples/SyntaxExamplesAndExplanation.cs)
 
-[Specification: Basics](https://github.com/tmteam/NFun/blob/Specification/Specs/Base%20syntax.md)
 
-[Specification: Operators](https://github.com/tmteam/NFun/blob/Specification/Specs/Base%20operators.md)
+----
+Boring specification is better than no specification
 
-[Specification: Array syntax and semantics](https://github.com/tmteam/NFun/blob/Specification/Specs/Array%20syntax%20and%20semantics.md)
+[Boring specification: Basics](https://github.com/tmteam/NFun/blob/master/Specs/Basics.md)
+
+[Boring specification: Operators](https://github.com/tmteam/NFun/blob/master/Specs/Operators.md)
+
+[Boring specification: Arrays](https://github.com/tmteam/NFun/blob/master/Specs/Arrays.md)
+
+[Boring specification: Texts (Strings)](https://github.com/tmteam/NFun/blob/master/Specs/Texts(strings).md)
 
 
 ## Let's make some fun
-Now Nfun is in production-ready state with 5000 green tests. Any questions, suggestions, ideas and criticism are welcome.  
 
 ```                                                                                                            
       ';,                                                                                ;;       
