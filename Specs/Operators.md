@@ -1,4 +1,3 @@
-
 # NFun operators
 
 Nfun provides the following types of operators:
@@ -8,9 +7,7 @@ Nfun provides the following types of operators:
 * Bitwise Operators
 * Misc Operators
 
-
 Most operators may be applied for different types of operands. To simplify the description, we will give names to some sets of types:
-
 
 | Name          | Types                                              | Formal constrains                                   |
 |---------------|----------------------------------------------------|-----------------------------------------------------|
@@ -54,6 +51,7 @@ Within an expression, higher precedence operators will be evaluated first.
 | xor                | Logical XOR                          |
 | or                 | Logical OR                           |
 | rule               | Anonymous function                   |
+| =                  | Variable initialization              |
 
 
 ## Arithmetic Operators
@@ -152,9 +150,11 @@ The following operators perform special actions and are described in detail in t
 
 Here we give only a superficial description of them
 
-| Operator       | Described in | Description                                                                                                                                                                                                       | Example                            |
-|----------------|--------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------|
-| rule *(unary)* | Basics       | Returns an anonymous function with the body specified in the operand. The arguments of this function are called 'it' (for the case of a function with one argument) or it1, it2... for the case of many arguments | [1,2,3].filter(rule it>1) is [2,3] |
-| in             | Arrays       | Returns true if the element (left operand) is contained in the array (right operand)                                                                                                                              | (1 in [1,2,3]) is true             |
-| []             | Arrays       | Index Operator. Selects an element from the array (left operand) that is at the specified position (in-brackets operand)                                                                                          | ([1,0,2][2]) is 2                  |
-| [:] , [::]     | Arrays       | Slice operator. Creates subarray from origin array (left operand) with specific range (in-bracets operands 'start' and 'end') inclisive                                                                           | [1,2,3,4,5][1:3] is [2,3,4]        |
+| Operator       | Described in | Description                                                                                                                                                                                                       | Example                   |
+|----------------|--------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------|
+| rule *(unary)* | Basics       | Returns an anonymous function with the body specified in the operand. The arguments of this function are called 'it' (for the case of a function with one argument) or it1, it2... for the case of many arguments | [1,2,3].filter(rule it>1) |
+| =              | Basics       | Initialization operator. Initializes left side variable with values from right side operand                                                                                                                       | a = 42; c = [a,2,3]       |
+| .              | Structures   | Field access operator                                                                                                                                                                                             | a = user.name             |
+| in             | Arrays       | Membership operator. Returns true if the element (left operand) is contained in the array (right operand)                                                                                                         | 1 in [1,2,3]              |
+| []             | Arrays       | Index Operator. Selects an element from the array (left operand) that is at the specified position (in-brackets operand)                                                                                          | [1,0,2][2]                |
+| [:] , [::]     | Arrays       | Slice operator. Creates subarray from origin array (left operand) with specific range (in-bracets operands 'start' and 'end') inclisive                                                                           | [1,2,3,4,5][1:3]          |
