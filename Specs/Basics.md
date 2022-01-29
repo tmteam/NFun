@@ -41,6 +41,7 @@ The Nfun script can only consist of the following elements:
 - Declarations of input variable types
 - Descriptions of user functions
 - Comments
+- Variable annotations
 
 Each of these elements begins with a new line, In this case, symbol ';' is the full equivalent of a line break.
 
@@ -62,7 +63,11 @@ a:int; b:int # Declaration of the types of input variables a and b
 
 incrementResult = a+1 # Initializing the output incrementResult
 someSum:int64 = sumOf3(a,b,1) #Calling the user function
+
 isBig = someSum > myInput #Using an undeclared input
+
+@best_variable_ever  
+theTruth = true # output 'theTruth' has annotation 'best_variable_ever' whatever that means
 
 sumOf3(x,y,z) = x+y+z #userFunction sumOf3
 
@@ -495,3 +500,33 @@ i = 0.increment() #1:int
 j = 1.5.increment() #1.5:real
 k:uint = 12.increment() #13:uint
 ```
+
+## Variable annotation '@'
+
+Allows you to add meta information to a variable. This information can only be accessed from the calling code
+```py
+@supermega
+a = 42 # a has annotation 'supermega'
+```
+here 'supermega' - is annotation for output variable 'a'
+
+Annotation name consist of uppercase and lowercase latin letters, numbers, and the _ symbol. 
+The first character must be a latin letter
+
+For example: 'private', 'hidden_id', 'id32'
+
+The annotation must be on the line before the variable initialization line or the variable type declaration. Empty lines don't count
+Each variable can contain many annotations. Each following annotation should start with a new line
+Each annotation can carry one argument - numeric, binary, or text literal inide brackets right after annotation name
+
+```py
+@required
+@veryFun
+
+i: int # input 'i' has to annotations - 'required' and 'veryFun'
+
+@id('foo')
+@private
+a = 42 # output 'a' has annotation 'id' with 'foo' value, and annotation 'private' without any value
+```
+

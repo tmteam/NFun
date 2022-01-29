@@ -54,7 +54,7 @@ d = [1.2..3]   #[1.2, 2.2]
 
 This operator takes three arguments and has folowing syntax:
 ```
-[$a..$b step $s] 
+[a..b step s] 
 ```
 where 'a','b','s' is any of [Integers] types
 
@@ -66,9 +66,9 @@ otherwise it creates reversed array
 
 Examples:
 ```
-a = [1..7 step 2]     #[1,3,5,7]
-b = [7..1 step 2]    #[7,5,3,1]
-c = [1.0..3.0 step 0.5] #[1.0, 1.5, 2.0, 2.5, 3.0]
+a = [1..7 step 2]       # [1,3,5,7]
+b = [7..1 step 2]       # [7,5,3,1]
+c = [1.0..3.0 step 0.5] # [1.0, 1.5, 2.0, 2.5, 3.0]
 ```
 
 ## Access
@@ -95,12 +95,12 @@ If the index is negative or it is greater or equal to array size - an runtime ex
 ### Slices  [:]   
 
 ```
-syntax: $a[$i:$j] 
+a[b:e] 
 ```
 
-Allows you to get 'slice' - subarray, that starts from i-th element of origin array and ends with j-th element of origin array
+Allows you to get 'slice' - subarray, that starts from b-th element of origin array and ends with e-th element of origin array 'a'
 
-'i' and 'j' has type of int32. The enumeration starts with 0
+'b' and 'e' has type of int32. The enumeration starts with 0
 
 ```
 array = [1,4,0,3]
@@ -126,9 +126,9 @@ k = array[2:] #returns [1,4,0,3]
 ### Slice with step [::] 
 
 ```
-$a[$b:$e:$s]
+a[b:e:s]
 ```
-allows you to get new array, that takes only every 's'-th element of origin array, starts from i-th element of origin array and ends with j-th element of origin array
+allows you to get new array, that takes only every 's'-th element of origin array, starts from b-th element of origin array 'a' and ends with e-th element of origin array
 
 'b', 'e', s has type of int32. The enumeration starts with 0
 
@@ -153,8 +153,10 @@ j = array[:2:]  #[0,1,2]
 ``` 
 
 ## Membership operator 'in'
-
-'in' operators with syntax 'A in B' answers the questions: 'does array A contains element B?'. 
+```
+A in B
+```
+'in' operators answers the questions: 'does array B contains element A?'. 
 If it is, than expression equals true. Expression equals false otherwise.
 
 ```
