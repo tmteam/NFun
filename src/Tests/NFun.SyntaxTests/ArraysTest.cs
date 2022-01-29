@@ -15,6 +15,9 @@ public class ArraysTest {
     [TestCase("y:uint[] = [4..1]", new uint[] { 4, 3, 2, 1 })]
     [TestCase("y:int[] = [1..1]", new[] { 1 })]
     [TestCase("y:int[] = [1,2,3,4]", new[] { 1, 2, 3, 4 })]
+    [TestCase("y = [1.2 .. 3]",new []{1.2,2.2})]
+    [TestCase("y = [1.2 .. 3.2]",new []{1.2,2.2,3.2})]
+    [TestCase("y = [3.2 .. 1.2]",new []{3.2,2.2,1.2})]
     [TestCase("y = [0x1]", new[] { 1 })]
     [TestCase("y = ['foo','bar']", new[] { "foo", "bar" })]
     [TestCase("y:int = [0..10][0]", 0)]
@@ -83,11 +86,11 @@ public class ArraysTest {
     [TestCase("y(x) = x # some comment \r[1]", new[] { 1 })]
     [TestCase("y(x) = x # some comment \r[1..3]", new[] { 1, 2, 3 })]
     public void AnonymousConstantArrayTest(string expr, object expected)
-        => expr.AssertOut(expected);
+        => expr.AssertAnonymousOut(expected);
 
     [Test]
     public void CompositeArrayOfAnyTest() =>
-        "[1,'23',[],['a','bc'],[[]], 4.0,0x5, false]".AssertOut(
+        "[1,'23',[],['a','bc'],[[]], 4.0,0x5, false]".AssertAnonymousOut(
             new object[] {
                 1,
                 "23",

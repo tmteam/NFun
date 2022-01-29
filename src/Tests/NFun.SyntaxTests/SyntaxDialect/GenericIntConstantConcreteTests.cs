@@ -32,7 +32,7 @@ public class GenericIntConstantIsRealTest : GenericIntConstantTestBase<double> {
     [TestCase("[1,'2',3.0,4,5.2, true, false, 7.2]", new object[] { 1.0, "2", 3.0, 4.0, 5.2, true, false, 7.2 })]
     [TestCase("[1,'23',4.0,0x5, true]", new object[] { 1.0, "23", 4.0, 5, true })]
     public void AnonymousConstantArrayTest(string expr, object expected)
-        => Calc(expr).AssertOut(expected);
+        => Calc(expr).AssertAnonymousOut(expected);
 
 
     [TestCase("a=1; b=2; c=3;", new[] { "a", "b", "c" }, new object[] { 1.0, 2.0, 3.0 })]

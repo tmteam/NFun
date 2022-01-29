@@ -62,11 +62,11 @@ public class SyntaxExamplesAndExplanation {
          y = x//2 # Integer division
          y = x**2 # Pow
          
-         The priorities of operations are normal: 
-                      1) **
-                      2) / * % //
-                      3) + -
-         Brackets are used to indicate priorities */
+         The precedences of operations are normal: 
+            1. **
+            2. / * % //
+            3. + -
+         Brackets are used to indicate precedences */
         Assert.AreEqual(9, Funny.Calc<double>("(10//2 + (1-12) %3) ** 2"));
     }
 
@@ -218,9 +218,13 @@ public class SyntaxExamplesAndExplanation {
     public void BinaryOperations() { /*
          Binary constants: true, false
          
-         Binary operators:
-         ==, !=, >, <, >=, >=     
-         not, and, or ,xor
+         Binary operators and their precedences:
+                 
+         1. ==, !=, >, <, >=, >=     
+         2. not, 
+         3. and, 
+         5. xor,
+         6. or 
          */
 
         Assert.True(Funny.Calc<bool>("0==0"));
@@ -310,16 +314,15 @@ public class SyntaxExamplesAndExplanation {
 
     [Test]
     public void BitwiseOperations() { /*
-         Bitwise operators
-         |    # bit or
-         &    # bit and
-         ^    # bit xor
-         ~    # bit inverse
-         >>   # bitshift right
-         <<   # bitshift left
+         Bitwise operators and their precedences:
+         
+         1. ~	    bitwise NOT
+         2. << >>	bitshifts left and right
+         3. &       bit and
+         4. ^       bit xor
+         5. |       bit or
         
-        >>, << operators allowed for types int32, uint32, int64, uiny64
-        |,&,^,~ operators allowed for any integer types*/
+        All these operators allowed for any of integer types*/
 
         Assert.IsTrue(Funny.Calc<bool>("x1 = 42; out = (x1 & (1 << 5)) !=0  #x1 has 5th bit"));
     }

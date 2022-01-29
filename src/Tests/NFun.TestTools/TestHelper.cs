@@ -35,16 +35,19 @@ public static class TestHelper {
 
     public static CalculationResult Calc(this string expr, params (string id, object val)[] values) =>
         Funny.Hardcore.Build(expr).Calc(values);
+    
+    public static object CalcAnonymousOut(this string expr, params (string id, object val)[] values) =>
+        Calc(expr, values).Get(Parser.AnonymousEquationId);
 
     public static FunnyRuntime BuildWithDialect(this string expr, DialectSettings dialect)
         => Funny.Hardcore.WithDialect(dialect).Build(expr);
 
     public static FunnyRuntime Build(this string expr) => Funny.Hardcore.Build(expr);
 
-    public static void AssertOut(this CalculationResult result, object expected) =>
+    public static void AssertAnonymousOut(this CalculationResult result, object expected) =>
         AssertReturns(result, Parser.AnonymousEquationId, expected);
 
-    public static void AssertOut(this string expr, object expected) =>
+    public static void AssertAnonymousOut(this string expr, object expected) =>
         expr.Calc().AssertReturns(Parser.AnonymousEquationId, expected);
 
     public static void AssertReturns(this string expr, object expected) => expr.Calc().AssertReturns(expected);
@@ -203,7 +206,19 @@ public static class TestHelper {
 
     public static void AssertObviousFailsOnRuntime(this string expression) {
         var runtime = expression.Build();
-        Assert.Catch<FunnyRuntimeException>(() => runtime.Calc());
+        try
+        {
+            var res = runtime.Calc();
+            Assert.Fail($"{nameof(FunnyRuntimeException)} was not thrown. Calculation results: {res}\r\n");
+        }
+        catch (FunnyRuntimeException e)
+        {
+            Assert.Pass($"Expected error: {e.Message} of type {e.GetType().Name}\r\n");
+        }
+        catch (Exception e)
+        {
+            Assert.Fail($"{e.GetType().Name}('{e.Message}') was thrown instead of {nameof(FunnyRuntimeException)}\r\n");
+        }
     }
 
     public static void AssertObviousFailsOnParse(this string expression, DialectSettings dialect = null) {

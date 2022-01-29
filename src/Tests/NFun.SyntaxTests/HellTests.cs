@@ -45,7 +45,7 @@ public class HellTests {
 
     [Test]
     public void ConcatExperiments() =>
-        "'res: '.concat((n >5).toText())".Calc("n", 1.0).AssertOut("res: False");
+        "'res: '.concat((n >5).toText())".Calc("n", 1.0).AssertAnonymousOut("res: False");
 
     [Test]
     public void ArrayWithUpcast_lambdaConstCalculate() {

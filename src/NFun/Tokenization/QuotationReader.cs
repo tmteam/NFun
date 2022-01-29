@@ -44,8 +44,6 @@ public static class QuotationReader {
                              '\'' => '\'',
                              '"'  => '"',
                              't'  => '\t',
-                             'f'  => '\f',
-                             'v'  => '\v',
                              '{'  => '{',
                              '}'  => '}',
                              _    => throw ErrorFactory.UnknownEscapeSequence(next.ToString(), i, i + 2)
