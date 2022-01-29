@@ -2,10 +2,15 @@
 ## Array Operators
 There are operators for working with arrays in Nfun. They work for any type of array element.
 
-### Enumeration Array Initialization  [,]
+### Enumeration Array Initialization  
 
 '[,]'  operator allows you to create an array with elements specified inside parentheses and separated by commas 
 
+```
+synax: [$element0, $element1, ... $elementN]
+```
+
+Example:
 ```
 a = [1,2,3]
 b = ['hello', ' ', 'world']
@@ -16,14 +21,14 @@ The array created in this way must have at least one element
 
 This operator takes two arguments and has folowing syntax:
 ```
-[a..b] 
+syntax: [$a..$b] 
 ```
 where 'a' and 'b' is any of [Numbers] types
 
-if a greater than b it creates array with range from 'a' to 'b' **inclusive** 
+if 'a' greater than 'b' it creates array with range from 'a' to 'b' **inclusive** 
 Each next element in such an array is greater than the previous one by 1
 
-if b is greater than a it creates reversed array where each next element is less than previous one by 1
+if 'b' is greater than 'a' it creates reversed array where each next element is less than previous one by 1 started from 'b'
 
 Examples:
 ```
@@ -35,11 +40,11 @@ c = [1.2..3.2] #[1.2, 2.2, 3.2]
 d = [1.2..3]   #[1.2, 2.2] 
 ```
 
-### Step - Range Array Initialization  [..]
+### Step - Range Array Initialization  
 
 This operator takes three arguments and has folowing syntax:
 ```
-[a..b step s] 
+[$a..$b step $s] 
 ```
 where 'a','b','s' is any of [Integers] types
 
@@ -59,7 +64,10 @@ c = [1.0..3.0 step 0.5] #[1.0, 1.5, 2.0, 2.5, 3.0]
 
 ### Get Array Element. []  
 
-a[i] - allows you to get i-th element in array 'a'. 
+```
+syntax: $a[$i]
+```
+allows you to get i-th element in array 'a'. 
 Here, 'i' called 'index' and has type of int32. The enumeration starts with 0.
 
 ```
@@ -74,7 +82,11 @@ If the index is negative or it is greater or equal to array size - an runtime ex
 
 ### Slices  [:]   
 
-a[i:j] allows you to get 'slice' - subarray, that starts from i-th element of origin array and ends with j-th element of origin array
+```
+syntax: $a[$i:$j] 
+```
+
+Allows you to get 'slice' - subarray, that starts from i-th element of origin array and ends with j-th element of origin array
 
 'i' and 'j' has type of int 32. The enumeration starts with 0
 
@@ -101,7 +113,10 @@ k = array[2:] #returns [1,4,0,3]
 ``` 
 ## Slice with step [::] 
 
-a[b:e:s] allows you to get new array, that takes only every 's'-th element of origin array, starts from i-th element of origin array and ends with j-th element of origin array
+```
+$a[$b:$e:$s]
+```
+allows you to get new array, that takes only every 's'-th element of origin array, starts from i-th element of origin array and ends with j-th element of origin array
 
 'b', 'e', s has type of int32. The enumeration starts with 0
 
