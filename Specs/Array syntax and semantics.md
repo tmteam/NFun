@@ -1,27 +1,37 @@
 
-## Array Operators
-There are operators for working with arrays in Nfun. They work for any type of array element.
+# Arrays
 
-### Enumeration Array Initialization  
+Array is an ordered sequence of elements of the same type. The count of array elements is known and unchangeable
+
+Element type - the type of all elements in the array
+
+Array size - the number of elements in the array
+
+Arrays are immutable - this means that you cannot change the elements in the array after receiving the array
+
+Arrays are covariant, which means that if type A is converted to type B, then an array of elements of type A is converted to an array of elements of type Byte
+
+## Initialization
+
+### Initializing an array by enumeration  
 
 '[,]'  operator allows you to create an array with elements specified inside parentheses and separated by commas 
 
 ```
-synax: [$element0, $element1, ... $elementN]
+[element0, element1, ... elementN]
 ```
-
 Example:
 ```
 a = [1,2,3]
 b = ['hello', ' ', 'world']
+c = []
 ```
-The array created in this way must have at least one element
 
 ### Range Array Initialization  [..]
 
 This operator takes two arguments and has folowing syntax:
 ```
-syntax: [$a..$b] 
+syntax: [a..b] 
 ```
 where 'a' and 'b' is any of [Numbers] types
 
@@ -61,14 +71,16 @@ b = [7..1 step 2]    #[7,5,3,1]
 c = [1.0..3.0 step 0.5] #[1.0, 1.5, 2.0, 2.5, 3.0]
 ```
 
+## Access
 
 ### Get Array Element. []  
 
 ```
-syntax: $a[$i]
+a[i]
 ```
-allows you to get i-th element in array 'a'. 
-Here, 'i' called 'index' and has type of int32. The enumeration starts with 0.
+Allows you to get i-th element in array 'a' . 
+Here, 'i' called 'index' and has type of int32.
+The enumeration of index starts with 0 
 
 ```
 array = [1,4,0,3]
@@ -88,7 +100,7 @@ syntax: $a[$i:$j]
 
 Allows you to get 'slice' - subarray, that starts from i-th element of origin array and ends with j-th element of origin array
 
-'i' and 'j' has type of int 32. The enumeration starts with 0
+'i' and 'j' has type of int32. The enumeration starts with 0
 
 ```
 array = [1,4,0,3]
@@ -111,7 +123,7 @@ j = array[3:] #returns [0,3]
 k = array[2:] #returns [1,4,0,3]
 
 ``` 
-## Slice with step [::] 
+### Slice with step [::] 
 
 ```
 $a[$b:$e:$s]
@@ -140,12 +152,10 @@ f = array[5::]  #[5,6,7,8,9,19]
 j = array[:2:]  #[0,1,2]
 ``` 
 
-
-## Operator 'in'
+## Membership operator 'in'
 
 'in' operators with syntax 'A in B' answers the questions: 'does array A contains element B?'. 
 If it is, than expression equals true. Expression equals false otherwise.
-
 
 ```
 array = [1,2,3]
