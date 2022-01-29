@@ -152,19 +152,28 @@ public class IntegerBitOperatorsTest {
     [TestCase("y:int64 = 8 >> 3", (Int64)1)]
     [TestCase("y:int32 = 1 << 3", (Int32)8)]
     [TestCase("y:int32 = 8 >> 3", (Int32)1)]
+    [TestCase("y:int32 = 12345 >> 3",(Int32)0b0110_0000_0111)]
     [TestCase("y:uint64 = 1 << 3", (UInt64)8)]
     [TestCase("y:uint64 = 8 >> 3", (UInt64)1)]
+    [TestCase("y:uint64 = 12345 >> 3",(UInt64)0b0110_0000_0111)]
+
     [TestCase("y:uint32 = 1 << 3", (UInt32)8)]
     [TestCase("y:uint32 = 8 >> 3", (UInt32)1)]
+    [TestCase("y:uint32 = 12345 >> 3",(UInt32)0b0110_0000_0111)]
 
-    // Todo ui16 i16, u8 does not support shift.
-    // Should they?
-    //[TestCase("y:int16 = 1 << 3",(Int16)8)]
-    //[TestCase("y:int16 = 8 >> 3",(Int16)1)]
-    //[TestCase("y:uint16 = 1 << 3",(UInt16)8)]
-    //[TestCase("y:uint16 = 8 >> 3",(UInt16)1)]
-    //[TestCase("y:byte = 1 << 3",(byte)8)]
-    //[TestCase("y:byte = 8 >> 3",(byte)1)]
+    [TestCase("y:int16 = 1 << 3",(Int16)8)]
+    [TestCase("y:int16 = 8 >> 3",(Int16)1)]
+    [TestCase("y:int16 = 12345 >> 3",(Int16)0b0110_0000_0111)]
+
+    [TestCase("y:uint16 = 1 << 3",(UInt16)8)]
+    [TestCase("y:uint16 = 8 >> 3",(UInt16)1)]
+    [TestCase("y:uint16 = 255 >> 3",(UInt16)0b0001_1111)]
+    [TestCase("y:uint16 = 12345 >> 3",(UInt16)0b0110_0000_0111)]
+    [TestCase("y:byte = 1 << 3",(byte)0b0000_1000)]
+    [TestCase("y:byte = 8 >> 3",(byte)0b0000_0001)]
+    [TestCase("y:byte = 255 >> 3",(byte)0b0001_1111)]
+    [TestCase("y:byte  = 60 << 3", (byte)0b1110_0000)]
+    [TestCase("y:byte  = 60 << 1", (byte)0b0111_1000)]
     public void ConstantBitShift(string expression, object expected)
         => expression.AssertReturns("y", expected);
 
@@ -178,12 +187,14 @@ public class IntegerBitOperatorsTest {
     [TestCase("y:int = ~1", (int)-2)]
     [TestCase("y:int = ~-1", (int)0)]
     [TestCase("y:int = ~0x00F0F0F0", (int)-15790321)]
+    [TestCase("y:int = ~60", (int)-61)]
     [TestCase("y:int16 = ~1", (Int16)(-2))]
     [TestCase("y:int16 = ~-1", (Int16)0)]
     [TestCase("y:int16 = ~0xF0F", (Int16)(-3856))]
     [TestCase("y:uint64 = ~1", (ulong)0xFFFF_FFFF_FFFF_FFFE)]
     [TestCase("y:uint64 = ~0xF0F0F0F0", (ulong)0xFFFF_FFFF_0F0F_0F0F)]
     [TestCase("y:uint32 = ~1", (uint)0xFFFFFFFE)]
+    [TestCase("y:uint = ~60", (uint)4294967235)]
     [TestCase("y:uint32 = ~0xF0F0F0F0", (uint)0xF0F0F0F)]
     [TestCase("y:uint16 = ~1", (ushort)0xFFFE)]
     [TestCase("y:uint16 = ~0xF0F0", (ushort)0xF0F)]
@@ -198,15 +209,7 @@ public class IntegerBitOperatorsTest {
     [TestCase("y = -0xABCD_EF01 == ~~-0xABCD_EF01", true)]
     public void ConstantBitInvert(string expression, object expected)
         => expression.AssertReturns("y", expected);
-
-    // Todo ui16 i16, u8 does not support shift.
-    // Should they?
-    //[TestCase("y:byte = 1<<9")]
-    //[TestCase("y:byte = 255<<1")]
-    //[TestCase("y:uint16 = 0xFFFF<<1")]
-    //[TestCase("y:uint16 = 0x1<<17")]
-    //[TestCase("y:int16 = 0x1<<17")]
-
+    
     /*
      todo oops overflow. 
     [TestCase("y:uint32 = 0xFFFF_ffff<<1")]

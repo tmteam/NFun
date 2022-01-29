@@ -173,7 +173,7 @@ public class ArithmeticalOperatorsTest {
     [TestCase("out:uint = 2//x", (uint)3, (uint)0)]
     [TestCase("out:int16 = x//4", (Int16)3, (Int16)0)]
     public void DivisionInt(string expr, object argument, object expected) =>
-        expr.Build().Calc("x", argument).AssertOut(expected);
+        expr.Build().Calc("x", argument).AssertAnonymousOut(expected);
 
     [TestCase("2%x", 2, 0)]
     [TestCase("out:int64 = 2%x", (long)3, (long)2)]
@@ -186,7 +186,7 @@ public class ArithmeticalOperatorsTest {
     [TestCase("out:int16 = x%4", (Int16)1, (Int16)1)]
     [TestCase("out:real  = x%4", 5.5, 1.5)]
     public void Remainder(string expr, object argument, object expected) =>
-        expr.Build().Calc("x", argument).AssertOut(expected);
+        expr.Build().Calc("x", argument).AssertAnonymousOut(expected);
 
     [TestCase("y = x/3", 1.5, 0.5)]
     [TestCase("y = x/3", -3.0, -1.0)]
@@ -269,16 +269,20 @@ public class ArithmeticalOperatorsTest {
     public void TwoVariablesEquation(string expr, object arg1, object arg2, object expected) =>
         expr.Calc(("x1", arg1), ("x2", arg2)).AssertResultHas("y", expected);
 
-    [Ignore("TODO Arithmetical oops")]
+    [Ignore("TODO Arithmetical unchecked or checked UB")]
     [TestCase("y:uint64 = 2-3")]
     [TestCase("y:uint64 = 0-100")]
     [TestCase("y:uint32 = 2-3")]
+    [TestCase("y:uint32 = 0xFFFF_FFFF+13")]
+    [TestCase("y:int32  = 2_147_483_647 + 1")]
+    [TestCase("y:int32  = 2_147_483_647 * 2")]
+    [TestCase("y:int64  = 9_223372_036854_775807 * 2")]
+    [TestCase("y:int64  = 9_223372_036854_775807 + 1")]
     [TestCase("y = 2/0")]
     [TestCase("y = 0/0")]
-    [TestCase("y:uint32 = 10+-30")]
     [TestCase("y:uint32 = 0-100")]
-    public void Oops(string expression) => Assert.Throws<FunnyRuntimeException>(() => expression.Calc());
-
+    public void Oops(string expression) => expression.AssertObviousFailsOnRuntime();
+    
     [TestCase("y = /2")]
     [TestCase("y = )*2")]
     [TestCase("y = (*2")]

@@ -158,7 +158,7 @@ else 'not supported' ", 2, "two")]
                 .WithDialect(Dialects.ModifyOrigin(IfExpressionSetup.IfIfElse))
                 .Build(expression)
                 .Calc("x", x)
-                .AssertOut(expected);
+                .AssertAnonymousOut(expected);
 
 
     [TestCase(
@@ -195,7 +195,7 @@ else 'not supported' ", 2, "two")]
                  .WithDialect(Dialects.ModifyOrigin(setup))
                  .Build(expression)
                  .Calc("x", x)
-                 .AssertOut(expected);
+                 .AssertAnonymousOut(expected);
         }
     }
 

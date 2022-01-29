@@ -18,30 +18,36 @@ namespace NFun.SyntaxParsing {
 public static class SyntaxNodeReader {
     private const int MinPriority = 0;
     private const int OperatorBitInversePriority = 1;
-    private const int OperatorNotPriority = 5;
+    private const int OperatorNotPriority = 9;
 
     private static readonly int MaxPriority;
 
-    private static readonly Dictionary<TokType, byte> Priorities = new();
+    private static readonly Dictionary<TokType, byte> BinaryPriorities = new();
     
     static SyntaxNodeReader() {
-        var priorities = new List<TokType[]>(7) {
+        var priorities = new List<TokType[]>(13) {
             new[] { TokType.ArrOBr, TokType.Dot, TokType.Obr },
             new[] { TokType.Pow },
             new[] { TokType.Mult, TokType.Div, TokType.DivInt, TokType.Rema },
-            new[] { TokType.Plus, TokType.Minus, TokType.BitShiftLeft, TokType.BitShiftRight },
+            new[] { TokType.Plus, TokType.Minus},
+            new[] { TokType.BitShiftLeft, TokType.BitShiftRight },
+            new[] { TokType.BitAnd},
+            new[] { TokType.BitXor},
+            new[] { TokType.BitOr},
             new[] {
-                TokType.BitAnd, TokType.BitXor, TokType.In, TokType.Equal, TokType.NotEqual, TokType.More,
+                TokType.In, TokType.Equal, TokType.NotEqual, TokType.More,
                 TokType.Less, TokType.MoreOrEqual, TokType.LessOrEqual
             },
+            Array.Empty<TokType>(), // gap for unary 'not x'
             new[] { TokType.And },
-            new[] { TokType.Or, TokType.Xor, TokType.BitOr }
+            new[] { TokType.Xor},
+            new[] { TokType.Or}
         };
 
         for (byte i = 0; i < priorities.Count; i++)
         {
             foreach (var tokType in priorities[i])
-                Priorities.Add(tokType, i);
+                BinaryPriorities.Add(tokType, i);
         }
 
         MaxPriority = priorities.Count - 1;
@@ -272,7 +278,7 @@ public static class SyntaxNodeReader {
             //than expression is done
             //example:
             // 1*2 \r{return expression} y=...
-            if (!Priorities.TryGetValue(opToken.Type, out var opPriority))
+            if (!BinaryPriorities.TryGetValue(opToken.Type, out var opPriority))
                 return leftNode;
 
             //if op has higher priority us

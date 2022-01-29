@@ -98,7 +98,7 @@ public class ConvertFunctionsTest {
         new[] { 0x68, 00, 0x69, 00, 0x20, 00, 0x74, 00, 0x68, 00, 0x65, 00, 0x72, 00, 0x65, 00 })]
     [TestCase("toUtf8('hi there')", new[] { 0x68, 0x69, 0x20, 0x74, 0x68, 0x65, 0x72, 0x65 })]
     public void ConstantConvertTest(string expr, object expected)
-        => expr.AssertOut(expected);
+        => expr.AssertAnonymousOut(expected);
 
     [TestCase("y:int= convert(1.2)", 1)]
     [TestCase("y:int= convert(-1.2)", -1)]
@@ -268,12 +268,12 @@ public class BuiltInFunctionsTest {
     [TestCase("range(1,10,2.0)", new[] { 1.0, 3.0, 5.0, 7.0, 9.0 })]
     public void ConstantEquationWithPredefinedFunction(string expr, object expected) {
         TraceLog.IsEnabled = true;
-        expr.AssertOut(expected);
+        expr.AssertAnonymousOut(expected);
     }
 
     [Ignore("Lca merge")]
     [TestCase("['a','hey','what','up'].sort(rule it.reverse())", new[] { "a", "up", "what", "hey" })]
-    public void MergeComparableArray(string expr, object expected) { expr.AssertOut(expected); }
+    public void MergeComparableArray(string expr, object expected) { expr.AssertAnonymousOut(expected); }
 
     [TestCase((long)42, "x:int64\r y = max(1,x)", (long)42)]
     [TestCase((long)42, "x:int64\r y = min(1,x)", (long)1)]

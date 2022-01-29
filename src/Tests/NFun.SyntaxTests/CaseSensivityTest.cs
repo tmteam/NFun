@@ -10,7 +10,7 @@ public class CaseSensivityTest {
     [TestCase("teastyVar(x) = x \r  teastyVAR(x,y) =x+y\r teastyVAR(3.0,4.0)", 7.0)]
     [TestCase("testFun(x) = x \r testFun(3.0)", 3.0)]
     [TestCase("y(x) = x*2 \r y(3.0)  \r z(jamboJet) = jamboJet*jamboJet", 6.0)]
-    public void ConstantEquatation(string expr, object expected) => expr.AssertOut(expected);
+    public void ConstantEquatation(string expr, object expected) => expr.AssertAnonymousOut(expected);
 
     [Test]
     public void DependentVariableEquations() =>

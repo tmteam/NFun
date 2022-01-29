@@ -11,7 +11,7 @@ class AnonymEquationTest {
     [TestCase("f(x)= x; (f(42.0))", 42.0)]
     [TestCase("f(x)= (x); (f(42))", 42)]
     [TestCase("f()= (2); (1)", 1)]
-    public void ConstantEquation(string expr, object expected) => expr.AssertOut(expected);
+    public void ConstantEquation(string expr, object expected) => expr.AssertAnonymousOut(expected);
 
     [TestCase("x:real\r x", 2.0, 2.0)]
     [TestCase("x== 2.0", 2.0, true)]
@@ -21,7 +21,7 @@ class AnonymEquationTest {
     [TestCase("if (x<3) true else false", 2.0, true)]
     [TestCase("y(x) = x*2 \r y(x) * y(4.0)", 3.0, 48.0)]
     public void AnonymousExpressionSingleVariableEquatation(string expr, object arg, object expected)
-        => expr.Calc("x", arg).AssertOut(expected);
+        => expr.Calc("x", arg).AssertAnonymousOut(expected);
 
     [TestCase("1", 1)]
     [TestCase("0x1", 1)]
@@ -43,7 +43,7 @@ class AnonymEquationTest {
     [TestCase("y(x) = x \r y(3.0)", 3.0)]
     [TestCase("y(x) = x*2 \r y(3.0)  \r z(j) = j*j", 6.0)]
     public void AnonymousExpressionConstantEquatation(string expr, object expected)
-        => expr.AssertOut(expected);
+        => expr.AssertAnonymousOut(expected);
 }
 
 }

@@ -38,49 +38,6 @@ public class InvertFunction : PureGenericFunctionBase {
     }
 }
 
-public class 
-    AddFunction : ArithmeticalGenericFunctionOfTwoArgsBase {
-    public AddFunction() : base(
-        CoreFunNames.Add,
-        GenericConstrains.Arithmetical) {
-        Setup(FunnyType.UInt16, new UInt16Function());
-        Setup(FunnyType.UInt32, new UInt32Function());
-        Setup(FunnyType.UInt64, new UInt64Function());
-        Setup(FunnyType.Int16, new Int16Function());
-        Setup(FunnyType.Int32, new Int32Function());
-        Setup(FunnyType.Int64, new Int64Function());
-        Setup(FunnyType.Real, new RealFunction());
-    }
-
-    private class RealFunction : FunctionWithTwoArgs {
-        public override object Calc(object a, object b) => ((double)a) + ((double)b);
-    }
-
-    private class Int16Function : FunctionWithTwoArgs {
-        public override object Calc(object a, object b) => ((Int16)a) + ((Int16)b);
-    }
-
-    private class Int32Function : FunctionWithTwoArgs {
-        public override object Calc(object a, object b) => ((int)a) + ((int)b);
-    }
-
-    private class Int64Function : FunctionWithTwoArgs {
-        public override object Calc(object a, object b) => ((long)a) + ((long)b);
-    }
-
-    private class UInt16Function : FunctionWithTwoArgs {
-        public override object Calc(object a, object b) => ((UInt16)a) + ((UInt16)b);
-    }
-
-    private class UInt32Function : FunctionWithTwoArgs {
-        public override object Calc(object a, object b) => ((uint)a) + ((uint)b);
-    }
-
-    private class UInt64Function : FunctionWithTwoArgs {
-        public override object Calc(object a, object b) => ((ulong)a) + ((ulong)b);
-    }
-}
-
 public class AbsFunction : PureGenericFunctionBase {
     public AbsFunction() : base(Id, GenericConstrains.SignedNumber, 1) { }
 

@@ -3,7 +3,7 @@ using NFun.ParseErrors;
 
 namespace NFun.Tokenization {
 
-internal static class QuotationReader {
+public static class QuotationReader {
     /// <summary>
     /// Convert escaped string until ' or  "  or { symbols
     /// </summary>
