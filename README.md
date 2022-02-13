@@ -115,6 +115,8 @@ Boring specification is better than no specification
 
 [Boring specification: Texts (Strings)](https://github.com/tmteam/NFun/blob/master/Specs/Texts(strings).md)
 
+[Boring specification: Types](https://github.com/tmteam/NFun/blob/master/Specs/Types.md)
+
 
 ## Let's make some fun
 
