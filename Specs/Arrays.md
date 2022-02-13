@@ -1,5 +1,5 @@
 
-# Arrays
+# NFun Arrays
 
 Array is an ordered sequence of elements of the same type. The count of array elements is known and unchangeable
 
@@ -15,7 +15,7 @@ Arrays are covariant, which means that if type A is converted to type B, then an
 
 ### Initializing an array by enumeration  
 
-'[,]'  operator allows you to create an array with elements specified inside parentheses and separated by commas 
+`[,]`  operator allows you to create an array with elements specified inside parentheses and separated by commas 
 
 ```
 [element0, element1, ... elementN]
@@ -27,7 +27,7 @@ b = ['hello', ' ', 'world']
 c = []
 ```
 
-### Range Array Initialization  [..]
+### Range Array Initialization  `[..]`
 
 This operator takes two arguments and has folowing syntax:
 ```
@@ -90,7 +90,7 @@ res3 = r == i1  # true
 
 ## Access
 
-### Get Array Element. []  
+### Get Array Element `[]`  
 
 ```
 a[i]
@@ -109,7 +109,7 @@ j = array[1] #returns 4
 
 If the index is negative or it is greater or equal to array size - an runtime exception will be thrown 
 
-### Slices  [:]   
+### Slices  `[:]`   
 
 ```
 a[b:e] 

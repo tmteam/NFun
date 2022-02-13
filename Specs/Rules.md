@@ -1,4 +1,4 @@
-#Rules. Hi order, anonymous functions
+# NFun Rules. Hi order, anonymous functions
 
 ## Super-anonymous syntax
 

@@ -1,9 +1,9 @@
-# Structures 
+# NFun Structures 
 
 A structure is a data structure that contains a fixed set of named values.
 Each such value is called a **field**. Each field has an identifier, type, and value.
 
-## Structure initialization '{}' 
+## Structure initialization `{}` 
 
 Initlalizes structure with specified fields 
 

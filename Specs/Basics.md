@@ -1,4 +1,4 @@
-# Nfun Basics
+# NFun Basics
 
 ### Basic definitions
 

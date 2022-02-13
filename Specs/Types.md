@@ -1,5 +1,4 @@
-
-# Type system
+# NFun Type System
 
 Nfun is a strongly typed language with static typing. This means that each expression has a type before the execution.
 If the expression is inconsistent by type, such a script will not be assembled (you will get an error at the script assembly stage)
