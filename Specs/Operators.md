@@ -9,15 +9,15 @@ Nfun provides the following types of operators:
 
 Most operators may be applied for different types of operands. To simplify the description, we will give names to some sets of types:
 
-| Name          | Types                                              | Formal constrains                                   |
-|---------------|----------------------------------------------------|-----------------------------------------------------|
-| All           | All types                                          | T => any                                            |
-| Integers      | int64, int32, int16,  uint64, uint32, uint16, byte | T => (int64 &#124; uint64)                          |
-| Numbers       | real, **[Integers]**                               | T => real                                           |
-| Signed        | int64, int32, int16                                | int16 => T => int64                                 |
-| ArithIntegers | int64, int32,         uint64, uint32               | (int32 &#124; uint32) => T => (int64 &#124; uint64) |       
-| Arithmetics   | real, int64, int32,         uint64, uint32         | (int32 &#124; uint32) => T => real                  | 
-| Comparables   | text, **[Numbers]**                                | T is IComparable                                    |
+| Name          | Types                                                           | Formal constrains                                   |
+|---------------|-----------------------------------------------------------------|-----------------------------------------------------|
+| All           | All types                                                       | T => any                                            |
+| Integers      | `int64`, `int32`,`int16`,  `uint64`, `uint32`, `uint16`, `byte` | T => (int64 &#124; uint64)                          |
+| Numbers       | `real`, **[Integers]**                                          | T => real                                           |
+| Signed        | `int64`, `int32`, `int16`                                       | int16 => T => int64                                 |
+| ArithIntegers | `int64`, `int32`,         `uint64`, `uint32`                    | (int32 &#124; uint32) => T => (int64 &#124; uint64) |       
+| Arithmetics   | `real`, `int64`, `int32`,         `uint64`, `uint32`            | (int32 &#124; uint32) => T => real                  | 
+| Comparables   | `text`, **[Numbers]**                                           | T is IComparable                                    |
 
 ## Operators Precedence in NFun
 
@@ -29,29 +29,29 @@ For example:
 ```
 x = 7 + 3 * 2 
 ```
-here, x is assigned 13, not 20 because operator * has a higher precedence than +, so it first gets multiplied with 3*2 and then adds into 7.
+here, x is assigned 13, not 20 because operator `*` has a higher precedence than `+`, so it first gets multiplied with 3*2 and then adds into 7.
 
 Following list shows operators precedence:
 operators with the highest precedence appear at the top of the list, those with the lowest appear at the bottom.
 Within an expression, higher precedence operators will be evaluated first.
 
-| Operators          | Explanation                          |
-|--------------------|--------------------------------------|
-| () [] . -(*unary*) | *Various*                            |
-| ** ~               | Exponentiation, bitwise NOT          |
-| * / // %           | Multiplication, divisions, remainder | 
-| + -                | Addition, subtraction                |
-| <<  \>\>           | Bitwise Shifts                       |
-| &                  | Bitwise AND                          |
-| ^                  | Bitwise XOR                          |
-| &#124;             | Bitwise OR                           |
-| in == != > < >= <= | Comparisons, membership              |
-| not                | Logical NOT                          |
-| and                | Logical AND                          |
-| xor                | Logical XOR                          |
-| or                 | Logical OR                           |
-| rule               | Anonymous function                   |
-| =                  | Variable initialization              |
+| Operators                        | Explanation                          |
+|----------------------------------|--------------------------------------|
+| `()` `[]` `.` `-`(*unary*)       | *Various*                            |
+| `**` `~`                         | Exponentiation, bitwise NOT          |
+| `*` `/` `//` `%`                 | Multiplication, divisions, remainder | 
+| `+` `-`                          | Addition, subtraction                |
+| `<<`  `>>`                       | Bitwise Shifts                       |
+| `&`                              | Bitwise AND                          |
+| `^`                              | Bitwise XOR                          |
+| &#124;                           | Bitwise OR                           |
+| `in` `==` `!=` `>` `<` `>=` `<=` | Comparisons, membership              |
+| `not`                            | Logical NOT                          |
+| `and`                            | Logical AND                          |
+| `xor`                            | Logical XOR                          |
+| `or`                             | Logical OR                           |
+| `rule`                           | Anonymous function                   |
+| `=`                              | Variable initialization              |
 
 
 ## Arithmetic Operators
@@ -67,8 +67,8 @@ Assume variable A holds 6 and variable B holds 4 then:
 | *           | Arithmetics | Multiplies both operands.	                         | A * B = 24   |
 | %           | Arithmetics | Modulus Operator - remainder of after an division. | A % B = 2    |
 | //          | Integers    | Divides integer numerator by de-numerator.	        | A / B = 1.5  |
-| /           | real	       | Divides real numerator by de-numerator.	           | A //B = 1    |
-| **          | real        | Raising the base A to the power of B               | A**B  = 1296 |
+| /           | `real`	     | Divides real numerator by de-numerator.	           | A //B = 1    |
+| **          | `real`      | Raising the base A to the power of B               | A**B  = 1296 |
 | − *(unary)* | Signed      | Multiply expression by -1.	                        | −A = -6      |
 
 ## Relational Operators
@@ -91,12 +91,12 @@ The Following table shows all the logical operators supported by NFun language.
 
 Assume variable A holds true and variable B holds false, then:
 
-| Operator       | Type | 	  Description	                                                               | Example             |
-|----------------|------|-------------------------------------------------------------------------------|---------------------|
-| and	           | bool | If both the operands are true, then the condition becomes true.			            | (A and B) is false. |
-| or	            | bool | If any of the two operands is true, then the condition becomes true.	         | (A or B)  is true.  |
-| xor	           | bool | If two operands are not equal to each other, then the condition becomes true. | (A xor B) is true.  |
-| not *(unary)*	 | bool | Reverses the logical state of its operand.                                    | (not A)   is false. |
+| Operator       | Type   | 	  Description	                                                               | Example             |
+|----------------|--------|-------------------------------------------------------------------------------|---------------------|
+| and	           | `bool` | If both the operands are true, then the condition becomes true.			            | (A and B) is false. |
+| or	            | `bool` | If any of the two operands is true, then the condition becomes true.	         | (A or B)  is true.  |
+| xor	           | `bool` | If two operands are not equal to each other, then the condition becomes true. | (A xor B) is true.  |
+| not *(unary)*	 | `bool` | Reverses the logical state of its operand.                                    | (not A)   is false. |
 
 The truth tables for 'and', 'or', 'xor' and 'not' is as follows:
 

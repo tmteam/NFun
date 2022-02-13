@@ -43,7 +43,7 @@ The Nfun script can only consist of the following elements:
 - Comments
 - Variable annotations
 
-Each of these elements begins with a new line, In this case, symbol ';' is the full equivalent of a line break.
+Each of these elements begins with a new line, In this case, symbol `;` is the full equivalent of a line break.
 
 The exception is the 'Comment', which can not only start with a new line, but can also be placed at the end of any of the script lines. Symbol ';' does not end the comment.
 
@@ -89,7 +89,7 @@ At the same time, it is guaranteed that there is no hidden, changing state betwe
 
 Variable names consist of uppercase and lowercase latin letters, numbers, and the _ symbol. The first character must be a latin letter
 
-For example: 'x', 'my_Name', 'id32'
+For example: `x`, `my_Name`, `id32`
 
 Nfun is case sensitive for variables, but you cannot create two variables whose names differ only by case
 
@@ -169,7 +169,7 @@ y = i/2
 
 ## Comments
 
-Comment - the text following the # character and ending with the end of the line (the character ; does not interrupt the comment). The comment text is completely ignored by the interpreter:
+Comment - the text following the `#` character and ending with the end of the line (the character `;` does not interrupt the comment). The comment text is completely ignored by the interpreter:
 
 ```py
 # this is a comment
@@ -188,12 +188,12 @@ An expression is anything from
 - variable
 - template text
 - function call
-- application of the operator ([], *, +, (), ., and, or, >>, |, and so on)
-- default value - 'default'
-- anonymous function - 'rule'
-- array initializer [...]
-- structure initializer {...}
-- conditional expression 'if-else'
+- application of the operator (`[]`, `*`, `+`, `()`, `.`, `and`, `or`, `>>`, `|`, and so on)
+- default value - `default`
+- anonymous function - `rule`
+- array initializer `[...]`
+- structure initializer `{...}`
+- conditional expression `if-else`
 
 At the time of script execution - the resulting type of each expression is strictly known and specific (with the exception for generic user functions)
 This is also true for nested expressions (all expression nodes have a strict type at the time of execution)
@@ -211,15 +211,15 @@ z = true and false
 ### Expressions: Discrete literal
 
 Discrete literals have the **bool** type
-There are two discrete literals - **'true'** and **'false'** defining logical truth and false, respectively
+There are two discrete literals - `true` and `false` defining logical truth and false, respectively
 
 ### Expressions: Numeric literal
 
 The numbers in NFun can be written in various ways. Supported
-- delimiters '_' ,
-- decimal literals '.',
-- negative numbers '-'
-- bitness modifiers '0x' and '0b'
+- delimiters `_` ,
+- decimal literals `.`,
+- negative numbers `-`
+- bitness modifiers `0x` and `0b`
 
 ```py
 123   # integer literal
@@ -240,7 +240,7 @@ The numbers in NFun can be written in various ways. Supported
 123_456.7_89 # real literal with separator
 ```
 
-A real literal always has the **real** type.
+A real literal always has the `real` type.
 For other numeric literals, the same symbol may have different types depending on the context:
 ```py
 i = 1      # int32 since this type is 'preferred' for integer literals
@@ -253,9 +253,9 @@ m = 1/k
 r = 1.5 #real
 ```
 
-### Conditional expression 'if-else'
+### Conditional expression `if-else`
 
-In Nfun, **if-else** is an expression, i.e. it always returns a value
+In Nfun, `if-else` is always an expression, i.e. it always returns a value
 
 ```py
 result = if(condition1) expression1 else elseExpression
@@ -265,7 +265,7 @@ here:
 - **expression1** is the resulting expression if condition is true
 - **elseExpression** is the resulting expression if all conditions are false
 
-Since **elseExpression** can also be an **if-else** expression, many branches of conditions can be implemented:
+Since **elseExpression** can also be an `if-else` expression, many branches of conditions can be implemented:
 
 ```py
 result = 
@@ -278,7 +278,7 @@ result =
 ```
 
 For the case of multiple branches, - Nfun offers a compact if-if-else syntax.
-To do this, you can simply replace 'else if' with 'if':
+To do this, you can simply replace `else if` with `if`:
 
 ```py
 result = 
@@ -310,19 +310,19 @@ b =
     else 'some day'
 ```
 
-### Expressions: Default value 'default'
+### Expressions: Default value `default`
 
 Each type has a default value
 
 This value is equal to:
 - zero for any numeric type
 - empty array for arrays
-- " (empty text) for text
-- new object() for any
+- " (empty text) for `text`
+- new object() for `any`
 - a structure with a 'default' value for each field in the structure type
-- a function that returns the 'default' value for an anonymous function
+- a function that returns the `default` value for an anonymous function
 
-use the keyword 'default' to get this value
+use the keyword `default` to get this value
 
 ```py
 y:real = default #0.0
@@ -337,7 +337,6 @@ notDefinedFunction(a,b) = default
 
 A function call is an expression that returns the result of executing a function with the specified arguments
 There are two forms of function call syntax - classic and reverse
-
 
 Classic:
 
@@ -367,57 +366,15 @@ k = 'hello'.concat ('world').inverse() #'olle dlrow'
 m = i.union(k) #'olleholle'
 ```
 
-### Expressions: 'rule' lambda-expression 
-
-The NFun supports anonymous functions - **rules**.
-
-The expression following the keyword 'rule' is the body of such a function. If an anonymous function uses one input variable (argument), then the  name of this variable inside the expression is "it"
-
-If there are two or more, then their names are 'it1', 'it2'... 'itN'
-
-```py
-f = rule it*2 # expression for an anonymous function multiplying the input argument by 2
-
-f(2) # 4
-
-a = [1,2,3,4].filter(rule>2) # using a rule to filter an array 
-                             # only elements strictly larger than 2 will be selected
-x = [-1,-2,0,1,2,3].add(rule it1+it2) #sum of all array elements
-```
-
-There is an extended form of rule-expression, with the ability to specify the types of arguments and or the type of return value 
-
-```py
-rule(arg1:type1, arg2:type2... argN:type):rtype = expression
-```
-here
-* **arg1,arg2..argN** - the names of the 1st 2nd ... N-th arguments
-* *(optional)* **type1,type2...type2** - types of the 1st 2nd ... N-th arguments
-* *(optional)* **rtype** - function return type
-* **expression** - function expression (body) with local variables arg1,arg2..argN
-
-```py
-a = [1,2,3].all(rule(i) = i >0)          # check that all numbers in the array are positive
-b = [1,2,3].all(rule(i:int):bool = i >0) # check that all numbers in the array are positive 
-                                         # (all types explicitly specified)
-x = [-1,-2,0,1,2,3]
-       .filter(rule(i)= i>0)
-       .fold(rule(a:int,b)= a+b) #the sum of all positive integers of the array
-```
-
-All variables from the external scope are visible inside the anonymous function. The external variable used inside the **rule** expression is called **captured**  
-```py
-a = 2
-b = [1..100].filter(rule it % a == 0) # a is captured variable inside rule expression
-```
 ### Expressions not described in this document
 
-The remaining expressions require a more detailed description and are described in the following documents:
+The remaining expressions require a more detailed description and are described in the following boring documents:
 
 - Operators
 - Arrays
-- Lines
+- Texts
 - Structures
+- Rules (Anonymous functions)
 
 # Custom functions
 
@@ -472,7 +429,7 @@ Consider an example of a function of the sum of 3 terms:
 threeSum(a,b,c) = a+b+c
 ```
 
-The + operator is applicable to int32, int64, uint32, uint64, real types.
+The `+` operator is applicable to `int32`, `int64`, `uint32`, `uint64`, `real` types.
 This means that both the argument types and the return value type are equal to each other and belong to the same range
 
 If you call such a function with different types , then various operations will be performed:
@@ -501,7 +458,7 @@ j = 1.5.increment() #1.5:real
 k:uint = 12.increment() #13:uint
 ```
 
-## Variable annotation '@'
+## Variable annotation `@`
 
 Allows you to add meta information to a variable. This information can only be accessed from the calling code
 ```py
@@ -513,7 +470,7 @@ here 'supermega' - is annotation for output variable 'a'
 Annotation name consist of uppercase and lowercase latin letters, numbers, and the _ symbol. 
 The first character must be a latin letter
 
-For example: 'private', 'hidden_id', 'id32'
+For example: `private`, `hidden_id`, `id32`
 
 The annotation must be on the line before the variable initialization line or the variable type declaration. Empty lines don't count
 Each variable can contain many annotations. Each following annotation should start with a new line

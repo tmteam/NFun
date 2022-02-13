@@ -71,6 +71,23 @@ b = [7..1 step 2]       # [7,5,3,1]
 c = [1.0..3.0 step 0.5] # [1.0, 1.5, 2.0, 2.5, 3.0]
 ```
 
+## Equality
+
+two arrays are equal if and only if they contain the same number of elements, and these elements are equal to each other, respectively
+
+```py
+
+i1:int[] = [1,2,3]
+i2:int[] = [1,2,3]
+i3:int[] = [3,2,1]
+r:real[] = [1,2,3]
+
+
+res1 = i1 == i2 # true
+res2 = i2 == i3 # false
+res3 = r == i1  # true
+```
+
 ## Access
 
 ### Get Array Element. []  

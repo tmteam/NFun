@@ -1,5 +1,5 @@
 
-# Types
+# Type system
 
 Nfun is a strongly typed language with static typing. This means that each expression has a type before the execution.
 If the expression is inconsistent by type, such a script will not be assembled (you will get an error at the script assembly stage)
@@ -10,18 +10,18 @@ b = 'some other text'
 c = a * b # error. * operator is not appliable to text types
 ```
 
-## Type annotation
-Annotation is the type name used in the code
+## Type identifier
+Type identifier is the type name used in the code
 
-An example of such an annotation would be `bool` for boolean type, `text` for an array of characters (string), etc
-Some types have multiple annotations like `byte` and `uint8` for a byte, and `int32` and `int` for a 32-bit integer
+An example of such an identifier would be `bool` for boolean type, `text` for an array of characters (string), etc
+Some types have multiple identifiers like `byte` and `uint8` for a byte, and `int32` and `int` for a 32-bit integer
 
-Some types do not have an annotation at all. It is true for  `char`, `rule` and `struct`
+Some types do not have an identifier at all. It is true for  `char`, `rule` and `struct`
 
 
 ## Primitive types
 
-| Name            | Annotation   | Description                                                                                                         | Example                            |
+| Name            | Identifier   | Description                                                                                                         | Example                            |
 |-----------------|--------------|---------------------------------------------------------------------------------------------------------------------|------------------------------------|
 | Any             | any          | Any value                                                                                                           | `y:any = if(true) 12 else 'test' ` |
 | Boolean         | bool         | Discrete value                                                                                                      | `y:bool = true or false `          |
@@ -37,7 +37,7 @@ Some types do not have an annotation at all. It is true for  `char`, `rule` and 
 
 ## Generalized types
 
-### Arrays and text (strings)
+### Arrays and `text` (strings)
 
 Array is an ordered sequence of elements of the same type.
 The count of array elements is known and unchangeable
@@ -48,7 +48,7 @@ that means: `a[]` is convertable to `b[]` if `a` is convertable to `b`
 y:byte[] = [1,2,3]
 out:int[] = y
 ```
-You can read more about arrays in the **Arrays** section
+You can read more about arrays in the boring **Arrays** section
 
 The `text` is an alias for an array of characters, but the comparison operator is allowed on the `text` type
 

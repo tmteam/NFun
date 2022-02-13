@@ -54,10 +54,24 @@ y:text = 'hello world'
 ```
 'text' is not a separate type. This is an alias for the 'array of chars' type.
 This means that any text is an array of characters, and any array of characters is text. So any operations with arrays are applicable to the text
+Thus, all the equality rules, default values, and type conversions are identical to the usual rules for arrays.
 ```
-y = 'test'.reverse() #tset
-c = 'hello'[0] # \'h'
+a = 'test'.reverse() #tset
+b = 'hello'[0] # \'h'
 
 c = 'hello'[0:2] #'hel'
-c = 'hello'[2:3] #'ll'
+d = 'hello'[2:3] #'ll'
+
+e:text = default # '' or []
+f = '' == [] # true
+g = 'test' == 'test' #true
 ```
+
+The only difference between a regular array (not characters) is that the text (or array of characters) is comparable
+
+```py
+a = 'Antony' < 'John' #true
+
+c = [1,2,3] < [4,5,6] # error. regular arrays cannot be compared
+```
+

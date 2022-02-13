@@ -113,7 +113,11 @@ Boring specification is better than no specification
 
 [Boring specification: Arrays](https://github.com/tmteam/NFun/blob/master/Specs/Arrays.md)
 
-[Boring specification: Texts (Strings)](https://github.com/tmteam/NFun/blob/master/Specs/Texts(strings).md)
+[Boring specification: Texts (Strings)](https://github.com/tmteam/NFun/blob/master/Specs/Texts.md)
+
+[Boring specification: Structs](https://github.com/tmteam/NFun/blob/master/Specs/Structs.md)
+
+[Boring specification: Rules (Anonymous functions)](https://github.com/tmteam/NFun/blob/master/Specs/Rules.md)
 
 [Boring specification: Types](https://github.com/tmteam/NFun/blob/master/Specs/Types.md)
 
