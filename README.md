@@ -103,6 +103,7 @@ Low-level hardcore API is also supported
 
 [Syntax - guide and examples](https://github.com/tmteam/NFun/blob/master/Examples/SyntaxExamplesAndExplanation.cs)
 
+[Built in functions](https://github.com/tmteam/NFun/blob/master/Specs/Functions.md)
 
 ----
 Boring specification is better than no specification

@@ -1,4 +1,4 @@
-# Text
+# NFun Text
 
 Text is an array of characters. Semantically equivalent to the String type in most programming languages.
 

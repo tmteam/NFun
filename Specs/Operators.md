@@ -1,4 +1,4 @@
-# NFun operators
+# NFun Operators
 
 Nfun provides the following types of operators:
 * Arithmetic Operators

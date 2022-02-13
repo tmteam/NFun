@@ -86,7 +86,6 @@ public class MinFunction : PureGenericFunctionBase {
     }
 }
 
-
 public class MaxFunction : PureGenericFunctionBase {
     public MaxFunction() : base("max", GenericConstrains.Comparable, 2) { }
 
