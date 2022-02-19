@@ -59,7 +59,7 @@ public class ConvertFunction : GenericFunctionBase {
 
     private static Func<object, object> CreateBinarizerOrNull(FunnyType from) =>
         @from.BaseType switch {
-            BaseFunnyType.Char   => o => ToBoolArray(new[] { (byte)(char)o }),
+            BaseFunnyType.Char   => o => ToBoolArray(BitConverter.GetBytes(char)o),
             BaseFunnyType.Bool   => o => new ImmutableFunnyArray(new[] { (bool)o }),
             BaseFunnyType.UInt8  => o => ToBoolArray(new[] { (byte)o }),
             BaseFunnyType.UInt16 => o => ToBoolArray(BitConverter.GetBytes((ushort)o)),
@@ -88,16 +88,16 @@ public class ConvertFunction : GenericFunctionBase {
     private static Func<object, object> CreateSerializerOrNull(FunnyType from) {
         switch (from.BaseType)
         {
-            case BaseFunnyType.Char: return o => new ImmutableFunnyArray(new[] { (byte)(char)o });
-            case BaseFunnyType.Bool: return o => new ImmutableFunnyArray(new[] { (byte)((bool)o ? 1 : 0) });
-            case BaseFunnyType.UInt8: return o => new ImmutableFunnyArray(new[] { (byte)o });
+            case BaseFunnyType.Bool:   return o => new ImmutableFunnyArray(new[] { (byte)((bool)o ? 1 : 0) });
+            case BaseFunnyType.UInt8:  return o => new ImmutableFunnyArray(new[] { (byte)o });
+            case BaseFunnyType.Char:   return o => new ImmutableFunnyArray(BitConverter.GetBytes((char)o));
             case BaseFunnyType.UInt16: return o => new ImmutableFunnyArray(BitConverter.GetBytes((ushort)o));
             case BaseFunnyType.UInt32: return o => new ImmutableFunnyArray(BitConverter.GetBytes((uint)o));
             case BaseFunnyType.UInt64: return o => new ImmutableFunnyArray(BitConverter.GetBytes((long)o));
-            case BaseFunnyType.Int16: return o => new ImmutableFunnyArray(BitConverter.GetBytes((short)o));
-            case BaseFunnyType.Int32: return o => new ImmutableFunnyArray(BitConverter.GetBytes((int)o));
-            case BaseFunnyType.Int64: return o => new ImmutableFunnyArray(BitConverter.GetBytes((long)o));
-            case BaseFunnyType.Real: return o => new ImmutableFunnyArray(BitConverter.GetBytes((double)o));
+            case BaseFunnyType.Int16:  return o => new ImmutableFunnyArray(BitConverter.GetBytes((short)o));
+            case BaseFunnyType.Int32:  return o => new ImmutableFunnyArray(BitConverter.GetBytes((int)o));
+            case BaseFunnyType.Int64:  return o => new ImmutableFunnyArray(BitConverter.GetBytes((long)o));
+            case BaseFunnyType.Real:   return o => new ImmutableFunnyArray(BitConverter.GetBytes((double)o));
         }
 
         if (from.IsText)
@@ -129,16 +129,16 @@ public class ConvertFunction : GenericFunctionBase {
     private static Func<object, object> CreateDeserializerOrNull(FunnyType to) {
         switch (to.BaseType)
         {
-            case BaseFunnyType.Char: return o => (char)GetArrayOfSize(o, 1)[0];
-            case BaseFunnyType.Bool: return o => GetArrayOfSize(o, 1)[0] == 1;
-            case BaseFunnyType.UInt8: return o => GetArrayOfSize(o, 1)[0];
+            case BaseFunnyType.Char:   return o => (char)GetArrayOfSize(o, 1)[0];
+            case BaseFunnyType.Bool:   return o => GetArrayOfSize(o, 1)[0] == 1;
+            case BaseFunnyType.UInt8:  return o => GetArrayOfSize(o, 1)[0];
             case BaseFunnyType.UInt16: return o => BitConverter.ToUInt16(GetArrayOfSize(o, 2), 0);
             case BaseFunnyType.UInt32: return o => BitConverter.ToUInt32(GetArrayOfSize(o, 4), 0);
             case BaseFunnyType.UInt64: return o => BitConverter.ToUInt64(GetArrayOfSize(o, 8), 0);
-            case BaseFunnyType.Int16: return o => BitConverter.ToInt16(GetArrayOfSize(o, 2), 0);
-            case BaseFunnyType.Int32: return o => BitConverter.ToInt32(GetArrayOfSize(o, 4), 0);
-            case BaseFunnyType.Int64: return o => BitConverter.ToInt64(GetArrayOfSize(o, 8), 0);
-            case BaseFunnyType.Real: return o => BitConverter.ToDouble(GetArrayOfSize(o, 8), 0);
+            case BaseFunnyType.Int16:  return o => BitConverter.ToInt16(GetArrayOfSize(o, 2), 0);
+            case BaseFunnyType.Int32:  return o => BitConverter.ToInt32(GetArrayOfSize(o, 4), 0);
+            case BaseFunnyType.Int64:  return o => BitConverter.ToInt64(GetArrayOfSize(o, 8), 0);
+            case BaseFunnyType.Real:   return o => BitConverter.ToDouble(GetArrayOfSize(o, 8), 0);
         }
 
         if (to.IsText)

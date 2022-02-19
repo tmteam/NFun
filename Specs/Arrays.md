@@ -33,12 +33,12 @@ This operator takes two arguments and has folowing syntax:
 ```
 syntax: [a..b] 
 ```
-where 'a' and 'b' is any of [Numbers] types
+where `a` and `b` is any of [Numbers] types
 
-if 'a' greater than 'b' it creates array with range from 'a' to 'b' **inclusive** 
+if `a` greater than `b` it creates array with range from `a` to `b` **inclusive** 
 Each next element in such an array is greater than the previous one by 1
 
-if 'b' is greater than 'a' it creates reversed array where each next element is less than previous one by 1 started from 'b'
+if `b` is greater than `a` it creates reversed array where each next element is less than previous one by 1 started from `b`
 
 Examples:
 ```
@@ -50,17 +50,17 @@ c = [1.2..3.2] #[1.2, 2.2, 3.2]
 d = [1.2..3]   #[1.2, 2.2] 
 ```
 
-### Step - Range Array Initialization  
+### Step - Range Array Initialization   
 
 This operator takes three arguments and has folowing syntax:
 ```
 [a..b step s] 
 ```
-where 'a','b','s' is any of [Integers] types
+where `a`,`b`,`s` is any of [Integers] types
 
 The operator is similar to 'Range Array Initialization Operator' but it allows you to specify the 'step' - difference between each next element
 
-if 'a' is greater than 'b' it creates array with range from 'a' to 'b' **inclusive** where each next element is greater than the previous one by 's'
+if `a` is greater than `b` it creates array with range from `a` to `b` **inclusive** where each next element is greater than the previous one by 's'
 
 otherwise it creates reversed array 
 
@@ -95,8 +95,8 @@ res3 = r == i1  # true
 ```
 a[i]
 ```
-Allows you to get i-th element in array 'a' . 
-Here, 'i' called 'index' and has type of int32.
+Allows you to get i-th element in array `a` . 
+Here, `i` called 'index' and has type of `int32`.
 The enumeration of index starts with 0 
 
 ```
@@ -115,9 +115,9 @@ If the index is negative or it is greater or equal to array size - an runtime ex
 a[b:e] 
 ```
 
-Allows you to get 'slice' - subarray, that starts from b-th element of origin array and ends with e-th element of origin array 'a'
+Allows you to get 'slice' - subarray, that starts from b-th element of origin array and ends with e-th element of origin array `a`
 
-'b' and 'e' has type of int32. The enumeration starts with 0
+`b` and `e` has type of `int32`. The enumeration starts with 0
 
 ```
 array = [1,4,0,3]
@@ -129,8 +129,8 @@ k = array[1:1] #returns [4]
 
 ``` 
 
-if 'i' equals zero - it can be skipped
-if 'j' equals to index of last array element - it also can be skipped
+if `i` equals zero - it can be skipped
+if `j` equals to index of last array element - it also can be skipped
 
 ```
 array = [1,4,0,3]
@@ -140,18 +140,18 @@ j = array[3:] #returns [0,3]
 k = array[2:] #returns [1,4,0,3]
 
 ``` 
-### Slice with step [::] 
+### Slice with step `[::]` 
 
 ```
 a[b:e:s]
 ```
-allows you to get new array, that takes only every 's'-th element of origin array, starts from b-th element of origin array 'a' and ends with e-th element of origin array
+allows you to get new array, that takes only every 's'-th element of origin array, starts from b-th element of origin array `a` and ends with e-th element of origin array
 
-'b', 'e', s has type of int32. The enumeration starts with 0
+`b`, `e`, s has type of int32. The enumeration starts with 0
 
-'b' and/or 'e' can be skipped (as in [:] operator) if 'b' equals 0 and/or 'e' equals to index of last array element according.
+`b` and/or `e` can be skipped (as in `[:]` operator) if `b` equals 0 and/or `e` equals to index of last array element according.
 
-'s' also can be skipped if it equals 1. in this case [a:b:] operator equals to slice operator [a:b]
+'s' also can be skipped if it equals 1. in this case `[a:b:]` operator equals to slice operator `[a:b]`
 
 
 Here are some examples
@@ -169,11 +169,11 @@ f = array[5::]  #[5,6,7,8,9,19]
 j = array[:2:]  #[0,1,2]
 ``` 
 
-## Membership operator 'in'
+## Membership operator `in`
 ```
 A in B
 ```
-'in' operators answers the questions: 'does array B contains element A?'. 
+`in` operators answers the questions: 'does array B contains element A?'. 
 If it is, than expression equals true. Expression equals false otherwise.
 
 ```

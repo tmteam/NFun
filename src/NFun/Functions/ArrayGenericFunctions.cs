@@ -840,7 +840,7 @@ public class ChunkGenericFunctionDefinition : GenericFunctionWithTwoArguments {
             throw new FunnyRuntimeException("Chunk size is " + chunkSize + ". It has to be positive");
 
         var originInputType = FunnyType.ArrayOf(arr.ElementType);
-
+        //todo perfomance
         var res = arr
                   .Select((x, i) => new { Index = i, Value = x })
                   .GroupBy(x => x.Index / chunkSize)

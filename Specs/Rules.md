@@ -4,7 +4,7 @@
 
 The expression following the keyword 'rule' is the body of anonymous function. If an anonymous function uses one input variable (argument), then the  name of this variable inside the expression is `it`
 
-If there are two or more, then their names are 'it1', 'it2'... 'itN'
+If there are two or more, then their names are `it1`, `it2`... `itN`
 
 ```py
 f = rule it*2 # expression for an anonymous function multiplying the input argument by 2
