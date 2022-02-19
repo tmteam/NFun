@@ -51,7 +51,7 @@ Most functions may be applied for different types of operands. To simplify the d
 #### Serialization (Result type is `byte[]`)
 | Argument type | Returns                                                                                 |
 |---------------|-----------------------------------------------------------------------------------------|
-| `Character`   | array with 2 element - hi and low bytes of unicode representation                       |
+| `Character`   | array with 2 element - [lo,hi] bytes of unicode representation                          |
 | `byte`        | array with single element (given argument)                                              |
 | `bool`        | array with single element wich is `1` if argument is `true`, `0` if argument is `false` |
 | Integers      | array with N elements from Little-endian encoding                                       |
@@ -119,17 +119,17 @@ Same as Serialization to `byte[]`, but returns bit array
 | sortDescending(T[],rule(T):R):T[] | T is All, R is Comparables | Sorted array in reverse order, where the element being compared is obtained by the specified rule |
 
 ## Text Functions
-| Function                       | Returns	                                                                                                                |
-|--------------------------------|-------------------------------------------------------------------------------------------------------------------------|
-| toText(a:any):text             | text presentation of given value                                                                                        |
-| concat(a:any[]):text           | concatenation of text representations of given values                                                                   |
-| concat(a:any,b:any):text       | concatenation of text representations of given values                                                                   |
-| concat(a:any,b:any,c:any):text | concatenation of text representations of given values                                                                   |
-| format(a:text,b:any[]):text    | replaces the format item in a specified text with the text representation of a corresponding value in a specified array |
-| trim(a:text):text              | removes all leading and trailing white-space characters from the current text                                           |
-| trimStart(a:text):text         | removes all the leading white-space characters from the current text                                                    |
-| trimEnd(a:text):text           | removes all the trailing white-space characters from the current string                                                 |
-| toUpper(a:text):text           | a copy of this string converted to uppercase                                                                            |
-| toLower(a:text):text           | a copy of this string converted to lowercase                                                                            |
-| split(t:text,sep:text):text[]  | splits a text into subtexts that are based on the provided text separator. Empty entries are removed                    |
-| join(a:any[],b:text):text      | concatenation of text representations of an value array, using the specified separator between each element.            |
+| Function                          | Returns	                                                                                                                |
+|-----------------------------------|-------------------------------------------------------------------------------------------------------------------------|
+| toText(any):text                  | text presentation of given value                                                                                        |
+| concat(any[]):text                | concatenation of text representations of given values                                                                   |
+| concat(any,any):text              | concatenation of text representations of given values                                                                   |
+| concat(any,any,any):text          | concatenation of text representations of given values                                                                   |
+| format(text,any[]):text           | replaces the format item in a specified text with the text representation of a corresponding value in a specified array |
+| trim(text):text                   | removes all leading and trailing white-space characters from the current text                                           |
+| trimStart(text):text              | removes all the leading white-space characters from the current text                                                    |
+| trimEnd(text):text                | removes all the trailing white-space characters from the current string                                                 |
+| toUpper(text):text                | a copy of this string converted to uppercase                                                                            |
+| toLower(text):text                | a copy of this string converted to lowercase                                                                            |
+| split(text,separator:text):text[] | splits a text into subtexts that are based on the provided text separator. Empty entries are removed                    |
+| join(any[],separator:text):text   | concatenation of text representations of an value array, using the specified separator between each element.            |

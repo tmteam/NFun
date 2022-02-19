@@ -72,8 +72,6 @@ public class TextTest {
     [TestCase("y='\\n'", "\n")]
     [TestCase("y='\\''", "'")]
     [TestCase("y='\\r'", "\r")]
-    [TestCase("y='\\v'", "\v")]
-    [TestCase("y='\\f'", "\f")]
     [TestCase("y='\\\"'", "\"")]
     [TestCase("y='\\\\'", "\\")]
     [TestCase("y='e\\''", "e'")]

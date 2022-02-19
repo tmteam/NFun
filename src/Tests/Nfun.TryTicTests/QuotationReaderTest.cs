@@ -14,8 +14,6 @@ public class QuotationReaderTest {
     [TestCase("\\n", "\n")]
     [TestCase("\\'", "'")]
     [TestCase("\\r", "\r")]
-    [TestCase("\\v", "\v")]
-    [TestCase("\\f", "\f")]
     [TestCase("\\\"", "\"")]
     [TestCase("\\\\", "\\")]
     [TestCase("e\\'", "e'")]

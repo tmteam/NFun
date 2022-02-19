@@ -100,6 +100,7 @@ public class ConvertFunctionsTest {
     public void ConstantConvertTest(string expr, object expected)
         => expr.AssertAnonymousOut(expected);
 
+    [TestCase("y:byte[]='a'[0].convert(); ", new byte[]{0x61,0x00})]
     [TestCase("y:int= convert(1.2)", 1)]
     [TestCase("y:int= convert(-1.2)", -1)]
     [TestCase("y:int= convert('1')", 1)]
@@ -127,7 +128,9 @@ public class ConvertFunctionsTest {
     [TestCase("y:bool=convert(0)", false)]
     [TestCase(
         "y:byte[]=convert('hi there')",
-        new byte[] { 0x68, 00, 0x69, 00, 0x20, 00, 0x74, 00, 0x68, 00, 0x65, 00, 0x72, 00, 0x65, 00 })]
+        new byte[] {
+            0x68, 00, 0x69, 00, 0x20, 00, 0x74, 00, 0x68, 00, 0x65, 00, 0x72, 00, 0x65, 00
+        })]
     public void ConstantConvertFunctionTest(string expr, object expected)
         => expr.AssertResultHas("y", expected);
 }

@@ -59,7 +59,7 @@ public class ConvertFunction : GenericFunctionBase {
 
     private static Func<object, object> CreateBinarizerOrNull(FunnyType from) =>
         @from.BaseType switch {
-            BaseFunnyType.Char   => o => ToBoolArray(BitConverter.GetBytes(char)o),
+            BaseFunnyType.Char   => o => ToBoolArray(BitConverter.GetBytes((char)o)),
             BaseFunnyType.Bool   => o => new ImmutableFunnyArray(new[] { (bool)o }),
             BaseFunnyType.UInt8  => o => ToBoolArray(new[] { (byte)o }),
             BaseFunnyType.UInt16 => o => ToBoolArray(BitConverter.GetBytes((ushort)o)),
