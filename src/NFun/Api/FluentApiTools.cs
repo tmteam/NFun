@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using NFun.Interpretation;
+using NFun.Interpretation.Functions;
 using NFun.ParseErrors;
 using NFun.Runtime;
 using NFun.SyntaxParsing;
@@ -33,7 +34,7 @@ internal static class FluentApiTools {
     }
 
     internal static Memory<(string, IOutputFunnyConverter, PropertyInfo)> SetupManyAprioriOutputs<TOutput>(
-        AprioriTypesMap aprioriTypesMap) where TOutput : new() {
+        AprioriTypesMap aprioriTypesMap, DialectSettings dialectSettings) where TOutput : new() {
         var outputProperties = typeof(TOutput).GetProperties(BindingFlags.Instance | BindingFlags.Public);
         var outputVarVals = new (string, IOutputFunnyConverter, PropertyInfo)[outputProperties.Length];
         int actualOutputsCount = 0;
@@ -41,7 +42,7 @@ internal static class FluentApiTools {
         {
             if (!outputProperty.CanBeUsedAsFunnyOutputProperty())
                 continue;
-            var converter = FunnyTypeConverters.GetOutputConverter(outputProperty.PropertyType);
+            var converter = TypeBehaviourExtensions.GetOutputConverterFor(dialectSettings.TypeBehaviour, outputProperty.PropertyType);
             var outputName = outputProperty.Name.ToLower();
 
             aprioriTypesMap.Add(outputName, converter.FunnyType);
@@ -76,7 +77,7 @@ internal static class FluentApiTools {
     }
 
     public static Memory<(string, IInputFunnyConverter, PropertyInfo)>
-        SetupAprioriInputs<TInput>(AprioriTypesMap apriori) {
+        SetupAprioriInputs<TInput>(AprioriTypesMap apriori, TypeBehaviour typeBehaviour) {
         var inputProperties = typeof(TInput).GetProperties(BindingFlags.Instance | BindingFlags.Public);
         var inputTypes = new (string, IInputFunnyConverter, PropertyInfo)[inputProperties.Length];
         int actualInputsCount = 0;
@@ -87,7 +88,7 @@ internal static class FluentApiTools {
 
             if (!inputProperty.CanBeUsedAsFunnyInputProperty())
                 continue;
-            var converter = FunnyTypeConverters.GetInputConverter(inputProperty.PropertyType);
+            var converter = TypeBehaviourExtensions.GetInputConverterFor(typeBehaviour, inputProperty.PropertyType);
             var inputName = inputProperty.Name.ToLower();
 
             apriori.Add(inputName, converter.FunnyType);

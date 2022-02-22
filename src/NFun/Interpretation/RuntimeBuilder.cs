@@ -89,7 +89,7 @@ internal static class RuntimeBuilder {
 
         #region build body
 
-        var variables = new VariableDictionary();
+        var variables = new VariableDictionary(dialect.TypeBehaviour);
         var equations = new List<Equation>();
 
         foreach (var treeNode in syntaxTree.Nodes)
@@ -114,6 +114,7 @@ internal static class RuntimeBuilder {
                     varDef.FunnyType,
                     varDef.Interval,
                     FunnyVarAccess.Input,
+                    dialect.TypeBehaviour,
                     varDef.Attributes);
                 if (!variables.TryAdd(variableSource))
                 {
@@ -148,7 +149,7 @@ internal static class RuntimeBuilder {
             }
         }
 
-        return new FunnyRuntime(equations, variables);
+        return new FunnyRuntime(equations, variables, dialect.TypeBehaviour);
     }
 
 
@@ -198,6 +199,7 @@ internal static class RuntimeBuilder {
                 type: equation.OutputType,
                 typeSpecificationIntervalOrNull: equation.TypeSpecificationOrNull.Interval,
                 access: FunnyVarAccess.Output,
+                typeBehaviour: dialect.TypeBehaviour,
                 attributes: equation.Attributes
             );
         else
@@ -205,6 +207,7 @@ internal static class RuntimeBuilder {
                 name: equation.Id,
                 type: equation.OutputType,
                 access: FunnyVarAccess.Output,
+                dialect.TypeBehaviour,
                 equation.Attributes
             );
 

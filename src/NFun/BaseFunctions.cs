@@ -1,17 +1,20 @@
+using System.Linq;
 using NFun.Functions;
 using NFun.Interpretation;
 using NFun.Interpretation.Functions;
+using NFun.Types;
 
 namespace NFun {
 
-public static class BaseFunctions {
-    internal static readonly ImmutableFunctionDictionary DefaultDictionary;
-
-    public static IFunctionDictionary DefaultFunctions => DefaultDictionary;
-
+internal static class BaseFunctions {
+    internal static ImmutableFunctionDictionary GetFunctions(TypeBehaviour typeBehaviour) 
+        => typeBehaviour.RealTypeSelect(DefaultDoubleFunctions,DefaultDecimalFunctions);
+    private static ImmutableFunctionDictionary DefaultDoubleFunctions { get; }
+    private static ImmutableFunctionDictionary DefaultDecimalFunctions { get; }
     private static GenericFunctionBase[] GenericFunctions { get; }
-
     private static IConcreteFunction[] ConcreteFunctions { get; }
+    private static IConcreteFunction[] ConcreteDoubleFunctions { get; }
+    private static IConcreteFunction[] ConcreteDecimalFunctions { get; }
 
     static BaseFunctions() {
         GenericFunctions = new GenericFunctionBase[] {
@@ -33,7 +36,7 @@ public static class BaseFunctions {
             new BitShiftLeftFunction(),
             new BitShiftRightFunction(),
 
-            new InvertFunction(),
+            new NegateFunction(),
             new AbsFunction(),
             new RemainderFunction(),
             new DivideIntFunction(),
@@ -83,76 +86,15 @@ public static class BaseFunctions {
             new AnyGenericFunctionDefinition(),
             new ReverseGenericFunctionDefinition()
         };
+
         ConcreteFunctions = new IConcreteFunction[] {
             new NotFunction(),
             new AndFunction(),
             new OrFunction(),
             new XorFunction(),
 
-            //new BitShiftLeftInt32Function(),
-            //new BitShiftLeftInt64Function(),
-            //new BitShiftRightInt32Function(),
-            //new BitShiftRightInt64Function(),
-
-            new PowRealFunction(),
-
-
-            new DivideRealFunction(),
-            new SqrtFunction(),
-
-            new SinFunction(),
-            new CosFunction(),
-            new TanFunction(),
-            new AtanFunction(),
-            new Atan2Function(),
-            new AsinFunction(),
-            new AcosFunction(),
-            new ExpFunction(),
-            new LogFunction(),
-            new LogEFunction(),
-            new Log10Function(),
             new ToTextFunction(),
 
-
-            new RoundToRealFunction(),
-
-            //We need these function to allow user convert numbers.
-            //a = toInt16(b) #no matter what is b - it will be casted
-
-            //Safe converters
-            //new ToInt16FromInt16Function(),
-            //new ToInt32FromInt32Function(),
-            //new ToInt32FromInt32Function("toInt"),
-            //new ToInt64FromInt64Function(),
-            //new ToUint16FromUint16Function(),
-            //new ToUint32FromUint32Function(),
-            //new ToUint64FromUint64Function(),
-            //new ToRealFromRealFunction(),
-
-            //Unsafe converters
-            //new ToInt16FromInt64Function(),
-            //new ToInt32FromInt64Function(),
-            //new ToInt32FromInt64Function("toInt"),
-            //new ToInt64FromInt64Function(),
-            //new ToInt16FromUInt64Function(),
-            //new ToInt32FromUInt64Function(),
-            //new ToInt32FromUInt64Function("toInt"),
-            //new ToInt64FromUInt64Function(),
-            //new ToUint8FromInt64Function("toByte"),
-            //new ToUint8FromInt64Function(),
-            //new ToUint16FromInt64Function(),
-            //new ToUint32FromInt64Function(),
-            //new ToUint64FromInt64Function(),
-            //new ToUint8FromUint64Function("toByte"),
-            //new ToUint8FromUint64Function(),
-            //new ToUint16FromUint64Function(),
-            //new ToUint32FromUint64Function(),
-            //new ToUint64FromUint64Function(),
-
-            //new EFunction(),
-            //new PiFunction(),
-            new AverageFunction(),
-            //new SortTextFunction(),
             new TrimFunction(),
             new TrimStartFunction(),
             new TrimEndFunction(),
@@ -166,7 +108,52 @@ public static class BaseFunctions {
             new Concat2TextsFunction(),
             new Concat3TextsFunction()
         };
-        DefaultDictionary = new ImmutableFunctionDictionary(ConcreteFunctions, GenericFunctions);
+
+        ConcreteDoubleFunctions = new IConcreteFunction[] {
+            new AverageDoubleFunction(),
+
+            new PowDoubleFunction(),
+            new DivideDoubleFunction(),
+            new SqrtDoubleFunction(),
+            new SinDoubleFunction(),
+            new CosDoubleFunction(),
+            new TanDoubleFunction(),
+            new AtanDoubleFunction(),
+            new Atan2DoubleFunction(),
+            new AsinDoubleFunction(),
+            new AcosDoubleFunction(),
+            new ExpDoubleFunction(),
+            new LogDoubleFunction(),
+            new LogEDoubleFunction(),
+            new Log10DoubleFunction(),
+            new RoundToDoubleFunction(),
+        };
+
+        ConcreteDecimalFunctions = new IConcreteFunction[] {
+            new AverageDecimalFunction(),
+
+            new PowDecimalFunction(),
+            new DivideDecimalFunction(),
+            new SqrtDecimalFunction(),
+            new SinDecimalFunction(),
+            new CosDecimalFunction(),
+            new TanDecimalFunction(),
+            new AtanDecimalFunction(),
+            new Atan2DecimalFunction(),
+            new AsinDecimalFunction(),
+            new AcosDecimalFunction(),
+            new ExpDecimalFunction(),
+            new LogDecimalFunction(),
+            new LogEDecimalFunction(),
+            new Log10DecimalFunction(),
+            new RoundToDecimalFunction(),
+        };
+        DefaultDoubleFunctions = new ImmutableFunctionDictionary(
+            ConcreteFunctions.Concat(ConcreteDoubleFunctions).ToArray(),
+            GenericFunctions);
+        DefaultDecimalFunctions = new ImmutableFunctionDictionary(
+            ConcreteFunctions.Concat(ConcreteDecimalFunctions).ToArray(),
+            GenericFunctions);
     }
 }
 

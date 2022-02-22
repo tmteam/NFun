@@ -52,6 +52,8 @@ internal sealed class ImmutableFunctionDictionary : IFunctionDictionary {
     }
 
     public ImmutableFunctionDictionary CloneWith(params IFunctionSignature[] functions) {
+        if (functions.Length == 0)
+            return this;
         var newFunctions = new Dictionary<string, IFunctionSignature>(_functions);
         var newOverloads = _overloads.ToDictionary(
             o => o.Key,

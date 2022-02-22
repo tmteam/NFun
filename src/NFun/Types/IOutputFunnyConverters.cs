@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using NFun.Interpretation.Functions;
 using NFun.Runtime;
 using NFun.Runtime.Arrays;
 
@@ -13,18 +14,22 @@ public interface IOutputFunnyConverter {
 }
 
 public class DynamicTypeOutputFunnyConverter : IOutputFunnyConverter {
-    public static DynamicTypeOutputFunnyConverter AnyConverter { get; } = new(typeof(object));
+    private readonly TypeBehaviour _behaviour;
+    public static DynamicTypeOutputFunnyConverter AnyConverter { get; } = new(typeof(object), TypeBehaviour.RealIsDouble);
 
-    public DynamicTypeOutputFunnyConverter(Type clrType) => ClrType = clrType;
+    public DynamicTypeOutputFunnyConverter(Type clrType, TypeBehaviour _behaviour) {
+        this._behaviour = _behaviour;
+        ClrType = clrType;
+    }
     public Type ClrType { get; }
-    public FunnyType FunnyType { get; } = FunnyType.Any;
+    public FunnyType FunnyType => FunnyType.Any;
 
     public object ToClrObject(object funObject) =>
         funObject switch {
             TextFunnyArray txt => txt.ToString(),
             IFunnyArray funArray =>
-                FunnyTypeConverters
-                    .GetOutputConverter(FunnyType.ArrayOf(funArray.ElementType))
+                TypeBehaviourExtensions
+                    .GetOutputConverterFor(_behaviour, FunnyType.ArrayOf(funArray.ElementType))
                     .ToClrObject(funObject),
             FunnyStruct str => DynamicStructToDictionaryOutputFunnyConverter.Instance.ToClrObject(str),
             _               => funObject
@@ -41,6 +46,18 @@ public class PrimitiveTypeOutputFunnyConverter : IOutputFunnyConverter {
     }
 
     public object ToClrObject(object funObject) => funObject;
+}
+
+public class DecimalToFloatTypeOutputFunnyConverter : IOutputFunnyConverter {
+    public Type ClrType { get; } = typeof(float);
+    public FunnyType FunnyType { get; } = FunnyType.Real;
+    public object ToClrObject(object funObject) => (float)(Decimal)funObject;
+}
+
+public class DecimalToDoubleTypeOutputFunnyConverter : IOutputFunnyConverter {
+    public Type ClrType { get; } = typeof(float);
+    public FunnyType FunnyType { get; } = FunnyType.Real;
+    public object ToClrObject(object funObject) => (double)(Decimal)funObject;
 }
 
 public class DoubleToFloatTypeOutputFunnyConverter : IOutputFunnyConverter {
@@ -128,8 +145,10 @@ public class StructOutputFunnyConverter : IOutputFunnyConverter {
 }
 
 public class StructToDictionaryOutputFunnyConverter : IOutputFunnyConverter {
-    public StructToDictionaryOutputFunnyConverter(
+    private readonly TypeBehaviour _typeBehaviour;
+    public StructToDictionaryOutputFunnyConverter(TypeBehaviour typeBehaviour,
         FunnyType type) {
+        _typeBehaviour = typeBehaviour;
         FunnyType = type;
     }
 
@@ -145,7 +164,7 @@ public class StructToDictionaryOutputFunnyConverter : IOutputFunnyConverter {
         {
             if (!str.TryGetValue(property.Key, out var fieldValue))
                 continue;
-            var converter = FunnyTypeConverters.GetOutputConverter(property.Value);
+            var converter = TypeBehaviourExtensions.GetOutputConverterFor(_typeBehaviour, property.Value);
             result.Add(property.Key, converter.ToClrObject(fieldValue));
         }
 

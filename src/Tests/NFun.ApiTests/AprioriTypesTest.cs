@@ -1,4 +1,5 @@
 using System;
+using NFun.Interpretation.Functions;
 using NFun.TestTools;
 using NFun.Types;
 using NUnit.Framework;
@@ -24,6 +25,15 @@ public class AprioriTypesTest {
                            .WithApriori<int>("x")
                            .Build("y:int64 = x+1");
         Assert.AreEqual(FunnyType.Int32, runtime["x"].Type);
+    }
+    
+    [Test]
+    public void AprioriInputOfDecimalLateSpecified_inputTypeIsCorrect() {
+        var runtime = Funny.Hardcore
+                           .WithDialect(Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDecimal))    
+                           .WithApriori<decimal>("x")
+                           .Build("y = x+1");
+        Assert.AreEqual(FunnyType.Real, runtime["x"].Type);
     }
 
     [Test]

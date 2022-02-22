@@ -63,7 +63,7 @@ public abstract class GenericFunctionBase : IGenericFunction {
 
     protected virtual object Calc(object[] args) => throw new NotImplementedException();
 
-    public virtual IConcreteFunction CreateConcrete(FunnyType[] concreteTypesMap) =>
+    public virtual IConcreteFunction CreateConcrete(FunnyType[] concreteTypesMap, TypeBehaviour typeBehaviour) =>
         new ConcreteGenericFunction(
             calc: Calc,
             name: Name,
@@ -163,7 +163,7 @@ public abstract class GenericFunctionBase : IGenericFunction {
         => TypeHelper.GetFunSignature(Name, ReturnType, ArgTypes);
 
 
-    public class ConcreteGenericFunction : FunctionWithManyArguments {
+    private class ConcreteGenericFunction : FunctionWithManyArguments {
         private readonly Func<object[], object> _calc;
 
         public ConcreteGenericFunction(

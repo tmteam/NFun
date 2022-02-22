@@ -1,4 +1,5 @@
 using System;
+using NFun.Interpretation.Functions;
 using NFun.Tokenization;
 using NFun.Types;
 
@@ -7,9 +8,9 @@ namespace NFun.Interpretation.Nodes {
 internal class ConstantExpressionNode : IExpressionNode {
     private readonly object _value;
 
-    public static ConstantExpressionNode CreateConcrete(FunnyType primitive, ulong value, Interval interval) =>
+    public static ConstantExpressionNode CreateConcrete(FunnyType primitive, ulong value, TypeBehaviour typeBehaviour, Interval interval) =>
         primitive.BaseType switch {
-            BaseFunnyType.Real   => new ConstantExpressionNode((double)value, FunnyType.Real, interval),
+            BaseFunnyType.Real   => new ConstantExpressionNode(typeBehaviour.GetRealConstantValue(value), FunnyType.Real, interval),
             BaseFunnyType.Int64  => new ConstantExpressionNode((long)value, FunnyType.Int64, interval),
             BaseFunnyType.Int32  => new ConstantExpressionNode((int)value, FunnyType.Int32, interval),
             BaseFunnyType.Int16  => new ConstantExpressionNode((short)value, FunnyType.Int16, interval),
@@ -20,9 +21,9 @@ internal class ConstantExpressionNode : IExpressionNode {
             _                    => throw new ArgumentOutOfRangeException(nameof(primitive), primitive, null)
         };
 
-    public static ConstantExpressionNode CreateConcrete(FunnyType primitive, long value, Interval interval) =>
+    public static ConstantExpressionNode CreateConcrete(FunnyType primitive, long value, TypeBehaviour typeBehaviour, Interval interval) =>
         primitive.BaseType switch {
-            BaseFunnyType.Real   => new ConstantExpressionNode((double)value, FunnyType.Real, interval),
+            BaseFunnyType.Real   => new ConstantExpressionNode(typeBehaviour.GetRealConstantValue(value), FunnyType.Real, interval),
             BaseFunnyType.Int64  => new ConstantExpressionNode((long)value, FunnyType.Int64, interval),
             BaseFunnyType.Int32  => new ConstantExpressionNode((int)value, FunnyType.Int32, interval),
             BaseFunnyType.Int16  => new ConstantExpressionNode((short)value, FunnyType.Int16, interval),

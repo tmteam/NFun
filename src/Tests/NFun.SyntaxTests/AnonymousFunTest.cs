@@ -8,11 +8,8 @@ namespace NFun.SyntaxTests {
 [TestFixture]
 public class AnonymousFunTest {
     [TestCase(@"y = [11.0,20.0,1.0,2.0].filter(fun(i)= i>10)", new[] { 11.0, 20.0 })]
-    [TestCase(@"y = [11.0,20.0,1.0,2.0].filter(fun(i)= i>10)", new[] { 11.0, 20.0 })]
-    [TestCase(@"y = [11,20,1,2].filter(fun(i:int)= i>10)", new[] { 11, 20 })]
     [TestCase(@"y = [11,20,1,2].filter(fun(i:int)= i>10)", new[] { 11, 20 })]
     [TestCase(@"y = [11,20,1,2].filter(fun(i:int):bool = i>10)", new[] { 11, 20 })]
-    [TestCase(@"y = [11,20,1,2].filter(fun(i:int):bool =; i>10)", new[] { 11, 20 })]
     [TestCase(@"y = map([1,2,3], fun(i:int)=i*i)", new[] { 1, 4, 9 })]
     [TestCase(@"y = map([1,2,3], fun(i:int):real  =i*i)", new[] { 1.0, 4, 9 })]
     [TestCase(@"y = map([1,2,3], fun(i:int):int64  =i*i)", new long[] { 1, 4, 9 })]

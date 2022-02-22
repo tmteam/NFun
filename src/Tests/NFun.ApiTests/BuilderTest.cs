@@ -15,7 +15,8 @@ public class BuilderTest {
                 Funny
                     .Hardcore
                     .WithFunction(new PapaFunction("mama"))
-                    .WithFunction(new MamaFunction("mama")));
+                    .WithFunction(new MamaFunction("mama"))
+                    .Build("x"));
     }
 
     [Test]
@@ -25,7 +26,8 @@ public class BuilderTest {
                 Funny
                     .Hardcore
                     .WithFunction(new PapaFunction("mama"))
-                    .WithFunction(new GenericWithNoArgFunction("mama")));
+                    .WithFunction(new GenericWithNoArgFunction("mama"))
+                    .Build("x"));
     }
 
     [Test]

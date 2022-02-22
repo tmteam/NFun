@@ -1,4 +1,5 @@
 using System;
+using NFun.Interpretation.Functions;
 using NFun.TestTools;
 using NFun.Types;
 using NUnit.Framework;
@@ -80,8 +81,8 @@ public class IOTypeConvertersTest {
     }
 
     private void AssertFunnyConvert(object originClrObject) {
-        var inputConverter = FunnyTypeConverters.GetInputConverter(originClrObject.GetType());
-        var outputConverter = FunnyTypeConverters.GetOutputConverter(originClrObject.GetType());
+        var inputConverter = TypeBehaviour.RealIsDouble.GetInputConverterFor(originClrObject.GetType());
+        var outputConverter = TypeBehaviour.RealIsDouble.GetOutputConverterFor(originClrObject.GetType());
         var funObject = inputConverter.ToFunObject(originClrObject);
         var clrObject = outputConverter.ToClrObject(funObject);
         Assert.IsTrue(TestHelper.AreSame(originClrObject, clrObject));

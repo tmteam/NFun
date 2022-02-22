@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using NFun.Exceptions;
+using NFun.Interpretation.Functions;
+using NFun.Types;
 using NUnit.Framework;
 
 namespace NFun.ApiTests {
@@ -16,6 +18,8 @@ public class TestFluentApiCalcSingleObjectConst {
     public void GeneralCalcTest(string expr, object expected) =>
         Assert.AreEqual(expected, Funny.Calc(expr));
 
+    
+    
     [Test]
     public void ReturnsComplexIntArrayConstant() {
         var result = Funny.Calc(
@@ -53,6 +57,26 @@ public class TestFluentApiCalcSingleObjectConst {
     [TestCase("x:int;")]
     public void UseUnknownInput_throws(string expression) =>
         Assert.Throws<FunnyParseException>(() => Funny.Calc(expression));
+    
+    
+    [Test]
+    public void ConstOfDecimalTest() {
+        var result = Funny.WithDialect(
+                              Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDecimal))
+                          .Calc("13.5");
+        Assert.AreEqual(result, (decimal)13.5);
+    }
+    
+    [Test]
+    public void ConstOfDecimalStructsTest() {
+        var result = Funny.WithDialect(
+                              Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDecimal))
+                          .Calc("{name = 'test', price = 13.5}");
+        Assert.IsInstanceOf<Dictionary<string, object>>(result);
+        var dic = (Dictionary<string, object>)result;
+        Assert.AreEqual(dic["name"], "test");
+        Assert.AreEqual(dic["price"], (decimal)13.5);
+    }
 }
 
 }

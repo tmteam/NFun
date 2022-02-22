@@ -20,7 +20,7 @@ public abstract class FunctionWithManyArguments : IConcreteFunction {
     public FunnyType ReturnType { get; protected set; }
     public abstract object Calc(object[] args);
 
-    public IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children, Interval interval) {
+    public IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children, TypeBehaviour typeBehaviour, Interval interval) {
         var castedChildren = new IExpressionNode[children.Count];
 
         var i = 0;
@@ -32,7 +32,7 @@ public abstract class FunctionWithManyArguments : IConcreteFunction {
 
             if (fromType != toType)
             {
-                var converter = VarTypeConverter.GetConverterOrThrow(fromType, toType, argNode.Interval);
+                var converter = VarTypeConverter.GetConverterOrThrow(typeBehaviour, fromType, toType, argNode.Interval);
                 castedNode = new CastExpressionNode(argNode, toType, converter, argNode.Interval);
             }
 

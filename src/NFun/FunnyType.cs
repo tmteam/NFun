@@ -10,7 +10,7 @@ namespace NFun {
 /// </summary>
 public readonly struct FunnyType {
 
-    internal static readonly FunnyType Empty = new();
+    internal static readonly FunnyType Empty = new(); 
     public static readonly FunnyType Any    = new(BaseFunnyType.Any);
     public static readonly FunnyType Bool   = new(BaseFunnyType.Bool);
     public static readonly FunnyType Char   = new(BaseFunnyType.Char);

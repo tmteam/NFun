@@ -3,7 +3,7 @@ using NFun.Types;
 namespace NFun.Interpretation.Functions {
 
 public interface IGenericFunction : IFunctionSignature {
-    IConcreteFunction CreateConcrete(FunnyType[] concreteTypesMap);
+    IConcreteFunction CreateConcrete(FunnyType[] concreteTypesMap, TypeBehaviour typing);
 
     /// <summary>
     /// calculates generic call arguments  based on a concrete call signature

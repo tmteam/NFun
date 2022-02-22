@@ -23,12 +23,13 @@ internal static class RuntimeBuilderHelper {
         TypeInferenceResults results,
         TicTypesConverter converter,
         DialectSettings dialect) {
-        var vars = new VariableDictionary(functionSyntax.Args.Count);
+        var vars = new VariableDictionary(dialect.TypeBehaviour, functionSyntax.Args.Count);
         for (int i = 0; i < functionSyntax.Args.Count; i++)
         {
             var variableSource = CreateVariableSourceForArgument(
                 argSyntax: functionSyntax.Args[i],
-                actualType: argTypes[i]);
+                actualType: argTypes[i], 
+                dialect.TypeBehaviour);
 
             if (!vars.TryAdd(variableSource))
                 throw ErrorFactory.FunctionArgumentDuplicates(functionSyntax, functionSyntax.Args[i]);
@@ -150,18 +151,18 @@ internal static class RuntimeBuilderHelper {
 
     private static VariableSource CreateVariableSourceForArgument(
         TypedVarDefSyntaxNode argSyntax,
-        FunnyType actualType) {
+        FunnyType actualType, TypeBehaviour typeBehaviour) {
         if (argSyntax.FunnyType != FunnyType.Empty)
             return VariableSource.CreateWithStrictTypeLabel(
                 name: argSyntax.Id,
                 type: actualType,
                 typeSpecificationIntervalOrNull: argSyntax.Interval,
-                access: FunnyVarAccess.Input);
+                access: FunnyVarAccess.Input,typeBehaviour);
         else
             return VariableSource.CreateWithoutStrictTypeLabel(
                 name: argSyntax.Id,
                 type: actualType,
-                access: FunnyVarAccess.Input);
+                access: FunnyVarAccess.Input,typeBehaviour);
     }
 }
 

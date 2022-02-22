@@ -1,0 +1,164 @@
+<#@ template language="C#" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+
+using System;
+using NFun.Interpretation.Functions;
+using NFun.Types;
+namespace NFun.Functions {
+<#
+    //------------------------------------------------------------------------------------------------------------------------------
+    //Body
+    var integers = new[] {"UInt8" ,"UInt16","UInt32","UInt64","Int16" ,"Int32" ,"Int64" };
+    var numbers  = new[] {"UInt8" ,"UInt16","UInt32","UInt64","Int16" ,"Int32" ,"Int64","Real" };
+    var arithmetical  = new[] {"UInt8" ,"UInt16","UInt32","UInt64","Int16" ,"Int32" ,"Int64","Real" };
+    var signedNumber = new[] {"Int16","Int32","Int64","Real"};
+    
+    WriteTwoArgFunction("DivideInt",integers,"/");
+    WriteTwoArgFunction("Remainder",numbers,"%");
+    WriteTwoArgFunction("Add",arithmetical,"+");
+    WriteTwoArgFunction("Substract",arithmetical,"-");
+    WriteTwoArgFunction("Multiply",arithmetical,"*");
+    WriteTwoArgFunction("BitXor",integers,"^");
+    WriteTwoArgFunction("BitAnd",integers,"&");
+    WriteTwoArgFunction("BitOr",integers,"|");
+    WriteSingleArgFunction("BitInverse", "CoreFunNames.BitInverse", integers, "~");
+    WriteSingleArgFunction("Negate", "CoreFunNames.Negate", signedNumber, "-");
+    WriteSingleArgFunction("Abs", "\"abs\"", signedNumber, "Math.Abs");
+#>
+}
+
+
+
+
+
+
+<#    
+    //------------------------------------------------------------------------------------------------------------------------------
+    //Tools
+    void WriteSimpleTypeSelector(string type) {
+#>                                           BaseFunnyType.<#= type #> => new <#= type #>Function(),            
+<#
+    }
+
+
+    void WriteRealTypeSelector(string functionType) {
+#>                                           BaseFunnyType.Real => typeBehaviour.RealTypeSelect<<#= functionType #>>(new DoubleFunction(),new DecimalFunction()),
+<#
+    }
+
+    void WriteEndSelector() {
+#>        _                   => throw new ArgumentOutOfRangeException()
+    };
+<#
+    }
+    
+    string GetConstrainsName(string[] types) {
+        if (types == integers)
+            return  "GenericConstrains.Integers";
+        else if (types == arithmetical)
+            return  "GenericConstrains.Arithmetical";
+        else if (types == numbers)
+            return  "GenericConstrains.Numbers";
+        else if (types == signedNumber)
+            return  "GenericConstrains.SignedNumber";
+        else
+            throw new NotImplementedException();
+    }
+
+
+    //------------------------------------------------------------------------------------------------------------------------------
+    //TwoArgs:
+
+    void WriteTwoArgFunction(string className,  string[] types, string op, string name = null) {
+        var realName = name ?? ("CoreFunNames." + className);
+        #>public class <#=className#>Function : PureGenericFunctionBase {
+    public <#=className#>Function() : base(<#=realName#>, <#=GetConstrainsName(types)#>, 2) { }
+
+    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, TypeBehaviour typeBehaviour) =>
+        concreteTypes[0].BaseType switch {
+<#
+        foreach (string type in types)
+        {
+            if(type == "Real")
+                WriteRealTypeSelector("IConcreteFunction");
+            else
+                WriteSimpleTypeSelector(type);
+        }
+        WriteEndSelector();
+        foreach (string type in types)
+        {
+            if (type == "Real")
+            {
+                WriteTwoArgConcreteFunction("Double", realName, op);
+                WriteTwoArgConcreteFunction("Decimal", realName, op);
+            }
+            else
+                WriteTwoArgConcreteFunction(type, realName, op);
+        }
+        #>
+}
+<#
+    }
+    
+    
+    void WriteTwoArgConcreteFunction(string type, string name, string op) {
+        var clrType = type == "UInt8" ? "byte" : type;
+        var nfunType = type == "Decimal" ? "Real" : type == "Double" ? "Real" : type;
+#>    private class <#=type#>Function : FunctionWithTwoArgs {
+             public <#=type#>Function() : base(<#=name#>, FunnyType.<#=nfunType#>, FunnyType.<#=nfunType#>, FunnyType.<#=nfunType#>) { }
+             public override object Calc(object a, object b) => (<#=clrType#>)((<#=clrType#>)a <#=op#> (<#=clrType#>)b);
+        }
+<#
+    }
+    
+    //------------------------------------------------------------------------------------------------------------------------------
+    //SingleArgs:
+    void WriteSingleArgConcrete(string type, string op) {
+        var clrType = type == "UInt8" ? "byte" : type;
+        #>    private class <#= type #>Function : FunctionWithSingleArg {  public override object Calc(object a) => (<#= clrType #>)(<#= op #>((<#= clrType #>)a)); }
+<#}
+
+    
+    void WriteSingleArgFunction(string className, string name, string[] types, string op) {
+#>
+
+
+public class <#= className #>Function : PureGenericFunctionBase {
+    public <#= className #>Function() : base(<#= name #>, <#= GetConstrainsName(types) #>, 1) { }
+    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, TypeBehaviour typeBehaviour) {
+        FunctionWithSingleArg result = concreteTypes[0].BaseType switch {
+<#
+        foreach (string type in types)
+        {
+            if (type != "Real")
+                WriteSimpleTypeSelector(type);
+            else
+                WriteRealTypeSelector("FunctionWithSingleArg");
+        }
+        WriteEndSelector();
+#>
+        result.Name = CoreFunNames.Negate;
+        result.ArgTypes = concreteTypes;
+        result.ReturnType = concreteTypes[0];
+        return result;
+    }
+<#
+        foreach (string type in types)
+        {
+            if (type != "Real")
+            {
+                WriteSingleArgConcrete(type, op);
+            }
+            else
+            {
+                WriteSingleArgConcrete("Double",op);
+                WriteSingleArgConcrete("Decimal",op);
+            }
+        }
+        #>
+}
+
+<#
+    }
+#>

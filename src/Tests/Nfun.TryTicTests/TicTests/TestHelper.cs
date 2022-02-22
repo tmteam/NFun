@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Linq;
+using NFun.Interpretation.Functions;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tic;
 using NFun.Tic.SolvingStates;
 using NFun.TypeInferenceAdapter;
+using NFun.Types;
 using NUnit.Framework;
 
 namespace NFun.UnitTests.TicTests {
@@ -42,7 +44,8 @@ public static class TestHelper {
         TicSetupVisitor.SetupTicForBody(
             tree: tree,
             ticGraph: graph,
-            results: resultsBuilder);
+            results: resultsBuilder, 
+            typeBehaviour: TypeBehaviour.RealIsDouble);
 
         return graph.Solve();
     }
@@ -61,7 +64,8 @@ public static class TestHelper {
         TicSetupVisitor.SetupTicForBody(
             tree: tree,
             ticGraph: graph,
-            results: resultsBuilder);
+            results: resultsBuilder,
+            typeBehaviour: TypeBehaviour.RealIsDouble);
 
         var res = graph.Solve();
         resultsBuilder.SetResults(res);

@@ -27,7 +27,7 @@ public abstract class FunctionWithTwoArgs : IConcreteFunction {
 
     public object Calc(object[] parameters) => Calc(parameters[0], parameters[1]);
 
-    public IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children, Interval interval) {
+    public IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children, TypeBehaviour typeBehaviour, Interval interval) {
         var castedChildren = new IExpressionNode[children.Count];
 
         var i = 0;
@@ -39,7 +39,7 @@ public abstract class FunctionWithTwoArgs : IConcreteFunction {
 
             if (fromType != toType)
             {
-                var converter = VarTypeConverter.GetConverterOrThrow(fromType, toType, argNode.Interval);
+                var converter = VarTypeConverter.GetConverterOrThrow(typeBehaviour, fromType, toType, argNode.Interval);
                 castedNode = new CastExpressionNode(argNode, toType, converter, argNode.Interval);
             }
 

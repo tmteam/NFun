@@ -23,7 +23,7 @@ public abstract class FunctionWithSingleArg : IConcreteFunction {
         => Calc(parameters[0]);
 
 
-    public IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children, Interval interval) {
+    public IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children, TypeBehaviour typeBehaviour,  Interval interval) {
         var argNode = children[0];
         var toType = ArgTypes[0];
         var fromType = argNode.Type;
@@ -31,7 +31,7 @@ public abstract class FunctionWithSingleArg : IConcreteFunction {
 
         if (fromType != toType)
         {
-            var converter = VarTypeConverter.GetConverterOrThrow(fromType, toType, argNode.Interval);
+            var converter = VarTypeConverter.GetConverterOrThrow(typeBehaviour, fromType, toType, argNode.Interval);
             castedNode = new CastExpressionNode(argNode, toType, converter, argNode.Interval);
         }
 

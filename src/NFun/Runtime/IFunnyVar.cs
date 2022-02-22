@@ -1,4 +1,5 @@
 using System;
+using NFun.Interpretation.Functions;
 using NFun.SyntaxParsing;
 using NFun.Tokenization;
 using NFun.Types;
@@ -53,27 +54,31 @@ internal class VariableSource : IFunnyVar {
     private object _funnyValue;
 
     private readonly FunnyVarAccess _access;
+    private readonly TypeBehaviour _typeBehaviour;
 
     internal static VariableSource CreateWithStrictTypeLabel(
         string name,
         FunnyType type,
         Interval typeSpecificationIntervalOrNull,
         FunnyVarAccess access,
+        TypeBehaviour typeBehaviour,
         FunnyAttribute[] attributes = null)
-        => new(name, type, typeSpecificationIntervalOrNull, access, attributes);
+        => new(name, type, typeSpecificationIntervalOrNull, access, typeBehaviour, attributes);
 
     internal static VariableSource CreateWithoutStrictTypeLabel(
-        string name, FunnyType type, FunnyVarAccess access, FunnyAttribute[] attributes = null)
-        => new(name, type, access, attributes);
+        string name, FunnyType type, FunnyVarAccess access, TypeBehaviour typeBehaviour, FunnyAttribute[] attributes = null)
+        => new(name, type, access,typeBehaviour, attributes);
 
     private VariableSource(
         string name,
         FunnyType type,
         Interval typeSpecificationIntervalOrNull,
         FunnyVarAccess access,
+        TypeBehaviour typeBehaviour,
         FunnyAttribute[] attributes = null) {
         _access = access;
-        _funnyValue = type.GetDefaultValueOrNull();
+        _funnyValue = typeBehaviour.GetDefaultValueOrNullFor(type);
+        _typeBehaviour = typeBehaviour;
         TypeSpecificationIntervalOrNull = typeSpecificationIntervalOrNull;
         Attributes = attributes ?? Array.Empty<FunnyAttribute>();
         Name = name;
@@ -85,9 +90,10 @@ internal class VariableSource : IFunnyVar {
     public bool IsOutput => _access.HasFlag(FunnyVarAccess.Output);
 
 
-    private VariableSource(string name, FunnyType type, FunnyVarAccess access, FunnyAttribute[] attributes = null) {
+    private VariableSource(string name, FunnyType type, FunnyVarAccess access, TypeBehaviour typeBehaviour, FunnyAttribute[] attributes = null) {
         _access = access;
-        _funnyValue = type.GetDefaultValueOrNull();
+        _typeBehaviour = typeBehaviour;
+        _funnyValue = typeBehaviour.GetDefaultValueOrNullFor(type);
         Attributes = attributes ?? Array.Empty<FunnyAttribute>();
         Name = name;
         Type = type;
@@ -109,18 +115,18 @@ internal class VariableSource : IFunnyVar {
             if (!_outputConverterLoaded)
             {
                 _outputConverterLoaded = true;
-                _outputConverter = FunnyTypeConverters.GetOutputConverter(Type);
+                _outputConverter = _typeBehaviour.GetOutputConverterFor(Type);
             }
 
             return _outputConverter.ToClrObject(_funnyValue);
         }
-        set => _funnyValue = FunnyTypeConverters.ConvertInputOrThrow(value, Type);
+        set => _funnyValue = _typeBehaviour.ConvertInputOrThrow(value, Type);
     }
 
     public Func<T> CreateGetterOf<T>() {
         if (!IsOutput)
             throw new NotSupportedException("Cannot create value getter for non output variable");
-        var outputConverter = FunnyTypeConverters.GetOutputConverter(typeof(T));
+        var outputConverter = _typeBehaviour.GetOutputConverterFor(typeof(T));
         if (outputConverter == null || (Type.IsPrimitive && outputConverter.FunnyType != Type))
             throw new InvalidOperationException(
                 $"Funny type {Type} cannot be converted to clr type {typeof(T).Name}");
@@ -132,7 +138,7 @@ internal class VariableSource : IFunnyVar {
             throw new NotSupportedException("Cannot create value getter for output variable");
 
         //var inputConverter = FunnyTypeConverters.GetInputConverter(typeof(T));
-        var inputConverter = FunnyTypeConverters.GetInputConverter(Type, typeof(T));
+        var inputConverter = _typeBehaviour.GetInputConverterFor(Type, typeof(T));
 
         if (inputConverter == null || inputConverter.FunnyType != Type)
         {

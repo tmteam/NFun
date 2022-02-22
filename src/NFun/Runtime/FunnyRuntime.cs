@@ -1,17 +1,21 @@
 using System.Collections.Generic;
 using System.Linq;
 using NFun.Interpretation;
+using NFun.Interpretation.Functions;
+using NFun.Types;
 
 namespace NFun.Runtime {
 
 public class FunnyRuntime {
+    public TypeBehaviour TypeBehaviour { get; }
     internal IEnumerable<VariableUsages> GetInputVariableUsages() =>
         VariableDictionary.GetAllUsages().Where(u => !u.Source.IsOutput);
 
     private readonly IList<Equation> _equations;
     internal readonly VariableDictionary VariableDictionary;
 
-    internal FunnyRuntime(IList<Equation> equations, VariableDictionary variableDictionary) {
+    internal FunnyRuntime(IList<Equation> equations, VariableDictionary variableDictionary, TypeBehaviour typeBehaviour) {
+        TypeBehaviour = typeBehaviour;
         _equations = equations;
         VariableDictionary = variableDictionary;
     }

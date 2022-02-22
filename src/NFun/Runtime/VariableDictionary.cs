@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using NFun.Interpretation.Functions;
 using NFun.Interpretation.Nodes;
 using NFun.Tokenization;
 using NFun.Types;
@@ -7,15 +8,21 @@ using NFun.Types;
 namespace NFun.Runtime {
 
 internal class VariableDictionary {
+    private readonly TypeBehaviour _typeBehaviour;
     private readonly Dictionary<string, VariableUsages> _variables;
 
-    internal VariableDictionary() =>
+    internal VariableDictionary(TypeBehaviour typeBehaviour) {
+        _typeBehaviour = typeBehaviour;
         _variables = new Dictionary<string, VariableUsages>(StringComparer.OrdinalIgnoreCase);
+    }
 
-    internal VariableDictionary(int capacity) =>
+    internal VariableDictionary(TypeBehaviour typeBehaviour,int capacity) {
+        _typeBehaviour = typeBehaviour;
         _variables = new Dictionary<string, VariableUsages>(capacity, StringComparer.OrdinalIgnoreCase);
+    }
 
-    internal VariableDictionary(IEnumerable<VariableSource> sources) {
+    internal VariableDictionary(TypeBehaviour typeBehaviour,IEnumerable<VariableSource> sources) {
+        _typeBehaviour = typeBehaviour;
         _variables = new Dictionary<string, VariableUsages>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var variableSource in sources)
@@ -54,7 +61,7 @@ internal class VariableDictionary {
         {
             // Variable is not declared yet.
             // Access to not declared variable means that it is input
-            var source = VariableSource.CreateWithoutStrictTypeLabel(id, type, FunnyVarAccess.Input);
+            var source = VariableSource.CreateWithoutStrictTypeLabel(id, type, FunnyVarAccess.Input, _typeBehaviour);
             usage = new VariableUsages(source);
             _variables.Add(id, usage);
         }

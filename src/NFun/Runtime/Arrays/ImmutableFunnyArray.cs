@@ -20,6 +20,7 @@ public class ImmutableFunnyArray : IFunnyArray {
     public ImmutableFunnyArray(int[] values) : this(values, FunnyType.Int32) { }
     public ImmutableFunnyArray(long[] values) : this(values, FunnyType.Int64) { }
     public ImmutableFunnyArray(double[] values) : this(values, FunnyType.Real) { }
+    public ImmutableFunnyArray(decimal[] values) : this(values, FunnyType.Real) { }
 
     public ImmutableFunnyArray(Array values, FunnyType elementType) {
         ElementType = elementType;

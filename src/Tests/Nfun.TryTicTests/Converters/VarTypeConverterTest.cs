@@ -20,9 +20,7 @@ public class VarTypeConverterTest {
             VarTypeConverter.CanBeConverted(
                 @from: FunnyType.PrimitiveOf(typeFrom),
                 to: FunnyType.PrimitiveOf(typeTo)));
-        var converter = VarTypeConverter.GetConverterOrNull(
-            FunnyType.PrimitiveOf(typeFrom),
-            FunnyType.PrimitiveOf(typeTo));
+        var converter = VarTypeConverter.GetConverterOrNull(TypeBehaviour.RealIsDouble, FunnyType.PrimitiveOf(typeFrom), FunnyType.PrimitiveOf(typeTo));
         var converted = converter(from);
         Assert.AreEqual(converted, expected);
     }
@@ -33,7 +31,7 @@ public class VarTypeConverterTest {
         var typeFrom = FunnyType.ArrayOf(FunnyType.Int32);
         var typeTo = FunnyType.ArrayOf(FunnyType.Real);
         Assert.IsTrue(VarTypeConverter.CanBeConverted(typeFrom, typeTo));
-        var coverter = VarTypeConverter.GetConverterOrNull(typeFrom, typeTo);
+        var coverter = VarTypeConverter.GetConverterOrNull(TypeBehaviour.RealIsDouble, typeFrom, typeTo);
         var actual = coverter(intArray) as IFunnyArray;
         Assert.IsNotNull(actual);
         Assert.AreEqual(typeTo.GetGenericArgument(0), actual.ElementType);
@@ -45,7 +43,7 @@ public class VarTypeConverterTest {
         var typeFrom = FunnyType.FunOf(FunnyType.Bool, FunnyType.Int32);
         var typeTo = FunnyType.FunOf(FunnyType.Text, FunnyType.UInt8);
         Assert.IsTrue(VarTypeConverter.CanBeConverted(typeFrom, typeTo));
-        var coverter = VarTypeConverter.GetConverterOrNull(typeFrom, typeTo);
+        var coverter = VarTypeConverter.GetConverterOrNull(TypeBehaviour.RealIsDouble, typeFrom, typeTo);
         Func<int, bool> funcFrom = (input) => input > 0;
         var convertedFunc = coverter(new LambdaToFunWrapper<int, bool>(funcFrom)) as IConcreteFunction;
         var result = convertedFunc.Calc(new object[] { ((byte)12) });
@@ -58,7 +56,7 @@ public class VarTypeConverterTest {
         var typeTo = FunnyType.StructOf(("name", FunnyType.Text));
         var typeFrom = FunnyType.StructOf(("name", FunnyType.Text), ("age", FunnyType.Int32));
         Assert.IsTrue(VarTypeConverter.CanBeConverted(typeFrom, typeTo));
-        var coverter = VarTypeConverter.GetConverterOrNull(typeFrom, typeTo);
+        var coverter = VarTypeConverter.GetConverterOrNull(TypeBehaviour.RealIsDouble, typeFrom, typeTo);
         var fromStruct = FunnyStruct.Create(("name", new TextFunnyArray("vasa")), ("age", 42));
         var convertedStruct = coverter(fromStruct) as FunnyStruct;
         Assert.IsNotNull(convertedStruct);
@@ -74,7 +72,7 @@ public class VarTypeConverterTest {
         public FunnyType ReturnType { get; }
         public object Calc(object[] parameters) => _func((Tin)parameters[0]);
 
-        public IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children, Interval interval)
+        public IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children, TypeBehaviour typeBehaviour, Interval interval)
             => throw new NotImplementedException();
     }
 }

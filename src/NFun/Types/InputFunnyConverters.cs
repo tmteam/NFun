@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using NFun.Exceptions;
+using NFun.Interpretation.Functions;
 using NFun.Runtime;
 using NFun.Runtime.Arrays;
 
@@ -19,10 +20,15 @@ public interface IInputFunnyConverter {
 
 
 public class DynamicTypeInputFunnyConverter : IInputFunnyConverter {
-    public FunnyType FunnyType => FunnyType.Any;
+    private readonly TypeBehaviour _typeBehaviour;
+    public DynamicTypeInputFunnyConverter(TypeBehaviour typeBehaviour) {
+        _typeBehaviour = typeBehaviour;
 
+    }
+    public FunnyType FunnyType => FunnyType.Any;
+        
     public object ToFunObject(object clrObject) {
-        var converter = FunnyTypeConverters.GetInputConverter(clrObject.GetType());
+        var converter = TypeBehaviourExtensions.GetInputConverterFor(_typeBehaviour, clrObject.GetType());
         return converter.ToFunObject(clrObject);
     }
 }
@@ -48,10 +54,20 @@ public class FloatToDoubleInputFunnyConverter : IInputFunnyConverter {
     public object ToFunObject(object clrObject) =>  (double)(float)clrObject;
 }
 
+public class FloatToDecimalInputFunnyConverter : IInputFunnyConverter {
+    public FunnyType FunnyType { get; } = FunnyType.Real;
+    public object ToFunObject(object clrObject) =>  (Decimal)(float)clrObject;
+}
+
 
 public class DecimalToDoubleInputFunnyConverter : IInputFunnyConverter {
     public FunnyType FunnyType { get; } = FunnyType.Real;
     public object ToFunObject(object clrObject) =>  decimal.ToDouble((Decimal)clrObject);
+}
+
+public class DoubleToDecimalInputFunnyConverter : IInputFunnyConverter {
+    public FunnyType FunnyType { get; } = FunnyType.Real;
+    public object ToFunObject(object clrObject) =>  (Decimal)(double)clrObject;
 }
 
 public class StructTypeInputFunnyConverter : IInputFunnyConverter {

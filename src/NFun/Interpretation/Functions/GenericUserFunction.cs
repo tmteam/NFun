@@ -55,7 +55,7 @@ public class GenericUserFunction : GenericFunctionBase {
         return function;
     }
 
-    public static void CreateSomeConcrete(GenericUserFunction function) {
+    internal static void CreateSomeConcrete(GenericUserFunction function) {
         var varType = new FunnyType[function._constrainsMap.Length];
 
         for (var i = 0; i < function._constrainsMap.Length; i++)
@@ -65,7 +65,7 @@ public class GenericUserFunction : GenericFunctionBase {
             varType[i] = concrete;
         }
 
-        function.CreateConcrete(varType);
+        function.CreateConcrete(varType, TypeBehaviour.Default);
     }
 
     private GenericUserFunction(
@@ -86,7 +86,7 @@ public class GenericUserFunction : GenericFunctionBase {
 
     readonly Dictionary<string, IConcreteFunction> _concreteFunctionsCache = new();
 
-    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes) {
+    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, TypeBehaviour typeBehaviour) {
         BuiltCount++;
 
         var id = string.Join(",", concreteTypes);

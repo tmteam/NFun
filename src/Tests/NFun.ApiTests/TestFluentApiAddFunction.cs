@@ -1,4 +1,6 @@
 using System;
+using NFun.Interpretation.Functions;
+using NFun.Types;
 using NUnit.Framework;
 
 namespace NFun.ApiTests {
@@ -18,6 +20,62 @@ public class TestFluentApiAddFunctionTest {
 
         var result2 = lambda(new ModelWithInt { id = 1 });
         Assert.AreEqual(result2, "Hello mr #2");
+    }
+    
+    [Test]
+    public void SingleVariableFunctionConstructionEarlyConstruction() {
+        var calculator = Funny
+                         .WithFunction("myDec", (int i) => new decimal(i))
+                         .WithDialect(Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDecimal))
+                         .BuildForCalc<ModelWithInt, decimal>();
+
+        Func<ModelWithInt, decimal> lambda = calculator.ToLambda("out = myDec(id)*2");
+
+        var result = lambda(new ModelWithInt { id = 42 });
+        Assert.AreEqual(result, new decimal(84));
+        var result2 = lambda(new ModelWithInt { id = 1 });
+        Assert.AreEqual(result2, new decimal(2));
+    }
+    
+    [Test]
+    public void SingleVariableFunctionConstructionLateConstruction() {
+        var calculator = Funny
+                         .WithDialect(Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDecimal))
+                         .WithFunction("myDec", (int i) => new decimal(i))
+                         .BuildForCalc<ModelWithInt, decimal>();
+
+        Func<ModelWithInt, decimal> lambda = calculator.ToLambda("out = myDec(id)*2");
+
+        var result = lambda(new ModelWithInt { id = 42 });
+        Assert.AreEqual(result, new decimal(84));
+        var result2 = lambda(new ModelWithInt { id = 1 });
+        Assert.AreEqual(result2, new decimal(2));
+    }
+
+    [Test]
+    public void SingleVariableFunctionEarlyConstruction_2() {
+        var calculator = Funny
+                         .WithFunction("myDec", (Decimal i) => (int)Math.Round(i))
+                         .WithDialect(Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDecimal))
+                         .BuildForCalc<ModelWithInt, int>();
+
+        Func<ModelWithInt, int> lambda = calculator.ToLambda("out = myDec(42.5*id)-2");
+
+        var result = lambda(new ModelWithInt { id = 2 });
+        Assert.AreEqual(result, 83);
+    }
+    
+    [Test]
+    public void SingleVariableFunctionLateConstruction_2() {
+        var calculator = Funny
+                         .WithDialect(Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDecimal))
+                         .WithFunction("myDec", (Decimal i) => (int)Math.Round(i))
+                         .BuildForCalc<ModelWithInt, int>();
+
+        Func<ModelWithInt, int> lambda = calculator.ToLambda("out = myDec(42.5*id)-2");
+
+        var result = lambda(new ModelWithInt { id = 2 });
+        Assert.AreEqual(result, 83);
     }
 
     [Test]

@@ -1,4 +1,6 @@
 using System;
+using NFun.Interpretation.Functions;
+using NFun.Types;
 using NUnit.Framework;
 
 namespace NFun.ApiTests {
@@ -54,6 +56,67 @@ public class TestFluentApiAddConstant {
         var result2 = lambda(new UserInputModel(age: 11));
         Assert.AreEqual(result2.Id, 11);
     }
+
+    [Test]
+    public void AddDecimalConstantAsDecimalEarly() {
+        var calculator = Funny
+                         .WithConstant("ultra", (Decimal)100.5)
+                         .WithDialect(Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDecimal))
+                         .BuildForCalcMany<UserInputModel, ContractOutputModel>();
+        AssertConstantSetToDecimalAndDouble(calculator,100.5);
+    }
+
+    [Test]
+    public void AddDecimalConstantAsDecimalLate() {
+        var calculator = Funny
+                         .WithDialect(Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDecimal))
+                         .WithConstant("ultra", (Decimal)100.5)
+                         .BuildForCalcMany<UserInputModel, ContractOutputModel>();
+        AssertConstantSetToDecimalAndDouble(calculator,100.5);
+    }
+   
+    [Test]
+    public void AddDecimalConstantAsDoubleEarly() {
+        var calculator = Funny
+                         .WithConstant("ultra", (Decimal)100.5)
+                         .WithDialect(Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDouble))
+                         .BuildForCalcMany<UserInputModel, ContractOutputModel>();
+        AssertConstantSetToDecimalAndDouble(calculator,100.5);
+    }
+
+    [Test]
+    public void AddDecimalConstantAsDoubleLate() {
+        var calculator = Funny
+                         .WithDialect(Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDouble))
+                         .WithConstant("ultra", (Decimal)100.5)
+                         .BuildForCalcMany<UserInputModel, ContractOutputModel>();
+        AssertConstantSetToDecimalAndDouble(calculator,100.5);
+    }
+    
+    [Test]
+    public void AddDoubleConstantAsDecimalEarly() {
+        var calculator = Funny
+                         .WithConstant("ultra", (double)100.5)
+                         .WithDialect(Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDecimal))
+                         .BuildForCalcMany<UserInputModel, ContractOutputModel>();
+        AssertConstantSetToDecimalAndDouble(calculator,100.5);
+    }
+
+    [Test]
+    public void AddDoubleConstantAsDecimalLate() {
+        var calculator = Funny
+                         .WithDialect(Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDecimal))
+                         .WithConstant("ultra", (double)100.5)
+                         .BuildForCalcMany<UserInputModel, ContractOutputModel>();
+        AssertConstantSetToDecimalAndDouble(calculator,100.5);
+    }
+    private static void AssertConstantSetToDecimalAndDouble(ICalculator<UserInputModel, ContractOutputModel> calculator, double expected) {
+        var lambda = calculator.ToLambda("Price = ultra; Taxes = ultra ");
+        var result = lambda(new UserInputModel(age: 42));
+        Assert.AreEqual(result.Taxes, (Decimal)expected);
+        Assert.AreEqual(result.Price, expected);
+    }
+
 }
 
 }

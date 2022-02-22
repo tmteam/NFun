@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using NFun.Exceptions;
+using NFun.Interpretation.Functions;
 using NFun.Runtime;
 using NFun.SyntaxParsing;
 using NFun.Tic;
@@ -29,7 +30,7 @@ public static class TestHelper {
         var vals = runtime.Variables.Where(v => v.IsOutput)
                           .Select(v => new VariableTypeAndValue(v.Name, v.FunnyValue, v.Type))
                           .ToArray();
-        return new CalculationResult(vals);
+        return new CalculationResult(vals, runtime.TypeBehaviour);
     }
 
 
@@ -61,8 +62,8 @@ public static class TestHelper {
     public static void AssertReturns(this CalculationResult result, object expected) {
         Assert.AreEqual(
             1, result.Count,
-            $"Many output variables found: {string.Join(",", result.Results.Select(r => r.Item1))}");
-        AssertResultHas(result, (result.Results.First().Item1, expected));
+            $"Many output variables found: {string.Join(",", result.ResultNames)}");
+        AssertResultHas(result, (result.ResultNames.First(), expected));
     }
 
     public static void AssertReturns(this CalculationResult result, string id, object expected)
@@ -75,7 +76,7 @@ public static class TestHelper {
                 AssertResultHas(result, values);
                 Assert.AreEqual(
                     values.Length, result.Count,
-                    $"output variables mismatch: {string.Join(",", result.Results.Select(r => r.Item1))}");
+                    $"output variables mismatch: {string.Join(",", result.ResultNames)}");
             });
 
     public static CalculationResult AssertResultHas(this string expr, string id, object val) =>
@@ -114,15 +115,14 @@ public static class TestHelper {
         AssertResultIs(result, (res.Item1, type));
     }
 
-    public static CalculationResult AssertResultHas(
-        this CalculationResult result, params (string id, object val)[] values) {
+    public static CalculationResult AssertResultHas(this CalculationResult result, params (string id, object val)[] values) {
         foreach (var value in values)
         {
             var resultValue = result.Get(value.id);
             Assert.IsNotNull(resultValue, $"Output variable \"{value.id}\" not found");
             if (resultValue is IReadOnlyDictionary<string, object> @struct)
             {
-                var converted = FunnyTypeConverters.GetInputConverter(value.val.GetType()).ToFunObject(value.val);
+                var converted = TypeBehaviourExtensions.GetInputConverterFor(result.TypeBehaviour, value.val.GetType()).ToFunObject(value.val);
                 Assert.AreEqual(converted, @struct);
                 return result;
             }

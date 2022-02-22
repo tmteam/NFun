@@ -21,7 +21,7 @@ public abstract class GenericFunctionWithTwoArguments : GenericFunctionBase {
 
     protected abstract object Calc(object a, object b);
 
-    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypesMap) =>
+    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypesMap, TypeBehaviour typeBehaviour) =>
         new ConcreteImplementationWithTwoArgs(
             calc: Calc,
             name: Name,

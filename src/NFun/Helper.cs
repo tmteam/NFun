@@ -47,6 +47,27 @@ internal static class Helper {
         ans[input.Length] = tail;
         return ans;
     }
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static TOut[] AppendTail<TOut>(this TOut[] input, TOut tail) {
+        if (input.Length == 0)
+            return new[] { tail };
+        var ans = new TOut[input.Length + 1];
+        Array.Copy(input, ans, input.Length);
+        ans[input.Length] = tail;
+        return ans;
+    }
+    
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static TOut[] AppendTail<TOut>(this TOut[] input, TOut[] tail) {
+        if (input.Length == 0)
+            return  tail;
+        
+        var ans = new TOut[input.Length + tail.Length];
+        Array.Copy(input, ans, input.Length);
+        Array.Copy(tail,0, ans, input.Length, tail.Length);
+        return ans;
+    }
 }
 
 }

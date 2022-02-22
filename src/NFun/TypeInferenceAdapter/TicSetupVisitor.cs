@@ -25,9 +25,9 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     public static bool SetupTicForBody(
         SyntaxTree tree,
         GraphBuilder ticGraph,
-        TypeInferenceResultsBuilder results) => SetupTicForBody(
+        TypeInferenceResultsBuilder results, TypeBehaviour typeBehaviour) => SetupTicForBody(
         tree, ticGraph,
-        BaseFunctions.DefaultFunctions,
+        BaseFunctions.GetFunctions(typeBehaviour),
         EmptyConstantList.Instance,
         new AprioriTypesMap(),
         results, Dialects.Origin);

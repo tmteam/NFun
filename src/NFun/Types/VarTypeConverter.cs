@@ -64,22 +64,11 @@ public static class VarTypeConverter {
          */
     }
 
-    private static readonly Func<object, object> ToInt8 = o => Convert.ToSByte(o);
-    private static readonly Func<object, object> ToInt16 = o => Convert.ToInt16(o);
-    private static readonly Func<object, object> ToInt32 = o => Convert.ToInt32(o);
-    private static readonly Func<object, object> ToInt64 = o => Convert.ToInt64(o);
-    private static readonly Func<object, object> ToUInt8 = o => Convert.ToByte(o);
-    private static readonly Func<object, object> ToUInt16 = o => Convert.ToUInt16(o);
-    private static readonly Func<object, object> ToUInt32 = o => Convert.ToUInt32(o);
-    private static readonly Func<object, object> ToUInt64 = o => Convert.ToUInt64(o);
-    private static readonly Func<object, object> ToReal = o => Convert.ToDouble(o);
-    private static readonly Func<object, object> ToBool = o => Convert.ToBoolean(o);
-    private static readonly Func<object, object> ToChar = o => Convert.ToChar(o);
     private static readonly Func<object, object> ToText = o => new TextFunnyArray(o?.ToString() ?? "");
     private static readonly Func<object, object> NoConvertion = o => o;
 
 
-    public static Func<object, object> GetConverterOrNull(FunnyType from, FunnyType to) {
+    public static Func<object, object> GetConverterOrNull(TypeBehaviour typeBehaviour, FunnyType @from, FunnyType to) {
         //todo coverage
         if (to.IsText)
             return ToText;
@@ -88,26 +77,9 @@ public static class VarTypeConverter {
 
         if (from.IsNumeric())
         {
-            switch (to.BaseType)
-            {
-                case BaseFunnyType.UInt8: return ToUInt8;
-                case BaseFunnyType.UInt16: return ToUInt16;
-                case BaseFunnyType.UInt32: return ToUInt32;
-                case BaseFunnyType.UInt64: return ToUInt64;
-                case BaseFunnyType.Int16: return ToInt16;
-                case BaseFunnyType.Int32: return ToInt32;
-                case BaseFunnyType.Int64: return ToInt64;
-                case BaseFunnyType.Real: return ToReal;
-                case BaseFunnyType.Bool: return ToBool;
-                case BaseFunnyType.Char: return ToChar;
-                case BaseFunnyType.ArrayOf:
-                case BaseFunnyType.Fun:
-                case BaseFunnyType.Generic:
-                case BaseFunnyType.Any: break;
-                //todo other primitive types
-                default:
-                    throw new ArgumentOutOfRangeException(to.BaseType.ToString());
-            }
+            var result =  typeBehaviour.GetNumericConverterOrNull(to.BaseType);
+            if (result != null)
+                return result;
         }
 
         if (from.BaseType != to.BaseType)
@@ -117,9 +89,7 @@ public static class VarTypeConverter {
             if (to == FunnyType.ArrayOf(FunnyType.Any))
                 return o => o;
 
-            var elementConverter = GetConverterOrNull(
-                from.ArrayTypeSpecification.FunnyType,
-                to.ArrayTypeSpecification.FunnyType);
+            var elementConverter = GetConverterOrNull(typeBehaviour, @from.ArrayTypeSpecification.FunnyType, to.ArrayTypeSpecification.FunnyType);
             if (elementConverter == null)
                 return null;
 
@@ -148,18 +118,18 @@ public static class VarTypeConverter {
             {
                 var fromInput = fromInputs[i];
                 var toInput = toInputs[i];
-                var inputConverter = GetConverterOrNull(toInput, fromInput);
+                var inputConverter = GetConverterOrNull(typeBehaviour, toInput, fromInput);
                 if (inputConverter == null)
                     return null;
                 inputConverters[i] = inputConverter;
             }
 
             var outputConverter =
-                GetConverterOrNull(from.FunTypeSpecification.Output, to.FunTypeSpecification.Output);
+                GetConverterOrNull(typeBehaviour, @from.FunTypeSpecification.Output, to.FunTypeSpecification.Output);
             if (outputConverter == null)
                 return null;
 
-            object Converter(object input) => new ConcreteFunctionWithConvertation(
+            object Converter(object input) => new ConcreteFunctionWithConvertion(
                 origin: (IConcreteFunction)input,
                 resultType: to.FunTypeSpecification,
                 inputConverters: inputConverters,
@@ -185,8 +155,8 @@ public static class VarTypeConverter {
     }
 
 
-    public static Func<object, object> GetConverterOrThrow(FunnyType from, FunnyType to, Interval interval) {
-        var res = GetConverterOrNull(from, to);
+    public static Func<object, object> GetConverterOrThrow(TypeBehaviour typeBehaviour, FunnyType from, FunnyType to,  Interval interval) {
+        var res = GetConverterOrNull(typeBehaviour, @from, to);
         if (res == null)
             throw ErrorFactory.ImpossibleCast(from, to, interval);
         return res;
@@ -206,9 +176,9 @@ public static class VarTypeConverter {
                         continue;
                     //Check for Fun and struct types is quite expensive, so there is no big reason to write optimized code  
                     case BaseFunnyType.Fun:
-                        return GetConverterOrNull(@from, to) != null;
+                        return GetConverterOrNull(TypeBehaviour.Default, @from, to) != null;
                     case BaseFunnyType.Struct:
-                        return GetConverterOrNull(@from, to) != null;
+                        return GetConverterOrNull(TypeBehaviour.Default, @from, to) != null;
                 }
             }
 
@@ -216,13 +186,13 @@ public static class VarTypeConverter {
         }
     }
 
-    private class ConcreteFunctionWithConvertation : IConcreteFunction {
+    private class ConcreteFunctionWithConvertion : IConcreteFunction {
         private readonly IConcreteFunction _origin;
         private readonly FunTypeSpecification _resultType;
         private readonly Func<object, object>[] _inputConverters;
         private readonly Func<object, object> _outputConverter;
 
-        public ConcreteFunctionWithConvertation(
+        public ConcreteFunctionWithConvertion(
             IConcreteFunction origin,
             FunTypeSpecification resultType,
             Func<object, object>[] inputConverters,
@@ -249,7 +219,7 @@ public static class VarTypeConverter {
             return convertedResult;
         }
 
-        public IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children, Interval interval)
+        public IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children, TypeBehaviour typeBehaviour, Interval interval)
             => throw new NotSupportedException("Function convertation is not supported for expression building");
     }
 }

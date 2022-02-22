@@ -1,14 +1,15 @@
 using System;
+using NFun.Interpretation.Functions;
 using NFun.Tokenization;
 using NFun.Types;
 
 namespace NFun.Interpretation.Nodes {
 
 internal class CastExpressionNode : IExpressionNode {
-    public static IExpressionNode GetConvertedOrOriginOrThrow(IExpressionNode origin, FunnyType to) {
+    public static IExpressionNode GetConvertedOrOriginOrThrow(IExpressionNode origin, FunnyType to, TypeBehaviour typeBehaviour) {
         if (origin.Type == to)
             return origin;
-        var converter = VarTypeConverter.GetConverterOrThrow(origin.Type, to, origin.Interval);
+        var converter = VarTypeConverter.GetConverterOrThrow(typeBehaviour, origin.Type, to, origin.Interval);
         return new CastExpressionNode(origin, to, converter, origin.Interval);
     }
 

@@ -1,6 +1,7 @@
 using System;
 using System.Reflection;
 using NFun.Interpretation;
+using NFun.Interpretation.Functions;
 using NFun.SyntaxParsing;
 using NFun.Types;
 
@@ -29,7 +30,7 @@ internal class Calculator<TInput> : ICalculator<TInput> {
         _builder = builder;
 
         _apriori = new AprioriTypesMap();
-        _inputsMap = FluentApiTools.SetupAprioriInputs<TInput>(_apriori);
+        _inputsMap = FluentApiTools.SetupAprioriInputs<TInput>(_apriori, TypeBehaviour.Default);
     }
 
     public object Calc(string expression, TInput input)
@@ -57,8 +58,8 @@ internal class CalculatorMany<TInput, TOutput> : ICalculator<TInput, TOutput> wh
     public CalculatorMany(FunnyCalculatorBuilder builder) {
         _builder = builder;
         _apriori = new AprioriTypesMap();
-        _inputsMap = FluentApiTools.SetupAprioriInputs<TInput>(_apriori);
-        _outputsMap = FluentApiTools.SetupManyAprioriOutputs<TOutput>(_apriori);
+        _inputsMap = FluentApiTools.SetupAprioriInputs<TInput>(_apriori, _builder.Dialect.TypeBehaviour);
+        _outputsMap = FluentApiTools.SetupManyAprioriOutputs<TOutput>(_apriori, _builder.Dialect);
     }
 
     public TOutput Calc(string expression, TInput input) => ToLambda(expression)(input);
@@ -83,9 +84,9 @@ internal class CalculatorSingle<TInput, TOutput> : ICalculator<TInput, TOutput> 
     public CalculatorSingle(FunnyCalculatorBuilder builder) {
         _builder = builder;
         _apriori = new AprioriTypesMap();
-        _inputsMap = FluentApiTools.SetupAprioriInputs<TInput>(_apriori);
+        _inputsMap = FluentApiTools.SetupAprioriInputs<TInput>(_apriori, TypeBehaviour.Default);
 
-        _outputConverter = FunnyTypeConverters.GetOutputConverter(typeof(TOutput));
+        _outputConverter = TypeBehaviourExtensions.GetOutputConverterFor(_builder.Dialect.TypeBehaviour, typeof(TOutput));
         _apriori.Add(Parser.AnonymousEquationId, _outputConverter.FunnyType);
     }
 
@@ -113,7 +114,7 @@ internal class ConstantCalculatorSingle<TOutput> : IConstantCalculator<TOutput> 
     private readonly IOutputFunnyConverter _outputConverter;
 
     public ConstantCalculatorSingle(FunnyCalculatorBuilder builder) {
-        _outputConverter = FunnyTypeConverters.GetOutputConverter(typeof(TOutput));
+        _outputConverter = TypeBehaviourExtensions.GetOutputConverterFor(builder.Dialect.TypeBehaviour, typeof(TOutput));
         _apriori = new AprioriTypesMap { { Parser.AnonymousEquationId, _outputConverter.FunnyType } };
         _builder = builder;
     }
@@ -136,7 +137,7 @@ internal class ConstantCalculatorMany<TOutput> : IConstantCalculator<TOutput> wh
 
     public ConstantCalculatorMany(FunnyCalculatorBuilder builder) {
         _apriori = new AprioriTypesMap();
-        _outputsMap = FluentApiTools.SetupManyAprioriOutputs<TOutput>(_apriori);
+        _outputsMap = FluentApiTools.SetupManyAprioriOutputs<TOutput>(_apriori, builder.Dialect);
         _builder = builder;
     }
 
