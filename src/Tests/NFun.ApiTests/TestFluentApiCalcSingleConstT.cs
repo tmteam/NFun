@@ -108,6 +108,14 @@ public class TestFluentApiCalcSingleConstT {
     [TestCase("age>someUnknownvariable")]
     public void UseUnknownInputWithWrongIntOutputType_throws(string expression) =>
         Assert.Throws<FunnyParseException>(() => Funny.Calc<bool>(expression));
+    
+    [Test]
+    public void UseDecimalWithoutDialect_throws()
+        => TestHelper.AssertObviousFailsOnApiUsage(()=>Funny.Calc<decimal>("123"));
+    
+    [Test]
+    public void UseDecimalWithBuilderWithoutDialect_throws()
+        => TestHelper.AssertObviousFailsOnApiUsage(()=>Funny.WithConstant("id",42).Calc<decimal>("123"));
 }
 
 }

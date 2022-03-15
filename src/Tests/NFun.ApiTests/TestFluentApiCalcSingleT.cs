@@ -82,7 +82,7 @@ public class TestFluentApiCalcSingleT {
     [TestCase("age>AGE")]
     public void UseDifferentInputCase_throws(string expression) =>
         Assert.Throws<FunnyParseException>(() => Funny.Calc(expression, new UserInputModel(age: 22)));
-
+    
     private static void CalcInDifferentWays<TInput>(string expr, object expected, TInput input) {
         //CALC
         var result1 = Funny.Calc<TInput>(expr, input);

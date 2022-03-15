@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
@@ -34,6 +35,9 @@ public static class SyntaxNodeFactory {
 
     public static ISyntaxNode HexOrBinIntConstant(ulong value, Interval interval)
         => new GenericIntSyntaxNode(value, true, interval);
+    
+    public static ISyntaxNode DecimalConstant(Decimal value, Interval interval)
+        => new ConstantSyntaxNode(value, FunnyType.Real, interval);
 
     public static ISyntaxNode Array(IList<ISyntaxNode> elements, int start, int end)
         => new ArraySyntaxNode(elements, new Interval(start, end));

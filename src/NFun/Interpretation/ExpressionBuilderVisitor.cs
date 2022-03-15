@@ -282,34 +282,31 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         var elseNode = CastExpressionNode.GetConvertedOrOriginOrThrow(ReadNode(node.ElseExpr), node.OutputType, _dialect.TypeBehaviour);
 
         return new IfElseExpressionNode(
-            ifExpressionNodes: expressionNodes,
-            conditionNodes: conditionNodes,
-            elseNode: elseNode,
-            interval: node.Interval,
-            type: node.OutputType);
+            expressionNodes, conditionNodes, elseNode,
+            node.Interval, node.OutputType);
     }
 
     public IExpressionNode Visit(ConstantSyntaxNode node) {
-        var type = _typesConverter.Convert(_typeInferenceResults.GetSyntaxNodeTypeOrNull(node.OrderNumber));
-        return node.Value switch {
-                   //All integer values are encoded by ulong (if it is ulong) or long otherwise
-                   long l   => ConstantExpressionNode.CreateConcrete(type, l, _dialect.TypeBehaviour, node.Interval),
-                   ulong u  => ConstantExpressionNode.CreateConcrete(type, u, _dialect.TypeBehaviour, node.Interval),
-                   double d => new ConstantExpressionNode(_dialect.TypeBehaviour.GetRealConstantValue(d), type, node.Interval),
-                   _        => new ConstantExpressionNode(node.Value, type, node.Interval)
-               };
+        var (enode, type) = GetConstantNodeOrNull(node.Value, node);
+        return enode ?? new ConstantExpressionNode(node.Value, type, node.Interval);
     }
 
     public IExpressionNode Visit(GenericIntSyntaxNode node) {
-        var type = _typesConverter.Convert(_typeInferenceResults.GetSyntaxNodeTypeOrNull(node.OrderNumber));
+        var (enode, _) = GetConstantNodeOrNull(node.Value, node);
+        return enode ??
+               throw new NFunImpossibleException(
+                   $"Generic syntax node has wrong value type: {node.Value.GetType().Name}");
+    }
 
-        return node.Value switch {
-                   long l  => ConstantExpressionNode.CreateConcrete(type, l, _dialect.TypeBehaviour, node.Interval),
-                   ulong u => ConstantExpressionNode.CreateConcrete(type, u, _dialect.TypeBehaviour, node.Interval),
-                   double d => new ConstantExpressionNode(_dialect.TypeBehaviour.GetRealConstantValue(d), type, node.Interval),
-                   _ => throw new NFunImpossibleException(
-                       $"Generic syntax node has wrong value type: {node.Value.GetType().Name}")
-               };
+    private (IExpressionNode, FunnyType) GetConstantNodeOrNull(object value, ISyntaxNode node) {
+        var type = _typesConverter.Convert(_typeInferenceResults.GetSyntaxNodeTypeOrNull(node.OrderNumber));
+        return (value switch {
+                    long l  => ConstantExpressionNode.CreateConcrete(type, l, _dialect.TypeBehaviour, node.Interval),
+                    ulong u => ConstantExpressionNode.CreateConcrete(type, u, _dialect.TypeBehaviour, node.Interval),
+                    string d => new ConstantExpressionNode(
+                        _dialect.TypeBehaviour.ParseOrNull(d) ?? throw FunnyParseException.ErrorStubToDo("Cannot parse decimal number"), type, node.Interval),
+                    _ => null
+                }, type);
     }
 
     public IExpressionNode Visit(NamedIdSyntaxNode node) {

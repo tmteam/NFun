@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Globalization;
 using System.Linq;
 using System.Numerics;
@@ -204,15 +205,17 @@ public static class SyntaxNodeReader {
             //1,2,3
             var decVal = BigInteger.Parse(intVal.Value.Replace("_", String.Empty));
             if (decVal > ulong.MaxValue)
-                throw FunnyParseException.ErrorStubToDo("Too big value");
+                throw FunnyParseException.ErrorStubToDo("Too big integer value");
 
             return SyntaxNodeFactory.IntGenericConstant((ulong)decVal, intVal.Interval);
         }
 
-        if (flow.MoveIf(TokType.RealNumber, out var realVal)) //1.0
-            return SyntaxNodeFactory.Constant(
-                double.Parse(realVal.Value.Replace("_", String.Empty), CultureInfo.InvariantCulture), FunnyType.Real,
-                realVal.Interval);
+
+        if (flow.MoveIf(TokType.RealNumber, out var realValToken)) //1.0
+            // Real type cannot be parsed without a typecontext. 
+            return SyntaxNodeFactory.Constant(realValToken.Value.Replace("_", String.Empty), FunnyType.Real,
+                realValToken.Interval);
+        
         if (flow.MoveIf(TokType.Text, out var txt))
             return SyntaxNodeFactory.Constant(new TextFunnyArray(txt.Value), FunnyType.Text, txt.Interval);
         if (flow.MoveIf(TokType.Id, out var headToken))

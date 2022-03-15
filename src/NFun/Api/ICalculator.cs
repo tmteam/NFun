@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using NFun.Exceptions;
 using NFun.Interpretation;
 using NFun.Interpretation.Functions;
 using NFun.SyntaxParsing;
@@ -82,6 +83,9 @@ internal class CalculatorSingle<TInput, TOutput> : ICalculator<TInput, TOutput> 
     private readonly IOutputFunnyConverter _outputConverter;
 
     public CalculatorSingle(FunnyCalculatorBuilder builder) {
+        if (builder.Dialect.TypeBehaviour.DoubleIsReal && typeof(TOutput) == typeof(decimal))
+            throw FunnyInvalidUsageException.DecimalTypeCannotBeUsedAsOutput();
+        
         _builder = builder;
         _apriori = new AprioriTypesMap();
         _inputsMap = FluentApiTools.SetupAprioriInputs<TInput>(_apriori, TypeBehaviour.Default);
@@ -112,8 +116,12 @@ internal class ConstantCalculatorSingle<TOutput> : IConstantCalculator<TOutput> 
     private readonly FunnyCalculatorBuilder _builder;
     private readonly AprioriTypesMap _apriori;
     private readonly IOutputFunnyConverter _outputConverter;
-
+   
+   
     public ConstantCalculatorSingle(FunnyCalculatorBuilder builder) {
+        if (builder.Dialect.TypeBehaviour.DoubleIsReal && typeof(TOutput) == typeof(decimal))
+            throw FunnyInvalidUsageException.DecimalTypeCannotBeUsedAsOutput();
+        
         _outputConverter = TypeBehaviourExtensions.GetOutputConverterFor(builder.Dialect.TypeBehaviour, typeof(TOutput));
         _apriori = new AprioriTypesMap { { Parser.AnonymousEquationId, _outputConverter.FunnyType } };
         _builder = builder;

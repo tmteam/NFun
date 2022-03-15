@@ -122,7 +122,18 @@ public class ConstantsTest {
         lowerExpression.AssertReturns("y", expected);
     }
 
+    [TestCase("1",true)]
+    [TestCase("0.1",true)]
+    [TestCase("-42.21",true)]
+    [TestCase("0.00000000000001234567",false)]
+    [TestCase("12345.666666666",true)]
+    [TestCase("12345.666666666666666666666",false)]
+    [TestCase("0.3333333333333333148296162562473909929394721984863281251",false)]
+    public void PreciseDoubleRealConstantTest(string number, bool isPrecise) 
+        => $"({number}).toText()=='{number}'".Calc().AssertAnonymousOut(isPrecise);
+
     [TestCase("y = 91111111111111111111111111111111111111")]
+    [TestCase("y = -91111111111111111111111111111111111111")]
     [TestCase("y = .2")]
     [TestCase("y = 0bx2")]
     [TestCase("y = 02.")]
@@ -141,6 +152,8 @@ public class ConstantsTest {
     [TestCase("y:bool = 'vasa'")]
     [TestCase("y:uint64 = 0x1FFFF_FFFF_FFFF_FFFF")]
     [TestCase("y:uint64 = 0xFFFFFFFFF_FFFFFFFF")]
+    [TestCase("y = 0xFFFFFFFFF_FFFFFFFF_FFFFFFFF")]
+    [TestCase("y = -0xFFFFFFFFF_FFFFFFFF_FFFFFFFF")]
     [TestCase("y:int64 = 0xF000_0000_00000000")]
     [TestCase("y:int64 = 0x1_0000_0000_00000000")]
     [TestCase("y:uint32 = 0x1FFFFFFFF")]

@@ -89,7 +89,8 @@ public class FunnyCalculatorBuilder {
 
     public object Calc(string expression) => BuildForCalcConstant().Calc(expression);
 
-    public TOutput Calc<TOutput>(string expression) => BuildForCalcConstant<TOutput>().Calc(expression);
+    public TOutput Calc<TOutput>(string expression) 
+        => BuildForCalcConstant<TOutput>().Calc(expression);
 
     public object Calc<TInput>(string expression, TInput input) => BuildForCalc<TInput>().Calc(expression, input);
 

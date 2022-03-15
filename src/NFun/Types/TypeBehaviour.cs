@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using NFun.Exceptions;
+using NFun.Tokenization;
 
 namespace NFun.Types {
 
@@ -16,9 +18,10 @@ public abstract class TypeBehaviour {
     public abstract IOutputFunnyConverter GetPrimitiveOutputConverterOrNull(FunnyType funnyType);
     public abstract object GetDefaultPrimitiveValueOrNull(BaseFunnyType typeName);
     public abstract Func<object, object> GetNumericConverterOrNull(BaseFunnyType to);
-    public abstract object GetRealConstantValue(double d);
     public abstract object GetRealConstantValue(ulong d);
     public abstract object GetRealConstantValue(long d);
+    public abstract object ParseOrNull(string text);
+
     public abstract Type GetClrTypeFor(BaseFunnyType funnyType);
 
     public abstract T RealTypeSelect<T>(T ifIsDouble, T ifIsDecimal);
@@ -172,9 +175,9 @@ public class RealIsDoubleTypeBehaviour : TypeBehaviour {
             BaseFunnyType.Char   => ToChar,
             _                    => null
         };
-    public override object GetRealConstantValue(double d) => d;
     public override object GetRealConstantValue(ulong d) => (double)d;
     public override object GetRealConstantValue(long d) => (double)d;
+    public override object ParseOrNull(string text) => double.TryParse(text, out var dbl) ? dbl : null;
     
     public override Type GetClrTypeFor(BaseFunnyType funnyType) =>
         funnyType != BaseFunnyType.Real ? FunToClrTypesMap[(int)funnyType] : typeof(double);
@@ -249,10 +252,11 @@ public class RealIsDecimalTypeBehaviour : TypeBehaviour {
             BaseFunnyType.Char   => ToChar,
             _                    => null
         };
-    public override object GetRealConstantValue(double d) => new decimal(d);
     public override object GetRealConstantValue(ulong d) => new decimal(d);
     public override object GetRealConstantValue(long d) => new decimal(d);
-    
+    public override object ParseOrNull(string text) => decimal.TryParse(text, out var dbl) ? dbl : null;
+
+
     public override Type GetClrTypeFor(BaseFunnyType funnyType) =>
         funnyType != BaseFunnyType.Real ? FunToClrTypesMap[(int)funnyType] : typeof(Decimal);
     

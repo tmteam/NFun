@@ -163,6 +163,7 @@ public static class TestHelper {
             return false;
         if (a.GetType() != b.GetType())
             return false;
+        
         if (a is string astr)
         {
             var bstr = (string)b;
@@ -173,6 +174,12 @@ public static class TestHelper {
         {
             var expectedD = (double)b;
             return Math.Abs(resultD - expectedD) < 0.01;
+        }
+
+        if (a is decimal resultDec)
+        {
+            var expectedDec = (decimal)b;
+            return resultDec.Equals(expectedDec);
         }
 
         if (a is Array arra)
@@ -253,6 +260,21 @@ public static class TestHelper {
         }
     }
 
+    
+    public static void AssertObviousFailsOnApiUsage(Action action) {
+        TraceLog.IsEnabled = true;
+        try
+        {
+            action();
+            Assert.Fail($"Expression executed without any errors");
+        }
+        catch (FunnyInvalidUsageException ex)
+        {
+            Assert.Pass($"Funny api usage error: {ex}");
+            return;
+        }
+    }
+    
     public static void AssertObviousFailsOnParse(Action action) {
         TraceLog.IsEnabled = true;
         try
