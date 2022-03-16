@@ -61,16 +61,14 @@ public class TestFluentApiCalcSingleObjectConst {
     
     [Test]
     public void ConstOfDecimalTest() {
-        var result = Funny.WithDialect(
-                              Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDecimal))
+        var result = Funny.WithDialect(realClrType: RealClrType.IsDecimal)
                           .Calc("13.5");
         Assert.AreEqual(result, (decimal)13.5);
     }
     
     [Test]
     public void ConstOfDecimalStructsTest() {
-        var result = Funny.WithDialect(
-                              Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDecimal))
+        var result = Funny.WithDialect(realClrType: RealClrType.IsDecimal)
                           .Calc("{name = 'test', price = 13.5}");
         Assert.IsInstanceOf<Dictionary<string, object>>(result);
         var dic = (Dictionary<string, object>)result;

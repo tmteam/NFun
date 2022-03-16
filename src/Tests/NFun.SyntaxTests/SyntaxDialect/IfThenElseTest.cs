@@ -13,7 +13,7 @@ public class IfThenElseTest {
 		            if (true) 1
 		            else 4 	
 	            else 5
-            ".BuildWithDialect(Dialects.ModifyOrigin(dialect));
+            ".BuildWithDialect(dialect);
 
     [TestCase(IfExpressionSetup.IfIfElse)]
     [TestCase(IfExpressionSetup.IfElseIf)]
@@ -25,7 +25,7 @@ public class IfThenElseTest {
 		 	            else 3
 		            else 4 	
 	            else 5
-            ".BuildWithDialect(Dialects.ModifyOrigin(dialect));
+            ".BuildWithDialect(dialect);
 
     [TestCase(IfExpressionSetup.IfIfElse)]
     [TestCase(IfExpressionSetup.IfElseIf)]
@@ -39,7 +39,7 @@ public class IfThenElseTest {
                         else 5
 		            else 6 	
 	            else 7
-            ".BuildWithDialect(Dialects.ModifyOrigin(dialect));
+            ".BuildWithDialect(dialect);
 
     [TestCase(1, 0, 0, 1)]
     [TestCase(2, 1, 0, 2)]
@@ -66,7 +66,7 @@ public class IfThenElseTest {
                         else 8 	
                     else if (x2 == 4) 9 
                          else 10"
-            .BuildWithDialect(Dialects.ModifyOrigin(IfExpressionSetup.IfIfElse))
+            .BuildWithDialect(IfExpressionSetup.IfIfElse)
             .Calc(("x1", x1), ("x2", x2), ("x3", x3))
             .AssertReturns("y", expected);
 
@@ -98,7 +98,7 @@ public class IfThenElseTest {
         foreach (var setup in new[] { IfExpressionSetup.IfIfElse, IfExpressionSetup.IfElseIf })
         {
             Funny.Hardcore
-                 .WithDialect(Dialects.ModifyOrigin(setup))
+                 .WithDialect(setup)
                  .Build(expr)
                  .Calc(("x1", x1), ("x2", x2), ("x3", x3))
                  .AssertReturns("y", expected);
@@ -113,7 +113,7 @@ public class IfThenElseTest {
     [TestCase("y = if (2<1 )10 \r if (2>1)  -10 else 0", -10)]
     [TestCase("y = if (1>2 )10\r if (1<2) -10\r else 0", -10)]
     public void ConstantIntEquation(string expr, int expected, IfExpressionSetup setup = IfExpressionSetup.IfIfElse)
-        => expr.BuildWithDialect(Dialects.ModifyOrigin(setup)).Calc().AssertReturns(expected);
+        => expr.BuildWithDialect(setup).Calc().AssertReturns(expected);
 
     [TestCase("y = if (1<2 ) true else false", true)]
     [TestCase("y = if (true) true else false", true)]
@@ -124,7 +124,7 @@ public class IfThenElseTest {
     public void ConstantBoolEquation(
         string expr, bool expected,
         IfExpressionSetup setup = IfExpressionSetup.IfIfElse)
-        => expr.BuildWithDialect(Dialects.ModifyOrigin(setup)).Calc().AssertReturns(expected);
+        => expr.BuildWithDialect(setup).Calc().AssertReturns(expected);
 
     [TestCase(
         @"
@@ -155,7 +155,7 @@ else 'not supported' ", 2, "two")]
     public void SingleVariableEquatation_ififelse(string expression, int x, object expected)
         => Funny.Hardcore
                 .WithApriori<int>("x")
-                .WithDialect(Dialects.ModifyOrigin(IfExpressionSetup.IfIfElse))
+                .WithDialect(ifExpressionSyntax: IfExpressionSetup.IfIfElse)
                 .Build(expression)
                 .Calc("x", x)
                 .AssertAnonymousOut(expected);
@@ -192,7 +192,7 @@ else 'not supported' ", 2, "two")]
         {
             Funny.Hardcore
                  .WithApriori<int>("x")
-                 .WithDialect(Dialects.ModifyOrigin(setup))
+                 .WithDialect(setup)
                  .Build(expression)
                  .Calc("x", x)
                  .AssertAnonymousOut(expected);
@@ -209,7 +209,7 @@ else 'not supported' ", 2, "two")]
     public void ConstantRealEquation(string expr, double expected) {
         foreach (var setup in new[] { IfExpressionSetup.IfIfElse, IfExpressionSetup.IfElseIf })
         {
-            expr.BuildWithDialect(Dialects.ModifyOrigin(setup)).Calc().AssertReturns(expected);
+            expr.BuildWithDialect(setup).Calc().AssertReturns(expected);
         }
     }
 
@@ -217,7 +217,7 @@ else 'not supported' ", 2, "two")]
     [TestCase("y = if (2<1 )10.0\r if (2>1) -10.0 else 0", -10.0)]
     [TestCase("y = if (1>2 )10.0\r if (1<2)-10.0\r else 0.0", -10.0)]
     public void ConstantRealEquation_ififelse(string expr, double expected) {
-        expr.BuildWithDialect(Dialects.ModifyOrigin(IfExpressionSetup.IfIfElse))
+        expr.BuildWithDialect(IfExpressionSetup.IfIfElse)
             .Calc()
             .AssertReturns(expected);
     }
@@ -228,7 +228,7 @@ else 'not supported' ", 2, "two")]
         {
             @"i:int  = 42 * if (x>0) x else -1
                 arri = [if(x>0) x else -x, if(x<0) -1 else 1 ]"
-                .BuildWithDialect(Dialects.ModifyOrigin(setup))
+                .BuildWithDialect(setup)
                 .Calc("x", 10)
                 .AssertResultHas(("i", 420), ("arri", new[] { 10, 1 }));
         }
@@ -257,7 +257,7 @@ else 'not supported' ", 2, "two")]
         foreach (var setup in new[]
             { IfExpressionSetup.IfIfElse, IfExpressionSetup.IfElseIf, IfExpressionSetup.Deny })
         {
-            expr.AssertObviousFailsOnParse(Dialects.ModifyOrigin(setup));
+            expr.AssertObviousFailsOnParse(setup);
         }
     }
 
@@ -286,7 +286,7 @@ else 'not supported' ", 2, "two")]
                     else if (x2 == 4) 9 
                          else 10", IfExpressionSetup.IfElseIf)]
     public void ObviouslyFails(string expr, IfExpressionSetup setup) =>
-        expr.AssertObviousFailsOnParse(Dialects.ModifyOrigin(setup));
+        expr.AssertObviousFailsOnParse(setup);
 }
 
 }

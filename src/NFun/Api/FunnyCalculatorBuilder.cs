@@ -4,6 +4,7 @@ using System.Linq;
 using NFun.Interpretation;
 using NFun.Interpretation.Functions;
 using NFun.Runtime;
+using NFun.Types;
 
 namespace NFun {
 
@@ -14,10 +15,20 @@ public class FunnyCalculatorBuilder {
     private readonly List<(string, object)> _constantList = new();
     private readonly List<Func<DialectSettings,IConcreteFunction>> _customFunctionFactories = new();
 
-    public FunnyCalculatorBuilder WithDialect(DialectSettings dialect) {
+    private FunnyCalculatorBuilder WithDialect(DialectSettings dialect) {
         _dialect = dialect;
         return this;
     }
+    
+    /// <summary>
+    /// Allows to setup syntax and semantics
+    /// </summary>
+    /// <param name="ifExpressionSyntax">If-expression syntax settings</param>
+    /// <param name="integerPreferredType">Which funny type is prefered for integer constant</param>
+    /// <param name="realClrType">Which clr type is used for funny type real</param>
+    public FunnyCalculatorBuilder WithDialect(IfExpressionSetup ifExpressionSyntax = IfExpressionSetup.IfIfElse,
+        IntegerPreferredType integerPreferredType = IntegerPreferredType.I32,
+        RealClrType realClrType = RealClrType.IsDouble) => WithDialect(Dialects.ModifyOrigin(ifExpressionSyntax, integerPreferredType, realClrType));
 
     public FunnyCalculatorBuilder WithConstant(string id, object value) {
         _constantList.Add((id, value));

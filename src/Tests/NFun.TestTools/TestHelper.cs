@@ -40,8 +40,11 @@ public static class TestHelper {
     public static object CalcAnonymousOut(this string expr, params (string id, object val)[] values) =>
         Calc(expr, values).Get(Parser.AnonymousEquationId);
 
-    public static FunnyRuntime BuildWithDialect(this string expr, DialectSettings dialect)
-        => Funny.Hardcore.WithDialect(dialect).Build(expr);
+    public static FunnyRuntime BuildWithDialect(this string expr, 
+        IfExpressionSetup ifExpressionSyntax = IfExpressionSetup.IfIfElse,
+        IntegerPreferredType integerPreferredType = IntegerPreferredType.I32,
+        RealClrType realClrType = RealClrType.IsDouble)
+        => Funny.Hardcore.WithDialect(ifExpressionSyntax, integerPreferredType, realClrType).Build(expr);
 
     public static FunnyRuntime Build(this string expr) => Funny.Hardcore.Build(expr);
 
@@ -228,12 +231,15 @@ public static class TestHelper {
         }
     }
 
-    public static void AssertObviousFailsOnParse(this string expression, DialectSettings dialect = null) {
+    public static void AssertObviousFailsOnParse(this string expression, 
+        IfExpressionSetup ifExpressionSyntax = IfExpressionSetup.IfIfElse,
+        IntegerPreferredType integerPreferredType = IntegerPreferredType.I32,
+        RealClrType realClrType = RealClrType.IsDouble) {
         TraceLog.IsEnabled = true;
         try
         {
             var runtime = Funny.Hardcore
-                               .WithDialect(dialect ?? Dialects.Origin)
+                               .WithDialect(ifExpressionSyntax, integerPreferredType, realClrType)
                                .Build(expression);
             if (runtime.Variables.Any(v => !v.IsOutput))
             {

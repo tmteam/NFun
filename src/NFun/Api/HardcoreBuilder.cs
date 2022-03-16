@@ -30,7 +30,17 @@ public class HardcoreBuilder {
         _constants = constants;
     }
 
-    public HardcoreBuilder WithDialect(DialectSettings dialect) =>
+    /// <summary>
+    /// Allows to setup syntax and semantics
+    /// </summary>
+    /// <param name="ifExpressionSyntax">If-expression syntax settings</param>
+    /// <param name="integerPreferredType">Which funny type is prefered for integer constant</param>
+    /// <param name="realClrType">Which clr type is used for funny type real</param>
+    public HardcoreBuilder WithDialect(IfExpressionSetup ifExpressionSyntax = IfExpressionSetup.IfIfElse,
+        IntegerPreferredType integerPreferredType = IntegerPreferredType.I32,
+        RealClrType realClrType = RealClrType.IsDouble) => WithDialect(Dialects.ModifyOrigin(ifExpressionSyntax, integerPreferredType, realClrType));
+    
+    private HardcoreBuilder WithDialect(DialectSettings dialect) =>
         new(_constants, _apriori, dialect, _customFunctions);
 
     public HardcoreBuilder WithConstant<T>(string id, T clrValue) =>

@@ -23,7 +23,7 @@ public class RealIsDecimalTest {
     [TestCase("0.2 == 0.3", false)]
     public void ConstToBoolCalc(string expr, bool expected)
         => expr
-           .BuildWithDialect(Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDecimal))
+           .BuildWithDialect(realClrType: RealClrType.IsDecimal)
            .Calc()
            .AssertAnonymousOut(expected);
 
@@ -31,7 +31,7 @@ public class RealIsDecimalTest {
     [TestCase("if (x<3) true else false", 2.0, true)]
     public void SingleArgDecimalToBoolCalc(string expr, Decimal arg, Boolean expected)
         => expr
-           .BuildWithDialect(Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDecimal))
+           .BuildWithDialect(realClrType: RealClrType.IsDecimal)
            .Calc("x", arg)
            .AssertAnonymousOut(expected);
 
@@ -66,7 +66,7 @@ public class RealIsDecimalTest {
     [TestCase("x:real; min(x, 1)", 0.5, 0.5)]
     public void SingleArgDecimalCalc(string expr, Decimal arg, Decimal expected)
         => expr
-           .BuildWithDialect(Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDecimal))
+           .BuildWithDialect(realClrType: RealClrType.IsDecimal)
            .Calc("x", arg)
            .AssertAnonymousOut(expected);
 
@@ -136,19 +136,19 @@ public class RealIsDecimalTest {
     [TestCase("f(a) = a+1; f(42.5)", 43.5)]
     public void ConstDecimalCalc(string expr, Decimal expected)
         => expr
-           .BuildWithDialect(Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDecimal))
+           .BuildWithDialect(realClrType: RealClrType.IsDecimal)
            .Calc().AssertAnonymousOut(expected);
 
     [Test]
     public void BigIntNumberParsedWell() =>
         "36893488147419103230.0"
-            .BuildWithDialect(Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDecimal))
+            .BuildWithDialect(realClrType: RealClrType.IsDecimal)
             .Calc().AssertAnonymousOut(new decimal(ulong.MaxValue) * 2);
 
     [Test]
     public void BigNegativeIntNumberParsedWell() =>
         "-36893488147419103230.0"
-            .BuildWithDialect(Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDecimal))
+            .BuildWithDialect(realClrType: RealClrType.IsDecimal)
             .Calc().AssertAnonymousOut(new decimal(ulong.MaxValue) * -2);
 
     [Test]
@@ -160,13 +160,13 @@ public class RealIsDecimalTest {
     [Test]
     public void BigNegativeDecimalNumberParsedWell() =>
         "-368.000000000001"
-            .BuildWithDialect(Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDecimal))
+            .BuildWithDialect(realClrType: RealClrType.IsDecimal)
             .Calc().AssertAnonymousOut(Decimal.Parse("-368.000000000001"));
 
     [Test]
     public void DecimalNumberParsedWell() =>
         "0.000_000_000_000_000_000_000_0012345"
-            .BuildWithDialect(Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDecimal))
+            .BuildWithDialect(realClrType: RealClrType.IsDecimal)
             .Calc().AssertAnonymousOut((decimal.Parse("0.0000000000000000000000012345")));
 
     [TestCase("0.0000000000000000000000012345")]
@@ -174,20 +174,20 @@ public class RealIsDecimalTest {
     [TestCase("123236427364571628376187.01231")]
     public void ToTextTest(string literal) =>
         $"({literal}).toText()"
-            .BuildWithDialect(Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDecimal))
+            .BuildWithDialect(realClrType: RealClrType.IsDecimal)
             .Calc().AssertAnonymousOut(literal);
 
     [TestCase("[1.1,2.2,3.3]", "[1.1,2.2,3.3]")]
     [TestCase("0.5+0.6","1.1")]
     public void ToTextComplexTest(string literal, string expectedText) =>
         $"({literal}).toText()"
-            .BuildWithDialect(Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDecimal))
+            .BuildWithDialect(realClrType: RealClrType.IsDecimal)
             .Calc().AssertAnonymousOut(expectedText);
     
     [Test]
     public void CalcSingleConstDecimal() {
         var dec = Funny
-                  .WithDialect(Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDecimal))
+                  .WithDialect(realClrType: RealClrType.IsDecimal)
                   .Calc<decimal>("36893488147419103230.0");
         Assert.AreEqual(dec, new decimal(ulong.MaxValue) * 2);
     }
@@ -195,7 +195,7 @@ public class RealIsDecimalTest {
     [Test]
     public void CalcSingleConstWithSetupDecimal() {
         var dec = Funny
-                  .WithDialect(Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDecimal))
+                  .WithDialect(realClrType: RealClrType.IsDecimal)
                   .WithConstant("ma", new decimal(ulong.MaxValue) * 2)
                   .Calc<decimal>("ma-1");
         Assert.AreEqual(dec, new decimal(ulong.MaxValue) * 2 - 1);
@@ -208,7 +208,7 @@ public class RealIsDecimalTest {
     [TestCase("12345.666666666")]
     public void PreciseConstantTest(string number) => Assert.AreEqual(number,
         ((decimal)Funny
-                  .WithDialect(Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDecimal))
+                  .WithDialect(realClrType: RealClrType.IsDecimal)
                   .Calc(number))
         .ToString(CultureInfo.InvariantCulture));
 
@@ -226,7 +226,7 @@ public class RealIsDecimalTest {
 
     private void AssertConstDecimalArrayCalc(string expr, params Decimal[] expected)
         => expr
-           .BuildWithDialect(Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDecimal))
+           .BuildWithDialect(realClrType: RealClrType.IsDecimal)
            .Calc().AssertAnonymousOut(expected);
 
     [TestCase("0xFFFF_FFFFF_FFFF_FFFFF_FFFF_FFFFF_FFFF_FFFFF")]
@@ -234,7 +234,7 @@ public class RealIsDecimalTest {
     [TestCase("36893488147419103230")]
     public void ObviousFails(string expr) =>
         TestHelper.AssertObviousFailsOnParse(() =>
-            expr.BuildWithDialect(Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDecimal)));
+            expr.BuildWithDialect(realClrType: RealClrType.IsDecimal));
 }
 
 }

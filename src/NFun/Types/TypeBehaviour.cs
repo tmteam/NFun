@@ -5,7 +5,7 @@ using NFun.Tokenization;
 
 namespace NFun.Types {
 
-public enum RealTypeBehaviour {
+public enum RealClrType {
     IsDecimal,
     IsDouble
 }

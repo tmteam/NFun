@@ -1,4 +1,5 @@
 using System;
+using NFun.Types;
 
 namespace NFun {
 
@@ -87,9 +88,17 @@ public static class Funny {
         string id,
         Func<Tin1, Tin2, Tin3, Tin4, Tin5, Tin6, Tin7, TOut> function)
         => new FunnyCalculatorBuilder().WithFunction(id, function);
-
-    public static FunnyCalculatorBuilder WithDialect(DialectSettings dialect)
-        => new FunnyCalculatorBuilder().WithDialect(dialect);
+    
+    /// <summary>
+    /// Allows to setup syntax and semantics
+    /// </summary>
+    /// <param name="ifExpressionSyntax">If-expression syntax settings</param>
+    /// <param name="integerPreferredType">Which funny type is prefered for integer constant</param>
+    /// <param name="realClrType">Which clr type is used for funny type real</param>
+    public static FunnyCalculatorBuilder WithDialect(IfExpressionSetup ifExpressionSyntax = IfExpressionSetup.IfIfElse,
+        IntegerPreferredType integerPreferredType = IntegerPreferredType.I32,
+        RealClrType realClrType = RealClrType.IsDouble)
+        => new FunnyCalculatorBuilder().WithDialect(ifExpressionSyntax, integerPreferredType, realClrType);
 
     #endregion
 }

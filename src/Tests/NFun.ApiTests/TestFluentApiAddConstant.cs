@@ -61,7 +61,7 @@ public class TestFluentApiAddConstant {
     public void AddDecimalConstantAsDecimalEarly() {
         var calculator = Funny
                          .WithConstant("ultra", (Decimal)100.5)
-                         .WithDialect(Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDecimal))
+                         .WithDialect(realClrType: RealClrType.IsDecimal)
                          .BuildForCalcMany<UserInputModel, ContractOutputModel>();
         AssertConstantSetToDecimalAndDouble(calculator,100.5);
     }
@@ -69,7 +69,7 @@ public class TestFluentApiAddConstant {
     [Test]
     public void AddDecimalConstantAsDecimalLate() {
         var calculator = Funny
-                         .WithDialect(Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDecimal))
+                         .WithDialect(realClrType: RealClrType.IsDecimal)
                          .WithConstant("ultra", (Decimal)100.5)
                          .BuildForCalcMany<UserInputModel, ContractOutputModel>();
         AssertConstantSetToDecimalAndDouble(calculator,100.5);
@@ -79,7 +79,7 @@ public class TestFluentApiAddConstant {
     public void AddDecimalConstantAsDoubleEarly() {
         var calculator = Funny
                          .WithConstant("ultra", (Decimal)100.5)
-                         .WithDialect(Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDouble))
+                         .WithDialect(realClrType: RealClrType.IsDecimal)
                          .BuildForCalcMany<UserInputModel, ContractOutputModel>();
         AssertConstantSetToDecimalAndDouble(calculator,100.5);
     }
@@ -87,7 +87,7 @@ public class TestFluentApiAddConstant {
     [Test]
     public void AddDecimalConstantAsDoubleLate() {
         var calculator = Funny
-                         .WithDialect(Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDouble))
+                         .WithDialect(realClrType: RealClrType.IsDouble)
                          .WithConstant("ultra", (Decimal)100.5)
                          .BuildForCalcMany<UserInputModel, ContractOutputModel>();
         AssertConstantSetToDecimalAndDouble(calculator,100.5);
@@ -97,7 +97,7 @@ public class TestFluentApiAddConstant {
     public void AddDoubleConstantAsDecimalEarly() {
         var calculator = Funny
                          .WithConstant("ultra", (double)100.5)
-                         .WithDialect(Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDecimal))
+                         .WithDialect(realClrType: RealClrType.IsDecimal)
                          .BuildForCalcMany<UserInputModel, ContractOutputModel>();
         AssertConstantSetToDecimalAndDouble(calculator,100.5);
     }
@@ -105,7 +105,7 @@ public class TestFluentApiAddConstant {
     [Test]
     public void AddDoubleConstantAsDecimalLate() {
         var calculator = Funny
-                         .WithDialect(Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDecimal))
+                         .WithDialect(realClrType: RealClrType.IsDecimal)
                          .WithConstant("ultra", (double)100.5)
                          .BuildForCalcMany<UserInputModel, ContractOutputModel>();
         AssertConstantSetToDecimalAndDouble(calculator,100.5);

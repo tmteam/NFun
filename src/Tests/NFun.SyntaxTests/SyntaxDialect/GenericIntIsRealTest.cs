@@ -8,10 +8,10 @@ using NUnit.Framework;
 namespace NFun.SyntaxTests.SyntaxDialect {
 
 public abstract class GenericIntConstantTestBase<T> {
-    private DialectSettings _dialect;
+    private readonly IntegerPreferredType _integerPreferredType;
 
-    protected GenericIntConstantTestBase(IntegerPreferredType preferred) {
-        _dialect = Dialects.ModifyOrigin(integerPreferredType: preferred);
+    protected GenericIntConstantTestBase(IntegerPreferredType integerPreferredType) {
+        _integerPreferredType = integerPreferredType;
     }
 
     [TestCase("y = 2+3", 5)]
@@ -160,7 +160,7 @@ public abstract class GenericIntConstantTestBase<T> {
     [Test]
     public void OverrideConstantWithOutputVariable_constantNotUsed() {
         var runtime = Funny.Hardcore
-                           .WithDialect(_dialect)
+                           .WithDialect(integerPreferredType: _integerPreferredType)
                            .WithConstant("pi", Math.PI)
                            .Build("pi = 3; y = pi");
 
@@ -227,7 +227,7 @@ public abstract class GenericIntConstantTestBase<T> {
     protected abstract T Convert(int value);
 
     protected FunnyRuntime Build(string expr)
-        => Funny.Hardcore.WithDialect(_dialect).Build(expr);
+        => Funny.Hardcore.WithDialect(integerPreferredType: _integerPreferredType).Build(expr);
 
     protected CalculationResult Calc(string expr)
         => Build(expr).Calc();

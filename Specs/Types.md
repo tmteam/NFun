@@ -20,19 +20,19 @@ Some types do not have an identifier at all. It is true for  `char`, `rule` and 
 
 ## Primitive types
 
-| Name            | Identifier      | Description                                                                                                         | Example                            |
-|-----------------|-----------------|---------------------------------------------------------------------------------------------------------------------|------------------------------------|
-| Any             | `any`           | Any value                                                                                                           | `y:any = if(true) 12 else 'test' ` |
-| Boolean         | `bool`          | Discrete value                                                                                                      | `y:bool = true or false `          |
-| Character       | ---             | Symbol. Cannot be set explicitly                                                                                    | `y = 'text'[0]`                    |
-| Byte            | `uint8` `byte`  | Integer value [0..255]                                                                                              | `y:byte = 123; z:uint8 = 0xFF`     |
-| Unsigned int 16 | `uint16`        | Integer value [0..65535]                                                                                            | `y:uint16 = 123 `                  |
-| Unsigned int 32 | `uint32` `uint` | Integer value [0..4294967295]                                                                                       | `y:uint32 = 123 `                  |
-| Unsigned int 64 | `uint64`        | Integer value [0..18446744073709551615]                                                                             | `y:uint64 = 123 `                  |
-| Signed int 16   | `int16`         | Integer value [-32768..32767]                                                                                       | `y:int16 = 123 `                   |
-| Signed int 32   | `int32` `int`   | Integer value [-2147483648..2147483647]                                                                             | `y:int32 = 123 `                   |
-| Signed int 64   | `int64`         | Integer value [-140737488355328..140737488355327]                                                                   | `y:int64 = 123 `                   |
-| Natural value   | `real`          | Non-integer numeric value . Depending on the settings, it can be either a floating point number or a decimal number | `y:real = 123.5 `                  |
+| Name            | Identifier      | Description                                                                                              | Example                            |
+|-----------------|-----------------|----------------------------------------------------------------------------------------------------------|------------------------------------|
+| Any             | `any`           | Any value                                                                                                | `y:any = if(true) 12 else 'test' ` |
+| Boolean         | `bool`          | Discrete value                                                                                           | `y:bool = true or false `          |
+| Character       | ---             | Symbol. Cannot be set explicitly                                                                         | `y = 'text'[0]`                    |
+| Byte            | `uint8` `byte`  | Integer value [0..255]                                                                                   | `y:byte = 123; z:uint8 = 0xFF`     |
+| Unsigned int 16 | `uint16`        | Integer value [0..65535]                                                                                 | `y:uint16 = 123 `                  |
+| Unsigned int 32 | `uint32` `uint` | Integer value [0..4294967295]                                                                            | `y:uint32 = 123 `                  |
+| Unsigned int 64 | `uint64`        | Integer value [0..18446744073709551615]                                                                  | `y:uint64 = 123 `                  |
+| Signed int 16   | `int16`         | Integer value [-32768..32767]                                                                            | `y:int16 = 123 `                   |
+| Signed int 32   | `int32` `int`   | Integer value [-2147483648..2147483647]                                                                  | `y:int32 = 123 `                   |
+| Signed int 64   | `int64`         | Integer value [-140737488355328..140737488355327]                                                        | `y:int64 = 123 `                   |
+| Natural value   | `real`          | Non-integer numeric value . Depending on the settings, it can be either a double or a decimal clr number | `y:real = 123.5 `                  |
 
 ## Generalized types
 

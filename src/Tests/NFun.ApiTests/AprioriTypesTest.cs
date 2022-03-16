@@ -30,7 +30,7 @@ public class AprioriTypesTest {
     [Test]
     public void AprioriInputOfDecimalLateSpecified_inputTypeIsCorrect() {
         var runtime = Funny.Hardcore
-                           .WithDialect(Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDecimal))    
+                           .WithDialect(realClrType: RealClrType.IsDecimal)    
                            .WithApriori<decimal>("x")
                            .Build("y = x+1");
         Assert.AreEqual(FunnyType.Real, runtime["x"].Type);

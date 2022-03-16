@@ -26,7 +26,7 @@ public class TestFluentApiAddFunctionTest {
     public void SingleVariableFunctionConstructionEarlyConstruction() {
         var calculator = Funny
                          .WithFunction("myDec", (int i) => new decimal(i))
-                         .WithDialect(Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDecimal))
+                         .WithDialect(realClrType: RealClrType.IsDecimal)
                          .BuildForCalc<ModelWithInt, decimal>();
 
         Func<ModelWithInt, decimal> lambda = calculator.ToLambda("out = myDec(id)*2");
@@ -40,7 +40,7 @@ public class TestFluentApiAddFunctionTest {
     [Test]
     public void SingleVariableFunctionConstructionLateConstruction() {
         var calculator = Funny
-                         .WithDialect(Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDecimal))
+                         .WithDialect(realClrType: RealClrType.IsDecimal)
                          .WithFunction("myDec", (int i) => new decimal(i))
                          .BuildForCalc<ModelWithInt, decimal>();
 
@@ -56,7 +56,7 @@ public class TestFluentApiAddFunctionTest {
     public void SingleVariableFunctionEarlyConstruction_2() {
         var calculator = Funny
                          .WithFunction("myDec", (Decimal i) => (int)Math.Round(i))
-                         .WithDialect(Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDecimal))
+                         .WithDialect(realClrType: RealClrType.IsDecimal)
                          .BuildForCalc<ModelWithInt, int>();
 
         Func<ModelWithInt, int> lambda = calculator.ToLambda("out = myDec(42.5*id)-2");
@@ -68,7 +68,7 @@ public class TestFluentApiAddFunctionTest {
     [Test]
     public void SingleVariableFunctionLateConstruction_2() {
         var calculator = Funny
-                         .WithDialect(Dialects.ModifyOrigin(realTypeBehaviour: RealTypeBehaviour.IsDecimal))
+                         .WithDialect(realClrType: RealClrType.IsDecimal)
                          .WithFunction("myDec", (Decimal i) => (int)Math.Round(i))
                          .BuildForCalc<ModelWithInt, int>();
 

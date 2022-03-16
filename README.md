@@ -92,10 +92,10 @@ Low-level hardcore API is also supported
   z:int = y*x
   m:real[] = [1,2,3].map(rule it/2)
 ```
-- Built-in functions
+- Double or decimal arithmetics
 - Syntax and semantic customization
+- Built-in functions
 - Comments
-- And a lot more Funny stuff
 
 ## How to
 

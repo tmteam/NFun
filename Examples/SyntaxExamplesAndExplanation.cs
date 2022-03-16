@@ -203,13 +203,13 @@ public class SyntaxExamplesAndExplanation {
         //but this behaviour can be changed with dialect settings
         //for example we can change it to "integer constants resolves as reals".
         var runtime = Funny.Hardcore
-                           .WithDialect(Dialects.ModifyOrigin(integerPreferredType: IntegerPreferredType.Real))
+                           .WithDialect(integerPreferredType: IntegerPreferredType.Real)
                            .Build("1");
         Assert.AreEqual(FunnyType.Real, runtime["out"].Type);
         //But we are talking only about the PREFERRED type.
         //Integer constants can still be used as other types if necessary
         var runtime2 = Funny.Hardcore
-                            .WithDialect(Dialects.ModifyOrigin(integerPreferredType: IntegerPreferredType.Real))
+                            .WithDialect(integerPreferredType: IntegerPreferredType.Real)
                             .Build("y:byte[] = [1,2,3]");
         Assert.AreEqual(FunnyType.ArrayOf(FunnyType.UInt8), runtime2["y"].Type);
     }
@@ -298,12 +298,12 @@ public class SyntaxExamplesAndExplanation {
         //or allow only 'if - else if - else' style
         Assert.Throws<FunnyParseException>(
             () => Funny.Hardcore
-                       .WithDialect(Dialects.ModifyOrigin(IfExpressionSetup.Deny))
+                       .WithDialect(IfExpressionSetup.Deny)
                        .Build("if(true) 1 else 0"));
 
         Assert.Throws<FunnyParseException>(
             () => Funny.Hardcore
-                       .WithDialect(Dialects.ModifyOrigin(IfExpressionSetup.IfElseIf))
+                       .WithDialect(IfExpressionSetup.IfElseIf)
                        .Build(
                            @"
                                 if(true)  1 

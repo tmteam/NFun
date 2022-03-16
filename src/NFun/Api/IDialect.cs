@@ -8,9 +8,9 @@ public static class Dialects {
     public static DialectSettings ModifyOrigin(
         IfExpressionSetup ifExpressionSetup = IfExpressionSetup.IfIfElse,
         IntegerPreferredType integerPreferredType = IntegerPreferredType.I32,
-        RealTypeBehaviour realTypeBehaviour = RealTypeBehaviour.IsDouble)
+        RealClrType realClrType = RealClrType.IsDouble)
         => new(ifExpressionSetup, integerPreferredType,
-            realTypeBehaviour == RealTypeBehaviour.IsDouble
+            realClrType == RealClrType.IsDouble
                 ? TypeBehaviour.RealIsDouble
                 : TypeBehaviour.RealIsDecimal);
 }

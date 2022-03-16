@@ -137,27 +137,34 @@ public class ApiUsageExamples {
                    .Calc("myMin(foo,123) == foo");
         Assert.AreEqual(true, a);
     }
-    
+
     [Test]
     // FluentApi. Syntax and semantic customization 
     public void FluentApi_Dialects() {
         //Also you may override fun-dialect for your needs
-        
+
         //Let's deny if expression at all! 
-        var builder = Funny.WithDialect(Dialects.ModifyOrigin(IfExpressionSetup.Deny));
-        
+        var builder = Funny.WithDialect(IfExpressionSetup.Deny);
+
         //now you cannot launch script with such an expression
-        Assert.Throws<FunnyParseException>(()=> builder.Calc("if(2>1) true else false"));
-        
+        Assert.Throws<FunnyParseException>(() => builder.Calc("if(2>1) true else false"));
+
         //Default type of numbers '1' and '2' - is Integer
         // let's make them Real!
-        object sumResult = Funny.WithDialect(
-                                    Dialects.ModifyOrigin(
-                                        integerPreferredType: IntegerPreferredType.Real))
-                                .Calc("1 + 2");
+        object sumResult = Funny
+                           .WithDialect(integerPreferredType: IntegerPreferredType.Real)
+                           .Calc("1 + 2");
         Assert.IsInstanceOf<double>(sumResult); //now preferred type of INTEGER constants is REAL
+
+
+        //now lets turn all 'real' arithmetics to decimal
+
+        object decimalResult = Funny
+                               .WithDialect(realClrType: RealClrType.IsDecimal)
+                               .Calc("0.2 + 0.3");
+        Assert.AreEqual(new decimal(0.5), decimalResult);
     }
-    
+
     [Test]
     // FluentApi. Configuring script execution 
     public void FluentApi_Build() {
