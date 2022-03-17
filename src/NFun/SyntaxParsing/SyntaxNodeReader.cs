@@ -362,7 +362,7 @@ public static class SyntaxNodeReader {
         var pos = flow.Position;
         var bodyOrTypeNotation = ReadNodeOrNull(flow);
         if (bodyOrTypeNotation == null)
-            throw Errors.UndoneAnonymousFunction(pos, flow.CurrentTokenPosition);
+            throw Errors.AnonymousFunBodyIsMissing(new Interval(pos, flow.CurrentTokenPosition));
 
         var returnType = TryReadTypeDef(flow);
         if (flow.Current.Is(TokType.Def))
@@ -378,7 +378,7 @@ public static class SyntaxNodeReader {
             var definition = bodyOrTypeNotation;
             bodyOrTypeNotation = ReadNodeOrNull(flow);
             if (bodyOrTypeNotation == null)
-                throw Errors.UndoneAnonymousFunction(pos, flow.CurrentTokenPosition);
+                throw Errors.AnonymousFunBodyIsMissing(new Interval(pos, flow.CurrentTokenPosition));
             return SyntaxNodeFactory.AnonymFun(definition, returnType, bodyOrTypeNotation);
         }
 
