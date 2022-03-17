@@ -19,11 +19,8 @@ public class FunnyParseException : Exception {
         Interval = new Interval(start, end);
     }
 
-    public override string ToString()
-        => $"[FU{Code}] {base.ToString()}";
-
-    //todo the error is not implemented yet, but it should -)
-    internal static FunnyParseException ErrorStubToDo(string message) => new(-1, message, 0, 0);
+    public override string ToString() => $"[FU{Code}] {base.ToString()}";
+    
 }
 
 }

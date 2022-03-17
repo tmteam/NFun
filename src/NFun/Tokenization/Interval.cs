@@ -3,8 +3,9 @@ using System;
 namespace NFun.Tokenization {
 
 public readonly struct Interval {
-    public static Interval Empty => new(-1, -1);
+    public static Interval Empty => new(0, 0);
     public static Interval Position(int position) => new(position, position);
+    
     public readonly int Start;
     public readonly int Finish;
 
