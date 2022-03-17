@@ -18,7 +18,7 @@ using NFun.Types;
 
 namespace NFun.ParseErrors {
 
-internal static class ErrorFactory {
+internal static class Errors {
     #region 1xx read tokens
 
     internal static Exception QuoteAtEndOfString(char quoteSymbol, int start, int end) =>
@@ -40,8 +40,7 @@ internal static class ErrorFactory {
             start, end);
 
     #endregion
-
-
+    
     #region 2xx-3xx parsing
 
     private static readonly string Nl = Environment.NewLine;
@@ -489,13 +488,6 @@ internal static class ErrorFactory {
 
     #region 5xx - Interpritation exceptions
 
-    internal static Exception CycleEquationDependencies(EquationSyntaxNode[] result) {
-        var expression = result.First().Expression;
-        return new FunnyParseException(
-            500, "Cycle dependencies found: " + string.Join("->", result.Select(r => r.Id)),
-            expression.Interval);
-    }
-
     internal static Exception NotAnExpression(ISyntaxNode node)
         => new FunnyParseException(503, $"{node} is not an expression", node.Interval);
 
@@ -510,50 +502,18 @@ internal static class ErrorFactory {
     internal static Exception AnonymousFunDefinitionIsMissing(ISyntaxNode node)
         => new FunnyParseException(512, "Anonymous fun definition is missing", node.Interval);
 
-    internal static Exception AnonymousFunBodyIsMissing(ISyntaxNode node)
-        => new FunnyParseException(515, "Anonymous fun body is missing", node.Interval);
+    internal static Exception AnonymousFunBodyIsMissing(Interval interval)
+        => new FunnyParseException(515, "Anonymous fun body is missing. Did you forget '=' symbol?", interval);
 
     internal static Exception AnonymousFunArgumentIsIncorrect(ISyntaxNode node)
         => new FunnyParseException(518, "Invalid anonymous fun argument", node.Interval);
-
-    internal static Exception FunctionIsNotExists(ISyntaxNode node) {
-        if (node is FunCallSyntaxNode fc)
-            return new FunnyParseException(521, $"Unknown function {fc.Id}", fc.Interval);
-        return new FunnyParseException(521, $"Unknown function", node?.Interval ?? Interval.Empty);
-    }
-
-
-    internal static Exception AmbiguousFunctionChoise(ISyntaxNode node) {
-        if (node is FunCallSyntaxNode fc)
-
-            return new FunnyParseException(
-                522,
-                $"Several functions with name: {fc.Id} can be used in expression. Did you mean input variable instead of function?",
-                node.Interval);
-        return new FunnyParseException(523, $"Ambiguous function call", node?.Interval ?? Interval.Empty);
-    }
-
+    
     internal static Exception FunctionNameAndVariableNameConflict(VariableUsages usages)
         => new FunnyParseException(
             524,
             $"Function with name: {usages.Source.Name} can be used in expression because it's name conflict with function that exists in scope. Declare input variable",
             usages.Source.TypeSpecificationIntervalOrNull ??
             usages.Usages.FirstOrDefault()?.Interval ?? Interval.Empty);
-
-    internal static Exception AmbiguousFunctionChoise(NamedIdSyntaxNode varName)
-        => new FunnyParseException(
-            526,
-            $"Several functions with name: {varName.Id} can be used in expression. Did you mean input variable instead of function?",
-            varName.Interval);
-
-    internal static Exception ArrayInitializerTypeMismatch(FunnyType stepType, ISyntaxNode node)
-        => new FunnyParseException(
-            527,
-            $"Array initializator step has to be int type only but was '{stepType}'. Example: [1..5 step 2]",
-            node.Interval);
-
-    internal static Exception CannotParseNumber(string val, Interval interval)
-        => new FunnyParseException(530, $"Cannot parse number '{val}'", interval);
 
     internal static Exception FunctionOverloadNotFound(FunCallSyntaxNode node, IFunctionDictionary functions) {
         var candidates = functions.SearchAllFunctionsIgnoreCase(node.Id, node.Args.Length);
@@ -604,29 +564,11 @@ internal static class ErrorFactory {
             557, $"'Argument name '{argNode.Name}' of anonymous fun duplicates ",
             argNode.Interval);
 
-    internal static Exception AnonymousFunctionArgumentDuplicates(
-        NamedIdSyntaxNode argNode,
-        ISyntaxNode funDefinition)
-        => new FunnyParseException(
-            560, $"'Argument name '{argNode.Id}' of anonymous fun duplicates ",
-            argNode.Interval);
-
-    internal static Exception AnonymousFunctionArgumentDuplicates(
-        TypedVarDefSyntaxNode argNode,
-        ISyntaxNode funDefinition)
-        => new FunnyParseException(
-            563,
-            $"'Argument '{argNode.Id}:{argNode.FunnyType}' of anonymous fun duplicates ",
-            argNode.Interval);
-
     internal static Exception AnonymousFunctionArgumentConflictsWithOuterScope(string argName, Interval defInterval)
         => new FunnyParseException(
             566,
             $"'Argument name '{argName}' of anonymous fun conflicts with outer scope variable. It is denied for your safety.",
             defInterval);
-
-    internal static Exception AnonymousFunDefinitionIsIncorrect(ArrowAnonymFunctionSyntaxNode arrowAnonymFunNode)
-        => new FunnyParseException(569, $"'Anonym fun definition is incorrect ", arrowAnonymFunNode.Interval);
 
     internal static Exception ComplexRecursion(UserFunctionDefinitionSyntaxNode[] functionSolveOrder) {
         var callOrder = string.Join("->", functionSolveOrder.Select(s => s.Id + "(..)"));
@@ -646,12 +588,6 @@ internal static class ErrorFactory {
     internal static FunnyParseException NoOutputVariablesSetted(
         Memory<(string, IOutputFunnyConverter, PropertyInfo)> expectedOutputs)
         => new(609, "No output values were setted", Interval.Empty);
-
-    internal static FunnyParseException OutputIsUnset(FunnyType expectedOutputType)
-        => new(
-            612,
-            $"Output is not set. Anonymous of type '{expectedOutputType.ToString()}' equation or '{Parser.AnonymousEquationId}' variable expected"
-          , Interval.Empty);
 
     internal static FunnyParseException OutputIsUnset()
         => new(
@@ -684,24 +620,11 @@ internal static class ErrorFactory {
             failedInterval);
     }
 
-    internal static Exception VariousArrayElementTypes(ArraySyntaxNode arraySyntaxNode) {
-        return new FunnyParseException(
-            578, $"'Various array element types. " +
-                 $"{arraySyntaxNode.OutputType} = [{string.Join(",", arraySyntaxNode.Expressions.Select(e => e.OutputType))}]",
-            arraySyntaxNode.Interval);
-    }
-
-    internal static Exception VariousArrayElementTypes(ISyntaxNode failedArrayElement) {
-        return new FunnyParseException(581, $"'Various array element types", failedArrayElement.Interval);
-    }
-
-    internal static Exception VariousArrayElementTypes(IExpressionNode[] elements, int failureIndex) {
-        var firstType = elements[0].Type;
-        var failureType = elements[failureIndex].Type;
-        return new FunnyParseException(
-            584, $"'Not equal array element types: {firstType} and {failureType}",
-            new Interval(elements[failureIndex - 1].Interval.Start, elements[failureIndex].Interval.Finish));
-    }
+    internal static Exception VariousArrayElementTypes(ArraySyntaxNode arraySyntaxNode) => 
+        new FunnyParseException(
+        578, $"'Various array element types. " +
+             $"{arraySyntaxNode.OutputType} = [{string.Join(",", arraySyntaxNode.Expressions.Select(e => e.OutputType))}]",
+        arraySyntaxNode.Interval);
 
     internal static Exception CannotUseOutputValueBeforeItIsDeclared(VariableUsages usages) {
         var interval = (usages.Usages.FirstOrDefault()?.Interval) ??
@@ -719,8 +642,7 @@ internal static class ErrorFactory {
             usages.Usages.First().Interval);
 
     #endregion
-
-
+    
     #region typeSolving
 
     internal static Exception TypesNotSolved(ISyntaxNode syntaxNode)
@@ -739,8 +661,7 @@ internal static class ErrorFactory {
         => new FunnyParseException(609, $"Output variable '{node.Id}' type is incorrect", node.Interval);
 
     #endregion
-
-
+    
     internal static Exception TranslateTicError(TicException ticException, ISyntaxNode syntaxNodeToSearch) {
         if (ticException is IncompatibleAncestorSyntaxNodeException syntaxNodeEx)
         {
@@ -786,13 +707,69 @@ internal static class ErrorFactory {
 
         return TypesNotSolved(syntaxNodeToSearch);
     }
+    
+  
+    internal static Exception NumberOverflow(Interval interval, FunnyType type) 
+        => ErrorStubToDo($"{type} overflow", interval);
+    
+    internal static Exception CannotUseSuperAnonymousVariableHere(Interval interval) 
+        => ErrorStubToDo("'it' variable can be used only as arguments in rules", interval);
+    
+    internal static Exception CannotParseDecimalNumber(Interval interval) 
+        => ErrorStubToDo("Cannot parse decimal number", interval);
+    
+    internal static Exception IfElseExpressionIsDenied(Interval interval) 
+        => ErrorStubToDo("If-else expressions are denied for the dialect", interval);
 
+    internal static Exception FieldIsMissed(string name, Interval interval)  
+        => ErrorStubToDo($"Field {name} is missed in struct", interval);
+    
+    internal static Exception FieldNotExists(string name, Interval interval)  
+        => ErrorStubToDo($"Access to non exist field {name}", interval);
 
     internal static Exception UndoneAnonymousFunction(int anonymousStart, int anonymousFinish)
-        => FunnyParseException.ErrorStubToDo("SuperAnonymousFunctionIsNotClose");
+        => ErrorStubToDo("SuperAnonymousFunctionIsNotClose", new Interval(anonymousStart, anonymousFinish));
 
     internal static Exception VariableIsAlreadyDeclared(string nodeId, Interval nodeInterval)
-        => FunnyParseException.ErrorStubToDo($"Variable {nodeId} is already declared");
+        => ErrorStubToDo($"Variable {nodeId} is already declared",nodeInterval);
+    
+    internal static Exception UnexpectedTokenEqualAfterRule(Interval nodeInterval)
+        => ErrorStubToDo(
+            "unexpected '=' symbol. Did you forgot brackets after 'rule' keyword?",nodeInterval);
+    internal static Exception StructFieldDelimiterIsMissed(Interval interval)
+        => ErrorStubToDo(
+            "There is no separator between the fields of structures. " +
+            "Use ',' or new line to separate fields",interval);
+    internal static Exception StructFieldIdIsMissed(Tok tok)
+        => ErrorStubToDo($"{tok} found instead of the structure field name",tok.Interval);
+    internal static Exception StructFieldSpecificationIsNotSupportedYet(Interval interval)
+        => ErrorStubToDo($"Struct field type specification is not supported yet",interval);
+    internal static Exception StructFielDefenitionTokenIsMissed(Tok tok)
+        => ErrorStubToDo($"{tok} found instead of the '=' symbol", tok.Interval);
+    internal static Exception StructFieldBodyIsMissed(Tok id)
+        => ErrorStubToDo($"Field value is missed '{id} = ???'", id.Interval);
+    
+    internal static Exception EmptyStructsAreNotSupported(Interval interval)
+        => ErrorStubToDo($"Struct has to have at least one field", interval);
+    internal static Exception UnexpectedSpaceBeforeArrayTypeBrackets(FunnyType elementType, Interval interval)
+        => ErrorStubToDo($"there should be no space before the square brackets when defining the array type. Example: 'a:{elementType}[]'", interval);
+    internal static Exception TokenIsMissed(Tok previous, TokType tokType)
+        => ErrorStubToDo($"'{tokType}' is missing after '{previous}'", Interval.Position(previous.Finish));
+
+    internal static Exception TokenIsMissed(int position, TokType tokType)
+        => ErrorStubToDo($"'{tokType}' is missing at end of stream", Interval.Position(position));
+    
+    internal static Exception TokenIsMissed(TokType tokType, Tok actualToken)
+        => ErrorStubToDo($"'{tokType}' is missing but was '{actualToken}'", actualToken.Interval);
+
+    internal static Exception FunctionIsNotSolved(UserFunctionDefinitionSyntaxNode function)
+        => ErrorStubToDo($"Cannot calculate types for function '{function.Head}'. Check the expressions and/or add types to arguments/return", function.Interval);
+    
+    internal static Exception TokenIsReserved(Interval interval, string word) 
+        => ErrorStubToDo($"Symbol '{word}' is reserved for future use and cannot be used in script", interval);
+
+    private static Exception ErrorStubToDo(string message, Interval interval)
+        => FunnyParseException.ErrorStubToDo(message);
 }
 
 }

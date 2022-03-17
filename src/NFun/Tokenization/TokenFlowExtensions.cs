@@ -22,7 +22,7 @@ public static class TokenFlowExtensions {
         while (flow.IsCurrent(TokType.MetaInfo))
         {
             if (!newLine)
-                throw ErrorFactory.NowNewLineBeforeAttribute(flow);
+                throw Errors.NowNewLineBeforeAttribute(flow);
 
             ans.Add(ReadAttributeOrThrow(flow));
             flow.SkipNewLines();
@@ -35,7 +35,7 @@ public static class TokenFlowExtensions {
         var start = flow.Current.Start;
         flow.MoveNext();
         if (!flow.MoveIf(TokType.Id, out var id))
-            throw ErrorFactory.ItIsNotAnAttribute(start, flow.Current);
+            throw Errors.ItIsNotAnAttribute(start, flow.Current);
         object val = null;
         if (flow.MoveIf(TokType.Obr))
         {
@@ -57,16 +57,16 @@ public static class TokenFlowExtensions {
                     val = next.Value;
                     break;
                 default:
-                    throw ErrorFactory.ItIsNotCorrectAttributeValue(next);
+                    throw Errors.ItIsNotCorrectAttributeValue(next);
             }
 
             flow.MoveNext();
             if (!flow.MoveIf(TokType.Cbr))
-                throw ErrorFactory.AttributeCbrMissed(start, flow);
+                throw Errors.AttributeCbrMissed(start, flow);
         }
 
         if (!flow.MoveIf(TokType.NewLine))
-            throw ErrorFactory.NowNewLineAfterAttribute(start, flow);
+            throw Errors.NowNewLineAfterAttribute(start, flow);
 
         return new FunnyAttribute(id.Value, val);
     }

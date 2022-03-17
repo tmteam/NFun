@@ -238,7 +238,7 @@ public static class TypeBehaviourExtensions {
             case BaseFunnyType.Struct:
                 return new StructToDictionaryOutputFunnyConverter(typeBehaviour, funnyType);
             default:
-                throw ErrorFactory.TypeCannotBeUsedAsOutputNfunType(funnyType);
+                throw Errors.TypeCannotBeUsedAsOutputNfunType(funnyType);
         }
     }
     

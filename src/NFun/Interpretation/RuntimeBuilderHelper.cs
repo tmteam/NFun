@@ -32,7 +32,7 @@ internal static class RuntimeBuilderHelper {
                 dialect.TypeBehaviour);
 
             if (!vars.TryAdd(variableSource))
-                throw ErrorFactory.FunctionArgumentDuplicates(functionSyntax, functionSyntax.Args[i]);
+                throw Errors.FunctionArgumentDuplicates(functionSyntax, functionSyntax.Args[i]);
         }
 
         var bodyExpression = ExpressionBuilderVisitor.BuildExpression(
@@ -74,17 +74,17 @@ internal static class RuntimeBuilderHelper {
                 aprioriTypes: aprioriTypes,
                 results: resultBuilder,
                 dialect: dialect))
-                throw ErrorFactory.TypesNotSolved(syntaxTree);
+                throw Errors.TypesNotSolved(syntaxTree);
 
             var bodyTypeSolving = typeGraph.Solve();
             if (bodyTypeSolving == null)
-                throw ErrorFactory.TypesNotSolved(syntaxTree);
+                throw Errors.TypesNotSolved(syntaxTree);
             resultBuilder.SetResults(bodyTypeSolving);
             return resultBuilder.Build();
         }
         catch (TicException e)
         {
-            throw ErrorFactory.TranslateTicError(e, syntaxTree);
+            throw Errors.TranslateTicError(e, syntaxTree);
         }
     }
 
@@ -96,7 +96,7 @@ internal static class RuntimeBuilderHelper {
                                               .ToList();
         if (unknownVariables.Any())
         {
-            throw ErrorFactory.UnknownVariables(unknownVariables.SelectMany(u => u.Usages));
+            throw Errors.UnknownVariables(unknownVariables.SelectMany(u => u.Usages));
         }
     }
 
@@ -114,7 +114,7 @@ internal static class RuntimeBuilderHelper {
         {
             var alias = userFunction.GetFunAlias();
             if (userFunctionsNames.ContainsKey(alias))
-                throw ErrorFactory.FunctionAlreadyExist(userFunction);
+                throw Errors.FunctionAlreadyExist(userFunction);
             userFunctionsNames.Add(alias, i);
             i++;
         }
@@ -144,7 +144,7 @@ internal static class RuntimeBuilderHelper {
 
         if (sortResults.HasCycle)
             //if functions has cycle, then function solve order is cycled
-            throw ErrorFactory.ComplexRecursion(functionSolveOrder);
+            throw Errors.ComplexRecursion(functionSolveOrder);
 
         return functionSolveOrder;
     }

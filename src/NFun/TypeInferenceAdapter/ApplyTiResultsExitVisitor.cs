@@ -13,7 +13,7 @@ public class ApplyTiResultsExitVisitor : ExitVisitorBase {
             return true;
         if (node.Ifs.Any(i => i.Expression.OutputType != node.OutputType) ||
             node.ElseExpr.OutputType != node.OutputType)
-            throw ErrorFactory.VariousIfElementTypes(node);
+            throw Errors.VariousIfElementTypes(node);
         return true;
     }
 
@@ -29,7 +29,7 @@ public class ApplyTiResultsExitVisitor : ExitVisitorBase {
         if (node.Children.All(i => i.OutputType == firstElementType))
             return true;
 
-        throw ErrorFactory.VariousArrayElementTypes(node);
+        throw Errors.VariousArrayElementTypes(node);
     }
 }
 

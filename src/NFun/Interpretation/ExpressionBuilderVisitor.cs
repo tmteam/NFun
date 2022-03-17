@@ -110,7 +110,8 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         // is allowed, but it semantically incorrect
 
         if (!structNode.Type.StructTypeSpecification.ContainsKey(node.FieldName))
-            throw FunnyParseException.ErrorStubToDo($"Access to non exist field {node.FieldName}");
+            throw Errors.FieldNotExists(node.FieldName, node.Interval);
+        
         return new StructFieldAccessExpressionNode(node.FieldName, structNode, node.Interval);
     }
 
@@ -130,7 +131,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         foreach (var (key, _) in node.OutputType.StructTypeSpecification)
         {
             if (!types.ContainsKey(key))
-                throw FunnyParseException.ErrorStubToDo($"Field {key} is missed in struct");
+                throw Errors.FieldIsMissed(key, node.Interval);
         }
 
         return new StructInitExpressionNode(names, nodes, node.Interval, FunnyType.StructOf(types));
@@ -143,10 +144,10 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
     public IExpressionNode Visit(ArrowAnonymFunctionSyntaxNode arrowAnonymFunNode) {
         if (arrowAnonymFunNode.Definition == null)
-            throw ErrorFactory.AnonymousFunDefinitionIsMissing(arrowAnonymFunNode);
+            throw Errors.AnonymousFunDefinitionIsMissing(arrowAnonymFunNode);
 
         if (arrowAnonymFunNode.Body == null)
-            throw ErrorFactory.AnonymousFunBodyIsMissing(arrowAnonymFunNode);
+            throw Errors.AnonymousFunBodyIsMissing(arrowAnonymFunNode.Interval);
 
         //Anonym fun arguments list
         var argumentLexNodes = arrowAnonymFunNode.ArgumentsDefinition;
@@ -175,11 +176,11 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
                 //If outer-scope contains the conflict variable name
                 if (_variables.GetSourceOrNull(varNode.Name) != null)
-                    throw ErrorFactory.AnonymousFunctionArgumentConflictsWithOuterScope(
+                    throw Errors.AnonymousFunctionArgumentConflictsWithOuterScope(
                         varNode.Name,
                         arrowAnonymFunNode.Interval);
                 else //else it is duplicated arg name
-                    throw ErrorFactory.AnonymousFunctionArgumentDuplicates(varNode, arrowAnonymFunNode.Definition);
+                    throw Errors.AnonymousFunctionArgumentDuplicates(varNode, arrowAnonymFunNode.Definition);
             }
         }
 
@@ -210,7 +211,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             //hi order function
             var functionalVariableSource = _variables.GetSourceOrNull(id);
             if (functionalVariableSource?.Type.FunTypeSpecification == null)
-                throw ErrorFactory.FunctionOverloadNotFound(node, _functions);
+                throw Errors.FunctionOverloadNotFound(node, _functions);
             return CreateFunctionCall(node, ConcreteHiOrderFunction.Create(functionalVariableSource));
         }
 
@@ -258,7 +259,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
     public IExpressionNode Visit(IfThenElseSyntaxNode node) {
         if (_dialect.IfExpressionSetup == IfExpressionSetup.Deny)
-            throw FunnyParseException.ErrorStubToDo("If-else expressions are denied for the dialect");
+            throw Errors.IfElseExpressionIsDenied(node.Interval);
 
         //expressions
         //if (...) {here} 
@@ -268,7 +269,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         var conditionNodes = new IExpressionNode[node.Ifs.Length];
 
         if (_dialect.IfExpressionSetup == IfExpressionSetup.IfElseIf && node.Ifs.Length > 1)
-            throw FunnyParseException.ErrorStubToDo("'else' keyword is missing before 'if'");
+            throw Errors.ElseKeywordIsMissing(node.Interval.Start, node.Ifs[1].Interval.Start);
 
         for (int i = 0; i < expressionNodes.Length; i++)
         {
@@ -304,7 +305,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
                     long l  => ConstantExpressionNode.CreateConcrete(type, l, _dialect.TypeBehaviour, node.Interval),
                     ulong u => ConstantExpressionNode.CreateConcrete(type, u, _dialect.TypeBehaviour, node.Interval),
                     string d => new ConstantExpressionNode(
-                        _dialect.TypeBehaviour.ParseOrNull(d) ?? throw FunnyParseException.ErrorStubToDo("Cannot parse decimal number"), type, node.Interval),
+                        _dialect.TypeBehaviour.ParseOrNull(d) ?? throw Errors.CannotParseDecimalNumber(node.Interval), type, node.Interval),
                     _ => null
                 }, type);
     }
@@ -343,7 +344,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         
         var node1 = _variables.CreateVarNode(node.Id, node.Interval, vType);
         if (node1.Source.Name != node.Id)
-            throw ErrorFactory.InputNameWithDifferentCase(node.Id, node1.Source.Name, node.Interval);
+            throw Errors.InputNameWithDifferentCase(node.Id, node1.Source.Name, node.Interval);
         return node1;
     }
 
@@ -390,8 +391,9 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
                                      .Where(s => !originVariables.Contains(s.Source.Name))
                                      .ToList();
 
-        if (closured.Any(c => Helper.DoesItLooksLikeSuperAnonymousVariable(c.Source.Name)))
-            throw FunnyParseException.ErrorStubToDo("Unexpected it* variable");
+        var wrongItVariable = closured.FirstOrDefault(c => Helper.DoesItLooksLikeSuperAnonymousVariable(c.Source.Name));
+        if (wrongItVariable!=null)
+            throw Errors.CannotUseSuperAnonymousVariableHere(wrongItVariable.Usages.First().Interval);
 
         //Add closured vars to outer-scope dictionary
         foreach (var newVar in closured)
@@ -419,7 +421,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
 
     private static IExpressionNode ThrowNotAnExpression(ISyntaxNode node)
-        => throw ErrorFactory.NotAnExpression(node);
+        => throw Errors.NotAnExpression(node);
 
     private IExpressionNode ReadNode(ISyntaxNode node)
         => node.Accept(this);

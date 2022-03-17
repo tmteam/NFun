@@ -158,7 +158,7 @@ public static class VarTypeConverter {
     public static Func<object, object> GetConverterOrThrow(TypeBehaviour typeBehaviour, FunnyType from, FunnyType to,  Interval interval) {
         var res = GetConverterOrNull(typeBehaviour, @from, to);
         if (res == null)
-            throw ErrorFactory.ImpossibleCast(from, to, interval);
+            throw Errors.ImpossibleCast(from, to, interval);
         return res;
     }
 

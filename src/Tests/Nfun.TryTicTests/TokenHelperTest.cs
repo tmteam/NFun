@@ -1,3 +1,4 @@
+using NFun.TestTools;
 using NFun.Tokenization;
 using NFun.Types;
 using NUnit.Framework;
@@ -63,7 +64,6 @@ public class TokenHelperTest {
     public void ReadType_PrimitiveTypes(string expr, BaseFunnyType expected) =>
         AssertFunnyType(expr, FunnyType.PrimitiveOf(expected));
 
-    [TestCase("int8")]
     [TestCase("int10")]
     [TestCase("uint10")]
     [TestCase("uint9")]
@@ -87,14 +87,19 @@ public class TokenHelperTest {
     [TestCase("int  []")]
     [TestCase("anything")]
     [TestCase("default")]
-    [TestCase("char")]
-    [TestCase("char[]")]
     [TestCase("t")]
     public void ReadType_Throws(string expr) {
         var flow = Tokenizer.ToFlow(expr);
         Assert.Catch(() => flow.ReadType());
     }
-
+    [TestCase("char[]")]
+    [TestCase("char")]
+    [TestCase("int8")]
+    [TestCase("async")]
+    public void ReservedWord_Throw(string expr) {
+        TestHelper.AssertObviousFailsOnParse(()=> Tokenizer.ToFlow(expr));
+    }
+    
     [TestCase("text")]
     [TestCase("text=")]
     [TestCase("text:")]

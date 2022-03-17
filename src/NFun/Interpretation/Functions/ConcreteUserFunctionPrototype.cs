@@ -16,7 +16,7 @@ internal class ConcreteUserFunctionPrototype : FunctionWithManyArguments {
         _function = function;
 
         if (ReturnType != function.ReturnType)
-            throw ErrorFactory.InvalidOutputType(function, interval);
+            throw Errors.InvalidOutputType(function, interval);
     }
 
     public override object Calc(object[] args) {

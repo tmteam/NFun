@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using NFun.Exceptions;
+using NFun.ParseErrors;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
 using NFun.Types;
@@ -21,7 +22,7 @@ public class StructInitSyntaxNode : ISyntaxNode {
         foreach (var equation in equations)
         {
             if (equation.TypeSpecificationOrNull != null)
-                throw FunnyParseException.ErrorStubToDo("Field type specification is not supported yet");
+                throw Errors.StructFieldSpecificationIsNotSupportedYet(equation.TypeSpecificationOrNull.Interval);
             fields.Add(new FieldDefinition(equation.Id, equation.Expression));
         }
 

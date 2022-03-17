@@ -36,7 +36,7 @@ public class Parser {
             _exprStartPosition = flow.Current.Start;
 
             var e = SyntaxNodeReader.ReadNodeOrNull(flow) ??
-                    throw ErrorFactory.UnknownValueAtStartOfExpression(_exprStartPosition, flow.Current);
+                    throw Errors.UnknownValueAtStartOfExpression(_exprStartPosition, flow.Current);
 
             if (e is TypedVarDefSyntaxNode typed)
             {
@@ -53,7 +53,7 @@ public class Parser {
                 else if (e is FunCallSyntaxNode fun && !fun.IsOperator)
                     ReadUserFunction(fun);
                 else
-                    throw ErrorFactory.ExpressionBeforeTheDefinition(_exprStartPosition, e, flow.Current);
+                    throw Errors.ExpressionBeforeTheDefinition(_exprStartPosition, e, flow.Current);
             }
             else
                 ReadAnonymousEquation(e);
@@ -76,13 +76,13 @@ public class Parser {
         if (_equationNames.Any())
         {
             if (_startOfTheLine && _hasAnonymousEquation)
-                throw ErrorFactory.OnlyOneAnonymousExpressionAllowed(_exprStartPosition, e, _flow.Current);
+                throw Errors.OnlyOneAnonymousExpressionAllowed(_exprStartPosition, e, _flow.Current);
             else
-                throw ErrorFactory.UnexpectedExpression(e);
+                throw Errors.UnexpectedExpression(e);
         }
 
         if (!_startOfTheLine)
-            throw ErrorFactory.AnonymousExpressionHasToStartFromNewLine(_exprStartPosition, e, _flow.Current);
+            throw Errors.AnonymousExpressionHasToStartFromNewLine(_exprStartPosition, e, _flow.Current);
 
         //anonymous
         var equation = SyntaxNodeFactory.Equation(AnonymousEquationId,e,_exprStartPosition, _attributes);
@@ -97,13 +97,13 @@ public class Parser {
     /// </summary>
     private void ReadUserFunction(FunCallSyntaxNode fun) {
         if (!_startOfTheLine)
-            throw ErrorFactory.FunctionDefinitionHasToStartFromNewLine(_exprStartPosition, fun, _flow.Current);
+            throw Errors.FunctionDefinitionHasToStartFromNewLine(_exprStartPosition, fun, _flow.Current);
         if (_attributes.Length > 0)
-            throw ErrorFactory.AttributeOnFunction(fun);
+            throw Errors.AttributeOnFunction(fun);
 
         var id = fun.Id;
         if (fun.IsInBrackets)
-            throw ErrorFactory.UnexpectedBracketsOnFunDefinition(fun, _exprStartPosition, _flow.Previous.Finish);
+            throw Errors.UnexpectedBracketsOnFunDefinition(fun, _exprStartPosition, _flow.Previous.Finish);
 
         var arguments = new List<TypedVarDefSyntaxNode>();
         foreach (var headNodeChild in fun.Args)
@@ -116,10 +116,10 @@ public class Parser {
                         varSyntax.Id, headNodeChild.OutputType,
                         headNodeChild.Interval.Start, headNodeChild.Interval.Finish));
             else
-                throw ErrorFactory.WrongFunctionArgumentDefinition(fun, headNodeChild);
+                throw Errors.WrongFunctionArgumentDefinition(fun, headNodeChild);
 
             if (headNodeChild.IsInBrackets)
-                throw ErrorFactory.FunctionArgumentInBracketDefinition(fun, headNodeChild, _flow.Current);
+                throw Errors.FunctionArgumentInBracketDefinition(fun, headNodeChild, _flow.Current);
         }
 
         var outputType = FunnyType.Empty;
@@ -128,14 +128,14 @@ public class Parser {
 
         _flow.SkipNewLines();
         if (!_flow.MoveIf(TokType.Def, out var def))
-            throw ErrorFactory.FunDefTokenIsMissed(id, arguments, _flow.Current);
+            throw Errors.FunDefTokenIsMissed(id, arguments, _flow.Current);
 
         var expression = SyntaxNodeReader.ReadNodeOrNull(_flow);
         if (expression == null)
         {
             int finish = _flow.Peek?.Finish ?? _flow.Position;
 
-            throw ErrorFactory.FunExpressionIsMissed(
+            throw Errors.FunExpressionIsMissed(
                 id, arguments,
                 new Interval(def.Start, finish));
         }
@@ -151,9 +151,9 @@ public class Parser {
     /// </summary>
     private void ReadEquation(ISyntaxNode equationHeader, string id) {
         if (_hasAnonymousEquation)
-            throw ErrorFactory.UnexpectedExpression(_nodes.OfType<EquationSyntaxNode>().Single());
+            throw Errors.UnexpectedExpression(_nodes.OfType<EquationSyntaxNode>().Single());
         if (!_startOfTheLine)
-            throw ErrorFactory.DefinitionHasToStartFromNewLine(_exprStartPosition, equationHeader, _flow.Current);
+            throw Errors.DefinitionHasToStartFromNewLine(_exprStartPosition, equationHeader, _flow.Current);
 
         _flow.MoveNext();
         var equation = ReadEquationBody(id);
@@ -173,7 +173,7 @@ public class Parser {
         var start = _flow.Position;
         var exNode = SyntaxNodeReader.ReadNodeOrNull(_flow);
         if (exNode == null)
-            throw ErrorFactory.VarExpressionIsMissed(start, id, _flow.Current);
+            throw Errors.VarExpressionIsMissed(start, id, _flow.Current);
         return SyntaxNodeFactory.Equation(id, exNode, start, _attributes);
     }
 }

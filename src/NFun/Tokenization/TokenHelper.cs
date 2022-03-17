@@ -63,7 +63,7 @@ public static class TokenHelper {
             TokType.TextType                     => FunnyType.Text,
             TokType.AnythingType                 => FunnyType.Any,
             TokType.Id when token.Value == "any" => FunnyType.Any,
-            _                                    => throw ErrorFactory.TypeExpectedButWas(token)
+            _                                    => throw Errors.TypeExpectedButWas(token)
         };
 
     public static FunnyType ReadType(this TokFlow flow) {
@@ -76,12 +76,12 @@ public static class TokenHelper {
         while (flow.IsCurrent(TokType.ArrOBr))
         {
             if (flow.Current.Start != lastPosition)
-                throw FunnyParseException.ErrorStubToDo("unexpected space before []");
+                throw Errors.UnexpectedSpaceBeforeArrayTypeBrackets(readType, new Interval(lastPosition, flow.Current.Start));
 
             flow.MoveNext();
             lastPosition = flow.Current.Finish;
             if (!flow.MoveIf(TokType.ArrCBr))
-                throw ErrorFactory.ArrTypeCbrMissed(new Interval(cur.Start, flow.Current.Start));
+                throw Errors.ArrTypeCbrMissed(new Interval(cur.Start, flow.Current.Start));
             readType = FunnyType.ArrayOf(readType);
         }
 
@@ -115,14 +115,13 @@ public static class TokenHelper {
         {
             var prev = flow.Previous;
             if (prev == null)
-                throw FunnyParseException.ErrorStubToDo($"\"{tokType}\" is missing at end of stream");
+                throw Errors.TokenIsMissed(flow.CurrentTokenPosition, tokType);
             else
-                throw FunnyParseException.ErrorStubToDo($"\"{tokType}\" is missing at end of stream");
+                throw Errors.TokenIsMissed(prev, tokType);
         }
 
         if (!cur.Is(tokType))
-            throw FunnyParseException.ErrorStubToDo(
-                $"\"{tokType}\" is missing but was \"{cur}\"");
+            throw Errors.TokenIsMissed(tokType, cur);
 
         flow.MoveNext();
         return cur;

@@ -81,7 +81,7 @@ internal static class StringTemplateRuntimeBuilder {
                 else if (res.Type == TokType.FiCbr)
                     obrCount--;
                 else if (res.Type == TokType.Eof)
-                    throw ErrorFactory.ClosingQuoteIsMissed('}', pos, text.Length);
+                    throw Errors.ClosingQuoteIsMissed('}', pos, text.Length);
 
                 pos = res.Finish;
             }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using NFun.Exceptions;
 using NFun.Interpretation.Functions;
 using NFun.ParseErrors;
@@ -100,14 +101,14 @@ internal static class RuntimeBuilder {
                     BuildEquationAndPutItToVariables(node, functionDictionary, variables, bodyTypeSolving, dialect);
                 equations.Add(equation);
                 if (Helper.DoesItLooksLikeSuperAnonymousVariable(equation.Id))
-                    throw FunnyParseException.ErrorStubToDo("variable cannot starts with 'it'");
+                    throw Errors.CannotUseSuperAnonymousVariableHere(new Interval(node.Interval.Start, node.Interval.Start + node.Id.Length));
                 if (TraceLog.IsEnabled)
                     TraceLog.WriteLine($"\r\nEQUATION: {equation.Id}:{equation.Expression.Type} = ... \r\n");
             }
             else if (treeNode is VarDefinitionSyntaxNode varDef)
             {
                 if (Helper.DoesItLooksLikeSuperAnonymousVariable(varDef.Id))
-                    throw FunnyParseException.ErrorStubToDo("variable cannot starts with 'it'");
+                    throw Errors.CannotUseSuperAnonymousVariableHere(varDef.Interval);
 
                 var variableSource = VariableSource.CreateWithStrictTypeLabel(
                     varDef.Id,
@@ -119,7 +120,7 @@ internal static class RuntimeBuilder {
                 if (!variables.TryAdd(variableSource))
                 {
                     var allUsages = variables.GetUsages(variableSource.Name);
-                    throw ErrorFactory.VariableIsDeclaredAfterUsing(allUsages);
+                    throw Errors.VariableIsDeclaredAfterUsing(allUsages);
                 }
 
                 if (TraceLog.IsEnabled)
@@ -145,7 +146,7 @@ internal static class RuntimeBuilder {
 
             if (variables.TryGetUsages(userFunction.Name, out var usage))
             {
-                throw ErrorFactory.FunctionNameAndVariableNameConflict(usage);
+                throw Errors.FunctionNameAndVariableNameConflict(usage);
             }
         }
 
@@ -213,7 +214,7 @@ internal static class RuntimeBuilder {
 
         var itVariable = variables.GetSuperAnonymousVariableOrNull();
         if (itVariable != null)
-            throw FunnyParseException.ErrorStubToDo("Variable cannot starts with it");
+            throw Errors.CannotUseSuperAnonymousVariableHere(itVariable.Usages.First().Interval);
 
 
         if (!variables.TryAdd(outputVariableSource))
@@ -221,9 +222,9 @@ internal static class RuntimeBuilder {
             //some equation referenced the source before
             var usages = variables.GetUsages(equation.Id);
             if (usages.Source.IsOutput)
-                throw ErrorFactory.OutputNameWithDifferentCase(equation.Id, equation.Expression.Interval);
+                throw Errors.OutputNameWithDifferentCase(equation.Id, equation.Expression.Interval);
             else
-                throw ErrorFactory.CannotUseOutputValueBeforeItIsDeclared(usages);
+                throw Errors.CannotUseOutputValueBeforeItIsDeclared(usages);
         }
 
 
@@ -256,14 +257,14 @@ internal static class RuntimeBuilder {
                 constants: constants,
                 results: resultsBuilder,
                 dialect: dialect))
-                throw FunnyParseException.ErrorStubToDo($"Function '{functionSyntaxNode.Id}' is not solved");
+                throw Errors.FunctionIsNotSolved(functionSyntaxNode);
 
             // solve the types
             types = graphBuider.Solve();
         }
         catch (TicException e)
         {
-            throw ErrorFactory.TranslateTicError(e, functionSyntaxNode);
+            throw Errors.TranslateTicError(e, functionSyntaxNode);
         }
 
         resultsBuilder.SetResults(types);

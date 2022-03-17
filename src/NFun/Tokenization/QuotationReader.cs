@@ -34,7 +34,7 @@ public static class QuotationReader {
             }
 
             if (i == rawString.Length - 1)
-                throw ErrorFactory.BackslashAtEndOfString(i, i + 1);
+                throw Errors.BackslashAtEndOfString(i, i + 1);
 
             var next = rawString[i + 1];
             var symbol = next switch {
@@ -46,7 +46,7 @@ public static class QuotationReader {
                              't'  => '\t',
                              '{'  => '{',
                              '}'  => '}',
-                             _    => throw ErrorFactory.UnknownEscapeSequence(next.ToString(), i, i + 2)
+                             _    => throw Errors.UnknownEscapeSequence(next.ToString(), i, i + 2)
                          };
             sb.Append(symbol);
             i++;

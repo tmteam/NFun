@@ -94,7 +94,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         {
             var type = node.OutputType.ConvertToTiType();
             if (!_ticTypeGraph.TrySetVarType(node.Id, type))
-                throw ErrorFactory.VariableIsAlreadyDeclared(node.Id, node.Interval);
+                throw Errors.VariableIsAlreadyDeclared(node.Id, node.Interval);
         }
 
         _ticTypeGraph.SetDef(node.Id, node.Expression.OrderNumber);
@@ -227,7 +227,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
                     anonymName = MakeAnonVariableName(node, originName);
                     break;
                 default:
-                    throw ErrorFactory.AnonymousFunArgumentIsIncorrect(syntaxNode);
+                    throw Errors.AnonymousFunArgumentIsIncorrect(syntaxNode);
             }
 
             _aliasScope.AddVariableAlias(originName, anonymName);
@@ -602,7 +602,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         {
             var type = node.FunnyType.ConvertToTiType();
             if (!_ticTypeGraph.TrySetVarType(node.Id, type))
-                throw ErrorFactory.VariableIsAlreadyDeclared(node.Id, node.Interval);
+                throw Errors.VariableIsAlreadyDeclared(node.Id, node.Interval);
         }
 
         return true;
@@ -616,7 +616,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
 #endif
         var type = node.FunnyType.ConvertToTiType();
         if (!_ticTypeGraph.TrySetVarType(node.Id, type))
-            throw ErrorFactory.VariableIsAlreadyDeclared(node.Id, node.Interval);
+            throw Errors.VariableIsAlreadyDeclared(node.Id, node.Interval);
         return true;
     }
 

@@ -9,12 +9,12 @@ public class FunnyParseException : Exception {
     public int Start => Interval.Start;
     public int End => Interval.Finish;
 
-    public FunnyParseException(int code, string message, Interval interval) : base(message) {
+    internal FunnyParseException(int code, string message, Interval interval) : base(message) {
         Code = code;
         Interval = interval;
     }
 
-    public FunnyParseException(int code, string message, int start, int end) : base(message) {
+    internal FunnyParseException(int code, string message, int start, int end) : base(message) {
         Code = code;
         Interval = new Interval(start, end);
     }

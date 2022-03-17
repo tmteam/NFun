@@ -40,7 +40,6 @@ public class ConvertFunction : GenericFunctionBase {
             if (serializer != null)
                 return new ConcreteConverter(serializer, from, to);
         }
-
         if (from.ArrayTypeSpecification?.FunnyType == FunnyType.UInt8)
         {
             var deserializer = CreateDeserializerOrNull(to);
@@ -53,8 +52,7 @@ public class ConvertFunction : GenericFunctionBase {
             if (parser != null)
                 return new ConcreteConverter(parser, from, to);
         }
-
-        throw FunnyParseException.ErrorStubToDo($"Impossible explicit convertation {from}->{to}");
+        throw new InvalidOperationException($"Function {this.Name} cannot be generated for types [{string.Join(", ", concreteTypes)}]");
     }
 
     private static Func<object, object> CreateBinarizerOrNull(FunnyType from) =>

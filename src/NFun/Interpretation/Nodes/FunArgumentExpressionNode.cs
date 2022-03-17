@@ -16,7 +16,7 @@ internal class FunArgumentExpressionNode : IExpressionNode {
             TypedVarDefSyntaxNode typeVarNode => new FunArgumentExpressionNode(
                 name: typeVarNode.Id,
                 type: typeVarNode.FunnyType, interval: node.Interval),
-            _ => throw ErrorFactory.InvalidArgTypeDefinition(node)
+            _ => throw Errors.InvalidArgTypeDefinition(node)
         };
 
     private FunArgumentExpressionNode(string name, FunnyType type, Interval interval) {

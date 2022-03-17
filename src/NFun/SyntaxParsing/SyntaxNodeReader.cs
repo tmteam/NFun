@@ -105,12 +105,12 @@ public static class SyntaxNodeReader {
         if (flow.IsCurrent(TokType.Minus))
         {
             if (flow.IsPrevious(TokType.Minus))
-                throw ErrorFactory.MinusDuplicates(flow.Previous, flow.Current);
+                throw Errors.MinusDuplicates(flow.Previous, flow.Current);
             flow.MoveNext();
 
             var nextNode = ReadNodeOrNull(flow, MinPriority);
             if (nextNode == null)
-                throw ErrorFactory.UnaryArgumentIsMissing(flow.Current);
+                throw Errors.UnaryArgumentIsMissing(flow.Current);
 
             var interval = new Interval(start, nextNode.Interval.Finish);
             if (nextNode is ConstantSyntaxNode constant)
@@ -133,7 +133,7 @@ public static class SyntaxNodeReader {
                     case ulong u64 when u64 >= i64AbsMinValue:
                     {
                         if (u64 > i64AbsMinValue)
-                            throw FunnyParseException.ErrorStubToDo("i64 overflow");
+                            throw Errors.NumberOverflow(g.Interval, FunnyType.Int64);
                         return SyntaxNodeFactory.IntGenericConstant(long.MinValue, g.IsHexOrBin, interval);
                     }
                     case ulong u64:
@@ -151,7 +151,7 @@ public static class SyntaxNodeReader {
         {
             var node = ReadNodeOrNull(flow, OperatorBitInversePriority);
             if (node == null)
-                throw ErrorFactory.UnaryArgumentIsMissing(flow.Current);
+                throw Errors.UnaryArgumentIsMissing(flow.Current);
             return SyntaxNodeFactory.OperatorFun(
                 CoreFunNames.BitInverse,
                 new[] { node }, start, node.Interval.Finish);
@@ -161,7 +161,7 @@ public static class SyntaxNodeReader {
         {
             var node = ReadNodeOrNull(flow, OperatorNotPriority);
             if (node == null)
-                throw ErrorFactory.UnaryArgumentIsMissing(flow.Current);
+                throw Errors.UnaryArgumentIsMissing(flow.Current);
             return SyntaxNodeFactory.OperatorFun(
                 CoreFunNames.Not,
                 new[] { node }, start, node.Interval.Finish);
@@ -191,11 +191,11 @@ public static class SyntaxNodeReader {
                 if (UInt64.TryParse(substr, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var h16))
                     return SyntaxNodeFactory.HexOrBinIntConstant(h16, binVal.Interval);
 
-                throw FunnyParseException.ErrorStubToDo("u64 overflow");
+                throw Errors.NumberOverflow(binVal.Interval, FunnyType.UInt64);
             }
 
             if (substr.Length > 64)
-                throw FunnyParseException.ErrorStubToDo("u64 overflow");
+                throw Errors.NumberOverflow(binVal.Interval, FunnyType.UInt64);
 
             return SyntaxNodeFactory.HexOrBinIntConstant(Convert.ToUInt64(substr, 2), binVal.Interval);
         }
@@ -205,7 +205,7 @@ public static class SyntaxNodeReader {
             //1,2,3
             var decVal = BigInteger.Parse(intVal.Value.Replace("_", String.Empty));
             if (decVal > ulong.MaxValue)
-                throw FunnyParseException.ErrorStubToDo("Too big integer value");
+                throw Errors.NumberOverflow(intVal.Interval, FunnyType.UInt64);
 
             return SyntaxNodeFactory.IntGenericConstant((ulong)decVal, intVal.Interval);
         }
@@ -247,7 +247,7 @@ public static class SyntaxNodeReader {
         if (flow.MoveIf(TokType.Default))
             return SyntaxNodeFactory.DefaultValue;
         if (flow.IsCurrent(TokType.NotAToken))
-            throw ErrorFactory.NotAToken(flow.Current);
+            throw Errors.NotAToken(flow.Current);
         return null;
     }
 
@@ -292,7 +292,7 @@ public static class SyntaxNodeReader {
                 return leftNode;
 
             if (leftNode == null)
-                throw ErrorFactory.LeftBinaryArgumentIsMissing(opToken);
+                throw Errors.LeftBinaryArgumentIsMissing(opToken);
 
             if (opToken.Type == TokType.ArrOBr)
             {
@@ -308,7 +308,7 @@ public static class SyntaxNodeReader {
             {
                 flow.MoveNext();
                 if (!flow.MoveIf(TokType.Id, out var id))
-                    throw ErrorFactory.FunctionOrStructMemberNameIsMissedAfterDot(opToken);
+                    throw Errors.FunctionOrStructMemberNameIsMissedAfterDot(opToken);
                 // Open bracket. It means call
                 var next = flow.Current?.Type;
                 if (next == TokType.Obr || next == TokType.FiObr)
@@ -332,7 +332,7 @@ public static class SyntaxNodeReader {
 
                 var rightNode = ReadNodeOrNull(flow, priority - 1);
                 if (rightNode == null)
-                    throw ErrorFactory.RightBinaryArgumentIsMissing(leftNode, opToken);
+                    throw Errors.RightBinaryArgumentIsMissing(leftNode, opToken);
 
                 //building the tree from the left                    
                 if (OperatorFunNames.ContainsKey(opToken.Type))
@@ -341,7 +341,7 @@ public static class SyntaxNodeReader {
                         new[] { leftNode, rightNode },
                         leftNode.Interval.Start, rightNode.Interval.Finish);
                 else
-                    throw ErrorFactory.OperatorIsUnknown(opToken);
+                    throw Errors.OperatorIsUnknown(opToken);
 
                 //trace:
                 //ReadNodeOrNull(priority: 3 ) // *,/,%,AND
@@ -360,36 +360,35 @@ public static class SyntaxNodeReader {
 
     private static ISyntaxNode ReadFunAnonymousFunction(TokFlow flow) {
         var pos = flow.Position;
-        var body = ReadNodeOrNull(flow);
-        if (body == null)
-            throw ErrorFactory.UndoneAnonymousFunction(pos, flow.CurrentTokenPosition);
+        var bodyOrTypeNotation = ReadNodeOrNull(flow);
+        if (bodyOrTypeNotation == null)
+            throw Errors.UndoneAnonymousFunction(pos, flow.CurrentTokenPosition);
 
         var returnType = TryReadTypeDef(flow);
         if (flow.Current.Is(TokType.Def))
         {
-            if (!body.IsInBrackets)
-                throw FunnyParseException.ErrorStubToDo(
-                    "unexpected '=' symbol. Did you forgot brackets after 'fun' keyword?");
+            if (!bodyOrTypeNotation.IsInBrackets)
+                throw Errors.UnexpectedTokenEqualAfterRule(flow.Current.Interval);
 
             flow.MoveNext();
             flow.SkipNewLines();
             //full typed defentionion like:
             // TokType.FunRule (a[:type], b[:type]...)[:type] = body 
             //so body is just a type definition
-            var definition = body;
-            body = ReadNodeOrNull(flow);
-            if (body == null)
-                throw ErrorFactory.UndoneAnonymousFunction(pos, flow.CurrentTokenPosition);
-            return SyntaxNodeFactory.AnonymFun(definition, returnType, body);
+            var definition = bodyOrTypeNotation;
+            bodyOrTypeNotation = ReadNodeOrNull(flow);
+            if (bodyOrTypeNotation == null)
+                throw Errors.UndoneAnonymousFunction(pos, flow.CurrentTokenPosition);
+            return SyntaxNodeFactory.AnonymFun(definition, returnType, bodyOrTypeNotation);
         }
 
         if (returnType != FunnyType.Empty)
         {
             //If return type is specified, and there is no def after it - than it is an mistake
-            throw FunnyParseException.ErrorStubToDo("Anonymous function body is missed. Did you forget '=' symbol?");
+            throw Errors.AnonymousFunBodyIsMissing(new Interval(pos, pos));
         }
 
-        return SyntaxNodeFactory.SuperAnonymFunction(body);
+        return SyntaxNodeFactory.SuperAnonymFunction(bodyOrTypeNotation);
     }
 
     private static ISyntaxNode ReadStruct(TokFlow flow) {
@@ -404,23 +403,22 @@ public static class SyntaxNodeReader {
             if (flow.MoveIf(TokType.FiCbr))
                 break;
             if (!hasAnyDelimeter)
-                throw FunnyParseException.ErrorStubToDo(
-                    "No any delimeter between struct fields. " +
-                    "Use ',' or new line to separate fields");
+                throw Errors.StructFieldDelimiterIsMissed(new Interval(flow.Current.Interval.Start-1, flow.Current.Interval.Finish));
+            
             if (!flow.MoveIf(TokType.Id, out var idToken))
-                throw FunnyParseException.ErrorStubToDo("id missed");
+                throw Errors.StructFieldIdIsMissed(flow.Current);
 
             var type = TryReadTypeDef(flow);
             if (type != FunnyType.Empty)
-                throw FunnyParseException.ErrorStubToDo(
-                    $"Field type specification {idToken.Value}:{type} is not supported yet");
+                throw Errors.StructFieldSpecificationIsNotSupportedYet(new Interval(idToken.Finish + 1, flow.Current.Start - 1));
 
             if (!flow.MoveIf(TokType.Def))
-                throw FunnyParseException.ErrorStubToDo("missed '='");
+                throw Errors.StructFielDefenitionTokenIsMissed(flow.Current);
+            
             flow.SkipNewLines();
             var body = ReadNodeOrNull(flow);
             if (body == null)
-                throw FunnyParseException.ErrorStubToDo("body missed");
+                throw Errors.StructFieldBodyIsMissed(idToken);
             var equation = SyntaxNodeFactory.Equation(idToken, body);
             equations.Add(equation);
             //Read node or null may eat last new-line-token
@@ -433,11 +431,10 @@ public static class SyntaxNodeReader {
                 hasAnyDelimeter = true;
         }
 
-        var end = flow.Position;
-
+        var interval = new Interval(begin, flow.Position);
         if (equations.Count == 0)
-            throw FunnyParseException.ErrorStubToDo("emptyStruct");
-        return SyntaxNodeFactory.Struct(equations, new Interval(begin, end));
+            throw Errors.EmptyStructsAreNotSupported(interval);
+        return SyntaxNodeFactory.Struct(equations, interval);
     }
 
     private static ISyntaxNode ReadInterpolationText(TokFlow flow) {
@@ -459,7 +456,7 @@ public static class SyntaxNodeReader {
             //{...} 
             var allNext = ReadNodeOrNull(flow);
             if (allNext == null)
-                throw ErrorFactory.InterpolationExpressionIsMissing(concatenations.Last());
+                throw Errors.InterpolationExpressionIsMissing(concatenations.Last());
 
             var toText = SyntaxNodeFactory.FunCall(
                 CoreFunNames.ToText, new[] { allNext }, allNext.Interval.Start,
@@ -537,13 +534,13 @@ public static class SyntaxNodeReader {
             if (index == null)
             {
                 if (flow.MoveIf(TokType.ArrCBr, out var closeBracket))
-                    throw ErrorFactory.ArrayIndexExpected(openBraket, closeBracket);
+                    throw Errors.ArrayIndexExpected(openBraket, closeBracket);
                 else
-                    throw ErrorFactory.ArrayIndexOrSliceExpected(openBraket);
+                    throw Errors.ArrayIndexOrSliceExpected(openBraket);
             }
 
             if (!flow.MoveIf(TokType.ArrCBr))
-                throw ErrorFactory.ArrayIndexCbrMissed(openBraket, flow.Current);
+                throw Errors.ArrayIndexCbrMissed(openBraket, flow.Current);
 
             return SyntaxNodeFactory.OperatorFun(
                 CoreFunNames.GetElementName,
@@ -559,7 +556,7 @@ public static class SyntaxNodeReader {
         if (!flow.MoveIf(TokType.Colon, out _))
         {
             if (!flow.MoveIf(TokType.ArrCBr))
-                throw ErrorFactory.ArraySliceCbrMissed(openBraket, flow.Current, false);
+                throw Errors.ArraySliceCbrMissed(openBraket, flow.Current, false);
             return SyntaxNodeFactory.OperatorFun(
                 CoreFunNames.SliceName, new[] {
                     arrayNode,
@@ -570,7 +567,7 @@ public static class SyntaxNodeReader {
 
         var step = ReadNodeOrNull(flow);
         if (!flow.MoveIf(TokType.ArrCBr))
-            throw ErrorFactory.ArraySliceCbrMissed(openBraket, flow.Current, true);
+            throw Errors.ArraySliceCbrMissed(openBraket, flow.Current, true);
         if (step == null)
             return SyntaxNodeFactory.OperatorFun(
                 CoreFunNames.SliceName, new[] {
@@ -595,7 +592,7 @@ public static class SyntaxNodeReader {
             if (exp != null)
                 list.Add(exp);
             else if (list.Count > 0)
-                throw ErrorFactory.ExpressionListMissed(start, flow.Position, list);
+                throw Errors.ExpressionListMissed(start, flow.Position, list);
             else
                 break;
         } while (flow.MoveIf(TokType.Sep, out _));
@@ -617,7 +614,7 @@ public static class SyntaxNodeReader {
         var openBracket = flow.MoveIfOrThrow(TokType.ArrOBr);
 
         if (!TryReadNodeList(flow, out var list))
-            throw ErrorFactory.ArrayInitializeByListError(startTokenNum, flow);
+            throw Errors.ArrayInitializeByListError(startTokenNum, flow);
 
         if (list.Count == 1 && flow.MoveIf(TokType.TwoDots, out var twoDots)) // Range [a..b] or [a..b step c]
         {
@@ -638,7 +635,7 @@ public static class SyntaxNodeReader {
                     missedVal = default;
                 }
 
-                throw ErrorFactory.ArrayInitializeSecondIndexMissed(
+                throw Errors.ArrayInitializeSecondIndexMissed(
                     openBracket, lastToken, missedVal);
             }
 
@@ -660,12 +657,12 @@ public static class SyntaxNodeReader {
                         missedVal = default;
                     }
 
-                    throw ErrorFactory.ArrayInitializeStepMissed(
+                    throw Errors.ArrayInitializeStepMissed(
                         openBracket, lastToken, missedVal);
                 }
 
                 if (!flow.MoveIf(TokType.ArrCBr, out var closeBracket))
-                    throw ErrorFactory.ArrayIntervalInitializeCbrMissed(openBracket, flow.Current, true);
+                    throw Errors.ArrayIntervalInitializeCbrMissed(openBracket, flow.Current, true);
                 
                 //throw FunnyParseException.ErrorStubToDo("initialize array with step is not supported now ");
                 return SyntaxNodeFactory.OperatorFun(
@@ -677,7 +674,7 @@ public static class SyntaxNodeReader {
             else
             {
                 if (!flow.MoveIf(TokType.ArrCBr, out var closeBracket))
-                    throw ErrorFactory.ArrayIntervalInitializeCbrMissed(openBracket, flow.Current, false);
+                    throw Errors.ArrayIntervalInitializeCbrMissed(openBracket, flow.Current, false);
                 return SyntaxNodeFactory.OperatorFun(
                     name: CoreFunNames.RangeName,
                     children: new[] { list[0], secondArg },
@@ -687,7 +684,7 @@ public static class SyntaxNodeReader {
         }
 
         if (!flow.MoveIf(TokType.ArrCBr, out var closeBr))
-            throw ErrorFactory.ArrayInitializeByListError(startTokenNum, flow);
+            throw Errors.ArrayInitializeByListError(startTokenNum, flow);
         return SyntaxNodeFactory.Array(list.ToArray(), openBracket.Start, closeBr.Finish);
     }
 
@@ -701,9 +698,9 @@ public static class SyntaxNodeReader {
         flow.MoveNext();
         var nodeList = ReadNodeList(flow);
         if (nodeList.Count == 0)
-            throw ErrorFactory.BracketExpressionMissed(start, flow.Position, nodeList);
+            throw Errors.BracketExpressionMissed(start, flow.Position, nodeList);
         if (!flow.MoveIf(TokType.Cbr, out var cbr))
-            throw ErrorFactory.BracketExpressionListError(obrId, flow);
+            throw Errors.BracketExpressionListError(obrId, flow);
         var interval = new Interval(start, cbr.Finish);
         if (nodeList.Count == 1)
         {
@@ -729,32 +726,32 @@ public static class SyntaxNodeReader {
 
             //if
             if (!flow.MoveIf(TokType.If))
-                throw ErrorFactory.IfKeywordIsMissing(ifElseStart, flow.Position);
+                throw Errors.IfKeywordIsMissing(ifElseStart, flow.Position);
             if (ifThenNodes.Any() && !hasNewLineBefore)
-                throw ErrorFactory.NewLineMissedBeforeRepeatedIf(flow.Previous.Interval);
+                throw Errors.NewLineMissedBeforeRepeatedIf(flow.Previous.Interval);
 
             //(condition)
             if (!flow.MoveIf(TokType.Obr))
             {
                 var failedExpr = ReadNodeOrNull(flow);
                 if (failedExpr != null)
-                    throw ErrorFactory.IfConditionIsNotInBrackets(
+                    throw Errors.IfConditionIsNotInBrackets(
                         failedExpr.Interval.Start,
                         failedExpr.Interval.Finish);
                 else
-                    throw ErrorFactory.IfConditionIsNotInBrackets(ifElseStart, flow.Position);
+                    throw Errors.IfConditionIsNotInBrackets(ifElseStart, flow.Position);
             }
 
             var condition = ReadNodeOrNull(flow);
             if (condition == null)
-                throw ErrorFactory.ConditionIsMissing(conditionStart, flow.Position);
+                throw Errors.ConditionIsMissing(conditionStart, flow.Position);
             if (!flow.MoveIf(TokType.Cbr))
-                throw ErrorFactory.IfConditionIsNotInBrackets(ifElseStart, flow.Position);
+                throw Errors.IfConditionIsNotInBrackets(ifElseStart, flow.Position);
 
             //then
             var thenResult = ReadNodeOrNull(flow);
             if (thenResult == null)
-                throw ErrorFactory.ThenExpressionIsMissing(conditionStart, flow.Position);
+                throw Errors.ThenExpressionIsMissing(conditionStart, flow.Position);
 
             ifThenNodes.Add(
                 SyntaxNodeFactory.IfThen(
@@ -764,11 +761,11 @@ public static class SyntaxNodeReader {
         } while (!flow.IsCurrent(TokType.Else));
 
         if (!flow.MoveIf(TokType.Else))
-            throw ErrorFactory.ElseKeywordIsMissing(ifElseStart, flow.Position);
+            throw Errors.ElseKeywordIsMissing(ifElseStart, flow.Position);
 
         var elseResult = ReadNodeOrNull(flow);
         if (elseResult == null)
-            throw ErrorFactory.ElseExpressionIsMissing(ifElseStart, flow.Position);
+            throw Errors.ElseExpressionIsMissing(ifElseStart, flow.Position);
 
         return SyntaxNodeFactory.IfElse(ifThenNodes.ToArray(), elseResult, ifElseStart, flow.Position);
     }
@@ -780,11 +777,11 @@ public static class SyntaxNodeReader {
         if (flow.MoveIf(TokType.Obr))
         {
             if (!TryReadNodeList(flow, out arguments) || !flow.MoveIf(TokType.Cbr, out _))
-                throw ErrorFactory.FunctionArgumentError(head.Value, obrId, flow);
+                throw Errors.FunctionArgumentError(head.Value, obrId, flow);
         }
         else
         {
-            throw ErrorFactory.FunctionCallObrMissed(
+            throw Errors.FunctionCallObrMissed(
                 start, head.Value, flow.Position, pipedVal);
         }
 
@@ -803,7 +800,7 @@ public static class SyntaxNodeReader {
             throw new NFunImpossibleException("Panic. Something wrong in parser");
 
         if (!TryReadNodeList(flow, out var arguments) || !flow.MoveIf(TokType.Cbr, out var cbr))
-            throw ErrorFactory.FunctionArgumentError(functionResultNode.ToString(), obrId, flow);
+            throw Errors.FunctionArgumentError(functionResultNode.ToString(), obrId, flow);
 
         return SyntaxNodeFactory.ResultFunCall(functionResultNode, arguments, cbr.Finish);
     }
@@ -828,11 +825,12 @@ public static class SyntaxNodeReader {
     private static FunnyType TryReadTypeDef(TokFlow flow) {
         if (!flow.IsCurrent(TokType.Colon))
             return FunnyType.Empty;
-
+        
         flow.MoveNext();
+        var current = flow.Current;
         var type = flow.ReadType();
         if (type == FunnyType.Empty)
-            throw FunnyParseException.ErrorStubToDo("invalid type definition");
+            throw Errors.TypeExpectedButWas(current);
         return type;
     }
 }

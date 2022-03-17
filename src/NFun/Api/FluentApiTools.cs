@@ -29,7 +29,7 @@ internal static class FluentApiTools {
         }
 
         if (settedCount == 0)
-            throw ErrorFactory.NoOutputVariablesSetted(outputs);
+            throw Errors.NoOutputVariablesSetted(outputs);
         return answer;
     }
 
@@ -60,7 +60,7 @@ internal static class FluentApiTools {
     internal static object GetClrOut(FunnyRuntime runtime) => GetOut(runtime).Value;
 
     internal static IFunnyVar GetOut(FunnyRuntime runtime) =>
-        runtime[Parser.AnonymousEquationId] ?? throw ErrorFactory.OutputIsUnset();
+        runtime[Parser.AnonymousEquationId] ?? throw Errors.OutputIsUnset();
 
     internal static void SetInputValues<TInput>(
         FunnyRuntime runtime,
@@ -105,12 +105,12 @@ internal static class FluentApiTools {
 
     internal static void ThrowIfHasInputs(FunnyRuntime runtime) {
         if (runtime.Variables.Any(v => !v.IsOutput))
-            throw ErrorFactory.UnknownInputs(runtime.GetInputVariableUsages());
+            throw Errors.UnknownInputs(runtime.GetInputVariableUsages());
     }
 
     internal static void ThrowIfHasNoDefaultOutput(FunnyRuntime runtime) {
         if (runtime[Parser.AnonymousEquationId]?.IsOutput != true)
-            throw ErrorFactory.OutputIsUnset();
+            throw Errors.OutputIsUnset();
     }
 
     internal static void ThrowIfHasUnknownInputs(
@@ -134,7 +134,7 @@ internal static class FluentApiTools {
 
             if (!known)
             {
-                throw ErrorFactory.UnknownInputs(runtime.GetInputVariableUsages());
+                throw Errors.UnknownInputs(runtime.GetInputVariableUsages());
             }
         }
     }

@@ -157,8 +157,12 @@ public class Tokenizer {
 
         var word = str.Substring(position, finish - position);
         //is it id or keyword
-        if (Keywords.ContainsKey(word))
-            return Tok.New(Keywords[word], word, position, finish);
+        if (Keywords.TryGetValue(word, out var tok))
+        {
+            if (tok == TokType.Reserved)
+                throw Errors.TokenIsReserved(new Interval(position, finish), word);
+            return Tok.New(tok, word, position, finish);
+        }
         else
             return Tok.New(TokType.Id, word, position, finish);
     }
@@ -376,11 +380,11 @@ public class Tokenizer {
         var expectedClosingSymbol = openQuoteSymbol;
 
         if (startPosition >= str.Length - 1)
-            throw ErrorFactory.QuoteAtEndOfString(expectedClosingSymbol, startPosition, startPosition + 1);
+            throw Errors.QuoteAtEndOfString(expectedClosingSymbol, startPosition, startPosition + 1);
 
         var (result, endPosition) = QuotationReader.ReadQuotation(str, startPosition, openQuoteSymbol);
         if (endPosition == -1)
-            throw ErrorFactory.ClosingQuoteIsMissed(expectedClosingSymbol, startPosition, str.Length);
+            throw Errors.ClosingQuoteIsMissed(expectedClosingSymbol, startPosition, str.Length);
 
 
         var closeQuoteSymbol = str[endPosition];
@@ -398,7 +402,7 @@ public class Tokenizer {
         else
         {
             if (closeQuoteSymbol != expectedClosingSymbol)
-                throw ErrorFactory.ClosingQuoteIsMissed(expectedClosingSymbol, startPosition, endPosition);
+                throw Errors.ClosingQuoteIsMissed(expectedClosingSymbol, startPosition, endPosition);
             if (closeInterpolation)
                 return Tok.New(TokType.TextCloseInterpolation, result, startPosition, endPosition + 1);
             else
