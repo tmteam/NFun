@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NFun.Exceptions;
 using NFun.Interpretation.Functions;
 using NFun.ParseErrors;
 using NFun.Runtime;
@@ -96,7 +97,7 @@ internal static class RuntimeBuilderHelper {
                                               .ToList();
         if (unknownVariables.Any())
         {
-            throw Errors.UnknownVariables(unknownVariables.SelectMany(u => u.Usages));
+            throw Errors.UnknownVariablesInUserFunction(unknownVariables.SelectMany(u => u.Usages));
         }
     }
 
@@ -114,7 +115,7 @@ internal static class RuntimeBuilderHelper {
         {
             var alias = userFunction.GetFunAlias();
             if (userFunctionsNames.ContainsKey(alias))
-                throw Errors.FunctionAlreadyExist(userFunction);
+                throw Errors.UserFunctionWithSameNameAlreadyDeclared(userFunction);
             userFunctionsNames.Add(alias, i);
             i++;
         }

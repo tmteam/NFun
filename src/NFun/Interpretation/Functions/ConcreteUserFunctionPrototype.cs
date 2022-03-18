@@ -1,6 +1,6 @@
 using System;
+using NFun.Exceptions;
 using NFun.ParseErrors;
-using NFun.Tokenization;
 using NFun.Types;
 
 namespace NFun.Interpretation.Functions {
@@ -12,11 +12,11 @@ internal class ConcreteUserFunctionPrototype : FunctionWithManyArguments {
 
     private ConcreteUserFunction _function;
 
-    public void SetActual(ConcreteUserFunction function, Interval interval) {
-        _function = function;
-
+    public void SetActual(ConcreteUserFunction function) {
         if (ReturnType != function.ReturnType)
-            throw Errors.InvalidOutputType(function, interval);
+            //todo - assert
+            throw new NFunImpossibleException($"'{function.ReturnType}' is not supported as return type of {function.Name}()");
+        _function = function;
     }
 
     public override object Calc(object[] args) {

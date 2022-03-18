@@ -301,7 +301,7 @@ internal static class RuntimeBuilder {
                     converter: TicTypesConverter.Concrete,
                     dialect: dialect);
 
-            prototype.SetActual(function, functionSyntaxNode.Interval);
+            prototype.SetActual(function);
             return function;
 
             #endregion

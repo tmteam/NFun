@@ -119,7 +119,7 @@ public class GenericUserFunction : GenericFunctionBase {
             converter: converter,
             dialect: _dialect);
 
-        concretePrototype.SetActual(function, _syntaxNode.Interval);
+        concretePrototype.SetActual(function);
         return function;
     }
 

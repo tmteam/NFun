@@ -8,7 +8,7 @@ public readonly struct Interval {
     
     public readonly int Start;
     public readonly int Finish;
-
+    
     public Interval(int start, int finish) {
 #if DEBUG
         if (start > finish)

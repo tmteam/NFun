@@ -109,19 +109,15 @@ public static class TokenHelper {
         }
     }
 
-    public static Tok MoveIfOrThrow(this TokFlow flow, TokType tokType) {
+    public static Tok AssertAndMove(this TokFlow flow, TokType tokType) {
         var cur = flow.Current;
         if (cur == null)
         {
-            var prev = flow.Previous;
-            if (prev == null)
-                throw Errors.TokenIsMissed(flow.CurrentTokenPosition, tokType);
-            else
-                throw Errors.TokenIsMissed(prev, tokType);
+            throw new NFunImpossibleException($"{tokType}' is missing");
         }
 
         if (!cur.Is(tokType))
-            throw Errors.TokenIsMissed(tokType, cur);
+            throw new NFunImpossibleException($"{tokType}' is missing");
 
         flow.MoveNext();
         return cur;
