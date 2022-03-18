@@ -144,10 +144,11 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
     public IExpressionNode Visit(ArrowAnonymFunctionSyntaxNode arrowAnonymFunNode) {
         if (arrowAnonymFunNode.Definition == null)
-            throw Errors.AnonymousFunDefinitionIsMissing(arrowAnonymFunNode);
-
+            //todo - assert
+            throw new NFunImpossibleException("");
         if (arrowAnonymFunNode.Body == null)
-            throw Errors.AnonymousFunBodyIsMissing(arrowAnonymFunNode.Interval);
+            //todo - assert
+            throw new NFunImpossibleException("");
 
         //Anonym fun arguments list
         var argumentLexNodes = arrowAnonymFunNode.ArgumentsDefinition;
@@ -211,7 +212,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             //hi order function
             var functionalVariableSource = _variables.GetSourceOrNull(id);
             if (functionalVariableSource?.Type.FunTypeSpecification == null)
-                throw Errors.FunctionOverloadNotFound(node, _functions);
+                throw Errors.FunctionNotFoundForHiOrderUsage(node, _functions);
             return CreateFunctionCall(node, ConcreteHiOrderFunction.Create(functionalVariableSource));
         }
 
@@ -421,7 +422,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
 
     private static IExpressionNode ThrowNotAnExpression(ISyntaxNode node)
-        => throw Errors.NotAnExpression(node);
+        =>  throw Errors.NotAnExpression(node);
 
     private IExpressionNode ReadNode(ISyntaxNode node)
         => node.Accept(this);

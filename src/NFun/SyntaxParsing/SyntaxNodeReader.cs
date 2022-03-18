@@ -413,7 +413,7 @@ public static class SyntaxNodeReader {
                 throw Errors.StructFieldSpecificationIsNotSupportedYet(new Interval(idToken.Finish + 1, flow.Current.Start - 1));
 
             if (!flow.MoveIf(TokType.Def))
-                throw Errors.StructFielDefenitionTokenIsMissed(flow.Current);
+                throw Errors.StructFieldDefinitionTokenIsMissed(flow.Current);
             
             flow.SkipNewLines();
             var body = ReadNodeOrNull(flow);
@@ -438,7 +438,7 @@ public static class SyntaxNodeReader {
     }
 
     private static ISyntaxNode ReadInterpolationText(TokFlow flow) {
-        var openInterpolationToken = flow.MoveIfOrThrow(TokType.TextOpenInterpolation);
+        var openInterpolationToken = flow.AssertAndMove(TokType.TextOpenInterpolation);
         //interpolation
         var concatenations = new List<ISyntaxNode>();
         //Open interpolation string
@@ -611,7 +611,7 @@ public static class SyntaxNodeReader {
     /// <exception cref="Exception"></exception>
     private static ISyntaxNode ReadInitializeArrayNode(TokFlow flow) {
         var startTokenNum = flow.CurrentTokenPosition;
-        var openBracket = flow.MoveIfOrThrow(TokType.ArrOBr);
+        var openBracket = flow.AssertAndMove(TokType.ArrOBr);
 
         if (!TryReadNodeList(flow, out var list))
             throw Errors.ArrayInitializeByListError(startTokenNum, flow);

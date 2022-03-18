@@ -34,7 +34,7 @@ public static class QuotationReader {
             }
 
             if (i == rawString.Length - 1)
-                throw Errors.BackslashAtEndOfString(i, i + 1);
+                throw Errors.BackslashAtEndOfText(i, i + 1);
 
             var next = rawString[i + 1];
             var symbol = next switch {
