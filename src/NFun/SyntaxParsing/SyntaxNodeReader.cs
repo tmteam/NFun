@@ -796,8 +796,7 @@ public static class SyntaxNodeReader {
 
     private static ISyntaxNode ReadResultCall(TokFlow flow, ISyntaxNode functionResultNode) {
         var obrId = flow.CurrentTokenPosition;
-        if (!flow.MoveIf(TokType.Obr))
-            throw new NFunImpossibleException("Panic. Something wrong in parser");
+        flow.MoveIf(TokType.Obr).IfFalseThrow("Panic. Something wrong in parser");
 
         if (!TryReadNodeList(flow, out var arguments) || !flow.MoveIf(TokType.Cbr, out var cbr))
             throw Errors.FunctionArgumentError(functionResultNode.ToString(), obrId, flow);

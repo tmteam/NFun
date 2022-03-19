@@ -92,8 +92,7 @@ public class NodeToposort {
         if (nonReference != null && nonReference.VisitMark != NodeInListMark)
         {
             nonReference.VisitMark = NodeInListMark;
-            if (nonReference.State is StateRefTo)
-                throw new NFunImpossibleException($"Toposort adds reference node to list: {node}");
+            (nonReference.State is not StateRefTo).IfFalseThrow($"Toposort adds reference node to list: {node}");
             _allNodes.Add(nonReference);
         }
     }

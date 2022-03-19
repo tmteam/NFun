@@ -2,7 +2,6 @@ using System;
 using System.Globalization;
 using NFun.Exceptions;
 using NFun.ParseErrors;
-using NFun.Types;
 
 namespace NFun.Tokenization {
 
@@ -111,14 +110,8 @@ public static class TokenHelper {
 
     public static Tok AssertAndMove(this TokFlow flow, TokType tokType) {
         var cur = flow.Current;
-        if (cur == null)
-        {
-            throw new NFunImpossibleException($"{tokType}' is missing");
-        }
-
-        if (!cur.Is(tokType))
-            throw new NFunImpossibleException($"{tokType}' is missing");
-
+        (cur != null).IfFalseThrow($"{tokType}' is missing");
+        cur!.Is(tokType).IfFalseThrow($"{tokType}' is missing");
         flow.MoveNext();
         return cur;
     }

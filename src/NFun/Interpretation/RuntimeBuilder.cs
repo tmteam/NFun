@@ -229,8 +229,7 @@ internal static class RuntimeBuilder {
 
 
         //ReplaceInputType
-        if (outputVariableSource.Type != expression.Type)
-            throw new NFunImpossibleException("fitless");
+        (outputVariableSource.Type == expression.Type).IfNullThrow("fitless");
         return new Equation(equation.Id, expression, outputVariableSource);
     }
 

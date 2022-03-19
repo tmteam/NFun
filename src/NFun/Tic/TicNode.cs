@@ -65,15 +65,13 @@ public class TicNode {
     #region Ancestors
 
     public void AddAncestor(TicNode node) {
-        if (node == this)
-            throw new NFunImpossibleException("CircularAncestor");
+        (node != this).IfFalseThrow("Circular ancestor 0");
 
         _ancestors.Add(node);
     }
 
     public void AddAncestors(IEnumerable<TicNode> nodes) {
-        if (nodes.Any(n => n == this))
-            throw new NFunImpossibleException("CircularAncestor");
+        (nodes.All(n => n != this)).IfFalseThrow("Circular ancestor 1");
         _ancestors.AddRange(nodes);
     }
 
@@ -81,8 +79,7 @@ public class TicNode {
         _ancestors.Remove(node);
 
     public void SetAncestor(int index, TicNode node) {
-        if (node == this)
-            throw new NFunImpossibleException("CircularAncestor");
+        (node != this).IfFalseThrow("Circular ancestor 2");
         _ancestors[index] = node;
     }
 
