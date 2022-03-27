@@ -459,8 +459,7 @@ public static class SyntaxNodeReader {
                 throw Errors.InterpolationExpressionIsMissing(concatenations.Last());
 
             var toText = SyntaxNodeFactory.FunCall(
-                CoreFunNames.ToText, new[] { allNext }, allNext.Interval.Start,
-                allNext.Interval.Finish);
+                CoreFunNames.ToText, new[] { allNext }, allNext.Interval.Start, allNext.Interval.Finish);
             concatenations.Add(toText);
 
 
@@ -490,18 +489,15 @@ public static class SyntaxNodeReader {
                         return SyntaxNodeFactory.FunCall(CoreFunNames.ToText, concatenations.ToArray(), start, finish);
                     case 2:
                         return SyntaxNodeFactory.FunCall(
-                            CoreFunNames.Concat2Texts, concatenations.ToArray(), start,
-                            finish);
+                            CoreFunNames.Concat2Texts, concatenations.ToArray(), start, finish);
                     case 3:
                         return SyntaxNodeFactory.FunCall(
-                            CoreFunNames.Concat3Texts, concatenations.ToArray(), start,
-                            finish);
+                            CoreFunNames.Concat3Texts, concatenations.ToArray(),  start, finish);
                     default:
                     {
                         var arrayOfTexts = SyntaxNodeFactory.Array(concatenations.ToArray(), start, finish);
                         return SyntaxNodeFactory.FunCall(
-                            CoreFunNames.ConcatArrayOfTexts, new[] { arrayOfTexts },
-                            start, finish);
+                            CoreFunNames.ConcatArrayOfTexts, new[] { arrayOfTexts }, start, finish);
                     }
                 }
             }
@@ -791,7 +787,7 @@ public static class SyntaxNodeReader {
         var args = new ISyntaxNode[arguments.Count + 1];
         args[0] = pipedVal;
         arguments.CopyTo(args, 1);
-        return SyntaxNodeFactory.FunCall(head.Value, args, start, flow.Position);
+        return SyntaxNodeFactory.PipedFunCall(head.Value, args, start, flow.Position);
     }
 
     private static ISyntaxNode ReadResultCall(TokFlow flow, ISyntaxNode functionResultNode) {

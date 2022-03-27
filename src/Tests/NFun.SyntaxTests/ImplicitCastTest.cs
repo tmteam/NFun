@@ -129,7 +129,7 @@ public class ImplicitCastTest {
     [TestCase("uint64", "int64")]
     [TestCase("real", "int64")]
     public void ObviousFails_ImplicitNumbersCast(string typeFrom, string typeTo)
-        => "x:{typefrom}; y:{typeTo} = x".AssertObviousFailsOnParse();
+        => $"x:{typeFrom}; y:{typeTo} = x".AssertObviousFailsOnParse();
 
 
     [TestCase("-1", "uint8")]

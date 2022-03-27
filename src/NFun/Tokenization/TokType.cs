@@ -153,9 +153,8 @@ public enum TokType {
     /// </summary>
     Dot,
     /// <summary>
-    /// ->
+    /// 'rule' 
     /// </summary>
-    Arrow,
     FunRule,
     /// <summary>
     /// 'default'

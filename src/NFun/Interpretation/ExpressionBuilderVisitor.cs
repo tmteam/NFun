@@ -142,12 +142,12 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             arrowAnonymFunNode.OutputType, 
             arrowAnonymFunNode.Interval);
 
-    public IExpressionNode Visit(ArrowAnonymFunctionSyntaxNode arrowAnonymFunNode) {
-        arrowAnonymFunNode.Definition.IfNullThrow($"{nameof(arrowAnonymFunNode.Definition)} is missing");
-        arrowAnonymFunNode.Body.IfNullThrow($"{nameof(arrowAnonymFunNode.Body)} is missing");
+    public IExpressionNode Visit(AnonymFunctionSyntaxNode anonymFunNode) {
+        anonymFunNode.Definition.IfNullThrow($"{nameof(anonymFunNode.Definition)} is missing");
+        anonymFunNode.Body.IfNullThrow($"{nameof(anonymFunNode.Body)} is missing");
 
         //Anonym fun arguments list
-        var argumentLexNodes = arrowAnonymFunNode.ArgumentsDefinition;
+        var argumentLexNodes = anonymFunNode.ArgumentsDefinition;
 
         //Prepare local variable scope
         //Capture all outerscope variables
@@ -175,14 +175,14 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
                 if (_variables.GetSourceOrNull(varNode.Name) != null)
                     throw Errors.AnonymousFunctionArgumentConflictsWithOuterScope(
                         varNode.Name,
-                        arrowAnonymFunNode.Interval);
+                        anonymFunNode.Interval);
                 else //else it is duplicated arg name
-                    throw Errors.AnonymousFunctionArgumentDuplicates(varNode, arrowAnonymFunNode.Definition);
+                    throw Errors.AnonymousFunctionArgumentDuplicates(varNode, anonymFunNode.Definition);
             }
         }
 
-        var body = arrowAnonymFunNode.Body;
-        return BuildAnonymousFunction(arrowAnonymFunNode.Interval, body, localVariables, arguments);
+        var body = anonymFunNode.Body;
+        return BuildAnonymousFunction(anonymFunNode.Interval, body, localVariables, arguments);
     }
 
     public IExpressionNode Visit(ArraySyntaxNode node) {

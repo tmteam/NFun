@@ -3,7 +3,7 @@ using NFun.SyntaxParsing.SyntaxNodes;
 namespace NFun.SyntaxParsing.Visitors {
 
 public abstract class ExitVisitorBase : ISyntaxNodeVisitor<bool> {
-    public virtual bool Visit(ArrowAnonymFunctionSyntaxNode arrowAnonymFunNode) => true;
+    public virtual bool Visit(AnonymFunctionSyntaxNode anonymFunNode) => true;
     public virtual bool Visit(ArraySyntaxNode node) => true;
     public virtual bool Visit(EquationSyntaxNode node) => true;
     public virtual bool Visit(FunCallSyntaxNode node) => true;

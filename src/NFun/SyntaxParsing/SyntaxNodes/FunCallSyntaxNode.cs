@@ -21,11 +21,12 @@ public class FunCallSyntaxNode : IFunCallSyntaxNode {
     public bool IsOperator { get; }
     public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
     public IEnumerable<ISyntaxNode> Children => Args;
-
-    public FunCallSyntaxNode(string id, ISyntaxNode[] args, Interval interval, bool isOperator = false) {
+    public bool IsPipeForward { get; }
+    public FunCallSyntaxNode(string id, ISyntaxNode[] args, Interval interval, bool isPipeForward, bool isOperator = false) {
         Id = id;
         Args = args;
         Interval = interval;
+        IsPipeForward = isPipeForward;
         IsOperator = isOperator;
     }
 }

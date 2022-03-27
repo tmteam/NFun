@@ -11,7 +11,7 @@ public static class SyntaxNodeFactory {
     public readonly static ISyntaxNode DefaultValue = new DefaultValueSyntaxNode();
     
     public static ISyntaxNode AnonymFun(ISyntaxNode definition, FunnyType type, ISyntaxNode body)
-        => new ArrowAnonymFunctionSyntaxNode(
+        => new AnonymFunctionSyntaxNode(
             definition, body, type,
             new Interval(definition.Interval.Start, body.Interval.Finish));
 
@@ -48,11 +48,14 @@ public static class SyntaxNodeFactory {
     public static TypedVarDefSyntaxNode TypedVar(string name, FunnyType type, int start, int end)
         => new(name, type, new Interval(start, end));
 
-    public static ISyntaxNode FunCall(string name, ISyntaxNode[] children, int start, int end)
-        => new FunCallSyntaxNode(name, children, new Interval(start, end));
+    public static ISyntaxNode FunCall(string name, ISyntaxNode[] children,  int start, int end)
+        => new FunCallSyntaxNode(name, children, new Interval(start, end), false, false);
+    
+    public static ISyntaxNode PipedFunCall(string name, ISyntaxNode[] children,  int start, int end)
+        => new FunCallSyntaxNode(name, children, new Interval(start, end), true, false);
 
     public static ISyntaxNode OperatorFun(string name, ISyntaxNode[] children, int start, int end)
-        => new FunCallSyntaxNode(name, children, new Interval(start, end), true);
+        => new FunCallSyntaxNode(name, children, new Interval(start, end), false, true);
 
     public static ISyntaxNode Struct(List<EquationSyntaxNode> equations, Interval interval)
         => new StructInitSyntaxNode(equations, interval);

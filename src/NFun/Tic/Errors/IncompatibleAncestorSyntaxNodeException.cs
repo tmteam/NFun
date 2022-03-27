@@ -1,15 +1,11 @@
-﻿using NFun.Tic.SolvingStates;
-
-namespace NFun.Tic.Errors {
+﻿namespace NFun.Tic.Errors {
 
 internal class IncompatibleAncestorSyntaxNodeException : TicException {
-    public int SyntaxNodeId { get; }
-    public ITicNodeState Ancestor { get; }
-    public ITicNodeState Descendant { get; }
+    public TicNode Ancestor { get; }
+    public TicNode Descendant { get; }
 
-    public IncompatibleAncestorSyntaxNodeException(int syntaxNodeId, ITicNodeState ancestor, ITicNodeState descendant)
-        : base($"Incompatible ancestor {ancestor}=>{descendant} at node {syntaxNodeId}") {
-        SyntaxNodeId = syntaxNodeId;
+    public IncompatibleAncestorSyntaxNodeException(TicNode ancestor, TicNode descendant)
+        : base($"Incompatible ancestor {ancestor}=>{descendant}") {
         Ancestor = ancestor;
         Descendant = descendant;
     }

@@ -6,7 +6,7 @@ using NFun.Types;
 
 namespace NFun.SyntaxParsing.SyntaxNodes {
 
-public class ArrowAnonymFunctionSyntaxNode : ISyntaxNode {
+public class AnonymFunctionSyntaxNode : ISyntaxNode {
     public ISyntaxNode[] ArgumentsDefinition { get; }
     public ISyntaxNode Definition { get; }
     public ISyntaxNode Body { get; }
@@ -21,7 +21,7 @@ public class ArrowAnonymFunctionSyntaxNode : ISyntaxNode {
     public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
     public IEnumerable<ISyntaxNode> Children => ArgumentsDefinition.Append(Body);
 
-    public ArrowAnonymFunctionSyntaxNode(
+    public AnonymFunctionSyntaxNode(
         ISyntaxNode definition, ISyntaxNode body, FunnyType returnType, Interval interval) {
         if (definition is ListOfExpressionsSyntaxNode list)
             //it can be comlex: (x1,x2,x3)=>...

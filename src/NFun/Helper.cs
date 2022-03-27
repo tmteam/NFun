@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace NFun {
@@ -16,7 +17,25 @@ internal static class Helper {
             return true;
         return char.IsDigit(id[2]);
     }
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsEmpty<TIn>(this IEnumerable<TIn> input)  => !input.Any();
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsEmpty<TIn>(this TIn[] input) => input.Length == 0;
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsEmpty<TIn>(this List<TIn> input) => input.Count == 0;
 
+    public static int IndexOf<TIn>(this IEnumerable<TIn> input, TIn searched) {
+        int index = -1;
+        foreach (var value in input)
+        {
+            index++;
+            if (value.Equals(searched))
+                return index;
+        }
+        return -1;
+    }
+    
+    
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TOut[] SelectToArray<TIn, TOut>(this TIn[] input, Func<TIn, TOut> mapFunc) {
         var ans = new TOut[input.Length];

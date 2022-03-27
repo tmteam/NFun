@@ -3,7 +3,7 @@ using NFun.SyntaxParsing.SyntaxNodes;
 namespace NFun.SyntaxParsing.Visitors {
 
 public interface ISyntaxNodeVisitor<out T> {
-    T Visit(ArrowAnonymFunctionSyntaxNode arrowAnonymFunNode);
+    T Visit(AnonymFunctionSyntaxNode anonymFunNode);
     T Visit(ArraySyntaxNode node);
     T Visit(EquationSyntaxNode node);
     T Visit(FunCallSyntaxNode node);

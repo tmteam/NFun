@@ -199,7 +199,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         return true;
     }
 
-    public bool Visit(ArrowAnonymFunctionSyntaxNode node) {
+    public bool Visit(AnonymFunctionSyntaxNode node) {
         _aliasScope.EnterScope(node.OrderNumber);
         foreach (var syntaxNode in node.ArgumentsDefinition)
         {

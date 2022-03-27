@@ -249,21 +249,20 @@ internal static class RuntimeBuilder {
 
         try
         {
-            if (!TicSetupVisitor.SetupTicForUserFunction(
+            TicSetupVisitor.SetupTicForUserFunction(
                 userFunctionNode: functionSyntaxNode,
                 ticGraph: graphBuider,
                 functions: functionsDictionary,
                 constants: constants,
                 results: resultsBuilder,
-                dialect: dialect))
-                throw Errors.FunctionIsNotSolved(functionSyntaxNode);
+                dialect: dialect).IfFalseThrow($"User Function '{functionSyntaxNode.Head}' was not solved due unknown reasons ");
 
             // solve the types
             types = graphBuider.Solve();
         }
         catch (TicException e)
         {
-            throw Errors.TranslateTicError(e, functionSyntaxNode);
+            throw Errors.TranslateTicError(e, functionSyntaxNode, graphBuider);
         }
 
         resultsBuilder.SetResults(types);

@@ -87,9 +87,7 @@ internal static partial class Errors {
 
     internal static FunnyParseException FunctionNotFoundForHiOrderUsage(FunCallSyntaxNode node, IFunctionDictionary functions) {
         var candidates = functions.SearchAllFunctionsIgnoreCase(node.Id, node.Args.Length);
-        StringBuilder msg =
-            new StringBuilder(
-                $"Function '{node.Id}({string.Join(",", node.Args.Select(_ => "_"))})' is not found. ");
+        var msg = new StringBuilder($"Function '{node.Id}({string.Join(",", node.Args.Select(_ => "_"))})' is not found. ");
         if (candidates.Any())
         {
             var candidate = candidates.First();
@@ -97,7 +95,11 @@ internal static partial class Errors {
                 $"\r\nDid you mean function '{TypeHelper.GetFunSignature(candidate.Name, candidate.ReturnType, candidate.ArgTypes)}' ?");
         }
 
-        return new(870, msg.ToString(), node.Interval);
+        var interval = node.IsPipeForward 
+            ? new Interval(node.Args[0].Interval.Finish, node.Args[0].Interval.Finish + node.Id.Length + 1) 
+            : new Interval(node.Interval.Start, node.Interval.Start + node.Id.Length);
+        
+        return new(870, msg.ToString(), interval);
     }
 
     internal static FunnyParseException CannotUseOutputValueBeforeItIsDeclared(VariableUsages usages) {

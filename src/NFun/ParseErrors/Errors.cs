@@ -90,9 +90,9 @@ internal static partial class Errors {
                    TokType.Int64Type     => "int64",
                    TokType.RealType      => "real",
                    TokType.BoolType      => "bool",
-                   TokType.AnythingType  => "anything",
+                   TokType.AnythingType  => "any",
                    TokType.Dot           => ".",
-                   TokType.Arrow         => "=>",
+                   TokType.FunRule       => "rule",
                    _                     => tok.Type.ToString().ToLower()
                };
     }

@@ -19,7 +19,7 @@ public class FunnyParseException : Exception {
         Interval = new Interval(start, end);
     }
 
-    public override string ToString() => $"[FU{Code}] {base.ToString()}";
+    public override string ToString() => $"[FU{Code}] {Message}";
     
 }
 

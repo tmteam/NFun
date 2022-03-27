@@ -318,7 +318,7 @@ internal static partial class Errors {
     }
 
     internal static FunnyParseException NotAnExpression(ISyntaxNode node) => new(
-        603, $"{node} is not an expression", node.Interval);
+        603, $"{GetDescription(node)} is not an expression", node.Interval);
 
     internal static FunnyParseException LeftBinaryArgumentIsMissing(Tok token) => new(
         606, $"expression is missed before '{ToText(token)}'", token.Interval);

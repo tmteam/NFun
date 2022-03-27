@@ -62,30 +62,29 @@ internal static class RuntimeBuilderHelper {
         IConstantList constants,
         AprioriTypesMap aprioriTypes,
         DialectSettings dialect) {
+        var resultBuilder = new TypeInferenceResultsBuilder();
+        var graph = new GraphBuilder(syntaxTree.MaxNodeId);
         try
         {
-            var resultBuilder = new TypeInferenceResultsBuilder();
-            var typeGraph = new GraphBuilder(syntaxTree.MaxNodeId);
+            
 
-            if (!TicSetupVisitor.SetupTicForBody(
+            TicSetupVisitor.SetupTicForBody(
                 tree: syntaxTree,
-                ticGraph: typeGraph,
+                ticGraph: graph,
                 functions: functions,
                 constants: constants,
                 aprioriTypes: aprioriTypes,
                 results: resultBuilder,
-                dialect: dialect))
-                throw Errors.TypesNotSolved(syntaxTree);
+                dialect: dialect).IfFalseThrow("Types not solved due unknown reasons");
 
-            var bodyTypeSolving = typeGraph.Solve();
-            if (bodyTypeSolving == null)
-                throw Errors.TypesNotSolved(syntaxTree);
+            var bodyTypeSolving = graph.Solve();
+            bodyTypeSolving.IfNullThrow("Type graph solve nothing");
             resultBuilder.SetResults(bodyTypeSolving);
             return resultBuilder.Build();
         }
         catch (TicException e)
         {
-            throw Errors.TranslateTicError(e, syntaxTree);
+            throw Errors.TranslateTicError(e, syntaxTree, graph);
         }
     }
 

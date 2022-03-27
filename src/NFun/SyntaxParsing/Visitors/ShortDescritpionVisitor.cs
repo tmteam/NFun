@@ -5,7 +5,8 @@ using NFun.Types;
 namespace NFun.SyntaxParsing.Visitors {
 
 public class ShortDescritpionVisitor : ISyntaxNodeVisitor<string> {
-    public string Visit(ArrowAnonymFunctionSyntaxNode arrowAnonymFunNode) => "(..)=>..";
+    public string Visit(AnonymFunctionSyntaxNode anonymFunNode) 
+        => $"rule({string.Join(",",anonymFunNode.ArgumentsDefinition.Select(a=>a.Accept(this)))})=..";
     public string Visit(ArraySyntaxNode node) => "[...]";
     public string Visit(EquationSyntaxNode node) => $"{node.Id} = ... ";
     public string Visit(FunCallSyntaxNode node) => $"{node.Id}(...)";

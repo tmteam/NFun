@@ -6,8 +6,8 @@ public abstract class EnterVisitorBase : ISyntaxNodeVisitor<VisitorEnterResult> 
     protected virtual VisitorEnterResult DefaultVisitEnter(ISyntaxNode node)
         => VisitorEnterResult.Continue;
 
-    public virtual VisitorEnterResult Visit(ArrowAnonymFunctionSyntaxNode arrowAnonymFunNode) =>
-        DefaultVisitEnter(arrowAnonymFunNode);
+    public virtual VisitorEnterResult Visit(AnonymFunctionSyntaxNode anonymFunNode) =>
+        DefaultVisitEnter(anonymFunNode);
 
     public virtual VisitorEnterResult Visit(ArraySyntaxNode node) => DefaultVisitEnter(node);
     public virtual VisitorEnterResult Visit(EquationSyntaxNode node) => DefaultVisitEnter(node);

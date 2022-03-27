@@ -313,7 +313,7 @@ public class GraphBuilder {
             syntaxNodes: _syntaxNodes,
             namedNodes: _variables);
     }
-
+    public TicNode[] GetNodes() => _variables.Values.Union(_syntaxNodes.Where(s=>s!=null)).ToArray();
     private TicNode[] Toposort() {
         var toposortAlgorithm = new NodeToposort(
             capacity: _syntaxNodes.Count + _variables.Count + _typeVariables.Count);

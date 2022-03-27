@@ -580,7 +580,7 @@ public static class SolvingFunctions {
            .Where(t => t.State is ConstrainsState);
 
 
-    private static IEnumerable<TicNode> GetAllLeafTypes(this TicNode node) =>
+    public static IEnumerable<TicNode> GetAllLeafTypes(this TicNode node) =>
         node.State switch {
             ICompositeState composite => composite.AllLeafTypes,
             StateRefTo                => new[] { node.GetNonReference() },
