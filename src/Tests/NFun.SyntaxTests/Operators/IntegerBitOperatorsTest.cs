@@ -210,14 +210,14 @@ public class IntegerBitOperatorsTest {
     public void ConstantBitInvert(string expression, object expected)
         => expression.AssertReturns("y", expected);
     
-    /*
-     todo oops overflow. 
+    
+    [Ignore("Overflow behaviour is not implemented for bitshifts")]
     [TestCase("y:uint32 = 0xFFFF_ffff<<1")]
     [TestCase("y:uint32 = 0x1<<33")]
     [TestCase("y:uint64 = 0xFFFF_ffff_FFFF_ffff<<1")]
     [TestCase("y:uint64 = 0x1<<65")]
     [TestCase("y:int32 = 0x1<<33")]
-    [TestCase("y:int64 = 0x1<<65")]*/
+    [TestCase("y:int64 = 0x1<<65")]
     public void Oops(string expr) =>
         Assert.Throws<FunnyRuntimeException>(() => expr.Calc());
 

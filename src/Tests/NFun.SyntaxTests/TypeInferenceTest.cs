@@ -144,10 +144,6 @@ public class TypeInferenceTest {
                           else 
                                 1
           y:int = someRec2(0x9,0x2)", BaseFunnyType.Int32)]
-    //todo
-    //[TestCase(
-    //    @"someRec3(n, iter) = someRec3(n, iter+1).strConcat(n >iter)
-    //  y = someRec3(9,2)[0]", BaseVarType.Char)]
     [TestCase("(if(true) [1,2] else [])[0]", BaseFunnyType.Int32)]
     public void SingleEquations_Parsing_OutputTypesCalculateCorrect(string expr, BaseFunnyType type) =>
         Assert.AreEqual(type, expr.Build().Variables.Single(v => v.IsOutput).Type.BaseType);

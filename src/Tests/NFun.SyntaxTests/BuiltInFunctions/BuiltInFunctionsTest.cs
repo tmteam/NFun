@@ -159,24 +159,6 @@ public class BuiltInFunctionsTest {
     [TestCase("log(1,10)", 0.0)]
     [TestCase("log(1)", 0.0)]
     [TestCase("log10(1)", 0.0)]
-    //todo
-    //[TestCase("ceil(7.03)",  8)]
-    //[TestCase("ceil(7.64)",  8)]
-    //[TestCase("ceil(0.12)",  1)]
-    //[TestCase("ceil(-0.12)", 0)]
-    //[TestCase("ceil(-7.1)", -7)]
-    //[TestCase("ceil(-7.6)", -7)]
-    //[TestCase("floor(7.03)",  7)]
-    //[TestCase("floor(7.64)",  7)]
-    //[TestCase("floor(0.12)",  0)]
-    //[TestCase("floor(-0.12)", -1)]
-    //[TestCase("floor(-7.1)", -8)]
-    //[TestCase("floor(-7.6)", -8)]
-
-    //[TestCase("sign(-5)", -1)]
-    //[TestCase("sign(-5.0)", -1)]
-    //[TestCase("sign(5)", 1)]
-    //[TestCase("sign(5.2)", 1)]
     [TestCase("round(1.66666,1)", 1.7)]
     [TestCase("round(1.222,2)", 1.22)]
     [TestCase("round(1.66666,0)", 2.0)]
@@ -269,10 +251,29 @@ public class BuiltInFunctionsTest {
     [TestCase("range(7,10.0)", new[] { 7.0, 8, 9, 10 })]
     [TestCase("range(7.0,10.0)", new[] { 7.0, 8, 9, 10 })]
     [TestCase("range(1,10,2.0)", new[] { 1.0, 3.0, 5.0, 7.0, 9.0 })]
-    public void ConstantEquationWithPredefinedFunction(string expr, object expected) {
-        TraceLog.IsEnabled = true;
-        expr.AssertAnonymousOut(expected);
-    }
+    public void ConstantEquationWithPredefinedFunction(string expr, object expected) 
+        => expr.AssertAnonymousOut(expected);
+
+    [Ignore("TODO ceil, floor, sign functions are not implemented")]
+    [TestCase("ceil(7.03)",  8)]
+    [TestCase("ceil(7.64)",  8)]
+    [TestCase("ceil(0.12)",  1)]
+    [TestCase("ceil(-0.12)", 0)]
+    [TestCase("ceil(-7.1)", -7)]
+    [TestCase("ceil(-7.6)", -7)]
+    [TestCase("floor(7.03)",  7)]
+    [TestCase("floor(7.64)",  7)]
+    [TestCase("floor(0.12)",  0)]
+    [TestCase("floor(-0.12)", -1)]
+    [TestCase("floor(-7.1)", -8)]
+    [TestCase("floor(-7.6)", -8)]
+
+    [TestCase("sign(-5)", -1)]
+    [TestCase("sign(-5.0)", -1)]
+    [TestCase("sign(5)", 1)]
+    [TestCase("sign(5.2)", 1)]
+    public void TODOConstantEquationWithPredefinedFunction(string expr, object expected) 
+        => expr.AssertAnonymousOut(expected);
 
     [Ignore("Lca merge")]
     [TestCase("['a','hey','what','up'].sort(rule it.reverse())", new[] { "a", "up", "what", "hey" })]
@@ -311,16 +312,20 @@ public class BuiltInFunctionsTest {
     [TestCase("y:int32 = abs(x)", (int)-1, (int)1)]
     [TestCase("y:int16 = abs(x)", (Int16)(-1), (Int16)1)]
     [TestCase("y = abs(x-4.0)", 1.0, 3.0)]
-    //todo
-    // [TestCase("x:int; y = abs(toInt(x)-toInt(4))",1,3)]
     [TestCase("y = abs(x-4)", 1, 3)]
     [TestCase("y = abs(x-4.0)", 1.0, 3.0)]
-    //todo
-    //[TestCase("y = abs(toInt(x)-toInt(4))",1,3)]
-    //[TestCase("y = abs(x-toInt(4))",1,3)]
+    
     public void EquationWithPredefinedFunction(string expr, object arg, object expected) =>
         expr.Calc("x", arg).AssertReturns("y", expected);
+    
+    [Ignore("TODO: toXXX functions are not implemented")]
+    [TestCase("y = abs(toInt(x)-toInt(4))",1,3)]
+    [TestCase("y = abs(x-toInt(4))",1,3)]
+    [TestCase("x:int; y = abs(toInt(x)-toInt(4))",1,3)]
+    public void TODOEquationWithPredefinedFunction(string expr, object arg, object expected) =>
+        expr.Calc("x", arg).AssertReturns("y", expected);
 
+    
     [TestCase("y = pi(")]
     [TestCase("y = pi(1)")]
     [TestCase("y = abs(")]
@@ -339,13 +344,17 @@ public class BuiltInFunctionsTest {
     [TestCase("y = add 1")]
     [TestCase("y = add(1,2,3)")]
     [TestCase("y = avg(['1','2','3'])")]
-    // [TestCase("y= max([])")]
     [TestCase("y= max(1,2,3)")]
     [TestCase("y= ~1.5")]
     [TestCase("y= max(1,true)")]
     [TestCase("y= max(1,(j)->j)")]
-    // [TestCase("y = [1,2] in [1,2,3,4]")]
     public void ObviouslyFails(string expr) => expr.AssertObviousFailsOnParse();
+
+    [Ignore("UB")]
+    [TestCase("y= max([])")]
+    [TestCase("y = [1,2] in [1,2,3,4]")]
+    public void MayBeFails(string expr) => expr.AssertObviousFailsOnParse();
+
 }
 
 }

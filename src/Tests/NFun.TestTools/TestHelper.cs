@@ -255,7 +255,7 @@ public static class TestHelper {
             }
             catch (Exception e)
             {
-                Assert.Fail($"Const expression succesfully build. Executrion failed with error: {e}");
+                Assert.Fail($"Const expression succesfully build. Execution failed with error: {e}");
                 return;
             }
         }
