@@ -7,13 +7,15 @@ using NFun.Types;
 namespace NFun.SyntaxParsing {
 
 public static class SyntaxNodeFactory {
-    
-    public readonly static ISyntaxNode DefaultValue = new DefaultValueSyntaxNode();
-    
-    public static ISyntaxNode AnonymFun(ISyntaxNode definition, FunnyType type, ISyntaxNode body)
+
+    public static readonly ISyntaxNode DefaultValue = new DefaultValueSyntaxNode();
+
+    public static ISyntaxNode AnonymFunction(ISyntaxNode definition, FunnyType type, ISyntaxNode body)
         => new AnonymFunctionSyntaxNode(
             definition, body, type,
             new Interval(definition.Interval.Start, body.Interval.Finish));
+
+    public static ISyntaxNode SuperAnonymFunction(ISyntaxNode body) => new SuperAnonymFunctionSyntaxNode(body);
 
     public static ISyntaxNode IfElse(IfCaseSyntaxNode[] ifThenNodes, ISyntaxNode elseResult, int start, int end)
         => new IfThenElseSyntaxNode(ifThenNodes, elseResult, new Interval(start, end));
@@ -35,9 +37,6 @@ public static class SyntaxNodeFactory {
 
     public static ISyntaxNode HexOrBinIntConstant(ulong value, Interval interval)
         => new GenericIntSyntaxNode(value, true, interval);
-    
-    public static ISyntaxNode DecimalConstant(Decimal value, Interval interval)
-        => new ConstantSyntaxNode(value, FunnyType.Real, interval);
 
     public static ISyntaxNode Array(IList<ISyntaxNode> elements, int start, int end)
         => new ArraySyntaxNode(elements, new Interval(start, end));
@@ -48,10 +47,10 @@ public static class SyntaxNodeFactory {
     public static TypedVarDefSyntaxNode TypedVar(string name, FunnyType type, int start, int end)
         => new(name, type, new Interval(start, end));
 
-    public static ISyntaxNode FunCall(string name, ISyntaxNode[] children,  int start, int end)
+    public static ISyntaxNode FunCall(string name, ISyntaxNode[] children, int start, int end)
         => new FunCallSyntaxNode(name, children, new Interval(start, end), false, false);
-    
-    public static ISyntaxNode PipedFunCall(string name, ISyntaxNode[] children,  int start, int end)
+
+    public static ISyntaxNode PipedFunCall(string name, ISyntaxNode[] children, int start, int end)
         => new FunCallSyntaxNode(name, children, new Interval(start, end), true, false);
 
     public static ISyntaxNode OperatorFun(string name, ISyntaxNode[] children, int start, int end)
@@ -64,8 +63,6 @@ public static class SyntaxNodeFactory {
         new StructFieldAccessSyntaxNode(
             leftNode, memberId.Value,
             new Interval(leftNode.Interval.Start, memberId.Finish));
-
-    public static ISyntaxNode SuperAnonymFunction(ISyntaxNode body) => new SuperAnonymFunctionSyntaxNode(body);
 
     public static EquationSyntaxNode Equation(Tok idToken, ISyntaxNode body) => new(
         idToken.Value, idToken.Start, body, System.Array.Empty<FunnyAttribute>());

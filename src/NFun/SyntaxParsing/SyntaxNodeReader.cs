@@ -379,7 +379,7 @@ public static class SyntaxNodeReader {
             bodyOrTypeNotation = ReadNodeOrNull(flow);
             if (bodyOrTypeNotation == null)
                 throw Errors.AnonymousFunBodyIsMissing(new Interval(pos, flow.CurrentTokenPosition));
-            return SyntaxNodeFactory.AnonymFun(definition, returnType, bodyOrTypeNotation);
+            return SyntaxNodeFactory.AnonymFunction(definition, returnType, bodyOrTypeNotation);
         }
 
         if (returnType != FunnyType.Empty)
