@@ -39,6 +39,10 @@ public class TextTest {
     [TestCase("y = '{0}'", "0")]
     [TestCase("y = 'hi {42}'", "hi 42")]
     [TestCase("y = '{42}hi'", "42hi")]
+    [TestCase("y =  ‘some \"figure\" quotes‘","some \"figure\" quotes")]
+    [TestCase("y =  “some \"figure\" quotes“","some \"figure\" quotes")]
+    [TestCase("y =  ‘some 'figure' quotes‘","some 'figure' quotes")]
+    [TestCase("y =  “some 'figure' quotes“","some 'figure' quotes")]
     [TestCase("y = 'hello {42} world'", "hello 42 world")]
     [TestCase("y = 'hello {42+1} world'", "hello 43 world")]
     [TestCase("y = '{''}'", "")]
@@ -145,6 +149,10 @@ public class TextTest {
     [TestCase("y='pre {0}''mid{1}fin'")]
     [TestCase("y='hello3{0}\"world{0}\"")]
     [TestCase("y='hello3{0}\"world{0'")]
+    [TestCase("y =  ‘some \"figure\" quotes\"")]
+    [TestCase("y =  “some \"figure\" quotes'")]
+    [TestCase("y =  ‘some \'figure\' quotes“")]
+    [TestCase("y =  “some \'figure\' quotes‘")]
     public void ObviousFails(string expr) => expr.AssertObviousFailsOnParse();
 }
 

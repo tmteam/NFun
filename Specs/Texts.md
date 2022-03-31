@@ -37,6 +37,13 @@ y = 'Kate said: "hi"!'
 z = "Kate said: 'hi'!"
 ```
 
+Special quotes ’ ” are also supported
+
+```
+y = ”Kate said: "hi"!”
+z = ’Kate said: 'hi'!’
+```
+
 ## Text Templates
 
 The text may contain one or more expression templates enclosed in curly brackets. When resolving such text into the result, templates are replaced with text representations of the results of expressions

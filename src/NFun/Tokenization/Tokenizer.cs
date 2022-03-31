@@ -171,7 +171,10 @@ public class Tokenizer {
 
     private static bool IsDigit(char val) => char.IsDigit(val);
 
-    public static bool IsQuote(char val) => val == '\'' || val == '\"';
+    private static bool IsQuote(char val) =>    val == '\'' 
+                                             || val == '\"' 
+                                             || val == '‘' 
+                                             || val == '“'; //important  to support figure quotes  
 
     private static Tok ReadNumber(string str, int position) {
         int dotPosition = -1;
