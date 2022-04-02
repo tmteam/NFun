@@ -261,6 +261,8 @@ public static class TestHelper {
         }
         catch (FunnyParseException ex)
         {
+            if(ex.Interval.Finish<ex.Interval.Start)
+                Assert.Pass($"Start interval is less then finish interval: {ex}");
             Assert.Pass($"Fun parse error: {ex}");
             return;
         }
