@@ -244,8 +244,8 @@ public static class SyntaxNodeReader {
         // '[' can be used as array index, only if there is new line
         if (flow.IsCurrent(TokType.ArrOBr))
             return ReadInitializeArrayNode(flow);
-        if (flow.MoveIf(TokType.Default))
-            return SyntaxNodeFactory.DefaultValue;
+        if (flow.MoveIf(TokType.Default, out var defaultToken))
+            return SyntaxNodeFactory.DefaultValue(defaultToken.Interval);
         if (flow.IsCurrent(TokType.NotAToken))
             throw Errors.NotAToken(flow.Current);
         return null;
@@ -362,7 +362,7 @@ public static class SyntaxNodeReader {
         var pos = flow.Position;
         var bodyOrTypeNotation = ReadNodeOrNull(flow);
         if (bodyOrTypeNotation == null)
-            throw Errors.AnonymousFunBodyIsMissing(new Interval(pos, flow.CurrentTokenPosition));
+            throw Errors.AnonymousFunBodyIsMissing(new Interval(flow.CurrentTokenPosition, pos));
 
         var returnType = TryReadTypeDef(flow);
         if (flow.Current.Is(TokType.Def))
@@ -378,7 +378,7 @@ public static class SyntaxNodeReader {
             var definition = bodyOrTypeNotation;
             bodyOrTypeNotation = ReadNodeOrNull(flow);
             if (bodyOrTypeNotation == null)
-                throw Errors.AnonymousFunBodyIsMissing(new Interval(pos, flow.CurrentTokenPosition));
+                throw Errors.AnonymousFunBodyIsMissing(new Interval(flow.CurrentTokenPosition, pos));
             return SyntaxNodeFactory.AnonymFunction(definition, returnType, bodyOrTypeNotation);
         }
 

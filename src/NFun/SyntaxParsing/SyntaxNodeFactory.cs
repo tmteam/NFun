@@ -8,7 +8,7 @@ namespace NFun.SyntaxParsing {
 
 public static class SyntaxNodeFactory {
 
-    public static readonly ISyntaxNode DefaultValue = new DefaultValueSyntaxNode();
+    public static  ISyntaxNode DefaultValue(Interval interval) => new DefaultValueSyntaxNode(interval);
 
     public static ISyntaxNode AnonymFunction(ISyntaxNode definition, FunnyType type, ISyntaxNode body)
         => new AnonymFunctionSyntaxNode(

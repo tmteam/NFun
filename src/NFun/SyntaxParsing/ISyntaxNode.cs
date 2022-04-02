@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
-using NFun.Types;
 
 namespace NFun.SyntaxParsing {
 

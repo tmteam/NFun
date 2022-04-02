@@ -6,6 +6,9 @@ using NFun.Tokenization;
 namespace NFun.SyntaxParsing.SyntaxNodes {
 
 public class DefaultValueSyntaxNode : ISyntaxNode {
+    public DefaultValueSyntaxNode(Interval interval) {
+        Interval = interval;
+    }
     public FunnyType OutputType { get; set; }
     public int OrderNumber { get; set; }
     public bool IsInBrackets { get; set; }

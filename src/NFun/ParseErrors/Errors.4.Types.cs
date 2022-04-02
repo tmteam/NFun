@@ -145,8 +145,11 @@ internal static partial class Errors {
         if (desc != null && ancestor != null)
         {
             if (descedantPath.Contains(ancestor) && ancestor is EquationSyntaxNode eq)
-                return new(740, $"Variable {eq.Id} cannot be initialized with type constrains '{GetDescription(ticDescendantOrNull)}' of expression '{GetDescription(desc)}'",
-                    eq.Interval.Start, eq.Expression.Interval.Start);
+            {
+                var start = Math.Min(eq.Expression.Interval.Start, eq.Interval.Start);
+                var finish = Math.Max(eq.Expression.Interval.Start, eq.Interval.Start);
+                return new(740, $"Variable {eq.Id} cannot be initialized with type constrains '{GetDescription(ticDescendantOrNull)}' of expression '{GetDescription(desc)}'", start, finish);
+            }
 
             return desc switch {
                        ConstantSyntaxNode c
