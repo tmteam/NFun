@@ -151,23 +151,17 @@ public class RealIsDecimalTest {
             .BuildWithDialect(realClrType: RealClrType.IsDecimal)
             .Calc().AssertAnonymousOut(new decimal(ulong.MaxValue) * -2);
 
-    [Test]
-    public void asdasd() {
-        var dec = new decimal(-368.000000000001);
-        Assert.AreEqual(dec.ToString(), "-368.000000000001");
-    }
-    
-    [Test]
-    public void BigNegativeDecimalNumberParsedWell() =>
-        "-368.000000000001"
-            .BuildWithDialect(realClrType: RealClrType.IsDecimal)
-            .Calc().AssertAnonymousOut(Decimal.Parse("-368.000000000001"));
+    [TestCase("0.0", "0.0")]
+    [TestCase("-0.1", "-0.1")]
+    [TestCase("-368.000000000001", "-368.000000000001")]
+    [TestCase("0.000_000_000_000_000_000_000_0012345", "0.0000000000000000000000012345")]
+    [TestCase("0.0000000000000000000000012345", "0.0000000000000000000000012345")]
+    [TestCase("00001232364273645716283_76_187.01231", "123236427364571628376187.01231")]
 
-    [Test]
-    public void DecimalNumberParsedWell() =>
-        "0.000_000_000_000_000_000_000_0012345"
+    public void DecimalNumberParsedWell(string expr, string expected) =>
+        expr
             .BuildWithDialect(realClrType: RealClrType.IsDecimal)
-            .Calc().AssertAnonymousOut((decimal.Parse("0.0000000000000000000000012345")));
+            .Calc().AssertAnonymousOut(Parse(expected));
 
     [TestCase("0.0000000000000000000000012345")]
     [TestCase("-368.000000000001")]
@@ -229,6 +223,9 @@ public class RealIsDecimalTest {
            .BuildWithDialect(realClrType: RealClrType.IsDecimal)
            .Calc().AssertAnonymousOut(expected);
 
+    private decimal Parse(string number) => decimal.Parse(number, 
+        NumberStyles.AllowDecimalPoint|NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture);
+    
     [TestCase("0xFFFF_FFFFF_FFFF_FFFFF_FFFF_FFFFF_FFFF_FFFFF")]
     [TestCase("-36893488147419103230")]
     [TestCase("36893488147419103230")]

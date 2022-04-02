@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using NFun.Exceptions;
 using NFun.Tokenization;
 
@@ -21,16 +22,13 @@ public abstract class TypeBehaviour {
     public abstract object GetRealConstantValue(ulong d);
     public abstract object GetRealConstantValue(long d);
     public abstract object ParseOrNull(string text);
-
     public abstract Type GetClrTypeFor(BaseFunnyType funnyType);
-
     public abstract T RealTypeSelect<T>(T ifIsDouble, T ifIsDecimal);
     public static TypeBehaviour RealIsDouble { get; }  = new RealIsDoubleTypeBehaviour();
     public static TypeBehaviour RealIsDecimal { get; } = new RealIsDecimalTypeBehaviour();
     public static TypeBehaviour Default { get; } = new RealIsDoubleTypeBehaviour();
 
     public abstract bool DoubleIsReal { get; }
-
     
     protected static readonly Func<object, object> ToInt8 = o => Convert.ToSByte(o);
     protected static readonly Func<object, object> ToInt16 = o => Convert.ToInt16(o);
@@ -61,8 +59,7 @@ public abstract class TypeBehaviour {
             typeof(object),
             null
         };
-
-
+    
     protected static readonly object[] DefaultPrimitiveValues = {
         null,
         default(char),
@@ -81,6 +78,7 @@ public abstract class TypeBehaviour {
         new(),
         null
     };
+    
     private static readonly IReadOnlyDictionary<BaseFunnyType, IInputFunnyConverter> PrimitiveInputConvertersByName
         = new Dictionary<BaseFunnyType, IInputFunnyConverter> {
             { BaseFunnyType.Bool, new PrimitiveTypeInputFunnyConverter(FunnyType.Bool) },
@@ -94,6 +92,7 @@ public abstract class TypeBehaviour {
             { BaseFunnyType.Int64, new PrimitiveTypeInputFunnyConverter(FunnyType.Int64) },
             { BaseFunnyType.Real, new PrimitiveTypeInputFunnyConverter(FunnyType.Real) },
         };
+    
     protected static readonly IReadOnlyDictionary<BaseFunnyType, IOutputFunnyConverter>
         PrimitiveOutputConvertersByName
             = new Dictionary<BaseFunnyType, IOutputFunnyConverter> {
@@ -127,6 +126,7 @@ public class RealIsDoubleTypeBehaviour : TypeBehaviour {
             { typeof(float),  new DoubleToFloatTypeOutputFunnyConverter() },
             { typeof(Decimal), new DoubleToDecimalTypeOutputFunnyConverter() }
         };
+    
     private static readonly IReadOnlyDictionary<Type, IInputFunnyConverter> PrimitiveInputConvertersByType
         = new Dictionary<Type, IInputFunnyConverter> {
             { typeof(bool), new PrimitiveTypeInputFunnyConverter(FunnyType.Bool) },
@@ -142,12 +142,14 @@ public class RealIsDoubleTypeBehaviour : TypeBehaviour {
             { typeof(float), new FloatToDoubleInputFunnyConverter() },
             { typeof(Decimal), new DecimalToDoubleInputFunnyConverter() },
         };
+    
     public override IInputFunnyConverter GetPrimitiveInputConverterOrNull(Type clrType) =>
         PrimitiveInputConvertersByType.TryGetValue(clrType, out var res) 
             ? res : null;    
     public override IOutputFunnyConverter GetPrimitiveOutputConverterOrNull(Type clrType) => 
         PrimitiveOutputConvertersByType.TryGetValue(clrType, out var res) 
             ? res : null;
+    
     public override IOutputFunnyConverter GetPrimitiveOutputConverterOrNull(FunnyType funnyType) {
         if (funnyType.BaseType == BaseFunnyType.Real)
             return new PrimitiveTypeOutputFunnyConverter(FunnyType.Real, typeof(double));
@@ -175,13 +177,14 @@ public class RealIsDoubleTypeBehaviour : TypeBehaviour {
             BaseFunnyType.Char   => ToChar,
             _                    => null
         };
+    
     public override object GetRealConstantValue(ulong d) => (double)d;
     public override object GetRealConstantValue(long d) => (double)d;
-    public override object ParseOrNull(string text) => double.TryParse(text, out var dbl) ? dbl : null;
-    
+    public override object ParseOrNull(string text) => double.TryParse(text,
+        NumberStyles.AllowDecimalPoint|NumberStyles.AllowLeadingSign,
+        CultureInfo.InvariantCulture, out var dbl) ? dbl : null;
     public override Type GetClrTypeFor(BaseFunnyType funnyType) =>
         funnyType != BaseFunnyType.Real ? FunToClrTypesMap[(int)funnyType] : typeof(double);
-
     public override T RealTypeSelect<T>(T ifIsDouble, T ifIsDecimal) => ifIsDouble;
 
     private static readonly Func<object, object> ToDoubleReal = o => Convert.ToDouble(o);
@@ -206,6 +209,7 @@ public class RealIsDecimalTypeBehaviour : TypeBehaviour {
             { typeof(float),   new DecimalToFloatTypeOutputFunnyConverter() },
             { typeof(double),  new DecimalToDoubleTypeOutputFunnyConverter() },
         };
+    
     private static readonly IReadOnlyDictionary<Type, IInputFunnyConverter> PrimitiveInputConvertersByType
         = new Dictionary<Type, IInputFunnyConverter> {
             { typeof(bool), new PrimitiveTypeInputFunnyConverter(FunnyType.Bool) },
@@ -221,12 +225,14 @@ public class RealIsDecimalTypeBehaviour : TypeBehaviour {
             { typeof(double), new DoubleToDecimalInputFunnyConverter() },
             { typeof(float), new FloatToDecimalInputFunnyConverter() },
         };
+    
     public override IInputFunnyConverter GetPrimitiveInputConverterOrNull(Type clrType) =>
         PrimitiveInputConvertersByType.TryGetValue(clrType, out var res) 
             ? res : null;    
     public override IOutputFunnyConverter GetPrimitiveOutputConverterOrNull(Type clrType) => 
         PrimitiveOutputConvertersByType.TryGetValue(clrType, out var res) 
             ? res : null;
+   
     public override IOutputFunnyConverter GetPrimitiveOutputConverterOrNull(FunnyType funnyType) {
         if (funnyType.BaseType == BaseFunnyType.Real)
             return new PrimitiveTypeOutputFunnyConverter(FunnyType.Real, typeof(Decimal));
@@ -234,6 +240,7 @@ public class RealIsDecimalTypeBehaviour : TypeBehaviour {
             return converter;
         return null;
     }
+    
     public override object GetDefaultPrimitiveValueOrNull(BaseFunnyType typeName) => 
         typeName == BaseFunnyType.Real 
             ? decimal.Zero 
@@ -254,9 +261,10 @@ public class RealIsDecimalTypeBehaviour : TypeBehaviour {
         };
     public override object GetRealConstantValue(ulong d) => new decimal(d);
     public override object GetRealConstantValue(long d) => new decimal(d);
-    public override object ParseOrNull(string text) => decimal.TryParse(text, out var dbl) ? dbl : null;
-
-
+    public override object ParseOrNull(string text) => decimal.TryParse(text, 
+        NumberStyles.AllowDecimalPoint|NumberStyles.AllowLeadingSign,
+        CultureInfo.InvariantCulture, out var dbl) ? dbl : null;
+    
     public override Type GetClrTypeFor(BaseFunnyType funnyType) =>
         funnyType != BaseFunnyType.Real ? FunToClrTypesMap[(int)funnyType] : typeof(Decimal);
     
