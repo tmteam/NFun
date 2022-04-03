@@ -528,17 +528,23 @@ public class GraphBuilder {
         return varNode;
     }
 
-    public void PrintTrace(string name) {
-        TraceLog.WriteLine($"\r\nTrace for {name}");
-        SolvingFunctions.PrintTrace(
-            _syntaxNodes
-                .Union(_variables.Select(v => v.Value))
-                .Union(_typeVariables));
+    public void PrintTrace(string name)
+    {
+#if DEBUG
+            TraceLog.WriteLine($"\r\nTrace for {name}");
+            SolvingFunctions.PrintTrace(
+                _syntaxNodes
+                    .Union(_variables.Select(v => v.Value))
+                    .Union(_typeVariables));
+#endif
     }
 
-    private static void PrintTrace(string name, IEnumerable<TicNode> sorted) {
-        TraceLog.WriteLine($"\r\n Sorted trace for {name}");
-        SolvingFunctions.PrintTrace(sorted);
+    private static void PrintTrace(string name, IEnumerable<TicNode> sorted)
+    {
+        #if DEBUG
+            TraceLog.WriteLine($"\r\n Sorted trace for {name}");
+            SolvingFunctions.PrintTrace(sorted);
+        #endif
     }
 }
 

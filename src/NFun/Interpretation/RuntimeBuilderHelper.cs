@@ -66,19 +66,19 @@ internal static class RuntimeBuilderHelper {
         var graph = new GraphBuilder(syntaxTree.MaxNodeId);
         try
         {
-            
-
-            TicSetupVisitor.SetupTicForBody(
+            if(!TicSetupVisitor.SetupTicForBody(
                 tree: syntaxTree,
                 ticGraph: graph,
                 functions: functions,
                 constants: constants,
                 aprioriTypes: aprioriTypes,
                 results: resultBuilder,
-                dialect: dialect).IfFalseThrow("Types not solved due unknown reasons");
+                dialect: dialect))
+                AssertChecks.Panic("Types not solved due unknown reasons");
 
             var bodyTypeSolving = graph.Solve();
-            bodyTypeSolving.IfNullThrow("Type graph solve nothing");
+            if(bodyTypeSolving==null)
+                AssertChecks.Panic("Type graph solve nothing");
             resultBuilder.SetResults(bodyTypeSolving);
             return resultBuilder.Build();
         }

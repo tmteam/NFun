@@ -143,8 +143,10 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             arrowAnonymFunNode.Interval);
 
     public IExpressionNode Visit(AnonymFunctionSyntaxNode anonymFunNode) {
-        anonymFunNode.Definition.IfNullThrow($"{nameof(anonymFunNode.Definition)} is missing");
-        anonymFunNode.Body.IfNullThrow($"{nameof(anonymFunNode.Body)} is missing");
+        if(anonymFunNode.Definition==null)
+            AssertChecks.Panic($"{nameof(anonymFunNode.Definition)} is missing");
+        if(anonymFunNode.Body==null)
+            AssertChecks.Panic($"{nameof(anonymFunNode.Body)} is missing");
 
         //Anonym fun arguments list
         var argumentLexNodes = anonymFunNode.ArgumentsDefinition;
@@ -227,7 +229,8 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
                 // Take them from type inference results
                 var recCallSignature = _typeInferenceResults.GetRecursiveCallOrNull(node.OrderNumber);
                 //if generic call arguments not exist in type inference result - it is NFUN core error
-                recCallSignature.IfNullThrow($"MJ78. Function {id}`{node.Args.Length} was not found");
+                if(recCallSignature==null)
+                    AssertChecks.Panic($"MJ78. Function {id}`{node.Args.Length} was not found");
 
                 var varTypeCallSignature = _typesConverter.Convert(recCallSignature);
                 //Calculate generic call arguments by concrete function signature
@@ -291,7 +294,8 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
     public IExpressionNode Visit(GenericIntSyntaxNode node) {
         var (enode, _) = GetConstantNodeOrNull(node.Value, node);
-        enode.IfNullThrow($"Generic syntax node has wrong value type: {node.Value.GetType().Name}");
+        if(enode==null)
+            AssertChecks.Panic($"Generic syntax node has wrong value type: {node.Value.GetType().Name}");
         return enode;
     }
 
@@ -319,7 +323,8 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             if (funVariable is IGenericFunction genericFunction)
             {
                 var genericTypes = _typeInferenceResults.GetGenericCallArguments(node.OrderNumber);
-                genericTypes.IfNullThrow($"MJ79. Generic function is missed at {node.OrderNumber}:  {node.Id}`{genericFunction.Name} ");
+                if(genericTypes==null)
+                    AssertChecks.Panic($"MJ79. Generic function is missed at {node.OrderNumber}:  {node.Id}`{genericFunction.Name} ");
 
                 var genericArgs = new FunnyType[genericTypes.Length];
                 for (int i = 0; i < genericTypes.Length; i++)

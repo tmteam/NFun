@@ -13,7 +13,8 @@ internal class ConcreteUserFunctionPrototype : FunctionWithManyArguments {
     private ConcreteUserFunction _function;
 
     public void SetActual(ConcreteUserFunction function) {
-        (ReturnType == function.ReturnType).IfFalseThrow($"'{function.ReturnType}' is not supported as return type of {function.Name}()");
+        if(ReturnType != function.ReturnType)
+            AssertChecks.Panic($"'{function.ReturnType}' is not supported as return type of {function.Name}()");
         _function = function;
     }
 

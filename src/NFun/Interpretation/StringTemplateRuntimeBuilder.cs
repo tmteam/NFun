@@ -67,7 +67,8 @@ internal static class StringTemplateRuntimeBuilder {
             texts.Add(text);
 
             var nextSymbol = script[pos];
-            (nextSymbol == '{').IfFalseThrow($"Unexpected symbol '{nextSymbol}'");
+            if(nextSymbol != '{')
+                AssertChecks.Panic($"Unexpected symbol '{nextSymbol}'");
 
             int obrCount = 1;
             pos++;

@@ -229,7 +229,9 @@ internal static class RuntimeBuilder {
 
 
         //ReplaceInputType
-        (outputVariableSource.Type == expression.Type).IfNullThrow("fitless");
+        if(outputVariableSource.Type != expression.Type)
+            AssertChecks.Panic("fitless");
+        
         return new Equation(equation.Id, expression, outputVariableSource);
     }
 
@@ -249,14 +251,14 @@ internal static class RuntimeBuilder {
 
         try
         {
-            TicSetupVisitor.SetupTicForUserFunction(
+            if(!TicSetupVisitor.SetupTicForUserFunction(
                 userFunctionNode: functionSyntaxNode,
                 ticGraph: graphBuider,
                 functions: functionsDictionary,
                 constants: constants,
                 results: resultsBuilder,
-                dialect: dialect).IfFalseThrow($"User Function '{functionSyntaxNode.Head}' was not solved due unknown reasons ");
-
+                dialect: dialect))
+                AssertChecks.Panic($"User Function '{functionSyntaxNode.Head}' was not solved due unknown reasons ");
             // solve the types
             types = graphBuider.Solve();
         }

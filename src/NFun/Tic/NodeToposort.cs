@@ -92,7 +92,8 @@ public class NodeToposort {
         if (nonReference != null && nonReference.VisitMark != NodeInListMark)
         {
             nonReference.VisitMark = NodeInListMark;
-            (nonReference.State is not StateRefTo).IfFalseThrow($"Toposort adds reference node to list: {node}");
+            if(nonReference.State is StateRefTo)
+                AssertChecks.Panic($"Toposort adds reference node to list: {node}");
             _allNodes.Add(nonReference);
         }
     }

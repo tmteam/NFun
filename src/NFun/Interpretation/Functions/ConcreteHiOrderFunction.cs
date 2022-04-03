@@ -10,7 +10,8 @@ internal class ConcreteHiOrderFunctionWithSyntaxNode : FunctionWithManyArguments
 
     public static FunctionWithManyArguments Create(IExpressionNode funSource) {
         var signature = funSource.Type.FunTypeSpecification;
-        signature.IfNullThrow("[vaa 13] Functional type specification is missed");
+        if(signature==null)
+            AssertChecks.Panic("[vaa 13] Functional type specification is missed");
         return new ConcreteHiOrderFunctionWithSyntaxNode(
             funSource,
             signature.Output,

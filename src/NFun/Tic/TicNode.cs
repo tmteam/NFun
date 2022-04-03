@@ -65,13 +65,18 @@ public class TicNode {
     #region Ancestors
 
     public void AddAncestor(TicNode node) {
-        (node != this).IfFalseThrow("Circular ancestor 0");
+        if(node == this)
+            AssertChecks.Panic("Circular ancestor 0");
 
         _ancestors.Add(node);
     }
 
     public void AddAncestors(IEnumerable<TicNode> nodes) {
-        (nodes.All(n => n != this)).IfFalseThrow("Circular ancestor 1");
+#if DEBUG
+        if(nodes.Any(n => n == this))
+            AssertChecks.Panic("Circular ancestor 1");
+#endif
+
         _ancestors.AddRange(nodes);
     }
 
@@ -79,7 +84,8 @@ public class TicNode {
         _ancestors.Remove(node);
 
     public void SetAncestor(int index, TicNode node) {
-        (node != this).IfFalseThrow("Circular ancestor 2");
+        if(node == this)
+            AssertChecks.Panic("Circular ancestor 2");
         _ancestors[index] = node;
     }
 

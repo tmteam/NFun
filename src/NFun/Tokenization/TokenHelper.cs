@@ -110,8 +110,10 @@ public static class TokenHelper {
 
     public static Tok AssertAndMove(this TokFlow flow, TokType tokType) {
         var cur = flow.Current;
-        (cur != null).IfFalseThrow($"{tokType}' is missing");
-        cur!.Is(tokType).IfFalseThrow($"{tokType}' is missing");
+        if(cur == null)
+            AssertChecks.Panic($"{tokType}' is missing");
+        if(! cur!.Is(tokType))
+            AssertChecks.Panic($"{tokType}' is missing");
         flow.MoveNext();
         return cur;
     }
