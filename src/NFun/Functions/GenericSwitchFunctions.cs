@@ -17,42 +17,38 @@ public class MultiSumFunction : GenericFunctionBase {
     { }
 
     public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, TypeBehaviour typeBehaviour) =>
-        concreteTypes[0].BaseType switch
-        {
-            BaseFunnyType.UInt16 => UInt16Instance,
-            BaseFunnyType.UInt32 => UInt32Instance,
-            BaseFunnyType.UInt64 => UInt64Instance,
-            BaseFunnyType.Int16  => Int16Instance,
-            BaseFunnyType.Int32  => Int32Instance,
-            BaseFunnyType.Int64  => Int64Instance,
-            BaseFunnyType.Real   => typeBehaviour.RealTypeSelect<IConcreteFunction>(RealDoubleInstance, RealDecimalInstance),
-            _                    => throw new ArgumentOutOfRangeException()
-        };
+            concreteTypes[0].BaseType switch
+             {
+                 BaseFunnyType.UInt16 => typeBehaviour.AllowIntegerOverflow? UInt16Function.Instance: UInt16CheckedFunction.Instance ,
+                 BaseFunnyType.UInt32 => typeBehaviour.AllowIntegerOverflow? UInt32Function.Instance: UInt32CheckedFunction.Instance,
+                 BaseFunnyType.UInt64 => typeBehaviour.AllowIntegerOverflow? UInt64Function.Instance: UInt64CheckedFunction.Instance,
+                 BaseFunnyType.Int16  => typeBehaviour.AllowIntegerOverflow? Int16Function.Instance: Int16CheckedFunction.Instance,
+                 BaseFunnyType.Int32  => typeBehaviour.AllowIntegerOverflow? Int32Function.Instance: Int32CheckedFunction.Instance,
+                 BaseFunnyType.Int64  => typeBehaviour.AllowIntegerOverflow? Int64Function.Instance: Int64CheckedFunction.Instance,
+                 BaseFunnyType.Real   => typeBehaviour.RealTypeSelect<IConcreteFunction>(RealDoubleFunction.Instance, RealDecimalFunction.Instance),
+                 _                    => throw new ArgumentOutOfRangeException()
+             };
 
-    private static readonly RealDoubleFunction RealDoubleInstance = new();
 
     private class RealDoubleFunction : FunctionWithSingleArg {
-        public RealDoubleFunction() : base(Id, FunnyType.Real, FunnyType.ArrayOf(FunnyType.Real))
-        { }
-
+        public static readonly RealDoubleFunction Instance = new();
+        private RealDoubleFunction() : base(Id, FunnyType.Real, FunnyType.ArrayOf(FunnyType.Real)){ }
         public override object Calc(object a) => ((IFunnyArray) a).As<double>().Sum();
     }
 
-    private static RealDecimalFunction RealDecimalInstance = new();
 
     private class RealDecimalFunction : FunctionWithSingleArg {
-        public RealDecimalFunction() : base(Id, FunnyType.Real, FunnyType.ArrayOf(FunnyType.Real))
+        public static readonly RealDecimalFunction Instance = new();
+        private RealDecimalFunction() : base(Id, FunnyType.Real, FunnyType.ArrayOf(FunnyType.Real))
         { }
-
         public override object Calc(object a) => ((IFunnyArray) a).As<decimal>().Sum();
     }
 
-    private static readonly Int16Function Int16Instance = new();
 
     private class Int16Function : FunctionWithSingleArg {
-        public Int16Function() : base(Id, FunnyType.Int16, FunnyType.ArrayOf(FunnyType.Int16))
+        public static readonly Int16Function Instance = new();
+        private Int16Function() : base(Id, FunnyType.Int16, FunnyType.ArrayOf(FunnyType.Int16))
         { }
-
         public override object Calc(object a)
         {
             short answer = 0;
@@ -62,45 +58,36 @@ public class MultiSumFunction : GenericFunctionBase {
         }
     }
 
-    private static readonly Int32Function Int32Instance = new();
 
     private class Int32Function : FunctionWithSingleArg {
-        public Int32Function() : base(Id, FunnyType.Int32, FunnyType.ArrayOf(FunnyType.Int32))
+        public static readonly Int32Function Instance = new();
+        private Int32Function() : base(Id, FunnyType.Int32, FunnyType.ArrayOf(FunnyType.Int32))
         { }
-
         public override object Calc(object a) => ((IFunnyArray) a).As<int>().Sum();
     }
-
-    private static readonly Int64Function Int64Instance = new();
-
+    
     private class Int64Function : FunctionWithSingleArg {
-        public Int64Function() : base(Id, FunnyType.Int64, FunnyType.ArrayOf(FunnyType.Int64))
+        public static readonly Int64Function Instance = new();
+        private Int64Function() : base(Id, FunnyType.Int64, FunnyType.ArrayOf(FunnyType.Int64))
         { }
-
         public override object Calc(object a) => ((IFunnyArray) a).As<long>().Sum();
     }
-
-    private static readonly UInt16Function UInt16Instance = new();
-
+    
     private class UInt16Function : FunctionWithSingleArg {
-        public UInt16Function() : base(Id, FunnyType.UInt16, FunnyType.ArrayOf(FunnyType.UInt16))
-        { }
-
-        public override object Calc(object a)
-        {
+        public static readonly UInt16Function Instance = new();
+        private UInt16Function() : base(Id, FunnyType.UInt16, FunnyType.ArrayOf(FunnyType.UInt16)){ }
+        public override object Calc(object a) {
             ushort answer = 0;
-            foreach (var i in ((IFunnyArray) a).As<ushort>())
+            foreach (var i in ((IFunnyArray)a).As<ushort>())
                 answer += i;
             return answer;
         }
     }
-
-    private static readonly UInt32Function UInt32Instance = new();
-
+    
     private class UInt32Function : FunctionWithSingleArg {
-        public UInt32Function() : base(Id, FunnyType.UInt32, FunnyType.ArrayOf(FunnyType.UInt32))
+        public static readonly UInt32Function Instance = new();
+        private UInt32Function() : base(Id, FunnyType.UInt32, FunnyType.ArrayOf(FunnyType.UInt32))
         { }
-
         public override object Calc(object a)
         {
             uint answer = 0;
@@ -109,19 +96,103 @@ public class MultiSumFunction : GenericFunctionBase {
             return answer;
         }
     }
-
-    private static readonly UInt64Function UInt64Instance = new();
-
+    
     private class UInt64Function : FunctionWithSingleArg {
-        public UInt64Function() : base(Id, FunnyType.UInt64, FunnyType.ArrayOf(FunnyType.UInt64))
+        public static readonly UInt64Function Instance = new();
+        private UInt64Function() : base(Id, FunnyType.UInt64, FunnyType.ArrayOf(FunnyType.UInt64))
         { }
-
         public override object Calc(object a)
         {
             ulong answer = 0;
             foreach (var i in ((IFunnyArray) a).As<ulong>())
                 answer += i;
             return answer;
+        }
+    }
+    
+    private class Int16CheckedFunction : FunctionWithSingleArg {
+        public static readonly Int16CheckedFunction Instance = new();
+        private Int16CheckedFunction() : base(Id, FunnyType.Int16, FunnyType.ArrayOf(FunnyType.Int16))
+        { }
+        public override object Calc(object a)
+        {
+            checked
+            {
+                short answer = 0;
+                foreach (var i in ((IFunnyArray)a).As<short>())
+                    answer += i;
+                return answer;
+            }
+        }
+    }
+
+    private class Int32CheckedFunction : FunctionWithSingleArg {
+        public static readonly Int32CheckedFunction Instance = new();
+        private Int32CheckedFunction() : base(Id, FunnyType.Int32, FunnyType.ArrayOf(FunnyType.Int32)) { }
+        public override object Calc(object a) {
+            checked
+            {
+                int answer = 0;
+                foreach (var i in ((IFunnyArray)a).As<int>())
+                    answer += i;
+                return answer;
+            }
+        }
+    }
+
+    private class Int64CheckedFunction : FunctionWithSingleArg {
+        public static readonly Int64CheckedFunction Instance = new();
+        private Int64CheckedFunction() : base(Id, FunnyType.Int64, FunnyType.ArrayOf(FunnyType.Int64)) { }
+        public override object Calc(object a) {
+            checked
+            {
+                long answer = 0;
+                foreach (var i in ((IFunnyArray)a).As<long>())
+                    answer += i;
+                return answer;
+            }
+        }
+    }
+    
+    private class UInt16CheckedFunction : FunctionWithSingleArg {
+        public static readonly UInt16CheckedFunction Instance = new();
+        private UInt16CheckedFunction() : base(Id, FunnyType.UInt16, FunnyType.ArrayOf(FunnyType.UInt16)){ }
+        public override object Calc(object a) {
+            checked
+            {
+                ushort answer = 0;
+                foreach (var i in ((IFunnyArray)a).As<ushort>())
+                    answer += i;
+                return answer;
+            }
+        }
+    }
+    
+    private class UInt32CheckedFunction : FunctionWithSingleArg {
+        public static readonly UInt32CheckedFunction Instance = new();
+        private UInt32CheckedFunction() : base(Id, FunnyType.UInt32, FunnyType.ArrayOf(FunnyType.UInt32)){ }
+        public override object Calc(object a) {
+            checked
+            {
+                uint answer = 0;
+                foreach (var i in ((IFunnyArray)a).As<uint>())
+                    answer += i;
+                return answer;
+            }
+        }
+    }
+
+    private class UInt64CheckedFunction : FunctionWithSingleArg {
+        public static readonly UInt64CheckedFunction Instance = new();
+        private UInt64CheckedFunction() : base(Id, FunnyType.UInt64, FunnyType.ArrayOf(FunnyType.UInt64)) { }
+        public override object Calc(object a) {
+            checked
+            {
+                ulong answer = 0;
+                foreach (var i in ((IFunnyArray)a).As<ulong>())
+                    answer += i;
+                return answer;
+            }
         }
     }
 }

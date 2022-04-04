@@ -54,8 +54,6 @@ public static class SyntaxNodeReader {
         MaxPriority = priorities.Count - 1;
     }
 
-    
-
     private static readonly Dictionary<TokType, string> OperatorFunNames = new() {
         { TokType.Plus, CoreFunNames.Add },
         { TokType.Minus, CoreFunNames.Substract },
