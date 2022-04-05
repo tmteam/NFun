@@ -21,11 +21,11 @@ public class ConvertInputTest {
     [TestCase((float)0.5, BaseFunnyType.Real, 0.5)]
     [TestCase((byte)42, BaseFunnyType.Real, 42.0)]
     public void ConvertInputOrThrow_PrimitivesTest(object input, BaseFunnyType target, object expected)
-        => Assert.AreEqual(expected, TypeBehaviour.RealIsDouble.ConvertInputOrThrow(input, FunnyType.PrimitiveOf(target)));
+        => Assert.AreEqual(expected, TypeBehaviour.RealIsDoubleWithIntOverflow.ConvertInputOrThrow(input, FunnyType.PrimitiveOf(target)));
 
     [Test]
     public void ConvertInputDecimalOrThrow_PrimitivesTest()
-        => Assert.AreEqual(-42.5, TypeBehaviour.RealIsDouble.ConvertInputOrThrow(new Decimal(-42.5), FunnyType.Real));
+        => Assert.AreEqual(-42.5, TypeBehaviour.RealIsDoubleWithIntOverflow.ConvertInputOrThrow(new Decimal(-42.5), FunnyType.Real));
     
     [Test]
     public void ConvertComplexInputStructFromDictionariesAndTypes1() {
@@ -39,7 +39,7 @@ public class ConvertInputTest {
                 { "end", true }
             }
         };
-        var mocky = TypeBehaviour.RealIsDouble.ConvertInputOrThrow(input, type) as FunnyStruct;
+        var mocky = TypeBehaviour.RealIsDoubleWithIntOverflow.ConvertInputOrThrow(input, type) as FunnyStruct;
         Assert.AreEqual(31, mocky["age"]);
         var endstr = mocky["nested"] as FunnyStruct;
         Assert.AreEqual(true, endstr["end"]);
@@ -84,7 +84,7 @@ public class ConvertInputTest {
                 }
             }
         };
-        var converted = TypeBehaviour.RealIsDouble.ConvertInputOrThrow(input, type) as FunnyStruct;
+        var converted = TypeBehaviour.RealIsDoubleWithIntOverflow.ConvertInputOrThrow(input, type) as FunnyStruct;
         Assert.IsNotNull(converted);
         Assert.AreEqual(42, converted["i"]);
         var str = converted["str"] as FunnyStruct;
@@ -98,13 +98,13 @@ public class ConvertInputTest {
 
     [Test]
     public void NestedConvertionDoesNotThrow2() {
-        var result = TypeBehaviour.RealIsDouble.ConvertInputOrThrow(new { age = 42 }, FunnyType.StructOf(("age", FunnyType.Any)));
+        var result = TypeBehaviour.RealIsDoubleWithIntOverflow.ConvertInputOrThrow(new { age = 42 }, FunnyType.StructOf(("age", FunnyType.Any)));
         Assert.IsInstanceOf<FunnyStruct>(result);
     }
 
     [Test]
     public void NestedConvertionDoesNotThrow() {
-        var result = TypeBehaviour.RealIsDouble.ConvertInputOrThrow(new {
+        var result = TypeBehaviour.RealIsDoubleWithIntOverflow.ConvertInputOrThrow(new {
             age = 42,
             size = 1.1,
             name = "vasa"

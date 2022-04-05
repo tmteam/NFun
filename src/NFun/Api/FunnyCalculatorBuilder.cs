@@ -26,9 +26,12 @@ public class FunnyCalculatorBuilder {
     /// <param name="ifExpressionSyntax">If-expression syntax settings</param>
     /// <param name="integerPreferredType">Which funny type is prefered for integer constant</param>
     /// <param name="realClrType">Which clr type is used for funny type real</param>
+    /// <param name="integerOverflow">Checked or Unchecked arithmetic operations</param>
     public FunnyCalculatorBuilder WithDialect(IfExpressionSetup ifExpressionSyntax = IfExpressionSetup.IfIfElse,
         IntegerPreferredType integerPreferredType = IntegerPreferredType.I32,
-        RealClrType realClrType = RealClrType.IsDouble) => WithDialect(Dialects.ModifyOrigin(ifExpressionSyntax, integerPreferredType, realClrType));
+        RealClrType realClrType = RealClrType.IsDouble, 
+        IntegerOverflow integerOverflow = IntegerOverflow.Unchecked) 
+        => WithDialect(Dialects.ModifyOrigin(ifExpressionSyntax, integerPreferredType, realClrType, integerOverflow));
 
     public FunnyCalculatorBuilder WithConstant(string id, object value) {
         _constantList.Add((id, value));

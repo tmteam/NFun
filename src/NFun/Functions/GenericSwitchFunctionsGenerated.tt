@@ -16,9 +16,9 @@ namespace NFun.Functions {
     
     WriteTwoArgFunction("DivideInt",integers,"/");
     WriteTwoArgFunction("Remainder",numbers,"%");
-    WriteTwoArgFunction("Add",arithmetical,"+");
-    WriteTwoArgFunction("Substract",arithmetical,"-");
-    WriteTwoArgFunction("Multiply",arithmetical,"*");
+    WriteTwoArgFunction("Add",arithmetical,"+",      name:null, overflowIntegers: true);
+    WriteTwoArgFunction("Substract",arithmetical,"-",name:null, overflowIntegers: true);
+    WriteTwoArgFunction("Multiply",arithmetical,"*", name:null, overflowIntegers: true);
     WriteTwoArgFunction("BitXor",integers,"^");
     WriteTwoArgFunction("BitAnd",integers,"&");
     WriteTwoArgFunction("BitOr",integers,"|");
@@ -29,21 +29,22 @@ namespace NFun.Functions {
 }
 
 
-
-
-
-
 <#    
     //------------------------------------------------------------------------------------------------------------------------------
     //Tools
     void WriteSimpleTypeSelector(string type) {
-#>                                           BaseFunnyType.<#= type #> => <#= type #>Instance,            
+#>                                           BaseFunnyType.<#= type #> => <#= type #>Function.Instance,            
+<#
+    }
+    
+    void WriteOverflowTypeSelector(string type) {
+#>                                           BaseFunnyType.<#= type #> =>typeBehaviour.AllowIntegerOverflow? <#= type #>Function.Instance: <#= type #>CheckedFunction.Instance,            
 <#
     }
 
 
     void WriteRealTypeSelector(string functionType) {
-#>                                           BaseFunnyType.Real => typeBehaviour.RealTypeSelect<<#= functionType #>>(DoubleInstance,DecimalInstance),
+#>                                           BaseFunnyType.Real => typeBehaviour.RealTypeSelect<<#= functionType #>>(DoubleFunction.Instance,DecimalFunction.Instance),
 <#
     }
 
@@ -70,7 +71,7 @@ namespace NFun.Functions {
     //------------------------------------------------------------------------------------------------------------------------------
     //TwoArgs:
 
-    void WriteTwoArgFunction(string className,  string[] types, string op, string name = null) {
+    void WriteTwoArgFunction(string className,  string[] types, string op, string name = null, bool overflowIntegers = false) {
         var realName = name ?? ("CoreFunNames." + className);
         #>public class <#=className#>Function : PureGenericFunctionBase {
     // GENERATED
@@ -83,6 +84,8 @@ namespace NFun.Functions {
         {
             if(type == "Real")
                 WriteRealTypeSelector("IConcreteFunction");
+            else if(overflowIntegers)
+                WriteOverflowTypeSelector(type);
             else
                 WriteSimpleTypeSelector(type);
         }
@@ -95,7 +98,11 @@ namespace NFun.Functions {
                 WriteTwoArgConcreteFunction("Decimal", realName, op);
             }
             else
+            {
                 WriteTwoArgConcreteFunction(type, realName, op);
+                if(overflowIntegers)
+                    WriteTwoArgOverflowConcreteFunction(type, realName, op);
+            }
         }
         #>
 }
@@ -107,10 +114,22 @@ namespace NFun.Functions {
         var clrType = type == "UInt8" ? "byte" : type;
         var nfunType = type == "Decimal" ? "Real" : type == "Double" ? "Real" : type;
 #>      
-        private static <#=type#>Function <#=type#>Instance = new <#=type#>Function();
         private class <#=type#>Function : FunctionWithTwoArgs {
-             public <#=type#>Function() : base(<#=name#>, FunnyType.<#=nfunType#>, FunnyType.<#=nfunType#>, FunnyType.<#=nfunType#>) { }
+             public static <#=type#>Function Instance = new ();
+             private <#=type#>Function() : base(<#=name#>, FunnyType.<#=nfunType#>, FunnyType.<#=nfunType#>, FunnyType.<#=nfunType#>) { }
              public override object Calc(object a, object b) => (<#=clrType#>)((<#=clrType#>)a <#=op#> (<#=clrType#>)b);
+        }
+<#
+    }
+    
+    void WriteTwoArgOverflowConcreteFunction(string type, string name, string op) {
+        var clrType = type == "UInt8" ? "byte" : type;
+        var nfunType = type == "Decimal" ? "Real" : type == "Double" ? "Real" : type;
+#>      
+        private class <#=type#>CheckedFunction : FunctionWithTwoArgs {
+             public static <#=type#>CheckedFunction Instance = new ();
+             public <#=type#>CheckedFunction() : base(<#=name#>, FunnyType.<#=nfunType#>, FunnyType.<#=nfunType#>, FunnyType.<#=nfunType#>) { }
+             public override object Calc(object a, object b){ checked { return (<#=clrType#>)((<#=clrType#>)a <#=op#> (<#=clrType#>)b); }}
         }
 <#
     }
@@ -120,8 +139,10 @@ namespace NFun.Functions {
     void WriteSingleArgConcrete(string type, string op) {
         var clrType = type == "UInt8" ? "byte" : type;
         #>      
-                private static <#=type#>Function <#=type#>Instance = new <#=type#>Function();
-                private class <#= type #>Function : FunctionWithSingleArg {  public override object Calc(object a) => (<#= clrType #>)(<#= op #>((<#= clrType #>)a)); }
+                private class <#= type #>Function : FunctionWithSingleArg {  
+                    public static <#=type#>Function Instance = new <#=type#>Function();
+                    public override object Calc(object a) => (<#= clrType #>)(<#= op #>((<#= clrType #>)a)); 
+                }
 <#}
 
     

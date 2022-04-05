@@ -38,7 +38,8 @@ public class HardcoreBuilder {
     /// <param name="realClrType">Which clr type is used for funny type real</param>
     public HardcoreBuilder WithDialect(IfExpressionSetup ifExpressionSyntax = IfExpressionSetup.IfIfElse,
         IntegerPreferredType integerPreferredType = IntegerPreferredType.I32,
-        RealClrType realClrType = RealClrType.IsDouble) => WithDialect(Dialects.ModifyOrigin(ifExpressionSyntax, integerPreferredType, realClrType));
+        RealClrType realClrType = RealClrType.IsDouble, IntegerOverflow integerOverflow = IntegerOverflow.Unchecked) 
+        => WithDialect(Dialects.ModifyOrigin(ifExpressionSyntax, integerPreferredType, realClrType, integerOverflow));
     
     private HardcoreBuilder WithDialect(DialectSettings dialect) =>
         new(_constants, _apriori, dialect, _customFunctions);

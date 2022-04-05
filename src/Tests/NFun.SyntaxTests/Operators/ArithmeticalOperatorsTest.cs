@@ -168,6 +168,7 @@ public class ArithmeticalOperatorsTest {
     [TestCase("out:uint64 = 2//x", (ulong)2, (ulong)1)]
     [TestCase("out:int16 = 2//x", (Int16)2, (Int16)1)]
     [TestCase("out:byte = 2//x", (byte)2, (byte)1)]
+    [TestCase("out:int = 2//x", (int)2, (int)1)]
     [TestCase("out:uint16 = 2//x", (UInt16)2, (UInt16)1)]
     [TestCase("out:uint64 = 2//x", (ulong)2, (ulong)1)]
     [TestCase("out:uint = 2//x", (uint)3, (uint)0)]
@@ -340,6 +341,7 @@ public class ArithmeticalOperatorsTest {
     [TestCase("y = y")]
     [TestCase("y = y+x")]
     [TestCase("a: int a=4")]
+    [TestCase("a:int = 2/4")]
     public void ObviouslyFails(string expr) => expr.AssertObviousFailsOnParse();
 }
 

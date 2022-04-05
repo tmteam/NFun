@@ -63,14 +63,28 @@ public class MultiSumFunction : GenericFunctionBase {
         public static readonly Int32Function Instance = new();
         private Int32Function() : base(Id, FunnyType.Int32, FunnyType.ArrayOf(FunnyType.Int32))
         { }
-        public override object Calc(object a) => ((IFunnyArray) a).As<int>().Sum();
+        public override object Calc(object a) {
+            int sum = 0;
+            foreach (int i in ((IFunnyArray)a).As<int>())
+            {
+                sum += i;
+            }
+            return sum;
+        }
     }
     
     private class Int64Function : FunctionWithSingleArg {
         public static readonly Int64Function Instance = new();
         private Int64Function() : base(Id, FunnyType.Int64, FunnyType.ArrayOf(FunnyType.Int64))
         { }
-        public override object Calc(object a) => ((IFunnyArray) a).As<long>().Sum();
+        public override object Calc(object a) {
+            long sum = 0;
+            foreach (long l in ((IFunnyArray)a).As<long>())
+            {
+                sum += l;
+            }
+            return sum;
+        }
     }
     
     private class UInt16Function : FunctionWithSingleArg {

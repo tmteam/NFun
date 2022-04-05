@@ -24,8 +24,11 @@ public abstract class TypeBehaviour {
     public abstract object ParseOrNull(string text);
     public abstract Type GetClrTypeFor(BaseFunnyType funnyType);
     public abstract T RealTypeSelect<T>(T ifIsDouble, T ifIsDecimal);
-    public static TypeBehaviour RealIsDouble { get; }  = new RealIsDoubleTypeBehaviour(allowIntegerOverflow: true);
-    public static TypeBehaviour RealIsDecimal { get; } = new RealIsDecimalTypeBehaviour(allowIntegerOverflow: true);
+    public static TypeBehaviour RealIsDoubleWithIntOverflow  = new RealIsDoubleTypeBehaviour(allowIntegerOverflow: true);
+    public static TypeBehaviour RealIsDecimalWithIntOverflow = new RealIsDecimalTypeBehaviour(allowIntegerOverflow: true);
+
+    public static TypeBehaviour RealIsDouble(bool allowIntegerOverflow) =>  new RealIsDoubleTypeBehaviour(allowIntegerOverflow);
+    public static TypeBehaviour RealIsDecimal(bool allowIntegerOverflow) => new RealIsDecimalTypeBehaviour(allowIntegerOverflow);
     public static TypeBehaviour Default { get; } = new RealIsDoubleTypeBehaviour(allowIntegerOverflow: true);
 
     public abstract bool DoubleIsReal { get; }

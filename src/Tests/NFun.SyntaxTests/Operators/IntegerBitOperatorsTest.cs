@@ -210,6 +210,18 @@ public class IntegerBitOperatorsTest {
     public void ConstantBitInvert(string expression, object expected)
         => expression.AssertReturns("y", expected);
     
+
+    [TestCase("y:uint64 = 0xF000_0000_0000_0000<<8", (ulong)0)]
+    [TestCase("y:uint64 = 0xFEC0_0000_0000_0000<<16", (ulong)0)]
+    [TestCase("y:uint32 = 0xF000_0000<<8", (uint)0)]
+    [TestCase("y:uint32 = 0xFEC0_0000<<16", (uint)0)]
+    [TestCase("y:uint16 = 0xF000<<8", (UInt16)0)]
+    [TestCase("y:uint16 = 0xFEC0<<16", (UInt16)0)]
+    [TestCase("y:uint8 = 0xF0<<8", (byte)0)]
+    [TestCase("y:uint8 = 0xFE<<16", (byte)0)]
+    public void BitShiftOverflow(string expression, object expected)
+    => expression.AssertReturns("y", expected);
+
     
     [Ignore("Overflow behaviour is not implemented for bitshifts")]
     [TestCase("y:uint32 = 0xFFFF_ffff<<1")]

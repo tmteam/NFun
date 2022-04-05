@@ -45,7 +45,7 @@ public static class TestHelper {
             tree: tree,
             ticGraph: graph,
             results: resultsBuilder, 
-            typeBehaviour: TypeBehaviour.RealIsDouble);
+            typeBehaviour: TypeBehaviour.RealIsDoubleWithIntOverflow);
 
         return graph.Solve();
     }
@@ -65,7 +65,7 @@ public static class TestHelper {
             tree: tree,
             ticGraph: graph,
             results: resultsBuilder,
-            typeBehaviour: TypeBehaviour.RealIsDouble);
+            typeBehaviour: TypeBehaviour.RealIsDoubleWithIntOverflow);
 
         var res = graph.Solve();
         resultsBuilder.SetResults(res);

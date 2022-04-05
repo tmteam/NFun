@@ -3,23 +3,24 @@ using NFun.Types;
 
 namespace NFun {
 
-public static class Dialects {
+internal static class Dialects {
     public static DialectSettings Origin => DialectSettings.Default;
     public static DialectSettings ModifyOrigin(
         IfExpressionSetup ifExpressionSetup = IfExpressionSetup.IfIfElse,
         IntegerPreferredType integerPreferredType = IntegerPreferredType.I32,
-        RealClrType realClrType = RealClrType.IsDouble)
+        RealClrType realClrType = RealClrType.IsDouble, 
+        IntegerOverflow integerOverflow = IntegerOverflow.Unchecked)
         => new(ifExpressionSetup, integerPreferredType,
             realClrType == RealClrType.IsDouble
-                ? TypeBehaviour.RealIsDouble
-                : TypeBehaviour.RealIsDecimal);
+                ? TypeBehaviour.RealIsDouble(integerOverflow == IntegerOverflow.Unchecked)
+                : TypeBehaviour.RealIsDecimal(integerOverflow == IntegerOverflow.Unchecked));
 }
 
 public sealed class DialectSettings {
     internal static DialectSettings Default { get; } =
-        new(IfExpressionSetup.IfIfElse, IntegerPreferredType.I32, Types.TypeBehaviour.RealIsDouble);
+        new(IfExpressionSetup.IfIfElse, IntegerPreferredType.I32, TypeBehaviour.Default);
 
-    public DialectSettings(IfExpressionSetup ifExpressionSetup, IntegerPreferredType integerPreferredType, TypeBehaviour typeBehaviour) {
+    internal DialectSettings(IfExpressionSetup ifExpressionSetup, IntegerPreferredType integerPreferredType, TypeBehaviour typeBehaviour) {
         IfExpressionSetup = ifExpressionSetup;
         IntegerPreferredType = integerPreferredType;
         TypeBehaviour = typeBehaviour;
@@ -39,6 +40,17 @@ public enum IfExpressionSetup {
     Deny,
     IfIfElse,
     IfElseIf
+}
+
+public enum IntegerOverflow {
+    /// <summary>
+    /// Allow integer overflow
+    /// </summary>
+    Unchecked,
+    /// <summary>
+    /// Integer overflow causes runtime exception
+    /// </summary>
+    Checked
 }
 
 }

@@ -97,8 +97,8 @@ public static class Funny {
     /// <param name="realClrType">Which clr type is used for funny type real</param>
     public static FunnyCalculatorBuilder WithDialect(IfExpressionSetup ifExpressionSyntax = IfExpressionSetup.IfIfElse,
         IntegerPreferredType integerPreferredType = IntegerPreferredType.I32,
-        RealClrType realClrType = RealClrType.IsDouble)
-        => new FunnyCalculatorBuilder().WithDialect(ifExpressionSyntax, integerPreferredType, realClrType);
+        RealClrType realClrType = RealClrType.IsDouble, IntegerOverflow integerOverflow = IntegerOverflow.Unchecked)
+        => new FunnyCalculatorBuilder().WithDialect(ifExpressionSyntax, integerPreferredType, realClrType, integerOverflow);
 
     #endregion
 }

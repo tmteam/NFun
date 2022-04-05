@@ -15,7 +15,7 @@ public interface IOutputFunnyConverter {
 
 public class DynamicTypeOutputFunnyConverter : IOutputFunnyConverter {
     private readonly TypeBehaviour _behaviour;
-    public static DynamicTypeOutputFunnyConverter AnyConverter { get; } = new(typeof(object), TypeBehaviour.RealIsDouble);
+    public static DynamicTypeOutputFunnyConverter AnyConverter { get; } = new(typeof(object), TypeBehaviour.RealIsDoubleWithIntOverflow);
 
     public DynamicTypeOutputFunnyConverter(Type clrType, TypeBehaviour _behaviour) {
         this._behaviour = _behaviour;
