@@ -51,7 +51,7 @@ public class MapFunction : GenericFunctionBase {
         FunnyType.ArrayOf(FunnyType.Generic(0)),
         FunnyType.FunOf(FunnyType.Generic(1), FunnyType.Generic(0))) { }
 
-    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypesMap, TypeBehaviour typeBehaviour) {
+    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypesMap, IFunctionSelectorContext context) {
         var res = new ConcreteMap {
             Name = Name,
             ArgTypes = new[] {
@@ -87,13 +87,13 @@ public class MultiMapSumFunction : GenericFunctionBase {
         FunnyType.ArrayOf(FunnyType.Generic(0)),
         FunnyType.FunOf(FunnyType.Generic(1), FunnyType.Generic(0))) { }
 
-    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, TypeBehaviour typeBehaviour) {
+    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, IFunctionSelectorContext context) {
         var concrete = concreteTypes[1].BaseType switch {
                            BaseFunnyType.UInt32                              => new ConcreteMapSumBase((a, b) => (UInt32)a + (UInt32)b, (UInt32)0),
                            BaseFunnyType.UInt64                              => new ConcreteMapSumBase((a, b) => (UInt64)a + (UInt64)b, (UInt64)0),
                            BaseFunnyType.Int32                               => new ConcreteMapSumBase((a, b) => (Int32)a + (Int32)b, 0),
                            BaseFunnyType.Int64                               => new ConcreteMapSumBase((a, b) => (Int64)a + (Int64)b, (Int64)0),
-                           BaseFunnyType.Real   => typeBehaviour.RealTypeSelect(
+                           BaseFunnyType.Real   => context.RealTypeSelect(
                                ifIsDouble: new ConcreteMapSumBase((a, b) => (double)a + (double)b, (double)0), 
                                ifIsDecimal: new ConcreteMapSumBase((a, b) => (decimal)a + (decimal)b, (decimal)0)),
                            _                                                 => throw new ArgumentOutOfRangeException()
@@ -619,7 +619,7 @@ public class RepeatGenericFunctionDefinition : GenericFunctionBase {
         FunnyType.Generic(0),
         FunnyType.Int32) { }
 
-    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypesMap, TypeBehaviour typeBehaviour) {
+    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypesMap, IFunctionSelectorContext context) {
         var res = new ConcreteRepeat {
             Name = Name,
             ArgTypes = new[] { concreteTypesMap[0], FunnyType.Int32 },

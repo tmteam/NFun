@@ -38,13 +38,13 @@ namespace NFun.Functions {
     }
     
     void WriteOverflowTypeSelector(string type) {
-#>                                           BaseFunnyType.<#= type #> =>typeBehaviour.AllowIntegerOverflow? <#= type #>Function.Instance: <#= type #>CheckedFunction.Instance,            
+#>                                           BaseFunnyType.<#= type #> =>context.AllowIntegerOverflow? <#= type #>Function.Instance: <#= type #>CheckedFunction.Instance,            
 <#
     }
 
 
     void WriteRealTypeSelector(string functionType) {
-#>                                           BaseFunnyType.Real => typeBehaviour.RealTypeSelect<<#= functionType #>>(DoubleFunction.Instance,DecimalFunction.Instance),
+#>                                           BaseFunnyType.Real => context.RealTypeSelect<<#= functionType #>>(DoubleFunction.Instance,DecimalFunction.Instance),
 <#
     }
 
@@ -77,7 +77,7 @@ namespace NFun.Functions {
     // GENERATED
     public <#=className#>Function() : base(<#=realName#>, <#=GetConstrainsName(types)#>, 2) { }
 
-    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, TypeBehaviour typeBehaviour) =>
+    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, IFunctionSelectorContext context) =>
         concreteTypes[0].BaseType switch {
 <#
         foreach (string type in types)
@@ -152,7 +152,7 @@ namespace NFun.Functions {
 
 public class <#= className #>Function : PureGenericFunctionBase {
     public <#= className #>Function() : base(<#= name #>, <#= GetConstrainsName(types) #>, 1) { }
-    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, TypeBehaviour typeBehaviour) {
+    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, IFunctionSelectorContext context) {
         FunctionWithSingleArg result = concreteTypes[0].BaseType switch {
 <#
         foreach (string type in types)

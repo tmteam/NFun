@@ -12,7 +12,7 @@ public class BitShiftLeftFunction : GenericFunctionBase {
         FunnyType.Generic(0),
         FunnyType.UInt8) { }
 
-    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, TypeBehaviour typeBehaviour)
+    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, IFunctionSelectorContext context)
         => concreteTypes[0].BaseType switch {
                BaseFunnyType.UInt64 => new UInt64Function(),
                BaseFunnyType.UInt32 => new UInt32Function(),
@@ -80,7 +80,7 @@ public class BitShiftRightFunction : GenericFunctionBase {
         FunnyType.Generic(0),
         FunnyType.UInt8) { }
 
-    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, TypeBehaviour typeBehaviour)
+    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, IFunctionSelectorContext context)
         => concreteTypes[0].BaseType switch {
                BaseFunnyType.UInt64 => new UInt64Function(),
                BaseFunnyType.UInt32 => new UInt32Function(),

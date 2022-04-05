@@ -16,14 +16,14 @@ public class ConvertFunction : GenericFunctionBase {
         new[] { GenericConstrains.Any, GenericConstrains.Any },
         FunnyType.Generic(0), FunnyType.Generic(1)) { }
 
-    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, TypeBehaviour typeBehaviour) {
+    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, IFunctionSelectorContext context) {
         var from = concreteTypes[1];
         var to = concreteTypes[0];
         if (to == FunnyType.Any || from == to)
             return new ConcreteConverter(o => o, from, to);
         if (to == FunnyType.Text)
             return new ConcreteConverter(o => o.ToString(), from, to);
-        var safeConverter = VarTypeConverter.GetConverterOrNull(typeBehaviour, @from, to);
+        var safeConverter = VarTypeConverter.GetConverterOrNull(context.TypeBehaviour, @from, to);
         if (safeConverter != null)
             return new ConcreteConverter(safeConverter, from, to);
 

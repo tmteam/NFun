@@ -17,7 +17,7 @@ public abstract class GenericFunctionWithSingleArgument : GenericFunctionBase {
 
     protected abstract object Calc(object a);
 
-    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypesMap, TypeBehaviour typeBehaviour) =>
+    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypesMap, IFunctionSelectorContext context) =>
         new ConcreteImplementationWithSingleArg(
             calc: Calc,
             name: Name,

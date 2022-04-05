@@ -95,9 +95,10 @@ public static class Funny {
     /// <param name="ifExpressionSyntax">If-expression syntax settings</param>
     /// <param name="integerPreferredType">Which funny type is prefered for integer constant</param>
     /// <param name="realClrType">Which clr type is used for funny type real</param>
+    /// <param name="integerOverflow">Allow or deny integer overflow operations, like +, -, *, [].sum()</param>
     public static FunnyCalculatorBuilder WithDialect(IfExpressionSetup ifExpressionSyntax = IfExpressionSetup.IfIfElse,
         IntegerPreferredType integerPreferredType = IntegerPreferredType.I32,
-        RealClrType realClrType = RealClrType.IsDouble, IntegerOverflow integerOverflow = IntegerOverflow.Unchecked)
+        RealClrType realClrType = RealClrType.IsDouble, IntegerOverflow integerOverflow = IntegerOverflow.Checked)
         => new FunnyCalculatorBuilder().WithDialect(ifExpressionSyntax, integerPreferredType, realClrType, integerOverflow);
 
     #endregion

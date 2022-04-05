@@ -15,10 +15,10 @@ public interface IOutputFunnyConverter {
 
 public class DynamicTypeOutputFunnyConverter : IOutputFunnyConverter {
     private readonly TypeBehaviour _behaviour;
-    public static DynamicTypeOutputFunnyConverter AnyConverter { get; } = new(typeof(object), TypeBehaviour.RealIsDoubleWithIntOverflow);
+    public static DynamicTypeOutputFunnyConverter AnyConverter { get; } = new(typeof(object), TypeBehaviour.RealIsDouble);
 
-    public DynamicTypeOutputFunnyConverter(Type clrType, TypeBehaviour _behaviour) {
-        this._behaviour = _behaviour;
+    public DynamicTypeOutputFunnyConverter(Type clrType, TypeBehaviour typeBehaviour) {
+        _behaviour = typeBehaviour;
         ClrType = clrType;
     }
     public Type ClrType { get; }

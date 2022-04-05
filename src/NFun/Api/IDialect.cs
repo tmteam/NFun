@@ -4,30 +4,44 @@ using NFun.Types;
 namespace NFun {
 
 internal static class Dialects {
-    public static DialectSettings Origin => DialectSettings.Default;
+    public static DialectSettings Origin { get; } 
+        = new(
+            ifExpressionSetup: IfExpressionSetup.IfIfElse, 
+            integerPreferredType: IntegerPreferredType.I32, 
+            typeBehaviour: TypeBehaviour.RealIsDouble, 
+            allowIntegerOverflow: false);
+    
     public static DialectSettings ModifyOrigin(
         IfExpressionSetup ifExpressionSetup = IfExpressionSetup.IfIfElse,
         IntegerPreferredType integerPreferredType = IntegerPreferredType.I32,
         RealClrType realClrType = RealClrType.IsDouble, 
-        IntegerOverflow integerOverflow = IntegerOverflow.Unchecked)
+        IntegerOverflow integerOverflow = IntegerOverflow.Checked)
         => new(ifExpressionSetup, integerPreferredType,
             realClrType == RealClrType.IsDouble
-                ? TypeBehaviour.RealIsDouble(integerOverflow == IntegerOverflow.Unchecked)
-                : TypeBehaviour.RealIsDecimal(integerOverflow == IntegerOverflow.Unchecked));
+                ? TypeBehaviour.RealIsDouble
+                : TypeBehaviour.RealIsDecimal,
+            integerOverflow == IntegerOverflow.Unchecked);
 }
 
-public sealed class DialectSettings {
-    internal static DialectSettings Default { get; } =
-        new(IfExpressionSetup.IfIfElse, IntegerPreferredType.I32, TypeBehaviour.Default);
 
-    internal DialectSettings(IfExpressionSetup ifExpressionSetup, IntegerPreferredType integerPreferredType, TypeBehaviour typeBehaviour) {
+public interface IFunctionSelectorContext {
+    T RealTypeSelect<T>(T ifIsDouble, T ifIsDecimal);
+    TypeBehaviour TypeBehaviour { get; }
+    bool AllowIntegerOverflow { get; }
+}
+
+public sealed class DialectSettings : IFunctionSelectorContext {
+    internal DialectSettings(IfExpressionSetup ifExpressionSetup, IntegerPreferredType integerPreferredType, TypeBehaviour typeBehaviour, bool allowIntegerOverflow) {
         IfExpressionSetup = ifExpressionSetup;
         IntegerPreferredType = integerPreferredType;
         TypeBehaviour = typeBehaviour;
+        AllowIntegerOverflow = allowIntegerOverflow;
     }
+    public T RealTypeSelect<T>(T ifIsDouble, T ifIsDecimal) => TypeBehaviour.RealTypeSelect(ifIsDouble, ifIsDecimal);
     public TypeBehaviour TypeBehaviour { get; }
     public IfExpressionSetup IfExpressionSetup { get; }
     public IntegerPreferredType IntegerPreferredType { get; }
+    public bool AllowIntegerOverflow { get; }
 }
 
 public enum IntegerPreferredType {

@@ -11,7 +11,7 @@ namespace NFun {
 public class FunnyCalculatorBuilder {
     internal static FunnyCalculatorBuilder Default => new();
     internal DialectSettings Dialect => _dialect; 
-    private DialectSettings _dialect = DialectSettings.Default;
+    private DialectSettings _dialect = Dialects.Origin;
     private readonly List<(string, object)> _constantList = new();
     private readonly List<Func<DialectSettings,IConcreteFunction>> _customFunctionFactories = new();
 
@@ -30,7 +30,7 @@ public class FunnyCalculatorBuilder {
     public FunnyCalculatorBuilder WithDialect(IfExpressionSetup ifExpressionSyntax = IfExpressionSetup.IfIfElse,
         IntegerPreferredType integerPreferredType = IntegerPreferredType.I32,
         RealClrType realClrType = RealClrType.IsDouble, 
-        IntegerOverflow integerOverflow = IntegerOverflow.Unchecked) 
+        IntegerOverflow integerOverflow = IntegerOverflow.Checked) 
         => WithDialect(Dialects.ModifyOrigin(ifExpressionSyntax, integerPreferredType, realClrType, integerOverflow));
 
     public FunnyCalculatorBuilder WithConstant(string id, object value) {

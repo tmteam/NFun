@@ -81,8 +81,8 @@ public class IOTypeConvertersTest {
     }
 
     private void AssertFunnyConvert(object originClrObject) {
-        var inputConverter = TypeBehaviour.RealIsDoubleWithIntOverflow.GetInputConverterFor(originClrObject.GetType());
-        var outputConverter = TypeBehaviour.RealIsDoubleWithIntOverflow.GetOutputConverterFor(originClrObject.GetType());
+        var inputConverter = TypeBehaviour.RealIsDouble.GetInputConverterFor(originClrObject.GetType());
+        var outputConverter = TypeBehaviour.RealIsDouble.GetOutputConverterFor(originClrObject.GetType());
         var funObject = inputConverter.ToFunObject(originClrObject);
         var clrObject = outputConverter.ToClrObject(funObject);
         Assert.IsTrue(TestHelper.AreSame(originClrObject, clrObject));

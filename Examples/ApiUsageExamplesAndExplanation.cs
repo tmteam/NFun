@@ -157,12 +157,18 @@ public class ApiUsageExamples {
         Assert.IsInstanceOf<double>(sumResult); //now preferred type of INTEGER constants is REAL
 
 
-        //now lets turn all 'real' arithmetics to decimal
-
+        //lets turn all 'real' arithmetics to decimal
         object decimalResult = Funny
                                .WithDialect(realClrType: RealClrType.IsDecimal)
                                .Calc("0.2 + 0.3");
         Assert.AreEqual(new decimal(0.5), decimalResult);
+
+
+        //now lets allow integer "overflow" operations
+        var uintResult = Funny
+                         .WithDialect(integerOverflow: IntegerOverflow.Unchecked)
+                         .Calc<uint>("0xFFFF_FFFF + 1");
+        Assert.AreEqual((uint)0, uintResult);
     }
 
     [Test]

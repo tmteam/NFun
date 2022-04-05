@@ -7,7 +7,7 @@ public class DivideIntFunction : PureGenericFunctionBase {
     // GENERATED
     public DivideIntFunction() : base(CoreFunNames.DivideInt, GenericConstrains.Integers, 2) { }
 
-    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, TypeBehaviour typeBehaviour) =>
+    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, IFunctionSelectorContext context) =>
         concreteTypes[0].BaseType switch {
                                            BaseFunnyType.UInt8 => UInt8Function.Instance,            
                                            BaseFunnyType.UInt16 => UInt16Function.Instance,            
@@ -65,7 +65,7 @@ public class RemainderFunction : PureGenericFunctionBase {
     // GENERATED
     public RemainderFunction() : base(CoreFunNames.Remainder, GenericConstrains.Numbers, 2) { }
 
-    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, TypeBehaviour typeBehaviour) =>
+    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, IFunctionSelectorContext context) =>
         concreteTypes[0].BaseType switch {
                                            BaseFunnyType.UInt8 => UInt8Function.Instance,            
                                            BaseFunnyType.UInt16 => UInt16Function.Instance,            
@@ -74,7 +74,7 @@ public class RemainderFunction : PureGenericFunctionBase {
                                            BaseFunnyType.Int16 => Int16Function.Instance,            
                                            BaseFunnyType.Int32 => Int32Function.Instance,            
                                            BaseFunnyType.Int64 => Int64Function.Instance,            
-                                           BaseFunnyType.Real => typeBehaviour.RealTypeSelect<IConcreteFunction>(DoubleFunction.Instance,DecimalFunction.Instance),
+                                           BaseFunnyType.Real => context.RealTypeSelect<IConcreteFunction>(DoubleFunction.Instance,DecimalFunction.Instance),
         _                   => throw new ArgumentOutOfRangeException()
     };
       
@@ -136,16 +136,16 @@ public class AddFunction : PureGenericFunctionBase {
     // GENERATED
     public AddFunction() : base(CoreFunNames.Add, GenericConstrains.Arithmetical, 2) { }
 
-    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, TypeBehaviour typeBehaviour) =>
+    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, IFunctionSelectorContext context) =>
         concreteTypes[0].BaseType switch {
-                                           BaseFunnyType.UInt8 =>typeBehaviour.AllowIntegerOverflow? UInt8Function.Instance: UInt8CheckedFunction.Instance,            
-                                           BaseFunnyType.UInt16 =>typeBehaviour.AllowIntegerOverflow? UInt16Function.Instance: UInt16CheckedFunction.Instance,            
-                                           BaseFunnyType.UInt32 =>typeBehaviour.AllowIntegerOverflow? UInt32Function.Instance: UInt32CheckedFunction.Instance,            
-                                           BaseFunnyType.UInt64 =>typeBehaviour.AllowIntegerOverflow? UInt64Function.Instance: UInt64CheckedFunction.Instance,            
-                                           BaseFunnyType.Int16 =>typeBehaviour.AllowIntegerOverflow? Int16Function.Instance: Int16CheckedFunction.Instance,            
-                                           BaseFunnyType.Int32 =>typeBehaviour.AllowIntegerOverflow? Int32Function.Instance: Int32CheckedFunction.Instance,            
-                                           BaseFunnyType.Int64 =>typeBehaviour.AllowIntegerOverflow? Int64Function.Instance: Int64CheckedFunction.Instance,            
-                                           BaseFunnyType.Real => typeBehaviour.RealTypeSelect<IConcreteFunction>(DoubleFunction.Instance,DecimalFunction.Instance),
+                                           BaseFunnyType.UInt8 =>context.AllowIntegerOverflow? UInt8Function.Instance: UInt8CheckedFunction.Instance,            
+                                           BaseFunnyType.UInt16 =>context.AllowIntegerOverflow? UInt16Function.Instance: UInt16CheckedFunction.Instance,            
+                                           BaseFunnyType.UInt32 =>context.AllowIntegerOverflow? UInt32Function.Instance: UInt32CheckedFunction.Instance,            
+                                           BaseFunnyType.UInt64 =>context.AllowIntegerOverflow? UInt64Function.Instance: UInt64CheckedFunction.Instance,            
+                                           BaseFunnyType.Int16 =>context.AllowIntegerOverflow? Int16Function.Instance: Int16CheckedFunction.Instance,            
+                                           BaseFunnyType.Int32 =>context.AllowIntegerOverflow? Int32Function.Instance: Int32CheckedFunction.Instance,            
+                                           BaseFunnyType.Int64 =>context.AllowIntegerOverflow? Int64Function.Instance: Int64CheckedFunction.Instance,            
+                                           BaseFunnyType.Real => context.RealTypeSelect<IConcreteFunction>(DoubleFunction.Instance,DecimalFunction.Instance),
         _                   => throw new ArgumentOutOfRangeException()
     };
       
@@ -249,16 +249,16 @@ public class SubstractFunction : PureGenericFunctionBase {
     // GENERATED
     public SubstractFunction() : base(CoreFunNames.Substract, GenericConstrains.Arithmetical, 2) { }
 
-    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, TypeBehaviour typeBehaviour) =>
+    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, IFunctionSelectorContext context) =>
         concreteTypes[0].BaseType switch {
-                                           BaseFunnyType.UInt8 =>typeBehaviour.AllowIntegerOverflow? UInt8Function.Instance: UInt8CheckedFunction.Instance,            
-                                           BaseFunnyType.UInt16 =>typeBehaviour.AllowIntegerOverflow? UInt16Function.Instance: UInt16CheckedFunction.Instance,            
-                                           BaseFunnyType.UInt32 =>typeBehaviour.AllowIntegerOverflow? UInt32Function.Instance: UInt32CheckedFunction.Instance,            
-                                           BaseFunnyType.UInt64 =>typeBehaviour.AllowIntegerOverflow? UInt64Function.Instance: UInt64CheckedFunction.Instance,            
-                                           BaseFunnyType.Int16 =>typeBehaviour.AllowIntegerOverflow? Int16Function.Instance: Int16CheckedFunction.Instance,            
-                                           BaseFunnyType.Int32 =>typeBehaviour.AllowIntegerOverflow? Int32Function.Instance: Int32CheckedFunction.Instance,            
-                                           BaseFunnyType.Int64 =>typeBehaviour.AllowIntegerOverflow? Int64Function.Instance: Int64CheckedFunction.Instance,            
-                                           BaseFunnyType.Real => typeBehaviour.RealTypeSelect<IConcreteFunction>(DoubleFunction.Instance,DecimalFunction.Instance),
+                                           BaseFunnyType.UInt8 =>context.AllowIntegerOverflow? UInt8Function.Instance: UInt8CheckedFunction.Instance,            
+                                           BaseFunnyType.UInt16 =>context.AllowIntegerOverflow? UInt16Function.Instance: UInt16CheckedFunction.Instance,            
+                                           BaseFunnyType.UInt32 =>context.AllowIntegerOverflow? UInt32Function.Instance: UInt32CheckedFunction.Instance,            
+                                           BaseFunnyType.UInt64 =>context.AllowIntegerOverflow? UInt64Function.Instance: UInt64CheckedFunction.Instance,            
+                                           BaseFunnyType.Int16 =>context.AllowIntegerOverflow? Int16Function.Instance: Int16CheckedFunction.Instance,            
+                                           BaseFunnyType.Int32 =>context.AllowIntegerOverflow? Int32Function.Instance: Int32CheckedFunction.Instance,            
+                                           BaseFunnyType.Int64 =>context.AllowIntegerOverflow? Int64Function.Instance: Int64CheckedFunction.Instance,            
+                                           BaseFunnyType.Real => context.RealTypeSelect<IConcreteFunction>(DoubleFunction.Instance,DecimalFunction.Instance),
         _                   => throw new ArgumentOutOfRangeException()
     };
       
@@ -362,16 +362,16 @@ public class MultiplyFunction : PureGenericFunctionBase {
     // GENERATED
     public MultiplyFunction() : base(CoreFunNames.Multiply, GenericConstrains.Arithmetical, 2) { }
 
-    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, TypeBehaviour typeBehaviour) =>
+    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, IFunctionSelectorContext context) =>
         concreteTypes[0].BaseType switch {
-                                           BaseFunnyType.UInt8 =>typeBehaviour.AllowIntegerOverflow? UInt8Function.Instance: UInt8CheckedFunction.Instance,            
-                                           BaseFunnyType.UInt16 =>typeBehaviour.AllowIntegerOverflow? UInt16Function.Instance: UInt16CheckedFunction.Instance,            
-                                           BaseFunnyType.UInt32 =>typeBehaviour.AllowIntegerOverflow? UInt32Function.Instance: UInt32CheckedFunction.Instance,            
-                                           BaseFunnyType.UInt64 =>typeBehaviour.AllowIntegerOverflow? UInt64Function.Instance: UInt64CheckedFunction.Instance,            
-                                           BaseFunnyType.Int16 =>typeBehaviour.AllowIntegerOverflow? Int16Function.Instance: Int16CheckedFunction.Instance,            
-                                           BaseFunnyType.Int32 =>typeBehaviour.AllowIntegerOverflow? Int32Function.Instance: Int32CheckedFunction.Instance,            
-                                           BaseFunnyType.Int64 =>typeBehaviour.AllowIntegerOverflow? Int64Function.Instance: Int64CheckedFunction.Instance,            
-                                           BaseFunnyType.Real => typeBehaviour.RealTypeSelect<IConcreteFunction>(DoubleFunction.Instance,DecimalFunction.Instance),
+                                           BaseFunnyType.UInt8 =>context.AllowIntegerOverflow? UInt8Function.Instance: UInt8CheckedFunction.Instance,            
+                                           BaseFunnyType.UInt16 =>context.AllowIntegerOverflow? UInt16Function.Instance: UInt16CheckedFunction.Instance,            
+                                           BaseFunnyType.UInt32 =>context.AllowIntegerOverflow? UInt32Function.Instance: UInt32CheckedFunction.Instance,            
+                                           BaseFunnyType.UInt64 =>context.AllowIntegerOverflow? UInt64Function.Instance: UInt64CheckedFunction.Instance,            
+                                           BaseFunnyType.Int16 =>context.AllowIntegerOverflow? Int16Function.Instance: Int16CheckedFunction.Instance,            
+                                           BaseFunnyType.Int32 =>context.AllowIntegerOverflow? Int32Function.Instance: Int32CheckedFunction.Instance,            
+                                           BaseFunnyType.Int64 =>context.AllowIntegerOverflow? Int64Function.Instance: Int64CheckedFunction.Instance,            
+                                           BaseFunnyType.Real => context.RealTypeSelect<IConcreteFunction>(DoubleFunction.Instance,DecimalFunction.Instance),
         _                   => throw new ArgumentOutOfRangeException()
     };
       
@@ -475,7 +475,7 @@ public class BitXorFunction : PureGenericFunctionBase {
     // GENERATED
     public BitXorFunction() : base(CoreFunNames.BitXor, GenericConstrains.Integers, 2) { }
 
-    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, TypeBehaviour typeBehaviour) =>
+    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, IFunctionSelectorContext context) =>
         concreteTypes[0].BaseType switch {
                                            BaseFunnyType.UInt8 => UInt8Function.Instance,            
                                            BaseFunnyType.UInt16 => UInt16Function.Instance,            
@@ -533,7 +533,7 @@ public class BitAndFunction : PureGenericFunctionBase {
     // GENERATED
     public BitAndFunction() : base(CoreFunNames.BitAnd, GenericConstrains.Integers, 2) { }
 
-    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, TypeBehaviour typeBehaviour) =>
+    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, IFunctionSelectorContext context) =>
         concreteTypes[0].BaseType switch {
                                            BaseFunnyType.UInt8 => UInt8Function.Instance,            
                                            BaseFunnyType.UInt16 => UInt16Function.Instance,            
@@ -591,7 +591,7 @@ public class BitOrFunction : PureGenericFunctionBase {
     // GENERATED
     public BitOrFunction() : base(CoreFunNames.BitOr, GenericConstrains.Integers, 2) { }
 
-    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, TypeBehaviour typeBehaviour) =>
+    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, IFunctionSelectorContext context) =>
         concreteTypes[0].BaseType switch {
                                            BaseFunnyType.UInt8 => UInt8Function.Instance,            
                                            BaseFunnyType.UInt16 => UInt16Function.Instance,            
@@ -649,7 +649,7 @@ public class BitOrFunction : PureGenericFunctionBase {
 
 public class BitInverseFunction : PureGenericFunctionBase {
     public BitInverseFunction() : base(CoreFunNames.BitInverse, GenericConstrains.Integers, 1) { }
-    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, TypeBehaviour typeBehaviour) {
+    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, IFunctionSelectorContext context) {
         FunctionWithSingleArg result = concreteTypes[0].BaseType switch {
                                            BaseFunnyType.UInt8 => UInt8Function.Instance,            
                                            BaseFunnyType.UInt16 => UInt16Function.Instance,            
@@ -706,12 +706,12 @@ public class BitInverseFunction : PureGenericFunctionBase {
 
 public class NegateFunction : PureGenericFunctionBase {
     public NegateFunction() : base(CoreFunNames.Negate, GenericConstrains.SignedNumber, 1) { }
-    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, TypeBehaviour typeBehaviour) {
+    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, IFunctionSelectorContext context) {
         FunctionWithSingleArg result = concreteTypes[0].BaseType switch {
                                            BaseFunnyType.Int16 => Int16Function.Instance,            
                                            BaseFunnyType.Int32 => Int32Function.Instance,            
                                            BaseFunnyType.Int64 => Int64Function.Instance,            
-                                           BaseFunnyType.Real => typeBehaviour.RealTypeSelect<FunctionWithSingleArg>(DoubleFunction.Instance,DecimalFunction.Instance),
+                                           BaseFunnyType.Real => context.RealTypeSelect<FunctionWithSingleArg>(DoubleFunction.Instance,DecimalFunction.Instance),
         _                   => throw new ArgumentOutOfRangeException()
     };
         result.Name = CoreFunNames.Negate;
@@ -750,12 +750,12 @@ public class NegateFunction : PureGenericFunctionBase {
 
 public class AbsFunction : PureGenericFunctionBase {
     public AbsFunction() : base("abs", GenericConstrains.SignedNumber, 1) { }
-    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, TypeBehaviour typeBehaviour) {
+    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, IFunctionSelectorContext context) {
         FunctionWithSingleArg result = concreteTypes[0].BaseType switch {
                                            BaseFunnyType.Int16 => Int16Function.Instance,            
                                            BaseFunnyType.Int32 => Int32Function.Instance,            
                                            BaseFunnyType.Int64 => Int64Function.Instance,            
-                                           BaseFunnyType.Real => typeBehaviour.RealTypeSelect<FunctionWithSingleArg>(DoubleFunction.Instance,DecimalFunction.Instance),
+                                           BaseFunnyType.Real => context.RealTypeSelect<FunctionWithSingleArg>(DoubleFunction.Instance,DecimalFunction.Instance),
         _                   => throw new ArgumentOutOfRangeException()
     };
         result.Name = CoreFunNames.Negate;

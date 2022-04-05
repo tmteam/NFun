@@ -12,6 +12,10 @@ public enum RealClrType {
 }
 
 public abstract class TypeBehaviour {
+
+    public static readonly TypeBehaviour RealIsDouble =  new RealIsDoubleTypeBehaviour();
+    public static readonly TypeBehaviour RealIsDecimal = new RealIsDecimalTypeBehaviour();
+
     public abstract IInputFunnyConverter GetPrimitiveInputConverterOrNull(Type clrType);
     public virtual IInputFunnyConverter GetPrimitiveInputConverterOrNull(FunnyType funnyType) =>
         PrimitiveInputConvertersByName.TryGetValue(funnyType.BaseType, out var converter) ? converter : null;
@@ -24,15 +28,9 @@ public abstract class TypeBehaviour {
     public abstract object ParseOrNull(string text);
     public abstract Type GetClrTypeFor(BaseFunnyType funnyType);
     public abstract T RealTypeSelect<T>(T ifIsDouble, T ifIsDecimal);
-    public static TypeBehaviour RealIsDoubleWithIntOverflow  = new RealIsDoubleTypeBehaviour(allowIntegerOverflow: true);
-    public static TypeBehaviour RealIsDecimalWithIntOverflow = new RealIsDecimalTypeBehaviour(allowIntegerOverflow: true);
 
-    public static TypeBehaviour RealIsDouble(bool allowIntegerOverflow) =>  new RealIsDoubleTypeBehaviour(allowIntegerOverflow);
-    public static TypeBehaviour RealIsDecimal(bool allowIntegerOverflow) => new RealIsDecimalTypeBehaviour(allowIntegerOverflow);
-    public static TypeBehaviour Default { get; } = new RealIsDoubleTypeBehaviour(allowIntegerOverflow: true);
 
     public abstract bool DoubleIsReal { get; }
-    public bool AllowIntegerOverflow { get; }
     protected static readonly Func<object, object> ToInt8 = o => Convert.ToSByte(o);
     protected static readonly Func<object, object> ToInt16 = o => Convert.ToInt16(o);
     protected static readonly Func<object, object> ToInt32 = o => Convert.ToInt32(o);
@@ -110,15 +108,10 @@ public abstract class TypeBehaviour {
                 { BaseFunnyType.Int32, new PrimitiveTypeOutputFunnyConverter(FunnyType.Int32, typeof(Int32)) },
                 { BaseFunnyType.Int64, new PrimitiveTypeOutputFunnyConverter(FunnyType.Int64, typeof(Int64)) },
             };
-    protected TypeBehaviour(bool allowIntegerOverflow) {
-        AllowIntegerOverflow = allowIntegerOverflow;
-    }
 }
 
 public class RealIsDoubleTypeBehaviour : TypeBehaviour {
 
-    public RealIsDoubleTypeBehaviour(bool allowIntegerOverflow):base(allowIntegerOverflow) {}
-    
     private static readonly IReadOnlyDictionary<Type, IOutputFunnyConverter> PrimitiveOutputConvertersByType
         = new Dictionary<Type, IOutputFunnyConverter> {
             { typeof(bool), new PrimitiveTypeOutputFunnyConverter(FunnyType.Bool, typeof(bool)) },
@@ -201,7 +194,6 @@ public class RealIsDoubleTypeBehaviour : TypeBehaviour {
 }
 
 public class RealIsDecimalTypeBehaviour : TypeBehaviour {
-    public RealIsDecimalTypeBehaviour(bool allowIntegerOverflow):base(allowIntegerOverflow) {}
 
     private static readonly IReadOnlyDictionary<Type, IOutputFunnyConverter> PrimitiveOutputConvertersByType
         = new Dictionary<Type, IOutputFunnyConverter> {

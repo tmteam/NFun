@@ -63,7 +63,7 @@ public abstract class GenericFunctionBase : IGenericFunction {
 
     protected virtual object Calc(object[] args) => throw new NotImplementedException();
 
-    public virtual IConcreteFunction CreateConcrete(FunnyType[] concreteTypesMap, TypeBehaviour typeBehaviour) =>
+    public virtual IConcreteFunction CreateConcrete(FunnyType[] concreteTypesMap, IFunctionSelectorContext context) =>
         new ConcreteGenericFunction(
             calc: Calc,
             name: Name,

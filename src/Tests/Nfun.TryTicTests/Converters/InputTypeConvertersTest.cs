@@ -20,7 +20,7 @@ public class InputTypeConvertersTest {
     [TestCase(true, BaseFunnyType.Bool)]
     public void ConvertPrimitiveType(object primitiveValue, BaseFunnyType expectedTypeName) {
         var clrType = primitiveValue.GetType();
-        var converter = TypeBehaviour.RealIsDoubleWithIntOverflow.GetInputConverterFor(clrType);
+        var converter = TypeBehaviour.RealIsDouble.GetInputConverterFor(clrType);
         Assert.AreEqual(expectedTypeName, converter.FunnyType.BaseType);
         var convertedValue = converter.ToFunObject(primitiveValue);
         Assert.AreEqual(primitiveValue, convertedValue);
@@ -40,7 +40,7 @@ public class InputTypeConvertersTest {
     
     private void ConvertRealTypes(object primitiveValue, double expected) {
         var clrType = primitiveValue.GetType();
-        var converter = TypeBehaviour.RealIsDoubleWithIntOverflow.GetInputConverterFor(clrType);
+        var converter = TypeBehaviour.RealIsDouble.GetInputConverterFor(clrType);
         Assert.AreEqual(FunnyType.Real, converter.FunnyType);
         var convertedValue = converter.ToFunObject(primitiveValue);
         Assert.AreEqual(expected, convertedValue);
@@ -57,7 +57,7 @@ public class InputTypeConvertersTest {
     [TestCase(new[] { true, false }, BaseFunnyType.Bool)]
     public void ConvertPrimitiveTypeArrays(object primitiveValue, BaseFunnyType expectedTypeName) {
         var clrType = primitiveValue.GetType();
-        var converter = TypeBehaviour.RealIsDoubleWithIntOverflow.GetInputConverterFor(clrType);
+        var converter = TypeBehaviour.RealIsDouble.GetInputConverterFor(clrType);
 
         Assert.AreEqual(FunnyType.ArrayOf(FunnyType.PrimitiveOf(expectedTypeName)), converter.FunnyType);
         var convertedValue = converter.ToFunObject(primitiveValue);
@@ -68,7 +68,7 @@ public class InputTypeConvertersTest {
     [TestCase("v")]
     [TestCase("value")]
     public void ConvertString(string value) {
-        var converter = TypeBehaviour.RealIsDoubleWithIntOverflow.GetInputConverterFor(typeof(string));
+        var converter = TypeBehaviour.RealIsDouble.GetInputConverterFor(typeof(string));
 
         Assert.AreEqual(FunnyType.Text, converter.FunnyType);
         Assert.AreEqual(new TextFunnyArray(value), converter.ToFunObject(value));
@@ -80,7 +80,7 @@ public class InputTypeConvertersTest {
             "vasa", "kata", ""
         };
 
-        var converter = TypeBehaviour.RealIsDoubleWithIntOverflow.GetInputConverterFor(inputValue.GetType());
+        var converter = TypeBehaviour.RealIsDouble.GetInputConverterFor(inputValue.GetType());
 
         Assert.AreEqual(FunnyType.ArrayOf(FunnyType.Text), converter.FunnyType);
         Assert.AreEqual(
@@ -96,7 +96,7 @@ public class InputTypeConvertersTest {
             new object[] { 2, 1, "kate" },
             new object[] { }
         };
-        var converter = TypeBehaviour.RealIsDoubleWithIntOverflow.GetInputConverterFor(inputValue.GetType());
+        var converter = TypeBehaviour.RealIsDouble.GetInputConverterFor(inputValue.GetType());
         Assert.AreEqual(FunnyType.ArrayOf(FunnyType.ArrayOf(FunnyType.Any)), converter.FunnyType);
         var value = converter.ToFunObject(inputValue);
         Assert.IsInstanceOf<ImmutableFunnyArray>(value);
@@ -106,7 +106,7 @@ public class InputTypeConvertersTest {
     [Test]
     public void StructType() {
         var inputUser = new UserMoqType("vasa", 42, 17.1, new Decimal(-42.2));
-        var converter = TypeBehaviour.RealIsDoubleWithIntOverflow.GetInputConverterFor(inputUser.GetType());
+        var converter = TypeBehaviour.RealIsDouble.GetInputConverterFor(inputUser.GetType());
         Assert.AreEqual(
             FunnyType.StructOf(
                 ("name", FunnyType.Text),
@@ -130,7 +130,7 @@ public class InputTypeConvertersTest {
             new UserMoqType("kata", 40, -17.1, new Decimal(0))
         };
 
-        var converter = TypeBehaviour.RealIsDoubleWithIntOverflow.GetInputConverterFor(inputUsers.GetType());
+        var converter = TypeBehaviour.RealIsDouble.GetInputConverterFor(inputUsers.GetType());
         Assert.AreEqual(
             FunnyType.ArrayOf(
                 FunnyType.StructOf(
@@ -154,7 +154,7 @@ public class InputTypeConvertersTest {
     [Test]
     public void RequrisiveType_Throws() {
         NodeMoqType obj = new NodeMoqType("vasa", new NodeMoqType("peta"));
-        Assert.Throws<ArgumentException>(() => TypeBehaviour.RealIsDoubleWithIntOverflow.GetInputConverterFor(obj.GetType()));
+        Assert.Throws<ArgumentException>(() => TypeBehaviour.RealIsDouble.GetInputConverterFor(obj.GetType()));
     }
 }
 

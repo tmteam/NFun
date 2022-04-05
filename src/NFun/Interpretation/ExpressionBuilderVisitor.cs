@@ -243,7 +243,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
                     genericArgs[i] = _typesConverter.Convert(genericTypes[i]);
             }
 
-            var function = genericFunction.CreateConcrete(genericArgs, _dialect.TypeBehaviour);
+            var function = genericFunction.CreateConcrete(genericArgs, _dialect);
             return CreateFunctionCall(node, function);
         }
         
@@ -330,7 +330,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
                 for (int i = 0; i < genericTypes.Length; i++)
                     genericArgs[i] = _typesConverter.Convert(genericTypes[i]);
 
-                var function = genericFunction.CreateConcrete(genericArgs, _dialect.TypeBehaviour);
+                var function = genericFunction.CreateConcrete(genericArgs, _dialect);
                 return new FunVariableExpressionNode(function, node.Interval);
             }
             else if (funVariable is IConcreteFunction concrete)

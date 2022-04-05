@@ -70,7 +70,7 @@ public class LessOrEqualFunction : GenericFunctionBase {
 public class MinFunction : PureGenericFunctionBase {
     public MinFunction() : base("min", GenericConstrains.Comparable, 2) { }
 
-    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypesMap, TypeBehaviour typeBehaviour) {
+    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypesMap, IFunctionSelectorContext context) {
         var generic = concreteTypesMap[0];
         FunctionWithTwoArgs function = new MinConcreteFunction();
         function.Setup(Name, generic);
@@ -89,7 +89,7 @@ public class MinFunction : PureGenericFunctionBase {
 public class MaxFunction : PureGenericFunctionBase {
     public MaxFunction() : base("max", GenericConstrains.Comparable, 2) { }
 
-    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypesMap, TypeBehaviour typeBehaviour) {
+    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypesMap, IFunctionSelectorContext context) {
         var generic = concreteTypesMap[0];
         FunctionWithTwoArgs function = new MaxConcreteFunction();
         function.Setup(Name, generic);

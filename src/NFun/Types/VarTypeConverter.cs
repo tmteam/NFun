@@ -176,9 +176,9 @@ public static class VarTypeConverter {
                         continue;
                     //Check for Fun and struct types is quite expensive, so there is no big reason to write optimized code  
                     case BaseFunnyType.Fun:
-                        return GetConverterOrNull(TypeBehaviour.Default, @from, to) != null;
+                        return GetConverterOrNull(Dialects.Origin.TypeBehaviour, @from, to) != null;
                     case BaseFunnyType.Struct:
-                        return GetConverterOrNull(TypeBehaviour.Default, @from, to) != null;
+                        return GetConverterOrNull(Dialects.Origin.TypeBehaviour, @from, to) != null;
                 }
             }
 

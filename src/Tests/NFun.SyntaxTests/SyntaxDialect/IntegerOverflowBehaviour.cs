@@ -45,7 +45,7 @@ public class IntegerOverflowBehaviour {
     [TestCase("y:int32 = -2_147_483_648 - 1")]
     [TestCase("y:uint64 = 0 - 1")]
     [TestCase("y:int64 = -9223372036854775808 - 1")]
-    
+
     [TestCase("y:uint32 = [0xFFFF_FFFF,1].sum()")]
     [TestCase("y:int32 = [2_147_483_647,1].sum()")]
     [TestCase("y:int32 = [-2_147_483_648, - 1].sum()")]
@@ -53,12 +53,12 @@ public class IntegerOverflowBehaviour {
     [TestCase("y:uint64 = [0xFFFF_FFFF_FFFF_FFFF, 1].sum()")]
     [TestCase("y:int64 = [9223372036854775807, 1].sum()")]
     [TestCase("y:int64 = [-9223372036854775808, - 1].sum()")]
-    
+
     [TestCase("y:uint32 = 0xFFFF_FFFF * 2")]
     [TestCase("y:int32 = 2_147_483_647 * 2")]
     [TestCase("y:uint64 = 0xFFFF_FFFF_FFFF_FFFF * 2")]
     [TestCase("y:int64 = 9223372036854775807 * 2")]
-    
+
     [TestCase("y:int32 = 2_147_483_647 * -2")]
     [TestCase("y:int64 = 9223372036854775807 * -2")]
     public void OperationsWithOverflow_Failes(string expr) {
@@ -73,8 +73,8 @@ public class IntegerOverflowBehaviour {
         {
             Assert.Pass();
         }
+
         Assert.Fail("Ouch");
-       
     }
 }
 

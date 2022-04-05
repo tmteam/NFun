@@ -31,7 +31,7 @@ internal class Calculator<TInput> : ICalculator<TInput> {
         _builder = builder;
 
         _apriori = new AprioriTypesMap();
-        _inputsMap = FluentApiTools.SetupAprioriInputs<TInput>(_apriori, TypeBehaviour.Default);
+        _inputsMap = FluentApiTools.SetupAprioriInputs<TInput>(_apriori, Dialects.Origin.TypeBehaviour);
     }
 
     public object Calc(string expression, TInput input)
@@ -88,7 +88,7 @@ internal class CalculatorSingle<TInput, TOutput> : ICalculator<TInput, TOutput> 
         
         _builder = builder;
         _apriori = new AprioriTypesMap();
-        _inputsMap = FluentApiTools.SetupAprioriInputs<TInput>(_apriori, TypeBehaviour.Default);
+        _inputsMap = FluentApiTools.SetupAprioriInputs<TInput>(_apriori, Dialects.Origin.TypeBehaviour);
 
         _outputConverter = TypeBehaviourExtensions.GetOutputConverterFor(_builder.Dialect.TypeBehaviour, typeof(TOutput));
         _apriori.Add(Parser.AnonymousEquationId, _outputConverter.FunnyType);

@@ -16,16 +16,16 @@ public class MultiSumFunction : GenericFunctionBase {
         FunnyType.ArrayOf(FunnyType.Generic(0)))
     { }
 
-    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, TypeBehaviour typeBehaviour) =>
+    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, IFunctionSelectorContext context) =>
             concreteTypes[0].BaseType switch
              {
-                 BaseFunnyType.UInt16 => typeBehaviour.AllowIntegerOverflow? UInt16Function.Instance: UInt16CheckedFunction.Instance ,
-                 BaseFunnyType.UInt32 => typeBehaviour.AllowIntegerOverflow? UInt32Function.Instance: UInt32CheckedFunction.Instance,
-                 BaseFunnyType.UInt64 => typeBehaviour.AllowIntegerOverflow? UInt64Function.Instance: UInt64CheckedFunction.Instance,
-                 BaseFunnyType.Int16  => typeBehaviour.AllowIntegerOverflow? Int16Function.Instance: Int16CheckedFunction.Instance,
-                 BaseFunnyType.Int32  => typeBehaviour.AllowIntegerOverflow? Int32Function.Instance: Int32CheckedFunction.Instance,
-                 BaseFunnyType.Int64  => typeBehaviour.AllowIntegerOverflow? Int64Function.Instance: Int64CheckedFunction.Instance,
-                 BaseFunnyType.Real   => typeBehaviour.RealTypeSelect<IConcreteFunction>(RealDoubleFunction.Instance, RealDecimalFunction.Instance),
+                 BaseFunnyType.UInt16 => context.AllowIntegerOverflow? UInt16Function.Instance: UInt16CheckedFunction.Instance ,
+                 BaseFunnyType.UInt32 => context.AllowIntegerOverflow? UInt32Function.Instance: UInt32CheckedFunction.Instance,
+                 BaseFunnyType.UInt64 => context.AllowIntegerOverflow? UInt64Function.Instance: UInt64CheckedFunction.Instance,
+                 BaseFunnyType.Int16  => context.AllowIntegerOverflow? Int16Function.Instance: Int16CheckedFunction.Instance,
+                 BaseFunnyType.Int32  => context.AllowIntegerOverflow? Int32Function.Instance: Int32CheckedFunction.Instance,
+                 BaseFunnyType.Int64  => context.AllowIntegerOverflow? Int64Function.Instance: Int64CheckedFunction.Instance,
+                 BaseFunnyType.Real   => context.RealTypeSelect<IConcreteFunction>(RealDoubleFunction.Instance, RealDecimalFunction.Instance),
                  _                    => throw new ArgumentOutOfRangeException()
              };
 
@@ -218,19 +218,20 @@ public class RangeFunction : GenericFunctionBase {
         FunnyType.ArrayOf(FunnyType.Generic(0)), FunnyType.Generic(0), FunnyType.Generic(0))
     { }
 
-    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, TypeBehaviour typeBehaviour) =>
+    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, IFunctionSelectorContext context) =>
         concreteTypes[0].BaseType switch
         {
-            BaseFunnyType.UInt8                                => UInt8Function.Instance,
-            BaseFunnyType.UInt16                               => UInt16Function.Instance,
-            BaseFunnyType.UInt32                               => UInt32Function.Instance,
-            BaseFunnyType.UInt64                               => UInt64Function.Instance,
-            BaseFunnyType.Int16                                => Int16Function.Instance,
-            BaseFunnyType.Int32                                => Int32Function.Instance,
-            BaseFunnyType.Int64                                => Int64Function.Instance,
-            BaseFunnyType.Real when typeBehaviour.DoubleIsReal => RealDoubleFunction.Instance,
-            BaseFunnyType.Real                                 => RealDecimalFunction.Instance,
-            _                                                  => throw new NotSupportedException()
+            BaseFunnyType.UInt8  => UInt8Function.Instance,
+            BaseFunnyType.UInt16 => UInt16Function.Instance,
+            BaseFunnyType.UInt32 => UInt32Function.Instance,
+            BaseFunnyType.UInt64 => UInt64Function.Instance,
+            BaseFunnyType.Int16  => Int16Function.Instance,
+            BaseFunnyType.Int32  => Int32Function.Instance,
+            BaseFunnyType.Int64  => Int64Function.Instance,
+            BaseFunnyType.Real   => context.RealTypeSelect<IConcreteFunction>(
+                RealDoubleFunction.Instance, 
+                RealDecimalFunction.Instance),
+            _                    => throw new NotSupportedException()
         };
 
     private const string Id = "range";
@@ -444,20 +445,18 @@ public class RangeStepFunction : GenericFunctionBase {
         FunnyType.ArrayOf(FunnyType.Generic(0)), FunnyType.Generic(0), FunnyType.Generic(0), FunnyType.Generic(0))
     { }
 
-    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, TypeBehaviour typeBehaviour) =>
+    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, IFunctionSelectorContext context) =>
         concreteTypes[0].BaseType switch
         {
-            BaseFunnyType.UInt8                                => UInt8Function.Instance,
-            BaseFunnyType.UInt16                               => UInt16Function.Instance,
-            BaseFunnyType.UInt32                               => UInt32Function.Instance,
-            BaseFunnyType.UInt64                               => UInt64Function.Instance,
-            BaseFunnyType.Int16                                => Int16Function.Instance,
-            BaseFunnyType.Int32                                => Int32Function.Instance,
-            BaseFunnyType.Int64                                => Int64Function.Instance,
-            BaseFunnyType.Real when typeBehaviour.DoubleIsReal => RealDoubleFunction.Instance,
-            BaseFunnyType.Real                                 => RealDecimalFunction.Instance,
-
-            _ => throw new ArgumentOutOfRangeException()
+            BaseFunnyType.UInt8  => UInt8Function.Instance,
+            BaseFunnyType.UInt16 => UInt16Function.Instance,
+            BaseFunnyType.UInt32 => UInt32Function.Instance,
+            BaseFunnyType.UInt64 => UInt64Function.Instance,
+            BaseFunnyType.Int16  => Int16Function.Instance,
+            BaseFunnyType.Int32  => Int32Function.Instance,
+            BaseFunnyType.Int64  => Int64Function.Instance,
+            BaseFunnyType.Real   =>context.RealTypeSelect<IConcreteFunction>(RealDoubleFunction.Instance,RealDecimalFunction.Instance),
+            _                    => throw new ArgumentOutOfRangeException()
         };
 
     private const string Id = "rangeWithStep";

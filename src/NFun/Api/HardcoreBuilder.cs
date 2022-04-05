@@ -15,7 +15,7 @@ public class HardcoreBuilder {
     internal HardcoreBuilder() {
         _customFunctions = Array.Empty<IFunctionSignature>();
         _apriori = new AprioriTypesMap();
-        _dialect = DialectSettings.Default;
+        _dialect = Dialects.Origin;
         _constants = Array.Empty<(string, object)>();
     }
 
@@ -38,7 +38,7 @@ public class HardcoreBuilder {
     /// <param name="realClrType">Which clr type is used for funny type real</param>
     public HardcoreBuilder WithDialect(IfExpressionSetup ifExpressionSyntax = IfExpressionSetup.IfIfElse,
         IntegerPreferredType integerPreferredType = IntegerPreferredType.I32,
-        RealClrType realClrType = RealClrType.IsDouble, IntegerOverflow integerOverflow = IntegerOverflow.Unchecked) 
+        RealClrType realClrType = RealClrType.IsDouble, IntegerOverflow integerOverflow = IntegerOverflow.Checked) 
         => WithDialect(Dialects.ModifyOrigin(ifExpressionSyntax, integerPreferredType, realClrType, integerOverflow));
     
     private HardcoreBuilder WithDialect(DialectSettings dialect) =>
@@ -55,7 +55,7 @@ public class HardcoreBuilder {
 
     public HardcoreBuilder WithApriori<T>(string id) =>
         //no matter what type beh is used
-        WithApriori(id, TypeBehaviourExtensions.GetInputConverterFor(TypeBehaviour.Default, typeof(T)).FunnyType);
+        WithApriori(id, Dialects.Origin.TypeBehaviour.GetInputConverterFor(typeof(T)).FunnyType);
 
     public HardcoreBuilder WithFunction(IFunctionSignature function) =>
         new(_constants, _apriori, _dialect, _customFunctions.AppendTail(function));

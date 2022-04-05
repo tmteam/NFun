@@ -65,7 +65,7 @@ public class GenericUserFunction : GenericFunctionBase {
             varType[i] = concrete;
         }
 
-        function.CreateConcrete(varType, TypeBehaviour.Default);
+        function.CreateConcrete(varType, Dialects.Origin);
     }
 
     private GenericUserFunction(
@@ -86,7 +86,7 @@ public class GenericUserFunction : GenericFunctionBase {
 
     readonly Dictionary<string, IConcreteFunction> _concreteFunctionsCache = new();
 
-    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, TypeBehaviour typeBehaviour) {
+    public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, IFunctionSelectorContext context) {
         BuiltCount++;
 
         var id = string.Join(",", concreteTypes);
