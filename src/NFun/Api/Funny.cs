@@ -23,6 +23,9 @@ public static class Funny {
 
     public static TOutput CalcMany<TOutput>(string expression) where TOutput : new()
         => FunnyCalculatorBuilder.Default.CalcMany<TOutput>(expression);
+    public static void CalcContext<TOutput>(string expression, TOutput context) 
+        => throw new NotImplementedException();
+    
 
     public static TOutput CalcMany<TInput, TOutput>(string expression, TInput input) where TOutput : new()
         => FunnyCalculatorBuilder.Default.CalcMany<TInput, TOutput>(expression, input);
@@ -31,7 +34,7 @@ public static class Funny {
 
 
     #region Calculator factories
-
+    
     public static ICalculator<TInput> BuildForCalc<TInput>()
         => FunnyCalculatorBuilder.Default.BuildForCalc<TInput>();
 
@@ -50,6 +53,8 @@ public static class Funny {
     public static IConstantCalculator<TOutput> BuildForCalcManyConstants<TOutput>() where TOutput : new()
         => FunnyCalculatorBuilder.Default.BuildForCalcManyConstants<TOutput>();
 
+    public static IContextCalculator<TContext> BuildForCalcContext<TContext>()
+        => FunnyCalculatorBuilder.Default.BuildForCalcContext<TContext>();
     #endregion
 
 

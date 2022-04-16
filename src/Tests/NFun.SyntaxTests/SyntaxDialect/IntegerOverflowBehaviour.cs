@@ -69,7 +69,7 @@ public class IntegerOverflowBehaviour {
             var result = runtime.Calc();
             Assert.Fail($"No exceptuin thrown: {result}");
         }
-        catch (OverflowException e)
+        catch (OverflowException)
         {
             Assert.Pass();
         }

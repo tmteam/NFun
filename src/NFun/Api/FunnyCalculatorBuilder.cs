@@ -101,6 +101,9 @@ public class FunnyCalculatorBuilder {
     public IConstantCalculator<TOutput> BuildForCalcManyConstants<TOutput>() where TOutput : new()
         => new ConstantCalculatorMany<TOutput>(this);
 
+    public IContextCalculator<TContext> BuildForCalcContext<TContext>()
+        => throw new NotImplementedException();
+    
     public object Calc(string expression) => BuildForCalcConstant().Calc(expression);
 
     public TOutput Calc<TOutput>(string expression) 
@@ -116,6 +119,8 @@ public class FunnyCalculatorBuilder {
 
     public TOutput CalcMany<TInput, TOutput>(string expression, TInput input) where TOutput : new()
         => BuildForCalcMany<TInput, TOutput>().Calc(expression, input);
+    public void CalcContext<TContext>(string expression, TContext context) 
+        => BuildForCalcContext<TContext>().Calc(expression, context);
 
     internal FunnyRuntime CreateRuntime(string expression, AprioriTypesMap apriori) {
         IConstantList constants = null;

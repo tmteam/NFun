@@ -18,6 +18,11 @@ public interface ICalculator<in TInput, out TOutput> {
     Func<TInput, TOutput> ToLambda(string expression);
 }
 
+public interface IContextCalculator<TContext> {
+    void Calc(string expression, TContext context);
+}
+
+
 public interface IConstantCalculator<out TOutput> {
     TOutput Calc(string expression);
 }
