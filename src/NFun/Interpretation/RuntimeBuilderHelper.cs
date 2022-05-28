@@ -60,7 +60,7 @@ internal static class RuntimeBuilderHelper {
         SyntaxTree syntaxTree,
         IFunctionDictionary functions,
         IConstantList constants,
-        AprioriTypesMap aprioriTypes,
+        IAprioriTypesMap aprioriTypes,
         DialectSettings dialect) {
         var resultBuilder = new TypeInferenceResultsBuilder();
         var graph = new GraphBuilder(syntaxTree.MaxNodeId);

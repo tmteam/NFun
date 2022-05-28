@@ -8,25 +8,25 @@ namespace NFun {
 
 public class HardcoreBuilder {
     private readonly (string, object)[] _constants;
-    private readonly AprioriTypesMap _apriori;
+    private readonly MutableAprioriTypesMap _mutableApriori;
     private readonly DialectSettings _dialect;
     private readonly IFunctionSignature[] _customFunctions;
     
     internal HardcoreBuilder() {
         _customFunctions = Array.Empty<IFunctionSignature>();
-        _apriori = new AprioriTypesMap();
+        _mutableApriori = new MutableAprioriTypesMap();
         _dialect = Dialects.Origin;
         _constants = Array.Empty<(string, object)>();
     }
 
     private HardcoreBuilder(
         (string, object)[] constants,
-        AprioriTypesMap apriori,
+        MutableAprioriTypesMap mutableApriori,
         DialectSettings dialect, 
         IFunctionSignature[] customFunctions) {
         _dialect = dialect;
         _customFunctions = customFunctions;
-        _apriori = apriori;
+        _mutableApriori = mutableApriori;
         _constants = constants;
     }
 
@@ -42,23 +42,23 @@ public class HardcoreBuilder {
         => WithDialect(Dialects.ModifyOrigin(ifExpressionSyntax, integerPreferredType, realClrType, integerOverflow));
     
     private HardcoreBuilder WithDialect(DialectSettings dialect) =>
-        new(_constants, _apriori, dialect, _customFunctions);
+        new(_constants, _mutableApriori, dialect, _customFunctions);
 
     public HardcoreBuilder WithConstant<T>(string id, T clrValue) =>
-        new(_constants.AppendTail((id, clrValue)), _apriori, _dialect, _customFunctions);
+        new(_constants.AppendTail((id, clrValue)), _mutableApriori, _dialect, _customFunctions);
 
     public HardcoreBuilder WithConstants(params (string, object)[] funValues) =>
-        new(_constants.AppendTail(funValues), _apriori, _dialect, _customFunctions);
+        new(_constants.AppendTail(funValues), _mutableApriori, _dialect, _customFunctions);
 
     public HardcoreBuilder WithApriori(string id, FunnyType type) =>
-        new(_constants, _apriori.CloneWith(id, type), _dialect, _customFunctions);
+        new(_constants, _mutableApriori.CloneWith(id, type), _dialect, _customFunctions);
 
     public HardcoreBuilder WithApriori<T>(string id) =>
         //no matter what type beh is used
         WithApriori(id, Dialects.Origin.TypeBehaviour.GetInputConverterFor(typeof(T)).FunnyType);
 
     public HardcoreBuilder WithFunction(IFunctionSignature function) =>
-        new(_constants, _apriori, _dialect, _customFunctions.AppendTail(function));
+        new(_constants, _mutableApriori, _dialect, _customFunctions.AppendTail(function));
     
     public HardcoreBuilder WithFunction<Tin, TOut>(string name, Func<Tin, TOut> function) =>
         WithFunction(LambdaWrapperFactory.Create(name, function, _dialect.TypeBehaviour));
@@ -94,13 +94,13 @@ public class HardcoreBuilder {
         RuntimeBuilder.Build(
             script, 
             BaseFunctions.GetFunctions(_dialect.TypeBehaviour).CloneWith(_customFunctions), 
-            _dialect, new ConstantList(_dialect.TypeBehaviour, _constants), _apriori);
+            _dialect, new ConstantList(_dialect.TypeBehaviour, _constants), _mutableApriori);
 
     public StringTemplateCalculator BuildStringTemplate(string script) =>
         StringTemplateRuntimeBuilder.Build(
             script, 
             BaseFunctions.GetFunctions(_dialect.TypeBehaviour).CloneWith(_customFunctions), 
-            _dialect, new ConstantList(_dialect.TypeBehaviour, _constants), _apriori);
+            _dialect, new ConstantList(_dialect.TypeBehaviour, _constants), _mutableApriori);
 }
 
 }

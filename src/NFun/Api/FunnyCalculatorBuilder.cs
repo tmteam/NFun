@@ -89,6 +89,7 @@ public class FunnyCalculatorBuilder {
     public ICalculator<TInput, TOutput> BuildForCalc<TInput, TOutput>()
         => new CalculatorSingle<TInput, TOutput>(this);
 
+    [Obsolete("This method is no longer supported and will be removed in v1.0. Use CalcContext instead.")]
     public ICalculator<TInput, TOutput> BuildForCalcMany<TInput, TOutput>() where TOutput : new()
         => new CalculatorMany<TInput, TOutput>(this);
 
@@ -117,12 +118,14 @@ public class FunnyCalculatorBuilder {
     public TOutput CalcMany<TOutput>(string expression) where TOutput : new() =>
         BuildForCalcManyConstants<TOutput>().Calc(expression);
 
+    [Obsolete("This method is no longer supported and will be removed in v1.0. Use CalcContext instead.")]
     public TOutput CalcMany<TInput, TOutput>(string expression, TInput input) where TOutput : new()
         => BuildForCalcMany<TInput, TOutput>().Calc(expression, input);
+    
     public void CalcContext<TContext>(string expression, TContext context) 
         => BuildForCalcContext<TContext>().Calc(expression, context);
 
-    internal FunnyRuntime CreateRuntime(string expression, AprioriTypesMap apriori) {
+    internal FunnyRuntime CreateRuntime(string expression, IAprioriTypesMap aprioriTypes) {
         IConstantList constants = null;
         if (_constantList.Any())
         {
@@ -144,7 +147,7 @@ public class FunnyCalculatorBuilder {
             script: expression,
             constants: constants ?? EmptyConstantList.Instance,
             functionDictionary: dic,
-            aprioriTypesMap: apriori,
+            aprioriTypesMap: aprioriTypes,
             dialect: _dialect);
     }
 }

@@ -100,7 +100,7 @@ public class TestFluentApiCalcContext {
 
     // [Test]
     // public void UnknownInputIdUsed_throws()
-    //     => Assert.Throws<FunnyParseException>(
+    //     => Assert.Throws<FunnyParseException>(А
     //         () => Funny.CalcMany<UserInputModel, ContractOutputModel>(
     //             "omodel = {id = imodel.someInput*imodel.age}", new UserInputModel()));
 

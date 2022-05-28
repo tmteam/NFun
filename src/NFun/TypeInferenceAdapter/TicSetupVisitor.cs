@@ -29,7 +29,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         tree, ticGraph,
         BaseFunctions.GetFunctions(typeBehaviour),
         EmptyConstantList.Instance,
-        new AprioriTypesMap(),
+        EmptyAprioriTypesMap.Instance, 
         results, Dialects.Origin);
 
     internal static bool SetupTicForBody(
@@ -37,7 +37,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         GraphBuilder ticGraph,
         IFunctionDictionary functions,
         IConstantList constants,
-        AprioriTypesMap aprioriTypes,
+        IAprioriTypesMap aprioriTypes,
         TypeInferenceResultsBuilder results,
         DialectSettings dialect) {
         var visitor = new TicSetupVisitor(ticGraph, functions, constants, results, aprioriTypes, dialect);
@@ -61,7 +61,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         IConstantList constants,
         TypeInferenceResultsBuilder results,
         DialectSettings dialect) {
-        var visitor = new TicSetupVisitor(ticGraph, functions, constants, results, new AprioriTypesMap(), dialect);
+        var visitor = new TicSetupVisitor(ticGraph, functions, constants, results, EmptyAprioriTypesMap.Instance, dialect);
         return userFunctionNode.Accept(visitor);
     }
 
@@ -70,7 +70,7 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         IFunctionDictionary dictionary,
         IConstantList constants,
         TypeInferenceResultsBuilder resultsBuilder,
-        AprioriTypesMap aprioriTypesMap,
+        IAprioriTypesMap aprioriTypesMap,
         DialectSettings dialect) {
         _aliasScope = new VariableScopeAliasTable();
         _dictionary = dictionary;

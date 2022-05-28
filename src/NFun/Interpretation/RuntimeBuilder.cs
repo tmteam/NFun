@@ -24,8 +24,7 @@ internal static class RuntimeBuilder {
         IFunctionDictionary functionDictionary,
         DialectSettings dialect,
         IConstantList constants = null,
-        AprioriTypesMap aprioriTypesMap = null) {
-        aprioriTypesMap ??= new AprioriTypesMap();
+        IAprioriTypesMap aprioriTypesMap = null) {
 
         var flow = Tokenizer.ToFlow(script);
         var syntaxTree = Parser.Parse(flow);
@@ -38,7 +37,7 @@ internal static class RuntimeBuilder {
             syntaxTree,
             functionDictionary,
             constants ?? EmptyConstantList.Instance,
-            aprioriTypesMap,
+            aprioriTypesMap?? EmptyAprioriTypesMap.Instance,
             dialect);
     }
 
@@ -46,7 +45,7 @@ internal static class RuntimeBuilder {
         SyntaxTree syntaxTree,
         IFunctionDictionary functionsDictionary,
         IConstantList constants,
-        AprioriTypesMap aprioriTypesMap,
+        IAprioriTypesMap aprioriTypes,
         DialectSettings dialect) {
         #region build user functions
 
@@ -85,7 +84,7 @@ internal static class RuntimeBuilder {
         #endregion
 
 
-        var bodyTypeSolving = SolveBodyTypes(syntaxTree, constants, functionDictionary, aprioriTypesMap, dialect);
+        var bodyTypeSolving = SolveBodyTypes(syntaxTree, constants, functionDictionary, aprioriTypes, dialect);
 
 
         #region build body
@@ -158,7 +157,7 @@ internal static class RuntimeBuilder {
         SyntaxTree syntaxTree,
         IConstantList constants,
         IFunctionDictionary functionDictionary,
-        AprioriTypesMap aprioriTypes,
+        IAprioriTypesMap aprioriTypes,
         DialectSettings dialect) {
         var bodyTypeSolving = RuntimeBuilderHelper.SolveBodyOrThrow(
             syntaxTree, functionDictionary, constants, aprioriTypes, dialect);

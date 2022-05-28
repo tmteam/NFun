@@ -15,7 +15,7 @@ internal static class StringTemplateRuntimeBuilder {
         IFunctionDictionary functionDictionary,
         DialectSettings dialect,
         IConstantList constants = null,
-        AprioriTypesMap aprioriTypesMap = null) {
+        IAprioriTypesMap aprioriTypes = null) {
         //not the most effective way to build interpolation runtime
         //but at least it works
         SeparateStringTemplate(script, out var texts, out var scripts);
@@ -25,7 +25,7 @@ internal static class StringTemplateRuntimeBuilder {
         for (int i = 0; i < scripts.Count; i++)
             sb.Append($"{AnonymIdPrefix}{i}={scripts[i]};;");
 
-        var runtime = RuntimeBuilder.Build(sb.ToString(), functionDictionary, dialect, constants, aprioriTypesMap);
+        var runtime = RuntimeBuilder.Build(sb.ToString(), functionDictionary, dialect, constants, aprioriTypes);
         var outputVars = new IFunnyVar[scripts.Count];
 
         for (int i = 0; i < scripts.Count; i++)

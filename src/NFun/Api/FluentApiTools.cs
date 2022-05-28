@@ -34,7 +34,7 @@ internal static class FluentApiTools {
     }
 
     internal static Memory<(string, IOutputFunnyConverter, PropertyInfo)> SetupManyAprioriOutputs<TOutput>(
-        AprioriTypesMap aprioriTypesMap, DialectSettings dialectSettings) where TOutput : new() {
+        MutableAprioriTypesMap aprioriTypesMap, DialectSettings dialectSettings) where TOutput : new() {
         var outputProperties = typeof(TOutput).GetProperties(BindingFlags.Instance | BindingFlags.Public);
         var outputVarVals = new (string, IOutputFunnyConverter, PropertyInfo)[outputProperties.Length];
         int actualOutputsCount = 0;
@@ -77,7 +77,7 @@ internal static class FluentApiTools {
     }
 
     public static Memory<(string, IInputFunnyConverter, PropertyInfo)>
-        SetupAprioriInputs<TInput>(AprioriTypesMap apriori, TypeBehaviour typeBehaviour) {
+        SetupAprioriInputs<TInput>(MutableAprioriTypesMap mutableApriori, TypeBehaviour typeBehaviour) {
         var inputProperties = typeof(TInput).GetProperties(BindingFlags.Instance | BindingFlags.Public);
         var inputTypes = new (string, IInputFunnyConverter, PropertyInfo)[inputProperties.Length];
         int actualInputsCount = 0;
@@ -91,7 +91,7 @@ internal static class FluentApiTools {
             var converter = TypeBehaviourExtensions.GetInputConverterFor(typeBehaviour, inputProperty.PropertyType);
             var inputName = inputProperty.Name.ToLower();
 
-            apriori.Add(inputName, converter.FunnyType);
+            mutableApriori.Add(inputName, converter.FunnyType);
             inputTypes[i] = new ValueTuple<string, IInputFunnyConverter, PropertyInfo>(
                 inputName,
                 converter,
