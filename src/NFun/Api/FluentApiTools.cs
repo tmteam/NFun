@@ -14,35 +14,43 @@ internal static class FluentApiTools {
     public static TOutput CreateOutputValueFromResults<TOutput>(
         FunnyRuntime runtime,
         Memory<(string, IOutputFunnyConverter, PropertyInfo)> outputs
-    )
-        where TOutput : new() {
-        var span = outputs.Span;
+    )  where TOutput : new() {
         var answer = new TOutput();
+        var settedCount = FillOutputValueFromResults(runtime, outputs, answer);
+        if (settedCount == 0)
+            throw Errors.NoOutputVariablesSetted(outputs);
+        return answer;
+    }
+
+    public static int FillOutputValueFromResults<TContext>(
+        FunnyRuntime runtime,
+        Memory<(string, IOutputFunnyConverter, PropertyInfo)> outputs,
+        TContext context
+    ) {
+        var span = outputs.Span;
         int settedCount = 0;
         for (int i = 0; i < outputs.Length; i++)
         {
             var (outName, outConverter, outProperty) = span[i];
             var actualOutput = runtime[outName];
             if (actualOutput == null) continue;
-            outProperty.SetValue(answer, outConverter.ToClrObject(actualOutput.FunnyValue));
+            outProperty.SetValue(context, outConverter.ToClrObject(actualOutput.FunnyValue));
             settedCount++;
         }
 
-        if (settedCount == 0)
-            throw Errors.NoOutputVariablesSetted(outputs);
-        return answer;
+        return settedCount;
     }
 
-    internal static Memory<(string, IOutputFunnyConverter, PropertyInfo)> SetupManyAprioriOutputs<TOutput>(
-        MutableAprioriTypesMap aprioriTypesMap, DialectSettings dialectSettings) where TOutput : new() {
+    internal static Memory<(string, IOutputFunnyConverter, PropertyInfo)> AddManyAprioriOutputs<TOutput>(
+        this MutableAprioriTypesMap aprioriTypesMap, DialectSettings dialectSettings) {
         var outputProperties = typeof(TOutput).GetProperties(BindingFlags.Instance | BindingFlags.Public);
         var outputVarVals = new (string, IOutputFunnyConverter, PropertyInfo)[outputProperties.Length];
         int actualOutputsCount = 0;
         foreach (var outputProperty in outputProperties)
         {
-            if (!outputProperty.CanBeUsedAsFunnyOutputProperty())
+            if (!outputProperty.HasPublicSetter())
                 continue;
-            var converter = TypeBehaviourExtensions.GetOutputConverterFor(dialectSettings.TypeBehaviour, outputProperty.PropertyType);
+            var converter = dialectSettings.TypeBehaviour.GetOutputConverterFor(outputProperty.PropertyType);
             var outputName = outputProperty.Name.ToLower();
 
             aprioriTypesMap.Add(outputName, converter.FunnyType);
@@ -76,8 +84,11 @@ internal static class FluentApiTools {
         }
     }
 
-    public static Memory<(string, IInputFunnyConverter, PropertyInfo)>
-        SetupAprioriInputs<TInput>(MutableAprioriTypesMap mutableApriori, TypeBehaviour typeBehaviour) {
+    public static Memory<(string, IInputFunnyConverter, PropertyInfo)> AddAprioriInputs<TInput>(
+            this MutableAprioriTypesMap mutableApriori, 
+            TypeBehaviour typeBehaviour, 
+            bool ignoreIfHasSetter = false) {
+        
         var inputProperties = typeof(TInput).GetProperties(BindingFlags.Instance | BindingFlags.Public);
         var inputTypes = new (string, IInputFunnyConverter, PropertyInfo)[inputProperties.Length];
         int actualInputsCount = 0;
@@ -86,9 +97,13 @@ internal static class FluentApiTools {
         {
             var inputProperty = inputProperties[i];
 
-            if (!inputProperty.CanBeUsedAsFunnyInputProperty())
+            if (!inputProperty.HasPublicGetter())
                 continue;
-            var converter = TypeBehaviourExtensions.GetInputConverterFor(typeBehaviour, inputProperty.PropertyType);
+            
+            if(ignoreIfHasSetter && inputProperty.HasPublicSetter())
+                continue;
+            
+            var converter = typeBehaviour.GetInputConverterFor(inputProperty.PropertyType);
             var inputName = inputProperty.Name.ToLower();
 
             mutableApriori.Add(inputName, converter.FunnyType);

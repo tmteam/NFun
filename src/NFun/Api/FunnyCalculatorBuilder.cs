@@ -103,7 +103,7 @@ public class FunnyCalculatorBuilder {
         => new ConstantCalculatorMany<TOutput>(this);
 
     public IContextCalculator<TContext> BuildForCalcContext<TContext>()
-        => throw new NotImplementedException();
+        => new ContextCalculator<TContext>(this);
     
     public object Calc(string expression) => BuildForCalcConstant().Calc(expression);
 

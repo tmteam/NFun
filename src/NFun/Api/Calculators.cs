@@ -20,6 +20,7 @@ public interface ICalculator<in TInput, out TOutput> {
 
 public interface IContextCalculator<TContext> {
     void Calc(string expression, TContext context);
+    Action<TContext> ToAction(string expression);
 }
 
 
@@ -36,7 +37,7 @@ internal class Calculator<TInput> : ICalculator<TInput> {
         _builder = builder;
 
         _mutableApriori = new MutableAprioriTypesMap();
-        _inputsMap = FluentApiTools.SetupAprioriInputs<TInput>(_mutableApriori, Dialects.Origin.TypeBehaviour);
+        _inputsMap = FluentApiTools.AddAprioriInputs<TInput>(_mutableApriori, Dialects.Origin.TypeBehaviour);
     }
 
     public object Calc(string expression, TInput input)
@@ -64,8 +65,8 @@ internal class CalculatorMany<TInput, TOutput> : ICalculator<TInput, TOutput> wh
     public CalculatorMany(FunnyCalculatorBuilder builder) {
         _builder = builder;
         _mutableApriori = new MutableAprioriTypesMap();
-        _inputsMap = FluentApiTools.SetupAprioriInputs<TInput>(_mutableApriori, _builder.Dialect.TypeBehaviour);
-        _outputsMap = FluentApiTools.SetupManyAprioriOutputs<TOutput>(_mutableApriori, _builder.Dialect);
+        _inputsMap = _mutableApriori.AddAprioriInputs<TInput>(_builder.Dialect.TypeBehaviour);
+        _outputsMap = _mutableApriori.AddManyAprioriOutputs<TOutput>(_builder.Dialect);
     }
 
     public TOutput Calc(string expression, TInput input) => ToLambda(expression)(input);
@@ -93,7 +94,7 @@ internal class CalculatorSingle<TInput, TOutput> : ICalculator<TInput, TOutput> 
         
         _builder = builder;
         _mutableApriori = new MutableAprioriTypesMap();
-        _inputsMap = FluentApiTools.SetupAprioriInputs<TInput>(_mutableApriori, Dialects.Origin.TypeBehaviour);
+        _inputsMap = FluentApiTools.AddAprioriInputs<TInput>(_mutableApriori, Dialects.Origin.TypeBehaviour);
 
         _outputConverter = TypeBehaviourExtensions.GetOutputConverterFor(_builder.Dialect.TypeBehaviour, typeof(TOutput));
         _mutableApriori.Add(Parser.AnonymousEquationId, _outputConverter.FunnyType);
@@ -150,7 +151,7 @@ internal class ConstantCalculatorMany<TOutput> : IConstantCalculator<TOutput> wh
 
     public ConstantCalculatorMany(FunnyCalculatorBuilder builder) {
         _mutableApriori = new MutableAprioriTypesMap();
-        _outputsMap = FluentApiTools.SetupManyAprioriOutputs<TOutput>(_mutableApriori, builder.Dialect);
+        _outputsMap = _mutableApriori.AddManyAprioriOutputs<TOutput>(builder.Dialect);
         _builder = builder;
     }
 
@@ -180,15 +181,30 @@ internal class ConstantCalculatorSingle : IConstantCalculator<object> {
 
 internal class ContextCalculator<TContext> : IContextCalculator<TContext> {
     private readonly FunnyCalculatorBuilder _builder;
+    private readonly MutableAprioriTypesMap _mutableApriori;
+    private readonly Memory<(string, IOutputFunnyConverter, PropertyInfo)> _outputsMap;
+    private readonly Memory<(string, IInputFunnyConverter, PropertyInfo)> _inputsMap;
     public ContextCalculator(FunnyCalculatorBuilder builder) {
         _builder = builder;
+        _mutableApriori = new MutableAprioriTypesMap();
+        
+        _outputsMap = _mutableApriori.AddManyAprioriOutputs<TContext>(builder.Dialect);
+        _inputsMap = _mutableApriori.AddAprioriInputs<TContext>(builder.Dialect.TypeBehaviour, ignoreIfHasSetter: true);
+        
     }
 
+    public void Calc(string expression, TContext context) => ToAction(expression)(context);
 
-
-    public void Calc(string expression, TContext context) {
-        throw new NotImplementedException();
+    public Action<TContext> ToAction(string expression) {
+        var runtime = _builder.CreateRuntime(expression, _mutableApriori);
+        FluentApiTools.ThrowIfHasUnknownInputs(runtime, _inputsMap);
+        return context => {
+            FluentApiTools.SetInputValues(runtime, _inputsMap, context);
+            runtime.Run();
+            FluentApiTools.FillOutputValueFromResults(runtime, _outputsMap, context);
+        };
     }
+
 }
 
 }

@@ -26,11 +26,11 @@ internal static class TypeHelper {
         };
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static bool CanBeUsedAsFunnyInputProperty(this PropertyInfo property) =>
+    internal static bool HasPublicGetter(this PropertyInfo property) =>
         property.CanRead && property.GetMethod.Attributes.HasFlag(MethodAttributes.Public);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static bool CanBeUsedAsFunnyOutputProperty(this PropertyInfo property) =>
+    internal static bool HasPublicSetter(this PropertyInfo property) =>
         property.CanWrite && property.SetMethod.Attributes.HasFlag(MethodAttributes.Public);
 
     public static bool AreEqual(object left, object right) {

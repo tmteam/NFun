@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Globalization;
 using NFun.Exceptions;
 using NFun.TestTools;
 using NFun.Types;
@@ -9,6 +7,7 @@ using NUnit.Framework;
 namespace NFun.ApiTests {
 
 public class TestFluentApiCalcContext {
+    
     [Test]
     public void Const_FullInitialization() {
         var context = new ContractOutputModel();
@@ -31,16 +30,13 @@ public class TestFluentApiCalcContext {
                 }, context));
     }
 
-
     [Test]
     public void Const_NofieldsInitialized_throws()
-        => Assert.Throws<FunnyParseException>(
-            () =>
-                Funny.CalcContext("someField1 = 13.1; somefield2 = 2",new ContractOutputModel()));
+        => Assert.Throws<FunnyParseException>(() => Funny.CalcContext("someField1 = 13.1; somefield2 = 2",new ContractOutputModel()));
 
     [Test]
     public void Const_AnonymousEquation_throws()
-        => Assert.Throws<FunnyParseException>(() => Funny.CalcContext("13.1",new ContractOutputModel()));
+        =>  Assert.Throws<FunnyParseException>(() => Funny.CalcContext("13.1",new ContractOutputModel()));
 
     [Test]
     public void Const_UnknownInputIdUsed_throws()
@@ -54,12 +50,12 @@ public class TestFluentApiCalcContext {
     [Test]
     public void Const_SomeFieldInitialized_DefaultValuesInUninitalizedFields() {
         var context = new ContractOutputModel();
-
-        Funny.CalcContext("id = 321; somenotExisted = 32",context);
-        Assert.AreEqual(321, context.Id);
-        Assert.AreEqual(new ContractOutputModel().Price, context.Price);
-        Assert.AreEqual(new ContractOutputModel().Taxes, context.Taxes);
-        CollectionAssert.AreEqual(new ContractOutputModel().Items, context.Items);
+        var expr = "id = 321; somenotExisted = 32";
+        Funny.CalcContext(expr,context);
+        
+        CalcInDifferentWays(expr,context,new ContractOutputModel {
+            Id = 321
+        });
     }
     
     //--------------
@@ -120,33 +116,60 @@ public class TestFluentApiCalcContext {
     //         () => Funny.CalcMany<UserInputModel, ContractOutputModel>(expression, new UserInputModel()));
 
     private void CalcInDifferentWays(string expr, UserInputModel input, ContractOutputModel expected) {
-        var context = new TheContext(model: input);
-        var expectedContext = new TheContext(context.IntRVal, (UserInputModel)input.Clone()) {
+        var context = new ContextModel1(model: input);
+        var expectedContext = new ContextModel1(context.IntRVal, (UserInputModel)input.Clone()) {
             OModel = expected
         };
         CalcInDifferentWays(expr, context, expectedContext);
     }
     
     private void CalcInDifferentWays<TContext>(string expr, TContext origin, TContext expected) where TContext:ICloneable {
-        var c1 = (TContext)origin.Clone();        
+        var c1 = (TContext)origin.Clone();
         Funny.CalcContext(expr, c1);
-        var calculator = Funny.BuildForCalc<TContext>();
-        var c2 = (TContext)origin.Clone();        
+        
+        
+        var calculator = Funny.BuildForCalcContext<TContext>();
+        
+        var c2 = (TContext)origin.Clone();
         calculator.Calc(expr, c2);
+        
         var c3 = (TContext)origin.Clone();        
         calculator.Calc(expr, c3);
-        var calculator2 = Funny.WithDialect(IfExpressionSetup.IfIfElse, IntegerPreferredType.I32, RealClrType.IsDouble, IntegerOverflow.Checked).BuildForCalcContext<TContext>();
+        
+        
+        var calculator2 = Funny.WithDialect(
+            IfExpressionSetup.IfIfElse, 
+            IntegerPreferredType.I32, 
+            RealClrType.IsDouble, 
+            IntegerOverflow.Checked).BuildForCalcContext<TContext>();
         
         var c4 = (TContext)origin.Clone();        
         calculator2.Calc(expr, c4);
+        
         var c5 = (TContext)origin.Clone();        
         calculator2.Calc(expr, c5);
+
+        var action1 = calculator2.ToAction(expr);
+        var c6 = (TContext)origin.Clone();
+        action1(c6);
+        var c7 = (TContext)origin.Clone();
+        action1(c7);
+        
+        var action2 = calculator2.ToAction(expr);
+        var c8 = (TContext)origin.Clone();
+        action2(c8);
+        var c9 = (TContext)origin.Clone();
+        action2(c9);
+        
         Assert.IsTrue(TestHelper.AreSame(expected, c1));
         Assert.IsTrue(TestHelper.AreSame(expected, c2));
         Assert.IsTrue(TestHelper.AreSame(expected, c3));
         Assert.IsTrue(TestHelper.AreSame(expected, c4));
         Assert.IsTrue(TestHelper.AreSame(expected, c5));
-
+        Assert.IsTrue(TestHelper.AreSame(expected, c6));
+        Assert.IsTrue(TestHelper.AreSame(expected, c7));
+        Assert.IsTrue(TestHelper.AreSame(expected, c8));
+        Assert.IsTrue(TestHelper.AreSame(expected, c9));
     }
 }
 }

@@ -2,13 +2,14 @@
 
 using System;
 using System.Globalization;
+using System.Linq;
 
 namespace NFun.ApiTests {
 
-class TheContext:ICloneable {
+class ContextModel1:ICloneable {
     public string SField = "some val";
     
-    public TheContext(int intRVal = 42, UserInputModel model = null) {
+    public ContextModel1(int intRVal = 42, UserInputModel model = null) {
         IntRVal = intRVal;
         IModel = model;
     }
@@ -19,7 +20,7 @@ class TheContext:ICloneable {
     public UserInputModel IModel { get; }
     
     public string MyToString(int i, double d) => (i + d).ToString(CultureInfo.InvariantCulture);
-    public object Clone() => new TheContext(IntRVal, IModel?.Clone() as UserInputModel) {
+    public object Clone() => new ContextModel1(IntRVal, IModel?.Clone() as UserInputModel) {
         LongRWVal = this.LongRWVal,
         OModel = this.OModel?.Clone() as ContractOutputModel
     };
@@ -35,7 +36,6 @@ public class ModelWithCharArray2 {
 
 public class ModelWithoutEmptyConstructor {
     public ModelWithoutEmptyConstructor(string name) { Name = name; }
-
     public string Name { get; }
 }
 
@@ -44,14 +44,36 @@ class ContractOutputModel:ICloneable {
     public string[] Items { get; set; } = { "default" };
     public double Price { get; set; } = 12.3;
     public Decimal Taxes { get; set; } = Decimal.One;
-    public object Clone() {
-        return new ContractOutputModel {
-            Id = Id,
-            Items = (string[])Items.Clone(),
-            Price = Price,
-            Taxes = Taxes
-        };
+    public object Clone() => new ContractOutputModel {
+        Id = Id,
+        Items = (string[])Items.Clone(),
+        Price = Price,
+        Taxes = Taxes
+    };
+}
+
+
+class ContextModel2:ICloneable {
+    public ContextModel2(int id, int[] inputs,UserInputModel[] users) {
+        Id = id;
+        Inputs = inputs;
+        Users = users;
     }
+    //Inputs:
+    public UserInputModel[] Users { get; }
+    public int Id { get;  }
+    public int[] Inputs { get; private set; }
+    //Outputs:
+    public double Price { get; set; } = 12.3;
+    public string[] Results { get; set; } = { "default" };
+    public Decimal Taxes { get; set; } = Decimal.One;
+    public ContractOutputModel[] Contracts { get; set; }
+    public object Clone() => new ContextModel2(Id, Inputs,Users) {
+        Results = (string[])Results?.Clone(),
+        Price = Price,
+        Taxes = Taxes,
+        Contracts = Contracts?.Select(a=> (ContractOutputModel)a.Clone()).ToArray()
+    };
 }
 
 
@@ -80,9 +102,7 @@ class UserInputModel:ICloneable {
     public double Size { get; }
     public float Iq { get; }
     public Decimal Balance { get; }
-    public object Clone() {
-        return new UserInputModel(Name, Age, Size, Balance, Iq, (int[])Ids.Clone());
-    }
+    public object Clone() => new UserInputModel(Name, Age, Size, Balance, Iq, (int[])Ids.Clone());
 }
 
 }

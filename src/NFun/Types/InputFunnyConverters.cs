@@ -28,7 +28,7 @@ public class DynamicTypeInputFunnyConverter : IInputFunnyConverter {
     public FunnyType FunnyType => FunnyType.Any;
         
     public object ToFunObject(object clrObject) {
-        var converter = TypeBehaviourExtensions.GetInputConverterFor(_typeBehaviour, clrObject.GetType());
+        var converter = _typeBehaviour.GetInputConverterFor(clrObject.GetType());
         return converter.ToFunObject(clrObject);
     }
 }
@@ -141,7 +141,7 @@ public class DynamicStructTypeInputFunnyConverter : IInputFunnyConverter {
             var property = properties.FirstOrDefault(
                 p =>
                     p.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase) &&
-                    p.CanBeUsedAsFunnyInputProperty());
+                    p.HasPublicGetter());
             if (property == null)
                 throw new InvalidCastException(
                     $"Type {clrObject.GetType().Name} cannot be used for struct, as it contains no readable public property {name}");

@@ -98,7 +98,7 @@ public static class TypeBehaviourExtensions {
             int readPropertiesCount = 0;
             foreach (var property in properties)
             {
-                if (!property.CanBeUsedAsFunnyInputProperty())
+                if (!property.HasPublicGetter())
                     continue;
                 if (!funnyType.StructTypeSpecification.TryGetValue(property.Name, out var fieldDef))
                     continue;
@@ -147,7 +147,7 @@ public static class TypeBehaviourExtensions {
             int readPropertiesCount = 0;
             foreach (var property in properties)
             {
-                if (!property.CanBeUsedAsFunnyInputProperty())
+                if (!property.HasPublicGetter())
                     continue;
                 var propertyConverter = GetInputConverterFor(typeBehaviour, property.PropertyType, reqDeepthCheck++);
                 propertiesConverters[readPropertiesCount] =
@@ -200,7 +200,7 @@ public static class TypeBehaviourExtensions {
             int readPropertiesCount = 0;
             foreach (var property in properties)
             {
-                if (!property.CanBeUsedAsFunnyOutputProperty())
+                if (!property.HasPublicSetter())
                     continue;
                 var propertyConverter = GetOutputConverterFor(typeBehaviour, property.PropertyType, reqDeepthCheck++);
 
