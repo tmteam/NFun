@@ -4,6 +4,7 @@ using NUnit.Framework;
 namespace NFun.ApiTests {
 
 public class TestHardcoreApiBuildStringTemplate {
+   
     [TestCase(42, "{x.toText().concat('lalala')}", "42lalala")]
     [TestCase(42.0, "pre{x-1*2}mid{x*x/x}fin", "pre40mid42fin")]
     [TestCase(42, "pre{x-1*2}mid{x*x/x}fin", "pre40mid42fin")]

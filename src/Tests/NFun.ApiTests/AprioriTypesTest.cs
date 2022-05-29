@@ -26,11 +26,11 @@ public class AprioriTypesTest {
                            .Build("y:int64 = x+1");
         Assert.AreEqual(FunnyType.Int32, runtime["x"].Type);
     }
-    
+
     [Test]
     public void AprioriInputOfDecimalLateSpecified_inputTypeIsCorrect() {
         var runtime = Funny.Hardcore
-                           .WithDialect(realClrType: RealClrType.IsDecimal)    
+                           .WithDialect(realClrType: RealClrType.IsDecimal)
                            .WithApriori<decimal>("x")
                            .Build("y = x+1");
         Assert.AreEqual(FunnyType.Real, runtime["x"].Type);
@@ -112,24 +112,20 @@ public class AprioriTypesTest {
     }
 
     [Test]
-    public void SpecifyVarWithSameNameAsFunction_RepeatConcatTest() {
-        var expression = "out:text = name.repeat(count).flat()";
-        Funny.Hardcore
-             .WithApriori<int>("count")
-             .Build(expression)
-             .Calc(("count", 3), ("name", "foo"))
-             .AssertReturns("foofoofoo");
-    }
+    public void SpecifyVarWithSameNameAsFunction_RepeatConcatTest()
+        => Funny.Hardcore
+                .WithApriori<int>("count")
+                .Build("out:text = name.repeat(count).flat()")
+                .Calc(("count", 3), ("name", "foo"))
+                .AssertReturns("foofoofoo");
 
     [Test]
-    public void SpecifyVarWithSameNameAsFunction2_RepeatConcatTest() {
-        var expression = "if (count>0) name.repeat(count).flat() else 'none'";
-        Funny.Hardcore
-             .WithApriori<int>("count")
-             .Build(expression)
-             .Calc(("count", 3), ("name", "foo"))
-             .AssertReturns("foofoofoo");
-    }
+    public void SpecifyVarWithSameNameAsFunction2_RepeatConcatTest()
+        => Funny.Hardcore
+                .WithApriori<int>("count")
+                .Build("if (count>0) name.repeat(count).flat() else 'none'")
+                .Calc(("count", 3), ("name", "foo"))
+                .AssertReturns("foofoofoo");
 }
 
 }

@@ -17,8 +17,8 @@ public class TestFluentApiCalcManyT {
     }
 
     [Test]
-    public void OutputFieldIsConstCharArray() =>
-        Assert.IsTrue(
+    public void OutputFieldIsConstCharArray() 
+        => Assert.IsTrue(
             TestHelper.AreSame(
                 new ModelWithCharArray {
                     Chars = new[] { 't', 'e', 's', 't' }
@@ -41,8 +41,8 @@ public class TestFluentApiCalcManyT {
 
     [TestCase("id = 42; price = ID")]
     [TestCase("id = 42; ID = 13")]
-    public void UseDifferentInputCase_throws(string expression) =>
-        Assert.Throws<FunnyParseException>(() => Funny.CalcMany<ContractOutputModel>(expression));
+    public void UseDifferentInputCase_throws(string expression) 
+        => Assert.Throws<FunnyParseException>(() => Funny.CalcMany<ContractOutputModel>(expression));
 
     [Test]
     public void SomeFieldInitialized_DefaultValuesInUninitalizedFields() {

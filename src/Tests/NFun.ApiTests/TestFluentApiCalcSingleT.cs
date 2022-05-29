@@ -46,9 +46,16 @@ public class TestFluentApiCalcSingleT {
         var str = Funny.Calc(
             "{name = 'alaska'}", new UserInputModel("vasa"));
         Assert.IsInstanceOf<IReadOnlyDictionary<string, object>>(str);
-        var rs = (str as IReadOnlyDictionary<string, object>);
+        var rs = str as IReadOnlyDictionary<string, object>;
         Assert.AreEqual(1, rs.Count);
         Assert.AreEqual("alaska", rs["name"]);
+    }
+    
+    [Test]
+    public void OutputTypeIsText_returnsString() {
+        var str = Funny.Calc("'Text'", new UserInputModel());
+        Assert.IsInstanceOf<string>(str);
+        Assert.AreEqual("Text", str);
     }
     
 

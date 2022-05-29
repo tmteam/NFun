@@ -28,8 +28,8 @@ public class DynamicTypeOutputFunnyConverter : IOutputFunnyConverter {
         funObject switch {
             TextFunnyArray txt => txt.ToString(),
             IFunnyArray funArray =>
-                TypeBehaviourExtensions
-                    .GetOutputConverterFor(_behaviour, FunnyType.ArrayOf(funArray.ElementType))
+                _behaviour
+                    .GetOutputConverterFor(FunnyType.ArrayOf(funArray.ElementType))
                     .ToClrObject(funObject),
             FunnyStruct str => DynamicStructToDictionaryOutputFunnyConverter.Instance.ToClrObject(str),
             _               => funObject
@@ -50,33 +50,33 @@ public class PrimitiveTypeOutputFunnyConverter : IOutputFunnyConverter {
 
 public class DecimalToFloatTypeOutputFunnyConverter : IOutputFunnyConverter {
     public Type ClrType { get; } = typeof(float);
-    public FunnyType FunnyType { get; } = FunnyType.Real;
+    public FunnyType FunnyType => FunnyType.Real;
     public object ToClrObject(object funObject) => (float)(Decimal)funObject;
 }
 
 public class DecimalToDoubleTypeOutputFunnyConverter : IOutputFunnyConverter {
     public Type ClrType { get; } = typeof(float);
-    public FunnyType FunnyType { get; } = FunnyType.Real;
+    public FunnyType FunnyType => FunnyType.Real;
     public object ToClrObject(object funObject) => (double)(Decimal)funObject;
 }
 
 public class DoubleToFloatTypeOutputFunnyConverter : IOutputFunnyConverter {
     public Type ClrType { get; } = typeof(float);
-    public FunnyType FunnyType { get; } = FunnyType.Real;
+    public FunnyType FunnyType => FunnyType.Real;
     public object ToClrObject(object funObject) => (float)(double)funObject;
 }
 
 
 public class DoubleToDecimalTypeOutputFunnyConverter : IOutputFunnyConverter {
     public Type ClrType { get; } = typeof(Decimal);
-    public FunnyType FunnyType { get; } = FunnyType.Real;
+    public FunnyType FunnyType => FunnyType.Real;
 
     public object ToClrObject(object funObject) => new Decimal((double)funObject);
 }
 
 public class StringOutputFunnyConverter : IOutputFunnyConverter {
     public Type ClrType { get; }
-    public FunnyType FunnyType { get; } = FunnyType.Text;
+    public FunnyType FunnyType => FunnyType.Text;
     public StringOutputFunnyConverter() => ClrType = typeof(string);
     public object ToClrObject(object funObject) => ((IFunnyArray)funObject).ToText();
 }
@@ -106,21 +106,21 @@ public class ClrArrayOutputFunnyConverter : IOutputFunnyConverter {
     }
 }
 
-public class StructOutputFunnyConverter : IOutputFunnyConverter {
+internal class StructOutputFunnyConverter : IOutputFunnyConverter {
     public Type ClrType { get; }
-    private readonly (string, IOutputFunnyConverter, PropertyInfo)[] _propertiesConverters;
+    private readonly OutputProperty[] _properties;
 
     public StructOutputFunnyConverter(
         Type clrType,
-        (string, IOutputFunnyConverter, PropertyInfo)[] propertiesConverters,
+        OutputProperty[] properties,
         int writePropertiesCount) {
         ClrType = clrType;
-        _propertiesConverters = propertiesConverters;
+        _properties = properties;
         var fieldTypes = new (string, FunnyType)[writePropertiesCount];
         for (int i = 0; i < writePropertiesCount; i++)
         {
-            var (name, outputFunnyConverter, _) = propertiesConverters[i];
-            fieldTypes[i] = (name, outputFunnyConverter.FunnyType);
+            var property = properties[i];
+            fieldTypes[i] = (property.PropertyName,  property.Converter.FunnyType);
         }
 
         FunnyType = FunnyType.StructOf(fieldTypes);
@@ -131,13 +131,10 @@ public class StructOutputFunnyConverter : IOutputFunnyConverter {
     public object ToClrObject(object funObject) {
         var clrObj = Activator.CreateInstance(ClrType);
         var str = funObject as FunnyStruct;
-        foreach (var property in _propertiesConverters)
+        foreach (var property in _properties)
         {
-            var (name, converter, info) = property;
-
-            var funValue = str.GetValue(name);
-            var clrValue = converter.ToClrObject(funValue);
-            info.SetValue(clrObj, clrValue);
+            var funValue = str.GetValue(property.PropertyName);
+            property.SetValueToTargetProperty(funValue, clrObj);
         }
 
         return clrObj;
@@ -164,7 +161,7 @@ public class StructToDictionaryOutputFunnyConverter : IOutputFunnyConverter {
         {
             if (!str.TryGetValue(property.Key, out var fieldValue))
                 continue;
-            var converter = TypeBehaviourExtensions.GetOutputConverterFor(_typeBehaviour, property.Value);
+            var converter = _typeBehaviour.GetOutputConverterFor(property.Value);
             result.Add(property.Key, converter.ToClrObject(fieldValue));
         }
 

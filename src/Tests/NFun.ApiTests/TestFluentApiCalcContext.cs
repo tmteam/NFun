@@ -59,13 +59,13 @@ public class TestFluentApiCalcContext {
     }
     
     //--------------
-    [TestCase("omodel =  { id = imodel.age*2; items = imodel.ids.map(toText);  Price = 42.1 + imodel.balance}")]
-    [TestCase("omodel =  { ID = imodel.age*2; Items = imodel.iDs.map(toText);  price = 42.1 + imodel.balAncE")]
+    [TestCase("omodel =  { id = imodel.age*2; items = imodel.ids.map(toText);  Price = 42.1 + imodel.balance; taxes = 1.23}")]
+    [TestCase("omodel =  { ID = imodel.age*2, Items = imodel.iDs.map(toText),  price = 42.1 + imodel.balAncE, Taxes = 1.23")]
     public void MapContracts(string expr) =>
         CalcInDifferentWays(
             expr,
             input:  new UserInputModel("vasa", 13, ids: new[] { 1, 2, 3 }, balance: new Decimal(100.1)),
-            expected: new ContractOutputModel { Id = 26, Items = new[] { "1", "2", "3" }, Price = 142.2 });
+            expected: new ContractOutputModel { Id = 26, Items = new[] { "1", "2", "3" }, Price = 142.2, Taxes = new decimal(1.23)});
 
     [Test]
     public void FullConstInitialization() =>

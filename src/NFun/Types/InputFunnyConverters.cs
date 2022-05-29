@@ -17,22 +17,6 @@ public interface IInputFunnyConverter {
     public object ToFunObject(object clrObject);
 }
 
-
-
-public class DynamicTypeInputFunnyConverter : IInputFunnyConverter {
-    private readonly TypeBehaviour _typeBehaviour;
-    public DynamicTypeInputFunnyConverter(TypeBehaviour typeBehaviour) {
-        _typeBehaviour = typeBehaviour;
-
-    }
-    public FunnyType FunnyType => FunnyType.Any;
-        
-    public object ToFunObject(object clrObject) {
-        var converter = _typeBehaviour.GetInputConverterFor(clrObject.GetType());
-        return converter.ToFunObject(clrObject);
-    }
-}
-
 public class PrimitiveTypeInputFunnyConverter : IInputFunnyConverter {
     public FunnyType FunnyType { get; }
     public PrimitiveTypeInputFunnyConverter(FunnyType funnyType) => FunnyType = funnyType;
@@ -40,8 +24,9 @@ public class PrimitiveTypeInputFunnyConverter : IInputFunnyConverter {
 }
 
 public class StringTypeInputFunnyConverter : IInputFunnyConverter {
+    public static readonly StringTypeInputFunnyConverter Instance = new();
     public FunnyType FunnyType { get; }
-    public StringTypeInputFunnyConverter() => FunnyType = FunnyType.Text;
+    private StringTypeInputFunnyConverter() => FunnyType = FunnyType.Text;
 
     public object ToFunObject(object clrObject)
         => clrObject == null
@@ -50,18 +35,18 @@ public class StringTypeInputFunnyConverter : IInputFunnyConverter {
 }
 
 public class FloatToDoubleInputFunnyConverter : IInputFunnyConverter {
-    public FunnyType FunnyType { get; } = FunnyType.Real;
+    public FunnyType FunnyType => FunnyType.Real;
     public object ToFunObject(object clrObject) =>  (double)(float)clrObject;
 }
 
 public class FloatToDecimalInputFunnyConverter : IInputFunnyConverter {
-    public FunnyType FunnyType { get; } = FunnyType.Real;
+    public FunnyType FunnyType => FunnyType.Real;
     public object ToFunObject(object clrObject) =>  (Decimal)(float)clrObject;
 }
 
 
 public class DecimalToDoubleInputFunnyConverter : IInputFunnyConverter {
-    public FunnyType FunnyType { get; } = FunnyType.Real;
+    public FunnyType FunnyType => FunnyType.Real;
     public object ToFunObject(object clrObject) =>  decimal.ToDouble((Decimal)clrObject);
 }
 
@@ -71,13 +56,13 @@ public class DoubleToDecimalInputFunnyConverter : IInputFunnyConverter {
 }
 
 public class StructTypeInputFunnyConverter : IInputFunnyConverter {
-    private readonly (string, IInputFunnyConverter, PropertyInfo)[] _propertiesConverters;
+    private readonly InputProperty[] _properties;
     private readonly int _readPropertiesCount;
 
     internal StructTypeInputFunnyConverter(
-        (string, IInputFunnyConverter, PropertyInfo)[] propertiesConverters,
+        InputProperty[] properties,
         int readPropertiesCount, FunnyType? type = null) {
-        _propertiesConverters = propertiesConverters;
+        _properties = properties;
         _readPropertiesCount = readPropertiesCount;
 
         if (type == null)
@@ -85,8 +70,8 @@ public class StructTypeInputFunnyConverter : IInputFunnyConverter {
             (string, FunnyType)[] fieldTypes = new (string, FunnyType)[_readPropertiesCount];
             for (int i = 0; i < readPropertiesCount; i++)
             {
-                var (name, converter, _) = propertiesConverters[i];
-                fieldTypes[i] = (name, converter.FunnyType);
+                var property = properties[i];
+                fieldTypes[i] = (property.PropertyName, property.Converter.FunnyType);
             }
 
             FunnyType = FunnyType.StructOf(fieldTypes);
@@ -100,11 +85,11 @@ public class StructTypeInputFunnyConverter : IInputFunnyConverter {
     public FunnyType FunnyType { get; }
 
     public object ToFunObject(object clrObject) {
-        var values = new Dictionary<string, object>(_propertiesConverters.Length);
+        var values = new Dictionary<string, object>(_properties.Length);
         for (var i = 0; i < _readPropertiesCount; i++)
         {
-            var (key, inputFunnyConverter, propertyInfo) = _propertiesConverters[i];
-            values.Add(key, inputFunnyConverter.ToFunObject(propertyInfo.GetValue(clrObject)));
+            var property = _properties[i];
+            values.Add(property.PropertyName, property.GetFunValue(clrObject));
         }
 
         return new FunnyStruct(values);

@@ -6,13 +6,14 @@ using NUnit.Framework;
 namespace NFun.ApiTests {
 
 public class TestFluentApiCalcSingleTT {
+
     [TestCase("(Age == 13) and (NAME == 'vasa')", true)]
     [TestCase("(age == 13) and (name == 'vasa')", true)]
     [TestCase("(age != 13) or (name != 'vasa')", false)]
     [TestCase("'{name}{age}'.reverse()=='31asav'", true)]
     [TestCase("'mama'=='{name}{age}'.reverse()", false)]
-    public void ReturnsBoolean(string expr, bool expected) =>
-        CalcInDifferentWays(expr, new UserInputModel("vasa", 13), expected);
+    public void ReturnsBoolean(string expr, bool expected)
+        => CalcInDifferentWays(expr, new UserInputModel("vasa", 13), expected);
 
     [Test]
     public void AccessToInput() {
@@ -36,8 +37,8 @@ public class TestFluentApiCalcSingleTT {
     }
 
     [Test]
-    public void IoComplexTypeTransforms() =>
-        CalcInDifferentWays(
+    public void IoComplexTypeTransforms()
+        => CalcInDifferentWays(
             expr: "{id = age; items = ids.map(fun '{it}'); price = size*2 + balance; taxes = balance}",
             input: new UserInputModel("vasa", 13, size: 21, balance: new Decimal(1.5), iq: 12, 1, 2, 3, 4),
             expected: new ContractOutputModel {
@@ -60,8 +61,8 @@ public class TestFluentApiCalcSingleTT {
         => CalcInDifferentWays(expr, new UserInputModel("vasa", 2, size: 21, balance: Decimal.Zero, iq: 1, 1, 2, 101, 102), expected);
 
     [Test]
-    public void InputFieldIsCharArray() =>
-        CalcInDifferentWays(
+    public void InputFieldIsCharArray()
+        => CalcInDifferentWays(
             "[letters.reverse()]", new ModelWithCharArray2 {
                 Letters = new[] { 't', 'e', 's', 't' }
             }, new[] { "tset" });
@@ -113,8 +114,8 @@ public class TestFluentApiCalcSingleTT {
     }
 
     [Test]
-    public void ReturnsComplexIntArrayConstant() =>
-        CalcInDifferentWays(
+    public void ReturnsComplexIntArrayConstant()
+        => CalcInDifferentWays(
             expr: "[[[1,2],[]],[[3,4]],[[]]]",
             input: new UserInputModel("vasa", 13, size: 21, balance: Decimal.Zero, iq: 1, 1, 2, 3, 4),
             expected: new[] {
@@ -134,22 +135,22 @@ public class TestFluentApiCalcSingleTT {
                 Funny.Calc<UserInputModel, int>(expr, new UserInputModel(age: 42)));
 
     [TestCase("age*AGE")]
-    public void UseDifferentInputCase_throws(string expression) =>
-        Assert.Throws<FunnyParseException>(
+    public void UseDifferentInputCase_throws(string expression)
+        => Assert.Throws<FunnyParseException>(
             () =>
                 Funny.Calc<UserInputModel, int>(expression, new UserInputModel(age: 22)));
 
     [Test]
-    public void OutputTypeContainsNoEmptyConstructor_throws() =>
-        Assert.Throws<FunnyInvalidUsageException>(
+    public void OutputTypeContainsNoEmptyConstructor_throws()
+        => Assert.Throws<FunnyInvalidUsageException>(
             () => Funny.Calc<UserInputModel, ModelWithoutEmptyConstructor>(
                 "{name = name}"
               , new UserInputModel("vasa")));
 
     [TestCase("age>someUnknownvariable")]
     [TestCase("x:int;")]
-    public void UseUnknownInput_throws(string expr) =>
-        Assert.Throws<FunnyParseException>(
+    public void UseUnknownInput_throws(string expr)
+        => Assert.Throws<FunnyParseException>(
             () =>
                 Funny.Calc<UserInputModel, bool>(expr, new UserInputModel(age: 22)));
 

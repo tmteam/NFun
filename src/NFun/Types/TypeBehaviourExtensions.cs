@@ -9,20 +9,21 @@ using NFun.Runtime.Arrays;
 namespace NFun.Types {
 
 public static class TypeBehaviourExtensions {
-    
+
     internal static object GetDefaultValueOrNullFor(this TypeBehaviour typeBehaviour, FunnyType type) {
         var defaultValue = typeBehaviour.GetDefaultPrimitiveValueOrNull(type.BaseType);
         if (defaultValue != null)
             return defaultValue;
-        
+
         if (type.ArrayTypeSpecification == null)
             return null;
-            
+
         var arr = type.ArrayTypeSpecification;
         if (arr.FunnyType.BaseType == BaseFunnyType.Char)
             return TextFunnyArray.Empty;
         return new ImmutableFunnyArray(Array.Empty<object>(), arr.FunnyType);
     }
+    
     public static object ConvertInputOrThrow(this TypeBehaviour typeBehaviour, object clrValue, FunnyType resultFunnyType) {
         var clrFromType = clrValue.GetType();
         if (typeBehaviour.GetClrTypeFor(resultFunnyType.BaseType) == clrFromType)
@@ -34,19 +35,19 @@ public static class TypeBehaviourExtensions {
 
         //Special slow convertation
         return resultFunnyType.BaseType switch {
-                   BaseFunnyType.Any                                        => converter.ToFunObject(clrValue),
-                   BaseFunnyType.Bool                                       => Convert.ToBoolean(clrValue),
-                   BaseFunnyType.Int16                                      => Convert.ToInt16(clrValue),
-                   BaseFunnyType.Int32                                      => Convert.ToInt32(clrValue),
-                   BaseFunnyType.Int64                                      => Convert.ToInt64(clrValue),
-                   BaseFunnyType.UInt8                                      => Convert.ToByte(clrValue),
-                   BaseFunnyType.UInt16                                     => Convert.ToUInt16(clrValue),
-                   BaseFunnyType.UInt32                                     => Convert.ToUInt32(clrValue),
-                   BaseFunnyType.UInt64                                     => Convert.ToUInt64(clrValue),
-                   BaseFunnyType.Real when  typeBehaviour.DoubleIsReal => Convert.ToDouble(clrValue),
-                   BaseFunnyType.Real                                       => Convert.ToDecimal(clrValue),
-                   BaseFunnyType.Char                                       => clrValue.ToString(),
-                   _                                                        => converter.ToFunObject(clrValue)
+                   BaseFunnyType.Any                                  => converter.ToFunObject(clrValue),
+                   BaseFunnyType.Bool                                 => Convert.ToBoolean(clrValue),
+                   BaseFunnyType.Int16                                => Convert.ToInt16(clrValue),
+                   BaseFunnyType.Int32                                => Convert.ToInt32(clrValue),
+                   BaseFunnyType.Int64                                => Convert.ToInt64(clrValue),
+                   BaseFunnyType.UInt8                                => Convert.ToByte(clrValue),
+                   BaseFunnyType.UInt16                               => Convert.ToUInt16(clrValue),
+                   BaseFunnyType.UInt32                               => Convert.ToUInt32(clrValue),
+                   BaseFunnyType.UInt64                               => Convert.ToUInt64(clrValue),
+                   BaseFunnyType.Real when typeBehaviour.DoubleIsReal => Convert.ToDouble(clrValue),
+                   BaseFunnyType.Real                                 => Convert.ToDecimal(clrValue),
+                   BaseFunnyType.Char                                 => clrValue.ToString(),
+                   _                                                  => converter.ToFunObject(clrValue)
                };
     }
 
@@ -55,7 +56,9 @@ public static class TypeBehaviourExtensions {
 
     // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
     private static IInputFunnyConverter GetInputConverterFor(
-        TypeBehaviour typeBehaviour, FunnyType funnyType, Type clrTypeOrNull,
+        TypeBehaviour typeBehaviour,
+        FunnyType funnyType,
+        Type clrTypeOrNull,
         int reqDeepthCheck) {
         if (reqDeepthCheck > 100)
             throw new ArgumentException("Too nested input object");
@@ -74,7 +77,7 @@ public static class TypeBehaviourExtensions {
         }
 
         if (funnyType.IsText)
-            return new StringTypeInputFunnyConverter();
+            return StringTypeInputFunnyConverter.Instance;
 
         if (funnyType.BaseType == BaseFunnyType.ArrayOf)
         {
@@ -94,7 +97,7 @@ public static class TypeBehaviourExtensions {
         var properties = clrTypeOrNull.GetProperties(BindingFlags.Instance | BindingFlags.Public);
         if (properties.Any())
         {
-            var propertiesConverters = new (string, IInputFunnyConverter, PropertyInfo)[properties.Length];
+            var propertiesConverters = new InputProperty[properties.Length];
             int readPropertiesCount = 0;
             foreach (var property in properties)
             {
@@ -104,7 +107,7 @@ public static class TypeBehaviourExtensions {
                     continue;
                 var propertyConverter = GetInputConverterFor(typeBehaviour, fieldDef, property.PropertyType, reqDeepthCheck++);
                 propertiesConverters[readPropertiesCount] =
-                    new ValueTuple<string, IInputFunnyConverter, PropertyInfo>(
+                    new InputProperty(
                         property.Name.ToLower(),
                         propertyConverter, property);
                 readPropertiesCount++;
@@ -124,7 +127,7 @@ public static class TypeBehaviourExtensions {
             throw new ArgumentException("Too nested input object");
 
         if (clrType == typeof(string))
-            return new StringTypeInputFunnyConverter();
+            return StringTypeInputFunnyConverter.Instance;
 
         if (clrType.IsArray)
         {
@@ -136,14 +139,14 @@ public static class TypeBehaviourExtensions {
         }
 
         var converter = typeBehaviour.GetPrimitiveInputConverterOrNull(clrType);
-        if (converter!=null)
+        if (converter != null)
             return converter;
 
         var properties = clrType.GetProperties(BindingFlags.Instance | BindingFlags.Public);
         if (properties.Any())
         {
-            (string, IInputFunnyConverter, PropertyInfo)[] propertiesConverters =
-                new (string, IInputFunnyConverter, PropertyInfo)[properties.Length];
+            var propertiesConverters =
+                new InputProperty[properties.Length];
             int readPropertiesCount = 0;
             foreach (var property in properties)
             {
@@ -151,7 +154,7 @@ public static class TypeBehaviourExtensions {
                     continue;
                 var propertyConverter = GetInputConverterFor(typeBehaviour, property.PropertyType, reqDeepthCheck++);
                 propertiesConverters[readPropertiesCount] =
-                    new ValueTuple<string, IInputFunnyConverter, PropertyInfo>(
+                    new InputProperty(
                         property.Name.ToLower(),
                         propertyConverter, property);
                 readPropertiesCount++;
@@ -183,7 +186,7 @@ public static class TypeBehaviourExtensions {
         }
 
         var converter = typeBehaviour.GetPrimitiveOutputConverterOrNull(clrType);
-        if (converter!=null) return converter;
+        if (converter != null) return converter;
 
         if (clrType == typeof(Dictionary<string, object>))
             return DynamicStructToDictionaryOutputFunnyConverter.Instance;
@@ -196,7 +199,7 @@ public static class TypeBehaviourExtensions {
         if (properties.Any())
         {
             var propertiesConverters =
-                new (string, IOutputFunnyConverter, PropertyInfo)[properties.Length];
+                new OutputProperty[properties.Length];
             int readPropertiesCount = 0;
             foreach (var property in properties)
             {
@@ -205,7 +208,7 @@ public static class TypeBehaviourExtensions {
                 var propertyConverter = GetOutputConverterFor(typeBehaviour, property.PropertyType, reqDeepthCheck++);
 
                 propertiesConverters[readPropertiesCount] =
-                    new ValueTuple<string, IOutputFunnyConverter, PropertyInfo>(
+                    new OutputProperty(
                         property.Name.ToLower(),
                         propertyConverter, property);
                 readPropertiesCount++;
@@ -214,15 +217,15 @@ public static class TypeBehaviourExtensions {
             return new StructOutputFunnyConverter(clrType, propertiesConverters, readPropertiesCount);
         }
 
-        return new DynamicTypeOutputFunnyConverter(clrType,typeBehaviour);
+        return new DynamicTypeOutputFunnyConverter(clrType, typeBehaviour);
     }
 
     public static IOutputFunnyConverter GetOutputConverterFor(this TypeBehaviour typeBehaviour, FunnyType funnyType) {
 
-        var converter =  typeBehaviour.GetPrimitiveOutputConverterOrNull(funnyType);
-        if (converter!=null)
+        var converter = typeBehaviour.GetPrimitiveOutputConverterOrNull(funnyType);
+        if (converter != null)
             return converter;
-        
+
         switch (funnyType.BaseType)
         {
             case BaseFunnyType.ArrayOf:
@@ -241,9 +244,10 @@ public static class TypeBehaviourExtensions {
                 throw Errors.TypeCannotBeUsedAsOutputNfunType(funnyType);
         }
     }
-    
+
     private static DynamicStructTypeInputFunnyConverter GetDynamicStructInputFunnyConverter(
-        TypeBehaviour typeBehaviour, FunnyType funnyType,
+        TypeBehaviour typeBehaviour,
+        FunnyType funnyType,
         int reqDeepthCheck) {
         var dictionaryFields = new (string, IInputFunnyConverter)[funnyType.StructTypeSpecification.Count];
         var i = 0;
@@ -252,7 +256,7 @@ public static class TypeBehaviourExtensions {
             dictionaryFields[i] = new(field.Key, GetInputConverterFor(typeBehaviour, field.Value, null, reqDeepthCheck++));
             i++;
         }
-        
+
         return new DynamicStructTypeInputFunnyConverter(dictionaryFields, funnyType);
     }
 }

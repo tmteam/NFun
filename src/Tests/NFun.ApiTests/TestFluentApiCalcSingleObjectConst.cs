@@ -17,8 +17,6 @@ public class TestFluentApiCalcSingleObjectConst {
     [TestCase("[1..4].map(fun it.toText())", new[] { "1", "2", "3", "4" })]
     public void GeneralCalcTest(string expr, object expected) =>
         Assert.AreEqual(expected, Funny.Calc(expr));
-
-    
     
     [Test]
     public void ReturnsComplexIntArrayConstant() {
@@ -32,8 +30,7 @@ public class TestFluentApiCalcSingleObjectConst {
                 new[] { Array.Empty<int>() }
             }, result);
     }
-
-
+    
     [Test]
     public void OutputTypeIsStruct_returnsFunnyStruct() {
         var str = Funny.Calc(
@@ -49,15 +46,13 @@ public class TestFluentApiCalcSingleObjectConst {
     [TestCase("a = 12; b = 32; x = a*b")]
     public void NoOutputSpecified_throws(string expr)
         => Assert.Throws<FunnyParseException>(() => Funny.Calc(expr));
-
-
+    
     [TestCase("{id = age; items = [1,2,3,4].map(fun '{it}'); price = 21*2}")]
     [TestCase("[1..4].filter(fun it>age).map(fun it**2)")]
     [TestCase("age>someUnknownvariable")]
     [TestCase("x:int;")]
     public void UseUnknownInput_throws(string expression) =>
         Assert.Throws<FunnyParseException>(() => Funny.Calc(expression));
-    
     
     [Test]
     public void ConstOfDecimalTest() {

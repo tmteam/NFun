@@ -56,9 +56,7 @@ internal static class FluentApiTools {
 
         return outputs.AsMemory(0, actualOutputsCount);
     }
-
-    internal static object GetClrOut(FunnyRuntime runtime) => GetFunnyOut(runtime).Value;
-
+    
     internal static IFunnyVar GetFunnyOut(FunnyRuntime runtime) =>
         runtime[Parser.AnonymousEquationId] ?? throw Errors.OutputIsUnset();
 
@@ -97,7 +95,7 @@ internal static class FluentApiTools {
             var inputName = inputProperty.Name.ToLower();
 
             mutableApriori.Add(inputName, converter.FunnyType);
-            inputTypes[i] = new InputProperty(inputName,converter,inputProperty);
+            inputTypes[actualInputsCount] = new InputProperty(inputName,converter,inputProperty);
             actualInputsCount++;
         }
 

@@ -7,6 +7,7 @@ using NUnit.Framework;
 namespace NFun.ApiTests {
 
 class RuntimeApiTest {
+    
     [TestCase("y = 2*x", 3, 6)]
     [TestCase("y = 2.0*x", 3.5, 7.0)]
     [TestCase("y = 4/x", 2, 2)]
@@ -87,7 +88,7 @@ class RuntimeApiTest {
             @"
                     out1 = in1-1
                     out2:int = in2.filter(fun it>out1).map(fun it*it)[1]
-                    ");
+            ");
 
         runtime["in1"].Value = 2;
         runtime["in2"].Value = new[] { 0, 1, 2, 3, 4 };
@@ -109,7 +110,7 @@ class RuntimeApiTest {
                     out3 = {age = 1, name = 'vasa'}    
                     out4 = in3.field1
                     out5 = in3.field2.child    
-");
+            ");
 
         runtime["in3"].Value = new Dictionary<string, object> {
             { "field1", 123 }, {
@@ -143,7 +144,7 @@ class RuntimeApiTest {
                     out3 = {age = 1, name = 'vasa'}    
                     out4 = in3.field1 + 1
                     out5:text = in3.field2.child    
-");
+            ");
 
         runtime["in3"].CreateSetterOf<Dictionary<string, object>>()
         (
