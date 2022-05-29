@@ -177,7 +177,7 @@ public class DynamicStructToDictionaryOutputFunnyConverter : IOutputFunnyConvert
     public Type ClrType { get; } = typeof(Dictionary<string, object>);
 
     public FunnyType FunnyType { get; } =
-        FunnyType.StructOf(new Dictionary<string, FunnyType>(0, FunnyType.StructKeyComparer));
+        FunnyType.StructOf(new StructTypeSpecification(0));
 
     public object ToClrObject(object funObject) {
         var str = funObject as FunnyStruct;

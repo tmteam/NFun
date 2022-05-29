@@ -18,6 +18,21 @@ public abstract class TicTypesConverter {
         => new GenericMapConverter(constrainsMap, genericArgs);
 
     public abstract FunnyType Convert(ITicNodeState type);
+    private FunnyType ConvertToFunnyStruct(StateStruct str) {
+        var fields = new StructTypeSpecification(str.FieldsCount);
+        foreach (var ticField in str.Fields)
+        {
+            fields.Add(ticField.Key.ToLower(), Convert(ticField.Value.GetNonReference().State));
+        }
+
+        return FunnyType.StructOf(fields);
+    }
+    
+    private FunnyType ConvertToFunnyFun(StateFun fun) 
+        => FunnyType.FunOf(Convert(fun.ReturnType), fun.ArgNodes.SelectToArray(a => Convert(a.State)));
+
+    private FunnyType ConvertToFunnyArray(StateArray array) 
+        => FunnyType.ArrayOf(Convert(array.Element));
 
     class OnlyConcreteTypesConverter : TicTypesConverter {
         public override FunnyType Convert(ITicNodeState type) {
@@ -72,17 +87,11 @@ public abstract class TicTypesConverter {
                     }
 
                     case StateArray array:
-                        return FunnyType.ArrayOf(Convert(array.Element));
+                        return ConvertToFunnyArray(array);
                     case StateFun fun:
-                        return FunnyType.FunOf(
-                            Convert(fun.ReturnType),
-                            fun.ArgNodes.SelectToArray(a => Convert(a.State)));
+                        return ConvertToFunnyFun(fun);
                     case StateStruct str:
-                        return FunnyType.StructOf(
-                            str.Fields.ToDictionary(
-                                f => f.Key.ToLower(),
-                                f => Convert(f.Value.State),
-                                FunnyType.StructKeyComparer));
+                        return ConvertToFunnyStruct(str);
                     default:
                         throw new NotSupportedException();
                 }
@@ -95,22 +104,16 @@ public abstract class TicTypesConverter {
 
         public ConstrainsConverter(ConstrainsState[] constrainsMap) => _constrainsMap = constrainsMap;
 
-        public override FunnyType Convert(ITicNodeState type) =>
-            type switch {
-                StateRefTo refTo           => Convert(refTo.Element),
-                StatePrimitive primitive   => ToConcrete(primitive.Name),
-                ConstrainsState constrains => FunnyType.Generic(GetGenericIndexOrThrow(constrains)),
-                StateArray array           => FunnyType.ArrayOf(Convert(array.Element)),
-                StateFun fun => FunnyType.FunOf(
-                    Convert(fun.ReturnType),
-                    fun.ArgNodes.SelectToArray(a => Convert(a.State))),
-                StateStruct @struct => FunnyType.StructOf(
-                    @struct.Fields.ToDictionary(
-                        keySelector: f => f.Key.ToLower(),
-                        elementSelector: f => Convert(f.Value.GetNonReference().State),
-                        FunnyType.StructKeyComparer)),
-                _ => throw new NotSupportedException($"State {type} is not supported for convertion to Fun type")
-            };
+        public override FunnyType Convert(ITicNodeState type)
+            => type switch {
+                   StateRefTo refTo           => Convert(refTo.Element),
+                   StatePrimitive primitive   => ToConcrete(primitive.Name),
+                   ConstrainsState constrains => FunnyType.Generic(GetGenericIndexOrThrow(constrains)),
+                   StateArray array           => ConvertToFunnyArray(array),
+                   StateFun fun               => ConvertToFunnyFun(fun),
+                   StateStruct str            => ConvertToFunnyStruct(str),
+                   _                          => throw new NotSupportedException($"State {type} is not supported for convertion to Fun type")
+               };
 
         private int GetGenericIndexOrThrow(ConstrainsState constrains) {
             var index = System.Array.IndexOf(_constrainsMap, constrains);
@@ -139,24 +142,16 @@ public abstract class TicTypesConverter {
                         continue;
                     case StatePrimitive primitive:
                         return ToConcrete(primitive.Name);
-                    //case Constrains constrains when constrains.Preferred != null:
-                    //    return ToConcrete(constrains.Preferred.Name);
                     case ConstrainsState constrains:
                         var index = System.Array.IndexOf(_constrainsMap, constrains);
                         if (index == -1) throw new InvalidOperationException("Unknown constrains");
                         return _argTypes[index];
                     case StateArray array:
-                        return FunnyType.ArrayOf(Convert(array.Element));
+                        return ConvertToFunnyArray(array);
                     case StateFun fun:
-                        return FunnyType.FunOf(
-                            Convert(fun.ReturnType),
-                            fun.ArgNodes.SelectToArray(a => Convert(a.State)));
-                    case StateStruct @struct:
-                        return FunnyType.StructOf(
-                            @struct.Fields.ToDictionary(
-                                f => f.Key.ToLower(),
-                                f => Convert(f.Value.State),
-                                FunnyType.StructKeyComparer));
+                        return ConvertToFunnyFun(fun);
+                    case StateStruct str:
+                        return ConvertToFunnyStruct(str);
                     default:
                         throw new NotSupportedException();
                 }

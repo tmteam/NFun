@@ -116,7 +116,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
     }
 
     public IExpressionNode Visit(StructInitSyntaxNode node) {
-        var types = new Dictionary<string, FunnyType>(node.Fields.Count, FunnyType.StructKeyComparer);
+        var types = new StructTypeSpecification(node.Fields.Count);
         var names = new string[node.Fields.Count];
         var nodes = new IExpressionNode[node.Fields.Count];
 

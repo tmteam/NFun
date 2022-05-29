@@ -29,13 +29,16 @@ public readonly struct FunnyType {
     
     public static FunnyType ArrayOf(FunnyType type) => new(type);
 
-    public static FunnyType StructOf(Dictionary<string, FunnyType> fields) =>
-        Equals(fields.Comparer, StructKeyComparer)
-            ? new FunnyType(fields)
-            : throw new InvalidOperationException("Only FunnyType.StructKeyComparer comparator is allowed for Dictionary<K,V>");
+    internal static FunnyType StructOf(StructTypeSpecification fields) => new(fields);
     
-    public static FunnyType StructOf(params (string, FunnyType)[] fields)
-        => new(fields.ToDictionary(f => f.Item1, f => f.Item2, StructKeyComparer));
+    public static FunnyType StructOf(params (string, FunnyType)[] fields) {
+        var specs = new StructTypeSpecification(fields.Length);
+        foreach (var field in fields)
+        {
+            specs.Add(field.Item1, field.Item2);
+        }
+        return new(specs);
+    }
 
     public static FunnyType FunOf(FunnyType returnType, params FunnyType[] inputTypes)
         => new(output: returnType, inputs: inputTypes);
@@ -79,7 +82,7 @@ public readonly struct FunnyType {
         GenericArgumentsCount = 1;
     }
 
-    private FunnyType(Dictionary<string, FunnyType> fields) {
+    private FunnyType(StructTypeSpecification fields) {
         BaseType = BaseFunnyType.Struct;
         StructTypeSpecification = fields;
         FunTypeSpecification = null;

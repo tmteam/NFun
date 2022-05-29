@@ -21,7 +21,7 @@ public class StateStruct : ICompositeState {
         newDic.Add(name, memberNode);
         return new StateStruct(newDic);
     }
-
+    public int FieldsCount => _nodes.Count;
     public IEnumerable<KeyValuePair<string, TicNode>> Fields => _nodes;
 
     private readonly Dictionary<string, TicNode> _nodes;
