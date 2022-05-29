@@ -61,6 +61,8 @@ public class ErrorDetailsTest {
     [TestCase("y = if (x>0) 1 ", "if", "(x<0) -1 else 0")]
     [TestCase("y = 1 ", "z=", "2")]
     [TestCase("", "set", " x=1")]
+    
+    [TestCase("{a = 1","","")]
     public void ErrorPosition(string beforeError, string errorBody, string afterError) =>
         AssertErrorPosition(beforeError, errorBody, afterError);
 
@@ -149,10 +151,10 @@ public class ErrorDetailsTest {
                 () => {
                     Assert.AreEqual(
                         expected: start,
-                        actual: e.Start, message: $"[FU{e.Code}] Start index");
+                        actual: e.Start, message: $"[FU{e.Code}] Start index. Message: {e.Message}");
                     Assert.AreEqual(
                         expected: end,
-                        actual: e.End, message: $"[FU{e.Code}] End index");
+                        actual: e.End, message: $"[FU{e.Code}] End index. . Message: {e.Message}");
                 });
         }
     }

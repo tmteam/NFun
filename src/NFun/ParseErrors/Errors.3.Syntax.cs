@@ -176,7 +176,7 @@ internal static partial class Errors {
                    ExprListErrorType.TotalyWrongDefinition => new(
                        460, "Wrong function call", res.Interval),
                    ExprListErrorType.SingleOpenBracket => new(
-                       462, $"( <- unexpected bracket{Nl} ?", res.Interval),
+                       462, $"{id}( ??? <- Close bracket ')' is missing", res.Interval),
                    ExprListErrorType.SepIsMissing => new(
                        464, $"{id}({argStubs}, ??? , ...  <- Seems like ',' is missing{Nl} Example: {id}({argStubs}, myArgument, ...)", res.Interval),
                    ExprListErrorType.ArgumentIsInvalid => new(
@@ -228,6 +228,10 @@ internal static partial class Errors {
     internal static FunnyParseException StructFieldBodyIsMissed(Tok id) => new(
         510, $"Field value is missed '{id} = ???'", id.Interval);
 
+    internal static FunnyParseException StructIsUndone(int position) => new(
+        510, "Struct definition is undone. Close bracket '}' is missed", Interval.Position(position));
+    
+    
     #endregion
 
 
@@ -304,7 +308,7 @@ internal static partial class Errors {
                    ExprListErrorType.TotalyWrongDefinition => new(
                        583, "Wrong expression", res.Interval),
                    ExprListErrorType.SingleOpenBracket => new(
-                       585, $"( <- unexpected bracket{Nl} ?", res.Interval),
+                       585, $"( <- unexpected open bracket without closing bracket", res.Interval),
                    ExprListErrorType.SepIsMissing => new(
                        587, $"({argStubs}, ??? , ...  <- Seems like ',' is missing{Nl} Example: ({argStubs}, myArgument, ...)", res.Interval),
                    ExprListErrorType.ArgumentIsInvalid => new(

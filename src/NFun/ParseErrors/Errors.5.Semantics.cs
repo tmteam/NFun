@@ -76,10 +76,10 @@ internal static partial class Errors {
         858, $"{id}<-  output name is same to name  {id}", interval);
 
     internal static FunnyParseException InputNameWithDifferentCase(string id, string actualName, Interval interval) => new(
-        861, $"{actualName}<-  input name is same to name  {id}", interval);
+        861, $"Input name '{id}' differs from the input name '{actualName}' only in case", interval);
 
     internal static FunnyParseException InterpolationExpressionIsMissing(ISyntaxNode lastNode) => new(
-        864, $"  Interpolation expression is missing{Nl} Example: 'before {{...}} after' ", lastNode.Interval);
+        864, $"Interpolation expression is missing{Nl} Example: 'before {{...}} after' ", lastNode.Interval);
 
     internal static FunnyParseException FunctionNameAndVariableNameConflict(VariableUsages usages) => new(
         867, $"Function with name: {usages.Source.Name} can not be used in expression because it's name conflict with function that exists in scope. Declare input variable",

@@ -37,14 +37,12 @@ public class TestFluentApiCalcSingleT {
 
     [Test]
     public void InputFieldIsCharArray() =>
-        CalcInDifferentWays(
-            "[letters.reverse()]", new[] { "test" }
+        CalcInDifferentWays("[letters.reverse()]", new[] { "test" }
           , new ModelWithCharArray2 { Letters = new[] { 't', 's', 'e', 't' } });
         
     [Test]
     public void OutputTypeIsStruct_returnsFunnyStruct() {
-        var str = Funny.Calc(
-            "{name = 'alaska'}", new UserInputModel("vasa"));
+        var str = Funny.Calc("{name = 'alaska'}", new UserInputModel());
         Assert.IsInstanceOf<IReadOnlyDictionary<string, object>>(str);
         var rs = str as IReadOnlyDictionary<string, object>;
         Assert.AreEqual(1, rs.Count);
@@ -70,6 +68,13 @@ public class TestFluentApiCalcSingleT {
                 new[] { Array.Empty<int>() }
             }, result);
     }
+
+    [Test]
+    public void InputStructFieldsAreNotCaseSensitive()
+        => CalcInDifferentWays(
+            expr: "imOdeL.nAMe",
+            expected: "peter",
+            input: new ContextModel1(42, imodel: new UserInputModel(name: "peter")));
 
     [TestCase("")]
     [TestCase("x:int;")]

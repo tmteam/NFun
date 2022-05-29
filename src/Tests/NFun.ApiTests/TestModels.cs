@@ -9,9 +9,9 @@ namespace NFun.ApiTests {
 class ContextModel1:ICloneable {
     public string SField = "some val";
     
-    public ContextModel1(int intRVal = 42, UserInputModel model = null) {
+    public ContextModel1(int intRVal = 42, UserInputModel imodel = null) {
         IntRVal = intRVal;
-        IModel = model;
+        IModel = imodel;
     }
     public long LongRWVal { get; set; }
     public int IntRVal { get; }

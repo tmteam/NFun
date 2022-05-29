@@ -59,26 +59,36 @@ public class TestFluentApiCalcContext {
     }
     
     //--------------
-    [TestCase("omodel =  { id = imodel.age*2; items = imodel.ids.map(toText);  Price = 42.1 + imodel.balance; taxes = 1.23}")]
-    [TestCase("omodel =  { ID = imodel.age*2, Items = imodel.iDs.map(toText),  price = 42.1 + imodel.balAncE, Taxes = 1.23")]
-    public void MapContracts(string expr) =>
-        CalcInDifferentWays(
-            expr,
-            input:  new UserInputModel("vasa", 13, ids: new[] { 1, 2, 3 }, balance: new Decimal(100.1)),
-            expected: new ContractOutputModel { Id = 26, Items = new[] { "1", "2", "3" }, Price = 142.2, Taxes = new decimal(1.23)});
+    [TestCase("omodel =  { id = iModel.age*2; items = iModel.ids.map(toText);  Price = 42.1 + iModel.bAlAnce; taXes = 1.23}")]
+    [TestCase("omodel =  { ID = imodel.age*2, Items = imodel.iDs.map(toText),  price = 42.1 + imodel.balAncE, TaXes = 1.23}")]
+    public void MapContracts(string expr) {
+        var input = new UserInputModel("vasa", 13, ids: new[] { 1, 2, 3 }, balance: new Decimal(100.1));
+        var expected = new ContractOutputModel { Id = 26, Items = new[] { "1", "2", "3" }, Price = 142.2, Taxes = new decimal(1.23)};
+        
+        var context = new ContextModel1(imodel: input);
+        var expectedContext = new ContextModel1(context.IntRVal, (UserInputModel)input.Clone()) {
+            OModel = expected
+        };
+        
+        CalcInDifferentWays(expr, context, expectedContext);
+    }
 
     [Test]
-    public void FullConstInitialization() =>
-        CalcInDifferentWays(
-            "omodel = {id = 42; items = ['vasa','kate']; price = 42.1; taxes = 42.2}", new UserInputModel(),
-            new ContractOutputModel {
-                Id = 42,
-                Price = 42.1,
-                Taxes = new decimal(42.2),
-                Items = new[] { "vasa", "kate" }
-            }
-        );
-    
+    public void FullConstInitialization() {
+        UserInputModel input = new UserInputModel();
+        ContractOutputModel expected = new ContractOutputModel {
+            Id = 42,
+            Price = 42.1,
+            Taxes = new decimal(42.2),
+            Items = new[] { "vasa", "kate" }
+        };
+        var context = new ContextModel1(imodel: input);
+        var expectedContext = new ContextModel1(context.IntRVal, (UserInputModel)input.Clone()) {
+            OModel = expected
+        };
+        CalcInDifferentWays("omodel = {id = 42; items = ['vasa','kate']; price = 42.1; taxes = 42.2}", context, expectedContext);
+    }
+
     // [Test]
     // public void NoFieldsInitialized_throws()
     //     => Assert.Throws<FunnyParseException>(
@@ -115,14 +125,6 @@ public class TestFluentApiCalcContext {
     //     Assert.Throws<FunnyParseException>(
     //         () => Funny.CalcMany<UserInputModel, ContractOutputModel>(expression, new UserInputModel()));
 
-    private void CalcInDifferentWays(string expr, UserInputModel input, ContractOutputModel expected) {
-        var context = new ContextModel1(model: input);
-        var expectedContext = new ContextModel1(context.IntRVal, (UserInputModel)input.Clone()) {
-            OModel = expected
-        };
-        CalcInDifferentWays(expr, context, expectedContext);
-    }
-    
     private void CalcInDifferentWays<TContext>(string expr, TContext origin, TContext expected) where TContext:ICloneable {
         var c1 = (TContext)origin.Clone();
         Funny.CalcContext(expr, c1);

@@ -51,7 +51,7 @@ internal class Calculator<TInput> : ICalculator<TInput> {
         return input => {
             FluentApiTools.SetInputValues(runtime, _inputsMap, input);
             runtime.Run();
-            return FluentApiTools.GetClrOut(runtime);
+            return FluentApiTools.GetFunnyOut(runtime).Value;
         };
     }
 }
@@ -190,7 +190,7 @@ internal class ContextCalculator<TContext> : IContextCalculator<TContext> {
         
         _outputsMap = _mutableApriori.AddManyAprioriOutputs<TContext>(builder.Dialect);
         _inputsMap = _mutableApriori.AddAprioriInputs<TContext>(builder.Dialect.TypeBehaviour, ignoreIfHasSetter: true);
-        
+        //todo - method implementations
     }
 
     public void Calc(string expression, TContext context) => ToAction(expression)(context);

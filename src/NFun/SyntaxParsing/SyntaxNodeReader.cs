@@ -427,6 +427,10 @@ public static class SyntaxNodeReader {
             //skip new lines
             if (flow.SkipNewLines())
                 hasAnyDelimeter = true;
+            //Unexpected EOF - means that } is missed
+            if(flow.IsDoneOrEof())
+                throw Errors.StructIsUndone(flow.Position);
+
         }
 
         var interval = new Interval(begin, flow.Position);
