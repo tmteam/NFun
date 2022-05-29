@@ -24,20 +24,20 @@ Nfun can perform simple evaluations
 as well as complex, with multiple composite inputs and outputs
 ```cs   
   // Evaluate many values and set them into 'Person' object's properties 
-  // 'age', 'cars' and 'birthYear' are properties of 'Person' object 
-  var model = new Person(birthYear: 2000);
+  // inputs and outputs 'age', 'cars' and 'birthYear' are properties of 'Person' object 
+  var personModel = new Person(birthYear: 2000);
   
   Funny.CalcContext(@"   
      age = 2022 - birthYear 
      cars = [
-   	    { model = 'lada',   cost = 1200, power = 102 },
-   	    { model = 'camaro', cost = 5000, power = 275 }
+   	    { name = 'lada',   cost = 1200, power = 102 },
+   	    { name = 'camaro', cost = 5000, power = 275 }
      ]
-     ", model);
+     ", personModel);
   
-  Assert.Equal(22,   model.Age);
-  Assert.Equal(2,    model.Cars.Count());
-  Assert.Equal(1200, model.Cars[0].Cost);
+  Assert.Equal(22,   personModel.Age);
+  Assert.Equal(2,    personModel.Cars.Count());
+  Assert.Equal(1200, personModel.Cars[0].Cost);
   
 ```
 Low-level hardcore API is also supported
@@ -130,31 +130,29 @@ Boring specification is better than no specification
 [Boring specification: Types](https://github.com/tmteam/NFun/blob/master/Specs/Types.md)
 
 
-## Let's make some fun
-
-```                                                                                                            
-      ';,                                                                                ;;       
-    'lO0l                                                                               'dKkc     
-   c0Xk;                                                                                  cOXk:   
- 'dXKc                 ';;;,'                                        ',;;;'                'dXKl  
-'dNKc                     ',;;;;,'                              ',;;;;,'                     oXXl 
-cXNo                          '',;;;,'                      ',;;;,''                         'kW0;
-dWK:                               ,:::,                  ,:::,                               lNXl
-kW0;                            ',;;;;,                    ,;;;;,'                            cXNo
-xW0;                        ',;;;,'                            ',;;;,'                        lXNl
-lNXl                    ,;;;;,'                                    ',;;;;,                    dWK:
-,OWO,                  ','        ',;;;,                  ,;;;,'        ','                  :KNd 
- :0Nk,                        ',;;;,'                        ',;;;,'                        :0Nx, 
-  ,xX0c                  ',;;;,,'                                ',,;;;,'                 'oKKo'  
-    cOKO:               ,;,'                                          ',;,               l0Kx;    
-      :dc                                                                               'lo;      
-                                                                                                  
-                                                                                                  
-                                                                                                  
-                                      ,;;,              ';;,                                      
-                                     ;:;;:,            ,:;;:;                                     
-                                   ';:,  ,:;          ;:,  ,:;'                                   
-                                  ';:'    ,:;'      ';:,    '::'                                  
-                                  ',       ','      ','      ','                                  
+```                                                                                                           
+     ';,                                                                                ;;      
+   'lO0l                                                                               'dKkc    
+  c0Xk;                                                                                  cOXk:  
+'dXKc                 ';;;,'                                        ',;;;'                'dXKl 
+dNKc                     ',;;;;,'                              ',;;;;,'                     oXXl
+XNo                          '',;;;,'                      ',;;;,''                         'kW0
+WK:                               ,:::,                  ,:::,                               lNX
+W0;                            ',;;;;,                    ,;;;;,'                            cXN
+W0;                        ',;;;,'                            ',;;;,'                        lXN
+NXl                    ,;;;;,'                                    ',;;;;,                    dWK
+OWO,                  ','        ',;;;,                  ,;;;,'        ','                  :KNd
+:0Nk,                        ',;;;,'                        ',;;;,'                        :0Nx,
+ ,xX0c                  ',;;;,,'                                ',,;;;,'                 'oKKo' 
+   cOKO:               ,;,'                                          ',;,               l0Kx;   
+     :dc                                                                               'lo;     
+                                                                                                
+                                                                                                
+                                                                                                
+                                     ,;;,              ';;,                                     
+                                    ;:;;:,            ,:;;:;                                    
+                                  ';:,  ,:;          ;:,  ,:;'                                   
+                                 ';:'    ,:;'      ';:,    '::'                                  
+                                 ',       ','      ','      ','                                  
 
 ```
