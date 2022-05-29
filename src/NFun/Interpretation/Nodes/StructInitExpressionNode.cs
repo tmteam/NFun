@@ -21,7 +21,7 @@ internal class StructInitExpressionNode : IExpressionNode {
     public FunnyType Type { get; }
 
     public object Calc() {
-        var fields = new Dictionary<string, object>(_fieldNames.Length);
+        var fields = new FunnyStruct.FieldsDictionary(_fieldNames.Length);
         for (var i = 0; i < _fieldNames.Length; i++)
             fields.Add(_fieldNames[i], _elements[i].Calc());
 

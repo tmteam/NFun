@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -5,14 +6,21 @@ using System.Linq;
 namespace NFun.Runtime {
 
 public class FunnyStruct : IReadOnlyDictionary<string, object> {
-    public static FunnyStruct Create(params (string, object)[] fields) =>
-        new(
-            fields.ToDictionary(f => f.Item1, f => f.Item2)
-        );
+    internal class FieldsDictionary: Dictionary<string,object> {
+        public FieldsDictionary(int capacity): base(capacity, StringComparer.InvariantCultureIgnoreCase) {
+            
+        }
+    }
+    public static FunnyStruct Create(params (string, object)[] fields) {
+        var values = new FieldsDictionary(fields.Length);
+        foreach (var field in fields)
+            values.Add(field.Item1, field.Item2);
+        return new(values);
+    }
 
     private readonly Dictionary<string, object> _values;
-    internal FunnyStruct(Dictionary<string, object> values) => _values = values;
-
+    internal FunnyStruct(FieldsDictionary values) => _values = values;
+     
     public object GetValue(string field) => _values[field];
 
     public override string ToString()

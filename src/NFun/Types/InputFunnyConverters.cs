@@ -85,7 +85,7 @@ public class StructTypeInputFunnyConverter : IInputFunnyConverter {
     public FunnyType FunnyType { get; }
 
     public object ToFunObject(object clrObject) {
-        var values = new Dictionary<string, object>(_properties.Length);
+        var values = new FunnyStruct.FieldsDictionary(_properties.Length);
         for (var i = 0; i < _readPropertiesCount; i++)
         {
             var property = _properties[i];
@@ -119,7 +119,7 @@ public class DynamicStructTypeInputFunnyConverter : IInputFunnyConverter {
 
         //dynamic convertion is very slow but it is only on option
         var properties = clrObject.GetType().GetProperties();
-        var values = new Dictionary<string, object>(_propertiesConverters.Length);
+        var values = new FunnyStruct.FieldsDictionary(_propertiesConverters.Length);
 
         foreach (var (name, converter) in _propertiesConverters)
         {
@@ -138,7 +138,7 @@ public class DynamicStructTypeInputFunnyConverter : IInputFunnyConverter {
     }
 
     private object ConvertFromDictionary(IDictionary<string, object> dic) {
-        var values = new Dictionary<string, object>(_propertiesConverters.Length);
+        var values = new FunnyStruct.FieldsDictionary(_propertiesConverters.Length);
         foreach (var (name, converter) in _propertiesConverters)
         {
             if (!dic.TryGetValue(name, out var value))

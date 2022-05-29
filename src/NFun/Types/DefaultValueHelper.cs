@@ -34,7 +34,7 @@ internal  static class DefaultValueHelper {
 
         if (type.BaseType == BaseFunnyType.Struct)
         {
-            var structValue = new Dictionary<string, object>(FunnyType.StructKeyComparer);
+            var structValue = new FunnyStruct.FieldsDictionary(type.StructTypeSpecification.Count);
 
             foreach (var (fieldName, fieldType) in type.StructTypeSpecification)
                 structValue.Add(fieldName, fieldType.GetDefaultFunnyValue());

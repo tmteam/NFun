@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NFun.Runtime;
 using NFun.Types;
 
 namespace NFun {
@@ -78,9 +79,9 @@ public readonly struct FunnyType {
         GenericArgumentsCount = 1;
     }
 
-    private FunnyType(Dictionary<string, FunnyType> arrayElementType) {
+    private FunnyType(Dictionary<string, FunnyType> fields) {
         BaseType = BaseFunnyType.Struct;
-        StructTypeSpecification = arrayElementType;
+        StructTypeSpecification = fields;
         FunTypeSpecification = null;
         ArrayTypeSpecification = null;
         GenericId = null;
