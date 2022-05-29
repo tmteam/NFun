@@ -31,7 +31,7 @@ public interface IConstantCalculator<out TOutput> {
 internal class Calculator<TInput> : ICalculator<TInput> {
     private readonly FunnyCalculatorBuilder _builder;
     private readonly MutableAprioriTypesMap _mutableApriori;
-    private readonly Memory<(string, IInputFunnyConverter, PropertyInfo)> _inputsMap;
+    private readonly Memory<InputProperty> _inputsMap;
 
     public Calculator(FunnyCalculatorBuilder builder) {
         _builder = builder;
@@ -59,8 +59,8 @@ internal class Calculator<TInput> : ICalculator<TInput> {
 internal class CalculatorMany<TInput, TOutput> : ICalculator<TInput, TOutput> where TOutput : new() {
     private readonly FunnyCalculatorBuilder _builder;
     private readonly MutableAprioriTypesMap _mutableApriori;
-    private readonly Memory<(string, IInputFunnyConverter, PropertyInfo)> _inputsMap;
-    private readonly Memory<(string, IOutputFunnyConverter, PropertyInfo)> _outputsMap;
+    private readonly Memory<InputProperty> _inputsMap;
+    private readonly Memory<OutputProperty> _outputsMap;
 
     public CalculatorMany(FunnyCalculatorBuilder builder) {
         _builder = builder;
@@ -77,7 +77,7 @@ internal class CalculatorMany<TInput, TOutput> : ICalculator<TInput, TOutput> wh
         return input => {
             FluentApiTools.SetInputValues(runtime, _inputsMap, input);
             runtime.Run();
-            return FluentApiTools.CreateOutputValueFromResults<TOutput>(runtime, _outputsMap);
+            return FluentApiTools.CreateOutputModelFromResults<TOutput>(runtime, _outputsMap);
         };
     }
 }
@@ -85,7 +85,7 @@ internal class CalculatorMany<TInput, TOutput> : ICalculator<TInput, TOutput> wh
 internal class CalculatorSingle<TInput, TOutput> : ICalculator<TInput, TOutput> {
     private readonly FunnyCalculatorBuilder _builder;
     private readonly MutableAprioriTypesMap _mutableApriori;
-    private readonly Memory<(string, IInputFunnyConverter, PropertyInfo)> _inputsMap;
+    private readonly Memory<InputProperty> _inputsMap;
     private readonly IOutputFunnyConverter _outputConverter;
 
     public CalculatorSingle(FunnyCalculatorBuilder builder) {
@@ -140,14 +140,14 @@ internal class ConstantCalculatorSingle<TOutput> : IConstantCalculator<TOutput> 
 
         runtime.Run();
 
-        return (TOutput)_outputConverter.ToClrObject(FluentApiTools.GetOut(runtime).FunnyValue);
+        return (TOutput)_outputConverter.ToClrObject(FluentApiTools.GetFunnyOut(runtime).FunnyValue);
     }
 }
 
 internal class ConstantCalculatorMany<TOutput> : IConstantCalculator<TOutput> where TOutput : new() {
     private readonly FunnyCalculatorBuilder _builder;
     private readonly MutableAprioriTypesMap _mutableApriori;
-    private readonly Memory<(string, IOutputFunnyConverter, PropertyInfo)> _outputsMap;
+    private readonly Memory<OutputProperty> _outputsMap;
 
     public ConstantCalculatorMany(FunnyCalculatorBuilder builder) {
         _mutableApriori = new MutableAprioriTypesMap();
@@ -159,7 +159,7 @@ internal class ConstantCalculatorMany<TOutput> : IConstantCalculator<TOutput> wh
         var runtime = _builder.CreateRuntime(expression, _mutableApriori);
         FluentApiTools.ThrowIfHasInputs(runtime);
         runtime.Run();
-        return FluentApiTools.CreateOutputValueFromResults<TOutput>(runtime, _outputsMap);
+        return FluentApiTools.CreateOutputModelFromResults<TOutput>(runtime, _outputsMap);
     }
 }
 
@@ -175,15 +175,15 @@ internal class ConstantCalculatorSingle : IConstantCalculator<object> {
 
         runtime.Run();
 
-        return FluentApiTools.GetOut(runtime).Value;
+        return FluentApiTools.GetFunnyOut(runtime).Value;
     }
 }
 
 internal class ContextCalculator<TContext> : IContextCalculator<TContext> {
     private readonly FunnyCalculatorBuilder _builder;
     private readonly MutableAprioriTypesMap _mutableApriori;
-    private readonly Memory<(string, IOutputFunnyConverter, PropertyInfo)> _outputsMap;
-    private readonly Memory<(string, IInputFunnyConverter, PropertyInfo)> _inputsMap;
+    private readonly Memory<OutputProperty> _outputsMap;
+    private readonly Memory<InputProperty> _inputsMap;
     public ContextCalculator(FunnyCalculatorBuilder builder) {
         _builder = builder;
         _mutableApriori = new MutableAprioriTypesMap();
@@ -201,10 +201,9 @@ internal class ContextCalculator<TContext> : IContextCalculator<TContext> {
         return context => {
             FluentApiTools.SetInputValues(runtime, _inputsMap, context);
             runtime.Run();
-            FluentApiTools.FillOutputValueFromResults(runtime, _outputsMap, context);
+            FluentApiTools.SetResultsToModel(runtime, _outputsMap, context);
         };
     }
-
 }
 
 }

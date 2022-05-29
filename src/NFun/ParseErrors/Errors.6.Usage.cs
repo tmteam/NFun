@@ -14,7 +14,7 @@ internal static partial class Errors {
     internal static FunnyParseException UnknownInputs(IEnumerable<VariableUsages> variableUsage) => new(
         910, "Some inputs are unknown", Interval.Empty);
 
-    internal static FunnyParseException NoOutputVariablesSetted(Memory<(string, IOutputFunnyConverter, PropertyInfo)> expectedOutputs) => new(
+    internal static FunnyParseException NoOutputVariablesSetted(Memory<OutputProperty> expectedOutputs) => new(
         913, "No output values were setted", Interval.Empty);
 
     internal static FunnyParseException OutputIsUnset() => new(
