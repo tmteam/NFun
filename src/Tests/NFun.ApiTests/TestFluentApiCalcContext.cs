@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using NFun.Exceptions;
 using NFun.TestTools;
 using NFun.Types;
@@ -36,7 +37,7 @@ public class TestFluentApiCalcContext {
 
     [Test]
     public void Const_AnonymousEquation_throws()
-        =>  Assert.Throws<FunnyParseException>(() => Funny.CalcContext("13.1",new ContractOutputModel()));
+        =>  Assert.Throws<FunnyParseException>(() => Funny.CalcContext("13.1",new ContextModel1()));
 
     [Test]
     public void Const_UnknownInputIdUsed_throws()
@@ -89,42 +90,50 @@ public class TestFluentApiCalcContext {
         CalcInDifferentWays("omodel = {id = 42; items = ['vasa','kate']; price = 42.1; taxes = 42.2}", context, expectedContext);
     }
 
-    // [Test]
-    // public void NoFieldsInitialized_throws()
-    //     => Assert.Throws<FunnyParseException>(
-    //         () =>
-    //             Funny.CalcMany<UserInputModel, ContractOutputModel>(
-    //                 expression: "omodel = {someField1 = imodel.age; somefield2 = 2}",
-    //                 input: new UserInputModel()));
-    //
-    // [TestCase("13.1")]
-    // [TestCase("age")]
-    // [TestCase("ids")]
-    // public void AnonymousEquation_throws(string expr)
-    //     => Assert.Throws<FunnyParseException>(
-    //         () => Funny.CalcMany<UserInputModel, ContractOutputModel>(expr, new UserInputModel()));
+     [Test]
+     public void NoFieldsInitialized_throws()
+         => Assert.Throws<FunnyParseException>(
+             () =>
+                 Funny.CalcContext(
+                     expression: "someNotExistField = {field1 = imodel.age; field2 = 2}",
+                     new ContextModel1()));
+    
+     [Test]
+     public void UnknownInputIdUsed_throws()
+         => Assert.Throws<FunnyParseException>(
+             () => Funny.CalcContext(
+                 "omodel = {id = imodel.someInput * someNonExistInput}", new ContextModel1()));
 
-    // [Test]
-    // public void UnknownInputIdUsed_throws()
-    //     => Assert.Throws<FunnyParseException>(А
-    //         () => Funny.CalcMany<UserInputModel, ContractOutputModel>(
-    //             "omodel = {id = imodel.someInput*imodel.age}", new UserInputModel()));
-
-    // [Test]
-    // public void SomeFieldInitialized_DefaultValuesInUninitalizedFields() {
-    //     var result = Funny.CalcMany<UserInputModel, ContractOutputModel>(
-    //         "id = 321; somenotExisted = age", new UserInputModel());
-    //     Assert.AreEqual(321, result.Id);
-    //     Assert.AreEqual(new ContractOutputModel().Price, result.Price);
-    //     CollectionAssert.AreEqual(new ContractOutputModel().Items, result.Items);
-    // }
-    //
-    // [TestCase("Id = age*Age; ")]
-    // [TestCase("Id = 321; Price = ID;")]
-    // public void UseDifferentInputCase_throws(string expression) =>
-    //     Assert.Throws<FunnyParseException>(
-    //         () => Funny.CalcMany<UserInputModel, ContractOutputModel>(expression, new UserInputModel()));
-
+     [Test]
+     public void SomeFieldInitialized_DefaultValuesInUninitalizedFields() {
+         var context = new ContextModel1 { LongRWVal = 42 };
+         Funny.CalcContext(
+             "omodel = { id = iModel.age*2; items = iModel.ids.map(toText);  Price = 42.1 + iModel.bAlAnce; taXes = 1.23}", new ContextModel1());
+         Assert.AreEqual(42, context.LongRWVal);
+     }
+    
+     [TestCase("LongRWVal = IntRVal*intrval; ")]
+     [TestCase("LongRWVal = 321; RealRWVal = LongrwVal*2;")]
+     public void UseDifferentInputCase_throws(string expression) =>
+         Assert.Throws<FunnyParseException>(
+             () => Funny.CalcContext(expression, new ContextModel1()));
+     [Test]
+     public void CompositeCase() {
+         var origin = new ContextModel2(id: 42, inputs: new[] { 1, 2, 3, 4 }, new[] {
+             new UserInputModel(name: "kate", age: 33, size: 15.5)
+         });
+         var expected = (ContextModel2)origin.Clone();
+         expected.Price = origin.Inputs.Max() + origin.Users[0].Size;
+         expected.Results = origin.Inputs.Reverse().Select(r => r.ToString()).ToArray();
+         expected.Contracts = new[] { new ContractOutputModel { Id = 1, Items = new[] { "single" }, Price = 456, Taxes = 789 } };
+         
+         CalcInDifferentWays(@"
+                            nonExistedStruct = {value = 1}
+                            price = inputs.max() + users[0].size; 
+                            results =  inputs.reverse().map(rule it.toText());
+                            Contracts = [{Id = 1, Items = ['single'], Price = 456, Taxes = 789}]", 
+             origin, expected);
+     }
     private void CalcInDifferentWays<TContext>(string expr, TContext origin, TContext expected) where TContext:ICloneable {
         var c1 = (TContext)origin.Clone();
         Funny.CalcContext(expr, c1);

@@ -14,6 +14,8 @@ class ContextModel1:ICloneable {
         IModel = imodel;
     }
     public long LongRWVal { get; set; }
+    public double RealRWVal { get; set; }
+
     public int IntRVal { get; }
     
     public ContractOutputModel OModel { get; set; }
@@ -22,6 +24,7 @@ class ContextModel1:ICloneable {
     public string MyToString(int i, double d) => (i + d).ToString(CultureInfo.InvariantCulture);
     public object Clone() => new ContextModel1(IntRVal, IModel?.Clone() as UserInputModel) {
         LongRWVal = this.LongRWVal,
+        RealRWVal = this.RealRWVal,
         OModel = this.OModel?.Clone() as ContractOutputModel
     };
 }

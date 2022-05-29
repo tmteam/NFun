@@ -3,6 +3,7 @@ using System.Reflection;
 using NFun.Exceptions;
 using NFun.Interpretation;
 using NFun.Interpretation.Functions;
+using NFun.ParseErrors;
 using NFun.SyntaxParsing;
 using NFun.Types;
 
@@ -201,7 +202,9 @@ internal class ContextCalculator<TContext> : IContextCalculator<TContext> {
         return context => {
             FluentApiTools.SetInputValues(runtime, _inputsMap, context);
             runtime.Run();
-            FluentApiTools.SetResultsToModel(runtime, _outputsMap, context);
+            var settedCount = FluentApiTools.SetResultsToModel(runtime, _outputsMap, context);
+            if (settedCount == 0)
+                throw Errors.NoOutputVariablesSetted(_outputsMap);
         };
     }
 }

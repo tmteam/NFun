@@ -86,6 +86,9 @@ public class StructTypeInputFunnyConverter : IInputFunnyConverter {
 
     public object ToFunObject(object clrObject) {
         var values = new FunnyStruct.FieldsDictionary(_properties.Length);
+        if (clrObject == null)
+            return FunnyType.GetDefaultFunnyValue();
+        
         for (var i = 0; i < _readPropertiesCount; i++)
         {
             var property = _properties[i];
