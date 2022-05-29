@@ -16,30 +16,30 @@ public class ApiUsageExamples {
         object a = Funny.Calc("'Hello world'");
         Assert.AreEqual("Hello world", a);
 
-        //Let's calculate something
+        // Let's calculate something
         object b = Funny.Calc("5*20+10");
         Assert.AreEqual(110, b);
 
-        //You can specify the output type
+        // You can specify the output type
         int c = Funny.Calc<int>("10*(5+15)");
         Assert.AreEqual(200, c);
 
-        //The type inference algorithm can calculate an expression
-        //for different types on same expression.
+        // The type inference algorithm can calculate an expression
+        // for different types on same expression.
         double d = Funny.Calc<double>("10*(5+15)");
         Assert.AreEqual(200.0, d);
 
-        //We can do this not only with numbers
-        //Here we do it with strings:
+        // We can do this not only with numbers
+        // Here we do it with strings:
         string s = Funny.Calc<string>("'what\\'s up'.reverse()");
         Assert.AreEqual("pu s'tahw", s);
-        //With arrays:
+        // With arrays:
         int[] arr1 = Funny.Calc<int[]>("[1,2,3].reverse()");
         CollectionAssert.AreEquivalent(new[] { 3, 2, 1 }, arr1);
-        //With arrays of strings:
+        // With arrays of strings:
         string[] arr2 = Funny.Calc<string[]>("[1,2,3].map(rule 'item {it}')");
         CollectionAssert.AreEquivalent(new[] { "item 1", "item 2", "item 3" }, arr2);
-        //And even complex models
+        // And even complex models
         User user = Funny.Calc<User>("{id = 112, age = 42, name = 'peter'.toUpper(), cars = []}");
         Assert.AreEqual(112, user.Id);
         Assert.AreEqual(42, user.Age);
@@ -48,7 +48,7 @@ public class ApiUsageExamples {
     [Test]
     // Single value calculation 
     public void CalculationWithInputData() {
-        // let's assume that we have a complex user model
+        // let's assume that we have a complex model
         var user = new User {
             Age = 42, Id = 112, Name = "Alice",
             Cars = new[] {
@@ -56,50 +56,68 @@ public class ApiUsageExamples {
                 new Car { Power = 315, Id = 322, Price = 7200 }
             }
         };
-        //take the user's model as an input.
-        //Here we сalculate the value based on the values of the 'Age' and 'Id' properties from the input
-        //To do this, just use the property names of the input model in expression
+        // Take the user's model as an input.
+        // Here we сalculate the value based on the values of the 'Age' and 'Id' properties from the input
+        // To do this, just use the property names of the input model in expression
         object isAdult = Funny.Calc("age>=18 and id==112", user);
         Assert.AreEqual(true, isAdult);
 
-        //You can specify the output type
+        // You can specify the output type
         bool isAdultTyped = Funny.Calc<User, bool>("age>=18 and id==112", user);
         Assert.AreEqual(true, isAdultTyped);
         
-        //You can access not only the primitive properties of the original model
+        // You can access not only the primitive properties of the original model
         int ownCarsCount = Funny.Calc<User, int>("if(age>=18) cars.count() else -1", user);
         Assert.AreEqual(2, ownCarsCount);
 
-        //and do complex calculations
-        //Let's calculate the total cost of the user's cars if he is an adult
+        // And do complex calculations
+        // Let's calculate the total cost of the user's cars if he is an adult
         long totalPrice = Funny.Calc<User, long>(
             "if(age>=18) cars.sum(rule it.price)" +
             "else 0", user);
         Assert.AreEqual(12200, totalPrice);
 
-        //Let's calculate the total cost of powerful cars 
-        //following expression equals to C#:
-        //user.Cars.Where(c=>c.Power > 300).Sum(c=>c.Price);
+        // Let's calculate the total cost of powerful cars 
+        // following expression equals to C#:
+        // user.Cars.Where(c=>c.Power > 300).Sum(c=>c.Price);
         long powerfullCarsTotalPrice = Funny.Calc<User, long>("cars.filter(rule it.power>300).sum(rule it.price)",
             user);
         Assert.AreEqual(7200, powerfullCarsTotalPrice);
     }
     
-    // Multiple values calculation
+    // Context object calculation
     [Test]
-    public void MultipleCalculations() {
-        var user = GetUserModel();
-        //you can calculate several expressions at a time
+    public void ContextCalculations() {
+        // You can calculate several expressions at a time with 'Context calculation'
         
-        //To do this, you need to use the output model.
-        //The nfun script will set values to the open properties of the output model
-        //In this example, the model 'outputs' has the properties 'Adult', 'Price', 'NameAndId'
-        Outputs result = Funny.CalcMany<User, Outputs>(
-            @"Adult = age>18
-              Price = cars.sum(rule it.price)", user);
-        Assert.AreEqual(true, result.Adult);
-        Assert.AreEqual(12200, result.Price);
+        // Assume we have some model
+        /*
+            class SomeModel {
+                public SomeModel(int age, Car[] cars) {
+                    Age = age;
+                    Cars = cars;
+                }
+                public int Age { get; }    //Can be used as input
+                public Car[] Cars { get; } //Can be used as input
+                public bool Adult { get; set; }   //Can be used as output
+                public double Price { get; set; } //Can be used as output
+            }
+         */
+        var context =  new SomeModel(age:42, cars: new []{new Car{Price = 6000},new Car{Price = 6200}});
+        // then we can set the 'Adult' and 'Price' properties based on the value of the 'Age' and 'Cars' properties
+        Funny.CalcContext(
+            @"adult = age>18
+              price = cars.sum(rule it.price)",context);
+        Assert.AreEqual(true, context.Adult);
+        Assert.AreEqual(12200, context.Price);
+        // So input values and output values are properties of the same object
+        
+        // In this object, public get-only properties are treated as inputs,
+        // and public properties with a setter are treated as outputs
+        
+        // Nfun script sets values to output properties of the object
     }
+    
     /*
      * ********** Fluent API ********** 
      *
@@ -194,7 +212,7 @@ public class ApiUsageExamples {
         //.BuildForCalc<TInput,TOutput>()
         //.BuildForCalcConstant()
         //.BuildForCalcConstant<TOutput>()
-        //.BuildForCalcMany<TInput, TOutput>()
+        //.BuildForCalcContext<TContext>()
         //.BuildForCalcManyConstants<TOutput>()
     }
     
@@ -389,6 +407,18 @@ class Car {
     public long Id { get; set; }
     public double Power { get; set; }
     public long Price { get; set; }
+}
+
+class SomeModel {
+    public SomeModel(int age, Car[] cars) {
+        Age = age;
+        Cars = cars;
+    }
+    public int Age { get; }    //Can be used as input
+    public Car[] Cars { get; } //Can be used as input
+    public bool Adult { get; set; }   //Can be used as output
+    public double Price { get; set; } //Can be used as output
+        
 }
 
 }

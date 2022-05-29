@@ -23,15 +23,22 @@ Nfun can perform simple evaluations
 ```
 as well as complex, with multiple composite inputs and outputs
 ```cs   
-  // Evaluate many values and put it into 'ResultPerson' object 
-  // 'age', and 'cars' are properties of 'ResultPeson' 
-  ResultPerson u = Funny.CalcMany<MyInput, ResultPerson>(@"   
-     age = 2022 - birthYear   # 'birthYear' is property of MyInput object 'input'
+  // Evaluate many values and set them into 'Person' object's properties 
+  // 'age', 'cars' and 'birthYear' are properties of 'Person' object 
+  var model = new Person(birthYear: 2000);
+  
+  Funny.CalcContext(@"   
+     age = 2022 - birthYear 
      cars = [
-   	{ model = 'lada',   cost = 1200, power = 102 },
-   	{ model = 'camaro', cost = 5000, power = 275 }
+   	    { model = 'lada',   cost = 1200, power = 102 },
+   	    { model = 'camaro', cost = 5000, power = 275 }
      ]
-  ", input);
+     ", model);
+  
+  Assert.Equal(22,   model.Age);
+  Assert.Equal(2,    model.Cars.Count());
+  Assert.Equal(1200, model.Cars[0].Cost);
+  
 ```
 Low-level hardcore API is also supported
 ```cs
