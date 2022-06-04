@@ -13,7 +13,7 @@ using NFun.Tic.Errors;
 using NFun.Tokenization;
 using NFun.TypeInferenceAdapter;
 
-namespace NFun.Interpretation {
+namespace NFun.Interpretation; 
 
 internal static class RuntimeBuilder {
     private static readonly List<IFunctionSignature> EmptyUserFunctionsList
@@ -30,7 +30,7 @@ internal static class RuntimeBuilder {
         var syntaxTree = Parser.Parse(flow);
 
         //Set node numbers
-        var setNodeNumberVisitor = new SetNodeNumberVisitor();
+        var setNodeNumberVisitor = new SetNodeNumberVisitor(0);
         syntaxTree.ComeOver(setNodeNumberVisitor);
         syntaxTree.MaxNodeId = setNodeNumberVisitor.LastUsedNumber;
         return Build(
@@ -244,7 +244,7 @@ internal static class RuntimeBuilder {
         TraceLog.WriteLine($"\r\n====BUILD {functionSyntaxNode.Id}(..) ====");
 #endif
         ////introduce function variable
-        var graphBuider = new GraphBuilder();
+        var graph = new GraphBuilder();
         var resultsBuilder = new TypeInferenceResultsBuilder();
         ITicResults types;
 
@@ -252,18 +252,18 @@ internal static class RuntimeBuilder {
         {
             if(!TicSetupVisitor.SetupTicForUserFunction(
                 userFunctionNode: functionSyntaxNode,
-                ticGraph: graphBuider,
+                ticGraph: graph,
                 functions: functionsDictionary,
                 constants: constants,
                 results: resultsBuilder,
                 dialect: dialect))
                 AssertChecks.Panic($"User Function '{functionSyntaxNode.Head}' was not solved due unknown reasons ");
             // solve the types
-            types = graphBuider.Solve();
+            types = graph.Solve();
         }
         catch (TicException e)
         {
-            throw Errors.TranslateTicError(e, functionSyntaxNode, graphBuider);
+            throw Errors.TranslateTicError(e, functionSyntaxNode, graph);
         }
 
         resultsBuilder.SetResults(types);
@@ -316,6 +316,4 @@ internal static class RuntimeBuilder {
             return function;
         }
     }
-}
-
 }

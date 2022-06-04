@@ -5,7 +5,7 @@ using NFun.Interpretation.Functions;
 using NFun.Runtime;
 using NFun.Types;
 
-namespace NFun.TestTools {
+namespace NFun.TestTools; 
 
 public sealed class CalculationResult {
     internal CalculationResult(VariableTypeAndValue[] rawResults, TypeBehaviour typeBehaviour) {
@@ -40,6 +40,4 @@ public sealed class CalculationResult {
     }
 
     public override string ToString() => string.Join("\r\n", _rawResults);
-}
-
 }

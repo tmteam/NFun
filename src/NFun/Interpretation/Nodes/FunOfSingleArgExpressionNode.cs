@@ -1,8 +1,7 @@
 using NFun.Interpretation.Functions;
 using NFun.Tokenization;
-using NFun.Types;
 
-namespace NFun.Interpretation.Nodes {
+namespace NFun.Interpretation.Nodes; 
 
 internal class FunOfSingleArgExpressionNode : IExpressionNode {
     private readonly FunctionWithSingleArg _fun;
@@ -17,6 +16,4 @@ internal class FunOfSingleArgExpressionNode : IExpressionNode {
     public Interval Interval { get; }
     public FunnyType Type => _fun.ReturnType;
     public object Calc() => _fun.Calc(_arg1.Calc());
-}
-
 }

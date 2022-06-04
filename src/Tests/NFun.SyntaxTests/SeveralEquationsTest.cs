@@ -3,7 +3,7 @@ using NFun.TestTools;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests {
+namespace NFun.SyntaxTests; 
 
 [TestFixture]
 public class SeveralEquationsTest {
@@ -102,6 +102,4 @@ public class SeveralEquationsTest {
     [TestCase("y1 = 3 y2 = 4")]
     [TestCase("y1 = 3 y1 = 4")]
     public void ObviouslyFails(string expr) => expr.AssertObviousFailsOnParse();
-}
-
 }

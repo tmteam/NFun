@@ -3,9 +3,8 @@ using NFun.ParseErrors;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
-using NFun.Types;
 
-namespace NFun.Interpretation.Nodes {
+namespace NFun.Interpretation.Nodes; 
 
 internal class FunArgumentExpressionNode : IExpressionNode {
     public static FunArgumentExpressionNode CreateWith(ISyntaxNode node) =>
@@ -28,11 +27,6 @@ internal class FunArgumentExpressionNode : IExpressionNode {
     public string Name { get; }
     public Interval Interval { get; }
     public FunnyType Type { get; }
-
-
     public object Calc() => throw new InvalidOperationException();
-
     public override string ToString() => $"{Name}: {Type}";
-}
-
 }

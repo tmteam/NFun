@@ -1,7 +1,7 @@
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests {
+namespace NFun.SyntaxTests; 
 
 public class ExplicitConvertationTest {
 
@@ -49,6 +49,4 @@ public class ExplicitConvertationTest {
     [TestCase("y = ~~5.toInt64()",(long)5)]
     public void ExplicitConvertation(string expr, object expected)
         => expr.AssertAnonymousOut(expected);
-}
-
 }

@@ -1,12 +1,10 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using NFun.ParseErrors;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
-using NFun.Types;
 
-namespace NFun.SyntaxParsing {
+namespace NFun.SyntaxParsing; 
 
 public class Parser {
     private readonly TokFlow _flow;
@@ -177,6 +175,4 @@ public class Parser {
             throw Errors.VarExpressionIsMissed(start, id, _flow.Current);
         return SyntaxNodeFactory.Equation(id, exNode, start, _attributes);
     }
-}
-
 }

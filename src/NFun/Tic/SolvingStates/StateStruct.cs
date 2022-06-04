@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NFun.Tic.Stages;
 
-namespace NFun.Tic.SolvingStates {
+namespace NFun.Tic.SolvingStates; 
 
 public class StateStruct : ICompositeState {
     public TicNode GetFieldOrNull(string fieldName) {
@@ -131,6 +131,4 @@ public class StateStruct : ICompositeState {
 
     public override string ToString()
         => "{" + string.Join("; ", _nodes.Select(n => $"{n.Key}:{n.Value.State}")) + "}";
-}
-
 }

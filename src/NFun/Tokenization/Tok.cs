@@ -1,4 +1,4 @@
-namespace NFun.Tokenization {
+namespace NFun.Tokenization; 
 
 /// <summary>
 /// Nfun lang token
@@ -31,6 +31,4 @@ public class Tok {
         else
             return $"{Type}({Value})";
     }
-}
-
 }

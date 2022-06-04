@@ -1,6 +1,6 @@
 using NFun.Tokenization;
 
-namespace NFun.Interpretation.Nodes {
+namespace NFun.Interpretation.Nodes; 
 
 internal class DefaultValueExpressionNode : IExpressionNode {
     private readonly object _value;
@@ -14,6 +14,4 @@ internal class DefaultValueExpressionNode : IExpressionNode {
     public Interval Interval { get; }
     public FunnyType Type { get; }
     public object Calc() => _value;
-}
-
 }

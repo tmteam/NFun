@@ -3,7 +3,7 @@ using System.Linq;
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.ApiTests {
+namespace NFun.ApiTests; 
 
 public class TestHardcoreApiAddConstant {
     [Test]
@@ -75,6 +75,4 @@ public class TestHardcoreApiAddConstant {
         runtime.AssertInputsCount(1);
         runtime.Calc("pi", 2).AssertReturns("y", 2);
     }
-}
-
 }

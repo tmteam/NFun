@@ -5,7 +5,7 @@ using NFun.Tic;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests {
+namespace NFun.SyntaxTests; 
 
 [TestFixture]
 public class ArraysTest {
@@ -403,6 +403,4 @@ filtrat   = x.filter(fun it> filt) # filt - input variable
     [TestCase("y = ['a', 'b'][2]")]
     public void ObviouslyFailsOnRuntime(string expr) =>
         Assert.Throws<FunnyRuntimeException>(() => expr.Calc());
-}
-
 }

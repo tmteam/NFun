@@ -1,7 +1,7 @@
 ﻿using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 
-namespace NFun.Tic.Tests.Funs {
+namespace NFun.Tic.Tests.Funs; 
 
 public class foldTest {
     [SetUp]
@@ -101,6 +101,4 @@ public class foldTest {
         var generic = result.AssertAndGetSingleGeneric(null, null, true);
         result.AssertNamed(StateArray.Of(generic), "sorted", "input");
     }
-}
-
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using NFun.Exceptions;
 using NFun.ParseErrors;
 
-namespace NFun.Tokenization {
+namespace NFun.Tokenization; 
 
 class InterpolationLayer {
     public char OpenQuoteSymbol;
@@ -172,9 +172,9 @@ public class Tokenizer {
     private static bool IsDigit(char val) => char.IsDigit(val);
 
     private static bool IsQuote(char val) =>    val == '\'' 
-                                             || val == '\"' 
-                                             || val == '‘' 
-                                             || val == '“'; //important  to support figure quotes  
+                                                || val == '\"' 
+                                                || val == '‘' 
+                                                || val == '“'; //important  to support figure quotes  
 
     private static Tok ReadNumber(string str, int position) {
         int dotPosition = -1;
@@ -411,6 +411,4 @@ public class Tokenizer {
                 return Tok.New(TokType.Text, result, startPosition, endPosition + 1);
         }
     }
-}
-
 }

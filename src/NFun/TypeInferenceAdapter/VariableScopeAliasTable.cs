@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace NFun.TypeInferenceAdapter {
+namespace NFun.TypeInferenceAdapter; 
 
 /// <summary>
 /// Variable table. It needs to give special names to variable during TI-setup process
@@ -60,6 +60,4 @@ public class VariableScopeAliasTable {
     public void ExitScope() { _variableAliasesStack.RemoveAt(_variableAliasesStack.Count - 1); }
 
     private static string MakeAlias(int nodeLayerId, string varName) => nodeLayerId + "::" + varName;
-}
-
 }

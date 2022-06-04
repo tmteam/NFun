@@ -4,7 +4,7 @@ using System.Linq;
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests.Operators {
+namespace NFun.SyntaxTests.Operators; 
 
 [TestFixture]
 public class OperatorPrecedenceTest {
@@ -304,6 +304,4 @@ public class OperatorPrecedenceTest {
             select new (string, object)[] {
                 ("x1", x1), ("x2", x2),
             }).ToList();
-}
-
 }

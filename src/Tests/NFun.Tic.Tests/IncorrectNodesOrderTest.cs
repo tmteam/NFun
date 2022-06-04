@@ -1,7 +1,7 @@
 ﻿using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 
-namespace NFun.Tic.Tests {
+namespace NFun.Tic.Tests; 
 
 public class IncorrectNodesOrderTest {
     [Test]
@@ -65,6 +65,4 @@ Exit:1. y:Empty = 2
         result.AssertAreGenerics(generic, "y", "x", "z");
         result.AssertNamed(StatePrimitive.Bool, "a");
     }
-}
-
 }

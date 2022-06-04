@@ -1,7 +1,7 @@
 ﻿using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 
-namespace NFun.Tic.Tests.Funs {
+namespace NFun.Tic.Tests.Funs; 
 
 public class GetFirstTests {
     [Test]
@@ -170,6 +170,4 @@ public class GetFirstTests {
         var result = graph.Solve();
         result.AssertNoGenerics();
     }
-}
-
 }

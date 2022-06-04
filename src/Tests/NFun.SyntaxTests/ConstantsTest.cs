@@ -2,7 +2,7 @@ using System;
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests {
+namespace NFun.SyntaxTests; 
 
 public class ConstantsTest {
     [TestCase("y:int64 = -1", (Int64)(-1.0))]
@@ -173,6 +173,4 @@ public class ConstantsTest {
     [TestCase("y:int64 = -9223372036854775809")]
     [TestCase("y:int64 = -19223372036854775809")]
     public void ObviouslyFails(string expr) => expr.AssertObviousFailsOnParse();
-}
-
 }

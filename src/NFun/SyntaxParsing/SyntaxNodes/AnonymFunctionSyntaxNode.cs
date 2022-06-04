@@ -2,25 +2,10 @@ using System.Collections.Generic;
 using System.Linq;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
-using NFun.Types;
 
-namespace NFun.SyntaxParsing.SyntaxNodes {
+namespace NFun.SyntaxParsing.SyntaxNodes; 
 
 public class AnonymFunctionSyntaxNode : ISyntaxNode {
-    public ISyntaxNode[] ArgumentsDefinition { get; }
-    public ISyntaxNode Definition { get; }
-    public ISyntaxNode Body { get; }
-    /// <summary>
-    /// Return type of anonymous function
-    /// </summary>
-    public FunnyType ReturnType { get; }
-    public FunnyType OutputType { get; set; }
-    public int OrderNumber { get; set; }
-    public bool IsInBrackets { get; set; }
-    public Interval Interval { get; set; }
-    public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
-    public IEnumerable<ISyntaxNode> Children => ArgumentsDefinition.Append(Body);
-
     public AnonymFunctionSyntaxNode(
         ISyntaxNode definition, ISyntaxNode body, FunnyType returnType, Interval interval) {
         if (definition is ListOfExpressionsSyntaxNode list)
@@ -35,6 +20,18 @@ public class AnonymFunctionSyntaxNode : ISyntaxNode {
         ReturnType = returnType;
         Interval = interval;
     }
-}
-
+    
+    public ISyntaxNode[] ArgumentsDefinition { get; }
+    public ISyntaxNode Definition { get; }
+    public ISyntaxNode Body { get; }
+    /// <summary>
+    /// Return type of anonymous function
+    /// </summary>
+    public FunnyType ReturnType { get; }
+    public FunnyType OutputType { get; set; }
+    public int OrderNumber { get; set; }
+    public bool IsInBrackets { get; set; }
+    public Interval Interval { get; set; }
+    public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
+    public IEnumerable<ISyntaxNode> Children => ArgumentsDefinition.Append(Body);
 }

@@ -10,7 +10,7 @@ using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
 using NFun.Types;
 
-namespace NFun.ParseErrors {
+namespace NFun.ParseErrors; 
 
 internal static partial class Errors {
 
@@ -117,7 +117,5 @@ internal static partial class Errors {
         879, $"Variable {nodeId} is already declared", nodeInterval);
 
     #endregion
-
-}
 
 }

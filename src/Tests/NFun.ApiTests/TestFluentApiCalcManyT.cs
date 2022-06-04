@@ -3,7 +3,7 @@ using NFun.Exceptions;
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.ApiTests {
+namespace NFun.ApiTests; 
 
 public class TestFluentApiCalcManyT {
     [Test]
@@ -52,6 +52,4 @@ public class TestFluentApiCalcManyT {
         Assert.AreEqual(new ContractOutputModel().Taxes, result.Taxes);
         CollectionAssert.AreEqual(new ContractOutputModel().Items, result.Items);
     }
-}
-
 }

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace NFun.Tokenization {
+namespace NFun.Tokenization; 
 
 public class TokFlow {
     private static readonly Tok PreviousBeforeFlowTok = Tok.New(TokType.NotAToken, 0, 0);
@@ -97,6 +97,4 @@ public class TokFlow {
 
         return sb.ToString();
     }
-}
-
 }

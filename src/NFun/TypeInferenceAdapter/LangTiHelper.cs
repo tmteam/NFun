@@ -6,7 +6,7 @@ using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tic.SolvingStates;
 using NFun.Types;
 
-namespace NFun.TypeInferenceAdapter {
+namespace NFun.TypeInferenceAdapter; 
 
 public static class LangTiHelper {
     public static string GetArgAlias(string funAlias, string argId)
@@ -70,6 +70,4 @@ public static class LangTiHelper {
                         value: ConvertToTiType(s.Value, genericMap)))),
             _ => origin.ConvertToTiType()
         };
-}
-
 }

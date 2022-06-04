@@ -5,7 +5,7 @@ using NFun.Tic;
 using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 
-namespace NFun.ModuleTests {
+namespace NFun.ModuleTests; 
 
 public class Toposort2Test {
     /* Test is ok, but cannot be launched in debug environment
@@ -462,6 +462,4 @@ public class Toposort2Test {
 
     private static TicNode CreateNode(string name, ITicNodeState state = null)
         => TicNode.CreateNamedNode(name, state ?? new ConstrainsState());
-}
-
 }

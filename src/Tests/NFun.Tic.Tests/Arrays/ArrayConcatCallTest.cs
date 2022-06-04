@@ -1,7 +1,7 @@
 ﻿using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 
-namespace NFun.Tic.Tests.Arrays {
+namespace NFun.Tic.Tests.Arrays; 
 
 public class ArrayConcatCallTest {
     [Test(Description = "y = concat(a,b)")]
@@ -153,6 +153,4 @@ public class ArrayConcatCallTest {
         var generic = result.AssertAndGetSingleGeneric(null, null);
         result.AssertNamed(new StateArray(generic), "b", "c", "a", "y");
     }
-}
-
 }

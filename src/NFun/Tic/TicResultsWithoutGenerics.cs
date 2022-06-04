@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using NFun.Tic.SolvingStates;
 
-namespace NFun.Tic {
+namespace NFun.Tic; 
 
 public class TicResultsWithoutGenerics : ITicResults {
     private readonly Dictionary<string, TicNode> _namedNodes;
@@ -27,6 +27,4 @@ public class TicResultsWithoutGenerics : ITicResults {
     public bool HasGenerics => false;
     public int GenericsCount => 0;
     public ConstrainsState[] GenericsStates { get; } = Array.Empty<ConstrainsState>();
-}
-
 }

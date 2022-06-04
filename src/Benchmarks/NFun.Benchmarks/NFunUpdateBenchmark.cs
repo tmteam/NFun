@@ -4,7 +4,7 @@ using NFun.Runtime;
 
 // ReSharper disable InconsistentNaming
 
-namespace NFun.Benchmarks {
+namespace NFun.Benchmarks; 
 
 public class NFunUpdateBenchmark {
     private FunnyRuntime _const_Kxb_runtime;
@@ -33,6 +33,4 @@ public class NFunUpdateBenchmark {
 
     [Benchmark(Description = "kxb with var calc")]
     public void VarKxb() { _varkxb_runtime.Run(); }
-}
-
 }

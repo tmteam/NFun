@@ -6,7 +6,7 @@ using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
 
-namespace NFun.ParseErrors {
+namespace NFun.ParseErrors; 
 
 internal static partial class Errors {
 
@@ -75,7 +75,7 @@ internal static partial class Errors {
                        347, $"[ ??? , ..] <- First element missed {Nl}Remove ',' or place element before it", res.Interval),
                    ExprListErrorType.ElementMissed => new(
                        350, $"[{argStubs},???, ..] <- element missed {Nl}Remove ',' or place element before it", res.Interval),
-                   ExprListErrorType.TotalyWrongDefinition => new(
+                   ExprListErrorType.TotallyWrongDefinition => new(
                        353, "Wrong array definition ", res.Interval),
                    ExprListErrorType.SingleOpenBracket => new(
                        356, $"[ <- unexpected array symbol{Nl} Did you mean array initialization [,], slice [::] or indexing [i]?", res.Interval),
@@ -173,7 +173,7 @@ internal static partial class Errors {
                        456, $"{id}( ??? , ..) <- First element missed {Nl}Remove ',' or place element before it", res.Interval),
                    ExprListErrorType.ElementMissed => new(
                        458, $"{id}({argStubs},???, ..) <- element missed {Nl}Remove ',' or place element before it", res.Interval),
-                   ExprListErrorType.TotalyWrongDefinition => new(
+                   ExprListErrorType.TotallyWrongDefinition => new(
                        460, "Wrong function call", res.Interval),
                    ExprListErrorType.SingleOpenBracket => new(
                        462, $"{id}( ??? <- Close bracket ')' is missing", res.Interval),
@@ -305,7 +305,7 @@ internal static partial class Errors {
                        579, $"( ??? , ..) <- First element missed {Nl}Remove ',' or place element before it", res.Interval),
                    ExprListErrorType.ElementMissed => new(
                        581, $"({argStubs},???, ..) <- element missed {Nl}Remove ',' or place element before it", res.Interval),
-                   ExprListErrorType.TotalyWrongDefinition => new(
+                   ExprListErrorType.TotallyWrongDefinition => new(
                        583, "Wrong expression", res.Interval),
                    ExprListErrorType.SingleOpenBracket => new(
                        585, $"( <- unexpected open bracket without closing bracket", res.Interval),
@@ -331,7 +331,5 @@ internal static partial class Errors {
         609, $"{ToShortText(leftNode)} {ToText(@operator)} ???. Right expression is missed{Nl} Example: {ToShortText(leftNode)} {ToText(@operator)} e", leftNode.Interval.Start, @operator.Finish);
 
     #endregion
-
-}
 
 }

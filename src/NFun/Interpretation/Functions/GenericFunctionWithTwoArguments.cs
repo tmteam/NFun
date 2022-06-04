@@ -1,7 +1,6 @@
 using System;
-using NFun.Types;
 
-namespace NFun.Interpretation.Functions {
+namespace NFun.Interpretation.Functions; 
 
 public abstract class GenericFunctionWithTwoArguments : GenericFunctionBase {
     protected GenericFunctionWithTwoArguments(string name, FunnyType returnType, params FunnyType[] argTypes) : base(
@@ -39,6 +38,4 @@ public abstract class GenericFunctionWithTwoArguments : GenericFunctionBase {
 
         public override object Calc(object a, object b) => _calc(a, b);
     }
-}
-
 }

@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using NFun.Runtime;
 
-namespace NFun.InfinityProfiling.Sets {
+namespace NFun.InfinityProfiling.Sets; 
 
 public class ProfileUpdateSet : IProfileSet {
     private readonly FunnyRuntime _calcBoolOp;
@@ -199,6 +199,4 @@ public class ProfileUpdateSet : IProfileSet {
     public void ComplexConstEverything() { _constEverything.Run(); }
 
     private FunnyRuntime Build(string expr) { return Funny.Hardcore.Build(expr); }
-}
-
 }

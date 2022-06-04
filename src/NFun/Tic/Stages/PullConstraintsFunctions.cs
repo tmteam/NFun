@@ -2,10 +2,10 @@ using System;
 using System.Runtime.CompilerServices;
 using NFun.Tic.SolvingStates;
 
-namespace NFun.Tic.Stages {
+namespace NFun.Tic.Stages; 
 
 public class PullConstraintsFunctions : IStateCombination2dimensionalVisitor {
-    public static IStateCombination2dimensionalVisitor SingleTone { get; } = new PullConstraintsFunctions();
+    public static IStateCombination2dimensionalVisitor Singleton { get; } = new PullConstraintsFunctions();
 
     public bool Apply(StatePrimitive ancestor, StatePrimitive descendant, TicNode _, TicNode __) =>
         descendant.CanBeImplicitlyConvertedTo(ancestor);
@@ -139,6 +139,4 @@ public class PullConstraintsFunctions : IStateCombination2dimensionalVisitor {
         ancestorNode.State = result;
         return true;
     }
-}
-
 }

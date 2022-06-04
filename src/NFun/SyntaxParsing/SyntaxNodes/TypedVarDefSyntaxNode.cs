@@ -2,9 +2,8 @@ using System;
 using System.Collections.Generic;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
-using NFun.Types;
 
-namespace NFun.SyntaxParsing.SyntaxNodes {
+namespace NFun.SyntaxParsing.SyntaxNodes; 
 
 public class TypedVarDefSyntaxNode : ISyntaxNode {
     public TypedVarDefSyntaxNode(string id, FunnyType funnyType, Interval interval) {
@@ -21,6 +20,4 @@ public class TypedVarDefSyntaxNode : ISyntaxNode {
     public Interval Interval { get; set; }
     public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
     public IEnumerable<ISyntaxNode> Children => Array.Empty<ISyntaxNode>();
-}
-
 }

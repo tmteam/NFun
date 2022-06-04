@@ -1,7 +1,7 @@
 ﻿using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests {
+namespace NFun.SyntaxTests; 
 
 [TestFixture]
 public class RecursiveTypeDefinitionDetectionTest {
@@ -58,6 +58,4 @@ public class RecursiveTypeDefinitionDetectionTest {
     [TestCase("g(f) = f(f())")]
     public void ObviouslyFailsWithRecursiveTypeDefinitionOfFunctionalVar(string expr) =>
         expr.AssertObviousFailsOnParse();
-}
-
 }

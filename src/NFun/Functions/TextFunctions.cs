@@ -5,7 +5,7 @@ using NFun.Interpretation.Functions;
 using NFun.Runtime.Arrays;
 using NFun.Types;
 
-namespace NFun.Functions {
+namespace NFun.Functions; 
 
 public class ToTextFunction : FunctionWithSingleArg {
     public ToTextFunction() : base(CoreFunNames.ToText, FunnyType.Text, FunnyType.Any) { }
@@ -98,9 +98,9 @@ public class SplitFunction : FunctionWithTwoArgs {
 
     public override object Calc(object a, object b) {
         var inputString = TypeHelper.GetFunText(a);
-        var delimeter = TypeHelper.GetFunText(b);
+        var delimiter = TypeHelper.GetFunText(b);
         return new ImmutableFunnyArray(
-            inputString.Split(new[] { delimeter }, StringSplitOptions.RemoveEmptyEntries)
+            inputString.Split(new[] { delimiter }, StringSplitOptions.RemoveEmptyEntries)
                        .Select(s => new TextFunnyArray(s))
                        .ToArray(), FunnyType.Text);
     }
@@ -116,6 +116,4 @@ public class JoinFunction : FunctionWithTwoArgs {
         var join = string.Join(separator.ToText(), arr.Select(TypeHelper.GetFunText));
         return new TextFunnyArray(join);
     }
-}
-
 }

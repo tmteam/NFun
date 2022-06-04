@@ -2,9 +2,8 @@ using System;
 using System.Collections.Generic;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
-using NFun.Types;
 
-namespace NFun.SyntaxParsing.SyntaxNodes {
+namespace NFun.SyntaxParsing.SyntaxNodes; 
 
 public class VarDefinitionSyntaxNode : ISyntaxNode {
     public FunnyType OutputType { get; set; }
@@ -24,6 +23,4 @@ public class VarDefinitionSyntaxNode : ISyntaxNode {
         Attributes = attributes ?? Array.Empty<FunnyAttribute>();
         Interval = node.Interval;
     }
-}
-
 }

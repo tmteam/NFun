@@ -1,7 +1,7 @@
 ﻿using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests.BuiltInFunctions {
+namespace NFun.SyntaxTests.BuiltInFunctions; 
 
 class TextFunctionsTest {
     [TestCase("y = ' hi world '.trim()", "hi world")]
@@ -24,6 +24,4 @@ class TextFunctionsTest {
     [TestCase("y = 'HI WoRld'.toLower()", "hi world")]
     public void ConstantEquationWithGenericPredefinedFunction(string expr, object expected) =>
         expr.AssertReturns("y", expected);
-}
-
 }

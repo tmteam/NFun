@@ -1,10 +1,9 @@
 using System;
-using NFun.Interpretation.Functions;
 using NFun.SyntaxParsing;
 using NFun.Tokenization;
 using NFun.Types;
 
-namespace NFun.Runtime {
+namespace NFun.Runtime; 
 
 public interface IFunnyVar {
     /// <summary>
@@ -164,6 +163,4 @@ internal enum FunnyVarAccess {
     /// Funny variable is output so it can be considered as the result of the calculation
     /// </summary>
     Output = 1 << 1,
-}
-
 }

@@ -1,7 +1,7 @@
 ﻿using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 
-namespace NFun.Tic.Tests {
+namespace NFun.Tic.Tests; 
 
 //& | ~ << >>
 class BitOperations {
@@ -179,6 +179,4 @@ class BitOperations {
         result.AssertNoGenerics();
         result.AssertNamed(StatePrimitive.I32, "y");
     }
-}
-
 }

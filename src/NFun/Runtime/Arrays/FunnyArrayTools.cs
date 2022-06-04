@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using NFun.Types;
 
-namespace NFun.Runtime.Arrays {
+namespace NFun.Runtime.Arrays; 
 
 public static class FunnyArrayTools {
     public static TextFunnyArray AsFunText(this string txt) => new(txt);
@@ -95,6 +95,4 @@ public static class FunnyArrayTools {
 
         return new ImmutableFunnyArray(newArr, elementType);
     }
-}
-
 }

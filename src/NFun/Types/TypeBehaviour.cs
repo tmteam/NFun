@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using NFun.Exceptions;
-using NFun.Tokenization;
 
-namespace NFun.Types {
+namespace NFun.Types; 
 
 public enum RealClrType {
     IsDecimal,
@@ -43,23 +41,23 @@ public abstract class TypeBehaviour {
     protected static readonly Func<object, object> ToChar = o => Convert.ToChar(o);
     
     protected  static readonly Type[] FunToClrTypesMap = {
-            null,
-            typeof(char),
-            typeof(bool),
-            typeof(byte),
-            typeof(ushort),
-            typeof(uint),
-            typeof(ulong),
-            typeof(short),
-            typeof(int),
-            typeof(long),
-            typeof(double),
-            null,
-            null,
-            null,
-            typeof(object),
-            null
-        };
+        null,
+        typeof(char),
+        typeof(bool),
+        typeof(byte),
+        typeof(ushort),
+        typeof(uint),
+        typeof(ulong),
+        typeof(short),
+        typeof(int),
+        typeof(long),
+        typeof(double),
+        null,
+        null,
+        null,
+        typeof(object),
+        null
+    };
     
     protected static readonly object[] DefaultPrimitiveValues = {
         null,
@@ -227,6 +225,8 @@ public class RealIsDecimalTypeBehaviour : TypeBehaviour {
             { typeof(float), new FloatToDecimalInputFunnyConverter() },
         };
     
+    private static readonly Func<object, object> ToDecimalReal = o => Convert.ToDecimal(o);
+
     public override IInputFunnyConverter GetPrimitiveInputConverterOrNull(Type clrType) =>
         PrimitiveInputConvertersByType.TryGetValue(clrType, out var res) 
             ? res : null;    
@@ -270,11 +270,6 @@ public class RealIsDecimalTypeBehaviour : TypeBehaviour {
         funnyType != BaseFunnyType.Real ? FunToClrTypesMap[(int)funnyType] : typeof(Decimal);
     
     public override T RealTypeSelect<T>(T ifIsDouble, T ifIsDecimal) => ifIsDecimal;
-
-    private static readonly Func<object, object> ToDecimalReal = o => Convert.ToDecimal(o);
     
     public override bool DoubleIsReal => false;
-}
-
-
 }

@@ -1,7 +1,7 @@
 using NFun.Interpretation.Nodes;
 using NFun.Runtime;
 
-namespace NFun.Interpretation {
+namespace NFun.Interpretation; 
 
 internal sealed class Equation {
     private readonly VariableSource _outputVariableSource;
@@ -18,6 +18,4 @@ internal sealed class Equation {
         => _outputVariableSource.SetFunnyValueUnsafe(Expression.Calc());
 
     public override string ToString() => $"\"{Id}\" equation";
-}
-
 }

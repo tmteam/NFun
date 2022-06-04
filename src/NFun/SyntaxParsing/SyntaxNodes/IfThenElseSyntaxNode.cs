@@ -1,11 +1,15 @@
 using System.Collections.Generic;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
-using NFun.Types;
 
-namespace NFun.SyntaxParsing.SyntaxNodes {
+namespace NFun.SyntaxParsing.SyntaxNodes; 
 
 public class IfThenElseSyntaxNode : ISyntaxNode {
+    public IfThenElseSyntaxNode(IfCaseSyntaxNode[] ifs, ISyntaxNode elseExpr, Interval interval) {
+        Ifs = ifs;
+        ElseExpr = elseExpr;
+        Interval = interval;
+    }
     public FunnyType OutputType { get; set; }
     public int OrderNumber { get; set; }
     public IfCaseSyntaxNode[] Ifs { get; }
@@ -22,12 +26,4 @@ public class IfThenElseSyntaxNode : ISyntaxNode {
             yield return ElseExpr;
         }
     }
-
-    public IfThenElseSyntaxNode(IfCaseSyntaxNode[] ifs, ISyntaxNode elseExpr, Interval interval) {
-        Ifs = ifs;
-        ElseExpr = elseExpr;
-        Interval = interval;
-    }
-}
-
 }

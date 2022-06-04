@@ -3,7 +3,7 @@ using NFun.Exceptions;
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests.Operators {
+namespace NFun.SyntaxTests.Operators; 
 
 public class IntegerBitOperatorsTest {
     [TestCase("y:int64 = 1 & 1", (Int64)1)]
@@ -220,7 +220,7 @@ public class IntegerBitOperatorsTest {
     [TestCase("y:uint8 = 0xF0<<8", (byte)0)]
     [TestCase("y:uint8 = 0xFE<<16", (byte)0)]
     public void BitShiftOverflow(string expression, object expected)
-    => expression.AssertReturns("y", expected);
+        => expression.AssertReturns("y", expected);
 
     
     [Ignore("Overflow behaviour is not implemented for bitshifts")]
@@ -243,6 +243,4 @@ public class IntegerBitOperatorsTest {
     [TestCase("y = ~-")]
     [TestCase("y = ~1.5")]
     public void ObviouslyFails(string expr) => expr.AssertObviousFailsOnParse();
-}
-
 }

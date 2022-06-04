@@ -6,7 +6,7 @@ using NFun.Tic.Errors;
 using NFun.Tic.SolvingStates;
 using NFun.Tic.Stages;
 
-namespace NFun.Tic {
+namespace NFun.Tic; 
 
 public static class SolvingFunctions {
     #region Merges
@@ -135,7 +135,7 @@ public static class SolvingFunctions {
             {
                 //merge main and current
                 main.State = GetMergedStateOrNull(main.State, current.State) ??
-                             throw TicErrors.CannotMergeGroup(cycleRoute.ToArray(), main, current);
+                             throw TicErrors.CannotMerge(main, current);
             }
 
             main.AddAncestors(current.Ancestors.Where(c => c != main));
@@ -193,7 +193,7 @@ public static class SolvingFunctions {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void PullConstrains(TicNode descendant, TicNode ancestor) {
         if (descendant == ancestor) return;
-        var res = ancestor.State.ApplyDescendant(PullConstraintsFunctions.SingleTone, ancestor, descendant);
+        var res = ancestor.State.ApplyDescendant(PullConstraintsFunctions.Singleton, ancestor, descendant);
         if (!res) throw TicErrors.IncompatibleTypes(ancestor, descendant);
     }
 
@@ -234,7 +234,7 @@ public static class SolvingFunctions {
         if (descendant == ancestor)
             return;
 
-        if (!ancestor.State.ApplyDescendant(PushConstraintsFunctions.Singletone, ancestor, descendant))
+        if (!ancestor.State.ApplyDescendant(PushConstraintsFunctions.Singleton, ancestor, descendant))
             throw TicErrors.IncompatibleNodes(ancestor, descendant);
     }
 
@@ -285,7 +285,7 @@ public static class SolvingFunctions {
             return true;
 
         return nonRefAncestor.State.ApplyDescendant(
-            DestructionFunctions.Singletone,
+            DestructionFunctions.Singleton,
             nonRefAncestor,
             nonRefDescendant);
     }
@@ -620,6 +620,4 @@ public static class SolvingFunctions {
             ReqPrintNode(node);
 #endif
     }
-}
-
 }

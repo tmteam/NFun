@@ -1,6 +1,6 @@
 using NFun.Tic.SolvingStates;
 
-namespace NFun.Tic.Errors {
+namespace NFun.Tic.Errors; 
 
 internal class CannotSetStateSyntaxNodeException: TicException{
     public TicNode Node { get; } 
@@ -9,6 +9,4 @@ internal class CannotSetStateSyntaxNodeException: TicException{
         Node = node;
         State = state;
     }
-}
-
 }

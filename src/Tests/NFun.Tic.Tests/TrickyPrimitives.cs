@@ -2,7 +2,7 @@
 using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 
-namespace NFun.Tic.Tests {
+namespace NFun.Tic.Tests; 
 
 class TrickyPrimitives {
     [SetUp]
@@ -340,6 +340,4 @@ class TrickyPrimitives {
         result.AssertNamed(StatePrimitive.Real, "b");
         result.AssertNamed(StatePrimitive.Real, "a");
     }
-}
-
 }

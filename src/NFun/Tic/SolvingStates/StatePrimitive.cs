@@ -1,6 +1,6 @@
 ﻿using NFun.Tic.Stages;
 
-namespace NFun.Tic.SolvingStates {
+namespace NFun.Tic.SolvingStates; 
 
 public class StatePrimitive : ITypeState, ITicNodeState {
     private static readonly StatePrimitive[,] LcaMap;
@@ -256,6 +256,4 @@ public class StatePrimitive : ITypeState, ITicNodeState {
             }
         }
     }
-}
-
 }

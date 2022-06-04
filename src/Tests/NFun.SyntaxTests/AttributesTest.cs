@@ -2,7 +2,7 @@ using System.Linq;
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests {
+namespace NFun.SyntaxTests; 
 
 [TestFixture]
 public class AttributesTest {
@@ -71,6 +71,4 @@ public class AttributesTest {
     [TestCase("\r y = 2  \r@('',3) \r z = 5")]
     [TestCase("\r y = 2  \r@(') \r z = 5")]
     public void ObviouslyFails(string expr) => expr.AssertObviousFailsOnParse();
-}
-
 }

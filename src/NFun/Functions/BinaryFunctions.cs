@@ -1,7 +1,6 @@
 ﻿using NFun.Interpretation.Functions;
-using NFun.Types;
 
-namespace NFun.Functions {
+namespace NFun.Functions; 
 
 #region binaries
 
@@ -26,5 +25,3 @@ public class XorFunction : FunctionWithTwoArgs {
 }
 
 #endregion
-
-}

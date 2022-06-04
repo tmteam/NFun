@@ -4,7 +4,7 @@ using NFun.TestTools;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.ApiTests {
+namespace NFun.ApiTests; 
 
 public class AprioriTypesTest {
     [Test]
@@ -126,6 +126,4 @@ public class AprioriTypesTest {
                 .Build("if (count>0) name.repeat(count).flat() else 'none'")
                 .Calc(("count", 3), ("name", "foo"))
                 .AssertReturns("foofoofoo");
-}
-
 }

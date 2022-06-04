@@ -2,7 +2,7 @@ using System;
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests.SyntaxDialect {
+namespace NFun.SyntaxTests.SyntaxDialect; 
 
 public class IntegerOverflowBehaviour {
     
@@ -76,6 +76,4 @@ public class IntegerOverflowBehaviour {
 
         Assert.Fail("Ouch");
     }
-}
-
 }

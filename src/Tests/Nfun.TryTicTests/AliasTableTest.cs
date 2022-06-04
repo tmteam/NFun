@@ -1,7 +1,7 @@
 using NFun.TypeInferenceAdapter;
 using NUnit.Framework;
 
-namespace NFun.UnitTests {
+namespace NFun.UnitTests; 
 
 public class AliasTableTest {
     [Test]
@@ -43,6 +43,4 @@ public class AliasTableTest {
         table.ExitScope();
         Assert.AreEqual(level0alias, table.GetVariableAlias(name));
     }
-}
-
 }

@@ -1,7 +1,7 @@
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests {
+namespace NFun.SyntaxTests; 
 
 [TestFixture]
 public class CommentsTest {
@@ -42,6 +42,4 @@ z = true")]
     [TestCase("y =#here is a comment y 1.0\r z = true")]
     [TestCase("y = 2.0\r z = #here is a comment/ true")]
     public void ObviouslyFails(string expr) => expr.AssertObviousFailsOnParse();
-}
-
 }

@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using NFun.Tic.SolvingStates;
 using NFun.Types;
 
-namespace NFun.TypeInferenceAdapter {
+namespace NFun.TypeInferenceAdapter; 
 
 public abstract class TicTypesConverter {
     public static readonly TicTypesConverter Concrete
@@ -183,6 +182,4 @@ public abstract class TicTypesConverter {
                 throw new InvalidOperationException("Cannot cast abstract type " + name),
             _ => throw new ArgumentOutOfRangeException()
         };
-}
-
 }

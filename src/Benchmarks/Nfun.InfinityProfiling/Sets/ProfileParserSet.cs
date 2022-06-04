@@ -3,7 +3,7 @@ using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
 
-namespace NFun.InfinityProfiling.Sets {
+namespace NFun.InfinityProfiling.Sets; 
 
 public class ProfileParserSet : IProfileSet {
     [MethodImpl(MethodImplOptions.NoOptimization)]
@@ -99,6 +99,4 @@ public class ProfileParserSet : IProfileSet {
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private SyntaxTree Parse(string expr) { return Parser.Parse(Tokenizer.ToFlow(expr)); }
-}
-
 }

@@ -1,4 +1,4 @@
-namespace NFun.InfinityProfiling.Sets {
+namespace NFun.InfinityProfiling.Sets; 
 
 public interface IProfileSet {
     void PrimitiveConstIntSimpleArithmetics();
@@ -33,6 +33,4 @@ public interface IProfileSet {
     void ComplexConstMultiArrays();
     void ComplexDummyBubble();
     void ComplexConstEverything();
-}
-
 }

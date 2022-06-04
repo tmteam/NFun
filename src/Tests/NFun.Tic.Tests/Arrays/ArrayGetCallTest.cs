@@ -1,7 +1,7 @@
 ﻿using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 
-namespace NFun.Tic.Tests.Arrays {
+namespace NFun.Tic.Tests.Arrays; 
 
 public class ArrayGetCallTest {
     [Test(Description = "y = x[0]")]
@@ -246,6 +246,4 @@ public class ArrayGetCallTest {
         result.AssertNamed(StateArray.Of(StateArray.Of(StateArray.Of(StatePrimitive.Real))), "x");
         result.AssertNamed(StateArray.Of(StatePrimitive.Real), "y");
     }
-}
-
 }

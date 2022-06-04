@@ -1,7 +1,7 @@
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests {
+namespace NFun.SyntaxTests; 
 
 [TestFixture]
 public class TextTest {
@@ -154,6 +154,4 @@ public class TextTest {
     [TestCase("y =  ‘some \'figure\' quotes“")]
     [TestCase("y =  “some \'figure\' quotes‘")]
     public void ObviousFails(string expr) => expr.AssertObviousFailsOnParse();
-}
-
 }

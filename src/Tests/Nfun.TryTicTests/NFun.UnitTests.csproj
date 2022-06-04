@@ -1,23 +1,26 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netcoreapp3.1</TargetFramework>
 
         <IsPackable>false</IsPackable>
 
         <AssemblyName>NFun.UnitTests</AssemblyName>
 
         <RootNamespace>NFun.UnitTests</RootNamespace>
+
+        <LangVersion>10</LangVersion>
+
+        <TargetFrameworks>net5.0;netcoreapp3.1</TargetFrameworks>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="nunit" Version="3.12.0"/>
-        <PackageReference Include="NUnit3TestAdapter" Version="3.13.0"/>
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0"/>
+        <PackageReference Include="nunit" Version="3.12.0" />
+        <PackageReference Include="NUnit3TestAdapter" Version="3.13.0" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\NFun.TestTools\NFun.TestTools.csproj"/>
+        <ProjectReference Include="..\NFun.TestTools\NFun.TestTools.csproj" />
     </ItemGroup>
 
 </Project>

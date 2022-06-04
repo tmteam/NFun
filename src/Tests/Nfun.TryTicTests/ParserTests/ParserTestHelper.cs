@@ -4,7 +4,7 @@ using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
 using NUnit.Framework;
 
-namespace NFun.UnitTests.ParserTests {
+namespace NFun.UnitTests.ParserTests; 
 
 public static class ParserTestHelper {
     public static Tout AssertType<Tout>(this object input, string message = null) {
@@ -18,6 +18,4 @@ public static class ParserTestHelper {
         Assert.IsInstanceOf<TSyntaxNode>(eq);
         return (TSyntaxNode)eq;
     }
-}
-
 }

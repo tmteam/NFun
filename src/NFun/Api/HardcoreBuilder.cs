@@ -4,7 +4,7 @@ using NFun.Interpretation.Functions;
 using NFun.Runtime;
 using NFun.Types;
 
-namespace NFun {
+namespace NFun; 
 
 public class HardcoreBuilder {
     private readonly (string, object)[] _constants;
@@ -36,6 +36,7 @@ public class HardcoreBuilder {
     /// <param name="ifExpressionSyntax">If-expression syntax settings</param>
     /// <param name="integerPreferredType">Which funny type is prefered for integer constant</param>
     /// <param name="realClrType">Which clr type is used for funny type real</param>
+    /// <param name="integerOverflow">overflow behaviour for integer arithmetics</param>
     public HardcoreBuilder WithDialect(IfExpressionSetup ifExpressionSyntax = IfExpressionSetup.IfIfElse,
         IntegerPreferredType integerPreferredType = IntegerPreferredType.I32,
         RealClrType realClrType = RealClrType.IsDouble, IntegerOverflow integerOverflow = IntegerOverflow.Checked) 
@@ -101,6 +102,4 @@ public class HardcoreBuilder {
             script, 
             BaseFunctions.GetFunctions(_dialect.TypeBehaviour).CloneWith(_customFunctions), 
             _dialect, new ConstantList(_dialect.TypeBehaviour, _constants), _mutableApriori);
-}
-
 }

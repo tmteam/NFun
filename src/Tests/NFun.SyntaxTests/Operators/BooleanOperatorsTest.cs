@@ -1,7 +1,7 @@
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests.Operators {
+namespace NFun.SyntaxTests.Operators; 
 
 public class BooleanOperatorsTest {
     [TestCase("y = true", true)]
@@ -25,6 +25,4 @@ public class BooleanOperatorsTest {
     [TestCase("y = false or not false", true)]
     public void ConstantBoolCalc(string expression, bool expected)
         => expression.AssertReturns("y", expected);
-}
-
 }

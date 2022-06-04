@@ -3,7 +3,7 @@ using NFun.Tokenization;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.UnitTests {
+namespace NFun.UnitTests; 
 
 [TestFixture]
 public class TokenHelperTest {
@@ -159,6 +159,4 @@ public class TokenHelperTest {
         var actual = flow.ReadType();
         Assert.AreEqual(expected, actual);
     }
-}
-
 }

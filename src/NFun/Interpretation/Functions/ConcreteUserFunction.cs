@@ -1,9 +1,8 @@
 using System.Linq;
 using NFun.Interpretation.Nodes;
 using NFun.Runtime;
-using NFun.Types;
 
-namespace NFun.Interpretation.Functions {
+namespace NFun.Interpretation.Functions; 
 
 internal class ConcreteUserFunction : FunctionWithManyArguments {
     internal VariableSource[] ArgumentSources { get; }
@@ -47,6 +46,4 @@ internal class ConcreteUserFunction : FunctionWithManyArguments {
 
     public override string ToString()
         => $"{Name}({string.Join(",", ArgTypes.Select(a => a.ToString()))}):{ReturnType}";
-}
-
 }

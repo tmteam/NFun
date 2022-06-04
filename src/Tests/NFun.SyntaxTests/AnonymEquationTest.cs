@@ -1,7 +1,7 @@
 ﻿using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests {
+namespace NFun.SyntaxTests; 
 
 class AnonymEquationTest {
     [TestCase("1", 1)]
@@ -44,6 +44,4 @@ class AnonymEquationTest {
     [TestCase("y(x) = x*2 \r y(3.0)  \r z(j) = j*j", 6.0)]
     public void AnonymousExpressionConstantEquatation(string expr, object expected)
         => expr.AssertAnonymousOut(expected);
-}
-
 }

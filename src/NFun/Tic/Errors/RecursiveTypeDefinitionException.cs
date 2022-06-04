@@ -1,4 +1,4 @@
-﻿namespace NFun.Tic.Errors {
+﻿namespace NFun.Tic.Errors; 
 
 public class RecursiveTypeDefinitionException : TicException {
     public RecursiveTypeDefinitionException(TicNode[] nodes) : base(
@@ -7,6 +7,4 @@ public class RecursiveTypeDefinitionException : TicException {
     }
 
     public TicNode[] Nodes { get; }
-}
-
 }

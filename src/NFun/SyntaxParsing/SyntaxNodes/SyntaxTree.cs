@@ -2,9 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
-using NFun.Types;
 
-namespace NFun.SyntaxParsing.SyntaxNodes {
+namespace NFun.SyntaxParsing.SyntaxNodes; 
 
 public class SyntaxTree : ISyntaxNode {
     public SyntaxTree(ISyntaxNode[] nodes) { Nodes = nodes; }
@@ -30,6 +29,4 @@ public class SyntaxTree : ISyntaxNode {
     public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
     public IEnumerable<ISyntaxNode> Children => Nodes;
     public int MaxNodeId { get; set; } = -1;
-}
-
 }

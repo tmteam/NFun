@@ -3,7 +3,7 @@ using NFun.Exceptions;
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests {
+namespace NFun.SyntaxTests; 
 
 [TestFixture]
 public class ErrorDetailsTest {
@@ -158,6 +158,4 @@ public class ErrorDetailsTest {
                 });
         }
     }
-}
-
 }

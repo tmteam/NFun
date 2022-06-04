@@ -1,6 +1,6 @@
 ﻿using NFun.Tic.SolvingStates;
 
-namespace NFun.Tic {
+namespace NFun.Tic; 
 
 public static class FunCallBuilderExtensions {
     public static void SetCall(this GraphBuilder builder, StatePrimitive ofTheCall, params int[] argumentsThenResult) {
@@ -167,6 +167,4 @@ public static class FunCallBuilderExtensions {
         var t = graph.InitializeVarNode();
         graph.SetCall(new ITicNodeState[] { StateArray.Of(t), StateArray.Of(t) }, new[] { arrId, resultId });
     }
-}
-
 }

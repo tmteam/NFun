@@ -6,7 +6,7 @@ using NFun.Runtime;
 
 // ReSharper disable InconsistentNaming
 
-namespace NFun.Benchmarks {
+namespace NFun.Benchmarks; 
 
 public class NFunCalculateBenchmark {
     private FunnyRuntime _const_1_runtime;
@@ -93,6 +93,4 @@ public class NFunCalculateBenchmark {
 
         return null;
     }
-}
-
 }

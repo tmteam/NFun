@@ -1,9 +1,8 @@
 using NFun.Exceptions;
 using NFun.Interpretation.Nodes;
 using NFun.Runtime;
-using NFun.Types;
 
-namespace NFun.Interpretation.Functions {
+namespace NFun.Interpretation.Functions; 
 
 internal class ConcreteHiOrderFunctionWithSyntaxNode : FunctionWithManyArguments {
     private readonly IExpressionNode _source;
@@ -46,6 +45,4 @@ internal class ConcreteHiOrderFunction : FunctionWithManyArguments {
 
 
     public override object Calc(object[] args) => ((IConcreteFunction)_source.FunnyValue).Calc(args);
-}
-
 }

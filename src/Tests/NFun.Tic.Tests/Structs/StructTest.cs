@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 
-namespace NFun.Tic.Tests.Structs {
+namespace NFun.Tic.Tests.Structs; 
 
 public class StructTest {
     [Test]
@@ -336,6 +336,4 @@ public class StructTest {
         Assert.AreEqual(generic, bFieldNode);
         result.AssertNamed(StatePrimitive.Bool, "y");
     }
-}
-
 }

@@ -3,7 +3,8 @@ using NFun.Exceptions;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.Examples {
+namespace NFun.Examples; 
+
 // All syntactic constructions are explained here
 public class SyntaxExamplesAndExplanation {
     [Test]
@@ -554,6 +555,4 @@ public class SyntaxExamplesAndExplanation {
         var runtime = Funny.Hardcore.Build("y = if (true) default else 42");
         Assert.AreEqual(0, runtime["y"].Value);
     }
-}
-
 }

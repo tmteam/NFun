@@ -1,7 +1,7 @@
 using System.Reflection;
 using NFun.Types;
 
-namespace NFun {
+namespace NFun; 
 
 internal readonly struct OutputProperty {
     public readonly string PropertyName;
@@ -13,6 +13,4 @@ internal readonly struct OutputProperty {
         PropertyInfo = propertyInfo;
     }
     public void SetValueToTargetProperty(object funnyValue, object clrTarget) => PropertyInfo.SetValue(clrTarget, Converter.ToClrObject(funnyValue));
-}
-
 }

@@ -1,7 +1,6 @@
 using NFun.Tokenization;
-using NFun.Types;
 
-namespace NFun.Interpretation.Nodes {
+namespace NFun.Interpretation.Nodes; 
 
 internal class IfElseExpressionNode : IExpressionNode {
     private readonly IExpressionNode[] _ifExpressionNodes;
@@ -34,6 +33,4 @@ internal class IfElseExpressionNode : IExpressionNode {
 
     public FunnyType Type { get; }
     public Interval Interval { get; }
-}
-
 }

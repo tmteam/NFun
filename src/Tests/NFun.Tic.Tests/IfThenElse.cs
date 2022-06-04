@@ -1,7 +1,7 @@
 ﻿using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 
-namespace NFun.Tic.Tests {
+namespace NFun.Tic.Tests; 
 
 class IfThenElse {
     [Test(Description = "y = if a: 1 else 0")]
@@ -147,6 +147,4 @@ class IfThenElse {
         var generic = result.AssertAndGetSingleArithGeneric();
         result.AssertAreGenerics(generic, "y1", "y2", "y3");
     }
-}
-
 }

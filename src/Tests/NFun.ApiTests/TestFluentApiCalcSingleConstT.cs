@@ -3,7 +3,7 @@ using NFun.Exceptions;
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.ApiTests {
+namespace NFun.ApiTests; 
 
 public class TestFluentApiCalcSingleConstT {
     [Test]
@@ -116,6 +116,4 @@ public class TestFluentApiCalcSingleConstT {
     [Test]
     public void UseDecimalWithBuilderWithoutDialect_throws()
         => TestHelper.AssertObviousFailsOnApiUsage(()=>Funny.WithConstant("id",42).Calc<decimal>("123"));
-}
-
 }

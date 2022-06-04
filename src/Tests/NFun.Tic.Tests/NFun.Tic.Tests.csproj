@@ -1,13 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netcoreapp3.0</TargetFramework>
 
         <IsPackable>false</IsPackable>
 
         <AssemblyName>NFun.Tic.Tests</AssemblyName>
 
         <RootNamespace>NFun.Tic.Tests</RootNamespace>
+
+        <TargetFrameworks>net5.0;netcoreapp3.0</TargetFrameworks>
+
+        <LangVersion>10</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>

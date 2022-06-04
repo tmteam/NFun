@@ -3,7 +3,7 @@
     <PropertyGroup>
         <PackageVersion>0.9.8</PackageVersion>
         <Version>0.9.8</Version>
-        <LangVersion>9</LangVersion>
+        <LangVersion>10</LangVersion>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Title>NFun</Title>
         <Authors>tmteam</Authors>

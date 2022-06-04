@@ -6,7 +6,7 @@ using NFun.Runtime.Arrays;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.UnitTests.Converters {
+namespace NFun.UnitTests.Converters; 
 
 public class MockyType {
     public int Age { get; set; }
@@ -115,6 +115,4 @@ public class ConvertInputTest {
         ));
         Assert.IsInstanceOf<FunnyStruct>(result);
     }
-}
-
 }

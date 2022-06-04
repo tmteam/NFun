@@ -13,7 +13,7 @@ using NFun.Tic.Errors;
 using NFun.TypeInferenceAdapter;
 using NFun.Types;
 
-namespace NFun.Interpretation {
+namespace NFun.Interpretation; 
 
 internal static class RuntimeBuilderHelper {
     public static ConcreteUserFunction BuildConcrete(
@@ -133,7 +133,7 @@ internal static class RuntimeBuilderHelper {
             j++;
         }
 
-        var sortResults = GraphTools.SortCycledTopology(dependenciesGraph);
+        var sortResults = CycleTopologySorting.Sort(dependenciesGraph);
 
         var functionSolveOrder = new UserFunctionDefinitionSyntaxNode[sortResults.NodeNames.Length];
         for (int k = 0; k < sortResults.NodeNames.Length; k++)
@@ -164,6 +164,4 @@ internal static class RuntimeBuilderHelper {
                 type: actualType,
                 access: FunnyVarAccess.Input,typeBehaviour);
     }
-}
-
 }

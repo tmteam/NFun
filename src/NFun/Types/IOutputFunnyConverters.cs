@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
-using NFun.Interpretation.Functions;
 using NFun.Runtime;
 using NFun.Runtime.Arrays;
 
-namespace NFun.Types {
+namespace NFun.Types; 
 
 public interface IOutputFunnyConverter {
     public Type ClrType { get; }
@@ -192,6 +190,4 @@ public class DynamicStructToDictionaryOutputFunnyConverter : IOutputFunnyConvert
 
         return result;
     }
-}
-
 }

@@ -3,7 +3,7 @@ using NFun.TestTools;
 using NFun.Tic;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests {
+namespace NFun.SyntaxTests; 
 
 public class HellTests {
     [SetUp]
@@ -204,6 +204,4 @@ public class HellTests {
                    ";
         var res = expr.Calc();
     }
-}
-
 }

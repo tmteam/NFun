@@ -6,7 +6,7 @@ using NFun.Runtime.Arrays;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.UnitTests.Converters {
+namespace NFun.UnitTests.Converters; 
 
 public class InputTypeConvertersTest {
     [TestCase((byte)1, BaseFunnyType.UInt8)]
@@ -182,7 +182,4 @@ class UserMoqType {
     // ReSharper disable once UnusedMember.Global
     public bool State { set; private get; }
     public Decimal Balance { get; }
-}
-
-
 }

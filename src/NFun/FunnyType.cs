@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using NFun.Runtime;
 using NFun.Types;
 
-namespace NFun {
+namespace NFun; 
 
 /// <summary>
 /// NFun type description
@@ -51,7 +50,7 @@ public readonly struct FunnyType {
         ArrayTypeSpecification = null;
         GenericId = null;
         StructTypeSpecification = null;
-        GenericArgumentsCount = inputs.Length + 1;
+        _genericArgumentsCount = inputs.Length + 1;
     }
 
     private FunnyType(int genericId) {
@@ -60,7 +59,7 @@ public readonly struct FunnyType {
         ArrayTypeSpecification = null;
         StructTypeSpecification = null;
         GenericId = genericId;
-        GenericArgumentsCount = 0;
+        _genericArgumentsCount = 0;
     }
 
     private FunnyType(BaseFunnyType baseType) {
@@ -70,7 +69,7 @@ public readonly struct FunnyType {
         FunTypeSpecification = null;
         ArrayTypeSpecification = null;
         GenericId = null;
-        GenericArgumentsCount = 0;
+        _genericArgumentsCount = 0;
     }
 
     private FunnyType(FunnyType arrayElementType) {
@@ -79,7 +78,7 @@ public readonly struct FunnyType {
         FunTypeSpecification = null;
         ArrayTypeSpecification = new ArrayTypeSpecification(arrayElementType);
         GenericId = null;
-        GenericArgumentsCount = 1;
+        _genericArgumentsCount = 1;
     }
 
     private FunnyType(StructTypeSpecification fields) {
@@ -88,7 +87,7 @@ public readonly struct FunnyType {
         FunTypeSpecification = null;
         ArrayTypeSpecification = null;
         GenericId = null;
-        GenericArgumentsCount = 0;
+        _genericArgumentsCount = 0;
     }
 
     public bool IsText => ArrayTypeSpecification?.FunnyType.BaseType == BaseFunnyType.Char;
@@ -107,7 +106,7 @@ public readonly struct FunnyType {
     /// 1 for arrays
     /// N+1 for functions with N arguments
     /// </summary>
-    public readonly int GenericArgumentsCount;
+    private readonly int _genericArgumentsCount;
     /// <summary>
     /// Returns type argument for complex types.
     /// For array - it returns element type if index == 0
@@ -121,8 +120,8 @@ public readonly struct FunnyType {
             throw new InvalidOperationException($"Type '{this}' contains no generic arguments because it is primitive");
         if (index == 0)
             return ArrayTypeSpecification?.FunnyType ?? FunTypeSpecification.Output;
-        if (index >= GenericArgumentsCount)
-            throw new InvalidOperationException($"Type '{this}' contains only {GenericArgumentsCount} generic arguments");
+        if (index >= _genericArgumentsCount)
+            throw new InvalidOperationException($"Type '{this}' contains only {_genericArgumentsCount} generic arguments");
         return FunTypeSpecification.Inputs[index - 1];
     }
 
@@ -358,6 +357,4 @@ public readonly struct FunnyType {
     // ReSharper disable once MemberCanBePrivate.Global
     public bool CanBeConvertedTo(FunnyType to)
         => VarTypeConverter.CanBeConverted(this, to);
-}
-
 }

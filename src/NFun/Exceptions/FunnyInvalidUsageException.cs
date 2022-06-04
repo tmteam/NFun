@@ -1,7 +1,6 @@
 using System;
-using NFun.Types;
 
-namespace NFun.Exceptions {
+namespace NFun.Exceptions; 
 
 public class FunnyInvalidUsageException : Exception {
     public static FunnyInvalidUsageException OutputTypeConstainsNoParameterlessCtor(Type type)
@@ -14,6 +13,4 @@ public class FunnyInvalidUsageException : Exception {
         => new($"Clr type {clrType.Name} cannot be used as input funny type {type}");
 
     private FunnyInvalidUsageException(string message) : base(message) { }
-}
-
 }

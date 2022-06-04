@@ -1,7 +1,7 @@
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests {
+namespace NFun.SyntaxTests; 
 
 public class NameConflictsTest {
     [TestCase("concat = 1+2.0", "concat", 3.0)]
@@ -30,6 +30,4 @@ public class NameConflictsTest {
     [TestCase("foo(x) = x +1\r foo = 1+2 \ry = foo*3  ")]
     [TestCase("foo(x) = x +1\r foo = 1+2 \ry = foo*3 \r  ")]
     public void ObviousFails(string expr) => expr.AssertObviousFailsOnParse();
-}
-
 }

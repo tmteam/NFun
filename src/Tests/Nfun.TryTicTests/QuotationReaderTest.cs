@@ -3,7 +3,7 @@ using NFun.Exceptions;
 using NFun.Tokenization;
 using NUnit.Framework;
 
-namespace NFun.UnitTests {
+namespace NFun.UnitTests; 
 
 [TestOf(typeof(QuotationReader))]
 public class QuotationReaderTest {
@@ -89,6 +89,4 @@ public class QuotationReaderTest {
         var (result, resultPosition) = QuotationReader.ReadQuotation(text, 0,'\'');
         Assert.AreEqual(-1, resultPosition);
     }
-}
-
 }

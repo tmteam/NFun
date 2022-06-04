@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using NFun.InfinityProfiling.Sets;
 using NFun.Runtime;
 
-namespace NFun.InfinityProfiling {
+namespace NFun.InfinityProfiling; 
 
 public static class ProfileTools {
     public static object ProfileCalculation(this FunnyRuntime runtime, params (string id, object clrValue)[] values) {
@@ -82,6 +82,4 @@ public static class ProfileTools {
         set.ComplexDummyBubble();
         set.ComplexConstMultiArrays();
     }
-}
-
 }

@@ -1,8 +1,7 @@
 using System.Collections.Generic;
-using NFun.Interpretation.Functions;
 using NFun.Types;
 
-namespace NFun.Interpretation {
+namespace NFun.Interpretation; 
 
 internal interface IConstantList {
     bool TryGetConstant(string id, out ConstantValueAndType constant);
@@ -25,11 +24,6 @@ internal class ConstantList : IConstantList {
         _dictionary = new Dictionary<string, ConstantValueAndType>();
     }
 
-    private ConstantList(TypeBehaviour typeBehaviour, Dictionary<string, ConstantValueAndType> dictionary) {
-        _typeBehaviour = typeBehaviour;
-        _dictionary = dictionary;
-    }
-
     internal ConstantList(TypeBehaviour typeBehaviour, (string id, object value)[] items) {
         _typeBehaviour = typeBehaviour;
         _dictionary = new Dictionary<string, ConstantValueAndType>(items.Length);
@@ -50,7 +44,5 @@ internal class ConstantList : IConstantList {
 
     public bool TryGetConstant(string id, out ConstantValueAndType constant) =>
         _dictionary.TryGetValue(id, out constant);
-
-}
 
 }

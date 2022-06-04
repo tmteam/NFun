@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace NFun.Runtime {
+namespace NFun.Runtime; 
 
 public class FunnyStruct : IReadOnlyDictionary<string, object> {
     internal class FieldsDictionary: Dictionary<string,object> {
@@ -54,6 +54,4 @@ public class FunnyStruct : IReadOnlyDictionary<string, object> {
     public object this[string key] => _values[key];
     public IEnumerable<string> Keys => _values.Keys;
     public IEnumerable<object> Values => _values.Values;
-}
-
 }

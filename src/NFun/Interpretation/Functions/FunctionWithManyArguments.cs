@@ -3,7 +3,7 @@ using NFun.Interpretation.Nodes;
 using NFun.Tokenization;
 using NFun.Types;
 
-namespace NFun.Interpretation.Functions {
+namespace NFun.Interpretation.Functions; 
 
 public abstract class FunctionWithManyArguments : IConcreteFunction {
     public string Name { get; }
@@ -45,6 +45,4 @@ public abstract class FunctionWithManyArguments : IConcreteFunction {
 
     public override string ToString()
         => $"fun {TypeHelper.GetFunSignature(Name, ReturnType, ArgTypes)}";
-}
-
 }

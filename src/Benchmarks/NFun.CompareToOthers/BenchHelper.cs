@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics;
 
-namespace NFun.CompareToOthers {
+namespace NFun.CompareToOthers; 
 
 public static class BenchHelper {
     public static TimeSpan Measure(Action action, int iterations, out long totalAlloc) {
@@ -17,6 +17,4 @@ public static class BenchHelper {
         totalAlloc = GC.GetTotalAllocatedBytes() - allocated;
         return sw.Elapsed;
     }
-}
-
 }

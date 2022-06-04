@@ -1,7 +1,7 @@
 using NFun.SyntaxParsing.SyntaxNodes;
 using NUnit.Framework;
 
-namespace NFun.UnitTests.ParserTests {
+namespace NFun.UnitTests.ParserTests; 
 
 public class StructFieldAccessSyntaxNodeParserTest {
     [Test]
@@ -85,6 +85,4 @@ public class StructFieldAccessSyntaxNodeParserTest {
         Assert.AreEqual("a", fieldAccNode.Source.AssertType<NamedIdSyntaxNode>().Id);
         Assert.AreEqual("b", fieldAccNode.FieldName);
     }
-}
-
 }

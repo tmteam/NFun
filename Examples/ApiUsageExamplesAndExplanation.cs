@@ -4,7 +4,8 @@ using NFun.Runtime;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.Examples {
+namespace NFun.Examples; 
+
 // Here are examples of using the API. See SyntaxExamplesAndExplanation.cs
 // for a better understanding of syntax
 //
@@ -198,14 +199,14 @@ public class ApiUsageExamples {
                          .WithConstant("foo", 42)
                          .BuildForCalc<User, long>();
 
-        var user = GetUserModel();
+        User user = GetUserModel();
 
-        var res1 = calculator.Calc("foo + age - id", user);
-        var res2 = calculator.Calc("foo + 2* age", user);
+        long res1 = calculator.Calc("foo + age - id", user);
+        long res2 = calculator.Calc("foo + 2* age", user);
         //it is also possible to build a lambda from a calculator
-        var lambda = calculator.ToLambda("foo + age - id");
+        Func<User, long> lambda = calculator.ToLambda("foo + age - id");
         //and calculate it later
-        var res3 = lambda(user);
+        long res3 = lambda(user);
 
         //You can build different calculators for different input output types combination using following methods:
         //.BuildForCalc<TInput>()
@@ -358,10 +359,12 @@ public class ApiUsageExamples {
 
         // FunnyParseException - Parsing errors (incorrect syntax) 
         Assert.Throws<FunnyParseException>(() => Funny.Calc("-abc-"));
+        
+        var context =  new SomeModel(age:42, cars: new []{new Car{Price = 6000},new Car{Price = 6200}});
         Assert.Throws<FunnyParseException>(
             () => Funny
                   .WithConstant("foo", 42)
-                  .Calc<User, Outputs>("-abc-", GetUserModel()));
+                  .CalcContext("-abc", context));
         Assert.Throws<FunnyParseException>(() => Funny.Hardcore.Build("-abc-"));
 
         // FunnyRuntimeException - Execution errors
@@ -390,12 +393,6 @@ class ModelWithoutParameterlessCtor {
     public ModelWithoutParameterlessCtor(int i) { }
 }
 
-class Outputs {
-    public bool Adult { get; set; }
-    public double Price { get; set; }
-    public string NameAndId { get; set; }
-}
-
 class User {
     public int Age { get; set; }
     public string Name { get; set; }
@@ -419,6 +416,4 @@ class SomeModel {
     public bool Adult { get; set; }   //Can be used as output
     public double Price { get; set; } //Can be used as output
         
-}
-
 }

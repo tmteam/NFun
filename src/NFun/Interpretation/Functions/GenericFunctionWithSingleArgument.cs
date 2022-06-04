@@ -1,19 +1,10 @@
 using System;
-using NFun.Types;
 
-namespace NFun.Interpretation.Functions {
+namespace NFun.Interpretation.Functions; 
 
 public abstract class GenericFunctionWithSingleArgument : GenericFunctionBase {
     protected GenericFunctionWithSingleArgument(string name, FunnyType returnType, params FunnyType[] argTypes) : base(
         name, returnType, argTypes) { }
-
-    protected GenericFunctionWithSingleArgument(
-        string name, GenericConstrains[] constrains,
-        FunnyType returnType, params FunnyType[] argTypes) : base(name, constrains, returnType, argTypes) { }
-
-    protected GenericFunctionWithSingleArgument(
-        string name, GenericConstrains constrains,
-        FunnyType returnType, params FunnyType[] argTypes) : base(name, constrains, returnType, argTypes) { }
 
     protected abstract object Calc(object a);
 
@@ -35,6 +26,4 @@ public abstract class GenericFunctionWithSingleArgument : GenericFunctionBase {
 
         public override object Calc(object a) => _calc(a);
     }
-}
-
 }

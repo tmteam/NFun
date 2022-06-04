@@ -1,4 +1,4 @@
-namespace NFun.Tokenization {
+namespace NFun.Tokenization; 
 
 public enum TokType {
     NewLine,
@@ -162,6 +162,4 @@ public enum TokType {
     Default,
     Reserved,
     
-}
-
 }

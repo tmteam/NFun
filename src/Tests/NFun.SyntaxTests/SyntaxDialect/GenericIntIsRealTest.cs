@@ -5,7 +5,7 @@ using NFun.TestTools;
 using NFun.Tic;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests.SyntaxDialect {
+namespace NFun.SyntaxTests.SyntaxDialect; 
 
 public abstract class GenericIntConstantTestBase<T> {
     private readonly IntegerPreferredType _integerPreferredType;
@@ -231,6 +231,4 @@ public abstract class GenericIntConstantTestBase<T> {
 
     protected CalculationResult Calc(string expr)
         => Build(expr).Calc();
-}
-
 }

@@ -3,7 +3,7 @@ using System.Linq;
 using NFun.Tokenization;
 using NUnit.Framework;
 
-namespace NFun.UnitTests {
+namespace NFun.UnitTests; 
 
 [TestFixture]
 public class TokenizerTest {
@@ -271,6 +271,4 @@ public class TokenizerTest {
         string expression, TokType type, int start,
         int end)
         => CheckSingleToken(expression, 1, type, start, end);
-}
-
 }

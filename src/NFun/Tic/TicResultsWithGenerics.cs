@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NFun.Tic.SolvingStates;
 
-namespace NFun.Tic {
+namespace NFun.Tic; 
 
 public class TicResultsWithGenerics : ITicResults {
     private readonly IReadOnlyList<TicNode> _typeVariables;
@@ -77,6 +77,4 @@ public class TicResultsWithGenerics : ITicResults {
             return _genericsStates;
         }
     }
-}
-
 }

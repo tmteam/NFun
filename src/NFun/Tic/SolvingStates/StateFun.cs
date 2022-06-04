@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NFun.Tic.Stages;
 
-namespace NFun.Tic.SolvingStates {
+namespace NFun.Tic.SolvingStates; 
 
 public class StateFun : ICompositeState, ITypeState, ITicNodeState {
     public static StateFun Of(ITicNodeState[] argTypes, ITicNodeState returnType) {
@@ -155,7 +155,6 @@ public class StateFun : ICompositeState, ITypeState, ITicNodeState {
                 if (arg.State is StateRefTo)
                     return true;
             }
-
             return false;
         }
     }
@@ -209,6 +208,4 @@ public class StateFun : ICompositeState, ITypeState, ITicNodeState {
         IStateCombination2dimensionalVisitor visitor, TicNode ancestorNode, TicNode descendantNode,
         ICompositeState ancestor)
         => visitor.Apply(ancestor, this, ancestorNode, descendantNode);
-}
-
 }

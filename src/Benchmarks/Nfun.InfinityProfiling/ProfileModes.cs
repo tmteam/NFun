@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using NFun.InfinityProfiling.Sets;
 
-namespace NFun.InfinityProfiling {
+namespace NFun.InfinityProfiling; 
 
 public enum ProfileSet {
     Primitives,
@@ -299,6 +299,4 @@ public static class ProfileModes {
             $"{1000 * iterations / min:000000.0} |  " +
             $"{rms * 10000 / iterations:0000}  |  ");
     }
-}
-
 }

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using NFun.Tic.SolvingStates;
 
-namespace NFun.Tic {
+namespace NFun.Tic; 
 
 public interface ITicResults {
     TicNode GetVariableNode(string variableName);
@@ -17,6 +17,4 @@ public interface ITicResults {
     /// </summary>
     int GenericsCount { get; }
     ConstrainsState[] GenericsStates { get; }
-}
-
 }

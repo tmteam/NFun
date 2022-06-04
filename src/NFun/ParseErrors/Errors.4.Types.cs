@@ -11,7 +11,7 @@ using NFun.Tic.SolvingStates;
 using NFun.Tokenization;
 using NFun.TypeInferenceAdapter;
 
-namespace NFun.ParseErrors {
+namespace NFun.ParseErrors; 
 
 internal static partial class Errors {
 
@@ -47,7 +47,7 @@ internal static partial class Errors {
                    IncompatibleAncestorSyntaxNodeException syntaxNodeEx => TranslateIncompatibleAncestorError(rootToSearch, syntaxNodeEx, allTicNodes),
                    CannotSetStateSyntaxNodeException stateException     => TranslateStateError(ticException, rootToSearch, stateException),
                    RecursiveTypeDefinitionException e                   => TranslateRecursiveTypeDefinitionError(rootToSearch, e, allTicNodes),
-                   TicInvalidFunctionalVarableSignature signature       => TranlsateInvalidFunctionalVarError(rootToSearch, signature, allTicNodes),
+                   TicInvalidFunctionalVariableSignature signature       => TranlsateInvalidFunctionalVarError(rootToSearch, signature, allTicNodes),
                    _                                                    => GeneralTypeError(799, ticException, rootToSearch)
                };
     }
@@ -85,7 +85,7 @@ internal static partial class Errors {
                 if (parent is StructFieldAccessSyntaxNode f)
                 {
                     if (failed is GenericIntSyntaxNode || failed is ConstantSyntaxNode)
-                        return new(722, $"Ivalid syntax. Element '{GetDescription(failed)}' has no fields. What did you mean?", f.Interval);
+                        return new(722, $"Invalid syntax. Element '{GetDescription(failed)}' has no fields. What did you mean?", f.Interval);
                     return new(725, $"Element '{GetDescription(failed)}' has no fields. What did you mean?", f.Interval);
                 }
             }
@@ -115,15 +115,15 @@ internal static partial class Errors {
             return new FunnyParseException(728, $"Recursive type definition", rootToSearch.Interval);
         else
         {
-            var firstelement = cycle[0];
+            var firstElement = cycle[0];
             if (cycle.Count == 1)
-                return new(731, $"Recursive type definition of '{GetDescription(firstelement)}'", firstelement.Interval);
+                return new(731, $"Recursive type definition of '{GetDescription(firstElement)}'", firstElement.Interval);
             else
-                return new(734, $"Recursive type definition of '{GetDescription(firstelement)}'. Cycle: ${String.Join("->", cycle.Select(GetDescription))}", firstelement.Interval);
+                return new(734, $"Recursive type definition of '{GetDescription(firstElement)}'. Cycle: ${String.Join("->", cycle.Select(GetDescription))}", firstElement.Interval);
         }
     }
 
-    private static FunnyParseException TranlsateInvalidFunctionalVarError(ISyntaxNode rootToSearch, TicInvalidFunctionalVarableSignature signature, TicNode[] allTicNodes) {
+    private static FunnyParseException TranlsateInvalidFunctionalVarError(ISyntaxNode rootToSearch, TicInvalidFunctionalVariableSignature signature, TicNode[] allTicNodes) {
         var ticNode = FindConcreteNodeForGenericOrNull(signature.FuncNode, allTicNodes);
         var node = rootToSearch.FindNodePath(ticNode?.Name).FirstOrDefault();
         var interval = (node ?? rootToSearch).Interval;
@@ -223,10 +223,8 @@ internal static partial class Errors {
     private static string GetDescription(TicNode node) {
         var concrete = node.GetNonReferenceSafeOrNull();
         return concrete == null
-            ? "reqursive type"
+            ? "recursive type"
             : TicTypesConverter.Concrete.Convert(concrete.State).ToString();
     }
-
-}
 
 }

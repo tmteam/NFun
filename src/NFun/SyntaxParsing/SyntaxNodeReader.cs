@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Globalization;
 using System.Linq;
 using System.Numerics;
@@ -11,7 +10,7 @@ using NFun.Runtime.Arrays;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
 
-namespace NFun.SyntaxParsing {
+namespace NFun.SyntaxParsing; 
 
 /// <summary>
 /// Reads concrete syntax nodes from token flow
@@ -180,7 +179,7 @@ public static class SyntaxNodeReader {
             var dimensions = val[1] switch {
                                  'b' => 2,
                                  'x' => 16,
-                                 _ => throw new NFunImpossibleException("Hex or bin constant has invalid format: " + val)
+                                 _   => throw new NFunImpossibleException("Hex or bin constant has invalid format: " + val)
                              };
             var substr = val.Replace("_", null)[2..];
 
@@ -831,6 +830,4 @@ public static class SyntaxNodeReader {
             throw Errors.TypeExpectedButWas(current);
         return type;
     }
-}
-
 }

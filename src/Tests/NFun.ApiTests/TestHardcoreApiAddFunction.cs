@@ -7,7 +7,7 @@ using NFun.TestTools;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.ApiTests {
+namespace NFun.ApiTests; 
 
 public class TestHardcoreApiAddFunction {
     [Test]
@@ -157,6 +157,4 @@ public class FunctionMock : FunctionWithManyArguments {
     }
 
     public override object Calc(object[] args) => _calc(args);
-}
-
 }

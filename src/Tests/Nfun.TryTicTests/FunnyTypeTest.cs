@@ -1,7 +1,7 @@
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.UnitTests {
+namespace NFun.UnitTests; 
 
 [TestFixture]
 public class FunnyTypeTest {
@@ -476,6 +476,4 @@ public class FunnyTypeTest {
         var t2 = FunnyType.StructOf();
         Assert.AreNotEqual(t1, t2);
     }
-}
-
 }

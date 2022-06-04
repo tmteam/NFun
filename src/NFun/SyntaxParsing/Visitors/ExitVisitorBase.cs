@@ -1,9 +1,9 @@
 using NFun.SyntaxParsing.SyntaxNodes;
 
-namespace NFun.SyntaxParsing.Visitors {
+namespace NFun.SyntaxParsing.Visitors; 
 
 public abstract class ExitVisitorBase : ISyntaxNodeVisitor<bool> {
-    public virtual bool Visit(AnonymFunctionSyntaxNode anonymFunNode) => true;
+    public virtual bool Visit(AnonymFunctionSyntaxNode node) => true;
     public virtual bool Visit(ArraySyntaxNode node) => true;
     public virtual bool Visit(EquationSyntaxNode node) => true;
     public virtual bool Visit(FunCallSyntaxNode node) => true;
@@ -11,7 +11,7 @@ public abstract class ExitVisitorBase : ISyntaxNodeVisitor<bool> {
     public virtual bool Visit(SuperAnonymFunctionSyntaxNode node) => true;
     public virtual bool Visit(StructFieldAccessSyntaxNode node) => true;
     public virtual bool Visit(StructInitSyntaxNode node) => true;
-    public bool Visit(DefaultValueSyntaxNode arrowAnonymFunNode) => true;
+    public bool Visit(DefaultValueSyntaxNode node) => true;
     public virtual bool Visit(IfThenElseSyntaxNode node) => true;
     public virtual bool Visit(IfCaseSyntaxNode node) => true;
     public virtual bool Visit(ListOfExpressionsSyntaxNode node) => true;
@@ -22,6 +22,4 @@ public abstract class ExitVisitorBase : ISyntaxNodeVisitor<bool> {
     public virtual bool Visit(UserFunctionDefinitionSyntaxNode node) => true;
     public virtual bool Visit(VarDefinitionSyntaxNode node) => true;
     public virtual bool Visit(NamedIdSyntaxNode node) => true;
-}
-
 }

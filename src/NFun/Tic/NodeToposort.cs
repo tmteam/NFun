@@ -8,7 +8,7 @@ using NFun.Tic.SolvingStates;
 // ReSharper disable ConvertIfStatementToSwitchStatement
 // ReSharper disable LoopCanBeConvertedToQuery
 
-namespace NFun.Tic {
+namespace NFun.Tic; 
 
 public class NodeToposort {
     public TicNode[] NonReferenceOrdered { get; private set; }
@@ -189,6 +189,4 @@ public class NodeToposort {
         // Whole cycle is not found yet            
         // step back
     }
-}
-
 }

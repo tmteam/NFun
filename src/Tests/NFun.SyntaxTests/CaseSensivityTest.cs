@@ -1,7 +1,7 @@
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests {
+namespace NFun.SyntaxTests; 
 
 [TestFixture]
 public class CaseSensivityTest {
@@ -25,6 +25,4 @@ public class CaseSensivityTest {
     [TestCase("x = X+ y")]
     [TestCase("test = Test + tEst")]
     public void ObviouslyFails(string expr) => expr.AssertObviousFailsOnParse();
-}
-
 }

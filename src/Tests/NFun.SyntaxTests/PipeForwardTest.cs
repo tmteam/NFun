@@ -1,7 +1,7 @@
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests {
+namespace NFun.SyntaxTests; 
 
 [TestFixture]
 public class PipeForwardTest {
@@ -64,6 +64,4 @@ public class PipeForwardTest {
     [TestCase(@"y = f|")]
     [TestCase(@"y = [1,2,3].max")]
     public void ObviousFails(string expr) => expr.AssertObviousFailsOnParse();
-}
-
 }

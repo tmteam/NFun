@@ -1,13 +1,13 @@
 using NFun.SyntaxParsing.SyntaxNodes;
 
-namespace NFun.SyntaxParsing.Visitors {
+namespace NFun.SyntaxParsing.Visitors; 
 
 public abstract class EnterVisitorBase : ISyntaxNodeVisitor<VisitorEnterResult> {
     protected virtual VisitorEnterResult DefaultVisitEnter(ISyntaxNode node)
         => VisitorEnterResult.Continue;
 
-    public virtual VisitorEnterResult Visit(AnonymFunctionSyntaxNode anonymFunNode) =>
-        DefaultVisitEnter(anonymFunNode);
+    public virtual VisitorEnterResult Visit(AnonymFunctionSyntaxNode node) =>
+        DefaultVisitEnter(node);
 
     public virtual VisitorEnterResult Visit(ArraySyntaxNode node) => DefaultVisitEnter(node);
     public virtual VisitorEnterResult Visit(EquationSyntaxNode node) => DefaultVisitEnter(node);
@@ -27,6 +27,4 @@ public abstract class EnterVisitorBase : ISyntaxNodeVisitor<VisitorEnterResult> 
     public virtual VisitorEnterResult Visit(UserFunctionDefinitionSyntaxNode node) => DefaultVisitEnter(node);
     public virtual VisitorEnterResult Visit(VarDefinitionSyntaxNode node) => DefaultVisitEnter(node);
     public virtual VisitorEnterResult Visit(NamedIdSyntaxNode node) => DefaultVisitEnter(node);
-}
-
 }

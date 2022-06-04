@@ -4,7 +4,7 @@ using NFun.Tic.Errors;
 using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 
-namespace NFun.Tic.Tests {
+namespace NFun.Tic.Tests; 
 
 public static class TestHelper {
     public static void AssertThrowsRecursiveTicTypedDefinition(Action delegateCode) {
@@ -189,6 +189,4 @@ public static class TestHelper {
 
         return false;
     }
-}
-
 }

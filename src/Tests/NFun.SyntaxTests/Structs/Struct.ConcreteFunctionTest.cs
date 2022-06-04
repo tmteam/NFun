@@ -2,7 +2,7 @@ using NFun.TestTools;
 using NFun.Tic;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests.Structs {
+namespace NFun.SyntaxTests.Structs; 
 
 public class StructConcreteFunctionsTest {
     [Test]
@@ -120,6 +120,4 @@ public class StructConcreteFunctionsTest {
         @"f(n):int = n.field;
                   y = fact({nonExistingField=x})")]
     public void ObviousFails(string expr) => expr.AssertObviousFailsOnParse();
-}
-
 }

@@ -1,4 +1,4 @@
-namespace NFun.Types {
+namespace NFun.Types; 
 
 public class FunTypeSpecification {
     public readonly FunnyType Output;
@@ -8,6 +8,4 @@ public class FunTypeSpecification {
         Output = output;
         Inputs = inputs;
     }
-}
-
 }

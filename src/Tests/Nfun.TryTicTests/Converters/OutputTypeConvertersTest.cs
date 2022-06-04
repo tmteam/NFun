@@ -6,7 +6,7 @@ using NFun.Runtime.Arrays;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.UnitTests.Converters {
+namespace NFun.UnitTests.Converters; 
 
 public class OutputTypeConvertersTest {
     [TestCase((byte)1, BaseFunnyType.UInt8)]
@@ -172,6 +172,4 @@ class UserMoqOutputType {
     // ReSharper disable once UnassignedGetOnlyAutoProperty
     // ReSharper disable once UnusedMember.Global
     public bool State { get; }
-}
-
 }

@@ -1,7 +1,7 @@
 using NFun.Exceptions;
 using NFun.Tokenization;
 
-namespace NFun.ParseErrors {
+namespace NFun.ParseErrors; 
 
 internal static partial class Errors {
     internal static FunnyParseException NewLineMissedBeforeRepeatedIf(Interval interval) => new(
@@ -12,6 +12,4 @@ internal static partial class Errors {
 
     internal static FunnyParseException StructFieldSpecificationIsNotSupportedYet(Interval interval) => new(
         222, $"Struct field type specification is not supported yet", interval);
-}
-
 }

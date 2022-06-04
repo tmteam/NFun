@@ -4,7 +4,7 @@ using NFun.TestTools;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.UnitTests.Converters {
+namespace NFun.UnitTests.Converters; 
 
 public class IOTypeConvertersTest {
     [TestCase((byte)24)]
@@ -87,6 +87,4 @@ public class IOTypeConvertersTest {
         var clrObject = outputConverter.ToClrObject(funObject);
         Assert.IsTrue(TestHelper.AreSame(originClrObject, clrObject));
     }
-}
-
 }

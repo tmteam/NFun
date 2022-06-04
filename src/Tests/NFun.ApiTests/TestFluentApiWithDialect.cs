@@ -2,7 +2,7 @@ using System;
 using NFun.Exceptions;
 using NUnit.Framework;
 
-namespace NFun.ApiTests {
+namespace NFun.ApiTests; 
 
 public class TestFluentApiWithDialect {
     [Test]
@@ -70,6 +70,4 @@ public class TestFluentApiWithDialect {
                    .WithDialect(setup)
                    .BuildForCalc<ModelWithInt, Object>()
                    .Calc("if(true) false else true", new ModelWithInt()));
-}
-
 }

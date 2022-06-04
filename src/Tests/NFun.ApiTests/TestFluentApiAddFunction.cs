@@ -3,7 +3,7 @@ using NFun.Interpretation.Functions;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.ApiTests {
+namespace NFun.ApiTests; 
 
 public class TestFluentApiAddFunctionTest {
     [Test]
@@ -191,6 +191,4 @@ public class TestFluentApiAddFunctionTest {
 
         Assert.AreEqual(result, 30);
     }
-}
-
 }

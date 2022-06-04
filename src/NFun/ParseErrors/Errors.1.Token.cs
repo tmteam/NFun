@@ -1,7 +1,7 @@
 using NFun.Exceptions;
 using NFun.Tokenization;
 
-namespace NFun.ParseErrors {
+namespace NFun.ParseErrors; 
 
 internal partial class Errors {
 
@@ -9,7 +9,7 @@ internal partial class Errors {
         110, $"Single '{quoteSymbol}' at end of string.", start, end);
 
     internal static FunnyParseException BackslashAtEndOfText(int start, int end) => new(
-        113, $"Single '\\' at end of text.", start, end);
+        113, "Single '\\' at end of text.", start, end);
 
     internal static FunnyParseException UnknownEscapeSequence(string sequence, int start, int end) => new(
         116, $"Unknown escape sequence \\{sequence}", start, end);
@@ -25,7 +25,7 @@ internal partial class Errors {
         operatorTok.Interval);
 
     internal static FunnyParseException MinusDuplicates(Tok previousTok, Tok currentTok) => new(
-        128, $"'--' is not allowed", previousTok.Start, currentTok.Finish);
+        128, "'--' is not allowed", previousTok.Start, currentTok.Finish);
 
     internal static FunnyParseException OperatorIsUnknown(Tok token) => new(
         131, $"operator '{ToText(token)}' is unknown", token.Interval);
@@ -38,6 +38,4 @@ internal partial class Errors {
 
     internal static FunnyParseException CannotParseDecimalNumber(Interval interval) => new(
         139, "Cannot parse decimal number", interval);
-}
-
 }

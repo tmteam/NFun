@@ -3,7 +3,7 @@ using NFun.Interpretation.Functions;
 using NFun.Tic;
 using NFun.Tic.SolvingStates;
 
-namespace NFun.TypeInferenceAdapter {
+namespace NFun.TypeInferenceAdapter; 
 
 public class TypeInferenceResultsBuilder {
     private readonly List<StateRefTo[]> _genericFunctionTypes = new();
@@ -85,6 +85,4 @@ public class TypeInferenceResults {
         => _bodyTypeSolving.GetVariableNodeOrNull(name)?.State;
     public ITicNodeState GetVariableType(string name)
         => _bodyTypeSolving.GetVariableNode(name).State;
-}
-
 }

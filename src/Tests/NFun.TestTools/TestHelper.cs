@@ -11,7 +11,7 @@ using NFun.Tic;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.TestTools {
+namespace NFun.TestTools; 
 
 public static class TestHelper {
     public static CalculationResult Calc(this FunnyRuntime runtime, string id, object clrValue) =>
@@ -313,6 +313,4 @@ readonly struct VariableTypeAndValue {
     }
 
     public override string ToString() => $"{Name}:{Type} = {Value}";
-}
-
 }

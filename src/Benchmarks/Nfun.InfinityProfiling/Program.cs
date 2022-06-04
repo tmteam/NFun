@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace NFun.InfinityProfiling {
+namespace NFun.InfinityProfiling; 
 
 internal class Program {
     private static void Main(string[] args) {
@@ -156,6 +156,4 @@ internal class Program {
         CalcPrimitive,
         BuildPrimitive
     }
-}
-
 }

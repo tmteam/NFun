@@ -1,10 +1,8 @@
-using System;
 using System.Collections.Generic;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
-using NFun.Types;
 
-namespace NFun.SyntaxParsing {
+namespace NFun.SyntaxParsing; 
 
 public static class SyntaxNodeFactory {
 
@@ -80,6 +78,4 @@ public static class SyntaxNodeFactory {
     public static ISyntaxNode UserFunctionDef(
         List<TypedVarDefSyntaxNode> arguments, FunCallSyntaxNode fun, ISyntaxNode expression, FunnyType outputType) =>
         new UserFunctionDefinitionSyntaxNode(arguments, fun, expression, outputType);
-}
-
 }

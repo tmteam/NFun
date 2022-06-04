@@ -1,11 +1,15 @@
 using System.Collections.Generic;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
-using NFun.Types;
 
-namespace NFun.SyntaxParsing.SyntaxNodes {
+namespace NFun.SyntaxParsing.SyntaxNodes; 
 
 public class ResultFunCallSyntaxNode : IFunCallSyntaxNode {
+    public ResultFunCallSyntaxNode(ISyntaxNode resultExpression, ISyntaxNode[] args, Interval interval) {
+        ResultExpression = resultExpression;
+        Args = args;
+        Interval = interval;
+    }
     public FunnyType OutputType { get; set; }
     public int OrderNumber { get; set; }
     public bool IsInBrackets { get; set; }
@@ -22,12 +26,4 @@ public class ResultFunCallSyntaxNode : IFunCallSyntaxNode {
                 yield return node;
         }
     }
-
-    public ResultFunCallSyntaxNode(ISyntaxNode resultExpression, ISyntaxNode[] args, Interval interval) {
-        ResultExpression = resultExpression;
-        Args = args;
-        Interval = interval;
-    }
-}
-
 }

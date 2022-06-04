@@ -1,7 +1,7 @@
 using NFun.Interpretation.Functions;
 using NFun.Types;
 
-namespace NFun.UnitTests {
+namespace NFun.UnitTests; 
 
 public class FunctionDictionaryTest {
     //todo FunDicTests
@@ -20,6 +20,4 @@ class MamaFunction : FunctionWithManyArguments {
     public MamaFunction(string name) : base(name, FunnyType.Text) { }
 
     public override object Calc(object[] args) => MamaReturn;
-}
-
 }

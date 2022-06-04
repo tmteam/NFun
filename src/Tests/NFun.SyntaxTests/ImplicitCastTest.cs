@@ -1,7 +1,7 @@
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests {
+namespace NFun.SyntaxTests; 
 
 [TestFixture]
 public class ImplicitCastTest {
@@ -148,6 +148,4 @@ public class ImplicitCastTest {
     [TestCase("0x1_0000_0000", "uint32")]
     public void ObviousFails_NumberConstantImplicitCast(string constant, string typeTo)
         => $"customConvert(a:{typeTo}):{typeTo} = a; y = customConvert({constant})".AssertObviousFailsOnParse();
-}
-
 }

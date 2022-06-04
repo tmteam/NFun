@@ -2,7 +2,7 @@ using System;
 using NFun.Interpretation.Functions;
 using NFun.Types;
 
-namespace NFun.Functions {
+namespace NFun.Functions; 
 
 public class BitShiftLeftFunction : GenericFunctionBase {
     public BitShiftLeftFunction() : base(
@@ -26,17 +26,17 @@ public class BitShiftLeftFunction : GenericFunctionBase {
 
     private class Int16Function : FunctionWithTwoArgs {
         public Int16Function() : base(CoreFunNames.BitShiftLeft, FunnyType.Int16, FunnyType.Int16, FunnyType.UInt8) { }
-        public override object Calc(object a, object b) => (Int16)(((Int16)a) << ((byte)b));
+        public override object Calc(object a, object b) => (Int16)((Int16)a << (byte)b);
     }
 
     private class Int32Function : FunctionWithTwoArgs {
         public Int32Function() : base(CoreFunNames.BitShiftLeft, FunnyType.Int32, FunnyType.Int32, FunnyType.UInt8) { }
-        public override object Calc(object a, object b) => ((int)a) << ((byte)b);
+        public override object Calc(object a, object b) => (int)a << (byte)b;
     }
 
     private class Int64Function : FunctionWithTwoArgs {
         public Int64Function() : base(CoreFunNames.BitShiftLeft, FunnyType.Int64, FunnyType.Int64, FunnyType.UInt8) { }
-        public override object Calc(object a, object b) => ((long)a) << ((byte)b);
+        public override object Calc(object a, object b) => (long)a << (byte)b;
     }
 
     private class UInt8Function : FunctionWithTwoArgs {
@@ -52,7 +52,7 @@ public class BitShiftLeftFunction : GenericFunctionBase {
             CoreFunNames.BitShiftLeft, FunnyType.UInt16, FunnyType.UInt16,
             FunnyType.UInt8) { }
 
-        public override object Calc(object a, object b) => (UInt16)(((UInt16)a) << ((byte)b));
+        public override object Calc(object a, object b) => (UInt16)((UInt16)a << (byte)b);
     }
     
     private class UInt32Function : FunctionWithTwoArgs {
@@ -60,7 +60,7 @@ public class BitShiftLeftFunction : GenericFunctionBase {
             CoreFunNames.BitShiftLeft, FunnyType.UInt32, FunnyType.UInt32,
             FunnyType.UInt8) { }
 
-        public override object Calc(object a, object b) => (uint)(((uint)a) << ((byte)b));
+        public override object Calc(object a, object b) => (uint)((uint)a << (byte)b);
     }
 
     private class UInt64Function : FunctionWithTwoArgs {
@@ -68,7 +68,7 @@ public class BitShiftLeftFunction : GenericFunctionBase {
             CoreFunNames.BitShiftLeft, FunnyType.UInt64, FunnyType.UInt64,
             FunnyType.UInt8) { }
 
-        public override object Calc(object a, object b) => (ulong)(((ulong)a) << ((byte)b));
+        public override object Calc(object a, object b) => (ulong)((ulong)a << (byte)b);
     }
 }
 
@@ -94,17 +94,17 @@ public class BitShiftRightFunction : GenericFunctionBase {
 
     private class Int16Function : FunctionWithTwoArgs {
         public Int16Function() : base(CoreFunNames.BitShiftLeft, FunnyType.Int16, FunnyType.Int16, FunnyType.UInt8) { }
-        public override object Calc(object a, object b) => (Int16)(((Int16)a) >> ((byte)b));
+        public override object Calc(object a, object b) => (Int16)((Int16)a >> (byte)b);
     }
 
     private class Int32Function : FunctionWithTwoArgs {
         public Int32Function() : base(CoreFunNames.BitShiftRight, FunnyType.Int32, FunnyType.Int32, FunnyType.UInt8) { }
-        public override object Calc(object a, object b) => ((int)a) >> ((byte)b);
+        public override object Calc(object a, object b) => (int)a >> (byte)b;
     }
 
     private class Int64Function : FunctionWithTwoArgs {
         public Int64Function() : base(CoreFunNames.BitShiftRight, FunnyType.Int64, FunnyType.Int64, FunnyType.UInt8) { }
-        public override object Calc(object a, object b) => ((long)a) >> ((byte)b);
+        public override object Calc(object a, object b) => (long)a >> (byte)b;
     }
 
     private class UInt8Function : FunctionWithTwoArgs {
@@ -120,7 +120,7 @@ public class BitShiftRightFunction : GenericFunctionBase {
             CoreFunNames.BitShiftLeft, FunnyType.UInt16, FunnyType.UInt16,
             FunnyType.UInt8) { }
 
-        public override object Calc(object a, object b) => (UInt16)(((UInt16)a) >> ((byte)b));
+        public override object Calc(object a, object b) => (UInt16)((UInt16)a >> (byte)b);
     }
 
     private class UInt32Function : FunctionWithTwoArgs {
@@ -138,6 +138,4 @@ public class BitShiftRightFunction : GenericFunctionBase {
 
         public override object Calc(object a, object b) => (ulong)((ulong)a >> (byte)b);
     }
-}
-
 }

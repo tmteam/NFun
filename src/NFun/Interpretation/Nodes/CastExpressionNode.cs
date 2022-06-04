@@ -1,9 +1,8 @@
 using System;
-using NFun.Interpretation.Functions;
 using NFun.Tokenization;
 using NFun.Types;
 
-namespace NFun.Interpretation.Nodes {
+namespace NFun.Interpretation.Nodes; 
 
 internal class CastExpressionNode : IExpressionNode {
     public static IExpressionNode GetConvertedOrOriginOrThrow(IExpressionNode origin, FunnyType to, TypeBehaviour typeBehaviour) {
@@ -28,12 +27,11 @@ internal class CastExpressionNode : IExpressionNode {
     }
 
     public Interval Interval { get; }
+    
     public FunnyType Type { get; }
 
     public object Calc() {
         var res = _origin.Calc();
         return _converter(res);
     }
-}
-
 }

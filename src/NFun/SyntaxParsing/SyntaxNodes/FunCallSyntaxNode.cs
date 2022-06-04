@@ -2,15 +2,21 @@ using System.Collections.Generic;
 using NFun.Interpretation.Functions;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
-using NFun.Types;
 
-namespace NFun.SyntaxParsing.SyntaxNodes {
+namespace NFun.SyntaxParsing.SyntaxNodes; 
 
 public interface IFunCallSyntaxNode : ISyntaxNode {
     ISyntaxNode[] Args { get; }
 }
 
 public class FunCallSyntaxNode : IFunCallSyntaxNode {
+    public FunCallSyntaxNode(string id, ISyntaxNode[] args, Interval interval, bool isPipeForward, bool isOperator = false) {
+        Id = id;
+        Args = args;
+        Interval = interval;
+        IsPipeForward = isPipeForward;
+        IsOperator = isOperator;
+    }
     public FunnyType OutputType { get; set; }
     public int OrderNumber { get; set; }
     public bool IsInBrackets { get; set; }
@@ -22,13 +28,4 @@ public class FunCallSyntaxNode : IFunCallSyntaxNode {
     public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
     public IEnumerable<ISyntaxNode> Children => Args;
     public bool IsPipeForward { get; }
-    public FunCallSyntaxNode(string id, ISyntaxNode[] args, Interval interval, bool isPipeForward, bool isOperator = false) {
-        Id = id;
-        Args = args;
-        Interval = interval;
-        IsPipeForward = isPipeForward;
-        IsOperator = isOperator;
-    }
-}
-
 }

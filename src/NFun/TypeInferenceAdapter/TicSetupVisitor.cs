@@ -12,7 +12,7 @@ using NFun.Tic;
 using NFun.Tic.SolvingStates;
 using NFun.Types;
 
-namespace NFun.TypeInferenceAdapter {
+namespace NFun.TypeInferenceAdapter; 
 
 public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     private readonly VariableScopeAliasTable _aliasScope;
@@ -531,7 +531,6 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
                     _ticTypeGraph.SetVar($"g'{argsCount}'{id}", node.OrderNumber);
 
                     node.IdType = NamedIdNodeType.GenericFunction;
-                    node.IdContent = new FunctionalVariableCallInfo(signature, generics);
                 }
                 else
                 {
@@ -539,7 +538,6 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
                     _ticTypeGraph.SetVar($"f'{argsCount}'{id}", node.OrderNumber);
 
                     node.IdType = NamedIdNodeType.ConcreteFunction;
-                    node.IdContent = new FunctionalVariableCallInfo(signature, null);
                 }
 
                 _resultsBuilder.RememberFunctionalVariable(node.OrderNumber, signature);
@@ -663,6 +661,4 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     }
 
     #endregion
-}
-
 }

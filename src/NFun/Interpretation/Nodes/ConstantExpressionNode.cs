@@ -1,9 +1,8 @@
 using System;
-using NFun.Interpretation.Functions;
 using NFun.Tokenization;
 using NFun.Types;
 
-namespace NFun.Interpretation.Nodes {
+namespace NFun.Interpretation.Nodes; 
 
 internal class ConstantExpressionNode : IExpressionNode {
     private readonly object _value;
@@ -43,6 +42,4 @@ internal class ConstantExpressionNode : IExpressionNode {
     public FunnyType Type { get; }
     public Interval Interval { get; }
     public object Calc() => _value;
-}
-
 }

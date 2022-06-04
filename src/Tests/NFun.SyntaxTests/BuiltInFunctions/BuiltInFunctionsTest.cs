@@ -3,7 +3,7 @@ using NFun.TestTools;
 using NFun.Tic;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests.BuiltInFunctions {
+namespace NFun.SyntaxTests.BuiltInFunctions; 
 
 [TestFixture]
 public class ConvertFunctionsTest {
@@ -354,7 +354,5 @@ public class BuiltInFunctionsTest {
     [TestCase("y= max([])")]
     [TestCase("y = [1,2] in [1,2,3,4]")]
     public void MayBeFails(string expr) => expr.AssertObviousFailsOnParse();
-
-}
 
 }

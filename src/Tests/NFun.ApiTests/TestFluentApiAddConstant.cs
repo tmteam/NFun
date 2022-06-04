@@ -3,7 +3,7 @@ using NFun.Interpretation.Functions;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.ApiTests {
+namespace NFun.ApiTests; 
 
 public class TestFluentApiAddConstant {
     [Test]
@@ -116,7 +116,5 @@ public class TestFluentApiAddConstant {
         Assert.AreEqual(result.Taxes, (Decimal)expected);
         Assert.AreEqual(result.Price, expected);
     }
-
-}
 
 }

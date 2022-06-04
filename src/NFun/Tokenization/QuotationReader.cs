@@ -1,7 +1,7 @@
 using System.Text;
 using NFun.ParseErrors;
 
-namespace NFun.Tokenization {
+namespace NFun.Tokenization; 
 
 public static class QuotationReader {
     /// <summary>
@@ -67,6 +67,4 @@ public static class QuotationReader {
 
         return (sb.ToString(), closeQuotationPosition);
     }
-}
-
 }

@@ -7,7 +7,7 @@ using NFun.Runtime;
 using NFun.SyntaxParsing;
 using NFun.Types;
 
-namespace NFun {
+namespace NFun; 
 
 internal static class FluentApiTools {
     public static TOutput CreateOutputModelFromResults<TOutput>(FunnyRuntime runtime,Memory<OutputProperty> outputs) 
@@ -73,9 +73,9 @@ internal static class FluentApiTools {
     }
 
     public static Memory<InputProperty> AddAprioriInputs<TInput>(
-            this MutableAprioriTypesMap mutableApriori, 
-            TypeBehaviour typeBehaviour, 
-            bool ignoreIfHasSetter = false) {
+        this MutableAprioriTypesMap mutableApriori, 
+        TypeBehaviour typeBehaviour, 
+        bool ignoreIfHasSetter = false) {
         
         var inputProperties = typeof(TInput).GetProperties(BindingFlags.Instance | BindingFlags.Public);
         var inputTypes = new InputProperty[inputProperties.Length];
@@ -137,6 +137,4 @@ internal static class FluentApiTools {
             }
         }
     }
-}
-
 }

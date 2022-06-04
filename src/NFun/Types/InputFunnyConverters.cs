@@ -1,13 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using NFun.Exceptions;
-using NFun.Interpretation.Functions;
 using NFun.Runtime;
 using NFun.Runtime.Arrays;
 
-namespace NFun.Types {
+namespace NFun.Types; 
 
 /// <summary>
 /// Converts CLR type and value into NFun type and value
@@ -51,7 +49,7 @@ public class DecimalToDoubleInputFunnyConverter : IInputFunnyConverter {
 }
 
 public class DoubleToDecimalInputFunnyConverter : IInputFunnyConverter {
-    public FunnyType FunnyType { get; } = FunnyType.Real;
+    public FunnyType FunnyType => FunnyType.Real;
     public object ToFunObject(object clrObject) =>  (Decimal)(double)clrObject;
 }
 
@@ -185,6 +183,4 @@ public class ClrArrayInputTypeFunnyConverter : IInputFunnyConverter {
                 throw FunnyInvalidUsageException.InputTypeCannotBeConverted(clrObject.GetType(), FunnyType);
         }
     }
-}
-
 }

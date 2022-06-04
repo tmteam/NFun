@@ -1,10 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using NFun.Interpretation;
-using NFun.Interpretation.Functions;
 using NFun.Types;
 
-namespace NFun.Runtime {
+namespace NFun.Runtime; 
 
 public class FunnyRuntime {
     public TypeBehaviour TypeBehaviour { get; }
@@ -24,15 +23,7 @@ public class FunnyRuntime {
     /// Returns variable with given name (ignore case). Returns null if variable is not found
     /// </summary>
     /// <param name="name"></param>
-    public IFunnyVar this[string name]
-    {
-        get
-        {
-            if (!VariableDictionary.TryGetUsages(name, out var usage))
-                return null;
-            return usage?.Source;
-        }
-    }
+    public IFunnyVar this[string name] => VariableDictionary.TryGetUsages(name, out var usage)? usage?.Source:  null;
 
     public IReadOnlyList<IFunnyVar> Variables => VariableDictionary.GetAllSources();
 
@@ -40,6 +31,4 @@ public class FunnyRuntime {
         foreach (var equation in _equations)
             equation.Run();
     }
-}
-
 }

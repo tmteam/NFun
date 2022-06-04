@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq;
+using NFun.Interpretation;
 using NFun.Interpretation.Functions;
+using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tic;
 using NFun.Tic.SolvingStates;
@@ -8,7 +10,7 @@ using NFun.TypeInferenceAdapter;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.UnitTests.TicTests {
+namespace NFun.UnitTests.TicTests; 
 
 public static class TestHelper {
     public static void AssertAreSame(ITicNodeState expected, ITicNodeState actual) {
@@ -22,7 +24,7 @@ public static class TestHelper {
         }
     }
 
-    public static bool AreSame(ITicNodeState a, ITicNodeState b) {
+    private static bool AreSame(ITicNodeState a, ITicNodeState b) {
         if (a is StateRefTo r1)
             a = r1.Node.GetNonReference().State;
         if (b is StateRefTo r2)
@@ -49,7 +51,7 @@ public static class TestHelper {
 
         return graph.Solve();
     }
-
+    
     public static TypeInferenceResults SolveAndGetResults(string equation) {
         Console.WriteLine(equation);
 
@@ -94,11 +96,7 @@ public static class TestHelper {
         return genericNode;
     }
 
-    public static void AssertGenericTypeIsArith(this TicNode node) {
-        AssertGenericType(node, StatePrimitive.U24, StatePrimitive.Real, false);
-    }
-
-    public static void AssertGenericType(
+    private static void AssertGenericType(
         this TicNode node, StatePrimitive desc, StatePrimitive anc,
         bool isComparable = false) {
         var generic = node.State as ConstrainsState;
@@ -153,6 +151,4 @@ public static class TestHelper {
             Assert.AreEqual(type, results.GetSyntaxNodeOrNull(id).GetNonReference().State);
         }
     }
-}
-
 }

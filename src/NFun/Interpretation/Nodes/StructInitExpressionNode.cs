@@ -1,9 +1,7 @@
-using System.Collections.Generic;
 using NFun.Runtime;
 using NFun.Tokenization;
-using NFun.Types;
 
-namespace NFun.Interpretation.Nodes {
+namespace NFun.Interpretation.Nodes; 
 
 internal class StructInitExpressionNode : IExpressionNode {
     private readonly string[] _fieldNames;
@@ -27,6 +25,4 @@ internal class StructInitExpressionNode : IExpressionNode {
 
         return new FunnyStruct(fields);
     }
-}
-
 }

@@ -2,7 +2,7 @@
 using System.Linq;
 using NFun.Tic.Stages;
 
-namespace NFun.Tic.SolvingStates {
+namespace NFun.Tic.SolvingStates; 
 
 public class ConstrainsState : ITicNodeState {
     public ConstrainsState(ITypeState desc = null, StatePrimitive anc = null) {
@@ -152,14 +152,15 @@ public class ConstrainsState : ITicNodeState {
 
     private BasicDescType _basicUnsolvedDescType = BasicDescType.None;
 
-    private static BasicDescType ToBasicDescType(ITicNodeState state) => state switch {
-                                                                             StateRefTo refTo => ToBasicDescType(
-                                                                                 refTo.GetNonReference()),
-                                                                             StateFun    => BasicDescType.IsFunction,
-                                                                             StateArray  => BasicDescType.IsArray,
-                                                                             StateStruct => BasicDescType.IsStruct,
-                                                                             _           => BasicDescType.None
-                                                                         };
+    private static BasicDescType ToBasicDescType(ITicNodeState state) =>
+        state switch {
+            StateRefTo refTo => ToBasicDescType(
+                refTo.GetNonReference()),
+            StateFun    => BasicDescType.IsFunction,
+            StateArray  => BasicDescType.IsArray,
+            StateStruct => BasicDescType.IsStruct,
+            _           => BasicDescType.None
+        };
 
     public void AddDescendant(ITypeState type) {
         if (type == null)
@@ -197,21 +198,13 @@ public class ConstrainsState : ITicNodeState {
         };
 
         if (result._basicUnsolvedDescType == BasicDescType.None)
-        {
             result._basicUnsolvedDescType = constrainsState._basicUnsolvedDescType;
-        }
         else if (constrainsState._basicUnsolvedDescType == BasicDescType.None)
-        {
             result._basicUnsolvedDescType = _basicUnsolvedDescType;
-        }
         else if (constrainsState._basicUnsolvedDescType == this._basicUnsolvedDescType)
-        {
             result._basicUnsolvedDescType = _basicUnsolvedDescType;
-        }
         else if (constrainsState._basicUnsolvedDescType != _basicUnsolvedDescType)
-        {
             result.AddDescendant(StatePrimitive.Any);
-        }
 
         result.AddDescendant(constrainsState.Descendant);
 
@@ -405,6 +398,4 @@ public class ConstrainsState : ITicNodeState {
         IStateCombination2dimensionalVisitor visitor, TicNode ancestorNode, TicNode descendantNode,
         ICompositeState ancestor)
         => visitor.Apply(ancestor, this, ancestorNode, descendantNode);
-}
-
 }

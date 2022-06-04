@@ -7,7 +7,7 @@ using System.Threading;
 using NFun.Exceptions;
 using NFun.Tic.SolvingStates;
 
-namespace NFun.Tic {
+namespace NFun.Tic; 
 
 public enum TicNodeType {
     /// <summary>
@@ -29,7 +29,7 @@ public enum TicNodeType {
 
 public class TicNode {
     internal int VisitMark = -1;
-    internal bool Registrated = false;
+    internal bool Registered = false;
 
     private ITicNodeState _state;
 
@@ -40,17 +40,17 @@ public class TicNode {
     private readonly int _uid = 0;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static TicNode CreateSyntaxNode(int id, ITicNodeState state, bool registrated = false)
-        => new(id, state, TicNodeType.SyntaxNode) { Registrated = registrated };
+    public static TicNode CreateSyntaxNode(int id, ITicNodeState state, bool registered = false)
+        => new(id, state, TicNodeType.SyntaxNode) { Registered = registered };
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TicNode CreateNamedNode(object name, ITicNodeState state)
-        => new(name, state, TicNodeType.Named) { Registrated = true };
+        => new(name, state, TicNodeType.Named) { Registered = true };
 
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static TicNode CreateTypeVariableNode(string name, ITicNodeState state, bool registrated = false)
-        => new(name, state, TicNodeType.TypeVariable) { Registrated = registrated };
+    public static TicNode CreateTypeVariableNode(string name, ITicNodeState state, bool registered = false)
+        => new(name, state, TicNodeType.TypeVariable) { Registered = registered };
 
     private TicNode(object name, ITicNodeState state, TicNodeType type) {
         _uid = Interlocked.Increment(ref _interlockedId);
@@ -208,6 +208,4 @@ public class TicNode {
     public override int GetHashCode() => _uid;
 
     public void ClearAncestors() { _ancestors.Clear(); }
-}
-
 }

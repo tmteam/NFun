@@ -1,8 +1,7 @@
 using NFun.Runtime;
 using NFun.Tokenization;
-using NFun.Types;
 
-namespace NFun.Interpretation.Nodes {
+namespace NFun.Interpretation.Nodes; 
 
 internal class StructFieldAccessExpressionNode : IExpressionNode {
     private readonly string _fieldName;
@@ -18,6 +17,4 @@ internal class StructFieldAccessExpressionNode : IExpressionNode {
     public Interval Interval { get; }
     public FunnyType Type { get; }
     public object Calc() => ((FunnyStruct)_source.Calc()).GetValue(_fieldName);
-}
-
 }

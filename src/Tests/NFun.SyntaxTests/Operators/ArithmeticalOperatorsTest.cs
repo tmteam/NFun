@@ -3,7 +3,7 @@ using NFun.Exceptions;
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests.Operators {
+namespace NFun.SyntaxTests.Operators; 
 
 public class ArithmeticalOperatorsTest {
     [TestCase("y = 2*3", 6)]
@@ -343,6 +343,4 @@ public class ArithmeticalOperatorsTest {
     [TestCase("a: int a=4")]
     [TestCase("a:int = 2/4")]
     public void ObviouslyFails(string expr) => expr.AssertObviousFailsOnParse();
-}
-
 }

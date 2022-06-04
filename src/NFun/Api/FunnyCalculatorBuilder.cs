@@ -6,7 +6,7 @@ using NFun.Interpretation.Functions;
 using NFun.Runtime;
 using NFun.Types;
 
-namespace NFun {
+namespace NFun; 
 
 public class FunnyCalculatorBuilder {
     internal static FunnyCalculatorBuilder Default => new();
@@ -150,6 +150,4 @@ public class FunnyCalculatorBuilder {
             aprioriTypesMap: aprioriTypes,
             dialect: _dialect);
     }
-}
-
 }

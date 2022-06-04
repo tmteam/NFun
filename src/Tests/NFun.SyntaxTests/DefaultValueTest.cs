@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests {
+namespace NFun.SyntaxTests; 
 
 public class DefaultValueTest {
     [TestCase("y:bool = default", default(bool))]
@@ -117,7 +117,7 @@ public class DefaultValueTest {
                 age =  0,
                 car = new { name = "" },
                 ids = Array.Empty<int>()
-                });
+            });
     
     [Test]
     public void ArrayOfStructsDefConstantTest() =>
@@ -130,6 +130,4 @@ public class DefaultValueTest {
     [TestCase("vasa.default")]
     [TestCase("(default+default)[0]")]
     public void ObviousFailsOnParse(string expression) => expression.AssertObviousFailsOnParse();
-}
-
 }

@@ -1,9 +1,7 @@
-namespace NFun.SyntaxParsing.Visitors {
+namespace NFun.SyntaxParsing.Visitors; 
 
 public enum VisitorEnterResult {
     Continue,
     Failed,
     Skip
-}
-
 }

@@ -6,7 +6,7 @@ using NFun.Exceptions;
 using NFun.ParseErrors;
 using NFun.Runtime.Arrays;
 
-namespace NFun.Types {
+namespace NFun.Types; 
 
 public static class TypeBehaviourExtensions {
 
@@ -259,6 +259,4 @@ public static class TypeBehaviourExtensions {
 
         return new DynamicStructTypeInputFunnyConverter(dictionaryFields, funnyType);
     }
-}
-
 }

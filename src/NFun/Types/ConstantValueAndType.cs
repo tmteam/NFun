@@ -1,4 +1,4 @@
-namespace NFun.Types {
+namespace NFun.Types; 
 
 internal readonly struct ConstantValueAndType {
     public readonly object FunnyValue;
@@ -10,6 +10,4 @@ internal readonly struct ConstantValueAndType {
     }
 
     public override string ToString() => $"Constant {FunnyValue} of {Type}";
-}
-
 }

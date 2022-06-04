@@ -1,6 +1,6 @@
 using NFun.Tic.SolvingStates;
 
-namespace NFun.Tic.Stages {
+namespace NFun.Tic.Stages; 
 
 /// <summary>
 /// 2-dimentional visitor implement some operation
@@ -72,6 +72,4 @@ public interface IStateCombination2dimensionalVisitor {
         ICompositeState descendant,
         TicNode ancestorNode,
         TicNode descendantNode);
-}
-
 }

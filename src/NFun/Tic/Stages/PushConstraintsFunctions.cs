@@ -1,9 +1,9 @@
 using NFun.Tic.SolvingStates;
 
-namespace NFun.Tic.Stages {
+namespace NFun.Tic.Stages; 
 
 public class PushConstraintsFunctions : IStateCombination2dimensionalVisitor {
-    public static IStateCombination2dimensionalVisitor Singletone { get; } = new PushConstraintsFunctions();
+    public static IStateCombination2dimensionalVisitor Singleton { get; } = new PushConstraintsFunctions();
 
     public bool Apply(StatePrimitive ancestor, StatePrimitive descendant, TicNode _, TicNode __)
         => descendant.CanBeImplicitlyConvertedTo(ancestor);
@@ -159,6 +159,4 @@ public class PushConstraintsFunctions : IStateCombination2dimensionalVisitor {
 
         SolvingFunctions.PushConstraints(descFun.RetNode, ancFun.RetNode);
     }
-}
-
 }

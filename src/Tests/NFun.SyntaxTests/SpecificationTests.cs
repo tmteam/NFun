@@ -6,7 +6,7 @@ using NFun.Tic;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests {
+namespace NFun.SyntaxTests; 
 
 // <summary>
 // Confirmation of betta syntax document examples
@@ -304,6 +304,4 @@ yPublic   = yprivate + xpublic"
         Assert.AreEqual(2, runtime.Variables.FirstOrDefault(i => i.Name == "in1")?.Value);
         Assert.AreEqual(2, runtime["in1"].Value);
     }
-}
-
 }

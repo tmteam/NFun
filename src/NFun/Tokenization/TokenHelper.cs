@@ -3,7 +3,7 @@ using System.Globalization;
 using NFun.Exceptions;
 using NFun.ParseErrors;
 
-namespace NFun.Tokenization {
+namespace NFun.Tokenization; 
 
 public static class TokenHelper {
     /// <exception cref="SystemException">Throws if string contains invalid format</exception>
@@ -117,6 +117,4 @@ public static class TokenHelper {
         flow.MoveNext();
         return cur;
     }
-}
-
 }

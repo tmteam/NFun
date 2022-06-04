@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using NFun.Exceptions;
 using NFun.Interpretation.Nodes;
 using NFun.Runtime;
-using NFun.Types;
 
-namespace NFun.Interpretation.Functions {
+namespace NFun.Interpretation.Functions; 
 
 internal class ConcreteRecursiveUserFunction : ConcreteUserFunction {
     readonly Stack<object[]> _recursiveArgsStack = new();
@@ -43,6 +42,4 @@ internal class ConcreteRecursiveUserFunction : ConcreteUserFunction {
         FunnyType[] argTypes)
         :
         base(name, argumentSources, expression, argTypes) { }
-}
-
 }

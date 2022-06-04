@@ -1,10 +1,8 @@
-using System;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
-using NFun.Types;
 
-namespace NFun.TypeInferenceAdapter {
+namespace NFun.TypeInferenceAdapter; 
 
 public class ApplyTiResultEnterVisitor : EnterVisitorBase {
     private readonly TypeInferenceResults _solving;
@@ -41,6 +39,4 @@ public class ApplyTiResultEnterVisitor : EnterVisitorBase {
 
     public override VisitorEnterResult Visit(UserFunctionDefinitionSyntaxNode node)
         => VisitorEnterResult.Continue;
-}
-
 }

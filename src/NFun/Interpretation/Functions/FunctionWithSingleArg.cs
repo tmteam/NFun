@@ -3,7 +3,7 @@ using NFun.Interpretation.Nodes;
 using NFun.Tokenization;
 using NFun.Types;
 
-namespace NFun.Interpretation.Functions {
+namespace NFun.Interpretation.Functions; 
 
 public abstract class FunctionWithSingleArg : IConcreteFunction {
     protected FunctionWithSingleArg(string name, FunnyType returnType, FunnyType argType) {
@@ -37,6 +37,4 @@ public abstract class FunctionWithSingleArg : IConcreteFunction {
 
         return new FunOfSingleArgExpressionNode(this, castedNode, interval);
     }
-}
-
 }

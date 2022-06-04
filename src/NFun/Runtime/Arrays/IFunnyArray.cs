@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
-using NFun.Types;
 
-namespace NFun.Runtime.Arrays {
+namespace NFun.Runtime.Arrays; 
 
 public interface IFunnyArray : IEnumerable<object> {
     FunnyType ElementType { get; }
@@ -12,6 +11,4 @@ public interface IFunnyArray : IEnumerable<object> {
     IEnumerable<T> As<T>();
     Array ClrArray { get; }
     string ToText();
-}
-
 }

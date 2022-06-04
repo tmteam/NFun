@@ -1,7 +1,7 @@
 ﻿using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 
-namespace NFun.Tic.Tests {
+namespace NFun.Tic.Tests; 
 
 class Equality {
     [Test]
@@ -70,6 +70,4 @@ class Equality {
         result.AssertNoGenerics();
         result.AssertNamed(StatePrimitive.Bool, "y");
     }
-}
-
 }

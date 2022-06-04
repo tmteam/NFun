@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using NFun.Exceptions;
 
-namespace NFun.ConsoleApp {
+namespace NFun.ConsoleApp; 
 
 class Program {
     static void Main(string[] args) {
@@ -99,6 +99,4 @@ class Program {
                 sb.Append("\r\n" + expression);
         }
     }
-}
-
 }

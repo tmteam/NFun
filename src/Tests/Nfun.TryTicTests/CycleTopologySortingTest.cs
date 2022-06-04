@@ -2,16 +2,16 @@ using System;
 using NFun.SyntaxParsing;
 using NUnit.Framework;
 
-namespace NFun.UnitTests.GraphTools {
+namespace NFun.UnitTests; 
 
 [TestFixture]
-public class GraphToolsTest_CycledTopologySort {
+public class CycleTopologySortingTest {
     [Test]
     public void OneNodeCycle_CycleIgnored() {
         var graph = new[] {
             From(0)
         };
-        var res = SyntaxParsing.GraphTools.SortCycledTopology(graph);
+        var res = CycleTopologySorting.Sort(graph);
         AssertHasRoute(new[] { 0 }, res);
     }
 
@@ -21,7 +21,7 @@ public class GraphToolsTest_CycledTopologySort {
             From(1),
             From(0)
         };
-        var res = SyntaxParsing.GraphTools.SortCycledTopology(graph);
+        var res = CycleTopologySorting.Sort(graph);
         AssertHasCycle(new[] { 0, 1 }, res);
     }
 
@@ -33,7 +33,7 @@ public class GraphToolsTest_CycledTopologySort {
             From(1),
             From(2)
         };
-        var res = SyntaxParsing.GraphTools.SortCycledTopology(graph);
+        var res = CycleTopologySorting.Sort(graph);
         AssertHasCycle(new[] { 0, 1, 2, 3 }, res);
     }
 
@@ -51,7 +51,7 @@ public class GraphToolsTest_CycledTopologySort {
             From(5),
             From(6)
         };
-        var res = SyntaxParsing.GraphTools.SortCycledTopology(graph);
+        var res = CycleTopologySorting.Sort(graph);
         AssertHasCycle(new[] { 3, 4, 5 }, res);
     }
 
@@ -62,7 +62,7 @@ public class GraphToolsTest_CycledTopologySort {
             From(1),
             NoParents
         };
-        var res = SyntaxParsing.GraphTools.SortCycledTopology(graph);
+        var res = CycleTopologySorting.Sort(graph);
         AssertHasRoute(new[] { 1, 0 }, res);
     }
 
@@ -74,7 +74,7 @@ public class GraphToolsTest_CycledTopologySort {
             From(2),
             NoParents
         };
-        var res = SyntaxParsing.GraphTools.SortCycledTopology(graph);
+        var res = CycleTopologySorting.Sort(graph);
         AssertHasRoute(new[] { 2, 1, 0 }, res);
     }
 
@@ -87,7 +87,7 @@ public class GraphToolsTest_CycledTopologySort {
             From(1, 2),
             NoParents
         };
-        var res = SyntaxParsing.GraphTools.SortCycledTopology(graph);
+        var res = CycleTopologySorting.Sort(graph);
         AssertHasRoute(new[] { 2, 1, 0 }, res);
     }
 
@@ -99,7 +99,7 @@ public class GraphToolsTest_CycledTopologySort {
             From(0),
             From(1)
         };
-        var res = SyntaxParsing.GraphTools.SortCycledTopology(graph);
+        var res = CycleTopologySorting.Sort(graph);
         AssertHasRoute(new[] { 0, 1, 2 }, res);
     }
 
@@ -116,7 +116,7 @@ public class GraphToolsTest_CycledTopologySort {
             NoParents,
             From(5, 3)
         };
-        var res = SyntaxParsing.GraphTools.SortCycledTopology(graph);
+        var res = CycleTopologySorting.Sort(graph);
         AssertHasRoute(new[] { 1, 4, 5, 3, 6, 0, 2 }, res);
     }
 
@@ -148,7 +148,7 @@ public class GraphToolsTest_CycledTopologySort {
         graph[15] = NoParents;
         graph[16] = From(15);
 
-        var res = SyntaxParsing.GraphTools.SortCycledTopology(graph);
+        var res = CycleTopologySorting.Sort(graph);
         AssertHasRoute(
             new[] {
                 1, 4, 5, 3, 6, 0, 2,
@@ -166,7 +166,7 @@ public class GraphToolsTest_CycledTopologySort {
             Array.Empty<int>(),
             Array.Empty<int>()
         };
-        var res = SyntaxParsing.GraphTools.SortCycledTopology(graph);
+        var res = CycleTopologySorting.Sort(graph);
         AssertHasRoute(new[] { 0, 1, 2 }, res);
     }
 
@@ -188,6 +188,4 @@ public class GraphToolsTest_CycledTopologySort {
             expected, actual.NodeNames,
             $"expected: {ArrayToString(expected)} but was: {ArrayToString(actual.NodeNames)}");
     }
-}
-
 }

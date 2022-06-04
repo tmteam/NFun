@@ -2,9 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
-using NFun.Types;
 
-namespace NFun.Runtime.Arrays {
+namespace NFun.Runtime.Arrays; 
 
 public class TextFunnyArray : IFunnyArray, IComparable {
     public static readonly TextFunnyArray Empty = new("");
@@ -102,6 +101,4 @@ public class TextFunnyArray : IFunnyArray, IComparable {
             return t._text == _text;
         return false;
     }
-}
-
 }

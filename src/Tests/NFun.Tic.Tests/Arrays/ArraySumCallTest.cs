@@ -1,7 +1,7 @@
 ﻿using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 
-namespace NFun.Tic.Tests.Arrays {
+namespace NFun.Tic.Tests.Arrays; 
 
 public class ArraySumCallTest {
     [Test(Description = "y = x.sum()")]
@@ -111,6 +111,4 @@ public class ArraySumCallTest {
                 graph.Solve();
             });
     }
-}
-
 }

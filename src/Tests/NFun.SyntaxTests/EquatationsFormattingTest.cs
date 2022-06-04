@@ -1,7 +1,7 @@
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests {
+namespace NFun.SyntaxTests; 
 
 [TestFixture]
 public class EquationsFormattingTest {
@@ -65,6 +65,4 @@ public class EquationsFormattingTest {
     [Test]
     public void TwoEquationsOnOneLineFails() =>
         Assert.DoesNotThrow(() => "y=1; z=5".Build());
-}
-
 }

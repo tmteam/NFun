@@ -1,8 +1,7 @@
 using NFun.Runtime.Arrays;
 using NFun.Tokenization;
-using NFun.Types;
 
-namespace NFun.Interpretation.Nodes {
+namespace NFun.Interpretation.Nodes; 
 
 internal class ArrayExpressionNode : IExpressionNode {
     private readonly IExpressionNode[] _elements;
@@ -14,6 +13,7 @@ internal class ArrayExpressionNode : IExpressionNode {
     }
 
     public Interval Interval { get; }
+    
     public FunnyType Type { get; }
 
     public object Calc() {
@@ -25,6 +25,4 @@ internal class ArrayExpressionNode : IExpressionNode {
 
         return new ImmutableFunnyArray(arr, Type.ArrayTypeSpecification.FunnyType);
     }
-}
-
 }

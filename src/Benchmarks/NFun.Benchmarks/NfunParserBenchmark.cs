@@ -7,7 +7,7 @@ using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
 
-namespace NFun.Benchmarks {
+namespace NFun.Benchmarks; 
 
 public class SimplestArithmCalcBenchmark {
     private HardcoreBuilder _builder;
@@ -101,6 +101,4 @@ public class NfunParserBenchmark {
         Expression<Func<double, double>> ex = x => 10 * x + 1;
         return ex.Compile();
     }
-}
-
 }

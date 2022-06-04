@@ -5,7 +5,7 @@ using NFun.TestTools;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests {
+namespace NFun.SyntaxTests; 
 
 public class TypeInferenceTest {
     [TestCase("y = 0x2", BaseFunnyType.Int32)]
@@ -487,6 +487,4 @@ public class TypeInferenceTest {
 
     private static Type GetClrType(FunnyType funnyType) =>
         TypeBehaviourExtensions.GetOutputConverterFor(TypeBehaviour.RealIsDouble, funnyType).ClrType;
-}
-
 }

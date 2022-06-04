@@ -6,7 +6,7 @@ using NFun.ParseErrors;
 using NFun.Runtime.Arrays;
 using NFun.Tokenization;
 
-namespace NFun.Types {
+namespace NFun.Types; 
 
 public static class VarTypeConverter {
     private static readonly bool[,] PrimitiveConvertMap;
@@ -66,8 +66,7 @@ public static class VarTypeConverter {
 
     private static readonly Func<object, object> ToText = o => new TextFunnyArray(o?.ToString() ?? "");
     private static readonly Func<object, object> NoConvertion = o => o;
-
-
+    
     public static Func<object, object> GetConverterOrNull(TypeBehaviour typeBehaviour, FunnyType @from, FunnyType to) {
         //todo coverage
         if (to.IsText)
@@ -153,8 +152,7 @@ public static class VarTypeConverter {
 
         return null;
     }
-
-
+    
     public static Func<object, object> GetConverterOrThrow(TypeBehaviour typeBehaviour, FunnyType from, FunnyType to,  Interval interval) {
         var res = GetConverterOrNull(typeBehaviour, @from, to);
         if (res == null)
@@ -222,6 +220,4 @@ public static class VarTypeConverter {
         public IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children, TypeBehaviour typeBehaviour, Interval interval)
             => throw new NotSupportedException("Function convertation is not supported for expression building");
     }
-}
-
 }

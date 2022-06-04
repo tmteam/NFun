@@ -1,7 +1,7 @@
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests.UserFunctions {
+namespace NFun.SyntaxTests.UserFunctions; 
 
 [TestFixture]
 public class ConcreteUserFunctionsTest {
@@ -125,6 +125,4 @@ public class ConcreteUserFunctionsTest {
     [TestCase("y:real(x:real)= 1")]
     [TestCase("y:real(x):real= 1")]
     public void ObviousFails(string expr) => expr.AssertObviousFailsOnParse();
-}
-
 }

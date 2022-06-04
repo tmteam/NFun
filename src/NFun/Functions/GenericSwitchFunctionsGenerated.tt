@@ -1,6 +1,4 @@
 <#@ template language="C#" #>
-<#@ import namespace="System.Text" #>
-<#@ import namespace="System.Collections.Generic" #>
 
 using System;
 using NFun.Interpretation.Functions;

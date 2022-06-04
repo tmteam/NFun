@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using NFun.Exceptions;
 using NUnit.Framework;
 
-namespace NFun.ApiTests {
+namespace NFun.ApiTests; 
 
 public class TestFluentApiCalcSingleT {
     [TestCase("age", 13)]
@@ -127,6 +127,4 @@ public class TestFluentApiCalcSingleT {
         Assert.AreEqual(expected, result8);
         Assert.AreEqual(expected, result9);
     }
-}
-
 }

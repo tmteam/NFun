@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NFun.Interpretation.Functions;
 
-namespace NFun.Interpretation {
+namespace NFun.Interpretation; 
 
 internal sealed class ImmutableFunctionDictionary : IFunctionDictionary {
     private readonly Dictionary<string, IFunctionSignature> _functions;
@@ -85,6 +85,4 @@ internal sealed class ImmutableFunctionDictionary : IFunctionDictionary {
 
     private static string GetOverloadName(string name, int argCount)
         => name + " " + argCount;
-}
-
 }

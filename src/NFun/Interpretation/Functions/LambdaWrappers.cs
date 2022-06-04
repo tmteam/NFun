@@ -1,7 +1,7 @@
 using System;
 using NFun.Types;
 
-namespace NFun.Interpretation.Functions {
+namespace NFun.Interpretation.Functions; 
 
 internal static class LambdaWrapperFactory {
     public static IConcreteFunction Create<Tin, Tout>(string name, Func<Tin, Tout> function, TypeBehaviour typeBehaviour)
@@ -282,6 +282,4 @@ class ConcreteLambdaWrapperFunction<Tin1, Tin2, Tin3, Tin4, Tin5, Tin6, Tin7, To
                 (Tin6)_arg6.ToClrObject(args[5]),
                 (Tin7)_arg7.ToClrObject(args[6])
             ));
-}
-
 }

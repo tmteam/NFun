@@ -2,7 +2,7 @@
 using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 
-namespace NFun.Tic.Tests.Arrays {
+namespace NFun.Tic.Tests.Arrays; 
 
 public class ConcreteArrayFunTest {
     [Test(Description = "y = x.NoNans()")]
@@ -177,6 +177,4 @@ public class ConcreteArrayFunTest {
                 Assert.Fail();
             });
     }
-}
-
 }

@@ -3,7 +3,7 @@ using NFun.Exceptions;
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.ApiTests {
+namespace NFun.ApiTests; 
 
 public class TestFluentApiCalcManyTT {
     [TestCase("id = age*2; items = ids.map(toText);  Price = 42.1 + balance")]
@@ -110,6 +110,4 @@ public class TestFluentApiCalcManyTT {
         Assert.IsTrue(TestHelper.AreSame(expected, result6));
         Assert.IsTrue(TestHelper.AreSame(expected, result7));
     }
-}
-
 }

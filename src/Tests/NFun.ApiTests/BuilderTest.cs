@@ -5,7 +5,7 @@ using NFun.TestTools;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.ApiTests {
+namespace NFun.ApiTests; 
 
 public class BuilderTest {
     [Test]
@@ -64,6 +64,4 @@ public class BuilderTest {
 
         public override object Calc(object[] args) => new TextFunnyArray(MamaReturn);
     }
-}
-
 }

@@ -1,7 +1,7 @@
 ﻿using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 
-namespace NFun.Tic.Tests {
+namespace NFun.Tic.Tests; 
 
 public class UserFunctionsTest {
     [SetUp]
@@ -108,6 +108,4 @@ public class UserFunctionsTest {
             StateFun.Of(SolvingStates.StateArray.Of(generic), SolvingStates.StateArray.Of(generic)),
             "sortOneTime");
     }
-}
-
 }

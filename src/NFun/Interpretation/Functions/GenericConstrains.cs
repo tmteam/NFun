@@ -1,6 +1,6 @@
 using NFun.Tic.SolvingStates;
 
-namespace NFun.Interpretation.Functions {
+namespace NFun.Interpretation.Functions; 
 
 public readonly struct GenericConstrains {
     public readonly StatePrimitive Ancestor;
@@ -46,6 +46,4 @@ public readonly struct GenericConstrains {
         Descendant = descendant;
         IsComparable = isComparable;
     }
-}
-
 }

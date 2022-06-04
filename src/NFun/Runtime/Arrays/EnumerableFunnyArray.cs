@@ -2,9 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using NFun.Types;
 
-namespace NFun.Runtime.Arrays {
+namespace NFun.Runtime.Arrays; 
 
 public class EnumerableFunnyArray : IFunnyArray {
     private readonly IEnumerable<object> _origin;
@@ -44,6 +43,4 @@ public class EnumerableFunnyArray : IFunnyArray {
     }
 
     public override string ToString() => FunnyArrayTools.JoinElementsToFunString(_origin);
-}
-
 }

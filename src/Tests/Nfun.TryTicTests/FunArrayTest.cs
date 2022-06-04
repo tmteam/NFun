@@ -5,7 +5,7 @@ using NFun.Runtime.Arrays;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.UnitTests {
+namespace NFun.UnitTests; 
 
 [TestFixture]
 public class FunArrayTest {
@@ -192,6 +192,4 @@ public class FunArrayTest {
         var arr2 = text2.AsFunText();
         Assert.IsFalse(arr1.Equals(arr2));
     }
-}
-
 }

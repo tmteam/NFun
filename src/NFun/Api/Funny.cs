@@ -1,9 +1,10 @@
 using System;
 using NFun.Types;
 
-namespace NFun {
+namespace NFun; 
 
 public static class Funny {
+    
     public static HardcoreBuilder Hardcore { get; } = new();
 
 
@@ -107,6 +108,4 @@ public static class Funny {
         => new FunnyCalculatorBuilder().WithDialect(ifExpressionSyntax, integerPreferredType, realClrType, integerOverflow);
 
     #endregion
-}
-
 }

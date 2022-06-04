@@ -2,7 +2,7 @@ using NFun.Exceptions;
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests.UserFunctions {
+namespace NFun.SyntaxTests.UserFunctions; 
 
 [TestFixture]
 public class RecursiveUserFunctionsTest {
@@ -149,6 +149,4 @@ public class RecursiveUserFunctionsTest {
                    y = fib(x)"
             .Calc("x", x)
             .AssertReturns("y", y);
-}
-
 }

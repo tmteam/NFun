@@ -3,7 +3,7 @@ using NFun.TestTools;
 using NFun.Tic;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests.Structs {
+namespace NFun.SyntaxTests.Structs; 
 
 public class StructBodyTest {
     [TestCase("y = {a = 1.0}")]
@@ -445,6 +445,4 @@ public class StructBodyTest {
     [TestCase("y1 = {a = y2}; y2 = {a = y1}")]
     [TestCase("y = {a = 1.0,,}")]
     public void ObviousFails(string expr) => expr.AssertObviousFailsOnParse();
-}
-
 }

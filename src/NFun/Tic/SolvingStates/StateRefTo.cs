@@ -1,6 +1,6 @@
 ﻿using NFun.Tic.Stages;
 
-namespace NFun.Tic.SolvingStates {
+namespace NFun.Tic.SolvingStates; 
 
 public class StateRefTo : ITicNodeState {
     public StateRefTo(TicNode node) => Node = node;
@@ -37,6 +37,4 @@ public class StateRefTo : ITicNodeState {
 
         return Node.Equals(refTo.Node);
     }
-}
-
 }

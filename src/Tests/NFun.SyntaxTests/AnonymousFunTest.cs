@@ -3,7 +3,7 @@ using NFun.TestTools;
 using NFun.Tic;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests {
+namespace NFun.SyntaxTests; 
 
 [TestFixture]
 public class AnonymousFunTest {
@@ -284,6 +284,4 @@ public class AnonymousFunTest {
     [TestCase("y = [-1,-2,0,1,2,3].filter((fun it>0)).filter(fun(i):real=i>2)")]
     [TestCase("y = [-1,-2,0,1,2,3].filter(fun(i):real=i>2)")]
     public void ObviouslyFailsOnParse(string expr) => expr.AssertObviousFailsOnParse();
-}
-
 }

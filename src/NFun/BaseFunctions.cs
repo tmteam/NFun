@@ -4,7 +4,7 @@ using NFun.Interpretation;
 using NFun.Interpretation.Functions;
 using NFun.Types;
 
-namespace NFun {
+namespace NFun; 
 
 internal static class BaseFunctions {
     internal static ImmutableFunctionDictionary GetFunctions(TypeBehaviour typeBehaviour) 
@@ -155,6 +155,4 @@ internal static class BaseFunctions {
             ConcreteFunctions.Concat(ConcreteDecimalFunctions).ToArray(),
             GenericFunctions);
     }
-}
-
 }

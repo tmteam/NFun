@@ -1,4 +1,4 @@
-namespace NFun.InfinityProfiling.Sets {
+namespace NFun.InfinityProfiling.Sets; 
 
 public static class Scripts {
     public static string PrimitiveConstIntSimpleArithmetics => "out:int =(4 * 12) % 7 + ((9 * 2) + 8)";
@@ -138,6 +138,4 @@ public static class Scripts {
                           #uncomment when steps gonna be fixed
 						  #m =  [0..20000..2].sum()
 ";
-}
-
 }

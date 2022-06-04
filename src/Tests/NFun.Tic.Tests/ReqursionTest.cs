@@ -2,7 +2,7 @@
 using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 
-namespace NFun.Tic.Tests {
+namespace NFun.Tic.Tests; 
 
 class ReqursionTest {
     [SetUp]
@@ -65,6 +65,4 @@ class ReqursionTest {
         Assert.AreEqual(fun.ReturnType, generic.GetNonReference().State);
         Assert.AreEqual(fun.ArgNodes.First().GetNonReference().State, generic.GetNonReference().State);
     }
-}
-
 }

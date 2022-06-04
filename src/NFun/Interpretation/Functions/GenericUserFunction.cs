@@ -5,9 +5,8 @@ using NFun.SyntaxParsing.Visitors;
 using NFun.Tic;
 using NFun.Tic.SolvingStates;
 using NFun.TypeInferenceAdapter;
-using NFun.Types;
 
-namespace NFun.Interpretation.Functions {
+namespace NFun.Interpretation.Functions; 
 
 public class GenericUserFunction : GenericFunctionBase {
     private readonly TypeInferenceResults _typeInferenceResults;
@@ -124,6 +123,4 @@ public class GenericUserFunction : GenericFunctionBase {
     }
 
     protected override object Calc(object[] args) => throw new NotImplementedException();
-}
-
 }

@@ -4,33 +4,26 @@ using NFun.Interpretation.Functions;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tic.SolvingStates;
 using NFun.Tokenization;
-using NFun.Types;
 
-namespace NFun.SyntaxParsing.SyntaxNodes {
+namespace NFun.SyntaxParsing.SyntaxNodes; 
 
 public enum NamedIdNodeType {
     Unknown,
     Variable,
     GenericFunction,
     ConcreteFunction,
-    UnknownFunction,
     Constant
-}
-
-public class FunctionalVariableCallInfo {
-    public FunctionalVariableCallInfo(IFunctionSignature signature, StateRefTo[] referenceToGenericArguments) {
-        Signature = signature;
-        ReferenceToGenericArguments = referenceToGenericArguments;
-    }
-
-    public readonly IFunctionSignature Signature;
-    public StateRefTo[] ReferenceToGenericArguments;
 }
 
 /// <summary>
 /// Variable or constant or function
 /// </summary>
 public class NamedIdSyntaxNode : ISyntaxNode {
+    public NamedIdSyntaxNode(string id, Interval interval) {
+        Id = id;
+        Interval = interval;
+    }
+    
     /// <summary>
     /// type of id. Constant, variable or function
     /// </summary>
@@ -48,11 +41,4 @@ public class NamedIdSyntaxNode : ISyntaxNode {
     public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
     public IEnumerable<ISyntaxNode> Children => Array.Empty<ISyntaxNode>();
     public override string ToString() => $"({OrderNumber}) {Id}:{OutputType}";
-
-    public NamedIdSyntaxNode(string id, Interval interval) {
-        Id = id;
-        Interval = interval;
-    }
-}
-
 }

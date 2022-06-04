@@ -1,7 +1,7 @@
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests.SyntaxDialect {
+namespace NFun.SyntaxTests.SyntaxDialect; 
 
 [TestFixture]
 public class IfThenElseTest {
@@ -287,6 +287,4 @@ else 'not supported' ", 2, "two")]
                          else 10", IfExpressionSetup.IfElseIf)]
     public void ObviouslyFails(string expr, IfExpressionSetup setup) =>
         expr.AssertObviousFailsOnParse(setup);
-}
-
 }

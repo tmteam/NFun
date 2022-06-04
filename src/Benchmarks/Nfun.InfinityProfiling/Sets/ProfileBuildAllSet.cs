@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using NFun.Runtime;
 
-namespace NFun.InfinityProfiling.Sets {
+namespace NFun.InfinityProfiling.Sets; 
 
 public class ProfileBuildAllSet : IProfileSet {
     [MethodImpl(MethodImplOptions.NoOptimization)]
@@ -97,6 +97,4 @@ public class ProfileBuildAllSet : IProfileSet {
 
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.NoOptimization)]
     private FunnyRuntime Build(string expr) { return Funny.Hardcore.Build(expr); }
-}
-
 }

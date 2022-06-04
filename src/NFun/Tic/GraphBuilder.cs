@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 using NFun.Tic.Errors;
 using NFun.Tic.SolvingStates;
 
-namespace NFun.Tic {
+namespace NFun.Tic; 
 
 public class GraphBuilder {
     private readonly Dictionary<string, TicNode> _variables = new(StringComparer.OrdinalIgnoreCase);
@@ -378,7 +378,7 @@ public class GraphBuilder {
         if (state is StateFun fun)
         {
             if (fun.ArgsCount != argThenReturnIds.Length - 1)
-                throw TicErrors.InvalidFunctionalVarableSignature(functionNode);
+                throw TicErrors.InvalidFunctionalVariableSignature(functionNode);
 
             SetCall(fun, argThenReturnIds);
         }
@@ -505,9 +505,9 @@ public class GraphBuilder {
     private void RegistrateCompositeType(ICompositeState composite) {
         foreach (var member in composite.Members)
         {
-            if (!member.Registrated)
+            if (!member.Registered)
             {
-                member.Registrated = true;
+                member.Registered = true;
                 if (member.State is ICompositeState c)
                     RegistrateCompositeType(c);
                 _typeVariables.Add(member);
@@ -541,11 +541,9 @@ public class GraphBuilder {
 
     private static void PrintTrace(string name, IEnumerable<TicNode> sorted)
     {
-        #if DEBUG
+#if DEBUG
             TraceLog.WriteLine($"\r\n Sorted trace for {name}");
             SolvingFunctions.PrintTrace(sorted);
-        #endif
+#endif
     }
-}
-
 }

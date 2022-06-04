@@ -2,7 +2,7 @@
 using NFun.Interpretation.Functions;
 using NFun.Types;
 
-namespace NFun.Functions {
+namespace NFun.Functions; 
 
 public class NotEqualFunction : GenericFunctionWithTwoArguments {
     public NotEqualFunction() : base(
@@ -104,6 +104,4 @@ public class MaxFunction : PureGenericFunctionBase {
             return result;
         }
     }
-}
-
 }

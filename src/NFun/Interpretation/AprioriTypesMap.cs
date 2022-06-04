@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace NFun.Interpretation {
+namespace NFun.Interpretation; 
 
 public interface IAprioriTypesMap : IEnumerable<KeyValuePair<string, FunnyType>> { }
 
@@ -38,6 +38,4 @@ public class MutableAprioriTypesMap : IAprioriTypesMap {
         var dicCopy = new Dictionary<string, FunnyType>(_typesMap) { { name, type } };
         return new MutableAprioriTypesMap(dicCopy);
     }
-}
-
 }

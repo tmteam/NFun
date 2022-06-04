@@ -1,9 +1,9 @@
 using NFun.SyntaxParsing.SyntaxNodes;
 
-namespace NFun.SyntaxParsing.Visitors {
+namespace NFun.SyntaxParsing.Visitors; 
 
 public interface ISyntaxNodeVisitor<out T> {
-    T Visit(AnonymFunctionSyntaxNode anonymFunNode);
+    T Visit(AnonymFunctionSyntaxNode node);
     T Visit(ArraySyntaxNode node);
     T Visit(EquationSyntaxNode node);
     T Visit(FunCallSyntaxNode node);
@@ -18,10 +18,8 @@ public interface ISyntaxNodeVisitor<out T> {
     T Visit(VarDefinitionSyntaxNode node);
     T Visit(NamedIdSyntaxNode node);
     T Visit(ResultFunCallSyntaxNode node);
-    T Visit(SuperAnonymFunctionSyntaxNode arrowAnonymFunNode);
+    T Visit(SuperAnonymFunctionSyntaxNode node);
     T Visit(StructFieldAccessSyntaxNode node);
     T Visit(StructInitSyntaxNode node);
-    T Visit(DefaultValueSyntaxNode arrowAnonymFunNode);
-}
-
+    T Visit(DefaultValueSyntaxNode node);
 }

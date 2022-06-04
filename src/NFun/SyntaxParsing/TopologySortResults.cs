@@ -1,4 +1,4 @@
-namespace NFun.SyntaxParsing {
+namespace NFun.SyntaxParsing; 
 
 public struct TopologySortResults {
     /// <summary>
@@ -13,6 +13,4 @@ public struct TopologySortResults {
         NodeNames = nodeNames;
         HasCycle = hasCycle;
     }
-}
-
 }

@@ -1,7 +1,7 @@
 using System;
 using NCalc;
 
-namespace NFun.CompareToOthers {
+namespace NFun.CompareToOthers; 
 
 public class NCalcPerformance {
     private const int Iterations = 100000;
@@ -97,6 +97,4 @@ public class NCalcPerformance {
 
         public int Foo(int a, int b) { return Math.Min(a, b); }
     }
-}
-
 }

@@ -1,7 +1,7 @@
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests.Structs {
+namespace NFun.SyntaxTests.Structs; 
 
 public class StructGenericFunctionTest {
     [Test]
@@ -139,6 +139,4 @@ public class StructGenericFunctionTest {
                   y = fact({nonExistingField=x})")]
     [TestCase(@"fact(n) = if(n.field<=1) 1 else fact({field=n.field-1})*n.nonExistingField")]
     public void ObviousFails(string expr) => expr.AssertObviousFailsOnParse();
-}
-
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using IronPython.Hosting;
 using NCalc;
 
-namespace NFun.CompareToOthers {
+namespace NFun.CompareToOthers; 
 
 internal class Program {
     private static void Main(string[] args) {
@@ -138,6 +138,4 @@ internal class Program {
     private class Expressioncalculator {
         public double x { get; set; }
     }
-}
-
 }

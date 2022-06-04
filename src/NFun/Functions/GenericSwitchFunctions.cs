@@ -6,7 +6,7 @@ using NFun.Interpretation.Functions;
 using NFun.Runtime.Arrays;
 using NFun.Types;
 
-namespace NFun.Functions {
+namespace NFun.Functions; 
 
 public class MultiSumFunction : GenericFunctionBase {
     private const string Id = "sum";
@@ -17,17 +17,17 @@ public class MultiSumFunction : GenericFunctionBase {
     { }
 
     public override IConcreteFunction CreateConcrete(FunnyType[] concreteTypes, IFunctionSelectorContext context) =>
-            concreteTypes[0].BaseType switch
-             {
-                 BaseFunnyType.UInt16 => context.AllowIntegerOverflow? UInt16Function.Instance: UInt16CheckedFunction.Instance ,
-                 BaseFunnyType.UInt32 => context.AllowIntegerOverflow? UInt32Function.Instance: UInt32CheckedFunction.Instance,
-                 BaseFunnyType.UInt64 => context.AllowIntegerOverflow? UInt64Function.Instance: UInt64CheckedFunction.Instance,
-                 BaseFunnyType.Int16  => context.AllowIntegerOverflow? Int16Function.Instance: Int16CheckedFunction.Instance,
-                 BaseFunnyType.Int32  => context.AllowIntegerOverflow? Int32Function.Instance: Int32CheckedFunction.Instance,
-                 BaseFunnyType.Int64  => context.AllowIntegerOverflow? Int64Function.Instance: Int64CheckedFunction.Instance,
-                 BaseFunnyType.Real   => context.RealTypeSelect<IConcreteFunction>(RealDoubleFunction.Instance, RealDecimalFunction.Instance),
-                 _                    => throw new ArgumentOutOfRangeException()
-             };
+        concreteTypes[0].BaseType switch
+        {
+            BaseFunnyType.UInt16 => context.AllowIntegerOverflow? UInt16Function.Instance: UInt16CheckedFunction.Instance ,
+            BaseFunnyType.UInt32 => context.AllowIntegerOverflow? UInt32Function.Instance: UInt32CheckedFunction.Instance,
+            BaseFunnyType.UInt64 => context.AllowIntegerOverflow? UInt64Function.Instance: UInt64CheckedFunction.Instance,
+            BaseFunnyType.Int16  => context.AllowIntegerOverflow? Int16Function.Instance: Int16CheckedFunction.Instance,
+            BaseFunnyType.Int32  => context.AllowIntegerOverflow? Int32Function.Instance: Int32CheckedFunction.Instance,
+            BaseFunnyType.Int64  => context.AllowIntegerOverflow? Int64Function.Instance: Int64CheckedFunction.Instance,
+            BaseFunnyType.Real   => context.RealTypeSelect<IConcreteFunction>(RealDoubleFunction.Instance, RealDecimalFunction.Instance),
+            _                    => throw new ArgumentOutOfRangeException()
+        };
 
 
     private class RealDoubleFunction : FunctionWithSingleArg {
@@ -52,8 +52,10 @@ public class MultiSumFunction : GenericFunctionBase {
         public override object Calc(object a)
         {
             short answer = 0;
-            foreach (var i in ((IFunnyArray) a).As<short>())
+            foreach (var i in ((IFunnyArray)a).As<short>())
+            {
                 answer += i;
+            }
             return answer;
         }
     }
@@ -228,10 +230,10 @@ public class RangeFunction : GenericFunctionBase {
             BaseFunnyType.Int16  => Int16Function.Instance,
             BaseFunnyType.Int32  => Int32Function.Instance,
             BaseFunnyType.Int64  => Int64Function.Instance,
-            BaseFunnyType.Real   => context.RealTypeSelect<IConcreteFunction>(
+            BaseFunnyType.Real => context.RealTypeSelect<IConcreteFunction>(
                 RealDoubleFunction.Instance, 
                 RealDecimalFunction.Instance),
-            _                    => throw new NotSupportedException()
+            _ => throw new NotSupportedException()
         };
 
     private const string Id = "range";
@@ -704,6 +706,4 @@ public class RangeStepFunction : GenericFunctionBase {
             return new ImmutableFunnyArray(result.ToArray());
         }
     }
-}
-
 }

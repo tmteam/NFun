@@ -1,4 +1,4 @@
-﻿namespace NFun.Tic.Errors {
+﻿namespace NFun.Tic.Errors; 
 
 internal class IncompatibleAncestorSyntaxNodeException : TicException {
     public TicNode Ancestor { get; }
@@ -9,6 +9,4 @@ internal class IncompatibleAncestorSyntaxNodeException : TicException {
         Ancestor = ancestor;
         Descendant = descendant;
     }
-}
-
 }

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
-namespace NFun.Tic {
+namespace NFun.Tic; 
 
 public static class CollectionHelper {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -29,6 +29,4 @@ public static class CollectionHelper {
             list[index] = value;
         }
     }
-}
-
 }

@@ -3,7 +3,7 @@ using System.Linq;
 using System.Text;
 using NFun.Types;
 
-namespace NFun.Runtime {
+namespace NFun.Runtime; 
 
 public class StringTemplateCalculator {
     private readonly FunnyRuntime _runtime;
@@ -48,6 +48,4 @@ public class StringTemplateCalculator {
 
         return sb.ToString();
     }
-}
-
 }

@@ -1,15 +1,9 @@
 using System;
 using System.Collections.Generic;
 
-namespace NFun.Types {
+namespace NFun.Types; 
 
 internal class StructTypeSpecification: Dictionary<string, FunnyType>{
-    public StructTypeSpecification():base(StringComparer.InvariantCultureIgnoreCase) {
-        
-    }
-    public StructTypeSpecification(int capacity):base(capacity,StringComparer.InvariantCultureIgnoreCase) {
-        
-    }
-}
-
+    public StructTypeSpecification(int capacity)
+        :base(capacity,StringComparer.InvariantCultureIgnoreCase) {}
 }

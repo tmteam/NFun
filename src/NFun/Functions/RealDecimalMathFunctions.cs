@@ -3,7 +3,7 @@ using System.Linq;
 using NFun.Interpretation.Functions;
 using NFun.Runtime.Arrays;
 
-namespace NFun.Functions {
+namespace NFun.Functions; 
 
 public class AverageDecimalFunction : FunctionWithSingleArg {
     public AverageDecimalFunction() : base("avg", FunnyType.Real, FunnyType.ArrayOf(FunnyType.Real)) { }
@@ -84,6 +84,4 @@ public class Log10DecimalFunction : FunctionWithSingleArg {
 public class RoundToDecimalFunction : FunctionWithTwoArgs {
     public RoundToDecimalFunction() : base("round", FunnyType.Real, FunnyType.Real, FunnyType.Int32) { }
     public override object Calc(object a, object b) => Math.Round((decimal)a, (int)b);
-}
-
 }

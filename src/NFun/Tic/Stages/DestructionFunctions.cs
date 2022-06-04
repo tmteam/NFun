@@ -1,9 +1,9 @@
 using NFun.Tic.SolvingStates;
 
-namespace NFun.Tic.Stages {
+namespace NFun.Tic.Stages; 
 
 public class DestructionFunctions : IStateCombination2dimensionalVisitor {
-    public static DestructionFunctions Singletone { get; } = new();
+    public static DestructionFunctions Singleton { get; } = new();
 
     public bool Apply(StatePrimitive ancestor, StatePrimitive descendant, TicNode _, TicNode __)
         => true;
@@ -128,6 +128,4 @@ public class DestructionFunctions : IStateCombination2dimensionalVisitor {
 
         return true;
     }
-}
-
 }

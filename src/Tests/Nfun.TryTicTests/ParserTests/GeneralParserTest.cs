@@ -4,7 +4,7 @@ using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
 using NUnit.Framework;
 
-namespace NFun.UnitTests.ParserTests {
+namespace NFun.UnitTests.ParserTests; 
 
 [TestFixture]
 public class GeneralParserTest {
@@ -88,6 +88,4 @@ public class GeneralParserTest {
     private void AssertEquals(ISyntaxNode expected, ISyntaxNode actual) {
         Assert.AreEqual(expected?.ToString(), actual?.ToString());
     }
-}
-
 }

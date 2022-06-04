@@ -1,7 +1,7 @@
 using System.Linq;
 using NUnit.Framework;
 
-namespace NFun.ApiTests {
+namespace NFun.ApiTests; 
 
 public class TestHardcoreApiBuildStringTemplate {
    
@@ -89,5 +89,4 @@ public class TestHardcoreApiBuildStringTemplate {
             Assert.AreEqual(expected, builder.Calculate());
         }
     }
-}
 }

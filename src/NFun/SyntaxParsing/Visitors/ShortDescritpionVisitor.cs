@@ -1,12 +1,11 @@
 using System.Linq;
 using NFun.SyntaxParsing.SyntaxNodes;
-using NFun.Types;
 
-namespace NFun.SyntaxParsing.Visitors {
+namespace NFun.SyntaxParsing.Visitors; 
 
 public class ShortDescritpionVisitor : ISyntaxNodeVisitor<string> {
-    public string Visit(AnonymFunctionSyntaxNode anonymFunNode) 
-        => $"rule({string.Join(",",anonymFunNode.ArgumentsDefinition.Select(a=>a.Accept(this)))})=..";
+    public string Visit(AnonymFunctionSyntaxNode node) 
+        => $"rule({string.Join(",",node.ArgumentsDefinition.Select(a=>a.Accept(this)))})=..";
     public string Visit(ArraySyntaxNode node) => "[...]";
     public string Visit(EquationSyntaxNode node) => $"{node.Id} = ... ";
     public string Visit(FunCallSyntaxNode node) => $"{node.Id}(...)";
@@ -44,6 +43,4 @@ public class ShortDescritpionVisitor : ISyntaxNodeVisitor<string> {
         => $"{{ {string.Join("; ", node.Fields.Select(f => $"{f.Name}={f.Node.Accept(this)}"))}}}";
     public string Visit(DefaultValueSyntaxNode node) => "default";
     public string Visit(GenericIntSyntaxNode node) => node.Value.ToString();
-}
-
 }

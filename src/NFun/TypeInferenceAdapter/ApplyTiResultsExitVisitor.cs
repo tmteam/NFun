@@ -2,9 +2,8 @@ using System.Linq;
 using NFun.ParseErrors;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
-using NFun.Types;
 
-namespace NFun.TypeInferenceAdapter {
+namespace NFun.TypeInferenceAdapter; 
 
 public class ApplyTiResultsExitVisitor : ExitVisitorBase {
     public override bool Visit(IfThenElseSyntaxNode node) {
@@ -31,6 +30,4 @@ public class ApplyTiResultsExitVisitor : ExitVisitorBase {
 
         throw Errors.VariousArrayElementTypes(node);
     }
-}
-
 }

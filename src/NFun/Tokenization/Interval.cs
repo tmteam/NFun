@@ -1,6 +1,6 @@
 using System;
 
-namespace NFun.Tokenization {
+namespace NFun.Tokenization; 
 
 public readonly struct Interval {
     public static Interval Empty => new(0, 0);
@@ -28,6 +28,4 @@ public readonly struct Interval {
     }
 
     public Interval Append(Interval rightInterval) => new Interval(Start, rightInterval.Finish);
-}
-
 }

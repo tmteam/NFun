@@ -1,4 +1,4 @@
-namespace NFun.Tic.SolvingStates {
+namespace NFun.Tic.SolvingStates; 
 
 public enum PrimitiveTypeName {
     Any = 0,
@@ -23,6 +23,4 @@ public enum PrimitiveTypeName {
     _isAbstract = 1 << 3,
     // ReSharper disable once InconsistentNaming
     _isNumber = 1 << 2
-}
-
 }

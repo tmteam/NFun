@@ -8,7 +8,7 @@ using NFun.Tokenization;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.UnitTests.Converters {
+namespace NFun.UnitTests.Converters; 
 
 public class VarTypeConverterTest {
     [TestCase((int)1, (double)1, BaseFunnyType.Int32, BaseFunnyType.Real)]
@@ -75,6 +75,4 @@ public class VarTypeConverterTest {
         public IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children, TypeBehaviour typeBehaviour, Interval interval)
             => throw new NotImplementedException();
     }
-}
-
 }

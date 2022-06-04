@@ -1,13 +1,11 @@
 using System;
-using System.Reflection;
 using NFun.Exceptions;
 using NFun.Interpretation;
-using NFun.Interpretation.Functions;
 using NFun.ParseErrors;
 using NFun.SyntaxParsing;
 using NFun.Types;
 
-namespace NFun {
+namespace NFun; 
 
 public interface ICalculator<in TInput> {
     object Calc(string expression, TInput input);
@@ -38,7 +36,7 @@ internal class Calculator<TInput> : ICalculator<TInput> {
         _builder = builder;
 
         _mutableApriori = new MutableAprioriTypesMap();
-        _inputsMap = FluentApiTools.AddAprioriInputs<TInput>(_mutableApriori, Dialects.Origin.TypeBehaviour);
+        _inputsMap = _mutableApriori.AddAprioriInputs<TInput>(Dialects.Origin.TypeBehaviour);
     }
 
     public object Calc(string expression, TInput input)
@@ -206,6 +204,4 @@ internal class ContextCalculator<TContext> : IContextCalculator<TContext> {
                 throw Errors.NoOutputVariablesSetted(_outputsMap);
         };
     }
-}
-
 }

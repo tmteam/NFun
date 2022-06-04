@@ -2,7 +2,7 @@
 using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 
-namespace NFun.UnitTests {
+namespace NFun.UnitTests; 
 
 public class TicStatesTest {
     [TestCase(PrimitiveTypeName.I16, PrimitiveTypeName.Real)]
@@ -47,6 +47,4 @@ public class TicStatesTest {
         Assert.IsFalse(state1.Equals(state2));
         Assert.AreNotEqual(state1, state2);
     }
-}
-
 }

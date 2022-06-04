@@ -1,4 +1,4 @@
-namespace NFun.Functions {
+namespace NFun.Functions; 
 
 internal static class CoreFunNames {
     public const string BitAnd = "___bitand___";
@@ -31,7 +31,7 @@ internal static class CoreFunNames {
     public const string Negate = "-negate";
     public const string ToText = "toText";
 
-    //UsedInInterpolation:
+    // UsedInInterpolation:
 
     /// <summary>
     /// General concat text function for array of texts
@@ -47,6 +47,4 @@ internal static class CoreFunNames {
     /// Concat three texts function. Optimized vertion for 3-arg case
     /// </summary>
     public const string Concat3Texts = "@concat3Texts";
-}
-
 }

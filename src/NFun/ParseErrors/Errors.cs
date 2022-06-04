@@ -7,7 +7,7 @@ using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
 
-namespace NFun.ParseErrors {
+namespace NFun.ParseErrors; 
 
 internal static partial class Errors {
 
@@ -139,10 +139,10 @@ internal static partial class Errors {
         if (flow.Current.Is(closeBrack))
             //everything seems fine...
             return new ExprListError(
-                ExprListErrorType.TotalyWrongDefinition,
+                ExprListErrorType.TotallyWrongDefinition,
                 list, new Interval(obrStart, flow.Current.Finish));
 
-        if (!list.Any())
+        if (list.IsEmpty())
             return new ExprListError(
                 ExprListErrorType.SingleOpenBracket, list,
                 new Interval(obrStart, obrStart + 1));
@@ -215,13 +215,11 @@ internal static partial class Errors {
     private enum ExprListErrorType {
         FirstElementMissed,
         ElementMissed,
-        TotalyWrongDefinition,
+        TotallyWrongDefinition,
         SingleOpenBracket,
         SepIsMissing,
         ArgumentIsInvalid,
         CloseBracketIsMissing,
         LastArgumentIsInvalid
     }
-}
-
 }

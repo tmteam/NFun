@@ -1,7 +1,6 @@
-using NFun.Interpretation.Functions;
 using NFun.Types;
 
-namespace NFun {
+namespace NFun; 
 
 internal static class Dialects {
     public static DialectSettings Origin { get; } 
@@ -65,6 +64,4 @@ public enum IntegerOverflow {
     /// Integer overflow causes runtime exception
     /// </summary>
     Checked
-}
-
 }

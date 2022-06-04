@@ -3,7 +3,7 @@ using NFun.TestTools;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.ApiTests {
+namespace NFun.ApiTests; 
 
 public class FunnyVarTest {
     [Test]
@@ -97,6 +97,4 @@ public class FunnyVarTest {
         CollectionAssert.AreEquivalent(attribute, varInfo.Attributes.Select(v => v.Name));
         Assert.IsTrue(varInfo.Attributes.All(a => a.Value == null));
     }
-}
-
 }

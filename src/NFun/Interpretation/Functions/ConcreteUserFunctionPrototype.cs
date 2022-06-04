@@ -1,9 +1,7 @@
 using System;
 using NFun.Exceptions;
-using NFun.ParseErrors;
-using NFun.Types;
 
-namespace NFun.Interpretation.Functions {
+namespace NFun.Interpretation.Functions; 
 
 internal class ConcreteUserFunctionPrototype : FunctionWithManyArguments {
     public ConcreteUserFunctionPrototype(string name, FunnyType returnType, FunnyType[] argTypes) : base(
@@ -23,6 +21,4 @@ internal class ConcreteUserFunctionPrototype : FunctionWithManyArguments {
             throw new InvalidOperationException("Function prototype cannot be called");
         return _function.Calc(args);
     }
-}
-
 }

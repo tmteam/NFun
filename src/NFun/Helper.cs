@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
-namespace NFun {
+namespace NFun; 
 
 internal static class Helper {
     public static bool DoesItLooksLikeSuperAnonymousVariable(string id) {
@@ -19,8 +19,10 @@ internal static class Helper {
     }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsEmpty<TIn>(this IEnumerable<TIn> input)  => !input.Any();
+    
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsEmpty<TIn>(this TIn[] input) => input.Length == 0;
+    
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsEmpty<TIn>(this List<TIn> input) => input.Count == 0;
 
@@ -87,6 +89,4 @@ internal static class Helper {
         Array.Copy(tail,0, ans, input.Length, tail.Length);
         return ans;
     }
-}
-
 }

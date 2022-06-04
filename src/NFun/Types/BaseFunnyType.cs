@@ -1,4 +1,4 @@
-namespace NFun.Types {
+namespace NFun.Types; 
 
 public enum BaseFunnyType {
     Empty = 0,
@@ -17,6 +17,4 @@ public enum BaseFunnyType {
     Generic = 13,
     Any = 14,
     Struct = 15
-}
-
 }

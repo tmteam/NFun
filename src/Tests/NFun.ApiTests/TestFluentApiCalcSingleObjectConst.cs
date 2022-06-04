@@ -5,7 +5,7 @@ using NFun.Interpretation.Functions;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.ApiTests {
+namespace NFun.ApiTests; 
 
 public class TestFluentApiCalcSingleObjectConst {
     [TestCase("(13 == 13) and ('vasa' == 'vasa')", true)]
@@ -70,6 +70,4 @@ public class TestFluentApiCalcSingleObjectConst {
         Assert.AreEqual(dic["name"], "test");
         Assert.AreEqual(dic["price"], (decimal)13.5);
     }
-}
-
 }

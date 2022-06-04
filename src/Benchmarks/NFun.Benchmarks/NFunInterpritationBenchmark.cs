@@ -3,7 +3,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using BenchmarkDotNet.Attributes;
 
-namespace NFun.Benchmarks {
+namespace NFun.Benchmarks; 
 
 public class NFunInterpritationBenchmark {
     private Scripts _scripts;
@@ -49,6 +49,4 @@ public class NFunInterpritationBenchmark {
         Expression<Func<double, double>> ex = x => 10 * x + 1;
         return ex.Compile();
     }
-}
-
 }

@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using NFun.Interpretation.Functions;
 using NFun.Runtime.Arrays;
 
-namespace NFun.Types {
+namespace NFun.Types; 
 
 internal static class TypeHelper {
     
@@ -55,7 +54,4 @@ internal static class TypeHelper {
 
         return true;
     }
-    
-}
-
 }

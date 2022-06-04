@@ -5,7 +5,7 @@ using NFun.ParseErrors;
 using NFun.Runtime;
 using NFun.Tokenization;
 
-namespace NFun.Interpretation {
+namespace NFun.Interpretation; 
 
 internal static class StringTemplateRuntimeBuilder {
     private const string AnonymIdPrefix = "___intepol___";
@@ -91,6 +91,4 @@ internal static class StringTemplateRuntimeBuilder {
             //end of script body here!
         }
     }
-}
-
 }

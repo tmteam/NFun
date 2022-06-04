@@ -4,7 +4,7 @@ using System.Linq;
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.ApiTests {
+namespace NFun.ApiTests; 
 
 class RuntimeApiTest {
     
@@ -222,6 +222,4 @@ class RuntimeApiTest {
             CollectionAssert.AreEquivalent(new[] { 1, 2, 3 }, (int[])item["f3"]);
         }
     }
-}
-
 }

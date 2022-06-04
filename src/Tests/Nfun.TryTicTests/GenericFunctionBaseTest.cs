@@ -5,7 +5,7 @@ using NFun.Interpretation.Functions;
 using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.UnitTests {
+namespace NFun.UnitTests; 
 
 [TestFixture]
 public class GenericFunctionBaseTest {
@@ -169,6 +169,4 @@ public class ReturnSelfGenericFunctionDefinition : GenericFunctionBase {
     public ReturnSelfGenericFunctionDefinition() : base("__retSelf", FunnyType.Generic(0), FunnyType.Generic(0)) { }
 
     protected override object Calc(object[] args) => args.First();
-}
-
 }

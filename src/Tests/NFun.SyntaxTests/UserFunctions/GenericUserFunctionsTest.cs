@@ -1,7 +1,7 @@
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests.UserFunctions {
+namespace NFun.SyntaxTests.UserFunctions; 
 
 [TestFixture]
 public class GenericUserFunctionsTest {
@@ -162,6 +162,4 @@ public class GenericUserFunctionsTest {
                           r:real[] = [1,4,3,2,5].bubbleSort()"
             .AssertReturns(("i", new[] { 1, 2, 3, 4, 5 }), ("r", new[] { 1.0, 2.0, 3.0, 4.0, 5.0 }));
     }
-}
-
 }

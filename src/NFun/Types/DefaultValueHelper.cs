@@ -4,10 +4,10 @@ using NFun.Interpretation.Functions;
 using NFun.Runtime;
 using NFun.Runtime.Arrays;
 
-namespace NFun.Types {
+namespace NFun.Types; 
 
 internal  static class DefaultValueHelper {
-    static Dictionary<BaseFunnyType, object> PrimitiveTypeMap = new Dictionary<BaseFunnyType, object>() {
+    static readonly Dictionary<BaseFunnyType, object> PrimitiveTypeMap = new() {
         { BaseFunnyType.Any, new object() },
         { BaseFunnyType.Bool, default(bool) },
         { BaseFunnyType.Char, default(char) },
@@ -56,6 +56,4 @@ internal  static class DefaultValueHelper {
         }
         public override object Calc(object[] args) => _returnValue;
     }
-}
-
 }

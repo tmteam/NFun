@@ -3,7 +3,7 @@ using NFun.Interpretation.Nodes;
 using NFun.Tokenization;
 using NFun.Types;
 
-namespace NFun.Interpretation.Functions {
+namespace NFun.Interpretation.Functions; 
 
 public abstract class FunctionWithTwoArgs : IConcreteFunction {
     protected FunctionWithTwoArgs(string name, FunnyType returnType, params FunnyType[] argTypes) {
@@ -49,6 +49,4 @@ public abstract class FunctionWithTwoArgs : IConcreteFunction {
 
         return new FunOfTwoArgsExpressionNode(this, castedChildren[0], castedChildren[1], interval);
     }
-}
-
 }

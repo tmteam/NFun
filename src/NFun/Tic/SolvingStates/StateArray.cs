@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using NFun.Tic.Stages;
 
-namespace NFun.Tic.SolvingStates {
+namespace NFun.Tic.SolvingStates; 
 
 public class StateArray : ICompositeState, ITypeState, ITicNodeState {
     public StateArray(TicNode elementNode) { ElementNode = elementNode; }
@@ -92,6 +92,4 @@ public class StateArray : ICompositeState, ITypeState, ITicNodeState {
         IStateCombination2dimensionalVisitor visitor, TicNode ancestorNode, TicNode descendantNode,
         ICompositeState ancestor)
         => visitor.Apply(ancestor, this, ancestorNode, descendantNode);
-}
-
 }

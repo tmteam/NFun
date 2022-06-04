@@ -1,4 +1,4 @@
-﻿namespace NFun.Tic.Tests.UnitTests {
+﻿namespace NFun.Tic.Tests.UnitTests; 
 
 class NodeToposortFunctionsTest {
     /*
@@ -47,6 +47,4 @@ class NodeToposortFunctionsTest {
         Assert.IsTrue(sorted.HasCycle);
         Assert.AreEqual(3, sorted.NodeNames.Count);
     }*/
-}
-
 }

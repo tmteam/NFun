@@ -2,7 +2,7 @@
 using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 
-namespace NFun.Tic.Tests.Funs {
+namespace NFun.Tic.Tests.Funs; 
 
 public class TrickyTest {
     [SetUp]
@@ -221,6 +221,4 @@ public class TrickyTest {
         var t = result.AssertAndGetSingleGeneric(StatePrimitive.U8, StatePrimitive.Real);
         result.AssertAreGenerics(t, "x");
     }
-}
-
 }

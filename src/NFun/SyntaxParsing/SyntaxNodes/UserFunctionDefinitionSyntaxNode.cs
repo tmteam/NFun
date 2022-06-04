@@ -1,11 +1,20 @@
 using System.Collections.Generic;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tokenization;
-using NFun.Types;
 
-namespace NFun.SyntaxParsing.SyntaxNodes {
+namespace NFun.SyntaxParsing.SyntaxNodes; 
 
 public class UserFunctionDefinitionSyntaxNode : ISyntaxNode {
+    public UserFunctionDefinitionSyntaxNode(
+        IList<TypedVarDefSyntaxNode> arguments,
+        FunCallSyntaxNode headNode,
+        ISyntaxNode expression,
+        FunnyType returnType) {
+        Args = arguments;
+        Head = headNode;
+        ReturnType = returnType;
+        Body = expression;
+    }
     public FunnyType OutputType { get; set; }
     public int OrderNumber { get; set; }
     public FunnyType ReturnType { get; }
@@ -26,17 +35,4 @@ public class UserFunctionDefinitionSyntaxNode : ISyntaxNode {
             yield return Body;
         }
     }
-
-    public UserFunctionDefinitionSyntaxNode(
-        IList<TypedVarDefSyntaxNode> arguments,
-        FunCallSyntaxNode headNode,
-        ISyntaxNode expression,
-        FunnyType returnType) {
-        Args = arguments;
-        Head = headNode;
-        ReturnType = returnType;
-        Body = expression;
-    }
-}
-
 }

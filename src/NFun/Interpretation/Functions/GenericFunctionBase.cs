@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using NFun.Types;
 
-namespace NFun.Interpretation.Functions {
+namespace NFun.Interpretation.Functions; 
 
 public abstract class GenericFunctionBase : IGenericFunction {
     public GenericConstrains[] Constrains { get; }
@@ -57,8 +57,7 @@ public abstract class GenericFunctionBase : IGenericFunction {
         if (!maxGenericId.HasValue)
             throw new InvalidOperationException($"Type {name} has wrong generic definition");
     }
-
-
+    
     public FunnyType ReturnType { get; }
 
     protected virtual object Calc(object[] args) => throw new NotImplementedException();
@@ -174,6 +173,4 @@ public abstract class GenericFunctionBase : IGenericFunction {
 
         public override object Calc(object[] args) => _calc(args);
     }
-}
-
 }

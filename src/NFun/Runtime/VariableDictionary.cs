@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
-using NFun.Interpretation.Functions;
 using NFun.Interpretation.Nodes;
 using NFun.Tokenization;
 using NFun.Types;
 
-namespace NFun.Runtime {
+namespace NFun.Runtime; 
 
 internal class VariableDictionary {
     private readonly TypeBehaviour _typeBehaviour;
@@ -107,6 +106,4 @@ internal class VariableDictionary {
 
         return sources;
     }
-}
-
 }

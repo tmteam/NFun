@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using NFun.Exceptions;
 using NFun.Interpretation.Functions;
@@ -13,7 +11,7 @@ using NFun.Tokenization;
 using NFun.TypeInferenceAdapter;
 using NFun.Types;
 
-namespace NFun.Interpretation {
+namespace NFun.Interpretation; 
 
 internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionNode> {
     private readonly IFunctionDictionary _functions;
@@ -65,8 +63,8 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         _dialect = dialect;
     }
 
-    public IExpressionNode Visit(SuperAnonymFunctionSyntaxNode arrowAnonymFunNode) {
-        var outputTypeFunDefinition = arrowAnonymFunNode.OutputType.FunTypeSpecification;
+    public IExpressionNode Visit(SuperAnonymFunctionSyntaxNode node) {
+        var outputTypeFunDefinition = node.OutputType.FunTypeSpecification;
         if (outputTypeFunDefinition == null)
             throw new NFunImpossibleException("Fun definition expected");
         string[] argNames;
@@ -82,7 +80,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         }
 
         //Prepare local variable scope
-        //Capture all outerscope variables
+        //Capture all outer scope variables
         var localVariables = new VariableDictionary(_dialect.TypeBehaviour, _variables.GetAllSources());
 
         var arguments = new VariableSource[argNames.Length];
@@ -98,13 +96,13 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             localVariables.AddOrReplace(source);
         }
 
-        var body = arrowAnonymFunNode.Body;
-        return BuildAnonymousFunction(arrowAnonymFunNode.Interval, body, localVariables, arguments);
+        var body = node.Body;
+        return BuildAnonymousFunction(node.Interval, body, localVariables, arguments);
     }
 
     public IExpressionNode Visit(StructFieldAccessSyntaxNode node) {
         var structNode = ReadNode(node.Source);
-        //Funtic allows default values for not specified types 
+        // Funtic allows default values for not specified types 
         // so call:
         //  y = {}.missingField
         // is allowed, but it semantically incorrect
@@ -136,20 +134,20 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
         return new StructInitExpressionNode(names, nodes, node.Interval, FunnyType.StructOf(types));
     }
-    public IExpressionNode Visit(DefaultValueSyntaxNode arrowAnonymFunNode) => 
+    public IExpressionNode Visit(DefaultValueSyntaxNode node) => 
         new DefaultValueExpressionNode(
-            arrowAnonymFunNode.OutputType.GetDefaultFunnyValue(), 
-            arrowAnonymFunNode.OutputType, 
-            arrowAnonymFunNode.Interval);
+            node.OutputType.GetDefaultFunnyValue(), 
+            node.OutputType, 
+            node.Interval);
 
-    public IExpressionNode Visit(AnonymFunctionSyntaxNode anonymFunNode) {
-        if(anonymFunNode.Definition==null)
-            AssertChecks.Panic($"{nameof(anonymFunNode.Definition)} is missing");
-        if(anonymFunNode.Body==null)
-            AssertChecks.Panic($"{nameof(anonymFunNode.Body)} is missing");
+    public IExpressionNode Visit(AnonymFunctionSyntaxNode node) {
+        if(node.Definition==null)
+            AssertChecks.Panic($"{nameof(node.Definition)} is missing");
+        if(node.Body==null)
+            AssertChecks.Panic($"{nameof(node.Body)} is missing");
 
         //Anonym fun arguments list
-        var argumentLexNodes = anonymFunNode.ArgumentsDefinition;
+        var argumentLexNodes = node.ArgumentsDefinition;
 
         //Prepare local variable scope
         //Capture all outerscope variables
@@ -177,14 +175,14 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
                 if (_variables.GetSourceOrNull(varNode.Name) != null)
                     throw Errors.AnonymousFunctionArgumentConflictsWithOuterScope(
                         varNode.Name,
-                        anonymFunNode.Interval);
+                        node.Interval);
                 else //else it is duplicated arg name
-                    throw Errors.AnonymousFunctionArgumentDuplicates(varNode, anonymFunNode.Definition);
+                    throw Errors.AnonymousFunctionArgumentDuplicates(varNode, node.Definition);
             }
         }
 
-        var body = anonymFunNode.Body;
-        return BuildAnonymousFunction(anonymFunNode.Interval, body, localVariables, arguments);
+        var body = node.Body;
+        return BuildAnonymousFunction(node.Interval, body, localVariables, arguments);
     }
 
     public IExpressionNode Visit(ArraySyntaxNode node) {
@@ -424,6 +422,4 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
     private IExpressionNode ReadNode(ISyntaxNode node)
         => node.Accept(this);
-}
-
 }

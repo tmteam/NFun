@@ -3,7 +3,7 @@ using System.Linq;
 using NFun.Interpretation.Functions;
 using NFun.Runtime.Arrays;
 
-namespace NFun.Functions {
+namespace NFun.Functions; 
 
 public class AverageDoubleFunction : FunctionWithSingleArg {
     public AverageDoubleFunction() : base("avg", FunnyType.Real, FunnyType.ArrayOf(FunnyType.Real)) { }
@@ -84,6 +84,4 @@ public class Log10DoubleFunction : FunctionWithSingleArg {
 public class RoundToDoubleFunction : FunctionWithTwoArgs {
     public RoundToDoubleFunction() : base("round", FunnyType.Real, FunnyType.Real, FunnyType.Int32) { }
     public override object Calc(object a, object b) => Math.Round((double)a, (int)b);
-}
-
 }

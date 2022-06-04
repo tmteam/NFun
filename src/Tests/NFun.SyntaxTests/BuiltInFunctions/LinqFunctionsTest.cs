@@ -1,7 +1,7 @@
 ﻿using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests.BuiltInFunctions {
+namespace NFun.SyntaxTests.BuiltInFunctions; 
 
 class LinqFunctionsTest {
     [TestCase("y:int = [0,7,1,2,3] . fold(max)", 7)]
@@ -148,6 +148,4 @@ class LinqFunctionsTest {
         @"iSum(r:int, x:int):int = r+x
                      y = fold([100][1:1], iSum)")]
     public void FailsOnRuntime(string expr) => expr.AssertObviousFailsOnRuntime();
-}
-
 }

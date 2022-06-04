@@ -3,7 +3,7 @@ using System.Linq;
 using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 
-namespace NFun.Tic.Tests {
+namespace NFun.Tic.Tests; 
 
 class BasicArithmetics {
     [Test(Description = "x = 3 / 2")]
@@ -421,6 +421,4 @@ class BasicArithmetics {
         var generic = result.AssertAndGetSingleArithGeneric();
         result.AssertAreGenerics(generic, "a", "b", "c");
     }
-}
-
 }

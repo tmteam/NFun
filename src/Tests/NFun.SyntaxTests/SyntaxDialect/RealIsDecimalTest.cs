@@ -5,7 +5,7 @@ using NFun.Types;
 using NUnit.Framework;
 // ReSharper disable StringLiteralTypo
 
-namespace NFun.SyntaxTests.SyntaxDialect {
+namespace NFun.SyntaxTests.SyntaxDialect; 
 
 public class RealIsDecimalTest {
 
@@ -232,6 +232,4 @@ public class RealIsDecimalTest {
     public void ObviousFails(string expr) =>
         TestHelper.AssertObviousFailsOnParse(() =>
             expr.BuildWithDialect(realClrType: RealClrType.IsDecimal));
-}
-
 }

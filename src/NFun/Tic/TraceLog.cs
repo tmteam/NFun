@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 
-namespace NFun.Tic {
+namespace NFun.Tic; 
 
 public static class TraceLog {
     public static bool IsEnabled { get; set; } = false;
@@ -66,6 +66,4 @@ public static class TraceLog {
         }
 #endif
     }
-}
-
 }

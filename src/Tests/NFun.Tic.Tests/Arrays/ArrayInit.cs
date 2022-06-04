@@ -1,7 +1,7 @@
 ﻿using NFun.Tic.SolvingStates;
 using NUnit.Framework;
 
-namespace NFun.Tic.Tests.Arrays {
+namespace NFun.Tic.Tests.Arrays; 
 
 class ArrayInit {
     [Test]
@@ -258,6 +258,4 @@ class ArrayInit {
         result.AssertNode(StateArray.Of(StatePrimitive.Any), 3);
         result.AssertNode(StateArray.Of(StatePrimitive.Real), 2);
     }
-}
-
 }

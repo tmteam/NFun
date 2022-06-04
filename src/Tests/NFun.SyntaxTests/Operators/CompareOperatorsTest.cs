@@ -2,7 +2,7 @@
 using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests.Operators {
+namespace NFun.SyntaxTests.Operators; 
 
 public class CompareOperatorsTest {
     [TestCase("true == false", false)]
@@ -215,6 +215,4 @@ public class CompareOperatorsTest {
     [TestCase("x:byte; y = x==42", (byte)43, false)]
     public void SingleVariableEquation(string expr, object arg, object expected) =>
         expr.Calc("x", arg).AssertReturns("y", expected);
-}
-
 }
