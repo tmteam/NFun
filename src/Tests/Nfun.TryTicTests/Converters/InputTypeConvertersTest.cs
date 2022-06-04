@@ -179,7 +179,7 @@ class UserMoqType {
     public string Name { get; }
     public int Age { get; }
     public double Size { get; }
-    // ReSharper disable once UnusedMember.Global
+    // ReSharper disable once UnusedAutoPropertyAccessor.Local
     public bool State { set; private get; }
     public Decimal Balance { get; }
 }

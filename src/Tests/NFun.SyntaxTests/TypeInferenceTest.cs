@@ -486,5 +486,5 @@ public class TypeInferenceTest {
     }
 
     private static Type GetClrType(FunnyType funnyType) =>
-        TypeBehaviourExtensions.GetOutputConverterFor(TypeBehaviour.RealIsDouble, funnyType).ClrType;
+        TypeBehaviour.RealIsDouble.GetOutputConverterFor(funnyType).ClrType;
 }

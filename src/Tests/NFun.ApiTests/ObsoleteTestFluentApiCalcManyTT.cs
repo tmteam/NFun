@@ -2,10 +2,11 @@ using System;
 using NFun.Exceptions;
 using NFun.TestTools;
 using NUnit.Framework;
+#pragma warning disable CS0618
 
 namespace NFun.ApiTests; 
 
-public class TestFluentApiCalcManyTT {
+public class ObsoleteTestFluentApiCalcManyTT {
     [TestCase("id = age*2; items = ids.map(toText);  Price = 42.1 + balance")]
     [TestCase("ID = age*2; Items = iDs.map(toText);  price = 42.1 + balAncE")]
     public void MapContracts(string expr) 

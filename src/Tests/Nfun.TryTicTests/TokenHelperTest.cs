@@ -154,7 +154,7 @@ public class TokenHelperTest {
     public void ReadTwinArrayType(string expr, BaseFunnyType elementType) =>
         AssertFunnyType(expr, FunnyType.ArrayOf(FunnyType.ArrayOf(FunnyType.PrimitiveOf(elementType))));
 
-    public void AssertFunnyType(string expr, FunnyType expected) {
+    private void AssertFunnyType(string expr, FunnyType expected) {
         var flow = Tokenizer.ToFlow(expr);
         var actual = flow.ReadType();
         Assert.AreEqual(expected, actual);

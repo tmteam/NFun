@@ -298,7 +298,7 @@ public class BodyTypeInferenceTests {
 
     [Test]
     public void ReqursiveTypeDefinitionThrows() {
-        Assert.Throws<NFun.Tic.Errors.RecursiveTypeDefinitionException>(
+        Assert.Throws<Tic.Errors.RecursiveTypeDefinitionException>(
             () => TestHelper.Solve("y = t.concat(t[0])"));
     }
 }

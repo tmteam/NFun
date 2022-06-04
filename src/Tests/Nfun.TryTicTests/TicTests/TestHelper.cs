@@ -35,8 +35,8 @@ public static class TestHelper {
     public static ITicResults Solve(string equation) {
         Console.WriteLine(equation);
 
-        var flow = NFun.Tokenization.Tokenizer.ToFlow(equation);
-        var tree = NFun.SyntaxParsing.Parser.Parse(flow);
+        var flow = Tokenization.Tokenizer.ToFlow(equation);
+        var tree = SyntaxParsing.Parser.Parse(flow);
         tree.ComeOver(new SetNodeNumberVisitor(0));
 
 
@@ -55,8 +55,8 @@ public static class TestHelper {
     public static TypeInferenceResults SolveAndGetResults(string equation) {
         Console.WriteLine(equation);
 
-        var flow = NFun.Tokenization.Tokenizer.ToFlow(equation);
-        var tree = NFun.SyntaxParsing.Parser.Parse(flow);
+        var flow = Tokenization.Tokenizer.ToFlow(equation);
+        var tree = SyntaxParsing.Parser.Parse(flow);
         tree.ComeOver(new SetNodeNumberVisitor(0));
 
         var graph = new GraphBuilder();

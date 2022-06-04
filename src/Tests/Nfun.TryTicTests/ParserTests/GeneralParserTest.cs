@@ -8,23 +8,7 @@ namespace NFun.UnitTests.ParserTests;
 
 [TestFixture]
 public class GeneralParserTest {
-    /*
-    [TestCase("y = 1+x", "1+x")]
-    [TestCase("y = 1","1")]
-    [TestCase("y = x+z*(x-z)", "x+z*(x-z)")]
-    public void SingleEquationParsingTest(string text, string expectedExpr, params string[] variables)
-    {
-        var parsed   = TopLevelParser.Parse(Tokenizer.ToFlow(text));
 
-        Assert.AreEqual(1, parsed.Nodes.Length);
-        var Equation = parsed.Nodes.OfType<EquationSyntaxNode>().First();
-        
-        Assert.Multiple(() =>
-        {
-            Assert.AreEqual("y", Equation.Id);
-            AssertParsed(Equation, expectedExpr);
-        });
-    }*/
     [TestCase("y(x) = 1+x", "1+x", "x")]
     [TestCase("y() = 1", "1")]
     [TestCase("y(x,z) = x+z*(x-z)", "x+z*(x-z)", "x", "z")]

@@ -104,9 +104,9 @@ y = tostring(x)", "y", "not supported")]
     [TestCase("y = ['a','b','foo']# ['a','b','foo'] type: text[]", "y", new[] { "a", "b", "foo" })]
     [TestCase("y:int[] = [1,2,3,4]#Int[]", "y", new[] { 1, 2, 3, 4 })]
     [TestCase("y:int[] = [1..4] #[1,2,3,4]", "y", new[] { 1, 2, 3, 4 })]
-    //  [TestCase("y:int[] = [1..7..2]  #[1,3,5,7]", "y", new[] {1, 3, 5, 7})]
-    // [TestCase("y = [1..2.5..0.5]  #[1.0,1.5,2.0,2.5]", "y", new[] {1.0, 1.5, 2.0, 2.5})]
-    [TestCase("y = [1.0,2.0, 3.5] #Real[]", "y", new[] { 1.0, 2.0, 3.5 })]
+    [TestCase("y:int[] = [1..7 step 2]  #[1,3,5,7]", "y", new[] {1, 3, 5, 7})]
+    [TestCase("y = [1..2.5 step 0.5]  #[1.0,1.5,2.0,2.5]", "y", new[] {1.0, 1.5, 2.0, 2.5})]
+    [TestCase("y = [1.0, 2.0, 3.5] #Real[]", "y", new[] { 1.0, 2.0, 3.5 })]
     [TestCase(
         "y:int[] = [1,2,3,4] .concat( [3,4,5,6])  #Concat [1,2,3,4,3,4,5,6]", "y",
         new[] { 1, 2, 3, 4, 3, 4, 5, 6 })]
@@ -286,7 +286,7 @@ yPublic   = yprivate + xpublic"
                             id = count - 1
                             flag = name != 'test'");
         MyOut result = f(new MyIn { Count = 100, Name = "kat" }); //MyOut{Id = 99; Flag = true}
-        TestTools.TestHelper.AreSame(new MyOut { Id = 99, Flag = true }, result);
+        TestHelper.AreSame(new MyOut { Id = 99, Flag = true }, result);
 
         // Hardcore mode 
         var runtime = Funny.Hardcore.Build(

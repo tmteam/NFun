@@ -3,6 +3,7 @@ using NFun.Interpretation.Functions;
 using NFun.TestTools;
 using NFun.Types;
 using NUnit.Framework;
+// ReSharper disable UnusedAutoPropertyAccessor.Global
 
 namespace NFun.UnitTests.Converters; 
 

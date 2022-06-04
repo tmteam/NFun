@@ -104,8 +104,7 @@ public class ArraysTest {
 
     [Test]
     public void IntersectToDimArrayTest() {
-        var expression = "y = [[1.0,2.0],[3.0,4.0],[5.0]]." +
-                         " intersect ([[3.0,4.0],[1.0],[5.0],[4.0]])";
+        var expression = "y = [[1.0,2.0],[3.0,4.0],[5.0]]. intersect ([[3.0,4.0],[1.0],[5.0],[4.0]])";
         var expected = new[] { new[] { 3.0, 4.0 }, new[] { 5.0 } };
         expression.AssertReturns("y", expected);
     }
@@ -145,9 +144,8 @@ public class ArraysTest {
     [TestCase(3, "y:int[]= [x,2,3]", new[] { 3, 2, 3 })]
     [TestCase(3, "y= [1..5][x]", 4)]
     [TestCase(true, "y= (if(x) [1,2] else [])[0]", 1)]
-
-    //[TestCase(2, "x:int; y= [1..6..x]", new[] {1, 3, 5})]
-    //[TestCase(0.5, "y= [1.0..3.0..x]", new[] {1.0, 1.5, 2.0, 2.5, 3.0})]
+    [TestCase(2, "x:int; y= [1..6 step x]", new[] {1, 3, 5})]
+    [TestCase(0.5, "y= [1.0..3.0 step x]", new[] {1.0, 1.5, 2.0, 2.5, 3.0})]
     public void SingleInputEquation_CheckOutputValues(object val, string expr, object expected) =>
         expr.Calc("x", val).AssertResultHas("y", expected);
 
@@ -156,7 +154,7 @@ public class ArraysTest {
         var expr = "out = [0,[1]]";
         var result = expr.Calc().Get("out");
         Assert.IsInstanceOf<object[]>(result);
-        AssertArraysDeepEquiualent(new object[] { 0.0, new double[] { 1.0 } }, result);
+        AssertArraysDeepEquiualent(new object[] { 0.0, new[] { 1.0 } }, result);
     }
 
     [TestCase("y:real[] = [0x1]", new[] { 1.0 })]
@@ -170,7 +168,7 @@ public class ArraysTest {
         var expr = "out:any[] = [0,[1]]";
         var result = expr.Calc().Get("out");
         Assert.IsInstanceOf<object[]>(result);
-        AssertArraysDeepEquiualent(new object[] { 0.0, new double[] { 1.0 } }, result);
+        AssertArraysDeepEquiualent(new object[] { 0.0, new[] { 1.0 } }, result);
     }
 
     [TestCase("out:any[] = [0,[1]]")]
@@ -232,7 +230,7 @@ public class ArraysTest {
         var expr = "out:any = [false,0,1,'vasa',[1,2,[10000,2]]]";
         var result = expr.Calc().Get("out");
 
-        var expected = new object[] { false, 0.0, 1.0, "vasa", new Object[] { 1.0, 2.0, new double[] { 10000, 2.0 } } };
+        var expected = new object[] { false, 0.0, 1.0, "vasa", new Object[] { 1.0, 2.0, new[] { 10000, 2.0 } } };
         AssertArraysDeepEquiualent(expected, result);
     }
 

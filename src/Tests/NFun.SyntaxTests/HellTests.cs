@@ -202,6 +202,6 @@ public class HellTests {
                           mySum(a,b) = a + b  
                           j =  [0..100].map(fun (ins[1]+ it- ins[2])/it).fold(mySum);
                    ";
-        var res = expr.Calc();
+        Assert.DoesNotThrow(()=> expr.Calc());
     }
 }

@@ -239,7 +239,7 @@ public class AnonymousFunTest {
     [TestCase(@"y = [1.0,2.0,3.0].fold((i,j)-> x)")]
     [TestCase(@"y = [1.0,2.0,3.0].fold((i,j)->i+j+x)")]
     [TestCase(@"y = [11,20,1,2].filter((i:int) -> i>10)")]
-    [TestCase(@"y = [11,20,1,2].filter(i:int -> i>10)")]
+    [TestCase("y = [11,20,1,2].filter(i:int -> i>10)")]
     [TestCase("y = [1.0].fold(((i,j)->i+j)")]
     [TestCase("y = fold(((i,j),k)->i+j)")]
     [TestCase(@"y = [1.0,2.0,3.0].fold((i*2,j)->i+j)")]
