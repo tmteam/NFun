@@ -6,17 +6,38 @@ using System.Runtime.CompilerServices;
 namespace NFun; 
 
 internal static class Helper {
-    public static bool DoesItLooksLikeSuperAnonymousVariable(string id) {
+    public static bool DoesItLooksLikeSuperAnonymousVariable(string id, out int num) {
+        num = -1;
         if (id.Length < 2)
             return false;
         if (id[0] != 'i' && id[0] != 'I')
             return false;
         if (id[1] != 't' && id[1] != 'T')
             return false;
-        if (id.Length == 2)
+        
+        if (id.Length == 2) {
+            num = -1;
             return true;
-        return char.IsDigit(id[2]);
+        }
+        
+        num = id[2] switch {
+                  '0' => 0,
+                  '1' => 1,
+                  '2' => 2,
+                  '3' => 3,
+                  '4' => 4,
+                  '5' => 5,
+                  '6' => 6,
+                  '7' => 7,
+                  '8' => 8,
+                  '9' => 9,
+                  _   => -1
+              };
+
+        return num != -1;
     }
+    public static bool DoesItLooksLikeSuperAnonymousVariable(string id) => DoesItLooksLikeSuperAnonymousVariable(id, out _);
+    
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsEmpty<TIn>(this IEnumerable<TIn> input)  => !input.Any();
     

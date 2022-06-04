@@ -16,12 +16,12 @@ public class FindFunctionDependenciesVisitor : EnterVisitorBase {
     public bool HasSelfRecursion { get; private set; } = false;
     public int[] GetFoundDependencies() => _dependencies.ToArray();
 
-    public override VisitorEnterResult Visit(FunCallSyntaxNode node) {
+    public override DfsEnterResult Visit(FunCallSyntaxNode node) {
         var nodeName = node.Id + "(" + node.Args.Length + ")";
         if (nodeName == _functionAlias)
             HasSelfRecursion = true;
         else if (_userFunctionsNames.TryGetValue(nodeName, out int id))
             _dependencies.Add(id);
-        return VisitorEnterResult.Continue;
+        return DfsEnterResult.Continue;
     }
 }

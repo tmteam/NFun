@@ -13,13 +13,13 @@ public class ApplyTiResultEnterVisitor : EnterVisitorBase {
         _tiToLangTypeConverter = tiToLangTypeConverter;
     }
 
-    public override VisitorEnterResult Visit(EquationSyntaxNode node) {
+    public override DfsEnterResult Visit(EquationSyntaxNode node) {
         var type = _solving.GetVariableType(node.Id);
         node.OutputType = _tiToLangTypeConverter.Convert(type);
-        return VisitorEnterResult.Continue;
+        return DfsEnterResult.Continue;
     }
 
-    public override VisitorEnterResult Visit(NamedIdSyntaxNode node) {
+    public override DfsEnterResult Visit(NamedIdSyntaxNode node) {
         //TODO it is just workaround. We have to manually setup variable type into VariableSource
         var type = _solving.GetVariableTypeOrNull(node.Id);
         if (type != null)
@@ -27,16 +27,16 @@ public class ApplyTiResultEnterVisitor : EnterVisitorBase {
         return DefaultVisitEnter(node);
     }
 
-    protected override VisitorEnterResult DefaultVisitEnter(ISyntaxNode node) {
+    protected override DfsEnterResult DefaultVisitEnter(ISyntaxNode node) {
         var type = _solving.GetSyntaxNodeTypeOrNull(node.OrderNumber);
         node.OutputType = type == null
             ? FunnyType.Empty
             : _tiToLangTypeConverter.Convert(type);
 
-        return VisitorEnterResult.Continue;
+        return DfsEnterResult.Continue;
     }
 
 
-    public override VisitorEnterResult Visit(UserFunctionDefinitionSyntaxNode node)
-        => VisitorEnterResult.Continue;
+    public override DfsEnterResult Visit(UserFunctionDefinitionSyntaxNode node)
+        => DfsEnterResult.Continue;
 }

@@ -390,8 +390,9 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
         var wrongItVariable = closured.FirstOrDefault(c => Helper.DoesItLooksLikeSuperAnonymousVariable(c.Source.Name));
         if (wrongItVariable!=null)
-            throw Errors.CannotUseSuperAnonymousVariableHere(wrongItVariable.Usages.First().Interval);
+            throw Errors.CannotUseSuperAnonymousVariableHere(wrongItVariable.Usages.First().Interval,wrongItVariable.Source.Name);
 
+        
         //Add closured vars to outer-scope dictionary
         foreach (var newVar in closured)
             _variables.TryAdd(newVar); //add full usage info to allow analyze outer errors

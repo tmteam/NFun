@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tic;

@@ -2,6 +2,7 @@
 using System.Linq;
 using NFun.Interpretation;
 using NFun.Interpretation.Functions;
+using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tic;

@@ -1,9 +1,12 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using NFun.SyntaxParsing.SyntaxNodes;
+using NFun.SyntaxParsing.Visitors;
 
-namespace NFun.SyntaxParsing.Visitors; 
+namespace NFun.SyntaxParsing; 
 
-public static class SyntaxTreeDeepFieldSearch {
+public static class SyntaxNodeExtensions {
     public static Queue<ISyntaxNode> FindNodePath(this ISyntaxNode root, object nodeId) {
         var stack = new Queue<ISyntaxNode>();
         if (root == null)
@@ -46,13 +49,13 @@ public static class SyntaxTreeDeepFieldSearch {
     }
 
     public static bool ComeOver(
-        this ISyntaxNode root, ISyntaxNodeVisitor<VisitorEnterResult> enterVisitor,
+        this ISyntaxNode root, ISyntaxNodeVisitor<DfsEnterResult> enterVisitor,
         ISyntaxNodeVisitor<bool> exitVisitor) {
         var enterResult = root.Accept(enterVisitor);
 
-        if (enterResult == VisitorEnterResult.Failed)
+        if (enterResult == DfsEnterResult.Stop)
             return false;
-        if (enterResult == VisitorEnterResult.Skip)
+        if (enterResult == DfsEnterResult.Skip)
             return true;
 
         foreach (var child in root.Children)
@@ -64,11 +67,11 @@ public static class SyntaxTreeDeepFieldSearch {
         return root.Accept(exitVisitor);
     }
 
-    public static bool ComeOver(this ISyntaxNode root, ISyntaxNodeVisitor<VisitorEnterResult> enterVisitor) {
+    public static bool ComeOver(this ISyntaxNode root, ISyntaxNodeVisitor<DfsEnterResult> enterVisitor) {
         var enterResult = root.Accept(enterVisitor);
-        if (enterResult == VisitorEnterResult.Failed)
+        if (enterResult == DfsEnterResult.Stop)
             return false;
-        if (enterResult == VisitorEnterResult.Skip)
+        if (enterResult == DfsEnterResult.Skip)
             return true;
 
         foreach (var child in root.Children)
@@ -76,5 +79,28 @@ public static class SyntaxTreeDeepFieldSearch {
                 return false;
 
         return true;
+    }
+    public static ISyntaxNode Find(this ISyntaxNode root, Func<ISyntaxNode, bool> predicate, Func<ISyntaxNode, bool> enterCondition) {
+        ISyntaxNode result = null;
+        root.ComeOver(visiting => {
+                    if (! enterCondition(visiting))
+                        return DfsEnterResult.Skip;
+                    if (!predicate(visiting))
+                        return DfsEnterResult.Continue;
+                    
+                    result = visiting;
+                    return DfsEnterResult.Stop;
+        });
+        return result;
+    }
+    public static bool ComeOver(this ISyntaxNode root, Func<ISyntaxNode, DfsEnterResult> runner) {
+        var result = runner(root);
+
+        return result switch {
+                   DfsEnterResult.Stop   => false,
+                   DfsEnterResult.Skip     => true,
+                   DfsEnterResult.Continue => root.Children.All(child => ComeOver(child, runner)),
+                   _                       => throw new NotSupportedException($"Value {result} is not supported")
+               };
     }
 }

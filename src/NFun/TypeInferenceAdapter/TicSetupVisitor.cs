@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using NFun.Exceptions;
@@ -10,6 +11,7 @@ using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.SyntaxParsing.Visitors;
 using NFun.Tic;
 using NFun.Tic.SolvingStates;
+using NFun.Tokenization;
 using NFun.Types;
 
 namespace NFun.TypeInferenceAdapter; 
@@ -144,19 +146,53 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
 
     public bool Visit(SuperAnonymFunctionSyntaxNode node) {
         _aliasScope.EnterScope(node.OrderNumber);
-
+        //try to figure out signature with parent type specification
         var argType = _parentFunctionArgType.FunTypeSpecification;
         string[] originArgNames;
         string[] aliasArgNames;
+        if (argType == null)
+        {
+            //need to scan the body to figure out the names of function syntax node
+            bool hasSimpleIt = false;
+            int maxNotSimpleItNum = -1;
 
-        if (argType == null || argType.Inputs.Length == 1)
+            node.Body.ComeOver(visiting => {
+                if (visiting is SuperAnonymFunctionSyntaxNode)
+                    return DfsEnterResult.Skip;
+                if (visiting is NamedIdSyntaxNode named && Helper.DoesItLooksLikeSuperAnonymousVariable(named.Id, out int num))
+                {
+                    //we found variable!
+                    if (num == -1)
+                        hasSimpleIt = true;
+                    else if (num == 0 || num > 3)
+                        throw Errors.InvalidSuperAnonymousVariableName(named.Interval, named.Id);
+                    else
+                        maxNotSimpleItNum = Math.Max(maxNotSimpleItNum, num);
+                }
+
+                return DfsEnterResult.Continue;
+            });
+
+            if (hasSimpleIt && maxNotSimpleItNum > 0)
+            {
+                //user mix 'it' and 'itN' arguments
+                var resultInterval = node.Body.Find(
+                    predicate: n => n is NamedIdSyntaxNode named && Helper.DoesItLooksLikeSuperAnonymousVariable(named.Id, out int num) && num == -1,
+                    enterCondition: n => n is not SuperAnonymFunctionSyntaxNode).Interval;
+                throw Errors.CannotUseSuperAnonymousVariableHereBecauseHasNumberedVariables(resultInterval);
+            }
+
+            if (hasSimpleIt)
+                originArgNames = new[] { "it" };
+            else if (maxNotSimpleItNum == -1)
+                originArgNames = new String[] { };
+            else
+                originArgNames = GetSuperAnonymousArgNames(maxNotSimpleItNum);
+        }
+        else if (argType.Inputs.Length == 1)
             originArgNames = new[] { "it" };
         else
-        {
-            originArgNames = new string[argType.Inputs.Length];
-            for (int i = 0; i < argType.Inputs.Length; i++)
-                originArgNames[i] = $"it{i + 1}";
-        }
+            originArgNames = GetSuperAnonymousArgNames(argType.Inputs.Length);
 
         aliasArgNames = new string[originArgNames.Length];
 
@@ -176,6 +212,13 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
 
         _aliasScope.ExitScope();
         return true;
+    }
+    
+    private static string[] GetSuperAnonymousArgNames(int count) {
+        var originArgNames = new string[count];
+        for (int i = 0; i < count; i++)
+            originArgNames[i] = $"it{i + 1}";
+        return originArgNames;
     }
 
     public bool Visit(StructFieldAccessSyntaxNode node) {

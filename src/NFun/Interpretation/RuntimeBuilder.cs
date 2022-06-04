@@ -100,14 +100,16 @@ internal static class RuntimeBuilder {
                     BuildEquationAndPutItToVariables(node, functionDictionary, variables, bodyTypeSolving, dialect);
                 equations.Add(equation);
                 if (Helper.DoesItLooksLikeSuperAnonymousVariable(equation.Id))
-                    throw Errors.CannotUseSuperAnonymousVariableHere(new Interval(node.Interval.Start, node.Interval.Start + node.Id.Length));
+                    throw Errors.CannotUseSuperAnonymousVariableHere(
+                        new Interval(node.Interval.Start, node.Interval.Start + node.Id.Length),
+                        equation.Id);
                 if (TraceLog.IsEnabled)
                     TraceLog.WriteLine($"\r\nEQUATION: {equation.Id}:{equation.Expression.Type} = ... \r\n");
             }
             else if (treeNode is VarDefinitionSyntaxNode varDef)
             {
                 if (Helper.DoesItLooksLikeSuperAnonymousVariable(varDef.Id))
-                    throw Errors.CannotUseSuperAnonymousVariableHere(varDef.Interval);
+                    throw Errors.CannotUseSuperAnonymousVariableHere(varDef.Interval, varDef.Id);
 
                 var variableSource = VariableSource.CreateWithStrictTypeLabel(
                     varDef.Id,
@@ -213,7 +215,7 @@ internal static class RuntimeBuilder {
 
         var itVariable = variables.GetSuperAnonymousVariableOrNull();
         if (itVariable != null)
-            throw Errors.CannotUseSuperAnonymousVariableHere(itVariable.Usages.First().Interval);
+            throw Errors.CannotUseSuperAnonymousVariableHere(itVariable.Usages.First().Interval,itVariable.Source.Name);
 
 
         if (!variables.TryAdd(outputVariableSource))

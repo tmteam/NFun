@@ -6,8 +6,8 @@ public class SetNodeNumberVisitor : EnterVisitorBase {
 
     public SetNodeNumberVisitor(int startNum) { _lastNum = startNum; }
 
-    protected override VisitorEnterResult DefaultVisitEnter(ISyntaxNode node) {
+    protected override DfsEnterResult DefaultVisitEnter(ISyntaxNode node) {
         node.OrderNumber = _lastNum++;
-        return VisitorEnterResult.Continue;
+        return DfsEnterResult.Continue;
     }
 }

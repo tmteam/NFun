@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -52,14 +53,22 @@ internal static partial class Errors {
 
     #region rules
 
-    internal static FunnyParseException CannotUseSuperAnonymousVariableHere(Interval interval) => new(
-        840, "'it' variable can be used only as arguments in rules", interval);
+    internal static FunnyParseException CannotUseSuperAnonymousVariableHere(Interval interval, string variableName) =>
+        variableName == "it"
+            ? new(840, $"'{variableName}' variable can be used only as arguments in rules with single argument", interval)
+            : new(841, $"'{variableName}' variable can be used only as arguments in rules with more than one argument", interval);
+
+    internal static FunnyParseException InvalidSuperAnonymousVariableName(Interval interval, string variableName) =>
+        new(843, $"'{variableName}' is invalid rule argument name. Allowed names are: 'it', 'it1', 'it2', 'it3'", interval);
 
     internal static FunnyParseException AnonymousFunctionArgumentDuplicates(FunArgumentExpressionNode argNode, ISyntaxNode funDefinition) => new(
-        843, $"'Argument name '{argNode.Name}' of anonymous fun duplicates ", argNode.Interval);
+        845, $"'Argument name '{argNode.Name}' of anonymous fun duplicates ", argNode.Interval);
 
     internal static FunnyParseException AnonymousFunctionArgumentConflictsWithOuterScope(string argName, Interval defInterval) => new(
-        846, $"'Argument name '{argName}' of anonymous fun conflicts with outer scope variable. It is denied for your safety.", defInterval);
+        847, $"'Argument name '{argName}' of anonymous fun conflicts with outer scope variable. It is denied for your safety.", defInterval);
+    
+    internal static FunnyParseException CannotUseSuperAnonymousVariableHereBecauseHasNumberedVariables(Interval interval) => new(
+        849, "'it' variable can be used only as single argument in rules. Rename it to 'it1'", interval);
 
     #endregion
 

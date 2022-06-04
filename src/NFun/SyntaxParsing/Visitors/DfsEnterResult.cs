@@ -1,7 +1,7 @@
 namespace NFun.SyntaxParsing.Visitors; 
 
-public enum VisitorEnterResult {
+public enum DfsEnterResult {
     Continue,
-    Failed,
+    Stop,
     Skip
 }
