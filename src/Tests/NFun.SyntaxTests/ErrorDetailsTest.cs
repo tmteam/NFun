@@ -103,7 +103,6 @@ public class ErrorDetailsTest {
     [TestCase("q=[5,2,3", "  ", "")]
     [TestCase("m=[6,2,3", ",", "")]
     [TestCase("m=[7,2,3", ",,", "")]
-    [TestCase("m=[8,2,3", ",]", "")]
     [TestCase("m=[9,2,3", " ", "4]")]
     [TestCase("m=[10,2,3,", "123anc", ",4]")]
     [TestCase("m=[11,2,3,", "123anc", "]")]

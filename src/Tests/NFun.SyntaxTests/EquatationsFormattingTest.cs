@@ -38,6 +38,34 @@ public class EquationsFormattingTest {
     [TestCase("y:int = ;(;2;+;3;)*(;3;)", 15)]
     public void SeveralLinesBetweenNodes_Calculates(string expr, int expected) => expr.AssertReturns("y", expected);
 
+    [TestCase("[1,]", new []{1})]
+    [TestCase("sqrt(4)", 2.0)]
+    [TestCase("foo(a,) = -a; foo(1)", -1)]
+    [TestCase("foo(a) = -a; foo(1,)", -1)]
+    [TestCase("{a=42,}.a", 42)]
+    [TestCase("foo() = rule it; foo()(2,)",2)]
+    
+    [TestCase("[1,2,3,]", new []{1,2,3})]
+    [TestCase("max(4,2,)", 4)]
+    [TestCase("foo(a,b,) = a+b; foo(1,2)", 3)]
+    [TestCase("foo(a,b) = a+b; foo(1,2,)", 3)]
+    [TestCase("{a=42,b=12,}.a", 42)]
+    [TestCase("foo() = rule it1*it2; foo()(2,4,)",8)]
+    [TestCase("foo() = rule(a,b)= a*b; foo()(2,4,)",8)]
+    public void TrailingComaInTheList(string expr, object expected) => expr.AssertAnonymousOut(expected);
+
+    [TestCase("{,}")]
+    [TestCase("foo(,) = 42; foo()")]
+    [TestCase("foo() = 42; foo(,)")]
+    [TestCase("[1,2,3,,]")]
+    [TestCase("max(4,2,,)")]
+    [TestCase("foo(a,b,,) = a+b; foo(1,2)")]
+    [TestCase("foo(a,b) = a+b; foo(1,2,,)")]
+    [TestCase("{a=42,b=12,,}.a")]
+    [TestCase("foo() = rule it1*it2; foo()(2,4,,)")]
+    public void TrailingComaInTheListFails(string expr) => expr.AssertObviousFailsOnParse();
+
+    
     [TestCase(
         @"y:int = 1
 

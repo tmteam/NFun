@@ -102,7 +102,7 @@ public class ConcreteUserFunctionsTest {
     [TestCase("y(x):foo=x")]
     [TestCase("y(x+1)=x")]
     [TestCase("y(,x)=x")]
-    [TestCase("y(x,)=x")]
+    [TestCase("y(,)=42")]
     [TestCase("y(x,1)=x")]
     [TestCase("y(1)=x")]
     [TestCase("y(x:foo)=x")]

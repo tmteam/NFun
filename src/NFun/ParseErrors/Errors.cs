@@ -129,7 +129,7 @@ internal static partial class Errors {
             if (exp == null && list.Any())
             {
                 flow.Move(currentToken);
-                //[x,y, {no or bad expression here} ...
+                //[x,y, { bad expression here} ...
                 return SpecifyArrayInitError(list, flow, openBrack, closeBrack);
             }
 
@@ -193,7 +193,7 @@ internal static partial class Errors {
                 new Interval(errorStart, flow.Position));
         }
 
-        //LastArgument is a part of error
+        //Last argument is a part of error
         return new ExprListError(
             ExprListErrorType.LastArgumentIsInvalid,
             arguments,

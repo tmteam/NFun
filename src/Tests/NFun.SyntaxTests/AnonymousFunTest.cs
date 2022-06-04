@@ -144,7 +144,31 @@ public class AnonymousFunTest {
     [TestCase(@"call12 = (fun it); y =  call12(2)", 2)]
     [TestCase(
         "ids:int[]=[1,2,3,4]; age:int = 1;  ;y:int[] = ids.filter(fun it>age).map(fun it+1)",
-        new int[] { 3, 4, 5 })]
+        new[] { 3, 4, 5 })]
+    
+    [TestCase("foo() = (rule it1*it2); y = foo()(2,4)",8)]
+    [TestCase("foo() = rule it1*it2; y = foo()(2,4)",8)]
+    [TestCase("foo() = rule it1*it2; x = foo(); y = x(2,4)",8)]
+    [TestCase("foo() = (rule it1+it2+it3); y = foo()(2,3,4)",9)]
+    [TestCase("foo() = rule it1+it2+it3; y = foo()(2,3,4)",9)]
+    [TestCase("foo() = (rule it1+it2+it3); x = foo(); y = x(2,3,4)",9)]
+
+    [TestCase("x = (rule it1*it2);     y = x(2,4)",8)]
+    [TestCase("x = rule it1*it2;       y = x(2,4)",8)]
+    [TestCase("x = (rule it1+it2+it3); y = x(2,3,4)",9)]
+    [TestCase("x = rule it1+it2+it3;   y = x(2,3,4)",9)]
+    
+    [TestCase("x = (rule it1); y = x(2)",2)]
+    [TestCase("x = rule it1;   y = x(2)",2)]
+    
+    [TestCase("y = (rule it1)(2)",2)]
+    [TestCase("y = (rule it1)(2)",2)]
+    
+    [TestCase("x = (rule it); y = x(2)",2)]
+    [TestCase("x = rule it;   y = x(2)",2)]
+    
+    [TestCase("y = (rule it)(2)",2)]
+    [TestCase("y = (rule it)(2)",2)]
     public void SuperAnonymousFunctions_ConstantEquation(string expr, object expected) {
         var runtime = expr.Build();
         runtime.AssertInputsCount(0, "Unexpected inputs on constant equations");

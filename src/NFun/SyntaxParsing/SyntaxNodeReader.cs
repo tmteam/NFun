@@ -810,7 +810,7 @@ public static class SyntaxNodeReader {
             if (exp != null)
                 read.Add(exp);
             else if (read.Count > 0)
-                return false;
+                return true; //trailing coma support
             else
                 break;
         } while (flow.MoveIf(TokType.Sep, out _));
