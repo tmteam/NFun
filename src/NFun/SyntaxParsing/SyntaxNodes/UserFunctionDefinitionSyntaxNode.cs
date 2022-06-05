@@ -17,13 +17,13 @@ public class UserFunctionDefinitionSyntaxNode : ISyntaxNode {
     }
     public FunnyType OutputType { get; set; }
     public int OrderNumber { get; set; }
+    public int BracketsCount { get; set; }
     public FunnyType ReturnType { get; }
     public FunCallSyntaxNode Head { get; }
     public bool IsRecursive { get; set; } = true;
     public string Id => Head.Id;
     public IList<TypedVarDefSyntaxNode> Args { get; }
     public ISyntaxNode Body { get; }
-    public bool IsInBrackets { get; set; }
     public Interval Interval { get; set; }
     public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
     public IEnumerable<ISyntaxNode> Children

@@ -4,7 +4,6 @@ using System.Linq;
 using NFun.Exceptions;
 using NFun.SyntaxParsing;
 using NFun.SyntaxParsing.SyntaxNodes;
-using NFun.SyntaxParsing.Visitors;
 using NFun.Tic;
 using NFun.Tic.Errors;
 using NFun.Tic.SolvingStates;
@@ -44,15 +43,16 @@ internal static partial class Errors {
     internal static FunnyParseException TranslateTicError(TicException ticException, ISyntaxNode rootToSearch, GraphBuilder graph) {
         var allTicNodes = graph.GetNodes();
         return ticException switch {
-                   IncompatibleAncestorSyntaxNodeException syntaxNodeEx => TranslateIncompatibleAncestorError(rootToSearch, syntaxNodeEx, allTicNodes),
-                   CannotSetStateSyntaxNodeException stateException     => TranslateStateError(ticException, rootToSearch, stateException),
-                   RecursiveTypeDefinitionException e                   => TranslateRecursiveTypeDefinitionError(rootToSearch, e, allTicNodes),
-                   TicInvalidFunctionalVariableSignature signature       => TranlsateInvalidFunctionalVarError(rootToSearch, signature, allTicNodes),
-                   _                                                    => GeneralTypeError(799, ticException, rootToSearch)
+                   TicIncompatibleAncestorSyntaxNodeException syntaxNodeEx => TranslateIncompatibleAncestorError(rootToSearch, syntaxNodeEx, allTicNodes),
+                   TicCannotSetStateSyntaxNodeException stateException     => TranslateStateError(ticException, rootToSearch, stateException),
+                   TicRecursiveTypeDefinitionException e                   => TranslateRecursiveTypeDefinitionError(rootToSearch, e, allTicNodes),
+                   TicInvalidFunctionalVariableSignature signature         => TranlsateInvalidFunctionalVarError(rootToSearch, signature, allTicNodes),
+                   TicNodeIsNotAFunctionalVariableException notFun         => TranslateIsNotAFunctionalVar(rootToSearch,notFun,allTicNodes),
+                   _                                                       => GeneralTypeError(799, ticException, rootToSearch)
                };
     }
 
-    private static FunnyParseException TranslateIncompatibleAncestorError(ISyntaxNode rootToSearch, IncompatibleAncestorSyntaxNodeException syntaxNodeEx, TicNode[] allTicNodes) {
+    private static FunnyParseException TranslateIncompatibleAncestorError(ISyntaxNode rootToSearch, TicIncompatibleAncestorSyntaxNodeException syntaxNodeEx, TicNode[] allTicNodes) {
         var ticAncestor = syntaxNodeEx.Ancestor;
         var ticDescendant = syntaxNodeEx.Descendant;
 
@@ -60,8 +60,8 @@ internal static partial class Errors {
         if (error != null)
             return error;
 
-        var ancestor = FindConcreteNodeForGenericOrNull(ticAncestor, allTicNodes);
-        var descendant = FindConcreteNodeForGenericOrNull(ticDescendant, allTicNodes);
+        var ancestor = FindConcreteTicNodeForGenericOrNull(ticAncestor, allTicNodes);
+        var descendant = FindConcreteTicNodeForGenericOrNull(ticDescendant, allTicNodes);
 
         var error2 = GetAncestorToDescendantErrorOrNull(rootToSearch, ancestor, descendant);
         if (error2 != null)
@@ -71,8 +71,8 @@ internal static partial class Errors {
     }
 
 
-    private static FunnyParseException TranslateStateError(TicException ticException, ISyntaxNode rootToSearch, CannotSetStateSyntaxNodeException stateException) {
-        var path = rootToSearch.FindNodePath(stateException.Node.Name);
+    private static FunnyParseException TranslateStateError(TicException ticException, ISyntaxNode rootToSearch, TicCannotSetStateSyntaxNodeException stateException) {
+        var path = rootToSearch.FindSyntaxNodePath(stateException.Node.Name);
 
         if (path.Count != 0)
         {
@@ -85,8 +85,8 @@ internal static partial class Errors {
                 if (parent is StructFieldAccessSyntaxNode f)
                 {
                     if (failed is GenericIntSyntaxNode || failed is ConstantSyntaxNode)
-                        return new(722, $"Invalid syntax. Element '{GetDescription(failed)}' has no fields. What did you mean?", f.Interval);
-                    return new(725, $"Element '{GetDescription(failed)}' has no fields. What did you mean?", f.Interval);
+                        return new(722, $"Invalid syntax. Element '{failed.ToShortText()}' has no fields. What did you mean?", f.Interval);
+                    return new(725, $"Element '{failed.ToShortText()}' has no fields. What did you mean?", f.Interval);
                 }
             }
         }
@@ -94,18 +94,18 @@ internal static partial class Errors {
         return GeneralTypeError(798, ticException, rootToSearch);
     }
 
-    private static FunnyParseException TranslateRecursiveTypeDefinitionError(ISyntaxNode rootToSearch, RecursiveTypeDefinitionException e, TicNode[] allTicNodes) {
+    private static FunnyParseException TranslateRecursiveTypeDefinitionError(ISyntaxNode rootToSearch, TicRecursiveTypeDefinitionException e, TicNode[] allTicNodes) {
         var cycle = new List<ISyntaxNode>();
 
         foreach (var ticNode in e.Nodes)
         {
-            var path = rootToSearch.FindNodePath(ticNode.Name).FirstOrDefault();
+            var path = rootToSearch.FindSyntaxNodePath(ticNode.Name).FirstOrDefault();
             if (path != null)
                 cycle.Add(path);
             else
             {
-                var referenced = FindConcreteNodeForGenericOrNull(ticNode, allTicNodes);
-                path = rootToSearch.FindNodePath(referenced?.Name).FirstOrDefault();
+                var referenced = FindConcreteTicNodeForGenericOrNull(ticNode, allTicNodes);
+                path = rootToSearch.FindSyntaxNodePath(referenced?.Name).FirstOrDefault();
                 if (path != null)
                     cycle.Add(path);
             }
@@ -117,16 +117,15 @@ internal static partial class Errors {
         {
             var firstElement = cycle[0];
             if (cycle.Count == 1)
-                return new(731, $"Recursive type definition of '{GetDescription(firstElement)}'", firstElement.Interval);
+                return new(731, $"Recursive type definition of '{firstElement.ToShortText()}'", firstElement.Interval);
             else
-                return new(734, $"Recursive type definition of '{GetDescription(firstElement)}'. Cycle: ${String.Join("->", cycle.Select(GetDescription))}", firstElement.Interval);
+                return new(734, $"Recursive type definition of '{firstElement.ToShortText()}'. Cycle: ${String.Join("->", cycle.Select(desc => desc.ToShortText()))}", firstElement.Interval);
         }
     }
 
     private static FunnyParseException TranlsateInvalidFunctionalVarError(ISyntaxNode rootToSearch, TicInvalidFunctionalVariableSignature signature, TicNode[] allTicNodes) {
-        var ticNode = FindConcreteNodeForGenericOrNull(signature.FuncNode, allTicNodes);
-        var node = rootToSearch.FindNodePath(ticNode?.Name).FirstOrDefault();
-        var interval = (node ?? rootToSearch).Interval;
+        var syntaxNode = FindSyntaxNodeOrNull(rootToSearch, signature.FuncNode, allTicNodes);
+        var interval = (syntaxNode ?? rootToSearch).Interval;
         var msg = signature.StateFun.Args.Count() switch {
                       0 => $"Invalid functional variable signature: cannot use function without arguments here",
                       1 => $"Invalid functional variable signature: cannot use function with 1 argument here",
@@ -135,11 +134,30 @@ internal static partial class Errors {
         return new(737, msg, interval);
     }
 
+    private static FunnyParseException TranslateIsNotAFunctionalVar(ISyntaxNode rootToSearch, TicNodeIsNotAFunctionalVariableException e, TicNode[] allTicNodes) {
+        var node = FindSyntaxNodeOrNull(rootToSearch, e.Node, allTicNodes);
+
+        if (node == null)
+            return new(738, $"Node is not a function or functional variable but it was called", rootToSearch.Interval);
+        else
+            return new(738, $"{node.ToShortText()} is not a function or functional variable", node.Interval);
+    }
+    
+    private static ISyntaxNode FindSyntaxNodeOrNull(ISyntaxNode rootToSearch, TicNode node, TicNode[] allTicNodes) {
+        var syntaxNode = rootToSearch.FindSyntaxNodePath(node.Name).FirstOrDefault();
+        if (syntaxNode != null)
+            return syntaxNode;
+        
+        var concrete = FindConcreteTicNodeForGenericOrNull(node, allTicNodes);
+        if(concrete!=null)
+            return rootToSearch.FindSyntaxNodePath(concrete.Name).FirstOrDefault();
+        return null;
+    }
 
 
     private static FunnyParseException GetAncestorToDescendantErrorOrNull(ISyntaxNode rootToSearch, TicNode ticAncestorOrNull, TicNode ticDescendantOrNull) {
-        var ancestorPath = rootToSearch.FindNodePath(ticAncestorOrNull?.Name);
-        var descedantPath = rootToSearch.FindNodePath(ticDescendantOrNull?.Name);
+        var ancestorPath = rootToSearch.FindSyntaxNodePath(ticAncestorOrNull?.Name);
+        var descedantPath = rootToSearch.FindSyntaxNodePath(ticDescendantOrNull?.Name);
 
         var ancestor = ancestorPath.FirstOrDefault();
         var desc = descedantPath.FirstOrDefault();
@@ -153,7 +171,7 @@ internal static partial class Errors {
             {
                 var start = Math.Min(eq.Expression.Interval.Start, eq.Interval.Start);
                 var finish = Math.Max(eq.Expression.Interval.Start, eq.Interval.Start);
-                return new(740, $"Variable {eq.Id} cannot be initialized with type constrains '{GetDescription(ticDescendantOrNull)}' of expression '{GetDescription(desc)}'", start, finish);
+                return new(740, $"Variable {eq.Id} cannot be initialized with type constrains '{GetDescription(ticDescendantOrNull)}' of expression '{desc.ToShortText()}'", start, finish);
             }
 
             return desc switch {
@@ -165,32 +183,37 @@ internal static partial class Errors {
                            => new(749, $"Variable '{id.Id}' cannot be used here due invalid type", ancestor.Interval),
                        VarDefinitionSyntaxNode vardef when ancestor is NamedIdSyntaxNode idd && vardef.Id == idd.Id
                            => new(752, $"Variable '{idd.Id}' cannot be used here due invalid type", ancestor.Interval),
-                       _ => new(755, $"Expression {GetDescription(desc)} cannot be used here due to type mismatch", ancestor.Interval)
+                       _ => new(755, $"Expression {desc.ToShortText()} cannot be used here due to type mismatch", ancestor.Interval)
                    };
         }
 
         if (ancestorPath.Count > 1 && ancestorPath.ElementAt(1) is FunCallSyntaxNode ancFunc)
-            return new(758, $"'{GetDescription(ancestor)}' cannot be used as an argument of '{ancFunc.Id}'", ancestor.Interval);
+            return new(758, $"'{ancestor.ToShortText()}' cannot be used as an argument of '{ancFunc.Id}'", ancestor.Interval);
 
         if (descedantPath.Count > 1 && descedantPath.ElementAt(1) is FunCallSyntaxNode descFunc)
             return InvalidFunctionArgument(desc, descFunc, ticAncestorOrNull?.State);
 
         return desc switch {
-                   null => new(761, $"Seems like expression {GetDescription(ancestor)} cannot be used here", ancestor.Interval),
+                   null => new(761, $"Seems like expression {ancestor.ToShortText()} cannot be used here", ancestor.Interval),
                    NamedIdSyntaxNode id => new(
                        763, $"'the type '{GetDescription(ticDescendantOrNull)}' of '{id}' is not suitable for use here. Do something about it! ",
                        id.Interval),
-                   AnonymFunctionSyntaxNode => new(765, $"Rule signature {GetDescription(desc)} cannot be used here", desc.Interval),
-                   FunCallSyntaxNode        => new(767, $"Seems like function {GetDescription(desc)} cannot be used here as its return type does not fit", desc.Interval),
-                   ConstantSyntaxNode       => new(769, $"Seems like constant {GetDescription(desc)} cannot be used here", desc.Interval),
-                   GenericIntSyntaxNode     => new(771, $"Seems like integer constant {GetDescription(desc)} cannot be used here", desc.Interval),
-                   StructInitSyntaxNode     => new(773, $"Seems like struct {GetDescription(desc)} cannot be used here", desc.Interval),
-                   ArraySyntaxNode          => new(775, $"Seems like array {GetDescription(desc)} cannot be used here", desc.Interval),
-                   _                        => new(777, $"Seems like expression {GetDescription(desc)} cannot be used here", desc.Interval),
+                   AnonymFunctionSyntaxNode => new(765, $"Rule signature {desc.ToShortText()} cannot be used here", desc.Interval),
+                   FunCallSyntaxNode        => new(767, $"Seems like function {desc.ToShortText()} cannot be used here as its return type does not fit", desc.Interval),
+                   ConstantSyntaxNode       => new(769, $"Seems like constant {desc.ToShortText()} cannot be used here", desc.Interval),
+                   GenericIntSyntaxNode     => new(771, $"Seems like integer constant {desc.ToShortText()} cannot be used here", desc.Interval),
+                   StructInitSyntaxNode     => new(773, $"Seems like struct {desc.ToShortText()} cannot be used here", desc.Interval),
+                   ArraySyntaxNode          => new(775, $"Seems like array {desc.ToShortText()} cannot be used here", desc.Interval),
+                   _                        => new(777, $"Seems like expression {desc.ToShortText()} cannot be used here", desc.Interval),
                };
 
     }
-    private static TicNode FindConcreteNodeForGenericOrNull(TicNode node, TicNode[] allTicNodes) {
+    private static TicNode FindConcreteTicNodeForGenericOrNull(TicNode node, TicNode[] allTicNodes) {
+        if (node == null)
+            return null;
+        var nonrefOrigin = node.GetNonReferenceSafeOrNull();
+        if (nonrefOrigin == null)
+            return null;
         foreach (var ticNode in allTicNodes)
         {
             var nonReference = ticNode.GetNonReferenceSafeOrNull();
@@ -198,9 +221,9 @@ internal static partial class Errors {
             {
                 //cycle appears
             }
-            else if (nonReference == node)
+            else if (nonReference == nonrefOrigin)
                 return nonReference;
-            else if (nonReference.State is ICompositeState st && st.Members.Contains(node))
+            else if (nonReference.State is ICompositeState st && st.Members.Contains(nonrefOrigin))
                 return nonReference;
             else if (nonReference.State is StateRefTo refto && refto.Node == node)
                 return nonReference;
@@ -224,7 +247,6 @@ internal static partial class Errors {
     private static FunnyParseException GeneralTypeError(int id, TicException ticException, ISyntaxNode rootToSearch)
         => new(id, $"Types cannot be solved: {ticException.Message} ", rootToSearch.Interval);
 
-    private static string GetDescription(ISyntaxNode desc) => desc.Accept(new ShortDescritpionVisitor());
     private static string GetDescription(TicNode node) {
         var concrete = node.GetNonReferenceSafeOrNull();
         return concrete == null

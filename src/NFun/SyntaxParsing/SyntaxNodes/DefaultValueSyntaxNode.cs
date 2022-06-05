@@ -11,7 +11,7 @@ public class DefaultValueSyntaxNode : ISyntaxNode {
     }
     public FunnyType OutputType { get; set; }
     public int OrderNumber { get; set; }
-    public bool IsInBrackets { get; set; }
+    public int BracketsCount { get; set; }
     public Interval Interval { get; set; }
     public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
     public IEnumerable<ISyntaxNode> Children => Array.Empty<ISyntaxNode>();

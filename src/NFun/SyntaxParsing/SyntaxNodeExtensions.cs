@@ -7,7 +7,9 @@ using NFun.SyntaxParsing.Visitors;
 namespace NFun.SyntaxParsing; 
 
 public static class SyntaxNodeExtensions {
-    public static Queue<ISyntaxNode> FindNodePath(this ISyntaxNode root, object nodeId) {
+    public static string ToShortText(this ISyntaxNode node) => node.Accept(new ShortDescritpionVisitor());
+
+    public static Queue<ISyntaxNode> FindSyntaxNodePath(this ISyntaxNode root, object nodeId) {
         var stack = new Queue<ISyntaxNode>();
         if (root == null)
             return stack;

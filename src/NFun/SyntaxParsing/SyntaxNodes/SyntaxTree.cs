@@ -10,12 +10,14 @@ public class SyntaxTree : ISyntaxNode {
 
     public FunnyType OutputType { get; set; }
     public int OrderNumber { get; set; }
-    public ISyntaxNode[] Nodes { get; }
-    public bool IsInBrackets
+    public int BracketsCount
     {
-        get => false;
-        set => throw new System.NotImplementedException();
+        get => 0;
+        set => throw new System.InvalidOperationException();
     }
+    
+    public ISyntaxNode[] Nodes { get; }
+    
     public Interval Interval
     {
         get

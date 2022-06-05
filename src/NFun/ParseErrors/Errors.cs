@@ -33,16 +33,14 @@ internal static partial class Errors {
 
 
     private static string CreateArgumentsStub(IEnumerable<ISyntaxNode> arguments)
-        => string.Join(",", arguments.Select(ToShortText));
+        => string.Join(",", arguments.Select(a=>a.ToShortText()));
 
     private static string Signature(string funName, IEnumerable<ISyntaxNode> arguments)
         => $"{funName}({Join(arguments)})";
 
     private static string Join(IEnumerable<ISyntaxNode> arguments)
-        => string.Join(",", arguments.Select(ToShortText));
-
-    private static string ToShortText(ISyntaxNode node) => node.Accept(new ShortDescritpionVisitor());
-
+        => string.Join(",", arguments.Select(a=>a.ToShortText()));
+    
     private static string ToText(Tok tok) {
         if (!string.IsNullOrWhiteSpace(tok.Value))
             return tok.Value;

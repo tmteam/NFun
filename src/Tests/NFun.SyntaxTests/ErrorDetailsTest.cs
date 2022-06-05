@@ -61,7 +61,6 @@ public class ErrorDetailsTest {
     [TestCase("y = if (x>0) 1 ", "if", "(x<0) -1 else 0")]
     [TestCase("y = 1 ", "z=", "2")]
     [TestCase("", "set", " x=1")]
-    
     [TestCase("{a = 1","","")]
     public void ErrorPosition(string beforeError, string errorBody, string afterError) =>
         AssertErrorPosition(beforeError, errorBody, afterError);

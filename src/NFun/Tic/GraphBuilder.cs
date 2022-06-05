@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using NFun.Exceptions;
 using NFun.Tic.Errors;
 using NFun.Tic.SolvingStates;
 
@@ -149,7 +148,7 @@ public class GraphBuilder {
 
         var node = GetNamedNode(name);
         if (node.State is not ConstrainsState c || !c.NoConstrains)
-            throw new InvalidOperationException("variable " + name + "already declared");
+            throw new InvalidOperationException($"variable {name}already declared");
         node.State = fun;
         _outputNodes.Add(returnTypeNode);
         _inputNodes.AddRange(args);
@@ -393,9 +392,7 @@ public class GraphBuilder {
 
             var newFunVar = StateFun.Of(genericArgs, idNode);
             if (state is not ConstrainsState constrains || !constrains.Fits(newFunVar))
-            {
-                throw TicErrors.CannotSetState(functionNode, newFunVar);
-            }
+                throw TicErrors.IsNotAFunctionalVariableOrFunction(functionNode, newFunVar);
             functionNode.State = newFunVar;
             SetCall(newFunVar, argThenReturnIds);
         }        

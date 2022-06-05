@@ -13,7 +13,7 @@ public static class TestHelper {
             delegateCode();
             Assert.Fail("Impossible equation solved");
         }
-        catch (RecursiveTypeDefinitionException e)
+        catch (TicRecursiveTypeDefinitionException e)
         {
             Console.WriteLine(e);
         }

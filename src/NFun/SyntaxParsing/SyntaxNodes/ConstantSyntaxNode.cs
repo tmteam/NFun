@@ -13,7 +13,7 @@ public class ConstantSyntaxNode : ISyntaxNode {
     }
     public FunnyType OutputType { get; set; }
     public int OrderNumber { get; set; }
-    public bool IsInBrackets { get; set; }
+    public int BracketsCount { get; set; }
     public object Value { get; }
     public Interval Interval { get; set; }
     // used in debug trace

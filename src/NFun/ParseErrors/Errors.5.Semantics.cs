@@ -76,7 +76,7 @@ internal static partial class Errors {
     #region misc
 
     internal static FunnyParseException UnexpectedExpression(ISyntaxNode lexNode) => new(
-        852, $"Unexpected expression {ToShortText(lexNode)}", lexNode.Interval);
+        852, $"Unexpected expression {lexNode.ToShortText()}", lexNode.Interval);
 
     internal static FunnyParseException OnlyOneAnonymousExpressionAllowed(int exprStart, ISyntaxNode lexNode, Tok flowCurrent) => new(
         855, $"Only one anonymous equation allowed", exprStart, flowCurrent.Finish);

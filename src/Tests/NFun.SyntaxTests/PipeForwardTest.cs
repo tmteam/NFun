@@ -53,6 +53,7 @@ public class PipeForwardTest {
     [TestCase(@"f(x:int):int = x*x y = 4.f(1) == f(4)")]
     [TestCase(@"f(x:int):int = x*x y = 4.f(1,2) == f(4)")]
     [TestCase(@"f(x:int):int = x*x y = .f()")]
+    [TestCase(@"f(x:int):int = x*x y = 4.(f())")]
     [TestCase(@"f(x:int):int = x*x y = 4*.f()")]
     [TestCase(@"y = f.4( == f(4)")]
     [TestCase(@"y = 4.f")]
@@ -63,5 +64,6 @@ public class PipeForwardTest {
     [TestCase(@"y = f.4")]
     [TestCase(@"y = f|")]
     [TestCase(@"y = [1,2,3].max")]
+    [TestCase("y = 1.(max(2))")]
     public void ObviousFails(string expr) => expr.AssertObviousFailsOnParse();
 }

@@ -1,10 +1,10 @@
 ﻿namespace NFun.Tic.Errors; 
 
-internal class IncompatibleAncestorSyntaxNodeException : TicException {
+internal class TicIncompatibleAncestorSyntaxNodeException : TicException {
     public TicNode Ancestor { get; }
     public TicNode Descendant { get; }
 
-    public IncompatibleAncestorSyntaxNodeException(TicNode ancestor, TicNode descendant)
+    public TicIncompatibleAncestorSyntaxNodeException(TicNode ancestor, TicNode descendant)
         : base($"Incompatible ancestor {ancestor}=>{descendant}") {
         Ancestor = ancestor;
         Descendant = descendant;

@@ -12,7 +12,7 @@ public class SuperAnonymFunctionSyntaxNode : ISyntaxNode {
     public ISyntaxNode Body { get; }
     public FunnyType OutputType { get; set; }
     public int OrderNumber { get; set; }
-    public bool IsInBrackets { get; set; }
+    public int BracketsCount { get; set; }
     public Interval Interval { get; set; }
     public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
     public IEnumerable<ISyntaxNode> Children => new[] { Body };

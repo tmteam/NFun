@@ -9,7 +9,6 @@ public class EquationSyntaxNode : ISyntaxNode {
         Id = id;
         Expression = expression;
         Attributes = attributes;
-        IsInBrackets = false;
         Interval = new Interval(start, expression.Interval.Finish);
     }
     public string Id { get; }
@@ -19,7 +18,7 @@ public class EquationSyntaxNode : ISyntaxNode {
     public bool OutputTypeSpecified => TypeSpecificationOrNull != null;
     public FunnyType OutputType { get; set; }
     public int OrderNumber { get; set; }
-    public bool IsInBrackets { get; set; }
+    public int BracketsCount { get; set; }
     public Interval Interval { get; set; }
     public T Accept<T>(ISyntaxNodeVisitor<T> visitor) => visitor.Visit(this);
     public IEnumerable<ISyntaxNode> Children => new[] { Expression };

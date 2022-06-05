@@ -357,6 +357,7 @@ public static class SyntaxNodeReader {
 
     private static ISyntaxNode ReadFunAnonymousFunction(TokFlow flow) {
         var pos = flow.Position;
+        
         var bodyOrTypeNotation = ReadNodeOrNull(flow);
         if (bodyOrTypeNotation == null)
             throw Errors.AnonymousFunBodyIsMissing(new Interval(flow.CurrentTokenPosition, pos));
@@ -364,7 +365,7 @@ public static class SyntaxNodeReader {
         var returnType = TryReadTypeDef(flow);
         if (flow.Current.Is(TokType.Def))
         {
-            if (!bodyOrTypeNotation.IsInBrackets)
+            if (bodyOrTypeNotation.BracketsCount!=1)
                 throw Errors.UnexpectedTokenEqualAfterRule(flow.Current.Interval);
 
             flow.MoveNext();
@@ -672,20 +673,19 @@ public static class SyntaxNodeReader {
         int start = flow.Current.Start;
         int obrId = flow.CurrentTokenPosition;
         flow.MoveNext();
-        var list = ReadNodeList(flow);
+        var nodeList = ReadNodeList(flow);
             
-        var nodeList = (IList<ISyntaxNode>)list;
         if (!flow.MoveIf(TokType.Cbr, out var cbr))
             throw Errors.BracketExpressionListError(obrId, flow);
         var interval = new Interval(start, cbr.Finish);
         if (nodeList.Count == 1)
         {
             nodeList[0].Interval = interval;
-            nodeList[0].IsInBrackets = true;
+            nodeList[0].BracketsCount++;
             return nodeList[0] ?? throw new NullReferenceException();
         }
         else
-            return SyntaxNodeFactory.ListOf(nodeList, interval, true);
+            return SyntaxNodeFactory.ListOf(nodeList, interval, 1);
     }
 
     /// <summary>
@@ -788,6 +788,7 @@ public static class SyntaxNodeReader {
             else 
                 break; //trailing coma support
         } while (flow.MoveIf(TokType.Sep, out _));
+
         return read;
     }
 

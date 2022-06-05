@@ -7,7 +7,10 @@ namespace NFun.SyntaxParsing;
 public interface ISyntaxNode {
     FunnyType OutputType { get; set; }
     int OrderNumber { get; set; }
-    bool IsInBrackets { get; set; }
+    /// <summary>
+    /// The number of parenthesis in which the node is wrapped
+    /// </summary>
+    int BracketsCount { get; set; }
     Interval Interval { get; set; }
     T Accept<T>(ISyntaxNodeVisitor<T> visitor);
     IEnumerable<ISyntaxNode> Children { get; }

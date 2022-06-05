@@ -182,6 +182,7 @@ public class AnonymousFunTest {
     
     [TestCase("y = (rule it)(2)",2)]
     [TestCase("x = rule 42;   y = x()",42)]
+    [TestCase("x = rule (42);   y = x()",42)]
     [TestCase("y = (rule 42)()",42)]
     [TestCase("x = rule rule it1+it2;  y = x()(1,2)",3)]
     [TestCase("x = rule rule rule 42;   y = x()()()",42)]
@@ -190,7 +191,7 @@ public class AnonymousFunTest {
     [TestCase("x = rule it + (rule(a) = a + (rule it2+it1)(1,2))(3);  y = x(4)",10)]
     [TestCase("x = rule(b)= b + (rule(a) = a + (rule it2+it1)(1,2))(3);  y = x(4)",10)]
     [TestCase("x = rule rule rule it1+it2;  y = x()()(1,2)",3)]
-
+    [TestCase("a = 1; b = 2; y = (rule(a+b))()",3)]
     public void ParentlessSuperAnonymousFunctions_ConstantEquation(string expr, object expected) {
         var runtime = expr.Build();
         runtime.AssertInputsCount(0, "Unexpected inputs on constant equations");
@@ -353,14 +354,11 @@ public class AnonymousFunTest {
     [TestCase("rule((())) = 42")]
     [TestCase("rule")]
     [TestCase("(rule)()")]
-    [TestCase("y = (rule(a+b))")]
     [TestCase("y = rule(a+b) = a+b")]
     [TestCase("y = (rule(a+b))(1,2)")]
-    [TestCase("y = rule(42)")]
-    [TestCase("y = rule(42)()")]
-    [TestCase("y = (rule(42))()")]
     [TestCase("y = rule(42) = 13")]
     [TestCase("y = rule(a)(42")]
     [TestCase("y = (rule(a))(42")]
+    [TestCase("a = 1; b = 2; y = rule(a+b)() #not sure")]
     public void ObviouslyFailsOnParse(string expr) => expr.AssertObviousFailsOnParse();
 }

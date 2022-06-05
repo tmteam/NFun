@@ -59,15 +59,13 @@ public class GeneralParserTest {
     
     
     [Test]
-    public void ParenthessisTest() {
-        AssertParsed("()", SyntaxNodeFactory.ListOf(new ISyntaxNode[0], new Interval(0, 1), true));
+    public void ParenthesisTest() {
+        AssertParsed("()", SyntaxNodeFactory.ListOf(new ISyntaxNode[0], new Interval(0, 1), 1));
     }
     
     [Test]
-    public void NestedParenthessisTest() {
-        AssertParsed("(())", SyntaxNodeFactory.ListOf(new [] {
-            SyntaxNodeFactory.ListOf(new ISyntaxNode[0], new Interval(1, 2), true)
-        }, new Interval(0, 3), true));
+    public void NestedParenthesisTest() {
+        AssertParsed("(())", SyntaxNodeFactory.ListOf(new ISyntaxNode[0], new Interval(0, 1), 2));
     }
 
     private void AssertParsed(UserFunctionDefinitionSyntaxNode fun, string expectedExpr, params string[] variables) {

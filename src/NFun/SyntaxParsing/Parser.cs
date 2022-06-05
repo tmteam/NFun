@@ -101,7 +101,7 @@ public class Parser {
             throw Errors.AttributeOnFunction(fun);
 
         var id = fun.Id;
-        if (fun.IsInBrackets)
+        if (fun.BracketsCount!=0)
             throw Errors.UnexpectedBracketsOnFunDefinition(fun, _exprStartPosition, _flow.Previous.Finish);
 
         var arguments = new List<TypedVarDefSyntaxNode>();
@@ -117,7 +117,7 @@ public class Parser {
             else
                 throw Errors.WrongFunctionArgumentDefinition(fun, headNodeChild);
 
-            if (headNodeChild.IsInBrackets)
+            if (headNodeChild.BracketsCount!=0)
                 throw Errors.FunctionArgumentInBracketDefinition(fun, headNodeChild, _flow.Current);
         }
 
