@@ -58,6 +58,8 @@ public class ConstrainsState : ITicNodeState {
 
         if (type is StateFun fun)
         {
+            if (IsComparable)
+                return false;
             if (Descendant is not StateFun descfun)
                 return false;
             if (fun.Members.SequenceEqual(descfun.Members))
