@@ -53,6 +53,7 @@ public class Tokenizer {
 
         { "text", TokType.TextType },
         { "bool", TokType.BoolType },
+        { "char", TokType.CharType },
         { "real", TokType.RealType },
 
         { "int16", TokType.Int16Type },
@@ -81,7 +82,6 @@ public class Tokenizer {
         { "base", TokType.Reserved },
         { "bigInt", TokType.Reserved },
 
-        { "char", TokType.Reserved },
         { "case", TokType.Reserved },
         { "catch", TokType.Reserved },
 

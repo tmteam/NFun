@@ -88,6 +88,7 @@ internal static partial class Errors {
                    TokType.Int64Type     => "int64",
                    TokType.RealType      => "real",
                    TokType.BoolType      => "bool",
+                   TokType.CharType      => "char",
                    TokType.AnythingType  => "any",
                    TokType.Dot           => ".",
                    TokType.FunRule       => "rule",

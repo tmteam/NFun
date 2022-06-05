@@ -4,7 +4,7 @@ Text is an array of characters. Semantically equivalent to the String type in mo
 
 Text is immutable - this means that after creating the text, it cannot be changed - only create a new one based on the previous one
 
-The text is an alias for the "array of chars" type and inherits all arrays properties and arrays operators
+The text is an alias for the "char[]" type and inherits all arrays properties and arrays operators
 
 ## Text Literals
 

@@ -147,6 +147,7 @@ public enum TokType {
     UInt64Type,
     RealType,
     BoolType,
+    CharType,
     AnythingType,
     /// <summary>
     /// .

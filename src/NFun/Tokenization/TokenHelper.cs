@@ -59,6 +59,7 @@ public static class TokenHelper {
             TokType.UInt64Type                   => FunnyType.UInt64,
             TokType.RealType                     => FunnyType.Real,
             TokType.BoolType                     => FunnyType.Bool,
+            TokType.CharType                     => FunnyType.Char,
             TokType.TextType                     => FunnyType.Text,
             TokType.AnythingType                 => FunnyType.Any,
             TokType.Id when token.Value == "any" => FunnyType.Any,

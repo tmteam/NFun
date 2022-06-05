@@ -24,7 +24,7 @@ Some types do not have an identifier at all. It is true for  `char`, `rule` and 
 |-----------------|-----------------|----------------------------------------------------------------------------------------------------------|------------------------------------|
 | Any             | `any`           | Any value                                                                                                | `y:any = if(true) 12 else 'test' ` |
 | Boolean         | `bool`          | Discrete value                                                                                           | `y:bool = true or false `          |
-| Character       | ---             | Symbol. Cannot be set explicitly                                                                         | `y = 'text'[0]`                    |
+| Character       | `char`          | Symbol. Cannot be set explicitly                                                                         | `y:char = 'text'[0]`               |
 | Byte            | `uint8` `byte`  | Integer value [0..255]                                                                                   | `y:byte = 123; z:uint8 = 0xFF`     |
 | Unsigned int 16 | `uint16`        | Integer value [0..65535]                                                                                 | `y:uint16 = 123 `                  |
 | Unsigned int 32 | `uint32` `uint` | Integer value [0..4294967295]                                                                            | `y:uint32 = 123 `                  |
