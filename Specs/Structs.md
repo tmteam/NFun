@@ -18,7 +18,7 @@ b = {
 	age = 42
 }
 
-d = { name = 'foo',age = 42 }
+d = { name = 'foo',age = 42, }
 
 x = {} #empty struct
 ```

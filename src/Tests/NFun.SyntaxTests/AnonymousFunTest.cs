@@ -333,5 +333,6 @@ public class AnonymousFunTest {
     [TestCase("m = rule it4; y = m(1) ")]
     [TestCase("x = rule rule it+it2;  y = x()()(1,2)")]
     [TestCase("y = (rule it1)(3)]")]
+    [TestCase("Z =[1..4].fold(rule it+1)")]
     public void ObviouslyFailsOnParse(string expr) => expr.AssertObviousFailsOnParse();
 }

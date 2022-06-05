@@ -344,8 +344,10 @@ Classic:
 #For a function without arguments
 functionName()
 
-#For a function with arguments H
-functionName(arg1, arg2, arg3, ...argn)
+#For a function with N -arguments
+functionName(arg1, arg2...argN)
+# or
+functionName(arg1, arg2...argN,) # with trailing comma
 ```
 
 Reverse:
@@ -356,6 +358,8 @@ arg1.functionName()
 
 #For a function with N arguments
 arg1.functionName(arg2, arg3,...argN)
+# or
+arg1.functionName(arg2, arg3,...argN,) # with trailing comma
 ```
 Where functionName is the function name, and arg1,arg2, argN are the first second and n-th arguments of the call, respectively
 
@@ -376,7 +380,7 @@ The remaining expressions require a more detailed description and are described 
 - Structures
 - Rules (Anonymous functions)
 
-# Custom functions
+# User functions
 
 In the body of the script, you can describe the function available for calling in the script
 
@@ -385,7 +389,7 @@ functionName(arg1:type1,arg2:type2...argN:type):rtype = expression
 ```
 here
 * **functionName** - the name of the function
-* **arg1,arg2..argN** - 1st,2nd ... n-th names of arguments
+* **arg1,arg2..argN** - 1st,2nd ... n-th names of arguments. Trail comma supported
 * *(optional)* **type1,type2...typeN** - types of the 1st 2nd ... N-th argument
 * *(optional)* **rtype** - function return type
 * **expression** - function expression (body) with local variables arg1,arg2..argN
@@ -393,17 +397,17 @@ here
 Only function arguments can be used as variables in the function body. The inputs and outputs of the script are not visible for the function 
 
 ```py
-Sum of 3(a,b,c) = a+b+c
+sumOf3(a,b,c) = a+b+c
 
-a = sum(1,2,3) #6:int
+a = sumOf3(1,2,3) #6:int
 
-b = maximum real(1,2,3) #3:real
+b = maxOfReal(1,2,3) #3:real
 
-maxOfReal(a,b,c):real = max(max(a,b),c)
+maxOfReal(a,b,c,):real = max(max(a,b),c)
 
-firstPositiveNumber(a:int[]) = if(a. any(rule>0)) a.filter(rule>0)[0] the rest is by default
+firstPositiveNumber(a:int[]) = if(a. any(rule>0)) a.filter(rule>0)[0] else default
 
-c = [-1,3,0,-4,5].The first positive number() #3
+c = [-1,3,0,-4,5].firstPositiveNumber() #3
 
 ```
 

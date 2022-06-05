@@ -2,18 +2,37 @@
 
 ## Super-anonymous syntax
 
-The expression following the keyword 'rule' is the body of anonymous function. If an anonymous function uses one input variable (argument), then the  name of this variable inside the expression is `it`
+The expression following the keyword 'rule' is the body of anonymous function with  no more than three arguments
 
-If there are two or more, then their names are `it1`, `it2`... `itN`
+If an anonymous function uses one input variable (argument), then the  name of this variable inside the expression is `it`
+
+If there are two or three arguments, then their names are `it1`, `it2`, `it3`
 
 ```py
 f = rule it*2 # expression for an anonymous function multiplying the input argument by 2
 
 f(2) # 4
 
-a = [1,2,3,4].filter(rule>2) # using a rule to filter an array 
+a = [1,2,3,4].filter(rule it>2) # using a rule to filter an array 
                              # only elements strictly larger than 2 will be selected
 x = [-1,-2,0,1,2,3].add(rule it1+it2) #sum of all array elements
+
+c = (rule 42)() #42
+
+```
+The number of arguments of the rule is calculated from the place of use and the body of the anonymous function
+```py
+a = rule 42   # zero arguments
+b = rule it*2 # one argument
+c = rule it1+ it2 # two arguments
+d = rule it3      # three arguments
+
+e = [1,2].map(rule it*2) # one argument 
+f = [1,2].map(rule 42)   # one argument 
+
+g = [1,2].fold(rule 42)      # two arguments 
+h = [1,2].fold(rule it1+it2) # two arguments
+i = [1,2].fold(rule it)      # ERRROR
 ```
 
 ## Annotated syntax

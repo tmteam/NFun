@@ -15,15 +15,17 @@ Arrays are covariant, which means that if type A is converted to type B, then an
 
 ### Initializing an array by enumeration  
 
-`[,]`  operator allows you to create an array with elements specified inside parentheses and separated by commas 
+`[,]`  operator allows you to create an array with elements specified inside parentheses and separated by commas. Trail comma supported 
 
 ```
 [element0, element1, ... elementN]
+or
+[element0, element1, ... elementN,]
 ```
 Example:
 ```
 a = [1,2,3]
-b = ['hello', ' ', 'world']
+b = ['hello', ' ', 'world',]
 c = []
 ```
 
