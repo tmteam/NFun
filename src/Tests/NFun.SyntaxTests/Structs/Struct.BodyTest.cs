@@ -444,5 +444,10 @@ public class StructBodyTest {
     [TestCase("y = -{a:bool = false}")]
     [TestCase("y1 = {a = y2}; y2 = {a = y1}")]
     [TestCase("y = {a = 1.0,,}")]
+    [TestCase("y = {(a = 1.0)}")]
+    [TestCase("y = {a = 1.0()}")]
+    [TestCase("y = {a = ()}")]
+    [TestCase("y = {a = 1}()")]
+    [TestCase("y = (){a = 1}")]
     public void ObviousFails(string expr) => expr.AssertObviousFailsOnParse();
 }

@@ -1,5 +1,4 @@
 using System;
-using NFun.Exceptions;
 using NFun.TestTools;
 using NUnit.Framework;
 
@@ -285,8 +284,6 @@ public class ArithmeticalOperatorsTest {
     public void Oops(string expression) => expression.AssertObviousFailsOnRuntime();
     
     [TestCase("y = /2")]
-    [TestCase("y = )*2")]
-    [TestCase("y = (*2")]
     [TestCase("y = *2")]
     [TestCase("y = 2++")]
     [TestCase("y = 2//")]
@@ -300,8 +297,6 @@ public class ArithmeticalOperatorsTest {
     [TestCase("y = --2")]
     [TestCase("y = 2a")]
     [TestCase("y = 2+ 3 + 4 +")]
-    [TestCase("y = x*((2)")]
-    [TestCase("y = 2*x)")]
     [TestCase("y = 2++x")]
     [TestCase("y = x++2")]
     [TestCase("y = 2--x")]
@@ -319,20 +314,11 @@ public class ArithmeticalOperatorsTest {
     [TestCase("y:int32 = 2--6")]
     [TestCase("y:int32 = 0--100")]
     [TestCase("y:int64 = 0--100")]
-    [TestCase("y = ()")]
-    [TestCase("y = )")]
-    [TestCase("y = )2")]
-    [TestCase("y = (")]
-    [TestCase("y = (2")]
-    [TestCase("y = ((2)")]
-    [TestCase("y = 2)")]
     [TestCase("y = 2%%")]
     [TestCase("y = %%2")]
     [TestCase("y = =a")]
-    [TestCase("y = x()")]
     [TestCase("y = =a")]
     [TestCase("y = \"")]
-    [TestCase("y = (")]
     [TestCase("y = 0x")]
     [TestCase("y = 0..2")]
     [TestCase("1 2")]

@@ -127,7 +127,12 @@ internal static partial class Errors {
         var ticNode = FindConcreteNodeForGenericOrNull(signature.FuncNode, allTicNodes);
         var node = rootToSearch.FindNodePath(ticNode?.Name).FirstOrDefault();
         var interval = (node ?? rootToSearch).Interval;
-        return new FunnyParseException(737, $"Invalid functional variable signature: cannot use function with {signature.StateFun.Args.Count()} args count here", interval);
+        var msg = signature.StateFun.Args.Count() switch {
+                      0 => $"Invalid functional variable signature: cannot use function without arguments here",
+                      1 => $"Invalid functional variable signature: cannot use function with 1 argument here",
+                      _ => $"Invalid functional variable signature: cannot use function with {signature.StateFun.Args.Count()} args count here",
+                  };
+        return new(737, msg, interval);
     }
 
 

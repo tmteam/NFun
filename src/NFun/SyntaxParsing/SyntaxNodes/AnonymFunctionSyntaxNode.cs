@@ -21,7 +21,7 @@ public class AnonymFunctionSyntaxNode : ISyntaxNode {
         Interval = interval;
     }
     
-    public ISyntaxNode[] ArgumentsDefinition { get; }
+    public IList<ISyntaxNode> ArgumentsDefinition { get; }
     public ISyntaxNode Definition { get; }
     public ISyntaxNode Body { get; }
     /// <summary>

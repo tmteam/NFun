@@ -287,12 +287,6 @@ internal static partial class Errors {
             567, $"({argumentsStub}???) {Nl}Expression inside the brackets is missed{Nl} Example: ({argumentsStub})", start, end);
     }
 
-    internal static FunnyParseException ExpressionListMissed(int start, int end, IList<ISyntaxNode> arguments) {
-        var argumentsStub = CreateArgumentsStub(arguments);
-        return new(
-            570, $"({argumentsStub}???) {Nl}Expression inside the brackets is missed{Nl} Example: ({argumentsStub})", start, end);
-    }
-
     internal static FunnyParseException VarExpressionIsMissed(int start, string id, Tok flowCurrent) => new(
         573, $"{id} = ??? . Equation body is missed {Nl}Example: {id} = {id}+1", start, flowCurrent.Finish);
 

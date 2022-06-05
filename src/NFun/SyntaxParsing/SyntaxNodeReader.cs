@@ -360,7 +360,7 @@ public static class SyntaxNodeReader {
         var bodyOrTypeNotation = ReadNodeOrNull(flow);
         if (bodyOrTypeNotation == null)
             throw Errors.AnonymousFunBodyIsMissing(new Interval(flow.CurrentTokenPosition, pos));
-
+        
         var returnType = TryReadTypeDef(flow);
         if (flow.Current.Is(TokType.Def))
         {
@@ -578,26 +578,6 @@ public static class SyntaxNodeReader {
     }
 
     /// <summary>
-    /// Read list of nodes separated by comma
-    /// </summary>
-    private static IList<ISyntaxNode> ReadNodeList(TokFlow flow) {
-        var list = new List<ISyntaxNode>();
-        int start = flow.Current.Start;
-        do
-        {
-            var exp = ReadNodeOrNull(flow);
-            if (exp != null)
-                list.Add(exp);
-            else if (list.Count > 0)
-                throw Errors.ExpressionListMissed(start, flow.Position, list);
-            else
-                break;
-        } while (flow.MoveIf(TokType.Sep, out _));
-
-        return list;
-    }
-
-    /// <summary>
     /// Read array initialization node.
     /// [a..b]
     /// [a..b..c]
@@ -610,8 +590,7 @@ public static class SyntaxNodeReader {
         var startTokenNum = flow.CurrentTokenPosition;
         var openBracket = flow.AssertAndMove(TokType.ArrOBr);
 
-        if (!TryReadNodeList(flow, out var list))
-            throw Errors.ArrayInitializeByListError(startTokenNum, flow);
+        var list = ReadNodeList(flow);
 
         if (list.Count == 1 && flow.MoveIf(TokType.TwoDots, out var twoDots)) // Range [a..b] or [a..b step c]
         {
@@ -693,9 +672,9 @@ public static class SyntaxNodeReader {
         int start = flow.Current.Start;
         int obrId = flow.CurrentTokenPosition;
         flow.MoveNext();
-        var nodeList = ReadNodeList(flow);
-        if (nodeList.Count == 0)
-            throw Errors.BracketExpressionMissed(start, flow.Position, nodeList);
+        var list = ReadNodeList(flow);
+            
+        var nodeList = (IList<ISyntaxNode>)list;
         if (!flow.MoveIf(TokType.Cbr, out var cbr))
             throw Errors.BracketExpressionListError(obrId, flow);
         var interval = new Interval(start, cbr.Finish);
@@ -706,7 +685,7 @@ public static class SyntaxNodeReader {
             return nodeList[0] ?? throw new NullReferenceException();
         }
         else
-            return SyntaxNodeFactory.ListOf(nodeList.ToArray(), interval, true);
+            return SyntaxNodeFactory.ListOf(nodeList, interval, true);
     }
 
     /// <summary>
@@ -770,17 +749,13 @@ public static class SyntaxNodeReader {
     private static ISyntaxNode ReadFunctionCall(TokFlow flow, Tok head, ISyntaxNode pipedVal = null) {
         var obrId = flow.CurrentTokenPosition;
         var start = pipedVal?.Interval.Start ?? head.Start;
-        List<ISyntaxNode> arguments;
-        if (flow.MoveIf(TokType.Obr))
-        {
-            if (!TryReadNodeList(flow, out arguments) || !flow.MoveIf(TokType.Cbr, out _))
-                throw Errors.FunctionArgumentError(head.Value, obrId, flow);
-        }
-        else
-        {
-            throw Errors.FunctionCallObrMissed(
-                start, head.Value, flow.Position, pipedVal);
-        }
+        if (!flow.MoveIf(TokType.Obr))
+            throw Errors.FunctionCallObrMissed(start, head.Value, flow.Position, pipedVal);
+
+        var arguments = ReadNodeList(flow);
+
+        if (!flow.MoveIf(TokType.Cbr, out _))
+           throw Errors.FunctionArgumentError(head.Value, obrId, flow);
 
         if (pipedVal == null)
             return SyntaxNodeFactory.FunCall(head.Value, arguments.ToArray(), start, flow.Position);
@@ -796,26 +771,24 @@ public static class SyntaxNodeReader {
         if(!flow.MoveIf(TokType.Obr))
             AssertChecks.Panic("Panic. Something wrong in parser");
 
-        if (!TryReadNodeList(flow, out var arguments) || !flow.MoveIf(TokType.Cbr, out var cbr))
+        var arguments = ReadNodeList(flow);
+        if (!flow.MoveIf(TokType.Cbr, out var cbr))
             throw Errors.FunctionArgumentError(functionResultNode.ToString(), obrId, flow);
 
         return SyntaxNodeFactory.ResultFunCall(functionResultNode, arguments, cbr.Finish);
     }
 
-    private static bool TryReadNodeList(TokFlow flow, out List<ISyntaxNode> read) {
-        read = new List<ISyntaxNode>();
+    private static List<ISyntaxNode> ReadNodeList(TokFlow flow) {
+        var read = new List<ISyntaxNode>();
         do
         {
             var exp = ReadNodeOrNull(flow);
             if (exp != null)
                 read.Add(exp);
-            else if (read.Count > 0)
-                return true; //trailing coma support
-            else
-                break;
+            else 
+                break; //trailing coma support
         } while (flow.MoveIf(TokType.Sep, out _));
-
-        return true;
+        return read;
     }
 
 

@@ -153,7 +153,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         //Capture all outerscope variables
         var localVariables = new VariableDictionary(_dialect.TypeBehaviour, _variables.GetAllSources());
 
-        var arguments = new VariableSource[argumentLexNodes.Length];
+        var arguments = new VariableSource[argumentLexNodes.Count];
         var argIndex = 0;
         foreach (var arg in argumentLexNodes)
         {

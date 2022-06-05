@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using NFun.Exceptions;
 using NFun.Tic.Errors;
 using NFun.Tic.SolvingStates;
 
@@ -382,7 +383,7 @@ public class GraphBuilder {
 
             SetCall(fun, argThenReturnIds);
         }
-        else if (state is ConstrainsState constrains)
+        else
         {
             var idNode = GetOrCreateNode(id);
 
@@ -391,14 +392,13 @@ public class GraphBuilder {
                 genericArgs[i] = CreateVarType();
 
             var newFunVar = StateFun.Of(genericArgs, idNode);
-            if (!constrains.Fits(newFunVar))
-                throw new InvalidOperationException("naaa");
+            if (state is not ConstrainsState constrains || !constrains.Fits(newFunVar))
+            {
+                throw TicErrors.CannotSetState(functionNode, newFunVar);
+            }
             functionNode.State = newFunVar;
-
             SetCall(newFunVar, argThenReturnIds);
-        }
-        else
-            throw new InvalidOperationException($"po po. functionNode.State is {functionNode.State}");
+        }        
     }
 
     private TicNode[] GetNamedNodes(string[] names) {

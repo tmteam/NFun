@@ -278,8 +278,8 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
 
         VisitChildren(node);
 
-        var aliasNames = new string[node.ArgumentsDefinition.Length];
-        for (var i = 0; i < node.ArgumentsDefinition.Length; i++)
+        var aliasNames = new string[node.ArgumentsDefinition.Count];
+        for (var i = 0; i < node.ArgumentsDefinition.Count; i++)
         {
             var syntaxNode = node.ArgumentsDefinition[i];
             if (syntaxNode is TypedVarDefSyntaxNode typed)
