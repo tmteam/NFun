@@ -1,3 +1,4 @@
+using System;
 using NFun.TestTools;
 using NUnit.Framework;
 
@@ -52,6 +53,7 @@ public class EquationsFormattingTest {
     [TestCase("{a=42,b=12,}.a", 42)]
     [TestCase("foo() = rule it1*it2; foo()(2,4,)",8)]
     [TestCase("foo() = rule(a,b)= a*b; foo()(2,4,)",8)]
+    [TestCase("[0,1,2,3].fold(rule(a,b,) =a+b)",6)]
     public void TrailingComaInTheList(string expr, object expected) => expr.AssertAnonymousOut(expected);
 
     [TestCase("{,}")]
@@ -63,6 +65,7 @@ public class EquationsFormattingTest {
     [TestCase("foo(a,b) = a+b; foo(1,2,,)")]
     [TestCase("{a=42,b=12,,}.a")]
     [TestCase("foo() = rule it1*it2; foo()(2,4,,)")]
+    [TestCase("y = [0,1,2,3].fold(rule(,) =a+b)")]
     public void TrailingComaInTheListFails(string expr) => expr.AssertObviousFailsOnParse();
 
     
@@ -91,6 +94,10 @@ public class EquationsFormattingTest {
     public void TabulationEverywhere_Calculates(string expr) => expr.AssertReturns("y", 1);
 
     [Test]
-    public void TwoEquationsOnOneLineFails() =>
+    public void TwoEquationsOnOneLine() =>
         Assert.DoesNotThrow(() => "y=1; z=5".Build());
+    
+    [TestCase("y=1 z=5")]
+    public void ObviousFails(String expr) =>
+        expr.AssertObviousFailsOnParse();
 }

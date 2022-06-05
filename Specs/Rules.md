@@ -2,11 +2,11 @@
 
 ## Super-anonymous syntax
 
-The expression following the keyword 'rule' is the body of anonymous function with  no more than three arguments
+The expression following the keyword 'rule' is the body of anonymous function with no more than three arguments
 
 If an anonymous function uses one input variable (argument), then the  name of this variable inside the expression is `it`
 
-If there are two or three arguments, then their names are `it1`, `it2`, `it3`
+If there are two or three arguments, then their names are `it1`, `it2`, `it3`, respectively
 
 ```py
 f = rule it*2 # expression for an anonymous function multiplying the input argument by 2
@@ -47,11 +47,19 @@ here
 * *(optional)* **rtype** - function return type
 * **expression** - function expression (body) with local variables arg1,arg2..argN
 
+the trailing comma after last argument is supported
+
 ```py
-a = [1,2,3].all(rule(i) = i >0)          # check that all numbers in the array are positive
-b = [1,2,3].all(rule(i:int):bool = i >0) # check that all numbers in the array are positive 
+a = rule(a) = a+1
+b = rule(a,b) = a+b
+c = rule() = 42 
+
+d = [1,2,3].all(rule(i) = i >0)          # check that all numbers in the array are positive
+e = [1,2,3].all(rule(i:int):bool = i >0) # check that all numbers in the array are positive 
                                          # (all types explicitly specified)
-x = [-1,-2,0,1,2,3]
+f = [0..3].fold(rule(a,b,)= a+b) #the sum of all integers of the array       
+
+g = [-1,-2,0,1,2,3]
        .filter(rule(i)= i>0)
        .fold(rule(a:int,b)= a+b) #the sum of all positive integers of the array
 ```
