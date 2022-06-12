@@ -23,10 +23,17 @@ public class ConvertFunction : GenericFunctionBase {
             return new ConcreteConverter(o => o, from, to);
         if (to == FunnyType.Text)
             return new ConcreteConverter(o => o.ToString(), from, to);
-        var safeConverter = VarTypeConverter.GetConverterOrNull(context.TypeBehaviour, @from, to);
-        if (safeConverter != null)
-            return new ConcreteConverter(safeConverter, from, to);
+        var converter = VarTypeConverter.GetConverterOrNull(context.TypeBehaviour, @from, to);
+        if (converter != null)
+            return new ConcreteConverter(converter, from, to);
 
+        if (from == FunnyType.Char)
+        {
+            var charConverterOrNull = CreateFromCharConverterOrNull(to);
+            if (charConverterOrNull != null)
+                return new ConcreteConverter(charConverterOrNull, from, to);
+        }
+        
         if (to.ArrayTypeSpecification?.FunnyType == FunnyType.UInt8)
         {
             var serializer = CreateSerializerOrNull(from);
@@ -54,6 +61,12 @@ public class ConvertFunction : GenericFunctionBase {
         }
         throw new InvalidOperationException($"Function {Name} cannot be generated for types [{string.Join(", ", concreteTypes)}]");
     }
+    
+    private Func<object, object> CreateFromCharConverterOrNull(FunnyType to) =>
+        to.BaseType switch {
+            BaseFunnyType.UInt8 => o => Convert.ToByte((char)o),
+            _                   => null
+        };
 
     private static Func<object, object> CreateBinarizerOrNull(FunnyType fromType) =>
         fromType.BaseType switch {

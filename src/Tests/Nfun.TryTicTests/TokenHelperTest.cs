@@ -92,8 +92,7 @@ public class TokenHelperTest {
         var flow = Tokenizer.ToFlow(expr);
         Assert.Catch(() => flow.ReadType());
     }
-    [TestCase("char[]")]
-    [TestCase("char")]
+   
     [TestCase("int8")]
     [TestCase("async")]
     public void ReservedWord_Throw(string expr) {

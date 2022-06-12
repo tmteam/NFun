@@ -73,8 +73,8 @@ public static class VarTypeConverter {
             return ToText;
         if (to.BaseType == BaseFunnyType.Any)
             return NoConvertion;
-
-        if (from.IsNumeric())
+    
+        if (from.IsNumeric() /*|| from == FunnyType.Char*/)
         {
             var result =  typeBehaviour.GetNumericConverterOrNull(to.BaseType);
             if (result != null)
