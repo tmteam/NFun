@@ -49,7 +49,7 @@ public class CompareOperatorsTest {
     [TestCase("'a'[0]!='a'[0] ", false)]
     [TestCase("'avatar'== 'bigben' ", false)]
     [TestCase("'avatar'!= 'bigben' ", true)]
-    public void ConstantEquality(string expr, object expected)
+    public void ConstantEquality(string expr, bool expected)
         => expr.AssertReturns("out", expected);
 
     [TestCase("1!=0", true)]
@@ -72,6 +72,20 @@ public class CompareOperatorsTest {
     [TestCase("'a'[0]<='a'[0] ", true)]
     [TestCase("'a'[0]>='a'[0] ", true)]
     [TestCase("'a'[0]> 'a'[0] ", false)]
+    [TestCase("'a'[0] < 'z'[0]", true)]
+    [TestCase("'b'[0] > 'z'[0]", false)]
+    [TestCase("'b'[0] <= 'z'[0]", true)]
+    [TestCase("'A'[0] >= 'B'[0]", false)]
+    [TestCase("'B'[0] > 'C'[0]", false)]
+    [TestCase("'A'[0] <= 'z'[0]", true)]
+    [TestCase("'B'[0] > 'y'[0]", false)]
+    [TestCase("'C'[0] >= 'x'[0]", false)]
+    [TestCase("'D'[0] < 'w'[0]", true)]
+    [TestCase("'E'[0] <= 'v'[0]", true)]
+    [TestCase("'F'[0] <= '1'[0]", false)]
+    [TestCase("'1'[0] <= 'a'[0]", true)]
+    [TestCase("cmp(a,b) = a>b; 'a'[0].cmp('b'[0])", false)]
+
     [TestCase("'avatar'< 'bigben' ", true)]
     [TestCase("'avatar'<= 'bigben' ", true)]
     [TestCase("'avatar'>= 'bigben' ", false)]

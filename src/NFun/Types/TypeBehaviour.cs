@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Text;
 
 namespace NFun.Types; 
 
@@ -38,7 +39,12 @@ public abstract class TypeBehaviour {
     protected static readonly Func<object, object> ToUInt32 = o => Convert.ToUInt32(o);
     protected static readonly Func<object, object> ToUInt64 = o => Convert.ToUInt64(o);
     protected static readonly Func<object, object> ToBool = o => Convert.ToBoolean(o);
-    protected static readonly Func<object, object> ToChar = o => Convert.ToChar(o);
+    protected static readonly Func<object, object> ToChar = o =>
+        o switch {
+            double dou  => Convert.ToChar((long)dou),
+            decimal dec => Convert.ToChar((long)dec),
+            _           => Convert.ToChar(o)
+        };
     
     protected  static readonly Type[] FunToClrTypesMap = {
         null,
@@ -106,6 +112,41 @@ public abstract class TypeBehaviour {
                 { BaseFunnyType.Int32, new PrimitiveTypeOutputFunnyConverter(FunnyType.Int32, typeof(Int32)) },
                 { BaseFunnyType.Int64, new PrimitiveTypeOutputFunnyConverter(FunnyType.Int64, typeof(Int64)) },
             };
+    
+    protected static int GetUnicodeBytes(object o1, out byte[] bytes) {
+        var chars = new[] { (char)o1 };
+        bytes = new byte[8];
+        return Encoding.Unicode.GetBytes(chars,0,1,bytes,0);
+    }
+    
+    public Func<object, object> GetFromCharToNumberConverterOrNull(BaseFunnyType to) =>
+        to switch {
+            BaseFunnyType.UInt8 => o => Convert.ToByte((char)o),
+            BaseFunnyType.UInt16 => o => GetUnicodeBytes(o, out var bytes) > 2
+                ? throw new OverflowException($"Cannot convert char value '{o}' to unt16")
+                : BitConverter.ToUInt16(bytes),
+            BaseFunnyType.Int16 => o => GetUnicodeBytes(o, out var bytes) > 2
+                ? throw new OverflowException($"Cannot convert char value '{o}' to int16")
+                : BitConverter.ToInt16(bytes),
+            BaseFunnyType.UInt32 => o => GetUnicodeBytes(o, out var bytes) > 4
+                ? throw new OverflowException($"Cannot convert char value '{o}' to unt32")
+                : BitConverter.ToUInt32(bytes),
+            BaseFunnyType.Int32 => o => GetUnicodeBytes(o, out var bytes) > 4
+                ? throw new OverflowException($"Cannot convert char value '{o}' to int32")
+                : BitConverter.ToInt32(bytes),
+            BaseFunnyType.UInt64 => o => {
+                GetUnicodeBytes(o, out var bytes);
+                return BitConverter.ToUInt64(bytes);
+            },
+            BaseFunnyType.Int64 => o => {
+                GetUnicodeBytes(o, out var bytes);
+                return BitConverter.ToInt64(bytes);
+            },
+            BaseFunnyType.Real => FromCharToRealConverter,
+            _                  => null
+        };
+
+    protected abstract Func<object, object> FromCharToRealConverter { get; }
 }
 
 public class RealIsDoubleTypeBehaviour : TypeBehaviour {
@@ -189,6 +230,10 @@ public class RealIsDoubleTypeBehaviour : TypeBehaviour {
     private static readonly Func<object, object> ToDoubleReal = o => Convert.ToDouble(o);
 
     public override bool DoubleIsReal => true;
+    protected override Func<object, object> FromCharToRealConverter { get; } = o => {
+        GetUnicodeBytes(o, out var bytes);
+        return (double)BitConverter.ToInt64(bytes);
+    };
 }
 
 public class RealIsDecimalTypeBehaviour : TypeBehaviour {
@@ -246,6 +291,7 @@ public class RealIsDecimalTypeBehaviour : TypeBehaviour {
         typeName == BaseFunnyType.Real 
             ? decimal.Zero 
             : DefaultPrimitiveValues[(int)typeName];
+    
     public override Func<object, object> GetNumericConverterOrNull(BaseFunnyType to) =>
         to switch {
             BaseFunnyType.UInt8  => ToUInt8,
@@ -260,6 +306,7 @@ public class RealIsDecimalTypeBehaviour : TypeBehaviour {
             BaseFunnyType.Char   => ToChar,
             _                    => null
         };
+    
     public override object GetRealConstantValue(ulong d) => new decimal(d);
     public override object GetRealConstantValue(long d) => new decimal(d);
     public override object ParseOrNull(string text) => decimal.TryParse(text, 
@@ -270,6 +317,11 @@ public class RealIsDecimalTypeBehaviour : TypeBehaviour {
         funnyType != BaseFunnyType.Real ? FunToClrTypesMap[(int)funnyType] : typeof(Decimal);
     
     public override T RealTypeSelect<T>(T ifIsDouble, T ifIsDecimal) => ifIsDecimal;
+    
+    protected override Func<object, object> FromCharToRealConverter { get; } = o => {
+        GetUnicodeBytes(o, out var bytes);
+        return new decimal(BitConverter.ToInt64(bytes));
+    };
     
     public override bool DoubleIsReal => false;
 }

@@ -1,139 +1,9 @@
 using System;
 using NFun.TestTools;
-using NFun.Tic;
 using NUnit.Framework;
 
 namespace NFun.SyntaxTests.BuiltInFunctions; 
 
-[TestFixture]
-public class ConvertFunctionsTest {
-    [TestCase("int", (int)-123, "int16", (short)-123)]
-    [TestCase("int", (int)123, "int16", (short)123)]
-    [TestCase("int16", (short)-123, "int16", (short)-123)]
-    [TestCase("int32", (int)-123, "int16", (short)-123)]
-    [TestCase("int64", (long)-123, "int16", (short)-123)]
-    [TestCase("uint8", (byte)123, "int16", (short)123)]
-    [TestCase("uint16", (ushort)123, "int16", (short)123)]
-    [TestCase("uint32", (uint)123, "int16", (short)123)]
-    [TestCase("uint64", (ulong)123, "int16", (short)123)]
-    [TestCase("int", (int)-123, "int", -123)]
-    [TestCase("int", (int)123, "int", 123)]
-    [TestCase("int16", (short)-123, "int", -123)]
-    [TestCase("int32", (int)-123, "int", -123)]
-    [TestCase("int64", (long)-123, "int", -123)]
-    [TestCase("uint8", (byte)123, "int", 123)]
-    [TestCase("uint16", (ushort)123, "int", 123)]
-    [TestCase("uint32", (uint)123, "int", 123)]
-    [TestCase("uint64", (ulong)123, "int", 123)]
-    [TestCase("int", (int)-123, "int64", (long)-123)]
-    [TestCase("int", (int)123, "int64", (long)123)]
-    [TestCase("int16", (short)-123, "int64", (long)-123)]
-    [TestCase("int32", (int)-123, "int64", (long)-123)]
-    [TestCase("int64", (long)-123, "int64", (long)-123)]
-    [TestCase("uint8", (byte)123, "int64", (long)123)]
-    [TestCase("uint16", (ushort)123, "int64", (long)123)]
-    [TestCase("uint32", (uint)123, "int64", (long)123)]
-    [TestCase("uint64", (ulong)123, "int64", (long)123)]
-    [TestCase("int", (int)123, "byte", (byte)123)]
-    [TestCase("int16", (short)123, "byte", (byte)123)]
-    [TestCase("int64", (long)123, "byte", (byte)123)]
-    [TestCase("uint8", (byte)123, "byte", (byte)123)]
-    [TestCase("uint16", (ushort)123, "byte", (byte)123)]
-    [TestCase("uint32", (uint)123, "byte", (byte)123)]
-    [TestCase("uint64", (ulong)123, "byte", (byte)123)]
-    [TestCase("int", (int)123, "uint16", (ushort)123)]
-    [TestCase("int16", (short)123, "uint16", (ushort)123)]
-    [TestCase("int64", (long)123, "uint16", (ushort)123)]
-    [TestCase("uint8", (byte)123, "uint16", (ushort)123)]
-    [TestCase("uint16", (ushort)123, "uint16", (ushort)123)]
-    [TestCase("uint32", (uint)123, "uint16", (ushort)123)]
-    [TestCase("uint64", (ulong)123, "uint16", (ushort)123)]
-    [TestCase("int", (int)123, "uint32", (uint)123)]
-    [TestCase("int16", (short)123, "uint32", (uint)123)]
-    [TestCase("int64", (long)123, "uint32", (uint)123)]
-    [TestCase("uint8", (byte)123, "uint32", (uint)123)]
-    [TestCase("uint16", (ushort)123, "uint32", (uint)123)]
-    [TestCase("uint32", (uint)123, "uint32", (uint)123)]
-    [TestCase("uint64", (ulong)123, "uint32", (uint)123)]
-    [TestCase("int", (int)123, "uint64", (ulong)123)]
-    [TestCase("int16", (short)123, "uint64", (ulong)123)]
-    [TestCase("int64", (long)123, "uint64", (ulong)123)]
-    [TestCase("uint8", (byte)123, "uint64", (ulong)123)]
-    [TestCase("uint16", (ushort)123, "uint64", (ulong)123)]
-    [TestCase("uint32", (uint)123, "uint64", (ulong)123)]
-    [TestCase("uint64", (ulong)123, "uint64", (ulong)123)]
-    public void ConvertIntegersFunctionsTest(
-        string inputType, object inputValue, string outputType,
-        object expectedOutput) {
-        var expr = $"x:{inputType}; y:{outputType} = convert(x)";
-        expr.Calc("x", inputValue).AssertReturns("y", expectedOutput);
-    }
-
-    [Ignore("converts")]
-    [TestCase("toInt(1.2)", 1)]
-    [TestCase("toInt(-1.2)", -1)]
-    [TestCase("toInt('1')", 1)]
-    [TestCase("toInt('-123')", -123)]
-    [TestCase("toInt([0x21,0x33,0x12])", 1_192_737)]
-    [TestCase("toInt([0x21,0x33,0x12,0x00])", 1_192_737)]
-    [TestCase("toInt([0x21,0x00,0x00,0x00])", 0x21)]
-    [TestCase("toInt([0x21,0x00,0x00,0x00])", 0x21)]
-    [TestCase("toInt([0x21])", 0x21)]
-    [TestCase("toReal('1')", 1.0)]
-    [TestCase("toReal('1.1')", 1.1)]
-    [TestCase("toReal('-0.123')", -0.123)]
-    [TestCase("toReal(1)", 1.0)]
-    [TestCase("toReal(-1)", -1.0)]
-    [TestCase(
-        "toBits(123)", new[] {
-            true, true, false, true, true, true, true, false,
-            false, false, false, false, false, false, false, false,
-            false, false, false, false, false, false, false, false,
-            false, false, false, false, false, false, false, false
-        })]
-    [TestCase("toBytes(123)", new[] { 123, 0, 0, 0 })]
-    [TestCase("toBytes(1_192_737)", new[] { 0x21, 0x33, 0x12, 0 })]
-    [TestCase(
-        "toUnicode('hi there')",
-        new[] { 0x68, 00, 0x69, 00, 0x20, 00, 0x74, 00, 0x68, 00, 0x65, 00, 0x72, 00, 0x65, 00 })]
-    [TestCase("toUtf8('hi there')", new[] { 0x68, 0x69, 0x20, 0x74, 0x68, 0x65, 0x72, 0x65 })]
-    public void ConstantConvertTest(string expr, object expected)
-        => expr.AssertAnonymousOut(expected);
-
-    [TestCase("y:byte[]='a'[0].convert(); ", new byte[]{0x61,0x00})]
-    [TestCase("y:int= convert(1.2)", 1)]
-    [TestCase("y:int= convert(-1.2)", -1)]
-    [TestCase("y:int= convert('1')", 1)]
-    [TestCase("y:int= convert('-123')", -123)]
-    [TestCase("x:byte[]=[0x21,0x33,0x12];  y:int= x.convert()", 1_192_737)]
-    [TestCase("x:byte[]=[0x21,0x33,0x12,0x00]; y:int= convert(x)", 1_192_737)]
-    [TestCase("x:byte[]=[0x21,0x00,0x00,0x00]; y:int= convert(x)", 0x21)]
-    [TestCase("x:byte[]=[0x21,0x00,0x00,0x00]; y:int= convert(x)", 0x21)]
-    [TestCase("x:byte[]=[0x21]; y:int= convert(x)", 0x21)]
-    [TestCase("y:real = convert('1')", 1.0)]
-    [TestCase("y:real = convert('1.1')", 1.1)]
-    [TestCase("y:real = convert('-0.123')", -0.123)]
-    [TestCase("y:real = convert(1)", 1.0)]
-    [TestCase("y:real = convert(-1)", -1.0)]
-    [TestCase(
-        "y:bool[] = convert(0b1111011)", new[] {
-            true, true, false, true, true, true, true, false,
-            false, false, false, false, false, false, false, false,
-            false, false, false, false, false, false, false, false,
-            false, false, false, false, false, false, false, false
-        })]
-    [TestCase("y:byte[]=convert(0x123)", new byte[] { 35, 1, 0, 0 })]
-    [TestCase("y:byte[]=convert(0xFA00FA)", new byte[] { 250, 0, 250, 0 })]
-    [TestCase("y:bool=convert(1)", true)]
-    [TestCase("y:bool=convert(0)", false)]
-    [TestCase(
-        "y:byte[]=convert('hi there')",
-        new byte[] {
-            0x68, 00, 0x69, 00, 0x20, 00, 0x74, 00, 0x68, 00, 0x65, 00, 0x72, 00, 0x65, 00
-        })]
-    public void ConstantConvertFunctionTest(string expr, object expected)
-        => expr.AssertResultHas("y", expected);
-}
 
 [TestFixture]
 public class BuiltInFunctionsTest {
@@ -325,6 +195,38 @@ public class BuiltInFunctionsTest {
     public void TODOEquationWithPredefinedFunction(string expr, object arg, object expected) =>
         expr.Calc("x", arg).AssertReturns("y", expected);
 
+    
+    [Ignore(" TODO: converts funct")]
+    [TestCase("toInt(1.2)", 1)]
+    [TestCase("toInt(-1.2)", -1)]
+    [TestCase("toInt('1')", 1)]
+    [TestCase("toInt('-123')", -123)]
+    [TestCase("toInt([0x21,0x33,0x12])", 1_192_737)]
+    [TestCase("toInt([0x21,0x33,0x12,0x00])", 1_192_737)]
+    [TestCase("toInt([0x21,0x00,0x00,0x00])", 0x21)]
+    [TestCase("toInt([0x21,0x00,0x00,0x00])", 0x21)]
+    [TestCase("toInt([0x21])", 0x21)]
+    [TestCase("toReal('1')", 1.0)]
+    [TestCase("toReal('1.1')", 1.1)]
+    [TestCase("toReal('-0.123')", -0.123)]
+    [TestCase("toReal(1)", 1.0)]
+    [TestCase("toReal(-1)", -1.0)]
+    [TestCase(
+        "toBits(123)", new[] {
+            true, true, false, true, true, true, true, false,
+            false, false, false, false, false, false, false, false,
+            false, false, false, false, false, false, false, false,
+            false, false, false, false, false, false, false, false
+        })]
+    [TestCase("toBytes(123)", new[] { 123, 0, 0, 0 })]
+    [TestCase("toBytes(1_192_737)", new[] { 0x21, 0x33, 0x12, 0 })]
+    [TestCase(
+        "toUnicode('hi there')",
+        new[] { 0x68, 00, 0x69, 00, 0x20, 00, 0x74, 00, 0x68, 00, 0x65, 00, 0x72, 00, 0x65, 00 })]
+    
+    [TestCase("toUtf8('hi there')", new[] { 0x68, 0x69, 0x20, 0x74, 0x68, 0x65, 0x72, 0x65 })]
+    public void TODOConstWithPredefinedFunction(string expr, object expected)
+        => expr.AssertAnonymousOut(expected);
     
     [TestCase("y = pi(")]
     [TestCase("y = pi(1)")]

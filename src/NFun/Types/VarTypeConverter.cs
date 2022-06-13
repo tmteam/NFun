@@ -73,16 +73,13 @@ public static class VarTypeConverter {
             return ToText;
         if (to.BaseType == BaseFunnyType.Any)
             return NoConvertion;
-    
-        if (from.IsNumeric() /*|| from == FunnyType.Char*/)
-        {
-            var result =  typeBehaviour.GetNumericConverterOrNull(to.BaseType);
-            if (result != null)
-                return result;
-        }
-
+        if (from.BaseType == BaseFunnyType.Char)
+            return typeBehaviour.GetFromCharToNumberConverterOrNull(to.BaseType);
+        if (from.IsNumeric())
+            return  typeBehaviour.GetNumericConverterOrNull(to.BaseType);
         if (from.BaseType != to.BaseType)
             return null;
+        
         if (from.BaseType == BaseFunnyType.ArrayOf)
         {
             if (to == FunnyType.ArrayOf(FunnyType.Any))
@@ -105,7 +102,6 @@ public static class VarTypeConverter {
                 return new ImmutableFunnyArray(array, to.ArrayTypeSpecification.FunnyType);
             };
         }
-
         if (from.BaseType == BaseFunnyType.Fun)
         {
             var fromInputs = from.FunTypeSpecification.Inputs;
