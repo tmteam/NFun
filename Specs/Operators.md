@@ -17,7 +17,7 @@ Most operators may be applied for different types of operands. To simplify the d
 | Signed        | `int64`, `int32`, `int16`                                       | int16 => T => int64                                 |
 | ArithIntegers | `int64`, `int32`,         `uint64`, `uint32`                    | (int32 &#124; uint32) => T => (int64 &#124; uint64) |       
 | Arithmetics   | `real`, `int64`, `int32`,         `uint64`, `uint32`            | (int32 &#124; uint32) => T => real                  | 
-| Comparables   | `text`, **[Numbers]**                                           | T is IComparable                                    |
+| Comparables   | `text`, `char`, **[Numbers]**                                   | T is IComparable                                    |
 
 ## Operators Precedence in NFun
 

@@ -9,7 +9,7 @@ Most functions may be applied for different types of operands. To simplify the d
 | Numbers       | `real`, **[Integers]**                                          | T => real                                           |
 | Signed        | `int64`, `int32`, `int16`                                       | int16 => T => int64                                 |
 | Arithmetics   | `real`, `int64`, `int32`,         `uint64`, `uint32`            | (int32 &#124; uint32) => T => real                  | 
-| Comparables   | `text`, **[Numbers]**                                           | T is IComparable                                    |
+| Comparables   | `text`, `char`, **[Numbers]**                                   | T is IComparable                                    |
 
 ## Concrete math functions
 
@@ -57,16 +57,10 @@ Most functions may be applied for different types of operands. To simplify the d
 | Integers      | array with N elements from Little-endian encoding                                       |
 | `real`        | array with 4 elements from Little-endian double floating number encoding                |
 | `text`        | Encodes a set of characters from the specified text with Unicode encoding               |
+| `char`        | Encodes single characters with Unicode encoding                                         |
+
 #### Serialization (Result type is `byte[]`)
 Same as Serialization to `byte[]`, but returns bit array
-
-#### Parsing (Argument type is `text`)
-
-| Result type | Returns                                                                                             |
-|-------------|-----------------------------------------------------------------------------------------------------|
-| `bool`      | `true` if text equals 'true' or '1', `false` if text equals 'false' or '0'. Raises `Oops` otherwise |
-| Integers    | Parse integer number. Raises `Oops` otherwise if it is impossible                                   |
-| `real`      | Parse real number with invarant culture. Raises `Oops` otherwise if it is impossible                |
 
 #### Deserialization (Argument type is `byte[]`)
 
@@ -77,6 +71,15 @@ Same as Serialization to `byte[]`, but returns bit array
 | Integers    | Decodes integer number from litle endian array                                                                        |
 | `real`      | Decodes real double float number from litle endian array                                                              |
 | `text`      | Decodes input Unicode sequence of bytes into text                                                                     |
+| `char`      | Decodes single characters with Unicode encoding                                                                       |
+
+#### Parsing (Argument type is `text`)
+
+| Result type | Returns                                                                                             |
+|-------------|-----------------------------------------------------------------------------------------------------|
+| `bool`      | `true` if text equals 'true' or '1', `false` if text equals 'false' or '0'. Raises `Oops` otherwise |
+| Integers    | Parse integer number. Raises `Oops` otherwise if it is impossible                                   |
+| `real`      | Parse real number with invarant culture. Raises `Oops` otherwise if it is impossible                |
 
 ## Generic Array Functions
 
