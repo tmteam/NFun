@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text.Json;
 using NFun.Exceptions;
 using NFun.Runtime;
@@ -192,71 +193,59 @@ public static class TestHelper {
     public static void AssertOutputsCount(this FunnyRuntime runtime, int count) =>
         Assert.AreEqual(count, runtime.Variables.Count(v => v.IsOutput));
 
-    public static string ToStringSmart(this object v) {
-        if (v is string)
-            return v.ToString();
-        if (v is char[] c)
-            return new string(c);
-        if (!v.GetType().IsClass)
-            return v.ToString();
-        if (v is IEnumerable en)
-            return "[" + string.Join(",", en.Cast<object>().Select(ToStringSmart)) + "]";
-        return JsonSerializer.Serialize(v);
-    }
+    public static string ToStringSmart(this object v) =>
+        v switch {
+            char[] c       => new string(c),
+            string         => v.ToString(),
+            IPAddress      => v.ToString(),
+            IEnumerable en => "[" + string.Join(",", en.Cast<object>().Select(ToStringSmart)) + "]",
+            _              => v.GetType().IsClass ? JsonSerializer.Serialize(v) : v.ToString()
+        };
 
     public static bool AreSame(object a, object b) {
         if (a == null || b == null)
             return false;
         if (a.GetType() != b.GetType())
             return false;
-        
-        if (a is string astr)
-        {
-            var bstr = (string)b;
-            return astr.Equals(bstr);
-        }
-
         if (a is bool || a is byte || a is sbyte || a is short || a is ushort || a is int || a is uint || a is ulong || a is long)
             return a.Equals(b);
-        
-        if (a is double resultD)
-        {
-            var expectedD = (double)b;
-            return Math.Abs(resultD - expectedD) < 0.01;
-        }
 
-        if (a is decimal resultDec)
+        switch (a)
         {
-            var expectedDec = (decimal)b;
-            return resultDec.Equals(expectedDec);
-        }
-
-        if (a is Array arra)
-        {
-            var arrb = (Array)b;
-            var arrayOfA = arra.Cast<object>().ToArray();
-            var arrayOfB = arrb.Cast<object>().ToArray();
-            if (arrayOfA.Length != arrayOfB.Length)
-                return false;
-            for (int i = 0; i < arrayOfA.Length; i++)
+            case string astr:
+                return astr.Equals((string)b);
+            case double resultD:
+                return Math.Abs(resultD - (double)b) < 0.01;
+            case decimal resultDec:
+                return resultDec.Equals((decimal)b);
+            case IPAddress ipAddress:
+                return ipAddress.Equals((IPAddress)b);
+            case Array arra:
             {
-                if (!AreSame(arrayOfA[i], arrayOfB[i]))
+                var arrb = (Array)b;
+                var arrayOfA = arra.Cast<object>().ToArray();
+                var arrayOfB = arrb.Cast<object>().ToArray();
+                if (arrayOfA.Length != arrayOfB.Length)
                     return false;
+                for (int i = 0; i < arrayOfA.Length; i++)
+                {
+                    if (!AreSame(arrayOfA[i], arrayOfB[i]))
+                        return false;
+                }
+
+                return true;
             }
-
-            return true;
+            case IEnumerable:
+                throw new NotSupportedException($"type {a.GetType().Name} is not supported");
+            case Delegate:
+                throw new NotSupportedException($"type {a.GetType().Name} is not supported");
+            default:
+            {
+                var ajson = JsonSerializer.Serialize(a);
+                var bjson = JsonSerializer.Serialize(b);
+                return ajson.Equals(bjson);
+            }
         }
-
-        if (a is IEnumerable)
-            throw new NotSupportedException($"type {a.GetType().Name} is not supported");
-        if (a is IList)
-            throw new NotSupportedException($"type {a.GetType().Name} is not supported");
-        if (a is Delegate)
-            throw new NotSupportedException($"type {a.GetType().Name} is not supported");
-
-        var ajson = JsonSerializer.Serialize(a);
-        var bjson = JsonSerializer.Serialize(b);
-        return ajson.Equals(bjson);
     }
 
 

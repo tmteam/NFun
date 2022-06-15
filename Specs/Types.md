@@ -33,6 +33,7 @@ Some types do not have an identifier at all. It is true for  `char`, `rule` and 
 | Signed int 32   | `int32` `int`   | Integer value [-2147483648..2147483647]                                                                  | `y:int32 = 123 `                   |
 | Signed int 64   | `int64`         | Integer value [-140737488355328..140737488355327]                                                        | `y:int64 = 123 `                   |
 | Natural value   | `real`          | Non-integer numeric value . Depending on the settings, it can be either a double or a decimal clr number | `y:real = 123.5 `                  |
+| Ip Address      | `ip`            | Ip v4 address                                                                                            | `y:ip = 192.168.0.1 `              |
 
 ## Generalized types
 
@@ -110,6 +111,7 @@ any
  |
  |<--char
  |<--bool
+ |<--ip
  |
  |<--real
        ↑

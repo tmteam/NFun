@@ -7,8 +7,8 @@ public class StatePrimitive : ITypeState, ITicNodeState {
     private static readonly StatePrimitive[,] FcdMap;
 
     static StatePrimitive() {
-        LcaMap = new StatePrimitive [17, 17];
-        FcdMap = new StatePrimitive [17, 17];
+        LcaMap = new StatePrimitive [18, 18];
+        FcdMap = new StatePrimitive [18, 18];
 
         FillLcaFcdMaps();
     }
@@ -34,6 +34,7 @@ public class StatePrimitive : ITypeState, ITicNodeState {
     public static StatePrimitive Any { get; } = new(PrimitiveTypeName.Any);
     public static StatePrimitive Bool { get; } = new(PrimitiveTypeName.Bool);
     public static StatePrimitive Char { get; } = new(PrimitiveTypeName.Char);
+    public static StatePrimitive Ip { get; } = new(PrimitiveTypeName.Ip);
     public static StatePrimitive Real { get; } = new(PrimitiveTypeName.Real);
     public static StatePrimitive I96 { get; } = new(PrimitiveTypeName.I96);
     public static StatePrimitive I64 { get; } = new(PrimitiveTypeName.I64);
@@ -86,7 +87,7 @@ public class StatePrimitive : ITypeState, ITicNodeState {
         => visitor.Apply(ancestor, this, ancestorNode, descendantNode);
 
     private static void FillLcaFcdMaps() {
-        int maxVal = 17;
+        int maxVal = 18;
         var numberToTypeMap = new[] {
             Any, //0
             Char, //1
@@ -104,7 +105,8 @@ public class StatePrimitive : ITypeState, ITicNodeState {
             U24, //13
             U16, //14
             U12, //15
-            U8 //16
+            U8, //16
+            Ip, //17
         };
 
         //by default - any lca returns any

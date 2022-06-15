@@ -149,7 +149,7 @@ internal class CalculatorSingle<TInput, TOutput> : ICalculator<TInput, TOutput> 
     private readonly IOutputFunnyConverter _outputConverter;
 
     public CalculatorSingle(FunnyCalculatorBuilder builder) {
-        if (builder.Dialect.Converter.TypeBehaviour.DoubleIsReal && typeof(TOutput) == typeof(decimal))
+        if (builder.Dialect.Converter.TypeBehaviour.RealType != typeof(decimal) && typeof(TOutput) == typeof(decimal))
             throw FunnyInvalidUsageException.DecimalTypeCannotBeUsedAsOutput();
         
         _builder = builder;
@@ -251,7 +251,7 @@ internal class ConstantCalculatorSingle<TOutput> : IConstantCalculator<TOutput> 
     private readonly IOutputFunnyConverter _outputConverter;
    
     public ConstantCalculatorSingle(FunnyCalculatorBuilder builder) {
-        if (builder.Dialect.Converter.TypeBehaviour.DoubleIsReal && typeof(TOutput) == typeof(decimal))
+        if (builder.Dialect.Converter.TypeBehaviour.RealType != typeof(decimal) && typeof(TOutput) == typeof(decimal))
             throw FunnyInvalidUsageException.DecimalTypeCannotBeUsedAsOutput();
         
         _outputConverter = builder.Dialect.Converter.GetOutputConverterFor(typeof(TOutput));

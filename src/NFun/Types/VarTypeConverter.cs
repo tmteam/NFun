@@ -10,18 +10,18 @@ namespace NFun.Types;
 
 public static class VarTypeConverter {
     private static readonly bool[,] PrimitiveConvertMap;
-
+    private const int PrimitiveTypeCount = 16;
     static VarTypeConverter() {
-        PrimitiveConvertMap = new bool [15, 15];
+        PrimitiveConvertMap = new bool [PrimitiveTypeCount, PrimitiveTypeCount];
         //every type can be converted to itself
-        for (int i = 1; i < 15; i++)
+        for (int i = 1; i < PrimitiveTypeCount; i++)
             PrimitiveConvertMap[i, i] = true;
         //except arrays and funs
         PrimitiveConvertMap[(int)BaseFunnyType.ArrayOf, (int)BaseFunnyType.ArrayOf] = false;
         PrimitiveConvertMap[(int)BaseFunnyType.Fun, (int)BaseFunnyType.Fun] = false;
 
         //every type can be converted to any
-        for (int i = 1; i < 15; i++)
+        for (int i = 1; i < PrimitiveTypeCount; i++)
             PrimitiveConvertMap[i, (int)BaseFunnyType.Any] = true;
         for (int i = (int)BaseFunnyType.UInt8; i < (int)BaseFunnyType.Real; i++)
         {
@@ -56,10 +56,11 @@ public static class VarTypeConverter {
     Int32 = 8,
     Int64 = 9,
     Real = 10,
-    ArrayOf = 11,
-    Fun = 12,
-    Generic = 13,
-    Any  = 14,
+    Ip = 11,
+    ArrayOf = 12,
+    Fun = 13,
+    Generic = 14,
+    Any  = 15,
          * 
          */
     }

@@ -161,6 +161,7 @@ public abstract class TicTypesConverter {
     public static FunnyType ToConcrete(PrimitiveTypeName name) =>
         name switch {
             PrimitiveTypeName.Any  => FunnyType.Any,
+            PrimitiveTypeName.Ip   => FunnyType.Ip,
             PrimitiveTypeName.Char => FunnyType.Char,
             PrimitiveTypeName.Bool => FunnyType.Bool,
             PrimitiveTypeName.Real => FunnyType.Real,

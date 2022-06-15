@@ -118,6 +118,10 @@ public enum TokType {
     TextOpenInterpolation,
     TextMidInterpolation,
     TextCloseInterpolation,
+    /// <summary>
+    /// 192.168.0.1
+    /// </summary>
+    IpAddress,
     NotAToken,
     True,
     False,

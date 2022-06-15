@@ -12,6 +12,7 @@ public interface ISyntaxNodeVisitor<out T> {
     T Visit(ListOfExpressionsSyntaxNode node);
     T Visit(ConstantSyntaxNode node);
     T Visit(GenericIntSyntaxNode node);
+    T Visit(IpAddressConstantSyntaxNode node);
     T Visit(SyntaxTree node);
     T Visit(TypedVarDefSyntaxNode node);
     T Visit(UserFunctionDefinitionSyntaxNode node);

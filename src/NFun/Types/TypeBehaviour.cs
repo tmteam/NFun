@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Net;
 using System.Text;
+using NFun.Runtime;
 
 namespace NFun.Types; 
 
@@ -11,9 +13,10 @@ public enum RealClrType {
 }
 
 public abstract class TypeBehaviour {
-    public static readonly TypeBehaviour RealIsDouble =  RealIsDoubleTypeBehaviour.Instance;
-    public static readonly TypeBehaviour RealIsDecimal = RealIsDecimalTypeBehaviour.Instance;
-    
+
+    public static readonly TypeBehaviour RealIsDouble =  new RealIsDoubleTypeBehaviour();
+    public static readonly TypeBehaviour RealIsDecimal = new RealIsDecimalTypeBehaviour();
+
     public abstract IInputFunnyConverter GetPrimitiveInputConverterOrNull(Type clrType);
     public virtual IInputFunnyConverter GetPrimitiveInputConverterOrNull(FunnyType funnyType) =>
         PrimitiveInputConvertersByName.TryGetValue(funnyType.BaseType, out var converter) ? converter : null;
@@ -26,9 +29,8 @@ public abstract class TypeBehaviour {
     public abstract object ParseOrNull(string text);
     public abstract Type GetClrTypeFor(BaseFunnyType funnyType);
     public abstract T RealTypeSelect<T>(T ifIsDouble, T ifIsDecimal);
+    public abstract Type RealType { get; }
 
-
-    public abstract bool DoubleIsReal { get; }
     protected static readonly Func<object, object> ToInt8 = o => Convert.ToSByte(o);
     protected static readonly Func<object, object> ToInt16 = o => Convert.ToInt16(o);
     protected static readonly Func<object, object> ToInt32 = o => Convert.ToInt32(o);
@@ -57,6 +59,7 @@ public abstract class TypeBehaviour {
         typeof(int),
         typeof(long),
         typeof(double),
+        typeof(IPAddress),
         null,
         null,
         null,
@@ -76,6 +79,7 @@ public abstract class TypeBehaviour {
         default(int),
         default(long),
         default(double),
+        new IPAddress(new byte[]{127,0,0,1}),
         null,
         null,
         null,
@@ -85,20 +89,23 @@ public abstract class TypeBehaviour {
     
     private static readonly IReadOnlyDictionary<BaseFunnyType, IInputFunnyConverter> PrimitiveInputConvertersByName
         = new Dictionary<BaseFunnyType, IInputFunnyConverter> {
-            { BaseFunnyType.Bool,   new PrimitiveTypeInputFunnyConverter(FunnyType.Bool) },
-            { BaseFunnyType.Char,   new PrimitiveTypeInputFunnyConverter(FunnyType.Char) },
-            { BaseFunnyType.UInt8,  new PrimitiveTypeInputFunnyConverter(FunnyType.UInt8) },
+            { BaseFunnyType.Ip, new PrimitiveTypeInputFunnyConverter(FunnyType.Ip)},
+            { BaseFunnyType.Bool, new PrimitiveTypeInputFunnyConverter(FunnyType.Bool) },
+            { BaseFunnyType.Char, new PrimitiveTypeInputFunnyConverter(FunnyType.Char) },
+            { BaseFunnyType.UInt8, new PrimitiveTypeInputFunnyConverter(FunnyType.UInt8) },
             { BaseFunnyType.UInt16, new PrimitiveTypeInputFunnyConverter(FunnyType.UInt16) },
             { BaseFunnyType.UInt32, new PrimitiveTypeInputFunnyConverter(FunnyType.UInt32) },
             { BaseFunnyType.UInt64, new PrimitiveTypeInputFunnyConverter(FunnyType.UInt64) },
-            { BaseFunnyType.Int16,  new PrimitiveTypeInputFunnyConverter(FunnyType.Int16) },
-            { BaseFunnyType.Int32,  new PrimitiveTypeInputFunnyConverter(FunnyType.Int32) },
-            { BaseFunnyType.Int64,  new PrimitiveTypeInputFunnyConverter(FunnyType.Int64) },
-            { BaseFunnyType.Real,   new PrimitiveTypeInputFunnyConverter(FunnyType.Real) },
+            { BaseFunnyType.Int16, new PrimitiveTypeInputFunnyConverter(FunnyType.Int16) },
+            { BaseFunnyType.Int32, new PrimitiveTypeInputFunnyConverter(FunnyType.Int32) },
+            { BaseFunnyType.Int64, new PrimitiveTypeInputFunnyConverter(FunnyType.Int64) },
+            { BaseFunnyType.Real, new PrimitiveTypeInputFunnyConverter(FunnyType.Real) },
         };
+    
 
     private static readonly IOutputFunnyConverter BoolConverter   = new PrimitiveTypeOutputFunnyConverter(FunnyType.Bool, typeof(bool));
     private static readonly IOutputFunnyConverter CharConverter   = new PrimitiveTypeOutputFunnyConverter(FunnyType.Char, typeof(Char));
+    private static readonly IOutputFunnyConverter IpConverter     = new PrimitiveTypeOutputFunnyConverter(FunnyType.Ip, typeof(IPAddress));
     private static readonly IOutputFunnyConverter Uint8Converter  = new PrimitiveTypeOutputFunnyConverter(FunnyType.UInt8, typeof(byte));
     private static readonly IOutputFunnyConverter Uint16Converter = new PrimitiveTypeOutputFunnyConverter(FunnyType.UInt16, typeof(UInt16));
     private static readonly IOutputFunnyConverter Uint32Converter = new PrimitiveTypeOutputFunnyConverter(FunnyType.UInt32, typeof(UInt32));
@@ -111,6 +118,7 @@ public abstract class TypeBehaviour {
         baseType switch
         {
             BaseFunnyType.Any    => DynamicTypeOutputFunnyConverter.AnyConverter,
+            BaseFunnyType.Ip     => IpConverter,
             BaseFunnyType.Bool   => BoolConverter,
             BaseFunnyType.Char   => CharConverter,
             BaseFunnyType.UInt8  => Uint8Converter,
@@ -161,10 +169,7 @@ public abstract class TypeBehaviour {
 }
 
 public class RealIsDoubleTypeBehaviour : TypeBehaviour {
-    private RealIsDoubleTypeBehaviour() {}
-    
-    public static readonly TypeBehaviour Instance = new RealIsDoubleTypeBehaviour();
-    
+
     private static readonly IReadOnlyDictionary<Type, IOutputFunnyConverter> PrimitiveOutputConvertersByType
         = new Dictionary<Type, IOutputFunnyConverter> {
             { typeof(bool), new PrimitiveTypeOutputFunnyConverter(FunnyType.Bool, typeof(bool)) },
@@ -178,7 +183,8 @@ public class RealIsDoubleTypeBehaviour : TypeBehaviour {
             { typeof(Int64), new PrimitiveTypeOutputFunnyConverter(FunnyType.Int64, typeof(Int64)) },
             { typeof(double), new PrimitiveTypeOutputFunnyConverter(FunnyType.Real, typeof(double)) },
             { typeof(float),  new DoubleToFloatTypeOutputFunnyConverter() },
-            { typeof(Decimal), new DoubleToDecimalTypeOutputFunnyConverter() }
+            { typeof(Decimal), new DoubleToDecimalTypeOutputFunnyConverter() },
+            { typeof(IPAddress), new PrimitiveTypeOutputFunnyConverter(FunnyType.Ip, typeof(IPAddress))}
         };
     
     private static readonly IReadOnlyDictionary<Type, IInputFunnyConverter> PrimitiveInputConvertersByType
@@ -195,6 +201,7 @@ public class RealIsDoubleTypeBehaviour : TypeBehaviour {
             { typeof(double), new PrimitiveTypeInputFunnyConverter(FunnyType.Real) },
             { typeof(float), new FloatToDoubleInputFunnyConverter() },
             { typeof(Decimal), new DecimalToDoubleInputFunnyConverter() },
+            { typeof(IPAddress), new PrimitiveTypeInputFunnyConverter(FunnyType.Ip) },
         };
     
     public override IInputFunnyConverter GetPrimitiveInputConverterOrNull(Type clrType) =>
@@ -241,7 +248,8 @@ public class RealIsDoubleTypeBehaviour : TypeBehaviour {
 
     private static readonly Func<object, object> ToDoubleReal = o => Convert.ToDouble(o);
 
-    public override bool DoubleIsReal => true;
+    public override Type RealType { get; } = typeof(Double);
+
     protected override Func<object, object> FromCharToRealConverter { get; } = o => {
         GetUnicodeBytes(o, out var bytes);
         return (double)BitConverter.ToInt64(bytes,0);
@@ -249,8 +257,7 @@ public class RealIsDoubleTypeBehaviour : TypeBehaviour {
 }
 
 public class RealIsDecimalTypeBehaviour : TypeBehaviour {
-    private RealIsDecimalTypeBehaviour() {}
-    public static readonly TypeBehaviour Instance = new RealIsDecimalTypeBehaviour();
+
     private static readonly IReadOnlyDictionary<Type, IOutputFunnyConverter> PrimitiveOutputConvertersByType
         = new Dictionary<Type, IOutputFunnyConverter> {
             { typeof(bool), new PrimitiveTypeOutputFunnyConverter(FunnyType.Bool, typeof(bool)) },
@@ -262,6 +269,7 @@ public class RealIsDecimalTypeBehaviour : TypeBehaviour {
             { typeof(Int16),   new PrimitiveTypeOutputFunnyConverter(FunnyType.Int16, typeof(Int16)) },
             { typeof(Int32),   new PrimitiveTypeOutputFunnyConverter(FunnyType.Int32, typeof(Int32)) },
             { typeof(Int64),   new PrimitiveTypeOutputFunnyConverter(FunnyType.Int64, typeof(Int64)) },
+            { typeof(IPAddress), new PrimitiveTypeOutputFunnyConverter(FunnyType.Ip, typeof(IPAddress)) },
             { typeof(Decimal), new PrimitiveTypeOutputFunnyConverter(FunnyType.Real, typeof(Decimal))},
             { typeof(float),   new DecimalToFloatTypeOutputFunnyConverter() },
             { typeof(double),  new DecimalToDoubleTypeOutputFunnyConverter() },
@@ -279,6 +287,7 @@ public class RealIsDecimalTypeBehaviour : TypeBehaviour {
             { typeof(Int32), new PrimitiveTypeInputFunnyConverter(FunnyType.Int32) },
             { typeof(Int64), new PrimitiveTypeInputFunnyConverter(FunnyType.Int64) },
             { typeof(Decimal), new PrimitiveTypeInputFunnyConverter(FunnyType.Real) },
+            { typeof(IPAddress), new PrimitiveTypeInputFunnyConverter(FunnyType.Ip) },
             { typeof(double), new DoubleToDecimalInputFunnyConverter() },
             { typeof(float), new FloatToDecimalInputFunnyConverter() },
         };
@@ -333,6 +342,7 @@ public class RealIsDecimalTypeBehaviour : TypeBehaviour {
         GetUnicodeBytes(o, out var bytes);
         return new decimal(BitConverter.ToInt64(bytes, 0));
     };
-    
-    public override bool DoubleIsReal => false;
+
+    public override Type RealType { get; } = typeof(Decimal);
+
 }

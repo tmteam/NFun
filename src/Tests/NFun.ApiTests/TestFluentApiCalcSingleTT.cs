@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 using NFun.Exceptions;
 using NFun.TestTools;
 using NUnit.Framework;
@@ -53,10 +54,16 @@ public class TestFluentApiCalcSingleTT {
     public void ReturnsInt(string expr, int expected)
         => CalcInDifferentWays(expr, new UserInputModel("vasa", 13, size: 21, balance: Decimal.Zero, iq: 12, 1, 2, 3, 4), expected);
 
+    [TestCase("default", "0.0.0.0")]
+    [TestCase("127.1.2.24", "127.1.2.24")]
+    public void ReturnsIp(string expr, string expected)
+        => CalcInDifferentWays(expr, new UserInputModel("vasa", 13, size: 21, balance: Decimal.Zero, iq: 12, 1, 2, 3, 4), IPAddress.Parse(expected));
+    
     [TestCase("IDS.filter(fun it>aGe).map(fun it*it)", new[] { 10201, 10404 })]
     [TestCase("ids.filter(fun it>age).map(fun it*it)", new[] { 10201, 10404 })]
     [TestCase("ids.filter(fun it>2)", new[] { 101, 102 })]
     [TestCase("out:int[]=ids.filter(fun it>age).map(fun it*it)", new[] { 10201, 10404 })]
+    [TestCase("out:int[]=127.0.0.1.convert()", new[] { 127, 0,0,1 })]
     public void ReturnsIntArray(string expr, int[] expected)
         => CalcInDifferentWays(expr, new UserInputModel("vasa", 2, size: 21, balance: Decimal.Zero, iq: 1, 1, 2, 101, 102), expected);
 

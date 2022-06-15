@@ -21,6 +21,7 @@ public abstract class EnterVisitorBase : ISyntaxNodeVisitor<DfsEnterResult> {
     public virtual DfsEnterResult Visit(IfCaseSyntaxNode node) => DefaultVisitEnter(node);
     public virtual DfsEnterResult Visit(ListOfExpressionsSyntaxNode node) => DefaultVisitEnter(node);
     public virtual DfsEnterResult Visit(ConstantSyntaxNode node) => DefaultVisitEnter(node);
+    public virtual DfsEnterResult Visit(IpAddressConstantSyntaxNode node) => DefaultVisitEnter(node);
     public virtual DfsEnterResult Visit(GenericIntSyntaxNode node) => DefaultVisitEnter(node);
     public virtual DfsEnterResult Visit(SyntaxTree node) => DefaultVisitEnter(node);
     public virtual DfsEnterResult Visit(TypedVarDefSyntaxNode node) => DefaultVisitEnter(node);

@@ -63,6 +63,7 @@ public static class TokenHelper {
             TokType.TextType                     => FunnyType.Text,
             TokType.AnythingType                 => FunnyType.Any,
             TokType.Id when token.Value == "any" => FunnyType.Any,
+            TokType.Id when token.Value == "ip"  => FunnyType.Ip,
             _                                    => throw Errors.TypeExpectedButWas(token)
         };
 

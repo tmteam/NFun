@@ -96,7 +96,6 @@ public class Tokenizer {
         { "for", TokType.Reserved },
         { "fail", TokType.Reserved },
         { "int8", TokType.Reserved },
-        { "ip", TokType.Reserved },
         { "import", TokType.Reserved },
         { "int128", TokType.Reserved },
 
@@ -176,46 +175,64 @@ public class Tokenizer {
                                                 || val == '‘' 
                                                 || val == '“'; //important  to support figure quotes  
 
-    private static Tok ReadNumber(string str, int position) {
-        int dotPosition = -1;
+    private static Tok ReadNumberOrIp(string str, int position) {
+        int lastDotPosition = -1;
+        int secondDotPosition = -1;
+
+        int dotsCount = 0;
         int index = position;
+
         for (; index < str.Length; index++)
         {
             var symbol = str[index];
-            if (IsDigit(symbol))
-                continue;
-
-            if (index == position + 1 && str[position] == '0')
+            if (!IsDigit(symbol))
             {
-                if (str[index] == 'x') return ReadHexNumber(str, position);
-                if (str[index] == 'b') return ReadBinNumber(str, position);
-            }
+                if (dotsCount == 3) // it is an ip address. 
+                    break;
+                if (index == position + 1 && str[position] == '0')
+                {
+                    if (str[index] == 'x') return ReadHexNumber(str, position);
+                    if (str[index] == 'b') return ReadBinNumber(str, position);
+                }
+                
+                if (symbol == '.')
+                {
+                    if (dotsCount == 1)
+                        secondDotPosition = index;
 
-            if (symbol == '_')
-                continue;
-            if (symbol == '.' && dotPosition == -1)
-            {
-                dotPosition = index;
-                continue;
+                    if (lastDotPosition == index - 1) //if two dots in a row
+                        break;
+                    lastDotPosition = index;
+                    dotsCount++;
+                }
+                else if (symbol != '_')
+                    break;
             }
-
-            break;
         }
 
-        //if dot is last then skip
-        if (dotPosition == index - 1)
-            return Tok.New(TokType.IntNumber, str.Substring(position, index - position - 1), position, index - 1);
-
-        if (index < str.Length && IsLetter(str[index]))
+        //if dot is last then skip last dot
+        if (lastDotPosition == index - 1)
         {
+            index--;
+            dotsCount--;
+            //return Tok.New(TokType.IntNumber, str.Substring(position, index - position - 1), position, index - 1);
+        }
+        else if (index < str.Length && IsLetter(str[index]))
+        {
+            // if some letter comes right after the number     
             var txtToken = ReadIdOrKeyword(str, index);
             return Tok.New(
                 TokType.NotAToken, str.Substring(position, txtToken.Finish - position),
                 position, txtToken.Finish);
         }
 
-        var type = dotPosition == -1 ? TokType.IntNumber : TokType.RealNumber;
-        return Tok.New(type, str.Substring(position, index - position), position, index);
+        return dotsCount switch {
+                   0 => Tok.SubString(str, TokType.IntNumber, position, index),
+                   1 => Tok.SubString(str, TokType.RealNumber, position, index),
+                   2 => Tok.SubString(str, TokType.RealNumber, position, secondDotPosition),
+                   3 => Tok.SubString(str, TokType.IpAddress, position, index),
+                   _ => throw  new InvalidOperationException("fuu dot") 
+               };
     }
 
     private static Tok ReadHexNumber(string str, int position) {
@@ -256,10 +273,10 @@ public class Tokenizer {
         if (index == position + 2)
         {
             var end = ReadIdOrKeyword(str, position + 2).Finish;
-            return Tok.New(TokType.NotAToken, str.Substring(position, end - position), position, end);
+            return Tok.SubString(str,TokType.NotAToken,  position, end);
         }
 
-        return Tok.New(TokType.HexOrBinaryNumber, str.Substring(position, index - position), position, index);
+        return Tok.SubString(str,TokType.HexOrBinaryNumber, position, index);
     }
 
     #endregion
@@ -357,7 +374,7 @@ public class Tokenizer {
         if (current == '\r' || current == '\n' || current == ';')
             return Tok.New(TokType.NewLine, current.ToString(), position, position + 1);
 
-        if (IsDigit(current)) return ReadNumber(str, position);
+        if (IsDigit(current)) return ReadNumberOrIp(str, position);
 
         if (IsLetter(current)) return ReadIdOrKeyword(str, position);
 

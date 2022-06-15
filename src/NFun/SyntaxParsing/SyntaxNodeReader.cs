@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Net;
 using System.Numerics;
 using NFun.Functions;
 using NFun.Exceptions;
@@ -166,13 +167,16 @@ public static class SyntaxNodeReader {
 
         if (flow.MoveIf(TokType.FunRule))
             return ReadFunAnonymousFunction(flow);
+        
         if (flow.MoveIf(TokType.FiObr))
             return ReadStruct(flow);
 
         if (flow.MoveIf(TokType.True, out var trueTok))
             return SyntaxNodeFactory.Constant(true, FunnyType.Bool, trueTok.Interval);
+        
         if (flow.MoveIf(TokType.False, out var falseTok))
             return SyntaxNodeFactory.Constant(false, FunnyType.Bool, falseTok.Interval);
+        
         if (flow.MoveIf(TokType.HexOrBinaryNumber, out var binVal))
         { //0xff, 0b01
             var val = binVal.Value;
@@ -207,14 +211,21 @@ public static class SyntaxNodeReader {
             return SyntaxNodeFactory.IntGenericConstant((ulong)decVal, intVal.Interval);
         }
 
+        if (flow.MoveIf(TokType.RealNumber, out var realVal)) //1.0 . Real type cannot be parsed without a typecontext. 
+            return SyntaxNodeFactory.Constant(realVal.Value.Replace("_", String.Empty), FunnyType.Real,
+                realVal.Interval);
 
-        if (flow.MoveIf(TokType.RealNumber, out var realValToken)) //1.0
-            // Real type cannot be parsed without a typecontext. 
-            return SyntaxNodeFactory.Constant(realValToken.Value.Replace("_", String.Empty), FunnyType.Real,
-                realValToken.Interval);
-        
+        if(flow.MoveIf(TokType.IpAddress , out var ipVal)) //192.168.0.1
+        {
+            var text = ipVal.Value.Replace("_", String.Empty);
+            if (!IPAddress.TryParse(text, out var ip))
+                throw Errors.InvalidIpAddress(ipVal);
+            return SyntaxNodeFactory.IpAddressConstant(ip, ipVal.Interval);
+        }
+
         if (flow.MoveIf(TokType.Text, out var txt))
             return SyntaxNodeFactory.Constant(new TextFunnyArray(txt.Value), FunnyType.Text, txt.Interval);
+        
         if (flow.MoveIf(TokType.Id, out var headToken))
         {
             //fun call
@@ -234,15 +245,20 @@ public static class SyntaxNodeReader {
 
         if (flow.IsCurrent(TokType.TextOpenInterpolation))
             return ReadInterpolationText(flow);
+        
         if (flow.IsCurrent(TokType.Obr))
             return ReadBrackedNodeList(flow);
+        
         if (flow.IsCurrent(TokType.If))
             return ReadIfThenElseNode(flow);
+        
         // '[' can be used as array index, only if there is new line
         if (flow.IsCurrent(TokType.ArrOBr))
             return ReadInitializeArrayNode(flow);
+        
         if (flow.MoveIf(TokType.Default, out var defaultToken))
             return SyntaxNodeFactory.DefaultValue(defaultToken.Interval);
+        
         if (flow.IsCurrent(TokType.NotAToken))
             throw Errors.NotAToken(flow.Current);
         return null;
@@ -729,7 +745,7 @@ public static class SyntaxNodeReader {
                 throw Errors.ThenExpressionIsMissing(conditionStart, flow.Position);
 
             ifThenNodes.Add(
-                SyntaxNodeFactory.IfThen(
+                SyntaxNodeFactory.IfCase(
                     condition, thenResult,
                     start: conditionStart,
                     end: flow.Position));

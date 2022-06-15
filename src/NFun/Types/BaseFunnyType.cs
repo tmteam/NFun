@@ -12,9 +12,10 @@ public enum BaseFunnyType {
     Int32 = 8,
     Int64 = 9,
     Real = 10,
-    ArrayOf = 11,
-    Fun = 12,
-    Generic = 13,
-    Any = 14,
-    Struct = 15
+    Ip = 11,
+    ArrayOf = 12,
+    Fun = 13,
+    Generic = 14,
+    Any = 15,
+    Struct = 16
 }

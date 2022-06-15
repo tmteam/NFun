@@ -58,6 +58,7 @@ Most functions may be applied for different types of operands. To simplify the d
 | `real`        | array with 4 elements from Little-endian double floating number encoding                |
 | `text`        | Encodes a set of characters from the specified text with Unicode encoding               |
 | `char`        | Encodes single characters with Unicode encoding                                         |
+| `ip`          | Encodes ip address as sequence of bytes                                                 |
 
 #### Serialization (Result type is `byte[]`)
 Same as Serialization to `byte[]`, but returns bit array
@@ -72,6 +73,7 @@ Same as Serialization to `byte[]`, but returns bit array
 | `real`      | Decodes real double float number from litle endian array                                                              |
 | `text`      | Decodes input Unicode sequence of bytes into text                                                                     |
 | `char`      | Decodes single characters with Unicode encoding                                                                       |
+| `ip`        | Decodes ip address                                                                                                    |
 
 #### Parsing (Argument type is `text`)
 
@@ -80,6 +82,7 @@ Same as Serialization to `byte[]`, but returns bit array
 | `bool`      | `true` if text equals 'true' or '1', `false` if text equals 'false' or '0'. Raises `Oops` otherwise |
 | Integers    | Parse integer number. Raises `Oops` otherwise if it is impossible                                   |
 | `real`      | Parse real number with invarant culture. Raises `Oops` otherwise if it is impossible                |
+| `ip`        | Parse Ip. Raises `Oops` otherwise if it is impossible                                               |
 
 ## Generic Array Functions
 

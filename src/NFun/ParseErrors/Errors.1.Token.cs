@@ -38,4 +38,7 @@ internal partial class Errors {
 
     internal static FunnyParseException CannotParseDecimalNumber(Interval interval) => new(
         139, "Cannot parse decimal number", interval);
+
+    internal static FunnyParseException InvalidIpAddress(Tok token) => new(
+        142, $"'{token.Value}' is not valid ip address", token.Interval);
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 using NFun.Interpretation.Functions;
 using NFun.TestTools;
 using NFun.Types;
@@ -35,7 +36,15 @@ public class AprioriTypesTest {
                            .Build("y = x+1");
         Assert.AreEqual(FunnyType.Real, runtime["x"].Type);
     }
-
+    
+    [Test]
+    public void AprioriInputOfIpSpecified_inputTypeIsCorrect() {
+        var runtime = Funny.Hardcore
+                           .WithApriori<IPAddress>("x")
+                           .Build("y = x");
+        Assert.AreEqual(FunnyType.Ip, runtime["x"].Type);
+    }
+    
     [Test]
     public void InputVariableSpecifiedAndDoesNotConflict_AprioriInputCalcs() {
         var runtime = Funny.Hardcore

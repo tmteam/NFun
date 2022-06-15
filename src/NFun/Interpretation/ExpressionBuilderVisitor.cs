@@ -287,6 +287,9 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         var (enode, type) = GetConstantNodeOrNull(node.Value, node);
         return enode ?? new ConstantExpressionNode(node.Value, type, node.Interval);
     }
+    
+    public IExpressionNode Visit(IpAddressConstantSyntaxNode node) =>
+        new ConstantExpressionNode(node.Value, FunnyType.Ip, node.Interval);
 
     public IExpressionNode Visit(GenericIntSyntaxNode node) {
         var (enode, _) = GetConstantNodeOrNull(node.Value, node);

@@ -40,6 +40,7 @@ public static class LangTiHelper {
             BaseFunnyType.UInt64 => StatePrimitive.U64,
             BaseFunnyType.Real   => StatePrimitive.Real,
             BaseFunnyType.Char   => StatePrimitive.Char,
+            BaseFunnyType.Ip     => StatePrimitive.Ip,
             BaseFunnyType.Any    => StatePrimitive.Any,
             BaseFunnyType.ArrayOf => StateArray.Of(
                 ConvertToTiType(origin.ArrayTypeSpecification.FunnyType)),

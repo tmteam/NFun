@@ -184,7 +184,7 @@ y = 1+2 # this is also a comment
 An expression is a description of calculating a value of some type.
 
 An expression is anything from
-- literal (discrete, numeric, or textual)
+- literal (discrete, ip, numeric, or textual)
 - variable
 - template text
 - function call
@@ -212,6 +212,16 @@ z = true and false
 
 Discrete literals have the **bool** type
 There are two discrete literals - `true` and `false` defining logical truth and false, respectively
+
+### Expressions: Ip literal
+
+Ip address literals have the **ip** type. It represent IPv4 ip-address
+
+```
+a = 127.0.0.1
+b = 192.168.0.1
+c = 0xFF.0.0xA.0xFA
+```
 
 ### Expressions: Numeric literal
 
@@ -321,6 +331,7 @@ This value is equal to:
 - new object() for `any`
 - a structure with a 'default' value for each field in the structure type
 - a function that returns the `default` value for an anonymous function
+- 0.0.0.0 for `ip`
 
 use the keyword `default` to get this value
 

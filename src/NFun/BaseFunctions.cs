@@ -106,7 +106,7 @@ internal static class BaseFunctions {
             //Interpolation functions:
             new ConcatArrayOfTextsFunction(),
             new Concat2TextsFunction(),
-            new Concat3TextsFunction()
+            new Concat3TextsFunction(),
         };
 
         ConcreteDoubleFunctions = new IConcreteFunction[] {

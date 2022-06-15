@@ -64,7 +64,7 @@ public class FunnyConverter {
                    BaseFunnyType.UInt16                               => Convert.ToUInt16(clrValue),
                    BaseFunnyType.UInt32                               => Convert.ToUInt32(clrValue),
                    BaseFunnyType.UInt64                               => Convert.ToUInt64(clrValue),
-                   BaseFunnyType.Real when TypeBehaviour.DoubleIsReal => Convert.ToDouble(clrValue),
+                   BaseFunnyType.Real when TypeBehaviour.RealType == typeof(double) => Convert.ToDouble(clrValue),
                    BaseFunnyType.Real                                 => Convert.ToDecimal(clrValue),
                    BaseFunnyType.Char                                 => clrValue.ToString(),
                    _                                                  => converter.ToFunObject(clrValue)

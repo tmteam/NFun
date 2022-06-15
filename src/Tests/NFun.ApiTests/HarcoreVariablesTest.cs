@@ -5,7 +5,7 @@ using NUnit.Framework;
 
 namespace NFun.ApiTests; 
 
-public class FunnyVarTest {
+public class HardcoreVariablesTest {
     [Test]
     public void GetAllVariables_CheckValues() =>
         "out1 = (10.0*x).toText()".AssertRuntimes(runtime =>

@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 using NFun.Exceptions;
 using NFun.TestTools;
 using NUnit.Framework;
@@ -42,7 +43,13 @@ public class TestFluentApiCalcSingleConstT {
         var result = Funny.Calc<string>("[1..4].reverse().join(',')");
         Assert.AreEqual("4,3,2,1", result);
     }
-
+    
+    [Test]
+    public void ReturnsConstantIp() {
+        var result = Funny.Calc<IPAddress>("127.0.0.2");
+        Assert.AreEqual(new IPAddress(new byte[] { 127, 0, 0, 2 }), result);
+    }
+    
     [Test]
     public void ReturnsConstantText() {
         var result = Funny.Calc<string>("'Hello world'");

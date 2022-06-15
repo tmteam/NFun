@@ -547,7 +547,12 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
             IntegerPreferredType.Real => StatePrimitive.Real,
             _                         => null
         };
-
+    
+    public bool Visit(IpAddressConstantSyntaxNode node) {
+        _ticTypeGraph.SetConst(node.OrderNumber, StatePrimitive.Ip);
+        return true;
+    }
+    
     public bool Visit(NamedIdSyntaxNode node) {
         var id = node.Id;
 #if DEBUG
@@ -662,7 +667,6 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
     }
 
     public bool Visit(ListOfExpressionsSyntaxNode node) => VisitChildren(node);
-
 
     #region privates
 

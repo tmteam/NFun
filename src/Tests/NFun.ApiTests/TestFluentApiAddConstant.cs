@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 using NFun.Interpretation.Functions;
 using NFun.TestTools;
 using NFun.Types;
@@ -38,6 +39,13 @@ public class TestFluentApiAddConstant {
 
         var result2 = lambda(new ModelWithInt { id = 1 });
         Assert.AreEqual(result2, "id= 1");
+    }
+    
+    [Test]
+    public void AddIpConstant() {
+       var res = Funny.WithConstant("myIp", new IPAddress(new byte[] { 123, 45, 67, 89 }))
+             .Calc<IPAddress>("myIp");
+       Assert.AreEqual(new IPAddress(new byte[] { 123, 45, 67, 89 }), res);
     }
 
 

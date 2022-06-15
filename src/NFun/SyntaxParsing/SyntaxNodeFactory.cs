@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Net;
 using NFun.SyntaxParsing.SyntaxNodes;
 using NFun.Tokenization;
 
@@ -18,7 +19,7 @@ public static class SyntaxNodeFactory {
     public static ISyntaxNode IfElse(IfCaseSyntaxNode[] ifThenNodes, ISyntaxNode elseResult, int start, int end)
         => new IfThenElseSyntaxNode(ifThenNodes, elseResult, new Interval(start, end));
 
-    public static IfCaseSyntaxNode IfThen(ISyntaxNode condition, ISyntaxNode expression, int start, int end)
+    public static IfCaseSyntaxNode IfCase(ISyntaxNode condition, ISyntaxNode expression, int start, int end)
         => new(condition, expression, new Interval(start, end));
 
     public static ISyntaxNode Var(Tok token)
@@ -35,6 +36,9 @@ public static class SyntaxNodeFactory {
 
     public static ISyntaxNode HexOrBinIntConstant(ulong value, Interval interval)
         => new GenericIntSyntaxNode(value, true, interval);
+    
+    public static ISyntaxNode IpAddressConstant(IPAddress value, Interval interval)
+        => new IpAddressConstantSyntaxNode(value, interval);
 
     public static ISyntaxNode Array(IList<ISyntaxNode> elements, int start, int end)
         => new ArraySyntaxNode(elements, new Interval(start, end));

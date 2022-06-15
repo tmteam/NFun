@@ -12,6 +12,7 @@ public readonly struct FunnyType {
 
     internal static readonly FunnyType Empty = new(); 
     public static readonly FunnyType Any    = new(BaseFunnyType.Any);
+    public static readonly FunnyType Ip     = new(BaseFunnyType.Ip);
     public static readonly FunnyType Bool   = new(BaseFunnyType.Bool);
     public static readonly FunnyType Char   = new(BaseFunnyType.Char);
     public static readonly FunnyType UInt8  = new(BaseFunnyType.UInt8);
@@ -138,7 +139,7 @@ public readonly struct FunnyType {
         => !obj1.Equals(obj2);
 
     public bool IsPrimitive
-        => (BaseType >= BaseFunnyType.Char && BaseType <= BaseFunnyType.Real) || BaseType == BaseFunnyType.Any;
+        => (BaseType >= BaseFunnyType.Char && BaseType <= BaseFunnyType.Ip) || BaseType == BaseFunnyType.Any;
 
     public bool IsNumeric()
         => BaseType >= BaseFunnyType.UInt8 && BaseType <= BaseFunnyType.Real;
@@ -166,6 +167,7 @@ public readonly struct FunnyType {
             case BaseFunnyType.UInt64:
             case BaseFunnyType.Real:
             case BaseFunnyType.Char:
+            case BaseFunnyType.Ip:
             case BaseFunnyType.Any:
                 return genericOrNot;
             case BaseFunnyType.ArrayOf:
@@ -258,6 +260,7 @@ public readonly struct FunnyType {
             case BaseFunnyType.UInt64:
             case BaseFunnyType.Real:
             case BaseFunnyType.Char:
+            case BaseFunnyType.Ip:
             case BaseFunnyType.Any:
                 return null;
             case BaseFunnyType.ArrayOf:
