@@ -82,23 +82,23 @@ public class ConvertFunction : GenericFunctionBase {
                    BaseFunnyType.UInt8 => o => Convert.ToByte((char)o),
                    BaseFunnyType.UInt16 => o => GetUnicodeBytes(o, out var bytes) > 2 
                        ? throw new OverflowException($"Cannot convert char value '{o}' to unt16") 
-                       : BitConverter.ToUInt16(bytes),
+                       : BitConverter.ToUInt16(bytes,0),
                    BaseFunnyType.Int16 => o => GetUnicodeBytes(o, out var bytes) > 2 
                        ? throw new OverflowException($"Cannot convert char value '{o}' to int16") 
-                       : BitConverter.ToInt16(bytes),
+                       : BitConverter.ToInt16(bytes, 0),
                    BaseFunnyType.UInt32 => o => GetUnicodeBytes(o, out var bytes) > 4 
                        ? throw new OverflowException($"Cannot convert char value '{o}' to unt32") 
-                       : BitConverter.ToUInt32(bytes),
+                       : BitConverter.ToUInt32(bytes, 0),
                    BaseFunnyType.Int32 => o => GetUnicodeBytes(o, out var bytes) > 4 
                        ? throw new OverflowException($"Cannot convert char value '{o}' to int32") 
-                       : BitConverter.ToInt32(bytes) ,
+                       : BitConverter.ToInt32(bytes, 0) ,
                    BaseFunnyType.UInt64 => o => {
                        GetUnicodeBytes(o, out var bytes);
-                       return BitConverter.ToUInt64(bytes);
+                       return BitConverter.ToUInt64(bytes, 0);
                    },
                    BaseFunnyType.Int64 => o => {
                        GetUnicodeBytes(o, out var bytes);
-                       return BitConverter.ToInt64(bytes);
+                       return BitConverter.ToInt64(bytes, 0);
                    },
                    _                   => null
                };

@@ -111,3 +111,48 @@ internal static class Helper {
         return ans;
     }
 }
+//netstandard 2.0 tuple deconstruct helper extension
+static class KvpExtensions
+{
+    public static void Deconstruct<TKey, TValue>(
+        this KeyValuePair<TKey, TValue> kvp,
+        out TKey key,
+        out TValue value)
+    {
+        key = kvp.Key;
+        value = kvp.Value;
+    }
+}
+
+static class QueueExtensions
+{
+    public static bool TryPeek<TValue>(
+        this Queue<TValue> queue,
+        out TValue result)
+    {
+        if (queue.IsEmpty())
+        {
+            result = default;
+            return false;
+        }
+        result = queue.Peek();
+        return true;
+    }
+}
+static class DictionaryExtensions
+{
+    public static TValue? GetValueOrDefault<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> dictionary, TKey key)
+    {
+        //perfomance hit, double key retrieving.
+        if (!dictionary.ContainsKey(key))
+            return default;
+        return dictionary[key];
+    }
+    public static TValue GetValueOrDefault<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> dictionary, TKey key, TValue defaultValue)
+    {
+        //perfomance hit, double key retrieving.
+        if (!dictionary.ContainsKey(key))
+            return defaultValue;
+        return dictionary[key];
+    }
+}

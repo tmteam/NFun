@@ -17,13 +17,15 @@
         <PackageReleaseNotes>Decimal support, Improve error info</PackageReleaseNotes>
         <AssemblyVersion>0.9.8</AssemblyVersion>
         <FileVersion>0.9.8</FileVersion>
-        <TargetFrameworks>net5.0;netstandard2.1</TargetFrameworks>
+        <TargetFrameworks>net5.0;netstandard2.0</TargetFrameworks>
         <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
 
     </PropertyGroup>
 
     <ItemGroup>
       <None Remove="NFun.nuspec" />
+      <PackageReference Include="IndexRange" Version="1.0.2" />
+      <PackageReference Include="System.Memory" Version="4.5.5" />
       <None Update="Functions\GenericSwitchFunctionsGenerated.tt">
         <Generator>TextTemplatingFileGenerator</Generator>
         <LastGenOutput>GenericSwitchFunctionsGenerated.cs</LastGenOutput>
