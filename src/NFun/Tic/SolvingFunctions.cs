@@ -42,7 +42,7 @@ public static class SolvingFunctions {
             case StateStruct strA when stateB is StateStruct strB:
             {
                 var result = new Dictionary<string, TicNode>();
-                foreach (var (key, value) in strA.Fields)
+                foreach ((var key,var value) in strA.Fields)
                 {
                     var bNode = strB.GetFieldOrNull(key);
                     if (bNode != null)

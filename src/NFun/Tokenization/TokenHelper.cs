@@ -10,7 +10,7 @@ public static class TokenHelper {
     public static (object, FunnyType) ToConstant(string val) {
         val = val.Replace("_", null);
 
-        if (val.Contains('.'))
+        if (val.Contains("."))
         {
             if (val.EndsWith("."))
                 throw new FormatException();
