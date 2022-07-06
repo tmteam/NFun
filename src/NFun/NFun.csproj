@@ -1,22 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <PackageVersion>0.9.8</PackageVersion>
+        <PackageVersion>0.9.9</PackageVersion>
         <Version>0.9.8</Version>
         <LangVersion>10</LangVersion>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Title>NFun</Title>
         <Authors>tmteam</Authors>
-        <Description>Pure intepritable fun language for .net applications</Description>
+        <Description>Pure interpritable fun language for .net applications</Description>
         <Copyright>Copyright 2021</Copyright>
         <PackageProjectUrl>https://github.com/tmteam/NFun</PackageProjectUrl>
         <PackageLicenseUrl>https://github.com/tmteam/NFun/blob/master/LICENSE</PackageLicenseUrl>
         <PackageIconUrl>https://github.com/tmteam/NFun/raw/master/Icon.png</PackageIconUrl>
         <RepositoryUrl>https://github.com/tmteam/NFun</RepositoryUrl>
         <PackageTags>Not a functional intepritable language</PackageTags>
-        <PackageReleaseNotes>Decimal support, Improve error info</PackageReleaseNotes>
-        <AssemblyVersion>0.9.8</AssemblyVersion>
-        <FileVersion>0.9.8</FileVersion>
+        <PackageReleaseNotes>Support .net standard 2.0. Imrpove char type support </PackageReleaseNotes>
+        <AssemblyVersion>0.9.9</AssemblyVersion>
+        <FileVersion>0.9.9</FileVersion>
         <TargetFrameworks>net5.0;netstandard2.0</TargetFrameworks>
         <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
 
