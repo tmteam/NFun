@@ -1,5 +1,6 @@
 using System;
 using NFun.Exceptions;
+using NFun.TestTools;
 using NUnit.Framework;
 
 namespace NFun.ApiTests; 

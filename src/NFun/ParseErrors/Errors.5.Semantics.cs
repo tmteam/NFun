@@ -82,7 +82,7 @@ internal static partial class Errors {
         855, $"Only one anonymous equation allowed", exprStart, flowCurrent.Finish);
 
     internal static FunnyParseException OutputNameWithDifferentCase(string id, Interval interval) => new(
-        858, $"{id}<-  output name is same to name  {id}", interval);
+        858, $"{id}<- output name is same to name '{id}'", interval);
 
     internal static FunnyParseException InputNameWithDifferentCase(string id, string actualName, Interval interval) => new(
         861, $"Input name '{id}' differs from the input name '{actualName}' only in case", interval);
@@ -90,9 +90,12 @@ internal static partial class Errors {
     internal static FunnyParseException InterpolationExpressionIsMissing(ISyntaxNode lastNode) => new(
         864, $"Interpolation expression is missing{Nl} Example: 'before {{...}} after' ", lastNode.Interval);
 
-    internal static FunnyParseException FunctionNameAndVariableNameConflict(VariableUsages usages) => new(
-        867, $"Function with name: {usages.Source.Name} can not be used in expression because it's name conflict with function that exists in scope. Declare input variable",
-        usages.Source.TypeSpecificationIntervalOrNull ?? usages.Usages.FirstOrDefault()?.Interval ?? Interval.Empty);
+    internal static FunnyParseException FunctionNameAndVariableNameConflict(VariableSource variableSource, VariableExpressionNode usages) => new(
+        867, $"Function with name: {variableSource.Name} can not be used in expression because it's name conflict with function that exists in scope. Declare input variable",
+        usages?.Source.TypeSpecificationIntervalOrNull 
+        ?? usages?.Interval
+        ?? variableSource.TypeSpecificationIntervalOrNull 
+        ?? Interval.Empty );
 
     internal static FunnyParseException FunctionNotFoundForHiOrderUsage(FunCallSyntaxNode node, IFunctionDictionary functions) {
         var candidates = functions.SearchAllFunctionsIgnoreCase(node.Id, node.Args.Length);
@@ -111,16 +114,15 @@ internal static partial class Errors {
         return new(870, msg.ToString(), interval);
     }
 
-    internal static FunnyParseException CannotUseOutputValueBeforeItIsDeclared(VariableUsages usages) {
-        var interval = (usages.Usages.FirstOrDefault()?.Interval) ??
-                       usages.Source.TypeSpecificationIntervalOrNull ?? Interval.Empty;
-
-        return new(
-            873, $"Cannot use output value '{usages.Source.Name}' before it is declared'", interval);
+    internal static FunnyParseException CannotUseOutputValueBeforeItIsDeclared(VariableSource variableSource, VariableExpressionNode node) {
+        var interval = node?.Interval ??
+                       variableSource.TypeSpecificationIntervalOrNull ?? Interval.Empty;
+       return new(
+            873, $"Cannot use output value '{variableSource.Name}' before it is declared'", interval);
     }
 
-    internal static FunnyParseException VariableIsDeclaredAfterUsing(VariableUsages usages) => new(
-        876, $"Variable '{usages.Source.Name}' used before it is declared'", usages.Usages.First().Interval);
+    internal static FunnyParseException VariableIsDeclaredAfterUsing(string name, Interval firstUsageInterval) => new(
+        876, $"Variable '{name}' used before it is declared'", firstUsageInterval);
 
     internal static FunnyParseException VariableIsAlreadyDeclared(string nodeId, Interval nodeInterval) => new(
         879, $"Variable {nodeId} is already declared", nodeInterval);

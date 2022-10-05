@@ -71,8 +71,11 @@ public class VarTypeConverterTest {
         public FunnyType[] ArgTypes { get; }
         public FunnyType ReturnType { get; }
         public object Calc(object[] parameters) => _func((Tin)parameters[0]);
+        public IConcreteFunction Clone(ICloneContext context) 
+            => throw new NotImplementedException();
 
         public IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children, TypeBehaviour typeBehaviour, Interval interval)
             => throw new NotImplementedException();
+
     }
 }

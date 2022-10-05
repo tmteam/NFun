@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using NFun.Tokenization;
 
 namespace NFun.Interpretation.Nodes; 
@@ -29,6 +31,16 @@ internal class IfElseExpressionNode : IExpressionNode {
         }
 
         return _elseNode.Calc();
+    }
+
+    public string DebugName => $"IfElse of {Type}";
+    public IEnumerable<IExpressionNode> Children => _conditionNodes.Concat(_ifExpressionNodes).Append(_elseNode);
+
+    public IExpressionNode Clone(ICloneContext context) {
+        var ifExpressionsCopy = _ifExpressionNodes.SelectToArray(c => c.Clone(context));
+        var ifConditionsCopy = _conditionNodes.SelectToArray(c => c.Clone(context));
+        var elseNodeCopy = _elseNode.Clone(context);
+        return new IfElseExpressionNode(ifExpressionsCopy, ifConditionsCopy, elseNodeCopy, Interval, Type);
     }
 
     public FunnyType Type { get; }

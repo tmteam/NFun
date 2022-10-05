@@ -7,54 +7,60 @@ namespace NFun.ApiTests;
 
 public class FunnyVarTest {
     [Test]
-    public void GetAllVariables_CheckValues() {
-        var runtime = Funny.Hardcore.Build("out1 = (10.0*x).toText()");
-        var allVariables = runtime.Variables;
-        Assert.AreEqual(2, allVariables.Count);
+    public void GetAllVariables_CheckValues() =>
+        "out1 = (10.0*x).toText()".AssertRuntimes(runtime =>
+        {
+            var allVariables = runtime.Variables;
+            Assert.AreEqual(2, allVariables.Count);
 
-        var xVar = allVariables.Single(v => v.Name == "x");
-        var out1Var = allVariables.Single(v => v.Name == "out1");
+            var xVar = allVariables.Single(v => v.Name == "x");
+            var out1Var = allVariables.Single(v => v.Name == "out1");
 
-        Assert.AreEqual(false, xVar.IsOutput);
-        Assert.AreEqual(FunnyType.Real, xVar.Type);
+            Assert.AreEqual(false, xVar.IsOutput);
+            Assert.AreEqual(FunnyType.Real, xVar.Type);
 
-        Assert.AreEqual(true, out1Var.IsOutput);
-        Assert.AreEqual("", out1Var.Value);
-        Assert.AreEqual(FunnyType.Text, out1Var.Type);
-    }
+            Assert.AreEqual(true, out1Var.IsOutput);
+            Assert.AreEqual("", out1Var.Value);
+            Assert.AreEqual(FunnyType.Text, out1Var.Type);    
+        });
 
     [Test]
-    public void TryGetVariables_CheckValues() {
-        var runtime = Funny.Hardcore.Build("out1 = (10.0*x).toText()");
+    public void TryGetVariables_CheckValues() =>
+        "out1 = (10.0*x).toText()".AssertRuntimes(
+            runtime =>
+            {
 
-        var xVar = runtime["x"];
-        Assert.IsNotNull(xVar);
-        var out1Var = runtime["out1"];
-        Assert.IsNotNull(out1Var);
+                var xVar = runtime["x"];
+                Assert.IsNotNull(xVar);
+                var out1Var = runtime["out1"];
+                Assert.IsNotNull(out1Var);
 
-        Assert.AreEqual(false, xVar.IsOutput);
-        Assert.AreEqual(FunnyType.Real, xVar.Type);
+                Assert.AreEqual(false, xVar.IsOutput);
+                Assert.AreEqual(FunnyType.Real, xVar.Type);
 
-        Assert.AreEqual(true, out1Var.IsOutput);
-        Assert.AreEqual("", out1Var.Value);
-        Assert.AreEqual(FunnyType.Text, out1Var.Type);
-    }
+                Assert.AreEqual(true, out1Var.IsOutput);
+                Assert.AreEqual("", out1Var.Value);
+                Assert.AreEqual(FunnyType.Text, out1Var.Type);
+            });
+
 
     [Test]
     public void GetVariables_VariableDoesNotExist_ReturnsNull() =>
-        Assert.IsNull(Funny.Hardcore.Build("out1 = (10.0*x).toText()")["missingVar"]);
+        "out1 = (10.0*x).toText()"
+            .AssertRuntimes(runtime => Assert.IsNull(runtime["missingVar"]));
 
     [Test]
-    public void SetClrValue_OutputVariableChanged() {
-        var runtime = Funny.Hardcore.Build("out1 = (10.0*x).toText()");
-        var xVar = runtime["x"];
-        var out1Var = runtime["out1"];
-        xVar.Value = 42.0;
-        runtime.Run();
+    public void SetClrValue_OutputVariableChanged() =>
+        "out1 = (10.0*x).toText()".AssertRuntimes(runtime =>
+        {
+            var xVar = runtime["x"];
+            var out1Var = runtime["out1"];
+            xVar.Value = 42.0;
+            runtime.Run();
 
-        Assert.AreEqual(42.0, xVar.FunnyValue);
-        Assert.AreEqual("420", out1Var.Value);
-    }
+            Assert.AreEqual(42.0, xVar.FunnyValue);
+            Assert.AreEqual("420", out1Var.Value);
+        });
 
     [TestCase("@name(true)\r x:int\r    y = x", "x", "name", true)]
     [TestCase("@foo\r@bar(123)\r x:int\r  z = x", "x", "bar", 123)]
@@ -65,14 +71,16 @@ public class FunnyVarTest {
     public void AttributeWithValue_ValueIsCorrect(
         string expression
       , string variable,
-        string attribute, object value) {
-        var varInfo = expression.Build()[variable];
-        Assert.IsNotNull(varInfo);
+        string attribute, object value) =>
+        expression.AssertRuntimes(runtime =>
+        {
+            var varInfo = runtime[variable];
+            Assert.IsNotNull(varInfo);
 
-        var actual = varInfo.Attributes.SingleOrDefault(v => v.Name == attribute);
-        Assert.IsNotNull(actual);
-        Assert.AreEqual(value, actual.Value);
-    }
+            var actual = varInfo.Attributes.SingleOrDefault(v => v.Name == attribute);
+            Assert.IsNotNull(actual);
+            Assert.AreEqual(value, actual.Value);    
+        });
 
     [TestCase("@private\r x:int\r    y = x", "x", new[] { "private" })]
     [TestCase("@foo\r@bar\r x:int\r  z = x", "x", new[] { "foo", "bar" })]
@@ -91,10 +99,12 @@ public class FunnyVarTest {
     public void ValuelessAttributeOnVariables(
         string expression
       , string variable,
-        string[] attribute) {
-        var varInfo = expression.Build()[variable];
-        Assert.IsNotNull(varInfo);
-        CollectionAssert.AreEquivalent(attribute, varInfo.Attributes.Select(v => v.Name));
-        Assert.IsTrue(varInfo.Attributes.All(a => a.Value == null));
-    }
+        string[] attribute) =>
+        expression.AssertRuntimes(runtime =>
+        {
+            var varInfo = runtime[variable];
+            Assert.IsNotNull(varInfo);
+            CollectionAssert.AreEquivalent(attribute, varInfo.Attributes.Select(v => v.Name));
+            Assert.IsTrue(varInfo.Attributes.All(a => a.Value == null));      
+        });
 }

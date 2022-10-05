@@ -19,6 +19,8 @@ public abstract class FunctionWithManyArguments : IConcreteFunction {
 
     public FunnyType ReturnType { get; protected set; }
     public abstract object Calc(object[] args);
+    public virtual IConcreteFunction Clone(ICloneContext context) => this;
+    
 
     public IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children, TypeBehaviour typeBehaviour, Interval interval) {
         var castedChildren = new IExpressionNode[children.Count];
@@ -43,6 +45,5 @@ public abstract class FunctionWithManyArguments : IConcreteFunction {
         return new FunOfManyArgsExpressionNode(this, castedChildren, interval);
     }
 
-    public override string ToString()
-        => $"fun {TypeHelper.GetFunSignature(Name, ReturnType, ArgTypes)}";
+    public override string ToString() => $"FUN-many {TypeHelper.GetFunSignature(Name, ReturnType, ArgTypes)}";
 }

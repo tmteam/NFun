@@ -26,6 +26,7 @@ public abstract class FunctionWithTwoArgs : IConcreteFunction {
     public abstract object Calc(object a, object b);
 
     public object Calc(object[] parameters) => Calc(parameters[0], parameters[1]);
+    public virtual IConcreteFunction Clone(ICloneContext context) => this;
 
     public IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children, TypeBehaviour typeBehaviour, Interval interval) {
         var castedChildren = new IExpressionNode[children.Count];
@@ -49,4 +50,6 @@ public abstract class FunctionWithTwoArgs : IConcreteFunction {
 
         return new FunOfTwoArgsExpressionNode(this, castedChildren[0], castedChildren[1], interval);
     }
+
+    public override string ToString() => $"FUN-two {TypeHelper.GetFunSignature(Name, ReturnType, ArgTypes)}";
 }

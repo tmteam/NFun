@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using NFun.SyntaxParsing;
 using NFun.Tokenization;
 using NFun.Types;
@@ -48,10 +49,9 @@ public interface IFunnyVar {
     Action<T> CreateSetterOf<T>();
 }
 
-
-internal class VariableSource : IFunnyVar {
+public class VariableSource : IFunnyVar {
     private object _funnyValue;
-
+    private static int _usedCount = 0;
     private readonly FunnyVarAccess _access;
     private readonly TypeBehaviour _typeBehaviour;
 
@@ -74,7 +74,10 @@ internal class VariableSource : IFunnyVar {
         Interval typeSpecificationIntervalOrNull,
         FunnyVarAccess access,
         TypeBehaviour typeBehaviour,
-        FunnyAttribute[] attributes = null) {
+        FunnyAttribute[] attributes = null)
+    {
+        _id = Interlocked.Increment(ref _usedCount);
+        
         _access = access;
         _funnyValue = typeBehaviour.GetDefaultValueOrNullFor(type);
         _typeBehaviour = typeBehaviour;
@@ -90,6 +93,8 @@ internal class VariableSource : IFunnyVar {
 
 
     private VariableSource(string name, FunnyType type, FunnyVarAccess access, TypeBehaviour typeBehaviour, FunnyAttribute[] attributes = null) {
+        _id = Interlocked.Increment(ref _usedCount);
+        
         _access = access;
         _typeBehaviour = typeBehaviour;
         _funnyValue = typeBehaviour.GetDefaultValueOrNullFor(type);
@@ -106,22 +111,24 @@ internal class VariableSource : IFunnyVar {
 
     private bool _outputConverterLoaded;
     private IOutputFunnyConverter _outputConverter;
+    private readonly int _id;
 
     public object Value
     {
         get
         {
-            if (!_outputConverterLoaded)
-            {
-                _outputConverterLoaded = true;
-                _outputConverter = _typeBehaviour.GetOutputConverterFor(Type);
-            }
-
+            if (_outputConverterLoaded) 
+                return _outputConverter.ToClrObject(_funnyValue);
+            
+            _outputConverterLoaded = true;
+            _outputConverter = _typeBehaviour.GetOutputConverterFor(Type);
             return _outputConverter.ToClrObject(_funnyValue);
         }
         set => _funnyValue = _typeBehaviour.ConvertInputOrThrow(value, Type);
     }
 
+    internal VariableSource Clone() => new VariableSource(Name, Type, _access, _typeBehaviour, Attributes);
+    
     public Func<T> CreateGetterOf<T>() {
         if (!IsOutput)
             throw new NotSupportedException("Cannot create value getter for non output variable");
@@ -148,7 +155,7 @@ internal class VariableSource : IFunnyVar {
         return input => _funnyValue = inputConverter.ToFunObject(input);
     }
 
-    public override string ToString() => $"{(IsOutput ? "Output" : "Input")} {Name}:{Type} = {FunnyValue}";
+    public override string ToString() => $"{(IsOutput ? "Output" : "Input")} {Name}@{_id}:{Type} = {FunnyValue}";
 }
 
 internal enum FunnyVarAccess {

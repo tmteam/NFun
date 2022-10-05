@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NFun.Runtime.Arrays;
 using NFun.Tokenization;
 
@@ -18,11 +19,16 @@ internal class ArrayExpressionNode : IExpressionNode {
 
     public object Calc() {
         var arr = new object[_elements.Length];
-        for (int i = 0; i < _elements.Length; i++)
-        {
+        for (int i = 0; i < _elements.Length; i++) {
             arr[i] = _elements[i].Calc();
         }
 
         return new ImmutableFunnyArray(arr, Type.ArrayTypeSpecification.FunnyType);
     }
+
+    public string DebugName => "Array";
+    public IEnumerable<IExpressionNode> Children => _elements;
+
+    public IExpressionNode Clone(ICloneContext context) => 
+        new ArrayExpressionNode(_elements.SelectToArray(s => s.Clone(context)), Interval, Type);
 }

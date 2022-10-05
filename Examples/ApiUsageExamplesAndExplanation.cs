@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using NFun.Exceptions;
 using NFun.Runtime;
 using NFun.Types;
@@ -203,7 +204,7 @@ public class ApiUsageExamples {
 
         long res1 = calculator.Calc("foo + age - id", user);
         long res2 = calculator.Calc("foo + 2* age", user);
-        //it is also possible to build a lambda from a calculator
+        //it is also possible to build a thread-safe-lambda from a calculator
         Func<User, long> lambda = calculator.ToLambda("foo + age - id");
         //and calculate it later
         long res3 = lambda(user);
@@ -283,7 +284,19 @@ public class ApiUsageExamples {
             object y = yvar.Value;
             object o = outvar.Value;
         }
+        
+        // Use Clone() method to get deep copy of runtime that can be ran in parallel
+        Parallel.For(0, 10, (_, _) =>
+        {
+            var clone = runtime.Clone();
+            clone["a"].Value = 1;
+            clone["b"].Value = 42.0;
+            clone.Run();
+            object y = clone["y"].Value;
+            object o = clone["out"].Value;
+        });
     }
+    
     // HardcoreApi. Optimization for multiple script runs
     [Test]
     public void HardcoreApi_RunScriptOptimizations() {

@@ -7,5 +7,6 @@ namespace NFun.Interpretation.Functions;
 
 public interface IConcreteFunction : IFunctionSignature {
     object Calc(object[] parameters);
+    IConcreteFunction Clone(ICloneContext context);
     IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children, TypeBehaviour typeBehaviour, Interval interval);
 }

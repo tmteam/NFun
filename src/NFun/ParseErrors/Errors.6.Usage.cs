@@ -9,7 +9,7 @@ namespace NFun.ParseErrors;
 
 internal static partial class Errors {
 
-    internal static FunnyParseException UnknownInputs(IEnumerable<VariableUsages> variableUsage) => new(
+    internal static FunnyParseException UnknownInputs() => new(
         910, "Some inputs are unknown", Interval.Empty);
 
     internal static FunnyParseException NoOutputVariablesSetted(Memory<OutputProperty> expectedOutputs) => new(

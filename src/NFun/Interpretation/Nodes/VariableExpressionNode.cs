@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using NFun.Runtime;
 using NFun.Tokenization;
 
@@ -13,5 +15,14 @@ internal class VariableExpressionNode : IExpressionNode {
     public Interval Interval { get; }
     public FunnyType Type => Source.Type;
     public object Calc() => Source.FunnyValue;
+    public string DebugName => $"Variable {Source}";
+    public IEnumerable<IExpressionNode> Children => Array.Empty<IExpressionNode>();
+
+    public IExpressionNode Clone(ICloneContext context) {
+        var sourceCopy = context.GetVariableSourceClone(Source);
+        return new VariableExpressionNode(sourceCopy, Interval);
+    }
+    
     public override string ToString() => $"{Source.Name}: {Source.FunnyValue}";
+    
 }

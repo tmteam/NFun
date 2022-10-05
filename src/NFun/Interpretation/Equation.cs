@@ -4,18 +4,23 @@ using NFun.Runtime;
 namespace NFun.Interpretation; 
 
 internal sealed class Equation {
-    private readonly VariableSource _outputVariableSource;
+    internal readonly VariableSource OutputVariableSource;
     public readonly string Id;
     public readonly IExpressionNode Expression;
 
     internal Equation(string id, IExpressionNode expression, VariableSource outputVariableSource) {
-        _outputVariableSource = outputVariableSource;
+        OutputVariableSource = outputVariableSource;
         Id = id;
         Expression = expression;
     }
-
+    
     internal void Run()
-        => _outputVariableSource.SetFunnyValueUnsafe(Expression.Calc());
-
+        => OutputVariableSource.SetFunnyValueUnsafe(Expression.Calc());
+    
     public override string ToString() => $"\"{Id}\" equation";
+    /// <summary>
+    /// Creates deep copy of equation, that can be used in parallel
+    /// </summary>
+    internal Equation Clone(CloneContext context) 
+        => new(Id, Expression.Clone(context), context.GetVariableSourceClone(OutputVariableSource));
 }

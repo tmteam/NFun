@@ -1,4 +1,5 @@
 using System;
+using NFun.Types;
 
 namespace NFun.Interpretation.Functions; 
 
@@ -37,5 +38,8 @@ public abstract class GenericFunctionWithTwoArguments : GenericFunctionBase {
         }
 
         public override object Calc(object a, object b) => _calc(a, b);
+        
+        public override string ToString()
+            => $"FUN-concrete-generic-two {TypeHelper.GetFunSignature(Name, ReturnType, ArgTypes)}";
     }
 }

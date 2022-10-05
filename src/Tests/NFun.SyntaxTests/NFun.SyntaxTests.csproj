@@ -6,7 +6,7 @@
 
         <LangVersion>10</LangVersion>
 
-        <TargetFrameworks>net5.0;netcoreapp3.1;net461</TargetFrameworks>
+        <TargetFramework>net5.0</TargetFramework>
     </PropertyGroup>
 
     <ItemGroup>

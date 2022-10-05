@@ -65,10 +65,8 @@ internal static class FluentApiTools {
 
         foreach (var inputProperty in span)
         {
-            if (!runtime.VariableDictionary.TryGetUsages(inputProperty.PropertyName, out var variableUsages))
-                continue;
-
-            variableUsages.Source.SetFunnyValueUnsafe(inputProperty.GetFunValue(value));
+            var source = runtime.VariableDictionary.GetOrNull(inputProperty.PropertyName);
+            source?.SetFunnyValueUnsafe(inputProperty.GetFunValue(value));
         }
     }
 
@@ -104,7 +102,7 @@ internal static class FluentApiTools {
 
     internal static void ThrowIfHasInputs(FunnyRuntime runtime) {
         if (runtime.Variables.Any(v => !v.IsOutput))
-            throw Errors.UnknownInputs(runtime.GetInputVariableUsages());
+            throw Errors.UnknownInputs();
     }
 
     internal static void ThrowIfHasNoDefaultOutput(FunnyRuntime runtime) {
@@ -133,7 +131,7 @@ internal static class FluentApiTools {
 
             if (!known)
             {
-                throw Errors.UnknownInputs(runtime.GetInputVariableUsages());
+                throw Errors.UnknownInputs();
             }
         }
     }

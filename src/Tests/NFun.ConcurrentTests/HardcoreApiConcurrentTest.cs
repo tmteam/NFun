@@ -1,25 +1,53 @@
-﻿using NFun.Exceptions;
+using System;
+using System.Linq;
+using NFun.Exceptions;
 using NFun.TestTools;
-using NFun.Tic;
+using NFun.Types;
 using NUnit.Framework;
 
-namespace NFun.SyntaxTests; 
+namespace NFun.ConcurrentTests; 
 
-public class HellTests {
-    [SetUp]
-    public void Initialize() => TraceLog.IsEnabled = true;
-
-    [TearDown]
-    public void Deinitiazlize() => TraceLog.IsEnabled = false;
-
-    [Test]
+public class HardcoreApiConcurrentTest {
+    
+    [TestCase("y = 2*x", 3, 6)]
+    [TestCase("y = 2.0*x", 3.5, 7.0)]
+    [TestCase("y = x/4", 10, 2.5)]
+    [TestCase("y = (x + 4/x)", 2, 4)]
+    [TestCase("y = x**3", 2, 8)]
+    [TestCase("y = x % -4", 5, 1)]
+    [TestCase("y = x % 4", -5, -1)]
+    [TestCase("y = -(-(-x))", 2, -2)]
+    [TestCase("y ={a=x}.a", 2, 2)]
+    [TestCase("y = x/0.2", 1, 5)]
+    [TestCase("f(a) = a*2; y = x.f().f()", 2, 8)]
+    [TestCase("y = [1,2].fold(rule it1+it2) + x", 1, 4)]
+    [TestCase(@"
+        fact(n) = if(n==0) 1 else n * fact(n-1)
+        y = fact(x)
+        ",5,120)]
+    [TestCase(@"f(x) = x*2; z = f(x); y = f(x)", 1, 2)]
+    [TestCase(@"f(x) = x*2; z:int = f(1); y:real = f(x);",1,2)]
+    public void SingleVariableEquation(string expr, double arg, double expected) =>
+        expr.AssertConcurrentHardcore(runtime =>
+        {
+            var ySource = runtime["y"];
+            var xSource = runtime["x"];
+            Assert.IsTrue(ySource.IsOutput);
+            Assert.IsFalse(xSource.IsOutput);
+            xSource.Value = arg;
+            runtime.Run();
+            Assert.AreEqual(expected, ySource.FunnyValue);    
+        });
+    
+    
+        [Test]
     public void CustomForeachi() {
         var expr = @" 
             foreachi(arr, f) = [0..arr.count()-1].fold(arr[0], f)
             
             res:int =  t.foreachi (fun if (it1>t[it2]) it1 else t[it2]) ";
 
-        expr.AssertRuntimes(
+        expr.AssertConcurrentHardcore(
             e => e.Calc("t", new[] { 1, 2, 7, 34, 1, 2 })
                 .AssertReturns("res", 34));
     }
@@ -32,7 +60,7 @@ public class HellTests {
             max(a, t, i) = max(a, t[i])             
 
             res:int =  t.foreachi (fun max(it1,t,it2))";
-        expr.AssertRuntimes(
+        expr.AssertConcurrentHardcore(
             e => e.Calc("t", new[] { 1, 2, 7, 34, 1, 2 }).AssertReturns("res", 34));
     }
 
@@ -42,38 +70,32 @@ public class HellTests {
             foreachi(arr, f) = [0..arr.count()-1].fold(arr[0], f)
 
             res:int =  t.foreachi(fun max(it1,t[it2]))";
-        expr.AssertRuntimes(
+        expr.AssertConcurrentHardcore(
             e => e.Calc("t", new[] { 1, 2, 7, 34, 1, 2 }).AssertReturns("res", 34));
     }
 
     [Test]
     public void ConcatExperiments() =>
-        "'res: '.concat((n >5).toText())".AssertRuntimes(
+        "'res: '.concat((n >5).toText())".AssertConcurrentHardcore(
             e => e.Calc("n", 1.0).AssertAnonymousOut("res: False"));
 
-    [Test]
-    public void ArrayWithUpcast_lambdaConstCalculate() {
-        var expr = "x:byte = 42; y:real[] = [1,2,x].map (fun it+1}";
-        Assert.Throws<FunnyParseException>(() => expr.Build());
-        //todo Support upcast
-        //FunBuilder.Build(expr).Calculate().AssertHas(VarVal.New("y",new []{2.0,3.0, 43.0}));
-    }
+   
 
     [Test]
     public void TwinArrayWithUpcast_lambdaSum() =>
-        "x:byte = 4; y:real = [[0,1],[2,3],[x]].map (fun sum(it)).sum()".AssertRuntimes(
+        "x:byte = 4; y:real = [[0,1],[2,3],[x]].map (fun sum(it)).sum()".AssertConcurrentHardcore(
             e => e.Calc().AssertResultHas("y", 10.0));
 
     [Test]
     public void TwinArrayWithUpcast_lambdaConstCalculate() =>
-        "x:byte = 5; y:real = [[0,1],[2,3],[x]].map (fun it.map(fun it+1).sum()).sum()".AssertRuntimes(
+        "x:byte = 5; y:real = [[0,1],[2,3],[x]].map (fun it.map(fun it+1).sum()).sum()".AssertConcurrentHardcore(
             e => e.Calc().AssertResultHas("y", 16.0));
 
     [Test]
     public void SomeFun3() =>
         @"   swapIfNotSorted(c, i)
   	                =	if   (c[i]<c[i+1]) c
-  		                else c.set(i, 1)".AssertRuntimes();
+  		                else c.set(i, 1)".AssertConcurrentHardcore();
 
     [Test]
     public void SomeFun4() =>
@@ -85,7 +107,7 @@ public class HellTests {
                           
                           swapIfNotSorted(c, i)
   	                        =	if   (c[i]<c[i+1]) c
-  		                        else c.swap(i, i+1)".AssertRuntimes();
+  		                        else c.swap(i, i+1)".AssertConcurrentHardcore();
 
     [Test]
     public void foldOfHiOrder2() =>
@@ -97,7 +119,7 @@ public class HellTests {
                   # run thru array 
                   # and swap every unsorted values
                   onelineSort(input) =  
-  	                [0..input.count()].fold(input, swapIfNotSorted)".AssertRuntimes();
+  	                [0..input.count()].fold(input, swapIfNotSorted)".AssertConcurrentHardcore();
 
     [Test]
     public void foldOfHiOrder3() =>
@@ -108,24 +130,24 @@ public class HellTests {
 
                  # run thru array 
                  # and swap every unsorted values
-                 onelineSort(input) = [0..input.count()].fold(input, swapIfNotSorted)".AssertRuntimes();
+                 onelineSort(input) = [0..input.count()].fold(input, swapIfNotSorted)".AssertConcurrentHardcore();
 
     [Test]
     public void foldOfHiOrder() =>
         @"twiceSet(arr,i,j,ival,jval)
   	                        = arr.set(i,ival).set(j,jval)
 
-                          swap(arr, i, j) 
-                            = arr.twiceSet(i,j,arr[j], arr[i])
-                          
-                          swapIfNotSorted(c, i)
-  	                        =	if   (c[i]<c[i+1]) c
-  		                        else c.swap(i, i+1)
+      swap(arr, i, j) 
+        = arr.twiceSet(i,j,arr[j], arr[i])
+      
+      swapIfNotSorted(c, i)
+  	    =	if   (c[i]<c[i+1]) c
+  		    else c.swap(i, i+1)
 
-                          # run thru array 
-                          # and swap every unsorted values
-                          onelineSort(input) =  
-  	                        [0..input.count()].fold(input, swapIfNotSorted)".AssertRuntimes();
+      # run thru array 
+      # and swap every unsorted values
+      onelineSort(input) =  
+  	    [0..input.count()].fold(input, swapIfNotSorted)".AssertConcurrentHardcore();
 
     [Test]
     public void BubbleSortSemiConcrete() =>
@@ -151,7 +173,7 @@ public class HellTests {
   			                fun onelineSort(it1))
 
                   i:int[]  = [1,4,3,2,5].bubbleSort()"
-            .AssertRuntimes(e => e.Calc().AssertReturns("i", new[] { 1, 2, 3, 4, 5 }));
+            .AssertConcurrentHardcore(e => e.Calc().AssertReturns("i", new[] { 1, 2, 3, 4, 5 }));
 
     [Test]
     public void ManyOutputsTest() =>
@@ -165,7 +187,7 @@ public class HellTests {
          "c = 123;" +
          "d = 'mama ja pokakal';" +
          "etext = ''")
-        .AssertRuntimes(e => e
+        .AssertConcurrentHardcore(e => e
             .Calc("x", 42)
             .AssertResultHas(
                 ("i", 42),
@@ -211,6 +233,6 @@ public class HellTests {
                           j =  [0..100].map(fun (ins[1]+ it- ins[2])/it).fold(mySum);
                    ";
         Assert.DoesNotThrow(() =>
-            expr.AssertRuntimes(e => e.Calc()));
+            expr.AssertConcurrentHardcore(e => e.Calc()));
     }
 }

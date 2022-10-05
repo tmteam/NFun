@@ -1,12 +1,13 @@
 using System.Linq;
 using NFun.Interpretation.Nodes;
 using NFun.Runtime;
+using NFun.Types;
 
 namespace NFun.Interpretation.Functions; 
 
 internal class ConcreteUserFunction : FunctionWithManyArguments {
     internal VariableSource[] ArgumentSources { get; }
-    protected readonly IExpressionNode Expression;
+    internal readonly IExpressionNode Expression;
 
     internal static ConcreteUserFunction Create(
         string name,
@@ -39,11 +40,21 @@ internal class ConcreteUserFunction : FunctionWithManyArguments {
             ArgumentSources[i].SetFunnyValueUnsafe(args[i]);
     }
 
+    public override IConcreteFunction Clone(ICloneContext context)
+    {
+        var sourceClones = ArgumentSources.SelectToArray(s => s.Clone());
+        var scopeContext = context.GetScopedContext(sourceClones);
+
+        var newUserFunction = new ConcreteUserFunction(Name, sourceClones, Expression.Clone(scopeContext), ArgTypes);
+        //context.AddUserFunction(this, newUserFunction);
+        return newUserFunction;
+    }
+
     public override object Calc(object[] args) {
         SetVariables(args);
         return Expression.Calc();
     }
-
+    
     public override string ToString()
-        => $"{Name}({string.Join(",", ArgTypes.Select(a => a.ToString()))}):{ReturnType}";
+        => $"FUN-user {TypeHelper.GetFunSignature(Name, ReturnType, ArgTypes)}";
 }

@@ -360,5 +360,8 @@ public class AnonymousFunTest {
     [TestCase("y = rule(a)(42")]
     [TestCase("y = (rule(a))(42")]
     [TestCase("a = 1; b = 2; y = rule(a+b)() #not sure")]
+    [TestCase("it = 1")]
+    [TestCase("it1 = 1")]
+    [TestCase("it2 = 1")]
     public void ObviouslyFailsOnParse(string expr) => expr.AssertObviousFailsOnParse();
 }

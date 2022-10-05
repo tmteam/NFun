@@ -29,8 +29,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         DialectSettings dialect) =>
         node.Accept(
             new ExpressionBuilderVisitor(
-                functions, variables, typeInferenceResults, typesConverter,
-                dialect));
+                functions, variables, typeInferenceResults, typesConverter, dialect));
 
     internal static IExpressionNode BuildExpression(
         ISyntaxNode node,
@@ -81,7 +80,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
         //Prepare local variable scope
         //Capture all outer scope variables
-        var localVariables = new VariableDictionary(_dialect.TypeBehaviour, _variables.GetAllSources());
+        var localVariables = new VariableDictionary(_variables.GetAll(),_variables.Count);
 
         var arguments = new VariableSource[argNames.Length];
         for (var i = 0; i < argNames.Length; i++)
@@ -151,7 +150,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
         //Prepare local variable scope
         //Capture all outerscope variables
-        var localVariables = new VariableDictionary(_dialect.TypeBehaviour, _variables.GetAllSources());
+        var localVariables = new VariableDictionary(_variables.GetAll(), _variables.Count);
 
         var arguments = new VariableSource[argumentLexNodes.Count];
         var argIndex = 0;
@@ -170,9 +169,8 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             if (!localVariables.TryAdd(source))
             {
                 //Check for duplicated arg-names
-
                 //If outer-scope contains the conflict variable name
-                if (_variables.GetSourceOrNull(varNode.Name) != null)
+                if (_variables.GetOrNull(varNode.Name) != null)
                     throw Errors.AnonymousFunctionArgumentConflictsWithOuterScope(
                         varNode.Name,
                         node.Interval);
@@ -206,7 +204,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         {
             //todo move to variable syntax node
             //hi order function
-            var functionalVariableSource = _variables.GetSourceOrNull(id);
+            var functionalVariableSource = _variables.GetOrNull(id);
             if (functionalVariableSource?.Type.FunTypeSpecification == null)
                 throw Errors.FunctionNotFoundForHiOrderUsage(node, _functions);
             return CreateFunctionCall(node, ConcreteHiOrderFunction.Create(functionalVariableSource));
@@ -339,7 +337,13 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             ? node.OutputType
             : node.VariableType;
         
-        var node1 = _variables.CreateVarNode(node.Id, node.Interval, vType);
+        var source =  _variables.GetOrNull(node.Id);
+        if (source == null)
+        {
+            source = VariableSource.CreateWithoutStrictTypeLabel(node.Id, vType, FunnyVarAccess.Input, _dialect.TypeBehaviour);
+            _variables.TryAdd(source);
+        }
+        var node1 = new VariableExpressionNode(source, node.Interval);
         if (node1.Source.Name != node.Id)
             throw Errors.InputNameWithDifferentCase(node.Id, node1.Source.Name, node.Interval);
         return node1;
@@ -375,23 +379,24 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
     private IExpressionNode BuildAnonymousFunction(
         Interval interval, ISyntaxNode body,
         VariableDictionary localVariables, VariableSource[] arguments) {
-        var sources = localVariables.GetAllSources().ToArray();
-        var originVariables = new string[sources.Length];
-        for (int i = 0; i < originVariables.Length; i++) originVariables[i] = sources[i].Name;
+        // Collect function arguments, to find closured variables in future
+        var originVariables = localVariables.GetAllAsArray();
+        var originVariableNames = new string[originVariables.Length];
+        for (int i = 0; i < originVariableNames.Length; i++) originVariableNames[i] = originVariables[i].Name;
 
         var expr = BuildExpression(
             body, _functions, localVariables, _typeInferenceResults, _typesConverter,
             _dialect);
-
-        //New variables are new closured
-        var closured = localVariables.GetAllUsages()
-                                     .Where(s => !originVariables.Contains(s.Source.Name))
-                                     .ToList();
-
-        var wrongItVariable = closured.FirstOrDefault(c => Helper.DoesItLooksLikeSuperAnonymousVariable(c.Source.Name));
-        if (wrongItVariable!=null)
-            throw Errors.CannotUseSuperAnonymousVariableHere(wrongItVariable.Usages.First().Interval,wrongItVariable.Source.Name);
-
+        //New variables, that are not in origin function arguments - are closured variables
+        var closured = localVariables
+            .GetAll()
+            .Where(s => !originVariableNames.Contains(s.Name))
+            .ToList();
+        
+        var wrongItVariable = closured.FirstOrDefault(c => Helper.DoesItLooksLikeSuperAnonymousVariable(c.Name));
+        if (wrongItVariable != null)
+            throw Errors.CannotUseSuperAnonymousVariableHere(
+                expr.FindFirstUsageOrThrow(wrongItVariable).Interval, wrongItVariable.Name);
         
         //Add closured vars to outer-scope dictionary
         foreach (var newVar in closured)
@@ -402,7 +407,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             name: "rule",
             variables: arguments,
             expression: expr);
-        return new FunVariableExpressionNode(fun, interval);
+        return new FunRuleExpressionNode(fun, interval);
     }
 
     private IExpressionNode CreateFunctionCall(IFunCallSyntaxNode node, IConcreteFunction function) {
@@ -416,7 +421,6 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         else
             return converted;
     }
-
 
     private static IExpressionNode ThrowNotAnExpression(ISyntaxNode node)
         =>  throw Errors.NotAnExpression(node);

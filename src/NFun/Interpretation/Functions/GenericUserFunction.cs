@@ -122,6 +122,6 @@ public class GenericUserFunction : GenericFunctionBase {
         concretePrototype.SetActual(function);
         return function;
     }
-
+    
     protected override object Calc(object[] args) => throw new NotImplementedException();
 }

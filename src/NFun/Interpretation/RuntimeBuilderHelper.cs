@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NFun.Exceptions;
 using NFun.Interpretation.Functions;
+using NFun.Interpretation.Nodes;
 using NFun.ParseErrors;
 using NFun.Runtime;
 using NFun.SyntaxParsing;
@@ -24,7 +25,7 @@ internal static class RuntimeBuilderHelper {
         TypeInferenceResults results,
         TicTypesConverter converter,
         DialectSettings dialect) {
-        var vars = new VariableDictionary(dialect.TypeBehaviour, functionSyntax.Args.Count);
+        var vars = new VariableDictionary(functionSyntax.Args.Count);
         for (int i = 0; i < functionSyntax.Args.Count; i++)
         {
             var variableSource = CreateVariableSourceForArgument(
@@ -46,12 +47,13 @@ internal static class RuntimeBuilderHelper {
             dialect: dialect);
 
         vars.ThrowIfSomeVariablesNotExistsInTheList(
+            bodyExpression,
             functionSyntax.Args.Select(a => a.Id));
 
         var function = ConcreteUserFunction.Create(
             isRecursive: functionSyntax.IsRecursive,
             name: functionSyntax.Id,
-            variables: vars.GetAllSources().ToArray(),
+            variables: vars.GetAllAsArray(),
             expression: bodyExpression);
         return function;
     }
@@ -88,15 +90,21 @@ internal static class RuntimeBuilderHelper {
         }
     }
 
-    private static void ThrowIfSomeVariablesNotExistsInTheList(
-        this VariableDictionary resultVariables,
+    private static void ThrowIfSomeVariablesNotExistsInTheList(this IReadonlyVariableDictionary variables,
+        IExpressionNode bodyExpression,
         IEnumerable<string> list) {
-        var unknownVariables = resultVariables.GetAllUsages()
-                                              .Where(u => !list.Contains(u.Source.Name))
-                                              .ToList();
-        if (unknownVariables.Any())
+        
+        var hasUnknownVariables = variables.GetAll().Any(u=>!list.Contains(u.Name));
+        if (hasUnknownVariables)
         {
-            throw Errors.UnknownVariablesInUserFunction(unknownVariables.SelectMany(u => u.Usages));
+            var unknownVariableUsages = variables
+                .GetAll()
+                .Where(u => !list.Contains(u.Name))
+                .Select(bodyExpression.FindFirstUsageOrNull)
+                .Where(s=>s!=null)
+                .ToList();
+                            
+            throw Errors.UnknownVariablesInUserFunction(unknownVariableUsages);
         }
     }
 

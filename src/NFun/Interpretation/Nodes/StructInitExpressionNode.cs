@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NFun.Runtime;
 using NFun.Tokenization;
 
@@ -24,5 +25,13 @@ internal class StructInitExpressionNode : IExpressionNode {
             fields.Add(_fieldNames[i], _elements[i].Calc());
 
         return new FunnyStruct(fields);
+    }
+
+    public string DebugName => "Struct init";
+    public IEnumerable<IExpressionNode> Children => _elements;
+
+    public IExpressionNode Clone(ICloneContext context) {
+        var elementsCopy = _elements.SelectToArray(e => e.Clone(context));
+        return new StructInitExpressionNode(_fieldNames, elementsCopy, Interval, Type);
     }
 }

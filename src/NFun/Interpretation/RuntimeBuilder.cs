@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NFun.Exceptions;
 using NFun.Interpretation.Functions;
+using NFun.Interpretation.Nodes;
 using NFun.ParseErrors;
 using NFun.Runtime;
 using NFun.SyntaxParsing;
@@ -89,7 +90,7 @@ internal static class RuntimeBuilder {
 
         #region build body
 
-        var variables = new VariableDictionary(dialect.TypeBehaviour);
+        var variables = new VariableDictionary();
         var equations = new List<Equation>();
 
         foreach (var treeNode in syntaxTree.Nodes)
@@ -99,6 +100,18 @@ internal static class RuntimeBuilder {
                 var equation =
                     BuildEquationAndPutItToVariables(node, functionDictionary, variables, bodyTypeSolving, dialect);
                 equations.Add(equation);
+
+                if (!variables.TryAdd(equation.OutputVariableSource))
+                {
+                    var alreadyExist = variables.GetOrNull(equation.OutputVariableSource.Name);
+                    var usage = equations.FindFirstUsageOrNull(alreadyExist);
+                    //some equation referenced the source before
+                    if (equation.OutputVariableSource.IsOutput)
+                        throw Errors.OutputNameWithDifferentCase(equation.Id, usage?.Interval ?? equation.Expression.Interval);
+                    else
+                        throw Errors.CannotUseOutputValueBeforeItIsDeclared(alreadyExist, usage);
+                }
+
                 if (Helper.DoesItLooksLikeSuperAnonymousVariable(equation.Id))
                     throw Errors.CannotUseSuperAnonymousVariableHere(
                         new Interval(node.Interval.Start, node.Interval.Start + node.Id.Length),
@@ -120,8 +133,9 @@ internal static class RuntimeBuilder {
                     varDef.Attributes);
                 if (!variables.TryAdd(variableSource))
                 {
-                    var allUsages = variables.GetUsages(variableSource.Name);
-                    throw Errors.VariableIsDeclaredAfterUsing(allUsages);
+                    var alreadyExisted = variables.GetOrNull(variableSource.Name);
+                    var usage = equations.FindFirstUsageOrThrow(alreadyExisted);
+                    throw Errors.VariableIsDeclaredAfterUsing(variableSource.Name, usage.Interval);
                 }
 
                 if (TraceLog.IsEnabled)
@@ -145,9 +159,11 @@ internal static class RuntimeBuilder {
                 GenericUserFunction.CreateSomeConcrete(generic);
             }
 
-            if (variables.TryGetUsages(userFunction.Name, out var usage))
+            var source = variables.GetOrNull(userFunction.Name);
+            if(source!=null)
             {
-                throw Errors.FunctionNameAndVariableNameConflict(usage);
+                var usage = equations.FindFirstUsageOrNull(source);
+                throw Errors.FunctionNameAndVariableNameConflict(source, usage);
             }
         }
 
@@ -182,14 +198,14 @@ internal static class RuntimeBuilder {
     private static Equation BuildEquationAndPutItToVariables(
         EquationSyntaxNode equation,
         IFunctionDictionary functionsDictionary,
-        VariableDictionary variables,
+        VariableDictionary mutableVariables,
         TypeInferenceResults typeInferenceResults,
         DialectSettings dialect) {
         var expression = ExpressionBuilderVisitor.BuildExpression(
             node: equation.Expression,
             functions: functionsDictionary,
             outputType: equation.OutputType,
-            variables: variables,
+            variables: mutableVariables,
             typeInferenceResults: typeInferenceResults,
             typesConverter: TicTypesConverter.Concrete,
             dialect: dialect);
@@ -212,22 +228,15 @@ internal static class RuntimeBuilder {
                 dialect.TypeBehaviour,
                 equation.Attributes
             );
-
-        var itVariable = variables.GetSuperAnonymousVariableOrNull();
-        if (itVariable != null)
-            throw Errors.CannotUseSuperAnonymousVariableHere(itVariable.Usages.First().Interval,itVariable.Source.Name);
-
-
-        if (!variables.TryAdd(outputVariableSource))
+        
+        var itVariable = mutableVariables
+            .GetAll()
+            .FirstOrDefault(c => Helper.DoesItLooksLikeSuperAnonymousVariable(c.Name));
+        if (itVariable!=null)
         {
-            //some equation referenced the source before
-            var usages = variables.GetUsages(equation.Id);
-            if (usages.Source.IsOutput)
-                throw Errors.OutputNameWithDifferentCase(equation.Id, equation.Expression.Interval);
-            else
-                throw Errors.CannotUseOutputValueBeforeItIsDeclared(usages);
+            var expressionNode = expression.FindFirstUsageOrNull(itVariable);
+            throw Errors.CannotUseSuperAnonymousVariableHere(expressionNode.Interval, itVariable.Name);
         }
-
 
         //ReplaceInputType
         if(outputVariableSource.Type != expression.Type)

@@ -24,6 +24,7 @@ public static class Funny {
 
     public static TOutput CalcMany<TOutput>(string expression) where TOutput : new()
         => FunnyCalculatorBuilder.Default.CalcMany<TOutput>(expression);
+    
     public static void CalcContext<TOutput>(string expression, TOutput context)
         => FunnyCalculatorBuilder.Default.CalcContext(expression, context);
     

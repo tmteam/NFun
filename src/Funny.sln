@@ -29,6 +29,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFun.TestTools", "Tests\NFu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Examples", "..\Examples\Examples.csproj", "{8BD98DD7-2788-449E-AB35-F0E8339C05AD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NFun.ConcurrentTests", "Tests\NFun.ConcurrentTests\NFun.ConcurrentTests.csproj", "{F28F8F0C-02F1-4417-871B-523BFDA29DD4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -79,6 +81,10 @@ Global
 		{8BD98DD7-2788-449E-AB35-F0E8339C05AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8BD98DD7-2788-449E-AB35-F0E8339C05AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8BD98DD7-2788-449E-AB35-F0E8339C05AD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F28F8F0C-02F1-4417-871B-523BFDA29DD4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F28F8F0C-02F1-4417-871B-523BFDA29DD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F28F8F0C-02F1-4417-871B-523BFDA29DD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F28F8F0C-02F1-4417-871B-523BFDA29DD4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -92,6 +98,7 @@ Global
 		{1E9979C6-9EBE-4E48-9069-05ED1B3D77E5} = {F055674B-868D-4DCA-8761-481124E630B6}
 		{F2DB406A-F2A9-4A8A-A56A-5E10B6F9F97B} = {AD33CA54-5018-4BEB-80A2-984016CBA484}
 		{10B4A50C-C1B8-4D69-ABA6-6AE3E5D244A3} = {AD33CA54-5018-4BEB-80A2-984016CBA484}
+		{F28F8F0C-02F1-4417-871B-523BFDA29DD4} = {AD33CA54-5018-4BEB-80A2-984016CBA484}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {4ECD34A8-46A8-48EE-82A4-45A9C6A2327B}

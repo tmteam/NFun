@@ -32,14 +32,11 @@ public class BuilderTest {
 
     [Test]
     public void WithFunctions_functionWithSameSignatureExists_functionIsOverrided() =>
-        Assert.AreEqual(
-            PapaFunction.PapaReturn,
-            Funny
-                .Hardcore
-                .WithFunction(new PapaFunction("myFun")) //override base function
-                .Build("y = myFun()")
-                .Calc()
-                .Get("y"));
+        Funny
+            .Hardcore
+            .WithFunction(new PapaFunction("myFun")) //override base function
+            .Build("y = myFun()")
+            .AssertRuntimes(r => Assert.AreEqual(PapaFunction.PapaReturn, r.Calc().Get("y")));
 
 
     class GenericWithNoArgFunction : GenericFunctionBase {

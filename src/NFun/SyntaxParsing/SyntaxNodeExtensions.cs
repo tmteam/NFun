@@ -17,7 +17,7 @@ public static class SyntaxNodeExtensions {
             stack.Enqueue(root);
         return stack;
     }
-
+    
     private static bool FindNodePathReq(ISyntaxNode root, object nodeId, Queue<ISyntaxNode> path) {
         if (nodeId is int num)
         {
@@ -50,6 +50,19 @@ public static class SyntaxNodeExtensions {
         return false;
     }
 
+    public static ISyntaxNode Dfs(this ISyntaxNode root, Func<ISyntaxNode, bool> condition)
+    {
+        if (condition(root))
+            return root;
+        foreach (var child in root.Children)
+        {
+            var result = Dfs(child, condition);
+            if (result != null)
+                return result;
+        }
+        return null;
+    }
+    
     public static bool ComeOver(
         this ISyntaxNode root, ISyntaxNodeVisitor<DfsEnterResult> enterVisitor,
         ISyntaxNodeVisitor<bool> exitVisitor) {

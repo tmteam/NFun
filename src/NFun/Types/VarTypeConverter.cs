@@ -203,8 +203,7 @@ public static class VarTypeConverter {
 
         public object Calc(object[] parameters) {
             var convertedParameters = new object[parameters.Length];
-            for (int i = 0; i < parameters.Length; i++)
-            {
+            for (int i = 0; i < parameters.Length; i++) {
                 convertedParameters[i] = _inputConverters[i](parameters[i]);
             }
 
@@ -212,6 +211,9 @@ public static class VarTypeConverter {
             var convertedResult = _outputConverter(result);
             return convertedResult;
         }
+
+        public IConcreteFunction Clone(ICloneContext context) 
+            => new ConcreteFunctionWithConvertion(_origin.Clone(context), _resultType, _inputConverters, _outputConverter);
 
         public IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children, TypeBehaviour typeBehaviour, Interval interval)
             => throw new NotSupportedException("Function convertation is not supported for expression building");

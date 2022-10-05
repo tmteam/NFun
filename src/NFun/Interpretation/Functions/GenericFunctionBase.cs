@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using NFun.Interpretation.Nodes;
 using NFun.Types;
 
 namespace NFun.Interpretation.Functions; 
@@ -172,5 +173,9 @@ public abstract class GenericFunctionBase : IGenericFunction {
         }
 
         public override object Calc(object[] args) => _calc(args);
+        public override IConcreteFunction Clone(ICloneContext context) => new ConcreteGenericFunction(_calc, Name, ReturnType, ArgTypes);
+        
+        public override string ToString()
+            => $"FUN-concrete-generic {TypeHelper.GetFunSignature(Name, ReturnType, ArgTypes)}";
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using NFun.Types;
 
 namespace NFun.Interpretation.Functions; 
 
@@ -25,5 +26,9 @@ public abstract class GenericFunctionWithSingleArgument : GenericFunctionBase {
         }
 
         public override object Calc(object a) => _calc(a);
+
+
+        public override string ToString()
+            => "FUN-Concrete-impl-single " + TypeHelper.GetFunSignature(Name, ReturnType, ArgTypes);
     }
 }

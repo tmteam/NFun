@@ -22,6 +22,8 @@ public abstract class FunctionWithSingleArg : IConcreteFunction {
     public object Calc(object[] parameters)
         => Calc(parameters[0]);
 
+    public virtual IConcreteFunction Clone(ICloneContext context) => this;
+
 
     public IExpressionNode CreateWithConvertionOrThrow(IList<IExpressionNode> children, TypeBehaviour typeBehaviour,  Interval interval) {
         var argNode = children[0];
@@ -37,4 +39,6 @@ public abstract class FunctionWithSingleArg : IConcreteFunction {
 
         return new FunOfSingleArgExpressionNode(this, castedNode, interval);
     }
+    
+    public override string ToString() => $"FUN-single {TypeHelper.GetFunSignature(Name, ReturnType, ArgTypes)}";
 }

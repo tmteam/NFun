@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NFun.Runtime;
 using NFun.Tokenization;
 
@@ -17,4 +18,9 @@ internal class StructFieldAccessExpressionNode : IExpressionNode {
     public Interval Interval { get; }
     public FunnyType Type { get; }
     public object Calc() => ((FunnyStruct)_source.Calc()).GetValue(_fieldName);
+    public string DebugName => $"Field access {_fieldName}";
+    public IEnumerable<IExpressionNode> Children => new[] { _source };
+
+    public IExpressionNode Clone(ICloneContext context) 
+        => new StructFieldAccessExpressionNode(_fieldName, _source.Clone(context), Interval);
 }

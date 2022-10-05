@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using NFun.Tokenization;
 using NFun.Types;
 
@@ -42,4 +43,7 @@ internal class ConstantExpressionNode : IExpressionNode {
     public FunnyType Type { get; }
     public Interval Interval { get; }
     public object Calc() => _value;
+    public string DebugName => $"Constant '{_value}' of {Type}";
+    public IEnumerable<IExpressionNode> Children => Array.Empty<IExpressionNode>();
+    public IExpressionNode Clone(ICloneContext context) => this;
 }

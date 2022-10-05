@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using NFun.Exceptions;
 using NFun.Interpretation.Nodes;
 using NFun.Runtime;
+using NFun.Types;
 
 namespace NFun.Interpretation.Functions; 
 
@@ -34,7 +35,15 @@ internal class ConcreteRecursiveUserFunction : ConcreteUserFunction {
         }
     }
 
+    public override IConcreteFunction Clone(ICloneContext context)
+    {
+        var sourceClones = ArgumentSources.SelectToArray(s => s.Clone());
+        var scopeContext = context.GetScopedContext(sourceClones);
 
+        var newUserFunction = new ConcreteRecursiveUserFunction(Name, sourceClones, Expression.Clone(scopeContext), ArgTypes);
+        return newUserFunction;
+    }
+    
     internal ConcreteRecursiveUserFunction(
         string name,
         VariableSource[] argumentSources,
@@ -42,4 +51,7 @@ internal class ConcreteRecursiveUserFunction : ConcreteUserFunction {
         FunnyType[] argTypes)
         :
         base(name, argumentSources, expression, argTypes) { }
+    
+    public override string ToString() => $"FUN-req-user {TypeHelper.GetFunSignature(Name, ReturnType, ArgTypes)}";
+
 }

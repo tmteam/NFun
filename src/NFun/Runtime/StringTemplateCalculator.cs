@@ -8,13 +8,13 @@ namespace NFun.Runtime;
 public class StringTemplateCalculator {
     private readonly FunnyRuntime _runtime;
     private readonly IReadOnlyList<string> _texts;
-    private readonly IReadOnlyList<IFunnyVar> _variables;
+    private readonly IReadOnlyList<IFunnyVar> _outputVariables;
 
-    public StringTemplateCalculator(
-        FunnyRuntime runtime, IReadOnlyList<string> texts, IReadOnlyList<IFunnyVar> variables) {
+    internal StringTemplateCalculator(
+        FunnyRuntime runtime, IReadOnlyList<string> texts, IReadOnlyList<IFunnyVar> outputVariables) {
         _runtime = runtime;
         _texts = texts;
-        _variables = variables;
+        _outputVariables = outputVariables;
     }
 
     /// <summary>
@@ -35,17 +35,33 @@ public class StringTemplateCalculator {
     /// <summary>
     /// Input variable
     /// </summary>
-    public IEnumerable<IFunnyVar> Variables => _runtime.VariableDictionary.GetAllSources().Where(i => !i.IsOutput);
-
+    public IEnumerable<IFunnyVar> Variables => _runtime.Variables.Where(i => !i.IsOutput);
+    /// <summary>
+    /// Calculates a string based on the values of input variables. Not-thread-safe.
+    /// Use Clone to run in parallel
+    /// </summary>
     public string Calculate() {
         _runtime.Run();
         var sb = new StringBuilder(_texts[0]);
-        for (int i = 0; i < _variables.Count; i++)
+        for (int i = 0; i < _outputVariables.Count; i++)
         {
-            sb.Append(TypeHelper.GetFunText(_variables[i].FunnyValue));
+            sb.Append(TypeHelper.GetFunText(_outputVariables[i].FunnyValue));
             sb.Append(_texts[i + 1]);
         }
 
         return sb.ToString();
+    }
+    /// <summary>
+    /// Creates deep copy of current calculator, that can be used in different thread
+    /// </summary>
+    public StringTemplateCalculator Clone()
+    {
+        var clone = _runtime.Clone();
+        var cloneOutputs = new List<VariableSource>(_outputVariables.Count);
+        foreach (var outputVariable in _outputVariables)
+        {
+            cloneOutputs.Add(clone.VariableDictionary.GetOrNull(outputVariable.Name));
+        }
+        return new StringTemplateCalculator(clone, _texts, cloneOutputs);
     }
 }

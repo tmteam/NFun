@@ -160,13 +160,13 @@ public class TestFluentApiCalcContext {
         var c5 = (TContext)origin.Clone();        
         calculator2.Calc(expr, c5);
 
-        var action1 = calculator2.ToAction(expr);
+        var action1 = calculator2.ToLambda(expr);
         var c6 = (TContext)origin.Clone();
         action1(c6);
         var c7 = (TContext)origin.Clone();
         action1(c7);
         
-        var action2 = calculator2.ToAction(expr);
+        var action2 = calculator2.ToLambda(expr);
         var c8 = (TContext)origin.Clone();
         action2(c8);
         var c9 = (TContext)origin.Clone();

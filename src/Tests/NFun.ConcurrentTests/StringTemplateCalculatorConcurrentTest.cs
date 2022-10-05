@@ -1,11 +1,9 @@
 using System.Linq;
-using NFun.TestTools;
 using NUnit.Framework;
 
-namespace NFun.ApiTests;
+namespace NFun.ConcurrentTests; 
 
-public class TestHardcoreApiBuildStringTemplate {
-
+public class StringTemplateCalculatorConcurrentTest {
     [TestCase(42, "{x.toText().concat('lalala')}", "42lalala")]
     [TestCase(42.0, "pre{x-1*2}mid{x*x/x}fin", "pre40mid42fin")]
     [TestCase(42, "pre{x-1*2}mid{x*x/x}fin", "pre40mid42fin")]
@@ -13,7 +11,7 @@ public class TestHardcoreApiBuildStringTemplate {
     [TestCase("abc", "{concat(x,x)}", "abcabc")]
     [TestCase("abc", "'pre \"'{'inner = {x.concat('test of \\{')}'} outer {x}", "'pre \"'inner = abctest of { outer abc")]
     public void SingleVariableTemplate(object input, string expr, string expected) =>
-        Funny.Hardcore.BuildStringTemplate(expr).AssertStringTemplates(calculator =>
+        Funny.Hardcore.BuildStringTemplate(expr).AssertStringTemplate(calculator =>
         {
             Assert.IsTrue(calculator.Variables.All(v => !v.IsOutput));
             Assert.AreEqual(1, calculator.Variables.Count());
@@ -35,7 +33,7 @@ public class TestHardcoreApiBuildStringTemplate {
             .Hardcore
             .WithConstants(("foo", 42))
             .BuildStringTemplate(expr)
-            .AssertStringTemplates(calculator =>
+            .AssertStringTemplate(calculator =>
             {
                 Assert.IsTrue(calculator.Variables.All(v => !v.IsOutput));
                 Assert.AreEqual(1, calculator.Variables.Count());
@@ -50,7 +48,7 @@ public class TestHardcoreApiBuildStringTemplate {
     [TestCase(42, "test", "{x.toText().concat('lalala')} and {y}", "42lalala and test")]
     [TestCase(42.0, 30.0, "pre{x-1*2}mid{y*y/y}fin", "pre40mid30fin")]
     public void TwoVariablesTemplate(object input1, object input2, string expr, string expected) =>
-        Funny.Hardcore.BuildStringTemplate(expr).AssertStringTemplates(calculator =>
+        Funny.Hardcore.BuildStringTemplate(expr).AssertStringTemplate(calculator =>
         {
             Assert.IsTrue(calculator.Variables.All(v => !v.IsOutput));
             Assert.AreEqual(2, calculator.Variables.Count());
@@ -78,7 +76,7 @@ public class TestHardcoreApiBuildStringTemplate {
     [TestCase("pre1{'pre2{2-2}after2'}after1", "pre1pre20after2after1")]
     [TestCase("pre1 {'inside'} after1", "pre1 inside after1")]
     public void ConstantTemplate(string expr, string expected) =>
-        Funny.Hardcore.BuildStringTemplate(expr).AssertStringTemplates(calculator =>
+        Funny.Hardcore.BuildStringTemplate(expr).AssertStringTemplate(calculator =>
         {
             Assert.AreEqual(0, calculator.Variables.Count());
             Assert.AreEqual(expected, calculator.Calculate());

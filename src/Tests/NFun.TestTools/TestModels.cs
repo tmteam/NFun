@@ -4,9 +4,9 @@ using System;
 using System.Globalization;
 using System.Linq;
 
-namespace NFun.ApiTests {
+namespace NFun.TestTools; 
 
-class ContextModel1:ICloneable {
+public class ContextModel1:ICloneable {
     public string SField = "some val";
     
     public ContextModel1(int intRVal = 42, UserInputModel imodel = null) {
@@ -42,7 +42,7 @@ public class ModelWithoutEmptyConstructor {
     public string Name { get; }
 }
 
-class ContractOutputModel:ICloneable {
+public class ContractOutputModel:ICloneable {
     public int Id { get; set; } = 123;
     public string[] Items { get; set; } = { "default" };
     public double Price { get; set; } = 12.3;
@@ -56,7 +56,7 @@ class ContractOutputModel:ICloneable {
 }
 
 
-class ContextModel2:ICloneable {
+public class ContextModel2:ICloneable {
     public ContextModel2(int id, int[] inputs,UserInputModel[] users) {
         Id = id;
         Inputs = inputs;
@@ -80,16 +80,16 @@ class ContextModel2:ICloneable {
 }
 
 
-class ModelWithInt {
+public class ModelWithInt {
     public int id { get; set; }
 }
 
-class ComplexModel {
+public class ComplexModel {
     public ModelWithInt a { get; set; }
     public ModelWithInt b { get; set; }
 }
 
-class UserInputModel:ICloneable {
+public class UserInputModel:ICloneable {
     public UserInputModel(string name = "vasa", int age = 22, double size = 13.5, Decimal balance = Decimal.One, float iq = 50,  params int[] ids) {
         Ids = ids;
         Name = name;
@@ -106,6 +106,4 @@ class UserInputModel:ICloneable {
     public float Iq { get; }
     public Decimal Balance { get; }
     public object Clone() => new UserInputModel(Name, Age, Size, Balance, Iq, (int[])Ids.Clone());
-}
-
 }

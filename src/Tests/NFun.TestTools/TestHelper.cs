@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using NFun.Exceptions;
-using NFun.Interpretation.Functions;
 using NFun.Runtime;
 using NFun.SyntaxParsing;
 using NFun.Tic;
@@ -19,7 +18,7 @@ public static class TestHelper {
 
     public static CalculationResult Calc(this string expr, string id, object val) =>
         Funny.Hardcore.Build(expr).Calc((id, val));
-
+    
     public static CalculationResult Calc(this FunnyRuntime runtime, params (string id, object clrValue)[] values) {
         foreach (var (id, clrValue) in values)
         {
@@ -47,7 +46,51 @@ public static class TestHelper {
         => Funny.Hardcore.WithDialect(ifExpressionSyntax, integerPreferredType, realClrType).Build(expr);
 
     public static FunnyRuntime Build(this string expr) => Funny.Hardcore.Build(expr);
+    
+    public static void AssertRuntimes(this string expression) 
+        => expression.Build().AssertRuntimes(_ => { });
+    
+    public static void AssertRuntimes(this string expression, Action<FunnyRuntime> action) 
+        => expression.Build().AssertRuntimes(action);
 
+    public static void AssertRuntimes(this FunnyRuntime origin, Action<FunnyRuntime> action)
+    {
+        var runtime = origin;
+        Console.WriteLine("Origin");
+        action(runtime);
+        var clone1 = runtime.Clone();
+        var clone2 = runtime.Clone();
+        Console.WriteLine("Origin Clone 1");
+        action(clone1);
+        Console.WriteLine("Origin Clone 2");
+        action(clone2);
+        var clone3 = runtime.Clone();
+        Console.WriteLine("Origin Clone 3");
+        action(clone3);
+        var grandClone = clone3.Clone();
+        Console.WriteLine("Origin Grandclone");
+        action(grandClone);
+    }
+    
+    public static void AssertStringTemplates(this StringTemplateCalculator origin, Action<StringTemplateCalculator> action)
+    {
+        var runtime = origin;
+        Console.WriteLine("Origin");
+        action(runtime);
+        var clone1 = runtime.Clone();
+        var clone2 = runtime.Clone();
+        Console.WriteLine("Origin Clone 1");
+        action(clone1);
+        Console.WriteLine("Origin Clone 2");
+        action(clone2);
+        var clone3 = runtime.Clone();
+        Console.WriteLine("Origin Clone 3");
+        action(clone3);
+        var grandClone = clone3.Clone();
+        Console.WriteLine("Origin Grandclone");
+        action(grandClone);
+    }
+    
     public static void AssertAnonymousOut(this CalculationResult result, object expected) =>
         AssertReturns(result, Parser.AnonymousEquationId, expected);
 
@@ -84,7 +127,7 @@ public static class TestHelper {
 
     public static CalculationResult AssertResultHas(this string expr, string id, object val) =>
         expr.Calc().AssertResultHas((id, val));
-
+    
     public static void AssertResultHas(this string expr, params (string id, object val)[] values) =>
         expr.Calc().AssertResultHas(values);
 
@@ -173,6 +216,9 @@ public static class TestHelper {
             return astr.Equals(bstr);
         }
 
+        if (a is bool || a is byte || a is sbyte || a is short || a is ushort || a is int || a is uint || a is ulong || a is long)
+            return a.Equals(b);
+        
         if (a is double resultD)
         {
             var expectedD = (double)b;
@@ -251,12 +297,10 @@ public static class TestHelper {
             {
                 var result = runtime.Calc();
                 Assert.Fail($"Const expression succesfully executed. Result: {result}");
-                return;
             }
             catch (Exception e)
             {
                 Assert.Fail($"Const expression succesfully build. Execution failed with error: {e}");
-                return;
             }
         }
         catch (FunnyParseException ex)
@@ -264,7 +308,6 @@ public static class TestHelper {
             if(ex.Interval.Finish<ex.Interval.Start)
                 Assert.Pass($"Start interval is less then finish interval: {ex}");
             Assert.Pass($"Fun parse error: {ex}");
-            return;
         }
     }
 
