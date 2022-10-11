@@ -8,21 +8,21 @@ using NFun.Types;
 namespace NFun.TestTools; 
 
 public sealed class CalculationResult {
-    internal CalculationResult(VariableTypeAndValue[] rawResults, TypeBehaviour typeBehaviour) {
+    internal CalculationResult(VariableTypeAndValue[] rawResults, FunnyConverter converter) {
         _rawResults = rawResults;
-        TypeBehaviour = typeBehaviour;
+        Converter = converter;
     }
 
     public int Count => _rawResults.Length;
 
     public IEnumerable<(string, object)> Results => _rawResults.Select(
         r =>
-            (r.Name, TypeBehaviour.GetOutputConverterFor(r.Type).ToClrObject(r.Value)));
+            (r.Name, Converter.GetOutputConverterFor(r.Type).ToClrObject(r.Value)));
 
     public IEnumerable<string> ResultNames => _rawResults.Select(r => r.Name);
 
     private readonly VariableTypeAndValue[] _rawResults;
-    public TypeBehaviour TypeBehaviour { get; }
+    public FunnyConverter Converter { get; }
 
     public object Get(string name) {
         foreach (var equationResult in _rawResults)
@@ -31,7 +31,7 @@ public sealed class CalculationResult {
                 equationResult.Name, name,
                 StringComparison.CurrentCultureIgnoreCase))
             {
-                var converter = TypeBehaviour.GetOutputConverterFor(equationResult.Type);
+                var converter = Converter.GetOutputConverterFor(equationResult.Type);
                 return converter.ToClrObject(equationResult.Value);
             }
         }

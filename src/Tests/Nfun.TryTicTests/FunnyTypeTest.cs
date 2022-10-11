@@ -13,13 +13,15 @@ public class FunnyTypeTest {
         var typeA = FunnyType.PrimitiveOf(BaseFunnyType.Int32);
         var typeB = FunnyType.PrimitiveOf(BaseFunnyType.Int32);
         Assert.IsTrue(typeA == typeB);
+        Assert.IsTrue(typeA.GetHashCode() == typeB.GetHashCode());
     }
-
+    
     [Test]
     public void TwoNotEqualPrimitiveTypes_Equals_ReturnsFalse() {
         var typeA = FunnyType.PrimitiveOf(BaseFunnyType.Real);
         var typeB = FunnyType.PrimitiveOf(BaseFunnyType.Int32);
         Assert.IsFalse(typeA == typeB);
+        Assert.AreNotEqual(typeA.GetHashCode(), typeB.GetHashCode()); // It can be flaky. It is ok
     }
 
     [Test]
@@ -27,6 +29,7 @@ public class FunnyTypeTest {
         var typeA = FunnyType.ArrayOf(FunnyType.Int32);
         var typeB = FunnyType.ArrayOf(FunnyType.Int32);
         Assert.IsTrue(typeA == typeB);
+        Assert.IsTrue(typeA.GetHashCode() == typeB.GetHashCode());
     }
 
     [Test]
@@ -34,31 +37,191 @@ public class FunnyTypeTest {
         var typeA = FunnyType.ArrayOf(FunnyType.Int32);
         var typeB = FunnyType.ArrayOf(FunnyType.Real);
         Assert.IsFalse(typeA == typeB);
+        Assert.AreNotEqual(typeA.GetHashCode(), typeB.GetHashCode()); // It can be flaky. It is ok
     }
 
     [Test]
-    public void TwoEqualFunTypes_Equals_ReturnsTrue() {
+    public void TwoEqualFunTypes_1_Equals_ReturnsTrue() {
         var typeA = FunnyType.FunOf(FunnyType.Bool, FunnyType.Int32);
         var typeB = FunnyType.FunOf(FunnyType.Bool, FunnyType.Int32);
         Assert.IsTrue(typeA == typeB);
+        Assert.IsTrue(typeA.GetHashCode() == typeB.GetHashCode());
     }
 
     [Test]
-    public void TwoFunTypesWithDifferentInputs_Equals_ReturnsFalse() {
+    public void TwoEqualFunTypes_2_Equals_ReturnsTrue() {
+        var typeA = FunnyType.FunOf(FunnyType.Any, FunnyType.ArrayOf(FunnyType.Int32));
+        var typeB = FunnyType.FunOf(FunnyType.Any, FunnyType.ArrayOf(FunnyType.Int32));
+        Assert.IsTrue(typeA == typeB);
+        Assert.IsTrue(typeA.GetHashCode() == typeB.GetHashCode());
+    }
+    
+    [Test]
+    public void TwoEqualFunTypes_3_Equals_ReturnsTrue() {
+        var typeA = FunnyType.FunOf(FunnyType.FunOf(FunnyType.Any), FunnyType.ArrayOf(FunnyType.Int32));
+        var typeB = FunnyType.FunOf(FunnyType.FunOf(FunnyType.Any), FunnyType.ArrayOf(FunnyType.Int32));
+        Assert.IsTrue(typeA == typeB);
+        Assert.IsTrue(typeA.GetHashCode() == typeB.GetHashCode());
+    }
+    
+    [Test]
+    public void TwoFunTypes_1_NotEquals_ReturnsFalse() {
         var typeA = FunnyType.FunOf(FunnyType.Bool, FunnyType.Int32, FunnyType.Int32);
         var typeB = FunnyType.FunOf(FunnyType.Bool, FunnyType.Text, FunnyType.Int32);
         Assert.IsFalse(typeA == typeB);
+        Assert.AreNotEqual(typeA.GetHashCode(), typeB.GetHashCode()); // It can be flaky. It is ok
+    }
+     
+    [Test]
+    public void TwoFunTypes_2_NotEquals_ReturnsFalse() {
+        var typeA = FunnyType.FunOf(FunnyType.FunOf(FunnyType.Any), FunnyType.ArrayOf(FunnyType.Int32));
+        var typeB = FunnyType.FunOf(FunnyType.Bool, FunnyType.Text, FunnyType.Int32);
+        Assert.IsFalse(typeA == typeB);
+        Assert.AreNotEqual(typeA.GetHashCode(), typeB.GetHashCode()); // It can be flaky. It is ok
+    }
+    
+    [Test]
+    public void TwoFunTypes_3_NotEquals_ReturnsFalse() {
+        var typeA = FunnyType.FunOf(FunnyType.FunOf(FunnyType.Any), FunnyType.ArrayOf(FunnyType.Real));
+        var typeB = FunnyType.FunOf(FunnyType.FunOf(FunnyType.Any), FunnyType.ArrayOf(FunnyType.Int32));
+        Assert.IsFalse(typeA == typeB);
+        Assert.AreNotEqual(typeA.GetHashCode(), typeB.GetHashCode()); // It can be flaky. It is ok
+    }
+    
+    
+    [Test]
+    public void TwoFunTypes_4_NotEquals_ReturnsFalse() {
+        var typeA = FunnyType.FunOf(FunnyType.FunOf(FunnyType.Any), FunnyType.ArrayOf(FunnyType.Real));
+        var typeB = FunnyType.FunOf(FunnyType.FunOf(FunnyType.Any), FunnyType.ArrayOf(FunnyType.Real), FunnyType.Bool);
+        Assert.IsFalse(typeA == typeB);
+        Assert.AreNotEqual(typeA.GetHashCode(), typeB.GetHashCode()); // It can be flaky. It is ok
     }
 
-
     [Test]
-    public void TwoFunTypesWithDifferentOutputs_Equals_ReturnsFalse() {
+    public void TwoFunTypes_5_NotEquals_ReturnsFalse() {
         var typeA = FunnyType.FunOf(FunnyType.Int32, FunnyType.Text);
         var typeB = FunnyType.FunOf(FunnyType.Bool, FunnyType.Text);
         Assert.IsFalse(typeA == typeB);
+        Assert.AreNotEqual(typeA.GetHashCode(), typeB.GetHashCode()); // It can be flaky. It is ok
+    }
+    
+    [Test]
+    public void TwoFunTypes_6_NotEquals_ReturnsFalse() {
+        var typeA = FunnyType.FunOf(FunnyType.Int32, FunnyType.Text, FunnyType.Int32);
+        var typeB = FunnyType.FunOf(FunnyType.Int32, FunnyType.Int32, FunnyType.Text);
+        Assert.IsFalse(typeA == typeB);
+        Assert.AreNotEqual(typeA.GetHashCode(), typeB.GetHashCode()); // It can be flaky. It is ok
+    }
+    
+    [Test]
+    public void TwoFunTypes_7_NotEquals_ReturnsFalse() {
+        var typeA = FunnyType.FunOf(FunnyType.Int32, FunnyType.Int32);
+        var typeB = FunnyType.FunOf(FunnyType.Int32, FunnyType.Int16);
+        Assert.IsFalse(typeA == typeB);
+        Assert.AreNotEqual(typeA.GetHashCode(), typeB.GetHashCode()); // It can be flaky. It is ok
+    }
+    
+    [Test]
+    public void TwoStructTypes_1_Equals_ReturnsTrue() {
+        var typeA = FunnyType.StructOf(("a", FunnyType.Bool),("b", FunnyType.FunOf(FunnyType.Bool,FunnyType.Int16)));
+        var typeB = FunnyType.StructOf(("a", FunnyType.Bool),("b", FunnyType.FunOf(FunnyType.Bool,FunnyType.Int16)));
+        Assert.IsTrue(typeA == typeB);
+        Assert.IsTrue(typeA.GetHashCode()== typeB.GetHashCode());
+    }
+    
+    [Test]
+    public void TwoStructTypes_2_Equals_ReturnsTrue() {
+        var typeA = FunnyType.StructOf(
+            ("a", FunnyType.Bool),
+            ("b", FunnyType.FunOf(FunnyType.Bool,FunnyType.Int16)), 
+            ("c", FunnyType.StructOf(
+                ("a", FunnyType.Bool),("b", FunnyType.FunOf(FunnyType.Bool,FunnyType.Int16)))));
+        var typeB = FunnyType.StructOf(
+            ("a", FunnyType.Bool),
+            ("b", FunnyType.FunOf(FunnyType.Bool,FunnyType.Int16)), 
+            ("c", FunnyType.StructOf(
+                ("a", FunnyType.Bool),("b", FunnyType.FunOf(FunnyType.Bool,FunnyType.Int16)))));
+        Assert.IsTrue(typeA == typeB);
+        Assert.IsTrue(typeA.GetHashCode()== typeB.GetHashCode());
     }
 
+    [Test]
+    public void TwoStructTypes_3_Equals_ReturnsTrue() {
+        var typeA = FunnyType.StructOf();
+        var typeB = FunnyType.StructOf();
+        Assert.IsTrue(typeA == typeB);
+        Assert.IsTrue(typeA.GetHashCode()== typeB.GetHashCode());
+    }
+    
+    [Test]
+    public void TwoStructTypes_4_Equals_ReturnsTrue() {
+        var typeA = FunnyType.StructOf(("a", FunnyType.Bool),("b", FunnyType.FunOf(FunnyType.Bool,FunnyType.Int16)));
+        var typeB = FunnyType.StructOf(("b", FunnyType.FunOf(FunnyType.Bool,FunnyType.Int16)),("a", FunnyType.Bool));
+        Assert.IsTrue(typeA == typeB);
+        Assert.IsTrue(typeA.GetHashCode()== typeB.GetHashCode());
+    }
+    
+    [Test]
+    public void TwoStructTypes_5_Equals_ReturnsTrue() {
+        var typeA = FunnyType.StructOf(
+            ("a", FunnyType.Bool),
+            ("c", FunnyType.StructOf(
+                ("b", FunnyType.FunOf(FunnyType.Bool,FunnyType.Int16)),("a", FunnyType.Bool))),
+            ("b", FunnyType.FunOf(FunnyType.Bool,FunnyType.Int16)));
+        var typeB = FunnyType.StructOf(
+            ("a", FunnyType.Bool),
+            ("b", FunnyType.FunOf(FunnyType.Bool,FunnyType.Int16)), 
+            ("c", FunnyType.StructOf(
+                ("a", FunnyType.Bool),("b", FunnyType.FunOf(FunnyType.Bool,FunnyType.Int16)))));
+        Assert.IsTrue(typeA == typeB);
+        Assert.IsTrue(typeA.GetHashCode()== typeB.GetHashCode());
+    }
 
+    [Test]
+    public void TwoStructTypes_1_NotEquals_ReturnsFalse() {
+        var typeA = FunnyType.StructOf(("a", FunnyType.Bool),("c", FunnyType.FunOf(FunnyType.Bool,FunnyType.Int16)));
+        var typeB = FunnyType.StructOf(("a", FunnyType.Bool),("b", FunnyType.FunOf(FunnyType.Bool,FunnyType.Int16)));
+        Assert.IsFalse(typeA == typeB);
+        Assert.AreNotEqual(typeA.GetHashCode(), typeB.GetHashCode()); // It can be flaky. It is ok
+
+    }
+    
+    [Test]
+    public void TwoStructTypes_2_NotEquals_ReturnsFalse() {
+        var typeA = FunnyType.StructOf(
+            ("a", FunnyType.Bool),
+            ("b", FunnyType.FunOf(FunnyType.Bool,FunnyType.Int16)), 
+            ("c", FunnyType.StructOf(
+                ("a", FunnyType.Bool),("b", FunnyType.FunOf(FunnyType.Bool,FunnyType.Int32)))));
+        var typeB = FunnyType.StructOf(
+            ("a", FunnyType.Bool),
+            ("b", FunnyType.FunOf(FunnyType.Bool,FunnyType.Int16)), 
+            ("c", FunnyType.StructOf(
+                ("a", FunnyType.Bool),("b", FunnyType.FunOf(FunnyType.Bool,FunnyType.Int16)))));
+        Assert.IsFalse(typeA == typeB);
+        Assert.AreNotEqual(typeA.GetHashCode(), typeB.GetHashCode()); // It can be flaky. It is ok
+    }
+
+    [Test]
+    public void TwoStructTypes_3_NotEquals_ReturnsFalse() {
+        var typeA = FunnyType.StructOf();
+        var typeB = FunnyType.StructOf(("a", FunnyType.Bool));
+        Assert.IsFalse(typeA == typeB);
+        Assert.AreNotEqual(typeA.GetHashCode(), typeB.GetHashCode()); // It can be flaky. It is ok
+    }
+    
+    [Test]
+    public void TwoStructTypes_4_NotEquals_ReturnsFalse() {
+        var typeA = FunnyType.StructOf(
+            ("a", FunnyType.Bool),
+            ("b", FunnyType.FunOf(FunnyType.Bool,FunnyType.Int16)));
+        var typeB = FunnyType.StructOf(
+            ("a", FunnyType.Text),
+            ("b", FunnyType.FunOf(FunnyType.Bool, FunnyType.Int16))); 
+        Assert.IsFalse(typeA == typeB);
+        Assert.AreNotEqual(typeA.GetHashCode(), typeB.GetHashCode()); // It can be flaky. It is ok
+    }
+    
     [Test]
     public void TwoComplexHiOrderEqualFunTypes_Equals_ReturnsTrue() {
         var typeA = FunnyType.FunOf(
@@ -88,6 +251,7 @@ public class FunnyTypeTest {
                         inputTypes: FunnyType.Text))
             });
         Assert.IsTrue(typeA == typeB);
+        Assert.IsTrue(typeA.GetHashCode() == typeB.GetHashCode());
     }
 
     [Test]
@@ -95,6 +259,7 @@ public class FunnyTypeTest {
         var typeA = FunnyType.Generic(1);
         var typeB = FunnyType.Generic(1);
         Assert.AreEqual(typeA, typeB);
+        Assert.IsTrue(typeA.GetHashCode() == typeB.GetHashCode());
     }
 
     [Test]
@@ -102,6 +267,7 @@ public class FunnyTypeTest {
         var typeA = FunnyType.Generic(1);
         var typeB = FunnyType.Generic(2);
         Assert.AreNotEqual(typeA, typeB);
+        Assert.AreNotEqual(typeA.GetHashCode(), typeB.GetHashCode()); // It can be flaky. It is ok
     }
 
     [Test]
@@ -109,6 +275,7 @@ public class FunnyTypeTest {
         var typeA = FunnyType.ArrayOf(FunnyType.Int32);
         var typeB = FunnyType.Int32;
         Assert.IsFalse(typeA == typeB);
+        Assert.AreNotEqual(typeA.GetHashCode(), typeB.GetHashCode()); // It can be flaky. It is ok
     }
 
 
@@ -117,6 +284,7 @@ public class FunnyTypeTest {
         var typeA = FunnyType.ArrayOf(FunnyType.ArrayOf(FunnyType.Int32));
         var typeB = FunnyType.ArrayOf(FunnyType.ArrayOf(FunnyType.Int32));
         Assert.IsTrue(typeA == typeB);
+        Assert.IsTrue(typeA.GetHashCode() == typeB.GetHashCode());
     }
 
     [Test]
@@ -124,7 +292,9 @@ public class FunnyTypeTest {
         var typeA = FunnyType.ArrayOf(FunnyType.ArrayOf(FunnyType.Int32));
         var typeB = FunnyType.ArrayOf(FunnyType.ArrayOf(FunnyType.Real));
         Assert.IsFalse(typeA == typeB);
+        Assert.AreNotEqual(typeA.GetHashCode(), typeB.GetHashCode()); // It can be flaky. It is ok
     }
+
 
     #endregion
 

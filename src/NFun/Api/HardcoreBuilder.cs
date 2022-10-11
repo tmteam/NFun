@@ -56,50 +56,50 @@ public class HardcoreBuilder {
 
     public HardcoreBuilder WithApriori<T>(string id) =>
         //no matter what type beh is used
-        WithApriori(id, Dialects.Origin.TypeBehaviour.GetInputConverterFor(typeof(T)).FunnyType);
+        WithApriori(id, Dialects.Origin.Converter.GetInputConverterFor(typeof(T)).FunnyType);
 
     public HardcoreBuilder WithFunction(IFunctionSignature function) =>
         new(_constants, _mutableApriori, _dialect, _customFunctions.AppendTail(function));
     
     public HardcoreBuilder WithFunction<Tin, TOut>(string name, Func<Tin, TOut> function) =>
-        WithFunction(LambdaWrapperFactory.Create(name, function, _dialect.TypeBehaviour));
+        WithFunction(LambdaWrapperFactory.Create(name, function, _dialect.Converter));
 
     public HardcoreBuilder WithFunction<Tin1, Tin2, TOut>(string name, Func<Tin1, Tin2, TOut> function) =>
-        WithFunction(LambdaWrapperFactory.Create(name, function, _dialect.TypeBehaviour));
+        WithFunction(LambdaWrapperFactory.Create(name, function, _dialect.Converter));
 
     public HardcoreBuilder
         WithFunction<Tin1, Tin2, Tin3, TOut>(string name, Func<Tin1, Tin2, Tin3, TOut> function) =>
-        WithFunction(LambdaWrapperFactory.Create(name, function, _dialect.TypeBehaviour));
+        WithFunction(LambdaWrapperFactory.Create(name, function, _dialect.Converter));
 
     public HardcoreBuilder WithFunction<Tin1, Tin2, Tin3, Tin4, TOut>(
         string name,
         Func<Tin1, Tin2, Tin3, Tin4, TOut> function) =>
-        WithFunction(LambdaWrapperFactory.Create(name, function, _dialect.TypeBehaviour));
+        WithFunction(LambdaWrapperFactory.Create(name, function, _dialect.Converter));
 
     public HardcoreBuilder WithFunction<Tin1, Tin2, Tin3, Tin4, Tin5, TOut>(
         string name,
         Func<Tin1, Tin2, Tin3, Tin4, Tin5, TOut> function) =>
-        WithFunction(LambdaWrapperFactory.Create(name, function, _dialect.TypeBehaviour));
+        WithFunction(LambdaWrapperFactory.Create(name, function, _dialect.Converter));
 
     public HardcoreBuilder WithFunction<Tin1, Tin2, Tin3, Tin4, Tin5, Tin6, TOut>(
         string name,
         Func<Tin1, Tin2, Tin3, Tin4, Tin5, Tin6, TOut> function) =>
-        WithFunction(LambdaWrapperFactory.Create(name, function, _dialect.TypeBehaviour));
+        WithFunction(LambdaWrapperFactory.Create(name, function, _dialect.Converter));
 
     public HardcoreBuilder WithFunction<Tin1, Tin2, Tin3, Tin4, Tin5, Tin6, Tin7, TOut>(
         string name,
         Func<Tin1, Tin2, Tin3, Tin4, Tin5, Tin6, Tin7, TOut> function) =>
-        WithFunction(LambdaWrapperFactory.Create(name, function, _dialect.TypeBehaviour));
+        WithFunction(LambdaWrapperFactory.Create(name, function, _dialect.Converter));
 
     public FunnyRuntime Build(string script) =>
         RuntimeBuilder.Build(
             script, 
-            BaseFunctions.GetFunctions(_dialect.TypeBehaviour).CloneWith(_customFunctions), 
-            _dialect, new ConstantList(_dialect.TypeBehaviour, _constants), _mutableApriori);
+            BaseFunctions.GetFunctions(_dialect.Converter.TypeBehaviour).CloneWith(_customFunctions), 
+            _dialect, new ConstantList(_dialect.Converter, _constants), _mutableApriori);
 
     public StringTemplateCalculator BuildStringTemplate(string script) =>
         StringTemplateRuntimeBuilder.Build(
             script, 
-            BaseFunctions.GetFunctions(_dialect.TypeBehaviour).CloneWith(_customFunctions), 
-            _dialect, new ConstantList(_dialect.TypeBehaviour, _constants), _mutableApriori);
+            BaseFunctions.GetFunctions(_dialect.Converter.TypeBehaviour).CloneWith(_customFunctions), 
+            _dialect, new ConstantList(_dialect.Converter, _constants), _mutableApriori);
 }

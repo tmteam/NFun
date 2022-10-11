@@ -21,7 +21,7 @@ internal static class TicErrors {
 
     public static Exception CannotSetState(TicNode node, ITicNodeState b) => 
         new TicCannotSetStateSyntaxNodeException(node, b);
+    
     public static Exception IsNotAFunctionalVariableOrFunction(TicNode node, ITicNodeState b) => 
         new TicNodeIsNotAFunctionalVariableException(node, b);
-
 }

@@ -4,36 +4,36 @@ using NFun.Types;
 namespace NFun.Interpretation.Functions; 
 
 internal static class LambdaWrapperFactory {
-    public static IConcreteFunction Create<Tin, Tout>(string name, Func<Tin, Tout> function, TypeBehaviour typeBehaviour)
-        => new ConcreteLambdaWrapperFunction<Tin, Tout>(name, function, typeBehaviour);
+    public static IConcreteFunction Create<Tin, Tout>(string name, Func<Tin, Tout> function, FunnyConverter converter)
+        => new ConcreteLambdaWrapperFunction<Tin, Tout>(name, function, converter);
 
-    public static IConcreteFunction Create<Tin1, Tin2, Tout>(string name, Func<Tin1, Tin2, Tout> function, TypeBehaviour typeBehaviour)
-        => new ConcreteLambdaWrapperFunction<Tin1, Tin2, Tout>(name, function, typeBehaviour);
+    public static IConcreteFunction Create<Tin1, Tin2, Tout>(string name, Func<Tin1, Tin2, Tout> function, FunnyConverter converter)
+        => new ConcreteLambdaWrapperFunction<Tin1, Tin2, Tout>(name, function, converter);
 
     public static IConcreteFunction Create<Tin1, Tin2, Tin3, Tout>(
         string name,
-        Func<Tin1, Tin2, Tin3, Tout> function, TypeBehaviour typeBehaviour)
-        => new ConcreteLambdaWrapperFunction<Tin1, Tin2, Tin3, Tout>(name, function, typeBehaviour);
+        Func<Tin1, Tin2, Tin3, Tout> function, FunnyConverter converter)
+        => new ConcreteLambdaWrapperFunction<Tin1, Tin2, Tin3, Tout>(name, function, converter);
 
     public static IConcreteFunction Create<Tin1, Tin2, Tin3, Tin4, Tout>(
         string name,
-        Func<Tin1, Tin2, Tin3, Tin4, Tout> function, TypeBehaviour typeBehaviour)
-        => new ConcreteLambdaWrapperFunction<Tin1, Tin2, Tin3, Tin4, Tout>(name, function, typeBehaviour);
+        Func<Tin1, Tin2, Tin3, Tin4, Tout> function, FunnyConverter converter)
+        => new ConcreteLambdaWrapperFunction<Tin1, Tin2, Tin3, Tin4, Tout>(name, function, converter);
 
     public static IConcreteFunction Create<Tin1, Tin2, Tin3, Tin4, Tin5, Tout>(
         string name,
-        Func<Tin1, Tin2, Tin3, Tin4, Tin5, Tout> function, TypeBehaviour typeBehaviour)
-        => new ConcreteLambdaWrapperFunction<Tin1, Tin2, Tin3, Tin4, Tin5, Tout>(name, function, typeBehaviour);
+        Func<Tin1, Tin2, Tin3, Tin4, Tin5, Tout> function, FunnyConverter converter)
+        => new ConcreteLambdaWrapperFunction<Tin1, Tin2, Tin3, Tin4, Tin5, Tout>(name, function, converter);
 
     public static IConcreteFunction Create<Tin1, Tin2, Tin3, Tin4, Tin5, Tin6, Tout>(
         string name,
-        Func<Tin1, Tin2, Tin3, Tin4, Tin5, Tin6, Tout> function, TypeBehaviour typeBehaviour)
-        => new ConcreteLambdaWrapperFunction<Tin1, Tin2, Tin3, Tin4, Tin5, Tin6, Tout>(name, function, typeBehaviour);
+        Func<Tin1, Tin2, Tin3, Tin4, Tin5, Tin6, Tout> function, FunnyConverter converter)
+        => new ConcreteLambdaWrapperFunction<Tin1, Tin2, Tin3, Tin4, Tin5, Tin6, Tout>(name, function, converter);
 
     public static IConcreteFunction Create<Tin1, Tin2, Tin3, Tin4, Tin5, Tin6, Tin7, Tout>(
         string name,
-        Func<Tin1, Tin2, Tin3, Tin4, Tin5, Tin6, Tin7, Tout> function, TypeBehaviour typeBehaviour)
-        => new ConcreteLambdaWrapperFunction<Tin1, Tin2, Tin3, Tin4, Tin5, Tin6, Tin7, Tout>(name, function, typeBehaviour);
+        Func<Tin1, Tin2, Tin3, Tin4, Tin5, Tin6, Tin7, Tout> function, FunnyConverter converter)
+        => new ConcreteLambdaWrapperFunction<Tin1, Tin2, Tin3, Tin4, Tin5, Tin6, Tin7, Tout>(name, function, converter);
 }
 
 class ConcreteLambdaWrapperFunction<Tin, Tout> : FunctionWithSingleArg {
@@ -41,11 +41,11 @@ class ConcreteLambdaWrapperFunction<Tin, Tout> : FunctionWithSingleArg {
     private readonly IOutputFunnyConverter _argConverter;
     private readonly IInputFunnyConverter _resultConverter;
 
-    public ConcreteLambdaWrapperFunction(string id, Func<Tin, Tout> function, TypeBehaviour typeBehaviour) {
+    public ConcreteLambdaWrapperFunction(string id, Func<Tin, Tout> function, FunnyConverter converter) {
         Name = id;
         _function = function;
-        _argConverter = typeBehaviour.GetOutputConverterFor(typeof(Tin));
-        _resultConverter = typeBehaviour.GetInputConverterFor(typeof(Tout));
+        _argConverter = converter.GetOutputConverterFor(typeof(Tin));
+        _resultConverter = converter.GetInputConverterFor(typeof(Tout));
         ArgTypes = new[] { _argConverter.FunnyType };
         ReturnType = _resultConverter.FunnyType;
     }
@@ -61,12 +61,12 @@ class ConcreteLambdaWrapperFunction<Tin1, Tin2, Tout> : FunctionWithManyArgument
 
     private readonly IInputFunnyConverter _resultConverter;
 
-    public ConcreteLambdaWrapperFunction(string id, Func<Tin1, Tin2, Tout> function, TypeBehaviour typeBehaviour) : base(id) {
+    public ConcreteLambdaWrapperFunction(string id, Func<Tin1, Tin2, Tout> function, FunnyConverter converter) : base(id) {
         _function = function;
-        _arg1 = typeBehaviour.GetOutputConverterFor(typeof(Tin1));
-        _arg2 = typeBehaviour.GetOutputConverterFor(typeof(Tin2));
+        _arg1 = converter.GetOutputConverterFor(typeof(Tin1));
+        _arg2 = converter.GetOutputConverterFor(typeof(Tin2));
 
-        _resultConverter = typeBehaviour.GetInputConverterFor(typeof(Tout));
+        _resultConverter = converter.GetInputConverterFor(typeof(Tout));
         ArgTypes = new[] {
             _arg1.FunnyType,
             _arg2.FunnyType
@@ -90,13 +90,13 @@ class ConcreteLambdaWrapperFunction<Tin1, Tin2, Tin3, Tout> : FunctionWithManyAr
 
     private readonly IInputFunnyConverter _resultConverter;
 
-    public ConcreteLambdaWrapperFunction(string id, Func<Tin1, Tin2, Tin3, Tout> function, TypeBehaviour typeBehaviour) : base(id) {
+    public ConcreteLambdaWrapperFunction(string id, Func<Tin1, Tin2, Tin3, Tout> function, FunnyConverter converter) : base(id) {
         _function = function;
-        _arg1 = typeBehaviour.GetOutputConverterFor(typeof(Tin1));
-        _arg2 = typeBehaviour.GetOutputConverterFor(typeof(Tin2));
-        _arg3 = typeBehaviour.GetOutputConverterFor(typeof(Tin3));
+        _arg1 = converter.GetOutputConverterFor(typeof(Tin1));
+        _arg2 = converter.GetOutputConverterFor(typeof(Tin2));
+        _arg3 = converter.GetOutputConverterFor(typeof(Tin3));
 
-        _resultConverter = typeBehaviour.GetInputConverterFor(typeof(Tout));
+        _resultConverter = converter.GetInputConverterFor(typeof(Tout));
         ArgTypes = new[] {
             _arg1.FunnyType,
             _arg2.FunnyType,
@@ -123,14 +123,14 @@ class ConcreteLambdaWrapperFunction<Tin1, Tin2, Tin3, Tin4, Tout> : FunctionWith
 
     private readonly IInputFunnyConverter _resultConverter;
 
-    public ConcreteLambdaWrapperFunction(string id, Func<Tin1, Tin2, Tin3, Tin4, Tout> function, TypeBehaviour typeBehaviour) : base(id) {
+    public ConcreteLambdaWrapperFunction(string id, Func<Tin1, Tin2, Tin3, Tin4, Tout> function, FunnyConverter converter) : base(id) {
         _function = function;
-        _arg1 = typeBehaviour.GetOutputConverterFor(typeof(Tin1));
-        _arg2 = typeBehaviour.GetOutputConverterFor(typeof(Tin2));
-        _arg3 = typeBehaviour.GetOutputConverterFor(typeof(Tin3));
-        _arg4 = typeBehaviour.GetOutputConverterFor(typeof(Tin4));
+        _arg1 = converter.GetOutputConverterFor(typeof(Tin1));
+        _arg2 = converter.GetOutputConverterFor(typeof(Tin2));
+        _arg3 = converter.GetOutputConverterFor(typeof(Tin3));
+        _arg4 = converter.GetOutputConverterFor(typeof(Tin4));
 
-        _resultConverter = typeBehaviour.GetInputConverterFor(typeof(Tout));
+        _resultConverter = converter.GetInputConverterFor(typeof(Tout));
         ArgTypes = new[] {
             _arg1.FunnyType,
             _arg2.FunnyType,
@@ -160,15 +160,15 @@ class ConcreteLambdaWrapperFunction<Tin1, Tin2, Tin3, Tin4, Tin5, Tout> : Functi
 
     private readonly IInputFunnyConverter _resultConverter;
 
-    public ConcreteLambdaWrapperFunction(string id, Func<Tin1, Tin2, Tin3, Tin4, Tin5, Tout> function, TypeBehaviour typeBehaviour) : base(id) {
+    public ConcreteLambdaWrapperFunction(string id, Func<Tin1, Tin2, Tin3, Tin4, Tin5, Tout> function, FunnyConverter converter) : base(id) {
         _function = function;
-        _arg1 = typeBehaviour.GetOutputConverterFor(typeof(Tin1));
-        _arg2 = typeBehaviour.GetOutputConverterFor(typeof(Tin2));
-        _arg3 = typeBehaviour.GetOutputConverterFor(typeof(Tin3));
-        _arg4 = typeBehaviour.GetOutputConverterFor(typeof(Tin4));
-        _arg5 = typeBehaviour.GetOutputConverterFor(typeof(Tin5));
+        _arg1 = converter.GetOutputConverterFor(typeof(Tin1));
+        _arg2 = converter.GetOutputConverterFor(typeof(Tin2));
+        _arg3 = converter.GetOutputConverterFor(typeof(Tin3));
+        _arg4 = converter.GetOutputConverterFor(typeof(Tin4));
+        _arg5 = converter.GetOutputConverterFor(typeof(Tin5));
 
-        _resultConverter = typeBehaviour.GetInputConverterFor(typeof(Tout));
+        _resultConverter = converter.GetInputConverterFor(typeof(Tout));
         ArgTypes = new[] {
             _arg1.FunnyType,
             _arg2.FunnyType,
@@ -201,17 +201,17 @@ class ConcreteLambdaWrapperFunction<Tin1, Tin2, Tin3, Tin4, Tin5, Tin6, Tout> : 
 
     private readonly IInputFunnyConverter _resultConverter;
 
-    public ConcreteLambdaWrapperFunction(string id, Func<Tin1, Tin2, Tin3, Tin4, Tin5, Tin6, Tout> function, TypeBehaviour typeBehaviour) :
+    public ConcreteLambdaWrapperFunction(string id, Func<Tin1, Tin2, Tin3, Tin4, Tin5, Tin6, Tout> function, FunnyConverter converter) :
         base(id) {
         _function = function;
-        _arg1 = typeBehaviour.GetOutputConverterFor(typeof(Tin1));
-        _arg2 = typeBehaviour.GetOutputConverterFor(typeof(Tin2));
-        _arg3 = typeBehaviour.GetOutputConverterFor(typeof(Tin3));
-        _arg4 = typeBehaviour.GetOutputConverterFor(typeof(Tin4));
-        _arg5 = typeBehaviour.GetOutputConverterFor(typeof(Tin5));
-        _arg6 = typeBehaviour.GetOutputConverterFor(typeof(Tin6));
+        _arg1 = converter.GetOutputConverterFor(typeof(Tin1));
+        _arg2 = converter.GetOutputConverterFor(typeof(Tin2));
+        _arg3 = converter.GetOutputConverterFor(typeof(Tin3));
+        _arg4 = converter.GetOutputConverterFor(typeof(Tin4));
+        _arg5 = converter.GetOutputConverterFor(typeof(Tin5));
+        _arg6 = converter.GetOutputConverterFor(typeof(Tin6));
 
-        _resultConverter = typeBehaviour.GetInputConverterFor(typeof(Tout));
+        _resultConverter = converter.GetInputConverterFor(typeof(Tout));
         ArgTypes = new[] {
             _arg1.FunnyType,
             _arg2.FunnyType,
@@ -247,18 +247,18 @@ class ConcreteLambdaWrapperFunction<Tin1, Tin2, Tin3, Tin4, Tin5, Tin6, Tin7, To
 
     private readonly IInputFunnyConverter _resultConverter;
 
-    public ConcreteLambdaWrapperFunction(string id, Func<Tin1, Tin2, Tin3, Tin4, Tin5, Tin6, Tin7, Tout> function, TypeBehaviour typeBehaviour) :
+    public ConcreteLambdaWrapperFunction(string id, Func<Tin1, Tin2, Tin3, Tin4, Tin5, Tin6, Tin7, Tout> function, FunnyConverter converter) :
         base(id) {
         _function = function;
-        _arg1 = typeBehaviour.GetOutputConverterFor(typeof(Tin1));
-        _arg2 = typeBehaviour.GetOutputConverterFor(typeof(Tin2));
-        _arg3 = typeBehaviour.GetOutputConverterFor(typeof(Tin3));
-        _arg4 = typeBehaviour.GetOutputConverterFor(typeof(Tin4));
-        _arg5 = typeBehaviour.GetOutputConverterFor(typeof(Tin5));
-        _arg6 = typeBehaviour.GetOutputConverterFor(typeof(Tin6));
-        _arg7 = typeBehaviour.GetOutputConverterFor(typeof(Tin7));
+        _arg1 = converter.GetOutputConverterFor(typeof(Tin1));
+        _arg2 = converter.GetOutputConverterFor(typeof(Tin2));
+        _arg3 = converter.GetOutputConverterFor(typeof(Tin3));
+        _arg4 = converter.GetOutputConverterFor(typeof(Tin4));
+        _arg5 = converter.GetOutputConverterFor(typeof(Tin5));
+        _arg6 = converter.GetOutputConverterFor(typeof(Tin6));
+        _arg7 = converter.GetOutputConverterFor(typeof(Tin7));
 
-        _resultConverter = typeBehaviour.GetInputConverterFor(typeof(Tout));
+        _resultConverter = converter.GetInputConverterFor(typeof(Tout));
         ArgTypes = new[] {
             _arg1.FunnyType,
             _arg2.FunnyType,

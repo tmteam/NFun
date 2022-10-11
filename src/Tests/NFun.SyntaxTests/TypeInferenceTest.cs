@@ -125,7 +125,7 @@ public class TypeInferenceTest {
     //    supsum(n) = [1..n].map(div12).sum()
     //    y = [1..20].map(supsum).sum().round()", BaseVarType.Int32)]
     public void SingleEquation_Runtime_OutputTypeCalculatesCorrect(string expr, BaseFunnyType type) {
-        var clrtype = TypeBehaviourExtensions.GetOutputConverterFor(TypeBehaviour.RealIsDouble, FunnyType.PrimitiveOf(type)).ClrType;
+        var clrtype = FunnyConverter.RealIsDouble.GetOutputConverterFor(FunnyType.PrimitiveOf(type)).ClrType;
 
         expr.Calc().AssertResultIs(clrtype);
     }
@@ -232,9 +232,9 @@ public class TypeInferenceTest {
         string expr, BaseFunnyType ytype, BaseFunnyType ztype) {
         var res = expr.Calc();
         var y = res.Get("y");
-        Assert.AreEqual(y.GetType(), TypeBehaviourExtensions.GetOutputConverterFor(TypeBehaviour.RealIsDouble, FunnyType.PrimitiveOf(ytype)).ClrType);
+        Assert.AreEqual(y.GetType(), FunnyConverter.RealIsDouble.GetOutputConverterFor(FunnyType.PrimitiveOf(ytype)).ClrType);
         var z = res.Get("z");
-        Assert.AreEqual(z.GetType(), TypeBehaviourExtensions.GetOutputConverterFor(TypeBehaviour.RealIsDouble, FunnyType.PrimitiveOf(ztype)).ClrType);
+        Assert.AreEqual(z.GetType(), FunnyConverter.RealIsDouble.GetOutputConverterFor(FunnyType.PrimitiveOf(ztype)).ClrType);
     }
 
     [TestCase("x:foo\r y= x and true")]
@@ -486,5 +486,5 @@ public class TypeInferenceTest {
     }
 
     private static Type GetClrType(FunnyType funnyType) =>
-        TypeBehaviour.RealIsDouble.GetOutputConverterFor(funnyType).ClrType;
+        FunnyConverter.RealIsDouble.GetOutputConverterFor(funnyType).ClrType;
 }

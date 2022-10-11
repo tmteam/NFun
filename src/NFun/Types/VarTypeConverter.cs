@@ -142,10 +142,8 @@ public static class VarTypeConverter {
                 if (!value.Equals(fromFieldType))
                     return null;
             }
-
             return NoConvertion;
         }
-
         return null;
     }
     
@@ -170,9 +168,9 @@ public static class VarTypeConverter {
                         continue;
                     //Check for Fun and struct types is quite expensive, so there is no big reason to write optimized code  
                     case BaseFunnyType.Fun:
-                        return GetConverterOrNull(Dialects.Origin.TypeBehaviour, @from, to) != null;
+                        return GetConverterOrNull(Dialects.Origin.Converter.TypeBehaviour, @from, to) != null;
                     case BaseFunnyType.Struct:
-                        return GetConverterOrNull(Dialects.Origin.TypeBehaviour, @from, to) != null;
+                        return GetConverterOrNull(Dialects.Origin.Converter.TypeBehaviour, @from, to) != null;
                 }
             }
 

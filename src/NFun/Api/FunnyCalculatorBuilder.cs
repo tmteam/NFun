@@ -39,47 +39,47 @@ public class FunnyCalculatorBuilder {
     }
 
     public FunnyCalculatorBuilder WithFunction<Tin, TOut>(string name, Func<Tin, TOut> function) {
-        _customFunctionFactories.Add(d=> LambdaWrapperFactory.Create(name, function, d.TypeBehaviour));
+        _customFunctionFactories.Add(d=> LambdaWrapperFactory.Create(name, function, d.Converter));
         return this;
     }
 
     public FunnyCalculatorBuilder WithFunction<Tin1, Tin2, TOut>(string name, Func<Tin1, Tin2, TOut> function) {
-        _customFunctionFactories.Add(d=>LambdaWrapperFactory.Create(name, function, d.TypeBehaviour));
+        _customFunctionFactories.Add(d=>LambdaWrapperFactory.Create(name, function, d.Converter));
         return this;
     }
 
     public FunnyCalculatorBuilder WithFunction<Tin1, Tin2, Tin3, TOut>(
         string name,
         Func<Tin1, Tin2, Tin3, TOut> function) {
-        _customFunctionFactories.Add(d=>LambdaWrapperFactory.Create(name, function, d.TypeBehaviour));
+        _customFunctionFactories.Add(d=>LambdaWrapperFactory.Create(name, function, d.Converter));
         return this;
     }
 
     public FunnyCalculatorBuilder WithFunction<Tin1, Tin2, Tin3, Tin4, TOut>(
         string name,
         Func<Tin1, Tin2, Tin3, Tin4, TOut> function) {
-        _customFunctionFactories.Add(d=>LambdaWrapperFactory.Create(name, function, d.TypeBehaviour));
+        _customFunctionFactories.Add(d=>LambdaWrapperFactory.Create(name, function, d.Converter));
         return this;
     }
 
     public FunnyCalculatorBuilder WithFunction<Tin1, Tin2, Tin3, Tin4, Tin5, TOut>(
         string name,
         Func<Tin1, Tin2, Tin3, Tin4, Tin5, TOut> function) {
-        _customFunctionFactories.Add(d=>LambdaWrapperFactory.Create(name, function, d.TypeBehaviour));
+        _customFunctionFactories.Add(d=>LambdaWrapperFactory.Create(name, function, d.Converter));
         return this;
     }
 
     public FunnyCalculatorBuilder WithFunction<Tin1, Tin2, Tin3, Tin4, Tin5, Tin6, TOut>(
         string name,
         Func<Tin1, Tin2, Tin3, Tin4, Tin5, Tin6, TOut> function) {
-        _customFunctionFactories.Add(d=>LambdaWrapperFactory.Create(name, function, d.TypeBehaviour));
+        _customFunctionFactories.Add(d=>LambdaWrapperFactory.Create(name, function, d.Converter));
         return this;
     }
 
     public FunnyCalculatorBuilder WithFunction<Tin1, Tin2, Tin3, Tin4, Tin5, Tin6, Tin7, TOut>(
         string name,
         Func<Tin1, Tin2, Tin3, Tin4, Tin5, Tin6, Tin7, TOut> function) {
-        _customFunctionFactories.Add(d=>LambdaWrapperFactory.Create(name, function, d.TypeBehaviour));
+        _customFunctionFactories.Add(d=>LambdaWrapperFactory.Create(name, function, d.Converter));
         return this;
     }
 
@@ -129,7 +129,7 @@ public class FunnyCalculatorBuilder {
         IConstantList constants = null;
         if (_constantList.Any())
         {
-            var cl = new ConstantList(_dialect.TypeBehaviour);
+            var cl = new ConstantList(_dialect.Converter);
             foreach (var constant in _constantList)
             {
                 cl.AddConstant(constant.Item1, constant.Item2);
@@ -138,7 +138,7 @@ public class FunnyCalculatorBuilder {
             constants = cl;
         }
 
-        ImmutableFunctionDictionary dic = BaseFunctions.GetFunctions(_dialect.TypeBehaviour);
+        ImmutableFunctionDictionary dic = BaseFunctions.GetFunctions(_dialect.Converter.TypeBehaviour);
 
         if (_customFunctionFactories.Any())
             dic = dic.CloneWith(_customFunctionFactories.Select(f=>f(_dialect)).ToArray());

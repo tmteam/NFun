@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using NFun.Interpretation.Functions;
+using NFun.Runtime;
 using NFun.Runtime.Arrays;
 using NFun.Types;
 using NUnit.Framework;
@@ -20,7 +21,7 @@ public class OutputTypeConvertersTest {
     [TestCase(true, BaseFunnyType.Bool)]
     public void ConvertPrimitiveType(object primitiveValue, BaseFunnyType expectedTypeName) {
         var clrType = primitiveValue.GetType();
-        var converter = TypeBehaviour.RealIsDouble.GetOutputConverterFor(clrType);
+        var converter = FunnyConverter.RealIsDouble.GetOutputConverterFor(clrType);
         Assert.AreEqual(expectedTypeName, converter.FunnyType.BaseType);
         var convertedValue = converter.ToClrObject(primitiveValue);
         Assert.AreEqual(primitiveValue, convertedValue);
@@ -40,7 +41,7 @@ public class OutputTypeConvertersTest {
 
     private void ConvertRealTypes(object primitiveValue, double origin) {
         var clrType = primitiveValue.GetType();
-        var converter = TypeBehaviour.RealIsDouble.GetOutputConverterFor(clrType);
+        var converter = FunnyConverter.RealIsDouble.GetOutputConverterFor(clrType);
         Assert.AreEqual(FunnyType.Real, converter.FunnyType);
         var convertedValue = converter.ToClrObject(origin);
         Assert.AreEqual(primitiveValue, convertedValue);
@@ -57,7 +58,7 @@ public class OutputTypeConvertersTest {
     [TestCase(new[] { true, false }, BaseFunnyType.Bool)]
     public void ConvertPrimitiveTypeArrays(object primitiveValue, BaseFunnyType expectedTypeName) {
         var clrType = primitiveValue.GetType();
-        var converter = TypeBehaviour.RealIsDouble.GetOutputConverterFor(clrType);
+        var converter = FunnyConverter.RealIsDouble.GetOutputConverterFor(clrType);
 
         Assert.AreEqual(FunnyType.ArrayOf(FunnyType.PrimitiveOf(expectedTypeName)), converter.FunnyType);
         var convertedValue = converter.ToClrObject(
@@ -69,7 +70,7 @@ public class OutputTypeConvertersTest {
     [TestCase("v")]
     [TestCase("value")]
     public void ConvertString(string value) {
-        var converter = TypeBehaviour.RealIsDouble.GetOutputConverterFor(typeof(string));
+        var converter = FunnyConverter.RealIsDouble.GetOutputConverterFor(typeof(string));
         Assert.AreEqual(FunnyType.Text, converter.FunnyType);
 
         Assert.AreEqual(value, converter.ToClrObject(new TextFunnyArray(value)));
@@ -79,7 +80,7 @@ public class OutputTypeConvertersTest {
     public void ConvertArrayOfStrings() {
         string[] clrValue = { "vasa", "kata", "" };
 
-        var converter = TypeBehaviour.RealIsDouble.GetOutputConverterFor(clrValue.GetType());
+        var converter = FunnyConverter.RealIsDouble.GetOutputConverterFor(clrValue.GetType());
 
         Assert.AreEqual(FunnyType.ArrayOf(FunnyType.Text), converter.FunnyType);
         var funValue = new ImmutableFunnyArray(
@@ -95,14 +96,14 @@ public class OutputTypeConvertersTest {
             new object[] { 2, 1, "kate" },
             new object[] { }
         };
-        var converter = TypeBehaviour.RealIsDouble.GetOutputConverterFor(inputValue.GetType());
+        var converter = FunnyConverter.RealIsDouble.GetOutputConverterFor(inputValue.GetType());
         Assert.AreEqual(FunnyType.ArrayOf(FunnyType.ArrayOf(FunnyType.Any)), converter.FunnyType);
     }
 
     [Test]
     public void StructType() {
         var inputUser = new UserMoqOutputType("vasa", 42, 17.1, Decimal.Zero);
-        var converter = TypeBehaviour.RealIsDouble.GetOutputConverterFor(inputUser.GetType());
+        var converter = FunnyConverter.RealIsDouble.GetOutputConverterFor(inputUser.GetType());
         Assert.AreEqual(
             FunnyType.StructOf(
                 ("name", FunnyType.Text),
@@ -118,7 +119,7 @@ public class OutputTypeConvertersTest {
             new UserMoqType("peta", 41, 17.0,  new Decimal(31)),
             new UserMoqType("kata", 40, -17.1, new Decimal(0))
         };
-        Assert.Catch(() => TypeBehaviour.RealIsDouble.GetOutputConverterFor(inputUsers.GetType()));
+        Assert.Catch(() => FunnyConverter.RealIsDouble.GetOutputConverterFor(inputUsers.GetType()));
     }
 
     [Test]
@@ -129,7 +130,7 @@ public class OutputTypeConvertersTest {
             new UserMoqOutputType("kata", 40, -17.1, new decimal(42.2))
         };
 
-        var converter = TypeBehaviour.RealIsDouble.GetOutputConverterFor(inputUsers.GetType());
+        var converter = FunnyConverter.RealIsDouble.GetOutputConverterFor(inputUsers.GetType());
         Assert.AreEqual(
             FunnyType.ArrayOf(
                 FunnyType.StructOf(
@@ -142,7 +143,71 @@ public class OutputTypeConvertersTest {
 
     [Test]
     public void RequrisiveType_Throws()
-        => Assert.Catch(() => TypeBehaviour.RealIsDouble.GetOutputConverterFor(typeof(NodeMoqRecursiveOutputType)));
+        => Assert.Catch(() => FunnyConverter.RealIsDouble.GetOutputConverterFor(typeof(NodeMoqRecursiveOutputType)));
+
+    [Test]    
+    public void PrimitiveTypeCreateNoItemInCache()
+    {
+        var converter = FunnyConverter.RealIsDouble;
+        converter.ClearCaches();
+        Assert.AreEqual(0, converter.CacheSize);
+        for (int i = 0; i < 10; i++)
+        {
+            converter.GetOutputConverterFor(FunnyType.Any);
+            converter.GetOutputConverterFor(FunnyType.Bool);
+            converter.GetOutputConverterFor(FunnyType.Char);
+            converter.GetOutputConverterFor(FunnyType.Int16);
+            converter.GetOutputConverterFor(FunnyType.Int32);
+            converter.GetOutputConverterFor(FunnyType.Int64);
+            converter.GetOutputConverterFor(FunnyType.Real);
+            converter.GetOutputConverterFor(FunnyType.UInt8);
+            converter.GetOutputConverterFor(FunnyType.UInt16);
+            converter.GetOutputConverterFor(FunnyType.UInt32);
+            converter.GetOutputConverterFor(FunnyType.UInt64);
+        }
+
+        Assert.AreEqual(0, converter.CacheSize);
+    }
+
+    [Test]
+    public void Text_TypeCreatedOnce() => AssertCreatesItemInCacheOnce(FunnyType.Text);
+    
+    [Test]
+    public void Array_1_TypeCreatedOnce() => AssertCreatesItemInCacheOnce(FunnyType.ArrayOf(FunnyType.Any));
+    
+    [Test]
+    public void Array_2_TypeCreatedOnce() => AssertCreatesItemInCacheOnce(FunnyType.ArrayOf(FunnyType.ArrayOf(FunnyType.Any)));
+    
+    [Test]
+    public void Array_3_TypeCreatedOnce() => AssertCreatesItemInCacheOnce(FunnyType.ArrayOf(FunnyType.ArrayOf(FunnyType.Text)));
+    
+    [Test]
+    public void Struct_1_TypeCreatedOnce() => AssertCreatesItemInCacheOnce(
+        FunnyType.StructOf(
+            ("a", FunnyType.Int16), 
+            ("b", FunnyType.FunOf(FunnyType.Int32, FunnyType.FunOf(FunnyType.Int16, FunnyType.Bool), FunnyType.ArrayOf(FunnyType.Text)))));
+    
+    [Test]
+    public void Struct_2_TypeCreatedOnce() => AssertCreatesItemInCacheOnce(
+        FunnyType.StructOf(
+            ("a", FunnyType.StructOf(("c", FunnyType.Bool))),
+            ("b", FunnyType.StructOf(("c", FunnyType.Bool))),
+            ("c", FunnyType.FunOf(FunnyType.Int32, FunnyType.FunOf(FunnyType.Int16, FunnyType.Bool), FunnyType.ArrayOf(FunnyType.Text)))));
+    
+
+    private void AssertCreatesItemInCacheOnce(FunnyType type)
+    {
+        var converter = FunnyConverter.RealIsDouble;
+        converter.ClearCaches();
+        Assert.AreEqual(0, converter.CacheSize);
+        converter.GetOutputConverterFor(type);
+        var size = converter.CacheSize;
+        for (int i = 0; i < 10; i++)
+        {
+            converter.GetOutputConverterFor(type);
+        }
+        Assert.AreEqual(size, converter.CacheSize);
+    }
 }
 
 class NodeMoqRecursiveOutputType {

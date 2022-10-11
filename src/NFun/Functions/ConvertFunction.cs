@@ -32,7 +32,7 @@ public class ConvertFunction : GenericFunctionBase {
         if (from == FunnyType.Text && to.ArrayTypeSpecification?.FunnyType == FunnyType.UInt8)
             return new ConcreteConverter(o => 
                 new ImmutableFunnyArray(Encoding.Unicode.GetBytes(((IFunnyArray)o).ToText())), from, to);
-        var converter = VarTypeConverter.GetConverterOrNull(context.TypeBehaviour, @from, to);
+        var converter = VarTypeConverter.GetConverterOrNull(context.Converter.TypeBehaviour, @from, to);
         if (converter != null)
             return new ConcreteConverter(converter, from, to);
 

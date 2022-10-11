@@ -81,11 +81,21 @@ public class IOTypeConvertersTest {
         public string[] lOveRs { get; set; }
     }
 
-    private void AssertFunnyConvert(object originClrObject) {
-        var inputConverter = TypeBehaviour.RealIsDouble.GetInputConverterFor(originClrObject.GetType());
-        var outputConverter = TypeBehaviour.RealIsDouble.GetOutputConverterFor(originClrObject.GetType());
+    private void AssertFunnyConvert(object originClrObject)
+    {
+        var converter = FunnyConverter.RealIsDouble;
+        converter.ClearCaches();
+        var inputConverter =  FunnyConverter.RealIsDouble.GetInputConverterFor(originClrObject.GetType());
+        var outputConverter = FunnyConverter.RealIsDouble.GetOutputConverterFor(originClrObject.GetType());
+        var size = converter.CacheSize;
         var funObject = inputConverter.ToFunObject(originClrObject);
         var clrObject = outputConverter.ToClrObject(funObject);
         Assert.IsTrue(TestHelper.AreSame(originClrObject, clrObject));
+        
+        FunnyConverter.RealIsDouble.GetInputConverterFor(originClrObject.GetType());
+        FunnyConverter.RealIsDouble.GetOutputConverterFor(originClrObject.GetType());
+        FunnyConverter.RealIsDouble.GetInputConverterFor(originClrObject.GetType());
+        FunnyConverter.RealIsDouble.GetOutputConverterFor(originClrObject.GetType());
+        Assert.AreEqual(size, converter.CacheSize);        
     }
 }

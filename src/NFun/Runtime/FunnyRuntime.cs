@@ -11,14 +11,14 @@ public class FunnyRuntime {
     private readonly IList<Equation> _equations;
     internal readonly IReadonlyVariableDictionary VariableDictionary;
 
-    internal FunnyRuntime(IList<Equation> equations, IReadonlyVariableDictionary variableDictionary, TypeBehaviour typeBehaviour) {
-        TypeBehaviour = typeBehaviour;
+    internal FunnyRuntime(IList<Equation> equations, IReadonlyVariableDictionary variableDictionary, FunnyConverter converter) {
+        Converter = converter;
         _equations = equations;
         VariableDictionary = variableDictionary;
         _variables = new Lazy<IReadOnlyList<IFunnyVar>>(() => VariableDictionary.GetAllAsArray());
     }
 
-    public TypeBehaviour TypeBehaviour { get; }
+    public FunnyConverter Converter { get; }
 
     private readonly Lazy<IReadOnlyList<IFunnyVar>> _variables;
     /// <summary>
@@ -44,6 +44,6 @@ public class FunnyRuntime {
         var dictionaryCopy = VariableDictionary.Clone();
         var context = new CloneContext(dictionaryCopy);
         var equations = _equations.SelectToArray(e => e.Clone(context));
-        return new FunnyRuntime(equations, dictionaryCopy, TypeBehaviour);
+        return new FunnyRuntime(equations, dictionaryCopy, Converter);
     }
 }

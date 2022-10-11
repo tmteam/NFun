@@ -7,7 +7,7 @@ using NFun.Runtime;
 using NFun.SyntaxParsing;
 using NFun.Types;
 
-namespace NFun; 
+namespace NFun;
 
 internal static class FluentApiTools {
     public static TOutput CreateOutputModelFromResults<TOutput>(FunnyRuntime runtime,Memory<OutputProperty> outputs) 
@@ -46,7 +46,7 @@ internal static class FluentApiTools {
         {
             if (!outputProperty.HasPublicSetter())
                 continue;
-            var converter = dialectSettings.TypeBehaviour.GetOutputConverterFor(outputProperty.PropertyType);
+            var converter = dialectSettings.Converter.GetOutputConverterFor(outputProperty.PropertyType);
             var outputName = outputProperty.Name.ToLower();
 
             aprioriTypesMap.Add(outputName, converter.FunnyType);
@@ -72,7 +72,7 @@ internal static class FluentApiTools {
 
     public static Memory<InputProperty> AddAprioriInputs<TInput>(
         this MutableAprioriTypesMap mutableApriori, 
-        TypeBehaviour typeBehaviour, 
+        FunnyConverter funnyConverter, 
         bool ignoreIfHasSetter = false) {
         
         var inputProperties = typeof(TInput).GetProperties(BindingFlags.Instance | BindingFlags.Public);
@@ -89,7 +89,7 @@ internal static class FluentApiTools {
             if(ignoreIfHasSetter && inputProperty.HasPublicSetter())
                 continue;
             
-            var converter = typeBehaviour.GetInputConverterFor(inputProperty.PropertyType);
+            var converter = funnyConverter.GetInputConverterFor(inputProperty.PropertyType);
             var inputName = inputProperty.Name.ToLower();
 
             mutableApriori.Add(inputName, converter.FunnyType);

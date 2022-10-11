@@ -137,73 +137,6 @@ public readonly struct FunnyType {
     public static bool operator !=(FunnyType obj1, FunnyType obj2)
         => !obj1.Equals(obj2);
 
-    public override bool Equals(object obj) {
-        if (ReferenceEquals(null, obj)) return false;
-        return obj is FunnyType other && Equals(other);
-    }
-
-    private bool Equals(FunnyType obj) {
-        if (obj.BaseType != BaseType)
-            return false;
-
-        switch (BaseType)
-        {
-            case BaseFunnyType.Bool:
-
-            case BaseFunnyType.Int16:
-            case BaseFunnyType.Int32:
-            case BaseFunnyType.Int64:
-            case BaseFunnyType.UInt8:
-            case BaseFunnyType.UInt16:
-            case BaseFunnyType.UInt32:
-            case BaseFunnyType.UInt64:
-
-            case BaseFunnyType.Real:
-            case BaseFunnyType.Char:
-            case BaseFunnyType.Any:
-                return true;
-            case BaseFunnyType.ArrayOf:
-                return ArrayTypeSpecification.FunnyType.Equals(obj.ArrayTypeSpecification.FunnyType);
-            case BaseFunnyType.Fun:
-            {
-                var funA = FunTypeSpecification;
-                var funB = obj.FunTypeSpecification;
-
-                if (!funA.Output.Equals(funB.Output))
-                    return false;
-
-                for (int i = 0; i < funA.Inputs.Length; i++)
-                {
-                    if (!funA.Inputs[i].Equals(funB.Inputs[i]))
-                        return false;
-                }
-
-                return true;
-            }
-            case BaseFunnyType.Generic:
-                return GenericId == obj.GenericId;
-            case BaseFunnyType.Struct:
-                foreach (var (key, value) in StructTypeSpecification)
-                {
-                    if (!obj.StructTypeSpecification.TryGetValue(key, out var otherValue))
-                        return false;
-                    if (!value.Equals(otherValue))
-                        return false;
-                }
-
-                return StructTypeSpecification.Count == obj.StructTypeSpecification.Count;
-            default:
-                return true;
-        }
-    }
-    public override int GetHashCode() {
-        unchecked
-        {
-            return ((int)BaseType * 397) ^
-                   (ArrayTypeSpecification?.GetHashCode() ??
-                    FunTypeSpecification?.GetHashCode() ?? StructTypeSpecification?.GetHashCode() ?? 0);
-        }
-    }
     public bool IsPrimitive
         => (BaseType >= BaseFunnyType.Char && BaseType <= BaseFunnyType.Real) || BaseType == BaseFunnyType.Any;
 
@@ -355,6 +288,30 @@ public readonly struct FunnyType {
         };
 
     // ReSharper disable once MemberCanBePrivate.Global
-    public bool CanBeConvertedTo(FunnyType to)
-        => VarTypeConverter.CanBeConverted(this, to);
+    public bool CanBeConvertedTo(FunnyType to) => 
+        VarTypeConverter.CanBeConverted(this, to);
+    
+    public override bool Equals(object obj) => 
+        obj is FunnyType other && Equals(other);
+
+    public bool Equals(FunnyType obj) => 
+        BaseType == obj.BaseType 
+        && Equals(StructTypeSpecification, obj.StructTypeSpecification) 
+        && Equals(ArrayTypeSpecification, obj.ArrayTypeSpecification) 
+        && Equals(FunTypeSpecification, obj.FunTypeSpecification) 
+        && _genericArgumentsCount == obj._genericArgumentsCount 
+        && GenericId == obj.GenericId;
+
+    public override int GetHashCode() {
+        unchecked
+        {
+            var hashCode = (int)BaseType;
+            hashCode = (hashCode * 397) ^ (StructTypeSpecification != null ? StructTypeSpecification.GetHashCode() : 0);
+            hashCode = (hashCode * 397) ^ (ArrayTypeSpecification != null ? ArrayTypeSpecification.GetHashCode() : 0);
+            hashCode = (hashCode * 397) ^ (FunTypeSpecification != null ? FunTypeSpecification.GetHashCode() : 0);
+            hashCode = (hashCode * 397) ^ _genericArgumentsCount;
+            hashCode = (hashCode * 397) ^ GenericId.GetHashCode();
+            return hashCode;
+        }
+    }
 }

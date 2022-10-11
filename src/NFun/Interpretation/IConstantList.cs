@@ -18,13 +18,13 @@ internal class EmptyConstantList : IConstantList {
 }
 
 internal class ConstantList : IConstantList {
-    private readonly TypeBehaviour _typeBehaviour;
-    public ConstantList(TypeBehaviour typeBehaviour) {
+    private readonly FunnyConverter _typeBehaviour;
+    public ConstantList(FunnyConverter typeBehaviour) {
         _typeBehaviour = typeBehaviour;
         _dictionary = new Dictionary<string, ConstantValueAndType>();
     }
 
-    internal ConstantList(TypeBehaviour typeBehaviour, (string id, object value)[] items) {
+    internal ConstantList(FunnyConverter typeBehaviour, (string id, object value)[] items) {
         _typeBehaviour = typeBehaviour;
         _dictionary = new Dictionary<string, ConstantValueAndType>(items.Length);
         foreach (var (id, value) in items)

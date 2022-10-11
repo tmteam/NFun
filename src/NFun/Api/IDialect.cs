@@ -7,7 +7,7 @@ internal static class Dialects {
         = new(
             ifExpressionSetup: IfExpressionSetup.IfIfElse, 
             integerPreferredType: IntegerPreferredType.I32, 
-            typeBehaviour: TypeBehaviour.RealIsDouble, 
+            funnyConverter: FunnyConverter.RealIsDouble, 
             allowIntegerOverflow: false);
     
     public static DialectSettings ModifyOrigin(
@@ -17,27 +17,27 @@ internal static class Dialects {
         IntegerOverflow integerOverflow = IntegerOverflow.Checked)
         => new(ifExpressionSetup, integerPreferredType,
             realClrType == RealClrType.IsDouble
-                ? TypeBehaviour.RealIsDouble
-                : TypeBehaviour.RealIsDecimal,
+                ? FunnyConverter.RealIsDouble
+                : FunnyConverter.RealIsDecimal,
             integerOverflow == IntegerOverflow.Unchecked);
 }
 
 
 public interface IFunctionSelectorContext {
     T RealTypeSelect<T>(T ifIsDouble, T ifIsDecimal);
-    TypeBehaviour TypeBehaviour { get; }
+    FunnyConverter Converter { get; }
     bool AllowIntegerOverflow { get; }
 }
 
 public sealed class DialectSettings : IFunctionSelectorContext {
-    internal DialectSettings(IfExpressionSetup ifExpressionSetup, IntegerPreferredType integerPreferredType, TypeBehaviour typeBehaviour, bool allowIntegerOverflow) {
+    internal DialectSettings(IfExpressionSetup ifExpressionSetup, IntegerPreferredType integerPreferredType, FunnyConverter funnyConverter, bool allowIntegerOverflow) {
         IfExpressionSetup = ifExpressionSetup;
         IntegerPreferredType = integerPreferredType;
-        TypeBehaviour = typeBehaviour;
+        Converter = funnyConverter;
         AllowIntegerOverflow = allowIntegerOverflow;
     }
-    public T RealTypeSelect<T>(T ifIsDouble, T ifIsDecimal) => TypeBehaviour.RealTypeSelect(ifIsDouble, ifIsDecimal);
-    public TypeBehaviour TypeBehaviour { get; }
+    public T RealTypeSelect<T>(T ifIsDouble, T ifIsDecimal) => Converter.TypeBehaviour.RealTypeSelect(ifIsDouble, ifIsDecimal);
+    public FunnyConverter Converter { get; }
     public IfExpressionSetup IfExpressionSetup { get; }
     public IntegerPreferredType IntegerPreferredType { get; }
     public bool AllowIntegerOverflow { get; }

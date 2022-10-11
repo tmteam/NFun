@@ -59,7 +59,7 @@ internal class Calculator<TInput> : ICalculator<TInput> {
     public Calculator(FunnyCalculatorBuilder builder) {
         _builder = builder;
         _mutableApriori = new MutableAprioriTypesMap();
-        _inputsMap = _mutableApriori.AddAprioriInputs<TInput>(Dialects.Origin.TypeBehaviour);
+        _inputsMap = _mutableApriori.AddAprioriInputs<TInput>(Dialects.Origin.Converter);
     }
     
     public object Calc(string expression, TInput input)
@@ -73,7 +73,7 @@ internal class Calculator<TInput> : ICalculator<TInput> {
         int isRunning = 0;
         return input => {
             if (Interlocked.CompareExchange(ref isRunning, 1, 0) !=0) {
-                // if runtime already run - create runtime copy, and run it
+                // if runtime is already running - create runtime copy, and run it
                 return Run(runtime.Clone(), input);
             }
             
@@ -105,7 +105,7 @@ internal class CalculatorMany<TInput, TOutput> : ICalculator<TInput, TOutput> wh
     public CalculatorMany(FunnyCalculatorBuilder builder) {
         _builder = builder;
         _mutableApriori = new MutableAprioriTypesMap();
-        _inputsMap = _mutableApriori.AddAprioriInputs<TInput>(_builder.Dialect.TypeBehaviour);
+        _inputsMap = _mutableApriori.AddAprioriInputs<TInput>(_builder.Dialect.Converter);
         _outputsMap = _mutableApriori.AddManyAprioriOutputs<TOutput>(_builder.Dialect);
     }
     
@@ -149,14 +149,14 @@ internal class CalculatorSingle<TInput, TOutput> : ICalculator<TInput, TOutput> 
     private readonly IOutputFunnyConverter _outputConverter;
 
     public CalculatorSingle(FunnyCalculatorBuilder builder) {
-        if (builder.Dialect.TypeBehaviour.DoubleIsReal && typeof(TOutput) == typeof(decimal))
+        if (builder.Dialect.Converter.TypeBehaviour.DoubleIsReal && typeof(TOutput) == typeof(decimal))
             throw FunnyInvalidUsageException.DecimalTypeCannotBeUsedAsOutput();
         
         _builder = builder;
         _mutableApriori = new MutableAprioriTypesMap();
-        _inputsMap = FluentApiTools.AddAprioriInputs<TInput>(_mutableApriori, Dialects.Origin.TypeBehaviour);
+        _inputsMap = _mutableApriori.AddAprioriInputs<TInput>(Dialects.Origin.Converter);
 
-        _outputConverter = TypeBehaviourExtensions.GetOutputConverterFor(_builder.Dialect.TypeBehaviour, typeof(TOutput));
+        _outputConverter = _builder.Dialect.Converter.GetOutputConverterFor(typeof(TOutput));
         _mutableApriori.Add(Parser.AnonymousEquationId, _outputConverter.FunnyType);
     }
     
@@ -207,7 +207,7 @@ internal class ContextCalculator<TContext> : IContextCalculator<TContext> {
         _mutableApriori = new MutableAprioriTypesMap();
         
         _outputsMap = _mutableApriori.AddManyAprioriOutputs<TContext>(builder.Dialect);
-        _inputsMap = _mutableApriori.AddAprioriInputs<TContext>(builder.Dialect.TypeBehaviour, ignoreIfHasSetter: true);
+        _inputsMap = _mutableApriori.AddAprioriInputs<TContext>(builder.Dialect.Converter, ignoreIfHasSetter: true);
     }
     public void Calc(string expression, TContext context) => ToLambda(expression)(context);
     
@@ -251,10 +251,10 @@ internal class ConstantCalculatorSingle<TOutput> : IConstantCalculator<TOutput> 
     private readonly IOutputFunnyConverter _outputConverter;
    
     public ConstantCalculatorSingle(FunnyCalculatorBuilder builder) {
-        if (builder.Dialect.TypeBehaviour.DoubleIsReal && typeof(TOutput) == typeof(decimal))
+        if (builder.Dialect.Converter.TypeBehaviour.DoubleIsReal && typeof(TOutput) == typeof(decimal))
             throw FunnyInvalidUsageException.DecimalTypeCannotBeUsedAsOutput();
         
-        _outputConverter = builder.Dialect.TypeBehaviour.GetOutputConverterFor(typeof(TOutput));
+        _outputConverter = builder.Dialect.Converter.GetOutputConverterFor(typeof(TOutput));
         _mutableApriori = new SingleAprioriTypesMap( Parser.AnonymousEquationId, _outputConverter.FunnyType);
         _builder = builder;
     }

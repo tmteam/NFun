@@ -43,7 +43,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             new ExpressionBuilderVisitor(functions, variables, typeInferenceResults, typesConverter, dialect));
         if (result.Type == outputType)
             return result;
-        var converter = VarTypeConverter.GetConverterOrThrow(dialect.TypeBehaviour, result.Type, outputType, node.Interval);
+        var converter = VarTypeConverter.GetConverterOrThrow(dialect.Converter.TypeBehaviour, result.Type, outputType, node.Interval);
 
         return new CastExpressionNode(result, outputType, converter, node.Interval);
     }
@@ -87,7 +87,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         {
             var arg = argNames[i];
             var type = outputTypeFunDefinition.Inputs[i];
-            var source = VariableSource.CreateWithoutStrictTypeLabel(arg, type, FunnyVarAccess.Input, _dialect.TypeBehaviour);
+            var source = VariableSource.CreateWithoutStrictTypeLabel(arg, type, FunnyVarAccess.Input, _dialect.Converter);
             //collect argument
             arguments[i] = source;
             //add argument to local scope
@@ -161,7 +161,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
             var source = VariableSource.CreateWithStrictTypeLabel(
                 varNode.Name, varNode.Type, arg.Interval,
                 FunnyVarAccess.Input,
-                _dialect.TypeBehaviour);
+                _dialect.Converter);
             //collect argument
             arguments[argIndex] = source;
             argIndex++;
@@ -189,7 +189,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         for (int i = 0; i < node.Expressions.Count; i++)
         {
             var elementNode = ReadNode(node.Expressions[i]);
-            elements[i] = CastExpressionNode.GetConvertedOrOriginOrThrow(elementNode, expectedElementType, _dialect.TypeBehaviour);
+            elements[i] = CastExpressionNode.GetConvertedOrOriginOrThrow(elementNode, expectedElementType, _dialect.Converter.TypeBehaviour);
         }
 
         return new ArrayExpressionNode(elements, node.Interval, node.OutputType);
@@ -273,10 +273,10 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
             conditionNodes[i] = ReadNode(ifCaseNode.Condition);
             var exprNode = ReadNode(ifCaseNode.Expression);
-            expressionNodes[i] = CastExpressionNode.GetConvertedOrOriginOrThrow(exprNode, node.OutputType, _dialect.TypeBehaviour);
+            expressionNodes[i] = CastExpressionNode.GetConvertedOrOriginOrThrow(exprNode, node.OutputType, _dialect.Converter.TypeBehaviour);
         }
 
-        var elseNode = CastExpressionNode.GetConvertedOrOriginOrThrow(ReadNode(node.ElseExpr), node.OutputType, _dialect.TypeBehaviour);
+        var elseNode = CastExpressionNode.GetConvertedOrOriginOrThrow(ReadNode(node.ElseExpr), node.OutputType, _dialect.Converter.TypeBehaviour);
 
         return new IfElseExpressionNode(
             expressionNodes, conditionNodes, elseNode,
@@ -298,10 +298,10 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
     private (IExpressionNode, FunnyType) GetConstantNodeOrNull(object value, ISyntaxNode node) {
         var type = _typesConverter.Convert(_typeInferenceResults.GetSyntaxNodeTypeOrNull(node.OrderNumber));
         return (value switch {
-                    long l  => ConstantExpressionNode.CreateConcrete(type, l, _dialect.TypeBehaviour, node.Interval),
-                    ulong u => ConstantExpressionNode.CreateConcrete(type, u, _dialect.TypeBehaviour, node.Interval),
+                    long l  => ConstantExpressionNode.CreateConcrete(type, l, _dialect.Converter.TypeBehaviour, node.Interval),
+                    ulong u => ConstantExpressionNode.CreateConcrete(type, u, _dialect.Converter.TypeBehaviour, node.Interval),
                     string d => new ConstantExpressionNode(
-                        _dialect.TypeBehaviour.ParseOrNull(d) ?? throw Errors.CannotParseDecimalNumber(node.Interval), type, node.Interval),
+                        _dialect.Converter.TypeBehaviour.ParseOrNull(d) ?? throw Errors.CannotParseDecimalNumber(node.Interval), type, node.Interval),
                     _ => null
                 }, type);
     }
@@ -340,7 +340,7 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
         var source =  _variables.GetOrNull(node.Id);
         if (source == null)
         {
-            source = VariableSource.CreateWithoutStrictTypeLabel(node.Id, vType, FunnyVarAccess.Input, _dialect.TypeBehaviour);
+            source = VariableSource.CreateWithoutStrictTypeLabel(node.Id, vType, FunnyVarAccess.Input, _dialect.Converter);
             _variables.TryAdd(source);
         }
         var node1 = new VariableExpressionNode(source, node.Interval);
@@ -412,10 +412,10 @@ internal sealed class ExpressionBuilderVisitor : ISyntaxNodeVisitor<IExpressionN
 
     private IExpressionNode CreateFunctionCall(IFunCallSyntaxNode node, IConcreteFunction function) {
         var children = node.Args.SelectToArray(ReadNode);
-        var converted = function.CreateWithConvertionOrThrow(children, _dialect.TypeBehaviour, node.Interval);
+        var converted = function.CreateWithConvertionOrThrow(children, _dialect.Converter.TypeBehaviour, node.Interval);
         if (converted.Type != node.OutputType)
         {
-            var converter = VarTypeConverter.GetConverterOrThrow(_dialect.TypeBehaviour, converted.Type, node.OutputType, node.Interval);
+            var converter = VarTypeConverter.GetConverterOrThrow(_dialect.Converter.TypeBehaviour, converted.Type, node.OutputType, node.Interval);
             return new CastExpressionNode(converted, node.OutputType, converter, node.Interval);
         }
         else

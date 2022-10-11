@@ -12,10 +12,10 @@ public interface IOutputFunnyConverter {
 }
 
 public class DynamicTypeOutputFunnyConverter : IOutputFunnyConverter {
-    private readonly TypeBehaviour _behaviour;
-    public static DynamicTypeOutputFunnyConverter AnyConverter { get; } = new(typeof(object), TypeBehaviour.RealIsDouble);
+    private readonly FunnyConverter _behaviour;
+    public static DynamicTypeOutputFunnyConverter AnyConverter { get; } = new(typeof(object), FunnyConverter.RealIsDouble);
 
-    public DynamicTypeOutputFunnyConverter(Type clrType, TypeBehaviour typeBehaviour) {
+    public DynamicTypeOutputFunnyConverter(Type clrType, FunnyConverter typeBehaviour) {
         _behaviour = typeBehaviour;
         ClrType = clrType;
     }
@@ -140,10 +140,9 @@ internal class StructOutputFunnyConverter : IOutputFunnyConverter {
 }
 
 public class StructToDictionaryOutputFunnyConverter : IOutputFunnyConverter {
-    private readonly TypeBehaviour _typeBehaviour;
-    public StructToDictionaryOutputFunnyConverter(TypeBehaviour typeBehaviour,
-        FunnyType type) {
-        _typeBehaviour = typeBehaviour;
+    private readonly FunnyConverter _funnyConverter;
+    public StructToDictionaryOutputFunnyConverter(FunnyConverter funnyConverter, FunnyType type) {
+        _funnyConverter = funnyConverter;
         FunnyType = type;
     }
 
@@ -159,7 +158,7 @@ public class StructToDictionaryOutputFunnyConverter : IOutputFunnyConverter {
         {
             if (!str.TryGetValue(property.Key, out var fieldValue))
                 continue;
-            var converter = _typeBehaviour.GetOutputConverterFor(property.Value);
+            var converter = _funnyConverter.GetOutputConverterFor(property.Value);
             result.Add(property.Key, converter.ToClrObject(fieldValue));
         }
 

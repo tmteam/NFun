@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using NFun.Runtime.Arrays;
 using NFun.SyntaxParsing;
 using NFun.Tokenization;
 using NFun.Types;
@@ -53,56 +54,52 @@ public class VariableSource : IFunnyVar {
     private object _funnyValue;
     private static int _usedCount = 0;
     private readonly FunnyVarAccess _access;
-    private readonly TypeBehaviour _typeBehaviour;
+    private readonly FunnyConverter _funnyConverter;
 
     internal static VariableSource CreateWithStrictTypeLabel(
         string name,
         FunnyType type,
         Interval typeSpecificationIntervalOrNull,
         FunnyVarAccess access,
-        TypeBehaviour typeBehaviour,
+        FunnyConverter typeBehaviour,
         FunnyAttribute[] attributes = null)
         => new(name, type, typeSpecificationIntervalOrNull, access, typeBehaviour, attributes);
 
     internal static VariableSource CreateWithoutStrictTypeLabel(
-        string name, FunnyType type, FunnyVarAccess access, TypeBehaviour typeBehaviour, FunnyAttribute[] attributes = null)
-        => new(name, type, access,typeBehaviour, attributes);
+        string name, FunnyType type, FunnyVarAccess access, FunnyConverter typeBehaviour, FunnyAttribute[] attributes = null)
+        => new(name, type, access, typeBehaviour, attributes);
 
     private VariableSource(
         string name,
         FunnyType type,
         Interval typeSpecificationIntervalOrNull,
         FunnyVarAccess access,
-        TypeBehaviour typeBehaviour,
+        FunnyConverter funnyConverter,
         FunnyAttribute[] attributes = null)
     {
         _id = Interlocked.Increment(ref _usedCount);
         
         _access = access;
-        _funnyValue = typeBehaviour.GetDefaultValueOrNullFor(type);
-        _typeBehaviour = typeBehaviour;
+        _funnyConverter = funnyConverter;
+        _funnyValue = GetDefaultValueOrNullFor(type);
         TypeSpecificationIntervalOrNull = typeSpecificationIntervalOrNull;
         Attributes = attributes ?? Array.Empty<FunnyAttribute>();
         Name = name;
         Type = type;
     }
 
-    public void SetFunnyValueUnsafe(object funnyValue) => _funnyValue = funnyValue;
-
-    public bool IsOutput => _access.HasFlag(FunnyVarAccess.Output);
-
-
-    private VariableSource(string name, FunnyType type, FunnyVarAccess access, TypeBehaviour typeBehaviour, FunnyAttribute[] attributes = null) {
+    private VariableSource(string name, FunnyType type, FunnyVarAccess access, FunnyConverter funnyConverter, FunnyAttribute[] attributes = null) {
         _id = Interlocked.Increment(ref _usedCount);
         
         _access = access;
-        _typeBehaviour = typeBehaviour;
-        _funnyValue = typeBehaviour.GetDefaultValueOrNullFor(type);
+        _funnyConverter = funnyConverter;
+        _funnyValue = GetDefaultValueOrNullFor(type);
         Attributes = attributes ?? Array.Empty<FunnyAttribute>();
         Name = name;
         Type = type;
     }
 
+    public bool IsOutput => _access.HasFlag(FunnyVarAccess.Output);
     public FunnyAttribute[] Attributes { get; }
     public string Name { get; }
     internal Interval? TypeSpecificationIntervalOrNull { get; }
@@ -112,7 +109,7 @@ public class VariableSource : IFunnyVar {
     private bool _outputConverterLoaded;
     private IOutputFunnyConverter _outputConverter;
     private readonly int _id;
-
+    
     public object Value
     {
         get
@@ -121,18 +118,20 @@ public class VariableSource : IFunnyVar {
                 return _outputConverter.ToClrObject(_funnyValue);
             
             _outputConverterLoaded = true;
-            _outputConverter = _typeBehaviour.GetOutputConverterFor(Type);
+            _outputConverter = _funnyConverter.GetOutputConverterFor(Type);
             return _outputConverter.ToClrObject(_funnyValue);
         }
-        set => _funnyValue = _typeBehaviour.ConvertInputOrThrow(value, Type);
+        set => _funnyValue = _funnyConverter.ConvertInputOrThrow(value, Type);
     }
 
-    internal VariableSource Clone() => new VariableSource(Name, Type, _access, _typeBehaviour, Attributes);
+    public void SetFunnyValueUnsafe(object funnyValue) => _funnyValue = funnyValue;
+
+    internal VariableSource Clone() => new(Name, Type, _access, _funnyConverter, Attributes);
     
     public Func<T> CreateGetterOf<T>() {
         if (!IsOutput)
             throw new NotSupportedException("Cannot create value getter for non output variable");
-        var outputConverter = _typeBehaviour.GetOutputConverterFor(typeof(T));
+        var outputConverter = _funnyConverter.GetOutputConverterFor(typeof(T));
         if (outputConverter == null || (Type.IsPrimitive && outputConverter.FunnyType != Type))
             throw new InvalidOperationException(
                 $"Funny type {Type} cannot be converted to clr type {typeof(T).Name}");
@@ -143,8 +142,7 @@ public class VariableSource : IFunnyVar {
         if (IsOutput)
             throw new NotSupportedException("Cannot create value getter for output variable");
 
-        //var inputConverter = FunnyTypeConverters.GetInputConverter(typeof(T));
-        var inputConverter = _typeBehaviour.GetInputConverterFor(Type, typeof(T));
+        var inputConverter = _funnyConverter.GetInputConverterFor(typeof(T), Type);
 
         if (inputConverter == null || inputConverter.FunnyType != Type)
         {
@@ -156,6 +154,21 @@ public class VariableSource : IFunnyVar {
     }
 
     public override string ToString() => $"{(IsOutput ? "Output" : "Input")} {Name}@{_id}:{Type} = {FunnyValue}";
+    
+    
+    private object GetDefaultValueOrNullFor(FunnyType type) {
+        var defaultValue = _funnyConverter.TypeBehaviour.GetDefaultPrimitiveValueOrNull(type.BaseType);
+        if (defaultValue != null)
+            return defaultValue;
+
+        if (type.ArrayTypeSpecification == null)
+            return null;
+
+        var arr = type.ArrayTypeSpecification;
+        if (arr.FunnyType.BaseType == BaseFunnyType.Char)
+            return TextFunnyArray.Empty;
+        return new ImmutableFunnyArray(Array.Empty<object>(), arr.FunnyType);
+    }
 }
 
 internal enum FunnyVarAccess {

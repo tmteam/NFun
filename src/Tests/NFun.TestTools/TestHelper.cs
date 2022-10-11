@@ -29,7 +29,7 @@ public static class TestHelper {
         var vals = runtime.Variables.Where(v => v.IsOutput)
                           .Select(v => new VariableTypeAndValue(v.Name, v.FunnyValue, v.Type))
                           .ToArray();
-        return new CalculationResult(vals, runtime.TypeBehaviour);
+        return new CalculationResult(vals, runtime.Converter);
     }
 
 
@@ -168,7 +168,7 @@ public static class TestHelper {
             Assert.IsNotNull(resultValue, $"Output variable \"{value.id}\" not found");
             if (resultValue is IReadOnlyDictionary<string, object> @struct)
             {
-                var converted = TypeBehaviourExtensions.GetInputConverterFor(result.TypeBehaviour, value.val.GetType()).ToFunObject(value.val);
+                var converted = result.Converter.GetInputConverterFor(value.val.GetType()).ToFunObject(value.val);
                 Assert.AreEqual(converted, @struct);
                 return result;
             }

@@ -11,10 +11,9 @@ public enum RealClrType {
 }
 
 public abstract class TypeBehaviour {
-
-    public static readonly TypeBehaviour RealIsDouble =  new RealIsDoubleTypeBehaviour();
-    public static readonly TypeBehaviour RealIsDecimal = new RealIsDecimalTypeBehaviour();
-
+    public static readonly TypeBehaviour RealIsDouble =  RealIsDoubleTypeBehaviour.Instance;
+    public static readonly TypeBehaviour RealIsDecimal = RealIsDecimalTypeBehaviour.Instance;
+    
     public abstract IInputFunnyConverter GetPrimitiveInputConverterOrNull(Type clrType);
     public virtual IInputFunnyConverter GetPrimitiveInputConverterOrNull(FunnyType funnyType) =>
         PrimitiveInputConvertersByName.TryGetValue(funnyType.BaseType, out var converter) ? converter : null;
@@ -86,32 +85,44 @@ public abstract class TypeBehaviour {
     
     private static readonly IReadOnlyDictionary<BaseFunnyType, IInputFunnyConverter> PrimitiveInputConvertersByName
         = new Dictionary<BaseFunnyType, IInputFunnyConverter> {
-            { BaseFunnyType.Bool, new PrimitiveTypeInputFunnyConverter(FunnyType.Bool) },
-            { BaseFunnyType.Char, new PrimitiveTypeInputFunnyConverter(FunnyType.Char) },
-            { BaseFunnyType.UInt8, new PrimitiveTypeInputFunnyConverter(FunnyType.UInt8) },
+            { BaseFunnyType.Bool,   new PrimitiveTypeInputFunnyConverter(FunnyType.Bool) },
+            { BaseFunnyType.Char,   new PrimitiveTypeInputFunnyConverter(FunnyType.Char) },
+            { BaseFunnyType.UInt8,  new PrimitiveTypeInputFunnyConverter(FunnyType.UInt8) },
             { BaseFunnyType.UInt16, new PrimitiveTypeInputFunnyConverter(FunnyType.UInt16) },
             { BaseFunnyType.UInt32, new PrimitiveTypeInputFunnyConverter(FunnyType.UInt32) },
             { BaseFunnyType.UInt64, new PrimitiveTypeInputFunnyConverter(FunnyType.UInt64) },
-            { BaseFunnyType.Int16, new PrimitiveTypeInputFunnyConverter(FunnyType.Int16) },
-            { BaseFunnyType.Int32, new PrimitiveTypeInputFunnyConverter(FunnyType.Int32) },
-            { BaseFunnyType.Int64, new PrimitiveTypeInputFunnyConverter(FunnyType.Int64) },
-            { BaseFunnyType.Real, new PrimitiveTypeInputFunnyConverter(FunnyType.Real) },
+            { BaseFunnyType.Int16,  new PrimitiveTypeInputFunnyConverter(FunnyType.Int16) },
+            { BaseFunnyType.Int32,  new PrimitiveTypeInputFunnyConverter(FunnyType.Int32) },
+            { BaseFunnyType.Int64,  new PrimitiveTypeInputFunnyConverter(FunnyType.Int64) },
+            { BaseFunnyType.Real,   new PrimitiveTypeInputFunnyConverter(FunnyType.Real) },
+        };
+
+    private static readonly IOutputFunnyConverter BoolConverter   = new PrimitiveTypeOutputFunnyConverter(FunnyType.Bool, typeof(bool));
+    private static readonly IOutputFunnyConverter CharConverter   = new PrimitiveTypeOutputFunnyConverter(FunnyType.Char, typeof(Char));
+    private static readonly IOutputFunnyConverter Uint8Converter  = new PrimitiveTypeOutputFunnyConverter(FunnyType.UInt8, typeof(byte));
+    private static readonly IOutputFunnyConverter Uint16Converter = new PrimitiveTypeOutputFunnyConverter(FunnyType.UInt16, typeof(UInt16));
+    private static readonly IOutputFunnyConverter Uint32Converter = new PrimitiveTypeOutputFunnyConverter(FunnyType.UInt32, typeof(UInt32));
+    private static readonly IOutputFunnyConverter Uint64Converter = new PrimitiveTypeOutputFunnyConverter(FunnyType.UInt64, typeof(UInt64));
+    private static readonly IOutputFunnyConverter Int16Converter  = new PrimitiveTypeOutputFunnyConverter(FunnyType.Int16, typeof(Int16));
+    private static readonly IOutputFunnyConverter Int32Converter  = new PrimitiveTypeOutputFunnyConverter(FunnyType.Int32, typeof(Int32));
+    private static readonly IOutputFunnyConverter Int64Converter  = new PrimitiveTypeOutputFunnyConverter(FunnyType.Int64, typeof(Int64));
+
+    protected static IOutputFunnyConverter GetPrimitiveOutputConverterOrNull(BaseFunnyType baseType) =>
+        baseType switch
+        {
+            BaseFunnyType.Any    => DynamicTypeOutputFunnyConverter.AnyConverter,
+            BaseFunnyType.Bool   => BoolConverter,
+            BaseFunnyType.Char   => CharConverter,
+            BaseFunnyType.UInt8  => Uint8Converter,
+            BaseFunnyType.UInt16 => Uint16Converter,
+            BaseFunnyType.UInt32 => Uint32Converter,
+            BaseFunnyType.UInt64 => Uint64Converter,
+            BaseFunnyType.Int16  => Int16Converter,
+            BaseFunnyType.Int32  => Int32Converter,
+            BaseFunnyType.Int64  => Int64Converter,
+            _                    => null
         };
     
-    protected static readonly IReadOnlyDictionary<BaseFunnyType, IOutputFunnyConverter>
-        PrimitiveOutputConvertersByName
-            = new Dictionary<BaseFunnyType, IOutputFunnyConverter> {
-                {BaseFunnyType.Any, DynamicTypeOutputFunnyConverter.AnyConverter},
-                { BaseFunnyType.Bool, new PrimitiveTypeOutputFunnyConverter(FunnyType.Bool, typeof(bool)) },
-                { BaseFunnyType.Char, new PrimitiveTypeOutputFunnyConverter(FunnyType.Char, typeof(Char)) },
-                { BaseFunnyType.UInt8, new PrimitiveTypeOutputFunnyConverter(FunnyType.UInt8, typeof(byte)) },
-                { BaseFunnyType.UInt16, new PrimitiveTypeOutputFunnyConverter(FunnyType.UInt16, typeof(UInt16)) },
-                { BaseFunnyType.UInt32, new PrimitiveTypeOutputFunnyConverter(FunnyType.UInt32, typeof(UInt32)) },
-                { BaseFunnyType.UInt64, new PrimitiveTypeOutputFunnyConverter(FunnyType.UInt64, typeof(UInt64)) },
-                { BaseFunnyType.Int16, new PrimitiveTypeOutputFunnyConverter(FunnyType.Int16, typeof(Int16)) },
-                { BaseFunnyType.Int32, new PrimitiveTypeOutputFunnyConverter(FunnyType.Int32, typeof(Int32)) },
-                { BaseFunnyType.Int64, new PrimitiveTypeOutputFunnyConverter(FunnyType.Int64, typeof(Int64)) },
-            };
     
     protected static int GetUnicodeBytes(object o1, out byte[] bytes) {
         var chars = new[] { (char)o1 };
@@ -150,7 +161,10 @@ public abstract class TypeBehaviour {
 }
 
 public class RealIsDoubleTypeBehaviour : TypeBehaviour {
-
+    private RealIsDoubleTypeBehaviour() {}
+    
+    public static readonly TypeBehaviour Instance = new RealIsDoubleTypeBehaviour();
+    
     private static readonly IReadOnlyDictionary<Type, IOutputFunnyConverter> PrimitiveOutputConvertersByType
         = new Dictionary<Type, IOutputFunnyConverter> {
             { typeof(bool), new PrimitiveTypeOutputFunnyConverter(FunnyType.Bool, typeof(bool)) },
@@ -193,9 +207,7 @@ public class RealIsDoubleTypeBehaviour : TypeBehaviour {
     public override IOutputFunnyConverter GetPrimitiveOutputConverterOrNull(FunnyType funnyType) {
         if (funnyType.BaseType == BaseFunnyType.Real)
             return new PrimitiveTypeOutputFunnyConverter(FunnyType.Real, typeof(double));
-        if (PrimitiveOutputConvertersByName.TryGetValue(funnyType.BaseType, out var converter))
-            return converter;
-        return null;
+        return GetPrimitiveOutputConverterOrNull(funnyType.BaseType);
     }
 
     public override object GetDefaultPrimitiveValueOrNull(BaseFunnyType typeName) => 
@@ -237,7 +249,8 @@ public class RealIsDoubleTypeBehaviour : TypeBehaviour {
 }
 
 public class RealIsDecimalTypeBehaviour : TypeBehaviour {
-
+    private RealIsDecimalTypeBehaviour() {}
+    public static readonly TypeBehaviour Instance = new RealIsDecimalTypeBehaviour();
     private static readonly IReadOnlyDictionary<Type, IOutputFunnyConverter> PrimitiveOutputConvertersByType
         = new Dictionary<Type, IOutputFunnyConverter> {
             { typeof(bool), new PrimitiveTypeOutputFunnyConverter(FunnyType.Bool, typeof(bool)) },
@@ -282,9 +295,7 @@ public class RealIsDecimalTypeBehaviour : TypeBehaviour {
     public override IOutputFunnyConverter GetPrimitiveOutputConverterOrNull(FunnyType funnyType) {
         if (funnyType.BaseType == BaseFunnyType.Real)
             return new PrimitiveTypeOutputFunnyConverter(FunnyType.Real, typeof(Decimal));
-        if (PrimitiveOutputConvertersByName.TryGetValue(funnyType.BaseType, out var converter))
-            return converter;
-        return null;
+        return GetPrimitiveOutputConverterOrNull(funnyType.BaseType);
     }
     
     public override object GetDefaultPrimitiveValueOrNull(BaseFunnyType typeName) => 

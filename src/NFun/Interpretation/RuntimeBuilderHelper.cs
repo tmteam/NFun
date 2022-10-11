@@ -31,7 +31,7 @@ internal static class RuntimeBuilderHelper {
             var variableSource = CreateVariableSourceForArgument(
                 argSyntax: functionSyntax.Args[i],
                 actualType: argTypes[i], 
-                dialect.TypeBehaviour);
+                dialect.Converter);
 
             if (!vars.TryAdd(variableSource))
                 throw Errors.FunctionArgumentDuplicates(functionSyntax, functionSyntax.Args[i]);
@@ -159,7 +159,7 @@ internal static class RuntimeBuilderHelper {
 
     private static VariableSource CreateVariableSourceForArgument(
         TypedVarDefSyntaxNode argSyntax,
-        FunnyType actualType, TypeBehaviour typeBehaviour) {
+        FunnyType actualType, FunnyConverter typeBehaviour) {
         if (argSyntax.FunnyType != FunnyType.Empty)
             return VariableSource.CreateWithStrictTypeLabel(
                 name: argSyntax.Id,

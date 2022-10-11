@@ -129,7 +129,7 @@ internal static class RuntimeBuilder {
                     varDef.FunnyType,
                     varDef.Interval,
                     FunnyVarAccess.Input,
-                    dialect.TypeBehaviour,
+                    dialect.Converter,
                     varDef.Attributes);
                 if (!variables.TryAdd(variableSource))
                 {
@@ -167,7 +167,7 @@ internal static class RuntimeBuilder {
             }
         }
 
-        return new FunnyRuntime(equations, variables, dialect.TypeBehaviour);
+        return new FunnyRuntime(equations, variables, dialect.Converter);
     }
 
 
@@ -217,7 +217,7 @@ internal static class RuntimeBuilder {
                 type: equation.OutputType,
                 typeSpecificationIntervalOrNull: equation.TypeSpecificationOrNull.Interval,
                 access: FunnyVarAccess.Output,
-                typeBehaviour: dialect.TypeBehaviour,
+                typeBehaviour: dialect.Converter,
                 attributes: equation.Attributes
             );
         else
@@ -225,7 +225,7 @@ internal static class RuntimeBuilder {
                 name: equation.Id,
                 type: equation.OutputType,
                 access: FunnyVarAccess.Output,
-                dialect.TypeBehaviour,
+                dialect.Converter,
                 equation.Attributes
             );
         

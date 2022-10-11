@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using NFun.Interpretation.Functions;
 using NFun.Runtime;
 using NFun.Runtime.Arrays;
+using NFun.TestTools;
 using NFun.Types;
 using NUnit.Framework;
 
@@ -21,11 +22,11 @@ public class ConvertInputTest {
     [TestCase((float)0.5, BaseFunnyType.Real, 0.5)]
     [TestCase((byte)42, BaseFunnyType.Real, 42.0)]
     public void ConvertInputOrThrow_PrimitivesTest(object input, BaseFunnyType target, object expected)
-        => Assert.AreEqual(expected, TypeBehaviour.RealIsDouble.ConvertInputOrThrow(input, FunnyType.PrimitiveOf(target)));
+        => Assert.AreEqual(expected, FunnyConverter.RealIsDouble.ConvertInputOrThrow(input, FunnyType.PrimitiveOf(target)));
 
     [Test]
     public void ConvertInputDecimalOrThrow_PrimitivesTest()
-        => Assert.AreEqual(-42.5, TypeBehaviour.RealIsDouble.ConvertInputOrThrow(new Decimal(-42.5), FunnyType.Real));
+        => Assert.AreEqual(-42.5, FunnyConverter.RealIsDouble.ConvertInputOrThrow(new Decimal(-42.5), FunnyType.Real));
     
     [Test]
     public void ConvertComplexInputStructFromDictionariesAndTypes1() {
@@ -39,12 +40,12 @@ public class ConvertInputTest {
                 { "end", true }
             }
         };
-        var mocky = TypeBehaviour.RealIsDouble.ConvertInputOrThrow(input, type) as FunnyStruct;
+        var mocky = FunnyConverter.RealIsDouble.ConvertInputOrThrow(input, type) as FunnyStruct;
         Assert.AreEqual(31, mocky["age"]);
         var endstr = mocky["nested"] as FunnyStruct;
         Assert.AreEqual(true, endstr["end"]);
     }
-
+    
     [Test]
     public void ConvertComplexInputStructFromDictionariesAndTypes2() {
         /*
@@ -84,7 +85,7 @@ public class ConvertInputTest {
                 }
             }
         };
-        var converted = TypeBehaviour.RealIsDouble.ConvertInputOrThrow(input, type) as FunnyStruct;
+        var converted = FunnyConverter.RealIsDouble.ConvertInputOrThrow(input, type) as FunnyStruct;
         Assert.IsNotNull(converted);
         Assert.AreEqual(42, converted["i"]);
         var str = converted["str"] as FunnyStruct;
@@ -98,13 +99,13 @@ public class ConvertInputTest {
 
     [Test]
     public void NestedConvertionDoesNotThrow2() {
-        var result = TypeBehaviour.RealIsDouble.ConvertInputOrThrow(new { age = 42 }, FunnyType.StructOf(("age", FunnyType.Any)));
+        var result = FunnyConverter.RealIsDouble.ConvertInputOrThrow(new { age = 42 }, FunnyType.StructOf(("age", FunnyType.Any)));
         Assert.IsInstanceOf<FunnyStruct>(result);
     }
 
     [Test]
     public void NestedConvertionDoesNotThrow() {
-        var result = TypeBehaviour.RealIsDouble.ConvertInputOrThrow(new {
+        var result = FunnyConverter.RealIsDouble.ConvertInputOrThrow(new {
             age = 42,
             size = 1.1,
             name = "vasa"
@@ -114,5 +115,53 @@ public class ConvertInputTest {
             ("name", FunnyType.Any)
         ));
         Assert.IsInstanceOf<FunnyStruct>(result);
+    }
+
+    [Test]
+    public void PrimitiveTypeDoesNotCreateItemsInCache()
+    {
+        var converter = FunnyConverter.RealIsDouble;
+        converter.ClearCaches();
+        Assert.AreEqual(0, converter.CacheSize);
+        converter.GetInputConverterFor(typeof(bool));
+
+        converter.GetInputConverterFor(typeof(short));
+        converter.GetInputConverterFor(typeof(int));
+        converter.GetInputConverterFor(typeof(long));
+        
+        converter.GetInputConverterFor(typeof(ushort));
+        converter.GetInputConverterFor(typeof(uint));
+        converter.GetInputConverterFor(typeof(ulong));
+
+        converter.GetInputConverterFor(typeof(float));
+        converter.GetInputConverterFor(typeof(double));
+        
+        Assert.AreEqual(0, converter.CacheSize);
+    }
+    
+    [Test]
+    public void GetStructTypeCreatesSingleItemInCache()
+    {
+        var converter = FunnyConverter.RealIsDouble;
+        converter.ClearCaches();
+        Assert.AreEqual(0, converter.CacheSize);
+        converter.GetInputConverterFor(typeof(UserInputModel));
+        var size = converter.CacheSize;
+        converter.GetInputConverterFor(typeof(UserInputModel));
+        converter.GetInputConverterFor(typeof(UserInputModel));
+        Assert.AreEqual(size, converter.CacheSize);
+    }
+    
+    [Test]
+    public void GetIntArrayTypeCreatesSingleItemInCache()
+    {
+        var converter = FunnyConverter.RealIsDouble;
+        converter.ClearCaches();
+        Assert.AreEqual(0, converter.CacheSize);
+        converter.GetInputConverterFor(typeof(int[]));
+        var size = converter.CacheSize;
+        converter.GetInputConverterFor(typeof(int[]));
+        converter.GetInputConverterFor(typeof(int[]));
+        Assert.AreEqual(size, converter.CacheSize);
     }
 }
