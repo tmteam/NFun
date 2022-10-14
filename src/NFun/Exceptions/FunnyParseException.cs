@@ -4,21 +4,21 @@ using NFun.Tokenization;
 namespace NFun.Exceptions; 
 
 public class FunnyParseException : Exception {
-    public int Code { get; }
+    public int ErrorCode { get; }
     public Interval Interval { get; }
     public int Start => Interval.Start;
     public int End => Interval.Finish;
 
     internal FunnyParseException(int code, string message, Interval interval) : base(message) {
-        Code = code;
+        ErrorCode = code;
         Interval = interval;
     }
 
     internal FunnyParseException(int code, string message, int start, int end) : base(message) {
-        Code = code;
+        ErrorCode = code;
         Interval = new Interval(start, end);
     }
 
-    public override string ToString() => $"[FU{Code}] {Message}";
+    public override string ToString() => $"[FU{ErrorCode}] {Message}";
     
 }

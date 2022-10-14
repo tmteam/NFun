@@ -18,7 +18,6 @@ internal class EmptyConstantList : IConstantList {
 }
 
 internal class ConstantList : IConstantList {
-    private readonly FunnyConverter _typeBehaviour;
     public ConstantList(FunnyConverter typeBehaviour) {
         _typeBehaviour = typeBehaviour;
         _dictionary = new Dictionary<string, ConstantValueAndType>();
@@ -33,8 +32,9 @@ internal class ConstantList : IConstantList {
             _dictionary.Add(id, new ConstantValueAndType(converter.ToFunObject(value), converter.FunnyType));
         }
     }
-
-    readonly Dictionary<string, ConstantValueAndType> _dictionary;
+    
+    private readonly FunnyConverter _typeBehaviour;
+    private readonly Dictionary<string, ConstantValueAndType> _dictionary;
 
     public void AddConstant(string id, object val) {
         //constants are readonly so we need to use input converter

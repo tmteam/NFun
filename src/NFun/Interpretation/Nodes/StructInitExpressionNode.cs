@@ -5,9 +5,6 @@ using NFun.Tokenization;
 namespace NFun.Interpretation.Nodes; 
 
 internal class StructInitExpressionNode : IExpressionNode {
-    private readonly string[] _fieldNames;
-    private readonly IExpressionNode[] _elements;
-
     public StructInitExpressionNode(
         string[] fieldNames, IExpressionNode[] elements, Interval interval, FunnyType type) {
         Type = type;
@@ -15,9 +12,13 @@ internal class StructInitExpressionNode : IExpressionNode {
         _elements = elements;
         Interval = interval;
     }
+    
+    private readonly string[] _fieldNames;
+    private readonly IExpressionNode[] _elements;
 
     public Interval Interval { get; }
     public FunnyType Type { get; }
+    public IEnumerable<IExpressionNode> Children => _elements;
 
     public object Calc() {
         var fields = new FunnyStruct.FieldsDictionary(_fieldNames.Length);
@@ -26,9 +27,6 @@ internal class StructInitExpressionNode : IExpressionNode {
 
         return new FunnyStruct(fields);
     }
-
-    public string DebugName => "Struct init";
-    public IEnumerable<IExpressionNode> Children => _elements;
 
     public IExpressionNode Clone(ICloneContext context) {
         var elementsCopy = _elements.SelectToArray(e => e.Clone(context));

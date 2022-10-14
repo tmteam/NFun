@@ -5,17 +5,16 @@ using NFun.Tokenization;
 namespace NFun.Interpretation.Nodes; 
 
 internal class ArrayExpressionNode : IExpressionNode {
-    private readonly IExpressionNode[] _elements;
-
     public ArrayExpressionNode(IExpressionNode[] elements, Interval interval, FunnyType type) {
         Type = type;
         _elements = elements;
         Interval = interval;
     }
+    private readonly IExpressionNode[] _elements;
 
     public Interval Interval { get; }
-    
     public FunnyType Type { get; }
+    public IEnumerable<IExpressionNode> Children => _elements;
 
     public object Calc() {
         var arr = new object[_elements.Length];
@@ -25,9 +24,6 @@ internal class ArrayExpressionNode : IExpressionNode {
 
         return new ImmutableFunnyArray(arr, Type.ArrayTypeSpecification.FunnyType);
     }
-
-    public string DebugName => "Array";
-    public IEnumerable<IExpressionNode> Children => _elements;
 
     public IExpressionNode Clone(ICloneContext context) => 
         new ArrayExpressionNode(_elements.SelectToArray(s => s.Clone(context)), Interval, Type);

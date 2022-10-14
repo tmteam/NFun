@@ -6,9 +6,7 @@ using NFun.Types;
 namespace NFun.Interpretation.Nodes; 
 
 internal class ConstantExpressionNode : IExpressionNode {
-    private readonly object _value;
-
-    public static ConstantExpressionNode CreateConcrete(FunnyType primitive, ulong value, TypeBehaviour typeBehaviour, Interval interval) =>
+    internal static ConstantExpressionNode CreateConcrete(FunnyType primitive, ulong value, TypeBehaviour typeBehaviour, Interval interval) =>
         primitive.BaseType switch {
             BaseFunnyType.Real   => new ConstantExpressionNode(typeBehaviour.GetRealConstantValue(value), FunnyType.Real, interval),
             BaseFunnyType.Int64  => new ConstantExpressionNode((long)value,   FunnyType.Int64, interval),
@@ -21,7 +19,7 @@ internal class ConstantExpressionNode : IExpressionNode {
             _                    => throw new ArgumentOutOfRangeException(nameof(primitive), primitive, null)
         };
 
-    public static ConstantExpressionNode CreateConcrete(FunnyType primitive, long value, TypeBehaviour typeBehaviour, Interval interval) =>
+    internal static ConstantExpressionNode CreateConcrete(FunnyType primitive, long value, TypeBehaviour typeBehaviour, Interval interval) =>
         primitive.BaseType switch {
             BaseFunnyType.Real   => new ConstantExpressionNode(typeBehaviour.GetRealConstantValue(value), FunnyType.Real, interval),
             BaseFunnyType.Int64  => new ConstantExpressionNode((long)value,   FunnyType.Int64, interval),
@@ -40,10 +38,12 @@ internal class ConstantExpressionNode : IExpressionNode {
         Type = type;
     }
 
+    private readonly object _value;
+
     public FunnyType Type { get; }
     public Interval Interval { get; }
-    public object Calc() => _value;
-    public string DebugName => $"Constant '{_value}' of {Type}";
     public IEnumerable<IExpressionNode> Children => Array.Empty<IExpressionNode>();
+
+    public object Calc() => _value;
     public IExpressionNode Clone(ICloneContext context) => this;
 }

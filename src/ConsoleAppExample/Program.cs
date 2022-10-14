@@ -63,7 +63,7 @@ class Program {
             {
                 Console.BackgroundColor = ConsoleColor.Red;
                 Console.ForegroundColor = ConsoleColor.White;
-                Console.Write(" ERROR [FU" + e.Code + "] ");
+                Console.Write(" ERROR [FU" + e.ErrorCode + "] ");
                 Console.Write($" {e.Message} ");
 
                 Console.ResetColor();

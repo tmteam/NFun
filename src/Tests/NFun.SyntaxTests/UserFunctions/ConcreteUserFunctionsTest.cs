@@ -21,6 +21,18 @@ public class ConcreteUserFunctionsTest {
     [TestCase("arr(a:int[]):int[] = a \r  y = arr([1,2])", new[] { 1, 2 })]
     [TestCase("arr(a:text[]):text[] = a.concat(a) \r  y = arr(['qwe','rty'])", new[] { "qwe", "rty", "qwe", "rty" })]
     [TestCase(@"car2(g):real = g(2.0,4.0); y = car2(max)    ", 4.0)]
+    [TestCase(@"
+            f(x:int) = x
+            f(x:int, y:int) = y
+            y = f(1) + f(1,2)
+        ", 3)]
+    
+    [TestCase(@"
+            max(x:int) = x
+            max(x:int, y:int) = y
+            y = max(1) + max(3,2) # user functions return 1 + 2 as a result
+        ", 3)]
+    
     public void TypedConstantEquation_NonRecursiveFunction(string expr, object expected) =>
         expr.AssertReturns("y", expected);
 
@@ -151,5 +163,7 @@ public class ConcreteUserFunctionsTest {
     [TestCase("y:real(x)= 1")]
     [TestCase("y:real(x:real)= 1")]
     [TestCase("y:real(x):real= 1")]
+    [TestCase("f(x):real= 1; f(x):int = 2; out = 1")]
+    [TestCase("f(x):real= 1; f(x):int = 2; out = f(1)")]
     public void ObviousFails(string expr) => expr.AssertObviousFailsOnParse();
 }

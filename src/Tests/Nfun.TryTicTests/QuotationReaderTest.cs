@@ -76,7 +76,7 @@ public class QuotationReaderTest {
             () =>
                 QuotationReader.ReadQuotation(str, prefix.Length,'\''));
         Console.WriteLine("Origin string to parse: " + str);
-        Console.WriteLine("Parse error: [FU" + ex.Code + "] " + ex.Message);
+        Console.WriteLine("Parse error: [FU" + ex.ErrorCode + "] " + ex.Message);
         var foundError = ex.Interval.SubString(str);
         Console.WriteLine($"Catched error string: \"{foundError}\"");
         Assert.AreEqual(error, foundError);

@@ -12,11 +12,12 @@ public interface ICloneContext {
     void AddUserFunctionClone(IConcreteFunction origin, IConcreteFunction clone);
 }
 
-public class CloneContext : ICloneContext {
+internal class CloneContext : ICloneContext {
+    internal CloneContext(IReadonlyVariableDictionary dictionaryCopy) => _dictionaryCopy = dictionaryCopy;
+    
     private readonly IReadonlyVariableDictionary _dictionaryCopy;
     private readonly Dictionary<IConcreteFunction, IConcreteFunction> _userFunctions = new();
-    internal CloneContext(IReadonlyVariableDictionary dictionaryCopy) => _dictionaryCopy = dictionaryCopy;
-
+    
     public VariableSource GetVariableSourceClone(VariableSource origin) => 
         _dictionaryCopy.GetOrNull(origin.Name) ?? throw new NFunImpossibleException($"Source '{origin.Name}' is not found");
 

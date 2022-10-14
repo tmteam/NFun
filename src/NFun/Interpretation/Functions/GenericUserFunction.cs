@@ -18,7 +18,7 @@ public class GenericUserFunction : GenericFunctionBase {
     private readonly ConstrainsState[] _constrainsMap;
     public int BuiltCount { get; private set; }
 
-    public static GenericUserFunction Create(
+    internal static GenericUserFunction Create(
         TypeInferenceResults typeInferenceResults,
         UserFunctionDefinitionSyntaxNode syntaxNode,
         IFunctionDictionary dictionary,

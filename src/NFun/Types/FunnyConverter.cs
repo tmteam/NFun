@@ -111,7 +111,7 @@ public class FunnyConverter {
 
             var properties = clrType.GetProperties(BindingFlags.Instance | BindingFlags.Public);
             if (clrType.GetConstructor(Type.EmptyTypes) == null)
-                throw FunnyInvalidUsageException.OutputTypeConstainsNoParameterlessCtor(clrType);
+                throw FunnyInvalidUsageException.OutputTypeContainsNoParameterlessCtor(clrType);
             if (properties.Any())
             {
                 var propertiesConverters =

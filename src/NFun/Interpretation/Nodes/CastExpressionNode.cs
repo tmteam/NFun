@@ -12,10 +12,6 @@ internal class CastExpressionNode : IExpressionNode {
         var converter = VarTypeConverter.GetConverterOrThrow(typeBehaviour, origin.Type, to, origin.Interval);
         return new CastExpressionNode(origin, to, converter, origin.Interval);
     }
-
-    private readonly IExpressionNode _origin;
-    private readonly Func<object, object> _converter;
-
     public CastExpressionNode(
         IExpressionNode origin,
         FunnyType targetType,
@@ -26,18 +22,19 @@ internal class CastExpressionNode : IExpressionNode {
         _converter = converter;
         Interval = interval;
     }
+    
+    private readonly IExpressionNode _origin;
+    private readonly Func<object, object> _converter;
 
     public Interval Interval { get; }
-    
     public FunnyType Type { get; }
+    public IEnumerable<IExpressionNode> Children => new[] { _origin };
 
     public object Calc() {
         var res = _origin.Calc();
         return _converter(res);
     }
 
-    public string DebugName => $"Cast to {Type}";
-    public IEnumerable<IExpressionNode> Children => new[] { _origin };
-
-    public IExpressionNode Clone(ICloneContext context) => new CastExpressionNode(_origin.Clone(context), Type, _converter, Interval);
+    public IExpressionNode Clone(ICloneContext context) => 
+        new CastExpressionNode(_origin.Clone(context), Type, _converter, Interval);
 }

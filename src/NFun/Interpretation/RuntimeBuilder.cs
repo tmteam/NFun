@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using NFun.Exceptions;
 using NFun.Interpretation.Functions;
-using NFun.Interpretation.Nodes;
 using NFun.ParseErrors;
 using NFun.Runtime;
 using NFun.SyntaxParsing;
@@ -301,7 +300,7 @@ internal static class RuntimeBuilder {
             //make function prototype
             var prototype = new ConcreteUserFunctionPrototype(functionSyntaxNode.Id, returnType, argTypes);
             //add prototype to dictionary for future use
-            functionsDictionary.TryAdd(prototype);
+            functionsDictionary.Add(prototype);
             var function =
                 functionSyntaxNode.BuildConcrete(
                     argTypes: argTypes,
@@ -321,7 +320,7 @@ internal static class RuntimeBuilder {
             var function = GenericUserFunction.Create(
                 typeInferenceResuls, functionSyntaxNode, functionsDictionary,
                 dialect);
-            functionsDictionary.TryAdd(function);
+            functionsDictionary.Add(function);
             if (TraceLog.IsEnabled)
                 TraceLog.WriteLine($"\r\n=====> Concrete {functionSyntaxNode.Id} {function}");
             return function;

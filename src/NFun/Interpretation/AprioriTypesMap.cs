@@ -6,7 +6,7 @@ namespace NFun.Interpretation;
 
 public interface IAprioriTypesMap : IEnumerable<KeyValuePair<string, FunnyType>> { }
 
-public class EmptyAprioriTypesMap : IAprioriTypesMap {
+internal class EmptyAprioriTypesMap : IAprioriTypesMap {
     public static readonly EmptyAprioriTypesMap Instance = new();
     private readonly KeyValuePair<string, FunnyType>[] _arr = Array.Empty<KeyValuePair<string, FunnyType>>();
     private EmptyAprioriTypesMap() { }
@@ -14,7 +14,7 @@ public class EmptyAprioriTypesMap : IAprioriTypesMap {
     IEnumerator IEnumerable.GetEnumerator() => _arr.GetEnumerator();
 }
 
-public class SingleAprioriTypesMap : IAprioriTypesMap {
+internal class SingleAprioriTypesMap : IAprioriTypesMap {
     private readonly KeyValuePair<string, FunnyType>[] _arr;
     public SingleAprioriTypesMap(string key, FunnyType type) {
         _arr = new[] { new KeyValuePair<string, FunnyType>(key, type) };
@@ -23,7 +23,7 @@ public class SingleAprioriTypesMap : IAprioriTypesMap {
     IEnumerator IEnumerable.GetEnumerator() => _arr.GetEnumerator();
 }
 
-public class MutableAprioriTypesMap : IAprioriTypesMap {
+internal class MutableAprioriTypesMap : IAprioriTypesMap {
     public MutableAprioriTypesMap() { _typesMap = new Dictionary<string, FunnyType>(StringComparer.OrdinalIgnoreCase); }
 
     private MutableAprioriTypesMap(Dictionary<string, FunnyType> items) { _typesMap = items; }

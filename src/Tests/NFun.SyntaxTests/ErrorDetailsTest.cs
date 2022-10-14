@@ -137,22 +137,22 @@ public class ErrorDetailsTest {
         }
         catch (FunnyParseException e) when (e.Start != -1)
         {
-            Console.WriteLine($"Parse: [FU{e.Code}] {e.Message} [{e.Start},{e.End}]");
+            Console.WriteLine($"Parse: [FU{e.ErrorCode}] {e.Message} [{e.Start},{e.End}]");
             Console.WriteLine($"Error: [{e.Start},{e.End}]: '{e.Interval.SubString(value)}'");
 
             int start = beforeError.Length;
             int end = start + errorBody.Length;
 
             if (e.Start > e.End)
-                Assert.Fail($"[FU{e.Code}] Start is greater than end");
+                Assert.Fail($"[FU{e.ErrorCode}] Start is greater than end");
             Assert.Multiple(
                 () => {
                     Assert.AreEqual(
                         expected: start,
-                        actual: e.Start, message: $"[FU{e.Code}] Start index. Message: {e.Message}");
+                        actual: e.Start, message: $"[FU{e.ErrorCode}] Start index. Message: {e.Message}");
                     Assert.AreEqual(
                         expected: end,
-                        actual: e.End, message: $"[FU{e.Code}] End index. . Message: {e.Message}");
+                        actual: e.End, message: $"[FU{e.ErrorCode}] End index. . Message: {e.Message}");
                 });
         }
     }

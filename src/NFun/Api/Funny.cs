@@ -43,6 +43,7 @@ public static class Funny {
     public static ICalculator<TInput, TOutput> BuildForCalc<TInput, TOutput>()
         => FunnyCalculatorBuilder.Default.BuildForCalc<TInput, TOutput>();
 
+    [Obsolete("This method is no longer supported and will be removed in v1.0. Use CalcContext instead.")]
     public static ICalculator<TInput, TOutput> BuildForCalcMany<TInput, TOutput>() where TOutput : new()
         => FunnyCalculatorBuilder.Default.BuildForCalcMany<TInput, TOutput>();
 

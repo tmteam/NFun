@@ -5,9 +5,6 @@ using NFun.Tokenization;
 namespace NFun.Interpretation.Nodes; 
 
 internal class FunOfManyArgsExpressionNode : IExpressionNode {
-    private readonly IConcreteFunction _fun;
-    private readonly IExpressionNode[] _argsNodes;
-
     public FunOfManyArgsExpressionNode(
         IConcreteFunction fun, IExpressionNode[] argsNodes,
         Interval interval) {
@@ -18,16 +15,19 @@ internal class FunOfManyArgsExpressionNode : IExpressionNode {
     }
 
     private readonly int _argsCount;
+    private readonly IConcreteFunction _fun;
+    private readonly IExpressionNode[] _argsNodes;
+    
     public Interval Interval { get; }
     public FunnyType Type => _fun.ReturnType;
+    public IEnumerable<IExpressionNode> Children => _argsNodes;
+    
     public object Calc() {
         var args = new object[_argsCount];
         for (int i = 0; i < _argsCount; i++)
             args[i] = _argsNodes[i].Calc();
         return _fun.Calc(args);
     }
-
-    public IEnumerable<IExpressionNode> Children => _argsNodes;
 
     public IExpressionNode Clone(ICloneContext context) {
         var funCopy =  _fun.Clone(context);

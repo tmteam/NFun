@@ -10,19 +10,20 @@ internal class VariableExpressionNode : IExpressionNode {
         Source = source;
         Interval = interval;
     }
-
     internal VariableSource Source { get; }
     public Interval Interval { get; }
     public FunnyType Type => Source.Type;
-    public object Calc() => Source.FunnyValue;
-    public string DebugName => $"Variable {Source}";
     public IEnumerable<IExpressionNode> Children => Array.Empty<IExpressionNode>();
+
+    public object Calc() => 
+        Source.FunnyValue;
 
     public IExpressionNode Clone(ICloneContext context) {
         var sourceCopy = context.GetVariableSourceClone(Source);
         return new VariableExpressionNode(sourceCopy, Interval);
     }
     
-    public override string ToString() => $"{Source.Name}: {Source.FunnyValue}";
+    public override string ToString() => 
+        $"{Source.Name}: {Source.FunnyValue}";
     
 }

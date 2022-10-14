@@ -24,19 +24,17 @@ internal static class Dialects {
 
 
 public interface IFunctionSelectorContext {
-    T RealTypeSelect<T>(T ifIsDouble, T ifIsDecimal);
     FunnyConverter Converter { get; }
     bool AllowIntegerOverflow { get; }
 }
 
-public sealed class DialectSettings : IFunctionSelectorContext {
+internal sealed class DialectSettings : IFunctionSelectorContext {
     internal DialectSettings(IfExpressionSetup ifExpressionSetup, IntegerPreferredType integerPreferredType, FunnyConverter funnyConverter, bool allowIntegerOverflow) {
         IfExpressionSetup = ifExpressionSetup;
         IntegerPreferredType = integerPreferredType;
         Converter = funnyConverter;
         AllowIntegerOverflow = allowIntegerOverflow;
     }
-    public T RealTypeSelect<T>(T ifIsDouble, T ifIsDecimal) => Converter.TypeBehaviour.RealTypeSelect(ifIsDouble, ifIsDecimal);
     public FunnyConverter Converter { get; }
     public IfExpressionSetup IfExpressionSetup { get; }
     public IntegerPreferredType IntegerPreferredType { get; }

@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NFun.Interpretation.Nodes;
 using NFun.Runtime;
 
-namespace NFun.Interpretation.Nodes;
+namespace NFun.Interpretation;
 
-public static class SearchUsagesHelper {
-
+internal static class SearchUsagesHelper {
 
     internal static VariableExpressionNode FindFirstUsageOrThrow(this IExpressionNode node, VariableSource source)
         => node.FindFirstUsageOrNull(source) ?? throw new InvalidOperationException("Sequence contains no matching element");
@@ -21,8 +21,8 @@ public static class SearchUsagesHelper {
 
     internal static VariableExpressionNode FindFirstUsageOrThrow(this IList<Equation> equations, VariableSource source)
         => equations.FindFirstUsageOrNull(source) ?? throw new InvalidOperationException("Sequence contains no matching element");
-    
-    public static IExpressionNode Dfs(this IExpressionNode root, Func<IExpressionNode, bool> condition)
+
+    private static IExpressionNode Dfs(this IExpressionNode root, Func<IExpressionNode, bool> condition)
     {
         if (condition(root))
             return root;

@@ -6,11 +6,11 @@ namespace NFun;
 internal readonly struct OutputProperty {
     public readonly string PropertyName;
     public readonly IOutputFunnyConverter Converter;
-    public readonly PropertyInfo PropertyInfo;
+    private readonly PropertyInfo _propertyInfo;
     public OutputProperty(string propertyName, IOutputFunnyConverter converter, PropertyInfo propertyInfo) {
         PropertyName = propertyName;
         Converter = converter;
-        PropertyInfo = propertyInfo;
+        _propertyInfo = propertyInfo;
     }
-    public void SetValueToTargetProperty(object funnyValue, object clrTarget) => PropertyInfo.SetValue(clrTarget, Converter.ToClrObject(funnyValue));
+    public void SetValueToTargetProperty(object funnyValue, object clrTarget) => _propertyInfo.SetValue(clrTarget, Converter.ToClrObject(funnyValue));
 }

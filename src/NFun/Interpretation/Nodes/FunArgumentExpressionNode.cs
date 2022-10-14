@@ -30,9 +30,9 @@ internal class FunArgumentExpressionNode : IExpressionNode {
     public string Name { get; }
     public Interval Interval { get; }
     public FunnyType Type { get; }
-    public object Calc() => throw new InvalidOperationException();
-    public string DebugName => $"Fun argument '{Name}' of {Type}";
     public IEnumerable<IExpressionNode> Children => Array.Empty<IExpressionNode>();
+
+    public object Calc() => throw new InvalidOperationException();
     public IExpressionNode Clone(ICloneContext context) => this;
     public override string ToString() => $"{Name}: {Type}";
 }
