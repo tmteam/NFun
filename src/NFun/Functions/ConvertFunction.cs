@@ -24,7 +24,11 @@ public class ConvertFunction : GenericFunctionBase {
         if (to == FunnyType.Text)
         {
             if(from.ArrayTypeSpecification?.FunnyType == FunnyType.UInt8)
-                return new ConcreteConverter(o => new TextFunnyArray(Encoding.Unicode.GetString(((IFunnyArray)o).As<byte>().ToArray())), from, to);
+                return new ConcreteConverter(o =>
+                {
+                    var array = (IFunnyArray)o;
+                    return new TextFunnyArray(Encoding.Unicode.GetString(array.ToArrayOf<byte>()));
+                }, from, to);
             else
                 return new ConcreteConverter(o => new TextFunnyArray(o.ToString()), from, to);
         }
@@ -177,7 +181,7 @@ public class ConvertFunction : GenericFunctionBase {
     private static Func<object, object> CreateDeserializerOrNull(FunnyType to)
         => to.BaseType switch {
                BaseFunnyType.Char => o => {
-                   var bytes = ((IFunnyArray)o).As<byte>().ToArray();
+                   var bytes = ((IFunnyArray)o).ToArrayOf<byte>();
                    if (bytes.Length == 1)
                        return Encoding.ASCII.GetChars(bytes)[0];
                    else
@@ -222,7 +226,7 @@ public class ConvertFunction : GenericFunctionBase {
         {
             return val.Count switch {
                        > 4 => throw new FunnyRuntimeException("Array is too long"),
-                       4   => val.Select(Convert.ToByte).ToArray(),
+                       4   => val.SelectToArray(val.Count, Convert.ToByte),
                        _   => val.Concat(new int[4 - val.Count].Cast<object>()).Select(Convert.ToByte).ToArray()
                    };
         }

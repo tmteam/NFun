@@ -14,18 +14,18 @@ public class TokFlow {
 
     public bool IsDone => _tokens.Length <= CurrentTokenPosition;
 
-    public Tok[] MoveUntilOneOfThe(params TokType[] types) {
+    public IReadOnlyList<Tok> MoveUntilOneOfThe(params TokType[] types) {
         var results = new List<Tok>();
         while (!IsDone)
         {
             MoveNext();
             var current = Current;
             if (current == null || types.Contains(current.Type))
-                return results.ToArray();
+                return results;
             results.Add(current);
         }
 
-        return results.ToArray();
+        return results;
     }
 
     public int CurrentTokenPosition { get; private set; }

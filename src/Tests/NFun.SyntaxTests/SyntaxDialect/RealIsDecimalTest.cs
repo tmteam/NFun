@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.Linq;
 using NFun.TestTools;
 using NFun.Types;
 using NUnit.Framework;
@@ -66,9 +67,42 @@ public class RealIsDecimalTest {
     [TestCase("x:real; min(x, 1)", 0.5, 0.5)]
     public void SingleArgDecimalCalc(string expr, Decimal arg, Decimal expected)
         => expr
-           .BuildWithDialect(realClrType: RealClrType.IsDecimal)
-           .Calc("x", arg)
-           .AssertAnonymousOut(expected);
+            .BuildWithDialect(realClrType: RealClrType.IsDecimal)
+            .Calc("x", arg)
+            .AssertAnonymousOut(expected);
+
+    [TestCase("out:real[]   = range(0,5)", new[] { 0.0, 1, 2, 3, 4, 5 })]
+    [TestCase("out:real[]   = range(-2.5,2.4)", new[] { -2.5, -1.5, -0.5, 0.5, 1.5})]
+    [TestCase("out:real[]   = range(-2.5,2.5)", new[] { -2.5, -1.5, -0.5, 0.5, 1.5, 2.5})]
+    [TestCase("out:real[]   = range(-2.5,2.6)", new[] { -2.5, -1.5, -0.5, 0.5, 1.5, 2.5})]
+
+    [TestCase("out:real[]   = range(-2.4,2.4)", new[] { -2.4, -1.4, -0.4, 0.6, 1.6})]
+    [TestCase("out:real[]   = range(-2.4,2.5)", new[] { -2.4, -1.4, -0.4, 0.6, 1.6})]
+    [TestCase("out:real[]   = range(-2.4,2.6)", new[] { -2.4, -1.4, -0.4, 0.6, 1.6, 2.6})]
+    [TestCase("out:real[]   = range(-2.4,2.7)", new[] { -2.4, -1.4, -0.4, 0.6, 1.6, 2.6})]
+    
+    [TestCase("out:real[]   = range(-5,5)", new double[] { -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5 })]
+    [TestCase("out:real[]   = range(5,0)", new[] { 5, 4, 3, 2, 1, 0.0 })]
+    [TestCase("out:real[]   = range(5,-5)", new double[] { 5, 4, 3, 2, 1, 0, -1, -2, -3, -4, -5 })]
+    [TestCase("out:real[]   = range(2.5,-2.4)", new[] { 2.5, 1.5, 0.5, -0.5, -1.5})]
+    [TestCase("out:real[]   = range(2.5,-2.5)", new[] { 2.5, 1.5, 0.5, -0.5, -1.5, -2.5})]
+    [TestCase("out:real[]   = range(2.5,-2.6)", new[] { 2.5, 1.5, 0.5, -0.5, -1.5, -2.5})]
+
+    [TestCase("out:real[]   = range(2.4,-2.4)", new[] { 2.4, 1.4, 0.4, -0.6, -1.6})]
+    [TestCase("out:real[]   = range(2.4,-2.5)", new[] { 2.4, 1.4, 0.4, -0.6, -1.6})]
+    [TestCase("out:real[]   = range(2.4,-2.6)", new[] { 2.4, 1.4, 0.4, -0.6, -1.6, -2.6})]
+    [TestCase("out:real[]   = range(2.4,-2.7)", new[] { 2.4, 1.4, 0.4, -0.6, -1.6, -2.6})]
+
+    [TestCase("range(7,10.0)", new[] { 7.0, 8, 9, 10 })]
+    [TestCase("range(7.0,10.0)", new[] { 7.0, 8, 9, 10 })]
+    [TestCase("range(1,10,2.0)", new[] { 1.0, 3.0, 5.0, 7.0, 9.0 })]
+    public void SingleArgDecimalCalc(string expr, double[] expected) 
+        => expr
+            .BuildWithDialect(realClrType: RealClrType.IsDecimal)
+            .Calc()
+            .AssertAnonymousOut(expected.Select(s=>(decimal)s).ToArray());
+    
+    
 
     [TestCase("[1.0,2.0,3.0] . fold(fun(i,j)=i+j)", 6.0)]
     [TestCase("[1.0,2.0,3.0] . fold(fun(i:real,j)=i+j)", 6.0)]

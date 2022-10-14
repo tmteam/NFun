@@ -195,7 +195,7 @@ public class BodyTypeInferenceTests {
     public void CompareArrays_GenericTypeSolvedWell() {
         //y = [1.0] ==[]
         var result = TestHelper.SolveAndGetResults("y = [1.0] ==[]");
-        var equalGenericType = result.GenericFunctionTypes.Where(g => g != null).Single();
+        var equalGenericType = result.GenericFunctionTypes.Single(g => g != null);
         Assert.AreEqual(equalGenericType.Length, 1);
         var state = equalGenericType[0];
         TestHelper.AssertAreSame(StateArray.Of(StatePrimitive.Real), state);
@@ -205,7 +205,7 @@ public class BodyTypeInferenceTests {
     public void CompareArraysReversed_GenericTypeSolvedWell() {
         //y = []==[1.0]
         var result = TestHelper.SolveAndGetResults("y = [1.0] ==[]");
-        var equalGenericType = result.GenericFunctionTypes.Where(g => g != null).Single();
+        var equalGenericType = result.GenericFunctionTypes.Single(g => g != null);
         Assert.AreEqual(equalGenericType.Length, 1);
         var state = equalGenericType[0];
         TestHelper.AssertAreSame(StateArray.Of(StatePrimitive.Real), state);
@@ -214,7 +214,7 @@ public class BodyTypeInferenceTests {
     [Test]
     public void CompareBools_GenericTypeSolvedWell() {
         var result = TestHelper.SolveAndGetResults("y = true == false");
-        var equalGenericType = result.GenericFunctionTypes.Where(g => g != null).Single();
+        var equalGenericType = result.GenericFunctionTypes.Single(g => g != null);
         Assert.AreEqual(equalGenericType.Length, 1);
         var state = equalGenericType[0];
         TestHelper.AssertAreSame(StatePrimitive.Bool, state);

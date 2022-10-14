@@ -9,11 +9,11 @@ public abstract class TicTypesConverter {
     public static readonly TicTypesConverter Concrete
         = new OnlyConcreteTypesConverter();
 
-    public static TicTypesConverter GenericSignatureConverter(ConstrainsState[] constrainsMap)
+    public static TicTypesConverter GenericSignatureConverter(IReadOnlyList<ConstrainsState> constrainsMap)
         => new ConstrainsConverter(constrainsMap);
 
     public static TicTypesConverter ReplaceGenericTypesConverter(
-        ConstrainsState[] constrainsMap, IList<FunnyType> genericArgs)
+        IReadOnlyList<ConstrainsState> constrainsMap, IList<FunnyType> genericArgs)
         => new GenericMapConverter(constrainsMap, genericArgs);
 
     public abstract FunnyType Convert(ITicNodeState type);
@@ -99,9 +99,9 @@ public abstract class TicTypesConverter {
     }
 
     private class ConstrainsConverter : TicTypesConverter {
-        private readonly ConstrainsState[] _constrainsMap;
+        private readonly IReadOnlyList<ConstrainsState> _constrainsMap;
 
-        public ConstrainsConverter(ConstrainsState[] constrainsMap) => _constrainsMap = constrainsMap;
+        public ConstrainsConverter(IReadOnlyList<ConstrainsState> constrainsMap) => _constrainsMap = constrainsMap;
 
         public override FunnyType Convert(ITicNodeState type)
             => type switch {
@@ -115,7 +115,7 @@ public abstract class TicTypesConverter {
                };
 
         private int GetGenericIndexOrThrow(ConstrainsState constrains) {
-            var index = System.Array.IndexOf(_constrainsMap, constrains);
+            var index = _constrainsMap.IndexOf(constrains);
             if (index == -1)
                 throw new InvalidOperationException("Unknown constrains");
             return index;
@@ -123,10 +123,10 @@ public abstract class TicTypesConverter {
     }
 
     private class GenericMapConverter : TicTypesConverter {
-        private readonly ConstrainsState[] _constrainsMap;
+        private readonly IReadOnlyList<ConstrainsState> _constrainsMap;
         private readonly IList<FunnyType> _argTypes;
 
-        public GenericMapConverter(ConstrainsState[] constrainsMap, IList<FunnyType> argTypes) {
+        public GenericMapConverter(IReadOnlyList<ConstrainsState> constrainsMap, IList<FunnyType> argTypes) {
             _constrainsMap = constrainsMap;
             _argTypes = argTypes;
         }
@@ -142,7 +142,7 @@ public abstract class TicTypesConverter {
                     case StatePrimitive primitive:
                         return ToConcrete(primitive.Name);
                     case ConstrainsState constrains:
-                        var index = System.Array.IndexOf(_constrainsMap, constrains);
+                        var index = _constrainsMap.IndexOf(constrains);
                         if (index == -1) throw new InvalidOperationException("Unknown constrains");
                         return _argTypes[index];
                     case StateArray array:

@@ -58,6 +58,27 @@ internal static class Helper {
         return -1;
     }
     
+    public static TIn[] ToArray<TIn>(this IEnumerable<TIn> input, int size) {
+        var ans = new TIn[size];
+        var i = 0;
+        foreach (var tIn in input)
+        {
+            ans[i] = tIn;
+            i++;
+        }
+        return ans;
+    }
+    
+    public static TOut[] SelectToArray<TIn, TOut>(this IEnumerable<TIn> input, int size, Func<TIn, TOut> mapFunc) {
+        var ans = new TOut[size];
+        var i = 0;
+        foreach (var tIn in input)
+        {
+            ans[i] = mapFunc(tIn);
+            i++;
+        }
+        return ans;
+    }    
     
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TOut[] SelectToArray<TIn, TOut>(this TIn[] input, Func<TIn, TOut> mapFunc) {
@@ -69,6 +90,16 @@ internal static class Helper {
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static TOut[] SelectToArray<TIn, TOut>(this IList<TIn> input, Func<TIn, TOut> mapFunc) {
+        var ans = new TOut[input.Count];
+        for (var i = 0; i < input.Count; i++)
+        {
+            ans[i] = mapFunc(input[i]);
+        }
+
+        return ans;
+    }
+    
+    public static TOut[] SelectToArray<TIn, TOut>(this IReadOnlyList<TIn> input, Func<TIn, TOut> mapFunc) {
         var ans = new TOut[input.Count];
         for (var i = 0; i < input.Count; i++)
         {

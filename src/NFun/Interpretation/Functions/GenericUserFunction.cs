@@ -15,7 +15,7 @@ public class GenericUserFunction : GenericFunctionBase {
     private readonly IFunctionDictionary _dictionary;
     private readonly DialectSettings _dialect;
 
-    private readonly ConstrainsState[] _constrainsMap;
+    private readonly IReadOnlyList<ConstrainsState> _constrainsMap;
     public int BuiltCount { get; private set; }
 
     internal static GenericUserFunction Create(
@@ -24,8 +24,8 @@ public class GenericUserFunction : GenericFunctionBase {
         IFunctionDictionary dictionary,
         DialectSettings dialect) {
         var ticGenerics = typeInferenceResults.Generics;
-        var langConstrains = new GenericConstrains[ticGenerics.Length];
-        for (int i = 0; i < ticGenerics.Length; i++)
+        var langConstrains = new GenericConstrains[ticGenerics.Count];
+        for (int i = 0; i < ticGenerics.Count; i++)
         {
             var ticConstrains = ticGenerics[i];
             langConstrains[i] = GenericConstrains.FromTicConstrains(ticConstrains);
@@ -56,9 +56,9 @@ public class GenericUserFunction : GenericFunctionBase {
     }
 
     internal static void CreateSomeConcrete(GenericUserFunction function) {
-        var varType = new FunnyType[function._constrainsMap.Length];
+        var varType = new FunnyType[function._constrainsMap.Count];
 
-        for (var i = 0; i < function._constrainsMap.Length; i++)
+        for (var i = 0; i < function._constrainsMap.Count; i++)
         {
             var anc = function._constrainsMap[i].Ancestor ?? StatePrimitive.Any;
             var concrete = TicTypesConverter.ToConcrete(anc.Name);

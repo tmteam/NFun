@@ -641,7 +641,6 @@ public static class SyntaxNodeReader {
                 if (!flow.MoveIf(TokType.ArrCBr, out var closeBracket))
                     throw Errors.ArrayIntervalInitializeCbrMissed(openBracket, flow.Current, true);
                 
-                //throw FunnyParseException.ErrorStubToDo("initialize array with step is not supported now ");
                 return SyntaxNodeFactory.OperatorFun(
                     name:     CoreFunNames.RangeName,
                     children: new[] {list[0], secondArg, thirdArg}, 

@@ -104,7 +104,7 @@ public class Parser {
         if (fun.BracketsCount!=0)
             throw Errors.UnexpectedBracketsOnFunDefinition(fun, _exprStartPosition, _flow.Previous.Finish);
 
-        var arguments = new List<TypedVarDefSyntaxNode>();
+        var arguments = new List<TypedVarDefSyntaxNode>(fun.Args.Length);
         foreach (var headNodeChild in fun.Args)
         {
             if (headNodeChild is TypedVarDefSyntaxNode varDef)
@@ -118,7 +118,7 @@ public class Parser {
                 throw Errors.WrongFunctionArgumentDefinition(fun, headNodeChild);
 
             if (headNodeChild.BracketsCount!=0)
-                throw Errors.FunctionArgumentInBracketDefinition(fun, headNodeChild, _flow.Current);
+                throw Errors.FunctionArgumentInBracketDefinition(fun, headNodeChild);
         }
 
         var outputType = FunnyType.Empty;

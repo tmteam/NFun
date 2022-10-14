@@ -192,15 +192,8 @@ internal static partial class Errors {
     internal static FunnyParseException WrongFunctionArgumentDefinition(FunCallSyntaxNode headNode, ISyntaxNode headNodeChild) => new(
         476, $"{headNode.Id}({ToFailureFunString(headNode, headNodeChild)}) = ... {Nl} Function argument is invalid. Variable name (with optional type) expected", headNodeChild.Interval);
 
-    internal static FunnyParseException FunctionArgumentInBracketDefinition(FunCallSyntaxNode headNode, ISyntaxNode headNodeChild, Tok flowCurrent) {
-        //todo asset
-        if (flowCurrent == null) throw new ArgumentNullException(nameof(flowCurrent));
-        var sb = ToFailureFunString(headNode, headNodeChild);
-
-        return new(
-            479, $"{headNode.Id}({sb}) = ... {Nl} Function argument is in bracket. Variable name (with optional type) without brackets expected", headNodeChild.Interval);
-    }
-
+    internal static FunnyParseException FunctionArgumentInBracketDefinition(FunCallSyntaxNode headNode, ISyntaxNode headNodeChild) => new(
+        479, $"{headNode.Id}({ToFailureFunString(headNode, headNodeChild)}) = ... {Nl} Function argument is in bracket. Variable name (with optional type) without brackets expected", headNodeChild.Interval);
 
     internal static FunnyParseException InvalidArgTypeDefinition(ISyntaxNode argumentNode) => new(
         482, $"{argumentNode.ToShortText()} is  not valid fun arg", argumentNode.Interval);

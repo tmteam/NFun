@@ -101,8 +101,7 @@ public class SplitFunction : FunctionWithTwoArgs {
         var delimiter = TypeHelper.GetFunText(b);
         return new ImmutableFunnyArray(
             inputString.Split(new[] { delimiter }, StringSplitOptions.RemoveEmptyEntries)
-                       .Select(s => new TextFunnyArray(s))
-                       .ToArray(), FunnyType.Text);
+                       .SelectToArray(s => new TextFunnyArray(s)), FunnyType.Text);
     }
 }
 

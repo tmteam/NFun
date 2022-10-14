@@ -39,6 +39,8 @@ internal static class TypeHelper {
             return left.GetType() == right.GetType() && left.Equals(right);
     }
 
+    public static T[] ToArrayOf<T>(this IFunnyArray a) => a.As<T>().ToArray(a.Count);
+    
     public static bool AreEquivalent(IFunnyArray a, IFunnyArray b) {
         if (a.Count != b.Count)
             return false;

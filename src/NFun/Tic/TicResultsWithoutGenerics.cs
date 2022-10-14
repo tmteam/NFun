@@ -26,5 +26,5 @@ public class TicResultsWithoutGenerics : ITicResults {
     public IEnumerable<TicNode> GenericNodes { get; } = Array.Empty<TicNode>();
     public bool HasGenerics => false;
     public int GenericsCount => 0;
-    public ConstrainsState[] GenericsStates { get; } = Array.Empty<ConstrainsState>();
+    public IReadOnlyList<ConstrainsState> GenericsStates { get; } = Array.Empty<ConstrainsState>();
 }

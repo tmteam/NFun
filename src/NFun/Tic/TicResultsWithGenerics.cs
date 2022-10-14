@@ -42,18 +42,18 @@ public class TicResultsWithGenerics : ITicResults {
     /// <summary>
     /// GAP for tests
     /// </summary>
-    public int GenericsCount => GenericsStates.Length;
+    public int GenericsCount => GenericsStates.Count;
 
-    public bool HasGenerics => GenericsStates.Length > 0;
+    public bool HasGenerics => GenericsStates.Count > 0;
 
-    private ConstrainsState[] _genericsStates = null;
+    private  IReadOnlyList<ConstrainsState> _genericsStates = null;
 
-    public ConstrainsState[] GenericsStates
+    public IReadOnlyList<ConstrainsState> GenericsStates
     {
         get
         {
             if (_genericsStates != null) return _genericsStates;
-
+            
             var states = new List<ConstrainsState>();
             foreach (var node in _typeVariables)
             {
@@ -73,7 +73,7 @@ public class TicResultsWithGenerics : ITicResults {
                     states.Add(c);
             }
 
-            _genericsStates = states.ToArray();
+            _genericsStates = states;
             return _genericsStates;
         }
     }

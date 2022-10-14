@@ -6,6 +6,7 @@ using NFun.Interpretation.Functions;
 using NFun.Runtime.Arrays;
 using NFun.Types;
 
+//todo optimization
 namespace NFun.Functions; 
 
 public class MultiSumFunction : GenericFunctionBase {
@@ -246,18 +247,22 @@ public class RangeFunction : GenericFunctionBase {
 
         public override object Calc(object a, object b)
         {
-            var start = ((short) a);
-            var end = ((short) b);
-            var result = new List<short>();
-
+            var start = (short) a;
+            var end = (short) b;
+            short[] result;
             if (start < end)
+            {
+                result = new short[end - start + 1];
                 for (var i = start; i <= end; i += 1)
-                    result.Add(i);
+                    result[i - start] = i;
+            }
             else
+            {
+                result = new short[start - end + 1];
                 for (var i = start; i >= end; i -= 1)
-                    result.Add(i);
-
-            return new ImmutableFunnyArray(result.ToArray(), FunnyType.Int16);
+                    result[start-i] = i;
+            }
+            return new ImmutableFunnyArray(result, FunnyType.Int16);
         }
     }
 
@@ -271,15 +276,20 @@ public class RangeFunction : GenericFunctionBase {
         {
             var start = ((int) a);
             var end = ((int) b);
-            var result = new List<int>();
-
+            int[] result;
             if (start < end)
-                for (int i = start; i <= end; i += 1)
-                    result.Add(i);
+            {
+                result = new int[end - start + 1];
+                for (var i = start; i <= end; i += 1)
+                    result[i - start] = i;
+            }
             else
-                for (int i = start; i >= end; i -= 1)
-                    result.Add(i);
-            return new ImmutableFunnyArray(result.ToArray());
+            {
+                result = new int[start - end + 1];
+                for (var i = start; i >= end; i -= 1)
+                    result[start-i] = i;
+            }
+            return new ImmutableFunnyArray(result);
         }
     }
 
@@ -293,15 +303,20 @@ public class RangeFunction : GenericFunctionBase {
         {
             var start = (long) a;
             var end = (long) b;
-            var result = new List<long>();
-
+            long[] result;
             if (start < end)
+            {
+                result = new long[end - start + 1];
                 for (var i = start; i <= end; i += 1)
-                    result.Add(i);
+                    result[i - start] = i;
+            }
             else
+            {
+                result = new long[start - end + 1];
                 for (var i = start; i >= end; i -= 1)
-                    result.Add(i);
-            return new ImmutableFunnyArray(result.ToArray());
+                    result[start-i] = i;
+            }
+            return new ImmutableFunnyArray(result);
         }
     }
 
@@ -315,15 +330,24 @@ public class RangeFunction : GenericFunctionBase {
         {
             var start = ((byte) a);
             var end = ((byte) b);
-            var result = new List<byte>();
-
+            
+            byte[] result;
             if (start < end)
+            {
+                result = new byte[end - start + 1];
                 for (var i = start; i <= end; i += 1)
-                    result.Add(i);
+                    result[i - start] = i;
+            }
             else
+            {
+                result = new byte[start - end + 1];
                 for (var i = start; i >= end; i -= 1)
-                    result.Add(i);
-            return new ImmutableFunnyArray(result.ToArray());
+                {
+                    result[start-i] = i;
+                    if(i==0) break;
+                }
+            }
+            return new ImmutableFunnyArray(result);
         }
     }
 
@@ -335,17 +359,25 @@ public class RangeFunction : GenericFunctionBase {
 
         public override object Calc(object a, object b)
         {
-            var start = ((ushort) a);
-            var end = ((ushort) b);
-            var result = new List<ushort>();
-
+            var start = (ushort) a;
+            var end = (ushort) b;
+            ushort[] result;
             if (start < end)
+            {
+                result = new ushort[end - start + 1];
                 for (var i = start; i <= end; i += 1)
-                    result.Add(i);
+                    result[i - start] = i;
+            }
             else
+            {
+                result = new ushort[start - end + 1];
                 for (var i = start; i >= end; i -= 1)
-                    result.Add(i);
-            return new ImmutableFunnyArray(result.ToArray());
+                {
+                    result[start-i] = i;
+                    if(i==0) break;
+                }
+            }
+            return new ImmutableFunnyArray(result);
         }
     }
 
@@ -359,15 +391,23 @@ public class RangeFunction : GenericFunctionBase {
         {
             var start = ((uint) a);
             var end = ((uint) b);
-            var result = new List<uint>();
-
+            uint[] result;
             if (start < end)
+            {
+                result = new uint[end - start + 1];
                 for (var i = start; i <= end; i += 1)
-                    result.Add(i);
+                    result[i - start] = i;
+            }
             else
+            {
+                result = new uint[start - end + 1];
                 for (var i = start; i >= end; i -= 1)
-                    result.Add(i);
-            return new ImmutableFunnyArray(result.ToArray());
+                {
+                    result[start-i] = i;
+                    if(i==0) break;
+                }
+            }
+            return new ImmutableFunnyArray(result);
         }
     }
 
@@ -381,15 +421,23 @@ public class RangeFunction : GenericFunctionBase {
         {
             var start = (ulong) a;
             var end = (ulong) b;
-            var result = new List<ulong>();
-
+            ulong[] result;
             if (start < end)
+            {
+                result = new ulong[end - start + 1];
                 for (var i = start; i <= end; i += 1)
-                    result.Add(i);
+                    result[i - start] = i;
+            }
             else
+            {
+                result = new ulong[start - end + 1];
                 for (var i = start; i >= end; i -= 1)
-                    result.Add(i);
-            return new ImmutableFunnyArray(result.ToArray());
+                {
+                    result[start-i] = i;
+                    if(i==0) break;
+                }
+            }
+            return new ImmutableFunnyArray(result);
         }
     }
 
@@ -403,16 +451,29 @@ public class RangeFunction : GenericFunctionBase {
         {
             var start = (double) a;
             var end = (double) b;
-
-            var result = new List<double>();
-
+            
+            double[] result;
             if (start < end)
+            {
+                result = new double[(int)(end - start) + 1];
+                int c = 0;
                 for (var i = start; i <= end; i += 1)
-                    result.Add(i);
+                {
+                    result[c] = i;
+                    c++;
+                }
+            }
             else
+            {
+                result = new double[(int)(start - end) + 1];
+                int c = 0;
                 for (var i = start; i >= end; i -= 1)
-                    result.Add(i);
-            return new ImmutableFunnyArray(result.ToArray());
+                {
+                    result[c] = i;
+                    c++;
+                }
+            }
+            return new ImmutableFunnyArray(result);
         }
     }
 
@@ -426,16 +487,29 @@ public class RangeFunction : GenericFunctionBase {
         {
             var start = (decimal) a;
             var end = (decimal) b;
-
-            var result = new List<decimal>();
-
+            
+            decimal[] result;
             if (start < end)
+            {
+                result = new decimal[(int)(end - start) + 1];
+                int c = 0;
                 for (var i = start; i <= end; i += 1)
-                    result.Add(i);
+                {
+                    result[c] = i;
+                    c++;
+                }
+            }
             else
+            {
+                result = new decimal[(int)(start - end) + 1];
+                int c = 0;
                 for (var i = start; i >= end; i -= 1)
-                    result.Add(i);
-            return new ImmutableFunnyArray(result.ToArray());
+                {
+                    result[c] = i;
+                    c++;
+                }
+            }
+            return new ImmutableFunnyArray(result);
         }
     }
 }

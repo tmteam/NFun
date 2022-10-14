@@ -232,8 +232,8 @@ public class TicSetupVisitor : ISyntaxNodeVisitor<bool> {
         if (!VisitChildren(node))
             return false;
         _ticTypeGraph.SetStructInit(
-            node.Fields.Select(f => f.Name.ToLower()).ToArray(),
-            node.Fields.Select(f => f.Node.OrderNumber).ToArray(), node.OrderNumber);
+            node.Fields.SelectToArray(f => f.Name.ToLower()),
+            node.Fields.SelectToArray(f => f.Node.OrderNumber), node.OrderNumber);
         return true;
     }
     

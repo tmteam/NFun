@@ -184,7 +184,7 @@ public class SortFunction : GenericFunctionBase {
     protected override object Calc(object[] args) {
         var funArray = (IFunnyArray)args[0];
 
-        var arr = funArray.As<IComparable>().ToArray();
+        var arr = funArray.As<IComparable>().ToArray(funArray.Count);
         Array.Sort(arr);
         return new ImmutableFunnyArray(arr, funArray.ElementType);
     }
@@ -198,7 +198,7 @@ public class SortDescendingFunction : GenericFunctionBase {
     protected override object Calc(object[] args) {
         var funArray = (IFunnyArray)args[0];
 
-        var arr = funArray.As<IComparable>().ToArray();
+        var arr = funArray.As<IComparable>().ToArray(funArray.Count);
         Array.Sort(arr);
         Array.Reverse(arr);
         return new ImmutableFunnyArray(arr, funArray.ElementType);
@@ -215,7 +215,7 @@ public class SortMapFunction : GenericFunctionBase {
     protected override object Calc(object[] args) {
         var array = (IFunnyArray)args[0];
         var map = (IConcreteFunction)args[1];
-        var sorted = array.OrderBy(a => (IComparable)map.Calc(new[] { a })).ToArray();
+        var sorted = array.OrderBy(a => (IComparable)map.Calc(new[] { a })).ToArray(array.Count);
         return new ImmutableFunnyArray(sorted, array.ElementType);
     }
 }
@@ -230,7 +230,7 @@ public class SortMapDescendingFunction : GenericFunctionBase {
     protected override object Calc(object[] args) {
         var array = (IFunnyArray)args[0];
         var map = (IConcreteFunction)args[1];
-        var sorted = array.OrderByDescending(a => (IComparable)map.Calc(new[] { a })).ToArray();
+        var sorted = array.OrderByDescending(a => (IComparable)map.Calc(new[] { a })).ToArray(array.Count);
         return new ImmutableFunnyArray(sorted, array.ElementType);
     }
 }
@@ -241,11 +241,14 @@ public class MedianFunction : GenericFunctionBase {
         FunnyType.ArrayOf(FunnyType.Generic(0))) { }
 
     protected override object Calc(object[] args)
-        => GetMedian(((IFunnyArray)args[0]).As<IComparable>());
+    {
+        var array = (IFunnyArray)args[0];
+        return GetMedian(array.As<IComparable>(), array.Count);
+    }
 
-    private static IComparable GetMedian(IEnumerable<IComparable> source) {
+    private static IComparable GetMedian(IEnumerable<IComparable> source, int size) {
         // Create a copy of the input, and sort the copy
-        var temp = source.ToArray();
+        var temp = source.ToArray(size);
         Array.Sort(temp);
 
         int count = temp.Length;
