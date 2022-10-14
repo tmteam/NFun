@@ -90,7 +90,8 @@ internal static class RuntimeBuilderHelper {
         }
     }
 
-    private static void ThrowIfSomeVariablesNotExistsInTheList(this IReadonlyVariableDictionary variables,
+    private static void ThrowIfSomeVariablesNotExistsInTheList(
+        this IReadonlyVariableDictionary variables,
         IExpressionNode bodyExpression,
         IEnumerable<string> list) {
         
@@ -116,7 +117,7 @@ internal static class RuntimeBuilderHelper {
         if (userFunctions.Length == 0)
             return userFunctions;
 
-        var userFunctionsNames = new Dictionary<string, int>();
+        var userFunctionsNames = new Dictionary<string, int>(userFunctions.Length, StringComparer.OrdinalIgnoreCase);
         int i = 0;
         foreach (var userFunction in userFunctions)
         {
@@ -159,7 +160,9 @@ internal static class RuntimeBuilderHelper {
 
     private static VariableSource CreateVariableSourceForArgument(
         TypedVarDefSyntaxNode argSyntax,
-        FunnyType actualType, FunnyConverter typeBehaviour) {
+        FunnyType actualType, 
+        FunnyConverter typeBehaviour) {
+        
         if (argSyntax.FunnyType != FunnyType.Empty)
             return VariableSource.CreateWithStrictTypeLabel(
                 name: argSyntax.Id,

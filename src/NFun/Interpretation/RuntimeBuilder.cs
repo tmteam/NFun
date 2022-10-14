@@ -16,9 +16,6 @@ using NFun.TypeInferenceAdapter;
 namespace NFun.Interpretation; 
 
 internal static class RuntimeBuilder {
-    private static readonly List<IFunctionSignature> EmptyUserFunctionsList
-        = new();
-
     internal static FunnyRuntime Build(
         string script,
         IFunctionDictionary functionDictionary,
@@ -55,29 +52,27 @@ internal static class RuntimeBuilder {
         //Then those functions will be compiled
         //that refer to already compiled functions
         var functionSolveOrder = syntaxTree.FindFunctionSolvingOrderOrThrow();
-        List<IFunctionSignature> userFunctions;
+        IFunctionSignature[] userFunctions;
         IFunctionDictionary functionDictionary;
         if (functionSolveOrder.Length == 0)
         {
             functionDictionary = functionsDictionary;
-            userFunctions = EmptyUserFunctionsList;
+            userFunctions = Array.Empty<IFunctionSignature>();
         }
         else
         {
-            userFunctions = new List<IFunctionSignature>();
+            userFunctions = new IFunctionSignature[functionSolveOrder.Length];
 
-            var scopeFunctionDictionary = new ScopeFunctionDictionary(functionsDictionary);
+            var scopeFunctionDictionary = new ScopeFunctionDictionary(functionsDictionary, functionSolveOrder.Length);
             functionDictionary = scopeFunctionDictionary;
             //build user functions
-            foreach (var functionSyntaxNode in functionSolveOrder)
+            for (var i = 0; i < functionSolveOrder.Length; i++)
             {
-                //todo list capacity
-                var userFun = BuildFunctionAndPutItToDictionary(
-                    functionSyntaxNode: functionSyntaxNode,
-                    constants: constants,
-                    functionsDictionary: scopeFunctionDictionary,
-                    dialect: dialect);
-                userFunctions.Add(userFun);
+                userFunctions[i] = BuildFunctionAndPutItToDictionary(
+                    functionSolveOrder[i],
+                    constants,
+                    scopeFunctionDictionary,
+                    dialect);
             }
         }
 
@@ -168,8 +163,7 @@ internal static class RuntimeBuilder {
 
         return new FunnyRuntime(equations, variables, dialect.Converter);
     }
-
-
+    
     private static TypeInferenceResults SolveBodyTypes(
         SyntaxTree syntaxTree,
         IConstantList constants,
@@ -236,8 +230,7 @@ internal static class RuntimeBuilder {
             var expressionNode = expression.FindFirstUsageOrNull(itVariable);
             throw Errors.CannotUseSuperAnonymousVariableHere(expressionNode.Interval, itVariable.Name);
         }
-
-        //ReplaceInputType
+        
         if(outputVariableSource.Type != expression.Type)
             AssertChecks.Panic("fitless");
         
@@ -250,9 +243,10 @@ internal static class RuntimeBuilder {
         IConstantList constants,
         ScopeFunctionDictionary functionsDictionary,
         DialectSettings dialect) {
-#if DEBUG
-        TraceLog.WriteLine($"\r\n====BUILD {functionSyntaxNode.Id}(..) ====");
-#endif
+
+        if(TraceLog.IsEnabled)
+            TraceLog.WriteLine($"\r\n====BUILD {functionSyntaxNode.Id}(..) ====");
+        
         ////introduce function variable
         var graph = new GraphBuilder();
         var resultsBuilder = new TypeInferenceResultsBuilder();

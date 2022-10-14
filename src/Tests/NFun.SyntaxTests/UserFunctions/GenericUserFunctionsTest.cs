@@ -181,8 +181,24 @@ public class GenericUserFunctionsTest {
     [TestCase("f(x:int)= 1; f(x:real) = 2; out = f(1)")]
     
     
-    [TestCase("f(x)= 1; out = f(1); f(x):int = 2; ")]
-    [TestCase("out = f(1); f(x)= 1; f(x) = x; ")]
-    [TestCase("f(x:int)= 1; out = f(1); f(x:real) = 2; ")]
+    [TestCase("F(x)= 1; out = f(1); f(x):int = 2; ")]
+    [TestCase("out = f(1); F(x)= 1; f(x) = x; ")]
+    [TestCase("f(x:int)= 1; out = f(1); F(x:real) = 2; ")]
+    
+    [TestCase("f(x)= 1; F(x):int = 2; out = 1")]
+    [TestCase("F(x)= 1; f(x) = x; out = 1")]
+    [TestCase("f(x:int)= 1; F(x:real) = 2; out = 1")]
+    
+    [TestCase("F(x)= 1; out = 1; f(x):int = 2; ")]
+    [TestCase("f(x)= 1; out = 1; F(x) = x; ")]
+    [TestCase("f(x:int)= 1; out = 1; F(x:real) = 2; ")]
+
+    [TestCase("f(x)= 1; F(x):int = 2; out = f(1)")]
+    [TestCase("F(x)= 1; f(x) = x; out = f(1)")]
+    [TestCase("f(x:int)= 1; F(x:real) = 2; out = f(1)")]
+    
+    [TestCase("f(x)= 1; out = f(1); F(x):int = 2; ")]
+    [TestCase("out = f(1); F(x)= 1; f(x) = x; ")]
+    [TestCase("F(x:int)= 1; out = f(1); f(x:real) = 2; ")]
     public void ObviousFails(string expr) => expr.AssertObviousFailsOnParse();
 }

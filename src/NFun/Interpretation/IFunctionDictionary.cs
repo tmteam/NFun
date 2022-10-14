@@ -13,10 +13,8 @@ public interface IFunctionDictionary {
 
 
 internal sealed class ImmutableFunctionDictionary : IFunctionDictionary {
-    private readonly Dictionary<string, IFunctionSignature> _functions;
-
-
-    public ImmutableFunctionDictionary(IConcreteFunction[] concretes, GenericFunctionBase[] generics) {
+    public ImmutableFunctionDictionary(IConcreteFunction[] concretes, GenericFunctionBase[] generics)
+    {
         _functions = new Dictionary<string, IFunctionSignature>(concretes.Length + generics.Length);
         foreach (var concrete in concretes) TryAdd(concrete);
         foreach (var generic in generics) TryAdd(generic);
@@ -25,6 +23,8 @@ internal sealed class ImmutableFunctionDictionary : IFunctionDictionary {
     private ImmutableFunctionDictionary(Dictionary<string, IFunctionSignature> functions) {
         _functions = functions;
     }
+
+    private readonly Dictionary<string, IFunctionSignature> _functions;
 
     public IList<IFunctionSignature> SearchAllFunctionsIgnoreCase(string name, int argCount) {
         var lowerName = GetOverloadName(name.ToLower(), argCount);
@@ -49,7 +49,7 @@ internal sealed class ImmutableFunctionDictionary : IFunctionDictionary {
     public ImmutableFunctionDictionary CloneWith(params IFunctionSignature[] functions) {
         if (functions.Length == 0)
             return this;
-        var newFunctions = new Dictionary<string, IFunctionSignature>(_functions);
+        var newFunctions = new Dictionary<string, IFunctionSignature>(_functions, StringComparer.OrdinalIgnoreCase);
         var dic = new ImmutableFunctionDictionary(newFunctions);
         foreach (var function in functions)
         {
@@ -75,11 +75,21 @@ internal sealed class ImmutableFunctionDictionary : IFunctionDictionary {
 
 
 internal sealed class ScopeFunctionDictionary : IFunctionDictionary {
+    public ScopeFunctionDictionary(IFunctionDictionary origin) { 
+        _origin = origin;
+        _functions = new();
+    }
+
+    public ScopeFunctionDictionary(IFunctionDictionary origin, int scopeCapacity)
+    {
+        _origin = origin;
+        _functions = new(scopeCapacity);
+
+    }
+
     private readonly IFunctionDictionary _origin;
-    private readonly Dictionary<string, IFunctionSignature> _functions = new();
-
-    public ScopeFunctionDictionary(IFunctionDictionary origin) { _origin = origin; }
-
+    private readonly Dictionary<string, IFunctionSignature> _functions;
+    
     public IList<IFunctionSignature> SearchAllFunctionsIgnoreCase(string name, int argCount) {
         //code used only in error handling. No need to optimize.
         var lowerName = GetOverloadName(name.ToLower(), argCount);

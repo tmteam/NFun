@@ -165,5 +165,8 @@ public class ConcreteUserFunctionsTest {
     [TestCase("y:real(x):real= 1")]
     [TestCase("f(x):real= 1; f(x):int = 2; out = 1")]
     [TestCase("f(x):real= 1; f(x):int = 2; out = f(1)")]
+    [TestCase("f(x):real= 1; F(x):int = 2; out = 1")]
+    [TestCase("F(x):real= 1; f(x):int = 2; out = f(1)")]
+    [TestCase("f(x):real= 1; f(x):int = 2; out = F(1)")]
     public void ObviousFails(string expr) => expr.AssertObviousFailsOnParse();
 }
