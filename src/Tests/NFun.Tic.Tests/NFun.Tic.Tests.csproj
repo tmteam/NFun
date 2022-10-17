@@ -8,7 +8,7 @@
 
         <RootNamespace>NFun.Tic.Tests</RootNamespace>
 
-        <TargetFrameworks>net461;net5.0;netcoreapp3.0</TargetFrameworks>
+        <TargetFrameworks>net6.0;netcoreapp3.0</TargetFrameworks>
 
         <LangVersion>10</LangVersion>
     </PropertyGroup>

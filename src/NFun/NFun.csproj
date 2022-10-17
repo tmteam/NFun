@@ -16,7 +16,7 @@
         <PackageReleaseNotes>Support .net standard 2.0. Imrpove char type support </PackageReleaseNotes>
         <AssemblyVersion>0.9.9</AssemblyVersion>
         <FileVersion>0.9.9</FileVersion>
-        <TargetFrameworks>net5.0;netstandard2.0</TargetFrameworks>
+        <TargetFrameworks>net5.0;net6.0;netstandard2.0</TargetFrameworks>
         <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
 
     </PropertyGroup>
