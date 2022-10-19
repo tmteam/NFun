@@ -15,7 +15,7 @@ Type identifier is the type name used in the code
 An example of such an identifier would be `bool` for boolean type, `text` for an array of characters (string), etc
 Some types have multiple identifiers like `byte` and `uint8` for a byte, and `int32` and `int` for a 32-bit integer
 
-Some types do not have an identifier at all. It is true for  `char`, `rule` and `struct`
+Some types do not have an identifier at all. It is true for `rule` and `struct`
 
 
 ## Primitive types
